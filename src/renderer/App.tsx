@@ -50,7 +50,11 @@ import {
 } from 'common/branding';
 import { resetRhythmRun } from './utils/rhythmRun';
 import useMediaQuery from './utils/useMediaQuery';
-import { setSoundPaneFolded, useSoundPaneFolded } from './utils/soundPane';
+import {
+  setSoundPaneFolded,
+  useSoundPaneFolded,
+  useSoundPaneSlide,
+} from './utils/soundPane';
 import { useTitlebarRoom } from './utils/useTitlebarRoom';
 import GameSound from './games/GameSound';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
@@ -140,6 +144,7 @@ import keepsPlayerMounted from './audio/playerMount';
 import { useLastShown } from './audio/lastShown';
 import useCaptureBridge from './audio/useCaptureBridge';
 import useAppFullMark from './utils/useAppFullMark';
+import usePageMark from './utils/usePageMark';
 import { useNoticeClaim } from './utils/noticeTurn';
 import PaneResizer from './components/PaneResizer';
 import WorkspaceTabStrip from './components/WorkspaceTabStrip';
@@ -201,6 +206,7 @@ import useRepairWhenEngineNeverRan from './utils/useRepairWhenEngineNeverRan';
 import useWindowFloor from './utils/windowFloor';
 import MenuIcon from './icons/MenuIcon';
 import Chevron from './icons/Chevron';
+import CompactFrame from './components/CompactFrame';
 import ActionsMenu, { type TEngineState } from './components/ActionsMenu';
 import UpdateNotice from './components/UpdateNotice';
 import SpeechMemoryNotice from './components/SpeechMemoryNotice';
@@ -215,6 +221,7 @@ import DisclaimerGate from './components/DisclaimerGate';
 import WhatsNewDialog from './components/WhatsNewDialog';
 import FeatureTour from './components/featureTour/FeatureTour';
 import HelpMenu from './help/HelpMenu';
+import type { IHelpHandlers } from './help/helpMenuActions';
 import { featureTourFor } from './components/featureTour/slides';
 import AboutDialog from './components/AboutDialog';
 import SignalBrandMark from './components/SignalBrandMark';
@@ -233,6 +240,8 @@ import {
 } from './player/windowModeStore';
 import { holdGraphUntil } from './graph/graphArrival';
 import { applyThemeScope } from './utils/theme';
+import { applyBackdropVeilScope } from './utils/backdropVeil';
+import { applySliderHandleScope } from './utils/sliderHandle';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
 import {
   LiveAudioProvider,
@@ -829,6 +838,9 @@ const AppContent = () => {
    * THE AMP KEEPS ITS OWN THEME (Ivan, 2026-09-22). The full app can be Dark
    * while the amp is Light: the two are never on screen at once, so there is
    * one theme on the window at a time and a choice remembered for each mode.
+   * Transparency and the EQ sliders' round or rectangular handle are kept
+   * the same way: one control remembered twice (`backdropVeil.ts`,
+   * `sliderHandle.ts`).
    *
    * Applied from here rather than from the mode store itself, which is where
    * it belongs by subject and cannot go by construction: that module is
@@ -837,7 +849,10 @@ const AppContent = () => {
    * is the top of the tree and imports both already.
    */
   useEffect(() => {
-    applyThemeScope(windowMode === 'player' ? 'player' : 'app');
+    const scope = windowMode === 'player' ? 'player' : 'app';
+    applyThemeScope(scope);
+    applyBackdropVeilScope(scope);
+    applySliderHandleScope(scope);
   }, [windowMode]);
   const openPageFromPlayer = useCallback(
     (page: TPlayerPage) => {
@@ -1405,6 +1420,16 @@ const AppContent = () => {
   const titlebarRightRef = useRef<HTMLDivElement | null>(null);
   useTitlebarRoom(titlebarRef, titlebarLeftRef, titlebarRightRef);
 
+  // What Help's entries open: its own menu's, and the actions menu's while
+  // the titlebar has no room for Help's button.
+  const helpHandlers: IHelpHandlers = {
+    onTour: () => setShowFeatureTour(true),
+    onTroubleshoot: () => setShowTroubleshooter(true),
+    onReport: () => setShowBugReport(true),
+    onForum: () => selectTopWorkspaceTab('forum'),
+    onAbout: () => setShowAbout(true),
+  };
+
   // `showsGraph` and the backdrop it decides are worked out beside the players'
   // mount rules above, which have to know whether a paused player is on
   // screen under the graph.
@@ -1472,6 +1497,14 @@ const AppContent = () => {
   const isSoundPaneShown = isSoundPaneOverPage
     ? rightPaneOpen
     : !isSoundPaneFolded;
+  // The panel slides on the compositor; the page is laid out once per fold
+  // (`useSoundPaneSlide`). Beside the page the column is its rail from the
+  // start of a fold, and until an unfold's slide has finished — the panel
+  // covers the difference either way.
+  const soundPanelRef = useRef<HTMLDivElement>(null);
+  const isSoundPaneSliding = useSoundPaneSlide(soundPanelRef, isSoundPaneShown);
+  const isSoundColumnNarrow =
+    isSoundPaneFolded || (isSoundPaneSliding && !isSoundPaneOverPage);
   // Full screen with the top bar kept. Everything below reads this rather than
   // the mode alone, so "full screen" and "full screen with the bar" cannot end
   // up disagreeing about which pieces are on screen.
@@ -1489,6 +1522,7 @@ const AppContent = () => {
    */
   const isAppFullScreen = isGraphAppFullScreen || isMediaFullScreen;
   useAppFullMark(isAppFullScreen);
+  usePageMark(activeWorkspaceTab);
   const isPlayerVisFull = usePlayerVisFull();
   /**
    * Whether anything in here is actually claiming the full-screen window.
@@ -2705,6 +2739,7 @@ const AppContent = () => {
                   ? () => setAccountDialogPage('home')
                   : undefined
               }
+              help={helpHandlers}
             />
             {/* Help, as one more glyph in the capsule beside the engine's
                 (Ivan, 2026-09-22: "put the help menu as icon next to the
@@ -2712,11 +2747,11 @@ const AppContent = () => {
                 of its own, which was one of the four shapes across this
                 strip. */}
             <HelpMenu
-              onTour={() => setShowFeatureTour(true)}
-              onTroubleshoot={() => setShowTroubleshooter(true)}
-              onReport={() => setShowBugReport(true)}
-              onForum={() => selectTopWorkspaceTab('forum')}
-              onAbout={() => setShowAbout(true)}
+              onTour={helpHandlers.onTour}
+              onTroubleshoot={helpHandlers.onTroubleshoot}
+              onReport={helpHandlers.onReport}
+              onForum={helpHandlers.onForum}
+              onAbout={helpHandlers.onAbout}
               forumOpen={isForumTab}
             />
             <WindowModeSwitch />
@@ -2800,20 +2835,42 @@ const AppContent = () => {
           isKaraokeSurfaceFullScreen ? ' is-karaoke-full' : ''
         }${isKaraokeGraphFullScreen ? ' has-karaoke-graph' : ''}${
           isSoundDrawerOpen ? ' is-sound-drawer-open' : ''
-        }${isSoundPaneFolded ? ' is-sound-pane-folded' : ''}`}
+        }${isSoundPaneFolded ? ' is-sound-pane-folded' : ''}${
+          isSoundColumnNarrow ? ' is-sound-pane-narrow' : ''
+        }`}
       >
         {showAudioRestartRecommendation && !suppressAudioNotices && (
-          <aside className="audio-restart-notice" role="status">
-            <span>{t('notice.apoReconfigured')}</span>
-            <div className="audio-restart-notice__actions">
-              <button type="button" onClick={handleRestartWindowsAudio}>
-                {t('notice.restartNow')}
-              </button>
-              <button type="button" onClick={dismissAudioRestartRecommendation}>
-                {t('app.dismiss')}
-              </button>
-            </div>
-          </aside>
+          <CompactFrame
+            className="audio-restart-notice"
+            role="status"
+            aria-modal={undefined}
+            tone="warn"
+            icon={<MenuIcon name="restart" />}
+            title={t('notice.apoReconfiguredTitle')}
+            titleId="apo-reconfigured-title"
+            onClose={dismissAudioRestartRecommendation}
+            closeLabel={t('app.dismiss')}
+            actions={
+              <>
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={dismissAudioRestartRecommendation}
+                >
+                  {t('app.dismiss')}
+                </button>
+                <button
+                  type="button"
+                  className="button small"
+                  onClick={handleRestartWindowsAudio}
+                >
+                  {t('notice.restartNow')}
+                </button>
+              </>
+            }
+          >
+            <p>{t('notice.apoReconfigured')}</p>
+          </CompactFrame>
         )}
         {/* Same shape as the restart notice above: what happened, and the
             one thing worth trying. Windows refuses the loopback capture for
@@ -2821,28 +2878,39 @@ const AppContent = () => {
             dismissed — and a second attempt very often works, so there is
             something better to offer than an apology. */}
         {captureError && !isCaptureNoticeHidden && !suppressAudioNotices && (
-          <aside className="audio-restart-notice" role="status">
-            <span>
-              The live meter and the output curve could not start. Everything
-              else works normally.
-            </span>
-            <div className="audio-restart-notice__actions">
-              <button
-                type="button"
-                onClick={() => {
-                  retryCapture();
-                }}
-              >
-                Try again
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsCaptureNoticeHidden(true)}
-              >
-                {t('app.dismiss')}
-              </button>
-            </div>
-          </aside>
+          <CompactFrame
+            className="audio-restart-notice"
+            role="status"
+            aria-modal={undefined}
+            tone="warn"
+            icon={<MenuIcon name="alert" />}
+            title={t('notice.captureFailed')}
+            titleId="capture-failed-title"
+            onClose={() => setIsCaptureNoticeHidden(true)}
+            closeLabel={t('app.dismiss')}
+            actions={
+              <>
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={() => setIsCaptureNoticeHidden(true)}
+                >
+                  {t('app.dismiss')}
+                </button>
+                <button
+                  type="button"
+                  className="button small"
+                  onClick={() => {
+                    retryCapture();
+                  }}
+                >
+                  {t('notice.tryAgain')}
+                </button>
+              </>
+            }
+          >
+            <p>{t('notice.captureFailedBody')}</p>
+          </CompactFrame>
         )}
         {/* Below the two-column breakpoint this panel is a drawer that slides
             in from the left edge, summoned by the tab below and dismissed by
@@ -3251,10 +3319,9 @@ const AppContent = () => {
               />
             ) : null}
             {/* The graph's Plus visualizer, beside the graph and not in it:
-                on the plot, the EQ column or the Backdrop, and still behind
-                the window in the Backdrop while the graph is closed on a page
+                on the plot, the EQ column or, on the EQ page, the Backdrop
                 (`GraphScene`). Renders only its canvas, wherever that is. */}
-            <GraphScene />
+            <GraphScene page={activeWorkspaceTab} />
           </Activity>
         </div>
         {/* One backdrop for both drawers, and pressing it shuts both. Two of
@@ -3275,9 +3342,9 @@ const AppContent = () => {
         <div
           className={`right-content${isSoundDrawerOpen ? ' is-open' : ''}${
             isSoundPaneShown ? ' is-shown' : ''
-          }`}
+          }${isSoundPaneSliding ? ' is-sliding' : ''}`}
         >
-          <div className="right-content__panel">
+          <div className="right-content__panel" ref={soundPanelRef}>
             {/* The panel's own button, at its top left, where the rail keeps
                 it when the panel is folded (Ivan, 2026-09-27: "remove that
                 center crappy handler, put the collapsible on the top left of
@@ -3469,39 +3536,33 @@ const AppContent = () => {
           }
         />
         {globalError && !isBlockingError && (
-          <div className="workspace-notice" role="alert">
-            <div>
-              <strong>{globalError.shortError}</strong>
-              <span>{globalError.action}</span>
-            </div>
-            <button
-              type="button"
-              aria-label={t('app.dismiss')}
-              onClick={() => setGlobalError(undefined)}
-            >
-              <svg viewBox="0 0 12 12" aria-hidden="true">
-                <path d="M3 3l6 6M9 3l-6 6" />
-              </svg>
-            </button>
-          </div>
+          <CompactFrame
+            className="workspace-notice"
+            role="alert"
+            aria-modal={undefined}
+            tone="warn"
+            icon={<MenuIcon name="alert" />}
+            title={globalError.shortError}
+            titleId="workspace-error-title"
+            onClose={() => setGlobalError(undefined)}
+            closeLabel={t('app.dismiss')}
+          >
+            {globalError.action && <p>{globalError.action}</p>}
+          </CompactFrame>
         )}
         {importNotice && (
-          <div className="workspace-notice workspace-notice--ok" role="status">
-            <MenuIcon name="import" className="workspace-notice__icon" />
-            <div>
-              <strong>{t('notice.importComplete')}</strong>
-              <span>{importNotice}</span>
-            </div>
-            <button
-              type="button"
-              aria-label={t('app.dismiss')}
-              onClick={() => setImportNotice('')}
-            >
-              <svg viewBox="0 0 12 12" aria-hidden="true">
-                <path d="M3 3l6 6M9 3l-6 6" />
-              </svg>
-            </button>
-          </div>
+          <CompactFrame
+            className="workspace-notice"
+            role="status"
+            aria-modal={undefined}
+            icon={<MenuIcon name="import" />}
+            title={t('notice.importComplete')}
+            titleId="import-complete-title"
+            onClose={() => setImportNotice('')}
+            closeLabel={t('app.dismiss')}
+          >
+            <p>{importNotice}</p>
+          </CompactFrame>
         )}
         {/* Bottom left, opposite the failure notices, so two things arriving
             at once do not land on top of each other. */}

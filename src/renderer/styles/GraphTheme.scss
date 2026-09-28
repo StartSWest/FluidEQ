@@ -516,10 +516,15 @@ it under the terms of the GNU General Public License version 3 or later.
     stroke-width: 1.5;
   }
 
-  &:hover,
+  // Switched on it keeps the face and the edge every control has, and says
+  // so in white; only the pointer lifts it.
   &.is-on {
-    border-color: $border-field-hover;
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    color: $white;
+  }
+
+  &:hover {
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
     color: $white;
   }
 }
@@ -539,7 +544,8 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 6px;
   // The floating surfaces' own face, like every other menu (Ivan,
   // 2026-09-25: "all menus", "to much dropshadows").
-  @include floating-surface;
+  // A dropdown: the card's face, like every menu (`menu-face`).
+  @include menu-face;
   // Out of the button's corner, as every menu does (`menu-in`): it was the one
   // on the graph that simply appeared.
   --menu-origin: top left;
@@ -758,48 +764,68 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// A dark shade under the graph's options, from the top of the plot to the
-// foot of their row, then a soft end (Ivan, 2026-09-27: "add a smooth dark
-// gradient below when those options appear", "same for plus viz", "from the
-// top to the bottom of the options", "add smooth end to the drop shadow").
-// The peaks and the scenes run up behind the strip, and with no surface under
-// it (`.graph-legend-group` has none) the words stood on whatever the picture
-// was doing.
-//
-// The strip's own `::before`, so it is as tall as its rows — one, or two
-// where a narrow window wraps them — and fades out and back with them
-// (`is-idle`), nothing left behind when the options are away. It reaches the
-// plot's edges past the strip's own insets: 9px above, 10px at the sides, 56px
-// on the right of a ruled plot (the level scale's gutter). Behind the strip's
-// controls and over the picture: the strip is its own stacking layer.
-//
-// Even from top to foot, and the same shade as the EQ head's over a scene
-// (`$chrome-shade`), so under the head the two are one block from the pills
-// to the options with no gap between them ("same for the entire block top to
-// bottom"). Past the foot it falls away over 44px in four steps, so there is
-// no line where the shade stops and the picture begins.
-.live-output-controls::before {
-  position: absolute;
-  z-index: -1;
-  top: -9px;
-  right: -10px;
-  bottom: -44px;
-  left: -10px;
-  content: '';
-  background: linear-gradient(
-    to bottom,
-    $chrome-shade calc(100% - 44px),
-    color-mix(in srgb, $chrome-shade 72%, transparent) calc(100% - 33px),
-    color-mix(in srgb, $chrome-shade 42%, transparent) calc(100% - 22px),
-    color-mix(in srgb, $chrome-shade 16%, transparent) calc(100% - 11px),
-    transparent
-  );
-  pointer-events: none;
+// The look's caption, then its arrows round its name: laid out at the picker's
+// own 10px, exactly as when they were the picker's children, as boxes the row
+// can fold round but never through.
+.graph-look-walk,
+.graph-look-walk__steps {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
 }
 
-.graph-wrapper:not(.is-gridless) > .live-output-controls::before {
-  right: -56px;
+// Folded: the chips are already the one "Curves" button (or a single chip)
+// and the row still does not fit. The cluster is right-aligned over the plot,
+// so what did not fit did not stop at an edge: it ran off the graph's left,
+// the first chip cut in half (2026-09-28, the graph at 740px, and narrower
+// still under the sound panel's drawer or the window zoomed). Now it folds
+// onto a second line under the first, right-aligned as the first is, and the
+// look's caption, arrows and name travel together.
+.graph-legend-group.is-folded {
+  // The row's whole width, so what folds is laid out against the plot and not
+  // against the width it would have liked; still right-aligned, so while it
+  // all fits on one line it stands exactly where it did. It takes no press
+  // itself, as above.
+  flex: 1 1 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  // The picker's own spacing, which its controls keep once they are this
+  // row's: the chip first, then the look, then the tools, one line of them
+  // that runs on to the next. Folded inside the picker instead, the chip
+  // stood alone at the plot's left with a gap the width of what had wrapped.
+  column-gap: 10px;
+  row-gap: 6px;
+
+  .graph-legend--picker {
+    display: contents;
+  }
+
+  // Set apart from the chip by the picker's 6px, less the 2px this row's gap
+  // has over the group's. On a row too narrow even for the caption beside its
+  // look, the caption stands over it; wrapped, its box spans a line it does
+  // not fill, so only its controls take a press.
+  .graph-look-walk {
+    flex: 0 1 auto;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 6px;
+    margin-inline-start: 4px;
+    pointer-events: none;
+
+    > * {
+      pointer-events: auto;
+    }
+  }
 }
+
+// No shade under the graph's options: the row's controls stand on the
+// drawing with their own faces. A shade ran from the top of the plot to the
+// foot of the row and faded out below it, over the picture and then the
+// card (2026-09-27), and Ivan took it off the same day: "I hate the
+// dropshadow that shows when options pane open, remove".
 
 // One step through the looks, either side of the name.
 //
@@ -902,10 +928,11 @@ it under the terms of the GNU General Public License version 3 or later.
 // the window is in, and the menu, the four modes with what each does and the
 // chosen one's sliders under them.
 //
-// The glyph is the theme's own, a circle half filled, and the filled half is
-// the colour the window takes: `--scene-tint-swatch`, set from the measured
-// sky and lifted to a lightness that reads at this size. Before a sky is
-// known the half is the ring's ink.
+// The glyph (`TintIcon`) is a ring, a dot, a dot with a halo and a dot in a
+// glow, and its coloured parts are the colour the window's controls take:
+// `--scene-tint-swatch`, the scene's accent hue (`sceneAccentSwatch`) lifted
+// to a lightness that reads at this size. Before a sky is known they are the
+// ring's ink.
 .graph-scene-look {
   display: inline-flex;
 }
@@ -925,21 +952,30 @@ it under the terms of the GNU General Public License version 3 or later.
   stroke-linejoin: round;
   stroke-width: 1.5;
 
-  .tint-icon__half {
+  // Theme's ring: the theme's own accent, which no tint writes, so the
+  // choice that means "your theme" wears it while a scene's is lent.
+  .tint-icon__theme {
+    stroke: var(--theme-accent, currentcolor);
+  }
+
+  .tint-icon__fill {
     fill: var(--scene-tint-swatch, currentcolor);
     stroke: none;
   }
 
-  .tint-icon__wave {
+  // Ambient's halo: the colour beating round the dot.
+  .tint-icon__halo {
+    stroke: var(--scene-tint-swatch, currentcolor);
+    stroke-width: 1.25;
     opacity: 0.55;
   }
 
-  // The Backdrop's: the scene's colour washed over the whole glyph, as the
-  // scene is over the whole window.
-  .tint-icon__wash {
+  // The Backdrop's: the colour glowing over the whole glyph, as the scene is
+  // over the whole window.
+  .tint-icon__glow {
     fill: var(--scene-tint-swatch, currentcolor);
     stroke: none;
-    opacity: 0.3;
+    opacity: 0.32;
   }
 }
 
@@ -1040,7 +1076,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 2px;
   margin-bottom: 2px;
   padding: 0 4px 6px;
-  border-bottom: 1px solid $border-subtle;
+  border-bottom: 1px solid $menu-rule;
 }
 
 /**
@@ -1175,25 +1211,31 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   // The field's disabled face is a greyed box; in this row a control that
-  // cannot be used dims like the buttons around it.
+  // cannot be used keeps the face and edge every control has and says so in
+  // its words alone. At the row's disabled opacity "Auto: Off" was a smudge
+  // over the picture (Ivan, 2026-09-27: "drag points and auto thing" among
+  // the words that need to be clear), and on a face of its own it was the
+  // one box in the row a different colour ("all same as preset").
   &[aria-disabled='true'] {
-    border-color: $border-field;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    color: $text-faint;
+    border-color: $border-control;
+    background: $surface-control;
     cursor: not-allowed;
-    opacity: $disabled-opacity;
   }
 }
 
 // Switching on its own is a state worth seeing, like the View button off
 // Normal, and so is a window in the visualizer's colours; and open, the way
-// every trigger in the row shows its menu is up.
+// every trigger in the row shows its menu is up. Said in white and a lit
+// icon, on the face and the edge every control has: a full-accent edge and a
+// second tint over the face made Backdrop the one box in the row that was a
+// different colour (Ivan, 2026-09-27: "the ambient backdrop still having a
+// different border fix").
 .live-output-controls
   :is(
     .dropdown.graph-auto-cycle:is(.is-on, .dropdown--open) > [role='menu'],
     .graph-scene-look__trigger:is(.is-on, .is-open)
   ) {
-  border-color: $secondary-light;
-  background: color-mix(in srgb, $secondary-light 16%, transparent);
   color: $white;
 
   .graph-auto-cycle__icon {
@@ -1338,9 +1380,13 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-content: space-between;
   width: 100%;
   padding: 7px 8px 3px;
+  // Every menu's section heading in the accent, as the Window colours menu
+  // and the look picker's columns head theirs (Ivan, 2026-09-27: "make
+  // better colors", "for all menu"). It was a faint grey here while those
+  // two were lit.
   border: none;
   background: none;
-  color: $text-faint;
+  color: $text-accent;
   font-size: $text-small;
   font-weight: $weight-medium;
   @include tracking(0.08em);
@@ -1633,7 +1679,7 @@ it under the terms of the GNU General Public License version 3 or later.
   .graph-edit-hint,
   .graph-legend-menu,
   .graph-legend-group > .graph-legend:not(.graph-legend--picker),
-  .graph-legend--picker > .graph-legend__label {
+  .graph-look-walk > .graph-legend__label {
     display: none;
   }
 
@@ -1936,15 +1982,19 @@ it under the terms of the GNU General Public License version 3 or later.
 // One declaration, one shape.
 .graph-legend--picker .look-picker__trigger {
   display: inline-flex;
-  height: 22px;
+  // As tall as the strip's buttons, and on their face, edge and ink, the
+  // preset picker's (`$surface-control`, `$border-control`): the select was a
+  // 22px outline with nothing in it beside 28px buttons (Ivan, 2026-09-27:
+  // "make select taller as the buttons", "lets all be same as preset").
+  height: $graph-strip-button;
   box-sizing: border-box;
   align-items: center;
   padding-block: 0;
   padding-inline: 9px;
-  border: 1px solid $border-field;
+  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: none;
-  color: $text-muted;
+  background: $surface-control;
+  color: $secondary-light;
   font-size: $text-micro;
   font-weight: $weight-semibold;
   gap: 5px;
@@ -1954,13 +2004,14 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: pointer;
 
   &:hover {
-    border-color: $border-field-hover;
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
     color: $white;
   }
 
+  // On, in white, on the same face and edge: a lit edge and a second tint
+  // made it the one differently coloured box in the row.
   &.is-on {
-    border-color: $secondary-light;
-    background: color-mix(in srgb, $secondary-light 16%, transparent);
     color: $white;
   }
 }
@@ -2467,7 +2518,16 @@ it under the terms of the GNU General Public License version 3 or later.
   // and being resized used to leave the player marked against a chain YouTube
   // had already moved it off. That is fixed at the source, so a resize is
   // merely a resize again.
-  grid-template-columns: 0 1fr 0;
+  //
+  // The areas are named here beside the tracks, never left to the width's
+  // layout: at the one-column width that layout names two (`App.scss`, the
+  // page and the sound panel's rail), so these three tracks put the page in
+  // the first, 0px wide, and full screen was the title bar over an empty
+  // window from 940px down — a 1024px window zoomed in once (2026-09-28).
+  // `minmax(0, …)` as the shell's own template has it, so nothing inside can
+  // hold the page wider than the window.
+  grid-template-areas: 'side-bar center-workspace right-content';
+  grid-template-columns: 0 minmax(0, 1fr) 0;
   padding: 0;
   gap: 0;
 }
@@ -2573,7 +2633,7 @@ it under the terms of the GNU General Public License version 3 or later.
 #root:not(.is-chrome-idle)
   .app-workspace.is-app-full:not(.has-top-bar)
   :is(.live-output-controls, .look-designer) {
-  top: calc(#{$title-bar-height} + 17px);
+  top: calc(#{$title-bar-height} + #{$graph-strip-inset});
 }
 
 .app-workspace.is-app-full .live-output-controls {
@@ -2598,24 +2658,16 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .app-workspace.is-app-full.has-top-bar .live-output-controls {
-  // Lined up with the header above it. The strip sits 10px inside the graph
-  // card, which in full screen IS the window — so it ended 21px further out
-  // than the window controls it is stacked under, and two rows of controls
-  // that nearly line up read worse than two that plainly do not. The header
-  // holds its own contents at the shell's gutter plus its 18px of padding;
-  // this states the same sum.
-  // Keep the normal view's editor reservation in fullscreen too; this more
-  // specific rule used to put the toolbar back underneath the open editor.
-  right: var(--graph-controls-right, calc(var(--shell-gutter, 12px) + 18px));
+  // Where it ends across is the sound panel's rail's to say (`App.scss`).
   // Karaoke's own fullscreen toolbar sits 9px inside a stage that starts 8px
   // below the titlebar. Use the same combined inset so swapping the Karaoke
   // toolbar for the graph toolbar does not move the controls or alter the gap
   // beneath them.
-  top: calc(#{$title-bar-height} + 17px);
+  top: calc(#{$title-bar-height} + #{$graph-strip-inset});
 }
 
 .app-workspace.is-app-full.has-top-bar .look-designer {
-  top: calc(#{$title-bar-height} + 17px);
+  top: calc(#{$title-bar-height} + #{$graph-strip-inset});
 }
 
 // And it must not run off the bottom having been pushed down.

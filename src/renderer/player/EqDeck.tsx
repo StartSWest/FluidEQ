@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { SONG_EQ_MIN_LISTENED_MS } from 'common/songEqRecorder';
 import {
   setSongEqSaveOn,
@@ -15,16 +15,17 @@ import BandLayoutMenu from '../components/BandLayoutMenu';
 import ClearEqButton from '../components/ClearEqButton';
 import EqModeSelect from '../components/EqModeSelect';
 import VoicingQuickPick from '../components/VoicingQuickPick';
+import { useCurrentEngine } from '../utils/audioEngineContext';
 import useIsAutoEqRunning from '../utils/autoEqRunning';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import useEqualizerPower from '../utils/useEqualizerPower';
+import Switch from '../widgets/Switch';
 import EqScreen, { IBandFocus } from './EqScreen';
 import MiniBands, { PREAMP_FOCUS, bandLabel } from './MiniBands';
-import MenuIcon from '../icons/MenuIcon';
 import PlayerTone from './PlayerTone';
 import SmartEqKey from './SmartEqKey';
-import { setPlayerWidthNeed } from './playerLayout';
+import { setPlayerWidthNeed, sheetAllowance } from './playerLayout';
 import useRowFit from './useRowFit';
 
 type TEqFace = 'bands' | 'tone';
@@ -54,6 +55,7 @@ const EqDeck = () => {
   const { t } = useTranslation();
   const { filters, preAmp } = useFluidEqContext();
   const power = useEqualizerPower();
+  const engine = useCurrentEngine();
   const isMeasuring = useIsAutoEqRunning();
   const isSaveOn = useSongEqSaveOn();
   const recording = useSongEqRecording();
@@ -70,20 +72,13 @@ const EqDeck = () => {
   const needs = useRef({ keys: 0, foot: 0 });
   const publishNeed = useCallback(() => {
     const row = footRef.current ?? keysRef.current;
-    const deck = row?.closest<HTMLElement>('.player-eq');
-    const body = row?.closest<HTMLElement>('.player-body');
-    if (!row || !deck || !body) {
+    const sheet = row?.closest<HTMLElement>('.player-sheet');
+    if (!row || !sheet) {
       return;
     }
-    const bodyStyle = getComputedStyle(body);
-    const around =
-      deck.getBoundingClientRect().width -
-      row.clientWidth +
-      parseFloat(bodyStyle.paddingLeft) +
-      parseFloat(bodyStyle.paddingRight);
     setPlayerWidthNeed(
       'rows',
-      Math.max(needs.current.keys, needs.current.foot) + around,
+      Math.max(needs.current.keys, needs.current.foot) + sheetAllowance(sheet),
     );
   }, []);
   const onKeysNeed = useCallback(
@@ -127,40 +122,54 @@ const EqDeck = () => {
       // Remembered where storage allows; the switch works either way.
     }
   };
-  // Both quiet, in either state: which one is chosen is said by the key's own
-  // "on" face (`.player-eq__faces`), not by the app's loud accent button —
-  // neither view of the equaliser is the one being recommended.
+  // Two halves of one segmented pill: which one is chosen is said by its lit
+  // half, not by the app's loud accent button — neither view of the
+  // equaliser is the one being recommended. They keep their words at every
+  // width: they are the choice of what the page IS (Ivan, 2026-09-22).
   const faceButton = (value: TEqFace, label: string) => (
     <button
       type="button"
-      className="button small subtle player-eq__face"
+      className="player-eq__face"
       aria-pressed={face === value}
       onClick={() => chooseFace(value)}
     >
-      {/* The faders, and the sound they shape. These two keep their words at
-          every width — they are the choice of what the deck IS, and a pair of
-          glyphs with no names is a riddle (Ivan, 2026-09-22). */}
-      <MenuIcon name={value === 'tone' ? 'waveform' : 'layout'} />
       {label}
     </button>
   );
+  const powerId = useId();
 
   return (
     <section className="player-eq" aria-label={t('player.eq.aria')}>
       <div className="player-eq__keys" ref={keysRef}>
-        <button
-          type="button"
-          className="button small subtle player-led"
-          aria-pressed={power.isEnabled}
-          disabled={power.isBlockingError}
-          title={t('player.eq.onHint')}
-          onClick={() => {
-            power.toggle().catch(() => undefined);
-          }}
-        >
-          <span className="player-led__lamp" aria-hidden="true" />
-          {t('player.eq.on')}
-        </button>
+        {/* FluidEQ's own switch — the app's switch, and beside it what it
+            switches and whether it is on (the Stage, 2026-09-27). The words
+            are the first thing the row gives up when it runs out of room;
+            the switch never goes. */}
+        <span className="player-eq__power" title={t('player.eq.onHint')}>
+          <Switch
+            id={powerId}
+            isOn={power.isEnabled}
+            isDisabled={power.isBlockingError}
+            handleToggle={() => {
+              power.toggle().catch(() => undefined);
+            }}
+            ariaLabel={t('sidebar.systemEq')}
+          />
+        </span>
+        <span className="player-eq__name" aria-hidden="true">
+          <b>{t('sidebar.systemEq')}</b>
+          <span
+            className={`player-eq__state${power.isEnabled ? '' : ' is-off'}`}
+          >
+            {power.isEnabled
+              ? t('sidebar.state.on', {
+                  engine: t(
+                    engine === 'apo' ? 'engine.apo.name' : 'engine.fluid.name',
+                  ),
+                })
+              : t('sidebar.state.off')}
+          </span>
+        </span>
         <SmartEqKey />
         {/* Only while Smart EQ keeps measuring, as on the EQ page: saving a
             song files the layer that measurement refines, and nothing else

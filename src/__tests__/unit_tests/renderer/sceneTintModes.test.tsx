@@ -58,13 +58,10 @@ const load = (stored: Record<string, string> = {}) => {
 };
 
 describe('the modes a launch starts in', () => {
-  it('starts the graph on Ambient and leaves the Studio on the theme, for somebody new', () => {
+  it('starts the whole app on Ambient, the Studio included, for somebody new', () => {
     const { store, library: fresh } = load();
-    const { result } = fresh.renderHook(() => ({
-      graph: store.useSceneTintMode(),
-      studio: store.useStudioTintMode(),
-    }));
-    expect(result.current).toEqual({ graph: 'pulse', studio: 'off' });
+    const { result } = fresh.renderHook(() => store.useSceneTintMode());
+    expect(result.current).toBe('pulse');
   });
 
   it('keeps a mode chosen before the default changed', () => {
@@ -82,10 +79,16 @@ describe('the modes a launch starts in', () => {
     expect(result.current).toBe(mode);
   });
 
-  it('keeps the old Studio switch that was on as the colours', () => {
-    const { store, library: fresh } = load({ 'fluideq.studioTint': 'true' });
-    const { result } = fresh.renderHook(() => store.useStudioTintMode());
-    expect(result.current).toBe('tint');
+  // The Studio once kept a mode of its own, which started on the theme; it
+  // follows the app's one mode now, and what an earlier version stored for it
+  // is not read.
+  it('ignores a mode an earlier version stored for the Studio alone', () => {
+    const { store, library: fresh } = load({
+      'fluideq.studioTintMode': 'off',
+      'fluideq.studioTint': 'false',
+    });
+    const { result } = fresh.renderHook(() => store.useSceneTintMode());
+    expect(result.current).toBe('pulse');
   });
 
   it('prefers a mode chosen since over the old switch, and remembers a new choice', () => {
@@ -215,9 +218,9 @@ describe('the player’s corner key', () => {
 });
 
 describe('the Studio’s tiles', () => {
-  // Three, not the graph's four: the Backdrop covers the window with the
-  // graph's scene, and the Studio's stage is where a scene is judged.
-  it('shows all three at once, the chosen one pressed, each named in a word', async () => {
+  // The graph's four, setting the app's one mode: what a member picks while
+  // judging a scene is what the graph wears, and the other way round.
+  it('shows all four at once, the app’s mode pressed, each named in a word', async () => {
     const { Tiles, library: fresh } = load();
     fresh.render(<Tiles />);
     const tiles = fresh.screen.getAllByRole('button');
@@ -225,18 +228,30 @@ describe('the Studio’s tiles', () => {
       'graph.sceneTint.short.off',
       'graph.sceneTint.short.tint',
       'graph.sceneTint.short.pulse',
+      'graph.sceneTint.short.cover',
     ]);
     expect(tiles.map((tile) => tile.getAttribute('aria-pressed'))).toEqual([
-      'true',
       'false',
+      'false',
+      'true',
       'false',
     ]);
     await userEvent.click(
-      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.pulse' }),
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.tint' }),
     );
     expect(
-      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.pulse' }),
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.tint' }),
     ).toHaveAttribute('aria-pressed', 'true');
-    expect(window.localStorage.getItem('fluideq.studioTintMode')).toBe('pulse');
+    expect(window.localStorage.getItem('fluideq.sceneTintMode')).toBe('tint');
+  });
+
+  it('shows a Backdrop chosen on the graph as chosen', () => {
+    const { Tiles, library: fresh } = load({
+      'fluideq.sceneTintMode': 'cover',
+    });
+    fresh.render(<Tiles />);
+    expect(
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.cover' }),
+    ).toHaveAttribute('aria-pressed', 'true');
   });
 });

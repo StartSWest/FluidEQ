@@ -293,20 +293,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // `.video-browser__site`'s own padding, to the pixel.
   padding: 4px 9px;
   gap: 5px;
-  border: 1px solid rgba($edge-tint, 0.14);
+  // Every control's face and edge, as the Media bar's pills now wear them.
+  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: $surface-control;
   color: $text-muted;
   font-size: $text-small;
   white-space: nowrap;
   cursor: pointer;
-  transition:
-    background 140ms ease,
-    color 140ms ease,
-    border-color 140ms ease;
+  transition: $transition-control;
 
   &:hover {
-    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
     color: $secondary-light;
   }
 
@@ -315,9 +314,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     outline: none;
   }
 
+  // Chosen: the lit edge and the accent's label on a step lighter face,
+  // never a tint of the accent under it.
   &.is-active {
-    border-color: color-mix(in srgb, $secondary-light 70%, transparent);
-    background: color-mix(in srgb, $secondary-light 16%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-press;
     color: $secondary-light;
   }
 
@@ -325,8 +326,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // active state without claiming to be a current selection, which is what
   // `is-active` means everywhere else on this class.
   &--accent {
-    border-color: color-mix(in srgb, $secondary-light 60%, transparent);
-    background: color-mix(in srgb, $secondary-light 14%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-press;
     color: $secondary-light;
   }
 
@@ -1946,6 +1947,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   align-items: flex-start;
   gap: $spacing-l;
+  // A card of its own, the listing's under it (`.library-list`), so the
+  // page's top stands on one as its songs do (Ivan, 2026-09-27: "in the lib
+  // add wrapper card to the top too"). The cover sits in its padding the way
+  // the rows sit in the listing's.
+  padding: 12px;
+  @include card-surface;
 }
 
 // A laptop's height (`$bp-laptop-height`): the cover at the size of the
@@ -2081,18 +2088,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Two steps, no modal: the question, then the two answers. Ringed in the
-// warning colour so it reads as a decision rather than as more toolbar.
-.library-detail__confirm {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  padding: $spacing-xxs $spacing-xs;
-  border: 1px solid rgba($red, 0.45);
-  border-radius: $radius-xs;
-  color: $text-muted;
-  font-size: $text-body;
-  gap: $spacing-xs;
+// Two steps, no modal: the question opens under the buttons on the small
+// frame every question in the app uses (`CompactFrame`), its red tile saying
+// it deletes. The frame owns the layout; this only places it.
+.compact-frame.library-detail__confirm {
+  width: min(460px, 100%);
+  margin-top: $spacing-xs;
 }
 
 // A playlist with nothing in it yet, and how to fill it. Centred and quiet:
@@ -2338,12 +2339,10 @@ $library-wave-step: 4ms;
   align-items: center;
   gap: 6px;
   padding: 0 3px 0 8px;
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
-  transition:
-    border-color 140ms ease,
-    background 140ms ease;
+  background: $surface-control;
+  transition: $transition-control;
 
   // Focus lights the EDGE, not the fill. A field that repaints when the
   // caret lands in it is a field that changes colour for typing in — and it
@@ -2386,7 +2385,8 @@ $library-wave-step: 4ms;
   padding: 4px;
   // The floating surfaces' own face, like every other menu (Ivan,
   // 2026-09-25: "all menus", "to much dropshadows").
-  @include floating-surface;
+  // A dropdown: the card's face, like every menu (`menu-face`).
+  @include menu-face;
   // Drops out of the field as every menu does (`menu-in`); it was the one list
   // that simply appeared.
   @include menu-motion;
@@ -2575,20 +2575,19 @@ $library-wave-step: 4ms;
   display: inline-flex;
   align-items: center;
   padding-right: 5px;
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
-  transition:
-    background 140ms ease,
-    border-color 140ms ease;
+  background: $surface-control;
+  transition: $transition-control;
 
   &:hover {
-    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
   }
 
   &.is-active {
-    border-color: color-mix(in srgb, $secondary-light 70%, transparent);
-    background: color-mix(in srgb, $secondary-light 16%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-press;
   }
 
   // Bare inside the pill: the pill is what is drawn, these are only where

@@ -167,6 +167,8 @@ import { createWindowModes } from './windowMode';
 import {
   appMinimumSize,
   isUsableRect,
+  PLAYER_BOUNDS_RULE,
+  rememberedPlayer,
   type IRect,
   type IWindowState as IWindowStatePush,
   type TWindowMode,
@@ -728,6 +730,11 @@ interface IWindowState {
   mode?: TWindowMode;
   /** The player's bounds. */
   player?: IRect;
+  /**
+   * Which rule wrote `player` down (`PLAYER_BOUNDS_RULE`); missing in every
+   * file written before the rule.
+   */
+  playerRule?: number;
   /** The player's Always on top. */
   isPinned?: boolean;
 }
@@ -767,13 +774,10 @@ const loadWindowState = (): IWindowState => {
       mode: parsed.mode === 'player' ? 'player' : 'app',
       isPinned: parsed.isPinned === true,
     };
-    if (isUsableRect(parsed.player)) {
-      state.player = {
-        x: parsed.player.x,
-        y: parsed.player.y,
-        width: parsed.player.width,
-        height: parsed.player.height,
-      };
+    const player = rememberedPlayer(parsed);
+    if (player) {
+      state.playerRule = PLAYER_BOUNDS_RULE;
+      state.player = player;
     }
     if (isSize(parsed.width) && isSize(parsed.height)) {
       // Up to the app's floor on the screen it was left on. A window saved
@@ -831,7 +835,8 @@ const saveWindowState = () => {
     // The full app's bounds are the window's own while it is the app. While
     // it is the player they are the ones the switch put aside, to go back to.
     const bounds = isPlayer ? modes.app : mainWindow.getNormalBounds();
-    const player = isPlayer ? mainWindow.getBounds() : modes.player;
+    // The player's own bounds, never the full screen's or a switch's.
+    const player = windowModes.playerBounds(mainWindow);
     // A window that is off screen right now cannot report the state the user
     // chose. Normally that never happens: the close handler saves before it
     // hides, so the window is still visible at that moment. It does happen
@@ -850,7 +855,9 @@ const saveWindowState = () => {
       // The player is never maximised; what it keeps is the app's own.
       isMaximized: isPlayer ? modes.app.isMaximized === true : isAppMaximized,
       mode: modes.mode,
-      ...(isUsableRect(player) ? { player } : {}),
+      ...(isUsableRect(player)
+        ? { player, playerRule: PLAYER_BOUNDS_RULE }
+        : {}),
       isPinned: modes.isPinned,
     };
     scheduleWrite(windowStatePath(), JSON.stringify(state, null, 2)).catch(

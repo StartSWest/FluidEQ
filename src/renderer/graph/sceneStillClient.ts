@@ -1,6 +1,7 @@
 import type { IScenePack } from 'common/scenePacks';
 import textDigest from 'common/textDigest';
 import type { ISceneFrame } from './sceneGl';
+import { pageDaylight } from './sceneDaylight';
 import { afterLinkTurns, sceneProgramKey } from './sceneLinkTurns';
 import type {
   TSceneStillRefusal,
@@ -185,6 +186,7 @@ export const drawStillInWorker = async (
       kind: 'still',
       pack,
       accent: pageAccent(),
+      daylight: pageDaylight(),
       ...(frames ? { frames } : {}),
       ...(format ? { format } : {}),
     })
@@ -202,8 +204,11 @@ export const drawStillInWorker = async (
 export const drawForAgentInWorker = async (
   request: Omit<
     Extract<TSceneStillRequest, { kind: 'agent' }>,
-    'id' | 'kind' | 'accent'
-  >,
+    'id' | 'kind' | 'accent' | 'daylight'
+  > & {
+    /** The time of day the caller chose; absent, the page's Brightness. */
+    daylight?: number;
+  },
 ): Promise<TReplyOf<'agent'> | undefined> => {
   if (!request.unseen) {
     // Other workers' links wait on frames too, and stop with them when the
@@ -220,6 +225,7 @@ export const drawForAgentInWorker = async (
     ...request,
     unseen: request.unseen || document.hidden,
     accent: pageAccent(),
+    daylight: request.daylight ?? pageDaylight(),
   });
 };
 
@@ -249,6 +255,12 @@ export const sampleSceneInWorker = async (
   pack: IScenePack,
 ): Promise<Uint8Array | undefined> => {
   await afterLinkTurns(sceneProgramKey(pack));
-  return (await ask<'sample'>({ kind: 'sample', pack, accent: pageAccent() }))
-    ?.pixels;
+  return (
+    await ask<'sample'>({
+      kind: 'sample',
+      pack,
+      accent: pageAccent(),
+      daylight: pageDaylight(),
+    })
+  )?.pixels;
 };

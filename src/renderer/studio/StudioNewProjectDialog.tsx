@@ -4,7 +4,10 @@ import type { TranslationKey } from 'common/i18n';
 import { MAX_MEMBER_NAME_LENGTH } from 'common/memberScenes';
 import type { TNewProjectResult } from 'main/ipc/memberScenes';
 import Glyph from '../community/Glyph';
+import DialogFrame from '../components/DialogFrame';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import holdFocusReturn from '../utils/focusReturn';
 import { chooseStudioProjectsRoot, createStudioProject } from './studioStore';
 import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/StudioDialogs.scss';
@@ -42,23 +45,20 @@ export default function StudioNewProjectDialog({
   // Open on the Studio's project: its AI may not switch the Studio under it.
   useStudioAgentHold(true);
   const nameId = useId();
+  const formId = useId();
   const [name, setName] = useState('');
   const [running, setRunning] = useState(false);
   const [refusal, setRefusal] = useState<TranslationKey>();
-  const surfaceRef = useRef<HTMLFormElement>(null);
+  const surfaceRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const trimmed = name.trim();
   // The separator the projects folder is already written with.
   const separator = root.includes('\\') ? '\\' : '/';
 
   useEffect(() => {
-    const previousFocus = document.activeElement;
+    const giveFocusBack = holdFocusReturn();
     nameRef.current?.focus();
-    return () => {
-      if (previousFocus instanceof HTMLElement) {
-        previousFocus.focus();
-      }
-    };
+    return giveFocusBack;
   }, []);
 
   useEffect(() => {
@@ -126,80 +126,21 @@ export default function StudioNewProjectDialog({
         }
       }}
     >
-      <form
+      <DialogFrame
         ref={surfaceRef}
-        className="studio-share studio-new"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="studio-new-title"
+        className="studio-new"
+        icon={<MenuIcon name="filePlus" />}
+        title={t('studio.new.title')}
+        titleId="studio-new-title"
+        description={<span id="studio-new-lead">{t('studio.new.lead')}</span>}
         aria-describedby="studio-new-lead"
         aria-busy={running}
-        onSubmit={create}
-      >
-        <div className="studio-share__head">
-          <span className="studio-share__mark" aria-hidden="true">
-            <Glyph name="studio" />
-          </span>
-          <h2 id="studio-new-title" className="studio-share__title">
-            {t('studio.new.title')}
-          </h2>
-        </div>
-        <p id="studio-new-lead" className="studio-share__lead">
-          {t('studio.new.lead')}
-        </p>
-
-        <div className="studio-new__field">
-          <label htmlFor={nameId} className="studio-new__label">
-            {t('studio.new.name')}
-          </label>
-          <input
-            ref={nameRef}
-            id={nameId}
-            className="studio-new__input"
-            type="text"
-            value={name}
-            maxLength={MAX_MEMBER_NAME_LENGTH}
-            placeholder={t('studio.new.placeholder')}
-            aria-invalid={refusal !== undefined}
-            onChange={(event) => {
-              setName(event.target.value);
-              setRefusal(undefined);
-            }}
-          />
-        </div>
-
-        <div className="studio-new__where">
-          <span className="studio-new__label">{t('studio.new.where')}</span>
-          <span className="studio-new__path" title={root}>
-            <Glyph name="folder" />
-            <span className="studio-new__root">{root}</span>
-            {trimmed && (
-              <span className="studio-new__leaf">
-                {separator}
-                {trimmed}
-              </span>
-            )}
-          </span>
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={running}
-            onClick={() => {
-              chooseStudioProjectsRoot().catch(() => undefined);
-            }}
-          >
-            {t('studio.new.change')}
-          </button>
-        </div>
-
-        {refusal && (
-          <p className="studio-notice" role="alert">
-            {t(refusal, { name: trimmed })}
-          </p>
-        )}
-
-        <div className="studio-share__foot">
-          <span className="studio-share__actions">
+        closeLabel={t('support.close')}
+        // Away while the project is being made, as Escape and the backdrop
+        // are: the folder is half written until it answers.
+        onClose={running ? undefined : onClose}
+        footer={
+          <div className="dialog-frame__actions">
             <button
               type="button"
               className="button small subtle"
@@ -208,17 +149,72 @@ export default function StudioNewProjectDialog({
             >
               {t('studio.new.cancel')}
             </button>
+            {/* In the foot, outside the form, and still its submit: Enter in
+                the name presses it. */}
             <button
               type="submit"
+              form={formId}
               className={`button small${running ? ' is-running' : ''}`}
               aria-busy={running}
               disabled={!trimmed}
             >
               {running ? t('studio.new.creating') : t('studio.new.create')}
             </button>
-          </span>
-        </div>
-      </form>
+          </div>
+        }
+      >
+        <form id={formId} className="studio-new__form" onSubmit={create}>
+          <div className="studio-new__field">
+            <label htmlFor={nameId} className="studio-new__label">
+              {t('studio.new.name')}
+            </label>
+            <input
+              ref={nameRef}
+              id={nameId}
+              className="studio-new__input"
+              type="text"
+              value={name}
+              maxLength={MAX_MEMBER_NAME_LENGTH}
+              placeholder={t('studio.new.placeholder')}
+              aria-invalid={refusal !== undefined}
+              onChange={(event) => {
+                setName(event.target.value);
+                setRefusal(undefined);
+              }}
+            />
+          </div>
+
+          <div className="studio-new__where">
+            <span className="studio-new__label">{t('studio.new.where')}</span>
+            <span className="studio-new__path" title={root}>
+              <Glyph name="folder" />
+              <span className="studio-new__root">{root}</span>
+              {trimmed && (
+                <span className="studio-new__leaf">
+                  {separator}
+                  {trimmed}
+                </span>
+              )}
+            </span>
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={running}
+              onClick={() => {
+                chooseStudioProjectsRoot().catch(() => undefined);
+              }}
+            >
+              {t('studio.new.change')}
+            </button>
+          </div>
+
+          {refusal && (
+            <p className="studio-notice" role="alert">
+              {t(refusal, { name: trimmed })}
+            </p>
+          )}
+        </form>
+      </DialogFrame>
     </div>,
     document.body,
   );

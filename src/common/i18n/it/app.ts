@@ -258,6 +258,11 @@ const app: Partial<Dictionary> = {
     'Equalizer APO è stato installato o riconfigurato. Se manca l’audio, riavvia il servizio audio di Windows invece del PC.',
   'notice.restartNow': 'Riavvia l’audio adesso',
   'notice.importComplete': 'Importazione completata',
+  'notice.apoReconfiguredTitle': 'Equalizer APO è cambiato',
+  'notice.captureFailed': 'L’uscita in tempo reale non è partita',
+  'notice.captureFailedBody':
+    'Il misuratore di livello e la curva in tempo reale del grafico sono spenti per ora. Tutto il resto funziona normalmente.',
+  'notice.tryAgain': 'Riprova',
   'notice.restartConfirm':
     'L’audio si interromperà per qualche secondo e Windows chiederà i permessi di amministratore. Continuare?',
   'restart.title': 'Riavvia l’audio di Windows',

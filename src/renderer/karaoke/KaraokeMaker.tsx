@@ -77,7 +77,8 @@ import {
 import useKaraokeNoteAudition from './useKaraokeNoteAudition';
 import { IKaraokeAudioClock } from './karaokeAudioClock';
 import { TWhenPlayheadReaches, whenMediaReaches } from './karaokeMediaCue';
-import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+import MenuIcon from '../icons/MenuIcon';
+import CompactFrame from '../components/CompactFrame';
 import KaraokeMakerNavigator from './KaraokeMakerNavigator';
 import KaraokeMakerCaptureCoach from './KaraokeMakerCaptureCoach';
 import KaraokeMakerFloatingPanel from './KaraokeMakerFloatingPanel';
@@ -2349,11 +2350,17 @@ const KaraokeMaker = ({
         </div>
       )}
       {restoreToast && (
-        <div
+        // A corner notice, not a question: it passes clicks through to the
+        // tools under it and goes by itself, so it carries no ×.
+        <CompactFrame
           key={restoreToast}
           className="karaoke-maker__toast"
           role="status"
+          aria-modal={undefined}
           aria-live="polite"
+          icon={<MenuIcon name="check" />}
+          title={restoreToast}
+          titleId="karaoke-maker-toast-title"
           onAnimationEnd={(event) => {
             // The fade that is its lifetime, not the drift beside it (which
             // reduced motion ends at once) nor anything inside it.
@@ -2364,10 +2371,7 @@ const KaraokeMaker = ({
               dismissRestoreToast();
             }
           }}
-        >
-          <KaraokeMakerToolIcon name="apply" />
-          <span>{restoreToast}</span>
-        </div>
+        />
       )}
 
       <KaraokeMakerConfirmDialog

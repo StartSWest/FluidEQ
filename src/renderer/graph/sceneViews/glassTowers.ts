@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { IAnalysisBand } from '../analysis/analysisFrame';
+import type { IAnalysisBand, IAnalysisPlot } from '../analysis/analysisFrame';
 import {
   HEAT_STEPS,
   clampUnit,
@@ -16,7 +16,10 @@ import {
   inkAt,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneMusic,
   type ISceneSpan,
+  type ISceneStand,
+  type TSceneInk,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -50,12 +53,16 @@ import {
  * sparks.
  */
 
-/** A tower never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 8;
+/**
+ * A tower never on a pitch smaller than this, in CSS pixels. Exported with the
+ * reflection's length and the functions below for the look's GPU painting
+ * (`engineLooks/glassTowersLook.ts`), which is laid out from the same numbers.
+ */
+export const MIN_PITCH = 8;
 /** The floor stands this far up the band; the reflection fills below it. */
 const REFLECTION = 0.2;
 /** How long a reflection is, against the tower that casts it. */
-const MIRROR = 0.42;
+export const MIRROR = 0.42;
 /**
  * Across the row, reflections are coloured in this many panes when the
  * glass runs bass to treble: a reflection fades DOWN, and one fill cannot
@@ -122,21 +129,159 @@ const mirrorGroupsFor = (frame: ISceneFrame): number => {
   return frame.look.ink === 'frequency' ? PANES : 1;
 };
 
+/** Which reflection group a tower is in: its heat step, or its pane across. */
+const mirrorGroupOf = (
+  ink: TSceneInk,
+  level: number,
+  left: number,
+  plot: IAnalysisPlot,
+): number => {
+  if (ink === 'heat') {
+    return heatStep(level);
+  }
+  if (ink === 'frequency') {
+    const width = plot.right - plot.left;
+    return Math.min(
+      PANES - 1,
+      Math.floor(((left - plot.left) / width) * PANES),
+    );
+  }
+  return 0;
+};
+
+/** Where on the ramp a reflection group is coloured. */
+const mirrorPosition = (ink: TSceneInk, group: number): number => {
+  if (ink === 'heat') {
+    return group / (HEAT_STEPS - 1);
+  }
+  if (ink === 'frequency') {
+    return (group + 0.5) / PANES;
+  }
+  return ink === 'flat' ? 0.5 : 0.25;
+};
+
+/** Where on the ramp a tower's reflection is coloured. */
+export const towerMirrorInk = (
+  ink: TSceneInk,
+  level: number,
+  left: number,
+  plot: IAnalysisPlot,
+): number => mirrorPosition(ink, mirrorGroupOf(ink, level, left, plot));
+
 /** The colour a reflection group fades from. */
 const mirrorColour = (
   frame: ISceneFrame,
   group: number,
   alpha: number,
-): string => {
-  const { look, colours } = frame;
-  if (look.ink === 'heat') {
-    return heatInk(colours, group, alpha);
-  }
-  if (look.ink === 'frequency') {
-    return inkAt(colours, (group + 0.5) / PANES, alpha);
-  }
-  return inkAt(colours, look.ink === 'flat' ? 0.5 : 0.25, alpha);
+): string => inkAt(frame.colours, mirrorPosition(frame.look.ink, group), alpha);
+
+/** Where one copy of the row stands: its floor clear of the reflection. */
+export const towerStand = (band: IAnalysisBand): ISceneStand => {
+  const depth = band.bottom - band.top;
+  return {
+    floor: band.flipped
+      ? band.top + depth * REFLECTION
+      : band.bottom - depth * REFLECTION,
+    up: band.flipped ? 1 : -1,
+    reach: depth * (1 - REFLECTION) - 6,
+  };
 };
+
+/**
+ * The pool of light lying on a copy's floor: how far across it reaches, how
+ * deep, and its light at its middle and half way out — wider and brighter on
+ * the bass and with the Glow.
+ */
+export const towerPool = (
+  band: IAnalysisBand,
+  plotWidth: number,
+  music: Pick<ISceneMusic, 'bass' | 'pulse'>,
+  glow: number,
+) => ({
+  across: plotWidth * (0.42 + music.bass * 0.18),
+  deep: (band.bottom - band.top) * REFLECTION * 0.9,
+  middle: 0.16 + music.bass * 0.24 + music.pulse * 0.14 + glow * 0.2,
+  halfway: 0.05 + music.bass * 0.06,
+});
+
+/** Two sparks off a tower's cap, when a tall one meets the beat. */
+export const throwTowerSparks = (
+  state: IGlassTowersState,
+  onBeat: boolean,
+  level: number,
+  left: number,
+  bodyWidth: number,
+  head: number,
+  up: number,
+): void => {
+  if (!onBeat || level <= 0.55 || state.sparks.length >= SPARK_LIMIT) {
+    return;
+  }
+  for (let spark = 0; spark < 2; spark += 1) {
+    state.seed += 1;
+    state.sparks.push({
+      x: left + bodyWidth * (0.2 + 0.6 * hash01(state.seed)),
+      y: head,
+      vx: (hash01(state.seed * 3.1) - 0.5) * 30,
+      vy: up * SPARK_RISE * (0.6 + 0.8 * hash01(state.seed * 5.7)),
+      age: 0,
+      copy: 0,
+    });
+  }
+};
+
+/**
+ * Every spark a frame older — risen, drifted, slowed — and the living kept.
+ * Thrown from the first copy and mirrored into the others' bands by the band
+ * they belong to: `place` is handed each one's place in every copy and the
+ * share of its life it has left. Answers how many are alive.
+ */
+export const moveTowerSparks = (
+  state: IGlassTowersState,
+  deltaMs: number,
+  bands: readonly IAnalysisBand[],
+  place: (x: number, y: number, life: number) => void,
+): number => {
+  const seconds = deltaMs / 1000;
+  const drag = 1 - easeToward(deltaMs, 500);
+  const alive: ISpark[] = [];
+  state.sparks.forEach((spark) => {
+    spark.age += seconds;
+    if (spark.age >= SPARK_LIFE_S || !bands[spark.copy]) {
+      return;
+    }
+    spark.x += spark.vx * seconds;
+    spark.y += spark.vy * seconds;
+    spark.vy *= drag;
+    const life = 1 - spark.age / SPARK_LIFE_S;
+    const [first] = bands;
+    bands.forEach((band) => {
+      // The same spark in every copy: moved with its band, or reflected
+      // when the band is the other way up.
+      const y =
+        band.flipped === first.flipped
+          ? spark.y - first.top + band.top
+          : band.top + (first.bottom - spark.y);
+      place(spark.x, y, life);
+    });
+    alive.push(spark);
+  });
+  state.sparks = alive;
+  return alive.length;
+};
+
+/** A spark's glow: how solid, and the paint's span across the whole plot. */
+export const towerSparkAlpha = (glow: number): number =>
+  clampUnit(0.4 + glow * 0.3);
+export const towerSparkSpan = (plot: IAnalysisPlot): ISceneSpan => ({
+  left: plot.left,
+  right: plot.right,
+  floor: plot.bottom,
+  head: plot.top,
+});
+/** A spark's glow and its white-hot core, in CSS pixels. */
+export const sparkGlowRadius = (life: number): number => 3.2 * life;
+export const SPARK_CORE = 1.2;
 
 const drawCopy = (
   frame: ISceneFrame,
@@ -148,13 +293,8 @@ const drawCopy = (
   const { context, plot, colours, music, look } = frame;
   const { row } = state;
   const width = plot.right - plot.left;
-  const depth = band.bottom - band.top;
-  const up = band.flipped ? 1 : -1;
   // The floor, and how far a tower can reach from it.
-  const floor = band.flipped
-    ? band.top + depth * REFLECTION
-    : band.bottom - depth * REFLECTION;
-  const reach = depth * (1 - REFLECTION) - 6;
+  const { floor, up, reach } = towerStand(band);
   const ceiling = floor + up * reach;
   const span: ISceneSpan = {
     left: plot.left,
@@ -217,40 +357,16 @@ const drawCopy = (
     );
     // The reflection: the same tower, shorter, hanging from the floor.
     const shown = height * MIRROR;
-    let mirrorGroup = 0;
-    if (look.ink === 'heat') {
-      mirrorGroup = heat;
-    } else if (look.ink === 'frequency') {
-      mirrorGroup = Math.min(
-        PANES - 1,
-        Math.floor(((left - plot.left) / width) * PANES),
-      );
-    }
-    mirrors[mirrorGroup].rect(
+    mirrors[mirrorGroupOf(look.ink, level, left, plot)].rect(
       left,
       up < 0 ? floor + 1 : floor - 1 - shown,
       bodyWidth,
       shown,
     );
 
-    // Sparks off the tallest towers, on the beat.
-    if (
-      copy === 0 &&
-      music.onBeat &&
-      level > 0.55 &&
-      state.sparks.length < SPARK_LIMIT
-    ) {
-      for (let spark = 0; spark < 2; spark += 1) {
-        state.seed += 1;
-        state.sparks.push({
-          x: left + bodyWidth * (0.2 + 0.6 * hash01(state.seed)),
-          y: head,
-          vx: (hash01(state.seed * 3.1) - 0.5) * 30,
-          vy: up * SPARK_RISE * (0.6 + 0.8 * hash01(state.seed * 5.7)),
-          age: 0,
-          copy,
-        });
-      }
+    // Sparks off the tallest towers, on the beat, from the first copy.
+    if (copy === 0) {
+      throwTowerSparks(state, music.onBeat, level, left, bodyWidth, head, up);
     }
     // The floating cap, where the tower was a moment ago.
     const held = state.peaks.held[piece] * reach;
@@ -278,20 +394,14 @@ const drawCopy = (
   // brighter on the bass and with the Glow. Drawn round and squashed, so its
   // edge is the gradient's own fall-off and never a line.
   const middle = (plot.left + plot.right) / 2;
-  const across = width * (0.42 + music.bass * 0.18);
+  const light = towerPool(band, width, music, frame.glow);
+  const { across } = light;
   context.save();
   context.translate(middle, floor);
-  context.scale(1, (depth * REFLECTION * 0.9) / across);
+  context.scale(1, light.deep / across);
   const pool = context.createRadialGradient(0, 0, 0, 0, 0, across);
-  pool.addColorStop(
-    0,
-    inkAt(
-      colours,
-      0.5,
-      0.16 + music.bass * 0.24 + music.pulse * 0.14 + frame.glow * 0.2,
-    ),
-  );
-  pool.addColorStop(0.55, inkAt(colours, 0.5, 0.05 + music.bass * 0.06));
+  pool.addColorStop(0, inkAt(colours, 0.5, light.middle));
+  pool.addColorStop(0.55, inkAt(colours, 0.5, light.halfway));
   pool.addColorStop(1, inkAt(colours, 0.5, 0));
   context.fillStyle = pool;
   context.beginPath();
@@ -380,48 +490,26 @@ export const drawGlassTowers = (
 
   // Sparks: rise, drift, slow down and fade — thrown from the first copy and
   // mirrored into the others' bands by the band they belong to.
-  const seconds = frame.deltaMs / 1000;
-  const drag = 1 - easeToward(frame.deltaMs, 500);
-  const alive: ISpark[] = [];
   const glow = new Path2D();
   const hot = new Path2D();
-  state.sparks.forEach((spark) => {
-    spark.age += seconds;
-    if (spark.age >= SPARK_LIFE_S || !frame.bands[spark.copy]) {
-      return;
-    }
-    spark.x += spark.vx * seconds;
-    spark.y += spark.vy * seconds;
-    spark.vy *= drag;
-    const life = 1 - spark.age / SPARK_LIFE_S;
-    const [first] = frame.bands;
-    frame.bands.forEach((band) => {
-      // The same spark in every copy: moved with its band, or reflected
-      // when the band is the other way up.
-      const y =
-        band.flipped === first.flipped
-          ? spark.y - first.top + band.top
-          : band.top + (first.bottom - spark.y);
-      glow.moveTo(spark.x + 3.2 * life, y);
-      glow.arc(spark.x, y, 3.2 * life, 0, Math.PI * 2);
-      hot.moveTo(spark.x + 1.2, y);
-      hot.arc(spark.x, y, 1.2, 0, Math.PI * 2);
-    });
-    alive.push(spark);
-  });
-  state.sparks = alive;
-  if (alive.length > 0) {
-    const span: ISceneSpan = {
-      left: frame.plot.left,
-      right: frame.plot.right,
-      floor: frame.plot.bottom,
-      head: frame.plot.top,
-    };
+  const alive = moveTowerSparks(
+    state,
+    frame.deltaMs,
+    frame.bands,
+    (x, y, life) => {
+      const radius = sparkGlowRadius(life);
+      glow.moveTo(x + radius, y);
+      glow.arc(x, y, radius, 0, Math.PI * 2);
+      hot.moveTo(x + SPARK_CORE, y);
+      hot.arc(x, y, SPARK_CORE, 0, Math.PI * 2);
+    },
+  );
+  if (alive > 0) {
     frame.context.fillStyle = figureInk(
       frame.context,
       frame,
-      span,
-      clampUnit(0.4 + frame.glow * 0.3),
+      towerSparkSpan(frame.plot),
+      towerSparkAlpha(frame.glow),
       0.2,
     );
     frame.context.fill(glow);
@@ -429,7 +517,7 @@ export const drawGlassTowers = (
     frame.context.fill(hot);
   }
   return {
-    moving: alive.length > 0 || (falling && frame.look.accents),
+    moving: alive > 0 || (falling && frame.look.accents),
     body,
   };
 };

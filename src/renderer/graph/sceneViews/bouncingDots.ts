@@ -12,7 +12,9 @@ import {
   heatStep,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneReading,
   type ISceneSpan,
+  type ISceneStand,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -48,8 +50,12 @@ import {
  * flies the same arc at 30 and at 144 frames a second.
  */
 
-/** A ball never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 5;
+/**
+ * A ball never on a pitch smaller than this, in CSS pixels. Exported with the
+ * functions below for the look's GPU painting
+ * (`engineLooks/bouncingDotsLook.ts`), whose balls these throw.
+ */
+export const MIN_PITCH = 5;
 /**
  * Gravity in plot heights a second per second, and launches in plot heights
  * a second. A launch of v rises v² / 2g and is back down in 2v / g: the
@@ -94,7 +100,10 @@ export const createBouncingDotsState = (): IBouncingDotsState => ({
 });
 
 /** Moves every ball one frame; returns whether any is still in the air. */
-const fly = (frame: ISceneFrame, state: IBouncingDotsState): boolean => {
+export const fly = (
+  frame: Pick<ISceneReading, 'music' | 'deltaMs'>,
+  state: IBouncingDotsState,
+): boolean => {
   const { row } = state;
   const { music } = frame;
   if (state.height.length !== row.count) {
@@ -153,6 +162,33 @@ const fly = (frame: ISceneFrame, state: IBouncingDotsState): boolean => {
   return flying;
 };
 
+/**
+ * Where one copy's balls stand: a ball's radius above the band's floor, so it
+ * rests on it, and reaching as far as three radii short of its top.
+ */
+export const dotsStand = (band: IAnalysisBand, body: number): ISceneStand => {
+  const radius = body / 2;
+  return {
+    floor: band.flipped ? band.top + radius : band.bottom - radius,
+    up: band.flipped ? 1 : -1,
+    reach: band.bottom - band.top - radius * 3,
+  };
+};
+
+/** How flat a ball is, 1 round, `landedMs` after it landed hard. */
+export const squashOf = (landedMs: number): number =>
+  1 - Math.max(0, 1 - landedMs / SQUASH_MS) * 0.35;
+
+/** A stem's width under a ball of `radius`. */
+export const stemWidth = (radius: number): number => Math.max(1, radius * 0.35);
+
+/** The held mark's heat, with the treble. */
+export const heldWhiten = (treble: number): number => 0.5 + treble * 0.3;
+
+/** The balls' bloom for a frame. */
+export const dotsBloom = (pulse: number, glow: number, opacity: number) =>
+  (0.3 + pulse * 0.3 + glow * 0.5) * opacity;
+
 const drawCopy = (
   frame: ISceneFrame,
   band: IAnalysisBand,
@@ -162,10 +198,8 @@ const drawCopy = (
 ): void => {
   const { context, plot, colours, music, look } = frame;
   const { row } = state;
-  const up = band.flipped ? 1 : -1;
   const radius = row.body / 2;
-  const floor = band.flipped ? band.top + radius : band.bottom - radius;
-  const reach = band.bottom - band.top - radius * 3;
+  const { floor, up, reach } = dotsStand(band, row.body);
   const span: ISceneSpan = {
     left: plot.left,
     right: plot.right,
@@ -188,7 +222,7 @@ const drawCopy = (
     stems.moveTo(x, floor);
     stems.lineTo(x, levelY);
     // Squashed flat where it lands, and back to round as it lifts off.
-    const squash = 1 - Math.max(0, 1 - state.landed[piece] / SQUASH_MS) * 0.35;
+    const squash = squashOf(state.landed[piece]);
     const wide = radius * (2 - squash);
     const tall = radius * squash;
     const centre = y - up * (radius - tall);
@@ -212,7 +246,7 @@ const drawCopy = (
   context.save();
   context.lineCap = 'round';
   context.strokeStyle = figureInk(context, frame, span, 0.22 * look.opacity);
-  context.lineWidth = Math.max(1, radius * 0.35);
+  context.lineWidth = stemWidth(radius);
   context.stroke(stems);
   context.globalAlpha = look.opacity;
   balls.forEach((path, group) => {
@@ -237,7 +271,7 @@ const drawCopy = (
     frame,
     span,
     0.85,
-    0.5 + music.treble * 0.3,
+    heldWhiten(music.treble),
   );
   context.fill(held);
   if (bloom) {
@@ -260,7 +294,7 @@ export const drawBouncingDots = (
     endBloom(
       frame,
       state.bloom,
-      (0.3 + frame.music.pulse * 0.3 + frame.glow * 0.5) * frame.look.opacity,
+      dotsBloom(frame.music.pulse, frame.glow, frame.look.opacity),
     );
   }
   return { moving: flying || (falling && frame.look.accents), body };

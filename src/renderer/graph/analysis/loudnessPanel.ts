@@ -4,7 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { clamp01, rampRgba, type IAnalysisFrame } from './analysisFrame';
+import {
+  clamp01,
+  rampRgba,
+  type IAnalysisFrame,
+  type IAnalysisReading,
+} from './analysisFrame';
 import { levelOfDb } from './stereoReading';
 
 /**
@@ -22,6 +27,11 @@ import { levelOfDb } from './stereoReading';
  * wide plot with a meter pinned to each far edge, and the sides were empty
  * while nothing was big enough to read (Ivan, 2026-09-23: "make ui better
  * that ui sucks").
+ *
+ * Every instrument is painted in two halves — its shapes, and its words —
+ * because the words are always the page canvas's, while the shapes are the
+ * engine's wherever the engine draws the view (`engineLooks/loudnessLook.ts`,
+ * which reads its numbers from here).
  */
 
 export const TEXT_INK = 'rgba(255, 255, 255, 0.72)';
@@ -29,10 +39,52 @@ export const FAINT_INK = 'rgba(255, 255, 255, 0.26)';
 const LABEL_INK = 'rgba(255, 255, 255, 0.92)';
 
 /** The decibel marks the bars are ticked at. */
-const BAR_TICKS = [0, -6, -12, -20, -30, -45, -60] as const;
+export const BAR_TICKS = [0, -6, -12, -20, -30, -45, -60] as const;
 
 /** Where the dial's own rings sit, as a share of its radius. */
-const DIAL_RINGS = [0.33, 0.66, 1] as const;
+export const DIAL_RINGS = [0.33, 0.66, 1] as const;
+
+/** The correlation marks along the scale. */
+export const SCALE_MARKS = [-1, -0.5, 0, 0.5, 1] as const;
+
+/** The dial's well: from a faint light at the middle to nothing at the rim. */
+export const DIAL_WELL: readonly (readonly [at: number, ink: string])[] = [
+  [0, 'rgba(255, 255, 255, 0.09)'],
+  [0.7, 'rgba(0, 0, 0, 0.26)'],
+  [1, 'rgba(0, 0, 0, 0)'],
+];
+export const DIAL_RING_INK = { ramp: 0.5, alpha: 0.4 } as const;
+export const DIAL_ARM_INK = 'rgba(255, 255, 255, 0.4)';
+export const DIAL_ARM_DASH: readonly [on: number, off: number] = [3, 4];
+export const DIAL_UPRIGHT_INK = 'rgba(255, 255, 255, 0.3)';
+
+/**
+ * The trace's three passes, widest first: a glow, a body and a hot core,
+ * each's ramp position, alpha and width.
+ */
+export const TRACE_PASSES: readonly {
+  ramp: number;
+  alpha: number;
+  width: number;
+}[] = [
+  { ramp: 0.9, alpha: 0.16, width: 7 },
+  { ramp: 0.9, alpha: 0.4, width: 2.6 },
+  { ramp: 0.3, alpha: 0.95, width: 1 },
+];
+
+/**
+ * Enough points that a sine draws a clean line, few enough that the path is
+ * one object rather than a thousand: about twelve hundred is the knee.
+ */
+export const TRACE_POINTS = 1200;
+
+export const SCALE_TRACK_INK = 'rgba(255, 255, 255, 0.08)';
+export const SCALE_TROUBLE_INK = 'rgba(255, 96, 112, 0.3)';
+export const SCALE_BRACKET_INK = 'rgba(255, 255, 255, 0.22)';
+export const BAR_TRACK_INK = { alpha: 0.22, ink: 'rgba(255, 255, 255, 0.4)' };
+export const BAR_MARK_ALPHA = 0.9;
+export const BAR_TICK_ALPHA = 0.8;
+export const WIDTH_FILL = { ramp: 0.85, alpha: 0.95 } as const;
 
 export interface IPanel {
   /** The goniometer. */
@@ -54,8 +106,10 @@ export interface IPanel {
 }
 
 /** Nothing is drawn in a box too small to hold a legible instrument. */
-export const layoutPanel = (frame: IAnalysisFrame): IPanel | undefined => {
-  const { plot, band } = frame;
+export const layoutPanel = (
+  reading: Pick<IAnalysisReading, 'plot' | 'band'>,
+): IPanel | undefined => {
+  const { plot, band } = reading;
   const width = plot.right - plot.left;
   const depth = band.bottom - band.top;
   if (width < 260 || depth < 120) {
@@ -99,9 +153,16 @@ export const layoutPanel = (frame: IAnalysisFrame): IPanel | undefined => {
   };
 };
 
-/** The dial's well, its rings, its two channel arms and their letters. */
+/** Where a correlation stands along the scale. */
+export const scaleX = (panel: IPanel, value: number): number =>
+  panel.scaleLeft + ((value + 1) / 2) * panel.scaleWidth;
+
+/** Where the dial's two channel arms reach, from its middle. */
+export const armReach = (panel: IPanel): number => panel.radius * Math.SQRT1_2;
+
+/** The dial's well, its rings and its two channel arms. */
 export const paintDial = (frame: IAnalysisFrame, panel: IPanel): void => {
-  const { context, colours, band, channelLabels } = frame;
+  const { context, colours, band } = frame;
   const { dialX, dialY, radius } = panel;
   context.globalAlpha = band.opacity;
 
@@ -115,9 +176,7 @@ export const paintDial = (frame: IAnalysisFrame, panel: IPanel): void => {
     dialY,
     radius,
   );
-  well.addColorStop(0, 'rgba(255, 255, 255, 0.09)');
-  well.addColorStop(0.7, 'rgba(0, 0, 0, 0.26)');
-  well.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  DIAL_WELL.forEach(([at, ink]) => well.addColorStop(at, ink));
   context.fillStyle = well;
   context.beginPath();
   context.arc(dialX, dialY, radius, 0, Math.PI * 2);
@@ -128,7 +187,11 @@ export const paintDial = (frame: IAnalysisFrame, panel: IPanel): void => {
     rings.moveTo(dialX + radius * share, dialY);
     rings.arc(dialX, dialY, radius * share, 0, Math.PI * 2);
   });
-  context.strokeStyle = rampRgba(colours, 0.5, 0.4);
+  context.strokeStyle = rampRgba(
+    colours,
+    DIAL_RING_INK.ramp,
+    DIAL_RING_INK.alpha,
+  );
   context.lineWidth = 1;
   context.stroke(rings);
 
@@ -138,22 +201,30 @@ export const paintDial = (frame: IAnalysisFrame, panel: IPanel): void => {
    * signal stands. Dashed, because they are a rule rather than a reading and
    * must never be mistaken for the trace.
    */
-  const reach = radius * Math.SQRT1_2;
+  const reach = armReach(panel);
   const arms = new Path2D();
   arms.moveTo(dialX - reach, dialY + reach);
   arms.lineTo(dialX + reach, dialY - reach);
   arms.moveTo(dialX + reach, dialY + reach);
   arms.lineTo(dialX - reach, dialY - reach);
-  context.setLineDash([3, 4]);
-  context.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+  context.setLineDash([...DIAL_ARM_DASH]);
+  context.strokeStyle = DIAL_ARM_INK;
   context.stroke(arms);
   context.setLineDash([]);
   const upright = new Path2D();
   upright.moveTo(dialX, dialY - radius);
   upright.lineTo(dialX, dialY + radius);
-  context.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+  context.strokeStyle = DIAL_UPRIGHT_INK;
   context.stroke(upright);
+  context.globalAlpha = 1;
+};
 
+/** The two channels' letters at the ends of their arms. */
+export const paintDialWords = (frame: IAnalysisFrame, panel: IPanel): void => {
+  const { context, band, channelLabels } = frame;
+  const { dialX, dialY } = panel;
+  const reach = armReach(panel);
+  context.globalAlpha = band.opacity;
   context.font = '600 10px system-ui, sans-serif';
   context.textBaseline = 'middle';
   context.fillStyle = TEXT_INK;
@@ -165,14 +236,49 @@ export const paintDial = (frame: IAnalysisFrame, panel: IPanel): void => {
 };
 
 /**
- * The cloud, in three passes: a glow, a body and a hot core.
+ * The cloud's points, handed to `at` one after another from the first.
  *
  * SCALED BY ITS OWN PEAK. Drawn at the samples' true amplitude the trace is a
  * speck in the middle of the dial on anything but a full-scale signal — which
  * is every record — and what a goniometer is read for is the SHAPE, not the
  * level: the two meters beside it already say how loud. Every studio one
  * normalises for exactly this reason.
+ *
+ * With no samples, the straight vertical a single channel genuinely draws
+ * here, as tall as `level`.
  */
+export const tracePoints = (
+  panel: IPanel,
+  scope: readonly [Float32Array, Float32Array] | undefined,
+  level: number,
+  at: (x: number, y: number) => void,
+): void => {
+  const { dialX, dialY, radius } = panel;
+  if (!scope) {
+    const up = radius * 0.94 * clamp01(level * 1.6);
+    at(dialX, dialY - up);
+    at(dialX, dialY + up);
+    return;
+  }
+  const count = Math.min(scope[0].length, scope[1].length);
+  let loudest = 0;
+  for (let index = 0; index < count; index += 1) {
+    const size = Math.abs(scope[0][index]) + Math.abs(scope[1][index]);
+    if (size > loudest) {
+      loudest = size;
+    }
+  }
+  // A floor, so silence does not magnify its own noise into a full dial.
+  const scale = loudest > 0.004 ? (radius * 0.94) / loudest : 0;
+  const step = Math.max(1, Math.floor(count / TRACE_POINTS));
+  for (let index = 0; index < count; index += step) {
+    const l = scope[0][index];
+    const r = scope[1][index];
+    at(dialX + (l - r) * scale, dialY - (l + r) * scale);
+  }
+};
+
+/** The cloud, in three passes: a glow, a body and a hot core. */
 export const paintTrace = (
   frame: IAnalysisFrame,
   panel: IPanel,
@@ -180,54 +286,24 @@ export const paintTrace = (
   level: number,
 ): void => {
   const { context, colours, band } = frame;
-  const { dialX, dialY, radius } = panel;
   const trace = new Path2D();
-  if (scope) {
-    const count = Math.min(scope[0].length, scope[1].length);
-    let loudest = 0;
-    for (let index = 0; index < count; index += 1) {
-      const size = Math.abs(scope[0][index]) + Math.abs(scope[1][index]);
-      if (size > loudest) {
-        loudest = size;
-      }
+  let started = false;
+  tracePoints(panel, scope, level, (x, y) => {
+    if (started) {
+      trace.lineTo(x, y);
+    } else {
+      trace.moveTo(x, y);
+      started = true;
     }
-    // A floor, so silence does not magnify its own noise into a full dial.
-    const scale = loudest > 0.004 ? (radius * 0.94) / loudest : 0;
-    // Enough points that a sine draws a clean line, few enough that the path
-    // is one object rather than a thousand: about twelve hundred is the knee.
-    const step = Math.max(1, Math.floor(count / 1200));
-    let started = false;
-    for (let index = 0; index < count; index += step) {
-      const l = scope[0][index];
-      const r = scope[1][index];
-      const x = dialX + (l - r) * scale;
-      const y = dialY - (l + r) * scale;
-      if (started) {
-        trace.lineTo(x, y);
-      } else {
-        trace.moveTo(x, y);
-        started = true;
-      }
-    }
-  } else {
-    // Mono: the straight vertical a single channel genuinely draws here.
-    const up = radius * 0.94 * clamp01(level * 1.6);
-    trace.moveTo(dialX, dialY - up);
-    trace.lineTo(dialX, dialY + up);
-  }
+  });
   context.lineJoin = 'round';
   context.lineCap = 'round';
-  context.strokeStyle = rampRgba(colours, 0.9, 1);
-  context.globalAlpha = band.opacity * 0.16;
-  context.lineWidth = 7;
-  context.stroke(trace);
-  context.globalAlpha = band.opacity * 0.4;
-  context.lineWidth = 2.6;
-  context.stroke(trace);
-  context.globalAlpha = band.opacity * 0.95;
-  context.lineWidth = 1;
-  context.strokeStyle = rampRgba(colours, 0.3, 1);
-  context.stroke(trace);
+  TRACE_PASSES.forEach(({ ramp, alpha, width }) => {
+    context.strokeStyle = rampRgba(colours, ramp, 1);
+    context.globalAlpha = band.opacity * alpha;
+    context.lineWidth = width;
+    context.stroke(trace);
+  });
   context.globalAlpha = 1;
 };
 
@@ -244,9 +320,8 @@ export const paintCorrelation = (
 ): void => {
   const { context, band } = frame;
   const { scaleLeft, scaleWidth, scaleTop, scaleHeight } = panel;
-  const place = (value: number) => scaleLeft + ((value + 1) / 2) * scaleWidth;
   context.globalAlpha = band.opacity;
-  context.fillStyle = 'rgba(255, 255, 255, 0.08)';
+  context.fillStyle = SCALE_TRACK_INK;
   context.beginPath();
   context.roundRect(
     scaleLeft,
@@ -258,46 +333,37 @@ export const paintCorrelation = (
   context.fill();
   // Left of centre is where a mix cancels on a mono speaker, so it is marked
   // out rather than left to be remembered as a sign.
-  context.fillStyle = 'rgba(255, 96, 112, 0.3)';
+  context.fillStyle = SCALE_TROUBLE_INK;
   context.beginPath();
   context.roundRect(
     scaleLeft,
     scaleTop,
-    place(0) - scaleLeft,
+    scaleX(panel, 0) - scaleLeft,
     scaleHeight,
     scaleHeight / 2,
   );
   context.fill();
   // Where the needle has been lately, so a passage that dipped out of phase
   // leaves something behind to notice.
-  context.fillStyle = 'rgba(255, 255, 255, 0.22)';
+  context.fillStyle = SCALE_BRACKET_INK;
   context.fillRect(
-    place(from),
+    scaleX(panel, from),
     scaleTop,
-    Math.max(1, place(to) - place(from)),
+    Math.max(1, scaleX(panel, to) - scaleX(panel, from)),
     scaleHeight,
   );
 
   context.strokeStyle = FAINT_INK;
   context.lineWidth = 1;
   const marks = new Path2D();
-  [-1, -0.5, 0, 0.5, 1].forEach((value) => {
-    const x = place(value);
+  SCALE_MARKS.forEach((value) => {
+    const x = scaleX(panel, value);
     marks.moveTo(x, scaleTop + scaleHeight + 1);
     marks.lineTo(x, scaleTop + scaleHeight + 4);
   });
   context.stroke(marks);
-  context.font = '600 9px system-ui, sans-serif';
-  context.textBaseline = 'top';
-  context.fillStyle = TEXT_INK;
-  context.textAlign = 'left';
-  context.fillText('−1', scaleLeft, scaleTop + scaleHeight + 5);
-  context.textAlign = 'center';
-  context.fillText('0', place(0), scaleTop + scaleHeight + 5);
-  context.textAlign = 'right';
-  context.fillText('+1', scaleLeft + scaleWidth, scaleTop + scaleHeight + 5);
 
-  const needle = place(at);
+  const needle = scaleX(panel, at);
   context.fillStyle = '#fff';
   context.beginPath();
   context.roundRect(needle - 1.5, scaleTop - 2, 3, scaleHeight + 4, 1.5);
@@ -305,12 +371,31 @@ export const paintCorrelation = (
   context.globalAlpha = 1;
 };
 
-/** A level bar with its letter, its peak mark and its number in decibels. */
+/** The scale's numbers, under its ends and its middle. */
+export const paintCorrelationWords = (
+  frame: IAnalysisFrame,
+  panel: IPanel,
+): void => {
+  const { context, band } = frame;
+  const { scaleLeft, scaleWidth, scaleTop, scaleHeight } = panel;
+  context.globalAlpha = band.opacity;
+  context.font = '600 9px system-ui, sans-serif';
+  context.textBaseline = 'top';
+  context.fillStyle = TEXT_INK;
+  context.textAlign = 'left';
+  context.fillText('−1', scaleLeft, scaleTop + scaleHeight + 5);
+  context.textAlign = 'center';
+  context.fillText('0', scaleX(panel, 0), scaleTop + scaleHeight + 5);
+  context.textAlign = 'right';
+  context.fillText('+1', scaleLeft + scaleWidth, scaleTop + scaleHeight + 5);
+  context.globalAlpha = 1;
+};
+
+/** A level bar with its peak mark, ticked with the decibel scale. */
 export const paintBar = (
   frame: IAnalysisFrame,
   panel: IPanel,
   row: number,
-  label: string,
   level: number,
   mark: number,
   stops: readonly string[],
@@ -318,15 +403,8 @@ export const paintBar = (
   const { context, band, tuning } = frame;
   const { barLeft, barWidth, barHeight } = panel;
   const top = panel.rows[row];
-  context.globalAlpha = band.opacity;
-  context.font = '700 10px system-ui, sans-serif';
-  context.textBaseline = 'middle';
-  context.textAlign = 'right';
-  context.fillStyle = LABEL_INK;
-  context.fillText(label, barLeft - 7, top + barHeight / 2);
-
-  context.globalAlpha = band.opacity * 0.22;
-  context.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  context.globalAlpha = band.opacity * BAR_TRACK_INK.alpha;
+  context.fillStyle = BAR_TRACK_INK.ink;
   context.beginPath();
   context.roundRect(barLeft, top, barWidth, barHeight, barHeight / 2);
   context.fill();
@@ -348,13 +426,13 @@ export const paintBar = (
   context.fill();
 
   if (mark > 0.004) {
-    context.globalAlpha = band.opacity * 0.9;
+    context.globalAlpha = band.opacity * BAR_MARK_ALPHA;
     context.fillStyle = '#fff';
     context.fillRect(barLeft + barWidth * clamp01(mark) - 1, top, 2, barHeight);
   }
 
   // The scale, ticked under the bar so the two rows share one ruler.
-  context.globalAlpha = band.opacity * 0.8;
+  context.globalAlpha = band.opacity * BAR_TICK_ALPHA;
   context.strokeStyle = FAINT_INK;
   const ticks = new Path2D();
   BAR_TICKS.forEach((db) => {
@@ -364,8 +442,28 @@ export const paintBar = (
   });
   context.lineWidth = 1;
   context.stroke(ticks);
+  context.globalAlpha = 1;
+};
 
-  // The number, in the room kept for it: the reading somebody writes down.
+/** A bar's letter, and its number in decibels in the room kept for it. */
+export const paintBarWords = (
+  frame: IAnalysisFrame,
+  panel: IPanel,
+  row: number,
+  label: string,
+  mark: number,
+): void => {
+  const { context, band } = frame;
+  const { barLeft, barWidth, barHeight } = panel;
+  const top = panel.rows[row];
+  context.globalAlpha = band.opacity;
+  context.font = '700 10px system-ui, sans-serif';
+  context.textBaseline = 'middle';
+  context.textAlign = 'right';
+  context.fillStyle = LABEL_INK;
+  context.fillText(label, barLeft - 7, top + barHeight / 2);
+  // The number: the reading somebody writes down.
+  context.globalAlpha = band.opacity * BAR_TICK_ALPHA;
   context.font = '600 11px system-ui, sans-serif';
   context.textAlign = 'left';
   context.fillStyle = TEXT_INK;
@@ -382,25 +480,18 @@ export const paintBar = (
 export const paintWidth = (
   frame: IAnalysisFrame,
   panel: IPanel,
-  label: string,
   width: number,
 ): void => {
   const { context, band, colours } = frame;
   const { barLeft, barWidth, barHeight } = panel;
   const top = panel.rows[2];
-  context.globalAlpha = band.opacity;
-  context.font = '700 10px system-ui, sans-serif';
-  context.textBaseline = 'middle';
-  context.textAlign = 'right';
-  context.fillStyle = LABEL_INK;
-  context.fillText(label, barLeft - 7, top + barHeight / 2);
-  context.globalAlpha = band.opacity * 0.22;
-  context.fillStyle = 'rgba(255, 255, 255, 0.4)';
+  context.globalAlpha = band.opacity * BAR_TRACK_INK.alpha;
+  context.fillStyle = BAR_TRACK_INK.ink;
   context.beginPath();
   context.roundRect(barLeft, top, barWidth, barHeight * 0.6, barHeight * 0.3);
   context.fill();
-  context.globalAlpha = band.opacity * 0.95;
-  context.fillStyle = rampRgba(colours, 0.85, 1);
+  context.globalAlpha = band.opacity * WIDTH_FILL.alpha;
+  context.fillStyle = rampRgba(colours, WIDTH_FILL.ramp, 1);
   context.beginPath();
   context.roundRect(
     barLeft,
@@ -410,6 +501,26 @@ export const paintWidth = (
     barHeight * 0.3,
   );
   context.fill();
+  context.globalAlpha = 1;
+};
+
+/** The width bar's symbol and its share written out. */
+export const paintWidthWords = (
+  frame: IAnalysisFrame,
+  panel: IPanel,
+  label: string,
+  width: number,
+): void => {
+  const { context, band } = frame;
+  const { barLeft, barWidth, barHeight } = panel;
+  const top = panel.rows[2];
+  context.globalAlpha = band.opacity;
+  context.font = '700 10px system-ui, sans-serif';
+  context.textBaseline = 'middle';
+  context.textAlign = 'right';
+  context.fillStyle = LABEL_INK;
+  context.fillText(label, barLeft - 7, top + barHeight / 2);
+  context.globalAlpha = band.opacity * WIDTH_FILL.alpha;
   context.font = '600 11px system-ui, sans-serif';
   context.textAlign = 'left';
   context.fillStyle = TEXT_INK;

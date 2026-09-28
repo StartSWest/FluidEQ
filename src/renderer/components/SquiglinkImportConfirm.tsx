@@ -3,13 +3,23 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from '../utils/I18nContext';
+import holdFocusReturn from '../utils/focusReturn';
+import MenuIcon from '../icons/MenuIcon';
+import CompactFrame from './CompactFrame';
 import '../styles/Dsp.scss';
+import '../styles/SquiglinkImport.scss';
 
 interface ISquiglinkImportConfirmProps {
   onApply(destination: 'eq' | 'curve'): void;
   onCancel(): void;
 }
 
+/**
+ * Asked when "Apply as EQ" would overwrite bands somebody already has. The
+ * recommendation is to keep them and apply the fit as a curve on top, so that
+ * is the loud answer, last, and where the keyboard lands: Enter pressed twice
+ * by habit keeps the bands. Replacing them stays one quiet press away.
+ */
 const SquiglinkImportConfirm = ({
   onApply,
   onCancel,
@@ -18,7 +28,7 @@ const SquiglinkImportConfirm = ({
   const modalRef = useRef<HTMLDivElement>(null);
   const curveButtonRef = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    const previousFocus = document.activeElement;
+    const giveFocusBack = holdFocusReturn();
     curveButtonRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -44,9 +54,7 @@ const SquiglinkImportConfirm = ({
     document.addEventListener('keydown', onKeyDown);
     return () => {
       document.removeEventListener('keydown', onKeyDown);
-      if (previousFocus instanceof HTMLElement) {
-        previousFocus.focus();
-      }
+      giveFocusBack();
     };
   }, [onCancel]);
 
@@ -60,45 +68,44 @@ const SquiglinkImportConfirm = ({
         }
       }}
     >
-      <div
+      <CompactFrame
         ref={modalRef}
-        className="dsp-import"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="squig-replace-title"
+        className="squig-replace"
+        icon={<MenuIcon name="import" />}
+        title={t('squigImport.replaceTitle')}
+        titleId="squig-replace-title"
         aria-describedby="squig-replace-body"
+        onClose={onCancel}
+        closeLabel={t('support.close')}
+        actions={
+          <>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={onCancel}
+            >
+              {t('config.cancel')}
+            </button>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={() => onApply('eq')}
+            >
+              {t('squigImport.replaceEq')}
+            </button>
+            <button
+              ref={curveButtonRef}
+              type="button"
+              className="button small"
+              onClick={() => onApply('curve')}
+            >
+              {t('squigImport.applyCurve')}
+            </button>
+          </>
+        }
       >
-        <h2 id="squig-replace-title" className="dsp-import__title">
-          {t('squigImport.replaceTitle')}
-        </h2>
-        <p id="squig-replace-body" className="dsp-import__hint">
-          {t('squigImport.replaceBody')}
-        </p>
-        <div className="squig-import__actions">
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={onCancel}
-          >
-            {t('config.cancel')}
-          </button>
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={() => onApply('eq')}
-          >
-            {t('squigImport.replaceEq')}
-          </button>
-          <button
-            ref={curveButtonRef}
-            type="button"
-            className="button small"
-            onClick={() => onApply('curve')}
-          >
-            {t('squigImport.applyCurve')}
-          </button>
-        </div>
-      </div>
+        <p id="squig-replace-body">{t('squigImport.replaceBody')}</p>
+      </CompactFrame>
     </div>,
     document.body,
   );

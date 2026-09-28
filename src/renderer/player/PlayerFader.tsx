@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { CSSProperties, PointerEvent, ReactNode } from 'react';
+import ArrowButton from '../widgets/ArrowButton';
 import centredSweep from '../widgets/centredSweep';
 
 /**
@@ -25,7 +26,7 @@ interface IPlayerFaderProps {
   /** What the fader is called, for assistive tech and the hover. */
   ariaLabel: string;
   /**
-   * What goes under the fader: a band's frequency, or — for the preamp —
+   * What goes over the fader: a band's frequency, or — for the preamp —
    * the key that switches Auto normalize (`MiniBands`).
    */
   label: ReactNode;
@@ -49,6 +50,14 @@ interface IPlayerFaderProps {
 /** Decimals a step can land on, so a written value never carries float dust. */
 const decimalsOf = (step: number) =>
   step < 1 ? Math.ceil(-Math.log10(step)) : 0;
+
+/** A gain as the EQ page prints one: a sign on both sides of flat, one decimal. */
+const gainText = (value: number) => {
+  if (value === 0) {
+    return '0.0';
+  }
+  return `${value > 0 ? '+' : '−'}${Math.abs(value).toFixed(1)}`;
+};
 
 const PlayerFader = ({
   ariaLabel,
@@ -86,6 +95,12 @@ const PlayerFader = ({
       (Math.round(sweep.toValue(position) / step) * step).toFixed(decimals),
     );
 
+  // One step up or down from where the band stands, as far as its travel goes.
+  const nudge = (delta: number) =>
+    onChange(
+      Math.min(max, Math.max(min, Number((value + delta).toFixed(decimals)))),
+    );
+
   // Ctrl+click puts a band back to flat, the gesture the EQ page's own
   // controls answer to.
   const onPointerDown = (event: PointerEvent<HTMLInputElement>) => {
@@ -109,6 +124,16 @@ const PlayerFader = ({
       }
       title={title}
     >
+      <span className="player-band__hz">{label}</span>
+      {/* The EQ page's own step arrows, held to repeat: a band moved a
+          tenth of a decibel at a time, which the fader's travel is too short
+          to do by hand. */}
+      <ArrowButton
+        name={ariaLabel}
+        type="up"
+        isDisabled={isDisabled}
+        handleChange={() => nudge(step)}
+      />
       <div className="player-band__slot">
         <span className="player-band__fill" aria-hidden="true" />
         {/* The cap is drawn, not the input's own: a range turned on its side
@@ -140,7 +165,20 @@ const PlayerFader = ({
         />
         <span className="player-band__cap" aria-hidden="true" />
       </div>
-      <span className="player-band__hz">{label}</span>
+      <ArrowButton
+        name={ariaLabel}
+        type="down"
+        isDisabled={isDisabled}
+        handleChange={() => nudge(-step)}
+      />
+      {/* What the band is set to, under it: the figure a graphic equalizer
+          is read by, which the fader alone only draws. */}
+      <span
+        className={`player-band__value${value === zero ? ' is-flat' : ''}`}
+        aria-hidden="true"
+      >
+        {gainText(value)}
+      </span>
     </div>
   );
 };

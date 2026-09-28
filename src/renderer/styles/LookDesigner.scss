@@ -94,14 +94,13 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.look-designer__close {
-  @include ghost-button;
-
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  font-size: $text-micro;
-  line-height: 1;
+// The dialogs' one close button (`DialogClose`), sitting in the header row
+// here rather than in a frame's corner.
+.look-designer__close.dialog-close {
+  position: static;
+  width: 26px;
+  height: 26px;
+  margin: -4px -6px -4px 0;
 }
 
 // Says where the form is chosen, since it is not chosen in here.
@@ -609,36 +608,10 @@ it under the terms of the GNU General Public License version 3 or later.
   border-top: 1px solid rgba($white, 0.09);
 }
 
-.look-designer__button {
-  @include ghost-button;
-
+// Save is the app's own loud button (`button small`), taking the rest of the
+// row after the quiet squares.
+.look-designer__save {
   flex: 1 1 0;
-  height: 26px;
-  padding-inline: 8px;
-  font-size: $text-micro;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
-
-  &--primary {
-    color: $white;
-    border-color: $secondary-light;
-    background: color-mix(in srgb, $secondary-light 20%, transparent);
-
-    &:hover:not(:disabled) {
-      background: color-mix(in srgb, $secondary-light 32%, transparent);
-    }
-  }
-
-  &--danger {
-    color: rgba(#ff9d9d, 0.9);
-    border-color: rgba($red, 0.4);
-
-    &:hover:not(:disabled) {
-      color: $white;
-      border-color: rgba($red, 0.85);
-      background: rgba($red, 0.18);
-    }
-  }
 }
 
 // A narrow window has no room for a panel and a readable plot side by side, so

@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import { WHISPER_MODEL } from './makerAi';
 import { useTranslation } from '../utils/I18nContext';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from '../components/DialogFrame';
 
 /**
  * Asking before the speech model is downloaded.
@@ -38,44 +40,50 @@ const KaraokeMakerWhisperConsent = ({
   setWhisperConsentOpen,
 }: IKaraokeMakerWhisperConsentProps) => {
   const { t } = useTranslation();
+  // Not now, and the ×: nothing is fetched, and the run that asked is
+  // released rather than left waiting on an answer that is not coming.
+  const decline = () => {
+    prepareAfterWhisperRef.current = false;
+    lyricsWorkflowActiveRef.current = false;
+    setLyricsWorkflowActive(false);
+    setWhisperConsentOpen(false);
+  };
   return (
     <div className="karaoke-maker__modal-backdrop" role="presentation">
-      <div
+      <DialogFrame
         className="karaoke-maker__consent-modal"
-        role="dialog"
-        aria-label={t('karaoke.maker.transcriptionTitle')}
+        icon={<MenuIcon name="download" />}
+        eyebrow={t('karaoke.maker.transcriptionEyebrow')}
+        title={t('karaoke.maker.transcriptionTitle')}
+        titleId="karaoke-maker-consent-title"
+        closeLabel={t('support.close')}
+        onClose={decline}
+        footer={
+          <div className="dialog-frame__actions">
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={decline}
+            >
+              {t('karaoke.maker.notNow')}
+            </button>
+            <button
+              type="button"
+              className="button small"
+              onClick={() => runWhisper().catch(() => undefined)}
+            >
+              {t('karaoke.maker.downloadPrepare')}
+            </button>
+          </div>
+        }
       >
-        <span className="karaoke-maker__eyebrow">
-          {t('karaoke.maker.transcriptionEyebrow')}
-        </span>
-        <h2>{t('karaoke.maker.transcriptionTitle')}</h2>
         <p>
           {t('karaoke.maker.transcriptionBody', {
             model: WHISPER_MODEL,
           })}
         </p>
         <p>{t('karaoke.maker.transcriptionReview')}</p>
-        <div className="karaoke-maker__modal-actions">
-          <button
-            type="button"
-            onClick={() => {
-              prepareAfterWhisperRef.current = false;
-              lyricsWorkflowActiveRef.current = false;
-              setLyricsWorkflowActive(false);
-              setWhisperConsentOpen(false);
-            }}
-          >
-            {t('karaoke.maker.notNow')}
-          </button>
-          <button
-            className="is-primary"
-            type="button"
-            onClick={() => runWhisper().catch(() => undefined)}
-          >
-            {t('karaoke.maker.downloadPrepare')}
-          </button>
-        </div>
-      </div>
+      </DialogFrame>
     </div>
   );
 };

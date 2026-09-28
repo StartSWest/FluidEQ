@@ -290,8 +290,13 @@ const drawAgentPicture = async (
   const run = handedRun(
     () =>
       sound === 'silence'
-        ? silenceRun(pack, accent, seconds ?? STUDIO_AGENT_SILENCE_S)
-        : showcaseRun(pack, accent, seconds, request.tempo),
+        ? silenceRun(
+            pack,
+            accent,
+            seconds ?? STUDIO_AGENT_SILENCE_S,
+            request.daylight,
+          )
+        : showcaseRun(pack, accent, seconds, request.tempo, request.daylight),
     request,
   );
   const kept = keptFrame(built, run, size, refuserOf(pack), AGENT_TIMING);
@@ -352,6 +357,7 @@ const renderForAgent = async (
 const sampleFrames = async (
   pack: IScenePack,
   accent: readonly [number, number, number],
+  daylight: number,
 ): Promise<Uint8Array | undefined> => {
   const built = await build(pack);
   if (!built.ok) {
@@ -361,7 +367,7 @@ const sampleFrames = async (
   try {
     const frameBytes = SAMPLE_WIDTH * SAMPLE_HEIGHT * 4;
     const frames: Uint8Array[] = [];
-    const run = showcaseRun(pack, accent);
+    const run = showcaseRun(pack, accent, undefined, undefined, daylight);
     const watch = watchDraws(gl, program, refuserOf(pack));
     let index = 0;
     for (let frame = run(); frame; frame = run()) {
@@ -404,9 +410,11 @@ const refusalOf = (key: string) => {
 const answer = async (request: TSceneStillRequest) => {
   const key = sceneKey(request.pack);
   if (request.kind === 'sample') {
-    const pixels = await sampleFrames(request.pack, request.accent).catch(
-      () => undefined,
-    );
+    const pixels = await sampleFrames(
+      request.pack,
+      request.accent,
+      request.daylight,
+    ).catch(() => undefined);
     scope.postMessage(
       {
         kind: 'sample',
@@ -429,7 +437,13 @@ const answer = async (request: TSceneStillRequest) => {
   }
   const run = request.frames
     ? capturedRun(request.frames)
-    : showcaseRun(request.pack, request.accent);
+    : showcaseRun(
+        request.pack,
+        request.accent,
+        undefined,
+        undefined,
+        request.daylight,
+      );
   const blob = await renderStill(request.pack, run, request.format).catch(
     () => undefined,
   );

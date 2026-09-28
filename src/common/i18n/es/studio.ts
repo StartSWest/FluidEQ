@@ -442,18 +442,17 @@ const studio = {
   'studio.framing.use': 'Usar esta foto',
   'studio.framing.saving': 'Guardando…',
 
-  'studio.size.title': 'Tamaño',
-  'studio.size.graph': 'Gráfica',
-  'studio.size.narrow': 'Estrecho',
-  'studio.size.wide': 'Ancho',
   'studio.size.full': 'Pantalla completa',
   'studio.size.exit': 'Salir de pantalla completa',
   'studio.wave.title': 'Onda en la gráfica',
   'studio.wave.hint':
     'Se guarda en la escena y se publica con ella, así que se abre como la dejaste. Quien la use puede cambiarlas en Vista, en la gráfica, y volver a la tuya. Prueba los extremos: una onda baja o subida hasta el centro.',
   'studio.tint.label': 'FluidEQ con esta escena',
+  'studio.tint.theme': 'Tema',
+  'studio.brightness.hint':
+    'El Brillo de toda la app, el mismo control que en Colores de la ventana. Con él, cada escena pasa de la noche en 0 al pleno día en 100: prueba la tuya en los dos extremos antes de publicarla.',
   'studio.tint.hint':
-    'Mientras trabajas aquí, toda la app puede tomar los colores de la escena, o brillar suavemente a su alrededor con la música, para que la veas y la sientas como tema.',
+    'Solo aquí, mientras trabajas: los Colores de la ventana de la gráfica siguen como los dejaste. Tema deja la ventana como la tiene la app; las demás le dan los colores de esta escena, o brillan suavemente a su alrededor con la música, para que la veas y la sientas como la verá quien la escuche.',
   'studio.grid.label': 'Mostrar la cuadrícula de la gráfica',
   'studio.grid.hint':
     'Sus líneas de frecuencia y nivel sobre la escena, con el espacio que ocupan en la gráfica, para medir dónde caen la onda y cada parte de la escena.',
@@ -507,6 +506,8 @@ const studio = {
     'Un control de params necesita un id con a-z, 0-9 y _, un nombre en inglés y un min menor que su max.',
   'studio.problem.too-many-params':
     'Una escena puede tener como máximo 8 controles en params.',
+  'studio.problem.no-daylight':
+    'Toda escena necesita el control Daylight, { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } en params, y dibuja la noche en 0 y el día en 100.',
   'studio.problem.bad-ambient':
     'Se dejaron fuera elementos o controles de ambient en pack.json. Revisa sus formas, movimientos, colores, cantidades y qué mueve cada control.',
   'studio.problem.bad-world':

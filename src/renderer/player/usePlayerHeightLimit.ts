@@ -4,94 +4,101 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { RefObject, useLayoutEffect } from 'react';
+import { RefObject, useLayoutEffect, useState } from 'react';
 import { holdPlayerHeight } from './windowModeStore';
-import type { IPlayerDecks } from './playerLayout';
+import type { IPlayerSheet } from './playerLayout';
 
 /**
- * How tall the player's window may be, and how short.
+ * How much of the song the amp shows for the height it has: everything
+ * (`roomy`), the cover smaller (`snug`), or the song's words alone, with no
+ * cover and no chips (`compact`).
+ */
+export type TPlayerFit = 'roomy' | 'snug' | 'compact';
+
+/** The class each fit puts on the amp; roomy is the amp as designed. */
+const FIT_CLASS: Record<Exclude<TPlayerFit, 'roomy'>, string> = {
+  snug: 'is-snug',
+  compact: 'is-compact',
+};
+
+/**
+ * How short the amp's window may be, and how much it shows at the height it
+ * has.
  *
- * SHORT: never shorter than its open decks need. The player draws no
- * scrollbar — the window is its layout — so a window dragged under that
- * cut the equalizer off at the knees (Ivan, 2026-09-21). The floor is the
- * strip, the decks and every stretching deck at the least it may have.
+ * The amp draws no scrollbar — the window is its layout — so it is never let
+ * shorter than it needs at its tightest: the song without its cover or its
+ * chips, the dock, the open space at the least that holds the visualizer's
+ * bar, and the sheet as it stands (a lowered sheet asks for its tabs alone).
+ * Main holds the window to that (`holdPlayerHeight`); there is no ceiling,
+ * because a taller window gives the picture the room.
  *
- * TALL: while nothing in it can grow — neither the visualizer nor the queue
- * has a deck of its own — the window is exactly as tall as its decks, because
- * there is nothing for a taller one to give them. Then the floor and the
- * ceiling are the same number and the height is simply not the listener's
- * to drag. A DECK OF ITS OWN, not a switch that is on: in one column the
- * visualizer is switched on and drawn inside the equalizer's screen, and
- * counting that as a deck that stretches left the window at whatever height
- * it was unfolded to, with a well of nothing under the equalizer (Ivan,
- * 2026-09-22). The caller says whether the visualizer is standing as a deck
- * (`MiniPlayer`), because it is the one that decides to draw it.
- *
- * Both are measured on the page as it stands, with the layout switched to
- * its natural sizes for the one measurement (`is-measuring`), and followed
- * as the deck row changes: a narrower window wraps the equalizer under the
- * deck, and a Tone face is shorter than the faders. Folded, neither
- * applies. A layout effect, and called before the one that resizes the
- * window for a deck, so the limits are lifted before the window is asked to
- * grow past them.
+ * Between that floor and the height everything needs at its roomiest the
+ * song gives its room up in two steps, the smaller first: the cover shrinks,
+ * and only then do the cover and the chips go. A single step lost the whole
+ * cover for the want of 24 pixels at the default 1080 — and gave those
+ * 130 pixels to the open space, which never needed them. Each height is
+ * measured on the page as it stands, the layout switched to its natural
+ * sizes for the measurement (`is-measuring`, with each fit's class) and back
+ * before anything is painted, and measured again whenever the window or
+ * anything in it changes size — a Tone page is shorter than the faders, a
+ * lowered sheet shorter still.
  */
 const usePlayerHeightLimit = (
   rootRef: RefObject<HTMLDivElement | null>,
-  decks: IPlayerDecks,
-  /** Whether the visualizer is drawn as a deck of its own right now. */
-  hasVisDeck: boolean,
+  sheet: IPlayerSheet,
   isFolded: boolean,
-) => {
-  const canGrow = hasVisDeck || decks.queue;
+): TPlayerFit => {
+  const [fit, setFit] = useState<TPlayerFit>('roomy');
   useLayoutEffect(() => {
     const root = rootRef.current;
-    const title = root?.querySelector<HTMLElement>('.player-title');
-    const body = root?.querySelector<HTMLElement>('.player-body');
-    const row = body?.querySelector<HTMLElement>('.player-body__row');
-    if (isFolded || !root || !title || !body || !row) {
+    const main = root?.querySelector<HTMLElement>('.player-main');
+    if (isFolded || !root || !main) {
       holdPlayerHeight(null, null);
+      setFit('roomy');
       return undefined;
     }
-    const measure = () => {
-      const padding = getComputedStyle(body);
-      const decksHeight =
-        title.getBoundingClientRect().height +
-        row.getBoundingClientRect().height +
-        parseFloat(padding.paddingTop) +
-        parseFloat(padding.paddingBottom);
-      if (!canGrow) {
-        holdPlayerHeight(decksHeight, decksHeight);
-        return;
-      }
-      // Every stretching deck at its own least, which is where its own
-      // stylesheet puts it.
-      const least = (selector: string) => {
-        const deck = root.querySelector<HTMLElement>(selector);
-        return deck ? getComputedStyle(deck).minHeight : undefined;
-      };
-      const vis = least('.player-vis');
-      const queue = least('.player-queue');
+    const classes = Object.values(FIT_CLASS);
+    const naturalHeight = (at: TPlayerFit) => {
+      const was = classes.filter((name) => root.classList.contains(name));
+      root.classList.remove(...classes);
       root.classList.add('is-measuring');
-      if (vis) {
-        root.style.setProperty('--player-held-vis', vis);
+      if (at !== 'roomy') {
+        root.classList.add(FIT_CLASS[at]);
       }
-      if (queue) {
-        root.style.setProperty('--player-held-queue', queue);
+      const { height } = root.getBoundingClientRect();
+      root.classList.remove('is-measuring', ...classes);
+      root.classList.add(...was);
+      return height;
+    };
+    const measure = () => {
+      const roomy = naturalHeight('roomy');
+      const snug = naturalHeight('snug');
+      const tight = naturalHeight('compact');
+      holdPlayerHeight(null, Math.ceil(tight));
+      const room = window.innerHeight;
+      if (room >= roomy) {
+        setFit('roomy');
+      } else {
+        setFit(room >= snug ? 'snug' : 'compact');
       }
-      const floor = root.getBoundingClientRect().height;
-      root.classList.remove('is-measuring');
-      root.style.removeProperty('--player-held-vis');
-      root.style.removeProperty('--player-held-queue');
-      holdPlayerHeight(null, floor);
     };
     measure();
+    window.addEventListener('resize', measure);
     if (typeof ResizeObserver === 'undefined') {
-      return undefined;
+      return () => window.removeEventListener('resize', measure);
     }
+    // The sheet and the song are the parts whose own height changes: a page
+    // turned, a band layout changed, a title that wraps.
     const observer = new ResizeObserver(measure);
-    observer.observe(row);
-    return () => observer.disconnect();
-  }, [canGrow, decks.vis, decks.queue, isFolded, rootRef]);
+    main
+      .querySelectorAll<HTMLElement>('.player-sheet, .player-now')
+      .forEach((part) => observer.observe(part));
+    return () => {
+      window.removeEventListener('resize', measure);
+      observer.disconnect();
+    };
+  }, [isFolded, rootRef, sheet.isOpen, sheet.tab]);
+  return fit;
 };
 
 export default usePlayerHeightLimit;

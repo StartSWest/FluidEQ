@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { clampUnit, peakBetween, type ISceneFrame } from './sceneFrame';
+import { clampUnit, peakBetween, type ISceneReading } from './sceneFrame';
 
 /**
  * The row of pieces a scene made of pieces stands on — a board's columns of
@@ -44,7 +44,7 @@ export const createPieceRow = (): IPieceRow => ({
  * size rather than the same count squashed into slivers.
  */
 export const layPieces = (
-  frame: ISceneFrame,
+  frame: Pick<ISceneReading, 'plot' | 'xs' | 'levels' | 'look'>,
   row: IPieceRow,
   minPitch: number,
 ): IPieceRow => {

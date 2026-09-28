@@ -27,6 +27,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { useNoticeClaim } from '../utils/noticeTurn';
+import CompactFrame from './CompactFrame';
 import '../styles/SongEqNotice.scss';
 
 /**
@@ -58,7 +59,9 @@ import '../styles/SongEqNotice.scss';
  * auto-fade already expresses. Both therefore wear `button small subtle`
  * (see CLAUDE.md's emphasis rule, and `SpeechMemoryNotice.tsx` for the same
  * class in use) rather than one of them going loud the way a wrongly-styled
- * decline button did elsewhere in this app.
+ * decline button did elsewhere in this app. The × is that same nothing,
+ * sooner: it ends the notice as the linger's end would, and hands nothing
+ * back.
  *
  * Forget is not a milder Undo — it is a strict superset, by design (see
  * `forgetCurrentSongEq`'s own comment in `songEqSession.ts`): deleting a
@@ -83,7 +86,7 @@ const SongEqNotice = () => {
       : t('songEq.noticeBody', { title: entry.title, plays: entry.plays });
 
   return (
-    <div
+    <CompactFrame
       // Keyed on the match, so a second one while this is still up starts its
       // linger over rather than inheriting what was left of the first.
       key={notice.id}
@@ -94,31 +97,34 @@ const SongEqNotice = () => {
         }
       }}
       role="dialog"
-      aria-labelledby="song-eq-notice-title"
+      aria-modal="false"
       aria-describedby="song-eq-notice-body"
+      icon={<MenuIcon name="song" />}
+      title={t('songEq.noticeTitle')}
+      titleId="song-eq-notice-title"
+      closeLabel={t('support.close')}
+      onClose={() => endSongEqNotice(notice.id)}
+      actions={
+        <>
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={undoSongEqLoan}
+          >
+            {t('songEq.undo')}
+          </button>
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={forgetCurrentSongEq}
+          >
+            {t('songEq.forget')}
+          </button>
+        </>
+      }
     >
-      <MenuIcon name="smart" className="song-eq-notice__icon" />
-      <div className="song-eq-notice__text">
-        <strong id="song-eq-notice-title">{t('songEq.noticeTitle')}</strong>
-        <span id="song-eq-notice-body">{body}</span>
-      </div>
-      <div className="song-eq-notice__actions">
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={undoSongEqLoan}
-        >
-          {t('songEq.undo')}
-        </button>
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={forgetCurrentSongEq}
-        >
-          {t('songEq.forget')}
-        </button>
-      </div>
-    </div>
+      <p id="song-eq-notice-body">{body}</p>
+    </CompactFrame>
   );
 };
 

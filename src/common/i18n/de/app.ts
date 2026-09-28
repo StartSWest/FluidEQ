@@ -254,6 +254,11 @@ const app: Partial<Dictionary> = {
     'Equalizer APO wurde installiert oder neu eingerichtet. Falls kein Ton kommt, starten Sie den Windows-Audiodienst neu, statt den PC neu zu starten.',
   'notice.restartNow': 'Audio jetzt neu starten',
   'notice.importComplete': 'Import abgeschlossen',
+  'notice.apoReconfiguredTitle': 'Equalizer APO wurde geändert',
+  'notice.captureFailed': 'Die Live-Ausgabe konnte nicht starten',
+  'notice.captureFailedBody':
+    'Pegelanzeige und Live-Kurve im Diagramm sind vorerst aus. Alles andere funktioniert normal.',
+  'notice.tryAgain': 'Erneut versuchen',
   'notice.restartConfirm':
     'Der Ton setzt für ein paar Sekunden aus und Windows fragt nach Administratorrechten. Fortfahren?',
   'restart.title': 'Windows-Audio neu starten',

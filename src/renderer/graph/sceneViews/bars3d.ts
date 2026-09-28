@@ -48,8 +48,12 @@ import {
  * Fronts, tops, sides and shadows of one colour are one path each.
  */
 
-/** A block never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 7;
+/**
+ * A block never on a pitch smaller than this, in CSS pixels. Exported with the
+ * functions below for the look's GPU painting (`engineLooks/bars3dLook.ts`),
+ * which is laid out from the same numbers.
+ */
+export const MIN_PITCH = 7;
 /** The depth drawn, as a share of a block's width, and its slant. */
 const DEPTH = 0.42;
 const SLANT_X = 0.8;
@@ -113,6 +117,42 @@ const addBlock = (
   paths.side.closePath();
 };
 
+/**
+ * Where one copy of the row stands, and how far back a block's depth slants
+ * on a piece of `body`: across by `dx`, up (or down, hanging) by `dy`.
+ */
+export const bars3dStand = (band: IAnalysisBand, body: number) => {
+  const depth = band.bottom - band.top;
+  const dy = body * DEPTH * SLANT_Y;
+  return {
+    floor: band.flipped
+      ? band.top + depth * FLOOR
+      : band.bottom - depth * FLOOR,
+    up: band.flipped ? 1 : -1,
+    reach: depth * (1 - FLOOR) - dy - 4,
+    dx: body * DEPTH * SLANT_X,
+    dy,
+  };
+};
+
+/**
+ * How far the row moves left: by what the last block's side would overrun
+ * the plot, never further than the first block's own margin, or the last
+ * block is cut at the edge.
+ */
+export const bars3dShift = (row: IPieceRow, dx: number): number => {
+  const margin = (row.pitch - row.body) / 2;
+  return Math.min(margin, Math.max(0, dx - margin));
+};
+
+/** A floating slab's thickness on a piece of `body`. */
+export const bars3dSlab = (body: number): number =>
+  Math.max(2, Math.min(5, body * 0.18));
+
+/** The fronts' bloom for a frame. */
+export const bars3dBloom = (pulse: number, glow: number, opacity: number) =>
+  (0.16 + pulse * 0.3 + glow * 0.45) * opacity;
+
 const drawCopy = (
   frame: ISceneFrame,
   band: IAnalysisBand,
@@ -122,14 +162,7 @@ const drawCopy = (
 ): void => {
   const { context, plot, colours, look } = frame;
   const { row } = state;
-  const depth = band.bottom - band.top;
-  const up = band.flipped ? 1 : -1;
-  const floor = band.flipped
-    ? band.top + depth * FLOOR
-    : band.bottom - depth * FLOOR;
-  const dx = row.body * DEPTH * SLANT_X;
-  const dy = row.body * DEPTH * SLANT_Y;
-  const reach = depth * (1 - FLOOR) - dy - 4;
+  const { floor, up, reach, dx, dy } = bars3dStand(band, row.body);
   const span: ISceneSpan = {
     left: plot.left,
     right: plot.right,
@@ -144,11 +177,8 @@ const drawCopy = (
   const slabs = blockPaths();
   const shadows = new Path2D();
   const fronts = new Path2D();
-  // Every block's side reaches `dx` past its front, so the row is moved left
-  // by what the last side would overrun the plot — never further than the
-  // first block's own margin — or the last block is cut at the edge.
-  const margin = (row.pitch - row.body) / 2;
-  const shift = Math.min(margin, Math.max(0, dx - margin));
+  // Every block's side reaches `dx` past its front.
+  const shift = bars3dShift(row, dx);
   for (let piece = 0; piece < row.count; piece += 1) {
     const left = row.lefts[piece] - shift;
     const level = row.levels[piece];
@@ -165,7 +195,7 @@ const drawCopy = (
     shadows.closePath();
     const held = state.peaks.held[piece] * reach;
     if (look.accents && held - height > 4) {
-      const slab = Math.max(2, Math.min(5, row.body * 0.18));
+      const slab = bars3dSlab(row.body);
       addBlock(
         slabs,
         left,
@@ -245,7 +275,7 @@ export const drawBars3d = (
     endBloom(
       frame,
       state.bloom,
-      (0.16 + frame.music.pulse * 0.3 + frame.glow * 0.45) * frame.look.opacity,
+      bars3dBloom(frame.music.pulse, frame.glow, frame.look.opacity),
     );
   }
   return { moving: falling && frame.look.accents, body };

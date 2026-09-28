@@ -1,0 +1,489 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Every dialog's frame (`DialogFrame`), its small form for one question or
+// one notice (`CompactFrame`), and the one close button all three share.
+// C · Split, the direction Ivan picked (2026-09-27): the rail on the left says
+// what the dialog is, the right holds what it is for.
+
+// The rail's width: wide enough for a title of three or four words on two
+// lines and a sentence under it, narrow enough that the body keeps most of a
+// 640px dialog.
+$rail-width: 16.5rem;
+
+.dialog-frame {
+  @include surface-motion($dialog-arrival);
+  @include dialog.surface-look;
+  position: relative;
+  display: grid;
+  // `minmax(0, …)` so a long line in the body wraps inside it instead of
+  // widening the dialog past the window.
+  grid-template-columns: $rail-width minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'rail body'
+    'rail foot';
+  overflow: hidden;
+}
+
+.dialog-frame__rail {
+  grid-area: rail;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 18px;
+  padding: 26px 22px 22px 24px;
+  overflow-y: auto;
+  border-right: dialog.$seam;
+  background: dialog.$rail;
+  @include slim-scrollbar;
+}
+
+.dialog-frame__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+// The glyph's tile. The accent at rest; amber when the dialog is about
+// something wrong, red when it is about deleting (`CompactFrame`'s tone).
+.dialog-frame__tile {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 26%, transparent);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+
+  > svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  // The app's own mark (About) is a tile of its own; it fills this one
+  // rather than sitting in it.
+  > .brand-mark {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+
+    svg {
+      width: 62%;
+      height: 62%;
+    }
+  }
+
+  &.is-warn {
+    color: $amber;
+    border-color: color-mix(in srgb, $amber 32%, transparent);
+    background: color-mix(in srgb, $amber 13%, transparent);
+  }
+
+  &.is-danger {
+    color: $red;
+    border-color: color-mix(in srgb, $red 34%, transparent);
+    background: color-mix(in srgb, $red 13%, transparent);
+  }
+}
+
+.dialog-frame__heading {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 6px;
+}
+
+.dialog-frame__eyebrow {
+  color: $text-accent;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.14em);
+  text-transform: uppercase;
+}
+
+// The badge on the title's baseline, not its centre: the two have very
+// different cap heights, and centred it reads as having slipped.
+.dialog-frame__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.dialog-frame__title {
+  margin: 0;
+  // Room for the right corner's close button in the stacked arrangement,
+  // where the title runs across the top.
+  padding-right: 4px;
+  color: $text-primary;
+  font-size: 1.2rem;
+  font-weight: $weight-bold;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+// The titlebar's version tag, to the declaration: the same fact beside the
+// same name. `tabular-nums` so a version that changed width between builds
+// would not shift the name.
+.dialog-frame__badge {
+  padding: 1px 6px;
+  color: $text-accent;
+  border: 1px solid $border-field;
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  font-size: $text-eyebrow;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
+  @include tracking(0.02em);
+}
+
+.dialog-frame__description {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-lead;
+  line-height: 1.5;
+}
+
+// A paragraph the rail holds under the description: what the dialog is for,
+// said at more length than one line, quieter than the description itself.
+.dialog-frame__rail-text {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-body;
+  line-height: 1.55;
+}
+
+.dialog-frame__body {
+  grid-area: body;
+  display: grid;
+  min-height: 0;
+  align-content: start;
+  gap: 14px;
+  // The top clears the close button in the corner (10px down, 30px tall):
+  // at 26px a full-width field or card started under it, and the × sat on
+  // the Save dialog's name field and on the engine choice's first card.
+  padding: 48px 28px 22px;
+  overflow-y: auto;
+  color: $text-muted;
+  font-size: $text-lead;
+  line-height: 1.6;
+  @include slim-scrollbar;
+
+  p {
+    margin: 0;
+  }
+}
+
+// A part of a long body, under a small heading, parted from the one before by
+// the floor's hairline — never a box each: six boxes down a column read as a
+// form, not a page (the About panel, the release notes, the guide).
+.dialog-frame__section {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 18px 0;
+
+  & + & {
+    border-top: dialog.$seam;
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.dialog-frame__section-title {
+  margin: 0;
+  color: $text-accent;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.13em);
+  text-transform: uppercase;
+}
+
+// Controls that belong together — a set of choices, a field and its preview —
+// on a card of the window's own colour, as the panes hold their groups. Text
+// is never boxed; only a group that is used together is.
+.dialog-frame__group {
+  @include card-surface;
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+}
+
+// A gate has no × (the licence, the first engine choice), so nothing to clear.
+.dialog-frame:not(:has(> .dialog-close)) > .dialog-frame__body {
+  padding-top: 26px;
+}
+
+.dialog-frame__foot {
+  grid-area: foot;
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s $spacing-m;
+  padding: 14px 18px 16px 28px;
+  border-top: dialog.$seam;
+}
+
+// What the foot says beside its buttons: the engine that is on now, a count,
+// a way to the next place to look.
+.dialog-frame__note {
+  flex: 1 1 14rem;
+  min-width: 0;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.45;
+
+  strong {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+}
+
+// Kept to the right and together: when the row wraps, the buttons wrap as one
+// group under the note rather than one at a time.
+.dialog-frame__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  margin-left: auto;
+}
+
+// The one way out (`DialogClose`), in the frame's top right corner.
+.dialog-close {
+  position: absolute;
+  z-index: 2;
+  top: 10px;
+  right: 10px;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  padding: 0;
+  color: $text-muted;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+
+  &:hover {
+    color: $white;
+    background: $hover-lift;
+  }
+
+  &:focus-visible {
+    color: $white;
+    @include focus-ring;
+  }
+}
+
+// A scene playing edge to edge behind the rail: a member's Account, and the
+// welcome to Plus (Ivan, 2026-09-27: "the viz full fit in the side pane
+// left"). Both were a band at the rail's foot, a strip of scene under an
+// empty column. The scene itself — the still, the aurora under it — is
+// `SceneBand`; this places it and lays a ground under the words at the top so
+// they read on the brightest frame.
+.dialog-frame__rail:has(> .dialog-frame__scene) {
+  position: relative;
+  isolation: isolate;
+
+  &::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, $surface-menu-top 92%, transparent) 0%,
+      color-mix(in srgb, $surface-menu-top 78%, transparent) 26%,
+      transparent 58%,
+      transparent 82%,
+      color-mix(in srgb, $surface-menu-top 38%, transparent) 100%
+    );
+    content: '';
+    pointer-events: none;
+  }
+}
+
+.dialog-frame__scene {
+  --band-short: 100%;
+  --band-tall: 100%;
+  --band-tall-short: 100%;
+
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+}
+
+// Rainbow mode marks the kicker, as it did on the old header, and nothing
+// else: no edge round the dialog ("quítale el rainbow border a todos").
+.is-euphoric .dialog-frame__eyebrow {
+  animation: rainbow-cycle 3.6s linear infinite;
+  color: color-mix(in srgb, var(--rainbow-now) 55%, white);
+}
+
+// A narrow window, the 200% UI on a laptop included: the rail becomes the
+// head — tile beside the title — and what the rail held follows it, so
+// nothing is squeezed into a column a word wide. On the window, because every
+// dialog is portalled to it and sized against it.
+@media (max-width: $bp-md) {
+  .dialog-frame {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'rail'
+      'body'
+      'foot';
+  }
+
+  .dialog-frame__rail {
+    max-height: 40vh;
+    gap: 12px;
+    padding: 16px 52px 14px 18px;
+    border-right: 0;
+    border-bottom: dialog.$seam;
+  }
+
+  .dialog-frame__identity {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .dialog-frame__tile {
+    width: 40px;
+    height: 40px;
+  }
+
+  // The rail is the head here: a scene behind it would put a picture under a
+  // title and push what the dialog holds off the first screen.
+  .dialog-frame__scene,
+  .dialog-frame__rail:has(> .dialog-frame__scene)::after {
+    display: none;
+  }
+
+  .dialog-frame__title {
+    font-size: 1.05rem;
+  }
+
+  .dialog-frame__body {
+    padding: 18px;
+  }
+
+  .dialog-frame__foot {
+    padding: 12px 14px 14px 18px;
+  }
+}
+
+// *** The small frame ********************************************************
+
+.compact-frame {
+  @include surface-motion($dialog-arrival);
+  @include dialog.surface-look;
+  position: relative;
+  display: grid;
+  width: min(460px, 100%);
+  grid-template-columns: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+// A notice floats over a live page with no scrim under it (not modal: the
+// engine's cards, the update, the review, the Maker's month), and the
+// sheet's last twentieth let the pane behind it read through its text. A
+// question dims the window first, so it keeps the sheet.
+.compact-frame:not([aria-modal='true']) {
+  background-color: $surface-base;
+  background-image: linear-gradient(dialog.$sheet, dialog.$sheet);
+}
+
+.compact-frame__strip {
+  display: flex;
+  justify-content: center;
+  padding: 18px 16px;
+  border-right: dialog.$seam;
+  background: dialog.$rail;
+
+  .dialog-frame__tile {
+    width: 42px;
+    height: 42px;
+
+    > svg {
+      width: 21px;
+      height: 21px;
+    }
+  }
+}
+
+.compact-frame__main {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 8px;
+  // The right clears the close button.
+  padding: 18px 48px 16px 18px;
+}
+
+.compact-frame__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.compact-frame__message {
+  display: grid;
+  gap: 6px;
+  color: $text-muted;
+  font-size: $text-lead;
+  line-height: 1.5;
+
+  p {
+    margin: 0;
+  }
+}
+
+.compact-frame__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  margin-top: 8px;
+}
+
+// A small frame with no close button uses the room it would have taken.
+.compact-frame:not(:has(> .dialog-close)) .compact-frame__main {
+  padding-right: 18px;
+}

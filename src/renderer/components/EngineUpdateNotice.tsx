@@ -6,11 +6,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import MenuIcon from '../icons/MenuIcon';
 import type { IAudioRestart } from '../utils/useAudioRestart';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
 import Button from '../widgets/Button';
-// The output notice's spot and card, which this shares.
+import CompactFrame from './CompactFrame';
+// The output notice's spot, which this shares.
 import '../styles/DeviceProfiles.scss';
 import '../styles/EngineUpdateNotice.scss';
 
@@ -29,15 +31,15 @@ interface IEngineUpdateNoticeProps {
  * Offers this app's FluidEQ Engine in place of the one installed, which an app
  * update never replaces (`src/main/engineUpdate.ts`), and says how it went.
  *
- * The accent and not red: the engine already on the machine is processing the
- * audio, so this is an offer, not a fault — and it waits behind every other
- * notice in the same spot, which are about sound the EQ is not reaching.
+ * The accent and not amber: the engine already on the machine is processing
+ * the audio, so this is an offer, not a fault — and it waits behind every
+ * other notice in the same spot, which are about sound the EQ is not reaching.
  *
  * The restart card's four states in the notice's shape: the offer; the update
- * running, the button breathing and the foot saying so from the first second,
- * because the Windows prompt can take a moment to appear; done; and failed,
- * a declined prompt told apart from a run that failed, with the helper's own
- * reason under the line.
+ * running, the button breathing and the line beside it saying so from the
+ * first second, because the Windows prompt can take a moment to appear; done;
+ * and failed, a declined prompt told apart from a run that failed, with the
+ * helper's own reason under the line.
  */
 const EngineUpdateNotice = ({ update, isHidden }: IEngineUpdateNoticeProps) => {
   const { t } = useTranslation();
@@ -79,43 +81,25 @@ const EngineUpdateNotice = ({ update, isHidden }: IEngineUpdateNoticeProps) => {
   const quietLabel = isRunning ? t('restart.close') : t('output.notNow');
 
   return createPortal(
-    <aside
-      className={`device-apo-notice engine-update-notice${
-        isDone ? ' engine-update-notice--done' : ''
-      }`}
+    <CompactFrame
+      className="device-apo-notice engine-update-notice"
+      icon={<MenuIcon name={isDone ? 'check' : 'download'} />}
+      title={isDone ? t('engineUpdate.doneTitle') : t('engineUpdate.title')}
+      titleId="engine-update-notice-title"
+      // An offer over the page, not a dialog in front of it.
       role="dialog"
-      aria-labelledby="engine-update-notice-title"
+      aria-modal="false"
       aria-describedby="engine-update-notice-body"
       aria-busy={isRunning}
-    >
-      <div className="device-apo-notice__copy">
-        <span className="apo-badge">
-          {isDone ? t('engineUpdate.doneBadge') : t('engineUpdate.badge')}
-        </span>
-        <h2 id="engine-update-notice-title">
-          {isDone ? t('engineUpdate.doneTitle') : t('engineUpdate.title')}
-        </h2>
-        <p id="engine-update-notice-body">
-          {isDone ? t('engineUpdate.doneBody') : t('engineUpdate.body')}
-        </p>
-        {phase === 'failed' && (
-          <p className="device-apo-notice__error">
-            {outcome?.declined
-              ? t('engineUpdate.declined')
-              : t('engineUpdate.failed')}
-            {outcome?.detail && (
-              <span className="engine-update-notice__reason">
-                {outcome.detail}
-              </span>
-            )}
+      onClose={close}
+      closeLabel={t('app.dismiss')}
+      actions={
+        <>
+          {/* Kept in the row even when empty, so the buttons do not jump the
+              moment the update starts. */}
+          <p className="engine-update-notice__status" aria-live="polite">
+            {isRunning ? t('engineUpdate.running') : ''}
           </p>
-        )}
-      </div>
-      <div className="engine-update-notice__foot">
-        <p className="engine-update-notice__status" aria-live="polite">
-          {isRunning ? t('engineUpdate.running') : ''}
-        </p>
-        <div className="device-apo-notice__actions">
           {isDone ? (
             <Button
               ariaLabel={t('output.gotIt')}
@@ -127,6 +111,14 @@ const EngineUpdateNotice = ({ update, isHidden }: IEngineUpdateNoticeProps) => {
             </Button>
           ) : (
             <>
+              <Button
+                ariaLabel={quietLabel}
+                isDisabled={false}
+                className="small subtle"
+                handleChange={close}
+              >
+                {quietLabel}
+              </Button>
               {/* Not disabled while it works, as in the restart card and the
                   engine dialog: a disabled `Button` paints the dim outline of
                   an unavailable action and drops the `is-running` breath, so
@@ -141,19 +133,27 @@ const EngineUpdateNotice = ({ update, isHidden }: IEngineUpdateNoticeProps) => {
               >
                 {primaryLabel}
               </Button>
-              <Button
-                ariaLabel={quietLabel}
-                isDisabled={false}
-                className="small subtle"
-                handleChange={close}
-              >
-                {quietLabel}
-              </Button>
             </>
           )}
-        </div>
-      </div>
-    </aside>,
+        </>
+      }
+    >
+      <p id="engine-update-notice-body">
+        {isDone ? t('engineUpdate.doneBody') : t('engineUpdate.body')}
+      </p>
+      {phase === 'failed' && (
+        <p className="device-apo-notice__error">
+          {outcome?.declined
+            ? t('engineUpdate.declined')
+            : t('engineUpdate.failed')}
+          {outcome?.detail && (
+            <span className="engine-update-notice__reason">
+              {outcome.detail}
+            </span>
+          )}
+        </p>
+      )}
+    </CompactFrame>,
     document.body,
   );
 };

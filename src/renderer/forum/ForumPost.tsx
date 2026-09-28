@@ -216,7 +216,7 @@ export default function ForumPost({
               </button>
               <button
                 type="button"
-                className="button small"
+                className="button small danger"
                 onClick={() => {
                   setConfirmingDelete(false);
                   deletePost(post.id).catch(() => undefined);

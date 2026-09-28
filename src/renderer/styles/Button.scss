@@ -97,10 +97,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Secondary action: reads as an outline against the panel.
   &.subtle {
     color: $secondary-light;
-    // The fields' edge, which is where this one's number used to be spelled
-    // out a second time (`$border-field`).
-    border-color: $border-field;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    // Every pressed control's edge (`$border-control`), the preset picker's.
+    border-color: $border-control;
+    background: $surface-control;
     box-shadow: none;
 
     // NO glyph rule of its own. One was here for a day: it painted every
@@ -116,14 +115,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // lit or dimmed as a whole read as flicker.
     &:hover:not([aria-disabled='true']):not(:disabled) {
       color: $white;
-      border-color: $border-field-hover;
-      background: color-mix(in srgb, $secondary-default 14%, transparent);
+      border-color: $border-control-hover;
+      background: $surface-control-hover;
       box-shadow: none;
       filter: none;
     }
 
     &:active:not([aria-disabled='true']):not(:disabled) {
-      background: color-mix(in srgb, $secondary-default 24%, transparent);
+      background: $surface-control-press;
       filter: none;
     }
   }

@@ -44,6 +44,7 @@ import {
   type IRestWatch,
 } from './sceneRest';
 import { sceneRulesFor } from './sceneRules';
+import { createDaylightFollower } from './sceneDaylight';
 import { createSceneTuner } from './sceneTuner';
 import { sceneProgramKey } from './sceneLinkTurns';
 import sameSceneProgramInputs from './sceneProgramInputs';
@@ -206,6 +207,7 @@ export default function useSceneRunner({
   const tuningRef = useRef(tuning);
   tuningRef.current = tuning;
   const tunerRef = useRef(createSceneTuner());
+  const daylightRef = useRef(createDaylightFollower());
   const heardRef = useRef(onHeard);
   heardRef.current = onHeard;
   /** The musical accent's envelope as the scene last drew it. */
@@ -504,6 +506,7 @@ export default function useSceneRunner({
         packRef.current,
         paramsRef.current,
         tuningRef.current,
+        daylightRef.current.next(deltaMs),
       );
       heardRef.current?.(frame, shaped, drawnAccentRef.current);
       const ladder = ladderRef.current;

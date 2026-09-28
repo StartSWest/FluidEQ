@@ -33,7 +33,6 @@ import {
   DEFAULT_ACCENT_WIDTH,
   DEFAULT_BORDER_WIDTH,
   DEFAULT_GLOW,
-  DEFAULT_LEVEL_COLOURS,
   ICustomLook,
   ILookTuning,
   MIN_BAR_GAP,
@@ -58,7 +57,6 @@ import {
   MIN_STROKE_WIDTH,
   createCustomLookId,
   createDraftLook,
-  getDefaultPaletteColours,
   getDefaultTuning,
   isCustomLookId,
   isLookColour,
@@ -479,38 +477,37 @@ describe('resolveCustomLook', () => {
 });
 
 describe('palette colours', () => {
-  it('leaves the palettes that already have colours alone', () => {
-    // Empty is not "no colours" — it is "the ones already on screen". Signal
-    // keeps taking the curve's own colour and rainbow keeps painting from the
-    // chart's full-spectrum gradient, so every look that shipped before any of
-    // this existed draws exactly as it did.
-    expect(getDefaultPaletteColours('signal')).toEqual([]);
-    expect(getDefaultPaletteColours('rainbow')).toEqual([]);
+  it("hands no look colours of its own, so every palette follows the window's", () => {
+    // Empty means the window's colours — Normal mode's primary and secondary,
+    // Rainbow mode's palette. Level and heat were handed cyan-to-red, which
+    // froze them out of every theme and every visualizer's colours.
+    (['auto', 'signal', 'rainbow', 'level', 'heat'] as const).forEach(
+      (palette) => {
+        expect(createDraftLook('ledbars', palette).colours).toEqual([]);
+        const coloured = {
+          ...createDraftLook('ledbars', palette === 'heat' ? 'level' : 'heat'),
+          colours: ['#123456', '#abcdef'],
+        };
+        expect(recolourDraftLook(coloured, palette).colours).toEqual([]);
+      },
+    );
   });
 
-  it('gives the level palette a ramp of its own', () => {
-    // The one palette with nothing existing to point at, so it carries stops.
-    const colours = getDefaultPaletteColours('level');
-    expect(colours).toEqual(DEFAULT_LEVEL_COLOURS);
-    expect(colours.length).toBeGreaterThan(1);
-  });
-
-  it('ends the level ramp on red, because that is what loud means', () => {
-    // Not decoration. The whole reason the palette reads without explanation is
-    // that it ends where every level meter ever built ends.
-    const [red, green, blue] = (
-      DEFAULT_LEVEL_COLOURS[DEFAULT_LEVEL_COLOURS.length - 1].match(
-        /[\da-f]{2}/gi,
-      ) ?? []
-    ).map((pair) => parseInt(pair, 16));
-    expect(red).toBeGreaterThan(green);
-    expect(red).toBeGreaterThan(blue);
-  });
-
-  it('hands back a copy, so a look cannot edit the defaults', () => {
-    const first = getDefaultPaletteColours('level');
-    first.push('#000000');
-    expect(getDefaultPaletteColours('level')).toEqual(DEFAULT_LEVEL_COLOURS);
+  it('gives a saved look the four colours it was handed back to the window', () => {
+    // Those four were written into every level and heat look nobody coloured.
+    expect(
+      normalizeLookColours(
+        ['#00e5cf', '#54ff8a', '#ffcc4d', '#ff4f4f'],
+        'level',
+      ),
+    ).toEqual([]);
+    // The control: the same four in another order are somebody's choice.
+    expect(
+      normalizeLookColours(
+        ['#ff4f4f', '#ffcc4d', '#54ff8a', '#00e5cf'],
+        'level',
+      ),
+    ).toEqual(['#ff4f4f', '#ffcc4d', '#54ff8a', '#00e5cf']);
   });
 
   it('accepts the hex a colour input actually emits', () => {
@@ -541,15 +538,11 @@ describe('normalizeLookColours', () => {
     ).toEqual(['#ff0000']);
   });
 
-  it('falls back to the palette when nothing is usable', () => {
-    // Losing a look to a bad colour is worse than drawing it in the default.
-    expect(normalizeLookColours(['nonsense'], 'level')).toEqual(
-      DEFAULT_LEVEL_COLOURS,
-    );
+  it("falls back to the window's colours when nothing is usable", () => {
+    // Losing a look to a bad colour is worse than drawing it in the window's.
+    expect(normalizeLookColours(['nonsense'], 'level')).toEqual([]);
     expect(normalizeLookColours([], 'rainbow')).toEqual([]);
-    expect(normalizeLookColours('not an array', 'level')).toEqual(
-      DEFAULT_LEVEL_COLOURS,
-    );
+    expect(normalizeLookColours('not an array', 'level')).toEqual([]);
   });
 
   it('stops at the most stops the eye can separate', () => {

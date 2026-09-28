@@ -6,6 +6,7 @@ import {
   clampSceneCamera,
   DEFAULT_SCENE_CAMERA,
 } from '../../common/sceneCamera';
+import { SCENE_DAYLIGHT_PARAM } from '../../common/sceneDaylight';
 import type {
   IStudioAgentDoor,
   IStudioAgentDrawAsk,
@@ -229,6 +230,12 @@ export const createStudioAgentDoor = ({
         pack: build.pack,
       };
     }
+    const chosenDaylight = Object.prototype.hasOwnProperty.call(
+      request.sliders,
+      SCENE_DAYLIGHT_PARAM,
+    )
+      ? pack.params.find((param) => param.id === SCENE_DAYLIGHT_PARAM)?.value
+      : undefined;
     const wave = waveFor(request, pack);
     // The scene's own limits hold the camera, as they hold a viewer's drag.
     const camera = pack.camera
@@ -247,6 +254,10 @@ export const createStudioAgentDoor = ({
       camera,
       ...(request.pointer ? { pointer: request.pointer } : {}),
       ...(request.tap ? { tap: request.tap } : {}),
+      // A time of day the caller chose is the one drawn; otherwise the
+      // window sets it from its Brightness, as it does for the scene on the
+      // stage (`sceneDaylight.ts`), and would draw over the slider's value.
+      ...(chosenDaylight === undefined ? {} : { daylight: chosenDaylight }),
     });
     if (answer === 'no-window') {
       return { ok: false, reason: 'no-window' };

@@ -170,78 +170,39 @@ export interface ICustomLook {
   style: GraphStyle;
   palette: GraphPalette;
   tuning: ILookTuning;
-  /** Gradient stops. Empty means the palette's own built-in colours. */
+  /** Gradient stops. Empty means the window's colours (`windowInk.ts`). */
   colours: string[];
 }
 
 /**
  * How few and how many colours a gradient may be built from.
  *
- * One is a flat fill, which is what the signal palette is. Above about six the
- * stops are closer together than the eye can separate on a bar a few pixels
- * wide, and the picture stops reading as a gradient and starts reading as
- * noise.
+ * One is a flat fill, which is what the signal palette is. Seven, because
+ * Rainbow mode's palette is seven stops and the look editor opens on the
+ * window's colours: at six its last stop was dropped the moment somebody
+ * changed one. Above that the stops are closer together than the eye can
+ * separate on a bar a few pixels wide.
  */
 export const MIN_LOOK_COLOURS = 1;
-export const MAX_LOOK_COLOURS = 6;
+export const MAX_LOOK_COLOURS = 7;
 
 /**
- * The colour the live trace is drawn in, for the designer to start from.
+ * The four colours every level and heat look was handed when nobody chose any:
+ * cyan through green and amber into red.
  *
- * Only a seed. The signal palette itself answers with no colours at all (see
- * below), so this is what the panel puts in the picker the moment somebody
- * decides to change it — starting them on the colour that is already on screen
- * rather than on an arbitrary one.
- *
- * Kept in step with `ColorEnum.ANALOGOUS2`, which is what the chart hands the
- * live curve. It is repeated rather than imported because that enum is in the
- * renderer's stylesheet layer and this file is shared with the main process.
+ * Nothing is handed to a look now. One with no colours of its own is painted
+ * in the window's (`renderer/utils/windowInk.ts`) — Normal mode's primary and
+ * secondary, or Rainbow mode's palette, the visualizer's when one lends it
+ * (Ivan, 2026-09-26: "update all meters and standard viz to use ... rainbow
+ * ... and primary and sec colors"). A saved look still carrying exactly these
+ * four never chose them — they were written in for it — so reading one gives
+ * it back to the window.
  */
-export const DEFAULT_SIGNAL_COLOUR = '#54ff8a';
+const HANDED_LEVEL_COLOURS = ['#00e5cf', '#54ff8a', '#ffcc4d', '#ff4f4f'];
 
-/**
- * Quiet to loud.
- *
- * Cyan through green and amber into red — the same reading as every level meter
- * ever built, which is the point: nobody has to be told what the red end means.
- */
-export const DEFAULT_LEVEL_COLOURS = [
-  '#00e5cf',
-  '#54ff8a',
-  '#ffcc4d',
-  '#ff4f4f',
-];
-
-/**
- * What a palette paints when nobody has chosen otherwise.
- *
- * Two of the three answer with nothing, and that is the point: empty means "the
- * colours already on screen", so every look that shipped before any of this
- * existed draws exactly as it did. `signal` keeps taking the colour the chart
- * hands the curve, and `rainbow` keeps painting from the full-spectrum gradient
- * in the chart's own `<defs>` — whose stops live in the renderer beside the
- * bands that share them, and copying those five values down here to hand back
- * would be the second copy the comment on the original warns will drift.
- *
- * `level` is the exception because it is new. There is no existing gradient for
- * it to point at, so it carries its own.
- */
-export const getDefaultPaletteColours = (palette: GraphPalette): string[] =>
-  palette === 'level' || palette === 'heat' ? [...DEFAULT_LEVEL_COLOURS] : [];
-
-/**
- * The stops a look is painted with once its palette has been resolved.
- *
- * A look saved under auto carries no colours of its own — auto has none —
- * so when it resolves to level the ramp has no stops to build a gradient
- * from and fell through to a flat fill. The resolved palette's own defaults
- * stand in; colours somebody chose still win.
- */
-export const resolveLookColours = (
-  palette: GraphPalette,
-  colours: readonly string[],
-): readonly string[] =>
-  colours.length ? colours : getDefaultPaletteColours(palette);
+const wasHandedColours = (colours: readonly string[]): boolean =>
+  colours.length === HANDED_LEVEL_COLOURS.length &&
+  colours.every((colour, index) => colour === HANDED_LEVEL_COLOURS[index]);
 
 /** `#rgb` or `#rrggbb`, which is all an SVG stop needs and all a colour input emits. */
 const HEX_COLOUR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
@@ -254,7 +215,7 @@ export const isLookColour = (value: unknown): value is string =>
  *
  * Anything unreadable is dropped rather than repaired — there is no sensible
  * "nearest colour" to a value that is not one — and a look left with nothing
- * usable falls back to its palette's own colours rather than to a blank figure.
+ * usable is painted in the window's colours rather than as a blank figure.
  */
 export const getMaxLookColours = (palette: GraphPalette): number =>
   // A flat fill is one colour by definition. A second stop cannot be painted —
@@ -267,13 +228,13 @@ export const normalizeLookColours = (
   palette: GraphPalette,
 ): string[] => {
   if (!Array.isArray(raw)) {
-    return getDefaultPaletteColours(palette);
+    return [];
   }
   const colours = raw
     .filter(isLookColour)
     .map((colour) => colour.trim().toLowerCase())
     .slice(0, getMaxLookColours(palette));
-  return colours.length ? colours : getDefaultPaletteColours(palette);
+  return wasHandedColours(colours) ? [] : colours;
 };
 
 /**
@@ -291,7 +252,7 @@ export interface IResolvedLook {
   style: GraphStyle;
   palette: GraphPalette;
   tuning: ILookTuning;
-  /** Gradient stops. Empty means the palette's own built-in colours. */
+  /** Gradient stops. Empty means the window's colours (`windowInk.ts`). */
   colours: string[];
   isCustom: boolean;
 }
@@ -678,7 +639,7 @@ export const createDraftLook = (
   style,
   palette,
   tuning: getDefaultTuning(style),
-  colours: getDefaultPaletteColours(palette),
+  colours: [],
 });
 
 /**
@@ -713,9 +674,7 @@ export const recolourDraftLook = (
   draft: ICustomLook,
   palette: GraphPalette,
 ): ICustomLook =>
-  draft.palette === palette
-    ? draft
-    : { ...draft, palette, colours: getDefaultPaletteColours(palette) };
+  draft.palette === palette ? draft : { ...draft, palette, colours: [] };
 
 /**
  * The version of the look file format.
@@ -813,7 +772,7 @@ export const resolveBuiltInLook = (look: IGraphLook): IResolvedLook => ({
   style: look.style,
   palette: look.palette,
   tuning: getDefaultTuning(look.style),
-  colours: getDefaultPaletteColours(look.palette),
+  colours: [],
   isCustom: false,
 });
 

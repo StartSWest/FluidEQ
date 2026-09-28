@@ -8,6 +8,9 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
+import holdFocusReturn from '../utils/focusReturn';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from '../components/DialogFrame';
 import GenreCurve from './GenreCurve';
 import { GenreFigures, GenreWhys } from './GenreNotesParts';
 import { STAGE_TITLE, genreNoteKey, genreNotesFor } from './genreNotesModel';
@@ -25,9 +28,10 @@ interface IGenreNotesDialogProps {
  * is off, what it measured, records to hear it in and whose research it was
  * tuned from.
  *
- * Built on the DSP dialogs' own backdrop and panel (`dsp-import`), portalled
- * to the window for the reason `DspPresetImportDialog` gives. Hovering a pin
- * on the curve lights its row, and the other way round.
+ * On the DSP dialogs' own backdrop (`dsp-import-backdrop`) and the dialog
+ * frame: the genre, its line and whose research it was tuned from in the
+ * rail; the notes in the body, a section each. Hovering a pin on the curve
+ * lights its row, and the other way round.
  */
 const GenreNotesDialog = ({ chainId, onClose }: IGenreNotesDialogProps) => {
   const { t } = useTranslation();
@@ -38,10 +42,7 @@ const GenreNotesDialog = ({ chainId, onClose }: IGenreNotesDialogProps) => {
   useEffect(() => {
     // Back to whatever opened it, when that is still on the page: the About
     // button and the chip's "i" are, a menu's preview has closed by then.
-    const opener =
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement
-        : undefined;
+    const giveFocusBack = holdFocusReturn();
     closeRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -51,9 +52,7 @@ const GenreNotesDialog = ({ chainId, onClose }: IGenreNotesDialogProps) => {
     window.addEventListener('keydown', onKey);
     return () => {
       window.removeEventListener('keydown', onKey);
-      if (opener?.isConnected) {
-        opener.focus();
-      }
+      giveFocusBack();
     };
   }, [onClose]);
 
@@ -73,42 +72,37 @@ const GenreNotesDialog = ({ chainId, onClose }: IGenreNotesDialogProps) => {
         }
       }}
     >
-      <div
-        className="dsp-import genre-notes"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('genre.notes.about', { name })}
+      <DialogFrame
+        className="genre-notes"
+        icon={<MenuIcon name="genre" />}
+        eyebrow={t('genre.notes.eyebrow')}
+        title={name}
+        titleId="genre-notes-title"
+        aria-labelledby="genre-notes-title-eyebrow genre-notes-title"
+        description={key('hook')}
+        rail={
+          notes.sources && (
+            <p className="dialog-frame__rail-text">
+              {t('genre.notes.research', { sources: notes.sources })}
+            </p>
+          )
+        }
+        onClose={onClose}
+        closeLabel={t('genre.notes.close')}
+        closeRef={closeRef}
       >
-        <header className="genre-notes__head">
-          <div>
-            <span className="genre-notes__eyebrow">
-              {t('genre.notes.eyebrow')}
-            </span>
-            <h2>{name}</h2>
-            <p className="genre-notes__hook">{key('hook')}</p>
-          </div>
-          <button
-            ref={closeRef}
-            type="button"
-            className="genre-notes__close"
-            aria-label={t('genre.notes.close')}
-            title={t('genre.notes.close')}
-            onClick={onClose}
-          >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3l6 6M9 3l-6 6" />
-            </svg>
-          </button>
-        </header>
-
         <div className="genre-notes__body">
-          <section className="genre-notes__section">
-            <h3>{t('genre.notes.sound')}</h3>
+          <section className="dialog-frame__section">
+            <h3 className="dialog-frame__section-title">
+              {t('genre.notes.sound')}
+            </h3>
             <p>{key('story')}</p>
           </section>
 
-          <section className="genre-notes__section">
-            <h3>{t('genre.notes.curve')}</h3>
+          <section className="dialog-frame__section">
+            <h3 className="dialog-frame__section-title">
+              {t('genre.notes.curve')}
+            </h3>
             {notes.curve && (
               <GenreCurve
                 curve={notes.curve}
@@ -127,8 +121,10 @@ const GenreNotesDialog = ({ chainId, onClose }: IGenreNotesDialogProps) => {
             />
           </section>
 
-          <section className="genre-notes__section">
-            <h3>{t('genre.notes.rack')}</h3>
+          <section className="dialog-frame__section">
+            <h3 className="dialog-frame__section-title">
+              {t('genre.notes.rack')}
+            </h3>
             <ul className="genre-rack">
               {notes.stagesOn.map((stage) => (
                 <li key={stage}>
@@ -153,22 +149,18 @@ const GenreNotesDialog = ({ chainId, onClose }: IGenreNotesDialogProps) => {
 
           <GenreFigures notes={notes} asTiles />
 
-          <section className="genre-notes__section">
-            <h3>{t('genre.notes.listen')}</h3>
+          <section className="dialog-frame__section">
+            <h3 className="dialog-frame__section-title">
+              {t('genre.notes.listen')}
+            </h3>
             <ul className="genre-listen">
               {notes.note.listen.map((record) => (
                 <li key={record}>{record}</li>
               ))}
             </ul>
           </section>
-
-          {notes.sources && (
-            <p className="genre-notes__sources">
-              {t('genre.notes.research', { sources: notes.sources })}
-            </p>
-          )}
         </div>
-      </div>
+      </DialogFrame>
     </div>,
     document.body,
   );

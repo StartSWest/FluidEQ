@@ -1,0 +1,19 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use '../ampSliders' as sliders;
+
+// THE STAGE'S SLIDERS, in the 2.0 amp too (Ivan, 2026-09-28: "also the
+// sliders"): the song's line lit in the accent with its white thumb, the
+// volume in the text's own light — both amps' (`../_ampSliders.scss`).
+@include sliders.sliders;
+
+// The clock's blink stands down in `_miniPlayerParts.scss`, beside it.
+@media (prefers-reduced-motion: reduce) {
+  .player-marquee.is-running .player-marquee__track {
+    animation: none;
+  }
+}

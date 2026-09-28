@@ -13,6 +13,7 @@ import { prefersReducedMotion } from '../utils/bandReveal';
 import { useTranslation } from '../utils/I18nContext';
 import { applyMotionPreference } from '../utils/motionPreference';
 import Switch from '../widgets/Switch';
+import MenuPreferenceIcon from './MenuPreferenceIcon';
 
 const bridge = () => window.electron?.ipcRenderer;
 
@@ -83,6 +84,7 @@ const MotionPicker = () => {
 
   return (
     <div className="menu-preference">
+      <MenuPreferenceIcon name="motion" />
       <label htmlFor={switchId} className="menu-preference__label">
         {t('motion.aria')}
       </label>

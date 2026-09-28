@@ -24,7 +24,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
   border: 1px solid $border-field;
   border-radius: $radius-m;
-  background: color-mix(in srgb, $secondary-default 5%, transparent);
+  background: $surface-control;
   transition:
     border-color $motion-fast $ease-out,
     box-shadow $motion-fast $ease-out;
@@ -216,9 +216,9 @@ textarea.forum-editor__input {
   height: $control-height-sm;
   padding: 0 14px 0 10px;
   color: $text-faint;
-  border: 1px solid $border-subtle;
+  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $white 3%, transparent);
+  background: $surface-control;
   font: inherit;
   font-size: $text-body;
   font-weight: $weight-medium;
@@ -237,14 +237,15 @@ textarea.forum-editor__input {
   &:hover:not(:disabled),
   &:focus-visible {
     color: $text-primary;
-    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
     outline: none;
   }
 
   &.is-selected {
     color: $white;
     border-color: $secondary-default;
-    background: color-mix(in srgb, $secondary-default 18%, transparent);
+    background: $surface-control-press;
     box-shadow: 0 0 14px color-mix(in srgb, $secondary-default 22%, transparent);
 
     svg {

@@ -16,22 +16,12 @@ it under the terms of the GNU General Public License version 3 or later.
   @include backdrop(4100);
 }
 
-.wallpaper-dialog {
-  @include surface(580px, 720px);
-  gap: $spacing-m;
-  padding: $spacing-l;
-  overflow-y: auto;
-  @include slim-scrollbar;
+// On the dialog frame (`DialogFrame`): the monitor and the look being placed
+// in the rail, the monitors and the choices on the right.
+.dialog-frame.wallpaper-dialog {
+  @include size(900px, 760px);
 }
 
-.wallpaper-dialog__head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.wallpaper-dialog__mark,
 .wallpaper-status__mark {
   display: grid;
   flex: 0 0 auto;
@@ -46,38 +36,14 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.wallpaper-dialog__mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-}
-
-.wallpaper-dialog__heading {
-  display: grid;
-  min-width: 0;
-}
-
-.wallpaper-dialog__title {
-  margin: 0;
-  color: $white;
-  font-size: $text-title;
-  font-weight: $weight-bold;
-  line-height: 1.25;
-}
-
-// The visualizer being placed, in the accent: the dialog is about it.
+// The visualizer being placed, beside the title in the accent: the dialog is
+// about it.
 .wallpaper-dialog__subject {
+  max-width: 100%;
   color: $text-accent;
-  font-size: $text-small;
+  font-size: $text-lead;
   font-weight: $weight-semibold;
   @include truncate;
-}
-
-.wallpaper-dialog__lead {
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-body;
-  line-height: 1.5;
 }
 
 .wallpaper-dialog__monitors {
@@ -343,7 +309,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // boxes stacked read as two unrelated things.
 .wallpaper-dialog__settings {
   display: grid;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-s;
 }
 
@@ -413,24 +379,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .wallpaper-dialog__empty {
   margin: 0;
-  padding: 14px;
+  padding: 14px 0;
   color: $text-faint;
   font-size: $text-small;
   text-align: center;
-  @include section-surface;
-}
-
-.wallpaper-dialog__foot {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: $spacing-s;
-}
-
-// Stopping every monitor sits apart from the choice being made, at the start
-// of the row, so it is never read as this dialog's answer.
-.wallpaper-dialog__stop {
-  margin-inline-end: auto;
 }
 
 // Full width of the scene's panel, which is 228px of content at its

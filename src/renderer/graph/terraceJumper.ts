@@ -62,7 +62,12 @@ export const advanceTerraceJumper = (
   };
 };
 
-const COLOURS: Record<string, string> = {
+/**
+ * The explorer, one letter a pixel, and each letter's colour; a dot is
+ * empty. Exported for the engine's terrace
+ * (`engineLooks/designed/terraceLook.ts`), which draws the same sprite.
+ */
+export const JUMPER_COLOURS: Record<string, string> = {
   T: '#32dec7',
   L: '#b8ffed',
   K: '#153449',
@@ -72,7 +77,7 @@ const COLOURS: Record<string, string> = {
   C: '#ffad66',
 };
 
-const EXPLORER = [
+export const JUMPER_SPRITE = [
   '......CC........',
   '......CC........',
   '...TTTTTTTT.....',
@@ -93,7 +98,7 @@ const EXPLORER = [
 
 // Merge adjacent pixels once, rather than painting or parsing a sprite grid
 // on every animation frame. No images, filters, or extra animation loop.
-const RUNS = EXPLORER.flatMap((row, y) => {
+const RUNS = JUMPER_SPRITE.flatMap((row, y) => {
   const runs: { x: number; y: number; width: number; colour: string }[] = [];
   let x = 0;
   while (x < row.length) {
@@ -102,12 +107,25 @@ const RUNS = EXPLORER.flatMap((row, y) => {
     while (row[x] === key) {
       x += 1;
     }
-    if (COLOURS[key]) {
-      runs.push({ x: start, y, width: x - start, colour: COLOURS[key] });
+    if (JUMPER_COLOURS[key]) {
+      runs.push({ x: start, y, width: x - start, colour: JUMPER_COLOURS[key] });
     }
   }
   return runs;
 });
+
+/**
+ * How big one of the explorer's pixels is: a little bigger on a wider plot
+ * and a deeper one, within limits either way. The sprite's feet stand on
+ * its position, its middle column over it.
+ */
+export const jumperPixel = (plotWidth: number, renderedDepth: number) => {
+  const growth = Math.max(0.7, Math.min(2.2, Math.sqrt(renderedDepth / 360)));
+  return Math.max(1.4, Math.min(2.5, plotWidth / 750)) * growth;
+};
+
+/** Where the sprite's grid starts from its position, in its own pixels. */
+export const JUMPER_ORIGIN = { x: -7, y: -16 };
 
 export const paintTerraceJumper = (
   context: CanvasRenderingContext2D,
@@ -117,14 +135,18 @@ export const paintTerraceJumper = (
 ) => {
   const transform = context.getTransform();
   const aspect = transform.d === 0 ? 1 : Math.abs(transform.a / transform.d);
-  const growth = Math.max(0.7, Math.min(2.2, Math.sqrt(renderedDepth / 360)));
-  const pixel = Math.max(1.4, Math.min(2.5, plotWidth / 750)) * growth;
+  const pixel = jumperPixel(plotWidth, renderedDepth);
   context.save();
   context.translate(position.x, position.y);
   context.scale(pixel * position.direction, pixel * aspect);
   RUNS.forEach((run) => {
     context.fillStyle = run.colour;
-    context.fillRect(run.x - 7, run.y - 16, run.width, 1);
+    context.fillRect(
+      run.x + JUMPER_ORIGIN.x,
+      run.y + JUMPER_ORIGIN.y,
+      run.width,
+      1,
+    );
   });
   context.restore();
 };

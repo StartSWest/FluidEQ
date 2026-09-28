@@ -35,6 +35,9 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.saveNew': 'Enregistrer…',
   'eq.layouts.error':
     'Impossible de mettre à jour vos dispositions. Réessayez.',
+  'eq.sliders': 'Curseurs de l’EQ',
+  'eq.sliders.round': 'Ronds',
+  'eq.sliders.rect': 'Rectangulaires',
   'eq.layouts.clearTitle': 'Vider l’EQ ?',
   'eq.layouts.clearWarning':
     'Mettre le gain de chaque bande et les réglages Graves, Médiums et Aigus à 0 dB. Conserver le nombre de bandes, les fréquences, Q, les coupures, le mode EQ et le préampli actuels.',
@@ -317,6 +320,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.fallblocks': 'Blocs qui tombent',
   'graph.styleName.fibers': 'Fibre optique',
   'graph.styleName.afterglow': 'Rémanence',
+  'graph.styleName.horizon': 'Horizon lumineux',
   'graph.styleName.line': 'Ligne',
   'graph.styleName.area': 'Aire',
   'graph.styleName.bars': 'Barres',

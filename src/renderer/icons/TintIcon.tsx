@@ -11,59 +11,49 @@ import type { TSceneTintMode } from '../utils/sceneTintStore';
 interface ITintIconProps {
   className?: string;
   /**
-   * Which of the four the glyph says: an empty circle for the theme as it
-   * is, the half filled for the scene's colours, the half with a wave round
-   * it for the colours beating with the scene, and the circle filled whole
-   * inside a filled wave for the scene behind the whole window. Half filled
-   * by default.
+   * Which of the four the glyph says, one step further each: a ring for the
+   * theme as it is (in the theme's own accent, where a sheet paints it so),
+   * the ring filled with the colour for the window in the scene's colours,
+   * that dot with a halo round it for the colours beating with the scene, and
+   * the dot in a glow the whole width of the glyph for the scene behind the
+   * whole window. The colour by default.
    */
   mode?: TSceneTintMode;
 }
 
 /**
- * A circle half filled — the theme's own glyph — for the controls that put
- * the window in a scene's colour. The half is a path of its own so a sheet
- * can fill it with the colour being lent (`--scene-tint-swatch`), which is
- * what lets the control say what it does before its label is read.
+ * The window-colour modes' glyph, for the controls that put the window in a
+ * scene's colour. The coloured parts are shapes of their own so a sheet can
+ * paint them in the colour being lent (`--scene-tint-swatch`), which is what
+ * lets the control say what it does before its label is read.
+ *
+ * One ring, one dot, one halo, on one centre, with no stroke laid over a
+ * fill. It was a circle half filled, a smaller half inside a wave, and a
+ * disc, a ring, a wave and a wash stacked for the Backdrop: four outlines
+ * and fills fighting at sixteen pixels (Ivan, 2026-09-27: "make this icon
+ * better and more clean look").
  */
-const TintIcon = ({ className, mode = 'tint' }: ITintIconProps) => {
-  if (mode === 'cover') {
-    return (
-      <svg
-        className={className}
-        viewBox="0 0 16 16"
-        aria-hidden
-        data-mode={mode}
-      >
-        <circle className="tint-icon__wash" cx="8" cy="8" r="6.6" />
-        <circle className="tint-icon__half" cx="8" cy="8" r="3.8" />
-        <circle cx="8" cy="8" r="3.8" />
-        <circle className="tint-icon__wave" cx="8" cy="8" r="6.6" />
-      </svg>
-    );
-  }
-  if (mode === 'pulse') {
-    return (
-      <svg
-        className={className}
-        viewBox="0 0 16 16"
-        aria-hidden
-        data-mode={mode}
-      >
-        <path className="tint-icon__half" d="M8 4.2v7.6a3.8 3.8 0 0 0 0-7.6z" />
-        <circle cx="8" cy="8" r="3.8" />
-        <circle className="tint-icon__wave" cx="8" cy="8" r="6.6" />
-      </svg>
-    );
-  }
-  return (
-    <svg className={className} viewBox="0 0 16 16" aria-hidden data-mode={mode}>
-      {mode === 'tint' && (
-        <path className="tint-icon__half" d="M8 2.5v11a5.5 5.5 0 0 0 0-11z" />
-      )}
-      <circle cx="8" cy="8" r="5.5" />
-    </svg>
-  );
-};
+const TintIcon = ({ className, mode = 'tint' }: ITintIconProps) => (
+  <svg className={className} viewBox="0 0 16 16" aria-hidden data-mode={mode}>
+    {mode === 'off' && (
+      <circle className="tint-icon__theme" cx="8" cy="8" r="5.25" />
+    )}
+    {mode === 'tint' && (
+      <circle className="tint-icon__fill" cx="8" cy="8" r="6" />
+    )}
+    {mode === 'pulse' && (
+      <>
+        <circle className="tint-icon__halo" cx="8" cy="8" r="6.25" />
+        <circle className="tint-icon__fill" cx="8" cy="8" r="3.5" />
+      </>
+    )}
+    {mode === 'cover' && (
+      <>
+        <circle className="tint-icon__glow" cx="8" cy="8" r="7" />
+        <circle className="tint-icon__fill" cx="8" cy="8" r="3.5" />
+      </>
+    )}
+  </svg>
+);
 
 export default TintIcon;

@@ -8,6 +8,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @use 'checkerboard' as *;
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -236,22 +237,15 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- framing
 
-// The framing editor: the photo in its place, as big as the window allows
-// without the dialog scrolling, with what the place cuts off shown faintly
-// around it.
-.gallery-dialog.studio-framing {
-  width: min(720px, 100%);
-  max-height: min(900px, calc(100vh - #{$spacing-l} * 2));
+// The framing editor on the frame (`DialogFrame`): the photo in its place as
+// the whole of the body, as big as the window allows without the dialog
+// scrolling, with what the place cuts off shown faintly around it; the tools
+// that move it in the rail.
+.dialog-frame.studio-framing {
+  @include dialog.size(1080px, 900px);
 
-  @media (max-width: 620px), (max-height: 620px) {
-    max-height: calc(100vh - #{$spacing-m});
-  }
-
-  .gallery-dialog__foot {
-    padding-top: $spacing-m;
-    border-top: 1px solid $border-subtle;
-  }
-
+  // The Studio's own spacing for a glyph in a button: the dialog is drawn
+  // outside the Studio's tree, so its rule does not reach in here.
   .button {
     gap: 6px;
 
@@ -263,16 +257,14 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.studio-framing__heading {
+// Under the rail's hairline: the fit, the zoom and the way back to where the
+// scene would put the photo, one to a line in the rail's width.
+.studio-framing__controls {
   display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.studio-framing__size {
-  color: $text-faint;
-  font-size: $text-small;
-  font-variant-numeric: tabular-nums;
+  justify-items: start;
+  gap: 14px;
+  padding-top: 18px;
+  border-top: dialog.$seam;
 }
 
 // Sized by its height as much as its width: a tall place in a wide dialog
@@ -280,7 +272,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-framing__stage {
   position: relative;
   justify-self: center;
-  width: min(100%, calc(min(440px, 52vh) * var(--aspect, 1)));
+  width: min(100%, calc(min(520px, 52vh) * var(--aspect, 1)));
   aspect-ratio: var(--aspect, 1);
   overflow: hidden;
   border-radius: $radius-m;
@@ -370,22 +362,9 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.studio-framing__hint {
-  color: $text-faint;
-  font-size: $text-small;
-  text-align: center;
-}
-
-.studio-framing__controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px $spacing-m;
-}
-
 .studio-framing__zoom {
   display: flex;
-  flex: 1 1 220px;
+  align-self: stretch;
   align-items: center;
   gap: 10px;
   min-width: 0;

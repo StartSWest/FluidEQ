@@ -213,3 +213,62 @@ export const isUsableRect = (rect: Partial<IRect> | undefined): rect is IRect =>
   ) &&
   (rect.width ?? 0) > 0 &&
   (rect.height ?? 0) > 0;
+
+/**
+ * How far inside its screen's work area a player has to stop, each way, to
+ * be one somebody sized: a maximised window overhangs the work area by its
+ * invisible resize border (8px a side on Windows), and pulled back inside
+ * (`clampInto`) it is the work area exactly.
+ */
+const SCREEN_SLACK = 16;
+
+/**
+ * The rule the player's bounds are written down by, in the window-state
+ * file beside them.
+ *
+ * Before 2026-09-28 the file took the window's bounds whenever it was saved
+ * in player mode — the picture's full screen, a switch halfway through, and
+ * a window the amp's own width floor had stretched to the width of the
+ * screen while the picture was up — so a player remembered by that rule is
+ * no size anybody chose, and every switch opened the amp that big (Ivan,
+ * 2026-09-28: "it always starts in fullscreen … it needs to always start at
+ * amp mini narrow view"). Those records are dropped once and the amp opens
+ * at its own size; from then on it is remembered at the size the listener
+ * leaves it.
+ */
+export const PLAYER_BOUNDS_RULE = 2;
+
+/** The player's bounds from the window-state file, if this rule wrote them. */
+export const rememberedPlayer = (saved: {
+  player?: Partial<IRect>;
+  playerRule?: unknown;
+}): IRect | undefined =>
+  saved.playerRule === PLAYER_BOUNDS_RULE && isUsableRect(saved.player)
+    ? {
+        x: saved.player.x,
+        y: saved.player.y,
+        width: saved.player.width,
+        height: saved.player.height,
+      }
+    : undefined;
+
+/**
+ * Whether a remembered player is one to open again: a real rectangle, and
+ * not the whole of its screen.
+ *
+ * Nobody sizes the amp to fill the screen both ways: a player that big is
+ * the bounds of a full screen or of a maximised window that got written
+ * down as the player's, which is how the amp came to open the size of the
+ * screen (`PLAYER_BOUNDS_RULE`). The rule keeps them from being written; this
+ * keeps one from being opened again if Windows ever finds a way round it.
+ * Such a record is as good as none, and the amp opens at its first size.
+ */
+export const isPlayerRect = (
+  rect: Partial<IRect> | undefined,
+  workArea: ISize,
+): rect is IRect =>
+  isUsableRect(rect) &&
+  !(
+    rect.width >= workArea.width - SCREEN_SLACK &&
+    rect.height >= workArea.height - SCREEN_SLACK
+  );

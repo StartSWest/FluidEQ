@@ -44,7 +44,8 @@ export type TLightingWorkerRequest =
    * program still being drawn — a new version of a scene has its pack id.
    */
   | { kind: 'load'; pack: IScenePack; guarded: boolean; id: number }
-  | { kind: 'frame'; frame: ILightingSceneFrame }
+  /** `daylight`: the time of day, 0 night to 100 day (`sceneDaylight.ts`). */
+  | { kind: 'frame'; frame: ILightingSceneFrame; daylight: number }
   /** Give up any load, free everything, then answer `retired`. */
   | { kind: 'retire' }
   | { kind: 'unload' };

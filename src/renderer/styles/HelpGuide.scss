@@ -1,6 +1,7 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'theme' as *;
 @use 'dialog' as dialog;
@@ -60,24 +61,29 @@
   }
 }
 
-.help-guide,
-.help-lightbox {
-  @include dialog.surface(1440px, 94vh);
+// The guide is a native `<dialog>` (its `showModal` makes everything under it
+// inert) wearing the dialog frame's parts — `.dialog-frame` for the material
+// and the split, its rail and its body. Sized as the reader it is, nearly the
+// whole window. `:not([open])` outranks the frame's own `display: grid`, which
+// would otherwise show the element before `showModal` runs.
+.dialog-frame.help-guide {
   position: fixed;
   inset: 0;
   width: min(1440px, 96vw);
+  max-width: none;
   height: 94vh;
+  max-height: none;
   margin: auto;
   padding: 0;
   color: $text-primary;
   font-family: inherit;
   font-variant-numeric: tabular-nums;
-  grid-template-rows: auto minmax(0, 1fr);
   -webkit-app-region: no-drag;
 
   &::backdrop {
     background: dialog.$scrim;
   }
+
   &:not([open]) {
     display: none;
   }
@@ -90,21 +96,57 @@
   }
 }
 
-.help-guide__layout {
-  display: grid;
-  min-height: 0;
-  grid-template-columns: 260px minmax(0, 1fr);
+// A picture from the guide at full size: its name over it and the one close
+// button, the picture across the whole width. As tall as the picture, up to
+// the window: a strip of the header in a box the window's height was a
+// letterbox of empty sheet.
+.help-lightbox {
+  @include dialog.surface(1440px, 94vh);
+  position: fixed;
+  inset: 0;
+  width: 96vw;
+  height: fit-content;
+  margin: auto;
+  // Opaque: it opens over the guide itself, whose article showed through the
+  // sheet's last twentieth beside every narrow picture.
+  background-color: $surface-base;
+  background-image: linear-gradient(dialog.$sheet, dialog.$sheet);
+  padding: 0;
+  color: $text-primary;
+  font-family: inherit;
+  grid-template-rows: auto minmax(0, 1fr);
+  -webkit-app-region: no-drag;
+
+  &::backdrop {
+    background: dialog.$scrim;
+  }
+
+  &:not([open]) {
+    display: none;
+  }
 }
 
-.help-guide__rail {
-  display: flex;
-  flex-direction: column;
+.help-lightbox__title {
+  margin: 0;
+  padding: 16px 56px 14px 22px;
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  @include truncate;
+}
+
+// The search, its count, the contents and the offline line, under the head
+// every dialog has; closer together than the frame's rail, because the
+// contents run long. The contents scroll and nothing else does, so the search
+// stays in reach from the thirtieth chapter.
+.dialog-frame__rail.help-guide__rail {
   gap: 12px;
-  padding: 22px 16px;
-  overflow-y: auto;
-  border-right: 1px solid rgba($white, 0.09);
+  overflow: hidden;
 
   label {
+    margin-top: 6px;
+    color: $text-muted;
+    font-size: 12px;
     font-weight: $weight-semibold;
   }
   input {
@@ -113,7 +155,14 @@
   }
   nav {
     display: grid;
+    min-height: 0;
+    flex: 1 1 auto;
+    align-content: start;
     gap: 4px;
+    margin-right: -10px;
+    padding-right: 6px;
+    overflow-y: auto;
+    @include slim-scrollbar;
   }
   .feature-tour__rail-item {
     gap: 10px;
@@ -121,7 +170,6 @@
     font-size: 13px;
   }
 }
-
 .help-guide__count,
 .help-guide__offline,
 .help-guide__capture-note {
@@ -133,10 +181,13 @@
   color: $text-accent;
 }
 
-.help-guide__article {
-  overflow-y: auto;
-  min-width: 0;
+// The frame's body, read as a page: its own measure and type, not the
+// dialogs' grid of blocks. The top keeps clear of the close button.
+.dialog-frame__body.help-guide__article {
+  display: block;
   padding: clamp(20px, 4vw, 56px);
+  padding-top: max(48px, clamp(20px, 4vw, 56px));
+  color: $text-primary;
   font-size: 15px;
   line-height: 1.75;
   overflow-wrap: anywhere;
@@ -241,46 +292,57 @@
   padding: 28px 0;
 }
 
-.help-lightbox {
-  width: 96vw;
-}
+// The picture under a hairline, scrolling both ways once it is larger than
+// the window. Across the width, and at least 1280px so a whole-window capture
+// is readable on a small one, but never past its own pixels: the left rail's
+// capture, 180px wide, was blown up eight times into a blur.
 .help-lightbox__image {
   overflow: auto;
+  border-top: dialog.$seam;
+  @include slim-scrollbar;
+
   img {
     display: block;
-    width: 100%;
-    min-width: 1280px;
+    width: max(100%, 1280px);
+    max-width: max-content;
     height: auto;
+    margin: 0 auto;
   }
 }
 
-@media (max-width: 780px) {
-  .help-guide__layout {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-  .help-guide__rail {
-    // The search box, its count and one row of cards, a card being a title
-    // and a line of what the search found in it: 190px scrolled that row.
-    max-height: 236px;
-    padding: 12px 16px;
-    border-right: 0;
-    border-bottom: 1px solid rgba($white, 0.09);
+// A narrow window, where the frame lays the rail across the top: the
+// contents become one row to scroll sideways, a card being a title and a line
+// of what the search found in it.
+@media (max-width: $bp-md) {
+  .dialog-frame__rail.help-guide__rail {
     gap: 8px;
-  }
-  .help-guide__rail nav {
-    display: flex;
-    overflow-x: auto;
-    flex-shrink: 0;
-  }
-  .help-guide__rail .feature-tour__rail-item {
-    flex: 0 0 200px;
+
+    label {
+      margin-top: 2px;
+    }
+    nav {
+      display: flex;
+      flex: 0 0 auto;
+      margin-right: 0;
+      padding: 0 0 6px;
+      overflow: auto hidden;
+    }
+    .feature-tour__rail-item {
+      flex: 0 0 200px;
+    }
   }
   .help-guide__offline {
     display: none;
   }
-  .help-guide__article {
+  // The close button sits on the rail's row here, so the page starts at
+  // the top.
+  .dialog-frame__body.help-guide__article {
     padding: 20px;
+  }
+  // One line of what was found keeps every card the height of its
+  // neighbours. Through the rail, to outrank the two-line rule further down.
+  .help-guide__rail .help-guide__entry-found {
+    -webkit-line-clamp: 1;
   }
 }
 
@@ -598,13 +660,5 @@
 
   .help-control__number {
     background: $secondary-light;
-  }
-}
-
-@media (max-width: 780px) {
-  // The contents become one row of cards: a single line of what was found
-  // keeps every card the height of its neighbours.
-  .help-guide__entry-found {
-    -webkit-line-clamp: 1;
   }
 }

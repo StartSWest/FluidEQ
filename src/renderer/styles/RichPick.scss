@@ -63,11 +63,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: 15px;
   }
 
+  // The lift every control has. It was the accent's 14% over nothing, so
+  // under the pointer the pick went from the controls' face to a sixth of
+  // one, and over a scene it all but vanished.
   &:hover:not(:disabled),
   &[aria-expanded='true'] {
     color: $white;
-    border-color: $border-field-hover;
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
   }
 
   &:focus-visible {
@@ -80,12 +83,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     opacity: $disabled-opacity;
   }
 
-  // A voicing is on: say so without shouting.
-  &.is-active {
-    color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-light 42%, transparent);
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
-  }
+  // No face of its own for a voicing that is on: this pick's lit face is
+  // what every control wears now (`$surface-control`, `$border-control`;
+  // Ivan, 2026-09-27: "lets all be same as preset"). The name on it says
+  // which voicing is playing.
 }
 
 // The name takes whatever width the trigger has over its contents, so the
@@ -178,7 +179,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // was a purple column in a teal window (Ivan, 2026-09-25: "the bg color
     // of that right pane is purple no"); the notes in it are in the accent
     // now too (`GenreNotes.scss`).
-    border-left: 1px solid $border-subtle;
+    border-left: 1px solid $menu-rule;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
@@ -240,8 +241,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Its own top margin, so arrowing back to the first row scrolls the list to
   // exactly where it opened rather than 8px short of it.
   scroll-margin-top: 8px;
+  // Every menu's section heading in the accent, as the Window colours menu
+  // and the look picker's columns head theirs (Ivan, 2026-09-27: "make
+  // better colors", "for all menu"). It was a faint grey here while those
+  // two were lit.
   padding: 0 8px;
-  color: $text-faint;
+  color: $text-accent;
   font-size: $text-micro;
   font-weight: $weight-bold;
   @include tracking(0.09em);
@@ -450,7 +455,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 6px;
   // The hairline alone, as over the search row: no shadow rising from it
   // while rows are hidden under the actions.
-  border-top: 1px solid $border-subtle;
+  border-top: 1px solid $menu-rule;
 }
 
 .rich-pick__action {

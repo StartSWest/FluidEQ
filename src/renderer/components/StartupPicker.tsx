@@ -8,6 +8,7 @@ import { useEffect, useId, useState } from 'react';
 import type { IStartWithWindows } from 'main/startWithWindows';
 import { useTranslation } from '../utils/I18nContext';
 import Switch from '../widgets/Switch';
+import MenuPreferenceIcon from './MenuPreferenceIcon';
 
 const bridge = () => window.electron?.ipcRenderer;
 
@@ -79,6 +80,7 @@ const StartupPicker = () => {
 
   return (
     <div className="menu-preference">
+      <MenuPreferenceIcon name="startup" />
       <label htmlFor={switchId} className="menu-preference__label">
         {t('startup.label')}
       </label>

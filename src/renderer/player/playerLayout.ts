@@ -18,26 +18,9 @@ import {
   resizePlayerWindow,
 } from './windowModeStore';
 
-/** Which decks are open under the player: its equalizer, visualizer, queue. */
-export interface IPlayerDecks {
-  eq: boolean;
-  vis: boolean;
-  queue: boolean;
-}
-
-export type TPlayerDeck = keyof IPlayerDecks;
-
-const DECKS_KEY = 'fluideq.player.decks';
+const SHEET_KEY = 'fluideq.player.sheet';
 const UNFOLDED_KEY = 'fluideq.player.unfoldedHeight';
 const TIME_LEFT_KEY = 'fluideq.player.timeLeft';
-const VIS_HEIGHT_KEY = 'fluideq.player.visHeight';
-
-/**
- * The visualizer's height until the listener drags its divider, and the least
- * it may have: under 140px a scene is a strip nobody can read.
- */
-export const PLAYER_VIS_HEIGHT = 220;
-export const PLAYER_VIS_MIN = 140;
 
 /**
  * Above this many bands the equalizer draws its small faders, which is the
@@ -46,11 +29,13 @@ export const PLAYER_VIS_MIN = 140;
 const DENSE_BANDS = 20;
 
 /**
- * The room one band takes, in CSS pixels: its cap plus the gap that keeps it
- * off its neighbour's — 13 + 4 for a wide layout, 10 + 3 for a dense one.
+ * The least room one band may take, in CSS pixels: its cap plus the gap that
+ * keeps it off its neighbour's — 13 + 4 for a wide layout, 10 + 3 for a
+ * dense one. A wider window draws the caps bigger, up to the stylesheet's
+ * `--player-fader-cap`; this is the floor.
  *
- * THESE ARE THE STYLESHEET'S NUMBERS (`--player-fader-cap` and
- * `--player-band-gap` in `_miniPlayerEq.scss`), and a band is drawn at a
+ * THESE ARE THE STYLESHEET'S NUMBERS (`--player-band-gap` and the dense
+ * `--player-fader-cap` in `_miniPlayerEqFaders.scss`), and a band is drawn at a
  * whole number of pixels or not at all: fractions of a pixel per band put
  * two pixels of gap beside three and the row reads as uneven, which is what
  * it did at 31 bands (Ivan, 2026-09-21).
@@ -58,12 +43,13 @@ const DENSE_BANDS = 20;
 const BAND_STEP_PX = 17;
 const DENSE_BAND_STEP_PX = 13;
 /**
- * Everything on the equalizer's row that is not a band, measured in the
- * window: the scale down the left (15), the preamp (32), the rule after it
- * (1), the three gaps between them (12), the deck's padding (18) and the
- * body's (12), and a pixel each side so the outermost caps are not cut.
+ * Everything on the equalizer's row that is not a band: the preamp (32), the
+ * rule after it (1), the two gaps either side of the rule (12), the sheet's
+ * padding (32) and its margin from the window's edge (20), and a pixel each
+ * side so the outermost caps are not cut. `_miniPlayerEqFaders.scss` and
+ * `_miniPlayerSheet.scss` hold the same numbers.
  */
-const BANDS_SIDE_PX = 96;
+const BANDS_SIDE_PX = 99;
 
 /** Whether a band count is drawn with the small faders. */
 export const isDenseBands = (bands: number) => bands > DENSE_BANDS;
@@ -73,10 +59,8 @@ export const isDenseBands = (bands: number) => bands > DENSE_BANDS;
  *
  * Every band gets the same whole number of pixels and the same gap (Ivan,
  * 2026-09-21), so the narrowest the window may be is the layout's own width:
- * thirty-one bands ask for 499, ten for the player's own floor. Main holds
- * the window to it (`floorPlayerWidth`), and the deck row uses the same
- * number to decide whether the equalizer can sit beside the deck rather than
- * under it.
+ * thirty-one bands ask for 502, ten for the player's own floor. Main holds
+ * the window to it (`floorPlayerWidth`).
  */
 export const playerWidthForBands = (bands: number) =>
   BANDS_SIDE_PX +
@@ -87,17 +71,16 @@ export const playerWidthForBands = (bands: number) =>
  * How wide the player must be, from every part of it that has a say — the
  * widest of them is what the window is held to (`floorPlayerWidth`).
  *
- * Two parts say something: the band layout (`PlayerBandFloor`, from the
- * arithmetic above) and the equalizer's two rows of keys (`EqDeck`, measured
- * from the keys themselves with every word they can give up gone). The
- * window used to be held to the bands alone, and at that width the foot's
- * last key was cut off at the deck's edge — a control the window can be
- * narrowed past is a control that gets clipped (Ivan, 2026-09-22: "we need a
- * min width so this doesn't happen, so buttons enforce min width
- * naturally"). Each part states its own need and withdraws it when it is
- * not on screen; nothing here guesses at what a row holds.
+ * Three parts say something: the band layout (`PlayerBandFloor`, from the
+ * arithmetic above), the equalizer's two rows of keys (`EqDeck`, measured
+ * from the keys themselves with every word they can give up gone), and the
+ * Stage's visualizer bar (`PlayerStageBar`, measured the same way). A control
+ * the window can be narrowed past is a control that gets clipped (Ivan,
+ * 2026-09-22: "we need a min width so this doesn't happen, so buttons enforce
+ * min width naturally"). Each part states its own need and withdraws it when
+ * it is not on screen; nothing here guesses at what a row holds.
  */
-type TWidthNeed = 'bands' | 'rows';
+type TWidthNeed = 'bands' | 'rows' | 'bar';
 const widthNeeds = new Map<TWidthNeed, number>();
 
 export const setPlayerWidthNeed = (
@@ -111,15 +94,27 @@ export const setPlayerWidthNeed = (
   }
   floorPlayerWidth(Math.max(0, ...widthNeeds.values()));
 };
+
 /**
- * What the player opens with the first time: every deck it has — the
- * equalizer, the visualizer and the queue — which between them fill the tall
- * window it opens at (`PLAYER_DEFAULT_HEIGHT`). The queue too (Ivan,
- * 2026-09-22): before the Library has been opened it says so and offers the
- * way there, which is a better first sight of it than a lamp nobody has
- * pressed.
+ * What the window needs across beside a row of the sheet: the sheet's own
+ * padding round the row, and its margin from the window's edge on each side
+ * — the right-hand one, which in a wide window is the only one the sheet
+ * has, stands for both.
+ *
+ * FROM THE STYLESHEET, NEVER FROM WHERE THE SHEET STANDS. It was worked out
+ * from the sheet's box, and while the picture takes the screen the sheet is
+ * not drawn at all: a box of nothing put the window's whole width into the
+ * need, main held the amp to the width of the screen, and that is the size
+ * it was remembered at (Ivan, 2026-09-28: "it always starts in fullscreen").
  */
-const DEFAULT_DECKS: IPlayerDecks = { eq: true, vis: true, queue: true };
+export const sheetAllowance = (sheet: Element) => {
+  const style = getComputedStyle(sheet);
+  return (
+    parseFloat(style.paddingLeft) +
+    parseFloat(style.paddingRight) +
+    2 * parseFloat(style.marginRight)
+  );
+};
 
 /**
  * A window at most this tall is the folded player.
@@ -147,90 +142,60 @@ const writeJson = (key: string, value: unknown) => {
   }
 };
 
+/** Which of the sheet's two pages is up: the equalizer or the queue. */
+export type TPlayerSheetTab = 'eq' | 'queue';
+
 /**
- * Which decks are open, remembered across launches, as one answer for the
- * whole window.
- *
- * A store rather than a component's own state, because the visualizer being
- * open is not only the player's business: it is the one place a scene is
- * drawn while the window is the player, and the window's tint follows what
- * is drawn (`SceneTint`).
+ * The glass sheet along the foot of the amp (the Stage, Ivan 2026-09-27):
+ * which page it shows, and whether it is open or lowered to its tabs, which
+ * gives the picture the room. Remembered across launches; the first time it
+ * opens on the equalizer.
  */
-let openDecks: IPlayerDecks = (() => {
-  const saved = readJson<Partial<IPlayerDecks>>(DECKS_KEY);
+export interface IPlayerSheet {
+  tab: TPlayerSheetTab;
+  isOpen: boolean;
+}
+
+let sheet: IPlayerSheet = (() => {
+  const saved = readJson<Partial<IPlayerSheet>>(SHEET_KEY);
   return {
-    eq: typeof saved?.eq === 'boolean' ? saved.eq : DEFAULT_DECKS.eq,
-    vis: typeof saved?.vis === 'boolean' ? saved.vis : DEFAULT_DECKS.vis,
-    queue:
-      typeof saved?.queue === 'boolean' ? saved.queue : DEFAULT_DECKS.queue,
+    tab: saved?.tab === 'queue' ? 'queue' : 'eq',
+    isOpen: typeof saved?.isOpen === 'boolean' ? saved.isOpen : true,
   };
 })();
-const deckListeners = new Set<() => void>();
 
-const subscribeDecks = (listener: () => void) => {
-  deckListeners.add(listener);
+/**
+ * One set of listeners for everything laid out here that the window reads:
+ * the sheet, and the picture alone on the whole screen.
+ */
+const layoutListeners = new Set<() => void>();
+
+const subscribeLayout = (listener: () => void) => {
+  layoutListeners.add(listener);
   return () => {
-    deckListeners.delete(listener);
+    layoutListeners.delete(listener);
   };
 };
 
-export const usePlayerDecks = () => {
-  const decks = useSyncExternalStore(subscribeDecks, () => openDecks);
-  const setDeck = useCallback((deck: TPlayerDeck, isOpen: boolean) => {
-    openDecks = { ...openDecks, [deck]: isOpen };
-    writeJson(DECKS_KEY, openDecks);
-    deckListeners.forEach((listener) => listener());
+const publishLayout = () => layoutListeners.forEach((listener) => listener());
+
+export const usePlayerSheet = () => {
+  const current = useSyncExternalStore(subscribeLayout, () => sheet);
+  const setSheet = useCallback((next: Partial<IPlayerSheet>) => {
+    sheet = { ...sheet, ...next };
+    writeJson(SHEET_KEY, sheet);
+    publishLayout();
   }, []);
-  return { decks, setDeck };
+  return { sheet: current, setSheet };
 };
-
-/** Whether the player is drawing its visualizer right now. */
-export const useIsPlayerVisOpen = () =>
-  useSyncExternalStore(subscribeDecks, () => openDecks.vis);
-
-/**
- * Whether the player's queue deck is open.
- *
- * Read by the app's shell, which keeps the Library's player mounted while it
- * is (`App.tsx`): the deck lists that player's queue and takes music dropped
- * onto it, and with the player put away the deck had nothing to list and
- * nowhere to put a drop (Ivan, 2026-09-22).
- */
-export const useIsPlayerQueueOpen = () =>
-  useSyncExternalStore(subscribeDecks, () => openDecks.queue);
-
-/**
- * How many columns the deck row is laid out in — one stacked player, or the
- * deck and the equalizer side by side.
- *
- * Measured off the real grid in `MiniPlayer` and published here because the
- * answer decides something two floors down: WHERE THE VISUALIZER IS DRAWN.
- * In two columns it is its own deck, as it has always been. In one it is
- * drawn inside the equalizer's screen instead, behind the curve (Ivan,
- * 2026-09-22) — a narrow player is tall enough already without a third block
- * in it, and the screen is the one surface there with room for a picture.
- */
-let playerColumns = 1;
-
-export const setPlayerColumns = (next: number) => {
-  if (next === playerColumns || !Number.isFinite(next) || next < 1) {
-    return;
-  }
-  playerColumns = next;
-  deckListeners.forEach((listener) => listener());
-};
-
-export const usePlayerColumns = () =>
-  useSyncExternalStore(subscribeDecks, () => playerColumns);
 
 /**
  * The visualizer alone, on the whole screen.
  *
  * A double-press on the picture asks for it and a second one — or Escape —
- * gives it back (Ivan, 2026-09-22). Not a deck's business, because it is the
- * WINDOW that changes: the app reads this to know somebody in here has
- * claimed full screen, so the state the window announces is not reconciled
- * straight back out of it (`App.tsx`).
+ * gives it back (Ivan, 2026-09-22). The WINDOW changes: the app reads this to
+ * know somebody in here has claimed full screen, so the state the window
+ * announces is not reconciled straight back out of it (`App.tsx`).
  *
  * Never remembered. Coming back to a player that opens full screen with no
  * way out visible is a window somebody has to work out how to escape.
@@ -242,77 +207,16 @@ export const setPlayerVisFull = (next: boolean) => {
     return;
   }
   isVisFull = next;
-  deckListeners.forEach((listener) => listener());
+  publishLayout();
 };
 
 export const usePlayerVisFull = () =>
-  useSyncExternalStore(subscribeDecks, () => isVisFull);
-
-/**
- * Whether the visualizer belongs inside the equalizer's screen rather than in
- * a deck of its own: switched on, and nowhere else to put it.
- */
-export const useIsVisInsideCurve = () =>
-  useSyncExternalStore(
-    subscribeDecks,
-    () => openDecks.vis && playerColumns < 2 && !isVisFull,
-  );
-
-/** A height for each layout: the decks in one column, or two. */
-type TVisHeights = Partial<Record<'one' | 'two', number>>;
-
-const readVisHeights = (): TVisHeights => {
-  const saved = readJson<TVisHeights | number>(VIS_HEIGHT_KEY);
-  // One number is what the player wrote before it kept a height per layout;
-  // it was the one the listener had set, so both start from it.
-  if (typeof saved === 'number' && Number.isFinite(saved)) {
-    return { one: Math.round(saved), two: Math.round(saved) };
-  }
-  return typeof saved === 'object' && saved !== null ? saved : {};
-};
-
-const heightIn = (heights: TVisHeights, key: 'one' | 'two') => {
-  const saved = heights[key];
-  return typeof saved === 'number' &&
-    Number.isFinite(saved) &&
-    saved >= PLAYER_VIS_MIN
-    ? Math.round(saved)
-    : PLAYER_VIS_HEIGHT;
-};
-
-/**
- * The visualizer's height as the listener left it with the divider between
- * it and the queue, remembered across launches.
- *
- * One height for each layout (Ivan, 2026-09-21): the deck and the equalizer
- * side by side leave a different shape of window from the two stacked, and
- * a height that suits one is the wrong height in the other — so a wide
- * player and a narrow one each keep what they were given. Set on every step
- * of a drag, written down when the drag ends.
- */
-export const usePlayerVisHeight = (columns: number) => {
-  const key = columns >= 2 ? 'two' : 'one';
-  const [heights, setHeights] = useState<TVisHeights>(readVisHeights);
-  const setVisHeight = useCallback(
-    (height: number) =>
-      setHeights((previous) => ({ ...previous, [key]: Math.round(height) })),
-    [key],
-  );
-  const saveVisHeight = useCallback(
-    (height: number) =>
-      writeJson(VIS_HEIGHT_KEY, {
-        ...readVisHeights(),
-        [key]: Math.round(height),
-      }),
-    [key],
-  );
-  return { visHeight: heightIn(heights, key), setVisHeight, saveVisHeight };
-};
+  useSyncExternalStore(subscribeLayout, () => isVisFull);
 
 /**
  * Whether the clock counts what is left rather than what has played.
  *
- * One setting for the deck's clock and the folded strip's, which are never
+ * One setting for the dock's clock and the folded strip's, which are never
  * on screen together: a clock turned round in one and found the other way in
  * the other reads as two clocks disagreeing.
  */
@@ -367,15 +271,15 @@ const recallUnfoldedHeight = (): number | undefined => {
 
 /**
  * Folding the player to one line and back — from its menu, its strip's own
- * button, or a double-click on the strip, which Windows keeps from the page
+ * button, or a double-click on the header, which Windows keeps from the page
  * and main passes on (`player-caption-double-click`).
  */
 export const usePlayerFold = () => {
   const isFolded = useIsFolded();
   const fold = useCallback(() => {
     rememberUnfoldedHeight(window.innerHeight);
-    // A player whose decks hold its height is held there against this too,
-    // so the hold goes first and the strip's own height is asked for after
+    // The player's own floor holds the window above the strip, so the hold
+    // goes first and the strip's own height is asked for after
     // (`usePlayerHeightLimit`).
     holdPlayerHeight(null, null);
     resizePlayerWindow(PLAYER_FOLD_HEIGHT).catch(() => undefined);

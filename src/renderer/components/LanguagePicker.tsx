@@ -20,6 +20,7 @@ import { useMemo } from 'react';
 import { LOCALES, LocaleCode } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
+import MenuPreferenceIcon from './MenuPreferenceIcon';
 import '../styles/LanguagePicker.scss';
 
 /**
@@ -57,6 +58,7 @@ const LanguagePicker = () => {
     <div className="menu-preference">
       {/* Named in the language the app is in, like the rows beside it; the
           choices themselves are each in their own. */}
+      <MenuPreferenceIcon name="language" />
       <span className="menu-preference__label" aria-hidden="true">
         {t('app.menu.language')}
       </span>

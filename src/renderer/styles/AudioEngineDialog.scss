@@ -7,7 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
-@use 'dialog' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -15,45 +15,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // Above every other dialog in the app. This one can be the blocking first run,
 // where nothing behind it works — so nothing may be drawn over it.
 .engine-dialog-backdrop {
-  @include backdrop(2600);
+  @include dialog.backdrop(2600);
 }
 
-.engine-dialog {
-  // Head and foot are fixed; only the two cards between them scroll, so the
-  // question and the Apply button stay on screen in a window short enough to
-  // clip them.
-  @include surface(620px, 760px);
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
-.engine-dialog__head {
-  display: grid;
-  padding: $spacing-l $spacing-l $spacing-m;
-  gap: 6px;
-}
-
-.engine-dialog__title {
-  margin: 0;
-  color: $white;
-  font-size: $text-title;
-  font-weight: $weight-bold;
-  line-height: 1.25;
-}
-
-.engine-dialog__subtitle {
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-body;
-  line-height: 1.5;
-}
-
-.engine-dialog__body {
-  display: grid;
-  padding: 0 $spacing-l $spacing-m;
-  overflow-y: auto;
-  gap: $spacing-s;
-  align-content: start;
-  @include slim-scrollbar;
+// The question on the frame's rail, the two answers in its body, the foot
+// saying which engine runs now. Wide enough that the longest line on a card
+// — what the engine does to Equalizer APO — wraps once, not three times.
+.dialog-frame.engine-dialog {
+  @include dialog.size(800px, 760px);
 }
 
 .engine-dialog__options {
@@ -63,30 +32,29 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // A card rather than a dot with a label beside it: each answer is three lines
 // of consequence, and a bare radio list puts them all at the same weight as
-// the name. The whole card is the hit area.
+// the name. The whole card is the hit area. Chosen is the accent held, the
+// way every chosen thing in the app is — its edge and its tint, no glow.
 .engine-dialog__option {
-  @include section-surface;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  padding: $spacing-m;
-  gap: 0 $spacing-s;
+  gap: 0 12px;
+  padding: 14px 16px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-l;
+  background: $lift-rest;
   cursor: pointer;
   transition:
     border-color $motion-fast $ease-out,
-    background $motion-fast $ease-out,
-    box-shadow $motion-fast $ease-out;
+    background $motion-fast $ease-out;
 
   &:hover:not([aria-disabled='true']) {
     border-color: color-mix(in srgb, $secondary-light 30%, transparent);
-    background: $hover-lift;
+    background: $hover-accent;
   }
 
   &[aria-checked='true'] {
-    border-color: color-mix(in srgb, $secondary-light 58%, transparent);
-    background: color-mix(in srgb, $secondary-default 9%, transparent);
-    box-shadow:
-      0 0 20px color-mix(in srgb, $secondary-default 14%, transparent),
-      inset 0 1px 0 rgba($white, 0.05);
+    border-color: color-mix(in srgb, $secondary-light 62%, transparent);
+    background: $selected-accent;
   }
 
   &[aria-disabled='true'] {
@@ -101,11 +69,12 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .engine-dialog__radio {
   position: relative;
-  width: 16px;
-  height: 16px;
-  margin-top: 2px;
-  border: 1px solid color-mix(in srgb, $edge-tint 42%, transparent);
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border: 1.5px solid color-mix(in srgb, $edge-tint 42%, transparent);
   border-radius: 50%;
+  transition: border-color $motion-fast $ease-out;
 
   &::after {
     position: absolute;
@@ -140,9 +109,13 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .engine-dialog__name {
-  color: $white;
+  color: $text-primary;
   font-size: $text-lead;
   font-weight: $weight-semibold;
+
+  [aria-checked='true'] & {
+    color: $text-accent;
+  }
 }
 
 // The recommendation says so on the card, not only in the order of the two:
@@ -210,42 +183,25 @@ it under the terms of the GNU General Public License version 3 or later.
 // it explains, the explanation for why the row cannot be used is the least
 // readable thing on screen.
 .engine-dialog__note {
-  margin: 0;
   color: $amber;
   font-size: $text-small;
   line-height: 1.45;
 }
 
+// Equalizer APO's own repairs, under the cards while it is the engine in use.
 .engine-dialog__apo-actions {
   display: flex;
   flex-wrap: wrap;
   gap: $spacing-xs;
 }
 
-.engine-dialog__foot {
-  display: grid;
-  padding: $spacing-m $spacing-l $spacing-l;
-  @include rule(top);
-  gap: $spacing-xs;
-}
-
-.engine-dialog__footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $spacing-s;
-}
-
+// The foot's note is the frame's; only the switched line has its own face:
+// the same tick the cards use for what an engine gives you, in the same
+// accent, so "done" reads in the dialog's own vocabulary.
 .engine-dialog__now {
-  min-width: 0;
-  margin: 0;
-  color: $text-faint;
-  font-size: $text-body;
   overflow-wrap: anywhere;
 }
 
-// The switch landed: the same tick the cards use for what an engine gives
-// you, in the same accent, so "done" reads in the dialog's own vocabulary.
 .engine-dialog__now--switched {
   display: inline-flex;
   align-items: center;
@@ -258,16 +214,9 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// `auto` and not `space-between`: with the "Now" line absent on a first run,
-// space-between leaves Cancel and Apply hard against the left edge.
-.engine-dialog__actions {
-  display: flex;
-  flex-wrap: wrap;
-  margin-left: auto;
-  gap: $spacing-xs;
-}
-
+// A line of its own under the note and the buttons, whatever the width.
 .engine-dialog__error {
+  flex: 1 0 100%;
   margin: 0;
   color: $red;
   font-size: $text-body;
@@ -284,28 +233,11 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow-wrap: anywhere;
 }
 
-// The narrowest the window goes. Padding is the first thing to give: a card
-// with 20px either side loses a third of its line length at 360px.
+// The narrowest the window goes: a card with 16px either side loses a third
+// of its line length at 360px.
 @media (max-width: 480px) {
-  .engine-dialog__head {
-    padding: $spacing-m $spacing-m $spacing-s;
-  }
-
-  .engine-dialog__body {
-    padding: 0 $spacing-m $spacing-s;
-  }
-
   .engine-dialog__option {
     padding: $spacing-s;
-  }
-
-  .engine-dialog__foot {
-    padding: $spacing-s $spacing-m $spacing-m;
-  }
-
-  .engine-dialog__actions {
-    width: 100%;
-    justify-content: flex-end;
   }
 
   .engine-dialog__apo-actions > .button {

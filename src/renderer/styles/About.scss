@@ -7,8 +7,8 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'dialog' as dialog;
-@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -19,33 +19,18 @@ it under the terms of the GNU General Public License version 3 or later.
   @include dialog.backdrop(1450);
 }
 
-.about {
-  @include dialog.surface(960px, 860px);
-  grid-template-rows: auto minmax(0, 1fr);
+// The About panel on the dialog frame (`DialogFrame`): FluidEQ, its version,
+// the mascot and the two ways to find it in the rail; the licence and the
+// notices the law asks for on the right.
+.dialog-frame.about {
+  @include dialog.size(1000px, 860px);
 }
 
-// The header, its close button and the euphoria treatment on its eyebrow all
-// lived here, identical to the copies in `WhatsNew.scss`. They are now in
-// `DialogHeader.scss`, once.
-
+// Legal text is read, not scanned: the body's own size and measure, links in
+// the accent, paths as code.
 .about__body {
   display: grid;
-  // A clipped illustration has an automatic minimum of zero in a grid. Keep
-  // rows at their content height so the legal text scrolls instead of crushing it.
-  grid-auto-rows: max-content;
   align-content: start;
-  min-height: 0;
-  padding: 18px 20px 20px;
-  gap: 10px;
-  overflow-y: auto;
-  color: $text-muted;
-  font-size: $text-lead;
-  line-height: 1.6;
-  @include slim-scrollbar;
-
-  p {
-    margin: 8px 0;
-  }
 
   a {
     color: $secondary-light;
@@ -68,155 +53,9 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The portrait is a static, isolated SVG asset: displaying Fluid here must
-// neither attach another audio analyser nor collide with the titlebar's SVG IDs.
-.about-brand {
-  @include dialog.section-surface;
-  display: grid;
-  grid-template-columns: minmax(170px, 30%) minmax(0, 1fr);
-  align-items: center;
-  gap: 24px;
-  padding: 28px;
-  overflow: hidden;
-}
-
-.about-brand__portrait {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  min-width: 0;
-
-  img {
-    position: relative;
-    display: block;
-    width: min(100%, 240px);
-    height: auto;
-  }
-}
-
-.about-brand__orbit {
-  position: absolute;
-  inset: 14% -5% 10%;
-  border: 1px solid color-mix(in srgb, $secondary-light 18%, transparent);
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse,
-    color-mix(in srgb, $secondary-default 14%, transparent),
-    transparent 70%
-  );
-
-  &::after {
-    position: absolute;
-    inset: 12%;
-    border: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
-    border-radius: 50%;
-    content: '';
-  }
-}
-
-.about-brand__pet-name {
-  position: relative;
-  margin-top: 10px;
-  color: $text-accent;
-  font-size: 12px;
-  font-weight: $weight-semibold;
-  @include tracking(0.12em);
-}
-.about-brand__identity {
-  min-width: 0;
-}
-.about-brand__wordmark {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-
-  .brand-mark {
-    width: 44px;
-    height: 44px;
-    flex: 0 0 44px;
-  }
-  h2 {
-    margin: 0;
-    color: $text-primary;
-    font-size: clamp(30px, 3vw, 42px);
-    font-weight: $weight-bold;
-    line-height: 1.1;
-    letter-spacing: -0.035em;
-  }
-}
-
-.about__body .about-brand__tagline {
-  margin: 18px 0 10px;
-  color: $text-primary;
-  font-size: 19px;
-  font-weight: $weight-semibold;
-  line-height: 1.45;
-}
-.about-brand__description {
-  max-width: 440px;
-  font-size: 14px;
-}
-.about-brand__author {
-  color: $text-accent;
-  font-size: 12px;
-}
-.about-brand__links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
-
-  a.button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-  }
-  a.button:not(.subtle) {
-    color: $surface-base;
-  }
-}
-
-@media (max-width: 660px) {
-  .about-brand {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-    padding: 22px;
-  }
-  .about-brand__portrait {
-    width: 140px;
-    justify-self: center;
-  }
-  .about-brand__wordmark {
-    justify-content: center;
-  }
-  .about-brand__identity {
-    text-align: center;
-  }
-  .about-brand__links {
-    justify-content: center;
-  }
-}
-
-.about__section {
-  @include dialog.section-surface;
-  margin: 0;
-  padding: 14px 16px;
-
-  h3 {
-    margin: 0 0 7px;
-    color: $secondary-light;
-    font-size: $text-small;
-    font-weight: $weight-bold;
-    @include tracking(0.12em);
-    text-transform: uppercase;
-  }
-}
-
 // Copyright lines are read as a block, not as prose.
 .about__copyright {
-  color: rgba($white, 0.88);
+  color: $text-primary;
 }
 
 .about__aside {
@@ -224,9 +63,68 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .about__footer {
-  @include dialog.section-surface;
   margin: 0;
-  padding: 12px 14px;
+  padding-top: 16px;
+  border-top: dialog.$seam;
   color: $text-muted;
   font-size: $text-body;
+}
+
+// *** The rail: the mascot, the line on what FluidEQ is, the two links *******
+
+.about-brand {
+  display: grid;
+  gap: 12px;
+}
+
+.about-brand__portrait {
+  display: grid;
+  justify-items: center;
+  padding: 6px 0 2px;
+
+  img {
+    display: block;
+    width: min(100%, 150px);
+    height: auto;
+  }
+}
+
+.about-brand__description {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-lead;
+  line-height: 1.55;
+}
+
+.about-brand__author {
+  margin: 0;
+  color: $text-accent;
+  font-size: $text-body;
+}
+
+.about-brand__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-s;
+  margin-top: 4px;
+
+  a.button {
+    display: inline-flex;
+    gap: 6px;
+    text-decoration: none;
+
+    svg {
+      width: 15px;
+      height: 15px;
+    }
+  }
+}
+
+// A narrow window lays the rail across the top; the mascot there would push
+// the licence off the first screen, and the name above already says whose it
+// is.
+@media (max-width: $bp-md) {
+  .about-brand__portrait {
+    display: none;
+  }
 }

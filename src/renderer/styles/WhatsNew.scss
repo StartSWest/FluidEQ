@@ -9,8 +9,6 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'color' as *;
 @use 'constant' as *;
 @use 'dialog' as dialog;
-@use 'motion' as *;
-@use 'spacing' as *;
 @use 'theme' as *;
 
 // Above the support dialog, which sits at 1400. The notes can be opened from
@@ -20,128 +18,55 @@ it under the terms of the GNU General Public License version 3 or later.
   @include dialog.backdrop(1450);
 }
 
+// The release notes on the dialog frame (`DialogFrame`): what they are in the
+// rail, the notes on the right. Wide enough that the body beside the rail
+// keeps a reading measure, where the notes alone used to take 780px.
+.dialog-frame.whats-new {
+  @include dialog.size(960px, 820px);
+}
+
+// The notes themselves: one section per version (`renderChangelog`), each
+// under its number, its parts under the frame's small headings, and every
+// line of the list a line of text — never a box each.
 .whats-new {
-  @include dialog.surface(780px, 820px);
-  grid-template-rows: auto minmax(0, 1fr) auto;
-}
-
-// The header, its close button and the euphoria treatment on its eyebrow all
-// lived here, identical to the copies in `About.scss`. They are now in
-// `DialogHeader.scss`, once.
-
-// The way out that is where a reader's eye ends up.
-//
-// The corner ✕ closes the dialog too, but it is the control you look for when
-// you want to escape something — not the one you press when you have finished
-// reading. Outside the scrolling body, so the notes never have to be scrolled
-// to the bottom to find it.
-.whats-new__footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: 11px 16px 13px;
-  @include dialog.rule(top);
-}
-
-.whats-new__ok {
-  min-width: 96px;
-  padding: 7px 18px;
-  color: $surface-base;
-  border: 1px solid rgba(137, 255, 246, 0.82);
-  border-radius: $radius-s;
-  background: $secondary-default;
-  cursor: pointer;
-  font-size: $text-lead;
-  font-weight: $weight-bold;
-  transition: $transition-control;
-
-  &:hover,
-  &:focus-visible {
-    color: $surface-well;
-    border-color: rgba(205, 255, 251, 0.94);
-    background: $secondary-default;
-    box-shadow:
-      inset 0 1px rgba(255, 255, 255, 0.42),
-      0 0 18px rgba(25, 224, 205, 0.22);
-    outline: none;
+  .dialog-frame__section {
+    gap: 10px;
   }
-}
 
-// The notes themselves. A long document, so it scrolls inside the dialog and
-// the header stays put — scrolling past the title to find the close button is
-// a small thing that feels broken.
-.whats-new__body {
-  min-height: 0;
-  padding: 12px 20px 20px;
-  overflow-y: auto;
-  color: $text-muted;
-  font-size: $text-lead;
-  line-height: 1.6;
-  @include slim-scrollbar;
-
-  // Version numbers, and the thing you scan for.
-  h3 {
-    position: sticky;
-    z-index: 1;
-    top: -12px;
-    margin: 14px -4px 8px;
-    padding: 10px 12px 9px;
-    color: $secondary-light;
-    border: 1px solid rgba($white, 0.09);
-    border-radius: $radius-s;
-    background: color-mix(in srgb, $surface-menu-top 94%, transparent);
-    box-shadow:
-      0 8px 18px rgba($black, 0.22),
-      inset 0 1px 0 rgba($white, 0.035);
+  // The version number, the thing a reader scans the history for.
+  .whats-new__version {
+    margin: 0;
+    color: $text-primary;
     font-size: $text-title;
-
-    &:first-child {
-      margin-top: 0;
-    }
-  }
-
-  // New / Changed / Fixed.
-  h4 {
-    margin: 16px 0 4px;
-    color: rgba($white, 0.9);
-    font-size: $text-body;
     font-weight: $weight-bold;
-    @include tracking(0.12em);
-    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.3;
   }
 
-  p {
-    margin: 8px 0;
+  // New / Changed / Fixed, and the named parts of a feature release.
+  h4 {
+    margin-top: 8px;
   }
 
   ul {
     display: grid;
-    margin: 8px 0 12px;
-    padding: 0;
-    gap: 6px;
-    list-style: none;
+    margin: 0;
+    padding-left: 1.15em;
+    gap: 7px;
   }
 
   li {
-    @include dialog.section-surface;
-    position: relative;
-    margin: 0;
-    padding: 9px 12px 9px 24px;
+    padding-left: 2px;
+    text-wrap: pretty;
 
-    &::before {
-      position: absolute;
-      top: 15px;
-      left: 11px;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: $secondary-light;
-      box-shadow: 0 0 8px color-mix(in srgb, $secondary-light 45%, transparent);
-      content: '';
+    &::marker {
+      color: $secondary-light;
     }
   }
 
   strong {
-    color: rgba($white, 0.92);
+    color: $text-primary;
+    font-weight: $weight-semibold;
   }
 
   code {

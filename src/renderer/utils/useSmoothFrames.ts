@@ -17,26 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useCallback, useEffect, useRef, type RefObject } from 'react';
-import { EUPHORIA_FRAME_MS, SMOOTH_FRAME_MS } from 'common/smoothing';
 import { displayTickMs, isFrameDue } from './framePace';
 import observeShown from './observeShown';
-
-/**
- * How often to draw, decided per frame from the mode the shell is in.
- *
- * Read from the document class rather than passed in, because that class is
- * where euphoria already lives and reading it costs nothing — a prop would
- * have to be threaded through every component in between and would only be as
- * current as the last re-render, which for a component that has stopped
- * re-rendering is not current at all.
- *
- * Exported for the page's other drawing held to the same budget (the Ambient
- * layer), so the two cannot drift apart.
- */
-export const getFrameBudget = () =>
-  document.documentElement.classList.contains('is-euphoric')
-    ? EUPHORIA_FRAME_MS
-    : SMOOTH_FRAME_MS;
 
 /**
  * Draw between measurements, at the display's rate rather than the analyser's.
@@ -57,10 +39,11 @@ export const getFrameBudget = () =>
  * nobody can see that element — the titlebar's wave faded out in full screen,
  * the meter in a drawer parked off the side — and starts again when they can.
  *
- * `minFrameMs` is a consumer's own pace, read every frame, in place of the
- * shell's: a Plus visualizer is drawn by the GPU and costs the page nothing
- * per frame, so it runs at the display's rate — or at the cap the listener
- * chose for it — rather than at the thirty the 2D graph is held to.
+ * Every frame the display offers is drawn, in Rainbow or out of it
+ * (`THIRTY_A_SECOND_MS` says why there is no cap). `minFrameMs` is a
+ * consumer's own pace, read every frame: a scene's, which is the rate the
+ * listener chose for it or the thirty its ladder or a rest in silence asks
+ * for (`useSceneRunner.ts`).
  */
 const useSmoothFrames = (
   onFrame: (deltaMs: number) => boolean,
@@ -158,9 +141,9 @@ const useSmoothFrames = (
       lastTickAt = now;
       const elapsed = now - lastDrawRef.current;
       const pace = paceRef.current;
-      if (!isFrameDue(elapsed, pace ? pace() : getFrameBudget(), tickMs)) {
-        // Too soon for this mode. Still queued, so the next frame is
-        // considered — skipping is how the rate is capped without a timer.
+      if (pace && !isFrameDue(elapsed, pace(), tickMs)) {
+        // Too soon for the consumer's pace. Still queued, so the next frame
+        // is considered — skipping is how a pace is held without a timer.
         frameRef.current = requestAnimationFrame(tick);
         return;
       }

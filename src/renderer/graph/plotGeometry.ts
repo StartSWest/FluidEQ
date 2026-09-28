@@ -131,7 +131,14 @@ export const withdrawPlotGeometry = (element: HTMLElement) => {
   }
 };
 
-const subscribe = (listener: () => void) => {
+/**
+ * The graph's report as it stands, and a way to hear each new one without a
+ * render: the band row places itself from these directly, because the width
+ * changes on every frame of a window being resized (`MainContent.tsx`).
+ */
+export const getPlotGeometry = () => current;
+
+export const subscribePlotGeometry = (listener: () => void) => {
   listeners.add(listener);
   return () => {
     listeners.delete(listener);
@@ -140,7 +147,7 @@ const subscribe = (listener: () => void) => {
 
 export const usePlotGeometry = () =>
   useSyncExternalStore(
-    subscribe,
+    subscribePlotGeometry,
     () => current,
     () => undefined,
   );

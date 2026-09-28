@@ -73,7 +73,7 @@ it('keeps each step above the page the same share of the way to white', () => {
 // the color also"); the page itself stays the ground.
 it('lifts each step toward the colour it is given', () => {
   const lift = 'color-mix(in srgb, #ffffff 80%, #a1fcff)';
-  const css = buildGuestTintCss('youtube', PANEL, PAGE, lift) ?? '';
+  const css = buildGuestTintCss('youtube', PANEL, PAGE, { lift }) ?? '';
   expect(css).toContain(
     `--yt-sys-color-baseline--raised-background: color-mix(in srgb, ${PANEL}, ${lift} 7.50%) !important;`,
   );
@@ -116,28 +116,33 @@ it('also colours what the site paints without a variable, at its own step', () =
 it.each([
   ['colour', buildGuestTintCss],
   ['glass', buildGuestGlassCss],
-])("draws YouTube's own outlines in the interface's, over %s", (_, build) => {
-  const lift = 'color-mix(in srgb, #ffffff 80%, #a1fcff)';
-  const css = build('youtube', PANEL, PAGE, lift) ?? '';
+])("draws YouTube's own outlines in the window's, over %s", (_, build) => {
+  const edges = {
+    field: 'color-mix(in srgb, #a1fcff 42%, transparent)',
+    card: 'color-mix(in srgb, #132d3d 94%, #d6e9f7)',
+  };
+  const css = build('youtube', PANEL, PAGE, { edges }) ?? '';
   const edgeOf = (selector: string) =>
-    new RegExp(
-      `${selector}[^{]*\\{\\s*border-color: color-mix\\(in srgb, ${lift.replace(/[()]/g, '\\$&')} (\\d+)%, transparent\\) !important;`,
-    ).exec(css)?.[1];
-  // A field's edge and a card's, as `$border-field` and `$border-subtle`.
-  expect(edgeOf('\\.ytSearchboxComponentInputBoxDark')).toBe('13');
-  expect(edgeOf('\\.ytSearchboxComponentSearchButtonDark')).toBe('13');
-  expect(edgeOf('#container\\.ytd-playlist-panel-renderer')).toBe('9');
+    new RegExp(`${selector}[^{]*\\{\\s*border-color: ([^;]+) !important;`).exec(
+      css,
+    )?.[1];
+  // A control's edge on the field and its button, the card's on the list.
+  expect(edgeOf('\\.ytSearchboxComponentInputBoxDark')).toBe(edges.field);
+  expect(edgeOf('\\.ytSearchboxComponentSearchButtonDark')).toBe(edges.field);
+  expect(edgeOf('#container\\.ytd-playlist-panel-renderer')).toBe(edges.card);
   // The field's focus keeps the site's own colour.
   expect(css).toContain(
     '.ytSearchboxComponentInputBoxDark:not(.ytSearchboxComponentInputBoxHasFocus)',
   );
+  // Handed no edges, the site keeps its own.
+  expect(build('youtube', PANEL, PAGE)).not.toContain('border-color');
   // Only YouTube's outlines: Twitch has none named.
   expect(
     build(
       'twitch',
       PANEL,
       surfaces([['--color-background-body', 14, 14, 16, 1]]),
-      lift,
+      { edges },
     ),
   ).not.toContain('border-color');
 });

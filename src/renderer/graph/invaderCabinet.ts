@@ -6,6 +6,7 @@ import {
   spriteRects,
   textBitmap,
 } from 'common/graphInvaders';
+import rectsPath from './pixelRects';
 
 /**
  * The cabinet the fight happens inside: blockhouses, readouts and ground.
@@ -273,10 +274,6 @@ export const scoreInvader = (state: InvaderCabinet, points: number) => {
   state.best = Math.max(state.best, state.score);
 };
 
-const rects = (path: Path2D, list: readonly PixelRect[]) => {
-  list.forEach(([x, y, w, h]) => path.rect(x, y, w, h));
-};
-
 const digits = (value: number) => String(value).padStart(4, '0');
 
 /**
@@ -287,15 +284,14 @@ const digits = (value: number) => String(value).padStart(4, '0');
  * the fighter's lane when the height slider moves it — and reflect with the
  * rest of the fight in the mirror.
  */
-export const createShelterPaths = (
+export const shelterRects = (
   state: InvaderCabinet,
   shipY: number,
   unit: number,
-) => {
+): PixelRect[] => {
   const cell = unit * BLOCK;
-  const shelters = new Path2D();
   const roof = bunkerTop(shipY, unit);
-  state.bunkers.forEach((bunker) => {
+  return state.bunkers.flatMap((bunker) => {
     const standing = BUNKER_MAP.map((row, r) =>
       [...row]
         .map((glyph, c) =>
@@ -303,10 +299,15 @@ export const createShelterPaths = (
         )
         .join(''),
     );
-    rects(shelters, spriteRects(standing, bunker.centreX, roof, cell));
+    return spriteRects(standing, bunker.centreX, roof, cell);
   });
-  return shelters;
 };
+
+export const createShelterPaths = (
+  state: InvaderCabinet,
+  shipY: number,
+  unit: number,
+) => rectsPath(shelterRects(state, shipY, unit));
 
 /** A piece of the app's own chrome over the canvas, in the canvas's pixels. */
 export interface IChromeBox {
@@ -366,7 +367,7 @@ export const readoutFloor = (
  * not leave them floating mid-panel, the mirror must not print them upside
  * down, and a bolt landing on the ship must not shake the score.
  */
-export const createCabinetFramePaths = (
+export const cabinetFrameLayout = (
   state: InvaderCabinet,
   width: number,
   height: number,
@@ -376,11 +377,10 @@ export const createCabinetFramePaths = (
 ) => {
   const { label, margin, top } = readoutRow(height, unit, chrome);
   const textWidth = (text: string) => (text.length * GLYPH_PITCH - 1) * label;
-  const readout = new Path2D();
+  const readout: PixelRect[] = [];
   const print = (text: string, left: number, row: number) => {
-    rects(
-      readout,
-      spriteRects(textBitmap(text), left + textWidth(text) / 2, row, label),
+    readout.push(
+      ...spriteRects(textBitmap(text), left + textWidth(text) / 2, row, label),
     );
   };
 
@@ -405,7 +405,7 @@ export const createCabinetFramePaths = (
     ) -
     rule -
     relief / 2;
-  const ground = new Path2D();
+  const ground: PixelRect[] = [];
   const across = Math.max(2, Math.floor(width / label));
   const sampleAt = (t: number) => {
     if (wave.length === 0) {
@@ -423,26 +423,25 @@ export const createCabinetFramePaths = (
     const swing = Math.tanh(sampleAt(column / (across - 1)) * GROUND_GAIN);
     const lift = Math.round((swing * relief) / 2 / label) * label;
     const x = column * label;
-    ground.rect(x, floor - lift, label, rule);
+    ground.push([x, floor - lift, label, rule]);
     if (column > 0 && lift !== before) {
       // The riser between two steps, so the line never breaks.
-      ground.rect(
+      ground.push([
         x,
         floor - Math.max(lift, before),
         rule,
         Math.abs(lift - before) + rule,
-      );
+      ]);
     }
     before = lift;
   }
 
-  const spare = new Path2D();
+  const spare: PixelRect[] = [];
   const icon = label;
   const iconTop = floor - relief / 2 - label * 2 - SHIP.height * icon;
   for (let life = 0; life < state.lives; life += 1) {
-    rects(
-      spare,
-      spriteRects(
+    spare.push(
+      ...spriteRects(
         SHIP.frames[0],
         scoreLeft + (SHIP.width * icon) / 2 + life * SHIP.width * icon * 1.5,
         iconTop,
@@ -451,9 +450,8 @@ export const createCabinetFramePaths = (
     );
   }
   const credit = 'CREDIT 00';
-  rects(
-    readout,
-    spriteRects(
+  readout.push(
+    ...spriteRects(
       textBitmap(credit),
       width - margin * 2 - textWidth(credit) / 2,
       floor - relief / 2 - label * 9,
@@ -462,6 +460,25 @@ export const createCabinetFramePaths = (
   );
 
   return { ground, readout, spare };
+};
+
+export type CabinetFrameLayout = ReturnType<typeof cabinetFrameLayout>;
+
+export const createCabinetFramePaths = (
+  state: InvaderCabinet,
+  width: number,
+  height: number,
+  unit: number,
+  chrome: readonly IChromeBox[],
+  wave: readonly number[] = [],
+) => {
+  const layout = cabinetFrameLayout(state, width, height, unit, chrome, wave);
+  return {
+    ground: rectsPath(layout.ground),
+    readout: rectsPath(layout.readout),
+    spare: rectsPath(layout.spare),
+    layout,
+  };
 };
 
 export type CabinetFramePaths = ReturnType<typeof createCabinetFramePaths>;

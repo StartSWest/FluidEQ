@@ -13,6 +13,7 @@ import {
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneSpan,
+  type ISceneStand,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -49,12 +50,16 @@ import {
  * reflection one more and a shading pass over it; the bloom is drawn small.
  */
 
-/** A bar never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 4;
+/**
+ * A bar never on a pitch smaller than this, in CSS pixels. Exported with the
+ * reflection's length and the functions below for the look's GPU painting
+ * (`engineLooks/neonBarsLook.ts`), which is laid out from the same numbers.
+ */
+export const MIN_PITCH = 4;
 /** The floor stands this far up the band; the reflection fills below it. */
 const REFLECTION = 0.24;
 /** How long a reflection is, against the bar that casts it. */
-const MIRROR = 0.5;
+export const MIRROR = 0.5;
 /** The widest a tube is drawn, in CSS pixels, however few the pieces. */
 const MAX_TUBE = 16;
 
@@ -86,6 +91,27 @@ const tube = (
   path.roundRect(left, top, width, height, Math.min(width / 2, height / 2));
 };
 
+/** Where one copy of the row stands: its floor clear of the reflection. */
+export const neonStand = (band: IAnalysisBand): ISceneStand => {
+  const depth = band.bottom - band.top;
+  return {
+    floor: band.flipped
+      ? band.top + depth * REFLECTION
+      : band.bottom - depth * REFLECTION,
+    up: band.flipped ? 1 : -1,
+    reach: depth * (1 - REFLECTION) - 4,
+  };
+};
+
+/** How wide a tube is on a piece of `body`, and its filament. */
+export const neonTubeWidth = (body: number): number => Math.min(body, MAX_TUBE);
+export const neonFilament = (width: number): number =>
+  Math.max(1, width * 0.22);
+
+/** The bloom's strength for a frame, from the beat, the Glow and Opacity. */
+export const neonBloom = (pulse: number, glow: number, opacity: number) =>
+  (0.5 + pulse * 0.4 + glow * 0.5) * opacity;
+
 const drawCopy = (
   frame: ISceneFrame,
   band: IAnalysisBand,
@@ -95,12 +121,7 @@ const drawCopy = (
 ): void => {
   const { context, plot, colours, music, look } = frame;
   const { row } = state;
-  const depth = band.bottom - band.top;
-  const up = band.flipped ? 1 : -1;
-  const floor = band.flipped
-    ? band.top + depth * REFLECTION
-    : band.bottom - depth * REFLECTION;
-  const reach = depth * (1 - REFLECTION) - 4;
+  const { floor, up, reach } = neonStand(band);
   const span: ISceneSpan = {
     left: plot.left,
     right: plot.right,
@@ -119,9 +140,9 @@ const drawCopy = (
   // A tube is never wider than a tube: with few pieces the pitch grows and
   // the tube stays slim in the middle of it, where a tube as wide as its
   // pitch read as a row of coins.
-  const width = Math.min(row.body, MAX_TUBE);
+  const width = neonTubeWidth(row.body);
   const inset = (row.body - width) / 2;
-  const filament = Math.max(1, width * 0.22);
+  const filament = neonFilament(width);
   for (let piece = 0; piece < row.count; piece += 1) {
     const left = row.lefts[piece] + inset;
     const level = row.levels[piece];
@@ -237,7 +258,7 @@ export const drawNeonBars = (
     endBloom(
       frame,
       state.bloom,
-      (0.5 + frame.music.pulse * 0.4 + frame.glow * 0.5) * frame.look.opacity,
+      neonBloom(frame.music.pulse, frame.glow, frame.look.opacity),
     );
   }
   return { moving: falling && frame.look.accents, body };

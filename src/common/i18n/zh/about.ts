@@ -2,7 +2,6 @@
 import type en from '../en/about';
 
 const about: Record<keyof typeof en, string> = {
-  'about.eyebrow': '项目介绍',
   'about.title': '关于',
   'about.mascot': 'Fluid，FluidEQ 的吉祥物',
   'about.description':

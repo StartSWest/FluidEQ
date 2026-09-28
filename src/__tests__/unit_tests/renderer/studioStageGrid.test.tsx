@@ -154,8 +154,10 @@ it('keeps one band array while nothing about it changes', () => {
 
 it('remembers the grid button on the stage', () => {
   window.localStorage.removeItem('fluideq.studioGrid');
-  const onSize = jest.fn();
-  render(<StudioStageControls size="graph" onSize={onSize} />);
+  const onFullscreen = jest.fn();
+  render(
+    <StudioStageControls isFullscreen={false} onFullscreen={onFullscreen} />,
+  );
   const toggle = screen.getByRole('button', { name: 'studio.grid.label' });
   expect(toggle).toHaveAttribute('aria-pressed', 'false');
   fireEvent.click(toggle);
@@ -163,9 +165,9 @@ it('remembers the grid button on the stage', () => {
     screen.getByRole('button', { name: 'studio.grid.label' }),
   ).toHaveAttribute('aria-pressed', 'true');
   expect(window.localStorage.getItem('fluideq.studioGrid')).toBe('true');
-  // The grid is a way of looking, not a size: pressing it chose none.
-  expect(onSize).not.toHaveBeenCalled();
-  // POSITIVE CONTROL: a size beside it is chosen by its own press.
-  fireEvent.click(screen.getByRole('button', { name: 'studio.size.wide' }));
-  expect(onSize).toHaveBeenCalledWith('wide');
+  // The grid is a way of looking, not full screen: pressing it asked none.
+  expect(onFullscreen).not.toHaveBeenCalled();
+  // POSITIVE CONTROL: full screen beside it is asked for by its own press.
+  fireEvent.click(screen.getByRole('button', { name: 'studio.size.full' }));
+  expect(onFullscreen).toHaveBeenCalledTimes(1);
 });

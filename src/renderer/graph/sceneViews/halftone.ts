@@ -43,8 +43,12 @@ import {
  * how dark the ink is.
  */
 
-/** A column of dots never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 6;
+/**
+ * A column of dots never on a pitch smaller than this, in CSS pixels.
+ * Exported with the functions below for the look's GPU painting
+ * (`engineLooks/halftoneLook.ts`), which prints the dots these size.
+ */
+export const MIN_PITCH = 6;
 /** How far below the line a dot takes to reach full size, and above it to vanish. */
 const FILL_DEPTH = 0.28;
 const FADE_HEIGHT = 0.12;
@@ -65,6 +69,72 @@ export const createHalftoneState = (): IHalftoneState => ({
   ripples: [],
 });
 
+/** Where one copy's screen stands: its floor, which way it grows, its rows. */
+export const halftoneStand = (band: IAnalysisBand, pitch: number) => ({
+  floor: band.flipped ? band.top : band.bottom,
+  up: band.flipped ? 1 : -1,
+  rows: Math.max(2, Math.floor((band.bottom - band.top) / pitch)),
+});
+
+/** How much the kicks' ripples swell a column at `along` (0..1 across). */
+export const rippleSwell = (
+  ripples: readonly number[],
+  along: number,
+): number => {
+  let swell = 0;
+  ripples.forEach((front) => {
+    const distance = Math.abs(along - front) / RIPPLE_WIDTH;
+    swell = Math.max(swell, Math.exp(-distance * distance) * (1 - front * 0.5));
+  });
+  return swell;
+};
+
+/**
+ * A dot's radius: full under the spectrum's line, shrinking toward it, fading
+ * to specks above it, swollen by a passing ripple. Under 0.4 it is not drawn.
+ */
+export const halftoneDot = (
+  largest: number,
+  level: number,
+  line: number,
+  rows: number,
+  swell: number,
+): number => {
+  const height = (line + 0.5) / rows;
+  const size =
+    height <= level
+      ? 0.35 + 0.65 * clampUnit((level - height) / FILL_DEPTH)
+      : 0.16 * clampUnit(1 - (height - level) / FADE_HEIGHT);
+  return largest * Math.min(1.25, size * (1 + swell * 0.45));
+};
+
+/** The row a column's held dot is printed on, or -1 for none. */
+export const halftoneHeldLine = (
+  accents: boolean,
+  held: number,
+  level: number,
+  rows: number,
+): number => {
+  const heldLine = Math.round(held * rows) - 1;
+  const levelLine = Math.round(level * rows) - 1;
+  return accents && heldLine > levelLine && heldLine < rows ? heldLine : -1;
+};
+
+/** A kick sends a ripple from the bass end, and every ripple travels on. */
+export const moveRipples = (
+  state: IHalftoneState,
+  onBeat: boolean,
+  deltaMs: number,
+): void => {
+  if (onBeat && state.ripples.length < 4) {
+    state.ripples.push(0);
+  }
+  const travel = (RIPPLE_SPEED * deltaMs) / 1000;
+  state.ripples = state.ripples
+    .map((front) => front + travel)
+    .filter((front) => front < 1 + RIPPLE_WIDTH * 2);
+};
+
 const drawCopy = (
   frame: ISceneFrame,
   band: IAnalysisBand,
@@ -74,10 +144,8 @@ const drawCopy = (
   const { context, plot, colours, look } = frame;
   const { row } = state;
   const width = plot.right - plot.left;
-  const up = band.flipped ? 1 : -1;
-  const floor = band.flipped ? band.top : band.bottom;
   const { pitch } = row;
-  const rows = Math.max(2, Math.floor((band.bottom - band.top) / pitch));
+  const { floor, up, rows } = halftoneStand(band, pitch);
   const largest = row.body / 2;
   const groups = inkGroups(look.ink, rows);
   const dots: Path2D[] = [];
@@ -88,25 +156,10 @@ const drawCopy = (
   for (let column = 0; column < row.count; column += 1) {
     const x = row.lefts[column] + row.body / 2;
     const level = row.levels[column];
-    const along = (x - plot.left) / width;
-    let swell = 0;
-    state.ripples.forEach((front) => {
-      const distance = Math.abs(along - front) / RIPPLE_WIDTH;
-      swell = Math.max(
-        swell,
-        Math.exp(-distance * distance) * (1 - front * 0.5),
-      );
-    });
+    const swell = rippleSwell(state.ripples, (x - plot.left) / width);
     const heat = heatStep(level);
     for (let line = 0; line < rows; line += 1) {
-      const height = (line + 0.5) / rows;
-      let size: number;
-      if (height <= level) {
-        size = 0.35 + 0.65 * clampUnit((level - height) / FILL_DEPTH);
-      } else {
-        size = 0.16 * clampUnit(1 - (height - level) / FADE_HEIGHT);
-      }
-      const radius = largest * Math.min(1.25, size * (1 + swell * 0.45));
+      const radius = halftoneDot(largest, level, line, rows, swell);
       if (radius >= 0.4) {
         const y = floor + up * (line + 0.5) * pitch;
         let group = 0;
@@ -119,9 +172,13 @@ const drawCopy = (
         dots[group].arc(x, y, radius, 0, Math.PI * 2);
       }
     }
-    const heldLine = Math.round(state.peaks.held[column] * rows) - 1;
-    const levelLine = Math.round(level * rows) - 1;
-    if (look.accents && heldLine > levelLine && heldLine < rows) {
+    const heldLine = halftoneHeldLine(
+      look.accents,
+      state.peaks.held[column],
+      level,
+      rows,
+    );
+    if (heldLine >= 0) {
       const y = floor + up * (heldLine + 0.5) * pitch;
       held.moveTo(x + largest * 0.7, y);
       held.arc(x, y, largest * 0.7, 0, Math.PI * 2);
@@ -164,14 +221,7 @@ export const drawHalftone = (
 ): ISceneDrawn => {
   const row = layPieces(frame, state.row, MIN_PITCH);
   const falling = holdPeaks(state.peaks, row.levels, row.count, frame.deltaMs);
-  // A kick sends a ripple from the bass end across the screen.
-  if (frame.music.onBeat && state.ripples.length < 4) {
-    state.ripples.push(0);
-  }
-  const travel = (RIPPLE_SPEED * frame.deltaMs) / 1000;
-  state.ripples = state.ripples
-    .map((front) => front + travel)
-    .filter((front) => front < 1 + RIPPLE_WIDTH * 2);
+  moveRipples(state, frame.music.onBeat, frame.deltaMs);
   const body = frame.look.textured ? new Path2D() : undefined;
   frame.bands.forEach((band) => drawCopy(frame, band, state, body));
   return {

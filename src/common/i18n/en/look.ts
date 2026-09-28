@@ -60,11 +60,13 @@ const look = {
     'Colour runs up the axis and shows how loud a bar is.',
   'look.palette.heat': 'Heat',
   'look.palette.heatHint':
-    'Colour follows how loud it is, cool through to red.',
+    'Colour follows how loud it is, from the first colour to the last.',
   'look.palette.auto': 'Auto',
   'look.palette.autoHint':
     'Each form in its own colouring — a road lit by loudness, bars by position.',
   'look.colours': 'Colours',
+  'look.coloursFollowWindow':
+    "Following the window's colours. Change one to make them this look's own.",
   'look.colourValue': 'Colour {number}: {colour}',
   'look.removeColour': 'Remove colour {number}',
   'look.custom': 'Custom',

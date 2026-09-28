@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { IAnalysisBand } from '../analysis/analysisFrame';
+import type { IAnalysisBand, IAnalysisPlot } from '../analysis/analysisFrame';
 import {
   clampUnit,
   hash01,
@@ -14,8 +14,11 @@ import {
   rampAlong,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneMusic,
+  type ISceneReading,
 } from './sceneFrame';
 import { createPeakHold, holdPeaks, type IPeakHold } from './scenePieces';
+import { floorInk } from '../../utils/windowInk';
 
 /**
  * SYNTHWAVE: a neon grid running to a horizon under a striped sun.
@@ -41,17 +44,21 @@ import { createPeakHold, holdPeaks, type IPeakHold } from './scenePieces';
  * wide and faint, then thin and bright — for the neon; the stars are one path.
  */
 
-/** Where the horizon sits, as a share of the band from its top. */
+/**
+ * Where the horizon sits, as a share of the band from its top. The numbers
+ * and functions exported here are the layout the look's GPU painting
+ * (`engineLooks/synthwaveLook.ts`) is drawn from as well.
+ */
 const HORIZON = 0.56;
 /** The sun's radius against the band's depth and the plot's width. */
 const SUN_DEPTH = 0.34;
 const SUN_WIDTH = 0.15;
 /** Rails across the floor, and rungs between the horizon and the viewer. */
-const RAILS = 26;
-const RUNGS = 14;
+export const RAILS = 26;
+export const RUNGS = 14;
 /** Stars in the sky, and points along each half of the range. */
 const STARS = 90;
-const RANGE_POINTS = 64;
+export const RANGE_POINTS = 64;
 
 export interface ISynthwaveState {
   /** How far the floor has rolled, in rungs. */
@@ -67,6 +74,14 @@ export const createSynthwaveState = (): ISynthwaveState => ({
   peaks: createPeakHold(),
 });
 
+/** How far the floor's rails fan out, against the window's width. */
+export const railSpread = (windowWidth: number): number => windowWidth * 1.6;
+/** Where a rail meets the horizon and the viewer's edge, `at` -0.5..0.5. */
+export const RAIL_FAR = 0.04;
+export const RAIL_NEAR = 2.2;
+/** How bright the grid flashes on the beat. */
+export const gridFlash = (pulse: number): number => pulse * 0.4;
+
 const drawGrid = (
   frame: ISceneFrame,
   horizon: number,
@@ -76,11 +91,11 @@ const drawGrid = (
 ) => {
   const { context, window, colours, music } = frame;
   const rails = new Path2D();
-  const spread = window.width * 1.6;
+  const spread = railSpread(window.width);
   for (let rail = 0; rail <= RAILS; rail += 1) {
     const at = rail / RAILS - 0.5;
-    rails.moveTo(cx + at * spread * 0.04, horizon);
-    rails.lineTo(cx + at * spread * 2.2, bottom);
+    rails.moveTo(cx + at * spread * RAIL_FAR, horizon);
+    rails.lineTo(cx + at * spread * RAIL_NEAR, bottom);
   }
   const rungs = new Path2D();
   const depth = bottom - horizon;
@@ -92,7 +107,7 @@ const drawGrid = (
     rungs.moveTo(0, y);
     rungs.lineTo(window.width, y);
   }
-  const flash = music.pulse * 0.4;
+  const flash = gridFlash(music.pulse);
   // Fading toward the horizon, so the far grid dissolves into the haze.
   const ink = context.createLinearGradient(0, horizon, 0, bottom);
   ink.addColorStop(0, inkAt(colours, 0.15, 0));
@@ -112,22 +127,68 @@ const drawGrid = (
   context.restore();
 };
 
+/** Every star of a sky from `top` down to the horizon: where, and how big. */
+export const placeStars = (
+  music: Pick<ISceneMusic, 'clock' | 'treble'>,
+  windowWidth: number,
+  top: number,
+  horizon: number,
+  star: (x: number, y: number, size: number) => void,
+): void => {
+  for (let index = 0; index < STARS; index += 1) {
+    const x = hash01(index * 3.7) * windowWidth;
+    const y = top + hash01(index * 9.1) * (horizon - top) * 0.9;
+    const twinkle =
+      0.4 +
+      0.6 * Math.abs(Math.sin(music.clock * (1.5 + hash01(index) * 3) + index));
+    const size =
+      0.6 + twinkle * (0.6 + music.treble * 1.2) * hash01(index * 1.9);
+    star(x, y, size);
+  }
+};
+
+/** The stars' light, brighter with the treble. */
+export const starAlpha = (treble: number): number => 0.35 + treble * 0.5;
+
 const drawStars = (frame: ISceneFrame, top: number, horizon: number) => {
   const { context, window, music } = frame;
   const stars = new Path2D();
-  for (let star = 0; star < STARS; star += 1) {
-    const x = hash01(star * 3.7) * window.width;
-    const y = top + hash01(star * 9.1) * (horizon - top) * 0.9;
-    const twinkle =
-      0.4 +
-      0.6 * Math.abs(Math.sin(music.clock * (1.5 + hash01(star) * 3) + star));
-    const size =
-      0.6 + twinkle * (0.6 + music.treble * 1.2) * hash01(star * 1.9);
+  placeStars(music, window.width, top, horizon, (x, y, size) => {
     stars.rect(x - size / 2, y - size / 2, size, size);
-  }
-  context.fillStyle = `rgba(255, 255, 255, ${(0.35 + music.treble * 0.5).toFixed(3)})`;
+  });
+  context.fillStyle = `rgba(255, 255, 255, ${starAlpha(music.treble).toFixed(3)})`;
   context.fill(stars);
 };
+
+/** The sun's middle, above the horizon by a third of its radius. */
+export const sunCentre = (horizon: number, radius: number): number =>
+  horizon - radius * 0.3;
+
+/**
+ * The bands the sun is cut by, each handed over as its top and height: thin
+ * at the top of the cut, thicker toward the horizon, none on the upper half.
+ */
+export const sunCuts = (
+  centreY: number,
+  radius: number,
+  horizon: number,
+  cut: (y: number, height: number) => void,
+): void => {
+  let y = centreY + radius * 0.02;
+  let gap = 2;
+  let bar = radius * 0.16;
+  while (y < horizon) {
+    cut(y + gap, bar);
+    y += gap + bar;
+    gap += 1.4;
+    bar = Math.max(2, bar * 0.8);
+  }
+};
+
+/** The sun's glow: how far it reaches against the sun, and its light. */
+export const sunGlowReach = (pulse: number): number => 1.6 + pulse * 0.3;
+export const sunGlowAlpha = (pulse: number, glow: number): number =>
+  0.22 + pulse * 0.15 + glow * 0.2;
 
 const drawSun = (
   frame: ISceneFrame,
@@ -136,21 +197,14 @@ const drawSun = (
   radius: number,
 ) => {
   const { context, colours, music } = frame;
-  const centreY = horizon - radius * 0.3;
+  const centreY = sunCentre(horizon, radius);
   context.save();
-  // The bands the sun is cut by: thin at the top of the cut, thicker toward
-  // the horizon, and none on the upper half.
+  // The upper half whole, and below it the bands the sun is cut by.
   const clip = new Path2D();
   clip.rect(cx - radius, centreY - radius, radius * 2, radius * 1.02);
-  let y = centreY + radius * 0.02;
-  let gap = 2;
-  let bar = radius * 0.16;
-  while (y < horizon) {
-    clip.rect(cx - radius, y + gap, radius * 2, bar);
-    y += gap + bar;
-    gap += 1.4;
-    bar = Math.max(2, bar * 0.8);
-  }
+  sunCuts(centreY, radius, horizon, (y, height) => {
+    clip.rect(cx - radius, y, radius * 2, height);
+  });
   context.clip(clip);
   const face = context.createLinearGradient(0, centreY - radius, 0, horizon);
   face.addColorStop(0, lightInkAt(colours, 1, 0.35, 1));
@@ -161,22 +215,23 @@ const drawSun = (
   context.fill();
   context.restore();
   // Its glow, which the beat opens a little.
+  const reach = radius * sunGlowReach(music.pulse);
   const glow = context.createRadialGradient(
     cx,
     centreY,
     radius * 0.8,
     cx,
     centreY,
-    radius * (1.6 + music.pulse * 0.3),
+    reach,
   );
   glow.addColorStop(
     0,
-    inkAt(colours, 0.85, 0.22 + music.pulse * 0.15 + frame.glow * 0.2),
+    inkAt(colours, 0.85, sunGlowAlpha(music.pulse, frame.glow)),
   );
   glow.addColorStop(1, inkAt(colours, 0.85, 0));
   context.fillStyle = glow;
   context.beginPath();
-  context.arc(cx, centreY, radius * (1.6 + music.pulse * 0.3), 0, Math.PI * 2);
+  context.arc(cx, centreY, reach, 0, Math.PI * 2);
   context.fill();
 };
 
@@ -211,6 +266,46 @@ const ridgeInk = (
   return rampAlong(context, colours, [0, horizon], [0, top], whiten, alpha);
 };
 
+/** The horizon line's light, brighter on the beat. */
+export const horizonAlpha = (pulse: number): number => 0.6 + pulse * 0.3;
+
+/** How tall the range may stand in a copy's band. */
+export const rangeHeight = (band: IAnalysisBand): number =>
+  (band.bottom - band.top) * 0.38;
+
+/** The ridge's wide glow line: brighter on the beat and with the Glow. */
+export const ridgeGlowAlpha = (pulse: number, glow: number): number =>
+  0.25 + pulse * 0.2 + glow * 0.25;
+
+/**
+ * The range's ridge, right to left through the middle: each point's x and
+ * y, and where its ridge of a moment ago is held when Lit peaks shows it.
+ */
+export const traceRange = (
+  state: ISynthwaveState,
+  accents: boolean,
+  plot: IAnalysisPlot,
+  cx: number,
+  horizon: number,
+  up: number,
+  tall: number,
+  point: (x: number, y: number, heldY: number | undefined) => void,
+): void => {
+  const width = plot.right - plot.left;
+  for (let at = RANGE_POINTS; at >= -RANGE_POINTS; at -= 1) {
+    const out = Math.abs(at);
+    // A little jaggedness of its own, so the range reads as rock.
+    const rough = 0.85 + 0.15 * hash01(Math.round(at * 1.3) + 11);
+    const x = cx + (at / RANGE_POINTS) * (width / 2);
+    const isHeld = accents && state.peaks.held[out] - state.ridge[out] > 0.03;
+    point(
+      x,
+      horizon + up * state.ridge[out] * tall * rough,
+      isHeld ? horizon + up * state.peaks.held[out] * tall * rough : undefined,
+    );
+  }
+};
+
 /** The spectrum as a range, mirrored from the middle. */
 const drawRange = (
   frame: ISceneFrame,
@@ -221,23 +316,26 @@ const drawRange = (
   body: Path2D | undefined,
 ) => {
   const { context, plot, music, look } = frame;
-  const width = plot.right - plot.left;
-  const tall = (band.bottom - band.top) * 0.38;
+  const tall = rangeHeight(band);
   const up = band.flipped ? 1 : -1;
   const ridge: [number, number][] = [];
   const held = new Path2D();
-  for (let point = RANGE_POINTS; point >= -RANGE_POINTS; point -= 1) {
-    const out = Math.abs(point);
-    // A little jaggedness of its own, so the range reads as rock.
-    const rough = 0.85 + 0.15 * hash01(Math.round(point * 1.3) + 11);
-    const x = cx + (point / RANGE_POINTS) * (width / 2);
-    ridge.push([x, horizon + up * state.ridge[out] * tall * rough]);
-    // The ridge a moment ago, left as a dotted line over the rock.
-    if (look.accents && state.peaks.held[out] - state.ridge[out] > 0.03) {
-      const heldY = horizon + up * state.peaks.held[out] * tall * rough;
-      held.rect(x - 1, heldY - 1, 2, 2);
-    }
-  }
+  traceRange(
+    state,
+    look.accents,
+    plot,
+    cx,
+    horizon,
+    up,
+    tall,
+    (x, y, heldY) => {
+      ridge.push([x, y]);
+      // The ridge a moment ago, left as a dotted line over the rock.
+      if (heldY !== undefined) {
+        held.rect(x - 1, heldY - 1, 2, 2);
+      }
+    },
+  );
   const mountains = new Path2D();
   mountains.moveTo(ridge[0][0], horizon);
   ridge.forEach(([x, y]) => mountains.lineTo(x, y));
@@ -245,10 +343,11 @@ const drawRange = (
   mountains.closePath();
   const top = horizon + up * tall;
   if (look.filled) {
-    // Dark inside, so the range stands in front of the sun.
+    // Dark inside — the window's own floor — so the range stands in front
+    // of the sun.
     const rock = context.createLinearGradient(0, top, 0, horizon);
     rock.addColorStop(0, inkAt(frame.colours, 0.35, 0.55 * look.opacity));
-    rock.addColorStop(1, `rgba(6, 4, 18, ${(0.92 * look.opacity).toFixed(3)})`);
+    rock.addColorStop(1, floorInk(0.92 * look.opacity, 0.35));
     context.fillStyle = rock;
     context.fill(mountains);
     body?.addPath(mountains);
@@ -269,7 +368,7 @@ const drawRange = (
     horizon,
     top,
     0,
-    0.25 + music.pulse * 0.2 + frame.glow * 0.25,
+    ridgeGlowAlpha(music.pulse, frame.glow),
   );
   context.lineWidth = line + 3.5;
   context.stroke(edge);
@@ -279,7 +378,7 @@ const drawRange = (
   context.fillStyle = ridgeInk(frame, horizon, top, 0.5, 0.85);
   context.fill(held);
   // The horizon line.
-  context.strokeStyle = inkAt(frame.colours, 0.9, 0.6 + music.pulse * 0.3);
+  context.strokeStyle = inkAt(frame.colours, 0.9, horizonAlpha(music.pulse));
   context.lineWidth = 1.5;
   context.beginPath();
   context.moveTo(0, horizon);
@@ -288,30 +387,68 @@ const drawRange = (
   context.restore();
 };
 
-export const drawSynthwave = (
-  frame: ISceneFrame,
+/**
+ * One frame's reading of the look, once for every copy: the floor rolled on
+ * at the music's pace, and the range read bass in the middle, treble at the
+ * edges, with its ridge held. Answers whether a held ridge is still falling.
+ */
+export const readSynthwave = (
+  reading: Pick<ISceneReading, 'plot' | 'music' | 'xs' | 'levels' | 'deltaMs'>,
   state: ISynthwaveState,
-): ISceneDrawn => {
-  const { context, plot, music, window, bands, xs, levels } = frame;
+): boolean => {
+  const { plot, music, xs, levels } = reading;
   state.roll = (state.roll + music.step * (1.2 + music.bass * 2.4)) % 1000;
-  const cx = (plot.left + plot.right) / 2;
-  // The range read once for every copy: bass in the middle, treble at the
-  // edges, the spectrum read outward.
   const width = plot.right - plot.left;
   for (let out = 0; out <= RANGE_POINTS; out += 1) {
     state.ridge[out] = clampUnit(
       levelAtX(xs, levels, plot.left + (out / RANGE_POINTS) * width),
     );
   }
-  const falling = holdPeaks(
-    state.peaks,
-    state.ridge,
-    RANGE_POINTS + 1,
-    frame.deltaMs,
+  return holdPeaks(state.peaks, state.ridge, RANGE_POINTS + 1, reading.deltaMs);
+};
+
+/**
+ * Where one copy's picture stands, drawn the right way up: its horizon, the
+ * floor's near edge and the sky's far one — the window's edges when this is
+ * the only copy, the band's own when the wave is mirrored (in the mirror the
+ * window's bottom edge stands where its top would) — its middle, and its
+ * sun's radius, swelling a little on the kick.
+ */
+export const synthwaveCopy = (
+  band: IAnalysisBand,
+  copies: number,
+  plot: IAnalysisPlot,
+  windowHeight: number,
+  pulse: number,
+) => {
+  const depth = band.bottom - band.top;
+  let near = band.bottom;
+  let sky = band.top;
+  if (copies === 1) {
+    near = band.flipped ? band.top + band.bottom : windowHeight;
+    sky = band.flipped ? band.top + band.bottom - windowHeight : 0;
+  }
+  const radius = Math.min(
+    depth * SUN_DEPTH,
+    (plot.right - plot.left) * SUN_WIDTH,
   );
+  return {
+    horizon: band.top + depth * HORIZON,
+    near,
+    sky,
+    cx: (plot.left + plot.right) / 2,
+    sun: radius * (1 + pulse * 0.04),
+  };
+};
+
+export const drawSynthwave = (
+  frame: ISceneFrame,
+  state: ISynthwaveState,
+): ISceneDrawn => {
+  const { context, plot, music, window, bands } = frame;
+  const falling = readSynthwave(frame, state);
   const body = frame.look.textured ? new Path2D() : undefined;
   bands.forEach((band) => {
-    const depth = band.bottom - band.top;
     // Upside down, the whole picture is: drawn the right way up in a mirror
     // about the band's middle, rather than every part learning to hang.
     context.save();
@@ -320,24 +457,16 @@ export const drawSynthwave = (
       context.scale(1, -1);
     }
     const upright: IAnalysisBand = { ...band, flipped: false };
-    const horizon = band.top + depth * HORIZON;
-    // The floor reaches the window's edge on the viewer's side when this is
-    // the only copy; a mirrored wave's two copies each keep to their own.
-    // So does the sky on the far side, for the stars: in the mirror the
-    // window's bottom edge stands where its top would.
-    let near = band.bottom;
-    let sky = band.top;
-    if (bands.length === 1) {
-      near = band.flipped ? band.top + band.bottom : window.height;
-      sky = band.flipped ? band.top + band.bottom - window.height : 0;
-    }
+    const { horizon, near, sky, cx, sun } = synthwaveCopy(
+      band,
+      bands.length,
+      plot,
+      window.height,
+      music.pulse,
+    );
     drawStars(frame, sky, horizon);
     drawGrid(frame, horizon, near, cx, state.roll);
-    const radius = Math.min(
-      depth * SUN_DEPTH,
-      (plot.right - plot.left) * SUN_WIDTH,
-    );
-    drawSun(frame, cx, horizon, radius * (1 + music.pulse * 0.04));
+    drawSun(frame, cx, horizon, sun);
     // The body is gathered in the mirror's own space, so it is drawn back
     // through the same flip it was built in.
     const copyBody = body ? new Path2D() : undefined;

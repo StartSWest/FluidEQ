@@ -117,7 +117,7 @@ it under the terms of the GNU General Public License version 3 or later.
     gap: 6px;
     padding: 4px 10px 4px 7px;
     color: $text-faint;
-    border: 1px solid $border-subtle;
+    border: 1px solid $card-edge;
     border-radius: $radius-xs;
     font-size: $text-small;
   }
@@ -148,8 +148,13 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-xxs;
   min-height: 0;
   padding: $spacing-xs;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
+  // The card's colour, opaque, on the Forum as on Plus (Ivan, 2026-09-27:
+  // "make sure side menu on forum and plus is same bg color"): the Plus rail
+  // is the menus' floor because folded it opens over the page, and the Forum's
+  // was the edge alone, a hollow frame beside a filled one.
+  background: $surface-menu-floor;
   overflow-y: auto;
   @include slim-scrollbar;
   @include animate(fade-to-rest);
@@ -309,9 +314,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // not one of them. Its tile wears the admin's colour, the one on the admin's
 // name tag, and carries the count of reported scenes waiting.
 .community__rail-rule {
+  // Solid and flat, and quiet: the menus' own inner line (`$menu-rule`), in
+  // from the rail's edges and round at its ends (Ivan, 2026-09-27: "the top
+  // split admin make it softer less visible", "do a solid flat one but
+  // nicer"). It was the rows' hairline, solved to read against a card.
   height: 1px;
-  margin: 5px 8px;
-  background: $border-subtle;
+  margin: 6px 12px;
+  border-radius: 1px;
+  background: $menu-rule;
 
   @container eq-panel (max-width: 600px) {
     display: none;
@@ -381,9 +391,11 @@ it under the terms of the GNU General Public License version 3 or later.
   @include animate(fade-in, $motion-base, $ease-out, 160ms);
   display: grid;
   gap: 2px;
+  // No line over it: it stands on the rail's floor, which already sets it
+  // apart (Ivan, 2026-09-27: "no need for splitter on top of the account
+  // button").
   margin-top: auto;
   padding-top: 8px;
-  border-top: 1px solid $border-subtle;
 
   @container eq-panel (max-width: 600px) {
     display: none;

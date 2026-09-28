@@ -10,7 +10,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import Chevron from '../icons/Chevron';
 import TintIcon from '../icons/TintIcon';
 import { useTranslation } from '../utils/I18nContext';
-import { sceneTintSwatch } from '../utils/sceneTint';
+import { sceneAccentSwatch } from '../utils/sceneTint';
 import {
   SCENE_TINT_MODE_ABOUT,
   SCENE_TINT_MODE_SHORT_NAMES,
@@ -56,7 +56,7 @@ const SceneTintMenu = () => {
   // On every glyph, not only the one in use: the menu is where the colour
   // each mode would lend is shown before it is picked.
   const swatch = sky
-    ? ({ '--scene-tint-swatch': sceneTintSwatch(sky) } as CSSProperties)
+    ? ({ '--scene-tint-swatch': sceneAccentSwatch(sky) } as CSSProperties)
     : undefined;
 
   useEffect(() => {

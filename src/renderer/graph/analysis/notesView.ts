@@ -5,18 +5,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
-  STILL_ENOUGH,
-  advanceHold,
   clamp01,
-  placeLevel,
-  rampRgba,
-  scratch,
   type IAnalysisFrame,
+  type IAnalysisReading,
   type IAnalysisState,
 } from './analysisFrame';
-import { asMate, paintChannelLegend, paintLegend } from './channelInk';
+import {
+  advanceBars,
+  barsMoving,
+  paintBarRows,
+  type IBarView,
+} from './barRows';
 import { readFractionalBands } from './octaveBands';
-import { paintTexture, piecePaint, spectrumInk } from './spectrumPaint';
 
 /**
  * The Note spectrum: the same sound, cut into semitones.
@@ -56,39 +56,50 @@ const NOTE_NAMES = [
 const A4_HZ = 440;
 const A4_NOTE = 69;
 
-const HOLD_HANG_MS = 700;
+export const NOTE_BARS: IBarView = {
+  count: (pieces) => Math.max(8, Math.min(160, pieces)),
+  read: (levels, _axis, bands) => readFractionalBands(levels, bands),
+  hangMs: 700,
+  /** Plot depths per second: quick, to match the bars under the caps. */
+  fall: 0.13,
+  minGap: 0,
+  minWidth: 1,
+  pairInset: 0.5,
+  capHeight: 2.5,
+  capLift: 3,
+  capAlpha: 0.8,
+  shortest: 0.5,
+  radius: () => 0,
+};
 
-/** Plot depths per second: quick, to match the bars under the caps. */
-const HOLD_FALL = 0.13;
-
-const CAP_HEIGHT = 2.5;
-const CAP_LIFT = 3;
+/** How solid the rule up from each C is, within its copy. */
+export const NOTE_RULE_ALPHA = 0.09;
 
 /** Which note a frequency is, as a number of semitones above C−1. */
 const noteOf = (frequency: number) =>
   A4_NOTE + 12 * Math.log2(frequency / A4_HZ);
 
+/** One C on the plot: where it stands, and what a keyboard calls it. */
+export interface INoteMark {
+  x: number;
+  name: string;
+}
+
 /**
- * The C marks, written where the C falls on the plot rather than on a band
+ * The Cs, placed where each C falls on the plot rather than on a band
  * boundary: the bands move with Pieces and the notes do not.
  */
-const paintNoteMarks = (frame: IAnalysisFrame): void => {
-  const { context, axis, xs, band, plot } = frame;
+export const noteMarks = (reading: IAnalysisReading): INoteMark[] => {
+  const { axis, xs, plot } = reading;
   if (axis.length < 2) {
-    return;
+    return [];
   }
   const lowest = Math.ceil(noteOf(axis[0]));
   const highest = Math.floor(noteOf(axis[axis.length - 1]));
   if (!Number.isFinite(lowest) || !Number.isFinite(highest)) {
-    return;
+    return [];
   }
-  const foot = band.flipped ? band.top : band.bottom;
-  const inward = band.flipped ? 1 : -1;
-  context.save();
-  context.font = '600 9px system-ui, sans-serif';
-  context.textAlign = 'center';
-  context.textBaseline = band.flipped ? 'top' : 'bottom';
-  const rules = new Path2D();
+  const marks: INoteMark[] = [];
   // From the first C at or above the lowest note, in octaves: the marks are
   // every C and nothing else, so the loop counts Cs rather than semitones.
   const firstC = Math.ceil(lowest / 12) * 12;
@@ -105,77 +116,45 @@ const paintNoteMarks = (frame: IAnalysisFrame): void => {
     const toward = to > from ? clamp01((wanted - from) / (to - from)) : 0;
     const x = xs[at] + (xs[at + 1] - xs[at]) * toward;
     if (x >= plot.left && x <= plot.right) {
-      rules.moveTo(x, foot);
-      rules.lineTo(x, foot + inward * (band.bottom - band.top));
-      context.globalAlpha = band.opacity * 0.5;
-      context.fillStyle = 'rgba(255, 255, 255, 0.6)';
       // The octave number, as a keyboard names it: C4 is middle C.
-      context.fillText(`C${note / 12 - 1}`, x, foot + inward * 3);
+      marks.push({ x, name: `C${note / 12 - 1}` });
     }
   }
-  context.globalAlpha = band.opacity * 0.09;
+  return marks;
+};
+
+/** A faint rule up the copy from each C, under the bars. */
+const paintNoteRules = (frame: IAnalysisFrame): void => {
+  const { context, band } = frame;
+  const foot = band.flipped ? band.top : band.bottom;
+  const inward = band.flipped ? 1 : -1;
+  const rules = new Path2D();
+  noteMarks(frame).forEach(({ x }) => {
+    rules.moveTo(x, foot);
+    rules.lineTo(x, foot + inward * (band.bottom - band.top));
+  });
+  context.globalAlpha = band.opacity * NOTE_RULE_ALPHA;
   context.strokeStyle = '#fff';
   context.lineWidth = 1;
   context.stroke(rules);
-  context.restore();
   context.globalAlpha = 1;
 };
 
-/** One channel's row of bars and its caps, as two paths. */
-const buildRow = (
-  frame: IAnalysisFrame,
-  bands: Float64Array,
-  hold: Float64Array,
-  columnAt: (index: number) => { left: number; width: number },
-) => {
-  const { band } = frame;
+/** Each C's name along the foot, over whatever drew the view. */
+export const paintNoteWords = (frame: IAnalysisFrame): void => {
+  const { context, band } = frame;
   const foot = band.flipped ? band.top : band.bottom;
-  const bodies = new Path2D();
-  const caps = new Path2D();
-  for (let index = 0; index < bands.length; index += 1) {
-    const { left, width } = columnAt(index);
-    const head = placeLevel(band, bands[index]);
-    if (Math.abs(head - foot) > 0.5) {
-      bodies.rect(left, Math.min(head, foot), width, Math.abs(head - foot));
-    }
-    if (hold[index] > 0.004) {
-      const row = placeLevel(band, hold[index]);
-      caps.rect(
-        left,
-        band.flipped ? row + CAP_LIFT : row - CAP_LIFT - CAP_HEIGHT,
-        width,
-        CAP_HEIGHT,
-      );
-    }
-  }
-  return { bodies, caps };
-};
-
-const paintRow = (
-  frame: IAnalysisFrame,
-  row: { bodies: Path2D; caps: Path2D },
-  loudest: number,
-  strength: number,
-): void => {
-  const { context, tuning, band } = frame;
-  context.globalAlpha = band.opacity * strength;
-  if (tuning.filled) {
-    context.fillStyle = piecePaint(
-      frame,
-      frame.colours,
-      loudest,
-      tuning.fillOpacity,
-    );
-    context.fill(row.bodies);
-    paintTexture(frame, row.bodies, tuning.fillOpacity * strength);
-  } else {
-    context.lineWidth = frame.edge.width;
-    context.strokeStyle = spectrumInk(frame, frame.levels);
-    context.stroke(row.bodies);
-  }
-  context.globalAlpha = band.opacity * strength * 0.8;
-  context.fillStyle = '#fff';
-  context.fill(row.caps);
+  const inward = band.flipped ? 1 : -1;
+  context.save();
+  context.font = '600 9px system-ui, sans-serif';
+  context.textAlign = 'center';
+  context.textBaseline = band.flipped ? 'top' : 'bottom';
+  context.globalAlpha = band.opacity * 0.5;
+  context.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  noteMarks(frame).forEach(({ x, name }) => {
+    context.fillText(name, x, foot + inward * 3);
+  });
+  context.restore();
   context.globalAlpha = 1;
 };
 
@@ -183,82 +162,10 @@ const drawNotesView = (
   frame: IAnalysisFrame,
   state: IAnalysisState,
 ): boolean => {
-  const { tuning, levels, plot, split, deltaMs } = frame;
-  const count = Math.max(8, Math.min(160, Math.round(tuning.columns)));
-  const span = (plot.right - plot.left) / count;
-  const gap = span * clamp01(tuning.gap);
-  paintNoteMarks(frame);
-
-  if (split) {
-    const [leftBands, leftHold, leftMs, rightBands, rightHold, rightMs] =
-      scratch(state, count, 6);
-    readFractionalBands(split[0], leftBands);
-    readFractionalBands(split[1], rightBands);
-    const loudest = Math.max(
-      advanceHold(
-        leftHold,
-        leftMs,
-        leftBands,
-        deltaMs,
-        HOLD_HANG_MS,
-        HOLD_FALL,
-      ),
-      advanceHold(
-        rightHold,
-        rightMs,
-        rightBands,
-        deltaMs,
-        HOLD_HANG_MS,
-        HOLD_FALL,
-      ),
-    );
-    const pair = Math.max(1, (span - gap) / 2 - 0.5);
-    const columnAt = (side: number) => (index: number) => ({
-      left: plot.left + index * span + gap / 2 + side * (pair + 1),
-      width: pair,
-    });
-    const behind = asMate(frame);
-    paintRow(
-      behind,
-      buildRow(frame, rightBands, rightHold, columnAt(1)),
-      loudest,
-      0.92,
-    );
-    paintRow(
-      frame,
-      buildRow(frame, leftBands, leftHold, columnAt(0)),
-      loudest,
-      1,
-    );
-    paintChannelLegend(frame, frame.channelLabels);
-    return loudest > STILL_ENOUGH;
-  }
-
-  const [bands, hold, holdMs] = scratch(state, count, 3);
-  readFractionalBands(levels, bands);
-  const loudest = advanceHold(
-    hold,
-    holdMs,
-    bands,
-    deltaMs,
-    HOLD_HANG_MS,
-    HOLD_FALL,
-  );
-  const width = Math.max(1, span - gap);
-  paintRow(
-    frame,
-    buildRow(frame, bands, hold, (index) => ({
-      left: plot.left + index * span + gap / 2,
-      width,
-    })),
-    loudest,
-    1,
-  );
-  paintLegend(frame, [
-    { label: frame.legend.live, ink: rampRgba(frame.colours, 0.75, 1) },
-    { label: frame.legend.peak, ink: 'rgba(255, 255, 255, 0.95)' },
-  ]);
-  return loudest > STILL_ENOUGH;
+  paintNoteRules(frame);
+  const bars = advanceBars(frame, state, NOTE_BARS);
+  paintBarRows(frame, bars, NOTE_BARS);
+  return barsMoving(bars);
 };
 
 export default drawNotesView;

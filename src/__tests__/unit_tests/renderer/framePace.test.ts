@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { EUPHORIA_FRAME_MS, SMOOTH_FRAME_MS } from '../../../common/smoothing';
+import { THIRTY_A_SECOND_MS } from '../../../common/smoothing';
 import { displayTickMs, isFrameDue } from '../../../renderer/utils/framePace';
 
 /**
@@ -72,14 +72,13 @@ describe('the frame pace', () => {
     expect(drawn(144, 0)).toHaveLength(1440);
   });
 
-  it('holds ordinary use to thirty a second, and lets euphoria run free', () => {
+  it('holds a pace of thirty a second to thirty, and a pace of nothing to none', () => {
     const tick = 1000 / 60;
-    expect(isFrameDue(tick, SMOOTH_FRAME_MS, tick)).toBe(false);
-    expect(isFrameDue(2 * tick - 0.3, SMOOTH_FRAME_MS, tick)).toBe(true);
+    expect(isFrameDue(tick, THIRTY_A_SECOND_MS, tick)).toBe(false);
+    expect(isFrameDue(2 * tick - 0.3, THIRTY_A_SECOND_MS, tick)).toBe(true);
     // Zero is a floor on the interval, not a target rate — so a 144Hz screen
-    // is not held down to 60 during the one moment that is meant to look
-    // expensive.
-    expect(isFrameDue(0, EUPHORIA_FRAME_MS, 1000 / 144)).toBe(true);
+    // is not held down to 60.
+    expect(isFrameDue(0, 0, 1000 / 144)).toBe(true);
   });
 
   it('never runs faster than its pace', () => {

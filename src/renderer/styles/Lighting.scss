@@ -235,7 +235,7 @@ $windows-blue: #8ec5ff;
   display: grid;
   place-items: center;
   overflow: hidden;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-xs;
   background: $surface-base;
   box-shadow: inset 0 1px 0 rgba($white, 0.04);
@@ -492,7 +492,7 @@ $windows-blue: #8ec5ff;
 
 .lighting-scene-bar {
   padding: 12px 14px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-xs;
   background: rgba($white, 0.025);
 }
@@ -589,7 +589,7 @@ $windows-blue: #8ec5ff;
   font-size: $text-small;
   font-weight: $weight-medium;
   text-align: left;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-s;
   background: rgba($white, 0.025);
   cursor: pointer;

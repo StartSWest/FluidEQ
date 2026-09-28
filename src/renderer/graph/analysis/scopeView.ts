@@ -9,9 +9,11 @@ import {
   rampRgba,
   type IAnalysisBand,
   type IAnalysisFrame,
+  type IAnalysisPlot,
+  type IAnalysisReading,
   type IAnalysisState,
 } from './analysisFrame';
-import { paintChannelLegend } from './channelInk';
+import { asMate } from './channelInk';
 import { beamPaint } from './spectrumPaint';
 
 /**
@@ -33,6 +35,9 @@ import { beamPaint } from './spectrumPaint';
  * With Left & right chosen the two channels are drawn one over the other in
  * their own colours, which is how a phase problem looks before it becomes a
  * number on the stereo panel: two traces that do not sit on each other.
+ *
+ * Laid out here for both painters: this file's canvas drawing, and the
+ * engine's (`engineLooks/scopeLook.ts`).
  */
 
 /** How much of the block is drawn, so the trigger has room to move. */
@@ -43,6 +48,32 @@ const SEARCH = 0.34;
 
 /** A sample smaller than this is silence and cannot trigger anything. */
 const QUIET = 0.0008;
+
+/** The rule silence sits on, and the two rows full scale reaches. */
+export const SCOPE_RULE_INK = 'rgba(255, 255, 255, 0.22)';
+export const SCOPE_EDGE_INK = 'rgba(255, 96, 112, 0.28)';
+export const SCOPE_EDGE_DASH: readonly [on: number, off: number] = [3, 5];
+
+/** The level hint drawn before any samples arrive: how solid, how wide. */
+export const SCOPE_HINT_ALPHA = 0.5;
+export const SCOPE_HINT_WIDTH = 1.5;
+export const SCOPE_HINT_RAMP = 0.7;
+
+/**
+ * The beam's three passes, widest first: a soft glow, a body and a hot core,
+ * each's alpha within its trace and its width from the look's edge.
+ */
+export const SCOPE_BEAM: readonly {
+  alpha: number;
+  width: (edge: number) => number;
+}[] = [
+  { alpha: 0.16, width: (edge) => Math.max(5, edge + 4) },
+  { alpha: 0.55, width: (edge) => Math.max(2, edge) },
+  { alpha: 1, width: () => 1 },
+];
+
+/** How present the right channel is, drawn behind the left. */
+export const SCOPE_BEHIND = 0.85;
 
 /**
  * Where the trace starts: the last rising zero crossing before the middle.
@@ -71,60 +102,131 @@ const triggerAt = (samples: Float32Array): number => {
   return middle;
 };
 
-/** One channel's trace, from its trigger, across the band. */
+/** One channel's trace: which samples, from its trigger, across the band. */
+export interface IScopeTrace {
+  samples: Float32Array;
+  start: number;
+  count: number;
+  /**
+   * How many samples one drawn point stands for. At most one point per
+   * pixel: past that the extra samples land on columns already drawn and the
+   * path grows without the picture changing.
+   */
+  step: number;
+  /** Painted in the other channel's colours, behind. */
+  mate: boolean;
+  strength: number;
+}
+
 const traceOf = (
-  frame: IAnalysisFrame,
-  band: IAnalysisBand,
+  plot: IAnalysisPlot,
   samples: Float32Array,
-): Path2D => {
-  const { plot } = frame;
+  mate: boolean,
+  strength: number,
+): IScopeTrace => {
   const start = triggerAt(samples);
   const count = Math.min(
     samples.length - start,
     Math.floor(samples.length * SHOWN),
   );
-  const { left } = plot;
-  const width = plot.right - plot.left;
-  const middle = (band.top + band.bottom) / 2;
-  const reach = (band.bottom - band.top) / 2;
+  return {
+    samples,
+    start,
+    count,
+    step: Math.max(1, Math.floor(count / Math.max(1, plot.right - plot.left))),
+    mate,
+    strength,
+  };
+};
+
+/** Where drawn sample `index` of `trace` stands. */
+export const scopePoint = (
+  plot: IAnalysisPlot,
+  band: IAnalysisBand,
+  trace: IScopeTrace,
+  index: number,
+): { x: number; y: number } => ({
+  x:
+    plot.left +
+    (index / Math.max(1, trace.count - 1)) * (plot.right - plot.left),
+  y:
+    (band.top + band.bottom) / 2 -
+    Math.max(-1, Math.min(1, trace.samples[trace.start + index])) *
+      ((band.bottom - band.top) / 2),
+});
+
+/**
+ * The traces this frame draws, back to front; none before any samples have
+ * been measured.
+ */
+export const scopeTraces = (
+  reading: IAnalysisReading,
+  state: IAnalysisState,
+): IScopeTrace[] | undefined => {
+  const { scope, tuning, plot } = reading;
+  if (!scope) {
+    return undefined;
+  }
+  if (tuning.channels === 'split') {
+    return [
+      traceOf(plot, scope[1], true, SCOPE_BEHIND),
+      traceOf(plot, scope[0], false, 1),
+    ];
+  }
+  /**
+   * Joined: the two channels summed, which is the signal a mono speaker
+   * plays and the one a clipping master clips. Halved, so a centred signal
+   * reaches the same height it does on its own rather than twice it.
+   */
+  const summed = state.sum;
+  const count = Math.min(scope[0].length, scope[1].length, summed.length);
+  for (let index = 0; index < count; index += 1) {
+    summed[index] = (scope[0][index] + scope[1][index]) * 0.5;
+  }
+  return [traceOf(plot, summed.subarray(0, count), false, 1)];
+};
+
+/**
+ * No samples measured yet: rather than an empty box, the loudest reading of
+ * the shared spectrum, as the pair of rows a wave of that size would reach —
+ * a true statement about the level, and one that disappears the moment the
+ * real trace arrives. Answers that level, and how far from the middle those
+ * rows stand.
+ */
+export const scopeHint = (
+  reading: IAnalysisReading,
+): { loudest: number; reach: number } => {
+  const { levels, band } = reading;
+  let loudest = 0;
+  for (let index = 0; index < levels.length; index += 1) {
+    if (levels[index] > loudest) {
+      loudest = levels[index];
+    }
+  }
+  return { loudest, reach: ((band.bottom - band.top) / 2) * clamp01(loudest) };
+};
+
+/** The beam: a wide soft pass, a body, and a hot core along the middle. */
+const paintBeam = (frame: IAnalysisFrame, trace: IScopeTrace): void => {
+  const painted = trace.mate ? asMate(frame) : frame;
+  const { context, band, plot } = painted;
   const path = new Path2D();
-  // At most one point per pixel: past that the extra samples land on columns
-  // already drawn and the path grows without the picture changing.
-  const step = Math.max(1, Math.floor(count / Math.max(1, width)));
-  for (let index = 0; index < count; index += step) {
-    const x = left + (index / Math.max(1, count - 1)) * width;
-    const y =
-      middle - Math.max(-1, Math.min(1, samples[start + index])) * reach;
+  for (let index = 0; index < trace.count; index += trace.step) {
+    const { x, y } = scopePoint(plot, band, trace, index);
     if (index === 0) {
       path.moveTo(x, y);
     } else {
       path.lineTo(x, y);
     }
   }
-  return path;
-};
-
-/** The beam: a wide soft pass, a body, and a hot core along the middle. */
-const paintBeam = (
-  frame: IAnalysisFrame,
-  trace: Path2D,
-  colours: readonly string[],
-  strength: number,
-): void => {
-  const { context, band } = frame;
   context.lineJoin = 'round';
   context.lineCap = 'round';
-  context.strokeStyle = beamPaint(frame, colours, 1);
-  context.globalAlpha = band.opacity * strength * 0.16;
-  context.lineWidth = Math.max(5, frame.edge.width + 4);
-  context.stroke(trace);
-  context.globalAlpha = band.opacity * strength * 0.55;
-  context.lineWidth = Math.max(2, frame.edge.width);
-  context.stroke(trace);
-  context.globalAlpha = band.opacity * strength;
-  context.lineWidth = 1;
-  context.strokeStyle = beamPaint(frame, colours, 1);
-  context.stroke(trace);
+  context.strokeStyle = beamPaint(painted, painted.colours, 1);
+  SCOPE_BEAM.forEach(({ alpha, width }) => {
+    context.globalAlpha = band.opacity * trace.strength * alpha;
+    context.lineWidth = width(painted.edge.width);
+    context.stroke(path);
+  });
   context.globalAlpha = 1;
 };
 
@@ -132,7 +234,7 @@ const drawScopeView = (
   frame: IAnalysisFrame,
   state: IAnalysisState,
 ): boolean => {
-  const { context, band, scope, colours, mate, tuning, plot, levels } = frame;
+  const { context, band, plot, colours } = frame;
   const middle = (band.top + band.bottom) / 2;
 
   // The rule the trace is read against: silence down the middle, and the
@@ -141,7 +243,7 @@ const drawScopeView = (
   const rules = new Path2D();
   rules.moveTo(plot.left, middle);
   rules.lineTo(plot.right, middle);
-  context.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+  context.strokeStyle = SCOPE_RULE_INK;
   context.lineWidth = 1;
   context.stroke(rules);
   const edges = new Path2D();
@@ -149,61 +251,28 @@ const drawScopeView = (
     edges.moveTo(plot.left, row);
     edges.lineTo(plot.right, row);
   });
-  context.setLineDash([3, 5]);
-  context.strokeStyle = 'rgba(255, 96, 112, 0.28)';
+  context.setLineDash([...SCOPE_EDGE_DASH]);
+  context.strokeStyle = SCOPE_EDGE_INK;
   context.stroke(edges);
   context.setLineDash([]);
   context.globalAlpha = 1;
 
-  if (!scope) {
-    /**
-     * No samples measured yet. Rather than an empty box, the loudest reading
-     * of the shared spectrum is drawn as the pair of rows a wave of that
-     * size would reach — a true statement about the level, and one that
-     * disappears the moment the real trace arrives.
-     */
-    let loudest = 0;
-    for (let index = 0; index < levels.length; index += 1) {
-      if (levels[index] > loudest) {
-        loudest = levels[index];
-      }
-    }
-    const reach = ((band.bottom - band.top) / 2) * clamp01(loudest);
+  const traces = scopeTraces(frame, state);
+  if (!traces) {
+    const { loudest, reach } = scopeHint(frame);
     const hint = new Path2D();
     hint.moveTo(plot.left, middle - reach);
     hint.lineTo(plot.right, middle - reach);
     hint.moveTo(plot.left, middle + reach);
     hint.lineTo(plot.right, middle + reach);
-    context.globalAlpha = band.opacity * 0.5;
-    context.lineWidth = 1.5;
-    context.strokeStyle = rampRgba(colours, 0.7, 1);
+    context.globalAlpha = band.opacity * SCOPE_HINT_ALPHA;
+    context.lineWidth = SCOPE_HINT_WIDTH;
+    context.strokeStyle = rampRgba(colours, SCOPE_HINT_RAMP, 1);
     context.stroke(hint);
     context.globalAlpha = 1;
     return loudest > 0.002;
   }
-
-  if (tuning.channels === 'split') {
-    paintBeam(frame, traceOf(frame, band, scope[1]), mate, 0.85);
-    paintBeam(frame, traceOf(frame, band, scope[0]), colours, 1);
-    paintChannelLegend(frame, frame.channelLabels);
-  } else {
-    /**
-     * Joined: the two channels summed, which is the signal a mono speaker
-     * plays and the one a clipping master clips. Halved, so a centred signal
-     * reaches the same height it does on its own rather than twice it.
-     */
-    const summed = state.sum;
-    const count = Math.min(scope[0].length, scope[1].length, summed.length);
-    for (let index = 0; index < count; index += 1) {
-      summed[index] = (scope[0][index] + scope[1][index]) * 0.5;
-    }
-    paintBeam(
-      frame,
-      traceOf(frame, band, summed.subarray(0, count)),
-      colours,
-      1,
-    );
-  }
+  traces.forEach((trace) => paintBeam(frame, trace));
   // The samples move whenever there is sound, so the loop runs while the
   // capture does; it settles with the capture, like every other view.
   return frame.playing;

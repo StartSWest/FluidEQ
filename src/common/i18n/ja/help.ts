@@ -528,8 +528,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.hears':
     'シーンが受け取るもの：レベル、ビート、低音、中音、高音。',
   'help.studio.signals': 'このプレビューだけを動かすテスト信号。',
-  'help.studio.size':
-    'グラフ、細い、ワイド、全画面の各パネルでシーンを試します。',
+  'help.studio.size': 'シーンを全画面で試します。',
   'help.studio.wave': 'リスナーが設定できる波形の高さと位置を試します。',
 
   'help.desktop.title': 'デスクトップ ビジュアライザー',

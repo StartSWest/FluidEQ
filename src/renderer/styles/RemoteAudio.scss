@@ -57,7 +57,7 @@ it under the terms of the GNU General Public License version 3 or later.
   flex-wrap: nowrap;
   margin: 12px 0 0;
   padding: 7px 10px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-s;
   list-style: none;
 
@@ -223,11 +223,13 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The chosen role holds the selection's step (`$selected-accent`), the one
+// every chosen row wears; its accent is the line along its top.
 .remote-audio__role-card.is-selected .remote-audio__role-choice {
-  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  background: $selected-accent;
 
   &:hover {
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
+    background: $selected-accent;
   }
 }
 
@@ -277,7 +279,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 38px;
   height: 38px;
   place-items: center;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-xs;
   // A step down from the card it stands on, the same relationship every
   // other tile in the app has with its card.

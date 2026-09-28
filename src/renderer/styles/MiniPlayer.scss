@@ -4,18 +4,100 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-// The player's stylesheet, in pieces.
+@use 'sass:meta';
+@use 'glass';
+
+// The two amps' stylesheets: the Stage's (`_ampStage.scss`) and the 2.0
+// amp's (`ampClassic/`), one window, one of them at a time (`MiniPlayer`).
 //
-// IN CASCADE ORDER, AND THE ORDER IS LOAD-BEARING. Sass writes each module's
-// rules out where it is first loaded, so the list below is the order the
-// rules reach the page in, and a rule that ties another on specificity wins
-// by standing later in it. Move a line here and a key can lose its lit face.
-// Each piece `@use`s the parts it borrows mixins from; a module loaded twice
-// is written out once.
-@use 'miniPlayerParts';
-@use 'miniPlayerKeys';
-@use 'miniPlayerSliders';
-@use 'miniPlayerEq';
-@use 'miniPlayerDecks';
-@use 'miniPlayerShell';
-@use 'miniPlayerTransport';
+// EACH ONE SCOPED TO ITS OWN AMP. The two were written with the same class
+// names for the same parts — a title strip, a row of equalizer keys, a queue
+// — and loaded together they painted each other: the 2.0 amp's deck face
+// under the Stage's glass, the Stage's pills on the 2.0 amp's keys. The
+// document's root says which amp is on screen (`data-amp`), and each sheet
+// applies under its own word alone. Inside a scope `:root` is read as a
+// descendant of the scope's root and matches nothing, so the rules written
+// for the page's root say `:scope` instead.
+//
+// Only what is the whole window's stands outside both.
+
+// The colours the amps' canvases read when they are sized, registered so a
+// canvas is handed a colour and not the text of a `color-mix()`. One
+// registration for the window: a name can only be registered once.
+@property --player-lcd-ghost {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --player-lcd-grid {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --player-lcd-zero {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --player-scope {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --player-curve-bands {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+@property --player-curve-smart {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: transparent;
+}
+
+// THE STAGE'S GLASS, which the full app's panes wear over the Backdrop too
+// (`_glass.scss`): the window's floor at the strength Transparency leaves it
+// (`--backdrop-veil` — the app's in the app, the amp's in the amp,
+// `backdropVeil.ts`). The dock and the song's chips at four fifths of it, the
+// sheet a fifth of the window stronger, because the sheet carries the most
+// words; at the amp's opening 55% that is the 44% and 64% the approved
+// design was drawn at (Ivan, 2026-09-27).
+:root {
+  --player-glass: color-mix(
+    in srgb,
+    var(--surface-base) calc(var(--backdrop-veil) * 0.8),
+    transparent
+  );
+  --player-glass-deep: color-mix(
+    in srgb,
+    var(--surface-base) min(100%, calc(var(--backdrop-veil) * 0.8 + 20%)),
+    transparent
+  );
+}
+
+// EVERY MENU OPENED IN THE AMP IS A PANE OF THE GLASS, in both amps (Ivan,
+// 2026-09-28: "menu need blur also … all menus there"): the frosted fill,
+// the blur behind it, the bevel and no edge — the treatment the app's menus
+// take over the Backdrop (`App.scss`, read by `menu-face` and by the menus
+// built without it in `Rainbow.scss`). The app's rule is keyed on its own
+// Backdrop being drawn, which it never is while the window is the amp, so
+// the amp's menus came out with no blur at all.
+:root[data-amp] {
+  --surface-menu-floor: #{glass.$glass-fill};
+  --menu-edge: transparent;
+  --menu-lift: #{glass.$glass-bevel};
+  --menu-glass: #{glass.$glass-blur};
+}
+
+@scope (:root[data-amp='stage']) {
+  @include meta.load-css('ampStage');
+}
+
+@scope (:root[data-amp='classic']) {
+  @include meta.load-css('ampClassic/index');
+}

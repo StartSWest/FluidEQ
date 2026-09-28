@@ -2,7 +2,6 @@
 import type en from '../en/about';
 
 const about: Record<keyof typeof en, string> = {
-  'about.eyebrow': 'О проекте',
   'about.title': 'О приложении',
   'about.mascot': 'Fluid, талисман FluidEQ',
   'about.description':

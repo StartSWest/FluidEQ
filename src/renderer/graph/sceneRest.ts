@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { SMOOTH_FRAME_MS } from 'common/smoothing';
+import { THIRTY_A_SECOND_MS } from 'common/smoothing';
 
 /**
  * A scene at rest: thirty frames a second once nothing has played for a
@@ -27,7 +27,7 @@ import { SMOOTH_FRAME_MS } from 'common/smoothing';
 export const SCENE_REST_AFTER_MS = 10000;
 
 /** The rate a resting scene is held to. */
-export const SCENE_REST_PACE_MS = SMOOTH_FRAME_MS;
+export const SCENE_REST_PACE_MS = THIRTY_A_SECOND_MS;
 
 /**
  * The waveform's peak below which a frame is silent: −50 dBFS, under any

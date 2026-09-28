@@ -31,8 +31,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * a canvas or a document.
  */
 
-import { GraphPalette, heatHue } from 'common/graphStyles';
-import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
+import { GraphPalette } from 'common/graphStyles';
 import { rainbowColourAt } from '../utils/rainbowPalette';
 import { ILiveCurveData } from './ChartController';
 import { heatColour } from './lookColours';
@@ -100,17 +99,13 @@ export const resolveTracePaint = (
   /**
    * Heat is a colour, not a ramp, so it is answered before the gradients.
    *
-   * A user-chosen ramp still wins: picking colours means picking colours,
-   * and the loudness then walks along the ramp they built instead of the
-   * cyan-to-red one below.
+   * The loudness walks along the look's ramp, or the window's when the look
+   * has none (`windowInk.ts`) — where it walked a hue wheel of its own.
    */
   if (palette === 'heat') {
-    return colours.length
-      ? heatColour(colours, level)
-      : `hsl(${heatHue(level)}, 92%, 60%)`;
+    return heatColour(colours, level);
   }
-  // One colour is a flat fill whatever the palette is called, and no colours at
-  // all means "the ones already on screen" — neither needs a gradient built.
+  // One colour is a flat fill whatever the palette is called.
   if (palette !== 'signal' && colours.length > 1) {
     const isLevel = palette === 'level';
     return {
@@ -132,21 +127,8 @@ export const resolveTracePaint = (
     // colour would silently discard a colour somebody chose.
     return first;
   }
-  if (palette === 'rainbow') {
-    // The app's full spectrum, deliberately not the EQ gradient — that one
-    // carries a stop per band and so covers whatever slice of the axis the
-    // user's bands happen to occupy.
-    return {
-      x1: plot.left,
-      x2: plot.right,
-      y1: 0,
-      y2: 0,
-      stops: BAND_SPECTRUM_STOPS.map((stop) => ({
-        offset: stop.offset,
-        colour: stop.color,
-      })),
-    };
-  }
+  // Every caller hands a look's colours or the window's, so only an empty
+  // list somebody built by hand lands here.
   return fallback;
 };
 
@@ -209,13 +191,13 @@ export const euphoriaOutlineColour = (hue: number): string =>
  *     asked for the border, in which case there has to be something for the hue
  *     to run along.
  */
-export const resolveFigureStroke = (
-  paint: TracePaint,
+export const resolveFigureStroke = <TPaint extends TracePaint>(
+  paint: TPaint,
   isFilled: boolean,
   hasBorder: boolean,
   isSelfColoured: boolean,
   euphoria: IEuphoriaPaint,
-): TracePaint | undefined => {
+): TPaint | string | undefined => {
   /**
    * Does a stroke exist at all? Asked FIRST, and separately from what colour
    * it is.

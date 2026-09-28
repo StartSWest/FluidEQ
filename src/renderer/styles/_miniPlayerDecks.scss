@@ -4,8 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-// The decks that stretch — the visualizer and the queue — and the player
-// folded to one line, in cascade order (see `MiniPlayer.scss`).
-@use 'miniPlayerVis';
+// The queue's page of the sheet, and the amp folded to one line, in cascade
+// order (see `MiniPlayer.scss`).
 @use 'miniPlayerQueue';
 @use 'miniPlayerFold';

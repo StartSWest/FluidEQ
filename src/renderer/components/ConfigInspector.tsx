@@ -43,6 +43,7 @@ import { useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import { LAYER_SWATCH } from '../styles/color';
+import '../styles/Button.scss';
 import '../styles/ConfigInspector.scss';
 
 /**
@@ -786,12 +787,13 @@ const ConfigInspector = () => {
           </h2>
           <p className="config-inspector__lede">{t('config.lede')}</p>
         </div>
-        {/* Icon and label, sized like the rest of the app's controls. A bare
+        {/* The app's own quiet button, as every page card's action is. A bare
             <button> inherited the global field styling and came out as a wide
-            pale slab that read as a text input somebody had disabled. */}
+            pale slab that read as a text input somebody had disabled; a copy
+            of the button written here came out 25px beside the others' 32. */}
         <button
           type="button"
-          className="config-inspector__reload"
+          className="button small subtle config-inspector__reload"
           onClick={load}
           disabled={state.status === 'loading'}
           title={t('config.reloadTitle')}

@@ -8,8 +8,8 @@ import {
   STILL_ENOUGH,
   advanceHold,
   placeLevel,
-  rampRgba,
   type IAnalysisFrame,
+  type IAnalysisReading,
   type IAnalysisState,
 } from './analysisFrame';
 import {
@@ -18,7 +18,7 @@ import {
   spectrumEnergy,
   spectrumLine,
 } from './spectrumPaint';
-import { asMate, paintLegend } from './channelInk';
+import { asMate } from './channelInk';
 
 /**
  * The Analyzer: the spectrum of what is playing, with a peak hold over it.
@@ -37,6 +37,10 @@ import { asMate, paintLegend } from './channelInk';
  * With Left & right chosen the body is drawn twice, the right channel behind
  * the left and dimmer, each keeping its own peak hold: two figures in one
  * picture, which is how a stereo analyser shows a mix that is not centred.
+ *
+ * Laid out here for both painters: this file's canvas drawing, and the
+ * engine's (`engineLooks/analyzerLook.ts`), which reads the same holds, the
+ * same figures and the same marks.
  */
 
 /** How long a peak hangs before it starts to fall. */
@@ -64,40 +68,52 @@ const BLOOM_REACH = 0.012;
  */
 const MARK_INK = '255, 255, 255';
 
-const paintHold = (
-  frame: IAnalysisFrame,
-  hold: Float64Array,
-  alpha: number,
-): void => {
-  const { context, xs, band } = frame;
-  const line = spectrumLine(frame, hold);
-  context.globalAlpha = alpha;
-  context.lineWidth = 1.25;
-  context.lineJoin = 'round';
-  context.strokeStyle = `rgba(${MARK_INK}, 0.9)`;
-  context.stroke(line);
-  context.globalAlpha = 1;
-  // The high-water marks themselves: where the reading is still at its hold,
-  // a bright pip. Drawn as one path so the whole row costs a single fill.
-  const pips = new Path2D();
-  let found = false;
-  for (let index = 0; index < hold.length; index += 1) {
-    if (hold[index] - frame.levels[index] < BLOOM_REACH && hold[index] > 0.02) {
-      const y = placeLevel(band, hold[index]);
-      // Started on the arc's own first point: a `moveTo` to the centre would
-      // leave a radius across every pip once the path is stroked anywhere.
-      pips.moveTo(xs[index] + 1.6, y);
-      pips.arc(xs[index], y, 1.6, 0, Math.PI * 2);
-      found = true;
-    }
-  }
-  if (found) {
-    context.globalAlpha = alpha * 0.8;
-    context.fillStyle = `rgba(${MARK_INK}, 1)`;
-    context.fill(pips);
-    context.globalAlpha = 1;
-  }
+/** The hold's hairline: its width, and how solid it is within its figure. */
+export const HOLD_LINE_WIDTH = 1.25;
+export const HOLD_LINE_ALPHA = 0.9;
+
+/** A high-water pip's radius, and how solid it is within its figure. */
+export const PIP_RADIUS = 1.6;
+export const PIP_ALPHA = 0.8;
+
+/**
+ * Whether the point's reading is still at its hold: a pip is drawn there.
+ * Against the joined reading on every figure, the behind channel's too.
+ */
+export const isPip = (hold: number, level: number): boolean =>
+  hold - level < BLOOM_REACH && hold > 0.02;
+
+/**
+ * How each figure is drawn: its body's share of the look's fill, its edge's
+ * alpha, how much thinner than the look's edge that is, and its hold's alpha.
+ */
+export interface IAnalyzerFigure {
+  fill: number;
+  edge: number;
+  thinner: number;
+  hold: number;
+}
+
+export const ANALYZER_FIGURES: Readonly<
+  Record<'joined' | 'front' | 'behind', IAnalyzerFigure>
+> = {
+  joined: { fill: 1, edge: 1, thinner: 0, hold: 0.5 },
+  front: { fill: 1, edge: 0.95, thinner: 0, hold: 0.55 },
+  behind: { fill: 0.55, edge: 0.55, thinner: 0.6, hold: 0.32 },
 };
+
+/** How wide a figure's edge is drawn. */
+export const figureEdgeWidth = (
+  reading: IAnalysisReading,
+  figure: IAnalyzerFigure,
+): number => Math.max(1, reading.edge.width - figure.thinner);
+
+/** How hard the joined figure's halo burns, 0 for none. */
+export const analyzerHalo = (
+  reading: IAnalysisReading,
+  levels: Float64Array,
+): number =>
+  reading.glow > 0 ? reading.glow * (0.35 + spectrumEnergy(levels) * 0.65) : 0;
 
 /**
  * One channel's peak hold, kept where the joined one is kept.
@@ -122,16 +138,26 @@ const splitHolds = (
   ];
 };
 
-const drawAnalyzerView = (
-  frame: IAnalysisFrame,
-  state: IAnalysisState,
-): boolean => {
-  const { context, tuning, levels, split, deltaMs, band } = frame;
-  const fillAlpha = tuning.fillOpacity;
+export interface IAnalyzerHolds {
+  /** The joined reading's hold, or the left channel's. */
+  front: Float64Array;
+  /** The right channel's, on a split. */
+  behind?: Float64Array;
+  /** The highest mark anywhere, for the frame loop. */
+  highest: number;
+}
 
+/** This frame's peak holds, advanced by the reading's time. */
+export const advanceAnalyzer = (
+  reading: IAnalysisReading,
+  state: IAnalysisState,
+): IAnalyzerHolds => {
+  const { levels, split, deltaMs } = reading;
   if (split) {
-    const size = levels.length;
-    const [leftHold, leftHang, rightHold, rightHang] = splitHolds(state, size);
+    const [leftHold, leftHang, rightHold, rightHang] = splitHolds(
+      state,
+      levels.length,
+    );
     const highest = Math.max(
       advanceHold(
         rightHold,
@@ -150,25 +176,8 @@ const drawAnalyzerView = (
         HOLD_FALL,
       ),
     );
-    // The right channel behind, in its own turned copy of the look's
-    // colours, so the two are told apart by hue as well as by depth — and
-    // named by the legend the caller paints over both.
-    const behind = asMate(frame);
-    context.globalAlpha = band.opacity * 0.72;
-    paintSpectrum(behind, split[1], {
-      fillAlpha: fillAlpha * 0.55,
-      edgeAlpha: 0.55,
-      edgeWidth: Math.max(1, frame.edge.width - 0.6),
-      textured: false,
-    });
-    paintHold(behind, rightHold, 0.32);
-    context.globalAlpha = band.opacity;
-    paintSpectrum(frame, split[0], { fillAlpha, edgeAlpha: 0.95 });
-    paintHold(frame, leftHold, 0.55);
-    context.globalAlpha = 1;
-    return highest > STILL_ENOUGH;
+    return { front: leftHold, behind: rightHold, highest };
   }
-
   const highest = advanceHold(
     state.hold,
     state.holdMs,
@@ -177,24 +186,93 @@ const drawAnalyzerView = (
     HOLD_HANG_MS,
     HOLD_FALL,
   );
-  context.globalAlpha = band.opacity;
-  if (frame.glow > 0) {
-    paintHalo(
-      frame,
-      spectrumLine(frame, levels),
-      frame.glow * (0.35 + spectrumEnergy(levels) * 0.65),
-    );
-  }
-  paintSpectrum(frame, levels, { fillAlpha, edgeAlpha: 1 });
-  paintHold(frame, state.hold, 0.5);
+  return { front: state.hold, highest };
+};
+
+const paintHold = (
+  frame: IAnalysisFrame,
+  hold: Float64Array,
+  alpha: number,
+): void => {
+  const { context, xs, band } = frame;
+  const line = spectrumLine(frame, hold);
+  context.globalAlpha = alpha;
+  context.lineWidth = HOLD_LINE_WIDTH;
+  context.lineJoin = 'round';
+  context.strokeStyle = `rgba(${MARK_INK}, ${HOLD_LINE_ALPHA})`;
+  context.stroke(line);
   context.globalAlpha = 1;
-  paintLegend(frame, [
-    { label: frame.legend.live, ink: rampRgba(frame.colours, 0.75, 1) },
-    { label: frame.legend.peak, ink: 'rgba(255, 255, 255, 0.95)' },
-  ]);
+  // The high-water marks themselves: where the reading is still at its hold,
+  // a bright pip. Drawn as one path so the whole row costs a single fill.
+  const pips = new Path2D();
+  let found = false;
+  for (let index = 0; index < hold.length; index += 1) {
+    if (isPip(hold[index], frame.levels[index])) {
+      const y = placeLevel(band, hold[index]);
+      // Started on the arc's own first point: a `moveTo` to the centre would
+      // leave a radius across every pip once the path is stroked anywhere.
+      pips.moveTo(xs[index] + PIP_RADIUS, y);
+      pips.arc(xs[index], y, PIP_RADIUS, 0, Math.PI * 2);
+      found = true;
+    }
+  }
+  if (found) {
+    context.globalAlpha = alpha * PIP_ALPHA;
+    context.fillStyle = `rgba(${MARK_INK}, 1)`;
+    context.fill(pips);
+    context.globalAlpha = 1;
+  }
+};
+
+/** One figure: its body and edge, then its hold. */
+const paintFigure = (
+  frame: IAnalysisFrame,
+  levels: Float64Array,
+  hold: Float64Array,
+  figure: IAnalyzerFigure,
+  textured: boolean,
+): void => {
+  paintSpectrum(frame, levels, {
+    fillAlpha: frame.tuning.fillOpacity * figure.fill,
+    edgeAlpha: figure.edge,
+    edgeWidth: figureEdgeWidth(frame, figure),
+    textured,
+  });
+  paintHold(frame, hold, figure.hold);
+};
+
+const drawAnalyzerView = (
+  frame: IAnalysisFrame,
+  state: IAnalysisState,
+): boolean => {
+  const { context, levels, split } = frame;
+  const holds = advanceAnalyzer(frame, state);
+
+  if (split && holds.behind) {
+    // The right channel behind, in its own turned copy of the look's
+    // colours, so the two are told apart by hue as well as by depth — and
+    // named by the key the door prints over both.
+    paintFigure(
+      asMate(frame),
+      split[1],
+      holds.behind,
+      ANALYZER_FIGURES.behind,
+      false,
+    );
+    paintFigure(frame, split[0], holds.front, ANALYZER_FIGURES.front, true);
+    context.globalAlpha = 1;
+    return holds.highest > STILL_ENOUGH;
+  }
+
+  const halo = analyzerHalo(frame, levels);
+  if (halo > 0) {
+    paintHalo(frame, spectrumLine(frame, levels), halo);
+  }
+  paintFigure(frame, levels, holds.front, ANALYZER_FIGURES.joined, true);
+  context.globalAlpha = 1;
   // The hold is still sliding long after the body has settled, so the loop
   // keeps running while any mark is above the floor it would rest on.
-  return highest > STILL_ENOUGH;
+  return holds.highest > STILL_ENOUGH;
 };
 
 export default drawAnalyzerView;

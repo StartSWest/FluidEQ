@@ -15,11 +15,17 @@ it under the terms of the GNU General Public License version 3 or later.
 // the empty state every place and the forum share. The rail, the welcome and
 // the people (avatars, names, roles) live in CommunityRail.scss.
 
+// Every Plus place stands in the app's own card (`section-card`), beside the
+// rail's card and like every other page's content (Ivan, 2026-09-27: "put a
+// wrapper card for all plus"). It stood on the bare floor between the rail
+// and the sound panel, the one page whose content had no card.
 .community__main {
+  @include section-card;
   display: flex;
   flex-direction: column;
   min-height: 0;
   min-width: 0;
+  padding: 10px 12px 12px;
 }
 
 // Each place draws its own head, so this plays when the tab opens and again
@@ -31,7 +37,11 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 10px;
   padding: 2px 4px 10px;
-  border-bottom: 1px solid $border-subtle;
+  // The quiet rule the rail parts its admin place with, on every place's head
+  // alike (Ivan, 2026-09-27, of the Studio's: "less visible ... like the
+  // divider we did for the side pane"). The rows' hairline, solved to read
+  // against a card, drew the head as a bar across the whole page.
+  border-bottom: 1px solid $menu-rule;
 }
 
 .community__head-mark {

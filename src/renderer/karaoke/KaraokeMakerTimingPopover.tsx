@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useTranslation } from '../utils/I18nContext';
+import DialogClose from '../components/DialogClose';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 
 /** How far one press of the nudge buttons moves the timing. */
@@ -77,15 +78,12 @@ const KaraokeMakerTimingPopover = ({
         <KaraokeMakerToolIcon name="timing" />
         <span>{t('karaoke.maker.lyricsTiming')}</span>
         <output>{Math.round(shiftMs)} ms</output>
-        <button
-          type="button"
-          className="karaoke-maker__popover-close"
-          onClick={onClose}
-          aria-label={t('karaoke.maker.close')}
-        >
-          ×
-        </button>
       </div>
+      <DialogClose
+        className="karaoke-maker__timing-close"
+        label={t('support.close')}
+        onClose={onClose}
+      />
       <div className="karaoke-maker__timing-scope" role="group">
         <button
           type="button"

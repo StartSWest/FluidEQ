@@ -21,7 +21,9 @@ import { APP_UPDATE_EVENT, IAppUpdateStatus } from 'common/constants';
 import { LATEST_RELEASE_URL } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
-import '../styles/OverlayCard.scss';
+import DialogFrame from './DialogFrame';
+import '../styles/Button.scss';
+import '../styles/MandatoryUpdate.scss';
 
 /**
  * The notice for a release that said it must be taken.
@@ -246,7 +248,7 @@ const MandatoryUpdateModal = () => {
 
   return (
     <div
-      className="overlay-card__backdrop"
+      className="mandatory-update-backdrop"
       role="presentation"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
@@ -254,103 +256,109 @@ const MandatoryUpdateModal = () => {
         }
       }}
     >
-      <div
+      <DialogFrame
         ref={dialogRef}
-        className="overlay-card"
+        className="mandatory-update"
         // Focusable but not in the tab order, so the dialog itself is what
         // announces on open rather than whichever button happens to be first —
         // which, on the close button, would put Enter on "later".
         tabIndex={-1}
         role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="mandatory-update-title"
-        aria-describedby="mandatory-update-body"
+        aria-describedby="mandatory-update-summary mandatory-update-body"
+        icon={<MenuIcon name="download" />}
+        title={t('update.mandatory.title')}
+        titleId="mandatory-update-title"
+        description={
+          <span id="mandatory-update-summary">
+            {t('update.mandatory.body')}
+          </span>
+        }
+        onClose={handleClose}
+        closeLabel={t('app.dismiss')}
+        footer={
+          <div className="dialog-frame__actions">
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={handleClose}
+            >
+              {t('update.mandatory.later')}
+            </button>
+            <button
+              type="button"
+              className="button small"
+              disabled={!isReady || isInstalling}
+              onClick={handleInstall}
+            >
+              {isInstalling
+                ? t('update.mandatory.installing')
+                : t('update.mandatory.install')}
+            </button>
+          </div>
+        }
       >
-        <div className="overlay-card__header">
-          <MenuIcon name="restart" className="overlay-card__mark" />
-          <h2 id="mandatory-update-title">{t('update.mandatory.title')}</h2>
-          <button
-            type="button"
-            className="overlay-card__close"
-            aria-label={t('app.dismiss')}
-            onClick={handleClose}
-          >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3l6 6M9 3l-6 6" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="overlay-card__body" id="mandatory-update-body">
-          <p>{t('update.mandatory.body')}</p>
+        <div id="mandatory-update-body" className="mandatory-update__body">
           {/* The line that keeps this from reading as an ordinary update
               notice. It is the whole difference between a dialog somebody
               closes and one they close and then act on. */}
-          <p className="overlay-card__insist">
+          <p className="mandatory-update__insist">
             {t('update.mandatory.notOptional')}
           </p>
 
-          {progress && <p>{progress}</p>}
-          {percent !== undefined && (
-            <div
-              className="overlay-card__progress"
-              role="progressbar"
-              // Named by the dialog's own heading rather than by a label of
-              // its own: the percentage is already read out of the line above
-              // it, and a second string saying "update progress" would only be
-              // one more thing to translate.
-              aria-labelledby="mandatory-update-title"
-              aria-valuenow={percent}
-              aria-valuemin={0}
-              aria-valuemax={100}
-            >
-              <div
-                className="overlay-card__progress-fill"
-                style={{ width: `${percent}%` }}
-              />
+          {(progress || percent !== undefined) && (
+            <div className="mandatory-update__progress">
+              {progress && <p>{progress}</p>}
+              {percent !== undefined && (
+                <div
+                  className="mandatory-update__bar"
+                  role="progressbar"
+                  // Named by the dialog's own heading rather than by a label
+                  // of its own: the percentage is already read out of the
+                  // line above it, and a second string saying "update
+                  // progress" would only be one more thing to translate.
+                  aria-labelledby="mandatory-update-title"
+                  aria-valuenow={percent}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div
+                    className="mandatory-update__fill"
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+              )}
             </div>
           )}
 
           {hasFailed && (
-            <>
-              <p className="overlay-card__failure">
-                {failure === 'install'
-                  ? t('update.mandatory.failedInstall')
-                  : t('update.mandatory.failedDownload')}
+            <section className="dialog-frame__section mandatory-update__failure">
+              {/* What went wrong first, marked, so a reader who has already
+                  read the explanation above finds the new part. */}
+              <p className="mandatory-update__failed">
+                <MenuIcon name="alert" className="mandatory-update__alert" />
+                <span>
+                  {failure === 'install'
+                    ? t('update.mandatory.failedInstall')
+                    : t('update.mandatory.failedDownload')}
+                </span>
               </p>
               <p>{t('update.mandatory.manual')}</p>
-              <p>
-                <a href={LATEST_RELEASE_URL} target="_blank" rel="noreferrer">
-                  {t('update.mandatory.releasePage')}
-                </a>
-              </p>
+              <a
+                className="mandatory-update__link"
+                href={LATEST_RELEASE_URL}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <span>{t('update.mandatory.releasePage')}</span>
+                <MenuIcon name="external" className="mandatory-update__out" />
+              </a>
               {/* The address in full as well as the link, so somebody whose
                   browser will not open from here can still type it. */}
-              <p>{LATEST_RELEASE_URL}</p>
-            </>
+              <p className="mandatory-update__address">{LATEST_RELEASE_URL}</p>
+            </section>
           )}
         </div>
-
-        <div className="overlay-card__footer">
-          <button
-            type="button"
-            className="overlay-card__button overlay-card__button--quiet"
-            onClick={handleClose}
-          >
-            {t('update.mandatory.later')}
-          </button>
-          <button
-            type="button"
-            className="overlay-card__button"
-            disabled={!isReady || isInstalling}
-            onClick={handleInstall}
-          >
-            {isInstalling
-              ? t('update.mandatory.installing')
-              : t('update.mandatory.install')}
-          </button>
-        </div>
-      </div>
+      </DialogFrame>
     </div>
   );
 };

@@ -7,9 +7,6 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { useId, type CSSProperties } from 'react';
-import { isMemberLookId } from 'common/memberScenes';
-import { isPremiumLookId } from 'common/scenePacks';
-import { useSelectedLookId } from '../utils/graphStyle';
 import {
   BACKDROP_VEIL_MAX,
   BACKDROP_VEIL_MIN,
@@ -22,7 +19,12 @@ import {
   snapFraction,
   snapPercent,
 } from '../utils/percentSnaps';
-import { useSceneTintMode } from '../utils/sceneTintStore';
+import useIsBackdrop from '../utils/useIsBackdrop';
+import useLiveSlider from '../utils/useLiveSlider';
+
+/** A transparency set as the veil it leaves. */
+const setTransparency = (transparency: number) =>
+  setBackdropVeil(100 - transparency);
 
 /**
  * How much of the Backdrop's scene shows through the panes, beside
@@ -36,7 +38,8 @@ import { useSceneTintMode } from '../utils/sceneTintStore';
  *
  * Only the Backdrop puts a scene behind the panes, so under any other mode
  * it stands dimmed and does not move: a slider that moved and changed
- * nothing would read as broken.
+ * nothing would read as broken. In the amp it moves the Stage's glass, which
+ * is the amp's own Transparency (`backdropVeil.ts`).
  */
 /** The slider's ends as transparencies, the veil's range turned round. */
 const MIN_SHOWN = 100 - BACKDROP_VEIL_MAX;
@@ -45,16 +48,15 @@ const MAX_SHOWN = 100 - BACKDROP_VEIL_MIN;
 const BackdropVeilSlider = () => {
   const { t } = useTranslation();
   const veil = useBackdropVeil();
-  // Only while a Backdrop is drawn: the mode chosen AND a Plus visualizer to
-  // draw in it. The mode alone is remembered across looks, so with a
-  // standard visualizer on it left this slider live over a window with
-  // nothing behind it to see through to (Ivan, 2026-09-26: "the
-  // transparency slider is enabled which is not right").
-  const lookId = useSelectedLookId();
-  const isBackdrop =
-    useSceneTintMode() === 'cover' &&
-    (isPremiumLookId(lookId) || isMemberLookId(lookId));
-  const transparency = 100 - veil;
+  // Only while the Backdrop is drawn — in the amp too, which is the glass
+  // Stage then and the solid 2.0 amp otherwise (`MiniPlayer`).
+  const isBackdrop = useIsBackdrop();
+  // The thumb under the pointer, the window's restyle a frame behind it
+  // (`useLiveSlider`), as Brightness beside it.
+  const { shown: transparency, set } = useLiveSlider(
+    100 - veil,
+    setTransparency,
+  );
   const id = useId();
   return (
     <label
@@ -91,9 +93,7 @@ const BackdropVeilSlider = () => {
           step={1}
           disabled={!isBackdrop}
           value={transparency}
-          onChange={(event) =>
-            setBackdropVeil(100 - snapPercent(Number(event.target.value)))
-          }
+          onChange={(event) => set(snapPercent(Number(event.target.value)))}
         />
       </span>
       <span className="graph-view-menu__value" aria-hidden>

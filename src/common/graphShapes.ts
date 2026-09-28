@@ -28,6 +28,7 @@ import {
 } from './graphStyles';
 import { WaveformStyle, createWaveformShape } from './waveformStyles';
 import { createGraphScene, isGraphScene } from './graphScenes';
+import type { PixelRect } from './graphInvaders';
 import toColumns from './graphColumns';
 import { createGraphStems } from './graphStems';
 import createGraphTerrace from './graphTerrace';
@@ -295,6 +296,67 @@ export interface IGraphPiece {
 export const LED_CELL_BUDGET = 48 * MAX_GRAPH_COLUMNS;
 
 /**
+ * A repeatable number per piece.
+ *
+ * The roofs must not change between frames, so they are drawn from the
+ * piece's index rather than from anything measured off the window.
+ */
+const pieceNoise = (seed: number) => {
+  const v = Math.sin(seed * 12.9898) * 43758.5453;
+  return v - Math.floor(v);
+};
+
+/**
+ * A TOWER, not a bar with holes in it.
+ *
+ * The windows used to be punched out of the block, which made them the
+ * colour of whatever was behind the graph and the building a stencil.
+ * The silhouette is solid now and the lit windows are painted onto it by
+ * the city scene, which is what a city at night looks like.
+ *
+ * Three roofs, chosen by the piece's own index so a building keeps its
+ * shape from frame to frame: a flat top, a setback with a narrower
+ * storey above it, and a mast. Only the tall ones get a mast, and only
+ * the tall ones get a beacon on it.
+ *
+ * As blocks rather than path data, because the engine's skyline
+ * (`engineLooks/designed/skylineLook.ts`) draws the same towers.
+ */
+const skylineTower = (
+  x: number,
+  y: number,
+  baseline: number,
+  width: number,
+  ceiling: number,
+  index: number,
+): PixelRect[] => {
+  const height = Math.max(0, baseline - y);
+  if (height < 1) {
+    return [];
+  }
+  const kind = pieceNoise(index * 41 + 7);
+  const half = width / 2;
+  if (kind < 0.34) {
+    // A setback: the top storey stands in from the walls below it.
+    const setback = Math.min(height * 0.34, width * 0.85);
+    const inset = width * 0.17;
+    return [
+      [x - half, y + setback, width, height - setback],
+      [x - half + inset, y, width - inset * 2, setback],
+    ];
+  }
+  const blocks: PixelRect[] = [[x - half, y, width, height]];
+  if (kind > 0.72 && height > (baseline - ceiling) * 0.35) {
+    // A mast, and a housing at its foot so it does not read as a hair.
+    const mast = Math.max(4, width * 0.55);
+    const stem = Math.max(1, width * 0.06);
+    blocks.push([x - width * 0.16, y - mast * 0.28, width * 0.32, mast * 0.28]);
+    blocks.push([x - stem / 2, y - mast, stem, mast]);
+  }
+  return blocks;
+};
+
+/**
  * How each form draws ONE of its pieces.
  *
  * The single-path cases below build their figure by calling these in a loop,
@@ -364,56 +426,10 @@ const PIECE_BUILDERS: Partial<
     }
     return d;
   },
-  /**
-   * A TOWER, not a bar with holes in it.
-   *
-   * The windows used to be punched out of the block, which made them the
-   * colour of whatever was behind the graph and the building a stencil.
-   * The silhouette is solid now and the lit windows are painted onto it by
-   * the city scene, which is what a city at night looks like.
-   *
-   * Three roofs, chosen by the piece's own index so a building keeps its
-   * shape from frame to frame: a flat top, a setback with a narrower
-   * storey above it, and a mast. Only the tall ones get a mast, and only
-   * the tall ones get a beacon on it.
-   */
-  skyline: (x, y, baseline, width, ceiling, index) => {
-    const height = Math.max(0, baseline - y);
-    if (height < 1) {
-      return '';
-    }
-    const kind = pieceNoise(index * 41 + 7);
-    const half = width / 2;
-    if (kind < 0.34) {
-      // A setback: the top storey stands in from the walls below it.
-      const setback = Math.min(height * 0.34, width * 0.85);
-      const inset = width * 0.17;
-      return (
-        rect(x - half, y + setback, width, height - setback) +
-        rect(x - half + inset, y, width - inset * 2, setback)
-      );
-    }
-    let d = rect(x - half, y, width, height);
-    if (kind > 0.72 && height > (baseline - ceiling) * 0.35) {
-      // A mast, and a housing at its foot so it does not read as a hair.
-      const mast = Math.max(4, width * 0.55);
-      const stem = Math.max(1, width * 0.06);
-      d += rect(x - width * 0.16, y - mast * 0.28, width * 0.32, mast * 0.28);
-      d += rect(x - stem / 2, y - mast, stem, mast);
-    }
-    return d;
-  },
-};
-
-/**
- * A repeatable number per piece.
- *
- * The roofs must not change between frames, so they are drawn from the
- * piece's index rather than from anything measured off the window.
- */
-const pieceNoise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
+  skyline: (x, y, baseline, width, ceiling, index) =>
+    skylineTower(x, y, baseline, width, ceiling, index)
+      .map((block) => rect(...block))
+      .join(''),
 };
 
 /** The narrowest each of them may be drawn, whatever the density. */
@@ -423,6 +439,52 @@ const PIECE_WIDTH_FLOORS: Partial<Record<GraphStyle, number>> = {
 
 export const hasGraphPieces = (style: GraphStyle): boolean =>
   Boolean(PIECE_BUILDERS[style]);
+
+/** Where a form's pieces stand, and how wide each of them is. */
+const pieceLayout = (
+  points: readonly Projected[],
+  style: GraphStyle,
+  columns: number | undefined,
+  gap: number,
+) => {
+  const figure = toColumns(
+    points,
+    columns === undefined ? getColumnCount(style) : clampGraphColumns(columns),
+  );
+  const span = figure[figure.length - 1][0] - figure[0][0];
+  const step = Math.max(1, span / Math.max(1, figure.length - 1));
+  const width = Math.max(
+    PIECE_WIDTH_FLOORS[style] ?? 1,
+    step * (1 - Math.max(0, Math.min(0.85, gap))),
+  );
+  return { figure, width };
+};
+
+/**
+ * The skyline's towers, block by block, laid out exactly as its pieces are:
+ * each column's top and the blocks standing there. What the engine's skyline
+ * draws (`engineLooks/designed/skylineLook.ts`).
+ */
+export const createSkylineTowers = (
+  points: readonly Projected[],
+  baseline: number,
+  columns?: number,
+  gap = 0,
+  ceiling = 0,
+) => {
+  if (points.length < 2) {
+    return { width: 0, towers: [] };
+  }
+  const { figure, width } = pieceLayout(points, 'skyline', columns, gap);
+  return {
+    width,
+    towers: figure.map(([x, y], index) => ({
+      x,
+      y,
+      blocks: skylineTower(x, y, baseline, width, ceiling, index),
+    })),
+  };
+};
 
 /**
  * The pieces, laid out exactly as the single path lays them out.
@@ -442,22 +504,44 @@ export const createGraphPieces = (
   if (!build || points.length < 2) {
     return [];
   }
-  const figure = toColumns(
-    points,
-    columns === undefined ? getColumnCount(style) : clampGraphColumns(columns),
-  );
-  const span = figure[figure.length - 1][0] - figure[0][0];
-  const step = Math.max(1, span / Math.max(1, figure.length - 1));
-  const width = Math.max(
-    PIECE_WIDTH_FLOORS[style] ?? 1,
-    step * (1 - Math.max(0, Math.min(0.85, gap))),
-  );
+  const { figure, width } = pieceLayout(points, style, columns, gap);
   const depth = Math.max(1, baseline - ceiling);
   return figure.map(([x, y], index) => ({
     d: build(x, y, baseline, width, ceiling, index, figure.length),
     across: figure.length > 1 ? index / (figure.length - 1) : 0,
     energy: Math.max(0, Math.min(1, (baseline - y) / depth)),
   }));
+};
+
+/** One of the slope's arrows: where it stands and which way it points. */
+export interface ISlopeArrow {
+  x: number;
+  y: number;
+  ux: number;
+  uy: number;
+}
+
+/**
+ * The slope's arrows, one on each point of `figure`: a tick `length` long
+ * lying along the local gradient, with a head `wing` deep at its tip whose
+ * barbs stand `spread` of that out to each side. What the path below and
+ * the engine's slope (`engineLooks/designed/slopeLook.ts`) both draw.
+ */
+export const slopeArrows = (figure: readonly Projected[], gap: number) => {
+  const span = figure[figure.length - 1][0] - figure[0][0];
+  const step = Math.max(1, span / (figure.length - 1));
+  const length = Math.max(6, step * (1 - Math.max(0, Math.min(0.85, gap))));
+  const arrows: ISlopeArrow[] = figure.map(([x, y], index) => {
+    // A wider neighbourhood steadies each direction through narrow FFT
+    // spikes, while its centre still reports the actual band level.
+    const before = figure[Math.max(0, index - 2)];
+    const after = figure[Math.min(figure.length - 1, index + 2)];
+    const runX = after[0] - before[0] || 1;
+    const runY = after[1] - before[1];
+    const norm = Math.hypot(runX, runY) || 1;
+    return { x, y, ux: runX / norm, uy: runY / norm };
+  });
+  return { length, wing: Math.min(3.5, length * 0.2), spread: 0.65, arrows };
 };
 
 export const createGraphShape = (
@@ -994,8 +1078,11 @@ export const createGraphShape = (
       // Built from the same per-piece geometry the renderer asks for when
       // it has a colour to give each one — see `createGraphPieces`. One
       // layout, so a border can never be drawn round pieces that are not
-      // the pieces underneath it.
-      return createGraphPieces(points, style, baseline, columns, gap)
+      // the pieces underneath it. With the plot's ceiling, as the pieces are
+      // asked for and as the city tests a mast for its beacon: without it a
+      // tower measured against the whole canvas grew no mast where the city
+      // lit a beacon over its flat roof.
+      return createGraphPieces(points, style, baseline, columns, gap, ceiling)
         .map((piece) => piece.d)
         .join('');
 
@@ -1116,28 +1203,18 @@ export const createGraphShape = (
     // even, raked steeply through a crossover, and it makes a slope you would
     // never notice on a curve jump straight out.
     case 'slope': {
-      const length = Math.max(6, columnWidth(6));
+      const { length, wing, spread, arrows } = slopeArrows(figure, gap);
       let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        // A wider neighbourhood steadies each direction through narrow FFT
-        // spikes, while its centre still reports the actual band level.
-        const before = figure[Math.max(0, index - 2)];
-        const after = figure[Math.min(figure.length - 1, index + 2)];
-        const runX = after[0] - before[0] || 1;
-        const runY = after[1] - before[1];
-        const norm = Math.hypot(runX, runY) || 1;
-        const halfX = (runX / norm) * (length / 2);
-        const halfY = (runY / norm) * (length / 2);
-        const [x, y] = figure[index];
+      for (let index = 0; index < arrows.length; index += 1) {
+        const { x, y, ux, uy } = arrows[index];
+        const halfX = ux * (length / 2);
+        const halfY = uy * (length / 2);
         path += `M ${(x - halfX).toFixed(1)},${(y - halfY).toFixed(1)} L ${(
           x + halfX
         ).toFixed(1)},${(y + halfY).toFixed(1)} `;
-        const wing = Math.min(3.5, length * 0.2);
         const tipX = x + halfX;
         const tipY = y + halfY;
-        const ux = runX / norm;
-        const uy = runY / norm;
-        path += `M ${(tipX - ux * wing - uy * wing * 0.65).toFixed(1)},${(tipY - uy * wing + ux * wing * 0.65).toFixed(1)} L ${tipX.toFixed(1)},${tipY.toFixed(1)} L ${(tipX - ux * wing + uy * wing * 0.65).toFixed(1)},${(tipY - uy * wing - ux * wing * 0.65).toFixed(1)} `;
+        path += `M ${(tipX - ux * wing - uy * wing * spread).toFixed(1)},${(tipY - uy * wing + ux * wing * spread).toFixed(1)} L ${tipX.toFixed(1)},${tipY.toFixed(1)} L ${(tipX - ux * wing + uy * wing * spread).toFixed(1)},${(tipY - uy * wing - ux * wing * spread).toFixed(1)} `;
       }
       return path.trim();
     }

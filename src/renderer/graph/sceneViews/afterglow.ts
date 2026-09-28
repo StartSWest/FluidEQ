@@ -13,6 +13,7 @@ import {
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneSpan,
+  type ISceneStand,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -47,13 +48,17 @@ import {
  * so it is the same length at any frame rate.
  */
 
-/** A bar never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 4;
+/**
+ * A bar never on a pitch smaller than this, in CSS pixels. Exported with the
+ * ghosts' count and edge and the functions below for the look's GPU painting
+ * (`engineLooks/afterglowLook.ts`).
+ */
+export const MIN_PITCH = 4;
 /** Ghosts kept, and how often one is left behind, in milliseconds. */
-const GHOSTS = 14;
+export const GHOSTS = 14;
 const EVERY_MS = 42;
 /** The height of a ghost's lit edge, in CSS pixels. */
-const EDGE = 1.5;
+export const EDGE = 1.5;
 
 export interface IAfterglowState {
   row: IPieceRow;
@@ -72,6 +77,65 @@ export const createAfterglowState = (): IAfterglowState => ({
   since: 0,
 });
 
+/** Where one copy of the row stands: on its band's floor, near its height. */
+export const afterglowStand = (band: IAnalysisBand): ISceneStand => ({
+  floor: band.flipped ? band.top : band.bottom,
+  up: band.flipped ? 1 : -1,
+  reach: (band.bottom - band.top) * 0.94,
+});
+
+/** The trail as a look keeps it: the row as it was, newest first. */
+export interface IAfterglowTrail {
+  ghosts: Float64Array[];
+  since: number;
+}
+
+/** A copy of the row left behind every `EVERY_MS` of the frames' own time. */
+export const leaveGhost = (
+  trail: IAfterglowTrail,
+  levels: Float64Array,
+  count: number,
+  deltaMs: number,
+): void => {
+  trail.since += deltaMs;
+  if (trail.since < EVERY_MS && trail.ghosts.length > 0) {
+    return;
+  }
+  trail.since = 0;
+  const recycled =
+    trail.ghosts.length >= GHOSTS ? trail.ghosts.pop() : undefined;
+  const copy =
+    recycled && recycled.length === count ? recycled : new Float64Array(count);
+  copy.set(levels.subarray(0, count));
+  trail.ghosts.unshift(copy);
+};
+
+/** Whether the oldest ghost still hangs over a bar at rest: still fading. */
+export const isTrailing = (
+  trail: IAfterglowTrail,
+  levels: Float64Array,
+  count: number,
+): boolean => {
+  const oldest = trail.ghosts[trail.ghosts.length - 1];
+  if (!oldest || oldest.length !== count) {
+    return false;
+  }
+  for (let piece = 0; piece < count; piece += 1) {
+    if (oldest[piece] > levels[piece] + 0.01) {
+      return true;
+    }
+  }
+  return false;
+};
+
+/** A ghost's haze, before its age and Opacity: brighter on the beat and Glow. */
+export const ghostHaze = (pulse: number, glow: number): number =>
+  0.12 + pulse * 0.12 + glow * 0.08;
+
+/** The row's bloom for a frame. */
+export const afterglowBloom = (pulse: number, glow: number, opacity: number) =>
+  (0.3 + pulse * 0.35 + glow * 0.5) * opacity;
+
 const drawCopy = (
   frame: ISceneFrame,
   band: IAnalysisBand,
@@ -81,9 +145,7 @@ const drawCopy = (
 ): void => {
   const { context, plot, colours, music, look } = frame;
   const { row } = state;
-  const up = band.flipped ? 1 : -1;
-  const floor = band.flipped ? band.top : band.bottom;
-  const reach = (band.bottom - band.top) * 0.94;
+  const { floor, up, reach } = afterglowStand(band);
   const span: ISceneSpan = {
     left: plot.left,
     right: plot.right,
@@ -141,7 +203,7 @@ const drawCopy = (
           context,
           frame,
           span,
-          (0.12 + music.pulse * 0.12 + frame.glow * 0.08) * fade * look.opacity,
+          ghostHaze(music.pulse, frame.glow) * fade * look.opacity,
           0.15,
         ),
       );
@@ -220,19 +282,7 @@ export const drawAfterglow = (
 ): ISceneDrawn => {
   const row = layPieces(frame, state.row, MIN_PITCH);
   const falling = holdPeaks(state.peaks, row.levels, row.count, frame.deltaMs);
-  // The trail: a copy of the row every EVERY_MS of the frames' own time.
-  state.since += frame.deltaMs;
-  if (state.since >= EVERY_MS || state.ghosts.length === 0) {
-    state.since = 0;
-    const recycled =
-      state.ghosts.length >= GHOSTS ? state.ghosts.pop() : undefined;
-    const copy =
-      recycled && recycled.length === row.count
-        ? recycled
-        : new Float64Array(row.count);
-    copy.set(row.levels);
-    state.ghosts.unshift(copy);
-  }
+  leaveGhost(state, row.levels, row.count, frame.deltaMs);
   const bloom = beginBloom(frame, state.bloom);
   const body = frame.look.textured ? new Path2D() : undefined;
   frame.bands.forEach((band) => drawCopy(frame, band, state, bloom, body));
@@ -240,16 +290,10 @@ export const drawAfterglow = (
     endBloom(
       frame,
       state.bloom,
-      (0.3 + frame.music.pulse * 0.35 + frame.glow * 0.5) * frame.look.opacity,
+      afterglowBloom(frame.music.pulse, frame.glow, frame.look.opacity),
     );
   }
   // A trail still hanging over a bar at rest is still fading.
-  const oldest = state.ghosts[state.ghosts.length - 1];
-  let trailing = false;
-  if (oldest && oldest.length === row.count) {
-    for (let piece = 0; piece < row.count && !trailing; piece += 1) {
-      trailing = oldest[piece] > row.levels[piece] + 0.01;
-    }
-  }
+  const trailing = isTrailing(state, row.levels, row.count);
   return { moving: trailing || (falling && frame.look.accents), body };
 };

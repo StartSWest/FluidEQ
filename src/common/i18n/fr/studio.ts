@@ -445,18 +445,17 @@ const studio = {
   'studio.framing.use': 'Utiliser cette photo',
   'studio.framing.saving': 'Enregistrement…',
 
-  'studio.size.title': 'Taille',
-  'studio.size.graph': 'Graphique',
-  'studio.size.narrow': 'Étroit',
-  'studio.size.wide': 'Large',
   'studio.size.full': 'Plein écran',
   'studio.size.exit': 'Quitter le plein écran',
   'studio.wave.title': 'Onde sur le graphique',
   'studio.wave.hint':
     'Enregistré dans la scène et publié avec elle : elle s’ouvre comme vous l’avez laissée. Qui l’utilise peut les changer dans Affichage, sur le graphique, et revenir à la vôtre. Essayez les extrêmes : une onde basse, ou remontée jusqu’au milieu.',
   'studio.tint.label': 'FluidEQ avec cette scène',
+  'studio.tint.theme': 'Thème',
+  'studio.brightness.hint':
+    'La Luminosité de toute l’application, le même curseur que dans Couleurs de la fenêtre. Avec elle, chaque scène passe de la nuit à 0 au plein jour à 100 : essayez la vôtre aux deux extrêmes avant de la publier.',
   'studio.tint.hint':
-    'Pendant que vous travaillez ici, toute l’application peut prendre les couleurs de la scène, ou briller doucement autour d’elle avec la musique, pour la voir et la sentir en thème.',
+    'Ici seulement, pendant que vous travaillez : les Couleurs de la fenêtre du graphique restent comme vous les avez réglées. Thème laisse la fenêtre comme l’application l’a réglée ; les autres lui donnent les couleurs de cette scène, ou brillent doucement autour d’elle avec la musique, pour que vous la voyiez et la sentiez comme chaque auditeur.',
   'studio.grid.label': 'Afficher la grille du graphique',
   'studio.grid.hint':
     'Ses lignes de fréquence et de niveau sur la scène, avec la place qu’elles prennent sur le graphique, pour mesurer où tombent l’onde et chaque partie de la scène.',
@@ -515,6 +514,8 @@ const studio = {
     'Un contrôle de params doit avoir un id en a-z, 0-9 et _, un nom anglais et un min inférieur à son max.',
   'studio.problem.too-many-params':
     'Une scène peut avoir au plus 8 contrôles dans params.',
+  'studio.problem.no-daylight':
+    'Chaque scène a besoin du contrôle Daylight, { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } dans params, et dessine la nuit à 0 et le jour à 100.',
   'studio.problem.bad-ambient':
     'Des éléments ou contrôles ambient de pack.json ont été écartés. Vérifiez leurs formes, mouvements, couleurs, nombres et ce que règle chaque contrôle.',
   'studio.problem.bad-world':

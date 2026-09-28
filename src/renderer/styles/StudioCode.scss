@@ -170,6 +170,36 @@ $code-pad-inline: 12px;
   color: $text-faint;
 }
 
+// ONE SCROLL IN THE CODE TAB: the code's own. The pane is the Studio work
+// panel's whole height and the editor, or the diff in its place, takes what
+// the head and any notice leave of it. At its own clamp of up to 520px the
+// editor stood taller than a panel of 456, so the panel scrolled the pane
+// and the editor scrolled the code, two bars for one text (Ivan,
+// 2026-09-27: "remove source in studio double scroll"). A panel too short
+// for the editor's floor still scrolls, rather than crushing the text.
+.studio-work__panel:has(> .studio-code) {
+  display: flex;
+  flex-direction: column;
+}
+
+.studio-work__panel > .studio-code {
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+
+  > .studio-code__body {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+
+    > :is(.studio-code__editor, .studio-code__diff) {
+      height: auto;
+      min-height: 160px;
+      flex: 1 1 0;
+    }
+  }
+}
+
 // ---------------------------------------------------------------- editor
 
 .studio-code__editor {
@@ -177,7 +207,7 @@ $code-pad-inline: 12px;
   grid-template-columns: auto minmax(0, 1fr);
   height: clamp(220px, 46vh, 520px);
   overflow: hidden;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-s;
   background: color-mix(in srgb, $black 32%, $surface-block);
 
@@ -326,7 +356,7 @@ $code-pad-inline: 12px;
   height: clamp(220px, 46vh, 520px);
   padding: 6px 0;
   overflow: auto;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-s;
   background: color-mix(in srgb, $black 32%, $surface-block);
   font-family: $font-mono;

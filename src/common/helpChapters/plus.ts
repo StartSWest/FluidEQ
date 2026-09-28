@@ -190,7 +190,7 @@ const PLUS_CHAPTERS = [
           },
           {
             box: [1737, 666, 222, 68],
-            name: 'studio.size.title',
+            name: 'studio.size.full',
             text: 'help.studio.size',
           },
           {

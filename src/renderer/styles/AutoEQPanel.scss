@@ -126,9 +126,11 @@ it under the terms of the GNU General Public License version 3 or later.
 .autoeq-panel__picker .sidebar-section .autoeq-applied {
   padding: 10px 12px;
   gap: 9px;
-  border: 1px solid $border-field;
+  // The accent in its edge and its icon, on the card's own colour: a tint of
+  // the accent over the card is mud wherever the two are not one hue.
+  border: 1px solid $border-control;
   border-radius: $radius-s;
-  background: color-mix(in srgb, $secondary-default 13%, transparent);
+  background: transparent;
   font-size: $text-body;
 
   .menu-icon {

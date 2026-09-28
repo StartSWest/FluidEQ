@@ -22,7 +22,7 @@ import {
   GraphStyle,
   resolveGraphPalette,
 } from 'common/graphStyles';
-import { resolveLookColours } from 'common/customLooks';
+import { useWindowLookColours } from '../utils/windowInk';
 import { isTraceGradient, resolveTracePaint } from '../graph/liveTracePaint';
 
 /**
@@ -521,6 +521,11 @@ const GLYPHS = {
     isFilled: true,
   },
   // Bars with their light left above them.
+  // Bars on a line of light, their reflection under it, a sun behind.
+  horizon: {
+    d: 'M1 8h2v3H1ZM3.4 6h2v5H3.4ZM5.8 4.5h2v6.5H5.8ZM8.2 5h2v6H8.2ZM10.6 6.5h2v4.5H10.6ZM13 8h2v3H13ZM0.5 11.3h15v0.5h-15ZM1 12.3h2v0.9H1ZM3.4 12.3h2v1.5H3.4ZM5.8 12.3h2v1.95H5.8ZM8.2 12.3h2v1.8H8.2ZM10.6 12.3h2v1.35H10.6ZM13 12.3h2v0.9H13ZM6.7 2.2a1.5 1.5 0 1 0 3 0a1.5 1.5 0 1 0 -3 0Z',
+    isFilled: true,
+  },
   afterglow: {
     d: 'M1 8h2.6v7H1ZM1 4h2.6v0.6H1ZM1 5.6h2.6v0.6H1ZM1 7.2h2.6v0.6H1ZM4.8 10h2.6v5H4.8ZM4.8 5h2.6v0.6H4.8ZM4.8 6.6h2.6v0.6H4.8ZM4.8 8.2h2.6v0.6H4.8ZM8.6 6h2.6v9H8.6ZM8.6 3h2.6v0.6H8.6ZM8.6 4.6h2.6v0.6H8.6ZM12.4 11h2.6v4H12.4ZM12.4 7h2.6v0.6H12.4ZM12.4 8.6h2.6v0.6H12.4Z',
     isFilled: true,
@@ -603,6 +608,7 @@ const FORM_GLYPHS: Record<GraphStyle, TLookGlyphId> = {
   fallblocks: 'fallBlocks',
   fibers: 'fibers',
   afterglow: 'afterglow',
+  horizon: 'horizon',
   halftone: 'halftone',
   line: 'line',
   area: 'area',
@@ -671,10 +677,9 @@ interface ILookIconProps {
   /**
    * A look's own gradient stops, straight off `IResolvedLook`.
    *
-   * Empty means the palette's own colours, which is what every built-in flat
-   * and rainbow look carries — the same value the chart is handed, passed
-   * through to the same resolver, so an icon cannot disagree with the drawing
-   * it stands for.
+   * Empty means the window's colours, which is what every built-in look
+   * carries — the same set the chart paints it in, passed through to the same
+   * resolver, so an icon cannot disagree with the drawing it stands for.
    */
   colours?: readonly string[];
   className?: string;
@@ -688,9 +693,12 @@ const LookIcon = ({
 }: ILookIconProps) => {
   const glyph = GLYPHS[FORM_GLYPHS[style]];
   const ownPalette = resolveGraphPalette(style, palette);
+  // With no colours of its own the look is drawn in the window's, and so is
+  // its icon.
+  const windowColours = useWindowLookColours(ownPalette);
   const paint = resolveTracePaint(
     ownPalette,
-    resolveLookColours(ownPalette, colours),
+    colours.length > 0 ? colours : windowColours,
     FLAT_PAINT,
     ICON_PLOT,
   );

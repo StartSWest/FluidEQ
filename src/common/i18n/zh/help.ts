@@ -487,7 +487,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.code': '场景的代码，实时显示，并在你的 AI 保存时更新。',
   'help.studio.hears': '场景接收到的内容：音量、节拍、低音、中音、高音。',
   'help.studio.signals': '只驱动当前预览的测试信号。',
-  'help.studio.size': '在图表、窄面板、宽面板或全屏面板上试看场景。',
+  'help.studio.size': '在全屏下试看场景。',
   'help.studio.wave': '试试听众可以设置的波形高度和位置。',
 
   'help.desktop.title': '桌面可视化效果',

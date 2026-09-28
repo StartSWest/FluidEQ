@@ -19,6 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ReactNode, useEffect, useState } from 'react';
 import { PRODUCT_NAME } from 'common/branding';
 import type { TAudioEngine } from 'common/audioEngine';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from './DialogFrame';
 import '../styles/AudioTroubleshooter.scss';
 
 /**
@@ -83,12 +85,7 @@ interface IStep {
   /** The symptom this one actually addresses. */
   when: string;
   cost: string;
-  /**
-   * `quiet` is for a step that removes something rather than repairing it:
-   * the panel recommends its repairs, so an undo must not wear their
-   * emphasis.
-   */
-  action?: { label: string; run: () => void; quiet?: boolean };
+  action?: { label: string; run: () => void };
   detail?: ReactNode;
 }
 
@@ -217,7 +214,6 @@ export default function AudioTroubleshooter({
       action: {
         label: 'Remove from this output',
         run: onRemoveEngineFromOutput,
-        quiet: true,
       },
     },
   ];
@@ -257,67 +253,64 @@ export default function AudioTroubleshooter({
         }
       }}
     >
-      <div
+      <DialogFrame
         className="troubleshoot"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Fix audio problems"
+        icon={<MenuIcon name="wrench" />}
+        title="Fix audio problems"
+        titleId="troubleshoot-title"
+        description="Work down the list and stop at the first one that helps. Each is more disruptive than the last, and the first fixes most problems."
+        closeLabel="Close"
+        onClose={onClose}
+        footer={
+          <p className="dialog-frame__note">
+            Still wrong after all of that? Use <strong>Report a problem</strong>{' '}
+            in the same menu — it collects the logs, with anything identifying
+            you stripped out, and shows you the whole thing before it goes
+            anywhere.
+          </p>
+        }
       >
-        <div className="troubleshoot__head">
-          <h2>Fix audio problems</h2>
-          <button type="button" onClick={onClose} aria-label="Close">
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3l6 6M9 3l-6 6" />
-            </svg>
-          </button>
-        </div>
-
-        <p className="troubleshoot__lead">
-          Work down the list and stop at the first one that helps. Each is more
-          disruptive than the last, and the first fixes most problems.
-        </p>
-
+        {/* Numbered, and the numbers matter — this is a sequence, not a set of
+            options. Only the first step's button is the loud one: it is the
+            one this panel recommends, and the rest are there to be reached in
+            order — the last of them takes the engine away rather than
+            repairing anything. */}
         <ol className="troubleshoot__steps">
           {steps.map((step, index) => (
             <li
               key={step.title}
-              className={tried[index] ? 'is-tried' : undefined}
+              className={`troubleshoot__step${tried[index] ? ' is-tried' : ''}`}
             >
-              <div className="troubleshoot__step-head">
-                <h3>{step.title}</h3>
-                {tried[index] && (
-                  <span className="troubleshoot__tried">Tried</span>
+              <span className="troubleshoot__number" aria-hidden="true">
+                {index + 1}
+              </span>
+              <div className="troubleshoot__step-main">
+                <div className="troubleshoot__step-head">
+                  <h3>{step.title}</h3>
+                  {tried[index] && (
+                    <span className="troubleshoot__tried">Tried</span>
+                  )}
+                </div>
+                <p>{step.when}</p>
+                <p className="troubleshoot__cost">{step.cost}</p>
+                {step.detail}
+                {step.action && (
+                  <button
+                    type="button"
+                    className={`button small${index === 0 ? '' : ' subtle'}`}
+                    onClick={() => {
+                      setTried((was) => ({ ...was, [index]: true }));
+                      step.action?.run();
+                    }}
+                  >
+                    {step.action.label}
+                  </button>
                 )}
               </div>
-              <p className="troubleshoot__when">{step.when}</p>
-              <p className="troubleshoot__cost">{step.cost}</p>
-              {step.detail}
-              {step.action && (
-                <button
-                  type="button"
-                  className={
-                    step.action.quiet
-                      ? 'troubleshoot__action troubleshoot__action--quiet'
-                      : 'troubleshoot__action'
-                  }
-                  onClick={() => {
-                    setTried((was) => ({ ...was, [index]: true }));
-                    step.action?.run();
-                  }}
-                >
-                  {step.action.label}
-                </button>
-              )}
             </li>
           ))}
         </ol>
-
-        <p className="troubleshoot__foot">
-          Still wrong after all of that? Use <strong>Report a problem</strong>{' '}
-          in the same menu — it collects the logs, with anything identifying you
-          stripped out, and shows you the whole thing before it goes anywhere.
-        </p>
-      </div>
+      </DialogFrame>
     </div>
   );
 }

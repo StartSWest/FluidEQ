@@ -24,6 +24,7 @@ import {
   LICENSE,
   LICENSE_DIR,
   PRODUCT_NAME,
+  PRODUCT_VERSION,
   REPOSITORY_URL,
   ROOM_HEADS_DIR,
   TRADEMARK,
@@ -35,7 +36,8 @@ import {
   DISCLAIMER_PARAGRAPH_KEYS,
 } from 'common/disclaimer';
 import { useTranslation } from '../utils/I18nContext';
-import DialogHeader from './DialogHeader';
+import BrandMark from '../icons/BrandMark';
+import DialogFrame from './DialogFrame';
 import AboutBrand from './AboutBrand';
 import '../styles/About.scss';
 
@@ -102,25 +104,27 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
         }
       }}
     >
-      <div
+      <DialogFrame
         className="about"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="about-title"
+        icon={<BrandMark />}
+        eyebrow={t('about.title')}
+        title={PRODUCT_NAME}
+        titleId="about-title"
+        aria-labelledby="about-title-eyebrow about-title"
+        badge={
+          PRODUCT_VERSION && (
+            <span className="dialog-frame__badge">v{PRODUCT_VERSION}</span>
+          )
+        }
+        description={t('app.tagline')}
+        rail={<AboutBrand />}
+        closeLabel={t('support.close')}
+        onClose={onClose}
+        closeRef={closeRef}
       >
-        <DialogHeader
-          eyebrow={t('about.eyebrow')}
-          title={t('about.title')}
-          titleId="about-title"
-          closeLabel={t('support.close')}
-          onClose={onClose}
-          closeRef={closeRef}
-        />
-
         <div className="about__body">
-          <AboutBrand />
-          <section className="about__section">
-            <h3>License</h3>
+          <section className="dialog-frame__section">
+            <h3 className="dialog-frame__section-title">License</h3>
             <p>
               {PRODUCT_NAME} is free software under the {LICENSE.name}. You may
               run it, study it, change it and pass it on. A modified version you
@@ -155,16 +159,18 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
               does not bind them. It would also be indefensible to have
               somebody accept this in Spanish on first run and then find only
               an English version of it here. */}
-          <section className="about__section">
-            <h3>{t(DISCLAIMER_HEADING_KEY)}</h3>
+          <section className="dialog-frame__section">
+            <h3 className="dialog-frame__section-title">
+              {t(DISCLAIMER_HEADING_KEY)}
+            </h3>
             {DISCLAIMER_PARAGRAPH_KEYS.map((key) => (
               <p key={key}>{t(key, { author: AUTHOR_NAME })}</p>
             ))}
             <p className="about__aside">{t(DISCLAIMER_LANGUAGE_KEY)}</p>
           </section>
 
-          <section className="about__section">
-            <h3>Attribution</h3>
+          <section className="dialog-frame__section">
+            <h3 className="dialog-frame__section-title">Attribution</h3>
             <p>
               {PRODUCT_NAME} is written and maintained by its author. It began
               as a fork of {UPSTREAM.name}, and about a tenth of the source is
@@ -183,14 +189,16 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
             </p>
           </section>
 
-          <section className="about__section">
-            <h3>Trademark</h3>
+          <section className="dialog-frame__section">
+            <h3 className="dialog-frame__section-title">Trademark</h3>
             <p>{TRADEMARK.notice}</p>
             <p>{TRADEMARK.additionalTerm}</p>
           </section>
 
-          <section className="about__section">
-            <h3>{BUNDLED_ENGINE.name}</h3>
+          <section className="dialog-frame__section">
+            <h3 className="dialog-frame__section-title">
+              {BUNDLED_ENGINE.name}
+            </h3>
             <p>
               {BUNDLED_ENGINE.name} is the audio engine that does the actual
               filtering. It is a separate program by {BUNDLED_ENGINE.author},
@@ -212,8 +220,8 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
             </p>
           </section>
 
-          <section className="about__section">
-            <h3>Bundled data</h3>
+          <section className="dialog-frame__section">
+            <h3 className="dialog-frame__section-title">Bundled data</h3>
             <p>
               The headphone correction library is{' '}
               <a
@@ -277,7 +285,7 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
             </a>
           </p>
         </div>
-      </div>
+      </DialogFrame>
     </div>
   );
 }

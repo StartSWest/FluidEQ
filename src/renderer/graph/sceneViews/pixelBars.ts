@@ -47,10 +47,39 @@ import {
  * Glow lets them bleed a little light, which the originals never could.
  */
 
-/** A column never narrower than this, in CSS pixels. */
-const MIN_PITCH = 5;
+/**
+ * A column never narrower than this, in CSS pixels. Exported with the dither
+ * share and the functions below for the look's GPU painting
+ * (`engineLooks/pixelBarsLook.ts`).
+ */
+export const MIN_PITCH = 5;
 /** Below this share of a column's height, pixels are dithered. */
-const DITHER_BELOW = 0.34;
+export const DITHER_BELOW = 0.34;
+
+/**
+ * Where one copy's columns stand: the floor, which way they grow, the strip
+ * kept under them for the ground row, and how many rows of pixels fit.
+ */
+export const pixelStand = (band: IAnalysisBand, pitch: number) => {
+  // A strip of the floor is kept for the ground row the columns stand on.
+  const base = pitch * 0.35;
+  return {
+    floor: band.flipped ? band.top : band.bottom,
+    up: band.flipped ? 1 : -1,
+    base,
+    rows: Math.max(1, Math.floor((band.bottom - band.top - base) / pitch)),
+  };
+};
+
+/** The top pixel's heat, flashing on the kick. */
+export const pixelTopWhiten = (pulse: number): number => 0.18 + pulse * 0.5;
+
+/**
+ * The glow: the originals had none at all — a faint one on the kick, and
+ * more only when the look's Glow asks for it.
+ */
+export const pixelBloom = (pulse: number, glow: number, opacity: number) =>
+  (0.1 + pulse * 0.2 + glow * 0.5) * opacity;
 
 export interface IPixelBarsState {
   row: IPieceRow;
@@ -73,12 +102,8 @@ const drawCopy = (
 ): void => {
   const { context, plot, colours, music, look, ratio } = frame;
   const { row } = state;
-  const up = band.flipped ? 1 : -1;
-  const floor = band.flipped ? band.top : band.bottom;
   const { pitch } = row;
-  // A strip of the floor is kept for the ground row the columns stand on.
-  const base = pitch * 0.35;
-  const rows = Math.max(1, Math.floor((band.bottom - band.top - base) / pitch));
+  const { floor, up, base, rows } = pixelStand(band, pitch);
   // Whole screen pixels, so the grid never smears.
   const snap = (value: number) => Math.round(value * ratio) / ratio;
   const cell = Math.max(1 / ratio, snap(row.body));
@@ -167,7 +192,7 @@ const drawCopy = (
   context.globalAlpha = look.opacity * 0.45;
   dim.forEach((path, group) => draw(path, paintOf(group)));
   context.globalAlpha = look.opacity;
-  draw(tops, figureInk(context, frame, span, 1, 0.18 + music.pulse * 0.5));
+  draw(tops, figureInk(context, frame, span, 1, pixelTopWhiten(music.pulse)));
   draw(held, figureInk(context, frame, span, 1, 0.6));
   context.restore();
 
@@ -183,10 +208,11 @@ export const drawPixelBars = (
 ): ISceneDrawn => {
   const row = layPieces(frame, state.row, MIN_PITCH);
   const falling = holdPeaks(state.peaks, row.levels, row.count, frame.deltaMs);
-  // The originals had no glow at all: a faint one on the kick, and more
-  // only when the look's Glow asks for it.
-  const strength =
-    (0.1 + frame.music.pulse * 0.2 + frame.glow * 0.5) * frame.look.opacity;
+  const strength = pixelBloom(
+    frame.music.pulse,
+    frame.glow,
+    frame.look.opacity,
+  );
   const bloom = beginBloom(frame, state.bloom);
   const body = frame.look.textured ? new Path2D() : undefined;
   frame.bands.forEach((band) => drawCopy(frame, band, state, bloom, body));

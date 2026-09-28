@@ -97,14 +97,15 @@ $now-playing-bar-height: 64px;
   height: $now-playing-bar-height;
   padding: 9px $spacing-l;
   // The floor, flat — no ramp: its own 64px ramp once made it a bevel, a
-  // glossy strip laid across the foot of a window of matte panels.
+  // glossy strip laid across the foot of a window of matte panels. And no
+  // line along its top, which came off with the shell's other dividing
+  // hairlines (`.window-titlebar` in `App.scss`).
   //
   // OPAQUE, not transparent, though it is the same colour as what is behind
   // it. This bar floats at `z-index: 1100` over three accelerated canvases, so
   // the compositor keeps it on a layer of its own, and text on a layer only
   // keeps its subpixel antialiasing over an opaque background.
   border: 0;
-  border-top: 1px solid $border-subtle;
   border-radius: 0;
   background-color: $surface-base;
   // No shadow, for the reason the titlebar has none: it fell onto the foot
@@ -610,10 +611,12 @@ $now-playing-bar-height: 64px;
     background 180ms ease,
     box-shadow 180ms ease;
 
+  // Under the pointer: the quiet buttons' lift and nothing round it — it
+  // glowed 16px of cyan, one more soft shadow on a flat page.
   &:hover:not(:disabled) {
     color: $white;
     background: color-mix(in srgb, $secondary-default 14%, transparent);
-    box-shadow: 0 0 16px color-mix(in srgb, $secondary-default 13%, transparent);
+    box-shadow: none;
   }
 
   &:active:not(:disabled) {
@@ -628,6 +631,12 @@ $now-playing-bar-height: 64px;
   }
 }
 
+// The accent disc, cut out of the bar by the crisp edge the EQ sliders' caps
+// wear (`--range-edge`, `RangeInput.scss`: the panel's own hue, lighter than
+// the panel on a dark theme and darker on a light one), with one lit pixel
+// along its top and nothing under it. It stood on 20px of black shadow and a
+// 22px cyan glow (Ivan, 2026-09-27: "I love the knob, I want you to do the
+// same border thing, no dropshadow in the play button").
 .now-playing-bar__play {
   width: 44px;
   min-width: 44px;
@@ -635,17 +644,19 @@ $now-playing-bar-height: 64px;
   min-height: 44px;
   margin: -4px 1px;
   color: $surface-base;
-  border: 1px solid rgba($white, 0.32);
+  border: 1px solid
+    oklch(
+      from var(--surface-panel) calc(l + clamp(-0.16, (0.4 - l) * 1000, 0.08))
+        calc(c * 1.1) h
+    );
   border-radius: 50%;
   background: $secondary-default;
-  box-shadow:
-    0 8px 20px rgba($black, 0.34),
-    0 0 22px color-mix(in srgb, $secondary-default 30%, transparent),
-    inset 0 1px 0 rgba($white, 0.42);
+  box-shadow: inset 0 1px 0 rgba($white, 0.42);
 
   &:hover:not(:disabled) {
     color: $surface-base;
     background: $secondary-light;
+    box-shadow: inset 0 1px 0 rgba($white, 0.42);
   }
 
   &:disabled {
@@ -1183,7 +1194,10 @@ $now-playing-bar-height: 64px;
     width: 100%;
     height: 34px;
     padding: 0 10px;
-    border: 1px solid $border-subtle;
+    // A menu's own faint line (`$menu-rule`), not the rows' hairline: the
+    // one bold box inside a menu (Ivan, 2026-09-27: "reduce inner borders
+    // visibility", "for all menu").
+    border: 1px solid $menu-rule;
     border-radius: $radius-s;
     background: color-mix(in srgb, $secondary-default 7%, transparent);
   }

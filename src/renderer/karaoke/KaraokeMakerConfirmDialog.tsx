@@ -18,9 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
-import KaraokeMakerToolIcon, {
-  TKaraokeMakerToolIcon,
-} from './KaraokeMakerToolIcon';
+import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
+import CompactFrame from '../components/CompactFrame';
 
 export type TDestructiveMakerAction =
   'notes' | 'lyrics' | 'restore' | 'replace-lyrics';
@@ -36,26 +35,26 @@ export type TDestructiveMakerAction =
 const DESTRUCTIVE_CONFIRMATIONS: Record<
   Exclude<TDestructiveMakerAction, 'replace-lyrics'>,
   {
-    icon: TKaraokeMakerToolIcon;
+    icon: MenuIconName;
     title: TranslationKey;
     body: TranslationKey;
     confirm: TranslationKey;
   }
 > = {
   notes: {
-    icon: 'clearNotes',
+    icon: 'trash',
     title: 'karaoke.maker.clearNotesTitle',
     body: 'karaoke.maker.clearNotesBody',
     confirm: 'karaoke.maker.clearNotes',
   },
   lyrics: {
-    icon: 'clearLyrics',
+    icon: 'trash',
     title: 'karaoke.maker.clearLyricsTitle',
     body: 'karaoke.maker.clearLyricsBody',
     confirm: 'karaoke.maker.clearLyrics',
   },
   restore: {
-    icon: 'restore',
+    icon: 'restart',
     title: 'karaoke.maker.restoreTitle',
     body: 'karaoke.maker.restoreBody',
     confirm: 'karaoke.maker.restore',
@@ -94,25 +93,36 @@ const KaraokeMakerConfirmDialog = ({
 
   return (
     <div className="karaoke-maker__modal-backdrop" role="presentation">
-      <div
-        className="karaoke-maker__confirm-modal"
-        role="alertdialog"
-        aria-label={t(copy.confirm)}
+      {/* Red, like every answer that throws work away: the tile says so
+          before a word is read, and the answer that does it is the red one. */}
+      <CompactFrame
+        tone="danger"
+        icon={<MenuIcon name={copy.icon} />}
+        title={t(copy.title)}
+        titleId="karaoke-maker-confirm-title"
+        closeLabel={t('support.close')}
+        onClose={onCancel}
+        actions={
+          <>
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={onCancel}
+            >
+              {t('karaoke.maker.cancel')}
+            </button>
+            <button
+              type="button"
+              className="button small danger"
+              onClick={onConfirm}
+            >
+              {t(copy.confirm)}
+            </button>
+          </>
+        }
       >
-        <KaraokeMakerToolIcon name={copy.icon} />
-        <div>
-          <h2>{t(copy.title)}</h2>
-          <p>{t(copy.body)}</p>
-        </div>
-        <div className="karaoke-maker__modal-actions">
-          <button type="button" onClick={onCancel}>
-            {t('karaoke.maker.cancel')}
-          </button>
-          <button className="is-danger" type="button" onClick={onConfirm}>
-            {t(copy.confirm)}
-          </button>
-        </div>
-      </div>
+        <p>{t(copy.body)}</p>
+      </CompactFrame>
     </div>
   );
 };

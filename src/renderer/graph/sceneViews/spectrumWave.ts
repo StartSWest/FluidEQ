@@ -11,7 +11,9 @@ import {
   levelAtX,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneReading,
   type ISceneSpan,
+  type ISceneStand,
 } from './sceneFrame';
 import { createPeakHold, holdPeaks, type IPeakHold } from './scenePieces';
 
@@ -32,13 +34,16 @@ import { createPeakHold, holdPeaks, type IPeakHold } from './scenePieces';
  * pieces, so Pieces and Gap have nothing here to move.
  */
 
-/** Points along the line. */
-const SAMPLES = 120;
+/**
+ * Points along the line. Exported with the functions below for the look's
+ * GPU painting (`engineLooks/spectrumWaveLook.ts`).
+ */
+export const SAMPLES = 120;
 /** How often the wake takes a copy of the line, and how many it keeps. */
 const ECHO_EVERY_MS = 45;
 const ECHOES = 6;
 /** Which of the kept copies are drawn, oldest last, and how faint. */
-const DRAWN_ECHOES: readonly [number, number][] = [
+export const DRAWN_ECHOES: readonly [number, number][] = [
   [2, 0.34],
   [5, 0.16],
 ];
@@ -83,6 +88,25 @@ const traceLine = (
   path.lineTo(xAt(SAMPLES), yAt(SAMPLES));
 };
 
+/** Where one copy's wave stands: its floor, which way up, how far it reaches. */
+export const waveStand = (band: IAnalysisBand): ISceneStand => ({
+  floor: band.flipped ? band.top : band.bottom,
+  up: band.flipped ? 1 : -1,
+  reach: (band.bottom - band.top) * 0.92,
+});
+
+/** The line's weight, swelling on the kick, and its glow's light and width. */
+export const waveWeight = (lineWidth: number, pulse: number): number =>
+  lineWidth * (1 + pulse * 0.5);
+export const waveGlow = (pulse: number, glow: number) => ({
+  alpha: clampUnit(0.24 + pulse * 0.14 + glow * 0.2),
+  widen: 4 + glow * 4,
+});
+
+/** An echo's line width. */
+export const echoWidth = (lineWidth: number): number =>
+  Math.max(1, lineWidth * 0.6);
+
 const drawCopy = (
   frame: ISceneFrame,
   band: IAnalysisBand,
@@ -90,9 +114,7 @@ const drawCopy = (
   body: Path2D | undefined,
 ): void => {
   const { context, plot, music, look } = frame;
-  const up = band.flipped ? 1 : -1;
-  const floor = band.flipped ? band.top : band.bottom;
-  const reach = (band.bottom - band.top) * 0.92;
+  const { floor, up, reach } = waveStand(band);
   const span: ISceneSpan = {
     left: plot.left,
     right: plot.right,
@@ -137,23 +159,19 @@ const drawCopy = (
     const path = new Path2D();
     traceLine(path, frame, echo, floor, up, reach);
     context.strokeStyle = figureInk(context, frame, span, alpha, 0.1);
-    context.lineWidth = Math.max(1, look.lineWidth * 0.6);
+    context.lineWidth = echoWidth(look.lineWidth);
     context.stroke(path);
   });
   context.restore();
 
   // The line: a wide soft glow, the line, and its white-hot core.
-  const weight = look.lineWidth * (1 + music.pulse * 0.5);
+  const weight = waveWeight(look.lineWidth, music.pulse);
+  const light = waveGlow(music.pulse, frame.glow);
   context.save();
   context.lineJoin = 'round';
   context.lineCap = 'round';
-  context.strokeStyle = figureInk(
-    context,
-    frame,
-    span,
-    clampUnit(0.24 + music.pulse * 0.14 + frame.glow * 0.2),
-  );
-  context.lineWidth = weight * (4 + frame.glow * 4);
+  context.strokeStyle = figureInk(context, frame, span, light.alpha);
+  context.lineWidth = weight * light.widen;
   context.stroke(line);
   context.strokeStyle = figureInk(context, frame, span, 1, 0.1);
   context.lineWidth = weight;
@@ -173,11 +191,16 @@ const drawCopy = (
   context.restore();
 };
 
-export const drawSpectrumWave = (
-  frame: ISceneFrame,
+/**
+ * The line read for a frame, its wake kept and its peaks held: once for every
+ * copy. Answers whether it is still moving — a wake catching up with a line
+ * at rest, or a held line still falling while Lit peaks shows it.
+ */
+export const readSpectrumWave = (
+  reading: Pick<ISceneReading, 'plot' | 'xs' | 'levels' | 'deltaMs' | 'look'>,
   state: ISpectrumWaveState,
-): ISceneDrawn => {
-  const { plot, xs, levels } = frame;
+): boolean => {
+  const { plot, xs, levels } = reading;
   const width = plot.right - plot.left;
   for (let step = 0; step <= SAMPLES; step += 1) {
     state.line[step] = clampUnit(
@@ -186,7 +209,7 @@ export const drawSpectrumWave = (
   }
   // The wake keeps a copy every so often of the line as drawn, counted in
   // the frames' own time so it trails by the same distance at any rate.
-  state.sinceEcho += frame.deltaMs;
+  state.sinceEcho += reading.deltaMs;
   if (state.sinceEcho >= ECHO_EVERY_MS || state.echoes.length === 0) {
     state.sinceEcho = 0;
     const recycled =
@@ -199,10 +222,8 @@ export const drawSpectrumWave = (
     state.peaks,
     state.line,
     SAMPLES + 1,
-    frame.deltaMs,
+    reading.deltaMs,
   );
-  const body = frame.look.textured ? new Path2D() : undefined;
-  frame.bands.forEach((band) => drawCopy(frame, band, state, body));
   // While a wake is still catching up with a line at rest, keep drawing.
   const oldest = state.echoes[state.echoes.length - 1];
   let settling = false;
@@ -211,8 +232,15 @@ export const drawSpectrumWave = (
       settling = Math.abs(oldest[step] - state.line[step]) > 0.002;
     }
   }
-  return {
-    moving: settling || (falling && frame.look.accents),
-    body,
-  };
+  return settling || (falling && reading.look.accents);
+};
+
+export const drawSpectrumWave = (
+  frame: ISceneFrame,
+  state: ISpectrumWaveState,
+): ISceneDrawn => {
+  const moving = readSpectrumWave(frame, state);
+  const body = frame.look.textured ? new Path2D() : undefined;
+  frame.bands.forEach((band) => drawCopy(frame, band, state, body));
+  return { moving, body };
 };

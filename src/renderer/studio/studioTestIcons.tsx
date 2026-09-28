@@ -7,7 +7,6 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import type { ReactElement } from 'react';
-import type { TStudioSize } from './StudioStage';
 import type { TStudioSignal } from './studioSignals';
 
 /**
@@ -16,8 +15,7 @@ import type { TStudioSignal } from './studioSignals';
  * The three bands are one wave at three speeds — one cycle for the bass, two
  * for the mids, four for the treble — so the row reads low to high before its
  * names are read. Silence is a muted speaker, the beat a pulse, the accent a
- * spark, the simulated mix a mixer's faders; the sizes are the shape of the
- * stage each one gives.
+ * spark, the simulated mix a mixer's faders; full screen its four corners.
  * Strokes on a 16px grid, drawn in the tile's own ink.
  */
 
@@ -74,25 +72,8 @@ export const SIGNAL_ICONS: Record<TStudioSignal, ReactElement> = {
   ),
 };
 
-export const SIZE_ICONS: Record<TStudioSize, ReactElement> = {
-  graph: (
-    <Svg>
-      <rect x="1.5" y="5.2" width="13" height="5.6" rx="1.2" />
-    </Svg>
-  ),
-  narrow: (
-    <Svg>
-      <rect x="5" y="1.5" width="6" height="13" rx="1.2" />
-    </Svg>
-  ),
-  wide: (
-    <Svg>
-      <rect x="1.8" y="3.9" width="12.4" height="8.2" rx="1.2" />
-    </Svg>
-  ),
-  full: (
-    <Svg>
-      <path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5" />
-    </Svg>
-  ),
-};
+export const FULLSCREEN_ICON: ReactElement = (
+  <Svg>
+    <path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5" />
+  </Svg>
+);

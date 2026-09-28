@@ -35,7 +35,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   &[aria-expanded='true'] {
     border-color: $border-field-hover;
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    background: $surface-control-press;
   }
 
   &__name {
@@ -170,7 +170,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
     gap: 12px;
     margin: 0;
     padding-top: 10px;
-    border-top: 1px solid $border-subtle;
+    // Every menu's inner line (`$menu-rule`).
+    border-top: 1px solid $menu-rule;
     color: $text-primary;
     font-size: $text-body;
     font-weight: $weight-semibold;

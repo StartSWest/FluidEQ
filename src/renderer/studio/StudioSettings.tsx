@@ -1,5 +1,6 @@
 import { useId, type CSSProperties, type ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
+import { SCENE_DAYLIGHT_PARAM } from 'common/sceneDaylight';
 import { resolveParamName, type IScenePackParam } from 'common/scenePacks';
 import { RESPONSE_KEYS, type ISceneResponse } from 'common/sceneResponse';
 import { useTranslation } from '../utils/I18nContext';
@@ -8,7 +9,7 @@ import {
   responseFromPosition as fromPosition,
   responseToPosition as toPosition,
 } from '../utils/responseSlider';
-import { useStudioTintMode } from '../utils/sceneTintStore';
+import { isAmbientMode, useWindowTintMode } from '../utils/sceneTintStore';
 import type { IStudioAmbientTuning } from './useStudioAmbientTuning';
 import { SAVED_KEYS, type TTuningSaved } from './useStudioTuning';
 import '../styles/StudioControls.scss';
@@ -146,10 +147,14 @@ const formatParam = (param: IScenePackParam, value: number) => {
 /**
  * The controls a slider can move. A scene's AI writes these, so a range with
  * no width is possible; it keeps its uniform, at its one value, and gets no
- * slider that could only sit still.
+ * slider that could only sit still. Nor does the time of day: the window's
+ * Brightness sets it (`sceneDaylight.ts`), and a slider of its own here would
+ * move nothing.
  */
 const movable = (params: readonly IScenePackParam[]) =>
-  params.filter((param) => param.max - param.min > 0);
+  params.filter(
+    (param) => param.max - param.min > 0 && param.id !== SCENE_DAYLIGHT_PARAM,
+  );
 
 interface IStudioSettingsProps {
   params: readonly IScenePackParam[];
@@ -205,7 +210,7 @@ export default function StudioSettings({
   const controls = movable(params);
   // Whether what the ambient sliders set is drawn at all: the scene puts its
   // elements around the app only while the window's look is on Ambient.
-  const ambientShows = useStudioTintMode() === 'pulse';
+  const ambientShows = isAmbientMode(useWindowTintMode());
   const resetsTo =
     publishedVersion === undefined
       ? t('studio.settings.resetsToScene')
@@ -284,10 +289,11 @@ export default function StudioSettings({
         </Group>
 
         {/* These reach the scene, and the scene draws nothing with them
-            unless the window's look is on Ambient - which it is not by
-            default. A member could drag every one of them, read "Saved into
-            the scene" and see nothing move. They rest until the mode that
-            shows them is on, and the lead says which mode that is. */}
+            unless the window's look is Ambient or the Backdrop - the app's
+            one mode, which somebody may have set to less. A member could
+            drag every one of them, read "Saved into the scene" and see
+            nothing move. They rest until the mode that shows them is on,
+            and the lead says which mode that is. */}
         {ambient && ambient.params.length > 0 && (
           <Group
             title={t('studio.settings.ambient')}

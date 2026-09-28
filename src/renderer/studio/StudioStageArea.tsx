@@ -10,8 +10,8 @@ interface IStudioStageAreaProps {
    */
   stage: ReactNode;
   /**
-   * The graph's divider, to try the scene on a taller or shorter graph. Only
-   * at the graph's size: the others are fixed panels.
+   * The graph's divider, to try the scene on a taller or shorter graph. Not
+   * in full screen, where the stage is the whole screen.
    */
   resizable: boolean;
   /** What stands under the stage and its divider. */

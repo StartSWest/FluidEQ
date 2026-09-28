@@ -15,7 +15,9 @@ import {
   heatStep,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneReading,
   type ISceneSpan,
+  type ISceneStand,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -50,8 +52,11 @@ import {
  * so a mirrored wave throws the same sparks in both copies, not two sets.
  */
 
-/** A bar never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 4;
+/**
+ * A bar never on a pitch smaller than this, in CSS pixels. Exported with the
+ * functions below for the look's GPU painting (`engineLooks/sparkBarsLook.ts`).
+ */
+export const MIN_PITCH = 4;
 const EMBER_LIMIT = 520;
 const EMBER_LIFE_S = 1.1;
 
@@ -85,7 +90,7 @@ export const createSparkBarsState = (): ISparkBarsState => ({
 });
 
 /** The floor and the reach of a copy. */
-const standOf = (band: IAnalysisBand) => {
+export const standOf = (band: IAnalysisBand): ISceneStand => {
   const up = band.flipped ? 1 : -1;
   return {
     up,
@@ -96,7 +101,7 @@ const standOf = (band: IAnalysisBand) => {
 
 /** Throws embers off the bars that jumped, off the treble and off the kick. */
 const throwEmbers = (
-  frame: ISceneFrame,
+  frame: Pick<ISceneReading, 'music'>,
   state: ISparkBarsState,
   reach: number,
 ): void => {
@@ -209,8 +214,8 @@ const drawCopy = (
     context,
     frame,
     span,
-    clampUnit(0.85 + music.treble * 0.15),
-    0.55 + music.pulse * 0.35,
+    tipAlpha(music.treble),
+    tipWhiten(music.pulse),
   );
   context.fill(tips);
   context.fillStyle = figureInk(context, frame, span, 0.95, 0.7);
@@ -219,13 +224,10 @@ const drawCopy = (
   // The embers, in this copy's place.
   const glow = new Path2D();
   const hot = new Path2D();
-  state.embers.forEach((ember) => {
-    const life = 1 - ember.age / ember.life;
-    const y = floor + up * ember.rise;
-    const size = 0.6 + 1.6 * life;
-    glow.moveTo(ember.x + size * 2.2, y);
-    glow.arc(ember.x, y, size * 2.2, 0, Math.PI * 2);
-    hot.rect(ember.x - size / 2, y - size / 2, size, size);
+  placeEmbers(state, floor, up, (x, y, size) => {
+    glow.moveTo(x + size * 2.2, y);
+    glow.arc(x, y, size * 2.2, 0, Math.PI * 2);
+    hot.rect(x - size / 2, y - size / 2, size, size);
   });
   context.save();
   context.globalCompositeOperation = 'lighter';
@@ -233,7 +235,7 @@ const drawCopy = (
     context,
     frame,
     span,
-    0.22 + frame.glow * 0.15,
+    emberGlowAlpha(frame.glow),
     0.2,
   );
   context.fill(glow);
@@ -248,19 +250,40 @@ const drawCopy = (
   }
 };
 
-export const drawSparkBars = (
-  frame: ISceneFrame,
+/** A burning tip's light and heat, from the treble and the kick. */
+export const tipAlpha = (treble: number): number =>
+  clampUnit(0.85 + treble * 0.15);
+export const tipWhiten = (pulse: number): number => 0.55 + pulse * 0.35;
+/** An ember's glow's light, more with the Glow. */
+export const emberGlowAlpha = (glow: number): number => 0.22 + glow * 0.15;
+
+/** Every ember in a copy standing on `floor`: where, and how big its core is. */
+export const placeEmbers = (
   state: ISparkBarsState,
-): ISceneDrawn => {
-  const row = layPieces(frame, state.row, MIN_PITCH);
-  const falling = holdPeaks(state.peaks, row.levels, row.count, frame.deltaMs);
-  const [first] = frame.bands;
+  floor: number,
+  up: number,
+  ember: (x: number, y: number, size: number) => void,
+): void => {
+  state.embers.forEach((one) => {
+    const life = 1 - one.age / one.life;
+    ember(one.x, floor + up * one.rise, 0.6 + 1.6 * life);
+  });
+};
+
+/**
+ * The embers for a frame: thrown off the first copy's bars, then risen,
+ * drifted, slowed and faded.
+ */
+export const moveEmbers = (
+  reading: Pick<ISceneReading, 'music' | 'bands' | 'deltaMs'>,
+  state: ISparkBarsState,
+): void => {
+  const [first] = reading.bands;
   if (first) {
-    throwEmbers(frame, state, standOf(first).reach);
+    throwEmbers(reading, state, standOf(first).reach);
   }
-  // Rise, drift, slow down, fade.
-  const seconds = frame.deltaMs / 1000;
-  const drag = 1 - easeToward(frame.deltaMs, 450);
+  const seconds = reading.deltaMs / 1000;
+  const drag = 1 - easeToward(reading.deltaMs, 450);
   state.embers = state.embers.filter((ember) => {
     ember.age += seconds;
     ember.x += ember.vx * seconds;
@@ -269,6 +292,19 @@ export const drawSparkBars = (
     ember.vx *= drag;
     return ember.age < ember.life;
   });
+};
+
+/** The fire's bloom for a frame. */
+export const sparkBloom = (pulse: number, glow: number, opacity: number) =>
+  (0.35 + pulse * 0.35 + glow * 0.5) * opacity;
+
+export const drawSparkBars = (
+  frame: ISceneFrame,
+  state: ISparkBarsState,
+): ISceneDrawn => {
+  const row = layPieces(frame, state.row, MIN_PITCH);
+  const falling = holdPeaks(state.peaks, row.levels, row.count, frame.deltaMs);
+  moveEmbers(frame, state);
   const bloom = beginBloom(frame, state.bloom);
   const body = frame.look.textured ? new Path2D() : undefined;
   frame.bands.forEach((band) => drawCopy(frame, band, state, bloom, body));
@@ -276,7 +312,7 @@ export const drawSparkBars = (
     endBloom(
       frame,
       state.bloom,
-      (0.35 + frame.music.pulse * 0.35 + frame.glow * 0.5) * frame.look.opacity,
+      sparkBloom(frame.music.pulse, frame.glow, frame.look.opacity),
     );
   }
   return {

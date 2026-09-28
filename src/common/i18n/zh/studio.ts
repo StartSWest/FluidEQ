@@ -389,18 +389,17 @@ const studio = {
   'studio.framing.use': '使用这张照片',
   'studio.framing.saving': '正在保存…',
 
-  'studio.size.title': '尺寸',
-  'studio.size.graph': '图表',
-  'studio.size.narrow': '窄',
-  'studio.size.wide': '宽',
   'studio.size.full': '全屏',
   'studio.size.exit': '退出全屏',
   'studio.wave.title': '图表上的波形',
   'studio.wave.hint':
     '会保存进场景并随它一起发布，因此打开时就是你留下的样子。使用的人仍可在图表的“视图”中更改这两项，也可以恢复成你的设置。试试极端情况：很低的波形，或抬高到中间的波形。',
   'studio.tint.label': '搭配此场景的 FluidEQ',
+  'studio.tint.theme': '主题',
+  'studio.brightness.hint':
+    '整个应用的亮度，与“窗口颜色”中的是同一个滑块。每个场景都会随它从 0 的夜晚变到 100 的白天：发布前请在两端都试一试。',
   'studio.tint.hint':
-    '在这里创作时，整个应用可以采用场景的颜色，或随音乐在它周围柔和发光，方便你看看并感受它作为主题的效果。',
+    '只在这里、你创作时生效，图表上的“窗口颜色”保持你的设置不变。“主题”让窗口保持应用当前的设置；其他三项让它采用这个场景的颜色，或随音乐在它周围柔和发光，让你像每位听众一样看到并感受它。',
   'studio.grid.label': '显示图表网格',
   'studio.grid.hint':
     '在场景上叠加图表的频率线和电平线，并保留它们在图表上占用的边距，方便测量波形和场景各部分的位置。',
@@ -446,6 +445,8 @@ const studio = {
   'studio.problem.bad-param':
     'params 中的控件需要由 a-z、0-9 和 _ 组成的 id、英文名称，以及小于 max 的 min。',
   'studio.problem.too-many-params': '一个场景的 params 最多只能有 8 个控件。',
+  'studio.problem.no-daylight':
+    '每个场景都需要 Daylight 控件：在 params 中加入 { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 }，0 时画夜晚，100 时画白天。',
   'studio.problem.bad-ambient':
     'pack.json 中的部分 ambient 元素或控件被忽略了。请检查它们的形状、运动、颜色、数量以及每个控件调节的内容。',
   'studio.problem.bad-world':

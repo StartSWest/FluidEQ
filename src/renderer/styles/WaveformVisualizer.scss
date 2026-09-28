@@ -50,8 +50,8 @@ it under the terms of the GNU General Public License version 3 or later.
   // pixel out of the padding box, and the stage below is positioned against
   // that box — the wave and everything the frame loop paints on it would have
   // risen a pixel the moment a border appeared. 63 with two borders is the
-  // same 61px of pane as 62 with one, so nothing inside moves. The 64s in
-  // App.scss and Euphoria.scss went to 65 for the same reason.
+  // same 61px of pane as 62 with one, so nothing inside moves. In the
+  // titlebar the height is the root's `--title-bar-meter` (App.scss).
   height: 63px;
   padding: 0;
   // No box at all: no rim, no glow, no fill. The wave is drawn straight on
@@ -63,10 +63,12 @@ it under the terms of the GNU General Public License version 3 or later.
   // came back the next day, the app's own (Ivan, 2026-09-26: "add our border
   // radius to the top wave wrapper too"): the drawing is clipped to them
   // (`__stage`), and the focus ring follows them. And that evening a subtle
-  // edge came back too (Ivan: "add subtle border on the top wave too"): the
-  // window's own hairline, the faintest edge any box in the window has, so the
-  // wave reads as held in a frame without a rim to look at. Still no fill.
-  border: 1px solid $border-subtle;
+  // edge came back too (Ivan: "add subtle border on the top wave too"), and
+  // it is the cards' own (`$card-edge`): the pane a hair toward the edge tint,
+  // opaque (2026-09-27: "to the top wave border color add border color that
+  // is same as card bg color"). The window's hairline it was drew a light
+  // outline once the hairlines were solved to read. Still no fill.
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   background: transparent;
   overflow: visible;

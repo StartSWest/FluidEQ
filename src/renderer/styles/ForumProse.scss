@@ -128,7 +128,7 @@ it under the terms of the GNU General Public License version 3 or later.
   pre {
     padding: 10px 12px;
     overflow-x: auto;
-    border: 1px solid $border-subtle;
+    border: 1px solid $card-edge;
     border-radius: $radius-s;
     background: color-mix(in srgb, $black 28%, transparent);
     font-family: $font-mono;
@@ -183,7 +183,7 @@ it under the terms of the GNU General Public License version 3 or later.
   th,
   td {
     padding: 5px 10px;
-    border: 1px solid $border-subtle;
+    border: 1px solid $card-edge;
   }
 
   th {
@@ -194,7 +194,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   details {
     padding: 6px 10px;
-    border: 1px solid $border-subtle;
+    border: 1px solid $card-edge;
     border-radius: $radius-s;
 
     > summary {

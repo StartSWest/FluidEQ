@@ -9,7 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import type { CSSProperties } from 'react';
 import TintIcon from '../icons/TintIcon';
 import { useTranslation } from '../utils/I18nContext';
-import { sceneTintSwatch } from '../utils/sceneTint';
+import { sceneAccentSwatch } from '../utils/sceneTint';
 import {
   SCENE_TINT_MODE_NAMES,
   SCENE_TINT_MODES,
@@ -47,7 +47,7 @@ const SceneTintToggle = () => {
   });
   const swatch =
     mode !== 'off' && sky
-      ? ({ '--scene-tint-swatch': sceneTintSwatch(sky) } as CSSProperties)
+      ? ({ '--scene-tint-swatch': sceneAccentSwatch(sky) } as CSSProperties)
       : undefined;
   return (
     <button

@@ -13,7 +13,9 @@ import {
   heatStep,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneMusic,
   type ISceneSpan,
+  type ISceneStand,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -40,13 +42,16 @@ import {
  * Glow how bright the ghosts burn.
  */
 
-/** A bar never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 4;
+/**
+ * A bar never on a pitch smaller than this, in CSS pixels. Exported with the
+ * functions below for the look's GPU painting (`engineLooks/glitchBarsLook.ts`).
+ */
+export const MIN_PITCH = 4;
 /** How long a torn strip stays torn, and how many a beat tears. */
 const TEAR_MS = 170;
 const TEARS_PER_BEAT = 3;
 
-interface ITear {
+export interface ITear {
   /** Where the strip is, as shares of the band, and how far it is pushed. */
   from: number;
   depth: number;
@@ -85,6 +90,47 @@ const scanlinePattern = (
   return context.createPattern(tile, 'repeat');
 };
 
+/** Where one copy's row stands: its floor, which way up, how far a bar reaches. */
+export const glitchStand = (band: IAnalysisBand): ISceneStand => ({
+  floor: band.flipped ? band.top : band.bottom,
+  up: band.flipped ? 1 : -1,
+  reach: (band.bottom - band.top) * 0.9,
+});
+
+/** How far the ghosts split, wider on the kick and shivering with the treble. */
+export const glitchSplit = (music: Pick<ISceneMusic, 'pulse' | 'treble'>) =>
+  1.5 + music.pulse * 7 + music.treble * 2.5;
+
+/** How bright the ghosts burn. */
+export const ghostLight = (glow: number): number => 0.5 + glow * 0.35;
+
+/** The signal's own ghost colours, the cyan one to the left. */
+export const GHOST_LEFT: readonly [number, number, number] = [0, 240, 255];
+export const GHOST_RIGHT: readonly [number, number, number] = [255, 0, 200];
+
+/** A beat tears a few strips; a tear lasts a moment and heals. */
+export const tearSignal = (
+  state: IGlitchBarsState,
+  music: Pick<ISceneMusic, 'onBeat' | 'bass'>,
+  deltaMs: number,
+): void => {
+  if (music.onBeat) {
+    for (let tear = 0; tear < TEARS_PER_BEAT; tear += 1) {
+      state.seed += 1;
+      state.tears.push({
+        from: hash01(state.seed * 1.9) * 0.9,
+        depth: 0.015 + 0.06 * hash01(state.seed * 3.3),
+        shift: (hash01(state.seed * 5.1) - 0.5) * 60 * (0.4 + music.bass),
+        age: 0,
+      });
+    }
+  }
+  state.tears = state.tears.filter((tear) => {
+    tear.age += deltaMs;
+    return tear.age < TEAR_MS;
+  });
+};
+
 const drawCopy = (
   frame: ISceneFrame,
   band: IAnalysisBand,
@@ -94,9 +140,7 @@ const drawCopy = (
   const { context, plot, colours, music, look } = frame;
   const { row } = state;
   const depth = band.bottom - band.top;
-  const up = band.flipped ? 1 : -1;
-  const floor = band.flipped ? band.top : band.bottom;
-  const reach = depth * 0.9;
+  const { floor, up, reach } = glitchStand(band);
   const span: ISceneSpan = {
     left: plot.left,
     right: plot.right,
@@ -128,8 +172,8 @@ const drawCopy = (
     }
   }
   const whole = figureInk(context, frame, span, 1);
-  const split = 1.5 + music.pulse * 7 + music.treble * 2.5;
-  const ghost = 0.5 + frame.glow * 0.35;
+  const split = glitchSplit(music);
+  const ghost = ghostLight(frame.glow);
 
   /** The whole picture once, pushed `shift` pixels sideways. */
   const paint = (shift: number) => {
@@ -150,10 +194,12 @@ const drawCopy = (
       }
       context.restore();
     };
-    drawGhost(-split, 'rgb(0, 240, 255)', all);
-    drawGhost(split, 'rgb(255, 0, 200)', all);
-    drawGhost(-split, 'rgb(0, 240, 255)', caps);
-    drawGhost(split, 'rgb(255, 0, 200)', caps);
+    const left = `rgb(${GHOST_LEFT.join(', ')})`;
+    const right = `rgb(${GHOST_RIGHT.join(', ')})`;
+    drawGhost(-split, left, all);
+    drawGhost(split, right, all);
+    drawGhost(-split, left, caps);
+    drawGhost(split, right, caps);
     context.globalCompositeOperation = 'source-over';
     context.globalAlpha = look.opacity;
     bars.forEach((path, group) => {
@@ -204,22 +250,7 @@ export const drawGlitchBars = (
   }
   const row = layPieces(frame, state.row, MIN_PITCH);
   const falling = holdPeaks(state.peaks, row.levels, row.count, frame.deltaMs);
-  // A beat tears a few strips; a tear lasts a moment and heals.
-  if (music.onBeat) {
-    for (let tear = 0; tear < TEARS_PER_BEAT; tear += 1) {
-      state.seed += 1;
-      state.tears.push({
-        from: hash01(state.seed * 1.9) * 0.9,
-        depth: 0.015 + 0.06 * hash01(state.seed * 3.3),
-        shift: (hash01(state.seed * 5.1) - 0.5) * 60 * (0.4 + music.bass),
-        age: 0,
-      });
-    }
-  }
-  state.tears = state.tears.filter((tear) => {
-    tear.age += frame.deltaMs;
-    return tear.age < TEAR_MS;
-  });
+  tearSignal(state, music, frame.deltaMs);
   const body = frame.look.textured ? new Path2D() : undefined;
   frame.bands.forEach((band) => drawCopy(frame, band, state, body));
   return {

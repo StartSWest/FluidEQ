@@ -386,15 +386,9 @@ export default function PlusGifts() {
                       <span className="plus-gifts__confirm">
                         {t('plus.gifts.confirmTakeBack', { email: gift.email })}
                       </span>
-                      <button
-                        type="button"
-                        className={`button small plus-gifts__take-back${isTakingBack ? ' is-running' : ''}`}
-                        disabled={isTakingBack}
-                        aria-busy={isTakingBack}
-                        onClick={() => takeBack(gift)}
-                      >
-                        {t('plus.gifts.takeBack')}
-                      </button>
+                      {/* Keep first and quiet, the answer that takes the
+                          gift away last and red: the order and the colour
+                          every confirmation in the app now keeps. */}
                       <button
                         type="button"
                         className="button small subtle"
@@ -402,6 +396,15 @@ export default function PlusGifts() {
                         onClick={() => setConfirming(undefined)}
                       >
                         {t('plus.gifts.keep')}
+                      </button>
+                      <button
+                        type="button"
+                        className={`button small danger plus-gifts__take-back${isTakingBack ? ' is-running' : ''}`}
+                        disabled={isTakingBack}
+                        aria-busy={isTakingBack}
+                        onClick={() => takeBack(gift)}
+                      >
+                        {t('plus.gifts.takeBack')}
                       </button>
                     </>
                   ) : (

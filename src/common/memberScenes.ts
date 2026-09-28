@@ -6,6 +6,7 @@ import {
   type TMemberRuleCode,
 } from './memberSceneRules';
 import { normalizeSceneArtwork } from './sceneArtwork';
+import { declaresSceneDaylight } from './sceneDaylight';
 import {
   MAX_PACK_BYTES,
   MAX_PARAM_MAGNITUDE,
@@ -169,6 +170,8 @@ export type TMemberProblemCode =
   | 'bad-artwork'
   | 'bad-param'
   | 'too-many-params'
+  // No control answering to the time of day (`sceneDaylight.ts`).
+  | 'no-daylight'
   | 'bad-ambient'
   // The 3D world (`sceneWorld.ts`) left nothing to draw, a model in it is not
   // one the engine reads (`worldModelCheck.ts`), or its models together are
@@ -292,15 +295,22 @@ export const checkWorldHooks = (world: unknown): IMemberRuleViolation[] => {
  * name is a uniform never declared, so the scene failed on a compiler line
  * about `uParam_` that points at nothing in `pack.json`; one the shader did
  * not use simply never appeared as a slider. The Studio names it instead.
+ *
+ * Every scene the Studio builds answers to the time of day, so one with no
+ * Daylight control is named too (`sceneDaylight.ts`): the window's Brightness
+ * would move nothing in it. A scene already out in the world is never
+ * refused for lacking one.
  */
 export const checkProjectParams = (value: unknown): TMemberProblemCode[] => {
   if (value === undefined) {
-    return [];
+    return ['no-daylight'];
   }
   if (!Array.isArray(value)) {
     return ['bad-param'];
   }
-  const problems: TMemberProblemCode[] = [];
+  const problems: TMemberProblemCode[] = declaresSceneDaylight(value)
+    ? []
+    : ['no-daylight'];
   const ids = value.map((entry: unknown) =>
     isRecord(entry) ? entry.id : undefined,
   );

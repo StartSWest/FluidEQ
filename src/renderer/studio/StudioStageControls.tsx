@@ -4,65 +4,47 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
-import type { TStudioSize } from './StudioStage';
 import { setStudioGridShown, useStudioGridShown } from './studioPaper';
-import { SIZE_ICONS } from './studioTestIcons';
-
-const SIZES: readonly TStudioSize[] = ['graph', 'narrow', 'wide', 'full'];
+import { FULLSCREEN_ICON } from './studioTestIcons';
 
 interface IStudioStageControlsProps {
-  size: TStudioSize;
-  onSize: (size: TStudioSize) => void;
+  isFullscreen: boolean;
+  onFullscreen: () => void;
 }
 
 /**
- * The stage's own controls, on the stage: the size it is tried at and the
- * graph's grid over it (layout A, Ivan 2026-09-27). They were rows in the
- * side column, a scroll away from the picture they change.
+ * The stage's own controls, on the stage: full screen and the graph's grid
+ * over it (layout A, Ivan 2026-09-27). They were rows in the side column, a
+ * scroll away from the picture they change.
  *
  * They stand on the stage's plate beside the reading of how the scene keeps
- * up (`StudioStage`: "join all into one with runs smoothly"), so they stay
- * as the reading always has, and take as little of the picture as they can:
- * the chosen size says its name and the others show their drawing, the grid
- * its drawing alone. Every name is still the button's accessible name and
- * its tooltip. The drawings are only drawn on a stage that plays, so nothing
- * here waits for a scene.
+ * up (`StudioStage`: "join all into one with runs smoothly"), as drawings
+ * alone, taking as little of the picture as they can; each name is still the
+ * button's accessible name and its tooltip. The stage is tried at the graph's
+ * own shape: the Graph, Narrow and Wide sizes that stood here went (Ivan,
+ * 2026-09-27: "remove these option from studop no neede").
  */
 export default function StudioStageControls({
-  size,
-  onSize,
+  isFullscreen,
+  onFullscreen,
 }: IStudioStageControlsProps) {
   const { t } = useTranslation();
   const isGridShown = useStudioGridShown();
-  const sizeName = (entry: TStudioSize) =>
-    t(`studio.size.${entry}` as TranslationKey);
+  const fullName = t('studio.size.full');
   const gridName = t('studio.grid.label');
   return (
     <div className="studio-stage-controls">
-      <div
-        className="studio-stage-controls__group"
-        role="group"
-        aria-label={t('studio.size.title')}
+      <button
+        type="button"
+        className="studio-stage-controls__button"
+        aria-pressed={isFullscreen}
+        aria-label={fullName}
+        title={fullName}
+        onClick={onFullscreen}
       >
-        {SIZES.map((entry) => (
-          <button
-            key={entry}
-            type="button"
-            className="studio-stage-controls__button"
-            aria-pressed={size === entry}
-            aria-label={sizeName(entry)}
-            title={sizeName(entry)}
-            onClick={() => onSize(entry)}
-          >
-            {SIZE_ICONS[entry]}
-            <span className="studio-stage-controls__word" aria-hidden="true">
-              {sizeName(entry)}
-            </span>
-          </button>
-        ))}
-      </div>
+        {FULLSCREEN_ICON}
+      </button>
       <button
         type="button"
         className="studio-stage-controls__button studio-stage-controls__grid"

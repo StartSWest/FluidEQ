@@ -250,6 +250,11 @@ const app: Partial<Dictionary> = {
     'Equalizer APO इंस्टॉल या फिर से सेट हुआ है। अगर आवाज़ न आए तो पूरा PC नहीं, सिर्फ़ Windows ऑडियो फिर से चालू करें।',
   'notice.restartNow': 'ऑडियो अभी फिर चालू करें',
   'notice.importComplete': 'आयात पूरा हुआ',
+  'notice.apoReconfiguredTitle': 'Equalizer APO बदल गया',
+  'notice.captureFailed': 'लाइव आउटपुट शुरू नहीं हो सका',
+  'notice.captureFailedBody':
+    'लेवल मीटर और ग्राफ़ पर लाइव कर्व अभी बंद हैं। बाकी सब सामान्य रूप से काम करता है।',
+  'notice.tryAgain': 'फिर से कोशिश करें',
   'notice.restartConfirm':
     'कुछ सेकंड के लिए आवाज़ रुकेगी और Windows एडमिन अनुमति माँगेगा। जारी रखें?',
   'restart.title': 'Windows ऑडियो फिर से चालू करें',

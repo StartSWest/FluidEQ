@@ -103,7 +103,34 @@ export interface IBand {
   alpha: number;
 }
 
-export const createCitySkylinePaths = (
+/**
+ * How each part of the city is painted — its colour, how solid — by the
+ * page's canvas and the engine's skyline alike.
+ */
+export const CITY_INKS = {
+  star: '#fff',
+  moon: { colour: CITY_MOON, alpha: 0.96 },
+  crater: { colour: '#7d7a8c', alpha: 0.22 },
+  /** The haze's colour, and how solid it is at the foot of the block. */
+  haze: { rgb: [255, 196, 120] as const, alpha: 0.22 },
+  dim: { colour: '#000', alpha: 0.35 },
+  lit: CITY_WINDOW,
+  beacon: { colour: CITY_BEACON, alpha: 0.9 },
+};
+
+/** One tower's windows: its middle, and each floor's lit panes as bits. */
+export interface ICityTower {
+  x: number;
+  floors: number[];
+}
+
+/**
+ * The city as it stands this frame, in numbers: the moon and its craters,
+ * the stars, every tower's windows, the beacons and the haze. What the
+ * page's canvas and the engine's skyline
+ * (`engineLooks/designed/skylineLook.ts`) both draw from.
+ */
+export const citySkylineLayout = (
   state: CitySkyline,
   columns: readonly Projected[],
   top: number,
@@ -125,34 +152,33 @@ export const createCitySkylinePaths = (
 
   // The moon, sized from the true plot depth so the height slider neither
   // grows nor shrinks it, and clear of the tallest tower.
-  const moonX = left + span * 0.78;
-  const moonY = frame.top + skyDepth * 0.18;
-  const moonRadius = Math.min(sizeHeight * 0.052, frameWidth * 0.026);
-  const craters = new Path2D();
-  [
+  const moon = {
+    x: left + span * 0.78,
+    y: frame.top + skyDepth * 0.18,
+    r: Math.min(sizeHeight * 0.052, frameWidth * 0.026),
+  };
+  const craters = [
     [-0.32, -0.22, 0.2],
     [0.28, 0.26, 0.15],
     [0.22, -0.42, 0.11],
-  ].forEach(([ox, oy, s]) => {
-    const cx = moonX + ox * moonRadius;
-    const cy = moonY + oy * moonRadius;
-    craters.moveTo(cx + s * moonRadius, cy);
-    craters.arc(cx, cy, s * moonRadius, 0, Math.PI * 2);
-  });
+  ].map(([ox, oy, s]) => ({
+    x: moon.x + ox * moon.r,
+    y: moon.y + oy * moon.r,
+    r: s * moon.r,
+  }));
 
   // Stars: the bright band twinkles with the treble, the faint one holds
   // the sky still.
-  const stars: IBand[] = [
-    { path: new Path2D(), alpha: 0.4 + state.treble * 0.5 },
-    { path: new Path2D(), alpha: 0.2 },
-  ];
+  const stars: { x: number; y: number; r: number; bright: boolean }[] = [];
   for (let i = 0; i < STARS; i += 1) {
-    const sx = frame.left + noise(i * 2 + 1) * frameWidth;
-    const sy = frame.top + noise(i * 2 + 2) * skyDepth * 0.8;
     const bright = noise(i * 7 + 3) > 0.72;
     const wink = bright ? 0.5 + 0.5 * Math.sin(seconds * 3 + i) : 1;
-    const r = size * (bright ? 0.9 : 0.55) * wink;
-    stars[bright ? 0 : 1].path.rect(sx - r, sy - r, r * 2, r * 2);
+    stars.push({
+      x: frame.left + noise(i * 2 + 1) * frameWidth,
+      y: frame.top + noise(i * 2 + 2) * skyDepth * 0.8,
+      r: size * (bright ? 0.9 : 0.55) * wink,
+      bright,
+    });
   }
 
   /**
@@ -168,27 +194,27 @@ export const createCitySkylinePaths = (
   const pane = Math.max(1.2, width * 0.15);
   const across = Math.max(1, Math.floor(width / (pane * 2.1)));
   const pitch = pane * 2.5;
-  const lit = new Path2D();
-  const dim = new Path2D();
+  const insetX = (width - (across * pane * 2 - pane)) / 2;
   const shift = Math.floor(seconds / WINDOW_SHIFT);
   const wake = state.thump * 0.25;
-  columns.forEach(([x, y], index) => {
+  const towers: ICityTower[] = columns.map(([x, y], index) => {
     const height = bottom - y;
     if (height < pitch * 1.6) {
-      return;
+      return { x, floors: [] };
     }
-    const floors = Math.floor((height - pane) / pitch);
-    const insetX = (width - (across * pane * 2 - pane)) / 2;
-    for (let floor = 0; floor < floors; floor += 1) {
-      const row = bottom - (floor + 1) * pitch;
+    const floors: number[] = [];
+    const count = Math.floor((height - pane) / pitch);
+    for (let floor = 0; floor < count; floor += 1) {
+      let lit = 0;
       for (let column = 0; column < across; column += 1) {
-        const wx = x - width / 2 + insetX + column * pane * 2;
         const seed = index * 977 + floor * 61 + column * 13;
-        const roll = noise(seed + shift * 7);
-        const target = roll < 0.34 + wake ? lit : dim;
-        target.rect(wx, row, pane, pane * 1.35);
+        if (noise(seed + shift * 7) < 0.34 + wake) {
+          lit += 2 ** column;
+        }
       }
+      floors.push(lit);
     }
+    return { x, floors };
   });
 
   /**
@@ -199,7 +225,7 @@ export const createCitySkylinePaths = (
    * threshold, same length — so a beacon never floats over a flat roof.
    * See the skyline piece builder.
    */
-  const beacons = new Path2D();
+  const beacons: { x: number; y: number; r: number }[] = [];
   columns.forEach(([x, y], index) => {
     const height = bottom - y;
     if (noise(index * 41 + 7) <= 0.72 || height <= depth * 0.35) {
@@ -210,9 +236,80 @@ export const createCitySkylinePaths = (
       return;
     }
     const r = size * 1.5;
-    const mastY = y - Math.max(4, width * 0.55) - r;
-    beacons.moveTo(x + r, mastY);
-    beacons.arc(x, mastY, r, 0, Math.PI * 2);
+    beacons.push({ x, y: y - Math.max(4, width * 0.55) - r, r });
+  });
+
+  return {
+    moon,
+    craters,
+    stars,
+    starAlphas: [0.4 + state.treble * 0.5, 0.2] as const,
+    /** The moon's halo breathes with the bass. */
+    haloAlpha: 0.4 + state.bass * 0.5,
+    windows: { width, pane, across, pitch, insetX, towers },
+    litAlpha: 0.75 + state.thump * 0.25,
+    beacons,
+    /** How far the city's glow reaches up from the foot of the block. */
+    hazeHeight: depth * (0.06 + state.bass * 0.1),
+    hazeAlpha: 0.35 + state.bass * 0.5,
+    bass: state.bass,
+    thump: state.thump,
+  };
+};
+
+export type CitySkylineLayout = ReturnType<typeof citySkylineLayout>;
+
+export const createCitySkylinePaths = (
+  state: CitySkyline,
+  columns: readonly Projected[],
+  top: number,
+  bottom: number,
+  seconds: number,
+  sizeHeight: number,
+  gap: number,
+  frame: ISkyFrame,
+) => {
+  const layout = citySkylineLayout(
+    state,
+    columns,
+    top,
+    bottom,
+    seconds,
+    sizeHeight,
+    gap,
+    frame,
+  );
+  const craters = new Path2D();
+  layout.craters.forEach(({ x, y, r }) => {
+    craters.moveTo(x + r, y);
+    craters.arc(x, y, r, 0, Math.PI * 2);
+  });
+  const stars: IBand[] = layout.starAlphas.map((alpha) => ({
+    path: new Path2D(),
+    alpha,
+  }));
+  layout.stars.forEach(({ x, y, r, bright }) => {
+    stars[bright ? 0 : 1].path.rect(x - r, y - r, r * 2, r * 2);
+  });
+
+  const { width, pane, across, pitch, insetX } = layout.windows;
+  const lit = new Path2D();
+  const dim = new Path2D();
+  layout.windows.towers.forEach(({ x, floors }) => {
+    floors.forEach((mask, floor) => {
+      const row = bottom - (floor + 1) * pitch;
+      for (let column = 0; column < across; column += 1) {
+        const wx = x - width / 2 + insetX + column * pane * 2;
+        const target = Math.floor(mask / 2 ** column) % 2 === 1 ? lit : dim;
+        target.rect(wx, row, pane, pane * 1.35);
+      }
+    });
+  });
+
+  const beacons = new Path2D();
+  layout.beacons.forEach(({ x, y, r }) => {
+    beacons.moveTo(x + r, y);
+    beacons.arc(x, y, r, 0, Math.PI * 2);
   });
 
   return {
@@ -221,13 +318,13 @@ export const createCitySkylinePaths = (
     lit,
     dim,
     beacons,
-    moonX,
-    moonY,
-    moonRadius,
-    /** How far the city's glow reaches up from the foot of the block. */
-    hazeHeight: depth * (0.06 + state.bass * 0.1),
-    bass: state.bass,
-    thump: state.thump,
+    moonX: layout.moon.x,
+    moonY: layout.moon.y,
+    moonRadius: layout.moon.r,
+    hazeHeight: layout.hazeHeight,
+    bass: layout.bass,
+    thump: layout.thump,
+    layout,
   };
 };
 

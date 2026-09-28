@@ -140,6 +140,9 @@ const PATHS: Record<string, string> = {
   queueAdd: 'M4 7h9M4 12h9M4 17h6M16 8.5l5 3.5-5 3.5V8.5z',
   // Chevron pointing back: the menu's second page returning to its first.
   back: 'M14.5 6L8.5 12l6 6',
+  // `back` turned round: an answer that moves on (Room fit's pairs). Not
+  // `next`, whose bar makes it a transport's skip.
+  forward: 'M9.5 6l6 6-6 6',
   play: 'M9 6l8 6-8 6V6z',
   pause: 'M9 6v12M15 6v12',
   volume: 'M5 10v4h3l4 3V7l-4 3H5M15 9a4 4 0 0 1 0 6',
@@ -175,6 +178,33 @@ const PATHS: Record<string, string> = {
   viewList: 'M4 7h2M9 7h11M4 12h2M9 12h11M4 17h2M9 17h11',
   viewGrid: 'M5 5h5v5H5zM14 5h5v5h-5zM5 14h5v5H5zM14 14h5v5h-5z',
   viewCoverFlow: 'M9.5 6.5h5v11h-5zM6.5 8.5v7M17.5 8.5v7',
+  // The dialogs' own glyphs (2026-09-27): each dialog's rail shows the one its
+  // subject is recognised by, drawn in the same language as the rows above.
+  // A shield with a tick: terms, warranty, anything agreed to.
+  shield:
+    'M12 3.5l7 2.8V12c0 4.3-2.9 7.3-7 8.5-4.1-1.2-7-4.2-7-8.5V6.3l7-2.8zM9 12l2 2 4-4',
+  // A disk with its label and shutter: keep this as a named thing.
+  save: 'M5 4.5h11l3 3V19a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 19V4.5zM8 4.5v4.5h7V4.5M8 19.5v-6h8v6',
+  // A screen on its stand: the desktop.
+  monitor: 'M3.5 5h17v11h-17zM9 20h6M12 16v4',
+  // A camera body with its lens: frame a photo.
+  camera:
+    'M4 8h3.5l1.5-2.5h6L16.5 8H20v10.5H4zM12 10.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+  // An arrow rising out of a tray: send it up, publish it.
+  upload:
+    'M12 15V5m0 0L8.5 8.5M12 5l3.5 3.5M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3',
+  // A door with an arrow leaving it: sign out.
+  logout: 'M10 4.5H6a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h4M14.5 8l4 4-4 4M18.5 12H9',
+  // A triangle with a bar and a dot: something is wrong.
+  alert: 'M12 4.5l8.5 15h-17L12 4.5zM12 10v4.5M12 17h0',
+  // A frame with a hill and a sun: a picture.
+  image: 'M4 5h16v14H4zM4 16l4.5-4.5 3.5 3.5 2.5-2.5L20 17.5M15.5 8.5h0',
+  // A tick: done, agreed.
+  check: 'M5 12.5l4.5 4.5L19 7.5',
+  // A padlock: held until something is done.
+  lock: 'M6.5 10.5h11v9h-11zM8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5',
+  // A pencil: change what this is called.
+  pencil: 'M15.5 5l3.5 3.5L9 18.5l-4 1 1-4L15.5 5zM13.5 7l3.5 3.5',
 };
 
 export type MenuIconName = keyof typeof PATHS;

@@ -45,6 +45,12 @@ $switch-inset: 4px;
   height: min-content;
 }
 
+// NEON (Ivan, 2026-09-27, picked from "as it is", "deep" and "neon": "and the
+// neon toggles?"). The toggles were a pale cyan pill with a white knob, the
+// lightest thing on a panel ("all toggles def not good, too light"), and now
+// they are the knob's material: a dark track, and on, a lit knob in the
+// accent's light with the track's edge lit round it — the same neon the dials
+// carry, so a toggle and a knob beside it read as one family.
 .switch-label {
   position: relative;
   display: flex;
@@ -52,24 +58,20 @@ $switch-inset: 4px;
   height: var(--switch-height);
   align-items: center;
   justify-content: space-between;
-  // The edge every control the hand acts on wears; a fixed 14% of the edge
-  // tint measured 1.33:1 on the EQ page at 100% (2026-09-27).
-  border: 1px solid $border-field;
+  border: 1px solid $border-subtle;
   border-radius: $radius-pill;
   // Off is the empty-track colour — see `$track-well`, the same one the
   // meters show with no signal, so an unlit toggle and an unlit meter are
   // the same material.
-  //
-  // Flat, like the buttons beside it (Ivan, 2026-09-27: "make buttons flat"):
-  // the track was sunk with an inner shadow and the knob floated on a drop
-  // shadow of its own, a bevelled toy among flat controls.
   background: $track-well;
   box-shadow: none;
   cursor: pointer;
   transition:
     background 200ms ease,
-    border-color 200ms ease;
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 
+  // Off: an unlit knob, grey glass.
   .switch-button {
     position: absolute;
     top: var(--switch-inset);
@@ -77,7 +79,7 @@ $switch-inset: 4px;
     width: var(--switch-thumb);
     height: var(--switch-thumb);
     border-radius: 50%;
-    background: rgba($edge-tint, 0.88);
+    background: color-mix(in srgb, $edge-tint 48%, transparent);
     box-shadow: none;
     transition:
       left 200ms ease,
@@ -98,33 +100,46 @@ $switch-inset: 4px;
     @include focus-ring;
   }
 
-  // On is the filled button's own fill (`--control-fill`): the accent, flat,
-  // and the icon's span only in Rainbow mode. No halo round the track.
+  // On: the knob lit — a white core, the accent's light round it, the
+  // accent at its rim, glowing — on the track tinted a sixth toward the
+  // accent, its edge lit.
   &:checked + .switch-label {
-    border-color: color-mix(in srgb, $secondary-light 44%, transparent);
-    background: $secondary-default var(--control-fill) border-box;
-    box-shadow: none;
+    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
+    background: color-mix(in oklab, $secondary-default 16%, $track-well);
+    box-shadow: 0 0 7px color-mix(in srgb, $secondary-default 30%, transparent);
 
     .switch-button {
       left: calc(100% - var(--switch-thumb) - var(--switch-inset));
-      background: $text-primary;
+      background: radial-gradient(
+        circle,
+        $white 0 22%,
+        $secondary-light 48%,
+        $secondary-default 100%
+      );
+      box-shadow: 0 0 6px
+        color-mix(in srgb, $secondary-default 70%, transparent);
     }
   }
 
-  // Under the pointer the knob takes a crisp ring, not a blurred shadow.
-  &:not(:disabled) + .switch-label {
-    &:hover .switch-button {
-      box-shadow: 0 0 0 1px rgba($black, 0.36);
-    }
-
-    &:active .switch-button {
-      background: $secondary-light;
-      box-shadow: 0 0 0 1px rgba($black, 0.36);
-    }
+  // Under the pointer the light comes up: an unlit knob brightens, a lit one
+  // glows more.
+  &:not(:disabled) + .switch-label:hover .switch-button {
+    background: color-mix(in srgb, $edge-tint 70%, transparent);
   }
 
-  &:checked:not(:disabled) + .switch-label:active .switch-button {
-    background: $secondary-darker;
+  &:checked:not(:disabled) + .switch-label:hover {
+    border-color: $secondary-default;
+
+    .switch-button {
+      background: radial-gradient(
+        circle,
+        $white 0 22%,
+        $secondary-light 48%,
+        $secondary-default 100%
+      );
+      box-shadow: 0 0 9px
+        color-mix(in srgb, $secondary-default 85%, transparent);
+    }
   }
 
   &:disabled + .switch-label {
@@ -135,7 +150,7 @@ $switch-inset: 4px;
     opacity: 0.6;
 
     .switch-button {
-      background: rgba($edge-tint, 0.6);
+      background: color-mix(in srgb, $edge-tint 40%, transparent);
       box-shadow: none;
     }
   }

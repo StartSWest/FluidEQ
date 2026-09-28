@@ -36,6 +36,9 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.saveNew': 'Design speichern…',
   'eq.layouts.error':
     'Ihre Designs konnten nicht aktualisiert werden. Versuchen Sie es erneut.',
+  'eq.sliders': 'EQ-Schieberegler',
+  'eq.sliders.round': 'Rund',
+  'eq.sliders.rect': 'Rechteckig',
   'eq.layouts.clearTitle': 'EQ leeren?',
   'eq.layouts.clearWarning':
     'Jede Bandverstärkung und die Regler Bass, Mitten und Höhen auf 0 dB setzen. Aktuelle Bandanzahl, Frequenzen, Q, Sperren, EQ-Modus und Vorverstärkung bleiben erhalten.',
@@ -314,6 +317,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.fallblocks': 'Fallende Blöcke',
   'graph.styleName.fibers': 'Glasfaser',
   'graph.styleName.afterglow': 'Nachleuchten',
+  'graph.styleName.horizon': 'Horizont',
   'graph.styleName.line': 'Linie',
   'graph.styleName.area': 'Fläche',
   'graph.styleName.bars': 'Balken',

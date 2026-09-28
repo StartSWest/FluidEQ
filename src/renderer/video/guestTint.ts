@@ -40,8 +40,8 @@ import type { IGuestPaint, TGuestGrey, TGuestKeep } from './guestTintProbe';
  * that stands it above the site's own page: YouTube's page is #0f0f0f and its
  * cards #212121, 7.5% of the way to white, so its cards become the ground with
  * 7.5% of the lift. The lift is white unless the caller gives one; the Media
- * page gives white with a little of the accent in it, so the site's cards
- * carry the hue the app's own cards do rather than lifting to grey
+ * page gives the edge tint, the step every control and chosen row in the
+ * window lifts by, so the site's cards step up in the card's own hue
  * (`useGuestTint`). The site keeps the steps it had between page, card and
  * menu, and takes the interface's colours.
  * Pure black and anything darker than the page is left alone: that is where a
@@ -260,19 +260,34 @@ const PAGE_WASH = 0.35;
 const BAR_OPACITY = 92;
 
 /**
- * The interface's two outlines, as shares of the lift over whatever is behind
- * them: a field's edge (`$border-field`, the light accent at 13%) and a card's
- * (`$border-subtle`, a cool white at 9%). The lift is white with a fifth of
- * the accent in it, which is what both of those are.
+ * The interface's two outlines as the window paints them: a control's edge
+ * (`$border-control`) for a site's field and the card's (`$card-edge`) for a
+ * site's frame, so YouTube's search box is the same control as the Media
+ * bar's beside it and its playlist's frame the same card (Ivan, 2026-09-27:
+ * "once we fix this one all go same"). They were shares of the lift, 13% and
+ * 9%, from before either edge was the window's own. Given none, a site keeps
+ * its own outlines.
  */
-const EDGE_SHARE: Readonly<Record<TGuestEdge, number>> = { field: 13, card: 9 };
+export type TGuestEdges = Readonly<Record<TGuestEdge, string>>;
+
+/** What the window hands a site besides its ground. */
+export interface IGuestInk {
+  /** What the site's steps are lifted toward: white when not given. */
+  readonly lift?: string;
+  readonly edges?: TGuestEdges;
+}
 
 /** A site's own outlines in the interface's, over colour and glass alike. */
-const edgeRules = (site: IGuestTintSite, lift: string): string[] =>
-  (site.edges ?? []).map(
-    ([selector, edge]) =>
-      `${selector} {\n  border-color: color-mix(in srgb, ${lift} ${EDGE_SHARE[edge]}%, transparent) !important;\n}`,
-  );
+const edgeRules = (
+  site: IGuestTintSite,
+  edges: TGuestEdges | undefined,
+): string[] =>
+  edges === undefined
+    ? []
+    : (site.edges ?? []).map(
+        ([selector, edge]) =>
+          `${selector} {\n  border-color: ${edges[edge]} !important;\n}`,
+      );
 
 /** A selector for the page's root element itself, with nothing below it. */
 const ROOT_SELECTOR = /^html(?:\[[^\]]*\]|:[\w-]+\([^)]*\))*$/;
@@ -330,7 +345,7 @@ export const buildGuestGlassCss = (
   siteId: string | undefined,
   ground: string,
   known: IGuestTintKnowledge,
-  lift = WHITE,
+  { lift = WHITE, edges }: IGuestInk = {},
 ): string | undefined => {
   const site = siteId ? GUEST_TINT_SITES[siteId] : undefined;
   if (!site || !HEX.test(ground)) {
@@ -388,7 +403,7 @@ export const buildGuestGlassCss = (
       `${site.bars.join(',\n')} {\n  background-color: color-mix(in srgb, ${ground} ${BAR_OPACITY}%, transparent) !important;\n}`,
     );
   }
-  rules.push(...edgeRules(site, lift));
+  rules.push(...edgeRules(site, edges));
   return `${rules.join('\n')}\n`;
 };
 
@@ -405,7 +420,7 @@ export const buildGuestTintCss = (
   siteId: string | undefined,
   ground: string,
   known: IGuestTintKnowledge,
-  lift = WHITE,
+  { lift = WHITE, edges }: IGuestInk = {},
 ): string | undefined => {
   const site = siteId ? GUEST_TINT_SITES[siteId] : undefined;
   if (!site || !HEX.test(ground)) {
@@ -437,6 +452,6 @@ export const buildGuestTintCss = (
       `${selector} {\n  background-color: ${shade(ground, mean(r, g, b), page, lift)} !important;\n}`,
     );
   });
-  rules.push(...edgeRules(site, lift));
+  rules.push(...edgeRules(site, edges));
   return `${rules.join('\n')}\n`;
 };

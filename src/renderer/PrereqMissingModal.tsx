@@ -22,6 +22,8 @@ import { BUNDLED_ENGINE, PRODUCT_NAME } from 'common/branding';
 import type { TAudioEngine } from 'common/audioEngine';
 import type { IEngineSetupResult } from 'main/engineSetup';
 import Button from './widgets/Button';
+import CompactFrame from './components/CompactFrame';
+import MenuIcon from './icons/MenuIcon';
 import { useTranslation } from './utils/I18nContext';
 import { startEqualizerApoInstall } from './utils/apoInstall';
 import { useNoticeClaim } from './utils/noticeTurn';
@@ -103,65 +105,66 @@ export default function PrereqMissingModal({
   const installLabel = isApo
     ? t('prereq.install.apo')
     : t('prereq.install.fluid');
+  const engineTitle = isApo ? t('prereq.title.apo') : t('prereq.title.fluid');
 
   return (
-    <aside className="prereq-notice" role="alert">
-      <div className="prereq-notice__copy">
-        {/* Naming an engine before the status answer is in would be a guess
-            that can name the wrong one's repair, so the title waits with the
-            rest of the engine-specific copy below. */}
-        {engine && (
-          <h2>{isApo ? t('prereq.title.apo') : t('prereq.title.fluid')}</h2>
-        )}
-        <p>
-          {errorMsg} {actionMsg}
-        </p>
-        {/* The credit is Equalizer APO's licence obligation and its
-            explanation of what its setup will ask for. Under the FluidEQ
-            Engine neither applies, so only the failure that did happen is
-            shown. */}
-        {engine && (startError || isApo) && (
-          <p className="dependency-credit">
-            {startError ??
-              t('prereq.credit.apo', {
-                product: PRODUCT_NAME,
-                author: BUNDLED_ENGINE.author,
-              })}
-          </p>
-        )}
-      </div>
-      <div className="prereq-notice__actions">
-        {/* Loud, and the only loud one here: installing the missing piece is
-            the way out of this notice. Retry and Dismiss used to wear the same
-            filled accent, which made three equal-looking buttons out of one
-            recommendation and two ways of putting it off. */}
-        {engine && (
+    <CompactFrame
+      className="prereq-notice"
+      // Red where the other notices are amber: until this is answered nothing
+      // FluidEQ does reaches the sound at all.
+      tone="danger"
+      icon={<MenuIcon name="alert" />}
+      // Naming an engine before the status answer is in would be a guess
+      // that can name the wrong one's repair, so until then the failure
+      // itself is the title and the engine-specific copy below waits too.
+      title={engine ? engineTitle : errorMsg}
+      titleId="prereq-notice-title"
+      role="alert"
+      aria-modal={undefined}
+      // The way out of the banner, and its only one besides fixing it: the
+      // corner's own close button rather than a third word in the row.
+      onClose={() => setIsDismissed(true)}
+      closeLabel={t('prereq.dismiss')}
+      actions={
+        <>
           <Button
-            ariaLabel={installLabel}
-            isDisabled={isLoading || isStarting}
-            className="default"
-            handleChange={isApo ? handleInstallApo : handleInstallFluid}
+            ariaLabel={t('prereq.retry')}
+            isDisabled={isLoading}
+            className="small subtle"
+            handleChange={onRetry}
           >
-            {isStarting ? t('prereq.starting') : installLabel}
+            {t('prereq.retry')}
           </Button>
-        )}
-        <Button
-          ariaLabel={t('prereq.retry')}
-          isDisabled={isLoading}
-          className="default subtle"
-          handleChange={onRetry}
-        >
-          {t('prereq.retry')}
-        </Button>
-        <Button
-          ariaLabel={t('prereq.dismiss')}
-          isDisabled={false}
-          className="default subtle"
-          handleChange={() => setIsDismissed(true)}
-        >
-          {t('prereq.dismiss')}
-        </Button>
-      </div>
-    </aside>
+          {/* Loud, and the only loud one here: installing the missing piece
+              is the way out of this notice. Retry and Dismiss used to wear
+              the same filled accent, which made three equal-looking buttons
+              out of one recommendation and two ways of putting it off. */}
+          {engine && (
+            <Button
+              ariaLabel={installLabel}
+              isDisabled={isLoading || isStarting}
+              className="small"
+              handleChange={isApo ? handleInstallApo : handleInstallFluid}
+            >
+              {isStarting ? t('prereq.starting') : installLabel}
+            </Button>
+          )}
+        </>
+      }
+    >
+      <p>{engine ? `${errorMsg} ${actionMsg}` : actionMsg}</p>
+      {/* The credit is Equalizer APO's licence obligation and its explanation
+          of what its setup will ask for. Under the FluidEQ Engine neither
+          applies, so only the failure that did happen is shown. */}
+      {engine && (startError || isApo) && (
+        <p className="dependency-credit">
+          {startError ??
+            t('prereq.credit.apo', {
+              product: PRODUCT_NAME,
+              author: BUNDLED_ENGINE.author,
+            })}
+        </p>
+      )}
+    </CompactFrame>
   );
 }

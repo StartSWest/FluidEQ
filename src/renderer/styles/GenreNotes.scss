@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'dialog' as dialog;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -190,30 +191,32 @@ $notes-ink: $secondary-default;
   }
 }
 
+// The three figures in the full notes, as a row of readings rather than a
+// row of boxes: the value large, what it measures under it. They were wells
+// with an edge each, inside a section inside the dialog's card.
 .genre-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
+  gap: 12px 20px;
 }
 
 .genre-tiles__tile {
   display: grid;
-  gap: 2px;
-  padding: 9px 10px;
-  border: 1px solid $border-panel;
-  border-radius: $radius-s;
-  background: $surface-well;
+  align-content: start;
+  gap: 3px;
 
   b {
     color: $text-primary;
-    font-size: $text-lead;
+    font-size: $text-title;
     font-variant-numeric: tabular-nums;
     font-weight: $weight-bold;
+    line-height: 1.2;
   }
 
   span {
     color: $text-faint;
     font-size: $text-small;
+    line-height: 1.4;
   }
 }
 
@@ -257,104 +260,21 @@ $notes-ink: $secondary-default;
 
 // *** The notes, whole ******************************************************
 
-// The DSP dialogs' own panel, wider for a curve and a table, and scrolling
-// inside itself under a head that stays put.
-.dsp-import.genre-notes {
-  width: min(620px, 100%);
-  gap: 14px;
-  padding: 18px 20px 20px;
+// On the dialog frame: the genre, its line and its sources in the rail, and
+// the notes beside it — wide enough for the curve to read its pins' labels
+// and for the list of whys to keep a line each.
+.dialog-frame.genre-notes {
+  @include dialog.size(940px, 860px);
 }
 
-.genre-notes__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-
-  h2 {
-    margin: 2px 0 0;
-    color: $text-primary;
-    font-size: 1.15rem;
-    font-weight: $weight-bold;
-    line-height: 1.15;
-  }
-}
-
-.genre-notes__eyebrow {
-  color: $secondary-light;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  @include tracking(0.1em);
-  text-transform: uppercase;
-}
-
-.genre-notes__hook {
-  margin: 4px 0 0;
-  color: $secondary-light;
-  font-size: $text-body;
-}
-
-.genre-notes__close {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  flex: none;
-  place-items: center;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: $radius-xs;
-  background: transparent;
-  color: $text-faint;
-  cursor: pointer;
-
-  svg {
-    width: 12px;
-    height: 12px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-width: 1.6;
-  }
-
-  &:hover {
-    border-color: $border-menu;
-    color: $text-primary;
-  }
-
-  &:focus-visible {
-    @include focus-ring;
-  }
-}
-
+// The sections one under another, parted by the frame's hairline; the scroll
+// is the frame's body's.
 .genre-notes__body {
   display: grid;
-  gap: 16px;
-  min-height: 0;
-  margin-right: -8px;
-  padding-right: 8px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.genre-notes__section {
-  display: grid;
-  gap: 8px;
-
-  h3 {
-    margin: 0;
-    color: $secondary-light;
-    font-size: $text-eyebrow;
-    font-weight: $weight-bold;
-    @include tracking(0.1em);
-    text-transform: uppercase;
-  }
+  align-content: start;
 
   p {
     max-width: 64ch;
-    margin: 0;
-    color: $text-muted;
-    font-size: $text-body;
-    line-height: 1.55;
   }
 }
 
@@ -402,18 +322,12 @@ $notes-ink: $secondary-default;
 
   li {
     padding: 3px 10px;
-    border: 1px solid $border-panel;
+    border: 1px solid $card-edge;
     border-radius: $radius-xs;
     background: $surface-field;
     color: $text-muted;
     font-size: $text-small;
   }
-}
-
-.genre-notes__sources {
-  margin: 0;
-  color: $text-dim;
-  font-size: $text-small;
 }
 
 // *** The doors to the notes *************************************************
@@ -551,7 +465,7 @@ $notes-ink: $secondary-default;
 // the hairline, the crisp corner, the soft lift. It had the menus' old teal
 // slab and an edge in the notes' colour.
 .genre-pin-tip {
-  @include floating-surface;
+  @include floating-surface($tooltip-lift);
   position: fixed;
   z-index: 1100;
   display: grid;

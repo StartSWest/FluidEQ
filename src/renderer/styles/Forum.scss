@@ -279,7 +279,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 0 4px 0 10px;
   border: 1px solid $border-field;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: $surface-control;
   transition: $transition-control;
 
   &:focus-within {

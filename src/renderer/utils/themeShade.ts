@@ -14,7 +14,13 @@ import {
   toByte,
   type ILab,
 } from './oklab';
-import { EDGE_CONTRAST, edgeOn, groundOf, inkTokens } from './themeInk';
+import {
+  EDGE_CONTRAST,
+  cardHexOf,
+  edgeOn,
+  groundOf,
+  inkTokens,
+} from './themeInk';
 
 /**
  * The theme as one slider from Black to a lighter Ocean (Ivan, 2026-09-25:
@@ -97,19 +103,18 @@ const liftedTo = (ocean: ILab, l: number): ILab => {
 const lightSurface = (ocean: ILab): ILab => liftedTo(ocean, lightEnd(ocean.l));
 
 /**
- * How far the floor stands under the panes at the light end, in OKLab
- * lightness: Black's own step, #050608 under #0c0e12 (0.041).
+ * How far the panes stand over the floor, in OKLab lightness, at the light
+ * end: a touch more than Black's 0.041 (Ivan, 2026-09-27, at 100%: "add bit
+ * more contrast just a bit").
  *
  * Lifted by the panes' own amount the floor kept Ocean's gap to them, 0.1,
- * and the window at 100% was a dark navy with lit panes on it (Ivan,
- * 2026-09-27: "the whole app should be lighter almost matching the pane …
- * when brightness is 100 keep pane color as it is and make app more bright
- * too", "so they are close but still separated visually"). So the light end
- * takes the floor to just under the panes' light end instead, with the panes
- * where they were; from Ocean up the step closes gradually, and Ocean and
- * everything under it are as they shipped.
+ * and the window at 100% was a dark navy with lit panes on it ("the whole app
+ * should be lighter almost matching the pane … when brightness is 100 keep
+ * pane color as it is and make app more bright too", "so they are close but
+ * still separated visually"). So the light end takes the floor to this step
+ * under the panes' light end, with the panes where they were.
  */
-const LIGHT_FLOOR_STEP = 0.04;
+const LIGHT_PANE_STEP = 0.052;
 
 /**
  * The floor alone. The wells stay where the lift puts them, under the new
@@ -240,7 +245,68 @@ const isSurface = (token: TThemeShadeToken) =>
 
 /** Where the floor ends up at the light end: one step under the panes. */
 const LIGHT_FLOOR =
-  lightEnd(stopOf(OCEAN_THEME['--surface-panel']).lab.l) - LIGHT_FLOOR_STEP;
+  lightEnd(stopOf(OCEAN_THEME['--surface-panel']).lab.l) - LIGHT_PANE_STEP;
+
+/**
+ * The panes and what stands on them at their level — a block, a field, a
+ * menu — which keep their places relative to one another when the panes
+ * move. Not the floor, and not the wells and tracks, which are recesses
+ * measured from the cards and read as faded when they came up with them.
+ */
+const PANES: readonly TThemeShadeToken[] = [
+  '--surface-panel',
+  '--surface-block',
+  '--surface-field',
+  '--surface-field-end',
+  '--surface-menu',
+  '--surface-menu-top',
+  '--surface-menu-face',
+];
+
+/**
+ * How far the panes stand over the floor at Black: #0c0e12 over #050608,
+ * 0.041 in OKLab lightness, which is right there (Ivan, 2026-09-27: "on 0
+ * right now is perfect").
+ */
+const PANE_STEP =
+  stopOf(BLACK_THEME['--surface-panel']).lab.l -
+  stopOf(BLACK_THEME['--surface-base']).lab.l;
+
+/**
+ * The panes' step over the floor at `shade`: Black's all the way to the
+ * middle of the slider, then opening a little toward the light end's.
+ *
+ * Walked between Black and Ocean as they shipped, it grew with the panes'
+ * own lightness — 0.079 at 50%, 0.098 at Ocean — and the cards stood on the
+ * floor as lit slabs (Ivan, 2026-09-27, at 50%: "make pane darker so the
+ * difference is less by half, and fix so it adapts toward the 100% and the
+ * 0%, still somehow visible the difference and not the border only"). One
+ * step everywhere is half of it at 50% and keeps every card a face, not an
+ * edge, at both ends.
+ */
+const paneStepAt = (shade: number) =>
+  PANE_STEP +
+  (LIGHT_PANE_STEP - PANE_STEP) *
+    Math.min(
+      1,
+      Math.max(0, (shade - THEME_SHADE_MAX / 2) / (THEME_SHADE_MAX / 2)),
+    );
+
+/** Taken to the card's own colour (`themeShadeTokens`). */
+const CARD_COLOURED: readonly TThemeShadeToken[] = [
+  '--surface-menu',
+  '--surface-menu-top',
+  '--surface-menu-face',
+];
+
+/** `lab` at lightness `l`, as colourful for its lightness as it was. */
+const atLightness = (lab: ILab, l: number): ILab => {
+  if (lab.l <= 0) {
+    return { ...lab, l };
+  }
+  const scale = l / lab.l;
+  return { l, a: lab.a * scale, b: lab.b * scale };
+};
 
 const lightStop = (token: TThemeShadeToken, ocean: IStop): IStop => {
   if (FLOORS.includes(token)) {
@@ -285,12 +351,29 @@ export const clampThemeShade = (shade: number) =>
     : THEME_SHADE_MIN;
 
 /**
+ * How much of the way from Ocean to the light end (`lightStop`) the slider's
+ * last quarter walks: three fifths, so 100 is what 90 was and every step
+ * past Ocean is scaled with it (Ivan, 2026-09-27: "lower the brightness,
+ * instead of 100% what represents 90%, but make it 100%, so the max
+ * brightness reduces a bit"). The light end itself is kept as it was built,
+ * so its surfaces, their colour and the panes' step keep their proportions;
+ * the slider just stops short of it.
+ */
+const LIGHT_REACH = 0.6;
+
+/** Where `shade` stands on the scale the light end was built for. */
+const onLightScale = (shade: number) =>
+  shade <= OCEAN_SHADE
+    ? shade
+    : OCEAN_SHADE + (shade - OCEAN_SHADE) * LIGHT_REACH;
+
+/**
  * Every token the themes differ in, as the slider at `shade` paints it. The
  * edges keep the colour their stops walk through and take the opacity that
  * reaches their contrast on this shade's card (`themeInk.ts`).
  */
 export const themeShadeTokens = (shade: number): TThemeTable => {
-  const at = clampThemeShade(shade);
+  const at = onLightScale(clampThemeShade(shade));
   const table = Object.fromEntries(
     ENDS.map(({ token, black, ocean, light }) => [
       token,
@@ -305,6 +388,24 @@ export const themeShadeTokens = (shade: number): TThemeTable => {
       ),
     ]),
   ) as TThemeTable;
+  // The panes a step over the floor (`paneStepAt`), taking what stands at
+  // their level with them.
+  const floor = stopOf(table['--surface-base']).lab;
+  const lift =
+    floor.l + paneStepAt(at) - stopOf(table['--surface-panel']).lab.l;
+  PANES.forEach((token) => {
+    const { lab } = stopOf(table[token]);
+    table[token] = labToHex(atLightness(lab, lab.l + lift));
+  });
+  // Three backgrounds and no fourth: the floor, the card and the graph (Ivan,
+  // 2026-09-27: "we only have 3 bg color, app color, card bg and graph
+  // colors"). What floats or sticks over a card — a menu, its head, a picker's
+  // open face — is the card's own colour as it stands on the floor, where each
+  // was a navy of its own a step off it.
+  const card = cardHexOf(table['--surface-base'], table['--surface-panel']);
+  CARD_COLOURED.forEach((token) => {
+    table[token] = card;
+  });
   const ground = groundOf(table['--surface-base'], table['--surface-panel']);
   (Object.keys(EDGE_CONTRAST) as (keyof typeof EDGE_CONTRAST)[]).forEach(
     (token) => {
@@ -328,6 +429,12 @@ export const themeInkTokens = (shade: number) => {
  * stylesheet's own `:root` block cannot outrank whichever loads last. A
  * scene's tint still does — it writes the root's inline style — and reads
  * these back as the theme it tones.
+ *
+ * And `--theme-accent`, the theme's own accent under a name no tint writes,
+ * so what stands for the theme can wear its colour while a scene's is lent
+ * to the window: the Theme choice's glyph in the Window colours menu and the
+ * Studio's tiles (Ivan, 2026-09-27: "theme in studio need to be current
+ * selected theme in the app").
  */
 export const themeShadeRule = (shade: number) => {
   const tokens = themeShadeTokens(shade);
@@ -335,6 +442,7 @@ export const themeShadeRule = (shade: number) => {
   const declarations = [
     ...THEME_SHADE_TOKENS.map((token) => `${token}: ${tokens[token]};`),
     ...Object.entries(inks).map(([token, value]) => `${token}: ${value};`),
+    `--theme-accent: ${tokens['--accent']};`,
   ].join(' ');
   const accentShare = Math.round(
     (Math.min(clampThemeShade(shade), OCEAN_SHADE) / OCEAN_SHADE) * 100,

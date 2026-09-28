@@ -240,12 +240,21 @@ const compileWorld = async (
     renderer.shadowMap.enabled = build.shadows;
     const aim = createWorldCamera(world.camera, camera, inputs);
 
+    // Only the colour is read after the world is drawn, so only the colour
+    // is resolved out of the samples. Three resolves the depth as well unless
+    // told not to, and on Windows that is a shader pass per frame, not a
+    // copy: it was 7.7 ms of a 32 ms frame on an Intel UHD at 1080p, the
+    // largest single step of Dunes' frame, for a picture nothing looked at.
+    // Nor is the multisampled depth kept past the resolve: every frame, and
+    // every strip of a still, clears the rows it draws before drawing them.
     const drawn = new WebGLRenderTarget(1, 1, {
       type: floatTargets ? HalfFloatType : UnsignedByteType,
       samples: Math.min(4, maxSamples),
       minFilter: LinearFilter,
       magFilter: LinearFilter,
       depthBuffer: true,
+      resolveDepthBuffer: false,
+      storeMultisampledDepthBuffer: false,
       generateMipmaps: false,
     });
     disposables.push(drawn);

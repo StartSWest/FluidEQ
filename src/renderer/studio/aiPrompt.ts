@@ -4,6 +4,11 @@ import { MAX_MEMBER_LOOPS } from 'common/memberSceneRules';
 import { SELECTABLE_GRAPH_STYLES, type GraphStyle } from 'common/graphStyles';
 import { PREVIEW_FILE } from 'common/memberScenes';
 import {
+  SCENE_DAYLIGHT_MAX,
+  SCENE_DAYLIGHT_MIN,
+  SCENE_DAYLIGHT_PARAM,
+} from 'common/sceneDaylight';
+import {
   SCENE_CONTRACT_VERSION,
   SCENE_TAP_AGE_LIMIT_S,
 } from 'common/sceneUniformContract';
@@ -143,7 +148,9 @@ pack.json:
   "fallbackStyle": "skyline",
   "swatch": ["#rrggbb", "#rrggbb", "#rrggbb"],
   "sourceFile": "scene.frag",
-  "params": []
+  "params": [
+    { "id": "${SCENE_DAYLIGHT_PARAM}", "names": { "en": "Daylight" }, "min": ${SCENE_DAYLIGHT_MIN}, "max": ${SCENE_DAYLIGHT_MAX}, "value": 0 }
+  ]
 }
 - id: 2-48 characters, a-z, 0-9 and dashes, starting with a letter.
 - contract: the version of WHAT THE SCENE RECEIVES the scene was written
@@ -169,7 +176,8 @@ pack.json:
 - fallbackStyle: drawn when a computer cannot run the scene. Use one of:
   ${SCENE_FALLBACK_STYLES.join(', ')}.
 - params: the scene's own sliders, up to 8, which FluidEQ shows me by
-  itself with the names you give them. Add one for each thing my idea is
+  itself with the names you give them - and the Daylight control, which it
+  sets itself (see DAY AND NIGHT). Add one for each thing my idea is
   worth adjusting - its size, speed, density, glow, colour, how strongly a
   part answers the music - and none that do nothing. Each is
   { "id": "glow", "names": { "en": "Glow" }, "min": 0, "max": 1, "value": 0.5 }.
@@ -287,6 +295,34 @@ WHAT THE SCENE RECEIVES (already declared; just use them)
   vec3  uCamera      the viewer's camera, where pack.json lets them turn it:
                      x yaw and y pitch in radians, z zoom; (0, 0, 1) is your
                      own view, and always is when nobody has turned it.
+
+DAY AND NIGHT (required in every scene)
+FluidEQ plays every scene at a time of day, taken from my window's
+Brightness: all the way down (Black) is deep night, all the way up is full
+day, and every step between is that far into the day. It hands the scene
+that time as a control of its own, which every pack.json MUST declare,
+exactly so, among its params:
+  { "id": "${SCENE_DAYLIGHT_PARAM}", "names": { "en": "Daylight" }, "min": ${SCENE_DAYLIGHT_MIN}, "max": ${SCENE_DAYLIGHT_MAX}, "value": 0 }
+FluidEQ will not play a scene without it.
+- ${SCENE_DAYLIGHT_MIN} is full night and ${SCENE_DAYLIGHT_MAX} full day. Read it as uParam_${SCENE_DAYLIGHT_PARAM}. FluidEQ
+  sets it itself, and eases it when I move the Brightness, so it is not one
+  of the sliders I tune - but it counts toward the 8.
+- Design BOTH, and make both good: the scene by night and the same scene by
+  day - the same place, subject and motion in each. By day the sky brightens
+  to its day colour, a sun stands where the moon was, light is warm and
+  shadows short, and the scene's own glows and neon soften into the daylight
+  rather than vanish; by night it is dark, lit by its own lights, the moon
+  and the stars. A scene with no sky or place of its own - bars, waves,
+  shapes - still keeps the hours: its background goes from deep and dark to
+  light and airy, its colours from glowing to bright and clean, and the
+  music stays as easy to see on the light one as on the dark.
+- Change SMOOTHLY: every value between is a believable moment between -
+  dusk and dawn - and never a cut or a jump at some value. Blend with mix
+  and smoothstep over wide spans of it.
+- Keep it readable at every value: the subject and the music as clear at 0
+  as at 50 and at 100.
+- Draw it at ${SCENE_DAYLIGHT_MIN}, 50 and ${SCENE_DAYLIGHT_MAX} before you tell me it is done, and fix
+  whichever of the three is weakest.
 
 FIT THE PANEL AND MY WAVE
 - The panel can be any shape, from a narrow column to a wide strip, and

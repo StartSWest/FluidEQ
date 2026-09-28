@@ -76,6 +76,7 @@ import {
   gainAxisTicksFor,
   GAIN_GRID_TICKS,
   getAxisPadding,
+  getDrawingPadding,
   levelTickFormat,
   liveLevelScaleFor,
   liveLevelTicksFor,
@@ -844,10 +845,13 @@ const Chart = ({
   // The wave runs edge to edge instead.
   const isGridHidden = useGraphGridHidden();
 
-  const padding = useMemo(
-    () => getAxisPadding(isGridHidden, editablePoints.length > 0),
-    [editablePoints.length, isGridHidden],
-  );
+  const hasHandles = editablePoints.length > 0;
+  const padding = getAxisPadding(isGridHidden, hasHandles);
+  // The analyser's and the scenes' floor: the plot's own bottom edge when
+  // the grid is off, where the handles' inset is only the handles'.
+  const drawingPadding = getDrawingPadding(isGridHidden, hasHandles);
+  // Where that floor is, for what is drawn over the analyser (coverage).
+  const drawingFloor = Math.max(svgHeight - drawingPadding.bottom, 0);
 
   // Width of the plotting area itself, i.e. everything to the right of the
   // y-axis label gutter. Grid lines are drawn from that gutter, so they must
@@ -876,6 +880,7 @@ const Chart = ({
       width: svgWidth,
       height: svgHeight,
       padding,
+      drawingPadding,
       frequencyRange: graphFrequencyRange(isGridHidden),
     });
 
@@ -1067,8 +1072,8 @@ const Chart = ({
             // Clear of the axes: their labels live in the padding inside the
             // drawing, not in its margins.
             inset={{
-              right: margins.right + padding.right,
-              bottom: margins.bottom + padding.bottom,
+              right: margins.right + drawingPadding.right,
+              bottom: margins.bottom + drawingPadding.bottom,
             }}
             isPartOfWindow={isPlotPartOfWindow}
           />
@@ -1172,9 +1177,9 @@ const Chart = ({
           </linearGradient>
           {/* The rainbow palette's own gradient used to sit here beside the EQ
               one, because a path could only be painted from a `<defs>` entry.
-              The live trace builds it against its own canvas now, from the same
-              `BAND_SPECTRUM_STOPS` — see `resolveTracePaint`, which also keeps
-              the reason the two gradients are separate. */}
+              The live trace builds its gradients against its own canvas now,
+              from the look's colours or the window's (`windowInk.ts`) — see
+              `resolveTracePaint`. */}
           {/*
             Red at the bottom, green at the top, and the whole point is what is
             in between: the ramp over which a range earns its correction. Object
@@ -1240,8 +1245,8 @@ const Chart = ({
           xScale={xScaleFreq}
           yScale={yScaleGain}
           eqScale={yScaleEq}
-          top={padding.top}
-          plotHeight={plotHeight}
+          top={drawingPadding.top}
+          plotHeight={drawingFloor}
           isResponseHidden={isLiveOutputForeground}
           isOverScene={Boolean(scene)}
         />

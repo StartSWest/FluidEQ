@@ -5,13 +5,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The grid under the player's visualizer deck: shown for a measuring view in
- * two columns while the graph's grid switch is on, and each scale only where
- * it names what the view draws.
+ * The grid under the 2.0 amp's visualizer deck: shown for a measuring view
+ * in two columns while the graph's grid switch is on, and each scale only
+ * where it names what the view draws. The Stage keeps the same rules with
+ * its bar under the drawing instead of over it (last block).
  */
 
 import type { GraphStyle } from 'common/graphStyles';
-import { playerPaperFor } from '../../../../renderer/player/paperRules';
+import { playerPaperFor } from '../../../../renderer/player/classic/paperRules';
+import { playerPaperFor as stagePaperFor } from '../../../../renderer/player/paperRules';
 
 // Full screen asks the same question: a measuring view on the whole screen
 // keeps its grid (Ivan, 2026-09-24: "the grid also in fullscreen for those
@@ -80,5 +82,27 @@ describe("the player's grid", () => {
     expect(playerPaperFor('analyzer', ON).padding).toBe(
       playerPaperFor('rta', ON).padding,
     );
+  });
+});
+
+describe("the Stage's grid", () => {
+  it('stands the level scale at the top, with the bar under the drawing', () => {
+    // The Stage's visualizer bar is under the drawing (the Stage, 2026-09-27):
+    // the top keeps only half a label, so the top number is not cut.
+    const paper = stagePaperFor('analyzer', ON);
+    expect(paper.level).toBe(true);
+    expect(paper.padding.top).toBeGreaterThan(0);
+    expect(paper.padding.top).toBeLessThan(
+      playerPaperFor('analyzer', ON).padding.top,
+    );
+    // Everything else is the 2.0 amp's rule.
+    expect(stagePaperFor('loudness', ON)).toMatchObject({
+      frequency: false,
+      level: false,
+    });
+    expect(stagePaperFor('analyzer', { ...ON, isTrace: false })).toMatchObject({
+      frequency: false,
+      level: false,
+    });
   });
 });

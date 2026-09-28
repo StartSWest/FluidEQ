@@ -61,9 +61,10 @@ import { useOverflowScroll } from './utils/useOverflowScroll';
 import { useEqTitleSlot } from './utils/eqTitleSlot';
 import {
   IBandPlacement,
+  getPlotGeometry,
   isSamePlacement,
   placeBandsEvenly,
-  usePlotGeometry,
+  subscribePlotGeometry,
 } from './graph/plotGeometry';
 import {
   addEqualizerSlider,
@@ -108,6 +109,7 @@ import SongEqSaveSwitch from './components/SongEqSaveSwitch';
 import EqModeSelect from './components/EqModeSelect';
 import EqCutKnob from './eq/EqCutKnob';
 import BandLayoutMenu from './components/BandLayoutMenu';
+import BandLevels from './components/BandLevels';
 import ClearEqButton from './components/ClearEqButton';
 import MenuIcon from './icons/MenuIcon';
 import TrashIcon from './icons/TrashIcon';
@@ -131,6 +133,53 @@ const attachRail = (rail: HTMLDivElement | null) => {
     stopMeasuring?.();
     stopWatching?.();
   };
+};
+
+/**
+ * The bands' places, written onto the row (`.bands.is-placed` in
+ * MainContent.scss reads them): the slot every band is, the first band's
+ * lead from the row's edge and the lead between each band and the one
+ * before it, which `placeBandsEvenly` makes the same for every band after
+ * the first. On the row rather than on each band, so bands that trade
+ * places or arrive need nothing written again.
+ */
+const applyBandPlacement = (
+  bands: HTMLElement,
+  placement: IBandPlacement | undefined,
+) => {
+  if (!placement) {
+    bands.style.removeProperty('--band-slot');
+    bands.style.removeProperty('--band-first-lead');
+    bands.style.removeProperty('--band-lead');
+    return;
+  }
+  const [first = 0, next = 0] = placement.leads;
+  bands.style.setProperty('--band-slot', `${placement.slot}px`);
+  bands.style.setProperty('--band-first-lead', `${first}px`);
+  bands.style.setProperty('--band-lead', `${next}px`);
+};
+
+/** Every 5 dB of the sliders' travel, from the top: the scale beside them. */
+const EQ_SCALE_MARKS = Array.from(
+  { length: (MAX_GAIN - MIN_GAIN) / 5 + 1 },
+  (_, index) => MAX_GAIN - index * 5,
+);
+
+/** 0 dB lit, the tens numbered plainly, the fives between them quieter and
+ * dropped on a short track (`.eq-scale`). */
+const eqScaleMarkClass = (gain: number) => {
+  if (gain === 0) {
+    return ' is-zero';
+  }
+  return gain % 10 === 0 ? '' : ' is-minor';
+};
+
+/** Signed as the graph's scale is, with a true minus, and the unit at 0. */
+const eqScaleLabel = (gain: number) => {
+  if (gain === 0) {
+    return '0 dB';
+  }
+  return gain > 0 ? `+${gain}` : `−${-gain}`;
 };
 
 const MainContent = () => {
@@ -430,45 +479,77 @@ const MainContent = () => {
    * gain drag nor a frequency drag re-reads two boxes on every step. Two
    * bands that pass each other trade places because the row is drawn in
    * frequency order.
+   *
+   * Whether the bands are placed is the one thing about it the page renders
+   * from. Where they stand is written onto the row itself
+   * (`applyBandPlacement`), and the graph's width is heard without a render
+   * (`subscribePlotGeometry`): both change on every frame of a window being
+   * resized, and as state each change rendered the page again — the
+   * thirty-one bands, the Tone's dials and the graph's points — twice a
+   * frame, once for the plot's width and once for the places it gave (Ivan,
+   * 2026-09-27: "improve app resizing so it doesnt over calculate").
    */
-  const plotGeometry = usePlotGeometry();
   const bandCount = frequencySortedFilters.length;
-  const [bandPlacement, setBandPlacement] = useState<IBandPlacement>();
+  const [isPlaced, setIsPlaced] = useState(false);
   useLayoutEffect(() => {
     const bands = bandsElement;
-    if (!titleSlot || !plotGeometry || !bands || bandCount === 0) {
-      setBandPlacement(undefined);
+    if (!titleSlot || !bands || bandCount === 0) {
+      setIsPlaced(false);
       return undefined;
     }
+    let applied: IBandPlacement | undefined;
+    const settle = (next: IBandPlacement | undefined) => {
+      if (!isSamePlacement(applied, next)) {
+        applied = next;
+        applyBandPlacement(bands, next);
+      }
+      setIsPlaced(next !== undefined);
+    };
     // Measured, not derived: the row sits inside the page's padding and the
     // plot does not, and the row's own left edge moves when it goes from even
     // to placed. Its size changes with it, which is what calls this again.
     // What the page shows of the row: the inside of the scroller it stands
     // in, between that box's scrollbar gutters, which is where the bands are
     // clipped.
+    // And never outside the row's own box: the dB scale stands in the column
+    // before it (`.eq-scale`) and the card's padding after it, where the
+    // first and last bands used to hang into the page's padding to meet the
+    // plot's ends (Ivan, 2026-09-27: "less padding to the left", "add some
+    // padding to the right of all").
     const scroller = bands.closest('.workspace-tab-panel__scroll');
     const place = () => {
-      const row = bands.getBoundingClientRect().left;
-      const offset = plotGeometry.element.getBoundingClientRect().left - row;
-      let visible: { left: number; right: number } | undefined;
+      const plot = getPlotGeometry();
+      if (!plot) {
+        settle(undefined);
+        return;
+      }
+      const row = bands.getBoundingClientRect();
+      const offset = plot.element.getBoundingClientRect().left - row.left;
+      let visible = { left: 0, right: row.width };
       if (scroller instanceof HTMLElement) {
         const left =
-          scroller.getBoundingClientRect().left + scroller.clientLeft - row;
-        visible = { left, right: left + scroller.clientWidth };
+          scroller.getBoundingClientRect().left +
+          scroller.clientLeft -
+          row.left;
+        visible = {
+          left: Math.max(0, left),
+          right: Math.min(row.width, left + scroller.clientWidth),
+        };
       }
-      const next = placeBandsEvenly(bandCount, plotGeometry, offset, visible);
-      setBandPlacement((previous) =>
-        isSamePlacement(previous, next) ? previous : next,
-      );
+      settle(placeBandsEvenly(bandCount, plot, offset, visible));
     };
     place();
+    const stopHearing = subscribePlotGeometry(place);
     if (typeof ResizeObserver === 'undefined') {
-      return undefined;
+      return stopHearing;
     }
     const observer = new ResizeObserver(place);
     observer.observe(bands);
-    return () => observer.disconnect();
-  }, [titleSlot, plotGeometry, bandsElement, bandCount]);
+    return () => {
+      stopHearing();
+      observer.disconnect();
+    };
+  }, [titleSlot, bandsElement, bandCount]);
   const [selectionBox, setSelectionBox] = useState<
     | { startX: number; startY: number; currentX: number; currentY: number }
     | undefined
@@ -1166,19 +1247,16 @@ const MainContent = () => {
                   runSmartEq();
                 }}
               >
-                {isContinuousRunning ? (
-                  // A pause bar while it runs, because that is what pressing it
-                  // does next.
-                  <svg
-                    className="eq-toolbar__icon eq-toolbar__pause"
-                    viewBox="0 0 16 16"
-                    aria-hidden
-                  >
-                    <path d="M5 3h2.2v10H5zM8.8 3H11v10H8.8z" />
-                  </svg>
-                ) : (
-                  <MenuIcon name="smart" className="eq-toolbar__icon" />
-                )}
+                {/* The pause mark while it runs, because that is what pressing
+                  it does next: the menu icons' own, stroked in the label's
+                  ink like the Smart EQ mark it replaces. It was two filled
+                  bars drawn here, which took the dark ink the filled buttons
+                  give their glyphs and read as a smudge on the quiet face
+                  (Ivan, 2026-09-27: "fix this crap"). */}
+                <MenuIcon
+                  name={isContinuousRunning ? 'pause' : 'smart'}
+                  className="eq-toolbar__icon"
+                />
                 {isContinuousMode(smartEqMode)
                   ? modeLabel(smartEqMode)
                   : (isBalancing && t('eq.smart.cancel')) || t('eq.smart')}
@@ -1336,25 +1414,21 @@ const MainContent = () => {
       <div
         className={`main-content main-content--${density}${
           bypassed.includes('eq') ? ' is-eq-bypassed' : ''
-        }${bandPlacement ? ' is-placed' : ''}`}
+        }${isPlaced ? ' is-placed' : ''}`}
       >
-        <div className="eq-scale" aria-hidden="true">
-          <span>+20</span>
-          <span>0 dB</span>
-          <span>-20</span>
-        </div>
         {/* The rail scrolls when the bands stop fitting, with an arrow at
             each end — the same pair the workspace tabs use. Thirty-one bands
             in a narrow window were nine pixels each: a row of slivers with
             their frequencies overprinted on one another, and nothing anybody
             could aim at. Each band keeps a floor of its own instead and the
             row runs past the edge, which is a thing you can scroll. */}
+        <BandLevels row={bandsElement} />
         <div className="bands-rail" ref={attachRail}>
           {/* No arrows while the bands are placed across the plot: every one
               of them is inside its width by construction, and the few pixels
               the outermost may hang into the page's padding are not a row to
               scroll. */}
-          {!bandPlacement && canScrollBands.canScrollBack && (
+          {!isPlaced && canScrollBands.canScrollBack && (
             <OverflowArrow
               direction="back"
               onPress={() => canScrollBands.scrollBy(-1)}
@@ -1368,7 +1442,7 @@ const MainContent = () => {
             <div
               ref={attachBands}
               className={`bands bands--${density} bands--${bandLayout}${
-                bandPlacement ? ' is-placed' : ''
+                isPlaced ? ' is-placed' : ''
               }`}
               onPointerDown={handleBandsPointerDown}
               onPointerMove={handleBandsPointerMove}
@@ -1377,9 +1451,6 @@ const MainContent = () => {
               style={
                 {
                   '--band-count': frequencySortedFilters.length,
-                  ...(bandPlacement && {
-                    '--band-slot': `${bandPlacement.slot}px`,
-                  }),
                 } as CSSProperties
               }
             >
@@ -1418,17 +1489,37 @@ const MainContent = () => {
                   }
                   onGainChange={handleBandGainChange}
                   onGainPreview={handleBandGainPreview}
-                  lead={bandPlacement?.leads[index]}
                 />
               ))}
             </div>
           </div>
-          {!bandPlacement && canScrollBands.canScrollForward && (
+          {!isPlaced && canScrollBands.canScrollForward && (
             <OverflowArrow
               direction="forward"
               onPress={() => canScrollBands.scrollBy(1)}
             />
           )}
+        </div>
+        {/* The dB scale beside the sliders, numbered the way a console prints
+            one beside a fader (Ivan, 2026-09-27: "add the 10 and other that
+            pro console has"). After the rail rather than before it: it is
+            placed against the first band's own travel (`.eq-scale`), and a
+            box can only be placed on one laid out before it. The grid still
+            puts it in the first column. */}
+        <div className="eq-scale" aria-hidden="true">
+          {EQ_SCALE_MARKS.map((gain) => (
+            <span
+              key={gain}
+              className={`eq-scale__mark${eqScaleMarkClass(gain)}`}
+              style={
+                {
+                  '--at': (MAX_GAIN - gain) / (MAX_GAIN - MIN_GAIN),
+                } as CSSProperties
+              }
+            >
+              {eqScaleLabel(gain)}
+            </span>
+          ))}
         </div>
         {selectedFilter && (
           <div className="eq-flat-editor">

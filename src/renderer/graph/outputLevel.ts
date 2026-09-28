@@ -83,8 +83,8 @@ export const LEVEL_FALL_DB_PER_S = 42;
  * How long a peak stands still before it starts coming back down.
  *
  * A meter without this cannot show a transient at all. The whole reason to look
- * at one is the hit that was over before the eye arrived, and at thirty frames
- * a second an unheld peak is a single frame — gone before it is seen. A second
+ * at one is the hit that was over before the eye arrived, and an unheld peak is
+ * a single frame — gone before it is seen. A second
  * is long enough to read a number off and short enough that the mark is still
  * describing the passage playing now.
  */

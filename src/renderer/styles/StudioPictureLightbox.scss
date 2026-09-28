@@ -8,27 +8,30 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @use 'checkerboard' as *;
 @use 'color' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The picture viewer: the gallery's dialog, stretched to the window less the
-// backdrop's own margin. The head names the picture, the stage shows it on a
-// dark well with the arrows either side, and a strip of the set sits at the
-// foot.
+// The picture viewer: the dialogs' material (`DialogFrame`'s), stretched to
+// the window less the backdrop's own margin. The head names the picture in
+// the rail's colour, as the frame's head does on a narrow window; the stage
+// shows it on a dark well with the arrows either side, and a strip of the set
+// sits at the foot.
 //
 // The same size whatever it shows, on purpose — a viewer that shrank to each
 // picture would move its arrows and its close button every step.
-.gallery-dialog.studio-lightbox {
+.studio-lightbox {
+  @include surface-motion($dialog-arrival);
+  @include dialog.surface-look;
+  position: relative;
+  display: grid;
   // The backdrop's grid area, which is the window less its padding: a
   // percentage here needs no copy of the backdrop's padding, and follows it
   // when the backdrop narrows its margin on a small window.
   width: min(1680px, 100%);
   height: 100%;
-  max-height: none;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 0;
-  padding: 0;
   overflow: hidden;
 
   .button {
@@ -42,12 +45,27 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The right clears the close button in the corner.
 .studio-lightbox__head {
+  display: flex;
   flex-wrap: wrap;
-  gap: 10px $spacing-m;
+  align-items: center;
+  gap: 10px 14px;
   min-width: 0;
-  padding: 12px 12px 12px $spacing-m;
-  border-bottom: 1px solid $border-subtle;
+  padding: 12px 60px 12px 18px;
+  border-bottom: dialog.$seam;
+  background: dialog.$rail;
+
+  .dialog-frame__tile {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+// Level with the head's tile, whatever the head's height.
+.dialog-close.studio-lightbox__close {
+  top: 16px;
+  right: 14px;
 }
 
 // The name, then its size and where it is in the set, on one line while they
@@ -65,18 +83,6 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   font-size: $text-small;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-
-.studio-lightbox__count {
-  padding: 2px 8px;
-  color: $text-muted;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-2xs;
-  background: $lift-rest;
-  font-size: $text-micro;
-  font-variant-numeric: tabular-nums;
-  font-weight: $weight-semibold;
   white-space: nowrap;
 }
 
@@ -205,7 +211,8 @@ it under the terms of the GNU General Public License version 3 or later.
     inset 0 1px 0 rgba($white, 0.06);
 }
 
-.gallery-dialog.studio-lightbox .studio-lightbox__zoom-step {
+// Three classes, to outrank `.button.small`'s own padding.
+.studio-lightbox .button.studio-lightbox__zoom-step {
   width: $control-height-sm;
   padding: 0;
 
@@ -291,7 +298,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 6px;
   padding: 10px $spacing-m 12px;
   overflow-x: auto;
-  border-top: 1px solid $border-subtle;
+  border-top: dialog.$seam;
   scroll-padding-inline: $spacing-m;
   @include slim-scrollbar;
 }
@@ -304,7 +311,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 44px;
   padding: 4px;
   container-type: size;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-xs;
   background: $black;
   opacity: 0.55;

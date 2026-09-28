@@ -72,7 +72,6 @@ import './MemoryTrace.scss';
 import './ShareScore.scss';
 import './RhythmGame.scss';
 import './Support.scss';
-import './DialogHeader.scss';
 import './LeaderboardName.scss';
 import './SceneHands.scss';
 import './ScenePreview.scss';
@@ -164,7 +163,8 @@ import './SongEqNotice.scss';
 import './PlusTermsNotice.scss';
 import './SceneReviewNotice.scss';
 import './PlusMemberWelcome.scss';
-import './OverlayCard.scss';
+import './MandatoryUpdate.scss';
+import './DisclaimerGate.scss';
 import './WhatsNew.scss';
 import './FeatureTour.scss';
 import './HelpGuide.scss';
@@ -180,6 +180,12 @@ import './SceneCover.scss';
 import './EngineTroubleNotice.scss';
 import './EngineUpdateNotice.scss';
 import './AudioEngineDialog.scss';
+// Every dialog's frame and the small frame for questions and notices, after
+// every sheet that sizes or places one: it reached the window through the
+// dialogs' own imports, after this whole list, and every dialog was built
+// and checked against it winning a tie. A dialog's own rule that has to win
+// is written against the frame's class as well.
+import './DialogFrame.scss';
 // After the window's own sheets: the tooltip layer is installed by
 // `index.tsx` once the whole tree is imported, and its bubble floats over
 // every surface. The crash screen stays last of all.

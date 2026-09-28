@@ -549,8 +549,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.hears':
     'Was die Szene empfängt: Pegel, Schlag, Bass, Mitten, Höhen.',
   'help.studio.signals': 'Testsignale, die nur diese Vorschau antreiben.',
-  'help.studio.size':
-    'Testet die Szene in einem Diagramm oder in einem schmalen, breiten oder Vollbild-Panel.',
+  'help.studio.size': 'Testet die Szene im Vollbild.',
   'help.studio.wave':
     'Testet Höhe und Position der Welle, die Hörer einstellen können.',
 

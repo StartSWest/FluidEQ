@@ -7,32 +7,19 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
-@use 'dialog' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The Studio's Publish dialog: the scene playing on the left, to catch its
-// cover from, and what publishing asks on the right. Wide, because the scene
-// is the thing being judged and a thumbnail of it judges nothing; the two
-// columns fold into one wherever the window is narrower than both need.
-
-// Two classes, to outrank the shared dialog surface's own width and height —
-// its small-screen height included, which is why that is restated here.
-.gallery-dialog.studio-publish {
-  width: min(980px, 100%);
-  max-height: min(860px, calc(100vh - #{$spacing-l} * 2));
+// The Studio's Publish dialog on the frame (`DialogFrame`): what publishing
+// means in the rail; the scene playing, to catch its cover from, and what
+// publishing asks beside it. Wide, because the scene is the thing being judged
+// and a thumbnail of it judges nothing; the two columns fold into one wherever
+// the dialog is narrower than both need.
+.dialog-frame.studio-publish {
+  @include dialog.size(1180px, 880px);
   container: publish / inline-size;
-
-  @media (max-width: 620px), (max-height: 620px) {
-    max-height: calc(100vh - #{$spacing-m});
-  }
-
-  // A long dialog: its answer sits on a line of its own.
-  .gallery-dialog__foot {
-    padding-top: $spacing-m;
-    border-top: 1px solid $border-subtle;
-  }
 
   // The Studio's own spacing for a glyph in a button: the dialog is drawn
   // outside the Studio's tree, so its rule does not reach in here.
@@ -47,18 +34,6 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.studio-publish__heading {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.studio-publish__version {
-  color: $text-faint;
-  font-size: $text-small;
-  font-variant-numeric: tabular-nums;
-}
-
 // The scene on the left and what it becomes on the right: the covers caught
 // from it, then the category. The spare height of a scene taller than both
 // goes under the category, so the covers keep their place at the top.
@@ -70,27 +45,29 @@ it under the terms of the GNU General Public License version 3 or later.
 // back before publishing. Across the foot it takes the whole width, holds all
 // of what may be typed at once, and sits where the eye already is on its way
 // to Publish.
+//
+// The container is the whole dialog, rail included: the columns fold once the
+// body beside the rail is too narrow for a scene worth judging and the covers
+// two to a row, and stay folded when the rail moves over the body.
 .studio-publish__body {
   display: grid;
   grid-template-areas:
     'camera covers'
     'camera category'
     'camera .'
-    'note note'
-    'points points';
+    'note note';
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-  grid-template-rows: auto auto 1fr auto auto;
+  grid-template-rows: auto auto 1fr auto;
   align-items: start;
   gap: $spacing-m $spacing-l;
   min-width: 0;
 
-  @container publish (max-width: 760px) {
+  @container publish (max-width: 1000px) {
     grid-template-areas:
       'camera'
       'covers'
       'category'
-      'note'
-      'points';
+      'note';
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: none;
   }
@@ -143,12 +120,6 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-}
-
-// Beside the version it is publishing, the one listeners have now.
-.studio-publish__published::before {
-  content: '·';
-  margin-inline: 6px;
 }
 
 // One line about what changed in this version: what the scene's page and the
@@ -223,20 +194,6 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-publish__note-count--full {
   color: $amber;
   font-weight: $weight-bold;
-}
-
-// The three sentences about what publishing means are read once and the same
-// every time; the note above them is written now. Tighter here than on the
-// gallery's own cards, so the writing gets the room.
-.studio-publish__points {
-  grid-area: points;
-  gap: 6px;
-  padding: 10px 12px;
-
-  li {
-    font-size: $text-micro;
-    line-height: 1.5;
-  }
 }
 
 // ---------------------------------------------------------------- stage
@@ -342,7 +299,8 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 
-  @container publish (max-width: 760px) {
+  // Four to a row once the columns fold, where the covers have the width.
+  @container publish (max-width: 1000px) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }

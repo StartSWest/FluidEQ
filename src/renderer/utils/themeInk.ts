@@ -81,23 +81,24 @@ const DISABLED_OPACITY_MIN = 0.45;
 const DISABLED_OPACITY_MAX = 0.8;
 
 /**
- * A field's and a quiet button's edge, a switch's track and every outline
- * the hand acts on: the accent's light at a share of full (`$border-field`),
- * above the card's own edge so a control is never drawn fainter than the
- * card it stands on, and never under the 13% it shipped at. It was 1.7:1 and
- * the EQ page's small buttons measured 1.64 there.
+ * Every control's edge — a field, a button, a select, a switch's track, any
+ * outline the hand acts on: the accent's light at a share of full
+ * (`$border-field`, and `$border-control` is the same line). Never under the
+ * preset picker's 42%, which every control was asked to match (Ivan,
+ * 2026-09-27: "same color as preset select"); more only where a light shade
+ * needs it to reach 2.2:1. It was a floor of 13% here while the shared
+ * mixins drew a fixed 42%, so one page's controls came in two edges.
  */
 const FIELD_EDGE_CONTRAST = 2.2;
-const FIELD_EDGE_SHARE_MIN = 0.13;
+const FIELD_EDGE_SHARE_MIN = 0.42;
 
 /**
- * The same edge under the pointer (`$border-field-hover`). It was a fixed
- * 42%, which the edge at rest now reaches by itself at the light end — a
- * hover that changed nothing there — so it is solved as well, a clear step
- * over the edge at rest, and never under the 42% it shipped at.
+ * The same edge under the pointer (`$border-field-hover`): the preset
+ * picker's 70%, or the share that reaches 3.2:1 where a light shade needs
+ * more — a clear step over the edge at rest at every shade.
  */
 const FIELD_EDGE_HOVER_CONTRAST = 3.2;
-const FIELD_EDGE_HOVER_SHARE_MIN = 0.42;
+const FIELD_EDGE_HOVER_SHARE_MIN = 0.7;
 
 /**
  * The dim tier, for what is decorative or a unit beside a value (`$text-dim`):
@@ -107,7 +108,7 @@ const FIELD_EDGE_HOVER_SHARE_MIN = 0.42;
 const DIM_CONTRAST = 3;
 const DIM_SHARE_MIN = 0.38;
 /** `$edge-tint`, the cool white the hairlines and the dim tier are made of. */
-const EDGE_TINT = '#d6e9f7';
+export const EDGE_TINT = '#d6e9f7';
 
 /**
  * The graph's ruled paper (`GridLine`, `graphPaper.ts`): the decades and the
@@ -173,6 +174,10 @@ const opacityFor = (ink: TRgb, ground: TRgb, target: number) => {
 /** The card at a shade, from its floor and its pane. */
 export const cardOf = (floor: string, pane: string): TRgb =>
   over(rgbOf(pane), CARD_PANE_SHARE, rgbOf(floor));
+
+/** The same card as a hex, for what can only be handed a plain colour. */
+export const cardHexOf = (floor: string, pane: string): string =>
+  labToHex(rgbToLab(cardOf(floor, pane)));
 
 /**
  * What the inks are solved on: the lighter of a card and the pane itself.

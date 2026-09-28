@@ -9,133 +9,90 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'color' as *;
 @use 'dialog' as dialog;
 @use 'motion' as *;
-@use 'spacing' as *;
 @use 'theme' as *;
 
 .bug-report-backdrop {
   @include dialog.backdrop(1600);
 }
 
-.bug-report {
-  @include dialog.surface(840px, 840px);
-  grid-template-rows: auto minmax(0, 1fr) auto;
+// Report a problem on the dialog frame (`DialogFrame`): what it is in the
+// rail; the two fields, the note on what is sent and the buttons on the right.
+.dialog-frame.bug-report {
+  @include dialog.size(900px, 860px);
 }
 
-.bug-report__body-wrap {
-  display: grid;
-  min-height: 0;
-  padding: 16px 18px;
-  gap: 12px;
-  overflow-y: auto;
-  @include slim-scrollbar;
-}
-
+// A label over its field, on the body itself: the two boxes each field sat
+// in were boxes around a box.
 .bug-report__field {
-  @include dialog.section-surface;
   display: grid;
-  padding: 12px;
-  gap: 6px;
-
-  > span {
-    color: $text-muted;
-    font-size: $text-body;
-    font-weight: $weight-semibold;
-    line-height: 1.45;
-  }
-
-  textarea {
-    @include field-surface;
-    width: 100%;
-    padding: 10px 12px;
-    color: $white;
-    font-family: inherit;
-    font-size: $text-lead;
-    line-height: 1.5;
-    resize: vertical;
-
-    &:focus-visible {
-      border-color: $border-field-focus;
-      @include focus-ring;
-    }
-  }
+  gap: 8px;
 }
 
-// The report itself reads as evidence rather than as prose, so it is set in
-// the same face a log is written in.
-.bug-report__body {
-  font-family: $font-mono !important;
-  font-size: 0.72rem !important;
+.bug-report__label {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  line-height: 1.45;
+}
+
+.bug-report__description {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: $text-lead;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+// The report itself reads as evidence rather than as prose: set in the face a
+// log is written in, in a well a step below the dialog, the way code sits on
+// a page.
+.bug-report__report {
+  width: 100%;
+  padding: 12px 14px;
+  color: $text-muted;
+  border-color: color-mix(in srgb, $edge-tint 9%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $surface-well 72%, transparent);
+  font-family: $font-mono;
+  font-size: $text-body;
+  line-height: 1.6;
   white-space: pre;
   overflow-wrap: normal;
   overflow-x: auto;
+  resize: vertical;
+  @include slim-scrollbar;
 }
 
-.bug-report__warn {
-  margin: 0;
-  padding: 10px 12px;
-  color: $neon-yellow;
-  border: 1px solid rgba($neon-yellow, 0.25);
-  border-radius: $radius-s;
-  background: rgba($neon-yellow, 0.07);
-  font-size: $text-body;
-}
-
-// Stated plainly and near the buttons, because it is the thing somebody wants
-// to know at the moment they are deciding whether to press one.
-.bug-report__privacy {
-  @include dialog.section-surface;
-  margin: 0;
-  padding: 10px 12px;
-  color: $text-muted;
+// What goes out and what does not, and why a report may carry no logs: a line
+// each with its glyph, quieter than the fields, never a box.
+.bug-report__note {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  color: $text-faint;
   font-size: $text-body;
   line-height: 1.5;
-}
 
-.bug-report__actions {
-  display: flex;
-  gap: 8px;
-
-  button {
-    height: $control-height;
-    padding-inline: 16px;
-    color: $text-primary;
-    border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
-    border-radius: $radius-s;
-    background: $surface-plot;
-    font-size: $text-lead;
-    font-weight: $weight-semibold;
-    cursor: pointer;
-    transition: $transition-control;
-
-    &:hover:not(:disabled) {
-      border-color: color-mix(in srgb, $secondary-default 60%, transparent);
-      background: color-mix(in srgb, $secondary-default 10%, transparent);
-    }
-
-    // Only while the email is on its way to the mail app: the line above the
-    // buttons is saying so, and a second press would open a second email.
-    &:disabled {
-      color: $text-dim;
-      border-color: $border-subtle;
-      cursor: progress;
-    }
+  svg {
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    color: $secondary-light;
   }
 }
 
-.bug-report__primary {
-  flex: 1 1 auto;
-  color: $surface-well !important;
-  border-color: rgba(137, 255, 246, 0.82) !important;
-  background: $secondary-default !important;
+.bug-report__note--warn {
+  color: $amber;
 
-  &:hover {
-    background: $white !important;
+  svg {
+    color: $amber;
   }
 }
 
-// What a button said back, just above the buttons. The same language as the
-// Plus tab's toasts, set into the footer rather than floated over it: a tick
-// for what went through, a turning ring while the mail app is being asked, and
+// What a button said back, beside the buttons. The same language as the Plus
+// tab's toasts, set into the footer rather than floated over it: a tick for
+// what went through, a turning ring while the mail app is being asked, and
 // amber for what did not, which stays until the next press because it carries
 // the address to write to instead.
 
@@ -143,15 +100,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // is about twenty-five words.
 $notice-life: 7s;
 
-.bug-report__footer {
-  display: grid;
-  padding: 11px 16px 13px;
-  @include dialog.rule(top);
-}
-
 // Always mounted, so a screen reader announces what arrives in it. Empty, it
-// takes no room: the gap below a notice is the notice's own margin, where a
-// grid gap would hold an empty line open above the buttons.
+// is only the room the note would take, so the buttons keep their place.
 .bug-report__notice-slot {
   display: grid;
 }
@@ -164,7 +114,7 @@ $notice-life: 7s;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  margin: 0 0 9px;
+  margin: 0;
   padding: 6px 12px 7px 6px;
   gap: 10px;
   border: 1px solid color-mix(in srgb, var(--bug-report-tone) 30%, transparent);
@@ -298,19 +248,5 @@ $notice-life: 7s;
 
   to {
     transform: scaleX(0);
-  }
-}
-
-@media (max-width: 620px) {
-  .bug-report__actions {
-    flex-wrap: wrap;
-
-    button {
-      flex: 1 1 auto;
-    }
-
-    .bug-report__primary {
-      flex-basis: 100%;
-    }
   }
 }

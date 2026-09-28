@@ -75,7 +75,7 @@ export default function ShowcaseSlide({
           ))}
         </ul>
 
-        <div className="tour-slide__how">
+        <div className="tour-slide__how dialog-frame__group">
           <span className="tour-slide__how-title">{t('tour.howTitle')}</span>
           <p>{t(key('how'))}</p>
           <button type="button" className="button small" onClick={onOpen}>

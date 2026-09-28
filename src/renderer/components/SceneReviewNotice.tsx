@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { CSSProperties, ReactNode } from 'react';
 import { resolveSceneName } from 'common/scenePacks';
 import type { TSceneReviewNotice } from 'common/sceneReviewNotice';
-import Glyph, { type TCommunityGlyph } from '../community/Glyph';
+import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import {
   openAdminSection,
   openGalleryPage,
@@ -18,10 +18,12 @@ import { REJECT_REASON_LABELS } from '../plus/ReviewDecision';
 import { markSceneReviewSeen, useSceneReview } from '../plus/sceneReviewStore';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
+import CompactFrame from './CompactFrame';
 import '../styles/SceneReviewNotice.scss';
 
-const MARKS: Record<TSceneReviewNotice['kind'], TCommunityGlyph> = {
-  waiting: 'check',
+/** A scene waiting to be looked at, one let through, one sent back. */
+const MARKS: Record<TSceneReviewNotice['kind'], MenuIconName> = {
+  waiting: 'pending',
   approved: 'check',
   rejected: 'alert',
 };
@@ -151,29 +153,33 @@ export default function SceneReviewNotice() {
   }
 
   return (
-    <div
-      className={`scene-review-notice scene-review-notice--${notice.kind}`}
+    <CompactFrame
+      className="scene-review-notice"
+      tone={notice.kind === 'rejected' ? 'warn' : 'accent'}
+      icon={<MenuIcon name={MARKS[notice.kind]} />}
+      title={title}
+      titleId="scene-review-notice-title"
       role="dialog"
-      aria-labelledby="scene-review-notice-title"
+      aria-modal="false"
       style={edge}
+      onClose={putAway}
+      closeLabel={t('app.dismiss')}
+      actions={
+        <>
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={putAway}
+          >
+            {quiet}
+          </button>
+          <button type="button" className="button small" onClick={action.run}>
+            {action.label}
+          </button>
+        </>
+      }
     >
-      <div className="scene-review-notice__body">
-        <span className="scene-review-notice__mark" aria-hidden="true">
-          <Glyph name={MARKS[notice.kind]} />
-        </span>
-        <div className="scene-review-notice__text">
-          <strong id="scene-review-notice-title">{title}</strong>
-          {body}
-        </div>
-      </div>
-      <div className="scene-review-notice__actions">
-        <button type="button" className="button small subtle" onClick={putAway}>
-          {quiet}
-        </button>
-        <button type="button" className="button small" onClick={action.run}>
-          {action.label}
-        </button>
-      </div>
-    </div>
+      {body}
+    </CompactFrame>
   );
 }

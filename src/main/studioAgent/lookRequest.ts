@@ -108,7 +108,7 @@ export const LOOK_SCHEMA = {
       type: 'object',
       additionalProperties: { type: 'number' },
       description:
-        "Values for the scene's own sliders (their ids in pack.json), for this picture only: nothing is saved. Use it to see each slider at its bottom and at its top.",
+        "Values for the scene's own sliders (their ids in pack.json), for this picture only: nothing is saved. Use it to see each slider at its bottom and at its top - and daylight at 0, 50 and 100 to see the scene's night, its dusk and its day. Without daylight, the picture is at the member's own Brightness, as their stage plays it.",
     },
     wave: {
       type: 'object',

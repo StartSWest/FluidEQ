@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'glass' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -71,21 +72,49 @@ $corner: $radius-xl;
 
 // EVERY DIALOG ONE MATERIAL (Ivan, 2026-09-26: "que tengan todos un style
 // que matchea y sea standarizado para todos … ponlos todos transparentes
-// también al 95%"): the menus' floor at 95% (`$surface-menu-floor`), the
-// open floor's hairline, the dialog's corner (`$corner`) and one lift.
-// `Modal.scss` puts it on
+// también al 95%"): the sheet below at 95% (`$sheet`), the open floor's
+// hairline, the dialog's corner (`$corner`) and one lift. `Modal.scss` puts
+// it on
 // every card with a dialog's role, so a dialog that styles itself cannot
 // drift from the rest; the mixin below is the same look for the family that
 // is built on it. No edge of its own in Rainbow mode any more ("quítale el
 // rainbow border a todos"): a spectrum drifting round a dialog was the one
 // moving outline in a window of still ones, as it had been round the menus.
+//
+// The sheet is the open floor lifted by an eighth of the pane colour, at 95%
+// — a window of the app itself, not a slab of its own. It was the menus' floor
+// mixed three tenths toward the pane, and on the brightest window colours that
+// came out as one flat mid-teal with lighter boxes inside it (Ivan,
+// 2026-09-27: "not good colors", "they look old need new and modern look like
+// the app").
+$sheet: color-mix(
+  in srgb,
+  color-mix(in oklab, $surface-base 88%, $surface-panel) 95%,
+  transparent
+);
+
+// The split's rail (`DialogFrame`): the pane colour laid over the sheet, so a
+// dialog reads as what it is on the left and what it holds on the right —
+// the direction Ivan picked, C · Split (2026-09-27: "go C split").
+$rail: color-mix(in srgb, $surface-panel 66%, transparent);
+
+// Between the rail and the body, and over the foot: the open floor's own
+// hairline, never a ruled accent.
+$seam: 1px solid color-mix(in srgb, $edge-tint 8%, transparent);
+
+// The floating glass since 2026-09-27 (`_glass.scss`), the panes' and the
+// menus' own: the amp's frosted fill and blur, the cards' faint edge all
+// round, and the panes' one-pixel bevel for depth. No shadow under it (Ivan:
+// "remove all crappy dropshadow from all modal and make borders uniform and
+// almost not visible like our cards, those modal needs to be also blurred
+// like that"). `$sheet` stays for the notices that float with no scrim
+// under them and keep a floor they can be read on.
 @mixin surface-look {
-  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
+  border: 1px solid $card-edge;
   border-radius: $corner;
-  background: $surface-menu-floor;
-  box-shadow:
-    0 32px 90px rgba($black, 0.64),
-    inset 0 1px 0 rgba($white, 0.05);
+  background: $glass-fill;
+  box-shadow: $glass-bevel;
+  backdrop-filter: $glass-blur;
 }
 
 @mixin surface($width, $height) {
@@ -96,6 +125,18 @@ $corner: $radius-xl;
   width: min($width, 100%);
   max-height: min($height, calc(100vh - #{$spacing-l} * 2));
   overflow: hidden;
+
+  @media (max-width: 620px), (max-height: 620px) {
+    max-height: calc(100vh - #{$spacing-m});
+  }
+}
+
+// How big one dialog is, and nothing else: `DialogFrame` and `ConfirmFrame`
+// own the grid, the material and the arrival, and a dialog built on them says
+// only its width and the tallest it may grow.
+@mixin size($width, $height: 860px) {
+  width: min($width, 100%);
+  max-height: min($height, calc(100vh - #{$spacing-l} * 2));
 
   @media (max-width: 620px), (max-height: 620px) {
     max-height: calc(100vh - #{$spacing-m});

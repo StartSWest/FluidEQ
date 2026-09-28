@@ -575,9 +575,11 @@ $eq-caret-width: 24px;
 .eq-mode.is-subtle {
   .eq-mode__caret {
     color: $secondary-light;
-    border-color: $border-field;
-    border-left-color: $border-field;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    border-color: $border-control;
+    border-left-color: $border-control;
+    // The face and edge every control has (`$surface-control`,
+    // `$border-control`), as its main half's.
+    background: $surface-control;
     box-shadow: none;
   }
 
@@ -585,8 +587,8 @@ $eq-caret-width: 24px;
     .button.eq-mode__main:not([aria-disabled='true']),
     .eq-mode__caret:not(:disabled) {
       color: $white;
-      border-color: color-mix(in srgb, $secondary-light 55%, transparent);
-      background: color-mix(in srgb, $secondary-default 16%, transparent);
+      border-color: $border-control-hover;
+      background: $surface-control-hover;
     }
   }
 }
@@ -595,8 +597,8 @@ $eq-caret-width: 24px;
 // of the "on" colour in it, opaque like the face it replaces. It was the "on"
 // colour at a fifth into the menu's lighter slate, a mint slab beside the
 // mint of the filled Smart EQ button it spoke for, the brightest thing in the
-// header (Ivan, 2026-09-26: "fix the bubble smart eq"). The edge, the words
-// and a soft glow carry the moment now; the face stays dark.
+// header (Ivan, 2026-09-26: "fix the bubble smart eq"). The edge and the
+// words carry the moment now; the face stays dark and nothing glows.
 $eq-bubble-applied-face: color-mix(in srgb, $active 8%, $surface-floating);
 // And how long that moment is. Long enough to catch, short enough to miss.
 $eq-bubble-applied-hold: 1.5s;
@@ -642,10 +644,10 @@ $eq-bubble-applied-hold: 1.5s;
   // wash at half the alpha, so where the two overlapped the seam showed. One
   // opaque colour on both and there is no seam to show.
   background: $surface-floating;
-  // Barely there. Nothing else in this row casts one — the buttons under it
-  // are flat — so a card lifted 20px off the page read as belonging to some
-  // other window. Enough to separate it from the graph behind, no more.
-  box-shadow: 0 2px 6px rgba($black, 0.22);
+  // Every tooltip's lift (`$tooltip-lift`): a hard pixel, no blur. Nothing
+  // else in this row casts one — the buttons under it are flat — and 6px of
+  // soft shade round it was still a cloud in a flat window.
+  box-shadow: $tooltip-lift;
   gap: 7px;
   pointer-events: none;
   // Rises as it arrives, and keeps drifting: a bubble that pops into place and
@@ -691,9 +693,7 @@ $eq-bubble-applied-hold: 1.5s;
   &.is-applied {
     border-color: color-mix(in srgb, $active 50%, transparent);
     background: $eq-bubble-applied-face;
-    box-shadow:
-      0 2px 6px rgba($black, 0.22),
-      0 0 14px color-mix(in srgb, $active 22%, transparent);
+    box-shadow: $tooltip-lift;
 
     &::before {
       border-right-color: color-mix(in srgb, $active 50%, transparent);
@@ -924,20 +924,6 @@ $eq-bubble-applied-hold: 1.5s;
   line-height: 1.3;
 }
 
-// The Continuous button's pause bars.
-//
-// `.button path { fill: $surface-well }` is what every icon inside a button
-// inherits, and it is right for the solid buttons — a dark glyph on a bright
-// cyan surface. On the subtle variant the surface is dark too, so the same rule
-// draws a black rectangle nobody can see.
-.eq-toolbar__pause path {
-  fill: currentcolor;
-  // Softened, because two solid near-black rectangles on a saturated cyan field
-  // read as a hole punched in the button rather than as a glyph. The label
-  // needs that full contrast to stay legible; a shape this simple does not.
-  opacity: 0.72;
-}
-
 // A selector, not four more verbs — and it is drawn as one.
 //
 // Everything to its left is something to press once: measure, clear, add a
@@ -1019,15 +1005,24 @@ $eq-bubble-applied-hold: 1.5s;
 // its own. The slider row takes whatever height is left over, so hiding the
 // response graph gives that space to the sliders instead of leaving a gap.
 .main-content {
+  // Positioned, so its grid areas contain what is placed in them (the dB
+  // scale in the first column).
+  position: relative;
   display: grid;
   min-width: 0;
   // Enough of a break above the sliders that the applied-layer chips do not
   // look like a caption for the first band, and no more than that: the panel
-  // already contributes its own row gap above this box.
-  padding: 6px 10px 0;
+  // already contributes its own row gap above this box. None at the sides:
+  // the panel's own inset is the margin, and the dB scale stands on it
+  // (Ivan, 2026-09-27: "too much padding").
+  padding: 6px 0 0;
   gap: 10px;
-  grid-template-columns: 38px minmax(0, 1fr);
+  // The dB scale's column is as wide as "0 dB", its widest number (19.6px).
+  grid-template-columns: 20px minmax(0, 1fr);
   grid-template-rows: minmax(min-content, 1fr) auto;
+  // Each page's scale finds its own row's first band, whatever other band
+  // rows are kept alive in the document (`.eq-scale`).
+  anchor-scope: --eq-travel;
 
   // No face under the sliders: on the open floor (layout A, Ivan 2026-09-25)
   // the band row stands on the page like everything else, and what it had as
@@ -1047,12 +1042,16 @@ $eq-bubble-applied-hold: 1.5s;
     content: '';
   }
 
-  // Over the hairline's row, as they were over the face.
+  // In the first column of the bands' row, taken out of the flow so the row
+  // is the bands' height alone, and placed along it by the travel it
+  // numbers (`.eq-scale` below). Both lines named: out of the flow, a line
+  // left `auto` is the grid's padding edge, and `grid-column: 1` alone made
+  // the scale as wide as the whole row, its numbers at the far right end.
   > .eq-scale {
-    position: relative;
+    position: absolute;
     z-index: 1;
-    grid-row: 1;
-    grid-column: 1;
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
   }
 
   > .bands-rail {
@@ -1068,32 +1067,54 @@ $eq-bubble-applied-hold: 1.5s;
   }
 }
 
-// dB ruler beside the sliders. It stretches with the band row so the labels
-// stay aligned at every density instead of relying on hard-coded heights.
+// The dB scale beside the sliders, numbered as a console prints one beside a
+// fader: every 10 dB, the fives between them quieter, and 0 dB lit (Ivan,
+// 2026-09-27: "add the 10 and other that pro console has").
+//
+// Placed on the first band's own travel — the strip its marks are drawn in,
+// from +20 to −20 (`FrequencyBand.scss`) — so each number stands exactly on
+// its mark at every length, handle and density. It used to be spread down
+// the whole row between two paddings meant to match the captions above and
+// below a band, which was only ever near: three numbers could hide that, nine
+// cannot. With no band to stand on, it falls back to those paddings.
 .eq-scale {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: space-between;
-  align-self: stretch;
-  // Matches the frequency caption above and the gain caption below a band so
-  // "0 dB" lines up with the middle of the slider tracks.
-  padding: 22px 0 20px;
+  top: anchor(--eq-travel top, 22px);
+  right: 0;
+  bottom: anchor(--eq-travel bottom, 20px);
+  left: 0;
   color: $text-muted;
   font-size: $text-eyebrow;
   font-variant-numeric: tabular-nums;
+  // Its height is the travel, so the fives can ask whether they fit.
+  container: eq-scale / size;
+}
 
-  // The middle one, brighter than the two ends.
-  //
-  // It is the only label of the three that names a line actually drawn on the
-  // face, and now that the line reaches this column the two should carry the
-  // same weight. Addressed by position because these are a fixed tuple in the
-  // markup — a top, a middle and a bottom — rather than a list that might grow
-  // a fourth entry.
-  span:nth-child(2) {
-    color: $text-primary;
+.eq-scale__mark {
+  position: absolute;
+  top: calc(var(--at) * 100%);
+  right: 0;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateY(-50%);
+
+  // The line the editor is read against, named brighter than the rest.
+  &.is-zero {
+    color: $secondary-light;
     font-weight: $weight-bold;
+  }
+
+  &.is-minor {
+    color: $text-faint;
+    opacity: 0.8;
+  }
+}
+
+// The fives only where the travel spaces them: down the shortest track (52px
+// of travel, a low window) nine numbers stood 6.5px apart, one line of type
+// over the next. From 128px they are 16px apart and read as numbers.
+@container eq-scale (height < 128px) {
+  .eq-scale__mark.is-minor {
+    display: none;
   }
 }
 
@@ -1126,18 +1147,23 @@ $eq-bubble-applied-hold: 1.5s;
   // With no floor set the tracks are an even share of the viewport, so this
   // resolves to exactly the viewport and nothing scrolls.
   width: max-content;
-  min-width: 100%;
+  // And never narrower than its bands at their floor (below), even where a
+  // layout sets its width to the viewport's (`.bands--wide`): tracks run past
+  // a box that stays put, and nothing watching the box saw the overflow, so
+  // the arrow that scrolls to the rest never came (the row at 1366px, 31
+  // bands: 1240px of bands in a 1098px box).
+  min-width: max(100%, calc(var(--band-count) * var(--band-min-width, 40px)));
   padding: 0;
-  // An even share by default, and a floor per band only where the share stops
-  // being usable — see the compact rules at the foot of this file, which set
-  // `--band-min-width`. On a wide window thirty-one bands across the card is
-  // exactly right and nothing here changes it; on a narrow one it came to
-  // nine pixels a band, with the frequency labels printed over one another
-  // and the sliders a picket fence. There the floor applies, the row runs
-  // past the edge, and the viewport scrolls it.
+  // An even share, never under the width a band still reads at (40px,
+  // `MIN_BAND_SLOT` in plotGeometry.ts, where placing the bands gives way to
+  // this row): past that the row runs off the edge and the arrow scrolls it.
+  // The floor used to apply only under 940px, so above it thirty-one bands
+  // squeezed to 22px each, their frequencies cut to "31.!" (Ivan,
+  // 2026-09-27: "you dont need to compress them too much if no space since
+  // we can have the show more").
   grid-template-columns: repeat(
     var(--band-count),
-    minmax(var(--band-min-width, 0px), 1fr)
+    minmax(var(--band-min-width, 40px), 1fr)
   );
   align-items: center;
   // No background of its own any more. The 0 dB guide moved onto the face
@@ -1178,9 +1204,10 @@ $eq-bubble-applied-hold: 1.5s;
 
 // The bands in fixed places across the graph above (layout A; `placed` by
 // `placeBandsEvenly` in plotGeometry.ts). A flex row of bands one slot
-// wide, each held off the one before it by its own lead — so the row keeps
-// the height its bands give it, and the marquee and the glow still find the
-// bands in their frequency order.
+// wide, the first held off the row's edge by its lead and each after it off
+// the one before by theirs — so the row keeps the height its bands give it,
+// and the marquee and the glow still find the bands in their frequency
+// order. The three numbers are written on the row (`applyBandPlacement`).
 .bands.is-placed {
   display: flex;
   width: 100%;
@@ -1194,22 +1221,20 @@ $eq-bubble-applied-hold: 1.5s;
     flex: 0 0 var(--band-slot);
     margin-left: var(--band-lead, 0px);
   }
+
+  > .bandWrapper:nth-child(1 of .bandWrapper) {
+    margin-left: var(--band-first-lead, 0px);
+  }
 }
 
-// The row gives the bands its whole width, and lets the outermost hang into
-// the page's padding where the plot's ends are: the dB scale goes (the graph
-// above carries the scale now), the grid is one column, and nothing clips.
+// The row keeps the dB scale beside it here too, and lets the last band hang
+// into the page's padding where the plot's end is, so nothing clips. The
+// scale went while the graph above carried one, and a wide window was then
+// the one width with no dB beside the sliders (Ivan, 2026-09-27: "the db
+// indicator is not shown on some width"); the bands no longer start left of
+// their own row, where it stands (`MainContent.tsx`).
 .main-content.is-placed {
   padding-inline: 0;
-  grid-template-columns: minmax(0, 1fr);
-
-  > .eq-scale {
-    display: none;
-  }
-
-  > .bands-rail {
-    grid-column: 1;
-  }
 
   .bands-rail__viewport {
     overflow: visible;
@@ -1238,10 +1263,12 @@ $eq-bubble-applied-hold: 1.5s;
 // inherits down, so a rule on the input beats it for that subtree — no
 // `!important`, and no general-purpose widget made euphoria-aware. `revert`
 // drops this rule and lets the wrapper's own value inherit through again.
-// The arrows are named as well as the track. They sit beside the input rather
+// The arrows are named as well as the rail. They sit beside the input rather
 // than inside it, so a rule on the input alone left them reading the band
-// colour off the wrapper — a cyan slider between two coloured triangles.
-.bandWrapper .range input[type='range'],
+// colour off the wrapper — a cyan slider between two coloured triangles. The
+// rail holds the input and the groove and lit core behind it, which take the
+// same colour or the core glows in the rainbow under a cyan handle.
+.bandWrapper .range .range__rail,
 .bandWrapper .range .arrow-up,
 .bandWrapper .range .arrow-down {
   --slider-color: #{$secondary-default};
@@ -1253,7 +1280,7 @@ $eq-bubble-applied-hold: 1.5s;
   --slider-track: #{color-mix(in srgb, $secondary-dark 34%, transparent)};
 }
 
-.is-euphoric .bandWrapper .range input[type='range'],
+.is-euphoric .bandWrapper .range .range__rail,
 .is-euphoric .bandWrapper .range .arrow-up,
 .is-euphoric .bandWrapper .range .arrow-down {
   --slider-color: revert;
@@ -1838,25 +1865,11 @@ $eq-bubble-applied-hold: 1.5s;
 // Two rows of controls read better than six squeezed columns once the EQ card
 // is narrow. The identity and delete rows span the full width.
 @media (max-width: 940px) {
-  .main-content {
-    grid-template-columns: 30px minmax(0, 1fr);
-    padding-inline: 6px;
-  }
-
-  .eq-scale {
-    font-size: $text-eyebrow;
-  }
-
-  // A floor per band here, and only here: see `.bands`. On a wide window the
-  // even share is right; at this width it stops being usable long before the
-  // band count runs out.
-  .bands {
-    --band-min-width: 40px;
-  }
-
-  .bandWrapper .range {
-    --range-length: 112px;
-  }
+  // No track length of its own here: the rail's measured height decides it
+  // at this width too (`.bandWrapper .range` above). A fixed 112px outlived
+  // the measuring and made each band 18px taller than the row it stands in,
+  // spilling 9px above it — into the air under the graph, and with the grid
+  // off, under the divider's line.
 
   // Four columns, because four of the six cells are now small round things of
   // the same width — three dials and a switch — and they belong on one line.
@@ -1970,8 +1983,3 @@ $eq-bubble-applied-hold: 1.5s;
 // The stepped overrides that used to shorten the tracks on a short window are
 // gone: the clamps above already scale with the viewport, continuously rather
 // than in two jumps, and a fixed length here would override them and undo it.
-@media (max-height: 700px) {
-  .eq-scale {
-    padding-block: 18px 16px;
-  }
-}

@@ -442,18 +442,17 @@ const studio = {
   'studio.framing.use': 'Usa questa foto',
   'studio.framing.saving': 'Salvataggio…',
 
-  'studio.size.title': 'Dimensione',
-  'studio.size.graph': 'Grafico',
-  'studio.size.narrow': 'Stretto',
-  'studio.size.wide': 'Largo',
   'studio.size.full': 'Schermo intero',
   'studio.size.exit': 'Esci da schermo intero',
   'studio.wave.title': 'Onda sul grafico',
   'studio.wave.hint':
     'Si salva nella scena e viene pubblicata con essa, così si apre come l’hai lasciata. Chi la usa può cambiarle in Vista, sul grafico, e rimettere la tua. Prova gli estremi: un’onda bassa o sollevata fino al centro.',
   'studio.tint.label': 'FluidEQ con questa scena',
+  'studio.tint.theme': 'Tema',
+  'studio.brightness.hint':
+    'La Luminosità di tutta l’app, lo stesso cursore di Colori della finestra. Con essa ogni scena passa dalla notte a 0 al pieno giorno a 100: prova la tua a entrambi gli estremi prima di pubblicarla.',
   'studio.tint.hint':
-    'Mentre lavori qui, tutta l’app può prendere i colori della scena, o illuminarsi piano intorno a lei con la musica, così la vedi e la senti come tema.',
+    'Solo qui, mentre lavori: i Colori della finestra del grafico restano come li hai impostati. Tema lascia la finestra come ce l’ha l’app; gli altri le danno i colori di questa scena, o si illuminano piano intorno a lei con la musica, così la vedi e la senti come chi la ascolterà.',
   'studio.grid.label': 'Mostra la griglia del grafico',
   'studio.grid.hint':
     'Le sue linee di frequenza e di livello sopra la scena, con lo spazio che occupano sul grafico, per misurare dove cadono l’onda e ogni parte della scena.',
@@ -509,6 +508,8 @@ const studio = {
     'Un controllo in params richiede un id con a-z, 0-9 e _, un nome inglese e un min inferiore al suo max.',
   'studio.problem.too-many-params':
     'Una scena può avere al massimo 8 controlli in params.',
+  'studio.problem.no-daylight':
+    'Ogni scena ha bisogno del controllo Daylight, { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } in params, e disegna la notte a 0 e il giorno a 100.',
   'studio.problem.bad-ambient':
     'Alcuni elementi o controlli ambient in pack.json sono stati esclusi. Controlla forme, movimenti, colori, quantità e cosa muove ogni controllo.',
   'studio.problem.bad-world':

@@ -10,7 +10,7 @@
  * are arriving at.
  */
 
-import { SMOOTH_FRAME_MS } from 'common/smoothing';
+import { THIRTY_A_SECOND_MS } from 'common/smoothing';
 
 let webgl2Available: boolean | undefined;
 
@@ -105,7 +105,7 @@ export const SCENE_RENDER_SCALES: readonly number[] = [
  * rung at all while frames arrive faster than this — a listener who chose
  * thirty, or a thirty-hertz panel, has nothing to slow.
  */
-export const SCENE_SLOW_PACE_MS = SMOOTH_FRAME_MS;
+export const SCENE_SLOW_PACE_MS = THIRTY_A_SECOND_MS;
 
 /**
  * What a frame should cost, as a share of the interval frames arrive at.

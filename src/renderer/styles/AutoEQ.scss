@@ -128,7 +128,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .opra-credit {
     display: grid;
     padding: 10px 0 2px;
-    border-top: 1px solid rgba($edge-tint, 0.09);
+    border-top: 1px solid $card-edge;
     margin-top: 4px;
     gap: 10px;
     grid-template-columns: max-content 1fr;
@@ -201,11 +201,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex-direction: column;
     justify-content: center;
     gap: 12px;
-    border: 1px solid $border-subtle;
+    border: 1px solid $card-edge;
     border-radius: $radius-s;
-    // The block colour, like every other card on a pane. Black at 14% over
-    // the pane came out below the window's own floor, so the one box on this
-    // page that holds a drawing was the darkest thing on it.
+    // The graph's colour, like every drawing on a pane.
     background: $surface-plot;
   }
 
@@ -452,11 +450,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Applying has no visible effect inside this panel — the result lands in the
 // bands below — so the button reports its own outcome. Muted rather than
-// greyed: it is finished, not unavailable.
+// greyed: it is finished, not unavailable. The quiet button's face, the
+// fields' beside it, rather than a tint of the accent that came out olive
+// wherever the accent is not the card's hue.
 .auto-eq .button.is-applied {
   color: $secondary-light;
-  border-color: color-mix(in srgb, $secondary-light 40%, transparent);
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  border-color: $border-control;
+  background: $surface-control;
   box-shadow: none;
   cursor: default;
   opacity: 1;

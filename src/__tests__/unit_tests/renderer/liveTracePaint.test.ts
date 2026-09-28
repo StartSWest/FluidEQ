@@ -116,15 +116,18 @@ describe('which colour the live trace is painted in', () => {
     ]);
   });
 
-  it('falls back to the app’s own spectrum for an uncoloured rainbow', () => {
-    // Deliberately not the EQ gradient, which carries a stop per band and so
-    // covers whatever slice of the axis the user's bands happen to occupy.
+  it('paints the colours it is handed, the window’s when the look has none', () => {
+    // The chart hands the look's colours or the window's (`windowInk.ts`),
+    // so a rainbow runs across the axis through whichever set that is.
     const gradient = asGradient(
-      resolveTracePaint('rainbow', [], '#54ff8a', PLOT),
+      resolveTracePaint('rainbow', ['#112233', '#445566'], '#54ff8a', PLOT),
     );
-    expect(gradient.stops.length).toBeGreaterThan(2);
-    expect(gradient.stops[0].offset).toBe(0);
-    expect(gradient.stops[gradient.stops.length - 1].offset).toBe(1);
+    expect(gradient.stops.map((stop) => stop.colour)).toEqual([
+      '#112233',
+      '#445566',
+    ]);
+    // Only an empty list somebody built by hand reaches the fallback.
+    expect(resolveTracePaint('rainbow', [], '#54ff8a', PLOT)).toBe('#54ff8a');
   });
 });
 

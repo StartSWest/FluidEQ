@@ -545,7 +545,7 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
 .karaoke-workspace__notice {
   flex: 0 0 auto;
   padding: 9px 12px;
-  border: 1px solid rgba($edge-tint, 0.16);
+  border: 1px solid $card-edge;
   border-radius: $radius-s;
   // The card, as the playlist and the chips on the stage are. It was the
   // field colour at a third, a pale strip across the top of the page.
@@ -1024,7 +1024,7 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
   color: $text-muted;
   border: 1px solid $border-field;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: $surface-control;
   transition: $transition-control;
 
   svg {
@@ -1234,6 +1234,12 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
       transparent 30%
     ),
     $card-glow, $surface-card;
+  // No outline: the stage stands inside the page's own card now
+  // (`$section-card-pages`), and a card's edge drawn inside a card's edge
+  // framed the lyrics twice (Ivan, 2026-09-27: "remove karaoke lyric
+  // border"). Cleared rather than removed, so a dragged song can still
+  // light it.
+  border-color: transparent;
 
   &.is-dragging {
     border-color: color-mix(in srgb, $secondary-default 70%, transparent);
@@ -1941,7 +1947,7 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
       background: $surface-menu-floor;
       border: 1px solid $border-menu;
       border-radius: $radius-xs;
-      box-shadow: none;
+      box-shadow: $tooltip-lift;
       opacity: 0;
       transform: translate(-50%, 3px);
       transition:
@@ -2785,7 +2791,11 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
   padding: 10px 12px 8px !important;
   overflow: hidden;
   color: $text-muted;
-  border-color: color-mix(in srgb, $secondary-light 13%, transparent);
+  // No outline at rest, like the lyric stage above it (Ivan, 2026-09-27:
+  // "remove karaoke lyric border", then "do a full pass for all
+  // inconsistencies"): the two panels of the page stood one framed and one
+  // not. A live microphone still lights it.
+  border-color: transparent;
   // The playlist's corner, which `lifted-surface` sets from `$radius-m`. An
   // 18px corner of its own made two panels of the same row read as two
   // different kinds of thing, in a window as much as in full screen.
@@ -2805,11 +2815,6 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
   text-align: left;
   transform: translateZ(0);
   transition: border-color 280ms ease;
-
-  &:hover,
-  &:focus-within {
-    border-color: color-mix(in srgb, $secondary-light 22%, transparent);
-  }
 
   &.is-microphone-live {
     border-color: color-mix(in srgb, $secondary-light 25%, transparent);
@@ -2915,7 +2920,7 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
   width: 100%;
   min-height: 128px;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   // The plot colour, flat. The drawing inside paints the same colour edge
   // to edge, so a wash here only showed as a darker rim where the two did
@@ -3418,6 +3423,14 @@ $karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
 $maker-quiet: color-mix(in srgb, $secondary-default 7%, transparent);
 $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
 
+// The Maker's own buttons, which it draws in its own face: not the app's
+// `.button` in a dialog frame laid over the Maker, nor the frames' ×
+// (`DialogClose`). At `.karaoke-maker button`'s weight the Maker outranked
+// `Button.scss` and `DialogFrame.scss`, and drew the loud answer of every
+// dialog in it as its quiet one, not bold, and the × as a boxed button. In
+// `:where`, so every rule written against this one still weighs what it did.
+$maker-own-button: 'button:not(:where(.dialog-frame .button, .compact-frame .button, .dialog-close))';
+
 // Karaoke Maker is a single Canvas-backed editing surface. The DOM here is
 // deliberately limited to stable controls and inspectors; notes, words,
 // waveform, playhead and the time/pitch grids are all drawn in one canvas.
@@ -3449,7 +3462,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   background: $surface-base;
   border-radius: 0;
 
-  button,
+  #{$maker-own-button},
   input,
   textarea {
     font: inherit;
@@ -3459,11 +3472,11 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   // the accent fill for the one suggested action. The Maker had a slab of its
   // own, a darker gradient up to the block colour, which made every control
   // in it a lighter tile than the same control anywhere else.
-  button {
+  #{$maker-own-button} {
     min-height: 30px;
     padding: 0 11px;
     color: $secondary-light;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    background: $surface-control;
     border: 1px solid $border-field;
     border-radius: $radius-s;
     box-shadow: none;
@@ -3478,7 +3491,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     &.is-active {
       color: $white;
       border-color: $border-field-hover;
-      background: color-mix(in srgb, $secondary-default 14%, transparent);
+      background: $surface-control-hover;
       box-shadow: none;
     }
 
@@ -3802,7 +3815,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
-    @include floating-surface(0 6px 16px rgba($black, 0.28));
+    @include floating-surface($tooltip-lift);
     opacity: 0;
     transform: translate(-50%, -3px);
     transition:
@@ -4088,7 +4101,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
-    @include floating-surface(0 6px 16px rgba($black, 0.28));
+    @include floating-surface($tooltip-lift);
     opacity: 0;
     transform: translate(-50%, -3px);
     transition:
@@ -4388,7 +4401,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     color: $secondary-light;
     font-size: $text-body;
     font-weight: $weight-bold;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    background: $surface-control;
     border: 1px solid $border-field;
     border-radius: $radius-xs;
 
@@ -4446,7 +4459,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     font-weight: $weight-semibold;
     // A segmented choice in the quiet face, the chosen one lit and edged:
     // three block-coloured slabs were a row of lighter tiles.
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    background: $surface-control;
     border: 1px solid $border-field;
     border-radius: $radius-xs;
     box-shadow: none;
@@ -4457,7 +4470,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
 
     &:hover {
       color: $white;
-      background: color-mix(in srgb, $secondary-default 14%, transparent);
+      background: $surface-control-hover;
       border-color: $border-field-hover;
     }
 
@@ -4488,10 +4501,11 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
 
 .karaoke-maker__popover-heading {
   display: grid;
-  grid-template-columns: auto 1fr auto auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 7px;
-  padding: 1px 3px;
+  // The right clears the close button in the panel's corner.
+  padding: 1px 34px 1px 3px;
   color: $text-muted;
   font-size: $text-lead;
   font-weight: $weight-bold;
@@ -4508,35 +4522,14 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   }
 }
 
-.karaoke-maker__popover-close {
-  display: grid;
-  width: 23px;
-  min-width: 23px !important;
-  height: 23px;
-  min-height: 23px !important;
-  place-items: center;
-  padding: 0 !important;
-  color: $text-faint !important;
-  font-size: 15px !important;
-  line-height: 1;
-  background: $surface-plot !important;
-  border-color: rgba($edge-tint, 0.08) !important;
-  border-radius: $radius-xs !important;
-  box-shadow: none !important;
-
-  &:hover {
-    color: #fff !important;
-    background: color-mix(
-      in srgb,
-      $secondary-default 14%,
-      transparent
-    ) !important;
-    border-color: color-mix(
-      in srgb,
-      $secondary-default 40%,
-      transparent
-    ) !important;
-  }
+// The one close button (`DialogClose`), in this panel's own corner: the
+// panel is a menu's size, so the frame's 12px inset would sit it below the
+// heading it closes.
+.dialog-close.karaoke-maker__timing-close {
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
 }
 
 @keyframes karaoke-maker-timing-arrive {
@@ -4764,12 +4757,12 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   min-height: 0;
   margin: 8px 10px 0;
   overflow: hidden;
-  background: $surface-base;
-  border: 1px solid $border-field;
-  border-radius: $radius-l;
-  box-shadow:
-    inset 0 0 32px color-mix(in srgb, $surface-base 20%, transparent),
-    0 14px 36px color-mix(in srgb, $surface-base 12%, transparent);
+  // The app's own card (`section-card`), as the Studio's panes and every
+  // page's cards are, on the Maker's floor: it was the floor's colour inside
+  // a field's lit edge with a glow and a shadow, a well cut into the floor
+  // rather than a pane standing on it (Ivan, 2026-09-27: "fix karaoke maker
+  // too bg color panes").
+  @include section-card;
 }
 
 .karaoke-maker__canvas {
@@ -4893,7 +4886,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
-    @include floating-surface(0 6px 16px rgba($black, 0.28));
+    @include floating-surface($tooltip-lift);
     opacity: 0;
     transform: translate(-50%, 3px);
     content: attr(data-tooltip);
@@ -5024,10 +5017,9 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   min-width: 0;
   margin: 6px 10px;
   overflow: hidden;
-  // A box in the card, edged as the window's boxes are; an accent frame
-  // inside the card read as a second, brighter card.
-  border: 1px solid $border-subtle;
-  border-radius: $radius-l;
+  // The app's own card, like the note canvas above it: the cards' fill with
+  // their edge. It was the edge alone, a hollow frame on the Maker's floor.
+  @include section-card;
 
   > header {
     display: flex;
@@ -5833,7 +5825,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   min-height: 30px !important;
   place-items: center;
   padding: 0 !important;
-  // Every dialog's close (`.dialog-header__close`). Red on hover said
+  // Every dialog's close (`.dialog-close`). Red on hover said
   // "delete" for a button that only puts the panel away.
   color: $text-muted;
   background: $surface-plot;
@@ -6844,7 +6836,7 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     padding: 0 10px;
     color: $secondary-light;
     font-size: $text-lead;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    background: $surface-control;
     border: 1px solid $border-field;
     border-radius: $radius-xs;
 
@@ -7164,11 +7156,6 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
 }
 
 // The automatic set-up offer, shown over the Maker for a song with no timing.
-//
-// The icons here are the Maker's toolbar SVGs, which carry no intrinsic size —
-// they are drawn at whatever their container gives them. Every other user of
-// them sits inside a sized button, so this is the first place that had to say
-// it out loud; without the rule below a single note filled the whole tab.
 .karaoke-maker__wizard {
   position: absolute;
   z-index: 6;
@@ -7177,86 +7164,98 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   padding: 24px;
   place-items: center;
   // A cover, dimming the Maker as the dialogs' backdrop dims the window; the
-  // card is the panel inside it.
+  // frame is the dialog inside it.
   background: dialog.$scrim;
 }
 
-.karaoke-maker__wizard-panel {
-  display: grid;
-  width: min(520px, 100%);
+// Inside the Maker's cover, not the window: as tall as the cover lets it be,
+// which is less than the window by the title bar and the transport.
+.dialog-frame.karaoke-maker__wizard-panel {
+  width: min(640px, 100%);
   max-height: 100%;
-  gap: 14px;
-  padding: 22px 24px;
-  overflow-y: auto;
-  color: $text-primary;
-  @include dialog.surface-look;
 }
 
-.karaoke-maker__wizard-title {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  margin: 0;
-  font-size: 1.12rem;
-}
-
-// The badge gives the dialog a face; the icon alone was invisibly small.
-.karaoke-maker__wizard-title-badge {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  flex: none;
-  color: $surface-base;
-  background: linear-gradient(135deg, $secondary-light, $secondary-default 72%);
-  border-radius: $radius-s;
-  box-shadow: 0 6px 18px color-mix(in srgb, $secondary-default 35%, transparent);
-
-  svg {
-    width: 19px;
-    height: 19px;
-  }
-}
-
-.karaoke-maker__wizard-intro {
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-lead;
-  line-height: 1.45;
-}
+// The plan, in the order it runs: a mark per step, joined by a thread that
+// lights as each step is done, the running one on the accent's tint. Rows of
+// a list, never a box each — a box round each step read as two more cards.
+$wizard-step-mark: 32px;
+$wizard-step-pad: 9px;
+$wizard-step-gap: 6px;
 
 .karaoke-maker__wizard-steps {
   display: grid;
   margin: 0;
   padding: 0;
-  gap: 8px;
+  gap: $wizard-step-gap;
   list-style: none;
 }
 
 .karaoke-maker__wizard-step {
+  position: relative;
   display: grid;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  padding: 10px 12px;
-  font-size: $text-title;
-  border: 1px solid $border-field;
-  border-radius: $radius-m;
+  padding: $wizard-step-pad 12px $wizard-step-pad 10px;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  border-radius: $radius-l;
 
-  // The size the toolbar buttons would otherwise have supplied.
-  svg {
-    width: 19px;
-    height: 19px;
-    flex: none;
+  // The thread from the mark above to this one, across both rows' padding
+  // and the gap between them.
+  & + & {
+    &::before {
+      position: absolute;
+      top: -($wizard-step-pad + $wizard-step-gap);
+      left: 10px + $wizard-step-mark * 0.5;
+      width: 1px;
+      height: $wizard-step-pad * 2 + $wizard-step-gap;
+      background: $border-field;
+      content: '';
+    }
+  }
+
+  &.is-done + &::before {
+    background: color-mix(in srgb, $secondary-light 60%, transparent);
   }
 
   &.is-active {
-    border-color: color-mix(in srgb, $secondary-light 62%, transparent);
     background: color-mix(in srgb, $secondary-default 12%, transparent);
   }
 
   &.is-done {
-    color: $text-faint;
+    color: $text-muted;
+  }
+}
+
+.karaoke-maker__wizard-step-mark {
+  display: grid;
+  width: $wizard-step-mark;
+  height: $wizard-step-mark;
+  place-items: center;
+  color: $text-muted;
+  border: 1px solid $border-field;
+  border-radius: 50%;
+
+  // The Maker's toolbar glyphs carry no size of their own: every other user
+  // of them is a sized button, and without this a single note filled the
+  // whole tab.
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .is-active > & {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-light 62%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+  }
+
+  .is-done > & {
+    color: $secondary-light;
+    border-color: transparent;
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
   }
 }
 
@@ -7271,8 +7270,9 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
 }
 
 .karaoke-maker__wizard-step-done {
+  width: 16px;
+  height: 16px;
   color: $secondary-light;
-  font-weight: $weight-bold;
 }
 
 @keyframes karaoke-wizard-spin {
@@ -7281,27 +7281,24 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   }
 }
 
+// The one setting the run asks for, after the plan it applies to and parted
+// from it by the floor's hairline.
 .karaoke-maker__wizard-language {
   display: grid;
   align-items: center;
   gap: 10px;
   grid-template-columns: auto minmax(0, 1fr);
-  font-size: $text-lead;
+  padding-top: 16px;
+  border-top: dialog.$seam;
   color: $text-muted;
-
-  > select {
-    min-height: 30px;
-    padding: 4px 8px;
-    color: $text-primary;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
-    border: 1px solid $border-field;
-    border-radius: $radius-xs;
-  }
+  font-size: $text-lead;
 }
 
 .karaoke-maker__wizard-progress {
   display: grid;
   gap: 7px;
+  padding-top: 16px;
+  border-top: dialog.$seam;
 
   // Nothing else in the app uses a native <progress>, so it arrives with the
   // platform's own light-grey chrome and looks like a foreign control dropped
@@ -7353,37 +7350,6 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
     font-size: $text-lead;
   }
 }
-
-.karaoke-maker__wizard-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 9px;
-
-  // The recommended action, stated completely rather than inherited, because
-  // this button has been restyled by cascade surprises three times today.
-  // Rest: solid accent, dark label. Hover: brighter fill, same dark label, a
-  // glow — readable in both states, nothing left to the panel's light text.
-  .button:not(.subtle) {
-    color: $surface-base;
-    border-color: transparent;
-    background: $secondary-default;
-
-    &:hover:not([aria-disabled='true']) {
-      color: #02231f;
-      background: $secondary-light;
-      box-shadow:
-        0 0 22px color-mix(in srgb, $secondary-default 35%, transparent),
-        inset 0 1px 0 rgba($white, 0.4);
-      transform: translateY(-1px);
-    }
-  }
-}
-
-// No bespoke primary style here on purpose. `button small` is already this
-// app's emphasised button and `button small subtle` its quiet one, so the
-// wizard uses both and defines neither. The custom gradient that used to sit
-// here was invented rather than reused, and it lost to `.button`'s own colour
-// on specificity — pale text on a pale fill, readable in neither theme.
 
 .karaoke-maker__analysis-progress {
   display: grid;
@@ -7791,44 +7757,25 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
   }
 }
 
-.karaoke-maker__toast {
+// The restore notice: the small frame (`CompactFrame`) in the editor's top
+// right corner, under the header, as wide as its one line. It says one thing
+// and asks nothing, so it lets every click through to the tools it covers
+// for its two seconds.
+.compact-frame.karaoke-maker__toast {
   position: absolute;
   z-index: 20;
   top: calc(var(--karaoke-maker-header-height) + 12px);
   right: 16px;
-  display: flex;
-  min-height: 34px;
-  align-items: center;
-  gap: 8px;
-  max-width: min(360px, calc(100% - 32px));
-  padding: 7px 11px;
-  color: rgba($white, 0.92);
-  font-size: $text-lead;
-  font-weight: $weight-bold;
+  width: auto;
+  max-width: min(380px, calc(100% - 32px));
   pointer-events: none;
-  background: $surface-menu-floor;
-  border: 1px solid $border-field;
-  border-radius: $radius-2xs;
-  box-shadow:
-    0 14px 34px rgba($black, 0.36),
-    0 0 18px color-mix(in srgb, $secondary-default 9%, transparent),
-    inset 0 1px rgba($white, 0.05);
   // Two animations on one timeline, so it looks as the single one did: the
   // fade is the toast's lifetime — the Maker takes it down on that one's
-  // end — and the drift is only motion, which reduced motion may cut.
+  // end — and the drift is only motion, which reduced motion may cut. They
+  // stand in for the frame's own arrival: the fade is how this one arrives.
   animation:
     karaoke-maker-toast 2.6s ease both,
     karaoke-maker-toast-drift 2.6s ease both;
-
-  svg {
-    width: 14px;
-    height: 14px;
-    flex: 0 0 auto;
-    color: $secondary-light;
-    filter: drop-shadow(
-      0 0 5px color-mix(in srgb, $secondary-default 35%, transparent)
-    );
-  }
 }
 
 @keyframes karaoke-maker-toast {
@@ -7888,30 +7835,22 @@ $maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
 // button on it (Ivan, 2026-09-26: "fix all modals", "review all panes").
 $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
 
+// The lyrics editor, the size of a workspace: the frame is as tall as it may
+// be rather than as tall as its contents, because the columns fill the body
+// and scroll inside themselves. Wider than the other dialogs by the rail it
+// gained: at 1080px the lyrics column was left 290px, and the language
+// picker in it was cut to "As recor".
+.dialog-frame.karaoke-maker__lyrics-modal {
+  @include dialog.size(1280px, 820px);
+  height: min(820px, calc(100dvh - 48px));
+}
+
 .karaoke-maker__lyrics-modal {
-  position: relative;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto auto;
-  gap: 12px;
-  width: min(1080px, 100%);
-  height: min(720px, calc(100dvh - 48px));
-  max-height: calc(100dvh - 48px);
-  overflow: hidden;
-  padding: 18px;
-  // Every dialog's material (`dialog.surface-look`, and `Modal.scss` puts it
-  // on anything with a dialog's role): a violet wash and an accent edge of its
-  // own were a second family of dialogs inside the Maker.
-  @include dialog.surface-look;
-
-  h2 {
-    margin: 3px 0;
-    font-size: 19px;
-  }
-
-  p {
-    margin: 0;
-    color: $text-muted;
-    font-size: 11px;
+  // The columns take what the body has; the progress and an error, when there
+  // are any, stand under them at their own height.
+  > .dialog-frame__body {
+    grid-template-rows: minmax(0, 1fr);
+    align-content: stretch;
   }
 
   textarea {
@@ -7932,62 +7871,6 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
       box-shadow: inset 0 0 22px
         color-mix(in srgb, $secondary-default 5%, transparent);
     }
-  }
-
-  &.is-processing {
-    grid-template-rows: auto minmax(0, 1fr) auto auto;
-  }
-}
-
-.karaoke-maker__lyrics-modal-head {
-  display: block;
-  min-width: 0;
-  padding-right: 40px;
-
-  > div:first-child {
-    min-width: 0;
-    max-width: 700px;
-  }
-}
-
-.karaoke-maker__lyrics-modal-close {
-  position: absolute;
-  z-index: 3;
-  top: 14px;
-  right: 14px;
-  display: grid !important;
-  width: 32px;
-  min-width: 32px;
-  height: 32px;
-  min-height: 32px !important;
-  place-items: center;
-  padding: 0 !important;
-  // Every dialog's close (`.dialog-header__close`): the plot's well and the
-  // faintest edge, lit only when pointed at.
-  color: $text-muted !important;
-  background: $surface-plot !important;
-  border-color: rgba($edge-tint, 0.08) !important;
-  border-radius: $radius-s !important;
-
-  svg {
-    width: 15px;
-    height: 15px;
-  }
-
-  &:hover:not(:disabled),
-  &:focus-visible {
-    color: $secondary-light !important;
-    background: color-mix(
-      in srgb,
-      $secondary-default 16%,
-      transparent
-    ) !important;
-    border-color: color-mix(
-      in srgb,
-      $secondary-light 40%,
-      transparent
-    ) !important;
-    box-shadow: none !important;
   }
 }
 
@@ -8126,11 +8009,13 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
   gap: 9px;
 }
 
+// The label gives way before the picker does: it wraps, and the picker
+// keeps room to say which language it holds.
 .karaoke-maker__lyrics-target {
   display: grid;
   align-items: center;
   gap: 10px;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, max-content) minmax(150px, 1fr);
   font-size: $text-lead;
   color: $text-muted;
 }
@@ -8151,14 +8036,18 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
   text-align: right;
 }
 
+// The title keeps its line; what stands beside it (a count, a button) goes
+// under it when the column is narrow, rather than breaking the title in two.
 .karaoke-maker__lyrics-section-head {
   display: flex;
+  flex-wrap: wrap;
   min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px 10px;
 
   strong {
+    white-space: nowrap;
     color: $text-muted;
     font-size: $text-lead;
     @include tracking(0.035em);
@@ -8225,7 +8114,7 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
   padding: 6px 8px;
   color: $text-muted;
   font-size: $text-body;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: $surface-control;
   border: 1px solid $border-field;
   border-radius: $radius-xs;
 
@@ -8281,7 +8170,7 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
     padding: 0 8px;
     color: $text-muted;
     font-size: $text-lead;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    background: $surface-control;
     border: 1px solid $border-field;
     border-radius: $radius-xs;
     transition:
@@ -8292,7 +8181,7 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
 
     &:hover {
       color: $white;
-      background: color-mix(in srgb, $secondary-default 14%, transparent);
+      background: $surface-control-hover;
       border-color: $border-field-hover;
       transform: translateY(-1px);
     }
@@ -8525,74 +8414,9 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
   }
 }
 
-.karaoke-maker__modal-actions button {
-  display: inline-flex;
-  min-height: 34px;
-  flex: 0 0 auto;
-  align-items: center;
-  gap: 7px;
-  padding: 0 11px;
-
-  > svg {
-    width: 15px;
-    height: 15px;
-    flex: 0 0 15px;
-  }
-}
-
-.karaoke-maker__consent-modal {
-  width: min(530px, 100%);
-  padding: 22px;
-  @include dialog.surface-look;
-
-  h2 {
-    margin: 6px 0 10px;
-    font-size: 20px;
-  }
-
-  p {
-    color: $text-muted;
-    font-size: 11px;
-    line-height: 1.55;
-  }
-
-  .karaoke-maker__modal-actions {
-    margin-top: 18px;
-  }
-}
-
-.karaoke-maker__confirm-modal {
-  display: grid;
-  width: min(470px, 100%);
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 12px;
-  padding: 20px;
-  color: $text-muted;
-  // The dialogs' material; the red glyph beside the words is what says this
-  // one cannot be undone.
-  @include dialog.surface-look;
-
-  > svg {
-    width: 24px;
-    height: 24px;
-    color: #ff8fa0;
-  }
-
-  h2 {
-    margin: 0 0 6px;
-    font-size: 17px;
-  }
-
-  p {
-    margin: 0;
-    color: $text-muted;
-    font-size: $text-lead;
-    line-height: 1.55;
-  }
-
-  .karaoke-maker__modal-actions {
-    grid-column: 1 / -1;
-  }
+// Downloading the speech model (`KaraokeMakerWhisperConsent`), on the frame.
+.dialog-frame.karaoke-maker__consent-modal {
+  @include dialog.size(720px, 640px);
 }
 
 .karaoke-maker__replace-warning {
@@ -8604,27 +8428,6 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
   background: rgba($red, 0.3);
   border: 1px solid rgba(255, 103, 128, 0.24);
   border-radius: $radius-s;
-}
-
-.karaoke-maker__modal-actions {
-  display: flex;
-  min-height: 34px;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 7px;
-
-  > .is-danger {
-    color: #fff0f2;
-    background: $red;
-    border-color: rgba(255, 132, 151, 0.38);
-  }
-}
-
-.karaoke-maker__lyrics-actions {
-  .karaoke-maker__replace-warning {
-    flex: 1 0 100%;
-  }
 }
 
 @media (max-width: 1280px) {
@@ -8690,24 +8493,25 @@ $lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);
     padding: 8px;
   }
 
-  .karaoke-maker__lyrics-modal {
-    height: min(720px, calc(100dvh - 16px));
+  .dialog-frame.karaoke-maker__lyrics-modal {
+    height: calc(100dvh - 16px);
     max-height: calc(100dvh - 16px);
-    padding: 11px;
   }
 
-  .karaoke-maker__lyrics-modal-head {
-    display: grid;
-    gap: 8px;
-
-    p {
-      display: none;
-    }
+  // One column, and the body scrolls as a whole: squeezed into the window's
+  // height, the word list under the lyrics was left six pixels tall.
+  .karaoke-maker__lyrics-modal > .dialog-frame__body {
+    grid-template-rows: auto;
+    align-content: start;
   }
 
   .karaoke-maker__lyrics-editor-body {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(150px, 0.78fr) minmax(210px, 1.22fr);
+    grid-template-rows: minmax(220px, auto) auto;
+  }
+
+  .karaoke-maker__lyrics-timing-editor {
+    grid-template-rows: auto minmax(120px, 220px) auto;
   }
 
   .karaoke-maker__tool-group,

@@ -1,0 +1,256 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// The layout of the Stage, and the sheet along its foot: the equalizer and
+// what plays next as its two pages.
+
+// ============================================================ the layout ===
+//
+// One column: the song, the dock and the open space down the window, the
+// sheet under them. The open space takes whatever height is left.
+.player-main {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.player-main__lead {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+// ============================================================= the sheet ===
+.player-sheet {
+  @include player-glass-pane(var(--player-glass-deep));
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  min-width: 0;
+  margin: 8px 10px 10px;
+  padding: 4px 16px 14px;
+  border-radius: 26px;
+
+  &.is-lowered {
+    padding-bottom: 10px;
+  }
+}
+
+// The handle along its top: lowers the sheet to its tabs and raises it.
+.player-sheet__handle {
+  display: grid;
+  align-self: center;
+  width: 72px;
+  height: 18px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-pill;
+  background: none;
+  cursor: pointer;
+
+  &:hover .player-sheet__grabber {
+    background: color-mix(in srgb, #{$white} 50%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.player-sheet__grabber {
+  width: 38px;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, #{$white} 26%, transparent);
+  transition: background 150ms ease;
+}
+
+.player-sheet__tabs {
+  @include player-well;
+  display: flex;
+  flex: none;
+  margin-top: 4px;
+  padding: 3px;
+  border-radius: $radius-xl;
+}
+
+.player-sheet__tab {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 0;
+  height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 9px;
+  background: none;
+  color: var(--player-text-soft);
+  font-size: 12.5px;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(.is-on) {
+    color: var(--player-text);
+  }
+
+  &.is-on {
+    background: var(--player-chosen);
+    box-shadow: inset 0 1px 0 var(--player-glass-lip);
+    color: var(--player-text);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.player-sheet__count {
+  color: var(--player-text-soft);
+  font-weight: $weight-medium;
+}
+
+// One page at a time, at the equalizer's height: the queue lies over it in
+// exactly that room, so turning the page moves nothing else in the window.
+.player-sheet__pages {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 12px;
+}
+
+.player-sheet__page {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+
+  &.is-away {
+    visibility: hidden;
+  }
+
+  &.is-over {
+    position: absolute;
+    inset: 0;
+  }
+}
+
+// ====================================================== snug, compact ======
+//
+// A window shorter than everything at its roomiest gives the song's room up
+// in two steps (`usePlayerHeightLimit`, which measures each): first the
+// cover shrinks, then the cover and the chips go, and the dock and the curve
+// stand closer.
+.mini-player.is-snug {
+  .player-now {
+    padding-top: 10px;
+  }
+
+  .player-now__art {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 6px;
+    border-radius: 13px;
+  }
+}
+
+.mini-player.is-compact {
+  .player-now {
+    padding-top: 6px;
+  }
+
+  .player-now__art,
+  .player-now__chips {
+    display: none;
+  }
+
+  .player-now__title {
+    font-size: clamp(20px, 5.4cqi, 24px);
+  }
+
+  .player-dock {
+    margin-top: 12px;
+    padding-block: 10px 8px;
+  }
+
+  .player-dock__play {
+    width: 54px;
+    height: 54px;
+  }
+
+  .player-eq-screen {
+    min-height: 92px;
+  }
+}
+
+// ============================================================== wide =======
+//
+// A wide window puts the sheet beside the rest rather than under it: the
+// picture on the left with the song and the dock over it, and the sheet in
+// its own column beside them. The sheet is as wide as the band layout needs,
+// 470px at the least (`--player-eq-min`, `PlayerBandFloor`).
+//
+// THE EQUALIZER AT ITS OWN HEIGHT, AT THE FOOT OF THE COLUMN; UP NEXT THE
+// WHOLE HEIGHT (Ivan, 2026-09-28: "I don't want the EQ so stretched … when
+// it is on EQ we just show a shorter, limited-height EQ"). Stretched to the
+// window, the faders ran two thirds of a tall screen for a few dB of travel
+// and the curve's screen grew with them; the queue is a long list, and is
+// the one page the height is worth giving to.
+//
+// From 1000px across, where the column beside the sheet holds the
+// visualizer's bar on one line (`PlayerStageBar`): the bar spans that column,
+// and at 900 it ran under the sheet.
+@container player (min-width: 1000px) {
+  .player-main {
+    flex-direction: row;
+  }
+
+  .player-main__lead {
+    flex: 1 1 auto;
+  }
+
+  .player-now,
+  .player-dock {
+    width: 460px;
+    max-width: calc(100% - 28px);
+  }
+
+  .player-now {
+    align-self: flex-start;
+  }
+
+  .player-dock {
+    align-self: flex-start;
+    width: 432px;
+  }
+
+  .player-sheet {
+    align-self: flex-end;
+    width: max(470px, var(--player-eq-min, 470px));
+    max-width: 52%;
+    margin: 2px 10px 10px 0;
+
+    // Up next, the whole column. Lowered, whatever the page, it is its tabs
+    // at the foot of its column, and the picture has the rest.
+    &.is-queue:not(.is-lowered) {
+      align-self: stretch;
+    }
+  }
+}

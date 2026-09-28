@@ -138,8 +138,10 @@ export const sceneTintStrength = (sky: ISceneSky) =>
  * in step with the theme's own walk from Black to Ocean. Black is the window
  * with no colour in it, black and dark grey (Ivan, 2026-09-27: "moving toward
  * the 0 make it no tinting so is pure black / dark gray ... when moving to
- * the 100% it tints the cyan as normal"). A visualizer's own sky keeps its
- * colour at Black, which is its colour darkened, never black (2026-09-25).
+ * the 100% it tints the cyan as normal"). Only this sky: a Plus
+ * visualizer's own keeps its colour at every Brightness in Colours and
+ * Ambient (`TSkyTone` in `sceneTintStore.ts`; 2026-09-28: "only on standard
+ * viz we do that").
  */
 export const lentSkyReach = (shade: number) => clamp01(shade / OCEAN_SHADE);
 
@@ -420,6 +422,25 @@ export const sceneTintSwatch = (sky: ISceneSky) =>
       1,
     ),
   );
+
+/**
+ * The colour the window-colour controls show for a scene: the hue its
+ * buttons, switches and lit marks take (`sceneAccentHue`), at the swatch's
+ * lightness. It was the sky's (`sceneTintSwatch`), which the window only
+ * wears as near-black surfaces, so under a scene whose sky is coral and
+ * whose second colour is lilac every glyph in the menu was a coral nothing
+ * else on screen was (Ivan, 2026-09-27: "is color in those dots the right
+ * for the theme"). A scene that leaves the accent alone shows the theme's
+ * own, which is what its window keeps.
+ */
+export const sceneAccentSwatch = (sky: ISceneSky): string => {
+  const hue = sceneAccentHue(sky);
+  return hue === undefined
+    ? 'var(--accent-light)'
+    : labToHex(
+        toward({ l: SWATCH_LIGHTNESS, a: 0, b: 0 }, SWATCH_CHROMA, hue, 1),
+      );
+};
 
 /** `hue` at `lightness` and `chroma`, as the screen can show it. */
 const iconColour = (lightness: number, chroma: number, hue: number): string =>

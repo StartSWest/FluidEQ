@@ -55,7 +55,7 @@ const PlayerPaper = ({
 
   return (
     <svg
-      className="player-vis__paper"
+      className="player-gap__paper"
       width={width}
       height={height}
       aria-hidden

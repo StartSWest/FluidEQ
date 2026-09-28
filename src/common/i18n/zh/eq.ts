@@ -33,6 +33,9 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.update': '更新已保存布局',
   'eq.layouts.saveNew': '保存布局…',
   'eq.layouts.error': '无法更新布局，请重试。',
+  'eq.sliders': 'EQ 滑块',
+  'eq.sliders.round': '圆形',
+  'eq.sliders.rect': '矩形',
   'eq.layouts.clearTitle': '清空 EQ？',
   'eq.layouts.clearWarning':
     '将每个频段的增益以及低音、中音、高音旋钮设为 0 dB。保留当前的频段数、频率、Q 值、低切与高切、EQ 模式和前级增益。',
@@ -294,6 +297,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.fallblocks': '下落方块',
   'graph.styleName.fibers': '光纤',
   'graph.styleName.afterglow': '余晖',
+  'graph.styleName.horizon': '地平线',
   'graph.styleName.line': '线条',
   'graph.styleName.area': '面积',
   'graph.styleName.bars': '条柱',

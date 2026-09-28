@@ -15,15 +15,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 // *** The logo ****************************************************************
 
-// The tile and the wave's weight are the app icon's (`App.scss`); the edge,
-// the wave and the glow under it are the window's colours, as the name's
-// "EQ" beside it is (Ivan, 2026-09-26: "the app icon on the top needs to
-// follow theme too"). `--logo-1` to `--logo-5` are read by the wave's own
-// gradient (`ThemeWaveGradient`) and by the edge here: the accent across its
-// greener and bluer ends in Normal — the theme's cyan, or a visualizer's
-// first colour — and the palette in use in Rainbow. Every other mark, in the
-// dialogs, keeps the app icon's Lagoon. Both classes, so the order the two
-// sheets land in never decides which edge is drawn.
+// The wave's weight is the app icon's (`App.scss`); the tile, the edge, the
+// wave and the glow under it are the window's colours, as the name's "EQ"
+// beside it is (Ivan, 2026-09-26: "the app icon on the top needs to follow
+// theme too"). `--logo-1` to `--logo-5` are read by the wave's own gradient
+// (`ThemeWaveGradient`) and by the edge here: the accent across its greener
+// and bluer ends — the theme's cyan, or a visualizer's first colour. Every
+// other mark, in the dialogs, keeps the app icon's Lagoon. Both classes, so
+// the order the two sheets land in never decides which edge is drawn.
 .brand-mark.brand-mark--signal {
   --logo-1: var(--accent-start);
   --logo-2: color-mix(in oklab, var(--accent-start), var(--accent));
@@ -31,8 +30,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
   --logo-4: color-mix(in oklab, var(--accent), var(--accent-end));
   --logo-5: var(--accent-end);
 
+  // The tile in the window's own colours, a step over the pane at its top
+  // and down to the floor: near black at Black, the light blue at the light
+  // end, where a black tile stood out like a hole (Ivan, 2026-09-27: "fix the
+  // logo to match light and adapt toward dark").
   background:
-    linear-gradient(160deg, #101722, #080b11 50%, #030508) padding-box,
+    linear-gradient(
+        160deg,
+        oklch(from var(--surface-panel) calc(l + 0.05) c h),
+        var(--surface-panel) 50%,
+        var(--surface-base)
+      )
+      padding-box,
     linear-gradient(
         135deg,
         var(--logo-1),
@@ -72,14 +81,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Rainbow: the palette in use, first to last, as the name's "EQ" runs.
-html.is-euphoric .brand-mark.brand-mark--signal {
-  --logo-1: var(--rainbow-1);
-  --logo-2: var(--rainbow-2);
-  --logo-3: var(--rainbow-4);
-  --logo-4: var(--rainbow-6);
-  --logo-5: var(--rainbow-7);
-}
+// The same smooth run of the accent in Rainbow mode too, where the mode's
+// own ends lean it toward the palette a little (`Rainbow.scss`). Taken whole,
+// the palette ran the tile's edge and the wave through seven colours (Ivan,
+// 2026-09-27: "make logo and title rainbow color more smooth ... EQ just
+// normal smooth and the icon too").
 
 @keyframes signal-draw {
   to {
@@ -154,13 +160,11 @@ html.is-euphoric .brand-mark.brand-mark--signal {
 // then, with a Plus visualizer lending the window its colours, "when plus
 // viz is on it should also use the viz theme"). The first part keeps the
 // white the titles use and rises letter by letter; "EQ" is in whatever the
-// window is drawn in. In Normal it is the filled controls' own fill
-// (`--accent-fill`): the accent between its greener and bluer ends — the
-// theme's cyan, or the visualizer's first colour. In Rainbow it is the
-// palette in use — Lagoon, or the visualizer's five — twice the box wide and
-// swept by one width, with the first colour again at the end, so the drift
-// never jumps. The logo beside it stays the app's own icon either way.
-$signal-eq-palette: linear-gradient(110deg, var(--rainbow-stops));
+// window is drawn in: the filled controls' own fill (`--accent-fill`), the
+// accent between its greener and bluer ends — the theme's cyan, or the
+// visualizer's first colour — in Rainbow mode as well, where those ends lean
+// toward the palette. The whole palette swept through two letters was a run
+// of hard colours, not a gradient ("EQ just normal smooth").
 
 // One box for the two letters, so the colour runs through them as one and
 // they rise together after the first part. The letters inside are plain text,
@@ -189,17 +193,6 @@ $signal-eq-palette: linear-gradient(110deg, var(--rainbow-stops));
   }
 }
 
-html.is-euphoric .signal-name__suffix {
-  background: $signal-eq-palette;
-  background-size: 200% 100%;
-  background-clip: text;
-  animation:
-    signal-rise 520ms cubic-bezier(0.3, 0.7, 0, 1) forwards,
-    signal-sweep 12s linear infinite,
-    signal-glow-lit 5.5s ease-in-out infinite;
-  animation-delay: calc(700ms + var(--letter-index) * 45ms), 0s, 1.2s;
-}
-
 // The glow of a clipped word: a text shadow would be drawn through its
 // transparent letters and tint them, so the light is a drop shadow round the
 // painted word instead, on the pulse's clock.
@@ -218,12 +211,6 @@ html.is-euphoric .signal-name__suffix {
   40%,
   100% {
     filter: none;
-  }
-}
-
-@keyframes signal-sweep {
-  to {
-    background-position: 200% 50%;
   }
 }
 
@@ -248,8 +235,7 @@ html.is-euphoric .signal-name__suffix {
     transform: none;
   }
 
-  .signal-name__suffix,
-  html.is-euphoric .signal-name__suffix {
+  .signal-name__suffix {
     animation: none;
     opacity: 1;
     transform: none;

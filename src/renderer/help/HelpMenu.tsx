@@ -1,21 +1,15 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { useEffect, useRef, useState } from 'react';
-import { PRODUCT_NAME } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
-import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
+import MenuIcon from '../icons/MenuIcon';
 import HelpGuide from './HelpGuide';
 import { onHelpGuideRequest } from './helpGuideRequests';
+import helpMenuActions, { type IHelpHandlers } from './helpMenuActions';
 import '../styles/HelpGuide.scss';
 
-interface IHelpMenuProps {
-  onTour: () => void;
-  onTroubleshoot: () => void;
-  onReport: () => void;
-  /** Shows the Forum — the project's GitHub Discussions — in the workspace. */
-  onForum: () => void;
-  onAbout: () => void;
+interface IHelpMenuProps extends IHelpHandlers {
   /**
    * The Forum is what the workspace shows. It has no tab of its own in the
    * titlebar, so the menu it opens from is what says where it is.
@@ -85,23 +79,11 @@ export default function HelpMenu({
     return () => document.removeEventListener('pointerdown', dismiss);
   }, [open]);
 
-  // The Forum sits with the other ways to get help, after reporting a
-  // problem: the place to ask people rather than the app. Every row wears a
-  // picture of its own — five of the six used to share the circled i — and
-  // fixing audio wears the spanner it wears in the actions menu beside this
-  // one, because it is the same action.
-  const actions: { label: string; run: () => void; icon: MenuIconName }[] = [
-    { label: t('help.title'), run: () => setShowGuide(true), icon: 'guide' },
-    { label: t('app.menu.whatsNew'), run: onTour, icon: 'gift' },
-    { label: t('app.menu.fixAudio'), run: onTroubleshoot, icon: 'wrench' },
-    { label: t('app.menu.reportProblem'), run: onReport, icon: 'flag' },
-    { label: t('tabs.forum'), run: onForum, icon: 'forum' },
-    {
-      label: t('app.menu.about', { product: PRODUCT_NAME }),
-      run: onAbout,
-      icon: 'info',
-    },
-  ];
+  const actions = helpMenuActions(
+    t,
+    { onTour, onTroubleshoot, onReport, onForum, onAbout },
+    () => setShowGuide(true),
+  );
 
   return (
     <div className="workspace-header__tools help-menu" ref={root}>

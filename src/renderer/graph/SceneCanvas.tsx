@@ -324,9 +324,9 @@ export default function SceneCanvas({
 
   const width = frame?.width ?? plot?.width ?? 0;
   const height = frame?.height ?? plot?.height ?? 0;
-  // On a layer, out of sight while the window changes size for full screen:
-  // the plot is framing it through every layout in between, and the plot's
-  // own fade (`App.scss`) does not reach a picture outside it.
+  // On a layer, its picture held while the window changes size for full
+  // screen: the plot is framing it through every layout in between, and only
+  // a frame of the size it settles at lets it go (`sceneWorkerClient.ts`).
   const arriving = useGraphArriving();
   const sceneRef = useSceneRunner({
     source,

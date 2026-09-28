@@ -35,10 +35,14 @@ export default function SceneColumnLayer() {
     }
     const measure = () => {
       const graph = column.querySelector(':scope > .graph-wrapper');
-      const { top } = column.getBoundingClientRect();
+      // From the layer's own top to the graph's inside foot: the column's top
+      // and the graph's foot, except where the head and the graph stand on a
+      // card and the layer is cut to the card's inside edge (`App.scss`).
+      const { top } = layer.getBoundingClientRect();
       const bottom =
         graph instanceof HTMLElement
-          ? graph.getBoundingClientRect().bottom
+          ? graph.getBoundingClientRect().bottom -
+            (graph.offsetHeight - graph.clientHeight - graph.clientTop)
           : top;
       layer.style.height = `${Math.max(0, bottom - top)}px`;
     };

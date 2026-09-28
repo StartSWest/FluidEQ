@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useId, type ReactNode } from 'react';
 import { SETTINGS_GROUP_TITLE } from 'common/settingsGroups';
 import { useTranslation } from '../utils/I18nContext';
+import StudioBrightness from './StudioBrightness';
 import StudioTintSwitch from './StudioTintSwitch';
 import StudioWaveControls from './StudioWaveControls';
 import type { IStudioWave } from './studioWave';
@@ -52,6 +53,7 @@ export default function StudioTune({
     <div className={`studio-tune${idle ? ' is-idle' : ''}`}>
       <section className="studio-card studio-tune__box">
         <StudioTintSwitch />
+        <StudioBrightness />
       </section>
       <section
         className="studio-card studio-tune__box"

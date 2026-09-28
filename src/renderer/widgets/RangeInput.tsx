@@ -31,6 +31,9 @@ import { clamp } from '../utils/utils';
 import { getBandColor } from '../utils/bandColors';
 import { useRainbowStops } from '../utils/rainbowPalette';
 
+/** How close to 0 a drag has to come, in pixels of the track, to land on it. */
+const ZERO_DETENT_PX = 4;
+
 interface IRangeInputProps {
   name: string;
   value: number;
@@ -63,6 +66,7 @@ const RangeInput = ({
   // Store a copy of the last value so it isn't lost to the throttle
   const lastValue = useRef<number | undefined>(undefined);
   const isGestureActive = useRef(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const factor = useMemo(() => 10 ** displayPrecision, [displayPrecision]);
 
   // The thumb follows the pointer, not the store.
@@ -109,9 +113,28 @@ const RangeInput = ({
     [colorProgress, rainbow],
   );
 
+  // A drag lets go of 0 within a few pixels of it, as a fader's centre
+  // detent does (Ivan, 2026-09-27: "make slider to snap at 0 db"). Only a
+  // drag: an arrow key, the wheel or a typed value can still set 0.3 on
+  // purpose. Measured in pixels of the track rather than in dB, so the catch
+  // feels the same on a short track as on a tall one; the input is turned a
+  // quarter, so the track's length is its box's height on screen.
+  const snapToZero = (candidate: number) => {
+    if (!isGestureActive.current || min >= 0 || max <= 0) {
+      return candidate;
+    }
+    const travel = inputRef.current?.getBoundingClientRect().height ?? 0;
+    if (travel <= 0) {
+      return candidate;
+    }
+    const zone = (ZERO_DETENT_PX / travel) * (max - min);
+    return Math.abs(candidate) <= zone ? 0 : candidate;
+  };
+
   const onRangeInput = (e: ChangeEvent<HTMLInputElement>) => {
-    const newValue: number =
-      Math.round(clamp(parseFloat(e.target.value), min, max) * factor) / factor;
+    const newValue: number = snapToZero(
+      Math.round(clamp(parseFloat(e.target.value), min, max) * factor) / factor,
+    );
     lastValue.current = newValue;
     setDraft(newValue);
     handleChange(newValue);
@@ -173,7 +196,7 @@ const RangeInput = ({
 
   return (
     <div
-      className="col center range"
+      className={`col center range${isDisabled ? ' is-disabled' : ''}`}
       style={
         {
           '--slider-color': rangeColor.color,
@@ -192,32 +215,43 @@ const RangeInput = ({
         handleChange={() => onArrowInput(true)}
         isDisabled={isDisabled}
       />
-      <input
-        type="range"
-        min={min}
-        max={max}
-        value={rangeValue}
-        step={0.01}
-        name={name}
-        aria-label={name}
-        onChange={onRangeInput}
-        onMouseUp={endGesture}
-        onPointerDown={beginGesture}
-        onPointerUp={endGesture}
-        onPointerCancel={endGesture}
-        onKeyUp={commitPendingValue}
-        onBlur={commitPendingValue}
-        onWheel={onWheel}
-        disabled={isDisabled}
-        style={
-          // Set css variables for determining upper/lower track
-          {
-            '--min': min,
-            '--max': max,
-            '--val': rangeValue,
-          } as CSSProperties
-        }
-      />
+      {/* The groove and its lit core are drawn behind the input rather than
+          as its track: the core brightens with the band's own level
+          (`--band-level`, `BandLevels`), and as an element of its own that is
+          an opacity the compositor changes, where a track's background would
+          be the slider repainted every time the music moved. The input keeps
+          the fill and the handle, over them. */}
+      <span className="range__rail">
+        <span className="range__groove" aria-hidden="true" />
+        <span className="range__glow" aria-hidden="true" />
+        <input
+          ref={inputRef}
+          type="range"
+          min={min}
+          max={max}
+          value={rangeValue}
+          step={0.01}
+          name={name}
+          aria-label={name}
+          onChange={onRangeInput}
+          onMouseUp={endGesture}
+          onPointerDown={beginGesture}
+          onPointerUp={endGesture}
+          onPointerCancel={endGesture}
+          onKeyUp={commitPendingValue}
+          onBlur={commitPendingValue}
+          onWheel={onWheel}
+          disabled={isDisabled}
+          style={
+            // Set css variables for determining upper/lower track
+            {
+              '--min': min,
+              '--max': max,
+              '--val': rangeValue,
+            } as CSSProperties
+          }
+        />
+      </span>
       <ArrowButton
         name={name}
         type="down"

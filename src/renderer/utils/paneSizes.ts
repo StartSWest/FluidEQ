@@ -139,7 +139,19 @@ const measureTransportStrip = () => {
  */
 const measureHead = (column: HTMLElement) => {
   const head = column.querySelector(':scope > .center-head');
-  return head instanceof HTMLElement ? head.offsetHeight : 0;
+  if (!(head instanceof HTMLElement)) {
+    return 0;
+  }
+  // Its margins as well: over a section card the head is the top of the
+  // graph's own card, standing 8px under the titlebar (`App.scss`). Left out,
+  // those 8px came out of the graph, and with the graph at its floor pushed
+  // the page's card through the column's foot.
+  const { marginTop, marginBottom } = getComputedStyle(head);
+  return (
+    head.offsetHeight +
+    (parseFloat(marginTop) || 0) +
+    (parseFloat(marginBottom) || 0)
+  );
 };
 
 /**
@@ -168,6 +180,22 @@ const measureSeam = (column: HTMLElement) => {
 };
 
 /**
+ * The floor the graph keeps above and below itself: on the DSP and Share
+ * pages it is a card under the page's, 10px up from the column's foot
+ * (`App.scss`). The graph takes whatever the split leaves it, so a margin
+ * left out came off the graph, and with the graph at its floor pushed its
+ * card through the column's foot.
+ */
+const measureGraphMargins = (column: HTMLElement) => {
+  const graph = column.querySelector(':scope > .graph-wrapper');
+  if (!(graph instanceof HTMLElement)) {
+    return 0;
+  }
+  const { marginTop, marginBottom } = getComputedStyle(graph);
+  return (parseFloat(marginTop) || 0) + (parseFloat(marginBottom) || 0);
+};
+
+/**
  * The height the two panes actually divide between them.
  *
  * Measured off the column that holds them whenever there is one, because
@@ -182,7 +210,8 @@ const measureSeam = (column: HTMLElement) => {
  * down.
  *
  * The divider's seam is not part of the split either, so it comes off the top,
- * and nor is the EQ pages' head when it stands above the graph.
+ * and nor is the EQ pages' head when it stands above the graph, nor the
+ * floor round the graph's card.
  */
 const measureSplittableHeight = (): ISplittable => {
   if (typeof document !== 'undefined') {
@@ -190,7 +219,10 @@ const measureSplittableHeight = (): ISplittable => {
     if (column instanceof HTMLElement && column.clientHeight > 0) {
       const room = Math.max(
         PANE_MIN_HEIGHT * 2,
-        column.clientHeight - measureSeam(column) - measureHead(column),
+        column.clientHeight -
+          measureSeam(column) -
+          measureHead(column) -
+          measureGraphMargins(column),
       );
       return { room, base: room + measureTransportStrip() };
     }

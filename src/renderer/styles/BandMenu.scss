@@ -85,5 +85,6 @@ $band-menu-width: 200px;
 .band-menu__rule {
   height: 1px;
   margin: 4px 6px;
-  background: $border-subtle;
+  // Every menu's inner line (`$menu-rule`).
+  background: $menu-rule;
 }

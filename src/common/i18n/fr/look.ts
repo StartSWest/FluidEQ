@@ -62,11 +62,14 @@ const look: Partial<Dictionary> = {
   'look.palette.levelHint':
     'La couleur monte sur l’axe et indique l’intensité de chaque barre.',
   'look.palette.heat': 'Chaleur',
-  'look.palette.heatHint': 'La couleur suit le volume, du froid au rouge.',
+  'look.palette.heatHint':
+    'La couleur suit le volume, de la première couleur à la dernière.',
   'look.palette.auto': 'Auto',
   'look.palette.autoHint':
     'Chaque forme dans sa propre couleur : une route éclairée par le volume, des barres par leur position.',
   'look.colours': 'Couleurs',
+  'look.coloursFollowWindow':
+    "Suit les couleurs de la fenêtre. Changez-en une pour qu'elles appartiennent à ce style.",
   'look.colourValue': 'Couleur {number} : {colour}',
   'look.removeColour': 'Supprimer la couleur {number}',
   'look.custom': 'Personnalisée',

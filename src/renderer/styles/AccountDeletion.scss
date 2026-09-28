@@ -47,7 +47,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 14px;
   min-width: 0;
   padding: 14px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-l;
   background:
     linear-gradient(
@@ -184,7 +184,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
     gap: 4px;
     min-width: 0;
     padding: 8px 10px;
-    border: 1px solid $border-subtle;
+    border: 1px solid $card-edge;
     border-radius: $radius-s;
     background: color-mix(in srgb, $white 2.5%, transparent);
   }

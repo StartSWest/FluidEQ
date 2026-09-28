@@ -25,7 +25,8 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from '../utils/I18nContext';
-import DialogHeader from './DialogHeader';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from './DialogFrame';
 import '../styles/WhatsNew.scss';
 
 interface IWhatsNewDialogProps {
@@ -65,8 +66,19 @@ const renderInline = (text: string, keyPrefix: string) => {
   });
 };
 
+/**
+ * One version's notes, under its number; the file's own preface, before the
+ * first version, has no heading.
+ */
+interface IChangelogSection {
+  key: string;
+  blocks: ReactElement[];
+}
+
 const renderChangelog = (markdown: string) => {
-  const blocks: ReactElement[] = [];
+  const preface: IChangelogSection = { key: 'preface', blocks: [] };
+  const sections = [preface];
+  let { blocks } = preface;
   let listItems: string[] = [];
   let paragraph: string[] = [];
 
@@ -140,9 +152,22 @@ const renderChangelog = (markdown: string) => {
         return;
       }
       if (level === 2) {
-        blocks.push(<h3 key={key}>{content}</h3>);
+        const version: IChangelogSection = {
+          key,
+          blocks: [
+            <h3 key={key} className="whats-new__version">
+              {content}
+            </h3>,
+          ],
+        };
+        sections.push(version);
+        blocks = version.blocks;
       } else {
-        blocks.push(<h4 key={key}>{content}</h4>);
+        blocks.push(
+          <h4 key={key} className="dialog-frame__section-title">
+            {content}
+          </h4>,
+        );
       }
       return;
     }
@@ -151,7 +176,16 @@ const renderChangelog = (markdown: string) => {
 
   flushList('tail');
   flushParagraph('tail-paragraph');
-  return blocks;
+  // Each version a part of the page, parted from the next by the frame's
+  // hairline: they used to run on as one column of boxes, the version number
+  // the only thing telling one release from the next.
+  return sections
+    .filter((section) => section.blocks.length > 0)
+    .map((section) => (
+      <section key={section.key} className="dialog-frame__section">
+        {section.blocks}
+      </section>
+    ));
 };
 
 export default function WhatsNewDialog({
@@ -200,40 +234,36 @@ export default function WhatsNewDialog({
         }
       }}
     >
-      <div
+      {/* No version badge here, unlike About: `scope` can ask for the whole
+          changelog, and one number on a panel covering several releases would
+          name the wrong one. */}
+      <DialogFrame
         className="whats-new"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="whats-new-title"
+        icon={<MenuIcon name="gift" />}
+        eyebrow={t('whatsNew.eyebrow')}
+        title={t('whatsNew.title')}
+        titleId="whats-new-title"
+        closeLabel={t('support.close')}
+        onClose={onClose}
+        // Outside the scrolling body, so the notes never have to be scrolled
+        // to the bottom to find the way out a reader's eye ends on.
+        footer={
+          <div className="dialog-frame__actions">
+            <button
+              ref={confirmRef}
+              type="button"
+              className="button small"
+              onClick={onClose}
+            >
+              {t('whatsNew.ok')}
+            </button>
+          </div>
+        }
       >
-        {/* No version pill here, unlike About: `scope` can ask for the whole
-            changelog, and one number on a panel covering several releases
-            would name the wrong one. */}
-        <DialogHeader
-          eyebrow={t('whatsNew.eyebrow')}
-          title={t('whatsNew.title')}
-          titleId="whats-new-title"
-          closeLabel={t('support.close')}
-          onClose={onClose}
-        />
-
-        <div className="whats-new__body">
-          {markdown === undefined && <p>{t('whatsNew.loading')}</p>}
-          {markdown === '' && <p>{t('whatsNew.missing')}</p>}
-          {markdown ? renderChangelog(markdown) : null}
-        </div>
-
-        <div className="whats-new__footer">
-          <button
-            ref={confirmRef}
-            type="button"
-            className="whats-new__ok"
-            onClick={onClose}
-          >
-            {t('whatsNew.ok')}
-          </button>
-        </div>
-      </div>
+        {markdown === undefined && <p>{t('whatsNew.loading')}</p>}
+        {markdown === '' && <p>{t('whatsNew.missing')}</p>}
+        {markdown ? renderChangelog(markdown) : null}
+      </DialogFrame>
     </div>
   );
 }

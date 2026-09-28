@@ -28,6 +28,9 @@ import { createPortal } from 'react-dom';
 import type { IAudioRestartOutcome } from 'common/audioEngine';
 import type { TRestartPhase } from '../utils/useAudioRestart';
 import { useTranslation } from '../utils/I18nContext';
+import MenuIcon from '../icons/MenuIcon';
+import CompactFrame from './CompactFrame';
+import holdFocusReturn from '../utils/focusReturn';
 import '../styles/Button.scss';
 import '../styles/RestartAudioDialog.scss';
 
@@ -51,17 +54,13 @@ const RestartAudioDialog = ({
   const isRunning = phase === 'running';
 
   useEffect(() => {
-    const previousFocus = document.activeElement;
+    const giveFocusBack = holdFocusReturn();
     // Opened again while Windows is still restarting, the one thing to press
     // is Close; Restart is breathing and refuses a second go.
     if (phase === 'running') {
       closeRef.current?.focus();
     }
-    return () => {
-      if (previousFocus instanceof HTMLElement) {
-        previousFocus.focus();
-      }
-    };
+    return giveFocusBack;
     // Once, on mount: the phase effect below takes over from there.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -132,42 +131,27 @@ const RestartAudioDialog = ({
         }
       }}
     >
-      <div
+      <CompactFrame
         ref={surfaceRef}
-        className="restart-dialog"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="restart-dialog-title"
+        className="restart-audio"
+        // The restart arrows, the mark the notice bar's "restart now" wears,
+        // so the card reads as that action's own window; amber once Windows
+        // has refused, before a word of the reason is read.
+        icon={<MenuIcon name="restart" />}
+        tone={phase === 'failed' ? 'warn' : 'accent'}
+        title={t('restart.title')}
+        titleId="restart-dialog-title"
         aria-describedby="restart-dialog-body"
         aria-busy={isRunning}
-      >
-        <div className="restart-dialog__head">
-          <span className="restart-dialog__glyph" aria-hidden="true">
-            <svg viewBox="0 0 20 20">
-              <path d="M16.2 8.6A6.5 6.5 0 0 0 4.4 6.3M3.8 11.4a6.5 6.5 0 0 0 11.8 2.3" />
-              <path d="M16.5 4.2v4.4h-4.4M3.5 15.8v-4.4h4.4" />
-            </svg>
-          </span>
-          <h2 id="restart-dialog-title" className="restart-dialog__title">
-            {t('restart.title')}
-          </h2>
-        </div>
-        <p
-          id="restart-dialog-body"
-          className={`restart-dialog__body${
-            phase === 'failed' ? ' restart-dialog__body--failed' : ''
-          }`}
-        >
-          {body}
-          {phase === 'failed' && outcome?.detail && (
-            <span className="restart-dialog__reason">{outcome.detail}</span>
-          )}
-        </p>
-        <div className="restart-dialog__foot">
-          <p className="restart-dialog__status" aria-live="polite">
-            {isRunning ? t('restart.running') : ''}
-          </p>
-          <div className="restart-dialog__actions">
+        onClose={onClose}
+        closeLabel={t('restart.close')}
+        actions={
+          <>
+            {/* Kept in the row even when empty, so the buttons do not move
+                the moment the restart starts. */}
+            <p className="restart-audio__status" aria-live="polite">
+              {isRunning ? t('restart.running') : ''}
+            </p>
             {phase === 'done' ? (
               <button
                 ref={primaryRef}
@@ -206,9 +190,19 @@ const RestartAudioDialog = ({
                 </button>
               </>
             )}
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      >
+        <p
+          id="restart-dialog-body"
+          className={phase === 'failed' ? 'restart-audio__failure' : undefined}
+        >
+          {body}
+          {phase === 'failed' && outcome?.detail && (
+            <span className="restart-audio__reason">{outcome.detail}</span>
+          )}
+        </p>
+      </CompactFrame>
     </div>,
     document.body,
   );

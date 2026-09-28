@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { SMOOTH_FRAME_MS } from './smoothing';
+import { THIRTY_A_SECOND_MS } from './smoothing';
 
 /**
  * How hard a Plus visualizer is allowed to drive the GPU, and how its picture
@@ -149,7 +149,7 @@ export const scenePaceMs = (
       return 1000 / 60;
     case 'thirty':
     default:
-      return SMOOTH_FRAME_MS;
+      return THIRTY_A_SECOND_MS;
   }
 };
 

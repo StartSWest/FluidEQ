@@ -36,6 +36,9 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.saveNew': 'レイアウトを保存…',
   'eq.layouts.error':
     'レイアウトを更新できませんでした。もう一度お試しください。',
+  'eq.sliders': 'EQ スライダー',
+  'eq.sliders.round': '丸型',
+  'eq.sliders.rect': '角型',
   'eq.layouts.clearTitle': 'EQをクリアしますか？',
   'eq.layouts.clearWarning':
     '各バンドのゲインと、低音・中音・高音のノブを0 dBにします。現在のバンド数、周波数、Q、カット、EQモード、プリアンプは維持されます。',
@@ -312,6 +315,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.fallblocks': '落ちるブロック',
   'graph.styleName.fibers': '光ファイバー',
   'graph.styleName.afterglow': '残光',
+  'graph.styleName.horizon': '地平線',
   'graph.styleName.line': '線',
   'graph.styleName.area': 'エリア',
   'graph.styleName.bars': 'バー',

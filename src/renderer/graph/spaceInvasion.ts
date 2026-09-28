@@ -25,7 +25,8 @@ import {
   startNextGame,
   strikeBunker,
 } from './invaderCabinet';
-import { createWreckPaths, EXPLODE_LIFE } from './invaderWreck';
+import { EXPLODE_LIFE, wreckLayout } from './invaderWreck';
+import rectsPath from './pixelRects';
 
 /**
  * The space fight behind the Invaders form.
@@ -155,6 +156,10 @@ export interface SpaceInvasion {
 }
 
 export const STARS = 340;
+/** How bright the far, middle and near star layers are. */
+const STAR_ALPHAS = [0.45, 0.7, 1] as const;
+/** A burst fades through three bands as it grows. */
+const BURST_ALPHAS = [0.95, 0.6, 0.25] as const;
 export const BURST_LIFE = 0.45;
 export const SAUCER_CROSSING = 5;
 const SHOT_LIMIT = 14;
@@ -719,10 +724,6 @@ export const advanceSpaceInvasion = (
   }
 };
 
-const rects = (path: Path2D, list: readonly PixelRect[]) => {
-  list.forEach(([x, y, w, h]) => path.rect(x, y, w, h));
-};
-
 /** Which star layer a nearness falls in: far, middle, near. */
 const layerOf = (near: number) => {
   if (near < 0.55) {
@@ -736,14 +737,22 @@ export interface IBand {
   alpha: number;
 }
 
+/** One star: where its streak starts, how far up it runs, which layer. */
+export interface IInvasionStar {
+  x: number;
+  y: number;
+  length: number;
+  layer: number;
+}
+
 /**
  * A pixel flame under an engine: rows of pixels narrowing to the tip,
  * jittering row by row on the clock, `length` rows long. The top half is
  * the hot core.
  */
 const pixelFlame = (
-  flame: Path2D,
-  core: Path2D,
+  flame: PixelRect[],
+  core: PixelRect[],
   centreX: number,
   top: number,
   unit: number,
@@ -756,14 +765,22 @@ const pixelFlame = (
     const wobble = Math.round((noise(tick * 3 + row * 7) - 0.5) * (1 + t * 2));
     const x = centreX + (wobble - wide / 2) * unit;
     const y = top + row * unit;
-    flame.rect(x, y, wide * unit, unit);
+    flame.push([x, y, wide * unit, unit]);
     if (t < 0.5 && wide > 1) {
-      core.rect(x + unit * 0.5, y, (wide - 1) * unit, unit);
+      core.push([x + unit * 0.5, y, (wide - 1) * unit, unit]);
     }
   }
 };
 
-export const createSpaceInvasionPaths = (
+/**
+ * The fight as it stands this frame, as pixel rectangles and lines: the
+ * stars, the formation alien by alien and which of them flash, the
+ * fighter's layers and flames, its muzzle and bubble, the wreck, the
+ * points won, the lasers and bolts, the saucer's plasma, the bursts and
+ * the saucer. What the page's canvas and the engine's invaders
+ * (`engineLooks/designed/invadersLook.ts`) both draw.
+ */
+export const spaceInvasionLayout = (
   state: SpaceInvasion,
   columns: readonly Projected[],
   top: number,
@@ -789,52 +806,47 @@ export const createSpaceInvasionPaths = (
   // flies in from a plot's width off each end, and scattering the stars
   // across all of that put two thirds of them where nobody can see them —
   // the field on screen read as drizzle.
-  const stars: IBand[] = [0.45, 0.7, 1].map((alpha) => ({
-    path: new Path2D(),
-    alpha,
-  }));
   const starLeft = left - width * 0.04;
   const starWidth = width * 1.08;
   // Short. At fourteen pixels a unit of warp three hundred stars became a
   // downpour — the screenshot read as rain on a window, not space — and the
   // far layer does not streak at all, so there is depth to fly through.
   const streak = unit * (0.3 + state.warp * 4);
-  state.stars.forEach((star) => {
-    const x = starLeft + star.u * starWidth;
-    const y = sceneTop + star.v * sceneHeight;
-    const band = stars[layerOf(star.near)];
-    band.path.moveTo(x, y);
-    const far = layerOf(star.near) === 0;
-    band.path.lineTo(x, y - (far ? 1 : Math.max(1.5, streak * star.near)));
+  const stars: IInvasionStar[] = state.stars.map((star) => {
+    const layer = layerOf(star.near);
+    return {
+      x: starLeft + star.u * starWidth,
+      y: sceneTop + star.v * sceneHeight,
+      length: layer === 0 ? 1 : Math.max(1.5, streak * star.near),
+      layer,
+    };
   });
 
   // The formation: every column's alien, the figure — arms down at rest,
   // thrown up for a moment when its band jumps, each one floating on its
   // own slow bob. A hit alien flashes white for a tenth of a second.
-  const shape = new Path2D();
-  const flash = new Path2D();
   // The pose follows how high the band has lifted its alien: arms down on
   // the floor, half up through the middle, fully up at the ceiling.
   const floorY = bottom - depth * SHIP_LANE - unit * ALIEN_FLOOR;
   const ceilingY = Math.max(top, ceiling) + unit * 12;
   const reach = Math.max(1, floorY - ceilingY);
-  columns.forEach(([x, y], index) => {
+  const aliens = columns.map(([x, y], index) => {
     const alien = ALIENS[kindForColumn(index, columns.length)];
     const rest = alienY(y, top, bottom, unit, ceiling);
-    const lifted = (floorY - rest) / reach;
-    const pose = poseFor(lifted);
+    const pose = poseFor((floorY - rest) / reach);
     const frame = alien.frames[pose] ?? alien.frames[0];
     const cy = rest + alienBob(index, seconds, unit);
-    const pixels = spriteRects(
-      frame,
-      x + state.march,
-      cy - (alien.height * unit) / 2,
-      unit,
-    );
-    rects(shape, pixels);
-    if (seconds - (state.hitAt[index] ?? -1) < 0.1) {
-      rects(flash, pixels);
-    }
+    return {
+      rects: spriteRects(
+        frame,
+        x + state.march,
+        cy - (alien.height * unit) / 2,
+        unit,
+      ),
+      /** Across, where the alien's middle stands. */
+      middle: x + state.march,
+      flash: seconds - (state.hitAt[index] ?? -1) < 0.1,
+    };
   });
 
   // The ship: the pixel fighter in three layers — hull, canopy, stripes —
@@ -853,24 +865,16 @@ export const createSpaceInvasionPaths = (
     wreck >= EXPLODE_LIFE && wreck < EXPLODE_LIFE + RESPAWN_BLINK;
   const shipShown =
     wreck >= EXPLODE_LIFE && (!blinkingIn || Math.floor(wreck * 12) % 2 === 0);
-  const hull = new Path2D();
-  const canopy = new Path2D();
-  const stripes = new Path2D();
-  const flame = new Path2D();
-  const core = new Path2D();
+  const layerRects = (glyph: string) =>
+    shipShown
+      ? spriteRects(SHIP.frames[0], state.shipX, shipTop, ship, glyph, shear)
+      : [];
+  const hull = layerRects('X');
+  const canopy = layerRects('C');
+  const stripes = layerRects('R');
+  const flame: PixelRect[] = [];
+  const core: PixelRect[] = [];
   if (shipShown) {
-    rects(
-      hull,
-      spriteRects(SHIP.frames[0], state.shipX, shipTop, ship, 'X', shear),
-    );
-    rects(
-      canopy,
-      spriteRects(SHIP.frames[0], state.shipX, shipTop, ship, 'C', shear),
-    );
-    rects(
-      stripes,
-      spriteRects(SHIP.frames[0], state.shipX, shipTop, ship, 'R', shear),
-    );
     const burn = Math.round(3 + state.bass * 8 + state.thump * 4);
     const tick = Math.floor(seconds * 24);
     const bottomShear = Math.round(shear * (SHIP.height / 2)) * ship;
@@ -886,32 +890,27 @@ export const createSpaceInvasionPaths = (
       );
     });
   }
-  const shipFlash = new Path2D();
-  if (state.shipHitAt >= 0 && seconds - state.shipHitAt < 0.1) {
-    shipFlash.addPath(hull);
-    shipFlash.addPath(canopy);
-    shipFlash.addPath(stripes);
-  }
+  const shipFlash = state.shipHitAt >= 0 && seconds - state.shipHitAt < 0.1;
   const wreckage =
     wreck < EXPLODE_LIFE
-      ? createWreckPaths(state.wreckX, shipY, ship, wreck)
+      ? wreckLayout(state.wreckX, shipY, ship, wreck)
       : undefined;
   // The muzzle flash: a pixel cross at each cannon for the first frames
   // after a shot.
-  const muzzle = new Path2D();
+  const muzzle: PixelRect[] = [];
   if (shipShown && state.firedAt >= 0 && seconds - state.firedAt < 0.08) {
     [-5.5, 5.5].forEach((cannon) => {
       const mx = state.shipX + cannon * ship;
       const my = shipTop + 5 * ship;
-      muzzle.rect(mx - ship * 1.5, my - ship * 0.5, ship * 3, ship);
-      muzzle.rect(mx - ship * 0.5, my - ship * 1.5, ship, ship * 3);
+      muzzle.push([mx - ship * 1.5, my - ship * 0.5, ship * 3, ship]);
+      muzzle.push([mx - ship * 0.5, my - ship * 1.5, ship, ship * 3]);
     });
   }
   // The bubble: a ring of pixels round the ship while it protects, swelling
   // on the beat, rippling outward when a bolt pops on it, and blinking
   // through its last second so the drop is seen coming. Its skin is where
   // the bolts stop — see the landing test.
-  const shield = new Path2D();
+  const shield: PixelRect[] = [];
   const bubbleLeft = state.bubbleUntil - seconds;
   const ripple = seconds - state.shieldAt;
   const rippling = state.shieldAt >= 0 && ripple < 0.25;
@@ -925,26 +924,25 @@ export const createSpaceInvasionPaths = (
     const dots = 32;
     for (let step = 0; step < dots; step += 1) {
       const a = (step / dots) * Math.PI * 2 + seconds * 0.8;
-      shield.rect(
+      shield.push([
         state.shipX + Math.cos(a) * r - unit * 0.5,
         shipY + Math.sin(a) * r * BUBBLE_SQUASH - unit * 0.5,
         unit,
         unit,
-      );
+      ]);
     }
   }
 
   // The points, where they were won: rising, bright for the first half of
   // their life and dim for the second — two fills rather than an alpha per
   // number.
-  const popups = new Path2D();
-  const popupsFading = new Path2D();
+  const popups: PixelRect[] = [];
+  const popupsFading: PixelRect[] = [];
   const popupSize = Math.max(1, unit * 0.55);
   state.popups.forEach((popup) => {
     const age = seconds - popup.bornAt;
-    rects(
-      age < POPUP_LIFE / 2 ? popups : popupsFading,
-      spriteRects(
+    (age < POPUP_LIFE / 2 ? popups : popupsFading).push(
+      ...spriteRects(
         textBitmap(String(popup.points)),
         popup.x,
         // Never up into the readout row: the saucer's 300 rose straight
@@ -956,63 +954,59 @@ export const createSpaceInvasionPaths = (
   });
 
   // Shots along their lines, bolts down.
-  const shots = new Path2D();
-  state.shots.forEach((shot) => {
-    shots.moveTo(shot.x, shot.y);
-    shots.lineTo(shot.x - shot.dx * unit * 3.5, shot.y - shot.dy * unit * 3.5);
-  });
-  const bolts = new Path2D();
+  const shots: Projected[][] = state.shots.map((shot) => [
+    [shot.x, shot.y],
+    [shot.x - shot.dx * unit * 3.5, shot.y - shot.dy * unit * 3.5],
+  ]);
+  const bolts: Projected[][] = [];
   // The saucer's plasma: a white-hot core, a flickering ring of flame round
   // it and a tail of embers shrinking behind — pixels on the cabinet's grid,
   // so the boss's fire is plainly not an alien's zigzag.
-  const plasmaCore = new Path2D();
-  const plasmaFlame = new Path2D();
+  const plasmaCore: PixelRect[] = [];
+  const plasmaFlame: PixelRect[] = [];
   state.bolts.forEach((bolt) => {
     if (bolt.boss) {
       const tick = Math.floor(seconds * 24);
-      plasmaCore.rect(bolt.x - unit, bolt.y - unit, unit * 2, unit * 2);
+      plasmaCore.push([bolt.x - unit, bolt.y - unit, unit * 2, unit * 2]);
       for (let spark = 0; spark < 8; spark += 1) {
         const a = (spark / 8) * Math.PI * 2 + tick * 0.4;
         const r = unit * (1.8 + noise(bolt.seed + spark + tick) * 0.9);
-        plasmaFlame.rect(
+        plasmaFlame.push([
           bolt.x + Math.cos(a) * r - unit * 0.5,
           bolt.y + Math.sin(a) * r - unit * 0.5,
           unit,
           unit,
-        );
+        ]);
       }
       for (let ember = 1; ember <= 4; ember += 1) {
         const size = unit * (1.4 - ember * 0.25);
         const drift = (noise(bolt.seed * 3 + ember + tick) - 0.5) * unit;
-        plasmaFlame.rect(
+        plasmaFlame.push([
           bolt.x + drift - size / 2,
           bolt.y - unit * 1.6 * ember - size / 2,
           size,
           size,
-        );
+        ]);
       }
       return;
     }
     const sway = Math.sin(seconds * 30 + bolt.seed) * unit * 0.6;
-    bolts.moveTo(bolt.x - sway, bolt.y - unit * 3);
-    bolts.lineTo(bolt.x + sway, bolt.y - unit * 1.5);
-    bolts.lineTo(bolt.x - sway, bolt.y);
-    bolts.lineTo(bolt.x + sway, bolt.y + unit * 1.5);
+    bolts.push([
+      [bolt.x - sway, bolt.y - unit * 3],
+      [bolt.x + sway, bolt.y - unit * 1.5],
+      [bolt.x - sway, bolt.y],
+      [bolt.x + sway, bolt.y + unit * 1.5],
+    ]);
   });
 
   // The bursts: the classic explosion sprite, growing and fading, in
   // three alpha bands.
-  const bursts: IBand[] = [0.95, 0.6, 0.25].map((alpha) => ({
-    path: new Path2D(),
-    alpha,
-  }));
+  const bursts: PixelRect[][] = [[], [], []];
   state.bursts.forEach((burst) => {
     const age = (seconds - burst.bornAt) / BURST_LIFE;
     const size = unit * (0.7 + age * 1.6);
-    const band = bursts[Math.min(2, Math.floor(age * 3))];
-    rects(
-      band.path,
-      spriteRects(
+    bursts[Math.min(2, Math.floor(age * 3))].push(
+      ...spriteRects(
         BURST.frames[0],
         burst.x,
         burst.y - (BURST.height * size) / 2,
@@ -1023,8 +1017,8 @@ export const createSpaceInvasionPaths = (
 
   // The saucer, crossing the top when a big hit sent it, until the nose
   // cannon brings it down.
-  const saucer = new Path2D();
-  const saucerLights = new Path2D();
+  let saucer: PixelRect[] = [];
+  const saucerLights: PixelRect[] = [];
   const saucerAge = seconds - state.saucerAt;
   if (
     state.saucerAt >= 0 &&
@@ -1033,27 +1027,27 @@ export const createSpaceInvasionPaths = (
   ) {
     const at = saucerAt(saucerAge, left, width, ceiling, unit, seconds);
     const hullTop = at.y - (SAUCER.height * unit) / 2;
-    rects(saucer, spriteRects(SAUCER.frames[0], at.x, hullTop, unit));
+    saucer = spriteRects(SAUCER.frames[0], at.x, hullTop, unit);
     // Running lights in the portholes along its rim, chasing round — the
     // boss is lit up, not a flat red stamp.
     const leftEdge = at.x - (SAUCER.width * unit) / 2;
     const chase = Math.floor(seconds * 10) % PORTHOLES.length;
     PORTHOLES.forEach((column, index) => {
       if (index === chase || index === (chase + 2) % PORTHOLES.length) {
-        saucerLights.rect(
+        saucerLights.push([
           leftEdge + column * unit,
           hullTop + unit * 3,
           unit,
           unit,
-        );
+        ]);
       }
     });
   }
 
   return {
-    shape,
-    flash,
     stars,
+    starAlphas: STAR_ALPHAS,
+    aliens,
     hull,
     canopy,
     stripes,
@@ -1065,6 +1059,7 @@ export const createSpaceInvasionPaths = (
     shots,
     bolts,
     bursts,
+    burstAlphas: BURST_ALPHAS,
     saucer,
     saucerLights,
     plasmaCore,
@@ -1076,6 +1071,97 @@ export const createSpaceInvasionPaths = (
     warp: state.warp,
     thump: state.thump,
     bass: state.bass,
+  };
+};
+
+export type SpaceInvasionLayout = ReturnType<typeof spaceInvasionLayout>;
+
+/** Lines, each its own subpath, as one path. */
+const linesPath = (lines: readonly Projected[][]) => {
+  const path = new Path2D();
+  lines.forEach(([[fromX, fromY], ...rest]) => {
+    path.moveTo(fromX, fromY);
+    rest.forEach(([x, y]) => path.lineTo(x, y));
+  });
+  return path;
+};
+
+export const createSpaceInvasionPaths = (
+  state: SpaceInvasion,
+  columns: readonly Projected[],
+  top: number,
+  bottom: number,
+  seconds: number,
+  sizeHeight: number,
+  ceiling = top,
+) => {
+  const layout = spaceInvasionLayout(
+    state,
+    columns,
+    top,
+    bottom,
+    seconds,
+    sizeHeight,
+    ceiling,
+  );
+  const stars: IBand[] = layout.starAlphas.map((alpha) => ({
+    path: new Path2D(),
+    alpha,
+  }));
+  layout.stars.forEach(({ x, y, length, layer }) => {
+    stars[layer].path.moveTo(x, y);
+    stars[layer].path.lineTo(x, y - length);
+  });
+  const hull = rectsPath(layout.hull);
+  const canopy = rectsPath(layout.canopy);
+  const stripes = rectsPath(layout.stripes);
+  const shipFlash = new Path2D();
+  if (layout.shipFlash) {
+    shipFlash.addPath(hull);
+    shipFlash.addPath(canopy);
+    shipFlash.addPath(stripes);
+  }
+  const { wreckage } = layout;
+  return {
+    shape: rectsPath(layout.aliens.flatMap(({ rects }) => rects)),
+    flash: rectsPath(
+      layout.aliens.filter(({ flash }) => flash).flatMap(({ rects }) => rects),
+    ),
+    stars,
+    hull,
+    canopy,
+    stripes,
+    shipFlash,
+    flame: rectsPath(layout.flame),
+    core: rectsPath(layout.core),
+    muzzle: rectsPath(layout.muzzle),
+    shield: rectsPath(layout.shield),
+    shots: linesPath(layout.shots),
+    bolts: linesPath(layout.bolts),
+    bursts: layout.bursts.map((list, band): IBand => ({
+      path: rectsPath(list),
+      alpha: layout.burstAlphas[band],
+    })),
+    saucer: rectsPath(layout.saucer),
+    saucerLights: rectsPath(layout.saucerLights),
+    plasmaCore: rectsPath(layout.plasmaCore),
+    plasmaFlame: rectsPath(layout.plasmaFlame),
+    wreckage: wreckage && {
+      hull: rectsPath(wreckage.hull),
+      canopy: rectsPath(wreckage.canopy),
+      stripes: rectsPath(wreckage.stripes),
+      fire: rectsPath(wreckage.fire),
+      heart: rectsPath(wreckage.heart),
+      glow: wreckage.glow,
+      flash: wreckage.flash,
+    },
+    popups: rectsPath(layout.popups),
+    popupsFading: rectsPath(layout.popupsFading),
+    unit: layout.unit,
+    warp: layout.warp,
+    thump: layout.thump,
+    bass: layout.bass,
+    layout,
   };
 };
 

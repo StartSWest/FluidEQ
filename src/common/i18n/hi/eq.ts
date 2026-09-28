@@ -35,6 +35,9 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.update': 'सहेजा हुआ अपडेट करें',
   'eq.layouts.saveNew': 'डिज़ाइन सहेजें…',
   'eq.layouts.error': 'आपके डिज़ाइन अपडेट नहीं हो सके। फिर कोशिश करें।',
+  'eq.sliders': 'EQ स्लाइडर',
+  'eq.sliders.round': 'गोल',
+  'eq.sliders.rect': 'आयताकार',
   'eq.layouts.clearTitle': 'EQ खाली करें?',
   'eq.layouts.clearWarning':
     'हर बैंड का गेन और बास, मिड व ट्रेबल नॉब 0 dB करें। मौजूदा बैंड संख्या, फ़्रीक्वेंसी, Q, कट, EQ मोड और प्रीएम्प बने रहेंगे।',
@@ -309,6 +312,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.fallblocks': 'गिरते ब्लॉक',
   'graph.styleName.fibers': 'ऑप्टिकल फ़ाइबर',
   'graph.styleName.afterglow': 'आफ़्टरग्लो',
+  'graph.styleName.horizon': 'क्षितिज',
   'graph.styleName.line': 'रेखा',
   'graph.styleName.area': 'क्षेत्र',
   'graph.styleName.bars': 'पट्टियाँ',

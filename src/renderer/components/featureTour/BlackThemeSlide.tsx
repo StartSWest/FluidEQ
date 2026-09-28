@@ -41,7 +41,7 @@ export default function BlackThemeSlide() {
           <li>{t('tour.theme.point3')}</li>
         </ul>
 
-        <div className="tour-slide__how">
+        <div className="tour-slide__how dialog-frame__group">
           <span className="tour-slide__how-title">
             {t('tour.theme.howTitle')}
           </span>

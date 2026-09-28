@@ -274,28 +274,13 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
           <span>{t('player.queue.drop')}</span>
         </div>
       )}
-      {/* THE HEAD IS AN INSTRUMENT, not a caption (Ivan, 2026-09-22: "make
-          this piece nicer"). Where the playhead stands and how much is still
-          to come, each on the readout the deck's own display uses — the
-          figure in ink, the rest dim — and between them and the Library key
-          a thin line lit as far through the queue as the playhead has got.
-          The figures carry no words, so the three languages that put the
-          total before the position read them the same; the words are on
-          each readout's hover. */}
+      {/* How much is still to come, and a thin line lit as far through the
+          queue as the playhead has got, with the way to the Library at the
+          end. Where the playhead stands is on the sheet's own tab
+          (`PlayerSheet`), which names this page. */}
       <div className="player-queue__head">
-        <span className="player-eyebrow">{t('library.upNext')}</span>
         {hasQueue && (
           <>
-            <span
-              className="player-readout player-queue__readout"
-              title={t('player.queue.summary', {
-                position: library.position + 1,
-                total: library.total,
-              })}
-            >
-              <b>{library.position + 1}</b>
-              <small>/ {library.total}</small>
-            </span>
             <span
               className="player-readout player-queue__readout"
               title={t('player.queue.leftHint', {

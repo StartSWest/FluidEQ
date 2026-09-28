@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { requestAccountPanel } from '../account/accountPanel';
-import Glyph from '../community/Glyph';
+import DialogFrame from '../components/DialogFrame';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import holdFocusReturn from '../utils/focusReturn';
 import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/StudioDialogs.scss';
 
@@ -34,13 +36,9 @@ export default function StudioShareDialog({
   const agreeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const previousFocus = document.activeElement;
+    const giveFocusBack = holdFocusReturn();
     agreeRef.current?.focus();
-    return () => {
-      if (previousFocus instanceof HTMLElement) {
-        previousFocus.focus();
-      }
-    };
+    return giveFocusBack;
   }, []);
 
   useEffect(() => {
@@ -85,70 +83,76 @@ export default function StudioShareDialog({
         }
       }}
     >
-      <div
+      <DialogFrame
         ref={surfaceRef}
         className="studio-share"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="studio-share-title"
+        icon={<MenuIcon name="shield" />}
+        title={t('studio.share.title')}
+        titleId="studio-share-title"
+        description={
+          <span id="studio-share-lead">{t('studio.share.lead')}</span>
+        }
         aria-describedby="studio-share-lead"
         aria-busy={running}
-      >
-        <div className="studio-share__head">
-          <span className="studio-share__mark" aria-hidden="true">
-            <Glyph name="studio" />
-          </span>
-          <h2 id="studio-share-title" className="studio-share__title">
-            {t('studio.share.title')}
-          </h2>
-        </div>
-        <p id="studio-share-lead" className="studio-share__lead">
-          {t('studio.share.lead')}
-        </p>
-        <ul className="studio-share__points">
-          <li>{t('studio.share.point1')}</li>
-          <li>{t('studio.share.point2')}</li>
-          <li>{t('studio.share.point3')}</li>
-        </ul>
-        <div className="studio-share__foot">
-          <button
-            type="button"
-            className="button small subtle studio-share__read"
-            disabled={running}
-            onClick={() => {
-              // The terms open in the Account dialog, which would otherwise
-              // appear underneath this one. Export asks again afterwards.
-              onCancel();
-              requestAccountPanel('terms');
-            }}
-          >
-            {t('studio.share.read')}
-          </button>
-          <span className="studio-share__actions">
+        closeLabel={t('support.close')}
+        // Away while the export runs, as Escape and the backdrop are.
+        onClose={running ? undefined : onCancel}
+        footer={
+          <>
             <button
               type="button"
               className="button small subtle"
               disabled={running}
-              onClick={onCancel}
-            >
-              {t('studio.share.cancel')}
-            </button>
-            <button
-              ref={agreeRef}
-              type="button"
-              className={`button small${running ? ' is-running' : ''}`}
-              aria-busy={running}
               onClick={() => {
-                if (!running) {
-                  onAgree();
-                }
+                // The terms open in the Account dialog, which would otherwise
+                // appear underneath this one. Export asks again afterwards.
+                onCancel();
+                requestAccountPanel('terms');
               }}
             >
-              {running ? t('studio.share.running') : t('studio.share.agree')}
+              {t('studio.share.read')}
             </button>
-          </span>
-        </div>
-      </div>
+            <div className="dialog-frame__actions">
+              <button
+                type="button"
+                className="button small subtle"
+                disabled={running}
+                onClick={onCancel}
+              >
+                {t('studio.share.cancel')}
+              </button>
+              <button
+                ref={agreeRef}
+                type="button"
+                className={`button small${running ? ' is-running' : ''}`}
+                aria-busy={running}
+                onClick={() => {
+                  if (!running) {
+                    onAgree();
+                  }
+                }}
+              >
+                {running ? t('studio.share.running') : t('studio.share.agree')}
+              </button>
+            </div>
+          </>
+        }
+      >
+        <ul className="studio-ticks">
+          <li>
+            <MenuIcon name="check" />
+            <span>{t('studio.share.point1')}</span>
+          </li>
+          <li>
+            <MenuIcon name="check" />
+            <span>{t('studio.share.point2')}</span>
+          </li>
+          <li>
+            <MenuIcon name="check" />
+            <span>{t('studio.share.point3')}</span>
+          </li>
+        </ul>
+      </DialogFrame>
     </div>,
     document.body,
   );

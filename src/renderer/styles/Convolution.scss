@@ -156,9 +156,10 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-primary;
   // The menu material, like every other list that drops out of a field. It
   // was a near-opaque slab of its own tone, so the one popover on this page
-  // did not match the dropdowns two tabs away.
+  // did not match the dropdowns two tabs away. Its lift too, the menus' small
+  // one: a 30px shadow of its own was the one heavy drop under any menu (Ivan,
+  // 2026-09-27: "more defined border less dropshadow", "for all menu").
   @include menu-surface;
-  box-shadow: 0 14px 30px rgba($black, 0.3);
   letter-spacing: normal;
   text-transform: none;
 }
@@ -237,7 +238,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .convolution-notice {
   padding: 7px 10px;
   color: $text-muted;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-xs;
   font-size: $text-body;
   line-height: 1.45;
@@ -282,7 +283,7 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-columns: minmax(0, 1fr) max-content max-content;
   align-items: center;
   gap: 12px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-s;
 
   &__details {
@@ -345,12 +346,15 @@ it under the terms of the GNU General Public License version 3 or later.
     opacity: $disabled-opacity;
   }
 
+  // The quiet button's face and edge (`.button.subtle`).
   &--quiet {
     color: $secondary-light;
-    background: color-mix(in srgb, $secondary-default 8%, transparent);
+    border-color: $border-control;
+    background: $surface-control;
 
     &:hover:not(:disabled) {
-      background: color-mix(in srgb, $secondary-default 18%, transparent);
+      border-color: $border-control-hover;
+      background: $surface-control-hover;
     }
   }
 }
@@ -381,7 +385,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 10px 12px;
   border: 1px solid $border-field;
   border-radius: $radius-s;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  background: transparent;
 
   > div {
     display: grid;
@@ -414,7 +418,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .convolution-empty {
   padding: 24px 12px;
   color: $text-muted;
-  border: 1px dashed rgba($edge-tint, 0.18);
+  border: 1px dashed $card-edge;
   border-radius: $radius-s;
   font-size: $text-body;
   text-align: center;

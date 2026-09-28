@@ -1,5 +1,6 @@
-import { useState, type AnimationEvent } from 'react';
-import Glyph from '../community/Glyph';
+import { useId, useState, type AnimationEvent } from 'react';
+import CompactFrame from '../components/CompactFrame';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import {
   dismissToast,
@@ -34,6 +35,9 @@ const own = (event: AnimationEvent<HTMLElement>) =>
  * button was looking. The stack is absolutely placed, and its parent is what
  * keeps it in view: somewhere pinned while the page scrolls under it.
  *
+ * Each toast is a `CompactFrame`, the card every notice that arrives on its
+ * own is drawn on, with what the action said as its one line.
+ *
  * Something that went well drains a line along its foot and leaves when that
  * line has been drawn out, holding while the pointer or focus is on it. A
  * problem stays until it is closed or its action takes it back.
@@ -44,6 +48,10 @@ export default function PlusToastStack<T extends IPlusToastNotice>({
   action,
 }: IPlusToastStackProps<T>) {
   const { t } = useTranslation();
+  // Two stacks can be up at once — the graph's and the gallery's — and each
+  // numbers its toasts from one, so the ids that name them need a stack of
+  // their own to be unique in the window.
+  const stackId = useId();
   const [seen, setSeen] = useState(sources);
   const [state, setState] = useState<IPlusToastState<T>>(() =>
     reconcileToasts(emptyToasts<T>(), {}, sources),
@@ -63,6 +71,7 @@ export default function PlusToastStack<T extends IPlusToastNotice>({
     <div className="plus-toasts" aria-live="polite">
       {state.toasts.map((toast) => {
         const offered = action?.(toast.notice);
+        const { ok } = toast.notice;
         return (
           <div
             key={toast.id}
@@ -73,36 +82,41 @@ export default function PlusToastStack<T extends IPlusToastNotice>({
               }
             }}
           >
-            <div
-              className={`plus-toast plus-toast--${toast.notice.ok ? 'done' : 'problem'}`}
-              role={toast.notice.ok ? undefined : 'alert'}
+            <CompactFrame
+              className={`plus-toast plus-toast--${ok ? 'done' : 'problem'}`}
+              tone={ok ? 'accent' : 'warn'}
+              icon={
+                <MenuIcon
+                  name={ok ? 'check' : 'alert'}
+                  className="plus-toast__mark"
+                />
+              }
+              title={text(toast.notice)}
+              titleId={`${stackId}-toast-${toast.id}`}
+              // The stack is the live region that reads a success out; a
+              // problem interrupts, and is an alert of its own. Neither is a
+              // dialog.
+              role={ok ? undefined : 'alert'}
+              aria-modal={undefined}
+              aria-labelledby={ok ? undefined : `${stackId}-toast-${toast.id}`}
+              onClose={() => dismiss(toast.id)}
+              closeLabel={t('app.dismiss')}
+              actions={
+                offered && (
+                  <button
+                    type="button"
+                    className="button small subtle"
+                    onClick={() => {
+                      dismiss(toast.id);
+                      offered.run();
+                    }}
+                  >
+                    {offered.label}
+                  </button>
+                )
+              }
             >
-              <span className="plus-toast__mark" aria-hidden="true">
-                <Glyph name={toast.notice.ok ? 'check' : 'alert'} />
-              </span>
-              <p className="plus-toast__text">{text(toast.notice)}</p>
-              {offered && (
-                <button
-                  type="button"
-                  className="button small subtle plus-toast__action"
-                  onClick={() => {
-                    dismiss(toast.id);
-                    offered.run();
-                  }}
-                >
-                  {offered.label}
-                </button>
-              )}
-              <button
-                type="button"
-                className="plus-toast__close"
-                aria-label={t('app.dismiss')}
-                title={t('app.dismiss')}
-                onClick={() => dismiss(toast.id)}
-              >
-                <Glyph name="close" />
-              </button>
-              {toast.notice.ok && (
+              {ok && (
                 <span
                   className="plus-toast__life"
                   aria-hidden="true"
@@ -113,7 +127,7 @@ export default function PlusToastStack<T extends IPlusToastNotice>({
                   }}
                 />
               )}
-            </div>
+            </CompactFrame>
           </div>
         );
       })}

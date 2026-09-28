@@ -1,0 +1,119 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// THE SONG'S LINE AND THE VOLUME — the same in both amps (Ivan, 2026-09-28:
+// "also the sliders", for the 2.0 amp), included by each amp's own sliders
+// stylesheet so they stand in each amp's scope (`MiniPlayer.scss`) and wear
+// its colours. The empty part is the amp's `--player-track-solid`.
+@mixin sliders {
+  // ============================================================== sliders ====
+  //
+  // A light track on the glass, filled up to the thumb (`--fill`, set by the
+  // component), and a white thumb — the Stage's own (Ivan, 2026-09-27). The
+  // song's line is lit in the accent and glows, because it is what the dock is
+  // read for; the volume is filled in the text's own light and says less.
+  //
+  // The paint is laid across the WHOLE track with the empty part covering
+  // whatever is past the thumb — not a gradient squeezed into the filled part —
+  // so the colour at any point is the same whatever the fill (Ivan,
+  // 2026-09-21). Laid over rather than masked: the thumb is drawn inside the
+  // track, and a mask would cut the half of it standing past the fill.
+  .player-range {
+    --fill-paint: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--accent) 60%, transparent),
+      var(--accent)
+    );
+    --track-height: 5px;
+    --thumb-size: 14px;
+    --thumb-halo: color-mix(in srgb, var(--accent) 28%, transparent);
+
+    display: block;
+    width: 100%;
+    height: 16px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+    appearance: none;
+
+    &::-webkit-slider-runnable-track {
+      height: var(--track-height);
+      border-radius: $radius-pill;
+      background:
+        linear-gradient(
+          90deg,
+          transparent var(--fill, 0%),
+          var(--player-track-solid) var(--fill, 0%)
+        ),
+        var(--fill-paint);
+      box-shadow: 0 0 12px
+        color-mix(
+          in srgb,
+          var(--accent) calc(var(--glow, 0) * 50%),
+          transparent
+        );
+    }
+
+    &::-webkit-slider-thumb {
+      width: var(--thumb-size);
+      height: var(--thumb-size);
+      margin-top: calc((var(--track-height) - var(--thumb-size)) / 2);
+      border: 0;
+      border-radius: 50%;
+      background: $white;
+      box-shadow:
+        0 0 0 4px var(--thumb-halo),
+        0 1px 4px rgba($black, 0.45);
+      appearance: none;
+    }
+
+    &:disabled {
+      cursor: default;
+
+      &::-webkit-slider-thumb {
+        background: color-mix(in srgb, var(--player-text) 45%, transparent);
+        box-shadow: none;
+      }
+    }
+
+    &:focus-visible {
+      outline: none;
+
+      &::-webkit-slider-thumb {
+        box-shadow:
+          0 0 0 2px var(--player-floor),
+          0 0 0 4px $white;
+      }
+    }
+  }
+
+  .player-range--seek {
+    --glow: 1;
+  }
+
+  .player-range--volume {
+    --fill-paint: color-mix(in srgb, var(--player-text) 82%, transparent);
+    --track-height: 4px;
+    --thumb-size: 12px;
+    --thumb-halo: transparent;
+  }
+
+  // The meter's own scale, in Rainbow mode: outside it the volume is plain,
+  // because a bar running through yellow into red is a rainbow and rainbows
+  // belong to the mode (Ivan, 2026-09-21).
+  :scope.is-euphoric .player-range--volume {
+    --fill-paint: linear-gradient(
+      90deg,
+      var(--accent-dark),
+      var(--accent) 55%,
+      #{$neon-yellow} 82%,
+      #{$red}
+    );
+  }
+}

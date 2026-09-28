@@ -222,7 +222,10 @@ export interface IChartLiveOffset {
 interface IChartControllerProps {
   width: number;
   height: number;
+  /** The EQ's gutters: its curves and handles (`getAxisPadding`). */
   padding: IMarginLike;
+  /** The drawing's: the analyser and the scenes (`getDrawingPadding`). */
+  drawingPadding: IMarginLike;
   /** From `graphFrequencyRange`, so its identity holds between renders. */
   frequencyRange: readonly [number, number];
 }
@@ -378,6 +381,7 @@ const useController = ({
   width,
   height,
   padding,
+  drawingPadding,
   frequencyRange,
 }: IChartControllerProps) => {
   const xScaleFreq = useMemo(
@@ -386,8 +390,8 @@ const useController = ({
   );
 
   const yScaleGain = useMemo(
-    () => gainScale(height, padding.top, padding.bottom),
-    [height, padding.bottom, padding.top],
+    () => gainScale(height, drawingPadding.top, drawingPadding.bottom),
+    [height, drawingPadding.bottom, drawingPadding.top],
   );
 
   const yScaleEq = useMemo(

@@ -168,9 +168,12 @@ export interface IRocket {
   strength: number;
 }
 
-/** One stroke of a burst: a set of segments that share a colour. */
-export interface IFireworkBand {
-  path: Path2D;
+/** A segment: where it starts, where it ends. */
+export type TSegment = readonly [Projected, Projected];
+
+/** One stroke of a burst: segments that share a colour, as numbers. */
+export interface IFireworkStroke {
+  segments: TSegment[];
   hue: number;
   /** 0..100, as HSL wants it. */
   lightness: number;
@@ -186,22 +189,71 @@ export interface IFireworkBand {
   round?: boolean;
 }
 
-export interface IFirework {
+/** One rocket this frame, as numbers: what the painters draw it from. */
+export interface IFireworkLayout {
   /** Painted in order: the tail's oldest piece first, the head last. */
-  bands: IFireworkBand[];
+  strokes: IFireworkStroke[];
   /** Twinkling sparks: the half of them lit this instant, painted white. */
-  twinkle?: Path2D;
+  twinkle?: TSegment[];
   /** The white core of the break, for its first 150ms. */
-  flash?: Path2D;
+  flash?: { x: number; y: number; r: number };
   /** The shock ring the break throws, for its first 180ms. */
-  ring?: Path2D;
+  ring?: { x: number; y: number; r: number };
   ringWidth: number;
   ringAlpha: number;
   /** The whole burst mirrored into the water, when it is above it. */
+  reflection?: TSegment[];
+  reflectionAlpha: number;
+  climbing: boolean;
+}
+
+/** One stroke of a burst, as a path. */
+export interface IFireworkBand {
+  path: Path2D;
+  hue: number;
+  lightness: number;
+  alpha: number;
+  width: number;
+  round?: boolean;
+}
+
+export interface IFirework {
+  bands: IFireworkBand[];
+  twinkle?: Path2D;
+  flash?: Path2D;
+  ring?: Path2D;
+  ringWidth: number;
+  ringAlpha: number;
   reflection?: Path2D;
   reflectionAlpha: number;
   climbing: boolean;
 }
+
+/** The fireworks' saturation: every colour of theirs is a full one. */
+export const FIREWORK_SATURATION = 100;
+
+/**
+ * A firework's colour, `hsl(hue, 100%, lightness%)`, as 0..1 channels — the
+ * CSS conversion, for a painter that cannot be handed the string.
+ */
+export const fireworkRgb = (
+  hue: number,
+  lightness: number,
+): [number, number, number] => {
+  // Whole numbers, as the canvas's string carries them.
+  const h = Number(hue.toFixed(0));
+  const l = Number(lightness.toFixed(0)) / 100;
+  const chroma = (1 - Math.abs(2 * l - 1)) * (FIREWORK_SATURATION / 100);
+  const channel = (n: number) => {
+    const k = (n + h / 30) % 12;
+    return l - (chroma / 2) * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+  };
+  return [channel(0), channel(8), channel(4)];
+};
+
+/** The same colour as a canvas takes it. */
+export const fireworkColour = (hue: number, lightness: number) =>
+  `hsl(${hue.toFixed(0)}, ${FIREWORK_SATURATION}%, ${lightness.toFixed(0)}%)`;
 
 const noise = (seed: number) => {
   const v = Math.sin(seed * 12.9898) * 43758.5453;
@@ -224,11 +276,11 @@ export const shellLife = (kind: ShellKind) => SHELLS[kind].life;
 export const shellFor = (seed: number) =>
   SHELL_KINDS[seed % SHELL_KINDS.length];
 
-const climbBands = (
+const climbStrokes = (
   rocket: IRocket,
   age: number,
   index: number,
-): IFireworkBand[] => {
+): IFireworkStroke[] => {
   const climb = (time: number) => {
     const f = Math.max(0, Math.min(1, time / ROCKET_CLIMB));
     return (
@@ -247,51 +299,55 @@ const climbBands = (
   const reachBack = (step: number) => Math.min(0.055 * step, age);
   // The trail in four pieces behind the head, each fainter and cooler, so
   // the rocket leaves a streak of sparks rather than a drawn line.
-  const bands: IFireworkBand[] = [];
+  const strokes: IFireworkStroke[] = [];
   for (let step = 4; step >= 1; step -= 1) {
-    const path = new Path2D();
     const from = climb(age - reachBack(step + 1));
     const to = climb(age - reachBack(step));
     const sway = Math.sin(age * 34 + index + step) * 1.4;
-    path.moveTo(rocket.x + sway, from);
-    path.lineTo(rocket.x - sway, to);
-    bands.push({
-      path,
+    strokes.push({
+      segments: [
+        [
+          [rocket.x + sway, from],
+          [rocket.x - sway, to],
+        ],
+      ],
       hue: EMBER_HUE,
       lightness: 52 + (4 - step) * 6,
       alpha: 0.16 + (4 - step) * 0.14,
       width: 1 + (4 - step) * 0.5,
     });
   }
-  const head = new Path2D();
-  head.moveTo(rocket.x, climb(age - Math.min(0.03, age)));
-  head.lineTo(rocket.x, climb(age));
-  bands.push({
-    path: head,
+  strokes.push({
+    segments: [
+      [
+        [rocket.x, climb(age - Math.min(0.03, age))],
+        [rocket.x, climb(age)],
+      ],
+    ],
     hue: rocket.hue,
     lightness: 92,
     alpha: 0.95,
     width: 3,
     round: true,
   });
-  return bands;
+  return strokes;
 };
 
 /**
- * Every rocket's drawing for this frame.
+ * Every rocket's drawing for this frame, as numbers.
  *
  * `horizon` is the waterline in the same space as the rest; a burst above
  * it gets a reflection. `level` is how loud the music is, so a shell over
  * a loud passage burns brighter than one over a quiet bar.
  */
-export const createFireworkPaths = (
+export const fireworkLayout = (
   rockets: readonly IRocket[],
   seconds: number,
   sizeHeight: number,
   horizon: number,
   level: number,
-): IFirework[] => {
-  const fireworks: IFirework[] = [];
+): IFireworkLayout[] => {
+  const fireworks: IFireworkLayout[] = [];
   rockets.forEach((rocket, index) => {
     const age = seconds - rocket.at;
     if (age < 0) {
@@ -300,7 +356,7 @@ export const createFireworkPaths = (
     const shell = SHELLS[rocket.kind];
     if (age < ROCKET_CLIMB) {
       fireworks.push({
-        bands: climbBands(rocket, age, index),
+        strokes: climbStrokes(rocket, age, index),
         ringWidth: 0,
         ringAlpha: 0,
         reflectionAlpha: 0,
@@ -318,36 +374,35 @@ export const createFireworkPaths = (
     const gravity = sizeHeight * shell.gravity;
     const glow = remaining * (0.7 + level * 0.3);
 
-    let flash: Path2D | undefined;
-    if (t < 0.15) {
-      flash = new Path2D();
-      const r = reach * 0.3 * (1 - t / 0.15) + 3;
-      flash.moveTo(rocket.x + r, rocket.burstY);
-      flash.arc(rocket.x, rocket.burstY, r, 0, Math.PI * 2);
-    }
+    const flash =
+      t < 0.15
+        ? {
+            x: rocket.x,
+            y: rocket.burstY,
+            r: reach * 0.3 * (1 - t / 0.15) + 3,
+          }
+        : undefined;
     // The break: a ring of light leaving the flash. This is the thing that
     // reads as an explosion — without it a shell fades up out of nothing.
-    let ring: Path2D | undefined;
+    let ring: { x: number; y: number; r: number } | undefined;
     let ringWidth = 0;
     let ringAlpha = 0;
     if (t < 0.18) {
       const f = t / 0.18;
-      const r = reach * (0.12 + f * 0.75);
-      ring = new Path2D();
-      ring.moveTo(rocket.x + r, rocket.burstY);
-      ring.arc(rocket.x, rocket.burstY, r, 0, Math.PI * 2);
+      ring = { x: rocket.x, y: rocket.burstY, r: reach * (0.12 + f * 0.75) };
       ringWidth = Math.max(0.6, 4 * (1 - f));
       ringAlpha = 0.7 * (1 - f) ** 1.5;
     }
 
-    // One path per tail piece plus the head, so the burst can be painted
-    // as a colour ramp instead of one flat hue.
-    const pieces: Path2D[] = [];
+    // One set of segments per tail piece plus the head, so the burst can be
+    // painted as a colour ramp instead of one flat hue.
+    const pieces: TSegment[][] = [];
     for (let step = 0; step <= TAIL_STEPS; step += 1) {
-      pieces.push(new Path2D());
+      pieces.push([]);
     }
-    const twinkle = shell.twinkle ? new Path2D() : undefined;
-    const reflection = rocket.burstY < horizon ? new Path2D() : undefined;
+    const twinkle: TSegment[] | undefined = shell.twinkle ? [] : undefined;
+    const reflection: TSegment[] | undefined =
+      rocket.burstY < horizon ? [] : undefined;
     for (let spark = 0; spark < shell.sparks; spark += 1) {
       // Palm throws its arms upward; everything else all round.
       const angle =
@@ -383,13 +438,9 @@ export const createFireworkPaths = (
       let previous = at(t);
       for (let step = 0; lit && step <= TAIL_STEPS; step += 1) {
         const back = at(t - (span * (step + 1)) / TAIL_STEPS);
-        pieces[step].moveTo(previous[0], previous[1]);
-        pieces[step].lineTo(back[0], back[1]);
+        pieces[step].push([previous, back]);
         if (step === 0) {
-          if (twinkle) {
-            twinkle.moveTo(previous[0], previous[1]);
-            twinkle.lineTo(previous[0] + 0.5, previous[1] + 0.5);
-          }
+          twinkle?.push([previous, [previous[0] + 0.5, previous[1] + 0.5]]);
           // Every other spark only: the water is a broken mirror and
           // nobody counts them, and it halves the second copy of the burst.
           if (reflection && spark % 2 === 0) {
@@ -400,10 +451,7 @@ export const createFireworkPaths = (
               p[0] + wobble,
               horizon + (horizon - p[1]) * REFLECTION_SQUASH,
             ];
-            const [mx, my] = mirror(previous);
-            const [bx, by] = mirror(back);
-            reflection.moveTo(mx, my);
-            reflection.lineTo(bx, by);
+            reflection.push([mirror(previous), mirror(back)]);
           }
         }
         previous = back;
@@ -412,11 +460,11 @@ export const createFireworkPaths = (
 
     // Back to front: the coolest, faintest piece of the tail first and the
     // white-hot head last.
-    const bands: IFireworkBand[] = [];
+    const strokes: IFireworkStroke[] = [];
     for (let step = TAIL_STEPS; step >= 1; step -= 1) {
       const along = step / TAIL_STEPS;
-      bands.push({
-        path: pieces[step],
+      strokes.push({
+        segments: pieces[step],
         hue: mixHue(
           mixHue(rocket.hue, rocket.hue + shell.shift, along),
           EMBER_HUE,
@@ -437,16 +485,16 @@ export const createFireworkPaths = (
      * scene over the frame budget; carried at a higher alpha instead, the
      * halo reads the same.
      */
-    bands.push({
-      path: pieces[0],
+    strokes.push({
+      segments: pieces[0],
       hue: rocket.hue,
       lightness: 58,
       alpha: glow * 0.55,
       width: shell.width + 1.8,
       round: true,
     });
-    bands.push({
-      path: pieces[0],
+    strokes.push({
+      segments: pieces[0],
       hue: mixHue(rocket.hue, EMBER_HUE, spent * 0.4),
       lightness: 96 - spent * 34,
       alpha: glow,
@@ -455,7 +503,7 @@ export const createFireworkPaths = (
     });
 
     fireworks.push({
-      bands,
+      strokes,
       twinkle,
       flash,
       ring,
@@ -468,3 +516,48 @@ export const createFireworkPaths = (
   });
   return fireworks;
 };
+
+/** Segments, each its own subpath, as one path. */
+const segmentsPath = (segments: readonly TSegment[]) => {
+  const path = new Path2D();
+  segments.forEach(([[fromX, fromY], [toX, toY]]) => {
+    path.moveTo(fromX, fromY);
+    path.lineTo(toX, toY);
+  });
+  return path;
+};
+
+/** Every rocket's drawing for this frame, as paths for a canvas. */
+export const createFireworkPaths = (
+  layout: readonly IFireworkLayout[],
+): IFirework[] =>
+  layout.map((firework) => {
+    let flash: Path2D | undefined;
+    if (firework.flash) {
+      const { x, y, r } = firework.flash;
+      flash = new Path2D();
+      flash.moveTo(x + r, y);
+      flash.arc(x, y, r, 0, Math.PI * 2);
+    }
+    let ring: Path2D | undefined;
+    if (firework.ring) {
+      const { x, y, r } = firework.ring;
+      ring = new Path2D();
+      ring.moveTo(x + r, y);
+      ring.arc(x, y, r, 0, Math.PI * 2);
+    }
+    return {
+      bands: firework.strokes.map(({ segments, ...stroke }) => ({
+        ...stroke,
+        path: segmentsPath(segments),
+      })),
+      twinkle: firework.twinkle && segmentsPath(firework.twinkle),
+      flash,
+      ring,
+      ringWidth: firework.ringWidth,
+      ringAlpha: firework.ringAlpha,
+      reflection: firework.reflection && segmentsPath(firework.reflection),
+      reflectionAlpha: firework.reflectionAlpha,
+      climbing: firework.climbing,
+    };
+  });

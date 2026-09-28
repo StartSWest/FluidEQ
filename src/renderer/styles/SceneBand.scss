@@ -12,14 +12,12 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 
 /**
- * A band with a scene playing in it: the top of the welcome and the top of
- * the account panel, which are the same thing said twice.
+ * A picture with a scene playing in it: the welcome's, in its dialog's rail,
+ * and a member's own on their profile, which are the same thing said twice.
  *
- * `--band-tall` is what it grows to once a scene is actually drawing; without
- * one it stays short, because the rest would be an empty gradient asking to
- * be looked at. `--band-light` colours the leading light of the aurora — the
- * account paints it in the person's own colour, the welcome leaves it in the
- * app's accent.
+ * `--band-tall` is what it grows to once a scene is coming; without one it
+ * stays short, because the rest would be an empty gradient asking to be
+ * looked at. `--band-light` colours the leading light of the aurora.
  */
 .scene-band {
   position: relative;
@@ -57,11 +55,11 @@ it under the terms of the GNU General Public License version 3 or later.
 /**
  * The scene's first frame, under the drawing of it.
  *
- * Captured at 1280×400 — the account banner's own proportion — so the handover
- * is invisible: a picture cropped differently from the way the scene draws
+ * Captured at 1280×400, and cropped evenly from the centre to whatever shape
+ * the picture is, the way the scene composes itself — so the handover is
+ * invisible: a picture cropped differently from the way the scene draws
  * itself moved the moon and the lanterns the moment the drawing started,
- * which is the jump this was added to remove. A band of another shape (the
- * welcome's) crops it evenly from the centre, the way the scene composes.
+ * which is the jump this was added to remove.
  */
 .scene-band__still {
   position: absolute;
@@ -70,27 +68,4 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 100%;
   height: 100%;
   object-fit: cover;
-}
-
-// Under the words and over the scene: ground enough for white text on a
-// bright frame, and none across the middle, where the scene is.
-.scene-band__scrim {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, $surface-menu-top 52%, transparent) 0%,
-    transparent 34%,
-    color-mix(in srgb, $surface-menu-top 62%, transparent) 72%,
-    color-mix(in srgb, $surface-menu-top 90%, transparent) 100%
-  );
-  pointer-events: none;
-}
-
-// Everything the caller puts over the scene.
-.scene-band__over {
-  position: relative;
-  z-index: 2;
-  height: 100%;
 }

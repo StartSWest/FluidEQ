@@ -37,13 +37,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // .button.small.subtle` sets a font size, and a lighter rule setting it to
 // zero lost — Clear EQ kept its word through every step, measured 2026-09-22).
 
-// The keys row has one thing to give: the name of Smart EQ's mode, beside
-// the word SMART that stays.
-.mini-player
-  .player-eq__keys[data-fit='1']
-  .player-split__main
-  .player-led__value {
-  display: none;
+// The keys row has two things to give, at once: the name of Smart EQ's mode,
+// beside the word Smart that stays, and the words beside FluidEQ's switch —
+// which already says, by its own position, whether it is on.
+.mini-player .player-eq__keys[data-fit='1'] {
+  .player-split__main .player-led__value,
+  .player-eq__name {
+    display: none;
+  }
 }
 
 // The foot: the names first…
@@ -55,9 +56,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
     display: none;
   }
 
+  // …and the figure takes the key's own ink. Dimmed beside its name it reads
+  // as a value; left alone in the key, dim read as a key switched off.
+  .eq-mode-trigger__summary {
+    color: var(--player-text-muted);
+  }
+
   // `font-size: 0` rather than a rule per text node: the key carries a bare
   // text node beside its glyph, which no selector can reach.
-  .clear-eq-trigger {
+  // `.button` as well, to outrank the foot's own face for the same button
+  // (`.mini-player .player-eq__foot .button.small.subtle`, which sets its
+  // type) — standing later, a tie goes to this rule.
+  .button.small.clear-eq-trigger {
     gap: 0;
     padding-inline: 7px;
     font-size: 0;

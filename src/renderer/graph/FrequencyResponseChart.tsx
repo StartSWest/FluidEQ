@@ -1730,7 +1730,13 @@ const FrequencyResponseChart = ({
             on the grid beside it, so half the row had a surface and half did
             not. They belong together: they are all captions and controls for
             the same drawing. */}
-        <span className="graph-legend-group" ref={legendGroup}>
+        {/* Folded, the cluster wraps (`GraphTheme.scss`): it is right-aligned
+            over the plot, so a row wider than the plot did not stop at an
+            edge — it ran off the graph's left, the first chip cut in half. */}
+        <span
+          className={`graph-legend-group${areChipsCollapsed ? ' is-folded' : ''}`}
+          ref={legendGroup}
+        >
           {/* First in the cluster rather than alone at the left of the strip.
 
               Out there it shared the corner with the creature in full screen
@@ -1787,75 +1793,83 @@ const FrequencyResponseChart = ({
               isDisplayedWaveHidden ? ' is-hidden' : ''
             }`}
           >
-            {/* Named separately from the value so the two can look like what
-              they are: a caption, and the thing it captions. Run together they
-              read as one long legend nobody realises is clickable.
+            {/* The caption and the look it names, with the arrows either side
+                of the name: what the folded row never splits. Only the caption
+                may stand over the rest, and only on a row too narrow for all
+                of it. */}
+            <span className="graph-look-walk">
+              {/* Named separately from the value so the two can look like what
+                they are: a caption, and the thing it captions. Run together they
+                read as one long legend nobody realises is clickable.
 
-              The caption is the switch, like every chip to its left — the one
-              curve on the plot that could not be turned off from the legend was
-              the only one that moves. Its swatch is a wave rather than a rule,
-              because a straight line is what all six other curves are drawn as
-              and this is the one that never is. */}
-            <button
-              type="button"
-              className="graph-legend__label"
-              aria-pressed={!isDisplayedWaveHidden}
-              title={t(isDisplayedWaveHidden ? 'graph.show' : 'graph.hide', {
-                item: t('graph.item.wave'),
-              })}
-              disabled={!isEngineUsable}
-              onClick={toggleGraphWave}
-            >
-              <svg
-                className="graph-legend__wave"
-                viewBox="0 0 16 12"
-                aria-hidden
+                The caption is the switch, like every chip to its left — the one
+                curve on the plot that could not be turned off from the legend was
+                the only one that moves. Its swatch is a wave rather than a rule,
+                because a straight line is what all six other curves are drawn as
+                and this is the one that never is. */}
+              <button
+                type="button"
+                className="graph-legend__label"
+                aria-pressed={!isDisplayedWaveHidden}
+                title={t(isDisplayedWaveHidden ? 'graph.show' : 'graph.hide', {
+                  item: t('graph.item.wave'),
+                })}
+                disabled={!isEngineUsable}
+                onClick={toggleGraphWave}
               >
-                <path d="M1 6c1.4 0 1.4-4 2.8-4s1.4 8 2.8 8 1.4-8 2.8-8 1.4 4 2.8 4" />
-              </svg>
-              {t('graph.liveOutput')}
-            </button>
-            {/* Arrows either side of the name, so walking the looks never
-                depends on where the keyboard is pointing.
+                <svg
+                  className="graph-legend__wave"
+                  viewBox="0 0 16 12"
+                  aria-hidden
+                >
+                  <path d="M1 6c1.4 0 1.4-4 2.8-4s1.4 8 2.8 8 1.4-8 2.8-8 1.4 4 2.8 4" />
+                </svg>
+                {t('graph.liveOutput')}
+              </button>
+              {/* Arrows either side of the name, so walking the looks never
+                  depends on where the keyboard is pointing.
 
-                Space and Ctrl+Space still do it, and stop the moment somebody
-                clicks the video: the guest takes focus and every key after that
-                belongs to the page, so Space pauses the video instead of
-                changing the drawing. That is exactly when somebody is most
-                likely to want a different one, and a mouse is already in their
-                hand. */}
-            <button
-              type="button"
-              className="graph-look-step"
-              aria-label={t('graph.style.previous')}
-              title={`${t('graph.style.previous')} (Ctrl+Space)`}
-              disabled={isDisplayedWaveHidden}
-              onClick={() => cycleGraphLook(-1)}
-            >
-              <svg viewBox="0 0 16 16" aria-hidden>
-                <path d="M10 3.5l-4 4.5 4 4.5" />
-              </svg>
-            </button>
-            {/* The selection, not the resolved look: while the designer is open
-                the chart draws an unsaved draft whose id is in no list, and a
-                picker handed that id would go blank. */}
-            <LookPicker
-              value={selectedLookId}
-              disabled={isDisplayedWaveHidden}
-              onChoose={chooseGraphLook}
-            />
-            <button
-              type="button"
-              className="graph-look-step"
-              aria-label={t('graph.style.next')}
-              title={`${t('graph.style.next')} (Space)`}
-              disabled={isDisplayedWaveHidden}
-              onClick={() => cycleGraphLook(1)}
-            >
-              <svg viewBox="0 0 16 16" aria-hidden>
-                <path d="M6 3.5l4 4.5-4 4.5" />
-              </svg>
-            </button>
+                  Space and Ctrl+Space still do it, and stop the moment somebody
+                  clicks the video: the guest takes focus and every key after that
+                  belongs to the page, so Space pauses the video instead of
+                  changing the drawing. That is exactly when somebody is most
+                  likely to want a different one, and a mouse is already in their
+                  hand. */}
+              <span className="graph-look-walk__steps">
+                <button
+                  type="button"
+                  className="graph-look-step"
+                  aria-label={t('graph.style.previous')}
+                  title={`${t('graph.style.previous')} (Ctrl+Space)`}
+                  disabled={isDisplayedWaveHidden}
+                  onClick={() => cycleGraphLook(-1)}
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden>
+                    <path d="M10 3.5l-4 4.5 4 4.5" />
+                  </svg>
+                </button>
+                {/* The selection, not the resolved look: while the designer is
+                    open the chart draws an unsaved draft whose id is in no
+                    list, and a picker handed that id would go blank. */}
+                <LookPicker
+                  value={selectedLookId}
+                  disabled={isDisplayedWaveHidden}
+                  onChoose={chooseGraphLook}
+                />
+                <button
+                  type="button"
+                  className="graph-look-step"
+                  aria-label={t('graph.style.next')}
+                  title={`${t('graph.style.next')} (Space)`}
+                  disabled={isDisplayedWaveHidden}
+                  onClick={() => cycleGraphLook(1)}
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden>
+                    <path d="M6 3.5l4 4.5-4 4.5" />
+                  </svg>
+                </button>
+              </span>
+            </span>
             <GraphAutoCycle
               selectedLookId={selectedLookId}
               isWaveHidden={isDisplayedWaveHidden}

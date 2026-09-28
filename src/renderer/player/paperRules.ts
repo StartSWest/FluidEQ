@@ -43,14 +43,14 @@ export interface IPlayerPaper {
  * player's picture runs to the deck's edge, so at 48 the numbers ended
  * against it (Ivan, 2026-09-24: "bit right padding for the numbers of the
  * grid"). The left is half a frequency label, so "10 Hz" is not cut in half
- * at the edge. The top clears the player's strip of controls, which stands
- * 8px down and 26px tall across the whole top of the deck: the level scale's
- * top number sat under Auto.
+ * at the edge. The top is half a level label, so the top number is not cut
+ * at the drawing's edge: the visualizer's bar stands under the drawing now
+ * (the Stage, 2026-09-27), not across its top.
  */
 const FREQUENCY_BOTTOM = 30;
 const FREQUENCY_SIDE = 20;
 const LEVEL_RIGHT = 56;
-const UNDER_STRIP = 44;
+const LEVEL_TOP = 8;
 
 // Module constants, so a deck that re-renders keeps the same padding object
 // and the scales built from it are not rebuilt every frame.
@@ -72,14 +72,14 @@ const FREQUENCY_ONLY: IPlayerPaper = {
 const LEVEL_ONLY: IPlayerPaper = {
   frequency: false,
   level: true,
-  padding: { left: 0, top: UNDER_STRIP, right: LEVEL_RIGHT, bottom: 0 },
+  padding: { left: 0, top: LEVEL_TOP, right: LEVEL_RIGHT, bottom: 0 },
 };
 const BOTH: IPlayerPaper = {
   frequency: true,
   level: true,
   padding: {
     left: FREQUENCY_SIDE,
-    top: UNDER_STRIP,
+    top: LEVEL_TOP,
     right: LEVEL_RIGHT,
     bottom: FREQUENCY_BOTTOM,
   },

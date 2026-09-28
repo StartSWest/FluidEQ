@@ -26,12 +26,9 @@ import {
 import { loadScenePack } from '../utils/scenePacks';
 import {
   isAmbientMode,
-  useSceneTintMode,
-  useStudioTintMode,
+  useWindowTintMode,
   useStudioTintSource,
 } from '../utils/sceneTintStore';
-import { displayTickMs, isFrameDue } from '../utils/framePace';
-import { getFrameBudget } from '../utils/useSmoothFrames';
 import {
   createAmbientField,
   resizeAmbientField,
@@ -85,12 +82,12 @@ const prefersReducedMotion = () =>
  * stops for a hidden window: nothing counts time here. Each shape is copied
  * from a small picture made once (`ambientSprites.ts`).
  *
- * The same precedence as the window's colour and light: the Studio's project
- * while it owns the window, the graph's look otherwise.
+ * One mode for the whole app decides whether it is drawn, and the same
+ * precedence as the window's colour and light decides whose: the Studio's
+ * project while it owns the window, the graph's look otherwise.
  */
 export default function SceneAmbient() {
-  const graphMode = useSceneTintMode();
-  const studioMode = useStudioTintMode();
+  const mode = useWindowTintMode();
   const studio = useStudioTintSource();
   const scene = useSceneLook();
   const studioValues = useStudioAmbientValues();
@@ -98,9 +95,9 @@ export default function SceneAmbient() {
   const [reduced, setReduced] = useState(prefersReducedMotion);
 
   let source: TAmbientSource | undefined;
-  if (studio) {
-    source = studioMode === 'pulse' ? 'studio' : undefined;
-  } else if (isAmbientMode(graphMode) && scene) {
+  if (isAmbientMode(mode) && studio) {
+    source = 'studio';
+  } else if (isAmbientMode(mode) && scene) {
     source = 'graph';
   }
 
@@ -261,29 +258,10 @@ export default function SceneAmbient() {
     window.addEventListener('resize', onResize);
 
     let animation = 0;
-    // The display's frame, measured from this loop's own animation frames,
-    // which is what the budget is judged against (`framePace.ts`).
-    let lastTickAt: number | undefined;
-    let tickMs = 1000 / 60;
+    // Every frame the display offers, as the graph beside it draws: this
+    // layer was held to thirty with the graph whenever Rainbow was off, and
+    // that cap is gone (`THIRTY_A_SECOND_MS`).
     const draw = (now: number) => {
-      tickMs = displayTickMs(now, lastTickAt, tickMs);
-      lastTickAt = now;
-      // Held to the 2D graph's budget (`getFrameBudget`): thirty frames a
-      // second, and every frame the display offers while the window is
-      // euphoric. This layer used to draw on every frame the display offered,
-      // up to 144 a second — a window-sized canvas cleared, drawn and screened
-      // over the whole window by the page itself, where the graph beside it,
-      // drawn by the same page, is held to thirty. A Plus scene runs at the
-      // display's rate because the GPU draws it in a worker; this is not one.
-      if (
-        last !== undefined &&
-        !isFrameDue(now - last, getFrameBudget(), tickMs)
-      ) {
-        // Too soon for the budget. Still asked for, so the next frame is
-        // considered: skipping is how the rate is held, without a timer.
-        animation = requestAnimationFrame(draw);
-        return;
-      }
       const elapsed = last === undefined ? 16 : now - last;
       last = now;
       const wanted = wantedRef.current;

@@ -23,538 +23,235 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The backdrop fades and the card rises out of it, so the dialog reads as
-// arriving rather than as the screen being replaced.
+// Under the About panel and the release notes (1450), which open on top of
+// it from its own foot.
 .support-backdrop {
-  @include animate(fade-in, $motion-fast);
-  position: fixed;
-  z-index: 1400;
-  inset: 0;
-  display: grid;
-  padding: $spacing-l;
-  place-items: center;
-  background: dialog.$scrim;
+  @include dialog.backdrop(1400);
 }
 
-// A frame with a scrolling body inside it, rather than one box that scrolls.
-//
-// The frame holds the surface, the border and the way out; everything that can
-// run off the bottom of a short window lives in `__scroll` within it. That
-// split is the whole reason the close button stays reachable — it used to sit
-// in the header, and the header scrolls, so the X was the first thing to leave
-// the screen on precisely the windows that needed it.
-.support-dialog {
-  @include menu-surface;
-  // A dialog's arrival on the menu's material, out of its own middle as every
-  // dialog does. Included ahead of the surface, as it was, the menu's own
-  // arrival came after it and won.
-  --surface-motion: #{$dialog-arrival};
-  --menu-origin: center;
-  // One rhythm for the panel and for each of its columns, so the ladder at the
-  // bottom of this file tightens all three by editing one number.
-  --support-gap: 16px;
-
-  position: relative;
-  display: grid;
-  width: min(1040px, 100%);
-  max-height: calc(100vh - #{$spacing-l} * 2);
-  grid-template-rows: auto minmax(0, 1fr);
-  // The body's square corners must not show through the frame's rounded ones.
-  overflow: hidden;
-  // The whole panel lifts with the streak. `--pet-joy` is set on this element
-  // by the dialog and runs 0 to 1 across the multiplier, so at rest this is
-  // simply the surface it always was and every term below falls out to zero.
-  //
-  // The edge brightens alongside it: a glow with no edge to sit against reads
-  // as a blur rather than as the thing itself lighting up. At rest it is every
-  // dialog's hairline and lift (`dialog.surface-look`), on the menus' 95%
-  // floor, which is why `Modal.scss` leaves this one card to its own sheet:
-  // its rule would put the glow out at every level of joy.
-  //
-  // The lit edge is a ring drawn inside the hairline, not the border's own
-  // colour: every dialog's border is set by the hairline rule in
-  // `Rainbow.scss`, which outweighs this one, and the joy's edge had not been
-  // seen since that rule arrived. The glows go through `color-mix` because
-  // the accents are hex custom properties: `rgba(var(--accent), …)` is no
-  // colour at all, and it threw out the whole shadow, lift and glow alike.
-  box-shadow:
-    0 32px 90px rgba($black, 0.64),
-    inset 0 1px 0 rgba($white, 0.05),
-    inset 0 0 0 1px
-      color-mix(
-        in srgb,
-        $secondary-light calc(var(--pet-joy, 0) * 55%),
-        transparent
-      ),
-    0 0 calc(var(--pet-joy, 0) * 40px)
-      color-mix(
-        in srgb,
-        $secondary-default calc(var(--pet-joy, 0) * 45%),
-        transparent
-      ),
-    0 0 calc(var(--pet-joy, 0) * 90px)
-      color-mix(
-        in srgb,
-        $secondary-light calc(var(--pet-joy, 0) * 22%),
-        transparent
-      );
-  transition: box-shadow 300ms ease-out;
-
-  h2 {
-    margin: 3px 0 0;
-    font-size: 1.48rem;
-    line-height: 1.15;
-  }
+// Support the work on the dialog frame (`DialogFrame`): the pet and her game
+// in the rail, the ask on the right, the release notes and "I contributed"
+// in the foot.
+// Every dialog's own glass (`dialog.surface-look`). It lifted and glowed with
+// the pet's streak, a lit ring and two halos round the whole panel, and read
+// as a drop shadow that would not go away (Ivan, 2026-09-27: "remove all
+// crappy dropshadow from all modal").
+.dialog-frame.support-dialog {
+  @include dialog.size(1000px, 860px);
 }
 
-// The dialog now has the same deliberate header/body split as the newer
-// About and release-notes panels. The thin spectrum rail makes Rainbow mode
-// feel native to this surface without turning the whole header into a badge.
-.support-dialog__topbar {
-  position: relative;
-  display: flex;
-  min-height: 58px;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 14px 10px 18px;
-  // Every dialog's head line, fading before the frame (`dialog.rule`). A
-  // hairline and an accent rule over it, both run edge to edge, read as a
-  // flat bar across the card (Ivan, 2026-09-26: "header border no more
-  // flat"). The accent is the streak's alone now: dark at rest, lit and
-  // fading out the same way as the pet's joy rises.
-  @include dialog.rule(bottom);
-
-  &::after {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      color-mix(in srgb, $secondary-light 60%, transparent) 50%,
-      transparent
-    );
-    content: '';
-    opacity: var(--pet-joy, 0);
-  }
-}
-
-// Everything that scrolls, which is everything except the way out.
-.support-dialog__scroll {
-  display: grid;
-  // Grid rows size to their content, so without this the body simply pushes
-  // the frame past its own max-height and nothing ever scrolls at all.
-  min-height: 0;
-  padding: 22px;
-  gap: var(--support-gap);
-  overflow-y: auto;
-  @include slim-scrollbar;
-}
-
-.support-dialog__stage,
-.support-dialog__ask {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: var(--support-gap);
-}
-
-// At desktop width the left side is the interactive playground and the right
-// side is the ask. Giving each one its own surface removes the old "two text
-// columns inside one large modal" feeling and makes the game discoverable.
-@media (min-width: 860px) {
-  .support-dialog__scroll {
-    align-items: start;
-    grid-template-columns: minmax(300px, 0.88fr) minmax(420px, 1.12fr);
-    column-gap: 18px;
-  }
-
-  // The window's filled card, both of them, one step in from the dialog's
-  // corner: a hairline box round a floor-coloured well and one round a plot's
-  // slate were two different materials side by side (Ivan, 2026-09-26: "make
-  // it nicer and all panes and colors").
-  .support-dialog__stage,
-  .support-dialog__ask {
-    display: grid;
-    min-width: 0;
-    align-content: start;
-    gap: var(--support-gap);
-    @include card-surface;
-    border-radius: $radius-l;
-  }
-
-  .support-dialog__stage {
-    position: sticky;
-    top: 0;
-    overflow: hidden;
-    padding: 24px 20px 20px;
-
-    &::after {
-      position: absolute;
-      right: 22%;
-      bottom: -60px;
-      left: 22%;
-      height: 100px;
-      border-radius: 50%;
-      background: color-mix(in srgb, $secondary-default 10%, transparent);
-      content: '';
-      pointer-events: none;
-    }
-  }
-
-  .support-dialog__ask {
-    padding: 22px;
-  }
-}
-
-// No rule underneath, and barely any gap. The trace belongs to the creature
-// directly above it — it is what the creature is jumping — and a divider
-// between them made the game read as a separate panel that happened to be next.
-// The creature sits in the middle, always.
-//
-// With the game, this is the fix for a target line that kept ending up
-// somewhere she was not. The line sits at 50% of the trace, which is where it
-// has to be — the trace shows the same span of time either side of it, so a
-// peak is visible for as long coming in as it is going out, and moving the
-// line makes one direction harder than the other for no reason. She was the
-// part in the wrong place: parked at the left edge beside the title, with the
-// line she is meant to be jumping half a dialog away. The trace and the header
-// share a content box — the panel's in one column, the stage column's in two —
-// so centring her in it puts her over the line exactly, with nothing to measure
-// and nothing to keep in sync on resize.
-//
-// Without the game there is no line, and she is centred for the plainer
-// reason: she is the first thing in a dialog that is asking for something, and
-// a creature tucked into a corner beside a heading reads as an icon. Centred
-// with the title under her she reads as somebody looking at you. It also means
-// the panel does not rearrange itself the moment the badge is earned — the
-// layout is identical before and after, so the transition has only content to
-// change and never jumps.
-//
-// The close button is not in here at all any more — it belongs to the frame —
-// so there is nothing on either side of her to pull her off centre.
-.support-dialog__header {
-  display: flex;
-  min-width: 0;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 12px;
-  padding-bottom: 0;
-}
-
-// Nothing above the game is selectable.
-//
-// The game is played by hammering space and clicking the creature, and both of
-// those are text-selection gestures to a browser: a run of taps left the
-// eyebrow and the heading sitting in a blue selection block, which looks like
-// the panel has broken rather than like a game being played. The addresses and
-// the pitch below are deliberately NOT included — those are there to be
-// selected and copied by hand, and a copy button is not a substitute for being
-// able to check what you are about to paste.
-.support-dialog__header,
-.rhythm-game__scores,
-.rhythm-game__howto,
-.rhythm-game__verdict,
-.rhythm-game__trace {
+// Nothing in the rail is selectable. The game is played by hammering space
+// and clicking the creature, and both of those are text-selection gestures to
+// a browser: a run of taps left the title and the instruction sitting in a
+// blue selection block, which looks like the panel has broken rather than
+// like a game being played. The addresses and the words on the right are
+// deliberately NOT included — those are there to be selected and copied by
+// hand, and a copy button is not a substitute for being able to check what
+// you are about to paste.
+.support-dialog .dialog-frame__rail {
   user-select: none;
 }
 
-.support-dialog__identity {
-  display: flex;
+// The creature and the game she is jumping, centred on one axis: the target
+// line sits at the middle of the trace (`RhythmGame.tsx`), so centring her
+// over it puts her over the line exactly, with nothing to measure and
+// nothing to keep in sync on resize.
+.support-dialog__stage {
+  display: grid;
   min-width: 0;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  justify-items: center;
+  gap: 6px;
   text-align: center;
 
-  > div {
-    min-width: 0;
+  > .rhythm-game {
+    width: 100%;
   }
 }
 
-// Quiet, because it is an aside about a toy sitting under the heading of a
-// dialog that is asking for money. It only ever appears for someone who has
-// already given, so it can afford to be small.
-.support-dialog__pet-hint {
-  margin: 5px 0 0;
-  color: $text-faint;
-  font-size: $text-small;
+// *** The ways to give *******************************************************
+
+// The ask: the frame's card for controls used together — the page, the code
+// that scans to it and the button that opens it — with the accent in it,
+// because this is the one card in the dialog asking for something.
+.support-dialog__give {
+  gap: 16px;
+  padding: 18px 18px 18px 20px;
+  border-color: color-mix(in srgb, $secondary-default 30%, transparent);
+  background:
+    radial-gradient(
+      100% 120% at 0% 0%,
+      color-mix(in srgb, $secondary-default 13%, transparent),
+      transparent 70%
+    ),
+    $card-glow, $surface-card;
 }
 
-.support-dialog__close {
+// One way to give: its name, what it is, and what opens it, with a code to
+// scan beside them where there is one. A crypto address is a card of its own
+// (`dialog-frame__group`) in the same shape.
+.support-method {
   display: grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 auto;
-  place-items: center;
-  padding: 0;
-  color: $text-muted;
-  border: 1px solid transparent;
-  border-color: rgba($edge-tint, 0.08);
-  border-radius: $radius-s;
-  background: $surface-plot;
-  cursor: pointer;
-  transition: $transition-control;
-
-  svg {
-    width: 14px;
-    height: 14px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-width: 1.4;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    border-color: color-mix(in srgb, $secondary-light 35%, transparent);
-    background: color-mix(in srgb, $secondary-default 12%, transparent);
-    outline: none;
-  }
-}
-
-.support-dialog__pitch {
-  margin: 0;
-  color: rgba($white, 0.9);
-  font-size: $text-title;
-  line-height: 1.62;
-}
-
-// Quieter than the pitch and set apart from it: this is the maker speaking,
-// not the ask. The cyan spine marks it as an aside rather than another
-// paragraph of the same argument.
-.support-dialog__craft {
-  margin: 0;
-  padding: 12px 14px 12px 16px;
-  color: $text-muted;
-  // A quote let into the card: a well a step down from it, and the accent's
-  // spine as its only line. A box ruled round it in two colours was a third
-  // frame in the column.
-  border: 0;
-  border-left: 2px solid color-mix(in srgb, $secondary-light 42%, transparent);
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $surface-base 40%, transparent);
-  font-size: $text-lead;
-  line-height: 1.55;
-}
-
-.support-dialog__methods {
-  display: grid;
+  min-width: 0;
   gap: 10px;
 }
 
-.support-method {
-  @include card-surface;
+// Two ways in the one card, parted by the floor's hairline.
+.support-dialog__give > .support-method + .support-method {
+  padding-top: 16px;
+  border-top: dialog.$seam;
+}
+
+// Name, blurb and button travel together so a code beside them cannot pull
+// them apart onto separate grid rows.
+.support-method__text {
   display: grid;
   min-width: 0;
-  padding: 16px;
-  gap: 8px;
-  color: inherit;
-  text-decoration: none;
+  justify-items: start;
+  gap: 6px;
+}
 
-  &__label {
-    display: flex;
-    align-items: baseline;
-    gap: 7px;
-    color: $white;
-    font-size: 1rem;
+.support-method__label {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  line-height: 1.3;
+
+  // Ticker, so a donor can match the chain at a glance.
+  em {
+    color: $text-accent;
+    font-size: $text-micro;
+    font-style: normal;
     font-weight: $weight-bold;
-
-    // Ticker, so a donor can match the chain at a glance.
-    em {
-      color: $text-accent;
-      font-size: $text-micro;
-      font-style: normal;
-      font-weight: $weight-bold;
-      @include tracking(0.06em);
-    }
-  }
-
-  &__hint {
-    color: $text-muted;
-    font-size: $text-lead;
-    line-height: 1.5;
-  }
-
-  // The address must stay readable and selectable; a donor sending to the
-  // wrong string cannot get their money back, so it never truncates.
-  &__address {
-    margin-top: 6px;
-    padding: 9px 10px;
-    color: $secondary-light;
-    border: 1px solid $border-field;
-    border-radius: $radius-xs;
-    // A well in the card, a step down from it, as every field is.
-    background: color-mix(in srgb, $surface-base 55%, transparent);
-    font-family: $font-mono;
-    font-size: $text-lead;
-    line-height: 1.5;
-    overflow-wrap: anywhere;
-    user-select: all;
-  }
-
-  &__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 8px;
-  }
-
-  // Name and blurb travel together so a code beside them cannot pull the two
-  // apart onto separate grid rows.
-  &__text {
-    display: grid;
-    min-width: 0;
-    gap: 4px;
-  }
-
-  &__action {
-    @include ghost-button;
-    min-height: $control-height-sm;
-    padding: 6px 12px;
-    border-radius: $radius-xs;
-    font-size: $text-lead;
-    font-weight: $weight-bold;
-    text-decoration: none;
+    @include tracking(0.06em);
   }
 }
 
-// Text on the left, scannable code on the right. The address and the buttons
+.support-method__hint {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+}
+
+// The address must stay readable and selectable; a donor sending to the wrong
+// string cannot get their money back, so it never truncates.
+.support-method__address {
+  padding: 9px 10px;
+  color: $secondary-light;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  // A well in the card, a step down from it, as every field is.
+  background: color-mix(in srgb, $surface-base 55%, transparent);
+  font-family: $font-mono;
+  font-size: $text-body;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+.support-method__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-s;
+}
+
+// Text on the left, scannable code on the right. An address and its buttons
 // stay full width underneath it — a truncated address is a lost donation.
 .support-method--qr {
-  align-items: center;
-  column-gap: 18px;
   grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 20px;
 
   .support-method__address,
   .support-method__actions {
     grid-column: 1 / -1;
   }
 
-  // Smaller, softened and framed rather than a bare white square. A QR has to
-  // stay high-contrast to scan, so the white cannot go — but at the old size
-  // it was the brightest object in a dark dialog and pulled the eye away from
-  // the link, which is what most people will actually use.
+  // Framed rather than a bare white square. A QR has to stay high-contrast to
+  // scan, so the white cannot go — but at full size it was the brightest
+  // object in a dark dialog and pulled the eye away from the button, which is
+  // what most people will actually use.
   .qr-code {
     display: block;
     width: 124px;
     height: 124px;
     padding: 8px;
-    border: 1px solid color-mix(in srgb, $secondary-light 28%, transparent);
     border-radius: $radius-s;
     background: $white;
     box-shadow: 0 6px 18px rgba($black, 0.32);
-    transition: $transition-control;
-  }
-
-  &:hover .qr-code,
-  &:focus-visible .qr-code {
-    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
   }
 }
 
-// A link, so it has to look like something you can press. The chevron and the
-// lift on hover are the whole difference between this reading as a card and
-// reading as a button — the card had neither and people were scanning the QR
-// because it was the only part that looked interactive.
-// The ask itself: the card with the accent in it, edged in the accent at a
-// third, and lit a step further under the pointer. It was framed in a 2px
-// spectrum, the one moving outline in the dialog, over a brighter slab.
-.support-method--primary {
-  position: relative;
-  border-color: color-mix(in srgb, $secondary-light 32%, transparent);
-  background:
-    linear-gradient(color-mix(in srgb, $secondary-default 8%, transparent) 0 0),
-    $card-glow, $surface-card;
-  cursor: pointer;
-  transition:
-    $transition-control,
-    translate 160ms $ease-out;
+// A button with the glyph of what it does or where it goes, at the button's
+// own size. A link wearing the button keeps its label undecorated.
+.support-dialog__action {
+  gap: 7px;
+  text-decoration: none;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// *** Why ********************************************************************
+
+.support-dialog__pitch {
+  color: $text-muted;
+  font-size: $text-lead;
+  line-height: 1.65;
+}
+
+// The maker speaking, not the ask: his words in italic and his name under
+// them, and nothing drawn round either — a box or a rule down its side made a
+// third frame in the column.
+.support-dialog__quote {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+
+  blockquote {
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-body;
+    font-style: italic;
+    line-height: 1.65;
+  }
+
+  figcaption {
+    color: $text-faint;
+    font-size: $text-small;
+  }
+}
+
+// *** The foot ***************************************************************
+
+.support-dialog__time a {
+  color: $secondary-light;
+  text-decoration: none;
 
   &:hover,
   &:focus-visible {
-    border-color: color-mix(in srgb, $secondary-light 58%, transparent);
-    background:
-      linear-gradient(
-        color-mix(in srgb, $secondary-default 15%, transparent) 0 0
-      ),
-      $card-glow, $surface-card;
-    outline: none;
-  }
-
-  &:active {
-    translate: 0 0;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: $transition-control;
-
-    &:hover,
-    &:focus-visible,
-    &:active {
-      translate: 0;
-    }
-  }
-
-  .support-method__label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: $secondary-light;
-
-    // A chevron that leans in on hover. Cheap, and it says 'this opens
-    // somewhere' without a word of explanation.
-    &::after {
-      color: $text-accent;
-      content: '→';
-      font-size: $text-title;
-      transition: translate 160ms $ease-out;
-    }
-  }
-
-  &:hover .support-method__label::after,
-  &:focus-visible .support-method__label::after {
-    color: $secondary-light;
-    translate: 3px 0;
+    text-decoration: underline;
   }
 }
 
-// "I contributed" answers the ask; it is not the ask. The quiet face
-// (`button small subtle`), where it was a full-width bar in the loud one
-// inside a 2px spectrum, louder than the card it answers — and Rainbow mode,
-// which that frame previewed, is on for everybody now.
-.button.support-dialog__contributed {
-  min-width: 0;
-  min-height: 36px;
-  white-space: normal;
-
-  + .support-method__hint {
-    margin: 0;
-  }
-}
-
-// A status, not a control. Centred inside a full-width bordered box it read
-// as a disabled button, which is a strange note to end on after someone has
-// just contributed. A star and a left-aligned line say 'this happened'.
-// In the accent, with the star alone in gold: a neon-yellow box was the one
-// colour in the dialog that was no part of the theme.
+// A status in the place of "I contributed", not a control: a star and a line
+// saying this happened. In the accent, with the star alone in gold.
 .support-dialog__thanks {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin: 0;
-  padding: 10px 12px 10px 14px;
   color: $secondary-light;
-  border: 0;
-  border-left: 2px solid color-mix(in srgb, $secondary-light 70%, transparent);
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 9%, transparent);
-  font-size: $text-lead;
-  font-weight: $weight-bold;
-  line-height: 1.45;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  line-height: 1.4;
 
   &::before {
     flex: 0 0 auto;
@@ -565,202 +262,60 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// A link in button's clothing: it opens something rather than doing anything,
-// so it is styled like the footer link below it rather than like the
-// contribute actions above.
-.support-dialog__notes {
-  flex: 0 0 auto;
-  padding: 0;
-  color: $secondary-light;
-  border: 0;
-  background: transparent;
-  font-size: $text-lead;
-  font-weight: $weight-bold;
-  text-align: left;
-  cursor: pointer;
+// *** Development ************************************************************
 
-  &:hover,
-  &:focus-visible {
-    outline: none;
-    text-decoration: underline;
-  }
-}
-
-// The last two lines of the panel, on one row.
-//
-// Stacked, they were two separate bands and a dividing rule for what amounts
-// to a single sentence of housekeeping — around fifty pixels, in a panel that
-// has none to spare. The rule moved up here because it is closing the whole
-// dialog now, not just introducing the footer.
-//
-// `flex-wrap` keeps it honest at any width: too narrow to hold both and they
-// drop back to two lines, which is all they ever were.
-.support-dialog__links {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 20px;
-  padding-top: 12px;
-  @include dialog.rule(top);
-}
-
-.support-dialog__footer {
-  // Takes whatever is left beside the notes link, and claims a full line of
-  // its own the moment that leaves it less than a readable measure.
-  flex: 1 1 260px;
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-lead;
-  line-height: 1.45;
-
-  a {
-    color: $secondary-light;
-    text-decoration: none;
-
-    &:hover,
-    &:focus-visible {
-      text-decoration: underline;
-    }
-  }
-}
-
-// Fitting into a short window.
-//
-// The dialog is a long read — a heading, a game, a pitch, an aside about how
-// it was built, a payment card with a QR in it, and a footer — and on anything
-// under about a laptop's height that ran off the bottom, leaving the part that
-// actually matters (the link, the code, the thanks) below a scrollbar nobody
-// noticed. It scrolls, so nothing is ever unreachable, but scrolling to find
-// the ask is a worse ask.
-//
-// So it gives things up in order of how little they are missed, in three
-// steps, rather than shrinking everything at once and ending up with a small
-// version of the same problem.
-
-// First: tighten the rhythm. Nothing is removed, it just sits closer.
-@media (max-height: 860px) {
-  .support-dialog {
-    --support-gap: 12px;
-  }
-
-  .support-dialog__scroll {
-    padding: 18px 22px 18px;
-  }
-
-  .support-dialog__craft {
-    font-size: $text-body;
-    line-height: 1.5;
-  }
-
-  .support-method--qr .qr-code {
-    width: 112px;
-    height: 112px;
-  }
-}
-
-// Then: the aside about how the app was built goes. It is the one paragraph
-// here that persuades nobody who is not already persuaded, and it is four
-// lines deep.
-@media (max-height: 720px) {
-  .support-dialog {
-    --support-gap: 9px;
-  }
-
-  .support-dialog__scroll {
-    padding: 14px 18px;
-  }
-
-  .support-dialog__craft {
-    display: none;
-  }
-
-  .support-dialog__pitch {
-    font-size: $text-body;
-    line-height: 1.5;
-  }
-
-  .support-method--qr .qr-code {
-    width: 92px;
-    height: 92px;
-    padding: 6px;
-  }
-}
-
-// Last: the QR itself. Anyone on a window this short is at a desk, and the
-// link beside it does the same job in one click — the code is for reaching for
-// a phone, which is the less likely of the two here. The pet shrinks with it,
-// since it is decoration sitting above the only thing being asked for.
-@media (max-height: 620px) {
-  .support-dialog {
-    --support-gap: 7px;
-  }
-
-  .support-dialog__scroll {
-    padding: 12px 14px;
-  }
-
-  .support-dialog__pitch {
-    font-size: $text-body;
-  }
-
-  .support-method--qr {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .support-method--qr .qr-code {
-    display: none;
-  }
-
-  .support-dialog__footer,
-  .support-dialog__notes {
-    font-size: $text-small;
-  }
-}
-
-// Narrow as well as short: the QR moves under the text rather than squeezing
-// it into a column two words wide.
-@media (max-width: 560px) {
-  .support-method--qr {
-    grid-template-columns: minmax(0, 1fr);
-    justify-items: center;
-    row-gap: 12px;
-  }
-}
-
-// Development builds only — this rule has no element to match in a release,
-// where the button it styles is compiled out. Deliberately plain: it is a
-// debug affordance sitting inside the one dialog in the app that is asking
-// for something, and it must never read as part of that ask.
-// A row of its own for the dev switch, which is not attached to a sentence the
-// way the two beside the thanks line are. Centred so it reads as a debug
-// affordance sitting under the panel rather than as part of its layout, and it
-// exists only in a development build.
+// Development builds only — nothing here exists in a release, where the
+// buttons are compiled out. At the foot of the ask, small and dashed, so it
+// reads as a debug affordance bolted under the panel and never as part of
+// the one dialog in the app that is asking for something.
 .support-dialog__dev-row {
   display: flex;
-  justify-content: center;
-
-  .support-dialog__dev-reset {
-    margin-left: 0;
-  }
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba($edge-tint, 0.14);
 }
 
 .support-dialog__dev-reset {
-  margin-left: 10px;
   padding: 1px 7px;
   color: $text-faint;
-  border: 1px dashed rgba($edge-tint, 0.28);
+  border: 1px dashed rgba($edge-tint, 0.24);
   border-radius: $radius-s;
   background: none;
-  font-size: $text-small;
   font-family: inherit;
+  font-size: $text-small;
   cursor: pointer;
-  vertical-align: middle;
 
   &:hover {
     color: $red;
     border-color: rgba($red, 0.5);
   }
 }
+
+// *** Narrow *****************************************************************
+
+// A narrow window lays the rail across the top; the pet and her game stand
+// side by side there, so the ask is still on the first screen under them.
+@media (max-width: $bp-md) {
+  .support-dialog__stage {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+// The QR moves under the text rather than squeezing it into a column two
+// words wide.
+@media (max-width: 560px) {
+  .support-method--qr {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    row-gap: 12px;
+  }
+}
+
+// *** The badge, earned ******************************************************
 
 // The badge is already saved when this starts. The portal clears itself on
 // animationend, so the celebration never delays the unlock or clips inside
@@ -869,49 +424,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       opacity: 1;
     }
   }
-}
-
-// Product identity at the left of the fixed header. The mark gets the same
-// compact glass well as the current titlebar controls, while the name remains
-// quiet enough for the actual support heading to own the body.
-.support-dialog__brand {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  margin-right: auto;
-  color: rgba($white, 0.88);
-  font-size: $text-lead;
-  font-weight: $weight-bold;
-  gap: 10px;
-  @include tracking(0.02em);
-
-  // The app icon's tile (`.brand-mark`), at the panel's size.
-  .brand-mark {
-    display: flex;
-    width: 32px;
-    height: 32px;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    border-radius: $radius-s;
-
-    svg {
-      width: 21px;
-      height: 21px;
-    }
-  }
-}
-
-.support-dialog__version {
-  margin-left: 7px;
-  padding: 1px 6px;
-  color: $text-accent;
-  border: 1px solid $border-field;
-  border-radius: $radius-2xs;
-  background: color-mix(in srgb, $secondary-default 8%, transparent);
-  font-size: $text-eyebrow;
-  font-variant-numeric: tabular-nums;
-  font-weight: $weight-bold;
 }
 
 // TWO MOMENTS, HELD BY THE ELEMENTS THAT SHOW THEM.

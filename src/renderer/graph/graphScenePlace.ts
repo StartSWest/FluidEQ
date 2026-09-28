@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useSyncExternalStore } from 'react';
 import type { TSceneTintMode } from '../utils/sceneTintStore';
+import type { TWorkspaceTab } from '../workspaceTabs';
 import type { ISceneInteraction } from './sceneInteraction';
 
 /**
@@ -70,6 +71,23 @@ export interface IGraphScenePlaces {
   /** The layer behind an EQ page's head and graph (`SceneColumnLayer`). */
   column: HTMLElement | null;
 }
+
+/** The one page the Backdrop is drawn on. */
+export const BACKDROP_PAGE: TWorkspaceTab = 'eq';
+
+/**
+ * The mode the scene is drawn in on `page`: the one chosen, except that the
+ * Backdrop is the EQ page's alone and every other page shows it as Ambient —
+ * the window's colours and its glow, the scene on the page's own graph where
+ * it has one (Ivan, 2026-09-27: "only on EQ we have that mode, in the rest of
+ * the app no backdrop mode"). The menu still names the Backdrop there: it is
+ * what comes back on the EQ page.
+ */
+export const sceneModeOnPage = (
+  mode: TSceneTintMode,
+  page: TWorkspaceTab,
+): TSceneTintMode =>
+  mode === 'cover' && page !== BACKDROP_PAGE ? 'pulse' : mode;
 
 /**
  * Where the graph's scene is drawn, or nowhere.

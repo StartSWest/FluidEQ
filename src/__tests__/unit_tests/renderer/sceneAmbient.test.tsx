@@ -5,10 +5,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * Which scene's elements the window shows. One at a time: the Studio's project
- * while the Studio has the window in Ambient mode, even with the graph in
- * Ambient mode too; the graph's visualizer otherwise; nothing while neither
- * asked for it.
+ * Which scene's elements the window shows. One at a time, and only in the
+ * app's one Ambient mode: the Studio's project while it owns the window, the
+ * graph's visualizer otherwise; nothing in any other mode.
  */
 
 import '@testing-library/jest-dom';
@@ -18,7 +17,6 @@ import SceneAmbient from '../../../renderer/ambient/SceneAmbient';
 import { loadScenePack } from '../../../renderer/utils/scenePacks';
 import {
   useSceneTintMode,
-  useStudioTintMode,
   useStudioTintSource,
 } from '../../../renderer/utils/sceneTintStore';
 import { useSceneLook } from '../../../renderer/utils/graphStyle';
@@ -41,7 +39,6 @@ jest.mock('../../../renderer/utils/sceneTintStore', () => ({
     typeof import('../../../renderer/utils/sceneTintStore')
   >('../../../renderer/utils/sceneTintStore').isAmbientMode,
   useSceneTintMode: jest.fn(),
-  useStudioTintMode: jest.fn(),
   useStudioTintSource: jest.fn(),
 }));
 
@@ -89,7 +86,6 @@ beforeEach(() => {
   } as ReturnType<typeof useSceneLook>);
   jest.mocked(loadScenePack).mockResolvedValue(withBirds('alpine'));
   jest.mocked(useSceneTintMode).mockReturnValue('pulse');
-  jest.mocked(useStudioTintMode).mockReturnValue('pulse');
   jest.mocked(useStudioTintSource).mockReturnValue(undefined);
 });
 
@@ -118,7 +114,7 @@ it('shows nothing of the graph’s while the graph is not in Ambient mode', asyn
   expect(layer()).not.toBeInTheDocument();
 });
 
-it('shows only the Studio’s project while the Studio is in Ambient mode, graph or no graph', async () => {
+it('shows only the Studio’s project while it owns the window in Ambient mode, graph or no graph', async () => {
   jest.mocked(useStudioTintSource).mockReturnValue({
     project: 'alpine-project',
     playing: { build: 'launch:alpine#1', pack: withBirds('alpine-studio') },
@@ -133,6 +129,20 @@ it('shows none of the graph’s when the Studio’s project brings none of its o
   jest.mocked(useStudioTintSource).mockReturnValue({
     project: 'plain-project',
     playing: { build: 'launch:plain#1', pack: plain('plain-studio') },
+  });
+  render(<SceneAmbient />);
+  await act(async () => {
+    await Promise.resolve();
+  });
+  expect(loadScenePack).not.toHaveBeenCalled();
+  expect(layer()).not.toBeInTheDocument();
+});
+
+it('shows nothing, not even the graph’s, while the Studio owns the window in Colours', async () => {
+  jest.mocked(useSceneTintMode).mockReturnValue('tint');
+  jest.mocked(useStudioTintSource).mockReturnValue({
+    project: 'alpine-project',
+    playing: { build: 'launch:alpine#1', pack: withBirds('alpine-studio') },
   });
   render(<SceneAmbient />);
   await act(async () => {

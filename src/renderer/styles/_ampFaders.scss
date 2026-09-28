@@ -1,0 +1,488 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// THE EQUALIZER'S FADERS — the same in both amps (Ivan, 2026-09-28: "also the
+// sliders", for the 2.0 amp): the name, the EQ page's step arrows, the travel
+// with its handle in the app's own round or rectangular shape, and the figure
+// under it. Included by each amp's own faders stylesheet, so they stand in
+// each amp's scope (`MiniPlayer.scss`) and wear that amp's colours; only the
+// groove's surface is said by the amp, because a line of light on the
+// Stage's glass is a slot sunk into the 2.0 amp's deck.
+$player-fader-around: 58px;
+
+// A key that is on, as both amps draw one: the accent under it and its word
+// in the accent's light.
+@mixin key-on {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 48%, transparent);
+  color: var(--player-ink-bright);
+}
+
+@mixin faders($groove-fill, $groove-shadow) {
+  // ============================================================ the faders ===
+  //
+  // A size container, so each fader can be as long as the space the deck
+  // gives it (`100cqh`) — at least --player-band-min, longer in a tall window.
+  // Its own height comes from the deck, never from the faders inside it.
+  // WHAT A FADER IS, top to bottom (the refined amp, 2026-09-26): its name, the
+  // EQ page's step arrow, the travel, the arrow down, and the figure it is set
+  // to. `$player-fader-around` is everything but the travel — the name and the
+  // figure, the two arrows and the gaps between the five — and the travel is
+  // whatever the row's height leaves after it.
+
+  .player-bands {
+    // A band is its cap and the gap that keeps it off the next one. Both are
+    // whole pixels and so is every band's width (`.player-band` below), so
+    // the row cannot end up with two pixels of gap beside three — which is
+    // what a fader row split into fractions looked like (Ivan, 2026-09-21).
+    //
+    // The cap is at most this wide; a narrow row draws it smaller, down to the
+    // 13px `playerWidthForBands` holds the window's floor to (`MiniBands.tsx`
+    // cuts the row into whole pixels and gives the cap what is left of each).
+    --player-fader-cap: 18px;
+    --player-band-gap: 4px;
+
+    display: grid;
+    flex: 2 0 0;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    gap: 0 6px;
+    align-items: stretch;
+    min-height: calc(var(--player-band-min) + #{$player-fader-around});
+    container-type: size;
+  }
+
+  .player-bands__rule {
+    width: 1px;
+    margin: 12px 2px;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      var(--player-rule-strong),
+      transparent
+    );
+  }
+
+  // From the left, with what is left over after every band has had its whole
+  // pixels put in front of the first one as padding (`MiniBands.tsx`): centred
+  // by the browser instead, the row starts on a fraction of a pixel and the
+  // first gap paints a pixel wider than the rest.
+  .player-bands__faders {
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    gap: var(--player-band-gap);
+    min-width: 0;
+  }
+
+  // One fader: a well, the lit part between flat and the cap, and the cap.
+  //
+  // The lit part says how far from flat the band is and which way, which is
+  // what a graphic equalizer is read for (Ivan, 2026-09-21) — a fill from the
+  // foot of the travel draws a half-height bar for a band doing nothing. Both
+  // ends of it are worked out from the cap's own travel: Chromium stands the
+  // cap's centre half a cap in from each end of the range, so the fill and the
+  // cap agree at every length without measuring anything.
+  //
+  // What is taken off the deck's height is everything around the travel
+  // (`$player-fader-around`).
+  .player-band {
+    --player-band-length: max(
+      var(--player-band-min),
+      calc(100cqh - #{$player-fader-around})
+    );
+    // The cap's size ALONG the travel, which is what its centre is held in from
+    // each end by: the round handle's diameter, or the fader cap's shorter side
+    // (`data-slider-handle`, below).
+    --player-fader-along: var(--player-fader-cap);
+    --player-fader-top: calc(
+      100% - var(--player-fader-along) / 2 - var(--player-fader-v) *
+        (100% - var(--player-fader-along))
+    );
+    --player-fader-flat: calc(
+      100% - var(--player-fader-along) / 2 - var(--player-fader-zero) *
+        (100% - var(--player-fader-along))
+    );
+
+    position: relative;
+    display: grid;
+    // A WHOLE NUMBER OF PIXELS, always: the row is measured and shared out
+    // between the bands in whole pixels (`MiniBands.tsx`), so every band is
+    // the same width and every gap is the gap. Shared out by the browser
+    // instead, they land on fractions — two pixels of gap beside three — and
+    // the row reads as bunched (Ivan, 2026-09-21). What the rounding leaves
+    // over sits at the two ends of the centred row.
+    flex: 0 0 var(--player-band-width, var(--player-fader-cap));
+    // ONE COLUMN AS WIDE AS THE BAND, never as wide as its label: an `auto`
+    // column is sized by the widest thing in it, so "12.5k" stretched the
+    // track and the cap under it out of step with its neighbours, and the row
+    // read as bunched wherever the labels were long (Ivan, 2026-09-21). The
+    // name and the figure overflow the column, centred on it.
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 13px 7px minmax(0, 1fr) 7px 13px;
+    row-gap: 4px;
+    justify-items: center;
+    min-width: 0;
+
+    // The EQ page's step arrows (`ArrowButton`), in the fader's own colour and
+    // at the row's size.
+    .arrow-up,
+    .arrow-down {
+      display: flex;
+      width: 10px;
+      height: 7px;
+      opacity: 0.8;
+
+      svg {
+        width: 10px;
+        height: 7px;
+      }
+
+      path {
+        fill: var(--player-fader-colour);
+      }
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  // The travel itself, with the groove cut down the middle of it and flat
+  // marked across it.
+  .player-band__slot {
+    position: relative;
+    align-self: center;
+    width: 100%;
+    height: var(--player-band-length);
+
+    // THE EQ PAGE'S OWN GROOVE (Ivan, 2026-09-26: the sliders "like in the
+    // app"), with the band's colour faint down the middle of it at rest —
+    // `.range__groove` in `RangeInput.scss`, at the amp's width — cut into the
+    // sheet's glass as a line of light rather than a dark slot, so it reads
+    // over whatever the picture behind the glass is doing.
+    &::before {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 6px;
+      margin-left: -3px;
+      border-radius: $radius-pill;
+      background:
+        linear-gradient(
+            90deg,
+            transparent 2px,
+            color-mix(in srgb, var(--player-fader-colour) 32%, transparent) 2px
+              4px,
+            transparent 4px
+          )
+          center / 100% calc(100% - 8px) no-repeat,
+        $groove-fill;
+      box-shadow: $groove-shadow;
+      content: '';
+    }
+
+    // Flat: a short rule across the groove at the fader's own zero, taken from
+    // the same position the lit part grows from so the two cannot disagree —
+    // the preamp's flat stands where its compressed travel puts it.
+    &::after {
+      position: absolute;
+      top: var(--player-fader-flat);
+      left: 50%;
+      width: 14px;
+      height: 1px;
+      margin-left: -7px;
+      background: var(--player-rule-strong);
+      content: '';
+      pointer-events: none;
+    }
+  }
+
+  // From flat to the cap, in the band's colour lifted towards white — the EQ
+  // page's fill, inside the groove.
+  .player-band__fill {
+    position: absolute;
+    top: min(var(--player-fader-top), var(--player-fader-flat));
+    bottom: calc(100% - max(var(--player-fader-top), var(--player-fader-flat)));
+    left: 50%;
+    width: 4px;
+    margin-left: -2px;
+    border-radius: $radius-pill;
+    background: color-mix(in srgb, var(--player-fader-colour), $white 22%);
+    pointer-events: none;
+  }
+
+  // Laid along the travel: a range input turned on its side, as long as the
+  // slot is tall.
+  .player-band__input {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: var(--player-band-length);
+    height: var(--player-fader-cap);
+    margin: 0;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+
+    &::-webkit-slider-runnable-track {
+      height: var(--player-fader-cap);
+      background: transparent;
+    }
+
+    // The hand's grip only: what is seen is `.player-band__cap`. As long along
+    // the travel as the cap drawn, so the two are held in from its ends alike.
+    &::-webkit-slider-thumb {
+      width: var(--player-fader-along);
+      height: var(--player-fader-cap);
+      border: 0;
+      background: transparent;
+      appearance: none;
+    }
+
+    &:focus-visible {
+      outline: none;
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+  }
+
+  // The cap, on the figure the lit part ends at, so the two cannot disagree.
+  //
+  // THE EQ PAGE'S OWN HANDLE, in whichever shape the window is set to (Ivan,
+  // 2026-09-26: "both circle and rec depending on the app setting") — the one
+  // setting, `data-slider-handle` on the root, chosen in the app's settings or
+  // the player's menu. Round: a disc of the field's colour lit from above, a
+  // lit centre and a ring in the band's colour, and its glow (`.range` in
+  // `RangeInput.scss`). The cap below it (`FrequencyBand.scss`).
+  .player-band__cap {
+    --cap-across: var(--player-fader-cap);
+
+    position: absolute;
+    top: var(--player-fader-top);
+    left: 50%;
+    box-sizing: border-box;
+    width: var(--cap-across);
+    height: var(--player-fader-along);
+    margin-top: calc(var(--player-fader-along) / -2);
+    margin-left: calc(var(--cap-across) / -2);
+    border-radius: 50%;
+    background:
+      radial-gradient(
+        circle,
+        var(--player-fader-colour) 0 calc(var(--player-fader-cap) * 0.17),
+        transparent calc(var(--player-fader-cap) * 0.17 + 1px)
+      ),
+      radial-gradient(circle at 50% 28%, rgba($white, 0.24), transparent 62%),
+      var(--surface-field);
+    box-shadow:
+      0 0 0 2px var(--player-fader-colour),
+      0 4px 10px rgba($black, 0.5),
+      0 0 12px color-mix(in srgb, var(--player-fader-colour) 45%, transparent);
+    pointer-events: none;
+  }
+
+  .player-band__input:hover + .player-band__cap {
+    box-shadow:
+      0 0 0 2px var(--player-fader-colour),
+      0 0 0 5px color-mix(in srgb, var(--player-fader-colour) 16%, transparent),
+      0 4px 10px rgba($black, 0.5),
+      0 0 16px color-mix(in srgb, var(--player-fader-colour) 55%, transparent);
+  }
+
+  .player-band__input:focus-visible + .player-band__cap {
+    box-shadow:
+      0 0 0 2px var(--player-fader-colour),
+      0 0 0 4px var(--player-floor),
+      0 0 0 6px var(--player-ink-bright);
+  }
+
+  // THE FADER CAP: a slate cap as wide as the band allows, a line across it in
+  // the band's colour between two grip lines, lit from above — the EQ page's
+  // own cap (`FrequencyBand.scss`), drawn upright here because this cap is not
+  // turned with its input.
+  :scope[data-slider-handle='rect'] {
+    .player-band {
+      --player-fader-along: max(10px, calc(var(--player-fader-cap) * 0.72));
+    }
+
+    .player-band__cap {
+      --cap-across: min(
+        28px,
+        calc(var(--player-band-width, var(--player-fader-cap)) - 2px)
+      );
+
+      border: 1px solid rgba($white, 0.12);
+      border-radius: $radius-2xs;
+      background:
+        linear-gradient(
+            180deg,
+            transparent calc(50% - 1px),
+            var(--player-fader-colour) calc(50% - 1px) calc(50% + 1px),
+            transparent calc(50% + 1px)
+          )
+          center / calc(100% - 4px) 100% no-repeat,
+        linear-gradient(
+            180deg,
+            transparent calc(50% - 3px),
+            color-mix(in srgb, var(--player-fader-colour) 30%, transparent)
+              calc(50% - 3px) calc(50% + 3px),
+            transparent calc(50% + 3px)
+          )
+          center / calc(100% - 2px) 100% no-repeat,
+        linear-gradient(
+            180deg,
+            transparent 2px,
+            rgba($white, 0.1) 2px 3px,
+            transparent 3px calc(100% - 3px),
+            rgba($white, 0.1) calc(100% - 3px) calc(100% - 2px),
+            transparent calc(100% - 2px)
+          )
+          center / calc(100% - 8px) 100% no-repeat,
+        linear-gradient(
+          180deg,
+          color-mix(in srgb, var(--surface-field), $white 16%),
+          var(--surface-field) 50%,
+          color-mix(in srgb, var(--surface-field), $black 28%)
+        );
+      box-shadow:
+        0 5px 12px rgba($black, 0.55),
+        0 0 14px color-mix(in srgb, var(--player-fader-colour) 28%, transparent);
+    }
+
+    .player-band__input:hover + .player-band__cap {
+      border-color: color-mix(
+        in srgb,
+        var(--player-fader-colour) 60%,
+        transparent
+      );
+      box-shadow:
+        0 0 0 3px
+          color-mix(in srgb, var(--player-fader-colour) 14%, transparent),
+        0 5px 12px rgba($black, 0.55),
+        0 0 16px color-mix(in srgb, var(--player-fader-colour) 40%, transparent);
+    }
+
+    .player-band__input:focus-visible + .player-band__cap {
+      box-shadow:
+        0 0 0 2px var(--player-floor),
+        0 0 0 4px var(--player-ink-bright),
+        0 5px 12px rgba($black, 0.55);
+    }
+  }
+
+  // The preamp's own key, over its fader: lit and reading AUTO while the app
+  // sets the preamp, quiet and reading PRE once the listener has it back, and
+  // a press moves between the two.
+  .player-band__auto {
+    padding: 0 4px;
+    border: 1px solid var(--player-key-line);
+    border-radius: 4px;
+    background: var(--player-key-wash);
+    color: inherit;
+    font: inherit;
+    line-height: 11px;
+    text-transform: uppercase;
+    cursor: pointer;
+
+    &.is-on {
+      @include key-on;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: var(--player-key-line-hover);
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+
+    &:focus-visible {
+      @include focus-ring($white);
+    }
+  }
+
+  // The name over the fader and the figure under it. Scaled with the faders'
+  // row (`cqi` of the size container above), so a narrow deck gets smaller
+  // words rather than words running into each other.
+  .player-band__hz,
+  .player-band__value {
+    color: var(--player-text-soft);
+    font-size: clamp(7.5px, 2.1cqi, 9.3px);
+    font-weight: $weight-bold;
+    line-height: 13px;
+    white-space: nowrap;
+    @include tracking(-0.01em);
+  }
+
+  .player-band__value {
+    color: var(--player-text);
+
+    &.is-flat {
+      color: var(--player-text-soft);
+    }
+  }
+
+  // The preamp: its own column before the rule, and its word in the accent
+  // rather than in a band's colour, because it is not one of the bands.
+  .player-bands > .player-band {
+    width: 32px;
+
+    .player-band__hz {
+      color: var(--player-ink);
+      text-transform: uppercase;
+      @include tracking(0.04em);
+    }
+  }
+
+  // A switched-off band keeps its fader, greyed, as the EQ page draws it.
+  .player-band.is-off {
+    --player-fader-colour: #{$text-dim};
+
+    opacity: 0.7;
+
+    .player-band__fill {
+      box-shadow: none;
+    }
+
+    .player-band__cap {
+      box-shadow: none;
+    }
+  }
+
+  // Thirty-one bands in a narrow deck: smaller caps, a tighter gap, every
+  // other name, and no arrows or figures — at a band this narrow they run into
+  // each other, and the band held is read out on the screen above anyway. The
+  // window's own floor is worked out from these two numbers
+  // (`playerWidthForBands`), so a change here is a change there.
+  .player-bands.is-dense {
+    --player-fader-cap: 10px;
+    --player-band-gap: 3px;
+
+    .player-band__hz {
+      font-size: 7.5px;
+    }
+
+    .player-bands__faders .player-band {
+      .arrow-up,
+      .arrow-down,
+      .player-band__value {
+        visibility: hidden;
+      }
+    }
+
+    .player-bands__faders .player-band:nth-child(even) .player-band__hz {
+      visibility: hidden;
+    }
+  }
+}

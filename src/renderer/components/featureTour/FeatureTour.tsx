@@ -18,7 +18,8 @@ import { getSupportMethods, SUPPORT_CONFIG } from 'common/support';
 import { requestHelpGuide } from '../../help/helpGuideRequests';
 import { setWindowMode } from '../../player/windowModeStore';
 import { useTranslation } from '../../utils/I18nContext';
-import DialogHeader from '../DialogHeader';
+import MenuIcon from '../../icons/MenuIcon';
+import DialogFrame from '../DialogFrame';
 import type { ISlideActions, ITourSlide, TTourTab } from './slides';
 import '../../styles/FeatureTour.scss';
 
@@ -42,9 +43,10 @@ interface IFeatureTourProps {
  * The feature tour: two thirds of the window, one big slide per new thing.
  *
  * The changelog dialog lists everything a version changed; this panel is for
- * the two or three things worth a picture. A rail on the left names them, the
- * stage on the right shows the current one, and the footer carries the tick
- * that decides whether the panel comes back on the next launch.
+ * the two or three things worth a picture. The frame's rail names them under
+ * the tour's own title, the stage on the right shows the current one, and the
+ * footer carries the tick that decides whether the panel comes back on the
+ * next launch.
  */
 export default function FeatureTour({
   version,
@@ -86,10 +88,10 @@ export default function FeatureTour({
     primaryRef.current?.focus();
   }, []);
 
-  // The entry on stage stays in sight in the rail while Next and Back walk
-  // past the ones showing — fifteen entries do not fit in either the column
-  // or the row the rail becomes in a narrow window. Only the rail scrolls:
-  // `scrollIntoView` is free to scroll the panel around it as well.
+  // The entry on stage stays in sight in the list while Next and Back walk
+  // past the ones showing — fifteen entries do not fit in either the rail's
+  // column or the row the list becomes in a narrow window. Only the list
+  // scrolls: `scrollIntoView` is free to scroll the rail around it as well.
   const railRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const rail = railRef.current;
@@ -165,141 +167,142 @@ export default function FeatureTour({
         }
       }}
     >
-      <div
+      <DialogFrame
         className="feature-tour"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="feature-tour-title"
-      >
-        <DialogHeader
-          eyebrow={t('tour.eyebrow')}
-          title={t('tour.title')}
-          titleId="feature-tour-title"
-          version={version}
-          closeLabel={t('tour.close')}
-          onClose={close}
-        >
-          {hasCoffee && (
-            <a
-              className="feature-tour__notes feature-tour__contribute"
-              href={SUPPORT_CONFIG.coffeeUrl}
-              target="_blank"
-              rel="noreferrer noopener"
+        icon={<MenuIcon name="gift" />}
+        eyebrow={t('tour.eyebrow')}
+        title={t('tour.title')}
+        titleId="feature-tour-title"
+        badge={<span className="dialog-frame__badge">v{version}</span>}
+        closeLabel={t('tour.close')}
+        onClose={close}
+        rail={
+          <>
+            <nav
+              ref={railRef}
+              className="feature-tour__rail"
+              aria-label={t('tour.rail')}
             >
-              {t('tour.contribute')}
-            </a>
-          )}
-        </DialogHeader>
-
-        <div className="feature-tour__body">
-          <nav
-            ref={railRef}
-            className="feature-tour__rail"
-            aria-label={t('tour.rail')}
-          >
-            {slides.map((entry, entryIndex) => {
-              // A heading above the first entry of each group: every release
-              // still shown as new under its own number, newest first, then
-              // what has been here all along.
-              const startsGroup =
-                entryIndex === 0 ||
-                entry.release !== slides[entryIndex - 1].release;
-              let heading: string | null = null;
-              if (startsGroup) {
-                heading = entry.release
-                  ? t('tour.rail.newIn', { version: entry.release })
-                  : t('tour.rail.always');
-              }
-              return (
-                <Fragment key={entry.id}>
-                  {heading && (
-                    <span className="feature-tour__rail-heading">
-                      {heading}
-                    </span>
-                  )}
-                  <button
-                    type="button"
-                    className={`feature-tour__rail-item${
-                      entryIndex === index ? ' is-active' : ''
-                    }`}
-                    aria-current={entryIndex === index ? 'step' : undefined}
-                    onClick={() => setIndex(entryIndex)}
-                  >
-                    <span className="feature-tour__rail-number">
-                      {entryIndex + 1}
-                    </span>
-                    <span className="feature-tour__rail-text">
-                      <span className="feature-tour__rail-title">
-                        {t(entry.titleKey)}
-                        {entry.release && (
-                          <span className="feature-tour__rail-new">
-                            {t('tour.newBadge')}
-                          </span>
-                        )}
+              {slides.map((entry, entryIndex) => {
+                // A heading above the first entry of each group: every
+                // release still shown as new under its own number, newest
+                // first, then what has been here all along.
+                const startsGroup =
+                  entryIndex === 0 ||
+                  entry.release !== slides[entryIndex - 1].release;
+                let heading: string | null = null;
+                if (startsGroup) {
+                  heading = entry.release
+                    ? t('tour.rail.newIn', { version: entry.release })
+                    : t('tour.rail.always');
+                }
+                return (
+                  <Fragment key={entry.id}>
+                    {heading && (
+                      <span className="feature-tour__rail-heading">
+                        {heading}
                       </span>
-                      <span className="feature-tour__rail-subtitle">
-                        {t(entry.subtitleKey)}
+                    )}
+                    <button
+                      type="button"
+                      className={`feature-tour__rail-item${
+                        entryIndex === index ? ' is-active' : ''
+                      }`}
+                      aria-current={entryIndex === index ? 'step' : undefined}
+                      onClick={() => setIndex(entryIndex)}
+                    >
+                      <span className="feature-tour__rail-number">
+                        {entryIndex + 1}
                       </span>
-                    </span>
-                  </button>
-                </Fragment>
-              );
-            })}
-          </nav>
-
-          {/* Keyed on the slide so a change of slide remounts the stage and
-              replays its entrance, rather than swapping text in place. */}
-          <section key={slide.id} className="feature-tour__stage">
-            <Body actions={actions} />
-          </section>
-        </div>
-
-        <div className="feature-tour__footer">
-          <label className="feature-tour__tick" htmlFor="feature-tour-tick">
-            <input
-              id="feature-tour-tick"
-              type="checkbox"
-              className="feature-tour__check"
-              checked={dontShowAgain}
-              onChange={(event) => setDontShowAgain(event.target.checked)}
-            />
-            <span>{t('tour.dontShowAgain')}</span>
-          </label>
-
-          <button
-            type="button"
-            className="feature-tour__notes"
-            onClick={onShowReleaseNotes}
-          >
-            {t('tour.releaseNotes')}
-          </button>
-
-          <div className="feature-tour__nav">
-            <span className="feature-tour__count">
-              {t('tour.stepOf', {
-                current: index + 1,
-                total: slides.length,
+                      <span className="feature-tour__rail-text">
+                        <span className="feature-tour__rail-title">
+                          {t(entry.titleKey)}
+                          {entry.release && (
+                            <span className="feature-tour__rail-new">
+                              {t('tour.newBadge')}
+                            </span>
+                          )}
+                        </span>
+                        <span className="feature-tour__rail-subtitle">
+                          {t(entry.subtitleKey)}
+                        </span>
+                      </span>
+                    </button>
+                  </Fragment>
+                );
               })}
-            </span>
-            <button
-              type="button"
-              className="button small subtle"
-              disabled={index === 0}
-              onClick={goBack}
-            >
-              {t('tour.back')}
-            </button>
-            <button
-              ref={primaryRef}
-              type="button"
-              className="button small"
-              onClick={goNext}
-            >
-              {isLast ? t('tour.done') : t('tour.next')}
-            </button>
-          </div>
-        </div>
-      </div>
+            </nav>
+            {/* At the rail's foot, under the list it closes: an ask, not a
+                step of the tour, so it keeps out of the buttons' way. */}
+            {hasCoffee && (
+              <a
+                className="feature-tour__contribute"
+                href={SUPPORT_CONFIG.coffeeUrl}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                <MenuIcon name="support" />
+                {t('tour.contribute')}
+              </a>
+            )}
+          </>
+        }
+        footer={
+          <>
+            <div className="dialog-frame__note feature-tour__options">
+              <label className="feature-tour__tick" htmlFor="feature-tour-tick">
+                <input
+                  id="feature-tour-tick"
+                  type="checkbox"
+                  className="feature-tour__check"
+                  checked={dontShowAgain}
+                  onChange={(event) => setDontShowAgain(event.target.checked)}
+                />
+                <span>{t('tour.dontShowAgain')}</span>
+              </label>
+
+              <button
+                type="button"
+                className="feature-tour__notes"
+                onClick={onShowReleaseNotes}
+              >
+                {t('tour.releaseNotes')}
+              </button>
+            </div>
+
+            <div className="dialog-frame__actions feature-tour__nav">
+              <span className="feature-tour__count">
+                {t('tour.stepOf', {
+                  current: index + 1,
+                  total: slides.length,
+                })}
+              </span>
+              <button
+                type="button"
+                className="button small subtle"
+                disabled={index === 0}
+                onClick={goBack}
+              >
+                {t('tour.back')}
+              </button>
+              <button
+                ref={primaryRef}
+                type="button"
+                className="button small"
+                onClick={goNext}
+              >
+                {isLast ? t('tour.done') : t('tour.next')}
+              </button>
+            </div>
+          </>
+        }
+      >
+        {/* Keyed on the slide so a change of slide remounts the stage and
+            replays its entrance, rather than swapping text in place. */}
+        <section key={slide.id} className="feature-tour__stage">
+          <Body actions={actions} />
+        </section>
+      </DialogFrame>
     </div>
   );
 }

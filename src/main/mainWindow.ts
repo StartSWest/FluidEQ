@@ -24,8 +24,11 @@ import { PRODUCT_NAME } from '../common/branding';
 import { RENDERER_READY_EVENT } from '../common/constants';
 import {
   appMinimumSize,
+  centreIn,
   clampInto,
+  isPlayerRect,
   isUsableRect,
+  playerFirstSize,
   playerMinimumSize,
   WINDOW_MODE_PARAM,
 } from '../common/windowMode';
@@ -195,14 +198,30 @@ export const createMainWindowFactory = ({
     const isFirstRun = restored.width === undefined;
     const firstRun = firstRunPlacement();
     // Closed as the player, it opens as the player — where it was, pulled
-    // back onto a screen if that one has gone.
-    const player =
-      restored.mode === 'player' && isUsableRect(restored.player)
-        ? clampInto(
-            restored.player,
-            screen.getDisplayMatching(restored.player).workArea,
-          )
+    // back onto a screen if that one has gone. With nowhere remembered, or a
+    // player remembered as the whole screen, which nobody sized
+    // (`isPlayerRect`), it opens at its own narrow size in the middle of the
+    // screen, and the record is forgotten.
+    const remembered = isUsableRect(restored.player)
+      ? restored.player
+      : undefined;
+    const rememberedArea = remembered
+      ? screen.getDisplayMatching(remembered).workArea
+      : undefined;
+    const playerRect =
+      remembered && rememberedArea && isPlayerRect(remembered, rememberedArea)
+        ? remembered
         : undefined;
+    let player: IRect | undefined;
+    if (restored.mode === 'player') {
+      player =
+        playerRect && rememberedArea
+          ? clampInto(playerRect, rememberedArea)
+          : centreIn(
+              playerFirstSize(1),
+              rememberedArea ?? screen.getPrimaryDisplay().workArea,
+            );
+    }
     windowModes.restore({
       mode: player ? 'player' : 'app',
       isPinned: restored.isPinned === true,
@@ -213,7 +232,7 @@ export const createMainWindowFactory = ({
         height: restored.height,
         isMaximized: restored.isMaximized,
       },
-      player: restored.player,
+      player: playerRect,
     });
     // The floor for the mode it opens in. The player's is scaled by the
     // page's zoom, which is not known until the page has loaded — this is the

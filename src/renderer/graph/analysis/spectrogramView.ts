@@ -10,6 +10,7 @@ import {
   halveBand,
   type IAnalysisBand,
   type IAnalysisFrame,
+  type IAnalysisReading,
   type IAnalysisState,
   type IRasterStrip,
 } from './analysisFrame';
@@ -36,6 +37,11 @@ import {
  * With Left & right chosen it is two strips stacked, left above and right
  * below, each with its own ring. Overlaid instead they would simply hide one
  * another: a raster has no transparency to lend the picture behind it.
+ *
+ * Laid out here for both painters: this file's canvas, which keeps the
+ * picture on a surface of its own, and the engine, which keeps its copy on
+ * the GPU and is handed each row as it is printed
+ * (`engineLooks/spectrogramLook.ts`).
  */
 
 /**
@@ -51,23 +57,118 @@ const ROW_MS = 25;
 /** Never print more than this many rows in one frame after a stall. */
 const MAX_CATCH_UP = 4;
 
-const surfaceFor = (
+/** Every start of every strip, so no two starts share a generation. */
+let starts = 0;
+
+/** One strip of the picture: its ring, the band it fills, what it prints. */
+export interface ISpectrogramStrip {
+  strip: IRasterStrip;
+  band: IAnalysisBand;
+  levels: Float64Array;
+  /** Painted in the other channel's colours. */
+  mate: boolean;
+}
+
+/** The strips this frame draws: one, or the left above the right. */
+export const spectrogramStrips = (
+  reading: IAnalysisReading,
+  state: IAnalysisState,
+): ISpectrogramStrip[] => {
+  const { band, split, levels } = reading;
+  const [left, right] = state.strips;
+  if (split) {
+    const [upper, lower] = halveBand(band);
+    return [
+      { strip: left, band: upper, levels: split[0], mate: false },
+      { strip: right, band: lower, levels: split[1], mate: true },
+    ];
+  }
+  return [{ strip: left, band, levels, mate: false }];
+};
+
+/** A strip's picture size, in device pixels. */
+export const stripSize = (
+  reading: IAnalysisReading,
+  band: IAnalysisBand,
+): { width: number; height: number } => ({
+  width: Math.max(
+    1,
+    Math.round((reading.plot.right - reading.plot.left) * reading.ratio),
+  ),
+  height: Math.max(1, Math.round((band.bottom - band.top) * reading.ratio)),
+});
+
+/**
+ * The strip at `width` by `height`, and its rows due this frame printed:
+ * answers how many. A new size starts it again, empty — a raster is a
+ * picture measured in pixels, and stretching yesterday's picture over
+ * today's axis is worse than starting again.
+ */
+export const advanceStrip = (
   strip: IRasterStrip,
   width: number,
   height: number,
-): HTMLCanvasElement => {
-  const existing = strip.surface;
-  if (existing && existing.width === width && existing.height === height) {
-    return existing;
+  deltaMs: number,
+): number => {
+  if (strip.width !== width || strip.height !== height) {
+    starts += 1;
+    Object.assign(strip, {
+      width,
+      height,
+      printed: 0,
+      generation: starts,
+      surface: undefined,
+      image: undefined,
+    });
   }
-  const surface = document.createElement('canvas');
-  surface.width = width;
-  surface.height = height;
-  strip.surface = surface;
-  strip.row = 0;
-  strip.image = undefined;
-  return surface;
+  strip.ageMs += deltaMs;
+  let printed = 0;
+  while (strip.ageMs >= ROW_MS && printed < MAX_CATCH_UP) {
+    strip.ageMs -= ROW_MS;
+    printed += 1;
+  }
+  if (strip.ageMs > ROW_MS * MAX_CATCH_UP) {
+    // A window that was hidden or a display that stalled: the rows that
+    // would have been printed are gone, and printing them all now would
+    // stamp one moment across a second of picture.
+    strip.ageMs = 0;
+  }
+  return printed;
 };
+
+/**
+ * Which of the look's stops a column takes, by the colouring that was
+ * CHOSEN rather than always by loudness.
+ *
+ * A raster's content is a ramp, so it is tempting to make that ramp the
+ * level and have done — which is what the first version did, and it meant
+ * the Colour by row did nothing here at all (Ivan, 2026-09-23: "histobrahp
+ * need to use colors on settings too not just auto"). Every other view
+ * honours the row, so this one does: across the axis under rainbow, one
+ * colour under flat, by the reading otherwise. The ALPHA is the reading
+ * whichever is chosen (`rowAlpha`), because a raster with no loudness in it
+ * is a rectangle.
+ */
+const rowStop = (
+  reading: IAnalysisReading,
+  across: number,
+  shown: number,
+): number => {
+  if (reading.palette === 'rainbow') {
+    return across;
+  }
+  return reading.palette === 'signal' ? 0 : shown;
+};
+
+/**
+ * How solid a reading is printed. The floor is transparent, not black: the
+ * graph draws no background of its own — a video or a wallpaper shows
+ * through it — so a spectrogram that painted its quiet end opaque would be a
+ * black rectangle over whatever the user put behind the window. Faded in
+ * over the bottom sixth of the range instead, so quiet passages thin out
+ * rather than turning into a wall.
+ */
+export const ROW_FADE_IN = 6;
 
 /**
  * One row of the picture, written into the reusable `ImageData` and put down
@@ -86,20 +187,6 @@ const printRow = (
   context2d: CanvasRenderingContext2D,
   row: number,
 ): void => {
-  /**
-   * Which of the look's stops a pixel takes, by the colouring that was
-   * CHOSEN rather than always by loudness.
-   *
-   * A raster's content is a ramp, so it is tempting to make that ramp the
-   * level and have done — which is what the first version did, and it meant
-   * the Colour by row did nothing here at all (Ivan, 2026-09-23:
-   * "histobrahp need to use colors on settings too not just auto"). Every
-   * other view honours the row, so this one does: across the axis under
-   * rainbow, one colour under flat, by the reading otherwise. The ALPHA is
-   * the reading whichever is chosen, because a raster with no loudness in it
-   * is a rectangle.
-   */
-  const { palette } = frame;
   const { width } = surface;
   let { image } = strip;
   if (!image || image.width !== width) {
@@ -129,61 +216,50 @@ const printRow = (
       }
     }
     const shown = clamp01(level);
-    let stop = shown;
-    if (palette === 'rainbow') {
-      stop = width > 1 ? column / (width - 1) : 0;
-    } else if (palette === 'signal') {
-      stop = 0;
-    }
-    const [red, green, blue] = rampAt(colours, stop);
+    const [red, green, blue] = rampAt(
+      colours,
+      rowStop(frame, width > 1 ? column / (width - 1) : 0, shown),
+    );
     const at = column * 4;
     pixels[at] = red;
     pixels[at + 1] = green;
     pixels[at + 2] = blue;
-    /**
-     * The floor is transparent, not black.
-     *
-     * The graph draws no background of its own — a video or a wallpaper shows
-     * through it — so a spectrogram that painted its quiet end opaque would
-     * be a black rectangle over whatever the user put behind the window.
-     * Faded in over the bottom sixth of the range instead, so quiet passages
-     * thin out rather than turning into a wall.
-     */
-    pixels[at + 3] = Math.round(255 * clamp01(shown * 6));
+    pixels[at + 3] = Math.round(255 * clamp01(shown * ROW_FADE_IN));
   }
   context2d.putImageData(image, 0, row);
 };
 
-/** One strip of picture, printed and then blitted into `band`. */
+/** One strip of picture, printed and then blitted into its band. */
 const drawStrip = (
   frame: IAnalysisFrame,
-  strip: IRasterStrip,
-  band: IAnalysisBand,
-  levels: Float64Array,
-  colours: readonly string[],
+  { strip, band, levels, mate }: ISpectrogramStrip,
 ): void => {
-  const { context, ratio, plot, deltaMs, tuning } = frame;
-  const width = Math.max(1, Math.round((plot.right - plot.left) * ratio));
-  const height = Math.max(1, Math.round((band.bottom - band.top) * ratio));
-  const surface = surfaceFor(strip, width, height);
+  const { context, plot, deltaMs, tuning } = frame;
+  const { width, height } = stripSize(frame, band);
+  const due = advanceStrip(strip, width, height, deltaMs);
+  if (!strip.surface) {
+    const surface = document.createElement('canvas');
+    surface.width = width;
+    surface.height = height;
+    strip.surface = surface;
+  }
+  const { surface } = strip;
   const surface2d = surface.getContext('2d');
   if (!surface2d) {
     return;
   }
-
-  strip.ageMs += deltaMs;
-  let printed = 0;
-  while (strip.ageMs >= ROW_MS && printed < MAX_CATCH_UP) {
-    strip.ageMs -= ROW_MS;
-    strip.row = (strip.row + 1) % height;
-    printRow(frame, strip, levels, colours, surface, surface2d, strip.row);
-    printed += 1;
-  }
-  if (strip.ageMs > ROW_MS * MAX_CATCH_UP) {
-    // A window that was hidden or a display that stalled: the rows that
-    // would have been printed are gone, and printing them all now would
-    // stamp one moment across a second of picture.
-    strip.ageMs = 0;
+  const colours = mate ? frame.mate : frame.colours;
+  for (let row = 0; row < due; row += 1) {
+    strip.printed += 1;
+    printRow(
+      frame,
+      strip,
+      levels,
+      colours,
+      surface,
+      surface2d,
+      strip.printed % height,
+    );
   }
 
   /**
@@ -195,7 +271,7 @@ const drawStrip = (
    * second clock running the other way, so the flip is a transform around
    * both chunks rather than a different order to place them in.
    */
-  const head = strip.row;
+  const head = strip.printed % height;
   const older = height - 1 - head;
   const { left } = plot;
   const { top } = band;
@@ -242,18 +318,10 @@ const drawSpectrogramView = (
   frame: IAnalysisFrame,
   state: IAnalysisState,
 ): boolean => {
-  const { band, split, playing, mate, colours, levels } = frame;
-  const [left, right] = state.strips;
-  if (split) {
-    const [upper, lower] = halveBand(band);
-    drawStrip(frame, left, upper, split[0], colours);
-    drawStrip(frame, right, lower, split[1], mate);
-  } else {
-    drawStrip(frame, left, band, levels, colours);
-  }
+  spectrogramStrips(frame, state).forEach((strip) => drawStrip(frame, strip));
   // The picture keeps scrolling while there is sound, and holds still once
   // the capture stops — which is what the pause and the silence both are.
-  return playing;
+  return frame.playing;
 };
 
 export default drawSpectrogramView;

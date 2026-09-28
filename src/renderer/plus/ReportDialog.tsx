@@ -6,7 +6,8 @@ import {
   type IGalleryScene,
   type TReportReason,
 } from 'common/plusGallery';
-import Glyph from '../community/Glyph';
+import DialogFrame from '../components/DialogFrame';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import { reportGalleryScene } from './galleryActions';
@@ -77,38 +78,52 @@ export default function ReportDialog({
         }
       }}
     >
-      <div
+      <DialogFrame
         ref={surfaceRef}
-        className="gallery-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="gallery-report-title"
+        className="gallery-report-dialog"
+        icon={<MenuIcon name="flag" />}
+        title={t('plus.report.title', { name })}
+        titleId="gallery-report-title"
+        description={
+          <span id="gallery-report-lead">{t('plus.report.lead')}</span>
+        }
         aria-describedby="gallery-report-lead"
         aria-busy={sending}
+        closeLabel={t('support.close')}
+        // Away while the report is on its way, as Escape and the backdrop
+        // are.
+        onClose={sending ? undefined : cancel}
+        footer={
+          <div className="dialog-frame__actions">
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={sending}
+              onClick={cancel}
+            >
+              {t('plus.report.cancel')}
+            </button>
+            <button
+              type="button"
+              className={`button small${sending ? ' is-running' : ''}`}
+              aria-busy={sending}
+              disabled={!reason}
+              onClick={send}
+            >
+              {sending ? t('plus.report.sending') : t('plus.report.send')}
+            </button>
+          </div>
+        }
       >
-        <div className="gallery-dialog__head">
-          <span
-            className="gallery-dialog__mark gallery-dialog__mark--warn"
-            aria-hidden="true"
-          >
-            <Glyph name="report" />
-          </span>
-          <h2 id="gallery-report-title" className="gallery-dialog__title">
-            {t('plus.report.title', { name })}
-          </h2>
-        </div>
-        <p id="gallery-report-lead" className="gallery-dialog__lead">
-          {t('plus.report.lead')}
-        </p>
         <div
-          className="gallery-reasons"
+          className="dialog-frame__group gallery-report-dialog__reasons"
           role="radiogroup"
           aria-labelledby="gallery-report-title"
         >
           {REPORT_REASONS.map((entry, index) => (
             <label
               key={entry}
-              className="gallery-reason"
+              className="gallery-report-dialog__reason"
               htmlFor={`gallery-report-${entry}`}
             >
               <input
@@ -121,6 +136,10 @@ export default function ReportDialog({
                 disabled={sending}
                 onChange={() => setReason(entry)}
               />
+              <span
+                className="gallery-report-dialog__radio"
+                aria-hidden="true"
+              />
               <span>{t(REASON_KEYS[entry])}</span>
             </label>
           ))}
@@ -130,26 +149,7 @@ export default function ReportDialog({
             {t('plus.report.failed')}
           </p>
         )}
-        <div className="gallery-dialog__foot">
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={sending}
-            onClick={cancel}
-          >
-            {t('plus.report.cancel')}
-          </button>
-          <button
-            type="button"
-            className={`button small${sending ? ' is-running' : ''}`}
-            aria-busy={sending}
-            disabled={!reason}
-            onClick={send}
-          >
-            {sending ? t('plus.report.sending') : t('plus.report.send')}
-          </button>
-        </div>
-      </div>
+      </DialogFrame>
     </div>,
     document.body,
   );

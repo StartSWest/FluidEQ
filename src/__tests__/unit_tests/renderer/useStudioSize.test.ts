@@ -8,9 +8,9 @@ import { act, renderHook } from '@testing-library/react';
 import useStudioSize from '../../../renderer/studio/useStudioSize';
 
 /**
- * Leaving full screen — Escape, its own button, a double click — used to land
- * on the graph's size whatever the stage had been, so somebody testing the
- * narrow panel was put back on the wide one every time.
+ * The stage is tried at the graph's own shape or full screen; the Narrow and
+ * Wide sizes went (Ivan, 2026-09-27). Every way out of full screen lands back
+ * on the graph's.
  */
 
 const sized = () => renderHook(() => useStudioSize());
@@ -25,48 +25,18 @@ describe('the Studio stage size', () => {
     expect(result.current.size).toBe('graph');
   });
 
-  it('toggles full screen back to the size chosen before it', () => {
+  it('toggles full screen on and off', () => {
     const { result } = sized();
-    act(() => result.current.choose('narrow'));
-    expect(result.current.size).toBe('narrow');
     act(() => result.current.toggleFullscreen());
     expect(result.current.size).toBe('full');
     act(() => result.current.toggleFullscreen());
-    expect(result.current.size).toBe('narrow');
+    expect(result.current.size).toBe('graph');
   });
 
-  it('leaves full screen for the last windowed size, not the graph’s', () => {
+  it('leaves the graph’s size alone when asked to leave full screen', () => {
     const { result } = sized();
-    act(() => result.current.choose('wide'));
-    act(() => result.current.toggleFullscreen());
     act(() => result.current.exitFullscreen());
-    expect(result.current.size).toBe('wide');
-
-    // The size chosen last wins, however many came before it.
-    act(() => result.current.choose('narrow'));
-    act(() => result.current.toggleFullscreen());
-    act(() => result.current.exitFullscreen());
-    expect(result.current.size).toBe('narrow');
-  });
-
-  it('keeps the windowed size when full screen is chosen from the size menu', () => {
-    const { result } = sized();
-    act(() => result.current.choose('narrow'));
-    act(() => result.current.choose('full'));
-    expect(result.current.size).toBe('full');
-    act(() => result.current.exitFullscreen());
-    expect(result.current.size).toBe('narrow');
-
-    act(() => result.current.choose('full'));
-    act(() => result.current.toggleFullscreen());
-    expect(result.current.size).toBe('narrow');
-  });
-
-  it('leaves a windowed size alone when asked to leave full screen', () => {
-    const { result } = sized();
-    act(() => result.current.choose('wide'));
-    act(() => result.current.exitFullscreen());
-    expect(result.current.size).toBe('wide');
+    expect(result.current.size).toBe('graph');
   });
 
   // The stage's full-screen effect depends on exitFullscreen: a new function
@@ -75,9 +45,7 @@ describe('the Studio stage size', () => {
   it('hands out the same functions across renders', () => {
     const { result } = sized();
     const first = result.current;
-    act(() => result.current.choose('narrow'));
     act(() => result.current.toggleFullscreen());
-    expect(result.current.choose).toBe(first.choose);
     expect(result.current.exitFullscreen).toBe(first.exitFullscreen);
     expect(result.current.toggleFullscreen).toBe(first.toggleFullscreen);
   });

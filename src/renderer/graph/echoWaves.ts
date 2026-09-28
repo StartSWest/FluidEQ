@@ -47,7 +47,7 @@ export const SNAPSHOT_COLUMNS = 72;
 const SWAY = 0.07;
 
 /** How many rails run back to the vanishing point. */
-const RAILS = 18;
+export const ECHO_RAILS = 18;
 
 /**
  * A row as STEPS, optionally shut against a floor.
@@ -154,22 +154,31 @@ export interface IEchoWavePaths {
   strength: number;
 }
 
+/** One receding row as it stands this frame. */
+export interface IEchoRow {
+  wave: Projected[];
+  floor: number;
+  /** 0 fresh, 1 at the horizon. */
+  depth: number;
+  strength: number;
+}
+
 /**
- * The frame's waves, oldest first so the painter draws back to front, and
- * the live wave shut against the floor as the figure.
+ * The frame's rows, oldest first so they are painted back to front, the
+ * live wave, and the plane under them: what both painters draw from — the
+ * page's paths here, the engine per pixel (`engineLooks/designed/`).
  */
-export const createEchoWavePaths = (
+export const echoLayout = (
   state: EchoWaves,
   points: readonly Projected[],
   top: number,
   bottom: number,
   seconds: number,
-  filled: boolean,
 ) => {
   const left = points[0]?.[0] ?? 0;
   const right = points[points.length - 1]?.[0] ?? 1;
   const height = Math.max(1, bottom - top);
-  const waves: IEchoWavePaths[] = [];
+  const rows: IEchoRow[] = [];
   for (let index = state.waves.length - 1; index >= 0; index -= 1) {
     const wave = state.waves[index];
     const depth = (seconds - wave.at) / WAVE_LIFE;
@@ -193,31 +202,71 @@ export const createEchoWavePaths = (
        */
       const sway =
         Math.sin(depth * 3.1 + seconds * 0.5) * (right - left) * SWAY;
-      const swayed: Projected[] = projected.wave.map(([x, y]) => [x + sway, y]);
-      waves.push({
-        line: trace(swayed),
-        body: filled ? trace(swayed, projected.floor) : undefined,
+      rows.push({
+        wave: projected.wave.map(([x, y]) => [x + sway, y]),
+        floor: projected.floor,
         depth,
         strength: wave.strength,
       });
     }
   }
-  const live = projectEchoWave(points, 0, left, right, bottom, height);
-  const horizon = bottom - height * 0.6;
-  const centre = (left + right) / 2;
+  return {
+    rows,
+    live: projectEchoWave(points, 0, left, right, bottom, height),
+    left,
+    right,
+    bottom,
+    horizon: bottom - height * 0.6,
+    /** How far the horizon's bloom reaches, in pixels. */
+    bloom: height * (0.05 + state.bass * 0.12),
+    bass: state.bass,
+  };
+};
 
-  /**
-   * The plane the waves roll across: rails from the front edge back to
-   * where the waves themselves end up. They take the projection's own
-   * squeeze rather than meeting at a point, so a rail and the end of a
-   * far row land on the same place — which is what perspective means and
-   * what the two of them disagreeing looked like.
-   */
+/**
+ * Where rail `rail` of the plane starts at the front and ends at the
+ * horizon. The rails take the projection's own squeeze rather than meeting
+ * at a point, so a rail and the end of a far row land on the same place —
+ * which is what perspective means and what the two of them disagreeing
+ * looked like.
+ */
+export const echoRail = (
+  left: number,
+  right: number,
+  rail: number,
+): { front: number; back: number } => {
+  const centre = (left + right) / 2;
+  const front = left + ((right - left) * rail) / ECHO_RAILS;
+  return { front, back: centre + (front - centre) * (1 - ECHO_SQUEEZE) };
+};
+
+/**
+ * The frame's waves, oldest first so the painter draws back to front, and
+ * the live wave shut against the floor as the figure.
+ */
+export const createEchoWavePaths = (
+  state: EchoWaves,
+  points: readonly Projected[],
+  top: number,
+  bottom: number,
+  seconds: number,
+  filled: boolean,
+) => {
+  const layout = echoLayout(state, points, top, bottom, seconds);
+  const { rows, live, left, right, horizon } = layout;
+  const waves: IEchoWavePaths[] = rows.map((row) => ({
+    line: trace(row.wave),
+    body: filled ? trace(row.wave, row.floor) : undefined,
+    depth: row.depth,
+    strength: row.strength,
+  }));
+
+  // The plane the waves roll across (`echoRail`).
   const rails = new Path2D();
-  for (let rail = 0; rail <= RAILS; rail += 1) {
-    const at = left + ((right - left) * rail) / RAILS;
-    rails.moveTo(at, bottom);
-    rails.lineTo(centre + (at - centre) * (1 - ECHO_SQUEEZE), horizon);
+  for (let rail = 0; rail <= ECHO_RAILS; rail += 1) {
+    const { front, back } = echoRail(left, right, rail);
+    rails.moveTo(front, bottom);
+    rails.lineTo(back, horizon);
   }
 
   return {
@@ -225,8 +274,8 @@ export const createEchoWavePaths = (
     shape: trace(live.wave, live.floor),
     horizon,
     rails,
-    /** How far the horizon's bloom reaches, in pixels. */
-    bloom: height * (0.05 + state.bass * 0.12),
-    bass: state.bass,
+    bloom: layout.bloom,
+    bass: layout.bass,
+    layout,
   };
 };

@@ -378,12 +378,6 @@ $surface-floating: color-mix(in srgb, $surface-base 70%, $surface-panel);
 // panel into its mix, and at the veil's thinnest it stood at three quarters
 // over the picture.
 $surface-menu-floor: var(--surface-menu-floor);
-// The one shade under the graph's options, from the top of the block they
-// stand in to the foot of their row (Ivan, 2026-09-27: "same for the entire
-// block top to bottom of the options pane"): the EQ head's over a scene
-// (`head-over-scene`) and the strip's own (`.live-output-controls::before`)
-// are this, so the two read as one even shade with no step between them.
-$chrome-shade: color-mix(in srgb, $surface-base 66%, transparent);
 // The shade a well is painted in: a meter's slot, a picture's frame. Kept
 // next to the shell colour it is derived from.
 $surface-well: var(--surface-well);
@@ -422,18 +416,19 @@ $surface-plot: color-mix(in srgb, $surface-base 50%, transparent);
 $track-well: var(--track-well);
 $border-subtle: var(--border-subtle);
 $border-panel: var(--border-panel);
-// The quiet control's edge: every outline button, field and select. At 24%
-// it was a bright cyan rule round each of them, and a toolbar of six read as
-// six boxes drawn in ink rather than as controls on the floor (Ivan,
-// 2026-09-25: "the borders of buttons and pills are a bit too much"). The
-// faint fill already says where the control is; the edge only finishes it,
-// and comes up under the pointer.
+// THE CONTROL'S EDGE: every button, field, select, pick and box you type into
+// — one line, the accent's light, because the edge is where a control's
+// colour lives (Ivan, 2026-09-27: "button and inputs have almost same color
+// as the card bg color with nice colored borders"). There were two: the
+// preset picker's 42% on the shared mixins and a solved 26% on the 112 fields
+// and buttons a component drew for itself, so a row of controls on one page
+// came in two strengths ("input colors this mess").
 //
-// At the share of the accent's light that makes the edge 2.2:1 on a card at
-// this shade (`--field-edge-share`, `themeInk.ts`), never under the 13% it
-// shipped at: 13% measured 1.3:1 on Black and at 100%, a box nobody could see,
-// and 1.7:1 still read as missing on the EQ page. Under the pointer it comes
-// up to 3.2:1 (`--field-edge-hover-share`), never under the 42% it was.
+// At the preset picker's 42% (Ivan, 2026-09-27: "same color as preset
+// select"), and 70% under the pointer — or more wherever a light shade needs
+// it to reach 2.2:1 and 3.2:1 on the card (`--field-edge-share`,
+// `--field-edge-hover-share`, `themeInk.ts`): 13% had measured 1.3:1 on Black
+// and at 100%, a box nobody could see.
 $border-field: color-mix(
   in srgb,
   $secondary-light var(--field-edge-share),
@@ -445,6 +440,8 @@ $border-field-hover: color-mix(
   transparent
 );
 $border-field-focus: $secondary-light;
+$border-control: $border-field;
+$border-control-hover: $border-field-hover;
 
 // *** Interactive states *****************************************************
 
@@ -475,11 +472,18 @@ $hover-lift: rgba($edge-tint, 0.08);
 // cyan-tinted fields standing on it. A box inside a block is NOT a further
 // step — it is the block's own colour with an edge round it.
 $block-lift: $surface-block;
-$hover-accent: color-mix(in srgb, $secondary-default 8%, transparent);
-// Selected is the same tint held twice as strong, under accent text, with no
+//
+// Both are a step of the edge tint, in the card's own hue, and the accent is
+// in the chosen thing's text. They were a tint of the accent, 8% and 16%,
+// which is a colour of its own only where the accent and the card share a
+// hue: in Rainbow mode's violet, the lime came out olive — the chosen stage
+// on the DSP rail, the chosen role on Share Audio, the highlighted row in
+// every menu (Ivan, 2026-09-27: "this mess sucks ... all go same").
+$hover-accent: rgba($edge-tint, 0.06);
+// Selected is the same step held twice as strong, under accent text, with no
 // frame. At 0.18 with a cyan border the chosen row was a teal block that read
 // as a button dropped into the list; a row in a menu is a row, not a button.
-$selected-accent: color-mix(in srgb, $secondary-default 16%, transparent);
+$selected-accent: rgba($edge-tint, 0.11);
 $selected-border: transparent;
 
 // Secondary text is the cool white too. `$primary-lighter` is a lavender, and
@@ -565,18 +569,35 @@ $transition-control:
 //
 // It is the secondary button, and it has to be exactly that. The window has
 // two kinds of control: the one you are meant to press — cyan, filled, the
-// `.button` — and everything else, which is an outline with a whisper of the
-// accent behind it. A select, a combo and the Voicing pick all sit in rows
+// `.button` — and everything else, which is the card's own colour with the
+// accent in its edge. A select, a combo and the Voicing pick all sit in rows
 // beside `Clear EQ` and `Add band`, and the day they were a slate box with
 // white text they read as a third kind of control nobody had named. So a
-// field is the quiet button's face: the same faint cyan fill, the same
-// border, the same corner. What is typed into an input stays white; what a
-// select currently says is set in the accent, like a button's label.
+// field is the quiet button's face: the same fill, the same border, the same
+// corner. What is typed into an input stays white; what a select currently
+// says is set in the accent, like a button's label.
+//
+// Its face (`$surface-control`, on `:root`) is the card's own colour a step
+// lighter, see-through, the quiet button's and every select's alike (Ivan,
+// 2026-09-27: "make all buttons and select ... keep same card bg color but be
+// semi transparent ... so when we show a plus viz they show well", "button
+// and inputs have almost same color as the card bg color with nice colored
+// borders"). No accent in it: a tint of the accent is a colour of its own
+// only where the accent and the card share a hue. Rainbow mode's lime over
+// its violet card came out olive, every field and button on the page a
+// muddy box ("input colors this mess sucks").
+$surface-control: var(--surface-control);
+// Under the pointer, and pressed: the same face a step and two steps
+// lighter, in the card's own hue for the same reason; the edge lights with
+// the accent at the same time (`$border-control-hover`).
+$surface-control-hover: color-mix(in srgb, $edge-tint 6%, $surface-control);
+$surface-control-press: color-mix(in srgb, $edge-tint 11%, $surface-control);
+
 @mixin field-surface {
   color: $text-primary;
-  border: 1px solid $border-field;
+  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: $surface-control;
   box-shadow: none;
   transition: $transition-control;
 }
@@ -604,8 +625,8 @@ $transition-control:
   @include field-surface;
 
   &:hover:not(:disabled):not([aria-disabled='true']) {
-    border-color: $border-field-hover;
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
   }
 
   @include field-focus;
@@ -626,7 +647,7 @@ $transition-control:
   &:focus,
   &:focus-visible {
     border-color: $border-field-focus;
-    background: color-mix(in srgb, $secondary-default 7%, transparent);
+    background: $surface-control;
     outline: none;
     @include focus-ring;
   }
@@ -727,6 +748,13 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
 //
 // Corners at `$radius-2xs`, not the cards' old 12px: nothing else on the open
 // floor is rounded that far.
+// What a tooltip casts: one hard pixel under its edge and no blur. Every
+// tooltip in the app — the one on any hovered control or graph point, a genre
+// pin's card, the Smart EQ bubble, the Karaoke tools' hints — wore 6-16px of
+// soft shadow, a cloud round a label in a window of flat surfaces (Ivan,
+// 2026-09-27: "tooltips dropshadow too much for our flat style").
+$tooltip-lift: 0 1px 0 rgba($black, 0.22);
+
 @mixin floating-surface($lift: 0 8px 20px rgba($black, 0.3)) {
   border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
   border-radius: $radius-2xs;
@@ -736,9 +764,51 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
     inset 0 1px 0 rgba($white, 0.05);
 }
 
-@mixin menu-surface {
-  @include floating-surface;
+// THE CARD, as every card and every dropdown wears it (Ivan, 2026-09-27: "we
+// only have 3 bg colors: app color, card bg and graph colors; all dropdown
+// menus need to have very subtle drop shadow and have card bg color ... same
+// border color as card and same radius"). Its edge is barely one: the pane a
+// hair toward the edge tint, about 1.1:1 on the card, and opaque, so nothing
+// drawn behind a card shows through its line ("lets almost remove the border
+// keep a very almost same color of the card bg").
+//
+// And it is the one edge of everything that frames rather than responds: a
+// card, a box inside one, a group, a plot, the rule between a card's parts
+// (Ivan, 2026-09-27: "nice pane borders subtle one ... once we fix this one
+// all go same"). A control's edge is the other one (`$border-control`).
+$card-edge: color-mix(in srgb, $surface-panel 94%, $edge-tint);
+$card-radius: $radius-m;
+// What a menu casts, floating over the page: short and soft, just enough to
+// lift it off what it opens over. It was 8px down and 20px of blur at 30%,
+// with a lit inner rim — a slab over the window.
+$menu-lift: 0 4px 12px rgba($black, 0.18);
+// A menu's edge: the cards' own, taken further toward the edge tint, so a
+// menu floating over cards of its own colour is drawn round rather than
+// merged into them (Ivan, 2026-09-27: "more defined border less
+// dropshadow"). The cards' hair of tint was all but gone round a menu.
+$menu-edge: color-mix(in srgb, $surface-panel 80%, $edge-tint);
+// A line inside a menu — under its search, beside its preview, over its
+// actions, between its groups: the faint rule the actions menu drew between
+// its groups, for every menu. They were the rows' hairline, solved to 1.8:1
+// against the card, and a menu of the card's own colour came out ruled into
+// boxes (Ivan, 2026-09-27: "reduce inner borders visibility").
+$menu-rule: rgba($edge-tint, 0.1);
+
+// A dropdown's face: the card's colour, corner and a clear edge, lifted.
+// Under the Backdrop its edge, its lift and the blur behind it are the
+// floating glass's (`--menu-edge`, `--menu-lift`, `--menu-glass`, set with
+// the floor in `App.scss`), so a menu opened there is a pane of the same
+// glass.
+@mixin menu-face {
+  border: 1px solid var(--menu-edge, #{$menu-edge});
+  border-radius: $card-radius;
   background: $surface-menu-floor;
+  box-shadow: var(--menu-lift, #{$menu-lift});
+  backdrop-filter: var(--menu-glass, none);
+}
+
+@mixin menu-surface {
+  @include menu-face;
   // Scrolls only if it has to. `AnchoredMenu` caps the height to the room
   // actually available; without somewhere for the overflow to go, that cap
   // would clip the last entries instead of letting them be reached — the exact
@@ -765,7 +835,7 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
 // Top-level card. `$accent` tints the top edge so the sidebar, EQ, graph and
 // profile cards read as one family with slightly different personalities.
 @mixin panel-surface($accent: $secondary-default, $amount: 0%) {
-  border: 1px solid $border-panel;
+  border: 1px solid $card-edge;
   border-radius: $radius-xl;
   // Opaque, and nearly flat.
   //
@@ -819,16 +889,22 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
 // the grey slab every page still carried after the panes lost theirs. What
 // the box holds — a tile, a row, a card — is `card-surface`, filled in the
 // window's own colour, which is what those slabs were not.
+//
+// Its edge is the card's (`$card-edge`), like every box that holds something:
+// a box drawn at the rows' hairline inside a card whose own edge is barely
+// one stood out as the loudest line on the page, a frame brighter than the
+// frame around it (Ivan, 2026-09-27: "nice pane borders subtle one").
 @mixin lifted-surface {
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   background: transparent;
   box-shadow: none;
 }
 
-// A card's face: `$surface-card` and `$card-glow`, with the block above.
+// A card's face: `$surface-card` and `$card-glow`, with the block above, and
+// the card's edge.
 @mixin card-surface {
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   background: $card-glow, $surface-card;
   box-shadow: none;
@@ -847,8 +923,12 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
 // the dialogs' inner group (`_dialog.scss`), and a sheet that uses both
 // modules could not tell the two apart.
 @mixin section-card {
-  border: 1px solid $border-panel;
-  border-radius: $radius-m;
+  // Barely an edge, and opaque (`$card-edge`): a see-through line — the
+  // panes' grey, then the fields' accent — let a Plus visualizer drawn
+  // behind the graph's card show through it, and with the shell's dividing
+  // lines gone the grey read as the loudest line in the window.
+  border: 1px solid $card-edge;
+  border-radius: $card-radius;
   background: $surface-section;
   box-shadow: none;
 }
@@ -859,9 +939,9 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
   // every select, so a titlebar tool and a graph overlay control are the same
   // control as `Clear EQ` rather than a pill from a different kit.
   color: $secondary-light;
-  border: 1px solid $border-field;
+  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: $surface-control;
   font: inherit;
   cursor: pointer;
   transition: $transition-control;
@@ -869,8 +949,8 @@ $rainbow-drift: rainbow-border-drift 12s linear infinite;
   &:hover:not(:disabled),
   &:focus-visible {
     color: $white;
-    border-color: color-mix(in srgb, $secondary-light 70%, transparent);
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
     outline: none;
   }
 
@@ -968,7 +1048,7 @@ $scrollbar-thumb-hover: color-mix(in srgb, $secondary-default 62%, transparent);
   // as two different controls doing the same job.
   padding: 0 12px;
   border: 0;
-  border-bottom: 1px solid $border-subtle;
+  border-bottom: 1px solid $menu-rule;
   border-radius: 0;
   background: none;
 

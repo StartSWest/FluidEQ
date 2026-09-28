@@ -8,35 +8,34 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'sass:math';
 @use 'color' as *;
 @use 'theme' as *;
+@use 'miniPlayerParts' as *;
 
-// The queue deck: the Library's play order around the song playing.
+// The queue: the Library's play order around the song playing, as the
+// sheet's second page (the Stage, Ivan 2026-09-27).
 
 // ============================================================ the queue ====
 //
-// The deck the window's growth goes to whenever it is open: the visualizer
-// over it keeps the height its divider gave it (Ivan, 2026-09-21). It opens
-// at `--player-queue-open`, which the measurement reads too.
+// The sheet is its face; it fills the page, and its list scrolls inside.
 .player-queue {
-  --player-queue-open: 200px;
-
-  flex: 1 1 var(--player-queue-open);
-  min-height: 160px;
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
 }
 
 .player-queue__head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
+  padding: 0 4px;
 }
 
-// MUSIC DRAGGED IN FROM THE COMPUTER. The deck says it will take it while a
-// drag carrying files is over it, and nothing at any other time: a dashed
-// target drawn permanently on a deck that is usually a list is furniture.
-.player-queue.is-drop-target {
-  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
-}
-
+// MUSIC DRAGGED IN FROM THE COMPUTER. The page says it will take it while a
+// drag carrying files is over it, and nothing at any other time.
 .player-queue__drop {
   position: absolute;
   z-index: 3;
@@ -44,18 +43,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: center;
   justify-content: center;
   gap: 8px;
-  inset: 4px;
+  inset: 0;
   border: 1px dashed color-mix(in srgb, var(--accent) 55%, transparent);
-  border-radius: 8px;
-  // Enough of the deck's own floor to read a word on, and little enough that
-  // the list under it still says which queue is being added to.
-  background: color-mix(in srgb, var(--player-deck) 82%, transparent);
-  color: var(--player-ink);
-  font-size: 11px;
-  font-weight: $weight-bold;
-  text-transform: uppercase;
-  @include tracking(0.1em);
-  // The drop belongs to the deck underneath; this only says so.
+  border-radius: 18px;
+  // Enough of the glass to read a word on, and little enough that the list
+  // under it still says which queue is being added to.
+  background: color-mix(in srgb, var(--surface-base) 78%, transparent);
+  color: var(--player-ink-bright);
+  font-size: 12.5px;
+  font-weight: $weight-semibold;
+  // The drop belongs to the page underneath; this only says so.
   pointer-events: none;
 
   .player-icon {
@@ -65,35 +62,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// The head's two readouts: the deck's own figures (`.player-readout`)
-// WITHOUT THE SLAB the display draws them on. On the display the dark box is
-// the glass the figure is lit behind; on the deck's face beside the eyebrow
-// it read as two dark patches dropped on a coloured panel — plainest under a
-// scene's tint (Ivan, 2026-09-22: "weird bg, fix it in up next"). The
-// figures keep their ink and glow and stand on the face like the eyebrow
-// does. On the middle line rather than the baseline because one of them
-// carries a glyph, and the glyph sits on the line the figure does.
-.player-queue__readout {
-  flex: none;
-  align-items: center;
-  padding: 0;
-  background: none;
-  box-shadow: none;
-  white-space: nowrap;
-}
-
-// HOW FAR THROUGH THE QUEUE THE PLAYHEAD IS, as a line: the track is the
-// deck's dark well and the lit part is the accent, glowing the way every
-// other lit thing on the deck does. It takes whatever width the head has
-// left, so the head reads as one instrument from its name to its key.
+// HOW FAR THROUGH THE QUEUE THE PLAYHEAD IS, as a line lit in the accent. It
+// takes whatever width the head has left, from what is left to the Library.
 .player-queue__progress {
   flex: 1 1 24px;
   min-width: 16px;
   height: 3px;
   overflow: hidden;
   border-radius: 2px;
-  background: rgba($black, 0.45);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent);
+  background: var(--player-track);
 
   &::before {
     display: block;
@@ -101,32 +78,49 @@ SPDX-License-Identifier: GPL-3.0-or-later
     height: 100%;
     border-radius: inherit;
     background: var(--accent);
-    box-shadow: 0 0 5px var(--player-glow);
     content: '';
     transition: width 220ms ease;
   }
 }
 
+// The way to the Library, as a link in the accent's light: it takes the
+// listener somewhere else, which a pill beside it would not say.
 .mini-player .button.player-queue__open {
-  gap: 4px;
-  min-height: 24px;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  min-height: 28px;
   margin-left: auto;
-  padding: 0 6px 0 9px;
-  font-size: $text-small;
+  padding: 0 4px 0 8px;
+  border: 0;
+  border-radius: $radius-pill;
+  background: none;
+  box-shadow: none;
+  color: var(--player-ink-bright);
+  font-size: 12.5px;
+  font-weight: $weight-semibold;
+
+  &:hover:not(:disabled) {
+    background: var(--player-hover);
+  }
 
   .player-icon {
-    width: 12px;
-    height: 12px;
+    width: 13px;
+    height: 13px;
   }
 }
 
+// The list, straight on the glass, fading out at its foot where it runs on
+// past what the page shows.
 .player-queue__list {
   flex: 1 1 auto;
   min-height: 0;
   margin: 0;
-  padding: 4px;
+  padding: 0 0 18px;
   overflow-y: auto;
   list-style: none;
+  mask-image: linear-gradient($black calc(100% - 22px), transparent);
   @include slim-scrollbar;
 
   li {
@@ -142,22 +136,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .player-queue__row {
   display: grid;
-  grid-template-columns: 2.2em 26px minmax(0, 1fr) auto;
+  grid-template-columns: 1.8em 40px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 3px 8px 3px 4px;
+  min-height: 52px;
+  padding: 5px 12px 5px 4px;
   border: 0;
-  border-radius: 6px;
+  border-radius: 16px;
   background: transparent;
-  color: color-mix(in srgb, var(--player-ink) 62%, var(--player-text-soft));
-  font-size: 11px;
-  font-weight: $weight-semibold;
+  color: var(--player-text);
   text-align: left;
   cursor: pointer;
+  transition: background 150ms ease;
 
   &:hover {
-    background: rgba($edge-tint, 0.05);
+    background: color-mix(in srgb, #{$white} 6%, transparent);
   }
 
   &:focus-visible {
@@ -187,17 +181,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
     cursor: grabbing;
   }
 
+  // The song under the playhead: tinted and ringed in the accent, its name in
+  // the accent's light.
   &.is-now {
-    background: color-mix(in srgb, var(--accent) 13%, transparent);
-    box-shadow: inset 2px 0 0 var(--player-lamp);
-    color: var(--player-text);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, var(--accent) 30%, transparent);
+
+    .player-queue__title {
+      color: var(--player-ink-bright);
+      font-weight: $weight-semibold;
+    }
   }
 }
 
 .player-queue__number,
 .player-queue__time {
-  color: var(--player-text-dim);
-  font-family: $font-mono;
+  color: var(--player-text-soft);
+  font-size: 12px;
 }
 
 .player-queue__number {
@@ -325,10 +326,9 @@ $queue-bar-delays: (0s, -0.3s, -0.6s);
   }
 }
 
-// Standing still at their resting heights. The fold's own rule for this
-// (`_miniPlayerFold.scss`) names the bars, which no longer move themselves;
-// `:nth-child(n)` makes this as specific as the rules naming each bar's
-// animations, which a plain `span` would lose to.
+// Standing still at their resting heights. `:nth-child(n)` makes this as
+// specific as the rules naming each bar's animations, which a plain `span`
+// would lose to.
 @media (prefers-reduced-motion: reduce) {
   .player-queue__bars span:nth-child(n)::before,
   .player-queue__bars span:nth-child(n)::after {
@@ -337,10 +337,11 @@ $queue-bar-delays: (0s, -0.3s, -0.6s);
 }
 
 .player-queue__art {
-  width: 26px;
-  height: 26px;
+  width: 40px;
+  height: 40px;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: 11px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #{$white} 8%, transparent);
 
   .library-cover-art {
     width: 100%;
@@ -349,31 +350,28 @@ $queue-bar-delays: (0s, -0.3s, -0.6s);
   }
 }
 
+// The song over who sings it.
 .player-queue__song {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  flex-direction: column;
+  gap: 1px;
   min-width: 0;
-  overflow: hidden;
   white-space: nowrap;
 }
 
 .player-queue__title {
-  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
-  font-size: $text-body;
-  font-weight: $weight-semibold;
+  font-size: 13.5px;
+  font-weight: $weight-medium;
   text-overflow: ellipsis;
 }
 
 .player-queue__artist {
-  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
-  color: var(--player-text-dim);
-  font-size: $text-small;
-  font-weight: $weight-medium;
+  color: var(--player-text-soft);
+  font-size: 12px;
   text-overflow: ellipsis;
 }
 
@@ -381,15 +379,15 @@ $queue-bar-delays: (0s, -0.3s, -0.6s);
   display: grid;
   flex: 1 1 auto;
   place-content: center;
-  gap: 4px;
+  gap: 6px;
   padding: 18px;
   color: var(--player-text-soft);
-  font-size: $text-small;
+  font-size: 12px;
   text-align: center;
 
   strong {
-    color: $text-muted;
-    font-size: $text-body;
+    color: var(--player-text);
+    font-size: 14px;
     font-weight: $weight-semibold;
   }
 }

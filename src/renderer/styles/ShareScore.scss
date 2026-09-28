@@ -33,75 +33,12 @@ it under the terms of the GNU General Public License version 3 or later.
   background: dialog.$scrim;
 }
 
-.share-score {
-  display: grid;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid color-mix(in srgb, $secondary-default 22%, transparent);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-menu-top 72%, transparent);
+// On the dialog frame (`DialogFrame`): what it is and where it can go in the
+// rail, the card itself on the right, the three ways to take it in the foot.
+.dialog-frame.share-score {
+  @include dialog.size(860px, 720px);
 }
 
-// Sized as a dialog once it is one.
-.share-card-backdrop > .share-score {
-  @include menu-surface;
-  // A dialog's arrival on the menu's material, out of its own middle as every
-  // dialog does. Included ahead of the surface, as it was, the menu's own
-  // arrival came after it and won.
-  --surface-motion: #{$dialog-arrival};
-  --menu-origin: center;
-  width: min(560px, 100%);
-  max-height: calc(100vh - #{$spacing-m} * 2);
-  padding: 20px;
-  overflow-y: auto;
-  @include slim-scrollbar;
-  border-color: color-mix(in srgb, $secondary-default 34%, transparent);
-}
-
-.share-score__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-
-  h3 {
-    margin: 0;
-    font-size: $text-title;
-    font-weight: $weight-bold;
-  }
-}
-
-.share-score__close {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  padding: 0;
-  color: $text-muted;
-  border: 1px solid transparent;
-  border-radius: $radius-xs;
-  background: transparent;
-  cursor: pointer;
-  transition: $transition-control;
-
-  svg {
-    width: 12px;
-    height: 12px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.6;
-    stroke-linecap: round;
-  }
-
-  &:hover {
-    color: $white;
-    border-color: rgba($white, 0.2);
-  }
-}
-
-// The aspect ratio is fixed here as well as on the canvas element, so the
-// preview cannot letterbox while the saved file stays correct — the whole
-// point of showing it is that it is what gets posted.
 .share-score__canvas {
   display: block;
   width: 100%;
@@ -110,73 +47,16 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-s;
 }
 
-// The nudge, and the only lime thing in the panel.
-//
-// It is the one line here that is about the game rather than about posting, so
-// it gets the colour the multiplier uses — anyone who has played reads lime as
-// "the streak", which is exactly what it is asking for.
+// What the plain card costs to leave behind, in the lime the rhythm game
+// scores in — a line under the card, not a box round it.
 .share-score__unlock {
   margin: 0;
-  padding: 8px 12px;
   color: $neon-lime;
-  border: 1px solid rgba($neon-lime, 0.22);
-  border-radius: $radius-s;
-  background: rgba($neon-lime, 0.07);
   font-size: $text-lead;
   font-weight: $weight-semibold;
   line-height: 1.5;
   text-align: center;
   text-wrap: balance;
-}
-
-// Says the part that cannot be automated. Not an aside: someone who misses it
-// posts a bare link and wonders where their card went.
-.share-score__note {
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-lead;
-  line-height: 1.5;
-}
-
-.share-score__actions {
-  display: flex;
-  gap: 8px;
-}
-
-.share-score__save,
-.share-score__copy,
-.share-score__network {
-  height: $control-height;
-  padding-inline: 14px;
-  border-radius: $radius-s;
-  font-size: $text-lead;
-  font-weight: $weight-semibold;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
-}
-
-// The loud one, because saving the image is the step the networks cannot do.
-.share-score__save {
-  flex: 1 1 auto;
-  color: $surface-well;
-  border: none;
-  background: $secondary-light;
-
-  &:hover {
-    background: $white;
-  }
-}
-
-.share-score__copy {
-  color: $text-primary;
-  border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
-  background: transparent;
-
-  &:hover {
-    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
-    background: color-mix(in srgb, $secondary-default 8%, transparent);
-  }
 }
 
 // "Copied", for its moment: the hold's end is what puts the button's own label
@@ -203,23 +83,10 @@ $share-score-copied: 1.6s;
   }
 }
 
+// The networks, one quiet button each, down the rail under the note.
 .share-score__networks {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.share-score__network {
-  padding-inline: 8px;
-  color: $text-primary;
-  border: 1px solid rgba($edge-tint, 0.16);
-  background: $block-lift;
-
-  &:hover {
-    color: $white;
-    border-color: color-mix(in srgb, $secondary-default 50%, transparent);
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
-  }
 }
 
 // The button that opens all this.

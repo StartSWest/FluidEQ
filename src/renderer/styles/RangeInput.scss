@@ -21,17 +21,55 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-$range-track-height: 6px;
-$range-thumb-height: 16px;
+// The round cap's body: the field's colour as the theme paints it, taken on
+// the root. Under the Backdrop the panes wear a veiled, see-through field
+// (`SceneCover.scss`), and a cap made of it let the picture show through.
+:root {
+  --range-cap-body: var(--surface-field);
+}
 
-// The slider is a horizontal range input rotated a quarter turn, so its
-// *width* is the visible track length. The symmetric block margin reserves the
-// vertical space the rotated element occupies.
+$range-track-height: 8px;
+// The line the handle runs on, and the fill laid down it from 0 dB: the fill
+// twice the line's width, so the gain reads as a bar on a rail rather than as
+// the rail lit.
+$range-slot-width: 2px;
+$range-rail-width: 4px;
+
+// The slider is a horizontal range input turned a quarter, so its *width* is
+// the visible track length. It stands in a rail the height of that length,
+// which is what the layout sees; the input is placed in the rail's middle and
+// turned there, over the groove and its lit core.
+//
+// Turned anticlockwise, so in the input's own terms the visual top is its
+// right-hand end and the visual bottom its left: a light "from above" on the
+// handle is a light from its right, and a shadow "below" is one to its left.
 .range {
   --range-length: var(--range-length-prop, 150px);
-  // The thumb's size along the track, for anything that has to know where
-  // the thumb's centre can reach: the guide lines under the EQ bands.
-  --range-thumb: #{$range-thumb-height};
+  // The handle's size along the track, for anything that has to know where
+  // its centre can reach: the fill below, and the guide lines under the EQ
+  // bands (`FrequencyBand.scss`). The fader cap's is shorter
+  // (`data-slider-handle` on the root, `FrequencyBand.scss`).
+  --range-thumb: 24px;
+  // The handle's colours, worked out from the panel under it so they keep
+  // their contrast at every shade of the theme slider and under a scene's
+  // tint: a face lit from above, a step and two over the panel, a crisp edge,
+  // and the frame round a cap's lit line. Measured against the card (the
+  // panel at 85% over the floor) at Black, Ocean and the lightest Ocean
+  // (`fader-contrast.cjs` in the working notes): the face 1.7-2.5:1 on Ocean
+  // and lighter, the lit line 5.5:1 or more in its frame.
+  //
+  // The caps' edge is darker than the panel at every shade, the crisp dark
+  // outline round a light face that the light end had (Ivan, 2026-09-27:
+  // "keep the dark border on slider head always"). It was lighter than the
+  // panel below OKLab 0.4, about 85 on the slider, and darker only above it,
+  // so the same cap was outlined in light on a dark theme and in dark on a
+  // light one.
+  --range-face-top: oklch(from var(--surface-panel) calc(l + 0.2) c h);
+  --range-face-foot: oklch(from var(--surface-panel) calc(l + 0.12) c h);
+  --range-edge: oklch(from var(--surface-panel) calc(l - 0.16) calc(c * 1.1) h);
+  --range-frame: oklch(
+    from var(--surface-panel) calc(l - 0.08) calc(c * 1.05) h
+  );
 
   display: flex;
   width: 52px;
@@ -39,83 +77,174 @@ $range-thumb-height: 16px;
   align-items: center;
   gap: 4px;
 
+  &__rail {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: calc(var(--range-length) + #{$range-track-height});
+  }
+
+  &__groove,
+  &__glow {
+    position: absolute;
+    left: 50%;
+    border-radius: $radius-pill;
+    pointer-events: none;
+  }
+
+  // The rail: a thin line of the mist, with a graduated scale either side of
+  // it and a heavy mark at 0 dB (`FrequencyBand.scss`) — the centre detent of
+  // a hardware graphic EQ, which Ivan picked from ten console-fader mockups
+  // (2026-09-27: "centre detent lets try that one"). Before it, a dark slot
+  // with a shadow in it read as a black stick ("mira esos back sliders"), and
+  // the 8px slot outlined in the cap's edge that followed it as a second,
+  // emptier control beside the cap ("the slider and its mark sucks").
+  &__groove {
+    top: 0;
+    bottom: 0;
+    width: $range-slot-width;
+    margin-left: -$range-slot-width * 0.5;
+    background: rgba($edge-tint, 0.24);
+  }
+
+  // Down the rail, the band's own frequency (`BandLevels`): the music at that
+  // band lighting the line it is shaped by. At a little over half the band's
+  // colour, so the fill laid over it — twice as wide, at full strength —
+  // still reads as the gain; a crisp line and no bloom. Only its opacity
+  // follows the music, and the short fade keeps a stepped level reading as a
+  // blink rather than as a flicker.
+  &__glow {
+    top: 0;
+    bottom: 0;
+    width: $range-slot-width;
+    margin-left: -$range-slot-width * 0.5;
+    background: color-mix(in srgb, var(--slider-color) 55%, transparent);
+    opacity: var(--band-level, 0);
+    transition: opacity 90ms linear;
+    will-change: opacity;
+  }
+
+  &.is-disabled &__glow {
+    display: none;
+  }
+
   input[type='range'] {
+    position: absolute;
+    top: 50%;
+    left: 50%;
     width: var(--range-length);
     height: $range-track-height;
-    margin-block: calc(var(--range-length) / 2);
-    margin-inline: 0;
-    // The track grows when the reference picker is folded away, and jumping to
-    // the new length made the whole band grid snap. This is width and margin,
-    // so it is a layout animation and not free — but it runs once per fold, on
-    // a click, and the alternative is a visible jolt across twenty sliders.
-    transition:
-      width 260ms cubic-bezier(0.32, 0.72, 0, 1),
-      margin-block 260ms cubic-bezier(0.32, 0.72, 0, 1);
+    margin: 0;
     background: transparent;
-    transform: rotate(-90deg);
+    transform: translate(-50%, -50%) rotate(-90deg);
     appearance: none;
     -webkit-appearance: none;
 
     --range: calc(var(--max) - var(--min));
     --ratio: calc((var(--val) - var(--min)) / var(--range));
+    --zero-ratio: clamp(0, calc((0 - var(--min)) / var(--range)), 1);
+    // Where the handle's centre and 0 dB stand along the track: the handle
+    // cannot run past either end, so both are placed on the length its centre
+    // can reach.
     --sx: calc(
-      0.5 *#{$range-thumb-height} + var(--ratio) *
-        (100% - #{$range-thumb-height})
+      0.5 * var(--range-thumb) + var(--ratio) * (100% - var(--range-thumb))
+    );
+    --zx: calc(
+      0.5 * var(--range-thumb) + var(--zero-ratio) * (100% - var(--range-thumb))
     );
 
+    // The track is the fill alone, from 0 dB to the handle either way — a
+    // cut fills downwards from the middle, as it sounds — over the rail
+    // drawn behind it, and twice the rail's width. The band's colour itself:
+    // mixed a fifth toward white it was a pastel that read as faded.
     &::-webkit-slider-runnable-track {
-      height: $range-track-height;
       width: 100%;
-      border: 1px solid var(--slider-color-muted);
+      height: $range-track-height;
+      border: 0;
       border-radius: $radius-pill;
-      background: var(--slider-color) 0 / var(--sx) 100% no-repeat
-        var(--slider-track);
-      box-shadow:
-        inset 0 1px 2px rgba($black, 0.38),
-        0 0 7px var(--slider-color-muted),
-        0 0 16px var(--slider-track);
+      background: linear-gradient(
+          90deg,
+          transparent min(var(--zx), var(--sx)),
+          var(--slider-color) min(var(--zx), var(--sx)),
+          var(--slider-color) max(var(--zx), var(--sx)),
+          transparent max(var(--zx), var(--sx))
+        )
+        center / 100% $range-rail-width no-repeat;
       cursor: pointer;
     }
 
+    // THE AMP'S ROUND CAP (Ivan, 2026-09-28: "fix colour on circle ones, it
+    // doesn't look [right] in the full app", beside the amp's, which he
+    // likes): a dark cap of the field's colour lit from above, the band's
+    // colour at its centre and round its edge, its shadow under it and a
+    // glow of its colour — `.player-band__cap` in `_ampFaders.scss`. The disc
+    // it replaces was a light grey-blue face two steps over the panel, which
+    // took the band's colour out of all but a hairline. Turned with the
+    // input: its right is the screen's top, so the light is on its right and
+    // the shadow to its left.
     &::-webkit-slider-thumb {
-      width: $range-thumb-height;
-      height: $range-thumb-height;
-      margin-top: -6px;
-      border: 1px solid var(--slider-color);
+      box-sizing: border-box;
+      width: var(--range-thumb);
+      height: var(--range-thumb);
+      margin-top: calc((#{$range-track-height} - var(--range-thumb)) / 2);
+      border: 0;
       border-radius: 50%;
-      background: var(--slider-color);
+      background:
+        radial-gradient(
+          circle,
+          var(--slider-color) 0 calc(var(--range-thumb) * 0.17),
+          transparent calc(var(--range-thumb) * 0.17 + 1px)
+        ),
+        radial-gradient(circle at 72% 50%, rgba($white, 0.24), transparent 62%),
+        var(--range-cap-body);
       box-shadow:
-        0 0 0 3px var(--slider-color-muted),
-        0 0 10px var(--slider-color-muted),
-        0 3px 10px rgba($black, 0.34);
+        0 0 0 2px var(--slider-color),
+        -4px 0 10px rgba($black, 0.5),
+        0 0 12px color-mix(in srgb, var(--slider-color) 45%, transparent);
       cursor: pointer;
+      transition:
+        transform 120ms ease,
+        box-shadow 120ms ease;
       appearance: none;
       -webkit-appearance: none;
+    }
+
+    // Under the pointer: a wider ring of the band's colour round it, and the
+    // glow brighter.
+    &:hover::-webkit-slider-thumb {
+      box-shadow:
+        0 0 0 2px var(--slider-color),
+        0 0 0 5px color-mix(in srgb, var(--slider-color) 16%, transparent),
+        -4px 0 10px rgba($black, 0.5),
+        0 0 16px color-mix(in srgb, var(--slider-color) 55%, transparent);
+    }
+
+    &:active::-webkit-slider-thumb {
+      transform: scale(1.12);
     }
 
     &:focus-visible {
       outline: none;
 
-      &::-webkit-slider-runnable-track {
+      &::-webkit-slider-thumb {
         box-shadow:
-          inset 0 1px 2px rgba($black, 0.38),
-          0 0 0 2px $white;
+          0 0 0 2px var(--slider-color),
+          0 0 0 4px $surface-base,
+          0 0 0 6px $secondary-light;
       }
     }
 
     &:disabled {
       &::-webkit-slider-runnable-track {
-        border-color: rgba($edge-tint, 0.16);
-        background: $surface-field;
-        box-shadow: inset 0 1px 2px rgba($black, 0.3);
+        background: none;
         cursor: default;
       }
 
       &::-webkit-slider-thumb {
-        border-color: rgba($edge-tint, 0.3);
-        background: rgba($edge-tint, 0.55);
-        box-shadow: none;
+        background: var(--range-face-foot);
+        box-shadow: 0 0 0 2px rgba($edge-tint, 0.3);
         cursor: default;
+        transform: none;
       }
     }
   }
@@ -127,13 +256,5 @@ $range-thumb-height: 16px;
   .arrow-up path,
   .arrow-down path {
     fill: var(--slider-color);
-  }
-}
-
-// Dragging a slider must never be smoothed, and someone who has asked for
-// less motion should not get a 260ms crawl every time the layout changes.
-@media (prefers-reduced-motion: reduce) {
-  .range input[type='range'] {
-    transition: none;
   }
 }

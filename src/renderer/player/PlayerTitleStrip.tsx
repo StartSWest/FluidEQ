@@ -22,31 +22,41 @@ interface IPlayerTitleStripProps {
 }
 
 /**
- * The player's one strip of chrome, and the handle the window is dragged by.
+ * The amp's header, and the handle the window is dragged by (the Stage, Ivan
+ * 2026-09-27: "we need a nicer header with title and handler look").
  *
- * The FluidEQ mark opens the menu that stands in for the app's tab strip
- * (`PlayerMarkMenu`). Then Always on top, the switch, and the two window
- * buttons. A double-click on the strip folds the player to one line, where
- * the app's titlebar would maximise — a player has nothing to maximise into.
- * Windows keeps that double-click to itself, so it arrives from main
+ * Nothing in its middle but a grab bar over the name, which says "drag
+ * here" and is all header — the visualizer's controls went onto the picture
+ * (`PlayerStageBar`) so the strip stays clean to drag. At its ends two glass
+ * pieces hold the only buttons in it: the FluidEQ mark, which opens the menu
+ * that stands in for the app's tab strip (`PlayerMarkMenu`), and the window's
+ * own — Always on top and the switch back to the full app, then minimise and
+ * close.
+ *
+ * A double-click on the header folds the player to one line, where the app's
+ * titlebar would maximise — a player has nothing to maximise into. Windows
+ * keeps that double-click to itself, so it arrives from main
  * (`usePlayerFold`), not as a page event.
  *
- * On a Mac the window's own traffic lights open the strip and the two window
- * buttons are not drawn. A Mac keeps a double-click on a drag handle to
- * itself as well, and answers it with the listener's own setting, so the
+ * On a Mac the window's own traffic lights open the header and the two
+ * window buttons are not drawn. A Mac keeps a double-click on a drag handle
+ * to itself as well, and answers it with the listener's own setting, so the
  * fold is the mark menu's there.
  */
 const PlayerTitleStrip = ({ onFold, onOpenPage }: IPlayerTitleStripProps) => {
   const { t } = useTranslation();
   const { isPinned } = useWindowMode();
   const togglePin = () => setWindowPinned(!isPinned).catch(() => undefined);
-
+  const isMac = runsOnMac();
   return (
     <div className="player-title" data-window-strip>
-      <TrafficLightSlot />
-      <PlayerMarkMenu onFold={onFold} onOpenPage={onOpenPage} />
-      <span className="player-title__name" aria-hidden="true">
-        {PRODUCT_NAME}
+      <div className="player-title__lead">
+        <TrafficLightSlot />
+        <PlayerMarkMenu onFold={onFold} onOpenPage={onOpenPage} />
+      </div>
+      <span className="player-title__handle" aria-hidden="true">
+        <span className="player-title__grabber" />
+        <span className="player-title__name">{PRODUCT_NAME}</span>
       </span>
       <div className="player-title__controls">
         <button
@@ -60,8 +70,9 @@ const PlayerTitleStrip = ({ onFold, onOpenPage }: IPlayerTitleStripProps) => {
           <PlayerIcon name="pin" />
         </button>
         <WindowModeSwitch />
-        {!runsOnMac() && (
+        {!isMac && (
           <>
+            <span className="player-title__rule" aria-hidden="true" />
             <button
               type="button"
               className="player-title__button"

@@ -1,0 +1,109 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use '../color' as *;
+@use '../theme' as *;
+@use 'miniPlayerParts' as *;
+@use '../ampMarkMenu' as mark-menu;
+
+// The player's own menus — the mark's, Smart EQ's modes — in the app's menu
+// surface.
+
+// ============================================================ the menus ====
+//
+// The player's own menus — the mark's, Smart EQ's modes — in the app's menu
+// surface.
+.player-menu {
+  @include menu-surface;
+  z-index: 1000;
+  display: grid;
+  width: max-content;
+  min-width: 220px;
+  max-width: min(320px, calc(100vw - 16px));
+  gap: 2px;
+  padding: 6px;
+}
+
+.player-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: $text-muted;
+  font-size: $text-body;
+  font-weight: $weight-medium;
+  text-align: left;
+  cursor: pointer;
+
+  > .player-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--player-ink);
+  }
+
+  small {
+    margin-left: auto;
+    color: $text-dim;
+    font-size: $text-micro;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: $hover-lift;
+    color: $text-primary;
+    outline: none;
+  }
+
+  &[aria-checked='true'] {
+    background: $selected-accent;
+    color: $text-primary;
+  }
+}
+
+.player-menu__item--two {
+  align-items: flex-start;
+}
+
+.player-menu__tick {
+  margin-top: 2px;
+  visibility: hidden;
+
+  [aria-checked='true'] > & {
+    visibility: visible;
+  }
+}
+
+.player-menu__two {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+
+  b {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  small {
+    margin: 0;
+    color: $text-faint;
+    white-space: normal;
+  }
+}
+
+// The mark's menu, on glass: the same in both amps (`../_ampMarkMenu.scss`,
+// Ivan, 2026-09-28: "the main menu, I loved the one on the glass version").
+@include mark-menu.mark-menu;
+
+@media (prefers-reduced-motion: reduce) {
+  .player-split.is-running .player-led__lamp {
+    animation: none;
+  }
+}

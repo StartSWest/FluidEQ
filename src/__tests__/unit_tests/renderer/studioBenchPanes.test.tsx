@@ -14,7 +14,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { IStudioProject } from '../../../main/ipc/memberScenes';
 import StudioBench from '../../../renderer/studio/StudioBench';
 import {
@@ -134,7 +133,7 @@ describe("the Studio's panes", () => {
     expect(main.parentElement).toBe(side.parentElement);
   });
 
-  it('puts the graph’s divider under the stage at the graph’s size, and none at the fixed panels', async () => {
+  it('puts the graph’s divider under the stage', async () => {
     const { container } = render(<StudioBench view={view} />);
     await screen.findByRole('textbox', { name: 'studio.maker.describe' });
     const divider = screen.getByRole('separator', {
@@ -143,13 +142,6 @@ describe("the Studio's panes", () => {
     expect(container.querySelector('.studio-bench__stage')).toContainElement(
       divider,
     );
-
-    await userEvent.click(
-      screen.getByRole('button', { name: 'studio.size.wide' }),
-    );
-    expect(
-      screen.queryByRole('separator', { name: 'studio.stage.resize' }),
-    ).toBeNull();
   });
 
   it('has no divider before there is a project to try on the graph', async () => {

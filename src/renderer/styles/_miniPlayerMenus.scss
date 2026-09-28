@@ -7,13 +7,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'theme' as *;
 @use 'miniPlayerParts' as *;
-
-// The player's own menus — the mark's, Smart EQ's modes — in the app's menu
-// surface.
+@use 'ampMarkMenu' as mark-menu;
 
 // ============================================================ the menus ====
 //
-// The player's own menus — the mark's, Smart EQ's modes — in the app's menu
+// The amp's own menus — the mark's, Smart EQ's modes — in the app's menu
 // surface.
 .player-menu {
   @include menu-surface;
@@ -26,49 +24,55 @@ SPDX-License-Identifier: GPL-3.0-or-later
   padding: 6px;
 }
 
+// The mark's menu, on glass: the same in both amps (`_ampMarkMenu.scss`).
+@include mark-menu.mark-menu;
+
+// A row of Smart EQ's modes, as the actions menu draws its commands: glyph
+// column, label, and whatever the row adds at its end.
 .player-menu__item {
-  display: flex;
+  display: grid;
+  width: 100%;
   align-items: center;
   gap: 9px;
-  width: 100%;
-  min-height: 30px;
-  padding: 5px 9px;
-  border: 0;
-  border-radius: 8px;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  padding: 7px 10px;
+  color: $text-primary;
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
   background: transparent;
-  color: $text-muted;
+  font-family: inherit;
   font-size: $text-body;
-  font-weight: $weight-medium;
   text-align: left;
   cursor: pointer;
+  transition: $transition-control;
 
-  > .player-icon {
-    width: 15px;
-    height: 15px;
-    color: var(--player-ink);
-  }
-
-  small {
-    margin-left: auto;
-    color: $text-dim;
-    font-size: $text-micro;
+  > svg {
+    width: 16px;
+    height: 16px;
+    color: $text-accent;
+    transition: color 160ms ease;
   }
 
   &:hover,
   &:focus-visible {
-    background: $hover-lift;
-    color: $text-primary;
+    color: $white;
+    background: $hover-accent;
     outline: none;
+
+    > svg {
+      color: $secondary-light;
+    }
   }
 
   &[aria-checked='true'] {
     background: $selected-accent;
-    color: $text-primary;
   }
 }
 
+// A choice named and described: the tick in the glyph column, level with
+// the name rather than centred on both lines.
 .player-menu__item--two {
-  align-items: flex-start;
+  align-items: start;
 }
 
 .player-menu__tick {
@@ -93,71 +97,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   small {
     margin: 0;
     color: $text-faint;
+    text-align: left;
     white-space: normal;
-  }
-}
-
-.player-menu__rule {
-  height: 1px;
-  margin: 4px 6px;
-  background: $border-subtle;
-}
-
-.player-menu__heading {
-  margin: 4px 9px 2px;
-  color: $text-dim;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  text-transform: uppercase;
-  @include tracking(0.14em);
-}
-
-.player-menu__pages {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 4px 6px 6px;
-}
-
-// The app's own preference row, standing in the player's menu — the theme's
-// slider, which reads and writes whichever choice belongs to the window's
-// current mode. That row is `display: contents`, so under this menu's grid
-// its caption and its control came out as two full-width rows: a 38px
-// caption over a 303px box with its control adrift at its left (measured).
-// Laid out here as the row it is everywhere else — the name at one end, the
-// control across the rest.
-.player-menu .menu-preference {
-  display: grid;
-  align-items: center;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 8px;
-  padding: 2px 9px 4px;
-}
-
-.player-menu .menu-preference__label {
-  font-size: $text-small;
-}
-
-.player-menu .menu-preference__control {
-  min-width: 0;
-  justify-self: stretch;
-}
-
-// Each page behind the glyph the tab strip gives it, because this menu stands
-// in for that strip. Sized to the word beside it rather than to a grid, the
-// way every other glyph-and-name pair in the app is (`.dsp-bar-icon`).
-.player-menu__page {
-  gap: 6px;
-
-  svg {
-    width: 14px;
-    height: 14px;
-    flex: 0 0 auto;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .player-split.is-running .player-led__lamp {
-    animation: none;
   }
 }

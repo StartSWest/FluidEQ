@@ -26,7 +26,6 @@ import {
 } from 'common/constants';
 import IconButton, { IconName } from 'renderer/widgets/IconButton';
 import {
-  CSSProperties,
   ForwardedRef,
   forwardRef,
   memo,
@@ -66,12 +65,6 @@ interface IFrequencyBandProps {
   onGainChange?: (filterId: string, newValue: number) => Promise<void>;
   /** A drag's step in the store alone, before the engine has it. */
   onGainPreview?: (filterId: string, newValue: number) => void;
-  /**
-   * Its distance from the band before it, while the row shares the graph's
-   * width out between the bands (`placeBandsEvenly`); unset, the row lays
-   * them out itself and scrolls.
-   */
-  lead?: number;
 }
 
 const FrequencyBand = forwardRef(
@@ -88,7 +81,6 @@ const FrequencyBand = forwardRef(
       colorProgress = 0,
       onGainChange,
       onGainPreview,
-      lead,
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
@@ -219,11 +211,11 @@ const FrequencyBand = forwardRef(
         ref={ref}
         className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}${isBandEnabled(filter) ? '' : ' is-off'}`}
         data-filter-id={filter.id}
-        style={
-          lead === undefined
-            ? undefined
-            : ({ '--band-lead': `${lead}px` } as CSSProperties)
-        }
+        // What its slider's lit core answers to (`BandLevels`).
+        data-frequency={filter.frequency}
+        // Its place along the row, while the row shares the graph's width out
+        // between the bands, is the row's to write (`applyBandPlacement` in
+        // MainContent.tsx), so a window being resized renders no band.
         onPointerDownCapture={(event) => {
           const { target } = event;
           if (

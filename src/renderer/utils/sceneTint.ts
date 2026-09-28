@@ -88,6 +88,7 @@ export {
   SCENE_TINT_SURFACES,
   SCENE_TINT_TOKENS,
   sceneAccentHue,
+  sceneAccentSwatch,
   sceneSkyColour,
   isGreySky,
   sceneIconSwatch,

@@ -1,0 +1,207 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// THE MARK'S MENU, ON GLASS — the same menu in both amps (Ivan, 2026-09-28:
+// "the main menu, I loved the one on the glass version"), included by each
+// amp's own menus stylesheet so it stands in each amp's scope
+// (`MiniPlayer.scss`). A mixin and not a stylesheet, because a module's CSS
+// is written once however many trees load it.
+//
+// In the order it is used: the way back to the app, large; the app's pages
+// four to a row; the app's own settings tray; and the fold at its foot.
+// Never narrower than the tray needs, and as wide as its longest row up to
+// the window's own width less a margin — the amp can be 360px across, and a
+// German or French row is wider than the 320px the modes menu stops at.
+//
+// ITS OWN COLOURS, on the menu itself, so it reads the same over either amp:
+// the 2.0 amp's tokens are its decks' and would have painted this glass in
+// them.
+@mixin mark-menu {
+  .player-menu--mark {
+    --player-glass-lip: color-mix(in srgb, #{$white} 12%, transparent);
+    --player-glass-edge: color-mix(in srgb, #{$edge-tint} 12%, transparent);
+    --player-hover: color-mix(in srgb, #{$white} 10%, transparent);
+    --player-chosen: color-mix(in srgb, #{$white} 13%, transparent);
+    --player-text: #{$text-primary};
+    --player-text-muted: color-mix(in srgb, #{$text-primary} 80%, transparent);
+    --player-text-soft: color-mix(in srgb, #{$text-primary} 62%, transparent);
+    --player-ink-bright: var(--accent-light);
+
+    min-width: 300px;
+    max-width: calc(100vw - 16px);
+    gap: 4px;
+    padding: 8px;
+    border-radius: 22px;
+    background: color-mix(in srgb, var(--surface-base) 82%, transparent);
+    backdrop-filter: blur(26px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 var(--player-glass-lip),
+      inset 0 0 0 1px var(--player-glass-edge),
+      0 24px 60px rgba($black, 0.45);
+
+    // The tray is glass of the menu, not a solid slab laid on it.
+    .actions-menu__prefs {
+      margin-top: 2px;
+      border-radius: 14px;
+      background: color-mix(in srgb, #{$black} 22%, transparent);
+      box-shadow: inset 0 0 0 1px var(--player-glass-edge);
+    }
+  }
+
+  // The way back to the app: the one thing everybody opens this menu for.
+  .player-menu__home {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--player-chosen);
+    color: var(--player-text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: $transition-control;
+
+    > .player-icon:first-child {
+      width: 34px;
+      height: 34px;
+      padding: 8px;
+      border-radius: 11px;
+      background: color-mix(in srgb, var(--accent) 16%, transparent);
+      color: var(--player-ink-bright);
+    }
+
+    > .player-icon:last-child {
+      width: 14px;
+      height: 14px;
+      color: var(--player-text-soft);
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: color-mix(in srgb, #{$white} 18%, transparent);
+      outline: none;
+    }
+  }
+
+  .player-menu__home-text {
+    display: grid;
+    gap: 1px;
+    min-width: 0;
+
+    b {
+      font-size: 14px;
+      font-weight: $weight-semibold;
+    }
+
+    small {
+      overflow: hidden;
+      color: var(--player-text-soft);
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  // The app's pages, each behind the glyph the tab strip gives it, four to a
+  // row: this menu stands in for that strip.
+  .player-menu__pages {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 2px;
+    padding: 4px 0;
+  }
+
+  .player-menu__page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 0;
+    padding: 8px 2px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    color: var(--player-text-muted);
+    font: inherit;
+    font-size: 11px;
+    line-height: 1.2;
+    text-align: center;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible {
+      background: var(--player-hover);
+      color: var(--player-text);
+      outline: none;
+    }
+  }
+
+  .player-menu__page-icon {
+    display: grid;
+    width: 36px;
+    height: 36px;
+    place-items: center;
+    border-radius: 11px;
+    background: color-mix(in srgb, #{$white} 8%, transparent);
+    color: var(--player-ink-bright);
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .player-menu__rule {
+    width: auto;
+    height: 1px;
+    margin: 2px 8px;
+    border: 0;
+    background: color-mix(in srgb, #{$white} 10%, transparent);
+  }
+
+  // Fold to one line, with how else to do it at the row's end.
+  .player-menu__fold {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    min-height: 42px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    color: var(--player-text);
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    transition: $transition-control;
+
+    .player-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--player-text-soft);
+    }
+
+    small {
+      color: var(--player-text-soft);
+      font-size: 11.5px;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: var(--player-hover);
+      outline: none;
+    }
+  }
+}

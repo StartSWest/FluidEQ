@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
+import MenuIcon from '../icons/MenuIcon';
 import { useIsEuphoriaAchieved, winEuphoria } from '../utils/euphoriaMode';
 import { useTranslation } from '../utils/I18nContext';
 
@@ -43,9 +44,10 @@ export default function SupportRainbowUnlock({
       ) : (
         <button
           type="button"
-          className="button small subtle support-dialog__contributed"
+          className="button small subtle support-dialog__action"
           onClick={confirmContribution}
         >
+          <MenuIcon name="check" />
           {t('support.contributed')}
         </button>
       )}

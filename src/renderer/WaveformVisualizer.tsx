@@ -63,18 +63,12 @@ import {
 import {
   BASELINE_DASH,
   BASELINE_STROKE,
-  BODY_STOPS,
-  BODY_TINT_ROLES,
-  CLIP_LAYERS,
-  EUPHORIA_GLOW_ALPHA,
+  CLIP_STROKE,
   FFT_WAVEFORM_STYLES,
-  EUPHORIA_GLOW_WIDTH,
   GRID_DIVISIONS,
   GRID_INSET,
   GRID_STROKE,
-  NEON_LAYERS,
   NO_DASH,
-  NO_LAYERS,
   PAUSED_STROKE,
   PEAK_RELEASE_DB,
   SILENCE_DB,
@@ -84,9 +78,7 @@ import {
   SPECTRUM_BAR_ATTACK_MS,
   SPECTRUM_BAR_RELEASE_MS,
   SPECTRUM_HUE_FLAT,
-  SOFT_GLOW_WAVEFORM_STYLES,
-  TRACE_CYAN_STOPS,
-  TRACE_TINT_ROLES,
+  traceWalkStops,
   WAVEFORM_AMPLITUDE_MAX,
   WAVEFORM_BLEED,
   WAVEFORM_HEIGHT,
@@ -118,10 +110,13 @@ import {
 } from './utils/euphoriaMode';
 import { toggleTitlebarWave, useTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
-import { readAccentLight } from './utils/theme';
-import { rainbowGradientStops, rainbowRgbAt } from './utils/rainbowPalette';
-import { tintedSpectrumHue, tintedStops } from './utils/sceneAccentRamp';
+import { readSurface } from './utils/theme';
+import { rainbowGradientStops } from './utils/rainbowPalette';
+import { CRISP_BAR_STYLES, paintCrispBars } from './waveformBars';
 import './styles/WaveformVisualizer.scss';
+
+/** How strong fluid's spectrum stands behind its wave. */
+const FLUID_BAR_ALPHA = 0.34;
 
 type TWaveformCycleStyle = WaveformStyle | 'off';
 
@@ -422,12 +417,10 @@ const WaveformVisualizer = () => {
     const framePoints = isOffRef.current
       ? pointsRef.current
       : waveGate.points();
-    // The same in both modes. Rainbow's "smoother" look is bought with
-    // FRAME RATE, not with easing: `useSmoothFrames` caps the loop at
-    // thirty frames a second at rest and lets it run at the display's own
-    // rate in euphoria. Lengthening the half-life for the mode instead
-    // made the trace lag the music, which is the opposite of smooth — it
-    // is the same picture arriving late.
+    // The same in Rainbow and out of it, both drawn at the display's own
+    // rate. Lengthening the half-life for Rainbow once made the trace lag
+    // the music, which is the opposite of smooth — it is the same picture
+    // arriving late.
     //
     // Every style runs the spectrum bars' own ballistics: snap up on the
     // frame a hit lands, ease back over a tenth of a second. That pair is
@@ -580,17 +573,40 @@ const WaveformVisualizer = () => {
       moving = moving || held !== undefined;
     }
 
-    // Spectrum bars — imperative rather than through the shape, because
-    // each bar carries its own hue and its own vertical gradient and a
-    // single shared fillStyle on a Path2D can express neither. Ported
-    // number-for-number from the FluidEQ site's signal-deck (the panel the
-    // "RAINBOW MODE" screenshot Ivan pointed at is showing): a bar every
-    // eleven pixels, floor at 82% down the pane, 2px gap, per-bar hue
-    // sweep 184°→296°, and a per-bar vertical gradient with the top alpha
-    // dimmer in cyan mode (0.24) than in rainbow (0.31). The energy
-    // reading is real FFT points from the analyser, downsampled peak-per-
-    // bin; a `Math.max(0.12, energy)` floor keeps short stumps showing
-    // through silence the way the site's synthetic movement does.
+    // The trace's colours, left to right across the pane and pinned to it
+    // rather than to the figure, so a frequency is the same colour loud or
+    // quiet: the mode's rainbow — Lagoon, or a Plus visualizer's — or the
+    // primary's walk in Normal mode. One rule for every style; the whole
+    // pane changes together.
+    const traceStops = isEuphoricRef.current
+      ? rainbowGradientStops()
+      : traceWalkStops();
+    const traceRamp = context.createLinearGradient(
+      WAVEFORM_BLEED,
+      0,
+      WAVEFORM_BLEED + boxWidth,
+      0,
+    );
+    traceStops.forEach((stop) => {
+      traceRamp.addColorStop(stop.offset, stop.colour);
+    });
+    // The lit edge on each piece of the bar styles: the primary's light in
+    // Normal mode, and a plain light over the rainbow, which has no light of
+    // its own to take.
+    const capInk = isEuphoricRef.current
+      ? 'rgba(255, 255, 255, 0.85)'
+      : readSurface('--accent-light', '#c8fff8');
+    const pane = {
+      x: WAVEFORM_BLEED,
+      y: WAVEFORM_BLEED,
+      width: boxWidth,
+      height: boxHeight,
+    };
+
+    // Fluid's spectrum behind its wave: a bar every eleven pixels in the
+    // trace's own colours, faint enough that the wave over them is what is
+    // read. They swept their own hue, cyan into violet, whatever the window
+    // was wearing.
     if (styleRef.current === 'fluid') {
       const barCount = spectrumBarCount(boxWidth);
       const buffer = spectrumMagnitudesRef.current;
@@ -607,208 +623,74 @@ const WaveformVisualizer = () => {
           undefined,
           MAX_GAIN - MIN_GAIN,
         ) || moving;
-      setAlpha(context, 1);
+      setAlpha(context, FLUID_BAR_ALPHA);
       paintSpectrumBars(
         context,
-        // The bars stand on the bottom of the stage rather than on 82% of
-        // it. The site's own signal-deck leaves that gap because its canvas
-        // is much taller than this strip; here it read as the spectrum
-        // floating with a band of empty card beneath it.
-        {
-          x: WAVEFORM_BLEED,
-          y: WAVEFORM_BLEED,
-          width: boxWidth,
-          height: boxHeight,
-        },
+        pane,
         buffer,
         isEuphoricRef.current,
-        tintedSpectrumHue(SPECTRUM_HUE_FLAT),
-        // No look to tune here — the pane is what it is, so this is always
-        // the spacing the form was drawn at.
+        SPECTRUM_HUE_FLAT,
         0,
-        // In Rainbow mode each bar is its place in the palette the mode is
-        // using, as the trace over it is, lit at the top and fading out.
-        isEuphoricRef.current
-          ? (across, _energy, y, height, topAlpha) => {
-              const [red, green, blue] = rainbowRgbAt(across);
-              const bar = context.createLinearGradient(0, y, 0, y + height);
-              bar.addColorStop(
-                0,
-                `rgba(${red}, ${green}, ${blue}, ${topAlpha})`,
-              );
-              bar.addColorStop(1, `rgba(${red}, ${green}, ${blue}, 0.06)`);
-              return bar;
-            }
-          : undefined,
+        () => traceRamp,
       );
+      setAlpha(context, 1);
     }
-
-    // The spectrum, left to right, pinned to the pane rather than to the
-    // figure — which is what an `objectBoundingBox` gradient across a
-    // full-width path amounted to, and what keeps a given frequency the same
-    // colour whether the frame is loud or quiet.
-    //
-    // One rule for every style: rainbow when euphoria is on, cyan tones
-    // when it is off. No per-style distinction — the whole pane changes
-    // together, and the mode carries the difference, not the shape.
-    //
-    // The rainbow is the mode's own palette (`rainbowPalette.ts`) — Lagoon,
-    // or the Plus visualizer's colours — first to last across the pane. It
-    // was a fixed spectrum of its own, lime and yellow and pink, the one
-    // thing in Rainbow mode that ignored the palette (Ivan, 2026-09-26:
-    // "make top wave meter also same arcoiris as the theme not fully
-    // rainbow").
-    const traceStops = isEuphoricRef.current
-      ? rainbowGradientStops()
-      : tintedStops(TRACE_CYAN_STOPS, TRACE_TINT_ROLES);
-    const traceRamp = context.createLinearGradient(
-      WAVEFORM_BLEED,
-      0,
-      WAVEFORM_BLEED + boxWidth,
-      0,
-    );
-    traceStops.forEach((stop) => {
-      traceRamp.addColorStop(stop.offset, stop.colour);
-    });
 
     const chosen = paintRef.current;
-    const linePath = shape.line ? bake(shape.line) : undefined;
-    const mirrorPath = shape.mirror ? bake(shape.mirror) : undefined;
-    const figurePath = shape.fill ? bake(shape.fill) : undefined;
-
-    // The halo, and only in euphoria. The line where there is one, the filled
-    // body where there is not, so every style is lit rather than only the
-    // stroked ones.
-    //
-    // UNDER the figure rather than over it, which is the whole of this
-    // paragraph. A canvas stroke straddles its path, so three and a half of
-    // these seven pixels were landing inside the shape — and on the styles
-    // built from separate pieces there is not that much shape to land in. A bar
-    // is `step * 0.6` wide, which at the analyser's resolution is under three
-    // pixels, so the halo covered the piece entirely and the spectrum fill
-    // underneath stopped being visible at all. Drawn first, the fill paints back
-    // over the inner half and only the outer half is left showing, which is what
-    // a glow round a shape is supposed to look like.
-    //
-    // It stays a plain centred stroke rather than the masked double-weight one
-    // the graph's border uses: this is light coming off the figure and not a
-    // border, so having it read faintly through a translucent fill is right
-    // where a border showing through would not be.
-    const glowPath = linePath ?? figurePath;
-    if (isEuphoricRef.current && glowPath) {
-      setAlpha(context, EUPHORIA_GLOW_ALPHA);
-      context.strokeStyle = traceRamp;
-      context.lineWidth = EUPHORIA_GLOW_WIDTH;
-      context.lineCap = 'round';
-      context.stroke(glowPath);
-    }
-
-    // How the spectrum family is lit: a soft coloured shadow under the
-    // figure rather than the neon halo, in the same two colours the
-    // site's signal-deck wave uses. Declared here because both the fill
-    // below and the stroke further down install it.
-    const isSoftGlow =
-      SOFT_GLOW_WAVEFORM_STYLES.has(styleRef.current) && !isPausedRef.current;
-    const softGlowColour = isEuphoricRef.current
-      ? 'rgba(255, 60, 172, 0.55)'
-      : readAccentLight(0.66, 'rgba(156, 255, 244, 0.66)');
-
-    if (figurePath) {
-      let ramp: CanvasGradient = traceRamp;
-      if (chosen.fill === 'body') {
-        // Built only for the styles that ask for it, since most do not.
-        const bodyRamp = context.createLinearGradient(
-          WAVEFORM_BLEED,
-          0,
-          WAVEFORM_BLEED + boxWidth,
-          0,
-        );
-        tintedStops(BODY_STOPS, BODY_TINT_ROLES).forEach((stop) => {
-          bodyRamp.addColorStop(stop.offset, stop.colour);
-        });
-        ramp = bodyRamp;
-      }
-      context.save();
-      if (isSoftGlow) {
-        // Blocks, beads and blades are filled rather than stroked, so
-        // without this they would be the only members of the family with
-        // no light on them at all — the glow has to go on the fill, not
-        // only on the stroke.
-        context.shadowColor = softGlowColour;
-        context.shadowBlur = isEuphoricRef.current ? 10 : 12;
-      }
-      setAlpha(context, chosen.fillAlpha);
-      context.fillStyle = ramp;
-      context.fill(figurePath);
-      context.restore();
-    }
-
-    // Which light the trace is under. Clipping outranks paused, exactly as the
-    // later stylesheet rule outranked the earlier one: a paused analyser that
-    // was clipping when it stopped keeps the warning.
-    //
-    // Spectrum is the exception: it uses the site's `shadowBlur: 8` glow
-    // rather than the multi-stroke pink+cyan halo the other styles wear,
-    // because that is how the nav-signal wave the port is meant to match
-    // is lit. Halo layers are dropped for it below, and the final stroke
-    // is drawn inside a save/restore that installs the shadow.
-    let haloLayers = NEON_LAYERS;
+    // Clipping outranks paused, as it always did: a paused analyser that was
+    // clipping when it stopped keeps the warning.
+    let strokeColour: string | CanvasGradient = traceRamp;
     if (isOverloadingRef.current) {
-      haloLayers = CLIP_LAYERS;
+      strokeColour = CLIP_STROKE;
     } else if (isPausedRef.current) {
-      haloLayers = NO_LAYERS;
-    } else if (SOFT_GLOW_WAVEFORM_STYLES.has(styleRef.current)) {
-      // The spectrum family is lit by a soft shadow instead — see the
-      // set's own comment for why the neon halo does not suit a figure
-      // made of separate pieces.
-      haloLayers = NO_LAYERS;
+      strokeColour = PAUSED_STROKE;
     }
-    const rainbowActive = isEuphoricRef.current;
-    // The site's signal-deck wave numbers, shared by every stroked member
-    // of the spectrum family: a heavy round-capped line over a soft
-    // shadow, in the same trace ramp the fill uses so the whole drawing
-    // sits in one colour system. Rainbow's blur is the lower of the two —
-    // the gradient is already doing the work there, so the halo does not
-    // have to.
-    const spectrumStrokeWidth = rainbowActive ? 4.2 : 3.2;
-    const spectrumShadowBlur = rainbowActive ? 14 : 18;
 
-    const strokeColour = isPausedRef.current ? PAUSED_STROKE : traceRamp;
+    // The bar styles on the screen's own pixels, while the analyser's bands
+    // are there (`waveformBars.ts`); their shapes are the fallback.
+    const isCrisp =
+      spectrumMagnitudes !== undefined &&
+      CRISP_BAR_STYLES.has(styleRef.current);
+    if (spectrumMagnitudes !== undefined && isCrisp) {
+      setAlpha(context, chosen.fillAlpha);
+      paintCrispBars(
+        context,
+        ratio,
+        pane,
+        spectrumMagnitudes,
+        styleRef.current,
+        isOverloadingRef.current ? CLIP_STROKE : traceRamp,
+        capInk,
+      );
+      setAlpha(context, 1);
+    }
 
+    const linePath = !isCrisp && shape.line ? bake(shape.line) : undefined;
+    const mirrorPath =
+      !isCrisp && shape.mirror ? bake(shape.mirror) : undefined;
+    const figurePath = !isCrisp && shape.fill ? bake(shape.fill) : undefined;
+
+    // Flat: no halo, no shadow, no translucent copy under the figure. The
+    // pieces of a bar style carry their own light as a cap instead.
+    if (figurePath) {
+      setAlpha(context, chosen.fillAlpha);
+      context.fillStyle = traceRamp;
+      context.fill(figurePath);
+    }
     context.lineCap = chosen.lineCap;
-    const strokeFigure = (path: Path2D) => {
-      haloLayers.forEach((layer) => {
-        setAlpha(context, chosen.strokeAlpha * layer.alpha);
-        context.strokeStyle = layer.colour;
-        context.lineWidth = chosen.strokeWidth + layer.widen;
-        context.stroke(path);
-      });
-      if (isSoftGlow) {
-        context.save();
-        context.shadowColor = softGlowColour;
-        context.shadowBlur = spectrumShadowBlur;
-        context.lineJoin = 'round';
-        context.lineCap = 'round';
-        setAlpha(context, chosen.strokeAlpha);
-        context.strokeStyle = strokeColour;
-        context.lineWidth = spectrumStrokeWidth;
-        context.stroke(path);
-        context.restore();
-        return;
-      }
-      setAlpha(context, chosen.strokeAlpha);
-      context.strokeStyle = strokeColour;
-      context.lineWidth = chosen.strokeWidth;
-      context.stroke(path);
-    };
+    context.lineJoin = 'round';
+    setAlpha(context, chosen.strokeAlpha);
+    context.strokeStyle = strokeColour;
+    context.lineWidth = chosen.strokeWidth;
     if (linePath) {
-      strokeFigure(linePath);
+      context.stroke(linePath);
     }
-    // The mirrored edge, stroked the same way, so the shape is outlined rather
-    // than being a lit top over a bare bottom.
+    // The mirrored edge, stroked the same way, so the shape is outlined
+    // rather than being a lit top over a bare bottom.
     if (mirrorPath) {
-      strokeFigure(mirrorPath);
+      context.stroke(mirrorPath);
     }
+    setAlpha(context, 1);
 
     // Nothing else is painted here. The meta row and the style-name pill
     // both live in DOM, outside the stage, so they sit on the pane rather

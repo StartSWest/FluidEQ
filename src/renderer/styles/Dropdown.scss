@@ -43,7 +43,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     &:hover:not([aria-disabled='true']) {
       border-color: $border-field-hover;
-      background: color-mix(in srgb, $secondary-default 14%, transparent);
+      background: $surface-control-hover;
     }
 
     &:focus-visible {

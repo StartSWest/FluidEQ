@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import PowerGlyph from '../icons/PowerGlyph';
 import { useTranslation } from '../utils/I18nContext';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import useEqualizerPower from '../utils/useEqualizerPower';
@@ -92,14 +93,7 @@ const SideBarEngine = ({
         disabled={isBlockingError}
         onClick={press}
       >
-        <svg
-          className="side-bar__power-glyph"
-          viewBox="0 0 24 24"
-          aria-hidden="true"
-        >
-          <path d="M12 3v9" />
-          <path d="M6.6 6.6a7.6 7.6 0 1 0 10.8 0" />
-        </svg>
+        <PowerGlyph />
       </button>
       <span className="side-bar__power-name">{t('sidebar.systemEq')}</span>
       <span className={`side-bar__power-state${stateClass}`}>{state}</span>

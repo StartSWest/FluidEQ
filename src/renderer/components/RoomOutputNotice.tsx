@@ -10,6 +10,7 @@ import type { TAudioEngine } from 'common/audioEngine';
 import type { IAudioDevice } from 'common/constants';
 import type { IOutputFormat } from 'main/outputFormat';
 import { useRoomLive } from '../dsp/useRoomLive';
+import MenuIcon from '../icons/MenuIcon';
 import {
   readOutputFormat,
   restoreOutputFormat,
@@ -19,6 +20,10 @@ import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useNoticeClaim } from '../utils/noticeTurn';
 import Button from '../widgets/Button';
+import CompactFrame from './CompactFrame';
+// The engine's spot under the titlebar, which this shares with the output
+// notice that renders it.
+import '../styles/DeviceProfiles.scss';
 
 interface IRoomOutputNoticeProps {
   engine: TAudioEngine | null;
@@ -137,39 +142,23 @@ const RoomOutputNotice = ({
   const isDone = phase === 'done' || phase === 'undoing';
 
   return createPortal(
-    <aside
+    <CompactFrame
       className="device-apo-notice room-output-notice"
-      role="alertdialog"
-      aria-labelledby="room-output-notice-title"
+      // The speaker for the offer; the tick once the output is 7.1.
+      icon={<MenuIcon name={isDone ? 'check' : 'volume'} />}
+      title={t(isDone ? 'output.roomSevenOneTitle' : 'output.roomStereoTitle', {
+        device: device.name,
+      })}
+      titleId="room-output-notice-title"
+      // An offer over the page, not a dialog in front of it.
+      role="dialog"
+      aria-modal="false"
       aria-describedby="room-output-notice-body"
-    >
-      <div className="device-apo-notice__copy">
-        <span className="apo-badge">{t('output.roomBadge')}</span>
-        <h2 id="room-output-notice-title">
-          {t(isDone ? 'output.roomSevenOneTitle' : 'output.roomStereoTitle', {
-            device: device.name,
-          })}
-        </h2>
-        <p id="room-output-notice-body">
-          {t(isDone ? 'output.roomSevenOneBody' : 'output.roomStereoBody')}
-        </p>
-        {phase === 'failed' ? (
-          <p className="device-apo-notice__error">
-            {t('output.sevenOneFailed')}
-          </p>
-        ) : undefined}
-      </div>
-      <div className="device-apo-notice__actions">
-        {isDone ? (
+      onClose={() => setDismissedId(deviceId)}
+      closeLabel={t('app.dismiss')}
+      actions={
+        isDone ? (
           <>
-            <Button
-              ariaLabel={t('output.gotIt')}
-              isDisabled={false}
-              className="small"
-              handleChange={() => setDismissedId(deviceId)}
-            >
-              {t('output.gotIt')}
-            </Button>
             <Button
               ariaLabel={t('output.undoSevenOne')}
               isDisabled={phase === 'undoing'}
@@ -180,9 +169,25 @@ const RoomOutputNotice = ({
             >
               {t('output.undoSevenOne')}
             </Button>
+            <Button
+              ariaLabel={t('output.gotIt')}
+              isDisabled={false}
+              className="small"
+              handleChange={() => setDismissedId(deviceId)}
+            >
+              {t('output.gotIt')}
+            </Button>
           </>
         ) : (
           <>
+            <Button
+              ariaLabel={t('output.notNow')}
+              isDisabled={false}
+              className="small subtle"
+              handleChange={() => setDismissedId(deviceId)}
+            >
+              {t('output.notNow')}
+            </Button>
             <Button
               ariaLabel={t('output.setSevenOne')}
               isDisabled={phase === 'setting'}
@@ -197,18 +202,17 @@ const RoomOutputNotice = ({
                   : 'output.setSevenOne',
               )}
             </Button>
-            <Button
-              ariaLabel={t('output.notNow')}
-              isDisabled={false}
-              className="small subtle"
-              handleChange={() => setDismissedId(deviceId)}
-            >
-              {t('output.notNow')}
-            </Button>
           </>
-        )}
-      </div>
-    </aside>,
+        )
+      }
+    >
+      <p id="room-output-notice-body">
+        {t(isDone ? 'output.roomSevenOneBody' : 'output.roomStereoBody')}
+      </p>
+      {phase === 'failed' ? (
+        <p className="device-apo-notice__error">{t('output.sevenOneFailed')}</p>
+      ) : undefined}
+    </CompactFrame>,
     document.body,
   );
 };

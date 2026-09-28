@@ -32,7 +32,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   max-width: 100%;
   margin: $spacing-xs 4px 0;
   padding: 3px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-l;
   background: $block-lift;
 }
@@ -128,7 +128,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   min-width: 0;
   padding: 11px 14px 12px;
   color: $text-muted;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   background:
     linear-gradient(
@@ -254,7 +254,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .admin-account {
   @include animate(rise-in, $motion-base, $ease-out);
   min-width: 0;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   transition:
     border-color $motion-fast $ease-out,

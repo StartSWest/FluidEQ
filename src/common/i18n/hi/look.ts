@@ -61,11 +61,13 @@ const look: Partial<Dictionary> = {
   'look.palette.levelHint':
     'रंग अक्ष पर ऊपर जाता है और हर पट्टी की तीव्रता दिखाता है।',
   'look.palette.heat': 'ताप',
-  'look.palette.heatHint': 'रंग तेज़ी के साथ बदलता है, ठंडे से लाल तक।',
+  'look.palette.heatHint': 'रंग आवाज़ के साथ चलता है, पहले रंग से आख़िरी तक।',
   'look.palette.auto': 'ऑटो',
   'look.palette.autoHint':
     'हर आकार अपने रंग में — सड़क तेज़ी से, बार स्थिति से रंगते हैं।',
   'look.colours': 'रंग',
+  'look.coloursFollowWindow':
+    'विंडो के रंगों का अनुसरण कर रहा है। किसी एक को बदलें ताकि वे इस शैली के अपने हों।',
   'look.colourValue': 'रंग {number}: {colour}',
   'look.removeColour': 'रंग {number} हटाएँ',
   'look.custom': 'कस्टम',

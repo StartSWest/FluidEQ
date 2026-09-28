@@ -1,0 +1,218 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use '../color' as *;
+@use '../theme' as *;
+@use 'miniPlayerParts' as *;
+
+// The player's equalizer: its keys, its screen, its faders and its foot.
+
+// and Clear EQ at the right end, and THEY NEVER BREAK IN TWO (Ivan,
+// 2026-09-22). A row that wraps takes a line off the faders and leaves the deck taller than the
+// window wanted; and a control that has fallen under the one it belongs
+// beside has stopped being part of a row at all. So they hold their line, and
+// give up their WORDS instead as the room runs out — the names first, then
+// the values, leaving the glyph and the lamp that were always the quickest
+// way to read them. Every one keeps its name on its own `title`.
+.player-eq__keys,
+.player-eq__foot {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  // NOTHING IN A ROW SHRINKS, AND NO WORD IN IT BREAKS. Both are what makes
+  // the row overflow when it is too narrow, which is the only signal
+  // `useRowFit` has that it must give a word up. Left to flex's own defaults
+  // the keys shrank instead: the row never overflowed, no step was ever
+  // taken, and at 480px "EQ mode Normal" wrapped INSIDE its key — a
+  // 49px-tall key beside 26px-tall ones, with "15 Band" cut to "1..." next
+  // to it (measured in the harness, 2026-09-22).
+  white-space: nowrap;
+
+  > * {
+    flex: none;
+  }
+
+  > :last-child {
+    margin-left: auto;
+  }
+
+  // NO GLYPH IN A KEY IS BIGGER THAN THE KEY'S OWN TYPE. The EQ page draws
+  // these same controls at its own scale, where a 24 or 28px glyph sits
+  // beside 13px text; dropped into a 26px key on this deck, the glyph set
+  // the key's height — the EQ mode key measured 36px and the band layout
+  // 32px beside 26px neighbours (harness, 2026-09-22). Capped rather than
+  // set, so the 11px chevrons beside them are left alone.
+  svg {
+    max-width: 14px;
+    max-height: 14px;
+  }
+
+  // AND NO LABEL INSIDE A KEY COMPRESSES TO AN ELLIPSIS. The page's own
+  // labels shrink and clip, which on this deck ate the words a step at a
+  // time and — worse — kept the row from ever overflowing, so `useRowFit`
+  // saw a row that fitted and took no step at all: "15 Band" read "1..."
+  // and "Normal" read "N" while the row still claimed to fit.
+  .band-designs__current,
+  .eq-mode-trigger__summary,
+  .player-led__value {
+    flex: none;
+    overflow: visible;
+  }
+
+  // For the one layout in which `useRowFit` reads what the row's content
+  // takes on one line, whatever width the deck has given the row: the
+  // window's floor is that reading, and a row that fits reports its own
+  // width otherwise (`scrollWidth`), which in a wide window is the window.
+  &.is-measuring {
+    width: max-content;
+  }
+}
+
+// THE EQ PAGE'S OWN PICKERS AND BUTTONS, AS KEYS OF THIS DECK. They used to
+// keep their looks from the page — the presets picker and EQ mode the app's
+// field surface, the band layout, Clear EQ and the queue's Library key the
+// app's quiet outline button — beside lamp keys and transport keys drawn as
+// keys, and the row read as three products (Ivan, 2026-09-22: "the one on
+// preset and lib don't look like the one on EQ mode or the play controls").
+// Every one of them wears the amp's key face now, at the row's height and
+// radius, in the amp's type; open, it is lit the way a lamp key is on. The
+// app's own class names stay, because the controls are the page's controls
+// and not copies.
+.mini-player {
+  .rich-pick__trigger,
+  .eq-mode-trigger,
+  .button.small.subtle {
+    @include player-key-face;
+    min-height: 26px;
+    padding-block: 3px;
+    border-radius: 7px;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  // Lit while OPEN, and only then. The page's picker also lights itself
+  // whenever a preset is applied (`.is-active`), and on this deck that put
+  // a permanently lit key beside the ON and SMART lamps — a dropdown reading
+  // as a switch. A picker is not a switch; its state is its name.
+  .rich-pick__trigger[aria-expanded='true'],
+  .eq-mode-trigger[aria-expanded='true'],
+  .quick-layouts.is-open .quick-layouts__trigger {
+    @include player-key-on;
+  }
+
+  .rich-pick__trigger.is-active:not([aria-expanded='true']) {
+    border-color: color-mix(in srgb, var(--accent) 22%, rgba($white, 0.18));
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--player-key), $white 7%),
+      var(--player-key-end)
+    );
+    color: var(--player-text-soft);
+  }
+
+  // The figure beside "EQ mode", on the deck's own dim ink rather than the
+  // page's faint grey, which vanished on the tinted key.
+  .eq-mode-trigger__summary {
+    color: var(--player-text-dim);
+  }
+}
+
+// The preset keeps its name here, always (Ivan, 2026-09-21). The EQ page
+// drops it below 940px because eleven controls share that toolbar; this
+// deck holds three, and a lone star says nothing about what is applied.
+.mini-player .voicing-pick .rich-pick__trigger span {
+  display: inline;
+}
+
+// ================================================= Smart EQ's split key ====
+//
+// ONE KEY, DRAWN ONCE (Ivan, 2026-09-22: "needs to be integrated, not two
+// separated things"). The switch and the caret that chooses how it listens
+// each wore the whole key face — the edge, four rounded corners and the drop
+// shadow — because the face is given to every quiet button on this deck
+// (`.mini-player .button.small.subtle` above), and that rule outranked the
+// squared inner corners written for this key. So the two halves stood side
+// by side as two keys with a seam of shadow between them.
+//
+// The housing wears the face now, once, the way the titlebar's capsule
+// does; the halves give it up — edge, corners, fill and shadow, in every
+// state the face has — and are divided by the same hairline that capsule
+// uses. On, the whole key lights; it lit two thirds of its width before.
+.mini-player .player-split {
+  @include player-key-face;
+  display: inline-flex;
+  flex: none;
+  align-items: stretch;
+  overflow: hidden;
+  min-height: 26px;
+  padding: 0;
+  border-radius: 7px;
+  // The housing is not a control; its halves are.
+  cursor: default;
+
+  > .button.player-split__main,
+  > .button.player-split__caret {
+    &,
+    &:hover:not(:disabled),
+    &:active:not(:disabled) {
+      min-height: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      // The housing goes down under the press, as a key does; a half that
+      // went down inside it as well would sink twice.
+      transform: none;
+    }
+
+    // Which half the pointer is on, without drawing a second key.
+    &:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--accent) 10%, transparent);
+    }
+  }
+
+  > .button.player-split__caret {
+    // The seam below hangs from it; the app's button is not positioned.
+    position: relative;
+    min-width: 0;
+    padding: 0 7px;
+
+    // The seam: the hairline the titlebar's capsule draws between its
+    // halves, short of the key's edges.
+    &::after {
+      position: absolute;
+      top: 5px;
+      bottom: 5px;
+      left: 0;
+      width: 1px;
+      background: color-mix(in srgb, $secondary-light 18%, transparent);
+      content: '';
+      pointer-events: none;
+    }
+  }
+
+  &:has(> .player-split__main[aria-pressed='true']:not(:disabled)) {
+    @include player-key-on;
+  }
+
+  // Measuring: the lamp breathes while Smart EQ listens.
+  &.is-running .player-led__lamp {
+    animation: player-lamp-breathe 1.2s ease-in-out infinite;
+  }
+}
+
+@keyframes player-lamp-breathe {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.button.is-saving .player-led__lamp {
+  background: var(--player-lamp-warm);
+  box-shadow: 0 0 6px var(--player-lamp-warm);
+}

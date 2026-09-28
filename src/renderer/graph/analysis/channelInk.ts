@@ -4,7 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { rampRgba, type IAnalysisFrame } from './analysisFrame';
+import { floorInk } from '../../utils/windowInk';
+import {
+  rampRgba,
+  type IAnalysisFrame,
+  type IAnalysisReading,
+} from './analysisFrame';
 
 /**
  * Telling the two channels apart.
@@ -107,6 +112,12 @@ const turnHue = (colour: string, degrees: number): string => {
 export const mateColours = (colours: readonly string[]): readonly string[] =>
   colours.map((colour) => turnHue(colour, MATE_TURN));
 
+/**
+ * The swatch of a mark rather than a reading — a peak hold, a high-water
+ * mark — which is white on every view, as the marks themselves are.
+ */
+export const MARK_KEY_INK = 'rgba(255, 255, 255, 0.95)';
+
 /** How tall the legend's text is, and how much room the chip leaves round it. */
 const LEGEND_TEXT = 11;
 const LEGEND_PAD = 5;
@@ -168,9 +179,10 @@ export const paintLegend = (
   const left = plot.left + 10;
   const top = plot.bottom - LEGEND_FLOOR - height;
   context.globalAlpha = band.opacity * 0.9;
-  // A recessed block, the same idea as the app's own: dark, barely there, so
-  // the letters read over any drawing without hiding a decibel of it.
-  context.fillStyle = 'rgba(8, 12, 18, 0.62)';
+  // A recessed block, the same idea as the app's own: the window's floor,
+  // barely there, so the letters read over any drawing without hiding a
+  // decibel of it.
+  context.fillStyle = floorInk(0.62, 0.3);
   context.beginPath();
   context.roundRect(left, top, width, height, height / 2);
   context.fill();
@@ -202,18 +214,19 @@ export const paintLegend = (
   context.globalAlpha = 1;
 };
 
-/** The two channels, named and swatched in their own colours. */
-export const paintChannelLegend = (
-  frame: IAnalysisFrame,
+/** The two readings of a split, named and swatched in their own colours. */
+export const channelLegend = (
+  reading: Pick<IAnalysisReading, 'colours' | 'mate'>,
   labels: readonly [string, string],
-): void =>
-  paintLegend(frame, [
-    { label: labels[0], ink: rampRgba(frame.colours, 0.75, 1) },
-    { label: labels[1], ink: rampRgba(frame.mate, 0.75, 1) },
-  ]);
+): readonly ILegendEntry[] => [
+  { label: labels[0], ink: rampRgba(reading.colours, 0.75, 1) },
+  { label: labels[1], ink: rampRgba(reading.mate, 0.75, 1) },
+];
 
 /** The same frame, painted in the other channel's colours. */
-export const asMate = (frame: IAnalysisFrame): IAnalysisFrame => ({
+export const asMate = <TReading extends IAnalysisReading>(
+  frame: TReading,
+): TReading => ({
   ...frame,
   colours: frame.mate,
 });

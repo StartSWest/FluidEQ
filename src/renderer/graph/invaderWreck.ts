@@ -1,4 +1,5 @@
 import { BURST, PixelRect, SHIP, spriteRects } from 'common/graphInvaders';
+import rectsPath from './pixelRects';
 
 /**
  * The last ship coming apart.
@@ -28,11 +29,12 @@ const noise = (seed: number) => {
   return v - Math.floor(v);
 };
 
-const rects = (path: Path2D, list: readonly PixelRect[]) => {
-  list.forEach(([x, y, w, h]) => path.rect(x, y, w, h));
-};
-
-export const createWreckPaths = (
+/**
+ * The wreck at an age, as pixel rectangles: the fighter's own pixels flying
+ * out by layer, the fire and the burst at its heart. What the page's
+ * canvas and the engine's invaders both draw.
+ */
+export const wreckLayout = (
   centreX: number,
   centreY: number,
   ship: number,
@@ -42,10 +44,14 @@ export const createWreckPaths = (
   // Out fast and settling, the way debris from a blast actually travels.
   const out = 1 - (1 - t) ** 3;
   const size = ship * (1 - t * 0.65);
-  const hull = new Path2D();
-  const canopy = new Path2D();
-  const stripes = new Path2D();
-  const layers: Record<string, Path2D> = { X: hull, C: canopy, R: stripes };
+  const hull: PixelRect[] = [];
+  const canopy: PixelRect[] = [];
+  const stripes: PixelRect[] = [];
+  const layers: Record<string, PixelRect[]> = {
+    X: hull,
+    C: canopy,
+    R: stripes,
+  };
   SHIP.frames[0].forEach((row, r) => {
     [...row].forEach((glyph, c) => {
       const layer = layers[glyph];
@@ -63,7 +69,7 @@ export const createWreckPaths = (
         dy * ship +
         Math.sin(heading) * reach * out +
         ship * 10 * t * t;
-      layer.rect(x - size / 2, y - size / 2, size, size);
+      layer.push([x - size / 2, y - size / 2, size, size]);
     });
   });
 
@@ -71,28 +77,24 @@ export const createWreckPaths = (
   // and a ring of sparks thrown out faster than the debris. The burst
   // stays near a ship pixel in size — scaled up to a fireball it became a
   // wall of brown squares twice the ship's width, which read as a glitch.
-  const heart = new Path2D();
   const grow = ship * (0.6 + out * 0.7);
-  rects(
-    heart,
-    spriteRects(
-      BURST.frames[0],
-      centreX,
-      centreY - (BURST.height * grow) / 2,
-      grow,
-    ),
+  const heart = spriteRects(
+    BURST.frames[0],
+    centreX,
+    centreY - (BURST.height * grow) / 2,
+    grow,
   );
-  const fire = new Path2D();
+  const fire: PixelRect[] = [];
   const spark = ship * 0.7 * (1 - t);
   for (let index = 0; index < SPARKS; index += 1) {
     const heading = (index / SPARKS) * Math.PI * 2 + noise(index * 13) * 0.5;
     const reach = ship * (16 + noise(index * 5 + 1) * 30);
-    fire.rect(
+    fire.push([
       centreX + Math.cos(heading) * reach * out - spark / 2,
       centreY + Math.sin(heading) * reach * out - spark / 2 + ship * 6 * t * t,
       spark,
       spark,
-    );
+    ]);
   }
 
   return {
@@ -105,6 +107,27 @@ export const createWreckPaths = (
     glow: 1 - t,
     /** The first tenth of a second is a white flash. */
     flash: age < 0.1,
+  };
+};
+
+export type WreckLayout = ReturnType<typeof wreckLayout>;
+
+export const createWreckPaths = (
+  centreX: number,
+  centreY: number,
+  ship: number,
+  age: number,
+) => {
+  const layout = wreckLayout(centreX, centreY, ship, age);
+  return {
+    hull: rectsPath(layout.hull),
+    canopy: rectsPath(layout.canopy),
+    stripes: rectsPath(layout.stripes),
+    fire: rectsPath(layout.fire),
+    heart: rectsPath(layout.heart),
+    glow: layout.glow,
+    flash: layout.flash,
+    layout,
   };
 };
 

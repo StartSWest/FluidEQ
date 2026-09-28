@@ -18,8 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import { GraphPalette, IGraphBallistics } from 'common/graphStyles';
-import { WAVEFORM_STYLES, WaveformStyle } from 'common/waveformStyles';
-import type { IRampRole } from './utils/sceneAccentRamp';
+import type { WaveformStyle } from 'common/waveformStyles';
+import { readSurface, type TSurfaceName } from './utils/theme';
 
 /**
  * How the titlebar waveform is drawn, and the numbers behind it.
@@ -451,71 +451,50 @@ export const SILENCE_DB = -70;
 export const PEAK_RELEASE_DB = 1.1;
 
 /**
- * The paints the stylesheet used to hold.
- *
- * `$primary-lighter` at the three weights its rules carried, and the translucent
- * body ramp that was the `#waveform-fill` gradient in the old `<defs>`. Written
- * out in the colour space a canvas speaks because there is nothing left to ask:
- * whatever this file decides is what gets painted.
+ * The pane's own furniture: faint vertical rules and a dashed centre, so it
+ * reads as an instrument rather than a stray line on a dark rectangle.
  */
-export const GRID_STROKE = 'rgba(216, 210, 255, 0.07)';
-export const BASELINE_STROKE = 'rgba(216, 210, 255, 0.15)';
+export const GRID_STROKE = 'rgba(216, 210, 255, 0.06)';
+export const BASELINE_STROKE = 'rgba(216, 210, 255, 0.13)';
 export const BASELINE_DASH = [2, 5];
 export const NO_DASH: number[] = [];
 /** Paused: one flat colour, and none of the light. */
 export const PAUSED_STROKE = 'rgba(216, 210, 255, 0.68)';
-
-export const BODY_STOPS = [
-  { offset: 0, colour: 'rgba(139, 246, 255, 0.18)' },
-  { offset: 0.5, colour: 'rgba(79, 247, 216, 0.42)' },
-  { offset: 1, colour: 'rgba(79, 110, 247, 0.18)' },
-];
+/** Clipping: the trace itself turns the warning's red, flat. */
+export const CLIP_STROKE = '#ff5a6e';
 
 /**
- * The trace's colours outside Rainbow mode, applied to every style: deep
- * teal at the ends through cyan to an ice white in the middle. In Rainbow
- * mode the trace is the mode's own palette (`rainbowGradientStops`), which
- * replaced a fixed five-stop spectrum of its own here (2026-09-26).
+ * The trace's colours in Normal mode, left to right across the pane: the
+ * primary's dark at the ends through the primary to its light in the
+ * middle — the walk it always made, now in the window's own colours. It
+ * wore fixed cyans, which on another theme or under a Plus visualizer's
+ * colours were the one cyan left in the window. In Rainbow mode the trace is
+ * the mode's own palette (`rainbowGradientStops`).
  */
-export const TRACE_CYAN_STOPS = [
-  { offset: 0, colour: '#0077a3' }, // deep teal
-  { offset: 0.28, colour: '#00c5ff' }, // cyan
-  { offset: 0.52, colour: '#c8fff8' }, // ice white
-  { offset: 0.76, colour: '#00e5cf' }, // sea green
-  { offset: 1, colour: '#005b7f' }, // deeper teal
+const TRACE_WALK: readonly (readonly [number, TSurfaceName, string])[] = [
+  [0, '--accent-dark', '#0077a3'],
+  [0.28, '--accent', '#00c5ff'],
+  [0.52, '--accent-light', '#c8fff8'],
+  [0.76, '--accent', '#00e5cf'],
+  [1, '--accent-dark', '#005b7f'],
 ];
 
-/**
- * What each resting stop becomes while a Plus scene tints the window
- * (`sceneAccentRamp.ts`): the same walk from dark through bright and back,
- * in the scene's accents.
- */
-export const TRACE_TINT_ROLES: readonly IRampRole[] = [
-  { role: 'dark' },
-  { role: 'accent' },
-  { role: 'light' },
-  { role: 'accent' },
-  { role: 'darker' },
-];
-export const BODY_TINT_ROLES: readonly IRampRole[] = [
-  { role: 'light', alpha: 0.18 },
-  { role: 'accent', alpha: 0.42 },
-  { role: 'dark', alpha: 0.18 },
-];
+export const traceWalkStops = (): { offset: number; colour: string }[] =>
+  TRACE_WALK.map(([offset, token, fallback]) => ({
+    offset,
+    colour: readSurface(token, fallback),
+  }));
 
 /**
  * The styles that read the analyser's frequency bands rather than the
  * time-domain samples.
  *
- * The spectrum style was the first to do it and is the reason the rest
- * followed: a bar built from `Math.abs(sample)` is the envelope of the
- * waveform, which wobbles with the volume and says nothing about what is
- * actually in the sound. Given the FFT the same drawing becomes a real
- * spectrum, and the whole family — bars, blades, ladders, bead columns,
- * and the silhouette over them — reads as one instrument seen five ways.
- *
- * Every style here keeps a time-domain fallback for the case where no
- * analyser is running, so the pane still draws with nothing captured.
+ * A bar built from `Math.abs(sample)` is the envelope of the waveform, which
+ * wobbles with the volume and says nothing about what is in the sound. Given
+ * the FFT the same drawing becomes a real spectrum, and the whole family —
+ * bars, blades, ladders, bead columns, and the silhouette over them — reads
+ * as one instrument seen several ways. Every style here keeps a time-domain
+ * fallback for the case where no analyser is running.
  */
 export const FFT_WAVEFORM_STYLES: ReadonlySet<WaveformStyle> = new Set([
   'bars',
@@ -528,75 +507,13 @@ export const FFT_WAVEFORM_STYLES: ReadonlySet<WaveformStyle> = new Set([
 ]);
 
 /**
- * Every style is drawn in the spectrum's own light: a heavier stroke over
- * a soft `shadowBlur` rather than the multi-stroke neon halo they used to
- * wear. The halo was built for a single thin trace and, laid over a
- * figure made of dozens of separate pieces, it fringed every one of them
- * instead of lighting the shape.
- *
- * A set rather than a plain `true` because the halo is still what the
- * clipping and paused treatments use, and because a style added later
- * should have to opt in deliberately rather than inherit this by
- * accident.
+ * Everything the eleven styles say about how they are painted: flat, in
+ * the trace's colours, with no light round them. They wore a pink-and-cyan
+ * neon halo, a soft coloured shadow and in Rainbow mode a fat translucent
+ * copy of the figure under itself; every one of those blurred the edges the
+ * strip is read by (Ivan, 2026-09-26: "fix them all ... clean", "no glow").
  */
-export const SOFT_GLOW_WAVEFORM_STYLES: ReadonlySet<WaveformStyle> = new Set(
-  WAVEFORM_STYLES,
-);
-
-/** One pass of the bloom: how much wider than the figure, and how faint. */
-export interface IGlowLayer {
-  colour: string;
-  widen: number;
-  alpha: number;
-}
-
-/**
- * The trace's bloom, as strokes rather than as a filter.
- *
- * This was `drop-shadow(0 0 3px cyan) drop-shadow(0 0 7px pink)` on the line. A
- * filter over geometry that is rewritten every frame has to be re-rasterised on
- * every one of them, and an animated filter over live audio is precisely what
- * put this app's memory into the gigabytes once already — which is why the
- * euphoria stylesheet forbids them in as many words.
- *
- * Two strokes instead, widest and faintest underneath, which is what turns a
- * hard edge into a falloff. The colours are `$neon-pink` and `$neon-cyan`, the
- * same two the filter blurred, at the same order of weight.
- */
-export const NEON_LAYERS: readonly IGlowLayer[] = [
-  { colour: '#ff3cac', widen: 14, alpha: 0.12 },
-  { colour: '#00e5ff', widen: 6, alpha: 0.3 },
-];
-
-/**
- * Clipping replaces the pair with one red one, exactly as the stylesheet's
- * `.is-clipping` rule replaced the whole filter rather than adding to it.
- */
-export const CLIP_LAYERS: readonly IGlowLayer[] = [
-  { colour: '#ff647c', widen: 8, alpha: 0.38 },
-];
-
-/** Paused, where the trace is a flat line with nothing lighting it. */
-export const NO_LAYERS: readonly IGlowLayer[] = [];
-
-/**
- * The euphoria halo: a fat translucent copy of the figure under itself.
- *
- * It used to be a path element mounted with the mode and unmounted with it,
- * because `display: none` stops a path being painted and does not stop the
- * renderer holding a place for it — and what the mode is accused of is not what
- * it costs while it runs, it is that none of it comes back afterwards. On a
- * canvas there is no element either way: the mode is one more stroke while it
- * is on and nothing at all when it is off, which is what the mounting was
- * trying to buy.
- */
-export const EUPHORIA_GLOW_WIDTH = 5;
-export const EUPHORIA_GLOW_ALPHA = 0.14;
-
-/** Everything the ten styles used to say about themselves in CSS. */
 export interface IStylePaint {
-  /** Which ramp the closed figure takes. */
-  fill: 'body' | 'trace';
   fillAlpha: number;
   strokeWidth: number;
   strokeAlpha: number;
@@ -604,53 +521,33 @@ export interface IStylePaint {
 }
 
 export const BASE_PAINT: IStylePaint = {
-  fill: 'body',
   fillAlpha: 1,
-  strokeWidth: 1.8,
+  strokeWidth: 1.6,
   strokeAlpha: 1,
-  lineCap: 'butt',
+  lineCap: 'round',
 };
 
 /**
- * What each style changes, and nothing else.
- *
- * The styles made of separate pieces — bars, dots, spikes, blocks — take the
- * trace's own spectrum rather than the translucent body ramp, because a ramp
- * stretched across the whole figure washes the quiet pieces out entirely. Their
- * opacities differ because a solid bar and a lattice of triangles do not carry
- * the same amount of ink for the same loudness.
+ * What each style changes, and nothing else. The styles made of separate
+ * pieces carry nearly full ink; a body behind an edge carries a third, so
+ * the edge is what is read.
  */
 export const STYLE_PAINT: Partial<Record<WaveformStyle, Partial<IStylePaint>>> =
   {
-    // The spectrum family, all at the same weight so cycling between
-    // them changes the shape and nothing else.
-    bars: { fill: 'trace', fillAlpha: 0.9 },
-    'mirror-bars': { fill: 'trace', fillAlpha: 0.9 },
-    dots: { fill: 'trace', fillAlpha: 0.9 },
-    blocks: { fill: 'trace', fillAlpha: 0.9 },
-    // Blades overlap at their feet, so they carry a touch less ink than
-    // the styles whose pieces stand apart.
-    spikes: { fill: 'trace', fillAlpha: 0.72 },
-    // The body without an edge, so it reads as a shape rather than a trace.
-    ribbon: { fill: 'trace', fillAlpha: 0.5 },
-    // A comb of verticals, drawn by the line path rather than filled.
-    lattice: { strokeWidth: 1.4, strokeAlpha: 0.85, lineCap: 'round' },
-    // The spectrum's silhouette: one line carrying the whole picture, so
-    // it takes the family's own stroke weight rather than a lighter one.
-    outline: { fill: 'trace', fillAlpha: 0, lineCap: 'round' },
-    // Pale bars behind, one smooth wave on top — the site's nav-signal in
-    // the titlebar. The bars are drawn imperatively (per-bar hue and
-    // vertical gradient); this entry is only for the wave stroke and its
-    // fill is unused. Stroke width, alpha and cap match the site's
-    // `lineWidth: 1.65 / lineCap: 'round'` verbatim, and the renderer
-    // swaps the multi-stroke halo out for the site's `shadowBlur: 8` glow.
-    fluid: {
-      fill: 'trace',
-      fillAlpha: 0,
-      strokeWidth: 1.65,
-      strokeAlpha: 1,
-      lineCap: 'round',
-    },
+    filled: { fillAlpha: 0.3, strokeWidth: 1.4 },
+    bars: { fillAlpha: 0.95 },
+    'mirror-bars': { fillAlpha: 0.95 },
+    dots: { fillAlpha: 0.95 },
+    blocks: { fillAlpha: 0.95 },
+    // Blades overlap at their feet, so a touch less ink.
+    spikes: { fillAlpha: 0.82 },
+    // The body without an edge: a shape rather than a trace.
+    ribbon: { fillAlpha: 0.62 },
+    lattice: { strokeWidth: 1.4 },
+    // The spectrum's silhouette: one line carrying the whole picture.
+    outline: { strokeWidth: 1.8 },
+    // One smooth wave over the spectrum's bars.
+    fluid: { strokeWidth: 1.8 },
   };
 
 export const resolveStylePaint = (style: WaveformStyle): IStylePaint => ({

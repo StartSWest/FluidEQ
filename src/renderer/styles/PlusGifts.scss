@@ -56,7 +56,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: flex-end;
   gap: $spacing-s $spacing-m;
   padding: 12px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
 }
 
@@ -134,7 +134,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   align-items: center;
   gap: $spacing-m;
   padding: 10px 12px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   transition: border-color $motion-fast $ease-out;
 

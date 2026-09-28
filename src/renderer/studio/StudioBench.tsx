@@ -69,7 +69,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const { t, locale } = useTranslation();
   const { state, pack, serial, problems } = view;
   const [signal, setSignal] = useState<TStudioSignal>('live');
-  const { size, choose, exitFullscreen, toggleFullscreen } = useStudioSize();
+  const { size, exitFullscreen, toggleFullscreen } = useStudioSize();
   const isGridShown = useStudioGridShown();
   const [stageProblem, setStageProblem] = useState<{
     identity?: string;
@@ -259,7 +259,12 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         onDrawn={onDrawn}
         onExitFullscreen={exitFullscreen}
         onToggleFullscreen={toggleFullscreen}
-        controls={<StudioStageControls size={size} onSize={choose} />}
+        controls={
+          <StudioStageControls
+            isFullscreen={size === 'full'}
+            onFullscreen={toggleFullscreen}
+          />
+        }
       />
     );
   }

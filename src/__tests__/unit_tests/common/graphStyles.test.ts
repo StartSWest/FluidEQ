@@ -264,9 +264,9 @@ const DRAWN_HERE = GRAPH_STYLES.filter(
 );
 
 describe('the graph style cycle', () => {
-  it('offers eighty-eight distinct forms', () => {
-    expect(GRAPH_STYLES).toHaveLength(88);
-    expect(new Set(GRAPH_STYLES).size).toBe(88);
+  it('offers eighty-nine distinct forms', () => {
+    expect(GRAPH_STYLES).toHaveLength(89);
+    expect(new Set(GRAPH_STYLES).size).toBe(89);
   });
 
   it('gives every form a name of its own', () => {

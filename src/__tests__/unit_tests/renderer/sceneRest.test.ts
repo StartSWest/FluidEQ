@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { SMOOTH_FRAME_MS } from '../../../common/smoothing';
+import { THIRTY_A_SECOND_MS } from '../../../common/smoothing';
 import {
   createRestWatch,
   isSilentWaveform,
@@ -15,7 +15,7 @@ import {
 
 describe('a scene at rest', () => {
   it('rests at the graph’s thirty', () => {
-    expect(SCENE_REST_PACE_MS).toBe(SMOOTH_FRAME_MS);
+    expect(SCENE_REST_PACE_MS).toBe(THIRTY_A_SECOND_MS);
   });
 
   it('hears silence in a waveform under the floor, and sound in one peak over it', () => {

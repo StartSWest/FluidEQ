@@ -8,6 +8,8 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from '../components/DialogFrame';
 
 interface IDspPresetSaveDialogProps {
   /** Names already taken, so overwriting can be said out loud rather than done
@@ -95,15 +97,35 @@ const DspPresetSaveDialog = ({
         }
       }}
     >
-      <div
-        className="dsp-import"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t(titleKey)}
+      <DialogFrame
+        className="dsp-save-dialog"
+        icon={<MenuIcon name="save" />}
+        title={t(titleKey)}
+        titleId="dsp-save-title"
+        description={t(hintKey)}
+        onClose={onClose}
+        closeLabel={t('support.close')}
+        footer={
+          <div className="dialog-frame__actions">
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={onClose}
+            >
+              {t('dsp.eqImport.cancel')}
+            </button>
+            {/* The loud one, because it is the action the dialog exists for. */}
+            <button
+              type="button"
+              className="button small"
+              disabled={trimmed === ''}
+              onClick={() => onSave(trimmed)}
+            >
+              {t('dsp.eqSave.save')}
+            </button>
+          </div>
+        }
       >
-        <h2 className="dsp-import__title">{t(titleKey)}</h2>
-        <p className="dsp-import__hint">{t(hintKey)}</p>
-
         <input
           ref={inputRef}
           className="dsp-import__name"
@@ -122,31 +144,11 @@ const DspPresetSaveDialog = ({
         {/* Said before it happens, not reported after. Saving over a name is a
             perfectly ordinary thing to want; being surprised by it is not. */}
         {overwrites && (
-          <p className="dsp-import__error" role="status">
+          <p className="dsp-import__warning" role="status">
             {takenText ? takenText(trimmed) : t('dsp.eqSave.overwrite')}
           </p>
         )}
-
-        <div className="dsp-import__actions">
-          <span className="dsp-import__spacer" />
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={onClose}
-          >
-            {t('dsp.eqImport.cancel')}
-          </button>
-          {/* The loud one, because it is the action the dialog exists for. */}
-          <button
-            type="button"
-            className="button small"
-            disabled={trimmed === ''}
-            onClick={() => onSave(trimmed)}
-          >
-            {t('dsp.eqSave.save')}
-          </button>
-        </div>
-      </div>
+      </DialogFrame>
     </div>,
     document.body,
   );

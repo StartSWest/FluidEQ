@@ -7,6 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useTranslation } from '../utils/I18nContext';
 import KARAOKE_LANGUAGE_CODES from './karaokeLanguageCodes';
 import Dropdown from '../widgets/Dropdown';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from '../components/DialogFrame';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 
 export type TKaraokeMakerWizardStep = 'separate' | 'transcribe';
@@ -86,26 +88,72 @@ const KaraokeMakerWizard = ({
   ];
 
   return (
-    <div
-      className="karaoke-maker__wizard"
-      role="dialog"
-      aria-modal="true"
-      aria-label={t('karaoke.maker.wizardTitle')}
-    >
-      <div className="karaoke-maker__wizard-panel">
-        <h2 className="karaoke-maker__wizard-title">
-          <span
-            className="karaoke-maker__wizard-title-badge"
-            aria-hidden="true"
-          >
-            <KaraokeMakerToolIcon name="analyze" />
-          </span>
-          {t('karaoke.maker.wizardTitle')}
-        </h2>
-        <p className="karaoke-maker__wizard-intro">
-          {t('karaoke.maker.wizardIntro')}
-        </p>
-
+    // The cover dims the Maker as a backdrop dims the window; the frame inside
+    // it is the dialog.
+    <div className="karaoke-maker__wizard" role="presentation">
+      <DialogFrame
+        className="karaoke-maker__wizard-panel"
+        icon={<MenuIcon name="smart" />}
+        title={t('karaoke.maker.wizardTitle')}
+        titleId="karaoke-maker-wizard-title"
+        description={t('karaoke.maker.wizardIntro')}
+        closeLabel={t('support.close')}
+        // The quiet way out in both states: before the run it is "I will do
+        // it myself", during it "Continue in background" — the dialog goes,
+        // the work does not. Never Stop, which throws the run away.
+        onClose={running ? onHide : onSkip}
+        footer={
+          <div className="dialog-frame__actions">
+            {running ? (
+              <>
+                {/*
+                  The same escape the lyric detection has: the dialog goes
+                  away, the work does not. The floating progress card in the
+                  corner stays, with its own cancel, so dismissing this window
+                  is never mistaken for stopping the run.
+                */}
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={onHide}
+                >
+                  {t('karaoke.maker.wizardHide')}
+                </button>
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={onCancel}
+                >
+                  {t('karaoke.maker.wizardCancel')}
+                </button>
+              </>
+            ) : (
+              <>
+                {/*
+                  The recommended action wears the loud class and the decline
+                  the quiet one: this dialog shipped once the other way round,
+                  with the loud button saying "I will do it myself", and no
+                  test could see it.
+                */}
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={onSkip}
+                >
+                  {t('karaoke.maker.wizardSkip')}
+                </button>
+                <button
+                  type="button"
+                  className="button small"
+                  onClick={onStart}
+                >
+                  {t('karaoke.maker.wizardStart')}
+                </button>
+              </>
+            )}
+          </div>
+        }
+      >
         <ol className="karaoke-maker__wizard-steps">
           {steps.map((step) => {
             const done = doneSteps.includes(step.id);
@@ -120,7 +168,12 @@ const KaraokeMakerWizard = ({
                 // survives a screen reader and a monochrome display.
                 aria-current={active ? 'step' : undefined}
               >
-                <KaraokeMakerToolIcon name={step.icon} />
+                <span
+                  className="karaoke-maker__wizard-step-mark"
+                  aria-hidden="true"
+                >
+                  <KaraokeMakerToolIcon name={step.icon} />
+                </span>
                 <span>{t(step.label)}</span>
                 {/*
                   The running phase carries its own spinner at the row's end,
@@ -134,12 +187,10 @@ const KaraokeMakerWizard = ({
                   />
                 )}
                 {done && (
-                  <span
+                  <MenuIcon
+                    name="check"
                     className="karaoke-maker__wizard-step-done"
-                    aria-hidden="true"
-                  >
-                    ✓
-                  </span>
+                  />
                 )}
               </li>
             );
@@ -185,61 +236,7 @@ const KaraokeMakerWizard = ({
             {message && <p>{message}</p>}
           </div>
         )}
-
-        {/*
-          The app's own two variants, never a new one. Written without any
-          class these render as the browser default, which on a dark panel is
-          nearly invisible — the reason this dialog first looked as though it
-          had no options at all.
-        */}
-        <div className="karaoke-maker__wizard-actions">
-          {running ? (
-            <>
-              {/*
-                The same escape the lyric detection has: the dialog goes away,
-                the work does not. The floating progress card in the corner
-                stays, with its own cancel, so dismissing this window is never
-                mistaken for stopping the run.
-              */}
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={onHide}
-              >
-                {t('karaoke.maker.wizardHide')}
-              </button>
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={onCancel}
-              >
-                {t('karaoke.maker.wizardCancel')}
-              </button>
-            </>
-          ) : (
-            <>
-              {/*
-                Measured in the running window rather than assumed from the
-                names: plain `.button.small` is the solid accent fill
-                (rgb(0,229,207)) and `subtle` is a 7% tint. So the recommended
-                action wears the plain class and the decline wears `subtle` —
-                this dialog shipped once the other way round, with the loud
-                button saying "I will do it myself", and no test could see it.
-              */}
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={onSkip}
-              >
-                {t('karaoke.maker.wizardSkip')}
-              </button>
-              <button type="button" className="button small" onClick={onStart}>
-                {t('karaoke.maker.wizardStart')}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+      </DialogFrame>
     </div>
   );
 };

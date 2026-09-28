@@ -30,14 +30,15 @@ import {
   getSupportMethods,
 } from 'common/support';
 import { isAdBlockRevealChord } from 'common/videoAdBlock';
-import { PRODUCT_NAME, PRODUCT_VERSION } from 'common/branding';
-import BrandMark from './icons/BrandMark';
+import { AUTHOR_NAME } from 'common/branding';
+import MenuIcon from './icons/MenuIcon';
 import {
   toggleAdBlockRevealed,
   useIsAdBlockRevealed,
 } from './utils/adBlockReveal';
 import { winEuphoria } from './utils/euphoriaMode';
 import supportQrImage from '../../assets/support-qr.png';
+import DialogFrame from './components/DialogFrame';
 import MemoryTraceButton from './components/MemoryTraceButton';
 import QrCode from './components/QrCode';
 import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
@@ -49,9 +50,6 @@ import './styles/Support.scss';
 
 // Webpack substitutes NODE_ENV so the release minifier removes these controls.
 const IS_DEV = process.env.NODE_ENV !== 'production';
-
-// Empty outside webpack; the badge must not render as "vundefined" in tests.
-const APP_VERSION = PRODUCT_VERSION;
 
 interface ISupportDialogProps {
   hasContributed: boolean;
@@ -65,6 +63,14 @@ interface ISupportDialogProps {
   isCovered?: boolean;
 }
 
+/**
+ * Asking for support, on the dialog frame (`DialogFrame`).
+ *
+ * The rail is the pet and her game — what this dialog is, and the one part
+ * of it anybody plays with — and the right side is the ask: the ways to give
+ * first, then why, in the maker's own words. The way out, the release notes
+ * and "I contributed" are the frame's, so none of them scrolls away.
+ */
 export default function SupportDialog({
   hasContributed,
   onContributed,
@@ -207,120 +213,124 @@ export default function SupportDialog({
         }
       }}
     >
-      <div
+      <DialogFrame
         ref={dialogRef}
         className="support-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="support-dialog-title"
-      >
-        {/* A real, fixed header rather than three items floating independently
-            over the body. It stays outside the scrolling area, so the app
-            identity, the active mode and the way out remain available in every
-            window size. */}
-        <div className="support-dialog__topbar">
-          <div className="support-dialog__brand">
-            <BrandMark />
-            <span>
-              {PRODUCT_NAME}
-              {APP_VERSION && (
-                <span className="support-dialog__version">v{APP_VERSION}</span>
-              )}
-            </span>
-          </div>
-
-          <button
-            ref={closeRef}
-            type="button"
-            className="support-dialog__close"
-            aria-label={t('support.close')}
-            onClick={onClose}
-          >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3l6 6M9 3l-6 6" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Everything that scrolls, which is everything except the way out. */}
-        <div className="support-dialog__scroll">
-          {/* The creature, her title, and the thing she is jumping. Grouped
-              because the two travel together into the left column when the
-              panel splits, and the trace has to stay directly under her. */}
+        icon={<MenuIcon name="support" />}
+        eyebrow={t('support.eyebrow')}
+        title={t('support.title')}
+        titleId="support-dialog-title"
+        closeLabel={t('support.close')}
+        onClose={onClose}
+        closeRef={closeRef}
+        rail={
+          // The creature and the thing she is jumping, one piece: the trace
+          // has to stay directly under her, and in a narrow window the two
+          // stand side by side across the top.
           <div className="support-dialog__stage">
-            <div className="support-dialog__header">
-              <div className="support-dialog__identity">
-                <button
-                  type="button"
-                  className={`support-pet-tap${petHopClass}${mood ? ` is-${mood}` : ''}`}
-                  aria-label={t('support.petHint')}
-                  // Pointer *down*, not click. A click fires on release, so the
-                  // bounce would lag the press by however long the button was
-                  // held — useless for tapping in time, and it is meant to feel
-                  // identical to hitting space.
-                  onPointerDown={bouncePet}
-                  // The pointer path never reaches a keyboard user, and space is
-                  // handled globally for the whole dialog, so Enter is the only
-                  // gap left.
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' && !event.repeat) {
-                      event.preventDefault();
-                      bouncePet();
+            <button
+              type="button"
+              className={`support-pet-tap${petHopClass}${mood ? ` is-${mood}` : ''}`}
+              aria-label={t('support.petHint')}
+              // Pointer *down*, not click. A click fires on release, so the
+              // bounce would lag the press by however long the button was
+              // held — useless for tapping in time, and it is meant to feel
+              // identical to hitting space.
+              onPointerDown={bouncePet}
+              // The pointer path never reaches a keyboard user, and space is
+              // handled globally for the whole dialog, so Enter is the only
+              // gap left.
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !event.repeat) {
+                  event.preventDefault();
+                  bouncePet();
+                }
+              }}
+            >
+              <SupportPetHero hasContributed={hasContributed} />
+              {/* How long the face the tap earned stays: this mark's hold,
+                  keyed on the tap so each one gets the whole of it, and its
+                  end is what puts her resting face back. It was a timer,
+                  which ran on behind a covered window. Draws nothing — the
+                  face is the classes on the button. */}
+              {mood && (
+                <span
+                  key={petTaps}
+                  className="support-pet-tap__mood"
+                  aria-hidden
+                  onAnimationEnd={(event) => {
+                    if (isOwnAnimationEnd(event, 'support-pet-mood')) {
+                      setMood('');
                     }
                   }}
-                >
-                  <SupportPetHero hasContributed={hasContributed} />
-                  {/* How long the face the tap earned stays: this mark's
-                      hold, keyed on the tap so each one gets the whole of it,
-                      and its end is what puts her resting face back. It was a
-                      timer, which ran on behind a covered window. Draws
-                      nothing — the face is the classes on the button. */}
-                  {mood && (
-                    <span
-                      key={petTaps}
-                      className="support-pet-tap__mood"
-                      aria-hidden
-                      onAnimationEnd={(event) => {
-                        if (isOwnAnimationEnd(event, 'support-pet-mood')) {
-                          setMood('');
-                        }
-                      }}
-                    />
-                  )}
-                </button>
-                <div>
-                  <span className="eyebrow">{t('support.eyebrow')}</span>
-                  <h2 id="support-dialog-title">{t('support.title')}</h2>
-                </div>
-              </div>
-            </div>
+                />
+              )}
+            </button>
 
             {/* The game used to be hidden behind the contribution flag, so
-                nobody could discover the play-to-unlock route before donating. */}
+                nobody could discover the play-to-unlock route before
+                donating. */}
             <RhythmGame ref={gameRef} />
           </div>
-
-          {/* The ask, and the second column when there is one. */}
-          <div className="support-dialog__ask">
-            {hasCoffee && (
+        }
+        footer={
+          <>
+            <p className="dialog-frame__note support-dialog__time">
+              {t('support.footerBefore')}{' '}
               <a
-                className="support-method support-method--primary support-method--qr"
-                href={SUPPORT_CONFIG.coffeeUrl}
+                href={SUPPORT_CONFIG.repositoryUrl}
                 target="_blank"
                 rel="noreferrer noopener"
               >
+                GitHub
+              </a>
+              .
+            </p>
+            <div className="dialog-frame__actions">
+              <button
+                type="button"
+                className="button small subtle support-dialog__action"
+                onClick={onShowReleaseNotes}
+              >
+                <MenuIcon name="gift" />
+                {t('app.menu.whatsNew')}
+              </button>
+              <SupportRainbowUnlock
+                hasContributed={hasContributed}
+                onContributed={onContributed}
+              />
+            </div>
+          </>
+        }
+      >
+        {/* The ask comes first, where the eye lands on the right side: the
+            ways to give, each with what opens it. */}
+        {(hasCoffee || hasStripe) && (
+          <section className="dialog-frame__group support-dialog__give">
+            {hasCoffee && (
+              <div className="support-method support-method--qr">
                 <div className="support-method__text">
-                  <span className="support-method__label">
+                  <h3 className="support-method__label">
                     {t('support.coffee')}
-                  </span>
-                  <span className="support-method__hint">
+                  </h3>
+                  <p className="support-method__hint">
                     {t('support.coffee.hint')}
-                  </span>
+                  </p>
+                  <a
+                    className="button small support-dialog__action"
+                    href={SUPPORT_CONFIG.coffeeUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    {t('support.coffee')}
+                    <MenuIcon name="external" />
+                  </a>
                 </div>
                 {/* The artwork ships with the app rather than being generated,
-                so the branded code from Buy Me a Coffee is what people scan.
-                It is therefore pinned to whatever page it was made for — if
-                FLUIDEQ_COFFEE_URL ever changes, replace this file too. */}
+                    so the branded code from Buy Me a Coffee is what people
+                    scan. It is therefore pinned to whatever page it was made
+                    for — if FLUIDEQ_COFFEE_URL ever changes, replace this file
+                    too. */}
                 <img
                   className="qr-code"
                   src={supportQrImage}
@@ -328,167 +338,146 @@ export default function SupportDialog({
                   width={168}
                   height={168}
                 />
-              </a>
-            )}
-
-            <SupportRainbowUnlock
-              hasContributed={hasContributed}
-              onContributed={onContributed}
-            />
-
-            <p className="support-dialog__pitch">{t('support.pitch')}</p>
-
-            {/* Said plainly rather than implied. Someone deciding whether to
-                contribute is entitled to know what they would be funding, and
-                the answer here is one person's attention rather than a
-                company's roadmap. */}
-            <p className="support-dialog__craft">{t('support.craft')}</p>
-
-            <div className="support-dialog__methods">
-              {hasStripe && (
-                <a
-                  className="support-method support-method--primary"
-                  href={SUPPORT_CONFIG.stripeUrl}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                >
-                  <span className="support-method__label">
-                    {t('support.card')}
-                  </span>
-                  <span className="support-method__hint">
-                    {t('support.card.hint')}
-                  </span>
-                </a>
-              )}
-
-              {cryptos.map(({ asset, address, uri }) => (
-                <div
-                  className={`support-method${uri ? ' support-method--qr' : ''}`}
-                  key={asset.id}
-                >
-                  <div className="support-method__text">
-                    <span className="support-method__label">
-                      {asset.name}
-                      <em>{asset.symbol}</em>
-                    </span>
-                    {/* The network is called out because several of these share an
-                    address format, and sending on the wrong one loses the
-                    funds with no way to recover them. */}
-                    <span className="support-method__hint">
-                      {asset.network}. {t('support.verify')}
-                    </span>
-                  </div>
-                  {/* Scanning the URI beats retyping 40-odd characters, and the
-                  code is generated from the same string shown below it. */}
-                  {uri && (
-                    <QrCode
-                      value={uri}
-                      label={`QR code for the ${asset.name} address`}
-                      size={168}
-                    />
-                  )}
-                  <code className="support-method__address">{address}</code>
-                  <div className="support-method__actions">
-                    <button
-                      type="button"
-                      className="support-method__action"
-                      onClick={() => handleCopyAddress(asset.id, address)}
-                    >
-                      {/* "Copied" for its moment: the word's own hold
-                          (`support-copied`), whose end puts "Copy" back. */}
-                      {copiedId === asset.id ? (
-                        <span
-                          key={copySeq}
-                          className="support-method__confirmed"
-                          onAnimationEnd={(event) => {
-                            if (isOwnAnimationEnd(event, 'support-copied')) {
-                              setCopiedId('');
-                            }
-                          }}
-                        >
-                          {t('support.copied')}
-                        </span>
-                      ) : (
-                        t('support.copy')
-                      )}
-                    </button>
-                    {uri && (
-                      <a
-                        className="support-method__action"
-                        href={uri}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                      >
-                        {t('support.openWallet')}
-                      </a>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Mac keyboards cannot produce Ctrl+Shift+Alt+B. Development gets
-                a button for the same action, independent of the badge.
-                Debug-only labels are deliberately untranslated. */}
-            {IS_DEV && (
-              <div className="support-dialog__dev-row">
-                {/* Preview the look without inventing a score or a donation. */}
-                <button
-                  type="button"
-                  className="support-dialog__dev-reset"
-                  title="Development build only — switches Rainbow mode on without playing for it"
-                  onClick={winEuphoria}
-                >
-                  dev: rainbow
-                </button>
-                <button
-                  type="button"
-                  className="support-dialog__dev-reset"
-                  title="Development build only — clears the contributed flag"
-                  onClick={onResetContribution}
-                >
-                  dev: remove badge
-                </button>
-                <button
-                  type="button"
-                  className="support-dialog__dev-reset"
-                  title="Development build only — shows or hides the ad blocker's switch in the Video tab. Same as Ctrl+Shift+Alt+B."
-                  onClick={toggleAdBlockRevealed}
-                >
-                  {isAdBlockShown
-                    ? 'dev: hide ad blocker switch'
-                    : 'dev: show ad blocker switch'}
-                </button>
-                {/* Keep debug tools out of the crowded titlebar. */}
-                <MemoryTraceButton />
               </div>
             )}
 
-            {/* Sharing a wrapping row saves height in short windows. */}
-            <div className="support-dialog__links">
+            {hasStripe && (
+              <div className="support-method">
+                <div className="support-method__text">
+                  <h3 className="support-method__label">{t('support.card')}</h3>
+                  <p className="support-method__hint">
+                    {t('support.card.hint')}
+                  </p>
+                  {/* The loud face belongs to the one way in with a code
+                      beside it; with both on offer, this is the other. */}
+                  <a
+                    className={`button small${hasCoffee ? ' subtle' : ''} support-dialog__action`}
+                    href={SUPPORT_CONFIG.stripeUrl}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                  >
+                    {t('support.card')}
+                    <MenuIcon name="external" />
+                  </a>
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {cryptos.map(({ asset, address, uri }) => (
+          <section
+            className={`dialog-frame__group support-method${uri ? ' support-method--qr' : ''}`}
+            key={asset.id}
+          >
+            <div className="support-method__text">
+              <h3 className="support-method__label">
+                {asset.name}
+                <em>{asset.symbol}</em>
+              </h3>
+              {/* The network is called out because several of these share an
+                  address format, and sending on the wrong one loses the funds
+                  with no way to recover them. */}
+              <p className="support-method__hint">
+                {asset.network}. {t('support.verify')}
+              </p>
+            </div>
+            {/* Scanning the URI beats retyping 40-odd characters, and the code
+                is generated from the same string shown below it. */}
+            {uri && (
+              <QrCode
+                value={uri}
+                label={`QR code for the ${asset.name} address`}
+                size={168}
+              />
+            )}
+            <code className="support-method__address">{address}</code>
+            <div className="support-method__actions">
               <button
                 type="button"
-                className="support-dialog__notes"
-                onClick={onShowReleaseNotes}
+                className="button small subtle"
+                onClick={() => handleCopyAddress(asset.id, address)}
               >
-                {t('support.releaseNotes')}
+                {/* "Copied" for its moment: the word's own hold
+                    (`support-copied`), whose end puts "Copy" back. */}
+                {copiedId === asset.id ? (
+                  <span
+                    key={copySeq}
+                    className="support-method__confirmed"
+                    onAnimationEnd={(event) => {
+                      if (isOwnAnimationEnd(event, 'support-copied')) {
+                        setCopiedId('');
+                      }
+                    }}
+                  >
+                    {t('support.copied')}
+                  </span>
+                ) : (
+                  t('support.copy')
+                )}
               </button>
-
-              <p className="support-dialog__footer">
-                {t('support.footerBefore')}{' '}
+              {uri && (
                 <a
-                  href={SUPPORT_CONFIG.repositoryUrl}
+                  className="button small subtle"
+                  href={uri}
                   target="_blank"
                   rel="noreferrer noopener"
                 >
-                  GitHub
+                  {t('support.openWallet')}
                 </a>
-                .
-              </p>
+              )}
             </div>
+          </section>
+        ))}
+
+        <p className="support-dialog__pitch">{t('support.pitch')}</p>
+
+        {/* Said plainly rather than implied, and in the maker's own voice.
+            Someone deciding whether to contribute is entitled to know what
+            they would be funding, and the answer here is one person's
+            attention rather than a company's roadmap. */}
+        <figure className="support-dialog__quote">
+          <blockquote>{t('support.craft')}</blockquote>
+          <figcaption>{AUTHOR_NAME}</figcaption>
+        </figure>
+
+        {/* Mac keyboards cannot produce Ctrl+Shift+Alt+B. Development gets a
+            button for the same action, independent of the badge. Debug-only
+            labels are deliberately untranslated. */}
+        {IS_DEV && (
+          <div className="support-dialog__dev-row">
+            {/* Preview the look without inventing a score or a donation. */}
+            <button
+              type="button"
+              className="support-dialog__dev-reset"
+              title="Development build only — switches Rainbow mode on without playing for it"
+              onClick={winEuphoria}
+            >
+              dev: rainbow
+            </button>
+            <button
+              type="button"
+              className="support-dialog__dev-reset"
+              title="Development build only — clears the contributed flag"
+              onClick={onResetContribution}
+            >
+              dev: remove badge
+            </button>
+            <button
+              type="button"
+              className="support-dialog__dev-reset"
+              title="Development build only — shows or hides the ad blocker's switch in the Video tab. Same as Ctrl+Shift+Alt+B."
+              onClick={toggleAdBlockRevealed}
+            >
+              {isAdBlockShown
+                ? 'dev: hide ad blocker switch'
+                : 'dev: show ad blocker switch'}
+            </button>
+            {/* Keep debug tools out of the crowded titlebar. */}
+            <MemoryTraceButton />
           </div>
-        </div>
-      </div>
+        )}
+      </DialogFrame>
     </div>
   );
 }

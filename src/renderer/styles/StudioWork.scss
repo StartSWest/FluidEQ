@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -26,14 +27,16 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: 0;
 }
 
-// The rail of names, ruled off from the panel by the pages' own hairline,
-// the chosen one underlined in the accent as the workspace's tabs are.
+// The rail of names, ruled off from the panel by the quiet rule the Plus
+// menu parts its admin place with (Ivan, 2026-09-27: "make the menu divider
+// less visible"), the chosen one underlined in the accent as the workspace's
+// tabs are: the accent is what says which, and the rule only where.
 .studio-work__tabs {
   display: flex;
   flex: none;
   gap: 4px;
   overflow-x: auto;
-  border-bottom: 1px solid $border-subtle;
+  border-bottom: 1px solid $menu-rule;
   scrollbar-width: none;
 }
 
@@ -126,20 +129,35 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- tune
 
-// The three groups side by side under the stage, each at the width its
-// sliders and tiles were laid out at, wrapping when the panel is narrower.
+// The three groups across the whole panel, one row of cards as tall as each
+// other: the window's colours and the wave a share each, the visualizer's
+// two groups of settings twice that. It was an auto-filled grid of 260px
+// tracks, each card as tall as its own contents: across a wide panel the
+// three stopped short with an empty track after them, three heights in one
+// row (Ivan, 2026-09-27: "fix all this crap"). Two to a row when the panel
+// is narrower, the visualizer under them the whole width; one to a row in
+// the narrowest.
 .studio-tune {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
+
+  @container studio-work (min-width: #{$bp-md}) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @container studio-work (min-width: #{$bp-xl}) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+  }
 }
 
-// The visualizer's own settings are the longest group; given two tracks
-// where the panel has four, they stop being the one tall column at the end.
 .studio-tune__box--visualizer {
-  @container studio-work (min-width: 900px) {
-    grid-column: span 2;
+  @container studio-work (min-width: #{$bp-md}) {
+    grid-column: 1 / -1;
+  }
+
+  @container studio-work (min-width: #{$bp-xl}) {
+    grid-column: auto;
   }
 }
 
@@ -178,7 +196,7 @@ it under the terms of the GNU General Public License version 3 or later.
   justify-content: flex-end;
   gap: 4px;
   padding: 4px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-s;
   background: color-mix(in srgb, $surface-menu 78%, transparent);
   backdrop-filter: blur(12px);
@@ -235,8 +253,7 @@ it under the terms of the GNU General Public License version 3 or later.
     }
   }
 
-  // The narrowest stage (the tall Narrow size in a short window, the phone
-  // width panel) has no room for one row: the reading keeps the first and the
+  // The narrowest stage (a phone-width window's) has no room for one row: the reading keeps the first and the
   // buttons take the next, with no hairline left standing at a row's end.
   @container studio-stage (max-width: 440px) {
     flex-wrap: wrap;
@@ -258,40 +275,6 @@ it under the terms of the GNU General Public License version 3 or later.
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.studio-stage-controls__group {
-  display: flex;
-  gap: 2px;
-  padding-right: 4px;
-  border-right: 1px solid $border-subtle;
-}
-
-// The chosen size says its name and the others only their drawing, so the
-// plate stays small over the picture. The name opens out of the drawing
-// rather than appearing beside it, and closes back into the one left.
-.studio-stage-controls__word {
-  max-width: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition:
-    max-width 240ms $ease-out,
-    margin 240ms $ease-out,
-    opacity 160ms ease;
-
-  [aria-pressed='true'] > & {
-    max-width: 14em;
-    margin-left: 6px;
-    opacity: 1;
-  }
-
-  @container studio-stage (max-width: 620px) {
-    display: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
 }
 
 // ---------------------------------------------------------------- the bar's ways out

@@ -6,113 +6,18 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-@use 'color' as *;
-@use 'constant' as *;
 @use 'motion' as *;
-@use 'theme' as *;
 
 // Bottom left, opposite the failure notices. Two things arriving at once
-// should not land on top of each other, and an update is the calmer of the two.
-.update-notice {
-  @include animate(slide-in-right, $motion-base);
+// should not land on top of each other, and an update is the calmer of the
+// two. A `CompactFrame`, like every notice that arrives on its own; against
+// the frame's class as well, so the corner wins over the frame's
+// `position: relative` whichever sheet the cascade reads last.
+.compact-frame.update-notice {
+  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
   position: fixed;
   z-index: 1250;
   bottom: 18px;
   left: 18px;
-  display: flex;
-  max-width: min(440px, calc(100vw - 36px));
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-menu-top 97%, transparent);
-  box-shadow: 0 16px 40px rgba($black, 0.45);
-
-  > div {
-    display: grid;
-    min-width: 0;
-    gap: 3px;
-  }
-
-  strong {
-    color: $secondary-light;
-    font-size: $text-body;
-  }
-
-  span {
-    color: $text-muted;
-    font-size: $text-body;
-    line-height: 1.4;
-  }
-}
-
-.update-notice__icon {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-  color: $secondary-light;
-}
-
-// The one action, and it is loud on purpose: it is the whole reason the notice
-// is on screen, and it costs the user their session.
-.update-notice__install {
-  flex: 0 0 auto;
-  min-height: $control-height-sm;
-  padding: 7px 12px;
-  color: $surface-base;
-  border: 1px solid color-mix(in srgb, $secondary-light 42%, transparent);
-  border-radius: $radius-xs;
-  background: $secondary-default;
-  font-size: $text-body;
-  font-weight: $weight-bold;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: $transition-control;
-
-  &:hover:not(:disabled) {
-    background: $secondary-light;
-  }
-
-  &:focus-visible {
-    @include focus-ring($white);
-    outline: none;
-  }
-
-  &:disabled {
-    cursor: default;
-    opacity: $disabled-opacity;
-  }
-}
-
-.update-notice__dismiss {
-  display: grid;
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-  place-items: center;
-  padding: 0;
-  color: $text-muted;
-  border: 1px solid transparent;
-  border-radius: $radius-xs;
-  background: transparent;
-  cursor: pointer;
-  transition: $transition-control;
-
-  svg {
-    width: 11px;
-    height: 11px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-width: 1.5;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $white;
-    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
-    background: color-mix(in srgb, $secondary-default 16%, transparent);
-    outline: none;
-  }
+  width: min(420px, calc(100vw - 36px));
 }

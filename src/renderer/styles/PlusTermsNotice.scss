@@ -6,13 +6,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'dialog' as dialog;
 @use 'motion' as *;
 @use 'theme' as *;
 
 // Top right, under the titlebar — below the Plus tab and the account the
-// notice is about — in the same face as the other corner notices
-// (`song-eq-notice`, `speech-memory-notice`): one visual language for
-// "something to know", whoever raised it.
+// notice is about — a `CompactFrame` like every other notice that arrives on
+// its own: one visual language for "something to know", whoever raised it.
 //
 // The LOWEST of the app's overlays, on purpose. It asks nothing urgent and it
 // stays until it is put away, so it must never be in front of something the
@@ -23,14 +23,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // Above the workspace itself, which is all it has to be seen over. A menu
 // opened across it simply covers it; the prompts make it step aside — see
 // the note at the end of this file.
-.plus-terms-notice {
-  @include animate(slide-in-right, $motion-base);
+//
+// Against the frame's own class as well, so the corner wins over the frame's
+// `position: relative` and its sheet whichever the cascade reads last.
+.compact-frame.plus-terms-notice {
+  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
   position: fixed;
   z-index: 990;
   top: calc($title-bar-height + 16px);
   right: 18px;
-  display: flex;
-  box-sizing: border-box;
   width: min(420px, calc(100vw - 36px));
   // Its shape holds in a short window: the sentences scroll inside it and the
   // two answers stay in reach. The floor is the top of the now-playing bar,
@@ -40,47 +41,22 @@ SPDX-License-Identifier: GPL-3.0-or-later
   max-height: calc(
     100vh - $title-bar-height - 16px - var(--now-playing-bar-height, 0px) - 12px
   );
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px 16px;
-  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
-  border-radius: $radius-m;
-  // The corner notices' surface, but solid. They mix it at 97%, which is
-  // harmless over a toast that fades in seconds; this one stays put over the
-  // panel beside the Plus tab, and measured there the cyan Save button behind
-  // it showed through as a ghost button next to "Got it".
-  background: $surface-menu-top;
-  box-shadow: 0 16px 40px rgba($black, 0.45);
-}
+  grid-template-rows: minmax(0, 1fr);
+  // Solid, where the frame's sheet lets a little through: this one stays put
+  // over the panel beside the Plus tab, and measured there the cyan Save
+  // button behind a 97% card showed through as a ghost button next to
+  // "Got it". The frame's own sheet, laid over the floor it is mixed from.
+  background: linear-gradient(dialog.$sheet, dialog.$sheet), $surface-base;
 
-.plus-terms-notice__body {
-  display: grid;
-  min-height: 0;
-  flex: 1 1 auto;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 12px;
-  overflow-y: auto;
-}
+  .compact-frame__main {
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
 
-.plus-terms-notice__icon {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-  margin-top: 1px;
-  color: $secondary-light;
-}
-
-.plus-terms-notice__text {
-  display: grid;
-  min-width: 0;
-  align-content: start;
-  gap: 8px;
-
-  strong {
-    color: $secondary-light;
-    font-size: $text-lead;
-    font-weight: $weight-bold;
-    line-height: 1.3;
+  .compact-frame__message {
+    min-height: 0;
+    overflow-y: auto;
+    @include slim-scrollbar;
   }
 }
 
@@ -102,9 +78,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .plus-terms-notice__change {
   margin: 0;
-  color: $text-muted;
-  font-size: $text-body;
-  line-height: 1.45;
 }
 
 // More than one version missed: the changes as the short history they are,
@@ -125,14 +98,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     &::before {
       position: absolute;
-      top: 4px;
+      top: 0.45em;
       left: -18.5px;
       width: 8px;
       height: 8px;
       box-sizing: border-box;
       border: 1.5px solid color-mix(in srgb, $secondary-light 70%, transparent);
       border-radius: 50%;
-      background: $surface-menu-top;
+      // The card's own colour, so the stop cuts the rail it sits on.
+      background: linear-gradient(dialog.$sheet, dialog.$sheet), $surface-base;
       content: '';
     }
 
@@ -145,34 +119,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-.plus-terms-notice__version {
-  color: $text-faint;
-  font-size: $text-small;
-  font-weight: $weight-semibold;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.4;
-}
-
-// Under the sentences rather than under the icon, like the other corner
-// notices' answers: the text and its buttons share one left edge.
-.plus-terms-notice__actions {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-  padding-left: 32px;
-}
-
 // One thing at a time. Being lowest keeps whatever lands on it readable; it
 // does not stop the two being drawn across each other, and measured in the
 // running window at 1026px that is what happened — the output notice
-// (`.device-apo-notice`, centred under the titlebar, 620px wide) lay over most
-// of this one with its buttons sticking out beside it. Every prompt in the app
-// opens in that strip under the titlebar, centred, and below about 1500px of
-// width each of them reaches this corner. So while one is up — or anything
-// modal, the song EQ toast that shares this corner, or full screen, which
-// takes away the titlebar this is placed under — the notice steps aside, and
-// slides back in when they are gone. Decided in React, where each of them
-// says it wants the screen (`noticeTurn.ts`): a `body:has()` rule here made
-// every change in the window a question about the whole document.
+// (`.device-apo-notice`, centred under the titlebar) lay over most of this one
+// with its buttons sticking out beside it. Every prompt in the app opens in
+// that strip under the titlebar, centred, and below about 1500px of width each
+// of them reaches this corner. So while one is up — or anything modal, the
+// song EQ toast that shares this corner, or full screen, which takes away the
+// titlebar this is placed under — the notice steps aside, and slides back in
+// when they are gone. Decided in React, where each of them says it wants the
+// screen (`noticeTurn.ts`): a `body:has()` rule here made every change in the
+// window a question about the whole document.

@@ -19,7 +19,12 @@ import {
   type ISceneSky,
 } from './sceneTint';
 import { getThemeShade, subscribeTheme } from './theme';
-import { THEME_SHADE_TOKENS, themeShadeTokens } from './themeShade';
+import {
+  THEME_SHADE_MAX,
+  THEME_SHADE_MIN,
+  THEME_SHADE_TOKENS,
+  themeShadeTokens,
+} from './themeShade';
 
 /**
  * The window in a Plus visualizer's colour: the switch, what each scene's sky
@@ -45,14 +50,6 @@ import { THEME_SHADE_TOKENS, themeShadeTokens } from './themeShade';
  */
 export const SCENE_TINT_MODES = ['off', 'tint', 'pulse', 'cover'] as const;
 export type TSceneTintMode = (typeof SCENE_TINT_MODES)[number];
-
-/**
- * The Studio's own switch offers the first three. Its stage is where a scene
- * is judged, not a graph with a window around it to cover, and the Backdrop
- * draws the graph's scene.
- */
-export const STUDIO_TINT_MODES = ['off', 'tint', 'pulse'] as const;
-export type TStudioTintMode = (typeof STUDIO_TINT_MODES)[number];
 
 /**
  * Whether the window beats with the scene and wears its elements: Ambient,
@@ -140,7 +137,10 @@ const createModeSetting = (
  * a scene does without first finding the control that turns it on (Ivan,
  * 2026-09-13); it sits beside the picker for anyone who wants less. Only a
  * profile that never chose starts here — a mode picked before, or the old
- * on/off switch, is kept. The Studio's below is the opposite, and says why.
+ * on/off switch, is kept.
+ *
+ * The app's mode, the graph's Window colours. The Studio has its own
+ * (`useStudioTintMode`, below), and neither ever sets the other.
  */
 const setting = createModeSetting(
   'fluideq.sceneTintMode',
@@ -153,35 +153,59 @@ export const useSceneTintMode = () =>
   useSyncExternalStore(setting.subscribe, setting.get, () => 'off' as const);
 export const useSceneTintEnabled = () => useSceneTintMode() !== 'off';
 
-// *** The Studio's own mode ***************************************************
-
 /**
- * The Studio has a mode of its own, apart from the graph's, because the two
- * answer different questions: the graph's is how somebody wants their app to
- * look, the Studio's is a way of judging a scene that is not finished — and a
- * member who wants the second has not necessarily asked for the first.
+ * THE STUDIO'S OWN CHOICE, independent of the app's (Ivan, 2026-09-27: "the
+ * studio options are independent of the global ones, you can't modify the
+ * global ones ... you simply have to use the option that is in the global").
+ * Theme is the app's own choice, whatever it is — the Studio then claims
+ * nothing and the window is what the graph's Window colours make it; the
+ * other three are the app's same three with the project on the bench as the
+ * scene, while the bench is on screen (`useStudioTint`).
  *
- * The theme until chosen. A scene half made changes colour with every save,
- * and a window repainting itself while somebody reads the code pane is only
- * welcome when they asked for it.
+ * The tiles set the app's mode for a day (09-27, "make studio ambient use
+ * same mechanism that we use on EQ and graph"), so picking Theme in the
+ * Studio put the whole app on Original. A new key, starting on Theme: the
+ * old `fluideq.studioTintMode` holds whatever an earlier version left there,
+ * and following the app is what the Studio did all that day.
  */
-const studioSetting = createModeSetting(
-  'fluideq.studioTintMode',
-  'fluideq.studioTint',
-  'off',
-);
+export const STUDIO_TINT_MODES = ['theme', 'tint', 'pulse', 'cover'] as const;
+export type TStudioTintMode = (typeof STUDIO_TINT_MODES)[number];
 
-export const setStudioTintMode = (next: TSceneTintMode) =>
-  studioSetting.set(next);
+const isStudioTintMode = (value: unknown): value is TStudioTintMode =>
+  typeof value === 'string' &&
+  (STUDIO_TINT_MODES as readonly string[]).includes(value);
+
+const STUDIO_MODE_KEY = 'fluideq.studioWindowMode';
+let studioMode: TStudioTintMode = (() => {
+  const stored = readStored(STUDIO_MODE_KEY);
+  return isStudioTintMode(stored) ? stored : 'theme';
+})();
+const studioModeListeners = new Set<() => void>();
+
+export const setStudioTintMode = (next: TStudioTintMode) => {
+  if (next === studioMode) {
+    return;
+  }
+  studioMode = next;
+  writeStored(STUDIO_MODE_KEY, next);
+  studioModeListeners.forEach((listener) => listener());
+};
+
+const subscribeStudioMode = (listener: () => void) => {
+  studioModeListeners.add(listener);
+  return () => {
+    studioModeListeners.delete(listener);
+  };
+};
+
 export const useStudioTintMode = () =>
   useSyncExternalStore(
-    studioSetting.subscribe,
-    studioSetting.get,
-    () => 'off' as const,
+    subscribeStudioMode,
+    () => studioMode,
+    () => 'theme' as const,
   );
-export const useStudioTintEnabled = () => useStudioTintMode() !== 'off';
 
-/** The Studio's project, while it is on the bench with the switch on. */
+/** The Studio's project, while it is on the bench and the mode is not Original. */
 export interface IStudioTintSource {
   project: string;
   /**
@@ -200,9 +224,10 @@ const studioListeners = new Set<() => void>();
 export const studioSkyKey = (project: string) => `studio:${project}`;
 
 /**
- * Set by the Studio while a project is on its bench with the switch on, and
- * cleared the moment the switch goes off or the Studio closes. While it is
- * set it wins over the graph's choice: somebody looking at their own scene in
+ * Set by the Studio while a project is on its bench and the mode lends the
+ * window a scene's colours, and cleared the moment the mode is Original, the
+ * bench leaves the screen or the Studio closes. While it is set the project
+ * wins over the graph's look: somebody looking at their own scene in
  * the Studio is judging that one, whatever the graph happens to be showing —
  * and moving to another project must not pass through the graph's colour on
  * the way.
@@ -232,6 +257,20 @@ export const useStudioTintSource = () =>
     () => studioSource,
     () => undefined,
   );
+
+/**
+ * The mode the window is in now: the Studio's own while its project holds
+ * the window's colour — its bench on screen and its choice not Theme — and
+ * the app's otherwise. What is drawn round the window reads this (the glow,
+ * the scene's elements, the Studio's own note on them); the app's Window
+ * colours menu shows and sets the app's alone.
+ */
+export const useWindowTintMode = (): TSceneTintMode => {
+  const app = useSceneTintMode();
+  const studio = useStudioTintMode();
+  const source = useStudioTintSource();
+  return source && studio !== 'theme' ? studio : app;
+};
 
 // *** What each scene's sky was measured to be ********************************
 
@@ -375,29 +414,69 @@ export const useRememberedSceneSky = (lookId: string) =>
 
 // *** Painting ****************************************************************
 
+/**
+ * How a sky's colours meet the window's Brightness.
+ *
+ * - `lent`: the window's own, with no visualizer chosen (`lendSceneSky`). It
+ *   fades out toward Black, which is black and grey (`lentSkyReach`).
+ * - `held`: a Plus visualizer's, in Colours and Ambient. The whole slider
+ *   runs over a shorter walk, from `HELD_SHADE_FLOOR` at 0 to the theme's
+ *   light end at 100, evenly. Toned at the Brightness all the way down, a
+ *   surface can only carry as much colour as it has light
+ *   (`SURFACE_CHROMA_PER_LIGHTNESS`), and at Black the panes came out the
+ *   theme's own near-black: Colours and Ambient looked switched off (Ivan,
+ *   2026-09-28: "when bringing brightness down it disables the ambient or
+ *   color of the visualizer … only on standard viz we do that, but on plus
+ *   viz we keep the viz original color when moving the app brightness").
+ *   Held at Ocean below Ocean instead, 0 was far too light ("too bright, 0
+ *   needs to be darker", "just do normal, no need for keypoint").
+ * - `follow`: a Plus visualizer's under the Backdrop, at the Brightness all
+ *   the way: there the panes are glass over the picture, and a darker glass
+ *   is what keeps their words on a bright scene.
+ */
+export type TSkyTone = 'lent' | 'held' | 'follow';
+
 /** The sky the window should be in; undefined for the theme as it is. */
 let wanted: ISceneSky | undefined;
+let wantedTone: TSkyTone = 'follow';
+
 /**
- * Whether that sky is lent — the window's own with no visualizer chosen
- * (`lendSceneSky`) — and so fades out toward Black (`lentSkyReach`).
+ * Where a held sky's 0 stands on the theme's walk: the darkest shade at which
+ * a scene's colour still reads on the panes as the scene's rather than as
+ * black. Chosen on panes toned from Aurora's, Alpine's and Neon City's
+ * measured skies at 0, 15, 25, 35, 45 and 75: Aurora's pane is #001309 at 0,
+ * which reads as black beside Black's own #0c0e12, and a plain dark green,
+ * #001d11 to #002014, from 25 to 35.
  */
-let wantedIsLent = false;
+const HELD_SHADE_FLOOR = 30;
+
+/** The theme's shade a sky of `tone` is toned against, at `shade`. */
+const toneShadeOf = (tone: TSkyTone, shade: number) =>
+  tone === 'held'
+    ? Math.round(
+        HELD_SHADE_FLOOR +
+          ((shade - THEME_SHADE_MIN) / (THEME_SHADE_MAX - THEME_SHADE_MIN)) *
+            (THEME_SHADE_MAX - HELD_SHADE_FLOOR),
+      )
+    : shade;
+
 /**
  * What the root carries now, and the theme's shade it was toned against.
  *
  * A visualizer's colours stand at exactly the theme's lightness for the
- * shade, with the scene's hue: the window's Brightness is one slider for
- * every mode and for the Studio too, since it is the theme's (Ivan,
- * 2026-09-25: "in total I want only two options brightness and
- * transparency"), and at one setting Original and Colours are as light as
- * each other (2026-09-26: "when I choose tema is darker than when I choose
- * colores … with same 100% brightness"). They used to be lifted past the
- * theme by a lift of their own, which is now the theme's light end
+ * shade they are toned against, with the scene's hue: the window's
+ * Brightness is one slider for every mode and for the Studio too, since it
+ * is the theme's (Ivan, 2026-09-25: "in total I want only two options
+ * brightness and transparency"), and at 100% Original and Colours are as
+ * light as each other (2026-09-26: "when I choose tema is darker than when I
+ * choose colores … with same 100% brightness"); below it a held sky stands
+ * lighter, so its colour survives (`TSkyTone`). They used to be lifted past
+ * the theme by a lift of their own, which is now the theme's light end
  * (`themeShade.ts`).
  */
-let painted: { sky: ISceneSky | undefined; lent: boolean; shade: number } = {
+let painted: { sky: ISceneSky | undefined; tone: TSkyTone; shade: number } = {
   sky: undefined,
-  lent: false,
+  tone: 'follow',
   shade: getThemeShade(),
 };
 
@@ -484,8 +563,8 @@ const readThemeBase = (shade: number) => {
  */
 const paint = () => {
   const { style } = document.documentElement;
-  const shade = getThemeShade();
-  const reach = wantedIsLent ? lentSkyReach(shade) : 1;
+  const shade = toneShadeOf(wantedTone, getThemeShade());
+  const reach = wantedTone === 'lent' ? lentSkyReach(shade) : 1;
   // A lent sky at Black lends nothing, so the window is the theme's own there
   // — the knobs, the wave and the meter included, which take a scene's
   // colours only while `data-scene-tint` says one is lent.
@@ -508,13 +587,14 @@ const paint = () => {
     'data-scene-tint',
     palette !== undefined,
   );
-  painted = { sky: wanted, lent: wantedIsLent, shade };
+  painted = { sky: wanted, tone: wantedTone, shade };
 };
 
 const needsPaint = () =>
   !sameSky(painted.sky, wanted) ||
-  painted.lent !== wantedIsLent ||
-  (wanted !== undefined && painted.shade !== getThemeShade());
+  painted.tone !== wantedTone ||
+  (wanted !== undefined &&
+    painted.shade !== toneShadeOf(wantedTone, getThemeShade()));
 
 /**
  * Whether the change can cross-fade.
@@ -578,14 +658,10 @@ const fadeToWanted = () => {
  * `fade` cross-fades when the window can; the first paint of a launch should
  * not, since there is no earlier colour to fade from.
  */
-const showSky = (
-  sky: ISceneSky | undefined,
-  isLent: boolean,
-  fade: boolean,
-) => {
-  if (!sameSky(sky, wanted) || isLent !== wantedIsLent) {
+const showSky = (sky: ISceneSky | undefined, tone: TSkyTone, fade: boolean) => {
+  if (!sameSky(sky, wanted) || tone !== wantedTone) {
     wanted = sky;
-    wantedIsLent = isLent;
+    wantedTone = tone;
     wantedListeners.forEach((listener) => listener());
   }
   if (!needsPaint()) {
@@ -598,15 +674,22 @@ const showSky = (
   }
 };
 
-export const showSceneSky = (sky: ISceneSky | undefined, fade: boolean) =>
-  showSky(sky, false, fade);
+/**
+ * A visualizer's own sky: `held` in Colours and Ambient, `follow` under the
+ * Backdrop (`TSkyTone`).
+ */
+export const showSceneSky = (
+  sky: ISceneSky | undefined,
+  fade: boolean,
+  tone: Exclude<TSkyTone, 'lent'> = 'follow',
+) => showSky(sky, tone, fade);
 
 /**
  * Lend the window `sky` as its own, with no visualizer chosen: toned like a
  * visualizer's, except that it fades out toward Black (`lentSkyReach`).
  */
 export const lendSceneSky = (sky: ISceneSky, fade: boolean) =>
-  showSky(sky, true, fade);
+  showSky(sky, 'lent', fade);
 
 /**
  * A Brightness move lands at once, in the same task as the theme's own rule:

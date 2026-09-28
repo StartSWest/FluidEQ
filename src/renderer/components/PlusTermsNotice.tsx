@@ -20,6 +20,7 @@ import {
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
+import CompactFrame from './CompactFrame';
 import '../styles/PlusTermsNotice.scss';
 
 const CHANGES_ID = 'plus-terms-notice-changes';
@@ -100,38 +101,43 @@ const PlusTermsNotice = () => {
   };
 
   return (
-    <div
+    <CompactFrame
       className="plus-terms-notice"
+      icon={<MenuIcon name="shield" />}
+      title={t('termsNotice.title')}
+      titleId="plus-terms-notice-title"
       role="dialog"
-      aria-labelledby="plus-terms-notice-title"
+      aria-modal="false"
       aria-describedby={described ? CHANGES_ID : undefined}
+      onClose={putAway}
+      closeLabel={t('app.dismiss')}
+      actions={
+        <>
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={putAway}
+          >
+            {t('termsNotice.gotIt')}
+          </button>
+          <button
+            type="button"
+            className="button small"
+            onClick={() => {
+              putAway();
+              requestAccountPanel('terms');
+            }}
+          >
+            {t('termsNotice.read')}
+          </button>
+        </>
+      }
     >
-      <div className="plus-terms-notice__body">
-        <MenuIcon name="plusTab" className="plus-terms-notice__icon" />
-        <div className="plus-terms-notice__text">
-          <strong id="plus-terms-notice-title">{t('termsNotice.title')}</strong>
-          <span className="plus-terms-notice__meta">
-            {t('terms.meta', { version: PLUS_TERMS_EDITION, date: effective })}
-          </span>
-          {described}
-        </div>
-      </div>
-      <div className="plus-terms-notice__actions">
-        <button type="button" className="button small subtle" onClick={putAway}>
-          {t('termsNotice.gotIt')}
-        </button>
-        <button
-          type="button"
-          className="button small"
-          onClick={() => {
-            putAway();
-            requestAccountPanel('terms');
-          }}
-        >
-          {t('termsNotice.read')}
-        </button>
-      </div>
-    </div>
+      <span className="plus-terms-notice__meta">
+        {t('terms.meta', { version: PLUS_TERMS_EDITION, date: effective })}
+      </span>
+      {described}
+    </CompactFrame>
   );
 };
 

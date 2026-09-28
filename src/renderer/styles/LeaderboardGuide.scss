@@ -22,7 +22,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   gap: $spacing-m;
   padding: 14px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   @include animate(rise-in, $motion-base, $ease-out, 100ms);
 
@@ -83,7 +83,7 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   gap: 10px;
   padding: 10px 12px 10px 10px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   // The card, as the board's own are; white at 2% was a grey haze from no
   // palette.

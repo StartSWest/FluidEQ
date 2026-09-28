@@ -254,6 +254,11 @@ const app: Partial<Dictionary> = {
     'Equalizer APO がインストールまたは再設定されました。音が出ない場合は PC を再起動せず、Windows オーディオを再起動してください。',
   'notice.restartNow': 'いますぐオーディオを再起動',
   'notice.importComplete': '読み込みが完了しました',
+  'notice.apoReconfiguredTitle': 'Equalizer APO が変更されました',
+  'notice.captureFailed': 'ライブ出力を開始できませんでした',
+  'notice.captureFailedBody':
+    'レベルメーターとグラフのライブカーブは現在オフです。それ以外は通常どおり動作します。',
+  'notice.tryAgain': '再試行',
   'notice.restartConfirm':
     '音が数秒とまり、Windows が管理者権限を求めます。続けますか？',
   'restart.title': 'Windows オーディオを再起動',

@@ -56,18 +56,42 @@ SPDX-License-Identifier: GPL-3.0-or-later
     padding-right: 7px;
   }
 
-  // Both captions say the same kind of thing — what this half is — so they
-  // are drawn the same, and the measured figure is then the only element in
-  // the capsule at full strength. It is the reading; the rest is its label.
+  // Drawn exactly as the quiet buttons beside it draw their glyph and label
+  // (`.button.small.subtle`, the toolbar's `.eq-toolbar__icon`): the label
+  // colour, the 14px glyph, the label's bold, and the figure in the same face
+  // rather than the monospace the readout wears on its own. It had a glyph of
+  // its own size and colour and a monospaced figure, and it read as a
+  // different kind of control from every button on the row (Ivan,
+  // 2026-09-27: "game mode not following same as other buttons"). Tabular
+  // figures, so a delay counting up does not shove the capsule's edge.
   .game-mode-switch__label,
   .latency-readout__name {
-    color: $text-faint;
-    font-size: $text-small;
-    font-weight: $weight-semibold;
+    color: $secondary-light;
+    font-size: $text-body;
+    font-weight: $weight-bold;
   }
 
-  .latency-readout__value {
+  .game-mode-switch__icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  .latency-readout__value,
+  .latency-readout.is-game .latency-readout__value {
+    color: $secondary-light;
+    font-family: inherit;
     font-size: $text-body;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // Under the pointer, each half as a quiet button is: the label goes white.
+  > .game-mode-switch:hover,
+  > .latency-readout:hover:not(:disabled) {
+    .game-mode-switch__label,
+    .latency-readout__value {
+      color: $white;
+    }
   }
 
   // The reading on the capsule's own face, past a hairline seam: the split
@@ -87,27 +111,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
     }
   }
 
-  // Game mode is a state of the whole strip — it is what the figure beside it
-  // is reading — so the capsule takes the colour and the halves stop painting
-  // their own, which would have stacked two fills on the left one.
-  &:has(.game-mode-switch.is-on) {
-    border-color: color-mix(in srgb, $secondary-default 40%, transparent);
-    background: color-mix(in srgb, $secondary-default 11%, transparent);
-
-    .game-mode-switch__label,
-    .latency-readout__name {
-      color: $secondary-default;
-    }
-  }
-
-  // The halves stop painting their own state fill — the capsule is wearing it
-  // now, and two fills stacked on the left half made it the darker of the two.
-  // The seam takes the capsule's lit edge with it.
-  > .game-mode-switch.is-on {
+  // On or off, the capsule is the buttons' own face: the switch in it says
+  // which, as a switch does everywhere else. It lit its own edge and fill in
+  // the accent when on, a louder capsule than any button on the row. The
+  // halves paint no state fill of their own either — the readout's game
+  // colours stay for where it stands alone.
+  > .game-mode-switch.is-on,
+  > .latency-readout.is-game {
     background: none;
   }
 
   > .latency-readout.is-game {
-    border-left-color: color-mix(in srgb, $secondary-default 40%, transparent);
+    border-left-color: $border-field;
   }
 }

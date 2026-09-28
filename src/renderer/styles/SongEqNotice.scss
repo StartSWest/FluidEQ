@@ -49,7 +49,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // How long it stays up: the linger below, whose end takes it down.
 $song-eq-notice-linger: 6s;
 
-.song-eq-notice {
+// On the small frame (`CompactFrame`), which draws it; this places it and
+// times it. Against the frame's class as well, so its own animation — the
+// linger that ends it — wins over the frame's arrival whichever sheet the
+// cascade reads last.
+.compact-frame.song-eq-notice {
   // The entrance, then the linger — and the linger's end is what takes the
   // notice away (`endSongEqNotice`), where a six-second timer beside it used
   // to. Written out rather than through `animate`, which sets the whole
@@ -79,15 +83,7 @@ $song-eq-notice-linger: 6s;
   z-index: 1190;
   top: calc($title-bar-height + 16px);
   right: 18px;
-  display: grid;
   width: min(420px, calc(100vw - 36px));
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 12px;
-  padding: 14px 16px;
-  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-menu-top 97%, transparent);
-  box-shadow: 0 16px 40px rgba($black, 0.45);
 }
 
 // The linger holds `visibility`, which the notice already has, and nothing
@@ -106,47 +102,11 @@ $song-eq-notice-linger: 6s;
 // (`App.scss`) that needs a class more than its `*` and `!important` to meet
 // its own; the media query is the launch switch's half of the same setting.
 @media (prefers-reduced-motion: reduce) {
-  .song-eq-notice {
+  .compact-frame.song-eq-notice {
     animation: song-eq-notice-linger $song-eq-notice-linger linear;
   }
 }
 
-:root[data-motion='reduced'] .song-eq-notice {
+:root[data-motion='reduced'] .compact-frame.song-eq-notice {
   animation: song-eq-notice-linger $song-eq-notice-linger linear !important;
-}
-
-.song-eq-notice__icon {
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-  margin-top: 1px;
-  color: $secondary-light;
-}
-
-.song-eq-notice__text {
-  display: grid;
-  min-width: 0;
-  gap: 4px;
-
-  strong {
-    color: $secondary-light;
-    font-size: $text-lead;
-  }
-
-  span {
-    color: $text-muted;
-    font-size: $text-body;
-    line-height: 1.45;
-  }
-}
-
-// Aligned under the sentence rather than under the icon, matching
-// `speech-memory-notice__actions` for the same reason: the block of text and
-// the answers to it share one left edge.
-.song-eq-notice__actions {
-  display: flex;
-  grid-column: 2;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
 }

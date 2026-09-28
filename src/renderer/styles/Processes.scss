@@ -11,13 +11,11 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The card, backdrop and header are About's — this dialog is the same shape
-// and reusing them is what keeps it looking like part of the app rather than
-// like a debugging tool that wandered in.
+// The backdrop is About's: both open from the tools menu, at the same level.
 @use 'About';
 
 /*
- * Wider than About, because every row carries a sentence.
+ * Wider than About's body, because every row carries a sentence.
  *
  * 520px was right while a row was one word: four columns of numbers read worse
  * the wider they are, since the eye has further to travel from a name to its
@@ -26,37 +24,15 @@ it under the terms of the GNU General Public License version 3 or later.
  * name column takes the extra width; the three number columns are sized by
  * their content and do not move.
  */
-/*
- * Both classes, because `.about` sets a width too.
- *
- * `.processes` alone is the same specificity as `.about` and lost on source
- * order — About's stylesheet is emitted after this one, since the About dialog
- * imports it as well. Measured in the running window: the card stayed 620px
- * while every other rule in this file applied, which is precisely the failure
- * that reasoning about the cascade does not catch and `getComputedStyle` does.
- */
-.about.processes {
-  width: min(860px, 100%);
-  // A third row for the footer. About's own grid is header and body, and this
-  // is the only card of the three that has anything to pin under the scroll.
-  grid-template-rows: auto minmax(0, 1fr) auto;
+.dialog-frame.processes {
+  @include dialog.size(960px, 780px);
 }
 
-/*
- * The total, pinned under the scrolling table.
- *
- * A summary that scrolls away is not a summary. The list is long enough to
- * scroll on a short window, and the line it adds up to was the first thing to
- * go — so it sits in the card rather than in the body, on the right, under the
- * columns of numbers it totals.
- */
-.processes__footer {
-  display: flex;
-  gap: $spacing-m;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 11px 18px 13px;
-  border-top: 1px solid rgba($white, 0.09);
+// The notes on the left of the foot, one per line, and the total on the
+// right under the columns of numbers it adds up.
+.processes__notes {
+  display: grid;
+  gap: 2px;
 }
 
 .processes__footnote {
@@ -65,26 +41,12 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.4;
 }
 
-/*
- * Pushed right by the flex row even when the note beside it is absent, which
- * is the common case: `margin-left: auto` rather than relying on
- * `space-between`, which centres a lone child's leftover space instead.
- */
 .processes__total {
   margin-left: auto;
   color: $text-muted;
   font-size: $text-body;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-
-.processes__hint {
-  @include dialog.section-surface;
-  margin: 0;
-  padding: 9px 12px;
-  color: $text-muted;
-  font-size: $text-body;
-  line-height: 1.5;
 }
 
 .processes__table {
@@ -97,11 +59,13 @@ it under the terms of the GNU General Public License version 3 or later.
   th {
     position: sticky;
     z-index: 1;
-    top: -18px;
+    // The body's top padding, so the heads hold at the scroll's edge.
+    top: -26px;
     padding: 9px 12px;
     border-bottom: 1px solid rgba($white, 0.09);
     color: $text-faint;
-    background: color-mix(in srgb, $surface-menu-top 96%, transparent);
+    // Opaque, so the rows scrolling under the heads do not show through.
+    background: color-mix(in oklab, $surface-base 82%, $surface-panel);
     font-size: $text-small;
     font-weight: $weight-bold;
     @include tracking(0.08em);

@@ -13,7 +13,9 @@ import {
   inkGroups,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneReading,
   type ISceneSpan,
+  type TSceneInk,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -43,29 +45,33 @@ import {
  * builds at the same pace at any frame rate.
  */
 
-/** A column never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 8;
+/**
+ * A column never on a pitch smaller than this, in CSS pixels. Exported with
+ * the functions below for the look's GPU painting
+ * (`engineLooks/fallingBlocksLook.ts`), which draws the blocks these build.
+ */
+export const MIN_PITCH = 8;
 /** Gravity on a falling block, in rows a second per second. */
 const GRAVITY = 90;
 /** How often a column may drop a new block, and lose one, in milliseconds. */
 const DROP_EVERY_MS = 38;
 const CRUMBLE_EVERY_MS = 110;
 /** How long a landing flashes, and a crumbling block takes to go. */
-const FLASH_MS = 140;
-const CRUMBLE_MS = 160;
+export const FLASH_MS = 140;
+export const CRUMBLE_MS = 160;
 /** How much of a row the level has to fill to earn its block, and how
  * little of it may be left before the block goes. */
 const ADD_AT = 0.7;
 const REMOVE_AT = 0.3;
 
-interface IFalling {
+export interface IFalling {
   column: number;
   /** Its height above the floor, in rows, and its speed downward. */
   row: number;
   speed: number;
 }
 
-interface ICrumbling {
+export interface ICrumbling {
   column: number;
   row: number;
   age: number;
@@ -98,7 +104,7 @@ export const createFallingBlocksState = (): IFallingBlocksState => ({
 });
 
 /** How many rows the shallowest copy holds, so every copy shows every block. */
-const rowsOf = (frame: ISceneFrame, pitch: number): number =>
+const rowsOf = (frame: Pick<ISceneReading, 'bands'>, pitch: number): number =>
   Math.max(
     2,
     Math.floor(
@@ -110,7 +116,10 @@ const rowsOf = (frame: ISceneFrame, pitch: number): number =>
   );
 
 /** One frame of building: drop, fall, land, crumble. */
-const build = (frame: ISceneFrame, state: IFallingBlocksState): boolean => {
+export const build = (
+  frame: Pick<ISceneReading, 'bands' | 'deltaMs'>,
+  state: IFallingBlocksState,
+): boolean => {
   const { row } = state;
   const rows = rowsOf(frame, row.pitch);
   if (state.stacks.length !== row.count || state.rows !== rows) {
@@ -181,8 +190,7 @@ const drawCopy = (
 ): void => {
   const { context, plot, colours, look } = frame;
   const { row, rows } = state;
-  const up = band.flipped ? 1 : -1;
-  const floor = band.flipped ? band.top : band.bottom;
+  const { up, floor } = blocksStand(band);
   const { pitch } = row;
   const cell = row.body;
   const inset = (pitch - cell) / 2;
@@ -201,7 +209,7 @@ const drawCopy = (
   const shade = new Path2D();
   const flashes = new Path2D();
   const held = new Path2D();
-  const bevel = Math.max(1, cell * 0.14);
+  const bevel = blockBevel(cell);
   /** Where a block `rowUp` rows above the floor sits in this copy. */
   const topOf = (rowUp: number) =>
     up < 0
@@ -216,12 +224,8 @@ const drawCopy = (
     shade.rect(x + bevel, y + cell - bevel, cell - bevel, bevel);
     shade.rect(x + cell - bevel, y + bevel, bevel, cell - bevel * 2);
   };
-  const groupOf = (column: number, rowUp: number): number => {
-    if (look.ink === 'level') {
-      return Math.min(rows - 1, Math.max(0, Math.floor(rowUp)));
-    }
-    return look.ink === 'heat' ? heatStep(row.levels[column]) : 0;
-  };
+  const groupOf = (column: number, rowUp: number): number =>
+    blockGroup(look.ink, rows, row.levels[column], rowUp);
   for (let column = 0; column < row.count; column += 1) {
     const stack = state.stacks[column];
     for (let rowUp = 0; rowUp < stack; rowUp += 1) {
@@ -241,17 +245,12 @@ const drawCopy = (
       );
     }
   }
-  // A falling block wears the colour of the row it will land in, so it
-  // does not change colour on its way down.
-  const landing = Int32Array.from(state.stacks);
-  state.falling.forEach((block) => {
-    const at = Math.min(rows - 1, landing[block.column]);
-    landing[block.column] += 1;
-    addBlock(block.column, block.row, groupOf(block.column, at));
-  });
+  eachFalling(state, (column, rowUp, landsOn) =>
+    addBlock(column, rowUp, groupOf(column, landsOn)),
+  );
   const crumbs = new Path2D();
   state.crumbling.forEach((block) => {
-    const shrink = (block.age / CRUMBLE_MS) * cell * 0.5;
+    const shrink = crumbShrink(block.age, cell);
     const x = row.lefts[block.column] + shrink;
     const y = topOf(block.row) + shrink;
     crumbs.rect(x, y, cell - shrink * 2, cell - shrink * 2);
@@ -292,6 +291,49 @@ const drawCopy = (
   context.strokeStyle = figureInk(context, frame, span, 0.8, 0.5);
   context.lineWidth = 1;
   context.stroke(held);
+};
+
+/** Where one copy's stacks stand: its floor, and which way they grow. */
+export const blocksStand = (band: IAnalysisBand) => ({
+  floor: band.flipped ? band.top : band.bottom,
+  up: band.flipped ? 1 : -1,
+});
+
+/** A block's bevel on a cell of `cell` pixels. */
+export const blockBevel = (cell: number): number => Math.max(1, cell * 0.14);
+
+/** How far a crumbling block has shrunk from each side, `age` into it. */
+export const crumbShrink = (age: number, cell: number): number =>
+  (age / CRUMBLE_MS) * cell * 0.5;
+
+/** The colour group of a block `rowUp` rows up a column of `level`. */
+export const blockGroup = (
+  ink: TSceneInk,
+  rows: number,
+  level: number,
+  rowUp: number,
+): number => {
+  if (ink === 'level') {
+    return Math.min(rows - 1, Math.max(0, Math.floor(rowUp)));
+  }
+  return ink === 'heat' ? heatStep(level) : 0;
+};
+
+/**
+ * Every falling block: its column, how far up it is, and the row it will
+ * land in — whose colour it wears on the way down, so it never changes
+ * colour as it falls.
+ */
+export const eachFalling = (
+  state: IFallingBlocksState,
+  block: (column: number, rowUp: number, landsOn: number) => void,
+): void => {
+  const landing = Int32Array.from(state.stacks);
+  state.falling.forEach((one) => {
+    const at = Math.min(state.rows - 1, landing[one.column]);
+    landing[one.column] += 1;
+    block(one.column, one.row, at);
+  });
 };
 
 export const drawFallingBlocks = (

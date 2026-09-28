@@ -11,8 +11,11 @@ import {
   appMinimumSize,
   centreIn,
   clampInto,
+  isPlayerRect,
   isUsableRect,
   placeAtTopRight,
+  PLAYER_BOUNDS_RULE,
+  rememberedPlayer,
   playerFirstSize,
   playerMinimumSize,
 } from 'common/windowMode';
@@ -120,5 +123,67 @@ describe('a remembered rectangle worth reusing', () => {
     expect(isUsableRect({ x: 0, y: 0 })).toBe(false);
     expect(isUsableRect({ x: 0, y: 0, width: 0, height: 640 })).toBe(false);
     expect(isUsableRect({ x: NaN, y: 0, width: 480, height: 640 })).toBe(false);
+  });
+});
+
+describe('a remembered player worth opening again', () => {
+  // The screen Ivan's amp was remembered on, 2026-09-28: the saved player was
+  // this work area exactly, and every switch opened the amp that size.
+  const IVAN_AREA = { x: 0, y: 34, width: 1440, height: 792 };
+
+  it('is any size somebody could have dragged it to', () => {
+    expect(
+      isPlayerRect({ x: 480, y: 34, width: 480, height: 792 }, IVAN_AREA),
+    ).toBe(true);
+    expect(
+      isPlayerRect({ x: 0, y: 34, width: 1440, height: 400 }, IVAN_AREA),
+    ).toBe(true);
+    expect(
+      isPlayerRect({ x: 100, y: 60, width: 900, height: 700 }, IVAN_AREA),
+    ).toBe(true);
+  });
+
+  it('is never the whole screen, which is a full screen or a maximised app', () => {
+    expect(isPlayerRect({ ...IVAN_AREA }, IVAN_AREA)).toBe(false);
+    // A maximised window, overhanging the work area by its resize border.
+    expect(
+      isPlayerRect({ x: -8, y: 26, width: 1456, height: 808 }, IVAN_AREA),
+    ).toBe(false);
+    // The display itself, as a full screen reports it.
+    expect(
+      isPlayerRect({ x: 0, y: 0, width: 1440, height: 900 }, IVAN_AREA),
+    ).toBe(false);
+  });
+
+  it('is a real rectangle', () => {
+    expect(isPlayerRect(undefined, IVAN_AREA)).toBe(false);
+    expect(isPlayerRect({ x: 0, y: 0, width: 0, height: 600 }, IVAN_AREA)).toBe(
+      false,
+    );
+  });
+});
+
+describe('the player read back from the window-state file', () => {
+  const player = { x: 480, y: 38, width: 480, height: 806 };
+
+  it('is the bounds written under the current rule', () => {
+    expect(
+      rememberedPlayer({ player, playerRule: PLAYER_BOUNDS_RULE }),
+    ).toEqual(player);
+  });
+
+  it('is nothing for a file written before the rule, whatever it holds', () => {
+    // Ivan's file on 2026-09-28: the amp remembered as the width of his
+    // screen, with no rule beside it.
+    expect(
+      rememberedPlayer({ player: { x: 0, y: 38, width: 1440, height: 806 } }),
+    ).toBeUndefined();
+    expect(rememberedPlayer({ player, playerRule: 1 })).toBeUndefined();
+    expect(
+      rememberedPlayer({
+        player: { x: 0, y: 0 },
+        playerRule: PLAYER_BOUNDS_RULE,
+      }),
+    ).toBeUndefined();
   });
 });

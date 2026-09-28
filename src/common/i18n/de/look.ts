@@ -62,11 +62,14 @@ const look: Partial<Dictionary> = {
   'look.palette.levelHint':
     'Die Farbe läuft die Achse hinauf und zeigt die Lautstärke jedes Balkens.',
   'look.palette.heat': 'Hitze',
-  'look.palette.heatHint': 'Die Farbe folgt der Lautstärke, von kühl bis rot.',
+  'look.palette.heatHint':
+    'Die Farbe folgt der Lautstärke, von der ersten Farbe bis zur letzten.',
   'look.palette.auto': 'Auto',
   'look.palette.autoHint':
     'Jede Form in ihrer eigenen Färbung – eine Straße nach Lautstärke, Balken nach Position.',
   'look.colours': 'Farben',
+  'look.coloursFollowWindow':
+    'Folgt den Farben des Fensters. Ändern Sie eine, damit sie zu diesem Stil gehören.',
   'look.colourValue': 'Farbe {number}: {colour}',
   'look.removeColour': 'Farbe {number} entfernen',
   'look.custom': 'Benutzerdefiniert',

@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// What this adds to `.device-apo-notice` (DeviceProfiles.scss), whose look
+// What this adds to `.device-apo-notice` (DeviceProfiles.scss), whose spot
 // it shares: the same message, "this output is not being processed", for a
 // reason the engine gave rather than one the device list did.
 
@@ -18,20 +18,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // engine update notice shares the spot too, and goes after this one. Decided
 // in React (`noticeTurn.ts`).
 
-// Caution rather than alarm: the engine is running, and most of what was
-// asked for is playing. Red stays with an output nothing reaches at all.
-.device-apo-notice.engine-trouble-notice--partial {
-  border-color: color-mix(in srgb, $amber 52%, transparent);
-
-  .apo-badge {
-    color: $amber;
-    border-color: color-mix(in srgb, $amber 40%, transparent);
-    background: color-mix(in srgb, $amber 10%, transparent);
-  }
-}
-
-// One line per thing that is off, marked in the column the engine dialog
-// marks its own lines in, so the two read as the same kind of list.
+// One line per thing that is off, marked in the amber the notice's tile
+// wears, so the list reads as what the glyph is about.
 .engine-trouble-notice__problems {
   display: grid;
   margin: 0;
@@ -44,14 +32,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
     grid-template-columns: 14px minmax(0, 1fr);
     align-items: start;
     gap: $spacing-xs;
-    color: $text-muted;
-    font-size: $text-body;
-    line-height: 1.45;
 
     &::before {
       width: 6px;
       height: 6px;
-      margin: 0.5em 0 0 4px;
+      margin: 0.6em 0 0 4px;
       border-radius: 50%;
       background: $amber;
       content: '';

@@ -53,21 +53,28 @@ import {
  * one colour are one path and one fill; the highlights one more.
  */
 
-/** A column never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 5;
+/**
+ * A column never on a pitch smaller than this, in CSS pixels. Exported with
+ * the functions below for the look's GPU painting
+ * (`engineLooks/ledBarsLook.ts`), which is laid out from the same numbers.
+ */
+export const MIN_PITCH = 5;
 /** Never fewer rows than this, whatever the columns' width. */
 const MIN_ROWS = 12;
 /** The gap between two rows, as a share of a segment's height, and least. */
 const ROW_GAP = 0.2;
 const MIN_ROW_GAP = 1.5;
 
-interface IPanel {
-  key: string;
-  /** Segment height and the pitch between rows. */
+/** The panel's segments: their height, and the pitch between rows. */
+export interface IPanelSegments {
   cell: number;
   rowPitch: number;
   /** One per copy: its rows and where its floor is. */
   boards: { rows: number; floor: number; up: number }[];
+}
+
+interface IPanel extends IPanelSegments {
+  key: string;
 }
 
 export interface ILedBarsState {
@@ -84,8 +91,15 @@ export const createLedBarsState = (): ILedBarsState => ({
   bloom: createSceneBloom(),
 });
 
-const panelFor = (frame: ISceneFrame, row: IPieceRow): IPanel => {
-  const { bands, look, colours, ratio } = frame;
+/**
+ * The panel's segments for a row: square while a dozen squares fit, and
+ * otherwise the height a dozen rows leave, which is the wide segment of a
+ * classic panel.
+ */
+export const panelSegments = (
+  bands: readonly IAnalysisBand[],
+  row: IPieceRow,
+): IPanelSegments => {
   const shallowest = bands.reduce(
     (least, band: IAnalysisBand) => Math.min(least, band.bottom - band.top),
     Number.POSITIVE_INFINITY,
@@ -106,6 +120,12 @@ const panelFor = (frame: ISceneFrame, row: IPieceRow): IPanel => {
     floor: band.flipped ? band.top : band.bottom,
     up: band.flipped ? 1 : -1,
   }));
+  return { cell, rowPitch, boards };
+};
+
+const panelFor = (frame: ISceneFrame, row: IPieceRow): IPanel => {
+  const { look, colours, ratio } = frame;
+  const { cell, rowPitch, boards } = panelSegments(frame.bands, row);
   return {
     key: `${row.count}|${row.body.toFixed(2)}|${rowPitch.toFixed(2)}|${boards
       .map((board) => `${board.rows}@${Math.round(board.floor)}`)
@@ -118,10 +138,10 @@ const panelFor = (frame: ISceneFrame, row: IPieceRow): IPanel => {
   };
 };
 
-/** The segment `step` rows up a column, as a rectangle. */
-const segmentAt = (
-  panel: IPanel,
-  board: IPanel['boards'][number],
+/** The top of the segment `step` rows up a column. */
+export const segmentAt = (
+  panel: IPanelSegments,
+  board: IPanelSegments['boards'][number],
   step: number,
 ): number =>
   board.up < 0
@@ -192,6 +212,10 @@ const printGhost = (
   });
   return canvas;
 };
+
+/** The lit panel's bloom for a frame. */
+export const ledBarsBloom = (pulse: number, glow: number, opacity: number) =>
+  (0.28 + pulse * 0.35 + glow * 0.45) * opacity;
 
 export const drawLedBars = (
   frame: ISceneFrame,
@@ -320,7 +344,7 @@ export const drawLedBars = (
     endBloom(
       frame,
       state.bloom,
-      (0.28 + music.pulse * 0.35 + frame.glow * 0.45) * look.opacity,
+      ledBarsBloom(music.pulse, frame.glow, look.opacity),
     );
   }
   return { moving: falling && look.accents, body };

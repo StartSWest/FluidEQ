@@ -62,11 +62,13 @@ const look: Partial<Dictionary> = {
     'Цвет идёт вверх по оси и показывает громкость каждой полосы.',
   'look.palette.heat': 'Нагрев',
   'look.palette.heatHint':
-    'Цвет следует за громкостью, от холодного к красному.',
+    'Цвет следует за громкостью, от первого цвета к последнему.',
   'look.palette.auto': 'Авто',
   'look.palette.autoHint':
     'Каждая форма в своей раскраске: дорога — по громкости, столбики — по положению.',
   'look.colours': 'Цвета',
+  'look.coloursFollowWindow':
+    'Следует цветам окна. Измените один, чтобы они стали цветами этого стиля.',
   'look.colourValue': 'Цвет {number}: {colour}',
   'look.removeColour': 'Удалить цвет {number}',
   'look.custom': 'Свой',

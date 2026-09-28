@@ -61,10 +61,13 @@ import {
  * the lamps, with the columns' edges in it.
  */
 
-/** A lamp never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 6;
+/**
+ * A lamp never on a pitch smaller than this, in CSS pixels. Exported for the
+ * look's GPU painting (`engineLooks/ledWallLook.ts`).
+ */
+export const MIN_PITCH = 6;
 
-interface ILedBoard {
+export interface ILedBoard {
   rows: number;
   foot: number;
   up: number;
@@ -103,18 +106,40 @@ export const createLedWallState = (): ILedWallState => ({
   frame: 0,
 });
 
+/**
+ * One copy's board: how many rows of lamps its band holds, and its foot row.
+ * A board stands on its floor and grows away from it: up, or down when the
+ * wave is upside down. Shared with the look's GPU painting.
+ */
+export const ledBoard = (band: IAnalysisBand, pitch: number): ILedBoard => {
+  const depth = band.bottom - band.top;
+  return {
+    rows: Math.max(2, Math.floor(depth / pitch)),
+    foot: band.flipped ? band.top + pitch / 2 : band.bottom - pitch / 2,
+    up: band.flipped ? 1 : -1,
+  };
+};
+
+/** A lamp's radius on a piece of `body`. */
+export const ledRadius = (body: number): number => Math.max(1, body / 2);
+
+/** Whether a lit column's top lamp catches the treble this frame. */
+export const isLampSparking = (
+  treble: number,
+  column: number,
+  frameCount: number,
+): boolean =>
+  treble > 0.2 && hash01(column * 7.3 + frameCount * 0.61) < treble * 0.16;
+
+/** The board's bloom for a frame, from the beat, the Glow and Opacity. */
+export const ledBloom = (pulse: number, glow: number, opacity: number) =>
+  (0.3 + pulse * 0.4 + glow * 0.45) * opacity;
+
 const layoutFor = (frame: ISceneFrame, row: IPieceRow): ILedLayout => {
   const { bands, look } = frame;
   const { pitch, count } = row;
-  const radius = Math.max(1, row.body / 2);
-  const boards = bands.map((band: IAnalysisBand) => {
-    const depth = band.bottom - band.top;
-    const rows = Math.max(2, Math.floor(depth / pitch));
-    // A board stands on its floor and grows away from it: up, or down when
-    // the wave is upside down.
-    const foot = band.flipped ? band.top + pitch / 2 : band.bottom - pitch / 2;
-    return { rows, foot, up: band.flipped ? 1 : -1 };
-  });
+  const radius = ledRadius(row.body);
+  const boards = bands.map((band: IAnalysisBand) => ledBoard(band, pitch));
   return {
     key: `${count}|${pitch.toFixed(2)}|${radius.toFixed(2)}|${boards
       .map((board) => `${board.rows}@${Math.round(board.foot)}`)
@@ -372,11 +397,7 @@ export const drawLedWall = (
         );
       }
       // The top lamp of a lit column catches the treble.
-      if (
-        rows > 0 &&
-        music.treble > 0.2 &&
-        hash01(column * 7.3 + state.frame * 0.61) < music.treble * 0.16
-      ) {
+      if (rows > 0 && isLampSparking(music.treble, column, state.frame)) {
         const y = board.foot + board.up * (rows - 1) * pitch;
         sparks.moveTo(x + radius * 1.05, y);
         sparks.arc(x, y, radius * 1.05, 0, Math.PI * 2);
@@ -444,7 +465,7 @@ export const drawLedWall = (
     endBloom(
       frame,
       state.bloom,
-      (0.3 + music.pulse * 0.4 + frame.glow * 0.45) * look.opacity,
+      ledBloom(music.pulse, frame.glow, look.opacity),
     );
   }
 

@@ -25,6 +25,9 @@ import { createPortal } from 'react-dom';
 import type { IAudioEngineStatus, TAudioEngine } from 'common/audioEngine';
 import { engineDisplayName } from '../utils/audioEngineApi';
 import { useTranslation } from '../utils/I18nContext';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from './DialogFrame';
+import holdFocusReturn from '../utils/focusReturn';
 // The footer and the APO repairs are raw `<button class="button">`s rather
 // than the `Button` widget — they are native buttons in a focus trap — so the
 // sheet that defines that class has to be asked for here. It used to be
@@ -189,18 +192,14 @@ const AudioEngineDialog = ({
   const isBlocking = onCancel === undefined;
 
   useEffect(() => {
-    const previousFocus = document.activeElement;
+    const giveFocusBack = holdFocusReturn();
     // The chosen row, not the first button: this dialog is a question, and the
     // answer already selected is where a keyboard lands.
     const checked = optionRefs.current.find(
       (option) => option?.getAttribute('aria-checked') === 'true',
     );
     checked?.focus();
-    return () => {
-      if (previousFocus instanceof HTMLElement) {
-        previousFocus.focus();
-      }
-    };
+    return giveFocusBack;
     // Once, on mount. Re-running it on every selection change would drag focus
     // back out of the footer while somebody was tabbing towards Apply.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -333,8 +332,11 @@ const AudioEngineDialog = ({
   };
 
   // Apply goes grey the moment the engine it names is the running one, and
-  // the focus it held goes with it — to the page behind the dialog. Close is
-  // the next thing anybody presses after a switch, so that is where it lands.
+  // the focus it held goes with it — to the page behind the dialog. Closing
+  // is the next thing anybody does after a switch, so the focus lands on the
+  // corner's ×, not on the footer's Close: beside a greyed Apply, a quiet
+  // button wearing the focus ring was the one lit thing in the footer and
+  // read as the answer being recommended.
   useEffect(() => {
     if (switchedTo) {
       closeRef.current?.focus();
@@ -355,84 +357,27 @@ const AudioEngineDialog = ({
         }
       }}
     >
-      <div
+      <DialogFrame
         ref={surfaceRef}
         className="engine-dialog"
         role={isBlocking ? 'alertdialog' : 'dialog'}
-        aria-modal="true"
-        aria-labelledby="engine-dialog-title"
         aria-describedby="engine-dialog-subtitle"
-      >
-        <div className="engine-dialog__head">
-          <h2 id="engine-dialog-title" className="engine-dialog__title">
-            {t('engine.title')}
-          </h2>
-          <p id="engine-dialog-subtitle" className="engine-dialog__subtitle">
-            {t('engine.subtitle')}
-          </p>
-        </div>
-
-        <div className="engine-dialog__body">
-          <div
-            role="radiogroup"
-            aria-label={t('engine.title')}
-            className="engine-dialog__options"
-          >
-            {options.map((option, index) => (
-              <EngineOption
-                key={option.engine}
-                name={option.name}
-                lines={option.lines}
-                recommended={option.recommended}
-                isChecked={selected === option.engine}
-                isDisabled={option.isDisabled || isApplying}
-                onSelect={() => setSelected(option.engine)}
-                onNavigate={moveSelection}
-                optionRef={(element) => {
-                  optionRefs.current[index] = element;
-                }}
-                descriptionId={`engine-dialog__lines-${option.engine}`}
-              />
-            ))}
-          </div>
-          {!status.fluidSupported && (
-            <p className="engine-dialog__note">{t('engine.unsupported')}</p>
-          )}
-          {status.engine === 'apo' && onApoAction && (
-            <div className="engine-dialog__apo-actions">
-              <button
-                type="button"
-                className="button small subtle"
-                disabled={isApplying}
-                onClick={() => onApoAction('reconfigure')}
-              >
-                {t('engine.apo.reconfigure')}
-              </button>
-              <button
-                type="button"
-                className="button small subtle"
-                disabled={isApplying}
-                onClick={() => onApoAction('settings')}
-              >
-                {t('engine.apo.settings')}
-              </button>
-              <button
-                type="button"
-                className="button small subtle"
-                disabled={isApplying}
-                onClick={() => onApoAction('reinstall')}
-              >
-                {t('engine.apo.reinstall')}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="engine-dialog__foot">
-          <div className="engine-dialog__footer">
+        icon={<MenuIcon name="configure" />}
+        title={t('engine.title')}
+        titleId="engine-dialog-title"
+        description={
+          <span id="engine-dialog-subtitle">{t('engine.subtitle')}</span>
+        }
+        // No way out on the blocking first run, and none while a switch is
+        // under way: Cancel, Escape and the backdrop all refuse then too.
+        onClose={onCancel && !isApplying ? onCancel : undefined}
+        closeLabel={t('engine.close')}
+        closeRef={closeRef}
+        footer={
+          <>
             {switchedTo && !isApplying ? (
               <p
-                className="engine-dialog__now engine-dialog__now--switched"
+                className="dialog-frame__note engine-dialog__now engine-dialog__now--switched"
                 role="status"
               >
                 <Mark kind="yes" />
@@ -442,17 +387,16 @@ const AudioEngineDialog = ({
               </p>
             ) : (
               (isApplying || currentName) && (
-                <p className="engine-dialog__now">
+                <p className="dialog-frame__note engine-dialog__now">
                   {isApplying
                     ? t('engine.installing')
                     : t('engine.now', { engine: currentName ?? '' })}
                 </p>
               )
             )}
-            <div className="engine-dialog__actions">
+            <div className="dialog-frame__actions">
               {onCancel && (
                 <button
-                  ref={closeRef}
                   type="button"
                   className="button small subtle"
                   disabled={isApplying}
@@ -476,19 +420,75 @@ const AudioEngineDialog = ({
                 {t('engine.apply')}
               </button>
             </div>
-          </div>
-          {failure && (
-            <p className="engine-dialog__error" role="alert">
-              {t(failure === 'declined' ? 'engine.declined' : 'engine.failed')}
-              {failureDetail && (
-                <span className="engine-dialog__error-detail">
-                  {failureDetail}
-                </span>
-              )}
-            </p>
-          )}
+            {failure && (
+              <p className="engine-dialog__error" role="alert">
+                {t(
+                  failure === 'declined' ? 'engine.declined' : 'engine.failed',
+                )}
+                {failureDetail && (
+                  <span className="engine-dialog__error-detail">
+                    {failureDetail}
+                  </span>
+                )}
+              </p>
+            )}
+          </>
+        }
+      >
+        <div
+          role="radiogroup"
+          aria-label={t('engine.title')}
+          className="engine-dialog__options"
+        >
+          {options.map((option, index) => (
+            <EngineOption
+              key={option.engine}
+              name={option.name}
+              lines={option.lines}
+              recommended={option.recommended}
+              isChecked={selected === option.engine}
+              isDisabled={option.isDisabled || isApplying}
+              onSelect={() => setSelected(option.engine)}
+              onNavigate={moveSelection}
+              optionRef={(element) => {
+                optionRefs.current[index] = element;
+              }}
+              descriptionId={`engine-dialog__lines-${option.engine}`}
+            />
+          ))}
         </div>
-      </div>
+        {!status.fluidSupported && (
+          <p className="engine-dialog__note">{t('engine.unsupported')}</p>
+        )}
+        {status.engine === 'apo' && onApoAction && (
+          <div className="engine-dialog__apo-actions">
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={isApplying}
+              onClick={() => onApoAction('reconfigure')}
+            >
+              {t('engine.apo.reconfigure')}
+            </button>
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={isApplying}
+              onClick={() => onApoAction('settings')}
+            >
+              {t('engine.apo.settings')}
+            </button>
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={isApplying}
+              onClick={() => onApoAction('reinstall')}
+            >
+              {t('engine.apo.reinstall')}
+            </button>
+          </div>
+        )}
+      </DialogFrame>
     </div>,
     document.body,
   );

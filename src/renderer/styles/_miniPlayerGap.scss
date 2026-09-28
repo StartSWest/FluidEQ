@@ -1,0 +1,303 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'miniPlayerParts' as *;
+
+// The open space between the dock and the sheet, where the picture is seen
+// with nothing in front of it, and the visualizer's own bar at its foot.
+
+// ======================================================= the open space ====
+//
+// All of the window's height the rest does not need goes here: a taller
+// window is more picture. At its least it holds the bar and a band of
+// picture above it (`usePlayerHeightLimit` measures it there).
+.player-gap {
+  // The bar's height and the room round it: what the drawing stands above.
+  --player-bar-room: 54px;
+
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 64px;
+  margin-top: 8px;
+
+  // A standard look is drawn here and nowhere else, so its least is a
+  // drawing's worth above the bar: at the bare 64px the analyser's legend
+  // and its scale sat on the bar.
+  &.is-trace {
+    min-height: calc(var(--player-bar-room) + 104px);
+  }
+}
+
+// The drawing's own box, above the bar (`PlayerGap` measures this one).
+.player-gap__view {
+  position: absolute;
+  inset: 0 0 var(--player-bar-room);
+  pointer-events: none;
+}
+
+// A free look, drawn by the graph's own live trace from the graph's own
+// settings, and the main graph's grid over a measuring one (`PlayerPaper`).
+.player-gap__trace,
+.player-gap__paper {
+  position: absolute;
+  inset: 0;
+}
+
+.player-gap__trace canvas {
+  position: absolute;
+  inset: 0;
+}
+
+// ===================================================== the visualizer bar ==
+//
+// ON THE PICTURE, NEVER IN THE HEADER (Ivan, 2026-09-27: "don't put the viz
+// select on the header, we want a clean header for dragging"): two glass
+// pills at the open space's foot — which look, with the steps either side of
+// it, and what the look can do.
+//
+// ONE LINE, NEVER TWO (Ivan, 2026-09-28: "add a min width to the amp so this
+// fits properly"): nothing on it shrinks and nothing wraps, so a bar too
+// wide for its room overflows, which is what tells `useRowFit` to take the
+// automatic switching's words away; and what it needs with them gone is the
+// window's floor (`PlayerStageBar`).
+.player-stagebar {
+  position: absolute;
+  z-index: 2;
+  right: 14px;
+  bottom: 10px;
+  left: 14px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  white-space: nowrap;
+
+  // The one reading of what its content takes on one line (`useRowFit`).
+  &.is-measuring {
+    right: auto;
+    width: max-content;
+  }
+}
+
+.player-stagebar__pill {
+  @include player-glass-pane(var(--player-glass), false);
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  height: 34px;
+  padding: 0 4px;
+  border-radius: $radius-pill;
+}
+
+.player-stagebar__looks {
+  flex: none;
+}
+
+.player-stagebar__tools {
+  flex: none;
+  margin-left: auto;
+}
+
+// Every key on the bar: the steps, and the graph's own switches brought
+// here. They are the graph's controls, whose look is scoped to the graph's
+// strip, so their whole face is said here — round, bare on the glass, lit
+// under the pointer, in the accent's light while on.
+.player-stagebar {
+  .player-stagebar__step,
+  .graph-look-step,
+  .graph-scene-look__trigger,
+  .graph-like,
+  .dropdown.graph-auto-cycle > [role='menu'] {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: auto;
+    min-width: 26px;
+    height: 26px;
+    min-height: 0;
+    margin: 0;
+    padding: 0 5px;
+    border: 0;
+    border-radius: $radius-pill;
+    background: none;
+    box-shadow: none;
+    color: var(--player-text-muted);
+    font: inherit;
+    font-size: 12px;
+    font-weight: $weight-medium;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: $transition-control;
+
+    svg {
+      width: 15px;
+      height: 15px;
+    }
+
+    &:hover {
+      background: var(--player-hover);
+      color: var(--player-text);
+    }
+
+    &:focus-visible {
+      @include focus-ring($white);
+    }
+  }
+
+  .player-stagebar__step {
+    padding: 0;
+  }
+
+  // The glyphs the graph draws as line art.
+  .graph-look-step svg,
+  .graph-auto-cycle__icon {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+  }
+
+  .graph-look-step[aria-pressed='true'],
+  .player-stagebar__step[aria-pressed='true'],
+  .graph-scene-look__trigger.is-on,
+  .dropdown.graph-auto-cycle.is-on > [role='menu'] {
+    color: var(--player-ink-bright);
+  }
+
+  .graph-scene-look__trigger.is-open,
+  .dropdown--open > [role='menu'] {
+    background: var(--player-chosen);
+    color: var(--player-text);
+  }
+
+  // Glyphs alone: the words the graph's strip gives these two are said by
+  // their titles, and the bar has two pills' room.
+  .graph-scene-look__trigger > span,
+  .arrow {
+    display: none;
+  }
+
+  .scene-tint-choice__glyph {
+    width: 15px;
+    height: 15px;
+  }
+
+  // The heart on a member's scene carries its count: drawn as a line in the
+  // bar's own ink, as on the graph — the path has no colour of its own, and
+  // left to itself it came out solid black on the glass. Lit, it fills with
+  // the leaderboard's pink it wears on the graph.
+  .graph-like__heart {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+  }
+
+  .graph-like.is-on {
+    color: var(--player-text);
+
+    .graph-like__heart {
+      fill: $analogous-1;
+      stroke: $analogous-1;
+    }
+  }
+}
+
+// The look's name between its steps, with its own drawing in front of it.
+.player-stagebar__looks {
+  .dropdown.look-picker {
+    display: flex;
+    flex: none;
+  }
+
+  .look-picker__trigger {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 7px;
+    height: 26px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: $radius-pill;
+    background: none;
+    box-shadow: none;
+    color: var(--player-text);
+    font-size: 12.5px;
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--player-hover);
+    }
+
+    &:focus-visible {
+      @include focus-ring($white);
+    }
+  }
+
+  .dropdown--open > .look-picker__trigger {
+    background: var(--player-chosen);
+  }
+
+  // At most this long, and cut short past it: the bar's width is the
+  // window's floor, and a member's scene with a sentence for a name would
+  // otherwise hold the amp that wide.
+  .graph-look-name {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // A scene's glyph, not a thumbnail of it: its near-black tile goes, and
+  // the strokes stand on the glass at the name's size.
+  .graph-look-option__icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+  }
+
+  .graph-look-option__icon--scene rect {
+    fill: none;
+  }
+}
+
+// Short of room, the automatic switching keeps its glyph alone, lit while it
+// is on, so the look's name keeps its room beside it (`useRowFit`'s first
+// step). The words are a bare text node beside the glyph, which no selector
+// reaches, and the glyph is sized in pixels, so a type size of nothing takes
+// the words alone.
+.player-stagebar[data-fit='1'] .dropdown.graph-auto-cycle > [role='menu'] {
+  gap: 0;
+  font-size: 0;
+}
+
+// ON A FULL SCREEN the bar stands back until the pointer is on it — far
+// enough to stop being the subject, not so far that it cannot be found.
+// The drawing takes the whole screen, and the bar stands over its foot.
+.mini-player.is-vis-full .player-gap__view {
+  inset: 0;
+}
+
+.mini-player.is-vis-full .player-stagebar {
+  bottom: 16px;
+  opacity: 0.42;
+  transition: opacity 160ms ease;
+
+  &:hover,
+  &:focus-within {
+    opacity: 1;
+  }
+}

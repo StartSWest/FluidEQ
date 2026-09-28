@@ -7,283 +7,85 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'accountSection' as *;
-@use 'aurora' as *;
 @use 'color' as *;
+@use 'constant' as *;
 @use 'dialog' as dialog;
-@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// Compound so it beats `.about` regardless of which stylesheet the bundler
-// happens to emit first. Both are single classes on their own, and equal
-// specificity would leave this panel's width decided by import order.
-.about.account {
-  @include dialog.surface(900px, 760px);
+/// On the dialog frame (`DialogFrame`), every page of it: the rail is the
+// person when signed in (their initials in the tile, what the account is
+// over their name, the two links, a member's scene), the pitch when not, and
+// the document's name on the terms and the trial; the right is the page.
+.dialog-frame.account {
+  @include dialog.size(900px, 760px);
 }
 
-.account__body {
+// The profile is a portrait object: two sections and a line under them.
+.dialog-frame.account.account--profile {
+  @include dialog.size(780px, 780px);
+}
+
+// One page of the panel. The front page stays mounted while the terms are
+// read, so a half-typed sign-in is still there on the way back; `hidden`
+// alone loses to the page's own `display: grid`, which is an author rule and
+// outranks the browser's.
+.account__page {
+  display: grid;
+  align-content: start;
   gap: $spacing-m;
 
-  // Every paragraph in here is spaced by the grid or the section it is in,
-  // and says `margin: 0` for itself — which `.about__body p` outranks, being
-  // one selector longer: a membership's date and the line under it stood
-  // twenty-four pixels apart while the button under those stood sixteen.
   p {
     margin: 0;
   }
-}
 
-/**
- * The thesis of the panel, marked as such.
- *
- * A rule down the side rather than a heavier weight: this is the paragraph that
- * says nothing changes if you never sign in, and it has to read as the frame
- * around the offer rather than as a warning about it. Signed in it moves to
- * the foot, smaller: the frame is still there, but the person comes first.
- */
-.account__optional {
-  margin: 0;
-  padding-left: $spacing-s;
-  border-left: 2px solid color-mix(in srgb, $secondary-default 45%, transparent);
-  color: $text-muted;
-  font-size: $text-body;
-  line-height: 1.65;
-
-  &--foot {
-    color: $text-faint;
-    font-size: $text-small;
-  }
-}
-
-/**
- * Signed in, the panel is a profile card, the way Discord draws one: the
- * pattern Ivan chose from the references on 2026-09-15 after five of my own
- * were turned down. A wide banner, the avatar cut into its lower-left edge
- * with a ring in the panel's own colour, the name under it, and the sections
- * as text under hairlines rather than as boxes.
- *
- * Narrower than the other pages: a profile card is a portrait object, and
- * 640px is the width at which Discord's own 600×240 banner proportion holds.
- */
-.about.account.account--profile {
-  // Shorter than it was (Ivan, 2026-09-16): the two account links moved up
-  // beside the name, which took a whole row of buttons and its hairline out
-  // of the foot, and the banner lost forty pixels. Nothing here scrolls on
-  // an ordinary screen.
-  @include dialog.surface(640px, 780px);
-}
-
-// The banner, the avatar and the name: the panel's top, in the row the
-// header takes on every other page, above the body that scrolls.
-.account__top {
-  display: grid;
-  gap: 4px;
-
-  // On the terms page, like the body: `hidden` alone loses to the grid.
   &[hidden] {
     display: none;
   }
-}
 
-// The sections begin with their own hairline and the space over it.
-.account--profile .account__body {
-  padding-top: 6px;
+  // The sections are told apart by a hairline over each; the first stands at
+  // the top of the page, where its line doubled the rail's seam on a narrow
+  // window and drew a rule over nothing on a wide one.
+  // Not the sign-out question standing in its place, a card with its own
+  // edge all round.
+  > :first-child:not(.compact-frame) {
+    padding-top: 0;
+    border-top: 0;
+  }
 }
 
 /**
- * The banner: the scene playing, for a member; a flat field in the person's
- * colour without Plus, the way a profile with no banner takes the account
- * colour there. `SceneBand` draws the scene and its aurora; this says how
- * tall, and takes the band's scrim down to a breath at the top for the close
- * button — the scene is the point and is not to be dimmed.
+ * The thesis of the panel: nothing changes if you never sign in. Quiet and
+ * at the foot, under the sections — it frames the offer rather than warning
+ * about it, and it was a line with an accent bar down its side, which is a
+ * mark this app does not use for text any more.
  */
-.account__banner {
-  --band-short: 132px;
-  --band-tall: 196px;
-  --band-tall-short: 168px;
-
-  // Without a scene: the app's own aurora, still and at half its light. It
-  // was a flat field in the person's colour, which for a green account was
-  // a green wall (Ivan, 2026-09-15: "that green sucks" — the app's colour,
-  // and subtle). The avatar keeps the person's colour; the banner is the
-  // app's.
-  &:not(.is-scene)::before {
-    animation: none;
-    opacity: 0.45;
-  }
-
-  .scene-band__scrim {
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, $surface-menu-top 42%, transparent),
-      transparent 36%
-    );
-  }
-}
-
-.account__banner-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  display: grid;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  color: $white;
-  border: 0;
-  border-radius: 50%;
-  background: color-mix(in srgb, $black 46%, transparent);
-  cursor: pointer;
-  place-items: center;
-  transition: background 150ms ease;
-
-  svg {
-    width: 14px;
-    height: 14px;
-  }
-
-  &:hover {
-    background: color-mix(in srgb, $black 68%, transparent);
-  }
-}
-
-// The avatar cut into the banner's lower-left edge, and what the account is
-// at the other end of the same row.
-.account__head {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: $spacing-m;
-  // Half the avatar over the banner's edge, past the top's own row gap.
-  margin-top: calc(-44px - 4px);
-  padding: 0 20px;
+.account__optional {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.6;
 }
 
 /**
- * Initials, not a photograph.
+ * Initials, not a photograph, filling the rail's tile in the person's own
+ * colour.
  *
  * The provider's picture is on a remote origin and `img-src` allows only
  * `'self'`, `data:` and `blob:` — so the choice was widening the policy for a
  * decoration, or drawing something. See `authClient.ts` for the longer note.
- *
- * The ring is the panel's own surface colour, which is what makes the cut-out
- * read as a cut-out rather than as a circle laid on top.
  */
-.account__avatar {
+.dialog-frame__tile > .account__avatar {
   display: grid;
-  flex: 0 0 auto;
-  width: 88px;
-  height: 88px;
-  color: hsl(var(--identity-hue, 170deg) 90% 86%);
-  border: 5px solid $surface-field-end;
-  border-radius: 50%;
-  background: hsl(var(--identity-hue, 170deg) 60% 26%);
-  font-size: 1.3rem;
-  font-weight: $weight-bold;
+  width: 100%;
+  height: 100%;
   place-items: center;
+  color: hsl(var(--identity-hue, 170deg) 90% 86%);
+  border-radius: inherit;
+  background: hsl(var(--identity-hue, 170deg) 60% 26%);
+  font-size: 1.05rem;
+  font-weight: $weight-bold;
   @include tracking(0.02em);
-}
-
-/**
- * What the account is, in the banner's top corner.
- *
- * Dark glass, not a filled pill: the pill was the size and shape of every
- * quiet button in the app, and lighting it in the accent put near-black
- * letters on the brightest colour this app owns — unreadable at the size a
- * badge wants to be (Ivan, 2026-09-16, twice). Smoked glass carries white
- * text over any frame of any scene, and the only colour on it is the mark.
- *
- * In the banner rather than under it because it is a property of the person
- * the banner belongs to, the way a profile's badges sit on the banner
- * itself; under it, it was a loose object floating beside the avatar.
- */
-.account__standing {
-  position: absolute;
-  z-index: 3;
-  top: 12px;
-  left: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 13px 5px 6px;
-  color: $white;
-  border-radius: $radius-2xs;
-  background: color-mix(in srgb, $surface-menu-top 52%, transparent);
-  backdrop-filter: blur(10px) saturate(130%);
-  -webkit-backdrop-filter: blur(10px) saturate(130%);
-  box-shadow:
-    0 0 0 1px rgba($white, 0.14),
-    0 6px 18px rgba($black, 0.32);
-  font-size: $text-micro;
-  font-weight: $weight-bold;
-  @include tracking(0.1em);
-  text-transform: uppercase;
-  white-space: nowrap;
-
-  // Without a membership there is nothing to celebrate and nothing to sell
-  // here — the section below does the selling. The same glass, quieter.
-  &--free {
-    padding: 5px 12px;
-    color: $text-faint;
-    box-shadow: 0 0 0 1px rgba($white, 0.1);
-  }
-}
-
-// NESTED, so it outranks `.brand-mark` in App.scss (44px, a 30px stroke and
-// a 38px shadow) rather than racing it on import order — the same reason
-// the dialog header nests its own copy. A flat class here left the mark at
-// full size, spilling out of the badge it was meant to sit inside.
-.account__standing .brand-mark {
-  flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
-  border: 0;
-  border-radius: 50%;
-  background: color-mix(in srgb, $secondary-default 28%, transparent);
-  box-shadow: none;
-
-  svg {
-    width: 12px;
-    height: 12px;
-  }
-
-  path {
-    stroke: $secondary-light;
-    stroke-width: 4;
-  }
-}
-
-.account__who {
-  display: grid;
-  // Without this a long address makes the row wider than the dialog instead of
-  // wrapping inside it, and the panel grows a horizontal scrollbar.
-  min-width: 0;
-  gap: 4px;
-  padding: 2px 20px 8px;
-}
-
-// The one heading in the panel, and the person's name: a step over the
-// title size, the way the About page's tagline is, because at the title
-// size it read as a label under the avatar rather than as who this is.
-.account__name {
-  margin: 0;
-  color: $white;
-  font-size: 1.25rem;
-  font-weight: $weight-bold;
-  line-height: 1.15;
-  @include tracking(-0.01em);
-  overflow-wrap: anywhere;
-}
-
-.account__line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 6px;
-  margin: 0;
-  overflow-wrap: anywhere;
 }
 
 // The @handle the board and the gallery show, in the same accent the board
@@ -362,18 +164,7 @@ it under the terms of the GNU General Public License version 3 or later.
   container: leaderboard / inline-size;
 }
 
-// Signed out: why on the left, how on the right.
-.account__split {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-  gap: $spacing-l;
-
-  @media (max-width: 720px) {
-    grid-template-columns: minmax(0, 1fr);
-    gap: $spacing-m;
-  }
-}
-
+// Signed out, the rail: why to sign in, beside the form that does it.
 .account__pitch {
   display: grid;
   align-content: start;
@@ -441,65 +232,6 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $amber;
   font-size: $text-body;
   line-height: 1.55;
-}
-
-.account__waiting {
-  display: flex;
-  align-items: flex-start;
-  gap: $spacing-s;
-  margin: 0;
-}
-
-.account__waiting-title {
-  display: block;
-  color: $text-primary;
-  font-size: $text-lead;
-  font-weight: $weight-medium;
-}
-
-.account__waiting-hint {
-  display: block;
-  margin-top: 2px;
-  color: $text-faint;
-  font-size: $text-small;
-  line-height: 1.55;
-}
-
-/**
- * A dot that breathes while the browser has the conversation.
- *
- * The wait has no known length — somebody may be resetting a password — so
- * there is nothing honest to draw a progress bar from. A steady pulse says
- * "still listening" without claiming to know how far along it is.
- */
-.account__pulse {
-  flex: 0 0 auto;
-  width: 10px;
-  height: 10px;
-  margin-top: 5px;
-  border-radius: $radius-pill;
-  background: $secondary-default;
-  animation: account-pulse 1.6s $ease-out infinite;
-}
-
-@keyframes account-pulse {
-  0%,
-  100% {
-    opacity: 0.35;
-    box-shadow: 0 0 0 0 color-mix(in srgb, $secondary-default 45%, transparent);
-  }
-
-  50% {
-    opacity: 1;
-    box-shadow: 0 0 0 5px transparent;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .account__pulse {
-    animation: none;
-    opacity: 0.85;
-  }
 }
 
 .account__actions {
@@ -628,13 +360,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The leaderboard card lives in Leaderboard.scss, beside the board it puts
 // you on. The Plus terms, the panel's other page, live in PlusTerms.scss.
-
-// The front page stays mounted while the terms are read, so a half-typed
-// sign-in is still there on the way back. `hidden` alone loses to the body's
-// own `display: grid`, which is an author rule and outranks the browser's.
-.account__body[hidden] {
-  display: none;
-}
 
 .account__foot {
   display: flex;

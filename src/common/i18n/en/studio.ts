@@ -450,10 +450,6 @@ const studio = {
   'studio.framing.use': 'Use this photo',
   'studio.framing.saving': 'Saving…',
 
-  'studio.size.title': 'Size',
-  'studio.size.graph': 'Graph',
-  'studio.size.narrow': 'Narrow',
-  'studio.size.wide': 'Wide',
   'studio.size.full': 'Fullscreen',
   'studio.size.exit': 'Exit fullscreen',
   'studio.wave.title': 'Wave on the graph',
@@ -463,8 +459,15 @@ const studio = {
   // A switch under the size: the whole app in the colour of the scene on the
   // stage, for judging it as a theme without leaving the Studio.
   'studio.tint.label': 'FluidEQ with this scene',
+  // The first tile: the app's own Window colours, whatever they are set
+  // to. Here "Original" read as the scene's own colours.
+  'studio.tint.theme': 'Theme',
+  // Under the window’s colours: the app’s own Brightness, which every
+  // scene’s Daylight follows.
+  'studio.brightness.hint':
+    'The whole app’s Brightness, the same slider as in Window colours. Every scene goes from night at 0 to full day at 100 with it: try yours at both ends before you publish.',
   'studio.tint.hint':
-    'While you work here, the whole app can take the scene’s colours, or glow softly around it with the music, so you can see and feel it as a theme.',
+    'Only here, while you work: the graph’s Window colours stay as you set them. Theme keeps the window as the app has it; the others give it this scene’s colours, or glow softly around it with the music, so you see and feel it as every listener will.',
   'studio.grid.label': 'Show the graph grid',
   'studio.grid.hint':
     'Its frequency and level lines over the scene, with the room they take on the graph, so you can measure where the wave and each part of the scene land.',
@@ -519,6 +522,8 @@ const studio = {
     'A control in params needs an id of a-z, 0-9 and _, an English name, and a min below its max.',
   'studio.problem.too-many-params':
     'A scene can have at most 8 controls in params.',
+  'studio.problem.no-daylight':
+    'Every scene needs the Daylight control, { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } in params, and draws night at 0 and day at 100.',
   'studio.problem.bad-ambient':
     'Some ambient elements or controls in pack.json were left out. Check their shapes, motions, colours, counts and what each control moves.',
   'studio.problem.bad-world':

@@ -290,7 +290,7 @@ describe('the one renderer', () => {
   it('moves between Colours, Ambient, the Backdrop and full screen without being made again', async () => {
     setSceneTintMode('tint');
     act(() => publishScenePlot(plotOf(true)));
-    render(<GraphScene />);
+    render(<GraphScene page="eq" />);
     await built();
     const host = canvasHost();
     const canvas = host?.querySelector('canvas');
@@ -322,7 +322,7 @@ describe('the one renderer', () => {
   it('stays behind every page in the Backdrop when the graph is left', async () => {
     setSceneTintMode('cover');
     act(() => publishScenePlot(plotOf(true)));
-    render(<GraphScene />);
+    render(<GraphScene page="eq" />);
     await built();
     const canvas = canvasHost()?.querySelector('canvas');
 
@@ -341,7 +341,7 @@ describe('the one renderer', () => {
     async (mode) => {
       setSceneTintMode(mode);
       act(() => publishScenePlot(plotOf(true)));
-      render(<GraphScene />);
+      render(<GraphScene page="eq" />);
       await built();
 
       act(() => publishScenePlot(undefined));
@@ -355,7 +355,7 @@ describe('the one renderer', () => {
 
   it('lets it go when the Backdrop is left on a page without the graph', async () => {
     setSceneTintMode('cover');
-    render(<GraphScene />);
+    render(<GraphScene page="eq" />);
     await built();
     expect(backdrop).toContainElement(
       canvasHost()?.querySelector('canvas') ?? null,
@@ -385,7 +385,7 @@ describe('the plot', () => {
       </div>
     );
     const graph = render(<Plot isPartOfWindow />);
-    const page = render(<GraphScene />);
+    const page = render(<GraphScene page="eq" />);
     await built();
     const canvas = canvasHost()?.querySelector('canvas');
     expect(backdrop).toContainElement(canvas ?? null);

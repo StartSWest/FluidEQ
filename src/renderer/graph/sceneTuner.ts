@@ -1,3 +1,4 @@
+import { SCENE_DAYLIGHT_PARAM } from 'common/sceneDaylight';
 import type { IScenePack } from 'common/scenePacks';
 import {
   NEUTRAL_RESPONSE,
@@ -29,7 +30,8 @@ export interface ISceneTuner {
   /**
    * The frame the scene gets: `shaped` — what it heard, test signal and all
    * — through its response, one frame of `deltaMs` on, with its controls at
-   * `base` (the pack's values) and the member's `tuning` over them.
+   * `base` (the pack's values) and the member's `tuning` over them, and its
+   * time of day at `daylight` whatever either says (`sceneDaylight.ts`).
    */
   apply(
     shaped: ISceneFrame,
@@ -37,6 +39,7 @@ export interface ISceneTuner {
     pack: IScenePack | null,
     base: Record<string, number>,
     tuning: ISceneTuning | undefined,
+    daylight?: number,
   ): ISceneFrame;
   /** Forgets where the response had got to: a different scene starts clean. */
   reset(): void;
@@ -103,7 +106,7 @@ export const createSceneTuner = (): ISceneTuner => {
   };
 
   return {
-    apply: (shaped, deltaMs, pack, base, tuning) => {
+    apply: (shaped, deltaMs, pack, base, tuning, daylight) => {
       const response = responseOf(pack, tuning?.response);
       const heard = isNeutralResponse(response)
         ? shaped
@@ -111,7 +114,24 @@ export const createSceneTuner = (): ISceneTuner => {
             ...shaped,
             ...respond(shaped, response, state, deltaMs, answered),
           };
-      return { ...heard, params: paramsOf(pack, base, tuning?.params) };
+      const params = paramsOf(pack, base, tuning?.params);
+      // The time of day is the window's, not a setting: a member's saved
+      // value or the pack's own would hold the scene at one hour whatever
+      // the Brightness said. Clamped to the control's own range.
+      const clock =
+        daylight === undefined
+          ? undefined
+          : pack?.params.find((param) => param.id === SCENE_DAYLIGHT_PARAM);
+      return {
+        ...heard,
+        params:
+          clock && daylight !== undefined
+            ? {
+                ...params,
+                [clock.id]: Math.min(clock.max, Math.max(clock.min, daylight)),
+              }
+            : params,
+      };
     },
     reset: () => {
       state = createResponseState(SPECTRUM_TEXELS);

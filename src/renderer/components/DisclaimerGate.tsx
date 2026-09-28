@@ -35,7 +35,10 @@ import {
 } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
 import useFocusLock from '../utils/useFocusLock';
-import '../styles/OverlayCard.scss';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from './DialogFrame';
+import '../styles/Button.scss';
+import '../styles/DisclaimerGate.scss';
 
 /**
  * The first-run acknowledgement of the warranty and liability disclaimer.
@@ -141,72 +144,81 @@ const DisclaimerGate = () => {
   };
 
   return (
-    // `--locked` puts this above the update notice, which is the other user of
-    // this stylesheet and which can be closed. When both are on screen the one
-    // that cannot be dismissed has to be in front, or this component's focus
-    // lock spends its time dragging focus out of a dialog drawn over the top
-    // of it — and swallowing the Escape that dialog now closes on.
-    <div
-      className="overlay-card__backdrop overlay-card__backdrop--locked"
-      role="presentation"
-    >
-      <div
+    // Above the update notice (`mandatory-update-backdrop`), which can be
+    // closed. When both are on screen the one that cannot be dismissed has to
+    // be in front, or this component's focus lock spends its time dragging
+    // focus out of a dialog drawn over the top of it — and swallowing the
+    // Escape that dialog now closes on.
+    <div className="disclaimer-backdrop" role="presentation">
+      <DialogFrame
         ref={dialogRef}
-        className="overlay-card"
+        className="disclaimer-gate"
         // See the note in MandatoryUpdateModal: somewhere for focus to live
         // that is inside the dialog rather than on the document body.
         tabIndex={-1}
         role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="disclaimer-title"
         aria-describedby="disclaimer-body"
+        icon={<MenuIcon name="shield" />}
+        title={t(DISCLAIMER_HEADING_KEY)}
+        titleId="disclaimer-title"
+        // Which text is the original, set quietly under the title. It is a
+        // note about the notice rather than part of what is being
+        // acknowledged.
+        rail={
+          <p className="dialog-frame__rail-text">
+            {t(DISCLAIMER_LANGUAGE_KEY)}
+          </p>
+        }
+        footer={
+          <div className="dialog-frame__actions">
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={handleDecline}
+            >
+              {t(DISCLAIMER_DECLINE_KEY)}
+            </button>
+            <button
+              type="button"
+              className="button small"
+              onClick={handleAccept}
+            >
+              {t(DISCLAIMER_ACCEPT_KEY)}
+            </button>
+          </div>
+        }
       >
-        <div className="overlay-card__header">
-          <h2 id="disclaimer-title">{t(DISCLAIMER_HEADING_KEY)}</h2>
-        </div>
-
-        <div className="overlay-card__body" id="disclaimer-body">
-          {DISCLAIMER_PARAGRAPH_KEYS.map((key) => (
-            <p key={key}>{t(key, { author: AUTHOR_NAME })}</p>
-          ))}
+        <div id="disclaimer-body" className="disclaimer-gate__body">
+          <section className="dialog-frame__section">
+            {DISCLAIMER_PARAGRAPH_KEYS.map((key) => (
+              <p key={key}>{t(key, { author: AUTHOR_NAME })}</p>
+            ))}
+          </section>
           <section
-            className="overlay-card__provenance"
+            className="dialog-frame__section"
             aria-labelledby="provenance-title"
           >
-            <h3 id="provenance-title">{t('provenance.heading')}</h3>
+            <h3 id="provenance-title" className="dialog-frame__section-title">
+              {t('provenance.heading')}
+            </h3>
             <p>{t('provenance.body')}</p>
-            <p className="overlay-card__provenance-links">
-              <a href={OFFICIAL_SITE_URL} target="_blank" rel="noreferrer">
-                {t('provenance.site')}
-              </a>
-              <a href={REPOSITORY_URL} target="_blank" rel="noreferrer">
-                {t('provenance.repository')}
-              </a>
-            </p>
+            <ul className="disclaimer-gate__links">
+              <li>
+                <a href={OFFICIAL_SITE_URL} target="_blank" rel="noreferrer">
+                  <span>{t('provenance.site')}</span>
+                  <MenuIcon name="external" className="disclaimer-gate__out" />
+                </a>
+              </li>
+              <li>
+                <a href={REPOSITORY_URL} target="_blank" rel="noreferrer">
+                  <span>{t('provenance.repository')}</span>
+                  <MenuIcon name="external" className="disclaimer-gate__out" />
+                </a>
+              </li>
+            </ul>
           </section>
-          {/* Which text is the original, at the end and set quietly. It is a
-              note about the notice rather than part of what is being
-              acknowledged. */}
-          <p className="overlay-card__aside">{t(DISCLAIMER_LANGUAGE_KEY)}</p>
         </div>
-
-        <div className="overlay-card__footer">
-          <button
-            type="button"
-            className="overlay-card__button overlay-card__button--quiet"
-            onClick={handleDecline}
-          >
-            {t(DISCLAIMER_DECLINE_KEY)}
-          </button>
-          <button
-            type="button"
-            className="overlay-card__button"
-            onClick={handleAccept}
-          >
-            {t(DISCLAIMER_ACCEPT_KEY)}
-          </button>
-        </div>
-      </div>
+      </DialogFrame>
     </div>
   );
 };

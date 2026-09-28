@@ -20,7 +20,6 @@ import { useSceneLook } from '../../../renderer/utils/graphStyle';
 import { loadScenePack } from '../../../renderer/utils/scenePacks';
 import {
   useSceneTintMode,
-  useStudioTintMode,
   useStudioTintSource,
 } from '../../../renderer/utils/sceneTintStore';
 
@@ -45,7 +44,6 @@ jest.mock('../../../renderer/utils/sceneTintStore', () => ({
   isAmbientMode: jest.requireActual('../../../renderer/utils/sceneTintStore')
     .isAmbientMode,
   useSceneTintMode: jest.fn(),
-  useStudioTintMode: jest.fn(),
   useStudioTintSource: jest.fn(),
 }));
 
@@ -119,7 +117,6 @@ beforeEach(() => {
   } as ReturnType<typeof useSceneLook>);
   jest.mocked(loadScenePack).mockResolvedValue(withBirds);
   jest.mocked(useSceneTintMode).mockReturnValue('pulse');
-  jest.mocked(useStudioTintMode).mockReturnValue('pulse');
   jest.mocked(useStudioTintSource).mockReturnValue(undefined);
 });
 

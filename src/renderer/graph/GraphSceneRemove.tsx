@@ -78,7 +78,7 @@ export default function GraphSceneRemove({
           </button>
           <button
             type="button"
-            className="button small graph-scene-remove__confirm"
+            className="button small danger graph-scene-remove__confirm"
             disabled={busy}
             aria-busy={busy}
             onClick={remove}

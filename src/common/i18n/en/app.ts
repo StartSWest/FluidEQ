@@ -250,6 +250,11 @@ const app = {
     'Equalizer APO was installed or reconfigured. If audio is missing, reload Windows Audio instead of rebooting the PC.',
   'notice.restartNow': 'Restart audio now',
   'notice.importComplete': 'Import complete',
+  'notice.apoReconfiguredTitle': 'Equalizer APO changed',
+  'notice.captureFailed': 'Live output could not start',
+  'notice.captureFailedBody':
+    'The level meter and the live curve on the graph are off for now. Everything else works normally.',
+  'notice.tryAgain': 'Try again',
   'notice.restartConfirm':
     'Audio will stop for a few seconds and Windows will request administrator permission. Continue?',
   'restart.title': 'Restart Windows audio',

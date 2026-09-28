@@ -452,18 +452,17 @@ const studio = {
   'studio.framing.use': 'Dieses Foto verwenden',
   'studio.framing.saving': 'Wird gespeichert…',
 
-  'studio.size.title': 'Größe',
-  'studio.size.graph': 'Diagramm',
-  'studio.size.narrow': 'Schmal',
-  'studio.size.wide': 'Breit',
   'studio.size.full': 'Vollbild',
   'studio.size.exit': 'Vollbild beenden',
   'studio.wave.title': 'Welle im Diagramm',
   'studio.wave.hint':
     'Wird in der Szene gespeichert und mit ihr veröffentlicht, also öffnet sie sich, wie Sie sie gelassen haben. Wer sie nutzt, kann beides unter Ansicht im Diagramm ändern und Ihre Einstellung zurückholen. Probieren Sie die Extreme: eine flache Welle oder eine bis zur Mitte angehobene.',
   'studio.tint.label': 'FluidEQ mit dieser Szene',
+  'studio.tint.theme': 'Design',
+  'studio.brightness.hint':
+    'Die Helligkeit der ganzen App, derselbe Regler wie unter Fensterfarben. Mit ihr geht jede Szene von Nacht bei 0 bis zum hellen Tag bei 100: Probieren Sie Ihre an beiden Enden aus, bevor Sie sie veröffentlichen.',
   'studio.tint.hint':
-    'Solange Sie hier arbeiten, kann die ganze App die Farben der Szene annehmen oder mit der Musik sanft um sie herum leuchten – so sehen und spüren Sie sie als Design.',
+    'Nur hier, solange Sie arbeiten: Die Fensterfarben im Diagramm bleiben, wie Sie sie eingestellt haben. Design zeigt das Fenster so, wie die App eingestellt ist; die anderen geben ihm die Farben dieser Szene oder lassen es mit der Musik sanft um sie herum leuchten – so sehen und spüren Sie sie, wie alle Hörer sie erleben.',
   'studio.grid.label': 'Raster des Diagramms zeigen',
   'studio.grid.hint':
     'Seine Frequenz- und Pegellinien über der Szene, mit dem Platz, den sie im Diagramm einnehmen – so messen Sie, wo die Welle und jeder Teil der Szene liegen.',
@@ -521,6 +520,8 @@ const studio = {
     'Ein Regler in params braucht eine id aus a-z, 0-9 und _, einen englischen Namen und ein min unter seinem max.',
   'studio.problem.too-many-params':
     'Eine Szene kann höchstens 8 Regler in params haben.',
+  'studio.problem.no-daylight':
+    'Jede Szene braucht den Regler Daylight, { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } in params, und zeichnet bei 0 die Nacht und bei 100 den Tag.',
   'studio.problem.bad-ambient':
     'Einige ambient-Elemente oder -Regler in pack.json wurden weggelassen. Prüfen Sie Formen, Bewegungen, Farben, Anzahlen und was jeder Regler bewegt.',
   'studio.problem.bad-world':

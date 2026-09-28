@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { PART_POINTS } from 'common/leaderboardScore';
 import type { TLeaderboardFailure } from 'main/usage/leaderboardApi';
+import MenuIcon from '../icons/MenuIcon';
+import CompactFrame from '../components/CompactFrame';
 import { useTranslation } from '../utils/I18nContext';
 import {
   refreshLeaderboardStatus,
@@ -126,36 +128,43 @@ export default function LeaderboardCard() {
       )}
 
       {confirmingRemoval ? (
-        // The question replaces the buttons rather than floating over them:
-        // the loud button is keeping the data, the quiet red one is the one
-        // that cannot be undone.
-        <div className="leaderboard-card__confirm" role="alertdialog">
-          <span className="leaderboard-card__confirm-title">
-            {t('leaderboard.card.removeConfirmTitle')}
-          </span>
-          <span className="leaderboard-card__confirm-body">
-            {t('leaderboard.card.removeConfirmBody')}
-          </span>
-          <div className="account__actions">
-            <button
-              type="button"
-              className="button small"
-              onClick={() => setConfirmingRemoval(false)}
-            >
-              {t('leaderboard.card.removeKeep')}
-            </button>
-            <button
-              type="button"
-              className="button small subtle leaderboard-card__danger"
-              onClick={() => {
-                setConfirmingRemoval(false);
-                removeMeFromLeaderboard().catch(() => undefined);
-              }}
-            >
-              {t('leaderboard.card.removeConfirm')}
-            </button>
-          </div>
-        </div>
+        // The question replaces the buttons rather than floating over them,
+        // on every confirmation's small frame. One rule for every question
+        // that deletes (Ivan, 2026-09-27): keeping is the quiet answer and
+        // comes first, the red one that cannot be undone comes last. It was
+        // the other way round here — keeping loud, removing quiet — which
+        // made this the one confirmation in the app that read backwards.
+        <CompactFrame
+          className="leaderboard-card__confirm"
+          icon={<MenuIcon name="trash" />}
+          tone="danger"
+          title={t('leaderboard.card.removeConfirmTitle')}
+          titleId="leaderboard-remove-title"
+          aria-modal={false}
+          actions={
+            <>
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={() => setConfirmingRemoval(false)}
+              >
+                {t('leaderboard.card.removeKeep')}
+              </button>
+              <button
+                type="button"
+                className="button small danger"
+                onClick={() => {
+                  setConfirmingRemoval(false);
+                  removeMeFromLeaderboard().catch(() => undefined);
+                }}
+              >
+                {t('leaderboard.card.removeConfirm')}
+              </button>
+            </>
+          }
+        >
+          <p>{t('leaderboard.card.removeConfirmBody')}</p>
+        </CompactFrame>
       ) : (
         <div className="account__actions">
           {status.optedIn ? (

@@ -3,12 +3,13 @@ import { createPortal } from 'react-dom';
 import type { IArtworkRegion } from 'main/memberScenes/artworkRegions';
 import type { TPictureCopyOutcome } from 'main/ipc/studioPictureCopy';
 import Glyph from '../community/Glyph';
+import DialogClose from '../components/DialogClose';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import AtlasPicture, { uprightSize } from './AtlasPicture';
 import StudioPictureZoomBar from './StudioPictureZoomBar';
 import usePictureZoom from './usePictureZoom';
-import '../styles/DialogHeader.scss';
 import '../styles/Gallery.scss';
 import '../styles/StudioPictureLightbox.scss';
 
@@ -174,25 +175,28 @@ export default function StudioPictureLightbox({
     >
       <div
         ref={surfaceRef}
-        className="gallery-dialog studio-lightbox"
+        className="studio-lightbox"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <div className="gallery-dialog__head studio-lightbox__head">
-          <span className="gallery-dialog__mark" aria-hidden="true">
-            <Glyph name="image" />
+        {/* The frame's head in its narrow arrangement, at every width: a
+            picture needs the width a rail would take far more than the
+            height one row does. */}
+        <div className="studio-lightbox__head">
+          <span className="dialog-frame__tile" aria-hidden="true">
+            <MenuIcon name="image" />
           </span>
           {/* Read out again on every step, since the dialog stays open. */}
           <div className="studio-lightbox__heading" aria-live="polite">
-            <h2 id={titleId} className="gallery-dialog__title">
+            <h2 id={titleId} className="dialog-frame__title">
               {picture.name}
             </h2>
             <span className="studio-lightbox__size">
               {t('studio.picture.size', upright)}
             </span>
             {count > 1 && (
-              <span className="studio-lightbox__count">
+              <span className="dialog-frame__badge">
                 {t('studio.picture.position', { index: index + 1, count })}
               </span>
             )}
@@ -221,19 +225,14 @@ export default function StudioPictureLightbox({
               <Glyph name="download" />
               {t('studio.picture.download')}
             </button>
-            <button
-              ref={closeRef}
-              type="button"
-              className="dialog-header__close"
-              aria-label={t('studio.picture.close')}
-              onClick={onClose}
-            >
-              <svg viewBox="0 0 12 12" aria-hidden="true">
-                <path d="M3 3l6 6M9 3l-6 6" />
-              </svg>
-            </button>
           </div>
         </div>
+        <DialogClose
+          ref={closeRef}
+          className="studio-lightbox__close"
+          label={t('studio.picture.close')}
+          onClose={onClose}
+        />
 
         <div
           className="studio-lightbox__stage"

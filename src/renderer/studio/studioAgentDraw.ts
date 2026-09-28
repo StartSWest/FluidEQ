@@ -35,6 +35,7 @@ export const drawForAgent = async (
       : {}),
     ...(ask.pointer ? { pointer: ask.pointer } : {}),
     ...(ask.tap ? { tap: ask.tap } : {}),
+    ...(ask.daylight === undefined ? {} : { daylight: ask.daylight }),
   });
   if (!reply) {
     return { ok: false, reason: 'unavailable' };

@@ -66,6 +66,7 @@ export type GraphStyle =
   | 'fallblocks'
   | 'fibers'
   | 'afterglow'
+  | 'horizon'
   | 'line'
   | 'area'
   | 'bars'
@@ -233,6 +234,7 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'fallblocks',
   'fibers',
   'afterglow',
+  'horizon',
 ];
 
 /**
@@ -355,6 +357,7 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   fallblocks: 'Falling blocks',
   fibers: 'Fiber optics',
   afterglow: 'Afterglow',
+  horizon: 'Horizon',
   line: 'Line',
   area: 'Area',
   bars: 'Bars',
@@ -561,8 +564,8 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   midside: 'level',
   phase: 'level',
   /**
-   * The drawn scenes. Under Auto each is painted in its own colours
-   * (`SCENE_OWN_COLOURS`), laid the way this says: a board's lamps and an
+   * The drawn scenes. Under Auto each is painted in the window's colours
+   * (`windowInk.ts`), laid the way this says: a board's lamps and an
    * LED column up the axis, like the sea's depth; glass, bars, waves, the
    * halo and a synthwave skyline across it, bass to treble.
    */
@@ -585,6 +588,8 @@ const OWN_PALETTES: Record<GraphStyle, ResolvedGraphPalette> = {
   fallblocks: 'level',
   fibers: 'rainbow',
   afterglow: 'rainbow',
+  // Every bar through the colours from its foot to its head.
+  horizon: 'level',
   // Traces and silhouettes: one colour.
   line: 'signal',
   ridge: 'signal',
@@ -667,17 +672,6 @@ export const resolveGraphPalette = (
   style: GraphStyle,
   palette: GraphPalette,
 ): ResolvedGraphPalette => (palette === 'auto' ? OWN_PALETTES[style] : palette);
-
-/**
- * The colour heat shows at a given loudness, 0 at the floor to 1 at the top.
- *
- * The meter ramp, as a hue: cyan at rest, down through green and amber to
- * red. Shared so the trace, the icon and the fluid's bars all read the same
- * loudness as the same colour — three places disagreeing about that would be
- * three different instruments wearing one name.
- */
-export const heatHue = (level: number) =>
-  190 - Math.max(0, Math.min(1, level)) * 190;
 
 /** One selectable look: a form and how it is coloured. */
 export interface IGraphLook {
@@ -859,6 +853,7 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   fallblocks: { attackMs: 4, releaseMs: 260 },
   fibers: { attackMs: 6, releaseMs: 220 },
   afterglow: { attackMs: 4, releaseMs: 260 },
+  horizon: { attackMs: 4, releaseMs: 240 },
   midside: { attackMs: 4, releaseMs: 360 },
   line: { attackMs: 12, releaseMs: 150 },
   // Snap up, hang, drop away — a meter's manners.
@@ -1138,6 +1133,7 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   fallblocks: 40,
   fibers: 140,
   afterglow: 64,
+  horizon: 64,
 };
 
 export const getColumnCount = (style: GraphStyle) =>
@@ -1209,6 +1205,7 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   fallblocks: 1,
   fibers: 1,
   afterglow: 1,
+  horizon: 1,
   /**
    * Brighter than the shared default and dimmer than solid.
    *
@@ -1304,6 +1301,7 @@ const BAR_GAP_DEFAULTS: Partial<Record<GraphStyle, number>> = {
   fallblocks: 0.14,
   fibers: 0.4,
   afterglow: 0.3,
+  horizon: 0.28,
 };
 
 export const getGraphBarGap = (style: GraphStyle): number =>
@@ -1482,6 +1480,7 @@ export const DISCRETE_STYLES = new Set<GraphStyle>([
   'fallblocks',
   'fibers',
   'afterglow',
+  'horizon',
 ]);
 
 /**

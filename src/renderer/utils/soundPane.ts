@@ -4,7 +4,12 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useSyncExternalStore } from 'react';
+import {
+  type RefObject,
+  useLayoutEffect,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { readStoredFlag, writeStored } from './graphStorage';
 
 /**
@@ -75,6 +80,72 @@ export const releaseSoundPaneFromStudio = () => {
 
 export const useSoundPaneFolded = (): boolean =>
   useSyncExternalStore(subscribe, () => folded);
+
+/** The panel's own slide, as the browser runs it: its transform's transition. */
+const slidesOf = (panel: HTMLElement | null): Animation[] =>
+  panel
+    ?.getAnimations?.()
+    .filter(
+      (animation) =>
+        'transitionProperty' in animation &&
+        animation.transitionProperty === 'transform',
+    ) ?? [];
+
+/**
+ * Whether the panel is sliding: from the moment it is told to show or hide
+ * until its slide has finished, as the browser reports it — never a guess at
+ * how long a slide takes.
+ *
+ * The column it folds from is held narrow for that long, and the panel keeps
+ * a floor under it, so the page is laid out once per fold: at the start of a
+ * fold, which the panel covers as it slides away, and at the end of an
+ * unfold, under the panel that has slid in. The column used to ease its own
+ * width, and every frame of the fold laid the page out again at a new width —
+ * the graph, the bands and every pane (Ivan, 2026-09-27: "when the side pane
+ * expand and collapse it is fast and not making ui to recalculate on each
+ * frame").
+ */
+export const useSoundPaneSlide = (
+  panel: RefObject<HTMLElement | null>,
+  isShown: boolean,
+): boolean => {
+  const [seen, setSeen] = useState(isShown);
+  const [isSliding, setSliding] = useState(false);
+  // Set in the render that changes it, so the column is never laid out at
+  // its new width for one frame before the slide is known to have begun.
+  if (seen !== isShown) {
+    setSeen(isShown);
+    setSliding(true);
+  }
+  useLayoutEffect(() => {
+    if (!isSliding) {
+      return undefined;
+    }
+    // After the class change and before the paint: asking for the panel's
+    // animations resolves its style, so the slide just started is among them.
+    const slides = slidesOf(panel.current);
+    if (slides.length === 0) {
+      // No slide to wait on — reduced motion, or nothing moved.
+      setSliding(false);
+      return undefined;
+    }
+    let isCurrent = true;
+    Promise.all(slides.map((slide) => slide.finished)).then(
+      () => {
+        if (isCurrent) {
+          setSliding(false);
+        }
+        return undefined;
+      },
+      // Cancelled by the next fold, which waits on its own slide.
+      () => undefined,
+    );
+    return () => {
+      isCurrent = false;
+    };
+  }, [isSliding, isShown, panel]);
+  return isSliding;
+};
 
 /** For tests: back to the stored choice, with no hold. */
 export const resetSoundPaneForTesting = () => {

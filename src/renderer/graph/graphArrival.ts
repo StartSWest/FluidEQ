@@ -7,8 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useSyncExternalStore } from 'react';
 
 /**
- * The graph kept out of sight while the window changes size under it, and
- * faded in once the window has its new size.
+ * The graph's scene holding its picture while the window changes size under
+ * it, until the window has its new size.
  *
  * Leaving full screen is two layouts at least: the docked one at the screen's
  * size, the moment the mode changes, and the docked one at the window's, once
@@ -16,14 +16,16 @@ import { useSyncExternalStore } from 'react';
  * framed by the plot, so it was drawn once for every one of them, and what
  * showed was the picture squashed into the first plot and pulled into the
  * next (Ivan, 2026-09-26: "the scene itself kind of compresses when exiting
- * full screen"; "needs to appear smooth fading in, no moving animation").
+ * full screen"). The graph was taken out of sight for those moments, and
+ * then blinked out on every change of mode (Ivan, 2026-09-27: "avoid hiding
+ * the graph for a milise"); it stays now, and a scene held here keeps its
+ * picture at its own proportions until the settled size is drawn
+ * (`sceneWorkerClient.ts`).
  *
- * The mark is on the root, where the plot's stylesheet reads it
- * (`html[data-graph-arriving]`, `App.scss`), and a scene drawn on a layer of
- * the window, which is outside the plot, holds its picture on it
- * (`SceneCanvas`). An attribute the drawings' visibility watch does not
- * follow (`observeShown`), on purpose: nothing is hidden from them, only from
- * the screen, so every one of them is drawn and ready when the fade starts.
+ * The mark is on the root, and a scene drawn on a layer of the window, which
+ * is outside the plot, holds its picture on it (`SceneCanvas`). An attribute
+ * the drawings' visibility watch does not follow (`observeShown`), on
+ * purpose: nothing is hidden from them, so every one of them keeps drawing.
  *
  * No clock decides when it ends: what is handed in is the window's own answer
  * and the page's frame at the new size. A later hold replaces an earlier one,

@@ -11,9 +11,10 @@ import {
   rampRgba,
   scratch,
   type IAnalysisFrame,
+  type IAnalysisReading,
   type IAnalysisState,
 } from './analysisFrame';
-import { asMate, paintChannelLegend, paintLegend } from './channelInk';
+import { asMate } from './channelInk';
 import {
   paintSpectrum,
   spectrumBody,
@@ -39,10 +40,44 @@ import {
  * is bypassed — before and after are the same curve and the view says so by
  * drawing one figure with no band. That is the honest picture of a bypassed
  * EQ, not a failure to draw.
+ *
+ * Laid out here for both painters: this file's canvas drawing, and the
+ * engine's (`engineLooks/compareLook.ts`).
  */
 
 /** Below this the two curves are the same line and the band is not drawn. */
-const FLAT_ENOUGH = 0.004;
+export const FLAT_ENOUGH = 0.004;
+
+/**
+ * The band between the two, up from its foot: where on the look's ramp each
+ * stop takes its colour, and how solid it is there — hot at the top and cool
+ * at the bottom.
+ */
+export const COMPARE_RIBBON: readonly (readonly [
+  at: number,
+  ramp: number,
+  alpha: number,
+])[] = [
+  [0, 0.1, 0.5],
+  [0.5, 0.5, 0.42],
+  [1, 1, 0.62],
+];
+
+/**
+ * The before-figure: its body's share of the look's fill, its edge's alpha
+ * and how much thinner than the look's edge that is.
+ */
+export const COMPARE_BEFORE = { fill: 0.34, edge: 0.7, thinner: 1 } as const;
+
+/** How present the right channel's pair is, drawn behind the left's. */
+export const COMPARE_BEHIND = 0.7;
+
+/** One channel's two curves, and how far apart they are anywhere. */
+export interface ICompareCurves {
+  after: Float64Array;
+  before: Float64Array;
+  widest: number;
+}
 
 /**
  * One channel's before-curve, written into `before`; answers how far the EQ
@@ -74,11 +109,60 @@ const readBefore = (
   return widest;
 };
 
+/**
+ * This frame's curves: the joined pair, or the left pair in front of the
+ * right. The before-curves are kept in the state's own buffers rather than
+ * built fresh: this runs on every frame of every song and three hundred and
+ * twenty doubles allocated sixty times a second is a collection nobody asked
+ * for.
+ */
+export const readCompare = (
+  reading: IAnalysisReading,
+  state: IAnalysisState,
+): { front: ICompareCurves; behind?: ICompareCurves } | undefined => {
+  const { levels, eqLift, split } = reading;
+  const size = levels.length;
+  if (state.slow.length !== size) {
+    return undefined;
+  }
+  if (split) {
+    const [leftBefore, rightBefore] = scratch(state, size, 2);
+    return {
+      behind: {
+        after: split[1],
+        before: rightBefore,
+        widest: readBefore(split[1], eqLift, rightBefore),
+      },
+      front: {
+        after: split[0],
+        before: leftBefore,
+        widest: readBefore(split[0], eqLift, leftBefore),
+      },
+    };
+  }
+  return {
+    front: {
+      after: levels,
+      before: state.slow,
+      widest: readBefore(levels, eqLift, state.slow),
+    },
+  };
+};
+
+/**
+ * Nothing of this view's own keeps moving after the trace has settled: the
+ * before-curve is derived from the reading rather than chasing it. So the
+ * loop is asked to keep going only while there is a band to show at all.
+ */
+export const compareMoving = (curves: {
+  front: ICompareCurves;
+  behind?: ICompareCurves;
+}): boolean =>
+  Math.max(curves.front.widest, curves.behind?.widest ?? 0) > STILL_ENOUGH;
+
 const paintChannel = (
   frame: IAnalysisFrame,
-  after: Float64Array,
-  before: Float64Array,
-  widest: number,
+  { after, before, widest }: ICompareCurves,
   strength: number,
   /** The frame the before-curve is painted in, when it has its own. */
   behind: IAnalysisFrame = frame,
@@ -110,9 +194,9 @@ const paintChannel = (
     const foot = band.flipped ? band.top : band.bottom;
     const head = band.flipped ? band.bottom : band.top;
     const paint = context.createLinearGradient(0, foot, 0, head);
-    paint.addColorStop(0, rampRgba(colours, 0.1, 0.5));
-    paint.addColorStop(0.5, rampRgba(colours, 0.5, 0.42));
-    paint.addColorStop(1, rampRgba(colours, 1, 0.62));
+    COMPARE_RIBBON.forEach(([at, ramp, alpha]) =>
+      paint.addColorStop(at, rampRgba(colours, ramp, alpha)),
+    );
     context.globalAlpha = band.opacity * strength;
     context.fillStyle = paint;
     context.fill(ribbon);
@@ -122,9 +206,9 @@ const paintChannel = (
   // under the correction rather than only the correction being visible.
   context.globalAlpha = band.opacity * strength;
   paintSpectrum(behind, before, {
-    fillAlpha: tuning.fillOpacity * 0.34,
-    edgeAlpha: 0.7,
-    edgeWidth: Math.max(1, frame.edge.width - 1),
+    fillAlpha: tuning.fillOpacity * COMPARE_BEFORE.fill,
+    edgeAlpha: COMPARE_BEFORE.edge,
+    edgeWidth: Math.max(1, frame.edge.width - COMPARE_BEFORE.thinner),
     textured: false,
   });
   // After: the reading itself, textured, with the look's full edge.
@@ -159,43 +243,24 @@ const drawCompareView = (
   frame: IAnalysisFrame,
   state: IAnalysisState,
 ): boolean => {
-  const { levels, eqLift, split } = frame;
-  const size = levels.length;
-  if (state.slow.length !== size) {
+  const curves = readCompare(frame, state);
+  if (!curves) {
     return false;
   }
-
-  if (split) {
-    const [leftBefore, rightBefore] = scratch(state, size, 2);
-    const behind = readBefore(split[1], eqLift, rightBefore);
-    const front = readBefore(split[0], eqLift, leftBefore);
-    paintChannel(asMate(frame), split[1], rightBefore, behind, 0.7);
-    paintChannel(frame, split[0], leftBefore, front, 1);
-    paintChannelLegend(frame, frame.channelLabels);
-    return Math.max(front, behind) > STILL_ENOUGH;
+  const { front, behind } = curves;
+  if (behind) {
+    paintChannel(asMate(frame), behind, COMPARE_BEHIND);
+    paintChannel(frame, front, 1);
+  } else {
+    /**
+     * The before-curve in the turned copy of the look's colours, so the two
+     * readings are told apart by hue rather than only by weight, and both
+     * named over the drawing (Ivan, 2026-09-23: "on before and after put
+     * leyend and colors too").
+     */
+    paintChannel(frame, front, 1, asMate(frame));
   }
-
-  /**
-   * The before-curve, kept in the state's own buffer rather than built fresh:
-   * this runs on every frame of every song and three hundred and twenty
-   * doubles allocated sixty times a second is a collection nobody asked for.
-   */
-  const widest = readBefore(levels, eqLift, state.slow);
-  /**
-   * The before-curve in the turned copy of the look's colours, so the two
-   * readings are told apart by hue rather than only by weight, and both
-   * named over the drawing (Ivan, 2026-09-23: "on before and after put
-   * leyend and colors too").
-   */
-  paintChannel(frame, levels, state.slow, widest, 1, asMate(frame));
-  paintLegend(frame, [
-    { label: frame.legend.after, ink: rampRgba(frame.colours, 0.75, 1) },
-    { label: frame.legend.before, ink: rampRgba(frame.mate, 0.75, 1) },
-  ]);
-  // Nothing of this view's own keeps moving after the trace has settled: the
-  // before-curve is derived from the reading rather than chasing it. So the
-  // loop is asked to keep going only while there is a band to show at all.
-  return widest > STILL_ENOUGH;
+  return compareMoving(curves);
 };
 
 export default drawCompareView;

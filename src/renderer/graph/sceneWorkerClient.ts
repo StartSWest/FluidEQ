@@ -202,44 +202,55 @@ export const createSceneWorkerClient = (
   host.appendChild(canvas);
 
   /**
-   * One rule: while the box is moving the scene is off, and it comes back on
-   * the first frame drawn since the box stopped.
+   * One rule: while the box is moving the scene keeps its last picture,
+   * never stretched and never taken away, and the first frame drawn since
+   * the box stopped takes its place.
    *
    * The canvas is pulled to its host's size by CSS while the pixels behind it
-   * belong to the worker, so every box change leaves the old picture stretched
-   * over the new box until the worker catches up. Going into full screen,
-   * measured in the window, that was 88ms of a strip 214 rows tall pulled over
-   * a box of 1316 — unmistakable on anything with straight lines in it.
+   * belong to the worker, so every box change leaves the old picture over the
+   * new box until the worker catches up. Stretched to it, going into full
+   * screen, that was 88ms of a strip 214 rows tall pulled over a box of 1316 —
+   * unmistakable on anything with straight lines in it (Ivan, 2026-09-26:
+   * "the scene itself kind of compresses"). It was then taken off the screen
+   * for those moments instead, and the scene blinked out on every change of
+   * mode (Ivan, 2026-09-27: "can we avoid hiding the graph for a milise when
+   * resizing on changing modes?"). So it is scaled to cover the box at its
+   * own proportions (`object-fit: cover`): the same picture, a little larger,
+   * until the new one is drawn — nothing squashed, nothing gone.
    *
-   * Hiding in a ResizeObserver is what makes it invisible rather than shorter:
-   * resize observers run after the frame callbacks and before the paint, so
-   * the hide lands in the same frame the box changed in and the stretched
-   * picture is never painted. Noticing it from the draw loop would let one
-   * frame through.
+   * Switched in a ResizeObserver, which runs after the frame callbacks and
+   * before the paint: it lands in the same frame the box changed in, and a
+   * stretched frame is never painted. Noticing it from the draw loop would let
+   * one frame through.
    *
-   * Coming back waits for the box to STOP. A box does not change once — the
-   * graph's plot arrived at its height in three steps — and showing the scene
-   * on the first frame that happened to arrive put it back at a size the panel
-   * had already left, only to take it away again. Every box change takes a
-   * turn, a draw records the turn it went out on, and a frame is only allowed
-   * to bring the scene back if its turn is still the current one.
+   * The picture fills its box again only once the box has STOPPED. A box does
+   * not change once — the graph's plot arrived at its height in three steps —
+   * and a frame that happened to arrive between belongs to a size the panel
+   * has already left. Every box change takes a turn, a draw records the turn it
+   * went out on, and only a frame of the current turn settles it.
    *
-   * No timer anywhere: it hides on a box changing and shows on a frame
-   * arriving. A scene drawing nothing stays hidden, which is where a dropped
-   * renderer leaves it too, and the frame loop is kicked on every resize.
+   * The first picture is the one exception: before anything is drawn there is
+   * nothing to keep, and the scene fades in on its first frame.
+   *
+   * No timer anywhere: it changes on a box changing and settles on a frame
+   * arriving, and the frame loop is kicked on every resize.
    */
   let settled = true;
   let boxTurn = 0;
   let drawnForTurn = 0;
-  // Held from outside (`holdPicture`): no frame brings the scene back.
+  let hasShown = false;
+  // Held from outside (`holdPicture`): no frame settles the scene.
   let pinned = false;
   const hold = () => {
     boxTurn += 1;
     if (settled) {
       settled = false;
-      // Instant: a fade out is a slower way of showing the stretched picture.
-      canvas.style.transition = 'none';
-      canvas.style.opacity = '0';
+      if (hasShown) {
+        canvas.style.objectFit = 'cover';
+      } else {
+        canvas.style.transition = 'none';
+        canvas.style.opacity = '0';
+      }
     }
   };
   const release = () => {
@@ -247,8 +258,12 @@ export const createSceneWorkerClient = (
       return;
     }
     settled = true;
-    canvas.style.transition = `opacity ${SETTLE_FADE_MS}ms ease-out`;
-    canvas.style.opacity = '1';
+    canvas.style.objectFit = '';
+    if (!hasShown) {
+      hasShown = true;
+      canvas.style.transition = `opacity ${SETTLE_FADE_MS}ms ease-out`;
+      canvas.style.opacity = '1';
+    }
   };
   const watchBox = new ResizeObserver(hold);
   watchBox.observe(host);

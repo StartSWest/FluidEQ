@@ -255,7 +255,7 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-columns: 30px minmax(0, 1fr);
   gap: 12px;
   padding: 12px 14px 12px 12px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   transition: border-color $motion-fast $ease-out;
 

@@ -9,6 +9,7 @@ import {
   appMinimumSize,
   centreIn,
   clampInto,
+  isPlayerRect,
   isUsableRect,
   placeAtTopRight,
   playerFirstSize,
@@ -102,6 +103,24 @@ export const createWindowModes = (
   let isSwitching = false;
 
   const zoomOf = (win: BrowserWindow) => win.webContents.getZoomFactor();
+
+  /**
+   * Whether the window's bounds right now are the player's own — where the
+   * listener has it — and so worth writing down as where it was left.
+   *
+   * Not while the picture has the screen, whose bounds are the display's; not
+   * while the window is maximised, which is the app's on its way in or out;
+   * and not while a switch is placing it, when every move and resize is the
+   * switch's. Each of those used to reach the window-state file as the
+   * player's size, and the next switch opened the amp the size of the screen
+   * (Ivan, 2026-09-28).
+   */
+  const isPlayersOwn = (win: BrowserWindow) =>
+    !win.isDestroyed() &&
+    memory.mode === 'player' &&
+    !isSwitching &&
+    !win.isFullScreen() &&
+    !win.isMaximized();
 
   /**
    * The player's floor width in the window's own pixels: its own, or the
@@ -260,11 +279,15 @@ export const createWindowModes = (
     // Where the player stood last time, its place as well as its size (Ivan,
     // 2026-09-21): the two modes are two windows to the listener, and each
     // comes back where they left it. The first time there is nowhere to come
-    // back to, so it opens in the middle of the screen the app is on (Ivan,
-    // 2026-09-22).
-    const target = isUsableRect(memory.player)
-      ? clampInto(memory.player, workAreaOf(memory.player))
-      : centreIn(playerFirstSize(zoomOf(win)), workAreaOf(onScreen));
+    // back to, so it opens at its own narrow size in the middle of the screen
+    // the app is on (Ivan, 2026-09-22) — and so does a player remembered as
+    // the whole screen, which nobody sized (`isPlayerRect`).
+    const remembered = memory.player;
+    const target =
+      isUsableRect(remembered) &&
+      isPlayerRect(remembered, workAreaOf(remembered))
+        ? clampInto(remembered, workAreaOf(remembered))
+        : centreIn(playerFirstSize(zoomOf(win)), workAreaOf(onScreen));
     memory.mode = 'player';
     isSwitching = true;
     const settle = () => {
@@ -306,7 +329,13 @@ export const createWindowModes = (
   /** Resolves once the window stands as the full app again. */
   const leavePlayer = (win: BrowserWindow): Promise<void> => {
     const onScreen = win.getBounds();
-    memory.player = onScreen;
+    // The size the listener left the player at, to open it at next time —
+    // unless the window is not the player's yet: pressed back while the
+    // switch in was still waiting for Windows to restore a maximised app,
+    // these were the app's maximised bounds.
+    if (isPlayersOwn(win)) {
+      memory.player = onScreen;
+    }
     memory.mode = 'app';
     isSwitching = true;
     // The page says them again the next time it draws the player.
@@ -370,6 +399,17 @@ export const createWindowModes = (
 
     /** A copy of what there is to remember, for the window-state file. */
     memory: (): IWindowModeMemory => ({ ...memory, app: { ...memory.app } }),
+
+    /**
+     * Where the player stands, for the window-state file, which is written on
+     * every frame of a drag: the window's own bounds while they are the
+     * player's (`isPlayersOwn`), and where it was last left otherwise. The
+     * file used to take the window's bounds whenever the mode was the
+     * player's, full screen and switches included — which is how the amp
+     * came to be remembered as the size of the screen.
+     */
+    playerBounds: (win: BrowserWindow): Partial<IRect> | undefined =>
+      isPlayersOwn(win) ? win.getBounds() : memory.player,
 
     /** Which of the two the window is now. */
     mode: (): TWindowMode => memory.mode,
@@ -556,20 +596,15 @@ export const createWindowModes = (
      */
     followWindow: (win: BrowserWindow) => {
       const remember = () => {
-        // NOT WHILE THE WINDOW IS FULL SCREEN. The visualizer takes the whole
-        // screen without leaving player mode, so every move and resize the
-        // transition raises arrived here as "this is where the listener left
-        // the player" — and what got written down was the size of the screen.
-        // Coming back out, the player was restored to it (Ivan, 2026-09-22).
-        if (
-          win.isDestroyed() ||
-          win.isFullScreen() ||
-          memory.mode !== 'player' ||
-          isSwitching
-        ) {
-          return;
+        // NOT WHILE THE WINDOW IS FULL SCREEN, MAXIMISED OR SWITCHING. The
+        // visualizer takes the whole screen without leaving player mode, so
+        // every move and resize the transition raises arrived here as "this
+        // is where the listener left the player" — and what got written down
+        // was the size of the screen. Coming back out, the player was
+        // restored to it (Ivan, 2026-09-22).
+        if (isPlayersOwn(win)) {
+          memory.player = win.getBounds();
         }
-        memory.player = win.getBounds();
       };
       win.on('will-resize', () => {
         isDragging = true;

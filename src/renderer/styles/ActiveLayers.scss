@@ -85,8 +85,12 @@ it under the terms of the GNU General Public License version 3 or later.
     background: none;
     transition: background $motion-fast $ease-out;
 
+    // Keyboard focus in the row, never focus the pointer left there: with
+    // `:focus-within` the row stayed washed after its "i" had opened the
+    // notes and they had closed, focus handed back to it and the pointer
+    // long gone (Ivan, 2026-09-27: "fix tooltip icon on preset it sticks").
     &:hover,
-    &:focus-within {
+    &:has(:focus-visible) {
       background: $hover-accent;
     }
   }
@@ -110,7 +114,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // read as a different kind of thing (Ivan, 2026-09-25: "applied filter pills
   // can have less rounded too").
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  background: $surface-control;
   font-size: $text-small;
 }
 

@@ -435,18 +435,17 @@ const studio = {
   'studio.framing.use': 'Usar esta foto',
   'studio.framing.saving': 'Salvando…',
 
-  'studio.size.title': 'Tamanho',
-  'studio.size.graph': 'Gráfico',
-  'studio.size.narrow': 'Estreito',
-  'studio.size.wide': 'Largo',
   'studio.size.full': 'Tela cheia',
   'studio.size.exit': 'Sair da tela cheia',
   'studio.wave.title': 'Onda no gráfico',
   'studio.wave.hint':
     'Fica salvo na cena e é publicado com ela, por isso abre como você deixou. Quem a usar pode alterá-las em Visualização, no gráfico, e voltar à sua. Teste os extremos: uma onda baixa ou elevada até o centro.',
   'studio.tint.label': 'O FluidEQ com esta cena',
+  'studio.tint.theme': 'Tema',
+  'studio.brightness.hint':
+    'O Brilho do app inteiro, o mesmo controle de Cores da janela. Com ele, toda cena vai da noite em 0 ao dia pleno em 100: teste a sua nos dois extremos antes de publicar.',
   'studio.tint.hint':
-    'Enquanto você trabalha aqui, todo o app pode assumir as cores da cena, ou brilhar suavemente ao redor dela com a música, para ver e sentir como fica como tema.',
+    'Só aqui, enquanto você trabalha: as Cores da janela do gráfico continuam como você deixou. Tema mantém a janela como o app está; as outras dão a ela as cores desta cena, ou brilham suavemente ao redor dela com a música, para você ver e sentir como todos que a ouvirem.',
   'studio.grid.label': 'Mostrar a grade do gráfico',
   'studio.grid.hint':
     'As linhas de frequência e de nível do gráfico sobre a cena, com o espaço que ocupam nele, para medir onde a onda e cada parte da cena ficam.',
@@ -502,6 +501,8 @@ const studio = {
     'Um controle em params precisa de um id com a-z, 0-9 e _, um nome em inglês e um min menor que o max.',
   'studio.problem.too-many-params':
     'Uma cena pode ter no máximo 8 controles em params.',
+  'studio.problem.no-daylight':
+    'Toda cena precisa do controle Daylight, { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } em params, e desenha a noite em 0 e o dia em 100.',
   'studio.problem.bad-ambient':
     'Alguns elementos ou controles de ambient no pack.json ficaram de fora. Confira formas, movimentos, cores, quantidades e o que cada controle move.',
   'studio.problem.bad-world':

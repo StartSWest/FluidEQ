@@ -11,12 +11,15 @@ import type { IScenePack } from 'common/scenePacks';
 import observeShown from '../utils/observeShown';
 import {
   setStudioTintSource,
-  useStudioTintEnabled,
+  useStudioTintMode,
 } from '../utils/sceneTintStore';
 
 /**
  * Hands the window's colour to the project on the Studio's bench while the
- * Studio's switch is on.
+ * Studio's own choice lends it one (`useStudioTintMode`): on Theme the Studio
+ * claims nothing, and the window is whatever the app's Window colours make
+ * it (Ivan, 2026-09-27: "you simply have to use the option that is in the
+ * global").
  *
  * The project claims it the moment it is on the bench, before its first build
  * has arrived: that is what lets moving from one project to the next go
@@ -58,7 +61,7 @@ export default function useStudioTint(
   playing: boolean,
   bench: RefObject<HTMLElement | null>,
 ) {
-  const isOn = useStudioTintEnabled();
+  const isOn = useStudioTintMode() !== 'theme';
   const [isShown, setIsShown] = useState(false);
 
   useEffect(() => {

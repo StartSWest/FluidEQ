@@ -20,6 +20,8 @@ import {
 } from 'common/pictureFraming';
 import type { TranslationKey } from 'common/i18n';
 import Glyph from '../community/Glyph';
+import DialogFrame from '../components/DialogFrame';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import { drawFramed } from './scenePicture';
@@ -249,31 +251,125 @@ export default function StudioFramingDialog({
         }
       }}
     >
-      <div
+      <DialogFrame
         ref={surfaceRef}
-        className="gallery-dialog studio-framing"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="studio-framing-title"
+        className="studio-framing"
+        icon={<MenuIcon name="camera" />}
+        title={t('studio.framing.title', { name })}
+        titleId="studio-framing-title"
+        badge={
+          <span className="dialog-frame__badge">
+            {t('studio.picture.size', {
+              width: picture.width,
+              height: picture.height,
+            })}
+          </span>
+        }
+        description={t('studio.framing.hint')}
         aria-busy={saving}
+        closeLabel={t('support.close')}
+        // Away while the picture is written, as Escape and the backdrop are.
+        onClose={saving ? undefined : cancel}
+        // The tools in the rail, so the photo has the whole of the body.
+        rail={
+          <div className="studio-framing__controls">
+            <div
+              className="studio-segments"
+              role="group"
+              aria-label={t('studio.framing.fit')}
+            >
+              {FITS.map((entry) => (
+                <button
+                  key={entry.fit}
+                  type="button"
+                  className="studio-segment"
+                  aria-pressed={framing.fit === entry.fit}
+                  disabled={saving}
+                  onClick={() =>
+                    setFraming((current) =>
+                      zoomFraming(
+                        photoSize,
+                        place,
+                        { ...current, fit: entry.fit },
+                        MIN_PICTURE_ZOOM,
+                      ),
+                    )
+                  }
+                >
+                  {t(entry.key)}
+                </button>
+              ))}
+            </div>
+            <div className="studio-framing__zoom">
+              <label htmlFor={zoomId}>{t('studio.framing.zoom')}</label>
+              <input
+                id={zoomId}
+                type="range"
+                className="studio-slider"
+                min={MIN_PICTURE_ZOOM}
+                max={MAX_PICTURE_ZOOM}
+                step={0.01}
+                value={framing.zoom}
+                disabled={saving}
+                style={
+                  {
+                    '--fill': `${((framing.zoom - MIN_PICTURE_ZOOM) / (MAX_PICTURE_ZOOM - MIN_PICTURE_ZOOM)) * 100}%`,
+                  } as CSSProperties
+                }
+                onChange={(event) => zoomTo(Number(event.target.value))}
+              />
+              <span className="studio-framing__percent">
+                {t('studio.framing.percent', {
+                  percent: Math.round(framing.zoom * 100),
+                })}
+              </span>
+            </div>
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={saving}
+              onClick={() => setFraming(picture.framing)}
+            >
+              {t('studio.framing.reset')}
+            </button>
+          </div>
+        }
+        footer={
+          <>
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={saving}
+              onClick={onAnother}
+            >
+              <Glyph name="folder" />
+              {t('studio.framing.another')}
+            </button>
+            <div className="dialog-frame__actions">
+              <button
+                type="button"
+                className="button small subtle"
+                disabled={saving}
+                onClick={cancel}
+              >
+                {t('studio.framing.cancel')}
+              </button>
+              <button
+                type="button"
+                className={`button small${saving ? ' is-running' : ''}`}
+                aria-busy={saving}
+                onClick={() => {
+                  if (!saving) {
+                    onSave(framing);
+                  }
+                }}
+              >
+                {saving ? t('studio.framing.saving') : t('studio.framing.use')}
+              </button>
+            </div>
+          </>
+        }
       >
-        <div className="gallery-dialog__head">
-          <span className="gallery-dialog__mark" aria-hidden="true">
-            <Glyph name="camera" />
-          </span>
-          <span className="studio-framing__heading">
-            <h2 id="studio-framing-title" className="gallery-dialog__title">
-              {t('studio.framing.title', { name })}
-            </h2>
-            <span className="studio-framing__size">
-              {t('studio.picture.size', {
-                width: picture.width,
-                height: picture.height,
-              })}
-            </span>
-          </span>
-        </div>
-
         {/* A photo moved by the pointer and by the arrow keys has no ARIA
             widget of its own; `application` tells assistive technology the
             keys belong to this surface, and the label says which do what. */}
@@ -309,103 +405,7 @@ export default function StudioFramingDialog({
             }}
           />
         </div>
-
-        <span className="studio-framing__hint">{t('studio.framing.hint')}</span>
-
-        <div className="studio-framing__controls">
-          <div
-            className="studio-segments"
-            role="group"
-            aria-label={t('studio.framing.fit')}
-          >
-            {FITS.map((entry) => (
-              <button
-                key={entry.fit}
-                type="button"
-                className="studio-segment"
-                aria-pressed={framing.fit === entry.fit}
-                disabled={saving}
-                onClick={() =>
-                  setFraming((current) =>
-                    zoomFraming(
-                      photoSize,
-                      place,
-                      { ...current, fit: entry.fit },
-                      MIN_PICTURE_ZOOM,
-                    ),
-                  )
-                }
-              >
-                {t(entry.key)}
-              </button>
-            ))}
-          </div>
-          <div className="studio-framing__zoom">
-            <label htmlFor={zoomId}>{t('studio.framing.zoom')}</label>
-            <input
-              id={zoomId}
-              type="range"
-              className="studio-slider"
-              min={MIN_PICTURE_ZOOM}
-              max={MAX_PICTURE_ZOOM}
-              step={0.01}
-              value={framing.zoom}
-              disabled={saving}
-              style={
-                {
-                  '--fill': `${((framing.zoom - MIN_PICTURE_ZOOM) / (MAX_PICTURE_ZOOM - MIN_PICTURE_ZOOM)) * 100}%`,
-                } as CSSProperties
-              }
-              onChange={(event) => zoomTo(Number(event.target.value))}
-            />
-            <span className="studio-framing__percent">
-              {t('studio.framing.percent', {
-                percent: Math.round(framing.zoom * 100),
-              })}
-            </span>
-          </div>
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={saving}
-            onClick={() => setFraming(picture.framing)}
-          >
-            {t('studio.framing.reset')}
-          </button>
-        </div>
-
-        <div className="gallery-dialog__foot">
-          <button
-            type="button"
-            className="button small subtle gallery-dialog__aside"
-            disabled={saving}
-            onClick={onAnother}
-          >
-            <Glyph name="folder" />
-            {t('studio.framing.another')}
-          </button>
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={saving}
-            onClick={cancel}
-          >
-            {t('studio.framing.cancel')}
-          </button>
-          <button
-            type="button"
-            className={`button small${saving ? ' is-running' : ''}`}
-            aria-busy={saving}
-            onClick={() => {
-              if (!saving) {
-                onSave(framing);
-              }
-            }}
-          >
-            {saving ? t('studio.framing.saving') : t('studio.framing.use')}
-          </button>
-        </div>
-      </div>
+      </DialogFrame>
     </div>,
     document.body,
   );

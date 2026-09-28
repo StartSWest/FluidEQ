@@ -162,15 +162,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid rgba($edge-tint, 0.14);
+  // The toolbar's controls wear every control's face and edge
+  // (`$surface-control`, `$border-control`). They had a tint and a hairline
+  // of their own, a third kind of button beside the app's two.
+  border: 1px solid $border-control;
   border-radius: $radius-s;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: $surface-control;
   color: $text-primary;
   cursor: pointer;
-  transition:
-    background 140ms ease,
-    color 140ms ease,
-    border-color 140ms ease;
+  transition: $transition-control;
 
   svg {
     width: 13px;
@@ -183,8 +183,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
-    background: color-mix(in srgb, $secondary-light 12%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
     color: $secondary-light;
   }
 
@@ -214,30 +214,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .video-browser__site {
   display: inline-flex;
+  // The back and forward keys' 26px beside them, so the bar is one height
+  // of control (Ivan, 2026-09-27: "do a full pass for all inconsistencies").
+  // Sized by padding they came out 22.
+  height: 26px;
+  box-sizing: border-box;
   align-items: center;
-  padding: 4px 9px;
+  padding: 0 9px;
   gap: 5px;
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: $surface-control;
   color: $text-muted;
   font-size: $text-small;
   white-space: nowrap;
   cursor: pointer;
-  transition:
-    background 140ms ease,
-    color 140ms ease,
-    border-color 140ms ease;
+  transition: $transition-control;
 
   &:hover {
-    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
     color: $secondary-light;
   }
 
+  // The site being shown says so in white, on the face and edge every
+  // control has, as a chosen control does in the graph's row: a lit edge and
+  // a pressed face made it the one differently coloured box in the bar.
   &.is-active {
-    border-color: color-mix(in srgb, $secondary-light 70%, transparent);
-    background: color-mix(in srgb, $secondary-light 16%, transparent);
-    color: $secondary-light;
+    color: $white;
   }
 }
 
@@ -279,15 +283,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 26px;
   align-items: center;
   padding: 0 3px 0 8px;
-  border: 1px solid rgba($edge-tint, 0.14);
+  border: 1px solid $border-control;
   // Matches the site pills rather than the nav buttons: this is the other end
   // of the same row, and 26px tall against a 999px radius is a capsule.
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  background: $surface-control;
   gap: 6px;
-  transition:
-    border-color 140ms ease,
-    background 140ms ease;
+  transition: $transition-control;
 
   // Focus lights the EDGE, not the fill. A field that repaints when the
   // caret lands in it is a field that changes colour for typing in — and it
@@ -386,7 +388,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 3px 10px;
   border: none;
   border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-light 16%, transparent);
+  // A step of mist inside the field, in the card's own hue: the accent's
+  // light at 16% here was a green chip in Rainbow mode's violet field.
+  background: $hover-lift;
   color: $secondary-light;
   font-size: $text-small;
   white-space: nowrap;
@@ -396,7 +400,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     opacity 140ms ease;
 
   &:hover:not(:disabled) {
-    background: color-mix(in srgb, $secondary-light 28%, transparent);
+    background: rgba($edge-tint, 0.14);
   }
 
   // Dimmed rather than hidden: a button that appears as the first character is
@@ -419,7 +423,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 4px;
   // The floating surfaces' own face, like every other menu (Ivan,
   // 2026-09-25: "all menus", "to much dropshadows").
-  @include floating-surface;
+  // A dropdown: the card's face, like every menu (`menu-face`).
+  @include menu-face;
   // Drops out of the field as every menu does (`menu-in`); it was the one list
   // that simply appeared.
   @include menu-motion;
@@ -586,14 +591,15 @@ $video-sign-out-said: 4s;
     stroke-width: 1.5;
   }
 
+  // Under the pointer, the toolbar's control: its face and its lit edge.
   &:hover:not(:disabled) {
-    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
-    background: color-mix(in srgb, $secondary-light 14%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
     color: $secondary-light;
   }
 
   &:focus-visible {
-    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
+    border-color: $border-control-hover;
     color: $secondary-light;
   }
 

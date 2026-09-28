@@ -322,8 +322,9 @@ describe('curated forms and settings', () => {
     // place: seven of those and the eight scenes Ivan designed are what the
     // picker offered then, and the ten drawn scenes joined them on
     // 2026-09-24 (five pictures and five plain spectrums), and ten more
-    // visualizers the next day — less the Mesh, which the Waterfall took in.
-    expect(GRAPH_FORM_LOOKS).toHaveLength(39);
+    // visualizers the next day — less the Mesh, which the Waterfall took in —
+    // and Horizon the day after that.
+    expect(GRAPH_FORM_LOOKS).toHaveLength(40);
     expect(SELECTABLE_GRAPH_STYLES).toContain('ledbars');
     expect(SELECTABLE_GRAPH_STYLES).toContain('silkwaves');
     expect(SELECTABLE_GRAPH_STYLES).toContain('halftone');

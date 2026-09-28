@@ -42,7 +42,7 @@
 .remote-audio__monitor-lane {
   min-width: 0;
   padding: 8px 9px 9px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-xs;
   // It holds a waveform, so it wears what every plot in the app wears.
   background: $surface-plot;

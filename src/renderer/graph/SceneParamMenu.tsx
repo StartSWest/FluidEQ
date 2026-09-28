@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { type CSSProperties, type ReactNode, useId } from 'react';
+import { SCENE_DAYLIGHT_PARAM } from 'common/sceneDaylight';
 import { resolveParamName, type IScenePackParam } from 'common/scenePacks';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -120,7 +121,10 @@ export default function SceneParamMenu({ lookId }: ISceneParamMenuProps) {
   // reason: a scene's AI writes these, so a range with no width is possible.
   // Its slider swept a 0-100% readout while every value it wrote landed back
   // on the one value the author gave — a control that could only sit still.
-  const movable = own?.filter((param) => param.max - param.min > 0);
+  // The time of day is left out as it is there: the Brightness sets it.
+  const movable = own?.filter(
+    (param) => param.max - param.min > 0 && param.id !== SCENE_DAYLIGHT_PARAM,
+  );
   if (!movable || movable.length === 0) {
     return null;
   }

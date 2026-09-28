@@ -34,6 +34,9 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.update': 'Aggiorna salvata',
   'eq.layouts.saveNew': 'Salva disposizione…',
   'eq.layouts.error': 'Impossibile aggiornare le disposizioni. Riprova.',
+  'eq.sliders': 'Cursori dell’EQ',
+  'eq.sliders.round': 'Tondi',
+  'eq.sliders.rect': 'Rettangolari',
   'eq.layouts.clearTitle': 'Svuotare l’EQ?',
   'eq.layouts.clearWarning':
     'Imposta il guadagno di ogni banda e i controlli Bassi, Medi e Alti a 0 dB. Mantieni numero di bande, frequenze, Q, tagli, modalità EQ e preamplificazione attuali.',
@@ -313,6 +316,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.fallblocks': 'Blocchi cadenti',
   'graph.styleName.fibers': 'Fibra ottica',
   'graph.styleName.afterglow': 'Scia luminosa',
+  'graph.styleName.horizon': 'Orizzonte',
   'graph.styleName.line': 'Linea',
   'graph.styleName.area': 'Area',
   'graph.styleName.bars': 'Barre',

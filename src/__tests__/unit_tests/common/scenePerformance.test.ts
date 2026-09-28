@@ -13,7 +13,7 @@ import {
   scenePaceMs,
   scenePinnedScale,
 } from '../../../common/scenePerformance';
-import { SMOOTH_FRAME_MS } from '../../../common/smoothing';
+import { THIRTY_A_SECOND_MS } from '../../../common/smoothing';
 
 const whole = {
   frameRate: 'sixty',
@@ -37,14 +37,14 @@ describe('the visualizer performance choice', () => {
 
   it('paces the two caps at sixty and at the graph’s thirty', () => {
     expect(scenePaceMs('sixty')).toBeCloseTo(1000 / 60, 6);
-    expect(scenePaceMs('thirty')).toBe(SMOOTH_FRAME_MS);
+    expect(scenePaceMs('thirty')).toBe(THIRTY_A_SECOND_MS);
   });
 
   /** A laptop unplugged is not where a hundred and forty-four frames earn their power. */
   it('holds the display rate to sixty on battery, and the caps as they are', () => {
     expect(scenePaceMs('display', true)).toBeCloseTo(1000 / 60, 6);
     expect(scenePaceMs('sixty', true)).toBeCloseTo(1000 / 60, 6);
-    expect(scenePaceMs('thirty', true)).toBe(SMOOTH_FRAME_MS);
+    expect(scenePaceMs('thirty', true)).toBe(THIRTY_A_SECOND_MS);
   });
 
   it('pins the presets to AMD’s own scales and leaves automatic to the controller', () => {

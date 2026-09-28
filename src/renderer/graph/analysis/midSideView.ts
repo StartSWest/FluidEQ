@@ -7,9 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   STILL_ENOUGH,
   type IAnalysisFrame,
+  type IAnalysisReading,
   type IAnalysisState,
 } from './analysisFrame';
-import { asMate, paintChannelLegend } from './channelInk';
+import { asMate } from './channelInk';
 import { paintSpectrum, spectrumInk, spectrumLine } from './spectrumPaint';
 
 /**
@@ -36,9 +37,33 @@ import { paintSpectrum, spectrumInk, spectrumLine } from './spectrumPaint';
  * different pair.
  */
 
-/** What the two figures are called, as the legend says them. */
-const MID_LABEL = 'M';
-const SIDE_LABEL = 'S';
+/** What the two figures are called, as the key says them. */
+export const MID_SIDE_LABELS: readonly [string, string] = ['M', 'S'];
+
+/**
+ * The side, drawn behind: its body's share of the look's fill, its edge's
+ * alpha and how much thinner than the look's edge that is.
+ */
+export const SIDE_FIGURE = { fill: 0.6, edge: 0.8, thinner: 0.4 } as const;
+
+/** Whether anything of the pair is off the floor, for the frame loop. */
+export const midSideMoving = (reading: IAnalysisReading): boolean => {
+  const { split } = reading;
+  if (!split) {
+    return false;
+  }
+  const [mid, side] = split;
+  let loudest = 0;
+  for (let index = 0; index < mid.length; index += 1) {
+    if (mid[index] > loudest) {
+      loudest = mid[index];
+    }
+    if (side[index] > loudest) {
+      loudest = side[index];
+    }
+  }
+  return loudest > STILL_ENOUGH;
+};
 
 const drawMidSideView = (
   frame: IAnalysisFrame,
@@ -66,9 +91,9 @@ const drawMidSideView = (
   const behind = asMate(frame);
   context.globalAlpha = band.opacity * 0.85;
   paintSpectrum(behind, side, {
-    fillAlpha: tuning.fillOpacity * 0.6,
-    edgeAlpha: 0.8,
-    edgeWidth: Math.max(1, frame.edge.width - 0.4),
+    fillAlpha: tuning.fillOpacity * SIDE_FIGURE.fill,
+    edgeAlpha: SIDE_FIGURE.edge,
+    edgeWidth: Math.max(1, frame.edge.width - SIDE_FIGURE.thinner),
     textured: false,
   });
   context.globalAlpha = band.opacity;
@@ -78,17 +103,7 @@ const drawMidSideView = (
   context.strokeStyle = spectrumInk(frame, mid);
   context.stroke(spectrumLine(frame, mid));
   context.globalAlpha = 1;
-  paintChannelLegend(frame, [MID_LABEL, SIDE_LABEL]);
-  let loudest = 0;
-  for (let index = 0; index < mid.length; index += 1) {
-    if (mid[index] > loudest) {
-      loudest = mid[index];
-    }
-    if (side[index] > loudest) {
-      loudest = side[index];
-    }
-  }
-  return loudest > STILL_ENOUGH;
+  return midSideMoving(frame);
 };
 
 export default drawMidSideView;

@@ -58,11 +58,13 @@ const look: Partial<Dictionary> = {
   'look.palette.level': '电平',
   'look.palette.levelHint': '颜色沿坐标轴向上变化，显示每个条柱的响度。',
   'look.palette.heat': '热度',
-  'look.palette.heatHint': '颜色随音量变化，由冷色渐变到红色。',
+  'look.palette.heatHint': '颜色随音量变化，从第一种颜色到最后一种。',
   'look.palette.auto': '自动',
   'look.palette.autoHint':
     '每种形态使用自己的配色：道路按音量着色，条形按位置着色。',
   'look.colours': '颜色',
+  'look.coloursFollowWindow':
+    '跟随窗口的颜色。更改其中一种，即成为此样式自己的颜色。',
   'look.colourValue': '颜色 {number}：{colour}',
   'look.removeColour': '移除颜色 {number}',
   'look.custom': '自定义',

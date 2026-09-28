@@ -5,6 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 @use 'color' as *;
+@use 'constant' as *;
+@use 'glass' as *;
 @use 'theme' as *;
 
 // The Backdrop (`SceneCover.tsx`): the graph's Plus visualizer drawn behind
@@ -22,20 +24,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
   contain: strict;
 }
 
-// The EQ head over the picture: the section pills and the title stand on a
-// shade of the floor, so the scene runs up under them (Ivan, 2026-09-25:
-// "fill up to the top the graph only when plus viz", and "in bg mode also
-// like that"). The same shade as the graph's strip of controls carries on to
-// the foot of its row (`$chrome-shade`, `.live-output-controls::before`): one
-// even block from the pills to the options, with no step between the head and
-// the graph (2026-09-27: "same for the entire block top to bottom"). Lifted
-// over the layer it stands on; inside it the controls keep their own faces.
-//
-// And only while the graph's options are up, like the plot's shade it runs
-// into: with them away the scene is whole to the top of the column (Ivan,
-// 2026-09-27: "only appear when graph options is shown and disappear when
-// hidden, so we see full plus viz to the top"). The shade is its own element
-// (`HeadSceneShade`) under the head's content, faded on the strip's curves.
+// The EQ head over the picture: the section pills and the title stand on the
+// scene itself, which runs up under them to the top of the column (Ivan,
+// 2026-09-25: "fill up to the top the graph only when plus viz", and "in bg
+// mode also like that"). Lifted over the layer it stands on; inside it the
+// controls keep their own faces. No shade under them while the graph's
+// options are up, as there is none under the options (`GraphTheme.scss`;
+// Ivan, 2026-09-27: "I hate the dropshadow that shows when options pane
+// open, remove").
 //
 // Over the graph's 2 as well, never between the two: the head and the graph
 // do not overlap, but what hangs out of the head does — the Smart EQ bubble
@@ -43,26 +39,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @mixin head-over-scene {
   position: relative;
   z-index: 3;
-
-  > .center-head__shade {
-    display: block;
-    background: $chrome-shade;
-  }
 }
 
-// Nothing without a scene behind the head; the mixin above shows it.
+// The head's shade element (`HeadSceneShade`) shows nothing now.
 .center-head__shade {
-  position: absolute;
-  z-index: -1;
-  inset: 0;
   display: none;
-  pointer-events: none;
-  transition: opacity 320ms ease;
-
-  &.is-idle {
-    opacity: 0;
-    transition-duration: 520ms;
-  }
 }
 
 // A veil of the floor over the scene wherever the window is not the graph:
@@ -172,15 +153,34 @@ $cover-veil: color-mix(
       var(--track-well) var(--backdrop-veil),
       transparent
     );
+    // And the pane's colour as the theme paints it, for what must stay solid
+    // on a veiled pane whatever Transparency is set to (below).
+    --solid-surface-panel: var(--surface-panel);
   }
 
-  // The two strips across the window are glass of the floor: opaque, they
-  // cut the picture into a band.
+  // SOLID WHATEVER TRANSPARENCY SAYS: the header's logo tile and the band
+  // sliders' caps. Both are drawn from the pane's colour, and on a veiled
+  // pane that colour is the veil's, so at full Transparency the tile was a
+  // pane of glass the picture showed through and the caps were gone, leaving
+  // lines with nothing to hold (Ivan, 2026-09-27: "fix icon on full
+  // transparent not good and the slider knob disappear, this can't be
+  // affected by transparent"). Each is handed the solid colour back, on its
+  // own box, so the pane round it stays as veiled as it was.
+  .brand-mark--signal,
+  .range {
+    --surface-panel: var(--solid-surface-panel);
+  }
+
+  // The two strips across the window are veiled exactly as the side panes
+  // are, and not blurred: opaque, they cut the picture into a band, and as
+  // glass of their own (72% of the floor, blurred) they were a darker, frosted
+  // band beside panes the scene showed through (Ivan, 2026-09-27: "header and
+  // player bar need to always be same color like side pane ... no blur",
+  // "same transparency as the side pane").
   .window-titlebar,
   .now-playing-bar {
     @include veiled-surfaces;
-    background-color: color-mix(in srgb, $surface-base 72%, transparent);
-    backdrop-filter: blur(18px) saturate(120%);
+    background-color: $cover-veil;
   }
 }
 
@@ -193,7 +193,7 @@ $cover-veil: color-mix(
   }
 
   // The docked columns, and the parts of the middle one that are not the
-  // graph. The drawers keep their own floor: they float over the window.
+  // graph. The drawers are glass of their own (the EQ page's, below).
   .app-workspace:not(.is-app-full) {
     > .side-bar:not(.is-open),
     > .right-content:not(.is-open),
@@ -209,6 +209,183 @@ $cover-veil: color-mix(
       @include veiled-surfaces;
       @include head-over-scene;
     }
+
+    // The head and the graph stand on a card (`App.scss`), the picture its
+    // face at full strength, and the floor round the card — its 8px under
+    // the titlebar and 10px at the sides — is veiled like every pane, so the
+    // picture stops at the card's edge (Ivan, 2026-09-27: "same case for mode
+    // backdrop"). The column's layer holds no picture here and stands exactly
+    // inside that edge, so a shadow of the veil spread from it covers the
+    // floor round the card to the column's sides and top, cut a pixel under
+    // its foot, where the divider's strip is veiled already. Paint
+    // containment dropped, which would otherwise keep the shadow in its box.
+    > .center-workspace.is-graph-first:not(.is-graph-full)
+      > .scene-column-layer {
+      box-shadow: 0 0 0 12px $cover-veil;
+      clip-path: inset(-9px -11px -1px -11px);
+      contain: size layout style;
+    }
+
+    // A graph under a page's card, on its own card (`App.scss`): the same
+    // veil, spread from that card's edge over the floor at its sides and
+    // foot, and not over its top, where the divider's strip is veiled
+    // already. A layer of the card's own, under everything the card holds.
+    > .center-workspace:not(.is-graph-first, .is-graph-full):has(
+        > .middle-content
+          > :is(.workspace-tab-panel--dsp, .workspace-tab-panel--share)
+      )
+      > .graph-wrapper::after {
+      position: absolute;
+      z-index: -1;
+      inset: -1px;
+      border-radius: inherit;
+      box-shadow: 0 0 0 12px $cover-veil;
+      clip-path: inset(0 -11px -11px -11px);
+      content: '';
+      pointer-events: none;
+    }
+  }
+}
+
+// FLOATING GLASS, on the EQ page first (Ivan, 2026-09-27: "while on backdrop
+// mode the whole app is the scene and then we put blurred floating pane for
+// EQ and the side panes and header and playbar ... I want that clean look",
+// "lets test in main EQ first", "ok now eq pane and right side pane are
+// floating panes with that blur"). The floor is the picture itself,
+// unveiled, and every pane stands on it as a pane of the amp's glass
+// (`window-glass`), at the cards' corner and apart: 8px under the titlebar's glass and
+// between it and the window's top, 10px at the sides and over the player
+// bar's, the graph card's own margins. The panes' fields and wells keep
+// their veiled surfaces, which is what they stand on inside the glass. The
+// page is read from `data-page` (`usePageMark`), because the titlebar and
+// the player bar are outside the workspace.
+:root.is-scene-backdrop[data-page='eq'] .app-workspace:not(.is-app-full) {
+  // The column's glass is its fill (below), and outranks the veil above by
+  // coming after it; cleared here as well, it would clear the glass too.
+  > .right-content:not(.is-open),
+  > .center-workspace > .pane-resizer,
+  > .center-workspace > .middle-content {
+    background-color: transparent;
+  }
+
+  // The graph card with no outline: the picture runs on past its edge into
+  // the floor round it, which is the same picture now, so the head and the
+  // plot stand straight on the scene (Ivan, 2026-09-27: "lets try by removing
+  // borders on graph when backdrop mode"). Cleared rather than removed, so
+  // the card keeps its width and nothing inside it moves.
+  > .center-workspace.is-graph-first:not(.is-graph-full) {
+    > .scene-column-layer {
+      box-shadow: none;
+    }
+
+    > .center-head,
+    > .graph-wrapper {
+      border-color: transparent;
+    }
+  }
+
+  // The bands and the Tone: the section card, made of glass. Its edge is
+  // the glass's hairline; the card's own is kept for its width and cleared.
+  > .center-workspace > .middle-content > .workspace-tab-panel--eq {
+    @include window-glass;
+    border-color: transparent;
+  }
+
+  // THE DRAWERS ARE THE SAME GLASS. Where the window is too narrow for a
+  // column, the panel opens over the page as a drawer, and it opened as the
+  // opaque floor, square and flush against both bars, beside a page of glass
+  // (Ivan, 2026-09-28: "fix side pane when backdrop mode", "it needs to be
+  // rounded and have gap same as when is attached"). Each keeps the pane it
+  // is docked — the glass, its corners and its gaps — open or shut, and what
+  // stands in it is veiled as it is in a docked pane. The drawer's shadow
+  // goes with the floor: the glass's blur is what lifts it off the page, as
+  // it lifts every other pane.
+  > .side-bar.is-open,
+  > .right-content.is-open {
+    @include veiled-surfaces;
+  }
+
+  // The power, the preamp and the meter: the column itself, made of glass
+  // and held in from the window's edge, its sides' padding taken down by the
+  // same 10px so what it holds keeps its width.
+  > .side-bar {
+    margin: 8px 0 10px 10px;
+    padding-inline: 13px;
+    border-color: transparent;
+    @include window-glass;
+
+    // As a drawer its width is its own rather than the grid's, so it gives
+    // the 10px up itself: its right edge, where its tab rides, stays put.
+    @media (max-width: $bp-two-column) {
+      width: calc(min(#{$side-bar-width-compact}, 86vw) - 10px);
+    }
+  }
+
+  // The sound panel: the glass laid under it, so nothing it lays out or
+  // slides moves (the fold is a transform of this box, `App.scss`). Held off
+  // the window's right edge by the glass's own inset and off its top and
+  // foot by the panel's, and its contents narrowed to what the glass holds.
+  // Folded, the same glass is the rail its button stands on; opened over the
+  // page, it is the drawer, sliding and at rest.
+  > .right-content > .right-content__panel {
+    top: 8px;
+    bottom: 10px;
+    isolation: isolate;
+    background: none;
+    box-shadow: none;
+
+    &::before {
+      position: absolute;
+      z-index: -1;
+      inset: 0 10px 0 0;
+      @include window-glass;
+      content: '';
+      pointer-events: none;
+    }
+
+    > .right-content__scroll,
+    > .right-content__footer {
+      width: calc(var(--sound-pane-open) - 11px);
+    }
+  }
+}
+
+// The titlebar and the player bar, the same glass laid under each: inside
+// the box each has on every other page and 10px from the window's sides, so
+// neither bar nor anything in it moves when the EQ page is left or the mode
+// changes (Ivan, 2026-09-27: "make sure the header doesn't move or the play
+// bar"). A first version pushed the titlebar's contents down 8px and grew the
+// player bar by 10, and both jumped on every switch of page.
+//
+// Each glass reaches to 10px from the panes, the gap between any two cards,
+// and keeps the rest at the window's edge: the titlebar's from 4px under the
+// window's top to 2px over its own foot, the player bar's from its own top
+// to 4px over the window's foot (Ivan: "too much gap on the bottom with the
+// player, need to be same as in the other cards", "raise up the bottom play
+// bar"). Centred at 4px in from each end it left 12 and 14px of bare picture
+// over and under the panes, a band that read as something drawn there. Each
+// bar's contents sit within 2px of their glass's middle. Not in full screen,
+// where the two float over the plot and come and go with the pointer.
+:root.is-scene-backdrop[data-page='eq']:not([data-app-full]) {
+  .window-titlebar,
+  .now-playing-bar {
+    background-color: transparent;
+
+    &::before {
+      position: absolute;
+      z-index: -1;
+      @include window-glass;
+      content: '';
+      pointer-events: none;
+    }
+  }
+
+  .window-titlebar::before {
+    inset: 4px 10px 2px;
+  }
+
+  .now-playing-bar::before {
+    inset: 0 10px 4px;
   }
 }
 

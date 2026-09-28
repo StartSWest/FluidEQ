@@ -12,6 +12,7 @@ import {
   heatStep,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneMusic,
 } from './sceneFrame';
 import { mirroredInk } from './sceneInks';
 import {
@@ -45,8 +46,11 @@ import {
  * Opacity is how solid they are; Glow is how much light they throw.
  */
 
-/** A bar never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 3;
+/**
+ * A bar never on a pitch smaller than this, in CSS pixels. Exported with the
+ * functions below for the look's GPU painting (`engineLooks/mirrorBarsLook.ts`).
+ */
+export const MIN_PITCH = 3;
 /** How far a bar reaches from the middle line, as a share of half the band. */
 const REACH = 0.94;
 
@@ -62,6 +66,27 @@ export const createMirrorBarsState = (): IMirrorBarsState => ({
   bloom: createSceneBloom(),
 });
 
+/** Where one copy's row stands: its middle line, and how far a bar reaches. */
+export const mirrorStand = (band: IAnalysisBand) => ({
+  middle: (band.top + band.bottom) / 2,
+  reach: ((band.bottom - band.top) / 2) * REACH,
+});
+
+/** How much the row breathes on the kick. */
+export const mirrorBreath = (pulse: number): number => 1 + pulse * 0.06;
+
+/** The middle line's light, and the caps', from the beat and the treble. */
+export const mirrorLineAlpha = (pulse: number): number => 0.18 + pulse * 0.3;
+export const mirrorCapAlpha = (treble: number): number =>
+  clampUnit(0.75 + treble * 0.25);
+
+/** The row's bloom for a frame, which the bass and the beat open. */
+export const mirrorBloom = (
+  music: Pick<ISceneMusic, 'bass' | 'pulse'>,
+  glow: number,
+  opacity: number,
+) => (0.24 + music.bass * 0.22 + music.pulse * 0.3 + glow * 0.45) * opacity;
+
 const drawCopy = (
   frame: ISceneFrame,
   band: IAnalysisBand,
@@ -71,9 +96,8 @@ const drawCopy = (
 ): void => {
   const { context, plot, colours, music, look } = frame;
   const { row } = state;
-  const middle = (band.top + band.bottom) / 2;
-  const reach = ((band.bottom - band.top) / 2) * REACH;
-  const breath = 1 + music.pulse * 0.06;
+  const { middle, reach } = mirrorStand(band);
+  const breath = mirrorBreath(music.pulse);
   const groups = look.ink === 'heat' ? HEAT_STEPS : 1;
   const bars: Path2D[] = [];
   for (let group = 0; group < groups; group += 1) {
@@ -142,7 +166,7 @@ const drawCopy = (
     middle,
     reach,
     0.5,
-    0.18 + music.pulse * 0.3,
+    mirrorLineAlpha(music.pulse),
   );
   context.fillRect(plot.left, middle - 0.5, plot.right - plot.left, 1);
 
@@ -151,7 +175,7 @@ const drawCopy = (
     middle,
     reach,
     0.55,
-    clampUnit(0.75 + music.treble * 0.25),
+    mirrorCapAlpha(music.treble),
   );
   context.fill(caps);
 
@@ -171,12 +195,10 @@ export const drawMirrorBars = (
   const body = frame.look.textured ? new Path2D() : undefined;
   frame.bands.forEach((band) => drawCopy(frame, band, state, bloom, body));
   if (bloom) {
-    const { music } = frame;
     endBloom(
       frame,
       state.bloom,
-      (0.24 + music.bass * 0.22 + music.pulse * 0.3 + frame.glow * 0.45) *
-        frame.look.opacity,
+      mirrorBloom(frame.music, frame.glow, frame.look.opacity),
     );
   }
   return { moving: falling && frame.look.accents, body };

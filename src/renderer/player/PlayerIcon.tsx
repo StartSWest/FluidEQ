@@ -41,6 +41,18 @@ const STROKED = {
   chevronRight: 'M9.5 6l6 6-6 6',
   check: 'M5 12.5l4.4 4.4L19 7.4',
   remove: 'M7.5 7.5l9 9M16.5 7.5l-9 9',
+  // What plays next: three lines of a list and a note beside them.
+  queue:
+    'M4 6.5h11M4 11.5h11M4 16.5h7M19.5 6v9.2M19.5 15.2a2.2 2.2 0 1 1-2.2-2.2 2.2 2.2 0 0 1 2.2 2.2z',
+  // Where the sound goes out: the output card's mark, and a speaker cabinet
+  // for a layout of more than two channels (the feature tour's pair).
+  headphones:
+    'M4.5 15.5v-3a7.5 7.5 0 0 1 15 0v3M5.1 13.8h.8a1.6 1.6 0 0 1 1.6 1.6v3.2a1.6 1.6 0 0 1-1.6 1.6h-.8a1.6 1.6 0 0 1-1.6-1.6v-3.2a1.6 1.6 0 0 1 1.6-1.6zM18.1 13.8h.8a1.6 1.6 0 0 1 1.6 1.6v3.2a1.6 1.6 0 0 1-1.6 1.6h-.8a1.6 1.6 0 0 1-1.6-1.6v-3.2a1.6 1.6 0 0 1 1.6-1.6z',
+  speakers:
+    'M8.6 3h6.8A2.6 2.6 0 0 1 18 5.6v12.8a2.6 2.6 0 0 1-2.6 2.6H8.6A2.6 2.6 0 0 1 6 18.4V5.6A2.6 2.6 0 0 1 8.6 3zM12 10.8a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8zM12 6.1a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6z',
+  // Game mode: the feature tour's gamepad.
+  gamepad:
+    'M7.2 8.5h9.6a4.2 4.2 0 0 1 4.1 5.2l-.7 3a2.3 2.3 0 0 1-3.9 1.1l-1.8-1.9H9.5l-1.8 1.9a2.3 2.3 0 0 1-3.9-1.1l-.7-3a4.2 4.2 0 0 1 4.1-5.2zM8 11.4v3.2M6.4 13h3.2M15.6 11.3a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8zM17.4 13.1a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8z',
 } as const;
 
 const FILLED = {

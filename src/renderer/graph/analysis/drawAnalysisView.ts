@@ -19,22 +19,30 @@ import {
   clamp01,
   easeFactor,
   followReadings,
+  rampRgba,
   resetAnalysisState,
   type IAnalysisBand,
   type IAnalysisFrame,
   type IAnalysisPlot,
+  type IAnalysisReading,
   type IAnalysisState,
 } from './analysisFrame';
-import { mateColours, paintChannelLegend } from './channelInk';
+import {
+  MARK_KEY_INK,
+  channelLegend,
+  mateColours,
+  paintLegend,
+  type ILegendEntry,
+} from './channelInk';
 import drawAnalyzerView from './analyzerView';
-import drawEnergyView from './energyView';
-import drawMidSideView from './midSideView';
-import drawNotesView from './notesView';
+import drawEnergyView, { paintEnergyWords } from './energyView';
+import drawMidSideView, { MID_SIDE_LABELS } from './midSideView';
+import drawNotesView, { paintNoteWords } from './notesView';
 import drawPhaseView from './phaseView';
 import drawScopeView from './scopeView';
 import drawAverageView from './averageView';
 import drawCompareView from './compareView';
-import drawLoudnessView from './loudnessView';
+import drawLoudnessView, { paintLoudnessWords } from './loudnessView';
 import drawRtaView from './rtaView';
 import drawSpectrogramView from './spectrogramView';
 import drawWaterfallView from './waterfallView';
@@ -75,9 +83,9 @@ const ROOM_HALF_LIFE_MS = 1400;
  */
 const FLOOR_GRIP = 0.075;
 
-export interface IAnalysisRequest {
+/** What the reading half is handed: everything but the canvas. */
+export interface IAnalysisReadRequest {
   style: TAnalysisStyle;
-  context: CanvasRenderingContext2D;
   ratio: number;
   plot: IAnalysisPlot;
   /** One per copy of the drawing: two when the wave is mirrored. */
@@ -86,6 +94,11 @@ export interface IAnalysisRequest {
   playing: boolean;
   tuning: ILookTuning;
   colours: readonly string[];
+  /**
+   * The second reading's colours, where the window has a second colour to
+   * give it (`windowMateColours`); otherwise the view turns `colours`.
+   */
+  mateColours?: readonly string[];
   palette: ResolvedGraphPalette;
   /** What a reader calls each channel, for the legend on a split view. */
   channelLabels: readonly [string, string];
@@ -114,6 +127,21 @@ export interface IAnalysisRequest {
   state: IAnalysisState;
 }
 
+export interface IAnalysisRequest extends IAnalysisReadRequest {
+  context: CanvasRenderingContext2D;
+}
+
+/** The frame read, before any view has drawn it. */
+export interface IAnalysisRead {
+  /**
+   * One per copy of the drawing: two when the wave is mirrored, and only the
+   * first carries the frame's time (see `readAnalysisView`).
+   */
+  readings: IAnalysisReading[];
+  /** Whether the readings themselves are still moving. */
+  moving: boolean;
+}
+
 const VIEWS: Record<
   TAnalysisStyle,
   (frame: IAnalysisFrame, state: IAnalysisState) => boolean
@@ -135,11 +163,19 @@ const VIEWS: Record<
 /** A reading in plot gain units as a fraction of the plot's depth. */
 const asFraction = (gain: number) => (gain - MIN_GAIN) / (MAX_GAIN - MIN_GAIN);
 
-const drawAnalysisView = (request: IAnalysisRequest): boolean => {
+/**
+ * The frame's readings, on one scale, for every copy of the drawing: what the
+ * page's canvas draws from (`drawAnalysisView`) and what the engine paints
+ * from (`engineLooks/analysisLooks.ts`), so the two cannot read one frame two
+ * ways.
+ */
+export const readAnalysisView = (
+  request: IAnalysisReadRequest,
+): IAnalysisRead | undefined => {
   const { state, points, live, columns, tuning, style } = request;
   const size = points.length;
   if (size < 2 || columns.length < size || live.length < size) {
-    return false;
+    return undefined;
   }
   resetAnalysisState(
     state,
@@ -334,56 +370,164 @@ const drawAnalysisView = (request: IAnalysisRequest): boolean => {
     }
   }
 
-  const draw = VIEWS[style];
   /**
    * The right channel's stops, turned once for the whole frame rather than
    * per copy of the drawing: a mirrored wave draws the same view twice and
    * six colours through HSL and back is not work worth doing again.
    */
-  const mate = mateColours(request.colours);
-  request.bands.forEach((band, copy) => {
+  const mate = request.mateColours ?? mateColours(request.colours);
+  const readings = request.bands.map((band, copy): IAnalysisReading => ({
+    ratio: request.ratio,
+    plot: request.plot,
+    band,
     /**
      * Only the first copy advances time.
      *
      * A mirrored wave draws the same view twice in one frame, and three of
      * these views step a clock: the spectrogram prints a row, the waterfall
-     * takes a slice, every peak hold falls. Given the frame's own delta twice
-     * they would all run at double speed the moment somebody mirrored the
-     * wave — the reflection would be the same picture at a different rate,
-     * which is not a reflection. The second copy is drawn at the same instant
-     * as the first, so it is handed no time at all.
+     * takes a slice, every peak hold falls. Given the frame's own delta
+     * twice they would all run at double speed the moment somebody mirrored
+     * the wave — the reflection would be the same picture at a different
+     * rate, which is not a reflection. The second copy is drawn at the same
+     * instant as the first, so it is handed no time at all.
      */
-    const frame: IAnalysisFrame = {
-      context: request.context,
-      ratio: request.ratio,
-      plot: request.plot,
-      band,
-      deltaMs: copy === 0 ? request.deltaMs : 0,
-      playing: request.playing,
-      tuning,
-      colours: request.colours,
-      mate,
-      palette: request.palette,
-      edge: request.edge,
-      glow: request.glow,
-      xs: state.xs,
-      axis: state.axis,
-      levels: state.levels,
-      live: state.live,
-      split,
-      eqLift,
-      scope: request.scope,
-      channelLabels: request.channelLabels,
-      legend: request.legend,
-      keyed: request.keyed,
-    };
+    deltaMs: copy === 0 ? request.deltaMs : 0,
+    playing: request.playing,
+    tuning,
+    colours: request.colours,
+    mate,
+    palette: request.palette,
+    edge: request.edge,
+    glow: request.glow,
+    xs: state.xs,
+    axis: state.axis,
+    levels: state.levels,
+    live: state.live,
+    split,
+    eqLift,
+    scope: request.scope,
+    channelLabels: request.channelLabels,
+    legend: request.legend,
+    keyed: request.keyed,
+  }));
+  return { readings, moving };
+};
+
+/** The two channels of a split, named. */
+const channelsOf = (reading: IAnalysisReading) =>
+  channelLegend(reading, reading.channelLabels);
+
+/** The live reading and its peak hold, named. */
+const liveAndPeak = (reading: IAnalysisReading): readonly ILegendEntry[] => [
+  { label: reading.legend.live, ink: rampRgba(reading.colours, 0.75, 1) },
+  { label: reading.legend.peak, ink: MARK_KEY_INK },
+];
+
+/**
+ * What each view names in its key, from the reading it was drawn from.
+ *
+ * Here, once, rather than inside each view: two of them named a split's
+ * channels themselves and this door named them again over the same place,
+ * and Mid & side's M and S were printed under an L and R that do not
+ * describe it. One key per copy, over the drawing it belongs to, and only
+ * where there are readings to tell apart — the stereo view says L and R on
+ * its own meters, and one figure needs no key at all.
+ */
+const LEGENDS: Record<
+  TAnalysisStyle,
+  (reading: IAnalysisReading) => readonly ILegendEntry[] | undefined
+> = {
+  analyzer: (reading) =>
+    reading.split ? channelsOf(reading) : liveAndPeak(reading),
+  compare: (reading) =>
+    reading.split
+      ? channelsOf(reading)
+      : [
+          {
+            label: reading.legend.after,
+            ink: rampRgba(reading.colours, 0.75, 1),
+          },
+          {
+            label: reading.legend.before,
+            ink: rampRgba(reading.mate, 0.75, 1),
+          },
+        ],
+  average: (reading) =>
+    reading.split
+      ? channelsOf(reading)
+      : [
+          { label: reading.legend.peak, ink: rampRgba(reading.colours, 1, 1) },
+          {
+            label: reading.legend.average,
+            ink: rampRgba(reading.colours, 0.5, 1),
+          },
+          { label: reading.legend.max, ink: MARK_KEY_INK },
+        ],
+  rta: (reading) =>
+    reading.split ? channelsOf(reading) : liveAndPeak(reading),
+  notes: (reading) =>
+    reading.split ? channelsOf(reading) : liveAndPeak(reading),
+  energy: (reading) => (reading.split ? channelsOf(reading) : undefined),
+  midside: (reading) =>
+    reading.split ? channelLegend(reading, MID_SIDE_LABELS) : undefined,
+  scope: (reading) =>
+    reading.tuning.channels === 'split' && reading.scope
+      ? channelsOf(reading)
+      : undefined,
+  phase: (reading) => [
+    { label: reading.legend.phase, ink: rampRgba(reading.colours, 1, 1) },
+    { label: reading.legend.width, ink: rampRgba(reading.colours, 0.7, 1) },
+  ],
+  spectrogram: (reading) => (reading.split ? channelsOf(reading) : undefined),
+  waterfall: (reading) => (reading.split ? channelsOf(reading) : undefined),
+  loudness: () => undefined,
+};
+
+/** The words a view prints on its own drawing, beside the key. */
+const WORDS: Partial<
+  Record<TAnalysisStyle, (frame: IAnalysisFrame, state: IAnalysisState) => void>
+> = {
+  energy: paintEnergyWords,
+  notes: paintNoteWords,
+  loudness: paintLoudnessWords,
+};
+
+/**
+ * What is printed over a view rather than drawn: its words and its key.
+ *
+ * Always on the page's own canvas, whoever draws the view — text is the one
+ * thing the page's canvas does better than the engine, with the system's own
+ * font and hinting — so a view drawn by the engine is lettered here too, over
+ * the engine's picture. After the view has advanced this frame: the numbers
+ * printed are the ones just drawn. Answers whether anything may have been
+ * printed, which a canvas left blank for the engine needs to know.
+ */
+export const paintAnalysisOverlay = (
+  style: TAnalysisStyle,
+  frame: IAnalysisFrame,
+  state: IAnalysisState,
+): boolean => {
+  const words = WORDS[style];
+  words?.(frame, state);
+  const entries = LEGENDS[style](frame);
+  if (entries) {
+    paintLegend(frame, entries);
+  }
+  return words !== undefined || (entries !== undefined && frame.keyed);
+};
+
+const drawAnalysisView = (request: IAnalysisRequest): boolean => {
+  const read = readAnalysisView(request);
+  if (!read) {
+    return false;
+  }
+  const { style, context, state } = request;
+  const draw = VIEWS[style];
+  let { moving } = read;
+  read.readings.forEach((reading) => {
+    const frame: IAnalysisFrame = { ...reading, context };
     moving = draw(frame, state) || moving;
-    // Named once per copy, over the drawing it belongs to. Only where there
-    // are two figures to tell apart — the stereo view says L and R on its
-    // own meters, and one figure needs no key at all.
-    if (split && style !== 'loudness') {
-      paintChannelLegend(frame, request.channelLabels);
-    }
+    paintAnalysisOverlay(style, frame, state);
   });
   return moving;
 };

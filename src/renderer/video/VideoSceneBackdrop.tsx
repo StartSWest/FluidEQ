@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useState } from 'react';
+import { useStandInForGraphScene } from '../graph/sceneStandIn';
 import useGraphScenePack from '../player/useGraphScenePack';
 import ScenePreview from '../plus/ScenePreview';
 import { useSceneLook } from '../utils/graphStyle';
@@ -36,12 +37,16 @@ export const useSceneBehindVideo = (isFullScreen: boolean): boolean => {
  * every page outside the graph uses, which listens to the music itself and
  * measures its own box. It had a copy of that loading of its own, which is
  * how places that play the same scene come to play it differently. The
- * graph's canvas is hidden in this full screen and stops drawing, so the GPU
- * is doing this one scene, not two.
+ * graph's copy steps aside while this one plays (`sceneStandIn.ts`), so the
+ * GPU is doing this one scene, not two.
  */
 const VideoSceneBackdrop = () => {
   const scene = useGraphScenePack();
   const [failedIdentity, setFailedIdentity] = useState<string>();
+  const plays = scene.state === 'ready' && failedIdentity !== scene.identity;
+  // The Backdrop's copy of the same scene sits under this page, and the
+  // window's full screen here is not one it can see (`sceneStandIn.ts`).
+  useStandInForGraphScene(plays);
   if (scene.state !== 'ready' || failedIdentity === scene.identity) {
     return null;
   }

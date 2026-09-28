@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { RefObject, useLayoutEffect } from 'react';
+import { RefObject, useLayoutEffect, useSyncExternalStore } from 'react';
 
 /**
  * Whether the titlebar is crowded: whether keeping the tagline under the name
@@ -40,6 +40,19 @@ import { RefObject, useLayoutEffect } from 'react';
  * out of the page, because her animations would otherwise go on running
  * unseen, and her width — a fixed 40px box — is remembered from the last
  * time she stood there.
+ *
+ * AFTER THEM, THE BAR ITSELF RUNS OUT. The window's minimum is 1024, but the
+ * page zooms to about twice its size, and from about 650px the bar's ends at
+ * their content and the meter at its floor were wider than the window: the
+ * minimise, maximise and close buttons went past its right edge. So, in the
+ * order Ivan chose (2026-09-28, "shed small things"), the meter goes
+ * (`data-shed-meter`), then Help and the compact-player switch
+ * (`data-shed-tools`), and the tabs and the window's buttons always stay.
+ * Neither of the two is lost: the actions menu beside them takes both in
+ * while they are away (`useTitlebarToolsShed`). Each goes when the bar runs
+ * past its edge and comes back when the ends have room for what it takes
+ * back, remembered as it went; the last to go is the first back, and the
+ * tagline and the creature come back only after both.
  */
 
 /** An end with less room than this beside its content has none to give. */
@@ -67,6 +80,45 @@ export const isTitlebarCrowded = (
   wasCrowded
     ? leftSpare + rightSpare < comeback + COMEBACK_MARGIN_PX
     : leftSpare < NO_ROOM_PX && rightSpare < NO_ROOM_PX;
+
+export interface ITitlebarFit {
+  /** How far the bar's contents run past its padding box, px. */
+  overrun: number;
+  /** How much wider the two ends' tracks are than their content, px. */
+  spare: number;
+  /** What coming back would take, px, remembered as it went. */
+  takesBack: number;
+}
+
+/** One of the bar's own parts: whether it is out, given how the bar fits. */
+export const isShedFromTitlebar = (
+  wasShed: boolean,
+  { overrun, spare, takesBack }: ITitlebarFit,
+): boolean =>
+  wasShed ? spare < takesBack + COMEBACK_MARGIN_PX : overrun > NO_ROOM_PX;
+
+// Whether Help and the compact-player switch are out of the bar, for the
+// actions menu to take them in. A store and not a prop: the bar decides it
+// in a layout effect by writing an attribute, never through React state, so
+// the rest of the shell is not rendered again for it.
+let toolsShed = false;
+const toolsShedListeners = new Set<() => void>();
+const setToolsShed = (next: boolean) => {
+  if (next !== toolsShed) {
+    toolsShed = next;
+    toolsShedListeners.forEach((listener) => listener());
+  }
+};
+const subscribeToolsShed = (listener: () => void) => {
+  toolsShedListeners.add(listener);
+  return () => {
+    toolsShedListeners.delete(listener);
+  };
+};
+
+/** True while Help and the compact-player switch are out of the titlebar. */
+export const useTitlebarToolsShed = () =>
+  useSyncExternalStore(subscribeToolsShed, () => toolsShed);
 
 const gapOf = (element: HTMLElement) =>
   Number.parseFloat(getComputedStyle(element).columnGap) || 0;
@@ -149,8 +201,79 @@ export const watchTitlebarRoom = (
     return taglineBack + (pet() && petWidth > 0 ? petWidth + gapOf(right) : 0);
   };
 
+  // The bar's own parts, in the order they go.
+  const meter = () => bar.querySelector<HTMLElement>(':scope > .titlebar-nav');
+  const tools = () =>
+    Array.from(
+      right.querySelectorAll<HTMLElement>(
+        '.titlebar-instrument > :is(.help-menu, .window-mode-switch)',
+      ),
+    );
+  // What each would take back, measured the moment it went: the meter at its
+  // floor and the gap its track stood in, the two tools and their gaps.
+  let meterBack = 0;
+  let toolsBack = 0;
+
+  /** How far the right end runs past the bar's padding box, px. */
+  const overrun = () => {
+    const edge =
+      bar.getBoundingClientRect().right -
+      (Number.parseFloat(getComputedStyle(bar).paddingRight) || 0);
+    return Math.max(0, right.getBoundingClientRect().right - edge);
+  };
+  const fit = (takesBack: number): ITitlebarFit => ({
+    overrun: overrun(),
+    spare: spareIn(left) + spareIn(right),
+    takesBack,
+  });
+
+  /**
+   * The bar's own parts, last out first back; true when it changed the bar.
+   * Undefined when neither is out and the bar still fits with the meter,
+   * which leaves the tagline and the creature to the decision below.
+   */
+  const shed = (): boolean | undefined => {
+    if (bar.hasAttribute('data-shed-tools')) {
+      if (isShedFromTitlebar(true, fit(toolsBack))) {
+        return false;
+      }
+      bar.removeAttribute('data-shed-tools');
+      setToolsShed(false);
+      return true;
+    }
+    if (bar.hasAttribute('data-shed-meter')) {
+      if (!isShedFromTitlebar(true, fit(meterBack))) {
+        bar.removeAttribute('data-shed-meter');
+        return true;
+      }
+      if (!isShedFromTitlebar(false, fit(0))) {
+        return false;
+      }
+      toolsBack = tools().reduce(
+        (total, tool) =>
+          total +
+          tool.getBoundingClientRect().width +
+          (tool.parentElement ? gapOf(tool.parentElement) : 0),
+        0,
+      );
+      bar.setAttribute('data-shed-tools', '');
+      setToolsShed(true);
+      return true;
+    }
+    if (bar.hasAttribute('data-crowded') && isShedFromTitlebar(false, fit(0))) {
+      meterBack = (meter()?.getBoundingClientRect().width ?? 0) + gapOf(bar);
+      bar.setAttribute('data-shed-meter', '');
+      return true;
+    }
+    return undefined;
+  };
+
   /** One decision; true when it changed the bar. */
   const decide = () => {
+    const shedding = shed();
+    if (shedding !== undefined) {
+      return shedding;
+    }
     const wasCrowded = bar.hasAttribute('data-crowded');
     if (!wasCrowded) {
       petWidth = pet()?.getBoundingClientRect().width || petWidth;
@@ -170,9 +293,11 @@ export const watchTitlebarRoom = (
   // Settled before anything is painted: each decision is read straight back
   // off the layout it produced, so a creature met for the first time while
   // the bar is crowded — whose width was not yet known — can come back and
-  // go again in the same frame. Three rounds is one more than that takes.
+  // go again in the same frame, and a window that opens at its narrowest
+  // sheds all three steps before its first frame. Five rounds is one more
+  // than the longest of those takes.
   const measure = () => {
-    for (let round = 0; round < 3; round += 1) {
+    for (let round = 0; round < 5; round += 1) {
       if (!decide()) {
         return;
       }
@@ -200,6 +325,9 @@ export const watchTitlebarRoom = (
     size.disconnect();
     contents.disconnect();
     bar.removeAttribute('data-crowded');
+    bar.removeAttribute('data-shed-meter');
+    bar.removeAttribute('data-shed-tools');
+    setToolsShed(false);
   };
 };
 

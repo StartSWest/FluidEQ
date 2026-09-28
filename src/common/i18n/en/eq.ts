@@ -31,6 +31,9 @@ const eq = {
   'eq.layouts.update': 'Update saved',
   'eq.layouts.saveNew': 'Save design…',
   'eq.layouts.error': 'Could not update your designs. Please try again.',
+  'eq.sliders': 'EQ sliders',
+  'eq.sliders.round': 'Round',
+  'eq.sliders.rect': 'Rectangle',
   'eq.layouts.clearTitle': 'Empty EQ?',
   'eq.layouts.clearWarning':
     'Set every band gain and the Bass, Mid and Treble dials to 0 dB. Keep the current band count, frequencies, Q, cuts, EQ mode and preamp.',
@@ -325,6 +328,7 @@ const eq = {
   'graph.styleName.fallblocks': 'Falling blocks',
   'graph.styleName.fibers': 'Fiber optics',
   'graph.styleName.afterglow': 'Afterglow',
+  'graph.styleName.horizon': 'Horizon',
   'graph.styleName.line': 'Line',
   'graph.styleName.area': 'Area',
   'graph.styleName.bars': 'Bars',

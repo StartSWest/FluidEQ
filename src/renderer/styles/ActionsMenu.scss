@@ -2,6 +2,7 @@
 
 @use 'color' as *;
 @use 'motion' as *;
+@use 'spacing' as *;
 @use 'theme' as *;
 
 // The actions menu: the engine, the commands, then the settings tray.
@@ -244,36 +245,56 @@
   height: 0;
   margin: 4px 0 4px 35px;
   border: 0;
-  border-top: 1px solid rgba($edge-tint, 0.1);
+  border-top: 1px solid $menu-rule;
 }
 
 // *** The settings tray ******************************************************
 //
 // Settings rather than commands, so a different material: recessed into the
-// menu, each named on the left with its control on the right. One grid for
-// all three rows, so the theme's two buttons and the language list come out
-// the same width and their edges line up.
+// menu, every row the same three things in the same three columns — a glyph,
+// its name, its control at the right — and every row the same 38px (Ivan,
+// 2026-09-26: "time to also improve this piece of UI"). It was two kinds of
+// row stacked: the sliders' glyph-and-name, then names with no glyph starting
+// a glyph's width further left, under a see-through well the graph's scale
+// read through.
+//
+// How the window looks, then a hairline, then how the app behaves.
 
 .actions-menu__prefs {
   display: grid;
   align-items: center;
-  column-gap: 16px;
-  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: $spacing-s;
+  // The sliders' own glyph column and gap (`.graph-view-menu__slider`), so a
+  // name stands in the same place whichever kind of row it is on.
+  grid-template-columns: 13px minmax(0, 1fr) auto;
   // As far from the last command as one group of commands is from the next.
   margin-top: 8px;
-  // 10px in from the left, like a row's glyph, so the three names stand in
-  // the same column as the glyphs above them.
+  // 10px in from the left, like a row's glyph above the tray.
   padding: 3px 6px 3px 10px;
   border-radius: $radius-s;
-  background: color-mix(in srgb, $surface-well 40%, transparent);
+  // Solid: the menu itself is glass, and a tray of settings read through it
+  // is a tray of settings with the graph's numbers under the names.
+  background: color-mix(in srgb, $surface-well 60%, $surface-menu);
   box-shadow:
     inset 0 1px 3px rgba($black, 0.22),
-    inset 0 0 0 1px rgba($edge-tint, 0.045);
+    inset 0 0 0 1px rgba($edge-tint, 0.06);
 }
 
 // Each picker is one row of the tray's grid rather than a box inside it.
 .menu-preference {
   display: contents;
+}
+
+.menu-preference__icon {
+  width: 13px;
+  height: 13px;
+  color: $text-muted;
+  fill: none;
+  opacity: 0.75;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
 }
 
 // 38px rows: a 28px control with five pixels of well above and below it.
@@ -283,6 +304,13 @@
   align-items: center;
   color: $text-muted;
   font-size: $text-body;
+}
+
+.actions-menu__prefs-rule {
+  height: 1px;
+  margin: 3px 0;
+  grid-column: 1 / -1;
+  background: rgba($edge-tint, 0.09);
 }
 
 .actions-menu__prefs .menu-preference__control {
@@ -302,11 +330,75 @@
   }
 }
 
+// Two small keys side by side, for a choice between two looks
+// (`SliderHandlePicker`): the tray's 28px, the language list's edge and
+// well, the chosen one lit in the accent like a pressed key.
+.menu-preference__choices {
+  display: flex;
+  justify-self: end;
+  gap: 4px;
+}
+
+.menu-preference__choice {
+  display: grid;
+  width: 36px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  color: $text-muted;
+  border: 1px solid rgba($white, 0.09);
+  border-radius: $radius-xs;
+  background: $track-well;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: color-mix(in srgb, $secondary-light 35%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-on {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 60%, transparent);
+    background: color-mix(in srgb, $secondary-default 22%, $track-well);
+  }
+}
+
+// What each key puts on the sliders: a ring round a dot, a cap with its line
+// across.
+.slider-handle-glyph {
+  box-sizing: border-box;
+  border: 1.6px solid currentColor;
+
+  &--round {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      currentColor 0 1.8px,
+      transparent 2.4px
+    );
+  }
+
+  &--rect {
+    width: 17px;
+    height: 10px;
+    border-radius: 2.5px;
+    background: linear-gradient(currentColor, currentColor) center / 100% 1.6px
+      no-repeat;
+  }
+}
+
 // Under the switch while the choice and the running window differ: it is how
 // the window launches, so a new choice needs a restart, and that is an
 // instruction, not decoration — readable ink, not the disabled grey.
 .menu-preference__note {
-  grid-column: 1 / -1;
+  grid-column: 2 / -1;
   margin: -6px 0 8px;
   color: $text-faint;
   font-size: $text-micro;
@@ -320,13 +412,12 @@
 // menu row's smaller one they sat over Animations and Language a size down.
 .actions-menu__sliders {
   display: grid;
-  gap: 2px;
   grid-column: 1 / -1;
-  padding: 3px 0;
 
+  // The tray's own row: 38px, its glyph and name in the tray's columns.
   .graph-view-menu__slider {
-    padding-right: 0;
-    padding-left: 0;
+    min-height: 38px;
+    padding: 0;
     font-size: $text-body;
   }
 }

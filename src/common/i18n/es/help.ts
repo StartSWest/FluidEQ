@@ -547,8 +547,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.hears':
     'Lo que recibe la escena: nivel, golpe, graves, medios, agudos.',
   'help.studio.signals': 'Señales de prueba que solo mueven esta vista previa.',
-  'help.studio.size':
-    'Prueba la escena en la gráfica o en un panel estrecho, ancho o a pantalla completa.',
+  'help.studio.size': 'Prueba la escena a pantalla completa.',
   'help.studio.wave':
     'Prueba la altura y la posición de la onda que puede ajustar quien use la escena.',
 

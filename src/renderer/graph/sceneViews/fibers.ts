@@ -13,7 +13,9 @@ import {
   heatStep,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneMusic,
   type ISceneSpan,
+  type ISceneStand,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -46,10 +48,43 @@ import {
  * Opacity is how strong the light is; Glow how far it spills.
  */
 
-/** A fibre never on a pitch smaller than this, in CSS pixels. */
-const MIN_PITCH = 3;
+/**
+ * A fibre never on a pitch smaller than this, in CSS pixels. Exported with
+ * the sway and the functions below for the look's GPU painting
+ * (`engineLooks/fibersLook.ts`).
+ */
+export const MIN_PITCH = 3;
 /** How far a tip sways, in CSS pixels, at full treble. */
-const SWAY = 5;
+export const SWAY = 5;
+
+/** Where one copy's brush stands: its floor, which way up, how far it reaches. */
+export const fibersStand = (band: IAnalysisBand): ISceneStand => ({
+  floor: band.flipped ? band.top : band.bottom,
+  up: band.flipped ? 1 : -1,
+  reach: (band.bottom - band.top) * 0.92,
+});
+
+/** A tip's radius on a fibre of `body`, flaring on the kick. */
+export const fibreTip = (body: number, pulse: number): number =>
+  Math.max(0.9, body * 0.42) * (1 + pulse * 0.6);
+
+/** A fibre's line width on a piece of `body`. */
+export const fibreWidth = (body: number): number => Math.max(0.7, body * 0.3);
+
+/** How far fibre `piece` sways at its tip: at its own pace, harder with the treble. */
+export const fibreSway = (
+  piece: number,
+  level: number,
+  music: Pick<ISceneMusic, 'clock' | 'treble'>,
+): number =>
+  Math.sin(music.clock * (2.2 + hash01(piece) * 2.4) + piece * 1.7) *
+  SWAY *
+  music.treble *
+  level;
+
+/** The tips' bloom for a frame. */
+export const fibersBloom = (pulse: number, glow: number, opacity: number) =>
+  (0.4 + pulse * 0.4 + glow * 0.5) * opacity;
 
 export interface IFibersState {
   row: IPieceRow;
@@ -72,9 +107,7 @@ const drawCopy = (
 ): void => {
   const { context, plot, colours, music, look } = frame;
   const { row } = state;
-  const up = band.flipped ? 1 : -1;
-  const floor = band.flipped ? band.top : band.bottom;
-  const reach = (band.bottom - band.top) * 0.92;
+  const { floor, up, reach } = fibersStand(band);
   const span: ISceneSpan = {
     left: plot.left,
     right: plot.right,
@@ -89,18 +122,12 @@ const drawCopy = (
   const tips = new Path2D();
   const halos = new Path2D();
   const held = new Path2D();
-  const tip = Math.max(0.9, row.body * 0.42) * (1 + music.pulse * 0.6);
+  const tip = fibreTip(row.body, music.pulse);
   for (let piece = 0; piece < row.count; piece += 1) {
     const x = row.lefts[piece] + row.body / 2;
     const level = row.levels[piece];
     const height = Math.max(2, level * reach);
-    // Each fibre sways at its own pace, harder with the treble.
-    const sway =
-      Math.sin(music.clock * (2.2 + hash01(piece) * 2.4) + piece * 1.7) *
-      SWAY *
-      music.treble *
-      level;
-    const topX = x + sway;
+    const topX = x + fibreSway(piece, level, music);
     const topY = floor + up * height;
     const path = fibres[look.ink === 'heat' ? heatStep(level) : 0];
     path.moveTo(x, floor);
@@ -125,7 +152,7 @@ const drawCopy = (
     fibres.forEach((path, group) => {
       context.strokeStyle =
         look.ink === 'heat' ? heatInk(colours, group, 1) : whole;
-      context.lineWidth = Math.max(0.7, row.body * 0.3);
+      context.lineWidth = fibreWidth(row.body);
       context.stroke(path);
     });
     // Dark near the floor, the light gathering toward the tips: taken out
@@ -180,7 +207,7 @@ export const drawFibers = (
     endBloom(
       frame,
       state.bloom,
-      (0.4 + frame.music.pulse * 0.4 + frame.glow * 0.5) * frame.look.opacity,
+      fibersBloom(frame.music.pulse, frame.glow, frame.look.opacity),
     );
   }
   return { moving: falling && frame.look.accents, body };

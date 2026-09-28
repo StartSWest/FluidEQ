@@ -24,6 +24,47 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 $filter-dropdown-width: 56px;
 
+// A slider's scale (`.range::after`), graduated the way a hardware graphic
+// EQ prints its own: a mark every 2.5 dB, longer every 5 and longest every
+// 10 (the ends included), each class a step brighter than the one under it.
+// One pixel each, a half either side of its place, so a mark stands on its dB
+// whatever the track's length; the ends' are inside the box. 0 dB is the
+// detent's own mark (`.range::before`).
+$range-ticks-long: linear-gradient(
+  to bottom,
+  rgba($edge-tint, 0.4) 0,
+  rgba($edge-tint, 0.4) 1px,
+  transparent 1px,
+  transparent calc(25% - 0.5px),
+  rgba($edge-tint, 0.4) calc(25% - 0.5px),
+  rgba($edge-tint, 0.4) calc(25% + 0.5px),
+  transparent calc(25% + 0.5px),
+  transparent calc(75% - 0.5px),
+  rgba($edge-tint, 0.4) calc(75% - 0.5px),
+  rgba($edge-tint, 0.4) calc(75% + 0.5px),
+  transparent calc(75% + 0.5px),
+  transparent calc(100% - 1px),
+  rgba($edge-tint, 0.4) calc(100% - 1px)
+);
+$range-ticks-mid: repeating-linear-gradient(
+  to bottom,
+  transparent 0,
+  transparent calc(12.5% - 0.5px),
+  rgba($edge-tint, 0.27) calc(12.5% - 0.5px),
+  rgba($edge-tint, 0.27) calc(12.5% + 0.5px),
+  transparent calc(12.5% + 0.5px),
+  transparent 25%
+);
+$range-ticks-short: repeating-linear-gradient(
+  to bottom,
+  transparent 0,
+  transparent calc(6.25% - 0.5px),
+  rgba($edge-tint, 0.15) calc(6.25% - 0.5px),
+  rgba($edge-tint, 0.15) calc(6.25% + 0.5px),
+  transparent calc(6.25% + 0.5px),
+  transparent 12.5%
+);
+
 .bandWrapper {
   position: relative;
   display: flex;
@@ -44,11 +85,12 @@ $filter-dropdown-width: 56px;
     background: color-mix(in srgb, $secondary-default 5.5%, transparent);
   }
 
+  // The column the pointer is over on the graph: its edge, and no glow round
+  // it — the one soft shadow left on the strip.
   &.is-hovered {
     background: color-mix(in srgb, $secondary-default 7%, transparent);
-    box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, $secondary-light 22%, transparent),
-      0 0 18px color-mix(in srgb, $secondary-default 10%, transparent);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $secondary-light 22%, transparent);
   }
 
   // Lit down its length rather than tinted flat.
@@ -129,22 +171,17 @@ $filter-dropdown-width: 56px;
     align-items: center;
   }
 
-  // The dB guides. Two kinds, because they do two jobs:
-  //
-  // The 0 dB line runs the width of the band, so side by side the bands make
-  // one rule across the face at exactly the height the thumbs sit at 0 — the
-  // line the whole editor is read against. ±10 and ±20 are short ticks
-  // either side of the track, like the scale beside a fader: enough to place
-  // a thumb by eye, without ruling the face into a grid that competes with
-  // the sliders standing on it.
+  // The scale beside the rail, as a hardware graphic EQ prints it (the
+  // centre detent Ivan picked, 2026-09-27): graduated marks either side, and
+  // at 0 dB the detent's own heavy mark in the accent.
   //
   // Both are measured from the track itself — the box is the thumb's travel,
   // from its centre at +20 to its centre at −20, anchored on the middle
   // because the arrow buttons above and below the input are the same height
   // and so the input's centre is the box's centre. A line drawn on the face
   // around the bands sat seven pixels off, because that box includes the
-  // caption rows. Hard stops in two static gradients: nothing the compositor
-  // has to blend per frame.
+  // caption rows. Hard stops in static gradients: nothing the compositor has
+  // to blend per frame.
   .range {
     position: relative;
 
@@ -157,86 +194,115 @@ $filter-dropdown-width: 56px;
       pointer-events: none;
     }
 
-    // The 0 dB rule, edge to edge.
+    // The detent: two bars two pixels tall either side of the rail, stopping
+    // five pixels short of it so the fill passes between them. It replaced a
+    // one-pixel rule from edge to edge of the band, which ruled the whole
+    // strip into a line under the caps. At most 32px, and never wider than
+    // the band, so thirty-one narrow bands keep a gap between neighbours'
+    // marks rather than joining them back into that line.
     //
-    // A box exactly one pixel tall, not a one-pixel band inside a 248px
-    // gradient. The gradient version disappeared at some window heights and
-    // not others, which is what "sometimes it does not show" was: the two
-    // hard stops landed at a fractional offset, the whole gradient is
-    // rasterised at the box's own resolution, and a stripe straddling two
-    // device rows came back as two rows at a fraction of an already 30%
-    // alpha — near enough to nothing. A solid box of its own is one rect for
-    // the compositor and is painted wherever it lands.
-    //
-    // Same place as before: the box is centred on the track, so the track's
-    // midpoint and this line's are the same y.
+    // A solid box of its own rather than a stripe in the ticks' gradient: a
+    // stripe landing between two device rows came back as two rows at a
+    // fraction of its colour ("sometimes it does not show"). Placed by `top`
+    // and centred by its margins rather than by a transform, so the box lands
+    // on whole pixels and the two rows are crisp at every window height.
     &::before {
-      right: -2px;
-      left: -2px;
-      height: 1px;
-      background: color-mix(in srgb, $secondary-light 34%, transparent);
-      transform: translateY(-50%);
+      top: calc(50% - 1px);
+      right: 0;
+      left: 0;
+      width: min(32px, 100%);
+      height: 2px;
+      margin-inline: auto;
+      background: linear-gradient(
+        90deg,
+        $secondary-light calc(50% - 5px),
+        transparent calc(50% - 5px) calc(50% + 5px),
+        $secondary-light calc(50% + 5px)
+      );
     }
 
-    // The ticks: a 26px strip centred on the track, the track's own width
-    // left clear in the middle so the marks sit either side of it.
+    // The marks: a 26px strip centred on the track, ten pixels left clear in
+    // the middle for the rail and its fill, each class anchored there and
+    // reaching away from it — 8px every 10 dB, 5px every 5 (Ivan, 2026-09-26:
+    // "add more steps to the slider", "some smaller ones in between") and 3px
+    // at the 2.5 steps between.
+    //
+    // The 2.5 steps only on a track long enough to space them. Sixteen of
+    // them down the shortest track (72px, a low window) stood 3.3px apart,
+    // a comb rather than a scale; from 150px they are 8px apart and read as
+    // marks. Switched by their width: a background image zero wide is not
+    // painted, and a length can be clamped where a ratio cannot.
     &::after {
+      --range-ticks-short-width: clamp(
+        0px,
+        (var(--range-length) - 150px) * 1000,
+        3px
+      );
+
       left: 50%;
       width: 26px;
       height: calc(var(--range-length) - var(--range-thumb));
-      // Two 7px ticks, one per side, with the track's 12px left clear.
       background-repeat: no-repeat;
       background-size:
-        7px 100%,
-        7px 100%;
+        8px 100%,
+        8px 100%,
+        5px 100%,
+        5px 100%,
+        var(--range-ticks-short-width) 100%,
+        var(--range-ticks-short-width) 100%;
       background-position:
         0 0,
-        100% 0;
+        100% 0,
+        3px 0,
+        calc(100% - 3px) 0,
+        5px 0,
+        calc(100% - 5px) 0;
       background-image:
-        linear-gradient(
-          to bottom,
-          rgba($edge-tint, 0.12) 0,
-          rgba($edge-tint, 0.12) 1px,
-          transparent 1px,
-          transparent calc(25% - 0.5px),
-          rgba($edge-tint, 0.08) calc(25% - 0.5px),
-          rgba($edge-tint, 0.08) calc(25% + 0.5px),
-          transparent calc(25% + 0.5px),
-          transparent calc(75% - 0.5px),
-          rgba($edge-tint, 0.08) calc(75% - 0.5px),
-          rgba($edge-tint, 0.08) calc(75% + 0.5px),
-          transparent calc(75% + 0.5px),
-          transparent calc(100% - 1px),
-          rgba($edge-tint, 0.12) calc(100% - 1px)
-        ),
-        linear-gradient(
-          to bottom,
-          rgba($edge-tint, 0.12) 0,
-          rgba($edge-tint, 0.12) 1px,
-          transparent 1px,
-          transparent calc(25% - 0.5px),
-          rgba($edge-tint, 0.08) calc(25% - 0.5px),
-          rgba($edge-tint, 0.08) calc(25% + 0.5px),
-          transparent calc(25% + 0.5px),
-          transparent calc(75% - 0.5px),
-          rgba($edge-tint, 0.08) calc(75% - 0.5px),
-          rgba($edge-tint, 0.08) calc(75% + 0.5px),
-          transparent calc(75% + 0.5px),
-          transparent calc(100% - 1px),
-          rgba($edge-tint, 0.12) calc(100% - 1px)
-        );
+        $range-ticks-long, $range-ticks-long, $range-ticks-mid,
+        $range-ticks-mid, $range-ticks-short, $range-ticks-short;
       transform: translate(-50%, -50%);
     }
 
-    input[type='range'] {
-      position: relative;
+    .range__rail {
       z-index: 1;
+    }
+  }
+
+  // The first band's strip is the dB scale's to stand on (`.eq-scale` in
+  // `MainContent.scss`): it is exactly the travel, +20 at its top and −20 at
+  // its foot, whatever the length, the handle or the density.
+  .bands > &:nth-child(1 of .bandWrapper) .range::after {
+    anchor-name: --eq-travel;
+  }
+
+  // The nudge arrows come out when the band is reached for — hovered,
+  // selected or tabbed into — and are gone at rest, so the row reads as its
+  // sliders rather than as thirty sliders between sixty triangles. Still
+  // there to be pressed at rest; only unseen.
+  .range .arrow-up,
+  .range .arrow-down {
+    opacity: 0;
+    transition: opacity 140ms ease;
+  }
+
+  &:hover,
+  &:focus-within,
+  &.is-hovered,
+  &.is-selected {
+    .range .arrow-up,
+    .range .arrow-down {
+      opacity: 1;
     }
   }
 
   // A hairline between neighbours, stopping short of the captions: the bands
   // read as columns on a ruled sheet rather than as sliders floating in a
-  // row.
+  // row. At 4% it was 1.1:1 against the card and nobody saw it (Ivan,
+  // 2026-09-27: "the splitter ... between sliders more visible"). A step of
+  // lightness over the panel rather than an opacity of the mist: 1.4:1 on
+  // Ocean and at the light end, and a quiet 1.16:1 on Black, where the mist
+  // at a fifth drew a grid over the page ("high contrast crap windows
+  // theme").
   & + & {
     &::before {
       position: absolute;
@@ -244,7 +310,9 @@ $filter-dropdown-width: 56px;
       bottom: 26px;
       left: -1px;
       width: 1px;
-      background: rgba($edge-tint, 0.04);
+      background: oklch(
+        from var(--surface-panel) calc(l + 0.07) calc(c * 0.8) h
+      );
       content: '';
       pointer-events: none;
     }
@@ -404,20 +472,115 @@ button.band-frequency-caption {
   border-radius: $radius-2xs;
 
   .range {
-    --range-thumb: 13px;
-  }
-
-  .range input[type='range']::-webkit-slider-thumb {
-    width: 13px;
-    height: 13px;
-    margin-top: -5px;
-    border-width: 1px;
+    --range-thumb: 16px;
   }
 
   .removeFilter {
     width: 15px;
     height: 15px;
   }
+}
+
+// The fader cap (Ivan, 2026-09-26: "rec and circles for the sliders"),
+// chosen in the titlebar menu's settings (`SliderHandlePicker`): a slate cap as wide
+// as the column allows, a line across it in the band's colour between two
+// grip lines, lit from above. Written in the input's own terms, which are a
+// quarter turn from the screen's — see the note at the head of
+// `RangeInput.scss`: its width is the cap's height on screen, and a line
+// across the cap is a line down the input.
+:root[data-slider-handle='rect'] {
+  .range {
+    --range-thumb: 20px;
+    --handle-across: 34px;
+  }
+
+  .bandWrapper--compact .range {
+    --handle-across: 28px;
+  }
+
+  .bandWrapper--dense .range {
+    --range-thumb: 14px;
+    --handle-across: 22px;
+  }
+
+  .range input[type='range'] {
+    // A flat cap lit from above in the handle's colours (`--range-face-*`,
+    // `RangeInput.scss`), cut out of the panel by a crisp edge darker than
+    // it, with nothing under it: it had 14px of black shadow and a glow in
+    // the band's colour, the softest thing on a page of flat controls (Ivan,
+    // 2026-09-27: "dropshadow ... que no son estándares"). The line in the
+    // band's colour across it is set in a frame, darker than the face and
+    // lighter than the edge ("sliders knob needs border inside for that led
+    // to pop", then "too dark inner border"): 5.5:1 and more for the line.
+    // The two grip lines at its ends are the edge's colour, faint.
+    &::-webkit-slider-thumb {
+      height: var(--handle-across);
+      margin-top: calc((8px - var(--handle-across)) / 2);
+      border: 1px solid var(--range-edge);
+      border-radius: $radius-2xs;
+      background:
+        linear-gradient(
+            90deg,
+            transparent calc(50% - 1px),
+            var(--slider-color) calc(50% - 1px) calc(50% + 1px),
+            transparent calc(50% + 1px)
+          )
+          center / 100% calc(100% - 12px) no-repeat,
+        linear-gradient(
+            90deg,
+            transparent calc(50% - 3px),
+            var(--range-frame) calc(50% - 3px) calc(50% + 3px),
+            transparent calc(50% + 3px)
+          )
+          center / 100% calc(100% - 8px) no-repeat,
+        linear-gradient(
+            90deg,
+            transparent 2px,
+            color-mix(in oklab, var(--range-edge) 45%, transparent) 2px 3px,
+            transparent 3px calc(100% - 3px),
+            color-mix(in oklab, var(--range-edge) 45%, transparent)
+              calc(100% - 3px) calc(100% - 2px),
+            transparent calc(100% - 2px)
+          )
+          center / 100% calc(100% - 10px) no-repeat,
+        linear-gradient(90deg, var(--range-face-foot), var(--range-face-top));
+      box-shadow: none;
+    }
+
+    // Under the pointer: the edge in the band's colour and a crisp ring of
+    // it, not a haze.
+    &:hover::-webkit-slider-thumb {
+      border-color: var(--slider-color);
+      box-shadow: 0 0 0 2px
+        color-mix(in srgb, var(--slider-color) 28%, transparent);
+    }
+
+    &:focus-visible::-webkit-slider-thumb {
+      box-shadow:
+        0 0 0 2px $surface-base,
+        0 0 0 4px $secondary-light;
+    }
+
+    &:disabled::-webkit-slider-thumb {
+      border-color: rgba($edge-tint, 0.2);
+      background: var(--range-face-foot);
+      box-shadow: none;
+    }
+  }
+}
+
+// Laid out under the graph (`.bands.is-placed`), a band is as wide as its
+// slot, whatever the count, and the handle follows the room it has rather
+// than the count: thirty-one bands across a 2560px window stand 51px apart,
+// and the dense count's 16px was a dot there (Ivan, 2026-09-26: "I dont even
+// see the nobs"). Last, so it outranks the count's own sizes above.
+.bands.is-placed .range {
+  --range-thumb: clamp(16px, calc(var(--band-slot) * 0.56), 24px);
+}
+
+:root[data-slider-handle='rect'] .bands.is-placed .range {
+  --range-thumb: clamp(14px, calc(var(--band-slot) * 0.4), 20px);
+  --handle-across: clamp(20px, calc(var(--band-slot) - 14px), 36px);
 }
 
 @media (max-width: 760px) {

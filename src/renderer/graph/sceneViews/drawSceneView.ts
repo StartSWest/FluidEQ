@@ -5,14 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
-import {
-  DEFAULT_LEVEL_COLOURS,
-  DEFAULT_SIGNAL_COLOUR,
-  type ILookTuning,
-} from 'common/customLooks';
-import type { GraphPalette, ResolvedGraphPalette } from 'common/graphStyles';
-import { sceneOwnColours, type TSceneViewStyle } from 'common/graphSceneViews';
-import { BAND_SPECTRUM_HEX } from '../../utils/bandColors';
+import type { ILookTuning } from 'common/customLooks';
+import type { ResolvedGraphPalette } from 'common/graphStyles';
+import type { TSceneViewStyle } from 'common/graphSceneViews';
+import { lookPaintColours } from '../../utils/windowInk';
 import type { IChartPointData } from '../ChartController';
 import {
   followReadings,
@@ -29,6 +25,7 @@ import {
   type ISceneDrawn,
   type ISceneFrame,
   type ISceneLook,
+  type ISceneReading,
   type TSceneInk,
 } from './sceneFrame';
 import {
@@ -107,6 +104,7 @@ import {
   drawHalftone,
   type IHalftoneState,
 } from './halftone';
+import { createHorizonState, drawHorizon, type IHorizonState } from './horizon';
 
 /**
  * The one door into the drawn scenes (`graphSceneViews.ts`).
@@ -147,6 +145,7 @@ export interface ISceneViewState {
   fibers: IFibersState;
   afterglow: IAfterglowState;
   halftone: IHalftoneState;
+  horizon: IHorizonState;
 }
 
 export const createSceneViewState = (): ISceneViewState => ({
@@ -176,6 +175,7 @@ export const createSceneViewState = (): ISceneViewState => ({
   fibers: createFibersState(),
   afterglow: createAfterglowState(),
   halftone: createHalftoneState(),
+  horizon: createHorizonState(),
 });
 
 export interface ISceneViewRequest {
@@ -194,8 +194,7 @@ export interface ISceneViewRequest {
   /** Each point's column in CSS pixels. */
   columns: readonly (readonly [number, number])[];
   tuning: ILookTuning;
-  /** The look's palette as chosen, `auto` included, and as resolved. */
-  palette: GraphPalette;
+  /** The look's palette as resolved: `auto` has become the form's own. */
   resolvedPalette: ResolvedGraphPalette;
   /** The look's own stops, if it has any. */
   colours: readonly string[];
@@ -212,31 +211,15 @@ const INK_OF: Record<ResolvedGraphPalette, TSceneInk> = {
 };
 
 /**
- * The stops a scene is painted in: the look's own; on Auto with none, the
- * scene's own as the real thing is coloured; otherwise the palette's, as
- * every other form takes them.
+ * The stops a scene is painted in: the look's own, or with none the window's
+ * — Normal mode's primary and secondary, Rainbow mode's palette — as every
+ * other look is (`windowInk.ts`). Each scene carried a set of its own on
+ * Auto, and drew in it whatever the window was dressed in.
  */
 export const sceneColours = (
-  style: TSceneViewStyle,
-  palette: GraphPalette,
   resolved: ResolvedGraphPalette,
   colours: readonly string[],
-): readonly string[] => {
-  if (colours.length > 0) {
-    return colours;
-  }
-  const own = palette === 'auto' ? sceneOwnColours(style) : undefined;
-  if (own) {
-    return own;
-  }
-  if (resolved === 'rainbow') {
-    return BAND_SPECTRUM_HEX;
-  }
-  if (resolved === 'signal') {
-    return [DEFAULT_SIGNAL_COLOUR];
-  }
-  return DEFAULT_LEVEL_COLOURS;
-};
+): readonly string[] => lookPaintColours(resolved, colours);
 
 /** The style editor, read once for the frame. */
 export const sceneLook = (
@@ -276,6 +259,7 @@ const DRAW: Record<
   fibers: (frame, state) => drawFibers(frame, state.fibers),
   afterglow: (frame, state) => drawAfterglow(frame, state.afterglow),
   halftone: (frame, state) => drawHalftone(frame, state.halftone),
+  horizon: (frame, state) => drawHorizon(frame, state.horizon),
 };
 
 /** A reading in plot gain units as a fraction of the plot's depth. */
@@ -313,11 +297,26 @@ const printTexture = (
   context.restore();
 };
 
-const drawSceneView = (request: ISceneViewRequest): boolean => {
+/** A drawn scene's request without the canvas it would be painted on. */
+export type TSceneViewReadRequest = Omit<
+  ISceneViewRequest,
+  'context' | 'ratio'
+>;
+
+/**
+ * The half of a drawn scene's frame that is not painting: the reading put on
+ * the plot's scale and eased, the music heard, the colours and the style
+ * editor read. What the 2D scenes paint from here, and what the engine's own
+ * looks are stepped from (`engineLooks/`), so the two read the music alike.
+ * Nothing while there is too little reading to lay anything out.
+ */
+export const readSceneView = (
+  request: TSceneViewReadRequest,
+): { reading: ISceneReading; moving: boolean } | undefined => {
   const { state, points, live, columns, tuning } = request;
   const size = points.length;
   if (size < 2 || columns.length < size || live.length < size) {
-    return false;
+    return undefined;
   }
   const key = `${request.style}|${size}`;
   if (state.key !== key) {
@@ -355,32 +354,40 @@ const drawSceneView = (request: ISceneViewRequest): boolean => {
     request.playing,
   );
 
+  return {
+    reading: {
+      plot: request.plot,
+      window: request.window,
+      bands: request.bands,
+      deltaMs: request.deltaMs,
+      playing: request.playing,
+      levels: state.levels,
+      xs: state.xs,
+      axis: state.axis,
+      music: state.music,
+      colours: sceneColours(request.resolvedPalette, request.colours),
+      look: sceneLook(tuning, request.resolvedPalette),
+      glow: request.glow,
+    },
+    moving: moving || hearing,
+  };
+};
+
+const drawSceneView = (request: ISceneViewRequest): boolean => {
+  const read = readSceneView(request);
+  if (!read) {
+    return false;
+  }
   const frame: ISceneFrame = {
+    ...read.reading,
     context: request.context,
     ratio: request.ratio,
-    plot: request.plot,
-    window: request.window,
-    bands: request.bands,
-    deltaMs: request.deltaMs,
-    playing: request.playing,
-    levels: state.levels,
-    xs: state.xs,
-    axis: state.axis,
-    music: state.music,
-    colours: sceneColours(
-      request.style,
-      request.palette,
-      request.resolvedPalette,
-      request.colours,
-    ),
-    look: sceneLook(tuning, request.resolvedPalette),
-    glow: request.glow,
   };
-  const drawn = DRAW[request.style](frame, state);
+  const drawn = DRAW[request.style](frame, request.state);
   if (drawn.body && frame.look.textured) {
-    printTexture(frame, tuning, drawn.body);
+    printTexture(frame, request.tuning, drawn.body);
   }
-  return drawn.moving || moving || hearing;
+  return drawn.moving || read.moving;
 };
 
 export default drawSceneView;

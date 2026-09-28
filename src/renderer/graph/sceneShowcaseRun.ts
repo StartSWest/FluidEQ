@@ -90,6 +90,8 @@ export const showcaseRun = (
   until?: number,
   /** The music at another tempo, for the member's AI to try its dance on. */
   tempo?: number,
+  /** The time of day, 0 night to 100 day, as the page's Brightness asks (`sceneDaylight.ts`). */
+  daylight?: number,
 ): TFrameRun => {
   const { frames, stepMs } =
     until === undefined
@@ -142,7 +144,7 @@ export const showcaseRun = (
       !wasKicking &&
       seconds >= SHOWCASE_WARMUP_S;
     wasKicking = kicking;
-    return tuner.apply(heard, stepMs, pack, base, undefined);
+    return tuner.apply(heard, stepMs, pack, base, undefined, daylight);
   };
 };
 
@@ -155,6 +157,7 @@ export const silenceRun = (
   pack: IScenePack,
   accent: readonly [number, number, number],
   seconds: number,
+  daylight?: number,
 ): TFrameRun => {
   const buffers = createStudioSignalBuffers();
   const tuner = createSceneTuner();
@@ -182,7 +185,7 @@ export const silenceRun = (
       params: {},
     };
     index += 1;
-    return tuner.apply(heard, stepMs, pack, base, undefined);
+    return tuner.apply(heard, stepMs, pack, base, undefined, daylight);
   };
 };
 

@@ -255,6 +255,11 @@ const app: Partial<Dictionary> = {
     'Equalizer APO был установлен или перенастроен. Если звук пропал, перезапустите службу звука Windows, а не весь компьютер.',
   'notice.restartNow': 'Перезапустить звук сейчас',
   'notice.importComplete': 'Импорт завершён',
+  'notice.apoReconfiguredTitle': 'Equalizer APO изменён',
+  'notice.captureFailed': 'Выход в реальном времени не запустился',
+  'notice.captureFailedBody':
+    'Индикатор уровня и живая кривая на графике пока выключены. Всё остальное работает как обычно.',
+  'notice.tryAgain': 'Повторить',
   'notice.restartConfirm':
     'Звук пропадёт на несколько секунд, и Windows запросит права администратора. Продолжить?',
   'restart.title': 'Перезапустить звук Windows',

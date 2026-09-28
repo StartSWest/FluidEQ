@@ -45,8 +45,12 @@ export interface IAnalysisPlot {
   bottom: number;
 }
 
-export interface IAnalysisFrame {
-  context: CanvasRenderingContext2D;
+/**
+ * One copy of a view's frame, laid out: everything a view is drawn from but
+ * the canvas it is drawn on. The engine paints the same reading on the GPU
+ * (`engineLooks/analysisLooks.ts`), so nothing here may be a canvas object.
+ */
+export interface IAnalysisReading {
   /** Device pixels per CSS pixel, for the texture tiles and hairlines. */
   ratio: number;
   plot: IAnalysisPlot;
@@ -69,7 +73,7 @@ export interface IAnalysisFrame {
    * caller so this module never has to know the mode exists.
    */
   edge: {
-    colour: string | CanvasGradient;
+    colour: string;
     width: number;
     /**
      * The colour above is euphoria's travelling hue rather than the look's.
@@ -117,6 +121,11 @@ export interface IAnalysisFrame {
    * lands on the curve that screen is for (`paintLegend`).
    */
   keyed: boolean;
+}
+
+/** A reading with the canvas it is painted on. */
+export interface IAnalysisFrame extends IAnalysisReading {
+  context: CanvasRenderingContext2D;
 }
 
 /** Where a reading of `level` lands, in CSS pixels. */
@@ -208,25 +217,39 @@ export const readingColour = (
  * four seconds of somebody else's history the moment it appeared.
  */
 /**
- * One scrolling picture: its own surface, the row its head is at, the row
- * buffer it writes through, and how long since it last took a row.
+ * One scrolling picture: its size, how many rows it has printed, how long
+ * since it last took one, and — on the page's canvas — its own surface and
+ * the row buffer it writes through.
  *
  * One per channel, because two channels are two strips stacked rather than
  * two rasters overlaid — a raster has no transparency to lend the picture
  * behind it, so overlaid the top one simply hides the other.
  */
 export interface IRasterStrip {
-  surface: HTMLCanvasElement | undefined;
-  row: number;
-  image: ImageData | undefined;
+  /** The picture's size in device pixels; a new size starts it again. */
+  width: number;
+  height: number;
+  /**
+   * Rows printed since it started. The ring's newest row is this modulo the
+   * height, and a copy of the picture kept elsewhere — the engine's — prints
+   * every row it has not seen yet from the difference.
+   */
+  printed: number;
+  /** Which start this is, so a copy elsewhere knows to start again too. */
+  generation: number;
   ageMs: number;
+  surface: HTMLCanvasElement | undefined;
+  image: ImageData | undefined;
 }
 
 const emptyStrip = (): IRasterStrip => ({
-  surface: undefined,
-  row: 0,
-  image: undefined,
+  width: 0,
+  height: 0,
+  printed: 0,
+  generation: 0,
   ageMs: 0,
+  surface: undefined,
+  image: undefined,
 });
 
 export interface IAnalysisState {

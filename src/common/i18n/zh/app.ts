@@ -244,6 +244,11 @@ const app: Partial<Dictionary> = {
     'Equalizer APO 已安装或重新配置。如果没有声音，请重启 Windows 音频服务，而不是重启电脑。',
   'notice.restartNow': '立即重启音频',
   'notice.importComplete': '导入完成',
+  'notice.apoReconfiguredTitle': 'Equalizer APO 已更改',
+  'notice.captureFailed': '实时输出无法启动',
+  'notice.captureFailedBody':
+    '电平表和图表上的实时曲线暂时关闭。其他功能均正常工作。',
+  'notice.tryAgain': '重试',
   'notice.restartConfirm':
     '声音会中断几秒，Windows 会请求管理员权限。要继续吗？',
   'restart.title': '重启 Windows 音频',

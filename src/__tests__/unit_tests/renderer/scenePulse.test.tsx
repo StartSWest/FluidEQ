@@ -26,7 +26,6 @@ import {
 } from '../../../renderer/utils/scenePulse';
 import {
   setSceneTintMode,
-  setStudioTintMode,
   setStudioTintSource,
 } from '../../../renderer/utils/sceneTintStore';
 import ScenePulse from '../../../renderer/components/ScenePulse';
@@ -91,7 +90,6 @@ beforeEach(() => {
   mockLookId = 'premium:bloom';
   setStudioTintSource(undefined);
   setSceneTintMode('pulse');
-  setStudioTintMode('off');
 });
 
 describe('which beats the window answers', () => {
@@ -299,7 +297,6 @@ describe('the glow in the window', () => {
 
   it('puts the Studio’s light out when the Studio hands the window back to the graph', () => {
     setStudioTintSource({ project: 'mine' });
-    setStudioTintMode('pulse');
     render(<ScenePulse />);
     act(() => {
       reportSceneBeat('studio', beat(), sceneAt(100, 60, 400, 180));
@@ -343,17 +340,20 @@ describe('the glow in the window', () => {
     expect(end.opacity).toBe(0);
   });
 
-  it('follows the Studio’s mode while a project owns the window, not the graph’s', () => {
+  it('follows the app’s one mode, and the Studio’s scene while a project owns the window', () => {
     setStudioTintSource({ project: 'mine' });
-    setStudioTintMode('tint');
+    setSceneTintMode('tint');
     render(<ScenePulse />);
     expect(document.querySelector('.scene-pulse')).toBeNull();
-    act(() => setStudioTintMode('pulse'));
+    act(() => setSceneTintMode('pulse'));
     act(() => {
       reportSceneBeat('graph', beat(), undefined);
       reportSceneBeat('studio', beat(), undefined);
     });
     expect(animations).toHaveLength(1);
+    expect(
+      (animations[0].element as HTMLElement).closest('.scene-pulse'),
+    ).not.toBeNull();
   });
 });
 

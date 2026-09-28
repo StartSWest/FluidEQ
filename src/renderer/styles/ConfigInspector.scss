@@ -134,27 +134,12 @@ $name-column: 34ch;
   }
 }
 
-// A control, not a field.
-//
-// A bare <button> here inherited the global input styling — full width, pale,
-// generously padded — and read as a text box somebody had disabled rather than
-// as something to press. Sized and coloured like the app's other small actions
-// instead, and shrink-wrapped so it sits at the end of the bar.
+// The app's quiet button (`button small subtle`); only where it stands is
+// its own: shrink-wrapped at the end of the bar, its glyph at the label's
+// size, and a wait cursor while the engine's files are read.
 .config-inspector__reload {
-  display: inline-flex;
   flex: 0 0 auto;
-  align-items: center;
-  padding: 5px 12px;
-  border: 1px solid color-mix(in srgb, $secondary-default 35%, transparent);
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
-  color: $secondary-light;
-  cursor: pointer;
-  font-size: $text-small;
-  font-weight: $weight-bold;
   gap: 6px;
-  @include tracking(0.06em);
-  transition: $transition-control;
   white-space: nowrap;
 
   svg {
@@ -162,13 +147,7 @@ $name-column: 34ch;
     height: 13px;
   }
 
-  &:hover:not(:disabled) {
-    background: color-mix(in srgb, $secondary-default 26%, transparent);
-    color: $white;
-  }
-
   &:disabled {
-    opacity: $disabled-opacity;
     cursor: progress;
   }
 }
@@ -304,7 +283,7 @@ $name-column: 34ch;
   display: flex;
   flex-direction: column;
   padding: $spacing-s $spacing-m $spacing-m;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   gap: 6px;
 }
@@ -494,7 +473,7 @@ $name-column: 34ch;
     padding: 5px 11px;
     border: 1px solid $border-field;
     border-radius: $radius-xs;
-    background: color-mix(in srgb, $secondary-default 8%, transparent);
+    background: $surface-control;
     color: $secondary-light;
     font: inherit;
     font-size: $text-small;
@@ -896,7 +875,7 @@ $name-column: 34ch;
   overflow-x: auto;
   max-height: 220px;
   padding: 6px 8px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-s;
   margin: 2px 0 0;
   // The well the rest of the window uses for a drawing or a listing, not raw

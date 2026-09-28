@@ -28,7 +28,7 @@ import type { ISkyFrame } from './terraceValley';
  */
 
 /** The tail is 45% of the plot; the wiped gap ahead of the head, 4%. */
-const TAIL_FRACTION = 0.45;
+export const PULSE_TAIL_FRACTION = 0.45;
 const GAP_FRACTION = 0.04;
 /** A thump rises in 60ms and lets go over 260ms; the shake lasts 300ms. */
 export const THUMP_RISE = 0.06;
@@ -39,6 +39,8 @@ export const ECHO_LIFE = 1.4;
 const ECHO_LIMIT = 6;
 
 interface IEcho {
+  /** The trace as it was when the beat let it go. */
+  vertices: Projected[];
   path: Path2D;
   at: number;
   strength: number;
@@ -134,7 +136,12 @@ export const pulseShake = (state: PulseMonitor, seconds: number) => {
 const CELL = 1 / 22;
 const CELL_MAX = 46;
 /** Every fifth line is the heavy one, the way the paper is printed. */
-const HEAVY = 5;
+export const PULSE_GRID_HEAVY = 5;
+const HEAVY = PULSE_GRID_HEAVY;
+
+/** A square of the paper, in pixels, for a plot `sizeHeight` deep. */
+export const pulseGridCell = (sizeHeight: number): number =>
+  Math.max(10, Math.min(CELL_MAX, sizeHeight * CELL));
 
 /**
  * The ruled paper behind the trace, over the whole window.
@@ -153,7 +160,7 @@ export const createPulseGrid = (
   sizeHeight: number,
   baseline: number,
 ) => {
-  const cell = Math.max(10, Math.min(CELL_MAX, sizeHeight * CELL));
+  const cell = pulseGridCell(sizeHeight);
   const fine = new Path2D();
   const heavy = new Path2D();
   const width = Math.max(1, frame.right - frame.left);
@@ -181,7 +188,16 @@ export const createPulseGrid = (
   return { fine, heavy };
 };
 
-export const createPulsePaths = (
+/**
+ * The frame's trace and where the sweep stands on it: the pumped vertices,
+ * the plot's ends, the head, the start of the tail behind it and the end of
+ * the wiped gap ahead of it. What both painters cut the trace by — the
+ * page's paths here, the engine's per pixel (`engineLooks/pulseLook.ts`).
+ *
+ * A beat lets an echo of the trace go: this frame's, so the echo leaves
+ * from where the trace is.
+ */
+export const pulseLayout = (
   state: PulseMonitor,
   points: readonly Projected[],
   baseline: number,
@@ -193,18 +209,13 @@ export const createPulsePaths = (
   const right = points[points.length - 1]?.[0] ?? 1;
   const width = Math.max(1, right - left);
   const headX = left + pulseHeadFraction(seconds) * width;
-  const tailStart = headX - width * TAIL_FRACTION;
-  const gapEnd = headX + width * GAP_FRACTION;
-
-  const open = polylinePath(vertices);
-  // A beat lets an echo of the trace go: this frame's, before the pump
-  // has lifted it, so the echo leaves from where the trace was.
   if (
     state.thumpAt === seconds &&
     !state.echoes.some((echo) => echo.at === seconds)
   ) {
     state.echoes.unshift({
-      path: new Path2D(open),
+      vertices,
+      path: new Path2D(polylinePath(vertices)),
       at: seconds,
       strength: state.thumpStrength,
     });
@@ -212,6 +223,30 @@ export const createPulsePaths = (
       state.echoes.length = ECHO_LIMIT;
     }
   }
+  return {
+    vertices,
+    left,
+    right,
+    headX,
+    tailStart: headX - width * PULSE_TAIL_FRACTION,
+    gapEnd: headX + width * GAP_FRACTION,
+    head: sliceByX(vertices, headX, headX)[0] ?? [headX, baseline],
+  };
+};
+
+/** How many slices the tail is cut into, brightening toward the head. */
+export const PULSE_TAIL_SLICES = 4;
+
+export const createPulsePaths = (
+  state: PulseMonitor,
+  points: readonly Projected[],
+  baseline: number,
+  seconds: number,
+) => {
+  const layout = pulseLayout(state, points, baseline, seconds);
+  const { vertices, left, right, tailStart, gapEnd, head } = layout;
+  const width = Math.max(1, right - left);
+  const open = polylinePath(vertices);
   const shape = new Path2D(open);
   if (vertices.length >= 2) {
     shape.lineTo(vertices[vertices.length - 1][0], baseline);
@@ -225,13 +260,15 @@ export const createPulsePaths = (
   );
   // Early in a sweep the tail is simply short: the trace ahead of the head
   // is the previous sweep's, and it stays dim until the head reaches it.
-  const fresh = Array.from({ length: 4 }, (_, slice) => {
-    const a = tailStart + (width * TAIL_FRACTION * slice) / 4;
-    const b = tailStart + (width * TAIL_FRACTION * (slice + 1)) / 4;
+  const fresh = Array.from({ length: PULSE_TAIL_SLICES }, (_, slice) => {
+    const a =
+      tailStart + (width * PULSE_TAIL_FRACTION * slice) / PULSE_TAIL_SLICES;
+    const b =
+      tailStart +
+      (width * PULSE_TAIL_FRACTION * (slice + 1)) / PULSE_TAIL_SLICES;
     return new Path2D(polylinePath(sliceByX(vertices, Math.max(left, a), b)));
   });
-  const headPoint = sliceByX(vertices, headX, headX)[0] ?? [headX, baseline];
-  return { shape, old, fresh, head: headPoint };
+  return { shape, old, fresh, head, layout };
 };
 
 /** Where an echo has drifted to and how much of it is left, 1 fresh to 0. */

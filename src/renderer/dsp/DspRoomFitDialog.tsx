@@ -12,6 +12,8 @@ import { parseRoomHeadBlock } from '../../common/roomHeadText';
 import { readRoomHeadText } from '../utils/equalizerApi';
 import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from '../components/DialogFrame';
 import { FIT_PAIRS, TFitAnswer, chosenHead, nextPair } from './roomFit';
 import { createFitPlayer, renderFitDemo } from './roomFitAudio';
 
@@ -31,10 +33,21 @@ const HEAD_NAME: Record<TRoomHead, TranslationKey> = {
   large: 'dsp.room.head.large',
 };
 
+/** The three answers to a pair, in the order they are offered. */
+const ANSWERS: readonly (readonly [TFitAnswer, TranslationKey])[] = [
+  ['a', 'dsp.roomFit.chooseA'],
+  ['b', 'dsp.roomFit.chooseB'],
+  ['same', 'dsp.roomFit.same'],
+];
+
 /**
  * Fit: five pairs of the same sound through two heads, "which one sounds
  * more around you", and the head that won. The sounds are rendered once
  * when the dialog opens; a press plays one and nothing else moves.
+ *
+ * The two plays are a pair of equal quiet buttons, because neither is the
+ * one to press first; the three answers are choices, each moving to the next
+ * pair; the only loud button is "Use it", on the result.
  */
 const DspRoomFitDialog = ({ onPick, onClose }: IDspRoomFitDialogProps) => {
   const { t } = useTranslation();
@@ -119,61 +132,98 @@ const DspRoomFitDialog = ({ onPick, onClose }: IDspRoomFitDialogProps) => {
         }
       }}
     >
-      <div
-        className="dsp-import dsp-room-fit"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('dsp.roomFit.title')}
-      >
-        <h2 className="dsp-import__title">{t('dsp.roomFit.title')}</h2>
-        {result !== undefined ? (
-          <>
-            <p className="dsp-import__hint">
-              {t('dsp.roomFit.resultTitle', { head: t(HEAD_NAME[result]) })}
-            </p>
-            <p className="dsp-import__hint">{t('dsp.roomFit.resultBody')}</p>
-            <div className="dsp-import__actions">
-              <span className="dsp-import__spacer" />
+      <DialogFrame
+        className="dsp-room-fit-dialog"
+        icon={<MenuIcon name="artist" />}
+        title={t('dsp.roomFit.title')}
+        titleId="dsp-room-fit-title"
+        description={t('dsp.roomFit.hint')}
+        rail={
+          result === undefined ? (
+            <div className="dsp-room-fit__progress">
+              <span className="dsp-room-fit__pair">{pairLabel}</span>
+              <div
+                className="dsp-room-fit__bar"
+                role="progressbar"
+                aria-label={pairLabel}
+                aria-valuemin={0}
+                aria-valuemax={FIT_PAIRS}
+                aria-valuenow={answers.length}
+              >
+                <i
+                  style={{ width: `${(answers.length / FIT_PAIRS) * 100}%` }}
+                />
+              </div>
+            </div>
+          ) : undefined
+        }
+        onClose={onClose}
+        closeLabel={t('support.close')}
+        footer={
+          <div className="dialog-frame__actions">
+            {result !== undefined ? (
+              <>
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={() => setAnswers([])}
+                >
+                  {t('dsp.roomFit.again')}
+                </button>
+                <button
+                  type="button"
+                  className="button small"
+                  onClick={() => {
+                    reportInfo(`Fit chose the ${result} head`);
+                    onPick(result);
+                  }}
+                >
+                  {t('dsp.roomFit.use')}
+                </button>
+              </>
+            ) : (
               <button
                 type="button"
                 className="button small subtle"
-                onClick={() => setAnswers([])}
+                onClick={onClose}
               >
-                {t('dsp.roomFit.again')}
+                {t('dsp.roomFit.cancel')}
               </button>
-              <button
-                type="button"
-                className="button small"
-                onClick={() => {
-                  reportInfo(`Fit chose the ${result} head`);
-                  onPick(result);
-                }}
-              >
-                {t('dsp.roomFit.use')}
-              </button>
-            </div>
-          </>
+            )}
+          </div>
+        }
+      >
+        {result !== undefined ? (
+          <div className="dsp-room-fit__result">
+            <span className="dsp-room-fit__done" aria-hidden="true">
+              <MenuIcon name="check" />
+            </span>
+            <p className="dsp-room-fit__head">
+              {t('dsp.roomFit.resultTitle', { head: t(HEAD_NAME[result]) })}
+            </p>
+            <p>{t('dsp.roomFit.resultBody')}</p>
+            {/* Where the answer landed among the three, for the eye: the
+                line above already says it in words. */}
+            <ol className="dsp-room-fit__sizes" aria-hidden="true">
+              {ROOM_HEADS.map((head) => (
+                <li
+                  key={head}
+                  className={head === result ? 'is-chosen' : undefined}
+                >
+                  {t(HEAD_NAME[head])}
+                </li>
+              ))}
+            </ol>
+          </div>
         ) : (
           <>
-            <p className="dsp-import__hint">{t('dsp.roomFit.hint')}</p>
-            <div
-              className="dsp-room-fit__progress"
-              role="progressbar"
-              aria-label={pairLabel}
-              aria-valuemin={0}
-              aria-valuemax={FIT_PAIRS}
-              aria-valuenow={answers.length}
-            >
-              <i style={{ width: `${(answers.length / FIT_PAIRS) * 100}%` }} />
-            </div>
-            <p className="dsp-room-fit__pair">{pairLabel}</p>
             {failed ? (
               <p className="dsp-import__error" role="alert">
                 {t('dsp.roomFit.error')}
               </p>
             ) : undefined}
             {!demos && !failed ? (
-              <p className="dsp-import__hint" role="status">
+              <p className="dsp-room-fit__loading" role="status">
                 {t('dsp.roomFit.loading')}
               </p>
             ) : undefined}
@@ -182,50 +232,33 @@ const DspRoomFitDialog = ({ onPick, onClose }: IDspRoomFitDialogProps) => {
                 <button
                   key={side}
                   type="button"
-                  className={`button small${playing === side ? ' is-running' : ''}`}
+                  className={`button small subtle${playing === side ? ' is-running' : ''}`}
                   disabled={!demos}
                   onClick={() => play(side)}
                 >
+                  <MenuIcon name="play" className="dsp-room-fit__play" />
                   {t(side === 'a' ? 'dsp.roomFit.playA' : 'dsp.roomFit.playB')}
                 </button>
               ))}
             </div>
-            <div className="dsp-import__actions dsp-room-fit__choices">
-              <button
-                type="button"
-                className="button small subtle"
-                disabled={!demos}
-                onClick={() => answer('a')}
-              >
-                {t('dsp.roomFit.chooseA')}
-              </button>
-              <button
-                type="button"
-                className="button small subtle"
-                disabled={!demos}
-                onClick={() => answer('b')}
-              >
-                {t('dsp.roomFit.chooseB')}
-              </button>
-              <button
-                type="button"
-                className="button small subtle"
-                disabled={!demos}
-                onClick={() => answer('same')}
-              >
-                {t('dsp.roomFit.same')}
-              </button>
-              <button
-                type="button"
-                className="button small subtle dsp-room-fit__cancel"
-                onClick={onClose}
-              >
-                {t('dsp.roomFit.cancel')}
-              </button>
-            </div>
+            <ul className="dialog-frame__group dsp-room-fit__answers">
+              {ANSWERS.map(([choice, label]) => (
+                <li key={choice}>
+                  <button
+                    type="button"
+                    className="dsp-room-fit__answer"
+                    disabled={!demos}
+                    onClick={() => answer(choice)}
+                  >
+                    <span>{t(label)}</span>
+                    <MenuIcon name="forward" className="dsp-room-fit__next" />
+                  </button>
+                </li>
+              ))}
+            </ul>
           </>
         )}
-      </div>
+      </DialogFrame>
     </div>,
     document.body,
   );

@@ -162,7 +162,6 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     'studio.signalHint.*',
   ],
   'src/renderer/studio/StudioProblems.tsx': ['studio.problem.*'],
-  'src/renderer/studio/StudioStageControls.tsx': ['studio.size.*'],
 };
 
 const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
-import SceneKeys from 'renderer/player/SceneKeys';
+import SceneKeys from 'renderer/player/classic/SceneKeys';
 import { openWallpaperDialog } from 'renderer/wallpaper/wallpaperDialogs';
 import { useWallpaperState } from 'renderer/wallpaper/wallpaperStore';
 import type { IWallpaperState } from 'common/wallpaper';

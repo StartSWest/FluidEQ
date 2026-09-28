@@ -39,7 +39,8 @@ import {
   openSupportEmail,
 } from '../utils/equalizerApi';
 import { useTranslation } from '../utils/I18nContext';
-import DialogHeader from './DialogHeader';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from './DialogFrame';
 import '../styles/BugReport.scss';
 
 interface IBugReportDialogProps {
@@ -239,128 +240,146 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
         }
       }}
     >
-      <div
+      <DialogFrame
         className="bug-report"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="bug-report-title"
+        icon={<MenuIcon name="flag" />}
+        eyebrow={PRODUCT_NAME}
+        title={t('bugReport.title')}
+        titleId="bug-report-title"
+        closeLabel={t('support.close')}
+        onClose={onClose}
+        closeRef={closeRef}
+        footer={
+          <>
+            {/* The live region stays mounted and only what is inside it
+                changes, which is what a screen reader needs to announce each
+                notice. Beside the buttons, because what it says is what the
+                last one of them did. */}
+            <div
+              className="dialog-frame__note bug-report__notice-slot"
+              role="status"
+            >
+              {notice && tone && (
+                <p
+                  key={notice.id}
+                  className={`bug-report__notice bug-report__notice--${tone}`}
+                >
+                  <span className="bug-report__notice-mark" aria-hidden="true">
+                    {tone !== 'waiting' && (
+                      <Glyph name={tone === 'problem' ? 'alert' : 'check'} />
+                    )}
+                  </span>
+                  <span className="bug-report__notice-text">
+                    {t(`bugReport.${notice.kind}`)}
+                    {notice.kind === 'emailNotOpened' && (
+                      <>
+                        {' '}
+                        <span className="bug-report__address is-selectable">
+                          {REPORT_EMAIL}
+                        </span>
+                      </>
+                    )}
+                  </span>
+                  {tone === 'done' && (
+                    <span
+                      className="bug-report__notice-life"
+                      aria-hidden="true"
+                      // Nothing inside it animates, so every end heard here is
+                      // its own line running out.
+                      onAnimationEnd={() =>
+                        setNotice((current) =>
+                          current?.id === notice.id ? undefined : current,
+                        )
+                      }
+                    />
+                  )}
+                </p>
+              )}
+            </div>
+
+            <div className="dialog-frame__actions">
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={copy}
+              >
+                {t('bugReport.copy')}
+              </button>
+              {/* Only when this build has an address. A mailto with none opens
+                  an empty compose window, which looks like it worked and is a
+                  report nobody ever receives. */}
+              {REPORT_EMAIL && (
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={sendEmail}
+                  disabled={isEmailing}
+                  aria-busy={isEmailing}
+                >
+                  {t('bugReport.email')}
+                </button>
+              )}
+              <button
+                type="button"
+                className="button small"
+                onClick={openIssue}
+              >
+                {t('bugReport.openIssue')}
+              </button>
+            </div>
+          </>
+        }
       >
-        <DialogHeader
-          eyebrow={PRODUCT_NAME}
-          title={t('bugReport.title')}
-          titleId="bug-report-title"
-          closeLabel={t('support.close')}
-          onClose={onClose}
-          closeRef={closeRef}
-        />
+        <label className="bug-report__field" htmlFor="bug-report-description">
+          <span className="bug-report__label">
+            {t('bugReport.descriptionLabel')}
+          </span>
+          <textarea
+            id="bug-report-description"
+            className="bug-report__description"
+            value={description}
+            rows={3}
+            placeholder={t('bugReport.descriptionPlaceholder')}
+            onChange={(event) => setDescription(event.target.value)}
+          />
+        </label>
 
-        <div className="bug-report__body-wrap">
-          <label className="bug-report__field" htmlFor="bug-report-description">
-            <span>{t('bugReport.descriptionLabel')}</span>
-            <textarea
-              id="bug-report-description"
-              value={description}
-              rows={3}
-              placeholder={t('bugReport.descriptionPlaceholder')}
-              onChange={(event) => setDescription(event.target.value)}
-            />
-          </label>
+        {/* The whole point. Shown, editable, and nothing is sent from here —
+            the buttons below copy it or hand it to a browser, and the person
+            reading it is the last line of defence that no rule can replace. */}
+        <label className="bug-report__field" htmlFor="bug-report-body">
+          <span className="bug-report__label">
+            {t('bugReport.reportLabel')}
+          </span>
+          <textarea
+            id="bug-report-body"
+            className="bug-report__report"
+            value={report}
+            rows={14}
+            readOnly={!facts && !failed}
+            onChange={(event) => setReportOverride(event.target.value)}
+          />
+        </label>
 
-          {/* The whole point. Shown, editable, and nothing is sent from here —
-              the buttons below copy it or hand it to a browser, and the person
-              reading it is the last line of defence that no rule can replace. */}
-          <label className="bug-report__field" htmlFor="bug-report-body">
-            <span>{t('bugReport.reportLabel')}</span>
-            <textarea
-              id="bug-report-body"
-              className="bug-report__body"
-              value={report}
-              rows={14}
-              readOnly={!facts && !failed}
-              onChange={(event) => setReportOverride(event.target.value)}
-            />
-          </label>
+        {failed && (
+          <p className="bug-report__note bug-report__note--warn">
+            <MenuIcon name="alert" />
+            <span>{t('bugReport.logsUnreadable')}</span>
+          </p>
+        )}
 
-          {failed && (
-            <p className="bug-report__warn">{t('bugReport.logsUnreadable')}</p>
-          )}
-
-          <p className="bug-report__privacy">
+        {/* Stated plainly and just above the buttons, because it is the thing
+            somebody wants to know at the moment they are deciding whether to
+            press one. */}
+        <p className="bug-report__note">
+          <MenuIcon name="shield" />
+          <span>
             {REPORT_EMAIL
               ? t('bugReport.privacyWithEmail')
               : t('bugReport.privacy')}
-          </p>
-        </div>
-
-        <div className="bug-report__footer">
-          {/* The live region stays mounted and only what is inside it changes,
-              which is what a screen reader needs to announce each notice. */}
-          <div className="bug-report__notice-slot" role="status">
-            {notice && tone && (
-              <p
-                key={notice.id}
-                className={`bug-report__notice bug-report__notice--${tone}`}
-              >
-                <span className="bug-report__notice-mark" aria-hidden="true">
-                  {tone !== 'waiting' && (
-                    <Glyph name={tone === 'problem' ? 'alert' : 'check'} />
-                  )}
-                </span>
-                <span className="bug-report__notice-text">
-                  {t(`bugReport.${notice.kind}`)}
-                  {notice.kind === 'emailNotOpened' && (
-                    <>
-                      {' '}
-                      <span className="bug-report__address is-selectable">
-                        {REPORT_EMAIL}
-                      </span>
-                    </>
-                  )}
-                </span>
-                {tone === 'done' && (
-                  <span
-                    className="bug-report__notice-life"
-                    aria-hidden="true"
-                    // Nothing inside it animates, so every end heard here is
-                    // its own line running out.
-                    onAnimationEnd={() =>
-                      setNotice((current) =>
-                        current?.id === notice.id ? undefined : current,
-                      )
-                    }
-                  />
-                )}
-              </p>
-            )}
-          </div>
-
-          <div className="bug-report__actions">
-            <button
-              type="button"
-              className="bug-report__primary"
-              onClick={openIssue}
-            >
-              {t('bugReport.openIssue')}
-            </button>
-            {/* Only when this build has an address. A mailto with none opens an
-                empty compose window, which looks like it worked and is a report
-                nobody ever receives. */}
-            {REPORT_EMAIL && (
-              <button
-                type="button"
-                onClick={sendEmail}
-                disabled={isEmailing}
-                aria-busy={isEmailing}
-              >
-                {t('bugReport.email')}
-              </button>
-            )}
-            <button type="button" onClick={copy}>
-              {t('bugReport.copy')}
-            </button>
-          </div>
-        </div>
-      </div>
+          </span>
+        </p>
+      </DialogFrame>
     </div>
   );
 }

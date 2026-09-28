@@ -21,7 +21,9 @@ const ERROR_KEYS: Record<TBillingFailure, TranslationKey> = {
 };
 
 /**
- * The foot of the terms, when they stand between a person and paying.
+ * The foot of the terms, when they stand between a person and paying: the
+ * Account panel's frame draws it under the document, outside what scrolls, so
+ * the agreement is on screen however far down the reader is.
  *
  * The box is unticked and the loud button waits for it: agreeing is something
  * a person does, not something a page assumes because it was scrolled past.
@@ -58,7 +60,7 @@ export default function SubscribeAgreement({
   };
 
   return (
-    <footer className="plus-terms-agree">
+    <>
       <label
         className={`plus-terms-agree__check${agreed ? ' is-agreed' : ''}`}
         htmlFor="plus-terms-agree"
@@ -73,35 +75,29 @@ export default function SubscribeAgreement({
       </label>
 
       {error && (
-        <p className="account__error" role="alert">
+        <p className="account__error plus-terms-agree__error" role="alert">
           {t(ERROR_KEYS[error])}
         </p>
       )}
 
-      <div className="plus-terms-agree__actions">
-        <span className="plus-terms-agree__hint">{t('terms.agree.hint')}</span>
-        {/* One group, so a narrow panel wraps the sentence above the pair
-            rather than splitting Back from the button it stands beside. */}
-        <div className="plus-terms-agree__buttons">
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={onBack}
-          >
-            {t('terms.back')}
-          </button>
-          <button
-            type="button"
-            className="button small"
-            disabled={!agreed || opening}
-            onClick={() => {
-              agree().catch(() => setOpening(false));
-            }}
-          >
-            {opening ? t('terms.agree.opening') : t('terms.agree.continue')}
-          </button>
-        </div>
+      <p className="dialog-frame__note">{t('terms.agree.hint')}</p>
+      {/* One group, so a narrow panel wraps the sentence above the pair
+          rather than splitting Back from the button it stands beside. */}
+      <div className="dialog-frame__actions">
+        <button type="button" className="button small subtle" onClick={onBack}>
+          {t('terms.back')}
+        </button>
+        <button
+          type="button"
+          className="button small"
+          disabled={!agreed || opening}
+          onClick={() => {
+            agree().catch(() => setOpening(false));
+          }}
+        >
+          {opening ? t('terms.agree.opening') : t('terms.agree.continue')}
+        </button>
       </div>
-    </footer>
+    </>
   );
 }

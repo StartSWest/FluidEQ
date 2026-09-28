@@ -103,7 +103,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: $control-height-sm;
   padding: 0 10px;
   color: $text-muted;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-xs;
   font-size: $text-small;
   font-variant-numeric: tabular-nums;
@@ -140,7 +140,7 @@ it under the terms of the GNU General Public License version 3 or later.
   max-width: 320px;
   padding: $spacing-m 12px 14px;
   overflow: hidden;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   // The card every pane is (`card-surface`), flat (Ivan, 2026-09-27:
   // "leaderboard bg too", of the DSP card's). It was the block colour under
@@ -349,7 +349,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 12px;
   min-height: 54px;
   padding: 8px 14px 8px 8px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   // The card, as the podium's places are, flat: no shadow under the pointer.
   background: $card-glow, $surface-card;
@@ -501,7 +501,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .leaderboard__skeleton-row {
   display: block;
   height: 54px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   background: linear-gradient(
     90deg,

@@ -1,6 +1,7 @@
 import studioStrings from '../../common/i18n/en/studio';
 import type { IMemberSceneProblem } from '../../common/memberScenes';
 import type { ISceneCamera } from '../../common/sceneCamera';
+import { SCENE_DAYLIGHT_PARAM } from '../../common/sceneDaylight';
 import type { IScenePack } from '../../common/scenePacks';
 import { describeSongMap, songClock } from '../../common/songMap';
 import {
@@ -102,13 +103,23 @@ const worldLines = (world: IWorldReport | undefined): string[] => {
 
 const nameOf = (pack: IScenePack) => pack.names.en ?? pack.id;
 
-const slidersLine = (pack: IScenePack) =>
+/**
+ * The sliders the picture was drawn at. The time of day, unless the caller
+ * chose it, is the member's own Brightness rather than the value pack.json
+ * holds, and is said to be (`sceneDaylight.ts`).
+ */
+const slidersLine = (
+  pack: IScenePack,
+  chosen: Readonly<Record<string, number>>,
+) =>
   pack.params.length === 0
     ? 'The scene has no sliders.'
     : `Sliders in this picture: ${pack.params
-        .map(
-          (param) =>
-            `${param.id} ${Number(param.value.toFixed(4))} (${param.min} to ${param.max})`,
+        .map((param) =>
+          param.id === SCENE_DAYLIGHT_PARAM &&
+          !Object.prototype.hasOwnProperty.call(chosen, param.id)
+            ? `${param.id} at the member's Brightness (${param.min} to ${param.max})`
+            : `${param.id} ${Number(param.value.toFixed(4))} (${param.min} to ${param.max})`,
         )
         .join(', ')}.`;
 
@@ -238,7 +249,7 @@ const describe = (
     `${nameOf(pack)} (id ${pack.id}, version ${pack.version}), drawn by FluidEQ on this computer's GPU exactly as it plays: ${answer.width}x${answer.height} (${request.shape}), ${heard}.`,
     ...worldLines(answer.world),
     `The member's wave: height ${wave.height}, position ${wave.position}, so uSpectrumRect was (${answer.spectrumRect.map((edge) => Number(edge.toFixed(3))).join(', ')}).`,
-    slidersLine(pack),
+    slidersLine(pack, request.sliders),
     momentLine(answer.moment),
     cameraLine(pack, camera, request),
     costLine(answer.drawMs, answer.renderWidth, answer.renderHeight),
@@ -325,7 +336,7 @@ export const createStudioTools = ({ look, hear }: IStudioLook): IMcpTool[] => [
     name: 'look_at_scene',
     title: 'Look at the scene',
     description:
-      "Draws the member's FluidEQ Studio scene on this computer's GPU, exactly as FluidEQ plays it, and returns the picture - or, when it cannot play, FluidEQ's own reasons (pack.json problems, the member rules, the driver's compile errors). Call it after every save that matters and judge the picture before telling the member anything is done. Shapes, silence, a moment in the music, slider values, the wave position, the viewer's camera, pointer and a tap can be chosen for one picture without changing any file, and each answer says what the music was doing at that instant.",
+      "Draws the member's FluidEQ Studio scene on this computer's GPU, exactly as FluidEQ plays it, and returns the picture - or, when it cannot play, FluidEQ's own reasons (pack.json problems, the member rules, the driver's compile errors). Call it after every save that matters and judge the picture before telling the member anything is done. Shapes, silence, a moment in the music, slider values (daylight among them: 0 draws the scene's night, 100 its day), the wave position, the viewer's camera, pointer and a tap can be chosen for one picture without changing any file, and each answer says what the music was doing at that instant.",
     inputSchema: LOOK_SCHEMA,
     annotations: {
       readOnlyHint: true,

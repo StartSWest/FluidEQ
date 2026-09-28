@@ -37,14 +37,16 @@ export interface IGraphScenePack {
 
 /**
  * Where the graph's visualizer stands for a player outside the graph: one of
- * the free looks (`none`), a Plus scene on its way or ready, or one that
- * could not be read — whose place is then the free look's drawing, not an
- * empty box.
+ * the free looks (`none`), a Plus scene on its way or ready, one the caller
+ * is not drawing just now and so has not loaded (`away`), or one that could
+ * not be read — whose place is then the free look's drawing, not an empty
+ * box.
  */
 export type TGraphScene =
   | { state: 'none' }
   | { state: 'loading' }
   | { state: 'failed' }
+  | { state: 'away' }
   | ({ state: 'ready' } & IGraphScenePack);
 
 type TLoad =
@@ -54,12 +56,16 @@ type TLoad =
  * The Plus visualizer the graph is set to, as the listener has it there —
  * the same pack, their own response, settings and wave for it — loaded for a
  * player outside the graph.
+ *
+ * Loaded only while it is drawn (`drawsHere`): a pack can be fifteen
+ * megabytes of artwork, and the amp folded to one line draws no picture.
  */
-const useGraphScenePack = (): TGraphScene => {
+const useGraphScenePack = (drawsHere = true): TGraphScene => {
   const { locale } = useTranslation();
   const scene = useSceneLook();
   const lookId = scene?.lookId ?? '';
-  const loadKey = scene ? `${lookId}@${scene.revision ?? scene.version}` : '';
+  const identity = scene ? `${lookId}@${scene.revision ?? scene.version}` : '';
+  const loadKey = drawsHere ? identity : '';
   // Plain values, so the loading follows the scene and not every rebuild of
   // the store's object for it.
   const member = scene !== null && isMember(scene);
@@ -68,6 +74,8 @@ const useGraphScenePack = (): TGraphScene => {
 
   useEffect(() => {
     if (!loadKey) {
+      // Nothing held for a scene no longer drawn here.
+      setLoaded(undefined);
       return undefined;
     }
     let load: Promise<IScenePack | undefined> | undefined;
@@ -118,6 +126,9 @@ const useGraphScenePack = (): TGraphScene => {
 
   if (!scene) {
     return { state: 'none' };
+  }
+  if (!drawsHere) {
+    return { state: 'away' };
   }
   if (!loaded || loaded.key !== loadKey) {
     return { state: 'loading' };

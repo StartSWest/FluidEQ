@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { isMemberLookId } from 'common/memberScenes';
 import { isPremiumLookId } from 'common/scenePacks';
+import { daylightOfShade, daylightTintStep } from '../graph/sceneDaylight';
 import {
   measureSceneSky,
   measureStudioSky,
@@ -19,6 +20,7 @@ import { LAGOON_SKY } from '../utils/rainbowPalette';
 import { skyFromSwatch } from '../utils/sceneTint';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useUsableScenes } from '../utils/scenePacks';
+import { useThemeShade } from '../utils/theme';
 import {
   lendSceneSky,
   recallSceneSky,
@@ -26,6 +28,7 @@ import {
   studioSkyKey,
   useSceneTintEnabled,
   useStudioTintSource,
+  useWindowTintMode,
 } from '../utils/sceneTintStore';
 
 /**
@@ -61,6 +64,13 @@ const SceneTint = () => {
   const scenes = useUsableScenes();
   const memberScenes = useUsableMemberScenes();
   const hasPainted = useRef(false);
+  // A scene answers to the time of day (`sceneDaylight.ts`), so its colour
+  // is measured, and remembered, at the step of the day the Brightness is at.
+  const hour = daylightTintStep(daylightOfShade(useThemeShade()));
+  // Colours and Ambient hold the scene's colour however low the Brightness
+  // goes; the Backdrop's glass darkens with it (`TSkyTone`). The Studio's
+  // own mode while it is the one asking.
+  const tone = useWindowTintMode() === 'cover' ? 'follow' : 'held';
 
   const isSceneLook = isPremiumLookId(lookId) || isMemberLookId(lookId);
   // THE COLOUR FOLLOWS THE SWITCH, NOT THE PICTURE (Ivan, 2026-09-22: "if the
@@ -98,7 +108,7 @@ const SceneTint = () => {
       measuring
         .then((sky) => {
           if (isCurrent) {
-            showSceneSky(sky ?? undefined, true);
+            showSceneSky(sky ?? undefined, true, tone);
           }
           return undefined;
         })
@@ -114,12 +124,11 @@ const SceneTint = () => {
       // colour held while this one loads. A new save of the same project
       // keeps its colour until the new build is measured.
       const remembered = recallSceneSky(studioSkyKey(studio.project));
-      showSceneSky(remembered?.sky ?? undefined, fade);
+      showSceneSky(remembered?.sky ?? undefined, fade, tone);
       const { playing } = studio;
-      if (playing && remembered?.version !== playing.build) {
-        showMeasured(
-          measureStudioSky(studio.project, playing.build, playing.pack),
-        );
+      const build = playing && `${playing.build}@${hour}`;
+      if (playing && build && remembered?.version !== build) {
+        showMeasured(measureStudioSky(studio.project, build, playing.pack));
       }
       return stop;
     }
@@ -142,20 +151,21 @@ const SceneTint = () => {
     }
     const remembered = recallSceneSky(lookId);
     if (remembered) {
-      showSceneSky(remembered.sky ?? undefined, fade);
+      showSceneSky(remembered.sky ?? undefined, fade, tone);
     } else {
       // Never measured: its swatch's colour as it is chosen, not the last
       // scene's held until this one has loaded and been measured.
       const provisional = swatch ? skyFromSwatch(swatch.split(' ')) : undefined;
       if (provisional) {
-        showSceneSky(provisional, fade);
+        showSceneSky(provisional, fade, tone);
       }
     }
-    if (version !== undefined && remembered?.version !== version) {
-      showMeasured(measureSceneSky(lookId, version));
+    const measuredAs = version === undefined ? undefined : `${version}@${hour}`;
+    if (measuredAs !== undefined && remembered?.version !== measuredAs) {
+      showMeasured(measureSceneSky(lookId, measuredAs));
     }
     return stop;
-  }, [studio, isEnabled, isSceneLook, lookId, version, swatch]);
+  }, [studio, isEnabled, isSceneLook, lookId, version, swatch, hour, tone]);
 
   return null;
 };

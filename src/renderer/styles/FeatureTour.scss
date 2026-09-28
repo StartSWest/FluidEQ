@@ -27,8 +27,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // Two thirds of the window wide, and two thirds tall wherever that is 780px
 // or more. The panel is a presentation, not a form: it is sized to the screen
 // rather than to its content, and the content is sized to the panel — every
-// font below is a fraction of the viewport so a 4K window and a laptop show
-// the same layout at different scales.
+// font on the stage is a fraction of the viewport so a 4K window and a laptop
+// show the same layout at different scales.
 //
 // Shorter windows get up to 72% instead. At two thirds the wordier
 // languages ran the 1.8 slides up to 131px past their stage at 1920 x 1080 —
@@ -37,65 +37,68 @@ it under the terms of the GNU General Public License version 3 or later.
 // column's proportions (`_tour-showcase.scss`) fit all thirteen new slides in
 // all ten languages there. Taller windows keep two thirds, where the extra
 // height would only be empty stage.
-.feature-tour {
-  @include dialog.surface(66vw, 72vh);
-  width: max(66vw, min(920px, 100vw - #{$spacing-l} * 2));
+.dialog-frame.feature-tour {
+  @include dialog.size(
+    max(66vw, min(920px, 100vw - #{$spacing-l} * 2)),
+    calc(100vh - #{$spacing-l} * 2)
+  );
   height: max(66vh, min(72vh, 780px), min(600px, 100vh - #{$spacing-l} * 2));
-  max-height: calc(100vh - #{$spacing-l} * 2);
-  grid-template-rows: auto minmax(0, 1fr) auto;
 
-  // The slide's type scale, one unit everything is a multiple of.
+  // The slide's type scale, one unit everything on the stage is a multiple of.
   --tour-unit: clamp(11px, 0.78vw, 17px);
 }
 
-.feature-tour__body {
-  display: grid;
+// The stage is the tour's own scroller, laid out to fit the panel at its
+// size; the frame's body only holds it.
+.dialog-frame.feature-tour .dialog-frame__body {
+  grid-template-rows: minmax(0, 1fr);
+  padding: 0;
+  overflow: hidden;
+}
+
+// It scrolls when a slide is taller than the window allows, but every slide is
+// laid out to fit at the panel's size on a normal screen. The top clears the
+// frame's close button, which a slide's picture would otherwise run under.
+.feature-tour__stage {
+  @include animate(rise-in, $motion-slow);
   min-height: 0;
-  grid-template-columns: minmax(200px, 21%) minmax(0, 1fr);
+  padding: max(calc(var(--tour-unit) * 1.6), 52px) calc(var(--tour-unit) * 2)
+    calc(var(--tour-unit) * 1.6);
+  overflow-y: auto;
+  @include slim-scrollbar;
 }
 
-// Equal side columns center the contribution link on the header itself,
-// regardless of the title's translated length. The title can shrink safely.
-.feature-tour > .dialog-header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+// *** The list in the rail ***************************************************
+//
+// What is new, under the tour's name in the frame's rail; the active entry is
+// the one on stage. The guide's contents are the same list (`HelpGuide.scss`),
+// so the entries are sized in the rail's own type, not the stage's.
 
-  .dialog-header__close {
-    grid-column: 3;
-    justify-self: end;
-  }
-}
-
-.feature-tour__notes.feature-tour__contribute {
-  grid-column: 2;
-  justify-self: center;
-  text-align: center;
-  font-weight: $weight-bold;
-}
-
-// The rail: what is new, as a list. The active entry is the one on stage.
+// It scrolls on its own, so the name above it stays in sight and the ask at
+// the rail's foot keeps its place. Out to the rail's edges, so an entry's
+// highlight is wider than its words, with room for the focus ring's halo.
 .feature-tour__rail {
   display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
   flex-direction: column;
-  padding: calc(var(--tour-unit) * 1.2) calc(var(--tour-unit) * 0.9);
-  border-right: 1px solid rgba($edge-tint, 0.08);
-  // Lighter than the stage, not darker: on Ocean a well-coloured rail read
-  // as a black slab against the slate panel.
-  background: rgba($white, 0.025);
-  gap: calc(var(--tour-unit) * 0.5);
+  gap: 2px;
+  margin-inline: -13px;
+  padding: 3px;
   overflow-y: auto;
   @include slim-scrollbar;
 }
 
 .feature-tour__rail-item {
   display: grid;
-  align-items: center;
-  padding: calc(var(--tour-unit) * 0.8) calc(var(--tour-unit) * 0.85);
+  flex: 0 0 auto;
+  align-items: start;
+  padding: 8px 10px;
   color: $text-muted;
-  border: 1px solid transparent;
+  border: 0;
   border-radius: $radius-m;
   background: transparent;
-  gap: calc(var(--tour-unit) * 0.8);
+  gap: 12px;
   grid-template-columns: auto minmax(0, 1fr);
   text-align: left;
   cursor: pointer;
@@ -103,30 +106,29 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:hover {
     color: $text-primary;
-    background: $block-lift;
+    background: $hover-lift;
   }
 
   &.is-active {
     color: $text-primary;
-    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
-    background: color-mix(in srgb, $secondary-default 10%, $block-lift);
-    box-shadow: inset 0 1px 0 rgba($white, 0.05);
+    background: color-mix(in srgb, $secondary-default 15%, transparent);
   }
 
   &:focus-visible {
     @include focus-ring;
-    outline: none;
   }
 }
 
 .feature-tour__rail-number {
   display: grid;
-  width: calc(var(--tour-unit) * 2);
-  height: calc(var(--tour-unit) * 2);
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
   color: $text-faint;
-  border: 1px solid rgba($edge-tint, 0.16);
+  border: 1px solid color-mix(in srgb, $edge-tint 18%, transparent);
   border-radius: 50%;
-  font-size: calc(var(--tour-unit) * 0.85);
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
   font-weight: $weight-bold;
   place-items: center;
 
@@ -137,41 +139,88 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The title's first line centred on the number beside it.
 .feature-tour__rail-text {
   display: grid;
   min-width: 0;
   gap: 2px;
+  padding-top: 4px;
 }
 
 .feature-tour__rail-title {
-  font-size: calc(var(--tour-unit) * 1.05);
-  font-weight: $weight-bold;
-  line-height: 1.25;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  line-height: 1.3;
 }
 
 .feature-tour__rail-subtitle {
   color: $text-faint;
-  font-size: calc(var(--tour-unit) * 0.82);
-  line-height: 1.3;
+  font-size: $text-small;
+  line-height: 1.35;
 }
 
-// The stage. It scrolls when a slide is taller than the window allows, but
-// every slide is laid out to fit at the panel's size on a normal screen.
-.feature-tour__stage {
-  @include animate(rise-in, $motion-slow);
-  min-height: 0;
-  padding: calc(var(--tour-unit) * 1.6) calc(var(--tour-unit) * 2);
-  overflow-y: auto;
-  @include slim-scrollbar;
+// The list's two groups and the chip on what is new.
+.feature-tour__rail-heading {
+  flex: 0 0 auto;
+  padding: 14px 10px 4px;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.14em);
+  text-transform: uppercase;
+
+  &:first-child {
+    padding-top: 2px;
+  }
 }
 
-.feature-tour__footer {
-  display: grid;
+.feature-tour__rail-new {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  color: $surface-base;
+  border-radius: $radius-2xs;
+  background: $secondary-light;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.1em);
+  vertical-align: 1px;
+}
+
+// An ask, not a step of the tour: a quiet line at the rail's foot, with the
+// heart the Support menu row wears.
+.feature-tour__contribute {
+  display: inline-flex;
   align-items: center;
-  padding: 10px 16px 12px;
-  border-top: 1px solid rgba($edge-tint, 0.1);
-  gap: $spacing-m;
-  grid-template-columns: auto 1fr auto;
+  align-self: flex-start;
+  gap: 8px;
+  color: $secondary-light;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-decoration: none;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    border-radius: $radius-xs;
+  }
+}
+
+// *** The foot ***************************************************************
+
+.feature-tour__options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 18px;
 }
 
 .feature-tour__tick {
@@ -195,7 +244,6 @@ it under the terms of the GNU General Public License version 3 or later.
 // A link, not a button: it is the way to the longer document, and it must
 // not compete with Next.
 .feature-tour__notes {
-  justify-self: start;
   padding: 4px 2px;
   color: $secondary-light;
   border: 0;
@@ -212,18 +260,15 @@ it under the terms of the GNU General Public License version 3 or later.
   &:focus-visible {
     @include focus-ring;
     border-radius: $radius-xs;
-    outline: none;
   }
 }
 
-.feature-tour__nav {
-  display: flex;
+.dialog-frame__actions.feature-tour__nav {
   align-items: center;
-  gap: $spacing-s;
 }
 
 .feature-tour__count {
-  margin-right: $spacing-s;
+  margin-right: 4px;
   color: $text-faint;
   font-size: $text-small;
   font-variant-numeric: tabular-nums;
@@ -260,13 +305,15 @@ it under the terms of the GNU General Public License version 3 or later.
   text-transform: uppercase;
 }
 
+// Bold, never the display cut: at this size the poster face's counters close
+// up, and it was the one heading in any dialog that shouted.
 .tour-slide__title {
   margin: 0;
   color: $text-primary;
   font-size: calc(var(--tour-unit) * 2.4);
-  font-weight: $weight-display;
-  letter-spacing: -0.01em;
-  line-height: 1.08;
+  font-weight: $weight-bold;
+  @include tracking(-0.01em);
+  line-height: 1.1;
   text-wrap: balance;
 }
 
@@ -284,55 +331,59 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   margin: 0;
   padding: 0;
-  gap: calc(var(--tour-unit) * 0.5);
+  gap: calc(var(--tour-unit) * 0.55);
   list-style: none;
 
   li {
-    @include dialog.section-surface;
     position: relative;
-    padding: calc(var(--tour-unit) * 0.7) calc(var(--tour-unit) * 0.9)
-      calc(var(--tour-unit) * 0.7) calc(var(--tour-unit) * 2);
+    padding-left: calc(var(--tour-unit) * 1.7);
     color: $text-muted;
     font-size: calc(var(--tour-unit) * 0.98);
     line-height: 1.45;
     text-wrap: pretty;
-
-    &::before {
-      position: absolute;
-      top: calc(var(--tour-unit) * 1.2);
-      left: calc(var(--tour-unit) * 0.9);
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: $secondary-light;
-      box-shadow: 0 0 8px color-mix(in srgb, $secondary-light 45%, transparent);
-      content: '';
-    }
   }
 }
 
-.tour-slide__how {
-  @include dialog.section-surface;
-  display: grid;
+// Every point a line with a tick before it — the app's own check — and never
+// a box each: four boxes down a column read as a form to fill in. The
+// showcase slides' three points (`_tour-showcase.scss`) wear the same tick.
+.tour-slide__points li::before,
+.tour-showcase__points li::before {
+  position: absolute;
+  top: calc(var(--tour-unit) * 0.2);
+  left: 0;
+  width: calc(var(--tour-unit) * 1.05);
+  height: calc(var(--tour-unit) * 1.05);
+  background: $secondary-light;
+  content: '';
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+// "How to start": the words and the button that does it, used together, so
+// the one card on the slide (`dialog-frame__group`).
+.tour-slide__how.dialog-frame__group {
   margin-top: auto;
-  padding: calc(var(--tour-unit) * 0.9) calc(var(--tour-unit) * 1);
+  padding: calc(var(--tour-unit) * 0.9) calc(var(--tour-unit) * 1.05);
   gap: calc(var(--tour-unit) * 0.5);
   justify-items: start;
+}
 
-  p {
-    margin: 0;
-    color: $text-muted;
-    font-size: calc(var(--tour-unit) * 0.98);
-    line-height: 1.45;
-    text-wrap: pretty;
-  }
+// One class, so the showcase slides' smaller step (`_tour-showcase.scss`)
+// still outweighs it.
+.tour-slide__how p {
+  margin: 0;
+  color: $text-muted;
+  font-size: calc(var(--tour-unit) * 0.98);
+  line-height: 1.45;
+  text-wrap: pretty;
 }
 
 .tour-slide__how-title {
-  color: rgba($white, 0.9);
-  font-size: calc(var(--tour-unit) * 0.78);
+  color: $text-accent;
+  font-size: calc(var(--tour-unit) * 0.74);
   font-weight: $weight-bold;
-  @include tracking(0.12em);
+  @include tracking(0.13em);
   text-transform: uppercase;
 }
 
@@ -371,18 +422,18 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-columns: minmax(0, 1fr) minmax(0, 46%);
 }
 
+// A sequence, drawn as the troubleshooter draws one: a disc per step and the
+// words beside it, not a box each.
 .tour-share__steps {
   display: grid;
   margin: 0;
   padding: 0;
-  gap: calc(var(--tour-unit) * 0.6);
+  gap: calc(var(--tour-unit) * 0.9);
   list-style: none;
 
   li {
-    @include dialog.section-surface;
     display: grid;
     align-items: start;
-    padding: calc(var(--tour-unit) * 0.8) calc(var(--tour-unit) * 0.9);
     gap: calc(var(--tour-unit) * 0.8);
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -419,19 +470,24 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: calc(var(--tour-unit) * 0.9);
 }
 
+// Three facts side by side, parted by the floor's hairline.
 .tour-share__facts {
   display: grid;
   margin: 0;
   padding: 0;
-  gap: calc(var(--tour-unit) * 0.5);
+  gap: calc(var(--tour-unit) * 0.9);
   grid-template-columns: repeat(3, minmax(0, 1fr));
   list-style: none;
 
   li {
-    @include dialog.section-surface;
     display: grid;
-    padding: calc(var(--tour-unit) * 0.7) calc(var(--tour-unit) * 0.8);
+    align-content: start;
     gap: 3px;
+
+    & + li {
+      padding-left: calc(var(--tour-unit) * 0.9);
+      border-left: dialog.$seam;
+    }
   }
 
   strong {
@@ -448,66 +504,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .tour-share__tip {
   margin: 0;
-  padding: calc(var(--tour-unit) * 0.6) calc(var(--tour-unit) * 0.9);
+  padding: 2px 0 2px calc(var(--tour-unit) * 0.9);
   color: $text-muted;
-  border-left: 3px solid $secondary-default;
-  border-radius: 0 $radius-xs $radius-xs 0;
-  background: color-mix(in srgb, $secondary-default 8%, transparent);
+  border-left: 2px solid $secondary-default;
   font-size: calc(var(--tour-unit) * 0.9);
   line-height: 1.45;
-}
-
-// Narrow windows: the rail becomes one row of entries above the stage, and
-// each slide stacks its two columns.
-@media (max-width: 1100px) {
-  .feature-tour__body {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-  }
-
-  // One row that scrolls sideways, never rows that wrap: wrapped, fifteen
-  // entries took two thirds of the panel in a 1026-wide window and left the
-  // slide a strip 210px tall — 146px at the smallest window.
-  .feature-tour__rail {
-    flex-direction: row;
-    align-items: stretch;
-    overflow-x: auto;
-    overflow-y: hidden;
-    border-right: 0;
-    border-bottom: 1px solid rgba($edge-tint, 0.08);
-  }
-
-  .feature-tour__rail-item {
-    flex: 0 0 calc(var(--tour-unit) * 15);
-    padding: calc(var(--tour-unit) * 0.5) calc(var(--tour-unit) * 0.7);
-  }
-
-  // Two lines at most, so every entry in the row is the same height.
-  .feature-tour__rail-title {
-    display: -webkit-box;
-    overflow: hidden;
-    font-size: calc(var(--tour-unit) * 0.95);
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  .feature-tour__rail-subtitle {
-    display: none;
-  }
-
-  // A label standing before its group, where a line above it had been.
-  .feature-tour__rail-heading {
-    flex: 0 0 calc(var(--tour-unit) * 7.5);
-    align-self: center;
-    padding: 0 calc(var(--tour-unit) * 0.3);
-    line-height: 1.35;
-  }
-
-  .tour-slide--theme,
-  .tour-slide--share,
-  .tour-slide--feature {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -535,24 +536,57 @@ it under the terms of the GNU General Public License version 3 or later.
   background: color-mix(in srgb, $surface-well 70%, transparent);
 }
 
-// The rail's two groups and the chip on what is new.
-.feature-tour__rail-heading {
-  padding: calc(var(--tour-unit) * 0.6) calc(var(--tour-unit) * 0.85) 2px;
-  color: $text-faint;
-  font-size: calc(var(--tour-unit) * 0.7);
-  font-weight: $weight-bold;
-  @include tracking(0.14em);
-  text-transform: uppercase;
+// A stage narrower than the two columns need: each slide stacks them.
+@media (max-width: 1100px) {
+  .tour-slide--theme,
+  .tour-slide--share,
+  .tour-slide--feature {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
-.feature-tour__rail-new {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 1px 6px;
-  color: $surface-base;
-  border-radius: $radius-2xs;
-  background: $secondary-light;
-  font-size: calc(var(--tour-unit) * 0.62);
-  @include tracking(0.1em);
-  vertical-align: 2px;
+// The frame stacked: the rail is the head, and the list one row of entries
+// under the tour's name, above the stage.
+@media (max-width: $bp-md) {
+  // One row that scrolls sideways, never rows that wrap: wrapped, fifteen
+  // entries took two thirds of the panel in a 1026-wide window and left the
+  // slide a strip 210px tall — 146px at the smallest window.
+  .feature-tour__rail {
+    flex: 0 0 auto;
+    flex-direction: row;
+    align-items: stretch;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .feature-tour__rail-item {
+    flex: 0 0 13rem;
+    padding: 6px 8px;
+  }
+
+  // Two lines at most, so every entry in the row is the same height.
+  .feature-tour__rail-title {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .feature-tour__rail-subtitle {
+    display: none;
+  }
+
+  // A label standing before its group, where a line above it had been.
+  .feature-tour__rail-heading,
+  .feature-tour__rail-heading:first-child {
+    flex: 0 0 6.5rem;
+    align-self: center;
+    padding: 0 6px;
+    line-height: 1.35;
+  }
+
+  // The close button is on the rail now, over the head.
+  .feature-tour__stage {
+    padding-top: calc(var(--tour-unit) * 1.6);
+  }
 }

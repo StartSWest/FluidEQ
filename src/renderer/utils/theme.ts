@@ -179,6 +179,7 @@ export type TSurfaceName =
   | '--accent-light'
   | '--accent-dark'
   | '--accent-darker'
+  | '--active'
   | '--dsp-base-curve'
   | '--dsp-output'
   | '--dsp-applied'
@@ -190,7 +191,11 @@ export type TSurfaceName =
   | '--text-faint'
   | '--meter-well'
   | '--meter-well-pulse'
-  | '--meter-unlit';
+  | '--meter-unlit'
+  // Not a colour: the share of the accent's light a control's edge is drawn
+  // at (`themeInk.ts`), for the Media page's site, which has to be handed
+  // the edge as a plain colour.
+  | '--field-edge-share';
 
 /**
  * Changes to the stylesheets themselves: one added or removed, or one
@@ -302,6 +307,18 @@ export const useLiveSurface = (name: TSurfaceName, fallback: string): string =>
     subscribeRoot,
     () => readSurface(name, fallback),
     () => fallback,
+  );
+
+/**
+ * Whether `:root` carries a class, on the same one observer: the look
+ * picker's icons all ask whether Rainbow mode is on, and an observer each
+ * was forty of them watching one attribute.
+ */
+export const useRootHasClass = (name: string): boolean =>
+  useSyncExternalStore(
+    subscribeRoot,
+    () => document.documentElement.classList.contains(name),
+    () => false,
   );
 
 const HEX = /^#([0-9a-f]{6})$/i;

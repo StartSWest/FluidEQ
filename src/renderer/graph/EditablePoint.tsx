@@ -105,14 +105,6 @@ export const forEachGraphPoint = (
   mountedPoints.forEach((state, element) => visit(element, state));
 };
 
-/**
- * How many there are, which is the band count whenever the graph is showing.
- *
- * The spectrum is divided across the bands by index, so anything working out
- * which slice belongs to a handle needs to know how many slices there are.
- */
-export const graphPointCount = () => mountedPoints.size;
-
 interface IEditablePointProps {
   point: IEditableChartPoint;
   svgRef: React.RefObject<SVGSVGElement | null>;
@@ -293,14 +285,12 @@ const EditablePoint = ({
         } as CSSProperties
       }
     >
-      <circle
-        className="graph-edit-point__halo"
-        r={selected || hovered ? 12 : 9}
-      />
-      <circle
-        className="graph-edit-point__dot"
-        r={selected || hovered ? 6.5 : 5}
-      />
+      {/* Rects whose size and corners are the stylesheet's (`App.scss`):
+          rounded all the way they are the round handle, a few pixels the
+          fader cap's square, as the sliders under the graph are. */}
+      <rect className="graph-edit-point__halo" />
+      <rect className="graph-edit-point__dot" />
+      <rect className="graph-edit-point__core" />
     </g>
   );
 };

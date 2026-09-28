@@ -16,13 +16,13 @@ it under the terms of the GNU General Public License version 3 or later.
 // reward for the hardest thing the app asks of anyone.
 //
 // One variable is set on the document root — `--pet-joy`, which is the streak —
-// and one per band, `--band-level`, which is that band's share of the live
-// audio. Nothing else is written to `<html>` while the mode runs, and that is a
-// rule rather than an accident: a custom property on the root is inherited by
-// every element under it, so writing one invalidates the computed style of the
-// whole document, and there is no `contain` anywhere here to stop it at a pane.
-// `--pet-joy` changes when the streak does, which is rarely; the live audio
-// goes to the bands themselves.
+// and one on the selected handle on the graph, `--point-level`, which is its
+// band's share of the live audio. Nothing else is written to `<html>` while the
+// mode runs, and that is a rule rather than an accident: a custom property on
+// the root is inherited by every element under it, so writing one invalidates
+// the computed style of the whole document, and there is no `contain` anywhere
+// here to stop it at a pane. `--pet-joy` changes when the streak does, which is
+// rarely; the live audio goes to the elements that draw it.
 //
 // The hue sweep is a plain CSS animation; only the intensity follows the music,
 // so a loud passage swells and a quiet one settles without anything being
@@ -79,66 +79,19 @@ it under the terms of the GNU General Public License version 3 or later.
     stroke: url('#rhythm-line');
   }
 
-  // Pulsing with the music, and the throttle is what makes it affordable.
+  // The band sliders pulsed here, with a glow round each track that grew with
+  // `--band-level`. The tracks light from inside now, with the mode on or off
+  // (`.range__glow`, written by `BandLevels`), and a ring round a track whose
+  // core already glows was the same light twice. What euphoria still adds to
+  // the row is its colour: the rainbow in place of the resting cyan
+  // (`MainContent.scss`).
   //
-  // Each band's `--band-level` is written straight to that band — no React
-  // render at all — but QUANTISED to twelve steps first, and only written when
-  // a step actually changes. Every element reading one has its style
-  // recalculated on each write, so a continuous value would cost twenty-two
-  // invalidations a second across thirty-one bands for differences nobody can
-  // see. Stepped, it is a handful a second.
-  //
-  // Written to the band and not to the root, which is the point. There was a
-  // `--euphoria-level` on `<html>` alongside this doing the same job for the
-  // whole window; it was removed because nothing ever read it, and an inherited
-  // property on the root costs the entire document's computed style every time
-  // it moves. If a future effect wants the overall loudness, it should be given
-  // to the element that draws it and to nothing else.
-  //
-  // The sliders stay fully opaque. Dimming them read as the EQ being disabled
-  // rather than as it dancing — the pulse belongs in the glow, which adds light
-  // instead of taking it away.
-  //
-  // That rule is why the band handles on the graph are allowed to join in at
-  // all. They mark where a filter sits and they are dragged, so nothing may
-  // make one harder to see or to hit; a glow behind them takes nothing away,
-  // and at silence it is fully transparent, which is to say the handles look
-  // exactly as they do with the mode off until there is music to answer.
-
-  // Fixed blur radii, varying only in colour.
-  //
-  // A shadow's geometry is what makes it expensive: change the blur and the
-  // whole thing is rasterized again, thirty-one times over, every time a band
-  // moves. Change only the colour and the shape is already in hand.
-  //
-  // The pulse survives — `--band-level` drives the alpha instead of the size,
-  // and a band going bright to dim reads the same either way.
-  // The range these mix over is the whole effect, so it runs to the top.
-  //
-  // It used to stop at 75% of the band's colour on the inner ring and 45% on
-  // the outer, which meant the brightest moment in the loudest passage was
-  // still visibly holding something back — the row read as lit-but-dimmed
-  // rather than as lit. A peak now reaches the colour itself.
-  //
-  // The floors matter as much: at silence there is still a ring, because a
-  // band that goes completely dark between beats reads as switched off rather
-  // than as quiet.
-  .bandWrapper .range input[type='range']::-webkit-slider-runnable-track {
-    box-shadow:
-      inset 0 1px 2px rgba($black, 0.38),
-      0 0 10px
-        color-mix(
-          in srgb,
-          var(--slider-color) calc(45% + var(--band-level, 0) * 55%),
-          transparent
-        ),
-      0 0 22px
-        color-mix(
-          in srgb,
-          var(--slider-color) calc(20% + var(--band-level, 0) * 50%),
-          transparent
-        );
-  }
+  // That the pulse adds light and never takes any is why the band handles on
+  // the graph are allowed to join in at all. They mark where a filter sits and
+  // they are dragged, so nothing may make one harder to see or to hit; a glow
+  // behind them takes nothing away, and at silence it is fully transparent,
+  // which is to say the handles look exactly as they do with the mode off
+  // until there is music to answer.
 
   // The selected handle, lit by its own frequency.
   //
@@ -151,12 +104,13 @@ it under the terms of the GNU General Public License version 3 or later.
   // written to at all, so with the mode on they are the handles with the mode
   // off, to the pixel.
   //
-  // `--point-level` is that band's own share of the spectrum — the peak of the
-  // slice of the analyser's frequency axis belonging to it, quantised to twelve
+  // `--point-level` is the music at that band's frequency — the peak of the
+  // graph's own slices in the third of an octave round it, quantised to twelve
   // steps — written straight to the element by `EuphoriaGlow`. It is the same
-  // number reached the same way as `--band-level` on the slider below, and
-  // deliberately from the same function, so a selected handle and its slider
-  // light together rather than nearly together. Select the band at 60Hz and it
+  // number reached the same way as `--band-level` in the band's slider
+  // (`getBandLevel`), deliberately from the same function, so a selected
+  // handle and its slider light together rather than nearly together.
+  // Select the band at 60Hz and it
   // moves on the kick; select the one at 8k and it moves on the hats.
   //
   // The floor is zero, which is what makes the paragraph above true of silence
@@ -177,8 +131,9 @@ it under the terms of the GNU General Public License version 3 or later.
   // for the resting value, and there is no way to write one that Sass and CSS
   // both read the same way.
   //
-  // Fixed blur radii, for the reason the slider track above gives at length:
-  // the geometry of a shadow is the expensive part, and only its colour moves.
+  // Fixed blur radii: the geometry of a shadow is the expensive part — change
+  // the blur and the whole thing is rasterized again — so only its colour
+  // moves.
   .graph-edit-point {
     &.graph-edit-point--selected,
     &:focus-visible {
@@ -311,12 +266,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // the pane rose over seven hundred milliseconds and then snapped back the
   // instant the mode went off — the way out has to be as smooth as the way in,
   // and it is the way out this whole file is currently being read for.
-  // 65 rather than 64 since the pane grew a bottom border, and the same in
-  // App.scss: the extra pixel is the edge, not the drawing. See
-  // `WaveformVisualizer.scss`. The figure is App.scss's `--title-bar-meter`,
-  // read here rather than written twice: a short window's shorter card takes
-  // the meter down with it, and a copy of 65 here would grow the pane out of
-  // that card the moment rainbow mode came on.
+  // The figure is App.scss's `--title-bar-meter`, read here rather than
+  // written twice: a short window's shorter card takes the meter down with
+  // it, and a copy of the number here would grow the pane out of that card
+  // the moment rainbow mode came on.
   .waveform-visualizer {
     height: var(--title-bar-meter);
   }

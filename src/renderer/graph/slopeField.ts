@@ -53,8 +53,14 @@ const MOTE_LIMIT = 90;
 /** How wide the beat's band of light is, as a fraction of the plot. */
 const PULSE_LIFE = 0.5;
 /** The field's grid: this many ticks across the window at the widest. */
-const FIELD_COLUMNS = 40;
-const FIELD_ROWS = 17;
+export const FIELD_COLUMNS = 40;
+export const FIELD_ROWS = 17;
+/**
+ * A tick's head: its barbs reach back this much of the tick and stand out
+ * this much of that to each side.
+ */
+export const TICK_HEAD_BACK = 0.5;
+export const TICK_HEAD_SPREAD = 0.6;
 
 export const createSlopeField = (): SlopeField => ({
   motes: [],
@@ -218,14 +224,58 @@ export const advanceSlopeField = (
   state.trebleLevel = Math.max(treble, state.trebleLevel * release);
 };
 
-/** One stroke of the field: the ticks that share a brightness. */
-export interface IFieldBand {
-  path: Path2D;
+/** A stroke's strength and width, for the ticks or the motes that share it. */
+export interface IFieldStroke {
   alpha: number;
   width: number;
 }
 
-export const createSlopeFieldPaths = (
+/** One tick of the field: its half-length along its angle, and its band. */
+export interface IFieldTick {
+  dx: number;
+  dy: number;
+  /** 0 on the curve, 1 near it, 2 away in the field. */
+  band: number;
+}
+
+/** Where the path of a stroke goes: a `Path2D`, or anything drawn like one. */
+export type IPathSink = Pick<Path2D, 'moveTo' | 'lineTo' | 'quadraticCurveTo'>;
+
+/**
+ * The beat's band, one side of it: the curve offset by `offset`, drawn
+ * through the midpoints as quadratics rather than corner to corner — a
+ * band leaving the curve is a wave, and a chain of straight runs does not
+ * read as one, however finely it is sampled.
+ */
+export const traceFieldPulse = (
+  sink: IPathSink,
+  columns: readonly Projected[],
+  offset: number,
+) => {
+  const row = (index: number) => columns[index][1] + offset;
+  sink.moveTo(columns[0][0], row(0));
+  for (let index = 1; index < columns.length - 1; index += 1) {
+    const [x] = columns[index];
+    const [nextX] = columns[index + 1];
+    sink.quadraticCurveTo(
+      x,
+      row(index),
+      (x + nextX) / 2,
+      (row(index) + row(index + 1)) / 2,
+    );
+  }
+  const last = columns.length - 1;
+  sink.lineTo(columns[last][0], row(last));
+};
+
+/**
+ * The field as it stands this frame, in numbers: the grid and each tick on
+ * it, the strokes the three bands and the motes are drawn with, the motes'
+ * trails, and how far the beat's band has travelled. What the page's
+ * canvas and the engine's slope (`engineLooks/designed/slopeLook.ts`) both
+ * draw from.
+ */
+export const slopeFieldLayout = (
   state: SlopeField,
   columns: readonly Projected[],
   top: number,
@@ -248,8 +298,7 @@ export const createSlopeFieldPaths = (
   /**
    * Three brightnesses: on the curve, near it, and away in the field.
    * One stroke each, so the whole grid is three calls.
-   */
-  /**
+   *
    * The trace carries the drawing; the field behind it is texture and
    * stays quiet.
    *
@@ -259,12 +308,14 @@ export const createSlopeFieldPaths = (
    * goes empty again, which is what this form was reported for to begin
    * with.
    */
-  const bands: IFieldBand[] = [
-    { path: new Path2D(), alpha: 0.4, width: Math.max(1, size * 0.9) },
-    { path: new Path2D(), alpha: 0.17, width: Math.max(0.9, size * 0.75) },
-    { path: new Path2D(), alpha: 0.09, width: Math.max(0.7, size * 0.6) },
+  const bands: IFieldStroke[] = [
+    { alpha: 0.4, width: Math.max(1, size * 0.9) },
+    { alpha: 0.17, width: Math.max(0.9, size * 0.75) },
+    { alpha: 0.09, width: Math.max(0.7, size * 0.6) },
   ];
   const lean = 1 + state.bass * 0.8;
+  // Column by column, each column's rows top to bottom.
+  const ticks: IFieldTick[] = [];
   for (let column = 0; column <= FIELD_COLUMNS; column += 1) {
     const x = frame.left + column * columnStep;
     const curveY = heightAt(x);
@@ -274,87 +325,138 @@ export const createSlopeFieldPaths = (
       const away = Math.abs(y - curveY) / (depth * 0.5);
       // Steep on the curve, settling toward flat away from it.
       const angle = Math.atan(slope * lean) * Math.max(0, 1 - away * 0.75);
-      const dx = Math.cos(angle) * tick;
-      const dy = Math.sin(angle) * tick;
-      const band = away < 0.16 ? bands[0] : bands[away < 0.7 ? 1 : 2];
-      band.path.moveTo(x - dx, y - dy);
-      band.path.lineTo(x + dx, y + dy);
-      /**
-       * A head on the ones you can see one on.
-       *
-       * The field is made of the same arrow the trace is, only further
-       * back — without heads the grid read as dashes and the two did not
-       * look like the same drawing. A head is three segments rather than
-       * one, though, and putting them on all nine hundred marks cost five
-       * milliseconds a frame for two bands drawn at a tenth alpha, where
-       * a head is a pixel nobody resolves. The faint band keeps its
-       * plain tick.
-       */
-      if (band !== bands[2]) {
-        const wing = tick * 0.5;
-        const ux = Math.cos(angle);
-        const uy = Math.sin(angle);
-        band.path.moveTo(
-          x + dx - ux * wing - uy * wing * 0.6,
-          y + dy - uy * wing + ux * wing * 0.6,
-        );
-        band.path.lineTo(x + dx, y + dy);
-        band.path.lineTo(
-          x + dx - ux * wing + uy * wing * 0.6,
-          y + dy - uy * wing - ux * wing * 0.6,
-        );
+      let band = 2;
+      if (away < 0.16) {
+        band = 0;
+      } else if (away < 0.7) {
+        band = 1;
       }
+      ticks.push({
+        dx: Math.cos(angle) * tick,
+        dy: Math.sin(angle) * tick,
+        band,
+      });
     }
   }
 
   // The motes, as trails behind a head: two strokes for the whole flock.
-  const flow: IFieldBand[] = [
-    { path: new Path2D(), alpha: 0.9, width: Math.max(1.4, size * 1.5) },
-    { path: new Path2D(), alpha: 0.3, width: Math.max(0.9, size * 0.9) },
+  const flow: IFieldStroke[] = [
+    { alpha: 0.9, width: Math.max(1.4, size * 1.5) },
+    { alpha: 0.3, width: Math.max(0.9, size * 0.9) },
   ];
-  state.motes.forEach((mote) => {
-    const age = (seconds - mote.bornAt) / MOTE_LIFE;
-    if (age > 1) {
-      return;
-    }
-    const [head] = mote.trail.slice(-1);
-    const previous = mote.trail[mote.trail.length - 2] ?? head;
-    flow[0].path.moveTo(previous[0], previous[1]);
-    flow[0].path.lineTo(head[0], head[1]);
-    for (let i = 1; i < mote.trail.length; i += 1) {
-      flow[1].path.moveTo(mote.trail[i - 1][0], mote.trail[i - 1][1]);
-      flow[1].path.lineTo(mote.trail[i][0], mote.trail[i][1]);
-    }
-  });
+  const motes = state.motes
+    .filter((mote) => (seconds - mote.bornAt) / MOTE_LIFE <= 1)
+    .map((mote) => mote.trail);
 
   /**
    * The beat's band: a ring of light leaving the curve, drawn as the
    * curve offset above and below by how far the pulse has travelled.
    */
-  const pulse = new Path2D();
   const since = seconds - state.beatAt;
-  let pulseAlpha = 0;
-  if (state.beatAt >= 0 && since < PULSE_LIFE) {
-    const travelled = (since / PULSE_LIFE) * depth * 0.45;
-    pulseAlpha = (1 - since / PULSE_LIFE) ** 1.6 * 0.5;
-    // Through the midpoints as quadratics rather than corner to corner:
-    // a band leaving the curve is a wave and a chain of straight runs
-    // does not read as one, however finely it is sampled.
+  const pulsing = state.beatAt >= 0 && since < PULSE_LIFE;
+  const pulse = {
+    travelled: pulsing ? (since / PULSE_LIFE) * depth * 0.45 : 0,
+    alpha: pulsing ? (1 - since / PULSE_LIFE) ** 1.6 * 0.5 : 0,
+  };
+
+  return {
+    left: frame.left,
+    top: frame.top,
+    columnStep,
+    rowStep,
+    tick,
+    bands,
+    ticks,
+    flow,
+    motes,
+    pulse,
+    bass: state.bass,
+    thump: state.thump,
+  };
+};
+
+export type SlopeFieldLayout = ReturnType<typeof slopeFieldLayout>;
+
+/** One stroke of the field: the ticks that share a brightness. */
+export interface IFieldBand extends IFieldStroke {
+  path: Path2D;
+}
+
+export const createSlopeFieldPaths = (
+  state: SlopeField,
+  columns: readonly Projected[],
+  top: number,
+  bottom: number,
+  seconds: number,
+  sizeHeight: number,
+  frame: ISkyFrame,
+) => {
+  const layout = slopeFieldLayout(
+    state,
+    columns,
+    top,
+    bottom,
+    seconds,
+    sizeHeight,
+    frame,
+  );
+  const { columnStep, rowStep, tick } = layout;
+  const bands: IFieldBand[] = layout.bands.map((stroke) => ({
+    ...stroke,
+    path: new Path2D(),
+  }));
+  layout.ticks.forEach(({ dx, dy, band }, index) => {
+    const x = layout.left + Math.floor(index / (FIELD_ROWS + 1)) * columnStep;
+    const y = layout.top + (index % (FIELD_ROWS + 1)) * rowStep;
+    const { path } = bands[band];
+    path.moveTo(x - dx, y - dy);
+    path.lineTo(x + dx, y + dy);
+    /**
+     * A head on the ones you can see one on.
+     *
+     * The field is made of the same arrow the trace is, only further
+     * back — without heads the grid read as dashes and the two did not
+     * look like the same drawing. A head is three segments rather than
+     * one, though, and putting them on all nine hundred marks cost five
+     * milliseconds a frame for two bands drawn at a tenth alpha, where
+     * a head is a pixel nobody resolves. The faint band keeps its
+     * plain tick.
+     */
+    if (band !== 2) {
+      const wing = tick * TICK_HEAD_BACK;
+      const ux = dx / tick;
+      const uy = dy / tick;
+      path.moveTo(
+        x + dx - ux * wing - uy * wing * TICK_HEAD_SPREAD,
+        y + dy - uy * wing + ux * wing * TICK_HEAD_SPREAD,
+      );
+      path.lineTo(x + dx, y + dy);
+      path.lineTo(
+        x + dx - ux * wing + uy * wing * TICK_HEAD_SPREAD,
+        y + dy - uy * wing - ux * wing * TICK_HEAD_SPREAD,
+      );
+    }
+  });
+
+  const flow: IFieldBand[] = layout.flow.map((stroke) => ({
+    ...stroke,
+    path: new Path2D(),
+  }));
+  layout.motes.forEach((trail) => {
+    const [head] = trail.slice(-1);
+    const previous = trail[trail.length - 2] ?? head;
+    flow[0].path.moveTo(previous[0], previous[1]);
+    flow[0].path.lineTo(head[0], head[1]);
+    for (let i = 1; i < trail.length; i += 1) {
+      flow[1].path.moveTo(trail[i - 1][0], trail[i - 1][1]);
+      flow[1].path.lineTo(trail[i][0], trail[i][1]);
+    }
+  });
+
+  const pulse = new Path2D();
+  if (layout.pulse.alpha > 0) {
     [-1, 1].forEach((side) => {
-      const row = (index: number) => columns[index][1] + side * travelled;
-      pulse.moveTo(columns[0][0], row(0));
-      for (let index = 1; index < columns.length - 1; index += 1) {
-        const [x] = columns[index];
-        const [nextX] = columns[index + 1];
-        pulse.quadraticCurveTo(
-          x,
-          row(index),
-          (x + nextX) / 2,
-          (row(index) + row(index + 1)) / 2,
-        );
-      }
-      const last = columns.length - 1;
-      pulse.lineTo(columns[last][0], row(last));
+      traceFieldPulse(pulse, columns, side * layout.pulse.travelled);
     });
   }
 
@@ -362,9 +464,10 @@ export const createSlopeFieldPaths = (
     bands,
     flow,
     pulse,
-    pulseAlpha,
-    bass: state.bass,
-    thump: state.thump,
+    pulseAlpha: layout.pulse.alpha,
+    bass: layout.bass,
+    thump: layout.thump,
+    layout,
   };
 };
 

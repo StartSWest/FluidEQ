@@ -26,7 +26,9 @@ import type { IEngineSetupResult } from 'main/engineSetup';
 import Dropdown from './widgets/Dropdown';
 import Button from './widgets/Button';
 import SidebarSection from './components/SidebarSection';
+import CompactFrame from './components/CompactFrame';
 import RoomOutputNotice from './components/RoomOutputNotice';
+import MenuIcon from './icons/MenuIcon';
 import { IOptionEntry } from './widgets/List';
 import { useFluidEqShell } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
@@ -394,38 +396,32 @@ const DeviceProfiles = ({
       {showEngineNotice &&
         selectedDevice &&
         createPortal(
-          <aside
+          <CompactFrame
             className="device-apo-notice"
-            role="alertdialog"
-            aria-modal="true"
-            aria-labelledby="device-apo-notice-title"
+            tone="warn"
+            // The power mark where the output can be switched on from here;
+            // the warning where nothing in FluidEQ can reach it.
+            icon={
+              <MenuIcon
+                name={cannotHostEffects || effectsTurnedOff ? 'alert' : 'power'}
+              />
+            }
+            title={noticeCopy(selectedDevice).title}
+            titleId="device-apo-notice-title"
+            // Over the page, not in front of it: the output panel and every
+            // other control stay usable while this waits for an answer.
+            role="dialog"
+            aria-modal="false"
             aria-describedby="device-apo-notice-body"
-          >
-            <div className="device-apo-notice__copy">
-              <span className="apo-badge">{t('output.off')}</span>
-              <h2 id="device-apo-notice-title">
-                {noticeCopy(selectedDevice).title}
-              </h2>
-              <p id="device-apo-notice-body">
-                {noticeCopy(selectedDevice).body}
-              </p>
-              {attachFailure && (
-                <p className="device-apo-notice__error">
-                  {t(
-                    attachFailure === 'declined'
-                      ? 'engine.declined'
-                      : 'engine.failed',
-                  )}
-                </p>
-              )}
-            </div>
-            <div className="device-apo-notice__actions">
-              {/* Under the engine this is one Windows prompt and a moment of
-                  silence, so it is done from here; under Equalizer APO the
-                  only way in is APO's own Device Selector, which is a
-                  different program and a restart. On an output Windows runs
-                  no effects on, there is nothing to do but know it. */}
-              {cannotHostEffects ? (
+            onClose={() => setDismissedApoDeviceId(selectedDevice.id)}
+            closeLabel={t('app.dismiss')}
+            actions={
+              // Under the engine this is one Windows prompt and a moment of
+              // silence, so it is done from here; under Equalizer APO the
+              // only way in is APO's own Device Selector, which is a
+              // different program and a restart. On an output Windows runs no
+              // effects on, there is nothing to do but know it.
+              cannotHostEffects ? (
                 <Button
                   ariaLabel={t('output.gotIt')}
                   isDisabled={false}
@@ -436,22 +432,8 @@ const DeviceProfiles = ({
                 >
                   {t('output.gotIt')}
                 </Button>
-              ) : null}
-              {/* The one switch nothing in FluidEQ can reach: it is Windows'
-                  own, it needs the machine's administrator, and while it is
-                  off no engine is ever loaded. So the notice takes them to
-                  the page that has it rather than offering a repair here
-                  that would do nothing. */}
-              {effectsTurnedOff ? (
+              ) : (
                 <>
-                  <Button
-                    ariaLabel={t('output.openSoundSettings')}
-                    isDisabled={false}
-                    className="small"
-                    handleChange={openWindowsSoundSettings}
-                  >
-                    {t('output.openSoundSettings')}
-                  </Button>
                   <Button
                     ariaLabel={t('output.notNow')}
                     isDisabled={false}
@@ -462,16 +444,27 @@ const DeviceProfiles = ({
                   >
                     {t('output.notNow')}
                   </Button>
-                </>
-              ) : null}
-              {cannotHostEffects || effectsTurnedOff ? null : (
-                <>
-                  {isFluid ? (
-                    // Not disabled while it works, as in the engine update
-                    // notice: a disabled button drops the `is-running` breath,
-                    // and this one says the enabling is under way — often
-                    // without anyone having pressed it. A second press is
-                    // refused by `handleEnableEngine` itself.
+                  {/* The one switch nothing in FluidEQ can reach: it is
+                      Windows' own, it needs the machine's administrator, and
+                      while it is off no engine is ever loaded. So the notice
+                      takes them to the page that has it rather than offering
+                      a repair here that would do nothing. */}
+                  {effectsTurnedOff && (
+                    <Button
+                      ariaLabel={t('output.openSoundSettings')}
+                      isDisabled={false}
+                      className="small"
+                      handleChange={openWindowsSoundSettings}
+                    >
+                      {t('output.openSoundSettings')}
+                    </Button>
+                  )}
+                  {/* Not disabled while it works, as in the engine update
+                      notice: a disabled button drops the `is-running` breath,
+                      and this one says the enabling is under way — often
+                      without anyone having pressed it. A second press is
+                      refused by `handleEnableEngine` itself. */}
+                  {!effectsTurnedOff && isFluid && (
                     <Button
                       ariaLabel={t('output.enable')}
                       isDisabled={false}
@@ -480,30 +473,32 @@ const DeviceProfiles = ({
                     >
                       {t('output.enable')}
                     </Button>
-                  ) : (
+                  )}
+                  {!effectsTurnedOff && !isFluid && (
                     <Button
                       ariaLabel={t('output.apoConfigure')}
                       isDisabled={false}
-                      className="default"
+                      className="small"
                       handleChange={handleConfigureApo}
                     >
                       {t('output.apoConfigure')}
                     </Button>
                   )}
-                  <Button
-                    ariaLabel={t('output.notNow')}
-                    isDisabled={false}
-                    className={isFluid ? 'small subtle' : 'subtle'}
-                    handleChange={() =>
-                      setDismissedApoDeviceId(selectedDevice.id)
-                    }
-                  >
-                    {t('output.notNow')}
-                  </Button>
                 </>
-              )}
-            </div>
-          </aside>,
+              )
+            }
+          >
+            <p id="device-apo-notice-body">{noticeCopy(selectedDevice).body}</p>
+            {attachFailure && (
+              <p className="device-apo-notice__error">
+                {t(
+                  attachFailure === 'declined'
+                    ? 'engine.declined'
+                    : 'engine.failed',
+                )}
+              </p>
+            )}
+          </CompactFrame>,
           document.body,
         )}
       {/* The Room's one press to 7.1, on the output being played through,

@@ -55,13 +55,17 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // ---------------------------------------------------------------- shared
 
+// The app's own card (`section-card`): its fill, edge and corner, as the
+// Plus menu beside the Studio and every page's card wear them. It was the
+// edge alone, and on the floor each card read as a hollow frame, darker
+// inside than the Plus menu's card next to it (Ivan, 2026-09-27: "fix studio
+// panes color it sucks").
 .studio-card {
+  @include section-card;
   display: grid;
   gap: 9px;
   align-content: start;
   padding: 11px 12px;
-  border: 1px solid $border-subtle;
-  border-radius: $radius-m;
 }
 
 .studio-card__eyebrow {
@@ -90,10 +94,14 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   min-width: 0;
 
-  // Parted by a hairline, not boxed: they are four parts of one card.
+  // Parted by a line, not boxed: they are four parts of one card. The quiet
+  // rule the Plus menu parts its admin place with, as the Studio's tabs and
+  // head are ruled (Ivan, 2026-09-27: "same color on dividers in the right
+  // option pane"): the rows' hairline, solved to read against a card, drew
+  // every part of the Studio as a box.
   & + & {
     margin-top: 2px;
-    border-top: 1px solid $border-subtle;
+    border-top: 1px solid $menu-rule;
   }
 }
 
@@ -235,7 +243,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-bench__version {
   flex: none;
   padding: 1px $spacing-xs;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-2xs;
   background: $hover-lift;
   color: $text-faint;
@@ -306,9 +314,16 @@ $studio-room-under-stage: 220px;
   min-width: 0;
 
   // The divider under the stage sits in the gap to what follows rather than
-  // adding a gap of its own: a 12px seam with the grip in its middle.
+  // adding a gap of its own: a 12px seam with the grip in its middle, and the
+  // grip alone. The stage's own edge and the tabs' rule already part the two,
+  // and a hairline across the seam between them was a third line in 40px
+  // (Ivan, 2026-09-27: "remove the splitter bar just keep splitter handle").
   > .pane-resizer {
     margin-block: calc(-1 * #{$spacing-s});
+
+    &::before {
+      display: none;
+    }
   }
 
   // The stage eases when its size is picked; under a held divider that ease
@@ -338,17 +353,6 @@ $studio-room-under-stage: 220px;
   .studio-stage--full {
     max-width: calc((100cqh - #{$studio-room-under-stage}) * 2.35);
     margin-inline: auto;
-  }
-
-  .studio-stage--wide {
-    max-width: min(
-      640px,
-      calc((100cqh - #{$studio-room-under-stage}) * 16 / 9)
-    );
-  }
-
-  .studio-stage--narrow {
-    max-width: min(260px, calc((100cqh - #{$studio-room-under-stage}) * 2 / 3));
   }
 }
 

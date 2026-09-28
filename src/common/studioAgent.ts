@@ -146,6 +146,12 @@ export interface IStudioAgentDrawAsk {
   camera?: ISceneCamera;
   pointer?: IStudioAgentPointer;
   tap?: IStudioAgentTap;
+  /**
+   * The time of day to draw at, 0 night to 100 day (`sceneDaylight.ts`),
+   * when the caller chose one. Absent: the window's own Brightness, which is
+   * what the scene is playing at on the member's screen.
+   */
+  daylight?: number;
 }
 
 /**

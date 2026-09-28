@@ -46,6 +46,14 @@ const surfaceFor = (
 
 /** How far the halo reaches, in moon radii. */
 export const HALO_REACH = 4.5;
+/** Where the halo's light starts falling off, in moon radii. */
+export const HALO_INNER = 0.8;
+/** The halo's light from there to its reach. */
+export const HALO_STOPS = [
+  { at: 0, colour: 'rgba(236,232,210,0.55)' },
+  { at: 0.35, colour: 'rgba(200,205,235,0.16)' },
+  { at: 1, colour: 'rgba(160,170,220,0)' },
+];
 
 /** The moon's halo, centred on the moon, in the caller's scene space. */
 export const paintMoonHalo = (
@@ -69,14 +77,12 @@ export const paintMoonHalo = (
       const halo = target.createRadialGradient(
         reach,
         reach,
-        radius * 0.8,
+        radius * HALO_INNER,
         reach,
         reach,
         reach,
       );
-      halo.addColorStop(0, 'rgba(236,232,210,0.55)');
-      halo.addColorStop(0.35, 'rgba(200,205,235,0.16)');
-      halo.addColorStop(1, 'rgba(160,170,220,0)');
+      HALO_STOPS.forEach(({ at, colour }) => halo.addColorStop(at, colour));
       target.fillStyle = halo;
       target.beginPath();
       target.arc(reach, reach, reach, 0, Math.PI * 2);
@@ -91,6 +97,20 @@ export const paintMoonHalo = (
 /** The two mist bands' strip: this far above the base, this deep. */
 export const MIST_TOP = 0.72;
 export const MIST_DEPTH = 0.5;
+/**
+ * The bands: where each is thickest, as a height above the base, and how
+ * thick against the lower one. Each rises from nothing `MIST_ABOVE` of the
+ * depth above that and falls to nothing `MIST_BELOW` under it.
+ */
+export const MIST_BANDS = [
+  { band: 0.62, weight: 1 },
+  { band: 0.34, weight: 0.7 },
+];
+export const MIST_ABOVE = 0.08;
+export const MIST_BELOW = 0.06;
+/** The mist's colour, and how solid the thicker band is at its middle. */
+export const MIST_INK = [159, 180, 232] as const;
+export const MIST_PEAK = 0.16;
 
 /** Two bands of mist between the tiers, the lower one denser. */
 export const paintMist = (
@@ -113,25 +133,28 @@ export const paintMist = (
     height * ratio,
     (target) => {
       target.scale(ratio, ratio);
-      [
-        [0.62, 1],
-        [0.34, 0.7],
-      ].forEach(([band, weight]) => {
+      const ink = MIST_INK.join(',');
+      MIST_BANDS.forEach(({ band, weight }) => {
         const y = depth * (MIST_TOP - band);
         const mist = target.createLinearGradient(
           0,
-          y - depth * 0.08,
+          y - depth * MIST_ABOVE,
           0,
-          y + depth * 0.06,
+          y + depth * MIST_BELOW,
         );
-        mist.addColorStop(0, 'rgba(159,180,232,0)');
+        mist.addColorStop(0, `rgba(${ink},0)`);
         mist.addColorStop(
           0.5,
-          `rgba(159,180,232,${(0.16 * weight).toFixed(3)})`,
+          `rgba(${ink},${(MIST_PEAK * weight).toFixed(3)})`,
         );
-        mist.addColorStop(1, 'rgba(159,180,232,0)');
+        mist.addColorStop(1, `rgba(${ink},0)`);
         target.fillStyle = mist;
-        target.fillRect(0, y - depth * 0.08, width, depth * 0.14);
+        target.fillRect(
+          0,
+          y - depth * MIST_ABOVE,
+          width,
+          depth * (MIST_ABOVE + MIST_BELOW),
+        );
       });
     },
   );

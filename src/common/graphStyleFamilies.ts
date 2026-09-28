@@ -69,6 +69,7 @@ const FAMILIES: Record<GraphStyle, TGraphStyleFamily> = {
   fallblocks: 'scenes',
   fibers: 'scenes',
   afterglow: 'scenes',
+  horizon: 'scenes',
   line: 'lines',
   area: 'fills',
   bars: 'bars',

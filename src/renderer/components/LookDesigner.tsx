@@ -25,7 +25,6 @@ import {
   useState,
 } from 'react';
 import { TranslationKey } from 'common/i18n';
-import { sceneOwnColours } from 'common/graphSceneViews';
 import {
   GraphPalette,
   GraphStyle,
@@ -37,19 +36,15 @@ import {
   hasGraphGap,
   isDiscreteGraphStyle,
   resolveGraphPalette,
-  ResolvedGraphPalette,
 } from 'common/graphStyles';
 import { GRAPH_CHANNELS } from 'common/graphChannels';
 import { GRAPH_TILTS, hasGraphTilt } from 'common/graphAnalysis';
 import {
-  DEFAULT_LEVEL_COLOURS,
-  DEFAULT_SIGNAL_COLOUR,
   ICustomLook,
   ILookTuning,
   MAX_ATTACK_MS,
   MAX_FILL_OPACITY,
   MAX_GLOW,
-  MAX_LOOK_COLOURS,
   MAX_LOOK_NAME_LENGTH,
   MAX_RELEASE_MS,
   MAX_STROKE_WIDTH,
@@ -73,9 +68,14 @@ import {
   rebaseDraftLook,
   recolourDraftLook,
 } from 'common/customLooks';
+import DialogClose from './DialogClose';
 import LookTextureRow from './LookTextureRow';
-import { BAND_SPECTRUM_HEX } from '../utils/bandColors';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
+import {
+  useWindowColours,
+  windowColours,
+  windowPrimary,
+} from '../utils/windowInk';
 import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
 import Switch from '../widgets/Switch';
@@ -145,30 +145,20 @@ const PALETTE_CHOICES: {
 /**
  * Where a palette's colours start when somebody decides to change them.
  *
- * Not the same question as `getDefaultPaletteColours`, which answers "what does
- * this palette paint if left alone" — and for two of the three the answer there
- * is "the colours already on screen", which is no use to a colour picker. This
- * one always returns something editable, starting from what is currently drawn
- * so the first thing the panel shows is not a change — which, for a drawn
- * scene on Auto, is the scene's own colours (`SCENE_OWN_COLOURS`), not its
- * palette's.
+ * A look with none of its own is drawn in the window's colours — Normal mode's
+ * primary and secondary, Rainbow mode's palette (`windowInk.ts`) — so that is
+ * where the panel starts: the first thing it shows is what is on screen, and
+ * the first stop somebody changes turns the window's set into the look's own.
+ * `set` is the window's set as the caller read it: the hook's in a render, the
+ * store's in a click.
  */
-const seedLookColours = (style: GraphStyle, choice: GraphPalette): string[] => {
-  const own = choice === 'auto' ? sceneOwnColours(style) : undefined;
-  if (own) {
-    return [...own];
-  }
-  const palette: ResolvedGraphPalette = resolveGraphPalette(style, choice);
-  // Heat walks a ramp with the loudness rather than painting one, so it opens
-  // on the same stops as level — the colours mean the same thing in both, and
-  // only what moves along them differs.
-  if (palette === 'level' || palette === 'heat') {
-    return [...DEFAULT_LEVEL_COLOURS];
-  }
-  if (palette === 'rainbow') {
-    return BAND_SPECTRUM_HEX.slice(0, MAX_LOOK_COLOURS);
-  }
-  return [DEFAULT_SIGNAL_COLOUR];
+const seedLookColours = (
+  set: readonly string[],
+  style: GraphStyle,
+  choice: GraphPalette,
+): string[] => {
+  const palette = resolveGraphPalette(style, choice);
+  return set.slice(0, getMaxLookColours(palette));
 };
 
 /**
@@ -523,7 +513,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
     (current: ICustomLook) =>
       current.colours.length
         ? current.colours
-        : seedLookColours(current.style, current.palette),
+        : seedLookColours(windowColours(), current.style, current.palette),
     [],
   );
 
@@ -554,10 +544,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
       const colours = editableColours(current);
       return {
         ...current,
-        colours: [
-          ...colours,
-          colours[colours.length - 1] ?? DEFAULT_SIGNAL_COLOUR,
-        ],
+        colours: [...colours, colours[colours.length - 1] ?? windowPrimary()],
       };
     });
   }, [editableColours]);
@@ -590,9 +577,11 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
    * What the swatches draw: the draft's own stops, or the seed standing in
    * for "the ones already on screen". Only the first is ever saved.
    */
-  const shownColours = draft.colours.length
-    ? draft.colours
-    : seedLookColours(draft.style, draft.palette);
+  const windowSet = useWindowColours();
+  const followsWindow = draft.colours.length === 0;
+  const shownColours = followsWindow
+    ? seedLookColours(windowSet, draft.style, draft.palette)
+    : draft.colours;
 
   const paletteHintKey = PALETTE_CHOICES.find(
     (choice) => choice.value === draft.palette,
@@ -701,15 +690,12 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
     >
       <div className="look-designer__header">
         <h2>{t(origin.isEditing ? 'look.edit' : 'look.new')}</h2>
-        <button
-          type="button"
+        <DialogClose
           className="look-designer__close"
-          onClick={onClose}
-          aria-label={t('look.close')}
-          title={t('look.closeHint')}
-        >
-          ✕
-        </button>
+          label={t('look.close')}
+          hint={t('look.closeHint')}
+          onClose={onClose}
+        />
       </div>
 
       {/* The form is chosen with the picker in the header, not in here.
@@ -744,17 +730,12 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
                 title={t(choice.hint)}
                 onClick={() =>
                   // The stops belong to the palette and do not survive it — see
-                  // `recolourDraftLook` — and the new palette's are filled in
-                  // rather than left empty, so there is always a ramp to edit.
-                  setDraft((current) => {
-                    const next = recolourDraftLook(current, choice.value);
-                    return next.colours.length
-                      ? next
-                      : {
-                          ...next,
-                          colours: seedLookColours(next.style, next.palette),
-                        };
-                  })
+                  // `recolourDraftLook` — and the new palette follows the
+                  // window's colours until somebody changes one: seeding them
+                  // here froze a look in the colours the window had that day.
+                  setDraft((current) =>
+                    recolourDraftLook(current, choice.value),
+                  )
                 }
               >
                 {t(choice.label)}
@@ -770,11 +751,9 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             <button
               type="button"
               className="look-designer__reset"
+              // Back to following the window's colours.
               onClick={() =>
-                setDraft((current) => ({
-                  ...current,
-                  colours: seedLookColours(current.style, current.palette),
-                }))
+                setDraft((current) => ({ ...current, colours: [] }))
               }
             >
               {t('look.reset')}
@@ -815,6 +794,11 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             className="look-designer__ramp"
             style={{ backgroundImage: rampPreview }}
           />
+          {followsWindow && (
+            <span className="look-designer__hint">
+              {t('look.coloursFollowWindow')}
+            </span>
+          )}
         </div>
 
         <SettingRow
@@ -1236,7 +1220,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
         )}
         <button
           type="button"
-          className="look-designer__button look-designer__button--primary"
+          className="button small look-designer__save"
           onClick={handleSave}
           disabled={isFull}
           title={isFull ? t('look.full') : t('look.saveHint')}

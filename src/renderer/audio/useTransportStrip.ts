@@ -124,7 +124,13 @@ const useTransportStrip = (
     };
     applyHeight();
     const observer = new ResizeObserver(applyHeight);
-    observer.observe(element);
+    // The border box, which is what `offsetHeight` reads. Observed by its
+    // content box, a bar that grew only in its padding was never measured
+    // again: under the Backdrop's glass it is 10px taller with the same
+    // content, and the layout went on reserving the old height, the panes
+    // standing on the bar's glass with no gap (Ivan, 2026-09-27: "fix the
+    // bottom no gap on player bar").
+    observer.observe(element, { box: 'border-box' });
     return () => observer.disconnect();
   }, [ref, isFloating, isShowing]);
 };

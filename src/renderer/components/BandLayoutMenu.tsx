@@ -274,9 +274,12 @@ export default function BandLayoutMenu() {
                 >
                   {t('config.cancel')}
                 </button>
+                {/* Red like every answer that deletes (`button small danger`):
+                    the accent here said "go" on the one question in the menu
+                    that takes something away. */}
                 <button
                   type="button"
-                  className="button small"
+                  className="button small danger"
                   disabled={busy}
                   onClick={() =>
                     perform(() => deleteBandDesign(deleting.id), false)

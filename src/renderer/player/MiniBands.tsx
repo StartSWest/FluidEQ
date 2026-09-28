@@ -256,19 +256,10 @@ const MiniBands = ({ onFocus }: { onFocus: TFocus }) => {
         }}
       />
       <span className="player-bands__rule" aria-hidden="true" />
-      {/* The bands' travel, printed beside the bands. It used to stand at the
-          head of the row, where it read as the preamp's as well — and once the
-          preamp reached -60 dB that was a scale saying one thing while the
-          fader beside it did another. The preamp keeps no printed scale: it is
-          a level, not a band gain, it carries its own AUTO/PRE label and its
-          value in its tooltip, and the side panel is where an exact one is
-          typed. A second column of digits for one fader costs this row more
-          than it gives. */}
-      <div className="player-bands__scale" aria-hidden="true">
-        <span>{`+${MAX_GAIN}`}</span>
-        <span>0</span>
-        <span>{`−${Math.abs(MIN_GAIN)}`}</span>
-      </div>
+      {/* No printed scale beside the bands: every fader carries its own
+          figure under it now (the refined amp, 2026-09-26), which says more
+          than a +20 / 0 / −20 column did and takes the column's width back
+          for the bands. */}
       <div className="player-bands__faders" ref={fadersRef}>
         {bands.map((band, i) => (
           <MiniBand

@@ -2,6 +2,8 @@ import { useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { IWallpaperScreen, TWallpaperError } from '../../common/wallpaper';
 import Glyph from '../community/Glyph';
+import DialogFrame from '../components/DialogFrame';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import LookSwatch from './LookSwatch';
@@ -78,26 +80,42 @@ export default function WallpaperManageDialog({
         }
       }}
     >
-      <div
+      <DialogFrame
         ref={surfaceRef}
         className="wallpaper-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={`${headingId}-title`}
-        aria-describedby={`${headingId}-lead`}
+        icon={<MenuIcon name="monitor" />}
+        title={t('wallpaper.title')}
+        titleId={`${headingId}-title`}
+        description={t('wallpaper.manage.description')}
+        closeLabel={t('wallpaper.done')}
+        onClose={onClose}
+        footer={
+          <>
+            {/* Every monitor's Stop is on its row; this one stops them all,
+                apart from Done so it is never read as the dialog's answer. */}
+            {rows.length > 1 && (
+              <button
+                type="button"
+                className="button small subtle"
+                disabled={operation.pending}
+                onClick={() => stopWallpaper()}
+              >
+                {t('wallpaper.stopAll')}
+              </button>
+            )}
+            <div className="dialog-frame__actions">
+              <button
+                ref={doneRef}
+                type="button"
+                className="button small"
+                onClick={onClose}
+              >
+                {t('wallpaper.done')}
+              </button>
+            </div>
+          </>
+        }
       >
-        <div className="wallpaper-dialog__head">
-          <span className="wallpaper-dialog__mark" aria-hidden="true">
-            <Glyph name="monitor" />
-          </span>
-          <h2 id={`${headingId}-title`} className="wallpaper-dialog__title">
-            {t('wallpaper.title')}
-          </h2>
-        </div>
-        <p id={`${headingId}-lead`} className="wallpaper-dialog__lead">
-          {t('wallpaper.manage.description')}
-        </p>
-
         <MonitorStage layout={layout} label={t('wallpaper.monitors')}>
           {(placement) => {
             const screen = screens.find(
@@ -253,28 +271,7 @@ export default function WallpaperManageDialog({
             {t('wallpaper.manage.empty')}
           </p>
         )}
-
-        <div className="wallpaper-dialog__foot">
-          {rows.length > 1 && (
-            <button
-              type="button"
-              className="button small subtle"
-              disabled={operation.pending}
-              onClick={() => stopWallpaper()}
-            >
-              {t('wallpaper.stopAll')}
-            </button>
-          )}
-          <button
-            ref={doneRef}
-            type="button"
-            className="button small"
-            onClick={onClose}
-          >
-            {t('wallpaper.done')}
-          </button>
-        </div>
-      </div>
+      </DialogFrame>
     </div>,
     document.body,
   );

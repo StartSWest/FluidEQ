@@ -13,14 +13,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * 2026-09-25: "10 mas de esos con creatividad pero sin irse a crear scenas
  * solo vizualisers") — visualizers, no scenery; four of those he did not
  * like were replaced the same morning, and the Mesh went into the Waterfall,
- * which draws the same history against the scale.
+ * which draws the same history against the scale. Horizon came the day after,
+ * from a picture Ivan loved ("make one like this one").
  *
  * Filed under Scenes with the ones before them, and drawn apart from them,
  * like the measuring views: each is several paths, layers and lights rather
  * than one figure, so the graph hands each the frame and lets it draw itself
  * (`renderer/graph/sceneViews/`). They obey the style editor all the same —
  * colour by, pieces, gap, filled or outlined, opacity, line width, texture,
- * lit peaks and glow — through one reading of it (`sceneFrame.ts`).
+ * lit peaks and glow — through one reading of it (`sceneFrame.ts`). With no
+ * colours of their own they paint in the window's (`windowInk.ts`), as every
+ * other look does.
  */
 export const SCENE_VIEW_STYLES = [
   'ledwall',
@@ -42,48 +45,10 @@ export const SCENE_VIEW_STYLES = [
   'fallblocks',
   'fibers',
   'afterglow',
+  'horizon',
 ] as const;
 
 export type TSceneViewStyle = (typeof SCENE_VIEW_STYLES)[number];
 
 export const isSceneViewStyle = (style: string): style is TSceneViewStyle =>
   (SCENE_VIEW_STYLES as readonly string[]).includes(style);
-
-/**
- * Each scene as the real thing is coloured, for a look on Auto with no
- * colours of its own, ramped from the scene's floor to its top: an LED
- * board's green to red, glass from aqua to violet, the sea from the deep to
- * the shallows, synthwave's cyan grid, violet range and magenta-to-gold sun.
- *
- * Here rather than beside the drawing so the style editor can show the same
- * stops the scene is painted in; a scene not listed is painted in its
- * palette's own colours, as every other form is.
- */
-export const SCENE_OWN_COLOURS: Partial<
-  Record<TSceneViewStyle, readonly string[]>
-> = {
-  ledwall: ['#00e676', '#76ff03', '#ffea00', '#ff9100', '#ff1744'],
-  towers: ['#00e5cf', '#00b0ff', '#7c4dff', '#e040fb'],
-  tide: ['#020b22', '#0a2a5c', '#0f5d9c', '#1aa3d9', '#8fe8ff'],
-  synthwave: ['#00e5ff', '#7c4dff', '#b04dff', '#ff2e97', '#ffb300', '#fff176'],
-  ledbars: ['#19e37a', '#9cf23a', '#f5e63b', '#ff9a2e', '#ff3b3b'],
-  neonbars: ['#00f0ff', '#3d7bff', '#a24bff', '#ff3fd4', '#ff6b6b'],
-  bars3d: ['#2de2e6', '#3a86ff', '#8338ec', '#ff006e', '#fb5607'],
-  spectrumwave: ['#00e5ff', '#6c63ff', '#ff4ecd'],
-  silkwaves: ['#00d2ff', '#7b61ff', '#ff5ec8', '#ffb86b'],
-  mirrorbars: ['#3ee7ff', '#6a7bff', '#c86bff', '#ff6bd1'],
-  pixelbars: ['#29adff', '#00e436', '#ffec27', '#ffa300', '#ff004d'],
-  sparkbars: ['#ff3d00', '#ff9100', '#ffd600', '#fff59d'],
-  glitchbars: ['#00f5ff', '#7a5cff', '#ff2ec4'],
-  halftone: ['#1de9b6', '#00b0ff', '#651fff', '#ff4081'],
-  bouncedots: ['#00e5ff', '#76ff03', '#ffea00', '#ff4081'],
-  fallblocks: ['#00e5ff', '#00e676', '#ffea00', '#ff9100', '#ff1744'],
-  fibers: ['#00e5ff', '#7c4dff', '#ff4081'],
-  afterglow: ['#00e5ff', '#7c4dff', '#ff2e97', '#ffb300'],
-};
-
-/** The scene's own stops, if it is a scene that has them. */
-export const sceneOwnColours = (
-  style: string,
-): readonly string[] | undefined =>
-  isSceneViewStyle(style) ? SCENE_OWN_COLOURS[style] : undefined;

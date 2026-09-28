@@ -168,17 +168,6 @@ $stage-edge: $border-menu;
   aspect-ratio: 2.35 / 1;
 }
 
-// The narrow panel a phone-width window gives the graph.
-.studio-stage--narrow {
-  max-width: 260px;
-  aspect-ratio: 2 / 3;
-}
-
-.studio-stage--wide {
-  max-width: 640px;
-  aspect-ratio: 16 / 9;
-}
-
 .studio-stage:fullscreen {
   width: 100vw;
   height: 100vh;
@@ -258,9 +247,9 @@ $stage-edge: $border-menu;
 .studio-segment {
   padding: 4px 9px;
   color: $text-faint;
-  border: 1px solid $border-subtle;
+  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: transparent;
+  background: $surface-control;
   font: inherit;
   font-size: $text-small;
   cursor: pointer;
@@ -271,13 +260,14 @@ $stage-edge: $border-menu;
 
   &:hover:not(:disabled) {
     color: $text-primary;
-    background: color-mix(in srgb, $white 5%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
   }
 
   &[aria-pressed='true'] {
-    color: $text-primary;
-    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
-    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    color: $secondary-light;
+    border-color: $border-control-hover;
+    background: $surface-control-press;
   }
 
   // Waiting for a scene, not broken: the choice still shows, unlit.
@@ -319,7 +309,7 @@ $stage-edge: $border-menu;
   // to a 212px card.
   padding: 7px 2px 6px;
   color: $text-faint;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-xs;
   background: color-mix(in srgb, $white 2%, transparent);
   font: inherit;
@@ -467,65 +457,62 @@ $stage-edge: $border-menu;
   font-weight: $weight-semibold;
 }
 
-// What the scene does to the window, as three tiles under a hairline: the
-// same tiles as the test signals', so it reads as one more choice about how
-// the scene is judged rather than a setting from somewhere else.
+// What the scene does to the window, as the graph's four choices in tiles,
+// four to a row, and in the narrowest card only their drawings. A card of
+// its own in the Tune tab, so no hairline over it: it sat under the test
+// signals once, and alone the line ran across the card under its title.
 .studio-tint {
   display: grid;
-  gap: 6px;
-  margin-top: 2px;
-  padding-top: 9px;
-  border-top: 1px solid $border-subtle;
+  gap: 8px;
 }
 
-.studio-tiles--tint {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  .studio-tile {
-    min-height: 48px;
-  }
-}
-
-// The glyph's ring is the tile's ink; its half is the colour being lent once
-// there is one, and a quieter shade of the ink until then. The beat's wave is
-// fainter still, so the three glyphs read as one family.
+// Each glyph in the colour it would give the window, chosen or not: Theme's
+// ring in the theme's own accent (`--theme-accent`, which no tint writes),
+// the other three's dot, halo and glow in the scene's (`--scene-tint-swatch`,
+// `StudioTintSwitch`). The three were the tile's grey ink until chosen, and
+// with Theme chosen they said nothing of the scene they stand for (Ivan,
+// 2026-09-27: "theme in studio need to be current selected theme in the
+// app", "fix all this crap"). The graph's Window colours menu draws them the
+// same (`GraphTheme.scss`).
 .studio-tint__glyph {
-  .tint-icon__half {
-    fill: currentcolor;
+  .tint-icon__theme {
+    stroke: var(--theme-accent, currentcolor);
+  }
+
+  .tint-icon__fill,
+  .tint-icon__glow {
+    fill: var(--scene-tint-swatch, currentcolor);
     stroke: none;
-    opacity: 0.45;
-    transition: opacity $motion-base $ease-out;
   }
 
-  .tint-icon__wave {
-    opacity: 0.5;
+  .tint-icon__glow {
+    opacity: 0.32;
   }
-}
 
-.studio-tint.is-lit .studio-tile[aria-pressed='true'] .tint-icon__half {
-  fill: var(--scene-tint-swatch, currentcolor);
-  opacity: 1;
+  .tint-icon__halo {
+    stroke: var(--scene-tint-swatch, currentcolor);
+    stroke-width: 1.25;
+    opacity: 0.55;
+  }
 }
 
 .studio-tint__hint {
   margin-top: 0;
 }
 
-// Three to a row, the tiles keep their names where the four-wide rows above
-// fall back to drawings: the narrowest column leaves each 58 pixels, and the
-// longest of these names in the ten languages, "Pulsation", measured 39.
-@container studio-test (max-width: 211px) {
-  .studio-tiles--tint {
-    .studio-tile {
-      grid-template-rows: 16px auto;
-      min-height: 48px;
-      padding-block: 7px 6px;
-    }
+// The app's Brightness under the window's colours, split from them by the
+// hairline the card's other parts are ruled off with (`.studio-cost`): the
+// tiles say whose colours the window wears, this how light it stands.
+.studio-brightness {
+  display: grid;
+  gap: 9px;
+  margin-top: 3px;
+  padding-top: 11px;
+  border-top: 1px solid $border-subtle;
+}
 
-    .studio-tile__name {
-      display: -webkit-box;
-    }
-  }
+.studio-brightness__hint {
+  margin-top: -2px;
 }
 
 // How well it keeps up, under the controls that test it: a hairline above,

@@ -84,9 +84,12 @@ export interface ISceneLook {
   textured: boolean;
 }
 
-export interface ISceneFrame {
-  context: CanvasRenderingContext2D;
-  ratio: number;
+/**
+ * Everything a scene reads for a frame except where it is painted: what the
+ * engine's own looks are stepped from (`engineLooks/`), which lay the scene
+ * out here and paint it on the GPU.
+ */
+export interface ISceneReading {
   plot: IAnalysisPlot;
   /** The whole canvas, in CSS pixels: where scenery may reach. */
   window: { width: number; height: number };
@@ -106,6 +109,12 @@ export interface ISceneFrame {
   look: ISceneLook;
   /** The look's glow, 0 unless the euphoria mode is lighting the graph. */
   glow: number;
+}
+
+/** A reading and the 2D canvas it is painted on. */
+export interface ISceneFrame extends ISceneReading {
+  context: CanvasRenderingContext2D;
+  ratio: number;
 }
 
 /**
@@ -143,6 +152,19 @@ export const rampAlong = (
   }
   return ramp;
 };
+
+/**
+ * Where one copy of a figure stands in its band: the row its foot is on,
+ * which way it grows (-1 up the screen, 1 down it when the wave is upside
+ * down), and how far it may reach. Each look that stands on a floor states
+ * its own in one function, which its 2D drawing and its GPU painting
+ * (`engineLooks/`) both read.
+ */
+export interface ISceneStand {
+  floor: number;
+  up: number;
+  reach: number;
+}
 
 /** Where a figure stands, for its paint: across, and from floor to head. */
 export interface ISceneSpan {
@@ -189,6 +211,29 @@ export const figureInk = (
     whiten,
     alpha,
   );
+};
+
+/**
+ * Where on the ramp `figureInk` paints the point x, y of a figure standing
+ * in `span`: the middle for one colour, across for the spectrum, up from the
+ * floor otherwise. For what is coloured one point at a time — a spark, a
+ * sprite on the GPU — rather than filled with the gradient.
+ */
+export const figureInkAt = (
+  ink: TSceneInk,
+  span: ISceneSpan,
+  x: number,
+  y: number,
+): number => {
+  if (ink === 'flat') {
+    return 0.5;
+  }
+  if (ink === 'frequency') {
+    const width = span.right - span.left;
+    return width > 0 ? clampUnit((x - span.left) / width) : 0;
+  }
+  const height = span.head - span.floor;
+  return Math.abs(height) > 1e-3 ? clampUnit((y - span.floor) / height) : 0;
 };
 
 /** Heat is painted in this many steps, one fill each. */

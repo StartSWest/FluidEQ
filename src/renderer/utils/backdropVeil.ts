@@ -27,29 +27,67 @@ export const BACKDROP_VEIL_MIN = 20;
 export const BACKDROP_VEIL_MAX = 95;
 export const BACKDROP_VEIL_DEFAULT = BACKDROP_VEIL_MAX;
 
-const KEY = 'fluideq.backdropVeil';
+/**
+ * THE AMP KEEPS ITS OWN, as it keeps its own Brightness (`utils/theme.ts`).
+ * The amp stands on its picture in glass (the Stage, Ivan 2026-09-27), and
+ * this is how much of that glass is floor: the same slider, over the same
+ * range, but not the full app's panes — at the app's own 5% the glass hid
+ * the picture it is there to stand on. It opens at 45% transparent, where
+ * the dock and the sheet read as glass and every word on them still reads.
+ */
+const PLAYER_VEIL_DEFAULT = 55;
+
+/** Which window the choice belongs to: the full app, or the amp. */
+export type TBackdropVeilScope = 'app' | 'player';
+
+const KEYS: Record<TBackdropVeilScope, string> = {
+  app: 'fluideq.backdropVeil',
+  player: 'fluideq.backdropVeil.player',
+};
+const DEFAULTS: Record<TBackdropVeilScope, number> = {
+  app: BACKDROP_VEIL_DEFAULT,
+  player: PLAYER_VEIL_DEFAULT,
+};
 
 const clampVeil = (value: number) =>
   Math.round(Math.min(BACKDROP_VEIL_MAX, Math.max(BACKDROP_VEIL_MIN, value)));
 
-const readVeil = () => {
-  const stored = Number(readStored(KEY));
-  return readStored(KEY) === null || !Number.isFinite(stored)
-    ? BACKDROP_VEIL_DEFAULT
+const readVeil = (scope: TBackdropVeilScope) => {
+  const raw = readStored(KEYS[scope]);
+  const stored = Number(raw);
+  return raw === null || !Number.isFinite(stored)
+    ? DEFAULTS[scope]
     : clampVeil(stored);
 };
 
-let veil = readVeil();
+const chosen: Record<TBackdropVeilScope, number> = {
+  app: readVeil('app'),
+  player: readVeil('player'),
+};
+let scope: TBackdropVeilScope = 'app';
 const listeners = new Set<() => void>();
+const notify = () => listeners.forEach((listener) => listener());
+
+/**
+ * The window has become the app or the amp: wear that one's choice. Called
+ * with the theme's own scope (`App.tsx`); nothing is written down here.
+ */
+export const applyBackdropVeilScope = (next: TBackdropVeilScope) => {
+  if (next === scope) {
+    return;
+  }
+  scope = next;
+  notify();
+};
 
 export const setBackdropVeil = (next: number) => {
   const value = clampVeil(next);
-  if (value === veil) {
+  if (value === chosen[scope]) {
     return;
   }
-  veil = value;
-  writeStored(KEY, String(value));
-  listeners.forEach((listener) => listener());
+  chosen[scope] = value;
+  writeStored(KEYS[scope], String(value));
+  notify();
 };
 
 const subscribe = (listener: () => void) => {
@@ -62,7 +100,7 @@ const subscribe = (listener: () => void) => {
 export const useBackdropVeil = () =>
   useSyncExternalStore(
     subscribe,
-    () => veil,
+    () => chosen[scope],
     () => BACKDROP_VEIL_DEFAULT,
   );
 

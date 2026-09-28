@@ -32,10 +32,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // switches are one-line rows, and only the meter stands in a well, because
 // it is the one thing here that is an instrument.
 //
-// And the column itself is no card either: the window's floor, with a
-// hairline on the edge it shares with the page (layout A, Ivan 2026-09-25).
+// And the column itself is no card either: the window's floor (layout A, Ivan
+// 2026-09-25), and no line on the edge it shares with the page, which came
+// off with the shell's other dividing hairlines (`.window-titlebar`).
 .side-bar {
-  border-right: 1px solid $border-subtle;
   display: flex;
   min-width: 0;
   flex-direction: column;

@@ -440,18 +440,17 @@ const studio = {
   'studio.framing.use': 'この写真を使う',
   'studio.framing.saving': '保存しています…',
 
-  'studio.size.title': 'サイズ',
-  'studio.size.graph': 'グラフ',
-  'studio.size.narrow': '細い',
-  'studio.size.wide': 'ワイド',
   'studio.size.full': '全画面',
   'studio.size.exit': '全画面を終了',
   'studio.wave.title': 'グラフ上の波形',
   'studio.wave.hint':
     'シーンに保存され、公開時も一緒に届くので、あなたが残したとおりに開きます。使う人はグラフの「表示」で変更でき、あなたの設定に戻すこともできます。極端な設定を試してください：低い波形や、中央まで持ち上げた波形。',
   'studio.tint.label': 'このシーンと FluidEQ',
+  'studio.tint.theme': 'テーマ',
+  'studio.brightness.hint':
+    'アプリ全体の明るさで、「ウィンドウの色」と同じスライダーです。すべてのシーンは 0 で夜、100 で真昼になります。公開する前に両端で試してください。',
   'studio.tint.hint':
-    'ここで作業している間、アプリ全体をシーンの色にしたり、音楽に合わせてその周りをやわらかく光らせたりでき、テーマとしての見え方と感じ方を確かめられます。',
+    'ここで作業している間だけ効き、グラフの「ウィンドウの色」はそのままです。「テーマ」はアプリの設定どおりのウィンドウに、ほかの3つはこのシーンの色にしたり、音楽に合わせてその周りをやわらかく光らせたりし、聴く人と同じ見え方で確かめられます。',
   'studio.grid.label': 'グラフのグリッドを表示',
   'studio.grid.hint':
     'グラフと同じ余白で、周波数とレベルの線をシーンに重ねます。波形やシーンの各部分がどこに来るかを測れます。',
@@ -506,6 +505,8 @@ const studio = {
     'params のコントロールには、a-z・0-9・_ でできた id、英語の名前、max より小さい min が必要です。',
   'studio.problem.too-many-params':
     'params に置けるコントロールは 8 個までです。',
+  'studio.problem.no-daylight':
+    'すべてのシーンに Daylight コントロールが必要です。params に { "id": "daylight", "names": { "en": "Daylight" }, "min": 0, "max": 100, "value": 0 } を入れ、0 で夜、100 で昼を描いてください。',
   'studio.problem.bad-ambient':
     'pack.json の ambient の要素かコントロールの一部が使われませんでした。形、動き、色、数、各コントロールが動かすものを確認してください。',
   'studio.problem.bad-world':

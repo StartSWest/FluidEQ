@@ -12,6 +12,8 @@ import { FULL_VIEW, panelSize, type TSceneView } from './sceneView';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
 import { linkSceneProgram } from './sceneCompile';
 import compileWorldScene from './sceneWorldLoader';
+import type { IEngineLookInput } from './engineLooks/engineLookInput';
+import { createLookGl } from './engineLooks/lookGl';
 
 /**
  * The GL side of a scene: one program, audio textures, optional artwork, one triangle.
@@ -85,6 +87,11 @@ export interface ISceneFrame {
    * two clocks are one (a still, the lamps).
    */
   musicSeconds?: number;
+  /**
+   * One of FluidEQ's own looks, laid out by the page (`engineLooks/`): what
+   * its shader paints from. Absent for every other scene.
+   */
+  look?: IEngineLookInput;
 }
 
 export interface ISceneProgram {
@@ -279,6 +286,8 @@ const compileShaderScene = async (
     fallback: param.value,
   }));
 
+  // One of FluidEQ's own looks, which paints from the layout the page sends.
+  const look = createLookGl(gl, program);
   // A vertex array is required in WebGL2 even with no attributes bound.
   const vao = gl.createVertexArray();
   const slow = createSlowSpectrum();
@@ -401,9 +410,19 @@ const compileShaderScene = async (
           gl.uniform1f(where, frame.params[id] ?? fallback);
         });
 
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        if (!look) {
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+        } else if (frame.look) {
+          look.draw(frame.look, panel, uniforms.resolution);
+        } else {
+          // A look with no layout yet has nothing to paint: clear, not
+          // whatever the target last held.
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+        }
       },
       dispose: () => {
+        look?.dispose();
         gl.deleteVertexArray(vao);
         gl.deleteTexture(spectrumTexture);
         gl.deleteTexture(waveformTexture);

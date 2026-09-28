@@ -10,15 +10,20 @@ import {
   advanceHold,
   easeFactor,
   type IAnalysisFrame,
+  type IAnalysisReading,
   type IAnalysisState,
 } from './analysisFrame';
 import {
   layoutPanel,
   paintBar,
+  paintBarWords,
   paintCorrelation,
+  paintCorrelationWords,
   paintDial,
+  paintDialWords,
   paintTrace,
   paintWidth,
+  paintWidthWords,
 } from './loudnessPanel';
 import {
   meterLevel,
@@ -73,25 +78,25 @@ const BRACKET_HALF_LIFE_MS = 2600;
  */
 const WIDTH_LABEL = '↔';
 
-const drawLoudnessView = (
-  frame: IAnalysisFrame,
+/**
+ * This frame's needles and meters, advanced by the reading's time into the
+ * state: `correlation`, the bracket in `meterPeaks`, the two levels in
+ * `meters` and their peak marks in `crest`, the width in `loudness`. Answers
+ * whether anything is still moving.
+ */
+export const advanceLoudness = (
+  reading: IAnalysisReading,
   state: IAnalysisState,
 ): boolean => {
-  const { context, band, deltaMs, scope, levels, colours, channelLabels } =
-    frame;
-  const panel = layoutPanel(frame);
-  if (!panel) {
-    return false;
-  }
-
+  const { deltaMs, scope, levels } = reading;
   /**
    * With no per-channel samples the panel still has to say something true, so
    * the meters fall back to the spectrum's own loudness and the dial draws
    * the straight line that reading describes.
    */
-  let reading: IStereoReading;
+  let block: IStereoReading;
   if (scope) {
-    reading = readStereoBlock(scope[0], scope[1]);
+    block = readStereoBlock(scope[0], scope[1]);
   } else {
     let loudest = 0;
     for (let index = 0; index < levels.length; index += 1) {
@@ -100,7 +105,7 @@ const drawLoudnessView = (
       }
     }
     const amplitude = 10 ** (((loudest - 1) * ANALYSIS_RANGE_DB) / 20);
-    reading = {
+    block = {
       leftPeak: amplitude,
       rightPeak: amplitude,
       leftRms: amplitude,
@@ -112,8 +117,8 @@ const drawLoudnessView = (
   }
 
   const toward = easeFactor(deltaMs, CORRELATION_HALF_LIFE_MS);
-  state.correlation += (reading.correlation - state.correlation) * toward;
-  state.loudness += (reading.width - state.loudness) * toward;
+  state.correlation += (block.correlation - state.correlation) * toward;
+  state.loudness += (block.width - state.loudness) * toward;
   /**
    * The bracket: the lowest and highest the needle has reached lately, each
    * pulled back toward it slowly.
@@ -124,8 +129,8 @@ const drawLoudnessView = (
   state.meterPeaks[0] += (state.correlation - state.meterPeaks[0]) * forget;
   state.meterPeaks[1] += (state.correlation - state.meterPeaks[1]) * forget;
 
-  state.meters[0] = meterLevel(reading.leftPeak);
-  state.meters[1] = meterLevel(reading.rightPeak);
+  state.meters[0] = meterLevel(block.leftPeak);
+  state.meters[1] = meterLevel(block.rightPeak);
   const loudest = advanceHold(
     state.crest,
     state.meterPeakMs,
@@ -134,48 +139,69 @@ const drawLoudnessView = (
     PEAK_HANG_MS,
     PEAK_FALL,
   );
+  return loudest > STILL_ENOUGH || Math.abs(state.correlation) > 0.01;
+};
 
-  /**
-   * A mirrored copy is the same panel reflected, exactly as every other view
-   * on this graph is: the instruments are laid out once, downward, and the
-   * flip is a transform around all of them.
-   */
+/**
+ * A mirrored copy is the same panel reflected, exactly as every other view
+ * on this graph is: the instruments are laid out once, downward, and the
+ * flip is a transform around all of them — the words' as well.
+ */
+const reflected = (frame: IAnalysisFrame, paint: () => void): void => {
+  const { context, band } = frame;
   context.save();
   if (band.flipped) {
     context.translate(0, band.top + band.bottom);
     context.scale(1, -1);
   }
-  paintDial(frame, panel);
-  paintTrace(frame, panel, scope, state.meters[0]);
-  paintCorrelation(
-    frame,
-    panel,
-    state.correlation,
-    state.meterPeaks[0],
-    state.meterPeaks[1],
-  );
-  paintBar(
-    frame,
-    panel,
-    0,
-    channelLabels[0],
-    state.meters[0],
-    state.crest[0],
-    colours,
-  );
-  paintBar(
-    frame,
-    panel,
-    1,
-    channelLabels[1],
-    state.meters[1],
-    state.crest[1],
-    frame.mate,
-  );
-  paintWidth(frame, panel, WIDTH_LABEL, state.loudness);
+  paint();
   context.restore();
   context.globalAlpha = 1;
-  return loudest > STILL_ENOUGH || Math.abs(state.correlation) > 0.01;
+};
+
+/** Every instrument's words: its letters, its scale's numbers, its readouts. */
+export const paintLoudnessWords = (
+  frame: IAnalysisFrame,
+  state: IAnalysisState,
+): void => {
+  const panel = layoutPanel(frame);
+  if (!panel) {
+    return;
+  }
+  const { channelLabels } = frame;
+  reflected(frame, () => {
+    paintDialWords(frame, panel);
+    paintCorrelationWords(frame, panel);
+    paintBarWords(frame, panel, 0, channelLabels[0], state.crest[0]);
+    paintBarWords(frame, panel, 1, channelLabels[1], state.crest[1]);
+    paintWidthWords(frame, panel, WIDTH_LABEL, state.loudness);
+  });
+};
+
+const drawLoudnessView = (
+  frame: IAnalysisFrame,
+  state: IAnalysisState,
+): boolean => {
+  const panel = layoutPanel(frame);
+  if (!panel) {
+    return false;
+  }
+  const moving = advanceLoudness(frame, state);
+  reflected(frame, () => {
+    paintDial(frame, panel);
+    paintTrace(frame, panel, frame.scope, state.meters[0]);
+    paintCorrelation(
+      frame,
+      panel,
+      state.correlation,
+      state.meterPeaks[0],
+      state.meterPeaks[1],
+    );
+    paintBar(frame, panel, 0, state.meters[0], state.crest[0], frame.colours);
+    paintBar(frame, panel, 1, state.meters[1], state.crest[1], frame.mate);
+    paintWidth(frame, panel, state.loudness);
+  });
+  return moving;
 };
 
 export default drawLoudnessView;

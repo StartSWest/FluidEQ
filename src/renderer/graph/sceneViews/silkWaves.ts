@@ -13,6 +13,7 @@ import {
   rampAlong,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneReading,
 } from './sceneFrame';
 
 /**
@@ -36,8 +37,12 @@ import {
  * are not pieces, so Pieces and Gap have nothing here to move.
  */
 
-/** Points along each strand. */
-const SAMPLES = 96;
+/**
+ * Points along each strand. Exported with the functions below for the look's
+ * GPU painting (`engineLooks/silkWavesLook.ts`), which paints the strands
+ * these trace.
+ */
+export const SAMPLES = 96;
 /**
  * The five strands: waves across the width, speed at the music's pace,
  * where each starts, how wide it swings against the others, which part of
@@ -65,15 +70,22 @@ const STRANDS: readonly {
   },
 ];
 
+/** How many strands, and a treble spark's radius on a crest. */
+export const STRAND_COUNT = STRANDS.length;
+export const SPARK_RADIUS = 1.6;
+
 export interface ISilkWavesState {
   /** The spectrum along the width, as read and then smoothed. */
   raw: Float64Array;
   shape: Float64Array;
+  /** The strand being drawn, traced into these rather than fresh ones. */
+  traced: IStrandTrace;
 }
 
 export const createSilkWavesState = (): ISilkWavesState => ({
   raw: new Float64Array(SAMPLES + 1),
   shape: new Float64Array(SAMPLES + 1),
+  traced: { xs: [], crest: [], echo: [] },
 });
 
 /** A smooth path through points, by the midpoints between them. */
@@ -148,59 +160,110 @@ const strandInk = (
   return out;
 };
 
+/** Where one copy's strands run: the band's middle, and their widest swing. */
+export const silkStand = (band: IAnalysisBand) => ({
+  middle: (band.top + band.bottom) / 2,
+  swing: (band.bottom - band.top) * 0.46,
+});
+
+/** How loud a strand's own part of the music is, 0..1. */
+export const strandLoudness = (
+  index: number,
+  music: ISceneReading['music'],
+): number =>
+  clampUnit(
+    0.35 * music[STRANDS[index].lean] + 0.65 * music.energy + music.pulse * 0.2,
+  );
+
+/** A strand's line: its weight from its loudness, and its glow's light. */
+export const strandWeight = (lineWidth: number, loudness: number): number =>
+  lineWidth * (0.7 + loudness * 0.6);
+export const strandGlow = (glow: number) => ({
+  alpha: clampUnit(0.18 + glow * 0.2),
+  widen: 3.5 + glow * 3,
+});
+
+/** A strand traced across the plot: each sample's x, crest and echo. */
+export interface IStrandTrace {
+  xs: number[];
+  crest: number[];
+  echo: number[];
+}
+
+/**
+ * Traces strand `index` of the copy standing in `band` into `out`, sample by
+ * sample, and hands `spark` every crest the treble lights (Lit peaks).
+ */
+export const traceStrand = (
+  reading: Pick<ISceneReading, 'plot' | 'music' | 'look'>,
+  band: IAnalysisBand,
+  state: ISilkWavesState,
+  index: number,
+  out: IStrandTrace,
+  spark: (x: number, y: number) => void,
+): void => {
+  const { plot, music, look } = reading;
+  const strand = STRANDS[index];
+  const width = plot.right - plot.left;
+  const { middle, swing } = silkStand(band);
+  const lean = music[strand.lean];
+  const kick = 1 + music.pulse * 0.35;
+  out.xs.length = 0;
+  out.crest.length = 0;
+  out.echo.length = 0;
+  for (let step = 0; step <= SAMPLES; step += 1) {
+    const along = step / SAMPLES;
+    // Tapered to nothing at both ends, like silk held at its edges.
+    const taper = Math.sin(along * Math.PI) ** 0.6;
+    const height =
+      swing *
+      strand.swing *
+      taper *
+      kick *
+      (0.12 + 0.88 * clampUnit(state.shape[step] * (0.6 + lean * 0.8)));
+    const wave = Math.sin(
+      along * strand.cycles * Math.PI * 2 +
+        strand.phase +
+        music.clock * strand.speed,
+    );
+    const x = plot.left + along * width;
+    const crest = middle + wave * height;
+    out.xs.push(x);
+    out.crest.push(crest);
+    out.echo.push(middle + wave * height * strand.echo);
+    if (
+      look.accents &&
+      music.treble > 0.25 &&
+      Math.abs(wave) > 0.96 &&
+      hash01(step * 3.3 + index * 17 + Math.floor(music.clock * 8)) <
+        music.treble * 0.5
+    ) {
+      spark(x, crest);
+    }
+  }
+};
+
 const drawCopy = (
   frame: ISceneFrame,
   band: IAnalysisBand,
   state: ISilkWavesState,
   body: Path2D | undefined,
 ): void => {
-  const { context, plot, music, look } = frame;
-  const width = plot.right - plot.left;
-  const middle = (band.top + band.bottom) / 2;
-  const swing = (band.bottom - band.top) * 0.46;
+  const { context, music, look } = frame;
+  const { middle, swing } = silkStand(band);
   const sparks = new Path2D();
+  const { traced } = state;
 
   context.save();
   context.globalCompositeOperation = 'lighter';
   context.lineJoin = 'round';
-  STRANDS.forEach((strand, index) => {
-    const lean = music[strand.lean];
-    const loudness = clampUnit(
-      0.35 * lean + 0.65 * music.energy + music.pulse * 0.2,
-    );
-    const kick = 1 + music.pulse * 0.35;
-    const xs: number[] = [];
-    const crest: number[] = [];
-    const echo: number[] = [];
-    for (let step = 0; step <= SAMPLES; step += 1) {
-      const along = step / SAMPLES;
-      // Tapered to nothing at both ends, like silk held at its edges.
-      const taper = Math.sin(along * Math.PI) ** 0.6;
-      const height =
-        swing *
-        strand.swing *
-        taper *
-        kick *
-        (0.12 + 0.88 * clampUnit(state.shape[step] * (0.6 + lean * 0.8)));
-      const wave = Math.sin(
-        along * strand.cycles * Math.PI * 2 +
-          strand.phase +
-          music.clock * strand.speed,
-      );
-      xs.push(plot.left + along * width);
-      crest.push(middle + wave * height);
-      echo.push(middle + wave * height * strand.echo);
-      if (
-        look.accents &&
-        music.treble > 0.25 &&
-        Math.abs(wave) > 0.96 &&
-        hash01(step * 3.3 + index * 17 + Math.floor(music.clock * 8)) <
-          music.treble * 0.5
-      ) {
-        sparks.moveTo(xs[step] + 1.6, crest[step]);
-        sparks.arc(xs[step], crest[step], 1.6, 0, Math.PI * 2);
-      }
-    }
+  STRANDS.forEach((_, index) => {
+    const loudness = strandLoudness(index, music);
+    traceStrand(frame, band, state, index, traced, (x, y) => {
+      sparks.moveTo(x + SPARK_RADIUS, y);
+      sparks.arc(x, y, SPARK_RADIUS, 0, Math.PI * 2);
+    });
+    const { xs, crest, echo } = traced;
     const edge = new Path2D();
     through(edge, xs, crest, false);
     if (look.filled) {
@@ -213,10 +276,11 @@ const drawCopy = (
       context.fill(ribbon);
       body?.addPath(ribbon);
     }
-    const weight = look.lineWidth * (0.7 + loudness * 0.6);
-    context.globalAlpha = clampUnit(0.18 + frame.glow * 0.2) * look.opacity;
+    const weight = strandWeight(look.lineWidth, loudness);
+    const light = strandGlow(frame.glow);
+    context.globalAlpha = light.alpha * look.opacity;
     context.strokeStyle = strandInk(frame, middle, swing, loudness, 0, 1);
-    context.lineWidth = weight * (3.5 + frame.glow * 3);
+    context.lineWidth = weight * light.widen;
     context.stroke(edge);
     context.globalAlpha = 0.9;
     context.strokeStyle = strandInk(frame, middle, swing, loudness, 0.25, 1);
@@ -229,14 +293,16 @@ const drawCopy = (
   context.restore();
 };
 
-export const drawSilkWaves = (
-  frame: ISceneFrame,
+/**
+ * The spectrum along the width, smoothed over a few neighbours so a strand
+ * swells like cloth rather than following every band's edge.
+ */
+export const shapeSilk = (
+  reading: Pick<ISceneReading, 'plot' | 'xs' | 'levels'>,
   state: ISilkWavesState,
-): ISceneDrawn => {
-  const { plot, xs, levels } = frame;
+): void => {
+  const { plot, xs, levels } = reading;
   const width = plot.right - plot.left;
-  // The spectrum along the width, smoothed over a few neighbours so a strand
-  // swells like cloth rather than following every band's edge.
   const { raw } = state;
   for (let step = 0; step <= SAMPLES; step += 1) {
     raw[step] = levelAtX(xs, levels, plot.left + (step / SAMPLES) * width);
@@ -255,6 +321,13 @@ export const drawSilkWaves = (
     }
     state.shape[step] = total / count;
   }
+};
+
+export const drawSilkWaves = (
+  frame: ISceneFrame,
+  state: ISilkWavesState,
+): ISceneDrawn => {
+  shapeSilk(frame, state);
   const body = frame.look.textured ? new Path2D() : undefined;
   frame.bands.forEach((band) => drawCopy(frame, band, state, body));
   // The strands roll on the music's clock; the listener keeps the loop awake

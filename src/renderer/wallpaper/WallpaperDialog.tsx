@@ -6,6 +6,8 @@ import {
   type TWallpaperMotion,
 } from '../../common/wallpaper';
 import Glyph from '../community/Glyph';
+import DialogFrame from '../components/DialogFrame';
+import MenuIcon from '../icons/MenuIcon';
 import { getWatchedGraphWave } from '../utils/graphViewSettings';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
@@ -188,30 +190,62 @@ export default function WallpaperDialog({
         }
       }}
     >
-      <div
+      <DialogFrame
         ref={surfaceRef}
         className="wallpaper-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={`${headingId}-title`}
-        aria-describedby={`${headingId}-lead`}
+        icon={<MenuIcon name="monitor" />}
+        title={t('wallpaper.title')}
+        titleId={`${headingId}-title`}
+        // The visualizer being placed, in the accent: the dialog is about it.
+        badge={<span className="wallpaper-dialog__subject">{look.name}</span>}
+        description={t('wallpaper.description')}
         aria-busy={operation.pending}
+        closeLabel={t('wallpaper.cancel')}
+        // Held while a background is being set, as Cancel and the backdrop
+        // are: closing mid-way would leave a monitor half-started.
+        onClose={() => {
+          if (!operation.pending) {
+            onClose();
+          }
+        }}
+        footer={
+          <>
+            {/* Stopping every monitor sits apart from the choice being made,
+                at the start of the row, so it is never read as this dialog's
+                answer. */}
+            {screens.length > 0 && (
+              <button
+                type="button"
+                className={`button small subtle${stoppingAll ? ' is-running' : ''}`}
+                disabled={operation.pending}
+                aria-busy={stoppingAll}
+                onClick={stopEverywhere}
+              >
+                {t(screens.length > 1 ? 'wallpaper.stopAll' : 'wallpaper.stop')}
+              </button>
+            )}
+            <div className="dialog-frame__actions">
+              <button
+                type="button"
+                className="button small subtle"
+                disabled={operation.pending}
+                onClick={onClose}
+              >
+                {t('wallpaper.cancel')}
+              </button>
+              <button
+                type="button"
+                className={`button small${starting ? ' is-running' : ''}`}
+                disabled={operation.pending || chosen.length === 0}
+                aria-busy={starting}
+                onClick={apply}
+              >
+                {startLabel}
+              </button>
+            </div>
+          </>
+        }
       >
-        <div className="wallpaper-dialog__head">
-          <span className="wallpaper-dialog__mark" aria-hidden="true">
-            <Glyph name="monitor" />
-          </span>
-          <span className="wallpaper-dialog__heading">
-            <h2 id={`${headingId}-title`} className="wallpaper-dialog__title">
-              {t('wallpaper.title')}
-            </h2>
-            <span className="wallpaper-dialog__subject">{look.name}</span>
-          </span>
-        </div>
-        <p id={`${headingId}-lead`} className="wallpaper-dialog__lead">
-          {t('wallpaper.description')}
-        </p>
-
         <section className="wallpaper-dialog__monitors">
           <div className="wallpaper-dialog__section-head">
             <span className="wallpaper-dialog__section-copy">
@@ -380,38 +414,7 @@ export default function WallpaperDialog({
             })}
           </ul>
         )}
-
-        <div className="wallpaper-dialog__foot">
-          {screens.length > 0 && (
-            <button
-              type="button"
-              className={`button small subtle wallpaper-dialog__stop${stoppingAll ? ' is-running' : ''}`}
-              disabled={operation.pending}
-              aria-busy={stoppingAll}
-              onClick={stopEverywhere}
-            >
-              {t(screens.length > 1 ? 'wallpaper.stopAll' : 'wallpaper.stop')}
-            </button>
-          )}
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={operation.pending}
-            onClick={onClose}
-          >
-            {t('wallpaper.cancel')}
-          </button>
-          <button
-            type="button"
-            className={`button small${starting ? ' is-running' : ''}`}
-            disabled={operation.pending || chosen.length === 0}
-            aria-busy={starting}
-            onClick={apply}
-          >
-            {startLabel}
-          </button>
-        </div>
-      </div>
+      </DialogFrame>
     </div>,
     document.body,
   );

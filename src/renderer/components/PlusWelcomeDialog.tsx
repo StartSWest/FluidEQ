@@ -11,10 +11,11 @@ import {
   usePlusWelcome,
 } from '../account/plusWelcomeStore';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
-import BrandMark from '../icons/BrandMark';
+import MenuIcon from '../icons/MenuIcon';
 import SceneBand from '../plus/SceneBand';
 import { requestPlusTab } from '../plus/plusTabRequest';
 import { useTranslation } from '../utils/I18nContext';
+import DialogFrame from './DialogFrame';
 import '../styles/PlusMemberWelcome.scss';
 
 /**
@@ -24,9 +25,9 @@ import '../styles/PlusMemberWelcome.scss';
  * that are not the graph; the board last, which is the only one that needs
  * other people.
  *
- * Five cards across, the way fluideq.com lays its visualizers out, rather
- * than five rows down a narrow panel: they are five places to go, and a
- * column of bordered rows is the shape of a settings page.
+ * A list, each with its glyph, name and one line, rather than five cards:
+ * five bordered boxes side by side were a second frame inside the dialog for
+ * each of five sentences.
  */
 const OPENED: readonly {
   glyph: TCommunityGlyph;
@@ -66,13 +67,12 @@ const OPENED: readonly {
  * Paying happens at the merchant, in a browser, so the app hears of it when
  * the membership check comes back — and until this, nothing marked it: the
  * locks simply stopped being locks. What somebody has just bought is scenes,
- * so the welcome is one: the starter playing on whatever they have on, with
- * the words over it. A row of icons describing visualizers, in an app whose
- * whole product is visualizers, was the wrong thing to show them.
+ * so the welcome carries one: the starter playing on whatever they have on,
+ * in the rail under the words that say what happened.
  *
  * Whether it shows at all is decided in the main process, which holds both
- * facts it rests on (`ipc/plusWelcome.ts`). Either button closes it for good —
- * being welcomed twice is worse than not being welcomed at all.
+ * facts it rests on (`ipc/plusWelcome.ts`). Every way out closes it for good
+ * — being welcomed twice is worse than not being welcomed at all.
  */
 export default function PlusWelcomeDialog() {
   const { t } = useTranslation();
@@ -105,84 +105,68 @@ export default function PlusWelcomeDialog() {
 
   return (
     <div className="plus-member-welcome-backdrop" role="presentation">
-      <div
+      <DialogFrame
         className="plus-member-welcome"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="plus-welcome-title"
-      >
-        <SceneBand playsScene className="plus-member-welcome__stage">
-          <div className="plus-member-welcome__titles">
-            <BrandMark className="plus-member-welcome__brand" />
-            <span className="plus-member-welcome__eyebrow">
-              {t('plusWelcome.eyebrow')}
-            </span>
-            <h2 id="plus-welcome-title" className="plus-member-welcome__title">
-              {t('plusWelcome.title')}
-            </h2>
+        icon={<MenuIcon name="plusTab" />}
+        eyebrow={t('plusWelcome.eyebrow')}
+        title={t('plusWelcome.title')}
+        titleId="plus-welcome-title"
+        description={t('plusWelcome.lead')}
+        rail={<SceneBand playsScene className="dialog-frame__scene" />}
+        closeLabel={t('support.close')}
+        onClose={close}
+        footer={
+          <div className="dialog-frame__actions">
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={close}
+            >
+              {t('plusWelcome.later')}
+            </button>
+            <button
+              ref={openRef}
+              type="button"
+              className="button small plus-member-welcome__open"
+              onClick={() => {
+                close();
+                requestPlusTab();
+              }}
+            >
+              <Glyph name="looks" />
+              {t('plusWelcome.open')}
+            </button>
           </div>
+        }
+      >
+        <ul className="plus-member-welcome__list">
+          {OPENED.map((item) => (
+            <li key={item.title} className="plus-member-welcome__item">
+              <span className="plus-member-welcome__mark" aria-hidden="true">
+                <Glyph name={item.glyph} />
+              </span>
+              <span className="plus-member-welcome__label">
+                <strong>{t(item.title)}</strong>
+                <span>{t(item.line)}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
 
-          <button
-            type="button"
-            className="plus-member-welcome__close"
-            aria-label={t('plusWelcome.later')}
-            onClick={close}
-          >
-            <Glyph name="close" />
-          </button>
-        </SceneBand>
-
-        <div className="plus-member-welcome__body">
-          <p className="plus-member-welcome__lead">{t('plusWelcome.lead')}</p>
-
-          <ul className="plus-member-welcome__cards">
-            {OPENED.map((item) => (
-              <li key={item.title} className="plus-member-welcome__card">
-                <span className="plus-member-welcome__art" aria-hidden="true">
-                  <Glyph name={item.glyph} />
-                </span>
-                <span className="plus-member-welcome__label">
-                  <strong>{t(item.title)}</strong>
-                  <small>{t(item.line)}</small>
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          {/* Where the membership lives once this is closed (Ivan,
-              2026-09-16): the panel it was bought from is closed behind
-              this, and nothing else in the app says where it went. */}
-          <p className="plus-member-welcome__note">
-            <Glyph name="person" />
+        {/* Where the membership lives once this is closed (Ivan,
+            2026-09-16): the panel it was bought from is closed behind this,
+            and nothing else in the app says where it went. Then what it
+            covers. */}
+        <div className="plus-member-welcome__notes">
+          <p>
             {t('plusWelcome.where', {
               menu: t('app.actions'),
               account: t('account.menu'),
             })}
           </p>
-          <p className="plus-member-welcome__note">
-            <Glyph name="shield" />
-            {t('plusWelcome.note')}
-          </p>
+          <p>{t('plusWelcome.note')}</p>
         </div>
-
-        <div className="plus-member-welcome__footer">
-          <button type="button" className="button small subtle" onClick={close}>
-            {t('plusWelcome.later')}
-          </button>
-          <button
-            ref={openRef}
-            type="button"
-            className="button small"
-            onClick={() => {
-              close();
-              requestPlusTab();
-            }}
-          >
-            <Glyph name="looks" />
-            {t('plusWelcome.open')}
-          </button>
-        </div>
-      </div>
+      </DialogFrame>
     </div>
   );
 }

@@ -57,14 +57,6 @@ const HISTORY_POINTS = 320;
  */
 const WAVEFORM_INK = '#9cfff4';
 
-/**
- * A lane draws whenever something new has arrived, at the display's own rate:
- * a block of audio lands every few milliseconds, and holding the picture to
- * the thirty frames a second the shell keeps idle drawings at would move the
- * waveform in coarser steps than it always has.
- */
-const DRAW_ON_ARRIVAL = () => 0;
-
 /** The widest a buffer figure gets: four digits of milliseconds. */
 const WIDEST_MILLISECONDS = 8888;
 
@@ -234,12 +226,13 @@ const RemoteAudioMeterLane = ({
     return false;
   }, [active, activeState, idleState, meterKey, t]);
 
-  // Stopped while the canvas cannot be seen — a closed tab, a page scrolled
-  // past — and asked again when it can, by the watcher in `useSmoothFrames`.
+  // Drawn whenever something new has arrived, at the display's own rate: a
+  // block of audio lands every few milliseconds. Stopped while the canvas
+  // cannot be seen — a closed tab, a page scrolled past — and asked again when
+  // it can, by the watcher in `useSmoothFrames`.
   const kick = useSmoothFrames(drawFrame, {
     isEnabled: true,
     target: canvasRef,
-    minFrameMs: DRAW_ON_ARRIVAL,
   });
 
   useEffect(() => {

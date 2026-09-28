@@ -26,9 +26,11 @@ import {
 } from 'common/shareScore';
 import { OFFICIAL_SITE_URL, PRODUCT_NAME } from 'common/branding';
 import { EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from '../SupportPet';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { readAccentLight, readTextInk } from '../utils/theme';
+import DialogFrame from './DialogFrame';
 import '../styles/ShareScore.scss';
 
 /**
@@ -632,29 +634,81 @@ const ShareScoreCard = ({
   }, [confirm, text, url]);
 
   return (
-    <div className="share-score">
-      <div className="share-score__head">
-        <h3>{t('support.game.shareTitle')}</h3>
-        <button
-          type="button"
-          className="share-score__close"
-          onClick={onClose}
-          aria-label={t('support.close')}
-        >
-          <svg viewBox="0 0 12 12" aria-hidden="true">
-            <path d="M3 3l6 6M9 3l-6 6" />
-          </svg>
-        </button>
-      </div>
-
+    <DialogFrame
+      className="share-score"
+      icon={<MenuIcon name="image" />}
+      title={t('support.game.shareTitle')}
+      titleId="share-score-title"
+      description={t('support.game.shareNote')}
+      closeLabel={t('support.close')}
+      onClose={onClose}
+      rail={
+        // Where it goes, under what it is: each network gets the version
+        // written for it — X is the one on a character budget, and the other
+        // two read nothing like it.
+        <div className="share-score__networks">
+          {SHARE_NETWORKS.map((network) => (
+            <button
+              key={network.id}
+              type="button"
+              className="button small subtle"
+              // Opened through the window handler the shell already
+              // installs, which denies the popup and hands the URL to the
+              // real browser. A composer inside an equaliser would be asking
+              // to be logged into, which is not a thing this app should ever
+              // want.
+              onClick={() =>
+                window.open(
+                  getShareUrl(
+                    network.id,
+                    buildShareText(score, multiplier, isEuphoric, network.id),
+                    url,
+                  ),
+                  '_blank',
+                )
+              }
+              title={
+                carriesShareText(network.id)
+                  ? undefined
+                  : t('support.game.shareLinkOnly')
+              }
+            >
+              {network.label}
+            </button>
+          ))}
+        </div>
+      }
+      footer={
+        <div className="dialog-frame__actions">
+          <button type="button" className="button small subtle" onClick={save}>
+            {t('support.game.shareSave')}
+          </button>
+          <button type="button" className="button small subtle" onClick={copy}>
+            {copied === 'text'
+              ? confirmation(t('support.game.shareCopied'))
+              : t('support.game.shareCopy')}
+          </button>
+          {/* The loud one, last: the shortest path there is. The networks
+              cannot be handed an image by a link, so the best that can exist
+              is the card already on the clipboard when the composer opens —
+              one paste instead of a save, a file dialog and a hunt through a
+              downloads folder. */}
+          <button type="button" className="button small" onClick={copyCard}>
+            {copied === 'card'
+              ? confirmation(t('support.game.shareCardCopied'))
+              : t('support.game.shareCopyCard')}
+          </button>
+        </div>
+      }
+    >
       {/* Shown at whatever width the dialog gives it. The canvas keeps its
           own 1200x630, so what is saved is the full-size card regardless of
           how small the preview is here.
 
           Hidden from assistive technology rather than labelled: everything
           drawn on it — the score, the multiplier, what the app is — is already
-          on screen as text in the row above and in the note below, so
-          announcing it again would read the same run out twice. */}
+          on screen as text around it, so announcing it again would read the
+          same run out twice. */}
       <canvas ref={canvasRef} className="share-score__canvas" aria-hidden />
 
       {/* Says why this card is the plain one, for anyone who has only ever
@@ -666,67 +720,7 @@ const ShareScoreCard = ({
       {!isEuphoric && (
         <p className="share-score__unlock">{t('support.game.shareUnlock')}</p>
       )}
-
-      <p className="share-score__note">{t('support.game.shareNote')}</p>
-
-      <div className="share-score__actions">
-        <button
-          type="button"
-          className="share-score__save"
-          onClick={copyCard}
-          // First and loudest, because it is the shortest path there is. The
-          // networks cannot be handed an image by a link, so the best that can
-          // exist is the card already on the clipboard when the composer
-          // opens — one paste instead of a save, a file dialog and a hunt
-          // through a downloads folder.
-        >
-          {copied === 'card'
-            ? confirmation(t('support.game.shareCardCopied'))
-            : t('support.game.shareCopyCard')}
-        </button>
-        <button type="button" className="share-score__copy" onClick={save}>
-          {t('support.game.shareSave')}
-        </button>
-        <button type="button" className="share-score__copy" onClick={copy}>
-          {copied === 'text'
-            ? confirmation(t('support.game.shareCopied'))
-            : t('support.game.shareCopy')}
-        </button>
-      </div>
-
-      <div className="share-score__networks">
-        {SHARE_NETWORKS.map((network) => (
-          <button
-            key={network.id}
-            type="button"
-            className="share-score__network"
-            // Opened through the window handler the shell already installs,
-            // which denies the popup and hands the URL to the real browser.
-            // A composer inside an equaliser would be asking to be logged
-            // into, which is not a thing this app should ever want.
-            // Each network gets the version written for it: X is the one on a
-            // character budget, and the other two read nothing like it.
-            onClick={() =>
-              window.open(
-                getShareUrl(
-                  network.id,
-                  buildShareText(score, multiplier, isEuphoric, network.id),
-                  url,
-                ),
-                '_blank',
-              )
-            }
-            title={
-              carriesShareText(network.id)
-                ? undefined
-                : t('support.game.shareLinkOnly')
-            }
-          >
-            {network.label}
-          </button>
-        ))}
-      </div>
-    </div>
+    </DialogFrame>
   );
 };
 

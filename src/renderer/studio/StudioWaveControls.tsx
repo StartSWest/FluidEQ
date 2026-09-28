@@ -51,8 +51,13 @@ export default function StudioWaveControls({
 
   return (
     <section className="studio-wave" aria-label={t('studio.wave.title')}>
+      {/* Titled as the visualizer's groups beside it are, under the card's
+          one eyebrow: a second eyebrow here stacked two small capitals
+          headings over two sliders. */}
       <div className="studio-wave__head">
-        <span className="studio-card__eyebrow">{t('studio.wave.title')}</span>
+        <span className="studio-settings__group-title">
+          {t('studio.wave.title')}
+        </span>
         <button
           type="button"
           className="studio-settings__reset"

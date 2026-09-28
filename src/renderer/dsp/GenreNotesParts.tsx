@@ -136,8 +136,10 @@ export const GenreFigures = ({ notes, asTiles }: IGenreFiguresProps) => {
     );
   }
   return (
-    <section className="genre-notes__section">
-      <h3>{t('genre.notes.measured', { count: GENRE_MEASURED_SONGS })}</h3>
+    <section className="dialog-frame__section">
+      <h3 className="dialog-frame__section-title">
+        {t('genre.notes.measured', { count: GENRE_MEASURED_SONGS })}
+      </h3>
       <div className="genre-tiles">
         {figures.map(([value, label]) => (
           <div key={label} className="genre-tiles__tile">

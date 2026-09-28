@@ -1,9 +1,5 @@
-import {
-  DEFAULT_LEVEL_COLOURS,
-  DEFAULT_SIGNAL_COLOUR,
-} from 'common/customLooks';
 import type { GraphPalette } from 'common/graphStyles';
-import { BAND_SPECTRUM_HEX } from '../utils/bandColors';
+import { windowColours, windowLookColours } from '../utils/windowInk';
 import type { SpectrumBarPaint } from '../waveformPaint';
 
 type Rgb = readonly [number, number, number];
@@ -44,10 +40,7 @@ const sampleRamp = (ramp: readonly Rgb[], level: number): Rgb => {
  * to parse the string this file just built.
  */
 export const rampAt = (colours: readonly string[], level: number): Rgb =>
-  sampleRamp(
-    (colours.length ? colours : DEFAULT_LEVEL_COLOURS).map(readHex),
-    level,
-  );
+  sampleRamp((colours.length ? colours : windowColours()).map(readHex), level);
 
 export const heatColour = (
   colours: readonly string[],
@@ -55,7 +48,7 @@ export const heatColour = (
 ): string => {
   // Nearest-stop selection made Heat jump between swatches on small level
   // changes. Interpolate the user's colours for both whole figures and bars.
-  const ramp = (colours.length ? colours : DEFAULT_LEVEL_COLOURS).map(readHex);
+  const ramp = (colours.length ? colours : windowColours()).map(readHex);
   return `rgb(${sampleRamp(ramp, level).join(', ')})`;
 };
 
@@ -66,15 +59,9 @@ export const createFluidBarPaint = (
   top: number,
   bottom: number,
 ): SpectrumBarPaint => {
-  const defaults = {
-    signal: [DEFAULT_SIGNAL_COLOUR],
-    rainbow: BAND_SPECTRUM_HEX,
-    level: DEFAULT_LEVEL_COLOURS,
-    heat: DEFAULT_LEVEL_COLOURS,
-    // Never reached: auto is resolved to a form's own palette before paint.
-    auto: [DEFAULT_SIGNAL_COLOUR],
-  };
-  const ramp = (colours.length ? colours : defaults[palette]).map(readHex);
+  const ramp = (colours.length ? colours : windowLookColours(palette)).map(
+    readHex,
+  );
   return (across, energy, y, height, topAlpha) => {
     const gradient = context.createLinearGradient(0, y, 0, y + height);
     // Combining colour and alpha in this bar's gradient avoids erasing a

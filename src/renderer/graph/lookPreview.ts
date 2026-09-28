@@ -48,6 +48,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { IChartPointData } from './ChartController';
+import { GRAPH_SILENT_POINTS } from './liveGraphBand';
 import { WAVEFORM_POINT_COUNT } from './liveSpectrumFrames';
 
 export const resolveLookWaveform = (
@@ -102,11 +103,6 @@ export const noteLookPreviewPainted = (
  */
 const SILENT_HEADROOM_DB = 1.5;
 
-/** Points to draw when there is no capture at all to borrow an axis from. */
-const FALLBACK_POINT_COUNT = 320;
-const FALLBACK_MIN_HZ = 20;
-const FALLBACK_MAX_HZ = 20000;
-
 /**
  * The shape the preview draws, as a fraction of the plot's depth.
  *
@@ -160,15 +156,13 @@ const buildPreviewFrame = (live: IChartPointData[]): IChartPointData[] => {
       y: MIN_GAIN + previewLevel(index / (live.length - 1 || 1)) * depth,
     }));
   }
-  const logMin = Math.log10(FALLBACK_MIN_HZ);
-  const logMax = Math.log10(FALLBACK_MAX_HZ);
-  return Array.from({ length: FALLBACK_POINT_COUNT }, (_value, index) => {
-    const position = index / (FALLBACK_POINT_COUNT - 1);
-    return {
-      x: 10 ** (logMin + position * (logMax - logMin)),
-      y: MIN_GAIN + previewLevel(position) * depth,
-    };
-  });
+  // No capture to borrow from: the graphs' own axis, the plot's whole
+  // width. A 20 Hz to 20 kHz one here drew the preview short of both ends.
+  return GRAPH_SILENT_POINTS.map(({ x }, index) => ({
+    x,
+    y:
+      MIN_GAIN + previewLevel(index / (GRAPH_SILENT_POINTS.length - 1)) * depth,
+  }));
 };
 
 /**

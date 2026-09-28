@@ -550,8 +550,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.hears':
     'Ce que reçoit la scène : niveau, temps, basses, médiums, aigus.',
   'help.studio.signals': 'Des signaux de test qui n’animent que cet aperçu.',
-  'help.studio.size':
-    'Essaie la scène sur un graphique ou sur un panneau étroit, large ou plein écran.',
+  'help.studio.size': 'Essaie la scène en plein écran.',
   'help.studio.wave':
     'Essaie la hauteur et la position de l’onde que les auditeurs peuvent régler.',
 

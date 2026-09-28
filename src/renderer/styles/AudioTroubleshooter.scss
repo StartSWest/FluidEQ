@@ -18,186 +18,128 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'dialog' as dialog;
-@use 'motion' as *;
-@use 'spacing' as *;
 @use 'theme' as *;
 
+// One level under the restart card (4100) its first step opens, which stands
+// in front of it and answers Escape itself.
 .troubleshoot-backdrop {
-  position: fixed;
-  z-index: 4000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  // Every dialog's backdrop: dims the window, in its own hue.
-  background: dialog.$scrim;
-  inset: 0;
+  @include dialog.backdrop(4000);
 }
 
-.troubleshoot {
-  @include menu-surface;
-  // A dialog, on the menu's material: it arrives as dialogs do, out of its own
-  // middle, not folding down from its top edge like a menu.
-  --surface-motion: #{$dialog-arrival};
-  --menu-origin: center;
-  width: min(560px, 100%);
-  max-height: 100%;
-  padding: 18px 20px 20px;
-  overflow-y: auto;
+// Fix audio problems on the dialog frame (`DialogFrame`): the wrench, the
+// title and how to use the list in the rail, the steps on the right.
+.dialog-frame.troubleshoot {
+  @include dialog.size(860px, 860px);
 }
 
-.troubleshoot__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-s;
-
-  h2 {
-    margin: 0;
-    color: $white;
-    font-size: $text-title;
-  }
-
-  button {
-    display: flex;
-    width: 24px;
-    height: 24px;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: none;
-    color: $text-muted;
-    cursor: pointer;
-
-    svg {
-      width: 10px;
-      height: 10px;
-      fill: none;
-      stroke: currentcolor;
-      stroke-linecap: round;
-      stroke-width: 1.8;
-    }
-
-    &:hover {
-      background: rgba($white, 0.08);
-      color: $white;
-    }
-  }
-}
-
-.troubleshoot__lead {
-  margin: 8px 0 14px;
-  color: $text-muted;
-  font-size: $text-lead;
-  line-height: 1.5;
-}
-
-// Numbered, and the numbers matter — this is a sequence, not a set of options.
+// A sequence, drawn as one: a disc per step with its number, and a thread
+// from each disc down to the next.
 .troubleshoot__steps {
+  display: grid;
   margin: 0;
-  padding-left: 20px;
-  list-style: decimal;
+  padding: 0;
+  list-style: none;
+}
 
-  > li {
-    margin-bottom: 14px;
-    padding-bottom: 14px;
-    border-bottom: 1px solid rgba($edge-tint, 0.08);
-    color: $text-muted;
+.troubleshoot__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 16px;
+  padding-bottom: 22px;
 
-    &:last-child {
-      margin-bottom: 0;
-      padding-bottom: 0;
-      border-bottom: none;
-    }
-
-    // A completed step can still be run again. Mark its edge without fading
-    // the instructions and the button inside it.
-    &.is-tried {
-      border-bottom-color: $text-accent;
-    }
+  &:last-child {
+    padding-bottom: 0;
   }
+
+  // The thread, from under this disc to the top of the next.
+  &:not(:last-child)::before {
+    position: absolute;
+    top: 36px;
+    bottom: 6px;
+    left: 14.5px;
+    width: 1px;
+    background: color-mix(in srgb, $edge-tint 14%, transparent);
+    content: '';
+  }
+}
+
+.troubleshoot__number {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  font-size: $text-body;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+
+  // The step to try first, lit like the button it holds.
+  .troubleshoot__step:first-child & {
+    color: $surface-base;
+    border-color: transparent;
+    background: $secondary-default;
+  }
+}
+
+.troubleshoot__step-main {
+  display: grid;
+  min-width: 0;
+  justify-items: start;
+  gap: 6px;
+  padding-top: 4px;
 
   p {
-    margin: 4px 0 0;
+    color: $text-muted;
     font-size: $text-body;
-    line-height: 1.5;
+    line-height: 1.55;
+  }
+
+  strong {
+    color: $text-primary;
+  }
+
+  .button {
+    margin-top: 6px;
   }
 }
 
 .troubleshoot__step-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: $spacing-s;
+  gap: 4px 10px;
 
   h3 {
     margin: 0;
-    color: $white;
+    color: $text-primary;
     font-size: $text-lead;
+    font-weight: $weight-bold;
+    line-height: 1.35;
   }
+}
+
+// A step already pressed can be pressed again: its disc keeps the number and
+// takes the accent's edge, and the word beside the title says so.
+.troubleshoot__step.is-tried .troubleshoot__number {
+  border-color: $secondary-light;
 }
 
 .troubleshoot__tried {
   color: $secondary-light;
   font-size: $text-micro;
-  @include tracking(0.06em);
+  font-weight: $weight-bold;
+  @include tracking(0.08em);
   text-transform: uppercase;
 }
 
 // What it costs, set apart from what it fixes. Somebody deciding whether to
 // press a button that reboots their computer should not have to find that out
 // in the middle of a paragraph about symptoms.
-.troubleshoot__cost {
+.troubleshoot__step-main .troubleshoot__cost {
   color: $text-faint;
   font-style: italic;
-}
-
-.troubleshoot__action {
-  margin-top: 9px;
-  padding: 5px 12px;
-  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
-  border-radius: $radius-xs;
-  background: color-mix(in srgb, $secondary-light 12%, transparent);
-  color: $secondary-light;
-  font-size: $text-body;
-  cursor: pointer;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease;
-
-  &:hover {
-    border-color: $secondary-light;
-    background: color-mix(in srgb, $secondary-light 24%, transparent);
-    color: $white;
-  }
-}
-
-// The step that takes the engine away rather than repairing it. Every other
-// button here is something this panel is recommending; this one is here to be
-// findable, not to be pressed, so it drops the accent and keeps only the
-// outline.
-.troubleshoot__action--quiet {
-  border-color: rgba($edge-tint, 0.22);
-  background: none;
-  color: $text-muted;
-
-  &:hover {
-    border-color: rgba($edge-tint, 0.4);
-    background: rgba($white, 0.06);
-    color: $text-primary;
-  }
-}
-
-.troubleshoot__foot {
-  margin: 16px 0 0;
-  padding-top: 14px;
-  border-top: 1px solid rgba($edge-tint, 0.08);
-  color: $text-muted;
-  font-size: $text-body;
-  line-height: 1.5;
-
-  strong {
-    color: $text-primary;
-  }
 }

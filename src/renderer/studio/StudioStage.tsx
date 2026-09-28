@@ -34,7 +34,7 @@ import {
   type TStudioSignal,
 } from './studioSignals';
 
-export type TStudioSize = 'graph' | 'narrow' | 'wide' | 'full';
+export type TStudioSize = 'graph' | 'full';
 
 export type TStageTrouble =
   | { kind: 'compile'; log: string }
@@ -349,7 +349,7 @@ export default function StudioStage({
         data-testid="studio-stage"
         aria-busy={waiting}
         // The graph's gesture for the same thing, and the same full screen as
-        // the size choice beside the stage. Not on the exit button, whose
+        // the stage's own button. Not on the exit button, whose
         // first click has already brought the stage back.
         onDoubleClick={({ target }) => {
           if (!(target instanceof Element && target.closest('button'))) {

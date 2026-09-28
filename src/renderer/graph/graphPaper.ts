@@ -77,6 +77,8 @@ const NO_AXIS_PADDING: IMarginLike = {
   bottom: HANDLE_INSET,
 };
 
+const NO_PADDING: IMarginLike = { left: 0, top: 0, right: 0, bottom: 0 };
+
 /**
  * The vertical inset exists for one thing: a band handle sitting at +20 or
  * -20 dB is centred on the edge of the plot, and half of it would be cut off.
@@ -91,9 +93,36 @@ export const getAxisPadding = (
   if (!isGridHidden) {
     return GRID_AXIS_PADDING;
   }
-  return hasHandles
-    ? NO_AXIS_PADDING
-    : { left: 0, top: 0, right: 0, bottom: 0 };
+  return hasHandles ? NO_AXIS_PADDING : NO_PADDING;
+};
+
+/**
+ * Gridless with the handles up, the drawing keeps the handles' headroom and
+ * stands on the plot's own bottom edge.
+ */
+const NO_AXIS_DRAWING_PADDING: IMarginLike = {
+  ...NO_AXIS_PADDING,
+  bottom: 0,
+};
+
+/**
+ * What the drawing — the live trace, the analysers, a scene — keeps clear
+ * of, where `getAxisPadding` is what the EQ's curves and handles keep clear
+ * of. The two differ in one place: at the foot of a gridless plot, the
+ * handles' inset left the drawing standing 14px above the divider's line, a
+ * strip of bare floor between the picture and the bands under it (Ivan,
+ * 2026-09-26: "when grid is off remove slider gap"). A handle at -20 dB
+ * still needs that inset to stay whole; a bar or a wave does not, and on a
+ * plot with no scale the two are not read against each other.
+ */
+export const getDrawingPadding = (
+  isGridHidden: boolean,
+  hasHandles = true,
+): IMarginLike => {
+  if (!isGridHidden) {
+    return GRID_AXIS_PADDING;
+  }
+  return hasHandles ? NO_AXIS_DRAWING_PADDING : NO_PADDING;
 };
 
 // Every tick list is a module constant: the grid lines and axes list their

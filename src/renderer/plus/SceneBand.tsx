@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { resolveSceneName, type IScenePack } from 'common/scenePacks';
 import { isSceneRenderingAvailable } from '../graph/sceneHealth';
 import { useTranslation } from '../utils/I18nContext';
@@ -72,7 +72,7 @@ interface ISceneBandProps {
    * Whether a scene may play in it, rather than the aurora alone.
    *
    * Off by default, and on in two places: the welcome to Plus, and the
-   * banner of a member's own profile in the Account panel (Ivan,
+   * picture on a member's own profile in the Account panel (Ivan,
    * 2026-09-15). A scene is what Plus is, so it belongs to the moment
    * somebody joins and to the panel that says they have — never to an
    * account without it, where a band drawing on the graphics card would be
@@ -83,14 +83,12 @@ interface ISceneBandProps {
   className?: string;
   /** Custom properties the band reads: its heights, and its leading light. */
   style?: CSSProperties;
-  /** Laid over the scene, above the scrim. */
-  children: ReactNode;
 }
 
 /**
- * A band with a scene playing in it and words over it.
+ * A picture with a scene playing in it.
  *
- * The top of the welcome and the top of the account panel are the same thing
+ * The welcome's picture and the one on a member's profile are the same thing
  * — this app introducing itself — and were written twice before this. The
  * aurora underneath is what a machine that cannot draw a scene is left with,
  * and what covers the moment before the first frame: a band that began as a
@@ -105,7 +103,6 @@ export default function SceneBand({
   playsScene = false,
   className = '',
   style,
-  children,
 }: ISceneBandProps) {
   const { locale } = useTranslation();
   const [trouble, setTrouble] = useState(false);
@@ -141,8 +138,6 @@ export default function SceneBand({
           onTrouble={() => setTrouble(true)}
         />
       )}
-      <span className="scene-band__scrim" aria-hidden="true" />
-      <div className="scene-band__over">{children}</div>
     </div>
   );
 }

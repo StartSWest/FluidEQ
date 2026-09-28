@@ -35,6 +35,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'sass:list';
 @use 'color' as *;
 @use 'constant' as *;
+@use 'glass' as *;
 @use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
@@ -270,8 +271,8 @@ select {
   font-weight: $weight-bold;
 
   &:hover:not(:disabled) {
-    border-color: $border-field-hover;
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
   }
 }
 
@@ -485,10 +486,12 @@ select option {
   // and a spectrum 3px off centre is the sort of thing that is only ever seen
   // once it cannot be unseen.
   padding: 2px 18px;
-  // No card: the window's own floor with one hairline under it, the same line
-  // that parts the columns below (layout A). It was the transport bar's card,
-  // and before that a full-width strip with a hairline — which is where it has
-  // come back to, now that nothing else in the shell is a card either.
+  // No card and no line: the window's own floor, running straight on into
+  // the page. It was the transport bar's card, then a full-width strip with a
+  // hairline under it (layout A), and the shell's four dividing hairlines —
+  // this one, the two side panes' and the bottom bar's — came off together
+  // (Ivan, 2026-09-27: "remove the borders ... that separate header and side
+  // panes and the button bar").
   //
   // The floor colour, and OPAQUE, which is not the same as leaving it
   // transparent: this bar floats at `z-index: 100` over three accelerated
@@ -496,7 +499,6 @@ select option {
   // layer only keeps its subpixel antialiasing over an opaque background — at
   // 0.84 the brand, the tab names and the version all rendered grey and soft.
   border: 0;
-  border-bottom: 1px solid $border-subtle;
   border-radius: 0;
   background: $surface-base;
   box-shadow: none;
@@ -552,14 +554,11 @@ select option {
     // won: measured at a 2560px window the shell came to 1192 and the drawing
     // stopped at 420, with 772px of empty bar after it and the mode badge —
     // which is centred on the SHELL — floating clear of the wave it names.
-    // Same 65px as the euphoric override, so the pane no longer resizes
-    // when rainbow mode is toggled — the wave inside was already unified
-    // to max amplitude + normalise, and this makes the container match.
-    //
-    // 65 rather than 64 since the pane grew a bottom border: one more pixel
-    // of box for one more pixel of edge, so the 63px of pane inside it is
-    // what it always was. See `WaveformVisualizer.scss`. 65 is the default of
-    // `--title-bar-meter`, which a short window takes down with its card.
+    // The same height as the euphoric override, so the pane no longer
+    // resizes when rainbow mode is toggled — the wave inside was already
+    // unified to max amplitude + normalise, and this makes the container
+    // match. `--title-bar-meter` on the root, which a short window takes down
+    // with its card.
     height: var(--title-bar-meter);
     // Carved out of the drag handle, because it is a button: a press on it
     // cycles the meter's look. A system drag region cannot pass a press
@@ -1030,6 +1029,28 @@ select option {
   }
 }
 
+// AND THEN THE BAR ITSELF, at a window zoomed past what its ends and the
+// meter's floor fit in (Ivan, 2026-09-28: "shed small things"), measured by
+// the same hook. The meter goes first, its track with it — two ends, one gap,
+// so the right end keeps the last column and nothing is placed by accident
+// into the middle one; the meter draws nothing with no box to draw in.
+.window-titlebar[data-shed-meter] {
+  grid-template-columns: minmax(max-content, 1fr) minmax(max-content, 1fr);
+
+  > .titlebar-nav {
+    display: none;
+  }
+}
+
+// Then Help and the compact-player switch, which the actions menu beside them
+// takes in while they are away. Help stays mounted: F1 and What's New's "Open
+// Help" still open its guide, which is drawn on a layer of its own.
+.window-titlebar[data-shed-tools]
+  .titlebar-instrument
+  > :is(.help-menu, .window-mode-switch) {
+  display: none;
+}
+
 // A small glass transport rather than three window buttons. It controls media
 // anywhere in Windows, so it belongs in the titlebar, but it uses the same
 // raised play surface and clean solid glyphs as Karaoke's player below.
@@ -1211,100 +1232,18 @@ select option {
   letter-spacing: -0.02em;
 }
 
-// A recoverable failure says so and gets out of the way. It floats over the
-// workspace rather than displacing it, so nothing the user was doing moves.
-.workspace-notice {
+// Something that happened, bottom right: a recoverable failure in amber, an
+// import done in the accent. It floats over the workspace rather than
+// displacing it, so nothing the user was doing moves. Drawn by the small
+// frame (`CompactFrame`); this places it, against the frame's class as well
+// so the slide wins over the frame's arrival.
+.compact-frame.workspace-notice {
   @include animate(slide-in-right, $motion-base);
   position: fixed;
   z-index: 1300;
   right: 18px;
   bottom: 18px;
-  display: flex;
-  max-width: min(420px, calc(100vw - 36px));
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid rgba($red, 0.42);
-  border-radius: $radius-m;
-  // Red said by the border and the text, on the app's own card colour. The
-  // fill was a maroon mixed by hand for this one notice, so the only place
-  // the window ever went warm was the place it most needed to look native.
-  background: $surface-plot;
-  box-shadow: 0 16px 40px rgba($black, 0.45);
-
-  > div {
-    display: grid;
-    min-width: 0;
-    gap: 3px;
-  }
-
-  strong {
-    color: rgba($white, 0.94);
-    font-size: $text-body;
-  }
-
-  span {
-    color: $text-muted;
-    font-size: $text-body;
-    line-height: 1.4;
-  }
-
-  button {
-    display: grid;
-    width: 24px;
-    height: 24px;
-    flex: 0 0 auto;
-    place-items: center;
-    padding: 0;
-    color: $text-muted;
-    border: 1px solid transparent;
-    border-radius: $radius-xs;
-    background: transparent;
-    cursor: pointer;
-    transition: $transition-control;
-
-    svg {
-      width: 11px;
-      height: 11px;
-      fill: none;
-      stroke: currentColor;
-      stroke-linecap: round;
-      stroke-width: 1.5;
-    }
-
-    &:hover,
-    &:focus-visible {
-      color: $white;
-      border-color: rgba($red, 0.4);
-      background: rgba($red, 0.16);
-      outline: none;
-    }
-  }
-}
-
-// Same shape as the failure notice, opposite meaning. Reusing the layout keeps
-// "something happened" in one place on screen rather than two.
-.workspace-notice--ok {
-  border-color: color-mix(in srgb, $secondary-light 42%, transparent);
-  background: color-mix(in srgb, $surface-menu-top 97%, transparent);
-
-  strong {
-    color: $secondary-light;
-  }
-
-  button:hover,
-  button:focus-visible {
-    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
-    background: color-mix(in srgb, $secondary-default 18%, transparent);
-  }
-}
-
-.workspace-notice__icon {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-  margin-top: 1px;
-  color: $secondary-light;
+  width: min(420px, calc(100vw - 36px));
 }
 
 // Quiet by design: useful in a bug report, not something to read every day.
@@ -1413,6 +1352,14 @@ select option {
   // 2026-09-22 — "put the help menu as icon next to the other menu icon
   // inside the pill"). It was a word of its own standing outside the
   // capsule, which is what put four shapes across this strip.
+  //
+  // 2px off the engine's menu, so the two hover and open faces never meet
+  // as one slab (Ivan, 2026-09-27: "put a 1 or 2 px gap between the two
+  // buttons").
+  > .help-menu {
+    margin-left: 2px;
+  }
+
   > .help-menu > .help-menu__trigger {
     width: 32px;
     // The word's own floor (`HelpGuide.scss`), which a glyph does not need.
@@ -1587,11 +1534,12 @@ select option {
   // The menu surface's own colour. This had a diagonal ramp of its own that
   // ran off to rgb(8,23,37) in the bottom corner — darker than the shell — so
   // the widest menu in the app was also the only one with a black corner.
-  box-shadow:
-    0 22px 52px rgba($black, 0.52),
-    0 0 32px color-mix(in srgb, $secondary-default 10%, transparent),
-    inset 0 1px 0 rgba($white, 0.085),
-    inset 0 0 0 1px rgba($black, 0.12);
+  //
+  // And every menu's own lift and edge (`menu-face`): it carried a 52px drop
+  // shadow at half black and a 32px glow of the accent round it, a haze that
+  // blurred its edge into the window (Ivan, 2026-09-27: "more defined border
+  // less dropshadow").
+  //
   // This menu is a list of labels on a surface that is already 94-96% opaque,
   // so the blur under it was invisible and cost every one of those labels its
   // subpixel antialiasing.
@@ -1962,24 +1910,24 @@ textarea,
   --text-faint: #{$text-faint-shipped};
   // The inks the theme's script solves for each shade (`themeInk.ts`), at
   // Ocean's values until it has run.
-  --text-dim-share: 41.8%;
-  --rule-major: rgba(214, 233, 247, 0.151);
+  --text-dim-share: 38.8%;
+  --rule-major: rgba(214, 233, 247, 0.146);
   --rule-minor: rgba(214, 233, 247, 0.075);
-  --field-edge-share: 28.1%;
-  --field-edge-hover-share: 42.6%;
+  --field-edge-share: 26.6%;
+  --field-edge-hover-share: 42%;
   --disabled-opacity: 0.45;
   // Ocean: the slate-navy the app was designed on. Hue 206 throughout; only
   // the lightness moves between rungs.
   --surface-base: #0d2030;
-  --surface-panel: #1a3a4e;
-  --surface-block: #1e4257;
-  --surface-field: #1c3a4e;
-  --surface-field-end: #173245;
-  --surface-menu: #163244;
-  --surface-menu-top: #1a3a52;
+  --surface-panel: #132d3d;
+  --surface-block: #163446;
+  --surface-field: #142d3d;
+  --surface-field-end: #0f2534;
+  --surface-menu: #122b3b;
+  --surface-menu-top: #122b3b;
   // The select's own tint over the block it opens on — what
   // `mix($secondary-default, $surface-block, 7%)` came to.
-  --surface-menu-face: #1c4a5f;
+  --surface-menu-face: #122b3b;
   // The well is the shell over a card — the floor showing through — so it is
   // the floor's own colour. It was #07111a, darker than the floor itself, and
   // every recessed box on this theme (the Dimension scope, the Studio's stage
@@ -1989,9 +1937,9 @@ textarea,
   --track-well: #2e4f63;
   // The edges, a cool white at a whisper: on slate they only have to part
   // one pane from the next.
-  --border-subtle: rgba(214, 233, 247, 0.218);
-  --border-panel: rgba(214, 233, 247, 0.258);
-  --border-menu: rgba(156, 250, 255, 0.333);
+  --border-subtle: rgba(214, 233, 247, 0.208);
+  --border-panel: rgba(214, 233, 247, 0.244);
+  --border-menu: rgba(156, 250, 255, 0.313);
   // The accent: the chosen thing, the live thing, the thing to press.
   --accent: #1bdee7;
   --accent-light: #a1fcff;
@@ -2050,35 +1998,49 @@ textarea,
   // reference, so a Plus scene lending the window its accent recolours these
   // with it rather than leaving cyan columns under a pink curve.
   --coverage-band: var(--accent);
-  // Every menu's floor (`$surface-menu-floor`), from the surfaces as the root
-  // holds them — the theme's slider and a scene's tint included — so what the
+  // Every menu's floor (`$surface-menu-floor`): the card's own colour, as a
+  // card on the floor shows it (Ivan, 2026-09-27: "all dropdown menu need to
+  // ... have card bg color"), at the 95% every menu is (2026-09-26: "no
+  // transparency like crazy just 95%"). From the surfaces as the root holds
+  // them — the theme's slider and a scene's tint included — so what the
   // Backdrop veils inside the panes never reaches a menu opened from them.
   --surface-menu-floor: color-mix(
     in srgb,
-    color-mix(in srgb, var(--surface-base) 70%, var(--surface-panel)) 95%,
+    color-mix(in srgb, var(--surface-panel) 85%, var(--surface-base)) 95%,
+    transparent
+  );
+  // A button's, a field's and a select's face (`$surface-control`), every
+  // one alike (Ivan, 2026-09-27: "lets all be same as preset ... same color
+  // as preset select"): the card's colour a step lighter, at 61%, so a scene
+  // shows through it and it stays a colour of the window's own over any
+  // picture. The step is the edge tint, not the accent: 14% of the accent
+  // stood here, and wherever the accent is not the card's hue — Rainbow
+  // mode's lime over its violet — every control on the page came out olive
+  // ("input colors this mess sucks"). Not the Backdrop's darkened floor
+  // below: a control over the scene keeps the card's own colour.
+  --surface-control: color-mix(
+    in srgb,
+    color-mix(
+        in srgb,
+        #{$edge-tint} 5%,
+        color-mix(in srgb, var(--surface-panel) 85%, var(--surface-base))
+      )
+      61%,
     transparent
   );
 }
 
-// Under the Backdrop, the same floor as a veiled pane shows it over a dark
-// scene: the veil's share of it, the rest the night behind. At the root's own
-// floor a menu was the one pale slab in a window of panes the scene darkens —
-// lighter than every pill and pane it opened from (Ivan, 2026-09-26, of the
-// open preset list over a scene: "the dropdown menus too", beside "so it looks
-// the same as the other pills and buttons"). Still 95%: the Backdrop's veil
-// sets its colour, never its opacity.
+// Under the Backdrop every menu is a pane of the floating glass
+// (`_glass.scss`): its fill, its blur, its bevel and no edge, the panes'
+// own treatment (Ivan, 2026-09-27: "all dropdown menu during that backdrop
+// mode need to be blur too same treatment"). Read by `menu-face` and by the
+// menus built without it (`Rainbow.scss`). It was the veiled floor at 95%
+// with the card's edge and a shadow, a dark slab beside frosted panes.
 :root:is(.is-scene-backdrop, [data-app-full].is-scene-full) {
-  --surface-menu-floor: color-mix(
-    in srgb,
-    color-mix(
-        in srgb,
-        color-mix(in srgb, var(--surface-base) 70%, var(--surface-panel))
-          var(--backdrop-veil),
-        #{$black}
-      )
-      95%,
-    transparent
-  );
+  --surface-menu-floor: #{$glass-fill};
+  --menu-edge: transparent;
+  --menu-lift: #{$glass-bevel};
+  --menu-glass: #{$glass-blur};
 }
 
 // Rainbow mode's buttons and switches carry the span again: the accent
@@ -2189,23 +2151,43 @@ textarea,
   // plus the gutter above it, which is nothing now.
   --title-bar-card: 74px;
   --title-bar-height: calc(var(--title-bar-card) + var(--shell-gutter));
-  // The meter set into that card, rainbow mode or not (`Euphoria.scss`): the
-  // card less its padding and border, and a pixel and a half either side.
-  --title-bar-meter: 65px;
+  // The meter set into that card, rainbow mode or not (`Euphoria.scss`), and
+  // in every window mode: 10px clear of the card's edges, so it stands inside
+  // the titlebar's glass on the Backdrop's EQ page with air above and below
+  // and is the same size, in the same place, everywhere else (Ivan,
+  // 2026-09-27: "during backdrop mode it doesn't overflow the container so
+  // make it less taller also that one keep same size when going into normal
+  // mode and it doesn't move"). It was 65, the card less its padding: over
+  // the glass it ran from the glass's top edge to below its foot.
+  --title-bar-meter: 54px;
 }
 
-// How wide the sound panel's column is: the panel's own width, or its rail
-// when it is folded (`soundPane.ts`). A registered length so the column can
-// ease between the two: an unregistered custom property changes in one step,
-// and the grid track built from it with it.
-@property --sound-pane-width {
-  syntax: '<length>';
-  inherits: true;
-  initial-value: 330px;
-}
-
-// The rail a folded or closed sound panel keeps: its button and nothing else.
-$sound-pane-rail: 44px;
+// The rail a folded or closed sound panel keeps: its button and nothing else,
+// two pixels either side of it (Ivan, 2026-09-27: "the side pane we can take
+// more space when no shown no need to be so wide"). It was 44px, a 32px
+// button in six pixels of air a side, and the page gets the rest back.
+$sound-pane-rail: 36px;
+$sound-pane-fold: 32px;
+// The row the button stands on, as tall as it was: the rail narrowed, not
+// the head.
+$sound-pane-head: 44px;
+// How far the folded or closed panel slides past its rail, beyond the rail's
+// own width, so its button — five pixels in from its left edge when open —
+// stands in the middle of the rail: over a full-screen picture, where the rail
+// stands alone at the window's edge.
+$sound-pane-rail-shift: calc(
+  5px - (#{$sound-pane-rail} - #{$sound-pane-fold}) / 2
+);
+// Beside a page, what reads as the rail is the strip from the page's cards to
+// the window's edge: the rail and the page's own margin before it (the EQ
+// page's scroller, 10px). Its button stands in the middle of that strip
+// (Ivan, 2026-09-27: "center the icon on the space when closed"); centred in
+// the rail alone it stood 19.5px from the cards and 9.5px from the edge.
+$sound-pane-page-inset: 10px;
+$sound-pane-strip-shift: calc(
+  5px -
+    (#{$sound-pane-rail} - #{$sound-pane-fold} - #{$sound-pane-page-inset}) / 2
+);
 $sound-pane-docked: 330px;
 // The fold's ease, the one the Studio's groups open with: quick off the mark
 // and settling, so the column reads as sliding rather than jumping.
@@ -2233,17 +2215,17 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   // row taller than the window, which is the whole thing being prevented.
   grid-template-rows: minmax(0, 1fr);
   align-content: stretch;
-  transition: --sound-pane-width $sound-pane-ease;
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
 }
 
-// Folded beside the page (Ivan, 2026-09-27: "make right side pane collapsible
-// nicely with animation"): the column eases down to its rail and the page
-// takes the width.
-.app-workspace.is-sound-pane-folded {
+// How wide the sound panel's column is: the panel's own width, or its rail —
+// from the start of a fold, and until an unfold's slide has finished
+// (`useSoundPaneSlide`). The column changes in one step and the panel slides
+// over the difference (below). It used to ease its own width, and each frame
+// of the fold laid the whole page out again at a new width — the graph, the
+// bands and every pane (Ivan, 2026-09-27: "make right side pane collapsible
+// nicely with animation", then "fast and not making ui to recalculate on
+// each frame").
+.app-workspace.is-sound-pane-narrow {
   --sound-pane-width: #{$sound-pane-rail};
 }
 
@@ -2279,7 +2261,14 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
     flex: 1 1 auto;
   }
 
-  .workspace-tab-panel--karaoke {
+  // The three players' page cards (`$section-card-pages`) give way to the
+  // screen: no edge, no corner, no gutter round the picture.
+  :is(
+    .workspace-tab-panel--karaoke,
+    .workspace-tab-panel--library,
+    .workspace-tab-panel--video
+  ) {
+    margin: 0;
     border: 0;
     border-radius: 0;
     box-shadow: none;
@@ -2290,10 +2279,7 @@ $sound-pane-ease: 300ms cubic-bezier(0.32, 0.72, 0, 1);
   // screen instead. The controlled class gives the picture the whole pane.
   .workspace-tab-panel--video {
     padding: 0;
-    border: 0;
-    border-radius: 0;
     background: none;
-    box-shadow: none;
   }
 
   // Full-screen content lies behind the translucent FluidEQ titlebar. When
@@ -2827,12 +2813,17 @@ $tab-bar-inset: 8px;
 // veil (`SceneCover.scss`): the gutter round a card inside it stays veiled,
 // where a gutter round the pane itself would be a frame of bare scene.
 //
-// Not the players, whose pictures run to the column's edges and which carry
-// their own cards inside — the Library's covers and panes, the Karaoke
-// stage, a video — and not Plus and the forum, which lay out rails of their
-// own.
+// The players too: every page's content stands in a card, as EQ Presets'
+// does (Ivan, 2026-09-27: "make sure ... that our main content always in a
+// card in the rest like EQ presets mode"). They were left on the floor so
+// their pictures ran to the column's edges; Online Media's picture now runs
+// to the card's inside edge and is clipped to its corners, and the Library's
+// panes and the Karaoke stage stand inside it. Not Plus and the forum, which
+// lay out rails of their own.
 $section-card-pages: ();
-@each $page in eq, presets, convolution, games, config, dsp, share {
+@each $page in eq, presets, convolution, games, config, dsp, share, video,
+  karaoke, library
+{
   $section-card-pages: list.append(
     $section-card-pages,
     '.workspace-tab-panel--#{$page}',
@@ -2880,6 +2871,93 @@ $section-card-pages: ();
   // Above a graph (DSP, Share Audio) the strip is the card's gap at its foot.
   &:not(.is-graph-first) > .middle-content > :is(#{$section-card-pages}) {
     margin-bottom: 0;
+  }
+}
+
+// And the EQ pages' head and graph above that strip stand on a section card
+// of their own, the colour of the bands' card under it: the pills, the title
+// row with its menus, and the graph (Ivan, 2026-09-27: "put the top graph
+// and the menu bands etc into a wrapper same as in EQ pane and same color").
+//
+// One card drawn across the two boxes rather than a box wrapped round them:
+// the head and the graph are the column's own children, the split measures
+// the head where it stands (`measureHead`, which counts its margins), and
+// the expanded and full-screen graph lift the graph out of the column alone.
+// Not in those modes: they are frames of their own, square and flush.
+.center-workspace.is-graph-first:not(.is-graph-full):has(
+    > .middle-content > :is(#{$section-card-pages})
+  ) {
+  > .center-head,
+  > .graph-wrapper {
+    @include section-card;
+  }
+
+  // The card's top: 8px under the titlebar and 10px in from the column's
+  // sides, like the page's card, and open at its foot into the graph.
+  > .center-head {
+    margin: 8px 10px 0;
+    border-bottom: 0;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  // The card's foot, closed on the divider's strip. The plot takes its
+  // rounded corners from here (`.graph-plot` inherits the radius).
+  > .graph-wrapper {
+    width: auto;
+    margin: 0 10px;
+    border-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  // A Plus visualizer, behind the head and the graph (the column's layer) or
+  // behind the whole window (the Backdrop), stands in the same card as every
+  // other look's drawing does, the picture its face (Ivan, 2026-09-27: "make
+  // the card wrapper also for plus viz same way as in standard", "same case
+  // for mode backdrop"), so the card lays no face of its own over it.
+  :root:is(.is-scene-column, .is-scene-backdrop) & {
+    > .center-head,
+    > .graph-wrapper {
+      background: none;
+    }
+  }
+
+  // The column's layer, cut to the card's inside edge: 1px in from where the
+  // card stands, its corners the card's less that pixel, so the picture never
+  // runs under or past the edge ("the engine always inside inner borders").
+  // It is measured from its own top to the graph's inside foot
+  // (`SceneColumnLayer.tsx`). Under the Backdrop it holds no picture and
+  // veils what is round it instead (`SceneCover.scss`).
+  > .scene-column-layer {
+    top: 9px;
+    right: 11px;
+    left: 11px;
+    border-radius: calc(#{$radius-m} - 1px);
+  }
+}
+
+// A graph under a page's card (DSP, Share Audio) stands on a card of its
+// own too, the same card as the EQ pages' above theirs, in from the column's
+// sides and foot as the page's card is and parted from it by the divider's
+// strip (Ivan, 2026-09-27: "fix the graph when is on the bottom to be inside
+// card same way and for all cases too, standard and plus and backdrop"). A
+// Plus visualizer here is drawn in the plot, which takes the card's corners
+// (`.graph-plot`). Its foot is counted out of the split with the divider
+// (`measureSeam`), so at the graph's floor the page is not pushed down.
+.center-workspace:not(.is-graph-first, .is-graph-full):has(
+    > .middle-content > :is(#{$section-card-pages})
+  )
+  > .graph-wrapper {
+  @include section-card;
+  width: auto;
+  margin: 0 10px 10px;
+
+  // Under the Backdrop the picture behind the window is the card's face, at
+  // full strength, and the floor round it is veiled like every pane's
+  // (`SceneCover.scss`).
+  :root.is-scene-backdrop & {
+    background: none;
   }
 }
 
@@ -2958,18 +3036,39 @@ $section-card-pages: ();
 // the plot runs to the column's edge and 16 kHz stands 12px from it: clipped
 // at the panel's padding and the scrollbar's gutter it stood past what the
 // page showed, and its band was pulled 28px off its point into the 10 kHz
-// one. The content keeps its width — 20px of padding where the panel's 12
-// and the gutter's 8 were — so every width query inside reads the same, and
-// with no gutter kept the page stays centred on the column while it does not
-// scroll, which on this page is always.
-.workspace-tab-panel--eq:has(
-  > .workspace-tab-panel__scroll .main-content.is-placed
-) {
+// one. 10px either side, the card's own inset, with no gutter kept, so the
+// page stays centred on the column while it does not scroll, which on this
+// page is always: the dB scale stands 10 in from the card's left edge and the
+// last band ends 10 short of its right one, where the row used to run to the
+// edge (Ivan, 2026-09-27: "less padding to the left", "add some padding to
+// the right of all"). With the bands scrolling as well as placed: there the
+// panel's 12 and a gutter for a scrollbar the page never shows stood the
+// scale 21px in.
+.workspace-tab-panel--eq:has(> .workspace-tab-panel__scroll) {
   padding-inline: 0;
 
   > .workspace-tab-panel__scroll {
-    padding-inline: 20px;
+    padding-inline: 10px;
     scrollbar-gutter: auto;
+  }
+}
+
+// And up against the graph when the grid is off. The page's 20px of air
+// above its first row (the panel's 10, the scroller's 10) was there to hold
+// the bands off the frequency labels at the foot of a ruled plot; a gridless
+// plot has none, and its picture now stands on the divider's line
+// (`getDrawingPadding`), so the air was a strip of bare floor between the
+// picture and the sliders (Ivan, 2026-09-26: "when grid is off remove slider
+// gap"). What is left is the row's own 6px and each band's 4: a caption
+// 11px under the line, room for its hover and the selection's glow.
+.center-workspace:has(> .graph-wrapper.is-gridless)
+  .workspace-tab-panel--eq:has(
+    > .workspace-tab-panel__scroll .main-content.is-placed
+  ) {
+  padding-top: 0;
+
+  > .workspace-tab-panel__scroll {
+    padding-top: 0;
   }
 }
 
@@ -3453,28 +3552,53 @@ $section-card-pages: ();
   min-width: 0;
   min-height: 0;
   padding: 0;
-  // Cut at its own edge while the column eases to its rail.
-  overflow: hidden;
+  // The panel reaches past its cell over the page while it slides; the
+  // window cuts what lies past its own edge.
+  overflow: visible;
+
+  // Over the page it is crossing, and only then: at rest the panel is inside
+  // its own column, under anything the page opens over it.
+  &.is-sliding {
+    z-index: 20;
+  }
 }
 
 .right-content__panel {
-  // What the sections are laid out at, whatever the column is doing: they are
-  // never reflowed through every width of the fold, only revealed and cut.
+  // What the panel and its sections are laid out at, whatever the column is
+  // doing: never reflowed through the fold, only slid.
   --sound-pane-open: #{$sound-pane-docked};
   position: absolute;
   top: 0;
   right: 0;
   bottom: 0;
   display: grid;
-  width: 100%;
+  width: var(--sound-pane-open);
   grid-template-rows: auto minmax(0, 1fr) max-content;
   overflow: hidden;
-  // No card and no fill: the open floor, and a hairline on the edge it
-  // shares with the page (layout A, Ivan 2026-09-25). A fill here stood
-  // solid over a scene behind the window (the Backdrop), where every other
-  // pane lets it through.
-  border-left: 1px solid $border-subtle;
+  // No card, no fill and no line: the open floor (layout A, Ivan
+  // 2026-09-25), with the hairline it had on the edge it shares with the
+  // page gone with the shell's others (see `.window-titlebar`). A fill here
+  // stood solid over a scene behind the window (the Backdrop), where every
+  // other pane lets it through.
   background: none;
+  // The fold is this and nothing else: a transform, composited, so no frame
+  // of it lays anything out.
+  transition: transform $sound-pane-ease;
+
+  // Crossing the page it hides what it covers, as it does opened over it.
+  .right-content.is-sliding > & {
+    background: $surface-base;
+  }
+}
+
+// Folded beside the page: slid out past the window's edge until only its
+// rail — its left end, where its button stands — is left in the column.
+.app-workspace.is-sound-pane-folded > .right-content > .right-content__panel {
+  transform: translateX(
+    calc(
+      var(--sound-pane-open) - #{$sound-pane-rail} - #{$sound-pane-strip-shift}
+    )
+  );
 }
 
 // Its button, on a row of its own at the top: the rail keeps it there when
@@ -3482,7 +3606,7 @@ $section-card-pages: ();
 .right-content__head {
   display: flex;
   align-items: center;
-  height: $sound-pane-rail;
+  height: $sound-pane-head;
   padding: 0 5px;
 }
 
@@ -3490,8 +3614,8 @@ $section-card-pages: ();
 // its arrow pointing the way the panel will go.
 .right-content__fold {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: $sound-pane-fold;
+  height: $sound-pane-fold;
   flex: none;
   place-items: center;
   padding: 0;
@@ -3568,20 +3692,25 @@ $section-card-pages: ();
 // Where the panel opens over the page: its rail's cell keeps the rail, and the
 // panel grows out of it to the left, over the page, lifted off it by its
 // shadow alone.
-@mixin sound-pane-over-page {
+@mixin sound-pane-over-page($shift: $sound-pane-strip-shift) {
   overflow: visible;
 
+  // Slid out past the window's edge to its rail when closed, and in over the
+  // page when open, at its full width either way: it grew its width across
+  // the page before, and laid itself out at every step of that.
   > .right-content__panel {
     --sound-pane-open: #{$sound-panel-width};
-    width: $sound-pane-rail;
+    transform: translateX(
+      calc(var(--sound-pane-open) - #{$sound-pane-rail} - #{$shift})
+    );
     transition:
-      width $sound-pane-ease,
+      transform $sound-pane-ease,
       box-shadow $sound-pane-ease;
   }
 
   // Open over the page it hides what it covers: the floor, opaque.
   &.is-open > .right-content__panel {
-    width: $sound-panel-width;
+    transform: none;
     border-left-color: $border-panel;
     background: $surface-base;
     box-shadow: -10px 0 28px rgba($black, 0.22);
@@ -3601,12 +3730,46 @@ $section-card-pages: ();
     var(--now-playing-bar-height, 0px) + var(--shell-gutter-bottom, 18px)
   );
   width: $sound-pane-rail;
-  @include sound-pane-over-page;
+  @include sound-pane-over-page($sound-pane-rail-shift);
 
-  &:not(.is-open) > .right-content__panel {
+  // Closed, only its button over the picture — once it has slid away.
+  &:not(.is-open):not(.is-sliding) > .right-content__panel {
     border-left-color: transparent;
     background: none;
   }
+
+  // Its button on the line of the graph's own buttons across the top of the
+  // picture, centre to centre, as the last of them (Ivan, 2026-09-27: "align
+  // the toogle ... vertically with other bar butons"): that row stands
+  // $graph-strip-inset under the header, a button tall, and the rail starts
+  // at the header.
+  .right-content__head {
+    $drop: calc(
+      #{$graph-strip-inset} + #{$graph-strip-button} / 2 - #{$sound-pane-head} /
+        2
+    );
+    height: calc(#{$sound-pane-head} + #{$drop});
+    padding-top: $drop;
+  }
+}
+
+// And that row ends short of the button, by the gap between two of its own
+// (Ivan, 2026-09-27: "push the bar to the left"): it ran to the window's
+// edge and its last button, Full screen, lay under the panel's. Past a ruled
+// plot's level labels either way; the open drawer and the look editor say
+// where it ends themselves (`--graph-controls-right`).
+$graph-controls-past-fold: calc(
+  (#{$sound-pane-rail} + #{$sound-pane-fold}) / 2 + #{$spacing-s}
+);
+
+.app-workspace.is-app-full .graph-wrapper > .live-output-controls {
+  right: var(--graph-controls-right, #{$graph-controls-past-fold});
+}
+
+.app-workspace.is-app-full
+  .graph-wrapper:not(.is-gridless)
+  > .live-output-controls {
+  right: var(--graph-controls-right, max(56px, #{$graph-controls-past-fold}));
 }
 
 // The sections scroll; the website does not. Keeping the scrollbar on this
@@ -3633,15 +3796,34 @@ $section-card-pages: ();
 }
 
 .right-content__footer {
+  position: relative;
   display: flex;
   min-height: 54px;
   align-items: center;
   justify-content: center;
   padding: 9px 12px 11px;
-  // The pane's own colour and a hairline; a strip of its own was one more
-  // tone at the foot of a column that already had three.
-  border-top: 1px solid $border-subtle;
+  // The pane's own colour, no strip of its own: one more tone at the foot of
+  // a column that already had three.
   background: transparent;
+
+  // Parted from the sections above by a line that fades in and out again
+  // rather than a hard rule edge to edge (Ivan, 2026-09-27: "make something
+  // nice here, perhaps less visible that border line or something nicer").
+  &::before {
+    position: absolute;
+    top: 0;
+    right: 14%;
+    left: 14%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, $edge-tint 22%, transparent),
+      transparent
+    );
+    content: '';
+    pointer-events: none;
+  }
 }
 
 .right-content__site {
@@ -3756,13 +3938,11 @@ $section-card-pages: ();
     transition: opacity 240ms ease-out;
   }
 
-  // And out of sight again while the window changes size for full screen,
-  // then faded in at the size it lands on (`graphArrival.ts`). Gone at once:
-  // a fade out is a slower way of showing the layouts in between.
-  html[data-graph-arriving] & {
-    opacity: 0.01;
-    transition: none;
-  }
+  // Never out of sight again once it has arrived: while the window changes
+  // size for full screen it stays, and a scene in it keeps its picture at its
+  // own proportions until one at the new size is drawn (`sceneWorkerClient`).
+  // It used to vanish for those moments, and the graph blinked out on every
+  // change of mode (Ivan, 2026-09-27: "avoid hiding the graph for a milise").
 
   @media (prefers-reduced-motion: reduce) {
     &.is-measured {
@@ -3792,13 +3972,10 @@ $section-card-pages: ();
   justify-content: flex-end;
   gap: $spacing-s;
   font-size: $text-small;
-  // Enough dark behind each glyph to hold it apart from whatever is moving
-  // underneath, and nothing that draws a box. A band across the top was the
-  // other answer and it cost the whole edge of the picture; this costs the
-  // width of the letters.
-  text-shadow:
-    0 1px 2px rgba($black, 0.75),
-    0 0 6px rgba($black, 0.55);
+  // No shadow round the letters: the veil under the row
+  // (`.live-output-controls::before`) is what holds them off the picture, and
+  // a dark halo on top of it blurred every word in the row (Ivan,
+  // 2026-09-27: "text with dropshadow not good ... text needs to be clear").
   pointer-events: none;
 
   > * {
@@ -3807,7 +3984,7 @@ $section-card-pages: ();
 
   button {
     @include ghost-button;
-    min-height: 28px;
+    min-height: $graph-strip-button;
     padding: 5px 9px;
     border-radius: $radius-xs;
   }
@@ -3817,8 +3994,12 @@ $section-card-pages: ();
 // plot now (`plotTopMargin`), and past the plot's right end are the level
 // labels' 48px (`getAxisPadding`) and 8px of air (`GRID_SIDE_MARGIN`): at its
 // old 10px from the edge the pane lay over "0 dB", the top of that scale.
+// The gain scale on the left is the same: its 50px (`getAxisPadding`) and the
+// 8px of air. The row is right-aligned, so only a row folded onto a second
+// line ever reaches that side, and there its first button covered "+20 dB".
 .graph-wrapper:not(.is-gridless) > .live-output-controls {
   right: 56px;
+  left: 58px;
 }
 
 // Out from under the sound panel (Ivan, 2026-09-25: "the options bar on the
@@ -4042,11 +4223,11 @@ button.graph-legend {
 // merely hovered one were identical, and "is this the one I am about to edit"
 // was answered by comparing a handle against its neighbours.
 //
-// Filled versus hollow is the distinction that carries it. At rest a handle is
-// a ring: the band's colour drawn as an outline over the plot, clearly a marker
-// for something rather than something in hand. Selected, it fills in solid and
-// takes a white collar and a lit halo — it is what the sliders and the arrow
-// keys are pointing at, and it should look like the only one.
+// Size and light are the distinction that carries it. At rest a handle is a
+// ring with a lit centre: the band's colour drawn over the plot, clearly a
+// marker for something rather than something in hand. Selected, it grows,
+// glows and stands in a disc of its own colour — it is what the sliders and
+// the arrow keys are pointing at, and it should look like the only one.
 // Cyan at rest, the spectrum in euphoria — the same bargain the sliders make.
 //
 // Every handle publishes its own colour from `getBandColor`, so the row of
@@ -4062,7 +4243,8 @@ button.graph-legend {
 // inherited band colour, which is what the euphoric rules in Euphoria.scss
 // then read.
 .graph-edit-point__halo,
-.graph-edit-point__dot {
+.graph-edit-point__dot,
+.graph-edit-point__core {
   --point-color: #{$secondary-default};
   --point-muted-color: #{color-mix(
       in srgb,
@@ -4072,43 +4254,76 @@ button.graph-legend {
 }
 
 .is-euphoric .graph-edit-point__halo,
-.is-euphoric .graph-edit-point__dot {
+.is-euphoric .graph-edit-point__dot,
+.is-euphoric .graph-edit-point__core {
   --point-color: revert;
   --point-muted-color: revert;
 }
 
-// The sizes, taken over from the component's own attributes.
+// The sizes and the shape, all here: the component draws three rects and
+// says nothing about either (the geometry of an SVG rect is CSS in Chromium).
 //
-// A handle at rest was a 5px disc, which is small for something that is
-// dragged — and smaller still now that it is a ring rather than a filled dot,
-// because a 2px stroke around a 5px radius leaves very little middle. The
-// resting size is what needed the room; the active one is nudged with it so
-// the step between them stays the same.
+// The shape is the sliders' own (Ivan, 2026-09-26: "fix the graph nodes too
+// to match our nice style new as the mockup"): a ring with a lit core, and
+// with the fader cap chosen (`data-slider-handle`, `SliderHandlePicker`) a
+// rounded square — a corner larger than half a side is a circle, so the
+// round handle is only a corner nobody reaches.
 //
-// `r` is a CSS property on SVG geometry in Chromium, and any rule outranks the
-// presentation attribute the component sets, so this is the value that applies.
-// That does leave the numbers in `EditablePoint.tsx` as a dead fallback and
-// they should go the next time that file is open — two places holding a size
-// is one more than can be kept true.
-.graph-edit-point__dot {
-  r: 6;
+// A handle at rest is 12px across, which is room for a ring and a core on
+// something that is dragged; the active one is nudged up so the step between
+// them stays the same.
+.graph-edit-point {
+  --point-corner: 999px;
+  --dot-half: 6px;
+  --halo-half: 11px;
+  --core-half: 2.4px;
 }
 
-.graph-edit-point__halo {
-  r: 11;
+:root[data-slider-handle='rect'] .graph-edit-point {
+  --point-corner: 3.5px;
 }
 
 .graph-edit-point:hover,
 .graph-edit-point--hovered,
 .graph-edit-point--selected,
 .graph-edit-point:focus-visible {
-  .graph-edit-point__dot {
-    r: 7.5;
-  }
+  --dot-half: 7.5px;
+  --halo-half: 13px;
+  --core-half: 3px;
+}
 
-  .graph-edit-point__halo {
-    r: 13;
-  }
+.graph-edit-point__dot {
+  x: calc(var(--dot-half) * -1);
+  y: calc(var(--dot-half) * -1);
+  width: calc(var(--dot-half) * 2);
+  height: calc(var(--dot-half) * 2);
+  rx: var(--point-corner);
+}
+
+.graph-edit-point__halo {
+  x: calc(var(--halo-half) * -1);
+  y: calc(var(--halo-half) * -1);
+  width: calc(var(--halo-half) * 2);
+  height: calc(var(--halo-half) * 2);
+  rx: calc(var(--point-corner) * 1.8);
+}
+
+// The lit centre, in the band's colour: what makes a ring a handle rather
+// than a hole in the curve.
+.graph-edit-point__core {
+  x: calc(var(--core-half) * -1);
+  y: calc(var(--core-half) * -1);
+  width: calc(var(--core-half) * 2);
+  height: calc(var(--core-half) * 2);
+  rx: calc(var(--point-corner) * 0.45);
+  fill: var(--point-color);
+  pointer-events: none;
+  transition:
+    x 120ms ease,
+    y 120ms ease,
+    width 120ms ease,
+    height 120ms ease,
+    fill 120ms ease;
 }
 
 .graph-edit-point {
@@ -4121,7 +4336,10 @@ button.graph-legend {
     stroke: var(--point-muted-color);
     stroke-width: 1;
     transition:
-      r 120ms ease,
+      x 120ms ease,
+      y 120ms ease,
+      width 120ms ease,
+      height 120ms ease,
       fill 120ms ease,
       stroke 120ms ease;
   }
@@ -4133,7 +4351,10 @@ button.graph-legend {
     stroke: var(--point-color);
     stroke-width: 2;
     transition:
-      r 120ms ease,
+      x 120ms ease,
+      y 120ms ease,
+      width 120ms ease,
+      height 120ms ease,
       fill 120ms ease,
       stroke 120ms ease,
       stroke-width 120ms ease,
@@ -4159,38 +4380,36 @@ button.graph-legend {
   // `&:hover .graph-edit-point__dot` is three selectors deep; `&--selected
   // .graph-edit-point__dot` is two. Source order only breaks ties, and those do
   // not tie — so pointing at the handle you had just selected showed you the
-  // hover look and took the white collar away, which reads as the selection
+  // hover look and took the selected one away, which reads as the selection
   // having been lost at the exact moment you reached for it.
   //
   // The `--selected:hover` pair is what fixes it: three selectors, matching
   // hover's weight, and later in the file, so now the tie-break really is
   // source order.
   //
-  // Quieter than it was: the halo a faint disc of the band's colour rather
-  // than a lit one, the collar a little under white, and a short glow. With
-  // every band selected the curve carried a row of bright discs brighter than
-  // the curve itself (Ivan, 2026-09-26: "and the selected graph dots").
+  // Quiet: the halo a faint disc of the band's colour rather than a lit one,
+  // and a short glow. With every band selected the curve carried a row of
+  // bright discs brighter than the curve itself (Ivan, 2026-09-26: "and the
+  // selected graph dots").
   &--selected,
   &--selected:hover,
   &:focus-visible {
+    // The same handle, larger, in a disc of its own colour with a glow: the
+    // ring and the lit centre stay what they are at rest. It was filled and
+    // given a white collar and a white centre, which read as a white blob on
+    // the curve (Ivan, 2026-09-26: "not good in white when selected").
     .graph-edit-point__halo {
-      fill: color-mix(in srgb, var(--point-color) 14%, transparent);
-      stroke: var(--point-muted-color);
+      fill: color-mix(in srgb, var(--point-color) 18%, transparent);
+      stroke: color-mix(in srgb, var(--point-color) 50%, transparent);
     }
 
+    // The rest fill restated: hover's half-fill would otherwise win under the
+    // pointer on the handle already in hand.
     .graph-edit-point__dot {
-      fill: var(--point-color);
-      // A white ring, and it is the one thing on the handle that does not
-      // follow the palette.
-      //
-      // Everything else here is cyan at rest and the band's colour in
-      // euphoria, which is what makes the row read as one instrument. That is
-      // exactly why the selected handle needs something outside the scheme:
-      // against a rainbow of neighbours, another shade of the same family says
-      // very little, and white says it at any hue.
-      stroke: rgba($white, 0.78);
-      stroke-width: 2;
-      filter: drop-shadow(0 0 5px var(--point-muted-color));
+      fill: color-mix(in srgb, $surface-well 72%, transparent);
+      stroke: var(--point-color);
+      stroke-width: 2.5;
+      filter: drop-shadow(0 0 6px var(--point-color));
     }
   }
 
@@ -4219,42 +4438,27 @@ button.graph-legend {
     stroke-dasharray: 3 2.5;
     filter: none;
   }
+
+  // Hollow means hollow: an off band's handle has no lit centre either.
+  &--off .graph-edit-point__core {
+    display: none;
+  }
 }
 
 // *** Floating notices *******************************************************
 
-.audio-restart-notice {
+// Under the titlebar, centred, where the engine's own notices stand, and
+// drawn by the same small frame. Against the frame's class as well, so the
+// spot and the rise win over the frame's `position: relative` and arrival.
+.compact-frame.audio-restart-notice {
   @include animate(rise-in, $motion-slow);
   position: fixed;
   // Above every workspace panel, including the chain raised for open menus.
   z-index: 1200;
   top: calc($title-bar-height + 16px);
   left: 50%;
-  display: flex;
-  align-items: center;
-  gap: $spacing-m;
-  max-width: min(760px, calc(100vw - 40px));
-  padding: $spacing-s $spacing-m;
-  color: $white;
-  border: 1px solid color-mix(in srgb, $secondary-light 45%, transparent);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-menu 97%, transparent);
-  box-shadow: 0 12px 32px rgba($black, 0.35);
-  font-size: $text-body;
+  width: min(560px, calc(100vw - 32px));
   transform: translateX(-50%);
-}
-
-.audio-restart-notice__actions {
-  display: flex;
-  flex-shrink: 0;
-  gap: $spacing-xs;
-
-  button {
-    @include ghost-button;
-    padding: 6px 9px;
-    border-radius: $radius-xs;
-    background: transparent;
-  }
 }
 
 // *** Responsive shell *******************************************************
@@ -4508,7 +4712,9 @@ button.graph-legend {
 @media (max-height: $bp-laptop-height) {
   :root {
     --title-bar-card: 56px;
-    --title-bar-meter: 47px;
+    // The same air in the shorter card: its glass is 48px, 4px in from
+    // either edge like the tall one's.
+    --title-bar-meter: 40px;
   }
 
   // The mark comes down with the card, so it keeps air above and below it: at

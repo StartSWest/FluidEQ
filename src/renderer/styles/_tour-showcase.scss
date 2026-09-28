@@ -85,25 +85,14 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: calc(var(--tour-unit) * 0.45);
   list-style: none;
 
+  // The tick before each is the standing slides' (`FeatureTour.scss`).
   li {
     position: relative;
-    padding-left: calc(var(--tour-unit) * 1.5);
+    padding-left: calc(var(--tour-unit) * 1.6);
     color: $text-muted;
     font-size: calc(var(--tour-unit) * 0.95);
     line-height: 1.45;
     text-wrap: pretty;
-
-    &::before {
-      position: absolute;
-      top: calc(var(--tour-unit) * 0.5);
-      left: 0;
-      width: calc(var(--tour-unit) * 0.55);
-      height: calc(var(--tour-unit) * 0.55);
-      border-radius: 50%;
-      background: $secondary-light;
-      box-shadow: 0 0 10px color-mix(in srgb, $secondary-light 55%, transparent);
-      content: '';
-    }
   }
 }
 

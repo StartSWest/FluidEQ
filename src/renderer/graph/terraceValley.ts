@@ -49,6 +49,31 @@ export const TERRACE_MOON = '#f3efd8';
 export const TERRACE_CLOUD = '#b9c6e8';
 export const TERRACE_FIREFLY = '#d9ff6e';
 
+/**
+ * How each part of the valley is painted — its colour, how solid, how
+ * wide — by the page's canvas and the engine's terrace alike.
+ */
+export const VALLEY_INKS = {
+  star: '#fff',
+  moon: { colour: TERRACE_MOON, alpha: 0.96 },
+  crater: { colour: '#7d7a8c', alpha: 0.22 },
+  // Light, not dark: with no sky behind them the clouds have to stand
+  // against whatever is there.
+  cloud: { colour: TERRACE_CLOUD, alpha: 0.22 },
+  // A retaining wall in shadow under every shelf, and the rim above it
+  // catching the moon — brighter on the beat.
+  wall: { colour: '#000', alpha: 0.38 },
+  rim: { colour: TERRACE_MOON, width: 1 },
+  glint: { colour: '#fff', width: 1 },
+  // Lit and dim, winking on their own phase.
+  firefly: { colour: TERRACE_FIREFLY, alphas: [0.95, 0.4] },
+  bird: { colour: '#10131f', width: 1.4, alpha: 0.9 },
+};
+
+/** A shelf's edge: the skyline's bright and heavy, the lower ones faint. */
+export const terraceEdgeStroke = (index: number) =>
+  index === 0 ? { alpha: 0.85, width: 1.6 } : { alpha: 0.3, width: 1 };
+
 export const FIREFLY_LIFE = 2.2;
 export const BIRDS_CROSSING = 7;
 const FIREFLY_LIMIT = 40;
@@ -151,7 +176,29 @@ export interface ISkyFrame {
   bottom: number;
 }
 
-export const createTerraceValleyPaths = (
+/** A circle of the night: a crater, a puff of cloud. */
+export interface INightCircle {
+  x: number;
+  y: number;
+  r: number;
+}
+
+/** A star, a firefly: where it is, how big, and which of two bands. */
+export interface INightSpeck {
+  x: number;
+  y: number;
+  r: number;
+  bright: boolean;
+}
+
+/**
+ * The valley as it stands this frame, in numbers: the moon and its
+ * craters, the stars, the clouds, where each column's walls stand, the
+ * glints on the flats, the fireflies and the birds. What the page's canvas
+ * and the engine's terrace (`engineLooks/designed/terraceLook.ts`) both
+ * draw from.
+ */
+export const terraceValleyLayout = (
   state: TerraceValley,
   columns: readonly Projected[],
   top: number,
@@ -173,39 +220,38 @@ export const createTerraceValleyPaths = (
   // The moon, high on the right, sized from the TRUE plot depth
   // (sizeHeight) — `depth` here is the rendered one, which the height
   // slider shrinks, and the moon must not shrink with the tiers.
-  const moonX = left + width * 0.74;
-  const moonY = frame.top + skyDepth * 0.2;
-  const moonRadius = Math.min(sizeHeight * 0.052, frameWidth * 0.026);
-  const craters = new Path2D();
-  [
+  const moon = {
+    x: left + width * 0.74,
+    y: frame.top + skyDepth * 0.2,
+    r: Math.min(sizeHeight * 0.052, frameWidth * 0.026),
+  };
+  const craters: INightCircle[] = [
     [-0.35, -0.2, 0.22],
     [0.25, 0.3, 0.16],
     [0.3, -0.4, 0.12],
-  ].forEach(([ox, oy, s]) => {
-    const cx = moonX + ox * moonRadius;
-    const cy = moonY + oy * moonRadius;
-    craters.moveTo(cx + s * moonRadius, cy);
-    craters.arc(cx, cy, s * moonRadius, 0, Math.PI * 2);
-  });
+  ].map(([ox, oy, s]) => ({
+    x: moon.x + ox * moon.r,
+    y: moon.y + oy * moon.r,
+    r: s * moon.r,
+  }));
 
   // The stars: two bands, so the bright ones twinkle on the treble while
   // the faint ones only hold the sky. Laid out from noise over the whole
   // sky; the ones off screen cost a rect each and nothing to paint.
-  const stars: IBand[] = [
-    { path: new Path2D(), alpha: 0.35 + state.treble * 0.5 },
-    { path: new Path2D(), alpha: 0.18 },
-  ];
+  const stars: INightSpeck[] = [];
   for (let i = 0; i < STARS; i += 1) {
-    const sx = frame.left + noise(i * 2 + 1) * frameWidth;
-    const sy = frame.top + noise(i * 2 + 2) * skyDepth * 0.85;
     const bright = noise(i * 7 + 3) > 0.7;
     const wink = bright ? 0.5 + 0.5 * Math.sin(seconds * 3 + i) : 1;
-    const r = size * (bright ? 0.9 : 0.55) * wink;
-    stars[bright ? 0 : 1].path.rect(sx - r, sy - r, r * 2, r * 2);
+    stars.push({
+      x: frame.left + noise(i * 2 + 1) * frameWidth,
+      y: frame.top + noise(i * 2 + 2) * skyDepth * 0.85,
+      r: size * (bright ? 0.9 : 0.55) * wink,
+      bright,
+    });
   }
 
   // The clouds, dark against the sky.
-  const clouds = new Path2D();
+  const clouds: INightCircle[] = [];
   for (let c = 0; c < 3; c += 1) {
     const drift =
       ((seconds * 0.008 * (1 + c * 0.4) + noise(c * 7)) % 1.3) - 0.15;
@@ -218,95 +264,182 @@ export const createTerraceValleyPaths = (
       [0.85, 0.2, 0.75],
       [0.2, -0.35, 0.65],
     ].forEach(([ox, oy, s]) => {
-      clouds.moveTo(cx + ox * r + r * s, cy + oy * r);
-      clouds.arc(cx + ox * r, cy + oy * r, r * s, 0, Math.PI * 2);
+      clouds.push({ x: cx + ox * r, y: cy + oy * r, r: r * s });
     });
   }
 
-  // The walls and the rims: under every shelf of every tier a retaining
-  // wall — a dark band a few percent of the plot tall — and along its top
-  // edge the rim catching the moon. Only where the shelf has the height
-  // to stand on.
+  // The walls: under every shelf of every tier a retaining wall — a dark
+  // band a few percent of the plot tall — with its top at the shelf's rim.
+  // Only where the shelf has the height to stand on. Sized from the true
+  // depth like the moon: a wall is a wall whatever the slider says, and a
+  // shelf too low to hold one simply has none.
+  const wallHeight = sizeHeight * 0.028;
+  const walls = columns.map(([, y]) =>
+    TERRACE_TIER_FRACTIONS.map((fraction) => (bottom - y) * fraction)
+      .filter((rise) => rise >= wallHeight)
+      .map((rise) => bottom - rise),
+  );
+
+  // The paddies' glints: on the top tier's flats, a short flash per column
+  // that slides along the flat on the clock, only where the tier has any
+  // height.
+  const glints = columns.map(([x, y], index) => {
+    if (bottom - y < depth * 0.04) {
+      return undefined;
+    }
+    const along = (seconds * 0.35 + noise(index * 3)) % 1;
+    return {
+      x: x - half + step * 0.15 + step * 0.7 * along,
+      y: y + size,
+      length: step * 0.18,
+    };
+  });
+
+  // The fireflies, two bands: lit and dim, winking on their own phase.
+  const fireflies: INightSpeck[] = state.fireflies.map((fly) => {
+    const age = (seconds - fly.bornAt) / FIREFLY_LIFE;
+    return {
+      x: fly.x,
+      y: fly.y,
+      r: size * (0.8 + (1 - age) * 0.8),
+      bright: Math.sin(seconds * 8 + fly.seed) > 0,
+    };
+  });
+
+  // The birds, crossing at the moon's height: a wing, the body, a wing.
+  const birds: Projected[][] = [];
+  const flight = seconds - state.birdsAt;
+  if (state.birdsAt >= 0 && flight < BIRDS_CROSSING) {
+    const bx = left - width * 0.2 + (flight / BIRDS_CROSSING) * width * 1.4;
+    const by = moon.y;
+    for (let i = 0; i < 5; i += 1) {
+      const ox = bx - Math.abs(i - 2) * size * 9;
+      const oy =
+        by + Math.abs(i - 2) * size * 4 + Math.sin(seconds * 5 + i) * size;
+      const flap = Math.sin(seconds * 9 + i) * size * 2;
+      birds.push([
+        [ox - size * 4, oy - flap],
+        [ox, oy + size],
+        [ox + size * 4, oy - flap],
+      ]);
+    }
+  }
+
+  return {
+    moon,
+    craters,
+    stars,
+    starAlphas: [0.35 + state.treble * 0.5, 0.18] as const,
+    clouds,
+    half,
+    step,
+    wallHeight,
+    walls,
+    glints,
+    fireflies,
+    birds,
+    /** Mist thins as the music gets loud. */
+    mist: Math.max(0, 0.5 - state.mean * 0.6),
+    /** The moon's halo breathes with the bass; the rims and glints flash. */
+    haloAlpha: 0.45 + state.bass * 0.55,
+    rimAlpha: 0.28 + state.thump * 0.3,
+    glintAlpha: 0.35 + state.thump * 0.4,
+    bass: state.bass,
+    thump: state.thump,
+  };
+};
+
+export type TerraceValleyLayout = ReturnType<typeof terraceValleyLayout>;
+
+/** Circles as one path, so where they overlap they are one shape. */
+const circlesPath = (circles: readonly INightCircle[]) => {
+  const path = new Path2D();
+  circles.forEach(({ x, y, r }) => {
+    path.moveTo(x + r, y);
+    path.arc(x, y, r, 0, Math.PI * 2);
+  });
+  return path;
+};
+
+export const createTerraceValleyPaths = (
+  state: TerraceValley,
+  columns: readonly Projected[],
+  top: number,
+  bottom: number,
+  seconds: number,
+  sizeHeight: number,
+  frame: ISkyFrame,
+) => {
+  const layout = terraceValleyLayout(
+    state,
+    columns,
+    top,
+    bottom,
+    seconds,
+    sizeHeight,
+    frame,
+  );
+  const { half, step, wallHeight } = layout;
+  const stars: IBand[] = layout.starAlphas.map((alpha) => ({
+    path: new Path2D(),
+    alpha,
+  }));
+  layout.stars.forEach(({ x, y, r, bright }) => {
+    stars[bright ? 0 : 1].path.rect(x - r, y - r, r * 2, r * 2);
+  });
+
+  // The walls and the rims: the rim along each wall's top edge catching
+  // the moon.
   const walls = new Path2D();
   const rims = new Path2D();
-  // Sized from the true depth like the moon: a wall is a wall whatever
-  // the slider says, and a shelf too low to hold one simply has none.
-  const wallHeight = sizeHeight * 0.028;
-  TERRACE_TIER_FRACTIONS.forEach((fraction) => {
-    columns.forEach(([x, y]) => {
-      const rise = (bottom - y) * fraction;
-      if (rise < wallHeight) {
-        return;
-      }
-      const row = bottom - rise;
+  columns.forEach(([x], index) => {
+    layout.walls[index].forEach((row) => {
       walls.rect(x - half, row, step, wallHeight);
       rims.moveTo(x - half, row);
       rims.lineTo(x + half, row);
     });
   });
 
-  // The paddies' glints: on the top tier's flats, a short flash per column
-  // that slides along the flat on the clock, only where the tier has any
-  // height.
   const glints = new Path2D();
-  columns.forEach(([x, y], index) => {
-    if (bottom - y < depth * 0.04) {
-      return;
+  layout.glints.forEach((glint) => {
+    if (glint) {
+      glints.moveTo(glint.x, glint.y);
+      glints.lineTo(glint.x + glint.length, glint.y);
     }
-    const along = (seconds * 0.35 + noise(index * 3)) % 1;
-    const gx = x - half + step * 0.15 + step * 0.7 * along;
-    const len = step * 0.18;
-    glints.moveTo(gx, y + size);
-    glints.lineTo(gx + len, y + size);
   });
 
-  // The fireflies, two bands: lit and dim, winking on their own phase.
-  const fireflies: IBand[] = [0.95, 0.4].map((alpha) => ({
+  const fireflies: IBand[] = VALLEY_INKS.firefly.alphas.map((alpha) => ({
     path: new Path2D(),
     alpha,
   }));
-  state.fireflies.forEach((fly) => {
-    const age = (seconds - fly.bornAt) / FIREFLY_LIFE;
-    const lit = Math.sin(seconds * 8 + fly.seed) > 0;
-    const r = size * (0.8 + (1 - age) * 0.8);
-    const band = fireflies[lit ? 0 : 1];
-    band.path.moveTo(fly.x + r, fly.y);
-    band.path.arc(fly.x, fly.y, r, 0, Math.PI * 2);
+  layout.fireflies.forEach(({ x, y, r, bright }) => {
+    const { path } = fireflies[bright ? 0 : 1];
+    path.moveTo(x + r, y);
+    path.arc(x, y, r, 0, Math.PI * 2);
   });
 
-  // The birds, crossing at the moon's height.
   const birds = new Path2D();
-  const flight = seconds - state.birdsAt;
-  if (state.birdsAt >= 0 && flight < BIRDS_CROSSING) {
-    const bx = left - width * 0.2 + (flight / BIRDS_CROSSING) * width * 1.4;
-    const by = moonY;
-    for (let i = 0; i < 5; i += 1) {
-      const ox = bx - Math.abs(i - 2) * size * 9;
-      const oy =
-        by + Math.abs(i - 2) * size * 4 + Math.sin(seconds * 5 + i) * size;
-      const flap = Math.sin(seconds * 9 + i) * size * 2;
-      birds.moveTo(ox - size * 4, oy - flap);
-      birds.lineTo(ox, oy + size);
-      birds.lineTo(ox + size * 4, oy - flap);
-    }
-  }
+  layout.birds.forEach(([[fromX, fromY], ...rest]) => {
+    birds.moveTo(fromX, fromY);
+    rest.forEach(([x, y]) => birds.lineTo(x, y));
+  });
 
   return {
     stars,
-    clouds,
-    craters,
+    clouds: circlesPath(layout.clouds),
+    craters: circlesPath(layout.craters),
     walls,
     rims,
     glints,
     fireflies,
     birds,
-    moonX,
-    moonY,
-    moonRadius,
-    /** Mist thins as the music gets loud. */
-    mist: Math.max(0, 0.5 - state.mean * 0.6),
-    bass: state.bass,
-    thump: state.thump,
+    moonX: layout.moon.x,
+    moonY: layout.moon.y,
+    moonRadius: layout.moon.r,
+    mist: layout.mist,
+    bass: layout.bass,
+    thump: layout.thump,
+    layout,
   };
 };
 

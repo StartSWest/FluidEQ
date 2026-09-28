@@ -11,7 +11,8 @@ import type { IAppProcess, TProcessRole } from '../../main/ipc/processes';
 import { useTranslation } from '../utils/I18nContext';
 import { createProcessReadings } from '../utils/processReadings';
 import { readSceneDraws } from '../utils/sceneDrawStats';
-import DialogHeader from './DialogHeader';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from './DialogFrame';
 import '../styles/Processes.scss';
 
 interface IProcessesDialogProps {
@@ -232,129 +233,129 @@ export default function ProcessesDialog({ onClose }: IProcessesDialogProps) {
         }
       }}
     >
-      <div
-        className="about processes"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="processes-title"
+      <DialogFrame
+        className="processes"
+        icon={<MenuIcon name="chip" />}
+        eyebrow={t('app.processes.eyebrow')}
+        title={PRODUCT_NAME}
+        titleId="processes-title"
+        aria-labelledby="processes-title-eyebrow processes-title"
+        description={t('app.processes.hint')}
+        rail={
+          <p className="dialog-frame__rail-text">
+            {t('app.processes.hintSplit')}
+          </p>
+        }
+        closeLabel={t('support.close')}
+        onClose={onClose}
+        closeRef={closeRef}
+        // Outside the scrolling body on purpose. The total is the one line
+        // somebody reads after scanning the table, and inside the body it was
+        // the first thing to scroll out of sight — worst on a short window,
+        // where the table is exactly long enough to need scrolling and the
+        // figure it adds up to is exactly what is then hidden.
+        footer={
+          <>
+            <div className="dialog-frame__note processes__notes">
+              {anyUnmeasured ? (
+                <span className="processes__footnote">
+                  {t('app.processes.unmeasured')}
+                </span>
+              ) : undefined}
+              {/* The visualizers being drawn, which are not processes but are
+                  what the graphics process is spending its share on: read on
+                  the same refresh as the table, never per frame. */}
+              {readSceneDraws().map(({ place, name, report }) => {
+                const fps = String(
+                  Math.round(1000 / report.intervalMs / 5) * 5,
+                );
+                const drawn = `${report.drawnWidth}×${report.drawnHeight}`;
+                const shown = `${report.outputWidth}×${report.outputHeight}`;
+                const placeName = t(`app.processes.place.${place}` as const);
+                return (
+                  <span key={place} className="processes__footnote">
+                    {report.costMs === undefined
+                      ? t('app.processes.sceneRate', {
+                          place: placeName,
+                          name,
+                          fps,
+                          drawn,
+                          shown,
+                        })
+                      : t('app.processes.scene', {
+                          place: placeName,
+                          name,
+                          ms: report.costMs.toFixed(1),
+                          fps,
+                          drawn,
+                          shown,
+                        })}
+                  </span>
+                );
+              })}
+            </div>
+            <span className="processes__total">
+              {t('app.processes.total', {
+                megabytes: String(total),
+                cpu: String(totalCpu),
+              })}
+            </span>
+          </>
+        }
       >
-        <DialogHeader
-          eyebrow={t('app.processes.eyebrow')}
-          title={PRODUCT_NAME}
-          titleId="processes-title"
-          closeLabel={t('support.close')}
-          onClose={onClose}
-          closeRef={closeRef}
-        />
-
-        <div className="about__body">
-          <p className="processes__hint">{t('app.processes.hint')}</p>
-          <p className="processes__hint">{t('app.processes.hintSplit')}</p>
-
-          <table className="processes__table">
-            <thead>
-              <tr>
-                <th scope="col">{t('app.processes.process')}</th>
-                <th scope="col" className="processes__number">
-                  {t('app.processes.pid')}
-                </th>
-                <th scope="col" className="processes__number">
-                  {t('app.processes.memory')}
-                </th>
-                <th scope="col" className="processes__number">
-                  {t('app.processes.cpu')}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr
-                  key={row.pid}
-                  className={
-                    row.role === 'window' ? 'is-this-window' : undefined
-                  }
-                >
-                  <td>
-                    <span className="processes__name">
-                      {nameFor(row)}
-                      {row.role === 'window' ? (
-                        <span className="processes__tag">
-                          {t('app.processes.thisWindow')}
-                        </span>
-                      ) : undefined}
-                    </span>
-                    <span className="processes__what">
-                      {t(WHAT_KEYS[row.role])}
-                    </span>
-                  </td>
-                  <td className="processes__number">{row.pid}</td>
-                  <td className="processes__number">
-                    {/* A dash for a figure nobody has measured yet, never a
+        <table className="processes__table">
+          <thead>
+            <tr>
+              <th scope="col">{t('app.processes.process')}</th>
+              <th scope="col" className="processes__number">
+                {t('app.processes.pid')}
+              </th>
+              <th scope="col" className="processes__number">
+                {t('app.processes.memory')}
+              </th>
+              <th scope="col" className="processes__number">
+                {t('app.processes.cpu')}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr
+                key={row.pid}
+                className={row.role === 'window' ? 'is-this-window' : undefined}
+              >
+                <td>
+                  <span className="processes__name">
+                    {nameFor(row)}
+                    {row.role === 'window' ? (
+                      <span className="processes__tag">
+                        {t('app.processes.thisWindow')}
+                      </span>
+                    ) : undefined}
+                  </span>
+                  <span className="processes__what">
+                    {t(WHAT_KEYS[row.role])}
+                  </span>
+                </td>
+                <td className="processes__number">{row.pid}</td>
+                <td className="processes__number">
+                  {/* A dash for a figure nobody has measured yet, never a
                         zero — a zero reads as a process that costs nothing.
                         For the same reason a measured process under half a
                         megabyte, like a desktop visualizer's helper, reads as
                         under one rather than as none. */}
-                    {row.memoryMb === undefined
-                      ? '—'
-                      : `${row.memoryMb < 1 ? '<1' : row.memoryMb} MB`}
-                  </td>
-                  <td className="processes__number">
-                    {row.cpuPercent === undefined ? '—' : `${row.cpuPercent}%`}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Outside the scrolling body on purpose. The total is the one line
-            somebody reads after scanning the table, and inside `about__body`
-            it was the first thing to scroll out of sight — worst on a short
-            window, where the table is exactly long enough to need scrolling
-            and the figure it adds up to is exactly what is then hidden. */}
-        <div className="processes__footer">
-          {anyUnmeasured ? (
-            <span className="processes__footnote">
-              {t('app.processes.unmeasured')}
-            </span>
-          ) : undefined}
-          {/* The visualizers being drawn, which are not processes but are
-              what the graphics process is spending its share on: read on the
-              same refresh as the table, never per frame. */}
-          {readSceneDraws().map(({ place, name, report }) => {
-            const fps = String(Math.round(1000 / report.intervalMs / 5) * 5);
-            const drawn = `${report.drawnWidth}×${report.drawnHeight}`;
-            const shown = `${report.outputWidth}×${report.outputHeight}`;
-            const placeName = t(`app.processes.place.${place}` as const);
-            return (
-              <span key={place} className="processes__footnote">
-                {report.costMs === undefined
-                  ? t('app.processes.sceneRate', {
-                      place: placeName,
-                      name,
-                      fps,
-                      drawn,
-                      shown,
-                    })
-                  : t('app.processes.scene', {
-                      place: placeName,
-                      name,
-                      ms: report.costMs.toFixed(1),
-                      fps,
-                      drawn,
-                      shown,
-                    })}
-              </span>
-            );
-          })}
-          <span className="processes__total">
-            {t('app.processes.total', {
-              megabytes: String(total),
-              cpu: String(totalCpu),
-            })}
-          </span>
-        </div>
-      </div>
+                  {row.memoryMb === undefined
+                    ? '—'
+                    : `${row.memoryMb < 1 ? '<1' : row.memoryMb} MB`}
+                </td>
+                <td className="processes__number">
+                  {row.cpuPercent === undefined ? '—' : `${row.cpuPercent}%`}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </DialogFrame>
     </div>
   );
 }

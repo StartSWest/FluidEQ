@@ -6,11 +6,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useRef, useState, type RefObject } from 'react';
 import { useLiveSurface } from '../utils/theme';
+import { cardHexOf, EDGE_TINT } from '../utils/themeInk';
 import {
   buildGuestGlassCss,
   buildGuestTintCss,
   GUEST_TINT_SITES,
   type IGuestTintKnowledge,
+  type TGuestEdges,
 } from './guestTint';
 import {
   guestTintProbe,
@@ -45,6 +47,10 @@ export interface ISiteKnowledge extends IGuestTintKnowledge {
  * site's own grey first.
  */
 const knownSites = new Map<string, ISiteKnowledge>();
+
+/** The only shapes of value handed to another site's page. */
+const HEX = /^#[0-9a-f]{6}$/i;
+const SHARE = /^\d{1,3}(?:\.\d+)?%$/;
 
 /**
  * A site's greys, grown by what a page has just reported — or nothing if it
@@ -174,19 +180,30 @@ export const useGuestTint = (
   isOverScene: boolean,
 ) => {
   const isEnabled = useGuestTintEnabled();
-  // The window's floor, which is what the Media page stands on: the panes
-  // lost their fills and the page's frame with them, so tinted from the pane
-  // colour the site was a slab of lighter slate in the middle of a dark
-  // window (Ivan, 2026-09-26: "fix the color also"). Its cards are lifted
-  // toward white with a fifth of the accent in it, as the app's own cards
-  // carry the accent, rather than toward a grey.
-  const ground = useLiveSurface('--surface-base', '#05080c');
+  // The card the Media page stands on (`$section-card-pages`, App.scss): the
+  // pane at 85% over the floor, as every page's content stands on one (Ivan,
+  // 2026-09-27: "fix video tab also to tint on the pane color"). It was the
+  // floor, from the day the panes had no fills; once the pages stood on
+  // cards, the site was a darker slab inside its own card. Its cards step up
+  // toward the edge tint, as every control and chosen row in the window
+  // does: lifted toward the accent they were olive wherever the accent is
+  // not the card's hue.
+  const floor = useLiveSurface('--surface-base', '#05080c');
+  const pane = useLiveSurface('--surface-panel', '#0c0e12');
   const accent = useLiveSurface('--accent-light', '#a1fcff');
-  // Only a plain hex goes into another site's page: it has none of this
+  const fieldShare = useLiveSurface('--field-edge-share', '42%');
+  // Only plain values go into another site's page: it has none of this
   // document's properties to resolve anything else against.
-  const lift = /^#[0-9a-f]{6}$/i.test(accent)
-    ? `color-mix(in srgb, #ffffff 80%, ${accent})`
-    : '#ffffff';
+  const isPlain = HEX.test(floor) && HEX.test(pane);
+  const ground = isPlain ? cardHexOf(floor, pane) : floor;
+  const edges: TGuestEdges | undefined =
+    isPlain && HEX.test(accent) && SHARE.test(fieldShare)
+      ? {
+          field: `color-mix(in srgb, ${accent} ${fieldShare}, transparent)`,
+          card: `color-mix(in srgb, ${pane} 94%, ${EDGE_TINT})`,
+        }
+      : undefined;
+  const lift = EDGE_TINT;
   const site =
     siteId !== undefined && siteId in GUEST_TINT_SITES ? siteId : undefined;
   const isActive = isEnabled && isGuestReady && site !== undefined;
@@ -242,8 +259,8 @@ export const useGuestTint = (
   let css: string | undefined;
   if (isActive && known) {
     css = isOverScene
-      ? buildGuestGlassCss(site, ground, known, lift)
-      : buildGuestTintCss(site, ground, known, lift);
+      ? buildGuestGlassCss(site, ground, known, { lift, edges })
+      : buildGuestTintCss(site, ground, known, { lift, edges });
   }
 
   const liveKey = useRef<string | undefined>(undefined);

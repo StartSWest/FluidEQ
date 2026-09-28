@@ -1,12 +1,12 @@
 import en from 'common/i18n/en';
 import type { ITransportSource } from 'renderer/audio/transportSource';
-import { clockText } from 'renderer/player/LedClock';
+import { clockText } from 'renderer/player/classic/LedClock';
 import {
   clockFor,
   nowPlayingLine,
   playerStateOf,
   sourceLabel,
-} from 'renderer/player/playerText';
+} from 'renderer/player/classic/playerText';
 
 const t = (key: keyof typeof en, vars?: Record<string, string | number>) =>
   Object.entries(vars ?? {}).reduce(

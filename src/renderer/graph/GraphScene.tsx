@@ -13,12 +13,15 @@ import {
 } from '../utils/graphStyle';
 import { useSceneColumnHost, useSceneCoverHost } from '../utils/sceneCover';
 import { useSceneTintMode } from '../utils/sceneTintStore';
+import type { TWorkspaceTab } from '../workspaceTabs';
 import {
   graphScenePlace,
   isGraphWaveDrawn,
+  sceneModeOnPage,
   useScenePlot,
 } from './graphScenePlace';
 import SceneCanvas from './SceneCanvas';
+import { useGraphSceneStoodIn } from './sceneStandIn';
 
 /**
  * The graph's Plus visualizer, run once for the whole window.
@@ -27,22 +30,28 @@ import SceneCanvas from './SceneCanvas';
  * scene is not the graph's to take down: the plot moving from the EQ column
  * to its own card, the graph going full screen and back, the window's
  * colours going from Colours to the Backdrop — each moves the same canvas
- * (`graphScenePlace`), and the Backdrop's picture stays behind every page
- * when the graph's own page is left. In Colours and Ambient a page without
- * the graph has nowhere to show it, and it stops.
+ * (`graphScenePlace`). The Backdrop is the EQ page's alone
+ * (`sceneModeOnPage`): every other page draws it as Ambient does. In Colours
+ * and Ambient a page without the graph has nowhere to show it, and it stops;
+ * and it stops wherever another player stands in for it (`sceneStandIn.ts`).
  */
-export default function GraphScene() {
+export default function GraphScene({ page }: { page: TWorkspaceTab }) {
   const scene = useSceneLook();
-  const mode = useSceneTintMode();
+  const mode = sceneModeOnPage(useSceneTintMode(), page);
   const plot = useScenePlot();
   const backdrop = useSceneCoverHost();
   const column = useSceneColumnHost();
   const { isEngineUsable } = useFluidEqShell();
   const isClean = useGraphContents() === 'clean';
   const isWaveHidden = useGraphWaveHidden();
+  // Another player showing a scene where this one would be seen - the
+  // Video page's own in its full screen - and this one stops rather than
+  // draw a second (`sceneStandIn.ts`).
+  const isStoodIn = useGraphSceneStoodIn();
   const target = graphScenePlace({
     drawsScene:
       scene !== null &&
+      !isStoodIn &&
       isGraphWaveDrawn({ isClean, isEngineUsable, isWaveHidden }),
     mode,
     plot,

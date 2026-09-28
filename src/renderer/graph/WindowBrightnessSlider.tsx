@@ -15,6 +15,7 @@ import {
 } from '../utils/percentSnaps';
 import { setThemeShade, useThemeShade } from '../utils/theme';
 import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
+import useLiveSlider from '../utils/useLiveSlider';
 
 /**
  * How light the window stands, beside Transparency at the head of the
@@ -37,7 +38,9 @@ import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
  */
 const WindowBrightnessSlider = () => {
   const { t } = useTranslation();
-  const shade = useThemeShade();
+  // The thumb under the pointer, the window's restyle a frame behind it
+  // (`useLiveSlider`).
+  const { shown: shade, set } = useLiveSlider(useThemeShade(), setThemeShade);
   const id = useId();
   return (
     <label
@@ -77,9 +80,7 @@ const WindowBrightnessSlider = () => {
           max={THEME_SHADE_MAX}
           step={1}
           value={shade}
-          onChange={(event) =>
-            setThemeShade(snapPercent(Number(event.target.value)))
-          }
+          onChange={(event) => set(snapPercent(Number(event.target.value)))}
         />
       </span>
       <span className="graph-view-menu__value" aria-hidden>

@@ -6,6 +6,7 @@ import { clearGains, setTone as setToneApi } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
 import useModalKeys from '../utils/useModalKeys';
 import MenuIcon from '../icons/MenuIcon';
+import CompactFrame from './CompactFrame';
 import '../styles/RestartAudioDialog.scss';
 
 function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
@@ -56,54 +57,51 @@ function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
         }
       }}
     >
-      <div
+      <CompactFrame
         ref={surface}
-        className="restart-dialog"
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="clear-eq-title"
+        // Red: it sets every band and the Tone back to nothing, the kind of
+        // answer every confirmation in the app now says in red.
+        tone="danger"
+        icon={<MenuIcon name="reset" />}
+        title={t('eq.layouts.clearTitle')}
+        titleId="clear-eq-title"
         aria-describedby="clear-eq-body"
         aria-busy={busy}
+        closeLabel={t('config.cancel')}
+        onClose={() => {
+          if (!busy) {
+            onClose();
+          }
+        }}
+        actions={
+          <>
+            <button
+              ref={cancel}
+              type="button"
+              className="button small subtle"
+              disabled={busy}
+              onClick={onClose}
+            >
+              {t('config.cancel')}
+            </button>
+            <button
+              type="button"
+              className="button small danger"
+              disabled={busy}
+              onClick={() => confirm()}
+            >
+              {t('eq.clear')}
+            </button>
+          </>
+        }
       >
-        <div className="restart-dialog__head">
-          <span className="restart-dialog__glyph">
-            <MenuIcon name="reset" />
-          </span>
-          <h2 id="clear-eq-title" className="restart-dialog__title">
-            {t('eq.layouts.clearTitle')}
-          </h2>
-        </div>
-        <p id="clear-eq-body" className="restart-dialog__body">
-          {t('eq.layouts.clearWarning')}
-        </p>
+        <p id="clear-eq-body">{t('eq.layouts.clearWarning')}</p>
         {failed && (
-          <p
-            className="restart-dialog__body restart-dialog__body--failed"
-            role="alert"
-          >
+          <p className="clear-eq__failed" role="alert">
             {t('eq.layouts.error')}
           </p>
         )}
-        <div className="restart-dialog__actions">
-          <button
-            ref={cancel}
-            type="button"
-            className="button small subtle"
-            disabled={busy}
-            onClick={onClose}
-          >
-            {t('config.cancel')}
-          </button>
-          <button
-            type="button"
-            className="button small"
-            disabled={busy}
-            onClick={() => confirm()}
-          >
-            {t('eq.clear')}
-          </button>
-        </div>
-      </div>
+      </CompactFrame>
     </div>,
     document.body,
   );

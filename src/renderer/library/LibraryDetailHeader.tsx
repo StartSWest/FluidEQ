@@ -18,6 +18,7 @@ import MenuIcon from '../icons/MenuIcon';
 import libraryFilterHistory from '../utils/libraryFilterHistory';
 import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import TextInput from '../widgets/TextInput';
+import CompactFrame from '../components/CompactFrame';
 import LibraryCoverArt from './LibraryCoverArt';
 import LibraryFolderArt from './LibraryFolderArt';
 import LibrarySearchField from './LibrarySearchField';
@@ -276,39 +277,7 @@ const LibraryDetailHeader = ({
               >
                 {t('library.playlist.rename')}
               </button>
-              {isConfirmingDelete ? (
-                <span
-                  className="library-detail__confirm"
-                  role="alertdialog"
-                  aria-label={t('library.playlist.delete')}
-                >
-                  <span>
-                    {t('library.playlist.deleteConfirm', {
-                      name: editablePlaylist.name,
-                    })}
-                  </span>
-                  {/* The decline wears the quiet style and the action the
-                      reader already asked for wears the loud one. */}
-                  <button
-                    type="button"
-                    className="button small"
-                    onClick={() => {
-                      editablePlaylist.remove();
-                      setIsConfirmingDelete(false);
-                      onBack();
-                    }}
-                  >
-                    {t('library.playlist.delete')}
-                  </button>
-                  <button
-                    type="button"
-                    className="button small subtle"
-                    onClick={() => setIsConfirmingDelete(false)}
-                  >
-                    {t('library.playlist.keep')}
-                  </button>
-                </span>
-              ) : (
+              {!isConfirmingDelete && (
                 <button
                   type="button"
                   className="button small subtle"
@@ -320,6 +289,44 @@ const LibraryDetailHeader = ({
             </>
           )}
         </div>
+        {/* Two steps, no modal: the question opens under the buttons, where
+            the one that asked it was, over nothing it has to hide. */}
+        {editablePlaylist && draftName === undefined && isConfirmingDelete && (
+          <CompactFrame
+            className="library-detail__confirm"
+            aria-modal="false"
+            tone="danger"
+            icon={<MenuIcon name="trash" />}
+            title={t('library.playlist.deleteConfirm', {
+              name: editablePlaylist.name,
+            })}
+            titleId="library-detail-delete-title"
+            closeLabel={t('support.close')}
+            onClose={() => setIsConfirmingDelete(false)}
+            actions={
+              <>
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={() => setIsConfirmingDelete(false)}
+                >
+                  {t('library.playlist.keep')}
+                </button>
+                <button
+                  type="button"
+                  className="button small danger"
+                  onClick={() => {
+                    editablePlaylist.remove();
+                    setIsConfirmingDelete(false);
+                    onBack();
+                  }}
+                >
+                  {t('library.playlist.delete')}
+                </button>
+              </>
+            }
+          />
+        )}
       </div>
       {/* Over the table it narrows, on the line the sleeve ends on. It
           filters this record and nothing else; the toolbar's own box is

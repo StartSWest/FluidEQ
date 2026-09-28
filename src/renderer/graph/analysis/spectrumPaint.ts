@@ -9,6 +9,7 @@ import {
   TEXTURE_ALPHA,
   fillTexturePattern,
 } from '../fillTextures';
+import { rampAt } from '../lookColours';
 import {
   clamp01,
   placeLevel,
@@ -95,6 +96,28 @@ export const spectrumEnergy = (levels: Float64Array): number => {
 };
 
 /**
+ * How much deeper a body is than its colours, which the edge keeps: in the
+ * window's Lagoon or a pale primary a body in the colour itself was a light
+ * slab over the whole plot (Ivan, 2026-09-26: "not right color and is too
+ * light"), where the reading is meant to be the line.
+ */
+export const FILL_DEPTH = 0.32;
+/** What is left of a fill at its baseline, against its opacity at the top. */
+export const FOOT_ALPHA = 0.14;
+
+const fillRgba = (
+  colours: readonly string[],
+  position: number,
+  alpha: number,
+): string => {
+  const keep = 1 - FILL_DEPTH;
+  const [red, green, blue] = rampAt(colours, position).map((channel) =>
+    Math.round(channel * keep),
+  );
+  return `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(3)})`;
+};
+
+/**
  * What a spectrum body is painted with.
  *
  * `alpha` is the fill's own opacity at the top of the figure; every ramp
@@ -109,17 +132,17 @@ export const spectrumFill = (
 ): string | CanvasGradient => {
   const { context, colours, palette, band, plot } = frame;
   if (palette === 'signal') {
-    return rampRgba(colours, 0, alpha);
+    return fillRgba(colours, 0, alpha);
   }
   if (palette === 'heat') {
-    return rampRgba(colours, spectrumEnergy(levels), alpha);
+    return fillRgba(colours, spectrumEnergy(levels), alpha);
   }
   if (palette === 'rainbow') {
     // Across the axis: a column's colour says where in the range it sits, so
-    // it runs left to right and does not fade with height at all.
+    // it runs left to right; `paintSpectrum` fades it toward the foot.
     const across = context.createLinearGradient(plot.left, 0, plot.right, 0);
     for (let stop = 0; stop <= 12; stop += 1) {
-      across.addColorStop(stop / 12, rampRgba(colours, stop / 12, alpha));
+      across.addColorStop(stop / 12, fillRgba(colours, stop / 12, alpha));
     }
     return across;
   }
@@ -134,7 +157,11 @@ export const spectrumFill = (
     const position = stop / steps;
     up.addColorStop(
       position,
-      rampRgba(colours, position, alpha * (0.14 + position * 0.86)),
+      fillRgba(
+        colours,
+        position,
+        alpha * (FOOT_ALPHA + position * (1 - FOOT_ALPHA)),
+      ),
     );
   }
   return up;
@@ -309,6 +336,34 @@ export const paintTexture = (
  * still want a crisp outline — that is how a held peak, a long-term average
  * and a channel drawn behind another are told apart at a glance.
  */
+/**
+ * The fade the level ramp builds into its gradient, laid over a fill that
+ * cannot carry it — a ramp across the axis, one colour — so every body fades
+ * toward its baseline as the comment on `spectrumFill` says. The rainbow ran
+ * at one opacity from the peak to the floor, and with the window's rainbow
+ * laid across the Analyzer that was a solid block over the EQ curve.
+ * Erased inside the body only, so nothing outside it is touched.
+ */
+const fadeTowardFoot = (frame: IAnalysisFrame, body: Path2D): void => {
+  const { context, band, plot } = frame;
+  const foot = band.flipped ? band.top : band.bottom;
+  const head = band.flipped ? band.bottom : band.top;
+  const fade = context.createLinearGradient(0, foot, 0, head);
+  fade.addColorStop(0, `rgba(0, 0, 0, ${(1 - FOOT_ALPHA).toFixed(3)})`);
+  fade.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  context.save();
+  context.clip(body);
+  context.globalCompositeOperation = 'destination-out';
+  context.fillStyle = fade;
+  context.fillRect(
+    plot.left,
+    Math.min(foot, head),
+    plot.right - plot.left,
+    Math.abs(head - foot),
+  );
+  context.restore();
+};
+
 export const paintSpectrum = (
   frame: IAnalysisFrame,
   levels: Float64Array,
@@ -325,6 +380,9 @@ export const paintSpectrum = (
     context.globalAlpha = 1;
     context.fillStyle = spectrumFill(frame, levels, options.fillAlpha);
     context.fill(body);
+    if (frame.palette !== 'level') {
+      fadeTowardFoot(frame, body);
+    }
     if (options.textured !== false) {
       paintTexture(frame, body, options.fillAlpha);
     }

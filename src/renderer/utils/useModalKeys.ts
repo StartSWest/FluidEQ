@@ -1,4 +1,5 @@
 import { useEffect, type RefObject } from 'react';
+import holdFocusReturn from './focusReturn';
 
 /**
  * What a small modal needs from the keyboard: Escape cancels it unless it is
@@ -14,13 +15,9 @@ export default function useModalKeys(
   { busy, onCancel }: { busy: boolean; onCancel: () => void },
 ) {
   useEffect(() => {
-    const previousFocus = document.activeElement;
+    const giveFocusBack = holdFocusReturn();
     initialRef.current?.focus();
-    return () => {
-      if (previousFocus instanceof HTMLElement) {
-        previousFocus.focus();
-      }
-    };
+    return giveFocusBack;
     // Where focus goes in is decided once, when the dialog opens.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

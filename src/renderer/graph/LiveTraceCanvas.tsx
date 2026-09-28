@@ -65,13 +65,14 @@ import {
   useRef,
   useState,
 } from 'react';
-import { DEFAULT_GLOW, resolveLookColours } from 'common/customLooks';
+import { DEFAULT_GLOW } from 'common/customLooks';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import {
   canGraphFill,
   canGraphGlow,
   isDiscreteGraphStyle,
   resolveGraphPalette,
+  type GraphStyle,
   type Projected,
 } from 'common/graphStyles';
 import { createGraphStems, STEM_FADE_LEVELS } from 'common/graphStems';
@@ -81,6 +82,7 @@ import {
   createGraphAccent,
   createGraphPieces,
   createGraphShape,
+  createSkylineTowers,
   createGraphScatter,
   createGraphConnector,
   canConnectGraphMarks,
@@ -119,6 +121,7 @@ import {
   createPulseMonitor,
   createPulsePaths,
   echoDrift,
+  pulseGridCell,
   pulseShake,
   pulseThump,
 } from './pulseMonitor';
@@ -151,7 +154,7 @@ import {
   fillTexturePattern,
 } from './fillTextures';
 import createDotPaths from './dotPaths';
-import createBubblePaths from './bubblePaths';
+import createBubblePaths, { bubbleLayout } from './bubblePaths';
 import {
   advanceBubbleMotes,
   createBubbleMotePaths,
@@ -166,23 +169,20 @@ import {
   advanceTrussBridge,
   createTrussBridge,
   createTrussBridgePaths,
-  FADE_BANDS,
-  LEVEL_BINS,
+  TRUSS_INKS,
 } from './trussBridge';
+import { fireworkColour } from './bridgeFireworks';
 import {
   advanceTerraceValley,
   createTerraceValley,
   createTerraceValleyPaths,
-  TERRACE_CLOUD,
-  TERRACE_FIREFLY,
-  TERRACE_MOON,
+  terraceEdgeStroke,
+  VALLEY_INKS,
 } from './terraceValley';
 import {
   advanceCitySkyline,
-  CITY_BEACON,
-  CITY_MOON,
+  CITY_INKS,
   CITY_TOWER_COLOURS,
-  CITY_WINDOW,
   createCitySkyline,
   createCitySkylinePaths,
 } from './citySkyline';
@@ -266,11 +266,10 @@ import {
   createInvaderCabinet,
   createShelterPaths,
   IChromeBox,
-  INVADER_GREEN,
-  INVADER_POINTS,
-  INVADER_READOUT,
+  shelterRects,
   readoutFloor,
 } from './invaderCabinet';
+import INVADER_INKS from './invaderInks';
 import {
   advanceCaveDrips,
   CAVE_CEILING,
@@ -296,10 +295,34 @@ import {
   rampRgba,
   type IAnalysisBand,
 } from './analysis/analysisFrame';
-import drawAnalysisView from './analysis/drawAnalysisView';
+import drawAnalysisView, {
+  paintAnalysisOverlay,
+  readAnalysisView,
+  type IAnalysisReadRequest,
+} from './analysis/drawAnalysisView';
 import drawSceneView, {
   createSceneViewState,
+  readSceneView,
+  type TSceneViewReadRequest,
 } from './sceneViews/drawSceneView';
+import EngineLookLayer, {
+  type TEngineLookPhase,
+} from './engineLooks/EngineLookLayer';
+import type { IEngineLookInput } from './engineLooks/engineLookInput';
+import { useEngineLookUsable } from './engineLooks/engineLookHealth';
+import {
+  engineAnalysisStep,
+  engineLookPack,
+  engineLookStep,
+  isEngineLookStyle,
+} from './engineLooks/engineLooks';
+import { readAnalysisLookInput } from './engineLooks/analysisLookInput';
+import {
+  designedSceneOf,
+  designedShake,
+  stepDesignedLook,
+} from './engineLooks/designed/designedLooks';
+import { createLookInput, readLookInput } from './engineLooks/lookInput';
 import useAnalysisChannels from './analysis/useAnalysisChannels';
 import { GRAPH_SILENT_POINTS } from './liveGraphBand';
 import { useTranslation } from '../utils/I18nContext';
@@ -329,44 +352,23 @@ import {
 import { readAccentLight } from '../utils/theme';
 import { tintedSpectrumHue } from '../utils/sceneAccentRamp';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
+import {
+  lookPaintColours,
+  windowMateColours,
+  windowViewPalette,
+} from '../utils/windowInk';
 import { GraphLookTransition } from './graphLookTransition';
 import getGraphMotionDelta from './graphMotionPacing';
 import { createDashTrails, advanceDashTrails } from './dashTrails';
 import { traceStretch } from './traceStretch';
+import { GLOW_LAYERS, HALO_SCALE, SEA_SCALE } from './figureGlow';
 import {
   createTerraceJumper,
   advanceTerraceJumper,
   paintTerraceJumper,
 } from './terraceJumper';
 
-/**
- * The euphoria halo: two wide, faint copies of the figure behind itself.
- *
- * Three approaches were tried and two are recorded here so nobody spends an
- * afternoon rediscovering them.
- *
- * A *stack* of three widening strokes gives a proper falloff and is what light
- * actually looks like — and costs three tessellations of a figure that, on the
- * ornate forms, is hundreds of pieces, doubled again when a mirrored mode puts
- * a second live trace on the chart. Unaffordable.
- *
- * A cheap decimated *outline* fixes the cost and stops being light: it does not
- * follow the figure's geometry, so it reads as a second stray wave wandering
- * across the first.
- *
- * Swelling the trace itself is cheapest of all and is the wrong tool, because
- * it can only reach settings the look owns. A filled form has no stroke to
- * thicken; a look tuned to a light fill had that fill overridden to get the
- * effect. The mode ended up editing the drawing rather than lighting it.
- *
- * Two passes, widest and faintest underneath, which is what turns a hard edge
- * into a falloff. Affordable only because the halo is stroked from a silhouette
- * rather than the figure — see `getGlowStyle`.
- */
-const GLOW_LAYERS = [
-  { widen: 17, opacity: 0.1 },
-  { widen: 7, opacity: 0.16 },
-];
+/** How bright and how wide the halo (`figureGlow.ts`) is, over the pump. */
 const GLOW_FLOOR = 0.3;
 const GLOW_REACH = 2.4;
 const GLOW_WIDTH_FLOOR = 0.45;
@@ -480,30 +482,6 @@ interface ILiveTraceCanvasProps {
 const setAlpha = (context: CanvasRenderingContext2D, alpha: number) => {
   context.globalAlpha = Math.max(0, Math.min(1, alpha));
 };
-
-/**
- * The halo is painted at this fraction of the canvas's resolution and
- * scaled up. It is two wide, faint, round-capped strokes — soft by nature —
- * so a third of the pixels look identical once stretched, and the raster
- * cost, which is width times length times pixels, falls by nine. Measured
- * on the five-strand braid at 2560 wide: 21ms a frame to 11.
- */
-const HALO_SCALE = 1 / 3;
-
-/**
- * The sea is painted at a third of the resolution and stretched over the
- * frame, for the same reason the halo is.
- *
- * Nine translucent strips the width of the scene are a full screen of
- * alpha blending every frame, and that alone held the bridge at three
- * times the frame budget on a 1440p display while the profile showed the
- * script idle — turning the strips off brought it back to the floor and
- * changing their count did nothing, because the cost is the area, not the
- * geometry. Water is smooth and the swells are tens of pixels apart, so a
- * third of the pixels is a ninth of the blending and nothing anyone can
- * see.
- */
-const SEA_SCALE = 1 / 3;
 
 /**
  * Hand the context a flat colour, or build the ramp one describes.
@@ -712,6 +690,36 @@ const LiveTraceCanvas = ({
   const lookRef = useRef(look);
   lookRef.current = look;
 
+  // The look painted by the scene engine instead of on this canvas, where it
+  // can be (`engineLooks/engineLooks.ts`); laid out here every frame all the
+  // same, and handed over through `engineInputRef`.
+  const enginePack = engineLookPack(look.style);
+  const isEngineUsable = useEngineLookUsable(look.style);
+  const isEngineDrawn =
+    enginePack !== undefined &&
+    isEngineUsable &&
+    isEngineLookStyle(look.style, look.tuning);
+  const engineDrawnRef = useRef(isEngineDrawn);
+  engineDrawnRef.current = isEngineDrawn;
+  /** What the engine is handed: the look's layout, written in place. */
+  const engineInputRef = useRef<IEngineLookInput | undefined>(undefined);
+  /**
+   * Where the engine is with the look (`EngineLookLayer`). Until it can draw
+   * it, this canvas draws the look as it always did, so a look chosen never
+   * shows an empty plot while the engine builds it; once the engine draws,
+   * the layout goes to it and this canvas keeps its last picture until a
+   * frame of that layout is on screen; then this canvas holds only words.
+   * Back to building with every new look, before the engine has heard of it.
+   */
+  const enginePhaseRef = useRef<TEngineLookPhase>('building');
+  const enginePhaseStyleRef = useRef(look.style);
+  if (enginePhaseStyleRef.current !== look.style) {
+    enginePhaseStyleRef.current = look.style;
+    enginePhaseRef.current = 'building';
+  }
+  /** Whether nothing is on this canvas while the engine paints the look. */
+  const blankRef = useRef(false);
+
   // Whether the trace has the response plot to itself. This is true both in the
   // user's Wave only mode and when APO is off, because in either case there is
   // no applied response for the wave to sit behind.
@@ -838,10 +846,30 @@ const LiveTraceCanvas = ({
       }
       const now = performance.now();
       transitionRef.current.prepare(canvas, lookRef.current.id, now);
+      // Where the engine is with the look, when it paints it: see
+      // `enginePhaseRef`. Handing over, this canvas is left as it is.
+      const phase = engineDrawnRef.current ? enginePhaseRef.current : undefined;
+      const isEngineTaking = phase === 'drawing' || phase === 'showing';
+      const isHanding = phase === 'drawing';
+      /** The engine's input for `style`: one per look, written in place. */
+      const engineInputFor = (style: GraphStyle): IEngineLookInput => {
+        const known = engineInputRef.current;
+        if (known && known.style === style) {
+          return known;
+        }
+        const made = createLookInput(style);
+        engineInputRef.current = made;
+        return made;
+      };
       // Cleared in device pixels, so the rounding above cannot leave a seam of
-      // last frame's drawing along an edge.
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      // last frame's drawing along an edge. Not while the engine paints the
+      // look and nothing has been drawn here since the last clear: a clear
+      // is still a frame of this canvas for the compositor.
+      if (!isHanding && !(phase === 'showing' && blankRef.current)) {
+        context.setTransform(1, 0, 0, 1, 0, 0);
+        context.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      blankRef.current = false;
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
 
       // Each form moves in its own way — see the ballistics table for why a
@@ -867,6 +895,12 @@ const LiveTraceCanvas = ({
       // reached it yet. A look preview counts as painted only once none is.
       let rising = false;
       for (let index = 0; index < eased.length; index += 1) {
+        // Where a point is on the axis is the frame's, never eased: the copy
+        // used to keep the frequencies of the points it was first made from
+        // and was rebuilt only when their number changed, so after a look
+        // preview laid out on another axis the whole spectrum was drawn at
+        // the preview's frequencies — squeezed into 20 Hz to 20 kHz.
+        eased[index].x = data[index].x;
         const distance = data[index].y - eased[index].y;
         if (distance > PREVIEW_REACHED_DB) {
           rising = true;
@@ -1038,11 +1072,13 @@ const LiveTraceCanvas = ({
               ? readEuphoriaHue(computedRef.current)
               : 0,
         };
-        const viewPalette = resolveGraphPalette(
+        const viewPalette = windowViewPalette(
           chosen,
           lookRef.current.palette,
+          resolveGraphPalette(chosen, lookRef.current.palette),
+          lookRef.current.colours,
         );
-        const viewColours = resolveLookColours(
+        const viewColours = lookPaintColours(
           viewPalette,
           lookRef.current.colours,
         );
@@ -1063,9 +1099,8 @@ const LiveTraceCanvas = ({
             euphoria,
           ) ?? rampRgba(viewColours, 1, 1);
         const bands = figureBands();
-        const moved = drawAnalysisView({
+        const request: IAnalysisReadRequest = {
           style: chosen,
-          context,
           ratio,
           plot,
           bands,
@@ -1073,9 +1108,13 @@ const LiveTraceCanvas = ({
           playing: playingRef.current,
           tuning,
           colours: viewColours,
+          mateColours:
+            lookRef.current.colours.length === 0
+              ? windowMateColours(viewPalette)
+              : undefined,
           palette: viewPalette,
           edge: {
-            colour: toCanvasPaint(context, edgePaint),
+            colour: edgePaint,
             width: Math.max(1, tuning.strokeWidth),
             isEuphoria: isEuphoriaFigureStroke(tuning.border, euphoria),
           },
@@ -1100,8 +1139,39 @@ const LiveTraceCanvas = ({
           scope: needs.scope ? channels.scope() : undefined,
           eqResponse: eqResponseRef.current,
           state: analysisRef.current,
-        });
+        };
+        let moved = false;
+        let lettered = true;
+        const step = isEngineTaking ? engineAnalysisStep(chosen) : undefined;
+        if (step) {
+          // Laid out here, painted by the engine (`EngineLookLayer`), and
+          // lettered here over it once it shows.
+          const read = readAnalysisView(request);
+          lettered = false;
+          if (read) {
+            const input = engineInputFor(chosen);
+            readAnalysisLookInput(input, read.readings, { width, height });
+            moved = step(read.readings, request.state, input) || read.moving;
+            if (!isHanding) {
+              read.readings.forEach((reading) => {
+                lettered =
+                  paintAnalysisOverlay(
+                    chosen,
+                    { ...reading, context },
+                    request.state,
+                  ) || lettered;
+              });
+            }
+          }
+        } else {
+          moved = drawAnalysisView({ ...request, context });
+        }
+        if (isHanding) {
+          // Kept going until the engine shows a frame of this layout.
+          return true;
+        }
         const settling = transitionRef.current.paint(context, now);
+        blankRef.current = isEngineTaking && !settling && !lettered;
         if (!settling && !rising) {
           noteLookPreviewPainted(previewPointsRef.current);
         }
@@ -1116,10 +1186,8 @@ const LiveTraceCanvas = ({
        * looks.
        */
       if (isSceneViewStyle(chosen)) {
-        const moved = drawSceneView({
+        const request: TSceneViewReadRequest = {
           style: chosen,
-          context,
-          ratio,
           plot,
           window: { width, height },
           bands: figureBands(),
@@ -1129,14 +1197,33 @@ const LiveTraceCanvas = ({
           live: data,
           columns: projected,
           tuning,
-          palette: lookRef.current.palette,
           resolvedPalette: resolveGraphPalette(chosen, lookRef.current.palette),
           colours: lookRef.current.colours,
           glow: document.documentElement.classList.contains('is-euphoric')
             ? tuning.glow
             : 0,
           state: sceneViewRef.current,
-        });
+        };
+        const step = isEngineTaking ? engineLookStep(chosen) : undefined;
+        if (step) {
+          // Laid out here, painted by the engine (`EngineLookLayer`).
+          const read = readSceneView(request);
+          let moved = false;
+          if (read) {
+            const input = engineInputFor(chosen);
+            readLookInput(input, read.reading);
+            moved =
+              step(read.reading, sceneViewRef.current, input) || read.moving;
+          }
+          if (isHanding) {
+            // Kept going until the engine shows a frame of this layout.
+            return true;
+          }
+          const settling = transitionRef.current.paint(context, now);
+          blankRef.current = !settling;
+          return settling || moved || moving;
+        }
+        const moved = drawSceneView({ ...request, context, ratio });
         const settling = transitionRef.current.paint(context, now);
         return settling || moved || moving;
       }
@@ -2349,8 +2436,11 @@ const LiveTraceCanvas = ({
       // Under auto a form is painted in its own palette; nothing below this
       // line reads the look's palette directly.
       const paintPalette = resolveGraphPalette(chosen, lookRef.current.palette);
-      // Auto with no colours of its own: a scene may paint itself the way
-      // the real thing looks, not only in one of the offered ramps.
+      // Auto with no colours of its own is painted in the window's
+      // (`windowInk.ts`); the retired pictures and the Skyline keep the
+      // materials they are made of — rock, wood, fire, concrete at night —
+      // where the window's cyan would light every tower brighter than its
+      // windows.
       const ownColours =
         lookRef.current.palette === 'auto' &&
         lookRef.current.colours.length === 0;
@@ -2361,17 +2451,11 @@ const LiveTraceCanvas = ({
       const fenceOwnColours = ownColours && chosen === 'fence';
       const cityOwnColours = ownColours && chosen === 'skyline';
       const fluidOwnColours = ownColours && isFluidForm;
-      let paintColours = resolveLookColours(
+      let paintColours = lookPaintColours(
         paintPalette,
         lookRef.current.colours,
       );
-      if (ownColours && chosen === 'truss') {
-        // The bridge's own colouring cycles the wheel: a full turn every
-        // twenty seconds of music, one hue for the whole structure.
-        paintColours = [
-          `hsl(${((trussClockRef.current * 18) % 360).toFixed(0)}, 85%, 62%)`,
-        ];
-      } else if (caveOwnColours) {
+      if (caveOwnColours) {
         paintColours = CAVE_ROCK_COLOURS;
       } else if (arcadeOwnColours) {
         paintColours = ARCADE_SKY_COLOURS;
@@ -2428,6 +2512,275 @@ const LiveTraceCanvas = ({
       // follows the selected density and gap instead of a different figure.
       const needsOutside = isEuphoriaEdge && isFilled && figureStrokeWidth > 0;
 
+      /**
+       * The lit peaks for one copy of the drawing, painted in its scene space
+       * with its own paint: by the curve loop below, and over the engine's
+       * picture where the engine paints a designed scene.
+       */
+      const paintPeaks = (
+        canvasPaint: string | CanvasGradient,
+        basePaint: TracePaint,
+        paintFor: (paint: TracePaint) => string | CanvasGradient,
+      ) => {
+        // Lit tips. Only the peaks, and only on the forms that have them — the
+        // point is that the loudest few bands in the current frame catch the
+        // light while the rest of the figure stays as it was.
+        /**
+         * Lit peaks.
+         *
+         * Two shapes of thing under one setting. The wave is a path — the
+         * titlebar's own curve — so it is stroked like any other figure. The
+         * other nine hang, sink, expand, fly or trail, none of which exists
+         * inside a single frame, so they are painted by something that keeps
+         * what they remember. See `graphAccents`.
+         */
+        if (tuning.accents) {
+          if (tuning.accentStyle === 'wave' && accent) {
+            /**
+             * One stroke over a shadow, which is how the titlebar lights it.
+             *
+             * No halo pass under it: two widths of the same curve read as a
+             * line with a blurrier line drawn around it, which is where the
+             * grey aura came from. And no fill — filling an open curve
+             * closes it, which is where the white slab came from.
+             *
+             * The accent shares the look's palette, so custom colours and
+             * Flat remain consistent with the figure underneath it.
+             */
+            context.save();
+            context.lineJoin = 'round';
+            context.lineCap = 'round';
+            if (accentFill) {
+              setAlpha(context, opacity * 0.2);
+              context.fillStyle = canvasPaint;
+              context.fill(accentFill);
+            }
+            context.shadowColor = isEuphoric
+              ? TRACE_GLOW_RAINBOW
+              : traceGlowCyan();
+            /**
+             * The look's glow and thickness, as multiples of their own
+             * defaults rather than as raw values — multiplying by them
+             * directly would undo the shipped look, since thickness defaults
+             * to 2 and would double a 4.2px line into 8.4.
+             */
+            context.shadowBlur =
+              (isEuphoric ? TRACE_BLUR_RAINBOW : 0) *
+              (tuning.glow / DEFAULT_GLOW);
+            setAlpha(context, opacity);
+            context.strokeStyle = canvasPaint;
+            context.lineWidth =
+              (isEuphoric ? TRACE_WIDTH_RAINBOW : TRACE_WIDTH_CYAN) *
+              tuning.accentWidth;
+            context.stroke(accent);
+            context.restore();
+          } else if (tuning.accentStyle !== 'wave') {
+            setAlpha(context, opacity);
+            if (
+              paintGraphAccent({
+                context,
+                behaviour: tuning.accentStyle,
+                peaks: accentPeaks,
+                heights: accentHeights,
+                positions: accentPositions,
+                baseline: sceneBase,
+                top: sceneTop,
+                left: plot.left,
+                right: plot.right,
+                state: accentStateRef.current,
+                weight: tuning.accentWidth,
+                filled: tuning.accentFilled,
+                paint: paintFor(
+                  chosen === 'blocks' || tuning.accentStyle === 'blink'
+                    ? basePaint
+                    : resolveAccentStroke(basePaint, euphoria),
+                ),
+              })
+            ) {
+              // A mote still in the air is motion, even once the music has
+              // stopped — the loop has to keep drawing until it lands.
+              moving = true;
+            }
+          }
+        }
+      };
+
+      /**
+       * A designed scene the engine paints: laid out above exactly as for
+       * this canvas, and handed over here, where this canvas would start
+       * painting it (`engineLooks/designed/`).
+       */
+      const designed = isEngineTaking
+        ? designedSceneOf(chosen, {
+            bubbles:
+              chosen === 'bubbles' && motePaths
+                ? {
+                    scene: {
+                      layouts: curves.map((curve) =>
+                        bubbleLayout(
+                          toColumns(projected, tuning.columns),
+                          plot.top,
+                          baseline,
+                          Math.abs(
+                            getWaveTransform(curve, baseline, plot.top).scaleY,
+                          ),
+                          motionRef.current.travel[0] ?? 0,
+                          tuning.gap,
+                          bubbleStormRef.current,
+                        ),
+                      ),
+                      motes: motePaths.layout,
+                      left: toColumns(projected, tuning.columns)[0]?.[0] ?? 0,
+                      figureStroke: figureStrokeWidth,
+                    },
+                    storm: bubbleStormRef.current,
+                    clock: motionRef.current.travel[0] ?? 0,
+                  }
+                : undefined,
+            echo: echoPaths && {
+              layout: echoPaths.layout,
+              figureStroke: figureStrokeWidth,
+            },
+            truss: trussPaths && { bridge: trussPaths.layout },
+            invaders: invasionPaths &&
+              cabinetFrame && {
+                fight: invasionPaths.layout,
+                shelters: shelterRects(
+                  invaderCabinetRef.current,
+                  sceneBase - (sceneBase - sceneTop) * SHIP_LANE,
+                  invasionPaths.unit,
+                ),
+                cabinet: cabinetFrame.layout,
+                state: invasionRef.current,
+                clock: invasionClockRef.current,
+              },
+            terrace:
+              valleyPaths && valleyColumns && valleyColumns.length > 1
+                ? {
+                    valley: valleyPaths.layout,
+                    columns: valleyColumns,
+                    jumper: terraceJumper,
+                    plotWidth: plot.right - plot.left,
+                    depth,
+                  }
+                : undefined,
+            skyline: cityPaths && {
+              city: cityPaths.layout,
+              towers: createSkylineTowers(
+                figurePoints,
+                sceneBase,
+                tuning.columns,
+                tuning.gap,
+                sceneTop,
+              ),
+              heat:
+                isFilled && piecePaths
+                  ? piecePaths.map((piece) =>
+                      heatColour(paintColours, piece.energy),
+                    )
+                  : undefined,
+            },
+            slope: fieldPaths &&
+              slopeFlow &&
+              fieldColumns && {
+                field: fieldPaths.layout,
+                flow: slopeFlow.sets,
+                columns: fieldColumns,
+                gap: tuning.gap,
+              },
+            pulse: pulsePaths && {
+              monitor: pulseMonitorRef.current,
+              layout: pulsePaths.layout,
+              clock: motionRef.current.travel[0] ?? 0,
+              paper: pulseGrid && {
+                cell: pulseGridCell(depth),
+                floor: baseline,
+                width,
+                height,
+              },
+            },
+          })
+        : undefined;
+      if (designed) {
+        const basePaint = resolveTracePaint(
+          paintPalette,
+          paintColours,
+          curves[0].colour,
+          scenePlot,
+          energy,
+        );
+        const input = engineInputFor(chosen);
+        const shake = designedShake(designed);
+        stepDesignedLook(
+          {
+            window: { width, height },
+            plot,
+            baseline,
+            depth,
+            sceneTop,
+            sceneBase,
+            copies: curves.map((curve) =>
+              getWaveTransform(curve, baseline, plot.top),
+            ),
+            shake,
+            paint: basePaint,
+            glowPaint:
+              resolveFigureStroke(
+                basePaint,
+                isFilled,
+                tuning.border,
+                isSelfColoured,
+                euphoria,
+              ) ?? basePaint,
+            opacity,
+            strokeWidth,
+            filled: isFilled,
+            fillOpacity: tuning.fillOpacity,
+            lit: haloPath ? lit : 0,
+            swell,
+          },
+          designed,
+          input,
+        );
+        if (isHanding) {
+          // Kept going until the engine shows a frame of this layout.
+          return true;
+        }
+        // The lit peaks over the engine's picture, in each copy's scene
+        // space, as the curve loop below paints them over the page's.
+        if (tuning.accents) {
+          curves.forEach((curve) => {
+            const wave = getWaveTransform(curve, baseline, plot.top);
+            if (wave.scaleY === 0) {
+              return;
+            }
+            const curvePaint = resolveTracePaint(
+              paintPalette,
+              paintColours,
+              curve.colour,
+              scenePlot,
+              energy,
+            );
+            context.save();
+            context.translate(shake.x, shake.y + wave.translateY);
+            context.scale(1, wave.scaleY / Math.abs(wave.scaleY));
+            const curveInk = toCanvasPaint(context, curvePaint);
+            paintPeaks(curveInk, curvePaint, (paint) =>
+              paint === curvePaint ? curveInk : toCanvasPaint(context, paint),
+            );
+            context.restore();
+          });
+        }
+        const settling = transitionRef.current.paint(context, now);
+        blankRef.current = !settling && !tuning.accents;
+        return (
+          settling ||
+          moving ||
+          hasGraphAmbientMotion(chosen) ||
+          (isEuphoric && tuning.border)
+        );
+      }
+
       context.lineCap = 'round';
       context.lineJoin = 'round';
 
@@ -2448,9 +2801,22 @@ const LiveTraceCanvas = ({
             context.stroke(path);
           }
         };
-        paintEdge(cabinetFrame.ground, INVADER_GREEN, 0.9);
-        paintEdge(cabinetFrame.spare, INVADER_GREEN, 0.75);
-        paintEdge(cabinetFrame.readout, INVADER_READOUT, 0.85);
+        const { frame: frameInk } = INVADER_INKS;
+        paintEdge(
+          cabinetFrame.ground,
+          frameInk.ground.colour,
+          frameInk.ground.alpha,
+        );
+        paintEdge(
+          cabinetFrame.spare,
+          frameInk.spare.colour,
+          frameInk.spare.alpha,
+        );
+        paintEdge(
+          cabinetFrame.readout,
+          frameInk.readout.colour,
+          frameInk.readout.alpha,
+        );
       }
 
       curves.forEach((curve, curveIndex) => {
@@ -2640,97 +3006,18 @@ const LiveTraceCanvas = ({
         const paintFor = (paint: TracePaint) =>
           paint === basePaint ? canvasPaint : toCanvasPaint(context, paint);
         if (dashTrails) {
+          // In scene space, where they are built, as the figure they trail
+          // is: in the wave's they were squashed by the height slider a
+          // second time and fell away from the marks below 100%.
+          enterSceneSpace();
           context.strokeStyle = canvasPaint;
           dashTrails.forEach((trail) => {
             setAlpha(context, opacity * trail.opacity);
             context.lineWidth = strokeWidth * trail.width;
             context.stroke(trail.path);
           });
+          context.restore();
         }
-
-        const paintPeaks = () => {
-          // Lit tips. Only the peaks, and only on the forms that have them — the
-          // point is that the loudest few bands in the current frame catch the
-          // light while the rest of the figure stays as it was.
-          /**
-           * Lit peaks.
-           *
-           * Two shapes of thing under one setting. The wave is a path — the
-           * titlebar's own curve — so it is stroked like any other figure. The
-           * other nine hang, sink, expand, fly or trail, none of which exists
-           * inside a single frame, so they are painted by something that keeps
-           * what they remember. See `graphAccents`.
-           */
-          if (tuning.accents) {
-            if (tuning.accentStyle === 'wave' && accent) {
-              /**
-               * One stroke over a shadow, which is how the titlebar lights it.
-               *
-               * No halo pass under it: two widths of the same curve read as a
-               * line with a blurrier line drawn around it, which is where the
-               * grey aura came from. And no fill — filling an open curve
-               * closes it, which is where the white slab came from.
-               *
-               * The accent shares the look's palette, so custom colours and
-               * Flat remain consistent with the figure underneath it.
-               */
-              context.save();
-              context.lineJoin = 'round';
-              context.lineCap = 'round';
-              if (accentFill) {
-                setAlpha(context, opacity * 0.2);
-                context.fillStyle = canvasPaint;
-                context.fill(accentFill);
-              }
-              context.shadowColor = isEuphoric
-                ? TRACE_GLOW_RAINBOW
-                : traceGlowCyan();
-              /**
-               * The look's glow and thickness, as multiples of their own
-               * defaults rather than as raw values — multiplying by them
-               * directly would undo the shipped look, since thickness defaults
-               * to 2 and would double a 4.2px line into 8.4.
-               */
-              context.shadowBlur =
-                (isEuphoric ? TRACE_BLUR_RAINBOW : 0) *
-                (tuning.glow / DEFAULT_GLOW);
-              setAlpha(context, opacity);
-              context.strokeStyle = canvasPaint;
-              context.lineWidth =
-                (isEuphoric ? TRACE_WIDTH_RAINBOW : TRACE_WIDTH_CYAN) *
-                tuning.accentWidth;
-              context.stroke(accent);
-              context.restore();
-            } else if (tuning.accentStyle !== 'wave') {
-              setAlpha(context, opacity);
-              if (
-                paintGraphAccent({
-                  context,
-                  behaviour: tuning.accentStyle,
-                  peaks: accentPeaks,
-                  heights: accentHeights,
-                  positions: accentPositions,
-                  baseline: sceneBase,
-                  top: sceneTop,
-                  left: plot.left,
-                  right: plot.right,
-                  state: accentStateRef.current,
-                  weight: tuning.accentWidth,
-                  filled: tuning.accentFilled,
-                  paint: paintFor(
-                    chosen === 'blocks' || tuning.accentStyle === 'blink'
-                      ? basePaint
-                      : resolveAccentStroke(basePaint, euphoria),
-                  ),
-                })
-              ) {
-                // A mote still in the air is motion, even once the music has
-                // stopped — the loop has to keep drawing until it lands.
-                moving = true;
-              }
-            }
-          }
-        };
 
         // The paper is the same sheet for every curve — ruled symmetrically
         // about the baseline, so the mirror's flip lands it exactly on
@@ -2819,12 +3106,12 @@ const LiveTraceCanvas = ({
           // No sky painted: the stars and the moon stand over whatever is
           // behind the graph, the same as the terrace's night.
           enterSceneSpace();
-          context.fillStyle = '#fff';
+          context.fillStyle = CITY_INKS.star;
           cityPaths.stars.forEach((band) => {
             setAlpha(context, opacity * band.alpha);
             context.fill(band.path);
           });
-          setAlpha(context, opacity * (0.4 + cityPaths.bass * 0.5));
+          setAlpha(context, opacity * cityPaths.layout.haloAlpha);
           paintMoonHalo(
             context,
             nightRef.current,
@@ -2833,8 +3120,8 @@ const LiveTraceCanvas = ({
             cityPaths.moonRadius,
             ratio,
           );
-          context.fillStyle = CITY_MOON;
-          setAlpha(context, opacity * 0.96);
+          context.fillStyle = CITY_INKS.moon.colour;
+          setAlpha(context, opacity * CITY_INKS.moon.alpha);
           context.beginPath();
           context.arc(
             cityPaths.moonX,
@@ -2844,8 +3131,8 @@ const LiveTraceCanvas = ({
             Math.PI * 2,
           );
           context.fill();
-          context.fillStyle = '#7d7a8c';
-          setAlpha(context, opacity * 0.22);
+          context.fillStyle = CITY_INKS.crater.colour;
+          setAlpha(context, opacity * CITY_INKS.crater.alpha);
           context.fill(cityPaths.craters);
           context.restore();
         }
@@ -2856,14 +3143,14 @@ const LiveTraceCanvas = ({
           // covered by a painted gradient.
           enterSceneSpace();
           // The stars: the bright ones twinkle with the treble.
-          context.fillStyle = '#fff';
+          context.fillStyle = VALLEY_INKS.star;
           valleyPaths.stars.forEach((band) => {
             setAlpha(context, opacity * band.alpha);
             context.fill(band.path);
           });
           // The moon's halo breathes with the bass; the moon is a circle in
           // scene space, so the height slider never squashes it.
-          setAlpha(context, opacity * (0.45 + valleyPaths.bass * 0.55));
+          setAlpha(context, opacity * valleyPaths.layout.haloAlpha);
           paintMoonHalo(
             context,
             nightRef.current,
@@ -2872,8 +3159,8 @@ const LiveTraceCanvas = ({
             valleyPaths.moonRadius,
             ratio,
           );
-          context.fillStyle = TERRACE_MOON;
-          setAlpha(context, opacity * 0.96);
+          context.fillStyle = VALLEY_INKS.moon.colour;
+          setAlpha(context, opacity * VALLEY_INKS.moon.alpha);
           context.beginPath();
           context.arc(
             valleyPaths.moonX,
@@ -2883,13 +3170,11 @@ const LiveTraceCanvas = ({
             Math.PI * 2,
           );
           context.fill();
-          context.fillStyle = '#7d7a8c';
-          setAlpha(context, opacity * 0.22);
+          context.fillStyle = VALLEY_INKS.crater.colour;
+          setAlpha(context, opacity * VALLEY_INKS.crater.alpha);
           context.fill(valleyPaths.craters);
-          // Light, not dark: with no sky behind them the clouds have to
-          // stand against whatever is there.
-          context.fillStyle = TERRACE_CLOUD;
-          setAlpha(context, opacity * 0.22);
+          context.fillStyle = VALLEY_INKS.cloud.colour;
+          setAlpha(context, opacity * VALLEY_INKS.cloud.alpha);
           context.fill(valleyPaths.clouds);
           // Two bands of mist between the tiers, thinning as it gets loud.
           setAlpha(context, opacity * valleyPaths.mist);
@@ -3023,7 +3308,7 @@ const LiveTraceCanvas = ({
             cover.addPath(curveFigure);
             context.clip(cover, 'evenodd');
           }
-          paintPeaks();
+          paintPeaks(canvasPaint, basePaint, paintFor);
           context.restore();
         }
         if (isScene) {
@@ -3405,80 +3690,77 @@ const LiveTraceCanvas = ({
           // saucer, the bolts and the lasers, the ship with its engines,
           // the bursts, and a soft glow round the formation before the
           // aliens themselves are painted as the figure.
-          context.strokeStyle = '#fff';
+          const ink = INVADER_INKS;
+          const { unit, thump } = invasionPaths;
+          context.strokeStyle = ink.stars.colour;
           context.lineCap = 'round';
           invasionPaths.stars.forEach((band, layer) => {
-            context.lineWidth = 1 + layer * 0.6;
+            context.lineWidth = ink.stars.width(layer);
             setAlpha(
               context,
-              opacity * band.alpha * (0.7 + invasionPaths.warp * 0.3),
+              opacity * band.alpha * ink.stars.lift(invasionPaths.warp),
             );
             context.stroke(band.path);
           });
-          // The boss: a red glow round its hull, the hull, and its running
-          // lights chasing along the rim.
-          context.strokeStyle = '#ff4d6d';
-          context.lineWidth = invasionPaths.unit * 2.4;
+          context.strokeStyle = ink.saucer.colour;
+          context.lineWidth = unit * ink.saucer.glowWidth;
           context.lineJoin = 'round';
-          setAlpha(context, opacity * (0.16 + invasionPaths.thump * 0.14));
+          setAlpha(context, opacity * ink.saucer.glowAlpha(thump));
           context.stroke(invasionPaths.saucer);
-          context.fillStyle = '#ff4d6d';
-          setAlpha(context, opacity * 0.95);
+          context.fillStyle = ink.saucer.colour;
+          setAlpha(context, opacity * ink.saucer.alpha);
           if (isFilled) {
             context.fill(invasionPaths.saucer);
           } else {
-            context.lineWidth = 1;
+            context.lineWidth = ink.outline;
             context.stroke(invasionPaths.saucer);
           }
-          context.fillStyle = '#fff3b0';
+          context.fillStyle = ink.saucer.lights;
           setAlpha(context, opacity);
           context.fill(invasionPaths.saucerLights);
-          // Its plasma: a soft halo, the flame, the white-hot core.
-          context.strokeStyle = '#ff7a1f';
-          context.lineWidth = invasionPaths.unit * 2;
-          setAlpha(context, opacity * 0.22);
+          context.strokeStyle = ink.plasma.halo;
+          context.lineWidth = unit * ink.plasma.haloWidth;
+          setAlpha(context, opacity * ink.plasma.haloAlpha);
           context.stroke(invasionPaths.plasmaFlame);
-          context.fillStyle = '#ff5a2a';
-          setAlpha(context, opacity * 0.9);
+          context.fillStyle = ink.plasma.flame;
+          setAlpha(context, opacity * ink.plasma.flameAlpha);
           context.fill(invasionPaths.plasmaFlame);
-          context.fillStyle = '#fff3b0';
+          context.fillStyle = ink.plasma.core;
           setAlpha(context, opacity);
           context.fill(invasionPaths.plasmaCore);
-          context.strokeStyle = '#ff5d7a';
-          context.lineWidth = invasionPaths.unit * 1.6;
-          setAlpha(context, opacity * 0.3);
+          context.strokeStyle = ink.bolts.colour;
+          context.lineWidth = unit * ink.bolts.glowWidth;
+          setAlpha(context, opacity * ink.bolts.glowAlpha);
           context.stroke(invasionPaths.bolts);
-          context.lineWidth = invasionPaths.unit * 0.6;
-          setAlpha(context, opacity * 0.95);
+          context.lineWidth = unit * ink.bolts.width;
+          setAlpha(context, opacity * ink.bolts.alpha);
           context.stroke(invasionPaths.bolts);
-          context.strokeStyle = '#7dffb0';
-          context.lineWidth = invasionPaths.unit * 1.6;
-          setAlpha(context, opacity * 0.35);
+          context.strokeStyle = ink.shots.glow;
+          context.lineWidth = unit * ink.shots.glowWidth;
+          setAlpha(context, opacity * ink.shots.glowAlpha);
           context.stroke(invasionPaths.shots);
-          context.strokeStyle = '#fff';
-          context.lineWidth = invasionPaths.unit * 0.55;
-          setAlpha(context, opacity * 0.95);
+          context.strokeStyle = ink.shots.core;
+          context.lineWidth = unit * ink.shots.width;
+          setAlpha(context, opacity * ink.shots.alpha);
           context.stroke(invasionPaths.shots);
           // The shelters over the fire that is eating them, so a bolt is
           // seen to stop AT the arch rather than in front of it.
           if (shelterPath) {
             setAlpha(context, opacity);
             if (isFilled) {
-              context.fillStyle = INVADER_GREEN;
+              context.fillStyle = ink.shelter;
               context.fill(shelterPath);
             } else {
-              context.strokeStyle = INVADER_GREEN;
-              context.lineWidth = 1;
+              context.strokeStyle = ink.shelter;
+              context.lineWidth = ink.outline;
               context.stroke(shelterPath);
             }
           }
-          // The ship: the pixel fighter — flames first, then hull, canopy
-          // and stripes, each its own colour — with a soft glow round the
-          // hull that swells on the beat. Stroked, every layer is outlined.
-          context.strokeStyle = '#8fd3ff';
-          context.lineWidth = 5;
+          // Stroked, every layer of the ship is outlined.
+          context.strokeStyle = ink.ship.glow;
+          context.lineWidth = ink.ship.glowWidth;
           context.lineJoin = 'round';
-          setAlpha(context, opacity * (0.1 + invasionPaths.thump * 0.15));
+          setAlpha(context, opacity * ink.ship.glowAlpha(thump));
           context.stroke(invasionPaths.hull);
           const paintPart = (path: Path2D, colour: string, alpha: number) => {
             setAlpha(context, opacity * alpha);
@@ -3487,51 +3769,50 @@ const LiveTraceCanvas = ({
               context.fill(path);
             } else {
               context.strokeStyle = colour;
-              context.lineWidth = 1;
+              context.lineWidth = ink.outline;
               context.stroke(path);
             }
           };
-          paintPart(invasionPaths.flame, '#ff7a1f', 0.9);
-          paintPart(invasionPaths.core, '#fff3b0', 1);
-          paintPart(invasionPaths.hull, '#d6dee8', 1);
-          paintPart(invasionPaths.stripes, '#ff4d6d', 1);
-          paintPart(invasionPaths.canopy, '#6fe6ff', 1);
-          context.fillStyle = '#fff';
-          setAlpha(context, opacity * 0.95);
+          const { ship } = ink;
+          paintPart(invasionPaths.flame, ship.flame.colour, ship.flame.alpha);
+          paintPart(invasionPaths.core, ship.core.colour, ship.core.alpha);
+          paintPart(invasionPaths.hull, ship.hull.colour, ship.hull.alpha);
+          paintPart(
+            invasionPaths.stripes,
+            ship.stripes.colour,
+            ship.stripes.alpha,
+          );
+          paintPart(
+            invasionPaths.canopy,
+            ship.canopy.colour,
+            ship.canopy.alpha,
+          );
+          context.fillStyle = ship.flash.colour;
+          setAlpha(context, opacity * ship.flash.alpha);
           context.fill(invasionPaths.shipFlash);
           context.fill(invasionPaths.muzzle);
-          // The bubble: a soft halo of its own dots under a crisp ring.
-          context.strokeStyle = '#7fe3ff';
-          context.lineWidth = invasionPaths.unit * 2.2;
+          context.strokeStyle = ink.shield.colour;
+          context.lineWidth = unit * ink.shield.glowWidth;
           context.lineJoin = 'round';
-          setAlpha(context, opacity * 0.18);
+          setAlpha(context, opacity * ink.shield.glowAlpha);
           context.stroke(invasionPaths.shield);
-          context.fillStyle = '#7fe3ff';
-          setAlpha(context, opacity * (0.7 + invasionPaths.thump * 0.3));
+          context.fillStyle = ink.shield.colour;
+          setAlpha(context, opacity * ink.shield.alpha(thump));
           context.fill(invasionPaths.shield);
-          // The last ship coming apart: the fireball behind, its hot heart,
-          // then the fighter's own pixels flying out in its own colours —
-          // white all over for the first instant of the blast.
           const { wreckage } = invasionPaths;
           if (wreckage) {
             const { glow } = wreckage;
-            context.fillStyle = '#ff7a1f';
-            setAlpha(context, opacity * glow * 0.85);
+            context.fillStyle = ink.wreck.fire;
+            setAlpha(context, opacity * ink.wreck.fireAlpha(glow));
             context.fill(wreckage.fire);
-            context.fillStyle = '#fff3b0';
-            setAlpha(context, opacity * glow * glow);
+            context.fillStyle = ink.wreck.heart;
+            setAlpha(context, opacity * ink.wreck.heartAlpha(glow));
             context.fill(wreckage.heart);
-            paintPart(wreckage.hull, wreckage.flash ? '#fff' : '#d6dee8', glow);
-            paintPart(
-              wreckage.stripes,
-              wreckage.flash ? '#fff' : '#ff4d6d',
-              glow,
-            );
-            paintPart(
-              wreckage.canopy,
-              wreckage.flash ? '#fff' : '#6fe6ff',
-              glow,
-            );
+            const flashed = (colour: string) =>
+              wreckage.flash ? ink.wreck.flash : colour;
+            paintPart(wreckage.hull, flashed(ship.hull.colour), glow);
+            paintPart(wreckage.stripes, flashed(ship.stripes.colour), glow);
+            paintPart(wreckage.canopy, flashed(ship.canopy.colour), glow);
           }
           // The bursts in the alien's own colour, fading.
           context.fillStyle = canvasPaint;
@@ -3539,10 +3820,9 @@ const LiveTraceCanvas = ({
             setAlpha(context, opacity * band.alpha);
             context.fill(band.path);
           });
-          // The formation's glow.
           context.strokeStyle = canvasPaint;
-          context.lineWidth = 3;
-          setAlpha(context, opacity * (0.2 + invasionPaths.thump * 0.2));
+          context.lineWidth = ink.formation.glowWidth;
+          setAlpha(context, opacity * ink.formation.glowAlpha(thump));
           context.stroke(invasionPaths.shape);
         }
         if (cavePaths) {
@@ -3591,22 +3871,16 @@ const LiveTraceCanvas = ({
           context.stroke(cavePaths.surface);
         }
         if (trussPaths) {
-          // The sky first: dim stars, then the twinkling ones, which flare
-          // with the beat.
           context.fillStyle = '#fff';
-          setAlpha(context, opacity * 0.3);
+          setAlpha(context, opacity * TRUSS_INKS.stars.dim);
           context.fill(trussPaths.stars);
-          setAlpha(context, opacity * (0.7 + trussPaths.thump * 0.3));
+          setAlpha(
+            context,
+            opacity * TRUSS_INKS.stars.bright(trussPaths.thump),
+          );
           context.fill(trussPaths.brightStars);
-          // The truss under the deck: four bands from the deck down, each
-          // fainter than the one above, so the members sink into the dark;
-          // within each, the members whose band is loud burn brighter, and
-          // on a beat the whole truss glows wider for a moment.
           /**
-           * The truss under the deck: four bands from the deck down, each
-           * fainter than the one above, so the members sink into the dark;
-           * within each, the members whose band is loud burn brighter, and
-           * on a beat the whole truss glows wider for a moment.
+           * The truss under the deck, and on a beat its glow.
            *
            * The glow pass goes on the low-resolution surface with the
            * water. It is the widest stroking in the scene — twelve passes
@@ -3615,21 +3889,25 @@ const LiveTraceCanvas = ({
            * frame budget for a blur nobody can see the edge of.
            */
           const bridgeGlow = trussPaths.thump;
+          const { member } = TRUSS_INKS;
           const paintMembers = (
             target: CanvasRenderingContext2D,
             glowing: boolean,
           ) => {
             trussPaths.members.forEach((band, depth) => {
-              const fade = 0.9 - (depth / FADE_BANDS) * 0.75;
+              const fade = member.fade(depth);
               band.forEach((members, bin) => {
-                const burn = 0.45 + (bin / (LEVEL_BINS - 1)) * 0.75;
+                const burn = member.burn(bin);
                 target.strokeStyle = canvasPaint;
                 if (glowing) {
                   target.lineWidth =
-                    Math.max(1, strokeWidth * 0.7) + 5 * bridgeGlow;
-                  setAlpha(target, opacity * fade * burn * bridgeGlow * 0.35);
+                    member.width(strokeWidth) + member.glowWiden * bridgeGlow;
+                  setAlpha(
+                    target,
+                    opacity * fade * burn * bridgeGlow * member.glowAlpha,
+                  );
                 } else {
-                  target.lineWidth = Math.max(1, strokeWidth * 0.7);
+                  target.lineWidth = member.width(strokeWidth);
                   setAlpha(target, opacity * Math.min(1, fade * burn));
                 }
                 target.stroke(members);
@@ -3638,14 +3916,8 @@ const LiveTraceCanvas = ({
           };
           paintMembers(context, false);
           context.strokeStyle = canvasPaint;
-          setAlpha(context, opacity * 0.25);
+          setAlpha(context, opacity * TRUSS_INKS.footing);
           context.stroke(trussPaths.footing);
-          // The sea behind the bridge: each swell a strip of the look's
-          // colour, faint at the horizon and deeper as it nears, every
-          // other one a shade darker so the swells read against each other
-          // without a line on the water; brighter with the bass that lifts
-          // it, under a thin bright horizon.
-          const seaLift = 0.8 + trussPaths.bass * 0.5;
           const hazeTop = trussPaths.horizon - trussPaths.horizonHaze;
           const paintSea = (target: CanvasRenderingContext2D) => {
             if (bridgeGlow > 0) {
@@ -3653,37 +3925,37 @@ const LiveTraceCanvas = ({
             }
             target.fillStyle = canvasPaint;
             trussPaths.sea.forEach((strip, index) => {
-              const near = (index + 1) / trussPaths.sea.length;
-              const shade = index % 2 === 0 ? 1 : 0.7;
-              setAlpha(target, opacity * (0.06 + near * 0.3) * shade * seaLift);
+              setAlpha(
+                target,
+                opacity * TRUSS_INKS.sea(index, trussPaths.bass),
+              );
               target.fill(strip);
             });
-            // A band of haze sitting on the waterline, thicker with the
-            // bass: without it the sea ended at a drawn line with black
-            // above it. On the water's surface, because it is a soft
-            // gradient over the same wide area and costs the same to blend.
+            // On the water's surface, because it is a soft gradient over
+            // the same wide area and costs the same to blend.
             const haze = target.createLinearGradient(
               0,
               hazeTop,
               0,
-              trussPaths.horizon + trussPaths.horizonHaze * 0.4,
+              trussPaths.horizon +
+                trussPaths.horizonHaze * TRUSS_INKS.haze.below,
             );
-            haze.addColorStop(0, 'rgba(255,255,255,0)');
-            haze.addColorStop(0.72, 'rgba(255,255,255,0.1)');
-            haze.addColorStop(1, 'rgba(255,255,255,0)');
+            TRUSS_INKS.haze.stops.forEach(({ at, alpha }) => {
+              haze.addColorStop(at, `rgba(255,255,255,${alpha})`);
+            });
             target.fillStyle = haze;
-            setAlpha(target, opacity * (0.5 + trussPaths.bass * 0.5));
+            setAlpha(target, opacity * TRUSS_INKS.haze.alpha(trussPaths.bass));
             target.fillRect(
               plot.left - (plot.right - plot.left),
               hazeTop,
               (plot.right - plot.left) * 3,
-              trussPaths.horizonHaze * 1.4,
+              trussPaths.horizonHaze * (1 + TRUSS_INKS.haze.below),
             );
           };
           paintLowRes(paintSea);
           context.strokeStyle = '#fff';
-          context.lineWidth = 1;
-          setAlpha(context, opacity * 0.22);
+          context.lineWidth = TRUSS_INKS.horizon.width;
+          setAlpha(context, opacity * TRUSS_INKS.horizon.alpha);
           context.beginPath();
           context.moveTo(
             plot.left - (plot.right - plot.left),
@@ -3694,42 +3966,39 @@ const LiveTraceCanvas = ({
             trussPaths.horizon,
           );
           context.stroke();
-          // The suspension: piers and towers standing in the water, dark
-          // silhouettes edged in the look's colour, or solid in the colour
-          // when filled; the bracing between the legs, hangers faint, the
-          // main cables bright.
-          context.fillStyle = isFilled ? canvasPaint : '#000';
-          setAlpha(context, opacity * (isFilled ? 0.95 : 0.7));
+          const { body, outline } = TRUSS_INKS;
+          context.fillStyle = isFilled ? canvasPaint : body.openColour;
+          setAlpha(context, opacity * (isFilled ? body.filled : body.open));
           context.fill(trussPaths.piers);
           context.fill(trussPaths.towers);
           context.fill(trussPaths.towersBelow);
           context.strokeStyle = canvasPaint;
-          context.lineWidth = 1.2;
-          setAlpha(context, opacity * 0.7);
+          context.lineWidth = outline.width;
+          setAlpha(context, opacity * outline.piers);
           context.stroke(trussPaths.piers);
-          setAlpha(context, opacity * 0.9);
+          setAlpha(context, opacity * outline.towers);
           context.stroke(trussPaths.towers);
           context.stroke(trussPaths.towersBelow);
-          context.lineWidth = 0.9;
-          setAlpha(context, opacity * 0.55);
+          context.lineWidth = TRUSS_INKS.bracing.width;
+          setAlpha(context, opacity * TRUSS_INKS.bracing.alpha);
           context.stroke(trussPaths.bracing);
           context.stroke(trussPaths.bracingBelow);
-          context.lineWidth = 0.8;
-          setAlpha(context, opacity * 0.4);
+          context.lineWidth = TRUSS_INKS.hangers.width;
+          setAlpha(context, opacity * TRUSS_INKS.hangers.alpha);
           context.stroke(trussPaths.hangers);
-          // The cables pump with the bass: a fine wire that thickens a little
-          // and brightens with the kick, with a narrow tint of the look's
-          // colour under it — a wide glow here eclipsed the rest of the scene.
+          const { cable } = TRUSS_INKS;
           context.strokeStyle = canvasPaint;
-          context.lineWidth = 2 + trussPaths.bass * 2.5;
-          setAlpha(context, opacity * (0.12 + trussPaths.bass * 0.25));
+          context.lineWidth = cable.tintWidth(trussPaths.bass);
+          setAlpha(context, opacity * cable.tintAlpha(trussPaths.bass));
           context.stroke(trussPaths.cables);
           context.strokeStyle = '#fff';
-          context.lineWidth =
-            1 + trussPaths.bass * 1.2 + trussPaths.thump * 0.5;
+          context.lineWidth = cable.wireWidth(
+            trussPaths.bass,
+            trussPaths.thump,
+          );
           setAlpha(
             context,
-            opacity * (0.45 + trussPaths.bass * 0.45 + trussPaths.thump * 0.1),
+            opacity * cable.wireAlpha(trussPaths.bass, trussPaths.thump),
           );
           context.stroke(trussPaths.cables);
         }
@@ -3808,19 +4077,18 @@ const LiveTraceCanvas = ({
           terraceTiers.forEach((tier, index) => {
             setAlpha(context, opacity * tuning.fillOpacity * tier.opacity);
             context.fill(tier.body, 'evenodd');
-            setAlpha(context, opacity * (index === 0 ? 0.85 : 0.3));
-            context.lineWidth = index === 0 ? 1.6 : 1;
+            const edge = terraceEdgeStroke(index);
+            setAlpha(context, opacity * edge.alpha);
+            context.lineWidth = edge.width;
             context.stroke(tier.edge);
           });
           if (valleyPaths) {
-            // A retaining wall in shadow under every shelf, and the rim
-            // above it catching the moon — brighter on the beat.
-            context.fillStyle = '#000';
-            setAlpha(context, opacity * 0.38);
+            context.fillStyle = VALLEY_INKS.wall.colour;
+            setAlpha(context, opacity * VALLEY_INKS.wall.alpha);
             context.fill(valleyPaths.walls);
-            context.strokeStyle = TERRACE_MOON;
-            context.lineWidth = 1;
-            setAlpha(context, opacity * (0.28 + valleyPaths.thump * 0.3));
+            context.strokeStyle = VALLEY_INKS.rim.colour;
+            context.lineWidth = VALLEY_INKS.rim.width;
+            setAlpha(context, opacity * valleyPaths.layout.rimAlpha);
             context.stroke(valleyPaths.rims);
           }
         } else if (stemLayers) {
@@ -4172,10 +4440,11 @@ const LiveTraceCanvas = ({
             0,
             sceneBase,
           );
-          haze.addColorStop(0, 'rgba(255,196,120,0)');
-          haze.addColorStop(1, 'rgba(255,196,120,0.22)');
+          const hazeInk = CITY_INKS.haze.rgb.join(',');
+          haze.addColorStop(0, `rgba(${hazeInk},0)`);
+          haze.addColorStop(1, `rgba(${hazeInk},${CITY_INKS.haze.alpha})`);
           context.fillStyle = haze;
-          setAlpha(context, opacity * (0.35 + cityPaths.bass * 0.5));
+          setAlpha(context, opacity * cityPaths.layout.hazeAlpha);
           context.fillRect(
             plot.left,
             sceneBase - cityPaths.hazeHeight,
@@ -4183,32 +4452,32 @@ const LiveTraceCanvas = ({
             cityPaths.hazeHeight,
           );
           if (isFilled) {
-            context.fillStyle = '#000';
-            setAlpha(context, opacity * 0.35);
+            context.fillStyle = CITY_INKS.dim.colour;
+            setAlpha(context, opacity * CITY_INKS.dim.alpha);
             context.fill(cityPaths.dim);
-            context.fillStyle = CITY_WINDOW;
-            setAlpha(context, opacity * (0.75 + cityPaths.thump * 0.25));
+            context.fillStyle = CITY_INKS.lit;
+            setAlpha(context, opacity * cityPaths.layout.litAlpha);
             context.fill(cityPaths.lit);
           }
-          context.fillStyle = CITY_BEACON;
-          setAlpha(context, opacity * 0.9);
+          context.fillStyle = CITY_INKS.beacon.colour;
+          setAlpha(context, opacity * CITY_INKS.beacon.alpha);
           context.fill(cityPaths.beacons);
         }
         if (valleyPaths) {
-          context.strokeStyle = '#fff';
-          context.lineWidth = 1;
+          context.strokeStyle = VALLEY_INKS.glint.colour;
+          context.lineWidth = VALLEY_INKS.glint.width;
           context.lineCap = 'round';
-          setAlpha(context, opacity * (0.35 + valleyPaths.thump * 0.4));
+          setAlpha(context, opacity * valleyPaths.layout.glintAlpha);
           context.stroke(valleyPaths.glints);
-          context.fillStyle = TERRACE_FIREFLY;
+          context.fillStyle = VALLEY_INKS.firefly.colour;
           valleyPaths.fireflies.forEach((band) => {
             setAlpha(context, opacity * band.alpha);
             context.fill(band.path);
           });
-          context.strokeStyle = '#10131f';
-          context.lineWidth = 1.4;
+          context.strokeStyle = VALLEY_INKS.bird.colour;
+          context.lineWidth = VALLEY_INKS.bird.width;
           context.lineJoin = 'round';
-          setAlpha(context, opacity * 0.9);
+          setAlpha(context, opacity * VALLEY_INKS.bird.alpha);
           context.stroke(valleyPaths.birds);
         }
         if (terraceJumper) {
@@ -4440,15 +4709,15 @@ const LiveTraceCanvas = ({
         }
         if (invasionPaths) {
           // A hit alien flashes white.
-          context.fillStyle = '#fff';
-          setAlpha(context, opacity * 0.9);
+          context.fillStyle = INVADER_INKS.hit.colour;
+          setAlpha(context, opacity * INVADER_INKS.hit.alpha);
           context.fill(invasionPaths.flash);
           // The points won, over everything: painted with the rest of the
           // scene they came out under the formation and could not be read.
-          context.fillStyle = INVADER_POINTS;
-          setAlpha(context, opacity);
+          context.fillStyle = INVADER_INKS.points.colour;
+          setAlpha(context, opacity * INVADER_INKS.points.alpha);
           context.fill(invasionPaths.popups);
-          setAlpha(context, opacity * 0.5);
+          setAlpha(context, opacity * INVADER_INKS.points.fading);
           context.fill(invasionPaths.popupsFading);
         }
         if (cavePaths) {
@@ -4507,89 +4776,83 @@ const LiveTraceCanvas = ({
           context.stroke(cavePaths.cracks);
         }
         if (trussPaths) {
-          // The asphalt over the deck line, with light edges, then the cars
-          // on it, each its own colour, then the lamps: the lit half flares
-          // on the beat and settles back over 250ms.
-          context.strokeStyle = '#000';
+          context.strokeStyle = TRUSS_INKS.asphalt.colour;
           context.lineWidth = trussPaths.roadHalf * 2;
-          setAlpha(context, opacity * 0.65);
+          setAlpha(context, opacity * TRUSS_INKS.asphalt.alpha);
           context.stroke(figure);
           context.strokeStyle = '#fff';
-          context.lineWidth = 1;
-          setAlpha(context, opacity * 0.2);
+          context.lineWidth = TRUSS_INKS.edge.width;
+          setAlpha(context, opacity * TRUSS_INKS.edge.alpha);
           context.stroke(trussPaths.edges);
-          context.lineWidth = Math.max(1, trussPaths.roadHalf * 0.3);
-          setAlpha(context, opacity * 0.7);
+          context.lineWidth = TRUSS_INKS.dash.width(trussPaths.roadHalf);
+          setAlpha(context, opacity * TRUSS_INKS.dash.alpha);
           context.stroke(trussPaths.dashes);
+          const { car: carInk } = TRUSS_INKS;
           trussPaths.cars.forEach((car) => {
-            // The car's own shape glows: a wide soft stroke of its body in
-            // its colour, then a tighter one, both with the band under it.
             context.strokeStyle = car.colour;
             context.lineJoin = 'round';
-            context.lineWidth = 6 + car.level * 10;
-            setAlpha(context, opacity * car.level * 0.22);
-            context.stroke(car.body);
-            context.lineWidth = 2 + car.level * 4;
-            setAlpha(context, opacity * car.level * 0.4);
-            context.stroke(car.body);
+            carInk.glow.forEach((glow) => {
+              context.lineWidth = glow.width(car.level);
+              setAlpha(context, opacity * car.level * glow.alpha);
+              context.stroke(car.body);
+            });
             if (isFilled) {
               context.fillStyle = car.colour;
               setAlpha(context, opacity);
               context.fill(car.body);
-              context.fillStyle = '#10242c';
+              context.fillStyle = carInk.dark;
               context.fill(car.dark);
             } else {
-              // Stroked, the car is a wireframe like the bridge it drives
-              // on: its outline and its windows in its colour, nothing
-              // solid, so the two variants read as one design.
-              context.lineWidth = 1.2;
+              context.lineWidth = carInk.outline;
               setAlpha(context, opacity);
               context.stroke(car.body);
-              setAlpha(context, opacity * 0.7);
+              setAlpha(context, opacity * carInk.darkOutline);
               context.stroke(car.dark);
             }
-            // The wheels: a light rim round the tyre and a hub in the middle,
-            // so they read as wheels rather than as two dark blobs.
             context.strokeStyle = '#fff';
-            context.lineWidth = 1;
-            setAlpha(context, opacity * 0.4);
+            context.lineWidth = carInk.rim.width;
+            setAlpha(context, opacity * carInk.rim.alpha);
             context.stroke(car.wheels);
             context.fillStyle = car.colour;
-            setAlpha(context, opacity * 0.9);
+            setAlpha(context, opacity * carInk.hub);
             context.fill(car.hubs);
           });
-          // The light the lamps throw onto the road, under the lamps
-          // themselves: a lit bridge, rather than beads on a wire.
           context.fillStyle = '#fff';
-          setAlpha(context, opacity * (0.05 + trussPaths.thump * 0.05));
+          setAlpha(context, opacity * TRUSS_INKS.cone(trussPaths.thump));
           context.fill(trussPaths.lampCones);
           context.fillStyle = canvasPaint;
-          setAlpha(context, opacity * 0.35);
+          setAlpha(context, opacity * TRUSS_INKS.lampOff);
           context.fill(trussPaths.lampsOff);
           context.fillStyle = '#fff';
-          setAlpha(context, opacity * (0.45 + trussPaths.thump * 0.55));
+          setAlpha(context, opacity * TRUSS_INKS.lampOn(trussPaths.thump));
           context.fill(trussPaths.lampsOn);
-          // The lights on the water under the bridge, shimmering.
           context.strokeStyle = '#fff';
-          context.lineWidth = 1;
-          setAlpha(context, opacity * (0.12 + trussPaths.thump * 0.12));
+          context.lineWidth = TRUSS_INKS.reflection.width;
+          setAlpha(
+            context,
+            opacity * TRUSS_INKS.reflection.alpha(trussPaths.thump),
+          );
           context.stroke(trussPaths.reflections);
           // Fireworks. Each burst arrives as bands painted back to front:
           // the coolest, faintest end of the tail first, the white-hot head
           // last, so one shell shows the whole colour ramp at once. See
           // bridgeFireworks for why that is what stops them reading cheap.
+          const { firework: fireworkInk } = TRUSS_INKS;
           context.lineCap = 'butt';
           trussPaths.fireworks.forEach((firework) => {
             const head = firework.bands[firework.bands.length - 1];
             if (firework.reflection) {
-              context.strokeStyle = `hsl(${head.hue.toFixed(0)}, 100%, 66%)`;
-              context.lineWidth = 1.6;
+              context.strokeStyle = fireworkColour(
+                head.hue,
+                fireworkInk.reflectionLightness,
+              );
+              context.lineWidth = fireworkInk.reflectionWidth;
               setAlpha(context, opacity * firework.reflectionAlpha);
               context.stroke(firework.reflection);
             }
             if (firework.flash) {
               context.fillStyle = '#fff';
-              setAlpha(context, opacity * 0.7);
+              setAlpha(context, opacity * fireworkInk.flash);
               context.fill(firework.flash);
             }
             if (firework.ring) {
@@ -4599,7 +4862,7 @@ const LiveTraceCanvas = ({
               context.stroke(firework.ring);
             }
             firework.bands.forEach((band) => {
-              context.strokeStyle = `hsl(${band.hue.toFixed(0)}, 100%, ${band.lightness.toFixed(0)}%)`;
+              context.strokeStyle = fireworkColour(band.hue, band.lightness);
               context.lineWidth = band.width;
               context.lineCap = band.round ? 'round' : 'butt';
               setAlpha(context, opacity * band.alpha);
@@ -4607,8 +4870,8 @@ const LiveTraceCanvas = ({
             });
             if (firework.twinkle) {
               context.strokeStyle = '#fff';
-              context.lineWidth = 2.2;
-              setAlpha(context, opacity * 0.9);
+              context.lineWidth = fireworkInk.twinkle.width;
+              setAlpha(context, opacity * fireworkInk.twinkle.alpha);
               context.stroke(firework.twinkle);
             }
           });
@@ -4748,7 +5011,7 @@ const LiveTraceCanvas = ({
           paintLane(roadPaths.nearLane, 1);
         }
         if (!tuning.accentBehind) {
-          paintPeaks();
+          paintPeaks(canvasPaint, basePaint, paintFor);
         }
         if (isScene) {
           context.restore();
@@ -4778,6 +5041,15 @@ const LiveTraceCanvas = ({
     isEnabled: true,
     target: canvasRef,
   });
+
+  /** The engine's phase with the look, and a frame drawn for the change. */
+  const handleEnginePhase = useCallback(
+    (phase: TEngineLookPhase) => {
+      enginePhaseRef.current = phase;
+      kickFrames();
+    },
+    [kickFrames],
+  );
 
   /**
    * A new size is drawn before it is painted.
@@ -4949,16 +5221,32 @@ const LiveTraceCanvas = ({
   // band on the floor and the form keeps its shape, which is also how the
   // scenery styles have always behaved.
   return (
-    <canvas
-      ref={attachCanvas}
-      className="chart-live-canvas"
-      // The chart's own box, to the pixel. The backing store is sized in the
-      // frame loop; these are CSS pixels and only say where the drawing sits.
-      style={{ left: offsetLeft, top: offsetTop, width, height }}
-      // A drawing of something the legend already names, with nothing in it to
-      // reach with a pointer or a reader.
-      aria-hidden
-    />
+    <>
+      {/* Under the canvas, so the last look's picture fades out over the
+          engine's on a change of look (`graphLookTransition.ts`). */}
+      {isEngineDrawn && enginePack && (
+        <EngineLookLayer
+          style={look.style}
+          pack={enginePack}
+          inputRef={engineInputRef}
+          onPhase={handleEnginePhase}
+          left={offsetLeft}
+          top={offsetTop}
+          width={width}
+          height={height}
+        />
+      )}
+      <canvas
+        ref={attachCanvas}
+        className="chart-live-canvas"
+        // The chart's own box, to the pixel. The backing store is sized in the
+        // frame loop; these are CSS pixels and only say where the drawing sits.
+        style={{ left: offsetLeft, top: offsetTop, width, height }}
+        // A drawing of something the legend already names, with nothing in it
+        // to reach with a pointer or a reader.
+        aria-hidden
+      />
+    </>
   );
 };
 

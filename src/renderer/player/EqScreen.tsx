@@ -12,7 +12,6 @@ import {
   useState,
   type CSSProperties,
 } from 'react';
-import type { TranslationKey } from 'common/i18n';
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
 import { SONG_EQ_MIN_LISTENED_MS } from 'common/songEqRecorder';
 import ActiveLayerChips from '../components/ActiveLayerChips';
@@ -22,19 +21,6 @@ import { useSongEqRecording, useSongEqSaveOn } from '../audio/songEqSession';
 import { formatDuration } from '../library/player/NowPlayingBar';
 import useIsAutoEqRunning from '../utils/autoEqRunning';
 import { useFluidEqContext } from '../utils/FluidEqContext';
-import ScenePreview from '../plus/ScenePreview';
-import {
-  frequencyScale,
-  gainScale,
-  graphFrequencyRange,
-} from '../graph/ChartController';
-import LiveTraceCanvas from '../graph/LiveTraceCanvas';
-import liveTraceCurves from '../graph/liveTraceCurves';
-import {
-  useGraphLook,
-  useWatchedGraphWave,
-  useWaveOrientation,
-} from '../utils/graphStyle';
 import { useCurrentEngine } from '../utils/audioEngineContext';
 import { liveEnginePreamp } from '../utils/enginePreamp';
 import { useTranslation } from '../utils/I18nContext';
@@ -47,12 +33,9 @@ import {
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { sortHelper } from '../utils/utils';
 import AnchoredMenu from '../widgets/AnchoredMenu';
-import SceneKeys from './SceneKeys';
 import paintEqCurves from './eqCurvePaint';
 import PlayerIcon from './PlayerIcon';
 import useMenuDismiss from './useMenuDismiss';
-import { useIsPlayerVisOpen, useIsVisInsideCurve } from './playerLayout';
-import useGraphScenePack from './useGraphScenePack';
 import usePlayerCurves from './usePlayerCurves';
 
 /** The screen draws twelve decibels either way, as a graphic EQ's does. */
@@ -82,43 +65,6 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
   // one — the same question the fader under this screen asks (`MiniBands`).
   const isAutomaticPreAmp = useCurrentEngine() === 'fluid' && isAutoPreAmpOn;
   const curves = usePlayerCurves(isAutomaticPreAmp);
-  // Whether the visualizer is drawn here rather than in a deck of its own.
-  const isVisHere = useIsVisInsideCurve();
-  // The visualizer's switch. With it off there is no visualizer to name, and
-  // the strip below the screen goes with it (Ivan, 2026-09-22).
-  const isVisOn = useIsPlayerVisOpen();
-  const scene = useGraphScenePack();
-  /** A Plus visualizer playing behind this screen, over its whole glass. */
-  const hasSceneBehind = isVisHere && scene.state === 'ready';
-  // The free look's drawing, for whenever the chosen look is not a scene —
-  // the same trace the visualizer deck falls back to, from the same settings.
-  const look = useGraphLook();
-  const orientation = useWaveOrientation();
-  // Full screen's, exactly as the visualizer deck beside it: this window is a
-  // picture to watch, not one of the graph's three view modes.
-  const { height: waveHeight, position: wavePosition } = useWatchedGraphWave();
-  const [sceneBox, setSceneBox] = useState({ width: 0, height: 0 });
-  /** Exactly as the visualizer deck draws it: the graph's own settings. */
-  const traceCurves = useMemo(
-    () =>
-      liveTraceCurves({
-        orientation,
-        height: waveHeight,
-        position: wavePosition,
-        opacity: 1,
-      }),
-    [orientation, waveHeight, wavePosition],
-  );
-  // Gridless, so trimmed to where records have sound, as the main graph is
-  // with its grid off (`graphFrequencyRange`).
-  const traceX = useMemo(
-    () => frequencyScale(sceneBox.width, 0, 0, graphFrequencyRange(true)),
-    [sceneBox.width],
-  );
-  const traceY = useMemo(
-    () => gainScale(sceneBox.height, 0, 0),
-    [sceneBox.height],
-  );
   // The visualizer's colour as the window is wearing it — what the curve's
   // own tint resolves from.
   const sky = useShownSceneSky();
@@ -130,7 +76,6 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const holder = useRef<HTMLSpanElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const plotRef = useRef<HTMLDivElement>(null);
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
   useMenuDismiss(isMenuOpen, holder, closeMenu);
 
@@ -154,14 +99,12 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
         offsetDb: isAutomaticPreAmp ? liveEnginePreamp.read() : 0,
         isEnabled,
         rangeDb: RANGE_DB,
-        // The grid goes with a Plus visualizer: lines ruled across a
-        // photograph are furniture (Ivan, 2026-09-22).
-        hasGrid: !hasSceneBehind,
+        hasGrid: true,
         lineWidth: 2,
         pointRadius: 2.2,
       });
     }
-  }, [bands, curves, hasSceneBehind, isAutomaticPreAmp, isEnabled]);
+  }, [bands, curves, isAutomaticPreAmp, isEnabled]);
 
   useEffect(() => {
     draw();
@@ -235,40 +178,9 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
     return () => observer.disconnect();
   }, []);
 
-  // The picture's box, in CSS pixels: the live trace is handed a size and
-  // sizes its own bitmap from it, the way the visualizer deck does.
-  useEffect(() => {
-    const plot = plotRef.current;
-    if (!plot || !isVisHere || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-    const observer = new ResizeObserver(([entry]) => {
-      const width = Math.round(entry.contentRect.width);
-      const height = Math.round(entry.contentRect.height);
-      setSceneBox((previous) =>
-        previous.width === width && previous.height === height
-          ? previous
-          : { width, height },
-      );
-    });
-    observer.observe(plot);
-    return () => observer.disconnect();
-  }, [isVisHere]);
-
   const smartLine = isMeasuring ? listeningFor : '';
-  /**
-   * What the corner is saying, and therefore what the line beside it names.
-   *
-   * With no fader held and no song being measured, the corner carries the
-   * visualizer's name — so the left of the strip becomes its label, the way
-   * every other pair of name and value in this app is laid out (Ivan,
-   * 2026-09-22). A Plus visualizer says so, in the Plus badge's own colours.
-   */
-  const isLookNamed =
-    isVisOn &&
-    !focus &&
-    !(isMeasuring && isSaveOn && recording.title !== undefined);
-  const isPlusLook = scene.state === 'ready';
+  // What the corner says: the band being held, or how far a song being
+  // measured for its own EQ has got. Empty otherwise, and still there.
   let corner = '';
   if (focus) {
     corner = `${focus.label} ${focus.gain > 0 ? '+' : ''}${focus.gain.toFixed(1)} ${t('player.unit.db')}`;
@@ -280,44 +192,10 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
             Math.max(0, SONG_EQ_MIN_LISTENED_MS - recording.listenedMs),
           ),
         });
-  } else {
-    // NOTHING ELSE TO SAY HERE, so it says what is playing over the screen:
-    // the visualizer's own name — the scene's title, or the name of the free
-    // look the graph is set to. The corner is otherwise empty whenever no
-    // fader is held and Smart EQ is not measuring, which is most of the time,
-    // and an empty line under a picture nobody has been told the name of is a
-    // line doing nothing.
-    const lookName = isPlusLook
-      ? scene.label
-      : t(`graph.styleName.${look.style}` as TranslationKey);
-    corner = isLookNamed ? lookName : '';
   }
 
   return (
     <div className={`player-eq-screen${isEnabled ? '' : ' is-off'}`}>
-      {/* A PLUS VISUALIZER TAKES THE WHOLE GLASS, the two lines of text
-          included — it is a picture somebody chose to watch, not a second
-          reading of the same sound (Ivan, 2026-09-22). A free look's drawing
-          stays inside the plot, beside the grid it is read against. */}
-      {isVisHere && isPlusLook && (
-        <div
-          className="player-eq-screen__scene player-eq-screen__scene--full"
-          aria-hidden="true"
-        >
-          <ScenePreview
-            identity={scene.identity}
-            madeBy={scene.madeBy}
-            pack={scene.pack}
-            label={scene.label}
-            tuning={scene.tuning}
-            wave={scene.wave}
-            // Nothing to report from here: the graph is where a scene that
-            // cannot be run says so, and the free look it falls back to is
-            // what this draws in the meantime.
-            onTrouble={() => undefined}
-          />
-        </div>
-      )}
       <div className="player-eq-screen__applied">
         <span className="player-eq-screen__menu" ref={holder}>
           <button
@@ -383,43 +261,8 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
             );
           })}
         </span>
-        {/* The scene playing behind the curve: its colour on the window, the
-            desk lights, the desktop — in the corner, where the eye is on the
-            picture rather than on a layer. */}
-        {isVisHere && scene.state === 'ready' && (
-          <SceneKeys lookId={scene.lookId} />
-        )}
       </div>
-      <div className="player-eq-screen__plot" ref={plotRef}>
-        {/* THE VISUALIZER, WHEN THE PLAYER IS ONE COLUMN. Stacked, the
-            visualizer has no deck of its own — the player is tall enough
-            without a third block — so it plays here, behind the curve, on the
-            one surface in a narrow player with room for a picture. Widened to
-            two columns it goes back to being its own deck and this is empty
-            glass again (`useIsVisInsideCurve`). Switched off, the screen is
-            what it always was.
-
-            Whatever the graph is set to, the way the deck draws it: a Plus
-            visualizer through its own runner, anything else through the
-            graph's live trace (Ivan, 2026-09-22). Only ever one of them
-            running, because only one of the two places is ever drawing. */}
-        {isVisHere && scene.state !== 'ready' && sceneBox.width > 0 && (
-          <div className="player-eq-screen__scene" aria-hidden="true">
-            <LiveTraceCanvas
-              curves={traceCurves}
-              xScale={traceX}
-              yScale={traceY}
-              width={sceneBox.width}
-              height={sceneBox.height}
-              offsetLeft={0}
-              offsetTop={0}
-              isForeground
-              // Behind the curve this screen is for, a measuring view's key
-              // lands on that curve; the view's name is under the glass.
-              hasKey={false}
-            />
-          </div>
-        )}
+      <div className="player-eq-screen__plot">
         <canvas
           ref={canvasRef}
           className="player-eq-screen__curve"
@@ -449,18 +292,7 @@ const EqScreen = ({ focus }: { focus: IBandFocus | undefined }) => {
               {status.text}
             </span>
           )}
-          {!status &&
-            (smartLine ||
-              (isLookNamed && (
-                <>
-                  {t('sidebar.visualizer')}
-                  {isPlusLook && (
-                    <b className="player-eq-screen__plus">
-                      {t('graph.scene.badge')}
-                    </b>
-                  )}
-                </>
-              )))}
+          {!status && smartLine}
         </span>
         <span className="player-eq-screen__corner">{corner}</span>
       </div>

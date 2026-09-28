@@ -71,21 +71,17 @@ export const getEaseFactor = (deltaMs: number, halfLifeMs: number): number => {
 };
 
 /**
- * The gap between drawn frames, by mode.
+ * Thirty frames a second, as the gap between them: a rate a listener can
+ * choose for a scene (`scenePerformance.ts`), and the one a scene slows to on
+ * a GPU that cannot keep up or after a while of silence (`sceneHealth.ts`,
+ * `sceneRest.ts`). When a frame held to it is due is `framePace.ts`'s.
  *
- * Sixty is not free — every frame is an ease across hundreds of values and a
- * path rebuilt from them — so it is spent where it is the point and not
- * everywhere. Euphoria is a celebration somebody earned and is watching;
- * ordinary use is a meter glanced at beside an equaliser, and thirty is past
- * the rate at which a moving line reads as continuous.
- *
- * Zero means "every frame the display offers", which is sixty on most screens
- * and more on some. The cap is a floor on the interval rather than a target
- * rate, so a 144Hz display is not held to 60 during euphoria. When a frame
- * held to one of these is due is `framePace.ts`'s, on the display's own beat.
+ * Nothing else is held to it. The graph's own looks, the meters, the wave and
+ * the ambient layer were, whenever Rainbow was off, and ran at the display's
+ * rate only in Rainbow; Ivan took that cap out on 2026-09-27 ("when rainbow is
+ * off is cap so no more caps"), so they draw every frame the display offers.
  */
-export const SMOOTH_FRAME_MS = 1000 / 30;
-export const EUPHORIA_FRAME_MS = 0;
+export const THIRTY_A_SECOND_MS = 1000 / 30;
 
 /**
  * Move `current` toward `target` in place, and say whether it is still going.

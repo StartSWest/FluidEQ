@@ -12,14 +12,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * held how long — is one reading of the look, held here.
  */
 
-import {
-  DEFAULT_LEVEL_COLOURS,
-  DEFAULT_SIGNAL_COLOUR,
-  getDefaultTuning,
-  type ILookTuning,
-} from 'common/customLooks';
-import { SCENE_OWN_COLOURS } from 'common/graphSceneViews';
-import { BAND_SPECTRUM_HEX } from '../../../../renderer/utils/bandColors';
+import { getDefaultTuning, type ILookTuning } from 'common/customLooks';
+import { getRainbowStops } from '../../../../renderer/utils/rainbowPalette';
 import {
   sceneColours,
   sceneLook,
@@ -45,35 +39,36 @@ const tuned = (changes: Partial<ILookTuning>): ILookTuning => ({
 });
 
 describe("a scene's colours", () => {
+  const root = document.documentElement;
+  afterEach(() => {
+    root.classList.remove('is-euphoric');
+    root.style.removeProperty('--accent');
+    root.style.removeProperty('--active');
+  });
+
   it("are the look's own whenever it has any, on every palette", () => {
     const mine = ['#123456', '#abcdef'];
-    expect(sceneColours('ledbars', 'auto', 'level', mine)).toBe(mine);
-    expect(sceneColours('tide', 'rainbow', 'rainbow', mine)).toBe(mine);
+    expect(sceneColours('level', mine)).toBe(mine);
+    expect(sceneColours('rainbow', mine)).toBe(mine);
+    root.classList.add('is-euphoric');
+    expect(sceneColours('heat', mine)).toBe(mine);
   });
 
-  it("are the scene's own on Auto, as the real thing is coloured", () => {
-    expect(sceneColours('ledwall', 'auto', 'level', [])).toBe(
-      SCENE_OWN_COLOURS.ledwall,
-    );
-    expect(sceneColours('silkwaves', 'auto', 'level', [])).toBe(
-      SCENE_OWN_COLOURS.silkwaves,
-    );
+  it("are the window's primary and secondary in Normal mode", () => {
+    root.style.setProperty('--accent', '#112233');
+    root.style.setProperty('--active', '#445566');
+    expect(sceneColours('level', [])).toEqual(['#112233', '#445566']);
+    expect(sceneColours('rainbow', [])).toEqual(['#112233', '#445566']);
+    // One flat colour is the primary alone.
+    expect(sceneColours('signal', [])).toEqual(['#112233']);
   });
 
-  it("are the palette's own when a palette is chosen by name", () => {
-    // The positive control for the Auto case above: the same scene, asked
-    // for a palette by name, stops painting itself in its own colours.
-    expect(sceneColours('ledwall', 'rainbow', 'rainbow', [])).toBe(
-      BAND_SPECTRUM_HEX,
-    );
-    expect(sceneColours('ledwall', 'signal', 'signal', [])).toEqual([
-      DEFAULT_SIGNAL_COLOUR,
-    ]);
-    expect(sceneColours('ledwall', 'heat', 'heat', [])).toBe(
-      DEFAULT_LEVEL_COLOURS,
-    );
-    // The halo has no colours of its own: on Auto it is its palette's.
-    expect(sceneColours('halo', 'auto', 'rainbow', [])).toBe(BAND_SPECTRUM_HEX);
+  it("are Rainbow mode's palette while the mode is on", () => {
+    root.style.setProperty('--accent', '#112233');
+    root.style.setProperty('--active', '#445566');
+    root.classList.add('is-euphoric');
+    expect(sceneColours('level', [])).toBe(getRainbowStops());
+    expect(sceneColours('signal', [])).toEqual([getRainbowStops()[0]]);
   });
 });
 

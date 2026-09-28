@@ -34,6 +34,9 @@ const eq: Partial<Dictionary> = {
   'eq.layouts.update': 'Обновить сохранённую',
   'eq.layouts.saveNew': 'Сохранить схему…',
   'eq.layouts.error': 'Не удалось обновить схемы. Попробуйте ещё раз.',
+  'eq.sliders': 'Ползунки эквалайзера',
+  'eq.sliders.round': 'Круглые',
+  'eq.sliders.rect': 'Прямоугольные',
   'eq.layouts.clearTitle': 'Очистить EQ?',
   'eq.layouts.clearWarning':
     'Установить усиление каждой полосы и регуляторы «Низкие», «Средние» и «Высокие» на 0 дБ. Текущие число полос, частоты, Q, срезы, режим EQ и предусиление сохранятся.',
@@ -128,7 +131,10 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.mode.cover': 'визуализатор за всем окном и его свет вокруг',
   'graph.sceneTint.short.off': 'Оригинал',
   'graph.sceneTint.short.tint': 'Цвета',
-  'graph.sceneTint.short.pulse': 'Атмосфера',
+  // A soft hyphen: the Studio's tiles, four to a 248px card, leave the name
+  // 49px, and the whole word measured 55. It breaks there as Атмо-/сфера and
+  // stays whole wherever it fits, as in the graph's menu.
+  'graph.sceneTint.short.pulse': 'Атмо­сфера',
   'graph.sceneTint.short.cover': 'Фон',
   'graph.sceneTint.label': 'Цвета окна',
   'graph.sceneTint.about.off': 'Окно в вашей теме.',
@@ -309,6 +315,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.fallblocks': 'Падающие блоки',
   'graph.styleName.fibers': 'Оптоволокно',
   'graph.styleName.afterglow': 'Послесвечение',
+  'graph.styleName.horizon': 'Горизонт',
   'graph.styleName.line': 'Линия',
   'graph.styleName.area': 'Область',
   'graph.styleName.bars': 'Столбцы',

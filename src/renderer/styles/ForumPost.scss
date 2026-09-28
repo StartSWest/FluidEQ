@@ -22,7 +22,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   gap: 8px;
   padding: 12px 14px 8px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-l;
   background: color-mix(in srgb, $white 2.5%, transparent);
 
@@ -105,7 +105,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .forum-post__mark {
   padding: 0 6px;
   color: $text-faint;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-2xs;
   font-size: $text-eyebrow;
   font-weight: $weight-semibold;
@@ -179,9 +179,9 @@ it under the terms of the GNU General Public License version 3 or later.
   height: 24px;
   padding: 0 9px 0 6px;
   color: $text-faint;
-  border: 1px solid $border-subtle;
+  border: 1px solid $border-control;
   border-radius: $radius-xs;
-  background: transparent;
+  background: $surface-control;
   font: inherit;
   font-size: $text-small;
   font-weight: $weight-semibold;
@@ -201,7 +201,8 @@ it under the terms of the GNU General Public License version 3 or later.
   &:hover:not(.is-static),
   &:focus-visible {
     color: $text-primary;
-    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
     outline: none;
 
     svg {

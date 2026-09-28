@@ -22,7 +22,8 @@ import { KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED } from './makerAi';
 import { karaokeMakerLyricFocus } from './makerCanvasLayout';
 import { TSelection } from './useKaraokeMakerSelection';
 import { useTranslation } from '../utils/I18nContext';
-import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from '../components/DialogFrame';
 import KaraokeMakerLyricsPasteView from './KaraokeMakerLyricsPasteView';
 import KaraokeMakerLyricsWordList from './KaraokeMakerLyricsWordList';
 import KaraokeMakerLyricsReferenceView from './KaraokeMakerLyricsReferenceView';
@@ -186,17 +187,21 @@ const KaraokeMakerLyricsDialog = ({
   // Built ahead of the return rather than as an inline ternary chain: a third
   // branch (processing / translation / replace-or-detect) made the JSX read
   // as a nested ternary, and the three are mutually exclusive states, not a
-  // cascade of fallbacks.
+  // cascade of fallbacks. Each ends on its one loud answer.
   let actionBarContent: ReactNode;
   if (lyricsProcessing) {
     actionBarContent = (
       <>
-        <button type="button" onClick={cancelAnalysis}>
+        <button
+          type="button"
+          className="button small subtle"
+          onClick={cancelAnalysis}
+        >
           {t('karaoke.maker.cancel')}
         </button>
         <button
-          className="is-primary"
           type="button"
+          className="button small"
           onClick={() => setLyricsOpen(false)}
         >
           {t('karaoke.maker.continueInBackground')}
@@ -216,7 +221,6 @@ const KaraokeMakerLyricsDialog = ({
         disabled={!lyricsDraft.trim()}
         onClick={confirmTranslation}
       >
-        <KaraokeMakerToolIcon name="apply" />
         {t('karaoke.translation.add')}
       </button>
     );
@@ -225,32 +229,37 @@ const KaraokeMakerLyricsDialog = ({
       <>
         <button
           type="button"
+          className="button small subtle"
           disabled={!lyricsDraft.trim()}
           onClick={() => replaceLyrics(false)}
         >
-          <KaraokeMakerToolIcon name="apply" />
           {t(
             destructiveAction === 'replace-lyrics'
               ? 'karaoke.maker.replaceLyrics'
               : 'karaoke.maker.acceptLyrics',
           )}
         </button>
+        {/* The loud one when there is no detector to offer: timing then
+            has to be recorded by hand, and this goes straight there. */}
         <button
           type="button"
+          className={
+            KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED
+              ? 'button small subtle'
+              : 'button small'
+          }
           disabled={!lyricsDraft.trim()}
           onClick={() => replaceLyrics(false, true)}
         >
-          <KaraokeMakerToolIcon name="timing" />
           {t('karaoke.maker.acceptAndRecordLines')}
         </button>
         {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && (
           <button
-            className="is-primary"
             type="button"
+            className="button small"
             disabled={!lyricsDraft.trim()}
             onClick={() => replaceLyrics(true)}
           >
-            <KaraokeMakerToolIcon name="analyze" />
             {t(
               destructiveAction === 'replace-lyrics'
                 ? 'karaoke.maker.replaceAndDetect'
@@ -286,31 +295,35 @@ const KaraokeMakerLyricsDialog = ({
       }`}
       role="presentation"
     >
-      <div
-        className={`karaoke-maker__lyrics-modal${
-          lyricsProcessing ? ' is-processing' : ''
-        }`}
-        role="dialog"
-        aria-label={t('karaoke.maker.lyricsTitle')}
+      <DialogFrame
+        className="karaoke-maker__lyrics-modal"
+        icon={<MenuIcon name="song" />}
+        eyebrow={t('karaoke.maker.lyricsEyebrow')}
+        title={t('karaoke.maker.lyricsTitle')}
+        titleId="karaoke-maker-lyrics-title"
+        description={t('karaoke.maker.lyricsReferenceHint')}
+        closeLabel={t('support.close')}
+        // Closing never stops a run: like "Continue in background", the
+        // dialog goes and the work carries on under the progress card.
+        onClose={() => setLyricsOpen(false)}
+        footer={
+          <>
+            {destructiveAction === 'replace-lyrics' && (
+              <p
+                className="dialog-frame__note karaoke-maker__replace-warning"
+                role="alert"
+              >
+                <MenuIcon
+                  name="alert"
+                  className="karaoke-maker__replace-warning-icon"
+                />
+                <span>{t('karaoke.maker.replaceLyricsWarning')}</span>
+              </p>
+            )}
+            <div className="dialog-frame__actions">{actionBarContent}</div>
+          </>
+        }
       >
-        <header className="karaoke-maker__lyrics-modal-head">
-          <div>
-            <span className="karaoke-maker__eyebrow">
-              {t('karaoke.maker.lyricsEyebrow')}
-            </span>
-            <h2>{t('karaoke.maker.lyricsTitle')}</h2>
-            <p>{t('karaoke.maker.lyricsReferenceHint')}</p>
-          </div>
-        </header>
-        <button
-          className="karaoke-maker__lyrics-modal-close"
-          type="button"
-          aria-label={t('karaoke.maker.cancel')}
-          data-tooltip={t('karaoke.maker.cancel')}
-          onClick={() => setLyricsOpen(false)}
-        >
-          <KaraokeMakerToolIcon name="close" />
-        </button>
         <div className="karaoke-maker__lyrics-editor-body">
           <KaraokeMakerLyricsPasteView
             draftLyricsWordCount={draftLyricsWordCount}
@@ -397,15 +410,7 @@ const KaraokeMakerLyricsDialog = ({
             inline
           />
         )}
-        <div className="karaoke-maker__modal-actions karaoke-maker__lyrics-actions">
-          {destructiveAction === 'replace-lyrics' && (
-            <p className="karaoke-maker__replace-warning" role="alert">
-              {t('karaoke.maker.replaceLyricsWarning')}
-            </p>
-          )}
-          {actionBarContent}
-        </div>
-      </div>
+      </DialogFrame>
     </div>
   );
 };

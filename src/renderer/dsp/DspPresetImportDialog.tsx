@@ -8,6 +8,8 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
+import MenuIcon from '../icons/MenuIcon';
+import DialogFrame from '../components/DialogFrame';
 
 interface IDspPresetImportDialogProps {
   titleKey: TranslationKey;
@@ -75,15 +77,46 @@ const DspPresetImportDialog = ({
         }
       }}
     >
-      <div
-        className="dsp-import"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t(titleKey)}
+      <DialogFrame
+        className="dsp-import-dialog"
+        icon={<MenuIcon name="import" />}
+        title={t(titleKey)}
+        titleId="dsp-import-title"
+        description={t(hintKey)}
+        onClose={onClose}
+        closeLabel={t('support.close')}
+        footer={
+          <>
+            {/* Where the text comes from, at the left, away from the two
+                answers: a file fills the box, and nothing is imported until
+                Import is pressed. */}
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={() => fileRef.current?.click()}
+            >
+              {t('dsp.eqImport.chooseFile')}
+            </button>
+            <div className="dialog-frame__actions">
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={onClose}
+              >
+                {t('dsp.eqImport.cancel')}
+              </button>
+              <button
+                type="button"
+                className="button small"
+                disabled={text.trim() === ''}
+                onClick={() => onImport(text)}
+              >
+                {t('dsp.eqImport.apply')}
+              </button>
+            </div>
+          </>
+        }
       >
-        <h2 className="dsp-import__title">{t(titleKey)}</h2>
-        <p className="dsp-import__hint">{t(hintKey)}</p>
-
         <textarea
           ref={textRef}
           className="dsp-import__body"
@@ -100,32 +133,6 @@ const DspPresetImportDialog = ({
           </p>
         )}
 
-        <div className="dsp-import__actions">
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={() => fileRef.current?.click()}
-          >
-            {t('dsp.eqImport.chooseFile')}
-          </button>
-          <span className="dsp-import__spacer" />
-          <button
-            type="button"
-            className="button small subtle"
-            onClick={onClose}
-          >
-            {t('dsp.eqImport.cancel')}
-          </button>
-          <button
-            type="button"
-            className="button small"
-            disabled={text.trim() === ''}
-            onClick={() => onImport(text)}
-          >
-            {t('dsp.eqImport.apply')}
-          </button>
-        </div>
-
         <input
           ref={fileRef}
           type="file"
@@ -136,7 +143,7 @@ const DspPresetImportDialog = ({
             event.target.value = '';
           }}
         />
-      </div>
+      </DialogFrame>
     </div>,
     document.body,
   );

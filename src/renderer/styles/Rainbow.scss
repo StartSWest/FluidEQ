@@ -65,11 +65,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 html.is-euphoric {
   --rainbow-sweep: linear-gradient(90deg, var(--rainbow-stops));
-  // The filled controls' two ends (`App.scss`'s `--accent-fill`) from the
-  // palette in use, the accent between them: Lagoon's aqua to its azure, and
-  // a Plus visualizer's own first and fifth colours while one is chosen.
-  --accent-start: var(--rainbow-1);
-  --accent-end: var(--rainbow-5);
+  // The filled controls' two ends (`App.scss`'s `--accent-fill`) leaning
+  // towards the palette in use, the accent between them: a fifth of the way,
+  // in a straight line rather than round the hue wheel, and no further.
+  // Taken whole, a Plus visualizer's first and fifth colours ran a button
+  // from lilac to coral (Ivan, 2026-09-26: "ez the rainbow on the bottoms I
+  // dont want to much raibow on thise"); a third of the way round the wheel
+  // still swung the end through violet.
+  --accent-start: color-mix(
+    in oklab,
+    var(--rainbow-1) 18%,
+    oklch(from var(--accent) calc(l + 0.04) c calc(h - 20))
+  );
+  --accent-end: color-mix(
+    in oklab,
+    var(--rainbow-5) 18%,
+    oklch(from var(--accent) calc(l - 0.05) c calc(h + 35))
+  );
 }
 
 // Doubled width and swept, so the gradient reads as moving light rather than as
@@ -119,8 +131,12 @@ html.is-euphoric {
 // include the older custom dialogs and portalled context menus too. Dropdown
 // uses role=menu on its trigger, so that control is explicitly excluded.
 //
-// The floating surfaces' own hairline (`floating-surface`), so a menu built on
-// the mixin and one that is only a `role` look the same. It was 9% white.
+// The floating surfaces' own edge, so a menu built on the mixin and one that
+// is only a `role` look the same: the cards' edge (`$card-edge`), a hair off
+// the card's own colour, the same all round every dialog and notice (Ivan,
+// 2026-09-27: "make borders uniform and almost not visible like our
+// cards"). It was the edge tint at 14%, a light outline round every dialog;
+// 9% white before that.
 //
 // Not the Karaoke Maker, a dialog by role and on screen the pane a song is
 // edited in, which is a card with the cards' own edge (`Karaoke.scss`).
@@ -134,18 +150,27 @@ html
     [role='menu']:not(.dropdown > [role='menu']),
     .graph-legend-menu__list
   ):not(.karaoke-maker) {
-  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
+  border: 1px solid $card-edge;
 }
 
-// The menus' corner, weighted as the hairline is.
+// The menus: the cards' corner and the menus' own clearer edge (`menu-face`,
+// `$menu-edge`), whatever builds them (Ivan, 2026-09-27: "the dropdown menu
+// that has same card color have also same border color as card and same
+// radius", then "more defined border less dropshadow"). Weighted as the
+// hairline above is, and after it, so a menu that is a dialog by role takes
+// this too.
+// Under the Backdrop the edge goes and the blur comes, as on every menu
+// (`--menu-edge`, `--menu-glass` in `App.scss`).
 html
   body
   :is(
     [data-anchored-menu],
     [role='menu']:not(.dropdown > [role='menu']),
     .graph-legend-menu__list
-  ) {
-  border-radius: $radius-2xs;
+  ):not(.karaoke-maker) {
+  border: 1px solid var(--menu-edge, #{$menu-edge});
+  border-radius: $card-radius;
+  backdrop-filter: var(--menu-glass, none);
 }
 
 // A dialog's own corner (`dialog.$corner`): one rule gave the menus and the

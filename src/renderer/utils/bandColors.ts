@@ -18,63 +18,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { rainbowRgbAt } from './rainbowPalette';
 
-type Rgb = readonly [number, number, number];
-
 export interface IBandColor {
   color: string;
   muted: string;
   track: string;
 }
 
-// The graph's Rainbow palette, the waveform-inspired spectrum: sampled in
-// frequency order, so every layout draws the same colours whatever its band
-// count.
-const BAND_COLOR_STOPS: ReadonlyArray<{ position: number; color: Rgb }> = [
-  { position: 0, color: [0, 229, 255] },
-  { position: 0.28, color: [84, 255, 138] },
-  { position: 0.52, color: [255, 230, 109] },
-  { position: 0.76, color: [255, 60, 172] },
-  { position: 1, color: [139, 92, 255] },
-];
-
-/**
- * The palette as gradient stops, for anything painted across the whole axis.
- *
- * Exported from here rather than written out again beside the `<defs>` that
- * needs it: two copies of five colours is two copies that will disagree the
- * first time one of them is adjusted.
- */
-export const BAND_SPECTRUM_STOPS: ReadonlyArray<{
-  offset: number;
-  color: string;
-}> = BAND_COLOR_STOPS.map((stop) => ({
-  offset: stop.position,
-  color: `rgb(${stop.color.join(', ')})`,
-}));
-
-/**
- * The same palette as hex, for the colour pickers in the look designer.
- *
- * A native colour input speaks `#rrggbb` and nothing else — hand it
- * `rgb(0, 229, 207)` and it silently shows black — so somebody starting from
- * the spectrum needs it in that form. Derived from the same stops rather than
- * written out again, for the reason the comment above already gives.
- */
-export const BAND_SPECTRUM_HEX: readonly string[] = BAND_COLOR_STOPS.map(
-  (stop) =>
-    `#${stop.color
-      .map((channel) => channel.toString(16).padStart(2, '0'))
-      .join('')}`,
-);
-
 /**
  * A band's colour where Rainbow mode draws the bands in colour, `progress` its
  * place low to high. Rainbow mode's palette (`rainbowPalette.ts`): Lagoon, or
  * the Plus visualizer's own colours while one is chosen. Outside the mode
  * every one of these places draws the accent instead, so this is the mode's
- * alone; the graph's Rainbow palette and the look designer keep the spectrum
- * above. A component hands the palette it read with `useRainbowStops`, so it
- * draws again when the visualizer changes it.
+ * alone; the graph's looks take the window's colours (`windowInk.ts`). A
+ * component hands the palette it read with `useRainbowStops`, so it draws
+ * again when the visualizer changes it.
  */
 export const getBandColor = (
   progress: number,

@@ -1,0 +1,149 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// The notice for a release that must be taken (`MandatoryUpdateModal`):
+// insistent, not a gate. It closes, and comes back while the update is
+// still pending.
+//
+// It arrives on its own, so it goes above everything that was opened on
+// purpose — the audio troubleshooter is at 4000 and the bug report at 1600.
+// A notice that mounts by itself while the troubleshooter is open used to
+// take the keyboard behind an opaque backdrop: focus in a dialog nobody
+// could see, and Escape dismissing a warning that was never read. Under the
+// first-run gate (5100), which cannot be dismissed and so has to be in front.
+.mandatory-update-backdrop {
+  @include dialog.backdrop(5000);
+}
+
+.dialog-frame.mandatory-update {
+  @include dialog.size(760px, 640px);
+
+  // Focused so the notice announces itself on arrival; not in the tab order,
+  // so there is no ring to draw.
+  &:focus {
+    outline: none;
+  }
+}
+
+.mandatory-update__body {
+  display: grid;
+  gap: 16px;
+
+  a {
+    color: $secondary-light;
+    text-decoration: none;
+  }
+}
+
+// The sentence that says closing this is a postponement rather than a
+// decision. Set apart because it is the one line whose absence would make the
+// whole dialog read as an ordinary update notice: the title's white, on the
+// accent's rule.
+.mandatory-update__insist {
+  padding-left: 12px;
+  border-left: 2px solid $secondary-default;
+  color: $text-primary;
+}
+
+.mandatory-update__progress {
+  display: grid;
+  gap: 8px;
+}
+
+// The download bar. A width, and nothing that moves on its own: a progress
+// indicator that animates while a stalled download reports nothing is a lie
+// told slowly.
+.mandatory-update__bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  // The empty-track colour, like every other groove in the app.
+  background: $track-well;
+}
+
+.mandatory-update__fill {
+  height: 100%;
+  border-radius: $radius-pill;
+  background: $secondary-default;
+  transition: width $motion-base linear;
+}
+
+// What went wrong, under the frame's hairline, its first line marked in
+// amber: the failure is the new part, and the rest of it is the way round.
+.mandatory-update__failure {
+  padding-bottom: 0;
+  border-top: dialog.$seam;
+}
+
+.mandatory-update__failed {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  color: $text-primary;
+}
+
+.mandatory-update__alert {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: $amber;
+}
+
+// The release page as a row the width of the text, the arrow saying it
+// leaves the app.
+.mandatory-update__link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-radius: $radius-s;
+  background: $lift-rest;
+  font-size: $text-body;
+  transition: $transition-control;
+
+  &:hover {
+    color: $white;
+    background: $hover-accent;
+  }
+
+  &:focus-visible {
+    color: $white;
+    @include focus-ring;
+  }
+}
+
+.mandatory-update__out {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  opacity: 0.75;
+}
+
+.mandatory-update__address {
+  color: $text-faint;
+  font-family: $font-mono;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}

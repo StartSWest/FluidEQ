@@ -229,6 +229,7 @@ const draw = (request: Extract<TLightingWorkerRequest, { kind: 'frame' }>) => {
     pack,
     params,
     undefined,
+    request.daylight,
   );
   const [width, height] = pacing.size();
   if (canvas.width !== width || canvas.height !== height) {

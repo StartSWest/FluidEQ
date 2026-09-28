@@ -1,0 +1,74 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use '../color' as *;
+@use '../theme' as *;
+@use 'miniPlayerParts' as *;
+@use '../ampFaders' as faders;
+
+// The equalizer's two faces: the preamp and the bands, or the tone knobs.
+
+// ============================================================ the faders ===
+//
+// THE STAGE'S FADERS, in the 2.0 amp too (Ivan, 2026-09-28: "also the
+// sliders"): both amps' (`../_ampFaders.scss`), the handle in the app's own
+// round or rectangular shape, the EQ page's arrows and the figure under each
+// band. The groove is sunk into the deck on the display's colour, with the
+// band's colour faint down it — `.range__groove` in `RangeInput.scss`.
+@include faders.faders(
+  var(--player-well),
+  (inset 0 1px 3px rgba($black, 0.7), 0 1px 0 rgba($edge-tint, 0.05))
+);
+
+// ============================================================ the tone =====
+//
+// The other face: the EQ page's three dials, in the space the faders take
+// and with the faders' share of any extra height.
+.player-tone {
+  // As big as the deck's width allows, and never so big that three of them
+  // stop fitting on one line.
+  --tone-knob-size: clamp(52px, 15cqi, 78px);
+
+  display: flex;
+  flex: 2 0 0;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: center;
+  justify-content: space-evenly;
+  gap: 10px 8px;
+  min-height: calc(var(--player-band-min) + 30px);
+}
+
+// Bands or Tone: two of the app's buttons, joined — the face on screen wears
+// the filled style.
+// The two views of the equaliser — the faders, or the tone dials. Neither is
+// a recommendation, so neither wears the app's loud accent button: the chosen
+// one is a key that is on, like everything else switched on in the amp (Ivan,
+// 2026-09-22). It was the filled accent, the one slab of full-strength colour
+// in a deck of keys.
+.player-eq__faces {
+  display: inline-flex;
+  flex: none;
+
+  .button.small {
+    border-radius: 0;
+  }
+
+  .button.small[aria-pressed='true']:not(:disabled) {
+    @include player-key-on;
+  }
+
+  // The row key's own radius (`_miniPlayerEqKeys.scss`) on the two outer
+  // corners, so the pair reads as one key of the same make as its neighbours.
+  .button.small:first-child {
+    border-radius: 7px 0 0 7px;
+  }
+
+  .button.small:last-child {
+    margin-left: -1px;
+    border-radius: 0 7px 7px 0;
+  }
+}

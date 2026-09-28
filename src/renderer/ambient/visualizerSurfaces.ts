@@ -48,6 +48,9 @@ export const VISUALIZER_SURFACE_CLASSES = [
   'gallery-preview__frame',
   // A scene's picture, wherever the library shows one.
   'gallery-picture',
+  // The amp's open space, where its picture is seen with nothing in front
+  // of it, or its free look is drawn (`PlayerGap`).
+  'player-gap',
 ] as const;
 
 /**

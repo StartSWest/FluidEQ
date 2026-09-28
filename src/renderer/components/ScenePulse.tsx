@@ -24,8 +24,7 @@ import {
 } from '../utils/scenePulse';
 import {
   isAmbientMode,
-  useSceneTintMode,
-  useStudioTintMode,
+  useWindowTintMode,
   useStudioTintSource,
 } from '../utils/sceneTintStore';
 import '../styles/ScenePulse.scss';
@@ -211,12 +210,13 @@ const shareOf = (transform: string, scaleX: number) => {
  * new swell in another colour crossfades with the last as it settles. While
  * the mode is anything else it is not in the page at all.
  *
- * The Studio's mode governs while a project owns the window's colour, the
- * graph's otherwise — the same precedence as the colour itself (`SceneTint`).
+ * One mode for the whole app decides whether it glows; whose scene it glows
+ * with is the Studio's project while that owns the window's colour, the
+ * graph's look otherwise — the same precedence as the colour itself
+ * (`SceneTint`).
  */
 export default function ScenePulse() {
-  const graphMode = useSceneTintMode();
-  const studioMode = useStudioTintMode();
+  const mode = useWindowTintMode();
   const studio = useStudioTintSource();
   const lookId = useSelectedLookId();
   const layerRef = useRef<HTMLDivElement>(null);
@@ -224,9 +224,9 @@ export default function ScenePulse() {
 
   const isSceneLook = isPremiumLookId(lookId) || isMemberLookId(lookId);
   let source: TScenePulseSource | undefined;
-  if (studio) {
-    source = studioMode === 'pulse' ? 'studio' : undefined;
-  } else if (isAmbientMode(graphMode) && isSceneLook) {
+  if (isAmbientMode(mode) && studio) {
+    source = 'studio';
+  } else if (isAmbientMode(mode) && isSceneLook) {
     source = 'graph';
   }
 

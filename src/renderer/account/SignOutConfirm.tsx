@@ -1,26 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
-import Glyph from '../community/Glyph';
+import MenuIcon from '../icons/MenuIcon';
+import CompactFrame from '../components/CompactFrame';
 import { useTranslation } from '../utils/I18nContext';
 import { signOutAccount } from './accountStore';
 import '../styles/SignOutConfirm.scss';
 
 interface ISignOutConfirmProps {
-  /** A membership is what signing out locks, so the card says so. */
+  /** A membership is what signing out locks, so the question says so. */
   member: boolean;
   onCancel: () => void;
 }
 
 /**
- * Signing out, asked first — in place of the links under the name, so the
- * answer is where the question was asked rather than in a dialog over the
- * panel.
+ * Signing out, asked first — inside the Account panel, at the top of the
+ * profile, so the answer is given where the account is rather than in a
+ * dialog over the panel.
  *
  * It was one line: the question and two underlined words after it, which
  * read as a sentence rather than as a question waiting for an answer (Ivan,
- * 2026-09-19). Now the question, what it costs, and the two answers as the
- * app's own buttons. The red one is the answer being given — whoever pressed
- * "Sign out" chose it — and the caret starts on the other, so an Enter
- * pressed out of habit keeps the account.
+ * 2026-09-19). Now it is every confirmation's small frame, in the red that
+ * says something ends: the question, what it costs, and the two answers. The
+ * red one is the answer being given — whoever pressed "Sign out" chose it —
+ * and the caret starts on the other, so an Enter pressed out of habit keeps
+ * the account.
  */
 export default function SignOutConfirm({
   member,
@@ -56,59 +58,54 @@ export default function SignOutConfirm({
       return;
     }
     setLeaving(true);
-    // Signed out, the panel becomes the sign-in page and this card is gone
-    // with the profile; only a request that failed leaves it here, to be
+    // Signed out, the panel becomes the sign-in page and this question is
+    // gone with the profile; only a request that failed leaves it here, to be
     // answered again.
     signOutAccount().catch(() => setLeaving(false));
   };
 
   return (
-    <div
+    // In the panel, not over it: the rest of the profile stays usable, so
+    // it is not modal.
+    <CompactFrame
       className="sign-out-confirm"
-      role="alertdialog"
-      aria-labelledby="sign-out-confirm-title"
+      icon={<MenuIcon name="logout" />}
+      tone="danger"
+      title={t('account.signOut.confirm')}
+      titleId="sign-out-confirm-title"
+      aria-modal={false}
       aria-describedby="sign-out-confirm-detail"
+      actions={
+        <>
+          <button
+            ref={cancelRef}
+            type="button"
+            className="button small subtle"
+            disabled={leaving}
+            onClick={onCancel}
+          >
+            {t('account.name.cancel')}
+          </button>
+          <button
+            type="button"
+            className={`button small danger${leaving ? ' is-running' : ''}`}
+            aria-busy={leaving}
+            onClick={signOut}
+          >
+            {t('account.signOut')}
+          </button>
+        </>
+      }
     >
-      <div className="sign-out-confirm__main">
-        <span className="sign-out-confirm__mark" aria-hidden="true">
-          <Glyph name="sign-out" />
+      {/* What it costs, then what it keeps: two lines rather than one
+          sentence joined by "and", which each language then broke wherever
+          its width ran out — English between "sign back" and "in". */}
+      <p id="sign-out-confirm-detail" className="sign-out-confirm__detail">
+        <span>
+          {t(member ? 'account.signOut.detailPlus' : 'account.signOut.detail')}
         </span>
-        <span id="sign-out-confirm-title" className="sign-out-confirm__title">
-          {t('account.signOut.confirm')}
-        </span>
-        {/* What it costs, then what it keeps: two lines rather than one
-            sentence joined by "and", which each language then broke
-            wherever its width ran out — English between "sign back" and
-            "in". */}
-        <span id="sign-out-confirm-detail" className="sign-out-confirm__detail">
-          <span>
-            {t(
-              member ? 'account.signOut.detailPlus' : 'account.signOut.detail',
-            )}
-          </span>
-          <span>{t('account.signOut.kept')}</span>
-        </span>
-      </div>
-      <div className="sign-out-confirm__answers">
-        <button
-          ref={cancelRef}
-          type="button"
-          className="button small subtle"
-          disabled={leaving}
-          onClick={onCancel}
-        >
-          {t('account.name.cancel')}
-        </button>
-        <button
-          type="button"
-          className={`button small danger${leaving ? ' is-running' : ''}`}
-          aria-busy={leaving}
-          onClick={signOut}
-        >
-          <Glyph name="sign-out" />
-          {t('account.signOut')}
-        </button>
-      </div>
-    </div>
+        <span>{t('account.signOut.kept')}</span>
+      </p>
+    </CompactFrame>
   );
 }

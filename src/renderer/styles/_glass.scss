@@ -1,0 +1,38 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The amp's glass (`player-glass-pane`, `_miniPlayerParts.scss`) for the
+// window's own panes over the Backdrop (Ivan, 2026-09-27: "I love the blur in
+// the pane that the amp player have can we have same blur in our?"). Its fill
+// is the amp's own token on the root (`_miniPlayerShell.scss`), the floor at
+// the strength Transparency leaves it and deeper for a pane that carries
+// controls, read from there rather than copied so the two glasses cannot
+// drift apart.
+//
+// The frosted fill with no line round it (Ivan: "I dont want borders", "less
+// visible even"), and depth only as a bevel: a breath of light along its top
+// and of shade along its foot, each a pixel ("make 3d fx but very subtle").
+// The amp's lip at 12% and its hairline read as an outline. Its corner is the
+// app's, a card's everywhere else (`$card-radius`), where the amp's 26px did
+// not match the cards beside it ("same as app native border radius so it
+// matches"). The menus opened over the Backdrop wear the same three
+// (`App.scss`, "all dropdown menu during that backdrop mode need to be blur
+// too same treatment").
+$glass-fill: var(--player-glass-deep);
+$glass-bevel:
+  inset 0 1px 0 rgba($white, 0.05),
+  inset 0 -1px 0 rgba($black, 0.16);
+$glass-blur: blur(26px) saturate(150%);
+
+@mixin window-glass {
+  border-radius: $card-radius;
+  background: $glass-fill;
+  box-shadow: $glass-bevel;
+  backdrop-filter: $glass-blur;
+}

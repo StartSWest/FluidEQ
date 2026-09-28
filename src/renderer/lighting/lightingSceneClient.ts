@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { IScenePack } from 'common/scenePacks';
+import { createDaylightFollower } from '../graph/sceneDaylight';
 import { afterLinkTurns, sceneProgramKey } from '../graph/sceneLinkTurns';
 import type {
   ILightingSceneFrame,
@@ -65,6 +66,8 @@ export const createLightingScene = (
   );
   let drawing = false;
   let closed = false;
+  /** The lamps' scene keeps the window's time of day, as the graph's does. */
+  const daylight = createDaylightFollower();
   /** The newest load posted, which is the scene the worker is to draw. */
   let sent: ILoadSent | undefined;
   /** The load the worker is drawing: frames go only while there is one. */
@@ -175,7 +178,7 @@ export const createLightingScene = (
         return;
       }
       drawing = true;
-      post({ kind: 'frame', frame });
+      post({ kind: 'frame', frame, daylight: daylight.next(frame.deltaMs) });
     },
     close: () => {
       closed = true;

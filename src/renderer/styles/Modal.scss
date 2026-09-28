@@ -37,16 +37,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // and on screen the whole pane a song is edited in; and not the three
 // confirmations that open in place inside a card — signing out, removing from
 // the Library, leaving the leaderboard — which float over nothing and say
-// "careful" in red or amber. Not the Support card, which is this look at rest
-// and lights up with the pet's streak (`Support.scss`). Not the Maker's
-// set-up offer either, which is a
+// "careful" in red or amber. Not the Maker's set-up offer either, which is a
 // dialog by role on the cover it lays over the Maker; its card is the panel
 // inside, and that wears this look from `Karaoke.scss`. Nor the Maker's
 // timing panel, a dialog by role that drops out of a tool like a menu and
 // wears the menus' surface with the Maker's other tool panels. Nor the
 // graph's New look panel, which opens out of the graph's strip the same way
 // and wears the same surface (Ivan, 2026-09-27: "new look menu not matching
-// our menus").
+// our menus"). Nor the user guide's picture viewer, which opens over the
+// guide itself and is opaque, or the article shows through beside a narrow
+// picture (`HelpGuide.scss`).
 //
 // And not the notices. The engine's trouble card, the song EQ and speech
 // memory toasts, the scene review and the Plus terms notice are dialogs by
@@ -63,10 +63,10 @@ html
     .karaoke-maker__wizard,
     .karaoke-maker__tool-popover,
     .look-designer,
+    .help-lightbox,
     .sign-out-confirm,
     .library-detail__confirm,
     .leaderboard-card__confirm,
-    .support-dialog,
     .device-apo-notice,
     .scene-review-notice,
     .song-eq-notice,
@@ -76,54 +76,21 @@ html
   @include dialog.surface-look;
 }
 
-.prereq-notice {
-  @include animate(rise-in, $motion-slow);
+// The missing-engine banner (`PrereqMissingModal`), a `CompactFrame` centred
+// under the titlebar where the engine's own notices stand. Against the
+// frame's class as well, so the spot wins over the frame's
+// `position: relative` whichever sheet the cascade reads last.
+.compact-frame.prereq-notice {
+  --surface-motion: rise-in #{$motion-slow} #{$ease-out} 0ms backwards;
   position: fixed;
   // Above every workspace panel, including the chain raised for open menus.
   z-index: 1200;
   top: calc($title-bar-height + 16px);
   left: 50%;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-l;
-  width: min(820px, calc(100vw - 48px));
+  width: min(560px, calc(100vw - 32px));
   max-height: calc(100vh - $title-bar-height - 32px);
-  padding: $spacing-m;
   overflow-y: auto;
-  border: 1px solid rgba($red, 0.5);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-menu 98%, transparent);
-  box-shadow: 0 14px 36px rgba($black, 0.4);
   transform: translateX(-50%);
-
-  h2,
-  p {
-    margin: 0;
-  }
-}
-
-.prereq-notice__copy {
-  display: grid;
-  min-width: 0;
-  gap: $spacing-xs;
-}
-
-// Allowed to shrink, and therefore to wrap.
-//
-// It used to be `flex-shrink: 0`, which pins the row at the width of all three
-// buttons laid end to end — and every `.button` is `white-space: nowrap`, so
-// the row simply ran off the edge and took a horizontal scrollbar with it. The
-// three labels happened to fit while the first read "Install APO"; it now
-// names the engine ("Install FluidEQ Engine", and longer again in German), and
-// at the 312px this notice is in a 360px window the last button was cut off.
-.prereq-notice__actions {
-  display: flex;
-  min-width: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: $spacing-s;
 }
 
 .dependency-credit {

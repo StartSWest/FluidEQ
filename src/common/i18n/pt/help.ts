@@ -542,8 +542,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.hears':
     'O que a cena recebe: nível, batida, graves, médios, agudos.',
   'help.studio.signals': 'Sinais de teste que movem só esta prévia.',
-  'help.studio.size':
-    'Testa a cena em um painel de gráfico, estreito, largo ou em tela cheia.',
+  'help.studio.size': 'Testa a cena em tela cheia.',
   'help.studio.wave':
     'Testa a altura e a posição da onda que os ouvintes podem ajustar.',
 

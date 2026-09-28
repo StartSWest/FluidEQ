@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import { readSurfaceAlpha, readTextInk } from '../utils/theme';
+import { readTextInk } from '../utils/theme';
 import {
   IDenoiseClickSettings,
   IDenoiseHissSettings,
@@ -285,21 +285,18 @@ const DspDenoiseGraph = ({
         laneTotal += clicks.buckets[i];
       }
 
-      // A strip of its own in the CARD'S colour, ruled off from the plot: it
-      // counts events in time and is no part of the spectrum under it, so it
-      // does not stand on the plot's ground (Ivan, 2026-09-22). Its name sits
-      // at its start and the bars begin after it — drawn over the oldest bars,
-      // as it was, the name was the one thing in the lane nobody could read.
+      // A strip of its own, ruled off from the plot: it counts events in time
+      // and is no part of the spectrum under it (Ivan, 2026-09-22). Its name
+      // sits at its start and the bars begin after it — drawn over the oldest
+      // bars, as it was, the name was the one thing in the lane nobody could
+      // read.
       //
-      // The card's colour is the pane's at 55% (`$surface-card`), not the
-      // block's: opaque block was a pale band across the top of the graph,
-      // lighter than every card in the window (Ivan, 2026-09-26: "dsp
-      // reduction graph header also fix").
-      context.fillStyle = readSurfaceAlpha(
-        '--surface-panel',
-        0.55,
-        'rgba(26, 58, 78, 0.55)',
-      );
+      // Told apart by the rule and a resting lift, the faint step every
+      // surface that lifts wears (`$lift-rest`: the edge tint at 4%). Filled
+      // in the card's colour it was still a pale band across the top of the
+      // graph (Ivan, 2026-09-26: "dsp reduction graph header also fix",
+      // "these too").
+      context.fillStyle = 'rgba(214, 233, 247, 0.04)';
       context.fillRect(0, 0, width, LANE_STRIP_H);
       context.fillStyle = `rgba(${SPECTRUM_INK}, 0.07)`;
       context.fillRect(0, LANE_STRIP_H - 1, width, 1);

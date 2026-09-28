@@ -8,54 +8,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// What this adds to `.device-apo-notice` (DeviceProfiles.scss), whose spot
-// and card it shares.
+// What this adds to `.device-apo-notice` (DeviceProfiles.scss), whose spot it
+// shares.
 
 // Last in line. Every other notice in this spot is about sound the EQ is not
 // reaching right now; this one is about an engine that is working and has a
 // newer build waiting, which keeps until those are answered. Decided in
 // React (`noticeTurn.ts`).
 
-// The accent, not red: nothing is wrong. The accent is a theme colour, so
-// every alpha of it goes through color-mix — see the note in _color.scss.
-.device-apo-notice.engine-update-notice {
-  border-color: color-mix(in srgb, $secondary-default 46%, transparent);
-
-  .apo-badge {
-    color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-default 40%, transparent);
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
-  }
-}
-
-// Done wears the app's "on" colour, the one the default-output badge wears.
-.device-apo-notice.engine-update-notice--done .apo-badge {
-  color: $active;
-  border-color: color-mix(in srgb, $active 40%, transparent);
-  background: color-mix(in srgb, $active 10%, transparent);
-}
-
-// The line saying it is working on the left and the buttons on the right, as
-// in the restart card. Wraps rather than squeezing either: under a long
-// translation the buttons drop to their own row, still to the right.
-.engine-update-notice__foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $spacing-s;
-
-  .device-apo-notice__actions {
-    margin-left: auto;
-  }
-}
-
-// Kept in the flow even when empty, so the buttons do not jump the moment the
-// update starts. Against the ancestor, for the reason `__error` is: the
-// notice's own `p` rule sets the muted colour at this class's specificity.
-.device-apo-notice p.engine-update-notice__status {
+// The line saying it is working, at the head of the buttons' row and taking
+// only what the buttons leave — a basis of nothing, so the words appearing
+// never push a button onto a row of its own; under a long translation they
+// wrap beside the buttons instead.
+.engine-update-notice__status {
+  flex: 1 1 0;
   min-width: 0;
-  min-height: 1.4em;
+  align-self: center;
+  margin: 0;
   color: $text-faint;
+  font-size: $text-body;
+  line-height: 1.4;
 }
 
 // What the helper said, under the translated line, in the quiet face so the

@@ -529,8 +529,7 @@ const help = {
   'help.studio.hears':
     'What the scene receives: level, beat, bass, mids, treble.',
   'help.studio.signals': 'Test signals that drive only this preview.',
-  'help.studio.size':
-    'Tries the scene on a graph, narrow, wide or full-screen panel.',
+  'help.studio.size': 'Tries the scene full screen.',
   'help.studio.wave': 'Tries the wave height and position listeners can set.',
 
   'help.desktop.title': 'The desktop visualizer',

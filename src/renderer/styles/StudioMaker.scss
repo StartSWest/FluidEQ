@@ -112,6 +112,14 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .studio-maker__body {
   display: grid;
+  // One column that can shrink to the step. Left to the implicit `auto`
+  // track, it was as wide as the longest thing in it could not shrink below:
+  // the project's folder, one unbroken line of mono. A path like
+  // `D:\…\FluidEQ Studio\FluidEQ - dunes` made step two's column 397px in a
+  // 238px step, and its text and buttons ran across step three's (Ivan,
+  // 2026-09-27: "fix the mess"). Held to the step, the path gives way at its
+  // start, as `.studio-maker__path-text` means it to, and the row wraps.
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   min-width: 0;
   padding-top: 3px;
@@ -142,7 +150,7 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: $control-height-sm;
   padding: 0 10px;
   color: $text-muted;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-xs;
   background: $surface-well;
   font-family: $font-mono;
@@ -200,7 +208,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-idea {
   padding: 5px 11px;
   color: $text-faint;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-xs;
   background: color-mix(in srgb, $white 3%, transparent);
   font: inherit;
@@ -245,7 +253,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 10px 12px;
   overflow: auto;
   color: $text-muted;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-s;
   background: $surface-well;
   font-family: $font-mono;
@@ -276,7 +284,7 @@ it under the terms of the GNU General Public License version 3 or later.
   display: grid;
   gap: 12px;
   padding: 12px 14px;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: $radius-m;
   background: $surface-well;
   transition:
@@ -315,7 +323,7 @@ it under the terms of the GNU General Public License version 3 or later.
   width: 32px;
   height: 32px;
   color: $text-faint;
-  border: 1px solid $border-subtle;
+  border: 1px solid $card-edge;
   border-radius: 50%;
   background: color-mix(in srgb, $white 3%, transparent);
   transition:

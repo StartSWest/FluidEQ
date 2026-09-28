@@ -1,0 +1,96 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'theme' as *;
+
+// The first-run acknowledgement (`DisclaimerGate`): a gate, with no way out
+// but its two buttons.
+//
+// It arrives on its own, so it goes above everything that was opened on
+// purpose — the audio troubleshooter is at 4000 and the bug report at 1600.
+// A notice that mounts by itself while the troubleshooter is open used to
+// take the keyboard behind an opaque backdrop: focus in a dialog nobody
+// could see. And above the mandatory-update notice (5000) in turn: that one
+// can be closed, and when both are on screen the one that cannot be
+// dismissed has to be in front, or its focus lock is fighting a dialog
+// painted over the top of it.
+.disclaimer-backdrop {
+  @include dialog.backdrop(5100);
+}
+
+// Legal text is read, not scanned: wide enough for a measure of about
+// seventy characters beside the rail.
+.dialog-frame.disclaimer-gate {
+  @include dialog.size(900px, 760px);
+
+  // Focused so the notice announces itself when nothing inside it can be;
+  // not in the tab order, so there is no ring to draw.
+  &:focus {
+    outline: none;
+  }
+}
+
+.disclaimer-gate__body {
+  display: grid;
+}
+
+// The two official places, as rows of a list rather than links in a box:
+// each the whole width, the address and the arrow saying it leaves the app.
+.disclaimer-gate__links {
+  display: grid;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+
+  li + li {
+    border-top: dialog.$seam;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 9px 10px;
+    color: $secondary-light;
+    border-radius: $radius-s;
+    font-size: $text-body;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+    transition: $transition-control;
+
+    &:hover {
+      color: $white;
+      background: $hover-accent;
+    }
+
+    &:focus-visible {
+      color: $white;
+      @include focus-ring;
+    }
+  }
+}
+
+.disclaimer-gate__out {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  opacity: 0.75;
+}

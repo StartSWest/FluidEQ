@@ -4,7 +4,7 @@ import createTrussRoad from 'common/graphTruss';
 import { vehicleSize } from 'common/graphRoad';
 import {
   createFireworkPaths,
-  IFirework,
+  fireworkLayout,
   IRocket,
   ROCKET_CLIMB,
   shellFor,
@@ -122,6 +122,118 @@ export const CROSSING_SECONDS = 24;
 export const CAR_COLOURS = ['#77efdb', '#f7cf76', '#ed93c7', '#9bbcff'];
 /** How long the deck takes to close half the distance to the music. */
 export const DECK_HALF_LIFE_MS = 120;
+
+/**
+ * How each part of the bridge is painted — its colour, how solid, how wide
+ * — by the page's canvas and the engine's bridge alike. What answers the
+ * music is a function of the beat (`thump`) and the bass.
+ */
+export const TRUSS_INKS = {
+  /** Dim stars, then the twinkling ones, which flare with the beat. */
+  stars: { dim: 0.3, bright: (thump: number) => 0.7 + thump * 0.3 },
+  /**
+   * The truss under the deck: four bands from the deck down, each fainter
+   * than the one above, so the members sink into the dark; within each,
+   * the members whose band is loud burn brighter, and on a beat the whole
+   * truss glows wider for a moment.
+   */
+  member: {
+    width: (stroke: number) => Math.max(1, stroke * 0.7),
+    fade: (depth: number) => 0.9 - (depth / FADE_BANDS) * 0.75,
+    burn: (bin: number) => 0.45 + (bin / (LEVEL_BINS - 1)) * 0.75,
+    glowWiden: 5,
+    glowAlpha: 0.35,
+  },
+  footing: 0.25,
+  /**
+   * The sea: each swell a strip of the look's colour, faint at the horizon
+   * and deeper as it nears, every other one a shade darker so the swells
+   * read against each other without a line on the water, brighter with the
+   * bass that lifts it.
+   */
+  sea: (row: number, bass: number) =>
+    (0.06 + ((row + 1) / SEA_ROWS) * 0.3) *
+    (row % 2 === 0 ? 1 : 0.7) *
+    (0.8 + bass * 0.5),
+  /**
+   * A band of haze sitting on the waterline, thicker with the bass: from
+   * its top down past the horizon, white rising to its strongest near the
+   * waterline and gone again under it.
+   */
+  haze: {
+    stops: [
+      { at: 0, alpha: 0 },
+      { at: 0.72, alpha: 0.1 },
+      { at: 1, alpha: 0 },
+    ],
+    below: 0.4,
+    alpha: (bass: number) => 0.5 + bass * 0.5,
+  },
+  horizon: { width: 1, alpha: 0.22 },
+  /**
+   * Piers and towers standing in the water: dark silhouettes edged in the
+   * look's colour, or solid in the colour when filled.
+   */
+  body: { filled: 0.95, open: 0.7, openColour: '#000' },
+  outline: { width: 1.2, piers: 0.7, towers: 0.9 },
+  bracing: { width: 0.9, alpha: 0.55 },
+  hangers: { width: 0.8, alpha: 0.4 },
+  /**
+   * The cables pump with the bass: a fine wire that thickens a little and
+   * brightens with the kick, with a narrow tint of the look's colour under
+   * it — a wide glow here eclipsed the rest of the scene.
+   */
+  cable: {
+    tintWidth: (bass: number) => 2 + bass * 2.5,
+    tintAlpha: (bass: number) => 0.12 + bass * 0.25,
+    wireWidth: (bass: number, thump: number) => 1 + bass * 1.2 + thump * 0.5,
+    wireAlpha: (bass: number, thump: number) =>
+      0.45 + bass * 0.45 + thump * 0.1,
+  },
+  /** The asphalt over the deck line, with light edges and a centre line. */
+  asphalt: { colour: '#000', alpha: 0.65 },
+  edge: { width: 1, alpha: 0.2 },
+  dash: {
+    width: (roadHalf: number) => Math.max(1, roadHalf * 0.3),
+    alpha: 0.7,
+  },
+  car: {
+    /**
+     * The car's own shape glows: a wide soft stroke of its body in its
+     * colour, then a tighter one, both with the band under it.
+     */
+    glow: [
+      { width: (level: number) => 6 + level * 10, alpha: 0.22 },
+      { width: (level: number) => 2 + level * 4, alpha: 0.4 },
+    ],
+    dark: '#10242c',
+    /**
+     * Stroked, the car is a wireframe like the bridge it drives on: its
+     * outline and its windows in its colour, nothing solid.
+     */
+    outline: 1.2,
+    darkOutline: 0.7,
+    /** The wheels: a light rim round the tyre and a hub in the middle. */
+    rim: { width: 1, alpha: 0.4 },
+    hub: 0.9,
+  },
+  /**
+   * The light the lamps throw onto the road, under the lamps themselves: a
+   * lit bridge, rather than beads on a wire. The lit half flares on the
+   * beat and settles back over 250ms.
+   */
+  cone: (thump: number) => 0.05 + thump * 0.05,
+  lampOff: 0.35,
+  lampOn: (thump: number) => 0.45 + thump * 0.55,
+  /** The lights on the water under the bridge, shimmering. */
+  reflection: { width: 1, alpha: (thump: number) => 0.12 + thump * 0.12 },
+  firework: {
+    reflectionWidth: 1.6,
+    reflectionLightness: 66,
+    flash: 0.7,
+    twinkle: { width: 2.2, alpha: 0.9 },
+  },
+};
 
 export interface IBridgeCar {
   body: Path2D;
@@ -305,27 +417,119 @@ const polygon = (path: Path2D, vertices: readonly Projected[]) => {
   path.closePath();
 };
 
-export const createTrussBridgePaths = (
+/** Segments, each its own subpath, as one path. */
+const segmentsPath = (segments: readonly (readonly Projected[])[]) => {
+  const path = new Path2D();
+  segments.forEach(([[fromX, fromY], ...rest]) => {
+    path.moveTo(fromX, fromY);
+    rest.forEach(([x, y]) => path.lineTo(x, y));
+  });
+  return path;
+};
+
+/** Discs as one path, so where they overlap they are one shape. */
+const discsPath = (discs: readonly { x: number; y: number; r: number }[]) => {
+  const path = new Path2D();
+  discs.forEach(({ x, y, r }) => {
+    path.moveTo(x + r, y);
+    path.arc(x, y, r, 0, Math.PI * 2);
+  });
+  return path;
+};
+
+/** One of the truss's members: from where it starts, to where it ends. */
+export interface ITrussMember {
+  from: Projected;
+  to: Projected;
+  /** How loud the band under its first end is: 0 quiet .. LEVEL_BINS - 1. */
+  bin: number;
+}
+
+/** A lamp where a hanger meets the cable. */
+export interface IBridgeLamp {
+  x: number;
+  y: number;
+  r: number;
+  on: boolean;
+}
+
+/** One car: where it stands, which way the deck tilts it, its size. */
+export interface IBridgeCarPose {
+  x: number;
+  y: number;
+  cos: number;
+  sin: number;
+  size: number;
+  /** 0..1: how much this car's band is playing right now. */
+  level: number;
+  colour: string;
+}
+
+/**
+ * The car's parts, in its own units before its size and tilt: the body's
+ * two boxes, the window, and the wheels' middles — the tyre's radius, the
+ * hub's.
+ */
+export const CAR_BODY = [
+  [-9, -8, 18, 5],
+  [-5, -12, 10, 5],
+] as const;
+export const CAR_WINDOW = [-3, -11, 6, 3] as const;
+export const CAR_WHEELS = [-5, 5] as const;
+export const CAR_WHEEL_Y = -2.7;
+export const CAR_TYRE = 2.7;
+export const CAR_HUB = 1;
+
+/** The sea's rows at a moment: what `seaRowY` needs to find a swell. */
+export interface IBridgeSea {
+  horizon: number;
+  nearest: number;
+  size: number;
+  swell: number;
+  seconds: number;
+  left: number;
+  width: number;
+  /** How many straight pieces a row is drawn in across its width. */
+  steps: number;
+}
+
+/**
+ * Where swell `row` of the sea stands at `x`: packed toward the horizon
+ * the way distance packs them, travelling across, longer and taller the
+ * nearer it is. The row below the last is flat, so the nearest strip
+ * reaches the bottom of the overflow with no swell to leave a gap.
+ */
+export const seaRowY = (sea: IBridgeSea, row: number, x: number) => {
+  if (row >= SEA_ROWS) {
+    return sea.nearest + sea.size * 4;
+  }
+  const t = (row + 1) / SEA_ROWS;
+  const rest = sea.horizon + (sea.nearest - sea.horizon) * t ** 1.8;
+  const amp = sea.size * (0.35 + 3 * t) * sea.swell;
+  const k = 0.011 / (0.12 + t);
+  return (
+    rest -
+    amp *
+      (0.55 * Math.sin(x * k + sea.seconds * 1.4 + row * 0.9) +
+        0.45 * Math.sin(x * k * 2.3 - sea.seconds * 2.1 + row * 1.7))
+  );
+};
+
+/**
+ * The bridge as it stands this frame, in numbers: the deck, the truss's
+ * members, the stars, the sea, the towers and piers, the bracing, the
+ * cables and hangers, the lamps and what they throw, the reflections, the
+ * cars and the fireworks. What the page's canvas and the engine's bridge
+ * (`engineLooks/designed/trussLook.ts`) both draw from.
+ */
+export const trussBridgeLayout = (
   state: TrussBridge,
   columns: readonly Projected[],
   baseline: number,
   top: number,
   seconds: number,
-  /**
-   * The plot's true depth, for sizing what must not stretch. The columns,
-   * the baseline and the top may be in a scaled space — see the canvas —
-   * and a car or a shell sized from that would squash with the wave.
-   */
-  sizeHeight = baseline - top,
-  /**
-   * The whole window, in the same space as everything else.
-   *
-   * The bridge answers the height slider; the sky and the sea do not.
-   * Laid out inside the plot's box they shrank with the deck, so a short
-   * wave left a band of stars over a strip of sea in the middle of a
-   * black screen. Both are scenery and both reach the window's edges.
-   */
-  frame = { top, bottom: baseline },
+  sizeHeight: number,
+  frame: { top: number; bottom: number },
 ) => {
   const left = columns[0]?.[0] ?? 0;
   const right = columns[columns.length - 1]?.[0] ?? 1;
@@ -369,21 +573,10 @@ export const createTrussBridgePaths = (
     return ay + (by - ay) * mix;
   };
 
-  // The deck: the figure.
-  const deck = new Path2D();
-  if (road.length >= 2) {
-    deck.moveTo(road[0][0], road[0][1]);
-    road.slice(1).forEach(([x, y]) => deck.lineTo(x, y));
-  }
-
   // The stiffening truss under the deck: posts and alternating diagonals
-  // from the joints to the floor, each cut into FADE_BANDS pieces.
+  // from the joints to the floor, each burning with the level of the band
+  // under its first end.
   const joints = road.filter((_p, index) => index % 8 === 0);
-  // members[fade][bin]: cut by depth for the fade, grouped by the level of
-  // the band under the member's joint for the beat.
-  const members = Array.from({ length: FADE_BANDS }, () =>
-    Array.from({ length: LEVEL_BINS }, () => new Path2D()),
-  );
   const levelBin = (x: number) => {
     const step =
       (columns[columns.length - 1][0] - left) / Math.max(1, columns.length - 1);
@@ -397,29 +590,12 @@ export const createTrussBridgePaths = (
     );
     return Math.min(LEVEL_BINS - 1, Math.floor(level * LEVEL_BINS));
   };
-  const member = (a: Projected, b: Projected) => {
-    const bin = levelBin(a[0]);
-    for (let band = 0; band < FADE_BANDS; band += 1) {
-      const from = band / FADE_BANDS;
-      const to = (band + 1) / FADE_BANDS;
-      members[band][bin].moveTo(
-        a[0] + (b[0] - a[0]) * from,
-        a[1] + (b[1] - a[1]) * from,
-      );
-      members[band][bin].lineTo(
-        a[0] + (b[0] - a[0]) * to,
-        a[1] + (b[1] - a[1]) * to,
-      );
-    }
-  };
-  const lampsOn = new Path2D();
-  const lampsOff = new Path2D();
-  // What each lamp throws onto the road under it. Painted as one faint
-  // fill, so a lit bridge reads as lit rather than as beads on a wire.
-  const lampCones = new Path2D();
-  const lampR = Math.max(1.2, size * 1.1);
   // The road surface: half the asphalt's thickness, sized with the cars.
   const roadHalf = Math.max(2.5, size * 2.6);
+  const members: ITrussMember[] = [];
+  const member = (from: Projected, to: Projected) => {
+    members.push({ from, to, bin: levelBin(from[0]) });
+  };
   for (let index = 0; index < joints.length; index += 1) {
     const [x, y] = joints[index];
     member([x, y + roadHalf], [x, baseline]);
@@ -432,104 +608,73 @@ export const createTrussBridgePaths = (
       }
     }
   }
-  // The asphalt's edges, and the intermittent centre line between them,
-  // for the painter to line: a dash every 2.3 dash-lengths along the road.
-  const edges = new Path2D();
-  const dashes = new Path2D();
+  // The intermittent centre line: a dash every 2.3 dash-lengths along the
+  // road, each a chord between the road's heights at its two ends.
+  const dashes: Projected[][] = [];
   if (road.length >= 2) {
-    // The lower edge only: the upper one is the deck line the look
-    // already strokes, and drawing it twice read as a double rail.
-    edges.moveTo(road[0][0], road[0][1] + roadHalf);
-    road.slice(1).forEach(([x, y]) => edges.lineTo(x, y + roadHalf));
     const dash = Math.max(6, size * 9);
     for (
       let x = left - reach + dash;
       x < right + reach - dash;
       x += dash * 2.3
     ) {
-      dashes.moveTo(x, deckAt(x));
-      dashes.lineTo(x + dash, deckAt(x + dash));
+      dashes.push([
+        [x, deckAt(x)],
+        [x + dash, deckAt(x + dash)],
+      ]);
     }
   }
-  const footing = new Path2D();
-  footing.moveTo(left - reach, baseline);
-  footing.lineTo(right + reach, baseline);
 
   // The sky: stars from the top of the WINDOW down to the horizon — a
   // fixed sky, whatever the deck does under it, because a star field that
   // squeezed with the deck read as the sky beating — each twinkling at
   // its own rate; the lit ones flare with the beat.
-  const stars = new Path2D();
-  const brightStars = new Path2D();
+  const stars: { x: number; y: number; r: number; bright: boolean }[] = [];
   const skyTop = Math.min(frame.top, top);
   const skyDepth = Math.max(1, top + height * SEA_HORIZON - skyTop);
   for (let star = 0; star < STARS; star += 1) {
-    const x = left - width + noise(star * 3 + 1) * width * 3;
-    const y = skyTop + noise(star * 3 + 2) * skyDepth;
-    const r = (0.6 + noise(star * 3 + 3) * 1.1) * Math.min(1.6, size);
-    const twinkle = Math.sin(seconds * (1.2 + noise(star) * 3) + star) > 0.5;
-    const target = twinkle ? brightStars : stars;
-    target.moveTo(x + r, y);
-    target.arc(x, y, r, 0, Math.PI * 2);
+    stars.push({
+      x: left - width + noise(star * 3 + 1) * width * 3,
+      y: skyTop + noise(star * 3 + 2) * skyDepth,
+      r: (0.6 + noise(star * 3 + 3) * 1.1) * Math.min(1.6, size),
+      bright: Math.sin(seconds * (1.2 + noise(star) * 3) + star) > 0.5,
+    });
   }
 
   // The sea behind and under the bridge, in perspective: SEA_ROWS swells
-  // from a horizon fixed in the sky's frame down past the floor, packed
-  // toward the horizon the way distance packs them. Each swell is a strip
-  // of water between one crest line and the next, a closed polygon, so
-  // the sea is a body of colour, deeper the nearer the strip — no lines
-  // on it. Each row travels across, longer and taller the nearer it is,
-  // and the whole sea rises with the bass.
-  const sea: Path2D[] = [];
+  // from a horizon fixed in the sky's frame down past the floor. Each swell
+  // is a strip of water between one crest line and the next, so the sea is
+  // a body of colour, deeper the nearer the strip — no lines on it — and
+  // the whole sea rises with the bass.
   const horizon = top + height * SEA_HORIZON;
-  {
-    const nearest = Math.max(frame.bottom, baseline) + size * 6;
-    const swell = 1 + state.bass * 1.6;
-    const rowY = (row: number, x: number) => {
-      const t = (row + 1) / SEA_ROWS;
-      const rest = horizon + (nearest - horizon) * t ** 1.8;
-      const amp = size * (0.35 + 3 * t) * swell;
-      const k = 0.011 / (0.12 + t);
-      return (
-        rest -
-        amp *
-          (0.55 * Math.sin(x * k + seconds * 1.4 + row * 0.9) +
-            0.45 * Math.sin(x * k * 2.3 - seconds * 2.1 + row * 1.7))
-      );
-    };
-    // The row below the last one is flat, so the nearest strip reaches
-    // the bottom of the overflow with no swell to leave a gap.
-    const rowYOrFloor = (row: number, x: number) =>
-      row < SEA_ROWS ? rowY(row, x) : nearest + size * 4;
-    const seaReach = width * SEA_REACH;
-    const seaLeft = left - seaReach;
-    const seaWidth = width + seaReach * 2;
-    const steps = SEA_STEPS * 3;
-    for (let row = 0; row < SEA_ROWS; row += 1) {
-      const body = new Path2D();
-      body.moveTo(seaLeft, rowY(row, seaLeft));
-      for (let step = 1; step <= steps; step += 1) {
-        const x = seaLeft + (seaWidth * step) / steps;
-        body.lineTo(x, rowY(row, x));
-      }
-      for (let step = steps; step >= 0; step -= 1) {
-        const x = seaLeft + (seaWidth * step) / steps;
-        body.lineTo(x, rowYOrFloor(row + 1, x));
-      }
-      body.closePath();
-      sea.push(body);
-    }
-  }
+  const seaReach = width * SEA_REACH;
+  const sea: IBridgeSea = {
+    horizon,
+    nearest: Math.max(frame.bottom, baseline) + size * 6,
+    size,
+    swell: 1 + state.bass * 1.6,
+    seconds,
+    left: left - seaReach,
+    width: width + seaReach * 2,
+    steps: SEA_STEPS * 3,
+  };
 
   // The suspension: two towers on piers, the cables, the hangers.
-  const towers = new Path2D();
-  const towersBelow = new Path2D();
-  const bracing = new Path2D();
-  const bracingBelow = new Path2D();
-  const piers = new Path2D();
-  const reflections = new Path2D();
-  const cables = new Path2D();
-  const hangers = new Path2D();
+  const towers: Projected[][] = [];
+  const towersBelow: Projected[][] = [];
+  const bracing: Projected[][] = [];
+  const bracingBelow: Projected[][] = [];
+  const piers: Projected[][] = [];
+  // The towers' streaks on the water, and the lamps', one to a hanger.
+  const streaks: Projected[][] = [];
+  const reflections: Projected[][] = [];
+  const cables: Projected[][] = [];
+  const hangers: Projected[][] = [];
+  // The beacons on the tower caps, and the lamps, one to a hanger.
+  const beacons: IBridgeLamp[] = [];
+  const lamps: IBridgeLamp[] = [];
+  const lampCones: Projected[][] = [];
+  const lampR = Math.max(1.2, size * 1.1);
   if (road.length >= 2) {
     const towerX = [left + width * 0.25, left + width * 0.75];
     // Equal towers on one line, whatever the deck does under them: that is
@@ -549,51 +694,62 @@ export const createTrussBridgePaths = (
       const cut = (tall - (pierTop - deckHere)) / tall;
       [-1, 1].forEach((side) => {
         const legX = (f: number) => x + side * spread * (0.85 + 0.15 * f);
-        polygon(towers, [
+        towers.push([
           [legX(cut) - leg, deckHere],
           [legX(cut) + leg, deckHere],
           [legX(0) + leg, towerTop],
           [legX(0) - leg, towerTop],
         ]);
-        polygon(towersBelow, [
+        towersBelow.push([
           [legX(1) - leg, pierTop],
           [legX(1) + leg, pierTop],
           [legX(cut) + leg, deckHere],
           [legX(cut) - leg, deckHere],
         ]);
       });
-      polygon(towers, [
+      towers.push([
         [x - spread * 0.85 - leg, towerTop],
         [x + spread * 0.85 + leg, towerTop],
         [x + spread * 0.85 + leg, towerTop + leg * 2.2],
         [x - spread * 0.85 - leg, towerTop + leg * 2.2],
       ]);
       const beaconR = lampR * 1.3;
-      const beacon = state.blinkParity === 0 ? lampsOn : lampsOff;
-      beacon.moveTo(x + beaconR, towerTop - beaconR - 1);
-      beacon.arc(x, towerTop - beaconR - 1, beaconR, 0, Math.PI * 2);
+      beacons.push({
+        x,
+        y: towerTop - beaconR - 1,
+        r: beaconR,
+        on: state.blinkParity === 0,
+      });
       for (let f = 0.1; f < 0.95; f += 0.18) {
         const y0 = towerTop + tall * f;
         const y1 = towerTop + tall * Math.min(0.98, f + 0.18);
         const w0 = spread * (0.85 + 0.15 * f);
         const w1 = spread * (0.85 + 0.15 * Math.min(0.98, f + 0.18));
         const target = y0 < deckHere ? bracing : bracingBelow;
-        target.moveTo(x - w0, y0);
-        target.lineTo(x + w1, y1);
-        target.moveTo(x + w0, y0);
-        target.lineTo(x - w1, y1);
-        target.moveTo(x - w0, y0);
-        target.lineTo(x + w0, y0);
+        target.push([
+          [x - w0, y0],
+          [x + w1, y1],
+        ]);
+        target.push([
+          [x + w0, y0],
+          [x - w1, y1],
+        ]);
+        target.push([
+          [x - w0, y0],
+          [x + w0, y0],
+        ]);
       }
       // The tower's reflection in the water: a streak under each leg,
       // wobbling with the clock, longer on a beat.
       [-1, 1].forEach((side) => {
         const rx = x + side * spread + Math.sin(seconds * 2.3 + side) * 1.5;
-        reflections.moveTo(rx, baseline + 2);
-        reflections.lineTo(rx, baseline + size * (10 + thump * 8));
+        streaks.push([
+          [rx, baseline + 2],
+          [rx, baseline + size * (10 + thump * 8)],
+        ]);
       });
       // The pier: a foundation block wider than the tower, in the water.
-      polygon(piers, [
+      piers.push([
         [x - pierHalf, baseline],
         [x + pierHalf, baseline],
         [x + pierHalf * 0.8, pierTop],
@@ -603,7 +759,7 @@ export const createTrussBridgePaths = (
     // Anchor blocks at the ends of the deck.
     [left, right].forEach((x, index) => {
       const dir = index === 0 ? 1 : -1;
-      polygon(piers, [
+      piers.push([
         [x, baseline],
         [x + dir * pierHalf, baseline],
         [x + dir * pierHalf * 0.7, deckAt(x)],
@@ -640,23 +796,17 @@ export const createTrussBridgePaths = (
         sag * 0.35 * u * (1 - u)
       );
     };
-    const side = (from: number, to: number) => {
-      for (let step = 0; step <= 12; step += 1) {
+    const side = (from: number, to: number): Projected[] =>
+      Array.from({ length: 13 }, (_, step): Projected => {
         const x = from + (to - from) * (step / 12);
-        const y = sideAt(from, to, x);
-        if (step === 0) {
-          cables.moveTo(x, y);
-        } else {
-          cables.lineTo(x, y);
-        }
-      }
-    };
-    side(left, towerX[0]);
+        return [x, sideAt(from, to, x)];
+      });
+    const main = side(left, towerX[0]);
     for (let x = towerX[0]; x <= towerX[1]; x += Math.max(4, width / 96)) {
-      cables.lineTo(x, cableAt(x));
+      main.push([x, cableAt(x)]);
     }
-    cables.lineTo(towerX[1], towerTop);
-    side(right, towerX[1]);
+    main.push([towerX[1], towerTop]);
+    cables.push(main, side(right, towerX[1]));
     // Hangers from the cable to the deck at every joint: the main span's
     // from the drape, the side spans' from their own cable.
     let hanger = 0;
@@ -671,25 +821,28 @@ export const createTrussBridgePaths = (
         } else if (inRight) {
           y = sideAt(right, towerX[1], x);
         }
-        hangers.moveTo(x, y);
-        hangers.lineTo(x, deckAt(x) - roadHalf);
+        hangers.push([
+          [x, y],
+          [x, deckAt(x) - roadHalf],
+        ]);
         // The lamp's light on the water below it.
         const wobble = Math.sin(seconds * 3.1 + x * 0.05) * 1.2;
-        reflections.moveTo(x + wobble, baseline + 2);
-        reflections.lineTo(x - wobble, baseline + size * (4 + thump * 4));
+        reflections.push([
+          [x + wobble, baseline + 2],
+          [x - wobble, baseline + size * (4 + thump * 4)],
+        ]);
         // A lamp where the hanger meets the cable, and its cone of light
         // down onto the deck: a narrow wedge from the lamp to a pool the
         // width of a car on the road.
-        const target = hanger % 2 === state.blinkParity ? lampsOn : lampsOff;
-        target.moveTo(x + lampR, y);
-        target.arc(x, y, lampR, 0, Math.PI * 2);
+        lamps.push({ x, y, r: lampR, on: hanger % 2 === state.blinkParity });
         const roadY = deckAt(x) - roadHalf;
         const pool = size * 5;
-        lampCones.moveTo(x - lampR, y);
-        lampCones.lineTo(x + lampR, y);
-        lampCones.lineTo(x + pool, roadY);
-        lampCones.lineTo(x - pool, roadY);
-        lampCones.closePath();
+        lampCones.push([
+          [x - lampR, y],
+          [x + lampR, y],
+          [x + pool, roadY],
+          [x - pool, roadY],
+        ]);
         hanger += 1;
       }
     });
@@ -707,14 +860,12 @@ export const createTrussBridgePaths = (
     );
     return Math.max(0, Math.min(1, (baseline - columns[at][1]) / height));
   };
-  const cars: IBridgeCar[] = CAR_COLOURS.map((colour, index) => {
+  const cars: IBridgeCarPose[] = CAR_COLOURS.map((colour, index) => {
     const x = left + ((phase + index / CAR_COLOURS.length) % 1) * width;
     const level = Math.min(
       1,
       Math.max(state.bass, thump) * 0.8 + levelAt(x) * 0.2,
     );
-    // It swells up to a fifth with the rhythm.
-    const carSize = size * (1 + level * 0.2);
     let at = 1;
     while (at < road.length - 1 && road[at][0] < x) {
       at += 1;
@@ -724,69 +875,27 @@ export const createTrussBridgePaths = (
     const mix = (x - ax) / Math.max(0.001, bx - ax);
     const angle = Math.atan2(by - ay, bx - ax);
     const cos = Math.cos(angle);
-    const sin = Math.sin(angle);
     // On the top edge of the asphalt, measured along the road's normal.
-    const y = ay + (by - ay) * mix - roadHalf * cos;
-    const put = (dx: number, dy: number): Projected => [
-      x + carSize * (dx * cos - dy * sin),
-      y + carSize * (dx * sin + dy * cos),
-    ];
-    const rect = (
-      path: Path2D,
-      px: number,
-      py: number,
-      w: number,
-      h: number,
-    ) => {
-      polygon(path, [
-        put(px, py),
-        put(px + w, py),
-        put(px + w, py + h),
-        put(px, py + h),
-      ]);
+    return {
+      x,
+      y: ay + (by - ay) * mix - roadHalf * cos,
+      cos,
+      sin: Math.sin(angle),
+      // It swells up to a fifth with the rhythm.
+      size: size * (1 + level * 0.2),
+      level,
+      colour,
     };
-    const body = new Path2D();
-    rect(body, -9, -8, 18, 5);
-    rect(body, -5, -12, 10, 5);
-    const dark = new Path2D();
-    const wheels = new Path2D();
-    const hubs = new Path2D();
-    rect(dark, -3, -11, 6, 3);
-    [-5, 5].forEach((wheel) => {
-      const [wx, wy] = put(wheel, -2.7);
-      dark.moveTo(wx + 2.7 * carSize, wy);
-      dark.arc(wx, wy, 2.7 * carSize, 0, Math.PI * 2);
-      wheels.moveTo(wx + 2.7 * carSize, wy);
-      wheels.arc(wx, wy, 2.7 * carSize, 0, Math.PI * 2);
-      hubs.moveTo(wx + carSize, wy);
-      hubs.arc(wx, wy, carSize, 0, Math.PI * 2);
-    });
-    return { body, dark, wheels, hubs, level, colour };
   });
 
-  // Fireworks: their own module — see bridgeFireworks. The horizon goes
-  // in so a burst over the water is mirrored in it.
-  const fireworks: IFirework[] = createFireworkPaths(
-    state.rockets,
-    seconds,
-    sizeHeight,
-    horizon,
-    state.glow,
-  );
-
   return {
-    shape: deck,
+    road,
     deckTop: Math.min(...road.map(([, y]) => y)),
-    stars,
-    brightStars,
     roadHalf,
-    edges,
-    dashes,
+    footing: [left - reach, right + reach] as const,
     members,
-    footing,
-    lampsOn,
-    lampsOff,
-    lampCones,
+    dashes,
+    stars,
     sea,
     horizon,
     /** How deep the haze over the waterline is, in pixels. */
@@ -796,13 +905,195 @@ export const createTrussBridgePaths = (
     bracing,
     bracingBelow,
     piers,
+    streaks,
     reflections,
     cables,
     hangers,
+    beacons,
+    lamps,
+    lampR,
+    lampCones,
     cars,
-    fireworks,
+    // Fireworks: their own module — see bridgeFireworks. The horizon goes
+    // in so a burst over the water is mirrored in it.
+    fireworks: fireworkLayout(
+      state.rockets,
+      seconds,
+      sizeHeight,
+      horizon,
+      state.glow,
+    ),
     thump,
     bass: state.bass,
+  };
+};
+
+export type TrussBridgeLayout = ReturnType<typeof trussBridgeLayout>;
+
+export const createTrussBridgePaths = (
+  state: TrussBridge,
+  columns: readonly Projected[],
+  baseline: number,
+  top: number,
+  seconds: number,
+  /**
+   * The plot's true depth, for sizing what must not stretch. The columns,
+   * the baseline and the top may be in a scaled space — see the canvas —
+   * and a car or a shell sized from that would squash with the wave.
+   */
+  sizeHeight = baseline - top,
+  /**
+   * The whole window, in the same space as everything else.
+   *
+   * The bridge answers the height slider; the sky and the sea do not.
+   * Laid out inside the plot's box they shrank with the deck, so a short
+   * wave left a band of stars over a strip of sea in the middle of a
+   * black screen. Both are scenery and both reach the window's edges.
+   */
+  frame = { top, bottom: baseline },
+) => {
+  const layout = trussBridgeLayout(
+    state,
+    columns,
+    baseline,
+    top,
+    seconds,
+    sizeHeight,
+    frame,
+  );
+  const { road, roadHalf } = layout;
+
+  // The deck: the figure.
+  const deck = new Path2D();
+  if (road.length >= 2) {
+    deck.moveTo(road[0][0], road[0][1]);
+    road.slice(1).forEach(([x, y]) => deck.lineTo(x, y));
+  }
+
+  // members[fade][bin]: each member cut by depth into FADE_BANDS pieces for
+  // the fade, grouped by the level of the band under its first end.
+  const members = Array.from({ length: FADE_BANDS }, () =>
+    Array.from({ length: LEVEL_BINS }, () => new Path2D()),
+  );
+  layout.members.forEach(({ from: a, to: b, bin }) => {
+    for (let band = 0; band < FADE_BANDS; band += 1) {
+      const from = band / FADE_BANDS;
+      const to = (band + 1) / FADE_BANDS;
+      members[band][bin].moveTo(
+        a[0] + (b[0] - a[0]) * from,
+        a[1] + (b[1] - a[1]) * from,
+      );
+      members[band][bin].lineTo(
+        a[0] + (b[0] - a[0]) * to,
+        a[1] + (b[1] - a[1]) * to,
+      );
+    }
+  });
+  // The asphalt's lower edge only: the upper one is the deck line the look
+  // already strokes, and drawing it twice read as a double rail.
+  const edges = new Path2D();
+  if (road.length >= 2) {
+    edges.moveTo(road[0][0], road[0][1] + roadHalf);
+    road.slice(1).forEach(([x, y]) => edges.lineTo(x, y + roadHalf));
+  }
+  const footing = new Path2D();
+  footing.moveTo(layout.footing[0], baseline);
+  footing.lineTo(layout.footing[1], baseline);
+
+  const stars = discsPath(layout.stars.filter(({ bright }) => !bright));
+  const brightStars = discsPath(layout.stars.filter(({ bright }) => bright));
+
+  const sea: Path2D[] = [];
+  const { steps } = layout.sea;
+  for (let row = 0; row < SEA_ROWS; row += 1) {
+    const body = new Path2D();
+    const xAt = (step: number) =>
+      layout.sea.left + (layout.sea.width * step) / steps;
+    body.moveTo(xAt(0), seaRowY(layout.sea, row, xAt(0)));
+    for (let step = 1; step <= steps; step += 1) {
+      body.lineTo(xAt(step), seaRowY(layout.sea, row, xAt(step)));
+    }
+    for (let step = steps; step >= 0; step -= 1) {
+      body.lineTo(xAt(step), seaRowY(layout.sea, row + 1, xAt(step)));
+    }
+    body.closePath();
+    sea.push(body);
+  }
+
+  const polygons = (quads: readonly Projected[][]) => {
+    const path = new Path2D();
+    quads.forEach((quad) => polygon(path, quad));
+    return path;
+  };
+  const cables = segmentsPath(layout.cables);
+
+  const cars: IBridgeCar[] = layout.cars.map((car) => {
+    const put = (dx: number, dy: number): Projected => [
+      car.x + car.size * (dx * car.cos - dy * car.sin),
+      car.y + car.size * (dx * car.sin + dy * car.cos),
+    ];
+    const rect = (
+      path: Path2D,
+      [px, py, w, h]: readonly [number, number, number, number],
+    ) => {
+      polygon(path, [
+        put(px, py),
+        put(px + w, py),
+        put(px + w, py + h),
+        put(px, py + h),
+      ]);
+    };
+    const body = new Path2D();
+    CAR_BODY.forEach((box) => rect(body, box));
+    const dark = new Path2D();
+    const wheels = new Path2D();
+    const hubs = new Path2D();
+    rect(dark, CAR_WINDOW);
+    CAR_WHEELS.forEach((wheel) => {
+      const [wx, wy] = put(wheel, CAR_WHEEL_Y);
+      dark.moveTo(wx + CAR_TYRE * car.size, wy);
+      dark.arc(wx, wy, CAR_TYRE * car.size, 0, Math.PI * 2);
+      wheels.moveTo(wx + CAR_TYRE * car.size, wy);
+      wheels.arc(wx, wy, CAR_TYRE * car.size, 0, Math.PI * 2);
+      hubs.moveTo(wx + CAR_HUB * car.size, wy);
+      hubs.arc(wx, wy, CAR_HUB * car.size, 0, Math.PI * 2);
+    });
+    return { body, dark, wheels, hubs, level: car.level, colour: car.colour };
+  });
+
+  return {
+    shape: deck,
+    deckTop: layout.deckTop,
+    stars,
+    brightStars,
+    roadHalf,
+    edges,
+    dashes: segmentsPath(layout.dashes),
+    members,
+    footing,
+    lampsOn: discsPath(
+      [...layout.beacons, ...layout.lamps].filter(({ on }) => on),
+    ),
+    lampsOff: discsPath(
+      [...layout.beacons, ...layout.lamps].filter(({ on }) => !on),
+    ),
+    lampCones: polygons(layout.lampCones),
+    sea,
+    horizon: layout.horizon,
+    horizonHaze: layout.horizonHaze,
+    towers: polygons(layout.towers),
+    towersBelow: polygons(layout.towersBelow),
+    bracing: segmentsPath(layout.bracing),
+    bracingBelow: segmentsPath(layout.bracingBelow),
+    piers: polygons(layout.piers),
+    reflections: segmentsPath([...layout.streaks, ...layout.reflections]),
+    cables,
+    hangers: segmentsPath(layout.hangers),
+    cars,
+    fireworks: createFireworkPaths(layout.fireworks),
+    thump: layout.thump,
+    bass: layout.bass,
+    layout,
   };
 };
 

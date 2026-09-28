@@ -5,9 +5,10 @@ import type { IScenePack } from 'common/scenePacks';
 import { MAX_VERSION_NOTE, versionToPublish } from 'common/sceneVersionNote';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount } from '../account/accountStore';
-import Glyph from '../community/Glyph';
+import DialogFrame from '../components/DialogFrame';
 import type { ISceneFrame } from '../graph/sceneGl';
 import type { ISceneTuning } from '../graph/useSceneRunner';
+import MenuIcon from '../icons/MenuIcon';
 import { categoryKey } from '../plus/GalleryParts';
 import { refreshModeration, useModeration } from '../plus/moderationStore';
 import { useTranslation } from '../utils/I18nContext';
@@ -17,6 +18,7 @@ import StudioPublishCovers from './StudioPublishCovers';
 import type { IPublishDraft } from './useStudioPublish';
 import { useStudioAgentHold } from './studioAgentHold';
 import '../styles/Gallery.scss';
+import '../styles/StudioDialogs.scss';
 import '../styles/StudioPublish.scss';
 
 interface IStudioPublishDialogProps {
@@ -146,45 +148,125 @@ export default function StudioPublishDialog({
         }
       }}
     >
-      <div
+      <DialogFrame
         ref={surfaceRef}
-        className="gallery-dialog studio-publish"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="studio-publish-title"
+        className="studio-publish"
+        icon={<MenuIcon name="upload" />}
+        title={
+          update
+            ? t('studio.publish.titleUpdate', { name })
+            : t('studio.publish.title', { name })
+        }
+        titleId="studio-publish-title"
+        badge={
+          <span className="dialog-frame__badge">
+            {t('studio.publish.version', {
+              // The number this publication will carry, not the one in the
+              // project: a scene's content may only change under a higher
+              // version, so publishing raises it, and the dialog has to say
+              // which one is going out or it names the version being
+              // replaced right beside the one it replaces. Above what the
+              // scene was ever out at, too, when it was unpublished since.
+              version: String(versionToPublish(pack.version, draft.held)),
+            })}
+          </span>
+        }
+        description={
+          draft.published &&
+          t('studio.publish.publishedVersion', {
+            version: String(draft.published.version),
+          })
+        }
         aria-busy={running}
-      >
-        <div className="gallery-dialog__head">
-          <span className="gallery-dialog__mark" aria-hidden="true">
-            <Glyph name="upload" />
-          </span>
-          <span className="studio-publish__heading">
-            <h2 id="studio-publish-title" className="gallery-dialog__title">
-              {update
-                ? t('studio.publish.titleUpdate', { name })
-                : t('studio.publish.title', { name })}
-            </h2>
-            <span className="studio-publish__version">
-              {t('studio.publish.version', {
-                // The number this publication will carry, not the one in the
-                // project: a scene's content may only change under a higher
-                // version, so publishing raises it, and the dialog has to say
-                // which one is going out or it names the version being
-                // replaced right beside the one it replaces. Above what the
-                // scene was ever out at, too, when it was unpublished since.
-                version: String(versionToPublish(pack.version, draft.held)),
-              })}
-              {draft.published && (
-                <span className="studio-publish__published">
-                  {t('studio.publish.publishedVersion', {
-                    version: String(draft.published.version),
-                  })}
+        closeLabel={t('support.close')}
+        // Away while the scene is being sent, as Escape and the backdrop are.
+        onClose={running ? undefined : cancel}
+        // What publishing means, in the rail: read once and the same every
+        // time, so the body is left to what is being decided now.
+        rail={
+          <ul className="studio-ticks">
+            {reviewed && (
+              <li>
+                <MenuIcon name="check" />
+                <span>
+                  {update
+                    ? t('studio.publish.pointReviewUpdate')
+                    : t('studio.publish.pointReview')}
                 </span>
-              )}
-            </span>
-          </span>
-        </div>
-
+              </li>
+            )}
+            <li>
+              <MenuIcon name="check" />
+              <span>{t('studio.publish.point1')}</span>
+            </li>
+            <li>
+              <MenuIcon name="check" />
+              <span>{t('studio.publish.point2')}</span>
+            </li>
+            <li>
+              <MenuIcon name="check" />
+              <span>
+                {update
+                  ? t('studio.publish.point3Update')
+                  : t('studio.publish.point3')}
+              </span>
+            </li>
+          </ul>
+        }
+        footer={
+          <>
+            <button
+              type="button"
+              className="button small subtle"
+              disabled={running}
+              onClick={() => {
+                // The terms open in the Account dialog, which would otherwise
+                // appear underneath this one.
+                cancel();
+                requestAccountPanel('terms');
+              }}
+            >
+              {t('studio.publish.read')}
+            </button>
+            <div className="dialog-frame__actions">
+              <button
+                type="button"
+                className="button small subtle"
+                disabled={running}
+                onClick={cancel}
+              >
+                {t('studio.publish.cancel')}
+              </button>
+              <button
+                type="button"
+                className={`button small${running ? ' is-running' : ''}`}
+                aria-busy={running}
+                disabled={!category}
+                title={category ? undefined : t('studio.publish.pickCategory')}
+                onClick={() => {
+                  if (!category || running) {
+                    return;
+                  }
+                  if (needsNote) {
+                    setNoteMissing(true);
+                    noteRef.current?.focus();
+                    return;
+                  }
+                  onPublish(category, category2, update ? note : undefined);
+                }}
+              >
+                {running
+                  ? t(
+                      reviewed
+                        ? 'studio.publish.runningReview'
+                        : 'studio.publish.running',
+                    )
+                  : go}
+              </button>
+            </div>
+          </>
+        }
+      >
         <div className="studio-publish__body">
           <StudioPublishCamera
             identity={identity}
@@ -302,75 +384,8 @@ export default function StudioPublishDialog({
               )}
             </div>
           )}
-
-          <ul className="gallery-points studio-publish__points">
-            {reviewed && (
-              <li>
-                {update
-                  ? t('studio.publish.pointReviewUpdate')
-                  : t('studio.publish.pointReview')}
-              </li>
-            )}
-            <li>{t('studio.publish.point1')}</li>
-            <li>{t('studio.publish.point2')}</li>
-            <li>
-              {update
-                ? t('studio.publish.point3Update')
-                : t('studio.publish.point3')}
-            </li>
-          </ul>
         </div>
-
-        <div className="gallery-dialog__foot">
-          <button
-            type="button"
-            className="button small subtle gallery-dialog__aside"
-            disabled={running}
-            onClick={() => {
-              // The terms open in the Account dialog, which would otherwise
-              // appear underneath this one.
-              cancel();
-              requestAccountPanel('terms');
-            }}
-          >
-            {t('studio.publish.read')}
-          </button>
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={running}
-            onClick={cancel}
-          >
-            {t('studio.publish.cancel')}
-          </button>
-          <button
-            type="button"
-            className={`button small${running ? ' is-running' : ''}`}
-            aria-busy={running}
-            disabled={!category}
-            title={category ? undefined : t('studio.publish.pickCategory')}
-            onClick={() => {
-              if (!category || running) {
-                return;
-              }
-              if (needsNote) {
-                setNoteMissing(true);
-                noteRef.current?.focus();
-                return;
-              }
-              onPublish(category, category2, update ? note : undefined);
-            }}
-          >
-            {running
-              ? t(
-                  reviewed
-                    ? 'studio.publish.runningReview'
-                    : 'studio.publish.running',
-                )
-              : go}
-          </button>
-        </div>
-      </div>
+      </DialogFrame>
     </div>,
     document.body,
   );

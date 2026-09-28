@@ -16,6 +16,8 @@ export type TSceneStillRequest =
       id: number;
       pack: IScenePack;
       accent: readonly [number, number, number];
+      /** The time of day to draw at, 0 night to 100 day (`sceneDaylight.ts`). */
+      daylight: number;
       frames?: readonly ISceneFrame[];
       /**
        * PNG instead of the gallery's WebP, for the picture written beside a
@@ -30,6 +32,8 @@ export type TSceneStillRequest =
       id: number;
       pack: IScenePack;
       accent: readonly [number, number, number];
+      /** The time of day to draw at, 0 night to 100 day (`sceneDaylight.ts`). */
+      daylight: number;
     }
   | {
       /**
@@ -42,6 +46,8 @@ export type TSceneStillRequest =
       id: number;
       pack: IScenePack;
       accent: readonly [number, number, number];
+      /** The time of day to draw at, 0 night to 100 day (`sceneDaylight.ts`). */
+      daylight: number;
       width: number;
       height: number;
       sound: TStudioAgentSound;

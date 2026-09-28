@@ -85,7 +85,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .look-picker__column--plus {
   flex: 7 1 0;
-  border-inline-start: 1px solid $border-subtle;
+  border-inline-start: 1px solid $menu-rule;
 }
 
 .look-picker__head {
@@ -332,8 +332,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
   place-items: center;
   overflow: hidden;
   border-radius: $radius-xs - 2;
-  background: color-mix(in srgb, $black 55%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, $white 8%, transparent);
+  // Until the picture is there, a slot in the menu's own material — the
+  // controls' face and the cards' edge — with the scene's colours in it
+  // (Ivan, 2026-09-27: "fix the bg on items not loading yet"). It was black
+  // at 55%, a dark slab in every row of a card-coloured list.
+  background: $surface-control;
+  box-shadow: inset 0 0 0 1px $card-edge;
 
   img {
     width: 100%;
@@ -354,9 +358,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 2px;
 }
 
+// Muted, as the line under every menu row's name is.
 .look-picker__caption {
   @include truncate;
-  color: $text-dim;
+  color: $text-muted;
   font-size: $text-micro;
 }
 
@@ -369,9 +374,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // Whose scenes follow, once there is more than one maker in the list.
 .look-picker__group {
   margin: $spacing-s 4px 2px;
+  // Every menu's section heading in the accent, as the Window colours menu
+  // and the look picker's columns head theirs (Ivan, 2026-09-27: "make
+  // better colors", "for all menu"). It was a faint grey here while those
+  // two were lit.
   padding-top: 6px;
-  color: $text-dim;
-  border-top: 1px solid $border-subtle;
+  color: $text-accent;
+  border-top: 1px solid $menu-rule;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   @include tracking(0.1em);

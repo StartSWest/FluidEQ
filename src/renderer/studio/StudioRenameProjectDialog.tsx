@@ -4,6 +4,8 @@ import type { TranslationKey } from 'common/i18n';
 import { MAX_MEMBER_NAME_LENGTH } from 'common/memberScenes';
 import type { TRenameProjectResult } from 'main/ipc/memberScenes';
 import Glyph from '../community/Glyph';
+import DialogFrame from '../components/DialogFrame';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import { renameStudioProject } from './studioStore';
@@ -48,7 +50,7 @@ export default function StudioRenameProjectDialog({
   const [value, setValue] = useState(name);
   const [running, setRunning] = useState(false);
   const [refusal, setRefusal] = useState<TranslationKey>();
-  const surfaceRef = useRef<HTMLFormElement>(null);
+  const surfaceRef = useRef<HTMLDivElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
   const trimmed = value.trim();
   const cut = Math.max(path.lastIndexOf('\\'), path.lastIndexOf('/'));
@@ -98,68 +100,23 @@ export default function StudioRenameProjectDialog({
         }
       }}
     >
-      <form
+      <DialogFrame
         ref={surfaceRef}
-        className="studio-share studio-new"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={`${nameId}-title`}
+        className="studio-new studio-rename"
+        icon={<MenuIcon name="pencil" />}
+        title={t('studio.rename.title')}
+        titleId={`${nameId}-title`}
+        description={
+          <span id={`${nameId}-lead`}>{t('studio.rename.lead')}</span>
+        }
         aria-describedby={`${nameId}-lead`}
         aria-busy={running}
-        onSubmit={rename}
-      >
-        <div className="studio-share__head">
-          <span className="studio-share__mark" aria-hidden="true">
-            <Glyph name="folder" />
-          </span>
-          <h2 id={`${nameId}-title`} className="studio-share__title">
-            {t('studio.rename.title')}
-          </h2>
-        </div>
-        <p id={`${nameId}-lead`} className="studio-share__lead">
-          {t('studio.rename.lead')}
-        </p>
-
-        <div className="studio-new__field">
-          <label htmlFor={nameId} className="studio-new__label">
-            {t('studio.new.name')}
-          </label>
-          <input
-            ref={nameRef}
-            id={nameId}
-            className="studio-new__input"
-            type="text"
-            value={value}
-            maxLength={MAX_MEMBER_NAME_LENGTH}
-            disabled={running}
-            aria-invalid={refusal !== undefined}
-            onChange={(event) => {
-              setValue(event.target.value);
-              setRefusal(undefined);
-            }}
-          />
-        </div>
-
-        <div className="studio-new__where">
-          <span className="studio-new__label">{t('studio.rename.where')}</span>
-          <span className="studio-new__path" title={path}>
-            <Glyph name="folder" />
-            <span className="studio-new__root">{parent}</span>
-            <span className="studio-new__leaf">
-              {separator}
-              {trimmed || folderName}
-            </span>
-          </span>
-        </div>
-
-        {refusal && (
-          <p className="studio-notice" role="alert">
-            {t(refusal, { name: trimmed })}
-          </p>
-        )}
-
-        <div className="studio-share__foot">
-          <span className="studio-share__actions">
+        closeLabel={t('support.close')}
+        // Away while the folder is being renamed, as Escape and the backdrop
+        // are.
+        onClose={running ? undefined : onClose}
+        footer={
+          <div className="dialog-frame__actions">
             <button
               type="button"
               className="button small subtle"
@@ -168,17 +125,66 @@ export default function StudioRenameProjectDialog({
             >
               {t('studio.new.cancel')}
             </button>
+            {/* In the foot, outside the form, and still its submit: Enter in
+                the name presses it. */}
             <button
               type="submit"
+              form={`${nameId}-form`}
               className={`button small${running ? ' is-running' : ''}`}
               aria-busy={running}
               disabled={!trimmed || unchanged}
             >
               {running ? t('studio.rename.saving') : t('studio.rename.save')}
             </button>
-          </span>
-        </div>
-      </form>
+          </div>
+        }
+      >
+        <form
+          id={`${nameId}-form`}
+          className="studio-new__form"
+          onSubmit={rename}
+        >
+          <div className="studio-new__field">
+            <label htmlFor={nameId} className="studio-new__label">
+              {t('studio.new.name')}
+            </label>
+            <input
+              ref={nameRef}
+              id={nameId}
+              className="studio-new__input"
+              type="text"
+              value={value}
+              maxLength={MAX_MEMBER_NAME_LENGTH}
+              disabled={running}
+              aria-invalid={refusal !== undefined}
+              onChange={(event) => {
+                setValue(event.target.value);
+                setRefusal(undefined);
+              }}
+            />
+          </div>
+
+          <div className="studio-new__where">
+            <span className="studio-new__label">
+              {t('studio.rename.where')}
+            </span>
+            <span className="studio-new__path" title={path}>
+              <Glyph name="folder" />
+              <span className="studio-new__root">{parent}</span>
+              <span className="studio-new__leaf">
+                {separator}
+                {trimmed || folderName}
+              </span>
+            </span>
+          </div>
+
+          {refusal && (
+            <p className="studio-notice" role="alert">
+              {t(refusal, { name: trimmed })}
+            </p>
+          )}
+        </form>
+      </DialogFrame>
     </div>,
     document.body,
   );

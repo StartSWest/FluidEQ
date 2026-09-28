@@ -61,7 +61,7 @@ $song-eq-status-line: 12px;
 
   &:hover {
     border-color: $border-field-hover;
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    background: $surface-control-hover;
 
     .song-eq-save__label {
       color: $white;
@@ -126,7 +126,7 @@ $song-eq-status-line: 12px;
 
 .song-eq-save.is-on {
   border-color: $border-field-hover;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  background: $surface-control-press;
 
   .song-eq-save__label {
     color: $white;

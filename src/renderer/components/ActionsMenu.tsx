@@ -18,8 +18,14 @@ import Chevron from '../icons/Chevron';
 import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
+import { useTitlebarToolsShed } from '../utils/useTitlebarRoom';
+import { requestHelpGuide } from '../help/helpGuideRequests';
+import helpMenuActions, { type IHelpHandlers } from '../help/helpMenuActions';
+import PlayerIcon from '../player/PlayerIcon';
+import { setWindowMode } from '../player/windowModeStore';
 import LanguagePicker from './LanguagePicker';
 import MotionPicker from './MotionPicker';
+import SliderHandlePicker from './SliderHandlePicker';
 import StartupPicker from './StartupPicker';
 import RainbowSwitch from '../graph/RainbowSwitch';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
@@ -69,6 +75,11 @@ interface IActionsMenuProps {
    * complete is worse than no row.
    */
   onAccount?: () => void;
+  /**
+   * Help's own entries, taken in while the titlebar has no room for Help's
+   * button (`useTitlebarToolsShed`), with the compact-player switch beside it.
+   */
+  help?: IHelpHandlers;
 }
 
 interface IItemProps {
@@ -134,8 +145,10 @@ const ActionsMenu = ({
   onProcesses,
   onSupport,
   onAccount,
+  help,
 }: IActionsMenuProps) => {
   const { t } = useTranslation();
+  const isToolsShed = useTitlebarToolsShed();
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -363,6 +376,40 @@ const ActionsMenu = ({
           <Item icon="support" onSelect={run(onSupport)}>
             {t('app.menu.support')}
           </Item>
+          {/* What left the titlebar for want of room, so nothing it held is
+              out of reach (Ivan, 2026-09-28: "shed small things"): Help's
+              entries, less fixing audio, which heads this menu already, and
+              the switch to the compact player, in its own drawing. */}
+          {isToolsShed && help && (
+            <>
+              <hr className="actions-menu__rule" />
+              {helpMenuActions(t, help, requestHelpGuide)
+                .filter((action) => action.id !== 'fixAudio')
+                .map((action) => (
+                  <Item
+                    key={action.id}
+                    icon={action.icon}
+                    onSelect={run(action.run)}
+                  >
+                    {action.label}
+                  </Item>
+                ))}
+              <button
+                type="button"
+                role="menuitem"
+                className="workspace-header__menu-item"
+                onClick={run(() => {
+                  // As the switch does: main answers with the mode it is in,
+                  // and a request that fails reaches a main that is
+                  // restarting, whose next push says which mode it came back in.
+                  setWindowMode('player').catch(() => undefined);
+                })}
+              >
+                <PlayerIcon name="player" className="menu-icon player-icon" />
+                {t('player.switch.toPlayer')}
+              </button>
+            </>
+          )}
 
           {/* Last, and in every state: someone who cannot read the rest of
               this menu still has to be able to reach the language. */}
@@ -376,6 +423,9 @@ const ActionsMenu = ({
               <BackdropVeilSlider />
               <RainbowSwitch />
             </div>
+            <SliderHandlePicker />
+            {/* How the window looks above, how the app behaves below. */}
+            <div className="actions-menu__prefs-rule" aria-hidden="true" />
             <MotionPicker />
             {/* Under the animations row, where Ivan asked for it
                 (2026-09-19). Nothing else in the app decides this: the answer

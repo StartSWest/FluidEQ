@@ -25,7 +25,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
   margin: 0;
   padding: 5px 9px 6px;
   overflow: visible;
-  @include floating-surface(0 6px 16px rgba($black, 0.28));
+  @include floating-surface($tooltip-lift);
   color: $text-primary;
   font-size: $text-body;
   font-weight: $weight-regular;

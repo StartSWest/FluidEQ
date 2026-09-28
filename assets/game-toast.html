@@ -69,33 +69,30 @@
         user-select: none;
       }
 
+      /* The app's notices, drawn again here (`CompactFrame` in the window):
+         the sheet — the floor lifted an eighth toward the pane — with a strip
+         in the rail's colour holding the badge, the words beside it and the
+         mark at the end. It was a gradient card with a glow under the badge
+         and an accent edge, a look nothing in the window wore (Ivan,
+         2026-09-27: every window and dialog on one frame). */
       .card {
         position: relative;
-        display: flex;
-        align-items: center;
-        gap: 16px;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: stretch;
         overflow: hidden;
         box-sizing: border-box;
         width: 100%;
         height: 100%;
-        padding: 16px 20px 18px;
-        border: 1px solid color-mix(in srgb, var(--accent) 34%, transparent);
-        border-radius: 16px;
-        /* The sheen sits under the badge, so the left of the card has some
-           depth instead of a flat panel with a tile stuck on it. */
-        background:
-          radial-gradient(
-            120px 96px at 46px 50%,
-            color-mix(in srgb, var(--accent) 16%, transparent),
-            transparent 70%
-          ),
-          linear-gradient(
-            135deg,
-            color-mix(in srgb, var(--panel) 97%, transparent),
-            color-mix(in srgb, var(--base) 97%, transparent)
-          );
+        border: 1px solid rgba(214, 233, 247, 0.15);
+        border-radius: 12px;
+        background: color-mix(
+          in srgb,
+          color-mix(in oklab, var(--base) 88%, var(--panel)) 97%,
+          transparent
+        );
         box-shadow:
-          0 20px 44px rgba(0, 0, 0, 0.55),
+          0 20px 44px rgba(0, 0, 0, 0.5),
           inset 0 1px 0 rgba(255, 255, 255, 0.06);
         color: var(--text);
         animation:
@@ -103,16 +100,23 @@
           out 320ms ease 5.4s both;
       }
 
+      .strip {
+        display: grid;
+        place-items: center;
+        padding: 0 18px;
+        border-right: 1px solid rgba(214, 233, 247, 0.08);
+        background: color-mix(in srgb, var(--panel) 66%, transparent);
+      }
+
       .badge {
         display: grid;
-        flex: 0 0 auto;
         place-items: center;
-        width: 56px;
-        height: 56px;
-        border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
-        border-radius: 13px;
+        width: 52px;
+        height: 52px;
+        box-sizing: border-box;
+        border: 1px solid color-mix(in srgb, var(--accent) 26%, transparent);
+        border-radius: 10px;
         background: color-mix(in srgb, var(--accent) 14%, transparent);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
         /* The glyph inside is drawn in `currentColor`, so the accent reaches
            it without a second place to change. */
         color: var(--accent);
@@ -120,17 +124,18 @@
 
       .badge img,
       .badge svg {
-        width: 36px;
-        height: 36px;
+        width: 32px;
+        height: 32px;
         border-radius: 6px;
       }
 
       /* The words take what is left and end in an ellipsis. The mark beside
-         them is a flex item and not a corner label, so no name in any
-         language can run underneath it. */
+         them is a column of its own and not a corner label, so no name in
+         any language can run underneath it. */
       .words {
-        flex: 1 1 auto;
+        align-self: center;
         min-width: 0;
+        padding: 0 18px;
       }
 
       .what {
@@ -156,10 +161,10 @@
          quarter of the card visibly empty. */
       .mark {
         display: flex;
-        flex: 0 0 auto;
         gap: 7px;
         align-items: center;
         align-self: center;
+        padding-right: 20px;
         color: var(--accent);
         font-size: 10px;
         font-weight: 600;
@@ -220,20 +225,22 @@
   </head>
   <body>
     <div class="card" id="card">
-      <div class="badge" id="badge">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.6"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path
-            d="M8 7.5h8a5 5 0 0 1 5 5v1a3.6 3.6 0 0 1-6.3 2.4l-.7-.8h-4l-.7.8A3.6 3.6 0 0 1 3 13.5v-1a5 5 0 0 1 5-5z"
-          />
-          <path d="M7.4 11.4v2.4M6.2 12.6h2.4M15.8 11.6h.01M18 13.4h.01" />
-        </svg>
+      <div class="strip">
+        <div class="badge" id="badge">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M8 7.5h8a5 5 0 0 1 5 5v1a3.6 3.6 0 0 1-6.3 2.4l-.7-.8h-4l-.7.8A3.6 3.6 0 0 1 3 13.5v-1a5 5 0 0 1 5-5z"
+            />
+            <path d="M7.4 11.4v2.4M6.2 12.6h2.4M15.8 11.6h.01M18 13.4h.01" />
+          </svg>
+        </div>
       </div>
       <div class="words">
         <div class="what" id="what"></div>

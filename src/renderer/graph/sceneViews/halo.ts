@@ -15,6 +15,8 @@ import {
   lightInkAt,
   type ISceneDrawn,
   type ISceneFrame,
+  type ISceneMusic,
+  type ISceneReading,
 } from './sceneFrame';
 import {
   createPeakHold,
@@ -82,8 +84,15 @@ export const createHaloState = (): IHaloState => ({
   seed: 0,
 });
 
-/** The ring's size in a band, so every copy and the ray count agree. */
-const ringOf = (frame: ISceneFrame, band: IAnalysisBand) => {
+/**
+ * The ring's size in a band, so every copy and the ray count agree. Exported
+ * with the functions below for the look's GPU painting
+ * (`engineLooks/haloLook.ts`), which draws the ring these lay out.
+ */
+export const ringOf = (
+  frame: Pick<ISceneReading, 'plot' | 'music'>,
+  band: IAnalysisBand,
+) => {
   const { plot, music } = frame;
   const width = plot.right - plot.left;
   const side = Math.min(width, band.bottom - band.top);
@@ -95,105 +104,78 @@ const ringOf = (frame: ISceneFrame, band: IAnalysisBand) => {
   };
 };
 
-const drawCopy = (
-  frame: ISceneFrame,
+/** Where the rays stand: just outside the ring. */
+export const rayBase = (radius: number): number => radius + 3;
+
+/** A ray's length from its base, standing `level` of its reach. */
+export const rayLength = (level: number, reach: number): number =>
+  2 + level * reach;
+
+/** Half a ray's width round a ring of `base` with `half` rays a side. */
+export const rayHalfWidth = (base: number, half: number, gap: number): number =>
+  Math.max(0.6, (((Math.PI * base) / half) * (1 - clampUnit(gap))) / 2);
+
+/** Whether a ray this loud, this far round from the bottom, sparks. */
+export const raySparks = (
+  level: number,
+  fromBottom: number,
+  treble: number,
+): boolean => level > 0.6 && fromBottom > 0.55 && treble > 0.2;
+
+/** The core's light at its middle and six tenths out, and the ring line's. */
+export const coreLight = (
+  music: Pick<ISceneMusic, 'bass' | 'pulse'>,
+  glow: number,
+) => ({
+  middle: 0.22 + music.bass * 0.3 + music.pulse * 0.3 + glow * 0.3,
+  halfway: 0.08 + music.bass * 0.14,
+});
+export const ringLineAlpha = (pulse: number): number => 0.28 + pulse * 0.4;
+
+/** One ray of a copy, as `eachRay` hands it over. */
+export interface IHaloRay {
+  piece: number;
+  fromBottom: number;
+  level: number;
+  cos: number;
+  sin: number;
+  length: number;
+  tip: number;
+}
+
+/**
+ * Every ray round a copy's ring, clockwise from the bottom — up the left
+ * side, then down the right, each side the spectrum from the bass at the
+ * bottom — throwing motes off the loud tips on a beat as it goes.
+ */
+export const eachRay = (
+  frame: Pick<ISceneReading, 'plot' | 'music'>,
   band: IAnalysisBand,
   state: IHaloState,
-  body: Path2D | undefined,
+  ray: (one: IHaloRay) => void,
 ): void => {
-  const { context, colours, music, look } = frame;
+  const { music } = frame;
   const { row, turn } = state;
   const { cx, cy, radius, reach } = ringOf(frame, band);
-  const base = radius + 3;
-
-  // The core: light pooled in the ring, breathing with the bass and the
-  // look's Glow. Added to what is behind rather than laid over it, so it
-  // glows instead of painting a disc.
-  context.save();
-  context.globalCompositeOperation = 'lighter';
-  const core = context.createRadialGradient(cx, cy, 0, cx, cy, radius);
-  core.addColorStop(
-    0,
-    lightInkAt(
-      colours,
-      0.1,
-      0.55,
-      0.22 + music.bass * 0.3 + music.pulse * 0.3 + frame.glow * 0.3,
-    ),
-  );
-  core.addColorStop(0.6, inkAt(colours, 0.85, 0.08 + music.bass * 0.14));
-  core.addColorStop(1, inkAt(colours, 0.85, 0));
-  context.fillStyle = core;
-  context.beginPath();
-  context.arc(cx, cy, radius, 0, Math.PI * 2);
-  context.fill();
-  context.restore();
-
-  // The ring itself: a thin line the rays stand on.
-  context.save();
-  context.lineWidth = 1.5;
-  context.strokeStyle = `rgba(255, 255, 255, ${(0.28 + music.pulse * 0.4).toFixed(3)})`;
-  context.beginPath();
-  context.arc(cx, cy, radius, 0, Math.PI * 2);
-  context.stroke();
-  context.restore();
-
+  const base = rayBase(radius);
   const half = row.count;
-  const rayPitch = (Math.PI * base) / half;
-  const halfWidth = Math.max(0.6, (rayPitch * (1 - clampUnit(look.gap))) / 2);
-  const groups = look.ink === 'heat' ? HEAT_STEPS : 1;
-  const rays: Path2D[] = [];
-  for (let group = 0; group < groups; group += 1) {
-    rays.push(new Path2D());
-  }
-  const tips = new Path2D();
-  const held = new Path2D();
-  const outline = new Path2D();
-  const tipXs: number[] = [];
-  const tipYs: number[] = [];
-  // Round the ring clockwise from the bottom: up the left side, then down
-  // the right, each side the spectrum from the bass at the bottom.
-  for (let ray = 0; ray < half * 2; ray += 1) {
-    const isLeft = ray < half;
-    const piece = isLeft ? ray : half * 2 - 1 - ray;
+  for (let at = 0; at < half * 2; at += 1) {
+    const isLeft = at < half;
+    const piece = isLeft ? at : half * 2 - 1 - at;
     const fromBottom = (piece + 0.5) / half;
     const level = row.levels[piece];
     const angle =
       Math.PI / 2 + (isLeft ? fromBottom : 2 - fromBottom) * Math.PI + turn;
     const cos = Math.cos(angle);
     const sin = Math.sin(angle);
-    const length = 2 + level * reach;
+    const length = rayLength(level, reach);
     const tip = base + length;
-    // The ray as a slim quad, so it can be filled — and textured — like any
-    // other body, rather than a stroke that nothing can be printed in.
-    const across = [-sin * halfWidth, cos * halfWidth];
-    const path = rays[look.ink === 'heat' ? heatStep(level) : 0];
-    path.moveTo(cx + cos * base + across[0], cy + sin * base + across[1]);
-    path.lineTo(cx + cos * tip + across[0], cy + sin * tip + across[1]);
-    path.lineTo(cx + cos * tip - across[0], cy + sin * tip - across[1]);
-    path.lineTo(cx + cos * base - across[0], cy + sin * base - across[1]);
-    path.closePath();
-    tipXs.push(cx + cos * tip);
-    tipYs.push(cy + sin * tip);
-    if (level > 0.6 && fromBottom > 0.55 && music.treble > 0.2) {
-      const sparkX = cx + cos * (tip + 2);
-      const sparkY = cy + sin * (tip + 2);
-      tips.moveTo(sparkX + 1.8, sparkY);
-      tips.arc(sparkX, sparkY, 1.8, 0, Math.PI * 2);
-    }
-    const heldLength = 2 + state.peaks.held[piece] * reach;
-    if (look.accents && heldLength - length > 3) {
-      const dotX = cx + cos * (base + heldLength);
-      const dotY = cy + sin * (base + heldLength);
-      const dot = Math.max(1.2, halfWidth * 0.9);
-      held.moveTo(dotX + dot, dotY);
-      held.arc(dotX, dotY, dot, 0, Math.PI * 2);
-    }
+    ray({ piece, fromBottom, level, cos, sin, length, tip });
     if (
       music.onBeat &&
       level > 0.5 &&
       state.motes.length < MOTE_LIMIT &&
-      hash01(ray * 1.7 + state.seed) < 0.45
+      hash01(at * 1.7 + state.seed) < 0.45
     ) {
       state.seed += 1;
       const speed = 60 + 120 * hash01(state.seed * 2.9);
@@ -208,6 +190,88 @@ const drawCopy = (
       });
     }
   }
+};
+
+const drawCopy = (
+  frame: ISceneFrame,
+  band: IAnalysisBand,
+  state: IHaloState,
+  body: Path2D | undefined,
+): void => {
+  const { context, colours, music, look } = frame;
+  const { row, turn } = state;
+  const { cx, cy, radius, reach } = ringOf(frame, band);
+  const base = rayBase(radius);
+
+  // The core: light pooled in the ring, breathing with the bass and the
+  // look's Glow. Added to what is behind rather than laid over it, so it
+  // glows instead of painting a disc.
+  context.save();
+  context.globalCompositeOperation = 'lighter';
+  const light = coreLight(music, frame.glow);
+  const core = context.createRadialGradient(cx, cy, 0, cx, cy, radius);
+  core.addColorStop(0, lightInkAt(colours, 0.1, 0.55, light.middle));
+  core.addColorStop(0.6, inkAt(colours, 0.85, light.halfway));
+  core.addColorStop(1, inkAt(colours, 0.85, 0));
+  context.fillStyle = core;
+  context.beginPath();
+  context.arc(cx, cy, radius, 0, Math.PI * 2);
+  context.fill();
+  context.restore();
+
+  // The ring itself: a thin line the rays stand on.
+  context.save();
+  context.lineWidth = 1.5;
+  context.strokeStyle = `rgba(255, 255, 255, ${ringLineAlpha(music.pulse).toFixed(3)})`;
+  context.beginPath();
+  context.arc(cx, cy, radius, 0, Math.PI * 2);
+  context.stroke();
+  context.restore();
+
+  const half = row.count;
+  const halfWidth = rayHalfWidth(base, half, look.gap);
+  const groups = look.ink === 'heat' ? HEAT_STEPS : 1;
+  const rays: Path2D[] = [];
+  for (let group = 0; group < groups; group += 1) {
+    rays.push(new Path2D());
+  }
+  const tips = new Path2D();
+  const held = new Path2D();
+  const outline = new Path2D();
+  const tipXs: number[] = [];
+  const tipYs: number[] = [];
+  eachRay(
+    frame,
+    band,
+    state,
+    ({ piece, fromBottom, level, cos, sin, length, tip }) => {
+      // The ray as a slim quad, so it can be filled — and textured — like any
+      // other body, rather than a stroke that nothing can be printed in.
+      const across = [-sin * halfWidth, cos * halfWidth];
+      const path = rays[look.ink === 'heat' ? heatStep(level) : 0];
+      path.moveTo(cx + cos * base + across[0], cy + sin * base + across[1]);
+      path.lineTo(cx + cos * tip + across[0], cy + sin * tip + across[1]);
+      path.lineTo(cx + cos * tip - across[0], cy + sin * tip - across[1]);
+      path.lineTo(cx + cos * base - across[0], cy + sin * base - across[1]);
+      path.closePath();
+      tipXs.push(cx + cos * tip);
+      tipYs.push(cy + sin * tip);
+      if (raySparks(level, fromBottom, music.treble)) {
+        const sparkX = cx + cos * (tip + 2);
+        const sparkY = cy + sin * (tip + 2);
+        tips.moveTo(sparkX + 1.8, sparkY);
+        tips.arc(sparkX, sparkY, 1.8, 0, Math.PI * 2);
+      }
+      const heldLength = rayLength(state.peaks.held[piece], reach);
+      if (look.accents && heldLength - length > 3) {
+        const dotX = cx + cos * (base + heldLength);
+        const dotY = cy + sin * (base + heldLength);
+        const dot = Math.max(1.2, halfWidth * 0.9);
+        held.moveTo(dotX + dot, dotY);
+        held.arc(dotX, dotY, dot, 0, Math.PI * 2);
+      }
+    },
+  );
 
   const paint = roundInk(frame, cx, cy, base, base + reach, turn, 0, 0.95);
   context.save();
@@ -271,16 +335,21 @@ const drawCopy = (
   }
 };
 
-export const drawHalo = (
-  frame: ISceneFrame,
+/**
+ * The frame's turn and rays: the ring turned with the middle of the music, a
+ * slow walk at most, and the rays up one side laid out — never more than
+ * the smallest copy's ring can hold at the narrowest a ray reads.
+ */
+export const readHalo = (
+  frame: Pick<
+    ISceneReading,
+    'plot' | 'music' | 'bands' | 'xs' | 'levels' | 'look' | 'deltaMs'
+  >,
   state: IHaloState,
-): ISceneDrawn => {
-  // The ring turns with the middle of the music, a slow walk at most.
+): boolean => {
   state.turn =
     (state.turn + frame.music.step * (0.08 + frame.music.mid * 0.3)) %
     (Math.PI * 2);
-  // The rays up one side: never more than the smallest copy's ring can hold
-  // at the narrowest a ray reads.
   const [first] = frame.bands;
   const width = frame.plot.right - frame.plot.left;
   const smallest = frame.bands.reduce(
@@ -292,39 +361,56 @@ export const drawHalo = (
     Math.floor((Math.PI * (smallest + 3)) / MIN_RAY_PITCH),
   );
   const row = layPieces(frame, state.row, width / most);
-  const falling = holdPeaks(state.peaks, row.levels, row.count, frame.deltaMs);
+  return holdPeaks(state.peaks, row.levels, row.count, frame.deltaMs);
+};
+
+/**
+ * Every mote a frame older, the living kept: `mote` is handed where each is
+ * and how big. Answers how many live and the mean of their tints, which is
+ * the colour they are all drawn in.
+ */
+export const moveMotes = (
+  state: IHaloState,
+  deltaMs: number,
+  mote: (x: number, y: number, size: number) => void,
+): { alive: number; tint: number } => {
+  const seconds = deltaMs / 1000;
+  const alive: IMote[] = [];
+  let tint = 0;
+  state.motes.forEach((one) => {
+    one.age += seconds;
+    if (one.age >= one.life) {
+      return;
+    }
+    one.x += one.vx * seconds;
+    one.y += one.vy * seconds;
+    mote(one.x, one.y, 2.2 * (1 - one.age / one.life));
+    tint += one.tint;
+    alive.push(one);
+  });
+  state.motes = alive;
+  return { alive: alive.length, tint: alive.length ? tint / alive.length : 0 };
+};
+
+export const drawHalo = (
+  frame: ISceneFrame,
+  state: IHaloState,
+): ISceneDrawn => {
+  const falling = readHalo(frame, state);
   const body = frame.look.textured ? new Path2D() : undefined;
   frame.bands.forEach((band) => drawCopy(frame, band, state, body));
 
-  const seconds = frame.deltaMs / 1000;
   const motes = new Path2D();
-  const alive: IMote[] = [];
-  let tint = 0;
-  state.motes.forEach((mote) => {
-    mote.age += seconds;
-    if (mote.age >= mote.life) {
-      return;
-    }
-    mote.x += mote.vx * seconds;
-    mote.y += mote.vy * seconds;
-    const size = 2.2 * (1 - mote.age / mote.life);
-    motes.moveTo(mote.x + size, mote.y);
-    motes.arc(mote.x, mote.y, size, 0, Math.PI * 2);
-    tint += mote.tint;
-    alive.push(mote);
+  const { alive, tint } = moveMotes(state, frame.deltaMs, (x, y, size) => {
+    motes.moveTo(x + size, y);
+    motes.arc(x, y, size, 0, Math.PI * 2);
   });
-  state.motes = alive;
-  if (alive.length > 0) {
-    frame.context.fillStyle = lightInkAt(
-      frame.colours,
-      tint / alive.length,
-      0.4,
-      0.85,
-    );
+  if (alive > 0) {
+    frame.context.fillStyle = lightInkAt(frame.colours, tint, 0.4, 0.85);
     frame.context.fill(motes);
   }
   return {
-    moving: alive.length > 0 || (falling && frame.look.accents),
+    moving: alive > 0 || (falling && frame.look.accents),
     body,
   };
 };

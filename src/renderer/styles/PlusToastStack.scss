@@ -48,128 +48,39 @@ $toast-life: 7s;
   padding-bottom: 8px;
 }
 
-// The tone is the accent itself, not its light step: at the alphas an edge and
-// a glow take, the light step went to a grey that said nothing about success.
-// The ink — the mark and the line — is the light step, which is what reads on
-// the dark card.
-.plus-toast {
-  --plus-toast-tone: #{$secondary-default};
-  --plus-toast-ink: #{$secondary-light};
-  @include animate(slide-in-right, $motion-base);
-  position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 11px;
+// A `CompactFrame` like every notice that arrives on its own, sliding in from
+// the side it hangs from. Against the frame's class as well, so these win
+// over the frame's own rules whichever sheet the cascade reads last.
+.compact-frame.plus-toast {
+  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
+  // Lets the place close to nothing when the toast leaves.
   min-height: 0;
-  padding: 9px 8px 9px 9px;
   pointer-events: auto;
-  border: 1px solid color-mix(in srgb, var(--plus-toast-tone) 36%, transparent);
-  border-radius: $radius-m;
-  background:
-    radial-gradient(
-      130% 170% at 0% 50%,
-      color-mix(in srgb, var(--plus-toast-tone) 14%, transparent),
-      transparent 58%
-    ),
-    color-mix(in srgb, $surface-menu-top 97%, transparent);
-  box-shadow:
-    0 18px 38px -12px rgba($black, 0.65),
-    0 0 28px -8px color-mix(in srgb, var(--plus-toast-tone) 30%, transparent),
-    inset 0 1px rgba($white, 0.06);
-}
 
-.plus-toast--problem {
-  --plus-toast-tone: #{$amber};
-  --plus-toast-ink: #{$amber};
+  // The message holds only the draining line, which is laid along the card's
+  // foot: as a box of its own it would add the frame's gap under the title.
+  .compact-frame__message {
+    display: contents;
+  }
 }
 
 // The mark draws itself once the card has arrived: a tick being made reads as
-// the thing having just happened, where a static one reads as a state.
-.plus-toast__mark {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  color: var(--plus-toast-ink);
-  border-radius: 50%;
-  background:
-    radial-gradient(
-      circle at 50% 35%,
-      color-mix(in srgb, var(--plus-toast-tone) 32%, transparent),
-      transparent 72%
-    ),
-    color-mix(in srgb, var(--plus-toast-tone) 9%, transparent);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--plus-toast-tone) 38%, transparent),
-    0 0 16px color-mix(in srgb, var(--plus-toast-tone) 24%, transparent);
+// the thing having just happened, where a static one reads as a state. One
+// dash at least as long as the glyph's whole path, so at rest it covers all
+// of it — 19.8 units for the tick, 56 for the warning's triangle and its mark.
+.plus-toast__mark path {
+  --plus-toast-dash: 20;
+  stroke-dasharray: var(--plus-toast-dash);
+  @include animate(plus-toast-draw, $motion-slow, $ease-out, 110ms);
+}
 
-  svg {
-    width: 16px;
-    height: 16px;
-    stroke-width: 2;
-  }
-
-  // Longer than the tick (17.3 units on the glyph's grid) and than the
-  // exclamation's stroke, so one dash covers the whole path at rest.
-  path {
-    stroke-dasharray: 18;
-    @include animate(plus-toast-draw, $motion-slow, $ease-out, 110ms);
-  }
+.plus-toast--problem .plus-toast__mark path {
+  --plus-toast-dash: 57;
 }
 
 @keyframes plus-toast-draw {
   from {
-    stroke-dashoffset: 18;
-  }
-}
-
-// A notice that offers something to do takes one more column for it.
-.plus-toast:has(.plus-toast__action) {
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-}
-
-.plus-toast__action {
-  white-space: nowrap;
-}
-
-.plus-toast__text {
-  margin: 0;
-  color: $text-primary;
-  font-size: $text-body;
-  line-height: 1.45;
-  text-wrap: pretty;
-  // An exported scene's file name is one unbroken word, and it can be long.
-  overflow-wrap: anywhere;
-}
-
-.plus-toast__close {
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  color: $text-faint;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  transition:
-    background $motion-fast $ease-out,
-    color $motion-fast $ease-out,
-    border-color $motion-fast $ease-out;
-
-  svg {
-    width: 13px;
-    height: 13px;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: $text-primary;
-    border-color: $border-subtle;
-    background: color-mix(in srgb, $white 6%, transparent);
-    outline: none;
+    stroke-dashoffset: var(--plus-toast-dash);
   }
 }
 
@@ -185,8 +96,8 @@ $toast-life: 7s;
   border-radius: 2px;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--plus-toast-tone) 30%, transparent),
-    var(--plus-toast-ink)
+    color-mix(in srgb, $secondary-default 30%, transparent),
+    $secondary-light
   );
   transform-origin: left center;
   animation: plus-toast-life $toast-life linear forwards;
@@ -214,7 +125,6 @@ $toast-life: 7s;
   animation: plus-toast-collapse $motion-base $ease-out 90ms forwards;
 
   .plus-toast {
-    overflow: hidden;
     pointer-events: none;
     animation: plus-toast-out $motion-fast $ease-out forwards;
   }

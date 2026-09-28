@@ -95,7 +95,20 @@ export interface IMoteBand {
   alpha: number;
 }
 
-export const createBubbleMotePaths = (
+/** One speck this frame: where it is, its half-size, whether it is bright. */
+export interface IMoteSpot {
+  x: number;
+  y: number;
+  half: number;
+  bright: boolean;
+}
+
+/**
+ * The specks as they stand this frame, and how solid each band is: two
+ * bands, a few bright ones that answer the treble and the rest holding the
+ * screen. What both painters draw from.
+ */
+export const bubbleMoteLayout = (
   state: BubbleMotes,
   seconds: number,
   sizeHeight: number,
@@ -105,25 +118,41 @@ export const createBubbleMotePaths = (
   const width = Math.max(1, frame.right - frame.left);
   const deep = Math.max(1, frame.bottom - frame.top);
   const size = Math.max(0.7, Math.min(3.2, sizeHeight / 230));
-
-  // Two bands: a few bright ones that answer the treble, and the rest
-  // holding the screen. One fill each, whatever the count.
-  const bands: IMoteBand[] = [
-    { path: new Path2D(), alpha: 0.45 + state.treble * 0.45 },
-    { path: new Path2D(), alpha: 0.16 },
-  ];
-  state.motes.forEach((mote) => {
-    const x =
-      left +
-      mote.x * width +
-      Math.sin(seconds * 0.5 + mote.seed) * width * 0.014;
-    const y = frame.bottom - mote.phase * deep;
+  const spots: IMoteSpot[] = state.motes.map((mote) => {
     const bright = noise(mote.seed * 11) > 0.74;
-    const r = size * (bright ? 1 : 0.6);
-    bands[bright ? 0 : 1].path.rect(x - r, y - r, r * 2, r * 2);
+    return {
+      x:
+        left +
+        mote.x * width +
+        Math.sin(seconds * 0.5 + mote.seed) * width * 0.014,
+      y: frame.bottom - mote.phase * deep,
+      half: size * (bright ? 1 : 0.6),
+      bright,
+    };
   });
+  return {
+    spots,
+    brightAlpha: 0.45 + state.treble * 0.45,
+    dimAlpha: 0.16,
+  };
+};
 
-  return { bands, bass: state.bass };
+export const createBubbleMotePaths = (
+  state: BubbleMotes,
+  seconds: number,
+  sizeHeight: number,
+  frame: ISkyFrame,
+) => {
+  const layout = bubbleMoteLayout(state, seconds, sizeHeight, frame);
+  // One fill a band, whatever the count.
+  const bands: IMoteBand[] = [
+    { path: new Path2D(), alpha: layout.brightAlpha },
+    { path: new Path2D(), alpha: layout.dimAlpha },
+  ];
+  layout.spots.forEach(({ x, y, half, bright }) => {
+    bands[bright ? 0 : 1].path.rect(x - half, y - half, half * 2, half * 2);
+  });
+  return { bands, bass: state.bass, layout };
 };
 
 export type BubbleMotePaths = ReturnType<typeof createBubbleMotePaths>;

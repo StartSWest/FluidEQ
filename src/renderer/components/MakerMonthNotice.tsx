@@ -11,13 +11,14 @@ import {
   makerMonthState,
   type IMakerMonth,
 } from 'common/makerMonth';
-import Glyph from '../community/Glyph';
+import MenuIcon from '../icons/MenuIcon';
 import { useAccount } from '../account/accountStore';
 import { loadMakerMonth, useMakerMonth } from '../plus/makerMonthStore';
 import { openPlusPlace } from '../plus/plusNavigation';
 import { requestPlusTab } from '../plus/plusTabRequest';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
+import CompactFrame from './CompactFrame';
 import '../styles/SceneReviewNotice.scss';
 
 /**
@@ -139,34 +140,33 @@ export default function MakerMonthNotice() {
   };
 
   return (
-    <div
-      className="scene-review-notice scene-review-notice--waiting maker-month-notice"
+    <CompactFrame
+      className="scene-review-notice maker-month-notice"
+      icon={<MenuIcon name="pending" />}
+      title={title()}
+      titleId="maker-month-notice-title"
       role="dialog"
-      aria-labelledby="maker-month-notice-title"
+      aria-modal="false"
+      onClose={close}
+      closeLabel={t('app.dismiss')}
+      actions={
+        <>
+          <button type="button" className="button small subtle" onClick={close}>
+            {t('account.maker.notice.later')}
+          </button>
+          <button type="button" className="button small" onClick={open}>
+            {t('account.maker.notice.open')}
+          </button>
+        </>
+      }
     >
-      <div className="scene-review-notice__body">
-        <span className="scene-review-notice__mark" aria-hidden="true">
-          <Glyph name="calendar" />
-        </span>
-        <div className="scene-review-notice__text">
-          <strong id="maker-month-notice-title">{title()}</strong>
-          <p className="scene-review-notice__line">
-            {t(
-              which === 'ended'
-                ? 'account.maker.notice.endedBody'
-                : 'account.maker.notice.endingBody',
-            )}
-          </p>
-        </div>
-      </div>
-      <div className="scene-review-notice__actions">
-        <button type="button" className="button small subtle" onClick={close}>
-          {t('account.maker.notice.later')}
-        </button>
-        <button type="button" className="button small" onClick={open}>
-          {t('account.maker.notice.open')}
-        </button>
-      </div>
-    </div>
+      <p className="scene-review-notice__line">
+        {t(
+          which === 'ended'
+            ? 'account.maker.notice.endedBody'
+            : 'account.maker.notice.endingBody',
+        )}
+      </p>
+    </CompactFrame>
   );
 }

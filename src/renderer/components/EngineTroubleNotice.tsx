@@ -4,15 +4,17 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { isEngineProblem, type TEngineProblem } from 'common/engineHealth';
 import type { TranslationKey } from 'common/i18n/en';
 import type { TEngineTrouble } from '../audio/engineTrouble';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
 import Button from '../widgets/Button';
-// The output notice's look, which this shares: it is the same message — this
+import CompactFrame from './CompactFrame';
+// The output notice's spot, which this shares: it is the same message — this
 // output is not being processed — for a different reason.
 import '../styles/DeviceProfiles.scss';
 import '../styles/EngineTroubleNotice.scss';
@@ -166,7 +168,9 @@ const EngineTroubleNotice = ({
   const dismiss = () => putAway(trouble.key);
   // Loud where it is the way out, quiet where it is the alternative: with an
   // engine Windows has never created, Equalizer APO is the only thing on this
-  // card that processes any sound at all.
+  // card that processes any sound at all. Every row below keeps the app's one
+  // order — the quiet answers first, the recommended one last — and has
+  // exactly one loud button.
   const useApo = canApoHelp ? (
     <Button
       ariaLabel={t('engineHealth.useApo')}
@@ -208,126 +212,127 @@ const EngineTroubleNotice = ({
     }
   }
 
+  let actions: ReactNode;
+  if (newEngineHelps) {
+    // A fresh engine is the answer, the restart demoted beside it: still
+    // worth a press for whatever else on the card a restart does mend, but no
+    // longer the answer being recommended.
+    actions = (
+      <>
+        {notNow}
+        {useApo}
+        {canRestartHelp && restart}
+        <Button
+          ariaLabel={t('engineUpdate.action')}
+          isDisabled={false}
+          className="small"
+          handleChange={onInstallEngine}
+        >
+          {t('engineUpdate.action')}
+        </Button>
+      </>
+    );
+  } else if (canRestartHelp) {
+    actions = (
+      <>
+        {notNow}
+        {useApo}
+        {restart}
+      </>
+    );
+  } else if (bypassed) {
+    // Windows is playing this output through a chain the engine is not in.
+    // Moving it to another of the output's effect slots is the one thing that
+    // can put it in the way of the music, so it is the recommendation; a
+    // restart would rebuild the very same chains.
+    actions = (
+      <>
+        {notNow}
+        {useApo}
+        <Button
+          ariaLabel={t('engineHealth.tryAnotherSlot')}
+          isDisabled={false}
+          className="small"
+          handleChange={() => onTryAnotherSlot(trouble.device.guid)}
+        >
+          {t('engineHealth.tryAnotherSlot')}
+        </Button>
+      </>
+    );
+  } else if (neverRan) {
+    // An engine Windows has never created: Equalizer APO is the way to have
+    // any processing at all, so it is the loud one here.
+    actions = (
+      <>
+        {notNow}
+        {useApo}
+      </>
+    );
+  } else {
+    // Nothing here mends a file the engine could not read — the answer is a
+    // different file, chosen where it was chosen.
+    actions = (
+      <>
+        {useApo}
+        <Button
+          ariaLabel={t('output.gotIt')}
+          isDisabled={false}
+          className="small"
+          handleChange={dismiss}
+        >
+          {t('output.gotIt')}
+        </Button>
+      </>
+    );
+  }
+
   return createPortal(
-    <aside
-      className={`device-apo-notice engine-trouble-notice${
-        isOff ? '' : ' engine-trouble-notice--partial'
-      }`}
-      role="alertdialog"
-      aria-labelledby="engine-trouble-notice-title"
+    <CompactFrame
+      className="device-apo-notice engine-trouble-notice"
+      tone="warn"
+      icon={<MenuIcon name="alert" />}
+      title={t(titleKey, { device: trouble.device.name })}
+      titleId="engine-trouble-notice-title"
+      // A notice over the page, not a dialog in front of it: nothing here has
+      // to be answered before the window is usable again.
+      role="dialog"
+      aria-modal="false"
       aria-describedby={
         newEngineHelps
           ? 'engine-trouble-notice-body engine-trouble-notice-repair'
           : 'engine-trouble-notice-body'
       }
+      onClose={dismiss}
+      closeLabel={t('app.dismiss')}
+      actions={actions}
     >
-      <div className="device-apo-notice__copy">
-        <span className="apo-badge">
-          {isOff ? t('output.off') : t('engineHealth.partlyOff')}
-        </span>
-        <h2 id="engine-trouble-notice-title">
-          {t(titleKey, { device: trouble.device.name })}
-        </h2>
-        {isOff ? (
-          <p id="engine-trouble-notice-body">
-            {bypassed && t('engineHealth.bypassedBody')}
-            {!bypassed &&
-              neverRan &&
-              t('engineHealth.neverRanBody', { device: trouble.device.name })}
-            {!bypassed && !neverRan && t('engineHealth.offBody')}
-          </p>
-        ) : (
-          <ul
-            id="engine-trouble-notice-body"
-            className="engine-trouble-notice__problems"
-          >
-            {problemLines(trouble.problems).map((line) => (
-              <li key={line}>{t(line)}</li>
-            ))}
-          </ul>
-        )}
-        {/* Sits under the list rather than in it: the list is what is off,
-            this is what mends it. */}
-        {newEngineHelps && (
-          <p id="engine-trouble-notice-repair">
-            {engineIsOld ? `${t('engineHealth.engineIsOld')} ` : ''}
-            {t('engineHealth.rackNeedsEngine')}
-          </p>
-        )}
-      </div>
-      <div className="device-apo-notice__actions">
-        {/* A fresh engine first, the restart demoted beside it: the restart
-            is still worth a press for whatever else on the card a restart
-            does mend, but it is no longer the answer being recommended. */}
-        {newEngineHelps && (
-          <>
-            <Button
-              ariaLabel={t('engineUpdate.action')}
-              isDisabled={false}
-              className="small"
-              handleChange={onInstallEngine}
-            >
-              {t('engineUpdate.action')}
-            </Button>
-            {canRestartHelp && restart}
-            {useApo}
-            {notNow}
-          </>
-        )}
-        {!newEngineHelps && canRestartHelp && (
-          <>
-            {restart}
-            {useApo}
-            {notNow}
-          </>
-        )}
-        {!newEngineHelps && !canRestartHelp && (
-          <>
-            {/* Windows is playing this output through a chain the engine is
-                not in. Moving it to another of the output's effect slots is
-                the one thing that can put it in the way of the music, and it
-                leads; a restart would rebuild the very same chains. */}
-            {bypassed && (
-              <>
-                <Button
-                  ariaLabel={t('engineHealth.tryAnotherSlot')}
-                  isDisabled={false}
-                  className="small"
-                  handleChange={() => onTryAnotherSlot(trouble.device.guid)}
-                >
-                  {t('engineHealth.tryAnotherSlot')}
-                </Button>
-                {useApo}
-                {notNow}
-              </>
-            )}
-            {/* An engine Windows has never created: Equalizer APO is the way
-                to have any processing at all, so it leads. Otherwise nothing
-                here mends a file the engine could not read — the answer is a
-                different file, chosen where it was chosen. */}
-            {!bypassed && neverRan ? (
-              <>
-                {useApo}
-                {notNow}
-              </>
-            ) : null}
-            {!bypassed && !neverRan ? (
-              <>
-                <Button
-                  ariaLabel={t('output.gotIt')}
-                  isDisabled={false}
-                  className="small"
-                  handleChange={dismiss}
-                >
-                  {t('output.gotIt')}
-                </Button>
-                {useApo}
-              </>
-            ) : null}
-          </>
-        )}
-      </div>
-    </aside>,
+      {isOff ? (
+        <p id="engine-trouble-notice-body">
+          {bypassed && t('engineHealth.bypassedBody')}
+          {!bypassed &&
+            neverRan &&
+            t('engineHealth.neverRanBody', { device: trouble.device.name })}
+          {!bypassed && !neverRan && t('engineHealth.offBody')}
+        </p>
+      ) : (
+        <ul
+          id="engine-trouble-notice-body"
+          className="engine-trouble-notice__problems"
+        >
+          {problemLines(trouble.problems).map((line) => (
+            <li key={line}>{t(line)}</li>
+          ))}
+        </ul>
+      )}
+      {/* Sits under the list rather than in it: the list is what is off,
+          this is what mends it. */}
+      {newEngineHelps && (
+        <p id="engine-trouble-notice-repair">
+          {engineIsOld ? `${t('engineHealth.engineIsOld')} ` : ''}
+          {t('engineHealth.rackNeedsEngine')}
+        </p>
+      )}
+    </CompactFrame>,
     document.body,
   );
 };
