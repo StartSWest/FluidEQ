@@ -66,7 +66,7 @@ export const exitDevSessionOnAppQuit = (
       if ((error as NodeJS.ErrnoException).code !== 'ESRCH') {
         // The app is already exiting, so report the launcher failure without
         // turning a successful application quit into a crash.
-        // eslint-disable-next-line no-console
+        // eslint-disable-next-line no-console -- the app is already quitting; nowhere else to say it
         console.error('Could not stop the FluidEQ dev session.', error);
       }
     }

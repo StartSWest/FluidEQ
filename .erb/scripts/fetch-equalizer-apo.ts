@@ -119,13 +119,13 @@ export const fetchEqualizerApo = async (): Promise<string> => {
   }
 
   const failures: string[] = [];
-  // eslint-disable-next-line no-restricted-syntax
+  // eslint-disable-next-line no-restricted-syntax -- mirrors are tried one after another until one serves the file
   for (const mirror of MIRRORS) {
     const url = `${mirror}/${APO_VERSION}/${APO_INSTALLER}?viasf=1`;
     try {
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- one mirror at a time: the next is asked only if this one failed
       await download(url, target);
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- the file just downloaded, hashed before anything trusts it
       const digest = sha256(target);
       if (digest !== APO_INSTALLER_SHA256) {
         throw new Error(
@@ -176,10 +176,10 @@ export const fetchEqualizerApoSource = async (): Promise<string> => {
   }
 
   const failures: string[] = [];
-  // eslint-disable-next-line no-restricted-syntax
+  // eslint-disable-next-line no-restricted-syntax -- mirrors are tried one after another until one serves the file
   for (const mirror of MIRRORS) {
     try {
-      // eslint-disable-next-line no-await-in-loop
+      // eslint-disable-next-line no-await-in-loop -- one mirror at a time: the next is asked only if this one failed
       await download(
         `${mirror}/${APO_VERSION}/${APO_SOURCE_ARCHIVE}?viasf=1`,
         target,

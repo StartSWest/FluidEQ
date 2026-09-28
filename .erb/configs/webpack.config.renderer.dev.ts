@@ -28,10 +28,9 @@ if (process.env.NODE_ENV === 'production') {
 
 const port = process.env.PORT || 1212;
 const manifest = path.resolve(webpackPaths.dllPath, 'renderer.json');
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const requiredByDLLConfig = module.parent!.filename.includes(
-  'webpack.config.renderer.dev.dll',
-);
+// Loaded as the entry, with no parent, it is not the DLL config asking.
+const requiredByDLLConfig =
+  module.parent?.filename.includes('webpack.config.renderer.dev.dll') ?? false;
 
 /**
  * Warn if the DLL is not built

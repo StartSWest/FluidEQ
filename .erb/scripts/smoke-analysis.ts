@@ -76,7 +76,7 @@ const renderSliced = async (
     // eslint-disable-next-line no-await-in-loop -- the slices are sequential by
     // construction; that is the point of them.
     await host.renderToFile(24_000, target);
-    // eslint-disable-next-line no-await-in-loop
+    // eslint-disable-next-line no-await-in-loop -- the host renders each slice in real time before the next is asked for
     await sleep(60);
   }
 };
@@ -344,7 +344,10 @@ const main = async (): Promise<void> => {
    */
   const punchReach = frames.reduce(
     (best, frame) => ({
-      transient: Math.max(best.transient, Math.abs(frame.bassPunch.transientGainDb)),
+      transient: Math.max(
+        best.transient,
+        Math.abs(frame.bassPunch.transientGainDb),
+      ),
       sustain: Math.max(best.sustain, Math.abs(frame.bassPunch.sustainGainDb)),
       duck: Math.max(best.duck, Math.abs(frame.bassPunch.duckGainDb)),
     }),

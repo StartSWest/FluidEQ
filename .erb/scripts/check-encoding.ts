@@ -75,6 +75,9 @@ const TEXT_EXTENSIONS = new Set([
   '.h',
   '.hpp',
   '.nsh',
+  // The scripts most likely to be edited from PowerShell itself, whose
+  // `Set-Content` is what mangles a file in the first place.
+  '.ps1',
 ]);
 
 /**

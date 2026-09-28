@@ -82,7 +82,7 @@ const run = () => {
     return;
   }
 
-  /* eslint-disable global-require, @typescript-eslint/no-var-requires */
+  /* eslint-disable global-require, @typescript-eslint/no-var-requires -- loaded only on Windows, where the resource editor exists */
   const {
     NtExecutable,
     NtExecutableResource,

@@ -32,6 +32,17 @@ const STYLES_DIR = path.join(
 
 const failures: string[] = [];
 
+/**
+ * Every stylesheet under the styles folder, subfolders included, by its path
+ * from it. The scans below used to read the folder alone, and the classic
+ * amp's sixteen partials in 'ampClassic/' shipped with neither rule checked.
+ */
+const ALL_SHEETS = (
+  readdirSync(STYLES_DIR, { recursive: true, encoding: 'utf8' }) as string[]
+)
+  .filter((name) => name.endsWith('.scss'))
+  .map((name) => name.split(path.sep).join('/'));
+
 readdirSync(STYLES_DIR)
   .filter((name) => name.endsWith('.scss') && !name.startsWith('_'))
   .forEach((name) => {
@@ -71,18 +82,16 @@ if (failures.length > 0) {
 // number after it rather than simply for a digit.
 const weightOffenders: string[] = [];
 
-readdirSync(STYLES_DIR)
-  .filter((name) => name.endsWith('.scss') && name !== '_theme.scss')
-  .forEach((name) => {
-    readFileSync(path.join(STYLES_DIR, name), 'utf8')
-      .split('\n')
-      .forEach((line, index) => {
-        const match = /font-weight:\s*(\d+)(?!\s*\d)/.exec(line);
-        if (match) {
-          weightOffenders.push(`${name}:${index + 1}  font-weight: ${match[1]}`);
-        }
-      });
-  });
+ALL_SHEETS.filter((name) => name !== '_theme.scss').forEach((name) => {
+  readFileSync(path.join(STYLES_DIR, name), 'utf8')
+    .split('\n')
+    .forEach((line, index) => {
+      const match = /font-weight:\s*(\d+)(?!\s*\d)/.exec(line);
+      if (match) {
+        weightOffenders.push(`${name}:${index + 1}  font-weight: ${match[1]}`);
+      }
+    });
+});
 
 if (weightOffenders.length > 0) {
   console.error(
@@ -99,18 +108,16 @@ if (weightOffenders.length > 0) {
 // `inherit` and negative values stay allowed: none of them spreads a word.
 const trackingOffenders: string[] = [];
 
-readdirSync(STYLES_DIR)
-  .filter((name) => name.endsWith('.scss') && name !== '_theme.scss')
-  .forEach((name) => {
-    readFileSync(path.join(STYLES_DIR, name), 'utf8')
-      .split('\n')
-      .forEach((line, index) => {
-        const match = /letter-spacing:\s*(\d*\.?\d+)(em|rem|px)\b/.exec(line);
-        if (match && Number.parseFloat(match[1]) > 0) {
-          trackingOffenders.push(`${name}:${index + 1}  ${line.trim()}`);
-        }
-      });
-  });
+ALL_SHEETS.filter((name) => name !== '_theme.scss').forEach((name) => {
+  readFileSync(path.join(STYLES_DIR, name), 'utf8')
+    .split('\n')
+    .forEach((line, index) => {
+      const match = /letter-spacing:\s*(\d*\.?\d+)(em|rem|px)\b/.exec(line);
+      if (match && Number.parseFloat(match[1]) > 0) {
+        trackingOffenders.push(`${name}:${index + 1}  ${line.trim()}`);
+      }
+    });
+});
 
 if (trackingOffenders.length > 0) {
   console.error(

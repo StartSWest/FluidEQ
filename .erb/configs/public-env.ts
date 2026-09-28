@@ -1,5 +1,5 @@
 import loadDotenv from '../scripts/load-dotenv';
-// eslint-disable-next-line import/no-relative-packages
+// eslint-disable-next-line import/no-relative-packages -- the version stamped into the build is the app package's own
 import { version } from '../../release/app/package.json';
 
 loadDotenv();
