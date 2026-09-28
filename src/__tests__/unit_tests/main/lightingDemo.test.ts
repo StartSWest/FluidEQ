@@ -133,6 +133,16 @@ it('hands the page the Studio starter as a pack that passes every rule', () => {
   expect(lightingDemoScene()).toBe(pack);
 });
 
+/*
+ * Declaring the control is what the Studio checks; drawing with it is what
+ * the listener sees. The starter declared Daylight and drew the same night
+ * at every Brightness until it took Hanami's day look.
+ */
+it('draws the day its Daylight control declares', () => {
+  const reads = STARTER_SOURCE.match(/\buParam_daylight\b/g) ?? [];
+  expect(reads.length).toBeGreaterThan(0);
+});
+
 it('lights the devices with the demo without Plus, switch off, until the page lets go', () => {
   const { service, chroma, ensureIdentity } = setup(false);
   expect(service.state().settings.enabled).toBe(false);

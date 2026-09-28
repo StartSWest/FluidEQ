@@ -108,6 +108,11 @@ float gBass;    // eased: the moon's halo
 float gMids;    // eased: the blossom's warmth
 float gTreble;  // quick: stars and petals
 float gBody;    // eased: the whole song, for the mist and the far lights
+// The time of day (the Daylight control, which FluidEQ sets from the
+// window's Brightness): 0 the moonlit night, 1 a spring afternoon - blue sky
+// and white cloud, a pale moon still up, the blossom in sunlight and the
+// lanterns' coloured paper lit by day, still brightening with the music.
+float gDay;
 
 void listen() {
   gBass = heard(0.17, slowAt(0.17));
@@ -116,6 +121,7 @@ void listen() {
   // the hi-hats are busy.
   gTreble = smoothstep(0.02, 0.18, uBands.z);
   gBody = (gBass + gMids + heard(0.75, slowAt(0.75))) / 3.0;
+  gDay = smoothstep(0.0, 1.0, clamp(uParam_daylight / 100.0, 0.0, 1.0));
 }
 
 // ---- Where everything is ----------------------------------------------------
@@ -205,7 +211,11 @@ vec3 skyColour(vec2 p) {
   c += vec3(0.55, 0.62, 0.95) * exp(-max(d - MOON_R, 0.0) / 0.014) * 0.22 * uParam_moon;
   // The lanterns warm the air they hang in.
   float air = exp(-abs(p.y - gString + gSize * 2.0) / (0.08 * gScale + 0.03));
-  return c + vec3(0.3, 0.11, 0.05) * air * gLanternLight * (0.15 + 0.4 * uParam_glow);
+  c += vec3(0.3, 0.11, 0.05) * air * gLanternLight * (0.15 + 0.4 * uParam_glow);
+  // The day's sky: pale along the far shore, deepening to blue overhead.
+  vec3 day = mix(vec3(0.86, 0.88, 0.90), vec3(0.62, 0.76, 0.91), smoothstep(0.0, 0.45, h));
+  day = mix(day, vec3(0.38, 0.58, 0.86), smoothstep(0.4, 1.0, h));
+  return mix(c, day + vec3(0.08, 0.04, 0.02) * air * gLanternLight * (0.15 + 0.4 * uParam_glow), gDay);
 }
 
 vec3 stars(vec3 c, vec2 p) {
@@ -228,7 +238,7 @@ vec3 stars(vec3 c, vec2 p) {
     float radius = min(gPx * mix(0.8, 1.7, bright), 0.0025);
     float twinkle = 1.0 - (0.1 + 0.6 * gTreble) * (0.5 + 0.5 * sin(cycle(700.0 + seed * 2000.0) + seed * TAU));
     float light = smoothstep(radius * 1.6, radius * 0.3, d) + 0.3 * bright * exp(-d / (radius * 3.5));
-    c += vec3(0.8, 0.85, 1.0) * light * bright * twinkle * fade;
+    c += vec3(0.8, 0.85, 1.0) * light * bright * twinkle * fade * (1.0 - gDay);
   }
   return c;
 }
@@ -244,7 +254,8 @@ vec3 moonDisc(vec3 c, vec2 p) {
   float maria = smoothstep(0.5, 0.8, noise(q / MOON_R * 2.2 + 7.0)) * 0.7
               + smoothstep(0.55, 0.9, noise(q / MOON_R * 5.0 + 1.0)) * 0.3;
   vec3 face = vec3(1.0, 0.97, 0.91) * (0.86 + 0.14 * limb) * (1.0 - 0.12 * maria);
-  return mix(c, face * mix(0.55, 1.0, uParam_moon), inside);
+  // By day a pale moon, most of the sky's blue showing through it.
+  return mix(c, mix(face * mix(0.55, 1.0, uParam_moon), mix(c, vec3(0.97, 0.97, 0.98) * (0.9 + 0.1 * limb) * (1.0 - 0.1 * maria), 0.55), gDay), inside);
 }
 
 // Thin clouds drifting across the upper sky, silvered near the moon.
@@ -258,7 +269,9 @@ vec3 clouds(vec3 c, vec2 p) {
   float wisp = smoothstep(0.6, 0.86, shape) * band;
   float lit = exp(-length(p - gMoonAt) / 0.28) * uParam_moon;
   vec3 colour = vec3(0.06, 0.055, 0.11) + vec3(0.5, 0.52, 0.72) * lit * (0.6 + 0.4 * gBass);
-  return mix(c, colour, wisp * 0.6);
+  // By day white cloud, a little grey where it is thick.
+  colour = mix(colour, vec3(0.98, 0.98, 0.99) - vec3(0.14, 0.13, 0.11) * smoothstep(0.75, 0.95, shape), gDay);
+  return mix(c, colour, wisp * mix(0.6, 0.85, gDay));
 }
 
 // A shooting star for the rare big moment. Its envelope lasts about a third of
@@ -341,8 +354,8 @@ vec3 pagoda(vec3 c, vec2 p) {
   float spire = boxCover(q, vec2(-0.007, 0.84), vec2(0.007, 1.12), aa);
   float rings = boxCover(q, vec2(-0.02, 0.88), vec2(0.02, 1.0), aa) * step(0.5, fract(q.y * 50.0));
   solid = max(solid, max(spire, rings));
-  c = mix(c, vec3(0.035, 0.028, 0.07), solid);
-  return c + vec3(1.0, 0.6, 0.28) * windows * (0.35 + 0.5 * gBody);
+  c = mix(c, mix(vec3(0.035, 0.028, 0.07), vec3(0.30, 0.20, 0.22), gDay), solid);
+  return c + vec3(1.0, 0.6, 0.28) * windows * (0.35 + 0.5 * gBody) * (1.0 - gDay);
 }
 
 vec3 shoreLights(vec3 c, vec2 p) {
@@ -355,7 +368,7 @@ vec3 shoreLights(vec3 c, vec2 p) {
   vec2 at = vec2((id + 0.2 + 0.6 * hash(vec2(id, 3.0))) * w, gWater + 0.005 + 0.008 * hash(vec2(id, 8.0)));
   float twinkle = 0.75 + 0.25 * sin(cycle(300.0 + seed * 900.0) + seed * 20.0);
   float d = length((p - at) * vec2(1.0, 1.4));
-  return c + vec3(1.0, 0.66, 0.35) * exp(-d / (gPx * 1.6 + 0.0008)) * 0.6 * twinkle * (0.5 + 0.5 * gBody);
+  return c + vec3(1.0, 0.66, 0.35) * exp(-d / (gPx * 1.6 + 0.0008)) * 0.6 * twinkle * (0.5 + 0.5 * gBody) * (1.0 - gDay);
 }
 
 vec3 shore(vec3 c, vec2 p) {
@@ -364,15 +377,15 @@ vec3 shore(vec3 c, vec2 p) {
   }
   // The far range, pale with distance; the pagoda; the trees on the shore.
   float ridge = smoothstep(gPx, -gPx, p.y - ridgeTop(p.x));
-  c = mix(c, mix(c, vec3(0.07, 0.055, 0.14), 0.75), ridge);
+  c = mix(c, mix(c, mix(vec3(0.07, 0.055, 0.14), vec3(0.58, 0.64, 0.74), gDay), 0.75), ridge);
   c = pagoda(c, p);
   float trees = smoothstep(gPx, -gPx, p.y - treeTop(p.x));
-  c = mix(c, vec3(0.016, 0.014, 0.035), trees);
+  c = mix(c, mix(vec3(0.016, 0.014, 0.035), vec3(0.26, 0.36, 0.28), gDay), trees);
   c = shoreLights(c, p);
   // Mist along the far edge of the water, drifting, lifted by the song.
   float mist = exp(-pow((p.y - gWater - 0.015) / 0.045, 2.0));
   float drift = loopNoise(vec2(p.x * 3.0 - uTime * 480.0 / 3600.0, p.y * 10.0), 24.0);
-  vec3 tint = mix(vec3(0.36, 0.32, 0.58), vec3(0.9, 0.45, 0.25), gLanternLight * 0.6);
+  vec3 tint = mix(mix(vec3(0.36, 0.32, 0.58), vec3(0.9, 0.45, 0.25), gLanternLight * 0.6), vec3(0.8, 0.82, 0.86), gDay);
   return c + tint * mist * (0.35 + 0.65 * drift) * (0.07 + 0.16 * gBody);
 }
 
@@ -437,7 +450,7 @@ vec3 lanternHalo(Lantern l, vec2 p) {
   float fade = 1.0 - smoothstep(edge * 0.5, edge, d);
   float strength = (0.04 + 0.85 * l.light) * (0.35 + 0.9 * uParam_glow);
   vec3 tint = paperOf(l.tone) * 0.6 + vec3(0.4, 0.3, 0.2);
-  return tint * fade * strength * (0.5 * exp(-d / (l.size * 0.8)) + 0.18 * exp(-d / (l.size * 2.4)));
+  return tint * fade * strength * (1.0 - 0.7 * gDay) * (0.5 * exp(-d / (l.size * 0.8)) + 0.18 * exp(-d / (l.size * 2.4)));
 }
 
 vec3 lanternBody(vec3 c, vec2 p, Lantern l) {
@@ -480,6 +493,9 @@ vec3 lanternBody(vec3 c, vec2 p, Lantern l) {
   float hot = exp(-(n.x * n.x * 2.4 + n.y * n.y * 1.2) * 1.6);
   col += mix(vec3(1.0, 0.55, 0.25), vec3(1.0, 0.88, 0.62), l.light) * hot
        * (0.12 + 0.6 * l.light * (0.5 + 0.7 * uParam_glow) + 0.28 * l.onset + 0.55 * l.flare);
+  // By day the paper is lit by the sun as well as the candle, so its colour
+  // shows even where the candle is low, and the candle still lifts it.
+  col = mix(col, paper * (0.5 + 0.35 * pow(facing, 1.2)) * bulge * (1.0 - 0.3 * rib) + col * 0.55, gDay);
   c = mix(c, col, body);
   c = mix(c, vec3(0.025, 0.018, 0.02) + paper * 0.05 * candle, caps);
   c = mix(c, paper * (0.25 + 0.35 * candle), max(cord, tuft));
@@ -496,7 +512,7 @@ vec3 lanternOnWater(vec3 c, vec2 p, Lantern l) {
   float column = exp(-across * across * 2.2) * (1.0 - smoothstep(reach * 0.2, reach, below));
   float dash = smoothstep(0.42, 0.82, loopNoise(vec2(below * 420.0 - uTime * 2160.0 / 3600.0, p.x * 70.0), 60.0));
   vec3 tint = paperOf(l.tone) * 0.7 + vec3(0.3, 0.2, 0.1);
-  return c + tint * column * (0.2 + 0.8 * dash) * (0.1 + 0.9 * l.light) * (0.35 + 0.8 * uParam_glow);
+  return c + tint * column * (0.2 + 0.8 * dash) * (0.1 + 0.9 * l.light) * (0.35 + 0.8 * uParam_glow) * (1.0 - 0.6 * gDay);
 }
 
 vec3 lanterns(vec3 c, vec2 p) {
@@ -546,11 +562,13 @@ vec3 pond(vec2 p) {
   c = moonDisc(c, m);
   c = shore(c, m);
   c = c * mix(0.66, 0.4, depth) + vec3(0.008, 0.01, 0.028);
+  // By day the pond holds the sky over a green-blue depth.
+  c = mix(c, c * mix(vec3(0.82, 0.88, 0.92), vec3(0.55, 0.66, 0.70), depth) + vec3(0.02, 0.05, 0.06), gDay);
   // Moonlight on the ripple crests, gathered into a path under the moon.
   float crest = smoothstep(0.12, 0.42, gRipple);
   float path = (p.x - gMoonAt.x) / (0.025 + 0.09 * depth);
-  c += vec3(0.6, 0.66, 1.0) * exp(-path * path) * crest * (0.06 + 0.6 * gBass) * uParam_moon;
-  return c + vec3(0.1, 0.11, 0.22) * crest * 0.1 * (1.0 - depth);
+  c += vec3(0.6, 0.66, 1.0) * exp(-path * path) * crest * (0.06 + 0.6 * gBass) * uParam_moon * (1.0 - gDay);
+  return c + mix(vec3(0.1, 0.11, 0.22), vec3(0.5, 0.52, 0.55), gDay) * crest * 0.1 * (1.0 - depth);
 }
 
 // ---- Cherry blossom ---------------------------------------------------------
@@ -669,6 +687,8 @@ vec3 blossom(vec3 c, vec2 p) {
   vec3 moonlight = vec3(0.72, 0.7, 0.88) * (0.3 + 0.45 * uParam_moon) * (0.75 + 0.25 * smoothstep(0.7, 1.0, p.y));
   vec3 warmth = vec3(1.0, 0.5, 0.32) * (lantern + 0.8 * gMids * (0.4 + 0.6 * uParam_glow));
   vec3 lightOn = (moonlight + warmth) * mix(1.0, 0.55, back);
+  // By day the sun lights the canopy; the lanterns and the mids still warm it.
+  lightOn = mix(lightOn, (vec3(1.05, 1.02, 1.0) + warmth * 0.25) * mix(1.0, 0.72, back), gDay);
   vec3 pink = mix(vec3(1.0, 0.88, 0.92), vec3(1.0, 0.55, 0.72), uParam_blossom);
   // The soft mass behind the flowers; clumps further back dimmer and bluer.
   vec3 fill = pink * lightOn * mix(0.42, 0.28, back) + vec3(0.02, 0.02, 0.05) * back;
@@ -677,7 +697,7 @@ vec3 blossom(vec3 c, vec2 p) {
   float bark = smoothstep(gPx * 1.2, -gPx * 1.2, wood);
   if (bark > 0.001) {
     float above = min(bough(left - vec2(0.0, 0.004)), bough(right - vec2(0.0, 0.004 / 0.92)) * 0.92);
-    vec3 wooden = vec3(0.05, 0.036, 0.042) + vec3(0.06, 0.025, 0.014) * lantern;
+    vec3 wooden = mix(vec3(0.05, 0.036, 0.042), vec3(0.22, 0.15, 0.13), gDay) + vec3(0.06, 0.025, 0.014) * lantern;
     c = mix(c, wooden + moonlight * 0.35 * smoothstep(0.0, 0.004, above), bark);
   }
   if (mass > -0.25) {
@@ -694,7 +714,7 @@ vec3 blossom(vec3 c, vec2 p) {
 
 vec3 petals(vec3 c, vec2 p) {
   float lantern = gLanternLight * exp(-abs(p.y - gString) / 0.3) * (0.3 + 0.7 * uParam_glow);
-  vec3 lit = vec3(0.55, 0.5, 0.7) * (0.45 + 0.55 * uParam_moon) + vec3(1.0, 0.5, 0.3) * lantern;
+  vec3 lit = mix(vec3(0.55, 0.5, 0.7) * (0.45 + 0.55 * uParam_moon), vec3(1.0, 0.98, 0.96), gDay) + vec3(1.0, 0.5, 0.3) * lantern;
   vec3 pink = mix(vec3(1.0, 0.9, 0.93), vec3(1.0, 0.62, 0.76), uParam_blossom);
   for (int layer = 0; layer < PETAL_LAYERS; layer++) {
     float fl = float(layer);
