@@ -1010,10 +1010,14 @@ Out-String` (or any other capture) is what actually waits for it and shows
   `slotsTried`, and `nextSlot` picks the first rung nobody has tried — with
   the old ladder's walk implied for a memory written before that. The names
   are `efx-single`, `mfx-single` and `sfx-single` on the command line and in
-  that file, so the app gates them on the installed helper's version
-  (`ENGINE_SINGLE_SLOTS_SINCE`, engine 1.12): an older one refuses a slot
-  name it does not know, which costs an administrator prompt and mends
-  nothing. The RME DAC a user tested
+  that file, and every rung is offered whatever engine is installed: the
+  helper that takes the move is always the one shipped beside the app
+  (`getEngineSetupPath`), never the installed copy, and the DLL is the same
+  file in any slot. They used to wait for an installed engine of 1.12, which
+  on a machine updated from 1.7.4 — engine still 1.9 when the first sound
+  was heard — skipped exactly the three a Bluetooth headset needed and spent
+  LFX instead (issue 29). Never gate a helper command on the installed
+  engine's version. The RME DAC a user tested
   on never created the engine in the EFX list, enhancements on, every
   machine-wide fact in order; Equalizer APO's own installer carries rules
   for the same thing (a mode effect where Windows 11 combined a Bluetooth

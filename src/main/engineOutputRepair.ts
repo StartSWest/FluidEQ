@@ -45,10 +45,7 @@ import type {
   IFluidEngineEndpoint,
   TAudioEngine,
 } from '../common/audioEngine';
-import {
-  engineTakesSingleSlots,
-  normaliseEndpointGuid,
-} from '../common/engineHealth';
+import { normaliseEndpointGuid } from '../common/engineHealth';
 import type { IAutomaticSetup } from './automaticSetup';
 import { whatStopsTheEngineLoading } from './engineLoadRepair';
 
@@ -68,6 +65,15 @@ export type TEngineSlot = NonNullable<IFluidEngineEndpoint['slot']>;
  * on the endpoint, the ladder stepped from the lists straight past that
  * whole generation, and the engine came to rest in a value Windows never
  * reads there — attached on every reading, created by Windows not once.
+ *
+ * Every rung is offered whatever engine is installed. The helper that takes
+ * the move is the one shipped beside this app (`getEngineSetupPath`), never
+ * the installed copy, so it always knows every name here; the DLL it moves
+ * is the same file in any slot. The three used to be held back until the
+ * installed engine was 1.12 or newer, and that skipped exactly the rungs a
+ * Bluetooth headset needs on a machine updated from 1.7.4: its engine was
+ * still 1.9 when the first sound was heard, so the walk spent LFX — a rung
+ * that output had been refused in — and ended there (issue 29).
  */
 export const SLOT_LADDER: readonly TEngineSlot[] = [
   'efx',
@@ -78,13 +84,6 @@ export const SLOT_LADDER: readonly TEngineSlot[] = [
   'sfx-single',
   'gfx',
   'lfx',
-];
-
-/** Which rungs an older helper has no name for, so cannot be asked to take. */
-const SINGLE_RUNGS: readonly TEngineSlot[] = [
-  'efx-single',
-  'mfx-single',
-  'sfx-single',
 ];
 
 /** The ladder as it was before the single values were part of it. */
@@ -121,18 +120,13 @@ const historyBehind = (current: TEngineSlot): readonly TEngineSlot[] => {
  * The next rung nobody has tried on this output, or undefined once there is
  * none left.
  *
- * `takesSingles` is the installed helper's answer, not this tree's: asking
- * an older one for a slot name it does not know refuses the whole command,
- * which costs an administrator prompt and mends nothing. Skipped rather than
- * stopped at, so such a machine still reaches the oldest rungs it does know.
- *
  * `tried` is what the helper remembers for this output, oldest first.
- * Without it — an older helper, or an output whose slot was never asked for
- * by name — the history is taken from where the engine is now.
+ * Without it — a memory an older helper wrote, or an output whose slot was
+ * never asked for by name — the history is taken from where the engine is
+ * now.
  */
 export const nextSlot = (
   current: TEngineSlot,
-  takesSingles = true,
   tried: readonly TEngineSlot[] = [],
 ): TEngineSlot | undefined => {
   // What the helper remembers is only what was asked for BY NAME, so the
@@ -146,10 +140,7 @@ export const nextSlot = (
       ? [...new Set([...historyBehind(tried[0]), ...tried])]
       : historyBehind(current);
   return SLOT_LADDER.find(
-    (rung) =>
-      rung !== current &&
-      !history.includes(rung) &&
-      (takesSingles || !SINGLE_RUNGS.includes(rung)),
+    (rung) => rung !== current && !history.includes(rung),
   );
 };
 
@@ -202,11 +193,7 @@ export const whatToTry = (status: IAudioEngineStatus, guid: string): TStep => {
       because: 'the setup helper does not report which slot the engine is in',
     };
   }
-  const to = nextSlot(
-    endpoint.slot,
-    engineTakesSingleSlots(status.fluid.dllVersion),
-    endpoint.slotsTried,
-  );
+  const to = nextSlot(endpoint.slot, endpoint.slotsTried);
   if (!to) {
     return {
       kind: 'nothing',

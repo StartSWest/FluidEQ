@@ -18,6 +18,7 @@ import {
   createEngineOutputRepair,
   nextSlot,
   whatToTry,
+  type TEngineSlot,
 } from 'main/engineOutputRepair';
 
 const RME = '{9E7B1C2A-0000-0000-0000-00000000ABCD}';
@@ -61,7 +62,7 @@ describe('the slot ladder', () => {
     expect(nextSlot('sfx')).toBe('efx-single');
     expect(nextSlot('sfx-single')).toBe('gfx');
     expect(
-      nextSlot('lfx', true, [
+      nextSlot('lfx', [
         'efx',
         'mfx',
         'sfx',
@@ -74,15 +75,6 @@ describe('the slot ladder', () => {
     ).toBeUndefined();
   });
 
-  it('skips the rungs an older helper has no name for', () => {
-    // The slot name is the command line, and a helper that does not know it
-    // refuses the whole command — an administrator prompt for nothing. Such
-    // a machine still reaches the rungs it does understand.
-    expect(nextSlot('sfx', false)).toBe('gfx');
-    expect(nextSlot('gfx', false)).toBe('lfx');
-    expect(nextSlot('lfx', false)).toBeUndefined();
-  });
-
   it('offers a new rung to an output that already walked to the bottom', () => {
     // The case this is all for. An output that reached the oldest value of
     // all was offered every rung there was at the time and heard in none of
@@ -92,7 +84,7 @@ describe('the slot ladder', () => {
     expect(nextSlot('gfx')).toBe('efx-single');
     // And once they have been spent, there is genuinely nothing left.
     expect(
-      nextSlot('lfx', true, [
+      nextSlot('lfx', [
         'efx',
         'mfx',
         'sfx',
@@ -112,29 +104,22 @@ describe('the slot ladder', () => {
     // first attach chose for itself is in no record — and reading the
     // record as the whole history offered the top of the ladder again, a
     // place this output had already been heard failing in.
-    expect(nextSlot('efx-single', true, ['lfx', 'efx-single'])).toBe(
-      'mfx-single',
-    );
+    expect(nextSlot('efx-single', ['lfx', 'efx-single'])).toBe('mfx-single');
     // And on down: the two Windows' own effects sit in are still rungs,
     // because Windows' own is the one registration ours may replace.
+    expect(nextSlot('mfx-single', ['lfx', 'efx-single', 'mfx-single'])).toBe(
+      'sfx-single',
+    );
     expect(
-      nextSlot('mfx-single', true, ['lfx', 'efx-single', 'mfx-single']),
-    ).toBe('sfx-single');
-    expect(
-      nextSlot('sfx-single', true, [
-        'lfx',
-        'efx-single',
-        'mfx-single',
-        'sfx-single',
-      ]),
+      nextSlot('sfx-single', ['lfx', 'efx-single', 'mfx-single', 'sfx-single']),
     ).toBeUndefined();
   });
 
   it('never offers a rung this output has already been put in', () => {
     // What the helper remembers wins over where the engine happens to be:
     // the ladder spends each rung once, so it can never circle.
-    expect(nextSlot('mfx', true, ['efx', 'mfx'])).toBe('sfx');
-    expect(nextSlot('efx-single', true, ['efx', 'efx-single'])).toBe('mfx');
+    expect(nextSlot('mfx', ['efx', 'mfx'])).toBe('sfx');
+    expect(nextSlot('efx-single', ['efx', 'efx-single'])).toBe('mfx');
   });
 });
 
@@ -145,6 +130,32 @@ describe('whatToTry', () => {
       from: 'efx',
       to: 'mfx',
     });
+  });
+
+  it('offers the single values under an engine older than the app', () => {
+    // Issue 29, as its report read: a Bluetooth headset with Windows' own two
+    // effects in pids 5 and 6 and no list, walked by 1.7.4 to the pre-8.1 GFX
+    // value, and an engine that is still 1.9 when the updated app first hears
+    // sound go past it. The move is made by the helper shipped with this app,
+    // which knows every rung — gated on the installed engine instead, the
+    // walk skipped all three and spent LFX, and the headset stayed silent.
+    expect(
+      whatToTry(
+        status({
+          dllVersion: '1.9.0.0',
+          endpoints: [
+            {
+              guid: RME,
+              attached: true,
+              backupExists: true,
+              slot: 'gfx',
+              slotsTried: ['gfx'],
+            },
+          ],
+        }),
+        RME,
+      ),
+    ).toEqual({ kind: 'move', from: 'gfx', to: 'efx-single' });
   });
 
   it('re-installs first where a machine-wide switch was undone', () => {
@@ -186,7 +197,13 @@ describe('whatToTry', () => {
       whatToTry(
         status({
           endpoints: [
-            { guid: RME, attached: true, backupExists: true, slot: 'lfx' },
+            {
+              guid: RME,
+              attached: true,
+              backupExists: true,
+              slot: 'lfx',
+              slotsTried: SLOT_LADDER.slice(1),
+            },
           ],
         }),
         RME,
@@ -242,30 +259,64 @@ describe('createEngineOutputRepair', () => {
   });
 
   it('walks the whole ladder as the helper reports each new slot', async () => {
-    let current: 'efx' | 'mfx' | 'sfx' | 'gfx' | 'lfx' = 'efx';
-    const { repair, runEngineSetup } = repairFor(() =>
+    // What the helper answers after each move: where the engine is now, and
+    // every rung it has been asked for by name.
+    let current: TEngineSlot = 'efx';
+    const tried: TEngineSlot[] = [];
+    const read = () =>
       status({
         endpoints: [
-          { guid: RME, attached: true, backupExists: true, slot: current },
+          {
+            guid: RME,
+            attached: true,
+            backupExists: true,
+            slot: current,
+            slotsTried: [...tried],
+          },
         ],
-      }),
-    );
-    const rungs = ['mfx', 'sfx', 'gfx', 'lfx'] as const;
+      });
     // One rung after another, each after the helper reports the last.
-    await rungs.reduce(async (previous, to) => {
-      await previous;
-      await expect(repair.repair(RME)).resolves.toMatchObject({ ok: true });
-      current = to;
-    }, Promise.resolve());
-    expect(runEngineSetup.mock.calls.map(([, args]) => args[2])).toEqual([
-      ...rungs,
+    const take = async (
+      repair: ReturnType<typeof repairFor>['repair'],
+      rungs: readonly TEngineSlot[],
+    ) =>
+      rungs.reduce(async (previous, to) => {
+        await previous;
+        await expect(repair.repair(RME)).resolves.toMatchObject({ ok: true });
+        current = to;
+        tried.push(to);
+      }, Promise.resolve());
+    const movedTo = (run: ReturnType<typeof repairFor>['runEngineSetup']) =>
+      run.mock.calls.map(([, args]) => args[2]);
+
+    // A session's allowance is four moves; the rest waits for the next.
+    const first = repairFor(read);
+    await take(first.repair, ['mfx', 'sfx', 'efx-single', 'mfx-single']);
+    expect(movedTo(first.runEngineSetup)).toEqual([
+      'mfx',
+      'sfx',
+      'efx-single',
+      'mfx-single',
+    ]);
+    await expect(first.repair.repair(RME)).resolves.toMatchObject({
+      ok: false,
+      detail: expect.stringContaining('already ran'),
+    });
+    expect(first.runEngineSetup).toHaveBeenCalledTimes(4);
+
+    const second = repairFor(read);
+    await take(second.repair, ['sfx-single', 'gfx', 'lfx']);
+    expect(movedTo(second.runEngineSetup)).toEqual([
+      'sfx-single',
+      'gfx',
+      'lfx',
     ]);
     // The bottom: nothing more, and no helper run.
-    await expect(repair.repair(RME)).resolves.toMatchObject({
+    await expect(second.repair.repair(RME)).resolves.toMatchObject({
       ok: false,
       detail: expect.stringContaining('every slot'),
     });
-    expect(runEngineSetup).toHaveBeenCalledTimes(4);
+    expect(second.runEngineSetup).toHaveBeenCalledTimes(3);
   });
 
   it('re-installs, never attaches, where the machine cannot load the engine at all', async () => {

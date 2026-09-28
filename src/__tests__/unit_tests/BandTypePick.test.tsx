@@ -76,6 +76,8 @@ jest.mock('renderer/audio/LiveAudioContext', () => ({
     isActive: true,
   }),
   useLiveAudioCapture: () => undefined,
+  // The band row's level tracks read the live frame; silence lights none.
+  useLiveAudioFrame: () => ({ graphPoints: [] }),
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({
   addEqualizerSlider: jest.fn(),
@@ -89,6 +91,7 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   forgetSongEq: jest.fn(() => Promise.resolve(undefined)),
   setSmartEq: jest.fn(() => Promise.resolve(undefined)),
   getAudioDevices: jest.fn(() => Promise.resolve([])),
+  readKnownAudioDevices: jest.fn(() => Promise.resolve([])),
 }));
 jest.mock('renderer/components/VoicingQuickPick', () => () => null);
 jest.mock('renderer/components/CurvesPicker', () => () => null);
