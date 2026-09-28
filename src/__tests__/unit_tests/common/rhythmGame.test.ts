@@ -21,67 +21,37 @@ import {
   HIT_WINDOW_MS,
   EUPHORIA_STREAK,
   applyRhythmScore,
-  getBeatOffset,
   getFlawlessScore,
   getHitMarkerPosition,
   getMissFraction,
   getStreakJoy,
   getStreakMultiplier,
   gradeRhythmOffset,
-  gradeRhythmTap,
 } from 'common/rhythmGame';
 
-describe('getBeatOffset', () => {
-  it('reads a tap just before the next beat as early, not very late', () => {
-    // The whole reason this wraps. 580 of a 600ms beat is 20ms early for the
-    // beat about to land, and a player who felt early should be told they were.
-    expect(getBeatOffset(580)).toBe(-20);
-  });
-
-  it('reads a tap just after a beat as late', () => {
-    expect(getBeatOffset(20)).toBe(20);
-  });
-
-  it('is zero exactly on the beat', () => {
-    expect(getBeatOffset(0)).toBe(0);
-    expect(getBeatOffset(BEAT_MS)).toBe(0);
-  });
-
-  it('survives phases beyond a single beat', () => {
-    // Elapsed time is never taken modulo before it arrives here.
-    expect(getBeatOffset(BEAT_MS * 7 + 30)).toBe(30);
-    expect(getBeatOffset(BEAT_MS * 7 - 30)).toBe(-30);
-  });
-
-  it('never reports more than half a beat out', () => {
-    for (let phase = 0; phase < BEAT_MS * 3; phase += 7) {
-      expect(Math.abs(getBeatOffset(phase))).toBeLessThanOrEqual(BEAT_MS / 2);
-    }
-  });
-});
-
-describe('gradeRhythmTap', () => {
-  it('scores a tap on the beat as perfect', () => {
-    expect(gradeRhythmTap(0)).toMatchObject({
+describe('grading a tap', () => {
+  it('scores a tap on the hit as perfect', () => {
+    expect(gradeRhythmOffset(0)).toMatchObject({
       verdict: 'perfect',
       points: 100,
     });
   });
 
   it('grades by distance, early and late alike', () => {
-    expect(gradeRhythmTap(70).verdict).toBe('great');
-    expect(gradeRhythmTap(BEAT_MS - 70).verdict).toBe('great');
-    expect(gradeRhythmTap(150).verdict).toBe('good');
-    expect(gradeRhythmTap(BEAT_MS - 150).verdict).toBe('good');
+    expect(gradeRhythmOffset(70).verdict).toBe('great');
+    expect(gradeRhythmOffset(-70).verdict).toBe('great');
+    expect(gradeRhythmOffset(150).verdict).toBe('good');
+    expect(gradeRhythmOffset(-150).verdict).toBe('good');
   });
 
   it('keeps the sign so the bar can show which side you were on', () => {
-    expect(gradeRhythmTap(150).offsetMs).toBe(150);
-    expect(gradeRhythmTap(BEAT_MS - 150).offsetMs).toBe(-150);
+    expect(gradeRhythmOffset(150).offsetMs).toBe(150);
+    expect(gradeRhythmOffset(-150).offsetMs).toBe(-150);
   });
 
   it('misses past the hit window', () => {
-    expect(gradeRhythmTap(HIT_WINDOW_MS + 1).verdict).toBe('miss');
+    expect(gradeRhythmOffset(HIT_WINDOW_MS + 1).verdict).toBe('miss');
+    expect(gradeRhythmOffset(-HIT_WINDOW_MS - 1).verdict).toBe('miss');
   });
 
   it('costs more the further out the miss was', () => {
@@ -90,9 +60,9 @@ describe('gradeRhythmTap', () => {
     expect(far).toBeGreaterThan(near);
   });
 
-  it('grades every possible tap in a beat without a gap', () => {
-    for (let phase = 0; phase < BEAT_MS; phase += 1) {
-      const hit = gradeRhythmTap(phase);
+  it('grades every tap within half a beat either side without a gap', () => {
+    for (let offset = -BEAT_MS / 2; offset <= BEAT_MS / 2; offset += 1) {
+      const hit = gradeRhythmOffset(offset);
       expect(['perfect', 'great', 'good', 'miss']).toContain(hit.verdict);
       expect(Number.isFinite(hit.points)).toBe(true);
     }
@@ -106,8 +76,8 @@ describe('gradeRhythmTap', () => {
 });
 
 describe('applyRhythmScore', () => {
-  const perfect = () => gradeRhythmTap(0);
-  const worstMiss = () => gradeRhythmTap(BEAT_MS / 2);
+  const perfect = () => gradeRhythmOffset(0);
+  const worstMiss = () => gradeRhythmOffset(BEAT_MS / 2);
 
   it('adds points for a hit and builds the streak', () => {
     const next = applyRhythmScore({ score: 340, streak: 0 }, perfect());
@@ -177,9 +147,9 @@ describe('applyRhythmScore', () => {
     // perfects is already a long climb, and knocking it back on every
     // near-miss meant most players never saw euphoria mode at all.
     const start = { score: 0, streak: 8 };
-    expect(applyRhythmScore(start, gradeRhythmTap(0)).streak).toBe(9);
-    expect(applyRhythmScore(start, gradeRhythmTap(70)).streak).toBe(8);
-    expect(applyRhythmScore(start, gradeRhythmTap(150)).streak).toBe(8);
+    expect(applyRhythmScore(start, gradeRhythmOffset(0)).streak).toBe(9);
+    expect(applyRhythmScore(start, gradeRhythmOffset(70)).streak).toBe(8);
+    expect(applyRhythmScore(start, gradeRhythmOffset(150)).streak).toBe(8);
   });
 
   it('still reaches the ceiling for a player who slips now and then', () => {
@@ -189,7 +159,7 @@ describe('applyRhythmScore', () => {
     for (let tap = 0; tap < 40; tap += 1) {
       state = applyRhythmScore(
         state,
-        tap === 10 || tap === 25 ? gradeRhythmTap(150) : perfect(),
+        tap === 10 || tap === 25 ? gradeRhythmOffset(150) : perfect(),
       );
     }
     expect(getStreakMultiplier(state.streak)).toBe(10);
@@ -203,9 +173,9 @@ describe('applyRhythmScore', () => {
     // design — see the ceiling tests below. Here it only has to be true that
     // the share was taken.
     const start = { score: 1000, streak: 10 };
-    const good = applyRhythmScore(start, gradeRhythmTap(150));
-    const great = applyRhythmScore(start, gradeRhythmTap(70));
-    const perfect = applyRhythmScore(start, gradeRhythmTap(0));
+    const good = applyRhythmScore(start, gradeRhythmOffset(150));
+    const great = applyRhythmScore(start, gradeRhythmOffset(70));
+    const perfect = applyRhythmScore(start, gradeRhythmOffset(0));
     expect(good.score).toBeLessThan(great.score);
     expect(great.score).toBeLessThan(perfect.score);
   });
@@ -214,10 +184,10 @@ describe('applyRhythmScore', () => {
     // The crossover that makes the ceiling also makes the early game feel like
     // a game. From zero there is no share worth taking, so the points win.
     expect(
-      applyRhythmScore({ score: 0, streak: 0 }, gradeRhythmTap(150)).score,
+      applyRhythmScore({ score: 0, streak: 0 }, gradeRhythmOffset(150)).score,
     ).toBeGreaterThan(0);
     expect(
-      applyRhythmScore({ score: 0, streak: 0 }, gradeRhythmTap(70)).score,
+      applyRhythmScore({ score: 0, streak: 0 }, gradeRhythmOffset(70)).score,
     ).toBeGreaterThan(0);
   });
 
@@ -226,7 +196,7 @@ describe('applyRhythmScore', () => {
     // through: the share still grows with the total, so this still stops.
     let state = { score: 0, streak: 0 };
     for (let tap = 0; tap < 5000; tap += 1) {
-      state = applyRhythmScore(state, gradeRhythmTap(150));
+      state = applyRhythmScore(state, gradeRhythmOffset(150));
     }
     expect(state.score).toBeLessThan(getFlawlessScore(10));
   });
@@ -234,7 +204,7 @@ describe('applyRhythmScore', () => {
   it('caps a player who only ever hits great', () => {
     let state = { score: 0, streak: 0 };
     for (let tap = 0; tap < 5000; tap += 1) {
-      state = applyRhythmScore(state, gradeRhythmTap(70));
+      state = applyRhythmScore(state, gradeRhythmOffset(70));
     }
     expect(state.score).toBeLessThan(getFlawlessScore(20));
   });
@@ -244,11 +214,11 @@ describe('applyRhythmScore', () => {
     // patient player creeps past a precise one.
     const small = applyRhythmScore(
       { score: 100, streak: 0 },
-      gradeRhythmTap(150),
+      gradeRhythmOffset(150),
     );
     const large = applyRhythmScore(
       { score: 100000, streak: 0 },
-      gradeRhythmTap(150),
+      gradeRhythmOffset(150),
     );
     expect(100 - small.score).toBeLessThan(100000 - large.score);
   });
@@ -265,7 +235,7 @@ describe('applyRhythmScore', () => {
         for (let tap = 0; tap < 9; tap += 1) {
           state = applyRhythmScore(state, perfect());
         }
-        state = applyRhythmScore(state, gradeRhythmTap(150));
+        state = applyRhythmScore(state, gradeRhythmOffset(150));
       }
       return state.score;
     };
@@ -284,7 +254,7 @@ describe('applyRhythmScore', () => {
       for (let tap = 0; tap < 9; tap += 1) {
         sloppy = applyRhythmScore(sloppy, perfect());
       }
-      sloppy = applyRhythmScore(sloppy, gradeRhythmTap(150));
+      sloppy = applyRhythmScore(sloppy, gradeRhythmOffset(150));
     }
 
     let flawless = { score: 0, streak: 0 };
@@ -308,7 +278,7 @@ describe('applyRhythmScore', () => {
   it('makes a near miss cheaper than a wild one', () => {
     const near = applyRhythmScore(
       { score: 1000, streak: 0 },
-      gradeRhythmTap(HIT_WINDOW_MS + 20),
+      gradeRhythmOffset(HIT_WINDOW_MS + 20),
     );
     const wild = applyRhythmScore({ score: 1000, streak: 0 }, worstMiss());
     expect(near.score).toBeGreaterThan(wild.score);
@@ -370,7 +340,7 @@ describe('gradeRhythmOffset', () => {
 });
 
 describe('getFlawlessScore', () => {
-  const perfect = () => gradeRhythmTap(0);
+  const perfect = () => gradeRhythmOffset(0);
 
   it('matches what the game actually pays for that many perfects', () => {
     // Derived from the scoring function rather than approximated, so it cannot
@@ -393,7 +363,7 @@ describe('getFlawlessScore', () => {
     for (let tap = 0; tap < taps; tap += 1) {
       mixed = applyRhythmScore(
         mixed,
-        tap % 4 === 3 ? gradeRhythmTap(70) : perfect(),
+        tap % 4 === 3 ? gradeRhythmOffset(70) : perfect(),
       );
     }
     expect(mixed.score).toBeLessThan(getFlawlessScore(taps));

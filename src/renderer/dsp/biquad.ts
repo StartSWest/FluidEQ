@@ -194,30 +194,3 @@ export const createBiquadState = (): IBiquadState => ({
   y1: 0,
   y2: 0,
 });
-
-/**
- * Direct Form I, in place.
- *
- * Form I rather than the transposed Form II every textbook reaches for first:
- * at 32-bit float, Form II accumulates its state in a single node whose value
- * can be far larger than either the input or the output, and a high-Q filter
- * low down — a 30Hz notch at Q 8 — is exactly where that node blows up. Form I
- * stores inputs and outputs separately, so nothing in the state ever exceeds
- * the signal itself.
- */
-export const processBiquad = (
-  state: IBiquadState,
-  buffer: Float32Array,
-  { b0, b1, b2, a1, a2 }: IBiquadCoefficients,
-): void => {
-  for (let i = 0; i < buffer.length; i += 1) {
-    const x = buffer[i];
-    const y =
-      b0 * x + b1 * state.x1 + b2 * state.x2 - a1 * state.y1 - a2 * state.y2;
-    state.x2 = state.x1;
-    state.x1 = x;
-    state.y2 = state.y1;
-    state.y1 = y;
-    buffer[i] = y;
-  }
-};

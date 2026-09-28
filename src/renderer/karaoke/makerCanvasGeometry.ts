@@ -155,37 +155,6 @@ export const drawRoundedRect = (
   context.roundRect(x, y, width, height, radius);
 };
 
-const NOTE_NAMES = [
-  'C',
-  'C♯',
-  'D',
-  'D♯',
-  'E',
-  'F',
-  'F♯',
-  'G',
-  'G♯',
-  'A',
-  'A♯',
-  'B',
-];
-
-/**
- * A MIDI note number as a name: 60 is `C4`.
- *
- * Sharps only, never flats. The grid has one row per semitone, so a row can
- * carry one name — offering `A♯`/`B♭` would need two labels for one line.
- *
- * The modulo is written twice on purpose: `%` keeps the sign in JavaScript, so
- * a negative note number would index off the front of the array.
- */
-export const midiName = (midi: number): string => {
-  const rounded = Math.round(midi);
-  return `${NOTE_NAMES[((rounded % 12) + 12) % 12]}${
-    Math.floor(rounded / 12) - 1
-  }`;
-};
-
 export interface IMakerPlotInput {
   width: number;
   height: number;

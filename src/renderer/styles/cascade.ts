@@ -154,9 +154,6 @@ import './LabelledKnob.scss';
 import './DspRoom.scss';
 import './LanguagePicker.scss';
 import './ActionsMenu.scss';
-// The theme's slider in the player's menu, after the preference rows' own
-// rules.
-import './ThemeShade.scss';
 import './UpdateNotice.scss';
 import './SpeechMemoryNotice.scss';
 import './SongEqNotice.scss';

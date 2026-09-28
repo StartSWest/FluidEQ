@@ -153,7 +153,6 @@ const look: Partial<Dictionary> = {
   'support.openWallet': 'ウォレットで開く',
   'support.contributed': '支援しました',
   'support.thanks': 'ありがとう！ペットに星とダンスが加わりました。',
-  'support.releaseNotes': 'このバージョンの新機能を見る',
   'support.footerBefore':
     '時間で貢献したいですか？ Issue や Pull Request も同じように歓迎です：',
 };

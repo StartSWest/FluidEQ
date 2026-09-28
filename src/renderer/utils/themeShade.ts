@@ -449,10 +449,3 @@ export const themeShadeRule = (shade: number) => {
   );
   return `:root:root:root { ${declarations} --coverage-band: color-mix(in oklab, ${BLACK_COVERAGE}, var(--accent) ${accentShare}%); }`;
 };
-
-/** The slider's track: the panes from one end to the other, through Ocean. */
-export const THEME_SHADE_TRACK = `linear-gradient(in oklab 90deg, ${
-  themeShadeTokens(THEME_SHADE_MIN)['--surface-panel']
-}, ${themeShadeTokens(OCEAN_SHADE)['--surface-panel']} ${OCEAN_SHADE}%, ${
-  themeShadeTokens(THEME_SHADE_MAX)['--surface-panel']
-})`;

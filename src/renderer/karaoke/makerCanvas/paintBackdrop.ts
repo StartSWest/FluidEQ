@@ -31,8 +31,8 @@ import {
   WAVEFORM_HEIGHT,
   WAVEFORM_TOP,
   lyricSectionHeight,
-  midiName,
 } from '../makerCanvasGeometry';
+import { midiToNoteName } from '../../../common/karaoke/pitch';
 import {
   readTextInk,
   readAccent,
@@ -279,7 +279,7 @@ export const paintBackdrop = (
     if (midi % 12 === 0) {
       context.fillStyle = 'rgb(160, 244, 112)';
       context.textAlign = 'right';
-      context.fillText(midiName(midi), plotLeft - 8, y + 3);
+      context.fillText(midiToNoteName(midi), plotLeft - 8, y + 3);
     }
   }
 

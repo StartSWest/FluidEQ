@@ -8,7 +8,6 @@ import type {
   ILanPairingOption,
   ILanRemoteAudioNetworkStats,
   IRemoteNowPlaying,
-  TRemoteAudioStreamMode,
 } from '../../common/remoteAudio';
 import type { TRemoteAudioMeterListener } from './meter';
 
@@ -46,7 +45,5 @@ export interface IRemoteAudioValue {
   startSending(code: string): Promise<void>;
   stop(): Promise<void>;
   resumePlayback(): Promise<void>;
-  setStreamMode(mode: TRemoteAudioStreamMode): void;
-  streamMode: TRemoteAudioStreamMode;
   subscribeMeter(listener: TRemoteAudioMeterListener): () => void;
 }

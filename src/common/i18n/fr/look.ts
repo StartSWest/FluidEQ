@@ -157,7 +157,6 @@ const look: Partial<Dictionary> = {
   'support.openWallet': 'Ouvrir dans le portefeuille',
   'support.contributed': 'J’ai contribué',
   'support.thanks': 'Merci — votre mascotte a son étoile et sa danse.',
-  'support.releaseNotes': 'Voir les nouveautés de cette version',
   'support.footerBefore':
     'Vous préférez donner du temps ? Les tickets et les pull requests sont tout aussi bienvenus sur',
 };

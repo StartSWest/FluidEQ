@@ -405,7 +405,6 @@ const eq: Partial<Dictionary> = {
     'Les améliorations audio sont désactivées pour {device}, donc Windows n’y exécute aucun effet — le moteur FluidEQ compris, aussi bien configuré soit-il. Réactivez-les pour cette sortie dans les paramètres de son de Windows et votre EQ revient.',
   'output.openSoundSettings': 'Ouvrir les paramètres de son',
   'output.gotIt': 'Compris',
-  'output.roomBadge': 'SALLE',
   'output.roomStereoTitle': '{device} est réglée en stéréo',
   'output.roomStereoBody':
     'Réglez-la en 7.1 pour que jeux et films arrivent dans la salle avec tous leurs canaux. La musique continue exactement comme maintenant : la stéréo va aux deux enceintes avant.',

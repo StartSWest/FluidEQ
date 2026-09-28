@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import nextTask from '../nextTask';
+import { pitchClassName } from '../noteNames';
 
 export type TKaraokeChordQuality = 'major' | 'minor';
 
@@ -69,20 +70,6 @@ const MINIMUM_CHORD_FREQUENCY_HZ = 55;
 const MAXIMUM_CHORD_FREQUENCY_HZ = 1_760;
 const MINIMUM_SEGMENT_MS = 560;
 const MAXIMUM_SAME_CHORD_GAP_MS = 460;
-const NOTE_NAMES = [
-  'C',
-  'C♯',
-  'D',
-  'D♯',
-  'E',
-  'F',
-  'F♯',
-  'G',
-  'G♯',
-  'A',
-  'A♯',
-  'B',
-] as const;
 
 const clamp = (value: number, minimum: number, maximum: number): number =>
   Math.min(maximum, Math.max(minimum, value));
@@ -91,9 +78,7 @@ const chordLabel = (
   rootPitchClass: number,
   quality: TKaraokeChordQuality,
 ): string =>
-  `${NOTE_NAMES[((rootPitchClass % 12) + 12) % 12]}${
-    quality === 'minor' ? 'm' : ''
-  }`;
+  `${pitchClassName(rootPitchClass)}${quality === 'minor' ? 'm' : ''}`;
 
 const createChordTemplates = (): IKaraokeChordTemplate[] => {
   const templates: IKaraokeChordTemplate[] = [];

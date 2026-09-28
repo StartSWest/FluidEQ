@@ -24,7 +24,7 @@ const STEP_SECONDS = 0.6;
 const LEAD_SECONDS = 0.1;
 const TAIL_SECONDS = 0.4;
 
-export const FIT_DEMO_SECONDS =
+const FIT_DEMO_SECONDS =
   LEAD_SECONDS +
   STEP_SECONDS * (STOPS_DEG.length - 1) +
   BURST_SECONDS +

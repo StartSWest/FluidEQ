@@ -6,7 +6,6 @@ import {
   IKaraokeMakerProject,
   importLyricsIntoKaraokeMakerProject,
   karaokeMakerProjectToSong,
-  karaokeMakerRecordedLineContainsTime,
   karaokeMakerSourceIsAutomatic,
   karaokeMakerTokenWasUserTouched,
   karaokeMakerLineIsSection,
@@ -1083,22 +1082,6 @@ describe('Karaoke Maker canonical project and exports', () => {
       endMs: 6_400,
       source: 'manual',
     });
-  });
-
-  it('matches a recorded line only while the playhead is inside its range', () => {
-    const [line] = makerLinesFromPlainText('She leads a lonely life');
-    line.tokens.forEach((token, index) => {
-      Object.assign(token, {
-        startMs: 10_000 + index * 500,
-        endMs: 10_450 + index * 500,
-        source: 'manual',
-        timingLocked: true,
-      });
-    });
-
-    expect(karaokeMakerRecordedLineContainsTime(line, 11_700)).toBe(true);
-    expect(karaokeMakerRecordedLineContainsTime(line, 9_999)).toBe(false);
-    expect(karaokeMakerRecordedLineContainsTime(line, 13_000)).toBe(false);
   });
 
   it('keeps a recorded start exact and trims only an overlapping previous end', () => {

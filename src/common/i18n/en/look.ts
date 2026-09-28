@@ -153,7 +153,6 @@ const look = {
   'support.openWallet': 'Open in wallet',
   'support.contributed': 'I contributed',
   'support.thanks': 'Thank you — your pet has its star and dance.',
-  'support.releaseNotes': "See what's new in this version",
   'support.footerBefore':
     'Prefer to contribute time instead? Issues and pull requests are just as welcome on',
 } as const;

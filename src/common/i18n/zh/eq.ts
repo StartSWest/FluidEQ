@@ -381,7 +381,6 @@ const eq: Partial<Dictionary> = {
     '{device} 的音频增强已关闭，因此 Windows 不会在该输出上运行任何效果——包括 FluidEQ 引擎，无论它设置得多正确。在 Windows 声音设置中为此输出重新打开音频增强，你的 EQ 就会回来。',
   'output.openSoundSettings': '打开声音设置',
   'output.gotIt': '知道了',
-  'output.roomBadge': '房间',
   'output.roomStereoTitle': '{device} 设置为立体声',
   'output.roomStereoBody':
     '将它设为 7.1，游戏和电影的所有声道才能进入房间。音乐照常播放：立体声送到前方两只音箱。',

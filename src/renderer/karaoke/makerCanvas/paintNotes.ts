@@ -29,8 +29,8 @@ import {
   MIN_NOTE_MIDI,
   TMakerDragBehavior,
   drawRoundedRect,
-  midiName,
 } from '../makerCanvasGeometry';
+import { midiToNoteName } from '../../../common/karaoke/pitch';
 import { ICanvasLyricWord } from '../makerCanvasTypes';
 import {
   readAccent,
@@ -339,7 +339,7 @@ export const paintNotes = (
     context.font = `${active ? 700 : 600} 9px system-ui, sans-serif`;
     context.textAlign = 'center';
     context.fillText(
-      midiName(note.targetMidi),
+      midiToNoteName(note.targetMidi),
       left + (right - left) / 2,
       centerY - noteHeight / 2 - 4,
     );

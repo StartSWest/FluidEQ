@@ -280,10 +280,6 @@ export const looksLikeCryptoAddress = (
   address: string,
 ): boolean => asset.pattern.test(address.trim());
 
-/** Kept for the Bitcoin-only call sites that predate the multi-chain list. */
-export const looksLikeBitcoinAddress = (address: string): boolean =>
-  looksLikeCryptoAddress(CRYPTO_ASSETS[0], address);
-
 const isConfiguredUrl = (value: string, prefix: string): boolean => {
   const trimmed = value.trim();
   return trimmed.startsWith(prefix) && trimmed.length > prefix.length;
@@ -315,48 +311,11 @@ export const getSupportCryptos = (
     return [{ asset, address, uri }];
   });
 
-export interface ISupportMethod {
-  id: SupportMethodId;
-  label: string;
-  description: string;
-}
-
 /** The contribution methods this build actually has a destination for. */
 export const getSupportMethods = (
   config: ISupportConfig = SUPPORT_CONFIG,
-): ISupportMethod[] => {
-  const methods: ISupportMethod[] = [];
-
-  if (isConfiguredUrl(config.stripeUrl, 'https://')) {
-    methods.push({
-      id: 'stripe',
-      label: 'Card or wallet',
-      description: 'Secure checkout hosted by Stripe. Opens in your browser.',
-    });
-  }
-
-  if (isConfiguredUrl(config.coffeeUrl, 'https://')) {
-    methods.push({
-      id: 'coffee',
-      label: 'Buy me a coffee',
-      description: 'One-off tip, no account needed. Opens in your browser.',
-    });
-  }
-
-  getSupportCryptos(config).forEach(({ asset }) => {
-    methods.push({
-      id: asset.id,
-      label: asset.name,
-      description: `Send on-chain — ${asset.network}.`,
-    });
-  });
-
-  return methods;
-};
-
-/** BIP-21 payment URI for Bitcoin specifically. */
-export const getBitcoinUri = (
-  config: ISupportConfig = SUPPORT_CONFIG,
-): string =>
-  getSupportCryptos(config).find((entry) => entry.asset.id === 'bitcoin')
-    ?.uri ?? '';
+): SupportMethodId[] => [
+  ...(isConfiguredUrl(config.stripeUrl, 'https://') ? ['stripe' as const] : []),
+  ...(isConfiguredUrl(config.coffeeUrl, 'https://') ? ['coffee' as const] : []),
+  ...getSupportCryptos(config).map(({ asset }) => asset.id),
+];

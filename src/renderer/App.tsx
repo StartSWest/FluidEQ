@@ -253,7 +253,6 @@ import ScenePulse from './components/ScenePulse';
 import SceneAmbient from './ambient/SceneAmbient';
 import SceneCover from './graph/SceneCover';
 import SceneColumnLayer from './graph/SceneColumnLayer';
-import HeadSceneShade from './graph/HeadSceneShade';
 import GraphScene from './graph/GraphScene';
 import SceneTint from './components/SceneTint';
 import RainbowSource from './components/RainbowSource';
@@ -2989,9 +2988,6 @@ const AppContent = () => {
                 !isEqReachingSound ? ' is-engine-disabled' : ''
               }`}
             >
-              {/* Its shade over a scene, which comes and goes with the
-                  graph's options (`HeadSceneShade`). */}
-              <HeadSceneShade />
               {eqGroupPills}
               <div className="center-head__title" ref={setEqTitleSlot} />
             </div>

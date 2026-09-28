@@ -142,19 +142,6 @@ export const karaokeMakerRecordedLineRange = (
   return karaokeMakerTimedLineRange(line);
 };
 
-export const karaokeMakerRecordedLineContainsTime = (
-  line: IKaraokeMakerLine,
-  playheadMs: number,
-): boolean => {
-  const range = karaokeMakerRecordedLineRange(line);
-  return (
-    range !== undefined &&
-    Number.isFinite(playheadMs) &&
-    playheadMs >= range.startMs &&
-    playheadMs <= range.endMs
-  );
-};
-
 /**
  * The longest a sung word may plausibly last.
  *

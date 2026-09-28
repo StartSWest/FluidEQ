@@ -403,7 +403,6 @@ const eq: Partial<Dictionary> = {
     'Die Audioverbesserungen sind für {device} ausgeschaltet, daher führt Windows dort überhaupt keine Effekte aus – auch die FluidEQ-Engine nicht, so gut sie auch eingerichtet ist. Schalten Sie sie in den Windows-Soundeinstellungen für diesen Ausgang wieder ein, dann ist Ihr EQ zurück.',
   'output.openSoundSettings': 'Soundeinstellungen öffnen',
   'output.gotIt': 'Verstanden',
-  'output.roomBadge': 'RAUM',
   'output.roomStereoTitle': '{device} steht auf Stereo',
   'output.roomStereoBody':
     'Stellen Sie ihn auf 7.1, damit Spiele und Filme mit allen Kanälen im Raum ankommen. Musik läuft genau wie jetzt: Stereo geht auf die beiden vorderen Lautsprecher.',

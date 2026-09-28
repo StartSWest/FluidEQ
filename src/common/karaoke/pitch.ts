@@ -16,20 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-const NOTE_NAMES = [
-  'C',
-  'C♯',
-  'D',
-  'D♯',
-  'E',
-  'F',
-  'F♯',
-  'G',
-  'G♯',
-  'A',
-  'A♯',
-  'B',
-] as const;
+import { NOTE_NAMES } from '../noteNames';
 
 export const KARAOKE_CANONICAL_CENTER_MIDI = 60;
 

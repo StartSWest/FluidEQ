@@ -1,20 +1,14 @@
 /* FluidEQ — GPL-3.0-or-later */
 import { useRef } from 'react';
 import type { TRemoteAudioStreamMode } from '../../common/remoteAudio';
-import type { TRemoteAudioRole } from './remoteAudioState';
 
-/** 'video' is the legacy wire name for immediate, lossless PCM. */
-const useRemoteAudioStreamMode = (
-  _roleRef: { current?: TRemoteAudioRole },
-  _reconnectSenderRef: {
-    current?: (mode: TRemoteAudioStreamMode) => Promise<void>;
-  },
-) => {
+/**
+ * The mode the wire names for every stream: 'video', the legacy name for
+ * immediate, lossless PCM, and the only mode there is. Older peers still
+ * read it, so it still travels.
+ */
+const useRemoteAudioStreamMode = () => {
   const streamModeRef = useRef<TRemoteAudioStreamMode>('video');
-  return {
-    streamMode: 'video' as const,
-    streamModeRef,
-    setStreamMode: (_next: TRemoteAudioStreamMode) => undefined,
-  };
+  return { streamModeRef };
 };
 export default useRemoteAudioStreamMode;

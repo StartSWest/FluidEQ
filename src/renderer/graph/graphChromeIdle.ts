@@ -9,8 +9,8 @@ import { useIsChromeIdle } from '../utils/idleChrome';
 /**
  * Whether the graph's own chrome has faded for the window's stillness
  * (`useIsChromeIdle`): the strip of controls across the top of the plot with
- * the shade it carries (`.live-output-controls::before`), the EQ head's shade
- * over a scene (`HeadSceneShade`), and a scene's view reset in its corner.
+ * the shade it carries (`.live-output-controls::before`), and a scene's view
+ * reset in its corner.
  *
  * A Plus visualizer used to hold all of it on screen in the ordinary view
  * (2026-09-26: "I can see them and not see them"). With a shade under the
@@ -21,7 +21,7 @@ import { useIsChromeIdle } from '../utils/idleChrome';
  * scene's chrome fades like every other look's, and comes back at the next
  * touch of the mouse.
  *
- * The one place this is decided: the strip, the reset and every shade read
+ * The one place this is decided: the strip, its shade and the reset read
  * it, and two of them deciding separately is how one would fade without the
  * others.
  */

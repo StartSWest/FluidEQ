@@ -103,10 +103,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const senderReconnectRef = useRef<
     ((mode: TRemoteAudioStreamMode) => Promise<void>) | undefined
   >(undefined);
-  const { setStreamMode, streamMode, streamModeRef } = useRemoteAudioStreamMode(
-    roleRef,
-    senderReconnectRef,
-  );
+  const { streamModeRef } = useRemoteAudioStreamMode();
   const { publishMeter, subscribeMeter } = useRemoteAudioMeterBus();
   const { clearNetworkStats, networkStats, removeNetworkPeer } =
     useRemoteAudioNetworkStats(role !== undefined);
@@ -519,13 +516,11 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       networkStats,
       phase,
       role,
-      setStreamMode,
       startListening,
       startSending,
       stop: () => clearConnection(true, 'pause'),
       resumePlayback,
       subscribeMeter,
-      streamMode,
     }),
     [
       clearConnection,
@@ -538,11 +533,9 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       phase,
       resumePlayback,
       role,
-      setStreamMode,
       subscribeMeter,
       startListening,
       startSending,
-      streamMode,
     ],
   );
 

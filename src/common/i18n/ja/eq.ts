@@ -399,7 +399,6 @@ const eq: Partial<Dictionary> = {
     '{device} のオーディオ拡張機能がオフになっているため、Windows はこの出力でどの効果も実行しません。どれだけ正しく設定されていても、FluidEQ エンジンも同じです。Windows のサウンド設定でこの出力の拡張機能をオンに戻すと、EQ が戻ります。',
   'output.openSoundSettings': 'サウンド設定を開く',
   'output.gotIt': 'OK',
-  'output.roomBadge': 'ルーム',
   'output.roomStereoTitle': '{device} はステレオに設定されています',
   'output.roomStereoBody':
     '7.1 に設定すると、ゲームや映画のすべてのチャンネルがルームに届きます。音楽は今とまったく同じ：ステレオはフロント 2 本のスピーカーに行きます。',

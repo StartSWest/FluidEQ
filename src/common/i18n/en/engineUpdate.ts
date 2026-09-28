@@ -7,13 +7,11 @@
  * `restart.close`: the same action should read the same everywhere.
  */
 const engineUpdate = {
-  'engineUpdate.badge': 'ENGINE UPDATE',
   'engineUpdate.title': 'A new FluidEQ Engine is ready',
   'engineUpdate.body':
     'This version of FluidEQ comes with an updated audio engine. Installing it asks Windows for permission and restarts audio for a few seconds.',
   'engineUpdate.action': 'Update engine',
   'engineUpdate.running': 'Updating the engine…',
-  'engineUpdate.doneBadge': 'UP TO DATE',
   'engineUpdate.doneTitle': 'The FluidEQ Engine is up to date',
   'engineUpdate.doneBody':
     'Windows audio restarted onto the new engine, with your outputs and your EQ as they were. Reopen any app that is still silent.',

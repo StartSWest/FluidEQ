@@ -22,7 +22,7 @@ import {
   eqEdited,
 } from '../../common/dsp/chain';
 import { rackMatchingCurveOf } from './rack';
-import { linearPhaseLatencyMs } from './linearPhase';
+import linearPhaseLatencyMs from './linearPhase';
 import {
   EQ_DEFAULT_PRESET_ID,
   EQ_PRESETS,

@@ -412,7 +412,6 @@ const eq = {
     'Audio enhancements are turned off for {device}, so Windows runs no effects on it at all — the FluidEQ Engine included, however well it is set up. Turn them back on for this output in Windows sound settings and your EQ comes back.',
   'output.openSoundSettings': 'Open sound settings',
   'output.gotIt': 'Got it',
-  'output.roomBadge': 'ROOM',
   'output.roomStereoTitle': '{device} is set to stereo',
   'output.roomStereoBody':
     'Set it to 7.1 so games and films reach the room with all their channels. Music keeps playing exactly as it does now: stereo goes to the two front speakers.',

@@ -57,9 +57,7 @@ export default function FeatureTour({
   isCovered,
 }: IFeatureTourProps) {
   const { t } = useTranslation();
-  const hasCoffee = getSupportMethods().some(
-    (method) => method.id === 'coffee',
-  );
+  const hasCoffee = getSupportMethods().includes('coffee');
   const [index, setIndex] = useState(0);
   const [dontShowAgain, setDontShowAgain] = useState(false);
   const isLast = index === slides.length - 1;

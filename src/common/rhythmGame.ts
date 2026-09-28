@@ -152,50 +152,12 @@ export const getStreakJoy = (streak: number) =>
   (getStreakMultiplier(streak) - 1) / (MAX_STREAK_MULTIPLIER - 1);
 
 /**
- * Where a tap fell relative to the nearest beat.
- *
- * `phaseMs` is how far into the current beat the tap landed, so it runs from 0
- * up to `beatMs`. A tap at 580 of a 600ms beat is 20ms early for the next beat,
- * not 580ms late for the last one — which is why this wraps rather than
- * subtracting.
- */
-export const getBeatOffset = (phaseMs: number, beatMs = BEAT_MS) => {
-  const wrapped = ((phaseMs % beatMs) + beatMs) % beatMs;
-  return wrapped > beatMs / 2 ? wrapped - beatMs : wrapped;
-};
-
-/**
  * Grade a tap by how far it was from a real hit, in milliseconds.
  *
- * This is the one the game uses. Peaks come from the audio at whatever spacing
- * the music has, so there is no beat to wrap around — the distance is already
- * signed and already final. `gradeRhythmTap` below is the same grading with a
- * periodic beat folded in first.
+ * Peaks come from the audio at whatever spacing the music has, so there is no
+ * beat to wrap around — the distance is already signed and already final.
  */
 export const gradeRhythmOffset = (offsetMs: number): IRhythmHit => {
-  const error = Math.abs(offsetMs);
-
-  if (error <= PERFECT_MS) {
-    return { offsetMs, verdict: 'perfect', points: PERFECT_POINTS };
-  }
-  if (error <= GREAT_MS) {
-    return { offsetMs, verdict: 'great', points: GREAT_POINTS };
-  }
-  if (error <= HIT_WINDOW_MS) {
-    return { offsetMs, verdict: 'good', points: GOOD_POINTS };
-  }
-
-  // `points` on a miss is not a score change — it is how bad the miss was, and
-  // what it costs depends on what the player has. applyRhythmScore does that
-  // arithmetic; this only says how far out they were.
-  return { offsetMs, verdict: 'miss', points: 0 };
-};
-
-export const gradeRhythmTap = (
-  phaseMs: number,
-  beatMs = BEAT_MS,
-): IRhythmHit => {
-  const offsetMs = getBeatOffset(phaseMs, beatMs);
   const error = Math.abs(offsetMs);
 
   if (error <= PERFECT_MS) {

@@ -36,22 +36,6 @@ import { readFractionalBands } from './octaveBands';
  * that lives on one side is a half-height bar with a tall one beside it.
  */
 
-/** The note names, from C, for the marks along the drawing. */
-const NOTE_NAMES = [
-  'C',
-  'C♯',
-  'D',
-  'D♯',
-  'E',
-  'F',
-  'F♯',
-  'G',
-  'G♯',
-  'A',
-  'A♯',
-  'B',
-] as const;
-
 /** Concert pitch, and the note it names: A4 is the 69th MIDI note. */
 const A4_HZ = 440;
 const A4_NOTE = 69;
@@ -169,4 +153,3 @@ const drawNotesView = (
 };
 
 export default drawNotesView;
-export { NOTE_NAMES };

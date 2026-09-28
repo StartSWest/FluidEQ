@@ -38,7 +38,6 @@ describe('EngineUpdateNotice', () => {
     expect(
       screen.getByRole('dialog', { name: en['engineUpdate.title'] }),
     ).toHaveTextContent(en['engineUpdate.body']);
-    expect(screen.getByText(en['engineUpdate.badge'])).toBeInTheDocument();
     // Emphasis follows the recommendation.
     expect(button(en['engineUpdate.action'])).toHaveClass('button', 'small');
     expect(button(en['engineUpdate.action'])).not.toHaveClass('subtle');
@@ -79,8 +78,10 @@ describe('EngineUpdateNotice', () => {
     expect(
       screen.getByRole('dialog', { name: en['engineUpdate.doneTitle'] }),
     ).toHaveTextContent(en['engineUpdate.doneBody']);
-    expect(screen.getByText(en['engineUpdate.doneBadge'])).toBeInTheDocument();
-    expect(screen.getAllByRole('button')).toHaveLength(1);
+    // One answer on the card; the corner's close is not one of them.
+    expect(
+      document.querySelectorAll('.compact-frame__actions [role="button"]'),
+    ).toHaveLength(1);
 
     fireEvent.click(button(en['output.gotIt']));
     expect(update.close).toHaveBeenCalledTimes(1);

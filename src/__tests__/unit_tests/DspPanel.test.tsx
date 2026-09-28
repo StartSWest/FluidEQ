@@ -1018,8 +1018,6 @@ describe('DspPanel', () => {
       startSending: jest.fn(),
       stop: jest.fn(),
       resumePlayback: jest.fn(),
-      setStreamMode: jest.fn(),
-      streamMode: 'video',
       subscribeMeter: jest.fn(() => jest.fn()),
     };
 

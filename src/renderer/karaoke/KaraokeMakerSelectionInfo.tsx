@@ -10,7 +10,7 @@ import {
   IKaraokeMakerToken,
 } from '../../common/karaoke/makerProject';
 import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
-import { midiName } from './makerCanvasGeometry';
+import { midiToNoteName } from '../../common/karaoke/pitch';
 import { useTranslation } from '../utils/I18nContext';
 import useKaraokeNoteAudition from './useKaraokeNoteAudition';
 import useKaraokeMakerProject from './useKaraokeMakerProject';
@@ -234,7 +234,7 @@ const KaraokeMakerSelectionInfo = ({
     return (
       <div className="karaoke-maker__note-inspector">
         <div className="karaoke-maker__note-inspector-summary">
-          <strong>{midiName(selectedNote.targetMidi)}</strong>
+          <strong>{midiToNoteName(selectedNote.targetMidi)}</strong>
           <span>
             {formatClock(selectedNote.startMs)} →{' '}
             {formatClock(selectedNote.endMs)}

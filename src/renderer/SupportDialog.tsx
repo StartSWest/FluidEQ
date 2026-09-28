@@ -115,7 +115,7 @@ export default function SupportDialog({
     setMood(result.verdict);
   }, []);
   const petHopClass =
-    // eslint-disable-next-line no-nested-ternary
+    // eslint-disable-next-line no-nested-ternary -- still, then the two hop classes taking turns so a tap mid-hop restarts it
     petTaps === 0 ? '' : petTaps % 2 === 1 ? ' is-hopping-a' : ' is-hopping-b';
 
   // The keys read whichever `onClose` is current, and focus returns to Close
@@ -199,8 +199,8 @@ export default function SupportDialog({
     }
   };
 
-  const hasStripe = methods.some((method) => method.id === 'stripe');
-  const hasCoffee = methods.some((method) => method.id === 'coffee');
+  const hasStripe = methods.includes('stripe');
+  const hasCoffee = methods.includes('coffee');
   const cryptos = getSupportCryptos();
 
   return (

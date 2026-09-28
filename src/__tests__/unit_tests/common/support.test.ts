@@ -20,10 +20,9 @@ import {
   CRYPTO_ASSETS,
   ISupportConfig,
   buildSupportConfig,
-  getBitcoinUri,
   getSupportCryptos,
   getSupportMethods,
-  looksLikeBitcoinAddress,
+  looksLikeCryptoAddress,
 } from 'common/support';
 
 const config = (overrides: Partial<ISupportConfig> = {}): ISupportConfig => ({
@@ -56,6 +55,18 @@ const BECH32 = 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq';
 const P2PKH = '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2';
 const P2SH = '3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy';
 
+const BITCOIN = CRYPTO_ASSETS.find((asset) => asset.id === 'bitcoin');
+if (!BITCOIN) {
+  throw new Error('Bitcoin is not offered');
+}
+const looksLikeBitcoinAddress = (address: string) =>
+  looksLikeCryptoAddress(BITCOIN, address);
+
+/** The Bitcoin destination's payment uri, or nothing. */
+const bitcoinUri = (config: ISupportConfig) =>
+  getSupportCryptos(config).find((entry) => entry.asset.id === 'bitcoin')
+    ?.uri ?? '';
+
 describe('support', () => {
   describe('buildSupportConfig', () => {
     // The panel is always reachable, but each METHOD inside it still has to
@@ -66,7 +77,7 @@ describe('support', () => {
       expect(empty.stripeUrl).toBe('');
       expect(empty.crypto.bitcoinAddress).toBe('');
       expect(getSupportMethods(empty)).toEqual([]);
-      expect(getBitcoinUri(empty)).toBe('');
+      expect(bitcoinUri(empty)).toBe('');
     });
 
     it('treats unset and blank variables identically', () => {
@@ -136,8 +147,7 @@ describe('support', () => {
       const methods = getSupportMethods(
         config({ stripeUrl: 'https://buy.stripe.com/test_abc123' }),
       );
-      expect(methods).toHaveLength(1);
-      expect(methods[0].id).toBe('stripe');
+      expect(methods).toEqual(['stripe']);
     });
 
     it('offers the coffee page only for a real https destination', () => {
@@ -147,16 +157,14 @@ describe('support', () => {
       const methods = getSupportMethods(
         config({ coffeeUrl: 'https://buymeacoffee.com/someone' }),
       );
-      expect(methods.map((method) => method.id)).toEqual(['coffee']);
+      expect(methods).toEqual(['coffee']);
     });
 
     // Each chain is independent: filling one in must never imply another.
     it('offers exactly the chains that are configured', () => {
       Object.keys(ADDRESSES).forEach((key) => {
-        const methods = getSupportMethods(withCrypto([key]));
-        expect(methods).toHaveLength(1);
         const asset = CRYPTO_ASSETS.find((entry) => entry.configKey === key);
-        expect(methods[0].id).toBe(asset?.id);
+        expect(getSupportMethods(withCrypto([key]))).toEqual([asset?.id]);
       });
     });
 
@@ -197,17 +205,19 @@ describe('support', () => {
       });
     });
 
+    // The dialog names the network beside each address, because several
+    // chains share a format and a send to the wrong one is lost.
     it('names the network for each chain, since formats are shared', () => {
-      getSupportMethods(withCrypto(['ethereumAddress', 'tronAddress'])).forEach(
-        (method) => expect(method.description).toMatch(/mainnet/),
+      getSupportCryptos(withCrypto(['ethereumAddress', 'tronAddress'])).forEach(
+        ({ asset }) => expect(asset.network).toMatch(/mainnet/),
       );
     });
   });
 
-  describe('getBitcoinUri', () => {
+  describe('the Bitcoin payment uri', () => {
     it('builds a BIP-21 uri with an encoded label and no amount', () => {
       expect(
-        getBitcoinUri(
+        bitcoinUri(
           config({
             crypto: { bitcoinAddress: BECH32 },
             cryptoLabel: 'FluidEQ dev',
@@ -218,16 +228,16 @@ describe('support', () => {
 
     it('omits the label when there is none', () => {
       expect(
-        getBitcoinUri(
+        bitcoinUri(
           config({ crypto: { bitcoinAddress: P2PKH }, cryptoLabel: '' }),
         ),
       ).toBe(`bitcoin:${P2PKH}`);
     });
 
     it('returns nothing for an unusable address', () => {
-      expect(
-        getBitcoinUri(config({ crypto: { bitcoinAddress: 'nope' } })),
-      ).toBe('');
+      expect(bitcoinUri(config({ crypto: { bitcoinAddress: 'nope' } }))).toBe(
+        '',
+      );
     });
 
     it('has no uri for a chain without a standard scheme', () => {

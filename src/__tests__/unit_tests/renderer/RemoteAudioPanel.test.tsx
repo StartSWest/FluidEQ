@@ -23,11 +23,9 @@ const remoteValue = (role?: 'listener' | 'sender'): IRemoteAudioValue => ({
   phase: 'idle',
   resumePlayback: jest.fn(),
   role,
-  setStreamMode: jest.fn(),
   startListening: jest.fn(),
   startSending: jest.fn(),
   stop: jest.fn(),
-  streamMode: 'music',
   subscribeMeter: jest.fn(() => jest.fn()),
 });
 

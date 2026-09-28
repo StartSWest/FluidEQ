@@ -154,7 +154,6 @@ const look: Partial<Dictionary> = {
   'support.openWallet': 'वॉलेट में खोलें',
   'support.contributed': 'मैंने योगदान दिया',
   'support.thanks': 'धन्यवाद — आपके पेट को सितारा और नाच मिल गया है।',
-  'support.releaseNotes': 'इस संस्करण में क्या नया है, देखें',
   'support.footerBefore':
     'समय देकर मदद करना चाहेंगे? Issue और pull request भी उतने ही स्वागत योग्य हैं:',
 };
