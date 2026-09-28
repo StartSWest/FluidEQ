@@ -20,7 +20,7 @@ import DspMaximizerCard from './DspMaximizerCard';
 import DspDenoiseCard, { IDspVoiceModelState } from './DspDenoiseCard';
 import DspNormalizerCard from './DspNormalizerCard';
 import DspRoomCard from './DspRoomCard';
-import { roomLiveOf } from './useRoomLive';
+import { useDspPageRoomLive } from './useRoomLive';
 import DspChainPresetBar from './DspChainPresetBar';
 import DspHeldLock from './DspHeldLock';
 import DspScopeNotice from './DspScopeNotice';
@@ -205,7 +205,7 @@ const DspPanel = ({
     return allChannels ? 'dsp.surround.onHint' : 'dsp.surround.offHint';
   };
   const listened = useListenedOutput(isSystemWide);
-  const roomLive = roomLiveOf(listened);
+  const roomLive = useDspPageRoomLive(listened, settings);
   const delay = useListenedDelay(listened);
   /**
    * The rate the filters will actually run at, from the engine.
