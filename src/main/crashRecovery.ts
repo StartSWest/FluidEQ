@@ -324,3 +324,48 @@ export const installMainFailureRecovery = () => {
   process.on('uncaughtException', fatal);
   process.on('unhandledRejection', fatal);
 };
+
+/**
+ * Log failures and replace a damaged main process once in packaged builds.
+ *
+ * Window recovery is owned by mainWindow; native inference and DSP failures
+ * are contained in child processes. Without these logs, the only trace is
+ * the window disappearing, and the bug report that follows says "it closed",
+ * which is not something anybody can fix.
+ *
+ * Installed by main.ts at module scope rather than inside `whenReady`, because
+ * the window that never opens is exactly the failure worth catching, and by
+ * `whenReady` a good deal of the app has already run.
+ */
+export const installCrashLogging = () => {
+  // Moved up from the updater's setup, which does not run until a window is
+  // being built. Everything logged before that point was going to the console
+  // and no further — including, by definition, every failure to get that far.
+  log.transports.file.level = 'info';
+
+  // Without this, `electron-log/renderer` has no way back to the file: the
+  // modules that use it — the DSP diagnostics and the taskbar transport —
+  // wrote their lines to a devtools console nobody has open and reported
+  // "logger isn't initialized" instead. Everything the window logs has to
+  // reach the file, because the file is what a bug report carries.
+  log.initialize();
+
+  installMainFailureRecovery();
+
+  // The window's own process, or a video player's, dying underneath us. The
+  // reason is Chromium's — 'crashed', 'oom', 'killed' — and it is the only
+  // evidence there is for a page that took its process with it.
+  app.on('render-process-gone', (_event, contents, details) => {
+    log.error(
+      `Render process gone (${contents.getType()}): ${details.reason}`,
+      details,
+    );
+  });
+
+  app.on('child-process-gone', (_event, details) => {
+    log.error(
+      `Child process gone (${details.type}): ${details.reason}`,
+      details,
+    );
+  });
+};

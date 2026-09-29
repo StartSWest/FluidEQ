@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/* eslint global-require: off, no-console: off, promise/always-return: off */
-
 /**
  * This module executes inside of electron's main process. You can start
  * electron renderer process from here and communicate with the other processes
@@ -26,65 +24,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
+ *
+ * What each subject needs is handed to it here and nowhere else, so the answer
+ * to "what does this part of the app touch in the main process" is the
+ * argument it is registered with.
  */
-import {
-  app,
-  BrowserWindow,
-  contentTracing,
-  dialog,
-  ipcMain,
-  Notification,
-  powerMonitor,
-  screen,
-  shell,
-} from 'electron';
+import { app, BrowserWindow, powerMonitor } from 'electron';
 import log from 'electron-log';
-import type { NsisUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
-import os from 'os';
-import { execFile } from 'child_process';
-import { createHash } from 'crypto';
-import { redact } from '../common/bugReport';
-import {
-  CONFIG_FILENAME,
-  stateToApoFiles,
-  getResolvedPreAmp,
-  fetchSettings,
-  save,
-  savePreset,
-  fetchPreset,
-  doesPresetExist,
-  PRESETS_DIR,
-  PRESET_BASELINES_DIR,
-  repairUnusedPreamps,
-} from './flush';
-import {
-  flushPendingWrites,
-  hasUnsettledWrites,
-  peekScheduled,
-  scheduleWrite,
-  sweepAbandonedWrites,
-} from './asyncWriter';
-import {
-  forgetApoInstall,
-  getConfigPath,
-  getFluidEngineDllPath,
-  isEngineInstalled,
-  isEqualizerAPOInstalled,
-} from './registry';
-import {
-  FLUID_ENGINE_PROGRAMME_FILENAME,
-  IAudioRestartOutcome,
-  TAudioEngine,
-} from '../common/audioEngine';
-import {
-  loadAudioEnginePreference,
-  migrateAudioEnginePreference,
-  saveAudioEnginePreference,
-} from './audioEngineStore';
-import { neutraliseEngine } from './engineNeutralise';
-import { writeSystemDspChain } from './systemDspChain';
+import { fetchSettings } from './flush';
+import { flushPendingWrites, scheduleWrite } from './asyncWriter';
+import { getConfigPath, isEngineInstalled } from './registry';
+import { FLUID_ENGINE_PROGRAMME_FILENAME } from '../common/audioEngine';
 import { createSongLevelStore } from './songLevels';
 import { createSongProgramme } from './songProgramme';
 import { resetEngineAtSessionEnd, resetEngineForQuit } from './engineQuitReset';
@@ -93,117 +45,43 @@ import startEngineAnalysisPipe, {
   readEngineProcesses,
 } from './engineAnalysisPipe';
 import { createProcessMeter } from './processMeter';
-import { getEngineSetupPath, runEngineSetup } from './engineSetup';
-import { readAudioEngineStatus } from './engineStatus';
-import { runEqualizerApoSetup } from './equalizerApoSetup';
-import gatherBugReportFacts from './bugReportFacts';
-import { writeBugReportMark } from './bugReportMark';
-import { openSupportEmail } from './safeExternal';
 import ChannelEnum from '../common/channels';
-import coalesceRequests from '../common/coalescedRequest';
-import { compressChainToLimit } from '../common/response';
-import {
-  AutoEqFormat,
-  IState,
-  IPresetV2,
-  MAX_GAIN,
-  WINDOW_HEIGHT,
-  WINDOW_HEIGHT_EXPANDED,
-  WINDOW_MIN_HEIGHT,
-  WINDOW_MIN_WIDTH,
-  FixedBandSizeEnum,
-  getDefaultFilters,
-  IFiltersMap,
-  IAudioDevice,
-  IDeviceProfileAssignment,
-  AUTOMATIC_PRESET_PREFIX,
-  APP_UPDATE_EVENT,
-  OUTPUT_STATE_CHANGED_EVENT,
-  APO_FEATURE_FILE_WORD_PATTERN,
-  APO_FEATURES,
-  TApoFeature,
-  TApoLayer,
-} from '../common/constants';
-import { ErrorCode } from '../common/errors';
-import type { ILayoutSnapshot } from '../common/layouts';
-import { createLayoutSettingsStore } from './layoutSettings';
-import { createConfigInclude } from './configInclude';
-import { TSuccess, TError } from '../renderer/utils/equalizerApi';
+import { IState, OUTPUT_STATE_CHANGED_EVENT } from '../common/constants';
+import { TSuccess } from '../renderer/utils/equalizerApi';
 import { syncOpraDatabase } from './opraUpdater';
 import { setUpVideoBrowser } from './videoBrowser';
 import {
   beginQuit,
   destroyTray,
-  getTrayLocale,
   isAppQuitting,
   revealMainWindow,
-  setTrayUpdateReady,
-  setTrayUpdatesEnabled,
   setUpTray,
 } from './tray';
-import watchTraceSentinels from './traceSentinels';
-import {
-  createNativeUpdatePrompt,
-  INativeUpdatePrompt,
-  isWindowOnScreen,
-} from './nativeUpdatePrompt';
-import {
-  consumeUnattendedRestart,
-  createUnattendedUpdate,
-  IUnattendedUpdate,
-  rememberUnattendedRestart,
-} from './unattendedUpdate';
+import { consumeUnattendedRestart } from './unattendedUpdate';
 import { accountComeBackSteps, createComeBackWatch } from './comeBackSignals';
-import { translate } from '../common/i18n';
 import { createMainWindowFactory } from './mainWindow';
-import { installMainFailureRecovery, recordFailure } from './crashRecovery';
+import { installCrashLogging } from './crashRecovery';
 import { createApoAdoption } from './apoAdopt';
-import { getEqMode, getCurveEqMode } from '../common/eqMode';
 import { registerTransferIpc } from './ipc/transfer';
 import { registerReferencesIpc } from './ipc/references';
 import { registerKaraokeIpc } from './ipc/karaoke';
 import { registerWindowIpc } from './ipc/window';
 import { createWindowModes } from './windowMode';
-import {
-  appMinimumSize,
-  isUsableRect,
-  PLAYER_BOUNDS_RULE,
-  rememberedPlayer,
-  type IRect,
-  type IWindowState as IWindowStatePush,
-  type TWindowMode,
-} from '../common/windowMode';
 import { registerFiltersIpc } from './ipc/filters';
 import registerBandDesignsIpc from './ipc/bandDesigns';
 import { registerLayersIpc } from './ipc/layers';
 import registerSongEqHandlers from './ipc/songEq';
 import { registerPreampIpc } from './ipc/preamp';
 import registerVideoIpc from './ipc/video';
-import {
-  karaokeStemsDir,
-  registerKaraokeSeparation,
-} from './karaokeSeparation';
+import { registerKaraokeSeparation } from './karaokeSeparation';
 import { registerKaraokePitch } from './karaokePitch';
-import { karaokeMakerDraftDir } from './karaokeMakerStorage';
 import { registerProfilesIpc } from './ipc/profiles';
 import { IOutputWatch, startOutputWatch } from './outputWatch';
-import { registerAudioEngineIpc, TReflushResult } from './ipc/audioEngine';
-import {
-  createApoGuard,
-  isApoOnAnyOutput,
-  isApoSwitchedOff,
-} from './apoSwitchOff';
-import { createEngineLoadRepair } from './engineLoadRepair';
-import { createEngineOutputRepair } from './engineOutputRepair';
-import { createAutomaticSetup } from './automaticSetup';
-import { registerCurveComparisonIpc } from './ipc/curveComparison';
-import { registerTrebleDesignIpc } from './ipc/trebleDesign';
 import { registerUpdatesIpc } from './ipc/updates';
 import { registerLibraryIpc } from './ipc/library';
 import {
   dspHostPid,
   dspHostStats,
-  isDspHostPlaying,
   registerDspHostIpc,
   shutdownDspHost,
 } from './ipc/dspHost';
@@ -212,28 +90,6 @@ import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
 import { registerEngineHealthIpc } from './ipc/engineHealth';
 import { registerLightingIpc } from './ipc/lighting';
 import { registerRemoteAudioIpc } from './ipc/remoteAudio';
-import { registerAccountIpc } from './ipc/account';
-import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
-import { registerPlusWelcomeIpc } from './ipc/plusWelcome';
-import { registerPlusTrialIpc } from './ipc/plusTrial';
-import { registerScenePacksIpc } from './ipc/scenePacks';
-import registerWallpaperIpc from './wallpaper/register';
-import { createArrangementStore } from './wallpaper/arrangement';
-import { createWallpaperScenes } from './wallpaper/scenes';
-import { registerMemberScenesIpc } from './ipc/memberScenes';
-import { registerMemberSharingIpc } from './ipc/memberSharing';
-import { registerPlusGalleryIpc } from './ipc/plusGallery';
-import { registerPlusPublishingIpc } from './ipc/plusPublishing';
-import { registerStudioInspectIpc } from './ipc/studioInspect';
-import { registerPlusModerationIpc } from './ipc/plusModeration';
-import { registerPlusReviewIpc } from './ipc/plusReview';
-import { registerMakerMonthIpc } from './ipc/makerMonth';
-import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
-import { setKnownMaker } from './account/knownMakers';
-import { registerPlusGiftsIpc } from './ipc/plusGifts';
-import { registerAccountDeletionIpc } from './ipc/accountDeletion';
-import { createGalleryAccess } from './plus/galleryAccess';
-import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerForumIpc } from './ipc/forum';
 import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
@@ -246,54 +102,38 @@ import {
   readGpuPreference,
 } from './graphicsPreference';
 import { registerGraphicsPreferenceIpc } from './ipc/graphicsPreference';
-import { registerLeaderboardIpc } from './ipc/leaderboard';
-import { ACCOUNT_CONFIG } from '../common/accountConfig';
 import { registerOutputMirrorIpc } from './ipc/outputMirror';
 import {
   handleLibraryMedia,
   registerPrivilegedSchemes,
 } from './library/libraryProtocol';
-import {
-  adoptApoFeatureText,
-  describeApoFeatureText,
-} from '../common/apoFeatureSync';
-import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
-import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
 import { PRODUCT_NAME } from '../common/branding';
 import { APP_USER_MODEL_ID } from './appIdentity';
 import { appVersion } from './appVersion';
-import {
-  assignDeviceProfile,
-  flushDeviceProfiles,
-  IActiveStateOverride,
-  isGeneratedConfigFile,
-  ISessionHeadroom,
-  loadDeviceProfileSettings,
-  migrateNamedFilesToOutputFolders,
-  saveDeviceProfileSettings,
-} from './deviceProfiles';
-import { sendMediaTransportKey } from './mediaKeys';
-import {
-  getSystemMediaCover,
-  pauseOtherSystemPlayers,
-  sendSystemMediaCommand,
-  stopWatchingSystemMedia,
-  watchSystemMedia,
-} from './systemMedia';
-import {
-  claimInstance,
-  describeInstanceHolder,
-  instanceLockPath,
-} from './singleInstance';
-import { POWERSHELL_PATH } from './powershell';
-import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
-import {
-  IAuthorizedAutoUpdater,
-  setUpReleaseAutoUpdates,
-} from './signedAutoUpdates';
+import { loadDeviceProfileSettings } from './deviceProfiles';
 import onWindowMessage from './ipc/windowMessages';
-import mainText from './mainText';
 import { declineDefaultMenu } from './menu';
+import registerDevMemoryTrace from './devMemoryTrace';
+import createAppUpdates from './appUpdates';
+import { createWindowPlacement, firstRunPlacement } from './windowPlacement';
+import createMainSession from './mainSession';
+import {
+  createProfileStore,
+  isAutomaticPresetName,
+  shieldReferenceBands,
+} from './profileStore';
+import createApoDiskSync from './apoDiskSync';
+import { createUpdatePath, handleError } from './updatePath';
+import registerDiagnosticsIpc from './ipc/diagnostics';
+import registerApoConfigIpc from './ipc/apoConfig';
+import registerEngineStateIpc from './ipc/engineState';
+import registerNativeDialogsIpc from './ipc/nativeDialogs';
+import registerWindowsAudioIpc from './ipc/windowsAudio';
+import registerSystemMediaIpc from './ipc/systemMedia';
+import registerMemberServices from './memberServices';
+import { applyLaunchSwitches, isDebug } from './launchSwitches';
+import claimTheOnlyCopy from './onlyCopy';
+import { chooseLaunchEngine, registerEngineServices } from './engineServices';
 
 /**
  * Declares the `fluideq-media:` scheme's privileges before the app is ready.
@@ -312,398 +152,8 @@ registerPrivilegedSchemes();
 // for an app that has not said it wants none. See `declineDefaultMenu`.
 declineDefaultMenu();
 
-/**
- * The updater exists only after Windows verifies which release channel this
- * process belongs to. An unsigned package uses GitHub Releases; an official
- * signed package uses its pinned HTTPS feed. A source build, differently signed
- * fork, incomplete release configuration, or verification failure leaves this
- * unset, which also closes the install IPC path below.
- *
- * Type-only import above is deliberate. The runtime module is required inside
- * `loadUpdater`, after verification, because reading electron-updater's
- * singleton export constructs the platform updater.
- */
-let activeAutoUpdater: IAuthorizedAutoUpdater | undefined;
-let hasAttemptedAutoUpdates = false;
-
-/**
- * Which process is which, and how big each one is getting. Development only.
- *
- * Chasing a renderer that grew to two gigabytes, the hard part was not seeing
- * the growth — Task Manager shows that — it was knowing *whose* growth it was.
- * An Electron app playing a video runs half a dozen renderers and the operating
- * system names them all `electron.exe`; picking ours out by process id is a
- * guess, and a guess sends the search into the wrong file.
- *
- * Electron already knows. `getAppMetrics` labels every process by type, and the
- * window's own `getOSProcessId` says which renderer is the app rather than a
- * guest page. Written to the log so a session can be read back afterwards
- * instead of watched live.
- *
- * Taken at the moments somebody marks — the window opening, and every start
- * and stop of the memory trace below, which is how a developer says "now" —
- * and never on a clock. It used to be a reading every fifteen seconds, a timer
- * in aid of a question only a developer is asking; the trace is the tool that
- * answers "what grew between here and there", and Chromium takes its dumps
- * on its own cadence.
- */
-const logMemorySnapshot = (moment: string) => {
-  if (
-    process.env.NODE_ENV !== 'development' ||
-    !mainWindow ||
-    mainWindow.isDestroyed()
-  ) {
-    return;
-  }
-  const appRendererPid = mainWindow.webContents.getOSProcessId();
-  const rows = app
-    .getAppMetrics()
-    .map((metric) => {
-      const mb = Math.round(metric.memory.workingSetSize / 1024);
-      const mine = metric.pid === appRendererPid ? '*' : '';
-      return `${metric.type}${mine}:${metric.pid}=${mb}MB`;
-    })
-    .join(' ');
-  // The JS heap alongside the process size, because the two answer different
-  // questions and only the pair narrows anything. A renderer at a gigabyte
-  // with a hundred-megabyte heap is not leaking objects — it is leaking
-  // something the garbage collector never sees, which means DOM nodes,
-  // decoded images, canvas backing stores or retained paint. The opposite
-  // points straight back at our own code.
-  mainWindow.webContents
-    .executeJavaScript(
-      // Node count alongside the heap, because "process grows, heap flat" has
-      // two very different explanations and this tells them apart: DOM piling
-      // up inside the document, or something the page never sees — detached
-      // nodes, retained paint, decoded images.
-      '(() => { const m = performance.memory; const h = m ? Math.round(m.usedJSHeapSize / 1048576) + "/" + Math.round(m.totalJSHeapSize / 1048576) : "n/a"; return h + "MB nodes=" + document.getElementsByTagName("*").length; })()',
-      true,
-    )
-    .then((heap) => log.info(`[mem] ${moment}: ${rows} jsHeap*=${heap}`))
-    .catch(() => log.info(`[mem] ${moment}: ${rows}`));
-};
-
-/** The window's renderer by pid, and the first reading. */
-const startMemoryProbe = () => {
-  if (process.env.NODE_ENV !== 'development' || !mainWindow) {
-    return;
-  }
-  log.info(`[mem] app renderer pid=${mainWindow.webContents.getOSProcessId()}`);
-  logMemorySnapshot('window open');
-};
-
-/**
- * Ask Chromium itself where the memory went.
- *
- * The probe above can say the renderer is growing while its JS heap and its
- * DOM are not, which is enough to rule our own objects out and nothing like
- * enough to say what is actually holding it. Only Chromium knows that, and
- * memory-infra is how it will say: every subsystem that tracks its own
- * allocations — cc/tile_memory, skia, partition_alloc, discardable, malloc —
- * reports into a periodic dump, and the row that grows between the first dump
- * and the last is the answer.
- *
- * Stopped by whoever started it — the button, the sentinel file below — or by
- * the app quitting, which writes what was recorded rather than losing it
- * (`before-quit`). There used to be a five-minute deadline as well, for a
- * trace nobody remembered to stop; the buffer is a ring (below), so a
- * forgotten one costs its dumps' overhead until it is stopped, and never the
- * disk. The dumps are expensive enough that Chromium's own documentation
- * calls the category high-overhead, which is why it is never started at
- * launch.
- *
- * Toggled from the keyboard rather than started at launch, because the
- * question is never "what does the app allocate" — it is "what does the app
- * allocate *while doing this particular thing*", and only the person driving
- * it knows when that has started.
- */
-/**
- * Every five seconds, not every two.
- *
- * A detailed dump is not a number, it is the whole allocator tree — nearly
- * seven thousand nodes per process per dump, most of them individual Blink
- * object buckets. At two seconds across seven processes that is a hundred
- * megabytes a minute of trace, and the growth being measured here is steady
- * enough that five seconds resolves it just as well.
- */
-const TRACE_DUMP_INTERVAL_MS = 5000;
-
-/**
- * Keep the end of the recording, not the beginning.
- *
- * The default is `record-until-full`, which keeps the earliest events and
- * silently drops everything after the buffer fills. The first recording taken
- * here filled at around two minutes and threw away the entire period the
- * memory was actually climbing — leaving a 371MB file describing the part
- * where nothing happened, with nothing to say it was incomplete.
- *
- * A ring buffer gets this the right way round: whatever else is lost, the
- * dumps nearest the moment recording stopped survive, and those are the ones
- * being compared against.
- */
-const TRACE_RECORD_MODE = 'record-continuously' as const;
-/** The default is 100MB, and 100MB of this category is about two minutes. */
-const TRACE_BUFFER_KB = 800 * 1024;
-
-let isTracing = false;
-/**
- * True while a start or a stop is still in flight.
- *
- * Both are asynchronous, and the flag above is set the moment one begins — so
- * a second press during the await saw a recording that had been declared but
- * not yet begun, and tried to stop it. Chromium's answer to that is "no trace
- * in progress", after which our flag and its reality disagree and the control
- * is stuck until the app restarts.
- */
-let isTraceBusy = false;
-
-/**
- * Tell the window what the recording is doing.
- *
- * Pushed rather than returned, because the recording can also be started and
- * stopped without the button — by the sentinel files below — and a button
- * whose label only updates when it is pressed would sit there claiming to be
- * recording long after the trace had been written.
- */
-const publishTraceState = (detail?: string) => {
-  mainWindow?.webContents.send(ChannelEnum.TOGGLE_MEMORY_TRACE, {
-    result: { isRecording: isTracing, detail },
-  });
-};
-
-const stopMemoryTrace = async () => {
-  if (!isTracing || isTraceBusy) {
-    return;
-  }
-  isTraceBusy = true;
-  isTracing = false;
-  logMemorySnapshot('trace stop');
-  try {
-    const target = path.join(
-      app.getPath('userData'),
-      'logs',
-      `memory-trace-${Date.now()}.json`,
-    );
-    const written = await contentTracing.stopRecording(target);
-    log.info(`[trace] written to ${written}`);
-    publishTraceState(`Saved ${path.basename(written)}`);
-  } catch (e) {
-    log.info(`[trace] failed to stop: ${(e as Error).message}`);
-    publishTraceState('Failed to save');
-  } finally {
-    isTraceBusy = false;
-  }
-};
-
-const startMemoryTrace = async () => {
-  if (isTraceBusy) {
-    return;
-  }
-  if (isTracing) {
-    await stopMemoryTrace();
-    return;
-  }
-  isTraceBusy = true;
-  isTracing = true;
-  try {
-    await contentTracing.startRecording({
-      // Only memory-infra. Everything else in a trace is noise for this
-      // question and makes the file large enough to be awkward to load.
-      included_categories: ['disabled-by-default-memory-infra'],
-      excluded_categories: ['*'],
-      recording_mode: TRACE_RECORD_MODE,
-      trace_buffer_size_in_kb: TRACE_BUFFER_KB,
-      // `detailed` is what breaks the total down per allocator. `light` gives
-      // totals only, which is the number we already have.
-      memory_dump_config: {
-        triggers: [
-          { mode: 'detailed', periodic_interval_ms: TRACE_DUMP_INTERVAL_MS },
-        ],
-      },
-    });
-    log.info(
-      '[trace] recording memory-infra — press again, or drop trace.stop, to stop',
-    );
-    logMemorySnapshot('trace start');
-    publishTraceState('Recording');
-  } catch (e) {
-    isTracing = false;
-    log.info(`[trace] failed to start: ${(e as Error).message}`);
-    publishTraceState('Failed to start');
-  } finally {
-    isTraceBusy = false;
-  }
-};
-
-// Development only, and checked here as well as at the control that sends it.
-// A renderer is the wrong place to enforce anything: the button not being
-// rendered is a matter of what the user sees, and this is a matter of what the
-// main process will do when asked.
-onWindowMessage(ChannelEnum.TOGGLE_MEMORY_TRACE, () => {
-  if (process.env.NODE_ENV !== 'development') {
-    return;
-  }
-  startMemoryTrace();
-});
-
-/**
- * The trace's other switch: files dropped next to the log
- * (`traceSentinels.ts`), for when focus is somewhere the button cannot be
- * pressed from.
- */
-const setUpMemoryTraceTrigger = () => {
-  if (process.env.NODE_ENV !== 'development' || !mainWindow) {
-    return;
-  }
-  const stopWatching = watchTraceSentinels(
-    path.join(app.getPath('userData'), 'logs'),
-    {
-      start: startMemoryTrace,
-      stop: stopMemoryTrace,
-      isBusy: () => isTraceBusy,
-      log: (line) => log.info(line),
-    },
-  );
-  mainWindow.on('closed', stopWatching);
-};
-
-/**
- * Owns the tray badge and the Windows toast that catch a user who is not
- * looking at the window. Built at setUpAutoUpdates so the install callback
- * closes over the controller once it exists — the prompt is what turns a
- * "ready" status into a real chance to install without the app being open.
- */
-let nativeUpdatePrompt: INativeUpdatePrompt | undefined;
-
-/**
- * Applies a downloaded update by itself, whenever doing so would go unnoticed.
- * Built alongside the prompt above, and deliberately consulted from the same
- * places: a ready download, and every event that means the app has just got
- * out of the user's way. See unattendedUpdate.ts for why there is no timer.
- */
-let unattendedUpdate: IUnattendedUpdate | undefined;
-
-const applyUpdateIfUnattended = (reason: string) => {
-  // `setImmediate` here is about the call stack, not about waiting: there is
-  // no duration to tune and nothing is being retried. Every caller is inside
-  // an event Electron is still dispatching — the window's own `close` handler
-  // is what calls `hide()`, so a `hide` listener runs while that `close` is
-  // still on the stack, and this path ends in `app.quit()`, which closes the
-  // same window again. Starting the quit from a fresh stack keeps that out of
-  // a re-entrant close. It also lets the renderer's status message flush
-  // before the process goes.
-  setImmediate(() => {
-    unattendedUpdate?.applyIfUnattended(reason);
-  });
-};
-
-const installActiveUpdate = () => {
-  if (!activeAutoUpdater) {
-    // Reachable only if the tray or a toast outlived the updater. Say so
-    // rather than returning quietly: this is the button the whole feature
-    // exists to offer.
-    log.warn('Update install requested with no active updater; ignoring.');
-    nativeUpdatePrompt?.notifyInstallFailed();
-    return;
-  }
-  try {
-    // `true` for isSilent so the NSIS run puts nothing on screen and asks
-    // nothing: no language dialog, no licence page, no progress window with a
-    // button on it, and no second pass at the Equalizer APO installer, which
-    // installer.nsh skips on a silent run. `true` for isForceRunAfter so
-    // FluidEQ opens again once the install finishes. The controller arms the
-    // tray's quit flag via beforeQuit; without that the window's close
-    // handler would cancel the exit and the installer would fail to replace
-    // a still-open executable.
-    activeAutoUpdater.quitAndInstall(true, true);
-  } catch (error) {
-    // NOT LOG-ONLY. This is the primary action of the whole tray update flow,
-    // reached from the notification and from the menu item, and both of those
-    // are pressed by somebody who cannot see a window. Swallowing the failure
-    // into the log would leave the loudest button in the app doing visibly
-    // nothing. The tray badge is deliberately left up so the action can be
-    // tried again.
-    log.error('Update install could not start', error);
-    nativeUpdatePrompt?.notifyInstallFailed();
-  }
-};
-
-const setUpAutoUpdates = async () => {
-  if (hasAttemptedAutoUpdates) {
-    return;
-  }
-  hasAttemptedAutoUpdates = true;
-  log.transports.file.level = 'info';
-
-  // Built up front so `sendStatus` can fan out to it. `handleStatus` is a
-  // no-op for anything other than a 'ready' phase, so creating this before
-  // the tray or updater exist is harmless.
-  nativeUpdatePrompt = createNativeUpdatePrompt({
-    getMainWindow: () => mainWindow,
-    installNow: installActiveUpdate,
-    setTrayUpdateReady: (isReady) =>
-      setTrayUpdateReady(isReady, { getMainWindow: () => mainWindow }),
-    revealWindow: () => revealMainWindow(() => mainWindow),
-    translate: (key, params) => translate(getTrayLocale(), key, params),
-    createNotification: ({ title, body }) => new Notification({ title, body }),
-    logger: log,
-  });
-
-  unattendedUpdate = createUnattendedUpdate({
-    install: installActiveUpdate,
-    // Reads the controller through the same late-bound `activeAutoUpdater` the
-    // install does, because this is built before it exists.
-    isInstallerReady: () => Boolean(activeAutoUpdater?.isReadyToInstall()),
-    isPlayingAudio: isDspHostPlaying,
-    isWindowOnScreen: () => isWindowOnScreen(mainWindow),
-    rememberRestart: () =>
-      rememberUnattendedRestart(UNATTENDED_RESTART_MARKER_PATH, appVersion()),
-    logger: log,
-  });
-
-  activeAutoUpdater = await setUpReleaseAutoUpdates({
-    executablePath: process.execPath,
-    isPackaged: app.isPackaged,
-    platform: process.platform,
-    publisherName: process.env.FLUIDEQ_SIGN_PUBLISHER || '',
-    updateUrl: process.env.FLUIDEQ_UPDATE_URL || '',
-    logger: log,
-    beforeQuit: beginQuit,
-    // Only fires for checks started from the tray. The periodic ones stay
-    // silent when they find nothing, which is most of the time.
-    onManualCheckResult: (result, version) =>
-      nativeUpdatePrompt?.notifyManualCheckResult(result, version),
-    loadUpdater: () =>
-      // eslint-disable-next-line global-require -- loaded only once updates are switched on, never on a build that has none
-      require('electron-updater').autoUpdater as NsisUpdater,
-    sendStatus: (payload) => {
-      // The native surfaces first — a user with the window hidden into the
-      // tray must see something regardless of whether the renderer is alive.
-      nativeUpdatePrompt?.handleStatus(payload);
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send(APP_UPDATE_EVENT, payload);
-      }
-      // Last, and only once the badge and the banner are up: if this attempt
-      // installs, the app is gone within the call, and the surfaces above are
-      // what a user who is looking sees instead.
-      if (payload.phase === 'ready') {
-        applyUpdateIfUnattended('the download finishing');
-      }
-    },
-  });
-
-  // The tray asks before it offers anything. An updater that failed its
-  // Authenticode or feed check leaves this false, and the menu then shows
-  // only Open and Quit rather than an item whose click goes nowhere.
-  setTrayUpdatesEnabled(Boolean(activeAutoUpdater), {
-    getMainWindow: () => mainWindow,
-  });
-  // No events are wired here: the ones that check for updates are wired with
-  // the window, and ask for `activeAutoUpdater` when they fire
-  // (`comeBackSignals.ts`).
-};
-
 let mainWindow: BrowserWindow | null = null;
+const getMainWindow = () => mainWindow;
 
 /**
  * Windows' own output notifications, followed by a helper for as long as the
@@ -711,202 +161,13 @@ let mainWindow: BrowserWindow | null = null;
  */
 let outputWatch: IOutputWatch | undefined;
 
+const memoryTrace = registerDevMemoryTrace(getMainWindow);
+
 /**
  * The full app and the player it turns into, and the floor each keeps. What
- * happens after a switch is attached beside `sendWindowState`, below.
+ * happens after a switch is attached below, at `windowModes.listen`.
  */
 const windowModes = createWindowModes();
-
-const WINDOW_STATE_FILENAME = 'window-state.json';
-
-/** What `window-state.json` holds. */
-interface IWindowState {
-  /** The full app's normal bounds, whichever mode the window was left in. */
-  width?: number;
-  height?: number;
-  x?: number;
-  y?: number;
-  isMaximized?: boolean;
-  /** The app or the player; missing in every file written before the player. */
-  mode?: TWindowMode;
-  /** The player's bounds. */
-  player?: IRect;
-  /**
-   * Which rule wrote `player` down (`PLAYER_BOUNDS_RULE`); missing in every
-   * file written before the rule.
-   */
-  playerRule?: number;
-  /** The player's Always on top. */
-  isPinned?: boolean;
-}
-
-/** The screen a saved rectangle belongs to, or the primary one. */
-const workAreaFor = (rect: Partial<IRect>) =>
-  isUsableRect(rect)
-    ? screen.getDisplayMatching(rect).workArea
-    : screen.getPrimaryDisplay().workArea;
-
-/**
- * Where and how big the window was last time.
- *
- * Restoring the position as well as the size matters more than it sounds:
- * FluidEQ is a frameless window that people park somewhere deliberate — beside
- * a player, on a second screen — and opening centred every launch undoes that
- * decision for them daily.
- */
-const windowStatePath = () => path.join(userDataDir, WINDOW_STATE_FILENAME);
-
-const loadWindowState = (): IWindowState => {
-  try {
-    // What the writer last accepted, when a write is still on its way: the
-    // file behind it is a drag behind (see `saveWindowState`).
-    const file = windowStatePath();
-    const parsed = JSON.parse(
-      peekScheduled(file) ?? fs.readFileSync(file, 'utf8'),
-    ) as IWindowState;
-
-    const isSize = (value: unknown): value is number =>
-      typeof value === 'number' && Number.isFinite(value) && value > 0;
-    const isCoordinate = (value: unknown): value is number =>
-      typeof value === 'number' && Number.isFinite(value);
-
-    const state: IWindowState = {
-      isMaximized: parsed.isMaximized === true,
-      mode: parsed.mode === 'player' ? 'player' : 'app',
-      isPinned: parsed.isPinned === true,
-    };
-    const player = rememberedPlayer(parsed);
-    if (player) {
-      state.playerRule = PLAYER_BOUNDS_RULE;
-      state.player = player;
-    }
-    if (isSize(parsed.width) && isSize(parsed.height)) {
-      // Up to the app's floor on the screen it was left on. A window saved
-      // smaller by a version that allowed it comes back at the floor — or
-      // as large as that screen is, on a smaller one.
-      const floor = appMinimumSize(workAreaFor(parsed));
-      state.width = Math.max(parsed.width, floor.width);
-      state.height = Math.max(parsed.height, floor.height);
-    }
-
-    // A saved position is only usable if a display still covers it. Unplugging
-    // a second monitor would otherwise reopen FluidEQ at coordinates nobody can
-    // reach, and the only fix would be deleting a file they do not know exists.
-    const { x, y } = parsed;
-    if (isCoordinate(x) && isCoordinate(y)) {
-      const onScreen = screen.getAllDisplays().some(({ bounds }) => {
-        return (
-          x >= bounds.x - 32 &&
-          y >= bounds.y - 32 &&
-          x < bounds.x + bounds.width &&
-          y < bounds.y + bounds.height
-        );
-      });
-      if (onScreen) {
-        state.x = x;
-        state.y = y;
-      }
-    }
-
-    return state;
-  } catch {
-    // No file yet, or one we cannot read. Either way: open at the default.
-    return {};
-  }
-};
-
-/**
- * Remember the window geometry.
- *
- * Maximized and full-screen windows report the size of the screen, not the size
- * the user chose, so the normal bounds are saved instead — that is what should
- * come back when they un-maximize.
- *
- * Asked for on every frame of a move or a resize, and never blocking: the
- * coalescing writer keeps one write in flight and the newest waiting, skips
- * contents already on disk, and is flushed by `before-quit`. It used to be a
- * synchronous write 400 ms after the last event (`mainWindow.ts`).
- */
-const saveWindowState = () => {
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    return;
-  }
-  try {
-    const modes = windowModes.memory();
-    const isPlayer = modes.mode === 'player';
-    // The full app's bounds are the window's own while it is the app. While
-    // it is the player they are the ones the switch put aside, to go back to.
-    const bounds = isPlayer ? modes.app : mainWindow.getNormalBounds();
-    // The player's own bounds, never the full screen's or a switch's.
-    const player = windowModes.playerBounds(mainWindow);
-    // A window that is off screen right now cannot report the state the user
-    // chose. Normally that never happens: the close handler saves before it
-    // hides, so the window is still visible at that moment. It does happen
-    // after an unattended update, which builds the window and never shows
-    // it — `isMaximized()` answers false, and writing that answer down would
-    // un-maximise FluidEQ for good, one update at a time. Keep what was
-    // already recorded instead.
-    const isAppMaximized = mainWindow.isVisible()
-      ? mainWindow.isMaximized()
-      : loadWindowState().isMaximized === true;
-    const state: IWindowState = {
-      width: bounds.width,
-      height: bounds.height,
-      x: bounds.x,
-      y: bounds.y,
-      // The player is never maximised; what it keeps is the app's own.
-      isMaximized: isPlayer ? modes.app.isMaximized === true : isAppMaximized,
-      mode: modes.mode,
-      ...(isUsableRect(player)
-        ? { player, playerRule: PLAYER_BOUNDS_RULE }
-        : {}),
-      isPinned: modes.isPinned,
-    };
-    scheduleWrite(windowStatePath(), JSON.stringify(state, null, 2)).catch(
-      (error: unknown) => log.warn('Unable to save the window position', error),
-    );
-  } catch (error) {
-    // Losing the window position is not worth an error on screen.
-    log.warn('Unable to save the window position', error);
-  }
-};
-
-const DATABASES_SYNCED_EVENT = 'databases-synced';
-
-/**
- * Tell the renderer the state now belongs to a different profile.
- *
- * Pushed rather than polled. The renderer holds its own copy of the EQ, the
- * voicing, the driver correction and the convolution, and every one of those
- * belongs to the output it was tuned on — so when Windows (or the user) moves
- * to another endpoint, the panels have to be told to re-read, not left showing
- * the previous device's settings until something else happens to refresh them.
- */
-const notifyOutputStateChanged = () => {
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    return;
-  }
-  mainWindow.webContents.send(OUTPUT_STATE_CHANGED_EVENT, {
-    deviceId: session.activeAudioDeviceId,
-  });
-};
-
-const syncDatabasesOnStartup = async () => {
-  const opraResult = await Promise.resolve(syncOpraDatabase())
-    .then((value) => ({ status: 'fulfilled' as const, value }))
-    .catch((reason) => ({ status: 'rejected' as const, reason }));
-
-  if (opraResult.status === 'rejected') {
-    log.warn('Unable to synchronize the OPRA database', opraResult.reason);
-  }
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    return;
-  }
-
-  mainWindow.webContents.send(DATABASES_SYNCED_EVENT, {
-    opra: opraResult.status === 'fulfilled' ? opraResult.value : undefined,
-  });
-};
 
 // A sandbox for running from a checkout on macOS or Linux, where neither engine
 // can be installed. Only there: a packaged build took it too and kept every
@@ -919,78 +180,6 @@ if (process.platform !== 'win32' && !app.isPackaged) {
   app.setPath('userData', path.join(app.getPath('temp'), 'fluideq-dev'));
   fs.mkdirSync(app.getPath('userData'), { recursive: true });
 }
-
-/** How much of the screen the window takes when nothing is remembered. */
-const FIRST_RUN_SCREEN_FRACTION = 0.9;
-
-/**
- * Under this, a first run opens maximised instead of at 90%.
- *
- * Nine tenths of a small screen is not a comfortable window, it is a cramped
- * one with a frame of wasted desktop around it — this app puts a band editor, a
- * response graph and a profile column side by side, and below 2K something has
- * to give. The test is against the display's **resolution**, not its work area:
- * a 2560x1440 screen reports 2560x1392 once the taskbar is subtracted, so
- * measuring the work area against 1440 would maximise on exactly the screens
- * meant to get the 90% window.
- */
-const MAXIMIZE_BELOW_WIDTH = 2560;
-const MAXIMIZE_BELOW_HEIGHT = 1440;
-
-/**
- * Where and how big to open when nothing is remembered.
- *
- * A fixed 1428x625 was a guess at somebody else's monitor, and it was made
- * worse by the graph-view expansion below: the window was centred as a 625-tall
- * one and then grown to 1036 from the same top-left, so it reached 411px
- * further down than the position it had been given. On a 1080p display that put
- * the bottom edge under the taskbar on the very first launch.
- *
- * Nine tenths of the work area is the same proportion of whatever screen it
- * lands on, and — because it is applied when the window is built rather than
- * after — `center: true` centres the size the user actually gets. The size is
- * computed even when the window will be maximised, because it is what the
- * window returns to the first time somebody restores it down.
- */
-const firstRunPlacement = () => {
-  const display = screen.getPrimaryDisplay();
-  const { width, height } = display.workAreaSize;
-  const floor = appMinimumSize(display.workArea);
-  return {
-    maximize:
-      display.bounds.width < MAXIMIZE_BELOW_WIDTH ||
-      display.bounds.height < MAXIMIZE_BELOW_HEIGHT,
-    width: Math.max(floor.width, Math.round(width * FIRST_RUN_SCREEN_FRACTION)),
-    height: Math.max(
-      floor.height,
-      Math.round(height * FIRST_RUN_SCREEN_FRACTION),
-    ),
-  };
-};
-
-const setWindowDimension = (isExpanded: boolean) => {
-  if (mainWindow) {
-    const currWidth = mainWindow.getSize()[0];
-    const currHeight = mainWindow.getSize()[1];
-    if (isExpanded) {
-      mainWindow.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT);
-      // Never taller than the screen it is on. Growing to a fixed 1036 is fine
-      // on a large monitor and runs off the bottom of a small one, and the
-      // window keeps its top-left when it grows, so the part that disappears is
-      // the part with the graph in it.
-      mainWindow.setSize(
-        currWidth,
-        Math.min(
-          Math.max(currHeight, WINDOW_HEIGHT_EXPANDED),
-          screen.getPrimaryDisplay().workAreaSize.height,
-        ),
-      );
-    } else {
-      mainWindow.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT);
-      mainWindow.setSize(currWidth, WINDOW_HEIGHT);
-    }
-  }
-};
 
 /** ----- Equalizer APO Implementation ----- */
 
@@ -1029,943 +218,65 @@ const didRestartForUnattendedUpdate = consumeUnattendedRestart(
   appVersion(),
 );
 
-const presetPath = path.join(userDataDir, PRESETS_DIR);
-const baselinePath = path.join(userDataDir, PRESET_BASELINES_DIR);
+const updates = createAppUpdates({
+  getMainWindow,
+  unattendedRestartMarkerPath: UNATTENDED_RESTART_MARKER_PATH,
+});
+
+const placement = createWindowPlacement({
+  userDataDir,
+  getMainWindow,
+  windowModes,
+});
+
 const state: IState = fetchSettings(userDataDir);
 const deviceProfileSettings = loadDeviceProfileSettings(userDataDir);
+const session = createMainSession();
+
+const DATABASES_SYNCED_EVENT = 'databases-synced';
 
 /**
- * What the process currently has open, in one place a module can be handed.
+ * Tell the renderer the state now belongs to a different profile.
  *
- * These four were module-level `let`s, and being `let`s is exactly what kept
- * the IPC handlers that reassign them stuck in this file: a reassignment
- * cannot travel across a function boundary. Extracting the device handlers
- * would have meant passing four setters so a module could reach back and
- * rewrite this file's variables — which is harder to follow than leaving them
- * inline, and is why `presets` and `devices` could not be merged even though
- * they are plainly one subject.
- *
- * As fields on an object the reassignment goes with the object, so a module
- * receives `session` and mutates it directly. The mutability is unchanged and
- * deliberately so; what changes is that it now has a name and a place, and a
- * handler's access to it is visible in a signature.
- *
- * Deliberately not `state`. That is the audio chain — the filters, the preamp,
- * the layers — and is persisted. This is which output is selected and where
- * the config lives, none of which outlives the process.
+ * Pushed rather than polled. The renderer holds its own copy of the EQ, the
+ * voicing, the driver correction and the convolution, and every one of those
+ * belongs to the output it was tuned on — so when Windows (or the user) moves
+ * to another endpoint, the panels have to be told to re-read, not left showing
+ * the previous device's settings until something else happens to refresh them.
  */
-const session: {
-  /**
-   * The chosen engine's config directory, resolved once and cached.
-   *
-   * Cleared whenever the engine changes. Kept across a switch it would send
-   * the next flush into the directory the app has just neutralised.
-   */
-  configPath: string;
-  activeAudioDeviceId: string;
-  activeAudioDevice: IAudioDevice | undefined;
-  /** The user opened a device explicitly, so its profile wins over the default. */
-  hasActiveSessionOverride: boolean;
-  /**
-   * The engine being written to, loaded from `audioEngineStore.ts` at the top
-   * of `onAppReady` and changed only by `SET_AUDIO_ENGINE`.
-   *
-   * `null` means the first-run dialog has not been answered — a state the
-   * update path refuses rather than defaults, because defaulting is exactly
-   * what the startup migration is responsible for doing once, in one place.
-   */
-  audioEngine: TAudioEngine | null;
-  /**
-   * Raised while `SET_AUDIO_ENGINE` is neutralising one engine and pointing
-   * the session at the other.
-   *
-   * For that stretch `configPath` still names the engine being left, and an
-   * EQ edit arriving in the middle of it would flush the live chain straight
-   * back over the neutral root that was just written there — both engines
-   * processing the same audio, which is the exact thing the switch exists to
-   * prevent. The update path skips its flush while this is up; the reflush
-   * that ends the switch writes the state out once, into the right place.
-   */
-  engineSwitching: boolean;
-} = {
-  configPath: '',
-  activeAudioDeviceId: '',
-  activeAudioDevice: undefined,
-  hasActiveSessionOverride: false,
-  audioEngine: null,
-  engineSwitching: false,
-};
-// The live APO reader must never observe the half-state between an app edit
-// mutating memory and that edit reaching the generated files. Otherwise it can
-// read the old file back as an external change and undo actions such as Clear
-// EQ. Nested because a few higher-level operations reuse the update helper.
-let apoAppWriteDepth = 0;
-let apoSyncDeferredByAppWrite = false;
-
-/** Backfill measured WAV metadata for profiles created before strict
- * convolution normalization existed. The file analyzer caches by mtime, so
- * repeated state reads do not repeat the FFT.
- */
-const hydrateActiveConvolution = () => {
-  if (!session.configPath || !state.convolution?.fileName) {
-    return false;
-  }
-  try {
-    const hydrated = hydrateConvolutionAnalysis(
-      state.convolution,
-      session.configPath,
-    );
-    if (hydrated !== state.convolution) {
-      state.convolution = hydrated;
-      return true;
-    }
-  } catch (error) {
-    log.warn('Unable to analyze the active convolution WAV', error);
-  }
-  return false;
-};
-
-// Deferred until after the per-output folders exist, since that is where the
-// profiles it repairs now live. See runStartupProfileMaintenance.
-
-const layoutSettings = createLayoutSettingsStore(userDataDir);
-
-const getLayoutDeviceKey = () => session.activeAudioDeviceId || 'global';
-
-const captureCurrentLayout = () => {
-  layoutSettings.capture(getLayoutDeviceKey(), state.filters);
-};
-
-const clearCurrentLayoutSettings = () => {
-  layoutSettings.clear(getLayoutDeviceKey());
-};
-
-const getStoredLayout = (
-  size: FixedBandSizeEnum,
-): ILayoutSnapshot | undefined =>
-  layoutSettings.stored(getLayoutDeviceKey(), size);
-
-const getAutomaticPresetName = (deviceId: string) =>
-  `${AUTOMATIC_PRESET_PREFIX}${createHash('sha1')
-    .update(deviceId)
-    .digest('hex')
-    .slice(0, 12)}`;
-
-const isAutomaticPresetName = (presetName: string) =>
-  presetName.startsWith(AUTOMATIC_PRESET_PREFIX);
-
-/**
- * Where one output's profiles live.
- *
- * Profiles belong to an output, not to the app. A pair of headphones and a set
- * of speakers want different tunings, and the name the user picks for one has
- * nothing to say about the other — "Bass boost" on the headphones and "Bass
- * boost" on the speakers are two different profiles that happen to share a
- * word.
- *
- * A folder each is what makes that true on disk. They used to share one flat
- * directory, where a profile *was* its filename, so two outputs could not both
- * hold a "Bass boost" and saving on one silently overwrote the other. The old
- * defence was to rename the second one "Bass boost 2" — a name the user never
- * typed, attached to an output they were not looking at.
- *
- * The directory is named by hashing the device id rather than using it: device
- * ids are long, contain characters Windows will not accept in a path, and are
- * not something anybody should have to look at. The same hash already names
- * the automatic profile, so both agree on what identifies an output.
- */
-const outputSlug = (deviceId: string) =>
-  createHash('sha1').update(deviceId).digest('hex').slice(0, 12);
-
-const presetDirForDevice = (deviceId: string) => {
-  const dir = path.join(presetPath, outputSlug(deviceId));
-  // No output, no folder.
-  //
-  // The renderer asks for the profile list as it mounts, which is before any
-  // device has been resolved, so this ran with an empty id — and hashing the
-  // empty string is a perfectly good hash. Every install ended up with a
-  // `da39a3ee5e6b` directory that could never hold a profile, because no output
-  // will ever have that id. Found by looking in a real profile directory.
-  //
-  // The path is still returned rather than thrown, because the caller asking is
-  // a list that should come back empty, not an error: reading a directory that
-  // is not there fails the same way as reading an empty one, and the profiles
-  // bar already draws nothing until an output is known.
-  if (!deviceId) {
-    return dir;
-  }
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-  return dir;
-};
-
-/** The folder for whichever output is playing now. */
-const activePresetDir = () => presetDirForDevice(session.activeAudioDeviceId);
-
-/**
- * Where one output's hand-saved copies live — the same split, for the same
- * reason.
- *
- * A baseline is the profile as it stood at the last explicit Save, and it is
- * the only thing Restore can put back. These sat in one flat directory keyed by
- * name alone long after profiles stopped doing so, which made them collide
- * exactly the way profiles used to: five outputs attached to "Untitled profile
- * 1" shared one file, so saving on any of them overwrote the undo point of the
- * other four, and renaming on one took the file away from all of them.
- *
- * Deliberately does not create the directory. `savePresetBaseline` makes it
- * when there is finally something to put in it, and every reader here treats a
- * missing folder as "no saved copy", which is the truth for an output nobody
- * has pressed Save on.
- */
-const baselineDirForDevice = (deviceId: string) =>
-  path.join(baselinePath, outputSlug(deviceId));
-
-/** The saved-copy folder for whichever output is playing now. */
-const activeBaselineDir = () =>
-  baselineDirForDevice(session.activeAudioDeviceId);
-
-/**
- * Put the profile store in order before anything reads from it.
- *
- * The move has to come first: the repair looks inside each output's folder, and
- * before the move there are no folders to look in. Running them the other way
- * round would quietly skip every profile that still needed repairing.
- *
- * Automatic profiles that carry makeup gain but no EQ to make up for are
- * leftovers from when switching outputs copied the previous device's state
- * across; the effect is an output several dB down for no reason, which is not
- * something a user would ever notice as a setting.
- */
-const runStartupProfileMaintenance = () => {
-  migrateNamedFilesToOutputFolders(
-    deviceProfileSettings,
-    presetPath,
-    presetDirForDevice,
-    'profile',
-  );
-  // The saved copies were left flat by the first split and are being caught up
-  // now. Same move, one release later.
-  migrateNamedFilesToOutputFolders(
-    deviceProfileSettings,
-    baselinePath,
-    baselineDirForDevice,
-    'saved copy',
-  );
-
-  const repaired = Object.values(deviceProfileSettings.assignments).flatMap(
-    (assignment) =>
-      repairUnusedPreamps(presetDirForDevice(assignment.deviceId)),
-  );
-  if (repaired.length > 0) {
-    log.info(
-      `Cleared unused preamp on ${repaired.length} automatic profile(s):`,
-      repaired.join(', '),
-    );
-  }
-};
-
-/**
- * Adopt a device's EQ state without touching app-wide preferences.
- *
- * isEnabled, Auto normalize, the graph toggle and the filesystem-case flag are
- * settings for FluidEQ, not for a pair of headphones. They live in the same
- * IState as the EQ, so assigning a device's state wholesale used to turn the
- * engine back on for anyone who had switched it off, simply because Windows
- * changed the default output.
- */
-/**
- * Swap the live state over to what a different output is tuned to.
- *
- * Everything a profile can carry moves — bands, preamp, voicing, driver
- * correction, convolution — because all of it was chosen for the headphones or
- * speakers on that endpoint and means nothing on another one. Only the four
- * app-wide preferences below stay put: whether the engine is on, whether the
- * graph is showing, what the filesystem is like, and the cuts, which are
- * written for every output at once.
- */
-const applyDeviceState = (next: IState) => {
-  const {
-    isEnabled,
-    isGraphViewOn,
-    isCaseSensitiveFs,
-    eqCuts,
-    ...deviceState
-  } = next;
-  Object.assign(state, deviceState);
-  // The measurement belongs to the endpoint it was heard on and to nothing
-  // else. A profile carries none, so the spread above cannot clear it, and
-  // leaving it would hand the new output a reserve sized for music that went
-  // through the old one. The capture starts again from no opinion, which is the
-  // worst case — the same place a cold start begins.
-  state.smartHeadroomProgramme = undefined;
-  state.smartHeadroomTrimDb = undefined;
-};
-
-const getCurrentPreset = (): IPresetV2 => ({
-  preAmp: state.preAmp,
-  filters: state.filters,
-  eqFormat: state.eqFormat,
-  graphicEq: state.graphicEq,
-  convolution: state.convolution,
-  isFlat: state.isFlat,
-  eqMode: getEqMode(state),
-  curveEqMode: getCurveEqMode(state),
-  eqBandQ: state.eqBandQ,
-  curveBandQ: state.curveBandQ,
-  curveSmoothing: state.curveSmoothing,
-  eqBandDesign: state.eqBandDesign,
-  isEqDoubleOn: getEqMode(state) === 'double',
-  // Without these the device-profile block is rendered from a preset that has
-  // no idea they exist, and every one of the layers vanishes from the config
-  // the moment a profile is attached — which is always, since every output is
-  // given one.
-  //
-  // Any layer added later belongs in this list, and one of them was missed for
-  // months: it could be switched on, drawn and reasoned about, and it reached
-  // Equalizer APO exactly never, because the session override rendered it from
-  // the state while the profile was written without it — and the profile is
-  // what the config is built from.
-  tone: state.tone,
-  voicing: state.voicing,
-  driver: state.driver,
-  smartEq: state.smartEq,
-  headphone: state.headphone,
-  eqImport: state.eqImport,
-  isAutoPreAmpOn: state.isAutoPreAmpOn,
-  headset: state.headset,
-  headsetTarget: state.headsetTarget,
-  headsetSource: state.headsetSource,
-  // Which layers are switched off is part of what this profile sounds like, so
-  // it travels with it — otherwise switching outputs and back would bring every
-  // bypassed layer roaring back in.
-  bypassed: state.bypassed,
-});
-
-/**
- * The shield in front of every reference this app applies on somebody's behalf.
- *
- * A published measurement is a claim, and some of them are wrong. A model with
- * no flat baseline to subtract from can arrive as a negated raw SPL curve —
- * read literally, a correction of fifty decibels of cut across the whole
- * midrange. It was applied, it was written to Equalizer APO, and the output
- * went silent.
- *
- * Nothing downstream could have caught it. The per-band ceiling did fire: it
- * trimmed eleven separate bands to -12 dB, and eleven legal bands still summed
- * to -50, because a limit on each band is not a limit on the chain. The preamp
- * could not catch it either — it only ever attenuates, so a chain that has
- * already thrown away fifty decibels is not something it can give back.
- *
- * So the chain itself is bounded here, once, before any of it is applied.
- * Compressed rather than clipped, so a correction that is merely strong keeps
- * the shape the measurement asked for and only gets gentler; one already inside
- * the range is passed through untouched and costs nothing.
- *
- * Deliberately not applied to a profile the user loads. Their own tuning is
- * theirs, however extreme, and quietly rescaling a saved profile on load would
- * change a sound they chose and kept.
- *
- * `limit` is a slider's ±20 dB for bands headed for the user's own EQ. A
- * headphone correction is given a correction's range (`correctionRange.ts`):
- * it plays as published, and only a chain past what the preamp can take back
- * is compressed. The fifty-decibel curve above was built out of a raw Squiglink
- * measurement; every correction applied now arrives as a published fit, from
- * OPRA or a pasted EQ export.
- */
-const shieldReferenceBands = (filters: IFiltersMap, limit = MAX_GAIN) =>
-  compressChainToLimit(filters, limit);
-
-const switchToParametricEditing = () => {
-  state.eqFormat = AutoEqFormat.PARAMETRIC;
-  state.graphicEq = undefined;
-};
-
-/**
- * A free name for a profile about to be created on this output.
- *
- * For creating only — never for saving into a profile that already exists.
- * Profiles are files named after the profile, so a second one of the same name
- * on one output really would be the same file, and a number is appended the way
- * a file manager does it.
- *
- * Only this output's own folder is consulted, because that is the only place a
- * name can collide now: each output keeps its profiles in a folder of its own,
- * so what the speakers call their profiles has no bearing on the headphones.
- * Asking this question on the way into a *save* is what made Update duplicate
- * the profile it was meant to overwrite — the name was "taken" by the very
- * profile being updated.
- */
-const availableProfileNameForActiveDevice = (requestedName: string) => {
-  const dir = activePresetDir();
-  if (!doesPresetExist(requestedName, dir)) {
-    return requestedName;
-  }
-  let index = 2;
-  while (doesPresetExist(`${requestedName} ${index}`, dir)) {
-    index += 1;
-  }
-  return `${requestedName} ${index}`;
-};
-
-/**
- * Back to the default editable EQ: ten neutral Peak bands and no preamp.
- *
- * The default layout rather than only zeroed gains, because band pass, notch
- * and the pass filters still shape the signal at 0 dB, and because the stored
- * per-size layout snapshots have to go with them — otherwise pressing a band
- * count afterwards resurrects the tuning that was just cleared. The flat flag
- * is what actually takes the bands out of the config; without it they would be
- * stored and then never written.
- *
- * The attribution goes too: it described bands that no longer exist. Nothing
- * here touches the voicing, the driver correction, the Smart EQ correction or
- * the convolution — those are separate layers, arrived at separately, and
- * clearing the EQ is not a reason to throw them away. Smart EQ in particular is
- * measured rather than chosen, so clearing the reference cannot invalidate it:
- * it describes what came out of the speakers, not what went into the bands. See
- * resetStateToDefaults for the reset that does clear everything.
- */
-/**
- * A layer applied afresh is applied, whatever was switched off before it.
- *
- * Called where a layer's settings arrive or are taken away, not where they are
- * edited. Choosing a voicing, finishing a measurement, applying a reference
- * model — each of those is somebody asking to hear something, and handing them
- * silence because the previous occupant of that slot was switched off is the
- * one thing an applied layer must never do. Clearing one has to do it too: the
- * chip goes with the layer, and a list still naming it would leave nothing on
- * screen able to switch it back on.
- *
- * Moving a band while its layer is bypassed is a different act. The chip is
- * visibly off, and preparing a tuning before switching it in is a reasonable
- * thing to want.
- */
-const applyingLayer = (layer: TApoLayer) => {
-  if (!state.bypassed?.includes(layer)) {
+const notifyOutputStateChanged = () => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
     return;
   }
-  const rest = state.bypassed.filter((entry) => entry !== layer);
-  state.bypassed = rest.length ? rest : undefined;
-};
-
-const resetEqToDefaults = () => {
-  switchToParametricEditing();
-  clearCurrentLayoutSettings();
-  state.filters = getDefaultFilters();
-  state.preAmp = 0;
-  state.isFlat = true;
-  state.isEqDoubleOn = false;
-  state.eqMode = 'normal';
-  state.curveEqMode = 'normal';
-  state.eqBandQ = undefined;
-  state.curveBandQ = undefined;
-  state.curveSmoothing = undefined;
-  state.eqBandDesign = undefined;
-  /*
-   * THE REFERENCE IS NOT CLEARED HERE, BECAUSE THESE ARE NOT ITS BANDS.
-   *
-   * The other half of the swap recorded on CLEAR_HEADSET. Clearing the bands
-   * used to mean clearing the reference, because the reference WAS the bands;
-   * now it is a layer of its own and survives this untouched. What did not
-   * survive was its name: `state.headphone` stayed applied and audible while
-   * `headset` went to undefined, so the picker said "No reference applied" over
-   * a correction that was still playing — and the only way back was to clear a
-   * reference the screen insisted was not there.
-   *
-   * `eqImport` still goes, because that one really does describe these bands.
-   */
-  state.eqImport = undefined;
-  // The bands are gone, so the switch that was holding them out of the config
-  // has nothing left to hold. Without this, clearing a bypassed EQ takes the
-  // chip off the row — no shaped bands, no reference, nothing to draw it — and
-  // leaves the feature on the bypass list, so the next tuning somebody builds
-  // is written nowhere and there is no control left to explain why.
-  applyingLayer('eq');
-};
-
-/**
- * Put the sound back to neutral: no bands, no layers, no attribution.
- *
- * Everything audible, and everything describing it. Leaving the voicing, the
- * driver correction or the measured Smart EQ curve behind after a reset would
- * mean the EQ page said "flat" while three layers were still shaping the
- * output.
- */
-const resetStateToDefaults = () => {
-  resetEqToDefaults();
-  state.convolution = undefined;
-  state.tone = undefined;
-  state.voicing = undefined;
-  state.driver = undefined;
-  state.smartEq = undefined;
-  // Nothing is left to be switched off. Keeping the list would leave the next
-  // layer applied here silent for a reason nothing on screen accounts for.
-  state.bypassed = undefined;
-};
-
-/**
- * Give the active output an empty named profile.
- *
- * Every output keeps at least one, so there is always somewhere for an edit to
- * land and always something in the list to select. The number counts only this
- * output's own profiles, so each output starts again at "Untitled profile 1" —
- * a second output has no reason to open on "Untitled profile 4" because three
- * unrelated ones exist on the speakers.
- */
-const UNTITLED_PROFILE_PREFIX = 'Untitled profile';
-
-/**
- * One profile mutation at a time, in the order they arrived.
- *
- * These handlers are `async` and every `await` in them is a place another one
- * can start. They share three things — `deviceProfileSettings`, the equaliser
- * `state`, and the config on disk — so two that overlap are not two operations
- * but one interleaved mess.
- *
- * Deleting several profiles quickly is where it shows, because delete is the
- * longest of them. Two deletes that both removed the profile their output was
- * playing each reach `createEmptyProfileForActiveDevice`, and each counts the
- * catalogue *before* the other has written to it, so both pick the same number
- * and one silently loses. Meanwhile both are part-way through
- * `removeAssignmentForPreset` on the same object and both call `handleUpdate`,
- * so the config is rewritten from a state that is halfway between two edits.
- * Nothing throws. The list simply comes back wrong.
- *
- * A chain rather than a lock, because a lock needs releasing on every path out
- * — including the ones that throw — and this cannot be forgotten. The failure
- * handler on the tail is what keeps the queue alive: without it, one rejected
- * mutation would leave every later one waiting on a promise that never settles,
- * which turns a wrong list into a dead panel.
- *
- * It does NOT serialise the whole application. Reads are untouched, and so is
- * everything that does not write to these three things.
- */
-let profileMutations: Promise<unknown> = Promise.resolve();
-
-const runProfileMutation = (work: () => Promise<void>): Promise<void> => {
-  const next = profileMutations.then(work, work);
-  profileMutations = next.catch(() => undefined);
-  return next;
-};
-
-const createEmptyProfileForActiveDevice = () => {
-  if (!session.activeAudioDeviceId) {
-    return;
-  }
-  const dir = activePresetDir();
-  let index = 1;
-  while (doesPresetExist(`${UNTITLED_PROFILE_PREFIX} ${index}`, dir)) {
-    index += 1;
-  }
-  const name = `${UNTITLED_PROFILE_PREFIX} ${index}`;
-  savePreset(name, getCurrentPreset(), dir, 'profile-created');
-  attachPresetToActiveDevice(name);
-};
-
-const attachPresetToActiveDevice = (presetName: string) => {
-  if (!session.activeAudioDeviceId) {
-    return false;
-  }
-
-  const device = session.activeAudioDevice;
-  assignDeviceProfile(deviceProfileSettings, {
+  mainWindow.webContents.send(OUTPUT_STATE_CHANGED_EVENT, {
     deviceId: session.activeAudioDeviceId,
-    deviceName: device?.name || session.activeAudioDeviceId,
-    deviceGuid: device?.guid || session.activeAudioDeviceId,
-    presetName,
   });
-  saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
-  session.hasActiveSessionOverride = false;
-  return true;
 };
 
-try {
-  // create presets dir if it doesn't exist
-  if (!fs.existsSync(presetPath)) {
-    fs.mkdirSync(presetPath, { recursive: true });
+const syncDatabasesOnStartup = async () => {
+  const opraResult = await Promise.resolve(syncOpraDatabase())
+    .then((value) => ({ status: 'fulfilled' as const, value }))
+    .catch((reason) => ({ status: 'rejected' as const, reason }));
+
+  if (opraResult.status === 'rejected') {
+    log.warn('Unable to synchronize the OPRA database', opraResult.reason);
   }
-} catch (e) {
-  log.error('Failed to make presets directory!!');
-  log.error(e);
-  throw e;
-}
-
-// Only once the root exists, since every output's folder is made inside it.
-runStartupProfileMaintenance();
-
-// spawn child process to update presets folder so that it can support case-sensitive files
-if (process.platform === 'win32') {
-  // `execFile`, not `exec`: the path goes across as an argument rather than
-  // being pasted into a command line for a shell to re-parse. It comes from
-  // `app.getPath('userData')` so there is nothing hostile in it today, but the
-  // quoting was the only thing standing between that and a shell, and this
-  // needs no shell at all.
-  execFile(
-    'fsutil.exe',
-    ['file', 'SetCaseSensitiveInfo', presetPath],
-    (err, stdout, stderr) => {
-      // Error handling should occur in this callback function
-      if (err) {
-        log.error(err.message.trim());
-        log.error(stdout.trim());
-        log.error(stderr.trim());
-        return;
-      }
-
-      // Set case sensitive to true if an error was not thrown
-      state.isCaseSensitiveFs = true;
-    },
-  );
-}
-
-/**
- * Everything the update path uses an IPC event for, which is one method.
- *
- * Stated as its own type so the same path can be run with nobody waiting on
- * the answer — an engine switch reflushes, and there is no request in flight
- * to reply to. The alternative was a fake `IpcMainEvent`, which means a cast
- * through `unknown` over a hundred-property interface to reach a function
- * that only ever calls `reply`.
- */
-type TReplySink = { reply: (channel: string, ...args: unknown[]) => void };
-
-const handleError = (
-  event: TReplySink,
-  channel: ChannelEnum | string,
-  errorCode: ErrorCode,
-  // Only for failures the user can act on — a file at the wrong sample rate,
-  // a name that is already taken. Internal faults keep the canned wording.
-  detail?: string,
-  // And what to do about it. Pass this whenever `detail` describes a rule
-  // rather than a fault, or the canned "reach out to the developers" is left
-  // underneath a message that needs no developer at all.
-  action?: string,
-) => {
-  const reply: TError = {
-    errorCode,
-    ...(detail ? { detail } : {}),
-    ...(action ? { action } : {}),
-  };
-  // The whole failure, not just where it came from. This logged the channel
-  // name alone until 1.7.1, so any request that failed without logging for
-  // itself left a bug report with one word about it: the user saw an error
-  // on screen and the log said `audio-engine`.
-  log.error(
-    `Request failed on ${channel}: ${errorCode}`,
-    ...(detail ? [detail] : []),
-  );
-  event.reply(channel, reply);
-};
-
-const updateConfigPath = async (
-  event: TReplySink,
-  channel: ChannelEnum | string,
-) => {
-  const engine = session.audioEngine;
-  if (engine === null) {
-    handleError(event, channel, ErrorCode.AUDIO_ENGINE_NOT_CHOSEN);
-    return false;
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
   }
-  // Before `getConfigPath`, not after, because under 'fluid' that call CREATES
-  // the directory it hands back. A machine that has never had the engine would
-  // otherwise end up with its folder under %ProgramData% and a file watcher on
-  // it, for an engine that is not there to read any of it.
-  //
-  // A probe that throws — the registry read behind Equalizer APO's answer —
-  // counts as not installed: the banner it raises has a Retry, while the
-  // rejection used to escape every handler that calls this and end the whole
-  // main process.
-  const installed = await isEngineInstalled(engine).catch((error: unknown) => {
-    log.error(
-      `Could not tell whether the ${engine} engine is installed`,
-      error,
-    );
-    return false;
+
+  mainWindow.webContents.send(DATABASES_SYNCED_EVENT, {
+    opra: opraResult.status === 'fulfilled' ? opraResult.value : undefined,
   });
-  if (!installed) {
-    handleError(
-      event,
-      channel,
-      engine === 'fluid'
-        ? ErrorCode.FLUID_ENGINE_NOT_INSTALLED
-        : ErrorCode.EQUALIZER_APO_NOT_INSTALLED,
-    );
-    return false;
-  }
-  try {
-    // The chosen engine's directory, resolved once and cached. Under 'fluid'
-    // this is a computed path; under 'apo' it is the registry lookup, which
-    // throws when Equalizer APO is not installed.
-    session.configPath = await getConfigPath(engine);
-    // Watching before the include is read, so a change to config.txt after
-    // the read is one the watcher reports.
-    startApoConfigWatcher();
-    await configInclude.ensure(session.configPath);
-  } catch (e) {
-    handleError(event, channel, ErrorCode.CONFIG_NOT_FOUND);
-    return false;
-  }
-  return true;
 };
 
-/**
- * The live measurement, addressed to the output it was taken on.
- *
- * Every flush needs this, because the writer reserves headroom from the saved
- * profile and the profile is not allowed to hold a measurement. Leave it out of
- * a flush and that flush writes the worst case — which, on any path that runs
- * while music is playing, is a jump back up to full attenuation and then a
- * whole ramp back down again.
- */
-const sessionHeadroom = (): ISessionHeadroom => ({
-  deviceId: session.activeAudioDeviceId,
-  programme: state.smartHeadroomProgramme,
-  trimDb: state.smartHeadroomTrimDb,
+const profiles = createProfileStore({
+  state,
+  session,
+  deviceProfileSettings,
+  userDataDir,
 });
-
-const handleUpdateHelperCore = async <T>(
-  event: TReplySink,
-  channel: ChannelEnum | string,
-  response: T,
-  syncActiveProfile = false,
-  useActiveSessionOverride = false,
-) => {
-  // Whether the chosen engine is there is asked on every change, because it
-  // can be uninstalled while the app is running. Under 'fluid' this is a file
-  // check plus the helper's last word on the registration, and no registry
-  // probe: Equalizer APO being absent is not a failure when it is not the
-  // engine being written to. Under 'apo' it is a file check too, once the
-  // registry has answered for the session (`registry.ts`).
-  const engine = session.audioEngine;
-  if (engine === null) {
-    handleError(event, channel, ErrorCode.AUDIO_ENGINE_NOT_CHOSEN);
-    return;
-  }
-  if (!(await isEngineInstalled(engine))) {
-    handleError(
-      event,
-      channel,
-      engine === 'fluid'
-        ? ErrorCode.FLUID_ENGINE_NOT_INSTALLED
-        : ErrorCode.EQUALIZER_APO_NOT_INSTALLED,
-    );
-    return;
-  }
-
-  try {
-    if (!session.configPath) {
-      session.configPath = await getConfigPath(engine);
-    }
-    startApoConfigWatcher();
-    await configInclude.ensure(session.configPath);
-    // Keep the root state, the disabled slider and the generated APO line on
-    // the same automatic value. The writer derives this independently as its
-    // final safety check; synchronizing here prevents the stored manual preamp
-    // from surviving underneath an enabled Auto normalize switch.
-    if (state.isAutoPreAmpOn && session.audioEngine !== 'fluid') {
-      state.preAmp = getResolvedPreAmp(state);
-    }
-    const shouldPersistProfile = syncActiveProfile || useActiveSessionOverride;
-    let assignment =
-      deviceProfileSettings.assignments[session.activeAudioDeviceId];
-    if (shouldPersistProfile && !assignment && session.activeAudioDeviceId) {
-      const automaticPresetName = getAutomaticPresetName(
-        session.activeAudioDeviceId,
-      );
-      attachPresetToActiveDevice(automaticPresetName);
-      assignment =
-        deviceProfileSettings.assignments[session.activeAudioDeviceId];
-    }
-    if (shouldPersistProfile && assignment) {
-      // Every edit lands in the attached profile, named or automatic. The
-      // user's manually saved copy is kept separately (see savePresetBaseline
-      // in the SAVE_PRESET handler), so auto-saving here can always be undone
-      // and never costs them the version they chose to keep.
-      savePreset(
-        assignment.presetName,
-        getCurrentPreset(),
-        presetDirForDevice(assignment.deviceId),
-        String(channel),
-      );
-      session.hasActiveSessionOverride = false;
-    } else if (
-      shouldPersistProfile &&
-      !assignment &&
-      session.activeAudioDeviceId
-    ) {
-      // An output without a profile still needs edits applied immediately.
-      // Keep this override scoped to the current endpoint until it gets
-      // assigned by explicit profile load or manual save.
-      session.hasActiveSessionOverride = true;
-      assignment =
-        deviceProfileSettings.assignments[session.activeAudioDeviceId];
-    }
-    if (assignment) {
-      // A loaded/saved profile clears the temporary override. A subsequent
-      // edit recreates it and remains live-only until the user saves.
-      if (syncActiveProfile) {
-        session.hasActiveSessionOverride = false;
-      }
-    }
-    const activeDevicePattern =
-      session.activeAudioDevice?.guid ||
-      session.activeAudioDevice?.name ||
-      session.activeAudioDeviceId;
-    const activeOverride: IActiveStateOverride | undefined =
-      session.hasActiveSessionOverride && activeDevicePattern
-        ? {
-            deviceId: session.activeAudioDeviceId,
-            deviceName: session.activeAudioDevice?.name,
-            devicePattern: activeDevicePattern,
-            state,
-          }
-        : undefined;
-    // Flush changes to the engine's config. Once: overlapping requests are
-    // the writer's to coalesce, not a race to retry (see `followOutputs.ts`).
-    //
-    // Skipped mid-switch: `session.configPath` still points at the engine
-    // being left, whose directory has just been neutralised, and writing the
-    // live chain into it would make that engine audible again alongside the
-    // new one. Everything else here still happens — the profile is saved, the
-    // reply is a success — because the state is real; only its destination is
-    // in doubt, and the reflush that ends the switch settles that.
-    if (!session.engineSwitching) {
-      await flushDeviceProfiles(
-        deviceProfileSettings,
-        presetDirForDevice,
-        session.configPath,
-        activeOverride,
-        state.isEnabled,
-        sessionHeadroom(),
-        state.eqCuts,
-      );
-    }
-  } catch (e) {
-    handleError(event, channel, ErrorCode.FAILURE);
-    return;
-  }
-
-  // Keep a device-scoped snapshot for every fixed layout. This runs after
-  // every successful edit, so moving a frequency slider is preserved when the
-  // user temporarily switches to another band count.
-  captureCurrentLayout();
-
-  // Return a success message of undefined
-  const reply: TSuccess<T> = { result: response };
-  event.reply(channel, reply);
-
-  // Flush changes to our local state file after informing UI that the changes have been applied
-  save(state, userDataDir);
-};
-
-const handleUpdateHelper = async <T>(
-  event: TReplySink,
-  channel: ChannelEnum | string,
-  response: T,
-  syncActiveProfile = false,
-  useActiveSessionOverride = false,
-) => {
-  apoAppWriteDepth += 1;
-  try {
-    return await handleUpdateHelperCore(
-      event,
-      channel,
-      response,
-      syncActiveProfile,
-      useActiveSessionOverride,
-    );
-  } finally {
-    apoAppWriteDepth -= 1;
-    if (apoAppWriteDepth === 0 && apoSyncDeferredByAppWrite) {
-      apoSyncDeferredByAppWrite = false;
-      queueApoDiskSync();
-    }
-  }
-};
-
-const handleUpdate = async (
-  event: TReplySink,
-  channel: ChannelEnum | string,
-  syncActiveProfile = false,
-  useActiveSessionOverride = false,
-) => {
-  return handleUpdateHelper<void>(
-    event,
-    channel,
-    undefined,
-    syncActiveProfile,
-    useActiveSessionOverride,
-  );
-};
-
-/**
- * Tell the update path's two reply shapes apart.
- *
- * `TSuccess` carries `result` and nothing else, so the presence of a numeric
- * `errorCode` is the whole distinction — the same test `ipcRequest.ts` makes
- * on the window's side of the same wire.
- */
-const isErrorReply = (payload: unknown): payload is TError =>
-  typeof payload === 'object' &&
-  payload !== null &&
-  'errorCode' in payload &&
-  typeof payload.errorCode === 'number';
-
-/**
- * Rewrite the current state into whichever engine is chosen now, and say
- * whether it landed.
- *
- * This is what an engine switch, an install and an attach all end in: the
- * chain has to reach the engine that is live now, and none of those requests
- * is the channel the update path replies on. So the update path is run
- * against a sink instead of an event, and the error it would have replied
- * with is handed back to the caller rather than logged and dropped — a
- * reflush that failed after a switch is precisely the failure that otherwise
- * reaches the window as "the switch worked" while nothing is being processed.
- *
- * Deliberately no `adoptExistingApoConfig()`, unlike the health check: that
- * believes the config on disk over the app's state, which is right once at
- * startup and wrong here. The directory being flushed into belongs to the
- * engine that was NOT in use, so whatever it holds is older than what the
- * user is listening to — adopting it would replace the live chain with a
- * stale one at the moment of the switch.
- */
-const reflushCurrentState = async (): Promise<TReflushResult> => {
-  let failure: TError | undefined;
-  const sink: TReplySink = {
-    reply: (channel, ...args) => {
-      const [payload] = args;
-      if (isErrorReply(payload)) {
-        log.error(`Reflush failed on ${channel}`, payload);
-        // The first refusal is the one that describes the switch: anything
-        // after it is a consequence of the same missing engine.
-        failure = failure ?? payload;
-      }
-    },
-  };
-  // A label for the log and for the "saved because of" note on the profile,
-  // not a channel anyone listens on — the reply goes to the sink above.
-  const channel = 'engineReflush';
-  if (await updateConfigPath(sink, channel)) {
-    await handleUpdate(sink, channel);
-  }
-  return failure ? { ok: false, error: failure } : { ok: true };
-};
-
-const doesFilterIdExist = (
-  event: Electron.IpcMainEvent,
-  channel: ChannelEnum,
-  filterId: string,
-) => {
-  // Filter id must exist
-  if (!(filterId in state.filters)) {
-    handleError(event, channel + filterId, ErrorCode.INVALID_PARAMETER);
-    return false;
-  }
-  return true;
-};
+profiles.prepareProfileFolders();
 
 /**
  * Believe the Equalizer APO config over our own copy of the state.
@@ -1989,603 +300,113 @@ const {
   readCustomFxForDevice,
   syncCustomFxFromConfig,
 } = createApoAdoption({
-  hydrateActiveConvolution,
+  hydrateActiveConvolution: profiles.hydrateActiveConvolution,
   session,
   state,
   userDataDir,
 });
 
-/**
- * Live two-way synchronization with the generated Equalizer APO files.
- *
- * `fs.watch` is only a wake-up signal. A single FluidEQ update touches more
- * than one file and APO itself may also cause duplicate notifications, so the
- * callback never treats an event as a change. Each wake-up reads the complete
- * active chain and compares each feature's parsed audible shape with what the
- * current state would write. FluidEQ's own writes therefore compare equal and
- * stop here (or wait for the writer to settle first — see the guard at the top
- * of the sync); an external edit is adopted once, persisted, canonicalized,
- * and the canonical write compares equal on the next event.
- *
- * Coalesced, not debounced (`coalesceRequests`): one sync runs at a time,
- * and every wake-up that arrives while it runs shares a single sync after it,
- * which reads whatever the folder holds by then. It used to wait for 180 ms of
- * quiet, a guess at how long a burst of notifications lasts; the last
- * notification of a burst is still always followed by a read made after it,
- * which is what the guess was for.
- */
-let apoConfigWatcher: fs.FSWatcher | undefined;
-let watchedApoConfigPath = '';
-/** Set at quit: nothing reads the folder after that. */
-let apoSyncStopped = false;
-
-/** Read once per folder the watcher below is on (`configInclude.ts`). */
-const configInclude = createConfigInclude(
-  (configPath) =>
-    apoConfigWatcher !== undefined && watchedApoConfigPath === configPath,
-);
-
-const persistExternallyAdoptedState = () => {
-  save(state, userDataDir);
-  const assignment =
-    deviceProfileSettings.assignments[session.activeAudioDeviceId];
-  if (assignment) {
-    savePreset(
-      assignment.presetName,
-      getCurrentPreset(),
-      presetDirForDevice(assignment.deviceId),
-      'external-apo-edit',
-    );
-  }
-};
-
-const syncActiveApoFilesFromDisk = async () => {
-  // Not while the app is writing — and "writing" now outlasts the handler
-  // that asked for it, because the config files go to disk asynchronously
-  // and coalesced. The watcher fires on every one of those writes as it
-  // lands; reading the chain back in the middle of a drag found the disk a
-  // step behind the state and adopted it, which reset every other band. So
-  // the sync waits for the writer to settle and then runs once, when what is
-  // on disk is what the state says and there is nothing to adopt.
-  if (apoAppWriteDepth > 0 || hasUnsettledWrites()) {
-    if (!apoSyncDeferredByAppWrite) {
-      apoSyncDeferredByAppWrite = true;
-      flushPendingWrites()
-        .catch(() => undefined)
-        .finally(() => {
-          if (apoAppWriteDepth === 0 && apoSyncDeferredByAppWrite) {
-            apoSyncDeferredByAppWrite = false;
-            queueApoDiskSync();
-          }
-        });
-    }
-    return;
-  }
-  if (!session.configPath || !session.activeAudioDeviceId) {
-    return;
-  }
-  const devicePattern =
-    session.activeAudioDevice?.guid ||
-    session.activeAudioDevice?.name ||
-    session.activeAudioDeviceId;
-  const chain = readApoDeviceChain(session.configPath, devicePattern);
-  let changed = syncCustomFxFromConfig();
-  let generatedChanged = false;
-  let containsUnsupportedCommands = false;
-
-  if (chain?.features) {
-    const expected = stateToApoFiles(state, state.convolution?.fileName);
-    const expectedByFeature = new Map<TApoFeature, string>(
-      (expected?.features ?? []).map(({ feature, lines }) => [
-        feature,
-        lines.join('\n'),
-      ]),
-    );
-
-    generatedChanged = adoptBypassFromConfig(
-      chain.features,
-      chain.shared ?? '',
-      !!chain.custom,
-    );
-
-    APO_FEATURES.forEach((feature) => {
-      const actual = chain.features?.[feature];
-      if (actual === undefined) {
-        return;
-      }
-      const expectedText = expectedByFeature.get(feature) ?? '';
-      if (
-        describeApoFeatureText(actual) === describeApoFeatureText(expectedText)
-      ) {
-        return;
-      }
-      const adoption = adoptApoFeatureText(
-        state,
-        feature,
-        actual,
-        expectedText,
-      );
-      if (adoption.unsupported) {
-        containsUnsupportedCommands = true;
-        log.warn(
-          `Not adopting ${feature}: its generated APO file contains ${adoption.unsupported} unsupported command(s).`,
-        );
-        return;
-      }
-      generatedChanged = generatedChanged || adoption.changed;
-      if (adoption.changed) {
-        log.info(
-          `Adopted an external Equalizer APO edit for the ${feature} layer.`,
-        );
-      }
-    });
-  }
-
-  changed = changed || generatedChanged;
-  if (!changed) {
-    return;
-  }
-
-  /**
-   * Only a change to the GENERATED files is a reason to write anything back.
-   *
-   * `syncCustomFxFromConfig` re-reads the user's own custom file, which is not
-   * part of a preset — `getCurrentPreset` does not carry `customFx`, and
-   * `getStateForAudioDevice` deliberately clears it, because that file is where
-   * it lives. So persisting on it wrote a preset whose bytes could not have
-   * changed, and then saved the whole state beside it.
-   *
-   * That is the "Wrote preset for: <profile>" line repeating every couple of
-   * seconds with nobody touching the app. Each of this app's own APO writes
-   * defers a sync and re-queues one when it finishes, and every sync that
-   * re-read the custom file counted as an external edit — so the app kept
-   * answering its own writes with a preset write, on the main process, in the
-   * middle of playback.
-   *
-   * The renderer is still told, below: re-reading the file IS how the custom
-   * layer reaches the panel, and that has nothing to do with persisting.
-   */
-  if (generatedChanged) {
-    persistExternallyAdoptedState();
-  }
-
-  // Recompute automatic headroom and normalize the generated text after a
-  // supported external edit. Never rewrite a file containing commands the app
-  // cannot represent: preserving the user's APO work is more important than
-  // normalizing the other files in that same pass.
-  if (generatedChanged && !containsUnsupportedCommands) {
-    await flushDeviceProfiles(
-      deviceProfileSettings,
-      presetDirForDevice,
-      session.configPath,
-      undefined,
-      state.isEnabled,
-      sessionHeadroom(),
-      state.eqCuts,
-    );
-  }
-
-  notifyOutputStateChanged();
-};
-
-const queueApoDiskSync = coalesceRequests(() =>
-  apoSyncStopped
-    ? Promise.resolve()
-    : syncActiveApoFilesFromDisk().catch((error) =>
-        log.warn('Unable to synchronize Equalizer APO file edits', error),
-      ),
-);
-
-/** A device file, a feature file or a custom file FluidEQ keeps per output. */
-const GENERATED_CHAIN_FILE = new RegExp(
-  `^fluideq(?:-device)?-[0-9a-f]{12}(?:-(?:${APO_FEATURE_FILE_WORD_PATTERN}|custom))?\\.txt$`,
-  'i',
-);
-
-function startApoConfigWatcher() {
-  if (!session.configPath || watchedApoConfigPath === session.configPath) {
-    return;
-  }
-  apoConfigWatcher?.close();
-  watchedApoConfigPath = session.configPath;
-  try {
-    apoConfigWatcher = fs.watch(
-      session.configPath,
-      { persistent: false },
-      (_eventType, fileName) => {
-        const name = fileName?.toString();
-        if (!name || name.toLowerCase() === CONFIG_FILENAME) {
-          configInclude.forget();
-        }
-        // Every word a feature's file is or was named by, from the one list:
-        // spelled out here it missed `preset` when the voicing's file was
-        // renamed, and would have missed `tone`.
-        if (!name || GENERATED_CHAIN_FILE.test(name)) {
-          queueApoDiskSync();
-        }
-      },
-    );
-    apoConfigWatcher.on('error', (error) => {
-      log.warn('Equalizer APO config watcher stopped', error);
-      apoConfigWatcher?.close();
-      apoConfigWatcher = undefined;
-      watchedApoConfigPath = '';
-      configInclude.forget();
-      // A folder that cannot be watched any more is usually a folder that is
-      // gone, and the registry is what says where Equalizer APO's is now.
-      forgetApoInstall();
-    });
-  } catch (error) {
-    apoConfigWatcher = undefined;
-    watchedApoConfigPath = '';
-    log.warn('Unable to watch the Equalizer APO config directory', error);
-  }
-}
-
-// The report went out: its gather moment is where the next one's logs start.
-// Written only on delivery — a dialog closed without copying, mailing or
-// opening an issue must not move it, or the lines it showed would be in no
-// report at all. Nothing waits on this.
-onWindowMessage(ChannelEnum.BUG_REPORT_DELIVERED, (_event, args) => {
-  const gatheredAt = Array.isArray(args) ? args[0] : undefined;
-  if (typeof gatheredAt !== 'string') {
-    log.warn('A bug report delivery carried no gather time');
-    return;
-  }
-  writeBugReportMark(userDataDir, gatheredAt).catch((error) =>
-    log.warn('The bug report mark could not be written', error),
-  );
+const diskSync = createApoDiskSync({
+  state,
+  session,
+  deviceProfileSettings,
+  userDataDir,
+  presetDirForDevice: profiles.presetDirForDevice,
+  getCurrentPreset: profiles.getCurrentPreset,
+  sessionHeadroom: profiles.sessionHeadroom,
+  syncCustomFxFromConfig,
+  adoptBypassFromConfig,
+  notifyOutputStateChanged,
 });
 
-onWindowMessage(ChannelEnum.GATHER_BUG_REPORT, async (event) => {
-  const channel = ChannelEnum.GATHER_BUG_REPORT;
-  try {
-    const facts = await gatherBugReportFacts(session.audioEngine, userDataDir);
-    event.reply(channel, { result: facts });
-  } catch (e) {
-    log.error('Could not gather a bug report', e);
-    handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
-  }
+const {
+  updateConfigPath,
+  handleUpdateHelper,
+  handleUpdate,
+  reflushCurrentState,
+  doesFilterIdExist,
+} = createUpdatePath({
+  state,
+  session,
+  deviceProfileSettings,
+  userDataDir,
+  diskSync,
+  presetDirForDevice: profiles.presetDirForDevice,
+  getCurrentPreset: profiles.getCurrentPreset,
+  sessionHeadroom: profiles.sessionHeadroom,
+  attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
+  captureCurrentLayout: profiles.captureCurrentLayout,
 });
 
-// Always answered, refused or not: the dialog waits on this with no deadline,
-// because a mail app can take a while to start and that is not a failure.
-onWindowMessage(ChannelEnum.OPEN_SUPPORT_EMAIL, async (event, args) => {
-  const [url] = Array.isArray(args) ? args : [];
-  const opened = typeof url === 'string' && (await openSupportEmail(url));
-  event.reply(ChannelEnum.OPEN_SUPPORT_EMAIL, { result: opened });
+registerDiagnosticsIpc({
+  userDataDir,
+  getEngine: () => session.audioEngine,
+  handleError,
 });
 
-/**
- * Everything the window has to say, redacted on the way in.
- *
- * Redacted here rather than in the renderer so it is one rule in one place,
- * applied to every line that reaches the file. A stack trace is nothing but
- * paths, and in a packaged build those paths run through the user's profile
- * directory — which carries their account name, and would end up in every bug
- * report emailed to a stranger. `redact` is the same function the report itself
- * uses; the log has to be clean before it is written, not when it is read,
- * because the file is on disk either way.
- */
-const REDACT_AS = os.userInfo().username;
-
-onWindowMessage(ChannelEnum.LOG_ERROR, (_event, args) => {
-  const [context, detail] = (args as string[]) ?? [];
-  const safeContext = `[renderer] ${redact(String(context ?? ''), REDACT_AS)}`;
-  const safeDetail = redact(String(detail ?? ''), REDACT_AS);
-  log.error(safeContext, safeDetail);
-  // Also into the journal the debug recovery dialog prints: the React error
-  // that took the window down is the entry a developer is looking for.
-  recordFailure(safeContext, safeDetail);
+registerEngineStateIpc({
+  state,
+  userDataDir,
+  updateConfigPath,
+  handleUpdate,
+  handleError,
+  adoptExistingApoConfig,
+  hydrateActiveConvolution: profiles.hydrateActiveConvolution,
+  syncCustomFxFromConfig,
 });
 
-onWindowMessage(ChannelEnum.LOG_INFO, (_event, args) => {
-  const [message] = (args as string[]) ?? [];
-  log.info(`[renderer] ${redact(String(message ?? ''), REDACT_AS)}`);
+const { apoGuard } = registerEngineServices({
+  userDataDir,
+  state,
+  session,
+  deviceProfileSettings,
+  presetDirForDevice: profiles.presetDirForDevice,
+  reflush: reflushCurrentState,
 });
 
-onWindowMessage(ChannelEnum.INSTALL_EQUALIZER_APO, async (event) => {
-  const channel = ChannelEnum.INSTALL_EQUALIZER_APO;
-  try {
-    // Awaited. Elevation is asked for asynchronously, so a synchronous call
-    // would report success the instant the prompt appeared and could never
-    // report a refusal — which is the most likely outcome of the two.
-    await runEqualizerApoSetup();
-    log.info('Started the Equalizer APO installer');
-    event.reply(channel, { result: undefined });
-  } catch (e) {
-    log.error('Could not start the Equalizer APO installer', e);
-    handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
-  }
-});
-
-onWindowMessage(ChannelEnum.HEALTH_CHECK, async (event) => {
-  const channel = ChannelEnum.HEALTH_CHECK;
-  // Guarded end to end: this is an `ipcMain` listener, so a throw anywhere in
-  // it is an unhandled rejection in main, which the crash handler answers by
-  // ending the app. A health check that fails has to say so and stop.
-  try {
-    const res = await updateConfigPath(event, channel);
-    if (res) {
-      if (adoptExistingApoConfig() === false) {
-        handleError(
-          event,
-          channel,
-          ErrorCode.FAILURE,
-          mainText('eq.refused.externalEq'),
-        );
-        return;
-      }
-      await handleUpdate(event, channel);
-    }
-  } catch (error) {
-    log.error('The health check failed', error);
-    handleError(event, channel, ErrorCode.FAILURE);
-  }
-});
-
-// Fifteen dependencies, and the list is worth reading rather than skipping:
+// Two dozen dependencies, and the list is worth reading rather than skipping:
 // most of them are about audio devices, not files. A profile only means
 // anything relative to the output it is attached to, so this and the device
 // handlers are one subject with two names — which the extraction made visible
 // rather than fixed.
-/**
- * One engine in Windows' effect lists, kept that way for the whole session —
- * see `createApoGuard`. Fed by the device list below, re-read on every output
- * change Windows reports and whenever the window is come back to, so
- * Equalizer APO's Device Selector being run while FluidEQ is open is noticed
- * on the way back from it.
- */
-/**
- * The one gate every automatic elevated run passes through: the two halves
- * of the Equalizer APO switch-off and both engine repairs, so no two of them
- * put two Windows prompts up for one thing (`automaticSetup.ts`).
- */
-const automaticSetup = createAutomaticSetup();
-
-const apoGuard = createApoGuard({
-  getEngine: () => session.audioEngine,
-  runEngineSetup,
-  automatic: automaticSetup,
-});
-
 const profilesIpc = registerProfilesIpc({
   state,
   userDataDir,
-  activeBaselineDir,
+  activeBaselineDir: profiles.activeBaselineDir,
   deviceProfileSettings,
   session,
   handleUpdate,
   handleUpdateHelper,
   handleError,
-  runProfileMutation,
-  attachPresetToActiveDevice,
-  clearCurrentLayoutSettings,
-  createEmptyProfileForActiveDevice,
-  getCurrentPreset,
-  hydrateActiveConvolution,
+  runProfileMutation: profiles.runProfileMutation,
+  attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
+  clearCurrentLayoutSettings: profiles.clearCurrentLayoutSettings,
+  createEmptyProfileForActiveDevice: profiles.createEmptyProfileForActiveDevice,
+  getCurrentPreset: profiles.getCurrentPreset,
+  hydrateActiveConvolution: profiles.hydrateActiveConvolution,
   isAutomaticPresetName,
-  availableProfileNameForActiveDevice,
-  presetDirForDevice,
-  activePresetDir,
-  resetStateToDefaults,
+  availableProfileNameForActiveDevice:
+    profiles.availableProfileNameForActiveDevice,
+  presetDirForDevice: profiles.presetDirForDevice,
+  activePresetDir: profiles.activePresetDir,
+  resetStateToDefaults: profiles.resetStateToDefaults,
   adoptExistingApoConfig,
-  applyDeviceState,
-  captureCurrentLayout,
+  applyDeviceState: profiles.applyDeviceState,
+  captureCurrentLayout: profiles.captureCurrentLayout,
   notifyOutputStateChanged,
   guardAgainstApo: apoGuard.check,
 });
 
-registerCurveComparisonIpc({
-  state,
-  getEngine: () => session.audioEngine,
-  getStatus: () => readAudioEngineStatus(userDataDir, session.audioEngine),
-  getConfigPath: () => getConfigPath('fluid'),
-  isSwitching: () => session.engineSwitching,
-});
-
-registerTrebleDesignIpc({
-  getEngine: () => session.audioEngine,
-  getConfigPath: () => getConfigPath('fluid'),
-});
-
-registerAudioEngineIpc({
-  userDataDir,
-  getEngine: () => session.audioEngine,
-  setEngine: (engine) => {
-    session.audioEngine = engine;
-    // The cached directory belongs to the engine being left. Kept, it would
-    // send the next flush — the reflush this switch is about to run — into
-    // the folder the app has just finished neutralising.
-    session.configPath = '';
-    // And Equalizer APO's installation is asked of the registry again: the
-    // session keeps it between switches (`registry.ts`), and a switch is
-    // where somebody who has just installed or moved it comes back to it.
-    forgetApoInstall();
-  },
-  setSwitching: (isSwitching) => {
-    session.engineSwitching = isSwitching;
-  },
-  isSwitching: () => session.engineSwitching,
-  getConfigPath,
-  isEngineInstalled,
-  reflush: reflushCurrentState,
-  runEngineSetup,
-  readAudioEngineStatus,
-  neutraliseEngine: (other) =>
-    neutraliseEngine(other, deviceProfileSettings, presetDirForDevice),
-  writeSystemDspChain,
-  isApoOnAnyOutput,
-  isApoSwitchedOff,
-  repairEngineLoading: createEngineLoadRepair({
-    getEngine: () => session.audioEngine,
-    runEngineSetup,
-    automatic: automaticSetup,
-  }).check,
-  repairEngineOutput: createEngineOutputRepair({
-    getEngine: () => session.audioEngine,
-    readStatus: () => readAudioEngineStatus(userDataDir, session.audioEngine),
-    runEngineSetup,
-    automatic: automaticSetup,
-  }).repair,
-  automatic: automaticSetup,
-});
-
-/**
- * Write one config file back to disk.
- *
- * Editing the config from inside the app means text out of a window ends up in
- * the audio engine's directory, so the name is checked rather than trusted. It
- * has to be one FluidEQ itself generates — the same list the stale sweep uses —
- * which rules out APO's own config.txt, its sample configs, anything carrying a
- * path, and anything at all outside that directory. The contents are the user's
- * business; the destination is not.
- *
- * Nothing is adopted back into the state. Equalizer APO reloads when a file in
- * its config directory changes, which is the same route a text editor takes and
- * makes the edit audible at once. What FluidEQ generates it will generate again
- * on the next change, and the panel says as much beside the file.
- */
-onWindowMessage(ChannelEnum.WRITE_APO_CONFIG_FILE, async (event, arg) => {
-  const channel = ChannelEnum.WRITE_APO_CONFIG_FILE;
-  const fileName = arg?.[0];
-  const contents = arg?.[1];
-
-  if (
-    typeof fileName !== 'string' ||
-    typeof contents !== 'string' ||
-    fileName !== path.basename(fileName) ||
-    !isGeneratedConfigFile(fileName)
-  ) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  try {
-    if (!session.configPath) {
-      session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
-    }
-    // Through the writer like every other file in this folder: whole or not at
-    // all (a plain write truncated first, and the engine reloading in between
-    // read an empty file and played the output flat), and refused once quit
-    // has sealed the folder, so a save racing the quit cannot bring the EQ
-    // back after the app told the engine there is nothing to do.
-    await scheduleWrite(path.join(session.configPath, fileName), contents);
-    const reply: TSuccess<void> = { result: undefined };
-    event.reply(channel, reply);
-  } catch (e) {
-    handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
-  }
-});
-
-/**
- * The config as it stands on disk, for the panel that shows it.
- *
- * Read every time rather than cached. The whole reason this view exists is
- * that the files can say something the app did not put there — a hand edit,
- * another tool, a write that failed — and a cached answer would be the app
- * telling you what it believes, which is what every other panel already does.
- */
-/**
- * Which layers an output has, and which of them the config is applying.
- *
- * The files cannot answer this on their own. A switched-off layer has no file,
- * so absence in the config is just absence: nothing there distinguishes an
- * output with no voicing from one whose voicing is switched off, and the panel
- * would simply stop showing a layer the moment somebody bypassed it — which is
- * the opposite of what a bypass switch wants to be able to say. Reading the
- * profile beside the config is the only way to report "this exists, and it is
- * off".
- *
- * Built by asking the writer what it would produce with nothing bypassed, so
- * the list is exactly the layers with something to say. A layer that is empty
- * is not switched off, it is empty, and it belongs on this list no more than it
- * belongs in the config.
- */
-const describeDeviceLayers = (
-  assignment: IDeviceProfileAssignment,
-): IApoConfigLayer[] | undefined => {
-  let preset: IPresetV2;
-  try {
-    preset = fetchPreset(
-      assignment.presetName,
-      presetDirForDevice(assignment.deviceId),
-    );
-  } catch {
-    return undefined;
-  }
-
-  const bypassed: string[] = preset.bypassed ?? [];
-  const customFx = readCustomFxForDevice(assignment.deviceId);
-  // Any truthy name will do: it only has to make the convolution count as
-  // present, and nothing here is written to disk.
-  const everything = stateToApoFiles(
-    {
-      isEnabled: true,
-      isGraphViewOn: false,
-      isCaseSensitiveFs: false,
-      ...preset,
-      isAutoPreAmpOn: preset.isAutoPreAmpOn ?? true,
-      bypassed: undefined,
-    },
-    preset.convolution ? 'impulse' : undefined,
-  );
-  if (!everything) {
-    return undefined;
-  }
-
-  return [
-    ...(everything.convolution
-      ? [
-          {
-            feature: 'convolution',
-            isApplied: !bypassed.includes('convolution'),
-          },
-        ]
-      : []),
-    ...everything.features.map(({ feature }) => ({
-      feature: feature as string,
-      isApplied: !bypassed.includes(feature),
-    })),
-    ...(customFx
-      ? [{ feature: 'custom', isApplied: !bypassed.includes('custom') }]
-      : []),
-  ];
-};
-
-onWindowMessage(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
-  const channel = ChannelEnum.GET_APO_CONFIG_TREE;
-  try {
-    if (!session.configPath) {
-      session.configPath = await getConfigPath(session.audioEngine ?? 'apo');
-    }
-    const tree = readApoConfigTree(session.configPath);
-    const reply: TSuccess<IApoConfigTree | undefined> = {
-      result: tree && {
-        ...tree,
-        devices: tree.devices.map((device) => {
-          const assignment = Object.values(
-            deviceProfileSettings.assignments,
-          ).find(
-            (entry) =>
-              (entry.deviceGuid || entry.deviceName).toLowerCase() ===
-              device.devicePattern.toLowerCase(),
-          );
-          const layers = assignment
-            ? describeDeviceLayers(assignment)
-            : undefined;
-          return layers ? { ...device, layers } : device;
-        }),
-      },
-    };
-    event.reply(channel, reply);
-  } catch (e) {
-    handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
-  }
+registerApoConfigIpc({
+  session,
+  deviceProfileSettings,
+  presetDirForDevice: profiles.presetDirForDevice,
+  readCustomFxForDevice,
+  handleError,
 });
 
 registerReferencesIpc({
-  applyingLayer,
+  applyingLayer: profiles.applyingLayer,
   handleError,
   handleUpdate,
   handleUpdateHelper,
@@ -2595,76 +416,23 @@ registerReferencesIpc({
 });
 
 registerTransferIpc({
-  activePresetDir,
-  applyingLayer,
-  attachPresetToActiveDevice,
-  availableProfileNameForActiveDevice,
-  activeBaselineDir,
-  clearCurrentLayoutSettings,
-  resetEqToDefaults,
+  activePresetDir: profiles.activePresetDir,
+  applyingLayer: profiles.applyingLayer,
+  attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
+  availableProfileNameForActiveDevice:
+    profiles.availableProfileNameForActiveDevice,
+  activeBaselineDir: profiles.activeBaselineDir,
+  clearCurrentLayoutSettings: profiles.clearCurrentLayoutSettings,
+  resetEqToDefaults: profiles.resetEqToDefaults,
   deviceProfileSettings,
-  getMainWindow: () => mainWindow,
+  getMainWindow,
   handleError,
   handleUpdateHelper,
-  hydrateActiveConvolution,
-  presetDirForDevice,
+  hydrateActiveConvolution: profiles.hydrateActiveConvolution,
+  presetDirForDevice: profiles.presetDirForDevice,
   session,
   shieldReferenceBands,
   state,
-});
-
-onWindowMessage(ChannelEnum.GET_STATE, async (event) => {
-  const channel = ChannelEnum.GET_STATE;
-  // Guarded for the same reason as the health check above: this is the real
-  // one, the request every launch and every Retry makes.
-  try {
-    // A false answer has already been replied to, with the reason it failed.
-    // Replying CONFIG_NOT_FOUND on top of it sent a second answer to a
-    // request that had its first — one that could land on the NEXT GET_STATE
-    // and replace its real error with the wrong one.
-    if (!(await updateConfigPath(event, channel))) {
-      return;
-    }
-    if (hydrateActiveConvolution()) {
-      save(state, userDataDir);
-    }
-    // The custom file is user-editable and intentionally not part of the
-    // generated profile. Re-read it whenever the renderer asks for state so a
-    // Config inspector edit is reflected in the graph without a restart.
-    syncCustomFxFromConfig();
-    const reply: TSuccess<IState> = { result: state };
-    event.reply(channel, reply);
-  } catch (error) {
-    log.error('Reading the state failed', error);
-    handleError(event, channel, ErrorCode.FAILURE);
-  }
-});
-
-onWindowMessage(ChannelEnum.GET_ENABLE, async (event) => {
-  const reply: TSuccess<boolean> = { result: !!state.isEnabled };
-  event.reply(ChannelEnum.GET_ENABLE, reply);
-});
-
-// A switch is a boolean or it is not a request: whatever arrived used to be
-// stored into the state and saved with it.
-onWindowMessage(ChannelEnum.SET_ENABLE, async (event, arg) => {
-  const enabled: unknown = arg?.[0];
-  if (typeof enabled !== 'boolean') {
-    handleError(event, ChannelEnum.SET_ENABLE, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-  state.isEnabled = enabled;
-  await handleUpdate(event, ChannelEnum.SET_ENABLE);
-});
-
-onWindowMessage(ChannelEnum.SET_GRAPH_VIEW, async (event, arg) => {
-  const shown: unknown = arg?.[0];
-  if (typeof shown !== 'boolean') {
-    handleError(event, ChannelEnum.SET_GRAPH_VIEW, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-  state.isGraphViewOn = shown;
-  await handleUpdate(event, ChannelEnum.SET_GRAPH_VIEW);
 });
 
 registerPreampIpc({
@@ -2691,8 +459,8 @@ registerBandDesignsIpc({
   userDataDir,
   handleUpdateHelper,
   handleError,
-  switchToParametricEditing,
-  captureCurrentLayout,
+  switchToParametricEditing: profiles.switchToParametricEditing,
+  captureCurrentLayout: profiles.captureCurrentLayout,
 });
 
 registerFiltersIpc({
@@ -2701,24 +469,24 @@ registerFiltersIpc({
   handleUpdateHelper,
   handleError,
   doesFilterIdExist,
-  captureCurrentLayout,
-  getStoredLayout,
-  switchToParametricEditing,
-  applyingLayer,
+  captureCurrentLayout: profiles.captureCurrentLayout,
+  getStoredLayout: profiles.getStoredLayout,
+  switchToParametricEditing: profiles.switchToParametricEditing,
+  applyingLayer: profiles.applyingLayer,
 });
 
 registerLayersIpc({
   state,
   handleUpdate,
   handleError,
-  applyingLayer,
+  applyingLayer: profiles.applyingLayer,
 });
 
 registerSongEqHandlers(userDataDir);
 
 onWindowMessage(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   const channel = ChannelEnum.SET_WINDOW_SIZE;
-  setWindowDimension(arg[0]);
+  placement.setWindowDimension(arg[0]);
 
   const reply: TSuccess<void> = { result: undefined };
   event.reply(channel, reply);
@@ -2734,203 +502,11 @@ onWindowMessage('quit-app', () => {
 // What changed, and installing it. The updater goes across as a getter: it is
 // built asynchronously at startup and stays unset when its signature or feed
 // checks fail, so a reference captured here would be undefined forever.
-registerUpdatesIpc({ getActiveAutoUpdater: () => activeAutoUpdater });
+registerUpdatesIpc({ getActiveAutoUpdater: updates.getActiveAutoUpdater });
 
-/**
- * Where Equalizer APO's own tools live — always APO's, never the session's.
- *
- * These two menu items open executables that ship inside the Equalizer APO
- * installation, so the directory they need is APO's and nothing else. Asking
- * for the session's engine sent them to `%ProgramData%\FluidEQ\engine` for a
- * user on the FluidEQ Engine — a folder with no `Editor.exe` in it, reported
- * as "the tools were not found", and CREATED by the very act of asking. The
- * installed check comes first for the same reason it does everywhere else:
- * `getConfigPath` is not a question that can be asked for free.
- */
-const equalizerApoRootDir = async (): Promise<string | null> => {
-  if (!(await isEqualizerAPOInstalled())) {
-    return null;
-  }
-  return path.dirname(await getConfigPath('apo'));
-};
+registerNativeDialogsIpc();
+registerWindowsAudioIpc();
 
-ipcMain.handle('open-equalizer-apo-configurator', async () => {
-  try {
-    const equalizerApoRoot = await equalizerApoRootDir();
-    if (equalizerApoRoot === null) {
-      return mainText('files.apo.notLocated');
-    }
-    const configuratorPath = ['DeviceSelector.exe', 'Configurator.exe']
-      .map((fileName) => path.join(equalizerApoRoot, fileName))
-      .find((candidate) => fs.existsSync(candidate));
-
-    if (!configuratorPath) {
-      return mainText('files.apo.selectorMissing');
-    }
-
-    return shell.openPath(configuratorPath);
-  } catch {
-    return mainText('files.apo.notLocated');
-  }
-});
-
-ipcMain.handle('open-equalizer-apo-settings', async () => {
-  try {
-    const equalizerApoRoot = await equalizerApoRootDir();
-    if (equalizerApoRoot === null) {
-      return mainText('files.apo.notLocated');
-    }
-    // Equalizer APO 1.4.x renamed the old Configurator executable to Editor.
-    // Keep the legacy name as a fallback for older installations.
-    const settingsPath = ['Editor.exe', 'Configurator.exe']
-      .map((fileName) => path.join(equalizerApoRoot, fileName))
-      .find((candidate) => fs.existsSync(candidate));
-
-    if (!settingsPath) {
-      return mainText('files.apo.editorMissing');
-    }
-
-    return shell.openPath(settingsPath);
-  } catch {
-    return mainText('files.apo.notLocated');
-  }
-});
-
-/**
- * The two one-line dialogs the renderer needs: tell, and ask.
- *
- * They were `window.alert` and `window.confirm`. Electron does answer those
- * with a native box, but a box with no owner and no title: it floats free of
- * the window, and its title bar reads the page origin. Owned by the window
- * and titled with the product, through the same API the file pickers use.
- */
-ipcMain.handle('native-message', async (event, message: string) => {
-  const owner = BrowserWindow.fromWebContents(event.sender);
-  const options = { type: 'info' as const, title: PRODUCT_NAME, message };
-  await (owner
-    ? dialog.showMessageBox(owner, options)
-    : dialog.showMessageBox(options));
-});
-
-ipcMain.handle(
-  'native-confirm',
-  async (event, message: string, ok: string, cancel: string) => {
-    // The button labels come from the renderer, which is where the language
-    // lives; this process has no dictionary.
-    const owner = BrowserWindow.fromWebContents(event.sender);
-    const options = {
-      type: 'question' as const,
-      title: PRODUCT_NAME,
-      message,
-      buttons: [ok, cancel],
-      defaultId: 0,
-      cancelId: 1,
-    };
-    const { response } = await (owner
-      ? dialog.showMessageBox(owner, options)
-      : dialog.showMessageBox(options));
-    return response === 0;
-  },
-);
-
-ipcMain.handle(
-  'restart-windows-audio',
-  async (): Promise<IAudioRestartOutcome> => {
-    if (process.platform !== 'win32') {
-      return { ok: false, declined: false };
-    }
-
-    // The engine helper when it is there: it restarts AudioEndpointBuilder as
-    // well as Audiosrv, which a changed effect list needs before Windows reads
-    // it again, and it stops a vendor service that depends on Audiosrv first
-    // (Realtek's blocked the plain stop with error 1051 on the first machine).
-    // The PowerShell restart below restarts Audiosrv alone and remains only for
-    // a build with no helper beside it — a source checkout without a native
-    // build.
-    if (fs.existsSync(getEngineSetupPath())) {
-      const result = await runEngineSetup('restart-audio', []);
-      return {
-        ok: result.ok,
-        declined: result.declined,
-        ...(!result.ok && !result.declined && result.error
-          ? { detail: result.error }
-          : {}),
-      };
-    }
-
-    const restartCommand = Buffer.from(
-      'Restart-Service -Name Audiosrv -Force',
-      'utf16le',
-    ).toString('base64');
-    const elevateCommand = [
-      // `$PSHOME` and not `'powershell.exe'`, for the reason the constant below
-      // is used instead of a bare name: `Start-Process -Verb RunAs` goes through
-      // ShellExecute, which searches the working directory first — and the
-      // working directory here is inherited from the app, which a shortcut sets
-      // to the install directory. A `powershell.exe` dropped there would be the
-      // one the user is asked to approve for administrator rights.
-      //
-      // `Join-Path` and not a quoted `"$PSHOME\powershell.exe"`: this whole
-      // string is one `-Command` argument, and a double quote inside one has to
-      // survive libuv escaping it and then PowerShell re-reading the raw command
-      // line. That round trip is the classic way an elevation prompt starts
-      // failing for no visible reason, so there are no double quotes here at all.
-      "$process = Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe')",
-      '-Verb RunAs -WindowStyle Hidden',
-      `-ArgumentList '-NoProfile','-EncodedCommand','${restartCommand}'`,
-      '-Wait -PassThru;',
-      'exit $process.ExitCode',
-    ].join(' ');
-
-    return new Promise<IAudioRestartOutcome>((resolve) => {
-      execFile(
-        // Absolute, because a bare `'powershell.exe'` is resolved by libuv
-        // against the CURRENT DIRECTORY before PATH — and a shortcut-launched
-        // Electron app has its install directory as the current directory. This
-        // particular call then asks Windows to elevate whatever it found.
-        POWERSHELL_PATH,
-        [
-          '-NoProfile',
-          '-ExecutionPolicy',
-          'Bypass',
-          '-Command',
-          elevateCommand,
-        ],
-        { windowsHide: true },
-        (error) => {
-          // PowerShell exits the same way for a declined prompt and a failed
-          // restart, so there is no telling them apart here; the card says
-          // only that it did not work.
-          resolve({ ok: !error, declined: false });
-        },
-      );
-    });
-  },
-);
-
-/**
- * The titlebar's transport buttons, pressed on behalf of the whole machine.
- *
- * Takes a name and nothing else. The renderer never says which key to press —
- * see `mediaKeys`, where the three names are turned into the only three codes
- * this app will send, and an unrecognised name is dropped without a word.
- *
- * Returns nothing on purpose. Windows gives no answer to a media key, so there
- * is nothing honest to hand back and nothing for the window to wait on.
- */
-ipcMain.handle('media-transport', async (_event, action: unknown) => {
-  await sendMediaTransportKey(action);
-});
-
-/**
- * Watch what the rest of the machine is playing, or stop watching.
- *
- * Asked for by the window and only while it has nothing of its own on the
- * bar: this app equalises whatever the device outputs, so "nothing is
- * playing" was wrong every time the sound was coming from a browser tab. The
- * watcher is a PowerShell child — see `systemMedia` for why — and one that is
- * not needed is one that should not be running.
- */
 /**
  * Which song the machine is playing, for the FluidEQ Engine's live leveling
  * — see `songProgramme.ts`. Fed by the same media watcher as the bar, and
@@ -2952,419 +528,53 @@ const songProgramme = createSongProgramme({
   watchEngine: () => engineHealth.read(),
 });
 
-/**
- * The picture for the cover id a reading carried, or nothing once the song
- * has moved on. The id is checked by shape before it is used as a key, since
- * it came back from the window.
- */
-ipcMain.handle('system-media-cover', (_event, id: unknown) =>
-  typeof id === 'string' && /^[0-9a-f]{16}$/.test(id)
-    ? getSystemMediaCover(id)
-    : undefined,
-);
-
-ipcMain.handle('system-media-watch', (event, enabled: unknown) => {
-  if (enabled !== true) {
-    stopWatchingSystemMedia();
-    return;
-  }
-  watchSystemMedia((snapshot) => {
-    songProgramme.onMedia(snapshot).catch(() => undefined);
-    if (!event.sender.isDestroyed()) {
-      event.sender.send('system-media-changed', snapshot);
-    }
-  });
-});
-
-/**
- * Skip, seek, stop, or pause whatever the machine is playing.
- *
- * The renderer names a command and, for a seek, where to go. The
- * name is checked here rather than trusted: everything else on this path ends
- * up inside a PowerShell script, and a name from a window that reached it
- * would be a window writing PowerShell.
- */
-ipcMain.handle(
-  'system-media-command',
-  async (_event, command: unknown, positionMs: unknown) => {
-    if (
-      command !== 'next' &&
-      command !== 'previous' &&
-      command !== 'seek' &&
-      command !== 'stop' &&
-      command !== 'pause'
-    ) {
-      return;
-    }
-    await sendSystemMediaCommand(
-      command,
-      typeof positionMs === 'number' && Number.isFinite(positionMs)
-        ? positionMs
-        : undefined,
-    );
-  },
-);
-
-/**
- * Quieten every program that is playing, sparing the one named.
- *
- * One player at a time, whoever the players are: two of somebody else's —
- * Spotify and a Netflix tab — with the one that just started spared, or all
- * of them when this app has taken the sound itself. The window decides,
- * because whether the rule is on at all is its switch ("Plays in two
- * places"); this only carries it out.
- *
- * A name is bounded here and never put inside a script: it is an app id that
- * came from Windows, went to a window, and came back, and text from a window
- * that reached a PowerShell script would be a window writing PowerShell.
- */
-ipcMain.handle(
-  'system-media-pause-others',
-  async (_event, exceptApp: unknown) => {
-    if (
-      exceptApp !== undefined &&
-      (typeof exceptApp !== 'string' || exceptApp.length > 256)
-    ) {
-      return;
-    }
-    await pauseOtherSystemPlayers(exceptApp ?? '');
-  },
-);
-
-// The child outlives nothing. A window that has gone cannot be told what is
-// playing, and a PowerShell left running after the app closed is a process
-// somebody finds in Task Manager with this app's name on it.
-app.on('will-quit', stopWatchingSystemMedia);
-
-/** What the page is told about its window, pushed and asked for alike. */
-const windowStateOf = (window: BrowserWindow | null): IWindowStatePush => {
-  const modes = windowModes.memory();
-  const isLive = window !== null && !window.isDestroyed();
-  const [contentWidth, contentHeight] = isLive ? window.getContentSize() : [];
-  return {
-    isMaximized: isLive ? window.isMaximized() : false,
-    isFullScreen: isLive ? window.isFullScreen() : false,
-    isSystemFullScreen: isLive ? windowModes.isSystemFullScreen() : false,
-    mode: modes.mode,
-    isPinned: modes.isPinned,
-    zoom: isLive ? window.webContents.getZoomFactor() : 1,
-    contentSize:
-      contentWidth !== undefined && contentHeight !== undefined
-        ? { width: contentWidth, height: contentHeight }
-        : undefined,
-  };
-};
-
-const sendWindowState = () => {
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    return;
-  }
-  mainWindow.webContents.send(
-    'window-state-changed',
-    windowStateOf(mainWindow),
-  );
-};
-
-/** The state with the full screen a transition is moving into (`mainWindow.ts`). */
-const sendFullScreenState = (isFullScreen: boolean) => {
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    return;
-  }
-  mainWindow.webContents.send('window-state-changed', {
-    ...windowStateOf(mainWindow),
-    isFullScreen,
-  });
-};
+registerSystemMediaIpc({ onMedia: songProgramme.onMedia });
 
 // Every switch between the app and the player is written down at once — a
 // window closed straight after one must open in the mode it was left in — and
 // the page is told, because what it draws is the mode.
 windowModes.listen(() => {
-  saveWindowState();
-  sendWindowState();
+  placement.saveWindowState();
+  placement.sendWindowState();
 });
 
 // Handlers that own a subject rather than a slice of this file's scope.
 //
 // Everything each one can reach is in its `register` argument, so the answer to
 // "what does the Karaoke tab touch in the main process" is a type signature
-// instead of a reading of four thousand lines. `mainWindow` goes across as a
+// instead of a reading of this whole file. `mainWindow` goes across as a
 // getter because it is replaced over the life of the process.
 registerWindowIpc({
-  getMainWindow: () => mainWindow,
-  sendWindowState,
-  getWindowState: () => windowStateOf(mainWindow),
+  getMainWindow,
+  sendWindowState: placement.sendWindowState,
+  getWindowState: () => placement.windowStateOf(mainWindow),
   windowModes,
 });
 
 const stopRemoteAudioLan = registerRemoteAudioIpc({
-  getMainWindow: () => mainWindow,
+  getMainWindow,
   userDataDir,
 });
 
-const stopOutputMirrors = registerOutputMirrorIpc(() => mainWindow);
+const stopOutputMirrors = registerOutputMirrorIpc(getMainWindow);
 
 // Game profiles: what the launchers have installed, and which program
 // Windows has put in front. The watcher behind it runs only while the window
 // asks for it — see `ipc/games.ts`.
 registerGamesIpc({
-  getMainWindow: () => mainWindow,
+  getMainWindow,
   // A game in front holds the desktop backgrounds still: they and the game
   // draw on the same graphics card, and the one being played is the one that
   // matters.
-  onPlaying: (playing) => wallpaperIpc.setGameInFront(playing),
+  onPlaying: (playing) => members.wallpaperIpc.setGameInFront(playing),
 });
 
 // The system volume, for the compact player's slider when what is playing is
 // another program's. The helper behind it runs only while the window shows
 // that slider — see `systemVolume.ts`.
-registerSystemVolumeIpc(() => mainWindow);
+registerSystemVolumeIpc(getMainWindow);
 
-// Registers the channels and reads whatever session is already on disk; it
-// contacts nothing. A build with no backend configured resolves to a store that
-// reports signed out forever, so this costs an unconfigured checkout one file
-// read that finds nothing.
-// DEVELOPMENT ONLY, and compiled to nothing in a packaged build: `isPackaged`
-// is decided by the binary's name, which nothing here can change. Two
-// environment variables let the premium path be looked at before a backend
-// exists — a pretend subscription, and a directory of signed packs from the
-// publishing tool. Neither loosens anything: the server still serves only
-// paying accounts, and a pack still has to verify against the compiled-in key.
-const developmentEntitlement =
-  !app.isPackaged && process.env.FLUIDEQ_DEV_ENTITLED === '1'
-    ? { state: 'active' as const, plan: 'plus (development)', renewing: true }
-    : undefined;
-// The merchant has no test mode, so in development the Account panel can ask
-// the server to send the merchant's own signed events for this account and
-// watch the subscription switch on and off. Nothing to configure: the server
-// holds the secret and admits admins only. See `membershipSimulator.ts`.
-const developmentSimulator = !app.isPackaged;
-// The leaderboard had a cast of twelve sample people ranked into it in
-// development, for a board with nobody in it. There are real people on it
-// now, and a made-up cast over them hides what is actually happening (Ivan,
-// 2026-09-20): the board is the server's answer, in every build.
-
-const accountIpc = registerAccountIpc({
-  getMainWindow: () => mainWindow,
-  userDataDir,
-  logger: log,
-  developmentEntitlement,
-  developmentSimulator,
-});
-
-// The Plus terms promise that a member is told when they change. Asks the
-// server which version this account agreed to on the same events as the
-// membership, and only until it knows.
-const plusTermsNoticeIpc = registerPlusTermsNoticeIpc({
-  getMainWindow: () => mainWindow,
-  userDataDir,
-  config: ACCOUNT_CONFIG,
-  session: accountIpc.session,
-  entitlement: accountIpc.entitlement,
-  logger: log,
-});
-
-// Paying happens in a browser, so the membership turning on is the only
-// news the app gets of it. This marks that moment once per account.
-const plusWelcomeIpc = registerPlusWelcomeIpc({
-  getMainWindow: () => mainWindow,
-  userDataDir,
-  session: accountIpc.session,
-  entitlement: accountIpc.entitlement,
-  logger: log,
-});
-
-const plusTrialIpc = registerPlusTrialIpc({
-  config: ACCOUNT_CONFIG,
-  session: accountIpc.session,
-  entitlement: accountIpc.entitlement,
-  onTermsAgreed: plusTermsNoticeIpc.agreed,
-});
-
-// The premium looks ride on the account: they are listed only while the
-// subscription is live, and fetched on the same "somebody is back at the
-// machine" events. Registering reads the cache; it contacts nothing.
-const scenePacksIpc = registerScenePacksIpc({
-  getMainWindow: () => mainWindow,
-  userDataDir,
-  config: ACCOUNT_CONFIG,
-  session: accountIpc.session,
-  entitlement: accountIpc.entitlement,
-  logger: log,
-  // Late-bound: the gallery is registered further down, and this is only
-  // called once the looks are opened.
-  refreshGalleryScenes: () => plusGalleryIpc.refreshIfDue(),
-});
-
-// Scenes members make in the Studio. Registering watches nothing: the open
-// project's folder is watched only while the Studio is open.
-const memberScenesIpc = registerMemberScenesIpc({
-  getMainWindow: () => mainWindow,
-  userDataDir,
-  documentsDir: app.getPath('documents'),
-  session: accountIpc.session,
-  entitlement: accountIpc.entitlement,
-  logger: log,
-});
-
-const wallpaperIpc = registerWallpaperIpc({
-  getMainWindow: () => mainWindow,
-  entitlement: accountIpc.entitlement,
-  arrangement: createArrangementStore(userDataDir, log),
-  ...createWallpaperScenes(scenePacksIpc, memberScenesIpc),
-});
-
-// Sharing them between members: export signed by the server, import verified
-// against the member key, likes, and the block list.
-const memberSharingIpc = registerMemberSharingIpc({
-  getMainWindow: () => mainWindow,
-  userDataDir,
-  config: ACCOUNT_CONFIG,
-  session: accountIpc.session,
-  entitlement: accountIpc.entitlement,
-  store: memberScenesIpc.store,
-  activeFolder: memberScenesIpc.activeFolder,
-  activeIsInspection: memberScenesIpc.activeIsInspection,
-  restoreOwnProject: memberScenesIpc.restoreOwnProject,
-  announce: memberScenesIpc.announce,
-  onTermsAgreed: plusTermsNoticeIpc.agreed,
-  logger: log,
-});
-
-// The Plus gallery: members' published scenes, found, added and reported;
-// and the member's own side of it — the Studio's Publish, their published
-// scenes, taking one down.
-const galleryAccess = createGalleryAccess({
-  config: ACCOUNT_CONFIG,
-  session: accountIpc.session,
-  entitlement: accountIpc.entitlement,
-});
-const plusGalleryIpc = registerPlusGalleryIpc({
-  access: galleryAccess,
-  store: memberScenesIpc.store,
-  refreshBlocked: memberSharingIpc.refreshBlocked,
-  announce: memberScenesIpc.announce,
-  onEntitlementChange: (listener) => accountIpc.entitlement.subscribe(listener),
-  officialStore: scenePacksIpc.store,
-  announceOfficial: scenePacksIpc.announce,
-  logger: log,
-  // Gallery pictures kept between sessions, so a card seen before is not
-  // downloaded again (`plus/pictureDiskCache.ts`).
-  pictureDir: path.join(userDataDir, 'gallery-pictures'),
-});
-// Scenes under review (premium migration 0037): the admin's queue and
-// answers, a maker's list of what they sent, and the corner notice telling
-// either of them there is news. An approval puts a scene in the gallery.
-// Signing out must take the notice away too, which the membership alone
-// never says (`onIdentityChange`).
-const plusReviewIpc = registerPlusReviewIpc({
-  getMainWindow: () => mainWindow,
-  userDataDir,
-  access: galleryAccess,
-  onGalleryChanged: async () => {
-    await plusGalleryIpc.refreshIfDue(true);
-  },
-  onAccountChange: (listener) => {
-    const offMembership = accountIpc.entitlement.subscribe(listener);
-    const offIdentity = accountIpc.onIdentityChange(listener);
-    return () => {
-      offMembership();
-      offIdentity();
-    };
-  },
-  logger: log,
-});
-// What a maker earned by publishing, for the account panel to count down —
-// and, when the server says this account is one, the note that keeps their
-// single Studio project open after the earned month runs out.
-const makerMonthIpc = registerMakerMonthIpc({
-  access: galleryAccess,
-  onMaker: (id, maker) => {
-    if (setKnownMaker(userDataDir, id, maker)) {
-      // The Studio is drawn from what it was last told; an answer that
-      // changed has to reach it, or a first approval leaves the page locked
-      // until the window is opened again.
-      memberScenesIpc.makerChanged();
-    }
-  },
-});
-// The member's own AI looking at the scene it is writing, over MCP on this
-// computer only — shut until the member opens it on the Studio's card.
-const studioAgentDoor = createStudioAgentDoor({
-  userDataDir,
-  getMainWindow: () => mainWindow,
-  agentProject: memberScenesIpc.agentProject,
-  appVersion: appVersion(),
-  logger: log,
-});
-const plusPublishingIpc = registerPlusPublishingIpc({
-  access: galleryAccess,
-  userDataDir,
-  activeFolder: memberScenesIpc.activeFolder,
-  activeIsInspection: memberScenesIpc.activeIsInspection,
-  mayPublishActive: memberScenesIpc.mayUseActive,
-  onTermsAgreed: plusTermsNoticeIpc.agreed,
-  onPublished: () => {
-    plusGalleryIpc
-      .refreshIfDue(true)
-      .catch((error) =>
-        log.warn('Gallery refresh after publication failed', error),
-      );
-    // A member's publication waits for review now: their list says so, and
-    // the admin's queue grew.
-    plusReviewIpc.refreshNow().catch(() => undefined);
-  },
-});
-
-// "Open in Studio" for FluidEQ's own scenes: a project to look inside and
-// take ideas from, never one to add, export or publish.
-const disposeStudioInspect = registerStudioInspectIpc({
-  access: galleryAccess,
-  officialStore: scenePacksIpc.store,
-  openInspection: memberScenesIpc.openInspection,
-  logger: log,
-});
-
-// The admin's queue of reported scenes. A takedown or a restore changes the
-// block list, which this computer holds a copy of and the gallery reads; a
-// deletion also takes away whatever the scene had waiting for review.
-const plusModerationIpc = registerPlusModerationIpc({
-  access: galleryAccess,
-  onBlockListChanged: async () => {
-    await memberSharingIpc.refreshBlocked();
-    await plusGalleryIpc.refreshIfDue(true);
-    await plusReviewIpc.refreshNow();
-  },
-  logger: log,
-});
-
-// The admin's Plus gifts: addresses that count as paying without paying.
-// The server decides who the admin is (premium migration 0021).
-const plusGiftsIpc = registerPlusGiftsIpc({ access: galleryAccess });
-
-// The admin's account deletion, as the Plus terms promise it: the account and
-// everything tied to it, published files included (premium migration 0031).
-const accountDeletionIpc = registerAccountDeletionIpc({
-  access: galleryAccess,
-});
-
-// The member's name on the board and in the gallery. Registering contacts
-// nothing; the Plus tab asks for it when it opens.
-const plusProfileIpc = registerPlusProfileIpc({
-  config: ACCOUNT_CONFIG,
-  session: accountIpc.session,
-});
-
-// Listening minutes. Counted always, kept on this machine, and uploaded only
-// for an account that opted in — on the same events as everything else.
-const leaderboardIpc = registerLeaderboardIpc({
-  getMainWindow: () => mainWindow,
-  userDataDir,
-  config: ACCOUNT_CONFIG,
-  session: accountIpc.session,
-  entitlement: accountIpc.entitlement,
-  logger: log,
-});
+const members = registerMemberServices({ getMainWindow, userDataDir });
 
 // The tools menu's animations row: the saved choice, and the one this launch
 // was started with, so the row can say when a restart is still owed.
@@ -3391,14 +601,14 @@ const graphicsPreferenceIpc = registerGraphicsPreferenceIpc({
 // account — reading needs nothing and writing needs a GitHub sign-in — and
 // registering contacts nothing until the Forum tab asks.
 const forumIpc = registerForumIpc({
-  getMainWindow: () => mainWindow,
+  getMainWindow,
   userDataDir,
   logger: log,
 });
 
 registerKaraokeIpc({
   userDataDir,
-  getMainWindow: () => mainWindow,
+  getMainWindow,
 });
 
 // Registers the channels; it does not start anything. The host is a process
@@ -3406,7 +616,7 @@ registerKaraokeIpc({
 // waits until the renderer asks, which it does when something is about to be
 // heard. A checkout that has never built the native target simply reports the
 // engine unavailable and the TypeScript one carries on.
-registerDspHostIpc({ getMainWindow: () => mainWindow });
+registerDspHostIpc({ getMainWindow });
 // Dynamic lighting (Plus): keyboards, mice and headsets in the colours of the
 // scene on the graph. Starts nothing until the window sends a frame or opens
 // the page — the helper, Razer's service and the identity registration all
@@ -3414,8 +624,8 @@ registerDspHostIpc({ getMainWindow: () => mainWindow });
 const lighting = registerLightingIpc({
   userDataDir,
   appVersion: appVersion(),
-  getMainWindow: () => mainWindow,
-  entitled: () => accountIpc.entitlement.status().state !== 'none',
+  getMainWindow,
+  entitled: () => members.accountIpc.entitlement.status().state !== 'none',
 });
 // The helper's exit hands every Windows lamp back; Razer's session is ended
 // rather than left to lapse.
@@ -3424,7 +634,7 @@ app.on('will-quit', () => lighting.dispose());
 // DSP engine is our own child rather than Electron's, so `getAppMetrics` has
 // never heard of it.
 registerProcessIpc({
-  getMainWindow: () => mainWindow,
+  getMainWindow,
   getNativeHostPid: dspHostPid,
   getNativeHostStats: dspHostStats,
   getLightingHelperPid: () => lighting.helperPid(),
@@ -3434,158 +644,23 @@ registerProcessIpc({
 
 const libraryIpc = registerLibraryIpc({
   userDataDir,
-  getMainWindow: () => mainWindow,
+  getMainWindow,
 });
 
 registerLibraryPlaylistsIpc({
   userDataDir,
-  getMainWindow: () => mainWindow,
+  getMainWindow,
 });
 
 // What the FluidEQ Engine says about each output, for the notice that says
 // when it is failing and for the songs it finished levelling. Watches nothing
 // until the window first asks or a song is announced to the engine.
 const engineHealth = registerEngineHealthIpc({
-  getMainWindow: () => mainWindow,
+  getMainWindow,
   onHealth: songProgramme.onHealth,
 });
 
-// Only in the build that has source maps: DEBUG_PROD is the one production
-// build the main webpack config gives a `devtool`, and every other one has its
-// maps deleted. Installed without them it still read the whole of main.js into
-// its cache on the first stack it formatted, and kept it, to map nothing. Both
-// halves of the test fold at build time, so a release does not bundle it.
-if (
-  process.env.NODE_ENV === 'production' &&
-  process.env.DEBUG_PROD === 'true'
-) {
-  const sourceMapSupport = require('source-map-support');
-  sourceMapSupport.install();
-}
-
-const isDebug =
-  process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
-
-// Containerized development environments often run as root and do not expose
-// Chromium's setuid sandbox. This is never enabled in packaged production.
-if (isDebug && process.getuid?.() === 0) {
-  app.commandLine.appendSwitch('no-sandbox');
-  app.commandLine.appendSwitch('disable-setuid-sandbox');
-}
-
-/**
- * A DevTools protocol port while developing, and only while developing.
- *
- * Without it the running window can only be inspected by a person looking at
- * it: tests say the markup is right and the stylesheet says the rules
- * compiled, but neither can see a control that renders invisibly or a panel
- * that collapses. Several defects shipped that way — an icon with no size that
- * filled the tab, buttons with no class, two sections that sat side by side.
- * Every one passed the whole suite.
- *
- * Bound to the loopback address on purpose, and gated on `isDebug` so it can
- * never reach a packaged build — an open protocol port is remote control of
- * the browser, not merely a diagnostic.
- */
-if (process.env.NODE_ENV === 'development') {
-  app.commandLine.appendSwitch('remote-debugging-port', '9222');
-  app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1');
-}
-
-/**
- * A packaged build will not run with a DevTools port somebody else asked for.
- * `--remote-debugging-port` or `--remote-debugging-pipe` on the command line
- * opens the same remote control of the window — and through it the whole
- * preload bridge, signed in as the member — to anything on the machine that
- * can start FluidEQ with arguments. Chromium reads those switches itself, so
- * no fuse turns them off; the Node inspector's own flags are off by fuse
- * (`electronFuses` in package.json). Refused before the app is ready, while
- * no window exists.
- */
-if (
-  app.isPackaged &&
-  (app.commandLine.hasSwitch('remote-debugging-port') ||
-    app.commandLine.hasSwitch('remote-debugging-pipe'))
-) {
-  app.exit(1);
-}
-
-/*
- * WINDOWS' OWN DRM WAS TRIED HERE AND DOES NOT WORK. DO NOT TRY IT AGAIN.
- *
- * Spotify in the Video tab fails at play with `EMEError: No supported keysystem
- * was found`, which everyone reads as "Electron ships no Widevine CDM". True,
- * and its log shows Widevine is not the only thing it asks for on Windows: it
- * probes `com.microsoft.playready.recommendation` and `.recommendation.3000` as
- * well. PlayReady is part of Windows and nobody has to ship it, so that looked
- * like a way to the same place without a forked Electron.
- *
- * It is not, and the experiment is recorded rather than repeated:
- * `app.commandLine.appendSwitch('enable-features', 'HardwareSecureDecryption')`
- * on Chromium 150 changed nothing. Same EMEError, same `local_player_disabled`
- * after it, and the PlayReady console warnings that look like progress were
- * already there before the switch — Chromium emits those when a page *asks*
- * for the key system, not when it has one.
- *
- * The reason is the same shape as FedCM two paragraphs down. Registering the
- * PlayReady key system happens in Chrome's browser layer, not in the Chromium
- * content layer Electron builds on, so there is no switch in this process that
- * can conjure it. The upstream request to add it is open, and open is the
- * answer: castLabs' fork with production VMP signing remains the only route to
- * Spotify playback, and that is a decision about how this is built.
- */
-
-/*
- * SAY WE DO NOT HAVE FEDCM, BECAUSE WE DO NOT REALLY HAVE FEDCM.
- *
- * Signing in to SoundCloud with a Google account fails in the player, and the
- * page's own log gives the reason: `FedCM get() rejects with NetworkError`.
- *
- * FedCM is browser-mediated by design. `navigator.credentials.get({identity})`
- * hands the whole exchange to the browser, which fetches the provider's
- * endpoints and shows its own account chooser — and that chooser lives in
- * Chrome's browser layer, not in the Chromium content layer Electron is built
- * on. So the API is present, answers, and cannot ever succeed.
- *
- * Which is the worst of the three possibilities. A site feature-detects: absent
- * means "use the old flow", working means "use this one", and present-but-
- * broken means it takes the new path and dies there — with an error that reads
- * like the network, so nobody looks at the browser.
- *
- * Turning it off is not giving something up. It is the same lesson as the user
- * agent one file over: claiming a capability we do not have is worse than
- * admitting the one we do. Google's identity library has a non-FedCM path, it
- * warns on every load that sites have not migrated to FedCM yet, and that path
- * needs a popup — which this build now allows.
- *
- * It has a shelf life. Google intend to make FedCM mandatory, and when they do
- * this stops helping and the answer becomes Electron implementing FedCM. The
- * warning in the page log is the countdown.
- */
-app.commandLine.appendSwitch('disable-features', 'FedCm');
-
-if (isDebug) {
-  /*
-   * SHORTCUTS AND THE INSPECT MENU, BUT NOT AN INSPECTOR ON EVERY WINDOW.
-   *
-   * `showDevTools` defaults to true and means "open DevTools on each created
-   * BrowserWindow" — every one, including the sign-in popups the video player
-   * now opens. That is worse than untidy on those: Google's abuse page lists
-   * "use of developer or inspection tools" among its reasons for refusing a
-   * sign-in, so the inspector opening by itself was helping to cause the
-   * failure it was there to diagnose.
-   *
-   * Turning it off costs nothing at all, which is what makes this the right
-   * place to fix it rather than closing the window's DevTools after the fact.
-   * The main window opens its own further down, explicitly, in this same debug
-   * branch — so this option was only ever duplicating that for the one window
-   * that wanted it, and supplying it to every window that did not.
-   *
-   * F12 and the context menu are untouched; they come from the rest of the
-   * package and still work on any window.
-   */
-  require('electron-debug').default({ showDevTools: false });
-}
+applyLaunchSwitches();
 
 /**
  * Take the EQ off every output as FluidEQ goes — see `engineQuitReset.ts`.
@@ -3614,30 +689,28 @@ const resetActiveEngineAtSessionEnd = (): void => {
 const comeBack = createComeBackWatch({
   powerMonitor,
   accountSteps: accountComeBackSteps({
-    entitlement: accountIpc.entitlement,
-    scenePacks: scenePacksIpc,
-    memberSharing: memberSharingIpc,
-    plusGallery: plusGalleryIpc,
-    sceneReviews: plusReviewIpc,
-    plusTermsNotice: plusTermsNoticeIpc,
-    leaderboard: leaderboardIpc,
+    entitlement: members.accountIpc.entitlement,
+    scenePacks: members.scenePacksIpc,
+    memberSharing: members.memberSharingIpc,
+    plusGallery: members.plusGalleryIpc,
+    sceneReviews: members.plusReviewIpc,
+    plusTermsNotice: members.plusTermsNoticeIpc,
+    leaderboard: members.leaderboardIpc,
   }),
-  getActiveAutoUpdater: () => activeAutoUpdater,
-  applyUpdateIfUnattended,
+  getActiveAutoUpdater: updates.getActiveAutoUpdater,
+  applyUpdateIfUnattended: updates.applyUpdateIfUnattended,
   logger: log,
 });
 
 const createMainWindow = createMainWindowFactory({
   firstRunPlacement,
   isDebug,
-  loadWindowState,
-  saveWindowState,
-  sendWindowState,
-  sendFullScreenState,
+  loadWindowState: placement.loadWindowState,
+  saveWindowState: placement.saveWindowState,
+  sendWindowState: placement.sendWindowState,
+  sendFullScreenState: placement.sendFullScreenState,
   windowModes,
-  setActiveAutoUpdater: (next) => {
-    activeAutoUpdater = next;
-  },
+  setActiveAutoUpdater: updates.setActiveAutoUpdater,
   setMainWindow: (next) => {
     mainWindow = next;
     // Windows shutting down or logging off reaches the app only as this
@@ -3648,59 +721,16 @@ const createMainWindow = createMainWindowFactory({
       libraryIpc.watchWindow(next);
     }
   },
-  setUpAutoUpdates,
-  setUpMemoryTraceTrigger,
-  startMemoryProbe,
+  setUpAutoUpdates: updates.setUpAutoUpdates,
+  setUpMemoryTraceTrigger: memoryTrace.setUpMemoryTraceTrigger,
+  startMemoryProbe: memoryTrace.startMemoryProbe,
   startsHidden: () => didRestartForUnattendedUpdate,
   syncDatabasesOnStartup,
 });
 
-/**
- * Log failures and replace a damaged main process once in packaged builds.
- *
- * Window recovery is owned by mainWindow; native inference and DSP failures
- * are contained in child processes. Without these logs, the only trace is
- * the window disappearing, and the bug report that follows says "it closed",
- * which is not something anybody can fix.
- *
- * Installed at module scope rather than inside `whenReady`, because the window
- * that never opens is exactly the failure worth catching, and by `whenReady` a
- * good deal of the app has already run.
- */
-const setUpCrashLogging = () => {
-  // Moved up from the updater's setup, which does not run until a window is
-  // being built. Everything logged before that point was going to the console
-  // and no further — including, by definition, every failure to get that far.
-  log.transports.file.level = 'info';
-
-  // Without this, `electron-log/renderer` has no way back to the file: the
-  // modules that use it — the DSP diagnostics and the taskbar transport —
-  // wrote their lines to a devtools console nobody has open and reported
-  // "logger isn't initialized" instead. Everything the window logs has to
-  // reach the file, because the file is what a bug report carries.
-  log.initialize();
-
-  installMainFailureRecovery();
-
-  // The window's own process, or a video player's, dying underneath us. The
-  // reason is Chromium's — 'crashed', 'oom', 'killed' — and it is the only
-  // evidence there is for a page that took its process with it.
-  app.on('render-process-gone', (_event, contents, details) => {
-    log.error(
-      `Render process gone (${contents.getType()}): ${details.reason}`,
-      details,
-    );
-  });
-
-  app.on('child-process-gone', (_event, details) => {
-    log.error(
-      `Child process gone (${details.type}): ${details.reason}`,
-      details,
-    );
-  });
-};
-
-setUpCrashLogging();
+// At module scope rather than inside `whenReady`: the window that never opens
+// is exactly the failure worth catching (`crashRecovery.ts`).
+installCrashLogging();
 
 // The first line of every launch, so a start with no window after it shows in
 // the log as a start with no window after it, rather than as the absence of
@@ -3748,8 +778,8 @@ app.on('before-quit', (event) => {
     // The window's geometry joins the queue first, so the write the close
     // handler asks for later finds it on disk and has nothing left to do; and
     // a memory trace still recording is written rather than lost.
-    saveWindowState();
-    Promise.all([flushPendingWrites(), stopMemoryTrace()])
+    placement.saveWindowState();
+    Promise.all([flushPendingWrites(), memoryTrace.stopMemoryTrace()])
       .catch(() => undefined)
       .then(resetActiveEngineForQuit)
       .catch((error) => log.error('Resetting the audio engine failed', error))
@@ -3768,28 +798,7 @@ app.on('before-quit', (event) => {
   destroyTray();
   stopRemoteAudioLan();
   stopOutputMirrors();
-  // Aborts a sign-in that is still waiting on the browser. Without it the
-  // loopback socket outlives the quit, and the next launch cannot bind while
-  // the old listener is still holding a port nobody is going to answer on.
-  accountIpc.dispose();
-  plusTermsNoticeIpc.dispose();
-  plusWelcomeIpc.dispose();
-  plusTrialIpc.dispose();
-  scenePacksIpc.dispose();
-  plusModerationIpc.dispose();
-  plusReviewIpc.dispose();
-  plusGiftsIpc.dispose();
-  accountDeletionIpc.dispose();
-  disposeStudioInspect();
-  plusPublishingIpc.dispose();
-  plusGalleryIpc.dispose();
-  memberSharingIpc.dispose();
-  memberScenesIpc.dispose();
-  makerMonthIpc.dispose();
-  // Its listening socket, like the forum's below, must not outlive the app.
-  studioAgentDoor.dispose().catch(() => undefined);
-  plusProfileIpc.dispose();
-  leaderboardIpc.dispose();
+  members.dispose();
   // The forum's GitHub sign-in holds a loopback socket for the same reason.
   forumIpc.dispose();
   motionPreferenceIpc.dispose();
@@ -3801,114 +810,10 @@ app.on('before-quit', (event) => {
   // reclaims only when it notices.
   shutdownDspHost().catch(() => undefined);
   // No sync after the one in flight: nothing reads the folder from here on.
-  apoSyncStopped = true;
-  apoConfigWatcher?.close();
-  apoConfigWatcher = undefined;
+  diskSync.stop();
 });
 
-/**
- * ONE COPY, WHICH THE TRAY MADE NECESSARY.
- *
- * A window that hides instead of closing looks to the user exactly like an app
- * that is not running, so the next thing they do is open it from the Start
- * menu or the desktop shortcut — and without this that starts a second
- * process. Two copies of FluidEQ is not a cosmetic problem: both write the
- * same Equalizer APO config and both watch it for outside edits, so they
- * spend their time overwriting each other and reporting the result as somebody
- * else changing the file.
- *
- * The second copy exits immediately and hands its launch to the first, which
- * brings the hidden window back — which is what the person wanted when they
- * clicked the shortcut.
- */
-/**
- * Named for the folder both data directories sit in rather than either one,
- * because the whole point is that development and the installed build do not
- * share one (`singleInstance.ts`).
- */
-const INSTANCE_LOCK_PATH = instanceLockPath(app.getPath('appData'));
-
-let releaseInstanceLock: (() => void) | undefined;
-
-/**
- * This copy holds the app, once the cross-build lock says so. Asked before
- * anything is made: `onAppReady` waits for it, so a copy on its way out never
- * builds a window, a tray or a pipe of its own.
- */
-const becomesTheOnlyCopy = async (): Promise<boolean> => {
-  if (!app.requestSingleInstanceLock()) {
-    // Another copy of THIS build holds Electron's lock, so this one hands its
-    // launch over and goes. It used to go without a word, and that is the
-    // single reason "the installer opens FluidEQ and it closes again" could
-    // not be answered from a bug report: this was the one path out of the
-    // whole start-up that wrote nothing anywhere, so the log of such a launch
-    // was indistinguishable from the app never having been started at all.
-    // Who holds the cross-build lock goes with it, because the copy still
-    // holding Electron's is usually one an installer has just killed.
-    const holder = await describeInstanceHolder(INSTANCE_LOCK_PATH);
-    log.warn(
-      `Another copy of this build already holds the single-instance lock, so this launch is handing over and quitting. ${holder}`,
-    );
-    app.quit();
-    return false;
-  }
-  const claim = await claimInstance(INSTANCE_LOCK_PATH);
-  if (claim.status === 'taken') {
-    // Electron's lock did not catch this one, so it is the other build: dev
-    // started while the installed copy is running, or the other way round.
-    // Said out loud rather than quitting blankly — a window that never
-    // appears is the sort of thing somebody spends an evening on.
-    log.warn(
-      `Another copy of FluidEQ is already running; this one is quitting so the two do not fight over the Equalizer APO config. ${claim.holder}`,
-    );
-    app.quit();
-    return false;
-  }
-  // One FluidEQ at a time, whatever build or checkout it comes from: two
-  // copies write the same engine config and adopt each other's writes.
-  releaseInstanceLock = claim.release;
-  // Temporary files an earlier run was killed in the middle of writing. The
-  // library index, the Karaoke session, the band layout, the stems and the
-  // Karaoke Maker's drafts are written beside themselves and renamed over,
-  // each temporary named for its own write, so none is ever overwritten by
-  // the next save: End task, a crash, a power cut or a logoff mid-write left
-  // each one for good — tens of megabytes for the index or a stem. Swept
-  // here, once this copy holds the app, so a second launch handing over can
-  // never sweep a write the first is still making; not waited for. The
-  // engine's folder is swept by `engineOwnerPipe.ts`.
-  [userDataDir, karaokeStemsDir(), karaokeMakerDraftDir(userDataDir)].forEach(
-    (directory) => {
-      sweepAbandonedWrites(directory)
-        .then((swept) => {
-          if (swept > 0) {
-            log.info(
-              `Swept ${swept} unfinished write(s) an earlier run left in ${directory}.`,
-            );
-          }
-          return swept;
-        })
-        .catch(() => undefined);
-    },
-  );
-  return true;
-};
-
-const isTheOnlyCopy = becomesTheOnlyCopy();
-
-app.on('second-instance', () => {
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    return;
-  }
-  if (mainWindow.isMinimized()) {
-    mainWindow.restore();
-  }
-  mainWindow.show();
-  mainWindow.focus();
-});
-
-app.on('will-quit', () => {
-  releaseInstanceLock?.();
-});
+const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });
 
 /**
  * Everything that runs once Electron is ready, as a function of its own.
@@ -3919,42 +824,7 @@ app.on('will-quit', () => {
  */
 const onAppReady = async () => {
   // Which engine, before anything can ask for a config directory.
-  //
-  // Here rather than at module scope because the answer needs a registry
-  // probe, and before the window because the first thing the renderer does is
-  // a health check — which is the first flush of the launch and must already
-  // know where to write.
-  //
-  // The rule itself lives in `migrateAudioEnginePreference`, where it can be
-  // held to all four of its cells; this is the machine it is asked about.
-  // The probes are only run when the file has no answer — a recorded
-  // preference is obeyed whatever the machine looks like.
-  const enginePreference = loadAudioEnginePreference(userDataDir);
-  const isWindows = process.platform === 'win32';
-  const unanswered = enginePreference.engine === null && isWindows;
-  const migration = migrateAudioEnginePreference(enginePreference, {
-    isWindows,
-    apoInstalled: unanswered ? await isEqualizerAPOInstalled() : false,
-    fluidInstalled: unanswered && fs.existsSync(getFluidEngineDllPath()),
-  });
-  session.audioEngine = migration.engine;
-  if (migration.persist && migration.engine !== null) {
-    try {
-      saveAudioEnginePreference(userDataDir, migration.engine);
-    } catch (error) {
-      // A read-only or full %APPDATA% must not take the launch down with it.
-      // This write only settles the question for NEXT time; the answer for
-      // this session is already in `session.audioEngine`, and letting the
-      // throw escape would abort the rest of `onAppReady` — no window, no
-      // tray, no message, on a machine where nothing is actually wrong with
-      // the audio.
-      log.error(
-        'Could not record the migrated audio engine preference',
-        userDataDir,
-        error,
-      );
-    }
-  }
+  session.audioEngine = await chooseLaunchEngine(userDataDir);
 
   // Identity, set here rather than at module scope on purpose.
   //
@@ -3991,7 +861,7 @@ const onAppReady = async () => {
   // FluidEQ Engine only applies one while this process holds its pipe open,
   // which is how a FluidEQ ended from Task Manager stops shaping the audio.
   // See `engineOwnerPipe.ts`. Never rejects.
-  await startEngineAnalysisPipe(() => mainWindow);
+  await startEngineAnalysisPipe(getMainWindow);
   await startEngineOwnerPipe();
   try {
     await createMainWindow();
@@ -4010,7 +880,7 @@ const onAppReady = async () => {
     // quit is armed, which is the correct answer for every close that can
     // happen in the milliseconds before this runs.
     setUpTray({
-      getMainWindow: () => mainWindow,
+      getMainWindow,
       // The full app, in the middle of the screen. Both halves matter: a
       // player that cannot be reached cannot be switched back from its own
       // titlebar, and a window put back in the middle as a player is still a
@@ -4028,11 +898,12 @@ const onAppReady = async () => {
       // Same code path as the notification click and the in-window
       // banner — installActiveUpdate is the one place that decides
       // whether we have a downloaded, verified installer to run.
-      onInstallUpdate: installActiveUpdate,
+      onInstallUpdate: updates.installActiveUpdate,
       // Fires the same check the four-hour schedule fires. A miss (the
       // updater is not initialised yet, or the network fails) is not
       // worth interrupting the user; `catch` keeps it in the log.
       onCheckForUpdates: () => {
+        const activeAutoUpdater = updates.getActiveAutoUpdater();
         if (!activeAutoUpdater) {
           log.info('Tray "check for updates" ignored: updater is not active.');
           return;
@@ -4055,7 +926,7 @@ const onAppReady = async () => {
       log.warn(
         'No tray icon after an unattended update; showing the window so FluidEQ can still be reached.',
       );
-      revealMainWindow(() => mainWindow);
+      revealMainWindow(getMainWindow);
     }
   } catch (error) {
     log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
