@@ -145,7 +145,8 @@ const eq: Partial<Dictionary> = {
     'Seine Farben, und das Fenster leuchtet mit der Musik.',
   'graph.sceneTint.about.cover':
     'Alles von Ambiente, mit dem Visualizer hinter dem ganzen Fenster.',
-  'graph.editHint': 'Punkte ziehen · Strg/Umschalt wählt aus · Strg+Mausrad: Q',
+  'graph.editHint':
+    'Punkte ziehen · Strg/Umschalt wählt aus · Strg+Mausrad: Q · Strg+Ziehen: Glocke',
   'graph.backdropVeil': 'Transparenz',
   'graph.backdropVeilHint': 'Wie viel vom Visualizer durch die Flächen scheint',
   'graph.sceneTint.brightness': 'Helligkeit',

@@ -146,7 +146,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.cover':
     'Tout Ambiance, avec le visualiseur derrière toute la fenêtre.',
   'graph.editHint':
-    'Faites glisser les points · Ctrl/Maj pour sélectionner · Ctrl+molette : Q',
+    'Faites glisser les points · Ctrl/Maj pour sélectionner · Ctrl+molette : Q · Ctrl+glisser : cloche',
   'graph.backdropVeil': 'Transparence',
   'graph.backdropVeilHint':
     'Quelle part du visualiseur transparaît à travers les panneaux',

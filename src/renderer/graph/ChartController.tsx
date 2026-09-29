@@ -198,7 +198,12 @@ export interface IEditableChartPoint {
   isEnabled: boolean;
   /**  is where the press landed, in chart units — see the drag state. */
   onSelect: (mode: SelectionMode, grab: IChartPointData) => void;
-  onChange: (data: IChartPointData) => void;
+  /**
+   * `isBell`: Ctrl (or Cmd) is held on this move, so a group moves as a bell
+   * round the grabbed band (`bellDrag.ts`). Read on every move, so pressing
+   * or letting go of it mid-drag changes how the group moves.
+   */
+  onChange: (data: IChartPointData, isBell: boolean) => void;
   onCommit: () => void;
   onQualityWheel: (direction: number) => void;
   onHover: (isHovered: boolean) => void;

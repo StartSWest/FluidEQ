@@ -140,7 +140,8 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.pulse': 'उसके रंग, और संगीत के साथ चमकती विंडो।',
   'graph.sceneTint.about.cover':
     'माहौल का सब कुछ, पूरी विंडो के पीछे विज़ुअलाइज़र के साथ।',
-  'graph.editHint': 'पॉइंट खींचें · Ctrl/Shift से चुनें · Ctrl+स्क्रॉल: Q',
+  'graph.editHint':
+    'पॉइंट खींचें · Ctrl/Shift से चुनें · Ctrl+स्क्रॉल: Q · Ctrl+खींचें: बेल',
   'graph.backdropVeil': 'पारदर्शिता',
   'graph.backdropVeilHint': 'पैनलों के पार विज़ुअलाइज़र कितना दिखे',
   'graph.sceneTint.brightness': 'चमक',

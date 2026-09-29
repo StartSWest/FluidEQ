@@ -142,7 +142,8 @@ const eq: Partial<Dictionary> = {
     'その色で、ウィンドウが音楽に合わせて光ります。',
   'graph.sceneTint.about.cover':
     '環境光に加えて、ウィンドウ全体の背後にビジュアライザー。',
-  'graph.editHint': 'ポイントをドラッグ · Ctrl/Shiftで選択 · Ctrl+ホイール: Q',
+  'graph.editHint':
+    'ポイントをドラッグ · Ctrl/Shiftで選択 · Ctrl+ホイール: Q · Ctrl+ドラッグ: ベル',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': 'パネル越しにビジュアライザーがどれだけ見えるか',
   'graph.sceneTint.brightness': '明るさ',

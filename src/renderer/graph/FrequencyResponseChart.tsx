@@ -67,6 +67,7 @@ import {
   ILiveCurveData,
 } from './ChartController';
 import { getLineGainAtFrequency } from './utils';
+import bellGainAt from './bellDrag';
 import {
   GRID_BOTTOM_MARGIN,
   GRID_SIDE_MARGIN,
@@ -967,19 +968,33 @@ const FrequencyResponseChart = ({
    * not consulted at all, so it cannot disagree with anything, and grabbing an
    * edge simply means the cursor stays on that edge.
    */
+  //
+  // `moved` and `toggleOnRelease` are the Ctrl-press on a band of a group
+  // that is already selected. Ctrl-click takes a band out of the selection;
+  // a Ctrl-drag of the group is the bell (`bellDrag.ts`). The press cannot
+  // tell which it is, so it keeps the group whole and takes the band out on
+  // release only if the pointer never moved.
   const pointDragState = useRef<
     | {
         sourceId: string;
         ids: string[];
         grab: IChartPointData;
         origins: Record<string, Pick<IFilter, 'frequency' | 'gain'>>;
+        moved: boolean;
+        toggleOnRelease: boolean;
       }
     | undefined
   >(undefined);
 
   const handlePointSelect = useCallback(
     (filterId: string, mode: SelectionMode, grab: IChartPointData) => {
-      const ids = nextFilterSelection(filterId, mode);
+      const toggleOnRelease =
+        mode === 'toggle' &&
+        selectedFilterIds.length > 1 &&
+        selectedFilterIds.includes(filterId);
+      const ids = toggleOnRelease
+        ? [...selectedFilterIds]
+        : nextFilterSelection(filterId, mode);
       pointDragState.current = {
         sourceId: filterId,
         ids,
@@ -993,10 +1008,12 @@ const FrequencyResponseChart = ({
               { frequency: filter.frequency, gain: filter.gain },
             ]),
         ),
+        moved: false,
+        toggleOnRelease,
       };
       setSelectedFilterIds(ids);
     },
-    [filters, nextFilterSelection, setSelectedFilterIds],
+    [filters, nextFilterSelection, selectedFilterIds, setSelectedFilterIds],
   );
 
   /**
@@ -1066,10 +1083,17 @@ const FrequencyResponseChart = ({
   );
 
   const handlePointMove = useCallback(
-    (filterId: string, point: IChartPointData) => {
+    (filterId: string, point: IChartPointData, isBell: boolean) => {
       // Every band moves by how far the pointer has travelled since the press,
       // applied to what that band was when the press happened. See
       // `pointDragState` for why it is not measured against the drawn curve.
+      //
+      // With Ctrl held a group moves as a bell round the grabbed band: its
+      // gain by the whole drag, the others' by the bell's height at their
+      // frequency, and no band's frequency at all — the bell is the gains'
+      // shape, and a frequency moved under it would move the shape too. Each
+      // move is measured from the press again, so letting go of Ctrl mid-drag
+      // puts the frequencies back on the plain drag's path.
       const drag = pointDragState.current;
       if (!filters[filterId] || drag?.sourceId !== filterId) {
         // No press was recorded for this handle, so there is no distance to
@@ -1086,22 +1110,35 @@ const FrequencyResponseChart = ({
         Math.round(Math.max(MIN_GAIN, Math.min(MAX_GAIN, point.y)) * 100) /
           100 -
         drag.grab.y;
+      if (point.x !== drag.grab.x || point.y !== drag.grab.y) {
+        drag.moved = true;
+      }
+      const tip = drag.origins[drag.sourceId];
+      const tipFilter = filters[drag.sourceId];
+      const bell =
+        isBell && drag.ids.length > 1 && tip && tipFilter
+          ? { centre: tip.frequency, quality: tipFilter.quality }
+          : undefined;
       drag.ids.forEach((id) => {
         const filter = filters[id];
         const origin = drag.origins[id];
         if (!filter || !origin) {
           return;
         }
-        const frequency = Math.round(
-          Math.max(
-            MIN_FREQUENCY,
-            Math.min(MAX_FREQUENCY, origin.frequency + frequencyDelta),
-          ),
-        );
+        const frequency = bell
+          ? origin.frequency
+          : Math.round(
+              Math.max(
+                MIN_FREQUENCY,
+                Math.min(MAX_FREQUENCY, origin.frequency + frequencyDelta),
+              ),
+            );
+        const move = bell
+          ? bellGainAt(origin.frequency, bell.centre, bell.quality, gainDelta)
+          : gainDelta;
         const gain =
           Math.round(
-            Math.max(MIN_GAIN, Math.min(MAX_GAIN, origin.gain + gainDelta)) *
-              100,
+            Math.max(MIN_GAIN, Math.min(MAX_GAIN, origin.gain + move)) * 100,
           ) / 100;
         dispatchFilter({
           type: FilterActionEnum.FREQUENCY,
@@ -1662,13 +1699,18 @@ const FrequencyResponseChart = ({
           handlePointSelect(filter.id, mode, grab),
         onHover: (isHovered: boolean) =>
           setHoveredFilterId(isHovered ? filter.id : ''),
-        onChange: (point: IChartPointData) => handlePointMove(filter.id, point),
+        onChange: (point: IChartPointData, isBell: boolean) =>
+          handlePointMove(filter.id, point, isBell),
         onCommit: () => {
           const drag = pointDragState.current;
           const ids = drag?.sourceId === filter.id ? drag.ids : [filter.id];
           ids.forEach((id) => flushPointEdit(id));
           if (drag?.sourceId === filter.id) {
             pointDragState.current = undefined;
+            // A Ctrl-click that never became a drag: the toggle it held back.
+            if (drag.toggleOnRelease && !drag.moved) {
+              setSelectedFilterIds(nextFilterSelection(filter.id, 'toggle'));
+            }
           }
         },
         onQualityWheel: (direction: number) =>
@@ -1684,8 +1726,10 @@ const FrequencyResponseChart = ({
     handlePointQualityWheel,
     handlePointSelect,
     hoveredFilterId,
+    nextFilterSelection,
     selectedFilterIds,
     setHoveredFilterId,
+    setSelectedFilterIds,
   ]);
 
   return isGraphViewOn ? (

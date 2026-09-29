@@ -303,15 +303,15 @@ describe('dragging a band', () => {
     const [point] = mockChart.editablePoints;
     act(() => point.onSelect?.('replace', { x: 100, y: 3 }));
 
-    act(() => point.onChange?.({ x: 200, y: 4 }));
+    act(() => point.onChange?.({ x: 200, y: 4 }, false));
     // At once: not gathered for 90 ms first.
     expect(mockWrites.map((write) => write.args)).toEqual([
       ['frequency', 'low', 200],
     ]);
 
     // While that is on the wire, two more moves: only the newest will go.
-    act(() => point.onChange?.({ x: 300, y: 5 }));
-    act(() => point.onChange?.({ x: 400, y: 6 }));
+    act(() => point.onChange?.({ x: 300, y: 5 }, false));
+    act(() => point.onChange?.({ x: 400, y: 6 }, false));
     expect(mockWrites).toHaveLength(1);
 
     // The batch in flight finishes in order, then the newest values follow.
@@ -325,7 +325,7 @@ describe('dragging a band', () => {
     expect(mockWrites).toHaveLength(4);
 
     // POSITIVE CONTROL: with nothing in flight, the next move goes at once.
-    act(() => point.onChange?.({ x: 500, y: 7 }));
+    act(() => point.onChange?.({ x: 500, y: 7 }, false));
     expect(mockWrites[4].args).toEqual(['frequency', 'low', 500]);
   });
 });

@@ -133,7 +133,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.pulse': '它的颜色，窗口随音乐发光。',
   'graph.sceneTint.about.cover':
     '包含“氛围”的一切，并把可视化效果铺在整个窗口背后。',
-  'graph.editHint': '拖动点 · Ctrl/Shift 选择 · Ctrl+滚轮：Q',
+  'graph.editHint': '拖动点 · Ctrl/Shift 选择 · Ctrl+滚轮：Q · Ctrl+拖动：钟形',
   'graph.backdropVeil': '透明度',
   'graph.backdropVeilHint': '透过面板能看到多少可视化效果',
   'graph.sceneTint.brightness': '亮度',

@@ -143,7 +143,8 @@ const eq: Partial<Dictionary> = {
     'As cores dele, com a janela brilhando junto com a música.',
   'graph.sceneTint.about.cover':
     'Tudo do Ambiente, com o visualizador atrás de toda a janela.',
-  'graph.editHint': 'Arraste os pontos · Ctrl/Shift seleciona · Ctrl+roda: Q',
+  'graph.editHint':
+    'Arraste os pontos · Ctrl/Shift seleciona · Ctrl+roda: Q · Ctrl+arrastar: sino',
   'graph.backdropVeil': 'Transparência',
   'graph.backdropVeilHint':
     'Quanto do visualizador aparece através dos painéis',

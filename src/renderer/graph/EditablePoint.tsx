@@ -226,7 +226,7 @@ const EditablePoint = ({
     }
     const next = getPointFromEvent(event);
     if (next) {
-      point.onChange(next);
+      point.onChange(next, event.ctrlKey || event.metaKey);
     }
   };
 

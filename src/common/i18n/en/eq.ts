@@ -144,7 +144,8 @@ const eq = {
   'graph.sceneTint.about.cover':
     'All of Ambient, with the visualizer behind the whole window.',
   // Over the plot while there are band points to drag.
-  'graph.editHint': 'Drag points · Ctrl/Shift select · Ctrl+scroll: Q',
+  'graph.editHint':
+    'Drag points · Ctrl/Shift select · Ctrl+scroll: Q · Ctrl+drag: bell',
   // The window-colours menu's sliders. The Backdrop's: how much of the scene
   // shows through the panes.
   'graph.backdropVeil': 'Transparency',

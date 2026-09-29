@@ -143,7 +143,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.cover':
     'Всё из «Атмосферы», и визуализатор за всем окном.',
   'graph.editHint':
-    'Перетаскивайте точки · Ctrl/Shift — выбор · Ctrl+колесо: Q',
+    'Перетаскивайте точки · Ctrl/Shift — выбор · Ctrl+колесо: Q · Ctrl+перетаскивание: колокол',
   'graph.backdropVeil': 'Прозрачность',
   'graph.backdropVeilHint': 'Насколько визуализатор виден сквозь панели',
   'graph.sceneTint.brightness': 'Яркость',

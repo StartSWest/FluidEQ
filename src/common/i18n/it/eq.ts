@@ -142,7 +142,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.about.cover':
     'Tutto Ambiente, con il visualizzatore dietro tutta la finestra.',
   'graph.editHint':
-    'Trascina i punti · Ctrl/Maiusc per selezionare · Ctrl+rotellina: Q',
+    'Trascina i punti · Ctrl/Maiusc per selezionare · Ctrl+rotellina: Q · Ctrl+trascina: campana',
   'graph.backdropVeil': 'Trasparenza',
   'graph.backdropVeilHint':
     'Quanto del visualizzatore si vede attraverso i pannelli',
