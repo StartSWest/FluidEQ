@@ -2166,17 +2166,17 @@ textarea,
 // two pixels either side of it (Ivan, 2026-09-27: "the side pane we can take
 // more space when no shown no need to be so wide"). It was 44px, a 32px
 // button in six pixels of air a side, and the page gets the rest back.
-$sound-pane-rail: 36px;
-$sound-pane-fold: 32px;
+// (`$sound-pane-rail`, with the button's size and inset, `_constant.scss`.)
+//
 // The row the button stands on, as tall as it was: the rail narrowed, not
 // the head.
 $sound-pane-head: 44px;
 // How far the folded or closed panel slides past its rail, beyond the rail's
-// own width, so its button — five pixels in from its left edge when open —
-// stands in the middle of the rail: over a full-screen picture, where the rail
-// stands alone at the window's edge.
+// own width, so its button — `$sound-pane-fold-inset` in from its left edge
+// when open — stands in the middle of the rail: over a full-screen picture,
+// where the rail stands alone at the window's edge.
 $sound-pane-rail-shift: calc(
-  5px - (#{$sound-pane-rail} - #{$sound-pane-fold}) / 2
+  #{$sound-pane-fold-inset} - (#{$sound-pane-rail} - #{$sound-pane-fold}) / 2
 );
 // Beside a page, what reads as the rail is the strip from the page's cards to
 // the window's edge: the rail and the page's own margin before it (the EQ
@@ -2185,7 +2185,7 @@ $sound-pane-rail-shift: calc(
 // the rail alone it stood 19.5px from the cards and 9.5px from the edge.
 $sound-pane-page-inset: 10px;
 $sound-pane-strip-shift: calc(
-  5px -
+  #{$sound-pane-fold-inset} -
     (#{$sound-pane-rail} - #{$sound-pane-fold} - #{$sound-pane-page-inset}) / 2
 );
 $sound-pane-docked: 330px;
@@ -3607,7 +3607,7 @@ $section-card-pages: ();
   display: flex;
   align-items: center;
   height: $sound-pane-head;
-  padding: 0 5px;
+  padding: 0 $sound-pane-fold-inset;
 }
 
 // A quiet square, the Plus rail's own fold button in shape: the panel glyph,

@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'color' as *;
 @use 'constant' as *;
 @use 'glass' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 // The Backdrop (`SceneCover.tsx`): the graph's Plus visualizer drawn behind
@@ -52,9 +53,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 // so every word and control on them reads as it does on the floor (Ivan,
 // 2026-09-25: "while the focus of the plus viz stays in the graph").
 //
-// `--backdrop-veil` is how much of the floor that veil is.
+// `--backdrop-veil` is how much of the floor that veil is: the Transparency
+// slider's choice, written on the root (`backdropVeil.ts`), and until then
+// its default.
 :root {
-  --backdrop-veil: 58%;
+  --backdrop-veil: 50%;
 }
 
 $cover-veil: color-mix(
@@ -253,12 +256,23 @@ $cover-veil: color-mix(
 // "lets test in main EQ first", "ok now eq pane and right side pane are
 // floating panes with that blur"). The floor is the picture itself,
 // unveiled, and every pane stands on it as a pane of the amp's glass
-// (`window-glass`), at the cards' corner and apart: 8px under the titlebar's glass and
-// between it and the window's top, 10px at the sides and over the player
-// bar's, the graph card's own margins. The panes' fields and wells keep
-// their veiled surfaces, which is what they stand on inside the glass. The
-// page is read from `data-page` (`usePageMark`), because the titlebar and
-// the player bar are outside the workspace.
+// (`window-glass`), at the cards' corner and `$float-gap` apart: from each
+// other, from the window's sides and from the two bars' glass. The panes'
+// fields and wells keep their veiled surfaces, which is what they stand on
+// inside the glass. The page is read from `data-page` (`usePageMark`),
+// because the titlebar and the player bar are outside the workspace.
+//
+// Wider than the 10px the cards keep on every other page (Ivan, 2026-09-28:
+// "add more gap to the floating panes"): with the bars run to the window's
+// edges, the space round each pane is what says it floats. The titlebar's
+// glass stops 2px over its own foot (below), so a pane under it stands 2px
+// less than the gap under the titlebar's box.
+$float-gap: 16px;
+// And rounder than a card anywhere else, the top of the app's scale ("add
+// more border radius to those floating cards"). 22px was tried on 09-27 and
+// sent back as too round.
+$float-radius: $radius-xl;
+
 :root.is-scene-backdrop[data-page='eq'] .app-workspace:not(.is-app-full) {
   // The column's glass is its fill (below), and outranks the veil above by
   // coming after it; cleared here as well, it would clear the glass too.
@@ -272,7 +286,9 @@ $cover-veil: color-mix(
   // the floor round it, which is the same picture now, so the head and the
   // plot stand straight on the scene (Ivan, 2026-09-27: "lets try by removing
   // borders on graph when backdrop mode"). Cleared rather than removed, so
-  // the card keeps its width and nothing inside it moves.
+  // the card keeps its width and nothing inside it moves. In from the
+  // column's sides by the floating panes' gap, so the head and the plot line
+  // up with the bands' glass under them.
   > .center-workspace.is-graph-first:not(.is-graph-full) {
     > .scene-column-layer {
       box-shadow: none;
@@ -282,13 +298,33 @@ $cover-veil: color-mix(
     > .graph-wrapper {
       border-color: transparent;
     }
+
+    > .center-head {
+      margin: calc(#{$float-gap} - 2px) $float-gap 0;
+    }
+
+    > .graph-wrapper {
+      margin: 0 $float-gap;
+    }
   }
 
   // The bands and the Tone: the section card, made of glass. Its edge is
   // the glass's hairline; the card's own is kept for its width and cleared.
   > .center-workspace > .middle-content > .workspace-tab-panel--eq {
     @include window-glass;
+    margin: 0 $float-gap $float-gap;
     border-color: transparent;
+    border-radius: $float-radius;
+  }
+
+  // With the graph off the card heads the column, and stands the gap under
+  // the titlebar's glass as the side panes do. The margin above set its top
+  // to 0 along with its sides and it ran up against the titlebar (Ivan,
+  // 2026-09-28: "fix when graph is off the eq card goes to top").
+  > .center-workspace:not(.is-graph-first)
+    > .middle-content
+    > .workspace-tab-panel--eq {
+    margin-top: calc(#{$float-gap} - 2px);
   }
 
   // THE DRAWERS ARE THE SAME GLASS. Where the window is too narrow for a
@@ -306,30 +342,35 @@ $cover-veil: color-mix(
   }
 
   // The power, the preamp and the meter: the column itself, made of glass
-  // and held in from the window's edge, its sides' padding taken down by the
-  // same 10px so what it holds keeps its width.
+  // and held in from the window's edge by the gap, its sides' padding (18px
+  // on every other page) taken down by the same amount between them so what
+  // it holds keeps its width. The side panes float; the two bars run to the
+  // window's edges (below). Put against the edge as well, the columns read as
+  // part of the frame (Ivan, 2026-09-28: "side pane add left and right gap to
+  // those only").
   > .side-bar {
-    margin: 8px 0 10px 10px;
-    padding-inline: 13px;
+    margin: calc(#{$float-gap} - 2px) 0 $float-gap $float-gap;
+    padding-inline: calc(18px - #{$float-gap} / 2);
     border-color: transparent;
     @include window-glass;
+    border-radius: $float-radius;
 
     // As a drawer its width is its own rather than the grid's, so it gives
-    // the 10px up itself: its right edge, where its tab rides, stays put.
+    // the gap up itself: its right edge, where its tab rides, stays put.
     @media (max-width: $bp-two-column) {
-      width: calc(min(#{$side-bar-width-compact}, 86vw) - 10px);
+      width: calc(min(#{$side-bar-width-compact}, 86vw) - #{$float-gap});
     }
   }
 
   // The sound panel: the glass laid under it, so nothing it lays out or
   // slides moves (the fold is a transform of this box, `App.scss`). Held off
-  // the window's right edge by the glass's own inset and off its top and
-  // foot by the panel's, and its contents narrowed to what the glass holds.
+  // the window's right edge by the glass's own inset and off the bars by the
+  // panel's top and foot, and its contents narrowed to what the glass holds.
   // Folded, the same glass is the rail its button stands on; opened over the
   // page, it is the drawer, sliding and at rest.
   > .right-content > .right-content__panel {
-    top: 8px;
-    bottom: 10px;
+    top: calc(#{$float-gap} - 2px);
+    bottom: $float-gap;
     isolation: isolate;
     background: none;
     box-shadow: none;
@@ -337,35 +378,107 @@ $cover-veil: color-mix(
     &::before {
       position: absolute;
       z-index: -1;
-      inset: 0 10px 0 0;
+      inset: 0 $float-gap 0 0;
       @include window-glass;
+      border-radius: $float-radius;
       content: '';
       pointer-events: none;
+      // In step with the fold's slide (`$sound-pane-ease`, `App.scss`).
+      transition: opacity $motion-slow $ease-out;
     }
 
     > .right-content__scroll,
     > .right-content__footer {
-      width: calc(var(--sound-pane-open) - 11px);
+      width: calc(var(--sound-pane-open) - #{$float-gap} - 1px);
+    }
+  }
+
+  // FOLDED, ITS BUTTON AND NOTHING ELSE (Ivan, 2026-09-28: "when collapsing
+  // the side bar make it invisible, only the expand button on top"). The
+  // glass fades as the panel slides away, and back as it opens; a strip of
+  // it stood at the window's edge the whole height of the page. The button
+  // keeps a tile of the same glass, its own size, so it reads on any scene.
+  //
+  // It stands in the middle of the strip the rail and the page's gap leave
+  // beside the page's card: the panel slid so its button, `$sound-pane-fold-
+  // inset` in from its left edge, is centred there.
+  > .right-content:not(.is-shown) > .right-content__panel {
+    transform: translateX(
+      calc(
+        var(--sound-pane-open) - (#{$sound-pane-rail} + #{$float-gap}) / 2 -
+          #{$sound-pane-fold} / 2 - #{$sound-pane-fold-inset}
+      )
+    );
+
+    &::before {
+      opacity: 0;
+    }
+
+    .right-content__fold {
+      @include window-glass;
+
+      &:hover {
+        background: $hover-accent;
+      }
+    }
+  }
+
+  // FOLDED, THE PAGE TAKES ITS ROOM (Ivan, 2026-09-28: "when the right side
+  // pane is hidden remove more the gap"). With the graph on, the rail's
+  // column gives way and the graph and the bands run to the gap from the
+  // window's edge; the button stands flush with them in the top right, and
+  // the head's row stops the gap short of it. Docked, the column changes in
+  // one step with the fold, as it does to the rail (`is-sound-pane-narrow`,
+  // `App.scss`), and the panel slides over the difference; under the
+  // three-column width the rail was the column all along. With the graph off
+  // the bands' card heads the column and its own row runs under the button,
+  // so there the rail keeps its column and the button its strip (above).
+  &:has(> .center-workspace.is-graph-first:not(.is-graph-full)) {
+    &.is-sound-pane-narrow {
+      --sound-pane-width: 0px;
+    }
+
+    @media (max-width: $bp-three-column) {
+      grid-template-columns: $side-bar-width-compact minmax(0, 1fr) 0;
+    }
+
+    @media (max-width: $bp-two-column) {
+      grid-template-columns: minmax(0, 1fr) 0;
+    }
+
+    &:has(> .right-content:not(.is-shown)) {
+      > .center-workspace > .center-head {
+        margin-right: calc(#{$float-gap} * 2 + #{$sound-pane-fold});
+      }
+
+      > .right-content > .right-content__panel {
+        transform: translateX(
+          calc(
+            var(--sound-pane-open) - #{$float-gap} - #{$sound-pane-fold} -
+              #{$sound-pane-fold-inset}
+          )
+        );
+      }
     }
   }
 }
 
-// The titlebar and the player bar, the same glass laid under each: inside
-// the box each has on every other page and 10px from the window's sides, so
-// neither bar nor anything in it moves when the EQ page is left or the mode
-// changes (Ivan, 2026-09-27: "make sure the header doesn't move or the play
-// bar"). A first version pushed the titlebar's contents down 8px and grew the
-// player bar by 10, and both jumped on every switch of page.
+// The titlebar and the player bar, the same glass laid under each, inside
+// the box each has on every other page, so neither bar nor anything in it
+// moves when the EQ page is left or the mode changes (Ivan, 2026-09-27: "make
+// sure the header doesn't move or the play bar"). A first version pushed the
+// titlebar's contents down 8px and grew the player bar by 10, and both
+// jumped on every switch of page.
 //
-// Each glass reaches to 10px from the panes, the gap between any two cards,
-// and keeps the rest at the window's edge: the titlebar's from 4px under the
-// window's top to 2px over its own foot, the player bar's from its own top
-// to 4px over the window's foot (Ivan: "too much gap on the bottom with the
-// player, need to be same as in the other cards", "raise up the bottom play
-// bar"). Centred at 4px in from each end it left 12 and 14px of bare picture
-// over and under the panes, a band that read as something drawn there. Each
-// bar's contents sit within 2px of their glass's middle. Not in full screen,
-// where the two float over the plot and come and go with the pointer.
+// Both glasses run across the window from side to side, square at every
+// corner, the frame the floating panes stand in: the titlebar's from the
+// window's very top to 2px over its own foot, the player bar's the whole of
+// its box to the window's foot, each `$float-gap` from the panes (Ivan,
+// 2026-09-28: "remove sides gap", "top and bottom still
+// have gap", then "side pane add left and right gap to those only"). The
+// player bar floating like the panes, 10px in and 4px up, was tried and put
+// back ("move it back to fill"). Not in full screen, where the two float
+// over the plot and come and go with the pointer.
 :root.is-scene-backdrop[data-page='eq']:not([data-app-full]) {
   .window-titlebar,
   .now-playing-bar {
@@ -381,11 +494,13 @@ $cover-veil: color-mix(
   }
 
   .window-titlebar::before {
-    inset: 4px 10px 2px;
+    inset: 0 0 2px;
+    border-radius: 0;
   }
 
   .now-playing-bar::before {
-    inset: 0 10px 4px;
+    inset: 0;
+    border-radius: 0;
   }
 }
 

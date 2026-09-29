@@ -114,6 +114,13 @@ $side-bar-width-compact: 132px;
 // tab that rides on its edge while it is open.
 $sound-panel-width: min(340px, 90vw);
 
+// The rail a folded or closed sound panel keeps, its fold button, and how
+// far in from the panel's left edge that button stands (`App.scss`). Here
+// because the Backdrop places the button as well (`SceneCover.scss`).
+$sound-pane-rail: 36px;
+$sound-pane-fold: 32px;
+$sound-pane-fold-inset: 5px;
+
 // The tab each drawer is pulled out by, and the lane the centre column keeps
 // clear for it while it shows (`App.scss`). On the open floor the page runs to
 // the window's edge, and a tab standing on it covered the graph's level labels
