@@ -21,8 +21,11 @@ it under the terms of the GNU General Public License version 3 or later.
  * of the suite does not have is a dependency nobody asked for.
  */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import en from 'common/i18n/en';
+import { loadLocale, translate } from 'common/i18n';
 import AudioTroubleshooter from '../../../renderer/components/AudioTroubleshooter';
+import { I18nProvider } from '../../../renderer/utils/I18nContext';
 
 const handlers = () => ({
   onClose: jest.fn(),
@@ -40,7 +43,6 @@ const renderPanel = (
   render(
     <AudioTroubleshooter
       engine={engine}
-      enableEngineLabel="Enable engine"
       onClose={props.onClose}
       onRestartAudio={props.onRestartAudio}
       onReconfigure={props.onReconfigure}
@@ -56,7 +58,7 @@ describe('the audio troubleshooter', () => {
   it('offers both engine steps under the FluidEQ Engine', () => {
     renderPanel('fluid', handlers());
 
-    expect(button('Enable engine')).not.toBeNull();
+    expect(button(en['output.enable'])).not.toBeNull();
     expect(button('Remove from this output')).not.toBeNull();
     // And none of Equalizer APO's, which that machine may not even have.
     expect(button('Open Device Selector')).toBeNull();
@@ -77,7 +79,7 @@ describe('the audio troubleshooter', () => {
   it('offers neither engine step under Equalizer APO', () => {
     renderPanel('apo', handlers());
 
-    expect(button('Enable engine')).toBeNull();
+    expect(button(en['output.enable'])).toBeNull();
     expect(button('Remove from this output')).toBeNull();
     // The positive control: Equalizer APO's own repairs are there instead, so
     // "neither engine step" cannot pass by the panel rendering nothing.
@@ -92,6 +94,63 @@ describe('the audio troubleshooter', () => {
     expect(button('Restart audio')).not.toBeNull();
     expect(button('Remove from this output')).toBeNull();
     expect(button('Open Device Selector')).toBeNull();
+  });
+
+  /*
+   * The whole panel was English in every language — its note said a
+   * half-translated panel was worse than a consistent one, and nobody came
+   * back for it. Read in German, every step and the note under them are.
+   */
+  it('speaks the language the app is in, bold names and all', async () => {
+    await loadLocale('de');
+    window.localStorage.setItem('fluideq.locale', 'de');
+    try {
+      await act(async () => {
+        render(
+          <I18nProvider>
+            <AudioTroubleshooter
+              engine="apo"
+              onClose={jest.fn()}
+              onRestartAudio={jest.fn()}
+              onReconfigure={jest.fn()}
+              onReinstallApo={jest.fn()}
+              onEnableEngine={jest.fn()}
+              onRemoveEngineFromOutput={jest.fn()}
+            />
+          </I18nProvider>,
+        );
+      });
+      const de = (key: Parameters<typeof translate>[1]) => translate('de', key);
+      expect(screen.getByText(de('troubleshoot.title'))).not.toBeNull();
+      expect(
+        screen.getByRole('heading', {
+          name: de('troubleshoot.apo.mode.title'),
+        }),
+      ).not.toBeNull();
+      expect(
+        screen.getAllByRole('button', {
+          name: de('troubleshoot.apo.openSelector'),
+        }).length,
+      ).toBe(2);
+      // The menu's own label, drawn bold inside the German sentence around it.
+      const report = screen.getByText(de('app.menu.reportProblem'), {
+        selector: 'strong',
+      });
+      expect(report.parentElement?.textContent).toContain(
+        de('troubleshoot.footer')
+          .replace('{report}', de('app.menu.reportProblem'))
+          .split('**')
+          .join(''),
+      );
+      // Equalizer APO's own English label stays English, and bold.
+      expect(
+        screen.getByText('Troubleshooting options', { selector: 'strong' }),
+      ).not.toBeNull();
+      // Positive control: nothing of the English panel is left.
+      expect(screen.queryByText(en['troubleshoot.title'])).toBeNull();
+    } finally {
+      window.localStorage.removeItem('fluideq.locale');
+    }
   });
 
   // The restart card opens over this panel and handles its own Escape; one

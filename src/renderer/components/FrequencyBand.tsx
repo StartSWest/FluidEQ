@@ -35,6 +35,7 @@ import {
   useState,
 } from 'react';
 import { useLatestCall } from 'renderer/utils/utils';
+import { useTranslation } from 'renderer/utils/I18nContext';
 import { removeEqualizerSlider, setGain } from '../utils/equalizerApi';
 import { requestBandMenu } from './BandMenu';
 import { FilterActionEnum, useFluidEqShell } from '../utils/FluidEqContext';
@@ -84,6 +85,7 @@ const FrequencyBand = forwardRef(
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
+    const { t } = useTranslation();
     const { setGlobalError, dispatchFilter } = useFluidEqShell();
     const [isLoading, setIsLoading] = useState(false);
     const isRemoveDisabled = useMemo(
@@ -310,7 +312,7 @@ const FrequencyBand = forwardRef(
           <button
             type="button"
             className="band-frequency-caption"
-            aria-label={`Edit ${filter.frequency} Hz band`}
+            aria-label={t('eq.band.edit', { frequency: filter.frequency })}
             // Only a keyboard activation: a pointer press already reached the
             // wrapper above, and answering the click as well toggled a
             // Ctrl-click twice, which put the band straight back in the

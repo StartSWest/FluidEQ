@@ -431,6 +431,46 @@ const app: Partial<Dictionary> = {
   'games.row.sounding': '音が有効',
   'games.row.sound': '{name} の音',
   'games.row.remove': '{name} を削除',
+  'error.apoMissing': 'Equalizer APO がインストールされていません。',
+  'error.apoMissing.action':
+    'Equalizer APO をインストールしてから、もう一度お試しください。',
+  'error.configMissing': 'Equalizer APO の設定ファイルが見つかりません。',
+  'error.configMissing.action':
+    'Equalizer APO の config フォルダーに config.txt があるか確認してください。',
+  'error.invalidParameter': '内部エラー：パラメーターが無効です。',
+  'error.reachOut': '問題を解決するため、開発者にお問い合わせください。',
+  'error.failure': '内部エラー：イコライザーの設定を適用できませんでした。',
+  'error.failure.action':
+    'アプリを再起動してください。エラーが続く場合は、開発者にお問い合わせください。',
+  'error.presetFile':
+    '内部エラー：プリセットファイルを読み込み・変更できませんでした。',
+  'error.presetFile.action':
+    'プリセット名をファイル名として保存できるか、インストール先のフォルダーに書き込めるか、空き容量があるかを確認してください。エラーが続く場合は、開発者にお問い合わせください。',
+  'error.presetName': '内部エラー：プリセット名が無効です。',
+  'error.presetName.action':
+    '別のプリセット名にしてください。エラーが続く場合は、開発者にお問い合わせください。',
+  'error.opra':
+    '内部エラー：ヘッドホン用プリセットのライブラリを読み込めませんでした。',
+  'error.convolutionCatalog':
+    'コンボリューションのカタログに接続できませんでした。',
+  'error.convolutionCatalog.action': '接続を確認して、もう一度お試しください。',
+  'error.import': 'そのファイルを読み込めませんでした。',
+  'error.import.action':
+    'ファイルが Equalizer APO の EQ テキスト、FluidEQ のプロファイル、または WAV のインパルス応答か確認してください。',
+  'error.engineNotChosen': 'オーディオエンジンがまだ選ばれていません。',
+  'error.engineNotChosen.action':
+    'FluidEQ で使うオーディオエンジンを選んでください。',
+  'error.engineMissing': 'FluidEQ エンジンがインストールされていません。',
+  'error.engineMissing.action':
+    'FluidEQ エンジンをインストールしてから、もう一度お試しください。',
+  'app.apoReinstall.confirm':
+    'Equalizer APO を再インストールしますか？\n\nセットアップが開くので、イコライザーをかけるオーディオデバイスを選び直せます。Windows が管理者の許可を求め、その後パソコンの再起動が必要です。\n\nFluidEQ の設定とプロファイルはそのままです。',
+  'app.apoReinstall.noBundle':
+    'この FluidEQ には Equalizer APO のインストーラーが含まれていません。\n\n代わりに Equalizer APO のダウンロードページを開きます。そこからインストールすれば、FluidEQ が見つけます。',
+  'app.apoReinstall.notStarted':
+    'Equalizer APO が起動しませんでした。\n\n管理者の許可が必要です。もう一度試して、Windows の確認で許可してください。',
+  'app.site.open': 'ブラウザーで fluideq.com を開く',
+  'config.customCommands': 'ユーザー独自の APO コマンド',
 };
 
 export default app;

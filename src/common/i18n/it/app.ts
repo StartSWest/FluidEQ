@@ -435,6 +435,46 @@ const app: Partial<Dictionary> = {
   'games.row.sounding': 'suono attivo',
   'games.row.sound': 'Suono per {name}',
   'games.row.remove': 'Rimuovi {name}',
+  'error.apoMissing': 'Equalizer APO non è installato.',
+  'error.apoMissing.action': 'Installa Equalizer APO e riprova.',
+  'error.configMissing':
+    'Il file di configurazione di Equalizer APO non è stato trovato.',
+  'error.configMissing.action':
+    'Controlla che il file config.txt sia nella cartella config di Equalizer APO.',
+  'error.invalidParameter': 'Errore interno: parametro non valido.',
+  'error.reachOut': 'Contatta gli sviluppatori per risolvere il problema.',
+  'error.failure':
+    'Errore interno: impossibile applicare le impostazioni dell’equalizzatore.',
+  'error.failure.action':
+    'Riavvia l’applicazione. Se l’errore persiste, contatta gli sviluppatori.',
+  'error.presetFile':
+    'Errore interno: impossibile leggere o modificare i file dei preset.',
+  'error.presetFile.action':
+    'Controlla che il nome del preset si possa salvare come file, che la cartella di installazione sia scrivibile e che ci sia spazio libero. Se l’errore persiste, contatta gli sviluppatori.',
+  'error.presetName': 'Errore interno: nome del preset non valido.',
+  'error.presetName.action':
+    'Scegli un altro nome per il preset. Se l’errore persiste, contatta gli sviluppatori.',
+  'error.opra':
+    'Errore interno: impossibile leggere la libreria dei preset per cuffie.',
+  'error.convolutionCatalog':
+    'Impossibile raggiungere il catalogo di convoluzione.',
+  'error.convolutionCatalog.action': 'Controlla la connessione e riprova.',
+  'error.import': 'Impossibile importare quel file.',
+  'error.import.action':
+    'Controlla che il file sia un file di testo EQ di Equalizer APO, un profilo FluidEQ o una risposta all’impulso WAV.',
+  'error.engineNotChosen': 'Non è ancora stato scelto un motore audio.',
+  'error.engineNotChosen.action':
+    'Scegli il motore audio che FluidEQ deve usare.',
+  'error.engineMissing': 'Il motore FluidEQ non è installato.',
+  'error.engineMissing.action': 'Installa il motore FluidEQ e riprova.',
+  'app.apoReinstall.confirm':
+    'Reinstallare Equalizer APO?\n\nSi aprirà la sua installazione per scegliere di nuovo quali dispositivi audio equalizzare. Windows chiederà l’autorizzazione di amministratore, e poi il computer dovrà riavviarsi.\n\nLe impostazioni e i profili di FluidEQ non vengono toccati.',
+  'app.apoReinstall.noBundle':
+    'Questa copia di FluidEQ non contiene il programma di installazione di Equalizer APO.\n\nViene aperta invece la pagina di download di Equalizer APO. Installalo da lì e FluidEQ lo troverà.',
+  'app.apoReinstall.notStarted':
+    'Equalizer APO non si è avviato.\n\nServe l’autorizzazione di amministratore: riprova e conferma la richiesta di Windows.',
+  'app.site.open': 'Apri fluideq.com nel browser',
+  'config.customCommands': 'Comandi APO personalizzati dell’utente',
 };
 
 export default app;

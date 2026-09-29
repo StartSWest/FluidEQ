@@ -150,6 +150,10 @@ const look: Partial<Dictionary> = {
   'support.thanks': '谢谢！你的宠物有了星星和舞蹈。',
   'support.footerBefore':
     '更想用时间来贡献？在这里提 issue 和 pull request 同样受欢迎：',
+  'support.pet.title': '支持这份工作',
+  'support.pet.thanks': '感谢你支持 FluidEQ',
+  'support.qr.coffee': 'Buy me a coffee 页面的二维码',
+  'support.qr.address': '{asset} 地址的二维码',
 };
 
 export default look;

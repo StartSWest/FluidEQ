@@ -743,6 +743,20 @@ const eq: Partial<Dictionary> = {
   'waveform.clip': 'क्लिप',
   'autoeq.deviceAria': 'ऑडियो डिवाइस',
   'autoeq.targetAria': 'लक्ष्य आवृत्ति प्रतिक्रिया',
+  'eq.band.edit': '{frequency} Hz बैंड संपादित करें',
+  'eq.layers.apoEdit': 'Equalizer APO में बदलाव',
+  'convolution.entryDetail': '{provider} · मिनिमम फ़ेज़ · {rate} kHz WAV',
+  'eq.refused.bandLimit':
+    'आपके पास पहले से उतने बैंड हैं जितने FluidEQ लागू कर सकता है ({max})।',
+  'eq.refused.bandLimit.action':
+    'दूसरा बैंड जोड़ने से पहले एक हटाएँ, या पहले से मौजूद किसी बैंड को बदलें।',
+  'eq.refused.bandRange': 'बैंड {min} Hz और {max} Hz के बीच होना चाहिए।',
+  'eq.refused.bandRange.action':
+    'कुछ नहीं जोड़ा गया। उस सीमा के भीतर कोई फ़्रीक्वेंसी चुनें।',
+  'eq.refused.preampRange': 'प्रीऐम्प {min} dB से {max} dB तक जाता है।',
+  'eq.refused.preampRange.action': 'प्रीऐम्प जहाँ था, वहीं छोड़ दिया गया।',
+  'eq.refused.externalEq':
+    'बाहरी EQ में ऐसे चरण हैं जिन्हें FluidEQ सुरक्षित रूप से नहीं अपना सकता। उसकी फ़ाइलें नहीं बदली गईं।',
 };
 
 export default eq;

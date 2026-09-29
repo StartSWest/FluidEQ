@@ -742,6 +742,21 @@ const eq: Partial<Dictionary> = {
   'waveform.clip': 'クリップ',
   'autoeq.deviceAria': 'オーディオデバイス',
   'autoeq.targetAria': '目標周波数応答',
+  'eq.band.edit': '{frequency} Hz のバンドを編集',
+  'eq.layers.apoEdit': 'Equalizer APO での編集',
+  'convolution.entryDetail': '{provider} · 最小位相 · {rate} kHz WAV',
+  'eq.refused.bandLimit':
+    'FluidEQ で使えるバンド数の上限（{max}）にすでに達しています。',
+  'eq.refused.bandLimit.action':
+    '別のバンドを追加する前に 1 つ削除するか、既存のバンドを調整してください。',
+  'eq.refused.bandRange':
+    'バンドは {min} Hz から {max} Hz の間に置く必要があります。',
+  'eq.refused.bandRange.action':
+    '何も追加されていません。その範囲内の周波数を選んでください。',
+  'eq.refused.preampRange': 'プリアンプは {min} dB から {max} dB までです。',
+  'eq.refused.preampRange.action': 'プリアンプは元のままです。',
+  'eq.refused.externalEq':
+    '外部の EQ に、FluidEQ が安全に引き継げない処理が含まれています。そのファイルは変更していません。',
 };
 
 export default eq;

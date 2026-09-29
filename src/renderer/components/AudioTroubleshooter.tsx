@@ -17,8 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ReactNode, useEffect, useState } from 'react';
-import { PRODUCT_NAME } from 'common/branding';
 import type { TAudioEngine } from 'common/audioEngine';
+import { useTranslation } from '../utils/I18nContext';
+import renderInline from '../utils/inlineMarkup';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from './DialogFrame';
 import '../styles/AudioTroubleshooter.scss';
@@ -70,14 +71,6 @@ interface IAudioTroubleshooterProps {
    * app that did it.
    */
   onRemoveEngineFromOutput: () => void;
-  /**
-   * The label for that step, translated by the shell.
-   *
-   * Handed in rather than looked up here because this file's own copy is
-   * still English: localising the whole troubleshooter is a job of its own,
-   * and a half-translated panel is worse than a consistently English one.
-   */
-  enableEngineLabel: string;
 }
 
 interface IStep {
@@ -97,8 +90,8 @@ export default function AudioTroubleshooter({
   onReinstallApo,
   onEnableEngine,
   onRemoveEngineFromOutput,
-  enableEngineLabel,
 }: IAudioTroubleshooterProps) {
+  const { t } = useTranslation();
   // Which steps have been tried, so somebody working down the list can see
   // where they are. Not persisted and not authoritative — it is a reminder,
   // not a record, and any of them can be run again.
@@ -127,92 +120,54 @@ export default function AudioTroubleshooter({
    */
   const apoSteps: IStep[] = [
     {
-      title: 'Re-select your devices in Equalizer APO',
-      when:
-        'One device is equalised and another is not, or a headset you have ' +
-        'just plugged in is being ignored. Equalizer APO attaches to each ' +
-        'output separately, and a new device is not attached until you tick ' +
-        'it.',
-      cost: 'Opens Equalizer APO’s Device Selector. A restart afterwards.',
-      action: { label: 'Open Device Selector', run: onReconfigure },
+      title: t('troubleshoot.apo.reselect.title'),
+      when: t('troubleshoot.apo.reselect.when'),
+      cost: t('troubleshoot.apo.reselect.cost'),
+      action: {
+        label: t('troubleshoot.apo.openSelector'),
+        run: onReconfigure,
+      },
     },
     {
-      title: 'Try the other installation mode',
-      when:
-        'A device is ticked in the Device Selector and still has no effect, ' +
-        'or ticking it makes that device stop playing altogether. Equalizer ' +
-        'APO can attach itself to Windows audio in two different ways, and ' +
-        'some hardware only works with one of them.',
-      cost: 'A restart. Reversible — switch back the same way.',
-      action: { label: 'Open Device Selector', run: onReconfigure },
-      detail: (
-        <p>
-          In the Device Selector, open <strong>Troubleshooting options</strong>.
-          The default is to install as an <strong>APO</strong>, which is the one
-          that works on most machines. <strong>Install as SFX/EFX</strong> is
-          the alternative, and it is what to reach for on devices whose drivers
-          bring their own effects — a lot of laptop and gaming audio. If a
-          device stopped working after you ticked it, try the other mode before
-          concluding it cannot be equalised.
-        </p>
-      ),
+      title: t('troubleshoot.apo.mode.title'),
+      when: t('troubleshoot.apo.mode.when'),
+      cost: t('troubleshoot.apo.mode.cost'),
+      action: {
+        label: t('troubleshoot.apo.openSelector'),
+        run: onReconfigure,
+      },
+      detail: <p>{renderInline(t('troubleshoot.apo.mode.detail'), 'mode')}</p>,
     },
     {
-      title: 'Reinstall Equalizer APO',
-      when:
-        'The first two changed nothing, or Windows updated and the ' +
-        'equaliser has not worked since. Its installer is also its repair ' +
-        'tool: it re-registers the audio component and reopens the device ' +
-        'list.',
-      cost:
-        'Administrator permission, and your computer needs to restart ' +
-        `afterwards. Your ${PRODUCT_NAME} profiles and presets are not touched.`,
-      action: { label: 'Reinstall Equalizer APO', run: onReinstallApo },
+      title: t('troubleshoot.apo.reinstall.title'),
+      when: t('troubleshoot.apo.reinstall.when'),
+      cost: t('troubleshoot.apo.reinstall.cost'),
+      action: {
+        label: t('troubleshoot.apo.reinstall.title'),
+        run: onReinstallApo,
+      },
     },
     {
-      title: 'Remove the device, restart, add it back',
-      when:
-        'Only if a specific device is still wrong after a reinstall. ' +
-        'Untick it in the Device Selector, restart the computer, then tick ' +
-        'it again and restart once more.',
-      cost: 'Two restarts.',
-      detail: (
-        <p>
-          The two restarts are not superstition. Equalizer APO attaches itself
-          to an audio endpoint as the machine starts, so a device that is
-          detached while Windows is running stays half-attached until it is not
-          — and adding it back before that has happened puts the broken state
-          straight back.
-        </p>
-      ),
+      title: t('troubleshoot.apo.readd.title'),
+      when: t('troubleshoot.apo.readd.when'),
+      cost: t('troubleshoot.apo.readd.cost'),
+      detail: <p>{t('troubleshoot.apo.readd.detail')}</p>,
     },
   ];
 
   const engineSteps: IStep[] = [
     {
-      title: `Put the ${PRODUCT_NAME} Engine back on your outputs`,
-      when:
-        'One device is equalised and another is not, or a headset you have ' +
-        'just plugged in is being ignored. The engine attaches to each ' +
-        'output separately, and a Windows update can detach it from one it ' +
-        'was already on.',
-      cost:
-        'Windows asks for permission, and audio restarts for a moment. No ' +
-        'reboot.',
-      action: { label: enableEngineLabel, run: onEnableEngine },
+      title: t('troubleshoot.engine.enable.title'),
+      when: t('troubleshoot.engine.enable.when'),
+      cost: t('troubleshoot.engine.permission'),
+      action: { label: t('output.enable'), run: onEnableEngine },
     },
     {
-      title: `Remove the ${PRODUCT_NAME} Engine from this output`,
-      when:
-        'This one output is wrong in a way none of the above fixes, or you ' +
-        'want to hand it back to another audio program. The engine comes off ' +
-        'the output Windows is playing through right now, and whatever it ' +
-        'replaced goes back on.',
-      cost:
-        'Windows asks for permission, and audio restarts for a moment. Your ' +
-        'other outputs are untouched, and the step above puts it back.',
+      title: t('troubleshoot.engine.remove.title'),
+      when: t('troubleshoot.engine.remove.when'),
+      cost: t('troubleshoot.engine.remove.cost'),
       action: {
-        label: 'Remove from this output',
+        label: t('troubleshoot.engine.remove.action'),
         run: onRemoveEngineFromOutput,
       },
     },
@@ -232,13 +187,10 @@ export default function AudioTroubleshooter({
 
   const steps: IStep[] = [
     {
-      title: 'Restart Windows Audio',
-      when:
-        'Sound has stopped, or the graph has gone flat while something is ' +
-        'playing. This is the fix for almost every case, and the one to try ' +
-        'first.',
-      cost: 'A few seconds of silence. Windows asks for permission.',
-      action: { label: 'Restart audio', run: onRestartAudio },
+      title: t('troubleshoot.restart.title'),
+      when: t('troubleshoot.restart.when'),
+      cost: t('troubleshoot.restart.cost'),
+      action: { label: t('restart.action'), run: onRestartAudio },
     },
     ...engineOwnSteps,
   ];
@@ -256,17 +208,17 @@ export default function AudioTroubleshooter({
       <DialogFrame
         className="troubleshoot"
         icon={<MenuIcon name="wrench" />}
-        title="Fix audio problems"
+        title={t('troubleshoot.title')}
         titleId="troubleshoot-title"
-        description="Work down the list and stop at the first one that helps. Each is more disruptive than the last, and the first fixes most problems."
-        closeLabel="Close"
+        description={t('troubleshoot.description')}
+        closeLabel={t('restart.close')}
         onClose={onClose}
         footer={
           <p className="dialog-frame__note">
-            Still wrong after all of that? Use <strong>Report a problem</strong>{' '}
-            in the same menu — it collects the logs, with anything identifying
-            you stripped out, and shows you the whole thing before it goes
-            anywhere.
+            {renderInline(
+              t('troubleshoot.footer', { report: t('app.menu.reportProblem') }),
+              'footer',
+            )}
           </p>
         }
       >
@@ -288,7 +240,9 @@ export default function AudioTroubleshooter({
                 <div className="troubleshoot__step-head">
                   <h3>{step.title}</h3>
                   {tried[index] && (
-                    <span className="troubleshoot__tried">Tried</span>
+                    <span className="troubleshoot__tried">
+                      {t('troubleshoot.tried')}
+                    </span>
                   )}
                 </div>
                 <p>{step.when}</p>

@@ -1,0 +1,63 @@
+const files = {
+  'files.title.sharePreset': '分享 EQ 预设',
+  'files.title.exportDspChain': '导出 DSP 链预设',
+  'files.title.importEq': '导入 EQ 设置',
+  'files.title.importImpulse': '导入脉冲响应',
+  'files.title.exportChain': '导出这条链',
+  'files.title.importChain': '导入链',
+  'files.title.exportKaraoke': '导出卡拉 OK',
+  'files.title.saveDownload': '将下载保存到电脑',
+  'files.save': '保存',
+  'files.type.eqPreset': 'FluidEQ EQ 预设',
+  'files.type.dspChain': 'FluidEQ DSP 链',
+  'files.type.eqSettings': 'EQ 设置',
+  'files.type.impulse': 'WAV 脉冲响应',
+  'files.type.chain': 'FluidEQ 链',
+  'files.type.scene': 'FluidEQ 场景',
+  'files.type.programs': '程序',
+  'files.type.pictures': '图片',
+  'files.type.all': '所有文件',
+  'files.imported.profile': '已从 FluidEQ 配置导入 {count} 个频段。',
+  'files.imported.graphicEq': '已从 GraphicEQ 文件导入 {count} 个频段。',
+  'files.imported.parametricEq':
+    '已从 Equalizer APO 的 ParametricEQ 文件导入 {count} 个频段。',
+  'files.imported.skipped':
+    '有 {count} 个频段使用了 FluidEQ 无法编辑的滤波器类型，已跳过。',
+  'files.imported.squiglink': '已从 Squiglink 导出内容导入 {count} 个频段。',
+  'files.imported.squiglinkSkipped':
+    '有 {count} 个频段无法在 FluidEQ 中编辑，已跳过。',
+  'files.imported.preampKept':
+    '已保留其 {gain} dB 的前级增益，因此自动归一化已关闭。',
+  'files.impulse.applied': '已应用 {name}。',
+  'files.chain.exported': '已导出 {device} 的链。',
+  'files.chain.imported': '已导入链。',
+  'files.chain.importedFrom': '已从 {device} 导入链。',
+  'files.chain.noOutput': '当前没有启用的输出，无处可导入。',
+  'files.chain.notChain': '该文件不是 FluidEQ 链。',
+  'files.squiglink.empty': '请先粘贴 Squiglink 的 EQ 导出内容再导入。',
+  'files.squiglink.tooLarge': '该 EQ 导出内容太大，无法导入。',
+  'files.squiglink.noFilters':
+    '未找到 Equalizer APO 滤波器。请复制从 Squiglink 导出的 ParametricEQ 或 GraphicEQ 文本。',
+  'files.eq.tooLarge': '该文件太大，不可能是 EQ 设置。',
+  'files.eq.notProfile': '该 JSON 文件不是 FluidEQ 配置。',
+  'files.eq.noFilters':
+    '该文件中未找到 Equalizer APO 滤波器。应为 ParametricEQ、GraphicEQ 或 FluidEQ 配置。',
+  'files.wav.notWav': '该文件不是 WAV 脉冲响应。',
+  'files.wav.truncated': '该 WAV 文件不完整。',
+  'files.wav.unsupported': 'Equalizer APO 不支持该 WAV 格式。',
+  'files.wav.noFormat': '该 WAV 文件缺少格式块。',
+  'files.wav.tooLarge': '该脉冲响应太大，无法安全导入。',
+  'files.wav.rate':
+    '该脉冲响应为 {rate} Hz。Equalizer APO 需要以下之一：{rates} Hz。',
+  'files.wav.noChunks': '该 WAV 文件没有可用的格式块或数据块。',
+  'files.wav.sampleFormat': '无法安全分析该 WAV 的采样格式。',
+  'files.wav.noSamples': '该 WAV 脉冲响应不包含任何采样。',
+  'files.wav.badSamples': '该 WAV 脉冲响应包含无效采样。',
+  'files.wav.silent': '该 WAV 脉冲响应没有可测量的响应。',
+  'files.apo.notLocated': '未安装 Equalizer APO，或找不到它的安装位置。',
+  'files.apo.selectorMissing': '找不到 Equalizer APO 的设备配置程序。',
+  'files.apo.editorMissing': '找不到 Equalizer APO 的设置。',
+  'files.wav.tooLong': '该脉冲响应太长，无法为安全归一化进行分析。',
+} as const;
+
+export default files;

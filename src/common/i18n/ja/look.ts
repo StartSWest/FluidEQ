@@ -155,6 +155,10 @@ const look: Partial<Dictionary> = {
   'support.thanks': 'ありがとう！ペットに星とダンスが加わりました。',
   'support.footerBefore':
     '時間で貢献したいですか？ Issue や Pull Request も同じように歓迎です：',
+  'support.pet.title': '開発を応援する',
+  'support.pet.thanks': 'FluidEQ を応援していただきありがとうございます',
+  'support.qr.coffee': 'Buy me a coffee のページの QR コード',
+  'support.qr.address': '{asset} アドレスの QR コード',
 };
 
 export default look;

@@ -12,6 +12,7 @@ import type { TSuccess } from '../../renderer/utils/ipcRequest';
 import { checkConfigFile, save, updateConfig } from '../flush';
 import { flushDeviceProfiles, getStateForAudioDevice } from '../deviceProfiles';
 import { getConfigPath } from '../registry';
+import mainText from '../mainText';
 import type { IProfilesIpcDeps, IReplySink } from './profiles';
 
 export type TOutputFollowerDeps = Pick<
@@ -104,7 +105,7 @@ export const createOutputFollower = ({
           sink,
           channel,
           ErrorCode.FAILURE,
-          'The external EQ contains stages FluidEQ cannot safely adopt. Its files were left unchanged.',
+          mainText('eq.refused.externalEq'),
         );
         return;
       }

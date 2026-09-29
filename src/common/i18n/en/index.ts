@@ -78,6 +78,8 @@ import genreElectronic from './genreElectronic';
 import genreReggae from './genreReggae';
 import genreLatin from './genreLatin';
 import genreWorld from './genreWorld';
+import troubleshoot from './troubleshoot';
+import files from './files';
 
 const en = {
   ...karaoke,
@@ -119,6 +121,8 @@ const en = {
   ...genreReggae,
   ...genreLatin,
   ...genreWorld,
+  ...troubleshoot,
+  ...files,
 };
 
 export type TranslationKey = keyof typeof en;

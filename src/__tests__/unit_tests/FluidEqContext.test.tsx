@@ -24,6 +24,11 @@ import {
   IFiltersMap,
   IState,
 } from 'common/constants';
+import {
+  ErrorCode,
+  type ErrorDescription,
+  getErrorDescription,
+} from 'common/errors';
 import { getEqualizerState } from 'renderer/utils/equalizerApi';
 import { readRackGate, resetRackGate } from 'renderer/dsp/rackPlacement';
 import {
@@ -496,5 +501,61 @@ describe('FluidEqProvider and the DSP rack', () => {
     });
 
     expect(readRackGate().eqLoaded).toBe(false);
+  });
+});
+
+/*
+ * Every caller hands the banner what it caught, cast to a description. A
+ * plain Error thrown on the way reached it with no code and no words, and it
+ * drew an empty title.
+ */
+describe('the error banner', () => {
+  beforeEach(() => {
+    latest = undefined;
+    mockedGetEqualizerState.mockReset();
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      get: () => ({
+        ipcRenderer: {
+          on: () => () => {},
+          sendMessage: () => undefined,
+        },
+      }),
+    });
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('shows anything that is not a description as the general failure', async () => {
+    await mount();
+    act(() => {
+      context().setGlobalError(
+        new TypeError(
+          'undefined is not a function',
+        ) as unknown as ErrorDescription,
+      );
+    });
+    expect(context().globalError).toEqual(
+      getErrorDescription(ErrorCode.FAILURE),
+    );
+  });
+
+  it('keeps a description as it came, and clears', async () => {
+    await mount();
+    const refused = {
+      ...getErrorDescription(ErrorCode.IMPORT_ERROR),
+      detail: 'Diese Datei ist keine WAV-Impulsantwort.',
+    };
+    act(() => {
+      context().setGlobalError(refused);
+    });
+    expect(context().globalError).toBe(refused);
+    act(() => {
+      context().setGlobalError(undefined);
+    });
+    expect(context().globalError).toBeUndefined();
   });
 });

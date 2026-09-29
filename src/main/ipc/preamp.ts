@@ -22,6 +22,7 @@ import ChannelEnum from '../../common/channels';
 import { getResolvedPreAmp } from '../flush';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import onWindowMessage from './windowMessages';
+import mainText from '../mainText';
 
 export interface IPreampIpcDeps {
   state: IState;
@@ -177,8 +178,11 @@ export const registerPreampIpc = ({
         event,
         channel,
         ErrorCode.INVALID_PARAMETER,
-        `The preamp goes from ${PREAMP_MIN_GAIN} dB to ${MAX_GAIN} dB.`,
-        'The preamp was left where it was.',
+        mainText('eq.refused.preampRange', {
+          min: PREAMP_MIN_GAIN,
+          max: MAX_GAIN,
+        }),
+        mainText('eq.refused.preampRange.action'),
       );
       return;
     }

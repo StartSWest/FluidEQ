@@ -754,6 +754,21 @@ const eq: Partial<Dictionary> = {
   'waveform.clip': 'ÜBERSTEUERUNG',
   'autoeq.deviceAria': 'Audiogerät',
   'autoeq.targetAria': 'Zielfrequenzgang',
+  'eq.band.edit': '{frequency}-Hz-Band bearbeiten',
+  'eq.layers.apoEdit': 'Änderung in Equalizer APO',
+  'convolution.entryDetail': '{provider} · minimalphasig · {rate}-kHz-WAV',
+  'eq.refused.bandLimit':
+    'Sie haben bereits die maximale Anzahl an Bändern, die FluidEQ anwenden kann ({max}).',
+  'eq.refused.bandLimit.action':
+    'Entfernen Sie ein Band, bevor Sie ein weiteres hinzufügen, oder passen Sie ein vorhandenes an.',
+  'eq.refused.bandRange':
+    'Ein Band muss zwischen {min} Hz und {max} Hz liegen.',
+  'eq.refused.bandRange.action':
+    'Es wurde nichts hinzugefügt. Wählen Sie eine Frequenz in diesem Bereich.',
+  'eq.refused.preampRange': 'Der Preamp reicht von {min} dB bis {max} dB.',
+  'eq.refused.preampRange.action': 'Der Preamp bleibt, wo er war.',
+  'eq.refused.externalEq':
+    'Der externe EQ enthält Stufen, die FluidEQ nicht sicher übernehmen kann. Seine Dateien wurden nicht verändert.',
 };
 
 export default eq;

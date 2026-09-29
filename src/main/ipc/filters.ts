@@ -37,7 +37,6 @@ import {
 } from '../../common/constants';
 import { qualitiesForRack } from '../../common/bandQuality';
 import { ErrorCode } from '../../common/errors';
-import { PRODUCT_NAME } from '../../common/branding';
 import ChannelEnum from '../../common/channels';
 import {
   ILayoutSnapshot,
@@ -47,6 +46,7 @@ import {
 import { isFixedBandSizeEnumValue } from '../../common/utils';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import onWindowMessage from './windowMessages';
+import mainText from '../mainText';
 
 /**
  * Everything these handlers may touch, stated rather than implied.
@@ -344,8 +344,8 @@ export const registerFiltersIpc = ({
         event,
         channel,
         ErrorCode.INVALID_PARAMETER,
-        `You already have the most bands ${PRODUCT_NAME} can apply (${MAX_NUM_FILTERS}).`,
-        'Remove a band before adding another, or adjust one you already have.',
+        mainText('eq.refused.bandLimit', { max: MAX_NUM_FILTERS }),
+        mainText('eq.refused.bandLimit.action'),
       );
       return;
     }
@@ -354,8 +354,11 @@ export const registerFiltersIpc = ({
         event,
         channel,
         ErrorCode.INVALID_PARAMETER,
-        `A band has to sit between ${MIN_FREQUENCY} Hz and ${MAX_FREQUENCY} Hz.`,
-        'Nothing was added. Pick a frequency inside that range.',
+        mainText('eq.refused.bandRange', {
+          min: MIN_FREQUENCY,
+          max: MAX_FREQUENCY,
+        }),
+        mainText('eq.refused.bandRange.action'),
       );
       return;
     }

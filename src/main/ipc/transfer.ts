@@ -33,7 +33,6 @@ import {
 } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
-import { PRODUCT_NAME } from '../../common/branding';
 import {
   CHAIN_BUNDLE_EXTENSION,
   IChainBundle,
@@ -52,9 +51,16 @@ import { fetchPreset, savePreset, savePresetBaseline } from '../flush';
 import { getCustomFileNameForDevice } from '../deviceProfiles';
 import { getConfigPath } from '../registry';
 import { TAudioEngine } from '../../common/audioEngine';
-import { importConvolutionFile, importEqFile } from '../importSettings';
+import {
+  type IImportedEq,
+  importConvolutionFile,
+  importEqFile,
+} from '../importSettings';
+import type { TranslationKey } from '../../common/i18n';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import onWindowMessage from './windowMessages';
+import mainText from '../mainText';
+import { Refusal, userMessageOf } from '../refusal';
 
 /**
  * Everything that crosses the boundary as a file the user chose or keeps.
@@ -119,6 +125,13 @@ export interface ITransferIpcDeps {
     useActiveSessionOverride?: boolean,
   ) => Promise<void>;
 }
+
+/** What an EQ import says it read, by what the importer recognised. */
+const IMPORTED_FROM: Record<IImportedEq['source'], TranslationKey> = {
+  profile: 'files.imported.profile',
+  graphicEq: 'files.imported.graphicEq',
+  parametricEq: 'files.imported.parametricEq',
+};
 
 export const registerTransferIpc = ({
   activePresetDir,
@@ -194,11 +207,11 @@ export const registerTransferIpc = ({
       const baseName =
         suggestedName.replace(/[^\w\- ]+/g, '').trim() || 'Custom';
       const saveOptions = {
-        title: 'Share EQ preset',
+        title: mainText('files.title.sharePreset'),
         defaultPath: `${baseName}.fluideq.json`,
         filters: [
           {
-            name: `${PRODUCT_NAME} EQ preset`,
+            name: mainText('files.type.eqPreset'),
             extensions: ['fluideq.json'],
           },
         ],
@@ -242,11 +255,11 @@ export const registerTransferIpc = ({
       const baseName =
         suggestedName.replace(/[^\w\- ]+/g, '').trim() || 'Custom';
       const saveOptions = {
-        title: 'Export DSP chain preset',
+        title: mainText('files.title.exportDspChain'),
         defaultPath: `${baseName}.fluideq-dsp.json`,
         filters: [
           {
-            name: `${PRODUCT_NAME} DSP chain`,
+            name: mainText('files.type.dspChain'),
             extensions: ['fluideq-dsp.json'],
           },
         ],
@@ -266,22 +279,23 @@ export const registerTransferIpc = ({
       const reply: TSuccess<boolean> = { result: true };
       event.reply(channel, reply);
     } catch (error) {
-      handleError(
-        event,
-        channel,
-        ErrorCode.FAILURE,
-        error instanceof Error ? error.message : undefined,
-      );
+      handleError(event, channel, ErrorCode.FAILURE, userMessageOf(error));
     }
   });
 
   onWindowMessage(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
     const channel = ChannelEnum.IMPORT_EQ_FILE;
     try {
-      const sourcePath = await showImportDialog('Import EQ settings', [
-        { name: 'EQ settings', extensions: ['txt', 'json'] },
-        { name: 'All files', extensions: ['*'] },
-      ]);
+      const sourcePath = await showImportDialog(
+        mainText('files.title.importEq'),
+        [
+          {
+            name: mainText('files.type.eqSettings'),
+            extensions: ['txt', 'json'],
+          },
+          { name: mainText('files.type.all'), extensions: ['*'] },
+        ],
+      );
       if (!sourcePath) {
         const reply: TSuccess<string> = { result: '' };
         event.reply(channel, reply);
@@ -312,20 +326,24 @@ export const registerTransferIpc = ({
       await handleUpdateHelper<string>(
         event,
         channel,
-        imported.unsupported > 0
-          ? `Imported ${Object.keys(imported.filters).length} bands from the ${imported.sourceLabel}. ${imported.unsupported} band(s) used a filter type ${PRODUCT_NAME} cannot edit and were skipped.`
-          : `Imported ${Object.keys(imported.filters).length} bands from the ${imported.sourceLabel}.`,
+        [
+          mainText(IMPORTED_FROM[imported.source], {
+            count: Object.keys(imported.filters).length,
+          }),
+          imported.unsupported > 0
+            ? mainText('files.imported.skipped', {
+                count: imported.unsupported,
+              })
+            : '',
+        ]
+          .filter(Boolean)
+          .join(' '),
         false,
         true,
       );
     } catch (error) {
       log.error('Failed to import EQ settings', error);
-      handleError(
-        event,
-        channel,
-        ErrorCode.IMPORT_ERROR,
-        error instanceof Error ? error.message : undefined,
-      );
+      handleError(event, channel, ErrorCode.IMPORT_ERROR, userMessageOf(error));
     }
   });
 
@@ -341,10 +359,10 @@ export const registerTransferIpc = ({
         return;
       }
       if (typeof text !== 'string' || !text.trim()) {
-        throw new Error('Paste a Squiglink EQ export before importing it.');
+        throw new Refusal('files.squiglink.empty');
       }
       if (Buffer.byteLength(text, 'utf8') > 4 * 1024 * 1024) {
-        throw new Error('That EQ export is too large to import.');
+        throw new Refusal('files.squiglink.tooLarge');
       }
 
       // A correction's range for text headed for the correction layer, so it
@@ -354,9 +372,7 @@ export const registerTransferIpc = ({
         destination === 'curve' ? { gainLimit: MAX_CORRECTION_GAIN } : {},
       );
       if (parsed.isEmpty) {
-        throw new Error(
-          'No Equalizer APO filters were found. Copy the exported ParametricEQ or GraphicEQ text from Squiglink.',
-        );
+        throw new Refusal('files.squiglink.noFilters');
       }
 
       // Provenance identifies the counterpart to remove when switching modes;
@@ -420,14 +436,18 @@ export const registerTransferIpc = ({
         event,
         channel,
         [
-          `Imported ${Object.keys(parsed.filters).length} bands from the Squiglink export.`,
+          mainText('files.imported.squiglink', {
+            count: Object.keys(parsed.filters).length,
+          }),
           parsed.unsupported > 0
-            ? `${parsed.unsupported} band(s) could not be edited in ${PRODUCT_NAME} and were skipped.`
+            ? mainText('files.imported.squiglinkSkipped', {
+                count: parsed.unsupported,
+              })
             : '',
           // Said out loud, because a switch changing itself is worse than a
           // switch that did not, unless it tells you.
           parsed.hasPreAmp
-            ? `Its ${parsed.preAmp} dB preamp was kept, so Auto normalize is off.`
+            ? mainText('files.imported.preampKept', { gain: parsed.preAmp })
             : '',
         ]
           .filter(Boolean)
@@ -437,21 +457,17 @@ export const registerTransferIpc = ({
       );
     } catch (error) {
       log.error('Failed to import Squiglink EQ text', error);
-      handleError(
-        event,
-        channel,
-        ErrorCode.IMPORT_ERROR,
-        error instanceof Error ? error.message : undefined,
-      );
+      handleError(event, channel, ErrorCode.IMPORT_ERROR, userMessageOf(error));
     }
   });
 
   onWindowMessage(ChannelEnum.IMPORT_CONVOLUTION_FILE, async (event) => {
     const channel = ChannelEnum.IMPORT_CONVOLUTION_FILE;
     try {
-      const sourcePath = await showImportDialog('Import an impulse response', [
-        { name: 'WAV impulse response', extensions: ['wav'] },
-      ]);
+      const sourcePath = await showImportDialog(
+        mainText('files.title.importImpulse'),
+        [{ name: mainText('files.type.impulse'), extensions: ['wav'] }],
+      );
       if (!sourcePath) {
         const reply: TSuccess<string> = { result: '' };
         event.reply(channel, reply);
@@ -466,18 +482,13 @@ export const registerTransferIpc = ({
       await handleUpdateHelper<string>(
         event,
         channel,
-        `Applied ${state.convolution.name}.`,
+        mainText('files.impulse.applied', { name: state.convolution.name }),
         false,
         true,
       );
     } catch (error) {
       log.error('Failed to import a convolution file', error);
-      handleError(
-        event,
-        channel,
-        ErrorCode.IMPORT_ERROR,
-        error instanceof Error ? error.message : undefined,
-      );
+      handleError(event, channel, ErrorCode.IMPORT_ERROR, userMessageOf(error));
     }
   });
 
@@ -544,11 +555,11 @@ export const registerTransferIpc = ({
       };
 
       const saveOptions = {
-        title: 'Export this chain',
+        title: mainText('files.title.exportChain'),
         defaultPath: chainBundleFileName(assignment.deviceName),
         filters: [
           {
-            name: `${PRODUCT_NAME} chain`,
+            name: mainText('files.type.chain'),
             extensions: [CHAIN_BUNDLE_EXTENSION],
           },
         ],
@@ -567,7 +578,9 @@ export const registerTransferIpc = ({
 
       fs.writeFileSync(target.filePath, serializeChainBundle(bundle), 'utf8');
       const reply: TSuccess<string> = {
-        result: `Exported the chain for ${assignment.deviceName}.`,
+        result: mainText('files.chain.exported', {
+          device: assignment.deviceName,
+        }),
       };
       event.reply(channel, reply);
     } catch (e) {
@@ -595,15 +608,21 @@ export const registerTransferIpc = ({
           event,
           channel,
           ErrorCode.FAILURE,
-          'No output is active, so there is nothing to import onto.',
+          mainText('files.chain.noOutput'),
         );
         return;
       }
 
-      const sourcePath = await showImportDialog('Import a chain', [
-        { name: `${PRODUCT_NAME} chain`, extensions: [CHAIN_BUNDLE_EXTENSION] },
-        { name: 'All files', extensions: ['*'] },
-      ]);
+      const sourcePath = await showImportDialog(
+        mainText('files.title.importChain'),
+        [
+          {
+            name: mainText('files.type.chain'),
+            extensions: [CHAIN_BUNDLE_EXTENSION],
+          },
+          { name: mainText('files.type.all'), extensions: ['*'] },
+        ],
+      );
       if (!sourcePath) {
         const reply: TSuccess<IChainImport> = {
           result: { note: '', isCustomSkipped: false },
@@ -620,7 +639,7 @@ export const registerTransferIpc = ({
           event,
           channel,
           ErrorCode.IMPORT_ERROR,
-          `That file is not a ${PRODUCT_NAME} chain.`,
+          mainText('files.chain.notChain'),
         );
         return;
       }
@@ -722,20 +741,17 @@ export const registerTransferIpc = ({
         event,
         channel,
         {
-          note: `Imported the chain${
-            bundle.exportedFrom ? ` from ${bundle.exportedFrom}` : ''
-          }.`,
+          note: bundle.exportedFrom
+            ? mainText('files.chain.importedFrom', {
+                device: bundle.exportedFrom,
+              })
+            : mainText('files.chain.imported'),
           isCustomSkipped,
         },
         true,
       );
     } catch (e) {
-      handleError(
-        event,
-        channel,
-        ErrorCode.IMPORT_ERROR,
-        e instanceof Error ? e.message : undefined,
-      );
+      handleError(event, channel, ErrorCode.IMPORT_ERROR, userMessageOf(e));
     }
   });
 };

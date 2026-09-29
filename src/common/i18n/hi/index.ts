@@ -57,6 +57,8 @@ import genreElectronic from './genreElectronic';
 import genreReggae from './genreReggae';
 import genreLatin from './genreLatin';
 import genreWorld from './genreWorld';
+import troubleshoot from './troubleshoot';
+import files from './files';
 
 const hi: Partial<Dictionary> = {
   ...karaoke,
@@ -98,6 +100,8 @@ const hi: Partial<Dictionary> = {
   ...genreReggae,
   ...genreLatin,
   ...genreWorld,
+  ...troubleshoot,
+  ...files,
 };
 
 export default hi;

@@ -32,6 +32,7 @@ import { gameIconSource, isGameFolder, scanGameLibraries } from '../gameScan';
 import { createGameToasts, IGameToast } from '../gameToast';
 import { createGameWatch, IGameWatch } from '../gameWatch';
 import onWindowMessage from './windowMessages';
+import mainText from '../mainText';
 
 export const GAME_FOREGROUND_CHANNEL = 'game-foreground';
 export const GAME_PROGRAMS_CHANNEL = 'game-programs';
@@ -213,7 +214,9 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
       const window = deps.getMainWindow();
       const options: OpenDialogOptions = {
         properties: ['openFile'],
-        filters: [{ name: 'Programs', extensions: ['exe'] }],
+        filters: [
+          { name: mainText('files.type.programs'), extensions: ['exe'] },
+        ],
       };
       const result = window
         ? await dialog.showOpenDialog(window, options)

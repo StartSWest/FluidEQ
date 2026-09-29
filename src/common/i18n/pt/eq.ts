@@ -750,6 +750,20 @@ const eq: Partial<Dictionary> = {
   'waveform.clip': 'SATURAÇÃO',
   'autoeq.deviceAria': 'Dispositivo de áudio',
   'autoeq.targetAria': 'Resposta de frequência alvo',
+  'eq.band.edit': 'Editar a banda de {frequency} Hz',
+  'eq.layers.apoEdit': 'Edição no Equalizer APO',
+  'convolution.entryDetail': '{provider} · fase mínima · WAV de {rate} kHz',
+  'eq.refused.bandLimit':
+    'Você já tem o máximo de bandas que o FluidEQ consegue aplicar ({max}).',
+  'eq.refused.bandLimit.action':
+    'Remova uma banda antes de adicionar outra, ou ajuste uma que você já tem.',
+  'eq.refused.bandRange': 'Uma banda precisa ficar entre {min} Hz e {max} Hz.',
+  'eq.refused.bandRange.action':
+    'Nada foi adicionado. Escolha uma frequência dentro dessa faixa.',
+  'eq.refused.preampRange': 'O pré-amplificador vai de {min} dB a {max} dB.',
+  'eq.refused.preampRange.action': 'O pré-amplificador ficou onde estava.',
+  'eq.refused.externalEq':
+    'O EQ externo tem etapas que o FluidEQ não consegue adotar com segurança. Os arquivos dele não foram alterados.',
 };
 
 export default eq;

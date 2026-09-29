@@ -1,6 +1,7 @@
 import { dialog, ipcMain, type BrowserWindow } from 'electron';
 import fs from 'fs';
 import path from 'path';
+import mainText from '../mainText';
 import type { IAccountConfig } from '../../common/accountConfig';
 import {
   MEMBER_SCENE_FILE_EXTENSION,
@@ -248,7 +249,7 @@ export const registerMemberSharingIpc = ({
       const window = getMainWindow();
       const options = {
         defaultPath: memberSceneFileName(build.pack),
-        filters: [{ name: 'FluidEQ scene', extensions: ['json'] }],
+        filters: [{ name: mainText('files.type.scene'), extensions: ['json'] }],
       };
       const target = window
         ? await dialogImpl.showSaveDialog(window, options)
@@ -292,7 +293,7 @@ export const registerMemberSharingIpc = ({
     const window = getMainWindow();
     const options = {
       properties: ['openFile' as const],
-      filters: [{ name: 'FluidEQ scene', extensions: ['json'] }],
+      filters: [{ name: mainText('files.type.scene'), extensions: ['json'] }],
     };
     const picked = window
       ? await dialogImpl.showOpenDialog(window, options)

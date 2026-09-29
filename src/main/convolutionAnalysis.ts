@@ -16,6 +16,7 @@ import {
   RESPONSE_START,
   SAMPLE_FREQUENCIES,
 } from '../common/response';
+import { Refusal } from './refusal';
 
 /* Bit reversal and 24-bit PCM sign extension are inherently bitwise. */
 /* eslint-disable no-bitwise */
@@ -48,7 +49,7 @@ const parseWavLayout = (buffer: Buffer): IWavLayout => {
     buffer.toString('ascii', 0, 4) !== 'RIFF' ||
     buffer.toString('ascii', 8, 12) !== 'WAVE'
   ) {
-    throw new Error('That file is not a WAV impulse response.');
+    throw new Refusal('files.wav.notWav');
   }
 
   let format: Omit<IWavLayout, 'dataOffset' | 'dataSize'> | undefined;
@@ -61,7 +62,7 @@ const parseWavLayout = (buffer: Buffer): IWavLayout => {
     const chunkOffset = offset + 8;
     const chunkEnd = chunkOffset + chunkSize;
     if (chunkEnd > buffer.length) {
-      throw new Error('That WAV file is truncated.');
+      throw new Refusal('files.wav.truncated');
     }
     if (chunkId === 'fmt ' && chunkSize >= 16) {
       let audioFormat = buffer.readUInt16LE(chunkOffset);
@@ -89,7 +90,7 @@ const parseWavLayout = (buffer: Buffer): IWavLayout => {
   }
 
   if (!format || dataSize === 0) {
-    throw new Error('That WAV file has no usable format or data chunk.');
+    throw new Refusal('files.wav.noChunks');
   }
   const bytesPerSample = format.bitsPerSample / 8;
   const supportedPcm =
@@ -102,7 +103,7 @@ const parseWavLayout = (buffer: Buffer): IWavLayout => {
     (!supportedPcm && !supportedFloat) ||
     format.blockAlign < format.channels * bytesPerSample
   ) {
-    throw new Error('That WAV sample format cannot be analyzed safely.');
+    throw new Refusal('files.wav.sampleFormat');
   }
   return { ...format, dataOffset, dataSize };
 };
@@ -206,13 +207,11 @@ export const analyzeConvolutionBuffer = (
   const bytesPerSample = layout.bitsPerSample / 8;
   const frameCount = Math.floor(layout.dataSize / layout.blockAlign);
   if (frameCount < 1) {
-    throw new Error('That WAV impulse response contains no samples.');
+    throw new Refusal('files.wav.noSamples');
   }
   const fftSize = nextPowerOfTwo(frameCount * FFT_OVERSAMPLE);
   if (fftSize > MAX_FFT_SIZE) {
-    throw new Error(
-      'That impulse response is too long to analyze for safe normalization.',
-    );
+    throw new Refusal('files.wav.tooLong');
   }
 
   const responseGain = new Float64Array(SAMPLE_FREQUENCIES.length);
@@ -235,7 +234,7 @@ export const analyzeConvolutionBuffer = (
         layout.bitsPerSample,
       );
       if (!Number.isFinite(sample)) {
-        throw new Error('That WAV impulse response contains invalid samples.');
+        throw new Refusal('files.wav.badSamples');
       }
       real[frame] = sample;
     }
@@ -275,7 +274,7 @@ export const analyzeConvolutionBuffer = (
   }
 
   if (!Number.isFinite(peakGainDb)) {
-    throw new Error('That WAV impulse response has no measurable response.');
+    throw new Refusal('files.wav.silent');
   }
   const response = SAMPLE_FREQUENCIES.map((frequency, index) => ({
     frequency,

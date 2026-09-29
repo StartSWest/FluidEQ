@@ -424,6 +424,45 @@ const app: Partial<Dictionary> = {
   'games.row.sounding': 'आवाज़ चालू',
   'games.row.sound': '{name} की आवाज़',
   'games.row.remove': '{name} हटाएँ',
+  'error.apoMissing': 'Equalizer APO इंस्टॉल नहीं है।',
+  'error.apoMissing.action':
+    'कृपया Equalizer APO इंस्टॉल करें, फिर दोबारा कोशिश करें।',
+  'error.configMissing': 'Equalizer APO की कॉन्फ़िगरेशन फ़ाइल नहीं मिली।',
+  'error.configMissing.action':
+    'जाँच लें कि Equalizer APO के config फ़ोल्डर में config.txt फ़ाइल मौजूद है।',
+  'error.invalidParameter': 'आंतरिक त्रुटि: अमान्य पैरामीटर।',
+  'error.reachOut': 'समस्या हल करने के लिए कृपया डेवलपर्स से संपर्क करें।',
+  'error.failure': 'आंतरिक त्रुटि: इक्वलाइज़र सेटिंग्स लागू नहीं हो सकीं।',
+  'error.failure.action':
+    'कृपया ऐप को फिर से शुरू करें। अगर त्रुटि बनी रहे, तो डेवलपर्स से संपर्क करें।',
+  'error.presetFile':
+    'आंतरिक त्रुटि: प्रीसेट फ़ाइलें पढ़ी या बदली नहीं जा सकीं।',
+  'error.presetFile.action':
+    'जाँच लें कि प्रीसेट का नाम फ़ाइल के नाम के रूप में सहेजा जा सकता है, इंस्टॉलेशन फ़ोल्डर में लिखा जा सकता है, और डिस्क पर जगह खाली है। अगर त्रुटि बनी रहे, तो डेवलपर्स से संपर्क करें।',
+  'error.presetName': 'आंतरिक त्रुटि: प्रीसेट का नाम अमान्य है।',
+  'error.presetName.action':
+    'प्रीसेट के लिए कोई दूसरा नाम दें। अगर त्रुटि बनी रहे, तो डेवलपर्स से संपर्क करें।',
+  'error.opra': 'आंतरिक त्रुटि: हेडफ़ोन प्रीसेट लाइब्रेरी पढ़ी नहीं जा सकी।',
+  'error.convolutionCatalog': 'कनवोल्यूशन कैटलॉग तक पहुँचा नहीं जा सका।',
+  'error.convolutionCatalog.action':
+    'कृपया अपना कनेक्शन जाँचें और फिर कोशिश करें।',
+  'error.import': 'वह फ़ाइल इंपोर्ट नहीं हो सकी।',
+  'error.import.action':
+    'जाँच लें कि फ़ाइल Equalizer APO की EQ टेक्स्ट फ़ाइल, FluidEQ प्रोफ़ाइल या WAV इम्पल्स रिस्पॉन्स है।',
+  'error.engineNotChosen': 'अभी तक कोई ऑडियो इंजन नहीं चुना गया है।',
+  'error.engineNotChosen.action':
+    'कृपया वह ऑडियो इंजन चुनें जिसे FluidEQ इस्तेमाल करे।',
+  'error.engineMissing': 'FluidEQ इंजन इंस्टॉल नहीं है।',
+  'error.engineMissing.action':
+    'कृपया FluidEQ इंजन इंस्टॉल करें, फिर दोबारा कोशिश करें।',
+  'app.apoReinstall.confirm':
+    'Equalizer APO फिर से इंस्टॉल करें?\n\nइसका सेटअप खुलेगा ताकि आप फिर से चुन सकें कि किन ऑडियो डिवाइस पर EQ लगे। Windows एडमिनिस्ट्रेटर की अनुमति माँगेगा, और बाद में कंप्यूटर रीस्टार्ट करना होगा।\n\nआपकी FluidEQ सेटिंग्स और प्रोफ़ाइलें नहीं बदलेंगी।',
+  'app.apoReinstall.noBundle':
+    'FluidEQ की इस कॉपी में Equalizer APO का इंस्टॉलर नहीं है।\n\nइसके बजाय Equalizer APO का अपना डाउनलोड पेज खुल रहा है। वहाँ से इंस्टॉल करें, FluidEQ उसे ढूँढ लेगा।',
+  'app.apoReinstall.notStarted':
+    'Equalizer APO शुरू नहीं हुआ।\n\nइसे एडमिनिस्ट्रेटर की अनुमति चाहिए — फिर से कोशिश करें और Windows के संकेत को मंज़ूरी दें।',
+  'app.site.open': 'अपने ब्राउज़र में fluideq.com खोलें',
+  'config.customCommands': 'उपयोगकर्ता के अपने APO कमांड',
 };
 
 export default app;

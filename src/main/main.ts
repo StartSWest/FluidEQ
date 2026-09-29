@@ -292,6 +292,7 @@ import {
   setUpReleaseAutoUpdates,
 } from './signedAutoUpdates';
 import onWindowMessage from './ipc/windowMessages';
+import mainText from './mainText';
 import { declineDefaultMenu } from './menu';
 
 /**
@@ -2311,7 +2312,7 @@ onWindowMessage(ChannelEnum.HEALTH_CHECK, async (event) => {
           event,
           channel,
           ErrorCode.FAILURE,
-          'The external EQ contains stages FluidEQ cannot safely adopt. Its files were left unchanged.',
+          mainText('eq.refused.externalEq'),
         );
         return;
       }
@@ -2753,27 +2754,23 @@ const equalizerApoRootDir = async (): Promise<string | null> => {
   return path.dirname(await getConfigPath('apo'));
 };
 
-/** The one wording both menu items fall back to when APO is not there. */
-const APO_NOT_LOCATED =
-  'Equalizer APO is not installed or its installation could not be located.';
-
 ipcMain.handle('open-equalizer-apo-configurator', async () => {
   try {
     const equalizerApoRoot = await equalizerApoRootDir();
     if (equalizerApoRoot === null) {
-      return APO_NOT_LOCATED;
+      return mainText('files.apo.notLocated');
     }
     const configuratorPath = ['DeviceSelector.exe', 'Configurator.exe']
       .map((fileName) => path.join(equalizerApoRoot, fileName))
       .find((candidate) => fs.existsSync(candidate));
 
     if (!configuratorPath) {
-      return 'Equalizer APO device configurator was not found.';
+      return mainText('files.apo.selectorMissing');
     }
 
     return shell.openPath(configuratorPath);
   } catch {
-    return APO_NOT_LOCATED;
+    return mainText('files.apo.notLocated');
   }
 });
 
@@ -2781,7 +2778,7 @@ ipcMain.handle('open-equalizer-apo-settings', async () => {
   try {
     const equalizerApoRoot = await equalizerApoRootDir();
     if (equalizerApoRoot === null) {
-      return APO_NOT_LOCATED;
+      return mainText('files.apo.notLocated');
     }
     // Equalizer APO 1.4.x renamed the old Configurator executable to Editor.
     // Keep the legacy name as a fallback for older installations.
@@ -2790,12 +2787,12 @@ ipcMain.handle('open-equalizer-apo-settings', async () => {
       .find((candidate) => fs.existsSync(candidate));
 
     if (!settingsPath) {
-      return 'Equalizer APO settings were not found.';
+      return mainText('files.apo.editorMissing');
     }
 
     return shell.openPath(settingsPath);
   } catch {
-    return 'Equalizer APO is not installed or its installation could not be located.';
+    return mainText('files.apo.notLocated');
   }
 });
 

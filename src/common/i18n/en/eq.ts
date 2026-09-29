@@ -761,6 +761,20 @@ const eq = {
   'waveform.clip': 'CLIP',
   'autoeq.deviceAria': 'Audio device',
   'autoeq.targetAria': 'Target frequency response',
+  'eq.band.edit': 'Edit {frequency} Hz band',
+  'eq.layers.apoEdit': 'Equalizer APO edit',
+  'convolution.entryDetail': '{provider} · minimum phase · {rate} kHz WAV',
+  'eq.refused.bandLimit':
+    'You already have the most bands FluidEQ can apply ({max}).',
+  'eq.refused.bandLimit.action':
+    'Remove a band before adding another, or adjust one you already have.',
+  'eq.refused.bandRange': 'A band has to sit between {min} Hz and {max} Hz.',
+  'eq.refused.bandRange.action':
+    'Nothing was added. Pick a frequency inside that range.',
+  'eq.refused.preampRange': 'The preamp goes from {min} dB to {max} dB.',
+  'eq.refused.preampRange.action': 'The preamp was left where it was.',
+  'eq.refused.externalEq':
+    'The external EQ contains stages FluidEQ cannot safely adopt. Its files were left unchanged.',
 } as const;
 
 export default eq;

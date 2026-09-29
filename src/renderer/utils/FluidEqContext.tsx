@@ -49,9 +49,13 @@ import { DEFAULT_DRIVER, IDriverSettings } from '../../common/driver';
 import { ISmartEqSettings } from '../../common/smartEq';
 import type { ITone } from '../../common/tone';
 import {
+  ErrorCode,
   ErrorDescription,
+  getErrorDescription,
   isBlockingError as isBlockingErrorCode,
+  isErrorDescription,
 } from '../../common/errors';
+import { reportError } from './logger';
 import ChannelEnum from '../../common/channels';
 import { cloneFilters } from '../../common/utils';
 import { SelectionMode, nextBandSelection } from '../../common/bandSelection';
@@ -683,9 +687,24 @@ export const FluidEqProviderWrapper = ({
 };
 
 export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
-  const [globalError, setGlobalError] = useState<
+  const [globalError, storeGlobalError] = useState<
     ErrorDescription | undefined
   >();
+  /**
+   * Every caller hands in what it caught, cast to a description. A plain
+   * Error thrown on the way — a TypeError in a handler — reached the banner
+   * with no code and no words, and drew it with an empty title. Anything that
+   * is not one of the codes' descriptions shows as the general failure, and
+   * goes into the log whole.
+   */
+  const setGlobalError = useCallback((next?: ErrorDescription) => {
+    if (next === undefined || isErrorDescription(next)) {
+      storeGlobalError(next);
+      return;
+    }
+    reportError('An unexpected failure reached the error banner', next);
+    storeGlobalError(getErrorDescription(ErrorCode.FAILURE));
+  }, []);
 
   // Once, for the initial values below: it mints fifteen band ids and works out
   // their Q, and was being run again on every render — every frame of a drag.
@@ -981,7 +1000,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setGlobalError(e as ErrorDescription);
       }
     },
-    [dispatchFilter, setGraphViewOn],
+    [dispatchFilter, setGlobalError, setGraphViewOn],
   );
 
   const performHealthCheck = useCallback(async () => {
@@ -1127,6 +1146,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       filters,
       performHealthCheck,
       refreshState,
+      setGlobalError,
       setGraphViewOn,
       convolution,
       headset,

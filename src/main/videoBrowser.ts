@@ -45,6 +45,7 @@ import log from 'electron-log';
 import fs from 'fs';
 import path from 'path';
 import openExternalIfSafe from './safeExternal';
+import mainText from './mainText';
 import {
   HOME_SITE,
   attachedPlayers,
@@ -191,9 +192,9 @@ const lockDownSession = () => {
     };
 
     item.setSaveDialogOptions({
-      title: 'Save download to your computer',
+      title: mainText('files.title.saveDownload'),
       defaultPath: path.join(app.getPath('downloads'), fileName),
-      buttonLabel: 'Save',
+      buttonLabel: mainText('files.save'),
     });
     update('choosing');
 

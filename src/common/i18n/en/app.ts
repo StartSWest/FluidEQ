@@ -420,6 +420,44 @@ const app = {
   'games.row.sounding': 'sound on',
   'games.row.sound': 'Sound for {name}',
   'games.row.remove': 'Remove {name}',
+  'error.apoMissing': 'Equalizer APO is not installed.',
+  'error.apoMissing.action': 'Please install Equalizer APO before retrying.',
+  'error.configMissing':
+    'Unable to locate the configuration file for Equalizer APO.',
+  'error.configMissing.action':
+    'Please check whether the config.txt file exists in the config folder of Equalizer APO.',
+  'error.invalidParameter': 'Internal Error: Invalid parameter.',
+  'error.reachOut': 'Please reach out to the developers to resolve the issue.',
+  'error.failure': 'Internal Error: Failed to apply equalizer settings.',
+  'error.failure.action':
+    'Please restart the application. If the error persists, try reaching out to the developers to resolve the issue.',
+  'error.presetFile': 'Internal Error: Failed to read or modify preset files.',
+  'error.presetFile.action':
+    'Please check that the preset name is saveable as a file and that the installation directory is in a writeable place. In addition, check that you have available storage space. If the error persists, try reaching out to the developers to resolve the issue.',
+  'error.presetName': 'Internal Error: Invalid preset name provided.',
+  'error.presetName.action':
+    'Please provide a different preset name. If the error persists, try reaching out to the developers to resolve the issue.',
+  'error.opra': 'Internal Error: Failed to read the headphone preset library.',
+  'error.convolutionCatalog': 'The convolution catalogue could not be reached.',
+  'error.convolutionCatalog.action':
+    'Please check your connection and try again.',
+  'error.import': 'That file could not be imported.',
+  'error.import.action':
+    'Please check that the file is an Equalizer APO EQ text file, a FluidEQ profile, or a WAV impulse response.',
+  'error.engineNotChosen': 'No audio engine has been chosen yet.',
+  'error.engineNotChosen.action':
+    'Please choose the audio engine FluidEQ should use.',
+  'error.engineMissing': 'The FluidEQ Engine is not installed.',
+  'error.engineMissing.action':
+    'Please install the FluidEQ Engine before retrying.',
+  'app.apoReinstall.confirm':
+    'Reinstall Equalizer APO?\n\nIts setup will open so you can re-select which audio devices to equalise. Windows will ask for administrator permission, and your computer will need to restart afterwards.\n\nYour FluidEQ settings and profiles are not affected.',
+  'app.apoReinstall.noBundle':
+    'This copy of FluidEQ has no Equalizer APO installer inside it.\n\nOpening Equalizer APO’s own download page instead. Install it from there and FluidEQ will find it.',
+  'app.apoReinstall.notStarted':
+    'Equalizer APO did not start.\n\nIt needs administrator permission — try again and approve the Windows prompt.',
+  'app.site.open': 'Open fluideq.com in your browser',
+  'config.customCommands': 'User-owned custom APO commands',
 } as const;
 
 export default app;

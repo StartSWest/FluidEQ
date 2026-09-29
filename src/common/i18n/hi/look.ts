@@ -156,6 +156,10 @@ const look: Partial<Dictionary> = {
   'support.thanks': 'धन्यवाद — आपके पेट को सितारा और नाच मिल गया है।',
   'support.footerBefore':
     'समय देकर मदद करना चाहेंगे? Issue और pull request भी उतने ही स्वागत योग्य हैं:',
+  'support.pet.title': 'काम का साथ दें',
+  'support.pet.thanks': 'FluidEQ का साथ देने के लिए धन्यवाद',
+  'support.qr.coffee': 'Buy me a coffee पेज का QR कोड',
+  'support.qr.address': '{asset} पते का QR कोड',
 };
 
 export default look;

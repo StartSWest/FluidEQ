@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { BrowserWindow, dialog, ipcMain } from 'electron';
 import fs from 'fs';
+import mainText from '../mainText';
 import {
   clearKaraokeSession,
   readRestoredKaraokeFile,
@@ -103,11 +104,11 @@ export const registerKaraokeIpc = ({
   ipcMain.handle('karaoke-maker-export', async (_event, request: unknown) => {
     const output = normalizeKaraokeMakerExport(request);
     const options = {
-      title: 'Export karaoke',
+      title: mainText('files.title.exportKaraoke'),
       defaultPath: output.fileName,
       filters: [
         { name: output.formatName, extensions: output.extensions },
-        { name: 'All files', extensions: ['*'] },
+        { name: mainText('files.type.all'), extensions: ['*'] },
       ],
     };
     const mainWindow = getMainWindow();

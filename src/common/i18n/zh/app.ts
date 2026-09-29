@@ -407,6 +407,39 @@ const app: Partial<Dictionary> = {
   'games.row.sounding': '音效已开启',
   'games.row.sound': '{name} 的音效',
   'games.row.remove': '移除 {name}',
+  'error.apoMissing': '未安装 Equalizer APO。',
+  'error.apoMissing.action': '请先安装 Equalizer APO，然后重试。',
+  'error.configMissing': '找不到 Equalizer APO 的配置文件。',
+  'error.configMissing.action':
+    '请检查 Equalizer APO 的 config 文件夹中是否有 config.txt 文件。',
+  'error.invalidParameter': '内部错误：参数无效。',
+  'error.reachOut': '请联系开发者解决此问题。',
+  'error.failure': '内部错误：无法应用均衡器设置。',
+  'error.failure.action': '请重新启动应用。如果错误仍然存在，请联系开发者。',
+  'error.presetFile': '内部错误：无法读取或修改预设文件。',
+  'error.presetFile.action':
+    '请检查预设名称能否作为文件名保存、安装文件夹是否可写，以及磁盘是否还有空间。如果错误仍然存在，请联系开发者。',
+  'error.presetName': '内部错误：预设名称无效。',
+  'error.presetName.action':
+    '请换一个预设名称。如果错误仍然存在，请联系开发者。',
+  'error.opra': '内部错误：无法读取耳机预设库。',
+  'error.convolutionCatalog': '无法访问卷积目录。',
+  'error.convolutionCatalog.action': '请检查网络连接后重试。',
+  'error.import': '无法导入该文件。',
+  'error.import.action':
+    '请确认该文件是 Equalizer APO 的 EQ 文本文件、FluidEQ 配置文件或 WAV 脉冲响应。',
+  'error.engineNotChosen': '尚未选择音频引擎。',
+  'error.engineNotChosen.action': '请选择 FluidEQ 要使用的音频引擎。',
+  'error.engineMissing': '未安装 FluidEQ 引擎。',
+  'error.engineMissing.action': '请先安装 FluidEQ 引擎，然后重试。',
+  'app.apoReinstall.confirm':
+    '要重新安装 Equalizer APO 吗？\n\n它的安装程序会打开，让你重新选择要均衡的音频设备。Windows 会请求管理员权限，之后需要重启电脑。\n\n你的 FluidEQ 设置和配置不受影响。',
+  'app.apoReinstall.noBundle':
+    '这份 FluidEQ 中没有附带 Equalizer APO 安装程序。\n\n将改为打开 Equalizer APO 自己的下载页面。从那里安装后，FluidEQ 会找到它。',
+  'app.apoReinstall.notStarted':
+    'Equalizer APO 没有启动。\n\n它需要管理员权限——请重试，并在 Windows 提示中允许。',
+  'app.site.open': '在浏览器中打开 fluideq.com',
+  'config.customCommands': '用户自定义的 APO 命令',
 };
 
 export default app;

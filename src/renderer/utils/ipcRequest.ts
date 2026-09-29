@@ -253,11 +253,16 @@ export const buildResponseHandler = <
   ) => {
     if ('errorCode' in arg) {
       const description = getErrorDescription(arg.errorCode);
+      // Main's own words stay beside the code's, already in the reader's
+      // language: the banner shows them (`errorText`), and the English
+      // title keeps them too, for the log.
       reject(
         toError({
           ...description,
-          ...(arg.detail ? { shortError: arg.detail } : {}),
-          ...(arg.action ? { action: arg.action } : {}),
+          ...(arg.detail ? { shortError: arg.detail, detail: arg.detail } : {}),
+          ...(arg.action
+            ? { action: arg.action, detailAction: arg.action }
+            : {}),
         }),
       );
       return;

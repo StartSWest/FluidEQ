@@ -434,6 +434,49 @@ const app: Partial<Dictionary> = {
   'games.row.sounding': 'Klang läuft',
   'games.row.sound': 'Klang für {name}',
   'games.row.remove': '{name} entfernen',
+  'error.apoMissing': 'Equalizer APO ist nicht installiert.',
+  'error.apoMissing.action':
+    'Installieren Sie Equalizer APO und versuchen Sie es dann erneut.',
+  'error.configMissing':
+    'Die Konfigurationsdatei von Equalizer APO wurde nicht gefunden.',
+  'error.configMissing.action':
+    'Prüfen Sie, ob die Datei config.txt im Ordner „config“ von Equalizer APO vorhanden ist.',
+  'error.invalidParameter': 'Interner Fehler: ungültiger Parameter.',
+  'error.reachOut':
+    'Bitte wenden Sie sich an die Entwickler, damit das Problem behoben werden kann.',
+  'error.failure':
+    'Interner Fehler: Die Equalizer-Einstellungen konnten nicht angewendet werden.',
+  'error.failure.action':
+    'Starten Sie die App neu. Bleibt der Fehler bestehen, wenden Sie sich an die Entwickler.',
+  'error.presetFile':
+    'Interner Fehler: Preset-Dateien konnten nicht gelesen oder geändert werden.',
+  'error.presetFile.action':
+    'Prüfen Sie, ob sich der Preset-Name als Dateiname speichern lässt, ob der Installationsordner beschreibbar ist und ob genug Speicherplatz frei ist. Bleibt der Fehler bestehen, wenden Sie sich an die Entwickler.',
+  'error.presetName': 'Interner Fehler: ungültiger Preset-Name.',
+  'error.presetName.action':
+    'Wählen Sie einen anderen Preset-Namen. Bleibt der Fehler bestehen, wenden Sie sich an die Entwickler.',
+  'error.opra':
+    'Interner Fehler: Die Kopfhörer-Preset-Bibliothek konnte nicht gelesen werden.',
+  'error.convolutionCatalog': 'Der Faltungskatalog ist nicht erreichbar.',
+  'error.convolutionCatalog.action':
+    'Prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.',
+  'error.import': 'Diese Datei konnte nicht importiert werden.',
+  'error.import.action':
+    'Prüfen Sie, ob die Datei eine EQ-Textdatei von Equalizer APO, ein FluidEQ-Profil oder eine WAV-Impulsantwort ist.',
+  'error.engineNotChosen': 'Es wurde noch keine Audio-Engine ausgewählt.',
+  'error.engineNotChosen.action':
+    'Wählen Sie die Audio-Engine, die FluidEQ verwenden soll.',
+  'error.engineMissing': 'Die FluidEQ-Engine ist nicht installiert.',
+  'error.engineMissing.action':
+    'Installieren Sie die FluidEQ-Engine und versuchen Sie es dann erneut.',
+  'app.apoReinstall.confirm':
+    'Equalizer APO neu installieren?\n\nDas Setup öffnet sich, damit Sie die zu entzerrenden Audiogeräte neu auswählen können. Windows fragt nach Administratorrechten, und danach muss der Computer neu starten.\n\nIhre FluidEQ-Einstellungen und -Profile bleiben unverändert.',
+  'app.apoReinstall.noBundle':
+    'Diese FluidEQ-Kopie enthält kein Installationsprogramm für Equalizer APO.\n\nStattdessen wird die Downloadseite von Equalizer APO geöffnet. Installieren Sie es von dort, dann findet FluidEQ es.',
+  'app.apoReinstall.notStarted':
+    'Equalizer APO wurde nicht gestartet.\n\nEs braucht Administratorrechte – versuchen Sie es erneut und bestätigen Sie die Windows-Abfrage.',
+  'app.site.open': 'fluideq.com im Browser öffnen',
+  'config.customCommands': 'Eigene APO-Befehle des Benutzers',
 };
 
 export default app;

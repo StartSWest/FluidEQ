@@ -23,7 +23,6 @@ import {
   useState,
   type RefObject,
 } from 'react';
-import { PRODUCT_NAME } from 'common/branding';
 import {
   useLiveAudioControl,
   useLiveAudioFrame,
@@ -31,6 +30,7 @@ import {
 import { amplitudeToDb, type IOutputLevel } from './graph/outputLevel';
 import { prefersReducedMotion } from './utils/bandReveal';
 import { PetArt } from './PetArt';
+import { useTranslation } from './utils/I18nContext';
 import './styles/SupportPet.scss';
 
 // The drawing has a file of its own; the EQ bubble and the share card have
@@ -386,9 +386,10 @@ export default function SupportPet({
   const ref = useRef<HTMLButtonElement>(null);
   const { pump, isListening, isDancing } = usePetAudio(ref, hasContributed);
 
+  const { t } = useTranslation();
   const title = hasContributed
-    ? `Thank you for supporting ${PRODUCT_NAME}`
-    : 'Support the work';
+    ? t('support.pet.thanks')
+    : t('support.pet.title');
 
   return (
     <button

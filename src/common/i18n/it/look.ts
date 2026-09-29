@@ -159,6 +159,10 @@ const look: Partial<Dictionary> = {
   'support.thanks': 'Grazie — la tua mascotte ha la sua stella e il suo ballo.',
   'support.footerBefore':
     'Preferisci contribuire con il tempo? Issue e pull request sono altrettanto benvenute su',
+  'support.pet.title': 'Sostieni il lavoro',
+  'support.pet.thanks': 'Grazie per sostenere FluidEQ',
+  'support.qr.coffee': 'Codice QR della pagina Buy me a coffee',
+  'support.qr.address': 'Codice QR dell’indirizzo {asset}',
 };
 
 export default look;

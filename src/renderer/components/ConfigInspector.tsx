@@ -306,7 +306,7 @@ const ConfigFileNode = ({
             feature="custom"
             isApplied
             isLive={isLive}
-            title="User-owned custom APO commands"
+            title={t('config.customCommands')}
           />
         )}
         <span className="config-node__badge config-node__badge--missing">
@@ -364,7 +364,7 @@ const ConfigFileNode = ({
             feature="custom"
             isApplied
             isLive={isLive}
-            title="User-owned custom APO commands"
+            title={t('config.customCommands')}
           />
         )}
         {subject && (

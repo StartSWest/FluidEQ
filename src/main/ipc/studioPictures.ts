@@ -1,5 +1,6 @@
 import { dialog, ipcMain, type BrowserWindow } from 'electron';
 import fs from 'fs';
+import mainText from '../mainText';
 import { readManifest } from '../memberScenes/projectFiles';
 import {
   readArtworkRegions,
@@ -181,7 +182,7 @@ export const registerStudioPicturesIpc = ({
             name:
               typeof label === 'string' && label.trim()
                 ? label.trim().slice(0, 80)
-                : 'Pictures',
+                : mainText('files.type.pictures'),
             extensions: PICTURE_EXTENSIONS,
           },
         ],

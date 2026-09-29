@@ -330,8 +330,10 @@ const ConvolutionPanel = () => {
                   <div className="convolution-result__details">
                     <strong>{entry.name}</strong>
                     <span>
-                      {entry.provider} · {entry.phase} phase ·{' '}
-                      {entry.sampleRate / 1000} kHz WAV
+                      {t('convolution.entryDetail', {
+                        provider: entry.provider,
+                        rate: entry.sampleRate / 1000,
+                      })}
                     </span>
                   </div>
                   <a

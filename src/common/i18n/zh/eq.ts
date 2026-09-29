@@ -704,6 +704,17 @@ const eq: Partial<Dictionary> = {
   'waveform.clip': '削波',
   'autoeq.deviceAria': '音频设备',
   'autoeq.targetAria': '目标频率响应',
+  'eq.band.edit': '编辑 {frequency} Hz 频段',
+  'eq.layers.apoEdit': 'Equalizer APO 中的编辑',
+  'convolution.entryDetail': '{provider} · 最小相位 · {rate} kHz WAV',
+  'eq.refused.bandLimit': '频段数已达 FluidEQ 能应用的上限（{max}）。',
+  'eq.refused.bandLimit.action': '请先移除一个频段再添加，或调整已有的频段。',
+  'eq.refused.bandRange': '频段必须位于 {min} Hz 到 {max} Hz 之间。',
+  'eq.refused.bandRange.action': '未添加任何内容。请在该范围内选择频率。',
+  'eq.refused.preampRange': '前级增益的范围是 {min} dB 到 {max} dB。',
+  'eq.refused.preampRange.action': '前级增益保持不变。',
+  'eq.refused.externalEq':
+    '外部 EQ 包含 FluidEQ 无法安全接管的处理环节。其文件未做任何更改。',
 };
 
 export default eq;

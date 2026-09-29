@@ -334,7 +334,7 @@ export default function SupportDialog({
                 <img
                   className="qr-code"
                   src={supportQrImage}
-                  alt="QR code for the Buy me a coffee page"
+                  alt={t('support.qr.coffee')}
                   width={168}
                   height={168}
                 />
@@ -387,7 +387,7 @@ export default function SupportDialog({
             {uri && (
               <QrCode
                 value={uri}
-                label={`QR code for the ${asset.name} address`}
+                label={t('support.qr.address', { asset: asset.name })}
                 size={168}
               />
             )}

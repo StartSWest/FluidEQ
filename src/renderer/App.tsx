@@ -30,7 +30,7 @@ import {
   type ReactNode,
   type SyntheticEvent,
 } from 'react';
-import { ErrorCode, ErrorDescription } from 'common/errors';
+import { ErrorCode, ErrorDescription, errorText } from 'common/errors';
 import type { IAudioRestartOutcome, TAudioEngine } from 'common/audioEngine';
 import type { IEngineSetupResult } from 'main/engineSetup';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
@@ -43,11 +43,7 @@ import {
   featureTourDismissal,
   shouldShowFeatureTour,
 } from 'common/featureTour';
-import {
-  OFFICIAL_SITE_URL,
-  PRODUCT_NAME,
-  PRODUCT_VERSION,
-} from 'common/branding';
+import { OFFICIAL_SITE_URL, PRODUCT_VERSION } from 'common/branding';
 import { resetRhythmRun } from './utils/rhythmRun';
 import useMediaQuery from './utils/useMediaQuery';
 import {
@@ -2106,11 +2102,7 @@ const AppContent = () => {
     // None of that should happen because somebody was reading the menu with a
     // mouse in their hand.
     const confirmed = await window.electron.ipcRenderer.confirmNative(
-      'Reinstall Equalizer APO?\n\n' +
-        'Its setup will open so you can re-select which audio devices to ' +
-        'equalise. Windows will ask for administrator permission, and your ' +
-        'computer will need to restart afterwards.\n\n' +
-        `Your ${PRODUCT_NAME} settings and profiles are not affected.`,
+      t('app.apoReinstall.confirm'),
       t('whatsNew.ok'),
       t('config.cancel'),
     );
@@ -2125,18 +2117,14 @@ const AppContent = () => {
       // `apo-bundle-missing` over "Please restart the application" — no
       // download, and nothing anybody could act on.
       await window.electron.ipcRenderer.showNativeMessage(
-        `This copy of ${PRODUCT_NAME} has no Equalizer APO installer inside it.\n\n` +
-          "Opening Equalizer APO's own download page instead. Install it from " +
-          `there and ${PRODUCT_NAME} will find it.`,
+        t('app.apoReinstall.noBundle'),
       );
       return;
     }
 
     if (outcome === 'not-started') {
       await window.electron.ipcRenderer.showNativeMessage(
-        'Equalizer APO did not start.\n\n' +
-          'It needs administrator permission — try again and approve the ' +
-          'Windows prompt.',
+        t('app.apoReinstall.notStarted'),
       );
       return;
     }
@@ -3412,8 +3400,8 @@ const AppContent = () => {
                 href={OFFICIAL_SITE_URL}
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Open fluideq.com in your browser"
-                title="Open fluideq.com in your browser"
+                aria-label={t('app.site.open')}
+                title={t('app.site.open')}
               >
                 <span>fluideq.com</span>
                 <MenuIcon
@@ -3449,7 +3437,6 @@ const AppContent = () => {
             onReinstallApo={handleReinstallApo}
             onEnableEngine={handleTroubleshootEnableEngine}
             onRemoveEngineFromOutput={handleTroubleshootRemoveEngine}
-            enableEngineLabel={t('output.enable')}
           />
         )}
         {/* No engine chosen at all is a question, not a fault: the same dialog
@@ -3472,8 +3459,8 @@ const AppContent = () => {
                 isLoading={isLoading}
                 onRetry={handlePrereqRetry}
                 onInstallFluid={handleInstallFluidEngine}
-                errorMsg={globalError.shortError}
-                actionMsg={globalError.action}
+                errorMsg={errorText(globalError, t).title}
+                actionMsg={errorText(globalError, t).action}
               />
             )}
         {/* Never beside the blocking copy of itself: two identical dialogs
@@ -3538,12 +3525,12 @@ const AppContent = () => {
             aria-modal={undefined}
             tone="warn"
             icon={<MenuIcon name="alert" />}
-            title={globalError.shortError}
+            title={errorText(globalError, t).title}
             titleId="workspace-error-title"
             onClose={() => setGlobalError(undefined)}
             closeLabel={t('app.dismiss')}
           >
-            {globalError.action && <p>{globalError.action}</p>}
+            <p>{errorText(globalError, t).action}</p>
           </CompactFrame>
         )}
         {importNotice && (

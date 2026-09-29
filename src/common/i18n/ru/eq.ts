@@ -746,6 +746,21 @@ const eq: Partial<Dictionary> = {
   'waveform.clip': 'ПЕРЕГРУЗКА',
   'autoeq.deviceAria': 'Аудиоустройство',
   'autoeq.targetAria': 'Целевая АЧХ',
+  'eq.band.edit': 'Изменить полосу {frequency} Гц',
+  'eq.layers.apoEdit': 'Правка в Equalizer APO',
+  'convolution.entryDetail': '{provider} · минимальная фаза · WAV {rate} кГц',
+  'eq.refused.bandLimit':
+    'У вас уже максимум полос, которые может применить FluidEQ ({max}).',
+  'eq.refused.bandLimit.action':
+    'Удалите полосу, прежде чем добавлять новую, или измените уже существующую.',
+  'eq.refused.bandRange':
+    'Полоса должна быть в диапазоне от {min} Гц до {max} Гц.',
+  'eq.refused.bandRange.action':
+    'Ничего не добавлено. Выберите частоту в этом диапазоне.',
+  'eq.refused.preampRange': 'Предусиление — от {min} дБ до {max} дБ.',
+  'eq.refused.preampRange.action': 'Предусиление осталось прежним.',
+  'eq.refused.externalEq':
+    'Во внешнем эквалайзере есть ступени, которые FluidEQ не может безопасно перенять. Его файлы не изменены.',
 };
 
 export default eq;

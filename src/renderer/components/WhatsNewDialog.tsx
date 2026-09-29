@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  Fragment,
   type ReactElement,
   useEffect,
   useEffectEvent,
@@ -25,6 +24,7 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from '../utils/I18nContext';
+import renderInline from '../utils/inlineMarkup';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from './DialogFrame';
 import '../styles/WhatsNew.scss';
@@ -42,31 +42,6 @@ interface IWhatsNewDialogProps {
 }
 
 /**
- * The release notes, rendered from CHANGELOG.md.
- *
- * Just enough Markdown to render that one file: headings, list items, bold
- * runs, inline code, and horizontal rules. A Markdown library would be a
- * dependency and a bundle's worth of parser for a document whose shape we
- * control and whose only reader is this component. If the changelog ever grows
- * a table or a nested list, that is the moment to reconsider — not before.
- */
-const renderInline = (text: string, keyPrefix: string) => {
-  // Split on the two things the changelog actually uses. Everything else is
-  // left as written, which for prose is the right answer anyway.
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
-  return parts.filter(Boolean).map((part, index) => {
-    const key = `${keyPrefix}-${index}`;
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={key}>{part.slice(2, -2)}</strong>;
-    }
-    if (part.startsWith('`') && part.endsWith('`')) {
-      return <code key={key}>{part.slice(1, -1)}</code>;
-    }
-    return <Fragment key={key}>{part}</Fragment>;
-  });
-};
-
-/**
  * One version's notes, under its number; the file's own preface, before the
  * first version, has no heading.
  */
@@ -75,6 +50,16 @@ interface IChangelogSection {
   blocks: ReactElement[];
 }
 
+/**
+ * The release notes, rendered from CHANGELOG.md.
+ *
+ * Just enough Markdown to render that one file: headings, list items, bold
+ * runs and inline code (`renderInline`), and horizontal rules. A Markdown
+ * library would be a dependency and a bundle's worth of parser for a document
+ * whose shape we control and whose only reader is this component. If the
+ * changelog ever grows a table or a nested list, that is the moment to
+ * reconsider — not before.
+ */
 const renderChangelog = (markdown: string) => {
   const preface: IChangelogSection = { key: 'preface', blocks: [] };
   const sections = [preface];

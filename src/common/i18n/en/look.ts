@@ -155,6 +155,10 @@ const look = {
   'support.thanks': 'Thank you — your pet has its star and dance.',
   'support.footerBefore':
     'Prefer to contribute time instead? Issues and pull requests are just as welcome on',
+  'support.pet.title': 'Support the work',
+  'support.pet.thanks': 'Thank you for supporting FluidEQ',
+  'support.qr.coffee': 'QR code for the Buy me a coffee page',
+  'support.qr.address': 'QR code for the {asset} address',
 } as const;
 
 export default look;

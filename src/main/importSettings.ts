@@ -43,8 +43,8 @@ import {
 } from '../common/constants';
 import { parseEqText } from '../common/apoText';
 import { validatePresetV1, validatePresetV2 } from '../common/validator';
-import { PRODUCT_NAME } from '../common/branding';
 import { analyzeConvolutionBuffer } from './convolutionAnalysis';
+import { Refusal } from './refusal';
 
 /** Big enough for a long impulse response, small enough to refuse a mistake. */
 const MAX_WAV_BYTES = 128 * 1024 * 1024;
@@ -77,7 +77,7 @@ export interface IImportedEq {
   eqFormat: AutoEqFormat;
   graphicEq?: IGraphicEqPoint[];
   /** What the file was recognised as, for the confirmation message. */
-  sourceLabel: string;
+  source: 'profile' | 'graphicEq' | 'parametricEq';
   /** Bands recognised but with no FluidEQ equivalent; 0 for a clean import. */
   unsupported: number;
 }
@@ -94,7 +94,7 @@ const readWavSampleRate = (buffer: Buffer): number => {
     buffer.toString('ascii', 0, 4) !== 'RIFF' ||
     buffer.toString('ascii', 8, 12) !== 'WAVE'
   ) {
-    throw new Error('That file is not a WAV impulse response.');
+    throw new Refusal('files.wav.notWav');
   }
 
   let offset = 12;
@@ -103,7 +103,7 @@ const readWavSampleRate = (buffer: Buffer): number => {
     const chunkSize = buffer.readUInt32LE(offset + 4);
     const chunkEnd = offset + 8 + chunkSize;
     if (chunkEnd > buffer.length) {
-      throw new Error('That WAV file is truncated.');
+      throw new Refusal('files.wav.truncated');
     }
     if (chunkId === 'fmt ' && chunkSize >= 16) {
       const audioFormat = buffer.readUInt16LE(offset + 8);
@@ -112,13 +112,13 @@ const readWavSampleRate = (buffer: Buffer): number => {
       // 1 is PCM, 3 is IEEE float, 0xFFFE is WAVE_FORMAT_EXTENSIBLE — which is
       // what most 24-bit and multichannel IRs are actually tagged as.
       if (![1, 3, 0xfffe].includes(audioFormat) || channels < 1) {
-        throw new Error('That WAV format is not supported by Equalizer APO.');
+        throw new Refusal('files.wav.unsupported');
       }
       return sampleRate;
     }
     offset = chunkEnd + (chunkSize % 2);
   }
-  throw new Error('That WAV file has no format chunk.');
+  throw new Refusal('files.wav.noFormat');
 };
 
 /**
@@ -134,14 +134,15 @@ export const importConvolutionFile = (
 ): IConvolutionProfile => {
   const stat = fs.statSync(sourcePath);
   if (stat.size > MAX_WAV_BYTES) {
-    throw new Error('That impulse response is too large to import safely.');
+    throw new Refusal('files.wav.tooLarge');
   }
   const buffer = fs.readFileSync(sourcePath);
   const sampleRate = readWavSampleRate(buffer);
   if (!SUPPORTED_SAMPLE_RATES.includes(sampleRate as never)) {
-    throw new Error(
-      `That impulse response is ${sampleRate} Hz. Equalizer APO needs one of ${SUPPORTED_SAMPLE_RATES.join(', ')} Hz.`,
-    );
+    throw new Refusal('files.wav.rate', {
+      rate: sampleRate,
+      rates: SUPPORTED_SAMPLE_RATES.join(', '),
+    });
   }
   const analysis = analyzeConvolutionBuffer(buffer);
 
@@ -201,7 +202,7 @@ const fromPresetV1 = (preset: IPresetV1): IPresetV2 => {
 export const importEqFile = (sourcePath: string): IImportedEq => {
   const stat = fs.statSync(sourcePath);
   if (stat.size > MAX_TEXT_BYTES) {
-    throw new Error('That file is too large to be an EQ setting.');
+    throw new Refusal('files.eq.tooLarge');
   }
   const content = fs.readFileSync(sourcePath, 'utf8');
 
@@ -220,7 +221,7 @@ export const importEqFile = (sourcePath: string): IImportedEq => {
       preset = fromPresetV1(json as IPresetV1);
     }
     if (!preset) {
-      throw new Error(`That JSON file is not a ${PRODUCT_NAME} profile.`);
+      throw new Refusal('files.eq.notProfile');
     }
     return {
       preAmp: clampGain(preset.preAmp),
@@ -234,16 +235,14 @@ export const importEqFile = (sourcePath: string): IImportedEq => {
       curveSmoothing: preset.curveSmoothing,
       eqBandDesign: normalizeBandDesign(preset.eqBandDesign),
       isEqDoubleOn: getEqMode(preset) === 'double',
-      sourceLabel: `${PRODUCT_NAME} profile`,
+      source: 'profile',
       unsupported: 0,
     };
   }
 
   const parsed = parseEqText(content);
   if (parsed.isEmpty) {
-    throw new Error(
-      `No Equalizer APO filters were found in that file. Expected a ParametricEQ, GraphicEQ or ${PRODUCT_NAME} profile.`,
-    );
+    throw new Refusal('files.eq.noFilters');
   }
 
   return {
@@ -251,10 +250,8 @@ export const importEqFile = (sourcePath: string): IImportedEq => {
     filters: parsed.filters,
     eqFormat: parsed.eqFormat,
     graphicEq: parsed.graphicEq,
-    sourceLabel:
-      parsed.eqFormat === AutoEqFormat.GRAPHIC
-        ? 'GraphicEQ file'
-        : 'Equalizer APO ParametricEQ file',
+    source:
+      parsed.eqFormat === AutoEqFormat.GRAPHIC ? 'graphicEq' : 'parametricEq',
     unsupported: parsed.unsupported,
   };
 };

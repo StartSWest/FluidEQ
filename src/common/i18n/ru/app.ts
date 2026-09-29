@@ -430,6 +430,45 @@ const app: Partial<Dictionary> = {
   'games.row.sounding': 'звук включён',
   'games.row.sound': 'Звук для {name}',
   'games.row.remove': 'Убрать {name}',
+  'error.apoMissing': 'Equalizer APO не установлен.',
+  'error.apoMissing.action': 'Установите Equalizer APO и попробуйте снова.',
+  'error.configMissing': 'Не найден файл конфигурации Equalizer APO.',
+  'error.configMissing.action':
+    'Проверьте, есть ли файл config.txt в папке config программы Equalizer APO.',
+  'error.invalidParameter': 'Внутренняя ошибка: недопустимый параметр.',
+  'error.reachOut': 'Обратитесь к разработчикам, чтобы решить проблему.',
+  'error.failure':
+    'Внутренняя ошибка: не удалось применить настройки эквалайзера.',
+  'error.failure.action':
+    'Перезапустите приложение. Если ошибка повторится, обратитесь к разработчикам.',
+  'error.presetFile':
+    'Внутренняя ошибка: не удалось прочитать или изменить файлы пресетов.',
+  'error.presetFile.action':
+    'Проверьте, что имя пресета можно сохранить как имя файла, что в папку установки можно записывать и что на диске есть свободное место. Если ошибка повторится, обратитесь к разработчикам.',
+  'error.presetName': 'Внутренняя ошибка: недопустимое имя пресета.',
+  'error.presetName.action':
+    'Выберите другое имя пресета. Если ошибка повторится, обратитесь к разработчикам.',
+  'error.opra':
+    'Внутренняя ошибка: не удалось прочитать библиотеку пресетов для наушников.',
+  'error.convolutionCatalog': 'Не удалось получить каталог свёртки.',
+  'error.convolutionCatalog.action':
+    'Проверьте подключение и попробуйте снова.',
+  'error.import': 'Не удалось импортировать этот файл.',
+  'error.import.action':
+    'Проверьте, что это текстовый файл эквализации Equalizer APO, профиль FluidEQ или импульсная характеристика в формате WAV.',
+  'error.engineNotChosen': 'Звуковой движок ещё не выбран.',
+  'error.engineNotChosen.action':
+    'Выберите звуковой движок, который будет использовать FluidEQ.',
+  'error.engineMissing': 'Движок FluidEQ не установлен.',
+  'error.engineMissing.action': 'Установите движок FluidEQ и попробуйте снова.',
+  'app.apoReinstall.confirm':
+    'Переустановить Equalizer APO?\n\nОткроется его установщик, чтобы вы заново выбрали, какие звуковые устройства эквализировать. Windows запросит права администратора, а затем компьютер нужно будет перезагрузить.\n\nВаши настройки и профили FluidEQ не затрагиваются.',
+  'app.apoReinstall.noBundle':
+    'В этой копии FluidEQ нет установщика Equalizer APO.\n\nВместо этого открывается страница загрузки Equalizer APO. Установите его оттуда, и FluidEQ его найдёт.',
+  'app.apoReinstall.notStarted':
+    'Equalizer APO не запустился.\n\nЕму нужны права администратора — попробуйте снова и подтвердите запрос Windows.',
+  'app.site.open': 'Открыть fluideq.com в браузере',
+  'config.customCommands': 'Собственные команды APO пользователя',
 };
 
 export default app;
