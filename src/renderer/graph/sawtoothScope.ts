@@ -24,12 +24,12 @@ export const GHOST_LIFE = 0.6;
 export const FLARE_LIFE = 0.22;
 export const SPARK_LIFE = 0.5;
 
-interface IGhost {
+export interface IGhost {
   path: Path2D;
   at: number;
 }
 
-interface ISpark {
+export interface ISpark {
   x: number;
   y: number;
   /** Pixels per second of clock, in plot space. */

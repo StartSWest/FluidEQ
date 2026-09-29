@@ -38,7 +38,7 @@ export const SHAKE_LIFE = 0.3;
 export const ECHO_LIFE = 1.4;
 const ECHO_LIMIT = 6;
 
-interface IEcho {
+export interface IEcho {
   /** The trace as it was when the beat let it go. */
   vertices: Projected[];
   path: Path2D;
