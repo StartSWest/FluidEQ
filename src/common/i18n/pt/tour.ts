@@ -22,18 +22,108 @@ const tour: Partial<Dictionary> = {
   'tour.player.title': 'O FluidEQ, recolhido em um player',
   'tour.player.subtitle': 'Um botão transforma a janela em um player',
   'tour.player.lead':
-    'Um botão na barra de título transforma a janela no Player compacto: a música, seu equalizador, um visualizador e “A seguir” em uma coluna estreita. O mesmo botão leva você de volta à página em que estava.',
+    'Um botão na barra de título transforma todo o FluidEQ em um player. É o amplificador clássico, com seu relógio de LED, suas luzes e o equalizador completo; com {backdrop}, sobre um visualizador Plus, ele vira vidro. O mesmo botão leva você de volta à página que deixou.',
   'tour.player.point1':
     'O equalizador inteiro vai junto: presets, layouts de bandas, Modo EQ, EQ inteligente, Graves, Médios e Agudos.',
   'tour.player.point2':
     'Recolha-o em uma linha, mantenha-o acima das outras janelas ou clique duas vezes no visualizador para tela cheia.',
   'tour.player.point3':
-    'Um tema Claro ou Escuro próprio, e as músicas soltas em “A seguir” entram na Biblioteca e na fila.',
+    'Um tema próprio, e as músicas soltas em “A seguir” entram na Biblioteca e na fila.',
   'tour.player.how':
     'Pressione o botão Player compacto na barra de título, ao lado de Ajuda. No player, o mesmo botão traz o app completo de volta.',
   'tour.player.open': 'Experimentar o Player compacto',
   'tour.player.imageAlt':
-    'O Player compacto duas vezes, nos temas Escuro e Claro: a música e seu relógio no topo, o equalizador com quinze bandas, “A seguir” embaixo; e o mesmo player recolhido em uma linha.',
+    'O canto da barra de título com o botão {player} destacado, e os dois players que ele abre: o amplificador clássico com relógio de LED, luzes, equalizador e fila, e o player de vidro, mais largo, sobre uma aurora com {backdrop}.',
+  'tour.player.classic': 'Amplificador clássico',
+  'tour.player.glass': 'Vidro, com {backdrop}',
+  'tour.look.kicker': 'UM VISUAL NOVO',
+  'tour.look.title': 'Uma janela nova, com cores novas',
+  'tour.look.subtitle':
+    'Um só controle de tema e um visualizador por trás de tudo',
+  'tour.look.lead':
+    'Os painéis ficam sobre um único piso aberto, nas cores do novo ícone, e um só controle, {brightness}, leva a janela inteira do quase preto a um azul-oceano claro. Com um visualizador Plus no gráfico, a janela pode assumir as cores dele ou deixá-lo rodando por trás de tudo.',
+  'tour.look.point1':
+    '{brightness} fica no menu do ícone de pulso, e ao lado de {transparency} em {windowColours}.',
+  'tour.look.point2':
+    '{windowColours} oferece {original}, {colours}, {ambient} e {backdrop}, cada um com uma linha sobre o que faz com a janela.',
+  'tour.look.point3':
+    'Diálogos e menus compartilham o mesmo material, e o {rainbow} percorre as cores do ícone, ou as de um visualizador.',
+  'tour.look.how':
+    'Mova {brightness} no menu de ações no ícone de pulso do canto superior direito. Com um visualizador Plus no gráfico, abra {windowColours} pela barra do gráfico e escolha {backdrop}.',
+  'tour.look.open': 'Abrir EQ',
+  'tour.look.imageAlt':
+    'O FluidEQ com uma cena de montanhas à noite por trás dos painéis, e o menu Cores da janela com Pano de fundo escolhido, o Brilho na metade e a Transparência em um quarto.',
+  'tour.gpu.kicker': 'UM NOVO MOTOR DE VISUALIZADORES',
+  'tour.gpu.title': 'Todos os visualizadores na sua placa de vídeo',
+  'tour.gpu.subtitle': 'Quarenta estilos no ritmo da sua tela, e mundos 3D',
+  'tour.gpu.lead':
+    'Os quarenta estilos do gráfico agora são desenhados pelo motor das cenas Plus: na sua placa de vídeo, na taxa de atualização da sua tela, então barras, partículas e picos deslizam onde antes saltavam. E um visualizador Plus agora pode ser um mundo 3D de verdade.',
+  'tour.gpu.point1':
+    'Dezoito estilos novos em {scenes}, entre eles {synthwave}, {horizon}, {towers} e {ledwall}; um estilo sem cores próprias usa as da janela.',
+  'tour.gpu.point2':
+    'Os mundos 3D pisam no bumbo, balançam com a caixa, saltam no drop e passam da noite ao dia com {brightness}; arraste um para vê-lo de outro lado.',
+  'tour.gpu.point3':
+    'Ao trocar de estilo, um se funde no próximo, e um mundo 3D devolve a memória de vídeo enquanto a janela está coberta.',
+  'tour.gpu.how':
+    'Clique no nome do estilo no gráfico e escolha um em {scenes}.',
+  'tour.gpu.open': 'Abrir EQ',
+  'tour.gpu.imageAlt':
+    'Um visualizador Plus que é uma cidade 3D à noite, e quatro estilos novos fotografados no gráfico — {synthwave}, {horizon}, {towers} e {ledwall} —, com o seletor de estilos destacado no primeiro.',
+  'tour.gpu.world': 'Mundo 3D',
+  'tour.sparks.kicker': 'FAÍSCAS DO PONTEIRO',
+  'tour.sparks.title': 'Visualizadores que respondem ao seu mouse',
+  'tour.sparks.subtitle': 'Faíscas, pétalas ou neve a partir do ponteiro',
+  'tour.sparks.lead':
+    'Passe o mouse sobre um visualizador Plus e ele lança aquilo de que é feito — faíscas, pétalas, neve, brasas — num rastro atrás do ponteiro, e explode onde você clica. Com {ambient} e com {backdrop}, seus pássaros, pétalas e luzes também flutuam pela janela inteira.',
+  'tour.sparks.point1':
+    'Cada visualizador lança o seu: neve de uma cena de inverno, brasas de uma fogueira, pétalas de um jardim.',
+  'tour.sparks.point2':
+    'O palco do Studio sempre mostra as faíscas, para quem cria uma cena dar forma ao que ela lança.',
+  'tour.sparks.point3':
+    'Um só botão para todos os visualizadores: {sparks}, em {windowColours} abaixo de {rainbow}.',
+  'tour.sparks.how':
+    'Com um visualizador Plus no gráfico, passe o mouse sobre ele e clique. {sparks} fica em {windowColours}, abaixo de {rainbow}.',
+  'tour.sparks.open': 'Abrir EQ',
+  'tour.sparks.imageAlt':
+    'Um visualizador de aurora com um rastro de faíscas brilhantes atrás do ponteiro e uma explosão onde ele clicou, e {windowColours} com o botão {sparks} destacado.',
+  'tour.sound.kicker': 'O MOTOR FLUIDEQ',
+  'tour.sound.title': 'O som exatamente como você desenhou',
+  'tour.sound.subtitle':
+    'Agudos como desenhados, trocas sem cliques, nível em um passo',
+  'tour.sound.lead':
+    'No Motor FluidEQ, sua curva agora toca exatamente como desenhada até 20 kHz, cada mudança faz uma transição suave em vez de estalar, e {autoNormalize} chega ao nível de uma curva nova em um passo. Como os agudos são construídos, você escolhe: {precise} ou {classic}.',
+  'tour.sound.point1':
+    '{precise} constrói cada banda como desenhada; numa saída de 48 kHz, os agudos chegavam 3,8 dB abaixo em 20 kHz. {classic} as constrói como o Equalizer APO, e como o AutoEQ ajusta uma correção.',
+  'tour.sound.point2':
+    'Os presets fazem transição ao trocar: 534 de 636 trocas estalavam, e agora nenhuma passa de −80 dBFS.',
+  'tour.sound.point3':
+    'Cada ajuste é ouvido no momento em que você o faz, e {autoNormalize} depois vai ao nível dele em um passo, calculado com os últimos dez segundos de música.',
+  'tour.sound.how':
+    'Abra o EQ e clique em {eqMode}. Em {treble}, escolha {precise} ou {classic}, para o seu EQ e para as correções separadamente.',
+  'tour.sound.open': 'Abrir EQ',
+  'tour.sound.imageAlt':
+    'O menu {eqMode} aberto abaixo do botão, com {treble} em {precise}; uma curva de agudos que {precise} toca como desenhada e {classic} 3,8 dB abaixo em 20 kHz numa saída de 48 kHz; e o som acima de 5 kHz durante uma troca de preset: um clique de −26 dBFS antes da 2.0, nada acima de −80 dBFS agora.',
+  'tour.sound.trebleChart': 'Agudos, de 1 a 20 kHz',
+  'tour.sound.switchChart': 'Acima de 5 kHz, numa troca de preset',
+  'tour.sound.before': 'Antes da 2.0',
+  'tour.sound.now': '2.0',
+  'tour.graph.kicker': 'VISTAS DE ESTÚDIO',
+  'tour.graph.title': 'Um gráfico que lê o som como um estúdio',
+  'tour.graph.subtitle': 'Doze vistas e um analisador de 80 dB',
+  'tour.graph.lead':
+    'O gráfico mede o que está tocando como os analisadores de estúdio: doze vistas, do espectrograma e da cascata ao estéreo, à sonoridade e à fase, em escalas que ficam paradas enquanto a música se move.',
+  'tour.graph.point1':
+    '{analyzer}, {spectrogram}, {rta}, {waterfall}, {scope} e mais sete, em {analysis} no seletor de visuais.',
+  'tour.graph.point2':
+    'O som ao vivo é desenhado com 80 dB de profundidade e até 10 Hz, 1/12 de oitava por ponto, então um tom aparece no nível real.',
+  'tour.graph.point3':
+    'O seu EQ mantém os ±20 dB, com margem nas bordas para uma curva que vai além, e as frequências aparecem como 10, 20, 50, 100, do jeito que os analisadores imprimem.',
+  'tour.graph.how':
+    'Clique no nome do visual no gráfico e escolha uma vista em {analysis}. Clique duas vezes no gráfico para preencher a tela; Ctrl+G mostra ou esconde a grade.',
+  'tour.graph.open': 'Abrir EQ',
+  'tour.graph.imageAlt':
+    'O Analisador do gráfico: o espectro ao vivo com 80 dB de profundidade, barras de terço de oitava atrás e os picos por cima, a curva do EQ no topo e as doze vistas listadas em Análise.',
+
   'tour.games.kicker': 'PRESETS DE JOGO',
   'tour.games.title': 'Cada jogo com seu próprio som',
   'tour.games.subtitle': 'Aplicado quando o jogo vem para a frente',
@@ -49,7 +139,10 @@ const tour: Partial<Dictionary> = {
     'Abra EQ, escolha Presets de jogo e pressione Adicionar um jogo. Depois, escolha o som do jogo no seletor da linha dele.',
   'tour.games.open': 'Abrir Presets de jogo',
   'tour.games.imageAlt':
-    'A página Presets de jogo com quatro jogos, cada um com seu próprio som, e os cartões que o FluidEQ mostra na área de trabalho quando um jogo vem para a frente e quando ele fecha.',
+    'Três momentos na área de trabalho: um jogo em primeiro plano com o cartão do FluidEQ dizendo que o som dele foi carregado, o mesmo jogo minimizado com o som ainda ativo, e o jogo fechado com o cartão dizendo que o som de antes voltou.',
+  'tour.games.stepFront': 'Em primeiro plano: o som dele é carregado',
+  'tour.games.stepAway': 'Minimizado ou com Alt+Tab: o som continua',
+  'tour.games.stepClosed': 'Fechado: o seu som volta',
   'tour.presets.kicker': 'NOVOS PRESETS',
   'tour.presets.title': 'Presets que soam como a música',
   'tour.presets.subtitle': 'Cadeias inteiras, todas no mesmo volume',
@@ -88,11 +181,11 @@ const tour: Partial<Dictionary> = {
   'tour.studio.lead':
     'O Estúdio transforma uma ideia em uma cena que se move com sua música. Agora ele faz parte do Plus, e uma conta nova pode experimentá-lo grátis por quinze dias, sem cartão e sem nenhuma cobrança quando o teste terminar.',
   'tour.studio.point1':
-    'Publique uma cena e, quando ela for aprovada, seu próximo mês de Plus é grátis.',
+    'Cada cena é revisada antes de chegar à galeria, e uma cena aprovada garante seu próximo mês de Plus grátis.',
   'tour.studio.point2':
-    'A cena de cada membro é revisada antes de chegar à galeria.',
+    'As cenas podem ser mundos 3D de verdade que pisam no bumbo e saltam no drop.',
   'tour.studio.point3':
-    'Tudo o que você fez antes continua guardado, na pasta que o Estúdio indica.',
+    'Copie o prompt para a IA e o seu assistente de IA pode ver a sua cena e ouvir como a música se move.',
   'tour.studio.how':
     'Abra Plus e escolha Estúdio na barra lateral. Sem o Plus, a página ali oferece o teste gratuito.',
   'tour.studio.open': 'Abrir Plus',
@@ -109,7 +202,7 @@ const tour: Partial<Dictionary> = {
   'tour.help.point1':
     'Ele perdoa erros de digitação e plurais, e conhece as palavras que as pessoas usam para as coisas.',
   'tour.help.point2':
-    'Cada controle em uma captura é numerado como em um manual impresso, e as capturas acompanham o seu tema.',
+    'Cada controle em uma captura é numerado, como em um manual impresso.',
   'tour.help.point3':
     'F1 abre o guia de qualquer lugar, e Enter vai para o próximo resultado.',
   'tour.help.how':
@@ -235,25 +328,6 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Um teclado, um mouse e um mousepad iluminados no rosa, violeta e ciano da cena Cidade de neon.',
 
-  'tour.theme.kicker': 'UM NOVO VISUAL',
-  'tour.theme.title': 'Conheça o tema Escuro',
-  'tour.theme.subtitle': 'Quase preto, para as madrugadas e telas OLED',
-  'tour.theme.lead':
-    'O FluidEQ agora tem uma segunda cara. O tema Escuro remove todo traço do azul-ardósia com que o app nasceu: painéis, menus e barras ficam monocromáticos, o destaque permanece e o espectro é a única cor na sala.',
-  'tour.theme.point1':
-    'Fundos quase pretos: em uma tela OLED, o espaço ao redor do gráfico fica quase escuro.',
-  'tour.theme.point2':
-    'Todas as páginas acompanham: menus, diálogos, o palco do karaokê e a Biblioteca mudam juntos. O Player compacto mantém um tema próprio.',
-  'tour.theme.point3':
-    'Sua cor de destaque e o modo arco-íris continuam. Nada no seu som muda: é só a pintura.',
-  'tour.theme.howTitle': 'Como trocar',
-  'tour.theme.how':
-    'Abra o menu do ícone de pulso no canto superior direito e escolha Escuro ao lado de Tema, nas configurações da parte de baixo do menu. O tema Claro fica a um clique se você quiser voltar.',
-  'tour.theme.tryBlack': 'Mudar para Escuro agora',
-  'tour.theme.tryOcean': 'Voltar ao Claro',
-  'tour.theme.imageAlt':
-    'FluidEQ no tema Escuro: a aba EQ com quinze bandas e o espectro ao vivo tocando uma música.',
-
   'tour.share.kicker': 'OUÇA TODOS OS SEUS PCS',
   'tour.share.title': 'Compartilhe áudio entre seus computadores',
   'tour.share.subtitle': 'Um fone, todas as máquinas da sua mesa',
@@ -353,7 +427,7 @@ const tour: Partial<Dictionary> = {
   'tour.looks.point3':
     'Ataque e liberação definem o movimento; picos iluminados, picos preenchidos e doze marcas de pico definem como um golpe aparece.',
   'tour.looks.point4':
-    'O Brilho funciona em todos os modos, e o modo arco-íris adiciona uma borda que percorre toda a roda de cores. Visuais exportam para um arquivo e importam de um.',
+    'O Brilho funciona em todos os modos, e os visuais exportam para um arquivo e importam de um.',
   'tour.looks.how':
     'Na aba EQ, pressione “Novo visual” na barra do gráfico. Escolha uma forma no seletor ou pressione Espaço para percorrê-las, ajuste cores e movimento com a música tocando e depois Salvar.',
   'tour.looks.open': 'Abrir EQ',

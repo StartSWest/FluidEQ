@@ -32,18 +32,106 @@ const tour = {
   'tour.player.title': 'FluidEQ, folded into a player',
   'tour.player.subtitle': 'One switch turns the window into a player',
   'tour.player.lead':
-    'One switch in the title bar turns the window into the Compact player: the song, your equaliser, a visualizer and Up Next in one narrow column. The same switch takes you back to the page you left.',
+    'One switch in the title bar folds all of FluidEQ into a player. It is the classic amp, with its LED clock, its lamps and the whole equaliser; on the {backdrop}, over a Plus visualizer, it turns to glass. The same switch takes you back to the page you left.',
   'tour.player.point1':
     'The whole equaliser comes along: presets, band layouts, EQ mode, Smart EQ, Bass, Mid and Treble.',
   'tour.player.point2':
     'Fold it to one line, keep it on top of other windows, or double-click the visualizer to fill the screen.',
   'tour.player.point3':
-    'A Light or Dark theme of its own, and songs dropped on Up Next join the Library and the queue.',
+    'A theme of its own, and songs dropped on Up Next join the Library and the queue.',
   'tour.player.how':
     'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.',
   'tour.player.open': 'Try the Compact player',
   'tour.player.imageAlt':
-    'The Compact player twice, in its Dark and in its Light theme: the song and its clock at the top, the equaliser with fifteen bands, Up Next below; and the same player folded to one line.',
+    'The corner of the title bar with the {player} switch ringed, and the two players it opens: the classic amp with its LED clock, lamps, equaliser and queue, and the wider glass player over an aurora on the {backdrop}.',
+  'tour.player.classic': 'Classic amp',
+  'tour.player.glass': 'Glass, on {backdrop}',
+
+  'tour.look.kicker': 'A NEW LOOK',
+  'tour.look.title': 'A new window, in new colours',
+  'tour.look.subtitle': 'One theme slider, and a visualizer behind it all',
+  'tour.look.lead':
+    'The panes stand on one open floor in the colours of the new icon, and one slider, {brightness}, takes the whole window from near-black to a light ocean blue. With a Plus visualizer on the graph, the window can take its colours, or let it play behind everything.',
+  'tour.look.point1':
+    '{brightness} sits in the menu behind the pulse icon, and beside {transparency} under {windowColours}.',
+  'tour.look.point2':
+    '{windowColours} offers {original}, {colours}, {ambient} and {backdrop}, each with a line on what it does to the window.',
+  'tour.look.point3':
+    'Dialogs and menus share one material, and {rainbow} runs through the icon’s colours, or a visualizer’s own.',
+  'tour.look.how':
+    'Move {brightness} in the menu behind the pulse icon at the top right. With a Plus visualizer on the graph, open {windowColours} from the graph’s bar and choose {backdrop}.',
+  'tour.look.open': 'Open EQ',
+  'tour.look.imageAlt':
+    'FluidEQ with a night-time mountain scene behind its panes, and the Window colours menu with Backdrop chosen, Brightness at half and Transparency at a quarter.',
+  'tour.gpu.kicker': 'A NEW VISUALIZER ENGINE',
+  'tour.gpu.title': 'Every visualizer on your graphics card',
+  'tour.gpu.subtitle': "Forty looks at your screen's own speed, and 3D worlds",
+  'tour.gpu.lead':
+    "The graph's forty looks now draw on the engine the Plus scenes run on: on your graphics card, at your screen's own refresh rate, so bars, particles and peaks glide where they used to step. And a Plus visualizer can now be a real 3D world.",
+  'tour.gpu.point1':
+    "Eighteen new looks under {scenes}, among them {synthwave}, {horizon}, {towers} and {ledwall}; a look with no colours of its own wears the window's.",
+  'tour.gpu.point2':
+    '3D worlds step on the kick, sway with the snare, leap at the drop and turn from night to day with {brightness}; drag one to see it from another side.',
+  'tour.gpu.point3':
+    'Changing looks fades from one to the next, and a 3D world hands its graphics memory back while the window is covered.',
+  'tour.gpu.how':
+    "Click the look's name on the graph and pick one under {scenes}.",
+  'tour.gpu.open': 'Open EQ',
+  'tour.gpu.imageAlt':
+    'A Plus visualizer that is a 3D city by night, and four new looks photographed on the graph — {synthwave}, {horizon}, {towers} and {ledwall} — with the look picker ringed on the first.',
+  'tour.gpu.world': '3D world',
+  'tour.sparks.kicker': 'POINTER SPARKS',
+  'tour.sparks.title': 'Visualizers that answer your mouse',
+  'tour.sparks.subtitle': 'Sparks, petals or snow from the pointer',
+  'tour.sparks.lead':
+    'Move the mouse across a Plus visualizer and it throws what it is made of — sparks, petals, snow, embers — in a trail behind the pointer, and bursts wherever you click. In {ambient} and on the {backdrop}, its birds, petals and lights drift over the whole window too.',
+  'tour.sparks.point1':
+    'Each visualizer throws its own: snow from a winter scene, embers from a campfire, petals from a garden.',
+  'tour.sparks.point2':
+    "The Studio's stage always shows them, so a scene's maker can shape what it throws.",
+  'tour.sparks.point3':
+    'One switch for every visualizer: {sparks}, in {windowColours} under {rainbow}.',
+  'tour.sparks.how':
+    'With a Plus visualizer on the graph, move the mouse over it and click. {sparks} is in {windowColours}, under {rainbow}.',
+  'tour.sparks.open': 'Open EQ',
+  'tour.sparks.imageAlt':
+    'An aurora visualizer with a trail of glowing sparks behind the pointer and a burst where it clicked, and {windowColours} with its {sparks} switch ringed.',
+  'tour.sound.kicker': 'THE FLUIDEQ ENGINE',
+  'tour.sound.title': 'Sound exactly as you drew it',
+  'tour.sound.subtitle': 'Treble as drawn, silent switches, levels in one step',
+  'tour.sound.lead':
+    "On the FluidEQ Engine your curve now plays exactly as drawn all the way to 20 kHz, every change crossfades instead of clicking, and {autoNormalize} lands on a new curve's level in one step. How the treble is built is yours to choose: {precise} or {classic}.",
+  'tour.sound.point1':
+    '{precise} builds each band as drawn; on a 48 kHz output the treble used to arrive 3.8 dB short at 20 kHz. {classic} builds them the way Equalizer APO does, and the way AutoEQ tunes a correction.',
+  'tour.sound.point2':
+    'Presets cross over as they switch: 534 of 636 switches used to crackle, and now none rises above −80 dBFS.',
+  'tour.sound.point3':
+    'Every edit is heard the moment you make it, and {autoNormalize} then moves to its level in one step, worked out from the last ten seconds of music.',
+  'tour.sound.how':
+    'Open EQ and press {eqMode}. Under {treble}, choose {precise} or {classic}, for your EQ and for corrections separately.',
+  'tour.sound.open': 'Open EQ',
+  'tour.sound.imageAlt':
+    'The {eqMode} menu open under its button with {treble} set to {precise}; a treble curve that {precise} plays as drawn and {classic} plays 3.8 dB short at 20 kHz on a 48 kHz output; and the sound above 5 kHz as a preset switches: a −26 dBFS click before 2.0, nothing above −80 dBFS now.',
+  'tour.sound.trebleChart': 'Treble, 1 to 20 kHz',
+  'tour.sound.switchChart': 'Above 5 kHz, as a preset switches',
+  'tour.sound.before': 'Before 2.0',
+  'tour.sound.now': '2.0',
+  'tour.graph.kicker': 'STUDIO VIEWS',
+  'tour.graph.title': 'A graph that reads sound like a studio',
+  'tour.graph.subtitle': 'Twelve views, an 80 dB analyser',
+  'tour.graph.lead':
+    'The graph measures what is playing the way studio analysers do: twelve views, from a spectrogram and a waterfall to stereo, loudness and phase, on scales that hold still while the music moves.',
+  'tour.graph.point1':
+    '{analyzer}, {spectrogram}, {rta}, {waterfall}, {scope} and seven more, under {analysis} in the look picker.',
+  'tour.graph.point2':
+    'The live sound is drawn 80 dB deep and down to 10 Hz, a twelfth of an octave per point, so a tone reads at its true level.',
+  'tour.graph.point3':
+    'Your EQ keeps its ±20 dB, with room at the edges for a curve that goes further, and frequencies are labelled 10, 20, 50, 100 as analysers print them.',
+  'tour.graph.how':
+    'Click the look’s name on the graph and choose a view under {analysis}. Double-click the graph to fill the screen; Ctrl+G shows or hides the grid.',
+  'tour.graph.open': 'Open EQ',
+  'tour.graph.imageAlt':
+    'The graph’s Analyzer: the live spectrum 80 dB deep, third-octave bars behind it and its peaks above, the EQ curve on top, and the twelve views listed under Analysis.',
 
   'tour.games.kicker': 'GAME PRESETS',
   'tour.games.title': 'Every game, its own sound',
@@ -60,7 +148,10 @@ const tour = {
     'Open EQ, choose Game presets and press Add a game. Then pick its sound in the picker on its row.',
   'tour.games.open': 'Open Game presets',
   'tour.games.imageAlt':
-    'The Game presets page with four games, each with its own sound, and the cards FluidEQ shows on the desktop when a game comes to the front and when it closes.',
+    "Three moments on the desktop: a game in front with FluidEQ's card saying its sound loaded, the same game minimized with its sound still on, and the game closed with the card saying the sound from before is back.",
+  'tour.games.stepFront': 'In front: its sound loads',
+  'tour.games.stepAway': 'Minimized or alt-tabbed: its sound stays on',
+  'tour.games.stepClosed': 'Closed: your own sound comes back',
 
   'tour.presets.kicker': 'NEW PRESETS',
   'tour.presets.title': 'Presets that sound like the music',
@@ -102,11 +193,11 @@ const tour = {
   'tour.studio.lead':
     'The Studio turns an idea into a scene that moves with your music. It is part of Plus now, and a new account can try it free for fifteen days, with no card and nothing charged when the trial ends.',
   'tour.studio.point1':
-    'Publish a scene and, once it is approved, your next month of Plus is free.',
+    'Every scene is reviewed before it reaches the gallery, and one that is approved earns your next month of Plus.',
   'tour.studio.point2':
-    'Every member’s scene is reviewed before it reaches the gallery.',
+    'Scenes can be real 3D worlds that step on the kick and leap at the drop.',
   'tour.studio.point3':
-    'Anything you made before is kept, in the folder the Studio names.',
+    'Copy the AI prompt and your AI assistant can see your scene and hear how the song moves.',
   'tour.studio.how':
     'Open Plus and choose Studio in its rail. Without Plus, the page there offers the free trial.',
   'tour.studio.open': 'Open Plus',
@@ -124,7 +215,7 @@ const tour = {
   'tour.help.point1':
     'It forgives typos and plurals, and knows the words people use for things.',
   'tour.help.point2':
-    'Every control on a picture is numbered like a printed manual, and the pictures follow your theme.',
+    'Every control on a picture is numbered, like a printed manual.',
   'tour.help.point3':
     'F1 opens it from anywhere, and Enter walks to the next match.',
   'tour.help.how':
@@ -252,25 +343,6 @@ const tour = {
   'tour.lighting.imageAlt':
     'A keyboard, mouse and mousepad lit in the pink, violet and cyan of Neon City.',
 
-  'tour.theme.kicker': 'A NEW LOOK',
-  'tour.theme.title': 'Meet the Dark theme',
-  'tour.theme.subtitle': 'Near-black, for late nights and OLED screens',
-  'tour.theme.lead':
-    'FluidEQ now has a second face. Dark drops every trace of the slate-navy the app was born with: panels, menus and bars go monochrome, the accent stays, and the spectrum is the only colour in the room.',
-  'tour.theme.point1':
-    'Near-black backgrounds. On an OLED display the space around the graph goes almost dark.',
-  'tour.theme.point2':
-    'Every page follows: menus, dialogs, the karaoke stage and the Library all change together. The Compact player keeps a theme of its own.',
-  'tour.theme.point3':
-    'Your accent colour and rainbow mode carry over. Nothing about your sound changes. It is only the paint.',
-  'tour.theme.howTitle': 'How to switch',
-  'tour.theme.how':
-    'Open the menu behind the pulse icon at the top right and pick Dark beside Theme, in the settings at the foot of the menu. Light is one pick away if you want it back.',
-  'tour.theme.tryBlack': 'Switch to Dark now',
-  'tour.theme.tryOcean': 'Back to Light',
-  'tour.theme.imageAlt':
-    'FluidEQ in the Dark theme: the EQ tab with fifteen bands and the live spectrum playing a song.',
-
   'tour.share.kicker': 'LISTEN TO EVERY PC',
   'tour.share.title': 'Share audio between your computers',
   'tour.share.subtitle': 'One headset, every machine on your desk',
@@ -370,7 +442,7 @@ const tour = {
   'tour.looks.point3':
     'Attack and release set the motion; lit peaks, filled peaks and twelve peak marks set what a hit looks like.',
   'tour.looks.point4':
-    'Glow works in every mode, and Rainbow mode adds a border that travels the whole colour wheel. Looks export to a file and import from one.',
+    'Glow works in every mode, and looks export to a file and import from one.',
   'tour.looks.how':
     'On the EQ tab, press "New look" in the graph\'s toolbar. Pick a form with the picker or press Space to cycle them, adjust the colours and motion while the music plays, then Save.',
   'tour.looks.open': 'Open EQ',

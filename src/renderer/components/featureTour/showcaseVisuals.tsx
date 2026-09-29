@@ -8,7 +8,6 @@ import type { TranslationKey } from '../../../common/i18n';
 import Glyph, { type TCommunityGlyph } from '../../community/Glyph';
 import BrandMark from '../../icons/BrandMark';
 import { useTranslation } from '../../utils/I18nContext';
-import visualizersGraph from '../../../../assets/tour/visualizers-graph.jpg';
 import sceneAlpine from '../../../../assets/tour/scene-alpine.jpg';
 import sceneAurora from '../../../../assets/tour/scene-aurora.jpg';
 import sceneBloom from '../../../../assets/tour/scene-bloom.jpg';
@@ -19,10 +18,11 @@ import sceneNeonCity from '../../../../assets/tour/scene-neon-city.jpg';
  * The pictures on the 1.7 headline slides.
  *
  * Every picture of a scene is a real frame of it: the gallery's own published
- * covers and a capture of Alpine playing under the EQ curves. What is drawn
- * here — the Plus tab in miniature, a monitor, the monitor map — is the
- * setting they are shown in, with the app's own words in the reader's
- * language, not a stand-in for the scenes.
+ * covers. What is drawn here — the graph the scene plays on, the Plus tab in
+ * miniature, a monitor, the monitor map — is the setting they are shown in,
+ * with the app's own words in the reader's language, not a stand-in for the
+ * scenes. The graph used to be a capture of the 1.8 window, and read as
+ * another app once the window changed around it.
  *
  * Each one is composed to be about as tall as it is wide, because that is the
  * shape the slide gives it beside the text, from a 1440-wide window up to a
@@ -111,27 +111,78 @@ export function PlusVisual() {
   );
 }
 
-const FILMSTRIP = [sceneAurora, sceneBloom, sceneNeonCity, sceneChrome];
+/** Keyed by scene, not by picture: a bundler may give two pictures one URL. */
+const FILMSTRIP = [
+  { scene: 'aurora', src: sceneAurora },
+  { scene: 'bloom', src: sceneBloom },
+  { scene: 'neon-city', src: sceneNeonCity },
+  { scene: 'chrome', src: sceneChrome },
+];
 
-/** Alpine playing under the EQ curves, and more scenes beside it. */
+/**
+ * The EQ over the scene, on a 0..100 box with gain up: a warm low end, a dip
+ * in the low mids, presence and air — and the band points it passes through.
+ */
+const EQ_POINTS = [
+  { x: 9, y: 38 },
+  { x: 24, y: 46 },
+  { x: 42, y: 57 },
+  { x: 61, y: 50 },
+  { x: 78, y: 44 },
+  { x: 92, y: 36 },
+];
+
+const EQ_CURVE = (() => {
+  const points: string[] = [];
+  for (let step = 0; step <= 60; step += 1) {
+    const x = step / 60;
+    const bass = 14 * Math.exp(-(((x - 0.1) / 0.12) ** 2));
+    const dip = 7 * Math.exp(-(((x - 0.42) / 0.13) ** 2));
+    const presence = 3 * Math.exp(-(((x - 0.72) / 0.1) ** 2));
+    const air = 10 / (1 + Math.exp(-(x - 0.88) * 18));
+    const y = 50 - bass + dip - presence - air;
+    points.push(`${(x * 100).toFixed(2)},${y.toFixed(2)}`);
+  }
+  return points.join(' ');
+})();
+
+/** Alpine playing under the EQ curve on the graph, and more scenes beside it. */
 export function VisualizersVisual() {
   const { t } = useTranslation();
   return (
     <div className="visualizers-visual">
-      <div className="visualizers-visual__stage">
-        <img
-          className="tour-showcase__shot"
-          src={visualizersGraph}
-          alt={t('tour.visualizers.imageAlt')}
-        />
-        <span className="visualizers-visual__badge">
-          {t('graph.scene.badge')}
+      <div
+        className="visualizers-visual__stage"
+        role="img"
+        aria-label={t('tour.visualizers.imageAlt')}
+      >
+        <img className="visualizers-visual__scene" src={sceneAlpine} alt="" />
+        <svg
+          className="visualizers-visual__curve"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <polyline points={EQ_CURVE} />
+        </svg>
+        {EQ_POINTS.map((point) => (
+          <span
+            key={point.x}
+            className="visualizers-visual__point"
+            style={{ left: `${point.x}%`, top: `${point.y}%` }}
+          />
+        ))}
+        <span className="visualizers-visual__name">
+          {t('tour.scene.alpine')}
+          <span className="visualizers-visual__badge">
+            {t('graph.scene.badge')}
+          </span>
         </span>
       </div>
       <ul className="visualizers-visual__strip" aria-hidden="true">
-        {FILMSTRIP.map((src) => (
-          <li key={src}>
-            <img src={src} alt="" />
+        {FILMSTRIP.map((frame) => (
+          <li key={frame.scene}>
+            <img src={frame.src} alt="" />
           </li>
         ))}
       </ul>

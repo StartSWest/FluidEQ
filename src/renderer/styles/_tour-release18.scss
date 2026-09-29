@@ -6,10 +6,16 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-// The pictures on the 1.8 headline slides (`release18Visuals.tsx`), one
-// stylesheet each in the slides’ order; what they share is in
-// `_tour-miniature.scss`.
+// The pictures on 2.0's headline slides (`release18Visuals.tsx`,
+// `release20Visuals.tsx`, `PlayerStageVisual.tsx`), one stylesheet each in
+// the slides’ order; what they share is in `_tour-miniature.scss`.
 
+@use 'tour-corner';
+@use 'tour-look';
+@use 'tour-gpu';
+@use 'tour-sparks';
+@use 'tour-sound';
+@use 'tour-graph';
 @use 'tour-player';
 @use 'tour-games';
 @use 'tour-presets';

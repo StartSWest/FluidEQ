@@ -11,251 +11,390 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 @use 'tour-miniature' as *;
 
-// Game presets: the page with four games, and the desktop under it with the
-// two cards a game raises — one as it comes to the front, one as it closes.
+// Game presets as three moments on the desktop (`GameStoryVisual.tsx`): the
+// game in front with FluidEQ's card over it, the game minimized with its
+// sound still on, the game closed with the card for what came back.
 
-.games-visual {
-  display: flex;
+.game-story {
   width: 100%;
-  max-width: calc(#{$u} * 34);
-  flex-direction: column;
-  gap: calc(#{$u} * 0.9);
+  max-width: calc(#{$u} * 30);
+}
+
+.game-story__frames {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.75);
+  list-style: none;
+}
+
+.game-story__frame {
+  display: grid;
+  gap: calc(#{$u} * 0.3);
   @include animate(rise-in, $motion-slow);
+
+  &:nth-child(2) {
+    animation-delay: 120ms;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 240ms;
+  }
 }
 
-.games-visual__page {
-  @include panel;
-
-  overflow: hidden;
-}
-
-.games-visual__head {
+.game-story__caption {
   display: flex;
   align-items: center;
-  padding: calc(#{$u} * 0.75) calc(#{$u} * 0.9);
-  border-bottom: 1px solid rgba($edge-tint, 0.08);
   color: $text-primary;
-  font-size: calc(#{$u} * 0.95);
+  font-size: calc(#{$u} * 0.7);
+  font-weight: $weight-semibold;
+  line-height: 1.25;
+  gap: calc(#{$u} * 0.45);
+}
+
+.game-story__step {
+  display: grid;
+  flex: 0 0 auto;
+  width: calc(#{$u} * 1.15);
+  height: calc(#{$u} * 1.15);
+  color: $surface-base;
+  border-radius: 50%;
+  background: $secondary-light;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-bold;
+  place-items: center;
+}
+
+// A desktop at the tour's scale: a wallpaper, what stands on it, a taskbar.
+.game-story__screen {
+  @include framed;
+
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: $radius-m;
+  aspect-ratio: 3.1;
+  background: #0b1320;
+  isolation: isolate;
+}
+
+.game-story__wallpaper {
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  filter: saturate(0.9) brightness(0.8);
+}
+
+// The game, full screen: a city at night seen down a sight, its HUD at the
+// corners. One of FluidEQ's own scene pictures, so no game's own picture is
+// shown as ours; the vignette is the lens a shooter draws round its view.
+.game-story__game {
+  position: absolute;
+  inset: 0;
+  background: #06070c;
+
+  &::after {
+    position: absolute;
+    background: radial-gradient(
+      120% 110% at 50% 45%,
+      transparent 45%,
+      rgba($black, 0.7) 100%
+    );
+    content: '';
+    inset: 0;
+  }
+}
+
+.game-story__world {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  object-position: 50% 70%;
+  transform: scale(1.35);
+}
+
+.game-story__minimap {
+  position: absolute;
+  z-index: 1;
+  top: 9%;
+  left: 3%;
+  width: calc(#{$u} * 2.2);
+  height: calc(#{$u} * 2.2);
+  border: 1px solid rgba($white, 0.35);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba($white, 0.9) 0 7%, transparent 9%),
+    rgba($black, 0.45);
+}
+
+.game-story__crosshair {
+  position: absolute;
+  z-index: 1;
+  top: 44%;
+  left: 50%;
+  width: calc(#{$u} * 1.1);
+  height: calc(#{$u} * 1.1);
+  background:
+    linear-gradient(#7dff9a, #7dff9a) center / 2px 100% no-repeat,
+    linear-gradient(#7dff9a, #7dff9a) center / 100% 2px no-repeat;
+  transform: translate(-50%, -50%);
+}
+
+.game-story__health {
+  position: absolute;
+  z-index: 1;
+  bottom: 22%;
+  left: 3%;
+  width: 22%;
+  height: calc(#{$u} * 0.4);
+  border-radius: $radius-pill;
+  background: linear-gradient(
+    90deg,
+    #6be07e 0 72%,
+    rgba($white, 0.18) 72% 100%
+  );
+}
+
+.game-story__ammo {
+  position: absolute;
+  z-index: 1;
+  right: 32%;
+  bottom: 20%;
+  color: rgba($white, 0.9);
+  font-size: calc(#{$u} * 0.7);
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
+// FluidEQ in front while the game waits minimized: its Game presets page
+// and the line that page shows while a game is running with its sound on.
+.game-story__window {
+  position: absolute;
+  top: 12%;
+  left: 14%;
+  display: grid;
+  width: 62%;
+  overflow: hidden;
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-m;
+  background: $surface-base;
+  box-shadow: 0 12px 30px rgba($black, 0.55);
+}
+
+.game-story__window-bar {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.3) calc(#{$u} * 0.5);
+  color: $text-primary;
+  border-bottom: 1px solid rgba($edge-tint, 0.1);
+  font-size: calc(#{$u} * 0.6);
+  font-weight: $weight-semibold;
+  gap: calc(#{$u} * 0.4);
+
+  .game-story__mark.brand-mark {
+    width: calc(#{$u} * 0.9);
+    height: calc(#{$u} * 0.9);
+  }
+}
+
+.game-story__front {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.55) calc(#{$u} * 0.6);
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.6);
+  gap: calc(#{$u} * 0.4);
+}
+
+// The page's own lit pip beside the line.
+.game-story__pip {
+  flex: 0 0 auto;
+  width: calc(#{$u} * 0.45);
+  height: calc(#{$u} * 0.45);
+  border-radius: 50%;
+  background: $secondary-light;
+  box-shadow: 0 0 calc(#{$u} * 0.4) $secondary-default;
+}
+
+// FluidEQ's card, as the desktop shows it: the game's icon in a tinted
+// badge, the words, FluidEQ's wave and name at the end.
+.game-story__card {
+  position: absolute;
+  z-index: 2;
+  top: 9%;
+  right: 3%;
+  display: grid;
+  max-width: 62%;
+  overflow: hidden;
+  align-items: center;
+  border: 1px solid rgba($edge-tint, 0.15);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $surface-menu 97%, transparent);
+  box-shadow: 0 14px 32px rgba($black, 0.55);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.game-story__badge {
+  display: grid;
+  align-self: stretch;
+  padding: 0 calc(#{$u} * 0.4);
+  border-right: 1px solid rgba($edge-tint, 0.08);
+  background: color-mix(in srgb, $surface-panel 66%, transparent);
+  place-items: center;
+}
+
+// The game's own icon, as the card shows it: here its tile.
+.game-story__tile {
+  display: grid;
+  width: calc(#{$u} * 1.3);
+  height: calc(#{$u} * 1.3);
+  color: $white;
+  border-radius: $radius-xs;
+  background: linear-gradient(135deg, var(--game-from), var(--game-to));
+  font-size: calc(#{$u} * 0.5);
+  font-weight: $weight-bold;
+  place-items: center;
+}
+
+.game-story__words {
+  display: grid;
+  min-width: 0;
+  padding: calc(#{$u} * 0.35) calc(#{$u} * 0.55);
+
+  small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // Two lines, broken at spaces, as the card itself (`game-toast.html`): on
+  // one, Russian and Japanese lost the preset's name to the ellipsis.
+  strong {
+    display: -webkit-box;
+    overflow: hidden;
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.64);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+    word-break: keep-all;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  small {
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.54);
+  }
+}
+
+// FluidEQ's wave and name, the card's signature.
+.game-story__brand {
+  display: flex;
+  align-items: center;
+  padding-right: calc(#{$u} * 0.55);
+  color: $secondary-light;
+  font-size: calc(#{$u} * 0.4);
+  font-weight: $weight-semibold;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0.85;
+  gap: calc(#{$u} * 0.25);
+  @include tracking(0.14em);
+}
+
+.game-story__wave {
+  width: calc(#{$u} * 0.75);
+  height: calc(#{$u} * 0.75);
+
+  path {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    // The logo's own weight on its 48-unit box (`App.scss`'s mark).
+    stroke-width: 5.6;
+  }
+}
+
+// Windows' taskbar, centred icons on a translucent strip.
+.game-story__taskbar {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  height: calc(#{$u} * 1.5);
+  align-items: center;
+  justify-content: center;
+  background: rgba(#1a1f28, 0.82);
+  backdrop-filter: blur(6px);
   gap: calc(#{$u} * 0.5);
 }
 
-.games-visual__glyph {
-  width: calc(#{$u} * 1.3);
-  height: calc(#{$u} * 1.3);
-  color: $secondary-light;
+.game-story__start {
+  width: calc(#{$u} * 0.8);
+  height: calc(#{$u} * 0.8);
+  background:
+    linear-gradient(#4cc2ff, #4cc2ff) 0 0 / 46% 46% no-repeat,
+    linear-gradient(#4cc2ff, #4cc2ff) 100% 0 / 46% 46% no-repeat,
+    linear-gradient(#4cc2ff, #4cc2ff) 0 100% / 46% 46% no-repeat,
+    linear-gradient(#4cc2ff, #4cc2ff) 100% 100% / 46% 46% no-repeat;
 }
 
-.games-visual__add {
-  @include pill;
+.game-story__app {
+  position: relative;
+  display: grid;
+  width: calc(#{$u} * 0.95);
+  height: calc(#{$u} * 0.95);
+  border-radius: $radius-2xs;
+  place-items: center;
+}
 
-  margin-left: auto;
-  color: $text-accent;
-  border-color: color-mix(in srgb, $secondary-light 35%, transparent);
-  background: color-mix(in srgb, $secondary-default 12%, transparent);
+.game-story__app--browser {
+  border-radius: 50%;
+  background: conic-gradient(#ea4335 0 33%, #fbbc05 0 66%, #34a853 0);
+  box-shadow: inset 0 0 0 calc(#{$u} * 0.22) #1a1f28;
+}
+
+.game-story__mark.brand-mark {
+  width: 100%;
+  height: 100%;
+  border-radius: $radius-2xs;
 
   svg {
-    width: calc(#{$u} * 0.95);
-    height: calc(#{$u} * 0.95);
+    width: 70%;
+    height: 70%;
   }
 }
 
-.games-visual__rows {
-  display: grid;
-  margin: 0;
-  padding: calc(#{$u} * 0.55);
-  gap: calc(#{$u} * 0.4);
-  list-style: none;
-
-  li {
-    display: grid;
-    align-items: center;
-    padding: calc(#{$u} * 0.5) calc(#{$u} * 0.6);
-    border: 1px solid transparent;
-    border-radius: $radius-m;
-    background: rgba($white, 0.025);
-    gap: calc(#{$u} * 0.7);
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    @include stagger-in(4, 60ms, 180ms);
-  }
-
-  li.is-front {
-    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
-    background: color-mix(in srgb, $secondary-default 10%, transparent);
-  }
-}
-
-.games-visual__tile {
-  display: grid;
-  width: calc(#{$u} * 2.4);
-  height: calc(#{$u} * 2.4);
-  place-items: center;
+.game-story__app--game {
   color: $white;
-  border-radius: $radius-s;
   background: linear-gradient(135deg, var(--game-from), var(--game-to));
-  font-size: calc(#{$u} * 0.85);
+  font-size: calc(#{$u} * 0.42);
   font-weight: $weight-bold;
-  text-shadow: 0 1px 2px rgba($black, 0.35);
-}
 
-.games-visual__game {
-  display: grid;
-  min-width: 0;
-  gap: calc(#{$u} * 0.2);
-
-  strong {
-    overflow: hidden;
-    color: $text-primary;
-    font-size: calc(#{$u} * 0.88);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  > span {
-    display: flex;
-    min-width: 0;
-    align-items: center;
-    gap: calc(#{$u} * 0.4);
-  }
-}
-
-.games-visual__source {
-  @include pill;
-
-  padding-block: 0;
-  color: $text-muted;
-  font-size: calc(#{$u} * 0.62);
-}
-
-.games-visual__live {
-  overflow: hidden;
-  color: $text-accent;
-  font-size: calc(#{$u} * 0.64);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-
-  &::before {
-    display: inline-block;
-    width: calc(#{$u} * 0.4);
-    height: calc(#{$u} * 0.4);
-    margin-right: calc(#{$u} * 0.3);
-    border-radius: 50%;
-    background: $secondary-light;
-    box-shadow: 0 0 8px $secondary-light;
+  // Windows' mark under a program that is open: short while it is behind,
+  // long and lit while it is in front.
+  &::after {
+    position: absolute;
+    bottom: calc(#{$u} * -0.28);
+    left: 50%;
+    width: calc(#{$u} * 0.3);
+    height: 2px;
+    border-radius: $radius-pill;
+    background: rgba($white, 0.55);
     content: '';
-  }
-}
-
-.games-visual__sound {
-  @include pill;
-
-  max-width: calc(#{$u} * 11);
-  overflow: hidden;
-  color: $text-primary;
-  border-color: rgba($edge-tint, 0.16);
-  background: $surface-field;
-  text-overflow: ellipsis;
-
-  &::before {
-    flex: none;
-    width: calc(#{$u} * 0.4);
-    height: calc(#{$u} * 0.4);
-    border-radius: 50%;
-    background: $secondary-light;
-    content: '';
+    transform: translateX(-50%);
   }
 
-  &.is-none {
-    color: $text-muted;
-
-    &::before {
-      background: $text-faint;
-    }
+  &.is-front::after {
+    width: calc(#{$u} * 0.7);
+    background: #4cc2ff;
   }
-}
-
-.games-visual__desk {
-  position: relative;
-  height: calc(#{$u} * 7.6);
-  overflow: hidden;
-  border: 1px solid rgba($edge-tint, 0.1);
-  border-radius: $radius-l;
-  background:
-    radial-gradient(
-      ellipse 60% 90% at 20% 30%,
-      color-mix(in srgb, $complementary 18%, transparent),
-      transparent 70%
-    ),
-    radial-gradient(
-      ellipse 60% 90% at 85% 80%,
-      color-mix(in srgb, $secondary-default 22%, transparent),
-      transparent 70%
-    ),
-    $surface-well;
-}
-
-.games-visual__card {
-  position: absolute;
-  right: calc(#{$u} * 0.9);
-  bottom: calc(#{$u} * 0.9);
-  display: flex;
-  max-width: calc(100% - #{$u} * 1.8);
-  align-items: center;
-  padding: calc(#{$u} * 0.55) calc(#{$u} * 0.8);
-  border: 1px solid $border-menu;
-  border-radius: $radius-l;
-  background: $surface-menu;
-  box-shadow: 0 12px 30px rgba($black, 0.45);
-  gap: calc(#{$u} * 0.6);
-  @include animate(rise-in, $motion-slow);
-
-  > span:not(.games-visual__mode) {
-    display: grid;
-    min-width: 0;
-    gap: calc(#{$u} * 0.1);
-  }
-
-  strong,
-  small {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  strong {
-    color: $text-primary;
-    font-size: calc(#{$u} * 0.82);
-  }
-
-  small {
-    color: $text-muted;
-    font-size: calc(#{$u} * 0.68);
-  }
-
-  &.is-behind {
-    top: calc(#{$u} * 0.8);
-    right: auto;
-    bottom: auto;
-    left: calc(#{$u} * 0.9);
-    opacity: 0.72;
-    animation-delay: 220ms;
-  }
-}
-
-.games-visual__card-glyph {
-  flex: none;
-  width: calc(#{$u} * 1.5);
-  height: calc(#{$u} * 1.5);
-  padding: calc(#{$u} * 0.25);
-  color: $secondary-light;
-  border-radius: $radius-s;
-  background: color-mix(in srgb, $secondary-default 12%, transparent);
-}
-
-.games-visual__mode {
-  @include pill;
-
-  flex: none;
-  color: $text-accent;
-  border-color: color-mix(in srgb, $secondary-light 40%, transparent);
-  font-size: calc(#{$u} * 0.62);
 }

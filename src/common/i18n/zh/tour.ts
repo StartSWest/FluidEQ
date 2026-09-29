@@ -22,18 +22,105 @@ const tour: Partial<Dictionary> = {
   'tour.player.title': 'FluidEQ，折叠成一台播放器',
   'tour.player.subtitle': '一个开关，把窗口变成播放器',
   'tour.player.lead':
-    '标题栏里的一个开关，就能把窗口变成迷你播放器：歌曲、你的均衡器、可视化效果和“接下来播放”，全都装进窄窄的一列。同一个开关会带你回到离开时的页面。',
+    '标题栏里的一个开关，就能把整个 FluidEQ 收成一个播放器。它是经典功放，带 LED 时钟、指示灯和完整的均衡器；在“{backdrop}”模式下、Plus 可视化效果之上，它会变成玻璃。同一个开关会带你回到离开时的页面。',
   'tour.player.point1':
     '完整的均衡器一并带上：预设、频段布局、EQ 模式、智能均衡，以及低音、中音和高音。',
   'tour.player.point2':
     '把它折叠为一行、置顶在其他窗口之上，或双击可视化效果铺满屏幕。',
   'tour.player.point3':
-    '有自己的“浅色”或“深色”主题；拖放到“接下来播放”的歌曲会加入媒体库和队列。',
+    '有自己的主题；拖放到“接下来播放”的歌曲会加入媒体库和队列。',
   'tour.player.how':
     '按下标题栏中“帮助”旁边的“迷你播放器”开关。在播放器上，同一个开关会带回完整界面。',
   'tour.player.open': '试试迷你播放器',
   'tour.player.imageAlt':
-    '两个迷你播放器，分别为深色和浅色主题：顶部是歌曲和它的计时，中间是十五个频段的均衡器，下方是“接下来播放”；另有折叠为一行的同一个播放器。',
+    '标题栏一角，“{player}”开关被圈出；以及它打开的两种播放器：带 LED 时钟、指示灯、均衡器和播放队列的经典功放，和在“{backdrop}”模式下、极光之上更宽的玻璃播放器。',
+  'tour.player.classic': '经典功放',
+  'tour.player.glass': '玻璃，“{backdrop}”模式',
+  'tour.look.kicker': '全新外观',
+  'tour.look.title': '全新的窗口，全新的颜色',
+  'tour.look.subtitle': '一个主题滑块，所有内容背后都能有可视化效果',
+  'tour.look.lead':
+    '各个面板立在同一块开放的底面上，用的是新图标的配色；一个滑块“{brightness}”就能让整个窗口从近乎黑色过渡到明亮的海洋蓝。图表上有 Plus 可视化效果时，窗口可以采用它的颜色，也可以让它在所有内容背后播放。',
+  'tour.look.point1':
+    '“{brightness}”位于脉冲图标后的菜单中，在“{windowColours}”里则与“{transparency}”并排。',
+  'tour.look.point2':
+    '“{windowColours}”提供“{original}”“{colours}”“{ambient}”和“{backdrop}”，每一项都有一行说明它对窗口的作用。',
+  'tour.look.point3':
+    '对话框和菜单使用同一种材质，“{rainbow}”会贯穿图标的颜色，或可视化效果自己的颜色。',
+  'tour.look.how':
+    '在右上角脉冲图标后的操作菜单中拖动“{brightness}”。图表上有 Plus 可视化效果时，从图表的工具栏打开“{windowColours}”并选择“{backdrop}”。',
+  'tour.look.open': '打开均衡器',
+  'tour.look.imageAlt':
+    '面板背后是一幅夜晚群山场景的 FluidEQ，以及“窗口颜色”菜单：已选“背景”，“亮度”在一半，“透明度”在四分之一。',
+  'tour.gpu.kicker': '全新可视化引擎',
+  'tour.gpu.title': '所有可视化效果都在你的显卡上运行',
+  'tour.gpu.subtitle': '四十种样式跟上屏幕刷新率，还有 3D 世界',
+  'tour.gpu.lead':
+    '图表的四十种样式现在都由 Plus 场景所用的引擎绘制：在你的显卡上、以你屏幕自己的刷新率运行，频柱、粒子和峰值从过去的跳动变成流畅滑动。Plus 可视化效果现在还可以是真正的 3D 世界。',
+  'tour.gpu.point1':
+    '“{scenes}”里新增十八种样式，包括“{synthwave}”“{horizon}”“{towers}”和“{ledwall}”；没有自带颜色的样式会使用窗口的颜色。',
+  'tour.gpu.point2':
+    '3D 世界随底鼓踏步、随军鼓摇摆、在 drop 时跃起，并随“{brightness}”从黑夜变为白天；拖动它可以换个角度观看。',
+  'tour.gpu.point3':
+    '切换样式时会从一种渐变到下一种；窗口被遮挡时，3D 世界会交还显存。',
+  'tour.gpu.how': '点击图表上的样式名称，在“{scenes}”中选择一种。',
+  'tour.gpu.open': '打开均衡器',
+  'tour.gpu.imageAlt':
+    '一个呈现夜晚 3D 城市的 Plus 可视化效果，以及在图表上实拍的四种新样式：“{synthwave}”“{horizon}”“{towers}”和“{ledwall}”，第一张中的样式选择器被圈出。',
+  'tour.gpu.world': '3D 世界',
+  'tour.sparks.kicker': '指针火花',
+  'tour.sparks.title': '会回应鼠标的可视化效果',
+  'tour.sparks.subtitle': '从指针洒出火花、花瓣或雪花',
+  'tour.sparks.lead':
+    '把鼠标移过 Plus 可视化效果，它会在指针后面拖出一道由自身元素组成的轨迹——火花、花瓣、雪花、余烬——并在你点击的地方迸发。在“{ambient}”和“{backdrop}”模式下，它的飞鸟、花瓣和光点还会飘过整个窗口。',
+  'tour.sparks.point1':
+    '每个可视化效果洒出的都不一样：冬景下雪，篝火飞出余烬，花园飘落花瓣。',
+  'tour.sparks.point2':
+    'Studio 的舞台总会显示它们，方便场景作者调整洒出的效果。',
+  'tour.sparks.point3':
+    '一个开关管所有可视化效果：“{windowColours}”中“{rainbow}”下方的“{sparks}”。',
+  'tour.sparks.how':
+    '图表上有 Plus 可视化效果时，把鼠标移到上面并点击。“{sparks}”在“{windowColours}”中，位于“{rainbow}”下方。',
+  'tour.sparks.open': '打开均衡器',
+  'tour.sparks.imageAlt':
+    '一个极光可视化效果，指针后拖着一道发光的火花轨迹，点击处迸出火花；以及“{windowColours}”，其中的“{sparks}”开关被圈出。',
+  'tour.sound.kicker': 'FLUIDEQ 引擎',
+  'tour.sound.title': '声音完全如你所画',
+  'tour.sound.subtitle': '高音如画、切换无声、电平一步到位',
+  'tour.sound.lead':
+    '在 FluidEQ 引擎上，你的曲线现在一直到 20 kHz 都完全按所画的播放，每次改动都会平滑过渡而不是咔哒一声，“{autoNormalize}”一步就能到达新曲线的电平。高音怎么构建由你决定：“{precise}”或“{classic}”。',
+  'tour.sound.point1':
+    '“{precise}”按所画的样子构建每个频段；在 48 kHz 输出上，过去高音在 20 kHz 处会低 3.8 dB。“{classic}”则按 Equalizer APO 的方式构建，也就是 AutoEQ 调校校正曲线的方式。',
+  'tour.sound.point2':
+    '切换预设时会交叉过渡：过去 636 次切换中有 534 次会噼啪作响，现在没有一次超过 −80 dBFS。',
+  'tour.sound.point3':
+    '每次调整都在你动手的那一刻就能听到，随后“{autoNormalize}”根据最近十秒的音乐，一步到达它所需的电平。',
+  'tour.sound.how':
+    '打开均衡器，点击“{eqMode}”。在“{treble}”下选择“{precise}”或“{classic}”，你的 EQ 和校正可以分别设置。',
+  'tour.sound.open': '打开均衡器',
+  'tour.sound.imageAlt':
+    '“{eqMode}”菜单在其按钮下展开，“{treble}”设为“{precise}”；一条高音曲线，“{precise}”按所画播放，“{classic}”在 48 kHz 输出上于 20 kHz 处低 3.8 dB；以及切换预设时 5 kHz 以上的声音：2.0 之前有 −26 dBFS 的咔哒声，现在没有任何超过 −80 dBFS 的声音。',
+  'tour.sound.trebleChart': '高音，1 到 20 kHz',
+  'tour.sound.switchChart': '5 kHz 以上，切换预设时',
+  'tour.sound.before': '2.0 之前',
+  'tour.sound.now': '2.0',
+  'tour.graph.kicker': '录音棚视图',
+  'tour.graph.title': '像录音棚一样解读声音的图表',
+  'tour.graph.subtitle': '十二种视图，80 dB 分析仪',
+  'tour.graph.lead':
+    '图表像录音棚的分析仪一样测量正在播放的声音：十二种视图，从声谱图、瀑布图到立体声、响度和相位，刻度在音乐变化时保持不动。',
+  'tour.graph.point1':
+    '“{analyzer}”“{spectrogram}”“{rta}”“{waterfall}”“{scope}”以及另外七种，都在外观选择器的“{analysis}”下。',
+  'tour.graph.point2':
+    '实时声音以 80 dB 的深度绘制，低至 10 Hz，每个点是十二分之一倍频程，因此单音会显示在它真实的电平上。',
+  'tour.graph.point3':
+    '你的均衡器保留 ±20 dB，边缘留有余量给超出范围的曲线；频率按 10、20、50、100 标注，与分析仪的印法一致。',
+  'tour.graph.how':
+    '点击图表上的外观名称，在“{analysis}”下选择一种视图。双击图表可全屏显示；Ctrl+G 显示或隐藏网格。',
+  'tour.graph.open': '打开均衡器',
+  'tour.graph.imageAlt':
+    '图表的“频谱分析仪”：80 dB 深度的实时频谱，背后是三分之一倍频程柱，上方是峰值，最上面是均衡器曲线，旁边列出“分析”下的十二种视图。',
+
   'tour.games.kicker': '游戏预设',
   'tour.games.title': '每个游戏，都有自己的音效',
   'tour.games.subtitle': '游戏来到最前面时随即切换',
@@ -49,7 +136,10 @@ const tour: Partial<Dictionary> = {
     '打开“均衡器”，选择“游戏预设”并按“添加游戏”。然后在它那一行的选择器中选好音效。',
   'tour.games.open': '打开游戏预设',
   'tour.games.imageAlt':
-    '“游戏预设”页面上有四个游戏，各有自己的音效；另有游戏来到最前面和关闭时，FluidEQ 在桌面上显示的卡片。',
+    '桌面上的三个时刻：游戏在最前面，FluidEQ 的卡片说它的音效已加载；同一个游戏最小化后，它的音效仍然开着；游戏关闭后，卡片说之前的音效回来了。',
+  'tour.games.stepFront': '在最前面：加载它的音效',
+  'tour.games.stepAway': '最小化或 Alt+Tab 切走：音效保持不变',
+  'tour.games.stepClosed': '关闭：你自己的音效回来',
   'tour.presets.kicker': '全新预设',
   'tour.presets.title': '声如其名的预设',
   'tour.presets.subtitle': '整条处理链，响度统一',
@@ -84,9 +174,12 @@ const tour: Partial<Dictionary> = {
   'tour.studio.subtitle': '免费体验 15 天，或换来一个月',
   'tour.studio.lead':
     '工作室能把一个想法变成随你的音乐而动的场景。它现在属于 Plus，新账户可以免费体验十五天，无需银行卡，体验结束时也不会扣费。',
-  'tour.studio.point1': '发布一个场景，通过审核后，你下个月的 Plus 就免费。',
-  'tour.studio.point2': '每位会员的场景在进入图库前都会经过审核。',
-  'tour.studio.point3': '你之前做的一切都会保留，就在工作室标明的文件夹里。',
+  'tour.studio.point1':
+    '每个场景在进入图库前都会经过审核，通过审核的场景会让你下个月的 Plus 免费。',
+  'tour.studio.point2':
+    '场景可以是真正的 3D 世界，踩着底鼓的节拍，在 drop 时一跃而起。',
+  'tour.studio.point3':
+    '复制 AI 提示词，你的 AI 助手就能看到你的场景，并听出歌曲如何起伏。',
   'tour.studio.how':
     '打开 Plus，在侧栏中选择“工作室”。没有 Plus 时，那里的页面会提供免费体验。',
   'tour.studio.open': '打开 Plus',
@@ -100,8 +193,7 @@ const tour: Partial<Dictionary> = {
   'tour.help.lead':
     '像问朋友一样搜索指南——“没有声音”、“限制器”、“壁纸”——十种语言任你选用。最相关的章节排在最前，指南会带你直达那个控件，并在截图上把它圈出来。',
   'tour.help.point1': '它能包容错字和单复数，也懂得人们对各种东西的习惯叫法。',
-  'tour.help.point2':
-    '截图上的每个控件都像印刷版说明书一样编了号，截图也会跟随你的主题。',
+  'tour.help.point2': '截图上的每个控件都像印刷版说明书一样编了号。',
   'tour.help.point3':
     '在任何地方按 F1 都能打开它，按 Enter 则跳到下一个匹配项。',
   'tour.help.how':
@@ -223,25 +315,6 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     '键盘、鼠标和鼠标垫亮起霓虹之城的粉色、紫色和青色。',
 
-  'tour.theme.kicker': '全新外观',
-  'tour.theme.title': '认识深色主题',
-  'tour.theme.subtitle': '近乎纯黑，为深夜与 OLED 屏幕而生',
-  'tour.theme.lead':
-    'FluidEQ 现在有了第二副面孔。深色主题抹去了应用诞生时的石板蓝：面板、菜单和工具栏全部变为单色，强调色保留，频谱成为屋里唯一的色彩。',
-  'tour.theme.point1':
-    '近乎纯黑的背景：在 OLED 屏幕上，图表周围几乎完全暗下来。',
-  'tour.theme.point2':
-    '所有页面同步：菜单、对话框、卡拉OK 舞台和媒体库一起切换。迷你播放器则保留自己的主题。',
-  'tour.theme.point3':
-    '你的强调色和彩虹模式保持不变。声音没有任何变化，只是换了外衣。',
-  'tour.theme.howTitle': '如何切换',
-  'tour.theme.how':
-    '打开右上角脉冲图标后的菜单，在菜单底部的设置里选择“主题”旁边的“深色”。想换回来时，“浅色”只需一次点击。',
-  'tour.theme.tryBlack': '立即切换为深色',
-  'tour.theme.tryOcean': '换回浅色',
-  'tour.theme.imageAlt':
-    '深色主题下的 FluidEQ：均衡器标签页显示十五个频段，实时频谱正在播放一首歌曲。',
-
   'tour.share.kicker': '聆听每一台电脑',
   'tour.share.title': '在你的电脑之间共享音频',
   'tour.share.subtitle': '一副耳机，桌上的每一台机器',
@@ -337,7 +410,7 @@ const tour: Partial<Dictionary> = {
   'tour.looks.point3':
     '起音和释放决定律动；峰值高亮、填充峰值和十二种峰值标记决定一次击打的样子。',
   'tour.looks.point4':
-    '辉光在所有模式下都可用，彩虹模式还会加上一道走完整个色轮的边框。外观可以导出为文件，也可以从文件导入。',
+    '辉光在所有模式下都可用；外观可以导出为文件，也可以从文件导入。',
   'tour.looks.how':
     '在均衡器标签页，按图表工具栏上的“新建外观”。用选择器挑一种形态，或按空格键轮换，在音乐播放时调整颜色和律动，然后保存。',
   'tour.looks.open': '打开均衡器',

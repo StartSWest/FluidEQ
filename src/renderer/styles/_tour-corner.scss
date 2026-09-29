@@ -1,0 +1,167 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// The title bar's right corner at the tour's scale (`TitlebarCorner.tsx`):
+// the capsule with the actions menu, Help and the window/player switch, then
+// the window's keys, as the title bar draws them. The control a slide sends
+// the reader to is ringed in the accent and named on a tag hanging under it.
+//
+// The ring holds still. A breathing ring is an animation that never ends,
+// and one of those keeps a layer alive for as long as the slide is open
+// (`_motion.scss` says what that does to text beside it).
+
+// A slide's picture under the corner it is opened from (the Help slide).
+.tour-corner-stack {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+}
+
+.tour-corner-stack__corner {
+  justify-self: end;
+  margin-bottom: calc(#{$u} * 2.9);
+}
+
+.titlebar-corner {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.4) calc(#{$u} * 0.7);
+  border: 1px solid rgba($edge-tint, 0.1);
+  border-radius: $radius-l;
+  background: $surface-base;
+  box-shadow: 0 14px 34px rgba($black, 0.4);
+  gap: calc(#{$u} * 1);
+}
+
+.titlebar-corner__glyph {
+  display: block;
+  width: calc(#{$u} * 0.95);
+  height: calc(#{$u} * 0.95);
+}
+
+// The capsule's own line glyphs (the pulse, the maximise box), drawn as
+// `MenuIcon` draws its.
+.titlebar-corner__line {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.titlebar-corner__capsule {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.16);
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $surface-panel 72%, transparent);
+  gap: calc(#{$u} * 0.12);
+}
+
+.titlebar-corner__key {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(#{$u} * 1.5);
+  padding: 0 calc(#{$u} * 0.42);
+  color: $text-primary;
+  border-radius: $radius-s;
+  gap: calc(#{$u} * 0.28);
+}
+
+// The engine's state beside the pulse: lit while it runs.
+.titlebar-corner__dot {
+  width: calc(#{$u} * 0.32);
+  height: calc(#{$u} * 0.32);
+  border-radius: 50%;
+  background: $secondary-light;
+  box-shadow: 0 0 calc(#{$u} * 0.3) $secondary-default;
+}
+
+// Two halves, the lit one the mode the window is in: the full app.
+.titlebar-corner__switch {
+  position: relative;
+  display: inline-flex;
+  margin-left: calc(#{$u} * 0.15);
+  padding: calc(#{$u} * 0.12);
+  border-radius: $radius-s;
+  background: rgba($black, 0.22);
+  gap: calc(#{$u} * 0.1);
+
+  > span:not(.titlebar-corner__tag) {
+    display: grid;
+    width: calc(#{$u} * 1.5);
+    height: calc(#{$u} * 1.26);
+    color: $text-muted;
+    border-radius: $radius-xs;
+    place-items: center;
+  }
+
+  > .is-lit {
+    color: $surface-base;
+    background: $secondary-default var(--accent-fill);
+  }
+}
+
+.titlebar-corner__window-keys {
+  display: inline-flex;
+  align-items: center;
+  color: $text-muted;
+  gap: calc(#{$u} * 1.05);
+}
+
+.titlebar-corner .is-ringed::after {
+  position: absolute;
+  border: 2px solid $secondary-light;
+  border-radius: $radius-m;
+  box-shadow:
+    0 0 calc(#{$u} * 0.7)
+      color-mix(in srgb, $secondary-default 65%, transparent),
+    inset 0 0 calc(#{$u} * 0.3)
+      color-mix(in srgb, $secondary-default 35%, transparent);
+  content: '';
+  inset: calc(#{$u} * -0.3);
+  pointer-events: none;
+}
+
+// The name as the window gives it on hover: the app's own tooltip (its
+// surface, its text), so it reads at every Brightness. Ink on the accent
+// was pale on the light end of the slider and on a scene's pastel accent.
+.titlebar-corner__tag {
+  position: absolute;
+  z-index: 1;
+  top: calc(100% + #{$u} * 1.15);
+  left: 50%;
+  padding: calc(#{$u} * 0.26) calc(#{$u} * 0.7) calc(#{$u} * 0.3);
+  @include floating-surface($tooltip-lift);
+  color: $text-primary;
+  border-color: color-mix(in srgb, $secondary-light 60%, transparent);
+  font-size: calc(#{$u} * 0.7);
+  font-weight: $weight-semibold;
+  line-height: 1.3;
+  transform: translateX(-50%);
+  white-space: nowrap;
+
+  // The line from the ring down to the name.
+  &::before {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    width: 2px;
+    height: calc(#{$u} * 0.85);
+    background: $secondary-light;
+    content: '';
+    transform: translateX(-50%);
+  }
+}

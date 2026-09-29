@@ -1,0 +1,167 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// Pointer sparks (`SparksVisual.tsx`): a Plus scene with the pointer's trail
+// and a click's burst drawn over it in the scene's own light, and the corner
+// of Window colours with its Pointer sparks switch ringed.
+
+.sparks-visual {
+  position: relative;
+  width: 100%;
+  max-width: calc(#{$u} * 30);
+  padding-bottom: calc(#{$u} * 4.2);
+  @include animate(rise-in, $motion-slow);
+}
+
+// Taller than the scene's own 16:9, cut from its middle: the frame beside
+// the words is nearly square, and a wide strip left most of it empty.
+.sparks-visual__stage {
+  @include framed;
+
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: $radius-m;
+  aspect-ratio: 1.2;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.sparks-visual__art {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  overflow: visible;
+}
+
+.sparks-visual__trail {
+  fill: none;
+  stroke: rgba($white, 0.35);
+  stroke-dasharray: 0.6 2.4;
+  stroke-linecap: round;
+  stroke-width: 0.7;
+}
+
+.sparks-visual__glint {
+  fill: $white;
+  filter: drop-shadow(0 0 1.6px #9dffd9) drop-shadow(0 0 3.5px #34e0a8);
+}
+
+.sparks-visual__ember {
+  fill: #c8ffe8;
+  filter: drop-shadow(0 0 1.4px #34e0a8);
+}
+
+.sparks-visual__ring {
+  fill: none;
+  stroke: rgba(#c8ffe8, 0.7);
+  stroke-width: 0.6;
+  filter: drop-shadow(0 0 2px #34e0a8);
+}
+
+.sparks-visual__ray {
+  stroke: #d9fff0;
+  stroke-linecap: round;
+  stroke-width: 0.8;
+  filter: drop-shadow(0 0 1.5px #34e0a8);
+}
+
+.sparks-visual__pointer {
+  fill: $white;
+  stroke: $black;
+  stroke-linejoin: round;
+  stroke-width: 0.7;
+}
+
+// The corner of Window colours: its title and the two switches under
+// Rainbow mode, the second ringed.
+.sparks-visual__menu {
+  position: absolute;
+  right: calc(#{$u} * -0.4);
+  bottom: 0;
+  display: grid;
+  width: min(calc(#{$u} * 14.5), 76%);
+  padding: calc(#{$u} * 0.7) calc(#{$u} * 0.85);
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $surface-menu 95%, transparent);
+  box-shadow: 0 18px 48px rgba($black, 0.55);
+  gap: calc(#{$u} * 0.55);
+  @include animate(rise-in, $motion-slow, $ease-out, 140ms);
+}
+
+.sparks-visual__menu-title {
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.6);
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.12em);
+}
+
+.sparks-visual__row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.66);
+  font-weight: $weight-semibold;
+  gap: calc(#{$u} * 0.6);
+
+  &.is-ringed::after {
+    position: absolute;
+    border: 2px solid $secondary-light;
+    border-radius: $radius-m;
+    box-shadow: 0 0 calc(#{$u} * 0.6)
+      color-mix(in srgb, $secondary-default 60%, transparent);
+    content: '';
+    inset: calc(#{$u} * -0.3) calc(#{$u} * -0.4);
+    pointer-events: none;
+  }
+}
+
+// A long name (Russian, German) wraps under itself rather than pushing the
+// switch out of the menu.
+.sparks-visual__label {
+  min-width: 0;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+// On, in the window's colours, its knob at the right.
+.sparks-visual__switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: calc(#{$u} * 1.7);
+  height: calc(#{$u} * 0.9);
+  border-radius: $radius-pill;
+  background: $secondary-default var(--accent-fill);
+
+  &::after {
+    position: absolute;
+    top: 50%;
+    right: calc(#{$u} * 0.1);
+    width: calc(#{$u} * 0.7);
+    height: calc(#{$u} * 0.7);
+    border-radius: 50%;
+    background: $white;
+    content: '';
+    transform: translateY(-50%);
+  }
+}

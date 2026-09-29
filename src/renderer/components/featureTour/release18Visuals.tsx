@@ -4,187 +4,22 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useId, type CSSProperties } from 'react';
-import { DSP_PRESETS } from '../../../common/dsp/presets';
+import { useId } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
-import { dspPresetName } from '../../dsp/dspPresetCatalog';
 import MenuIcon from '../../icons/MenuIcon';
-import VoicingIcon from '../../icons/VoicingIcon';
 import { useTranslation } from '../../utils/I18nContext';
-import playerDark from '../../../../assets/tour/player-dark.png';
-import playerLight from '../../../../assets/tour/player-light.png';
 import sceneAurora from '../../../../assets/tour/scene-aurora.jpg';
 
 /**
- * The pictures on the 1.8 headline slides.
- *
- * The Compact player is shown as it is: two real captures of it, one in each
- * of its themes. The rest are the app's own pages in miniature, drawn with
- * the app's own words in the reader's language and its real catalogue — the
- * preset names come from the presets themselves, so the picture changes when
- * they do. Each is composed to be about as tall as it is wide, the shape the
- * slide gives it beside the text. The presets picker, drawn with the genre
- * notes' own parts, is in `PresetsVisual.tsx`.
+ * The pictures on 2.0's headline slides (prepared as 1.8, hence the file's
+ * name): the app's own pages in miniature, drawn with the app's own words in
+ * the reader's language. Each is composed to be about as tall as it is wide,
+ * the shape the slide gives it beside the text. The presets picker, drawn
+ * with the genre notes' own parts,
+ * is in `PresetsVisual.tsx`; the Compact player's in
+ * `CompactPlayerVisual.tsx`; games in `GameStoryVisual.tsx`; the new look
+ * and the graph's views in `release20Visuals.tsx`.
  */
-
-const presetById = (id: string) =>
-  DSP_PRESETS.find((preset) => preset.id === id);
-
-/** The Compact player, in its Dark theme and its Light one. */
-export function PlayerVisual() {
-  const { t } = useTranslation();
-  const players: { src: string; theme: TranslationKey }[] = [
-    { src: playerDark, theme: 'theme.black' },
-    { src: playerLight, theme: 'theme.ocean' },
-  ];
-  return (
-    <div
-      className="player-visual"
-      role="img"
-      aria-label={t('tour.player.imageAlt')}
-    >
-      {players.map((player) => (
-        <span key={player.theme} className="player-visual__player">
-          <img className="player-visual__shot" src={player.src} alt="" />
-          <span className="player-visual__theme">{t(player.theme)}</span>
-        </span>
-      ))}
-    </div>
-  );
-}
-
-/**
- * The games the picture lists. Real games, because the feature is about the
- * games people have; tiles in their colours rather than their logos.
- */
-const GAMES: {
-  name: string;
-  initials: string;
-  source: TranslationKey;
-  preset?: string;
-  colours: [string, string];
-  inFront?: boolean;
-}[] = [
-  {
-    name: 'Counter-Strike 2',
-    initials: 'CS',
-    source: 'games.source.steam',
-    preset: 'gaming-competitive',
-    colours: ['#f5a53a', '#b24d1c'],
-    inFront: true,
-  },
-  {
-    name: 'Cyberpunk 2077',
-    initials: 'CP',
-    source: 'games.source.gog',
-    preset: 'movie',
-    colours: ['#f3e53c', '#1bb3a6'],
-  },
-  {
-    name: 'Forza Horizon 5',
-    initials: 'FH',
-    source: 'games.source.xbox',
-    preset: 'gaming',
-    colours: ['#ff6190', '#ff9b3c'],
-  },
-  {
-    name: 'World of Warcraft',
-    initials: 'WW',
-    source: 'games.source.battlenet',
-    colours: ['#7383ff', '#2a2e8c'],
-  },
-];
-
-/** The Game presets page, and the two cards a game raises on the desktop. */
-export function GamesVisual() {
-  const { t } = useTranslation();
-  const name = (id: string) => {
-    const preset = presetById(id);
-    return preset ? dspPresetName(preset, t) : id;
-  };
-  const [front, , closed] = GAMES;
-  return (
-    <div
-      className="games-visual"
-      role="img"
-      aria-label={t('tour.games.imageAlt')}
-    >
-      <div className="games-visual__page">
-        <div className="games-visual__head">
-          <VoicingIcon profileId="gaming" className="games-visual__glyph" />
-          <strong>{t('tabs.games')}</strong>
-          <span className="games-visual__add">
-            <MenuIcon name="plus" />
-            {t('games.add')}
-          </span>
-        </div>
-        <ul className="games-visual__rows">
-          {GAMES.map((game) => (
-            <li
-              key={game.name}
-              className={game.inFront ? 'is-front' : undefined}
-              style={
-                {
-                  '--game-from': game.colours[0],
-                  '--game-to': game.colours[1],
-                } as CSSProperties
-              }
-            >
-              <span className="games-visual__tile">{game.initials}</span>
-              <span className="games-visual__game">
-                <strong>{game.name}</strong>
-                <span>
-                  <span className="games-visual__source">{t(game.source)}</span>
-                  {game.inFront && (
-                    <span className="games-visual__live">
-                      {t('games.row.inFront')} · {t('games.row.sounding')}
-                    </span>
-                  )}
-                </span>
-              </span>
-              <span
-                className={`games-visual__sound${
-                  game.preset ? '' : ' is-none'
-                }`}
-              >
-                {game.preset ? name(game.preset) : t('games.preset.none')}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="games-visual__desk">
-        <span className="games-visual__card is-behind">
-          <VoicingIcon profileId="music" className="games-visual__card-glyph" />
-          <span>
-            <strong>
-              {t('games.toast.restored', { preset: name('pop') })}
-            </strong>
-            <small>{t('games.toast.afterGame', { game: closed.name })}</small>
-          </span>
-        </span>
-        <span className="games-visual__card">
-          <VoicingIcon
-            profileId="gaming-competitive"
-            className="games-visual__card-glyph"
-          />
-          <span>
-            <strong>
-              {t('games.toast.loaded', {
-                preset: name(front.preset ?? 'gaming'),
-              })}
-            </strong>
-            <small>{t('games.toast.forGame', { game: front.name })}</small>
-          </span>
-          <span className="games-visual__mode">
-            {t('dsp.latency.gameMode')}
-          </span>
-        </span>
-      </div>
-    </div>
-  );
-}
 
 /** Where the three thirds sit on the graph, in its 0..1 width. */
 const THIRDS: { key: TranslationKey; from: number; to: number }[] = [

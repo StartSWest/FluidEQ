@@ -1,0 +1,110 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// The visualizer engine (`VisualizerEngineVisual.tsx`): a Plus scene's 3D
+// world across the top, four of the new looks photographed on the graph
+// under it, two by two.
+
+.gpu-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 30);
+  gap: calc(#{$u} * 0.8);
+  @include animate(rise-in, $motion-slow);
+}
+
+.gpu-visual__world,
+.gpu-visual__shot {
+  @include framed;
+
+  position: relative;
+  display: block;
+  overflow: hidden;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+}
+
+.gpu-visual__world {
+  border-radius: $radius-m;
+}
+
+.gpu-visual__chips {
+  position: absolute;
+  top: 6%;
+  left: 3%;
+  display: flex;
+  gap: calc(#{$u} * 0.3);
+}
+
+.gpu-visual__chip {
+  padding: calc(#{$u} * 0.14) calc(#{$u} * 0.5);
+  color: $white;
+  border: 1px solid rgba($white, 0.2);
+  border-radius: $radius-pill;
+  background: rgba($black, 0.55);
+  backdrop-filter: blur(4px);
+  font-size: calc(#{$u} * 0.6);
+  font-weight: $weight-semibold;
+  line-height: 1.3;
+
+  &.is-plus,
+  &.is-world {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-light 50%, transparent);
+    font-weight: $weight-bold;
+  }
+}
+
+.gpu-visual__looks {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.6) calc(#{$u} * 0.7);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+}
+
+.gpu-visual__look {
+  display: grid;
+  gap: calc(#{$u} * 0.25);
+  @include animate(rise-in, $motion-slow, $ease-out, 120ms);
+}
+
+.gpu-visual__shot {
+  border-radius: $radius-s;
+}
+
+// The look picker on the graph's bar, in the first photograph (its box,
+// measured there: 180..432 by 12..48 of 640 x 320), ringed.
+.gpu-visual__ring {
+  position: absolute;
+  top: 2%;
+  left: 27%;
+  width: 41.5%;
+  height: 15.5%;
+  border: 2px solid $secondary-light;
+  border-radius: $radius-s;
+  box-shadow: 0 0 calc(#{$u} * 0.6)
+    color-mix(in srgb, $secondary-default 65%, transparent);
+}
+
+.gpu-visual__name {
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-semibold;
+  text-align: center;
+}

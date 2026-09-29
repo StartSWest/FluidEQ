@@ -9,7 +9,6 @@ it under the terms of the GNU General Public License version 3 or later.
 import type { ComponentType } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
 import { featureTourKey } from '../../../common/featureTour';
-import BlackThemeSlide from './BlackThemeSlide';
 import ShareAudioSlide from './ShareAudioSlide';
 import {
   CustomLooksSlide,
@@ -31,11 +30,18 @@ import {
 import {
   CompactPlayerSlide,
   GamePresetsSlide,
+  GraphViewsSlide,
   GuideSearchSlide,
+  LookSlide,
   PresetsSlide,
   StudioSlide,
   ToneSlide,
 } from './release18';
+import {
+  EngineSoundSlide,
+  SparksSlide,
+  VisualizerEngineSlide,
+} from './release20';
 
 /**
  * The workspace tabs a slide can send the user to. `community` is Plus;
@@ -82,13 +88,6 @@ const SECOND_OUTPUT: TSlideEntry = {
   titleKey: 'tour.output.title',
   subtitleKey: 'tour.output.subtitle',
   Body: SecondOutputSlide,
-};
-
-const BLACK_THEME: TSlideEntry = {
-  id: 'black-theme',
-  titleKey: 'tour.theme.title',
-  subtitleKey: 'tour.theme.subtitle',
-  Body: BlackThemeSlide,
 };
 
 const SHARE_AUDIO: TSlideEntry = {
@@ -145,24 +144,34 @@ const RELEASE_17: TSlideEntry[] = [
 
 /**
  * 2.0, prepared as 1.8 and never released under that number, which is why
- * its slides live in `release18.tsx`. The Compact player first, because it is
- * the one thing in it that changes how the whole window is used. The Room
- * moves up into this release: thirteen of its twenty-four rooms, the page
- * they are picked on and its free locks arrived here, and one slide cannot
- * stand in two places.
+ * most of its slides live in `release18.tsx` (the later ones in
+ * `release20.tsx`). In the order Ivan named what 2.0 is (2026-09-28): the new
+ * look, which is the first thing anyone sees; the visualizers' new engine and
+ * the sparks they throw; the presets and the engine that plays them; the
+ * Room; games; then the Compact player and the rest. The Room moves up into
+ * this release: thirteen of its twenty-four rooms, the page they are picked
+ * on and its free locks arrived here, and one slide cannot stand in two
+ * places. The Dark theme's slide went with the two themes: the theme is one
+ * slider now, and the new look's slide shows it.
  */
 const RELEASE_20: TSlideEntry[] = [
   {
-    id: 'compact-player',
-    titleKey: 'tour.player.title',
-    subtitleKey: 'tour.player.subtitle',
-    Body: CompactPlayerSlide,
+    id: 'new-look',
+    titleKey: 'tour.look.title',
+    subtitleKey: 'tour.look.subtitle',
+    Body: LookSlide,
   },
   {
-    id: 'game-presets',
-    titleKey: 'tour.games.title',
-    subtitleKey: 'tour.games.subtitle',
-    Body: GamePresetsSlide,
+    id: 'visualizer-engine',
+    titleKey: 'tour.gpu.title',
+    subtitleKey: 'tour.gpu.subtitle',
+    Body: VisualizerEngineSlide,
+  },
+  {
+    id: 'pointer-sparks',
+    titleKey: 'tour.sparks.title',
+    subtitleKey: 'tour.sparks.subtitle',
+    Body: SparksSlide,
   },
   {
     id: 'presets',
@@ -170,7 +179,31 @@ const RELEASE_20: TSlideEntry[] = [
     subtitleKey: 'tour.presets.subtitle',
     Body: PresetsSlide,
   },
+  {
+    id: 'engine-sound',
+    titleKey: 'tour.sound.title',
+    subtitleKey: 'tour.sound.subtitle',
+    Body: EngineSoundSlide,
+  },
   ROOM,
+  {
+    id: 'game-presets',
+    titleKey: 'tour.games.title',
+    subtitleKey: 'tour.games.subtitle',
+    Body: GamePresetsSlide,
+  },
+  {
+    id: 'compact-player',
+    titleKey: 'tour.player.title',
+    subtitleKey: 'tour.player.subtitle',
+    Body: CompactPlayerSlide,
+  },
+  {
+    id: 'graph-views',
+    titleKey: 'tour.graph.title',
+    subtitleKey: 'tour.graph.subtitle',
+    Body: GraphViewsSlide,
+  },
   {
     id: 'tone',
     titleKey: 'tour.tone.title',
@@ -207,7 +240,7 @@ const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
  * from decides what is new to them, not the version they are going to.
  */
 const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
-  '1.6': announced('1.6', [SECOND_OUTPUT, BLACK_THEME, SHARE_AUDIO]),
+  '1.6': announced('1.6', [SECOND_OUTPUT, SHARE_AUDIO]),
   '1.7': announced('1.7', RELEASE_17),
   '2.0': [
     ...announced('2.0', RELEASE_20),
@@ -228,7 +261,6 @@ const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
  */
 const ALWAYS: TSlideEntry[] = [
   SECOND_OUTPUT,
-  BLACK_THEME,
   SHARE_AUDIO,
   {
     id: 'library',

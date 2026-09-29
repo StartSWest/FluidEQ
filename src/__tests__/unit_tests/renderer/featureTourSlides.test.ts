@@ -8,12 +8,17 @@ const idsOf = (version: string, release?: string) =>
     .map((slide) => slide.id);
 
 describe("What's new, slide by slide", () => {
-  it('opens 2.0 on what 2.0 brought, the Compact player first', () => {
+  it('opens 2.0 on what 2.0 brought, in the order Ivan named it', () => {
     expect(idsOf('2.0.0', '2.0')).toEqual([
-      'compact-player',
-      'game-presets',
+      'new-look',
+      'visualizer-engine',
+      'pointer-sparks',
       'presets',
+      'engine-sound',
       'room',
+      'game-presets',
+      'compact-player',
+      'graph-views',
       'tone',
       'studio',
       'guide-search',
@@ -34,8 +39,11 @@ describe("What's new, slide by slide", () => {
     const slides = featureTourFor('2.0.0');
     const ids = slides.map((slide) => slide.id);
     expect(new Set(ids).size).toBe(ids.length);
-    // Everything 1.7's own tour showed is still in 2.0's.
+    // Everything 1.7's own tour showed is still in 2.0's, but the Dark
+    // theme's slide: the two themes became one slider, which the new look's
+    // slide shows.
     featureTourFor('1.7.4').forEach((slide) => expect(ids).toContain(slide.id));
+    expect(ids).not.toContain('black-theme');
   });
 
   it('lists each release together, newest first, and the standing slides last', () => {

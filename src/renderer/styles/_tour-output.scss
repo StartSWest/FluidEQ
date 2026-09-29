@@ -1,0 +1,206 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// The Second output panel in miniature (`SecondOutputArt.tsx`), for the
+// standing slide's art column: the panel's head, its one-player rule, three
+// outputs with one switched on, and the two ways it keeps up.
+
+.output-art {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 22);
+  place-items: center;
+}
+
+.output-art__panel {
+  @include panel;
+
+  display: grid;
+  width: 100%;
+  padding: calc(#{$u} * 0.9);
+  gap: calc(#{$u} * 0.6);
+  @include animate(rise-in, $motion-slow);
+}
+
+.output-art__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  min-width: 0;
+  gap: calc(#{$u} * 0.6);
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.9);
+    font-weight: $weight-bold;
+  }
+}
+
+.output-art__status {
+  overflow: hidden;
+  color: $text-accent;
+  font-size: calc(#{$u} * 0.64);
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.output-art__rule {
+  display: flex;
+  align-items: center;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.66);
+  gap: calc(#{$u} * 0.5);
+}
+
+// A switch as the app draws one: a track, and its knob at the end it is on.
+.output-art__switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: calc(#{$u} * 1.6);
+  height: calc(#{$u} * 0.85);
+  border: 1px solid rgba($edge-tint, 0.16);
+  border-radius: $radius-pill;
+  background: $track-well;
+
+  &::after {
+    position: absolute;
+    top: 50%;
+    left: calc(#{$u} * 0.1);
+    width: calc(#{$u} * 0.62);
+    height: calc(#{$u} * 0.62);
+    border-radius: 50%;
+    background: $text-muted;
+    content: '';
+    transform: translateY(-50%);
+  }
+
+  &.is-on {
+    border-color: transparent;
+    background: $secondary-default var(--accent-fill);
+
+    &::after {
+      right: calc(#{$u} * 0.1);
+      left: auto;
+      background: $white;
+    }
+  }
+}
+
+.output-art__devices {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.35);
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    padding: calc(#{$u} * 0.45) calc(#{$u} * 0.55);
+    border: 1px solid rgba($edge-tint, 0.08);
+    border-radius: $radius-m;
+    background: $surface-field;
+    gap: calc(#{$u} * 0.55);
+
+    &.is-on {
+      border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+      background: color-mix(in srgb, $secondary-default 9%, $surface-field);
+    }
+  }
+}
+
+.output-art__device {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: calc(#{$u} * 0.3);
+
+  strong {
+    overflow: hidden;
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.7);
+    font-weight: $weight-semibold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.output-art__profile {
+  display: flex;
+  align-items: baseline;
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.62);
+  gap: calc(#{$u} * 0.4);
+
+  small {
+    color: $text-faint;
+    font-size: calc(#{$u} * 0.56);
+  }
+}
+
+.output-art__volume {
+  position: relative;
+  display: block;
+  height: calc(#{$u} * 0.3);
+  border-radius: $radius-pill;
+  background: $track-well;
+
+  span {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: calc(var(--level) * 100%);
+    border-radius: inherit;
+    background: $secondary-default var(--accent-fill);
+  }
+}
+
+.output-art__mode-title {
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.58);
+  font-weight: $weight-bold;
+  text-transform: uppercase;
+  @include tracking(0.12em);
+}
+
+.output-art__modes {
+  display: grid;
+  gap: calc(#{$u} * 0.4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  > span {
+    display: grid;
+    padding: calc(#{$u} * 0.45) calc(#{$u} * 0.55);
+    border: 1px solid rgba($edge-tint, 0.1);
+    border-radius: $radius-m;
+    background: $surface-field;
+    gap: calc(#{$u} * 0.15);
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.66);
+  }
+
+  small {
+    color: $text-faint;
+    font-size: calc(#{$u} * 0.56);
+  }
+
+  .is-chosen {
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    background: color-mix(in srgb, $secondary-default 12%, $surface-field);
+  }
+}

@@ -279,20 +279,78 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: calc(var(--tour-unit) * 0.6);
 }
 
+// The graph as the app draws it around a Plus visualizer: the scene fills the
+// plot, the EQ curve and its band points stand on it, and the look's name
+// sits in the corner with its Plus mark.
 .visualizers-visual__stage {
   position: relative;
+  overflow: hidden;
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-l;
+  background: $black;
+  box-shadow:
+    0 22px 56px rgba($black, 0.55),
+    0 0 42px color-mix(in srgb, $secondary-default 14%, transparent);
+  aspect-ratio: 16 / 9.4;
   @include animate(rise-in, $motion-slow);
+}
 
-  .tour-showcase__shot {
-    width: 100%;
+.visualizers-visual__scene {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+}
+
+.visualizers-visual__curve {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  overflow: visible;
+
+  polyline {
+    fill: none;
+    stroke: $secondary-light;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.4;
+    filter: drop-shadow(0 0 5px $secondary-default);
+    vector-effect: non-scaling-stroke;
   }
 }
 
-.visualizers-visual__badge {
+.visualizers-visual__point {
+  position: absolute;
+  width: calc(var(--tour-unit) * 0.8);
+  height: calc(var(--tour-unit) * 0.8);
+  border: 2px solid $secondary-light;
+  border-radius: 50%;
+  background: color-mix(in srgb, $black 55%, transparent);
+  box-shadow: 0 0 calc(var(--tour-unit) * 0.4) $secondary-default;
+  transform: translate(-50%, -50%);
+}
+
+.visualizers-visual__name {
   position: absolute;
   top: calc(var(--tour-unit) * 0.8);
   left: calc(var(--tour-unit) * 0.8);
-  padding: 2px calc(var(--tour-unit) * 0.55);
+  display: flex;
+  align-items: center;
+  padding: calc(var(--tour-unit) * 0.25) calc(var(--tour-unit) * 0.6);
+  color: $white;
+  border: 1px solid rgba($edge-tint, 0.18);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $black 50%, transparent);
+  backdrop-filter: blur(6px);
+  font-size: calc(var(--tour-unit) * 0.78);
+  font-weight: $weight-semibold;
+  gap: calc(var(--tour-unit) * 0.5);
+}
+
+.visualizers-visual__badge {
+  padding: 1px calc(var(--tour-unit) * 0.45);
   color: $secondary-light;
   border: 1px solid color-mix(in srgb, $secondary-light 55%, transparent);
   border-radius: $radius-2xs;

@@ -14,11 +14,8 @@ import {
   LibraryArt,
   OnlineMediaArt,
 } from './artwork';
-import { useTranslation } from '../../utils/I18nContext';
-import { useTheme } from '../../utils/theme';
-import secondOutputShot from '../../../../assets/tour/second-output.png';
-import secondOutputOceanShot from '../../../../assets/tour/second-output-ocean.png';
 import FeatureSlide from './FeatureSlide';
+import SecondOutputArt from './SecondOutputArt';
 import { DRAWN_FORM_COUNT } from './lookCounts';
 import type { ISlideActions } from './slides';
 
@@ -53,25 +50,15 @@ export function DspSlide({ actions }: ISlideProps) {
 }
 
 /**
- * The one standing slide with a capture rather than a drawing: the panel
- * is small, carries nothing personal beyond device names, and a list of
- * real outputs with one switched on says what the feature is faster than
- * any diagram of it.
+ * The panel itself, drawn: a list of real outputs with one switched on says
+ * what the feature is faster than any diagram of it.
  */
 export function SecondOutputSlide({ actions }: ISlideProps) {
-  const { t } = useTranslation();
-  const theme = useTheme();
   return (
     <FeatureSlide
       prefix="tour.output"
       tab="eq"
-      art={
-        <img
-          className="tour-art tour-art--shot"
-          src={theme === 'ocean' ? secondOutputOceanShot : secondOutputShot}
-          alt={t('tour.output.imageAlt')}
-        />
-      }
+      art={<SecondOutputArt />}
       actions={actions}
     />
   );

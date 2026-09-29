@@ -22,18 +22,107 @@ const tour: Partial<Dictionary> = {
   'tour.player.title': 'FluidEQ, racchiuso in un lettore',
   'tour.player.subtitle': 'Un interruttore trasforma la finestra in un lettore',
   'tour.player.lead':
-    'Un interruttore nella barra del titolo trasforma la finestra nel Lettore compatto: il brano, il tuo equalizzatore, un visualizzatore e In coda in un’unica colonna stretta. Lo stesso interruttore ti riporta alla pagina che avevi lasciato.',
+    'Un interruttore nella barra del titolo trasforma tutto FluidEQ in un lettore. È l’ampli classico, con il suo orologio LED, le spie e l’equalizzatore completo; con {backdrop}, su un visualizzatore Plus, diventa di vetro. Lo stesso interruttore ti riporta alla pagina da cui eri partito.',
   'tour.player.point1':
     'Tutto l’equalizzatore viene con te: preset, disposizioni delle bande, Modalità EQ, EQ intelligente, Bassi, Medi e Alti.',
   'tour.player.point2':
     'Riducilo a una riga, tienilo sopra le altre finestre o fai doppio clic sul visualizzatore per riempire lo schermo.',
   'tour.player.point3':
-    'Un tema Chiaro o Scuro tutto suo, e i brani trascinati su In coda entrano nella Libreria e nella coda.',
+    'Un tema tutto suo, e i brani trascinati su In coda entrano nella Libreria e nella coda.',
   'tour.player.how':
     'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.',
   'tour.player.open': 'Prova il Lettore compatto',
   'tour.player.imageAlt':
-    'Il Lettore compatto due volte, nel tema Scuro e in quello Chiaro: il brano e il suo orologio in alto, l’equalizzatore a quindici bande, In coda sotto; e lo stesso lettore ridotto a una riga.',
+    'L’angolo della barra del titolo con l’interruttore {player} cerchiato, e i due lettori che apre: l’ampli classico con orologio LED, spie, equalizzatore e coda, e il lettore di vetro, più largo, su un’aurora con {backdrop}.',
+  'tour.player.classic': 'Ampli classico',
+  'tour.player.glass': 'Vetro, con {backdrop}',
+  'tour.look.kicker': 'UN NUOVO ASPETTO',
+  'tour.look.title': 'Una finestra nuova, con colori nuovi',
+  'tour.look.subtitle':
+    'Un solo cursore del tema e un visualizzatore dietro a tutto',
+  'tour.look.lead':
+    'I pannelli poggiano su un unico piano aperto, nei colori della nuova icona, e un solo cursore, {brightness}, porta tutta la finestra dal quasi nero a un azzurro oceano chiaro. Con un visualizzatore Plus sul grafico, la finestra può prendere i suoi colori o mostrarlo dietro a tutto.',
+  'tour.look.point1':
+    '{brightness} è nel menu dietro l’icona a impulso, e accanto a {transparency} in {windowColours}.',
+  'tour.look.point2':
+    '{windowColours} offre {original}, {colours}, {ambient} e {backdrop}, ognuno con una riga su cosa fa alla finestra.',
+  'tour.look.point3':
+    'Finestre di dialogo e menu condividono un unico materiale, e la {rainbow} percorre i colori dell’icona, o quelli di un visualizzatore.',
+  'tour.look.how':
+    'Sposta {brightness} nel menu delle azioni dietro l’icona a impulso in alto a destra. Con un visualizzatore Plus sul grafico, apri {windowColours} dalla barra del grafico e scegli {backdrop}.',
+  'tour.look.open': 'Apri l’EQ',
+  'tour.look.imageAlt':
+    'FluidEQ con una scena di montagne di notte dietro i pannelli, e il menu Colori della finestra con Fondale scelto, la Luminosità a metà e la Trasparenza a un quarto.',
+  'tour.gpu.kicker': 'UN NUOVO MOTORE PER I VISUALIZZATORI',
+  'tour.gpu.title': 'Ogni visualizzatore sulla tua scheda grafica',
+  'tour.gpu.subtitle': 'Quaranta stili al ritmo del tuo schermo, e mondi 3D',
+  'tour.gpu.lead':
+    'I quaranta stili del grafico ora si disegnano con il motore delle scene Plus: sulla tua scheda grafica, alla frequenza di aggiornamento del tuo schermo, così barre, particelle e picchi scorrono fluidi dove prima scattavano. E un visualizzatore Plus ora può essere un vero mondo 3D.',
+  'tour.gpu.point1':
+    'Diciotto nuovi stili in {scenes}, tra cui {synthwave}, {horizon}, {towers} e {ledwall}; uno stile senza colori propri prende quelli della finestra.',
+  'tour.gpu.point2':
+    'I mondi 3D battono sulla cassa, ondeggiano con il rullante, saltano sul drop e passano dalla notte al giorno con {brightness}; trascinane uno per vederlo da un altro lato.',
+  'tour.gpu.point3':
+    'Cambiando stile, uno sfuma nel successivo, e un mondo 3D restituisce la memoria grafica mentre la finestra è coperta.',
+  'tour.gpu.how':
+    'Fai clic sul nome dello stile nel grafico e scegline uno in {scenes}.',
+  'tour.gpu.open': 'Apri l’EQ',
+  'tour.gpu.imageAlt':
+    'Un visualizzatore Plus che è una città 3D di notte, e quattro nuovi stili fotografati sul grafico — {synthwave}, {horizon}, {towers} e {ledwall} — con il selettore degli stili cerchiato sul primo.',
+  'tour.gpu.world': 'Mondo 3D',
+  'tour.sparks.kicker': 'SCINTILLE DEL PUNTATORE',
+  'tour.sparks.title': 'Visualizzatori che rispondono al tuo mouse',
+  'tour.sparks.subtitle': 'Scintille, petali o neve dal puntatore',
+  'tour.sparks.lead':
+    'Passa il mouse su un visualizzatore Plus e lancia ciò di cui è fatto — scintille, petali, neve, braci — in una scia dietro il puntatore, ed esplode dove fai clic. Con {ambient} e con {backdrop}, i suoi uccelli, petali e luci fluttuano anche su tutta la finestra.',
+  'tour.sparks.point1':
+    'Ogni visualizzatore lancia i suoi: neve da una scena invernale, braci da un falò, petali da un giardino.',
+  'tour.sparks.point2':
+    'Il palco dello Studio le mostra sempre, così chi crea una scena può dare forma a ciò che lancia.',
+  'tour.sparks.point3':
+    'Un solo interruttore per tutti i visualizzatori: {sparks}, in {windowColours} sotto {rainbow}.',
+  'tour.sparks.how':
+    'Con un visualizzatore Plus sul grafico, passa il mouse sopra e fai clic. {sparks} è in {windowColours}, sotto {rainbow}.',
+  'tour.sparks.open': 'Apri l’EQ',
+  'tour.sparks.imageAlt':
+    'Un visualizzatore con un’aurora, una scia di scintille luminose dietro il puntatore e un’esplosione dove ha fatto clic, e {windowColours} con l’interruttore {sparks} cerchiato.',
+  'tour.sound.kicker': 'IL MOTORE FLUIDEQ',
+  'tour.sound.title': 'Il suono esattamente come l’hai disegnato',
+  'tour.sound.subtitle': 'Alti fedeli, cambi senza clic, livello in un passo',
+  'tour.sound.lead':
+    'Sul motore FluidEQ la tua curva ora suona esattamente come l’hai disegnata fino a 20 kHz, ogni modifica si dissolve invece di fare clic e {autoNormalize} trova il livello di una nuova curva in un solo passo. Come costruire gli alti lo scegli tu: {precise} o {classic}.',
+  'tour.sound.point1':
+    '{precise} costruisce ogni banda come disegnata; su un’uscita a 48 kHz gli alti arrivavano 3,8 dB più bassi a 20 kHz. {classic} le costruisce come Equalizer APO, e come AutoEQ regola una correzione.',
+  'tour.sound.point2':
+    'I preset sfumano quando cambiano: 534 cambi su 636 crepitavano, e ora nessuno supera −80 dBFS.',
+  'tour.sound.point3':
+    'Ogni modifica si sente nel momento in cui la fai, e {autoNormalize} poi raggiunge il suo livello in un solo passo, calcolato dagli ultimi dieci secondi di musica.',
+  'tour.sound.how':
+    'Apri l’EQ e premi {eqMode}. In {treble}, scegli {precise} o {classic}, per il tuo EQ e per le correzioni separatamente.',
+  'tour.sound.open': 'Apri l’EQ',
+  'tour.sound.imageAlt':
+    'Il menu {eqMode} aperto sotto il suo pulsante con {treble} su {precise}; una curva degli alti che {precise} suona come disegnata e {classic} 3,8 dB più bassa a 20 kHz su un’uscita a 48 kHz; e il suono sopra i 5 kHz durante un cambio di preset: un clic a −26 dBFS prima della 2.0, niente sopra −80 dBFS ora.',
+  'tour.sound.trebleChart': 'Alti, da 1 a 20 kHz',
+  'tour.sound.switchChart': 'Sopra i 5 kHz, durante un cambio di preset',
+  'tour.sound.before': 'Prima della 2.0',
+  'tour.sound.now': '2.0',
+  'tour.graph.kicker': 'VISTE DA STUDIO',
+  'tour.graph.title': 'Un grafico che legge il suono come uno studio',
+  'tour.graph.subtitle': 'Dodici viste, un analizzatore da 80 dB',
+  'tour.graph.lead':
+    'Il grafico misura ciò che suona come fanno gli analizzatori da studio: dodici viste, dallo spettrogramma e dalla cascata allo stereo, al loudness e alla fase, su scale che restano ferme mentre la musica si muove.',
+  'tour.graph.point1':
+    '{analyzer}, {spectrogram}, {rta}, {waterfall}, {scope} e altre sette, in {analysis} nel selettore degli aspetti.',
+  'tour.graph.point2':
+    'Il suono dal vivo è disegnato a 80 dB di profondità e fino a 10 Hz, un dodicesimo d’ottava per punto, così un tono si legge al suo livello reale.',
+  'tour.graph.point3':
+    'Il tuo EQ mantiene i suoi ±20 dB, con margine ai bordi per una curva che va oltre, e le frequenze sono indicate 10, 20, 50, 100 come le stampano gli analizzatori.',
+  'tour.graph.how':
+    'Fai clic sul nome dell’aspetto sul grafico e scegli una vista in {analysis}. Doppio clic sul grafico per riempire lo schermo; Ctrl+G mostra o nasconde la griglia.',
+  'tour.graph.open': 'Apri l’EQ',
+  'tour.graph.imageAlt':
+    'L’Analizzatore del grafico: lo spettro dal vivo a 80 dB di profondità, le barre a terzi d’ottava dietro e i picchi sopra, la curva dell’EQ in cima e le dodici viste elencate in Analisi.',
+
   'tour.games.kicker': 'PRESET DI GIOCO',
   'tour.games.title': 'Ogni gioco, il suo suono',
   'tour.games.subtitle': 'Attivato quando il gioco passa in primo piano',
@@ -49,7 +138,10 @@ const tour: Partial<Dictionary> = {
     'Apri EQ, scegli Preset di gioco e premi Aggiungi un gioco. Poi scegli il suo suono nel selettore sulla sua riga.',
   'tour.games.open': 'Apri Preset di gioco',
   'tour.games.imageAlt':
-    'La pagina Preset di gioco con quattro giochi, ognuno con il suo suono, e le schede che FluidEQ mostra sul desktop quando un gioco passa in primo piano e quando si chiude.',
+    'Tre momenti sul desktop: un gioco in primo piano con la scheda di FluidEQ che dice che il suo suono è caricato, lo stesso gioco ridotto a icona con il suono ancora attivo, e il gioco chiuso con la scheda che dice che il suono di prima è tornato.',
+  'tour.games.stepFront': 'In primo piano: si carica il suo suono',
+  'tour.games.stepAway': 'Ridotto a icona o con Alt+Tab: il suono resta',
+  'tour.games.stepClosed': 'Chiuso: torna il tuo suono',
   'tour.presets.kicker': 'NUOVI PRESET',
   'tour.presets.title': 'Preset che suonano come la musica',
   'tour.presets.subtitle': 'Catene complete, tutte allo stesso volume',
@@ -88,11 +180,11 @@ const tour: Partial<Dictionary> = {
   'tour.studio.lead':
     'Lo Studio trasforma un’idea in una scena che si muove con la tua musica. Ora fa parte di Plus, e un account nuovo può provarlo gratis per quindici giorni, senza carta e senza alcun addebito alla fine della prova.',
   'tour.studio.point1':
-    'Pubblica una scena e, una volta approvata, il tuo prossimo mese di Plus è gratis.',
+    'Ogni scena viene esaminata prima di arrivare nella galleria, e una scena approvata ti regala il mese di Plus successivo.',
   'tour.studio.point2':
-    'Ogni scena dei membri viene esaminata prima di arrivare nella galleria.',
+    'Le scene possono essere veri mondi 3D che pestano sulla cassa e scattano sul drop.',
   'tour.studio.point3':
-    'Tutto ciò che hai creato prima resta, nella cartella indicata dallo Studio.',
+    'Copia il prompt per l’IA e il tuo assistente IA potrà vedere la tua scena e sentire come si muove il brano.',
   'tour.studio.how':
     'Apri Plus e scegli Studio nella sua barra laterale. Senza Plus, quella pagina ti offre la prova gratuita.',
   'tour.studio.open': 'Apri Plus',
@@ -109,7 +201,7 @@ const tour: Partial<Dictionary> = {
   'tour.help.point1':
     'Perdona refusi e plurali, e conosce i nomi che le persone danno alle cose.',
   'tour.help.point2':
-    'Ogni controllo in un’immagine è numerato come in un manuale stampato, e le immagini seguono il tuo tema.',
+    'Ogni controllo in un’immagine è numerato, come in un manuale stampato.',
   'tour.help.point3':
     'F1 apre la guida da qualsiasi punto, e Invio passa alla corrispondenza successiva.',
   'tour.help.how':
@@ -235,25 +327,6 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Una tastiera, un mouse e un tappetino illuminati con il rosa, il viola e il ciano di Città al neon.',
 
-  'tour.theme.kicker': 'UN NUOVO ASPETTO',
-  'tour.theme.title': 'Ecco il tema Scuro',
-  'tour.theme.subtitle': 'Quasi nero, per le notti tarde e gli schermi OLED',
-  'tour.theme.lead':
-    'FluidEQ ha ora un secondo volto. Scuro cancella ogni traccia del blu ardesia con cui l’app è nata: pannelli, menu e barre diventano monocromi, l’accento resta e lo spettro è l’unico colore nella stanza.',
-  'tour.theme.point1':
-    'Sfondi quasi neri: su uno schermo OLED lo spazio intorno al grafico si fa quasi buio.',
-  'tour.theme.point2':
-    'Ogni pagina segue: menu, finestre di dialogo, il palco del karaoke e la Libreria cambiano insieme. Il Lettore compatto mantiene un tema tutto suo.',
-  'tour.theme.point3':
-    'Il colore d’accento e la modalità arcobaleno restano. Il suono non cambia affatto: è solo la vernice.',
-  'tour.theme.howTitle': 'Come cambiarlo',
-  'tour.theme.how':
-    'Apri il menu dietro l’icona a impulso in alto a destra e scegli Scuro accanto a Tema, nelle impostazioni in fondo al menu. Chiaro è a un clic se vuoi tornare indietro.',
-  'tour.theme.tryBlack': 'Passa a Scuro adesso',
-  'tour.theme.tryOcean': 'Torna a Chiaro',
-  'tour.theme.imageAlt':
-    'FluidEQ con il tema Scuro: la scheda EQ con quindici bande e lo spettro dal vivo mentre suona un brano.',
-
   'tour.share.kicker': 'ASCOLTA OGNI PC',
   'tour.share.title': 'Condividi l’audio tra i tuoi computer',
   'tour.share.subtitle': 'Un paio di cuffie, tutte le macchine sulla scrivania',
@@ -352,7 +425,7 @@ const tour: Partial<Dictionary> = {
   'tour.looks.point3':
     'Attacco e rilascio decidono il movimento; picchi luminosi, picchi riempiti e dodici segni di picco decidono come appare un colpo.',
   'tour.looks.point4':
-    'Il bagliore funziona in ogni modalità, e la modalità arcobaleno aggiunge un bordo che percorre tutta la ruota dei colori. Gli aspetti si esportano in un file e si importano da un file.',
+    'Il bagliore funziona in ogni modalità, e gli aspetti si esportano in un file e si importano da un file.',
   'tour.looks.how':
     'Nella scheda EQ premi «Nuovo aspetto» nella barra del grafico. Scegli una forma con il selettore o premi Spazio per scorrerle, regola colori e movimento mentre la musica suona, poi Salva.',
   'tour.looks.open': 'Apri l’EQ',

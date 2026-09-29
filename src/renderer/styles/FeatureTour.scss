@@ -13,6 +13,7 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 @use 'tour-art';
+@use 'tour-output';
 @use 'tour-showcase';
 @use 'tour-visuals';
 @use 'tour-lighting';
@@ -387,36 +388,7 @@ it under the terms of the GNU General Public License version 3 or later.
   text-transform: uppercase;
 }
 
-// Slide 1 — the theme. The capture is the point, so it gets the wider column
-// and the text stands beside it.
-.tour-slide--theme {
-  align-items: stretch;
-  grid-template-columns: minmax(0, 62%) minmax(0, 1fr);
-}
-
-.tour-slide__figure {
-  display: grid;
-  min-width: 0;
-  min-height: 0;
-  margin: 0;
-  align-content: center;
-}
-
-.tour-slide__shot {
-  display: block;
-  width: 100%;
-  max-height: 100%;
-  border: 1px solid $border-field;
-  border-radius: $radius-l;
-  background: $black;
-  box-shadow:
-    0 24px 60px rgba($black, 0.55),
-    0 0 40px color-mix(in srgb, $secondary-default 14%, transparent);
-  object-fit: contain;
-}
-
-// Slide 2 — Share Audio. Steps on the left, the diagram and its facts on the
-// right.
+// Share Audio. Steps on the left, the diagram and its facts on the right.
 .tour-slide--share {
   align-items: start;
   grid-template-columns: minmax(0, 1fr) minmax(0, 46%);
@@ -538,7 +510,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // A stage narrower than the two columns need: each slide stacks them.
 @media (max-width: 1100px) {
-  .tour-slide--theme,
   .tour-slide--share,
   .tour-slide--feature {
     grid-template-columns: minmax(0, 1fr);

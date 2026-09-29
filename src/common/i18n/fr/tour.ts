@@ -23,18 +23,109 @@ const tour: Partial<Dictionary> = {
   'tour.player.subtitle':
     'Un seul interrupteur transforme la fenêtre en lecteur',
   'tour.player.lead':
-    'Un seul interrupteur dans la barre de titre transforme la fenêtre en Lecteur compact : le morceau, votre égaliseur, un visualiseur et la file À suivre, dans une seule colonne étroite. Le même interrupteur vous ramène à la page que vous aviez quittée.',
+    'Un interrupteur dans la barre de titre replie tout FluidEQ en un lecteur. C’est l’ampli classique, avec son horloge LED, ses voyants et l’égaliseur complet ; en mode {backdrop}, sur un visualiseur Plus, il devient de verre. Le même interrupteur vous ramène à la page que vous aviez quittée.',
   'tour.player.point1':
     'Tout l’égaliseur est du voyage : préréglages, dispositions de bandes, Mode EQ, Égalisation auto, Graves, Médiums et Aigus.',
   'tour.player.point2':
     'Repliez-le sur une ligne, gardez-le au-dessus des autres fenêtres, ou double-cliquez sur le visualiseur pour passer en plein écran.',
   'tour.player.point3':
-    'Son propre thème, Clair ou Sombre, et les morceaux déposés sur À suivre rejoignent la Bibliothèque et la file de lecture.',
+    'Son propre thème, et les morceaux déposés sur À suivre rejoignent la Bibliothèque et la file de lecture.',
   'tour.player.how':
     'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.',
   'tour.player.open': 'Essayer le Lecteur compact',
   'tour.player.imageAlt':
-    'Le Lecteur compact deux fois, dans son thème Sombre et dans son thème Clair : le morceau et son compteur en haut, l’égaliseur à quinze bandes, À suivre en dessous ; et le même lecteur replié sur une ligne.',
+    'Le coin de la barre de titre avec l’interrupteur {player} entouré, et les deux lecteurs qu’il ouvre : l’ampli classique avec son horloge LED, ses voyants, son égaliseur et sa file d’attente, et le lecteur de verre, plus large, sur une aurore en mode {backdrop}.',
+  'tour.player.classic': 'Ampli classique',
+  'tour.player.glass': 'Verre, en mode {backdrop}',
+  'tour.look.kicker': 'UNE NOUVELLE APPARENCE',
+  'tour.look.title': 'Une nouvelle fenêtre, de nouvelles couleurs',
+  'tour.look.subtitle':
+    'Un seul curseur de thème, et un visualiseur derrière tout',
+  'tour.look.lead':
+    'Les panneaux reposent sur un seul plan ouvert, aux couleurs de la nouvelle icône, et un seul curseur, {brightness}, fait passer toute la fenêtre du presque noir à un bleu océan clair. Avec un visualiseur Plus sur le graphique, la fenêtre peut prendre ses couleurs, ou le laisser jouer derrière tout.',
+  'tour.look.point1':
+    '{brightness} se trouve dans le menu derrière l’icône d’impulsion, et à côté de {transparency} dans {windowColours}.',
+  'tour.look.point2':
+    '{windowColours} propose {original}, {colours}, {ambient} et {backdrop}, chacun avec une ligne sur ce qu’il fait à la fenêtre.',
+  'tour.look.point3':
+    'Les boîtes de dialogue et les menus partagent une même matière, et le {rainbow} parcourt les couleurs de l’icône, ou celles d’un visualiseur.',
+  'tour.look.how':
+    'Déplacez {brightness} dans le menu des actions derrière l’icône d’impulsion en haut à droite. Avec un visualiseur Plus sur le graphique, ouvrez {windowColours} depuis la barre du graphique et choisissez {backdrop}.',
+  'tour.look.open': 'Ouvrir l’Égaliseur',
+  'tour.look.imageAlt':
+    'FluidEQ avec une scène de montagnes la nuit derrière ses panneaux, et le menu Couleurs de la fenêtre avec Toile de fond choisie, la Luminosité à mi-course et la Transparence au quart.',
+  'tour.gpu.kicker': 'UN NOUVEAU MOTEUR DE VISUALISEURS',
+  'tour.gpu.title': 'Tous les visualiseurs sur votre carte graphique',
+  'tour.gpu.subtitle':
+    'Quarante styles au rythme de votre écran, et des mondes 3D',
+  'tour.gpu.lead':
+    'Les quarante styles du graphique s’affichent désormais avec le moteur des scènes Plus : sur votre carte graphique, à la fréquence de rafraîchissement de votre écran, si bien que barres, particules et crêtes glissent là où elles sautaient. Et un visualiseur Plus peut désormais être un vrai monde 3D.',
+  'tour.gpu.point1':
+    'Dix-huit nouveaux styles dans {scenes}, dont {synthwave}, {horizon}, {towers} et {ledwall} ; un style sans couleurs propres prend celles de la fenêtre.',
+  'tour.gpu.point2':
+    'Les mondes 3D marchent sur la grosse caisse, ondulent avec la caisse claire, bondissent au drop et passent de la nuit au jour avec {brightness} ; faites-en glisser un pour le voir sous un autre angle.',
+  'tour.gpu.point3':
+    'Changer de style fond l’un dans l’autre, et un monde 3D rend sa mémoire graphique tant que la fenêtre est couverte.',
+  'tour.gpu.how':
+    'Cliquez sur le nom du style sur le graphique et choisissez-en un dans {scenes}.',
+  'tour.gpu.open': 'Ouvrir l’Égaliseur',
+  'tour.gpu.imageAlt':
+    'Un visualiseur Plus qui est une ville 3D de nuit, et quatre nouveaux styles photographiés sur le graphique — {synthwave}, {horizon}, {towers} et {ledwall} — avec le sélecteur de styles entouré sur le premier.',
+  'tour.gpu.world': 'Monde 3D',
+  'tour.sparks.kicker': 'ÉTINCELLES DU POINTEUR',
+  'tour.sparks.title': 'Des visualiseurs qui répondent à votre souris',
+  'tour.sparks.subtitle': 'Étincelles, pétales ou neige au bout du pointeur',
+  'tour.sparks.lead':
+    'Passez la souris sur un visualiseur Plus et il lance ce dont il est fait — étincelles, pétales, neige, braises — en traînée derrière le pointeur, et éclate là où vous cliquez. En modes {ambient} et {backdrop}, ses oiseaux, pétales et lumières flottent aussi sur toute la fenêtre.',
+  'tour.sparks.point1':
+    'Chaque visualiseur lance les siens : de la neige pour une scène d’hiver, des braises pour un feu de camp, des pétales pour un jardin.',
+  'tour.sparks.point2':
+    'La scène du Studio les montre toujours, pour que le créateur d’une scène façonne ce qu’elle lance.',
+  'tour.sparks.point3':
+    'Un seul interrupteur pour tous les visualiseurs : {sparks}, dans {windowColours} sous {rainbow}.',
+  'tour.sparks.how':
+    'Avec un visualiseur Plus sur le graphique, passez la souris dessus et cliquez. {sparks} se trouve dans {windowColours}, sous {rainbow}.',
+  'tour.sparks.open': 'Ouvrir l’Égaliseur',
+  'tour.sparks.imageAlt':
+    'Un visualiseur d’aurore avec une traînée d’étincelles lumineuses derrière le pointeur et une gerbe là où il a cliqué, et {windowColours} avec son interrupteur {sparks} entouré.',
+  'tour.sound.kicker': 'LE MOTEUR FLUIDEQ',
+  'tour.sound.title': 'Le son exactement tel que vous l’avez dessiné',
+  'tour.sound.subtitle':
+    'Aigus fidèles, changements sans clic, niveau en un pas',
+  'tour.sound.lead':
+    'Sur le moteur FluidEQ, votre courbe joue désormais exactement comme dessinée jusqu’à 20 kHz, chaque changement se fond au lieu de cliquer, et {autoNormalize} trouve le niveau d’une nouvelle courbe en un seul pas. La façon de construire les aigus, c’est vous qui la choisissez : {precise} ou {classic}.',
+  'tour.sound.point1':
+    '{precise} construit chaque bande comme dessinée ; sur une sortie à 48 kHz, les aigus arrivaient 3,8 dB trop bas à 20 kHz. {classic} les construit comme Equalizer APO, et comme AutoEQ règle une correction.',
+  'tour.sound.point2':
+    'Les préréglages se fondent en changeant : 534 changements sur 636 crépitaient, et désormais aucun ne dépasse −80 dBFS.',
+  'tour.sound.point3':
+    'Chaque réglage s’entend au moment même où vous le faites, puis {autoNormalize} rejoint son niveau en un seul pas, calculé sur les dix dernières secondes de musique.',
+  'tour.sound.how':
+    'Ouvrez l’Égaliseur et appuyez sur {eqMode}. Sous {treble}, choisissez {precise} ou {classic}, séparément pour votre EQ et pour les corrections.',
+  'tour.sound.open': 'Ouvrir l’Égaliseur',
+  'tour.sound.imageAlt':
+    'Le menu {eqMode} ouvert sous son bouton avec {treble} sur {precise} ; une courbe d’aigus que {precise} joue comme dessinée et {classic} 3,8 dB trop bas à 20 kHz sur une sortie à 48 kHz ; et le son au-dessus de 5 kHz pendant un changement de préréglage : un clic à −26 dBFS avant la 2.0, rien au-dessus de −80 dBFS désormais.',
+  'tour.sound.trebleChart': 'Aigus, de 1 à 20 kHz',
+  'tour.sound.switchChart': 'Au-dessus de 5 kHz, pendant un changement',
+  'tour.sound.before': 'Avant la 2.0',
+  'tour.sound.now': '2.0',
+  'tour.graph.kicker': 'VUES DE STUDIO',
+  'tour.graph.title': 'Un graphique qui lit le son comme un studio',
+  'tour.graph.subtitle': 'Douze vues, un analyseur sur 80 dB',
+  'tour.graph.lead':
+    'Le graphique mesure ce qui joue comme les analyseurs de studio : douze vues, du spectrogramme et de la cascade à la stéréo, au volume perçu et à la phase, sur des échelles qui restent immobiles pendant que la musique bouge.',
+  'tour.graph.point1':
+    '{analyzer}, {spectrogram}, {rta}, {waterfall}, {scope} et sept autres, sous {analysis} dans le sélecteur de styles.',
+  'tour.graph.point2':
+    'Le son en direct est tracé sur 80 dB de profondeur et jusqu’à 10 Hz, un douzième d’octave par point, pour qu’un son pur se lise à son vrai niveau.',
+  'tour.graph.point3':
+    'Votre égaliseur garde ses ±20 dB, avec de la marge aux bords pour une courbe qui va plus loin, et les fréquences sont notées 10, 20, 50, 100, comme les impriment les analyseurs.',
+  'tour.graph.how':
+    'Sur le graphique, cliquez sur le nom du style et choisissez une vue sous {analysis}. Double-cliquez sur le graphique pour remplir l’écran ; Ctrl+G affiche ou masque la grille.',
+  'tour.graph.open': 'Ouvrir l’Égaliseur',
+  'tour.graph.imageAlt':
+    'L’Analyseur du graphique : le spectre en direct sur 80 dB, des barres au tiers d’octave derrière et ses crêtes au-dessus, la courbe de l’égaliseur par-dessus, et les douze vues listées sous Analyse.',
+
   'tour.games.kicker': 'PRÉRÉGLAGES DE JEU',
   'tour.games.title': 'À chaque jeu, un son bien à lui',
   'tour.games.subtitle': 'Appliqué dès que le jeu passe au premier plan',
@@ -50,7 +141,10 @@ const tour: Partial<Dictionary> = {
     'Dans l’Égaliseur, ouvrez Préréglages de jeu et appuyez sur Ajouter un jeu, puis donnez-lui un son sur sa ligne.',
   'tour.games.open': 'Ouvrir les Préréglages de jeu',
   'tour.games.imageAlt':
-    'La page Préréglages de jeu avec quatre jeux, chacun avec un son bien à lui, et les cartes que FluidEQ affiche sur le Bureau quand un jeu passe au premier plan et quand il se ferme.',
+    'Trois moments sur le bureau : un jeu au premier plan avec la carte de FluidEQ annonçant que son son est chargé, le même jeu réduit avec son son toujours actif, et le jeu fermé avec la carte annonçant le retour du son d’avant.',
+  'tour.games.stepFront': 'Au premier plan : son son se charge',
+  'tour.games.stepAway': 'Réduit ou quitté par Alt+Tab : son son reste',
+  'tour.games.stepClosed': 'Fermé : votre son revient',
   'tour.presets.kicker': 'NOUVEAUX PRÉRÉGLAGES',
   'tour.presets.title': 'Des préréglages qui sonnent comme la musique',
   'tour.presets.subtitle': 'Des chaînes complètes, toutes au même niveau',
@@ -89,11 +183,11 @@ const tour: Partial<Dictionary> = {
   'tour.studio.lead':
     'Le Studio transforme une idée en une scène qui bouge avec votre musique. Il fait désormais partie de Plus, et un nouveau compte peut l’essayer gratuitement pendant quinze jours, sans carte et sans aucun prélèvement à la fin de l’essai.',
   'tour.studio.point1':
-    'Publiez une scène et, une fois qu’elle est approuvée, votre prochain mois de Plus est offert.',
+    'Chaque scène est examinée avant d’arriver dans la galerie, et une scène approuvée vous offre le mois de Plus suivant.',
   'tour.studio.point2':
-    'Chaque scène de membre est examinée avant d’arriver dans la galerie.',
+    'Les scènes peuvent être de vrais mondes en 3D qui marchent sur la grosse caisse et bondissent au drop.',
   'tour.studio.point3':
-    'Tout ce que vous aviez créé est conservé, dans le dossier qu’indique le Studio.',
+    'Copiez le prompt pour l’IA, et votre assistant IA peut voir votre scène et entendre comment le morceau évolue.',
   'tour.studio.how':
     'Ouvrez Plus et choisissez Studio dans sa barre latérale. Sans Plus, la page du Studio propose l’essai gratuit.',
   'tour.studio.open': 'Ouvrir Plus',
@@ -110,7 +204,7 @@ const tour: Partial<Dictionary> = {
   'tour.help.point1':
     'Il pardonne les fautes de frappe et les pluriels, et connaît les mots de tous les jours.',
   'tour.help.point2':
-    'Chaque commande d’une capture est numérotée comme dans un manuel imprimé, et les captures suivent votre thème.',
+    'Chaque commande d’une capture est numérotée, comme dans un manuel imprimé.',
   'tour.help.point3':
     'F1 l’ouvre de n’importe où, et Entrée passe au résultat suivant.',
   'tour.help.how':
@@ -236,26 +330,6 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Un clavier, une souris et un tapis de souris éclairés aux tons rose, violet et cyan de Ville néon.',
 
-  'tour.theme.kicker': 'UN NOUVEAU LOOK',
-  'tour.theme.title': 'Voici le thème Sombre',
-  'tour.theme.subtitle':
-    'Quasi noir, pour les nuits tardives et les écrans OLED',
-  'tour.theme.lead':
-    'FluidEQ a désormais un second visage. Sombre efface toute trace du bleu ardoise d’origine : panneaux, menus et barres passent en monochrome, l’accent reste, et le spectre est la seule couleur de la pièce.',
-  'tour.theme.point1':
-    'Fonds quasi noirs : sur un écran OLED, l’espace autour du graphique est presque éteint.',
-  'tour.theme.point2':
-    'Toutes les pages suivent : menus, boîtes de dialogue, la scène karaoké et la Bibliothèque changent ensemble. Le Lecteur compact garde son propre thème.',
-  'tour.theme.point3':
-    'Votre couleur d’accent et le mode arc-en-ciel sont conservés. Rien ne change dans votre son : seule la peinture.',
-  'tour.theme.howTitle': 'Comment changer',
-  'tour.theme.how':
-    'Ouvrez le menu derrière l’icône d’impulsion en haut à droite et choisissez Sombre à côté de Thème, dans les réglages au bas du menu. Clair reste à un clic si vous voulez revenir.',
-  'tour.theme.tryBlack': 'Passer en Sombre maintenant',
-  'tour.theme.tryOcean': 'Revenir à Clair',
-  'tour.theme.imageAlt':
-    'FluidEQ en thème Sombre : l’onglet Égaliseur avec quinze bandes et le spectre en direct pendant la lecture d’un morceau.',
-
   'tour.share.kicker': 'ÉCOUTEZ TOUS VOS PC',
   'tour.share.title': 'Partagez l’audio entre vos ordinateurs',
   'tour.share.subtitle': 'Un casque, toutes les machines de votre bureau',
@@ -355,7 +429,7 @@ const tour: Partial<Dictionary> = {
   'tour.looks.point3':
     'Attaque et relâchement fixent le mouvement ; les pics lumineux, les crêtes remplies et douze marques de pic décident de l’allure d’un coup.',
   'tour.looks.point4':
-    'La lueur fonctionne dans tous les modes, et le mode arc-en-ciel ajoute une bordure qui parcourt toute la roue des couleurs. Les styles s’exportent en fichier et s’importent depuis un fichier.',
+    'La lueur fonctionne dans tous les modes, et les styles s’exportent en fichier et s’importent depuis un fichier.',
   'tour.looks.how':
     'Dans l’onglet Égaliseur, appuyez sur « Nouveau style » dans la barre du graphique. Choisissez une forme avec le sélecteur ou appuyez sur Espace pour les faire défiler, réglez couleurs et mouvement pendant que la musique joue, puis Enregistrer.',
   'tour.looks.open': 'Ouvrir l’Égaliseur',

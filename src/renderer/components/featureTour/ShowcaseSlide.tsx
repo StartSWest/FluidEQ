@@ -24,6 +24,11 @@ interface IShowcaseSlideProps {
     | 'tour.visualizers'
     | 'tour.desktop'
     | 'tour.lighting'
+    | 'tour.look'
+    | 'tour.gpu'
+    | 'tour.sparks'
+    | 'tour.sound'
+    | 'tour.graph'
     | 'tour.player'
     | 'tour.games'
     | 'tour.presets'
@@ -35,7 +40,11 @@ interface IShowcaseSlideProps {
   visual: ReactNode;
   /** A word beside the kicker for something still being finished: "Beta". */
   tag?: TranslationKey;
-  /** Numbers the slide's words quote, counted by the app rather than typed. */
+  /**
+   * What the slide's words quote from the app rather than type: counts from
+   * the catalogue, and the labels of the controls "How to start" sends the
+   * reader to, so a renamed control renames the slide.
+   */
   values?: Record<string, string | number>;
 }
 
@@ -77,7 +86,7 @@ export default function ShowcaseSlide({
 
         <div className="tour-slide__how dialog-frame__group">
           <span className="tour-slide__how-title">{t('tour.howTitle')}</span>
-          <p>{t(key('how'))}</p>
+          <p>{t(key('how'), values)}</p>
           <button type="button" className="button small" onClick={onOpen}>
             {t(key('open'))}
           </button>
