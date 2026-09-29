@@ -1,0 +1,551 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// The theme's mixins and functions, built on its variables. Used through
+// `@use 'theme' as *`, which forwards them.
+
+@use 'sass:color' as sass-color;
+@use 'color' as *;
+@use 'motion' as *;
+@use 'themeTokens' as *;
+
+// *** Mixins *****************************************************************
+
+// Cyan focus ring shared by every focusable surface. Using one ring keeps
+// keyboard navigation legible without each component inventing its own.
+// Two rings, and the inner one is the one that always survives.
+//
+// The halo is drawn OUTSIDE the control, so any ancestor that clips — a
+// scrolling list, a card with rounded corners, a pane with `overflow: hidden`
+// — cuts it off, and a control sitting flush against that edge showed a ring
+// on two sides and nothing on the other two. That is worse than no ring: it
+// reads as a rendering fault rather than as focus. Which ancestors clip is
+// not knowable from here and changes with every layout, so the indicator
+// cannot depend on room being available outside the box.
+//
+// So focus is said twice: a hairline just inside the control's own edge,
+// which nothing can clip, and the soft halo around it for the controls that
+// have the room. Both are the accent, so together they read as one ring
+// rather than as two.
+@mixin focus-ring($color: $secondary-default) {
+  outline: none;
+  box-shadow:
+    inset 0 0 0 1px rgba($color, 0.75),
+    0 0 0 3px rgba($color, 0.22);
+}
+
+@mixin field-surface {
+  color: $text-primary;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  box-shadow: none;
+  transition: $transition-control;
+}
+
+// A field that names a choice rather than holding typed text: the closed
+// face of a select or a pick. Same surface, labelled like a button.
+@mixin choice-surface {
+  @include field-surface;
+  color: $secondary-light;
+  font-weight: $weight-bold;
+}
+
+// Where a field shows it has the caret: the edge and the ring.
+@mixin field-focus {
+  &:focus-visible,
+  &:focus-within {
+    border-color: $border-field-focus;
+    @include focus-ring;
+  }
+}
+
+// A control you press that is dressed as a field — a select, a pick, a chip:
+// it lifts under the pointer like the quiet button it sits beside.
+@mixin field-interactive {
+  @include field-surface;
+
+  &:hover:not(:disabled):not([aria-disabled='true']) {
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
+  }
+
+  @include field-focus;
+}
+
+// A field you type into: NOTHING changes under the pointer — not the fill,
+// not the edge. Only focus lights it, because focus is where the typing goes.
+//
+// Ivan has asked for this more than once ("quita el hover en todos mis
+// inputs"): a box of text the eye is reading must not change colour when the
+// pointer crosses it, and the lift belongs to controls you press. The global
+// control base in App.scss gives every <input> and <textarea> no hover at
+// all, so a text field needs no hover rule of its own — and must not grow
+// one, in a mixin or in a component.
+@mixin field-static {
+  @include field-surface;
+
+  &:focus,
+  &:focus-visible {
+    border-color: $border-field-focus;
+    background: $surface-control;
+    outline: none;
+    @include focus-ring;
+  }
+}
+
+// Unavailable, not switched off at the wall.
+//
+// This kept the opaque `$surface-panel` backstop after `field-surface` lost it,
+// so a disabled control was the one thing in the window still painting a solid
+// colour — and a dark one, which made "you cannot use this yet" look like "this
+// is broken". Disabled should read as quieter than its neighbours, not as a
+// hole in the panel.
+@mixin field-disabled {
+  // The app's own dim ink and hairline, not the lavender the old palette
+  // left here: `$primary-lighter` is a violet-white from the purple family
+  // nothing else in the window uses any more, and on a cool black it was
+  // the one warm edge on the page.
+  color: $text-dim;
+  border-color: $border-subtle;
+  // No fill: an unavailable field is the outline of one, with dim ink.
+  //
+  // It was the plot's opaque face, which on the open floor was a slab of the
+  // pane's slate — lighter than the live fields beside it, so the two
+  // controls that could not be used were the loudest on the row (Ivan,
+  // 2026-09-26: "fix … disabled input colors"). Before that it was 40% of a
+  // colour, which came out different on every surface. Nothing at all is the
+  // same on every surface and is quieter than anything that can be used.
+  background: transparent;
+  box-shadow: none;
+  cursor: default;
+}
+
+// Floating menu surface: dropdown lists, the titlebar tool menu, popovers.
+// Lighter, and genuinely translucent — the blur below was already paying for a
+// transparency the colour never used.
+//
+// At 0.985 this was opaque in all but name, so a menu was a dark slab dropped
+// over a window that has since learned to show its own colour through
+// everything else. It stays the most solid surface in the app, because it
+// opens over arbitrary content and the text on it has to win against whatever
+// is behind — but 0.94 of the panel family reads as glass over the workspace
+// rather than as a hole cut in it.
+// Keep decorative surface artwork available when the border adds its own layer.
+@mixin surface-artwork($image) {
+  --rainbow-surface-image: #{$image};
+  background-image: $image;
+}
+
+// Clip the spectrum to the actual border. An inner masking fill used to replace
+// every window's own background with the darker menu colour in Rainbow mode.
+@mixin rainbow-border {
+  border-color: transparent;
+  background-image: var(--rainbow-sweep), var(--rainbow-surface-image, none);
+  // The Maker has three artwork layers; none may inherit the border-only clip.
+  background-clip: border-area, border-box, border-box, border-box;
+  background-origin: border-box, padding-box, padding-box, padding-box;
+  background-size:
+    200% 100%,
+    auto,
+    auto,
+    auto;
+  // Beside the surface's own motion, never over it (`surface-motion`): the
+  // drift written alone was every menu and dialog appearing and vanishing
+  // with no animation for as long as euphoria lasted.
+  animation: var(--surface-motion, none), $rainbow-drift;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@mixin floating-surface($lift: 0 8px 20px rgba($black, 0.3)) {
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
+  border-radius: $radius-2xs;
+  background: $surface-floating;
+  box-shadow:
+    $lift,
+    inset 0 1px 0 rgba($white, 0.05);
+}
+
+// A dropdown's face: the card's colour, corner and a clear edge, lifted.
+// Under the Backdrop its edge, its lift and the blur behind it are the
+// floating glass's (`--menu-edge`, `--menu-lift`, `--menu-glass`, set with
+// the floor in `App.scss`), so a menu opened there is a pane of the same
+// glass.
+@mixin menu-face {
+  border: 1px solid var(--menu-edge, #{$menu-edge});
+  border-radius: $card-radius;
+  background: $surface-menu-floor;
+  box-shadow: var(--menu-lift, #{$menu-lift});
+  backdrop-filter: var(--menu-glass, none);
+}
+
+@mixin menu-surface {
+  @include menu-face;
+  // Scrolls only if it has to. `AnchoredMenu` caps the height to the room
+  // actually available; without somewhere for the overflow to go, that cap
+  // would clip the last entries instead of letting them be reached — the exact
+  // failure the cap exists to prevent, moved one step along.
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  // Every menu built on this surface arrives the same way, out of the control
+  // it hangs off, and leaves back into it (`menu-motion`).
+  //
+  // Emitted here rather than per component for the same reason the euphoria
+  // rule below is: a dropdown added later cannot forget to do it. Short — a
+  // menu is a response to a click that has already happened, so it should
+  // feel like it was waiting rather than like it is being fetched.
+  @include menu-motion;
+}
+
+// The exact colour at the top edge of a panel. Anything that has to butt up
+// against a panel and look continuous with it (workspace tabs) uses this
+// instead of eyeballing a similar value.
+@function panel-top($accent: $secondary-default, $amount: 0%) {
+  @return color-mix(in srgb, $accent $amount, $panel-top-base);
+}
+
+// Top-level card. `$accent` tints the top edge so the sidebar, EQ, graph and
+// profile cards read as one family with slightly different personalities.
+@mixin panel-surface($accent: $secondary-default, $amount: 0%) {
+  border: 1px solid $card-edge;
+  border-radius: $radius-xl;
+  // Opaque, and nearly flat.
+  //
+  // This spent a long time as a translucent ramp — 86% alpha, lit at both ends,
+  // over a shell of radial washes — on the argument that the page's ambience
+  // should show through the cards. What showed through was the inconsistency:
+  // the shell was cyan in the corners, near-black in the middle and lime at
+  // the foot, and every card sampled a different patch of it. Measured, the
+  // four cards on the EQ screen came out at four colours from this one mixin,
+  // and the transport bar — the only one with a solid colour underneath — was
+  // the one that looked right.
+  //
+  // So the colour comes from the card now, not from what is behind it. The
+  // ramp is two values across the whole window, top to bottom: enough that a
+  // card is not a cut-out, not enough that a short card at the top and a tall
+  // one beside it read as different surfaces.
+  //
+  // `background-color` is the same colour as the ramp's foot. Text keeps its
+  // subpixel antialiasing only over an opaque background, and two of these
+  // cards (the titlebar, the transport) live on compositor layers of their own
+  // where a gradient alone does not count as opaque.
+  // One flat colour, no ramp. The two-value ramp that stood here for a while
+  // was the last gradient on a card, and with the fields and menus flat it
+  // read as the cards alone being lit from above. `$accent` and `$amount`
+  // are kept so a caller can still tint a card deliberately; the default
+  // mixture is the panel colour itself.
+  //
+  // Opaque. A tenth of transparency was tried so the bloom behind would
+  // come through the columns; what came through was the floor, unevenly,
+  // and every translucent pane is one more layer the compositor blends on
+  // every frame the spectrum redraws. The life in the pane is the ramp
+  // below, not what is behind it.
+  background-color: panel-top($accent, $amount);
+  // Flat. A light-from-above ramp was tried on every pane and on the tall
+  // ones — the EQ card, the graph — it ran the height of the content and
+  // read as a shadow laid over it. What is left of the "3D" is the one-pixel
+  // highlight on the top rim, which is all a matte surface needs.
+  //
+  // No drop shadow: it fell onto whatever pane stood below it — the
+  // titlebar's darkened the top twenty pixels of all three columns, which
+  // read as a second, darker strip inside each.
+  background-image: none;
+  box-shadow: inset 0 1px 0 rgba($white, 0.05);
+}
+
+// A box on the open floor that holds a set: a grid, a stage, a group of
+// settings, a tray. A hairline and the floor showing through, never a fill
+// of its own (Ivan, 2026-09-26: "ve por toda la UI quitándole el bg color ese
+// que tienen los elementos que no matchea con el style"). There were two of
+// these, a well at the block colour and this one, and the block colour was
+// the grey slab every page still carried after the panes lost theirs. What
+// the box holds — a tile, a row, a card — is `card-surface`, filled in the
+// window's own colour, which is what those slabs were not.
+//
+// Its edge is the card's (`$card-edge`), like every box that holds something:
+// a box drawn at the rows' hairline inside a card whose own edge is barely
+// one stood out as the loudest line on the page, a frame brighter than the
+// frame around it (Ivan, 2026-09-27: "nice pane borders subtle one").
+@mixin lifted-surface {
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: transparent;
+  box-shadow: none;
+}
+
+// A card's face: `$surface-card` and `$card-glow`, with the block above, and
+// the card's edge.
+@mixin card-surface {
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: $card-glow, $surface-card;
+  box-shadow: none;
+}
+
+// A card under the pointer: the choosing tint laid over its face, never in
+// place of it — on its own the tint is mostly transparent, and a card that
+// lost its fill on hover went darker as it was pointed at.
+@mixin card-hover {
+  background: linear-gradient($hover-accent 0 0), $card-glow, $surface-card;
+}
+
+// A section's face (`$surface-section`): the pane's edge, a block's corner.
+// What stands on it keeps its own surface — a card is still a card on it,
+// and a group of controls still only an edge. Not `section-surface`: that is
+// the dialogs' inner group (`_dialog.scss`), and a sheet that uses both
+// modules could not tell the two apart.
+@mixin section-card {
+  // Barely an edge, and opaque (`$card-edge`): a see-through line — the
+  // panes' grey, then the fields' accent — let a Plus visualizer drawn
+  // behind the graph's card show through it, and with the shell's dividing
+  // lines gone the grey read as the loudest line in the window.
+  border: 1px solid $card-edge;
+  border-radius: $card-radius;
+  background: $surface-section;
+  box-shadow: none;
+}
+
+// Quiet, outline-only button (titlebar actions, graph overlay controls).
+@mixin ghost-button {
+  // The quiet button, everywhere: the same face as `.button.subtle` and as
+  // every select, so a titlebar tool and a graph overlay control are the same
+  // control as `Clear EQ` rather than a pill from a different kit.
+  color: $secondary-light;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  font: inherit;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: $white;
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
+    outline: none;
+  }
+
+  // Focus said as focus, not as hover. These carried the hover face and
+  // nothing else, so arriving by keyboard looked exactly like the pointer
+  // resting somewhere — and on a row of them there was no way to tell which
+  // one Enter would press.
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: $disabled-opacity;
+  }
+}
+
+@mixin slim-scrollbar {
+  // Pseudo-elements only. `scrollbar-color` and `scrollbar-width` used to sit
+  // at the top of this mixin, and in Chromium the standard properties win
+  // over the pseudo-elements outright: every panel that included this got the
+  // platform's Fluent bar — 10px, with arrow buttons filled in cyan — and the
+  // rules under it never painted. See `html` in App.scss.
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  // The accent, quiet at rest and lit under the pointer: a scrollbar is a
+  // control, so it wears the control's colour. It was the light accent at a
+  // third — a pale grey-cyan bar, the palest thing on every dark pane it
+  // scrolled — and the full accent under the pointer (Ivan, 2026-09-26: "time
+  // to fix all scrolls colors").
+  &::-webkit-scrollbar-thumb {
+    min-height: 28px;
+    border: 2px solid transparent;
+    border-radius: $radius-pill;
+    background: $scrollbar-thumb;
+    background-clip: padding-box;
+
+    &:hover {
+      background-color: $scrollbar-thumb-hover;
+    }
+  }
+
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+// The search row at the head of a menu. One shape for every list that can
+// be typed into — the Voicing pick, a long device list, the DSP presets: the
+// glass, the bare input beside it, and one hairline under the row to part it
+// from the results. No box round it and no fill: a boxed field inside a menu
+// read as a control of its own, and any tint under the pointer or on focus
+// read as a second one appearing. The caret is the whole answer.
+//
+// The line belongs to this row and to nothing else. The strip it sits in
+// used to draw one too, so the dropdowns had two rules a few pixels apart
+// while the Voicing pick had one.
+@mixin menu-search {
+  position: relative;
+  display: grid;
+  height: $control-height-sm;
+  align-items: center;
+  gap: 8px;
+  // Glass, field, cross. The third track collapses to nothing while the
+  // field is empty, so the row does not reserve a gap for a button that is
+  // not there.
+  grid-template-columns: 13px minmax(0, 1fr) auto;
+  // The Voicing pick's inset, now everyone's. The dropdowns sat at 4px inside
+  // a row that was already padded, so their glass hugged the menu edge while
+  // the pick's stood a comfortable third of a centimetre in, and the two read
+  // as two different controls doing the same job.
+  padding: 0 12px;
+  border: 0;
+  border-bottom: 1px solid $menu-rule;
+  border-radius: 0;
+  background: none;
+
+  // The one clear cross, in every menu that can be typed into. The Voicing
+  // pick had the browser's own — a grey blob that appears in `type="search"`
+  // and cannot be styled — while the dropdowns had this one.
+  .menu-search__clear {
+    display: grid;
+    width: 18px;
+    height: 18px;
+    place-items: center;
+    padding: 0;
+    color: $text-faint;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    transition: $transition-control;
+
+    svg {
+      width: 9px;
+      height: 9px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-width: 1.8;
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: $secondary-light;
+      background: $hover-accent;
+      outline: none;
+    }
+  }
+
+  // Chromium draws its own cross inside a search input; ours is the one that
+  // matches the app.
+  input[type='search']::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  > svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    opacity: 0.5;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.7;
+  }
+
+  // The bare field, however it is wrapped. The second selector is not
+  // decoration: a menu that reaches for the shared TextInput gets that
+  // component's own `min-height` on the input, which is the full 38px control
+  // height, and it grew a 32px row from the inside — the text sat low and the
+  // hairline was pushed off the row it belongs to. The pick, which writes its
+  // input by hand, never had it, which is exactly the difference between the
+  // two searches.
+  input,
+  .text-input input[type='text'] {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: $text-primary;
+    box-shadow: none;
+    font-family: inherit;
+    font-size: 0.72rem;
+    font-weight: $weight-regular;
+
+    &::placeholder {
+      color: $text-faint;
+    }
+
+    // Written with the same two `:not()`s the global field rule carries, or
+    // it loses to it on specificity and the input keeps lighting up cyan
+    // under the pointer — measured in the running window, not assumed.
+    &:hover:not(:disabled):not([aria-disabled='true']),
+    &:focus,
+    &:focus-visible,
+    &:focus-within {
+      border: 0;
+      background: none;
+      box-shadow: none;
+      outline: none;
+    }
+  }
+}
+
+// One-line ellipsis. Used often enough that repeating the three properties
+// across files was a reliable source of drift.
+@mixin truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Letter-spacing, for text that can be in any of the app's ten languages.
+//
+// Tracking is a Latin typesetting habit. On Devanagari it pulls a word's vowel
+// signs and conjuncts apart — the Hindi card label "आपके डिवाइस" read as a row
+// of loose letters — and Japanese and Chinese are already set on an even grid
+// that spacing only breaks up. So every positive letter-spacing goes through
+// here, and `--latin-tracking` turns it off for the scripts in
+// `$untracked-languages` (see `untracked-languages`, included once in
+// App.scss). `check-styles.ts` rejects a raw positive value anywhere else.
+//
+// A custom property rather than a `:lang()` rule per call: it reaches
+// pseudo-elements, which cannot take `:lang()` after them, it cannot lose on
+// specificity to the rule it switches off, and the list of languages lives in
+// one place instead of in 176 selectors.
+@mixin tracking($amount) {
+  letter-spacing: calc($amount * var(--latin-tracking, 1));
+}
+
+@mixin untracked-languages {
+  @each $language in $untracked-languages {
+    :lang(#{$language}) {
+      --latin-tracking: 0;
+    }
+  }
+}

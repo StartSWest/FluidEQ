@@ -75,14 +75,17 @@ if (failures.length > 0) {
 // with everything from 800 up landing on `Segoe UI Black`. Every one of those
 // passed the whole suite; the titlebar tabs shipped looking flattened.
 //
-// Only `_theme.scss` may state a weight as a number, because that is where the
-// scale is defined — and `@font-face`, where `font-weight: 100 900` is not a
+// Only the theme (`_themeTokens.scss`, forwarded by `_theme.scss`) may state
+// a weight as a number, because that is where the scale is defined — and `@font-face`, where `font-weight: 100 900` is not a
 // weight at all but the range of the variable axis, and has to be two numbers.
 // That pair is the reason the test below looks for a number with no second
 // number after it rather than simply for a digit.
+/** The theme's own files, where the scale and `tracking()` are defined. */
+const isTheme = (name: string) => /^_theme(Tokens|Mixins)?\.scss$/.test(name);
+
 const weightOffenders: string[] = [];
 
-ALL_SHEETS.filter((name) => name !== '_theme.scss').forEach((name) => {
+ALL_SHEETS.filter((name) => !isTheme(name)).forEach((name) => {
   readFileSync(path.join(STYLES_DIR, name), 'utf8')
     .split('\n')
     .forEach((line, index) => {
@@ -103,12 +106,12 @@ if (weightOffenders.length > 0) {
 // A raw positive letter-spacing is the other one. Tracking is a Latin habit:
 // on Devanagari it pulls a word's vowel signs and conjuncts apart, and the
 // Hindi card labels read as rows of loose letters while every test passed.
-// `@include tracking()` in `_theme.scss` applies it only in the languages
+// `@include tracking()` from the theme applies it only in the languages
 // whose script takes it, so that is the one way to write it. Zero, `normal`,
 // `inherit` and negative values stay allowed: none of them spreads a word.
 const trackingOffenders: string[] = [];
 
-ALL_SHEETS.filter((name) => name !== '_theme.scss').forEach((name) => {
+ALL_SHEETS.filter((name) => !isTheme(name)).forEach((name) => {
   readFileSync(path.join(STYLES_DIR, name), 'utf8')
     .split('\n')
     .forEach((line, index) => {
