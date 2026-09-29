@@ -11,6 +11,7 @@ import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import type { ILiveCurveData, IMarginLike } from './ChartController';
 import { LIVE_FULL_SCALE_DB } from './liveSpectrumFrames';
 import { getWaveTransform } from './liveTracePaint';
+import signedTick from './signedTick';
 
 /**
  * The graph's paper: where its gutters are, which lines it rules, how its
@@ -187,7 +188,7 @@ export const UNITY_TICKS = [0];
  * transition on every frame the graph moves.
  */
 export const levelTickFormat = (domainValue: NumberValue) =>
-  `${Number(domainValue) - LIVE_FULL_SCALE_DB} dB`;
+  `${signedTick(Number(domainValue) - LIVE_FULL_SCALE_DB)} dB`;
 
 export type TLiveCurveShape = Pick<
   ILiveCurveData,

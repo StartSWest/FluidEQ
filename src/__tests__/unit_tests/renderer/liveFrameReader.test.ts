@@ -272,7 +272,13 @@ describe('the graphs’ own points', () => {
       [MIN_GAIN, -10, 0, 10, MAX_GAIN].map((tick) =>
         graphLevelTickFormat(tick),
       ),
-    ).toEqual(['-80 dB', '-60 dB', '-40 dB', '-20 dB', '0 dB']);
+    ).toEqual([
+      '\u221280 dB',
+      '\u221260 dB',
+      '\u221240 dB',
+      '\u221220 dB',
+      '0 dB',
+    ]);
     // The top rule is the programme's peak, the bottom one 80 dB below it.
     const target = [
       { x: 0, y: 0 },

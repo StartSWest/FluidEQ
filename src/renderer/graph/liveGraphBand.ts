@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { NumberValue } from 'd3';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { GRAPH_END, GRAPH_START, IChartPointData } from './ChartController';
+import signedTick from './signedTick';
 import {
   POINT_COUNT,
   TRACK_REFERENCE_RELEASE_DB,
@@ -88,7 +89,7 @@ export const writeGraphPoints = (
  * Module scope for the reason `levelTickFormat` is.
  */
 export const graphLevelTickFormat = (domainValue: NumberValue) =>
-  `${Math.round((Number(domainValue) - MAX_GAIN) / PLOT_PER_ANALYZER_DB)} dB`;
+  `${signedTick(Math.round((Number(domainValue) - MAX_GAIN) / PLOT_PER_ANALYZER_DB))} dB`;
 
 /**
  * Blackman's equivalent noise bandwidth, in bins: what `AnalyserNode` windows
