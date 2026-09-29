@@ -1,5 +1,6 @@
 import { SCENE_DAYLIGHT_PARAM } from 'common/sceneDaylight';
 import type { IScenePack } from 'common/scenePacks';
+import { SCENE_WORLD_PARAM } from 'common/sceneWorldFront';
 import {
   NEUTRAL_RESPONSE,
   createResponseState,
@@ -74,6 +75,12 @@ export const createSceneTuner = (): ISceneTuner => {
     }
     const params = { ...base };
     pack?.params.forEach((param) => {
+      // Never a setting: a value saved for it - an older FluidEQ showed it as
+      // a slider - would hide the painted subject wherever the shader plays
+      // alone. Its own value stands; the world holds it while drawn.
+      if (param.id === SCENE_WORLD_PARAM) {
+        return;
+      }
       const value = overrides?.[param.id];
       if (typeof value === 'number' && Number.isFinite(value)) {
         params[param.id] = Math.min(param.max, Math.max(param.min, value));

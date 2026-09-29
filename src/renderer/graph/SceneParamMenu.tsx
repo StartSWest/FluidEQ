@@ -7,7 +7,6 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { type CSSProperties, type ReactNode, useId } from 'react';
-import { SCENE_DAYLIGHT_PARAM } from 'common/sceneDaylight';
 import { resolveParamName, type IScenePackParam } from 'common/scenePacks';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -16,6 +15,7 @@ import {
   useListenerParams,
   useOwnParams,
 } from '../utils/sceneParamStore';
+import sceneSliderParams from './sceneSliders';
 
 interface ISceneParamMenuProps {
   /** The Plus visualizer on the graph. */
@@ -117,14 +117,7 @@ export default function SceneParamMenu({ lookId }: ISceneParamMenuProps) {
   const { t } = useTranslation();
   const own = useOwnParams(lookId);
   const chosen = useListenerParams(lookId);
-  // The same filter the Studio's copy of this list applies, and for the same
-  // reason: a scene's AI writes these, so a range with no width is possible.
-  // Its slider swept a 0-100% readout while every value it wrote landed back
-  // on the one value the author gave — a control that could only sit still.
-  // The time of day is left out as it is there: the Brightness sets it.
-  const movable = own?.filter(
-    (param) => param.max - param.min > 0 && param.id !== SCENE_DAYLIGHT_PARAM,
-  );
+  const movable = own && sceneSliderParams(own);
   if (!movable || movable.length === 0) {
     return null;
   }

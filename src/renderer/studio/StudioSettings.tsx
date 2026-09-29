@@ -1,8 +1,8 @@
 import { useId, type CSSProperties, type ReactNode } from 'react';
 import type { TranslationKey } from 'common/i18n';
-import { SCENE_DAYLIGHT_PARAM } from 'common/sceneDaylight';
 import { resolveParamName, type IScenePackParam } from 'common/scenePacks';
 import { RESPONSE_KEYS, type ISceneResponse } from 'common/sceneResponse';
+import sceneSliderParams from '../graph/sceneSliders';
 import { useTranslation } from '../utils/I18nContext';
 import {
   RESPONSE_SLIDER_STEPS as STEPS,
@@ -170,18 +170,6 @@ const formatParam = (param: IScenePackParam, value: number) => {
   return value.toFixed(digits);
 };
 
-/**
- * The controls a slider can move. A scene's AI writes these, so a range with
- * no width is possible; it keeps its uniform, at its one value, and gets no
- * slider that could only sit still. Nor does the time of day: the window's
- * Brightness sets it (`sceneDaylight.ts`), and a slider of its own here would
- * move nothing.
- */
-const movable = (params: readonly IScenePackParam[]) =>
-  params.filter(
-    (param) => param.max - param.min > 0 && param.id !== SCENE_DAYLIGHT_PARAM,
-  );
-
 interface IStudioSettingsProps {
   params: readonly IScenePackParam[];
   values: Readonly<Record<string, number>>;
@@ -233,7 +221,7 @@ export default function StudioSettings({
   ambient,
 }: IStudioSettingsProps) {
   const { t, locale } = useTranslation();
-  const controls = movable(params);
+  const controls = sceneSliderParams(params);
   // Whether what the ambient sliders set is drawn at all: the scene puts its
   // elements around the app only while the window's look is on Ambient.
   const ambientShows = isAmbientMode(useWindowTintMode());

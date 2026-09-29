@@ -23,6 +23,7 @@ import {
   worldScopeNames,
   worldVarUniform,
 } from 'common/sceneWorld';
+import { SCENE_WORLD_DRAWN, SCENE_WORLD_PARAM } from 'common/sceneWorldFront';
 import {
   SPECTRUM_TEXELS,
   WAVEFORM_TEXELS,
@@ -276,7 +277,13 @@ export const createWorldInputs = (
       setRun('tapX', signals.tap);
       setRun('viewYaw', view);
       paramSlots.forEach((param) => {
-        const value = frame.params[param.id] ?? param.fallback;
+        // These inputs exist only while the world is drawn: here the
+        // world-in-front control says so, whatever the frame carries, so the
+        // sky leaves out the subject the world is showing.
+        const value =
+          param.id === SCENE_WORLD_PARAM
+            ? SCENE_WORLD_DRAWN
+            : (frame.params[param.id] ?? param.fallback);
         env[param.index] = value;
         param.uniform.value = value;
       });

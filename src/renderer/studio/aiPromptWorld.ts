@@ -4,6 +4,7 @@ import {
   WORLD_LIMITS,
   WORLD_SIGNALS,
 } from 'common/sceneWorld';
+import { SCENE_WORLD_CONTROL, SCENE_WORLD_PARAM } from 'common/sceneWorldFront';
 import { MAX_EXPRESSION_LENGTH } from 'common/worldExpression';
 
 /**
@@ -62,7 +63,14 @@ far view of the place. But the sky cannot tell where the world stands in
 front of it, and the world's fog shows the sky through every distant pixel:
 never draw in scene.frag anything the world draws nearer (it shows through
 as a ghost beside its 3D twin). Keep what is only in the sky where the world
-never is - the far horizon, the heavens.
+never is - the far horizon, the heavens. When the shader alone must still
+show the subject - a flower, a planet, a ship - declare this control among
+the params:
+  ${JSON.stringify(SCENE_WORLD_CONTROL)}
+and draw that subject in scene.frag only while uParam_${SCENE_WORLD_PARAM} < 0.5. FluidEQ holds it
+at 1 while it draws the world in front and leaves it at 0 wherever the
+shader plays alone, so the subject is never there twice. It is never a
+slider.
 
 FILES. The world goes in world.json, named in pack.json as
 "worldFile": "world.json". A material's own GLSL goes in files of its own,
