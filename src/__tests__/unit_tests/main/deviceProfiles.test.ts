@@ -22,13 +22,15 @@ import path from 'path';
 import log from 'electron-log';
 import {
   deviceProfilesToFiles,
-  getDefaultDeviceProfileSettings,
   filterVisibleAudioDevices,
   getStateForAudioDevice,
-  removeAssignmentForPreset,
-  renameAssignedPreset,
   TApoConfigFiles,
 } from '../../../main/deviceProfiles';
+import {
+  getDefaultDeviceProfileSettings,
+  removeAssignmentForPreset,
+  renameAssignedPreset,
+} from '../../../main/deviceProfileSettings';
 import { FilterTypeEnum, getDefaultState } from '../../../common/constants';
 import { FLUIDEQ_CONFIG_FILENAME, renamePreset } from '../../../main/flush';
 import expandApoConfig from '../../utils/apoConfig';

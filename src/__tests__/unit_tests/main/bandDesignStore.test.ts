@@ -20,10 +20,8 @@ import {
 import { fetchSettings, fetchPreset, save, savePreset } from 'main/flush';
 import { flushPendingWrites } from 'main/asyncWriter';
 import { validateState, validatePresetV2 } from 'common/validator';
-import {
-  getDefaultDeviceProfileSettings,
-  getStateForAudioDevice,
-} from 'main/deviceProfiles';
+import { getStateForAudioDevice } from 'main/deviceProfiles';
+import { getDefaultDeviceProfileSettings } from '../../../main/deviceProfileSettings';
 
 const design = {
   id: 'custom',

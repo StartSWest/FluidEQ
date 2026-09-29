@@ -22,10 +22,8 @@ import {
   IDeviceProfileSettings,
   IVoicingSettings,
 } from '../../../common/constants';
-import {
-  getDefaultDeviceProfileSettings,
-  getStateForAudioDevice,
-} from '../../../main/deviceProfiles';
+import { getStateForAudioDevice } from '../../../main/deviceProfiles';
+import { getDefaultDeviceProfileSettings } from '../../../main/deviceProfileSettings';
 
 const popRock: IVoicingSettings = { profileId: 'dsp:pop-rock', intensity: 1 };
 const punchy: IVoicingSettings = { profileId: 'dsp:punchy', intensity: 1 };

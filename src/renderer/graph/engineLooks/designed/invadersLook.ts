@@ -9,7 +9,8 @@ import type { Projected } from 'common/graphStyles';
 import { parseCssColour } from '../../../utils/oklab';
 import type { CabinetFrameLayout } from '../../invaderCabinet';
 import INVADER_INKS from '../../invaderInks';
-import type { SpaceInvasion, SpaceInvasionLayout } from '../../spaceInvasion';
+import type { SpaceInvasion } from '../../spaceInvasion';
+import type { SpaceInvasionLayout } from '../../spaceInvasionLayout';
 import {
   MAX_STROKE_POINTS,
   STROKE_FLOATS,

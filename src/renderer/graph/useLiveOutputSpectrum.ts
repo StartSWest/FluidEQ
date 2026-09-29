@@ -18,12 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  createAxisCells,
-  IAxisCell,
-  readAbsoluteLevels,
-} from '../utils/autoBalanceCapture';
-import { announceOutputSignal, createSignalEdge } from '../audio/outputSignal';
-import {
   IAudioClock,
   loadAudioClock,
   startAudioClock,
@@ -31,45 +25,17 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData } from './ChartController';
 import readDefaultOutputKey from './defaultOutputKey';
+import connectCaptureGraph from './liveCaptureGraph';
+import createCapturePump from './liveCapturePump';
 import {
-  CLIP_HOLD_MS,
-  FFT_SIZE,
-  LEVEL_FFT_SIZE,
   MAX_START_RETRIES,
-  METER_CHANNELS,
   NO_LEVELS,
   NO_POINTS,
   NO_WAVEFORM,
-  SILENT_WAVEFORM,
-  TRACK_REFERENCE_RELEASE_DB,
-  UPDATE_INTERVAL_MS,
   captureSystemOutput,
-  createFrameBuffers,
-  createFrequencyAxis,
-  detectClipping,
-  getPeakLevel,
-  isMeterAtRest,
-  writeChannelWaveformPoints,
-  writeFrequencyPoints,
-  SPECTRUM_SMOOTHING,
 } from './liveSpectrumFrames';
-import {
-  connectDrawAnalyser,
-  createLiveFrameReader,
-  type ILiveFrame,
-  type ILiveFrameReader,
-} from './liveFrameReader';
-import { connectSoundAnalysers, createLiveSound } from './liveSound';
-import { createLiveGraphBand } from './liveGraphBand';
-import {
-  ILevelFollower,
-  IOutputLevel,
-  LEVEL_FLOOR_DB,
-  advanceLevel,
-  amplitudeToDb,
-  createLevelFollower,
-  readPeakAmplitude,
-} from './outputLevel';
+import { type ILiveFrame, type ILiveFrameReader } from './liveFrameReader';
+import { IOutputLevel } from './outputLevel';
 
 /**
  * The live capture, handed out so other features can tap it.
@@ -434,116 +400,12 @@ const useLiveOutputSpectrum = () => {
         activeAudioContext.close().catch(() => undefined);
         return false;
       }
-      const analyser = activeAudioContext.createAnalyser();
-      analyser.fftSize = FFT_SIZE;
-      analyser.minDecibels = -100;
-      analyser.maxDecibels = 0;
-      // The analyser's own averaging, and the last place lag was hiding.
-      //
-      // This blends each FFT with the one before it, so at 0.62 a transient
-      // reached only 38% of its real height on the frame it happened, 62% on
-      // the next and 76% on the third — around 135ms to mostly arrive. That is
-      // ahead of everything the display does, so no amount of attack further
-      // down could recover it: the peak had already been averaged away before
-      // anything drew it.
-      //
-      // At 0.4 the same transient is 60% there immediately and 94% by the
-      // third frame. That was measured against a forty-five millisecond tick,
-      // where three frames is 135ms of lag on its own — and it was the largest
-      // single term in a delay somebody could hear as the bass arriving before
-      // the graph did.
-      //
-      // 0.2 is 80% there immediately and 99% by the third, and the tick above
-      // is shorter too, so the two compound the other way: the same steadying
-      // costs about a fifth of the delay it used to. Still not zero, because a
-      // raw FFT bin jitters frame to frame and a curve made of pure noise is
-      // worse than a slow one.
-      analyser.smoothingTimeConstant = SPECTRUM_SMOOTHING;
-      // Kept, so it can be disconnected rather than left for `close()`.
-      sourceNodeRef.current =
-        activeAudioContext.createMediaStreamSource(stream);
-      const source = sourceNodeRef.current;
-      source.connect(analyser);
-
-      /*
-       * THE METER'S OWN ANALYSERS, AND WHY THE ONE ABOVE COULD NOT DO IT.
-       *
-       * An AnalyserNode reports one signal, not one per channel: whatever
-       * arrives is folded down before the FFT, so the spectrum above already
-       * describes left and right added together. That is right for a shape and
-       * useless for a stereo meter — there is no way to ask it what the right
-       * channel alone is doing, and a "right" meter driven from it would be the
-       * left one with a different letter over it.
-       *
-       * A ChannelSplitterNode is how the channels are told apart. It fans the
-       * source out into one output per channel, each carrying that channel and
-       * nothing else, and an analyser on each gives two genuinely independent
-       * readings. Hard-panned material moves one meter and not the other, which
-       * is the test that says this is real.
-       *
-       * The source keeps its existing connection to the spectrum analyser as
-       * well — a node may drive several destinations, and both see the same
-       * samples.
-       */
-      const meterAnalysers: AnalyserNode[] = [];
-      const createMeterAnalyser = () => {
-        const meterAnalyser = activeAudioContext.createAnalyser();
-        meterAnalyser.fftSize = LEVEL_FFT_SIZE;
-        meterAnalyser.smoothingTimeConstant = 0;
-        meterAnalysers.push(meterAnalyser);
-        return meterAnalyser;
-      };
-      /*
-       * How many channels there actually are, asked of the track rather than
-       * assumed.
-       *
-       * A splitter always produces the number of outputs it was built with, so
-       * splitting a mono endpoint into two would give a silent second output
-       * and a right-hand meter that never moved — a fabricated channel, which is
-       * the one outcome worth going out of the way to avoid. Windows loopback is
-       * stereo on every ordinary endpoint; where it is not, one meter is drawn
-       * and it says so.
-       *
-       * `channelCount` is optional in the settings dictionary, so an
-       * implementation that does not report it is taken at the ordinary case
-       * rather than demoted to mono.
-       */
-      /*
-       * TWO OPINIONS ABOUT THE CHANNEL COUNT, AND ONLY ONE OF THEM IS EVIDENCE.
-       *
-       * `getSettings().channelCount` reports what the track was NEGOTIATED for,
-       * and Chromium frequently answers with the constraint that was asked for
-       * rather than with what the endpoint is delivering — so a perfectly
-       * ordinary stereo loopback can describe itself as mono and get drawn as
-       * one bar. Which is what happened.
-       *
-       * The source node's own `channelCount` is the graph's view of the same
-       * stream and does not go through that negotiation, so it is the better
-       * witness. Mono is believed only when BOTH say so; either one claiming
-       * two is enough, and an implementation that reports nothing is taken at
-       * the ordinary case.
-       *
-       * Guessing stereo wrongly costs a second bar that mirrors the first.
-       * Guessing mono wrongly throws away half the meter on every machine
-       * where the negotiation lies, which is the worse of the two by far.
-       */
-      const trackChannels = audioTrack.getSettings?.().channelCount;
-      const nodeChannels = source.channelCount;
-      const isStereoCapture =
-        trackChannels === undefined ||
-        trackChannels >= METER_CHANNELS ||
-        (Number.isFinite(nodeChannels) && nodeChannels >= METER_CHANNELS);
-      if (isStereoCapture) {
-        const splitter =
-          activeAudioContext.createChannelSplitter(METER_CHANNELS);
-        splitterNodeRef.current = splitter;
-        source.connect(splitter);
-        for (let channel = 0; channel < METER_CHANNELS; channel += 1) {
-          splitter.connect(createMeterAnalyser(), channel);
-        }
-      } else {
-        source.connect(createMeterAnalyser());
-      }
+      // The spectrum's analyser and the meter's (`liveCaptureGraph.ts`), the
+      // source and the fan-out kept so they can be disconnected rather than
+      // left for `close()`.
+      const nodes = connectCaptureGraph(activeAudioContext, stream, audioTrack);
+      sourceNodeRef.current = nodes.source;
+      splitterNodeRef.current = nodes.splitter;
 
       streamRef.current = stream;
       audioContextRef.current = activeAudioContext;
@@ -557,233 +419,26 @@ const useLiveOutputSpectrum = () => {
       // the leak documented above, twice over.
       setCapture({
         context: activeAudioContext,
-        source: sourceNodeRef.current,
+        source: nodes.source,
       });
 
-      const frequencyData = new Float32Array(analyser.frequencyBinCount);
-      const axis = createFrequencyAxis(activeAudioContext.sampleRate);
-      const cells: IAxisCell[] = createAxisCells(
-        axis,
-        activeAudioContext.sampleRate,
-        FFT_SIZE,
-      );
-      const levelBuffer = new Float64Array(axis.length);
-      const buffers = createFrameBuffers();
-      // The graphs' own points, taken from the drawing's reader below.
-      const graphBuffers = createFrameBuffers();
-      let bufferSlot = 0;
-      // Shared with the drawing's reader, which may see a new peak first.
-      const trackReference: { current: number | undefined } = {
-        current: undefined,
-      };
-      const isSignalEdge = createSignalEdge();
-      frameReaderRef.current = createLiveFrameReader({
-        analyser: connectDrawAnalyser(activeAudioContext, source),
-        channelAnalysers: meterAnalysers,
-        axis,
-        cells,
-        graph: createLiveGraphBand(activeAudioContext, source, FFT_SIZE),
-        trackReference,
-        // The display pump skips hidden windows. Wallpaper reads still need a
-        // reference that follows quieter music.
-        releaseReference: () => isHiddenRef.current,
-        sound: createLiveSound(
-          connectSoundAnalysers(activeAudioContext, source),
-        ),
+      // What each block of audio becomes (`liveCapturePump.ts`), with the
+      // drawing's reader put in place as it is built.
+      const pump = createCapturePump({
+        context: activeAudioContext,
+        nodes,
+        isHiddenRef,
+        isPausedRef,
+        deviceChangedUnheardRef,
+        pointsRef,
+        isClippingRef,
+        frameReaderRef,
+        setPoints,
+        setGraphPoints,
+        setWaveform,
+        setOutputLevels,
+        setIsClipping,
       });
-
-      // One block of samples, read into again per channel per tick, and the
-      // ballistics that carry each channel's two readings between ticks.
-      const meterSamples = meterAnalysers.map(
-        () => new Float32Array(LEVEL_FFT_SIZE),
-      );
-      const meterFollowers: ILevelFollower[] = meterAnalysers.map(() =>
-        createLevelFollower(),
-      );
-      // Kept per channel. The spectrum analyser combines the stereo signal,
-      // which can cancel a rail in one side and can never say which side
-      // clipped. The meter already owns discrete float samples, so those are
-      // the only honest source for both the channel warning and the global OR.
-      const meterClipUntilMs = meterAnalysers.map(() => 0);
-      // Published in pairs for the same reason the points are: React needs a
-      // changed identity to re-render, so the frame it is holding must not be
-      // the one being overwritten. Two channels of two numbers is not much to
-      // allocate, but it would be allocated thirty times a second forever.
-      //
-      // The waveform's pair and these share `levelSlot`, which says which one
-      // React holds and flips only when a frame is published. Resting in
-      // silence publishes nothing, so flipping every tick would have written
-      // the first loud frame into the array React already held and handed it
-      // back under the same identity: no render, and sound returning unseen.
-      let levelSlot = 0;
-      let isMeterResting = false;
-      const meterFrames: [IOutputLevel[], IOutputLevel[]] = [
-        meterAnalysers.map(() => ({
-          levelDb: LEVEL_FLOOR_DB,
-          peakDb: LEVEL_FLOOR_DB,
-          isClipping: false,
-        })),
-        meterAnalysers.map(() => ({
-          levelDb: LEVEL_FLOOR_DB,
-          peakDb: LEVEL_FLOOR_DB,
-          isClipping: false,
-        })),
-      ];
-      // Wall clock rather than a frame count, because the fall rates are per
-      // second and a tick is handled late whenever the renderer is busy.
-      let lastMeterMs = performance.now();
-
-      // `audioMs` is the audio this tick stands for — see `audioClock.ts`.
-      const pump = (audioMs: number) => {
-        // Nothing to draw on: the entire frame is waste, down to the FFT the
-        // analyser only computes when it is read. Smart EQ no longer measures
-        // this stream — it hears the source (`rawSource.ts`) — so a hidden
-        // window has nothing here to keep running.
-        if (isHiddenRef.current || isPausedRef.current) {
-          return;
-        }
-
-        analyser.getFloatFrequencyData(frequencyData);
-        readAbsoluteLevels(frequencyData, cells, levelBuffer);
-        const peak = getPeakLevel(frequencyData);
-        // Sound starting is the moment Windows is known to be playing through
-        // this output — see `outputSignal.ts` for who needs to know.
-        if (isSignalEdge(peak !== undefined)) {
-          announceOutputSignal(activeAudioContext);
-        }
-
-        let reference: number | undefined;
-        if (peak !== undefined) {
-          // Heard, so whatever device came or went since was not this one.
-          deviceChangedUnheardRef.current = false;
-          // Instant attack, slow release: follows the track, ignores the
-          // volume knob, and never lets a transient push the curve off-scale.
-          // The release is per tick, scaled by the audio this tick actually
-          // stands for.
-          trackReference.current =
-            trackReference.current === undefined
-              ? peak
-              : Math.max(
-                  peak,
-                  trackReference.current -
-                    (TRACK_REFERENCE_RELEASE_DB * audioMs) / UPDATE_INTERVAL_MS,
-                );
-          reference = trackReference.current;
-        }
-
-        // Alternate buffers: React needs a changed identity to re-render, so
-        // the frame it is holding must not be the one being overwritten.
-        bufferSlot = bufferSlot === 0 ? 1 : 0;
-        if (reference === undefined) {
-          if (pointsRef.current.length > 0) {
-            pointsRef.current = NO_POINTS;
-            setPoints(pointsRef.current);
-            setGraphPoints(NO_POINTS);
-          }
-        } else {
-          pointsRef.current = writeFrequencyPoints(
-            buffers.points[bufferSlot],
-            axis,
-            levelBuffer,
-            reference,
-          );
-          setPoints(pointsRef.current);
-          // The drawing's own reading of this block, copied because the
-          // reader reuses its frame. It used to be measured here a second
-          // time, with a long window of its own: two 16384-point transforms
-          // per block for one graph. The reader does its work once per
-          // block of audio however many ask (`liveFrameReader.ts`), and the
-          // picture the canvas falls back on between fresh reads is then
-          // the one it drew.
-          const drawn = frameReaderRef.current?.read().graphPoints ?? NO_POINTS;
-          if (drawn.length === 0) {
-            setGraphPoints(NO_POINTS);
-          } else {
-            const target = graphBuffers.points[bufferSlot];
-            drawn.forEach(({ x, y }, index) => {
-              target[index].x = x;
-              target[index].y = y;
-            });
-            setGraphPoints(target);
-          }
-        }
-        /*
-         * The meter, in real decibels below full scale.
-         *
-         * Read here rather than beside the FFT above because it is
-         * presentation and nothing else — no measurement consults it, so
-         * behind a hidden window it is pure waste. The ballistics carry on
-         * from wherever they were when the window went away; the attack is
-         * instant, so the first visible frame is already correct and only the
-         * fall has any catching up to do.
-         *
-         * Clamped, because a window that has been minimised for an hour hands
-         * back an hour as its first delta and would drop the meter to the
-         * floor in a single step for no reason anybody watching could name.
-         */
-        const meterNowMs = performance.now();
-        const meterDeltaMs = Math.min(
-          200,
-          Math.max(0, meterNowMs - lastMeterMs),
-        );
-        lastMeterMs = meterNowMs;
-        const nextLevelSlot = levelSlot === 0 ? 1 : 0;
-        const meterFrame = meterFrames[nextLevelSlot];
-        let anyChannelClipping = false;
-        for (let channel = 0; channel < meterAnalysers.length; channel += 1) {
-          const channelSamples = meterSamples[channel];
-          meterAnalysers[channel].getFloatTimeDomainData(channelSamples);
-          // A 45 ms clipped frame would disappear before the eye registers
-          // it, but the hold must preserve the channel that actually railed.
-          //
-          // Railed samples, and nothing else. A peak at -1 dBFS used to
-          // count as well, on the belief that Windows' loopback limits a
-          // decibel under full scale; it called every loud record clipped
-          // whether or not anything had touched it.
-          const channelPeak = readPeakAmplitude(channelSamples);
-          if (detectClipping(channelSamples)) {
-            meterClipUntilMs[channel] = meterNowMs + CLIP_HOLD_MS;
-          }
-          const channelIsClipping = meterNowMs < meterClipUntilMs[channel];
-          anyChannelClipping ||= channelIsClipping;
-          const follower = advanceLevel(
-            meterFollowers[channel],
-            amplitudeToDb(channelPeak),
-            meterDeltaMs,
-          );
-          meterFrame[channel].levelDb = follower.levelDb;
-          meterFrame[channel].peakDb = follower.peakDb;
-          meterFrame[channel].isClipping = channelIsClipping;
-        }
-        if (anyChannelClipping !== isClippingRef.current) {
-          isClippingRef.current = anyChannelClipping;
-          setIsClipping(anyChannelClipping);
-        }
-        const waveformFrame = writeChannelWaveformPoints(
-          buffers.waveform[nextLevelSlot],
-          meterSamples,
-        );
-        /*
-         * Silence is published once, and then not again until sound returns.
-         *
-         * A visible window never went idle: silence was published here
-         * thirty times a second for as long as it was open, a new waveform
-         * and level pair every tick, so every consumer of the frame
-         * re-rendered and both meters cleared and redrew the same rest. Now
-         * the frame that brings the last reading down to rest goes out as
-         * `SILENT_WAVEFORM`, and nothing after it, which is the rule
-         * `points` already follows. Every tick until then still goes out,
-         * so the meters reach the floor on the frames they always did; a
-         * reading counted in frames finishes on its own clock from there.
-         */
-        const isAtRest = isMeterAtRest(waveformFrame, meterFrame);
-        if (!isAtRest || !isMeterResting) {
-          levelSlot = nextLevelSlot;
-          setWaveform(isAtRest ? SILENT_WAVEFORM : waveformFrame);
-          setOutputLevels(meterFrame);
-        }
-        isMeterResting = isAtRest;
-      };
 
       // On the capture context's audio clock, not a timer and not animation
       // frames. The thirty-three millisecond interval it replaced was

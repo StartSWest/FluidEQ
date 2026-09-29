@@ -11,7 +11,10 @@ import {
 } from 'common/lighting/lightingModel';
 import { decodeSceneArtwork } from '../graph/sceneArtwork';
 import { BLAMED_FRAME_MS } from '../graph/sceneDrawWatch';
-import { createFlashGuard, type IFlashGuard } from '../graph/sceneFlashGuard';
+import {
+  createFlashGuard,
+  type IFlashGuard,
+} from '../graph/sceneFlashGuardGpu';
 import { linksSettled } from '../graph/sceneCompile';
 import {
   compileScene,

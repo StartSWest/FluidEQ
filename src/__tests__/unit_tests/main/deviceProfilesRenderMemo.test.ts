@@ -18,13 +18,10 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { FilterTypeEnum, IPresetV2 } from 'common/constants';
-import {
-  deviceProfilesToFiles,
-  getDefaultDeviceProfileSettings,
-  TApoConfigFiles,
-} from 'main/deviceProfiles';
+import { deviceProfilesToFiles, TApoConfigFiles } from 'main/deviceProfiles';
 import { fetchPreset, FLUIDEQ_CONFIG_FILENAME, savePreset } from 'main/flush';
 import { flushPendingWrites } from 'main/asyncWriter';
+import { getDefaultDeviceProfileSettings } from '../../../main/deviceProfileSettings';
 import expandApoConfig from '../../utils/apoConfig';
 
 jest.mock('main/flush', () => {

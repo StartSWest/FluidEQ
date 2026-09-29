@@ -33,7 +33,7 @@ import { TSuccess } from '../../renderer/utils/equalizerApi';
 import type { createApoAdoption } from '../apoAdopt';
 import { readApoConfigTree } from '../apoConfigReader';
 import { scheduleWrite } from '../asyncWriter';
-import { isGeneratedConfigFile } from '../deviceProfiles';
+import { isGeneratedConfigFile } from '../deviceProfileFlush';
 import { runEqualizerApoSetup } from '../equalizerApoSetup';
 import { fetchPreset, stateToApoFiles } from '../flush';
 import type { IMainSession } from '../mainSession';

@@ -168,9 +168,9 @@ import {
 import {
   advanceTrussBridge,
   createTrussBridge,
-  createTrussBridgePaths,
   TRUSS_INKS,
 } from './trussBridge';
+import { createTrussBridgePaths } from './trussBridgeLayout';
 import { fireworkColour } from './bridgeFireworks';
 import {
   advanceTerraceValley,
@@ -257,10 +257,10 @@ import {
 import {
   advanceSpaceInvasion,
   createSpaceInvasion,
-  createSpaceInvasionPaths,
   invasionShake,
   SHIP_LANE,
 } from './spaceInvasion';
+import { createSpaceInvasionPaths } from './spaceInvasionLayout';
 import {
   createCabinetFramePaths,
   createInvaderCabinet,

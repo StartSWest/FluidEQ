@@ -38,12 +38,12 @@ import { getCurveEqMode, getEqMode } from '../common/eqMode';
 import type { ILayoutSnapshot } from '../common/layouts';
 import { compressChainToLimit } from '../common/response';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
+import { ISessionHeadroom } from './deviceProfiles';
 import {
   assignDeviceProfile,
-  ISessionHeadroom,
   migrateNamedFilesToOutputFolders,
   saveDeviceProfileSettings,
-} from './deviceProfiles';
+} from './deviceProfileSettings';
 import {
   doesPresetExist,
   PRESET_BASELINES_DIR,

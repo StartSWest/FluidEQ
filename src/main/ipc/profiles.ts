@@ -45,17 +45,19 @@ import {
   savePresetBaseline,
 } from '../flush';
 import {
-  assignDeviceProfile,
   discoverAudioDevices,
   getCustomFileNameForDevice,
   getStateForAudioDevice,
+  setDefaultAudioDevice,
+  TPresetDirForDevice,
+} from '../deviceProfiles';
+import {
+  assignDeviceProfile,
   removeAssignmentForPreset,
   removeDeviceProfile,
   renameAssignedPreset,
   saveDeviceProfileSettings,
-  setDefaultAudioDevice,
-  TPresetDirForDevice,
-} from '../deviceProfiles';
+} from '../deviceProfileSettings';
 import { TAudioEngine } from '../../common/audioEngine';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import { withOutputMirrorsStopped } from './outputMirror';

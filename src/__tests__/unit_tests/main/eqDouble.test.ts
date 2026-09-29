@@ -20,11 +20,11 @@ import {
 import { fetchPreset, fetchSettings, save, savePreset } from 'main/flush';
 import {
   deviceProfilesToFiles,
-  getDefaultDeviceProfileSettings,
   getStateForAudioDevice,
 } from 'main/deviceProfiles';
 import { importEqFile } from 'main/importSettings';
 import { getEqMode, TEqMode } from 'common/eqMode';
+import { getDefaultDeviceProfileSettings } from '../../../main/deviceProfileSettings';
 import expandApoConfig from '../../utils/apoConfig';
 
 type DoubleState = IState & { isEqDoubleOn?: boolean };

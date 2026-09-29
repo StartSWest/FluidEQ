@@ -19,8 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { flushDeviceProfiles } from 'main/deviceProfiles';
 import { FilterTypeEnum, IDeviceProfileSettings } from 'common/constants';
+import { flushDeviceProfiles } from '../../../main/deviceProfileFlush';
 
 const GUID = '{1234-ABCD}';
 

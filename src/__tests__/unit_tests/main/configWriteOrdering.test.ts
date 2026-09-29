@@ -4,7 +4,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { flushDeviceProfiles } from '../../../main/deviceProfiles';
+import { flushDeviceProfiles } from '../../../main/deviceProfileFlush';
 import { flushPendingWrites } from '../../../main/asyncWriter';
 import { FLUIDEQ_CONFIG_FILENAME } from '../../../main/flush';
 import type { IDeviceProfileSettings } from '../../../common/constants';

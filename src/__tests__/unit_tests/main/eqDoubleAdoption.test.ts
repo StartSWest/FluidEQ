@@ -15,10 +15,8 @@ import { createApoAdoption } from 'main/apoAdopt';
 import { stateToApoFiles, stateToString } from 'main/apoRender';
 import { flushPendingWrites } from 'main/asyncWriter';
 import { getCurveEqMode, getEqMode } from 'common/eqMode';
-import {
-  deviceProfilesToFiles,
-  getDefaultDeviceProfileSettings,
-} from 'main/deviceProfiles';
+import { deviceProfilesToFiles } from 'main/deviceProfiles';
+import { getDefaultDeviceProfileSettings } from '../../../main/deviceProfileSettings';
 
 const shaped = (): IState => {
   const state = getDefaultState();

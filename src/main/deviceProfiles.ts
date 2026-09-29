@@ -6,14 +6,12 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
 import log from 'electron-log';
 import { getEqMode, getCurveEqMode } from '../common/eqMode';
 import { normalizeBandDesign } from '../common/bandDesigns';
 import {
-  APO_FEATURE_FILE_WORD_PATTERN,
   ICustomFxSettings,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
@@ -34,17 +32,12 @@ import {
   fetchPreset,
   IApoChainFiles,
   readPresetText,
-  safePresetFileName,
   savePreset,
   stateToApoFiles,
 } from './flush';
 import { parseCustomFx } from '../common/customFx';
 import { layerGroupOf, MATCHED_DESIGN_DIRECTIVE } from '../common/filterDesign';
-import {
-  forgetPath,
-  scheduleWrite,
-  scheduleWriteOperation,
-} from './asyncWriter';
+
 import readTextCached from './cachedRead';
 import writeConvolutionWav from './convolution';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
@@ -115,169 +108,7 @@ const isSafeConvolutionFileName = (fileName: string) =>
   // eslint-disable-next-line no-control-regex -- the characters are the point
   !/[\u0000-\u001f\u007f]/.test(fileName);
 
-const SETTINGS_FILENAME = 'device-profiles.json';
-
-export const getDefaultDeviceProfileSettings = (): IDeviceProfileSettings => ({
-  version: 1,
-  assignments: {},
-});
-
-export const loadDeviceProfileSettings = (
-  userDataDir: string,
-): IDeviceProfileSettings => {
-  const settingsPath = path.join(userDataDir, SETTINGS_FILENAME);
-  try {
-    const input = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    if (input?.version !== 1 || typeof input.assignments !== 'object') {
-      throw new Error('Unsupported device profile settings');
-    }
-    return input as IDeviceProfileSettings;
-  } catch {
-    return getDefaultDeviceProfileSettings();
-  }
-};
-
-export const saveDeviceProfileSettings = (
-  settings: IDeviceProfileSettings,
-  userDataDir: string,
-): Promise<void> => {
-  // Asynchronous and coalesced — see asyncWriter. Rewritten on every edit
-  // that touches an assignment, which a drag does not, but the state it
-  // sits beside is.
-  return scheduleWrite(
-    path.join(userDataDir, SETTINGS_FILENAME),
-    JSON.stringify(settings, null, 2),
-  );
-};
-
-export const assignDeviceProfile = (
-  settings: IDeviceProfileSettings,
-  assignment: IDeviceProfileAssignment,
-) => {
-  settings.assignments[assignment.deviceId] = assignment;
-};
-
-export const removeDeviceProfile = (
-  settings: IDeviceProfileSettings,
-  deviceId: string,
-) => {
-  delete settings.assignments[deviceId];
-};
-
-/**
- * ONE OUTPUT, BECAUSE A PROFILE NAME ONLY MEANS ANYTHING NEXT TO ONE.
- *
- * Profiles have lived in a folder per output since `presetDirForDevice`, so
- * `Untitled profile 1` is five separate profiles on a machine with five
- * outputs, and renaming one moves exactly one file. These two used to rewrite
- * every assignment that happened to share the name, which repointed the other
- * four outputs at a file that exists only in somebody else's folder.
- *
- * The failure was silent where it started and loud somewhere else.
- * `flushDeviceProfiles` swallows a profile it cannot read, so those outputs
- * dropped out of the Equalizer APO config without a word and simply stopped
- * being equalised; the error only appeared later, when something read one of
- * them by name — switching to that output, loading it, restoring its saved
- * copy — as a preset file error blaming a directory that was never at fault.
- *
- * The caller passes the output whose folder it just wrote in, which is always
- * `session.activeAudioDeviceId`: `renamePreset` and `deletePreset` are given
- * `activePresetDir()`, and that is the same output by construction.
- */
-export const renameAssignedPreset = (
-  settings: IDeviceProfileSettings,
-  deviceId: string,
-  oldName: string,
-  newName: string,
-) => {
-  const assignment = settings.assignments[deviceId];
-  if (assignment?.presetName === oldName) {
-    assignment.presetName = newName;
-  }
-};
-
-/**
- * Detach one output from a profile whose file has just been deleted.
- *
- * Still checks the name: the assignment may have moved on between the delete
- * being queued and this running, and an output attached to something else must
- * not be detached from it.
- */
-export const removeAssignmentForPreset = (
-  settings: IDeviceProfileSettings,
-  deviceId: string,
-  presetName: string,
-) => {
-  if (settings.assignments[deviceId]?.presetName === presetName) {
-    delete settings.assignments[deviceId];
-  }
-};
-
-/**
- * Move files saved flat, back when a name identified a profile on its own, into
- * the folder of the output that was using them.
- *
- * Two stores were laid out that way and both had to be split: the profiles
- * themselves, and the hand-saved copies behind them. One function because it is
- * one move — the only thing that differs is which directory it runs over and
- * what it calls the thing in the log.
- *
- * An assignment is the only record of who a file belonged to, so it is the only
- * thing that can answer the question. A name no assignment mentions has no
- * owner to deduce and is left exactly where it is: not deleted, not guessed at,
- * still readable on disk if it turns out to matter.
- *
- * LOSSY WHERE THE OLD LAYOUT WAS AMBIGUOUS, AND NO ARRANGEMENT IS NOT. Five
- * outputs attached to "Untitled profile 1" shared one file, and nothing on disk
- * says which of them wrote it. The first assignment to claim it gets it and the
- * rest find nothing — which is what they effectively had, since every save on
- * any of them had been overwriting the same file. Nothing is destroyed; the
- * copy survives under one owner.
- *
- * Runs once per file by construction: the second run finds the root empty of it
- * and does nothing.
- */
-export const migrateNamedFilesToOutputFolders = (
-  settings: IDeviceProfileSettings,
-  rootDir: string,
-  dirForDevice: (deviceId: string) => string,
-  /** What to call the moved thing in the log — "profile", "saved copy". */
-  description: string,
-) => {
-  Object.values(settings.assignments).forEach((assignment) => {
-    // The name comes out of a file on disk, so it is asked the same question
-    // every other path built from a profile name is asked before it is joined.
-    const safeName = safePresetFileName(assignment.presetName);
-    if (!safeName) {
-      return;
-    }
-    const from = path.join(rootDir, safeName);
-    // Directories are the new layout; only a file at the root is unmigrated.
-    if (!fs.existsSync(from) || !fs.statSync(from).isFile()) {
-      return;
-    }
-    const dir = dirForDevice(assignment.deviceId);
-    const to = path.join(dir, safeName);
-    // Never clobber what the new layout already holds.
-    if (fs.existsSync(to)) {
-      return;
-    }
-    try {
-      fs.mkdirSync(dir, { recursive: true });
-      fs.renameSync(from, to);
-      log.info(
-        `Moved the ${description} "${assignment.presetName}" to its output's folder`,
-      );
-    } catch (e) {
-      // What will not move stays where it is and stays readable. For a profile
-      // that means the tuning is still there; for a saved copy it costs an undo.
-      log.error(`Could not move the ${description} "${assignment.presetName}"`);
-      log.error(e);
-    }
-  });
-};
-
-const CRLF = '\r\n';
+export const CRLF = '\r\n';
 
 /**
  * The root both engines read as "nothing to do": comments only, no `Device:`
@@ -322,7 +153,7 @@ const featureFileName = (slug: string, feature: TApoFeature) =>
  * This is where an Equalizer APO command FluidEQ has no interface for belongs:
  * a `Plugin:` line for a VST, a `Copy:` for channel routing, a `Delay:`.
  */
-const customFileName = (slug: string) => `fluideq-${slug}-custom.txt`;
+export const customFileName = (slug: string) => `fluideq-${slug}-custom.txt`;
 
 /**
  * The custom file belonging to one output, by its endpoint id.
@@ -376,7 +207,7 @@ const readCustomFx = (
   parseCustomText(deviceId, readCustomText(configDirPath, deviceId));
 
 /** What a custom file says before anybody has put anything in it. */
-const CUSTOM_FILE_TEMPLATE = [
+export const CUSTOM_FILE_TEMPLATE = [
   '# Yours. FluidEQ creates this file once and never writes it again, so',
   '# anything here survives every change made in the app.',
   '#',
@@ -979,251 +810,6 @@ export const getStateForAudioDevice = (
     // but saying so here keeps the rule in one place.
     isAutoPreAmpOn: preset?.isAutoPreAmpOn ?? true,
   };
-};
-
-/**
- * Write a file only when its contents actually changed.
- *
- * Equalizer APO reloads the whole chain whenever a file in the config directory
- * is touched, and the split turned one write per edit into a dozen. Nearly all
- * of them are identical to what is already there — dragging one slider changes
- * the EQ file and the preamp, and nothing else — so rewriting the rest would
- * buy a reload per file for no change at all.
- */
-const writeIfChanged = (filePath: string, contents: string): Promise<void> => {
-  // The writer keeps the last contents it accepted for every path and skips
-  // a write that would change nothing, which is the whole of what this used
-  // to do by reading the file back from disk on every call — a synchronous
-  // read per config file per slider movement. The write itself is
-  // asynchronous and coalesced; see asyncWriter.
-  return scheduleWrite(filePath, contents);
-};
-
-/**
- * Files this writer generated, and only those.
- *
- * Built from APO_FEATURES so a feature added later cannot leave orphans behind,
- * and deliberately strict about the digest and the extension: the config
- * directory also holds the impulse response WAVs, APO's own sample configs, and
- * whatever the user put there.
- */
-/**
- * Features this writer no longer has, whose files may still be on disk.
- *
- * A name removed from APO_FEATURES stops being written and stops being
- * recognised, which would leave its files sitting in the config directory
- * forever — unreferenced, inaudible, and looking exactly like something that is
- * still applied. Kept here so the sweep below can still take them away.
- */
-const RETIRED_FEATURES = ['loudness'];
-
-const GENERATED_FILE = new RegExp(
-  `^fluideq-(?:device-[0-9a-f]{12}|[0-9a-f]{12}-(?:${[
-    // Every word a feature's file is or was named by: a voicing file from
-    // before it was named `-preset.txt` is swept like any file of ours.
-    APO_FEATURE_FILE_WORD_PATTERN,
-    ...RETIRED_FEATURES,
-    // Named here so the config editor may write it — see isGeneratedConfigFile
-    // — and NOT so the sweep may delete it. It is the single file here that
-    // holds somebody's own work, and CUSTOM_FILE below lifts it back out of
-    // everything removeStaleFiles is allowed to touch. The one place that may
-    // delete it deliberately is the REMOVE_DEVICE_PROFILE handler in
-    // ipc/profiles.ts, which the user reaches by choosing to forget an output.
-    'custom',
-  ].join('|')}))\\.txt$`,
-);
-
-/**
- * The one generated name that is the user's file, not ours.
- *
- * Matched separately because it is the exception to the sweep below: FluidEQ
- * creates it empty and then never writes it again, so whatever is in it was
- * typed by hand and cannot be regenerated from anything. Deleting one is not
- * this sweep's decision to make — see removeStaleFiles — it belongs to the
- * REMOVE_DEVICE_PROFILE handler in ipc/profiles.ts, the one place the user has
- * actually said the output is gone for good.
- */
-const CUSTOM_FILE = /^fluideq-[0-9a-f]{12}-custom\.txt$/;
-
-/**
- * A generated impulse (`getConvolutionFileName`), as a name and as it is
- * named inside the files that play it. Swept like the text files, but kept
- * out of `isGeneratedConfigFile`: the config editor writes text, and a WAV is
- * not one of the files it may be pointed at.
- */
-const IMPULSE_FILE = /^fluideq-convolution-[0-9a-f]{12}\.wav$/;
-const IMPULSE_NAMED = /fluideq-convolution-[0-9a-f]{12}\.wav/g;
-
-/**
- * Whether a name is one of the files FluidEQ writes into the config directory.
- *
- * Exported so the editor can be held to the same list the sweep uses. Anything
- * arriving from a window is a name to check rather than trust, and this is the
- * only definition of what FluidEQ is entitled to write — `config.txt` is APO's,
- * the sample configs are APO's, and everything else in that directory belongs
- * to somebody who is not us.
- */
-export const isGeneratedConfigFile = (fileName: string) =>
-  fileName === EQ_CUTS_FILENAME || GENERATED_FILE.test(fileName);
-
-/**
- * Delete the files of outputs and features that no longer exist — except the
- * custom files, which THIS SWEEP never deletes.
- *
- * A feature switched off stops being included, and an unreferenced file is
- * inaudible — but leaving it there would mean the config directory slowly
- * filling with the layers of every device ever plugged in, each looking like
- * something that is still applied.
- *
- * The custom file is exempt here because "its output is gone" is not the same
- * statement as "its output is gone for good", and this sweep cannot tell them
- * apart. An unplugged headset is an empty assignment list; so is a flush with
- * `isEnabled: false`, which is exactly what neutralising the engine being left
- * writes — and this sweep used to take every custom file in the directory with
- * it, deleting hand-written work on nothing more than the user picking the
- * other engine. A generated file can always be written again from the profile;
- * this one cannot be written again from anything, so it stays and waits for
- * its device to come back — unless the user deliberately forgets that output,
- * which is a real "gone for good" this sweep is never told and must not guess
- * at. That deletion happens by name, in the REMOVE_DEVICE_PROFILE handler in
- * ipc/profiles.ts, the one place a disappearance is a fact rather than a
- * side effect of an empty keep-set.
- */
-// Per config directory, the generated-file set as of the last flush that
-// swept the directory. See flushDeviceProfiles.
-const lastFlushedFileSet = new Map<string, string>();
-
-const removeStaleFiles = (configDirPath: string, keep: ReadonlySet<string>) => {
-  let fileNames: string[];
-  try {
-    fileNames = fs.readdirSync(configDirPath);
-  } catch {
-    return;
-  }
-
-  fileNames
-    .filter(
-      (fileName) =>
-        (isGeneratedConfigFile(fileName) || IMPULSE_FILE.test(fileName)) &&
-        !CUSTOM_FILE.test(fileName) &&
-        !keep.has(fileName),
-    )
-    .forEach((fileName) => {
-      try {
-        const filePath = addFileToPath(configDirPath, fileName);
-        fs.unlinkSync(filePath);
-        forgetPath(filePath);
-      } catch {
-        // A file we cannot delete is one APO no longer includes anyway.
-      }
-    });
-};
-
-/**
- * Make sure every live output has a custom file, and never write over one.
- *
- * Created empty rather than on demand, because a file that only appears once
- * somebody has found the right menu is a feature nobody discovers. It is in
- * the include list from the first flush, so it is visible in the config view
- * from the first flush, waiting.
- *
- * The existence check is the whole safety of it: this runs on every edit, and
- * writing the template unconditionally would erase whatever was in there on
- * the very next slider move. It is also what lets an output that comes back
- * find its own file again — the sweep below never deletes these (see
- * removeStaleFiles), so the one that was there before an unplug or an engine
- * switch is still there. Only forgetting the output on purpose removes it,
- * through the REMOVE_DEVICE_PROFILE handler in ipc/profiles.ts.
- */
-const ensureCustomFiles = (configDirPath: string, slugs: ReadonlySet<string>) =>
-  slugs.forEach((slug) => {
-    const filePath = addFileToPath(configDirPath, customFileName(slug));
-    if (fs.existsSync(filePath)) {
-      return;
-    }
-    try {
-      fs.writeFileSync(filePath, CUSTOM_FILE_TEMPLATE.join(CRLF), 'utf8');
-    } catch {
-      // An output whose custom file cannot be created still gets its chain;
-      // the Include simply points at nothing, which the config view reports.
-    }
-  });
-
-export const flushDeviceProfiles = (
-  settings: IDeviceProfileSettings,
-  presetDirForDevice: TPresetDirForDevice,
-  configDirPath: string,
-  activeOverride?: IActiveStateOverride,
-  isEnabled = true,
-  sessionHeadroom: ISessionHeadroom | undefined = undefined,
-  cuts: IEqCuts | undefined = undefined,
-): Promise<void> => {
-  const files = deviceProfilesToFiles(
-    settings,
-    presetDirForDevice,
-    configDirPath,
-    activeOverride,
-    isEnabled,
-    sessionHeadroom,
-    cuts,
-  );
-
-  // Every output that still has a chain, by the digest its files are named
-  // with. Derived from the device files rather than passed alongside them,
-  // because that is the same list by construction and cannot fall out of step.
-  const liveSlugs = new Set<string>();
-  // The impulses those files still name: written beside them rather than
-  // through them, so read back out of what refers to them. One nobody names
-  // is an output's old convolution, and it used to stay on disk for good.
-  const liveImpulses = new Set<string>();
-  files.forEach((contents, fileName) => {
-    const slug = fileName.match(/^fluideq-device-([0-9a-f]{12})\.txt$/)?.[1];
-    if (slug) {
-      liveSlugs.add(slug);
-    }
-    (contents.match(IMPULSE_NAMED) ?? []).forEach((impulse) =>
-      liveImpulses.add(impulse),
-    );
-  });
-
-  // Before the device files that include them, like every other dependency
-  // here: an Include must never name a file that is not there yet.
-  //
-  // Both directory sweeps — this one and the stale-file removal below — run
-  // only when the SET of files changes. They walk the config directory
-  // synchronously, and the set is the same on every slider movement; what
-  // changes then is the contents, which the writer handles.
-  return scheduleWriteOperation(configDirPath, async () => {
-    const fileSet = [...files.keys(), ...liveSlugs, ...liveImpulses]
-      .sort()
-      .join('|');
-    const fileSetChanged = fileSet !== lastFlushedFileSet.get(configDirPath);
-    if (fileSetChanged) {
-      ensureCustomFiles(configDirPath, liveSlugs);
-    }
-
-    // Starting writes in map order does not finish them in that order.
-    // Await each dependency before publishing its Include, and serialize whole
-    // snapshots so an older root cannot land after a newer cleanup. This is
-    // asynchronous; queued slider edits are coalesced by the operation writer.
-    const entries = [...files];
-    for (let index = 0; index < entries.length; index += 1) {
-      const [fileName, contents] = entries[index];
-      await writeIfChanged(addFileToPath(configDirPath, fileName), contents);
-    }
-
-    // After the root, so nothing is deleted while something still includes it.
-    // The keep set is the generated files alone: the custom files need no
-    // entry here because removeStaleFiles never touches one, live output or
-    // not.
-    if (fileSetChanged) {
-      removeStaleFiles(
-        configDirPath,
-        new Set([...files.keys(), ...liveImpulses]),
-      );
-      lastFlushedFileSet.set(configDirPath, fileSet);
-    }
-  });
 };
 
 export * from './audioDevices';

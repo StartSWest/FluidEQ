@@ -2,7 +2,7 @@ import type { IScenePack } from 'common/scenePacks';
 import { displayTickMs, isFrameDue } from '../utils/framePace';
 import type { ISceneCostReading } from './sceneHealth';
 import { decodeSceneArtwork } from './sceneArtwork';
-import { createFlashGuard, type IFlashGuard } from './sceneFlashGuard';
+import { createFlashGuard, type IFlashGuard } from './sceneFlashGuardGpu';
 import { linksSettled } from './sceneCompile';
 import {
   compileScene,

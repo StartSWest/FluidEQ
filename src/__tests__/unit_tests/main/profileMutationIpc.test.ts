@@ -47,6 +47,14 @@ import {
   getDefaultState,
 } from '../../../common/constants';
 
+// eslint-disable-next-line import/first
+import { registerProfilesIpc } from '../../../main/ipc/profiles';
+// eslint-disable-next-line import/first
+import { savePreset, savePresetBaseline } from '../../../main/flush';
+// eslint-disable-next-line import/first
+import { getCustomFileNameForDevice } from '../../../main/deviceProfiles';
+import { flushDeviceProfiles } from '../../../main/deviceProfileFlush';
+
 type THandler = (
   event: { reply: jest.Mock },
   arg: unknown,
@@ -71,16 +79,6 @@ jest.mock('../../../main/registry', () => ({
   getConfigPath: async () => '',
   isEqualizerAPOInstalled: async () => true,
 }));
-
-// eslint-disable-next-line import/first
-import { registerProfilesIpc } from '../../../main/ipc/profiles';
-// eslint-disable-next-line import/first
-import { savePreset, savePresetBaseline } from '../../../main/flush';
-// eslint-disable-next-line import/first
-import {
-  flushDeviceProfiles,
-  getCustomFileNameForDevice,
-} from '../../../main/deviceProfiles';
 
 const HEADPHONES = 'headphones';
 const SPEAKERS = 'speakers';

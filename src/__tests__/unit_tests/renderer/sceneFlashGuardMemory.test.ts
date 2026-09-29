@@ -39,8 +39,9 @@ import {
 } from '../../../renderer/graph/sceneFlashGuard';
 
 const FRAME_MS = 1000 / 60;
+// The shaders are written in the guard's GPU half (`sceneFlashGuardGpu.ts`).
 const guardSource = fs.readFileSync(
-  path.join(process.cwd(), 'src', 'renderer', 'graph', 'sceneFlashGuard.ts'),
+  path.join(process.cwd(), 'src', 'renderer', 'graph', 'sceneFlashGuardGpu.ts'),
   'utf8',
 );
 

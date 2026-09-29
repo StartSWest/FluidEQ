@@ -15,7 +15,6 @@ import {
   BUBBLE_LIFE,
   BUBBLE_RECHARGE,
   createSpaceInvasion,
-  createSpaceInvasionPaths,
   invasionShake,
   SHAKE_LIFE,
   SHIP_LANE,
@@ -29,6 +28,7 @@ import {
   createInvaderCabinet,
   strikeBunker,
 } from 'renderer/graph/invaderCabinet';
+import { createSpaceInvasionPaths } from '../../../../renderer/graph/spaceInvasionLayout';
 
 const columns: Projected[] = Array.from({ length: 12 }, (_, i) => [
   20 + i * 20,

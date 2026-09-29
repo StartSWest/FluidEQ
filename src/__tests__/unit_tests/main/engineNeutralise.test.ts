@@ -30,7 +30,7 @@ jest.mock('../../../main/registry', () => ({
 // eslint-disable-next-line import/first
 import { getConfigPath, isEngineInstalled } from '../../../main/registry';
 // eslint-disable-next-line import/first
-import { neutraliseEngine } from '../../../main/engineNeutralise';
+import neutraliseEngine from '../../../main/engineNeutralise';
 // eslint-disable-next-line import/first
 import {
   flushPendingWrites,

@@ -20,7 +20,6 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { readApoDeviceChain } from 'main/apoConfigReader';
-import { flushDeviceProfiles } from 'main/deviceProfiles';
 import { stateToApoFiles } from 'main/flush';
 import {
   FilterTypeEnum,
@@ -28,6 +27,7 @@ import {
   IState,
   getDefaultState,
 } from 'common/constants';
+import { flushDeviceProfiles } from '../../../main/deviceProfileFlush';
 
 const GUID = '{1234-ABCD}';
 

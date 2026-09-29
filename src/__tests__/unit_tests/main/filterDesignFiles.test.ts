@@ -20,9 +20,9 @@ import os from 'os';
 import path from 'path';
 import {
   deviceProfilesToFiles,
-  getDefaultDeviceProfileSettings,
   TApoConfigFiles,
 } from '../../../main/deviceProfiles';
+import { getDefaultDeviceProfileSettings } from '../../../main/deviceProfileSettings';
 import { MATCHED_DESIGN_DIRECTIVE } from '../../../common/filterDesign';
 import { FilterTypeEnum } from '../../../common/constants';
 import { FLUIDEQ_CONFIG_FILENAME } from '../../../main/flush';

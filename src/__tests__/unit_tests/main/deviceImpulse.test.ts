@@ -7,10 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import {
-  deviceProfilesToFiles,
-  flushDeviceProfiles,
-} from '../../../main/deviceProfiles';
+import { deviceProfilesToFiles } from '../../../main/deviceProfiles';
+import { flushDeviceProfiles } from '../../../main/deviceProfileFlush';
 import { flushPendingWrites } from '../../../main/asyncWriter';
 import {
   FilterTypeEnum,

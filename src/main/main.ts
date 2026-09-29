@@ -110,7 +110,7 @@ import {
 import { PRODUCT_NAME } from '../common/branding';
 import { APP_USER_MODEL_ID } from './appIdentity';
 import { appVersion } from './appVersion';
-import { loadDeviceProfileSettings } from './deviceProfiles';
+import { loadDeviceProfileSettings } from './deviceProfileSettings';
 import onWindowMessage from './ipc/windowMessages';
 import { declineDefaultMenu } from './menu';
 import registerDevMemoryTrace from './devMemoryTrace';

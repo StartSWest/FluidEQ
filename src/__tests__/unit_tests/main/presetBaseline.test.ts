@@ -26,7 +26,7 @@ import {
   renamePresetBaseline,
   savePresetBaseline,
 } from '../../../main/flush';
-import { migrateNamedFilesToOutputFolders } from '../../../main/deviceProfiles';
+import { migrateNamedFilesToOutputFolders } from '../../../main/deviceProfileSettings';
 import {
   FilterTypeEnum,
   IDeviceProfileSettings,

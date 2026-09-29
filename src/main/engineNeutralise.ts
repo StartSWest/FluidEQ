@@ -39,7 +39,8 @@ import path from 'path';
 import log from 'electron-log';
 import { IDeviceProfileSettings } from '../common/constants';
 import { FLUID_ENGINE_DSP_FILENAME, TAudioEngine } from '../common/audioEngine';
-import { flushDeviceProfiles, TPresetDirForDevice } from './deviceProfiles';
+import { TPresetDirForDevice } from './deviceProfiles';
+import { flushDeviceProfiles } from './deviceProfileFlush';
 import { forgetPath, settlePath } from './asyncWriter';
 import { getConfigPath, isEngineInstalled } from './registry';
 
@@ -94,7 +95,7 @@ const removeDspRackFile = async (configDirPath: string): Promise<void> => {
  * machine that never had the FluidEQ Engine ends up with its folder under
  * `%ProgramData%`.
  */
-export const neutraliseEngine = async (
+const neutraliseEngine = async (
   other: TAudioEngine,
   settings: IDeviceProfileSettings,
   presetDirForDevice: TPresetDirForDevice,
@@ -123,3 +124,5 @@ export const neutraliseEngine = async (
   }
   return 'written';
 };
+
+export default neutraliseEngine;

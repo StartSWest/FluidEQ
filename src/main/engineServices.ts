@@ -33,7 +33,7 @@ import {
 } from './audioEngineStore';
 import { createAutomaticSetup } from './automaticSetup';
 import { createEngineLoadRepair } from './engineLoadRepair';
-import { neutraliseEngine } from './engineNeutralise';
+import neutraliseEngine from './engineNeutralise';
 import { createEngineOutputRepair } from './engineOutputRepair';
 import { runEngineSetup } from './engineSetup';
 import { readAudioEngineStatus } from './engineStatus';

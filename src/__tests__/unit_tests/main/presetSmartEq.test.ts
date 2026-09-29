@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { flushDeviceProfiles } from 'main/deviceProfiles';
 import { readApoDeviceChain } from 'main/apoConfigReader';
 import { parseEqText } from 'common/apoText';
 import {
@@ -33,6 +32,7 @@ import {
   IFiltersMap,
   ISmartEqSettings,
 } from 'common/constants';
+import { flushDeviceProfiles } from '../../../main/deviceProfileFlush';
 
 const GUID = '{1234-ABCD}';
 

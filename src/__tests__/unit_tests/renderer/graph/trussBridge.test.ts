@@ -8,13 +8,13 @@ import type { Projected } from 'common/graphStyles';
 import {
   advanceTrussBridge,
   createTrussBridge,
-  createTrussBridgePaths,
   DECK_HALF_LIFE_MS,
   DECK_REACH,
   deckTarget,
   lampBlink,
   SEA_ROWS,
 } from 'renderer/graph/trussBridge';
+import { createTrussBridgePaths } from '../../../../renderer/graph/trussBridgeLayout';
 
 /** Twenty-four columns across a 240px plot, a spike every sixth. */
 const columns: Projected[] = Array.from({ length: 24 }, (_, i) => [

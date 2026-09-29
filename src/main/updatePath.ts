@@ -23,11 +23,8 @@ import { IDeviceProfileSettings, IPresetV2, IState } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import { TError, TSuccess } from '../renderer/utils/equalizerApi';
 import type { TApoDiskSync } from './apoDiskSync';
-import {
-  flushDeviceProfiles,
-  IActiveStateOverride,
-  ISessionHeadroom,
-} from './deviceProfiles';
+import { IActiveStateOverride, ISessionHeadroom } from './deviceProfiles';
+import { flushDeviceProfiles } from './deviceProfileFlush';
 import { getResolvedPreAmp, save, savePreset } from './flush';
 import type { TReflushResult } from './ipc/audioEngine';
 import type { IMainSession } from './mainSession';

@@ -8,20 +8,22 @@ import type { Projected } from 'common/graphStyles';
 import { fireworkRgb, type TSegment } from '../../bridgeFireworks';
 import { GLOW_LAYERS, SEA_SCALE } from '../../figureGlow';
 import {
-  CAR_BODY,
   CAR_COLOURS,
+  FADE_BANDS,
+  LEVEL_BINS,
+  SEA_ROWS,
+  TRUSS_INKS,
+} from '../../trussBridge';
+import {
+  CAR_BODY,
   CAR_HUB,
   CAR_TYRE,
   CAR_WHEELS,
   CAR_WHEEL_Y,
   CAR_WINDOW,
-  FADE_BANDS,
-  LEVEL_BINS,
-  SEA_ROWS,
-  TRUSS_INKS,
   seaRowY,
   type TrussBridgeLayout,
-} from '../../trussBridge';
+} from '../../trussBridgeLayout';
 import {
   MAX_STROKE_POINTS,
   STROKE_FLOATS,

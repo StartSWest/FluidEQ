@@ -20,9 +20,9 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { readApoConfigTree } from 'main/apoConfigReader';
-import { flushDeviceProfiles } from 'main/deviceProfiles';
 import { FLUIDEQ_CONFIG_FILENAME } from 'main/flush';
 import { FilterTypeEnum, IDeviceProfileSettings } from 'common/constants';
+import { flushDeviceProfiles } from '../../../main/deviceProfileFlush';
 
 const KRAKEN = '{KRAKEN}';
 const SPEAKERS = '{SPEAKERS}';
