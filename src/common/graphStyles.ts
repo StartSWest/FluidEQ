@@ -310,6 +310,13 @@ const RETIRED: Partial<Record<GraphStyle, GraphStyle>> = {
   rain: 'analyzer',
   canyon: 'analyzer',
   starfield: 'analyzer',
+  // Two of the plain spectrums, taken out on 2026-09-28 (Ivan: "remove silk
+  // waves", "and mirror bars"), each onto the living one nearest it: the
+  // flowing waves onto Spectrum wave, the bars grown both ways from the
+  // middle onto the LED bars — the graph still mirrors any form from its
+  // menu.
+  silkwaves: 'spectrumwave',
+  mirrorbars: 'ledbars',
 };
 
 export const canonicalGraphStyle = (style: GraphStyle): GraphStyle =>
@@ -1188,6 +1195,9 @@ const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
    */
   ledwall: 1,
   towers: 1,
+  // Solid concrete, so the towers read as buildings with windows in them; at
+  // the shared half-strength they were a murk over the floor (2026-09-28).
+  skyline: 1,
   tide: 1,
   halo: 1,
   synthwave: 1,

@@ -1,6 +1,7 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
 import type { ISkyFrame } from './terraceValley';
+import { floorLifted } from '../utils/windowInk';
 
 /**
  * The night city around the Skyline form. The towers are the figure; this
@@ -31,8 +32,18 @@ export interface CitySkyline {
   clock: number;
 }
 
-/** The city's own colours: concrete from the street up to the roofline. */
-export const CITY_TOWER_COLOURS = ['#33465f', '#1b2637', '#0d131d'];
+/**
+ * The city's own colours, concrete from the street up to the roofline: the
+ * window's floor lifted in lightness, a little at the street and more at the
+ * roofs the moon catches, so the towers stand out of whatever background the
+ * theme or a visualizer gives the window. They were fixed navies fading to
+ * near-black at the roofline, and on the slate floor the towers sank into it
+ * (Ivan, 2026-09-28: "skyline building too dark make it more visible").
+ */
+const TOWER_LIFTS = [0.07, 0.11, 0.16];
+
+export const cityTowerColours = (): readonly string[] =>
+  floorLifted(TOWER_LIFTS);
 export const CITY_MOON = '#f3efd8';
 export const CITY_WINDOW = '#ffdf9b';
 export const CITY_BEACON = '#ff4d4d';

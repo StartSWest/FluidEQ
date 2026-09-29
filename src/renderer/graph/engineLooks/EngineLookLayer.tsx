@@ -4,7 +4,13 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useMemo, useRef, type RefObject } from 'react';
+import {
+  useCallback,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  type RefObject,
+} from 'react';
 import { GRAPH_STYLE_LABELS, type GraphStyle } from 'common/graphStyles';
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneFrame } from '../sceneGl';
@@ -42,6 +48,13 @@ interface IEngineLookLayerProps {
   inputRef: RefObject<IEngineLookInput | undefined>;
   /** Told each time the engine's phase with the look changes. */
   onPhase: (phase: TEngineLookPhase) => void;
+  /**
+   * The look is being left: nothing more is drawn, and the last picture
+   * stays on the layer's canvas while it fades out (`useLeavingEngineLook`).
+   */
+  asleep?: boolean;
+  /** Handed the layer's box, and null when it goes: what is faded. */
+  onHost?: (host: HTMLDivElement | null) => void;
   left: number;
   top: number;
   width: number;
@@ -57,6 +70,8 @@ export default function EngineLookLayer({
   pack,
   inputRef,
   onPhase,
+  asleep,
+  onHost,
   left,
   top,
   width,
@@ -125,9 +140,22 @@ export default function EngineLookLayer({
     height,
     spectrumRect: WHOLE_PANEL,
     shapeFrame,
+    // The page has been drawing this look while the engine built it and
+    // clears its own on the engine's first frame, so that frame has to be
+    // the whole picture: faded in from nothing, the look blinked out and
+    // back on every change.
+    arrival: 'at-once',
+    asleep,
     onWaiting,
     onDrawn,
   });
+  useLayoutEffect(() => {
+    if (!onHost) {
+      return undefined;
+    }
+    onHost(hostRef.current);
+    return () => onHost(null);
+  }, [onHost, hostRef]);
   return (
     <div
       ref={hostRef}

@@ -9,11 +9,9 @@ import {
   MIN_PITCH,
   MIRROR,
   REST_HEIGHT,
-  SUN_INK,
   horizonBloom,
   horizonLine,
   horizonStand,
-  horizonSun,
   type IHorizonState,
 } from '../sceneViews/horizon';
 import { holdPeaks, layPieces } from '../sceneViews/scenePieces';
@@ -22,17 +20,15 @@ import type { IEngineLook } from './engineLookTypes';
 import { setLookStands, setLookVector, sizeLookData } from './lookInput';
 
 /**
- * HORIZON on the GPU: the 2D look's sun low behind the row, the bars running
- * through the colours foot to head, their reflection in the water, the lit
- * tops, the held lines and the horizon's line and haze
- * (`sceneViews/horizon.ts`), painted per pixel from the same layout.
+ * HORIZON on the GPU: the bars running through the colours foot to head,
+ * their reflection in the water, the lit tops, the held lines and the
+ * horizon's line and haze (`sceneViews/horizon.ts`), painted per pixel from
+ * the same layout. No sun behind the row: the top of the plot cut its glow
+ * flat (Ivan, 2026-09-28).
  *
  *   uLook[6] the row: pitch, bar width, how many, a bar at rest's height
- *   uLook[7] the horizon line's light, its haze's, a reflection's length,
- *            where on the colours the sun is
+ *   uLook[7] the horizon line's light, its haze's, a reflection's length
  *   uLook[8], uLook[9] where each copy stands (`horizonStand`)
- *   uLook[10], uLook[11] each copy's sun: x, y, how tall, how wide
- *   uLook[12] each copy's sun's brightness (x, y)
  *   texel i  bar i's level and its held peak
  */
 
@@ -48,18 +44,6 @@ vec4 horizonCopy(vec2 p, int copy, vec4 stand, vec4 picture) {
   float opacity = lookOpacity();
   float t = lookFigureT(p, floorY, headY);
   bool bloom = lookBloomPass();
-
-  if (!bloom) {
-    // The sun, added as light behind the row.
-    vec4 sun = copy == 0 ? uLook[10] : uLook[11];
-    float strength = copy == 0 ? uLook[12].x : uLook[12].y;
-    float r = length(vec2((p.x - sun.x) / max(1.0, sun.w), (p.y - sun.y) / max(1.0, sun.z)));
-    float sunInk = uLook[7].w;
-    vec4 glow = r < 0.45
-      ? mix(lookPaint(lookLightInk(sunInk, 0.1), strength), lookPaint(lookInk(sunInk), strength * 0.6), r / 0.45)
-      : mix(lookPaint(lookInk(sunInk), strength * 0.6), vec4(0.0), clamp((r - 0.45) / 0.55, 0.0, 1.0));
-    picture = min(picture + glow, vec4(1.0));
-  }
 
   int k = int(floor((p.x - uLook[1].x) / pitch));
   if (k >= 0 && k < count) {
@@ -128,7 +112,7 @@ const step = (
   state: IHorizonState,
   input: IEngineLookInput,
 ): boolean => {
-  const { bands, look, music, plot } = reading;
+  const { bands, look, music } = reading;
   const row = layPieces(reading, state.row, MIN_PITCH);
   const falling = holdPeaks(
     state.peaks,
@@ -143,22 +127,10 @@ const step = (
   }
   const lights = horizonLine(music.pulse);
   setLookVector(input, 6, row.pitch, row.body, row.count, REST_HEIGHT);
-  setLookVector(input, 7, lights.line, lights.haze, MIRROR, SUN_INK);
+  setLookVector(input, 7, lights.line, lights.haze, MIRROR, 0);
   setLookStands(input, bands, horizonStand);
-  const strengths = [0, 0];
-  [0, 1].forEach((copy) => {
-    const band = bands[copy];
-    if (!band) {
-      setLookVector(input, 10 + copy, 0, 0, 1, 1);
-      return;
-    }
-    const sun = horizonSun(plot, horizonStand(band), music, look.opacity);
-    setLookVector(input, 10 + copy, sun.x, sun.y, sun.tall, sun.wide);
-    strengths[copy] = sun.strength;
-  });
-  setLookVector(input, 12, strengths[0], strengths[1], 0, 0);
   input.bloom = horizonBloom(music.pulse, reading.glow, look.opacity);
-  // The sun keeps breathing and wandering while there is music to follow.
+  // The line flashes and the bars move while there is music to follow.
   return reading.playing || (falling && look.accents);
 };
 

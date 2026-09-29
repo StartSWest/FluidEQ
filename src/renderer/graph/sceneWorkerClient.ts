@@ -197,6 +197,12 @@ export const createSceneWorkerClient = (
     log?: string,
   ) => void,
   recovered: () => void,
+  /**
+   * How the first picture comes in (`ISceneRunnerOptions.arrival`): faded
+   * in, or at full strength for a drawing that takes over a picture already
+   * on screen.
+   */
+  arrival: 'fade' | 'at-once' = 'fade',
 ): ISceneWorkerClient | undefined => {
   const canvas = document.createElement('canvas');
   if (typeof canvas.transferControlToOffscreen !== 'function') {
@@ -250,7 +256,12 @@ export const createSceneWorkerClient = (
    * went out on, and only a frame of the current turn settles it.
    *
    * The first picture is the one exception: before anything is drawn there is
-   * nothing to keep, and the scene fades in on its first frame.
+   * nothing to keep, and the scene fades in on its first frame — unless it
+   * arrives at once. A graph look does: the page has been drawing it and
+   * hands it over on the engine's first frame of it, and faded in, the look
+   * sank to nothing at the handover and climbed back over this quarter
+   * second (Ivan, 2026-09-28: "still doing the flashing when switching
+   * viz").
    *
    * No timer anywhere: it changes on a box changing and settles on a frame
    * arriving, and the frame loop is kicked on every resize.
@@ -281,7 +292,8 @@ export const createSceneWorkerClient = (
     canvas.style.objectFit = '';
     if (!hasShown) {
       hasShown = true;
-      canvas.style.transition = `opacity ${SETTLE_FADE_MS}ms ease-out`;
+      canvas.style.transition =
+        arrival === 'fade' ? `opacity ${SETTLE_FADE_MS}ms ease-out` : 'none';
       canvas.style.opacity = '1';
     }
   };

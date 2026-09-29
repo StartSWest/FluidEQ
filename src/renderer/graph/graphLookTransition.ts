@@ -48,22 +48,39 @@ export class GraphLookTransition {
     this.startedAt = now;
   }
 
-  /** Call after painting the new look. True keeps the existing loop awake. */
-  paint(context: CanvasRenderingContext2D, now: number): boolean {
+  /** A change of look is still fading in: `paint` has not finished it. */
+  get isFading(): boolean {
+    return this.snapshot !== null;
+  }
+
+  /**
+   * How far the new look has come in at `now`, from 0 to 1, and 1 when no
+   * change is fading. What a picture of the old look kept outside this
+   * canvas — the engine's, on a canvas of its own — fades out by.
+   */
+  mixAt(now: number): number {
     if (!this.snapshot) {
-      return false;
+      return 1;
     }
     const progress = Math.min(
       1,
       Math.max(0, (now - this.startedAt) / LOOK_TRANSITION_MS),
     );
-    if (progress === 1) {
+    return progress * progress * (3 - 2 * progress);
+  }
+
+  /** Call after painting the new look. True keeps the existing loop awake. */
+  paint(context: CanvasRenderingContext2D, now: number): boolean {
+    if (!this.snapshot) {
+      return false;
+    }
+    const mix = this.mixAt(now);
+    if (mix === 1) {
       const { lookId } = this;
       this.reset();
       this.lookId = lookId;
       return false;
     }
-    const mix = progress * progress * (3 - 2 * progress);
     context.save();
     context.setTransform(1, 0, 0, 1, 0, 0);
     // Add premultiplied pixels after scaling the incoming drawing's alpha.

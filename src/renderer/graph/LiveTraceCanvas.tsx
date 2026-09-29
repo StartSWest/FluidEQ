@@ -182,7 +182,7 @@ import {
 import {
   advanceCitySkyline,
   CITY_INKS,
-  CITY_TOWER_COLOURS,
+  cityTowerColours,
   createCitySkyline,
   createCitySkylinePaths,
 } from './citySkyline';
@@ -310,6 +310,7 @@ import EngineLookLayer, {
 } from './engineLooks/EngineLookLayer';
 import type { IEngineLookInput } from './engineLooks/engineLookInput';
 import { useEngineLookUsable } from './engineLooks/engineLookHealth';
+import useLeavingEngineLook from './engineLooks/useLeavingEngineLook';
 import {
   engineAnalysisStep,
   engineLookPack,
@@ -551,6 +552,9 @@ const createSceneStates = () => ({
   accent: createAccentState(),
 });
 
+/** A look being left says nothing more about where the engine is. */
+const ignoreEnginePhase = () => undefined;
+
 const LiveTraceCanvas = ({
   curves,
   xScale,
@@ -712,6 +716,13 @@ const LiveTraceCanvas = ({
    * Back to building with every new look, before the engine has heard of it.
    */
   const enginePhaseRef = useRef<TEngineLookPhase>('building');
+  // Before the phase goes back to the start below: whether the engine was
+  // showing the look being left is what keeps its picture on screen.
+  const engineLayers = useLeavingEngineLook(
+    { style: look.style, pack: isEngineDrawn ? enginePack : undefined },
+    enginePhaseRef,
+  );
+  const fadeLeavingEngineLook = engineLayers.fade;
   const enginePhaseStyleRef = useRef(look.style);
   if (enginePhaseStyleRef.current !== look.style) {
     enginePhaseStyleRef.current = look.style;
@@ -719,6 +730,8 @@ const LiveTraceCanvas = ({
   }
   /** Whether nothing is on this canvas while the engine paints the look. */
   const blankRef = useRef(false);
+  /** The page drew the look this frame only because a crossfade is on. */
+  const heldForFadeRef = useRef(false);
 
   // Whether the trace has the response plot to itself. This is true both in the
   // user's Wave only mode and when APO is off, because in either case there is
@@ -846,9 +859,21 @@ const LiveTraceCanvas = ({
       }
       const now = performance.now();
       transitionRef.current.prepare(canvas, lookRef.current.id, now);
+      // The engine's picture of the look being left goes out in the frames
+      // the new look comes in (`useLeavingEngineLook`).
+      fadeLeavingEngineLook(transitionRef.current.mixAt(now));
       // Where the engine is with the look, when it paints it: see
-      // `enginePhaseRef`. Handing over, this canvas is left as it is.
-      const phase = engineDrawnRef.current ? enginePhaseRef.current : undefined;
+      // `enginePhaseRef`. Handing over, this canvas is left as it is. A look
+      // the engine has not shown yet is drawn here until its crossfade is
+      // over, and only then handed over, whole: handed over halfway, it
+      // jumped from half strength to full.
+      const isHeldForFade =
+        transitionRef.current.isFading && enginePhaseRef.current !== 'showing';
+      heldForFadeRef.current = isHeldForFade && engineDrawnRef.current;
+      const phase =
+        engineDrawnRef.current && !isHeldForFade
+          ? enginePhaseRef.current
+          : undefined;
       const isEngineTaking = phase === 'drawing' || phase === 'showing';
       const isHanding = phase === 'drawing';
       /** The engine's input for `style`: one per look, written in place. */
@@ -2466,7 +2491,7 @@ const LiveTraceCanvas = ({
       } else if (fenceOwnColours) {
         paintColours = FENCE_WOOD_COLOURS;
       } else if (cityOwnColours) {
-        paintColours = CITY_TOWER_COLOURS;
+        paintColours = cityTowerColours();
       }
       const isSelfColoured = isSelfColouredLook(paintPalette, paintColours);
       const figureStrokeWidth = resolveFigureStrokeWidth(
@@ -5034,10 +5059,26 @@ const LiveTraceCanvas = ({
     // `channels` is the per-channel reader, whose identity never changes —
     // named here because the loop reads it and a dependency list that lies
     // about what a callback reads is worse than one that is slightly long.
-    [channels, curves, height, points, width, xScale, yScale],
+    // So is `fadeLeavingEngineLook`.
+    [
+      channels,
+      curves,
+      fadeLeavingEngineLook,
+      height,
+      points,
+      width,
+      xScale,
+      yScale,
+    ],
   );
 
-  const kickFrames = useSmoothFrames(drawFrame, {
+  // One frame more after a crossfade that held the engine back, even in a
+  // silence that would stop the loop: that frame hands the look over.
+  const drawFrameThenHandOver = useCallback(
+    (deltaMs: number) => drawFrame(deltaMs) || heldForFadeRef.current,
+    [drawFrame],
+  );
+  const kickFrames = useSmoothFrames(drawFrameThenHandOver, {
     isEnabled: true,
     target: canvasRef,
   });
@@ -5224,18 +5265,21 @@ const LiveTraceCanvas = ({
     <>
       {/* Under the canvas, so the last look's picture fades out over the
           engine's on a change of look (`graphLookTransition.ts`). */}
-      {isEngineDrawn && enginePack && (
+      {engineLayers.layers.map((layer) => (
         <EngineLookLayer
-          style={look.style}
-          pack={enginePack}
+          key={layer.key}
+          style={layer.style}
+          pack={layer.pack}
           inputRef={engineInputRef}
-          onPhase={handleEnginePhase}
+          onPhase={layer.leaving ? ignoreEnginePhase : handleEnginePhase}
+          asleep={layer.leaving}
+          onHost={layer.leaving ? engineLayers.onLeavingHost : undefined}
           left={offsetLeft}
           top={offsetTop}
           width={width}
           height={height}
         />
-      )}
+      ))}
       <canvas
         ref={attachCanvas}
         className="chart-live-canvas"

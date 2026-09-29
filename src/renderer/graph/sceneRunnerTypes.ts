@@ -118,6 +118,18 @@ export interface ISceneRunnerOptions {
    */
   held?: boolean;
   /**
+   * How the scene's first frames come in. `fade`, the default, rises from
+   * nothing over a quarter second — a scene arriving on an empty panel.
+   * `at-once` starts at full strength, for a drawing that takes over a
+   * picture already on screen: a graph look, which the page draws while the
+   * engine builds it and hands over on the engine's first frame. Faded in,
+   * the look dipped to a sixth of itself at the handover and came back — a
+   * blink on every change of look (Ivan, 2026-09-28: "B shows then it blinks
+   * show again"). Both fades: the scene's own, and its canvas's on the first
+   * picture it shows (`createSceneWorkerClient`).
+   */
+  arrival?: 'fade' | 'at-once';
+  /**
    * The pack each time a version of it becomes the one being drawn — the
    * graph's menu starts its attack and release from what the scene came with.
    */

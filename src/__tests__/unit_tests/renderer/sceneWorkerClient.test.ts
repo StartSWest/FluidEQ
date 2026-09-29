@@ -352,3 +352,58 @@ it('keeps a held picture off the screen until a frame drawn after it is let go',
   drawn();
   expect(canvas?.style.opacity).toBe('1');
 });
+
+/**
+ * A scene's first picture fades in over a quarter second. One that takes over
+ * a picture already on screen — a graph look, which the page has been drawing
+ * and hands over on the engine's first frame of it — comes in whole: faded
+ * in, the look sank to nothing at every change of look and climbed back
+ * (Ivan, 2026-09-28: "still doing the flashing when switching viz"). The
+ * fade is the control.
+ */
+it.each([
+  ['fade', 'opacity 250ms ease-out'],
+  ['at-once', 'none'],
+] as const)(
+  'brings the first picture in as its arrival says: %s',
+  (arrival, transition) => {
+    const measured: ResizeObserverCallback[] = [];
+    const inert = globalThis.ResizeObserver;
+    globalThis.ResizeObserver = jest.fn((callback: ResizeObserverCallback) => {
+      measured.push(callback);
+      return {
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+        disconnect: jest.fn(),
+      };
+    }) as unknown as typeof ResizeObserver;
+    try {
+      const host = document.createElement('div');
+      const client = createSceneWorkerClient(
+        host,
+        jest.fn(),
+        jest.fn(),
+        arrival,
+      );
+      const canvas = host.querySelector('canvas');
+      // Its box measured: nothing shows until a frame is drawn for it.
+      measured.forEach((callback) => callback([], {} as ResizeObserver));
+      expect(canvas?.style.opacity).toBe('0');
+      client?.draw(
+        {} as ISceneFrame,
+        { width: 100, height: 100 },
+        { width: 100, height: 100 },
+        { fsr: false, fxaa: false },
+        [0, 0, 1, 1],
+        0,
+        jest.fn(),
+      );
+      reply({ kind: 'drawn', accent: 0, cost: { behind: 0 }, skipped: false });
+      expect(canvas?.style.opacity).toBe('1');
+      expect(canvas?.style.transition).toBe(transition);
+      client?.dispose();
+    } finally {
+      globalThis.ResizeObserver = inert;
+    }
+  },
+);

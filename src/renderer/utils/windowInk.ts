@@ -123,6 +123,29 @@ export const floorInk = (alpha: number, darker = 0): string => {
   return `rgba(${red}, ${green}, ${blue}, ${Math.max(0, Math.min(1, alpha)).toFixed(3)})`;
 };
 
+let liftedKey = '';
+let lifted: readonly string[] = [];
+
+/**
+ * The floor lifted by each of `lifts` in OKLab lightness, as `#rrggbb`, for a
+ * body that has to stand OUT of the window rather than sink into it: a
+ * city's towers, which as fixed navies were darker than a slate floor. Same
+ * hue as the floor, so they belong to the window whatever it wears. One
+ * array per floor, so a ramp built from it is built once per change.
+ */
+export const floorLifted = (lifts: readonly number[]): readonly string[] => {
+  const [red, green, blue] = windowFloor();
+  const key = `${floorKey}|${lifts.join(',')}`;
+  if (key !== liftedKey) {
+    liftedKey = key;
+    const lab = rgbToLab([red / 255, green / 255, blue / 255]);
+    lifted = lifts.map((lift) =>
+      labToHex({ ...lab, l: Math.max(0, Math.min(0.97, lab.l + lift)) }),
+    );
+  }
+  return lifted;
+};
+
 /**
  * One array per set of colours, so the drawings that cache a ramp by the
  * array it was built from — every frame asks — build it once per change.

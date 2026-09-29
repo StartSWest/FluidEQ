@@ -131,6 +131,7 @@ export default function useSceneRunner({
   performance: chosenPerformance,
   asleep,
   held,
+  arrival = 'fade',
   onHeard,
   onDrawn,
   onLoaded,
@@ -194,7 +195,10 @@ export default function useSceneRunner({
   const clockRef = useRef(0);
   /** `musicSeconds`: the same clock at the music's own, unslowed pace. */
   const musicClockRef = useRef(0);
-  const fadeRef = useRef(0);
+  /** Where the fade starts for each new build (`arrival`). */
+  const arrivalFadeRef = useRef(0);
+  arrivalFadeRef.current = arrival === 'at-once' ? 1 : 0;
+  const fadeRef = useRef(arrivalFadeRef.current);
   const accentRef = useRef(parseAccent(''));
   const paramsRef = useRef<Record<string, number>>({});
 
@@ -677,7 +681,7 @@ export default function useSceneRunner({
       } else if (shown && shelvedRef.current) {
         const pack = shelvedRef.current;
         shelvedRef.current = null;
-        fadeRef.current = 0;
+        fadeRef.current = arrivalFadeRef.current;
         buildRef.current(pack).catch(() => undefined);
       }
       measure();
@@ -740,6 +744,7 @@ export default function useSceneRunner({
           }
           kick();
         },
+        arrivalFadeRef.current === 1 ? 'at-once' : 'fade',
       );
     } catch (error) {
       console.error('Scene worker could not start:', error);
@@ -874,7 +879,7 @@ export default function useSceneRunner({
   // the music's: a new look dances from its first frame instead of listening
   // for the tempo all over again.
   useEffect(() => {
-    fadeRef.current = 0;
+    fadeRef.current = arrivalFadeRef.current;
     clockRef.current = 0;
     musicClockRef.current = 0;
     energyRef.current = {

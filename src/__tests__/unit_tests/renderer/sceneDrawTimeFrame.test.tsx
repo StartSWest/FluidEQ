@@ -313,3 +313,52 @@ describe('how often frames are reaching the screen', () => {
     expect(reports[reports.length - 1]?.intervalMs).toBeGreaterThan(0);
   });
 });
+
+/** The stage with a chosen arrival, settled once its scene is being drawn. */
+const renderArriving = async (arrival?: ISceneRunnerOptions['arrival']) => {
+  let loaded: () => void = () => undefined;
+  const settled = new Promise<void>((resolve) => {
+    loaded = resolve;
+  });
+  function Stage() {
+    const ref = useSceneRunner({
+      source,
+      width: 480,
+      height: 270,
+      spectrumRect: [0, 1, 0, 1],
+      onLoaded: () => loaded(),
+      ...(arrival ? { arrival } : {}),
+    });
+    return <div ref={ref} />;
+  }
+  render(<Stage />);
+  await act(() => settled);
+};
+
+/** The strength the next drawn frame is handed. */
+const drawFade = () => {
+  mockDraw.mockClear();
+  mockFrameCallback?.(16);
+  return (mockDraw.mock.calls[0]?.[0] as ISceneFrame | undefined)?.fade;
+};
+
+// A graph look is drawn by the page while the engine builds it, and the page
+// clears its own picture on the engine's first frame: faded in from nothing,
+// that frame was a sixth of the look and every change of look blinked (Ivan,
+// 2026-09-28: "B shows then it blinks show again").
+describe("a scene's first frame", () => {
+  it('is the whole picture when it takes over one already on screen', async () => {
+    await renderArriving('at-once');
+    expect(drawFade()).toBe(1);
+  });
+
+  it('still rises from nothing for a scene arriving on an empty panel', async () => {
+    // Positive control: the default fades in, so the test above is the
+    // option at work and not a runner that never fades.
+    await renderArriving();
+    const first = drawFade() ?? 1;
+    expect(first).toBeGreaterThan(0);
+    expect(first).toBeLessThan(0.3);
+    expect(drawFade() ?? 0).toBeGreaterThan(first);
+  });
+});

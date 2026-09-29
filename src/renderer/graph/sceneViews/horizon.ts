@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { IAnalysisBand, IAnalysisPlot } from '../analysis/analysisFrame';
+import type { IAnalysisBand } from '../analysis/analysisFrame';
 import {
   figureInk,
   heatInk,
@@ -13,7 +13,6 @@ import {
   lightInkAt,
   type ISceneDrawn,
   type ISceneFrame,
-  type ISceneMusic,
   type ISceneSpan,
   type ISceneStand,
 } from './sceneFrame';
@@ -33,16 +32,16 @@ import {
 } from './sceneBloom';
 
 /**
- * HORIZON: the spectrum standing on a line of light, a sun low behind it and
- * its reflection in the water below.
+ * HORIZON: the spectrum standing on a line of light, and its reflection in
+ * the water below.
  *
  * Every bar runs through the colours from its foot to its head, whatever its
  * height, so a short bar is as much of the palette as a tall one; the
- * horizon is a bright line under the row that flashes on the beat, the
- * reflection hangs under it and fades into the dark, and behind the bars a
- * glow in the last of the colours breathes with the bass and swells on the
- * kick, drifting slowly with the music. Ivan asked for it from a picture he
- * loved (2026-09-26: "make one like this one loved it").
+ * horizon is a bright line under the row that flashes on the beat, and the
+ * reflection hangs under it and fades into the dark. Ivan asked for it from
+ * a picture he loved (2026-09-26: "make one like this one loved it"); the
+ * sun that glowed behind the row came off on 2026-09-28, cut flat by the
+ * top of the plot.
  *
  * Pieces is how many bars and Gap the dark between them; Colour by runs the
  * colours up every bar, across the row, as one colour, or each bar whole by
@@ -63,12 +62,6 @@ const FLOOR_SHARE = 0.2;
 export const MIRROR = 0.42;
 /** A bar at rest is still this tall, a row of stubs along the horizon. */
 export const REST_HEIGHT = 2;
-/** Where the glow sits above the horizon, and its size, against the reach. */
-const SUN_HEIGHT = 0.74;
-export const SUN_WIDE = 0.62;
-const SUN_TALL = 0.46;
-/** Where on the colours the sun is. */
-export const SUN_INK = 0.84;
 /** Stops sampled up a bar: enough for seven colours to read as a sweep. */
 const BAR_STOPS = 5;
 
@@ -116,29 +109,6 @@ export const horizonStand = (band: IAnalysisBand): ISceneStand => {
   };
 };
 
-/**
- * The sun low behind a copy's row: where it is, how tall and wide, and how
- * bright — breathing with the bass, swelling on the kick and wandering a
- * little with the music.
- */
-export const horizonSun = (
-  plot: IAnalysisPlot,
-  stand: ISceneStand,
-  music: Pick<ISceneMusic, 'clock' | 'bass' | 'pulse'>,
-  opacity: number,
-) => {
-  const width = plot.right - plot.left;
-  return {
-    x: plot.left + width * (0.5 + Math.sin(music.clock * 0.11) * 0.06),
-    y: stand.floor + stand.up * stand.reach * SUN_HEIGHT,
-    tall: stand.reach * SUN_TALL * (1 + music.bass * 0.12 + music.pulse * 0.08),
-    wide: stand.reach * SUN_WIDE,
-    strength: clampAlpha(
-      (0.34 + music.bass * 0.26 + music.pulse * 0.22) * opacity,
-    ),
-  };
-};
-
 /** The horizon line's light, and its haze's, flashing on the beat. */
 export const horizonLine = (pulse: number) => ({
   line: clampAlpha(0.7 + pulse * 0.3),
@@ -168,24 +138,9 @@ const drawCopy = (
     head: floor + up * reach,
   };
 
-  // The sun, low behind the row: the last of the colours, breathing with
-  // the bass, swelling on the kick and wandering a little with the music.
-  const sunGlow = horizonSun(plot, stand, music, look.opacity);
-  const { tall, strength } = sunGlow;
-  context.save();
-  // Added as light, so it glows through the dark rather than staining it.
-  context.globalCompositeOperation = 'lighter';
-  context.translate(sunGlow.x, sunGlow.y);
-  context.scale(sunGlow.wide / tall, 1);
-  const sun = context.createRadialGradient(0, 0, 0, 0, 0, tall);
-  // Near the end of the colours rather than at it: the last stop of a
-  // rainbow is often its palest, and a pale glow over the dark reads as dust.
-  sun.addColorStop(0, lightInkAt(colours, SUN_INK, 0.1, strength));
-  sun.addColorStop(0.45, inkAt(colours, SUN_INK, strength * 0.6));
-  sun.addColorStop(1, inkAt(colours, SUN_INK, 0));
-  context.fillStyle = sun;
-  context.fillRect(-tall, -tall, tall * 2, tall * 2);
-  context.restore();
+  // No sun behind the row. It was a glow high over the bars, and the top of
+  // the plot — where the controls float — sliced it flat along its crown
+  // (Ivan, 2026-09-28: "horizon remove the circle since it gets cut").
 
   const barWidth = row.body;
   const bars = new Path2D();
@@ -338,7 +293,7 @@ export const drawHorizon = (
       horizonBloom(frame.music.pulse, frame.glow, frame.look.opacity),
     );
   }
-  // The sun keeps breathing and wandering while there is music to follow.
+  // The line flashes and the bars move while there is music to follow.
   return {
     moving: frame.playing || (falling && frame.look.accents),
     body,

@@ -323,10 +323,11 @@ describe('curated forms and settings', () => {
     // picker offered then, and the ten drawn scenes joined them on
     // 2026-09-24 (five pictures and five plain spectrums), and ten more
     // visualizers the next day — less the Mesh, which the Waterfall took in —
-    // and Horizon the day after that.
-    expect(GRAPH_FORM_LOOKS).toHaveLength(40);
+    // and Horizon the day after that; Silk waves and Mirror bars went on
+    // 2026-09-28, onto Spectrum wave and the LED bars.
+    expect(GRAPH_FORM_LOOKS).toHaveLength(38);
     expect(SELECTABLE_GRAPH_STYLES).toContain('ledbars');
-    expect(SELECTABLE_GRAPH_STYLES).toContain('silkwaves');
+    expect(SELECTABLE_GRAPH_STYLES).toContain('spectrumwave');
     expect(SELECTABLE_GRAPH_STYLES).toContain('halftone');
     expect(SELECTABLE_GRAPH_STYLES).toContain('analyzer');
     expect(SELECTABLE_GRAPH_STYLES).toContain('rta');
@@ -359,6 +360,8 @@ describe('curated forms and settings', () => {
         'line',
         'area',
         'fluid',
+        'silkwaves',
+        'mirrorbars',
       ] as const
     ).forEach((style) => {
       expect(SELECTABLE_GRAPH_STYLES).not.toContain(style);
