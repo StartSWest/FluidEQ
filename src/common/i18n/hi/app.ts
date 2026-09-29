@@ -46,6 +46,14 @@ const app: Partial<Dictionary> = {
   'app.menu.reportProblem': 'समस्या रिपोर्ट करें',
   'app.menu.about': '{product} के बारे में…',
   'app.processes.menu': 'प्रक्रियाएँ…',
+  'app.menu.resetSettings': 'सभी सेटिंग रीसेट करें…',
+  'settingsReset.title': 'सभी सेटिंग रीसेट करें?',
+  'settingsReset.body':
+    'ग्राफ़ और विज़ुअलाइज़र, विंडो के रंग, प्लेयर, लाइब्रेरी, भाषा, एनिमेशन, Windows के साथ शुरू करें, डेस्कटॉप बैकग्राउंड और डायनेमिक लाइटिंग वैसे हो जाएँगे जैसे FluidEQ की नई इंस्टॉलेशन में होते हैं।',
+  'settingsReset.kept':
+    'आपका EQ, प्रीसेट, कर्व और DSP जैसे हैं वैसे ही रहेंगे, और आपके आउटपुट, ऑडियो इंजन और आपकी सहेजी हुई हर चीज़ भी।',
+  'settingsReset.action': 'सेटिंग रीसेट करें',
+  'settingsReset.failed': 'सेटिंग रीसेट नहीं हो सकीं। फिर से कोशिश करें।',
   'app.processes.eyebrow': 'प्रक्रियाएँ',
   'app.processes.hint':
     'Windows इन सभी को ऐप के नाम से दिखाता है, क्योंकि ये एक ही प्रोग्राम हैं। यहाँ देखें कि हर एक असल में FluidEQ के लिए क्या करता है।',

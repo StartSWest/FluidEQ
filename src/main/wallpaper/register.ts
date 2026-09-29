@@ -24,7 +24,11 @@ import { createWallpaperManager, type IWallpaperDeps } from './manager';
  */
 const registerWallpaperIpc = (
   deps: IWallpaperDeps,
-): { dispose: () => void; setGameInFront: (playing: boolean) => void } => {
+): {
+  dispose: () => void;
+  setGameInFront: (playing: boolean) => void;
+  reset: () => void;
+} => {
   const manager = createWallpaperManager(deps);
 
   const fromOwner = (event: IpcMainEvent | IpcMainInvokeEvent) =>
@@ -159,7 +163,12 @@ const registerWallpaperIpc = (
   app.once('before-quit', dispose);
   // Handed out so game profiles can hold every screen still while somebody
   // is playing, without the backgrounds knowing what a game is.
-  return { dispose, setGameInFront: manager.setGameInFront };
+  return {
+    dispose,
+    setGameInFront: manager.setGameInFront,
+    // "Reset all settings", which main's own handler runs.
+    reset: manager.reset,
+  };
 };
 
 export default registerWallpaperIpc;

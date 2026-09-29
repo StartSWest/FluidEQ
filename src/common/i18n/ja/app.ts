@@ -46,6 +46,15 @@ const app: Partial<Dictionary> = {
   'app.menu.reportProblem': '問題を報告',
   'app.menu.about': '{product} について…',
   'app.processes.menu': 'プロセス…',
+  'app.menu.resetSettings': 'すべての設定をリセット…',
+  'settingsReset.title': 'すべての設定をリセットしますか？',
+  'settingsReset.body':
+    'グラフとビジュアライザー、ウィンドウの色、プレーヤー、ライブラリ、言語、アニメーション、Windows と一緒に起動、デスクトップの背景、ダイナミック ライティングが、FluidEQ を新しくインストールしたときの状態に戻ります。',
+  'settingsReset.kept':
+    'EQ、プリセット、カーブ、DSP はそのまま残ります。出力、オーディオ エンジン、保存したものもすべてそのままです。',
+  'settingsReset.action': '設定をリセット',
+  'settingsReset.failed':
+    '設定をリセットできませんでした。もう一度お試しください。',
   'app.processes.eyebrow': 'プロセス',
   'app.processes.hint':
     'これらはすべて同じプログラムなので、Windows はどれもアプリ名で表示します。ここでは各プロセスが FluidEQ のために実際に何をしているかを示します。',

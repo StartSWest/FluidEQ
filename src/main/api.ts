@@ -273,6 +273,13 @@ const setStartWithWindows = (wanted: boolean) =>
     wanted,
   ) as Promise<IStartWithWindows>;
 
+/**
+ * "Reset all settings": main's half of them (`ipc/settingsReset.ts`). The
+ * window forgets its own half after this answers, and reloads.
+ */
+const resetSettings = () =>
+  ipcRenderer.invoke('settings-reset') as Promise<void>;
+
 /** Which graphics card the whole app runs on; applies from the next start. */
 const graphicsPreference = () =>
   ipcRenderer.invoke(
@@ -1465,6 +1472,7 @@ export default {
     setStartWithWindows,
     graphicsPreference,
     setGraphicsPreference,
+    resetSettings,
     getChangelog,
     installUpdate,
     isWindowMaximized,

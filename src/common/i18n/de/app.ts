@@ -46,6 +46,15 @@ const app: Partial<Dictionary> = {
   'app.menu.reportProblem': 'Problem melden',
   'app.menu.about': 'Über {product}…',
   'app.processes.menu': 'Prozesse…',
+  'app.menu.resetSettings': 'Alle Einstellungen zurücksetzen…',
+  'settingsReset.title': 'Alle Einstellungen zurücksetzen?',
+  'settingsReset.body':
+    'Diagramm und Visualizer, Fensterfarben, Player, Bibliothek, Sprache, Animationen, „Mit Windows starten“, Desktophintergrund und Dynamische Beleuchtung werden so eingestellt wie bei einer neuen Installation von FluidEQ.',
+  'settingsReset.kept':
+    'Ihr EQ, Ihre Presets, Kurven und DSP bleiben unverändert, ebenso Ihre Ausgänge, die Audio-Engine und alles, was Sie gespeichert haben.',
+  'settingsReset.action': 'Einstellungen zurücksetzen',
+  'settingsReset.failed':
+    'Die Einstellungen konnten nicht zurückgesetzt werden. Versuchen Sie es erneut.',
   'app.processes.eyebrow': 'Prozesse',
   'app.processes.hint':
     'Windows benennt jeden davon nach der App, weil es dasselbe Programm ist. Hier steht, was jeder davon tatsächlich für FluidEQ tut.',

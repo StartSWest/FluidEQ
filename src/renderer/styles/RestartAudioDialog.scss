@@ -50,7 +50,9 @@ it under the terms of the GNU General Public License version 3 or later.
 // *** Empty EQ? (`ClearEqButton`), on the same small frame *******************
 
 // The clear that failed, under the question, in red: the bands are as they
-// were, and the question still stands.
-.clear-eq__failed {
+// were, and the question still stands. "Reset all settings?"
+// (`ResetSettingsDialog`) says its failure the same way.
+.clear-eq__failed,
+.settings-reset__failed {
   color: $red;
 }

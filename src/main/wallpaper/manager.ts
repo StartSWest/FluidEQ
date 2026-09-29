@@ -24,6 +24,7 @@ import {
 import type { IEntitlement } from '../account/entitlement';
 import { isSceneFailure } from '../scenePackStore';
 import {
+  EMPTY_ARRANGEMENT,
   matchSavedScreens,
   savedMonitorOf,
   type IArrangementStore,
@@ -493,6 +494,20 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   };
 
   /**
+   * "Reset all settings": nothing on any monitor, and the battery choice,
+   * the performance and every visualizer's tuning as a new install has them.
+   * Set before the stop, whose save writes them.
+   */
+  const reset = () => {
+    if (disposed) {
+      return;
+    }
+    ({ pauseOnBattery, performance } = EMPTY_ARRANGEMENT);
+    tuning = {};
+    stop(undefined);
+  };
+
+  /**
    * A desktop page that could not draw. When the scene itself failed — its
    * code would not compile, or the GPU reset under one of its own frames —
    * the monitor says it was refused and the failure is written down with the
@@ -660,6 +675,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     state,
     start,
     stop,
+    reset,
     setGameInFront,
     setPerformance,
     setTuning,

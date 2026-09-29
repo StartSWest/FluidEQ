@@ -46,6 +46,15 @@ const app: Partial<Dictionary> = {
   'app.menu.reportProblem': 'Relatar um problema',
   'app.menu.about': 'Sobre {product}…',
   'app.processes.menu': 'Processos…',
+  'app.menu.resetSettings': 'Redefinir todas as configurações…',
+  'settingsReset.title': 'Redefinir todas as configurações?',
+  'settingsReset.body':
+    'O gráfico e os visualizadores, Cores da janela, o player, a Biblioteca, o idioma, Animações, Iniciar com o Windows, o fundo da área de trabalho e a Iluminação dinâmica voltam a ser como em uma nova instalação do FluidEQ.',
+  'settingsReset.kept':
+    'Seu EQ, seus presets, curvas e DSP continuam como estão, assim como suas saídas, o mecanismo de áudio e tudo o que você salvou.',
+  'settingsReset.action': 'Redefinir configurações',
+  'settingsReset.failed':
+    'Não foi possível redefinir as configurações. Tente novamente.',
   'app.processes.eyebrow': 'Processos',
   'app.processes.hint':
     'O Windows dá a todos eles o nome do app, porque são o mesmo programa. Isto é o que cada um faz na realidade pelo FluidEQ.',

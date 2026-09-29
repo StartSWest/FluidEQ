@@ -95,6 +95,8 @@ import { registerMotionPreferenceIpc } from './ipc/motionPreference';
 import { registerGamesIpc } from './ipc/games';
 import { registerSystemVolumeIpc } from './systemVolume';
 import { registerStartWithWindowsIpc } from './ipc/startWithWindows';
+import { registerSettingsResetIpc } from './ipc/settingsReset';
+import { DEFAULT_LIGHTING_SETTINGS } from '../common/lighting/lightingModel';
 import { MOTION_SWITCHES, readMotionPreference } from './motionPreference';
 import {
   gpuPreferenceSupported,
@@ -630,6 +632,23 @@ const lighting = registerLightingIpc({
 // The helper's exit hands every Windows lamp back; Razer's session is ended
 // rather than left to lapse.
 app.on('will-quit', () => lighting.dispose());
+// The main menu's "Reset all settings", for the settings kept on this side;
+// the window forgets its own and reloads once this answers.
+registerSettingsResetIpc({
+  userDataDir,
+  ownerContents: () =>
+    mainWindow && !mainWindow.isDestroyed()
+      ? mainWindow.webContents
+      : undefined,
+  resetDesktopBackgrounds: () => members.wallpaperIpc.reset(),
+  resetLighting: () => lighting.setSettings(DEFAULT_LIGHTING_SETTINGS),
+  unpinWindow: () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      windowModes.setPinned(mainWindow, false);
+    }
+  },
+  logger: log,
+});
 // The process list, which needs the host's pid to include it as a row — the
 // DSP engine is our own child rather than Electron's, so `getAppMetrics` has
 // never heard of it.

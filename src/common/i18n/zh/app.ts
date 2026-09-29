@@ -46,6 +46,14 @@ const app: Partial<Dictionary> = {
   'app.menu.reportProblem': '报告问题',
   'app.menu.about': '关于 {product}…',
   'app.processes.menu': '进程…',
+  'app.menu.resetSettings': '重置所有设置…',
+  'settingsReset.title': '重置所有设置？',
+  'settingsReset.body':
+    '图表和可视化效果、窗口颜色、播放器、媒体库、语言、动画、随 Windows 启动、桌面背景和动态灯效都会恢复为 FluidEQ 全新安装时的状态。',
+  'settingsReset.kept':
+    '你的 EQ、预设、曲线和 DSP 保持不变，你的输出设备、音频引擎和你保存的所有内容也都保留。',
+  'settingsReset.action': '重置设置',
+  'settingsReset.failed': '无法重置设置。请重试。',
   'app.processes.eyebrow': '进程',
   'app.processes.hint':
     'Windows 把它们全部显示为应用名称，因为它们是同一个程序。这里显示每个进程实际为 FluidEQ 做什么。',

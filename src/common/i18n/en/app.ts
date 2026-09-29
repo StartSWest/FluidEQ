@@ -44,6 +44,14 @@ const app = {
   'app.menu.reportProblem': 'Report a problem',
   'app.menu.about': 'About {product}…',
   'app.processes.menu': 'Processes…',
+  'app.menu.resetSettings': 'Reset all settings…',
+  'settingsReset.title': 'Reset all settings?',
+  'settingsReset.body':
+    'The graph and visualizers, Window colours, the player, the Library, the language, Animations, Start with Windows, the desktop background and Dynamic lighting go back to how a new install of FluidEQ starts.',
+  'settingsReset.kept':
+    'Your EQ, presets, curves and DSP stay as they are, and so do your outputs, the audio engine and everything you saved.',
+  'settingsReset.action': 'Reset settings',
+  'settingsReset.failed': 'The settings could not be reset. Try again.',
   'app.processes.eyebrow': 'Processes',
   'app.processes.hint':
     'Windows names every one of these after the app, because they are all the same program. This is what each one actually does for FluidEQ.',

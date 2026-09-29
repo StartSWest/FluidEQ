@@ -54,7 +54,8 @@ export interface IArrangementStore {
   write(arrangement: IWallpaperArrangement): void;
 }
 
-const EMPTY: IWallpaperArrangement = {
+/** A new install's: no backgrounds, and every choice as it starts. */
+export const EMPTY_ARRANGEMENT: IWallpaperArrangement = {
   pauseOnBattery: true,
   performance: DEFAULT_SCENE_PERFORMANCE,
   tuning: {},
@@ -164,18 +165,18 @@ export const createArrangementStore = (
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
           logger.warn(`Desktop backgrounds could not be read: ${error}`);
         }
-        return EMPTY;
+        return EMPTY_ARRANGEMENT;
       }
       let parsed: IWallpaperArrangement | undefined;
       try {
         parsed = parseArrangement(JSON.parse(text));
       } catch (error) {
         logger.warn(`Desktop backgrounds file is not JSON: ${error}`);
-        return EMPTY;
+        return EMPTY_ARRANGEMENT;
       }
       if (!parsed) {
         logger.warn('Desktop backgrounds file has an unknown shape; ignored.');
-        return EMPTY;
+        return EMPTY_ARRANGEMENT;
       }
       return parsed;
     },

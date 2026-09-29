@@ -26,7 +26,10 @@ jest.mock('../../../main/wallpaper/nativeHost', () => mockNativeHost());
 jest.mock('../../../main/wallpaper/surface', () => mockSurfaceModule());
 
 /* eslint-disable import/first -- install the mocks first */
-import type { IWallpaperArrangement } from '../../../main/wallpaper/arrangement';
+import {
+  EMPTY_ARRANGEMENT,
+  type IWallpaperArrangement,
+} from '../../../main/wallpaper/arrangement';
 import { createWallpaperManager } from '../../../main/wallpaper/manager';
 import registerWallpaperIpc from '../../../main/wallpaper/register';
 /* eslint-enable import/first */
@@ -244,6 +247,36 @@ describe('stopping', () => {
     manager.stop(undefined);
     expect(file().screens).toEqual([]);
     expect(manager.state().screens).toEqual([]);
+    expect(
+      mockSurfaces.every((surface) => surface.release.mock.calls.length > 0),
+    ).toBe(true);
+  });
+
+  // "Reset all settings" in the main menu: the desktop as a new install has
+  // it, which is nothing on it and every choice back where it starts.
+  it('forgets every monitor and every choice when the settings are reset', () => {
+    const { deps, file } = setup({
+      pauseOnBattery: false,
+      performance: {
+        frameRate: 'thirty',
+        resolution: 'native',
+        autoFloor: 0.5,
+        upscaler: 'simple',
+        smoothing: 'off',
+      },
+      tuning: { 'premium:alpine': { wave: { height: 0.4, position: 0.2 } } },
+      screens: [],
+    });
+    const manager = createWallpaperManager(deps);
+    manager.start(request({ displayIds: [1, 2] }));
+
+    manager.reset();
+
+    expect(file()).toEqual(EMPTY_ARRANGEMENT);
+    expect(manager.state()).toMatchObject({
+      screens: [],
+      pauseOnBattery: EMPTY_ARRANGEMENT.pauseOnBattery,
+    });
     expect(
       mockSurfaces.every((surface) => surface.release.mock.calls.length > 0),
     ).toBe(true);

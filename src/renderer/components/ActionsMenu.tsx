@@ -25,6 +25,7 @@ import PlayerIcon from '../player/PlayerIcon';
 import { setWindowMode } from '../player/windowModeStore';
 import LanguagePicker from './LanguagePicker';
 import MotionPicker from './MotionPicker';
+import ResetSettingsDialog from './ResetSettingsDialog';
 import SliderHandlePicker from './SliderHandlePicker';
 import StartupPicker from './StartupPicker';
 import RainbowSwitch from '../graph/RainbowSwitch';
@@ -149,6 +150,9 @@ const ActionsMenu = ({
   const { t } = useTranslation();
   const isToolsShed = useTitlebarToolsShed();
   const [open, setOpen] = useState(false);
+  // Held here rather than in the menu's panel, which is gone the moment the
+  // row is pressed.
+  const [isResetting, setResetting] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -358,6 +362,12 @@ const ActionsMenu = ({
           <Item icon="chip" onSelect={run(onProcesses)}>
             {t('app.processes.menu')}
           </Item>
+          {/* A way out of an app set up into a corner, like reinstalling and
+              short of it: the settings as a new install has them, the EQ,
+              the outputs and the engine as they are. */}
+          <Item icon="reset" onSelect={run(() => setResetting(true))}>
+            {t('app.menu.resetSettings')}
+          </Item>
           <Item
             icon="download"
             onSelect={run(() =>
@@ -434,6 +444,9 @@ const ActionsMenu = ({
             <LanguagePicker />
           </div>
         </div>
+      )}
+      {isResetting && (
+        <ResetSettingsDialog onClose={() => setResetting(false)} />
       )}
     </div>
   );
