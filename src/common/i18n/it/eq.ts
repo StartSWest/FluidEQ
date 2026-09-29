@@ -150,6 +150,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': 'Modalità arcobaleno',
   'graph.sceneTint.rainbowHint':
     'Le bande, il titolo e i controlli accesi in una tavolozza invece che in un solo colore; con un visualizzatore Plus, nei suoi colori.',
+  'graph.sceneTint.sparks': 'Scintille del puntatore',
+  'graph.sceneTint.sparksHint':
+    'Ciò che il visualizzatore lancia dal mouse: una scia mentre attraversa l’immagine e uno scoppio dove fai clic - scintille, petali, neve, ciò di cui è fatta la scena.',
   'graph.sceneTint.brightnessHint':
     'Quanto è chiara o scura la finestra, nel tuo tema o nei colori del visualizzatore',
   'graph.member.mine': 'Creati da te',

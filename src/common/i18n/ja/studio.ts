@@ -441,6 +441,9 @@ const studio = {
   'studio.framing.saving': '保存しています…',
 
   'studio.size.full': '全画面',
+  'studio.size.player': 'コンパクトプレーヤーの背景',
+  'studio.size.playerHint':
+    'コンパクトプレーヤーが開いたときの形で、ウィンドウ全体の背景としてシーンを表示します。細いウィンドウでも、シーンは大事な部分を自分で画面内に保ちます。',
   'studio.size.exit': '全画面を終了',
   'studio.wave.title': 'グラフ上の波形',
   'studio.wave.hint':

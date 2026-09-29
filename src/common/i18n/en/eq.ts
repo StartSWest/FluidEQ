@@ -157,6 +157,9 @@ const eq = {
   'graph.sceneTint.rainbow': 'Rainbow mode',
   'graph.sceneTint.rainbowHint':
     'The bands, the title and the lit controls in a palette instead of one colour — a Plus visualizer’s own colours while one is chosen.',
+  'graph.sceneTint.sparks': 'Pointer sparks',
+  'graph.sceneTint.sparksHint':
+    'What the visualizer throws from the mouse: a trail as it crosses the picture and a burst where you click - sparks, petals, snow, whatever the scene is made of.',
   'graph.sceneTint.brightnessHint':
     "How light or dark the window stands, in your theme or in the visualizer's colours",
   // The picker's headings over the scenes members made in the Studio: this

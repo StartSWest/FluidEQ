@@ -451,6 +451,9 @@ const studio = {
   'studio.framing.saving': 'Saving…',
 
   'studio.size.full': 'Fullscreen',
+  'studio.size.player': 'Behind the compact player',
+  'studio.size.playerHint':
+    'The scene as the compact player shows it, behind the whole window at the shape it opens in. A scene keeps its important part in view on a narrow window by itself.',
   'studio.size.exit': 'Exit fullscreen',
   'studio.wave.title': 'Wave on the graph',
   'studio.wave.hint':

@@ -174,6 +174,37 @@ const fullPack = (): IScenePack =>
     spectrumRange: [0.1, 0.85],
     response: { sensitivity: 1.5, threshold: 0.1, attack: 40, release: 600 },
     world: world(),
+    framing: { focus: [0.8, 0.45], narrowest: 1.7778, widest: 3 },
+    // As the pack's reader leaves it: one emitter throws the scene's own
+    // element, so the element has to come back with it.
+    pointer: {
+      emitters: [
+        {
+          on: 'move',
+          element: 'gulls',
+          colours: [],
+          amount: 3,
+          size: [10, 18],
+          life: 1.6,
+          speed: 0.3,
+          spread: 0.6,
+          gravity: 0.35,
+          spin: 0.6,
+        },
+        {
+          on: 'tap',
+          shape: 'spark',
+          colours: ['#ffd27a', '#ff8a4c'],
+          amount: 14,
+          size: [6, 12],
+          life: 0.9,
+          speed: 0.7,
+          spread: 1,
+          gravity: 0.2,
+          spin: 0.2,
+        },
+      ],
+    },
   });
 
 let root: string;

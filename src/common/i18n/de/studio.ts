@@ -453,6 +453,9 @@ const studio = {
   'studio.framing.saving': 'Wird gespeichert…',
 
   'studio.size.full': 'Vollbild',
+  'studio.size.player': 'Hinter dem kompakten Player',
+  'studio.size.playerHint':
+    'Die Szene so, wie der kompakte Player sie zeigt: hinter dem ganzen Fenster, in der Form, in der es sich öffnet. In einem schmalen Fenster behält eine Szene ihren wichtigen Teil von selbst im Bild.',
   'studio.size.exit': 'Vollbild beenden',
   'studio.wave.title': 'Welle im Diagramm',
   'studio.wave.hint':

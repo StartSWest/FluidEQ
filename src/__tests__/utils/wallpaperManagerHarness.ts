@@ -37,6 +37,10 @@ export interface IFakeSurface {
   /** What the listener had set for its look when it started. */
   tuning: IWallpaperTuning | undefined;
   applyTuning: jest.Mock;
+  /** Told the window's time of day moved. */
+  applyDaylight: jest.Mock;
+  /** The window's time of day, as the manager hands it to the monitor. */
+  daylight(): number | undefined;
   contents: { mainFrame: object };
   choice(): IWallpaperChoice;
   retune: jest.Mock;
@@ -129,6 +133,7 @@ export const mockSurfaceModule = () => ({
     choice: IWallpaperChoice;
     performance: IScenePerformance;
     tuning: IWallpaperTuning | undefined;
+    daylight(): number | undefined;
     onReady(): void;
     onFail(error: string): void;
   }) => {
@@ -170,6 +175,8 @@ export const mockSurfaceModule = () => ({
           choice = { ...choice, wave: next.wave };
         }
       }),
+      applyDaylight: jest.fn(),
+      daylight: options.daylight,
       release: jest.fn(),
       applyPolicy: jest.fn(),
       fail: jest.fn((error: string) => options.onFail(error)),

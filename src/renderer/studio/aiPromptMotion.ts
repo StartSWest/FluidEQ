@@ -113,8 +113,16 @@ does fades with uPointer.w.
   scene. The widest FluidEQ allows: pitch ${turn(MAX_CAMERA_PITCH)} each way,
   zoom ${MIN_CAMERA_ZOOM} to ${MAX_CAMERA_ZOOM}, and yaw [-${turn(Math.PI)}, ${turn(Math.PI)}],
   which goes all the way round - uCamera.x then wraps, so use it only inside
-  sin and cos. Leave "camera" out and the scene cannot be turned. Orbit your
-  camera about what it looks at:
+  sin and cos. Leave "camera" out and the scene cannot be turned.
+  In a 3D world, "pivot": "eye" makes the turn a look round from where your
+  camera stands - its zoom a longer lens - instead of an orbit round what it
+  looks at. Give it to every landscape, whose target is far off (an orbit
+  round it swings the camera through the foreground), and to any world
+  whose sky shader still paints its subject: the look moves the world and
+  the painted sky together, where an orbit parts them and shows the subject
+  twice. Keep an eye pivot to small angles - 0.1 to 0.2 each way - so it
+  reads as leaning in, never as leaving the picture. In your own shader,
+  orbit your camera about what it looks at:
     float yaw = uCamera.x;
     float pitch = 0.3 + uCamera.y;       // your own tilt, plus theirs
     float dist = 4.5 / uCamera.z;

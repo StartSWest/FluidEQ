@@ -52,7 +52,12 @@ import { createDesktopSurface } from '../../../main/wallpaper/surface';
 /* eslint-enable import/first */
 
 const create = (
-  pause: { reason?: TWallpaperPause; tuning?: IWallpaperTuning } = {},
+  pause: {
+    reason?: TWallpaperPause;
+    tuning?: IWallpaperTuning;
+    followsGraph?: boolean;
+    daylight?: () => number | undefined;
+  } = {},
 ) => {
   const onFail = jest.fn();
   const onChange = jest.fn();
@@ -64,6 +69,7 @@ const create = (
       lookId: 'premium:aurora',
       wave: { height: 1, position: 0 },
       motion: 'music',
+      ...(pause.followsGraph ? { followsGraph: true } : {}),
     },
     performance: {
       frameRate: 'display',
@@ -73,6 +79,7 @@ const create = (
       smoothing: 'off',
     },
     tuning: pause.tuning,
+    daylight: pause.daylight ?? (() => undefined),
     scene: {
       pack: { id: 'aurora', version: 1 } as never,
       madeBy: 'fluideq',
@@ -218,6 +225,67 @@ describe('a desktop background appearing', () => {
     expect(surface.phase()).toBe('running');
     expect(mockHost.setVisible).toHaveBeenLastCalledWith(true);
     expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * The window's time of day, from its Brightness, reaches only a monitor set
+ * to follow the graph (Ivan, 2026-09-28: "desktop needs to follow that too
+ * ... only if follow graph is enabled for that screen"); any other keeps the
+ * time its visualizer's author gave it.
+ */
+describe('a desktop background and the time of day', () => {
+  const running = (options: Parameters<typeof create>[0]) => {
+    const made = create(options);
+    made.surface.drawn(1);
+    mockHost.report('ready');
+    mockHost.report('active');
+    mockWindow.webContents.send.mockClear();
+    return made;
+  };
+  const toldDaylight = () =>
+    mockWindow.webContents.send.mock.calls.map(
+      ([, state]) => (state as { daylight?: number }).daylight,
+    );
+
+  it('follows the window’s on a monitor following the graph, and only a change', () => {
+    let daylight = 30;
+    const { surface } = running({
+      followsGraph: true,
+      daylight: () => daylight,
+    });
+    expect(surface.surfaceState().daylight).toBe(30);
+    mockWindow.webContents.send.mockClear();
+
+    daylight = 80;
+    surface.applyDaylight();
+    surface.applyDaylight();
+
+    expect(toldDaylight()).toEqual([80]);
+  });
+
+  it('never tells a monitor that is not following', () => {
+    let daylight = 30;
+    const { surface } = running({ daylight: () => daylight });
+    expect(surface.surfaceState()).not.toHaveProperty('daylight');
+
+    daylight = 80;
+    surface.applyDaylight();
+
+    expect(mockWindow.webContents.send).not.toHaveBeenCalled();
+  });
+
+  it('gains and loses the window’s as following is switched on and off', () => {
+    const { surface } = running({ daylight: () => 60 });
+    const same = {
+      wave: { height: 1, position: 0 },
+      motion: 'music',
+    } as const;
+
+    surface.retune({ ...same, followsGraph: true });
+    surface.retune({ ...same, followsGraph: false });
+
+    expect(toldDaylight()).toEqual([60, undefined]);
   });
 });
 

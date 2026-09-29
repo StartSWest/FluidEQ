@@ -390,6 +390,9 @@ const studio = {
   'studio.framing.saving': '正在保存…',
 
   'studio.size.full': '全屏',
+  'studio.size.player': '迷你播放器背景',
+  'studio.size.playerHint':
+    '以迷你播放器打开时的窗口形状，把场景显示为整个窗口的背景。在窄窗口中，场景会自行把重要部分保持在画面内。',
   'studio.size.exit': '退出全屏',
   'studio.wave.title': '图表上的波形',
   'studio.wave.hint':

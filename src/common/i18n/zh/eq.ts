@@ -140,6 +140,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': '彩虹模式',
   'graph.sceneTint.rainbowHint':
     '频段、标题和亮起的控件使用调色板而不是单一颜色；选择 Plus 可视化效果时使用它自己的颜色。',
+  'graph.sceneTint.sparks': '指针火花',
+  'graph.sceneTint.sparksHint':
+    '可视化从鼠标处抛出的效果：鼠标划过画面时留下拖尾，点击处迸发——火花、花瓣、雪花，取决于场景。',
   'graph.sceneTint.brightnessHint': '窗口在主题或可视化效果颜色下的明暗',
   'graph.member.mine': '你创作的',
   'graph.member.theirs': '会员创作',

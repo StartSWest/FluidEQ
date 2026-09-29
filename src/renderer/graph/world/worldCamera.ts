@@ -21,13 +21,18 @@ const MIN_POLAR = 0.08;
  * viewer's own turn, when the pack lets a drag turn it (`sceneCamera.ts`):
  * round what the camera looks at, raised to look down, nearer or further,
  * which is how the brief tells a shader to read `uCamera` as well, so a
- * world and its sky turn the same way. Returns the step to run each frame
+ * world and its sky turn the same way. With the pack's `pivot` at `eye`
+ * (`sceneCamera.ts`) the viewer looks round from where the camera stands
+ * instead - the target turned about the eye, the zoom a longer lens - as a
+ * landscape needs: its target is far off, and an orbit round it swung the
+ * camera through its own dock and pines. Returns the step to run each frame
  * with the picture's aspect.
  */
 const createWorldCamera = (
   spec: IWorldCamera,
   camera: PerspectiveCamera,
   inputs: IWorldInputs,
+  pivot: 'target' | 'eye' = 'target',
 ): ((aspect: number) => void) => {
   const { runtime, scope } = inputs;
   const fov = createFormula(spec.fov, runtime, scope);
@@ -47,7 +52,15 @@ const createWorldCamera = (
     );
     look.set(target.x.value(), target.y.value(), target.z.value());
     const [yaw, pitch, zoom] = inputs.view;
-    if (yaw !== 0 || pitch !== 0 || zoom !== 1) {
+    const atEye = pivot === 'eye' && (yaw !== 0 || pitch !== 0 || zoom !== 1);
+    if (atEye) {
+      // A longer lens; the look itself is turned below, about the
+      // camera's own axes.
+      camera.fov = Math.min(
+        170,
+        Math.max(1, camera.fov / Math.max(zoom, 1e-3)),
+      );
+    } else if (yaw !== 0 || pitch !== 0 || zoom !== 1) {
       orbit.setFromVector3(offset.subVectors(camera.position, look));
       orbit.theta += yaw;
       // Held short of the poles, but never pushed back past where the author
@@ -62,6 +75,17 @@ const createWorldCamera = (
     }
     camera.lookAt(look);
     camera.rotateZ(roll.value());
+    if (atEye) {
+      // Round the camera's own up and right, never the world's: a camera
+      // looking down on a flower turned about the world's up rolled the
+      // picture as it turned, and the painted sky, which only slides, parted
+      // from the world in front of it. Right as the orbit turns it, down
+      // when raised - after the author's roll, so the lean runs along the
+      // picture's own edges: before it, Saturn's tilted camera (0.34) moved
+      // the planet on a slant while its painted copy slid straight.
+      camera.rotateY(yaw);
+      camera.rotateX(-pitch);
+    }
     camera.updateProjectionMatrix();
     camera.updateMatrixWorld();
   };

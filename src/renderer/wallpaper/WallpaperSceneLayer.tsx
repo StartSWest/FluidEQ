@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { IScenePerformance } from 'common/scenePerformance';
 import type { IWallpaperSurfaceBridge } from 'common/wallpaper';
+import { authoredDaylight } from '../graph/sceneDaylight';
 import type { ISceneFrame } from '../graph/sceneGl';
 import useSceneRunner, { type ISceneSource } from '../graph/useSceneRunner';
 import { studioSpectrumRect } from '../studio/studioWave';
@@ -53,7 +54,15 @@ export default function WallpaperSceneLayer({
   onCrossed(generation: number): void;
 }) {
   const { generation, bootstrap, state } = layer;
-  const { wave, motion, tuning } = state;
+  const { wave, motion, tuning, daylight } = state;
+  // The window's time of day on a monitor following the graph; the hour the
+  // scene was made at on one that is not. Read by the runner every frame and
+  // eased there, so a Brightness moved in the window turns the desktop with
+  // it, and a monitor switched to follow the graph dims or brightens across.
+  const ownDaylight = authoredDaylight(bootstrap.pack);
+  const daylightRef = useRef(daylight ?? ownDaylight);
+  daylightRef.current = daylight ?? ownDaylight;
+  const readDaylight = useCallback(() => daylightRef.current, []);
   const [size, setSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -134,6 +143,7 @@ export default function WallpaperSceneLayer({
     // The listener's own controls and timing for this visualizer, read on the
     // frames it draws, so moving a slider in the window moves the desktop.
     ...(tuning ? { tuning } : {}),
+    daylight: readDaylight,
     onDrawn,
   });
   useEffect(() => {

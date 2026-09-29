@@ -52,6 +52,7 @@ const stage = (size: TStudioSize, onToggleFullscreen: () => void) => (
     serial={1}
     signal="live"
     size={size}
+    isPlayer={false}
     wave={{ height: 1, position: 0 }}
     isGridShown={false}
     readingRef={{ current: null }}

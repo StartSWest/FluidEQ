@@ -106,6 +106,7 @@ const stage = (isGridShown: boolean) => (
     serial={1}
     signal="live"
     size="graph"
+    isPlayer={false}
     wave={wave}
     isGridShown={isGridShown}
     readingRef={{ current: null }}
@@ -156,7 +157,12 @@ it('remembers the grid button on the stage', () => {
   window.localStorage.removeItem('fluideq.studioGrid');
   const onFullscreen = jest.fn();
   render(
-    <StudioStageControls isFullscreen={false} onFullscreen={onFullscreen} />,
+    <StudioStageControls
+      isFullscreen={false}
+      onFullscreen={onFullscreen}
+      isPlayer={false}
+      onPlayer={jest.fn()}
+    />,
   );
   const toggle = screen.getByRole('button', { name: 'studio.grid.label' });
   expect(toggle).toHaveAttribute('aria-pressed', 'false');

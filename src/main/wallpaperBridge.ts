@@ -31,6 +31,12 @@ const wallpaperBridge = {
    */
   setGraphLook: (lookId: string) =>
     ipcRenderer.send(WALLPAPER.graphLook, lookId),
+  /**
+   * The time of day the window's Brightness asks of its scenes, each time it
+   * moves, for the monitors set to follow the graph.
+   */
+  setGraphDaylight: (daylight: number) =>
+    ipcRenderer.send(WALLPAPER.graphDaylight, daylight),
   getWallpaperState: (): Promise<unknown> =>
     ipcRenderer.invoke(WALLPAPER.state),
   startWallpaper: (request: IWallpaperStart): Promise<unknown> =>

@@ -7,6 +7,8 @@ import type { LocaleCode } from './i18n';
 import { normalizeSceneAmbient, type ISceneAmbient } from './sceneAmbient';
 import { normalizeSceneArtwork, type ISceneArtwork } from './sceneArtwork';
 import { readSceneCamera, type ISceneCameraLimits } from './sceneCamera';
+import { readSceneFraming, type ISceneFraming } from './sceneFraming';
+import { readScenePointer, type IScenePointer } from './scenePointer';
 import { readSceneWave, type ISceneWave } from './sceneWave';
 import type { ISceneWorld } from './sceneWorld';
 import normalizeSceneWorld from './sceneWorldRead';
@@ -126,6 +128,17 @@ export interface IScenePack {
    * (`sceneCamera.ts`). Absent means the scene cannot be turned.
    */
   camera?: ISceneCameraLimits;
+  /**
+   * What the scene keeps in view on a screen narrower (or, when it says,
+   * wider) than it was composed for (`sceneFraming.ts`). Absent, it is drawn
+   * on every shape exactly as it always was.
+   */
+  framing?: ISceneFraming;
+  /**
+   * What it throws from the viewer's hand (`scenePointer.ts`). Absent, the
+   * mouse draws nothing over it.
+   */
+  pointer?: IScenePointer;
 }
 
 /**
@@ -268,6 +281,13 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
       : normalizeSceneAmbient(raw.ambient, artwork);
   // Kept in range rather than refused, as a wave is.
   const camera = readSceneCamera(raw.camera);
+  // Kept in range too; nothing usable is the scene framed as it always was.
+  const framing = readSceneFraming(raw.framing);
+  // And what it throws from the hand, which may name its elements.
+  const pointer = readScenePointer(
+    raw.pointer,
+    ambient?.elements.map((element) => element.id),
+  );
   return {
     schema: raw.schema,
     id: raw.id,
@@ -285,6 +305,8 @@ export const normalizeScenePack = (raw: unknown): IScenePack | null => {
     ...(ambient ? { ambient } : {}),
     ...(world ? { world } : {}),
     ...(camera ? { camera } : {}),
+    ...(framing ? { framing } : {}),
+    ...(pointer ? { pointer } : {}),
   };
 };
 

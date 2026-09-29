@@ -443,6 +443,9 @@ const studio = {
   'studio.framing.saving': 'Guardando…',
 
   'studio.size.full': 'Pantalla completa',
+  'studio.size.player': 'Detrás del reproductor compacto',
+  'studio.size.playerHint':
+    'La escena como la muestra el reproductor compacto, detrás de toda la ventana, con la forma con la que se abre. Una escena mantiene sola a la vista su parte importante en una ventana estrecha.',
   'studio.size.exit': 'Salir de pantalla completa',
   'studio.wave.title': 'Onda en la gráfica',
   'studio.wave.hint':

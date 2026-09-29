@@ -131,6 +131,7 @@ const stage = (pack: IScenePack, serial: number) => (
     serial={serial}
     signal="live"
     size="graph"
+    isPlayer={false}
     wave={{ height: 1, position: 0 }}
     isGridShown={false}
     readingRef={{ current: null }}

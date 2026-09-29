@@ -59,6 +59,8 @@ export const restoredManifest = (pack: IScenePack) =>
       ...(pack.ambient ? { ambient: pack.ambient } : {}),
       ...(pack.world ? { worldFile: RESTORED_WORLD_FILE } : {}),
       ...(pack.camera ? { camera: pack.camera } : {}),
+      ...(pack.framing ? { framing: pack.framing } : {}),
+      ...(pack.pointer ? { pointer: pack.pointer } : {}),
     },
     null,
     2,

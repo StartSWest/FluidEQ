@@ -41,7 +41,9 @@ const stateAt = (renderGeneration: number): IWallpaperSurfaceState => ({
 });
 
 const sceneNamed = (id: string) => ({
-  pack: { id, version: 1, names: { en: id } } as never,
+  // Every pack the reader returns carries its controls, if only none: the
+  // desktop reads the time of day its author set among them.
+  pack: { id, version: 1, names: { en: id }, params: [] } as never,
   madeBy: 'fluideq' as const,
 });
 

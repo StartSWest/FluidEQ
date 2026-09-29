@@ -90,6 +90,10 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   // monitor set to follow the graph goes to (`followGraph`). Not kept between
   // launches; the window says it again as soon as it opens.
   let graphLook: string | undefined;
+  // The time of day the window's Brightness asks of its scenes, as the window
+  // last said: what every monitor following the graph draws its scene at.
+  // Not kept either; the window says it again as soon as it opens.
+  let graphDaylight: number | undefined;
   const relay = createWallpaperAudioRelay();
   const cleanups: (() => void)[] = [];
   const hookedOwners = new WeakSet<WebContents>();
@@ -121,6 +125,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       }),
     performance: () => performance,
     tuning: (lookId) => tuning[lookId],
+    daylight: () => graphDaylight,
     onEmpty: () => relay.cancel(),
   });
 
@@ -329,6 +334,20 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       save();
       publish();
     }
+  };
+
+  /**
+   * The time of day the window's Brightness asks of its scenes, each time it
+   * moves: the monitors following the graph turn with the window's own, and
+   * the rest keep the hour their scene was made at. Nothing is saved; the
+   * window says it again as soon as it opens.
+   */
+  const setGraphDaylight = (daylight: number) => {
+    if (disposed || daylight === graphDaylight) {
+      return;
+    }
+    graphDaylight = daylight;
+    backgrounds.applyDaylight();
   };
 
   /**
@@ -645,6 +664,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     setPerformance,
     setTuning,
     setGraphLook,
+    setGraphDaylight,
     restoreSaved,
     failEverywhere,
     surfaceFailed,

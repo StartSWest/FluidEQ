@@ -37,7 +37,10 @@ import { reportScenePlayed } from './sceneUpdateStore';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
+import { usePointerSparks } from '../utils/pointerSparksStore';
 import { createSceneInteraction } from './sceneInteraction';
+import ScenePointerLayer from './ScenePointerLayer';
+import windowGestures from './windowGestures';
 import { FULL_VIEW, sceneViewOf, type TSceneView } from './sceneView';
 import { publishGraphSceneRun, type IScenePlot } from './graphScenePlace';
 import { useGraphArriving } from './graphArrival';
@@ -215,8 +218,11 @@ export default function SceneCanvas({
     [chosen, chosenParams],
   );
   const authorId = isMemberScene(scene) ? scene.authorId : undefined;
+  // The pack drawn, for what it throws from the hand (`ScenePointerLayer`).
+  const [drawnPack, setDrawnPack] = useState<IScenePack>();
   const onLoaded = useCallback(
     (pack: IScenePack) => {
+      setDrawnPack(pack);
       reportOwnResponse(lookId, pack.response);
       // What the menu draws a row from: the controls this pack declares.
       reportOwnParams(lookId, pack.params);
@@ -368,13 +374,45 @@ export default function SceneCanvas({
   // place, so the canvas, its worker and its compiled program are the same
   // ones wherever the scene is drawn.
   const container = useMovableContainer(target);
-  return createPortal(
-    <div
-      ref={sceneRef}
-      className="chart-scene-canvas"
-      aria-hidden="true"
-      style={{ width, height }}
-    />,
-    container,
+  const sparks = usePointerSparks();
+  return (
+    <>
+      {createPortal(
+        <div
+          ref={sceneRef}
+          className="chart-scene-canvas"
+          aria-hidden="true"
+          style={{ width, height }}
+        />,
+        container,
+      )}
+      {/* What it throws from the mouse, while the Window colours menu's
+          switch allows. On a layer behind the whole window - the Backdrop -
+          beside the picture, under the app's glass, following the mouse
+          anywhere over the window; on the plot, over its panel, following
+          the hands the plot gives the scene. */}
+      {sparks &&
+        drawnPack?.pointer &&
+        (layer
+          ? createPortal(
+              <ScenePointerLayer
+                gestures={windowGestures}
+                pointer={drawnPack.pointer}
+                ambient={drawnPack.ambient}
+                artwork={drawnPack.artwork}
+              />,
+              container,
+            )
+          : panel &&
+            createPortal(
+              <ScenePointerLayer
+                gestures={interaction.onGesture}
+                pointer={drawnPack.pointer}
+                ambient={drawnPack.ambient}
+                artwork={drawnPack.artwork}
+              />,
+              panel,
+            ))}
+    </>
   );
 }

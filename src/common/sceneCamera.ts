@@ -30,6 +30,14 @@ export interface ISceneCameraLimits {
   pitch: readonly [number, number];
   /** How far out (below 1) and in (above 1) the viewer may move. */
   zoom: readonly [number, number];
+  /**
+   * What the turn turns about: `target`, round what the camera looks at, as
+   * a thing picked up and turned (the default, and every scene before it);
+   * or `eye`, the viewer looking round from where they stand, the zoom a
+   * longer lens - for a landscape, whose far target made even a small orbit
+   * swing the camera through its own foreground.
+   */
+  pivot?: 'target' | 'eye';
 }
 
 export interface ISceneCamera {
@@ -94,6 +102,7 @@ export const readSceneCamera = (
     yaw: readRange(raw.yaw, -MAX_CAMERA_YAW, MAX_CAMERA_YAW, 0),
     pitch: readRange(raw.pitch, -MAX_CAMERA_PITCH, MAX_CAMERA_PITCH, 0),
     zoom: readRange(raw.zoom, MIN_CAMERA_ZOOM, MAX_CAMERA_ZOOM, 1),
+    ...(raw.pivot === 'eye' ? { pivot: 'eye' as const } : {}),
   };
   return moves(limits.yaw) || moves(limits.pitch) || moves(limits.zoom)
     ? limits

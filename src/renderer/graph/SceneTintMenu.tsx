@@ -21,6 +21,7 @@ import {
 } from '../utils/sceneTintStore';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import BackdropVeilSlider from './BackdropVeilSlider';
+import PointerSparksSwitch from './PointerSparksSwitch';
 import RainbowSwitch from './RainbowSwitch';
 import WindowBrightnessSlider from './WindowBrightnessSlider';
 
@@ -120,6 +121,7 @@ const SceneTintMenu = () => {
             <WindowBrightnessSlider />
             <BackdropVeilSlider />
             <RainbowSwitch />
+            <PointerSparksSwitch />
           </div>
           <div
             className="scene-look-menu__choices"

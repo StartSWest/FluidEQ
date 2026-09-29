@@ -10,6 +10,7 @@ import {
   responseToPosition as toPosition,
 } from '../utils/responseSlider';
 import { isAmbientMode, useWindowTintMode } from '../utils/sceneTintStore';
+import StudioAmbientIcon from './StudioAmbientIcon';
 import type { IStudioAmbientTuning } from './useStudioAmbientTuning';
 import { SAVED_KEYS, type TTuningSaved } from './useStudioTuning';
 import '../styles/StudioControls.scss';
@@ -46,6 +47,13 @@ interface ISliderProps {
   onPosition: (position: number) => void;
   /** Letting go; absent for a setting that is only tried, never saved. */
   onCommit?: () => void;
+  /**
+   * Where the thumb falls into, 0..1 along the track, marked on it as the
+   * graph's View menu marks the same quarters (`percentSnaps.ts`).
+   */
+  snaps?: readonly number[];
+  /** What the setting moves, drawn beside its name and its slider. */
+  icon?: ReactNode;
 }
 
 /**
@@ -61,10 +69,16 @@ export function Setting({
   disabled,
   onPosition,
   onCommit,
+  snaps,
+  icon,
 }: ISliderProps) {
   const id = useId();
   return (
-    <div className="studio-setting" title={hint}>
+    <div
+      className={`studio-setting${icon ? ' studio-setting--icon' : ''}`}
+      title={hint}
+    >
+      {icon}
       <label className="studio-setting__head" htmlFor={id}>
         <span className="studio-setting__label">{label}</span>
         {/* Out of the name and left to `aria-valuetext`: a reading inside
@@ -75,23 +89,35 @@ export function Setting({
           {value}
         </span>
       </label>
-      <input
-        id={id}
-        type="range"
-        className="studio-slider"
-        min={0}
-        max={STEPS}
-        step={1}
-        value={Math.round(position * STEPS)}
-        aria-label={label}
-        aria-valuetext={value}
-        disabled={disabled}
-        style={{ '--fill': `${position * 100}%` } as CSSProperties}
-        onChange={(event) => onPosition(Number(event.target.value) / STEPS)}
-        onPointerUp={onCommit}
-        onKeyUp={onCommit}
-        onBlur={onCommit}
-      />
+      <span className="studio-setting__track">
+        {/* Under the input, so a thumb resting on its quarter covers the
+            mark it fell into rather than wearing it. */}
+        {snaps?.map((snap) => (
+          <i
+            key={snap}
+            className="studio-setting__snap"
+            style={{ '--snap-frac': snap } as CSSProperties}
+            aria-hidden
+          />
+        ))}
+        <input
+          id={id}
+          type="range"
+          className="studio-slider"
+          min={0}
+          max={STEPS}
+          step={1}
+          value={Math.round(position * STEPS)}
+          aria-label={label}
+          aria-valuetext={value}
+          disabled={disabled}
+          style={{ '--fill': `${position * 100}%` } as CSSProperties}
+          onChange={(event) => onPosition(Number(event.target.value) / STEPS)}
+          onPointerUp={onCommit}
+          onKeyUp={onCommit}
+          onBlur={onCommit}
+        />
+      </span>
     </div>
   );
 }
@@ -321,6 +347,14 @@ export default function StudioSettings({
                     ambient.setValue(param.id, position)
                   }
                   onCommit={ambient.commit}
+                  icon={
+                    <StudioAmbientIcon
+                      param={param}
+                      elements={ambient.elements}
+                      pictures={ambient.pictures}
+                      sky={ambient.sky}
+                    />
+                  }
                 />
               );
             })}

@@ -31,6 +31,8 @@ interface IMonitorBackgroundsOptions {
   performance(): IScenePerformance;
   /** What the listener set for one visualizer, as it is now. */
   tuning(lookId: string): IWallpaperTuning | undefined;
+  /** The window's time of day, once it has said it. */
+  daylight(): number | undefined;
   /** The last surface has gone. */
   onEmpty(): void;
 }
@@ -117,6 +119,7 @@ export const createMonitorBackgrounds = (
         scene,
         performance: options.performance(),
         tuning: options.tuning(choice.lookId),
+        daylight: options.daylight,
         executable,
         pauseReason: options.pauseReason,
         onReady: () => {
@@ -226,6 +229,15 @@ export const createMonitorBackgrounds = (
       surfaces.forEach((surface) =>
         surface.applyTuning(tuningOf(surface.lookId)),
       ),
+    /**
+     * The window's time of day moved: every monitor following the graph
+     * follows it, the one fading out included, so a crossfade does not pass
+     * through the hour it left.
+     */
+    applyDaylight: () => {
+      surfaces.forEach((surface) => surface.applyDaylight());
+      leaving.forEach((surface) => surface.applyDaylight());
+    },
     screens: (): IWallpaperScreen[] => [
       ...[...surfaces.values()].map((surface): IWallpaperScreen => ({
         displayId: surface.displayId,

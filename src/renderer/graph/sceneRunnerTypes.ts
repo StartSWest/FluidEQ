@@ -95,6 +95,12 @@ export interface ISceneRunnerOptions {
   /** Read every frame, so moving a slider moves the scene at once. */
   tuning?: ISceneTuning;
   /**
+   * The time of day to draw at (`common/sceneDaylight.ts`), read every
+   * frame and eased there. Absent, this window's own Brightness decides; the
+   * desktop's page has none worth reading, and says per monitor.
+   */
+  daylight?: () => number;
+  /**
    * The frame rate and resolution to draw at (`common/scenePerformance.ts`).
    * Absent, the listener's choice from this window's store is read; the
    * desktop's page has no store and is handed main's copy.

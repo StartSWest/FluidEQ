@@ -1,5 +1,10 @@
 import { PREVIEW_FILE } from 'common/memberScenes';
 import {
+  SCENE_DAYLIGHT_MAX,
+  SCENE_DAYLIGHT_MIN,
+  SCENE_DAYLIGHT_PARAM,
+} from 'common/sceneDaylight';
+import {
   STUDIO_TEST_BPM,
   STUDIO_TEST_CYCLE_BEATS,
   STUDIO_TEST_DROP_BEAT,
@@ -46,8 +51,9 @@ rules, the graphics driver's compile errors with line numbers. Pass it this
 folder. Use it after every save that matters, and before you call anything
 done, look at all of these:
 - the default picture (wide, test music, the first kick);
-- shape "tall" and shape "ribbon": the subject whole in a narrow column and
-  in a thin strip;
+- shape "tall": the picture slid, not squeezed, with the focus whole and
+  near the middle - what the compact player shows (see FRAMING);
+- shape "ribbon" and shape "strip": the subject whole in a thin strip;
 - sound "silence": the scene at rest, and calm;
 - beats ${PLAIN_BAR}, ${PLAIN_BAR}.25, ${PLAIN_BAR}.5 and ${PLAIN_BAR}.75: one beat in quarters on a plain bar
   of the test music, to see how it moves from one beat to the next and each
@@ -68,6 +74,10 @@ done, look at all of these:
 - every slider at its min in one picture and at its max in another
   ("sliders"), then alone any slider you are unsure of: each visibly does
   what its name says;
+- sliders { "${SCENE_DAYLIGHT_PARAM}": ${SCENE_DAYLIGHT_MIN} }, { "${SCENE_DAYLIGHT_PARAM}": 50 } and
+  { "${SCENE_DAYLIGHT_PARAM}": ${SCENE_DAYLIGHT_MAX} }: the scene by night, at dusk and by day (see DAY
+  AND NIGHT), each of the three as good as the others, and the music as
+  easy to see in each;
 - wave { "height": 0.25, "position": 0.6 }: the subject follows my wave;
 - if pack.json has a camera ("camera"): each end of each range it allows -
   and when it turns all the way round, the view from either side and from

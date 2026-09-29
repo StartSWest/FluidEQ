@@ -127,6 +127,8 @@ const buildRawPack = async (folder: string) => {
       // How far the viewer may turn a 3D scene; checked and kept in range by
       // the pack's own reader, like the wave above.
       ...(manifest.camera === undefined ? {} : { camera: manifest.camera }),
+      ...(manifest.framing === undefined ? {} : { framing: manifest.framing }),
+      ...(manifest.pointer === undefined ? {} : { pointer: manifest.pointer }),
     },
     artworkHash,
   };

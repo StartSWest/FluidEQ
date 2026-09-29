@@ -432,6 +432,9 @@ const studio = {
   'studio.framing.saving': 'सहेजा जा रहा है…',
 
   'studio.size.full': 'पूर्ण स्क्रीन',
+  'studio.size.player': 'कॉम्पैक्ट प्लेयर के पीछे',
+  'studio.size.playerHint':
+    'सीन वैसा, जैसा कॉम्पैक्ट प्लेयर उसे दिखाता है: पूरी विंडो के पीछे, उसी आकार में जिसमें वह खुलती है। संकरी विंडो में सीन अपना अहम हिस्सा खुद नज़र में रखता है।',
   'studio.size.exit': 'पूर्ण स्क्रीन से बाहर',
   'studio.wave.title': 'ग्राफ़ पर तरंग',
   'studio.wave.hint':

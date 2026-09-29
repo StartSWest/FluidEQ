@@ -69,7 +69,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const { t, locale } = useTranslation();
   const { state, pack, serial, problems } = view;
   const [signal, setSignal] = useState<TStudioSignal>('live');
-  const { size, exitFullscreen, toggleFullscreen } = useStudioSize();
+  const { size, isPlayer, exitFullscreen, toggleFullscreen, togglePlayer } =
+    useStudioSize();
   const isGridShown = useStudioGridShown();
   const [stageProblem, setStageProblem] = useState<{
     identity?: string;
@@ -248,6 +249,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         serial={serial}
         signal={signal}
         size={size}
+        isPlayer={isPlayer}
         wave={tuner.wave}
         isGridShown={isGridShown}
         tuning={tuner.tuning}
@@ -263,6 +265,8 @@ export default function StudioBench({ view }: IStudioBenchProps) {
           <StudioStageControls
             isFullscreen={size === 'full'}
             onFullscreen={toggleFullscreen}
+            isPlayer={isPlayer}
+            onPlayer={togglePlayer}
           />
         }
       />

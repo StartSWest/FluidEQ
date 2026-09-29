@@ -1,0 +1,17 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+// What a visualizer throws from the hand (`ScenePointerLayer.tsx`): over the
+// scene, the size of its box, taking no pointer - the hand it follows is on
+// the surface underneath.
+.scene-pointer-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}

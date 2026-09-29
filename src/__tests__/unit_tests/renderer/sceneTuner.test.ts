@@ -91,4 +91,18 @@ describe('scene tuner', () => {
       levelAfterFall(pack(), 100, { response: { release: 1000 } }),
     ).toBeGreaterThan(0.5);
   });
+
+  // Every frame a scene is drawn from comes through the tuner - the live
+  // ones and the ones a picture is made from - so this is where the pack's
+  // framing is handed to the draw, and every place frames it alike.
+  it('hands every frame its scene’s framing, and none to a scene without', () => {
+    const framing = { focus: [0.8, 0.45], narrowest: 1.7778 } as const;
+    const framed = { ...pack(), framing } as IScenePack;
+    expect(
+      createSceneTuner().apply(frame(0.5), 16, framed, {}, undefined).framing,
+    ).toBe(framing);
+    expect(
+      createSceneTuner().apply(frame(0.5), 16, pack(), {}, undefined),
+    ).not.toHaveProperty('framing');
+  });
 });

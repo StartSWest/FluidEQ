@@ -5,9 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { IAmbientParam } from 'common/sceneAmbient';
+import type { IAmbientElement, IAmbientParam } from 'common/sceneAmbient';
 import type { IScenePack } from 'common/scenePacks';
+import type { TAmbientPictures } from '../ambient/ambientPictures';
 import { setStudioAmbientValues } from '../ambient/ambientStore';
+import useAmbientPictures from '../ambient/useAmbientPictures';
 import type { IStudioBaseline } from './useStudioBaseline';
 
 const valuesOf = (pack: IScenePack | undefined): Record<string, number> =>
@@ -18,8 +20,16 @@ const valuesOf = (pack: IScenePack | undefined): Record<string, number> =>
 const differs = (a: number | undefined, b: number) =>
   a === undefined || Math.abs(a - b) > 1e-6;
 
+const NO_ELEMENTS: readonly IAmbientElement[] = [];
+
 export interface IStudioAmbientTuning {
   params: readonly IAmbientParam[];
+  /** What the settings move, for their icons (`StudioAmbientIcon`). */
+  elements: readonly IAmbientElement[];
+  /** Its pictures' poses, once cut from the scene's artwork. */
+  pictures: TAmbientPictures;
+  /** The scene's darkest colour, which the icons are drawn on. */
+  sky?: string;
   values: Readonly<Record<string, number>>;
   canReset: boolean;
   setValue: (id: string, value: number) => void;
@@ -104,6 +114,8 @@ export default function useStudioAmbientTuning(
   const commit = useCallback(() => write(pending), [pending, write]);
 
   const params = pack?.ambient?.params ?? [];
+  const elements = pack?.ambient?.elements ?? NO_ELEMENTS;
+  const pictures = useAmbientPictures(pack?.ambient?.elements, pack?.artwork);
   const published = baseline.settings?.ambient;
   // Every one of these is 0..1, so the published value needs no clamping the
   // way a scene's own control does.
@@ -123,6 +135,9 @@ export default function useStudioAmbientTuning(
 
   return {
     params,
+    elements,
+    pictures,
+    ...(pack?.swatch[0] ? { sky: pack.swatch[0] } : {}),
     values,
     canReset: params.some((param) =>
       differs(atReset[param.id], values[param.id] ?? param.value),

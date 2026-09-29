@@ -1,3 +1,4 @@
+import type { ISceneFraming } from 'common/sceneFraming';
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneRhythm } from 'common/sceneRhythm';
 import type { IWorldReport, TWorldNote } from 'common/worldNotes';
@@ -8,6 +9,7 @@ import {
   WAVEFORM_TEXELS,
 } from 'common/sceneUniformContract';
 import { createSlowSpectrum, frameSignals, frameStepMs } from './sceneSignals';
+import { framedFrame } from './sceneFramingView';
 import { FULL_VIEW, panelSize, type TSceneView } from './sceneView';
 import { SCENE_CONTEXT_ATTRIBUTES } from './sceneHealth';
 import { linkSceneProgram } from './sceneCompile';
@@ -59,6 +61,14 @@ export interface ISceneFrame {
    * the panel filling it, which is everywhere but the Backdrop.
    */
   view?: TSceneView;
+  /**
+   * What the scene keeps in view on a panel narrower or wider than it was
+   * composed for (`common/sceneFraming.ts`): its pack's, handed with each
+   * frame so a save that changes only this is drawn at once, without the
+   * program being built again. The draw frames the picture round the panel
+   * (`framedFrame`); the scene never sees the field.
+   */
+  framing?: ISceneFraming;
   waveform: Uint8Array;
   params: Readonly<Record<string, number>>;
   /**
@@ -437,6 +447,29 @@ const compileShaderScene = async (
 };
 
 /**
+ * A program that draws each frame framed as its scene asks (`framedFrame`):
+ * a flat scene and a 3D world alike, whoever draws them - the graph, the
+ * desktop, the Studio, a still.
+ */
+const framedProgram = (program: ISceneProgram): ISceneProgram => {
+  const { prepareStill } = program;
+  return {
+    ...program,
+    draw: (frame, width, height) =>
+      program.draw(framedFrame(frame, width, height), width, height),
+    ...(prepareStill
+      ? {
+          prepareStill: (frame, width, height) =>
+            prepareStill(framedFrame(frame, width, height), width, height),
+        }
+      : {}),
+  };
+};
+
+const framing = (result: TSceneCompileResult): TSceneCompileResult =>
+  result.ok ? { ...result, program: framedProgram(result.program) } : result;
+
+/**
  * The scene's program: its 3D world when it has one and this GPU can build
  * it (`world/worldProgram.ts`), and its shader otherwise — which is the scene
  * every FluidEQ before worlds draws from the same pack, so a world that
@@ -451,17 +484,19 @@ export const compileScene = async (
   hurry?: AbortSignal,
 ): Promise<TSceneCompileResult> => {
   if (!pack.world) {
-    return compileShaderScene(gl, pack, artwork, signal, hurry);
+    return framing(await compileShaderScene(gl, pack, artwork, signal, hurry));
   }
   const world = await compileWorldScene(gl, pack, artwork, signal, hurry);
   if (world.ok) {
     return {
       ok: true,
-      program: world.program,
+      program: framedProgram(world.program),
       world: { drawn: true, notes: world.notes },
     };
   }
-  const shader = await compileShaderScene(gl, pack, artwork, signal, hurry);
+  const shader = framing(
+    await compileShaderScene(gl, pack, artwork, signal, hurry),
+  );
   return shader.ok
     ? { ...shader, world: { drawn: false, notes: world.notes } }
     : shader;

@@ -4,7 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { snapPercent } from '../utils/percentSnaps';
+import {
+  PERCENT_SNAPS,
+  snapFraction,
+  snapPercent,
+} from '../utils/percentSnaps';
 import { useTranslation } from '../utils/I18nContext';
 import { setThemeShade, useThemeShade } from '../utils/theme';
 import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
@@ -12,6 +16,10 @@ import useLiveSlider from '../utils/useLiveSlider';
 import { Setting } from './StudioSettings';
 
 const SHADE_SPAN = THEME_SHADE_MAX - THEME_SHADE_MIN;
+/** The quarters, marked where the Window colours slider marks them. */
+const SHADE_SNAPS = PERCENT_SNAPS.map((snap) =>
+  snapFraction(snap, THEME_SHADE_MIN, THEME_SHADE_MAX),
+);
 
 /**
  * The whole app's Brightness, under the window's colours on the Tune tab,
@@ -24,7 +32,9 @@ const SHADE_SPAN = THEME_SHADE_MAX - THEME_SHADE_MIN;
  * the app's Brightness when the Studio closes.
  *
  * Drawn as the Studio's own rows (`Setting`), the Wave height's beside it,
- * with the same quarters to fall into. Never unlit while the stage waits:
+ * with the same quarters to fall into, marked on the track as the Window
+ * colours slider marks them (Ivan, 2026-09-28: "add same snap points we have
+ * for app brightness, 25% 50% etc"). Never unlit while the stage waits:
  * the window answers it whatever is playing.
  */
 export default function StudioBrightness() {
@@ -42,6 +52,7 @@ export default function StudioBrightness() {
         onPosition={(position) =>
           set(snapPercent(Math.round(THEME_SHADE_MIN + position * SHADE_SPAN)))
         }
+        snaps={SHADE_SNAPS}
       />
       <span className="studio-test__hint studio-brightness__hint">
         {t('studio.brightness.hint')}

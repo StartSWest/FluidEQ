@@ -443,6 +443,9 @@ const studio = {
   'studio.framing.saving': 'Salvataggio…',
 
   'studio.size.full': 'Schermo intero',
+  'studio.size.player': 'Dietro il lettore compatto',
+  'studio.size.playerHint':
+    'La scena come la mostra il lettore compatto, dietro tutta la finestra, nella forma in cui si apre. In una finestra stretta una scena tiene da sola in vista la sua parte importante.',
   'studio.size.exit': 'Esci da schermo intero',
   'studio.wave.title': 'Onda sul grafico',
   'studio.wave.hint':

@@ -8,7 +8,9 @@ import {
   clampDaylight,
   SCENE_DAYLIGHT_MAX,
   SCENE_DAYLIGHT_MIN,
+  SCENE_DAYLIGHT_PARAM,
 } from 'common/sceneDaylight';
+import type { IScenePack } from 'common/scenePacks';
 import { getThemeShade } from '../utils/theme';
 import { THEME_SHADE_MAX, THEME_SHADE_MIN } from '../utils/themeShade';
 
@@ -25,6 +27,17 @@ export const daylightOfShade = (shade: number): number =>
   );
 
 export const pageDaylight = (): number => daylightOfShade(getThemeShade());
+
+/**
+ * The time of day a scene's author set it at, as its control's `value`: what
+ * it plays at where nothing hands it the window's (a desktop monitor that
+ * does not follow the graph). Night for a scene that does not say.
+ */
+export const authoredDaylight = (pack: Pick<IScenePack, 'params'>): number =>
+  clampDaylight(
+    pack.params.find((param) => param.id === SCENE_DAYLIGHT_PARAM)?.value ??
+      SCENE_DAYLIGHT_MIN,
+  );
 
 /**
  * The time of day a scene's colour for the window is measured at, in steps

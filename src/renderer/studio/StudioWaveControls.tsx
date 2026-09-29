@@ -6,10 +6,19 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { snapPercent } from '../utils/percentSnaps';
+import {
+  PERCENT_SNAPS,
+  snapFraction,
+  snapPercent,
+} from '../utils/percentSnaps';
 import { useTranslation } from '../utils/I18nContext';
 import { Setting } from './StudioSettings';
 import { STUDIO_WAVE_MIN_HEIGHT, type IStudioWave } from './studioWave';
+
+/** The height's quarters, marked where its thumb falls into them. */
+const HEIGHT_SNAPS = PERCENT_SNAPS.filter(
+  (snap) => snap >= STUDIO_WAVE_MIN_HEIGHT * 100,
+).map((snap) => snapFraction(snap, STUDIO_WAVE_MIN_HEIGHT * 100, 100));
 
 interface IStudioWaveControlsProps {
   wave: IStudioWave;
@@ -85,6 +94,7 @@ export default function StudioWaveControls({
               ) / 100,
           })
         }
+        snaps={HEIGHT_SNAPS}
       />
       <Setting
         label={t('graph.wavePosition')}

@@ -1,3 +1,4 @@
+import { PLAYER_DEFAULT_HEIGHT, PLAYER_DEFAULT_WIDTH } from 'common/constants';
 import { MAX_MEMBER_LOOP_ITERATIONS } from 'common/memberGlslLoops';
 import { MAX_MEMBER_PIXEL_WORK } from 'common/memberGlslWork';
 import { MAX_MEMBER_LOOPS } from 'common/memberSceneRules';
@@ -21,6 +22,8 @@ import { AIM_HIGH } from './aiPromptCraft';
 import { HEAR_SECTION } from './aiPromptHear';
 import { lookSection } from './aiPromptLook';
 import { MOTION_SECTIONS } from './aiPromptMotion';
+import { POINTER_SECTION } from './aiPromptPointer';
+import { WORLD_SECTION } from './aiPromptWorld';
 
 /**
  * What "Copy AI prompt" puts on the clipboard.
@@ -46,13 +49,14 @@ import { MOTION_SECTIONS } from './aiPromptMotion';
  * and changes in the same commit as either. A prompt that promises a uniform
  * the app does not upload produces scenes that fail for reasons nobody can see.
  *
- * Six parts live beside it: the bar and the technique (`aiPromptCraft.ts`),
+ * Seven parts live beside it: the bar and the technique (`aiPromptCraft.ts`),
  * which is what turns a one-line idea into a piece instead of clip-art; the
- * music's time and the viewer's hands (`aiPromptMotion.ts`); the ambient
- * elements (`aiPromptAmbient.ts`); looking at what it made
- * (`aiPromptLook.ts`); hearing the song it is made for (`aiPromptHear.ts`);
- * and the connection that lets it look and hear, which a copy carries and
- * nothing saved ever does (`aiPromptConnect.ts`). It names the Studio's
+ * music's time and the viewer's hands (`aiPromptMotion.ts`); a 3D world in
+ * front of the shader (`aiPromptWorld.ts`); the ambient elements
+ * (`aiPromptAmbient.ts`); looking at what it made (`aiPromptLook.ts`);
+ * hearing the song it is made for (`aiPromptHear.ts`); and the connection
+ * that lets it look and hear, which a copy carries and nothing saved ever
+ * does (`aiPromptConnect.ts`). It names the Studio's
  * look_at_scene and hear_the_music tools (`main/studioAgent/studioTools.ts`)
  * and the card's switch by their exact names, which change with them.
  */
@@ -136,6 +140,8 @@ them under "Pictures in the scene" in FluidEQ. Do not explain unless I ask.
 FILES
   pack.json     metadata (format below)
   scene.frag    the shader body
+  world.json    optional: a 3D world in front of the shader, with its
+                material GLSL files and .glb models (see A 3D WORLD)
   artwork.webp  optional: my photos, which FluidEQ puts together (see ARTWORK)
   ${PREVIEW_FILE}   FluidEQ writes this after each build: your scene, to look at
 
@@ -148,6 +154,7 @@ pack.json:
   "fallbackStyle": "skyline",
   "swatch": ["#rrggbb", "#rrggbb", "#rrggbb"],
   "sourceFile": "scene.frag",
+  "framing": { "focus": [0.5, 0.45], "narrowest": 1.7778 },
   "params": [
     { "id": "${SCENE_DAYLIGHT_PARAM}", "names": { "en": "Daylight" }, "min": ${SCENE_DAYLIGHT_MIN}, "max": ${SCENE_DAYLIGHT_MAX}, "value": 0 }
   ]
@@ -209,9 +216,19 @@ pack.json:
   0.2, for a scene whose spectrum must stay in one part of the picture, such
   as a sky. My wave height and position then move r inside that band instead
   of the whole panel, so leave it out unless the idea cannot work without.
+- framing: what the picture keeps in view on a panel of another shape, which
+  every scene declares (see FIT THE PANEL): "focus" is the picture's most
+  important point in its own uv, 0..1 from the bottom-left; "narrowest" the
+  narrowest shape, width over height, the whole picture is composed for;
+  "widest" only for a scene that should crop its top and bottom on a very
+  wide strip rather than draw its whole height there.
 - camera (optional): how far the viewer may turn the scene and move in and
   out (see THE VIEWER'S HANDS). Leave it out and the scene cannot be turned.
 - ambient (optional): the scene's elements around the app (see AMBIENT).
+- pointer (optional): what it throws from the listener's hand (see THROWN
+  FROM THE HAND).
+- worldFile (optional): "world.json", a 3D world drawn in front of the
+  shader (see A 3D WORLD).
 - With photos add: "artworkFile": "artwork.webp", "artworkWidth": W,
   "artworkHeight": H, and "pictures" naming each photo's place in it (see
   ARTWORK).
@@ -304,9 +321,12 @@ that time as a control of its own, which every pack.json MUST declare,
 exactly so, among its params:
   { "id": "${SCENE_DAYLIGHT_PARAM}", "names": { "en": "Daylight" }, "min": ${SCENE_DAYLIGHT_MIN}, "max": ${SCENE_DAYLIGHT_MAX}, "value": 0 }
 FluidEQ will not play a scene without it.
-- ${SCENE_DAYLIGHT_MIN} is full night and ${SCENE_DAYLIGHT_MAX} full day. Read it as uParam_${SCENE_DAYLIGHT_PARAM}. FluidEQ
-  sets it itself, and eases it when I move the Brightness, so it is not one
-  of the sliders I tune - but it counts toward the 8.
+- ${SCENE_DAYLIGHT_MIN} is full night and ${SCENE_DAYLIGHT_MAX} full day. Read it as uParam_${SCENE_DAYLIGHT_PARAM}; a 3D world's
+  formulas read it as p.${SCENE_DAYLIGHT_PARAM}, and its material GLSL as uParam_${SCENE_DAYLIGHT_PARAM}.
+  FluidEQ sets it itself, and eases it when I move the Brightness, so it is
+  not one of the sliders I tune - but it counts toward the 8. The Studio has
+  the same Brightness beside the scene, under "FluidEQ with this scene", for
+  me to walk it from night to day while you work.
 - Design BOTH, and make both good: the scene by night and the same scene by
   day - the same place, subject and motion in each. By day the sky brightens
   to its day colour, a sun stands where the moon was, light is warm and
@@ -326,8 +346,29 @@ FluidEQ will not play a scene without it.
 
 FIT THE PANEL AND MY WAVE
 - The panel can be any shape, from a narrow column to a wide strip, and
-  changes while the scene plays. Scale by uResolution so circles stay round,
-  and keep the main subject whole at every shape: never cut it at an edge.
+  changes while the scene plays. Scale by uResolution so circles stay round.
+- FRAMING is part of how the scene is built, never something I set. Compose
+  the whole picture for panels at least "narrowest" wide (1.7778 is 16:9)
+  and put its important part - the cabin, the dancer, the sun over the
+  dunes, the bars themselves - at "focus". On a narrower panel (the compact
+  player's whole window, ${PLAYER_DEFAULT_WIDTH} by ${PLAYER_DEFAULT_HEIGHT}; a column; a desktop on its side)
+  FluidEQ draws the picture at the same scale and slides it sideways until
+  the focus is in view, as near the middle as the picture's own edges allow;
+  on a panel wider than "widest", when you give one, it slides it up and
+  down the same way. Between the two nothing moves. uv, uResolution, r, the
+  pointer and taps all stay the whole picture's, so the shader needs no code
+  for it: never squeeze or stretch the picture to fit a narrow panel
+  yourself, and never let the focus sit so near a side that the slide stops
+  at the picture's edge with it cut. A scene whose subject follows my wave
+  (below) puts the focus at the band's middle; a landscape puts it on what
+  the landscape is about; a 3D world on where its subject lands in the
+  default wide picture. Wider than "narrowest" the panel is the picture, so
+  the subject still has to stay whole there by itself. A scene that already
+  fits a narrow panel itself and keeps its whole subject doing so - a field
+  of view that widens, a camera that backs away, a subject in the middle -
+  gives "narrowest" 0.4, so it slides only past the compact player's shape:
+  a whole flower beats a crop of one. Slide from 1.7778 when the subject
+  stands to one side and a narrow panel would lose it.
 - FluidEQ has two sliders for my wave, its height and its position, and I
   can turn it upside down; the scene gets them as uSpectrumRect (r below).
   Unless pack.json says otherwise the wave fills the panel - height 1,
@@ -369,7 +410,7 @@ ANSWERING THE MUSIC
   the picture tints FluidEQ's window around it, and my desk lights take their
   colours from the scene.
 
-${MOTION_SECTIONS}RULES (FluidEQ refuses the scene otherwise)
+${MOTION_SECTIONS}${POINTER_SECTION}RULES (FluidEQ refuses the scene otherwise)
 - Loops: only for (int i = 0; i < N; i++) with N a number or a const int
   declared once in the file, at most ${MAX_MEMBER_LOOP_ITERATIONS} turns (counting down is fine too),
   and at most ${MAX_MEMBER_LOOPS} loops in the file. Never change i inside the loop, and never
@@ -476,7 +517,7 @@ photo breathing on the beat (uRhythm), a glow along its edges on uBeat,
 colours warming with uBands.y, particles in front glinting with uBands.z.
 Keep each photo recognisable: light and move parts of it, never wash it out.
 
-${AMBIENT_SECTION}
+${WORLD_SECTION}${AMBIENT_SECTION}
 MY IDEA:`;
 
 /** One-tap starters: a label for the chip, and the idea it appends. */

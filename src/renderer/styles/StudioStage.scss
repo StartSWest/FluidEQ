@@ -181,6 +181,40 @@ $stage-edge: $border-menu;
   display: block;
 }
 
+// Where the scene is drawn: the whole stage, or the compact player's window
+// standing in it.
+.studio-stage__screen {
+  position: absolute;
+  inset: 0;
+}
+
+// The compact player's window on the stage (`StudioStage.tsx` places and
+// sizes it in whole pixels): the stage behind it becomes the desk the empty
+// well is, so the window reads as a window and not as a narrow crop of the
+// scene.
+.studio-stage--player {
+  background:
+    radial-gradient(
+      60% 70% at 50% 100%,
+      color-mix(in srgb, $secondary-default 9%, transparent),
+      transparent 72%
+    ),
+    $surface-well;
+}
+
+// The window's corners and edge as the stage's own, a ring outside the box
+// so the scene keeps every pixel it measured, and a soft shadow parting it
+// from the desk.
+.studio-stage__screen--player {
+  inset: auto;
+  overflow: hidden;
+  border-radius: $radius-m;
+  background: $black;
+  box-shadow:
+    0 0 0 1px $stage-edge,
+    0 16px 34px -14px rgba($black, 0.75);
+}
+
 // The graph's grid over the scene (`StudioGraphPaper.tsx`), placed at the
 // graph's own margins inside the stage. The accent is its `color` because the
 // 0 dB rule is stroked in `currentColor`, as `.graph-plot` gives the chart.

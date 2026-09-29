@@ -153,6 +153,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': 'Regenbogenmodus',
   'graph.sceneTint.rainbowHint':
     'Bänder, Titel und leuchtende Bedienelemente in einer Palette statt in einer Farbe – mit einem Plus-Visualizer in dessen eigenen Farben.',
+  'graph.sceneTint.sparks': 'Zeiger-Funken',
+  'graph.sceneTint.sparksHint':
+    'Was der Visualizer von der Maus wirft: eine Spur, wenn sie über das Bild fährt, und einen Schauer, wo Sie klicken – Funken, Blütenblätter, Schnee, woraus die Szene besteht.',
   'graph.sceneTint.brightnessHint':
     'Wie hell oder dunkel das Fenster steht, in Ihrem Design oder in den Farben des Visualizers',
   'graph.member.mine': 'Von Ihnen erstellt',

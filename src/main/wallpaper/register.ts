@@ -7,6 +7,7 @@ import {
 import { isScenePerformance } from '../../common/scenePerformance';
 import {
   WALLPAPER,
+  isWallpaperDaylight,
   isWallpaperLookId,
   isWallpaperStart,
   isWallpaperStop,
@@ -103,6 +104,11 @@ const registerWallpaperIpc = (
     onWindowMessage(WALLPAPER.graphLook, (event, raw: unknown) => {
       if (fromOwner(event) && isWallpaperLookId(raw)) {
         manager.setGraphLook(raw);
+      }
+    }),
+    onWindowMessage(WALLPAPER.graphDaylight, (event, raw: unknown) => {
+      if (fromOwner(event) && isWallpaperDaylight(raw)) {
+        manager.setGraphDaylight(raw);
       }
     }),
     onWindowMessage(WALLPAPER.audio, (event, raw: unknown) => {

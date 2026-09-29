@@ -238,7 +238,12 @@ const compileWorld = async (
     disposables.push(build);
     scene.add(build.root);
     renderer.shadowMap.enabled = build.shadows;
-    const aim = createWorldCamera(world.camera, camera, inputs);
+    const aim = createWorldCamera(
+      world.camera,
+      camera,
+      inputs,
+      pack.camera?.pivot,
+    );
 
     // Only the colour is read after the world is drawn, so only the colour
     // is resolved out of the samples. Three resolves the depth as well unless
@@ -308,11 +313,31 @@ const compileWorld = async (
     };
     const finish = (width: number, height: number) => {
       const glow = bloom ? bloom.render(drawn.texture, width, height) : null;
+      // The viewer's turn, as the sky sees it: the camera looks round by the
+      // angle turned, which a sky at any distance shows as the shift a point
+      // in the middle of the picture makes - through the lens's own
+      // perspective, not the angle over the field of view, which put a
+      // painted subject a fifth of a turn away from the world's copy of it
+      // (a turn to the right moves it left, a raise up; `worldCamera.ts`).
+      // A lens zoom (the eye pivot) magnifies it too, and the shift is in
+      // the sky's own measure, so it is divided by that.
+      const [yaw, pitch, zoom] = inputs.view;
+      // Only a look round moves the sky: a world turned round its middle is a
+      // thing on a turntable, and its sky the backdrop behind it, which a
+      // whole turn could never slide round anyway.
+      const looks = pack.camera?.pivot === 'eye';
+      const lens = looks ? Math.max(zoom, 1e-3) : 1;
+      const halfTall = (camera.fov * Math.PI) / 360;
+      const halfWide = Math.atan(Math.tan(halfTall) * camera.aspect);
+      const across =
+        (-0.5 * Math.tan(yaw)) / Math.max(Math.tan(halfWide), 1e-3);
+      const up = (-0.5 * Math.tan(pitch)) / Math.max(Math.tan(halfTall), 1e-3);
       composite.set(
         drawn.texture,
         glow,
         bloomStrength.value(),
         exposure.value(),
+        looks ? [across / lens, up / lens, lens] : [0, 0, 1],
       );
     };
     const renderWorld = (width: number, height: number) => {

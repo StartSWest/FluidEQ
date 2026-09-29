@@ -446,6 +446,9 @@ const studio = {
   'studio.framing.saving': 'Enregistrement…',
 
   'studio.size.full': 'Plein écran',
+  'studio.size.player': 'Derrière le lecteur compact',
+  'studio.size.playerHint':
+    'La scène telle que le lecteur compact la montre, derrière toute la fenêtre, à la forme dans laquelle elle s’ouvre. Dans une fenêtre étroite, une scène garde d’elle-même sa partie importante dans le champ.',
   'studio.size.exit': 'Quitter le plein écran',
   'studio.wave.title': 'Onde sur le graphique',
   'studio.wave.hint':

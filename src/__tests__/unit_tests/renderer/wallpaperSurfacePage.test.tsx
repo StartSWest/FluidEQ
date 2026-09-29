@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { act, render } from '@testing-library/react';
+import { SCENE_DAYLIGHT_MIN } from '../../../common/sceneDaylight';
 import type {
   IWallpaperAudio,
   IWallpaperBootstrap,
@@ -64,14 +65,18 @@ const LOUD: IWallpaperAudio = {
 const pageFor = (
   state: IWallpaperSurfaceState,
   madeBy: IWallpaperBootstrap['madeBy'] = 'fluideq',
+  params: unknown[] = [],
 ) => {
   let push: ((next: IWallpaperSurfaceState) => void) | undefined;
   const bridge: IWallpaperSurfaceBridge = {
     bootstrap: jest.fn(async (): Promise<IWallpaperBootstrap> => ({
+      // Every pack the reader returns carries its controls, if only none:
+      // the desktop reads the time of day its author set among them.
       pack: {
         id: 'alpine',
         version: 49,
         names: { en: 'Alpine' },
+        params,
       } as never,
       madeBy,
       state,
@@ -130,6 +135,36 @@ describe('a desktop background’s page', () => {
     render(<WallpaperSurface bridge={bridge} />);
     await act(async () => undefined);
     expect(lastRun()?.tuning).toBeUndefined();
+  });
+
+  // Main hands a monitor the window's time of day only while it follows the
+  // graph; without it, the hour the scene's maker set its Daylight to.
+  it('turns with the window’s time of day while it follows the graph, and keeps its maker’s otherwise', async () => {
+    const { bridge, push } = pageFor(running(), 'fluideq', [
+      {
+        id: 'daylight',
+        names: { en: 'Daylight' },
+        min: 0,
+        max: 100,
+        value: 65,
+      },
+    ]);
+    render(<WallpaperSurface bridge={bridge} />);
+    await act(async () => undefined);
+    expect(lastRun()?.daylight?.()).toBe(65);
+
+    await push(running({ daylight: 20 }));
+    expect(lastRun()?.daylight?.()).toBe(20);
+
+    await push(running());
+    expect(lastRun()?.daylight?.()).toBe(65);
+  });
+
+  it('draws a scene that gives no time of day at night', async () => {
+    const { bridge } = pageFor(running());
+    render(<WallpaperSurface bridge={bridge} />);
+    await act(async () => undefined);
+    expect(lastRun()?.daylight?.()).toBe(SCENE_DAYLIGHT_MIN);
   });
 
   // It used to read on a clock of its own at thirty a second, so on a display

@@ -249,3 +249,50 @@ describe('who may say what the graph shows', () => {
     expect(lookOnMonitor()).toBe('premium:aurora');
   });
 });
+
+/**
+ * The window's time of day, from its Brightness, handed to the monitors:
+ * each takes it only while it follows the graph (`surface.ts`), so the
+ * manager hands it to all of them and tells them when it moves.
+ */
+describe("the window's time of day", () => {
+  it('is none until the window says it, then every monitor is told of a change', () => {
+    const { deps } = setup();
+    const manager = createWallpaperManager(deps);
+    manager.start(request({ displayIds: [2, 3], followsGraph: true }));
+    const [second, third] = mockSurfaces;
+    expect(second.daylight()).toBeUndefined();
+
+    manager.setGraphDaylight(70);
+    manager.setGraphDaylight(70);
+
+    expect(second.daylight()).toBe(70);
+    expect(third.daylight()).toBe(70);
+    expect(second.applyDaylight).toHaveBeenCalledTimes(1);
+    expect(third.applyDaylight).toHaveBeenCalledTimes(1);
+  });
+
+  it('is heard only from FluidEQ’s own window, and only as a time of day', () => {
+    const { deps, owner } = setup();
+    registerWallpaperIpc(deps);
+    const fromWindow = { sender: owner, senderFrame: owner.mainFrame };
+    mockHandlers.get('wallpaper-start')?.(
+      fromWindow,
+      request({ followsGraph: true }),
+    );
+    const graphDaylight = mockMessages.get('wallpaper-graph-daylight');
+    const monitor = mockSurfaces[mockSurfaces.length - 1];
+
+    const stranger = { mainFrame: {} };
+    graphDaylight?.({ sender: stranger, senderFrame: stranger.mainFrame }, 40);
+    graphDaylight?.({ sender: owner, senderFrame: {} }, 40);
+    graphDaylight?.(fromWindow, 101);
+    graphDaylight?.(fromWindow, Number.NaN);
+    graphDaylight?.(fromWindow, '40');
+    expect(monitor.daylight()).toBeUndefined();
+
+    // Positive control: the window itself, with a time of day, is heard.
+    graphDaylight?.(fromWindow, 40);
+    expect(monitor.daylight()).toBe(40);
+  });
+});

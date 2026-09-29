@@ -151,6 +151,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': 'Modo arcoíris',
   'graph.sceneTint.rainbowHint':
     'Las bandas, el título y los controles encendidos en una paleta en lugar de un solo color; con un visualizador Plus, en sus propios colores.',
+  'graph.sceneTint.sparks': 'Chispas del puntero',
+  'graph.sceneTint.sparksHint':
+    'Lo que el visualizador lanza desde el ratón: una estela al cruzar la imagen y un estallido donde haces clic: chispas, pétalos, nieve, lo que tenga la escena.',
   'graph.sceneTint.brightnessHint':
     'Qué tan clara u oscura queda la ventana, con tu tema o con los colores del visualizador',
   'graph.member.mine': 'Hechos por ti',

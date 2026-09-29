@@ -150,6 +150,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': 'レインボーモード',
   'graph.sceneTint.rainbowHint':
     'バンド、タイトル、点灯中のコントロールを単色ではなくパレットで表示します。Plus ビジュアライザーの選択中はその色で表示します。',
+  'graph.sceneTint.sparks': 'ポインターの火花',
+  'graph.sceneTint.sparksHint':
+    'ビジュアライザーがマウスから放つもの。画面の上を動かすと軌跡が残り、クリックした場所ではじけます。火花、花びら、雪など、シーンに合わせて。',
   'graph.sceneTint.brightnessHint':
     'テーマやビジュアライザーの色で表示されるウィンドウの明るさ',
   'graph.member.mine': 'あなたが作成',

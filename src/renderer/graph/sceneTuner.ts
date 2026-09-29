@@ -131,6 +131,11 @@ export const createSceneTuner = (): ISceneTuner => {
                 [clock.id]: Math.min(clock.max, Math.max(clock.min, daylight)),
               }
             : params,
+        // What the scene keeps in view on a screen of another shape, which
+        // the draw frames it by (`sceneFramingView.ts`): every frame that
+        // reaches a scene comes through here, the live ones and the ones a
+        // picture is made from, so every place draws it framed alike.
+        ...(pack?.framing ? { framing: pack.framing } : {}),
       };
     },
     reset: () => {

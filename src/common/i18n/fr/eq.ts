@@ -154,6 +154,9 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.rainbow': 'Mode arc-en-ciel',
   'graph.sceneTint.rainbowHint':
     'Les bandes, le titre et les commandes allumées dans une palette plutôt qu’une seule couleur — avec un visualiseur Plus, dans ses propres couleurs.',
+  'graph.sceneTint.sparks': 'Étincelles du pointeur',
+  'graph.sceneTint.sparksHint':
+    'Ce que le visualiseur lance depuis la souris : une traînée quand elle traverse l’image et une gerbe là où vous cliquez - étincelles, pétales, neige, ce dont la scène est faite.',
   'graph.sceneTint.brightnessHint':
     'La clarté de la fenêtre, dans votre thème ou dans les couleurs du visualiseur',
   'graph.member.mine': 'Créés par vous',

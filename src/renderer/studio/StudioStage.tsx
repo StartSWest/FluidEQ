@@ -14,6 +14,7 @@ import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import { useSceneAudio } from '../audio/SceneAudioContext';
 import type { ISceneFrame } from '../graph/sceneGl';
 import { createSceneInteraction } from '../graph/sceneInteraction';
+import ScenePointerLayer from '../graph/ScenePointerLayer';
 import SceneViewReset from '../graph/SceneViewReset';
 import type { ISceneDrawReport } from '../graph/sceneRunnerTypes';
 import useSceneRunner, {
@@ -33,6 +34,7 @@ import {
   shapeStudioFrame,
   type TStudioSignal,
 } from './studioSignals';
+import { stageScreen } from './studioStageScreen';
 
 export type TStudioSize = 'graph' | 'full';
 
@@ -75,6 +77,12 @@ interface IStudioStageProps {
   serial: number;
   signal: TStudioSignal;
   size: TStudioSize;
+  /**
+   * The scene behind the compact player, at its window's shape, inside
+   * either size: where a scene is seen keeping its important part in view
+   * (`common/sceneFraming.ts`).
+   */
+  isPlayer: boolean;
   /** The graph's wave height and position, tried on the scene. */
   wave: IStudioWave;
   /**
@@ -126,6 +134,7 @@ export default function StudioStage({
   serial,
   signal,
   size,
+  isPlayer,
   wave,
   isGridShown,
   tuning,
@@ -165,6 +174,32 @@ export default function StudioStage({
       );
     });
     observer.observe(frame);
+    return () => observer.disconnect();
+  }, []);
+
+  // Where the plate's left edge stands in the stage, for the player's window
+  // to keep clear of: it moves as the stage narrows and as its reading's
+  // words change length, and nothing else says when either happens.
+  const barRef = useRef<HTMLDivElement>(null);
+  const [plateLeft, setPlateLeft] = useState<number>();
+  useEffect(() => {
+    const frame = frameRef.current;
+    const bar = barRef.current;
+    if (!frame || !bar) {
+      return undefined;
+    }
+    const observer = new ResizeObserver(() => {
+      setPlateLeft(
+        bar.offsetWidth === 0
+          ? undefined
+          : Math.round(
+              bar.getBoundingClientRect().left -
+                frame.getBoundingClientRect().left,
+            ),
+      );
+    });
+    observer.observe(frame);
+    observer.observe(bar);
     return () => observer.disconnect();
   }, []);
 
@@ -293,14 +328,22 @@ export default function StudioStage({
     [],
   );
 
+  const screen = useMemo(
+    () => stageScreen(box, isPlayer, plateLeft),
+    [box, isPlayer, plateLeft],
+  );
   const { spectrumRange } = pack;
   const paper = useMemo(
     () =>
       isGridShown
-        ? studioPaper(box.width, box.height, { spectrumRange }, wave)
+        ? studioPaper(screen.width, screen.height, { spectrumRange }, wave)
         : undefined,
-    [isGridShown, box.width, box.height, spectrumRange, wave],
+    [isGridShown, screen.width, screen.height, spectrumRange, wave],
   );
+  // The plate and the reset stand inside the grid's ruled plot when the grid
+  // covers the stage; round the player's window they stand at the stage's
+  // own corners, off the window.
+  const plot = isPlayer ? undefined : paper;
   // One array per band, not per render: the runner redraws whenever the band
   // it is handed changes identity.
   const gridless = useMemo(
@@ -314,8 +357,8 @@ export default function StudioStage({
 
   const sceneRef = useSceneRunner({
     source,
-    width: box.width,
-    height: box.height,
+    width: screen.width,
+    height: screen.height,
     spectrumRect: paper?.spectrumRect ?? gridless,
     shapeFrame,
     ...(tuning ? { tuning } : {}),
@@ -345,7 +388,7 @@ export default function StudioStage({
     <div className="studio-stage__well">
       <div
         ref={frameRef}
-        className={`studio-stage studio-stage--${size}`}
+        className={`studio-stage studio-stage--${size}${isPlayer ? ' studio-stage--player' : ''}`}
         data-testid="studio-stage"
         aria-busy={waiting}
         // The graph's gesture for the same thing, and the same full screen as
@@ -358,13 +401,35 @@ export default function StudioStage({
         }}
       >
         <div
-          ref={sceneRef}
-          className="studio-stage__canvas"
-          role="img"
-          aria-label={t('studio.stage.label', { name: pack.names.en })}
-          style={{ width: box.width, height: box.height }}
-        />
-        {paper && box.width > 0 && <StudioGraphPaper paper={paper} />}
+          className={`studio-stage__screen${isPlayer ? ' studio-stage__screen--player' : ''}`}
+          style={
+            isPlayer
+              ? {
+                  left: screen.left,
+                  top: screen.top,
+                  width: screen.width,
+                  height: screen.height,
+                }
+              : undefined
+          }
+        >
+          <div
+            ref={sceneRef}
+            className="studio-stage__canvas"
+            role="img"
+            aria-label={t('studio.stage.label', { name: pack.names.en })}
+            style={{ width: screen.width, height: screen.height }}
+          />
+          {paper && screen.width > 0 && <StudioGraphPaper paper={paper} />}
+          {/* What the scene throws from the hand, over it: never gated here,
+              where trying the hands is the point. */}
+          <ScenePointerLayer
+            gestures={interaction.onGesture}
+            pointer={pack.pointer}
+            ambient={pack.ambient}
+            artwork={pack.artwork}
+          />
+        </div>
         {/* One plate in the top right corner (Ivan, 2026-09-27: "join all
             into one with runs smoothly and put it on the right top"): how the
             scene is keeping up, the sizes, the grid and, full screen, the way
@@ -376,12 +441,13 @@ export default function StudioStage({
             scene that was plainly playing. The loading card covers the plate
             while there is really nothing yet. */}
         <div
+          ref={barRef}
           className="studio-stage__bar"
           style={
-            paper
+            plot
               ? {
-                  top: paper.margins.top + paper.padding.top + 8,
-                  right: paper.margins.right + paper.padding.right + 8,
+                  top: plot.margins.top + plot.padding.top + 8,
+                  right: plot.margins.right + plot.padding.right + 8,
                 }
               : undefined
           }
@@ -413,10 +479,10 @@ export default function StudioStage({
           // With the grid over the scene, inside its ruled plot: the scales'
           // labels run along the bottom and the right edge of the stage.
           style={
-            paper
+            plot
               ? {
-                  right: paper.margins.right + paper.padding.right + 8,
-                  bottom: paper.margins.bottom + paper.padding.bottom + 8,
+                  right: plot.margins.right + plot.padding.right + 8,
+                  bottom: plot.margins.bottom + plot.padding.bottom + 8,
                 }
               : undefined
           }

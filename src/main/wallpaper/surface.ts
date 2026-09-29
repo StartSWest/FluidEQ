@@ -32,6 +32,11 @@ interface IDesktopSurfaceOptions {
   performance: IScenePerformance;
   /** What the listener set for this visualizer, when they set anything. */
   tuning: IWallpaperTuning | undefined;
+  /**
+   * The window's time of day as it is now, once the window has said it: a
+   * monitor following the graph draws its scene at it.
+   */
+  daylight(): number | undefined;
   executable: string;
   /**
    * Why this monitor should not play now, given whether anything of its
@@ -65,7 +70,8 @@ export interface IDesktopSurface {
   /**
    * A new wave or motion for the visualizer already playing: the page moves
    * its band or changes what it hears, with no restart and no blink. Following
-   * the graph turned on or off is kept here too, and tells the page nothing.
+   * the graph turned on or off is kept here too, and tells the page only the
+   * time of day that comes or goes with it.
    */
   retune(
     next: Pick<IWallpaperChoice, 'wave' | 'motion' | 'followsGraph'>,
@@ -78,6 +84,11 @@ export interface IDesktopSurface {
    * monitor's, so the list and the next launch show what is on the desktop.
    */
   applyTuning(next: IWallpaperTuning | undefined): void;
+  /**
+   * The window's time of day moved: a monitor following the graph tells its
+   * page, and one that is not has nothing to change.
+   */
+  applyDaylight(): void;
   /**
    * Another visualizer on this monitor — set by hand, the graph's that it
    * follows, a newer version of its own — drawn by the same page, which
@@ -147,14 +158,23 @@ export const createDesktopSurface = (
     wave = tuning.wave;
   }
 
-  const surfaceState = (): IWallpaperSurfaceState => ({
-    phase,
-    renderGeneration,
-    wave,
-    motion,
-    performance,
-    ...(tuning ? { tuning } : {}),
-  });
+  // The time of day this monitor's page was last told: the window's, while
+  // it follows the graph, and none otherwise.
+  const shownDaylight = () => (followsGraph ? options.daylight() : undefined);
+  let toldDaylight = shownDaylight();
+
+  const surfaceState = (): IWallpaperSurfaceState => {
+    toldDaylight = shownDaylight();
+    return {
+      phase,
+      renderGeneration,
+      wave,
+      motion,
+      performance,
+      ...(tuning ? { tuning } : {}),
+      ...(toldDaylight !== undefined ? { daylight: toldDaylight } : {}),
+    };
+  };
 
   const release = () => {
     if (released) {
@@ -324,12 +344,18 @@ export const createDesktopSurface = (
       wave = nextWave;
       tellPage();
     },
+    applyDaylight: () => {
+      if (shownDaylight() !== toldDaylight) {
+        tellPage();
+      }
+    },
     retune: (next) => {
       followsGraph = next.followsGraph === true;
       if (
         next.wave.height === wave.height &&
         next.wave.position === wave.position &&
-        next.motion === motion
+        next.motion === motion &&
+        shownDaylight() === toldDaylight
       ) {
         return;
       }

@@ -57,8 +57,24 @@ export interface IAttachOptions {
   owns?: (target: Element) => boolean;
 }
 
+/**
+ * What the viewer's hand did, where on the page (client pixels), for what
+ * draws at the hand (`ScenePointerLayer`, which places it on its own box): a
+ * move with how far it went, or a tap.
+ */
+export type TSceneGesture =
+  | { kind: 'move'; x: number; y: number; dx: number; dy: number }
+  | { kind: 'tap'; x: number; y: number };
+
+/** Something that tells of gestures, and the way to stop it telling. */
+export type TGestureSource = (
+  listener: (gesture: TSceneGesture) => void,
+) => () => void;
+
 export interface ISceneInteraction {
   read(elapsedMs: number): ISceneHands;
+  /** Told of every move and tap over an attached surface. */
+  onGesture(listener: (gesture: TSceneGesture) => void): () => void;
   setLimits(limits: ISceneCameraLimits | undefined): void;
   /** Back to the author's view, gliding. */
   reset(): void;
@@ -211,6 +227,9 @@ export const createSceneInteraction = (): ISceneInteraction => {
   /** The pointer moved over a surface since the last frame read it. */
   let stirred = false;
   const listeners = new Set<() => void>();
+  const gestureListeners = new Set<(gesture: TSceneGesture) => void>();
+  const tell = (gesture: TSceneGesture) =>
+    gestureListeners.forEach((listener) => listener(gesture));
   /** Every element the gestures are on, with how it says a plain press turns. */
   const attached = new Map<HTMLElement, () => boolean>();
 
@@ -319,6 +338,12 @@ export const createSceneInteraction = (): ISceneInteraction => {
     };
   };
 
+  /** Back to the author's view, gliding. */
+  const reset = () => {
+    glide = { yaw: 0, pitch: 0 };
+    returning = !isHome(camera);
+  };
+
   const setLimits = (next: ISceneCameraLimits | undefined) => {
     // Asked every frame with the pack's own object: the same object is the
     // same limits, and only a new version of the scene is worth comparing.
@@ -343,6 +368,27 @@ export const createSceneInteraction = (): ISceneInteraction => {
       swallowing?.();
       swallowing = undefined;
     };
+    /**
+     * The click (or menu) a release of `button` is followed by, taken before
+     * the panel hears it: a turned drag or a reset is not a click.
+     */
+    const swallowAfter = (button: number) => {
+      const types = eventsAfter(button);
+      const swallow = (click: Event) => {
+        click.stopPropagation();
+        click.preventDefault();
+        element.removeEventListener(click.type, swallow, { capture: true });
+      };
+      types.forEach((type) =>
+        element.addEventListener(type, swallow, { capture: true }),
+      );
+      swallowing = () =>
+        types.forEach((type) =>
+          element.removeEventListener(type, swallow, { capture: true }),
+        );
+    };
+    /** Where the mouse was last over this element: how far each move went. */
+    let lastMove: { x: number; y: number } | undefined;
     const owned = (target: EventTarget | null) =>
       target instanceof Element &&
       (Boolean(target.closest(CONTROLS)) || Boolean(options.owns?.(target)));
@@ -374,11 +420,22 @@ export const createSceneInteraction = (): ISceneInteraction => {
 
     const onMove = (event: PointerEvent) => {
       const uv = uvOf(event);
+      const last = lastMove;
+      lastMove = { x: event.clientX, y: event.clientY };
       if (uv) {
         pointerX = uv.x;
         pointerY = uv.y;
         over = true;
         stirred = true;
+        if (last && !owned(event.target)) {
+          tell({
+            kind: 'move',
+            x: event.clientX,
+            y: event.clientY,
+            dx: event.clientX - last.x,
+            dy: event.clientY - last.y,
+          });
+        }
       }
       const press = presses.get(event.pointerId);
       if (!press) {
@@ -510,6 +567,7 @@ export const createSceneInteraction = (): ISceneInteraction => {
       ) {
         tap = { x: uv.x, y: uv.y, at: performance.now() };
         taps = (taps + 1) % 4096;
+        tell({ kind: 'tap', x: event.clientX, y: event.clientY });
       }
       if (press.turning) {
         showHands();
@@ -526,21 +584,7 @@ export const createSceneInteraction = (): ISceneInteraction => {
         // A turned drag is not a click: the panel's own click - fading its
         // toolbar, clearing a selection, a menu - must not follow it.
         if (travel >= TAP_TRAVEL_PX && event.type === 'pointerup') {
-          const types = eventsAfter(press.button);
-          const swallow = (click: Event) => {
-            click.stopPropagation();
-            click.preventDefault();
-            element.removeEventListener(click.type, swallow, {
-              capture: true,
-            });
-          };
-          types.forEach((type) =>
-            element.addEventListener(type, swallow, { capture: true }),
-          );
-          swallowing = () =>
-            types.forEach((type) =>
-              element.removeEventListener(type, swallow, { capture: true }),
-            );
+          swallowAfter(press.button);
         }
       }
     };
@@ -548,6 +592,7 @@ export const createSceneInteraction = (): ISceneInteraction => {
     const onLeave = () => {
       over = false;
       engaged = false;
+      lastMove = undefined;
     };
 
     const onWheel = (event: WheelEvent) => {
@@ -608,11 +653,14 @@ export const createSceneInteraction = (): ISceneInteraction => {
 
   return {
     read,
-    setLimits,
-    reset: () => {
-      glide = { yaw: 0, pitch: 0 };
-      returning = !isHome(camera);
+    onGesture: (listener) => {
+      gestureListeners.add(listener);
+      return () => {
+        gestureListeners.delete(listener);
+      };
     },
+    setLimits,
+    reset,
     home: () => {
       camera = { ...DEFAULT_SCENE_CAMERA };
       glide = { yaw: 0, pitch: 0 };

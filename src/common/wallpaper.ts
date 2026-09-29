@@ -4,6 +4,7 @@ import type { IScenePerformance } from './scenePerformance';
 import type { TSceneMaker } from './sceneMaker';
 import { isPremiumLookId, packIdOfLook } from './scenePacks';
 import { parseMemberLookId } from './memberScenes';
+import { SCENE_DAYLIGHT_MAX, SCENE_DAYLIGHT_MIN } from './sceneDaylight';
 
 export const WALLPAPER = {
   state: 'wallpaper-state',
@@ -28,6 +29,13 @@ export const WALLPAPER = {
    * monitor following it keeps the last Plus one it was given.
    */
   graphLook: 'wallpaper-graph-look',
+  /**
+   * The time of day the window's Brightness asks of its scenes
+   * (`sceneDaylight.ts`), for the monitors set to follow the graph: their
+   * scene turns from night to day with the window's (Ivan, 2026-09-28:
+   * "desktop needs to follow that too ... only if follow graph is enabled").
+   */
+  graphDaylight: 'wallpaper-graph-daylight',
 } as const;
 
 /** More monitors than a desk has; bounds what one request can create. */
@@ -174,6 +182,12 @@ export interface IWallpaperSurfaceState {
   performance: IScenePerformance;
   /** What the listener set for this visualizer, when they set anything. */
   tuning?: IWallpaperTuning;
+  /**
+   * The window's time of day, 0 night to 100 day, on a monitor set to follow
+   * the graph. Absent on one that is not: its scene keeps the time of day
+   * its author gave it, whatever the window's Brightness does.
+   */
+  daylight?: number;
 }
 
 /** Scene source is loaded and authorized by main, never sent back by a page. */
@@ -264,6 +278,13 @@ export const isWallpaperWave = (raw: unknown): raw is IWallpaperWave =>
 
 export const isWallpaperMotion = (raw: unknown): raw is TWallpaperMotion =>
   WALLPAPER_MOTIONS.some((motion) => motion === raw);
+
+/** A time of day as the window's Brightness gives it (`sceneDaylight.ts`). */
+export const isWallpaperDaylight = (raw: unknown): raw is number =>
+  typeof raw === 'number' &&
+  Number.isFinite(raw) &&
+  raw >= SCENE_DAYLIGHT_MIN &&
+  raw <= SCENE_DAYLIGHT_MAX;
 
 const isWallpaperChoice = (
   raw: Record<string, unknown>,

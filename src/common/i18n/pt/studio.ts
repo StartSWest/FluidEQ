@@ -436,6 +436,9 @@ const studio = {
   'studio.framing.saving': 'Salvando…',
 
   'studio.size.full': 'Tela cheia',
+  'studio.size.player': 'Atrás do player compacto',
+  'studio.size.playerHint':
+    'A cena como o player compacto a mostra, atrás da janela inteira, no formato em que ela abre. Numa janela estreita, a cena mantém sozinha a parte importante à vista.',
   'studio.size.exit': 'Sair da tela cheia',
   'studio.wave.title': 'Onda no gráfico',
   'studio.wave.hint':

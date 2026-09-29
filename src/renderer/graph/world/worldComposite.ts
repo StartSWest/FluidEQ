@@ -13,6 +13,7 @@ import {
   RawShaderMaterial,
   ShaderChunk,
   type Texture,
+  Vector3,
 } from 'three';
 import type { IScenePack } from 'common/scenePacks';
 import type { ISceneWorld, TWorldToneMapping } from 'common/sceneWorld';
@@ -94,6 +95,11 @@ uniform vec3 fqw_backdrop;
 // scene's and run across its panel; the world's picture and its glow were
 // drawn over the whole canvas and are read across it.
 uniform vec4 fqw_view;
+// The viewer's turn of the camera, in the sky's uv: a painted sky is as far
+// as anything can be, so it moves by the angle turned across the field of
+// view and never by the orbit round what the camera looks at; and a lens
+// zoom (the eye pivot) magnifies it, where a dolly leaves it as it was.
+uniform vec3 fqw_skyTurn;
 ${prefixedToneMapping}
 vec3 fqw_toneMap(vec3 c) { return ${TONE_MAP_CALL[world.toneMapping]}; }
 vec3 fqw_encode(vec3 linear) {
@@ -125,7 +131,7 @@ void main() {
   vec2 fqw_panelUv = (vUv - fqw_view.xy) / fqw_view.zw;
 ${
   world.backdrop === 'shader'
-    ? '  vec4 back = fqw_skyHidden() ? vec4(0.0) : clamp(sceneColour(fqw_panelUv), 0.0, 1.0);'
+    ? '  vec4 back = fqw_skyHidden() ? vec4(0.0) : clamp(sceneColour((fqw_panelUv - 0.5) / fqw_skyTurn.z + 0.5 + fqw_skyTurn.xy), 0.0, 1.0);'
     : '  vec4 back = vec4(fqw_backdrop, 1.0);'
 }
   vec4 drawn = texture(fqw_world, vUv);
@@ -159,6 +165,11 @@ export interface IWorldComposite {
     bloom: Texture | null,
     bloomStrength: number,
     exposure: number,
+    /**
+     * The viewer's turn across the field of view, and the lens's
+     * magnification (`worldProgram.ts`).
+     */
+    skyTurn: readonly [number, number, number],
   ): void;
   dispose(): void;
 }
@@ -192,6 +203,7 @@ export const createWorldComposite = (
       fqw_vignette: { value: world.vignette },
       fqw_backdrop: { value: backdrop },
       fqw_toneMappingExposure: { value: 1 },
+      fqw_skyTurn: { value: new Vector3(0, 0, 1) },
     },
     depthTest: false,
     depthWrite: false,
@@ -199,7 +211,8 @@ export const createWorldComposite = (
   });
   return {
     material,
-    set: (drawn, bloom, bloomStrength, exposure) => {
+    set: (drawn, bloom, bloomStrength, exposure, skyTurn) => {
+      (material.uniforms.fqw_skyTurn.value as Vector3).set(...skyTurn);
       material.uniforms.fqw_world.value = drawn;
       material.uniforms.fqw_bloom.value = bloom ?? black;
       material.uniforms.fqw_bloomStrength.value = bloom ? bloomStrength : 0;

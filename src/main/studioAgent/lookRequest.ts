@@ -77,7 +77,7 @@ export const LOOK_SCHEMA = {
     shape: {
       type: 'string',
       enum: SHAPES,
-      description: `The panel's shape. wide ${STUDIO_AGENT_SHAPES.wide.width}x${STUDIO_AGENT_SHAPES.wide.height} (a window, the default), tall ${STUDIO_AGENT_SHAPES.tall.width}x${STUDIO_AGENT_SHAPES.tall.height} (a narrow column), square ${STUDIO_AGENT_SHAPES.square.width}x${STUDIO_AGENT_SHAPES.square.height}, strip ${STUDIO_AGENT_SHAPES.strip.width}x${STUDIO_AGENT_SHAPES.strip.height} (the graph above the equaliser), ribbon ${STUDIO_AGENT_SHAPES.ribbon.width}x${STUDIO_AGENT_SHAPES.ribbon.height} (the thinnest wide panel). The subject must stay whole in every one.`,
+      description: `The panel's shape. wide ${STUDIO_AGENT_SHAPES.wide.width}x${STUDIO_AGENT_SHAPES.wide.height} (a window, the default), tall ${STUDIO_AGENT_SHAPES.tall.width}x${STUDIO_AGENT_SHAPES.tall.height} (a narrow column, like the compact player's window: the picture slides to keep pack.json's framing focus in view), square ${STUDIO_AGENT_SHAPES.square.width}x${STUDIO_AGENT_SHAPES.square.height}, strip ${STUDIO_AGENT_SHAPES.strip.width}x${STUDIO_AGENT_SHAPES.strip.height} (the graph above the equaliser), ribbon ${STUDIO_AGENT_SHAPES.ribbon.width}x${STUDIO_AGENT_SHAPES.ribbon.height} (the thinnest wide panel). The subject must stay whole in every one; in tall, the focus.`,
     },
     sound: {
       type: 'string',

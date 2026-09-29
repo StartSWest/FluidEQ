@@ -105,6 +105,7 @@ describe('the stage', () => {
       serial={1}
       signal="live"
       size="graph"
+      isPlayer={false}
       wave={wave}
       isGridShown={false}
       readingRef={{ current: null }}
