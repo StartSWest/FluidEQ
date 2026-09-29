@@ -257,6 +257,43 @@ describe('the Plus terms', () => {
   });
 
   /**
+   * A scene can carry 3D models, which an export and a publish send and the
+   * Studio keeps. Every line that lists what a scene is made of has to name
+   * them, in every language: a reader who is told "code, settings and
+   * pictures" has not been told that a model of theirs leaves the computer.
+   */
+  it('name the 3D models a scene can carry, wherever a scene is listed', () => {
+    // Per language, what that language calls them, as the terms say it.
+    const models: Record<string, string> = {
+      en: '3D models',
+      es: 'modelos 3D',
+      pt: 'modelos 3D',
+      fr: 'modèles 3D',
+      de: '3D-Modelle',
+      it: 'modelli 3D',
+      ru: '3D-модел',
+      zh: '3D 模型',
+      ja: '3D モデル',
+      hi: '3D मॉडल',
+    };
+    const listsAScene = [
+      'terms.sent.sceneExport.what',
+      'terms.never.p4',
+      'terms.scenes.p6',
+    ] as const;
+    const silent = LOCALES.flatMap(({ code }) =>
+      listsAScene
+        .filter((key) => !translate(code, key).includes(models[code]))
+        .map((key) => `${code} ${key}`),
+    );
+    expect(silent).toEqual([]);
+    // The positive control: a line that lists nothing of a scene's contents
+    // does not name them, so the check above can see a line that stops doing
+    // so.
+    expect(translate('en', 'terms.never.p2')).not.toContain(models.en);
+  });
+
+  /**
    * Buy Me a Coffee, which takes the payment, requires every account holder
    * to be 18. Terms that let a younger person join promise a membership the
    * payment side will not sell.

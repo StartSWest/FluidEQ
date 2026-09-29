@@ -23,7 +23,7 @@ const terms = {
 
   'terms.membership.title': 'A assinatura',
   'terms.membership.p1':
-    'Com uma conta gratuita você pode explorar Visualizadores, ver a imagem e os detalhes de cada cena publicada, experimentar cada uma das cenas de amostra gratuitas do FluidEQ durante {tasteSeconds} segundos e ver a classificação. Com o Plus, você reproduz e adiciona todas as cenas, desbloqueia os visuais Plus, cria cenas no Estúdio e as exporta ou publica, entra na classificação e coloca cenas na sua área de trabalho e nas suas luzes RGB. Custa {price} e se renova no fim de cada período pago até você cancelar. O Plus também pode chegar sem pagamento. Quando o FluidEQ oferece um teste gratuito, uma conta criada a partir do dia em que essa oferta começou pode usá-lo uma vez, durante {trialDays} dias, sem cartão e sem nenhuma cobrança no fim. E uma cena que você publicar e que um moderador aprovar pode lhe dar um mês de Plus. Nenhum dos dois é uma assinatura: nada os renova e nunca é cobrado nada por eles. Depois que uma cena sua já lhe rendeu um mês, o Estúdio mantém um projeto aberto para você mesmo sem o Plus, para que você possa publicar sua próxima cena; exportar um arquivo continua sendo do Plus.',
+    'Com uma conta gratuita você pode explorar Visualizadores, ver a imagem e os detalhes de cada cena publicada, experimentar cada uma das cenas de amostra gratuitas do FluidEQ durante {tasteSeconds} segundos e ver a classificação. Com o Plus, você reproduz e adiciona todas as cenas, desbloqueia os visuais Plus, cria cenas no Estúdio e as exporta ou publica, entra na classificação e coloca cenas na sua área de trabalho e nas suas luzes RGB. Custa {price} e se renova no fim de cada período pago até você cancelar. O Plus também pode chegar sem pagamento. Quando o FluidEQ oferece um teste gratuito, uma conta criada a partir do dia em que essa oferta começou pode usá-lo uma vez, durante {trialDays} dias, sem cartão e sem nenhuma cobrança no fim. E uma cena que você publicar e que o criador do FluidEQ aprovar pode lhe dar um mês de Plus. Nenhum dos dois é uma assinatura: nada os renova e nunca é cobrado nada por eles. Depois que uma cena sua já lhe rendeu um mês, o Estúdio mantém um projeto aberto para você mesmo sem o Plus, para que você possa publicar sua próxima cena; exportar um arquivo continua sendo do Plus.',
   'terms.membership.p2':
     'O pagamento é tratado pelo Buy Me a Coffee, segundo os próprios termos. O FluidEQ nunca vê seu cartão nem seus dados bancários. Você pode cancelar a qualquer momento no Buy Me a Coffee: o Plus fica ativo até o fim do período que você pagou e não é cobrado mais nada.',
   'terms.membership.p4':
@@ -91,7 +91,7 @@ const terms = {
   'terms.sent.board.who':
     'Seu nome de usuário, seu nome visível, sua posição, seus pontos e do que eles são feitos: todas as contas conectadas, na classificação e na sua página de criador.',
   'terms.sent.sceneExport.what':
-    'Uma cena que você exporta: o código, as configurações, as imagens e os elementos de ambiente dela',
+    'Uma cena que você exporta: o código, as configurações, as imagens, os modelos 3D e os elementos de ambiente dela',
   'terms.sent.sceneExport.when': 'Quando você clica em Exportar no Estúdio',
   'terms.sent.sceneExport.who':
     'O serviço verifica a cena, retira os comentários do código dela e a assina, acrescentando ao arquivo seu nome visível e o id da sua conta. Mantém um registro de que cena e versão você exportou, quando, e uma impressão digital do arquivo. Quem receber o arquivo vê seu nome visível e o id da sua conta.',
@@ -105,7 +105,7 @@ const terms = {
     'Uma cena que você publica, como numa exportação, com uma imagem de capa, até duas categorias e uma nota sobre o que há de novo, se você escrever uma',
   'terms.sent.scenePublish.when': 'Quando você clica em Publicar no Estúdio',
   'terms.sent.scenePublish.who':
-    'Assim que um moderador a aprovar, em Visualizadores, até você despublicá-la, qualquer pessoa conectada ao FluidEQ vê a imagem, o nome, as categorias, as notas de versão, as curtidas e as adições dela, com seu nome visível, seu nome de usuário e sua página de criador. Só os membros Plus podem reproduzir a cena e adicioná-la. O criador do FluidEQ mantém a cena e o registro de que você a publicou, como numa exportação.',
+    'Assim que o criador do FluidEQ a aprovar, em Visualizadores, até você despublicá-la, qualquer pessoa conectada ao FluidEQ vê a imagem, o nome, as categorias, as notas de versão, as curtidas e as adições dela, com seu nome visível, seu nome de usuário e sua página de criador. Só os membros Plus podem reproduzir a cena e adicioná-la. O criador do FluidEQ mantém a cena e o registro de que você a publicou, como numa exportação.',
   'terms.sent.gallery.what':
     'Em Visualizadores: o que você procura, as cenas e os criadores que você abre, as cenas que você adiciona e qualquer cena que você denunciar, com o motivo',
   'terms.sent.gallery.when':
@@ -126,9 +126,9 @@ const terms = {
   'terms.never.p3':
     'Seus dispositivos de áudio, monitores e luzes RGB, os nomes deles, e os outros apps do seu computador.',
   'terms.never.p4':
-    'Seus projetos do Estúdio, as fotos deles e suas notas, a menos que você exporte ou publique uma cena. O prompt que você copia para seu assistente de IA só vai para onde você o colar.',
+    'Seus projetos do Estúdio, as fotos e os modelos 3D deles e suas notas, a menos que você exporte ou publique uma cena. O prompt que você copia para seu assistente de IA só vai para onde você o colar.',
   'terms.never.p5':
-    'O que o FluidEQ memoriza no seu computador para funcionar: seus fundos da área de trabalho e a iluminação, as versões de cenas que você já viu e qualquer cena que tenha feito seu driver de vídeo reiniciar.',
+    'O que o FluidEQ memoriza no seu computador para funcionar: seus fundos da área de trabalho e a iluminação, sua Biblioteca (as pastas que você adicionou, o que ele leu dos arquivos delas e as capas), as versões de cenas que você já viu e qualquer cena que tenha feito seu driver de vídeo reiniciar.',
 
   'terms.protect.title': 'Como é protegido',
   'terms.protect.p1': 'Cada pedido viaja criptografado.',
@@ -199,7 +199,7 @@ const terms = {
   'terms.scenes.p5':
     'Os membros que curtem sua cena lhe dão pontos na classificação, se você entrou nela. As curtidas são contadas no servidor; veja Jogo limpo.',
   'terms.scenes.p6':
-    'Compartilhe só trabalho que você tem o direito de compartilhar: suas próprias fotos e desenhos, ou os de alguém que o permita. As regras para o que você publica se aplicam a cada cena que você compartilha. O criador do FluidEQ pode impedir que uma cena abra se ela violar estes termos ou os direitos de outra pessoa.',
+    'Compartilhe só trabalho que você tem o direito de compartilhar: suas próprias fotos, desenhos e modelos 3D, ou os de alguém que o permita. As regras para o que você publica se aplicam a cada cena que você compartilha. O criador do FluidEQ pode impedir que uma cena abra se ela violar estes termos ou os direitos de outra pessoa.',
   'terms.scenes.p7':
     'Uma cena que outro membro compartilha é trabalho dele, licenciado para seu uso pessoal enquanto você for membro. Você pode reproduzi-la, curti-la e passar o arquivo sem alterações a outros membros Plus. Por favor, não a altere, não a apresente como sua, não a publique em outro lugar nem a venda.',
   'terms.scenes.p8':

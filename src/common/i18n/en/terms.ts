@@ -33,7 +33,7 @@ const terms = {
 
   'terms.membership.title': 'The membership',
   'terms.membership.p1':
-    'With a free account you can browse Visualizers, see every published scene’s picture and details, try each of FluidEQ’s free sample scenes for {tasteSeconds} seconds and see the leaderboard. Plus plays and adds every scene, unlocks the Plus looks, lets you make scenes in the Studio and export or publish them, lets you join the leaderboard, and puts scenes on your desktop and your RGB lights. It costs {price}, and renews at the end of each period you paid for until you cancel. Plus can also arrive without a payment. When FluidEQ offers a free trial, an account created on or after the day that offer began can take it once, for {trialDays} days, with no card and nothing charged when it ends. And a scene you publish that a moderator approves can earn you a month of Plus. Neither is a subscription: nothing renews them, and nothing is ever charged for them. Once a scene of yours has earned a month, the Studio keeps one project open to you even without Plus, so you can publish your next scene; exporting a file stays with Plus.',
+    'With a free account you can browse Visualizers, see every published scene’s picture and details, try each of FluidEQ’s free sample scenes for {tasteSeconds} seconds and see the leaderboard. Plus plays and adds every scene, unlocks the Plus looks, lets you make scenes in the Studio and export or publish them, lets you join the leaderboard, and puts scenes on your desktop and your RGB lights. It costs {price}, and renews at the end of each period you paid for until you cancel. Plus can also arrive without a payment. When FluidEQ offers a free trial, an account created on or after the day that offer began can take it once, for {trialDays} days, with no card and nothing charged when it ends. And a scene you publish that FluidEQ’s maker approves can earn you a month of Plus. Neither is a subscription: nothing renews them, and nothing is ever charged for them. Once a scene of yours has earned a month, the Studio keeps one project open to you even without Plus, so you can publish your next scene; exporting a file stays with Plus.',
   'terms.membership.p2':
     'Payment is handled by Buy Me a Coffee, under its own terms. FluidEQ never sees your card or bank details. You can cancel at any time on Buy Me a Coffee: Plus stays on until the end of the period you paid for, and nothing more is charged.',
   'terms.membership.p4':
@@ -100,7 +100,7 @@ const terms = {
   'terms.sent.board.who':
     'Your handle, display name, rank, points and what they are made of: every signed-in account, on the board and on your maker page.',
   'terms.sent.sceneExport.what':
-    'A scene you export: its code, settings, pictures and ambient elements',
+    'A scene you export: its code, settings, pictures, 3D models and ambient elements',
   'terms.sent.sceneExport.when': 'When you press Export in the Studio',
   'terms.sent.sceneExport.who':
     'The service checks the scene, removes the comments from its code and signs it, adding your display name and account id to the file. It keeps a record of which scene and version you exported, when, and a fingerprint of the file. Whoever you send the file to sees your display name and account id.',
@@ -114,7 +114,7 @@ const terms = {
     'A scene you publish, as for an export, with one cover picture, up to two categories and a note about what is new, if you write one',
   'terms.sent.scenePublish.when': 'When you press Publish in the Studio',
   'terms.sent.scenePublish.who':
-    'Once a moderator approves it, in Visualizers, until you unpublish it, anyone signed in to FluidEQ sees its picture, name, categories, version notes, likes and adds, with your display name, handle and maker page. Only Plus members can play the scene and add it. FluidEQ’s maker keeps the scene and the record that you published it, as for an export.',
+    'Once FluidEQ’s maker approves it, in Visualizers, until you unpublish it, anyone signed in to FluidEQ sees its picture, name, categories, version notes, likes and adds, with your display name, handle and maker page. Only Plus members can play the scene and add it. FluidEQ’s maker keeps the scene and the record that you published it, as for an export.',
   'terms.sent.gallery.what':
     'In Visualizers: what you search for, the scenes and makers you open, the scenes you add, and any scene you report with its reason',
   'terms.sent.gallery.when':
@@ -135,9 +135,9 @@ const terms = {
   'terms.never.p3':
     'Your audio devices, monitors and RGB lights, their names, and the other apps on your computer.',
   'terms.never.p4':
-    'Your Studio projects, their photos and your notes, unless you export or publish a scene. The prompt you copy for your AI assistant goes only where you paste it.',
+    'Your Studio projects, their photos, their 3D models and your notes, unless you export or publish a scene. The prompt you copy for your AI assistant goes only where you paste it.',
   'terms.never.p5':
-    'What FluidEQ remembers on your computer to work: your desktop backgrounds and lighting, the scene versions you have seen, and any scene that made your graphics driver reset.',
+    'What FluidEQ remembers on your computer to work: your desktop backgrounds and lighting, your Library — the folders you added, what it read from the files in them, and their cover pictures — the scene versions you have seen, and any scene that made your graphics driver reset.',
 
   'terms.protect.title': 'How it is protected',
   'terms.protect.p1': 'Every request is encrypted on its way.',
@@ -208,7 +208,7 @@ const terms = {
   'terms.scenes.p5':
     'Members who like your scene give you points on the leaderboard, if you have joined it. Likes are counted by the server; see Fair play.',
   'terms.scenes.p6':
-    'Only share work you have the right to share: your own photos and drawings, or ones whose owner allows it. The rules for what you publish apply to every scene you share. FluidEQ’s maker can stop a scene from opening if it breaks these terms or someone else’s rights.',
+    'Only share work you have the right to share: your own photos, drawings and 3D models, or ones whose owner allows it. The rules for what you publish apply to every scene you share. FluidEQ’s maker can stop a scene from opening if it breaks these terms or someone else’s rights.',
   'terms.scenes.p7':
     'A scene another member shares is their work, licensed to you for personal use while you are a member. You can play it, like it, and pass the file on unchanged to other Plus members. Please do not change it, present it as yours, publish it anywhere else, or sell it.',
   'terms.scenes.p8':

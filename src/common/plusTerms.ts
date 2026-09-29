@@ -85,6 +85,16 @@
  * the maker's own admin account, so no member ever agreed to the text
  * without them. A raise would also have had to move the server's
  * `plus_terms_version()`, or the trial refuses every new account.
+ *
+ * Amended again for 2.0 (2026-09-28), on the same reading of the live
+ * agreements: a scene can now carry 3D models, which export and publish send
+ * and the Studio keeps, so the three lines listing what a scene is made of
+ * name them; the Library's index joined what FluidEQ remembers on the
+ * computer; and the month an approved scene earns is approved by FluidEQ's
+ * maker, which is what the rules and the scene terms already said and what
+ * the server allows — one administrator account, seeded by address, and no
+ * moderator role. Naming a second reviewer changes who reads a member's
+ * work, so that needs a raise rather than an amendment.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.

@@ -23,7 +23,7 @@ const terms = {
 
   'terms.membership.title': 'Die Mitgliedschaft',
   'terms.membership.p1':
-    'Mit einem kostenlosen Konto können Sie „Visualizer“ durchstöbern, Bild und Details jeder veröffentlichten Szene sehen, die kostenlosen Beispielszenen von FluidEQ jeweils {tasteSeconds} Sekunden lang ausprobieren und die Rangliste ansehen. Mit Plus können Sie jede Szene abspielen und hinzufügen, die Plus-Darstellungen nutzen, Szenen im Studio erstellen und exportieren oder veröffentlichen und der Rangliste beitreten; außerdem bringt Plus Szenen auf Ihren Desktop und Ihre RGB-Beleuchtung. Es kostet {price} und verlängert sich am Ende jedes bezahlten Zeitraums, bis Sie kündigen. Plus kann auch ohne Zahlung dazukommen. Wenn FluidEQ eine Gratis-Testphase anbietet, kann ein Konto, das ab dem Tag des Angebotsbeginns angelegt wurde, sie einmal nutzen: {trialDays} Tage, ohne Karte, und am Ende wird nichts abgebucht. Und eine Szene, die Sie veröffentlichen und die ein Moderator freigibt, kann Ihnen einen Monat Plus einbringen. Beides ist kein Abonnement: Nichts verlängert sie, und es wird nie etwas dafür berechnet. Sobald Ihnen eine Ihrer Szenen einen Monat eingebracht hat, hält Ihnen das Studio auch ohne Plus ein Projekt offen, damit Sie Ihre nächste Szene veröffentlichen können; das Exportieren einer Datei bleibt Plus vorbehalten.',
+    'Mit einem kostenlosen Konto können Sie „Visualizer“ durchstöbern, Bild und Details jeder veröffentlichten Szene sehen, die kostenlosen Beispielszenen von FluidEQ jeweils {tasteSeconds} Sekunden lang ausprobieren und die Rangliste ansehen. Mit Plus können Sie jede Szene abspielen und hinzufügen, die Plus-Darstellungen nutzen, Szenen im Studio erstellen und exportieren oder veröffentlichen und der Rangliste beitreten; außerdem bringt Plus Szenen auf Ihren Desktop und Ihre RGB-Beleuchtung. Es kostet {price} und verlängert sich am Ende jedes bezahlten Zeitraums, bis Sie kündigen. Plus kann auch ohne Zahlung dazukommen. Wenn FluidEQ eine Gratis-Testphase anbietet, kann ein Konto, das ab dem Tag des Angebotsbeginns angelegt wurde, sie einmal nutzen: {trialDays} Tage, ohne Karte, und am Ende wird nichts abgebucht. Und eine Szene, die Sie veröffentlichen und die der Macher von FluidEQ freigibt, kann Ihnen einen Monat Plus einbringen. Beides ist kein Abonnement: Nichts verlängert sie, und es wird nie etwas dafür berechnet. Sobald Ihnen eine Ihrer Szenen einen Monat eingebracht hat, hält Ihnen das Studio auch ohne Plus ein Projekt offen, damit Sie Ihre nächste Szene veröffentlichen können; das Exportieren einer Datei bleibt Plus vorbehalten.',
   'terms.membership.p2':
     'Die Zahlung wickelt Buy Me a Coffee nach seinen eigenen Bedingungen ab. FluidEQ sieht niemals Ihre Karte oder Bankdaten. Sie können jederzeit bei Buy Me a Coffee kündigen: Plus bleibt bis zum Ende des bezahlten Zeitraums aktiv, und danach wird nichts mehr abgebucht.',
   'terms.membership.p4':
@@ -90,7 +90,7 @@ const terms = {
   'terms.sent.board.who':
     'Ihr Kürzel, Ihr Anzeigename, Ihr Rang, Ihre Punkte und woraus sie bestehen: jedes angemeldete Konto, in der Rangliste und auf Ihrer Ersteller-Seite.',
   'terms.sent.sceneExport.what':
-    'Eine Szene, die Sie exportieren: ihr Code, ihre Einstellungen, Bilder und Ambiente-Elemente',
+    'Eine Szene, die Sie exportieren: ihr Code, ihre Einstellungen, Bilder, 3D-Modelle und Ambiente-Elemente',
   'terms.sent.sceneExport.when': 'Wenn Sie im Studio auf Exportieren klicken',
   'terms.sent.sceneExport.who':
     'Der Dienst prüft die Szene, entfernt die Kommentare aus ihrem Code und signiert sie, wobei er Ihren Anzeigenamen und Ihre Konto-ID in die Datei schreibt. Er speichert, welche Szene in welcher Version Sie wann exportiert haben, und einen Fingerabdruck der Datei. Wer die Datei von Ihnen bekommt, sieht Ihren Anzeigenamen und Ihre Konto-ID.',
@@ -105,7 +105,7 @@ const terms = {
   'terms.sent.scenePublish.when':
     'Wenn Sie im Studio auf „Veröffentlichen“ klicken',
   'terms.sent.scenePublish.who':
-    'Sobald ein Moderator sie freigegeben hat, sehen unter „Visualizer“ alle, die bei FluidEQ angemeldet sind, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorien, Versionsnotizen, „Gefällt mir“ und wie oft sie hinzugefügt wurde, mit Ihrem Anzeigenamen, Ihrem Kürzel und Ihrer Ersteller-Seite. Nur Plus-Mitglieder können die Szene abspielen und hinzufügen. Der Macher von FluidEQ bewahrt die Szene und die Aufzeichnung auf, dass Sie sie veröffentlicht haben, wie bei einem Export.',
+    'Sobald der Macher von FluidEQ sie freigegeben hat, sehen unter „Visualizer“ alle, die bei FluidEQ angemeldet sind, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorien, Versionsnotizen, „Gefällt mir“ und wie oft sie hinzugefügt wurde, mit Ihrem Anzeigenamen, Ihrem Kürzel und Ihrer Ersteller-Seite. Nur Plus-Mitglieder können die Szene abspielen und hinzufügen. Der Macher von FluidEQ bewahrt die Szene und die Aufzeichnung auf, dass Sie sie veröffentlicht haben, wie bei einem Export.',
   'terms.sent.gallery.what':
     'Unter „Visualizer“: wonach Sie suchen, welche Szenen und Ersteller Sie öffnen, welche Szenen Sie hinzufügen, und jede Szene, die Sie melden, mit dem Grund',
   'terms.sent.gallery.when':
@@ -126,9 +126,9 @@ const terms = {
   'terms.never.p3':
     'Ihre Audiogeräte, Monitore und RGB-Beleuchtung, deren Namen und die anderen Apps auf Ihrem Computer.',
   'terms.never.p4':
-    'Ihre Studio-Projekte, deren Fotos und Ihre Notizen, es sei denn, Sie exportieren oder veröffentlichen eine Szene. Der Prompt, den Sie für Ihren KI-Assistenten kopieren, gelangt nur dorthin, wo Sie ihn einfügen.',
+    'Ihre Studio-Projekte, deren Fotos und 3D-Modelle und Ihre Notizen, es sei denn, Sie exportieren oder veröffentlichen eine Szene. Der Prompt, den Sie für Ihren KI-Assistenten kopieren, gelangt nur dorthin, wo Sie ihn einfügen.',
   'terms.never.p5':
-    'Was sich FluidEQ auf Ihrem Computer merkt, um zu funktionieren: Ihre Desktophintergründe und Beleuchtung, die Szenenversionen, die Sie gesehen haben, und jede Szene, die ein Zurücksetzen Ihres Grafiktreibers ausgelöst hat.',
+    'Was sich FluidEQ auf Ihrem Computer merkt, um zu funktionieren: Ihre Desktophintergründe und Beleuchtung, Ihre Bibliothek (die Ordner, die Sie hinzugefügt haben, was aus deren Dateien gelesen wurde, und die Coverbilder), die Szenenversionen, die Sie gesehen haben, und jede Szene, die ein Zurücksetzen Ihres Grafiktreibers ausgelöst hat.',
 
   'terms.protect.title': 'Wie es geschützt ist',
   'terms.protect.p1': 'Jede Anfrage wird verschlüsselt übertragen.',
@@ -199,7 +199,7 @@ const terms = {
   'terms.scenes.p5':
     'Mitglieder, denen Ihre Szene gefällt, geben Ihnen Punkte in der Rangliste, wenn Sie ihr beigetreten sind. „Gefällt mir“ zählt der Server; siehe Fairness in der Rangliste.',
   'terms.scenes.p6':
-    'Teilen Sie nur, was Sie teilen dürfen: Ihre eigenen Fotos und Zeichnungen oder solche, deren Urheber es erlaubt. Die Regeln für das, was Sie veröffentlichen, gelten für jede Szene, die Sie teilen. Der Macher von FluidEQ kann verhindern, dass sich eine Szene öffnet, wenn sie gegen diese Bedingungen oder die Rechte anderer verstößt.',
+    'Teilen Sie nur, was Sie teilen dürfen: Ihre eigenen Fotos, Zeichnungen und 3D-Modelle oder solche, deren Urheber es erlaubt. Die Regeln für das, was Sie veröffentlichen, gelten für jede Szene, die Sie teilen. Der Macher von FluidEQ kann verhindern, dass sich eine Szene öffnet, wenn sie gegen diese Bedingungen oder die Rechte anderer verstößt.',
   'terms.scenes.p7':
     'Eine Szene, die ein anderes Mitglied teilt, ist dessen Werk und Ihnen für die persönliche Nutzung überlassen, solange Sie Mitglied sind. Sie können sie abspielen, mit „Gefällt mir“ markieren und die Datei unverändert an andere Plus-Mitglieder weitergeben. Bitte verändern Sie sie nicht, geben Sie sie nicht als Ihre aus, veröffentlichen Sie sie nicht anderswo und verkaufen Sie sie nicht.',
   'terms.scenes.p8':
