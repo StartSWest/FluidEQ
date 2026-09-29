@@ -118,7 +118,11 @@ const FAMILIES: Record<GraphStyle, TGraphStyleFamily> = {
   rain: 'scenes',
   honeycomb: 'bars',
   fence: 'bars',
-  braid: 'lines',
+  // Retired with the plain forms and brought back (Ivan, 2026-09-28: "I used
+  // to love the braid one what happened to it?"). With its floor, horizon,
+  // motes and sparks (`braidStage.ts`) it is a picture, so it files with the
+  // scenes; under Lines it would have been the only thing there.
+  braid: 'scenes',
   stitch: 'points',
   canyon: 'fills',
   fluid: 'fills',

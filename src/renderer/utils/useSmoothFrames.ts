@@ -139,7 +139,13 @@ const useSmoothFrames = (
       }
       tickMs = displayTickMs(now, lastTickAt, tickMs);
       lastTickAt = now;
-      const elapsed = now - lastDrawRef.current;
+      // Never below nothing. The kick stamps `performance.now()` and a frame
+      // is stamped with the moment its frame began, which for the first
+      // frame after a kick from an event can be BEFORE the kick: a few
+      // milliseconds of negative time, and every clock the drawing keeps
+      // stepped back. Braid's did, and a mote born a moment "later" had a
+      // negative age that indexed past its bands and threw.
+      const elapsed = Math.max(0, now - lastDrawRef.current);
       const pace = paceRef.current;
       if (pace && !isFrameDue(elapsed, pace(), tickMs)) {
         // Too soon for the consumer's pace. Still queued, so the next frame

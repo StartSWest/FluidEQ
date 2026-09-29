@@ -267,7 +267,6 @@ const RETIRED: Partial<Record<GraphStyle, GraphStyle>> = {
   bezier: 'analyzer',
   feather: 'analyzer',
   zipper: 'analyzer',
-  braid: 'analyzer',
   stitch: 'analyzer',
   sawtooth: 'analyzer',
   fluid: 'analyzer',

@@ -324,8 +324,9 @@ describe('curated forms and settings', () => {
     // 2026-09-24 (five pictures and five plain spectrums), and ten more
     // visualizers the next day — less the Mesh, which the Waterfall took in —
     // and Horizon the day after that; Silk waves and Mirror bars went on
-    // 2026-09-28, onto Spectrum wave and the LED bars.
-    expect(GRAPH_FORM_LOOKS).toHaveLength(38);
+    // 2026-09-28, onto Spectrum wave and the LED bars, and Braid came back.
+    expect(GRAPH_FORM_LOOKS).toHaveLength(39);
+    expect(SELECTABLE_GRAPH_STYLES).toContain('braid');
     expect(SELECTABLE_GRAPH_STYLES).toContain('ledbars');
     expect(SELECTABLE_GRAPH_STYLES).toContain('spectrumwave');
     expect(SELECTABLE_GRAPH_STYLES).toContain('halftone');
