@@ -490,7 +490,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.steps':
     'Öffnen Sie Plus → Visualizer. Suchen Sie, sortieren Sie nach Beliebteste, Diese Woche oder Neueste, oder wählen Sie eine Kategorie.\nÖffnen Sie eine Szene, drücken Sie Zu meinen Darstellungen und dann Im Diagramm abspielen. Die Pfeile oder ← und → wechseln zwischen den Szenen.\nGeben Sie Szenen von Mitgliedern mit dem Herzsymbol ein „Gefällt mir“ und melden Sie eine, die dort nicht hingehört.',
   'help.gallery.tip':
-    'Szenen in Ihren Darstellungen aktualisieren sich selbst, und die Seite einer Szene zeigt, was sich in jeder Version geändert hat. Eine Szene, die Sie veröffentlichen, erscheint, sobald ein Moderator sie freigegeben hat. Im Studio öffnen zeigt, wie die eigenen Szenen von FluidEQ gemacht sind.',
+    'Szenen in Ihren Darstellungen aktualisieren sich selbst, und die Seite einer Szene zeigt, was sich in jeder Version geändert hat. Eine Szene, die Sie veröffentlichen, erscheint, sobald der Macher von FluidEQ sie freigegeben hat. Im Studio öffnen zeigt, wie die eigenen Szenen von FluidEQ gemacht sind.',
   'help.gallery.keywords':
     'community-szenen, visualizer herunterladen, download, durchsuchen, entdecken, likes',
   'help.gallery.search': 'Findet Szenen und Ersteller.',
@@ -537,7 +537,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.steps':
     'Öffnen Sie Plus → Studio und drücken Sie Neues Projekt…. Geben Sie ihm einen Namen; FluidEQ legt seinen Ordner mit einer Szene an, die sich schon bewegt.\nBeschreiben Sie Ihre Idee, öffnen Sie den Ordner in Ihrem KI-Assistenten und fügen Sie den Prompt aus KI-Prompt kopieren ein.\nBeobachten Sie die Bühne, während Dateien gespeichert werden, und probieren Sie die Testsignale aus. Dann Zu meinen Darstellungen, Veröffentlichen… oder Exportieren….',
   'help.studio.tip':
-    'Doppelklicken Sie auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten. Eine Szene, die Sie veröffentlichen, liest zuerst ein Moderator, und eine freigegebene Szene bringt Ihnen einen Monat Plus.',
+    'Doppelklicken Sie auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten. Eine Szene, die Sie veröffentlichen, liest zuerst der Macher von FluidEQ, und eine freigegebene Szene bringt Ihnen einen Monat Plus.',
   'help.studio.keywords':
     'visualizer erstellen, szeneneditor, shader, GLSL, programmieren, ChatGPT, Claude, creator, hochladen',
   'help.studio.project': 'Ihre Projekte und FluidEQ-Szenen zum Hineinschauen.',

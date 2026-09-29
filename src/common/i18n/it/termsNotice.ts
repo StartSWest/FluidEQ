@@ -18,7 +18,7 @@ const termsNotice = {
   'termsNotice.change.8':
     'Il rimborso entro quattordici giorni viene ritirato. Disdicendo, Plus resta attivo fino alla fine del periodo pagato e non viene addebitato altro.',
   'termsNotice.change.9':
-    'Ora ogni scena pubblicata in Visualizzatori viene letta da un moderatore prima che chiunque altro la veda. E Plus può arrivare senza pagare: una prova gratuita che un account nuovo può prendere una volta, e un mese guadagnato con una scena approvata. Nessuno dei due si rinnova, e non viene mai addebitato nulla.',
+    'Ora ogni scena pubblicata in Visualizzatori viene letta dal creatore di FluidEQ prima che chiunque altro la veda. E Plus può arrivare senza pagare: una prova gratuita che un account nuovo può prendere una volta, e un mese guadagnato con una scena approvata. Nessuno dei due si rinnova, e non viene mai addebitato nulla.',
 } as const;
 
 export default termsNotice;

@@ -439,7 +439,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.steps':
     '打开“Plus → 可视化”。可以搜索，按“最多赞”“本周”或“最新”排序，或选择一个分类。\n打开一个场景，按“添加到我的外观”，再按“在图表上播放”。用箭头按钮或 ← 和 → 在场景之间切换。\n用爱心为会员的场景点赞，并举报不该出现在这里的场景。',
   'help.gallery.tip':
-    '你外观中的场景会自动更新，场景页面会说明每个版本的变化。你发布的场景，会在审核员批准后出现。“在工作室中打开”可以查看 FluidEQ 自己的场景是怎么做的。',
+    '你外观中的场景会自动更新，场景页面会说明每个版本的变化。你发布的场景，会在 FluidEQ 作者批准后出现。“在工作室中打开”可以查看 FluidEQ 自己的场景是怎么做的。',
   'help.gallery.keywords': '画廊, 场景库, 下载场景, 下载可视化, 社区场景, 热门',
   'help.gallery.search': '查找场景和作者。',
   'help.gallery.sortName': '排序',
@@ -478,7 +478,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.steps':
     '打开“Plus → 工作室”，按“新建项目…”。给它起个名字；FluidEQ 会创建它的文件夹，里面已有一个会动的场景。\n描述你的想法，在你的 AI 助手中打开这个文件夹，然后粘贴用“复制 AI 提示词”复制的提示词。\n保存文件时观察舞台，并试试测试信号。然后选择“添加到我的外观”“发布…”或“导出…”。',
   'help.studio.tip':
-    '双击舞台可全屏。“查看 FluidEQ 场景的内部…”会打开 FluidEQ 自己的某个场景供你学习；它不能被发布。闪烁过于强烈或运行过重的场景会被拦下。你发布的场景会先由审核员阅读，获得批准的场景可以换来一个月的 Plus。',
+    '双击舞台可全屏。“查看 FluidEQ 场景的内部…”会打开 FluidEQ 自己的某个场景供你学习；它不能被发布。闪烁过于强烈或运行过重的场景会被拦下。你发布的场景会先由 FluidEQ 作者阅读，获得批准的场景可以换来一个月的 Plus。',
   'help.studio.keywords':
     '着色器, shader, GLSL, 编程, ChatGPT, Claude, DeepSeek, prompt, 制作场景, 制作可视化, 场景编辑器, 创作者, 投稿',
   'help.studio.project': '你的项目，以及可查看内部的 FluidEQ 场景。',

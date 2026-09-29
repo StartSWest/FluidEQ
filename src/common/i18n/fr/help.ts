@@ -492,7 +492,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.steps':
     'Ouvrez Plus → Visualiseurs. Recherchez, triez par Les plus aimées, Cette semaine ou Les plus récentes, ou choisissez une catégorie.\nOuvrez une scène, appuyez sur Ajouter à mes styles, puis sur Lancer sur le graphique. Les flèches, ou ← et →, passent d’une scène à l’autre.\nAimez les scènes des membres avec le cœur, et signalez celle qui n’a pas sa place ici.',
   'help.gallery.tip':
-    'Les scènes de vos styles se mettent à jour d’elles-mêmes, et la page d’une scène indique ce qui a changé à chaque version. Une scène que vous publiez apparaît une fois qu’un modérateur l’a approuvée. Ouvrir dans le Studio montre comment sont faites les scènes de FluidEQ.',
+    'Les scènes de vos styles se mettent à jour d’elles-mêmes, et la page d’une scène indique ce qui a changé à chaque version. Une scène que vous publiez apparaît une fois que le créateur de FluidEQ l’a approuvée. Ouvrir dans le Studio montre comment sont faites les scènes de FluidEQ.',
   'help.gallery.keywords':
     'télécharger, découvrir, populaires, tendances, modération, inapproprié, like, visualizers',
   'help.gallery.search': 'Trouve des scènes et des créateurs.',
@@ -538,7 +538,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.steps':
     'Ouvrez Plus → Studio et appuyez sur Nouveau projet… Donnez-lui un nom ; FluidEQ crée son dossier avec une scène qui bouge déjà.\nDécrivez votre idée, ouvrez le dossier dans votre assistant IA et collez le prompt copié avec Copier le prompt IA.\nRegardez l’aperçu à chaque enregistrement de fichier et essayez les signaux de test. Puis Ajouter à mes styles, Publier… ou Exporter…',
   'help.studio.tip':
-    'Double-cliquez sur l’aperçu pour le plein écran. Explorer une scène FluidEQ… ouvre l’une des scènes de FluidEQ pour apprendre en l’étudiant ; elle ne peut pas être publiée. Les scènes qui clignotent trop fort ou sont trop lourdes sont retenues. Une scène que vous publiez est d’abord lue par un modérateur, et une scène approuvée vous offre un mois de Plus.',
+    'Double-cliquez sur l’aperçu pour le plein écran. Explorer une scène FluidEQ… ouvre l’une des scènes de FluidEQ pour apprendre en l’étudiant ; elle ne peut pas être publiée. Les scènes qui clignotent trop fort ou sont trop lourdes sont retenues. Une scène que vous publiez est d’abord lue par le créateur de FluidEQ, et une scène approuvée vous offre un mois de Plus.',
   'help.studio.keywords':
     'intelligence artificielle, éditeur de scènes, shader, GLSL, ChatGPT, Claude',
   'help.studio.project': 'Vos projets, et des scènes FluidEQ à explorer.',

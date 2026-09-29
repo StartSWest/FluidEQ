@@ -488,7 +488,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.steps':
     'Apri Plus → Visualizzatori. Cerca, ordina per Più apprezzate, Questa settimana o Più recenti, oppure scegli una categoria.\nApri una scena, premi Aggiungi ai miei aspetti, poi Riproduci sul grafico. Le frecce, o ← e →, passano da una scena all’altra.\nMetti mi piace alle scene dei membri con il cuore e segnala quelle che non dovrebbero esserci.',
   'help.gallery.tip':
-    'Le scene nei tuoi aspetti si aggiornano da sole, e la pagina di una scena dice cosa è cambiato in ogni versione. Una scena che pubblichi compare quando un moderatore l’ha approvata. Apri nello Studio mostra come sono fatte le scene di FluidEQ.',
+    'Le scene nei tuoi aspetti si aggiornano da sole, e la pagina di una scena dice cosa è cambiato in ogni versione. Una scena che pubblichi compare quando il creatore di FluidEQ l’ha approvata. Apri nello Studio mostra come sono fatte le scene di FluidEQ.',
   'help.gallery.keywords':
     'scaricare visualizer, download, scene della community, scene degli utenti, like, segnalare, popolari',
   'help.gallery.search': 'Trova scene e autori.',
@@ -533,7 +533,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.steps':
     'Apri Plus → Studio e premi Nuovo progetto…. Dagli un nome: FluidEQ crea la sua cartella con una scena che si muove già.\nDescrivi la tua idea, apri la cartella nel tuo assistente IA e incolla il prompt di Copia prompt per IA.\nGuarda il palco mentre i file vengono salvati e usa i segnali di prova. Poi Aggiungi ai miei aspetti, Pubblica… o Esporta….',
   'help.studio.tip':
-    'Fai doppio clic sul palco per lo schermo intero. Guarda dentro una scena di FluidEQ… apre una delle scene di FluidEQ da cui imparare; non si può pubblicare. Le scene che lampeggiano troppo o sono troppo pesanti vengono bloccate. Una scena che pubblichi viene prima letta da un moderatore, e una scena approvata ti regala un mese di Plus.',
+    'Fai doppio clic sul palco per lo schermo intero. Guarda dentro una scena di FluidEQ… apre una delle scene di FluidEQ da cui imparare; non si può pubblicare. Le scene che lampeggiano troppo o sono troppo pesanti vengono bloccate. Una scena che pubblichi viene prima letta dal creatore di FluidEQ, e una scena approvata ti regala un mese di Plus.',
   'help.studio.keywords':
     'creare visualizzatore, shader, GLSL, intelligenza artificiale, ChatGPT, Claude, programmare, editor',
   'help.studio.project':

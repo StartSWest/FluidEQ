@@ -474,7 +474,7 @@ const help = {
   'help.gallery.steps':
     'Open Plus → Visualizers. Search, sort by Most liked, This week or Newest, or pick a category.\nOpen a scene, press Add to my looks, then Play on the graph. The arrows, or ← and →, step between scenes.\nLike members’ scenes with the heart, and report one that should not be there.',
   'help.gallery.tip':
-    'Scenes in your looks update themselves, and a scene’s page says what changed in each version. A scene you publish appears once a moderator has approved it. Open in Studio shows how FluidEQ’s own scenes are made.',
+    'Scenes in your looks update themselves, and a scene’s page says what changed in each version. A scene you publish appears once FluidEQ’s maker has approved it. Open in Studio shows how FluidEQ’s own scenes are made.',
   'help.gallery.keywords':
     'scenes, scene, visualizers, download visualizers, browse, community scenes, likes, like, report, samples',
   'help.gallery.search': 'Finds scenes and makers.',
@@ -518,7 +518,7 @@ const help = {
   'help.studio.steps':
     'Open Plus → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.\nDescribe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.\nWatch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….',
   'help.studio.tip':
-    'Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by a moderator first, and one that is approved earns you a month of Plus.',
+    'Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and one that is approved earns you a month of Plus.',
   'help.studio.keywords':
     'create visualizer, make visualizer, make a scene, shader, glsl, code, ai, chatgpt, claude, prompt, publish, export scene, scene editor, creator',
   'help.studio.project': 'Your projects, and FluidEQ scenes to look inside.',

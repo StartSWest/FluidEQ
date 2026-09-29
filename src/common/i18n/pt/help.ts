@@ -484,7 +484,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.steps':
     'Abra Plus → Visualizadores. Pesquise, ordene por Mais curtidas, Nesta semana ou Mais novas, ou escolha uma categoria.\nAbra uma cena, pressione Adicionar aos meus visuais e depois Reproduzir no gráfico. As setas, ou ← e →, passam de uma cena para outra.\nCurta as cenas dos membros com o coração e denuncie uma que não deveria estar lá.',
   'help.gallery.tip':
-    'As cenas nos seus visuais se atualizam sozinhas, e a página de uma cena diz o que mudou em cada versão. Uma cena que você publica aparece assim que um moderador a aprova. Abrir no Estúdio mostra como as cenas do próprio FluidEQ são feitas.',
+    'As cenas nos seus visuais se atualizam sozinhas, e a página de uma cena diz o que mudou em cada versão. Uma cena que você publica aparece assim que o criador do FluidEQ a aprova. Abrir no Estúdio mostra como as cenas do próprio FluidEQ são feitas.',
   'help.gallery.keywords':
     'baixar visualizadores, cenas da comunidade, likes, populares, denunciar, moderação',
   'help.gallery.search': 'Encontra cenas e criadores.',
@@ -529,7 +529,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.steps':
     'Abra Plus → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, Adicionar aos meus visuais, Publicar… ou Exportar….',
   'help.studio.tip':
-    'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena do FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes por um moderador, e uma que for aprovada lhe dá um mês de Plus.',
+    'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena do FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes pelo criador do FluidEQ, e uma que for aprovada lhe dá um mês de Plus.',
   'help.studio.keywords':
     'criar visualizador, editor de cenas, shader, GLSL, WebGL, programação, ChatGPT, Claude, Gemini',
   'help.studio.project':

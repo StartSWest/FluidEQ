@@ -18,7 +18,7 @@ const termsNotice = {
   'termsNotice.change.8':
     'Le remboursement sous quatorze jours est retiré. En cas de résiliation, Plus reste actif jusqu’à la fin de la période payée et rien de plus n’est prélevé.',
   'termsNotice.change.9':
-    'Désormais, chaque scène publiée dans Visualiseurs est lue par un modérateur avant que quiconque la voie. Et Plus peut arriver sans paiement : un essai gratuit qu’un nouveau compte peut prendre une fois, et un mois gagné grâce à une scène approuvée. Ni l’un ni l’autre ne se renouvelle, et rien n’est jamais prélevé pour eux.',
+    'Désormais, chaque scène publiée dans Visualiseurs est lue par le créateur de FluidEQ avant que quiconque la voie. Et Plus peut arriver sans paiement : un essai gratuit qu’un nouveau compte peut prendre une fois, et un mois gagné grâce à une scène approuvée. Ni l’un ni l’autre ne se renouvelle, et rien n’est jamais prélevé pour eux.',
 } as const;
 
 export default termsNotice;
