@@ -211,7 +211,9 @@ afterEach(() => {
 });
 
 describe('the Media page in the interface colours', () => {
-  it('asks the page nothing and changes nothing until the user turns it on', async () => {
+  it('asks the page nothing and changes nothing while the colours are switched off', async () => {
+    // Set here, not left to the default, which a new install may have on.
+    act(() => setGuestTintEnabled(false));
     const page = fakePage([TWITCH_ANSWER]);
     const { rerender } = renderHook(
       ({ token }) => useGuestTint(page.ref, 'twitch', token, true, false),

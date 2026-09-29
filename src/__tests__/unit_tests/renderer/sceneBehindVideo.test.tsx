@@ -8,8 +8,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * When the Media page stands over the graph's Plus visualizer.
  *
  * Making a site's page see-through is the same kind of change as colouring it,
- * so it waits on the same choice by the user, and it happens only in the
- * video's own full screen, over a Plus scene.
+ * so it follows the same switch, and it happens only in the video's own full
+ * screen, over a Plus scene. Each case sets the switch itself: which way it
+ * starts is a default that can change, and a case that leaned on it passed
+ * only because the case before had switched it off.
  */
 
 import { act, renderHook } from '@testing-library/react';
@@ -39,8 +41,9 @@ it('stands the page over the scene only in full screen, over a Plus scene, with 
   expect(behind(false)).toBe(false);
 });
 
-it("never makes a site's page see-through unless the user turned matching colours on", () => {
+it("never makes a site's page see-through while matching colours is switched off", () => {
   mockScene = { lookId: 'scene:bloom' };
+  act(() => setGuestTintEnabled(false));
   expect(behind(true)).toBe(false);
 });
 
