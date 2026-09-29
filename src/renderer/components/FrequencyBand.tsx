@@ -44,10 +44,13 @@ import '../styles/FrequencyBand.scss';
 
 type TGainAction = { kind: 'set'; value: number } | { kind: 'reset' };
 
+/** How much of a band's own chrome fits: the row gets denser as it fills. */
+export type TBandDensity = 'full' | 'compact' | 'dense';
+
 interface IFrequencyBandProps {
   filter: IFilter;
   isMinSliderCount: boolean;
-  density?: 'full' | 'compact' | 'dense';
+  density?: TBandDensity;
   flatLayout?: boolean;
   isSelected?: boolean;
   isHovered?: boolean;

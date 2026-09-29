@@ -742,7 +742,7 @@ export const findKaraokePitchIssues = (
   return issues;
 };
 
-interface IKaraokePitchWord {
+export interface IKaraokePitchWord {
   text: string;
   startMs: number;
   endMs: number;
