@@ -100,17 +100,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       justify-self: stretch;
     }
 
+    // The name centred over the five dials, as they are centred. The band
+    // pane's eyebrow-then-value line put it at the right end, over High cut,
+    // where it read as that dial's caption; its eyebrow cell is empty in
+    // this row, so it goes rather than offsetting the name by the gap.
     .eq-flat-editor__identity {
       grid-column: 1 / -1;
-      grid-template-columns: max-content minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr);
       grid-template-rows: auto;
       align-items: center;
-      gap: 10px;
+
+      > span {
+        display: none;
+      }
     }
 
     .eq-flat-editor__identity strong {
       height: auto;
-      justify-content: flex-end;
+      justify-content: center;
     }
   }
 
