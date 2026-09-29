@@ -370,6 +370,16 @@ export const belowGraphPaneKey = (tab: string) => `${tab}${BELOW_GRAPH_SUFFIX}`;
  */
 const BELOW_GRAPH_DEFAULT_HEIGHT = 344;
 
+/**
+ * And never less than this share of the page, on a window with room to spare
+ * (Ivan, 2026-09-29: "the EQ in main EQ default to be like 40% of the
+ * height"). By need alone the bands opened at about a third of a 2560x1392
+ * window, the graph towering over sliders drawn short. The need still
+ * wins where it is the larger — a 1440x852 laptop, where 40% would put the
+ * tracks under their floor and scroll the page.
+ */
+const BELOW_GRAPH_DEFAULT_SHARE = 0.4;
+
 const editorShareForTab = (tab: string) => {
   const stored = editorSharesByTab[tab];
   if (stored !== undefined) {
@@ -379,8 +389,11 @@ const editorShareForTab = (tab: string) => {
     return GRAPH_STRIP_SHARE;
   }
   return tab.endsWith(BELOW_GRAPH_SUFFIX)
-    ? (getBandsPaneNeed() ?? BELOW_GRAPH_DEFAULT_HEIGHT) /
-        Math.max(1, cachedSplittable.base)
+    ? Math.max(
+        BELOW_GRAPH_DEFAULT_SHARE,
+        (getBandsPaneNeed() ?? BELOW_GRAPH_DEFAULT_HEIGHT) /
+          Math.max(1, cachedSplittable.base),
+      )
     : defaultEditorShare;
 };
 
