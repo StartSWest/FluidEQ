@@ -119,8 +119,8 @@ export const registerGamesIpc = (deps: IGamesIpcDeps): { stop: () => void } => {
   const ours = app?.getPath ? app.getPath('exe').toLowerCase() : '';
   // The card goes to the screen this window is on, so it is told the window.
   const toasts = deps.toasts ?? createGameToasts(deps.getMainWindow);
-  // Where the last program in front was drawn, so the card lands on the
-  // screen the game is on rather than on whichever one FluidEQ sits on.
+  // Where the last program in front was drawn. The card follows FluidEQ's
+  // window; this is where it goes only when there is no window to follow.
   let lastRect: string | undefined;
 
   const toWindow = (channel: string, said: unknown) => {
