@@ -1,0 +1,570 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+@media (max-width: 1280px) {
+  .karaoke-maker__wide-analysis-tools {
+    display: none;
+  }
+
+  .karaoke-maker__compact-analysis-tools {
+    display: flex;
+  }
+}
+
+@media (max-width: 1580px) {
+  .karaoke-maker {
+    --karaoke-maker-header-height: 101px;
+  }
+
+  .karaoke-maker__header {
+    grid-template-areas:
+      'identity actions'
+      'tools tools';
+    grid-template-columns: minmax(150px, 1fr) auto;
+    grid-template-rows: 42px 42px;
+    min-height: 0;
+    gap: 4px 12px;
+    padding: 5px 10px;
+  }
+}
+
+// The editor can be narrow inside a wide app window. Respond to the Maker
+// surface itself so a side pane cannot leave the tools and actions fighting
+// for the same one-line header.
+@container karaoke-maker (max-width: 1500px) {
+  .karaoke-maker__header {
+    grid-template-areas:
+      'identity actions'
+      'tools tools';
+    grid-template-columns: minmax(150px, 1fr) auto;
+    grid-template-rows: 42px 42px;
+    min-height: 0;
+    gap: 4px 12px;
+    padding: 5px 10px;
+  }
+
+  .karaoke-maker__analysis-progress,
+  .karaoke-maker__analysis-error,
+  .karaoke-maker__stems-float,
+  .karaoke-maker__toast {
+    --karaoke-maker-header-height: 101px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .karaoke-maker__header {
+    grid-template-columns: minmax(220px, 1fr) auto;
+  }
+
+  .karaoke-maker__command-primary > .karaoke-maker__status-row {
+    padding-block: 3px;
+  }
+
+  .karaoke-maker__modal-backdrop {
+    padding: 8px;
+  }
+
+  .dialog-frame.karaoke-maker__lyrics-modal {
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+
+  // One column, and the body scrolls as a whole: squeezed into the window's
+  // height, the word list under the lyrics was left six pixels tall.
+  .karaoke-maker__lyrics-modal > .dialog-frame__body {
+    grid-template-rows: auto;
+    align-content: start;
+  }
+
+  .karaoke-maker__lyrics-editor-body {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(220px, auto) auto;
+  }
+
+  .karaoke-maker__lyrics-timing-editor {
+    grid-template-rows: auto minmax(120px, 220px) auto;
+  }
+
+  .karaoke-maker__tool-group,
+  .karaoke-maker__export-wrap {
+    flex: 0 0 auto;
+  }
+
+  .karaoke-maker__inspector {
+    grid-template-columns: 1fr auto;
+  }
+
+  .karaoke-maker__selection-coach {
+    width: calc(100% - 16px);
+    padding: 25px 42px 12px 12px;
+    border-radius: $radius-l;
+  }
+
+  .karaoke-maker__note-inspector {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .karaoke-maker__note-inspector-summary {
+    grid-template-columns: auto auto minmax(0, 1fr);
+
+    strong {
+      grid-row: auto;
+    }
+
+    .karaoke-maker__audition {
+      justify-self: end;
+    }
+  }
+
+  .karaoke-maker__note-inspector-link {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .karaoke-maker__selection-coach .karaoke-maker__word-inspector {
+    grid-template-columns: minmax(130px, 0.72fr) minmax(300px, 1.4fr);
+
+    .karaoke-maker__word-inspector-actions {
+      grid-column: 1 / -1;
+      justify-self: end;
+    }
+
+    input,
+    label:first-child input {
+      width: 100%;
+    }
+  }
+
+  .karaoke-maker__syllable-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .karaoke-maker__syllable-editor-copy,
+  .karaoke-maker__syllable-actions {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .karaoke-maker__syllable-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+
+  .karaoke-maker__rights {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .karaoke-maker {
+    --karaoke-maker-dock-height: 151px;
+    grid-template-rows: auto minmax(300px, 1fr) auto auto;
+  }
+
+  .karaoke-maker__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+    padding-inline: 7px;
+  }
+
+  .karaoke-maker__identity {
+    gap: 5px;
+  }
+
+  .karaoke-maker__header-actions {
+    gap: 2px;
+    padding: 3px;
+  }
+
+  // Labels remain available as hover/focus tooltips. Icons preserve every
+  // action while avoiding a second header collision at minimum window width.
+  .karaoke-maker__header-action,
+  .karaoke-maker__fullscreen-exit {
+    width: 32px;
+    min-width: 32px !important;
+    padding-inline: 0 !important;
+
+    > span {
+      display: none;
+    }
+  }
+
+  .karaoke-maker__tools {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 4px;
+    padding-inline: 7px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .karaoke-maker__status-row {
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+    padding-inline: 9px;
+
+    > span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .karaoke-maker__status-end {
+    flex: 0 0 auto;
+  }
+
+  .karaoke-maker__word-state-legend {
+    gap: 6px;
+    padding-inline: 5px;
+
+    .is-touched,
+    .is-pending {
+      font-size: 0;
+    }
+
+    .is-touched::after,
+    .is-pending::after {
+      font-size: $text-body;
+      content: attr(data-count);
+    }
+  }
+
+  .karaoke-maker__inspector {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+    padding-inline: 8px;
+  }
+
+  .karaoke-maker__fields {
+    min-width: 0;
+    gap: 7px;
+
+    label {
+      min-width: 0;
+      flex: 1 1 0;
+    }
+
+    input:not([type='range']) {
+      width: 100%;
+      min-width: 0;
+    }
+  }
+
+  .karaoke-maker__word-inspector {
+    grid-template-columns: minmax(0, 1fr);
+
+    input:not([type='range']) {
+      width: 100%;
+    }
+
+    .karaoke-maker__word-inspector-actions {
+      grid-column: 1;
+      width: 100%;
+    }
+  }
+
+  .karaoke-maker__word-timing-sliders {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+
+  .karaoke-maker__lyrics-word-actions button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .karaoke-maker__wide-edit-tools {
+    display: none;
+  }
+
+  .karaoke-maker__compact-edit-tools {
+    display: flex;
+  }
+
+  .karaoke-maker__compact-edit-tools .karaoke-maker__tool-popover {
+    left: 0;
+    transform: none;
+  }
+
+  .karaoke-maker__timing-popover {
+    top: 64vh;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .karaoke-maker-nav {
+    grid-template-columns: auto minmax(110px, 1fr) auto auto;
+    gap: 4px;
+    padding-inline: 5px;
+  }
+
+  .karaoke-maker-nav__summary {
+    display: none;
+  }
+
+  .karaoke-maker-nav__follow {
+    min-width: 29px !important;
+    padding-inline: 7px !important;
+
+    span {
+      display: none;
+    }
+  }
+}
+
+.karaoke-maker__word-timing-sliders {
+  display: grid;
+  min-width: min(360px, 42vw);
+  flex: 1 1 320px;
+  grid-template-columns: repeat(2, minmax(125px, 1fr));
+  align-items: end;
+  gap: 5px 12px;
+  padding: 6px 9px;
+  // The window's filled card: a block-coloured slab was the lightest thing
+  // in the word editor.
+  @include card-surface;
+  border-radius: $radius-m;
+
+  label {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+
+    > span {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      color: $text-accent;
+      font-size: $text-body;
+      font-weight: $weight-bold;
+      @include tracking(0.05em);
+      text-transform: uppercase;
+    }
+
+    output {
+      color: $secondary-light;
+      font-size: $text-lead;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+  }
+
+  input[type='range'] {
+    width: 100%;
+    height: 16px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    accent-color: $secondary-default;
+    cursor: ew-resize;
+
+    &:focus-visible {
+      filter: drop-shadow(
+        0 0 5px color-mix(in srgb, $secondary-default 58%, transparent)
+      );
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: $disabled-opacity;
+    }
+  }
+
+  small {
+    grid-column: 1 / -1;
+    color: $text-faint;
+    font-size: $text-body;
+    line-height: 1.3;
+  }
+
+  &.is-disabled {
+    display: flex;
+    min-width: 220px;
+    align-items: center;
+    gap: 8px;
+    color: $amber;
+
+    small {
+      min-width: 0;
+    }
+  }
+}
+
+// The compact action cluster still fits beside the identity at phone widths.
+// Keeping those two together leaves the tools as the sole second row and
+// prevents a third header row from overflowing a short editor.
+@media (max-width: 520px) {
+  .karaoke-maker {
+    --karaoke-maker-header-height: 101px;
+  }
+
+  .karaoke-maker__header {
+    grid-template-areas:
+      'identity actions'
+      'tools tools';
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 42px 42px;
+  }
+
+  .karaoke-maker__identity,
+  .karaoke-maker__header-actions {
+    justify-self: stretch;
+  }
+
+  .karaoke-maker__header-actions {
+    justify-self: end;
+  }
+}
+
+// The Maker uses the same bottom transport, but its canvas, preview and command
+// dock are separate grid rows. On a 13-inch laptop those rows must share the
+// available height instead of retaining desktop-sized 260-300px floors.
+@media (max-height: 760px) {
+  .karaoke-maker {
+    --karaoke-maker-dock-height: 120px;
+    grid-template-rows: auto minmax(132px, 1fr) auto auto;
+  }
+
+  .karaoke-maker__header {
+    min-height: 0;
+    padding-block: 4px;
+  }
+
+  .karaoke-maker__canvas-host {
+    margin-top: 5px;
+  }
+
+  .karaoke-maker-nav {
+    min-height: 46px;
+    padding-block: 3px;
+  }
+
+  .karaoke-maker-nav__overview {
+    height: 36px;
+  }
+
+  .karaoke-maker-preview {
+    margin-block: 4px;
+
+    > header {
+      min-height: 28px;
+      padding-block: 2px;
+    }
+  }
+
+  .karaoke-maker-preview__stage {
+    height: clamp(64px, var(--karaoke-maker-preview-height, 120px), 22dvh);
+  }
+
+  .karaoke-maker__command-primary > .karaoke-maker__status-row {
+    min-height: 0;
+    padding-block: 2px;
+  }
+
+  .karaoke-maker__status-end {
+    display: none;
+  }
+
+  .karaoke-maker__tools {
+    min-height: 38px;
+    padding-block: 3px;
+  }
+
+  .karaoke-maker__header-tools > .karaoke-maker__tools {
+    min-height: 38px;
+  }
+
+  .karaoke-maker__command-dock > .karaoke-transport {
+    margin-block: 5px 12px;
+  }
+}
+
+@media (max-height: 620px) {
+  .karaoke-maker {
+    --karaoke-maker-dock-height: 120px;
+    grid-template-rows: auto minmax(104px, 1fr) auto auto;
+  }
+
+  .karaoke-maker-preview__stage {
+    height: clamp(56px, var(--karaoke-maker-preview-height, 92px), 18dvh);
+  }
+
+  .karaoke-maker-preview__zoom {
+    display: none;
+  }
+}
+
+// Wide, short windows still use the single-row header. Narrow windows keep
+// their dedicated tools row even when height is scarce; collapsing that row
+// is what previously made the tools cover the editor.
+@media (min-width: 1581px) and (max-height: 760px) {
+  .karaoke-maker {
+    --karaoke-maker-header-height: 47px;
+  }
+
+  .karaoke-maker__header {
+    grid-template-rows: 38px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .karaoke-maker button {
+    transition: none;
+  }
+
+  .karaoke-maker__countdown,
+  .karaoke-maker__analysis-progress-bar.is-indeterminate > span,
+  .karaoke-maker__analysis-activity i,
+  .karaoke-maker-preview__stage.is-capture-armed,
+  .karaoke-maker-preview__stage.is-capture-ready {
+    animation: none;
+  }
+}
+
+// The karaoke stage, under a floating transport bar.
+//
+// Written outside `.karaoke-workspace.is-fullscreen` because the state it
+// reads lives on the root: `is-floating-bar` says a bar is drawn over the
+// content rather than beside it, and `is-chrome-idle` says it has gone quiet.
+// Together they are "make room" and "the room is yours again".
+#root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
+  .karaoke-workspace.is-fullscreen {
+  .karaoke-playlist,
+  .karaoke-pitch {
+    margin-bottom: calc(var(--now-playing-bar-height, 0px) + 8px);
+  }
+}

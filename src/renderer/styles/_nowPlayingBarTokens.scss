@@ -1,0 +1,51 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The play button lands on the same pixel whichever tab is driving the bar,
+// and these two figures are how.
+//
+// The first column is a fixed width rather than a fraction, so the transport
+// beside it always starts at the same x. The button group is a fixed width
+// with its contents centred, so the play button sits at that group's centre
+// however many buttons flank it — six on the library and karaoke rows,
+// one on a web page that can only be played and paused. Without the second
+// figure the Media tab's lone play button sat where the library's `previous`
+// was, and switching tabs moved the control under the pointer.
+$now-playing-art-size: 36px;
+
+$now-playing-buttons-width: 272px;
+
+$now-playing-flank-width: 110px;
+
+$now-playing-seek-width: 340px;
+
+// One height, whichever tab is driving it.
+//
+// The bar is the same object on every tab and switching tabs must not move it
+// — the reserved strip at the foot of the window is measured from its top
+// edge, so a bar that changed height would shift the whole workspace under
+// the pointer. 64px is the tallest of the three rows measured in the running
+// window: karaoke's, which carries buttons, a seek line and up to three
+// faders. The other two have room to spare inside it.
+$now-playing-bar-height: 64px;

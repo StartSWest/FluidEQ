@@ -1,0 +1,855 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+// The two colours every karaoke wash and glow is lit in: the palette the
+// window is in. In Rainbow mode its ends (Lagoon's cyan and periwinkle, or a
+// Plus visualizer's own colours, `RainbowSource`); otherwise the accent's
+// greener and bluer ends, which a visualizer lending the window its colours
+// retints as well. They were a fixed neon pink and cyan, the one pair in
+// the window that followed nothing (Ivan, 2026-09-26: "the karaoke gradient
+// bg need to match rainbow too and app colors and plus viz colors"). On the
+// root, because the microphone's panel is portalled out of the page.
+:root {
+  --karaoke-glow-warm: var(--accent-end);
+  --karaoke-glow-cool: var(--accent-start);
+}
+
+:root.is-euphoric {
+  --karaoke-glow-warm: var(--rainbow-7);
+  --karaoke-glow-cool: var(--rainbow-2);
+}
+
+.karaoke-workspace {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  gap: $spacing-m;
+  overflow: hidden;
+  scrollbar-gutter: auto;
+
+  &.is-hidden {
+    display: none;
+  }
+}
+
+// Beats the generic workspace panel's scroll surface. Karaoke reflows its
+// stage to the pane instead; only the playlist keeps its own small scrollbar.
+.karaoke-workspace.workspace-tab-panel--karaoke {
+  overflow: hidden;
+  scrollbar-gutter: auto;
+}
+
+// *** The player assembling **************************************************
+//
+// KEYED OFF `.is-hidden`, like the Media tab and for the same reason: this
+// workspace is mounted once and then hidden rather than destroyed, so leaving
+// the tab does not stop the song. Its elements are therefore never new, and a
+// plain entrance would play on the first visit of the session and never again.
+// The selector matches only while the tab is showing, so removing the class
+// starts the animation and putting it back arms it for the next visit.
+//
+// The frames hold still and their contents arrive into them — the stage keeps
+// its card, the playlist keeps its panel. That is what makes the
+// tab read as filling in rather than as being rebuilt, and it is also what
+// keeps this flat: one sequence of delays over leaf elements, never a cascade
+// nested inside a container that is itself animating. See `stagger-in`.
+.karaoke-workspace:not(.is-hidden) .karaoke-workspace__header {
+  @include animate(rise-in);
+}
+
+.karaoke-workspace:not(.is-hidden) .karaoke-playlist__heading {
+  @include animate(rise-in, $motion-base, $ease-out, 55ms);
+}
+
+// Ten covers a full pane; a longer playlist scrolls, and rows below the fold
+// take the tail delay rather than arriving ahead of the rows above them.
+//
+// Safe to animate despite the rows being reorderable, because the reorder is
+// native HTML drag-and-drop rather than a transform: nothing here fights the
+// browser for the same property, and the drag image is a snapshot taken from
+// an element that settled long before anyone could reach for it.
+.karaoke-workspace:not(.is-hidden) .karaoke-playlist__item {
+  @include stagger-in($count: 10, $step: 26ms, $offset: 90ms);
+}
+
+// The stage's own contents, which is the one cascade here that earns its keep
+// twice. It replays on returning to the tab, and it replays when a song loads
+// — the empty state and the loaded player are two different sets of children
+// in the same box, so React builds new elements and the row of them assembles
+// itself: heading, lyrics, then the pitch guide.
+//
+// Six is a ceiling for both arrangements. The drop overlay is excluded because
+// it is absolutely positioned feedback that appears mid-drag, and sliding it
+// into place would answer a drag that has already happened. The playlist's
+// restore pill likewise answers the fold, and arrives on the fold's own timing
+// (`.karaoke-playlist__expand`).
+.karaoke-workspace:not(.is-hidden)
+  .karaoke-workspace__stage
+  > *:not(.karaoke-workspace__drop-overlay):not(.karaoke-stage-media):not(
+    .karaoke-playlist__expand
+  ) {
+  @include stagger-in($count: 6, $step: 45ms, $offset: 90ms);
+}
+
+// *** The picture behind the words *******************************************
+//
+// Fills the stage and takes no row of its own: it is absolutely positioned
+// inside the stage's own stacking context, so the grid above it is untouched
+// and the heading, lyrics and pitch guide keep the layout they had.
+//
+// Excluded from the cascade above on purpose. Everything else on this stage
+// arrives with an 8px rise, which is right for content and wrong for scenery —
+// a backdrop that slides is a backdrop you look at instead of through.
+.karaoke-stage-media {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.karaoke-stage-media__still,
+.karaoke-stage-media__video {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  // Cover rather than contain: this is scenery for a stage of any shape, and
+  // letterboxing it would draw two black bars the design never asked for.
+  object-fit: cover;
+  // DIM, AND NOT NEGOTIABLE. Lyrics are the reason this screen exists and they
+  // are white text with no plate behind them; a photograph at full strength
+  // under them is unreadable within one line. This is the level at which the
+  // picture still reads as a picture and the words still win.
+  opacity: 0.32;
+}
+
+// Held under the video as its poster, so a clip that has not decoded its first
+// frame yet shows the song's artwork instead of a black hole.
+.karaoke-stage-media__still.is-behind-video {
+  opacity: 0.22;
+}
+
+.karaoke-stage-media__unsupported {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-micro;
+  @include tracking(0.04em);
+}
+
+// The same sentence with nothing underneath it, which is a different job.
+//
+// The caption above is sized to sit over artwork; alone on the stage it was a
+// watermark, because a corner label is read as a caption on the picture even
+// when there is no picture. The first attempt at this modifier moved it from
+// 0.62rem to 0.72rem — 9.9px to 11.5px, under two pixels — and claimed to have
+// sized it to be read. 0.9rem is 14.4px: a third larger than the workspace's
+// own notice strip at 0.68rem, which is the right relationship when this
+// sentence is the ENTIRE contents of the stage rather than one row among six.
+//
+// It stays in the corner and does not move to the middle:
+// `.karaoke-lyrics-shell` is z-index 1 above this whole layer, so a centred
+// notice would be drawn behind the words. What it gets instead of the middle
+// is a plate in the warning colour the notice strip already uses, and enough
+// width for the sentence to break once rather than four times.
+.karaoke-stage-media__unsupported.is-alone {
+  max-width: min(420px, 74%);
+  padding: 9px 13px;
+  color: $text-primary;
+  border: 1px solid rgba($neon-yellow, 0.28);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-field 62%, transparent);
+  font-size: $text-title;
+  line-height: 1.4;
+  @include tracking(0.01em);
+}
+
+.karaoke-workspace:not(.is-hidden) .karaoke-transport {
+  @include animate(rise-in, $motion-base, $ease-out, 310ms);
+}
+
+@keyframes karaoke-maker-surface-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.997);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.karaoke-workspace__header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-l;
+  // No inset of its own. The workspace tab panel already pads to 12px on
+  // every side and the other tabs' headings sit flush against that inset —
+  // the 4px this used to add put the Karaoke title further in than the EQ,
+  // Presets, Voicing and Convolution titles beside it.
+  padding: 0;
+
+  // 1.22rem matches the intro `h2` on Presets, Voicing and Convolution, so
+  // the page title is the same size on every tab. Held at the same line
+  // height it had before so the eyebrow above it does not shift.
+  h2 {
+    margin: 1px 0 4px;
+    color: $text-primary;
+    font-size: 1.22rem;
+    line-height: 1.2;
+  }
+}
+
+.karaoke-workspace__file-input,
+.karaoke-workspace > audio {
+  display: none;
+}
+
+.karaoke-workspace__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+
+  .button {
+    min-height: $control-height-sm;
+    gap: 6px;
+    font-size: $text-small;
+    font-weight: $weight-bold;
+
+    &:disabled {
+      color: $text-muted;
+      border-color: rgba($edge-tint, 0.08);
+      background: color-mix(in srgb, $surface-panel 42%, transparent);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+  }
+
+  .karaoke-workspace__icon-action {
+    display: grid;
+    width: $control-height-sm;
+    flex: 0 0 $control-height-sm;
+    place-items: center;
+    padding: 0;
+  }
+
+  .karaoke-workspace__fullscreen {
+    svg {
+      width: 17px;
+      height: 17px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.7;
+    }
+
+    path {
+      fill: none;
+    }
+
+    &[aria-pressed='true'] {
+      color: $surface-base;
+      border-color: color-mix(in srgb, $secondary-default 82%, transparent);
+      background: $secondary-default;
+      box-shadow: none;
+    }
+  }
+
+  .karaoke-workspace__settings.is-live {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
+    box-shadow: none;
+  }
+
+  // The stage-art toggle wears the same lit state as the pitch guide: they are
+  // the same kind of control and reading one as "on" while the other only dims
+  // would make the pair look like different mechanisms. `:not(:disabled)`
+  // because a song with no artwork still carries the preference — lighting up
+  // a button that cannot act is the one case where the highlight would lie.
+  .karaoke-workspace__pitch-toggle[aria-pressed='true'],
+  .karaoke-workspace__stage-art-toggle[aria-pressed='true']:not(:disabled) {
+    // The filled button's face (`--control-fill`): flat outside Rainbow mode,
+    // lit under the pointer by the same brightness the filled button takes.
+    color: $surface-base;
+    border-color: transparent;
+    background: $secondary-default var(--control-fill) border-box;
+    box-shadow: none;
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      color: $surface-base;
+      border-color: transparent;
+      background: $secondary-default var(--control-fill) border-box;
+      box-shadow: none;
+      filter: brightness(1.1);
+    }
+  }
+}
+
+.karaoke-button__icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentcolor;
+
+  path {
+    fill: none;
+  }
+}
+
+.karaoke-workspace.is-fullscreen {
+  // One continuous stage, edge to edge. The ordinary view keeps a card around
+  // this content; in full screen that card only reads as a second window frame.
+  position: relative;
+  isolation: isolate;
+  padding: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 14% 42%,
+      color-mix(in srgb, #{$karaoke-warm} 16%, transparent),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 84% 36%,
+      color-mix(in srgb, #{$karaoke-cool} 15%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 52% 112%,
+      color-mix(in srgb, #{$karaoke-cool} 8%, transparent),
+      transparent 34%
+    ),
+    // The floor, flat. It was a diagonal from the pane colour to the well's
+    // under a 34px graph-paper grid — texture no other page has, and on a
+    // stage whose words are the subject.
+    $surface-base;
+
+  > .karaoke-workspace__player,
+  > .karaoke-workspace__notice {
+    position: relative;
+    z-index: 1;
+  }
+
+  // The picture is the whole background: playlist, splitter, top bar and all.
+  //
+  // Nothing about the layout changes. `.karaoke-stage-media` is absolutely
+  // positioned, so it filled its nearest positioned ancestor — the stage
+  // column first, and the player after that, which is why it stopped at the
+  // playlist's edge and again 86px below the window's top. Fixed to the
+  // viewport it has no ancestor to be bounded by: in full screen the window
+  // is the stage, and the picture reaches all four of its edges. It stays
+  // inside this element's stacking context, so every panel still draws over
+  // it.
+  .karaoke-stage-media {
+    position: fixed;
+    inset: 0;
+  }
+
+  // No inset at the stage's foot. Everywhere else it is the breathing room
+  // the stage is drawn with; down here it was the difference between where
+  // the pitch lane ended and where the playlist beside it ended — two panels
+  // in the same row with their feet on different lines.
+  .karaoke-workspace__stage {
+    // Closer to the playlist. The stage's generous side inset is right when it
+    // is a card in a window; over a full screen it left the pitch lane and
+    // the words floating in the middle with a hand's width of nothing to
+    // their left.
+    padding-inline: 12px;
+    // Nothing at the foot. The clearance below sets `margin-bottom` on both
+    // panels and that REPLACES the playlist's own 12px inset, so any padding
+    // left here lands on the pitch lane alone — measured, twelve pixels of
+    // it, which is exactly how far apart their feet were.
+    padding-bottom: 0;
+  }
+
+  .karaoke-workspace__player.has-playlist > .karaoke-playlist,
+  .karaoke-workspace__player.has-playlist > .karaoke-pane-splitter {
+    position: relative;
+    z-index: 1;
+  }
+
+  // The panels clear the bar; the picture does not.
+  //
+  // The bar floats over full screen so the artwork can reach the bottom
+  // edge, which leaves the panels drawn over that artwork sitting under it:
+  // the playlist's last rows and the foot of the pitch lane. Each ends
+  // higher instead: a margin at the foot, so the top edge stays exactly where
+  // it is and the height is what changes. Padding inside them was tried and
+  // it is not the same thing — the panel still reached under the bar, only
+  // its contents moved. Shrinking the row that holds them is not it either:
+  // the stage's rows re-share what that row loses, and the lyric above moves
+  // with it.
+  .karaoke-playlist,
+  .karaoke-pitch {
+    // The inset they keep when there is no bar to clear. Without it the two
+    // panels sat on the window's bottom edge the moment the bar faded, which
+    // is the one place nothing else in this app touches.
+    margin-bottom: 12px;
+    transition: margin-bottom $motion-base $ease-out;
+  }
+
+  // The notch, over a picture rather than over a panel.
+  //
+  // At 18% of a pale ink it was invisible against the artwork, which is the
+  // one background it now always has. Brighter, and with a dark rim under it
+  // so it reads on a white sleeve as well as on a dark one — the rim is what
+  // does the work, since no single ink is visible against every picture.
+  .karaoke-pane-splitter__handle > span {
+    background: rgba($white, 0.62);
+    box-shadow: 0 0 0 1px color-mix(in srgb, $surface-well 50%, transparent);
+  }
+
+  // Inset from the screen edges, and solid enough to read over a bright
+  // cover. The picture now runs under this panel, so at 34% the song titles
+  // were sitting on whatever the artwork happened to be — white sleeves and
+  // pale photographs among them.
+  .karaoke-workspace__player.has-playlist > .karaoke-playlist {
+    margin: 12px 0 12px 12px;
+    border-color: color-mix(in srgb, $secondary-light 20%, transparent);
+    // The card colour, opaque: the rows have to read over whatever the
+    // artwork is, and a card is what every other list in the app is. The
+    // card itself laid over the floor, as Library's Up next is — the block
+    // colour was a step lighter than every card (2026-09-26).
+    background: $card-glow, $karaoke-chip-face;
+  }
+
+  .karaoke-workspace__stage {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+.karaoke-workspace__actions.is-stage-toolbar {
+  position: absolute;
+  z-index: 9;
+  top: 9px;
+  right: 10px;
+  left: auto;
+  width: auto;
+  max-width: calc(100% - 20px);
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid $border-field;
+  border-radius: $radius-l;
+  background: $karaoke-chip-face;
+  box-shadow: none;
+  opacity: 0.82;
+  transition:
+    opacity 180ms ease,
+    transform 220ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+
+  &:hover,
+  &:focus-within {
+    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
+    box-shadow: none;
+    opacity: 1;
+  }
+
+  .button {
+    min-height: 29px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+
+  .karaoke-workspace__icon-action {
+    width: 29px;
+    flex-basis: 29px;
+  }
+
+  .karaoke-workspace__top-bar[aria-pressed='true'] {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 46%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
+    box-shadow: none;
+  }
+
+  // Fades in place. The 7px lift that used to come with it meant the bar slid
+  // down the screen on every pointer move after a pause, which reads as the
+  // toolbar wandering rather than as it coming back.
+  &.is-idle {
+    opacity: 0;
+    pointer-events: none;
+    transition-duration: 480ms;
+  }
+}
+
+// The full-screen dock now belongs to the top of the stage, not to the lyric
+// canvas. Move only the right-hand chord/tools pane beneath its 40px control
+// row, 8-9px top offset and a visible gap. The song title keeps its natural
+// position on the left, where it does not compete with the right-aligned dock.
+// Both fullscreen routes use this exact clearance, so opening the graph does
+// not make the chord pane jump to a second position.
+.karaoke-workspace.is-fullscreen
+  .karaoke-workspace__stage.has-song
+  .karaoke-song__tools {
+  margin-top: 56px;
+}
+
+// Normal mode gets this breathing room from the workspace panel's 12px outer
+// padding. Fullscreen removes that card padding to give the stage the screen,
+// but the floating transport still needs the same visual inset from the edge.
+.karaoke-workspace.is-fullscreen > .karaoke-transport {
+  margin-bottom: 12px;
+}
+
+.karaoke-workspace__notice {
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  // The card, as the playlist and the chips on the stage are. It was the
+  // field colour at a third, a pale strip across the top of the page.
+  background: $karaoke-chip-face;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+
+  &.is-error {
+    color: rgba(#ffd8dd, 0.92);
+    border-color: rgba($red, 0.35);
+    background: rgba($red, 0.07);
+  }
+
+  &.is-warning {
+    border-color: rgba($neon-yellow, 0.28);
+  }
+
+  strong {
+    color: $text-primary;
+  }
+
+  span {
+    color: $text-faint;
+  }
+}
+
+// Says its piece and goes (`KaraokeSetAsideNotice`; Ivan, 2026-09-27: "this
+// warning needs to be closable and to auto disappear after a few seconds").
+// This fade is the clock: seven seconds to be read, then gone, and its end is
+// the event that takes the notice away. A pointer resting on it, or a key on
+// its cross, holds it, so a sentence being read is never pulled out from
+// under the reader.
+.karaoke-workspace__notice.is-passing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: karaoke-notice-leave 360ms ease-in 7s forwards;
+
+  &:hover,
+  &:focus-within {
+    animation-play-state: paused;
+  }
+
+  > .karaoke-workspace__notice-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: $text-muted;
+  }
+}
+
+@keyframes karaoke-notice-leave {
+  to {
+    opacity: 0;
+  }
+}
+
+.karaoke-workspace__notice-close {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-2xs;
+  background: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    background: $hover-lift;
+  }
+}
+
+// The Karaoke eyebrow is the shared `.eyebrow` class now — see the header
+// markup in KaraokeWorkspace.tsx. It was a hand-mixed cyan a shade brighter
+// than the rest, at 0.65rem and weight 900, which made it read as a heavier
+// and different label from the identical row on every other tab. One cyan,
+// one weight, one size across the app.
+.karaoke-workspace__intro {
+  max-width: 650px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-lead;
+  line-height: 1.55;
+}
+
+.karaoke-workspace__milestone {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  color: $text-muted;
+  border: 1px solid color-mix(in srgb, $secondary-light 15%, transparent);
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $surface-well 24%, transparent);
+  font-size: $text-small;
+  font-weight: $weight-bold;
+
+  span {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    color: $surface-base;
+    border-radius: 50%;
+    background: $secondary-default;
+    font-size: $text-micro;
+    font-weight: $weight-bold;
+  }
+}
+
+.karaoke-workspace__player {
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  // This is the elastic part of the page. Both the empty artwork and the full
+  // lyrics/pitch player take whatever remains after the fixed controls.
+  flex: 1 1 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: $spacing-m;
+
+  // THE PLAYLIST FOLDS THE WAY THE PLUS TAB'S RAIL DOES (`PlusRail.scss`):
+  // the column closes and opens on the same length and curve, the list's
+  // contents leave before it narrows and come back once there is room for
+  // them. No pin and no opening on hover: here the fold is only ever the
+  // button's.
+  //
+  // It is the grid that moves, not the list. Folded keeps three tracks,
+  // zero-wide, so the columns interpolate track by track; a folded grid of one
+  // column, as it used to be, has nothing to interpolate with and jumped.
+  // Chromium interpolates `grid-template-columns` whenever both sides have the
+  // same number of tracks of the same kind.
+  //
+  // How long the fold takes. Reduced motion shortens it rather than removing
+  // it, as the rail does: a stage that jumps a quarter of the window sideways
+  // reads as the layout breaking, not as calm.
+  --playlist-move: #{$motion-slow};
+  --playlist-settle: #{$motion-base};
+
+  @media (prefers-reduced-motion: reduce) {
+    --playlist-move: 150ms;
+    --playlist-settle: 110ms;
+  }
+
+  &.has-playlist {
+    grid-template-columns:
+      minmax(160px, var(--karaoke-playlist-size, 27%)) 18px
+      minmax(0, 1fr);
+    gap: 0;
+    transition: grid-template-columns var(--playlist-move) $ease-out;
+
+    > .karaoke-playlist {
+      grid-column: 1;
+      // Its contents are squeezed while the column is narrower than they
+      // are, and never drawn outside it.
+      overflow: hidden;
+      transition:
+        opacity var(--playlist-settle) ease-out,
+        padding var(--playlist-move) $ease-out,
+        margin-bottom $motion-base $ease-out;
+
+      // A quarter of the way in, the column is already three quarters open
+      // on this curve: room enough, and not a stretch of empty card.
+      > * {
+        transition: opacity var(--playlist-settle) ease-out
+          calc(var(--playlist-move) * 0.25);
+      }
+    }
+
+    > .karaoke-pane-splitter {
+      grid-column: 2;
+      transition: visibility 0s linear var(--playlist-move);
+    }
+
+    > .karaoke-workspace__stage {
+      grid-column: 3;
+    }
+  }
+
+  // Dragging the splitter moves the column under the pointer. A transition
+  // there would trail every movement by the length of a fold.
+  &.has-playlist:has(> .karaoke-pane-splitter .is-dragging) {
+    transition: none;
+  }
+
+  &.has-playlist.is-playlist-collapsed {
+    grid-template-columns: minmax(0px, 0%) 0px minmax(0, 1fr);
+
+    // The words go first, quickly, so nothing is seen being squeezed; the card
+    // follows them out while the column closes, its padding closing with it so
+    // no sliver of it is left standing at the edge (or, stacked above the
+    // stage in a narrow panel, along the top), and it is hidden once shut so
+    // no part of it can be reached or hovered.
+    > .karaoke-playlist {
+      padding: 0;
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity calc(var(--playlist-move) * 0.5) ease-out
+          calc(var(--playlist-move) * 0.2),
+        padding var(--playlist-move) $ease-out,
+        visibility 0s linear var(--playlist-move),
+        margin-bottom $motion-base $ease-out;
+
+      > * {
+        opacity: 0;
+        transition: opacity 90ms ease-out;
+      }
+    }
+
+    > .karaoke-pane-splitter {
+      visibility: hidden;
+      transition: none;
+    }
+  }
+}
+
+.karaoke-pane-splitter {
+  position: relative;
+  z-index: 5;
+  min-width: 0;
+  min-height: 0;
+  flex: 0 0 auto;
+  touch-action: none;
+  user-select: none;
+
+  &.is-vertical {
+    width: 18px;
+    height: 100%;
+
+    .karaoke-pane-splitter__handle {
+      width: 100%;
+      height: 100%;
+      cursor: ew-resize;
+    }
+
+    .karaoke-pane-splitter__handle > span {
+      width: 3px;
+      height: 46px;
+    }
+  }
+
+  &.is-horizontal {
+    width: 100%;
+    height: 12px;
+
+    .karaoke-pane-splitter__handle {
+      width: 100%;
+      height: 100%;
+      cursor: ns-resize;
+    }
+
+    .karaoke-pane-splitter__handle > span {
+      width: 48px;
+      height: 3px;
+    }
+  }
+}
+
+.karaoke-pane-splitter__handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: 0;
+
+  > span {
+    border-radius: $radius-pill;
+    background: rgba($edge-tint, 0.18);
+    transition:
+      width 150ms ease,
+      height 150ms ease,
+      background 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  &:hover > span,
+  &:focus-visible > span,
+  &.is-dragging > span {
+    background: color-mix(in srgb, $secondary-light 82%, transparent);
+    box-shadow: none;
+  }
+
+  &:focus-visible > span {
+    box-shadow: 0 0 0 3px
+      color-mix(in srgb, $secondary-default 18%, transparent);
+  }
+}
+
+.karaoke-pane-splitter.is-vertical {
+  .karaoke-pane-splitter__handle:hover > span,
+  .karaoke-pane-splitter__handle:focus-visible > span,
+  .karaoke-pane-splitter__handle.is-dragging > span {
+    height: 64px;
+  }
+}
+
+.karaoke-pane-splitter.is-horizontal {
+  .karaoke-pane-splitter__handle:hover > span,
+  .karaoke-pane-splitter__handle:focus-visible > span,
+  .karaoke-pane-splitter__handle.is-dragging > span {
+    width: 68px;
+  }
+}

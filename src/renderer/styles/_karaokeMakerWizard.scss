@@ -1,0 +1,583 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+// The one setting the run asks for, after the plan it applies to and parted
+// from it by the floor's hairline.
+.karaoke-maker__wizard-language {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding-top: 16px;
+  border-top: dialog.$seam;
+  color: $text-muted;
+  font-size: $text-lead;
+}
+
+.karaoke-maker__wizard-progress {
+  display: grid;
+  gap: 7px;
+  padding-top: 16px;
+  border-top: dialog.$seam;
+
+  // Nothing else in the app uses a native <progress>, so it arrives with the
+  // platform's own light-grey chrome and looks like a foreign control dropped
+  // into a dark panel. Both pseudo-elements are needed: the bar is the track
+  // and the value is the fill, and styling only one leaves the other default.
+  > progress {
+    width: 100%;
+    height: 6px;
+    appearance: none;
+    border: 0;
+    border-radius: $radius-pill;
+    overflow: hidden;
+    background: $track-well;
+
+    &::-webkit-progress-bar {
+      background: $track-well;
+      border-radius: $radius-pill;
+    }
+
+    &::-webkit-progress-value {
+      background: linear-gradient(
+        90deg,
+        color-mix(in srgb, $secondary-default 85%, transparent),
+        $secondary-light
+      );
+      border-radius: $radius-pill;
+      transition: width 140ms ease-out;
+    }
+
+    // No value at all: a step has begun but reported nothing yet. A bar frozen
+    // at zero reads as stalled, so it sweeps instead.
+    &:not([value]) {
+      background: linear-gradient(
+          90deg,
+          transparent 0%,
+          color-mix(in srgb, $secondary-default 70%, transparent) 50%,
+          transparent 100%
+        )
+        color-mix(in srgb, $track-well 9%, transparent);
+      background-size: 40% 100%;
+      background-repeat: no-repeat;
+      animation: karaoke-wizard-sweep 1.15s ease-in-out infinite;
+    }
+  }
+
+  > p {
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-lead;
+  }
+}
+
+.karaoke-maker__analysis-progress {
+  display: grid;
+  width: min(460px, calc(100% - 36px));
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 12px;
+  padding: 11px 12px;
+  color: $text-primary;
+  // The window's filled card, where the progress stands in a panel.
+  @include card-surface;
+  border-radius: $radius-l;
+
+  > button {
+    min-height: 30px;
+    grid-column: 1 / -1;
+  }
+}
+
+.karaoke-maker__download-details {
+  display: grid;
+  min-width: 0;
+  grid-column: 1 / -1;
+  gap: 7px;
+}
+
+.karaoke-maker__download-overall {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 8px;
+  color: $text-muted;
+  font-size: $text-body;
+  font-variant-numeric: tabular-nums;
+
+  strong {
+    overflow: hidden;
+    color: $text-muted;
+    font-size: inherit;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.karaoke-maker__download-files {
+  display: grid;
+  max-height: 132px;
+  gap: 7px;
+  padding: 7px;
+  overflow: hidden auto;
+  border: 1px solid rgba(105, 196, 205, 0.13);
+  border-radius: $radius-s;
+}
+
+.karaoke-maker__download-file-row {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.karaoke-maker__download-file-progress {
+  position: relative;
+  height: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, $track-well 14%, transparent);
+  border-radius: $radius-pill;
+
+  > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: $secondary-default;
+    border-radius: inherit;
+    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 30%, transparent);
+    transition: width 240ms ease-out;
+  }
+
+  &.is-indeterminate > span {
+    width: 45%;
+    animation: karaoke-maker-analysis-progress 1.35s ease-in-out infinite;
+  }
+}
+
+.karaoke-maker__analysis-progress-bar {
+  position: relative;
+  width: 100%;
+  height: 5px;
+  grid-column: 1 / -1;
+  overflow: hidden;
+  background: color-mix(in srgb, $track-well 17%, transparent);
+  border-radius: $radius-pill;
+
+  > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: linear-gradient(90deg, $secondary-default, $secondary-light);
+    border-radius: inherit;
+    box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 36%, transparent);
+    transition: width 180ms ease;
+  }
+
+  &.is-indeterminate > span {
+    width: 100%;
+    transform: translateX(-72%);
+    animation: karaoke-maker-analysis-progress 1.35s ease-in-out infinite;
+  }
+}
+
+.karaoke-maker__analysis-progress-copy {
+  display: flex;
+  min-width: 0;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: 9px;
+
+  > svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    color: $secondary-light;
+    filter: drop-shadow(
+      0 0 7px color-mix(in srgb, $secondary-default 35%, transparent)
+    );
+  }
+
+  > div {
+    display: grid;
+    min-width: 0;
+    flex: 1;
+    gap: 3px;
+  }
+
+  // WRAPS RATHER THAN TRUNCATES, because one of these messages is not a label.
+  //
+  // This was `nowrap` with an ellipsis, which is right for the transcription
+  // stages — "Reading the song", "Loading the model" — and wrong for the one
+  // line the user most needs to finish reading: "Downloading the separation
+  // model (42%) · one time, about 700 MB". Cut at the panel's edge it became
+  // "Downloading the separation model (42%) · one…", which loses both facts
+  // that make a several-minute wait make sense — that it is a one-off, and how
+  // large it is. Somebody watching that has no idea whether to wait.
+  //
+  // Nothing needed protecting here in the first place: this is a whole
+  // sentence in a 460px panel, not a file name, so wrapping costs a second
+  // line and the percentage beside it keeps its corner on the first baseline.
+  // `anywhere` is only the backstop for a language whose words do not break
+  // where English's do.
+  strong {
+    font-size: $text-lead;
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    color: $secondary-light;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.karaoke-maker__analysis-progress-heading,
+.karaoke-maker__download-stats {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.karaoke-maker__download-stats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  color: $text-accent;
+  font-size: $text-body;
+  font-variant-numeric: tabular-nums;
+
+  span {
+    color: inherit;
+    font-size: inherit;
+    font-weight: $weight-semibold;
+  }
+}
+
+.karaoke-maker__download-file {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.karaoke-maker__download-complete {
+  color: $active !important;
+  text-shadow: 0 0 8px color-mix(in srgb, $secondary-default 45%, transparent);
+}
+
+.karaoke-maker__analysis-activity {
+  display: inline-flex;
+  min-width: 28px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 3px;
+
+  i {
+    width: 4px;
+    height: 4px;
+    background: $secondary-light;
+    border-radius: 50%;
+    box-shadow: 0 0 7px color-mix(in srgb, $secondary-default 65%, transparent);
+    animation: karaoke-maker-analysis-dot 1.1s ease-in-out infinite;
+
+    &:nth-child(2) {
+      animation-delay: 120ms;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 240ms;
+    }
+  }
+}
+
+.karaoke-maker__whisper-stages {
+  display: grid;
+  min-width: 0;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+    color: $text-faint;
+
+    > span {
+      display: grid;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+      place-items: center;
+      color: $text-accent;
+      font-size: $text-body;
+      font-weight: $weight-bold;
+      background: color-mix(in srgb, $track-well 11%, transparent);
+      border: 1px solid rgba(112, 166, 183, 0.2);
+      border-radius: 50%;
+    }
+
+    em {
+      overflow: hidden;
+      font-size: $text-body;
+      font-style: normal;
+      font-weight: $weight-bold;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    &.is-complete {
+      color: $text-accent;
+
+      > span {
+        color: $secondary-default;
+        background: color-mix(in srgb, $secondary-default 12%, transparent);
+        border-color: color-mix(in srgb, $secondary-default 27%, transparent);
+      }
+    }
+
+    &.is-active {
+      color: $text-muted;
+
+      > span {
+        color: $surface-base;
+        background: $secondary-default;
+        border-color: transparent;
+        box-shadow: 0 0 12px
+          color-mix(in srgb, $secondary-default 38%, transparent);
+      }
+    }
+  }
+}
+
+@keyframes karaoke-maker-analysis-progress {
+  0% {
+    transform: translateX(-72%);
+  }
+
+  50% {
+    transform: translateX(72%);
+  }
+
+  100% {
+    transform: translateX(-72%);
+  }
+}
+
+@keyframes karaoke-maker-analysis-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.42;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+
+.karaoke-maker__analysis-error {
+  display: grid;
+  width: min(560px, calc(100% - 36px));
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  padding: 12px;
+  color: #ffe8eb;
+  background:
+    radial-gradient(circle at 8% 0, rgba($red, 0.16), transparent 54%),
+    rgba(40, 15, 25, 0.97);
+  border: 1px solid rgba(255, 105, 126, 0.48);
+  border-radius: $radius-l;
+
+  > div:nth-child(2) {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+  }
+
+  strong {
+    color: #fff5f6;
+    font-size: $text-lead;
+  }
+
+  span {
+    color: rgba(255, 220, 225, 0.8);
+    font-size: $text-lead;
+    line-height: 1.42;
+  }
+}
+
+.karaoke-maker__analysis-error-icon {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  color: #fff;
+  font-size: 15px;
+  font-weight: $weight-bold;
+  background: rgba($red, 0.2);
+  border: 1px solid rgba(255, 117, 137, 0.5);
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgba($red, 0.18);
+}
+
+.karaoke-maker__analysis-error-actions {
+  display: flex;
+  gap: 5px;
+
+  button {
+    min-height: 30px;
+    color: rgba(255, 232, 235, 0.92);
+    background: rgba($red, 0.42);
+    border-color: rgba(255, 105, 126, 0.34);
+    box-shadow: inset 0 1px rgba($white, 0.045);
+
+    &:hover {
+      color: $white;
+      background: rgba($red, 0.56);
+      border-color: rgba(255, 125, 143, 0.58);
+      box-shadow:
+        0 0 14px rgba($red, 0.14),
+        inset 0 1px rgba($white, 0.07);
+    }
+  }
+
+  .karaoke-maker__analysis-error-close {
+    width: 29px;
+    min-width: 29px;
+    padding: 0;
+    color: #ffdce2;
+    font-size: 15px;
+    line-height: 1;
+    background: rgba($red, 0.2);
+    border-color: rgba(255, 105, 126, 0.52);
+    border-radius: $radius-s;
+
+    &:hover {
+      background: rgba($red, 0.34);
+      border-color: rgba(255, 145, 159, 0.78);
+    }
+  }
+}
+
+@media (max-width: 620px) {
+  .karaoke-maker__analysis-error {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .karaoke-maker__analysis-error-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+}
+
+// The restore notice: the small frame (`CompactFrame`) in the editor's top
+// right corner, under the header, as wide as its one line. It says one thing
+// and asks nothing, so it lets every click through to the tools it covers
+// for its two seconds.
+.compact-frame.karaoke-maker__toast {
+  position: absolute;
+  z-index: 20;
+  top: calc(var(--karaoke-maker-header-height) + 12px);
+  right: 16px;
+  width: auto;
+  max-width: min(380px, calc(100% - 32px));
+  pointer-events: none;
+  // Two animations on one timeline, so it looks as the single one did: the
+  // fade is the toast's lifetime — the Maker takes it down on that one's
+  // end — and the drift is only motion, which reduced motion may cut. They
+  // stand in for the frame's own arrival: the fade is how this one arrives.
+  animation:
+    karaoke-maker-toast 2.6s ease both,
+    karaoke-maker-toast-drift 2.6s ease both;
+}
+
+@keyframes karaoke-maker-toast {
+  0% {
+    opacity: 0;
+  }
+
+  10%,
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes karaoke-maker-toast-drift {
+  0% {
+    transform: translateY(-5px) scale(0.98);
+  }
+
+  10%,
+  82% {
+    transform: none;
+  }
+
+  100% {
+    transform: translateY(-4px);
+  }
+}
+
+// The stand-down in App.scss shortens every animation to 1 ms: the drift
+// may go, but the fade is how long the toast is up, and at 1 ms it ended
+// faded out before anyone saw it. The fade does not move, so it keeps its
+// length; the drift keeps the stand-down's.
+:root[data-motion='reduced'] .karaoke-maker__toast {
+  animation-duration: 2.6s, 1ms !important;
+}
+
+.karaoke-maker__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  // The dialogs' own backdrop (`dialog.backdrop`): the Maker dims behind its
+  // dialogs as the window does behind every other one, rather than going out
+  // behind a sheet of the block colour.
+  background: dialog.$scrim;
+}
+
+// The lyrics editor, the size of a workspace: the frame is as tall as it may
+// be rather than as tall as its contents, because the columns fill the body
+// and scroll inside themselves. Wider than the other dialogs by the rail it
+// gained: at 1080px the lyrics column was left 290px, and the language
+// picker in it was cut to "As recor".
+.dialog-frame.karaoke-maker__lyrics-modal {
+  @include dialog.size(1280px, 820px);
+  height: min(820px, calc(100dvh - 48px));
+}

@@ -1,0 +1,609 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The live-output legend carries the style picker.
+//
+// Clicking the plot cycles through the looks, which is for flicking past them
+// while listening; this is for reaching a particular one out of forty, so it
+// has to be readable rather than merely present.
+.graph-legend--picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  // "Live output" is the caption; the look's name is the value.
+  //
+  // Butted together at the row's own gap they read as one long legend, and
+  // nobody realises the second half is a control. So the caption steps back —
+  // lighter and dimmer, like the labels it belongs with — and the value comes
+  // forward in white, underlined, with real air between the two.
+  // It is also the wave's on/off switch, so it is a button — with no surface,
+  // for the same reason the curve chips have none.
+  .graph-legend__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 4px;
+    border: 0;
+    border-radius: $radius-xs;
+    background: none;
+    color: $text-muted;
+    font: inherit;
+    font-weight: $weight-regular;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible {
+      color: $text-primary;
+      background: rgba($edge-tint, 0.12);
+      outline: none;
+    }
+  }
+
+  // A wave, not a rule.
+  //
+  // Every other swatch in this legend is a straight line because every other
+  // curve is one; this is the drawing that moves, and giving it the same dash
+  // as the rest made it the one chip whose swatch said nothing.
+  .graph-legend__wave {
+    width: 15px;
+    height: 11px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: var(--curve-color, white);
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+
+  // Off: the wave flattens to the rule it is not, which is the shape of a
+  // stilled trace.
+  &.is-hidden .graph-legend__wave {
+    stroke: rgba($edge-tint, 0.5);
+    stroke-dasharray: 2 2;
+  }
+
+  // The chip's own dash is suppressed — it has the wave instead, and two
+  // swatches on one legend reads as two curves.
+  &::before {
+    display: none;
+  }
+
+  // Set apart from the legends beside it. The card does that job now, so the
+  // hairline that used to is gone — an internal divider inside a pane that is
+  // already a boundary is one line too many.
+  margin-inline-start: 6px;
+
+  // Wide enough for the name to be read, not guessed.
+  //
+  // The trigger is the only place the current look is written down, and the
+  // longest of the forty ("Mirrored ridge · Rainbow") is a good deal longer
+  // than the shortest. Sized to the long one so the label never ellipsises and
+  // the legends to its right never shuffle sideways when the look changes.
+  //
+  // It moved when the glyph arrived, and had to. The name has `overflow:
+  // visible` below, so it does not ellipsise when it runs out of room — it
+  // simply makes the pill wider, and a pill that is wider for some looks than
+  // others is the shuffling this floor exists to prevent. The extra is the
+  // icon and its gap, nothing more.
+  .dropdown:has(.graph-look-name) {
+    min-width: 194px;
+  }
+
+  // Everything the pill itself is comes from the shared rule further down,
+  // which this trigger and the View button split between them. What is left
+  // here is only how the label and the arrow sit inside it.
+  .look-picker__trigger {
+    // The whole of the floor above. A button sizes to its content, so the
+    // pill stopped after a short name and left the rest of its 194px as a
+    // gap before the next-look arrow.
+    width: 100%;
+    min-height: 0;
+    box-shadow: none;
+    justify-content: flex-start;
+    overflow: visible;
+
+    &:hover:not(:disabled) {
+      border: 1px solid color-mix(in srgb, $secondary-light 65%, transparent);
+      color: $white;
+    }
+
+    .graph-look-name {
+      flex: 0 0 auto;
+      overflow: visible;
+      color: inherit;
+      text-overflow: clip;
+      white-space: nowrap;
+    }
+
+    // A shade smaller in the closed pill than in the list. The pill is 22px
+    // tall, so the glyph that sits comfortably on a row's tile fills the
+    // trigger to its edges — and a control whose contents touch its border
+    // reads as overflowing rather than as full.
+    .graph-look-option__icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    svg.arrow {
+      width: 8px;
+      margin-left: auto;
+      opacity: 0.7;
+    }
+  }
+
+  // Filled in while the picker is open, exactly as the View button is while
+  // its menu is — the one place a trigger has a state worth showing.
+  .dropdown--open > .look-picker__trigger {
+    border-color: $secondary-light;
+    background: color-mix(in srgb, $secondary-light 16%, transparent);
+    color: $white;
+
+    svg.arrow {
+      opacity: 1;
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// A look's name with its own drawing in front of it.
+//
+// One class for both places the picker renders an entry — every row of the open
+// list and the closed trigger — because the dropdown hands the same `display`
+// node to each, and two rules would be two chances for the row and the pill to
+// disagree about a look that is supposed to be the same look.
+//
+// Top level rather than under `.graph-legend--picker`: the menu is portalled to
+// the body, so the strip is not one of its ancestors and a scoped rule would
+// style the trigger and nothing else.
+.graph-look-option {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+// The glyph never shrinks and never grows.
+//
+// `flex: 0 0 auto` because a long name in a 268px menu would otherwise squeeze
+// the drawing rather than wrap, and a bar chart three pixels wide is a smudge
+// — which is precisely the failure the icon exists to prevent.
+//
+// Nothing sets a colour here. A flat look's glyph is painted in
+// `currentColor` so it takes the row's own state — dim at rest, white on hover,
+// the selection colour when selected — while the two gradient palettes carry
+// their own ramp and ignore it, which is the difference the icon is there to
+// show.
+.graph-look-option__icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+// The graph's captions and controls, as one row and not a surface: every
+// button in it carries a face of its own, and the captions between them stand
+// on the strip's text shadow.
+//
+// It has been a pane three times — the floating surfaces' colour at 72%, a
+// glass one in full screen, then the quiet pill's 7% fill — and each was a
+// band laid across the top of the plot, the width of the whole cluster
+// (Ivan, 2026-09-27: "esta barra bg ... algo hay que hacer"). No edge either
+// (2026-09-25: "no borders"), and no `backdrop-filter`: it would sit over the
+// one thing in this app that repaints continuously.
+.graph-legend-group {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  gap: $spacing-s;
+
+  // The pane floats inside the plot (`plotTopMargin`), so only its controls
+  // take a press: between them, and on the hint's words, a press goes through
+  // to the band handle underneath. Stated on the pane as well as on the hint,
+  // because a press passing through a child lands on its parent first.
+  .live-output-controls > & {
+    pointer-events: none;
+  }
+
+  > :not(.graph-edit-hint) {
+    pointer-events: auto;
+  }
+}
+
+// The look's caption, then its arrows round its name: laid out at the picker's
+// own 10px, exactly as when they were the picker's children, as boxes the row
+// can fold round but never through.
+.graph-look-walk,
+.graph-look-walk__steps {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+}
+
+// Folded: the chips are already the one "Curves" button (or a single chip)
+// and the row still does not fit. The cluster is right-aligned over the plot,
+// so what did not fit did not stop at an edge: it ran off the graph's left,
+// the first chip cut in half (2026-09-28, the graph at 740px, and narrower
+// still under the sound panel's drawer or the window zoomed). Now it folds
+// onto a second line under the first, right-aligned as the first is, and the
+// look's caption, arrows and name travel together.
+.graph-legend-group.is-folded {
+  // The row's whole width, so what folds is laid out against the plot and not
+  // against the width it would have liked; still right-aligned, so while it
+  // all fits on one line it stands exactly where it did. It takes no press
+  // itself, as above.
+  flex: 1 1 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  // The picker's own spacing, which its controls keep once they are this
+  // row's: the chip first, then the look, then the tools, one line of them
+  // that runs on to the next. Folded inside the picker instead, the chip
+  // stood alone at the plot's left with a gap the width of what had wrapped.
+  column-gap: 10px;
+  row-gap: 6px;
+
+  .graph-legend--picker {
+    display: contents;
+  }
+
+  // Set apart from the chip by the picker's 6px, less the 2px this row's gap
+  // has over the group's. On a row too narrow even for the caption beside its
+  // look, the caption stands over it; wrapped, its box spans a line it does
+  // not fill, so only its controls take a press.
+  .graph-look-walk {
+    flex: 0 1 auto;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 6px;
+    margin-inline-start: 4px;
+    pointer-events: none;
+
+    > * {
+      pointer-events: auto;
+    }
+  }
+}
+
+// No shade under the graph's options: the row's controls stand on the
+// drawing with their own faces. A shade ran from the top of the plot to the
+// foot of the row and faded out below it, over the picture and then the
+// card (2026-09-27), and Ivan took it off the same day: "I hate the
+// dropshadow that shows when options pane open, remove".
+
+// One step through the looks, either side of the name.
+//
+// Small on purpose: they sit between a caption and a dropdown in a row of
+// captions, and a pair of real buttons there would read as the important thing
+// in the strip. What they are is the shortcut, for when the shortcut cannot
+// reach — click the video and focus is in the guest, so Space belongs to the
+// page from then on.
+// Scoped under the strip for the same reason as the stepper below: the
+// `.live-output-controls button` rule hands every button here a ghost pill,
+// and the full-screen exit wants to be a glyph rather than a labelled control.
+.live-output-controls .graph-fullscreen-exit {
+  display: inline-flex;
+  width: 30px;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-left: 2px;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+// Scoped under the strip, and not for tidiness: `.live-output-controls button`
+// gives every button in here the ghost surface and a 28px minimum height, and
+// that outranks a lone class. Unqualified, these came out as two empty pills
+// with the arrows squeezed to nothing inside them.
+.live-output-controls .graph-look-step {
+  display: inline-flex;
+  width: 16px;
+  min-width: 0;
+  height: 18px;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: $text-faint;
+  cursor: pointer;
+
+  svg {
+    width: 9px;
+    height: 9px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover {
+    border: none;
+    background: none;
+    color: $white;
+  }
+}
+
+// The two that switch something rather than stepping through it.
+//
+// Same family as the look arrows, and deliberately the same width — this row
+// is the first thing to run out of room, which is why they carry no label. But
+// an arrow always does the same thing and these have a state, so they have to
+// say which one they are in: lit when the wash is on the plot, dimmed when it
+// is not. Slightly larger glyphs than an arrow because a grid and a row of
+// columns have interior detail that a chevron does not.
+.live-output-controls .graph-look-step--toggle {
+  width: 18px;
+
+  svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  &[aria-pressed='false'] {
+    color: $text-faint;
+  }
+
+  &[aria-pressed='true'] {
+    color: color-mix(in srgb, $secondary-light 95%, transparent);
+  }
+
+  &[aria-pressed='true']:hover,
+  &[aria-pressed='false']:hover {
+    color: $white;
+  }
+}
+
+// The window-colours menu (`SceneTintMenu`): its button, which names the mode
+// the window is in, and the menu, the four modes with what each does and the
+// chosen one's sliders under them.
+//
+// The glyph (`TintIcon`) is a ring, a dot, a dot with a halo and a dot in a
+// glow, and its coloured parts are the colour the window's controls take:
+// `--scene-tint-swatch`, the scene's accent hue (`sceneAccentSwatch`) lifted
+// to a lightness that reads at this size. Before a sky is known they are the
+// ring's ink.
+.graph-scene-look {
+  display: inline-flex;
+}
+
+.graph-scene-look__trigger {
+  display: inline-flex;
+  align-items: center;
+  font: inherit;
+}
+
+.scene-tint-choice__glyph {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+
+  // Theme's ring: the theme's own accent, which no tint writes, so the
+  // choice that means "your theme" wears it while a scene's is lent.
+  .tint-icon__theme {
+    stroke: var(--theme-accent, currentcolor);
+  }
+
+  .tint-icon__fill {
+    fill: var(--scene-tint-swatch, currentcolor);
+    stroke: none;
+  }
+
+  // Ambient's halo: the colour beating round the dot.
+  .tint-icon__halo {
+    stroke: var(--scene-tint-swatch, currentcolor);
+    stroke-width: 1.25;
+    opacity: 0.55;
+  }
+
+  // The Backdrop's: the colour glowing over the whole glyph, as the scene is
+  // over the whole window.
+  .tint-icon__glow {
+    fill: var(--scene-tint-swatch, currentcolor);
+    stroke: none;
+    opacity: 0.32;
+  }
+}
+
+// The menu, portalled to the body (`AnchoredMenu`), in every menu's face.
+// Wide enough for a mode's line to sit on two lines at most in any language.
+.scene-look-menu {
+  @include menu-surface;
+  z-index: 1000;
+  width: 300px;
+  max-width: calc(100vw - 16px);
+  overflow-y: auto;
+}
+
+.scene-look-menu__content {
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+}
+
+.scene-look-menu__heading {
+  padding: 5px 8px 3px;
+  color: $text-accent;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.12em);
+  text-transform: uppercase;
+}
+
+.scene-look-menu__choices {
+  display: grid;
+  gap: 2px;
+}
+
+// A mode: the glyph beside two lines, its name over what it does. At rest it
+// paints nothing, as a list's row does; the one the window is in carries the
+// selection's face, and the others a wash under the pointer.
+.scene-tint-choice {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  grid-template-columns: 16px minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 2px;
+  padding: 7px 10px;
+  color: $text-primary;
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    background: $hover-accent;
+    outline: none;
+  }
+
+  &[aria-checked='true'] {
+    color: $secondary-light;
+    border-color: $selected-border;
+    background: $selected-accent;
+  }
+
+  .scene-tint-choice__glyph {
+    width: 16px;
+    height: 16px;
+    grid-row: span 2;
+  }
+}
+
+.scene-tint-choice__name {
+  overflow: hidden;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scene-tint-choice__about {
+  grid-column: 2;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.35;
+}
+
+.scene-tint-choice[aria-checked='true'] .scene-tint-choice__about {
+  color: $text-primary;
+}
+
+// Brightness and Transparency, at the head of the menu over the modes and
+// parted from them by a hairline: the View menu's slider rows, so a slider
+// reads the same wherever the graph offers one.
+.scene-look-menu__sliders {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 2px;
+  padding: 0 4px 6px;
+  border-bottom: 1px solid $menu-rule;
+}
+
+/**
+ * The look's name, in the bottom corner while it is changing.
+ *
+ * Same treatment as the titlebar wave's announcement, because it answers the
+ * same question in the same way — and two pills that say the same kind of
+ * thing in two different voices read as two unrelated features.
+ *
+ * Out of the flow entirely. The control strip's own height decides how much
+ * headroom the plot gets, so anything that comes and goes up there moves the
+ * drawing; down here it is over the plot and moves nothing.
+ */
+.graph-look-announcement {
+  position: absolute;
+  z-index: 4;
+  right: 14px;
+  bottom: 10px;
+  padding: 3px 7px;
+  color: rgba($white, 0.94);
+  border: 1px solid $border-field;
+  border-radius: 4px;
+  background: color-mix(in srgb, $panel-bottom 78%, transparent);
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.14em);
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 260ms cubic-bezier(0.32, 0.72, 0, 1),
+    transform 260ms cubic-bezier(0.32, 0.72, 0, 1);
+
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    // How long the name stays up: its end takes the class away
+    // (`useMomentaryHold`), and the transitions above fade it out. It was a
+    // two-second timer in the component.
+    animation: graph-look-announcement-hold 2s linear;
+  }
+}
+
+// Holds the name visible and changes nothing it draws. Not opacity: an
+// animation on a property stops that property's transition from starting, and
+// the fade in is the transition's.
+@keyframes graph-look-announcement-hold {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-look-announcement {
+    transition: none;
+  }
+}
+
+// The hold runs its length under reduced motion as well. It moves nothing,
+// and at the stand-down's 1ms (`App.scss`) the name would be gone before
+// anybody could read it. `!important` and two classes, to beat the stand-down's
+// own on `*`.
+:root[data-motion='reduced'] .graph-look-announcement.is-visible {
+  animation-duration: 2s !important;
+}
+
+// *** The view menu ***********************************************************

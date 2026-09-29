@@ -1,0 +1,191 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'dspTokens' as *;
+
+// The Maximizer's gain reduction, on the card beside the dials that cause it.
+// A limiter doing nothing and a limiter flattening the record look identical
+// without this, which is why the stage shipped for so long with no one able to
+// say whether it was working.
+.dsp-maximizer-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// Definite for the same reason as every DSP canvas: its backing store follows
+// this box, so an intrinsic height would feed the measurement back into itself.
+.dsp-maximizer-canvas {
+  height: 300px;
+}
+
+// The live readings sit in the band the plot reserves for them, and each is a
+// label with its own figure rather than a sentence — the number is what gets
+// read, so it is the part that is bright and monospaced.
+.dsp-maximizer-status,
+// Three chips, each in its own trace's ink, because the row is the legend for
+// the plot above it and the eye pairs them by colour.
+//
+// Its own modifiers rather than the Master card's `.is-safe` and `.is-fixed`:
+// those two mean "nominal" and "corrected" there and are switched by state,
+// which is neither what these say nor how they behave. Borrowing them also put
+// the duck chip in the sustain's teal against a blue trace — the row teaching a
+// rule and then breaking it on the third item. The values match `TRANSIENT_INK`,
+// `SUSTAIN_INK` and `DUCK_INK` in `DspBassPunchGraph.tsx`.
+.dsp-bass-punch-status {
+  // The chips alone, for the reason `.dsp-master-status` gives: made an inline
+  // flex box, a figure's own text box, sized by nothing inside it, would be
+  // left no width to lay its text out in.
+  > span {
+    display: inline-flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+
+  .is-attack {
+    border-color: rgba(255, 176, 89, 0.3);
+    color: rgba(255, 176, 89, 0.92);
+  }
+
+  .is-sustain {
+    border-color: color-mix(in srgb, var(--dsp-base-curve) 30%, transparent);
+    color: color-mix(in srgb, var(--dsp-base-curve) 92%, transparent);
+  }
+
+  .is-duck {
+    border-color: color-mix(in srgb, var(--dsp-sky) 30%, transparent);
+    color: color-mix(in srgb, var(--dsp-sky) 92%, transparent);
+  }
+
+  b {
+    color: rgba($white, 0.9);
+    font-family: $font-mono;
+    font-variant-numeric: tabular-nums;
+    font-weight: $weight-regular;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  // A live figure keeps the width of its widest reading; set to the end of
+  // it, as every other live readout is, so the unit stays where it is and
+  // only the digits move.
+  .dsp-status-figure {
+    text-align: end;
+  }
+}
+
+// Two decisions, side by side: how much louder, and how the limiter gets
+// there. Equal columns because neither is the secondary one — a profile is a
+// point on both at once. One basis for both keeps them equal on a shared line,
+// and they stack only when a card cannot give each its 280.
+.dsp-maximizer-controls {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  width: 100%;
+  min-width: 0;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.dsp-maximizer-controls .dsp-band {
+  flex: 1 1 280px;
+}
+
+// Dimension's mono guard, on the card beside the width dials it throttles.
+// Without it the dials silently stop doing what they say on material that is
+// already out of phase — which is exactly the material somebody reaches for a
+// width control to fix.
+.dsp-dimension-guard {
+  display: grid;
+  grid-template-columns: 88px minmax(120px, 1fr) 56px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.dsp-dimension-guard-name,
+.dsp-dimension-guard-value {
+  color: $text-faint;
+  font-size: $text-micro;
+}
+
+.dsp-dimension-guard-value {
+  font-family: $font-mono;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.dsp-dimension-guard-track {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: $track-well;
+}
+
+// Full width means the guard is open and out of the way, so the bar reads as
+// how much of the control is available rather than as how much is being taken.
+.dsp-dimension-guard-fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 3px;
+  background: $secondary-default;
+}
+
+.dsp-dimension-note {
+  width: 100%;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1.5;
+}
+
+// Dimmed to the same 0.42 the rest of the panel uses for a section that is
+// switched off, so the row reads as part of a disabled card rather than as a
+// meter that has fallen to zero.
+.dsp-dimension-guard.is-off {
+  opacity: $disabled-opacity;
+}
+
+// Dimension's width curve. Sized like the other processor graphs so the pages
+// keep the same rhythm when the rail moves between them.
+.dsp-dimension-graph {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+}
+
+.dsp-dimension-canvas {
+  width: 100%;
+  height: 220px;
+}
+
+// The three widths and the three shape controls read as two decisions rather
+// than six numbers; the grouping is most of what somebody needs to set them.
+.dsp-dimension-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  width: 100%;
+}

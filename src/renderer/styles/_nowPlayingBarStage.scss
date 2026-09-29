@@ -1,0 +1,340 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'nowPlayingBarTokens' as *;
+
+.library-video-stage {
+  position: relative;
+  // NO `width: 100%`, and that is not the same as leaving it out.
+  //
+  // The card is a column flex, so this stretches to the card's content width
+  // on its own — and when the queue is open it must stretch to LESS than
+  // that, because the strip is reserved with a `margin-right` on every child
+  // (see `.library-workspace.has-up-next`). A percentage width is measured
+  // against the container and takes no notice of the element's own margins,
+  // so the picture stayed full width and ran under the queue: measured, a
+  // 958px stage inside a 946px box with the last 218px of it behind the list.
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  // An inner pane's corners, all four of them — the same `$radius-m` the
+  // list and the grid in this tab take from `lifted-surface`, and the same the
+  // queue beside it takes now. The bottom pair used to be the card's own
+  // 18px, copied from the Media tab's stage, where the picture runs flush to
+  // the card's bottom edge and has to share its corners. This one does not:
+  // it sits inside the card's padding, under the toolbar and beside a pane,
+  // and 18px there was a rounder corner than anything else on the tab.
+  border-radius: $radius-m;
+  background: $black;
+
+  &.is-fullscreen {
+    // App expands the shared Media/Library/Karaoke workspace. Keeping this
+    // stage in its parent lets the optional FluidEQ top bar retain its space
+    // instead of being covered by a second fixed fullscreen layer.
+    position: relative;
+    z-index: auto;
+    inset: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+    border-radius: 0;
+  }
+
+  // The picture behind an expanded or full-screen graph on this tab.
+  //
+  // The same rectangle the plot is pinned to, taken from the same measured
+  // variables — see `.graph-wrapper` in GraphTheme.scss, which sets exactly
+  // these four for exactly this reason. `inset: 0` is not the answer here:
+  // `.center-workspace` is the containing block for its fixed children, so
+  // that would be the column and not the window, and the card above would be
+  // a different box from the picture below it in expanded mode.
+  //
+  // Its own controls go with it. A Back and a full-screen button floating
+  // over a graph belong to neither of them.
+  &.is-behind-graph:not(.is-fullscreen) {
+    position: fixed;
+    z-index: 0;
+    top: var(--stage-art-shift, 0);
+    right: auto;
+    bottom: auto;
+    left: 0;
+    width: 100%;
+    height: var(--stage-art-height, 100vh);
+    border-radius: 0;
+
+    > .library-video-stage__back {
+      display: none;
+    }
+  }
+}
+
+.library-video-stage__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: $black;
+  cursor: pointer;
+}
+
+// The one control on the picture, in the corner karaoke puts its own way back
+// — top left, 12px in, the same place `.karaoke-playlist__expand` stands.
+//
+// `button small` for its bones — the height, the radius, the weight, the
+// focus ring — and the header's glass for its face. NOT `subtle`: that is the
+// quiet outline for a control standing on a panel, and its cyan label on a
+// cyan hairline read as a piece of the equaliser's UI stuck to a film. A
+// control on a picture belongs to the picture's own chrome, which in this app
+// means the two bars that float over a full screen: a white label on the
+// panel colour, blurred, with a neutral hairline. Same material as the
+// titlebar it sits under and the queue it sits opposite — one idea, three
+// places.
+//
+// Written from inside `.library-video-stage` and compounded with `.button`,
+// because `.button` states its own colour, fill, border and shadow at one
+// class and its hover at three: a rule of one class merely ties with the
+// first and loses to the second, and a tie is settled by whichever stylesheet
+// the bundler happened to put last. Two classes here, and four on the hover,
+// so the answer does not depend on that.
+.library-video-stage {
+  .library-video-stage__back {
+    position: absolute;
+    z-index: 2;
+    top: 12px;
+    left: 12px;
+    gap: 6px;
+
+    svg {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 1.6;
+    }
+  }
+
+  // The header's glass, from App.scss: `blur(22px) saturate(130%)` over the
+  // panel colour. The reasoning there applies exactly — the picture runs
+  // under this control, so an opaque fill is a chip of shell laid on the
+  // film, and a translucent one with no blur is worse because the frame
+  // carries on legibly underneath the word. Blurred, it is a pane over the
+  // picture and the picture stays whole behind it. Quieter than the queue on
+  // purpose: this is a way out, the queue is something to read.
+  .library-video-stage__back.button {
+    color: $text-primary;
+    border-color: rgba($edge-tint, 0.16);
+    background: color-mix(in srgb, $surface-panel 55%, transparent);
+    box-shadow: 0 6px 18px rgba($black, 0.28);
+    backdrop-filter: blur(22px) saturate(130%);
+    -webkit-backdrop-filter: blur(22px) saturate(130%);
+    font-weight: $weight-semibold;
+
+    // `.button` inks every path that does not say `fill="none"` in the dark
+    // shade that reads on a cyan face. This chevron is an open stroke, and
+    // that ink would close it into a dark wedge behind the line.
+    path {
+      fill: none;
+    }
+
+    &:hover:not([aria-disabled='true']):not(:disabled) {
+      color: $white;
+      border-color: rgba($edge-tint, 0.3);
+      background: color-mix(in srgb, $surface-menu-top 80%, transparent);
+      box-shadow: 0 8px 22px rgba($black, 0.34);
+      transform: none;
+      filter: none;
+    }
+
+    &:active:not([aria-disabled='true']):not(:disabled) {
+      color: $white;
+      background: color-mix(in srgb, $surface-menu-top 92%, transparent);
+    }
+  }
+}
+
+// *** The compact options menu ***********************************************
+//
+// Below 900px the bar has no room for shuffle, repeat and a fader on its
+// surface, so they move behind one button — see `isCompact`. Laid out down the
+// menu rather than across it: a popover is free to be tall, and the fader is
+// the reason this menu exists, so it gets a full row rather than the sliver a
+// crowded bar could spare it.
+// A label per row, and only in the menu. On the bar the same three controls
+// are 34px discs with room for a glyph and nothing else.
+.now-playing-bar__option-label {
+  display: none;
+}
+
+.now-playing-bar__options {
+  // `AnchoredMenu` draws no surface of its own — every menu in the app brings
+  // one, and this had none: the three controls came out as bare buttons
+  // floating over whatever was behind them.
+  @include menu-surface;
+  // Above the bar it belongs to. The bar is `z-index: 1100` and this opens
+  // upward from a button near its foot, so at anything lower the bar painted
+  // over the menu's last row — measured, the volume fader was underneath it.
+  z-index: 1200;
+  display: flex;
+  min-width: 232px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 7px;
+
+  // A row each, and the whole row is the target — a 34px disc in a column of
+  // its own reads as a stray dot rather than as an entry in a menu.
+  .now-playing-bar__toggle {
+    display: flex;
+    width: 100%;
+    height: 34px;
+    justify-content: flex-start;
+    gap: $spacing-s;
+    padding: 0 10px;
+    border-radius: $radius-s;
+    font-size: $text-body;
+  }
+
+  // The faint face the bar's toggles gave up, kept on the rows: here a row
+  // at rest is a target among targets in a panel, not a glyph on a strip.
+  // Written against the states rather than before them, so hover, focus and
+  // a lit row keep winning without depending on where this rule stands.
+  .now-playing-bar__toggle:not(:hover):not(:focus-visible):not(
+      [aria-pressed='true']
+    ),
+  .now-playing-bar__volume-icon:not(:hover):not([aria-pressed='true']) {
+    border-color: color-mix(in srgb, $secondary-light 10%, transparent);
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+  }
+
+  .now-playing-bar__option-label {
+    display: inline;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // The fader gets a full row, which is the reason this menu exists: on the
+  // bar it was the first thing squeezed, and here it has the width to be
+  // aimed at.
+  .now-playing-bar__volume {
+    width: 100%;
+    height: 34px;
+    padding: 0 10px;
+    // A menu's own faint line (`$menu-rule`), not the rows' hairline: the
+    // one bold box inside a menu (Ivan, 2026-09-27: "reduce inner borders
+    // visibility", "for all menu").
+    border: 1px solid $menu-rule;
+    border-radius: $radius-s;
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+  }
+
+  .now-playing-bar__volume-slider {
+    width: auto;
+    flex: 1 1 auto;
+  }
+}
+
+.now-playing-bar__options-icon {
+  width: 16px;
+  height: 16px;
+  stroke: currentcolor;
+}
+
+// *** Short windows ***********************************************************
+//
+// 52 rather than 64 under a laptop's height (`$bp-laptop-height`, the shell's
+// own tier in `App.scss`), and every row still inside it with room above and
+// below. The 64 was set by the deck when it was a padded pill round 34px keys
+// and a 44px Play; the pill is gone (see `__deck`) and the height is kept, so
+// the floor of the window did not move with it. Here the keys are 30 and Play
+// 38 — the height the three lines beside the cover already measure.
+//
+// No padding above or below: the row is centred in the bar's whole height
+// instead. It had 6 either side, which left 39px for a track column 44 tall
+// (the three lines and the press-target's own padding and edge round them),
+// so the row overflowed downwards and every control in it — title, keys,
+// Play — sat 3px below the bar's middle, 14 above the keys and 8 below
+// (Ivan, 2026-09-26: "the play bar's controls not centered vertically").
+// With no padding the one row fills the bar and centres whatever it holds,
+// however tall a column grows.
+//
+// Karaoke draws its own keys into this bar (`.now-playing-bar__adopted`), so
+// they come down with the library's, or the bar would be a different height
+// depending on which tab is playing — the thing `$now-playing-bar-height`
+// exists to prevent. Its fader fits as drawn.
+@media (max-height: $bp-laptop-height) {
+  .now-playing-bar,
+  .now-playing-bar.is-compact {
+    height: 52px;
+    padding-block: 0;
+  }
+
+  .now-playing-bar__control,
+  .now-playing-bar__adopted
+    .karaoke-transport__buttons
+    .karaoke-transport__control {
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    min-height: 30px;
+  }
+
+  .now-playing-bar__play,
+  .now-playing-bar__adopted
+    .karaoke-transport__buttons
+    .karaoke-transport__play {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+  }
+
+  .now-playing-bar__play .now-playing-bar__icon,
+  .now-playing-bar__adopted
+    .karaoke-transport__buttons
+    .karaoke-transport__play
+    .karaoke-button__icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  // The groups shrink with the keys, so the row keeps its spacing instead of
+  // gathering the smaller keys in the middle of a group cut for the larger
+  // ones: three keys and two gaps are 98, and the two flanks either side of
+  // Play and its gaps 244. The flanks stay equal, which is what keeps Play on
+  // the window's centre line.
+  .now-playing-bar__flank,
+  .now-playing-bar__adopted
+    .karaoke-transport__buttons
+    .karaoke-transport__flank {
+    width: 98px;
+    flex-basis: 98px;
+  }
+
+  .now-playing-bar__buttons,
+  .now-playing-bar__adopted .karaoke-transport__buttons {
+    width: 244px;
+  }
+}

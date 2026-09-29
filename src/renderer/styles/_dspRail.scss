@@ -1,0 +1,361 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'dspTokens' as *;
+
+// One processor gets the page; the rail down the side chooses which.
+.dsp-body {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 14px;
+  min-height: 0;
+}
+
+// In signal order, top to bottom, and not reorderable: the rail reads as the
+// chain rather than as a menu.
+.dsp-rail {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  width: 168px;
+}
+
+.dsp-rail-processors,
+.dsp-rail-playback {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+// Crossfade schedules the player; it is not a filter in the signal chain.
+// The separate, labelled group prevents its on/off lamp from reading as one
+// more stage a whole-chain preset owns.
+.dsp-rail-playback {
+  gap: 5px;
+  margin-top: 11px;
+  padding-top: 10px;
+  // The rails' own divider (`$menu-rule`), the Plus rail's over its Admin:
+  // one line for a rail, not a white of its own.
+  border-top: 1px solid $menu-rule;
+}
+
+.dsp-rail-group-label {
+  padding: 0 11px 2px;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+}
+
+.dsp-rail-tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  // The resting face of something that lifts: each stage a faint card on
+  // the floor, a very soft step from it (Ivan, 2026-09-26: "add small bg to
+  // those cards very soft diff").
+  background: $lift-rest;
+  color: $text-muted;
+  font-size: $text-lead;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease,
+    translate 140ms $ease-out;
+
+  // A narrow edge identifies the page without flooding the whole row with the
+  // accent colour. The old full teal fill made ten separate controls read as
+  // one heavy blue block.
+  &::before {
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    left: -1px;
+    width: 2px;
+    border-radius: 0 2px 2px 0;
+    background: $secondary-default;
+    content: '';
+    opacity: 0;
+    transform: scaleY(0.45);
+    transition:
+      opacity 140ms ease,
+      transform 140ms $ease-out;
+  }
+
+  &:disabled {
+    opacity: $disabled-opacity;
+    cursor: default;
+  }
+
+  // Leans toward the page it opens. The rail is the only navigation this tab
+  // has and it answered the pointer with colour alone; a couple of pixels in
+  // the direction the stage lies is the difference between a list of names
+  // and a set of controls.
+  // The neutral lift, not a slab of the plot colour: on the open floor an
+  // opaque square under the pointer read as a card appearing (2026-09-26).
+  &:hover:not(:disabled) {
+    background: $hover-lift;
+    color: rgba($white, 0.86);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dsp-rail-tab {
+    transition:
+      background 140ms ease,
+      color 140ms ease,
+      border-color 140ms ease;
+
+    &:hover:not(:disabled) {
+      translate: none;
+    }
+  }
+}
+
+.dsp-rail-tab.is-active {
+  // Selected the way every chosen row in the app is: the accent's tint held,
+  // under accent text, with no frame and nothing under it. It was the neutral
+  // lift with a drop shadow, a grey slab floating off the rail (Ivan,
+  // 2026-09-26: "fix DSP select option color and dropshadow").
+  border-color: $selected-border;
+  background: $selected-accent;
+  color: $text-accent;
+
+  &::before {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+// The glyph carries the processor's identity, and on a narrow window it is the
+// only thing left in the button — so it keeps its size rather than shrinking
+// with the text beside it.
+.dsp-section-icon {
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  padding: 2px;
+  border: 1px solid rgba($white, 0.045);
+  border-radius: $radius-xs;
+  background: $surface-plot;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .dsp-section-icon__frame {
+    stroke-width: 1.3;
+    opacity: 0.42;
+    // Selecting a tab lifts the frame; without this it steps while the button
+    // around it fades, which is the glyph and its own button disagreeing about
+    // when the selection happened.
+    transition: opacity 140ms ease;
+  }
+
+  .dsp-section-icon__accent {
+    stroke-width: 1.7;
+    opacity: 0.92;
+  }
+}
+
+.dsp-rail-tab.is-active .dsp-section-icon .dsp-section-icon__frame {
+  opacity: 0.6;
+}
+
+.dsp-rail-tab.is-active .dsp-section-icon {
+  border-color: color-mix(in srgb, $secondary-default 20%, transparent);
+  background: $selected-accent;
+  color: $secondary-default;
+}
+
+.dsp-rail-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The processor's own on/off, not the selection. Reading which of these are
+// doing something has to be possible without visiting each one.
+.dsp-rail-lamp {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border: 1px solid rgba($white, 0.1);
+  border-radius: 50%;
+  background: $track-well;
+  // Flat, like every lamp now: no halo round the dot.
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+// A lamp says a processor is on, so it wears the app's "on" colour, not the
+// accent: beside the accent the selected tab and the switches already wear,
+// all of the rail was one colour.
+.dsp-rail-tab.is-on .dsp-rail-lamp {
+  border-color: color-mix(in srgb, $active 58%, transparent);
+  background: $active;
+}
+
+.dsp-stage {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dsp-stage .dsp-card {
+  flex: 1 1 auto;
+}
+
+// The card's own surface fades in once, when the tab opens, and never on a
+// rail click: the stage is mounted with the page and outlives every section
+// change, so this plays exactly when the whole page is arriving. Without it
+// the card's lit border stood complete in the first frame, ahead of the
+// heading and the rail that were still fading in around it.
+//
+// This is the one entrance here with others inside it, and it is allowed to
+// be because it only fades: nothing inside travels further for it, and the
+// rows still keep their own order. `fade-to-rest` rather than `fade-in`, so a
+// stage dimmed as unavailable arrives dimmed instead of flashing to full.
+.dsp-stage {
+  @include animate(fade-to-rest);
+}
+
+.dsp-stage .dsp-card-header {
+  @include animate(rise-in);
+}
+
+.dsp-card-body > * {
+  --dsp-row: #{$dsp-pane-rows};
+
+  @for $i from 1 through $dsp-pane-rows {
+    &:nth-child(#{$i}) {
+      --dsp-row: #{$i};
+    }
+  }
+}
+
+// The EQ puts its whole page inside one `.dsp-eq`, so its rows are one level
+// further down.
+.dsp-eq > * {
+  --dsp-subrow: #{$dsp-pane-rows - 1};
+
+  @for $i from 1 through $dsp-pane-rows {
+    &:nth-child(#{$i}) {
+      --dsp-subrow: #{$i - 1};
+    }
+  }
+}
+
+// Rows of surfaces side by side, swept left to right.
+//
+// Two groups that swap places are not in this list. The Exciter's global and
+// band groups, and the EQ's global row and band strip, share one line while
+// the card holds both and split otherwise — with `flex-wrap: wrap-reverse`, so
+// the group written second lands on top. Numbered in source order, the lower
+// of the two would arrive before the one above it. So each pair starts on its
+// row's own beat: the EQ's two arrive together, and each Exciter group sweeps
+// within itself.
+.dsp-normalizer-dashboard,
+.dsp-denoise-modules,
+.dsp-exciter-band-row,
+.dsp-exciter-global-row,
+.dsp-dimension-controls,
+.dsp-room-controls,
+.dsp-maximizer-controls,
+.dsp-crossfade-layout,
+.dsp-crossovers {
+  > * {
+    --dsp-column: #{$dsp-pane-columns - 1};
+
+    @for $i from 1 through $dsp-pane-columns {
+      &:nth-child(#{$i}) {
+        --dsp-column: #{$i - 1};
+      }
+    }
+  }
+}
+
+.dsp-card-body > *,
+.dsp-eq > *,
+.dsp-normalizer-dashboard > *,
+.dsp-denoise-modules > *,
+.dsp-exciter-band-row > *,
+.dsp-exciter-global-row > *,
+.dsp-eq-bottom > *,
+.dsp-dimension-controls > *,
+.dsp-room-controls > *,
+.dsp-maximizer-controls > *,
+.dsp-crossfade-layout > *,
+.dsp-crossovers > * {
+  @include animate(rise-in);
+  animation-delay: calc(
+    #{$dsp-pane-lead} + (var(--dsp-row, 1) - 1 + var(--dsp-subrow, 0)) *
+      #{$dsp-pane-row-step} + var(--dsp-column, 0) * #{$dsp-pane-column-step}
+  );
+}
+
+// The wrappers themselves: they pass their row's beat down and do not move.
+// They match the rule above as well; the extra class in each selector here is
+// what makes this one hold, whichever order the two are written in.
+.dsp-card-body
+  > :is(
+    .dsp-normalizer-dashboard,
+    .dsp-denoise-modules,
+    .dsp-exciter-controls,
+    .dsp-eq,
+    .dsp-dimension-controls,
+    .dsp-room-controls,
+    .dsp-maximizer-controls,
+    .dsp-crossfade-layout,
+    .dsp-crossovers
+  ),
+.dsp-eq > .dsp-eq-bottom {
+  animation: none;
+}
+
+.dsp-eq {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}

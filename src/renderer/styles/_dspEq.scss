@@ -1,0 +1,844 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'dspTokens' as *;
+
+// The control, not a picture beside one. Handles are dragged directly, which
+// is the gesture every parametric EQ uses.
+//
+// A canvas, not an SVG: one DOM node instead of twenty-odd rebuilt on every
+// pixel of a drag, and sized in real pixels so a circle stays a circle. The
+// SVG version stretched a fixed viewBox to the panel and every handle came
+// out an ellipse with the labels squashed to match.
+.dsp-eq-graph {
+  display: block;
+  width: 100%;
+  height: 300px;
+  border: 1px solid rgba($white, 0.07);
+  border-radius: $radius-s;
+  background: $surface-plot;
+  touch-action: none;
+}
+
+// Present for `aria-labelledby` and gone from the page: the rail already
+// names the processor, and saying it twice in one glance wasted the row the
+// description now has.
+.dsp-card-title.is-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// Wide enough for the longest processor name in every locale, so the rail
+// never ends in an ellipsis the user has to guess at.
+.dsp-rail {
+  width: 200px;
+}
+
+.dsp-rail-name {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.2;
+}
+
+// The band numbers, centred under the graph and reading left to right in the
+// same order the bands sit on it. One row always — it scrolls rather than
+// wrapping, because a rack of thirty-one that wrapped into two rows would move
+// the graph up and down every time the size changed.
+//
+// `safe center` and not plain `center`: a centred flex row that overflows
+// spills equally past BOTH ends, and the overflow past the start cannot be
+// scrolled back to — bands 1 to 4 of a 31-band rack were unreachable. `safe`
+// falls back to flex-start exactly when it would otherwise overflow.
+// What each line on the graph is, and which of its two scales it belongs to.
+//
+// Across the top of the plot, where the lines it names are. Under the graph it
+// put the answer a glance away from the question, and the eye had to leave the
+// picture to use it.
+.dsp-eq-plot {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
+// A stage switched off shows its picture dimmed, on every page — the way
+// Bass Forge's always did, and the Equaliser, Master, Exciter, Denoise and
+// Dimension never had: their graphs looked exactly the same on and off.
+// What is drawn stays what the settings would do; the dim says none of it
+// is running. Each graph also stops drawing live readings of an off stage,
+// so a flat trace is never mistaken for a stage hearing silence.
+.dsp-eq-plot,
+.dsp-denoise-graph,
+.dsp-dimension-graph,
+.dsp-crossfade-preview {
+  transition: opacity $motion-base $ease-out;
+
+  &.is-off {
+    opacity: $disabled-opacity;
+  }
+}
+
+.dsp-eq-legend {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  margin: 0;
+  padding: 4px 12px;
+  border-radius: $radius-xs;
+  // Just enough ground to stay legible over the spectrum without becoming a
+  // panel: the plot is what the page is for and this sits on top of it.
+  background: $surface-plot;
+  list-style: none;
+  // The plot beneath is dragged to move bands, and a strip that swallowed the
+  // pointer would make the top of the curve unreachable.
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.dsp-eq-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+// Drawn from the same colours the canvas uses, passed in as  so one
+// rule can serve every entry. A swatch that only approximates the line it
+// names is worse than none: it teaches the wrong pairing.
+.dsp-eq-legend-mark {
+  width: 18px;
+  height: 0;
+  border-top: 2px solid currentcolor;
+
+  &.is-dashed {
+    border-top-style: dashed;
+  }
+
+  // The spectrum is an area, not a line, so its swatch is one too.
+  &.is-filled {
+    height: 9px;
+    border-top-width: 1px;
+    background: currentcolor;
+    opacity: 0.32;
+  }
+}
+
+// Which axis to read it against. Dimmer than the name: it is the answer to a
+// question the name has already raised.
+.dsp-eq-legend-scale {
+  color: $text-faint;
+  font-size: $text-micro;
+}
+
+.dsp-eq-picker {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 5px;
+  justify-content: safe center;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  @include slim-scrollbar;
+}
+
+.dsp-eq-pick {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid rgba($white, 0.09);
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  color: $text-faint;
+  font-size: $text-body;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+  // Bypassed bands remain selectable; their dashed edge says off without
+  // fading the button needed to select and re-enable them.
+  transition:
+    background 130ms ease,
+    color 130ms ease,
+    border-color 130ms ease,
+    box-shadow 130ms ease;
+
+  &:hover {
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
+    color: rgba($white, 0.85);
+  }
+}
+
+.dsp-eq-pick.is-active {
+  border-color: color-mix(in srgb, $secondary-default 65%, transparent);
+  background: color-mix(in srgb, $secondary-default 22%, transparent);
+  color: $white;
+}
+
+.dsp-eq-pick.is-off {
+  border-style: dashed;
+}
+
+// Which bands react, readable across the whole row without selecting each one.
+//
+// A dashed ring alone was too quiet to find at 26px among fifteen of them, so
+// it carries a tint and a dot as well. Three weak signals that agree beat one
+// strong one that has to be learned: the ring matches the dashed at-rest curve
+// on the graph, the tint says "not like its neighbours", and the dot survives
+// being scanned past at speed.
+.dsp-eq-pick.is-dynamic {
+  position: relative;
+  border-style: dashed;
+  border-color: color-mix(in srgb, $secondary-default 90%, transparent);
+  background: color-mix(in srgb, $secondary-default 16%, transparent);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: $secondary-default;
+  }
+}
+
+// Selected AND dynamic: keep the solid selected ring, and put the dashed mark
+// inside it. Two dashed borders would be indistinguishable from one.
+.dsp-eq-pick.is-dynamic.is-active {
+  border-style: solid;
+  box-shadow: inset 0 0 0 1px rgba($black, 0.55);
+}
+
+// The global controls with the phase meter, and the selected band's strip: one
+// line when a card holds both, and otherwise the strip on top, where it sits
+// against the band picker that chooses what it edits. `wrap-reverse` is that
+// switch, exactly as on the Exciter — the global row opens the line and its
+// line is the one that goes to the bottom.
+//
+// The window's height used to make this choice, so a Full HD window stacked
+// the two on a card with room for both, and a tall narrow one crammed them
+// side by side on a card with room for neither.
+.dsp-eq-bottom {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap-reverse;
+  align-self: stretch;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+}
+
+// The four tone dials and the phase meter never part: together they are 612px
+// at full dial size, less than the narrowest card. The basis is written out
+// because the row's own max-content measures the meter by its canvas, 256px,
+// and not by the 260px the meter is given: 4px short, the meter wrapped under
+// the dials on a card with room for both.
+.dsp-eq-global-row {
+  display: flex;
+  flex: 0 1 calc(4 * var(--dsp-knob) + 32px + 8px + 260px);
+  min-width: 0;
+  align-items: stretch;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dsp-eq-global-controls {
+  // A dial row: see `.dsp-band-dials`. Its basis is the four dials at full
+  // size, which is what it gives up first when the phase meter needs the line.
+  flex: 1 1 calc(4 * var(--dsp-knob) + 32px);
+  min-width: 0;
+  align-content: center;
+  padding: 10px 12px;
+  @include dsp-box;
+}
+
+// One row, centred: the selected band's controls and nothing else. Centring
+// is the point — the strip belongs to the graph above it, not to an edge.
+//
+// Four groups that wrap whole — dynamics, shape, the three dials, then the
+// insert pair with the band's own switch — so a narrow card breaks it between
+// two groups and never leaves one button alone on a line.
+.dsp-eq-strip {
+  display: flex;
+  flex: 1 1 860px;
+  min-width: 0;
+  // Centred on the row, not hung from its floor. The controls are different
+  // heights — a knob carries its name underneath, a button does not — and
+  // lining their bottom edges up makes the short ones read as having sunk.
+  align-items: center;
+  justify-content: center;
+  gap: 14px 18px;
+  padding: 10px 14px;
+  @include dsp-box;
+  flex-wrap: wrap;
+}
+
+.dsp-eq-strip-dials {
+  flex: 0 1 calc(3 * var(--dsp-knob) + 4px);
+  min-width: 0;
+}
+
+.dsp-eq-strip-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 18px;
+}
+
+// The label sits above the select and OUTSIDE the box's height.
+//
+// That is what makes the row line up, and it needs no measured offset to do
+// it. With the label in the flow the box was the select plus a label taller
+// than the buttons beside it, and since the strip centres its children a
+// taller box hangs lower — the select's bottom edge sat nine pixels below
+// every button's. Lifted out of the flow, the box IS the select, so centring
+// puts its bottom exactly where the buttons' bottoms are and stays there if
+// the label's font ever changes.
+.dsp-eq-shape {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 168px;
+  // The select is 38px against the buttons' 32, and the strip centres its
+  // children — so half that difference, three pixels, is exactly how far its
+  // bottom edge hung below theirs. Six here moves the centre up by three.
+  margin-bottom: 6px;
+
+  .dsp-eq-field-label {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 4px;
+    white-space: nowrap;
+  }
+}
+
+.dsp-eq-field-label {
+  color: $text-faint;
+  font-size: $text-micro;
+  text-transform: uppercase;
+  @include tracking(0.07em);
+}
+
+// The shape drawn beside its name: for anyone who has used an EQ the picture
+// IS the name, and the word is for everyone else.
+.dsp-shape-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.dsp-shape-icon {
+  flex: 0 0 auto;
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.85;
+  }
+}
+
+.dsp-eq-strip .button.small {
+  align-self: center;
+}
+
+// The pair reads as one control with two directions, so they sit together
+// rather than being spaced like two unrelated buttons.
+.dsp-eq-insert {
+  display: flex;
+  align-self: center;
+  gap: 4px;
+}
+
+.dsp-eq-dynamic {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  align-self: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 12px;
+  @include dsp-box;
+}
+
+.dsp-eq-dynamic-readout {
+  display: flex;
+  min-width: 92px;
+  align-items: center;
+  align-self: stretch;
+  justify-content: center;
+  gap: 8px;
+  color: $text-faint;
+  font-size: $text-small;
+  @include tracking(0.07em);
+  text-transform: uppercase;
+}
+
+// The preset picker, top-left of the page: it is the fastest way to change
+// everything below it, so it reads first.
+// Lives in the card header now, so it takes the row and leaves the bypass
+// switch its place at the end. `center` rather than `flex-end`: everything in
+// here is one control tall since the label moved beside its field.
+//
+// Its groups are separated by gap rules rather than borders: preset | reset |
+// stereo, each rule painted only between two groups on the same line. The
+// borders they replace belonged to one group each, so a group that wrapped to
+// the start of a line took its divider with it and the rule after Reset stood
+// at the end of a line with nothing beyond it.
+.dsp-eq-bar {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 10px 24px;
+  column-rule: 1px solid rgba($white, 0.1);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+// The glyph on a preset-row button. Sized to the text beside it rather than to
+// a grid, so the pair reads as one word with a picture in front of it.
+.dsp-bar-icon {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  margin-right: 5px;
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+// A button carrying a glyph has to lay its two children out; the plain ones
+// never had to.
+.dsp-eq-transfer .button.small {
+  display: inline-flex;
+  align-items: center;
+}
+
+// The complete second line of the EQ header. Keeping it in one full-width
+// group makes its centring independent from the preset actions above it and
+// prevents the last setting from dropping onto a third line.
+.dsp-eq-settings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dsp-eq-preset {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+// A setting's name goes above its switch when the two cannot share the width
+// they are given, instead of the switch running past it. Not the preset
+// group: its arrows have to stay against the picker they step.
+.dsp-eq-preset:not(.dsp-eq-preset-first) {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+// The Exciter's sentence, on a line of its own beneath its controls — the same
+// `flex: 1 0 100%` the EQ's notice uses to claim the row it is on. It was the
+// card description until the header measured itself: 441px of prose in front of
+// the preset picker, on the one page in the rack that has both, and the two
+// controls behind it wrapping into a second row 390px wide.
+.dsp-exciter-note,
+.dsp-maximizer-note,
+.dsp-bass-forge-note,
+.dsp-bass-punch-note {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-body;
+  line-height: 1.4;
+}
+
+// Full lines under the toolbar and the bypass cluster, all of them siblings
+// of the toolbar in the header: a processor's note, and the EQ's settings row
+// and notice. Later in the flex order than the cluster, so a wide card never
+// seats one beside the switch.
+//
+// The note's measure is a right padding and not a `max-width`. A max-width
+// clamps the size a flex line is broken on, so a 620px note fitted on a 2K
+// card's first line after the switch and ran on from there.
+.dsp-card-header
+  > :is(
+    .dsp-exciter-note,
+    .dsp-maximizer-note,
+    .dsp-bass-forge-note,
+    .dsp-bass-punch-note,
+    .dsp-dimension-note,
+    .dsp-eq-settings,
+    .dsp-eq-notice
+  ) {
+  flex: 1 0 100%;
+  order: 1;
+}
+
+.dsp-card-header
+  > :is(
+    .dsp-exciter-note,
+    .dsp-maximizer-note,
+    .dsp-bass-forge-note,
+    .dsp-bass-punch-note,
+    .dsp-dimension-note
+  ) {
+  padding-right: max(0px, calc(100% - 620px));
+}
+
+// Beside the field rather than stacked over it. Above it, the pair stood two
+// rows tall inside a row that is one control high, and the header grew a band
+// of empty space to fit a single word.
+.dsp-eq-preset-label {
+  flex: 0 0 auto;
+  color: $text-faint;
+  font-size: $text-micro;
+  text-transform: uppercase;
+  @include tracking(0.07em);
+}
+
+.dsp-eq-preset .dropdown {
+  min-width: 170px;
+}
+
+// The widest field in the row, and it has to be: the entries carry real names
+// — "Small speakers", "Treble boost" — and at the 170px the rest of the row
+// shares they truncated into each other.
+//
+// A floor rather than a fixed width, and it is not decoration. The pill sizes
+// itself to whatever is chosen, so without one the control changed width on
+// every step of the prev/next arrows and shoved the seven controls beside it
+// along the row — while the arrows being pressed were two of the seven. The
+// same failure the voicing strength figure has its own reserved cell for.
+.dsp-eq-preset-first .dropdown,
+.dsp-eq-preset-first .rich-pick__trigger {
+  min-width: 210px;
+}
+
+// Step buttons either side of the preset field. Sized to the field rather than
+// to their glyph, so the three read as one control with a middle and two ends.
+.dsp-eq-step {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  // Full control height, so the pair sits level with the field between them
+  // rather than floating short of it.
+  width: 30px;
+  height: $control-height;
+  padding: 0;
+  border: 1px solid rgba($white, 0.09);
+  border-radius: $radius-xs;
+  // A well cut into its card: the shell colour, which is the one thing in
+  // the palette that reads as "below". Black at 24% was a shade of nothing.
+  background: color-mix(in srgb, $surface-base 55%, transparent);
+  color: $text-faint;
+  cursor: pointer;
+  transition:
+    background 130ms ease,
+    color 130ms ease;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    color: rgba($white, 0.9);
+  }
+
+  // The same 0.5 the `RichPick` trigger between them fades to. These three are
+  // sized and spaced to read as one control with a middle and two ends, so a
+  // dimmed field flanked by two arrows still lighting up under the pointer is
+  // one control disagreeing with itself about whether it can be used.
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
+// In the EQ preset picker the field already supplies the shared surface. The
+// previous/next controls are directions, so drawing another box around each
+// arrow made three controls out of one picker.
+.dsp-eq-bar .dsp-eq-step {
+  width: 24px;
+  border: 0;
+  background: transparent;
+
+  &:hover {
+    background: transparent;
+  }
+}
+
+// The preset menu's own width moved to `RichPick.scss` when the picker stopped
+// being a Dropdown, and its resizing history moved with it: it is NOT
+// user-resizable, and that was tried. A menu that can size itself feeds the
+// measurement its own placement is computed from, which took the whole page
+// with it. A drag handle needs the placement to stop depending on the
+// measurement, not a CSS property.
+
+// A closed set of choices with all of them showing.
+//
+// The toolbar had seven dropdowns in a row and four of those were binary or
+// ternary: you could not see what you were choosing between without opening a
+// menu to find out. The three that stayed are the ones with long lists or long
+// labels, where a menu is still the right shape.
+// Every control's face and edge (`$surface-control`, `$border-control`), the
+// ones every select and quiet button beside it wears, with the chosen option
+// a step of mist lighter under the accent's label. It stood on the block
+// colour with the choice at 20% of the accent over it: a pale slab with a
+// paler one inside, the lightest thing on every card it was on (Ivan,
+// 2026-09-26: "not good, too light color", "all of those"); then on a tint
+// of the accent, which in Rainbow mode's violet was an olive track with an
+// olive chip in it (2026-09-27: "input colors this mess sucks").
+.segmented {
+  display: flex;
+  flex: 0 0 auto;
+  padding: 2px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+}
+
+// The options share whatever width the track is given and hold their words
+// in their middle. Sized to their words alone, a track set wider than them —
+// the hum filter's 260px — kept all three against its left end, with the
+// rest of it empty ("and centered").
+.segmented__option {
+  position: relative;
+  flex: 1 1 auto;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  color: $text-faint;
+  font-size: $text-body;
+  text-align: center;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 130ms ease,
+    color 130ms ease;
+
+  &:hover:not(:disabled, .is-selected) {
+    color: $text-primary;
+    background: rgba($edge-tint, 0.05);
+  }
+
+  &:disabled {
+    opacity: $disabled-opacity;
+    cursor: default;
+  }
+
+  &.is-selected {
+    background: rgba($edge-tint, 0.12);
+    color: $secondary-light;
+  }
+}
+
+// Keep the choices readable as separate targets even when neither neighbour
+// is selected. The one-pixel divider does not add another outer border or a
+// second capsule; it only marks the seam between adjacent DSP options.
+.dsp-card .segmented__option + .segmented__option {
+  &::before {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 0;
+    width: 1px;
+    background: $border-field;
+    content: '';
+  }
+}
+
+// Every DSP dialog — the EQ and chain imports, the saves, the room's fit and a
+// genre's notes — stands on this backdrop, over the rack, on the dialog frame
+// (`DialogFrame`). Portalled to the window: `.dsp-card` is a query container,
+// and a container is the containing block for a fixed backdrop.
+.dsp-import-backdrop {
+  @include dialog.backdrop(2400);
+}
+
+// Pasting a curve or a chain: room for a config file's columns beside the
+// rail, and a box tall enough to see a dozen of its lines.
+.dialog-frame.dsp-import-dialog {
+  @include dialog.size(780px, 640px);
+}
+
+// Naming what is saved: one field, so the frame at its narrowest.
+.dialog-frame.dsp-save-dialog {
+  @include dialog.size(600px, 420px);
+}
+
+// The paste area, on the fields' own face. Monospace because it is a config
+// file: the columns of a ParametricEQ export line up, and that is how a
+// person spots the line they mistyped.
+.dsp-import__body {
+  min-height: 190px;
+  font-family: $font-mono;
+  font-size: $text-body;
+  line-height: 1.5;
+  resize: vertical;
+  white-space: pre;
+  overflow: auto;
+  @include slim-scrollbar;
+}
+
+// The name field in the save dialogs, a field like every other.
+.dsp-import__name {
+  width: 100%;
+  min-height: $control-height;
+  font-size: $text-lead;
+}
+
+.dsp-import__error {
+  color: $red;
+  font-size: $text-body;
+}
+
+// A name already taken, said before Save rather than after it: a caution,
+// not a fault.
+.dsp-import__warning {
+  color: $amber;
+  font-size: $text-body;
+}
+
+// The Room's speaker pane pushes its buttons right with it.
+.dsp-import__spacer {
+  flex: 1 1 auto;
+}
+
+// Wraps inside itself, so the EQ's four file actions are never the reason its
+// bypass cluster is pushed off the header's first line.
+.dsp-eq-transfer {
+  display: flex;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+// Takes the whole row so the message never squeezes the picker beside it, and
+// so a long one wraps downward rather than pushing the buttons off the edge.
+// The row is claimed in the header's rule for full lines.
+.dsp-eq-notice {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.35;
+}
+
+// Nothing on the left means nothing to make room for. Without this the empty
+// title box still claimed a line and left a band of dead space above the
+// controls.
+.dsp-card-header.is-bare {
+  align-items: center;
+  min-height: 0;
+}
+
+// The switch says which state it is IN. A bare toggle leaves the user reading
+// a colour, and across four processors behind four pages that is a guess every
+// time.
+.dsp-card-power {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 9px;
+  margin-left: auto;
+}
+
+// A processor's monitoring action belongs beside its power switch, but it is
+// not the switch, so a divider stands between them. The one before the whole
+// cluster is the cluster's own: see `.dsp-card-header.has-toolbar`.
+.dsp-card-before-power {
+  display: flex;
+  align-items: center;
+  padding-right: 12px;
+  border-right: 1px solid rgba($white, 0.1);
+}
+
+.dsp-exciter-isolate {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.dsp-monitor-isolate {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+// A card's switch captions, said like the header's (`.dsp-global-power-state`)
+// and the "Game mode" caption beside it: faint, small, sentence case, and at
+// full strength when on — not spaced capitals turning cyan beside a switch
+// that is already cyan (Ivan, 2026-09-26: "the On and all that make it more
+// like the other text").
+.dsp-exciter-isolate-label,
+.dsp-monitor-isolate-label,
+.dsp-card-power-label {
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  transition: color 140ms ease;
+
+  &.is-on {
+    color: $text-primary;
+  }
+}

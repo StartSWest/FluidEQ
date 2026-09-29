@@ -1,0 +1,658 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+.karaoke-workspace__levels {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 96px;
+  align-items: center;
+  gap: 5px;
+
+  i {
+    width: 4px;
+    height: 38%;
+    border-radius: $radius-pill;
+    background: linear-gradient(#{$karaoke-warm}, #{$karaoke-cool});
+    box-shadow: none;
+
+    &:nth-child(2),
+    &:nth-child(6) {
+      height: 65%;
+    }
+
+    &:nth-child(3),
+    &:nth-child(5) {
+      height: 88%;
+    }
+
+    &:nth-child(4) {
+      height: 100%;
+    }
+  }
+}
+
+.karaoke-workspace__readiness {
+  display: grid;
+  min-height: 140px;
+  flex: 0 1 clamp(150px, 19vh, 210px);
+  grid-template-columns: minmax(0, 1fr);
+
+  article {
+    @include lifted-surface;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    background: color-mix(in srgb, $surface-base 28%, transparent);
+  }
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h3 {
+    color: $text-primary;
+    font-size: $text-lead;
+  }
+
+  p {
+    margin-top: 5px;
+    color: $text-faint;
+    font-size: $text-small;
+    line-height: 1.45;
+  }
+}
+
+.karaoke-workspace__readiness.is-resizable {
+  // Keep enough of the workspace for song metadata, lyrics and transport.
+  // flex-shrink must remain enabled so a restored guide size cannot force the
+  // player above it when the window or breakpoint changes.
+  max-height: min(52%, calc(100% - 340px));
+  flex: 0 1 var(--karaoke-pitch-size, 34%);
+}
+
+.karaoke-workspace > .karaoke-pane-splitter.is-horizontal {
+  margin-block: -$spacing-m;
+}
+
+// The lane inside a loaded song is part of the elastic stage, unlike the
+// standalone lane. Its graph compresses before any neighboring control can
+// overlap it.
+.karaoke-workspace__stage > .karaoke-pitch {
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+
+  &.has-targets {
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .karaoke-pitch__canvas {
+    min-height: 0;
+  }
+}
+
+// The detached guide uses the same compressible graph behavior. Its default
+// 210px target floor otherwise survives after the outer pane has shrunk and
+// visually runs underneath the player's bottom controller.
+.karaoke-workspace__readiness > .karaoke-pitch,
+.karaoke-workspace__readiness > .karaoke-pitch.has-targets {
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.karaoke-workspace__readiness .karaoke-pitch__canvas {
+  min-height: 0;
+}
+
+.karaoke-microphone-popover {
+  @include menu-surface;
+  z-index: 1200;
+  width: min(470px, calc(100vw - 24px));
+  padding: 16px;
+}
+
+// The device picker is intentionally still a floating app dropdown. Its
+// parent settings surface is also portalled and sits at 1200, so this nested
+// floating layer must clear it without changing the panel's own height.
+.karaoke-microphone-menu .list-wrapper {
+  z-index: 1301;
+}
+
+.karaoke-microphone {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start !important;
+  gap: 0;
+  transition: $transition-control;
+
+  > .karaoke-workspace__card-icon {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+  }
+
+  &.is-live {
+    border-color: color-mix(in srgb, $secondary-default 32%, transparent);
+    box-shadow: none;
+  }
+}
+
+.karaoke-microphone__body {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+
+  > .karaoke-workspace__card-title {
+    min-height: 38px;
+    padding-left: 52px;
+
+    h3 {
+      margin: 0;
+      color: $text-primary;
+      font-size: $text-title;
+      line-height: 1.15;
+    }
+  }
+}
+
+.karaoke-microphone__controls {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(130px, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+
+  .karaoke-microphone__input {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+
+    > span {
+      color: $text-faint;
+      font-size: $text-eyebrow;
+      font-weight: $weight-bold;
+      @include tracking(0.08em);
+      text-transform: uppercase;
+    }
+  }
+
+  .dropdown {
+    width: 100%;
+    min-width: 0;
+
+    > [role='menu'] {
+      min-height: $control-height;
+      font-size: $text-small;
+    }
+  }
+
+  .karaoke-microphone__toggle {
+    min-height: $control-height;
+    min-width: 108px;
+    gap: 6px;
+    padding: 7px 12px;
+    font-size: $text-small;
+    font-weight: $weight-bold;
+    white-space: nowrap;
+
+    &:disabled {
+      color: $text-faint;
+      border-color: rgba($edge-tint, 0.08);
+      background: color-mix(in srgb, $surface-panel 40%, transparent);
+      box-shadow: none;
+    }
+  }
+}
+
+.karaoke-microphone__level {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.karaoke-microphone__level-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.04em);
+
+  strong {
+    color: $secondary-light;
+    font-size: $text-micro;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.karaoke-microphone__meter {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border: 1px solid rgba($edge-tint, 0.06);
+  border-radius: $radius-pill;
+  background: $track-well;
+
+  span {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      90deg,
+      $secondary-default 0 72%,
+      $neon-yellow 88%,
+      $red 100%
+    );
+    box-shadow: none;
+    transform-origin: left center;
+    transition: transform 50ms linear;
+  }
+}
+
+.karaoke-microphone__gain {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(90px, 1fr) 38px;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px;
+  color: $text-faint;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+  background: $surface-plot;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+
+  input[type='range'] {
+    --karaoke-gain-position: 50%;
+
+    height: 5px;
+    width: 100%;
+    min-width: 0;
+    appearance: none;
+    border: 0;
+    border-radius: $radius-pill;
+    background: linear-gradient(
+      90deg,
+      $secondary-default 0 var(--karaoke-gain-position),
+      rgba($edge-tint, 0.16) var(--karaoke-gain-position) 100%
+    );
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      width: 14px;
+      height: 14px;
+      appearance: none;
+      border: 2px solid $surface-base;
+      border-radius: 50%;
+      background: $secondary-light;
+      box-shadow: 0 0 0 2px
+        color-mix(in srgb, $secondary-default 28%, transparent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid color-mix(in srgb, $secondary-light 55%, transparent);
+      outline-offset: 4px;
+    }
+  }
+
+  strong {
+    display: grid;
+    min-width: 38px;
+    height: 22px;
+    place-items: center;
+    color: $secondary-light;
+    border: 1px solid color-mix(in srgb, $secondary-default 18%, transparent);
+    border-radius: $radius-2xs;
+    background: color-mix(in srgb, $secondary-default 6%, transparent);
+    font-size: $text-micro;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.karaoke-microphone__privacy {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  padding: 9px 10px;
+  color: $text-faint;
+  border: 1px solid color-mix(in srgb, $secondary-default 10%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 3.5%, transparent);
+
+  .karaoke-button__icon {
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+    color: $text-accent;
+  }
+
+  p {
+    margin: 0;
+    font-size: $text-micro;
+    line-height: 1.45;
+  }
+}
+
+.karaoke-pitch {
+  @include lifted-surface;
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  display: grid !important;
+  min-width: 0;
+  min-height: 190px;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(128px, 1fr) auto;
+  align-items: stretch !important;
+  gap: 6px !important;
+  padding: 10px 12px 8px !important;
+  overflow: hidden;
+  color: $text-muted;
+  // No outline at rest, like the lyric stage above it (Ivan, 2026-09-27:
+  // "remove karaoke lyric border", then "do a full pass for all
+  // inconsistencies"): the two panels of the page stood one framed and one
+  // not. A live microphone still lights it.
+  border-color: transparent;
+  // The playlist's corner, which `lifted-surface` sets from `$radius-m`. An
+  // 18px corner of its own made two panels of the same row read as two
+  // different kinds of thing, in a window as much as in full screen.
+  border-radius: $radius-m;
+  // The card, laid over the floor as the playlist's is, in a window as much
+  // as in full screen (Ivan, 2026-09-27: "nice card bg as we did on DSP to
+  // the pitch lane"). Its plot inside is the plot well, darker, as every
+  // drawing's is.
+  //
+  // What it had was a 145deg ramp from the shell colour to the well colour
+  // under a radial cyan wash, over a four-layer shadow with a light inset at
+  // the top and a dark one at the foot. That is a bevel, and it made the one
+  // panel on this page that is mostly empty space the glossiest thing in the
+  // window. The block colour it had after that was a grey slab, and then an
+  // edge alone.
+  background: $card-glow, $karaoke-chip-face !important;
+  text-align: left;
+  transform: translateZ(0);
+  transition: border-color 280ms ease;
+
+  &.is-microphone-live {
+    border-color: color-mix(in srgb, $secondary-light 25%, transparent);
+  }
+
+  &.has-targets {
+    min-height: 210px;
+    grid-template-rows: auto minmax(128px, 1fr) auto;
+  }
+}
+
+.karaoke-pitch__header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.karaoke-pitch__header-actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.karaoke-pitch__mic-toggle {
+  min-height: 28px !important;
+  gap: 5px;
+  padding: 4px 8px !important;
+  font-size: 0.6rem !important;
+
+  &.is-live {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 72%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    box-shadow: none;
+  }
+
+  &:disabled {
+    color: $text-faint;
+    border-color: rgba($edge-tint, 0.08);
+    background: color-mix(in srgb, $surface-panel 34%, transparent);
+    box-shadow: none;
+  }
+}
+
+.karaoke-pitch__title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+
+  h3 {
+    overflow: hidden;
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-body;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    overflow: hidden;
+    padding: 3px 7px;
+    color: $secondary-light;
+    border: 1px solid color-mix(in srgb, $secondary-default 24%, transparent);
+    border-radius: $radius-2xs;
+    background: color-mix(in srgb, $secondary-default 6.5%, transparent);
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    @include tracking(0.04em);
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+}
+
+.karaoke-pitch__readout {
+  display: flex;
+  min-width: 0;
+  min-height: 18px;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 8px;
+  color: $text-faint;
+  font-size: $text-small;
+  text-align: right;
+  white-space: nowrap;
+
+  strong {
+    color: $neon-yellow;
+    font-size: $text-title;
+    @include tracking(0.02em);
+  }
+}
+
+.karaoke-pitch__canvas {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 128px;
+  overflow: hidden;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  // The plot colour, flat. The drawing inside paints the same colour edge
+  // to edge, so a wash here only showed as a darker rim where the two did
+  // not quite meet.
+  background: $surface-plot;
+  transition: border-color 260ms ease;
+
+  .karaoke-pitch.is-microphone-live & {
+    border-color: color-mix(in srgb, $secondary-light 17%, transparent);
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    outline: none;
+
+    &.is-scrubbable {
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    &.is-scrubbing {
+      cursor: grabbing;
+    }
+  }
+}
+
+.karaoke-pitch__footer {
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  line-height: 1.35;
+
+  span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.karaoke-count-in {
+  position: absolute;
+  z-index: 30;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  min-width: 170px;
+  place-items: center;
+  padding: 18px 28px;
+  color: $text-primary;
+  border: 1px solid color-mix(in srgb, $secondary-light 44%, transparent);
+  border-radius: $radius-l;
+  // The card colour, like every other card. It was the old well colour at
+  // 88%, which over a picture was a black box with a number in it, and then
+  // the block colour, a grey slab.
+  background: $karaoke-chip-face;
+  box-shadow: none;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+
+  strong {
+    color: $secondary-light;
+    font-size: clamp(2.5rem, 7vh, 4.8rem);
+    font-weight: $weight-display;
+    line-height: 1;
+    animation: karaoke-count-in-cue 550ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  span {
+    margin-top: 8px;
+    color: $text-muted;
+    font-size: $text-small;
+    font-weight: $weight-bold;
+  }
+}
+
+@keyframes karaoke-count-in-cue {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+
+  35% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.karaoke-workspace__card-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+
+  svg {
+    width: 21px;
+    height: 21px;
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+  }
+}
+
+.karaoke-workspace__card-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  span {
+    flex: 0 0 auto;
+    padding: 3px 7px;
+    color: $text-faint;
+    border: 1px solid rgba($edge-tint, 0.12);
+    border-radius: $radius-2xs;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    @include tracking(0.08em);
+    text-transform: uppercase;
+
+    &.is-live {
+      color: $secondary-light;
+      border-color: color-mix(in srgb, $secondary-default 35%, transparent);
+      background: color-mix(in srgb, $secondary-default 9%, transparent);
+    }
+  }
+}

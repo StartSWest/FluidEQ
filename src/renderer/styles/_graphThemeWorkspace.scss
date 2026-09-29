@@ -1,0 +1,893 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// There is deliberately no full-screen rule for the player's toolbar.
+//
+// There was one, and it said so itself: `display: none` "rather than the mask
+// used in expanded view… the guest is resized once on the way in and once on
+// the way out". That is the difference between the mode that worked and the
+// mode that did not. The shared rule below already takes the toolbar off the
+// screen in both modes; this one only added a resize of a `<webview>`, which is
+// its own compositor surface and does not always come back.
+//
+// Expanded, and only expanded: both edges of the card dissolve into the middle.
+//
+// The card here is laid over a workspace that is still fully present — the
+// tabs, the editor, the player — so a hard rule across the top and another
+// across the bottom cuts the column into three strips. Clear at both edges and
+// solid through the centre makes it a panel resting on what is behind rather
+// than a lid over it.
+//
+// How far in it fades comes from the see-through slider, because they are the
+// same intent expressed once. A fixed fade meant a card set fully solid still
+// dissolved at both ends, which is an edge nobody asked for; at zero the
+// gradient collapses to nothing and the surface is simply solid. The blur is
+// already shared — it sits on the card and applies in both modes.
+//
+// On the surface layer, so what fades is the *background*. The trace and the
+// header keep full strength: a graph faded out at both ends would be a graph
+// with its highest and lowest decibels missing.
+//
+// The border goes with it. An outline around a field that dissolves at both
+// ends is the one thing guaranteed to look like a mistake — full screen keeps
+// its border, because there it is a panel over a video and the edge is the
+// point.
+// Only the player is worth keeping behind the card.
+//
+// Seeing through the graph is for watching something play underneath it. On the
+// EQ, Voicing and Convolution tabs what shows through is a pane full of sliders
+// and headings — not a backdrop but the interface itself, softened and
+// half-legible behind a chart, which reads as a rendering fault rather than as
+// a choice. So on those tabs the pane gets out of the way and the see-through
+// reveals the workspace, which is quiet.
+//
+// Expanded takes the panel. Full screen takes the tab strip with it, since
+// nothing there is reachable anyway while the card covers the column.
+//
+// `visibility` rather than `display` here, for the reason it usually is: the
+// boxes keep their space, so nothing relayouts on the way in or out and no
+// panel loses its scroll position for having been away. The one place that
+// reasoning is overruled is the player's tab, where the space the boxes keep is
+// a band the picture cannot reach — see the chrome rule further down.
+// MEDIA, LIBRARY AND THE KARAOKE PLAYER ARE DRAWN THROUGH.
+//
+// The Library and a lyric stage are picture-led surfaces just like Media, so a
+// double-click on their docked graphs keeps what was already on screen visible
+// under the full-screen graph. The Maker is deliberately not exempt: an editor
+// under a translucent chart is two interfaces competing for the same pixels.
+// The workspace publishes `is-graph-overlay` only for the player, never while
+// its Maker is open, so the two paths do not depend on an invalid nested
+// `:has()` selector.
+.center-workspace.is-graph-full:not(
+    :has(.workspace-tab-panel--video:not(.is-hidden)),
+    :has(.workspace-tab-panel--library:not(.is-hidden)),
+    :has(.workspace-tab-panel--karaoke.is-graph-overlay:not(.is-hidden))
+  ) {
+  // The panel and the tab strip together — `.middle-content` is both. Neither
+  // is reachable while the card covers the column, so there is nothing lost.
+  > .middle-content {
+    visibility: hidden;
+  }
+
+  // Another program's song is the one picture drawn through here: its cover
+  // (`SystemStageArt`) stands behind the graph with no pane of ours under it,
+  // and `has-stage-art` on the root is the only sign of it. The pane above
+  // still goes — the column is lifted over the cover, pane and all — but the
+  // card stays as clear as the see-through slider says, and keeps the slider.
+  // Solid black here hid the cover entirely.
+  #root:not(.has-stage-art) & {
+    // A solid stage under the drawing, in the app's own floor colour (Ivan,
+    // 2026-09-25: "when the app enters in fullscreen it put a black bg I dont
+    // want that it needs to put the app color bg and load the viz on top").
+    // It was black, on the argument that every scene is drawn against black;
+    // on the open floor a black sheet was a second window opening inside the
+    // first, and it showed first and longest — before a scene had painted.
+    > .graph-wrapper::before {
+      background: $surface-base;
+      opacity: 1;
+    }
+
+    // Only the overlay controls are irrelevant over the workspace. Hiding
+    // every slider also hid wave height and position when the wave was still
+    // visible.
+    .graph-view-menu__slider--overlay {
+      display: none;
+    }
+  }
+}
+
+// Nothing behind the card draws a frame.
+//
+// The pane underneath is a card in its own right — border, rounded corners, a
+// shadow — and the graph's surface fades out at its top and bottom edges, so
+// that border came through the fade as a curved line cutting across the top of
+// the graph. It reads as a rendering fault on the graph rather than as the
+// panel it belongs to, which is exactly how it was reported.
+//
+// Only the frame goes. The panel's *content* still shows through, because that
+// is what the see-through slider is for; what it does not need to show is an
+// edge belonging to a box that is completely covered.
+.center-workspace.is-graph-full > .middle-content .workspace-tab-panel {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+// THE BACKDROP FOLLOWS PLAYBACK, NOT THE SELECTED TAB.
+//
+// A playing Media, Library or Karaoke surface stays mounted when another tab
+// is selected. In expanded/fullscreen graph mode App reveals that owner as the
+// backdrop, so the selected tab's editor must not remain as a second visible
+// panel in the same flex column. The transport and headless engines are not tab
+// panels and remain untouched.
+.center-workspace.is-graph-full:has(
+    .is-playback-backdrop:not(.is-hidden),
+    .workspace-tab-panel--karaoke.is-graph-overlay:not(.is-hidden)
+  )
+  > .middle-content
+  > :is(.workspace-tab-panel, .workspace-tab-panel--video):not(
+    .is-playback-backdrop
+  ):not(.is-graph-overlay) {
+  display: none;
+}
+
+// Library keeps its real workspace mounted so its video element is not torn
+// down and reloaded on the way into the graph. In backdrop mode everything but
+// that video stands down. For an audio track there is no video child and this
+// becomes a clear, empty host; `LibraryStageArt` supplies the record and wash
+// from its body-level layer underneath.
+.center-workspace.is-graph-full
+  .workspace-tab-panel--library.is-playback-backdrop {
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: none;
+  box-shadow: none;
+
+  > :not(.library-video-stage) {
+    display: none;
+  }
+}
+
+// The Karaoke page under the graph keeps its layout and loses its top row.
+//
+// That row is the page's title and its buttons — Add files, Make, full screen
+// — and the graph's own strip of controls stands over the same corner and
+// takes every press there: buttons nobody could reach, drawn under another
+// toolbar, with the page's title under the +20 dB label (Ivan, 2026-09-23:
+// "we don't show karaoke options bar on those cases ... mouse and focus are
+// in the visualizer").
+//
+// `visibility` rather than `display`, and it matters here. Taken out of the
+// flow, the row gave its height to the stage, which rose into the same band
+// and put the playlist, the song title and the chord box under that toolbar
+// and that label instead — text over text again, one row lower. Kept, the
+// page stays exactly where it stood before the graph came over it, the lyrics
+// are not laid out again on the way in or out, and the band the row leaves
+// is the one the graph's controls float in, over nothing.
+.center-workspace.is-graph-full
+  .workspace-tab-panel--karaoke.is-graph-overlay
+  .karaoke-workspace__header {
+  visibility: hidden;
+}
+
+// The creature, in the corner the titlebar used to occupy.
+//
+// Above the card, because the card covers the whole screen in this mode and
+// anything below it is simply not there. Fixed rather than absolute so it is
+// pinned to the display and not to a column that is itself positioned.
+// What is kept from the titlebar, over a full-screen video: the creature on the
+// left and the waveform across the top. Both are the real ones, lifted out of
+// the hidden titlebar rather than mounted a second time.
+.fullscreen-chrome {
+  position: fixed;
+  z-index: 60;
+  top: 8px;
+  right: 0;
+  left: 0;
+  display: grid;
+  align-items: center;
+  padding-inline: 14px;
+  // One track now that the creature is the only thing here. The waveform used
+  // to share this strip and needed three columns to sit optically centred; it
+  // is not shown in this mode any more — a video with a spectrum over it does
+  // not also need a meter across the top of it.
+  grid-template-columns: 1fr;
+  gap: 14px;
+  pointer-events: none;
+
+  // First track, hard left, and twice the size.
+  //
+  // In the titlebar it sits in a row of controls and has to match their height.
+  // Here it is alone against a video, where forty pixels is a smudge. Scaled
+  // rather than resized: everything inside it — the art, the squash on the
+  // beat, the star — is laid out against that 40px box, and a transform takes
+  // all of it together. From the left edge, so it grows into the corner.
+  > .support-pet {
+    justify-self: start;
+    transform: scale(2);
+    transform-origin: left center;
+  }
+
+  // Only the creature is clickable — it is the way into the support panel. The
+  // strip itself must not swallow clicks meant for the video underneath it.
+  > * {
+    pointer-events: auto;
+  }
+}
+
+// The graph's controls sit where they sit, in both modes.
+//
+// This used to lift them onto the strip of chrome that full screen drew across
+// the top, and reserve the middle third of it for the waveform. There is no
+// such strip any more — the titlebar was never hidden, so the waveform never
+// moved — and a row squeezed into the right-hand third of the card with nothing
+// beside it is the layout for a problem that no longer exists.
+
+// Nothing is reserved above the drawing, in any mode.
+//
+// There was a strip the height of the header line, so the wave could not run up
+// behind the controls. It reads as a filled band across the top of the card —
+// the card's surface is lighter at its top edge, so forty pixels of it above
+// the drawing is a bar whether or not anything was painted there — and over the
+// player it is the most obvious thing on screen. Worse with the blur up, since
+// the strip sat above the blurred region and stayed sharp while everything
+// under it softened.
+//
+// The controls keep their own surface and their own shadow, which is what makes
+// them readable where they overlap the trace, and in the larger modes they fade
+// out entirely when nothing is happening. The drawing gets the height back.
+
+// The panel behind it squares off too, for the same reason.
+// The picture reaches the edges of the display, on all four sides.
+//
+// The workspace pads itself so that panels standing side by side do not touch
+// the window frame — which is right in every mode where there are panels. Here
+// there is one thing on screen and it is a picture, and padding around a
+// picture is a black border around a picture. It survived because the rule
+// that opens this mode up only ever dealt with the title bar's height, so the
+// top came free and the other three sides did not.
+// Over the cover art the Library tab draws behind its full-screen graph, and
+// only there: `has-stage-art` is set by that view alone. The picture is fixed
+// to the window and portalled to the body, so it is a later sibling of
+// everything in `#root` and paints over whatever is not lifted above it — and
+// a full screen showing the record but not the curve is half the feature.
+// THE COLUMN IS WHAT HAS TO BE LIFTED, NOT THE CARD.
+//
+// `z-index: 1` on the graph alone was measured doing nothing, and the reason is
+// two stacking contexts up: `.center-workspace` carries `will-change: opacity,
+// transform`, which makes it a stacking context of its own. Everything inside
+// it — the card included — is sorted *within* it, and the column then competes
+// with the picture as a single unit at the parent's z-index, which is `auto`.
+// The picture is a later sibling of `#root`, so a tie on z-index is decided by
+// document order and the picture wins: an opaque `#050d16` sheet over the
+// entire graph, with only the toolbar showing through from a layer above.
+// Lifting the column lifts the card with it.
+#root.has-stage-art .center-workspace.is-graph-full {
+  z-index: 1;
+}
+
+#root.has-stage-art .center-workspace.is-graph-full > .graph-wrapper {
+  // Fixed to the window, and only in this view.
+  //
+  // Two things at once, both measured. The card has to be above the picture,
+  // which is a body-level layer at z-index 0. And it has to be the size of the
+  // window: the column it covers is as tall as the library inside it -- 2618px
+  // against a 1440px screen — so the plot was drawn at that height and its
+  // curve fell a screen and a half below the fold. That is the whole of "the
+  // graph is not visible on the album": it was being drawn, off-screen.
+  position: fixed;
+  z-index: 1;
+  // The same measured column the picture stands in, so the card and the record
+  // are the same rectangle in both of the graph's modes: expanded it is the
+  // middle column with the sidebars either side, full screen it is the window.
+  //
+  // Fixed, and still laid out against the column: `.center-workspace` carries
+  // `will-change: opacity, transform`, and a will-change of transform makes an
+  // element the containing block for its fixed descendants. So the offsets
+  // here are the column's, not the window's — the picture, which really is
+  // fixed to the window, takes the viewport pair instead. Reading the window's
+  // numbers here put the card exactly one column-origin down and to the right.
+  top: var(--stage-art-shift, 0);
+  left: 0;
+  width: 100%;
+  height: var(--stage-art-height, 100vh);
+  // The block below sets all four insets; with a width and a height of its own
+  // this box takes two of them and must give the other two back.
+  right: auto;
+  bottom: auto;
+}
+
+.app-workspace.is-app-full {
+  padding: 0;
+}
+
+.app-workspace.is-app-full .center-workspace.is-graph-full {
+  .workspace-tab-panel {
+    border-radius: 0;
+  }
+}
+
+// In full screen the header line gets a card of its own, and hides itself.
+//
+// Everywhere else it reads on a panel and needs no surface. Here it floats on a
+// picture, so it becomes a small pane hugging its own contents rather than a
+// row of labels lying on a video — the width comes off `left: auto`, which lets
+// it shrink to what is in it instead of spanning the screen.
+//
+// And it goes away when nothing is happening, as every video player's controls
+// do, for the same reason: this mode is watched rather than worked on, and a
+// toolbar is the only thing left between the drawing and the edge of the
+// screen. The creature fades with it, on the same timer — see `idleChrome`.
+// Only the shape of the strip, never its surface.
+//
+// This used to carry a `panel-surface` of its own, from when the controls
+// inside it had none and needed something to sit on over a video. Each has a
+// face of its own now (`.graph-legend-group`), and a surface under them gave
+// full screen a card inside a card, with two borders a few pixels apart.
+//
+// The positioning that used to live here has gone with the absolute layout.
+// `left: auto` existed to let a strip pinned to both edges shrink back to its
+// contents in full screen; a flex row in normal flow already sizes to what is
+// in it, and `justify-content: flex-end` keeps it against the same edge in
+// every mode. One rule instead of two that had to agree.
+
+// Not scoped to a mode, because there is no longer a mode to scope to.
+//
+// These used to sit under `.app-workspace.is-app-full`, so the toolbar only
+// ever faded once the window itself had gone full screen. It fades in every
+// view now: the strip lies across the top of the plot, which is where the peaks
+// go, and it holds controls you reach for occasionally and then look past for
+// minutes.
+//
+// Whether it may fade at all is the store's question, not the cascade's —
+// `is-idle` is only ever applied while it is watching. Two things deciding the
+// same question is how they come to disagree, and here they did.
+.live-output-controls,
+.fullscreen-chrome {
+  // Slower out than in. Coming back should feel immediate — the pointer has
+  // just moved and something is being reached for — while leaving should not
+  // catch the eye, which is the whole point of it going.
+  transition: opacity 320ms ease;
+}
+
+.live-output-controls.is-idle,
+.fullscreen-chrome.is-idle {
+  opacity: 0;
+  // Nothing invisible takes a click. Without this the strip is still there to
+  // be pressed, and a control you cannot see doing something is worse than
+  // one that is simply gone.
+  pointer-events: none;
+  transition-duration: 520ms;
+
+  // And neither do its children, which is where this was actually leaking.
+  //
+  // Both strips are transparent to the pointer by default so the plot and the
+  // video underneath stay draggable, and each one hands hit testing BACK to
+  // its own children one rule later. That rule does not know about idle, so
+  // every button, legend and picker in a strip faded to nothing was still
+  // catching presses: a click on empty graph opened the style menu. An
+  // ancestor set to `none` does not protect a descendant that asks for `auto`
+  // — it has to be taken away again here.
+  > * {
+    pointer-events: none;
+  }
+}
+
+// There is deliberately no bar behind the controls over the player.
+//
+// There was one, in a panel gradient across the top of the card, put there when
+// the labels sat directly on a moving picture and stopped being readable. It
+// paid for itself then and does not now: the strip is short, the card carries a
+// surface of its own that the see-through slider sets, and a filled band across
+// the top of a full-bleed video is the sort of chrome these modes exist to get
+// rid of.
+//
+// The padding that reserved room for it goes too. It was there so a peak could
+// not disappear behind an opaque bar; nothing up there is opaque any more, and
+// the drawing gets the height back.
+
+// The card takes clicks, as every other pane does.
+//
+// It was briefly transparent to them, so that pause and seek could reach the
+// player underneath. That bought less than it cost: the band handles stopped
+// being draggable and the graph stopped being something you could interact with
+// at all. Stripping the page back to its player answers the same problem
+// without taking anything away — the picture is the whole pane and its own
+// controls are on it. Two mechanisms for one problem, and this was the one with
+// a price.
+
+// Full screen is the whole screen, corner to corner.
+//
+// The two modes want opposite edges and it is not a detail: expanded is a card
+// laid over a workspace that is still there, so it keeps the rounded border
+// every other panel has and reads as one of them. Full screen has nothing
+// around it to be a card *against* — rounded corners there just carve four
+// notches out of the display and show the desktop through them.
+// No card at all in full screen.
+//
+// The frame is what makes the graph a panel among panels, and there are no
+// other panels here — the mode is a video with a spectrum over it, and a
+// border or a radius around that is a window drawn over a picture. (Nor a
+// shadow, which the card has in neither mode — see the expanded card.) The
+// surface itself stays, because that is what the see-through slider is for.
+.app-workspace.is-app-full .center-workspace.is-graph-full > .graph-wrapper {
+  border: none;
+  background: none;
+
+  // Square, all the way down. The radius is on the card, on the surface layer
+  // behind it and on the plot that clips to it — three places, because each
+  // inherits from the last and any one left rounded shows as a notch of
+  // workspace in the corner of a picture that should reach the glass.
+  &,
+  &::before,
+  > .graph-plot {
+    border-radius: 0;
+  }
+}
+
+.app-workspace.is-app-full {
+  // The side panels hold profiles, presets and support links. None of them is
+  // something anybody is reading while watching a video full screen, and every
+  // one of them is a column of width the picture could have had.
+  //
+  // Taken out of the flow rather than out of the grid.
+  //
+  // `display: none` on a grid item removes the item, and this grid is three
+  // named tracks — so the whole template was being re-resolved, not merely
+  // resized. The centre column is going to get wider either way; that much is
+  // the point of the mode. What it should not also do is change how many things
+  // the grid is laying out, with a `<webview>` inside one of them.
+  //
+  // So the panes leave the grid — as the slide-over drawers the narrow
+  // layout already has, summoned by their edge tabs; see SideBar.scss and
+  // App.scss — their tracks collapse to zero, and the centre grows into the
+  // width. They used to be parked at left:-20000px here, which no tab could
+  // bring back, and a profile or a preset then cost leaving the view.
+
+  // Every edge the workspace normally keeps, given to the picture.
+  //
+  // The padding and the gap are what hold the panes apart from one another and
+  // from the window, and there are no panes here to hold apart — left in, they
+  // are a frame of background around a video, which is the one thing this mode
+  // exists not to have.
+  //
+  // Safe to take now in a way it was not before: the guest is resized by this,
+  // and being resized used to leave the player marked against a chain YouTube
+  // had already moved it off. That is fixed at the source, so a resize is
+  // merely a resize again.
+  //
+  // The areas are named here beside the tracks, never left to the width's
+  // layout: at the one-column width that layout names two (`App.scss`, the
+  // page and the sound panel's rail), so these three tracks put the page in
+  // the first, 0px wide, and full screen was the title bar over an empty
+  // window from 940px down — a 1024px window zoomed in once (2026-09-28).
+  // `minmax(0, …)` as the shell's own template has it, so nothing inside can
+  // hold the page wider than the window.
+  grid-template-areas: 'side-bar center-workspace right-content';
+  grid-template-columns: 0 minmax(0, 1fr) 0;
+  padding: 0;
+  gap: 0;
+}
+
+// And the last rounded corners, which have nothing left to be rounded against.
+//
+// The stage carries the card's radius so it sits inside the workspace properly.
+// In this mode there is no card and no workspace edge — the picture runs to the
+// glass — so a radius there is four notches of black in the corners of a full
+// screen video. The clip path goes with it: it exists to make the guest respect
+// the radius, and there is none to respect.
+.app-workspace.is-app-full .center-workspace.is-graph-full {
+  .workspace-tab-panel--video {
+    padding: 0;
+  }
+
+  // Every box the picture is inside, not just the stage.
+  //
+  // The radius is set on the stage and then inherited or restated down through
+  // the pane, the view and the guest's own element — and a clip path on any one
+  // of them rounds the picture whatever the others say, because a `<webview>`
+  // is composited separately and the clip is what reaches it. Squaring only the
+  // outermost left the corners rounded by whichever inner box still had it.
+  .video-browser,
+  .video-browser__view,
+  .video-browser__stage,
+  webview {
+    border-radius: 0;
+    clip-path: none;
+  }
+
+  // The tab strip and the player's toolbar used to give their space back here
+  // and only here, on the reasoning that a band across the top the picture
+  // never reaches is the one thing full screen exists not to have.
+  //
+  // Every word of which is just as true of expanded — the card covers the
+  // column there too — so the rule moved to where both modes can use it. See
+  // the shared block further down, which is also where the case for accepting
+  // the resize is now written out.
+}
+
+// Real full screen: the bar goes, and the workspace runs the whole height of
+// the display.
+//
+// Unless it is asked to stay. `has-top-bar` is the View menu's switch, and with
+// it on the bar stays where it always is. The creature is rendered in the bar
+// rather than in the corner then, so there is one of it either way.
+// Out of the way, not out of the tree.
+//
+// It was `display: none`, which is a bar that cannot come back: taking the
+// pointer to the top of the screen found nothing there. It goes the way the
+// transport goes — up and out, faded — so the same movement that brings the
+// transport up from the bottom brings this down from the top, and the two
+// strips of chrome are present or absent together.
+.window-titlebar:has(~ .app-workspace.is-app-full:not(.has-top-bar)) {
+  opacity: 0;
+  transform: translateY(-100%);
+  pointer-events: none;
+  transition:
+    opacity $motion-base ease,
+    transform $motion-base ease;
+}
+
+#root:not(.is-chrome-idle)
+  > .window-titlebar:has(~ .app-workspace.is-app-full:not(.has-top-bar)) {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+// The padding goes either way, and the bar floats.
+//
+// It used to go only when the bar was hidden, so keeping the bar meant the
+// picture started below it — a full-screen video with a strip of application
+// across the top of it, and the picture no longer reaching the edges of the
+// display, which is the whole point of the mode.
+//
+// The bar is `position: fixed` already; this padding was only ever reserving a
+// space for it to sit above rather than over. With it gone the picture runs
+// the full height and the bar lies on top of it, which is what its translucent
+// gradient and its blur were built for and never previously used.
+//
+// Read from `data-app-full` on `<html>` (`useAppFullMark`), as App.scss's
+// rules on the same flag are. It was `#root:has(> .app-workspace.is-app-full)`,
+// which kept the root answering for its children after every change there —
+// and written as a descendant, for a change anywhere in the window.
+:root[data-app-full] #root {
+  padding-top: 0;
+}
+
+// Clear of the bar that is now lying over the picture.
+//
+// The strip normally starts 8px from the top of the card, and the card now
+// starts at the top of the display — so without this the controls sit behind
+// the title bar, which is a toolbar you can see and cannot press.
+// And it comes down with the header when the header comes back.
+//
+// With the top bar switched off the strip sits at the top of the plot, which
+// is where the header lands the moment the pointer reaches an edge — so the
+// controls ended up behind it. The header is not always there in this mode,
+// so the strip cannot simply be pushed down for good: it moves when the
+// header does, on the same flag and over the same time.
+#root:not(.is-chrome-idle)
+  .app-workspace.is-app-full:not(.has-top-bar)
+  :is(.live-output-controls, .look-designer) {
+  top: calc(#{$title-bar-height} + #{$graph-strip-inset});
+}
+
+.app-workspace.is-app-full .live-output-controls {
+  // `right` with it: the bar steps out from under the sound panel in step
+  // with the drawer (`App.scss`, `.is-sound-drawer-open`).
+  transition:
+    top $motion-base ease,
+    right 180ms ease-out;
+}
+
+// In full screen the same shade, across the whole window and from its top
+// edge — behind the header, so there is no gap between it and the options
+// (Ivan, 2026-09-27: "same on fullscreen and make the whole line darker, not
+// just under the options", "leave no gap between the header and the
+// options"). The graph is the window there, so a reach past every side is
+// cut by the window's own edges; the strip's insets move with the header and
+// the side panel, and chasing each of them would leave a sliver somewhere.
+.app-workspace.is-app-full .live-output-controls::before {
+  top: -100vh;
+  right: -100vw;
+  left: -100vw;
+}
+
+.app-workspace.is-app-full.has-top-bar .live-output-controls {
+  // Where it ends across is the sound panel's rail's to say (`App.scss`).
+  // Karaoke's own fullscreen toolbar sits 9px inside a stage that starts 8px
+  // below the titlebar. Use the same combined inset so swapping the Karaoke
+  // toolbar for the graph toolbar does not move the controls or alter the gap
+  // beneath them.
+  top: calc(#{$title-bar-height} + #{$graph-strip-inset});
+}
+
+.app-workspace.is-app-full.has-top-bar .look-designer {
+  top: calc(#{$title-bar-height} + #{$graph-strip-inset});
+}
+
+// And it must not run off the bottom having been pushed down.
+//
+// The designer sizes itself against the card, which in this mode is the whole
+// display — so the height it asks for was already the height of the screen, and
+// moving it down by the title bar pushed exactly that much of it off the end.
+.app-workspace.is-app-full.has-top-bar .look-designer {
+  max-height: calc(100vh - #{$title-bar-height} - 24px);
+}
+
+// The look designer, under a floating transport bar.
+//
+// The editor joins the bar's interaction region while the pointer is inside it
+// (see `idleChrome`), so this reservation cannot disappear under the pointer.
+// Once the pointer exits both, the chrome can fade and the preview gets the
+// room back without moving a control somebody is reaching for.
+#root.has-now-playing.is-floating-bar:not(.is-chrome-idle)
+  .app-workspace.is-app-full
+  .look-designer {
+  bottom: calc(var(--now-playing-bar-height, 0px) + 8px);
+}
+
+// The graph with the workspace to itself.
+//
+// An overlay, and the pane above it is the reason. This used to hide that pane
+// and let the graph grow into the space — which is tidier as layout, and wrong
+// for what the mode is for: the thing most worth watching a spectrum against is
+// the video that is producing it, and hiding the player to make room for the
+// graph removes exactly that. So the pane below stays where it is, at the full
+// height of the column, and the graph floats over the middle of it.
+//
+// Translucent rather than opaque, so the picture carries on behind the drawing
+// instead of being replaced by it.
+.center-workspace.is-graph-full {
+  position: relative;
+
+  // Everything the column had, now that neither the divider nor the graph is
+  // taking any of it. The pane is unaware it is in this mode at all.
+  > .middle-content {
+    height: auto;
+    max-height: none;
+    flex: 1 1 auto;
+  }
+
+  // Nothing left to drag: the graph is out of the flow, so the handle would
+  // resize one pane against no other.
+  > .pane-resizer {
+    display: none;
+  }
+
+  // The chrome, simply gone.
+  //
+  // It was faded with a gradient for a while, on the theory that a hard edge
+  // where the chrome stopped and the picture started would be noticeable. It
+  // was — but so was the gradient, and a half-visible toolbar behind glass
+  // reads as a rendering fault rather than as a deliberate softening. Neither
+  // the tabs nor the player's toolbar is reachable in either of these modes,
+  // because the card covers the column and takes every click, so there is
+  // nothing lost by not drawing them.
+  //
+  // `display` rather than `visibility`, which is the reverse of what this rule
+  // said for a while and is the whole of the black band across the top of an
+  // expanded graph.
+  //
+  // Hidden with `visibility` these two keep their boxes, and the boxes are the
+  // band: the card is laid over the column edge to edge, so the strip they
+  // reserve — the height of the tab row plus the player's toolbar — is a piece
+  // of workspace at the top of the card that the picture never reaches, showing
+  // through a see-through surface as black. The toolbar sits on the first part
+  // of it and the +20 dB label on the rest, which is how it gets reported: the
+  // video starts somewhere below the controls instead of at the top edge.
+  //
+  // Moving the card down to meet the picture is the other way to close it, and
+  // it only moves the strip — the band ends up above the toolbar rather than
+  // below it, and the graph stops covering the column. The picture has to grow
+  // instead, which means the guest is resized on the way into the mode and on
+  // the way out. That was worth avoiding when a resize left the player marked
+  // against an ancestor chain YouTube had already moved it off; that is fixed
+  // where it belonged, in the marking, and full screen has been giving the same
+  // space back on the same reasoning since.
+  //
+  // Only on the tab that has a picture to give it to. On the other three the
+  // whole of `.middle-content` is already hidden — see the rule under "The two
+  // sizes" that asks this same question the other way round — so collapsing the
+  // strip there would change nothing anybody can see while relaying out an
+  // editor behind the card, and the EQ panel is a scroll container, which is how
+  // a panel loses its place for having been away.
+  &:has(.workspace-tab-panel--video:not(.is-hidden)) {
+    .workspace-tabs,
+    .video-browser__bar {
+      display: none;
+    }
+  }
+
+  // NOTHING UNDER THE CARD TAKES A CLICK, ON ANY TAB.
+  //
+  // Library and Karaoke used to be clickable through the graph, on the reasoning
+  // that a player under scenery should not feel dead. It made the graph the
+  // thing that felt dead instead — its bands could not be dragged over a song —
+  // and a press meant for the plot landed on a lyric, which moved the song
+  // under a graph nobody was looking past. Ivan, 2026-09-23: "remove all click
+  // through for expanded or fullscreen graph view", "I do want to click the
+  // graph while karaoke is playing and show the karaoke behind". The picture
+  // stays; the card takes every press, as it always did over Online Media. The
+  // transport bar is how the song is moved from here.
+
+  // And with them gone, the player is the panel.
+  //
+  // The card around it — border, padding, its own background — exists to make
+  // the video one tab among several. Behind an expanded graph there are no
+  // other tabs to be one of: what is wanted is the picture, as large as the
+  // column allows, with the graph over it. So the frame goes and the stage
+  // takes the space the toolbar and the tab strip have just given up.
+  .workspace-tab-panel--video {
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+  }
+
+  // The stage is the panel now, and square, as the card over it is (Ivan,
+  // 2026-09-26: "remove rounded borders on graph expanded mode"). The
+  // workspace's panes lost their rounded frames with their fills, so there is
+  // no rounded everything-else left for square corners to sit against.
+  .video-browser__stage {
+    border-radius: 0;
+    clip-path: none;
+  }
+
+  > .graph-wrapper {
+    position: absolute;
+    z-index: 40;
+    // Flush with the column, and the pixel it was once pushed out by is a
+    // pixel it does not get back.
+    //
+    // That shift was meant to tuck the card's own border under the column
+    // boundary rather than let it read as a line just inside it. What it did
+    // instead was delete the border: `.center-workspace` clips to its padding
+    // box, so a 1px edge moved exactly 1px outside that box is not tucked under
+    // anything — it is outside the clip. The expanded card ran into the gap
+    // beside the sidebar with no left edge at all, which is the one boundary
+    // between the graph and the panel next to it.
+    inset: 0;
+    width: auto;
+    height: auto;
+    flex: none;
+    // Promoted to its own compositing layer, and that is not an optimisation.
+    //
+    // A `<webview>` guest is not painted like the rest of the document — it is
+    // its own surface, handed to the compositor separately, and a plain
+    // z-index in the embedder does not reliably sort against it. So the graph
+    // could end up *underneath* the video it is supposed to be drawn over.
+    // A 3D transform forces this box onto a layer of its own, which does sort,
+    // and costs one layer for as long as the mode is open.
+    transform: translateZ(0);
+    // No edge of its own. It is flush with the column, and every side of the
+    // column already has one — the side panes' hairlines, the title bar's and
+    // the player bar's — so the card's own line ran a pixel or two inside
+    // each of them as a second one (Ivan, 2026-09-26: "no double border on
+    // expanded mode UIs on any"). Square: the column it covers is square,
+    // and a rounded card flush with it showed the workspace in four notches
+    // at its corners.
+    border: 0;
+    border-radius: 0;
+    background: none;
+    opacity: 1;
+    // No drop shadow, because it could only ever show in the corners.
+    //
+    // The card is flush with the column and the column clips at its own
+    // edge, so of a shadow lifting the card off what is around it all that
+    // reached the screen was the four wedges between the card's rounded
+    // border and the column's square corner — measured 7 values darker than
+    // the floor beside them at the bottom, where the shadow's 30px drop put
+    // most of it. A rounded card sitting on four dark square corners is what
+    // was reported as the picture behind the graph having sharp corners
+    // (Ivan, 2026-09-23). This holds in full screen and for a clean card too,
+    // which is why neither of their own rules says anything about it.
+    box-shadow: none;
+
+    // The blur belongs on the card, not on the surface layer below.
+    //
+    // It was on the layer to begin with and did nothing at all, for a reason
+    // worth writing down: the card carries `isolation: isolate`, and isolation
+    // makes an element a *backdrop root*. A `backdrop-filter` on anything
+    // inside it can only sample what is painted within that root — which here
+    // is nothing — so the filter was applied to an empty backdrop and the
+    // slider appeared to be dead. On the card itself the backdrop is the page
+    // behind it, which is the thing being looked through to.
+    //
+    // The whole value comes from the renderer rather than just the radius, so
+    // that a blur of zero is the literal keyword `none`. `blur(0px)` is still a
+    // filter: it promotes a compositing layer and re-composites the region
+    // every frame to produce a result identical to not doing it.
+    //
+    // The declaration itself went missing and left this note behind, which is
+    // why the slider moved and nothing happened.
+    backdrop-filter: var(--graph-overlay-filter, none);
+
+    // The surface, as a layer of its own behind the drawing.
+    //
+    // On the element itself it could not do this job: `opacity` there would
+    // take the trace, the grid and the labels down with the background, and a
+    // half-visible graph over a half-visible video is two things nobody can
+    // read instead of one. On a layer underneath, the transparency applies to
+    // the surface alone and everything drawn on it stays at full strength.
+    //
+    // `isolation: isolate` on the card is what keeps the negative z-index
+    // contained — the layer sits behind the card's own contents and no further.
+    &::before {
+      position: absolute;
+      z-index: -1;
+      border-radius: inherit;
+      // The app's floor colour, in both of these modes, with the scene drawn
+      // on top of it (Ivan, 2026-09-25: "it needs to put the app color bg
+      // and load the viz on top"). It was black, because the scenes are drawn
+      // against black; on the open floor the black sheet read as a different
+      // window, and it was all there was to see until a scene had painted.
+      background: $surface-base;
+
+      // No fade at the edges. The card is a card: it has an edge, and the edge
+      // is where it stops.
+      //
+      // Both ends used to dissolve into what was behind, which was meant to
+      // soften the boundary and instead drew attention to it — a gradient is
+      // itself a thing to look at, and it revealed the border of the panel
+      // underneath as a curved line across the top of the graph. Hiding the
+      // chrome behind it does the job the fade was reaching for, without
+      // putting anything new on screen.
+      // Set from the sliders in the graph's header. Solid by default: seeing
+      // through the card is a thing to go looking for, not a thing to be given
+      // and have to undo.
+      opacity: var(--graph-overlay-opacity, 1);
+      content: '';
+      inset: 0;
+    }
+  }
+
+  // Expanded and full screen are height modes as well as width modes: the
+  // ruled plot grows with the card, rather than staying in the normal view's
+  // shorter band while the overlay itself covers the whole workspace.
+  > .graph-wrapper > .graph-plot {
+    min-height: 260px;
+    flex: 1 1 auto;
+  }
+
+  // The expanded/fullscreen card rules above intentionally rebuild a surface
+  // after the normal card is removed. Clean is the exception: media must stay
+  // completely unobscured in those modes too.
+  > .graph-wrapper.is-clean {
+    border-color: transparent;
+
+    &::before {
+      background: none;
+      opacity: 0;
+    }
+  }
+}
+
+// Fullscreen graph over Karaoke: join the pet to the lower overlay dock rather
+// than covering the song title at the top-left. It remains a separate hit
+// target, but shares the dock's baseline and auto-hide timing.
+.fullscreen-chrome.is-karaoke-overlay {
+  top: auto;
+  right: auto;
+  bottom: 14px;
+  left: 14px;
+  width: 50px;
+  padding: 0;
+
+  > .support-pet {
+    transform: scale(1.25);
+    transform-origin: left bottom;
+  }
+}

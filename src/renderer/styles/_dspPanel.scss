@@ -1,0 +1,758 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'dspTokens' as *;
+
+// Does not scroll itself: the workspace panel around it does, the same as
+// `.voicing-panel`. A scroller here would nest inside that one and leave the
+// content floating clear of the panel's own padding.
+//
+// A container, because whether the rail can stand beside the stage is a
+// question about this panel's width and not the window's: the shell's
+// columns change shape at their own breakpoints, so the same window width
+// left the processor card anywhere from 488px to 1118px wide.
+.dsp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  container: dsp-panel / inline-size;
+}
+
+// THE PAGE ARRIVES IN THE ORDER IT HAS TO BE READ IN: what the rack is and
+// whether it is switched on, then the sentence saying it only touches
+// FluidEQ's own playback, then whatever the engine has to report, then the
+// chain down the side.
+//
+// Written flat, as one sequence of `$offset`s over the leaf elements, rather
+// than as blocks with cascades inside them — see `stagger-in` for why a
+// nested entrance is the wrong shape. `.dsp-header` and `.dsp-body` are
+// groups in the sequence, never containers with an entrance of their own.
+.dsp-header-line {
+  @include animate(rise-in);
+}
+
+// The line under the heading, when there is one, on the header's own beat.
+.dsp-scope {
+  @include animate(rise-in, $motion-base, $ease-out, 55ms);
+}
+
+// The engine's own status, and it arrives after the scope notice it qualifies.
+// Conditionally rendered, so this also plays when the engine changes state
+// while the page is open — a line appearing under the heading with no motion
+// at all reads as the layout jumping rather than as news.
+.dsp-idle,
+.dsp-unavailable,
+.dsp-engine-down {
+  @include animate(rise-in, $motion-base, $ease-out, 85ms);
+}
+
+.dsp-rail-processors > .dsp-rail-tab {
+  @include stagger-in(
+    $count: $dsp-rail-filters,
+    $step: $dsp-rail-step,
+    $offset: $dsp-rail-offset
+  );
+}
+
+// The playback group arrives as one piece, on the beat after the last filter.
+//
+// Its tab used to share the filters' cascade, and `nth-child` counts inside
+// this group, where the label is child one: the Crossfade tab came in second,
+// ahead of seven filters above it, while its label and the rule over it had no
+// entrance at all and stood on an otherwise empty rail from the first frame.
+.dsp-rail-playback {
+  @include animate(
+    rise-in,
+    $motion-base,
+    $ease-out,
+    $dsp-rail-offset + $dsp-rail-filters * $dsp-rail-step
+  );
+}
+
+.dsp-header {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 5px;
+}
+
+// Title and presets share a row: the presets are the fastest way to change
+// everything below, so they belong at eye level rather than under a heading
+// that pushes them down a line for nothing.
+//
+// Pinned to the first row, for the reason the processor headers are: once the
+// presets wrap their actions under the picker, a centred title and switch
+// float level with neither row.
+.dsp-header-line {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+
+  // The title keeps its baseline alignment with the rate beside it; a line
+  // box one control tall is what centres both on the row.
+  //
+  // And it never gives width up. Every flex item shrinks by default, so a
+  // crowded row took a little off the heading as well — which is why the
+  // presets beside it were pinned to `min-content` instead of being allowed
+  // to fill the row. With the title held, they can be (see `.dsp-presets`).
+  > .dsp-title {
+    flex: none;
+    line-height: $control-height;
+  }
+
+  > .dsp-header-switches {
+    min-height: $control-height;
+  }
+}
+
+// The rack's two switches — surround and power — as one flex item, so they
+// wrap off the first row together and keep the right edge; the `auto`
+// margin that pushes them there belongs to the group, not to either switch,
+// or two of them split the row's free space and float one mid-row.
+.dsp-header-switches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px 18px;
+  margin-left: auto;
+}
+
+// That a switch is being held, inside the group that is held — never on a
+// line of its own under the row, where it read as a caption for the switch
+// beside it and grew the group by 159px, which came off the preset bar and
+// broke the file actions onto a second row. See `DspHeldLock`.
+.dsp-switch-held {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  // Half a step back from the word it qualifies: the group's own 9px gap
+  // between a glyph and a word reads as two separate things.
+  margin-right: -3px;
+  color: $text-faint;
+
+  path {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
+.dsp-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  // No top nudge. A 1px offset here pushed the title off the row's centre
+  // line, which is what made "DSP 48 kHz" sit visibly low against the preset
+  // field beside it -- the row centres its children, so the title has to be
+  // allowed to sit where it puts them.
+  margin: 0;
+  font-size: 1.22rem;
+}
+
+// The scope notice, and it is not a footnote.
+//
+// Every other pill in the EQ group configures Equalizer APO and therefore all
+// system audio. This one does not, and a user who assumes otherwise reports
+// the feature as broken rather than as misunderstood — so it is readable body
+// text at the top of the panel, not a muted caption at the bottom and not a
+// tooltip nobody hovers.
+//
+// A strip rather than a paragraph (`DspScopeNotice.tsx`): the glyph of what it
+// is about, the sentence, and the way out as a real button at its end — the
+// button drops under the sentence, at the right, when the page is narrow. As
+// wide as it has to be and no wider, so it reads as one message under the
+// header rather than as a band across the whole page.
+.dsp-scope {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  width: fit-content;
+  max-width: 100%;
+  // The panel's own 14px gap plus this: the sentence sat as close to the rack
+  // below it as the heading above it does, so a line that qualifies the whole
+  // page read as a caption belonging to the first card in it.
+  margin: 0 0 8px;
+  padding: 7px 8px 7px 12px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.45;
+
+  // Waiting is an actionable state, not muted explanatory copy. The stored
+  // chain remains ready, but no Library audio is playing and therefore no DSP
+  // is active; amber says "not yet" without borrowing red from a real engine
+  // failure.
+  &.is-idle {
+    border-color: color-mix(in srgb, $amber 34%, transparent);
+    background: color-mix(in srgb, $amber 7%, transparent);
+    color: $amber;
+  }
+}
+
+.dsp-scope__icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+// Takes the line, and wraps before the button has to: a sentence two lines
+// tall beside its button reads better than one line with the button alone
+// under it.
+.dsp-scope__text {
+  flex: 1 1 280px;
+  min-width: 0;
+  max-width: 72ch;
+  margin: 0;
+}
+
+.dsp-scope__action {
+  flex: none;
+  margin-left: auto;
+}
+
+// Not an error, and it must not look like one. The engine lives in the library
+// player, which does not exist until the Library has been opened — so on a
+// fresh window this is simply the truth, not a fault.
+.dsp-idle {
+  max-width: 680px;
+  margin: 2px 0 0;
+  color: $text-faint;
+  font-size: $text-body;
+  line-height: 1.4;
+}
+
+.dsp-unavailable {
+  margin: 2px 0 0;
+  color: $red;
+  font-size: $text-body;
+  line-height: 1.4;
+}
+
+// Scoped to the header line so it outranks `.dsp-eq-bar`, which the same
+// element carries and which is written later in this file.
+.dsp-header-line > .dsp-presets {
+  // It is the same preset control as every filter bar, at the rack level. The
+  // shared classes keep the arrows, field and label literally identical.
+  //
+  // ITS WHOLE WIDTH WHEN THE ROW HAS IT, its narrowest when it does not.
+  //
+  // This was `min-content`, which on a wide panel is a box that can never
+  // grow: an `auto` margin — and the switch group after it carries one —
+  // takes ALL of a row's free space before `flex-grow` is offered any. So the
+  // presets stood at their narrowest with four hundred pixels of empty row
+  // beside them and their four file actions broken onto a line of their own,
+  // under the picker (Ivan, 2026-09-21). An `auto` basis is the group's
+  // content on one line; it still shrinks to `min-content` and wraps inside
+  // itself when the row is tight, and the title beside it is pinned so the
+  // shrinking never comes off the heading, which is what `min-content` was
+  // guarding against.
+  flex: 1 1 auto;
+  margin-right: auto;
+  // The same rule the power group on the right already carried, so the header
+  // reads as three groups with two matching separators rather than one
+  // divided end and one crowded one. The title and the presets were butted
+  // together on a bare 16px gap, which made two unrelated things -- a heading
+  // and a control -- look like one run of chrome.
+  //
+  // Drawn one control tall rather than as a border, which ran the full height
+  // of the presets once their actions wrapped under the picker.
+  position: relative;
+  padding-left: 18px;
+
+  &::before {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: $control-height;
+    background: rgba($white, 0.1);
+    content: '';
+  }
+}
+
+.dsp-global-power {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-left: 14px;
+  border-left: 1px solid rgba($white, 0.1);
+}
+
+// Said the way the caption beside it says "Game mode": faint, small, in
+// sentence case. They were spaced capitals, the "on" one in the accent, a
+// second voice in a row of captions and a second cyan beside the switch
+// that already shows it (Ivan, 2026-09-26: "the On and all that make it more
+// like the other text", "fix cyan color here too"). On is the caption at
+// full strength, not in another colour.
+.dsp-global-power-state {
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  // The same fade the per-processor label has carried all along. Two words
+  // doing one job on one page, one of them stepping and one of them fading,
+  // is the kind of difference nobody can name and everybody can see.
+  transition: color 140ms ease;
+
+  &.is-on {
+    color: $text-primary;
+  }
+}
+
+// The filter page dims when the global switch goes off. Crossfade is a player
+// transition in a separate rail group and deliberately remains interactive.
+.dsp-stage {
+  transition:
+    opacity $motion-base $ease-out,
+    filter $motion-base $ease-out;
+}
+
+// Faded, not drained. The desaturation took the cyan out of half the window
+// and left a grey page beside pages that were still teal — which is why this
+// one read as broken rather than as switched off. The dim is the whole of it,
+// and it is the same dim every other unavailable thing in the app uses.
+.dsp-stage.is-disabled {
+  opacity: $disabled-opacity;
+  pointer-events: none;
+  user-select: none;
+}
+
+// A small figure beside a band's title: the Normalizer's live gain, the voice
+// model's download progress.
+.dsp-band-spec {
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  line-height: 1.2;
+  @include tracking(0.025em);
+  text-transform: uppercase;
+}
+
+.dsp-level-meters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  color: $text-muted;
+  font-family: $font-mono;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
+// The control surface and the analysis side by side while both fit, stacked
+// when they do not. The surface's floor is its own content — the mode switch
+// is three unbreakable labels — so no locale's labels can be laid out past the
+// card's edge the way a 280px track put Spanish's "Nivelación en directo"
+// 53px outside it.
+.dsp-normalizer-dashboard {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.dsp-normalizer-control-surface {
+  flex: 4 1 max-content;
+}
+
+.dsp-normalizer-analysis {
+  flex: 7 1 420px;
+}
+
+.dsp-normalizer-control-surface,
+.dsp-normalizer-analysis,
+.dsp-normalizer-live,
+.dsp-denoise-analysis {
+  @include dsp-box;
+  min-width: 0;
+}
+
+// Denoise reuses the Normalizer's panel treatment rather than defining its
+// own. The two cards sit next to each other on the rail and both open with a
+// measurement of the source; a second set of nearly-identical surfaces would
+// read as a different kind of panel for no reason a user could name.
+.dsp-denoise-analysis {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+}
+
+.dsp-denoise-analysis-head,
+.dsp-denoise-analysis-label {
+  display: flex;
+  align-items: center;
+}
+
+// The scan actions drop under the reading when the two cannot share a line,
+// rather than at a card width measured for one locale.
+.dsp-denoise-analysis-head {
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+
+.dsp-denoise-analysis-label {
+  min-width: 0;
+  gap: 10px;
+}
+
+.dsp-denoise-analysis-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+// Two across on a wide panel, one on a narrow one. Four modules stacked in a
+// single column pushes the live readout below the fold, and a stage's own
+// meters have to be visible while its dials are being turned.
+// The button and its progress on one row, inside the module it belongs to.
+// A download offered somewhere other than beside the control it enables reads
+// as unrelated housekeeping.
+.dsp-denoise-model {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  .dsp-normalizer-progress {
+    flex: 1 1 120px;
+  }
+}
+
+// Tall enough to read a floor against a spectrum. Below roughly 150px the two
+// curves sit close enough that "under the floor" stops being legible, which is
+// the one thing this picture exists to show.
+//
+// Grown by the click lane's 24px rather than taking that room out of the plot.
+// The lane is a second reading; paying for it with the first one's legibility
+// would have cost more than it bought.
+.dsp-denoise-graph {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  height: 200px;
+  flex-direction: column;
+  // Clipped to its corners: the click lane along its top is painted in the
+  // card's colour right to the edge (`DspDenoiseGraph.tsx`).
+  overflow: hidden;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: $radius-s;
+  background: $surface-plot;
+
+  canvas {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+}
+
+.dsp-denoise-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 0 10px 7px;
+}
+
+.dsp-denoise-legend-key {
+  display: flex;
+  align-items: center;
+  color: $text-faint;
+  font-size: $text-micro;
+  gap: 5px;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+
+  &::before {
+    width: 10px;
+    height: 2px;
+    border-radius: 1px;
+    content: '';
+  }
+
+  &.is-spectrum::before {
+    background: color-mix(in srgb, var(--dsp-output) 35%, transparent);
+  }
+
+  &.is-floor::before {
+    background: rgba(255, 176, 89, 0.85);
+  }
+
+  &.is-hiss-action::before {
+    background: color-mix(in srgb, var(--dsp-applied) 95%, transparent);
+  }
+
+  &.is-hum::before {
+    background: rgba(84, 200, 255, 0.6);
+  }
+
+  &.is-clicks::before {
+    background: rgba(150, 222, 143, 0.8);
+  }
+}
+
+// Hiss and Hum need room for four and three dials. Clicks needs enough for its
+// pair to remain horizontal; Voice only needs one. Equal shares made Clicks
+// stack vertically, and that one extra dial row set the height of all four
+// cards, so each module grows in proportion to the controls it owns.
+//
+// A wrapping row rather than a grid of tracks: all four share a line once the
+// card holds their floors, and below that they fall into two balanced pairs
+// on their own. The floors are what the dials and Hum's switch need; a module
+// squeezed toward its floor narrows its dials rather than overflowing them.
+.dsp-denoise-modules {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.dsp-denoise-module {
+  gap: 8px;
+}
+
+.dsp-denoise-module.is-hiss {
+  flex: 34 1 300px;
+}
+
+.dsp-denoise-module.is-hum {
+  flex: 30 1 290px;
+}
+
+.dsp-denoise-module.is-clicks {
+  flex: 20 1 170px;
+}
+
+.dsp-denoise-module.is-voice {
+  flex: 16 1 150px;
+}
+
+.dsp-denoise-module .dsp-band-dials {
+  width: 100%;
+}
+
+.dsp-denoise-module.is-hum > .segmented {
+  width: min(100%, 260px);
+  align-self: center;
+}
+
+// Every reading row in a card body is laid on the same three columns, so the
+// lone live noise floor under the graph lines up with the readings under the
+// modules instead of floating at a width of its own.
+.dsp-card-body > .dsp-normalizer-stats {
+  width: 100%;
+}
+
+// Full HD needs the same deliberate vertical density as the EQ. The graph sits
+// at its measured 150px legibility floor, dials keep enough pointer travel,
+// and both readout rows still fit their two text lines. Overflow continues to
+// scroll below these rules on windows that are shorter or narrower.
+@media (max-height: $bp-full-hd-height) {
+  #dsp-denoise {
+    --dsp-knob: 68px;
+  }
+
+  #dsp-denoise .dsp-card-body {
+    gap: 8px;
+  }
+
+  .dsp-denoise-graph {
+    height: 150px;
+  }
+
+  .dsp-denoise-analysis {
+    gap: 6px;
+    padding: 8px 12px;
+  }
+
+  .dsp-denoise-analysis .dsp-normalizer-stats,
+  .dsp-denoise-live {
+    min-height: 54px;
+  }
+}
+
+.dsp-normalizer-control-surface {
+  display: flex;
+  min-height: 128px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 9px 12px 7px;
+
+  // At least as wide as its labels. A fixed 366px in equal thirds left the
+  // longest label wider than its third.
+  .segmented {
+    min-width: min(100%, 366px);
+    max-width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  > .dsp-band-title {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+.dsp-normalizer-dials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.dsp-normalizer-analysis {
+  display: flex;
+  min-height: 128px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 14px;
+}
+
+.dsp-normalizer-status {
+  display: block;
+  overflow: hidden;
+  width: 240px;
+  min-height: 16px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 16px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  // Analysing → ready → unavailable is a line that rewrites itself while it is
+  // being read. Fading the colour between those states keeps the change
+  // attached to the sentence instead of flicking underneath it.
+  transition: color 140ms ease;
+
+  &.is-ready {
+    color: $secondary-default;
+  }
+
+  &.is-unavailable {
+    color: $text-faint;
+  }
+}
+
+.dsp-normalizer-progress {
+  position: relative;
+  overflow: hidden;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: $radius-pill;
+  background: $track-well;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: $secondary-default;
+    transition: width 160ms ease-out;
+  }
+}
+
+.dsp-normalizer-stats {
+  display: grid;
+  min-height: 62px;
+  margin: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+
+  div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 6px 10px;
+    @include dsp-box;
+    border-radius: $radius-xs;
+  }
+
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  // The reading stays one line; its name wraps. An ellipsis cut "short-term
+  // loudness" to "short-term lo…" in a cell with a second line to spare.
+  dd {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  dt {
+    color: $text-faint;
+    font-size: $text-micro;
+    @include tracking(0.06em);
+    text-transform: uppercase;
+  }
+
+  dd {
+    min-height: 20px;
+    color: rgba($white, 0.82);
+    font-family: $font-mono;
+    font-size: $text-lead;
+    font-variant-numeric: tabular-nums;
+    line-height: 20px;
+  }
+}
+
+.dsp-normalizer-live {
+  display: flex;
+  width: 100%;
+  min-height: 142px;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+}
+
+.dsp-normalizer-honesty {
+  width: 100%;
+  min-height: 16px;
+  padding: 0 2px;
+}
+
+// Brighter than a plain hint, because it explains a number that contradicts
+// the dial directly above it. Deliberately not `.is-warning`: nothing has gone
+// wrong when the ceiling wins, that is the safety doing precisely its job, and
+// painting it red would teach people to fear a correct result.
+.dsp-normalizer-limit {
+  width: 100%;
+  padding: 0 2px;
+  color: $text-muted;
+  font-variant-numeric: tabular-nums;
+}

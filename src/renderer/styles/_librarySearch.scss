@@ -1,0 +1,528 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'libraryMetrics' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// The shared field wrapper — `LibrarySearchField` renders it around the
+// capsule and the recent-searches list, which positions against it.
+.library-search {
+  position: relative;
+}
+
+.library-search__field {
+  display: flex;
+  // 26px and 8px, both measured off `.video-search__field` in the running
+  // window rather than guessed: this capsule was 32 tall and one pixel wider
+  // on the left, which is exactly enough to read as "nearly the same" and
+  // therefore as wrong.
+  height: 26px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 3px 0 8px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  transition: $transition-control;
+
+  // Focus lights the EDGE, not the fill. A field that repaints when the
+  // caret lands in it is a field that changes colour for typing in — and it
+  // was a different colour from its own resting face, so two search boxes
+  // side by side looked like two kinds of control the moment one was used.
+  &:focus-within {
+    border-color: $border-field-focus;
+  }
+
+  // A pill, open or shut.
+  //
+  // The bottom corners used to square off while the list was showing, on the
+  // reasoning that the two would read as one control — but the list hangs
+  // 4px BELOW the field rather than joining it, so what that produced was a
+  // pill with two flattened corners floating over a separate card: a shape
+  // that belongs to neither of them. A capsule that keeps its shape while it
+  // is being typed into is the quieter answer.
+}
+
+// *** Recent searches **********************************************************
+//
+// The Media tab's list, under this file's own names — see
+// `.video-search__suggestions` in VideoBrowser.scss for the surface and the
+// mouse-down handling both share.
+
+.library-search__suggestions {
+  position: absolute;
+  // Above everything else in the toolbar, not merely above the field.
+  //
+  // At 20 it cleared the field it hangs from and the rows under it, but the
+  // folder controls sit in the same row and carry marks of their own — and
+  // where the two overlapped, those were drawn through the list, which reads
+  // as glyphs printed across "recent searches". The panel is the frontmost
+  // thing in this bar while it is open; nothing in the row outranks it.
+  z-index: 60;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  padding: 4px;
+  // The floating surfaces' own face, like every other menu (Ivan,
+  // 2026-09-25: "all menus", "to much dropshadows").
+  // A dropdown: the card's face, like every menu (`menu-face`).
+  @include menu-face;
+  // Drops out of the field as every menu does (`menu-in`); it was the one list
+  // that simply appeared.
+  @include menu-motion;
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    border-radius: $radius-s;
+
+    &:hover {
+      background: color-mix(in srgb, $secondary-light 14%, transparent);
+    }
+  }
+}
+
+.library-search__suggestions-title {
+  padding: 3px 8px 5px;
+  color: $text-faint;
+  font-size: $text-eyebrow;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+}
+
+.library-search__suggestion {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  padding: 5px 8px;
+  border: none;
+  background: none;
+  color: $text-primary;
+  font-size: $text-small;
+  gap: 7px;
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: rgba($edge-tint, 0.4);
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  span {
+    @include truncate;
+  }
+}
+
+.library-search__forget {
+  display: flex;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: $text-faint;
+  cursor: pointer;
+
+  svg {
+    width: 8px;
+    height: 8px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover {
+    background: rgba($white, 0.1);
+    color: $text-primary;
+  }
+}
+
+.library-search__forget-all {
+  width: 100%;
+  margin-top: 3px;
+  padding: 5px 8px;
+  border: none;
+  border-top: 1px solid rgba($edge-tint, 0.08);
+  background: none;
+  color: $text-faint;
+  font-size: $text-micro;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    color: $text-primary;
+  }
+}
+
+.library-search__icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: rgba($edge-tint, 0.55);
+  stroke-linecap: round;
+  stroke-width: 1.6;
+}
+
+// Two classes deep for the same reason `.video-search .video-search__input`
+// is: App.scss gives every `input` the shared field surface, which inside
+// this capsule draws a second rounded box within the first.
+.library-search__field .library-search__input {
+  min-width: 0;
+  height: 100%;
+  flex: 1 1 auto;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+  box-shadow: none;
+  color: $text-primary;
+  font-size: $text-body;
+
+  &::placeholder {
+    color: $text-faint;
+  }
+
+  // Glass in every state. The global control base's HOVER carries two
+  // `:not()`s, which outrank a plain two-class selector — so this field was
+  // quiet at rest and then painted a cyan rectangle inside the capsule as
+  // soon as the pointer crossed it.
+  &:hover:not(:disabled),
+  &:focus,
+  &:focus-visible {
+    border: none;
+    background: none;
+    box-shadow: none;
+    outline: none;
+  }
+}
+
+.library-search__clear {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: $text-muted;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    outline: none;
+  }
+}
+
+.library-search__clear-icon {
+  width: 10px;
+  height: 10px;
+}
+
+// *** The Folders chip, which carries its own chevron **********************
+//
+// One shelf with two readings — every folder at once, or the tree they sit
+// in — so this chip has an arrow and the other four do not. ONE PILL, and
+// the seam is the whole point of the rule: drawn as two chips it read as two
+// controls sitting next to each other, with a line down the middle saying
+// they were separate things. They are not: it is a shelf and the way of
+// asking about it. So the pill is the wrapper — border, background, the
+// active state — and the two buttons inside it are bare.
+.library-toolbar__folder {
+  display: inline-flex;
+  align-items: center;
+  padding-right: 5px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  transition: $transition-control;
+
+  &:hover {
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
+  }
+
+  &.is-active {
+    border-color: $border-control-hover;
+    background: $surface-control-press;
+  }
+
+  // Bare inside the pill: the pill is what is drawn, these are only where
+  // the presses land. The focus ring stays, because a keyboard has to be able
+  // to tell which half it is on.
+  //
+  // The active state is listed with them rather than left to fall through,
+  // because that is the seam: the label keeps its class for the cyan text,
+  // and the chip border came with it — a line down the middle of a pill that
+  // is meant to read as one control.
+  > .library-toolbar__chip,
+  > .library-toolbar__chip.is-active {
+    border-color: transparent;
+    background: none;
+
+    &:hover {
+      border-color: transparent;
+    }
+  }
+}
+
+.library-toolbar__folder-more {
+  padding-right: 2px;
+  padding-left: 3px;
+
+  svg {
+    width: 11px;
+    height: 11px;
+  }
+}
+
+// Two rows, each a name over the sentence that says what it means. The
+// sentence is the point: "Folders" and "Directories" are near-synonyms in
+// English, and without a line under each nobody could tell which was which.
+.library-toolbar__folder-menu {
+  // The shared floating-menu surface rather than one built here — the same
+  // one the graph's View menu and the karaoke mix popover use, which is what
+  // gives it a background at all and the euphoria sweep for free. Without it
+  // this menu was drawn with no surface and under the toolbar it hangs from:
+  // a portalled element with no z-index of its own loses to the row above,
+  // which carries one.
+  @include menu-surface;
+
+  z-index: 60;
+  display: grid;
+  min-width: 232px;
+  padding: 5px;
+  gap: 2px;
+}
+
+.library-toolbar__folder-option {
+  display: grid;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  gap: 1px;
+  text-align: left;
+
+  &:hover,
+  &:focus-visible {
+    border-color: color-mix(in srgb, $secondary-light 30%, transparent);
+    background: color-mix(in srgb, $secondary-default 10%, transparent);
+    outline: none;
+  }
+
+  &.is-active {
+    border-color: color-mix(in srgb, $secondary-light 42%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+  }
+}
+
+.library-toolbar__folder-option-name {
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+.library-toolbar__folder-option-hint {
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+// The folders inside the one that is open, above the files that are loose in
+// it. Separated by a line for the reason the header above it is separated
+// from the table: two lists in one panel, and one of them is somewhere to go
+// rather than something to play.
+.library-detail__children {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  padding-bottom: $spacing-s;
+  border-bottom: 1px solid $border-panel;
+  margin-bottom: $spacing-s;
+}
+
+// A folder that only leads to other folders: the list of them is the whole
+// panel, so it takes the whole panel. Left at its own height it sat four rows
+// deep with its own scrollbar under half a screen of nothing — and the line
+// under it divided the list from an empty space, which is not a division
+// worth drawing.
+.library-detail__children.is-only {
+  flex: 1 1 auto;
+  padding-bottom: 0;
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+// Where this record lives on disk, under its name. Muted, and truncating from
+// the left, because the end of it — the folder itself — is the part worth
+// reading; the glyph stays whole on the left of it.
+.library-detail__where {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+
+  span {
+    min-width: 0;
+    overflow: hidden;
+    direction: rtl;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.library-detail__where-icon {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  color: $text-faint;
+}
+
+// *** Up next *****************************************************************
+//
+// The queue, said out loud. It is assembled from whatever list is on screen
+// and re-aimed whenever the view changes, and until now the only way to learn
+// what it held was to wait and hear.
+//
+// Absolutely placed against the tab rather than laid out as a column beside
+// it: this section is already the positioning frame for the floating scan
+// pane, and `has-up-next` reserves the strip on the right so nothing runs
+// underneath. A wrapper element around every other child would be a large
+// edit for the same picture.
+// The strip it stands in, plus the gap between it and the shelf. Folded it
+// gives all of that back but the width of its own tab.
+// The panel's width plus the splitter's, and nothing else.
+//
+// 12px is the graph divider's rule taken sideways: `.pane-resizer` is exactly
+// as thick as the gap the workspace already leaves between two cards, so it
+// sits IN that gap rather than adding to it. Here the same — the splitter is
+// the space between the shelf and the queue, not a third thing between them.
+// The strip the queue stands in: the panel, the gap between it and the shelf,
+// and the panel's own inset from the card.
+//
+// Held as a margin on each VIEW rather than as padding on the card, and the
+// reason is a rule of container queries rather than a matter of taste: an
+// element is not its own ancestor, so `@container library` can never restyle
+// the box that declares the container. The card declares it. Its padding is
+// therefore unreachable from the very query that has to release the strip when
+// the tab gets narrow — see the 900px block — while its children are not.
+//
+// The card keeps its own 12px padding-right underneath, so the total clearance
+// is the same as when this was `padding-right: calc(width + 12 + inset)`.
+.library-workspace.has-up-next
+  > *:not(.library-up-next):not(.library-up-next__splitter):not(
+    .library-toolbar-row
+  ) {
+  margin-right: calc(var(--up-next-width, 260px) + var(--up-next-inset));
+}
+
+// Folded there is no panel to reserve for: `has-up-next` comes off the
+// section entirely and the shelf has the whole width back. The chip in the
+// folder row is the way in.
+
+// *** The fold ****************************************************************
+//
+// THE QUEUE FOLDS THE WAY THE PLUS TAB'S RAIL DOES (`PlusRail.scss`), and the
+// way karaoke's playlist does beside its stage: the panel closes towards the
+// edge it stands against on the same length and curve, its contents leave
+// before it narrows and come back once there is room, and the shelf gives up
+// its strip — and takes it back — in the same movement. No pin and no
+// opening on hover; the fold is only ever the chip's or the header's.
+//
+// It used to be unmounted, and only its arrival was animated, because the
+// strip came back the instant it was folded and a panel sliding away over a
+// shelf already laid out underneath it would have disagreed with it. Both
+// move together now, so the panel stays mounted, inert while folded
+// (`LibraryUpNext`).
+//
+// Reduced motion shortens it rather than removing it, as the rail does: a
+// shelf that jumps a quarter of the card sideways reads as the layout
+// breaking. `--up-next-chrome` is the full-screen slide out of the picture's
+// way (below), which reduced motion does remove.
+.library-workspace {
+  --up-next-move: #{$motion-slow};
+  --up-next-settle: #{$motion-base};
+  --up-next-chrome: #{$motion-base};
+
+  @media (prefers-reduced-motion: reduce) {
+    --up-next-move: 150ms;
+    --up-next-settle: 110ms;
+    --up-next-chrome: 0ms;
+  }
+}
+
+// The shelf, the video and every other view give the strip up and take it
+// back as the panel moves. None of them has a transition of its own to be
+// replaced by this; the toolbar row and the queue's own pieces are left out.
+//
+// Not while the panel's edge is dragged, which moves the shelf under the
+// pointer: a transition there would trail every movement by the length of a
+// fold. Said in this selector rather than overridden by another one, which
+// this many `:not()`s would outrank.
+//
+// `is-resizing-up-next` is the card saying so (`LibraryWorkspace`). It was
+// `:has(.library-up-next__splitter .is-dragging)`, and a queue row being
+// dragged wears `is-dragging` too, so picking one up or putting it down made
+// the browser ask the card's whole subtree again: measured in Chromium on a
+// windowed list of 14,000 rows, 9 ms of style work each time against 0.2 ms
+// with the class, and a scroll 1.2-1.8x the style work.
+.library-workspace:not(.is-resizing-up-next)
+  > *:not(.library-up-next):not(.library-up-next__splitter):not(
+    .library-toolbar-row
+  ):not(.library-up-next__chip--over-video) {
+  transition: margin-right var(--up-next-move) $ease-out;
+}
+
+// And the panel's own width follows the same drag.
+.library-workspace.is-resizing-up-next .library-up-next {
+  transition: none;
+}

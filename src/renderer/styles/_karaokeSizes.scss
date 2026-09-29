@@ -1,0 +1,376 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+@container autoeq-workspace (max-width: 760px) {
+  .karaoke-workspace__header {
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .karaoke-workspace__actions:not(.is-stage-toolbar) {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 6px;
+
+    .karaoke-workspace__action {
+      min-width: 104px;
+      flex: 1 1 104px;
+    }
+
+    .karaoke-workspace__icon-action {
+      flex: 0 0 $control-height-sm;
+    }
+  }
+
+  // At this width a persistent side-by-side library takes the useful width
+  // away from lyrics and pitch. Keep the library available as a compact row,
+  // then give the actual performance surface the full panel width.
+  //
+  // Folded, the row closes instead of the column, on the same fold: both
+  // states keep two rows so they interpolate.
+  .karaoke-workspace__player.has-playlist {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(76px, 0.2fr) minmax(360px, 1fr);
+    gap: 8px;
+    transition:
+      grid-template-rows var(--playlist-move) $ease-out,
+      row-gap var(--playlist-move) $ease-out;
+
+    > .karaoke-playlist {
+      max-height: 112px;
+      grid-row: 1;
+      grid-column: 1;
+    }
+
+    > .karaoke-pane-splitter.is-vertical {
+      display: none;
+    }
+
+    > .karaoke-workspace__stage {
+      grid-row: 2;
+      grid-column: 1;
+    }
+
+    &.is-playlist-collapsed {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0px, 0fr) minmax(360px, 1fr);
+      gap: 0;
+    }
+  }
+
+  .karaoke-workspace__stage.has-song {
+    padding: 10px;
+  }
+
+  .karaoke-chords__next[data-order='2'] {
+    display: none;
+  }
+
+  .karaoke-song__utility {
+    width: clamp(168px, 25vw, 200px);
+  }
+}
+
+@container autoeq-workspace (max-width: 660px) {
+  .karaoke-workspace__player.has-playlist {
+    grid-template-columns: minmax(0, 1fr);
+
+    &.is-playlist-collapsed {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .karaoke-workspace__readiness {
+    grid-template-columns: 1fr;
+  }
+
+  .karaoke-transport {
+    width: 100%;
+    grid-template-columns: auto minmax(90px, 1fr) auto;
+    gap: 8px;
+    border-radius: $radius-l;
+  }
+
+  .karaoke-transport__time,
+  .karaoke-transport__volume {
+    display: none;
+  }
+
+  .karaoke-transport__position {
+    grid-template-columns: minmax(90px, 1fr);
+  }
+
+  .karaoke-song__source,
+  .karaoke-chords__next {
+    display: none;
+  }
+
+  .karaoke-song__heading {
+    gap: 8px;
+  }
+
+  .karaoke-song__tools {
+    gap: 6px;
+  }
+
+  .karaoke-song__utility {
+    width: clamp(152px, 36vw, 184px);
+    grid-template-rows: 1fr;
+  }
+
+  .karaoke-chords {
+    min-width: 76px;
+    min-height: 36px;
+
+    &.is-analyzing {
+      min-width: 126px;
+    }
+  }
+}
+
+@container autoeq-workspace (max-width: 390px) {
+  .karaoke-song__heading {
+    flex-wrap: wrap;
+  }
+
+  .karaoke-song__tools {
+    width: 100%;
+  }
+
+  .karaoke-song__utility {
+    width: auto;
+    flex: 1 1 auto;
+  }
+
+  .karaoke-microphone__controls {
+    grid-template-columns: 1fr;
+
+    button {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 980px) {
+  .karaoke-workspace__stage {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .karaoke-workspace__levels {
+    display: none;
+  }
+
+  .karaoke-workspace__microphone-art {
+    width: clamp(220px, 27vw, 300px);
+    height: min(76%, 500px);
+    max-height: 500px;
+    transform: translateX(8px) rotate(12deg);
+  }
+}
+
+@media (max-width: 720px) {
+  .karaoke-workspace__header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .karaoke-workspace__stage {
+    min-height: 280px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .karaoke-workspace__microphone-art {
+    display: none;
+  }
+
+  .karaoke-workspace__readiness {
+    grid-template-columns: 1fr;
+  }
+
+  .karaoke-workspace__actions {
+    width: 100%;
+
+    button {
+      flex: 1;
+    }
+
+    .karaoke-workspace__icon-action {
+      flex: 0 0 $control-height-sm;
+    }
+
+    &.is-stage-toolbar {
+      width: auto;
+
+      button,
+      .karaoke-workspace__icon-action {
+        flex: 0 0 29px;
+      }
+
+      .karaoke-workspace__action {
+        width: 29px;
+        padding: 0;
+
+        span {
+          display: none;
+        }
+      }
+    }
+  }
+}
+
+// A short laptop window needs a vertical layout of its own. Width-only
+// breakpoints previously stacked the playlist and then kept 280-360px minimum
+// tracks, so the pitch guide and bottom transport were pushed through one
+// another. These floors preserve every band while letting the graph contract
+// before controls overlap.
+@media (max-height: 760px) {
+  .karaoke-workspace {
+    gap: 8px;
+  }
+
+  .karaoke-workspace__header {
+    gap: 8px;
+    padding-top: 2px;
+
+    h2 {
+      margin-block: 0 2px;
+    }
+  }
+
+  .karaoke-workspace__intro {
+    display: none;
+  }
+
+  .karaoke-workspace__stage.has-song {
+    grid-template-rows: auto minmax(36px, 1fr);
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .karaoke-workspace__stage.has-song.has-stage-pitch {
+    grid-template-rows:
+      auto minmax(36px, 1fr) 8px
+      minmax(64px, min(var(--karaoke-pitch-size, 28%), 28%));
+  }
+
+  .karaoke-workspace__stage > .karaoke-pane-splitter.is-horizontal,
+  .karaoke-workspace > .karaoke-pane-splitter.is-horizontal {
+    height: 8px;
+  }
+
+  .karaoke-workspace__readiness,
+  .karaoke-workspace__readiness.is-resizable {
+    min-height: 88px;
+    max-height: min(42%, 170px);
+    flex: 0 1 min(var(--karaoke-pitch-size, 28%), 170px);
+  }
+
+  .karaoke-workspace__readiness .karaoke-pitch,
+  .karaoke-workspace__readiness .karaoke-pitch.has-targets {
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding: 7px 9px 6px !important;
+  }
+
+  .karaoke-workspace__readiness .karaoke-pitch__canvas {
+    min-height: 0;
+  }
+
+  .karaoke-transport {
+    padding-block: 6px;
+  }
+
+  @container autoeq-workspace (max-width: 760px) {
+    .karaoke-workspace__player.has-playlist:not(.is-playlist-collapsed) {
+      grid-template-rows: minmax(56px, 0.16fr) minmax(0, 1fr);
+
+      > .karaoke-playlist {
+        max-height: 88px;
+      }
+    }
+
+    // The same two rows folded, so this short layout folds as smoothly.
+    .karaoke-workspace__player.has-playlist.is-playlist-collapsed {
+      grid-template-rows: minmax(0px, 0fr) minmax(0, 1fr);
+    }
+  }
+}
+
+@media (max-width: 720px) and (max-height: 760px) {
+  .karaoke-workspace__stage {
+    min-height: 0;
+  }
+}
+
+@media (max-height: 620px) {
+  .karaoke-workspace__stage.has-song {
+    grid-template-rows: auto minmax(28px, 1fr);
+    padding: 6px;
+  }
+
+  .karaoke-workspace__stage.has-song.has-stage-pitch {
+    grid-template-rows:
+      auto minmax(28px, 1fr) 6px
+      minmax(54px, min(var(--karaoke-pitch-size, 25%), 25%));
+  }
+
+  .karaoke-workspace__readiness,
+  .karaoke-workspace__readiness.is-resizable {
+    min-height: 76px;
+    max-height: min(38%, 138px);
+    flex-basis: min(var(--karaoke-pitch-size, 25%), 138px);
+  }
+
+  .karaoke-workspace .karaoke-pitch__footer {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .karaoke-maker {
+    animation: none !important;
+  }
+
+  .karaoke-pane-splitter__handle > span,
+  .karaoke-playlist__collapse,
+  .karaoke-playlist__expand,
+  .karaoke-song__text-size,
+  .karaoke-song__text-size input[type='range']::-webkit-slider-thumb,
+  .karaoke-workspace__actions.is-stage-toolbar,
+  .karaoke-transport,
+  .karaoke-transport__control,
+  .karaoke-transport input[type='range']::-webkit-slider-thumb,
+  .karaoke-pitch,
+  .karaoke-pitch__canvas {
+    transition: none !important;
+  }
+
+  .karaoke-chords__scan {
+    animation: none !important;
+  }
+}

@@ -1,0 +1,776 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+@keyframes karaoke-maker-capture-coach-cue {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+
+  35% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 900px) {
+  .karaoke-maker__capture-coach {
+    grid-template-columns: 46px minmax(0, 1fr);
+    padding: 17px 14px 13px;
+  }
+
+  .karaoke-maker__capture-coach-start,
+  .karaoke-maker__capture-coach-action {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .karaoke-maker__capture-coach-start {
+    min-height: 44px;
+  }
+
+  .karaoke-maker__capture-coach-action {
+    justify-content: space-between;
+  }
+
+  .karaoke-maker__capture-coach-controls {
+    flex-wrap: wrap;
+  }
+
+  .karaoke-maker__capture-coach-help {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .karaoke-maker__capture-coach-copy > p {
+    font-size: 11px;
+  }
+
+  .karaoke-maker__capture-coach-controls > button {
+    flex: 1 1 auto;
+    justify-content: center;
+
+    kbd {
+      display: none;
+    }
+  }
+
+  .karaoke-maker__capture-coach-steps {
+    display: none;
+  }
+
+  .karaoke-maker__capture-coach-help > div > small {
+    white-space: normal;
+  }
+}
+
+@keyframes karaoke-maker-preview-capture-confirm {
+  0% {
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, $secondary-default 92%, transparent),
+      inset 0 0 42px color-mix(in srgb, $secondary-default 20%, transparent);
+  }
+
+  100% {
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, $secondary-default 0%, transparent),
+      inset 0 0 0 color-mix(in srgb, $secondary-default 0%, transparent);
+  }
+}
+
+@keyframes karaoke-maker-preview-capture-ready {
+  0%,
+  100% {
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $secondary-default 16%, transparent);
+  }
+
+  50% {
+    box-shadow:
+      inset 0 0 0 2px color-mix(in srgb, $secondary-default 75%, transparent),
+      inset 0 0 36px color-mix(in srgb, $secondary-default 12%, transparent);
+  }
+}
+
+.karaoke-maker-preview__meta {
+  position: absolute;
+  z-index: 4;
+  top: 8px;
+  left: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  max-width: calc(100% - 28px);
+  pointer-events: none;
+
+  span,
+  strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  span {
+    max-width: 34%;
+    color: $text-faint;
+    font-size: $text-eyebrow;
+    font-weight: $weight-semibold;
+  }
+
+  strong {
+    color: $text-muted;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+  }
+}
+
+.karaoke-maker-preview__notes {
+  position: absolute;
+  z-index: 4;
+  right: 22px;
+  bottom: 7px;
+  left: 22px;
+  display: block;
+  width: calc(100% - 44px);
+  height: 14px;
+  pointer-events: none;
+}
+
+.is-euphoric .karaoke-maker-preview__meta {
+  span,
+  strong {
+    color: rgba($white, 0.88);
+    text-shadow: 0 0 12px
+      color-mix(in srgb, $secondary-default 30%, transparent);
+  }
+}
+
+.karaoke-maker__inspector {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  align-items: center;
+  gap: 15px;
+  min-height: 44px;
+  padding: 5px 13px;
+  border-top: 1px solid $border-field;
+}
+
+.karaoke-maker__command-dock {
+  position: relative;
+  z-index: 12;
+  display: grid;
+  min-width: 0;
+  // The toolbar's pair at the foot, in the same pane colour and hairline, as
+  // the transport bar pairs the titlebar: the song's fields and checks are a
+  // bar, not more of the editing floor.
+  background: $surface-panel;
+  border-top: 1px solid $border-panel;
+
+  > .karaoke-transport {
+    // Match the player's 12px workspace inset exactly, so switching into the
+    // absolutely positioned Maker does not make the shared bar jump.
+    width: min(calc(100% - 24px), 1280px);
+    margin: 7px 12px 12px;
+  }
+}
+
+.karaoke-maker__command-primary {
+  display: block;
+  min-width: 0;
+  border-bottom: 1px solid rgba(64, 129, 153, 0.13);
+
+  > .karaoke-maker__status-row {
+    min-height: 28px;
+    align-items: center;
+    padding-inline: 12px 14px;
+  }
+}
+
+.karaoke-maker__fields {
+  gap: 10px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: $text-faint;
+    font-size: $text-lead;
+  }
+
+  input:not([type='range']) {
+    width: 110px;
+    min-height: 27px;
+    padding: 0 8px;
+    color: $text-muted;
+    background: $surface-plot;
+    border: 1px solid color-mix(in srgb, $secondary-default 27%, transparent);
+    border-radius: $radius-xs;
+    outline: 0;
+
+    &:focus {
+      border-color: $secondary-default;
+    }
+  }
+
+  input[type='range'] {
+    width: 90px;
+    accent-color: $secondary-default;
+  }
+}
+
+.karaoke-maker__word-inspector {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(140px, 0.68fr) minmax(340px, 1.55fr) auto;
+  align-items: center;
+  gap: 12px;
+
+  .karaoke-maker__word-inspector-identity {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+
+    > span {
+      color: $text-accent;
+      font-size: $text-body;
+      font-weight: $weight-bold;
+      @include tracking(0.08em);
+      text-transform: uppercase;
+    }
+
+    > div {
+      display: flex;
+      min-width: 0;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    > label {
+      margin-top: 1px;
+    }
+  }
+
+  .karaoke-maker__word-inspector-title {
+    min-width: 0;
+    overflow: hidden;
+    color: $text-muted;
+    font-size: 16px;
+    line-height: 1.05;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-shadow: 0 0 13px
+      color-mix(in srgb, $secondary-default 20%, transparent);
+  }
+
+  .karaoke-maker__word-inspector-identity output {
+    flex: 0 0 auto;
+    color: $text-faint;
+    font-size: $text-lead;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  label {
+    display: grid;
+    gap: 2px;
+
+    > span {
+      color: $text-accent;
+      font-size: $text-body;
+      font-weight: $weight-bold;
+      @include tracking(0.05em);
+      text-transform: uppercase;
+    }
+  }
+
+  input {
+    width: 100%;
+    min-height: 29px;
+    padding: 0 9px;
+    color: $text-muted;
+    font-size: $text-lead;
+    background: $surface-plot;
+    border: 1px solid color-mix(in srgb, $secondary-default 27%, transparent);
+    border-radius: $radius-xs;
+    outline: 0;
+
+    &:focus {
+      border-color: color-mix(in srgb, $secondary-default 62%, transparent);
+    }
+  }
+
+  button {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    gap: 5px;
+    padding: 0 10px;
+    color: $secondary-light;
+    font-size: $text-lead;
+    background: $surface-control;
+    border: 1px solid $border-field;
+    border-radius: $radius-xs;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  .karaoke-maker__word-inspector-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 6px;
+
+    button {
+      min-width: 0;
+      padding-inline: 8px;
+      line-height: 1.15;
+      text-align: center;
+    }
+  }
+}
+
+.karaoke-maker__selection-coach.is-word-selection
+  .karaoke-maker__word-inspector {
+  grid-template-columns: minmax(145px, 0.62fr) minmax(360px, 1.55fr);
+  gap: 9px 14px;
+
+  .karaoke-maker__word-inspector-identity {
+    grid-row: 1 / span 2;
+    align-self: stretch;
+    align-content: center;
+    padding: 7px 10px;
+    // The window's filled card, in the panel's floor.
+    @include card-surface;
+  }
+
+  .karaoke-maker__word-timing-sliders {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    padding: 8px 10px;
+  }
+
+  .karaoke-maker__word-inspector-actions {
+    display: flex;
+    grid-column: 2;
+    justify-content: flex-end;
+
+    button {
+      min-height: 32px;
+      flex: 0 1 auto;
+      padding-inline: 11px;
+
+      // Play the word: the one suggested action here, in the filled face.
+      &:nth-child(2) {
+        color: $surface-base;
+        background: $secondary-default var(--control-fill) border-box;
+        border-color: transparent;
+        box-shadow: inset 0 1px 0 rgba($white, 0.24);
+      }
+    }
+  }
+}
+
+.karaoke-maker__audition {
+  min-height: 25px;
+  padding: 0 9px;
+  color: $secondary-light;
+  background: $maker-quiet;
+  border-color: $border-field;
+  box-shadow: none;
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.karaoke-maker__rights {
+  justify-self: end;
+}
+
+.karaoke-maker__notice {
+  position: absolute;
+  right: 16px;
+  bottom: calc(var(--karaoke-maker-dock-height) + 10px);
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: min(620px, calc(100% - 32px));
+  min-height: 37px;
+  padding: 7px 10px;
+  color: $text-muted;
+  font-size: $text-lead;
+  // Over the drawing, so a floor of its own: the menus' (2026-09-26).
+  background: $surface-menu-floor;
+  border: 1px solid color-mix(in srgb, $secondary-default 38%, transparent);
+  border-radius: $radius-2xs;
+  box-shadow: 0 14px 34px color-mix(in srgb, $surface-base 32%, transparent);
+  // How long it stays: the Maker takes it down on this animation's end. It
+  // changes nothing on screen — the notice looks as it always has for the
+  // five seconds it was given by a timer before.
+  animation: karaoke-maker-notice-linger 5s linear;
+
+  &.is-error {
+    color: #ffd8dc;
+    border-color: rgba(255, 98, 116, 0.48);
+  }
+
+  progress {
+    width: 190px;
+    accent-color: $secondary-default;
+  }
+}
+
+@keyframes karaoke-maker-notice-linger {
+  from,
+  to {
+    opacity: 1;
+  }
+}
+
+// The stand-down in App.scss shortens every animation to 1 ms, which would
+// take the notice down the moment it went up. Its linger is a hold that does
+// not move, and it has to stay long enough to read, so it keeps its length.
+:root[data-motion='reduced'] .karaoke-maker__notice {
+  animation-duration: 5s !important;
+}
+
+// The idle-release prompt used to live here, pinned above the Maker's dock.
+// It is `.speech-memory-notice` now, at the app root: the question outlives
+// this tab being on screen, and its buttons were a bespoke pair that `.button
+// small` and `.button small subtle` already provide.
+
+.karaoke-maker__analysis-progress,
+.karaoke-maker__analysis-error {
+  position: absolute;
+  z-index: 22;
+  top: calc(var(--karaoke-maker-header-height) + 12px);
+  right: 18px;
+  box-shadow:
+    0 18px 48px rgba($black, 0.42),
+    inset 0 1px rgba($white, 0.055);
+}
+
+// The failure replaces the progress block inside the lyrics dialog. The base
+// error floats over the workspace; keeping that positioning here put the error
+// behind the modal even though it was technically rendered.
+.karaoke-maker__analysis-error.is-inline {
+  position: static;
+  width: 100%;
+  box-shadow: none;
+}
+
+// The stems panel floats where the analysis progress does — the work and its
+// result appear in the same corner — but lower, so the two can coexist while
+// the transcription step runs over a finished split.
+.karaoke-maker__stems-float {
+  position: absolute;
+  z-index: 21;
+  top: calc(var(--karaoke-maker-header-height) + 12px);
+  right: 18px;
+  width: min(430px, calc(100% - 36px));
+  padding: 13px 14px;
+  // A panel floating over the editor: the dialogs' material, not a slab of
+  // the block colour.
+  @include dialog.surface-look;
+  box-shadow:
+    0 18px 48px rgba($black, 0.42),
+    inset 0 1px rgba($white, 0.05);
+}
+
+// The advanced-tools popover, split into "voice and music" and "lyrics and
+// timing". Flat, its five buttons read as interchangeable and the disabled
+// ones looked broken; grouped, the order is the instruction.
+.karaoke-maker__analysis-popover {
+  min-width: min(430px, 78vw);
+  padding: 14px 16px;
+}
+
+.karaoke-maker__tool-group-titled {
+  display: grid;
+  gap: 8px;
+  // The popover lays its children out in columns. Without this the two groups
+  // sat side by side with their headings at different heights, reading as two
+  // unrelated menus rather than as one ordered pair of steps.
+  grid-column: 1 / -1;
+
+  + .karaoke-maker__tool-group-titled {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid color-mix(in srgb, $secondary-light 17%, transparent);
+  }
+}
+
+.karaoke-maker__tool-group-title {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+}
+
+// The two tracks a split produces. Shown because separation is otherwise
+// invisible work — the detectors quietly start reading a different file and
+// nothing on screen says so.
+.karaoke-maker__stems {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 7px;
+  padding-bottom: 11px;
+  margin-bottom: 11px;
+  border-bottom: 1px solid color-mix(in srgb, $secondary-light 17%, transparent);
+}
+
+.karaoke-maker__stem-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+  list-style: none;
+}
+
+// "Save" and the two formats it offers, as one group in the row's last column.
+// The word is a label rather than a button — pressing it would have no meaning
+// now that the format is the choice — so it is hidden from screen readers and
+// each button carries the whole instruction in its own label instead.
+.karaoke-maker__stem-save {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: $text-faint;
+  font-size: $text-small;
+  white-space: nowrap;
+}
+
+.karaoke-maker__stem {
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  padding: 7px 10px;
+  font-size: $text-lead;
+  border: 1px solid $border-field;
+  border-radius: $radius-s;
+
+  svg {
+    width: 17px;
+    height: 17px;
+    flex: none;
+  }
+}
+
+// The waveform spans its own row under the icon, name and Save button.
+.karaoke-maker__stem-wave {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 36px;
+  border-radius: $radius-xs;
+  background: $surface-plot;
+}
+
+.karaoke-maker__stem-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.karaoke-maker__stem-level {
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  font-size: $text-lead;
+  color: $text-muted;
+}
+
+.karaoke-maker__stem-level-value {
+  min-width: 74px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+// One action per row. These labels are sentences, not icon captions —
+// "Separate voice from music" does not survive a half-width column, and the
+// two-column version put the icons on a ragged left edge.
+.karaoke-maker__tool-group-items {
+  display: grid;
+  gap: 5px;
+  grid-template-columns: minmax(0, 1fr);
+
+  .karaoke-maker__tool-button {
+    justify-content: flex-start;
+    width: 100%;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .karaoke-maker__tool-label {
+    font-size: $text-lead;
+    white-space: normal;
+  }
+}
+
+@keyframes karaoke-wizard-sweep {
+  from {
+    background-position: -45% 0;
+  }
+
+  to {
+    background-position: 145% 0;
+  }
+}
+
+// The automatic set-up offer, shown over the Maker for a song with no timing.
+.karaoke-maker__wizard {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  inset: 0;
+  padding: 24px;
+  place-items: center;
+  // A cover, dimming the Maker as the dialogs' backdrop dims the window; the
+  // frame is the dialog inside it.
+  background: dialog.$scrim;
+}
+
+// Inside the Maker's cover, not the window: as tall as the cover lets it be,
+// which is less than the window by the title bar and the transport.
+.dialog-frame.karaoke-maker__wizard-panel {
+  width: min(640px, 100%);
+  max-height: 100%;
+}
+
+.karaoke-maker__wizard-steps {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: $wizard-step-gap;
+  list-style: none;
+}
+
+.karaoke-maker__wizard-step {
+  position: relative;
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: $wizard-step-pad 12px $wizard-step-pad 10px;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  border-radius: $radius-l;
+
+  // The thread from the mark above to this one, across both rows' padding
+  // and the gap between them.
+  & + & {
+    &::before {
+      position: absolute;
+      top: -($wizard-step-pad + $wizard-step-gap);
+      left: 10px + $wizard-step-mark * 0.5;
+      width: 1px;
+      height: $wizard-step-pad * 2 + $wizard-step-gap;
+      background: $border-field;
+      content: '';
+    }
+  }
+
+  &.is-done + &::before {
+    background: color-mix(in srgb, $secondary-light 60%, transparent);
+  }
+
+  &.is-active {
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+  }
+
+  &.is-done {
+    color: $text-muted;
+  }
+}
+
+.karaoke-maker__wizard-step-mark {
+  display: grid;
+  width: $wizard-step-mark;
+  height: $wizard-step-mark;
+  place-items: center;
+  color: $text-muted;
+  border: 1px solid $border-field;
+  border-radius: 50%;
+
+  // The Maker's toolbar glyphs carry no size of their own: every other user
+  // of them is a sized button, and without this a single note filled the
+  // whole tab.
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .is-active > & {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-light 62%, transparent);
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+  }
+
+  .is-done > & {
+    color: $secondary-light;
+    border-color: transparent;
+    background: color-mix(in srgb, $secondary-default 14%, transparent);
+  }
+}
+
+// The running phase spins at its row's end; a finished one shows its check.
+.karaoke-maker__wizard-step-loader {
+  width: 14px;
+  height: 14px;
+  border: 2px solid $border-field;
+  border-top-color: $secondary-light;
+  border-radius: 50%;
+  animation: karaoke-wizard-spin 0.8s linear infinite;
+}
+
+.karaoke-maker__wizard-step-done {
+  width: 16px;
+  height: 16px;
+  color: $secondary-light;
+}
+
+@keyframes karaoke-wizard-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

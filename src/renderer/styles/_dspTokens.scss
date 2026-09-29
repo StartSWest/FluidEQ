@@ -1,0 +1,100 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// A BOX INSIDE A PROCESSOR CARD IS ITS EDGE AND NOTHING ELSE: the card's own
+// colour shows through, the way the Dimension card's Width and Shape groups
+// always drew it (Ivan, 2026-09-22: "set all DSP cards to that — same as the
+// bg, just borders"). The bands, the readout tiles and the panels each had a
+// fill of their own — the plot colour, a step darker than the card, or the
+// card's colour laid over itself — so a page was two or three shades of
+// slate for no reason a listener could name.
+//
+// Never a graph ("not the graph, never the graph"): a plot keeps its own
+// darker ground, which is what its lines are drawn to be read against. And
+// the Exciter's two tinted bands keep their tint; the colour says what they
+// are.
+@mixin dsp-box {
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: none;
+}
+
+// Nine beats for the nine filters, in signal order. The rail is keyed by
+// section id and never unmounts, so this runs once when the tab is opened and
+// not on section changes.
+//
+// The count has to be at least the number of filters: `stagger-in` only writes
+// `nth-child` delays up to it, and every tab past the count inherits the LAST
+// delay — so the rail would run out of stagger partway down and finish with
+// several entries arriving together. That is exactly what happened when Bass
+// Forge and Bass Punch took the list from eight entries to ten and the count
+// stayed at nine: the Maximizer and the Master flew in on the same beat.
+$dsp-rail-filters: 10;
+
+$dsp-rail-step: 26ms;
+
+$dsp-rail-offset: 110ms;
+
+// THE PROCESSOR PAGE: THE CARD HOLDS STILL AND WHAT IS ON IT ARRIVES.
+//
+// The card is the same surface in the same place for every processor, exactly
+// as the workspace panel is for every tab. It used to rise in as one block —
+// border, display and every dial together, a full-width slab moving eight
+// pixels — which read as the stage being swapped rather than as a processor
+// appearing on it, and made the GPU raster the whole card as one fresh layer
+// on every rail click. The EQ page is the model: its surface stays put and the
+// bands sweep in across it.
+//
+// So the header comes first, on the click itself — each section is a separate
+// branch in `DspPanel`, so every rail click builds these nodes afresh and
+// replays this, and a delay before anything moved would be a click that
+// visibly does nothing. Then the page's rows top to bottom, and inside a row
+// that holds several surfaces side by side — the Denoise modules, the Master's
+// dials, the Exciter's bands — those surfaces left to right, like the EQ's
+// bands.
+//
+// ONE FORMULA FOR EVERY PAGE, driven by three indices the selectors below
+// publish as custom properties: which row of the card body (`--dsp-row`),
+// which row inside the EQ's single wrapper (`--dsp-subrow`), and which column
+// inside a row (`--dsp-column`). Custom properties inherit, so a column needs
+// no arithmetic about which row it sits in — that is what lets a row that is
+// rendered conditionally, like the Denoise hint, move everything after it by
+// one beat instead of throwing the sequence out.
+//
+// Only leaves animate. A wrapper whose children cascade holds still itself:
+// two entrances on one element multiply their opacities and add their travel
+// (see `stagger-in`). And everything here is `translate` and `opacity`, so no
+// graph is re-measured and no canvas resizes mid-entrance; a canvas drawn in
+// the first frame is simply revealed, never shown blank.
+$dsp-pane-lead: 40ms;
+
+$dsp-pane-row-step: 40ms;
+
+$dsp-pane-column-step: 30ms;
+
+// Past these, an element takes the last beat rather than the first, so a long
+// row never finishes with its tail arriving before its head.
+$dsp-pane-rows: 6;
+
+$dsp-pane-columns: 6;

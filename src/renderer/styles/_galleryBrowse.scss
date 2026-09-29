@@ -1,0 +1,770 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'galleryTokens' as *;
+
+// Visualizers, in the Plus tab: the gallery of scenes members publish, a
+// scene's page, a maker's page and the member's own published scenes.
+//
+// The gallery is pictures first. A card is its picture — 16:9, the shape the
+// graph is — with the name, the maker and the numbers under it in one tight
+// block, so a page of them reads as a wall of scenes rather than a table of
+// rows. The pink is the heart's, the same one the graph's option bar and the
+// leaderboard use for a like.
+
+// ---------------------------------------------------------------- pages
+
+.gallery-visualizers {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-s;
+  min-height: 0;
+  padding: $spacing-m 4px $spacing-m;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  container: plus / inline-size;
+  @include slim-scrollbar;
+}
+
+.gallery-page {
+  display: grid;
+  align-content: start;
+  gap: $spacing-m;
+  min-width: 0;
+}
+
+// Holds what the gallery says back (`PlusToastStack`), hanging below it over
+// the list. Above the cards' own raised controls, which sit at 2.
+.gallery-head {
+  position: relative;
+  z-index: 3;
+}
+
+.gallery-fine {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+.gallery-section-title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.gallery-pagebar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+  min-width: 0;
+}
+
+.gallery-pagebar__title {
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  @include truncate;
+}
+
+.gallery-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px 4px 6px;
+  color: $secondary-light;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &:hover {
+    color: $white;
+    border-color: $border-field-hover;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// ---------------------------------------------------------------- toolbar
+
+// Under the place's head, which arrives first (`Community.scss`): the search
+// and sorts, then the categories, then the cards.
+.gallery-toolbar {
+  @include animate(rise-in, $motion-base, $ease-out, 40ms);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.gallery-search {
+  display: flex;
+  flex: 1 1 200px;
+  align-items: center;
+  gap: 7px;
+  max-width: 320px;
+  min-height: $control-height-sm;
+  padding: 0 10px;
+  @include field-static;
+
+  svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: $text-faint;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+  }
+
+  input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 6px 0;
+    color: $text-primary;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    font-size: $text-body;
+    outline: none;
+
+    &::placeholder {
+      color: $text-dim;
+    }
+
+    &::-webkit-search-cancel-button {
+      filter: grayscale(1);
+      cursor: pointer;
+    }
+  }
+}
+
+.gallery-sorts {
+  flex: 0 1 auto;
+}
+
+// The member's own pages at the toolbar's end: their scenes, and for the
+// admin the reported ones before it. One group, so a wrap takes both to the
+// next line together instead of splitting them.
+.gallery-toolbar__own {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-s;
+  margin-inline-start: auto;
+
+  .button svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// How many reported scenes wait. Red, the one colour here that asks for
+// attention; zero shows nothing.
+.gallery-toolbar__badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  margin-inline-start: 2px;
+  padding: 0 5px;
+  color: $white;
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $red 78%, $surface-base);
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+// Categories, and the category a scene is published under: pills, because
+// they are chosen from a fixed list and never typed.
+// On the gallery's front page only: the Studio's publish dialog uses the same
+// pills, and a row rising inside a dialog that is itself arriving would move
+// twice.
+.gallery-gallery > .gallery-chips {
+  @include animate(rise-in, $motion-base, $ease-out, 80ms);
+}
+
+.gallery-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gallery-chip {
+  padding: 4px 11px;
+  color: $text-faint;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $white 3%, transparent);
+  font: inherit;
+  font-size: $text-small;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $secondary-default 48%, transparent);
+  }
+
+  &[aria-pressed='true'],
+  &[aria-checked='true'] {
+    color: $white;
+    border-color: color-mix(in srgb, $secondary-default 60%, transparent);
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+}
+
+// ---------------------------------------------------------------- grid
+
+// As many columns as fit at 196px or more. The cards size the rows; a lone
+// card in the last row keeps its width instead of stretching across it.
+//
+// No dimming while a list refreshes. Opening the tab refreshes every list the
+// window kept, and the grid used to drop to 72% for the length of that answer
+// and come back — a pulse through a page that had just finished arriving,
+// every time Plus was opened, over results that almost never change. The
+// list on screen is the one the member was last shown; it stays as it is, and
+// the answer replaces it when it lands (`galleryStore`).
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(196px, 1fr));
+  gap: $spacing-s;
+}
+
+.gallery-grid--row {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  @container plus (max-width: 720px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.gallery-card {
+  position: relative;
+  @include animate(
+    rise-in,
+    $motion-base,
+    $ease-out,
+    $gallery-card-lead + ($gallery-card-beats - 1) * $gallery-card-step
+  );
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  overflow: hidden;
+  // The Library's tile (`card-surface`): the picture over the card every pane
+  // is, its words on the card. It was an edge alone, the words on nothing,
+  // lifted by a drop shadow under the pointer (Ivan, 2026-09-27: "visualizers
+  // library cards as the music library card, I want that nice bg here too").
+  @include card-surface;
+  transition:
+    border-color $motion-fast $ease-out,
+    transform $motion-fast $ease-out;
+
+  &:hover {
+    border-color: color-mix(in srgb, $secondary-default 42%, transparent);
+    @include card-hover;
+  }
+
+  @for $beat from 1 through $gallery-card-beats {
+    &:nth-child(#{$gallery-page-size}n + #{$beat}) {
+      animation-delay: $gallery-card-lead + ($beat - 1) * $gallery-card-step;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
+}
+
+.gallery-card__thumb {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: -2px;
+  }
+}
+
+.gallery-card__tag {
+  position: absolute;
+  top: 7px;
+  left: 7px;
+  padding: 2px 8px;
+  color: $text-muted;
+  border: 1px solid rgba($white, 0.1);
+  border-radius: $radius-2xs;
+  background: rgba($black, 0.55);
+  font-size: $text-micro;
+  backdrop-filter: blur(6px);
+}
+
+.gallery-card__body {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 10px 10px;
+}
+
+.gallery-card__name,
+.gallery-card__by {
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  @include truncate;
+
+  &:focus-visible {
+    border-radius: 3px;
+    outline: 2px solid $secondary-light;
+    outline-offset: 1px;
+  }
+}
+
+.gallery-card__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+
+  &::after {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    content: '';
+  }
+
+  &:hover {
+    color: $secondary-light;
+  }
+}
+
+// The maker's name and, for FluidEQ's own, the Official tag after it. The name
+// gives way first: the tag is short and says the more useful thing.
+// A version that changed this week, on the picture's other corner from its
+// category: the one mark on a card that is news rather than a label.
+.gallery-card__new {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, $secondary-default 55%, transparent);
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $black 55%, transparent);
+  color: $secondary-default;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  backdrop-filter: blur(6px);
+}
+
+.gallery-card__version {
+  display: block;
+  min-width: 0;
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  @include truncate;
+}
+
+.gallery-card__version-yours::before {
+  content: '·';
+  margin-inline: 6px;
+}
+
+.gallery-card__byline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.gallery-card__by {
+  flex: 0 1 auto;
+  max-width: 100%;
+  color: $text-faint;
+  font-size: $text-small;
+
+  &:hover {
+    color: $text-primary;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+}
+
+.gallery-card__by--plain {
+  cursor: default;
+
+  &:hover {
+    color: $text-faint;
+    text-decoration: none;
+  }
+}
+
+.gallery-card__foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.gallery-card__adds {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  @include truncate;
+}
+
+.gallery-card__add {
+  flex: 0 0 auto;
+  display: grid;
+
+  > span {
+    grid-area: 1 / 1;
+  }
+
+  .gallery-card__remove-label {
+    visibility: hidden;
+  }
+
+  &.is-done:hover,
+  &.is-done:focus-visible {
+    .gallery-card__add-label {
+      visibility: hidden;
+    }
+    .gallery-card__remove-label {
+      visibility: visible;
+    }
+  }
+
+  &.is-done {
+    color: $active;
+    border-color: color-mix(in srgb, $active 38%, transparent);
+    background: color-mix(in srgb, $active 8%, transparent);
+    opacity: 1;
+  }
+}
+
+// The name's stretched target covers gaps; these controls retain their actions.
+.gallery-card__by:not(.gallery-card__by--plain),
+.gallery-card .gallery-like,
+.gallery-card__add {
+  position: relative;
+  z-index: 2;
+}
+
+// The box the placeholders and the cards share (`GalleryList`): the frame a
+// leaving placeholder grid is laid over the arriving cards in.
+.gallery-list-body {
+  position: relative;
+  min-width: 0;
+}
+
+// Placeholders fill the view to the scroller's foot (`GallerySkeleton` sets
+// the height); the last row is cut there, not scrolled to.
+.gallery-grid--skeleton {
+  overflow: hidden;
+  // All of them at once, in one fade. A sweep card by card read as a second
+  // animation before the cards' own sweep, and a loading page is one thing
+  // arriving, not a list.
+  @include animate(fade-in, $motion-slow, ease-out);
+
+  // Leaving, over the cards that replace them: out of the flow, so the cards
+  // take the same place at once, and faded rather than removed, so there is
+  // no empty frame between the two. It holds until the cards begin to rise
+  // (`$gallery-card-lead`) and fades while they do; fading from the first
+  // frame left a beat where neither was there. `useExitAnimation` removes it
+  // at the end.
+  &[data-closing] {
+    position: absolute;
+    inset: 0 0 auto;
+    pointer-events: none;
+    @include animate(
+      gallery-skeleton-out,
+      $motion-slow,
+      ease-in-out,
+      $gallery-card-lead,
+      forwards
+    );
+  }
+}
+
+@keyframes gallery-skeleton-out {
+  to {
+    opacity: 0;
+  }
+}
+
+// The cards inside the grid do not animate themselves: the grid fades in as
+// one (`.gallery-grid--skeleton`), and without this each placeholder would
+// also take the cards' reading-order sweep.
+.gallery-card--skeleton {
+  animation: none;
+  pointer-events: none;
+}
+
+.gallery-card__ghost-picture,
+.gallery-card__ghost-line {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 4%, transparent) 0%,
+    color-mix(in srgb, $white 9%, transparent) 50%,
+    color-mix(in srgb, $white 4%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  animation: gallery-shimmer 1.6s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.gallery-card__ghost-picture {
+  aspect-ratio: 16 / 9;
+}
+
+.gallery-card__ghost-line {
+  height: 9px;
+  margin: 10px 10px 0;
+  border-radius: $radius-pill;
+
+  &:last-child {
+    margin-bottom: 14px;
+  }
+}
+
+.gallery-card__ghost-line--short {
+  width: 45%;
+}
+
+@keyframes gallery-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+// A scene's picture: always the real scene. It shimmers while it comes —
+// published pictures arrive in a moment, frames drawn from the scene in turn
+// — and a scene nothing could be had for is a quiet tile, never a drawing
+// standing in for it.
+.gallery-picture {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: $surface-plot;
+}
+
+.gallery-picture--loading {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 3%, $surface-plot) 0%,
+    color-mix(in srgb, $white 8%, $surface-plot) 50%,
+    color-mix(in srgb, $white 3%, $surface-plot) 100%
+  );
+  background-size: 200% 100%;
+  animation: gallery-shimmer 1.6s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.gallery-picture__image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  @include animate(fade-in, $motion-base);
+}
+
+.gallery-picture__none {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: $text-dim;
+
+  svg {
+    width: 28px;
+    height: 28px;
+    opacity: 0.6;
+  }
+}
+
+// ---------------------------------------------------------------- like
+
+.gallery-like {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  min-height: 24px;
+  padding: 2px 9px;
+  color: $secondary-light;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover {
+    color: $white;
+    border-color: color-mix(in srgb, $analogous-1 55%, transparent);
+  }
+
+  &.is-on {
+    color: $white;
+    border-color: color-mix(in srgb, $analogous-1 70%, transparent);
+    background: color-mix(in srgb, $analogous-1 16%, transparent);
+
+    svg {
+      fill: $analogous-1;
+      stroke: $analogous-1;
+    }
+  }
+
+  &.is-count {
+    color: $text-faint;
+    cursor: default;
+
+    &:hover {
+      border-color: $border-field;
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.gallery-like--large {
+  min-height: $control-height-sm;
+  padding: 4px 12px;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// ---------------------------------------------------------------- lists
+
+.gallery-alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+  padding: 8px 10px 8px 12px;
+  color: $text-muted;
+  border: 1px solid color-mix(in srgb, $amber 40%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $amber 9%, transparent);
+  font-size: $text-small;
+
+  .button svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.gallery-empty {
+  margin: $spacing-l auto;
+  max-width: 380px;
+
+  .button {
+    margin-top: $spacing-s;
+  }
+
+  .community__empty-mark svg {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.gallery-more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-xs $spacing-s;
+  padding-top: $spacing-xs;
+}
+
+// Why the next page is not there, beside the button that asks again. Quiet:
+// the pages above it are fine, and this is not the gallery failing.
+.gallery-more__error {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  text-align: center;
+}
+
+// ---------------------------------------------------------------- scene

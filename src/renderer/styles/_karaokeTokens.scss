@@ -1,0 +1,69 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+$karaoke-warm: var(--karaoke-glow-warm);
+
+$karaoke-cool: var(--karaoke-glow-cool);
+
+// What stands over the stage's picture — the chord chip, the lyric size, the
+// playlist's pill, the count-in, the transport: the card colour laid over the
+// floor, opaque, so it reads on any artwork and is the same material as the
+// playlist beside it. Each of these was the block colour, a grey slab a step
+// lighter than every card, under a lit rim and a drop shadow (Ivan,
+// 2026-09-26: "karaoke fix all those suck ui and no drop shadow").
+$karaoke-chip-face: linear-gradient($surface-card 0 0), $surface-base;
+
+$karaoke-chip-hover: linear-gradient($hover-accent 0 0), $karaoke-chip-face;
+
+// The app's quiet face for a control (`.button.subtle`), and its hover, as
+// the Maker's controls wear them: the accent's faint fill. Slabs of the
+// block colour, a step lighter than every card, were the Maker's own face
+// for the same controls (Ivan, 2026-09-26: "review all panes").
+$maker-quiet: color-mix(in srgb, $secondary-default 7%, transparent);
+
+$maker-quiet-hover: color-mix(in srgb, $secondary-default 14%, transparent);
+
+// The Maker's own buttons, which it draws in its own face: not the app's
+// `.button` in a dialog frame laid over the Maker, nor the frames' ×
+// (`DialogClose`). At `.karaoke-maker button`'s weight the Maker outranked
+// `Button.scss` and `DialogFrame.scss`, and drew the loud answer of every
+// dialog in it as its quiet one, not bold, and the × as a boxed button. In
+// `:where`, so every rule written against this one still weighs what it did.
+$maker-own-button: 'button:not(:where(.dialog-frame .button, .compact-frame .button, .dialog-close))';
+
+// The plan, in the order it runs: a mark per step, joined by a thread that
+// lights as each step is done, the running one on the accent's tint. Rows of
+// a list, never a box each — a box round each step read as two more cards.
+$wizard-step-mark: 32px;
+
+$wizard-step-pad: 9px;
+
+$wizard-step-gap: 6px;
+
+// What the lyrics dialog writes in and lays its words on: a well, a step
+// DOWN from the dialog's floor, as a plot is on a page. It was the block
+// colour, a lighter slab laid in the dialog, and so was every word chip and
+// button on it (Ivan, 2026-09-26: "fix all modals", "review all panes").
+$lyrics-well: color-mix(in srgb, $surface-base 55%, transparent);

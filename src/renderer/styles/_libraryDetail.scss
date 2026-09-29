@@ -1,0 +1,710 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'libraryMetrics' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+.library-grid {
+  @include lifted-surface;
+  @include slim-scrollbar;
+  display: grid;
+  // Same floor and the same reason as `.library-list` — about one row of
+  // tiles.
+  min-height: 220px;
+  // `flex-basis: 0` for the reason `.library-list__body` gives at length: this
+  // reserves the height of every row of tiles it has not mounted, and from
+  // `auto` that reservation is its own content size — one narrow window and
+  // the grid grows to the height of the whole library.
+  flex: 1 1 0;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  align-content: start;
+  gap: $spacing-m;
+  padding: $spacing-m;
+  overflow-y: auto;
+}
+
+// A tile is a button in every way that matters, styled like `.voicing-card`
+// in Voicing.scss: the same inset surface, the same lift-and-glow on hover,
+// laid out as a card rather than the row `.library-list__row` draws.
+// Filled, where the grid round them keeps only its edge (Ivan, 2026-09-26:
+// "the grid card, not the bg").
+.library-grid__tile {
+  @include card-surface;
+  // No `content-visibility`, for the reason `.library-list__row` gives at
+  // length: `LibraryGridView` now mounts only the rows of tiles near the
+  // viewport, and a skipped tile measures as nothing, which is the one thing
+  // the window cannot have — it sizes the space it reserves from a real one.
+  display: grid;
+  min-width: 0;
+  gap: $spacing-xs;
+  padding: $spacing-s;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    @include card-hover;
+    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  // The tile the reader last opened, still marked when they come back out of
+  // it. A ring rather than the hover fill, for the reason
+  // `.library-list__row--selected` states: one filled tile sitting under a
+  // moving pointer would read as two things hovered at once.
+  &--selected {
+    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, $secondary-light 35%, transparent);
+    opacity: 1;
+  }
+
+  // Whatever the player is on, wherever it appears — the same answer
+  // `.library-list__row--playing` gives a row, in the only register a tile
+  // has for it. A tile carries no title cell to tint, so the glow does the
+  // work the row's coloured label does: enough to find across a screen of a
+  // hundred and eighty, not so much that it competes with selection, which
+  // is a ring and reads as an outline rather than a light.
+  &--playing {
+    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
+    box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 30%, transparent);
+    opacity: 1;
+
+    .library-grid__title {
+      color: $secondary-light;
+    }
+  }
+
+  // Same dimming, and the same reasoning, as `.library-list__row--offline` —
+  // shared by `LibraryVideoSection`'s tiles too, since both reuse this exact
+  // class rather than drawing their own.
+  &--offline {
+    opacity: 0.5;
+  }
+
+  // The pending badge describes metadata, not whether this tile can play.
+  &--pending {
+    opacity: 1;
+  }
+}
+
+// The art plus its corner badge, shared by a song tile here and by
+// `LibraryVideoSection`'s own tiles, which draw the same badge on the same
+// wrapper for the same reason: a grid tile has no title cell to carry a mark
+// inline the way `.library-list__badge` does in a row, so the one spot left
+// is the corner of the art itself.
+.library-grid__art {
+  position: relative;
+  display: block;
+}
+
+// Same shape, size and quiet colour as `.library-list__badge--pending`,
+// pinned to the corner the way `.library-video-section__unplayable` pins its
+// own mark — sized and ringed like `.karaoke-playlist__count`, tinted like
+// `.library-workspace__notice`'s status-coloured border.
+.library-grid__badge--pending {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $text-faint;
+  border: 1px solid rgba($edge-tint, 0.28);
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $surface-menu-top 96%, transparent);
+}
+
+// The tail of a paged grid: how many tiles are still below. Spans the whole
+// row rather than taking a cell of its own — a tile-shaped box with a number
+// in it would read as one more album named after a count.
+.library-grid__more {
+  padding: $spacing-m 0;
+  color: $text-faint;
+  font-size: $text-small;
+  grid-column: 1 / -1;
+  text-align: center;
+}
+
+.library-grid__title {
+  @include truncate;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+}
+
+.library-grid__subtitle {
+  @include truncate;
+  display: block;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+// *** The video section **************************************************
+//
+// Videos have no album tag to group by, so this groups by the folder they
+// live in instead: one heading per folder, `.library-grid__tile` reused
+// beneath it rather than a second tile recipe — the same cover-plus-title
+// card `LibraryGridView` draws for a song, just laid out under a folder
+// heading instead of a flat grid.
+
+.library-video-section {
+  @include lifted-surface;
+  @include slim-scrollbar;
+  display: flex;
+  min-height: 0;
+  // `flex-basis: 0` for the reason `.library-grid` gives at length: this
+  // reserves the height of every row it has not mounted, and from `auto` that
+  // reservation is its own content size — one narrow window and the shelf
+  // grows to the height of the whole collection.
+  flex: 1 1 0;
+  flex-direction: column;
+  // The gap between EVERY row, heading or tiles alike, because the shelf is
+  // now one flat list of rows rather than a folder per grid — `videoShelfRows`
+  // says why. A single uniform gap is what lets `videoShelfOffsets` reserve
+  // the right space for a row it is not drawing; the folder separation that
+  // used to come from a larger gap here is padding on the heading instead,
+  // where `offsetHeight` can see it.
+  gap: $spacing-m;
+  padding: $spacing-m;
+  overflow-y: auto;
+
+  // No folders to show a heading for — the same centred, single-message
+  // treatment `.library-empty` gives the library as a whole, minus its card
+  // and its "Add folder" button: a root already exists, so that is the
+  // wrong next step from in here.
+  &.is-empty {
+    display: grid;
+    place-items: center;
+  }
+}
+
+// The empty block standing in for rows that are not mounted.
+//
+// `flex-shrink: 0` is the whole point of it having a class at all. The shelf is
+// a flex column, and a flex item shrinks past its stated height unless told not
+// to — a real row survives that because `min-height: auto` floors it at its own
+// content, and a spacer has no content to be floored by. Without this it
+// collapses to nothing, the reserved height disappears and the scrollbar
+// describes a shelf far shorter than the one being scrolled.
+.library-video-section__spacer {
+  flex: 0 0 auto;
+}
+
+.library-video-section__empty {
+  max-width: 320px;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-body;
+  line-height: 1.55;
+  text-align: center;
+}
+
+// Same heading recipe as `.karaoke-playlist__heading h3`: uppercase, the
+// same size and letter-spacing, sat on the same faint rule.
+.library-video-section__folder-title {
+  margin: 0;
+  // Padding, never margin, and this is load-bearing: the shelf reserves space
+  // for headings it has not mounted from a measured `offsetHeight`, which
+  // includes padding and does not include margin. As a margin this separation
+  // would be invisible to the measurement and every folder would sit eight
+  // pixels out of step with the scrollbar.
+  padding-top: $spacing-s;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba($edge-tint, 0.09);
+  color: $text-primary;
+  font-size: $text-body;
+  @include tracking(0.04em);
+  text-transform: uppercase;
+}
+
+// Same `auto-fill` recipe as `.library-grid`: the column count is whatever
+// the panel's width allows, never chosen up front.
+.library-video-section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: $spacing-m;
+}
+
+.library-video-section__art {
+  position: relative;
+  display: block;
+}
+
+// A grid tile has no title cell to carry the "cannot play" mark inline the
+// way `.library-list__badge` does in a row (`LibraryListView`) — same icon
+// and the same red, pinned to the corner of the art instead, since that is
+// the one spot a tile has. Sized and ringed like `.karaoke-playlist__count`;
+// tinted like `.library-workspace__notice`'s own status-coloured border.
+.library-video-section__unplayable {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $red;
+  border: 1px solid rgba($red, 0.28);
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $surface-menu-top 96%, transparent);
+}
+
+// Same size, shape and quiet colour as `.library-grid__badge--pending`, but
+// pinned to the opposite corner: an unreadable container is knowable from its
+// extension alone, so a video can be both unplayable and still pending at
+// once, and the two marks must never sit on top of each other.
+.library-video-section__pending {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $text-faint;
+  border: 1px solid rgba($edge-tint, 0.28);
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $surface-menu-top 96%, transparent);
+}
+
+// *** The drill-in *****************************************************
+//
+// Opened from a grid tile or a list row: a header for the one album or
+// artist, then its songs — `LibraryListView` in `browseMode="song"` rather
+// than a second table, so playability badges, the metadata-error badge,
+// keyboard rows and the reveal menu all keep working here too.
+
+.library-detail {
+  display: flex;
+  // The 160px cover, its titles and the Play button come to about 230 before
+  // a single track is listed; this leaves room for the table under them
+  // rather than letting the header eat the whole drill-in.
+  min-height: 420px;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-m;
+  overflow: hidden;
+}
+
+// The Library's one Back, on the place bar over every view
+// (`LibraryPlaceBar`). Named for the drill-in it was first drawn on.
+.library-detail__back {
+  flex: 0 0 auto;
+
+  // Same back-chevron recipe as `.video-browser__nav-button` in
+  // VideoBrowser.scss, at 13 rather than 14: the chip's box is a 13px line
+  // over 4px of padding, and a 14px glyph made this one chip a pixel taller
+  // than the twelve above it.
+  //
+  // The stroke is the part that was wrong. At 1.7 the chevron was lighter than
+  // the word beside it and lighter than the 1px border around both, so the one
+  // control on the row that means "leave" read as the faintest thing on it. At
+  // 2 it carries the same weight as the label, and the box is untouched — the
+  // chip is still the height of the twelve above it.
+  svg {
+    width: 13px;
+    height: 13px;
+    flex: 0 0 auto;
+    // Optical, not geometric: the chevron points left and its ink stops short
+    // of the viewBox on that side, which left more air between glyph and
+    // border than between glyph and word. The numbers were already equal.
+    margin-left: -1px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+    transition: translate 140ms $ease-out;
+  }
+
+  // It moves the way it points. The chips beside it are filters and stay put;
+  // this one leaves the screen, and the nudge is that difference said without
+  // a word.
+  &:hover:not(:disabled) svg {
+    translate: -1px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-detail__back svg {
+    transition: none;
+    translate: none;
+  }
+}
+
+.library-detail__header {
+  // The cover and the titles read left to right; the filter is the third
+  // item, pushed to the far right and dropped to the sleeve's foot.
+  //
+  // Above the rows, so the filter's recent-searches list hangs over the table
+  // rather than behind it. Same note `.library-toolbar-row` carries — and it
+  // has to live here now rather than on `__top`, which is the row the field
+  // used to be in.
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: $spacing-l;
+  // A card of its own, the listing's under it (`.library-list`), so the
+  // page's top stands on one as its songs do (Ivan, 2026-09-27: "in the lib
+  // add wrapper card to the top too"). The cover sits in its padding the way
+  // the rows sit in the listing's.
+  padding: 12px;
+  @include card-surface;
+}
+
+// A laptop's height (`$bp-laptop-height`): the cover at the size of the
+// sleeves in the Cover Flow strip above it, 112 rather than 160. The titles
+// and the buttons beside it are shorter than that, so the whole header comes
+// down with it, and its 48px are the fourth song on a 1440x852 window, a Mac's
+// view of the PC at 200% (Ivan, 2026-09-23).
+@media (max-height: $bp-laptop-height) {
+  .library-detail__header {
+    > .library-cover-art--cover,
+    > .library-folder-art--cover {
+      // The lettering on a folder's sheet is sized off this.
+      --cover-flow-size: 112px;
+      width: 112px;
+      height: 112px;
+    }
+
+    > .library-cover-art--cover .library-cover-art__tile {
+      font-size: 1.7rem;
+    }
+  }
+}
+
+.library-detail__info {
+  display: grid;
+  min-width: 0;
+  // Takes the room the cover and the filter leave rather than sizing to its
+  // own text: the title is the longest thing on this line and was the one
+  // being cut, and a column that only asks for what fits gives it away to
+  // the whitespace beside it.
+  flex: 1 1 auto;
+  align-content: start;
+  gap: $spacing-xxs;
+}
+
+// Filters this album, folder or artist and nothing else — see the comment in
+// `LibraryDetail` on why the toolbar's own box is withheld here entirely.
+//
+// An `auto` cross-axis margin beats `align-items` and eats the line's spare
+// height, which is what drops the field to the foot of the line rather than
+// the top the other two items are aligned to. The sleeve is the tallest thing
+// on that line — a fixed square against a title, a subtitle, a count and a
+// button row — so the line's foot is the cover's foot.
+.library-detail__search {
+  position: relative;
+  width: clamp(160px, 30%, 340px);
+  // `auto` on both, so it bottoms out and stays at the right-hand edge.
+  margin-top: auto;
+  margin-left: auto;
+}
+
+// Sizing copied from `.karaoke-workspace__header h2` in Karaoke.scss.
+//
+// Two lines before it gives up, not one. A single nowrap line cut "No Strings
+// Attached" down to "No Strings Attac…" the moment the queue panel took the
+// width — and the name of the record you are looking at is the one string on
+// this screen that has to survive. Still clamped rather than unbounded: the
+// header is a fixed row above a table, and a title free to grow to four lines
+// pushes that table down the page.
+.library-detail__title {
+  display: -webkit-box;
+  overflow: hidden;
+  min-width: 0;
+  margin: 0;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: $text-primary;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  line-height: 1.2;
+}
+
+.library-detail__subtitle {
+  @include truncate;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-lead;
+}
+
+.library-detail__counts {
+  margin: 0 0 $spacing-s;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+// Emphasis follows recommendation: this is the drill-in's one filled
+// button, sized like every other `.library-toolbar__action-icon`.
+.library-detail__play-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+// Play, and — for a playlist — Rename and Delete beside it. Wrapping rather
+// than scrolling: the delete confirmation below is a sentence and two
+// buttons, and a narrow pane has to be allowed to put it on its own line.
+.library-detail__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+// The header's "more" button: square, so three dots do not sit in a pill the
+// width of a word. It borrows `button small subtle`'s outline and colours —
+// only the shape is its own.
+.library-detail__more {
+  display: grid;
+  width: 28px;
+  min-width: 0;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    fill: currentcolor;
+  }
+}
+
+// The name, edited where the name is. Sized to the title it replaces so the
+// header does not jump when the field opens.
+.library-detail__rename {
+  display: flex;
+  align-items: center;
+  max-width: 460px;
+  margin-bottom: $spacing-xxs;
+  gap: $spacing-xs;
+
+  .text-input {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+}
+
+// Two steps, no modal: the question opens under the buttons on the small
+// frame every question in the app uses (`CompactFrame`), its red tile saying
+// it deletes. The frame owns the layout; this only places it.
+.compact-frame.library-detail__confirm {
+  width: min(460px, 100%);
+  margin-top: $spacing-xs;
+}
+
+// A playlist with nothing in it yet, and how to fill it. Centred and quiet:
+// it is a new thing, not a broken one.
+.library-detail__empty {
+  display: grid;
+  padding: $spacing-xl $spacing-m;
+  color: $text-muted;
+  font-size: $text-lead;
+  text-align: center;
+  gap: $spacing-xxs;
+  justify-items: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+.library-detail__empty-hint {
+  color: $text-faint;
+  font-size: $text-body;
+}
+
+// *** Navigating between views *************************************************
+//
+// A grid, a list and a drill-in replace each other in the same box, so without
+// this the content simply blinks from one to the next. The entrance is short
+// and small on purpose: this fires on every browse-mode click and every album
+// opened, and anything longer turns ordinary navigation into waiting.
+
+@keyframes library-view-in {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// The list and the grid are deliberately absent: their rows and tiles cascade
+// in themselves, and animating the container as well would move everything
+// once and then move each child again over the top of it — two entrances for
+// one arrival, which reads as a stutter rather than as polish.
+.library-detail,
+.library-video-section,
+.library-coverflow {
+  animation: library-view-in $motion-base $ease-out;
+}
+
+// The drill-in comes from further out than a sibling view does: it is a
+// descent into something, not a swap between peers.
+@keyframes library-detail-in {
+  from {
+    transform: translateY(14px) scale(0.99);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.library-detail {
+  animation: library-detail-in $motion-slow $ease-out;
+}
+
+// Layout is kept; only the movement goes. Matches the convention in
+// SidebarSection.scss and VideoBrowser.scss.
+@media (prefers-reduced-motion: reduce) {
+  .library-list,
+  .library-grid,
+  .library-detail,
+  .library-video-section,
+  .library-coverflow,
+  .library-scan-progress {
+    animation: none;
+  }
+
+  .library-list__art-play-glyph {
+    transition: none;
+  }
+}
+
+// Files that share a folder with the open album but are not part of it — a
+// bonus disc, a stray single, a live take tagged differently. Kept visibly
+// apart rather than merged in, since merging them would be a different lie
+// from hiding them.
+
+// A folder's name over the run of rows that came from it, when the list is
+// asked to group that way. Quiet: it is a label on the rows, not a control.
+// The same height as a row, because to the window above it *is* a row — see
+// `$library-row-height`. It reads as a heading through weight and colour
+// rather than through taking more room than its neighbours.
+.library-list__folder-heading {
+  display: flex;
+  height: $library-row-height;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 0 $spacing-s;
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  svg {
+    flex: 0 0 auto;
+  }
+}
+
+// The tag on a row that shares the open album's folder without being part of
+// the album. Same quiet treatment as the pending badge — information, not a
+// problem.
+.library-list__badge--folder {
+  color: rgba($neon-yellow, 0.85);
+}
+
+// In this folder, not on this record.
+//
+// The badge beside the title has always said so, and one glyph among fifteen
+// rows is something a reader finds after wondering why the count looks wrong.
+// A colour on the title separates the two groups before anything is read —
+// and the badge, kept, is what names the difference once they look.
+//
+// A warm one, and not the app's cyan: cyan is what a row uses to say "this is
+// playing", and a second cyan meaning "this is a different sort of row" would
+// be two answers in one colour. Not a red or a pink either — those read as
+// something being wrong, and there is nothing wrong with a file sitting in a
+// folder. The title alone carries it; the artist and the length stay as they
+// are, because the row is not disabled and dimming it would say it was.
+.library-list__row--folder-only .library-list__title-label {
+  color: rgba($neon-yellow, 0.85);
+}
+
+// The tail of a list that has more to show. Not a spinner: nothing is being
+// fetched — the rows are already in memory and the next page mounts as the
+// scroll reaches here. It says how many are left, which is the only thing
+// the reader actually wants to know at the bottom of a long list.
+.library-list__more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-m 0 $spacing-l;
+  color: $text-faint;
+  font-size: $text-small;
+  @include tracking(0.04em);
+}
+
+.library-list__row,
+.library-grid__tile {
+  // No `will-change`: it would leave every row and every tile on a compositor
+  // layer of its own for as long as the list is open — a hundred and eighty
+  // layers, each one's text dropped to grey-scale antialiasing. See the note in
+  // `_motion.scss`; the entrance is promoted for its own duration regardless.
+  animation: rise-in $motion-fast $ease-out backwards;
+
+  @for $i from 1 through $library-wave-span {
+    &:nth-child(#{$i}) {
+      animation-delay: ($i - 1) * $library-wave-step;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-list__row,
+  .library-grid__tile {
+    animation: none;
+  }
+}
+
+// *** The search capsule *******************************************************
+//
+// The Media tab's own field, reused rather than redrawn — see
+// `.video-search__field` in VideoBrowser.scss for the reasoning behind the
+// capsule radius and the focus treatment. Kept under this file's own class
+// names so the two can diverge later without one silently restyling the
+// other.

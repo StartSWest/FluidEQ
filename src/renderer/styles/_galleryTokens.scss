@@ -1,0 +1,40 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The cards sweep in after the toolbar and the categories, in reading order,
+// the way the EQ's bands do — they used to rise all at once, one slab of
+// pictures.
+//
+// Counted within a page of results rather than down the whole list, so the
+// page "More" brings sweeps in from its own first card instead of every new
+// card waiting out the tail of a cascade that finished long ago — the list
+// grows sixty at a time (`GALLERY_PAGE_SIZE` in `common/plusGallery.ts`). The
+// sweep stops growing at two dozen, about what one screen of the grid holds,
+// and a card past that lands on the last beat rather than ahead of the cards
+// above it.
+$gallery-page-size: 60;
+
+$gallery-card-beats: 24;
+
+$gallery-card-step: 16ms;
+
+$gallery-card-lead: 120ms;
+
+// How long a scene may take before anything is said about it. A scene already
+// on the computer draws in a couple of hundred milliseconds, so nothing under
+// this ever puts a ring on screen.
+$wait-hold: 500ms;
+
+// How long the wait takes to leave once the scene draws.
+$wait-fade: 520ms;

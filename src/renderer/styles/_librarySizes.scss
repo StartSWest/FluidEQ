@@ -1,0 +1,169 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'libraryMetrics' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'libraryTokens' as *;
+
+// Rung one, and 1206 is what is left: the folder controls are four actions
+// that each already carry a glyph, so they lose least. Their tooltips carry
+// the words.
+@container library-bar (max-width: 1420px) {
+  .library-toolbar__actions .library-toolbar__chip > span:not([class]) {
+    display: none;
+  }
+
+  .library-toolbar__actions .library-toolbar__chip {
+    padding-inline: 8px;
+  }
+}
+
+// Rung two, leaving 1064. The shelf chips are the tab's navigation and what a
+// reader looks for by name, so they go after everything else has.
+@container library-bar (max-width: 1200px) {
+  .library-toolbar__browse-modes .library-toolbar__chip > span {
+    display: none;
+  }
+
+  .library-toolbar__browse-modes .library-toolbar__chip {
+    padding-inline: 9px;
+  }
+}
+
+// Tighter chips once the words are off them: 9px of padding either side of a
+// glyph, rather than the room a word needed.
+@container library-bar (max-width: 850px) {
+  .library-toolbar__browse-modes .library-toolbar__chip {
+    font-size: $text-small;
+  }
+}
+
+// PAST THE POINT WHERE A TOP RIGHT MEANS ANYTHING.
+//
+// The row is `nowrap` so the right-hand cluster cannot be separated from the
+// top line — which is right down to about 560px, and wrong below it. The
+// cluster does not shrink, so at 300% zoom (a 720px window is ~240px of CSS
+// width there) it took what it needed and left the bar beside it under 90px:
+// the shelf glyphs came out one per line, and the three view glyphs stacked
+// into a column. Nine rows of chrome over a list.
+//
+// Let go, and the cluster takes a line of its own with the bar above it at
+// full width. Still the right-hand end of that line — `margin-left: auto`
+// keeps it there — so it is the same cluster in the same corner, one row down.
+@container library-bar (max-width: 560px) {
+  .library-toolbar-row {
+    flex-wrap: wrap;
+  }
+
+  .library-toolbar__tail {
+    margin-left: auto;
+  }
+
+  // The search has nothing left to share a line with; full width is both what
+  // is left and what it wants.
+  .library-toolbar__search {
+    max-width: none;
+    flex: 1 1 100%;
+  }
+}
+
+// *** The queue, floated *******************************************************
+//
+// Narrower than this the strip stops being affordable: 273px of queue out of a
+// 780px card leaves the shelf 500, and a track list at 500px has lost its Album
+// column and most of Artist. So the panel stops taking a strip and starts
+// standing over the shelf — a drawer, the way a narrow window does it
+// everywhere else — and the shelf keeps its full width underneath.
+//
+// It is already absolutely placed, so this is only two things: stop reserving
+// the strip, and say plainly that it is above rather than beside. The shadow is
+// what does the saying; without it a panel with the same surface as the card
+// under it reads as part of that card.
+// Driven by a class rather than a container query, and `LibraryWorkspace` says
+// why: a press outside the drawer puts it away, and a listener cannot read a
+// container query. The width test lives in one place and this follows it.
+.library-workspace.has-up-next-floating {
+  // The shelf takes the whole card back. Nothing is reserved, because nothing
+  // stands beside the queue any more — it stands over it.
+  &.has-up-next > *:not(.library-up-next):not(.library-up-next__splitter) {
+    margin-right: 0;
+  }
+
+  .library-up-next {
+    // IT COVERS THE LIST. IT DOES NOT COVER THE CONTROLS — which the shared
+    // `top` above already arranges; all this state adds is being drawn over
+    // what it now overlaps rather than beside.
+    //
+    // No `backdrop-filter` and nothing to see through: the panel is opaque in
+    // both states (see the base rule), so a drawer over the shelf is a surface
+    // in front of it rather than a frosted pane with rows swimming underneath.
+    // The shadow is what says it is in front — that is the whole job, and it
+    // does it without costing a full-size blur every frame the list scrolls.
+    z-index: 6;
+    box-shadow:
+      0 18px 44px rgba($black, 0.55),
+      0 0 0 1px color-mix(in srgb, $secondary-light 16%, transparent);
+  }
+
+  // Dragging the edge of something floating over the list has nothing to
+  // resize: the shelf below it is already full width, so the splitter would
+  // only move the drawer's own edge. Folded away with the strip it belonged to.
+  .library-up-next__splitter {
+    display: none;
+  }
+}
+
+// The track number the record was pressed with. Quiet, and a fixed width so a
+// column of them reads as a column rather than pushing every title to a
+// different left edge.
+.library-list__track-no {
+  min-width: 18px;
+  flex: 0 0 auto;
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+// Why this panel is on screen.
+//
+// A compilation that came up because two of its five hundred songs are by the
+// band searched for is still a compilation: the whole record is drawn, those
+// two are lifted to the head of the table, and the accent is what separates
+// the group that was asked for from the group that merely came with it. No
+// heading — the change of colour is the heading.
+//
+// The app's cyan, deliberately, because this is the same "you are looking for
+// this" the search box itself wears; the folder-only rows take the warm
+// yellow, and the two never appear on the same row for the same reason.
+// The title alone. A tint across the whole row competes with the mark that
+// says which row is PLAYING and with the one that says which is selected —
+// three washes in one table and none of them reads. The word is enough.
+.library-list__row--matched .library-list__title-label {
+  color: $secondary-light;
+}
+
+// The count of those matches, in the header beside the total.
+.library-detail__matched {
+  color: $secondary-light;
+  font-variant-numeric: tabular-nums;
+}

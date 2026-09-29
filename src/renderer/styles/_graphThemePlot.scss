@@ -1,0 +1,389 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The live trace, and the drawing it sits behind.
+//
+// Two layers over the same box: a canvas carrying the wave, and the chart's SVG
+// carrying the paper it is read against — the grid, the axes, the EQ curves and
+// the band handles. The canvas is placed by the chart, which knows the margins;
+// all this decides is which of the two is in front, and it has to say so
+// explicitly because a positioned element otherwise paints over a sibling that
+// is not positioned, whatever the document order.
+//
+// The SVG wins. The trace used to be drawn over the grid and under the handles,
+// which no single layer can be, and of the two the handles matter more: they
+// are controls, and a control that vanishes under a moving drawing is worse
+// than a hairline crossing a wave.
+//
+// `pointer-events: none` because every gesture on this pane — dragging a band,
+// the marquee, the click that cycles the chrome — is hit-tested against the SVG
+// underneath, and a canvas over the top would swallow all of them.
+//
+// Nothing here says anything about how the trace is painted. The opacity, the
+// weight, the glow and the euphoria colours are all decided in the frame loop
+// now; a canvas has no cascade, so the rules that used to live in a stylesheet
+// live in `liveTracePaint` instead.
+.graph-plot > svg {
+  position: relative;
+  z-index: 1;
+}
+
+// The halo under the EQ curve is cyan at rest, like the curve it belongs to.
+//
+// It was stroked with the spectrum all the time, so a plain cyan line sat in a
+// rainbow bloom — the one part of the graph still insisting on colour after the
+// line, the handles and the sliders had all settled on the app's own. The
+// spectrum comes back with euphoria, which is where it earns its keep.
+//
+// A rule beats the presentation attribute the component sets, so nothing here
+// needs `!important` and the component stays unaware of the mode.
+.chart-curve__glow {
+  stroke: $secondary-default;
+}
+
+.is-euphoric .chart-curve__glow {
+  stroke: var(--curve-gradient);
+}
+
+.chart-live-canvas {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+// A premium scene fills the card behind the toolbar and all four SVG gutters.
+// The plot clips it to the card's rounded corners. The two canvases are never
+// mounted together. No euphoria keyframe here on purpose: that
+// animation exists to tick `--euphoria-hue` for the 2D painter to read, and a
+// scene is handed the accent as a uniform instead, so the two cannot disagree.
+.chart-scene-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+// The scene's panel on the plot (`SceneCanvas`): nothing drawn, only a box to
+// measure — where the scene is framed and the pointer read, wherever the
+// scene is drawn.
+.chart-scene-panel {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+// A Plus scene on its way (`SceneLoading.tsx`): its own sky colour where it
+// is about to be, then out of the way once it has faded in over it. Black for
+// a scene whose colour has not been measured, because that is what every
+// scene is drawn against. Under the canvas and the chart's drawing both, so
+// the grid and the curves stay readable over it.
+.chart-scene-backdrop,
+.chart-scene-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+// Arrives at once and leaves slowly. Switching from one scene to the next
+// removes the old scene's canvas the moment the new one starts, and a
+// backdrop that faded in over that moment let the chart's own lighter card
+// show through it: a flash between every two visualizers.
+// The app's floor, never black and never the scene's dark ground: a scene
+// arrives on the window it is part of (`SceneLoading`).
+.chart-scene-backdrop {
+  background: $surface-base;
+
+  // After the scene's own fade-in, never before it: the scene takes a quarter
+  // second to reach full strength, and the colour behind it has to be the
+  // scene's own for all of that time.
+  &.is-settled {
+    opacity: 0;
+    transition: opacity $motion-slow $ease-out $motion-slow;
+  }
+}
+
+.chart-scene-loading {
+  display: grid;
+  place-items: center;
+  animation: fade-in $motion-base $ease-out both;
+}
+
+.chart-scene-loading__status {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+// The Studio stage's loading ring, lit in a light shade of the scene's own
+// colour rather than the app's accent, around the scene's picker icon.
+.chart-scene-loading__ring {
+  @include loading-ring(var(--scene-ring, #{$secondary-light}), 46px);
+}
+
+.chart-scene-loading__icon {
+  width: 20px;
+  height: 20px;
+}
+
+.chart-scene-loading__label {
+  color: $text-faint;
+  font-size: $text-small;
+  @include tracking(0.02em);
+}
+
+// *** Output level meter *****************************************************
+//
+// How loud the output actually is, in real decibels below full scale, down the
+// right-hand edge of the plot.
+//
+// It is NOT the chart's decibel axis in a narrow strip, and the two must not be
+// read as one scale. The trace is referenced to the record's own recent peak so
+// the volume knob cannot flatten it; this is referenced to digital full scale,
+// which is the only reference that can answer "is this about to clip". They
+// share an edge and nothing else — see `outputLevel.ts`.
+//
+// Over the drawing rather than beside it. The plot already keeps thirty pixels
+// of air on its right, so with the grid on this lands in that gutter and costs
+// the frequency axis nothing; with the grid off there is no gutter and it lays
+// over the last of the treble, which is the right trade in a mode that has
+// stopped being a measurement.
+//
+// `pointer-events: none` on the whole strip, and not negotiable: every gesture
+// on this pane — the marquee, the double click that fills the screen, the click
+// that puts the chrome away — is hit-tested against the SVG underneath, and an
+// overlay that took the pointer would swallow all of them near the right edge.
+// The button wrapper that lets the pane cycle styles on click, and the
+// canvas inside it that carries all ten styles. Kept as a clean box —
+// no border, no background — so the drawing is the meter and nothing
+// around it competes with the reading. Fixed at a meter-shaped
+// proportion rather than flex-growing to the whole card: a five-hundred
+// pixel tall column made the pulse orb float alone in the middle of a
+// strip that looked broken, and no ten-styles-worth of clever shapes
+// would have read well at that height.
+.output-meter {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 96px;
+  padding: 0;
+  margin-block-start: 18px;
+  flex: 1 1 auto;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  appearance: none;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.output-meter__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.output-meter__off {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 3px;
+  left: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  @include tracking(0.14em);
+  text-align: center;
+  pointer-events: none;
+}
+
+// The announcement pill is now painted on the canvas rather than
+// carried as a DOM overlay — see `OutputLevelMeter.tsx`, where the
+// draw loop reads the announce timestamp from a ref and paints a
+// small rounded pill in the bottom-right of the meter.
+
+// The old DOM-based rules (`__channel`, `__name`, `__track`, `__fill`,
+// `__peak`) are gone — the meter now draws itself on a canvas, and the
+// zone background, the fill and the peak marker are all painted there.
+// See `OutputLevelMeter.tsx` and its `drawChannel` for the ten shapes
+// the pane cycles through.
+
+// Nothing listening: remove the signal colour, but keep the style name
+// readable because this button can still switch the meter's appearance.
+.output-meter.is-idle {
+  filter: saturate(0.4);
+}
+
+// A look the user made, marked wherever its name appears.
+//
+// The picker holds two kinds of thing that are otherwise indistinguishable —
+// the ones that ship and however many somebody has built — and only one kind
+// can be edited or deleted. A dot rather than a word or a section header
+// because the name is the part that has to stay readable, and this rule reaches
+// both the closed trigger and every row of the open list.
+.graph-look-name--custom::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-inline-end: 6px;
+  border-radius: 50%;
+  background: $active;
+  vertical-align: middle;
+}
+
+// A premium scene's row carries the tier's name as a small pill after the
+// name, rather than a dot before it: the dot already means "yours", and this
+// means "paid for", which is a different fact. The pill is the accent at low
+// opacity so it reads as a tag on the row, not a second button in it. It has
+// to stay small enough that the longest scene name in the longest language
+// still fits the closed trigger without pushing the pill out of the box.
+.graph-look-badge {
+  flex: 0 0 auto;
+  margin-inline-start: 6px;
+  padding: 0 6px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 45%, transparent);
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.08em);
+  line-height: 1.6;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+// A Plus look the account cannot draw yet: the tag carries a lock in front of
+// the word (`LookPicker.tsx` quiets the name a step beside it).
+.graph-look-badge--locked {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.graph-look-badge__lock {
+  width: 7px;
+  height: 8px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+
+  rect {
+    fill: currentColor;
+    stroke: none;
+  }
+}
+
+// Hide everything but the live trace.
+//
+// A real button rather than more plain text: unlike the picker beside it this
+// one has a state, and a state needs somewhere to show — so it takes a border
+// when it is off and fills in when it is on, and the label says what pressing
+// it will do rather than what is currently true.
+.graph-solo,
+// The style picker's trigger wears the same pill, and shares the rule rather
+// than restating it. Two near-identical blocks are how the two ended up
+// different heights: one had `height`, the other took its height from padding
+// and a line box, so they agreed at one font size and drifted at every other.
+// One declaration, one shape.
+.graph-legend--picker .look-picker__trigger {
+  display: inline-flex;
+  // As tall as the strip's buttons, and on their face, edge and ink, the
+  // preset picker's (`$surface-control`, `$border-control`): the select was a
+  // 22px outline with nothing in it beside 28px buttons (Ivan, 2026-09-27:
+  // "make select taller as the buttons", "lets all be same as preset").
+  height: $graph-strip-button;
+  box-sizing: border-box;
+  align-items: center;
+  padding-block: 0;
+  padding-inline: 9px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  color: $secondary-light;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  gap: 5px;
+  @include tracking(0.03em);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
+    color: $white;
+  }
+
+  // On, in white, on the same face and edge: a lit edge and a second tint
+  // made it the one differently coloured box in the row.
+  &.is-on {
+    color: $white;
+  }
+}
+
+// The heart on a member's scene, in the design button's pill (see
+// SceneLikeButton). Lit in the pink the likes wear on the leaderboard, so a
+// like reads as the same thing in both places. Qualified by the strip because
+// its `button` rule, hover included, outranks a lone class.
+.live-output-controls .graph-like {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-variant-numeric: tabular-nums;
+
+  .graph-like__heart {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+  }
+
+  &.is-on,
+  &.is-on:hover:not(:disabled) {
+    border-color: color-mix(in srgb, $analogous-1 70%, transparent);
+    background: color-mix(in srgb, $analogous-1 16%, transparent);
+    color: $white;
+
+    .graph-like__heart {
+      fill: $analogous-1;
+      stroke: $analogous-1;
+    }
+  }
+
+  // The member's own scene: its count, not a button to press. Disabled so it
+  // cannot be, and not dimmed, because nothing about it is unavailable.
+  &.is-count:disabled {
+    cursor: default;
+    opacity: 1;
+  }
+}
+
+// *** The two sizes ***********************************************************
+//
+// Expanded gives the graph the workspace column. Full screen gives it the
+// screen: the window goes fullscreen in the main process, and everything that
+// is not the player and the graph gets out of the way here.
+//
+// They share the card rules below — `is-graph-full` is set for both — because
+// the difference between them is what surrounds the card, not the card.

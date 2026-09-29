@@ -1,0 +1,65 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'libraryMetrics' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Rows and tiles rise in a wave, wherever in the list the reader happens to
+// be standing.
+//
+// This was `stagger-in`, a cascade keyed on `nth-child(1..10)`. That is right
+// for a fixed set of siblings all on screen at once and wrong for a list that
+// pages: only the first ten children carried a delay, so the wave played at
+// the top of the list — off screen for anyone who had scrolled — and every
+// row past the tenth arrived flat and simultaneous. A hundred rows appearing
+// together with no motion between them is the "not smooth" this was meant to
+// fix in the first place.
+//
+// `view()` was tried in between and is worse here for the opposite reason:
+// scroll-driven means rows already on screen have already finished, so
+// arriving at a list showed no motion at all.
+//
+// One sweep, running the whole length of the list rather than restarting.
+//
+// A repeating `nth-child(12n + i)` pattern was tried in between and was worse
+// than either: the wave began again every twelfth row, so a screenful read as
+// three or four separate blocks arriving independently — one list animating
+// as several. The delays therefore rise monotonically across a full page and
+// then stop, which is a single front travelling down the list. Whatever slice
+// of it the reader happens to be looking at shows adjacent rows a few
+// milliseconds apart, which is the effect at any scroll offset — no
+// measuring, no JavaScript, no seam.
+//
+// `$SPAN` covers a page of either view (`PAGE_SIZE` is 100 rows, 180 tiles),
+// so no item falls off the end of the ramp onto a flat delay. 4ms a step
+// keeps the whole front under a second.
+//
+// React keys rows by track id, so this plays when the list becomes a
+// different list and leaves existing rows alone when a scan merely adds more
+// behind them. Without stable keys a scan batch would restart the sweep
+// several times a second.
+//
+// Opacity and translate only, so the compositor runs it without asking the
+// main thread for a frame.
+$library-wave-span: 180;
+
+$library-wave-step: 4ms;

@@ -1,0 +1,817 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+.karaoke-maker__capture-coach {
+  position: absolute;
+  z-index: 140;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: min(840px, calc(100% - 28px));
+  min-width: 0;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px 14px;
+  box-sizing: border-box;
+  padding: 16px 16px 12px;
+  color: $text-primary;
+  // The dialogs' material (`dialog.surface-look`), a card floating over the
+  // editor like any other: a cyan and a pink wash under a bright accent rim
+  // made the Maker's two floating panels a family of their own (Ivan,
+  // 2026-09-26: "all panes", "fix all modals").
+  @include dialog.surface-look;
+  box-shadow:
+    0 20px 54px rgba($black, 0.54),
+    inset 0 1px rgba($white, 0.05);
+  will-change: transform;
+
+  &.is-end {
+    border-color: rgba($amber, 0.5);
+  }
+
+  &.is-countdown {
+    width: min(320px, calc(100% - 28px));
+    min-height: 142px;
+    grid-template-columns: 1fr;
+    place-items: center;
+    padding: 22px;
+  }
+}
+
+.karaoke-maker__capture-drag {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  display: flex;
+  width: 66px;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0;
+  // The panel's own floor and edge, so the handle reads as part of it.
+  color: $text-muted;
+  background: $surface-menu-floor;
+  border: 1px solid color-mix(in srgb, $edge-tint 14%, transparent);
+  border-radius: $radius-pill;
+  box-shadow: 0 7px 16px rgba($black, 0.35);
+  transform: translateX(-50%);
+  cursor: grab;
+  touch-action: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    background:
+      linear-gradient(
+        color-mix(in srgb, $secondary-default 14%, transparent) 0 0
+      ),
+      $surface-menu-floor;
+    border-color: $border-field-hover;
+    box-shadow: 0 8px 20px rgba($black, 0.4);
+  }
+
+  > span {
+    width: 4px;
+    height: 4px;
+    background: currentColor;
+    border-radius: 50%;
+  }
+}
+
+.karaoke-maker__capture-coach-close {
+  position: absolute;
+  z-index: 2;
+  top: 9px;
+  right: 9px;
+  display: grid;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px !important;
+  place-items: center;
+  padding: 0 !important;
+  // Every dialog's close (`.dialog-close`). Red on hover said
+  // "delete" for a button that only puts the panel away.
+  color: $text-muted;
+  background: $surface-plot;
+  border-color: rgba($edge-tint, 0.08);
+  border-radius: $radius-s;
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+    background: color-mix(in srgb, $secondary-default 16%, transparent);
+    border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.karaoke-maker__selection-coach {
+  position: absolute;
+  z-index: 135;
+  top: 0;
+  left: 0;
+  display: grid;
+  width: min(980px, calc(100% - 28px));
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 25px 48px 15px 18px;
+  color: $text-primary;
+  // The dialogs' material, as the capture panel above.
+  @include dialog.surface-look;
+  box-shadow:
+    0 20px 54px rgba($black, 0.54),
+    inset 0 1px rgba($white, 0.05);
+  will-change: transform;
+
+  &.is-word-selection {
+    width: min(760px, calc(100% - 28px));
+    padding: 29px 44px 14px 16px;
+  }
+}
+
+.karaoke-maker__selection-coach-content {
+  min-width: 0;
+  color: $text-muted;
+  font-size: 11px;
+
+  > strong {
+    color: $secondary-light;
+    font-size: 13px;
+  }
+
+  button {
+    display: inline-flex;
+    min-height: 32px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 10px;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+    // The Maker's two faces (`.karaoke-maker button`), not a slab of its own.
+    border-radius: $radius-s;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.karaoke-maker__syllable-editor {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(170px, 0.7fr) minmax(250px, 1.35fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.karaoke-maker__syllable-editor-copy {
+  display: grid;
+  min-width: 0;
+  grid-row: 1 / span 2;
+  gap: 2px;
+
+  > span {
+    color: $text-accent;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    @include tracking(0.12em);
+    text-transform: uppercase;
+  }
+
+  > strong {
+    overflow: hidden;
+    color: $white;
+    font-size: 17px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > p {
+    margin: 2px 0 0;
+    color: $text-muted;
+    font-size: $text-lead;
+    line-height: 1.35;
+  }
+}
+
+.karaoke-maker__syllable-cuts {
+  display: flex;
+  min-width: 0;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+  padding: 4px 10px;
+  color: $text-muted;
+  font-size: 22px;
+  font-weight: $weight-display;
+  border: 1px solid color-mix(in srgb, $secondary-default 20%, transparent);
+  border-radius: $radius-m;
+
+  > span {
+    flex: 0 0 auto;
+    text-shadow: 0 0 10px
+      color-mix(in srgb, $secondary-default 18%, transparent);
+  }
+
+  > button {
+    display: grid;
+    width: 16px;
+    min-width: 16px;
+    min-height: 36px;
+    place-items: center;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 4px;
+    box-shadow: none;
+
+    > span {
+      width: 2px;
+      height: 20px;
+      background: rgba(104, 160, 178, 0.3);
+      border-radius: $radius-pill;
+      transition:
+        height 140ms ease,
+        background 140ms ease,
+        box-shadow 140ms ease;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &.is-cut {
+      background: color-mix(in srgb, $secondary-default 8%, transparent);
+      border: 0;
+      box-shadow: none;
+
+      > span {
+        height: 28px;
+        background: $secondary-default;
+        box-shadow: 0 0 10px
+          color-mix(in srgb, $secondary-default 72%, transparent);
+      }
+    }
+  }
+}
+
+.karaoke-maker__syllable-preview {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+
+  > span {
+    flex: 0 0 auto;
+    color: $text-faint;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    text-transform: uppercase;
+  }
+
+  > output {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    overflow-x: auto;
+
+    strong {
+      color: $secondary-light;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    i {
+      color: $text-accent;
+      font-style: normal;
+    }
+  }
+}
+
+.karaoke-maker__syllable-actions {
+  display: flex;
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  flex-direction: column;
+  gap: 7px;
+
+  .is-primary {
+    color: #032825;
+    background: $secondary-default;
+    border-color: rgba($edge-tint, 0.67);
+  }
+}
+
+// Two rows: the controls, and a quiet line of instruction under all of them.
+//
+// One row was the bug. The help text was a fourth flex item in the third
+// column, which made a paragraph compete with a label and two buttons for one
+// track — see the note in KaraokeMakerSelectionInfo.tsx for what that did to
+// each of them. Prose and controls want different widths, so they get
+// different rows.
+.karaoke-maker__note-inspector {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto auto minmax(190px, 1fr);
+  align-items: center;
+  gap: 10px 14px;
+
+  > .karaoke-maker__note-link-help {
+    // Full width, which is what turns four cramped lines into two easy ones.
+    margin: 0;
+    grid-column: 1 / -1;
+    color: $text-accent;
+    font-size: $text-body;
+    line-height: 1.4;
+  }
+}
+
+.karaoke-maker__note-inspector-summary {
+  display: grid;
+  min-width: 128px;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 2px 9px;
+
+  strong {
+    grid-row: 1 / span 2;
+    color: $secondary-light;
+    font-size: 20px;
+    line-height: 1;
+    text-shadow: 0 0 14px
+      color-mix(in srgb, $secondary-default 28%, transparent);
+  }
+
+  > span {
+    color: $text-faint;
+    font-size: $text-lead;
+    white-space: nowrap;
+  }
+
+  .karaoke-maker__audition {
+    min-height: 27px;
+    justify-self: start;
+    padding-inline: 8px;
+  }
+}
+
+.karaoke-maker__selection-coach .karaoke-maker__kind-picker {
+  align-self: center;
+  justify-self: start;
+  padding: 3px;
+  background: $maker-quiet;
+  border: 1px solid $border-field;
+
+  button {
+    min-height: 28px;
+    padding-inline: 9px;
+
+    &.is-active {
+      color: $surface-base;
+      background: $secondary-default;
+      border-color: rgba($edge-tint, 0.74);
+      box-shadow: 0 0 14px
+        color-mix(in srgb, $secondary-default 20%, transparent);
+    }
+  }
+}
+
+.karaoke-maker__note-inspector-link {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+
+  // The label gives ground; the buttons never do. It is the only part of this
+  // row that can be shortened without costing a control, and with the help
+  // text gone from the row there is enough width that it rarely has to.
+  .karaoke-maker__note-link {
+    @include truncate;
+    flex: 1 1 auto;
+    font-size: $text-lead;
+  }
+
+  // TWO WORDS, ONE LINE. "Detach from lyrics" and "Split word into syllables"
+  // were breaking mid-label into two-line buttons of different heights, which
+  // is what made this row look broken rather than merely tight. A button is a
+  // target, and a target that changes height as the panel resizes is one that
+  // moves under the pointer.
+  > button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+}
+
+.karaoke-maker__selection-coach .karaoke-maker__note-selection-inspector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  > span {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: $secondary-light;
+    font-size: 17px;
+  }
+
+  .karaoke-maker__note-link-help {
+    flex: 1 1 300px;
+    max-width: 470px;
+    color: $text-accent;
+    font-size: $text-lead;
+    line-height: 1.35;
+    white-space: normal;
+  }
+}
+
+.karaoke-maker__capture-coach-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: $secondary-light;
+  background:
+    radial-gradient(
+      circle,
+      color-mix(in srgb, $secondary-default 20%, transparent),
+      transparent 70%
+    ),
+    color-mix(in srgb, $surface-base 82%, transparent);
+  border: 1px solid color-mix(in srgb, $secondary-light 44%, transparent);
+  border-radius: $radius-l;
+  box-shadow:
+    inset 0 0 24px color-mix(in srgb, $secondary-default 10%, transparent),
+    0 0 18px color-mix(in srgb, $secondary-default 8%, transparent);
+
+  svg {
+    width: 24px;
+    height: 24px;
+    stroke-width: 1.85;
+  }
+}
+
+.karaoke-maker__capture-coach-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+
+  > span {
+    color: $text-accent;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+    @include tracking(0.12em);
+    text-transform: uppercase;
+  }
+
+  > strong {
+    overflow: hidden;
+    color: $white;
+    font-size: clamp(17px, 1.45vw, 22px);
+    line-height: 1.12;
+    text-overflow: ellipsis;
+    text-shadow: 0 0 16px
+      color-mix(in srgb, $secondary-default 20%, transparent);
+    white-space: nowrap;
+  }
+
+  > p {
+    max-width: 760px;
+    margin: 3px 0 0;
+    color: $text-muted;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  > em,
+  > small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > em {
+    margin-top: 5px;
+    color: $secondary-light;
+    font-size: 13px;
+    font-style: normal;
+    font-weight: $weight-bold;
+  }
+
+  > small {
+    color: $text-faint;
+    font-size: 11px;
+    font-weight: $weight-bold;
+  }
+}
+
+.karaoke-maker__capture-coach-start {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 14px;
+  color: #032a27;
+  font-size: 13px;
+  font-weight: $weight-bold;
+  background: $secondary-default;
+  border: 1px solid rgba($white, 0.82);
+  border-radius: $radius-l;
+  box-shadow:
+    0 5px 0 rgba(#08766d, 0.78),
+    0 0 27px color-mix(in srgb, $secondary-default 29%, transparent);
+
+  &:hover,
+  &:focus-visible {
+    color: #021f1d;
+    transform: translateY(-1px);
+    box-shadow:
+      0 6px 0 rgba(#08766d, 0.72),
+      0 0 36px color-mix(in srgb, $secondary-default 42%, transparent);
+  }
+
+  svg {
+    width: 21px;
+    height: 21px;
+  }
+
+  kbd {
+    display: inline-grid;
+    min-width: 46px;
+    height: 25px;
+    place-items: center;
+    padding-inline: 7px;
+    color: rgba(#032a27, 0.86);
+    font-family: inherit;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+    background: rgba($white, 0.28);
+    border: 1px solid rgba(#064d47, 0.22);
+    border-radius: $radius-xs;
+    box-shadow: inset 0 -2px rgba(#064d47, 0.12);
+  }
+}
+
+.karaoke-maker__capture-coach-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.karaoke-maker__capture-coach-enter {
+  display: inline-grid;
+  min-width: 58px;
+  height: 34px;
+  place-items: center;
+  padding-inline: 9px;
+  color: $text-muted;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: $weight-bold;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, $track-well 88%, transparent),
+    rgba(#073331, 0.92)
+  );
+  border: 1px solid color-mix(in srgb, $secondary-light 48%, transparent);
+  border-radius: $radius-s;
+  box-shadow: inset 0 -2px rgba(#012523, 0.35);
+}
+
+.karaoke-maker__capture-coach.is-end .karaoke-maker__capture-coach-enter {
+  color: #fff1c8;
+  background: linear-gradient(180deg, rgba(#76541e, 0.9), rgba(#3c2a0d, 0.94));
+  border-color: rgba($amber, 0.5);
+}
+
+.karaoke-maker__capture-coach-controls {
+  display: flex;
+  min-width: 0;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, $secondary-light 14%, transparent);
+
+  > button {
+    display: inline-flex;
+    min-height: 38px;
+    align-items: center;
+    gap: 7px;
+    padding-inline: 11px;
+    font-size: 11px;
+    font-weight: $weight-bold;
+
+    svg {
+      width: 17px;
+      height: 17px;
+    }
+
+    kbd {
+      display: inline-grid;
+      min-width: 48px;
+      height: 24px;
+      place-items: center;
+      padding-inline: 6px;
+      color: rgba($white, 0.88);
+      font-family: inherit;
+      font-size: $text-lead;
+      background: color-mix(in srgb, $surface-well 74%, transparent);
+      border: 1px solid $border-field;
+      border-radius: $radius-xs;
+    }
+
+    &.is-primary {
+      color: #032a27;
+      background: $secondary-default;
+      border-color: rgba($white, 0.72);
+      box-shadow: 0 0 18px
+        color-mix(in srgb, $secondary-default 20%, transparent);
+    }
+
+    &.is-stop {
+      color: #ffd9df;
+      background: rgba(#4b1727, 0.7);
+      border-color: rgba(#ff6f88, 0.34);
+
+      &:hover,
+      &:focus-visible {
+        color: $white;
+        background: rgba($red, 0.9);
+        border-color: rgba(#ff8ba0, 0.68);
+        box-shadow: 0 0 18px rgba(#ff5575, 0.16);
+      }
+    }
+  }
+}
+
+.karaoke-maker__capture-coach-help {
+  display: grid;
+  min-width: 0;
+  grid-column: 1 / -1;
+  grid-template-columns:
+    minmax(180px, 1.35fr) minmax(155px, 1.1fr)
+    repeat(3, minmax(120px, 0.9fr));
+  gap: 7px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, $secondary-light 14%, transparent);
+
+  > div {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 23px minmax(0, 1fr);
+    align-items: center;
+    gap: 5px 7px;
+    padding: 7px 8px;
+    background: color-mix(in srgb, $surface-well 50%, transparent);
+    border: 1px solid color-mix(in srgb, $secondary-light 14%, transparent);
+    border-radius: $radius-m;
+
+    > svg {
+      width: 20px;
+      height: 20px;
+      color: $secondary-light;
+      stroke-width: 1.8;
+    }
+
+    > small {
+      grid-column: 1 / -1;
+      color: $text-muted;
+      font-size: $text-body;
+      font-weight: $weight-bold;
+      line-height: 1.25;
+      white-space: normal;
+    }
+  }
+
+  kbd {
+    display: inline-grid;
+    min-width: 30px;
+    height: 25px;
+    place-items: center;
+    padding-inline: 6px;
+    color: $white;
+    font-family: inherit;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, $surface-field 92%, transparent),
+      color-mix(in srgb, $surface-panel 96%, transparent)
+    );
+    border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
+    border-radius: $radius-xs;
+    box-shadow: inset 0 -2px color-mix(in srgb, $surface-well 50%, transparent);
+  }
+}
+
+.karaoke-maker__capture-coach-keys {
+  display: inline-flex;
+  justify-self: start;
+  gap: 3px;
+}
+
+.karaoke-maker__capture-coach-steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  > span {
+    padding: 7px 10px;
+    color: $text-faint;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+    @include tracking(0.07em);
+    background: color-mix(in srgb, $surface-well 68%, transparent);
+    border: 1px solid color-mix(in srgb, $secondary-light 16%, transparent);
+    border-radius: $radius-pill;
+    white-space: nowrap;
+
+    &.is-active {
+      color: #062c29;
+      background: $secondary-default;
+      border-color: rgba($white, 0.75);
+      box-shadow: 0 0 18px
+        color-mix(in srgb, $secondary-default 24%, transparent);
+    }
+
+    &.is-complete {
+      color: $secondary-light;
+      background: rgba(#16706c, 0.34);
+      border-color: color-mix(in srgb, $secondary-light 38%, transparent);
+    }
+  }
+
+  > i {
+    color: $text-accent;
+    font-size: 12px;
+    font-style: normal;
+  }
+}
+
+.karaoke-maker__capture-coach-countdown {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  text-align: center;
+  animation: karaoke-maker-capture-coach-cue 650ms
+    cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  > strong {
+    color: $white;
+    font-size: clamp(42px, 7vw, 76px);
+    line-height: 0.9;
+    text-shadow:
+      0 0 16px color-mix(in srgb, $secondary-default 82%, transparent),
+      0 0 42px color-mix(in srgb, $secondary-default 42%, transparent);
+  }
+
+  > span {
+    color: $text-muted;
+    font-size: 12px;
+    font-weight: $weight-bold;
+  }
+}

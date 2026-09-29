@@ -1,0 +1,550 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+.karaoke-playlist {
+  @include card-surface;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  padding: 10px;
+  // A card, as the Library's listing is (`card-surface`). Full screen keeps a
+  // fill of its own below, where the rows have to read over the artwork.
+}
+
+.karaoke-playlist__groups {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  margin-top: 8px;
+  padding-right: 2px;
+}
+
+.karaoke-playlist__flat,
+.karaoke-playlist__tree,
+.karaoke-playlist__tree-children {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.karaoke-playlist__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 3px;
+  margin-bottom: 4px;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  transition: $transition-control;
+
+  // The choosing tint on the card, not a lighter slab laid in it.
+  &:hover,
+  &:focus-within {
+    border-color: rgba($edge-tint, 0.11);
+    background: $hover-accent;
+  }
+
+  &.is-selected {
+    border-color: color-mix(in srgb, $secondary-default 28%, transparent);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
+    box-shadow: inset 2px 0 $secondary-default;
+  }
+}
+
+.karaoke-playlist__tree-children {
+  position: relative;
+  margin-left: 9px;
+  padding-left: 10px;
+
+  &::before {
+    position: absolute;
+    top: 0;
+    bottom: 8px;
+    left: 1px;
+    width: 1px;
+    background: linear-gradient(
+      color-mix(in srgb, $secondary-default 34%, transparent),
+      color-mix(in srgb, $secondary-default 6%, transparent)
+    );
+    content: '';
+  }
+
+  > li {
+    position: relative;
+
+    &::before {
+      position: absolute;
+      top: 13px;
+      left: -9px;
+      width: 8px;
+      height: 1px;
+      background: color-mix(in srgb, $secondary-default 25%, transparent);
+      content: '';
+    }
+  }
+}
+
+.karaoke-playlist__folder {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  margin: 2px 0 3px;
+  padding: 5px;
+  color: $text-muted;
+  border: 0;
+  background: transparent;
+
+  svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: $secondary-light;
+    stroke-width: 1.7;
+  }
+
+  span {
+    overflow: hidden;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    @include tracking(0.025em);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.karaoke-playlist__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 1px 3px 7px;
+  border-bottom: 1px solid rgba($edge-tint, 0.09);
+
+  h3 {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-body;
+    @include tracking(0.04em);
+    text-transform: uppercase;
+  }
+
+  .karaoke-playlist__count {
+    display: grid;
+    min-width: 22px;
+    height: 22px;
+    place-items: center;
+    color: $secondary-light;
+    border: 1px solid color-mix(in srgb, $secondary-default 25%, transparent);
+    border-radius: $radius-2xs;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+  }
+}
+
+.karaoke-playlist__heading-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.karaoke-playlist__group-toggle {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  padding: 0;
+  color: $text-muted;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  transition: $transition-control;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  &:hover,
+  &[aria-pressed='true'] {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 50%, transparent);
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+    box-shadow: none;
+  }
+}
+
+.karaoke-playlist__collapse,
+.karaoke-playlist__expand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  // Opaque and lit: this floats over the artwork, and a translucent grey pill
+  // with grey text disappeared into any grey picture. The card colour under
+  // the accent's own label, like the queue chip over a library video.
+  color: $secondary-light;
+  border: 1px solid $border-field;
+  background: $karaoke-chip-face;
+  box-shadow: none;
+  transition: $transition-control;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+    border-color: $border-field-hover;
+    background: $karaoke-chip-hover;
+    box-shadow: none;
+    outline: none;
+  }
+}
+
+// On the card, not over the picture: the quiet button, like the group toggle
+// beside it, rather than a dark opaque square among two tinted ones.
+.karaoke-playlist__collapse {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in srgb, $secondary-default 12%, transparent);
+  }
+}
+
+// Out of the fold it just closed: the pill stands on the stage's left edge, so
+// it rides that edge across while the column shuts and arrives, from the
+// side the list went, as the fold ends. The reduced-motion fold is shorter,
+// and so is the wait. Keyed off the tab showing, like the stage's cascade, so
+// it arrives again with the rest of the tab on the way back to it.
+@keyframes karaoke-playlist-pill-in {
+  from {
+    opacity: 0;
+    translate: -8px 0;
+  }
+}
+
+.karaoke-workspace:not(.is-hidden) .karaoke-playlist__expand {
+  animation: karaoke-playlist-pill-in var(--playlist-settle) $ease-out
+    calc(var(--playlist-move) * 0.6) backwards;
+}
+
+.karaoke-playlist__expand {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  left: 12px;
+  gap: 7px;
+  height: 30px;
+  padding: 0 10px 0 8px;
+  border-radius: $radius-xs;
+
+  span {
+    font-size: $text-micro;
+    font-weight: $weight-bold;
+    @include tracking(0.035em);
+    text-transform: uppercase;
+  }
+}
+
+.karaoke-playlist__song {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 7px;
+  padding: 7px 5px 7px 7px;
+  color: $text-muted;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  > i {
+    color: $text-faint;
+    font-size: $text-small;
+    font-style: normal;
+    letter-spacing: -0.18em;
+  }
+
+  > span {
+    display: grid;
+    min-width: 0;
+    gap: 2px;
+  }
+
+  strong {
+    overflow: hidden;
+    color: inherit;
+    font-size: $text-small;
+    font-weight: $weight-bold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: $text-faint;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    @include tracking(0.06em);
+    text-transform: uppercase;
+  }
+}
+
+.karaoke-playlist__item-actions {
+  display: none;
+  align-items: center;
+  padding-right: 3px;
+
+  .karaoke-playlist__item:hover &,
+  .karaoke-playlist__item:focus-within & {
+    display: flex;
+  }
+
+  button {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    padding: 0;
+    color: $text-faint;
+    border: 0;
+    border-radius: $radius-s;
+    background: transparent;
+    font-size: $text-small;
+
+    &:hover:not(:disabled) {
+      color: $secondary-light;
+      background: color-mix(in srgb, $secondary-default 10%, transparent);
+    }
+
+    &:disabled {
+      opacity: $disabled-opacity;
+    }
+  }
+}
+
+.karaoke-workspace__stage {
+  @include card-surface;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: minmax(100px, 0.55fr) minmax(220px, 1.45fr) auto;
+  grid-template-rows: minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(18px, 4vw, 52px);
+  padding: clamp(24px, 4vw, 52px);
+  overflow: hidden;
+  // The playlist's card, with the palette's two lights in it. It was a
+  // diagonal of its own under a graph-paper grid, beside a playlist that is
+  // a plain card: two materials in one row.
+  background:
+    radial-gradient(
+      circle at 18% 48%,
+      color-mix(in srgb, #{$karaoke-warm} 14%, transparent),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 82% 42%,
+      color-mix(in srgb, #{$karaoke-cool} 12%, transparent),
+      transparent 30%
+    ),
+    $card-glow, $surface-card;
+  // No outline: the stage stands inside the page's own card now
+  // (`$section-card-pages`), and a card's edge drawn inside a card's edge
+  // framed the lyrics twice (Ivan, 2026-09-27: "remove karaoke lyric
+  // border"). Cleared rather than removed, so a dragged song can still
+  // light it.
+  border-color: transparent;
+
+  &.is-dragging {
+    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in srgb, $secondary-default 32%, transparent);
+  }
+
+  &.has-song {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(52px, 1fr);
+    align-items: stretch;
+    gap: clamp(10px, 1vh, 14px);
+    padding: clamp(14px, 1.7vh, 20px);
+  }
+
+  &.has-song.has-stage-pitch {
+    min-height: 0;
+    // The guide is user-resizable, but the heading, lyrics and shared
+    // transport still need guaranteed room in the surrounding workspace.
+    // Without this cap, a persisted 62% guide could consume the whole stage.
+    grid-template-rows:
+      auto minmax(52px, 1fr) 12px
+      minmax(104px, min(var(--karaoke-pitch-size, 34%), calc(100% - 220px)));
+  }
+
+  // A song with target notes draws its words above the plot and its review
+  // under it, and the floor above left its canvas 44px for all three: at
+  // 1440×852 with the graph docked the lane was 143px tall and the plot one
+  // pixel (2026-09-23). 220 is the lane's header and footer, measured at 73px
+  // in Segoe UI, round a canvas that holds every band and a 36px plot
+  // (`pitchLaneLayout`), with a few pixels for a system font that sets the
+  // header taller — as long as the stage can spare it; below that the old
+  // floor holds and the drawing gives way instead.
+  //
+  // `:where()` keeps this at the specificity of the rule above, which it
+  // follows, and of the short-window rules further down, which follow it and
+  // set their own floors.
+  &.has-song.has-stage-pitch:where(:has(> .karaoke-pitch.has-targets)) {
+    grid-template-rows:
+      auto minmax(52px, 1fr) 12px
+      minmax(
+        max(104px, min(220px, calc(100% - 220px))),
+        min(var(--karaoke-pitch-size, 34%), calc(100% - 220px))
+      );
+  }
+
+  > .karaoke-pane-splitter.is-horizontal {
+    align-self: center;
+  }
+}
+
+.karaoke-workspace__drop-overlay {
+  position: absolute;
+  z-index: 10;
+  display: grid;
+  inset: 10px;
+  place-items: center;
+  color: $secondary-light;
+  border: 1px dashed color-mix(in srgb, $secondary-default 72%, transparent);
+  border-radius: $radius-l;
+  background: color-mix(in srgb, $surface-base 90%, transparent);
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  @include tracking(0.03em);
+  pointer-events: none;
+}
+
+// The stage while last session's playlist is being read back. A spinner and
+// nothing else: the empty state's own words would be wrong, and its picture
+// would be the wrong picture.
+// What is wrong with this song's words, beside the words.
+//
+// One line, quiet, and only while there is something to say: a song whose
+// lyric file could not be read, or one that never had a lyric file. It sat in
+// the header as a sentence about a whole import before this, which is how a
+// folder of twenty songs produced a complaint that stayed on screen while a
+// song played perfectly well.
+.karaoke-lyrics__notice {
+  margin: 0 0 6px;
+  padding: 6px 10px;
+  color: $text-muted;
+  border: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-well 32%, transparent);
+  font-size: $text-micro;
+  text-align: center;
+}
+
+.karaoke-workspace__restoring {
+  display: grid;
+  flex: 1 1 auto;
+  place-items: center;
+  padding: 40px 0;
+}
+
+.karaoke-workspace__microphone-art {
+  position: relative;
+  z-index: 1;
+  width: clamp(260px, 19vw, 380px);
+  height: min(82%, 600px);
+  max-width: 100%;
+  max-height: 600px;
+  align-self: center;
+  justify-self: center;
+  object-fit: contain;
+  object-position: center;
+  transform: translateX(clamp(8px, 1vw, 18px)) rotate(12deg);
+  transform-origin: center;
+  user-select: none;
+  pointer-events: none;
+}
+
+.karaoke-workspace__empty-copy {
+  position: relative;
+  z-index: 1;
+
+  h3 {
+    margin: 0 0 8px;
+    color: $text-primary;
+    font-size: clamp(1.35rem, 2.5vw, 2rem);
+    line-height: 1.1;
+  }
+
+  p {
+    max-width: 570px;
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-lead;
+    line-height: 1.6;
+  }
+
+  .karaoke-workspace__empty-open {
+    min-height: $control-height;
+    margin-top: 18px;
+    gap: 7px;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+  }
+
+  small {
+    display: block;
+    max-width: 560px;
+    margin-top: 11px;
+    color: $text-faint;
+    font-size: $text-micro;
+    line-height: 1.5;
+  }
+}

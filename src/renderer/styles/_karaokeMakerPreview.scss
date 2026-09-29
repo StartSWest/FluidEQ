@@ -1,0 +1,929 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+.karaoke-maker-nav {
+  z-index: 4;
+  display: grid;
+  grid-template-columns: auto auto minmax(220px, 1fr) auto auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 52px;
+  padding: 5px 8px;
+  border-top: 1px solid color-mix(in srgb, $secondary-default 20%, transparent);
+  box-shadow: 0 -10px 30px color-mix(in srgb, $surface-base 18%, transparent);
+}
+
+.karaoke-maker-nav__summary {
+  display: grid;
+  min-width: 92px;
+  padding-inline: 4px 7px;
+
+  span {
+    color: $text-faint;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    @include tracking(0.11em);
+    text-transform: uppercase;
+  }
+
+  strong {
+    margin-top: 2px;
+    color: $text-muted;
+    font-size: $text-lead;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.karaoke-maker-nav__step,
+.karaoke-maker-nav__follow {
+  position: relative;
+  min-width: 30px;
+  min-height: 34px !important;
+  padding: 0 7px !important;
+  color: $text-muted !important;
+  background: $maker-quiet !important;
+  border-color: color-mix(
+    in srgb,
+    $secondary-default 20%,
+    transparent
+  ) !important;
+  border-radius: $radius-xs !important;
+
+  &::after {
+    position: absolute;
+    bottom: calc(100% + 7px);
+    left: 50%;
+    z-index: 20;
+    padding: 5px 7px;
+    color: $text-muted;
+    font-size: $text-body;
+    white-space: nowrap;
+    pointer-events: none;
+    visibility: hidden;
+    @include floating-surface($tooltip-lift);
+    opacity: 0;
+    transform: translate(-50%, 3px);
+    content: attr(data-tooltip);
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+.karaoke-maker-nav__step {
+  display: grid;
+  width: 38px;
+  min-width: 38px !important;
+  height: 38px;
+  min-height: 38px !important;
+  place-items: center;
+  padding: 0 !important;
+  color: $text-accent !important;
+  background: $maker-quiet !important;
+  border: 1px solid $border-field !important;
+  border-radius: 50% !important;
+  box-shadow:
+    0 6px 16px color-mix(in srgb, $surface-base 20%, transparent),
+    inset 0 1px rgba($white, 0.05) !important;
+
+  svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  &:hover:not(:disabled) {
+    color: $white !important;
+    background: $maker-quiet-hover !important;
+    border-color: color-mix(
+      in srgb,
+      $secondary-default 58%,
+      transparent
+    ) !important;
+    box-shadow:
+      0 8px 20px color-mix(in srgb, $surface-base 24%, transparent),
+      0 0 18px color-mix(in srgb, $secondary-default 16%, transparent),
+      inset 0 1px rgba($white, 0.08) !important;
+
+    svg {
+      transform: scale(1.08);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.93);
+  }
+}
+
+.karaoke-maker-nav__overview {
+  display: block;
+  width: 100%;
+  height: 42px;
+  min-width: 120px;
+  touch-action: none;
+  cursor: grab;
+  outline: none;
+  border-radius: $radius-xs;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, $secondary-default 45%, transparent);
+  }
+}
+
+.karaoke-maker-nav__follow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: max-content;
+  color: $text-muted !important;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+  text-shadow: 0 0 9px color-mix(in srgb, $secondary-default 22%, transparent);
+
+  span {
+    color: inherit;
+    opacity: 1;
+  }
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &.is-active {
+    color: $surface-well !important;
+    text-shadow: none;
+    background: $secondary-default !important;
+    border-color: rgba($white, 0.46) !important;
+  }
+
+  &:hover:not(:disabled):not(.is-active),
+  &:focus-visible:not(.is-active) {
+    color: $white !important;
+    background: $maker-quiet-hover !important;
+  }
+}
+
+@keyframes karaoke-maker-count {
+  from {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+
+  45% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0.78;
+    transform: scale(1.06);
+  }
+}
+
+.karaoke-maker-preview {
+  position: relative;
+  min-width: 0;
+  margin: 6px 10px;
+  overflow: hidden;
+  // The app's own card, like the note canvas above it: the cards' fill with
+  // their edge. It was the edge alone, a hollow frame on the Maker's floor.
+  @include section-card;
+
+  > header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    min-height: 31px;
+    padding: 3px 5px 3px 10px;
+    color: $text-muted;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+    @include tracking(0.04em);
+    text-transform: uppercase;
+
+    > div,
+    > button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    > .karaoke-maker-preview__actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    svg {
+      width: 13px;
+      height: 13px;
+      color: $secondary-default;
+    }
+
+    > button {
+      min-height: 24px;
+      padding: 0 8px;
+      font-size: $text-body;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+  }
+
+  &.is-open > header {
+    border-bottom: 1px solid rgba(69, 146, 170, 0.16);
+  }
+}
+
+.karaoke-maker-preview__splitter {
+  position: absolute;
+  z-index: 8;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: grid;
+  height: 10px;
+  place-items: center;
+  touch-action: none;
+  cursor: ns-resize;
+  outline: 0;
+
+  > span {
+    width: 54px;
+    height: 3px;
+    background: color-mix(in srgb, $secondary-light 28%, transparent);
+    border: 1px solid color-mix(in srgb, $secondary-light 10%, transparent);
+    border-radius: $radius-pill;
+    box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 8%, transparent);
+    transition:
+      width 140ms ease,
+      background-color 140ms ease,
+      box-shadow 140ms ease;
+  }
+
+  &:hover > span,
+  &:focus-visible > span {
+    width: 72px;
+    background: color-mix(in srgb, $secondary-light 78%, transparent);
+    box-shadow: 0 0 15px color-mix(in srgb, $secondary-default 30%, transparent);
+  }
+}
+
+.karaoke-maker-preview__zoom {
+  display: grid;
+  min-width: 128px;
+  min-height: 24px;
+  grid-template-columns: auto minmax(58px, 1fr) 32px;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 7px;
+  color: $text-muted;
+  border: 1px solid color-mix(in srgb, $secondary-light 12%, transparent);
+  border-radius: $radius-xs;
+
+  > span {
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+  }
+
+  > strong {
+    color: $text-accent;
+    font-size: $text-eyebrow;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  input[type='range'] {
+    width: 100%;
+    min-width: 0;
+    height: 3px;
+    margin: 0;
+    accent-color: $secondary-default;
+    cursor: pointer;
+  }
+}
+
+.karaoke-maker-preview__toggle {
+  position: relative;
+  display: flex;
+  min-height: 27px !important;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px !important;
+  color: $text-accent !important;
+  font-size: 0.76rem !important;
+  font-weight: $weight-bold;
+  letter-spacing: 0 !important;
+  text-transform: none;
+  background: $maker-quiet !important;
+  border-color: color-mix(
+    in srgb,
+    $secondary-light 20%,
+    transparent
+  ) !important;
+  border-radius: $radius-xs !important;
+  box-shadow:
+    inset 0 1px rgba($white, 0.05),
+    0 5px 14px rgba($black, 0.18) !important;
+
+  svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  &:hover {
+    color: $white !important;
+    border-color: color-mix(
+      in srgb,
+      $secondary-light 55%,
+      transparent
+    ) !important;
+    box-shadow:
+      inset 0 0 13px color-mix(in srgb, $secondary-default 8%, transparent),
+      0 0 16px color-mix(in srgb, $secondary-default 10%, transparent) !important;
+  }
+
+  // The shared ring, whose inner hairline no ancestor can clip — an offset
+  // outline on a control inside a scrolling panel loses whichever side is
+  // against the edge.
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+@media (max-width: 760px) {
+  .karaoke-maker-preview__toggle {
+    width: 29px;
+    min-width: 29px;
+    justify-content: center;
+    padding: 0 !important;
+
+    > span {
+      display: none;
+    }
+  }
+}
+
+.karaoke-maker-preview__stage {
+  position: relative;
+  width: 100%;
+  height: clamp(
+    96px,
+    var(--karaoke-maker-preview-height, 150px),
+    min(420px, 36vh)
+  );
+  min-height: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 18% 48%,
+      color-mix(in srgb, #{$karaoke-warm} 14%, transparent),
+      transparent 27%
+    ),
+    radial-gradient(
+      circle at 82% 42%,
+      color-mix(in srgb, #{$karaoke-cool} 12%, transparent),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, $surface-panel 70%, transparent),
+      color-mix(in srgb, $surface-base 45%, transparent)
+    );
+
+  &::before {
+    position: absolute;
+    inset: 0;
+    opacity: 0.22;
+    background-image:
+      linear-gradient(
+        color-mix(in srgb, $secondary-light 8%, transparent) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, $secondary-light 8%, transparent) 1px,
+        transparent 1px
+      );
+    background-size: 34px 34px;
+    pointer-events: none;
+    content: '';
+  }
+
+  .karaoke-lyrics-shell {
+    width: 100%;
+    height: 100%;
+  }
+
+  &.has-capture-guide .karaoke-lyrics-shell {
+    box-sizing: border-box;
+    padding-top: 104px;
+    padding-bottom: 8px;
+  }
+
+  &.has-capture-guide {
+    height: clamp(
+      180px,
+      var(--karaoke-maker-preview-height, 210px),
+      min(420px, 42vh)
+    );
+
+    .karaoke-maker-preview__meta {
+      display: none;
+    }
+  }
+
+  &.has-capture-setup {
+    height: clamp(
+      250px,
+      var(--karaoke-maker-preview-height, 280px),
+      min(440px, 46vh)
+    );
+
+    .karaoke-maker-preview__meta {
+      display: none;
+    }
+
+    .karaoke-lyrics-shell {
+      box-sizing: border-box;
+      padding-top: 182px;
+      opacity: 0.3;
+    }
+  }
+
+  &.has-capture-countdown {
+    height: clamp(
+      250px,
+      var(--karaoke-maker-preview-height, 280px),
+      min(440px, 46vh)
+    );
+
+    .karaoke-maker-preview__meta {
+      display: none;
+    }
+  }
+
+  &.is-capture-armed {
+    animation: karaoke-maker-preview-capture-confirm 560ms ease-out 1;
+  }
+
+  &.is-capture-ready {
+    animation: karaoke-maker-preview-capture-ready 1.15s ease-in-out infinite;
+  }
+}
+
+.karaoke-maker-preview__capture-guide {
+  position: absolute;
+  z-index: 7;
+  top: 10px;
+  left: 50%;
+  display: grid;
+  width: min(940px, calc(100% - 28px));
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) auto 70px;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 11px 12px 10px 15px;
+  color: $text-muted;
+  background:
+    radial-gradient(
+      circle at 15% 0,
+      color-mix(in srgb, $secondary-default 16%, transparent),
+      transparent 46%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, $surface-panel 96%, transparent),
+      color-mix(in srgb, $surface-base 97%, transparent)
+    );
+  border: 1px solid color-mix(in srgb, $secondary-light 32%, transparent);
+  border-radius: $radius-l;
+  box-shadow:
+    0 14px 36px rgba($black, 0.36),
+    0 0 24px color-mix(in srgb, $secondary-default 8%, transparent),
+    inset 0 1px rgba($white, 0.055);
+  transform: translateX(-50%);
+
+  > kbd {
+    display: grid;
+    min-width: 56px;
+    min-height: 42px;
+    place-items: center;
+    color: #032925;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: $weight-bold;
+    @include tracking(0.02em);
+    background: $secondary-default;
+    border: 1px solid rgba($white, 0.82);
+    border-radius: $radius-m;
+    box-shadow:
+      0 4px 0 rgba(#08766d, 0.82),
+      0 0 20px color-mix(in srgb, $secondary-default 30%, transparent);
+  }
+
+  &.is-end > kbd {
+    color: #271b03;
+    background: $amber;
+    box-shadow:
+      0 4px 0 rgba(#9d6911, 0.82),
+      0 0 22px rgba($amber, 0.28);
+  }
+}
+
+.karaoke-maker-preview__capture-copy {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 2px 9px;
+
+  > span {
+    color: $text-accent;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    @include tracking(0.1em);
+    text-transform: uppercase;
+  }
+
+  > strong {
+    overflow: hidden;
+    color: $white;
+    font-size: 14px;
+    line-height: 1.12;
+    text-overflow: ellipsis;
+    text-shadow: 0 0 12px
+      color-mix(in srgb, $secondary-default 24%, transparent);
+    white-space: nowrap;
+  }
+
+  > small,
+  > em {
+    overflow: hidden;
+    grid-column: 1 / -1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > small {
+    color: $text-primary;
+    font-size: 12px;
+    font-weight: $weight-bold;
+  }
+
+  > em {
+    color: $text-faint;
+    font-size: $text-lead;
+    font-style: normal;
+  }
+}
+
+.karaoke-maker-preview__capture-steps {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  > span {
+    padding: 5px 8px;
+    color: $text-faint;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    @include tracking(0.07em);
+    background: color-mix(in srgb, $surface-well 68%, transparent);
+    border: 1px solid color-mix(in srgb, $secondary-light 13%, transparent);
+    border-radius: $radius-pill;
+    white-space: nowrap;
+
+    // The filled button's face (`--control-fill`), flat outside Rainbow mode,
+    // with no halo.
+    &.is-active {
+      color: $surface-base;
+      background: $secondary-default var(--control-fill) border-box;
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    &.is-complete {
+      color: $secondary-light;
+      background: rgba(#16706c, 0.32);
+      border-color: color-mix(in srgb, $secondary-light 34%, transparent);
+    }
+  }
+
+  > i {
+    color: $text-accent;
+    font-size: $text-lead;
+    font-style: normal;
+  }
+}
+
+.karaoke-maker-preview__capture-help {
+  display: flex;
+  grid-column: 1 / -1;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px 16px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, $secondary-light 11%, transparent);
+  pointer-events: none;
+
+  > span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: $text-muted;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+    white-space: nowrap;
+  }
+
+  kbd {
+    display: inline-grid;
+    min-width: 23px;
+    height: 21px;
+    place-items: center;
+    box-sizing: border-box;
+    padding: 0 4px;
+    color: $text-muted;
+    font-family: inherit;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    background: $maker-quiet;
+    border: 1px solid $border-field;
+    border-radius: $radius-xs;
+    box-shadow: inset 0 -2px rgba($black, 0.22);
+  }
+
+  &.is-setup {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    flex-wrap: wrap;
+    padding-top: 10px;
+  }
+}
+
+.karaoke-maker-preview__capture-setup {
+  position: absolute;
+  z-index: 12;
+  top: 12px;
+  left: 50%;
+  display: grid;
+  width: min(940px, calc(100% - 28px));
+  min-width: 0;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 14px;
+  box-sizing: border-box;
+  padding: 15px;
+  color: $text-primary;
+  background:
+    radial-gradient(
+      circle at 12% 0,
+      color-mix(in srgb, $secondary-default 20%, transparent),
+      transparent 44%
+    ),
+    radial-gradient(
+      circle at 94% 100%,
+      color-mix(in srgb, #{$karaoke-warm} 10%, transparent),
+      transparent 40%
+    ),
+    linear-gradient(
+      150deg,
+      color-mix(in srgb, $surface-field-end 98%, transparent),
+      color-mix(in srgb, $surface-base 98.5%, transparent)
+    );
+  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
+  border-radius: $radius-xl;
+  box-shadow:
+    0 18px 48px rgba($black, 0.44),
+    0 0 34px color-mix(in srgb, $secondary-default 10%, transparent),
+    inset 0 1px rgba($white, 0.07);
+  transform: translateX(-50%);
+}
+
+.karaoke-maker-preview__capture-setup-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: $secondary-light;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  border: 1px solid color-mix(in srgb, $secondary-light 34%, transparent);
+  border-radius: $radius-l;
+  box-shadow: inset 0 0 20px
+    color-mix(in srgb, $secondary-default 8%, transparent);
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.karaoke-maker-preview__capture-setup-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+
+  > span {
+    color: $text-accent;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    @include tracking(0.12em);
+    text-transform: uppercase;
+  }
+
+  > strong {
+    color: $white;
+    font-size: clamp(15px, 1.3vw, 20px);
+    line-height: 1.12;
+  }
+
+  > p {
+    margin: 3px 0 0;
+    color: $text-muted;
+    font-size: $text-lead;
+    line-height: 1.35;
+  }
+
+  > em {
+    overflow: hidden;
+    margin-top: 6px;
+    color: $secondary-light;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: $weight-bold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.karaoke-maker-preview__capture-start {
+  display: inline-flex;
+  grid-column: 3;
+  grid-row: 1;
+  min-height: 44px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 17px;
+  color: #032a27;
+  font-size: 11px;
+  font-weight: $weight-bold;
+  background: $secondary-default;
+  border: 1px solid rgba($white, 0.78);
+  border-radius: $radius-l;
+  box-shadow:
+    0 5px 0 rgba(#08766d, 0.78),
+    0 0 25px color-mix(in srgb, $secondary-default 26%, transparent);
+
+  &:hover {
+    color: #021f1d;
+    transform: translateY(-1px);
+    box-shadow:
+      0 6px 0 rgba(#08766d, 0.72),
+      0 0 34px color-mix(in srgb, $secondary-default 38%, transparent);
+  }
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.karaoke-maker-preview__capture-countdown {
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 5px;
+  color: $white;
+  background: radial-gradient(
+    circle,
+    rgba(#0c5360, 0.5),
+    color-mix(in srgb, $surface-well 74%, transparent) 50%,
+    color-mix(in srgb, $surface-well 36%, transparent)
+  );
+  pointer-events: none;
+  animation: karaoke-maker-capture-count 620ms ease both;
+
+  > strong {
+    font-size: clamp(64px, 12vw, 138px);
+    font-weight: $weight-display;
+    line-height: 0.9;
+    text-shadow:
+      0 0 16px color-mix(in srgb, $secondary-light 95%, transparent),
+      0 0 50px color-mix(in srgb, $secondary-default 65%, transparent);
+  }
+
+  > span {
+    color: $text-muted;
+    font-size: 12px;
+    font-weight: $weight-bold;
+    @include tracking(0.04em);
+  }
+}
+
+@keyframes karaoke-maker-capture-count {
+  0% {
+    opacity: 0;
+    transform: scale(0.86);
+  }
+
+  28% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.karaoke-maker-preview__stage.has-capture-guide .karaoke-maker-preview__notes {
+  right: 18%;
+  left: 18%;
+  width: 64%;
+  bottom: 8px;
+}
+
+@media (max-width: 820px) {
+  .karaoke-maker-preview__stage.has-capture-setup {
+    height: clamp(
+      300px,
+      var(--karaoke-maker-preview-height, 320px),
+      min(460px, 56vh)
+    );
+
+    .karaoke-lyrics-shell {
+      padding-top: 228px;
+    }
+  }
+
+  .karaoke-maker-preview__capture-guide {
+    grid-template-columns: minmax(0, 1fr) 58px;
+  }
+
+  .karaoke-maker-preview__capture-steps {
+    display: none;
+  }
+
+  .karaoke-maker-preview__capture-help {
+    gap: 5px;
+
+    > span {
+      font-size: $text-body;
+    }
+  }
+
+  .karaoke-maker-preview__capture-setup {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .karaoke-maker-preview__capture-start,
+  .karaoke-maker-preview__capture-help.is-setup {
+    grid-column: 1 / -1;
+  }
+
+  .karaoke-maker-preview__capture-start {
+    grid-row: 3;
+    justify-self: stretch;
+    justify-content: center;
+  }
+
+  .karaoke-maker-preview__capture-help.is-setup {
+    grid-row: 2;
+  }
+}

@@ -1,0 +1,438 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+.karaoke-song__heading {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  > div:first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h3 {
+    overflow: hidden;
+    margin-top: 2px;
+    color: $text-primary;
+    font-size: clamp(1.05rem, 1.9vw, 1.45rem);
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  p {
+    color: $text-faint;
+    font-size: $text-small;
+  }
+}
+
+.karaoke-song__tools {
+  display: flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  align-items: stretch;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.karaoke-song__utility {
+  display: grid;
+  width: clamp(184px, 18vw, 224px);
+  min-width: 0;
+  grid-template-rows: auto 1fr;
+  align-content: stretch;
+  gap: 6px;
+}
+
+.karaoke-song__source {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  padding: 4px 9px;
+  color: $secondary-light;
+  border: 1px solid color-mix(in srgb, $secondary-default 26%, transparent);
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.035em);
+  line-height: 1.2;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.karaoke-workspace__stage.has-song.has-collapsed-playlist
+  .karaoke-song__heading
+  > div:first-child {
+  // The restore pill owns the top-left corner. Reserve its row so a short or
+  // single-line song title can never slide underneath it. Only the title side
+  // moves: applying this to the whole heading also pushed the unrelated chord
+  // tools down by 34px whenever the playlist was collapsed.
+  padding-top: 44px;
+}
+
+// The title makes room for the pill, and gives it back, as the fold moves
+// rather than a frame before it.
+.karaoke-workspace__stage.has-song .karaoke-song__heading > div:first-child {
+  transition: padding-top var(--playlist-move) $ease-out;
+}
+
+// Chords are estimated from the backing audio, not guessed from the lead
+// melody. The current chord is prominent enough to read while holding a
+// guitar; the next two remain quieter so they prepare rather than distract.
+.karaoke-chords {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-width: 214px;
+  min-height: 46px;
+  align-items: stretch;
+  margin-left: 0;
+  overflow: hidden;
+  color: rgba($white, 0.9);
+  border: 1px solid $border-field;
+  border-radius: $radius-m;
+  background: $karaoke-chip-face;
+  box-shadow: none;
+
+  &.is-analyzing {
+    min-width: 168px;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    padding: 0 13px;
+    color: $text-muted;
+    font-size: $text-micro;
+    font-weight: $weight-bold;
+  }
+}
+
+.karaoke-chords__scan {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  border: 2px solid $border-field;
+  border-top-color: $secondary-light;
+  border-radius: 50%;
+  box-shadow: none;
+  animation: karaoke-chord-scan 900ms linear infinite;
+}
+
+.karaoke-chords__current,
+.karaoke-chords__next {
+  display: grid;
+  min-width: 0;
+  align-content: center;
+  justify-items: center;
+  padding: 4px 12px;
+
+  span,
+  small {
+    color: $text-faint;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    @include tracking(0.055em);
+    line-height: 1.1;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: rgba($white, 0.88);
+    font-size: $text-title;
+    line-height: 1.05;
+    white-space: nowrap;
+  }
+}
+
+.karaoke-chords__current {
+  min-width: 76px;
+  // No wash of its own: the card is one colour and the three cells stand on
+  // it. The current chord is already the brightest thing in the card — the
+  // cyan wash behind it only made the three cells three tones.
+
+  strong {
+    color: $secondary-light;
+    font-size: 1.18rem;
+  }
+}
+
+.karaoke-chords__next {
+  min-width: 60px;
+  border-left: 1px solid color-mix(in srgb, $secondary-light 9%, transparent);
+
+  small {
+    color: $text-accent;
+    font-size: $text-eyebrow;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  &[data-order='2'] {
+    min-width: 48px;
+    color: $text-muted;
+  }
+}
+
+.karaoke-chords__empty {
+  display: grid;
+  max-width: 130px;
+  place-items: center;
+  padding: 6px 12px;
+  color: $text-faint;
+  border-left: 1px solid color-mix(in srgb, $secondary-light 9%, transparent);
+  font-size: $text-eyebrow;
+  line-height: 1.25;
+  text-align: center;
+}
+
+@keyframes karaoke-chord-scan {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+.karaoke-lyrics-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 0;
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+.karaoke-song__text-size {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: 28px;
+  grid-template-columns: auto minmax(58px, 1fr) auto 34px;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  color: $text-muted;
+  border: 1px solid $border-field;
+  border-radius: $radius-s;
+  background: $karaoke-chip-face;
+  transition:
+    border-color 180ms ease,
+    opacity 180ms ease;
+
+  &:hover,
+  &:focus-within {
+    border-color: $border-field-hover;
+  }
+
+  > span {
+    line-height: 1;
+    user-select: none;
+  }
+
+  .is-small {
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+  }
+
+  .is-large {
+    color: $secondary-light;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+  }
+
+  .karaoke-song__text-value {
+    color: $text-muted;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  input[type='range'] {
+    width: 100%;
+    min-width: 0;
+    height: 3px;
+    margin: 0;
+    appearance: none;
+    border-radius: $radius-pill;
+    outline: none;
+    background: linear-gradient(
+      90deg,
+      $secondary-default 0%,
+      $secondary-default var(--karaoke-lyric-size-progress),
+      $track-well var(--karaoke-lyric-size-progress),
+      $track-well 100%
+    );
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      width: 13px;
+      height: 13px;
+      appearance: none;
+      border: 2px solid color-mix(in srgb, $surface-base 95%, transparent);
+      border-radius: 50%;
+      background: $secondary-light;
+      box-shadow: 0 0 0 1px
+        color-mix(in srgb, $secondary-default 55%, transparent);
+      transition:
+        scale 140ms ease,
+        box-shadow 140ms ease;
+    }
+
+    &:hover::-webkit-slider-thumb,
+    &:focus-visible::-webkit-slider-thumb {
+      box-shadow: 0 0 0 2px
+        color-mix(in srgb, $secondary-default 20%, transparent);
+      scale: 1.12;
+    }
+  }
+}
+
+.karaoke-lyrics__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  outline: none;
+  touch-action: none;
+}
+
+.karaoke-lyrics__follow {
+  position: absolute;
+  z-index: 5;
+  bottom: 8px;
+  left: 50%;
+  min-height: 28px !important;
+  gap: 5px;
+  padding: 4px 9px !important;
+  border-color: $border-field !important;
+  background: $karaoke-chip-face !important;
+  box-shadow: none;
+  font-size: 0.6rem !important;
+  transform: translateX(-50%);
+
+  // The shared button style lifts controls on hover and clears the transform
+  // again while pressed. This control uses its transform to remain centred,
+  // so either interaction used to make it jump sideways as well as upward.
+  // Keep it physically anchored and let its light/border provide the feedback.
+  &.button:hover:not([aria-disabled='true']),
+  &.button:focus-visible,
+  &.button:active:not([aria-disabled='true']) {
+    transform: translateX(-50%);
+  }
+
+  &.button:hover:not([aria-disabled='true']),
+  &.button:focus-visible {
+    color: $secondary-light;
+    border-color: $border-field-hover !important;
+    background: $karaoke-chip-hover !important;
+  }
+}
+
+// Anchored at the lyrics canvas's own bottom-right corner rather than beside
+// the header controls in KaraokeWorkspace.tsx: KaraokeLyrics.tsx owns this
+// picker entirely -- it reads song.translations off its own `song` prop, so
+// the control lives everywhere the canvas does. Bottom-right, opposite the
+// centred follow button below and clear of the top edge, where the Maker's
+// own compact preview draws its capture-guide overlay
+// (.karaoke-maker-preview__capture-guide) across nearly the full width.
+.karaoke-lyrics__translation-picker {
+  position: absolute;
+  z-index: 5;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+// Same failure LanguagePicker.scss and KaraokeMakerToolbar's own translation
+// picker already document: left alone, the trigger draws the app's
+// field-surface box at $control-height (38px), taller than every other
+// floating chip on this canvas -- the follow button beside it is 28px. Colours
+// and sizing are copied from `.karaoke-lyrics__follow` rather than reached for
+// from the generic field tokens, so the two chips read as one family. The
+// portalled menu is untouched: it is meant to look like every other
+// Dropdown's menu.
+.karaoke-lyrics__translation-picker .dropdown > [role='menu'] {
+  min-height: 28px;
+  padding: 4px 9px;
+  color: $text-muted;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  background: $karaoke-chip-face;
+  box-shadow: none;
+  font-size: $text-micro;
+
+  &:hover:not([aria-disabled='true']),
+  &:focus-visible {
+    color: $secondary-light;
+    border-color: $border-field-hover;
+    background: $karaoke-chip-hover;
+  }
+}
+
+// A selected language whose sheet has no lines yet must say so rather than
+// paint nothing on the canvas below -- this is that sentence.
+.karaoke-lyrics__translation-empty {
+  max-width: 200px;
+  margin: 0;
+  padding: 3px 8px;
+  color: $text-muted;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $surface-base 82%, transparent);
+  font-size: $text-eyebrow;
+  text-align: right;
+}
+
+.karaoke-lyrics--empty {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  align-items: center;
+  justify-content: center;
+  color: $text-muted;
+  text-align: center;
+
+  p {
+    max-width: 520px;
+    margin: 0;
+    font-size: $text-lead;
+    line-height: 1.55;
+  }
+}

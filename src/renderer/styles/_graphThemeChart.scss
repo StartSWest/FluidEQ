@@ -1,0 +1,553 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Smart EQ coverage, drawn only while a measurement is running. Each frequency
+// region brightens as it is actually heard, and a bar underneath fills with its
+// confidence — so "still listening" has a visible reason.
+// The whole overlay fades rather than being snatched away. Coverage vanishes
+// the instant the music stops — a silent capture reports no ranges — and nine
+// full-height columns disappearing between two frames reads as a glitch, not
+// as a state changing. Slower out than in: arriving is news, leaving is not.
+.chart-coverage {
+  opacity: 1;
+  transition: opacity 260ms ease;
+
+  &.is-leaving {
+    opacity: 0;
+    transition-duration: 520ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-coverage {
+    transition: none;
+  }
+}
+
+// A theme colour, not a literal. These two carried Ocean's cyan written out,
+// so on the black theme the listening bands were the one thing on the plot
+// still painted in the other theme's colour. Each theme names its own in
+// `--coverage-band` (App.scss): Ocean says the same cyan, black says gray.
+.chart-coverage__column {
+  fill: var(--coverage-band);
+  transition: opacity 400ms ease;
+}
+
+.chart-coverage__track {
+  fill: rgba(216, 210, 255, 0.12);
+}
+
+.chart-coverage__fill {
+  fill: color-mix(in srgb, var(--coverage-band) 55%, transparent);
+  transition:
+    width 400ms ease,
+    fill 400ms ease;
+
+  &.is-covered {
+    fill: #54ff8a;
+  }
+}
+
+// How much Smart EQ may move any band, and no more. One pair across the whole
+// plot, because it is one decision rather than a fact about a range — and drawn
+// symmetric because it IS symmetric: an asymmetric pair biases every centred
+// correction downward, which is what it used to do.
+.chart-limit__line {
+  stroke: #ffd24a;
+  stroke-width: 1.25;
+  stroke-dasharray: 7 5;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.chart-limit__label {
+  fill: #ffd24a;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.02em);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+
+.chart-limit__grab {
+  fill: transparent;
+  cursor: ns-resize;
+}
+
+.chart-limit:hover {
+  .chart-limit__line {
+    stroke-width: 2;
+    opacity: 1;
+  }
+
+  .chart-limit__label {
+    opacity: 1;
+  }
+}
+
+// The presence line: below it a range counts as not playing, and is never
+// boosted. Deliberately thin, because it is read against the trace it sits
+// under and a thick rule would hide the very thing it is being set by. What
+// takes the pointer is the invisible band around it, which is far taller.
+.chart-presence__line {
+  stroke: #ff5a6e;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+// Two lines, and what they mean never changes: red is the floor below which a
+// range is not playing, green is where it has shown enough of itself to be
+// trusted with the whole correction. The mode moves them; it never redefines
+// them. Colour that means one thing in Detail and another in Target would have
+// to be re-read on every switch, which is the opposite of glanceable.
+//
+// Below the floor does not count, said by shading it rather than by a caption.
+// Very faint at rest: it sits over the live trace all the time a measurement is
+// running, and the trace is the thing being read.
+.chart-presence__dead {
+  fill: rgba(255, 90, 110, 0.07);
+  pointer-events: none;
+  transition: fill 160ms ease;
+}
+
+// And the ramp between them, which is the part that would otherwise need
+// explaining. Trust is not a switch: the higher the trace sits in this band,
+// the more boost the range has earned, and a gradient is what that looks like.
+// Takes the pointer, and drags the pair. Setting where a range starts to be
+// trusted and setting how gradually it gets there are two different thoughts;
+// having decided the second, moving the first should not cost two drags and a
+// subtraction to keep the width the same.
+//
+// It is also what brings the reset button up, which is why that button no
+// longer carries a hit pad of its own — the pad had become the one stripe of
+// the gap that could not be dragged.
+.chart-presence__ramp {
+  fill: url('#chart-presence-ramp');
+  // A hand, not a resize arrow: grabbing the gap MOVES the pair, it does not
+  // stretch anything. The two edges keep ns-resize, which is what they do —
+  // three zones, and the cursor says which of the two gestures each one is
+  // before anything is pressed.
+  cursor: grab;
+  opacity: 0.5;
+  transition: opacity 160ms ease;
+}
+
+.chart-presence.is-dragging .chart-presence__ramp {
+  cursor: grabbing;
+}
+
+.chart-presence--floor .chart-presence__line {
+  stroke: #ff5a6e;
+}
+
+.chart-presence--floor .chart-presence__label {
+  fill: #ff8a97;
+}
+
+.chart-presence--full .chart-presence__line {
+  stroke: #54ff8a;
+}
+
+.chart-presence--full .chart-presence__label {
+  fill: #7dffa8;
+}
+
+// Where the range actually is, which is the one thing the two lines could not
+// say. Thicker than them and drawn over them: this is the measurement, they are
+// only settings. Its colour is the allowance, so the mark, the column and the
+// ramp all say the same thing at once.
+// Three drawn states, and a fourth that is drawing nothing at all. A silent
+// range sits hundreds of decibels down, and clamping it to the bottom of the
+// plot put a mark there — a mark is a reading, and "at the axis minimum" is not
+// what happened. Nothing playing is said by nothing drawn.
+.chart-presence__live {
+  stroke-width: 3;
+  stroke-linecap: round;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+
+  // Present, and not trusted to rise. Faint and broken, so it reads as a
+  // condition rather than as a measurement worth acting on — but still there,
+  // because "not corrected because this range is quiet" is exactly the answer
+  // somebody came to the graph for, and it must not look like missing data.
+  &.is-idle {
+    stroke-width: 2;
+    stroke-dasharray: 3 4;
+    opacity: 0.45;
+  }
+
+  // Inside the ramp: being listened to, earning part of its correction.
+  &.is-listening {
+    opacity: 0.9;
+  }
+
+  // Above the full line, with everything available to it.
+  &.is-trusted {
+    stroke-width: 3.5;
+    opacity: 1;
+    filter: drop-shadow(0 0 4px rgb(84 255 138 / 55%));
+  }
+}
+
+.chart-presence__grab {
+  fill: transparent;
+  cursor: ns-resize;
+}
+
+// Put this range back, sitting in the ramp between the two lines it undoes.
+// Only drawn once the range has been moved, so it is never a dead button, and
+// only on approach, so nine of them do not stand over the trace.
+// The reset remains usable at rest, so its text must not look disabled.
+.chart-presence__reset {
+  cursor: pointer;
+  opacity: 1;
+  transition: opacity 140ms ease;
+
+  .chart-presence__reset-pad {
+    fill: transparent;
+  }
+
+  circle {
+    fill: rgba(12, 26, 38, 0.86);
+    stroke: rgba(216, 210, 255, 0.35);
+    stroke-width: 1;
+  }
+
+  text {
+    fill: $edge-tint;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    pointer-events: none;
+  }
+
+  &:hover circle {
+    stroke: rgba(216, 210, 255, 0.8);
+  }
+}
+
+// Nine captions standing permanently over the trace would be worse than none,
+// so it arrives on approach and leaves again.
+.chart-presence__label {
+  fill: #ff8a97;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.02em);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+
+.chart-presence:hover,
+.chart-presence.is-dragging {
+  .chart-presence__line {
+    stroke-width: 2.5;
+    opacity: 1;
+  }
+
+  .chart-presence__dead {
+    fill: rgba(255, 90, 110, 0.16);
+  }
+
+  .chart-presence__ramp {
+    opacity: 1;
+  }
+
+  .chart-presence__reset {
+    opacity: 1;
+  }
+}
+
+// Each caption lights with ITS OWN line, not with the pair. Group hover showed
+// both at once, and the moment the two lines sat close — which is what a
+// narrow ramp is — their two-line captions printed over each other into hash.
+// Per-edge, only the caption of the line under the pointer (or being dragged)
+// exists, so there is never a second one to collide with.
+.chart-presence--floor:hover .chart-presence__label,
+.chart-presence--floor.is-dragging .chart-presence__label,
+.chart-presence--full:hover .chart-presence__label,
+.chart-presence--full.is-dragging .chart-presence__label {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-presence__dead,
+  .chart-presence__ramp,
+  .chart-presence__label,
+  .chart-presence__reset {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-coverage__column,
+  .chart-coverage__fill {
+    transition: none;
+  }
+}
+
+// The editable EQ curve uses the same cyan anchor as the waveform and slider
+// palette. Keep its legend in sync with the rendered line.
+.graph-legend--eq::before {
+  background: $secondary-default;
+  box-shadow: 0 0 7px color-mix(in srgb, $secondary-default 72%, transparent);
+}
+
+// No engine behind the sliders means these editors cannot affect the output —
+// whether because the equaliser is switched off or because Equalizer APO is
+// not installed at all. Keep their values visible for context, but make the
+// workspaces unmistakably idle. The graph is deliberately absent from this
+// rule: it remains a fully active live graph and omits the inactive EQ curves.
+//
+// The head those pages stand under while their graph is above them
+// (`.center-head`, layout A) is part of the page and goes with it.
+.workspace-tab-panel--eq.is-engine-disabled,
+.workspace-tab-panel--presets.is-engine-disabled,
+.workspace-tab-panel--config.is-engine-disabled,
+.workspace-tab-panel--convolution.is-engine-disabled,
+.center-head--eq.is-engine-disabled,
+.center-head--presets.is-engine-disabled,
+.center-head--config.is-engine-disabled,
+.center-head--convolution.is-engine-disabled {
+  // The app's one dim, and no desaturation with it. The filter drained the
+  // colour out of a whole page, so a switched-off tab was grey beside tabs
+  // that are teal — which reads as broken rather than as idle, and made this
+  // page and the DSP page two different kinds of "off".
+  opacity: $disabled-opacity;
+}
+
+// The cursor belongs only to the pages whose controls have stopped working.
+// The config viewer is dimmed with them and stays usable — it reports what is
+// on disk, which is worth reading precisely when the engine is off — so a
+// "no entry" pointer over it would be a lie.
+.workspace-tab-panel--eq.is-engine-disabled,
+.workspace-tab-panel--presets.is-engine-disabled,
+.workspace-tab-panel--convolution.is-engine-disabled,
+.center-head--eq.is-engine-disabled .main-content-title {
+  cursor: not-allowed;
+}
+
+// Descendants, not children: the section rail is outside the scroll box now
+// and everything else on the page is inside it, so a child combinator here
+// stopped matching the moment that wrapper appeared — silently, which is the
+// whole reason the note further down this rule exists.
+.workspace-tab-panel--eq.is-engine-disabled .main-content-title,
+.center-head--eq.is-engine-disabled .main-content-title,
+.workspace-tab-panel--eq.is-engine-disabled .main-content,
+// AutoEQ, voicing and convolution each own their whole panel, so the whole
+// panel is what goes inert.
+.workspace-tab-panel--presets.is-engine-disabled .autoeq-panel,
+.workspace-tab-panel--convolution.is-engine-disabled .voicing-panel,
+.workspace-tab-panel--convolution.is-engine-disabled .convolution-panel {
+  pointer-events: none;
+}
+
+// The bands are not being applied, so they stop looking as though they are.
+//
+// Switching the EQ off leaves every band exactly where it was — that is what a
+// bypass is for — which meant the editor went on presenting a tuning at full
+// strength while Equalizer APO applied none of it. The handles and the glow are
+// what read as "live" here, so they are what goes quiet.
+//
+// Only the band layer. A voicing or a measurement that is still applied is
+// still applied, and dimming the whole plot would say otherwise.
+.graph-wrapper.is-eq-bypassed {
+  .graph-edit-point {
+    opacity: 0.4;
+    // Not editable either, and that is a decision rather than a side effect.
+    //
+    // Leaving them draggable would let somebody spend a minute shaping a curve
+    // that is not connected to anything — the bands would move, the graph would
+    // follow, and the sound would not, with only a dimmed handle to explain
+    // why. Switching the layer back on is one press and it is right there on
+    // the chip.
+    pointer-events: none;
+  }
+
+  .graph-edit-point__halo,
+  .chart-curve__glow {
+    display: none;
+  }
+}
+
+// The sliders go with the handles: same layer, same reason, and they are the
+// other half of the same editor. The engine-off rule above dims the whole panel
+// because nothing in it is connected; this dims only the bands, because
+// everything else on the tab still is.
+.main-content.is-eq-bypassed {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+// What Ctrl+W just did, said once in the middle of the plot.
+//
+// Over everything and reachable by nothing: the key can be pressed while the
+// pointer is anywhere, so the caption must never be a thing the pointer can
+// land on. It fades as it rises, which is why it does not need dismissing.
+.graph-mode-announce {
+  position: absolute;
+  z-index: 6;
+  top: 50%;
+  left: 50%;
+  padding: 9px 18px;
+  border: 1px solid $border-field;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $surface-menu-top 82%, transparent);
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-bold;
+  @include tracking(0.04em);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: graph-mode-announce 1.1s ease forwards;
+}
+
+@keyframes graph-mode-announce {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -46%) scale(0.96);
+  }
+
+  18%,
+  62% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -58%) scale(1);
+  }
+}
+
+// The same moment with the rise taken out, for somebody who asked for less
+// motion. Its end is what takes the caption away (`endGraphModeAnnouncement`),
+// so it must still run its length: reduced motion's 1ms (`App.scss`) had the
+// caption faded out before its first frame, which is to say never shown. A
+// fade in place is not the movement that setting spares. `!important` and a
+// class to meet the stand-down's own; the named keyframes differ, so the
+// component's check on the name has to accept either.
+@keyframes graph-mode-announce-still {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%);
+  }
+
+  18%,
+  62% {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-mode-announce {
+    animation: graph-mode-announce-still 1.1s ease forwards;
+  }
+}
+
+:root[data-motion='reduced'] .graph-mode-announce {
+  animation: graph-mode-announce-still 1.1s ease forwards !important;
+}
+
+// No EQ curve, so no handles on it.
+//
+// Set whenever the bands' own line is hidden — from the legend chip, or from
+// the last stop of Ctrl+W, which is the state for reading a chain rather than
+// building one. A dot you can drag with no line following it gives nothing
+// back, and two dozen of them over the layer curves are exactly what makes
+// those curves hard to read.
+.graph-wrapper.is-handles-hidden .graph-edit-point {
+  display: none;
+}
+
+// The curve switches, folded up because the row ran out of width.
+//
+// Opens downward and left-aligned to its button, which is safe in a way the
+// view menu's placement logic is not needed for: this button is in the middle
+// of the strip rather than at its right edge, and the strip is pinned to the
+// top of the card, so there is always the whole plot below it.
+.graph-legend-menu {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.live-output-controls .graph-legend-menu__trigger {
+  // The quiet button's face, like every other control in this bar; it was
+  // a grey pill of its own.
+  @include choice-surface;
+  display: inline-flex;
+  min-height: 0;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  font: inherit;
+  font-weight: $weight-bold;
+  white-space: nowrap;
+  cursor: pointer;
+
+  svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+  }
+
+  // Switched on it keeps the face and the edge every control has, and says
+  // so in white; only the pointer lifts it.
+  &.is-on {
+    color: $white;
+  }
+
+  &:hover {
+    border-color: $border-control-hover;
+    background: $surface-control-hover;
+    color: $white;
+  }
+}
+
+// The same chips, stacked. Left-aligned as a column so the swatches line up
+// down the edge and the colours can be read as a key rather than hunted for.
+.graph-legend-menu__list {
+  position: absolute;
+  z-index: 4;
+  top: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  min-width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px;
+  // The floating surfaces' own face, like every other menu (Ivan,
+  // 2026-09-25: "all menus", "to much dropshadows").
+  // A dropdown: the card's face, like every menu (`menu-face`).
+  @include menu-face;
+  // Out of the button's corner, as every menu does (`menu-in`): it was the one
+  // on the graph that simply appeared.
+  --menu-origin: top left;
+  @include menu-motion;
+}

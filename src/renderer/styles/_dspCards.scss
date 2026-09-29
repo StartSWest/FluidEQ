@@ -1,0 +1,540 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'dspTokens' as *;
+
+// Two equal Master scopes: loudness maximize and its adjacent gain match.
+// Gain match used to sit inside the first surface and made that one card set
+// a needlessly tall row at Full HD. Siblings keep the dependency clear in
+// reading order without spending a second row of height. They wrap as
+// complete surfaces on narrow cards.
+#dsp-master .dsp-band {
+  flex-basis: 280px;
+}
+
+.dsp-master-option {
+  align-self: stretch;
+}
+
+.dsp-master-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// Definite for the same reason as every DSP canvas: its backing store follows
+// this box, so an intrinsic height would feed the measurement back into itself.
+.dsp-master-canvas {
+  height: 300px;
+}
+
+.dsp-master-status {
+  position: absolute;
+  top: 36px;
+  right: 48px;
+  left: 48px;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 3px 5px;
+  // A second row over the plot's top band, rather than chips drawn past the
+  // card's edge, when a narrow card and a long locale cannot fit four.
+  flex-wrap: wrap;
+  pointer-events: none;
+
+  // The chips, and only the chips: a live figure inside one is made of spans
+  // too (`LiveFigure`), and a chip's padding and border on each of those
+  // would draw chips inside the chip.
+  > span {
+    padding: 3px 7px;
+    border: 1px solid rgba($white, 0.08);
+    border-radius: $radius-xs;
+    background: $surface-plot;
+    color: $text-faint;
+    font-size: $text-eyebrow;
+    @include tracking(0.035em);
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .is-safe {
+    border-color: color-mix(in srgb, $secondary-default 20%, transparent);
+    color: $text-accent;
+  }
+
+  .is-fixed {
+    border-color: rgba(255, 176, 89, 0.3);
+    color: rgb(255, 196, 126);
+  }
+
+  .is-warning {
+    border-color: rgba($red, 0.42);
+    background: rgba($red, 0.1);
+    color: $red;
+  }
+}
+
+.dsp-master-legend {
+  z-index: 2;
+  top: 5px;
+  gap: 10px;
+  padding-right: 9px;
+  padding-left: 9px;
+}
+
+// The five numbers a loudness meter is, under the picture they came from.
+//
+// In the DOM rather than painted into the canvas because these are read as
+// values — the exact integrated figure is what a target is checked against —
+// and a canvas has nothing for a screen reader to reach.
+.dsp-master-loudness {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+
+  span {
+    display: flex;
+    gap: 5px;
+    align-items: baseline;
+    padding: 4px 9px;
+    @include dsp-box;
+    border-radius: $radius-xs;
+    color: rgba($white, 0.82);
+    font-size: $text-body;
+    font-variant-numeric: tabular-nums;
+
+    em {
+      color: $text-faint;
+      font-size: $text-eyebrow;
+      font-style: normal;
+      font-weight: $weight-medium;
+      @include tracking(0.04em);
+      text-transform: uppercase;
+    }
+
+    // The integrated reading is the one a delivery target is judged against,
+    // so it wears the accent the rest of the row does not.
+    &.is-primary {
+      border-color: color-mix(in srgb, $secondary-default 30%, transparent);
+      color: color-mix(in srgb, $secondary-light 96%, transparent);
+    }
+
+    &.is-warning {
+      border-color: rgba($red, 0.42);
+      color: $red;
+    }
+  }
+}
+
+@container dsp-card (max-width: #{$bp-lg}) {
+  .dsp-master-status {
+    right: 18px;
+    left: 18px;
+    gap: 3px;
+
+    > span {
+      padding-right: 5px;
+      padding-left: 5px;
+      font-size: $text-eyebrow;
+      letter-spacing: 0;
+    }
+  }
+
+  // Bass Forge's is the five-entry legend, so it needs this more than the
+  // Master's three do: `.dsp-eq-legend` is `flex-wrap: nowrap`, and at this
+  // width the gaps are what runs it past the plot.
+  .dsp-master-legend,
+  .dsp-bass-forge-legend {
+    gap: 7px;
+  }
+}
+
+// One processor, as a unit you can see the edges of.
+//
+// The border carries the on/off state rather than a separate lamp: a rack
+// where the active module is the one that is lit reads at a glance, and a
+// bypassed one recedes without having to grey out its controls — those stay
+// legible so you can set a module up before switching it in.
+// THE RULER FOR EVERYTHING INSIDE A PROCESSOR, HEADER AND BODY BOTH.
+//
+// A card is nothing like the window it sits in: the shell's gutters, the
+// 150px sidebar and the 168px processor rail all come off the viewport first,
+// so the card is about 486px narrower than the number every `@media` in this
+// file was testing. Measured in the running window at 951px wide, with the
+// EQ open: the card 495px and its header 465 — and the header had been given
+// the five-column desktop grid, because that arrangement is chosen by
+// `min-width: 901px`. Its tracks came to 678px plus gaps in a 465px box, grid
+// `auto` tracks do not shrink below min-content, so the header laid itself out
+// 710px wide and painted 175px past the right edge of the window, taking the
+// settings row with it.
+//
+// Its content box is the width the header and `.dsp-card-body` both get, so
+// one container answers for both.
+//
+// Safe to contain. The two fixed-position things a card opens — the EQ import
+// and preset-save dialogs — are portalled to `document.body` (which is what
+// `inset: 0` on a backdrop always needed anyway), and `Dropdown`'s menus were
+// already. No fixed descendant is left to resolve against this element the
+// way the library's full-screen stage did.
+.dsp-card {
+  // The dial size every knob on a processor page is laid out from. A page
+  // that has to fit a Full HD window sets its own, once, in the height rule
+  // that makes it denser; dial rows narrow from here when they run short.
+  --dsp-knob: 78px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px 14px;
+  container: dsp-card / inline-size;
+  // The card every pane is (`card-surface`), at its now very subtle depth:
+  // an edge on the floor alone left the stage's boxes floating on nothing
+  // beside a Library whose panes were filled (Ivan, 2026-09-26: "pick a nice
+  // very subtle bg color for pane and use it in all panes").
+  @include card-surface;
+  transition: border-color 160ms ease;
+}
+
+// Chosen: the accent's edge and a ring, flat. It carried a lit bevel along
+// its top and a 18px glow under it.
+.dsp-card.is-active {
+  border-color: color-mix(in srgb, $secondary-default 42%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, $secondary-default 12%, transparent);
+}
+
+// THE HEADER WRAPS; IT IS NEVER REARRANGED.
+//
+// Every processor's header is the same two things, a toolbar of groups and the
+// bypass cluster, and these rules lay out all eight. The toolbar takes the line
+// and the cluster keeps its right end; the cluster drops to a line of its own
+// only once not even the toolbar's widest group can stand beside it, and inside
+// the toolbar each group wraps whole. Descriptions and notes take a full line
+// underneath.
+//
+// It replaced a grid per page per card width — the EQ, the Exciter and Denoise
+// had two or three each, all measured in one locale. At a 1920 window the EQ's
+// grid pinned the preset's next arrow under Reset, and at a 1024 window three
+// pages drew that arrow over the Isolate label.
+.dsp-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+
+// A description is a paragraph and hangs from the top; a toolbar is a line of
+// controls. Centred was right while the toolbar was one line and wrong the
+// moment it wrapped: the switch drifted to the midpoint of BOTH rows and ended
+// up floating between them, level with nothing.
+//
+// Pinned to the top instead, with the switch centred inside one control height
+// so it lines up with the first row rather than hanging from its ceiling.
+// $control-height is what the row is built from, so this follows it rather
+// than guessing at it.
+//
+// The rule before the cluster is the cluster's own border and not a gap rule
+// like the toolbar's. A gap rule runs the height of its flex line, and when
+// the toolbar wraps its line is every row it wrapped into: the rule stood
+// three rows tall beside a switch one row tall. The toolbar grows to meet the
+// cluster, so the border always lands beside the switch it introduces.
+.dsp-card-header.has-toolbar .dsp-card-power {
+  min-height: $control-height;
+  padding-left: 16px;
+  border-left: 1px solid rgba($white, 0.1);
+}
+
+// `min-content` is the toolbar's widest single group — the preset picker and
+// its arrows, or the EQ's file actions — which is exactly the room it needs
+// before the cluster has to give up the line.
+.dsp-card-header > .dsp-eq-bar {
+  flex: 1 1 min-content;
+}
+
+.dsp-card-titles {
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+// Under the controls, after the cluster, like every other processor's note.
+.dsp-card-header.has-toolbar > .dsp-card-titles {
+  flex: 1 0 100%;
+  order: 1;
+}
+
+.dsp-card-title {
+  margin: 0;
+  font-size: $text-title;
+  @include tracking(0.01em);
+}
+
+.dsp-card-description {
+  max-width: 620px;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-body;
+  line-height: 1.4;
+}
+
+// No container here. It is on `.dsp-card`, whose content box is this box's
+// width and also the header's — one container answers for both, and the
+// header is where the worst of it was.
+.dsp-card-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+// A processor's whole-stage dials, apart from the bands under them and with a
+// rule beneath: putting them in the first band's group would read as settings
+// of that band. The Master's dials sit here.
+.dsp-crossovers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba($white, 0.06);
+}
+
+.dsp-band {
+  display: flex;
+  flex: 1 1 420px;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 10px 4px;
+  @include dsp-box;
+}
+
+.dsp-band-title {
+  color: $text-faint;
+  font-size: $text-small;
+  text-transform: uppercase;
+  @include tracking(0.09em);
+}
+
+// The band's name and its own switch share a line, so a band that is off says
+// so at its top edge rather than through a mix dial that happens to read zero.
+// Three bands of which two are usually silent is this processor's normal
+// state, and the page has to answer "which two" without being read closely.
+.dsp-band-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+// The one block on this page that earns a sentence. Everything else here is a
+// word and a number; this is an effect the user has no name for yet, so it
+// says what it is for.
+.dsp-band-hint {
+  margin: 0 0 2px;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.4;
+}
+
+// Amber, the same attention colour the rack already uses, and deliberately not
+// `$red`: the audio is fine and the fallback chain still applies every stage it
+// has. Only the engine doing the arithmetic changed, so this reports a fact
+// rather than a fault. Louder than a plain hint because the alternative — how
+// it behaved before — was no indication at all.
+//
+// Sizes itself, in the header and inside a card alike, which is why it is the
+// only class on any of the four notices. It borrowed `.dsp-band-hint` while it
+// lived in the Master card; two of them were still carrying both long after
+// this rule started re-setting every property that one sets — margin, colour,
+// size and leading — from later in the same file.
+// Red, not the amber it wore for months. Amber said "degraded"; the truth is
+// that the rack is off and the music is untouched, and the rack below it is
+// dimmed to match. A warning colour on a paragraph that reports a total
+// failure is the notice disagreeing with itself.
+.dsp-engine-down {
+  max-width: 680px;
+  margin: 2px 0 0;
+  padding: 7px 10px;
+  border: 1px solid rgba($red, 0.4);
+  border-radius: $radius-xs;
+  background: rgba($red, 0.08);
+  color: $red;
+  font-size: $text-body;
+  line-height: 1.4;
+}
+
+// Warm rather than the rack's cyan, matching the bar the display gives it. It
+// is not a fourth band and must not read as one: a different effect, its own
+// bandpass, its own colour.
+.dsp-band-organic {
+  border-color: rgba(255, 176, 89, 0.28);
+  background: rgba(255, 176, 89, 0.05);
+}
+
+// Full width above the bands, because it reports on all of them at once.
+//
+// The EQ's frame (`dsp-eq-plot`, `dsp-eq-graph`): the canvas is the one plot
+// surface and the legend sits over its top. This box used to carry a plot
+// ground of its own around the canvas, with the legend in a row under it, so
+// the graph stood on two grounds at once.
+.dsp-exciter-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// A DEFINITE height, never `auto` — the same rule the EQ graph and the phase
+// meter carry, for the same reason. The paint sizes the backing store from the
+// measured box and the backing store is the element's intrinsic size, so an
+// automatic height is a loop that walks down the page. The height the old
+// frame took with its legend row, so the page below does not move.
+.dsp-eq-graph.dsp-exciter-canvas {
+  height: 168px;
+  user-select: none;
+}
+
+// Every knob on a processor page is `--dsp-knob` across.
+.dsp-card .labelled-knob {
+  width: var(--dsp-knob);
+}
+
+.dsp-card .knob {
+  width: var(--dsp-knob);
+  height: var(--dsp-knob);
+  flex-basis: var(--dsp-knob);
+}
+
+// A DIAL ROW: every dial on one line, each `--dsp-knob` wide while the row has
+// the room, and all of them narrower together when it has not.
+//
+// Tracks rather than a wrapping row. Wrapping broke five dials four over one;
+// refusing to wrap overflowed the band instead, which is how the Exciter's
+// dials came to be drawn over each other and over the next band's. The knob
+// keeps its circle through `aspect-ratio`, and it reads pointer travel from its
+// measured box, so a narrower dial is exactly as accurate as a full one.
+.dsp-band-dials,
+.dsp-eq-global-controls,
+.dsp-eq-strip-dials {
+  display: grid;
+  grid-auto-columns: minmax(0, var(--dsp-knob));
+  grid-auto-flow: column;
+  justify-content: center;
+  gap: 4px 2px;
+}
+
+:is(.dsp-band-dials, .dsp-eq-global-controls, .dsp-eq-strip-dials) {
+  > .labelled-knob {
+    width: 100%;
+  }
+
+  .knob {
+    width: 100%;
+    height: auto;
+    flex: none;
+    aspect-ratio: 1;
+  }
+}
+
+// Exciter has two scopes under its display: Align and Organic affect the whole
+// processor, while the three generator cards affect one band each. On a line
+// of their own the global pair leads; split, the bands lead and the pair sits
+// under them.
+//
+// `wrap-reverse` is that switch with no width written down. The pair is first
+// in the flex order, so it opens the line while everything fits, and its line
+// is the one sent to the bottom once the row splits. The band row's basis is
+// three bands at full dial size, so the split comes exactly when one line
+// would start narrowing their dials. It used to be decided by the window's
+// HEIGHT, which on a tall window left three bands 290px wide holding five
+// 78px dials each, drawn over one another.
+.dsp-exciter-controls {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap-reverse;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.dsp-exciter-band-row,
+.dsp-exciter-global-row {
+  display: flex;
+  min-width: 0;
+  align-items: stretch;
+  gap: 10px;
+}
+
+// Always three abreast. Five dials, their 2px gaps, the band's padding and
+// border make one band `5 × knob + 30px`.
+.dsp-exciter-band-row {
+  flex: 3 1 calc(3 * (5 * var(--dsp-knob) + 30px) + 20px);
+}
+
+.dsp-exciter-global-row {
+  flex: 1 1 420px;
+  order: -1;
+}
+
+.dsp-exciter-band-row > .dsp-band {
+  flex: 1 1 0;
+}
+
+// From their own floors — one dial beside three — and growing alike, so the
+// two sentences wrap to about the same height when the pair has a line to
+// itself.
+.dsp-exciter-global-row > .dsp-band-align {
+  flex: 1 1 140px;
+}
+
+.dsp-exciter-global-row > .dsp-band-organic {
+  flex: 1 1 270px;
+}
+
+// Below the large breakpoint a band is too narrow for five dials abreast at a
+// usable size, so they stand three over two, the two centred under the three.
+// Six half-width tracks are what centre them: each dial spans two, and the
+// fourth starts one track in.
+@container dsp-card (max-width: #{$bp-lg}) {
+  .dsp-exciter-band-row .dsp-band-dials {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(
+      6,
+      minmax(0, calc((var(--dsp-knob) - 2px) / 2))
+    );
+
+    > .labelled-knob {
+      grid-column: span 2;
+    }
+
+    > .labelled-knob:nth-child(4) {
+      grid-column: 2 / span 2;
+    }
+  }
+}

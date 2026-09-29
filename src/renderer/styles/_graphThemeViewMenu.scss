@@ -1,0 +1,553 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.graph-view-menu {
+  position: relative;
+  display: inline-flex;
+
+  // The trigger is a solo button with an arrow, because it belongs to the same
+  // row and the same family — it just opens something instead of toggling.
+  > .graph-solo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    svg {
+      width: 8px;
+      height: 5px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-width: 1.6;
+    }
+  }
+}
+
+// The auto-switch select, and the window-colours menu beside it, in the View
+// button's face.
+//
+// It kept the settings-page select it is made from: 38px of field with bold
+// body text, between two 28px pills, so the strip read as two rows glued
+// together. Qualified by the strip and the dropdown twice over because the
+// field rule it replaces is `.dropdown > [role='menu']`; the values are the
+// strip's `button` rule, measured off the View button in the running window.
+.live-output-controls
+  :is(.dropdown.graph-auto-cycle > [role='menu'], .graph-scene-look__trigger) {
+  @include ghost-button;
+  min-height: 28px;
+  gap: 5px;
+  padding: 5px 9px;
+  border-radius: $radius-xs;
+  box-shadow: none;
+  @include tracking(0.03em);
+  white-space: nowrap;
+
+  .graph-auto-cycle__icon {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 auto;
+    fill: none;
+    opacity: 0.75;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+  }
+
+  // The shared chevron draws its 8-unit path in a 16-unit box, so at the View
+  // arrow's width it would be half the size; the box is doubled and the empty
+  // half given back to the gap.
+  .arrow {
+    width: 13px;
+    height: 13px;
+    margin-inline: -3px -4px;
+  }
+
+  // The field's disabled face is a greyed box; in this row a control that
+  // cannot be used keeps the face and edge every control has and says so in
+  // its words alone. At the row's disabled opacity "Auto: Off" was a smudge
+  // over the picture (Ivan, 2026-09-27: "drag points and auto thing" among
+  // the words that need to be clear), and on a face of its own it was the
+  // one box in the row a different colour ("all same as preset").
+  &[aria-disabled='true'] {
+    color: $text-faint;
+    border-color: $border-control;
+    background: $surface-control;
+    cursor: not-allowed;
+  }
+}
+
+// Switching on its own is a state worth seeing, like the View button off
+// Normal, and so is a window in the visualizer's colours; and open, the way
+// every trigger in the row shows its menu is up. Said in white and a lit
+// icon, on the face and the edge every control has: a full-accent edge and a
+// second tint over the face made Backdrop the one box in the row that was a
+// different colour (Ivan, 2026-09-27: "the ambient backdrop still having a
+// different border fix").
+.live-output-controls
+  :is(
+    .dropdown.graph-auto-cycle:is(.is-on, .dropdown--open) > [role='menu'],
+    .graph-scene-look__trigger:is(.is-on, .is-open)
+  ) {
+  color: $white;
+
+  .graph-auto-cycle__icon {
+    opacity: 1;
+  }
+}
+
+// Scrolls inside itself when the window is too short for it, capped from the
+// measurement in GraphViewMenu. `overscroll-behavior` so reaching the end of
+// the list does not carry on and scroll the page behind it, which on a menu
+// reads as the whole app lurching.
+.graph-view-menu__list {
+  overscroll-behavior: contain;
+  // No `scrollbar-width`: the standard property hands the bar to the platform
+  // painter and the app's own bar never draws. See `html` in App.scss.
+  @include slim-scrollbar;
+
+  // The shared floating-menu surface, rather than one built here, so this
+  // menu is the same material as every other one — the open floor's hairline
+  // and colour, and no rainbow edge in euphoria (Ivan, 2026-09-25: "all menus
+  // no rainbow border").
+  @include menu-surface;
+  position: absolute;
+  z-index: 60;
+  // Below the trigger and aligned to its right edge by default; both flip when
+  // there is no room, from the measurement in GraphViewMenu. The graph sits at
+  // the bottom of the workspace as often as not, so opening downward is right
+  // about half the time and off the screen the rest of it.
+  top: calc(100% + 5px);
+  right: 0;
+  // Out of the trigger's corner on whichever side it opened (`menu-in`): the
+  // flips moved the menu and left it unfolding from its top right, so a menu
+  // above the button swung open from the edge furthest from it.
+  --menu-origin: top right;
+  // Wide enough for the longest label beside a fixed track and value: the
+  // columns are fixed so they line up down the list, so the menu has to
+  // carry the widest label rather than the label giving way. Measured on
+  // the Spanish menu, whose longest is "Posición de la onda" at 140px.
+  min-width: 372px;
+  padding: 5px;
+
+  &.is-above {
+    --menu-origin: bottom right;
+    --menu-travel: 6px;
+    --menu-fold: 1;
+    top: auto;
+    bottom: calc(100% + 5px);
+  }
+
+  &.is-left {
+    --menu-origin: top left;
+    right: auto;
+    left: 0;
+  }
+
+  &.is-above.is-left {
+    --menu-origin: bottom left;
+  }
+
+  button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 6px 8px;
+    border: none;
+    border-radius: $radius-s;
+    background: none;
+    // Full strength. A dim row in a menu does not read as "quieter", it reads
+    // as disabled — and `$primary-lighter` at any alpha is a muted blue-grey,
+    // so every item still looked unavailable. Menu items are the content of a
+    // menu; there is nothing for them to recede behind.
+    color: $white;
+    font-size: $text-small;
+    gap: 8px;
+    text-align: left;
+    cursor: pointer;
+
+    span {
+      flex: 1 1 auto;
+    }
+
+    &:hover {
+      background: $hover-accent;
+      color: $white;
+    }
+
+    // On, rather than merely hovered. The two sizes are exclusive and the tick
+    // is how you tell which one you are in without reading the trigger.
+    &.is-on {
+      color: $secondary-light;
+
+      .graph-view-menu__icon {
+        opacity: 1;
+      }
+    }
+  }
+}
+
+// Drawn rather than ticked.
+//
+// A checkmark column would need a column of its own kept empty on every row
+// that cannot be checked, and the rows that walk the styles never can be. An
+// icon says what the row does at a glance, which is the thing a menu of five
+// similar-length phrases is worst at.
+.graph-view-menu__icon {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.4;
+  opacity: 0.7;
+}
+
+.graph-view-menu button:hover .graph-view-menu__icon {
+  opacity: 1;
+}
+
+.graph-view-menu__divider {
+  height: 1px;
+  margin: 4px 2px;
+  background: rgba($edge-tint, 0.1);
+}
+
+// What the rows under it are about. The same four groups, in the same order,
+// as the Studio's own headings (`common/settingsGroups.ts`) — the menu's look
+// rather than the Studio's, because a floating menu and a card in a column
+// are not the same surface.
+//
+// It sits in the icon column's gutter deliberately: the labels beside the
+// icons form a straight edge down the list, and a heading indented to meet it
+// would read as another row. Quiet enough to be scanned past and skipped.
+// It is a button — pressing it folds the group away, and a folded group is
+// a statement about what you never touch — but it must not read as another
+// row of the menu. So: the list's own button rules are undone here, and what
+// is left is a heading with an arrow at the end of it.
+.graph-view-menu__list button.graph-view-menu__group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 7px 8px 3px;
+  // Every menu's section heading in the accent, as the Window colours menu
+  // and the look picker's columns head theirs (Ivan, 2026-09-27: "make
+  // better colors", "for all menu"). It was a faint grey here while those
+  // two were lit.
+  border: none;
+  background: none;
+  color: $text-accent;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  @include tracking(0.08em);
+
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $text-muted;
+    background: none;
+  }
+}
+
+// No gap above the first one: it is the top of the list, and the padding
+// meant for separating a heading from the rows before it has nothing to
+// separate it from there.
+.graph-view-menu__list button.graph-view-menu__group:first-child {
+  padding-top: 2px;
+}
+
+// Points down while the group is open, right while it is folded — the
+// direction the rows will go, not the direction they came from.
+.graph-view-menu__group-arrow {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.7;
+  transition: transform 120ms ease;
+}
+
+.graph-view-menu__group[aria-expanded='false'] .graph-view-menu__group-arrow {
+  transform: rotate(-90deg);
+}
+
+// The two sliders, laid out as menu rows rather than as controls in a strip.
+//
+// Same three columns as every button in the list — icon, label, control — so
+// the slider lands where the shortcut hints do and the column reads straight
+// down. It is a `label`, not a `button`, so clicking it does not close the menu;
+// these are adjusted by watching the graph behind, which needs the list to stay
+// open while the thumb is dragged.
+// Four columns, the same four on every slider row in the menu.
+//
+// They were laid out with flex, so each track began wherever its own label
+// happened to end and ran to the right edge: measured in the window, the
+// tracks started anywhere from 107px to 185px in and were between 86px and
+// 124px long, down a single column of nine sliders. Ivan: "make all sliders
+// align well, this is a mess". A grid fixes the two columns that matter —
+// every track starts at the same x and is the same length, and every value
+// is right-aligned under the one before it — while the label column takes
+// whatever is left and truncates rather than pushing the track about.
+//
+// The track stays 86px because the snap ticks are placed against that
+// number (`.graph-view-menu__snap`), and the value column is 6ch, which
+// holds "450 ms" and "100 %" in every language the menu is in.
+.graph-view-menu__slider {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 96px 6ch;
+  align-items: center;
+  gap: $spacing-s;
+  padding: 5px 8px;
+  color: $text-muted;
+  font-size: $text-small;
+  cursor: pointer;
+
+  &.is-disabled {
+    opacity: $disabled-opacity;
+    cursor: default;
+  }
+
+  svg {
+    flex: 0 0 auto;
+    opacity: 0.75;
+  }
+
+  > span {
+    min-width: 0;
+    // Wraps rather than being cut. The columns are fixed so they line up, so
+    // a label longer than its column has to give somewhere — and a menu that
+    // clips the end of a word is a menu that cannot be read. The width above
+    // is set so that no label in any of the ten languages needs this; it is
+    // here for the one that some day will.
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
+
+  input[type='range'] {
+    width: 100%;
+    height: 3px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: none;
+    border-radius: $radius-pill;
+    background: rgba($edge-tint, 0.18);
+    appearance: none;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      width: 11px;
+      height: 11px;
+      border: none;
+      border-radius: 50%;
+      background: $secondary-light;
+      appearance: none;
+    }
+  }
+}
+
+// The wave height slider's snap ticks: the track in a box of its own so the
+// marks can sit on it. A range thumb travels the track minus its own width,
+// so a tick at a value goes at that fraction of the inner 75px, offset by
+// half the 11px thumb — the same place the thumb's centre lands.
+.graph-view-menu__track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  // The grid's third column, whether the row wraps its input in one of these
+  // or hands the grid a bare input.
+  grid-column: 3;
+
+  input[type='range'] {
+    position: relative;
+  }
+}
+
+// A bare input goes in the same column, so a row with ticks and a row
+// without still line up.
+.graph-view-menu__slider > input[type='range'] {
+  grid-column: 3;
+}
+
+.graph-view-menu__snap {
+  position: absolute;
+  top: 50%;
+  // The value's fraction of the thumb's travel: half a thumb in from each
+  // end, whatever the track is wide. It was written against an 86px track,
+  // which stopped being true the moment the track became a grid column.
+  left: calc(5.5px + var(--snap-frac, 0) * (100% - 11px));
+  // A hair the height of the track and a little over, faint: a hint of
+  // where the thumb will settle, not a scale.
+  width: 1px;
+  height: 5px;
+  border-radius: 1px;
+  background: rgba($edge-tint, 0.32);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+// A Plus visualizer's attack and release (`SceneResponseMenu.tsx`): the same
+// slider as the rest of the menu, with its value beside it — a timing is read
+// as a number, where a height is judged by eye — and a mark on the track where
+// the visualizer's own value sits, which the thumb falls onto.
+.graph-view-menu__slider > .graph-view-menu__value {
+  grid-column: 4;
+  color: $text-faint;
+  text-align: right;
+}
+
+// Rainbow mode's row (`RainbowSwitch`): a switch where the sliders' track and
+// value stand, at the right, the name wrapping as the sliders' names do.
+.graph-view-menu__slider--switch {
+  cursor: default;
+
+  > label {
+    min-width: 0;
+    overflow-wrap: break-word;
+    white-space: normal;
+    cursor: pointer;
+  }
+
+  .graph-view-menu__switch {
+    display: flex;
+    grid-column: 3 / -1;
+    justify-self: end;
+  }
+
+  .switch {
+    --switch-width: 38px;
+    --switch-height: 22px;
+    --switch-thumb: 14px;
+    --switch-inset: 3px;
+  }
+}
+
+.graph-view-menu__snap--own {
+  width: 2px;
+  height: 7px;
+  background: rgba($secondary-light, 0.55);
+}
+
+// A row that cycles a choice on each click (`ScenePerformanceMenu.tsx`) shows
+// its current answer where the other rows show their shortcut: at the right,
+// faint, and never sharing the label's room — every span in a button row
+// grows otherwise, and the answer sat halfway across.
+.graph-view-menu__list button > .graph-view-menu__value {
+  // May shrink and wrap: the menu cannot grow past the header that holds
+  // it, and "High performance · after restart" in Russian is wider than the
+  // whole menu. Wrapped at the right it reads as two lines of one answer;
+  // clipped it read as nothing.
+  flex: 0 1 auto;
+  min-width: 0;
+  color: $text-faint;
+  text-align: right;
+  white-space: normal;
+}
+
+// A fact the row reports, on a full line under it: which graphics card is
+// actually drawing, under the choice of which one to use. Its own line and
+// aligned under the label, because squeezed into the answer's column at the
+// right it was a third line of cramped text spilling out of the column —
+// "NVIDIA GeForce RTX 4080 Laptop GPU" is wider than the answers ever are.
+.graph-view-menu__list button.graph-view-menu__row--reported {
+  flex-wrap: wrap;
+}
+
+.graph-view-menu__list button > .graph-view-menu__report {
+  // A line of its own, indented to the label rather than the icon. Padding
+  // rather than a margin: a margin outside a 100% basis is 24px of overflow,
+  // measured as the menu growing past its own box.
+  flex: 0 0 100%;
+  padding-left: 24px;
+  color: $text-dim;
+  font-size: $text-eyebrow;
+  line-height: 1.3;
+  text-align: left;
+  white-space: normal;
+}
+
+// A choice not yet in force says so under its answer, on a line of its own:
+// "after restart" run on after "High performance" wrapped mid-phrase.
+.graph-view-menu__note {
+  display: block;
+  font-size: $text-eyebrow;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.graph-view-menu kbd {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border: 1px solid rgba($edge-tint, 0.16);
+  border-radius: 4px;
+  color: $text-muted;
+  font-family: inherit;
+  font-size: $text-eyebrow;
+  white-space: nowrap;
+}
+
+// The graph with no paper: no decibel scale, no frequency marks, no lines
+// between them. Just the wave.
+//
+// `display: none` rather than an opacity, because d3 keeps redrawing whatever
+// is in the tree — an invisible axis is still an axis being re-ticked on every
+// resize, and the reason to reach for this mode is that the graph has stopped
+// being a measurement and become something to look at.
+.graph-wrapper.is-gridless .chart-grid {
+  display: none;
+}
+
+// Ctrl+W's Clean stop is a stage, not another graph arrangement.
+//
+// Keep the plot box in the layout: the Library and Karaoke art layers measure
+// it to place the media underneath, and removing it makes that media jump. The
+// chart itself is not mounted in this state, while this rule removes the card
+// surface that would otherwise leave a dark sheet over the picture.
+//
+// The card itself stays in the normal view. It used to go with the drawing,
+// and in a column with nothing behind it that left a hole the shape of the
+// graph — the floor and the bloom showing through where a pane had been,
+// which read as the panel having been torn out rather than as a stage. The
+// expanded and full-screen rules further down still clear it, because there
+// the media really is behind it.
+.graph-wrapper.is-clean {
+  // These describe a drawing that Clean deliberately does not mount. The mode
+  // announcement remains for one beat so Ctrl+W still says where it landed.
+  .graph-clip-warning,
+  .graph-look-announcement {
+    display: none;
+  }
+
+  // Keep the options bar as the visible way to change or leave Clean, but
+  // remove the legends and editing instructions that describe a drawing which
+  // is no longer there.
+  .graph-edit-hint,
+  .graph-legend-menu,
+  .graph-legend-group > .graph-legend:not(.graph-legend--picker),
+  .graph-look-walk > .graph-legend__label {
+    display: none;
+  }
+
+  .graph-legend--picker {
+    margin-inline-start: 0;
+  }
+}

@@ -76,8 +76,13 @@ const parseDeclarations = (body: string): Map<string, string> =>
       }),
   );
 
-/** Every `{ … }` block directly in `css`, braces balanced. */
-const blocks = (css: string): { prelude: string; body: string }[] => {
+/**
+ * Every `{ … }` block directly in `css`, braces balanced, comments dropped
+ * as CSS itself drops them: a sheet split into partials carries each one's
+ * licence comment between rules, and it read as part of the next selector.
+ */
+const blocks = (source: string): { prelude: string; body: string }[] => {
+  const css = source.replace(/\/\*[\s\S]*?\*\//g, '');
   const found: { prelude: string; body: string }[] = [];
   let depth = 0;
   let start = 0;

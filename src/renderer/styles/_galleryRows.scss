@@ -1,0 +1,578 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'galleryTokens' as *;
+
+.gallery-maker__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-m;
+  padding: $spacing-m;
+  border: 1px solid $card-edge;
+  border-radius: $radius-l;
+  background:
+    radial-gradient(
+      120% 150% at 0% 0%,
+      hsl(var(--identity-hue, 170deg) 70% 45% / 18%),
+      transparent 58%
+    ),
+    $block-lift;
+}
+
+.gallery-maker__who {
+  display: grid;
+  flex: 1 1 160px;
+  gap: 2px;
+  min-width: 0;
+
+  .community__handle {
+    @include truncate;
+  }
+}
+
+.gallery-maker__name {
+  margin: 0;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  @include truncate;
+}
+
+.gallery-maker__figures {
+  flex: 1 1 280px;
+  // Three figures, or four with a place on the leaderboard: as many columns
+  // as there are, each at least wide enough for its number.
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  max-width: 480px;
+
+  div {
+    background: color-mix(in srgb, $black 22%, transparent);
+  }
+}
+
+// The maker's place on the leaderboard, in the trophy's gold: the one
+// figure here that is a standing rather than a count.
+.gallery-maker__figures .gallery-maker__rank {
+  border-color: color-mix(in srgb, $amber 42%, transparent);
+  background: color-mix(in srgb, $amber 10%, rgba($black, 0.22));
+
+  dd {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: color-mix(in srgb, $amber 70%, $white);
+  }
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// ---------------------------------------------------------------- yours
+
+.gallery-mine__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+
+  .gallery-fine {
+    flex: 1 1 260px;
+  }
+
+  .button svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.gallery-rows {
+  display: grid;
+  gap: $spacing-s;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gallery-row {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: $spacing-m;
+  padding: 10px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+
+  @container plus (max-width: 640px) {
+    grid-template-columns: 96px minmax(0, 1fr);
+
+    .gallery-row__numbers,
+    .gallery-row__actions {
+      grid-column: 1 / -1;
+    }
+
+    .gallery-row__actions {
+      justify-content: flex-start;
+    }
+
+    .gallery-row__confirm {
+      flex-basis: 100%;
+    }
+  }
+}
+
+.gallery-row.is-blocked {
+  border-color: color-mix(in srgb, $red 38%, transparent);
+}
+
+.gallery-row--skeleton {
+  height: 84px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, $white 3%, transparent) 0%,
+    color-mix(in srgb, $white 7%, transparent) 50%,
+    color-mix(in srgb, $white 3%, transparent) 100%
+  );
+  background-size: 200% 100%;
+  // Faded in, the second a beat after the first, while the shimmer runs.
+  animation:
+    fade-in $motion-slow ease-out backwards,
+    gallery-shimmer 1.6s linear infinite;
+
+  & + & {
+    animation-delay: 60ms, 0ms;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+.gallery-row__picture {
+  border-radius: $radius-xs;
+}
+
+.gallery-row__text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.gallery-row__name {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  @include truncate;
+}
+
+.gallery-row__meta {
+  color: $text-faint;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}
+
+.gallery-row__blocked {
+  justify-self: start;
+  padding: 1px 8px;
+  color: $red;
+  border: 1px solid color-mix(in srgb, $red 45%, transparent);
+  border-radius: $radius-2xs;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+}
+
+.gallery-row__official {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 5px;
+  margin-top: 3px;
+  color: $secondary-light;
+  font-weight: $weight-semibold;
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+.gallery-row__numbers {
+  grid-column: 3;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(64px, auto));
+  gap: $spacing-s;
+  margin: 0;
+
+  div {
+    display: grid;
+  }
+
+  dt {
+    color: $text-dim;
+    font-size: $text-micro;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-lead;
+    font-weight: $weight-semibold;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.gallery-row__actions {
+  grid-column: 4;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
+}
+
+.gallery-row__confirm {
+  flex: 1 1 240px;
+  color: $text-muted;
+  font-size: $text-small;
+  text-align: start;
+}
+
+.gallery-row.is-confirming .gallery-row__actions {
+  grid-column: 1 / -1;
+  padding-top: $spacing-s;
+  border-top: 1px solid $border-subtle;
+}
+
+// ---------------------------------------------------------------- without Plus
+
+// Over the gallery for a member without Plus: one line of what Plus does
+// with these scenes, and the way in. A strip rather than a card in front of
+// the grid — the scenes under it are the argument.
+// On the same beat as the toolbar it sits above.
+.gallery-plusbar {
+  @include animate(rise-in, $motion-base, $ease-out, 40ms);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px $spacing-m;
+  padding: 8px 8px 8px 10px;
+  border: 1px solid $border-field;
+  border-radius: $radius-m;
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, $secondary-default 14%, transparent),
+      color-mix(in srgb, $secondary-default 4%, transparent) 70%
+    ),
+    $block-lift;
+
+  .button {
+    gap: 6px;
+    margin-inline-start: auto;
+  }
+}
+
+.gallery-plusbar__mark {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: $surface-base;
+  border-radius: 50%;
+  // The filled controls' face (`--control-fill`), flat outside Rainbow mode,
+  // with no halo.
+  background: $secondary-default var(--control-fill) border-box;
+  box-shadow: none;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.gallery-plusbar__text {
+  flex: 1 1 260px;
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.45;
+}
+
+// ---------------------------------------------------------------- dialogs
+
+// Under every gallery and Studio dialog: Report, the Studio's framing and
+// publishing, and the picture viewer.
+.gallery-dialog-backdrop {
+  @include dialog.backdrop(4100);
+}
+
+// A field's name, in the dialogs and in the review pane that shares their
+// parts.
+.gallery-dialog__label {
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+.gallery-dialog__error {
+  margin: 0;
+  color: $amber;
+  font-size: $text-small;
+}
+
+// Reporting a scene, on the frame (`DialogFrame`). Its own names: the
+// admin's queue of reports (`GalleryModeration.scss`) owns `gallery-report`.
+.dialog-frame.gallery-report-dialog {
+  @include dialog.size(640px, 560px);
+}
+
+// The four reasons as one card of choices, a row each with the hairline
+// between them, the way the panes list a set: the card's own padding goes to
+// the rows, so a row's tint and its focus run to the card's edge.
+.dialog-frame__group.gallery-report-dialog__reasons {
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.gallery-report-dialog__reason {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: $text-primary;
+  font-size: $text-body;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: $transition-control;
+
+  & + & {
+    border-top: 1px solid $border-subtle;
+  }
+
+  // Out of sight but still what focus, the arrows and a screen reader land
+  // on; the row and its drawn radio show the state.
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &:hover {
+    background: $hover-accent;
+  }
+
+  &:has(input:checked) {
+    background: color-mix(in srgb, $secondary-default 11%, transparent);
+  }
+
+  &:has(input:focus-visible) {
+    @include focus-ring;
+  }
+
+  &:has(input:disabled) {
+    cursor: default;
+  }
+}
+
+.gallery-report-dialog__radio {
+  display: grid;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  place-items: center;
+  border: 1.6px solid color-mix(in srgb, $secondary-light 45%, transparent);
+  border-radius: 50%;
+  transition: $transition-control;
+
+  &::after {
+    content: '';
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: $secondary-default;
+    opacity: 0;
+    transform: scale(0.4);
+    transition:
+      opacity $motion-fast $ease-out,
+      transform $motion-fast $ease-out;
+  }
+
+  :checked ~ & {
+    border-color: $secondary-default;
+
+    &::after {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+// The review pane's decision (`ReviewDecision`): its reasons, bordered each.
+.gallery-reasons {
+  display: grid;
+  gap: 6px;
+}
+
+.gallery-reason {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  color: $text-primary;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  font-size: $text-body;
+  cursor: pointer;
+  transition: $transition-control;
+
+  input {
+    flex: 0 0 auto;
+    margin: 0;
+    accent-color: $secondary-default;
+  }
+
+  &:hover {
+    border-color: $border-field-hover;
+  }
+
+  &:has(input:checked) {
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    background: $surface-control-press;
+  }
+
+  &:has(input:focus-visible) {
+    @include focus-ring;
+  }
+}
+
+// A scene's versions on its page (`SceneVersions.tsx`): the one showing, what
+// changed in it, and the earlier ones folded away.
+.gallery-versions {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.gallery-versions__line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery-versions__new {
+  padding: 1px 8px;
+  border: 1px solid color-mix(in srgb, $secondary-default 55%, transparent);
+  border-radius: $radius-2xs;
+  color: $text-accent;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+}
+
+.gallery-versions__note {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  // A box inside the card: its edge on the card's own colour, as every box
+  // inside a card is. It was white at 4%, a grey haze on the card.
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: none;
+
+  p {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-small;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+
+  // What is new: the choosing tint inside the field's lit edge, not a
+  // brighter frame at nearly half the accent.
+  &.is-new {
+    border-color: color-mix(in srgb, $secondary-default 30%, transparent);
+    background: $hover-accent;
+  }
+}
+
+.gallery-versions__note-title {
+  color: $text-accent;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  @include tracking(0.06em);
+  text-transform: uppercase;
+}
+
+.gallery-versions__history {
+  summary {
+    color: $text-faint;
+    font-size: $text-small;
+    cursor: pointer;
+  }
+
+  summary:hover {
+    color: $text-primary;
+  }
+}
+
+.gallery-versions__list {
+  display: grid;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    grid-template-columns: 3.2em minmax(0, 1fr);
+    gap: 8px;
+    font-size: $text-small;
+  }
+}
+
+.gallery-versions__number {
+  color: $text-primary;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.gallery-versions__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: $text-muted;
+  overflow-wrap: anywhere;
+
+  time {
+    color: $text-dim;
+    font-size: $text-micro;
+  }
+}
+
+.gallery-versions__quiet {
+  color: $text-dim;
+}

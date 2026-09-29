@@ -1,0 +1,822 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+@use 'karaokeTokens' as *;
+
+// Karaoke Maker is a single Canvas-backed editing surface. The DOM here is
+// deliberately limited to stable controls and inspectors; notes, words,
+// waveform, playhead and the time/pitch grids are all drawn in one canvas.
+.karaoke-maker {
+  --karaoke-maker-dock-height: 156px;
+  --karaoke-maker-header-height: 55px;
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  container-name: karaoke-maker;
+  container-type: inline-size;
+  display: grid;
+  // Header, editing surface, lyric preview, command dock. Every band owns its
+  // space; no row is pulled over another one with negative margins.
+  grid-template-rows: auto minmax(260px, 1fr) auto auto;
+  min-width: 0;
+  min-height: 0;
+  animation: karaoke-maker-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
+    both;
+  overflow: hidden;
+  // The window's floor, flat and opaque — the stage and the transport are
+  // underneath it — as it was before the card was tried over it (Ivan,
+  // 2026-09-27: "bg need to be as it was"). The toolbar above and the command
+  // dock below stand in the pane colour instead, as the titlebar and the
+  // transport bar do over the app's own floor, so the editing surface reads
+  // as the floor between two bars. Square and with no frame of its own
+  // ("no rounder border like that").
+  color: $text-muted;
+  background: $surface-base;
+  border-radius: 0;
+
+  #{$maker-own-button},
+  input,
+  textarea {
+    font: inherit;
+  }
+
+  // The app's own two faces (`Button.scss`): the quiet outline at rest and
+  // the accent fill for the one suggested action. The Maker had a slab of its
+  // own, a darker gradient up to the block colour, which made every control
+  // in it a lighter tile than the same control anywhere else.
+  #{$maker-own-button} {
+    min-height: 30px;
+    padding: 0 11px;
+    color: $secondary-light;
+    background: $surface-control;
+    border: 1px solid $border-field;
+    border-radius: $radius-s;
+    box-shadow: none;
+    cursor: pointer;
+    transition:
+      border-color 150ms ease,
+      background-color 150ms ease,
+      box-shadow 150ms ease,
+      color 150ms ease;
+
+    &:hover:not(:disabled),
+    &.is-active {
+      color: $white;
+      border-color: $border-field-hover;
+      background: $surface-control-hover;
+      box-shadow: none;
+    }
+
+    &.is-primary,
+    &.is-active {
+      color: $surface-base;
+      font-weight: $weight-bold;
+      background: $secondary-default var(--control-fill) border-box;
+      border-color: transparent;
+      box-shadow: inset 0 1px 0 rgba($white, 0.24);
+    }
+
+    // Bright primary actions need dark ink in every interaction state. The
+    // generic hover selector above is more specific than `.is-primary` and was
+    // turning "Use in player" white against the pale teal surface.
+    &.is-primary {
+      // One line always: at narrow widths this wrapped to "Use in /
+      // player", the most prominent button in the editor torn in half.
+      white-space: nowrap;
+      flex: none;
+    }
+
+    // The filled button's own hover (`Button.scss`): brighter and lit, the
+    // ink kept dark.
+    &.is-primary:hover:not(:disabled),
+    &.is-primary:focus-visible {
+      color: $surface-base;
+      background: $secondary-default var(--control-fill) border-box;
+      border-color: transparent;
+      filter: brightness(1.1);
+      box-shadow:
+        inset 0 1px 0 rgba($white, 0.24),
+        0 0 16px color-mix(in srgb, $secondary-default 16%, transparent);
+    }
+
+    &:disabled {
+      opacity: $disabled-opacity;
+      cursor: default;
+    }
+  }
+
+  &.is-fullscreen {
+    // Escape the workspace's retained scroll offset. The editor used to be
+    // absolutely positioned in that scroller, which could crop its identity
+    // and transport at the top after entering full screen.
+    position: fixed;
+    z-index: 96;
+    border-radius: 0;
+    // NOTHING HERE MAY TOUCH `animation`, AND THAT IS THE FIX.
+    //
+    // This surface is the only opaque thing between the editor and the player:
+    // the stage, the lyrics and the transport are its siblings, sitting
+    // directly underneath it at a lower z-index. So any fade *of this element*
+    // is not a curtain over the mode change — it is the curtain being pulled
+    // open. An earlier attempt gave the two modes different animation names
+    // precisely so the fade would restart on every toggle, and measured in the
+    // running window it took the editor to opacity 0 in both directions and
+    // held the player fully visible through it for a quarter of a second.
+    //
+    // The name has to stay identical across both modes, because an animation
+    // restarts exactly when its name changes. Leaving `animation` undeclared
+    // here means the entrance above keeps running its course once, on mount,
+    // and a mode change cannot rewind it. The box jumps — `position` is not
+    // animatable and the window is going full screen underneath it anyway —
+    // but it jumps opaque, so nothing behind it is ever on screen.
+    //
+    // What still needs covering is the canvas, which is a bitmap and cannot
+    // reflow; that is handled on the canvas itself, further down.
+  }
+}
+
+@keyframes karaoke-maker-mode-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// *** The Maker assembling ***************************************************
+//
+// Its four bands in the order the grid stacks them: the header, the editing
+// surface, the lyric preview, the command dock.
+//
+// EVERY DELAY HERE STARTS AT 190ms, WHICH IS WHERE THE SURFACE ENTRANCE ABOVE
+// ENDS. That is the whole trick: the bands are a sequence *after* the surface,
+// not a cascade nested inside it. By the time the first one moves the Maker is
+// already at full opacity and back at rest, so nothing multiplies its fade or
+// adds to its travel — the failure that `stagger-in` describes and that any
+// entrance placed inside another animating box walks straight into.
+//
+// Addressed by class rather than as `> *`, because the Maker's children are
+// not only these four: three hidden file inputs sit ahead of the header, and
+// the wizard is a conditional overlay in front of them. A positional cascade
+// would spend its first beats on inputs nobody can see and hand the header
+// whichever delay was left over.
+//
+// The canvas host is on this list and the canvas inside it is not. Fading a
+// band that contains a canvas costs one composite of an already-painted layer;
+// touching the canvas itself would mean asking the editor to repaint the
+// project mid-entrance.
+.karaoke-maker__header {
+  @include animate(rise-in, $motion-base, $ease-out, 190ms);
+}
+
+// A fade rather than a delayed rise, and short rather than staged. The band
+// still arrives after the header, just by less.
+.karaoke-maker__canvas-host {
+  @include animate(karaoke-maker-mode-enter, 260ms, $ease-out, 60ms);
+}
+
+// *** The one thing a mode change really does have to cover *******************
+//
+// The editor's frame is DOM and reflows cleanly at any size. The drawing is
+// not: it is a bitmap of fixed pixel dimensions, resized by a ResizeObserver
+// that fires *after* the layout it observes has been laid out. So for the
+// frame or two between the box changing size and the repaint landing, the old
+// bitmap is stretched to the new box — notes at the wrong width, the playhead
+// in the wrong place. That is the only genuine artefact in the swap.
+//
+// Fading the canvas alone covers it, and covers it *inside* the editor: the
+// host keeps its own opaque `#071727`, its border and its radius, so the band
+// holds its shape and only the drawing dissolves and comes back. The surface
+// above stays at full opacity throughout, which is what keeps the player out
+// of sight — see the note on `.is-fullscreen`.
+//
+// Two keyframes with one body, and they must stay twins. An animation only
+// restarts when its *name* changes, so the docked mode and the full-screen
+// mode each need their own name for the fade to play in both directions.
+// Collapsing them into one name is the bug this pair exists to prevent: the
+// canvas would then settle on mount and never again.
+//
+// 260ms is measured rather than chosen. The repaint lands a frame or two
+// behind the mode change, and a fade shorter than that finishes while the
+// canvas is still showing the stale bitmap — putting the artefact back on
+// screen at full opacity. It has to outlast the repaint, not merely start
+// with it.
+.karaoke-maker__canvas {
+  @include animate(karaoke-maker-canvas-settle, 260ms, $ease-out);
+}
+
+.karaoke-maker.is-fullscreen .karaoke-maker__canvas {
+  @include animate(karaoke-maker-canvas-resettle, 260ms, $ease-out);
+}
+
+@keyframes karaoke-maker-canvas-settle {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// The twin of the above. See the comment there before changing either.
+@keyframes karaoke-maker-canvas-resettle {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.karaoke-maker-preview {
+  @include animate(rise-in, $motion-base, $ease-out, 280ms);
+}
+
+.karaoke-maker__command-dock {
+  @include animate(rise-in, $motion-base, $ease-out, 325ms);
+}
+
+.karaoke-maker__header {
+  position: relative;
+  // ABOVE THE COMMAND DOCK, WHICH IS 12. Every one of the Maker's menus hangs
+  // out of this bar — the tool popovers, the export list — and `z-index` on a
+  // positioned element opens a stacking context, so the 20 those popovers ask
+  // for is 20 *within the header*, not within the editor. Against a dock that
+  // outranked the header they were painted underneath it no matter what they
+  // asked for, and the Advanced popover, which is the tall one, was cut off
+  // along the top edge of the transport with the rest of its contents
+  // unreachable. Nothing else here overlaps the dock, so this only ever
+  // decides which of the two wins where a menu is already hanging over it.
+  z-index: 13;
+  display: grid;
+  // Equal flexible flanks keep the Maker tools centered in the whole header,
+  // not merely in the gap between an unequal title and action cluster.
+  grid-template-areas: 'identity tools actions';
+  grid-template-columns: minmax(300px, 1fr) auto minmax(300px, 1fr);
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  min-height: 54px;
+  padding: 5px 12px;
+  // The toolbar in the pane colour, a bar of its own over the floor the
+  // song is edited on, as the titlebar is over the app's (Ivan, 2026-09-27:
+  // "make tool bar be another color like pane colors so is different"), and
+  // parted from it by the panes' own hairline, edge to edge.
+  background: $surface-panel;
+  border-bottom: 1px solid $border-panel;
+}
+
+.karaoke-maker__header-tools {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  grid-area: tools;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+
+  > .karaoke-maker__tools {
+    min-height: 42px;
+    padding: 0;
+  }
+}
+
+.karaoke-maker__identity,
+.karaoke-maker__header-actions,
+.karaoke-maker__tool-group,
+.karaoke-maker__fields {
+  display: flex;
+  align-items: center;
+}
+
+.karaoke-maker__kind-picker {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: $maker-quiet;
+  border-radius: $radius-xs;
+
+  button {
+    min-height: 23px;
+    padding: 0 6px;
+    font-size: $text-body;
+    border-radius: $radius-xs;
+  }
+}
+
+.karaoke-maker__identity {
+  grid-area: identity;
+  min-width: 0;
+  overflow: hidden;
+  gap: 9px;
+
+  > div {
+    display: grid;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.karaoke-maker__eyebrow {
+  color: $secondary-default;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+  @include tracking(0.14em);
+}
+
+.karaoke-maker__title-input {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 0;
+  color: $text-muted;
+  font-size: 15px;
+  font-weight: $weight-bold;
+  background: transparent;
+  border: 0;
+  outline: 0;
+
+  &:focus {
+    box-shadow: none;
+  }
+}
+
+.karaoke-maker__header-actions {
+  grid-area: actions;
+  position: relative;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  justify-self: end;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, $secondary-default 12%, transparent);
+  border-radius: $radius-l;
+  box-shadow: inset 0 1px rgba($white, 0.025);
+}
+
+.karaoke-maker__header-icon,
+.karaoke-maker__header-action {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  &::after {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    z-index: 40;
+    padding: 5px 7px;
+    color: $text-muted;
+    font-size: $text-body;
+    font-weight: $weight-bold;
+    white-space: nowrap;
+    pointer-events: none;
+    visibility: hidden;
+    @include floating-surface($tooltip-lift);
+    opacity: 0;
+    transform: translate(-50%, -3px);
+    transition:
+      opacity 120ms ease,
+      transform 120ms ease,
+      visibility 120ms;
+    content: attr(data-tooltip);
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 320ms;
+  }
+}
+
+// The Apply explanation is sentence-length. Anchor the last two header
+// tooltips to the right edge and allow wrapping so they never leave a laptop
+// viewport or cover the transport from edge to edge.
+.karaoke-maker__header-actions > :nth-last-child(-n + 2)::after {
+  right: 0;
+  left: auto;
+  width: max-content;
+  max-width: min(310px, calc(100vw - 24px));
+  line-height: 1.35;
+  white-space: normal;
+  transform: translateY(-3px);
+}
+
+.karaoke-maker__header-actions > :nth-last-child(-n + 2):hover::after,
+.karaoke-maker__header-actions > :nth-last-child(-n + 2):focus-visible::after {
+  transform: translateY(0);
+}
+
+// Same reason as the two above, mirrored. The back arrow's tooltip is one word
+// most of the time and a sentence while a model is running; centred on a
+// button that sits against the left edge, that sentence left the window.
+.karaoke-maker__header-back::after {
+  left: 0;
+  width: max-content;
+  max-width: min(310px, calc(100vw - 24px));
+  line-height: 1.35;
+  white-space: normal;
+  transform: translateY(-3px);
+}
+
+.karaoke-maker__header-back:hover::after,
+.karaoke-maker__header-back:focus-visible::after {
+  transform: translateY(0);
+}
+
+// A HEADER BUTTON THAT IS OFF HAS TO LOOK OFF.
+//
+// Nothing here had a disabled appearance: `.karaoke-maker__header-icon` only
+// withholds its hover, so Undo with no history looked exactly like Undo with
+// history. That was survivable for Undo and is not for these two — the back
+// arrow and Apply are shut while a local model runs, and an unchanged button
+// that ignores the click is the bug this rule exists to prevent. The tooltip
+// on each says why; this is what makes anyone stop and read it.
+.karaoke-maker__header-icon:disabled,
+.karaoke-maker__header-action:disabled {
+  opacity: $disabled-opacity;
+  cursor: not-allowed;
+}
+
+.karaoke-maker__header-icon {
+  width: 32px;
+  min-width: 32px !important;
+  height: 32px;
+  min-height: 32px !important;
+  padding: 0 !important;
+  color: $text-accent !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+
+  &:hover:not(:disabled) {
+    color: $secondary-light !important;
+    background: color-mix(
+      in srgb,
+      $secondary-default 12%,
+      transparent
+    ) !important;
+    border-color: color-mix(
+      in srgb,
+      $secondary-default 22%,
+      transparent
+    ) !important;
+  }
+}
+
+.karaoke-maker__fullscreen-exit {
+  width: 32px;
+  min-width: 32px !important;
+  padding: 0 !important;
+  color: $secondary-light !important;
+  background: color-mix(
+    in srgb,
+    $secondary-default 10%,
+    transparent
+  ) !important;
+  border-color: color-mix(
+    in srgb,
+    $secondary-default 24%,
+    transparent
+  ) !important;
+  border-radius: $radius-xs !important;
+}
+
+.karaoke-maker__header-back {
+  flex: 0 0 auto;
+  background: $maker-quiet !important;
+  border-color: color-mix(
+    in srgb,
+    $secondary-default 19%,
+    transparent
+  ) !important;
+  border-radius: $radius-xs !important;
+}
+
+.karaoke-maker__header-action {
+  min-height: 32px !important;
+  padding-inline: 10px !important;
+  font-size: $text-lead;
+}
+
+.karaoke-maker__tools {
+  position: relative;
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 4px 10px;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.karaoke-maker__tool-group {
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 3px;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 54, 72, 0.58),
+    color-mix(in srgb, $surface-base 66%, transparent)
+  );
+  border: 1px solid color-mix(in srgb, $secondary-default 18%, transparent);
+  border-radius: $radius-m;
+  box-shadow:
+    inset 0 1px rgba($white, 0.025),
+    0 6px 18px color-mix(in srgb, $surface-base 10%, transparent);
+}
+
+// The language Dropdown's trigger wears the tool-button surface, not
+// `field-surface`. Left alone it drew the app's form-field box — bordered,
+// gradient, $control-height (38px) tall — beside the borderless 32px
+// .karaoke-maker__tool-buttons either side of it, which was the one control
+// on this strip that did not look like the strip. `Library.scss`'s
+// `.library-toolbar__sort` documents the identical failure against its own
+// 23px pills and fixes it the same way: give the trigger the surrounding
+// bar's surface instead of the generic field one.
+//
+// Colours are copied from `.karaoke-maker__tool-button` above rather than
+// reached for from `color`/`theme`'s general tokens the way
+// `LanguagePicker.scss` does: this toolbar keeps its own cyan-glow palette as
+// literal rgba() throughout, and matching the app's default field tokens
+// would still have matched the wrong bar. The portalled menu is untouched —
+// it is meant to look like every other Dropdown's menu, the same call
+// `LanguagePicker.scss` makes for its own list.
+.karaoke-maker__translation-group .dropdown > [role='menu'] {
+  min-height: $control-height-sm;
+  padding: 0 10px;
+  color: $text-muted;
+  background: transparent;
+  border-color: transparent;
+  // $radius-xs (8px) matches .karaoke-maker__tool-button's own radius
+  // exactly; $radius-s, field-surface's default, is visibly rounder.
+  border-radius: $radius-xs;
+  box-shadow: none;
+  font-size: $text-body;
+
+  &:hover:not([aria-disabled='true']),
+  &:focus-visible {
+    color: $secondary-light;
+    background: linear-gradient(
+      180deg,
+      rgba(37, 141, 148, 0.2),
+      color-mix(in srgb, $surface-base 32%, transparent)
+    );
+    border-color: color-mix(in srgb, $secondary-default 38%, transparent);
+  }
+}
+
+.karaoke-maker__tool-cluster,
+.karaoke-maker__export-wrap {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.karaoke-maker__tool-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px !important;
+  padding: 0 !important;
+  color: $text-muted !important;
+  background: transparent !important;
+  border-color: transparent !important;
+  border-radius: $radius-xs !important;
+  box-shadow: none !important;
+  isolation: isolate;
+
+  svg {
+    width: 17px;
+    height: 17px;
+    filter: drop-shadow(0 0 6px transparent);
+    transition:
+      filter 150ms ease,
+      transform 150ms ease;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible,
+  &.is-active {
+    color: $secondary-light !important;
+    background: linear-gradient(
+      180deg,
+      rgba(37, 141, 148, 0.2),
+      color-mix(in srgb, $surface-base 32%, transparent)
+    ) !important;
+    border-color: color-mix(
+      in srgb,
+      $secondary-default 38%,
+      transparent
+    ) !important;
+    box-shadow:
+      inset 0 0 14px color-mix(in srgb, $secondary-default 8%, transparent),
+      0 0 12px color-mix(in srgb, $secondary-default 8%, transparent) !important;
+
+    svg {
+      filter: drop-shadow(
+        0 0 5px color-mix(in srgb, $secondary-default 42%, transparent)
+      );
+      transform: translateY(-1px);
+    }
+  }
+
+  &.is-active::before {
+    position: absolute;
+    right: 4px;
+    bottom: 3px;
+    width: 4px;
+    height: 4px;
+    background: $secondary-default;
+    border-radius: 50%;
+    box-shadow: 0 0 7px $secondary-default;
+    content: '';
+  }
+
+  &::after {
+    position: absolute;
+    top: calc(100% + 9px);
+    left: 50%;
+    z-index: 30;
+    max-width: 210px;
+    padding: 6px 8px;
+    color: $text-muted;
+    font-size: $text-lead;
+    font-weight: $weight-bold;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    visibility: hidden;
+    @include floating-surface($tooltip-lift);
+    opacity: 0;
+    transform: translate(-50%, -3px);
+    transition:
+      opacity 120ms ease,
+      transform 120ms ease,
+      visibility 120ms;
+    content: attr(data-tooltip);
+  }
+
+  &:hover:not(:disabled)::after,
+  &:focus-visible::after {
+    visibility: visible;
+    opacity: 1;
+    transform: translate(-50%, 0);
+    transition-delay: 360ms;
+  }
+
+  &.is-active::after {
+    display: none;
+  }
+
+  &.is-danger:hover:not(:disabled),
+  &.is-danger:focus-visible {
+    color: $amber !important;
+    background: rgba($red, 0.32) !important;
+    border-color: rgba(255, 103, 126, 0.4) !important;
+    box-shadow: inset 0 0 14px rgba($red, 0.08) !important;
+  }
+}
+
+.karaoke-maker__tool-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.karaoke-maker__tool-popover {
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 50%;
+  z-index: 20;
+  padding: 7px;
+  // The second half of the clipping fix above. Out-ranking the dock lets a
+  // popover hang over the whole editor; this is what happens when one is
+  // taller than the editor itself, which the Advanced panel becomes as soon as
+  // a song has been split — two waveforms, a fader and five actions. The
+  // Maker's own `overflow: hidden` would otherwise cut it at the bottom of the
+  // window with no way to reach the rest, and a menu whose last item cannot be
+  // clicked is the same bug in a different place.
+  //
+  // THE TRANSPORT BAR IS PART OF THAT SUM. This capped itself against the
+  // viewport while the box that actually clips it is `.karaoke-maker`, which
+  // is `inset: 0` inside a `#root` that pads 74px out of its own foot to
+  // reserve the bar's strip. So the popover was ~50px taller than the space it
+  // could be seen in: it never overflowed *itself*, never grew a scrollbar,
+  // and its tail was cut by the Maker's `overflow: hidden` with no way to
+  // reach it. Reported as the panel having no scroll, which is exactly what it
+  // looks like — the last row of "when it is idle" sat under the bar.
+  //
+  // Zero when no bar is up, so a window without one keeps the full height.
+  // `--now-playing-bar-height` is published by `useTransportStrip` and is the
+  // card plus its inset, which is the same strip `#root` reserves.
+  --karaoke-popover-foot: 0px;
+
+  // Every band between the top of the window and the foot of the Maker, named
+  // rather than rolled into one number, because subtracting the bar alone was
+  // not enough and it took a measurement to see why: the cap was written
+  // against the viewport while the box that clips the popover is the Maker,
+  // and the Maker neither starts at the top of the window nor ends at the
+  // bottom of it.
+  //
+  // Measured in the running window at 852px tall, with a bar up: title bar 74,
+  // shell gutter 12, Maker top 87 — the extra 1 is the workspace card's own
+  // border. Header 101, popover 9 below the toolbar it hangs from, Maker
+  // bottom 759 against a bar whose reserved strip starts at 774 and a bottom
+  // gutter of 14. That leaves 562px of room for a popover the old sum let grow
+  // to 639, and `overflow: hidden` on the Maker took the difference off the
+  // bottom — the last row of "when it is idle" sat under the bar, which is
+  // what was reported.
+  //
+  // The 20 covers the popover's own 9px drop, the two 1px card borders, and
+  // leaves the rest as air between the panel and the bar. Nothing here is a
+  // fudge factor: take a term out and the panel goes under something.
+  max-height: calc(
+    100dvh -
+      #{$title-bar-height} - var(--shell-gutter, 16px) - var(
+        --shell-gutter-bottom,
+        18px
+      ) - var(--karaoke-popover-foot) - var(
+        --karaoke-maker-header-height,
+        56px
+      ) -
+      20px
+  );
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  // The menus' material (`menu-surface`): a panel dropped from a tool is a
+  // menu, and on the block colour with a cyan wash it was a slab of its own
+  // over the editor (2026-09-26).
+  @include floating-surface(
+    0 22px 48px color-mix(in srgb, $surface-base 48%, transparent)
+  );
+  background: $surface-menu-floor;
+  transform: translateX(-50%);
+  // Pops out of the button it hangs under. A pop, not the menus' fold: the
+  // fold is a `transform`, and this one's transform is what centres it. The
+  // origin is the box before that shift, whose left edge is the middle it is
+  // centred on.
+  transform-origin: top left;
+  @include animate(pop-in, $motion-fast, $ease-spring);
+  @include slim-scrollbar;
+}
+
+// Both states of the bar, and deliberately not `:not(.is-floating-bar)`. When
+// the strip is reserved the Maker's box stops above the bar and the popover is
+// clipped by it; when the bar floats the Maker reaches the window edge and the
+// bar is drawn on top instead. Cut off and covered up are the same thing to
+// somebody trying to press the last button.
+#root.has-now-playing .karaoke-maker__tool-popover {
+  --karaoke-popover-foot: var(--now-playing-bar-height, 0px);
+}
