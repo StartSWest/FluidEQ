@@ -42,12 +42,6 @@ extern "C" {
 #define FEQ_DENOISE_MAX_HUM_PARTIALS 10
 /** Stereo. A third channel would reuse the second one's state. */
 #define FEQ_DENOISE_CHANNELS 2
-/**
- * The most delay the stage ever adds, whatever its modules are set to. Public
- * because a chain wider than `FEQ_DENOISE_CHANNELS` has to hold the channels
- * this stage does not touch back by the same amount, and sizes that line once.
- */
-#define FEQ_DENOISE_MAX_LATENCY_FRAMES 32768
 
 /** Matches `DENOISE_PROFILE_SOURCES`; the wire carries the index. */
 typedef enum FeqDenoiseProfileSource {
@@ -247,6 +241,19 @@ void feq_denoise_wake_workers(FeqDenoise* denoise);
 
 /** Added delay in samples, which the spectral module dominates. */
 uint32_t feq_denoise_latency_frames(const FeqDenoise* denoise);
+
+/**
+ * The most delay the stage can add at `sample_rate`, whatever its modules are
+ * set to: every module on. Public because a chain wider than
+ * `FEQ_DENOISE_CHANNELS` has to hold the channels this stage does not touch
+ * back by the same amount, and sizes that line once.
+ *
+ * A function of the rate, not one number. It was a constant, 32768, sized by
+ * hand for 192 kHz; at 384 kHz with Hiss and Voice on the stage delays 35727,
+ * and a ring too short does not fail — Isolate silently subtracts the wrong
+ * sample.
+ */
+uint32_t feq_denoise_max_latency_frames(double sample_rate);
 
 /** What the last block did. **Control thread.** */
 void feq_denoise_report(const FeqDenoise* denoise, FeqDenoiseReport* out);

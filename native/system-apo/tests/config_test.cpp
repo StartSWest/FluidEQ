@@ -511,6 +511,41 @@ void every_layer_but_the_correction_plays_by_your_eqs_row() {
         precise.comparison_curves[0][0].gain_db == -3);
 }
 
+// The config folder is writable by every user and audiodg reads it, so no
+// count in it may be the file's word alone: each band runs per sample on the
+// audio thread, each curve point per bin on the watcher thread.
+void what_one_config_may_ask_is_bounded() {
+  std::printf("what one config may ask is bounded\n");
+  using fluideq_engine::kMaxChainBands;
+  using fluideq_engine::kMaxGraphicCurves;
+  using fluideq_engine::kMaxGraphicPoints;
+  Files files;
+  std::string many;
+  for (size_t band = 0; band < kMaxChainBands + 40; ++band) {
+    many += "Filter: ON PK Fc 1000 Hz Gain 1 dB Q 1\r\n";
+  }
+  for (size_t curve = 0; curve < kMaxGraphicCurves + 5; ++curve) {
+    many += "GraphicEQ: 20 1; 20000 1\r\n";
+  }
+  files[L"C:\\cfg\\config.txt"] = many;
+  const Chain chain =
+      resolve_chain(L"C:\\cfg", {L"{AAAA}", L"Speakers"}, provider(files));
+  CHECK(chain.bands.size() == kMaxChainBands);
+  CHECK(chain.graphic_curves.size() == kMaxGraphicCurves);
+  CHECK(std::find(chain.ignored.begin(), chain.ignored.end(),
+                  "Filter beyond the band limit") != chain.ignored.end());
+
+  // POSITIVE CONTROL: the most a curve may hold is taken whole, one more
+  // point and the line is refused, all or nothing like any bad point.
+  std::string curve;
+  for (size_t point = 0; point < kMaxGraphicPoints; ++point) {
+    curve += std::to_string(20 + point) + " 0; ";
+  }
+  CHECK(parse_graphic(curve + "20000 0").empty());
+  curve.resize(curve.size() - 2);
+  CHECK(parse_graphic(curve).size() == kMaxGraphicPoints);
+}
+
 int main() {
   std::printf("fluideq engine config\n");
   follows_includes_and_device_guards();
@@ -534,6 +569,7 @@ int main() {
   treble_choice_keeps_a_group_on_the_cookbook();
   cuts_file_is_plain_cookbook_bands();
   every_layer_but_the_correction_plays_by_your_eqs_row();
+  what_one_config_may_ask_is_bounded();
   if (g_failures == 0) {
     std::printf("config: ok\n");
     return 0;

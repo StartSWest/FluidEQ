@@ -404,6 +404,10 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
     }
 
     if (detail::iequals(line.command, "Filter")) {
+      if (chain.bands.size() >= kMaxChainBands) {
+        add_ignored(chain.ignored, "Filter beyond the band limit");
+        continue;
+      }
       if (const std::optional<Band> band = parse_filter(line.body)) {
         chain.bands.push_back(*band);
         chain.bands.back().user_eq = stack.back().eq_layer;
@@ -418,6 +422,10 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
     }
 
     if (detail::iequals(line.command, "GraphicEQ")) {
+      if (chain.graphic_curves.size() >= kMaxGraphicCurves) {
+        add_ignored(chain.ignored, "GraphicEQ beyond the curve limit");
+        continue;
+      }
       std::vector<GraphicPoint> points = parse_graphic(line.body);
       if (!points.empty()) {
         if (stack.back().curve_layer) {

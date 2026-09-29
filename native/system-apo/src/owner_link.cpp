@@ -130,9 +130,12 @@ void OwnerLink::run() {
 }
 
 void OwnerLink::connect() {
-  const HANDLE pipe =
-      CreateFileW(pipe_name_.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING,
-                  FILE_FLAG_OVERLAPPED, nullptr);
+  // Identification only, as in `analysis_link.cpp`: whoever serves this name
+  // may learn who connected, never act as audiodg's account.
+  const HANDLE pipe = CreateFileW(
+      pipe_name_.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING,
+      FILE_FLAG_OVERLAPPED | SECURITY_SQOS_PRESENT | SECURITY_IDENTIFICATION,
+      nullptr);
   if (pipe == INVALID_HANDLE_VALUE) {
     const DWORD error = GetLastError();
     // Not found is FluidEQ not running, which is the ordinary answer and says

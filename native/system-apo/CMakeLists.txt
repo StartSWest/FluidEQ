@@ -272,6 +272,19 @@ target_link_libraries(fluideq-engine-multi-sz-test
   PRIVATE fluideq-engine-setup-core feq_strict)
 add_test(NAME engine-multi-sz COMMAND fluideq-engine-multi-sz-test)
 
+# The digest of every DLL the helper installs, compiled into the helper so it
+# installs nothing else (`setup/digest.h`). Run every build, after the engine
+# is linked; the header is rewritten only when a digest changes.
+set(FEQ_SHIPPED_DLLS_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated")
+add_custom_target(fluideq-engine-shipped-dlls
+  COMMAND "${CMAKE_COMMAND}"
+    "-DENGINE=$<TARGET_FILE:fluideq-engine>"
+    "-DOUTPUT=${FEQ_SHIPPED_DLLS_DIR}/shipped_dlls.h"
+    -P "${CMAKE_CURRENT_SOURCE_DIR}/setup/shipped_dlls.cmake"
+  BYPRODUCTS "${FEQ_SHIPPED_DLLS_DIR}/shipped_dlls.h"
+  VERBATIM)
+add_dependencies(fluideq-engine-shipped-dlls fluideq-engine)
+
 # The helper that installs the effect, attaches it to outputs and takes it all
 # back out again. It ships beside the DLL and runs in place; nothing else in
 # the product writes the registry.
@@ -279,17 +292,32 @@ add_executable(fluideq-engine-setup
   setup/main.cpp setup/commands.cpp setup/registry.cpp
   setup/com_registration.cpp setup/endpoints.cpp
   setup/elevate.cpp setup/services.cpp setup/acl.cpp setup/backup.cpp
-  setup/slot_memory.cpp
+  setup/slot_memory.cpp setup/digest.cpp
   setup/fs.cpp setup/console.cpp
   # The version resource is what the consent prompt shows the user before
   # they decide whether to let this program change their machine.
   setup/setup.rc)
+add_dependencies(fluideq-engine-setup fluideq-engine-shipped-dlls)
+target_include_directories(fluideq-engine-setup PRIVATE
+  "${FEQ_SHIPPED_DLLS_DIR}")
 target_link_libraries(fluideq-engine-setup PRIVATE
   fluideq-engine-setup-core feq_strict
   # advapi32: the registry, the service control manager and the security
   # descriptor. shell32: the known folders and the elevated relaunch. ole32:
   # the device enumerator. version: the installed DLL's version resource.
-  advapi32 shell32 ole32 version)
+  # bcrypt: the digest every DLL is checked against before it is installed.
+  advapi32 shell32 ole32 version bcrypt)
+
+# The digests the helper was built with are the build's own: the engine it
+# shipped beside hashes to what it expects, a DLL it never shipped with has
+# no digest at all, and the hash itself is SHA-256 (a published test vector).
+add_executable(fluideq-engine-digest-test tests/digest_test.cpp setup/digest.cpp)
+add_dependencies(fluideq-engine-digest-test fluideq-engine-shipped-dlls)
+target_include_directories(fluideq-engine-digest-test PRIVATE
+  "${FEQ_SHIPPED_DLLS_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/setup")
+target_link_libraries(fluideq-engine-digest-test PRIVATE feq_strict bcrypt)
+add_test(NAME engine-digest
+  COMMAND fluideq-engine-digest-test $<TARGET_FILE:fluideq-engine>)
 set_target_properties(fluideq-engine-setup PROPERTIES
   OUTPUT_NAME "FluidEQ-Engine-Setup"
   # The windows subsystem, so Windows never gives this program a console of

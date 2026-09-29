@@ -178,6 +178,7 @@ const copyCrtDlls = (vsRoot: string): void => {
   }
 
   const binDir = path.join(BUILD_DIR, 'bin');
+  mkdirSync(binDir, { recursive: true });
   for (const name of CRT_DLLS) {
     const source = path.join(sourceDir, name);
     if (!existsSync(source)) {
@@ -397,6 +398,13 @@ run(tools, [
   `-DFEQ_BUILD_REVISION=${gitRevision()}`,
 ]);
 
+// Before the build, not after: the engine's setup helper is compiled with the
+// digest of every DLL it installs (`shipped_dlls.cmake`), the runtime's
+// included, and installs nothing whose bytes differ.
+if (isWindows) {
+  copyCrtDlls(tools.vsRoot);
+}
+
 run(tools, ['--build', BUILD_DIR, '--config', 'Release']);
 
 if (shouldTest) {
@@ -501,6 +509,5 @@ if (isWindows) {
   if (!existsSync(mediaWatchPath)) {
     fail(`the media helper was not produced at ${mediaWatchPath}`);
   }
-  copyCrtDlls(tools.vsRoot);
 }
 console.log(`native dsp build: ${hostPath}`);

@@ -17,15 +17,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace fluideq_engine::setup {
 
-namespace {
-
-std::wstring slots_dir() {
-  const std::wstring root = engine_root();
-  return root.empty() ? root : root + L"\\slots";
-}
-
-}  // namespace
-
 const wchar_t* slot_name(Slot slot) {
   switch (slot) {
     case Slot::Mfx:

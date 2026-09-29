@@ -11,7 +11,6 @@ constexpr std::uint32_t kMaxPacketFrames = 8192;
 struct PlaybackStats {
   double buffered_ms = 0;
   double target_ms = 30;
-  double correction_ppm = 0;
   double peak = 0;
   double rms = 0;
   std::uint64_t underruns = 0;

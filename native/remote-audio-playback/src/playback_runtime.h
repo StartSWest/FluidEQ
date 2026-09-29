@@ -23,8 +23,8 @@ class PlaybackRuntime {
   static void render(void* self, float* pcm, std::uint32_t frames);
   void reclaim();
   struct Retired { std::unique_ptr<feq::remote::PeerPlayback> peer; std::uint64_t block; };
-  std::array<std::unique_ptr<feq::remote::PeerPlayback>, 8> peers_{};
-  std::array<std::atomic<feq::remote::PeerPlayback*>, 8> audible_{};
+  std::array<std::unique_ptr<feq::remote::PeerPlayback>, feq::remote::kMaxPeers> peers_{};
+  std::array<std::atomic<feq::remote::PeerPlayback*>, feq::remote::kMaxPeers> audible_{};
   std::vector<Retired> retired_;
   std::atomic<std::uint64_t> blocks_{0};
   std::atomic<float> volume_{1};

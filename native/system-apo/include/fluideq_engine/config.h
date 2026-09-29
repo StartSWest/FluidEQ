@@ -61,6 +61,21 @@ struct GraphicPoint {
   double gain_db;
 };
 
+/**
+ * The most one configuration may ask of the engine. The config folder is
+ * writable by every user and is read by audiodg: each band is a biquad per
+ * sample per channel on the audio thread, and one 4 MiB file holds a hundred
+ * thousand `Filter:` lines — enough to miss every deadline on the output for
+ * as long as it stays written. What FluidEQ writes comes to 45 bands (a
+ * correction, a preset and a Smart EQ) plus somebody's own; 256 leaves an
+ * Equalizer APO user's long list room. A GraphicEQ line is 127 points from
+ * AutoEQ and a few thousand from REW; its cost is paid on the watcher thread,
+ * where `Watcher::stop` waits for it with no way to cut it short.
+ */
+constexpr size_t kMaxChainBands = 256;
+constexpr size_t kMaxGraphicCurves = 32;
+constexpr size_t kMaxGraphicPoints = 16384;
+
 /** Everything Equalizer APO would apply to one endpoint, once resolved. */
 struct Chain {
   // Empty when no `Convolution:` line applied. Absolute: a relative one on

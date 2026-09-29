@@ -16,7 +16,7 @@ HRESULT PlaybackRuntime::open(const std::wstring& guid) {
 }
 bool PlaybackRuntime::push(unsigned id, std::uint32_t rate, std::uint16_t channels,
                            std::uint32_t frames, std::uint32_t sequence, const float* pcm) {
-  if (id == 0 || id > 8 || rate < 8000 || rate > 384000 || channels == 0 || channels > 8 ||
+  if (id == 0 || id > feq::remote::kMaxPeers || rate < 8000 || rate > 384000 || channels == 0 || channels > feq::remote::kMaxChannels ||
       frames == 0 || frames > feq::remote::kMaxPacketFrames || output_.rate() == 0) return false;
   reclaim();
   // Bound objects awaiting the render thread if an input changes format
@@ -36,18 +36,18 @@ bool PlaybackRuntime::push(unsigned id, std::uint32_t rate, std::uint16_t channe
   return true;
 }
 void PlaybackRuntime::remove(unsigned id) {
-  if (id == 0 || id > 8) return;
+  if (id == 0 || id > feq::remote::kMaxPeers) return;
   audible_[id - 1].store(nullptr);
   if (peers_[id - 1]) retired_.push_back({std::move(peers_[id - 1]), blocks_.load()});
   reclaim();
 }
-void PlaybackRuntime::reset() { for (unsigned id = 1; id <= 8; ++id) remove(id); }
+void PlaybackRuntime::reset() { for (unsigned id = 1; id <= feq::remote::kMaxPeers; ++id) remove(id); }
 void PlaybackRuntime::reclaim() {
   const auto block = blocks_.load();
   std::erase_if(retired_, [block](const Retired& old) { return block - old.block >= 2; });
 }
 feq::remote::PlaybackStats PlaybackRuntime::stats(unsigned id) const {
-  return id > 0 && id <= 8 && peers_[id - 1] ? peers_[id - 1]->stats() : feq::remote::PlaybackStats{};
+  return id > 0 && id <= feq::remote::kMaxPeers && peers_[id - 1] ? peers_[id - 1]->stats() : feq::remote::PlaybackStats{};
 }
 void PlaybackRuntime::render(void* context, float* pcm, std::uint32_t frames) {
   auto& self = *static_cast<PlaybackRuntime*>(context);

@@ -18,6 +18,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace {
 
+/**
+ * The widest and fastest file taken. A header's counts are the file's word,
+ * and each sizes an allocation: `read` holds a block of every channel, and a
+ * 16-bit channel field of 65535 asked it for 2 GB on the decoder thread, where
+ * a failed allocation ends the host. 32 channels covers every speaker layout
+ * WAV names and third-order ambisonics; 768 kHz is the fastest PCM sold.
+ */
+constexpr uint32_t kMaxFileChannels = 32;
+constexpr uint32_t kMaxFileRate = 768000;
+
+/**
+ * The bytes of a `fmt ` or `COMM` chunk anything here reads: 40 is the end of
+ * WAVE_FORMAT_EXTENSIBLE's GUID, 22 the end of AIFF-C's codec tag. The chunk's
+ * own size is the file's word too, and a claimed 4 GB `fmt ` chunk used to be
+ * allocated whole before a byte of it was read.
+ */
+constexpr size_t kFormatBytes = 40;
+constexpr size_t kCommonBytes = 22;
+
 enum class Encoding {
   Unsupported,
   /** Two's complement, 8 to 32 bits, little- or big-endian. */
@@ -125,14 +144,15 @@ bool parse_wav(PcmFile& file) {
     const std::streampos body = file.stream.tellg();
 
     if (std::memcmp(chunk, "fmt ", 4) == 0 && size >= 16) {
-      std::vector<uint8_t> format(size);
-      if (!read_exact(file.stream, format.data(), size)) {
+      uint8_t format[kFormatBytes]{};
+      const size_t wanted = size < kFormatBytes ? size : kFormatBytes;
+      if (!read_exact(file.stream, format, wanted)) {
         return false;
       }
-      format_tag = read_le16(format.data());
-      file.channels = read_le16(format.data() + 2);
-      file.sample_rate = read_le32(format.data() + 4);
-      bits = read_le16(format.data() + 14);
+      format_tag = read_le16(format);
+      file.channels = read_le16(format + 2);
+      file.sample_rate = read_le32(format + 4);
+      bits = read_le16(format + 14);
       /**
        * WAVE_FORMAT_EXTENSIBLE moves the real tag into a GUID.
        *
@@ -140,8 +160,8 @@ bool parse_wav(PcmFile& file) {
        * uses it, and a reader that only knows tags 1 and 3 rejects most of a
        * high-resolution library while accepting the CD rips beside it.
        */
-      if (format_tag == 0xFFFE && size >= 40) {
-        format_tag = read_le16(format.data() + 24);
+      if (format_tag == 0xFFFE && wanted >= kFormatBytes) {
+        format_tag = read_le16(format + 24);
       }
       have_format = true;
     } else if (std::memcmp(chunk, "data", 4) == 0) {
@@ -161,8 +181,9 @@ bool parse_wav(PcmFile& file) {
       break;
     }
   }
-  if (!have_format || file.channels == 0 || file.sample_rate == 0 ||
-      file.data_bytes == 0) {
+  if (!have_format || file.channels == 0 ||
+      file.channels > kMaxFileChannels || file.sample_rate == 0 ||
+      file.sample_rate > kMaxFileRate || file.data_bytes == 0) {
     return false;
   }
 
@@ -212,17 +233,21 @@ bool parse_aiff(PcmFile& file) {
     const std::streampos body = file.stream.tellg();
 
     if (std::memcmp(chunk, "COMM", 4) == 0 && size >= 18) {
-      std::vector<uint8_t> common(size);
-      if (!read_exact(file.stream, common.data(), size)) {
+      uint8_t common[kCommonBytes]{};
+      const size_t wanted = size < kCommonBytes ? size : kCommonBytes;
+      if (!read_exact(file.stream, common, wanted)) {
         return false;
       }
-      file.channels = read_be16(common.data());
-      file.total_frames = read_be32(common.data() + 2);
-      bits = read_be16(common.data() + 6);
+      file.channels = read_be16(common);
+      file.total_frames = read_be32(common + 2);
+      bits = read_be16(common + 6);
+      // Clamped before the cast: a rate past uint32's range is undefined
+      // behaviour to convert, and nothing that fast is a recording anyway.
+      const double rate = read_extended80(common + 8);
       file.sample_rate =
-          static_cast<uint32_t>(read_extended80(common.data() + 8));
-      if (compressed && size >= 22) {
-        const uint8_t* codec = common.data() + 18;
+          rate > 0.0 && rate <= kMaxFileRate ? static_cast<uint32_t>(rate) : 0;
+      if (compressed && wanted >= kCommonBytes) {
+        const uint8_t* codec = common + 18;
         if (std::memcmp(codec, "sowt", 4) == 0) {
           // Little-endian PCM in a big-endian container: what every Mac
           // recorder writes, and the one AIFF-C variant that is not a codec.
@@ -257,7 +282,8 @@ bool parse_aiff(PcmFile& file) {
       break;
     }
   }
-  if (!have_common || file.channels == 0 || file.sample_rate == 0 ||
+  if (!have_common || file.channels == 0 ||
+      file.channels > kMaxFileChannels || file.sample_rate == 0 ||
       file.total_frames == 0) {
     return false;
   }

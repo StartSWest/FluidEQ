@@ -74,11 +74,6 @@ uint32_t device_frames_for(double device_rate, uint32_t model_frames) {
                                             device_rate / kVoiceRate));
 }
 
-/** One overlap-add hop, plus the worker's four-hop scheduling headroom. */
-uint32_t voice_latency_for(double device_rate) {
-  return device_frames_for(device_rate, kVoiceHop) +
-         device_frames_for(device_rate, kVoiceHop * kDenoiseVoiceLatencyFrames);
-}
 
 /**
  * A single-producer, single-consumer float ring.
@@ -350,18 +345,21 @@ void process_hop(VoiceRuntime& runtime, VoiceChannel& channel) {
 
   const int64_t spec_shape[4] = {1, 1, static_cast<int64_t>(kVoiceBins), 2};
   const int64_t state_shape[1] = {static_cast<int64_t>(channel.state.size())};
+  // Every call through `ort_ok`: a failure hands back a status this code owns,
+  // and a model that fails every hop dropped one each 10 ms for as long as
+  // the Voice module played.
   OrtValue* spec_value = nullptr;
   OrtValue* state_value = nullptr;
-  if (api->CreateTensorWithDataAsOrtValue(
-          runtime.memory, spectrum.data(), spectrum.size() * sizeof(float),
-          spec_shape, 4, ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT,
-          &spec_value) != nullptr) {
+  if (!ort_ok(api, api->CreateTensorWithDataAsOrtValue(
+                       runtime.memory, spectrum.data(),
+                       spectrum.size() * sizeof(float), spec_shape, 4,
+                       ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, &spec_value))) {
     return;
   }
-  if (api->CreateTensorWithDataAsOrtValue(
-          runtime.memory, channel.state.data(),
-          channel.state.size() * sizeof(float), state_shape, 1,
-          ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, &state_value) != nullptr) {
+  if (!ort_ok(api, api->CreateTensorWithDataAsOrtValue(
+                       runtime.memory, channel.state.data(),
+                       channel.state.size() * sizeof(float), state_shape, 1,
+                       ONNX_TENSOR_ELEMENT_DATA_TYPE_FLOAT, &state_value))) {
     api->ReleaseValue(spec_value);
     return;
   }
@@ -370,8 +368,9 @@ void process_hop(VoiceRuntime& runtime, VoiceChannel& channel) {
   const char* output_names[2] = {"spec_e", "state_out"};
   const OrtValue* inputs[2] = {spec_value, state_value};
   OrtValue* outputs[2] = {nullptr, nullptr};
-  const bool ran = api->Run(runtime.session, nullptr, input_names, inputs, 2,
-                            output_names, 2, outputs) == nullptr;
+  const bool ran =
+      ort_ok(api, api->Run(runtime.session, nullptr, input_names, inputs, 2,
+                           output_names, 2, outputs));
   api->ReleaseValue(spec_value);
   api->ReleaseValue(state_value);
   if (!ran) {
@@ -380,10 +379,10 @@ void process_hop(VoiceRuntime& runtime, VoiceChannel& channel) {
 
   float* enhanced = nullptr;
   float* next_state = nullptr;
-  if (api->GetTensorMutableData(
-          outputs[0], reinterpret_cast<void**>(&enhanced)) == nullptr &&
-      api->GetTensorMutableData(
-          outputs[1], reinterpret_cast<void**>(&next_state)) == nullptr) {
+  if (ort_ok(api, api->GetTensorMutableData(
+                      outputs[0], reinterpret_cast<void**>(&enhanced))) &&
+      ort_ok(api, api->GetTensorMutableData(
+                      outputs[1], reinterpret_cast<void**>(&next_state)))) {
     for (uint32_t bin = 0; bin < kVoiceBins; bin += 1) {
       real[bin] = enhanced[bin * 2];
       imaginary[bin] = enhanced[bin * 2 + 1];
@@ -638,6 +637,12 @@ void retire_runtime(FeqDenoise* denoise, VoiceRuntime* runtime) {
 
 }  // namespace
 
+uint32_t denoise_voice_latency_for(double device_rate) {
+  // One overlap-add hop, plus the worker's four-hop scheduling headroom.
+  return device_frames_for(device_rate, kVoiceHop) +
+         device_frames_for(device_rate, kVoiceHop * kDenoiseVoiceLatencyFrames);
+}
+
 void denoise_voice_configure(FeqDenoise* denoise) { (void)denoise; }
 
 void denoise_voice_reset(FeqDenoise* denoise) {
@@ -839,7 +844,7 @@ int denoise_voice_load_model(FeqDenoise* denoise, const char* model_path,
   runtime->channel_count = denoise->channels;
   runtime->max_frames = denoise->max_frames;
   runtime->device_rate = denoise->sample_rate;
-  runtime->voice_latency = voice_latency_for(runtime->device_rate);
+  runtime->voice_latency = denoise_voice_latency_for(runtime->device_rate);
   runtime->to_model = feq_resampler_create(runtime->device_rate, kVoiceRate,
                                            runtime->channel_count);
   runtime->from_model = feq_resampler_create(kVoiceRate, runtime->device_rate,
@@ -896,5 +901,5 @@ uint32_t denoise_voice_latency_frames(const FeqDenoise* denoise) {
       denoise->voice.load(std::memory_order_acquire) == nullptr) {
     return 0;
   }
-  return voice_latency_for(denoise->sample_rate);
+  return denoise_voice_latency_for(denoise->sample_rate);
 }

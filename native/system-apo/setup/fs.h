@@ -25,6 +25,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace fluideq_engine::setup {
 
+/** `%ProgramData%\FluidEQ`, the engine root's parent, or empty. */
+std::wstring engine_parent();
+
 /** `%ProgramData%\FluidEQ\engine`, or empty when the shell cannot answer. */
 std::wstring engine_root();
 
@@ -34,8 +37,17 @@ std::wstring config_dir();
 /** `<engine root>\backup` — one file per endpoint ever attached. */
 std::wstring backup_dir();
 
+/** `<engine root>\apo-off` — Equalizer APO's state per output, before it was switched off. */
+std::wstring apo_off_dir();
+
+/** `<engine root>\slots` — which effect slot each output was put in. */
+std::wstring slots_dir();
+
 /** `<engine root>\last-setup.json` — the result of the last elevated run. */
 std::wstring result_path();
+
+/** `<engine root>\setup.log` — one line per run, a declined prompt included. */
+std::wstring setup_log_path();
 
 /** `%ProgramFiles%\FluidEQ Engine` — where the effect DLL is installed. */
 std::wstring install_dir();
@@ -48,13 +60,32 @@ std::wstring module_dir();
 
 bool path_exists(const std::wstring& path);
 
-/** Creates `path` and every missing directory above it. */
+/**
+ * Whether any existing part of `path`, from `%ProgramData%\FluidEQ` down, is
+ * a junction or a link. Everything this program writes lands in that tree with
+ * administrator rights, and a link planted there by anybody who could write in
+ * it before its permissions were tightened would carry the write wherever the
+ * link points. False for a path outside the tree, which only administrators
+ * can write in.
+ */
+bool crosses_link(const std::wstring& path);
+
+/**
+ * Creates `path` and every missing directory above it. Refuses a path that
+ * crosses a link (`crosses_link`), with `ERROR_CANT_ACCESS_FILE`.
+ */
 bool ensure_directory(const std::wstring& path);
 
-/** UTF-8, no byte order mark: the TypeScript side reads these with `utf8`. */
+/**
+ * UTF-8, no byte order mark: the TypeScript side reads these with `utf8`.
+ * Refuses a path that crosses a link, as `ensure_directory` does.
+ */
 bool write_utf8(const std::wstring& path, std::wstring_view text);
 
-/** Adds `text` to the end of `path`, creating it; the file is never truncated. */
+/**
+ * Adds `text` to the end of `path`, creating it; the file is never truncated.
+ * Refuses a path that crosses a link.
+ */
 bool append_utf8(const std::wstring& path, std::wstring_view text);
 
 std::optional<std::wstring> read_utf8(const std::wstring& path);
@@ -64,16 +95,25 @@ std::vector<std::wstring> files_matching(const std::wstring& directory,
                                          const std::wstring& pattern);
 
 /**
- * Copies `from` over `to`, even when `to` is loaded into a running process.
+ * A file's bytes, read through one handle that nobody may write, rename or
+ * delete through while it is open — so what is checked is what gets
+ * installed, not whatever sits at the path a moment later. Nothing past
+ * `limit` bytes, and nothing that is not a plain file.
+ */
+std::optional<std::vector<unsigned char>> read_locked(const std::wstring& path,
+                                                      size_t limit);
+
+/**
+ * Writes `bytes` over `to`, even when `to` is loaded into a running process.
  *
  * audiodg.exe holds the effect DLL mapped for as long as any output has it
- * attached, so a plain copy over an existing installation fails with a
- * sharing violation — which is what reinstalling on top of a working
- * installation does. A mapped file cannot be written but can still be
- * renamed, so the old one is moved aside and left for the next reboot.
+ * attached, so writing over an existing installation fails with a sharing
+ * violation — which is what reinstalling on top of a working installation
+ * does. A mapped file cannot be written but can still be renamed, so the old
+ * one is moved aside and left for the next reboot.
  */
-bool replace_file(const std::wstring& from, const std::wstring& to,
-                  std::wstring& error);
+bool replace_with_bytes(const std::vector<unsigned char>& bytes,
+                        const std::wstring& to, std::wstring& error);
 
 /** Deletes `directory` and everything under it. Does not follow junctions. */
 bool delete_directory_tree(const std::wstring& directory);

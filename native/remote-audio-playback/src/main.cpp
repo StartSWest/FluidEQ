@@ -28,8 +28,8 @@ int main(int argc, char** argv) {
   int exit_code = 0;
   {
     PlaybackRuntime runtime(parent);
-    std::vector<float> payload(feq::remote::kMaxPacketFrames * 8 + 1);
-    std::array<std::uint32_t, 8> meter_frames{};
+    std::vector<float> payload(feq::remote::kMaxPacketFrames * feq::remote::kMaxChannels + 1);
+    std::array<std::uint32_t, feq::remote::kMaxPeers> meter_frames{};
     bool live = playback_reply(1);
     while (live) {
       PlaybackHeader header;
@@ -62,7 +62,7 @@ int main(int argc, char** argv) {
           break;
         }
         case 2: {
-          if (header.id == 0 || header.id > 8 || header.bytes != 4u + static_cast<std::uint32_t>(header.frames) * header.channels * 4u) { live = false; break; }
+          if (header.id == 0 || header.id > feq::remote::kMaxPeers || header.bytes != 4u + static_cast<std::uint32_t>(header.frames) * header.channels * 4u) { live = false; break; }
           std::uint32_t sequence = 0;
           std::memcpy(&sequence, payload.data(), 4);
           live = runtime.push(header.id, header.rate, header.channels, header.frames, sequence, payload.data() + 1);
@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
           }
           break;
         }
-        case 3: if (header.bytes != 0 || header.id == 0 || header.id > 8) live = false; else runtime.remove(header.id); break;
+        case 3: if (header.bytes != 0 || header.id == 0 || header.id > feq::remote::kMaxPeers) live = false; else runtime.remove(header.id); break;
         case 4:
           if (header.bytes != 4 || !std::isfinite(payload[0]) || payload[0] < 0 || payload[0] > 1) live = false;
           else runtime.volume(payload[0]);

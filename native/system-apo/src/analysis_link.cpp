@@ -89,9 +89,13 @@ unsigned __stdcall AnalysisLink::entry(void* self) {
 void AnalysisLink::run() {
   HANDLE events[] = {stop_, retry_};
   while (WaitForMultipleObjects(2, events, FALSE, INFINITE) == WAIT_OBJECT_0 + 1) {
+    // Identification only: whoever serves this name may learn who connected,
+    // never act as audiodg's account. Without the flag Windows offers the
+    // server full impersonation, and nothing here checks who the server is.
     const HANDLE pipe = CreateFileW(L"\\\\.\\pipe\\FluidEQ-Engine-Analysis",
         GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING,
-        FILE_FLAG_OVERLAPPED, nullptr);
+        FILE_FLAG_OVERLAPPED | SECURITY_SQOS_PRESENT | SECURITY_IDENTIFICATION,
+        nullptr);
     if (pipe == INVALID_HANDLE_VALUE) continue;
     const PipeGuard guard{pipe};
     // Fixed handshake: ASCII endpoint GUID, zero padded, then sample rate.

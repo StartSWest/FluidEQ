@@ -854,6 +854,31 @@ Everything worth knowing about them is available through commands:
   `__DATE__`, `__TIME__`, a git revision, an absolute path — may reach the
   engine or the DSP core it links; `FEQ_BUILD_REVISION` goes into the host
   alone. `engineUpdate.test.ts` holds both.
+- **The setup helper installs only the DLLs it was built beside.** `install`
+  copies them from the app's folder, which a per-user install leaves
+  writable by anything the user runs, into Program Files for audiodg — so
+  `shipped_dlls.cmake` compiles the SHA-256 of the engine and the three
+  runtime DLLs into the helper, and `install` reads each through one locked
+  handle, refuses any it has no digest for or whose bytes differ, and writes
+  the bytes it checked (`digest.h`). A DLL rebuilt without its helper (a lone
+  `--target FluidEQ-Engine`) is therefore refused by `install`; the full
+  `build-native-dsp.ts` builds both, and copies the runtime DLLs before the
+  build so their digests are in it. Sign the DLL someday and the digest has
+  to be taken after the signing.
+- **Users write in the engine's `config\` and nowhere else.** The helper
+  takes ownership of `%ProgramData%\FluidEQ` and `engine\` (the app creates
+  them unelevated when it first asks for the config folder, and an owner can
+  rewrite any permission), then: Users read on the root, modify on
+  `config\`, append-only on `setup.log`; `backup\`, `apo-off\` and `slots\`
+  read-only to them, because a deleted record left a detach or an uninstall
+  nothing to restore somebody's effects from; LOCAL SERVICE modify on the
+  root by name, for the statuses and `engine.log` (`acl.h`). Anything the app
+  writes outside `config\` fails for a standard user on an installed engine.
+  Every elevated write refuses a path through a junction or link
+  (`crosses_link` in `fs.h`), and a config is capped where audiodg pays for
+  it (`config.h`): past 256 bands or 32 GraphicEQ curves the rest are
+  ignored with a note, and a curve of more than 16384 points is refused
+  whole, as a curve with any bad point is.
 - **The setup helper is a windowed program, not a console one.** Run it from
   an interactive shell without piping or capturing its output and the shell
   returns before a single line prints. `FluidEQ-Engine-Setup.exe status |

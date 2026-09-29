@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <aclapi.h>
 
+#include <initializer_list>
 #include <string>
 #include <vector>
 
@@ -38,13 +39,25 @@ class WellKnownSid {
   std::vector<BYTE> buffer_;
 };
 
-void fill_entry(EXPLICIT_ACCESS_W& entry, PSID who, DWORD rights) {
+/** One entry of a list: who, and what they may do. */
+struct Grant {
+  WELL_KNOWN_SID_TYPE who;
+  DWORD rights;
+};
+
+/**
+ * Modify: read, write, execute and delete — and deliberately not full
+ * control, so nobody granted it can rewrite the permissions themselves.
+ */
+constexpr DWORD kModify =
+    FILE_GENERIC_READ | FILE_GENERIC_WRITE | FILE_GENERIC_EXECUTE | DELETE;
+constexpr DWORD kReadOnly = FILE_GENERIC_READ | FILE_GENERIC_EXECUTE;
+
+void fill_entry(EXPLICIT_ACCESS_W& entry, PSID who, DWORD rights,
+                DWORD inheritance) {
   entry.grfAccessPermissions = rights;
   entry.grfAccessMode = SET_ACCESS;
-  // Both flags: the configuration files live directly in a subdirectory, and
-  // the subdirectories themselves have to carry the same permissions down to
-  // whatever the app writes next.
-  entry.grfInheritance = CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE;
+  entry.grfInheritance = inheritance;
   entry.Trustee.pMultipleTrustee = nullptr;
   entry.Trustee.MultipleTrusteeOperation = NO_MULTIPLE_TRUSTEE;
   entry.Trustee.TrusteeForm = TRUSTEE_IS_SID;
@@ -53,33 +66,40 @@ void fill_entry(EXPLICIT_ACCESS_W& entry, PSID who, DWORD rights) {
 }
 
 /**
- * SYSTEM full, Administrators full, Users whatever `user_rights` says.
+ * SYSTEM full and Administrators full, then `grants`.
  *
  * The list REPLACES what was inherited (`PROTECTED_DACL_SECURITY_INFORMATION`)
- * rather than adding to it, which is also what lets `backup\` be tighter than
- * the root it sits inside: without the protected flag the root's inheritable
- * "Users modify" would come straight back down into it.
+ * rather than adding to it, which is also what lets a folder be tighter than
+ * the one it sits inside: without the protected flag the parent's inheritable
+ * entries would come straight back down into it. `inheritance` is both
+ * container and object flags for a folder, so what is written into it later
+ * carries the same list down, and none for a file.
  */
-bool apply_acl(const std::wstring& directory, DWORD user_rights,
-               std::wstring& error) {
-  WellKnownSid system;
-  WellKnownSid administrators;
-  WellKnownSid users;
-  if (!system.make(WinLocalSystemSid) ||
-      !administrators.make(WinBuiltinAdministratorsSid) ||
-      !users.make(WinBuiltinUsersSid)) {
+bool apply_acl(const std::wstring& path, std::initializer_list<Grant> grants,
+               DWORD inheritance, std::wstring& error) {
+  // Sized once, before any SID is made: each keeps its bytes in a buffer the
+  // list below points into, and growing the vector would move them.
+  std::vector<WellKnownSid> sids(grants.size() + 2);
+  std::vector<EXPLICIT_ACCESS_W> entries(grants.size() + 2);
+  bool made = sids[0].make(WinLocalSystemSid) &&
+              sids[1].make(WinBuiltinAdministratorsSid);
+  fill_entry(entries[0], sids[0].get(), FILE_ALL_ACCESS, inheritance);
+  fill_entry(entries[1], sids[1].get(), FILE_ALL_ACCESS, inheritance);
+  size_t at = 2;
+  for (const Grant& grant : grants) {
+    made = made && sids[at].make(grant.who);
+    fill_entry(entries[at], sids[at].get(), grant.rights, inheritance);
+    ++at;
+  }
+  if (!made) {
     error = L"could not build the security identifiers: " +
             describe_error(GetLastError());
     return false;
   }
 
-  EXPLICIT_ACCESS_W entries[3] = {};
-  fill_entry(entries[0], system.get(), FILE_ALL_ACCESS);
-  fill_entry(entries[1], administrators.get(), FILE_ALL_ACCESS);
-  fill_entry(entries[2], users.get(), user_rights);
-
   PACL list = nullptr;
-  const DWORD built = SetEntriesInAclW(3, entries, nullptr, &list);
+  const DWORD built = SetEntriesInAclW(static_cast<ULONG>(entries.size()),
+                                       entries.data(), nullptr, &list);
   if (built != ERROR_SUCCESS || list == nullptr) {
     error = L"could not build the permissions: " + describe_error(built);
     return false;
@@ -87,37 +107,95 @@ bool apply_acl(const std::wstring& directory, DWORD user_rights,
 
   // A mutable copy: `SetNamedSecurityInfoW` takes a writable string even
   // though it does not change it.
-  std::wstring path = directory;
+  std::wstring target = path;
   const DWORD applied = SetNamedSecurityInfoW(
-      path.data(), SE_FILE_OBJECT,
+      target.data(), SE_FILE_OBJECT,
       DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
       nullptr, nullptr, list, nullptr);
   LocalFree(list);
   if (applied != ERROR_SUCCESS) {
-    error = L"could not set the permissions on " + directory + L": " +
+    error = L"could not set the permissions on " + path + L": " +
             describe_error(applied);
     return false;
   }
   return true;
 }
 
+constexpr DWORD kFolder = CONTAINER_INHERIT_ACE | OBJECT_INHERIT_ACE;
+
+/** Turns on one of this token's privileges; false when it has none such. */
+bool enable_privilege(const wchar_t* name) {
+  HANDLE token = nullptr;
+  if (OpenProcessToken(GetCurrentProcess(),
+                       TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token) == 0) {
+    return false;
+  }
+  TOKEN_PRIVILEGES privileges = {};
+  privileges.PrivilegeCount = 1;
+  privileges.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+  const bool enabled =
+      LookupPrivilegeValueW(nullptr, name, &privileges.Privileges[0].Luid) !=
+          0 &&
+      AdjustTokenPrivileges(token, FALSE, &privileges, 0, nullptr, nullptr) !=
+          0 &&
+      // Succeeds without having assigned anything; this is how it says so.
+      GetLastError() == ERROR_SUCCESS;
+  CloseHandle(token);
+  return enabled;
+}
+
 }  // namespace
 
+bool take_ownership(const std::wstring& path, std::wstring& error) {
+  WellKnownSid administrators;
+  if (!administrators.make(WinBuiltinAdministratorsSid)) {
+    error = L"could not build the security identifiers: " +
+            describe_error(GetLastError());
+    return false;
+  }
+  // Taking ownership needs no right on the folder's list, which may not name
+  // administrators at all when the unelevated app created the folder; the
+  // privilege is what allows it, and an elevated token holds it disabled.
+  // Spelled wide: `SE_TAKE_OWNERSHIP_NAME` follows UNICODE, which this tree
+  // does not define.
+  enable_privilege(L"SeTakeOwnershipPrivilege");
+  std::wstring target = path;
+  const DWORD applied =
+      SetNamedSecurityInfoW(target.data(), SE_FILE_OBJECT,
+                            OWNER_SECURITY_INFORMATION, administrators.get(),
+                            nullptr, nullptr, nullptr);
+  if (applied != ERROR_SUCCESS) {
+    error = L"could not take ownership of " + path + L": " +
+            describe_error(applied);
+    return false;
+  }
+  return true;
+}
+
 bool apply_engine_acl(const std::wstring& directory, std::wstring& error) {
-  // Modify, which is read, write, execute and delete — and deliberately not
-  // full control: an ordinary user has no reason to be able to rewrite the
-  // permissions on a directory the audio engine reads.
   return apply_acl(directory,
-                   FILE_GENERIC_READ | FILE_GENERIC_WRITE |
-                       FILE_GENERIC_EXECUTE | DELETE,
+                   {{WinLocalServiceSid, kModify}, {WinBuiltinUsersSid, kReadOnly}},
+                   kFolder, error);
+}
+
+bool apply_config_acl(const std::wstring& directory, std::wstring& error) {
+  return apply_acl(directory,
+                   {{WinLocalServiceSid, kModify}, {WinBuiltinUsersSid, kModify}},
+                   kFolder, error);
+}
+
+bool apply_read_only_acl(const std::wstring& directory, std::wstring& error) {
+  return apply_acl(directory, {{WinBuiltinUsersSid, kReadOnly}}, kFolder,
                    error);
 }
 
-bool apply_backup_acl(const std::wstring& directory, std::wstring& error) {
-  // Read, and no DELETE. See `acl.h`: a deleted backup is a detach with
-  // nothing to restore from, which leaves mirrored composite entries on a
-  // vendor's endpoint for good.
-  return apply_acl(directory, FILE_GENERIC_READ | FILE_GENERIC_EXECUTE, error);
+bool apply_log_acl(const std::wstring& file, std::wstring& error) {
+  // FILE_APPEND_DATA and not FILE_WRITE_DATA or DELETE: a line can be added,
+  // nothing already written can be changed, and the file cannot be swapped
+  // for something else of the same name.
+  return apply_acl(file,
+                   {{WinBuiltinUsersSid, FILE_GENERIC_READ | FILE_APPEND_DATA}},
+                   0, error);
 }
 
 bool service_can_write(const std::wstring& directory) {

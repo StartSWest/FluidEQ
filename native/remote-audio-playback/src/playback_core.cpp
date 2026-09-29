@@ -25,7 +25,7 @@ struct PeerPlayback::State {
   std::uint64_t stable_frames = 0;
   std::array<float, kMaxChannels> last{};
   std::array<std::array<float, kMaxChannels>, kMaxChannels> matrix{};
-  std::atomic<double> buffered{0}, target{30}, ppm{0}, peak{0}, rms{0};
+  std::atomic<double> buffered{0}, target{30}, peak{0}, rms{0};
   std::atomic<std::uint64_t> underruns{0}, discontinuities{0}, trimmed{0};
   State(std::uint32_t hz, std::uint16_t count)
       : rate(hz), channels(count), capacity(hz / 2 + 128),
@@ -199,7 +199,6 @@ void PeerPlayback::mix(float* output, std::uint32_t frames) noexcept {
   s.released.store(static_cast<std::uint64_t>(releasable), std::memory_order_release);
   s.buffered.store(std::max(0.0, static_cast<double>(written) - s.position) * 1000 / s.rate);
   s.target.store(s.target_ms);
-  s.ppm.store(s.correction * 1e6);
   s.peak.store(peak);
   s.rms.store(frames == 0 ? 0 : std::sqrt(square / (frames * s.output_channels)));
 }
@@ -209,7 +208,7 @@ void PeerPlayback::reset() noexcept {
 }
 PlaybackStats PeerPlayback::stats() const noexcept {
   const auto& s = *state_;
-  return {s.buffered.load(), s.target.load(), s.ppm.load(), s.peak.load(),
+  return {s.buffered.load(), s.target.load(), s.peak.load(),
           s.rms.load(), s.underruns.load(), s.discontinuities.load(), s.trimmed.load()};
 }
 std::uint32_t PeerPlayback::source_rate() const noexcept { return state_->rate; }

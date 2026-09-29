@@ -311,6 +311,7 @@ FeqChain* feq_chain_create(double sample_rate,
    */
   if (channels > FEQ_CHAIN_CHANNELS) {
     const uint32_t punch = feq_bass_punch_latency_frames(sample_rate);
+    const uint32_t restoration = feq_denoise_max_latency_frames(sample_rate);
     for (uint32_t channel = FEQ_CHAIN_CHANNELS; channel < channels; ++channel) {
       chain->punch_align_line[channel].assign(
           static_cast<size_t>(punch) + 1, 0.0f);
@@ -318,10 +319,10 @@ FeqChain* feq_chain_create(double sample_rate,
                           chain->punch_align_line[channel].data(), punch + 1,
                           punch);
       chain->denoise_align_line[channel].assign(
-          static_cast<size_t>(FEQ_DENOISE_MAX_LATENCY_FRAMES) + 1, 0.0f);
+          static_cast<size_t>(restoration) + 1, 0.0f);
       feq_delay_line_init(&chain->denoise_align[channel],
                           chain->denoise_align_line[channel].data(),
-                          FEQ_DENOISE_MAX_LATENCY_FRAMES + 1, 0);
+                          restoration + 1, 0);
     }
   }
 

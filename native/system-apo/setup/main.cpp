@@ -98,6 +98,7 @@ using fluideq_engine::setup::result_json;
 using fluideq_engine::setup::result_path;
 using fluideq_engine::setup::run_command;
 using fluideq_engine::setup::run_with_retries;
+using fluideq_engine::setup::setup_log_path;
 using fluideq_engine::setup::utf8_from_wide;
 using fluideq_engine::setup::wait_audio_settled;
 using fluideq_engine::setup::write_utf8;
@@ -469,7 +470,7 @@ void note_run(const std::vector<std::wstring>& arguments,
     }
   }
   line += L"\n";
-  append_utf8(root + L"\\setup.log", line);
+  append_utf8(setup_log_path(), line);
 }
 
 int run_elevated(const Options& options, const std::vector<std::wstring>& arguments) {

@@ -12,6 +12,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <knownfolders.h>
 #include <shlobj_core.h>
 
+#include <algorithm>
+#include <cwchar>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -51,12 +53,17 @@ bool is_reparse_point(DWORD attributes) {
 
 }  // namespace
 
-std::wstring engine_root() {
+std::wstring engine_parent() {
   const std::wstring program_data = known_folder(FOLDERID_ProgramData);
   if (program_data.empty()) {
     return std::wstring();
   }
-  return program_data + L"\\FluidEQ\\engine";
+  return program_data + L"\\FluidEQ";
+}
+
+std::wstring engine_root() {
+  const std::wstring parent = engine_parent();
+  return parent.empty() ? parent : parent + L"\\engine";
 }
 
 std::wstring config_dir() {
@@ -69,9 +76,24 @@ std::wstring backup_dir() {
   return root.empty() ? root : root + L"\\backup";
 }
 
+std::wstring apo_off_dir() {
+  const std::wstring root = engine_root();
+  return root.empty() ? root : root + L"\\apo-off";
+}
+
+std::wstring slots_dir() {
+  const std::wstring root = engine_root();
+  return root.empty() ? root : root + L"\\slots";
+}
+
 std::wstring result_path() {
   const std::wstring root = engine_root();
   return root.empty() ? root : root + L"\\last-setup.json";
+}
+
+std::wstring setup_log_path() {
+  const std::wstring root = engine_root();
+  return root.empty() ? root : root + L"\\setup.log";
 }
 
 std::wstring install_dir() {
@@ -118,8 +140,37 @@ bool path_exists(const std::wstring& path) {
          GetFileAttributesW(path.c_str()) != INVALID_FILE_ATTRIBUTES;
 }
 
+bool crosses_link(const std::wstring& path) {
+  const std::wstring parent = engine_parent();
+  if (parent.empty() || path.size() < parent.size() ||
+      _wcsnicmp(path.c_str(), parent.c_str(), parent.size()) != 0 ||
+      (path.size() > parent.size() && path[parent.size()] != L'\\')) {
+    return false;
+  }
+  // The parent itself, then every part below it that exists.
+  size_t end = parent.size();
+  while (true) {
+    const DWORD attributes = GetFileAttributesW(path.substr(0, end).c_str());
+    if (attributes == INVALID_FILE_ATTRIBUTES) {
+      return false;  // Nothing below a missing part can exist to be a link.
+    }
+    if (is_reparse_point(attributes)) {
+      return true;
+    }
+    if (end >= path.size()) {
+      return false;
+    }
+    const size_t next = path.find(L'\\', end + 1);
+    end = next == std::wstring::npos ? path.size() : next;
+  }
+}
+
 bool ensure_directory(const std::wstring& path) {
   if (path.empty()) {
+    return false;
+  }
+  if (crosses_link(path)) {
+    SetLastError(ERROR_CANT_ACCESS_FILE);
     return false;
   }
   if (is_directory(path)) {
@@ -134,7 +185,16 @@ bool ensure_directory(const std::wstring& path) {
   if (CreateDirectoryW(path.c_str(), nullptr) != 0) {
     return true;
   }
-  return GetLastError() == ERROR_ALREADY_EXISTS && is_directory(path);
+  if (GetLastError() != ERROR_ALREADY_EXISTS) {
+    return false;
+  }
+  // Somebody made it between the look and the create: it counts only if it
+  // is a real directory and not a link put there to be followed.
+  if (crosses_link(path)) {
+    SetLastError(ERROR_CANT_ACCESS_FILE);
+    return false;
+  }
+  return is_directory(path);
 }
 
 std::string utf8_from_wide(std::wstring_view text) {
@@ -160,6 +220,10 @@ std::string utf8_from_wide(std::wstring_view text) {
 }
 
 bool write_utf8(const std::wstring& path, std::wstring_view text) {
+  if (crosses_link(path)) {
+    SetLastError(ERROR_CANT_ACCESS_FILE);
+    return false;
+  }
   const std::string bytes = utf8_from_wide(text);
   const HANDLE file =
       CreateFileW(path.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr,
@@ -176,6 +240,10 @@ bool write_utf8(const std::wstring& path, std::wstring_view text) {
 }
 
 bool append_utf8(const std::wstring& path, std::wstring_view text) {
+  if (crosses_link(path)) {
+    SetLastError(ERROR_CANT_ACCESS_FILE);
+    return false;
+  }
   const std::string bytes = utf8_from_wide(text);
   // FILE_APPEND_DATA alone: every write lands at the end whatever another
   // process — the effect inside audiodg.exe, another run of this program —
@@ -255,16 +323,92 @@ std::vector<std::wstring> files_matching(const std::wstring& directory,
   return names;
 }
 
-bool replace_file(const std::wstring& from, const std::wstring& to,
-                  std::wstring& error) {
-  if (CopyFileW(from.c_str(), to.c_str(), FALSE) != 0) {
+std::optional<std::vector<unsigned char>> read_locked(const std::wstring& path,
+                                                      size_t limit) {
+  // FILE_SHARE_READ alone: while this handle is open nobody can write,
+  // rename or delete the file. FILE_FLAG_OPEN_REPARSE_POINT: a link is
+  // opened as itself and refused below, never followed to its target.
+  const HANDLE file = CreateFileW(
+      path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+      FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
+  if (file == INVALID_HANDLE_VALUE) {
+    return std::nullopt;
+  }
+  BY_HANDLE_FILE_INFORMATION info = {};
+  LARGE_INTEGER size = {};
+  const bool plain =
+      GetFileInformationByHandle(file, &info) != 0 &&
+      (info.dwFileAttributes &
+       (FILE_ATTRIBUTE_DIRECTORY | FILE_ATTRIBUTE_REPARSE_POINT)) == 0 &&
+      GetFileSizeEx(file, &size) != 0 && size.QuadPart >= 0 &&
+      static_cast<unsigned long long>(size.QuadPart) <= limit;
+  std::vector<unsigned char> bytes(plain ? static_cast<size_t>(size.QuadPart)
+                                         : 0);
+  size_t done = 0;
+  bool ok = plain;
+  while (ok && done < bytes.size()) {
+    const DWORD want = static_cast<DWORD>(
+        (std::min)(bytes.size() - done, static_cast<size_t>(1) << 20));
+    DWORD read = 0;
+    ok = ReadFile(file, bytes.data() + done, want, &read, nullptr) != 0 &&
+         read > 0;
+    done += read;
+  }
+  CloseHandle(file);
+  if (!ok) {
+    return std::nullopt;
+  }
+  return bytes;
+}
+
+namespace {
+
+bool write_bytes(const std::wstring& path,
+                 const std::vector<unsigned char>& bytes) {
+  const HANDLE file = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr,
+                                  CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+  if (file == INVALID_HANDLE_VALUE) {
+    return false;
+  }
+  size_t done = 0;
+  bool ok = true;
+  while (ok && done < bytes.size()) {
+    const DWORD want = static_cast<DWORD>(
+        (std::min)(bytes.size() - done, static_cast<size_t>(1) << 20));
+    DWORD wrote = 0;
+    ok = WriteFile(file, bytes.data() + done, want, &wrote, nullptr) != 0 &&
+         wrote == want;
+    done += wrote;
+  }
+  // The error a caller describes is the write's, not CloseHandle's.
+  const DWORD why = ok ? ERROR_SUCCESS : GetLastError();
+  CloseHandle(file);
+  if (!ok) {
+    DeleteFileW(path.c_str());
+    SetLastError(why);
+  }
+  return ok;
+}
+
+}  // namespace
+
+bool replace_with_bytes(const std::vector<unsigned char>& bytes,
+                        const std::wstring& to, std::wstring& error) {
+  // Written beside the target and renamed over it, so the target is only
+  // ever the old file or the whole new one.
+  const std::wstring fresh = to + L".new";
+  if (!write_bytes(fresh, bytes)) {
+    error = L"could not write " + fresh + L": " + describe_error(GetLastError());
+    return false;
+  }
+  if (MoveFileExW(fresh.c_str(), to.c_str(), MOVEFILE_REPLACE_EXISTING) != 0) {
     return true;
   }
   const DWORD first = GetLastError();
   if (first != ERROR_SHARING_VIOLATION && first != ERROR_ACCESS_DENIED &&
       first != ERROR_USER_MAPPED_FILE) {
-    error = L"could not copy " + from + L" to " + to + L": " +
-            describe_error(first);
+    DeleteFileW(fresh.c_str());
+    error = L"could not put " + to + L" in place: " + describe_error(first);
     return false;
   }
   // The name is derived from the target rather than random: a machine that
@@ -273,13 +417,14 @@ bool replace_file(const std::wstring& from, const std::wstring& to,
   const std::wstring aside = to + L".replaced";
   DeleteFileW(aside.c_str());
   if (MoveFileExW(to.c_str(), aside.c_str(), MOVEFILE_REPLACE_EXISTING) == 0) {
-    error = L"could not move the file in use aside: " +
-            describe_error(GetLastError());
+    const DWORD why = GetLastError();
+    DeleteFileW(fresh.c_str());
+    error = L"could not move the file in use aside: " + describe_error(why);
     return false;
   }
   MoveFileExW(aside.c_str(), nullptr, MOVEFILE_DELAY_UNTIL_REBOOT);
-  if (CopyFileW(from.c_str(), to.c_str(), FALSE) == 0) {
-    error = L"could not copy " + from + L" to " + to + L": " +
+  if (MoveFileExW(fresh.c_str(), to.c_str(), MOVEFILE_REPLACE_EXISTING) == 0) {
+    error = L"could not put " + to + L" in place: " +
             describe_error(GetLastError());
     return false;
   }

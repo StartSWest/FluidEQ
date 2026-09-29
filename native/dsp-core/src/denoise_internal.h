@@ -73,17 +73,12 @@ constexpr uint32_t kDenoiseVoiceLatencyFrames = 4;
 constexpr double kDenoiseSilenceDb = -120.0;
 
 /**
- * The deepest delay every module together can add, at any supported rate.
- *
- * The spectral window is the largest term: held at 42.7 ms, it reaches 8192
- * samples at 192 kHz. The 48 kHz neural module reaches 9600 after conversion
- * at 192 kHz, and the click repairer its lookahead at 144, for 17936 — so this
- * doubled when the window did, and it must move with it every time. It sizes
- * Isolate's dry delay once at construction so that no module toggle ever
- * reallocates a buffer the callback is reading; a value too small does not
- * fail loudly, it silently wraps the ring and returns the wrong sample.
+ * The click repairer's longest repairable run, and the room past it for the
+ * forward search and the predictor's history: its buffer at its largest, and
+ * its lookahead one sample less.
  */
-constexpr uint32_t kDenoiseMaxLatencyFrames = FEQ_DENOISE_MAX_LATENCY_FRAMES;
+constexpr uint32_t kDenoiseClickMaxRun = 128;
+constexpr uint32_t kDenoiseClickSearch = 16;
 
 /**
  * One channel's short-time transform state.
@@ -400,6 +395,8 @@ struct FeqDenoise {
   std::atomic<uint32_t> reported_voice_underruns{0};
 };
 
+/** The window `denoise_spectral_configure` picks at `sample_rate`. */
+uint32_t denoise_spectral_window_for(double sample_rate);
 /** Rebuild the transform size and window for the current rate. */
 void denoise_spectral_configure(FeqDenoise* denoise);
 void denoise_spectral_reset(FeqDenoise* denoise);
@@ -432,6 +429,8 @@ int denoise_voice_load_model(FeqDenoise* denoise,
                              const char* runtime_path);
 void denoise_voice_unload(FeqDenoise* denoise);
 uint32_t denoise_voice_latency_frames(const FeqDenoise* denoise);
+/** What the neural module delays by at `device_rate`, whenever it runs. */
+uint32_t denoise_voice_latency_for(double device_rate);
 /** Rings the worker if a block armed it. After the block, never inside it. */
 void denoise_voice_wake(FeqDenoise* denoise);
 

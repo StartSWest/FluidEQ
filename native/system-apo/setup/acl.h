@@ -7,12 +7,20 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * Who may read and write the engine directory.
  *
- * Two processes have to agree on this tree and neither is the one that
- * created it. The effect runs inside audiodg.exe, which is LOCAL SERVICE and
- * needs to read; the app runs as whoever is signed in and needs to write, and
- * it is not elevated. `%ProgramData%`'s own default gives an ordinary user
- * read access and lets them create files but not modify anybody else's, which
- * breaks the second time a different user changes their EQ.
+ * Three parties have to agree on this tree and none of them is always the one
+ * that created it. The effect runs inside audiodg.exe, which is LOCAL SERVICE,
+ * reads the configuration and writes its status and its log in the root; the
+ * app runs as whoever is signed in, is not elevated, and writes the
+ * configuration; this program runs elevated and writes everything else.
+ * `%ProgramData%`'s own default gives an ordinary user read access and lets
+ * them create files but not modify anybody else's, which breaks the second
+ * time a different user changes their EQ.
+ *
+ * Ordinary users write in `config\` and nowhere else. Everything this program
+ * writes elevated sits outside it, where a user can neither change it nor
+ * swap it — or a folder on its way — for a link that would carry an
+ * administrator's write somewhere of their choosing. The root used to be
+ * Users-modify throughout, which is exactly that.
  */
 #ifndef FLUIDEQ_ENGINE_SETUP_ACL_H
 #define FLUIDEQ_ENGINE_SETUP_ACL_H
@@ -22,37 +30,53 @@ SPDX-License-Identifier: GPL-3.0-or-later
 namespace fluideq_engine::setup {
 
 /**
- * SYSTEM and Administrators full, Users modify, all of it inherited.
+ * Makes Administrators the owner of `path`.
+ *
+ * Whoever owns a folder may rewrite its permissions whatever they say, and
+ * the app — not elevated — creates this tree when it asks for its config
+ * folder before an engine was ever installed. Permissions set on a folder a
+ * user owns are a suggestion.
+ */
+bool take_ownership(const std::wstring& path, std::wstring& error);
+
+/**
+ * The root: SYSTEM and Administrators full, LOCAL SERVICE modify, Users read,
+ * all of it inherited.
  *
  * The list replaces whatever was inherited rather than adding to it, so that
  * the permissions on this tree are the ones written here and not the ones
- * `%ProgramData%` happened to pass down.
+ * `%ProgramData%` happened to pass down. LOCAL SERVICE by name: the effect's
+ * status files and `engine.log` are written here, and it used to be able to
+ * only because LOCAL SERVICE is a member of Users, and Users could write.
  */
 bool apply_engine_acl(const std::wstring& directory, std::wstring& error);
+
+/** `config\`: as the root, but Users modify — the app writes here. */
+bool apply_config_acl(const std::wstring& directory, std::wstring& error);
 
 /**
  * SYSTEM and Administrators full, Users READ only, all of it inherited.
  *
- * For `backup\` and nothing else. Those files are the record of what each
- * endpoint's effect lists held before the engine was attached, and a detach
- * or an uninstall restores from them. Under the tree's ordinary "Users
- * modify" an unelevated user could delete one — at which point the detach has
- * no reference to restore and, by `detach_one`'s own rule, takes only our own
- * entry out and treats every other key as one that was always there. On a
- * machine where attaching had to mirror a vendor's single-effect keys into
- * composite lists, those mirrored entries then stay behind for good.
+ * For `backup\`, `apo-off\`, `slots\` and the root's own parent. The backups
+ * are the record of what each endpoint's effect lists held before the engine
+ * was attached, and a detach or an uninstall restores from them; an
+ * unelevated user who could delete one left the detach no reference to
+ * restore, and by `detach_one`'s own rule it then took only our own entry out
+ * and treated every other key as one that was always there. `apo-off\` is the
+ * only record of somebody else's equaliser, and a deleted one left Equalizer
+ * APO switched off by an uninstall that reported success.
  *
- * Read rather than none: the app never opens these, but a user looking at why
+ * Read rather than none: the app reads `apo-off\`, and a user looking at why
  * their audio changed should be able to see what was recorded about their own
- * machine. Writing them is the engine's business, and the engine is elevated
- * when it does it.
- *
- * `engine.log` is unaffected — it sits in the root, not in `backup\`, and the
- * effect inside audiodg.exe (LOCAL SERVICE) writes it under the root's own
- * permissions: LOCAL SERVICE is a member of BUILTIN\Users, so it is the
- * root's Users ACE — Modify — that lets it write there, not the SYSTEM entry.
+ * machine.
  */
-bool apply_backup_acl(const std::wstring& directory, std::wstring& error);
+bool apply_read_only_acl(const std::wstring& directory, std::wstring& error);
+
+/**
+ * `setup.log`: Users may read it and add a line to it, and nothing else — the
+ * unelevated half of this program writes one when a prompt is declined.
+ */
+bool apply_log_acl(const std::wstring& file, std::wstring& error);
 
 /**
  * Whether the account the effect runs as can write in `directory`.

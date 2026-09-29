@@ -249,11 +249,11 @@ double smoothing_alpha(double smoothing) {
 
 }  // namespace
 
-void denoise_spectral_configure(FeqDenoise* denoise) {
+uint32_t denoise_spectral_window_for(double sample_rate) {
   // Chosen in milliseconds and then rounded to the power of two the transform
   // needs, so 44.1 and 48 kHz land on the same size and 96 kHz takes the next
   // one up rather than half the time resolution.
-  const double target = denoise->sample_rate * kDenoiseWindowMs / 1000.0;
+  const double target = sample_rate * kDenoiseWindowMs / 1000.0;
   uint32_t window = 64;
   while (window < target) {
     window *= 2;
@@ -264,7 +264,11 @@ void denoise_spectral_configure(FeqDenoise* denoise) {
   if (window > 64 && (window - target) > (target - window / 2)) {
     window /= 2;
   }
+  return window;
+}
 
+void denoise_spectral_configure(FeqDenoise* denoise) {
+  const uint32_t window = denoise_spectral_window_for(denoise->sample_rate);
   const bool resized = window != denoise->window;
   denoise->window = window;
   denoise->hop = window / kDenoiseOverlap;

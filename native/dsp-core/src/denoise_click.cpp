@@ -92,11 +92,12 @@ constexpr double kMaxSurroundingFlagged = 0.15;
 
 uint32_t repair_capacity(const FeqDenoise* denoise) {
   const double requested = denoise->settings.click.max_repair_samples;
-  const uint32_t limit = static_cast<uint32_t>(
-      std::max(8.0, std::min(128.0, std::floor(requested + 0.5))));
+  const uint32_t limit = static_cast<uint32_t>(std::max(
+      8.0, std::min(static_cast<double>(kDenoiseClickMaxRun),
+                    std::floor(requested + 0.5))));
   // Room for the forward search past the longest repairable run, plus a few
   // samples for the predictor's own history.
-  return limit + 16;
+  return limit + kDenoiseClickSearch;
 }
 
 }  // namespace

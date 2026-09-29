@@ -205,6 +205,12 @@ add_executable(fluideq-denoise-test dsp-core/tests/denoise_test.cpp)
 target_link_libraries(fluideq-denoise-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME denoise COMMAND fluideq-denoise-test)
 
+add_executable(fluideq-denoise-bounds-test
+  dsp-core/tests/denoise_bounds_test.cpp)
+target_link_libraries(fluideq-denoise-bounds-test
+  PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME denoise-bounds COMMAND fluideq-denoise-bounds-test)
+
 add_executable(fluideq-denoise-live-test dsp-core/tests/denoise_live_test.cpp)
 target_link_libraries(fluideq-denoise-live-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME denoise-live COMMAND fluideq-denoise-live-test)

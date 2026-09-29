@@ -313,7 +313,8 @@ std::vector<GraphicPoint> parse_graphic(std::string_view body) {
     double frequency = 0.0;
     double gain = 0.0;
     if (!detail::parse_double(tokens[0], frequency) ||
-        !detail::parse_double(tokens[1], gain) || frequency < 0.0) {
+        !detail::parse_double(tokens[1], gain) || frequency < 0.0 ||
+        points.size() >= kMaxGraphicPoints) {
       return {};
     }
     points.push_back(GraphicPoint{frequency, gain});

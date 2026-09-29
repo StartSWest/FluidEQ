@@ -36,23 +36,23 @@ void check_impl(bool ok, const char* expr, const char* file, int line) {
 
 const wchar_t kClass[] = L"FluidEQWallpaperDesktopTest";
 
-void covering_a_monitor() {
-  std::printf("a window covering a monitor, and one that does not\n");
-  const RECT monitor{0, 0, 2560, 1440};
-  CHECK(wallpaper::covers(RECT{0, 0, 2560, 1440}, monitor));
-  // A maximised window's frame reaches past the monitor's edges.
-  CHECK(wallpaper::covers(RECT{-8, -8, 2568, 1448}, monitor));
-  // An ordinary maximised window leaves the taskbar showing.
-  CHECK(!wallpaper::covers(RECT{0, 0, 2560, 1392}, monitor));
-  CHECK(!wallpaper::covers(RECT{2560, 0, 5120, 1440}, monitor));
-}
-
 /** `covered` over a list, the way the helper hands it the windows it found. */
 bool hidden_by(const RECT& work, std::initializer_list<RECT> windows) {
   RECT rects[16]{};
   int count = 0;
   for (const RECT& window : windows) rects[count++] = window;
   return wallpaper::covered(work, rects, count);
+}
+
+void covering_a_monitor() {
+  std::printf("a window covering a monitor, and one that does not\n");
+  const RECT monitor{0, 0, 2560, 1440};
+  CHECK(hidden_by(monitor, {RECT{0, 0, 2560, 1440}}));
+  // A maximised window's frame reaches past the monitor's edges.
+  CHECK(hidden_by(monitor, {RECT{-8, -8, 2568, 1448}}));
+  // An ordinary maximised window leaves the taskbar showing.
+  CHECK(!hidden_by(monitor, {RECT{0, 0, 2560, 1392}}));
+  CHECK(!hidden_by(monitor, {RECT{2560, 0, 5120, 1440}}));
 }
 
 void nothing_of_the_desktop_in_sight() {

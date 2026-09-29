@@ -66,11 +66,6 @@ inline bool valid(const Desktop& desktop) {
   return class_is(desktop.parent, L"WorkerW") && GetParent(desktop.parent) == nullptr;
 }
 
-inline bool covers(const RECT& foreground, const RECT& monitor) {
-  return foreground.left <= monitor.left && foreground.top <= monitor.top &&
-         foreground.right >= monitor.right && foreground.bottom >= monitor.bottom;
-}
-
 inline bool empty_rect(const RECT& rect) {
   return rect.right <= rect.left || rect.bottom <= rect.top;
 }

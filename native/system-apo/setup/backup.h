@@ -52,7 +52,6 @@ void remove_backup(const std::wstring& guid);
  * removed from it — this program turning off somebody else's equalizer
  * permanently, on its way out.
  */
-bool apo_off_saved(const std::wstring& guid);
 bool save_apo_off_once(const std::wstring& guid, const FxValues& values,
                        std::wstring& error);
 std::optional<FxValues> load_apo_off(const std::wstring& guid);

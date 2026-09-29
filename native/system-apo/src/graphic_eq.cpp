@@ -17,9 +17,12 @@ namespace {
 
 constexpr double kPi = 3.14159265358979323846;
 
-// The target curve at one frequency, in dB: piecewise-linear in log10(f),
-// clamped to the first/last point's gain outside their range. `points` MUST
-// already be sorted by frequency.
+// The target curve at ascending frequencies, in dB: piecewise-linear in
+// log10(f), clamped to the first/last point's gain outside their range.
+// `points` MUST already be sorted by frequency, and `gain_db` MUST be asked in
+// ascending order: the segment cursor only moves forward, so one spectrum
+// costs O(points + bins). The linear scan this replaced was O(points) per
+// bin, and a GraphicEQ line is text anybody can write into the config folder.
 //
 // An empty curve returns 0 dB unconditionally — not a special case bolted on
 // afterwards, but the actual meaning of "no GraphicEQ line applied": every
@@ -28,32 +31,49 @@ constexpr double kPi = 3.14159265358979323846;
 // point it is exact to well under any tolerance a caller would use). That,
 // and a sum over no curves being 0 dB too, is what turns "nothing to apply"
 // into a bypass kernel below, with no branch dedicated to it.
-double interpolated_gain_db(const std::vector<GraphicPoint>& points,
-                            double frequency) {
-  if (points.empty()) {
-    return 0.0;
-  }
-  // Also covers bin 0 (f == 0 exactly, where log10 is undefined) with the
-  // first point's gain, per the brief.
-  if (frequency <= points.front().frequency) {
-    return points.front().gain_db;
-  }
-  if (frequency >= points.back().frequency) {
-    return points.back().gain_db;
-  }
-  const double log_f = std::log10(frequency);
-  for (size_t i = 1; i < points.size(); ++i) {
-    if (frequency <= points[i].frequency) {
-      const double log_lo = std::log10(points[i - 1].frequency);
-      const double log_hi = std::log10(points[i].frequency);
-      const double t = (log_f - log_lo) / (log_hi - log_lo);
-      return points[i - 1].gain_db +
-             t * (points[i].gain_db - points[i - 1].gain_db);
+class CurveWalk {
+ public:
+  explicit CurveWalk(const std::vector<GraphicPoint>& points)
+      : points_(points) {}
+
+  double gain_db(double frequency) {
+    if (points_.empty()) {
+      return 0.0;
     }
+    // Also covers bin 0 (f == 0 exactly, where log10 is undefined) with the
+    // first point's gain, per the brief.
+    if (frequency <= points_.front().frequency) {
+      return points_.front().gain_db;
+    }
+    if (frequency >= points_.back().frequency) {
+      return points_.back().gain_db;
+    }
+    // The first point at or above `frequency`. The one before it is then
+    // strictly below, so the segment below has width and the divide is safe.
+    while (points_[next_].frequency < frequency) {
+      ++next_;
+    }
+    const GraphicPoint& lo = points_[next_ - 1];
+    const GraphicPoint& hi = points_[next_];
+    const double log_lo = std::log10(lo.frequency);
+    const double log_hi = std::log10(hi.frequency);
+    const double t = (std::log10(frequency) - log_lo) / (log_hi - log_lo);
+    return lo.gain_db + t * (hi.gain_db - lo.gain_db);
   }
-  return points.back().gain_db;  // Unreachable: the clamp above already
-                                 // returned for any frequency at or past the
-                                 // last point.
+
+ private:
+  const std::vector<GraphicPoint>& points_;
+  size_t next_ = 1;
+};
+
+std::vector<CurveWalk> walks_of(
+    const std::vector<std::vector<GraphicPoint>>& sorted) {
+  std::vector<CurveWalk> walks;
+  walks.reserve(sorted.size());
+  for (const std::vector<GraphicPoint>& curve : sorted) {
+    walks.emplace_back(curve);
+  }
+  return walks;
 }
 
 }  // namespace
@@ -85,14 +105,15 @@ std::vector<float> design_graphic_kernel(
   std::vector<double> imaginary(m, 0.0);  // Zero phase throughout: the
                                           // window below, not a phase term,
                                           // is what centres the impulse.
+  std::vector<CurveWalk> walks = walks_of(sorted);
   const uint32_t half = m / 2;
   for (uint32_t k = 0; k <= half; ++k) {
     const double frequency = static_cast<double>(k) *
                              static_cast<double>(sample_rate) /
                              static_cast<double>(m);
     double gain_db = 0.0;
-    for (const std::vector<GraphicPoint>& curve : sorted) {
-      gain_db += interpolated_gain_db(curve, frequency);
+    for (CurveWalk& walk : walks) {
+      gain_db += walk.gain_db(frequency);
     }
     const double magnitude = std::pow(10.0, gain_db / 20.0);
     real[k] = magnitude;
@@ -148,14 +169,15 @@ std::vector<float> design_minimum_graphic_kernel(
   const double nepers_per_db = std::log(10.0) / 20.0;
   std::vector<double> real(m, 0.0);
   std::vector<double> imaginary(m, 0.0);
+  std::vector<CurveWalk> walks = walks_of(sorted);
   const uint32_t half = m / 2;
   for (uint32_t k = 0; k <= half; ++k) {
     const double frequency = static_cast<double>(k) *
                              static_cast<double>(sample_rate) /
                              static_cast<double>(m);
     double gain_db = 0.0;
-    for (const std::vector<GraphicPoint>& curve : sorted) {
-      gain_db += interpolated_gain_db(curve, frequency);
+    for (CurveWalk& walk : walks) {
+      gain_db += walk.gain_db(frequency);
     }
     const double log_magnitude = std::max(gain_db, kFloorDb) * nepers_per_db;
     real[k] = log_magnitude;

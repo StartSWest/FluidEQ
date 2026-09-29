@@ -688,10 +688,11 @@ struct FeqChain {
    */
   double maximizer_reduction_db = 0.0;
   /**
-   * The drive being applied, gliding to the one asked for over
-   * `kEqFadeSeconds`. Applied as a step, a preset switch moved every sample
-   * by the difference between two drives in one sample: -47 dBFS above
-   * 5 kHz from 1 dB (2026-09-25). Carried across a handover.
+   * The drive being applied, gliding to the one asked for with the
+   * `kMaximizerDriveGlideMs` time constant. Applied as a step, a preset
+   * switch moved every sample by the difference between two drives in one
+   * sample: -47 dBFS above 5 kHz from 1 dB (2026-09-25). Carried across a
+   * handover.
    */
   double maximizer_drive_now = 1.0;
 

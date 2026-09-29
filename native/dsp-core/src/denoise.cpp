@@ -141,7 +141,9 @@ FeqDenoise* feq_denoise_create(double sample_rate,
   // class of bug the Maximizer's look-ahead already had to be rescued from.
   denoise->dry_delay.resize(denoise->channels);
   for (auto& channel : denoise->dry_delay) {
-    channel.assign(kDenoiseMaxLatencyFrames + maximum_block_frames, 0.0f);
+    channel.assign(
+        feq_denoise_max_latency_frames(sample_rate) + maximum_block_frames,
+        0.0f);
   }
 
   denoise_spectral_configure(denoise);
@@ -361,6 +363,16 @@ uint32_t feq_denoise_latency_frames(const FeqDenoise* denoise) {
   }
   latency += denoise_voice_latency_frames(denoise);
   return latency;
+}
+
+uint32_t feq_denoise_max_latency_frames(double sample_rate) {
+  if (!(sample_rate > 0.0)) {
+    return 0;
+  }
+  // Each term as `feq_denoise_latency_frames` counts it, at its largest.
+  return (kDenoiseClickMaxRun + kDenoiseClickSearch - 1) +
+         denoise_spectral_window_for(sample_rate) +
+         denoise_voice_latency_for(sample_rate);
 }
 
 void feq_denoise_report(const FeqDenoise* denoise, FeqDenoiseReport* out) {

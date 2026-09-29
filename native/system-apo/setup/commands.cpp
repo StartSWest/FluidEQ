@@ -10,13 +10,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <windows.h>
 
 #include <algorithm>
+#include <initializer_list>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "acl.h"
 #include "backup.h"
 #include "com_registration.h"
+#include "digest.h"
 #include "endpoints.h"
 #include "fs.h"
 #include "fx_list.h"
@@ -28,6 +31,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 namespace fluideq_engine::setup {
 
 namespace {
+
+/**
+ * The largest DLL `install` will read. The engine is under a megabyte and the
+ * runtime's largest under 700 KB; the cap is only there because the file is
+ * read whole into memory, from a folder a user can write in.
+ */
+constexpr size_t kMaxDllBytes = 64 * 1024 * 1024;
 
 void fail(CommandResult& result, std::wstring message) {
   result.ok = false;
@@ -403,9 +413,29 @@ void run_install(const Options& options, CommandResult& result) {
   // against the shared runtime, and audiodg.exe searches its own directory
   // and the system directory — never ours. A missing runtime DLL makes the
   // effect fail to load with no message anywhere.
+  //
+  // And each one exactly as this program was built beside it (`digest.h`).
+  // The folder they are copied from is the app's, which a per-user install
+  // leaves writable by anything the user runs; copied unchecked, a DLL put
+  // there was installed into Program Files, registered, and loaded into
+  // audiodg.exe the next time somebody accepted an engine update. Read
+  // through one locked handle and written from those same bytes, so nothing
+  // can change between the check and the copy.
+  std::vector<std::pair<std::wstring, std::vector<unsigned char>>> verified;
   for (const std::wstring& name : files_matching(source, L"*.dll")) {
-    if (!replace_file(source + L"\\" + name, target + L"\\" + name,
-                      result.error)) {
+    const char* expected = shipped_digest(name);
+    std::optional<std::vector<unsigned char>> bytes =
+        expected == nullptr ? std::nullopt
+                            : read_locked(source + L"\\" + name, kMaxDllBytes);
+    if (!bytes.has_value() || sha256_hex(*bytes) != expected) {
+      fail(result, name + L" beside the setup program is not the one it was "
+                          L"built with, so nothing was installed");
+      return;
+    }
+    verified.emplace_back(name, std::move(*bytes));
+  }
+  for (const auto& [name, bytes] : verified) {
+    if (!replace_with_bytes(bytes, target + L"\\" + name, result.error)) {
       result.ok = false;
       return;
     }
@@ -499,25 +529,42 @@ void run_uninstall(const Options& options, CommandResult& result) {
 }  // namespace
 
 bool ensure_engine_tree(std::wstring& error) {
+  const std::wstring parent = engine_parent();
   const std::wstring root = engine_root();
   if (root.empty()) {
     error = L"could not find the machine's program data directory";
     return false;
   }
   if (!ensure_directory(root) || !ensure_directory(config_dir()) ||
-      !ensure_directory(backup_dir())) {
+      !ensure_directory(backup_dir()) || !ensure_directory(apo_off_dir()) ||
+      !ensure_directory(slots_dir())) {
     const unsigned long why = GetLastError();
     error = L"could not create " + root + L": " + describe_error(why);
     return false;
   }
-  if (!apply_engine_acl(root, error)) {
+  // Owners first: permissions on a folder a user owns are theirs to rewrite.
+  // Then each list, root before the folders that are tighter or looser than
+  // it, since each of those replaces what the root just passed down. See
+  // `acl.h` for who may do what, and why.
+  for (const std::wstring& folder :
+       {parent, root, backup_dir(), apo_off_dir(), slots_dir()}) {
+    if (!take_ownership(folder, error)) {
+      return false;
+    }
+  }
+  if (!apply_read_only_acl(parent, error) || !apply_engine_acl(root, error) ||
+      !apply_config_acl(config_dir(), error) ||
+      !apply_read_only_acl(backup_dir(), error) ||
+      !apply_read_only_acl(apo_off_dir(), error) ||
+      !apply_read_only_acl(slots_dir(), error)) {
     return false;
   }
-  // After the root, and it undoes what the root just inherited into it: the
-  // backups are the only record of what each endpoint held before the engine
-  // touched it, and a user who can delete one leaves a detach with nothing to
-  // restore from. See `acl.h`.
-  if (!apply_backup_acl(backup_dir(), error)) {
+  const std::wstring log = setup_log_path();
+  if ((!path_exists(log) && !append_utf8(log, std::wstring())) ||
+      !apply_log_acl(log, error)) {
+    if (error.empty()) {
+      error = L"could not create " + log + L": " + describe_error(GetLastError());
+    }
     return false;
   }
   // An empty `config.txt` rather than none: the effect's watcher waits on the

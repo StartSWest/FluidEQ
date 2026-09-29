@@ -81,12 +81,6 @@ void remove_backup(const std::wstring& guid) {
 
 namespace {
 
-/** `<engine root>\apo-off`, beside the backups and written the same way. */
-std::wstring apo_off_dir() {
-  const std::wstring root = engine_root();
-  return root.empty() ? root : root + L"\\apo-off";
-}
-
 std::wstring apo_off_path(const std::wstring& guid) {
   // Same reasoning as `backup_path`: the guid check is what stops a name
   // becoming a path.
@@ -98,11 +92,6 @@ std::wstring apo_off_path(const std::wstring& guid) {
 }
 
 }  // namespace
-
-bool apo_off_saved(const std::wstring& guid) {
-  const std::wstring path = apo_off_path(guid);
-  return !path.empty() && path_exists(path);
-}
 
 bool save_apo_off_once(const std::wstring& guid, const FxValues& values,
                        std::wstring& error) {
