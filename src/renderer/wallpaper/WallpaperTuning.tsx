@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import type { IWallpaperTuning } from '../../common/wallpaper';
-import { useWatchedGraphWave } from '../utils/graphViewSettings';
+import { useWatchedGraphWave } from '../utils/graphOverlaySettings';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useAllListenerParams } from '../utils/sceneParamStore';
 import { useAllListenerResponses } from '../utils/sceneResponseStore';

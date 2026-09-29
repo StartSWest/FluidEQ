@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { ColorEnum } from '../styles/color';
-import type { TWaveOrientation } from '../utils/graphViewSettings';
+import type { TWaveOrientation } from '../utils/graphWaveOrientation';
 import type { ILiveCurveData } from './ChartController';
 
 interface ILiveTraceWave {

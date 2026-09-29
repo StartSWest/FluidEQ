@@ -43,7 +43,7 @@ jest.mock('../../../renderer/graph/lookThumbnails', () => ({
       ? { state: 'ready', url: `picture:${ref.lookId}` }
       : { state: 'none' },
 }));
-jest.mock('../../../renderer/utils/graphViewSettings', () => ({
+jest.mock('../../../renderer/utils/graphOverlaySettings', () => ({
   getWatchedGraphWave: () => ({ height: 0.75, position: 0.1 }),
 }));
 

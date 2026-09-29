@@ -24,7 +24,7 @@ import {
   announceGraphMode,
   endGraphModeAnnouncement,
   useGraphModeAnnouncement,
-} from 'renderer/utils/graphViewSettings';
+} from '../../../renderer/utils/graphModeAnnouncement';
 
 /**
  * Every timer this replaced would still be pending here. A helper, so the

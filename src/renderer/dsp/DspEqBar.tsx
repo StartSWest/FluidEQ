@@ -24,11 +24,11 @@ import {
 import { rackMatchingCurveOf } from './rack';
 import linearPhaseLatencyMs from './linearPhase';
 import {
-  EQ_DEFAULT_PRESET_ID,
   EQ_PRESETS,
   eqSettingsForPreset,
   isCompleteEqPreset,
 } from '../../common/dsp/eqPresets';
+import { EQ_DEFAULT_PRESET_ID } from '../../common/dsp/eqPresetSetups';
 import { rackTrebleNeedsEngineUpdate } from '../../common/dsp/rackTreble';
 import { TREBLE_DESIGNS, TTrebleDesign } from '../../common/filterDesign';
 import { TranslationKey } from '../../common/i18n/en';

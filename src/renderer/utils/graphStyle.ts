@@ -605,8 +605,11 @@ const selectedScene = (): TDrawableScene | null => {
 export const useSceneLook = () =>
   useSyncExternalStore(subscribe, selectedScene, () => null);
 
-// The two layers beneath this one. Re-exported so every caller keeps one
-// address for the graph store: the split is how the code is organised, not
-// something forty import lines should have to know about.
+// The layers beneath this one. Re-exported so every caller keeps one address
+// for the graph store: the split is how the code is organised, not something
+// forty import lines should have to know about.
 export * from './graphStorage';
 export * from './graphViewSettings';
+export * from './graphOverlaySettings';
+export * from './graphModeAnnouncement';
+export * from './graphWaveOrientation';

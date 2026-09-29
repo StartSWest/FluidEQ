@@ -8,7 +8,7 @@ import {
 import Glyph from '../community/Glyph';
 import DialogFrame from '../components/DialogFrame';
 import MenuIcon from '../icons/MenuIcon';
-import { getWatchedGraphWave } from '../utils/graphViewSettings';
+import { getWatchedGraphWave } from '../utils/graphOverlaySettings';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import Switch from '../widgets/Switch';

@@ -11,11 +11,11 @@ import {
   clampDspSettings,
 } from '../../../common/dsp/chain';
 import {
-  EQ_DEFAULT_PRESET_ID,
   EQ_PRESETS,
   eqPresetSetup,
   eqSettingsForPreset,
 } from '../../../common/dsp/eqPresets';
+import { EQ_DEFAULT_PRESET_ID } from '../../../common/dsp/eqPresetSetups';
 import {
   biquadCoefficients,
   biquadMagnitudeDb,

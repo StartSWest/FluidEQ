@@ -11,11 +11,8 @@ import {
   type ISceneWave,
 } from 'common/sceneWave';
 import { readStored, removeStored, writeStored } from './graphStorage';
-import {
-  GRAPH_VIEWS,
-  useWatchedGraphWave,
-  type TGraphView,
-} from './graphViewSettings';
+import { GRAPH_VIEWS, type TGraphView } from './graphViewSettings';
+import { useWatchedGraphWave } from './graphOverlaySettings';
 
 /**
  * The wave a listener set for one Plus visualizer, over the one its author
