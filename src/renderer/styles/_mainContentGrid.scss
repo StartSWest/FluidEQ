@@ -1,0 +1,437 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'sass:color' as sass-color;
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'mainContentTokens' as *;
+
+// *** Equalizer grid *********************************************************
+
+// The grid sits directly on the workspace panel; it does not paint a card of
+// its own. The slider row takes whatever height is left over, so hiding the
+// response graph gives that space to the sliders instead of leaving a gap.
+.main-content {
+  // Positioned, so its grid areas contain what is placed in them (the dB
+  // scale in the first column).
+  position: relative;
+  display: grid;
+  min-width: 0;
+  // Enough of a break above the sliders that the applied-layer chips do not
+  // look like a caption for the first band, and no more than that: the panel
+  // already contributes its own row gap above this box. None at the sides:
+  // the panel's own inset is the margin, and the dB scale stands on it
+  // (Ivan, 2026-09-27: "too much padding").
+  padding: 6px 0 0;
+  gap: 10px;
+  // The dB scale's column is as wide as "0 dB", its widest number (19.6px).
+  grid-template-columns: 20px minmax(0, 1fr);
+  grid-template-rows: minmax(min-content, 1fr) auto;
+  // Each page's scale finds its own row's first band, whatever other band
+  // rows are kept alive in the document (`.eq-scale`).
+  anchor-scope: --eq-travel;
+
+  // No face under the sliders: on the open floor (layout A, Ivan 2026-09-25)
+  // the band row stands on the page like everything else, and what it had as
+  // a block — one surface under the scale and the bands — it has as a line up
+  // (the graph's own axis, which each band now stands under) and a hairline
+  // down, between the bands and the row under them (the Tone, or the selected
+  // band's editor).
+  //
+  // The dB guides were never the face's: each band draws its own, measured
+  // from its own track (`.bandWrapper .range` in FrequencyBand.scss).
+  &::before {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    align-self: start;
+    height: 1px;
+    background: $border-subtle;
+    content: '';
+  }
+
+  // In the first column of the bands' row, taken out of the flow so the row
+  // is the bands' height alone, and placed along it by the travel it
+  // numbers (`.eq-scale` below). Both lines named: out of the flow, a line
+  // left `auto` is the grid's padding edge, and `grid-column: 1` alone made
+  // the scale as wide as the whole row, its numbers at the far right end.
+  > .eq-scale {
+    position: absolute;
+    z-index: 1;
+    grid-row: 1 / 2;
+    grid-column: 1 / 2;
+  }
+
+  > .bands-rail {
+    z-index: 1;
+    min-width: 0;
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  > .eq-flat-editor {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+}
+
+// The dB scale beside the sliders, numbered as a console prints one beside a
+// fader: every 10 dB, the fives between them quieter, and 0 dB lit (Ivan,
+// 2026-09-27: "add the 10 and other that pro console has").
+//
+// Placed on the first band's own travel — the strip its marks are drawn in,
+// from +20 to −20 (`FrequencyBand.scss`) — so each number stands exactly on
+// its mark at every length, handle and density. It used to be spread down
+// the whole row between two paddings meant to match the captions above and
+// below a band, which was only ever near: three numbers could hide that, nine
+// cannot. With no band to stand on, it falls back to those paddings.
+.eq-scale {
+  top: anchor(--eq-travel top, 22px);
+  right: 0;
+  bottom: anchor(--eq-travel bottom, 20px);
+  left: 0;
+  color: $text-muted;
+  font-size: $text-eyebrow;
+  font-variant-numeric: tabular-nums;
+  // Its height is the travel, so the fives can ask whether they fit.
+  container: eq-scale / size;
+}
+
+.eq-scale__mark {
+  position: absolute;
+  top: calc(var(--at) * 100%);
+  right: 0;
+  line-height: 1;
+  white-space: nowrap;
+  transform: translateY(-50%);
+
+  // The line the editor is read against, named brighter than the rest.
+  &.is-zero {
+    color: $secondary-light;
+    font-weight: $weight-bold;
+  }
+
+  &.is-minor {
+    color: $text-faint;
+    opacity: 0.8;
+  }
+}
+
+// The fives only where the travel spaces them: down the shortest track (52px
+// of travel, a low window) nine numbers stood 6.5px apart, one line of type
+// over the next. From 128px they are 16px apart and read as numbers.
+@container eq-scale (height < 128px) {
+  .eq-scale__mark.is-minor {
+    display: none;
+  }
+}
+
+// The rail and its viewport. The bands themselves are inside, at their own
+// width; this is what scrolls when there are more of them than there is room.
+.bands-rail {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.bands-rail__viewport {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.bands {
+  position: relative;
+  display: grid;
+  // As wide as its own tracks, and never narrower than the viewport: that is
+  // what makes the overflow real rather than a grid quietly painting outside
+  // its box, and it is what the viewport measures to decide about arrows.
+  // With no floor set the tracks are an even share of the viewport, so this
+  // resolves to exactly the viewport and nothing scrolls.
+  width: max-content;
+  // And never narrower than its bands at their floor (below), even where a
+  // layout sets its width to the viewport's (`.bands--wide`): tracks run past
+  // a box that stays put, and nothing watching the box saw the overflow, so
+  // the arrow that scrolls to the rest never came (the row at 1366px, 31
+  // bands: 1240px of bands in a 1098px box).
+  min-width: max(100%, calc(var(--band-count) * var(--band-min-width, 40px)));
+  padding: 0;
+  // An even share, never under the width a band still reads at (40px,
+  // `MIN_BAND_SLOT` in plotGeometry.ts, where placing the bands gives way to
+  // this row): past that the row runs off the edge and the arrow scrolls it.
+  // The floor used to apply only under 940px, so above it thirty-one bands
+  // squeezed to 22px each, their frequencies cut to "31.!" (Ivan,
+  // 2026-09-27: "you dont need to compress them too much if no space since
+  // we can have the show more").
+  grid-template-columns: repeat(
+    var(--band-count),
+    minmax(var(--band-min-width, 40px), 1fr)
+  );
+  align-items: center;
+  // No background of its own any more. The 0 dB guide moved onto the face
+  // behind this row so that it reaches the scale column as well — see
+  // `.main-content::before`.
+}
+
+// The row sweeps in low to high, one band shortly after the last, so the
+// entrance runs the same direction the spectrum on screen does — left to right
+// is the only reading of this row that means anything.
+//
+// Thirty-one is the largest band count the app offers, so every band gets its
+// own beat at every density and the cap is never reached. Ten milliseconds a
+// step rather than the mixin's default: at thirty-one bands the default would
+// spend the better part of a second filling one row, and this is the tab the
+// app opens on.
+//
+// `.bands` also holds the drag-selection box, which is rendered before the
+// bands and would shift every index by one. It exists only during a drag, long
+// after these animations have finished — a delay changing on a finished
+// animation moves nothing — and never at the moment the panel mounts, which is
+// the only moment the cascade is on screen.
+.bands > .bandWrapper {
+  @include stagger-in($count: 31, $step: 10ms);
+}
+
+// Small layouts read better as a centred group; past ten bands use the full
+// width so the controls stay comfortably wide.
+.bands--centered {
+  width: min(100%, calc(var(--band-count) * 84px));
+  justify-self: center;
+}
+
+.bands--wide {
+  width: 100%;
+  justify-self: stretch;
+}
+
+// The bands in fixed places across the graph above (layout A; `placed` by
+// `placeBandsEvenly` in plotGeometry.ts). A flex row of bands one slot
+// wide, the first held off the row's edge by its lead and each after it off
+// the one before by theirs — so the row keeps the height its bands give it,
+// and the marquee and the glow still find the bands in their frequency
+// order. The three numbers are written on the row (`applyBandPlacement`).
+.bands.is-placed {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  align-items: center;
+
+  > .bandWrapper {
+    width: var(--band-slot);
+    min-width: 0;
+    flex: 0 0 var(--band-slot);
+    margin-left: var(--band-lead, 0px);
+  }
+
+  > .bandWrapper:nth-child(1 of .bandWrapper) {
+    margin-left: var(--band-first-lead, 0px);
+  }
+}
+
+// The row keeps the dB scale beside it here too, and lets the last band hang
+// into the page's padding where the plot's end is, so nothing clips. The
+// scale went while the graph above carried one, and a wide window was then
+// the one width with no dB beside the sliders (Ivan, 2026-09-27: "the db
+// indicator is not shown on some width"); the bands no longer start left of
+// their own row, where it stands (`MainContent.tsx`).
+.main-content.is-placed {
+  padding-inline: 0;
+
+  .bands-rail__viewport {
+    overflow: visible;
+  }
+}
+
+// Track length per density. RangeInput publishes the caller's preference as
+// --range-length-prop; these rules set --range-length itself so the layout
+// keeps the final say without fighting inline styles.
+//
+// Tied to the window rather than fixed, and with a floor well below what used
+// to be the shortest they could get. The editor is content-sized now, so its
+// height is the sum of these — every pixel a track gives up is a pixel the
+// graph gains, which makes the tracks the right thing to give first when the
+// window is short. A stubby track is still perfectly draggable, and the numeric
+// field beside it is what precision goes through anyway.
+// One colour at rest, the spectrum in euphoria.
+//
+// Every band publishes its own colour from `getBandColor`, which paints the row
+// as a rainbow all the time — and a rainbow that is always there is not a
+// reward for anything. At rest the sliders are the app's own cyan, like every
+// other control, and the spectrum arriving is part of what euphoria is.
+//
+// Done by overriding the variable on a descendant rather than by changing what
+// the widget publishes. The inline value is set on the `.range` wrapper and
+// inherits down, so a rule on the input beats it for that subtree — no
+// `!important`, and no general-purpose widget made euphoria-aware. `revert`
+// drops this rule and lets the wrapper's own value inherit through again.
+// The arrows are named as well as the rail. They sit beside the input rather
+// than inside it, so a rule on the input alone left them reading the band
+// colour off the wrapper — a cyan slider between two coloured triangles. The
+// rail holds the input and the groove and lit core behind it, which take the
+// same colour or the core glows in the rainbow under a cyan handle.
+.bandWrapper .range .range__rail,
+.bandWrapper .range .arrow-up,
+.bandWrapper .range .arrow-down {
+  --slider-color: #{$secondary-default};
+  --slider-color-muted: #{color-mix(
+      in srgb,
+      $secondary-default 42%,
+      transparent
+    )};
+  --slider-track: #{color-mix(in srgb, $secondary-dark 34%, transparent)};
+}
+
+.is-euphoric .bandWrapper .range .range__rail,
+.is-euphoric .bandWrapper .range .arrow-up,
+.is-euphoric .bandWrapper .range .arrow-down {
+  --slider-color: revert;
+  --slider-color-muted: revert;
+  --slider-track: revert;
+}
+
+// ONE LENGTH FOR EVERY DENSITY, where there used to be three.
+//
+// The density classes are about horizontal room: at thirty-one bands a column
+// is a third the width it is at six, and the label, the arrows and the numeric
+// field all have to shrink to fit. That is real and stays.
+//
+// Track *length* is vertical and has nothing to do with any of it, but was
+// scaled alongside — so choosing a different band count resized every slider,
+// and because the editor is content-sized, changed the height of the whole
+// panel and moved everything under it. Picking 15 bands instead of 10 is a
+// question about frequency resolution; answering it should not make the graph
+// jump.
+//
+// The tallest of the three is the one kept. The shorter variants existed to be
+// proportionate to the narrower columns, which is a rule about width applied to
+// a height — a dense layout does not need a stubbier slider, and giving it one
+// only made the drag less precise exactly where the bands are hardest to hit.
+//
+// MEASURED, NOT ESTIMATED — the same rule the graph-hidden case below has.
+//
+// The length used to be the pane's height (`--editor-height`, what the divider
+// writes on `.middle-content`) less 440px for everything in the pane that is
+// not track: the tab strip, the panel's padding, the heading rows, the row
+// under the bands and the caption, arrows and readout each band carries.
+//
+// A constant cannot be right for a row whose height changes. The row under the
+// bands is the selected band's editor OR, with nothing selected, the Tone row,
+// and that one is deliberately taller — 100px against 78 above a 1100px-tall
+// window, where its dials are bigger than a band's. So on a 1545x1105 window
+// the page fitted with a band selected and scrolled by twelve pixels the
+// moment the selection was dropped: the same page, a scrollbar appearing
+// because nothing was selected (Ivan, 2026-09-23: "the tone pane ... is bigger
+// than the band setting pane"). Narrow windows do it worse — under 940px the
+// Tone row takes a second line and the band editor wraps to 262px — and no
+// constant covers both.
+//
+// So the bands take the room that is left instead of a number: `.main-content`
+// grows to the panel (`flex: 1 0 0`), its first row gets what the heading and
+// that row leave — between one floor-length band and one ceiling-length band —
+// and the rail inside it is a size container, so every track is the row's own
+// height less the 114px of caption, arrows and readout around it. Whatever the
+// row below turns out to be, the bands give way and the page does not scroll.
+//
+// The floor and the ceiling are the ones this rule has always had. Past 264px
+// a longer track is not a finer drag, it is a longer reach for the same
+// gesture; whatever is left on a tall pane stays at the foot of the card,
+// where every other tab leaves it.
+.workspace-tab-panel--eq .workspace-tab-panel__scroll > .main-content {
+  min-height: 0;
+  flex: 1 0 0;
+  align-content: start;
+  // 114px around a track: 186 is a floor-length band, 378 a ceiling-length one.
+  grid-template-rows: minmax(186px, 378px) auto;
+}
+
+// Size-contained, so its height is the grid row's and not its content's; the
+// sliders' length is worked out from that height, measured onto the rail as
+// `--bands-rail-height` (`MainContent.tsx`). Not in container units: those
+// are resolved again every time the rail is laid out, which restyled every
+// slider and laid the page out twice on each step of a drag.
+.main-content > .bands-rail {
+  // The containment the size container carried, without the container: its
+  // absolutely placed children (the arrows, the marquee) keep it as the box
+  // they are placed in.
+  contain: size layout style;
+}
+
+.bandWrapper .range {
+  --range-length: clamp(
+    72px,
+    calc(var(--bands-rail-height, 264px) - 114px),
+    264px
+  );
+}
+
+// The reference picker used to sit above the bands and folding it stretched the
+// sliders into the room it gave back. It has a tab of its own now, so the EQ
+// panel is bands and nothing else and there is no fold to react to.
+
+// With the response graph hidden (App.tsx marks the root `minimized`) the EQ
+// owns the whole workspace column, and the tracks take the height the column
+// has left for them — the same measured arrangement as above, with room for a
+// much longer fader.
+//
+// They used to be worked out from the window instead: `100vh` less an
+// estimate of everything on screen that is not track, capped at 264px. The
+// estimate cannot be right for every layout — the toolbar wraps in a narrow
+// window and in a long language, the applied-layer row comes and goes, the
+// Tone row takes a second line below 940px — so the cap was kept low and the
+// room left over sat empty at the foot of the card: 135px of it under the Tone
+// dials on a 1022px window (Ivan, 2026-09-23: "fix eq bands bit taller on this
+// screen").
+//
+// The floor is the one both rules have always had. The ceiling is twice the
+// other one: long enough to use a 1080 window's room, and short of a fader so
+// long that a full sweep is a reach across the screen.
+// Only the two numbers differ from the docked case above, which already grows
+// the grid to the panel and measures the rail.
+#root.minimized {
+  .workspace-tab-panel__scroll > .main-content {
+    grid-template-rows: minmax(246px, 634px) auto;
+  }
+
+  .bandWrapper .range {
+    --range-length: clamp(
+      132px,
+      calc(var(--bands-rail-height, 520px) - 114px),
+      520px
+    );
+  }
+}
+
+.bands__selection-box {
+  position: absolute;
+  z-index: 20;
+  border: 1px solid color-mix(in srgb, $secondary-light 90%, transparent);
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, $secondary-default 18%, transparent);
+  pointer-events: none;
+}

@@ -1,0 +1,444 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'sass:color' as sass-color;
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'mainContentTokens' as *;
+
+// *** Selected band editor ***************************************************
+
+// A centred island sized to its controls, not a full-width bar: at desktop
+// widths stretching it edge to edge left the fields absurdly wide.
+.eq-flat-editor {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: fit-content;
+  max-width: 100%;
+  margin: 6px 0 $spacing-xs;
+  padding: 10px 12px;
+  // The filter column is the wide one because it is the only field whose value
+  // is a name rather than a number, and the two shelves and the two passes are
+  // told apart by a word each. It grows past its 162px floor to the longest
+  // shape name in the reader's language — every option carries all seven
+  // names, hidden, to measure by (`.filter-type-option__sizer`) — so it does
+  // not jump as the selection changes. Fixed at 162px it cut the Russian
+  // "Высокий шельф" to "Высокий шел…" once the names were translated.
+  //
+  // The three dials get a floor of 84px — the dial plus air — and grow to
+  // whatever their caption needs. Fixed columns were tried and clipped the
+  // German "Verstärkung" and the Russian "Добротность (Q)" to stubs: the dial
+  // is the same size in every language and the word above it is not, so the
+  // word is what has to size the column.
+  grid-template-columns:
+    minmax(104px, max-content) minmax(162px, max-content)
+    repeat(3, minmax(84px, max-content)) minmax(56px, max-content)
+    minmax(82px, max-content);
+  align-items: stretch;
+  // ONE HEIGHT FOR BOTH ROWS, WHICHEVER IS SHOWING.
+  //
+  // With nothing selected this place carries the Tone row. The bands above
+  // take the room the row leaves, so when the two rows differed every track
+  // changed length the moment a band was selected, under the very pointer
+  // that selected it. They are the same dials on the same lines now — a
+  // label, a dial of `--dial-size`, its reading — so they are one height by
+  // construction.
+  --dial-size: 68px;
+  justify-self: center;
+  gap: 8px;
+  // No block: it stands on the page under the hairline that ends the band row
+  // (`.main-content::before`), as the bands above it stand on the page.
+  border: 0;
+  background: transparent;
+}
+
+// The same row with nothing selected: what is being shaped, then three dials
+// for the whole rack.
+//
+// Its own template rather than the band editor's seven columns — a row of
+// four spread across a grid built for seven leaves two dials adrift at the
+// far end with a hole between them. The dials keep their floor and grow to
+// whatever their caption needs, which is what stops the German "Höhen" and
+// the Russian "Средние" from being clipped to stubs.
+//
+// The same dials as the band row's (Ivan, 2026-09-26: "make band setting same
+// height and nice style like tone"); it was drawn apart from that row by
+// bigger dials, 68px against 50, and the two are one size now.
+//
+// `.eq-flat-editor.eq-flat-editor--tone` rather than the modifier alone
+// because every rule that sizes this row is written as `.eq-flat-editor`,
+// including the ones further down this file and inside its queries: at equal
+// specificity the last one wins, so a single class here quietly lost to them.
+.eq-flat-editor.eq-flat-editor--tone {
+  // Five dials: the three tone dials with a cut either side (`EqCutKnob`).
+  //
+  // The dials are centred on the page, and the row's name stands outside
+  // that, to their left: an empty column the same fraction as the name's
+  // balances it, so Mid is under the middle of the bands and on the line the
+  // player bar's play button stands on (Ivan, 2026-09-25: "centered like the
+  // band setting", "ignoring tone word"). Centred as one group with the name,
+  // the dials stood half the name's width to the right of the bands' middle.
+  width: 100%;
+  justify-self: stretch;
+  grid-template-columns:
+    minmax(max-content, 1fr)
+    repeat(5, minmax(88px, max-content))
+    minmax(0, 1fr);
+  gap: 14px;
+
+  > .eq-flat-editor__identity {
+    justify-self: end;
+  }
+
+  .eq-flat-editor__identity strong {
+    font-size: 1.15rem;
+  }
+}
+
+// On a screen with no height to spare, the dials give some back.
+//
+// Every pixel these rows take is a pixel off the bands above them — the bands
+// take the room that is left (`.workspace-tab-panel--eq` below) — so the
+// dials come down to 56px here.
+//
+// Height rather than width, because this is not about the row running out of
+// room sideways: it never does. It is about what else is on screen.
+@media (max-height: 1100px) {
+  .eq-flat-editor {
+    --dial-size: 56px;
+  }
+
+  .eq-flat-editor.eq-flat-editor--tone {
+    gap: 8px;
+
+    .eq-flat-editor__identity strong {
+      font-size: $text-title;
+    }
+  }
+}
+
+// Label row then control row, identical in every column, so every field lands
+// on the same two horizontal lines.
+// The control line is as tall as a dial, in both rows, so a field or a switch
+// beside the dials stands on their middles; a dial's own cell runs on past
+// that line to the reading under it (`KnobView`).
+.eq-flat-editor__identity,
+.eq-flat-editor__control {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: 14px var(--dial-size);
+  align-items: center;
+  gap: 4px;
+
+  > span {
+    @include truncate;
+    min-height: 14px;
+    color: $text-muted;
+    font-size: $text-eyebrow;
+    font-weight: $weight-bold;
+    @include tracking(0.08em);
+    line-height: 14px;
+    text-transform: uppercase;
+  }
+}
+
+// What is being edited, drawn as a readout rather than as another control.
+//
+// The row was six cells of equal weight, so the band's own name — the one
+// thing in it that is a fact rather than a lever — looked like a seventh thing
+// to press. A well with the frequency sitting in it says subject first, then
+// the controls that act on it, which is the order the row is read in anyway.
+//
+// A well and not a field: `field-surface` is what every editable control here
+// is built from, and wearing it would promise an edit that is not on offer.
+// A readout, not a field: it is the name of the band being edited and
+// nothing about it is pressable. In a box it read as an input that had
+// been disabled.
+.eq-flat-editor__control:has(> .knob-readout) {
+  grid-template-rows: 14px auto;
+}
+
+.eq-flat-editor__identity strong {
+  display: flex;
+  height: var(--dial-size);
+  align-items: center;
+  color: $secondary-light;
+  font-size: $text-title;
+  font-variant-numeric: tabular-nums;
+  font-weight: $weight-bold;
+}
+
+.eq-flat-editor__control {
+  .dropdown,
+  .dropdown > [role='menu'] {
+    width: 100%;
+  }
+}
+
+// A column whose control is narrower than its caption — the three dials and
+// the on/off switch. The caption sits over the middle of the thing it names
+// rather than over the left edge of a track the thing does not fill.
+//
+// Left alignment is right for the two columns whose content starts at the left,
+// the band's name and the filter list, and wrong for a 50px circle in a wider
+// one.
+.eq-flat-editor__control--centred > span {
+  text-align: center;
+}
+
+// The switch, optically centred on the control line like the dials beside it.
+// It is 28px in a 38px row, so without this it sits at the top of its cell and
+// the row grows a step nothing else in it takes.
+.eq-flat-editor__switch {
+  display: flex;
+  height: $control-height;
+  align-items: center;
+  justify-content: center;
+}
+
+// The one field left in the row is exactly one control height, so it shares
+// top and bottom edges with the buttons at either end of the row. The three
+// dials centre themselves on the same line — see `.eq-flat-editor .knob`.
+.eq-flat-editor {
+  .dropdown > [role='menu'] {
+    height: $control-height;
+    min-height: $control-height;
+  }
+}
+
+// The drawing and the name of a filter type, side by side.
+//
+// Both are needed. The drawing is what makes the list scannable, but a shelf
+// and a pass on the same side of the spectrum are two curves that leave the
+// same corner, and only the word separates them at a glance.
+.filter-type-option {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+
+  svg {
+    flex: 0 0 auto;
+  }
+}
+
+// The line box has to be taller than the glyphs, because `truncate` brings
+// `overflow: hidden` with it: at a line height of 1 the box is exactly the
+// font size, so the descender of the p in "Low pass" and the top of the L
+// were being shaved off by the very rule meant to add an ellipsis.
+//
+// The shown name and the hidden sizers share one grid cell, so the label is
+// as wide as the longest name there is rather than the one shown: that is
+// what the band editor's filter column measures.
+.filter-type-option__label {
+  display: grid;
+  min-width: 0;
+  padding-block: 1px;
+  color: rgba($white, 0.92);
+  font-size: $text-body;
+  line-height: 1.45;
+}
+
+.filter-type-option__name,
+.filter-type-option__sizer {
+  @include truncate;
+  grid-area: 1 / 1;
+}
+
+.filter-type-option__sizer {
+  visibility: hidden;
+}
+
+// Stands in for the gain field on filter types that have no gain parameter.
+// Deliberately not a disabled input: a greyed-out box with a number in it
+// reads as "this value applies but is being ignored".
+.eq-flat-editor__gain-na {
+  display: flex;
+  height: $control-height;
+  align-items: center;
+  justify-content: center;
+  color: $text-muted;
+  border: 1px dashed rgba($edge-tint, 0.22);
+  border-radius: $radius-s;
+  font-size: $text-small;
+  font-style: italic;
+  cursor: help;
+}
+
+// The same dial in both rows, the selected band's and the Tone's (Ivan,
+// 2026-09-26: "make band setting same height and nice style like tone"): the
+// round knob with its reading under it, 68px, and 56px where the window has
+// no height to spare (the tier below).
+.eq-flat-editor .knob {
+  width: var(--dial-size);
+  height: var(--dial-size);
+  flex-basis: var(--dial-size);
+  margin-block: 0;
+  align-self: center;
+  justify-self: center;
+}
+
+// Hidden while the row has room for words. The icon is rendered regardless
+// rather than swapped in by a JavaScript breakpoint, because the row is sized
+// by a container query — only CSS knows whether the panel is narrow, and only
+// then, so this cannot be decided in React without measuring.
+.eq-flat-editor__delete-icon {
+  display: block;
+}
+
+// Quiet until it is reached for.
+//
+// It sat in red at rest, which put the loudest colour on the panel on the one
+// control nobody opens this row to use. The fields beside it are what a band
+// is shaped with and they are used constantly; this removes the band and is
+// pressed once, if ever — and it was drawn as their equal.
+//
+// So it holds its place in the row and gives up its colour, taking it back on
+// hover and focus. That is the moment the warning is worth anything: a red
+// button somebody is not pointing at is decoration, and a red button they are
+// about to press is information. Not hidden and not moved — a destructive
+// action that has to be hunted for is its own kind of bad.
+//
+// `$red` rather than the two hand-mixed pinks that were here, which existed
+// only because nothing had reached for the token.
+// The cell the delete button stands in, which holds two buttons once it is
+// armed. A wrapper rather than a second grid child: the row's last column is
+// sized for this control, and a sibling appearing in the grid would either need
+// a column of its own standing empty most of the time or would push the whole
+// row along the moment somebody reached for delete.
+// No caption over it, so it is placed on the dials' middle by hand: past the
+// caption line and its gap, then half of what the dial is taller than it.
+// It stood at the foot of the row, which was the control line while the dials
+// were that line's height, and fell below their middles when their readings
+// moved under them.
+.eq-flat-editor__delete-cell {
+  display: flex;
+  min-width: 0;
+  align-self: start;
+  margin-top: calc(18px + (var(--dial-size) - #{$control-height}) / 2);
+  gap: 6px;
+}
+
+// A square, the bin in the middle: the button is the icon alone.
+.eq-flat-editor__delete {
+  display: grid;
+  width: $control-height;
+  flex: 0 0 auto;
+  height: $control-height;
+  padding: 0;
+  place-items: center;
+  // The bin alone, in red, with no box round it (Ivan, 2026-09-27: "remove
+  // the border also from the delete icon and make it nice red"). The border
+  // stays, transparent, so the button is the same size as its neighbours.
+  color: $red;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  background: transparent;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    color: color-mix(in srgb, $red, $white 20%);
+    background: rgba($red, 0.14);
+  }
+
+  &:focus-visible {
+    color: color-mix(in srgb, $red, $white 20%);
+    background: rgba($red, 0.14);
+    @include focus-ring($red);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: $disabled-opacity;
+  }
+
+  // Armed: the next press is the one that deletes.
+  //
+  // Filled rather than merely redder, and that is the point of it. The rest
+  // state is an outline, hover tints the same outline, and a third shade of
+  // the same treatment would be a difference nobody notices on the control
+  // their pointer is already sitting on — which is exactly when it has to be
+  // noticed. Solid red under white is a different kind of button, not a
+  // brighter one, and it survives being looked at by somebody who cannot tell
+  // the two reds apart.
+  //
+  // AFTER the hover and focus rules on purpose: the pointer is by definition
+  // still on this button when it becomes armed, so anything hover sets has to
+  // be overridden here or the armed state never shows at all.
+  &.is-armed,
+  &.is-armed:hover:not(:disabled),
+  &.is-armed:focus-visible {
+    color: $white;
+    border-color: $red;
+    background: $red;
+  }
+}
+
+// The way back, beside the armed button.
+//
+// Quiet on purpose, and the one place in this app where the quiet button is the
+// recommended one: emphasis follows the recommendation everywhere else because
+// the loud button is the thing to do, and here the loud button is the thing
+// that cannot be taken back. Red carries the warning; this carries the exit,
+// and it must not compete with the red for attention or the pair reads as two
+// equally good options.
+.eq-flat-editor__keep {
+  display: grid;
+  width: $control-height;
+  flex: 0 0 auto;
+  height: $control-height;
+  padding: 0;
+  place-items: center;
+  color: $text-primary;
+  border: 1px solid rgba($edge-tint, 0.22);
+  border-radius: $radius-s;
+  background: rgba($edge-tint, 0.06);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    color: $white;
+    border-color: rgba($edge-tint, 0.4);
+    background: rgba($edge-tint, 0.13);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+  }
+}
+
+.eq-flat-editor__keep-icon {
+  display: grid;
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  place-items: center;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}

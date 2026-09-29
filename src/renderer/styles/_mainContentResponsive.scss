@@ -1,0 +1,182 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'sass:color' as sass-color;
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'mainContentTokens' as *;
+
+// *** Responsive *************************************************************
+
+// The delete button is the one cell whose width is set by a translated string,
+// so it is the one that decides whether the row fits. "Delete band" is short;
+// "Eliminar banda" and "Bandbreite löschen" are not, and because the column is
+// `max-content` and the label is `nowrap`, a long translation grew the row
+// straight past the card edge rather than wrapping or truncating.
+//
+// So it drops its label and becomes a square icon button. Measured against the
+// panel rather than the viewport: with both sidebars open the panel is some
+// 600px narrower than the window, and that is exactly the case where the row
+// ran out of room on a display wide enough that no viewport breakpoint fired.
+//
+// Deliberately ahead of the stacked layout below, so that when the window is
+// genuinely narrow the row reflows to three columns and the way out beside
+// the armed bin comes back with the room for it.
+@container eq-panel (max-width: 800px) {
+  .eq-flat-editor {
+    grid-template-columns:
+      minmax(96px, max-content) 104px repeat(3, minmax(60px, max-content))
+      minmax(52px, max-content) #{$control-height};
+  }
+
+  // The stated way out goes, and only here. The column is one control wide at
+  // this size, so a second button either grows the row the moment somebody
+  // reaches for delete or reserves space for something that is almost never on
+  // screen — both worse than what is left, which is the same red button and the
+  // two ways out that need no room at all: press anywhere else, or Escape. The
+  // button's own tooltip is the whole sentence, including that.
+  .eq-flat-editor__keep {
+    display: none;
+  }
+}
+
+// Two rows of controls read better than six squeezed columns once the EQ card
+// is narrow. The identity and delete rows span the full width.
+@media (max-width: 940px) {
+  // No track length of its own here: the rail's measured height decides it
+  // at this width too (`.bandWrapper .range` above). A fixed 112px outlived
+  // the measuring and made each band 18px taller than the row it stands in,
+  // spilling 9px above it — into the air under the graph, and with the grid
+  // off, under the divider's line.
+
+  // Four columns, because four of the six cells are now small round things of
+  // the same width — three dials and a switch — and they belong on one line.
+  // The three that are not (the band's name, the filter list and Delete) take
+  // the full width and get a line each, so nothing is squeezed to a quarter of
+  // the card to keep a grid tidy.
+  .eq-flat-editor {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px;
+  }
+
+  // Five, because everything on the tone row except its name IS a dial — the
+  // three tone dials and a cut either side — and they read low to high on one
+  // line, as they sit on the graph. Its name takes the line above, the way the
+  // band's does — with the eyebrow beside the value rather than over it, which
+  // is what the shared rule below already does and what the two-row cell would
+  // otherwise fight.
+  // Spelled out rather than leaning on the band row's version of the same
+  // idea: the tone row's own rules are more specific than that one, so half
+  // of it applied and half did not, and the name came out stacked over its
+  // value in a cell still holding a 56px line for a dial that is not there.
+  .eq-flat-editor.eq-flat-editor--tone {
+    // The name has a line of its own here, so the row is the five dials and
+    // is centred as one again.
+    width: fit-content;
+    justify-self: center;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+
+    > .eq-flat-editor__identity {
+      justify-self: stretch;
+    }
+
+    .eq-flat-editor__identity {
+      grid-column: 1 / -1;
+      grid-template-columns: max-content minmax(0, 1fr);
+      grid-template-rows: auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .eq-flat-editor__identity strong {
+      height: auto;
+      justify-content: flex-end;
+    }
+  }
+
+  .eq-flat-editor__control--wide {
+    grid-column: 1 / -1;
+  }
+
+  .eq-flat-editor__identity {
+    grid-column: 1 / -1;
+    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-rows: auto;
+    gap: 10px;
+
+    strong {
+      min-width: 0;
+      justify-content: flex-end;
+    }
+  }
+
+  .eq-flat-editor__delete-cell {
+    grid-column: 1 / -1;
+    justify-content: center;
+    margin-top: 0;
+  }
+
+  // The way out comes back with the room for it.
+  .eq-flat-editor__keep {
+    display: grid;
+  }
+}
+
+// The selected-band pane, folded rather than stretched.
+//
+// Its columns are fixed widths adding to about 700px, so below that they simply
+// ran off the card. One column was tried and is worse: six fields at full width
+// is a stack three hundred pixels tall, which on a short phone-shaped window is
+// the whole editor.
+//
+// The four-column fold set at 940px above already holds here — the dials and
+// the switch need about 250px between them and there is no window this app runs
+// in that is narrower than that — so this stop only widens the pane to the card
+// and stacks the band's name.
+@media (max-width: $bp-two-column) {
+  .eq-flat-editor {
+    width: 100%;
+  }
+
+  // Which band, across the top: it names what the rest of the pane edits.
+  .eq-flat-editor__identity {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+
+    strong {
+      justify-content: flex-start;
+    }
+  }
+}
+
+@media (max-width: 460px) {
+  .eq-flat-editor {
+    padding: 8px;
+    gap: 6px;
+  }
+}
+
+// The stepped overrides that used to shorten the tracks on a short window are
+// gone: the clamps above already scale with the viewport, continuously rather
+// than in two jumps, and a fixed length here would override them and undo it.

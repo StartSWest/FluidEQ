@@ -20,6 +20,7 @@ import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { type ComponentProps, type ReactElement, useState } from 'react';
+import { flushSync } from 'react-dom';
 import type {
   ILibraryTrack,
   TLibraryBrowseMode,
@@ -216,6 +217,37 @@ describe('cover flow', () => {
     expect(screen.getByRole('option', { selected: true })).toHaveTextContent(
       'Album 1',
     );
+  });
+
+  it('takes the arrows at window level, one cover a press, never from a field', async () => {
+    showInLibrary(albumTracks(5), <ShelfCoverFlow browseMode="album" />);
+    await centre();
+    const centred = () => screen.getByRole('option', { selected: true });
+    // Nothing focused: the window's own handler turns the row.
+    await userEvent.keyboard('{ArrowRight}');
+    expect(centred()).toHaveTextContent('Album 1');
+    // A modifier makes it somebody's shortcut, not a step.
+    await userEvent.keyboard('{Control>}{ArrowRight}{/Control}');
+    expect(centred()).toHaveTextContent('Album 1');
+    // A text field keeps its own arrows.
+    const field = document.createElement('input');
+    document.body.appendChild(field);
+    field.focus();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(centred()).toHaveTextContent('Album 1');
+    field.remove();
+    // On the stage its own handler has the key, and the row moves once. In a
+    // browser a real key press runs a microtask checkpoint after each
+    // listener, so the row re-renders between the stage's handler and the
+    // window's, and a window handler that also took the key would step from
+    // the new cover; jsdom dispatches the whole press inside one script, so
+    // the checkpoint is made here, on the way up.
+    const checkpoint = () => flushSync(() => undefined);
+    document.addEventListener('keydown', checkpoint);
+    screen.getByRole('listbox').focus();
+    await userEvent.keyboard('{ArrowRight}');
+    document.removeEventListener('keydown', checkpoint);
+    expect(centred()).toHaveTextContent('Album 2');
   });
 
   it('opens the centred album under the row instead of navigating away', async () => {

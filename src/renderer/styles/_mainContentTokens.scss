@@ -1,0 +1,51 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'sass:color' as sass-color;
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// Out of sight and still read: a word naming a control whose glyph is all
+// that shows.
+@mixin words-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// The caret segment width, shared by the segment itself and by the bubble that
+// starts where the label ends rather than past it.
+$eq-caret-width: 24px;
+
+// The face for the moment a correction lands: the resting face with a breath
+// of the "on" colour in it, opaque like the face it replaces. It was the "on"
+// colour at a fifth into the menu's lighter slate, a mint slab beside the
+// mint of the filled Smart EQ button it spoke for, the brightest thing in the
+// header (Ivan, 2026-09-26: "fix the bubble smart eq"). The edge and the
+// words carry the moment now; the face stays dark and nothing glows.
+$eq-bubble-applied-face: color-mix(in srgb, $active 8%, $surface-floating);
+
+// And how long that moment is. Long enough to catch, short enough to miss.
+$eq-bubble-applied-hold: 1.5s;

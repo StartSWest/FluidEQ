@@ -1,0 +1,552 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'sass:color' as sass-color;
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'mainContentTokens' as *;
+
+// Smart EQ and its caret, drawn as one control.
+//
+// The button keeps exactly the look it had — it is still the same button, and
+// which of the two measurements it runs is a setting rather than a different
+// kind of thing to press. The caret is a narrow segment sharing its edge, so
+// the pair reads as one pill with a divider rather than as two buttons that
+// happen to be touching.
+.eq-mode {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  // Keep both halves stationary, so hovering an edge cannot toggle hit testing.
+
+  // And either half lights both, for the same reason: hovering one end of a
+  // control should not make the other end look like a separate one that is not
+  // being hovered.
+  //
+  // Lit by the same filter as a lone filled button, so each half keeps its
+  // fill (`--control-fill`) under the pointer instead of being swapped.
+  &:hover:not(.is-disabled) {
+    .button.eq-mode__main:not([aria-disabled='true']),
+    .eq-mode__caret:not(:disabled) {
+      color: $surface-base;
+      filter: brightness(1.1);
+    }
+  }
+
+  // `.button.small` sets a radius of its own at the same specificity as
+  // anything written as `.eq-mode .eq-mode__main`, so which one won came down
+  // to which stylesheet the bundler put last — and it put Button's last, which
+  // is why the two halves were drawn as two separate pills. Naming both classes
+  // settles it rather than hoping.
+  .button.eq-mode__main {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    // The pair share one edge. Without this the two borders sit side by side
+    // and the divider is twice as heavy as every other line in the row.
+    border-right: 0;
+  }
+
+  .eq-mode__caret {
+    display: inline-flex;
+    width: $eq-caret-width;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid $border-field;
+    // The divider, and the only line between them.
+    border-left: 1px solid color-mix(in srgb, $surface-base 28%, transparent);
+    border-radius: 0 $radius-xs $radius-xs 0;
+    // The same fill and the same ink as the half it is attached to, because it
+    // is not a second button — it is the end of this one: the colour the main
+    // half's fill ends in (`--control-end`), so a fill runs on through the
+    // divider rather than starting again. Outside Rainbow mode that is the
+    // accent itself, the main half being flat: it was the span's azure end
+    // beside a flat half, a second colour on one pill (Ivan, 2026-09-27: "the
+    // dropdown arrow bg color needs to be the same color as the button"). No
+    // halo under it and no lit edge, like the button it ends.
+    background: var(--control-end, #{$secondary-default});
+    color: $surface-base;
+    box-shadow: none;
+    cursor: pointer;
+    transition: $transition-control;
+
+    svg {
+      width: 11px;
+      height: 11px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2;
+      transition: transform 150ms ease;
+    }
+
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      filter: brightness(1.1);
+      outline: none;
+    }
+
+    // Unavailable the way the half it is attached to is unavailable: an
+    // outline and dim ink, nothing filled. It used to keep its accent fill and
+    // only fade, while a disabled Button goes to the outline — so for the
+    // second after launch, before the live capture opens, the pair drew as a
+    // dark "Target" with a lit chevron stuck to it, and then snapped whole. It
+    // read as the wrong theme loading first, and it was: two halves of one
+    // control following two different rules for the same state.
+    &:disabled {
+      border-color: $border-subtle;
+      border-left-color: $border-subtle;
+      background: transparent;
+      color: $text-dim;
+      box-shadow: none;
+      cursor: default;
+    }
+  }
+
+  &.is-open .eq-mode__caret svg {
+    transform: rotate(180deg);
+  }
+}
+
+// The quiet version of the pair, which every split in the EQ page's toolbar
+// wears: the layout picker and the Curves list, which open a list, and Smart
+// EQ, which was the one filled button in the row until Ivan asked for it like
+// the others (2026-09-27: "make smart eq button same as the others, no
+// fill"). The caret follows its main half, or a quiet half carries a bright
+// end and the two read as two controls stuck together.
+.eq-mode.is-subtle {
+  .eq-mode__caret {
+    color: $secondary-light;
+    border-color: $border-control;
+    border-left-color: $border-control;
+    // The face and edge every control has (`$surface-control`,
+    // `$border-control`), as its main half's.
+    background: $surface-control;
+    box-shadow: none;
+  }
+
+  &:hover:not(.is-disabled) {
+    .button.eq-mode__main:not([aria-disabled='true']),
+    .eq-mode__caret:not(:disabled) {
+      color: $white;
+      border-color: $border-control-hover;
+      background: $surface-control-hover;
+    }
+  }
+}
+
+// What the correction is doing, said from the button that is doing it.
+//
+// Absolutely positioned so it cannot push the toolbar around: the sentence
+// changes as the mode works, and a row of eleven controls that reflows every
+// time a word gets longer is a row nobody can aim at. It takes no clicks
+// either — it is the app talking, not another thing to press.
+.eq-mode__bubble {
+  position: absolute;
+  z-index: 5;
+  // Where it stands is measured, not written here (`eq/bubblePlacement.ts`):
+  // somewhere free around the pair, its tail aimed at the label rather than
+  // the caret, which is the control for the menu. One fixed side covered
+  // something at one width or another — grown right, the Game mode switch
+  // the title row centres; grown left, the page's title and past the window's
+  // edge once the toolbar wrapped. What follows is only where it starts, for
+  // the one frame before it has been measured: above, ending at the label.
+  bottom: calc(100% + 9px);
+  right: $eq-caret-width;
+  display: flex;
+  // `max-content`, and it is not a nicety.
+  //
+  // An absolutely positioned box shrink-wraps to what is left of its containing
+  // block after the offset — and the offset here is nearly the whole width of a
+  // small button, so the box was given about two dozen pixels to lay a sentence
+  // out in and wrapped it one word per line into a tall lozenge. Sizing to the
+  // content instead lets it be as wide as it needs, and the cap stops a long
+  // one running off across the panel.
+  width: max-content;
+  max-width: 300px;
+  align-items: center;
+  padding: 5px 10px 5px 7px;
+  border: 1px solid $border-menu;
+  // A rounded rectangle rather than a pill: a pill radius on a box that is
+  // sometimes two lines tall turns into a lozenge, which is what it did.
+  border-radius: $radius-s;
+  // The same material as an open menu, opaque (`$surface-floating`). It was
+  // cyan at a quarter alpha with a glow around it, which over the graph came
+  // out as a lit slab with a tail in a different tone: the tail was a second
+  // wash at half the alpha, so where the two overlapped the seam showed. One
+  // opaque colour on both and there is no seam to show.
+  background: $surface-floating;
+  // Every tooltip's lift (`$tooltip-lift`): a hard pixel, no blur. Nothing
+  // else in this row casts one — the buttons under it are flat — and 6px of
+  // soft shade round it was still a cloud in a flat window.
+  box-shadow: $tooltip-lift;
+  gap: 7px;
+  pointer-events: none;
+  // Rises as it arrives, and keeps drifting: a bubble that pops into place and
+  // then sits perfectly still is a label. Written out rather than through the
+  // `animate` mixin because there are two of them — the mixin sets the whole
+  // `animation` property, so including it would drop whichever came second.
+  animation:
+    pop-in $motion-fast $ease-spring both,
+    eq-bubble-float 3.4s ease-in-out 240ms infinite;
+
+  // The tail, which is what makes it a bubble rather than a floating label.
+  // On the edge that faces the button, its point at `--bubble-tail` — where
+  // the label is, however far the bubble had to slide to find room.
+  //
+  // Painted in the bubble's own opaque colour, and it has to be: the tail
+  // is a square turned through 45° whose top half lies over the bubble's
+  // bottom edge, and being opaque is what hides that edge where it crosses.
+  // A translucent tail showed the border running straight through it.
+  &::before {
+    position: absolute;
+    bottom: -5px;
+    left: calc(var(--bubble-tail, calc(100% - 16px)) - 4px);
+    width: 8px;
+    height: 8px;
+    border-right: 1px solid $border-menu;
+    border-bottom: 1px solid $border-menu;
+    // Softens the point, so it reads as drawn rather than as a clipped square.
+    border-bottom-right-radius: 2px;
+    background: $surface-floating;
+    content: '';
+    transform: rotate(45deg);
+  }
+
+  // Landed. The whole bubble turns, tail included, so the change is impossible
+  // to miss at the edge of vision — the point of it is that somebody looking at
+  // the graph rather than at the toolbar still notices the sound just moved.
+  //
+  // The app's "on" colour rather than a brighter accent, because the accent is
+  // what this thing says everything else in; a second shade of it meaning
+  // "done" is a shade, not a signal. `$active`, so under a Plus scene "done"
+  // is the scene's own third colour like every other "on" in the window.
+  // Mixed into the menu slate so it stays opaque, same as the resting face.
+  &.is-applied {
+    border-color: color-mix(in srgb, $active 50%, transparent);
+    background: $eq-bubble-applied-face;
+    box-shadow: $tooltip-lift;
+
+    &::before {
+      border-right-color: color-mix(in srgb, $active 50%, transparent);
+      border-bottom-color: color-mix(in srgb, $active 50%, transparent);
+      background: $eq-bubble-applied-face;
+    }
+
+    // How long the bubble stays landed: the text's own hold, whose end
+    // clears the flash (`MainContent.tsx`). A second and a half, as the
+    // timer it replaces held it — see `eq-bubble-applied` below.
+    .eq-mode__bubble-text {
+      color: $active;
+      animation: eq-bubble-applied $eq-bubble-applied-hold linear;
+    }
+  }
+
+  // Under the button when above had no room: the tail on the top edge,
+  // pointing up, drawn by the two borders that face up.
+  &.is-below::before {
+    top: -5px;
+    bottom: auto;
+    border-top: 1px solid $border-menu;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 1px solid $border-menu;
+    border-radius: 0;
+    border-top-left-radius: 2px;
+  }
+
+  &.is-below.is-applied::before {
+    border-top-color: color-mix(in srgb, $active 50%, transparent);
+    border-left-color: color-mix(in srgb, $active 50%, transparent);
+  }
+
+  // Cleared past a crowded row under the button (`bubblePlacement.ts`): a
+  // stem from the tail's point back up to the button, the bubble's own edge
+  // colour, so the tail still reads as coming from the thing it speaks for.
+  // No height, and so nothing, in the two rows beside the button.
+  &.is-below::after {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: calc(var(--bubble-tail, calc(100% - 16px)) - 0.5px);
+    width: 1px;
+    height: var(--bubble-stem, 0px);
+    background: $border-menu;
+    content: '';
+  }
+
+  &.is-below.is-applied::after {
+    background: color-mix(in srgb, $active 50%, transparent);
+  }
+}
+
+// The landed moment, as an animation of the text that shows it, so the end of
+// the moment is an event of the element on screen (`endCorrectionFlash`).
+//
+// `visibility`, which the text already has, and nothing else: the hold changes
+// nothing that can be seen, only how long the colour above it stays. An
+// opacity hold would have put the text on a compositor layer of its own for
+// the length of it, where it loses subpixel antialiasing (`_motion.scss`).
+@keyframes eq-bubble-applied {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+// Not a movement, and it has to end for the flash to end: reduced motion's
+// 1ms (`App.scss`) would take the colour down before it could be seen. A class
+// more than that rule's `*`, and `!important` to meet its own.
+:root[data-motion='reduced'] .eq-mode__bubble.is-applied .eq-mode__bubble-text {
+  animation: eq-bubble-applied $eq-bubble-applied-hold linear !important;
+}
+
+// A remark's moment (`smartEqRun.ts`), held the same way and for the same
+// reasons: its end is what takes the remark down, it changes nothing that can
+// be seen, and reduced motion must not cut it to a millisecond.
+.eq-mode__bubble-status {
+  animation: smart-eq-status-hold $smart-eq-status-hold linear;
+}
+
+@keyframes smart-eq-status-hold {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+:root[data-motion='reduced'] .eq-mode__bubble .eq-mode__bubble-status {
+  animation: smart-eq-status-hold $smart-eq-status-hold linear !important;
+}
+
+// Barely anything, and deliberately: two pixels over three and a half seconds
+// reads as something held up rather than as something animating.
+@keyframes eq-bubble-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -2px;
+  }
+}
+
+// She listens while the bubble is up, which is the whole time a mode is
+// working.
+//
+// Her own sway in `SupportPet.scss` is gated behind the celebrating state and
+// driven by a per-frame audio level, and neither belongs here: this one is a
+// small figure inside a caption, and reaching for the analyser to nod a
+// twenty-two pixel head would be subscribing to twenty-two frames a second to
+// animate something a slow keyframe does just as well.
+.eq-mode__bubble-pet {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  animation: eq-bubble-listen 1800ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: 50% 85%;
+
+  // The pet's frame (`PetArt`) takes the bubble's size, and the drawing the
+  // frame's: a share of a frame sized by its own contents has nothing to be
+  // a share of. Her layers fill the drawing's square by themselves.
+  .support-pet__frame,
+  .support-pet__art {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// A head tipped one way, then the other, with a hold at each end — the shape of
+// somebody listening rather than of something spinning. Near seventy beats a
+// minute, which is where a comfortable nod sits.
+@keyframes eq-bubble-listen {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+
+  20%,
+  30% {
+    transform: rotate(-5deg);
+  }
+
+  50% {
+    transform: rotate(5deg);
+  }
+
+  70%,
+  80% {
+    transform: rotate(5deg);
+  }
+}
+
+.eq-mode__bubble-text {
+  min-width: 0;
+  color: $secondary-light;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+  line-height: 1.3;
+}
+
+// Positioned by `AnchoredMenu` rather than here: it is rendered into the body,
+// so the only thing this rule owns is what it looks like.
+//
+// `menu-surface` rather than a hand-rolled panel, which is what it was — and
+// which is why it was the one menu in the app that did not animate in. Every
+// dropdown here is built on that mixin so a new one cannot forget to.
+.eq-mode__menu {
+  @include menu-surface;
+  z-index: 1000;
+  display: flex;
+  // Wide enough for the sentence under each name to read as a sentence. Sized
+  // to the trigger, it came out as a column about twelve characters across and
+  // the notes wrapped into a ribbon.
+  width: 288px;
+  flex-direction: column;
+  padding: 5px;
+
+  // Name and note, with the icon spanning both rows. Three of these do the same
+  // job to three different depths, and the depth is the only thing being
+  // chosen — so the sentence saying which is not optional decoration.
+  button {
+    display: grid;
+    align-items: center;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: $radius-xs;
+    background: none;
+    color: $secondary-light;
+    column-gap: 8px;
+    font: inherit;
+    grid-template-areas: 'icon name' 'icon note';
+    grid-template-columns: auto minmax(0, 1fr);
+    text-align: left;
+    cursor: pointer;
+    transition: $transition-control;
+
+    .eq-toolbar__icon {
+      grid-area: icon;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: color-mix(in srgb, $secondary-default 18%, transparent);
+      outline: none;
+
+      .eq-mode__menu-name {
+        color: $white;
+      }
+    }
+  }
+}
+
+.eq-mode__menu-name {
+  grid-area: name;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+}
+
+.eq-mode__menu-note {
+  grid-area: note;
+  color: $text-muted;
+  font-size: $text-micro;
+  font-weight: $weight-regular;
+  line-height: 1.3;
+}
+
+// A selector, not four more verbs — and it is drawn as one.
+//
+// Everything to its left is something to press once: measure, clear, add a
+// band. These four are the same question asked four ways, exactly one of which
+// is true at a time, and the answer is already shown by the solid button among
+// three subtle ones. A rule down the left said "these are different" without
+// saying how; a recessed track says which kind of different, because a row of
+// choices sunk into the panel is what a segmented control looks like
+// everywhere else.
+//
+// It replaces the divider rather than joining it. Both at once is two
+// separators for one seam.
+// The layout picker is one piece, not a split button: pressing anywhere on it
+// opens the list, so there is no second half and no divider. It keeps
+// `eq-mode`'s classes for the hover and the menu surface, and takes its own
+// corners back from the rule above that squares the split button's main half.
+.quick-layouts .button.quick-layouts__trigger {
+  gap: 6px;
+  border-right: 1px solid $border-field;
+  border-top-right-radius: $radius-xs;
+  border-bottom-right-radius: $radius-xs;
+
+  .chevron {
+    margin-left: 1px;
+  }
+}
+
+// All that is left to say about the list is how wide it is, because these
+// rows carry a name and no sentence under it.
+.quick-layouts__menu {
+  width: max-content;
+  min-width: 148px;
+
+  button {
+    grid-template-areas: 'icon name';
+  }
+}
+
+// Compact inline toggle sitting beside a toolbar button.
+.eq-toolbar__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+  cursor: pointer;
+
+  input {
+    width: 13px;
+    height: 13px;
+    margin: 0;
+    accent-color: $secondary-default;
+    cursor: pointer;
+  }
+
+  &:hover {
+    color: rgba($white, 0.9);
+  }
+
+  span {
+    cursor: help;
+  }
+}
+
+// The save-for-this-song control has its own stylesheet
+// (`SongEqSaveSwitch.scss`), and deliberately does not reuse
+// `.eq-toolbar__option` above: that rule reaches every bare `input` descendant
+// to size a native checkbox at 13px, which would override `Switch`'s own
+// `.switch-checkbox` (zero size, hidden behind the pill it draws instead) the
+// moment the switch sat inside it — a real specificity collision
+// (`.eq-toolbar__option input` beats `.switch-checkbox`), not a hypothetical
+// one.

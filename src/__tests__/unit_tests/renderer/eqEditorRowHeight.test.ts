@@ -29,10 +29,13 @@ import path from 'path';
 
 const STYLES_DIR = path.join(__dirname, '..', '..', '..', 'renderer', 'styles');
 
+// Comments out, so a rule's selector is only its selector: each part of the
+// stylesheet opens with its licence, which would otherwise read as part of the
+// first rule after it.
 const compiled = compile(path.join(STYLES_DIR, 'MainContent.scss'), {
   loadPaths: [STYLES_DIR],
   quietDeps: true,
-}).css;
+}).css.replace(/\/\*[\s\S]*?\*\//g, '');
 
 interface IBlock {
   prelude: string;

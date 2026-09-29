@@ -1,0 +1,470 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'sass:color' as sass-color;
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'mainContentTokens' as *;
+
+// *** Panel heading and toolbar **********************************************
+
+// One row, read across (Ivan, 2026-09-27: "Parametric EQ title back on the
+// left of the EQ toolbar row"): the page's name and its output's rate on the
+// left, its tools against the right edge, the path's delay and Game mode
+// among them. The applied layers are the "Curves" dropdown at the end of the
+// section pills' line (`CurvesPicker`), so the row that listed them, and the
+// second row the delay stood on, are gone and the graph has their height.
+//
+// A flex line that wraps, not a grid with a breakpoint: where the tools do
+// not fit beside the name they take the next line, still against the right
+// edge, at whatever width the language gives them. The breakpoint it replaces
+// (990px, "the Spanish tools are the widest") was a guess at those widths.
+//
+// No surface and no inner padding: the page's own 12px inset is the one every
+// tab's heading keeps.
+.main-content-title {
+  display: flex;
+  flex-wrap: wrap;
+  min-width: 0;
+  align-items: center;
+  gap: 8px 24px;
+  margin: 0;
+  padding: 0;
+
+  > div:first-child {
+    position: relative;
+    min-width: 0;
+    margin-inline-end: auto;
+  }
+
+  > .eq-toolbar {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+    margin-inline-start: auto;
+  }
+
+  // Matches the intro `h2` sizing on every other tab (Presets, Voicing,
+  // Convolution, Karaoke), so switching tabs does not resize the page title.
+  h2 {
+    margin: 1px 0 4px;
+    font-size: 1.22rem;
+  }
+}
+
+// The heading: the page's name and the output's rate.
+.main-content-title__heading {
+  display: flex;
+  align-items: center;
+  margin: 1px 0 4px;
+
+  > h2 {
+    margin: 0;
+
+    // The output's rate, on the title's baseline as on the DSP page, and
+    // never parted from its unit when the title wraps.
+    > .title-rate {
+      margin-inline-start: 8px;
+    }
+  }
+}
+
+// Above the graph (`is-in-head`) the row is the head's second line: no
+// eyebrow, the name on the tools' middle, and the words gone where a glyph
+// already says it — Clear, Add band, "EQ mode" — so the name and the tools
+// share one line in a window with its side panel open. Each keeps its name
+// for a screen reader, and a tooltip.
+.main-content-title.is-in-head {
+  .main-content-title__heading,
+  h2 {
+    margin: 0;
+  }
+
+  .eq-toolbar__word {
+    @include words-hidden;
+  }
+
+  // Square, the glyph centred: the two that are only a glyph here.
+  .clear-eq-trigger,
+  .eq-toolbar__add {
+    justify-content: center;
+    width: $control-height-sm;
+    padding-inline: 0;
+  }
+
+  // The plus leans on the band count before it, as one "15 bands, +".
+  .quick-layouts + .eq-toolbar__add {
+    margin-inline-start: -4px;
+  }
+}
+
+// Game mode and the path's delay, on the section pills' line after the
+// engine's name (`App.tsx`, Ivan 2026-09-27: "put game engine next to fluid
+// engine on the top menu right"): its glyph, its switch and the figure, the
+// two captions kept for a screen reader and the tooltips. The toolbar's
+// height, standing on the line's middle like the name, and never squeezed:
+// the pills scroll before it gives.
+//
+// No capsule here (Ivan, 2026-09-28: "we can also remove the pill on that
+// one"): on this line the three stand bare beside the engine's name, which
+// is bare too, and the capsule's edge, fill and seam were a fourth thing
+// drawn round them. They keep the capsule on the DSP page, where it stands
+// among the rack's other controls (`EngineStrip.scss`).
+.workspace-section-header > .engine-strip {
+  flex: 0 0 auto;
+  min-height: $control-height-sm;
+  margin-block: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+
+  .game-mode-switch__word,
+  .latency-readout__name {
+    @include words-hidden;
+  }
+
+  .game-mode-switch__label {
+    gap: 0;
+  }
+
+  > .game-mode-switch {
+    padding-left: 4px;
+  }
+
+  > .latency-readout {
+    padding-inline: 6px;
+    border-left: 0;
+    border-radius: $radius-xs;
+  }
+}
+
+// Placed at the end of the EQ group's section row by
+// `.workspace-section-header > .eq-engine-label` in App.scss.
+.eq-engine-label {
+  flex: 0 0 auto;
+  max-width: 100%;
+  margin: 0;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  text-align: center;
+  color: transparent;
+  background: linear-gradient(
+    90deg,
+    $neon-cyan,
+    sass-color.mix(white, $neon-cyan, 85%),
+    $neon-cyan,
+    sass-color.mix($neon-cyan, $neon-purple, 75%),
+    $neon-cyan
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  // One pass, and then the name rests lit, which is what the working state
+  // says it does (`FluidEngineLabel.tsx`). It drifted for ever: a background
+  // moving under `background-clip: text` is repainted on the main thread
+  // every frame, so the name cost a paint a frame for as long as the EQ was
+  // open, and went on under `visibility: hidden` while the graph was
+  // expanded over it. The pass ends where it began — the image is twice the
+  // box, so -200% is one whole image along — and stopping leaves no jump.
+  animation: eq-engine-flow 4s linear;
+
+  // Rainbow mode's palette (`Rainbow.scss`): Lagoon, or the Plus visualizer's.
+  .is-euphoric & {
+    background-image: linear-gradient(90deg, var(--rainbow-stops));
+  }
+
+  // A scene lending the window its colours takes this cyan with it: with a
+  // Plus scene tinting everything else, the label was the one resting cyan
+  // left on the page. The rainbow still wins, and without a tint the label
+  // keeps the cyan that is the app's own signature at rest - the rule the
+  // titlebar wave and the level meter already follow (`sceneAccentRamp.ts`).
+  // Not for Equalizer APO's name, which never borrowed this gradient, and not
+  // under forced colours, where the system paints the text itself.
+  @media (forced-colors: none) {
+    :root[data-scene-tint]:not(.is-euphoric) &:not(.eq-engine-label--apo) {
+      background-image: linear-gradient(
+        90deg,
+        var(--accent),
+        color-mix(in srgb, white 70%, var(--accent)),
+        var(--accent),
+        var(--accent-dark),
+        var(--accent)
+      );
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
+  @media (forced-colors: active) {
+    color: CanvasText;
+    background: none;
+  }
+
+  // APO names the selected engine without borrowing FluidEQ's rainbow identity.
+  &.eq-engine-label--apo {
+    color: $text-primary;
+    background: none;
+    animation: none;
+  }
+}
+
+@keyframes eq-engine-flow {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/*
+ * The engine's name and whether it is reaching the sound.
+ *
+ * The name used to appear the moment an engine was installed and chosen and
+ * then say nothing ever again, so a Bluetooth headset Windows has never once
+ * loaded the engine on carried the same lit rainbow as an output being
+ * processed. A red dot and a dark name say otherwise now, and the side bar's
+ * switch reads off at the same moment from the same fact.
+ */
+.eq-engine-line {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+// Dark rather than hidden: the line keeps its place so the row does not jump
+// when the engine stops reaching the output, and the dot needs something to
+// sit beside.
+.eq-engine-line--broken .eq-engine-label {
+  color: $text-muted;
+  background: none;
+  animation: none;
+  opacity: 0.58;
+}
+
+/*
+ * Running, and not all of it.
+ *
+ * The rainbow is this app's mark for an engine doing everything it was asked
+ * for, and it was being worn beside a card saying part of the sound was not
+ * reaching the output — reported as exactly that. So the name drops the
+ * gradient and takes the one caution colour the rest of the window uses for
+ * "partly", with the amber dot beside it. Lit rather than dimmed: something
+ * IS working, which is the difference from broken.
+ */
+.eq-engine-line--partly .eq-engine-label {
+  color: $amber;
+  background: none;
+  animation: none;
+}
+
+/*
+ * Still asking. Faded, with the same crest travelling through the name on a
+ * loop — something is happening and nothing has been claimed yet.
+ *
+ * It keeps the rainbow rather than going grey: grey is what a fault looks
+ * like here, and this is not one. The loop is slow enough to read as a
+ * waiting state rather than as a control being dragged.
+ */
+.eq-engine-line--checking .eq-engine-label {
+  // No rainbow. It is the app's mark for an engine that is working, and
+  // wearing it faded said "working, dimly" — the one thing this state must
+  // not claim. Plain muted ink until the answer comes, and the colour
+  // arrives with the answer.
+  color: $text-muted;
+  background: none;
+  opacity: 0.62;
+  // Only the crest: there is no gradient left to drift. `linear`, because
+  // ease-in-out parks it at each end and reads as a wobble, not a scan.
+  animation: eq-engine-crest 1.6s linear infinite;
+  mask-image: linear-gradient(
+    100deg,
+    rgba(0, 0, 0, 0.28) 0%,
+    rgba(0, 0, 0, 0.28) 26%,
+    #000 44%,
+    #000 56%,
+    rgba(0, 0, 0, 0.28) 74%,
+    rgba(0, 0, 0, 0.28) 100%
+  );
+  mask-size: 300% 100%;
+}
+
+/*
+ * The wave the name arrives on.
+ *
+ * A crest travelling through the whole line, not one span per letter: the
+ * name is the rainbow clipped to its own text, and a transformed child of
+ * that is composited separately — which leaves the letters transparent, so
+ * they vanish for exactly as long as they move. A mask moves nothing.
+ *
+ * `eq-engine-flow` has to be named again here because a second `animation`
+ * declaration replaces the first, and losing it would stop the rainbow
+ * drifting for the length of the arrival. Timed exactly as the base rule's:
+ * an animation kept by name keeps running when the arrival's class comes off,
+ * so the one pass started here finishes there and the name comes to rest.
+ */
+.eq-engine-label.is-riding {
+  animation:
+    eq-engine-flow 4s linear,
+    eq-engine-arrive 640ms cubic-bezier(0.22, 1, 0.36, 1) both,
+    eq-engine-crest 760ms ease-out both;
+  mask-image: linear-gradient(
+    100deg,
+    rgba(0, 0, 0, 0.32) 0%,
+    rgba(0, 0, 0, 0.32) 28%,
+    #000 44%,
+    #000 56%,
+    rgba(0, 0, 0, 0.32) 72%,
+    rgba(0, 0, 0, 0.32) 100%
+  );
+  mask-size: 300% 100%;
+}
+
+@keyframes eq-engine-arrive {
+  0% {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+
+  60% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes eq-engine-crest {
+  0% {
+    mask-position: 120% 0;
+  }
+
+  100% {
+    mask-position: -120% 0;
+  }
+}
+
+// The rainbow drawn out from the middle under the name, the same gradient the
+// name itself is painted in. Its `animationend` is what tells the window the
+// arrival is over, so it is never the part that is taken away.
+.eq-engine-label__sweep {
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(
+    90deg,
+    $neon-cyan,
+    $neon-lime,
+    $neon-yellow,
+    $neon-pink,
+    $neon-purple
+  );
+  opacity: 0;
+  transform: translateX(-50%);
+
+  &.is-riding {
+    animation: eq-engine-underline 760ms ease-out both;
+  }
+}
+
+@keyframes eq-engine-underline {
+  0% {
+    width: 0;
+    opacity: 0;
+  }
+
+  40% {
+    width: 100%;
+    opacity: 1;
+  }
+
+  100% {
+    width: 100%;
+    opacity: 0;
+  }
+}
+
+// The name still arrives; it simply does not travel. The underline keeps a
+// token animation because its end is what clears the arrival — without one
+// the window would believe the name were still coming in for ever.
+@media (prefers-reduced-motion: reduce) {
+  .eq-engine-label.is-riding {
+    animation: none;
+    mask-image: none;
+  }
+
+  .eq-engine-label__sweep.is-riding {
+    animation: eq-engine-underline 1ms linear both;
+  }
+
+  // The waiting state says the same thing by being faded; the crest that
+  // travels through it is the decoration on top of that.
+  .eq-engine-line--checking .eq-engine-label {
+    animation: none;
+    mask-image: none;
+  }
+}
+
+.eq-toolbar {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+// A little more air between the buttons than inside the quick-layout cluster,
+// so the row reads as groups of related controls rather than eleven equals.
+.main-content-title > .eq-toolbar {
+  row-gap: 8px;
+  column-gap: 10px;
+
+  // The EQ mode's trigger is a field (`choice-surface`), and fields are
+  // `$control-height` — 38px between buttons 32px tall, the one thing in the
+  // row standing proud of it (Ivan, 2026-09-25: "this button is taller now").
+  // Here it is a button among buttons, and takes their height.
+  .eq-mode-trigger {
+    min-height: $control-height-sm;
+    padding-block: 0;
+  }
+
+  // Icon and label are one control. Every button in this row is a verb, and a
+  // glyph makes it findable without reading four words in a row.
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.eq-toolbar__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
