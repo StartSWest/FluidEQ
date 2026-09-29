@@ -98,11 +98,12 @@ const COLOUR_NAMES = ['accent', 'panel', 'base', 'text', 'muted'];
 const isColour = (value: string): boolean =>
   /^(#[0-9a-fA-F]{3,8}|rgba?\([\d\s.,%/]+\))$/.test(value);
 
-// Wide enough that the longest chain name any of the ten languages produces
-// still fits beside the game's icon and the brand mark without an ellipsis:
-// measured on the page itself, Russian's "Загружено: Игры · Соревнование" is
-// the longest at 284px and the line it goes on is 315px here. Height is the
-// content's, not a round number — 120 left a quarter of the card empty.
+// Wide enough that the common chain names fit on the first line beside the
+// game's icon and the brand mark: the line is 315px here, and Russian's
+// "Загружено: Игры · Соревнование" takes 284. Longer ones wrap to a second line
+// (`game-toast.html`): measured as DOM text, the factory names run to 359px
+// in Japanese, 356 in German and 341 in Russian. Height is the content's,
+// not a round number — 120 left a quarter of the card empty.
 const WIDTH = 520;
 const HEIGHT = 104;
 const MARGIN = 26;

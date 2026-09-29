@@ -129,22 +129,36 @@
         border-radius: 6px;
       }
 
-      /* The words take what is left and end in an ellipsis. The mark beside
-         them is a column of its own and not a corner label, so no name in
-         any language can run underneath it. */
+      /* The words take what is left. The mark beside them is a column of its
+         own and not a corner label, so no name in any language can run
+         underneath it. */
       .words {
         align-self: center;
         min-width: 0;
         padding: 0 18px;
       }
 
+      /* Two lines before an ellipsis, because the preset's name is the news
+         and it stands at the end of the line in half the languages ("Снова:
+         …", "Zurück zu …"). On one line, measured as DOM text at this size,
+         the factory names ran to 359px in Japanese, 356 in German and 341
+         in Russian against the 315 this column has, and every one of them
+         lost the name. Two lines hold all of them with the card's height
+         unchanged; only a preset somebody named at length still ends in one.
+         Japanese and Chinese break at the spaces around the name rather than
+         between any two characters, which cut "コンペティティブ" in half; a
+         word too long for the line still breaks inside itself. */
       .what {
+        display: -webkit-box;
         overflow: hidden;
         font-size: 18px;
         font-weight: 600;
         line-height: 1.25;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        overflow-wrap: anywhere;
+        text-wrap: balance;
+        word-break: keep-all;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
       }
 
       .game {
