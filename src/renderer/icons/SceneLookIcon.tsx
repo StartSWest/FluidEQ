@@ -65,7 +65,11 @@ export default function SceneLookIcon({
           {stops}
         </linearGradient>
       </defs>
-      <rect x="1" y="1" width="22" height="22" rx="5" fill="#07131c" />
+      {/* No tile of its own: the peaks stand on whatever the icon is drawn
+          on, as every other look's drawing does. A fixed near-black square
+          behind them was a black patch on every pill and row that holds
+          them, whatever the theme (Ivan, 2026-09-28: "fix the black bg on
+          icons"). */}
       <path
         d="M3 20 C5 14 6 9 7 5 C8 11 9 14 10 20 Z"
         fill={`url(#${gradientId})`}

@@ -23,7 +23,7 @@ import '../styles/GenreNotes.scss';
  */
 export const InfoMark = () => (
   <svg className="genre-info-mark" viewBox="0 0 16 16" aria-hidden="true">
-    <circle className="genre-info-mark__disc" cx="8" cy="8" r="8" />
+    <circle className="genre-info-mark__disc" cx="8" cy="8" r="7.3" />
     <circle className="genre-info-mark__glyph" cx="8" cy="4.7" r="1.2" />
     <path className="genre-info-mark__stem" d="M8 7.4v4.4" />
   </svg>

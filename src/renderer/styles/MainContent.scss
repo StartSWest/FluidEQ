@@ -132,10 +132,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // two captions kept for a screen reader and the tooltips. The toolbar's
 // height, standing on the line's middle like the name, and never squeezed:
 // the pills scroll before it gives.
+//
+// No capsule here (Ivan, 2026-09-28: "we can also remove the pill on that
+// one"): on this line the three stand bare beside the engine's name, which
+// is bare too, and the capsule's edge, fill and seam were a fourth thing
+// drawn round them. They keep the capsule on the DSP page, where it stands
+// among the rack's other controls (`EngineStrip.scss`).
 .workspace-section-header > .engine-strip {
   flex: 0 0 auto;
   min-height: $control-height-sm;
   margin-block: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
 
   .game-mode-switch__word,
   .latency-readout__name {
@@ -144,6 +154,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .game-mode-switch__label {
     gap: 0;
+  }
+
+  > .game-mode-switch {
+    padding-left: 4px;
+  }
+
+  > .latency-readout {
+    padding-inline: 6px;
+    border-left: 0;
+    border-radius: $radius-xs;
   }
 }
 

@@ -42,6 +42,17 @@ describe("a scene's picker icon", () => {
     });
   });
 
+  // The peaks stand on whatever holds them: a near-black tile of the icon's
+  // own was a black patch on every pill and row in every theme (Ivan,
+  // 2026-09-28: "fix the black bg on icons").
+  it('draws no tile of its own behind the peaks', () => {
+    const { container } = render(<SceneLookIcon swatch={SWATCH} />);
+    const svg = container.querySelector('svg');
+    expect(svg?.querySelectorAll('rect')).toHaveLength(0);
+    // POSITIVE CONTROL: the peaks themselves are drawn.
+    expect(svg?.querySelectorAll('path')).toHaveLength(3);
+  });
+
   it('gives two icons of the same colours two different ids', () => {
     const { container } = render(
       <>

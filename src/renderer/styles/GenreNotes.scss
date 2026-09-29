@@ -332,30 +332,51 @@ $notes-ink: $secondary-default;
 
 // *** The doors to the notes *************************************************
 
-// The "i" the About button and the Preset chip wear (`InfoMark`): a disc in
-// the colour of where it stands, and the letter cut out of it in the shell's
-// own dark, which reads on both.
+// The "i" the About button and the Preset chip wear (`InfoMark`), in the
+// toggles' neon (`Switch.scss`; Ivan, 2026-09-28: "tooltip icon still sucks,
+// make it neon like the toggles"): a dark well, its edge lit in the accent,
+// and the letter a lit core, white with the accent's light round it. It was
+// a filled disc with the letter cut out, the palest thing on the chip. The
+// disc stands 0.7 in from the box so its lit edge is not cut by it.
 .genre-info-mark {
   display: block;
   width: 16px;
   height: 16px;
   flex: none;
+  filter: drop-shadow(
+    0 0 2px color-mix(in srgb, $secondary-default 60%, transparent)
+  );
+  transition: filter 130ms ease;
 }
 
 .genre-info-mark__disc {
-  fill: $secondary-default;
-  transition: fill 130ms ease;
+  fill: $track-well;
+  stroke: color-mix(in srgb, $secondary-default 75%, transparent);
+  stroke-width: 1.2;
+  transition: stroke 130ms ease;
 }
 
 .genre-info-mark__glyph {
-  fill: $surface-base;
+  fill: $white;
 }
 
 .genre-info-mark__stem {
   fill: none;
-  stroke: $surface-base;
+  stroke: $white;
   stroke-linecap: round;
-  stroke-width: 2.2;
+  stroke-width: 2;
+}
+
+// Under the pointer the light comes up, as a lit toggle's does.
+:is(button, .button):hover:not(:disabled) > .genre-info-mark,
+:is(button, .button):focus-visible > .genre-info-mark {
+  filter: drop-shadow(
+    0 0 4px color-mix(in srgb, $secondary-default 85%, transparent)
+  );
+
+  .genre-info-mark__disc {
+    stroke: $secondary-light;
+  }
 }
 
 // Beside the DSP page's preset picker. The quiet button every file action in
@@ -382,9 +403,9 @@ $notes-ink: $secondary-default;
   }
 }
 
-// On the Preset chip, between its strength and its remove button, in the
-// notes' own accent, like the notes it opens. Its hover is its own, not the
-// remove button's red, which the chip's rule for its buttons would give it.
+// On the Preset chip, between its strength and its remove button. Its hover
+// is the mark's own light coming up (above), not the remove button's red,
+// which the chip's rule for its buttons would give it.
 .active-layer.has-notes {
   grid-template-columns: minmax(0, 1fr) auto auto;
 
@@ -398,17 +419,9 @@ $notes-ink: $secondary-default;
       height: 14px;
     }
 
-    .genre-info-mark__disc {
-      fill: $notes-ink;
-    }
-
     &:hover:not(:disabled),
     &:focus-visible:not(:disabled) {
-      background: color-mix(in srgb, $notes-ink 30%, transparent);
-
-      .genre-info-mark__disc {
-        fill: color-mix(in srgb, $notes-ink 70%, $white);
-      }
+      background: none;
     }
   }
 }

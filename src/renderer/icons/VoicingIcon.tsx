@@ -30,9 +30,11 @@ const PATHS: Record<string, string> = {
   // Clapperboard.
   movies:
     'M3 8h18v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8zm0 0 1.5-4h15L21 8M8 4l-1.5 4M13 4l-1.5 4M18 4l-1.5 4',
-  // Gamepad.
+  // Gamepad: the feature tour's (`EngineFlow.tsx`), grips and all. The
+  // rounded slab it replaced read as a chain link at the 14px Game mode wears
+  // on the EQ page's head (Ivan, 2026-09-28: "fix game mode").
   games:
-    'M7 12h4m-2-2v4m6.5-1h.01M18 10h.01M8 7h8a5 5 0 0 1 5 5v1a4 4 0 0 1-7 2.7l-.6-.7h-2.8l-.6.7A4 4 0 0 1 3 13v-1a5 5 0 0 1 5-5z',
+    'M7.2 8.5h9.6a4.2 4.2 0 0 1 4.1 5.2l-.7 3a2.3 2.3 0 0 1-3.9 1.1l-1.8-1.9H9.5l-1.8 1.9a2.3 2.3 0 0 1-3.9-1.1l-.7-3a4.2 4.2 0 0 1 4.1-5.2zM8 11.4v3.2M6.4 13h3.2M15.6 11.3a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8zM17.4 13.1a.9.9 0 1 0 0 1.8.9.9 0 0 0 0-1.8z',
   // Microphone.
   speech:
     'M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3zM6 11a6 6 0 0 0 12 0M12 17v4m-3 0h6',
