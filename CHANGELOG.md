@@ -11,18 +11,20 @@ link brings you here. **Help → What's new** opens the tour again any time.
 FluidEQ 2.0 is a new window around a rebuilt sound.
 
 The window stands on one open floor, in the colours of a new icon. The theme
-is one slider from Black to a lighter Ocean, with Brightness and Transparency
-beside it, and a Plus visualizer can lend the window its colours or play
-behind the whole app while the panes let it through. Dialogs and menus share
-one material, and one switch folds everything into the Compact player.
+is one slider, Brightness, from near-black to a light ocean blue, and a Plus
+visualizer can lend the window its colours or play behind the whole app while
+the panes float on it as glass. Dialogs and menus share one material, and one
+switch folds everything into the Compact player — the classic amp, or on the
+Backdrop a player of glass over the visualizer.
 
 The sound was rebuilt preset by preset. Every music style is a whole chain,
 its bass, air and width chosen for that style, measured and levelled so
 switching changes the character and never the volume, and each explains
 itself: what the style asks for and why every point on its curve is where it
 is. On the FluidEQ Engine your curve plays exactly as drawn all the way to the
-top, switching presets crossfades instead of crackling, and Auto normalize
-lands on the right level at once. Dimension now widens even a mono record.
+top, switching presets crossfades instead of crackling, every edit is heard
+the moment you make it, and Auto normalize lands on the new level in one
+step. Dimension now widens even a mono record.
 
 The graph reads the sound the way studio tools do: twelve professional views,
 among them Analyzer, Spectrogram, Third-octave RTA, Peak & average, Waterfall,
@@ -30,9 +32,12 @@ Stereo & loudness and Oscilloscope, on scales that hold still, with the live
 sound measured 80 dB deep and down to 10 Hz, so what you see is what is
 playing.
 
-The Room has twenty-four rooms, free for everyone; games get their own sound;
-visualizers can be real 3D worlds; the Studio opens with a free trial; and
-Help answers questions in your own words.
+Every one of the graph's forty looks now draws on your graphics card at your
+screen's own rate, Plus visualizers can be real 3D worlds that dance to the
+song and throw sparks from your mouse, the Room has twenty-four rooms, free
+for everyone; games get their own sound; the Library keeps even a huge
+collection on disk and opens it at once; the Studio opens with a free trial;
+and Help answers questions in your own words.
 
 1.7.5 and 1.8.0 were never released; everything they carried is here.
 
@@ -51,15 +56,15 @@ Help answers questions in your own words.
   the gallery — lost their grey fill too and stand on the floor as the panes
   do, and every dialog is one material: the menus' floor at 95%, the same fine
   edge and corner, and no rainbow round it.
-- **The theme is a slider.** Light and Dark became one slider, from Black at
-  the left to a lighter Ocean at the right, and every step between them is a
-  theme: the window follows the thumb as it moves. Ocean as it was stands
-  three quarters of the way along, which is where anyone who had chosen it
-  finds it. The menu behind the pulse icon has it as Brightness, beside
-  Transparency — the same two sliders as Window colours — and the Compact
-  player's menu as its theme, Dark to Light.
+- **The theme is a slider.** Light and Dark became one slider, Brightness,
+  from near-black at the left to a light ocean blue at the right, and every
+  step between them is a theme: the window follows the thumb as it moves. The
+  old Ocean theme stands three quarters of the way along, which is where
+  anyone who had chosen it finds it. The menu behind the pulse icon has it as
+  Brightness, as Window colours does, and the Compact player's menu as its
+  theme, Dark to Light.
 - **The colours match the icon.** The accent is the cyan at the middle of the
-  icon's wave, on Black and on Ocean alike, and the filled buttons, the
+  icon's wave, at every Brightness alike, and the filled buttons, the
   switches, the power key and the bar under the open tab run aqua to azure the
   way the wave does.
 - **A new app icon.** The wave, glossier, on a dark tile, in Lagoon's
@@ -73,26 +78,37 @@ Help answers questions in your own words.
   azure and a soft periwinkle — the icon's own colours — where it used to run
   red to violet, and there is nothing to unlock any more: the switch on the
   signal, the What's new slide and the offer in the Support dialog are gone,
-  and Normal or Rainbow is a switch under Brightness and Transparency, in
-  Window colours and in the app menu, and a pill on the wave in the title
-  bar. The window takes a little of it too:
-  the panes lean toward its sky.
+  and Normal or Rainbow is a switch under the sliders in Window colours and
+  under Brightness in the app menu, and a pill on the wave in the title bar.
+  The window takes a little of it too: the panes lean toward its sky.
 - **Window colours, by name.** The button beside Auto on the graph says what a
   Plus visualizer does to the window — Theme, Colours, Ambient or Backdrop —
   and opens all four, each with a line on what it does, under two sliders.
-  Brightness is the theme's own slider: with the theme it goes from Black to
-  Ocean, and while a visualizer lends the window its colours it goes from
-  their darkest, never black, to their lightest. Transparency is how much of
-  the visualizer shows through the panes on the Backdrop, and stands dimmed
-  in any other mode. Both are marked at a quarter, a half and three quarters,
-  and the thumb falls into each mark. A new install opens at 0% Brightness
-  and 5% Transparency, and Brightness follows the hand without the window
-  holding it back.
+  Brightness is the theme's own slider: with the theme it goes from
+  near-black to the light ocean blue, and while a visualizer lends the window
+  its colours it goes from their darkest, never black, to their lightest.
+  Transparency is how much of the visualizer shows through the panes on the
+  Backdrop, and stands dimmed in any other mode. Both are marked at a
+  quarter, a half and three quarters, and the thumb falls into each mark. A
+  new install opens at 50% Brightness and 50% Transparency, in the full app
+  and the Compact player alike, and Brightness follows the hand without the
+  window holding it back.
+- **Pointer sparks.** Move the mouse across a Plus visualizer and it throws
+  what it is made of — sparks, petals, snow, embers — in a trail behind the
+  pointer, with a burst wherever you click. One switch turns them off or on
+  for every visualizer: Pointer sparks, in Window colours under Rainbow
+  mode. The Studio's stage always shows them, so a scene's maker can shape
+  what it throws.
 - **Backdrop.** The fourth mode puts the Plus visualizer behind the whole
   window, the graph still its frame, and the panes and everything on them let
   it show through. Menus do not: every menu stands at 95% whatever the
   Transparency, where one opened from a see-through pane used to go
   see-through with it.
+- **The Backdrop floats the panes.** On the equaliser's page the title bar and
+  the player bar run to the window's edges, and the side column, the sound
+  panel and the bands stand on the visualizer as rounded panes of glass with
+  room around them. Folding the sound panel leaves only its button, and the
+  graph and the bands take the room it gave up.
 - **The Backdrop stays behind every page.** With a Plus visualizer on the
   Backdrop, going to the Library, Karaoke or any other page keeps it playing
   behind the window; in Colours and Ambient it rests off the graph's page, so
@@ -122,6 +138,21 @@ Help answers questions in your own words.
 - **The graph's paper is plain.** The shaded bands across its top and foot,
   past ±20 dB, are gone; the ±20 dB rule still marks where the scale
   tightens.
+- **One knob, and sliders that feel right.** Every knob in the app is the same
+  lit ring with its reading under it, and the reading can be typed into. The
+  EQ sliders have round or rectangular handles, as you choose, a core lit
+  with each band's level, a detent at the centre and a snap at 0 dB.
+- **Every dialog on one frame.** Every dialog and notice stands on the same
+  frame with the same close button, and the keyboard stays inside a dialog
+  while it is open.
+- **The sound panel folds to a rail** from a button at its top left, the
+  settings pages and the panel's sections stand on soft cards, and every
+  shade's lines, text and outlines were set for contrast — the darkest end is
+  truly black. The Bands page has its title back, and the curves a band
+  layout carries are in one Curves dropdown on its bar.
+- **Small things made clearer.** The info mark beside a preset's name and on
+  the DSP page glows like the switches, Game mode's pad reads as a gamepad,
+  and a visualizer's icon no longer sits on a black square.
 - **On a Mac, FluidEQ looks like a Mac app.** The Mac's own close, minimise
   and zoom buttons stand in the title bar and in the player's strip, with the
   Mac's corner and edge, text drawn the way the Mac draws it, and the green
@@ -142,6 +173,16 @@ Help answers questions in your own words.
   double-click of its strip; its menu opens the full app on any page. If it
   ever ends up off the screen, FluidEQ's icon in the tray has Recover the
   window.
+- **On the Backdrop the player turns to glass.** With a Plus visualizer on the
+  Backdrop, the Compact player is the visualizer itself, edge to edge, with
+  the song in large type, the controls in a glass dock, and the equaliser and
+  Up next in a sheet at its foot; in every other mode it is the classic amp,
+  with its LED clock and lamps. Each keeps a window size of its own.
+- **Where the sound goes.** Under the song one strip shows where the sound
+  comes from, FluidEQ, and the output it reaches, with the output's rate and
+  layout on the FluidEQ Engine, and a light runs along it while sound is
+  playing. The source opens its page, FluidEQ opens the equaliser, and Game
+  mode stands beside it with the delay it cuts.
 - **The Compact player keeps a theme of its own.** Its menu has the theme's
   slider too, remembered apart from the full app's, so the app can stay dark
   while the player sits light beside your work.
@@ -199,6 +240,22 @@ Help answers questions in your own words.
   in mono still hears exactly the same, and the bass stays in the centre. The
   Movie preset and the Dimension card's Gaming profile keep the centre
   focused, so dialogue and a footstep straight ahead stay where they are.
+- **Shape a bell across several bands.** Select bands on the graph, hold Ctrl
+  and drag one of them: it becomes the top of a bell and the others follow
+  its curve, less the further they are from it, without moving along the
+  frequencies. The bell is as wide as that band's Q, so Ctrl+scroll widens or
+  narrows it, and letting go of Ctrl mid-drag moves the group as one again.
+  A Ctrl-click on a selected band still takes it out of the selection.
+- **Smart EQ measures the song, not what FluidEQ has already done to it.** It
+  used to listen after every layer and the DSP rack and keep correcting its
+  own previous answer, so the same song never got the same curve and the
+  rack's colour was "fixed" again on top. It now hears the sound before
+  FluidEQ touches it: the Library's own input while the Library plays, and
+  the playing app's sound otherwise. The same song always gets the same
+  correction, a new song starts fresh, and the correction is replaced rather
+  than piled up. The graph's gap bars and countdown are gone, and the Smart
+  EQ button is never greyed out; its bubble says when it cannot hear the
+  source.
 - **Bass, Mid and Treble across the whole rack**, the way an amplifier has
   them, on the main equaliser whenever no band is selected. Each moves its own
   third of the spectrum; Ctrl+click puts that third back to flat. They are a
@@ -215,9 +272,10 @@ Help answers questions in your own words.
   your EQ and for headphone corrections separately — Classic is how Equalizer
   APO builds a band and how AutoEQ tunes a correction — and the graph draws
   whichever one is playing.
-- **Auto normalize lands on an edit's level at once.** Applying a curve or
+- **Auto normalize lands on an edit's level in one step.** Applying a curve or
   moving a band used to drop the volume by the most it could ever need and
-  climb back over several seconds. On the FluidEQ Engine it now works out the
+  climb back slowly, still moving about 2 dB ten seconds later. On the
+  FluidEQ Engine it now works out the
   level the new sound needs from the last ten seconds of music, moves there in
   one step, and only fine-tunes after that.
 - **Edits are heard the moment you make them.** On the FluidEQ Engine a band
@@ -305,14 +363,33 @@ Help answers questions in your own words.
   Waterfall is a wireframe surface of the last second and a half, gliding back
   from a front edge that follows the music. A look you saved on one of the old
   drawings still draws.
-- **Nineteen new visualizers under Scenes.** LED wall, Glass towers, Tide,
-  Halo and Synthwave; LED bars with square segments, Neon bars, 3D bars,
-  Spectrum wave and Silk waves; and Mirror bars, Pixel bars, Spark bars, Glitch
-  bars, Halftone, Bouncing dots, Falling blocks, Fiber optics and Afterglow.
+- **Every look on your graphics card.** All forty of the graph's looks now draw
+  on the engine the Plus scenes run on — the same drawing in the pane, the
+  expanded view and full screen — at your screen's own refresh rate, where
+  the standard looks used to be held to 30 frames a second. Changing looks
+  fades from one to the next, and a look keeps its peaks and particles
+  through the hand-over.
+- **Eighteen new visualizers under Scenes.** LED wall, Glass towers, Tide,
+  Halo, Synthwave and Horizon; LED bars with square segments, Neon bars, 3D
+  bars and Spectrum wave; and Pixel bars, Spark bars, Glitch bars, Halftone,
+  Bouncing dots, Falling blocks, Fiber optics and Afterglow.
   Each moves with the bass, the beat and the treble separately, keeps its
   shape upside down and mirrored, and follows the look editor like every
   other look: colour by frequency, level or loudness, pieces and gap, filled
   or outline, opacity, line width, texture, lit peaks and glow.
+- **The looks and the level meter wear the window's colours.** A look with no
+  colours of its own draws in the accent and its lighter and darker shades in
+  Normal, and in the Rainbow palette — Lagoon's or the Plus visualizer's — in
+  Rainbow. The level meter and the look editor's colours follow the same way.
+  The meter's ten styles are drawn flat and clean, and the title bar's wave
+  draws crisp bars on the screen's own pixels.
+- **Plus scenes turn from night to day with Brightness.** Every FluidEQ scene
+  has a day look, and slides toward it as the window gets lighter.
+- **A visualizer keeps its subject in view in a narrow window.** In the
+  Compact player and any other narrow window, a Plus visualizer slides its
+  picture to keep what it is about on screen instead of squeezing it.
+- **3D worlds run lighter on laptop graphics.** A world no longer spends a
+  quarter of each frame on work Intel graphics did not need.
 - **The wave's height and position are kept per view.** Set in the graph's
   View menu, they are remembered separately for the pane, the expanded view
   and full screen, and for each Plus visualizer. The Compact player and the
@@ -348,12 +425,13 @@ Help answers questions in your own words.
 ### The desktop, Online Media and Windows
 
 - **YouTube, YouTube Music, Twitch and Suno in FluidEQ's colours.** Match
-  FluidEQ's colours, in the Media page's toolbar, gives a site's dark page,
-  cards, menus and top bar the window's colour at the same darkness, on your
-  screen only. Text keeps its own colour, and videos, pictures, ads and logos
-  are never changed. It is off until you turn it on, and works in each site's
-  dark mode.
-- **A Plus visualizer behind the Media page.** With a Plus visualizer on the
+  FluidEQ's colours, in Online Media's toolbar, puts a site's dark page in the
+  colour of the card it stands on, its cards, menus and top bar a step
+  lighter as the app's own are, and its search field and playlist in the
+  app's outlines. It is on your screen only: text keeps its own colour, and
+  videos, pictures, ads and logos are never changed. It is on in a new
+  install and can be switched off, and works in each site's dark mode.
+- **A Plus visualizer behind Online Media.** With a Plus visualizer on the
   graph and the site's colours matched, the video's own full screen plays the
   visualizer behind the page: the chat, the comments and the suggestions
   stand over it, and the video stays solid on top.
@@ -365,10 +443,40 @@ Help answers questions in your own words.
   desktop background's Manage dialog, and it changes to whichever Plus
   visualizer the graph shows, whether you picked it or the graph changed looks
   by itself. When the graph shows a standard look, the monitor keeps the last
-  Plus visualizer it had. Each monitor has its own switch.
+  Plus visualizer it had. Each monitor has its own switch. A monitor that
+  follows the graph turns from night to day with your Brightness too.
+- **The desktop dialog opens where you can see it.** It opens on a monitor
+  FluidEQ is not covering, and the monitor you choose plays the visualizer
+  live before you set it.
+- **The window gives way on a small or zoomed-in screen.** The graph's
+  buttons fold onto a second line instead of running off its edge, and the
+  title bar lets its level meter go first, then moves Help and the Compact
+  player switch into the actions menu; the tabs and the window's own buttons
+  always stay.
 - **Start with Windows.** A switch in the actions menu, under Animations,
   starts FluidEQ when you sign in. It needs no administrator, and it says so
   when Windows' own Startup apps has FluidEQ switched off.
+
+### The Library
+
+- **The Library keeps your music on disk, not in memory.** Songs, albums,
+  artists and folders are read a page at a time from a database on disk, so a
+  library of tens of thousands of songs opens at once and costs little
+  memory. The library you already have moves in by itself the first time 2.0
+  starts.
+- **Search inside a folder finds the whole library.** Matches in the folder
+  you are in, and the folders under it, come first under "In <folder>".
+  Everything else that matches follows under "Everywhere else".
+- **One Back, and a trail of where you are.** Every shelf and view of the
+  Library shows Back and the path from All music down to the folder you are
+  in. Switching views inside a folder never leaves you without a way back to
+  the top.
+- **The player bar keeps the last thing you played.** After a restart, a
+  closed browser tab, the other computer leaving Share Audio, or Stop, the bar
+  and the Compact player go on showing the last song — from the Library,
+  another program or another computer — until something new plays. They used
+  to say Nothing playing. A click on its title goes to the page that played
+  it.
 
 ### Plus and the Studio
 
@@ -401,12 +509,19 @@ Help answers questions in your own words.
   where the music stands left to right. The test music plays a song's shape —
   a verse, a build and a drop, the kick on one and three and the snare on two
   and four — so a scene's answer to each can be tried.
+- **The Studio keeps its stage in view.** The work on a scene sits in tabs
+  under the stage, the stage offers Full screen and the grid, and the
+  Studio's window colours are Theme, Colours and Ambient.
+- **The Studio shows a scene behind the Compact player** from a button on
+  the stage, so a maker sees how it frames in a narrow window. Each "things in
+  the window" slider shows the icons of what it moves, and Brightness and the
+  wave's height snap to 25, 50 and 75%.
 - **The Plus terms, third edition.** They now cover the approval every
   published scene waits for, the free trial, the month an approved scene
-  earns and the one Studio project a maker keeps without Plus, and they say
-  what an AI tool on your computer can see once you let it look at the
-  Studio's stage. Members who agreed to an earlier edition are told once, in
-  a small card, what changed.
+  earns and the one Studio project a maker keeps without Plus, that a scene
+  can carry 3D models, and what an AI tool on your computer can see once you
+  let it look at the Studio's stage. Members who agreed to an earlier edition
+  are told once, in a small card, what changed.
 
 ### Help
 
@@ -417,10 +532,13 @@ Help answers questions in your own words.
   result quotes the
   passage it found with the words marked; the guide takes you there and rings
   the control on its picture, and Enter walks to the next match.
-- **Help follows your theme**, and has a chapter for the Compact player. Its
-  pictures follow the theme: the lighter captures while the slider stands
-  nearer Ocean, the darker ones nearer Black. Help itself is now the book in
-  the title bar, beside the actions menu.
+- **Help shows the 2.0 window**, and has a chapter for the Compact player.
+  Its pictures were taken again at the middle of the Brightness slider, so
+  one set reads on a dark window and a light one. Help itself is now the book
+  in the title bar, beside the actions menu.
+- **Reset all settings.** A new item in the actions menu puts every setting
+  back the way a new install starts. Your EQ, presets, curves, DSP, outputs
+  and audio engine stay as they are.
 
 ### Fixed
 
@@ -430,6 +548,10 @@ Help answers questions in your own words.
   its way back. The graph now stays out of sight until the window has its
   size and fades in there, whole; the grid and the curves take any new size
   at once. Showing and hiding the graph still slides the band sliders.
+- **Your Plus visualizer comes back after a slow moment.** When the computer
+  could not keep up with a visualizer for a while, or it failed to start,
+  the graph showed its plain look for the rest of that session — and kept the
+  plain look for good. The next launch tries your visualizer again.
 - **Every hint is FluidEQ's own, even one that appears under the pointer.**
   A button that gains a hint while the pointer rests on it — the Gallery's
   Add, which becomes Remove once pressed — showed Windows' own tooltip; it is
@@ -443,10 +565,6 @@ Help answers questions in your own words.
   buttons pinned at the foot of the Studio's controls hide what scrolls under
   them; and the bar across the top of the Studio is the window's own colour
   instead of a lighter band.
-- **Online Media matches the window.** YouTube and the other sites drawn in
-  the app's colours are now in the colour of the window's floor, with their
-  cards lifted in the accent's hue, where they stood as a lighter slate
-  block; and the page's corners are square, as the pane around it is.
 - **The EQ opens with its sliders at full length on any screen.** On a large
   screen the bands under the graph used to open squeezed to their shortest,
   because the Tone dials there are bigger; the first height of that pane is
@@ -636,9 +754,29 @@ Help answers questions in your own words.
   page the picture fills the height of the panel beside it instead of leaving
   an empty band under it.
 - **Signing out asks through a clear card**, the Animations switch takes effect
-  at once, and the player bar no longer says nothing is playing after the
-  window reloads mid-song, nor leaves a second copy of what it watches the
-  rest of the machine with running in the background.
+  at once, and the player bar no longer leaves a second copy of what it
+  watches the rest of the machine with running in the background.
+- **Double-click a playing song to start it again**, in the Library's list,
+  grid and Cover Flow and in the Compact player's Up Next. A double-click in
+  the Library's Up Next no longer skips to the song after it.
+- **Up Next stands still while the music is paused.** The bars beside the
+  playing song kept moving while the Library was paused, even when another
+  program was the one playing.
+- **With the grid off, the drawing stands on the graph's floor**, instead of
+  keeping the grid's margin as an empty strip above the band sliders.
+- **Braid is back.** It had been folded into the Analyzer with the plain
+  drawings.
+- **Full screen shows the graph on a zoomed-in window**, where below 940
+  pixels wide it showed an empty window; and the Analyzer spans 10 Hz again
+  after a look was previewed, where it was squeezed into 20 Hz – 20 kHz.
+- **The Room says what it is doing while the Library plays it.** Its chip
+  said "Room off" over a room that was playing, and its picture lit every
+  speaker for a stereo song; it now reads the Library player's own room.
+- **The FluidEQ Engine installs only the files it was built with.** Setup
+  checks every file it puts into the engine's folder against the ones it
+  shipped with and refuses any other, and only the engine's own settings
+  folder can be written to without an administrator.
+- **The last English left on screen is in your language**, in all ten.
 - **The Processes list names every program FluidEQ starts.** The helpers that
   follow Windows' volume, tell FluidEQ which game is in front and play audio
   another FluidEQ shares with you each have a row saying what they do, and
