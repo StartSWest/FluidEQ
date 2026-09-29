@@ -70,7 +70,7 @@ const heavySettings = () => ({
     ...DSP_DEFAULTS.eq,
     enabled: true,
     subsonicHz: 30,
-    bands: Array.from({ length: 16 }, (unused, index) => ({
+    bands: Array.from({ length: 16 }, (_, index) => ({
       enabled: true,
       dynamic: index % 4 === 0,
       thresholdDb: -24,

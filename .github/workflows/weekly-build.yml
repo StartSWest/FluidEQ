@@ -73,6 +73,12 @@ jobs:
       - name: Type-check the end-to-end suite
         run: pnpm typecheck:e2e
 
+      # The build and smoke scripts, which the app's own type-check never
+      # reaches (it skips dot folders): a helper they import was once removed
+      # as dead code, and only running the smoke that used it found out.
+      - name: Type-check the build scripts
+        run: pnpm typecheck:scripts
+
       # Sass is the one language nothing else here checks: tsc does not see it,
       # jest does not import it, and prettier will format a file that cannot
       # compile. The script has existed for a while and nothing ever called it,

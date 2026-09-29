@@ -59,7 +59,10 @@ const EXIT_DECLINED = 2;
 
 const say = (message: string) => console.log(`native engine: ${message}`);
 
-const fail = (message: string): never => {
+// Typed on the name, not only the return: TypeScript ends a branch at a call
+// only when the function's own declared type says it never returns, and a
+// `no-bundle` plan otherwise reached `plan.files` in the type-check.
+const fail: (message: string) => never = (message) => {
   console.error(`native engine: ${message}`);
   process.exit(1);
 };

@@ -39,6 +39,14 @@ jobs:
       - name: Check the file encodings
         run: pnpm typecheck:encoding
 
+      # Neither ran on a push: a change that did not type-check reached main
+      # green, as long as its tests passed. Seconds each against the build.
+      - name: Type-check
+        run: pnpm typecheck
+
+      - name: Type-check the build scripts
+        run: pnpm typecheck:scripts
+
       - name: Build production bundles
         run: pnpm build
 

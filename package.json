@@ -65,6 +65,7 @@
     "opra:update": "cross-env TS_NODE_TRANSPILE_ONLY=true ts-node scripts/build-opra-database.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "typecheck:e2e": "tsc --noEmit -p tsconfig.e2e.json",
+    "typecheck:scripts": "tsc --noEmit -p tsconfig.scripts.json",
     "typecheck:styles": "ts-node ./.erb/scripts/check-styles.ts",
     "typecheck:encoding": "ts-node ./.erb/scripts/check-encoding.ts",
     "perf:probe": "cross-env TS_NODE_TRANSPILE_ONLY=true ts-node ./.erb/scripts/perf-probe.ts",

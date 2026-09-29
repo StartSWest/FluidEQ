@@ -1,0 +1,15 @@
+{
+  // The build, smoke and data scripts, which tsconfig.json never reaches:
+  // TypeScript's default include skips folders whose name starts with a dot,
+  // so everything in .erb went unchecked. A helper those scripts import was
+  // moved as dead code on 2026-09-28 and only running smoke-presets found it.
+  //
+  // They run on Node, never in the window, so their library is es2022 (Array
+  // .prototype.at and the rest Node has had for years); the app's own code
+  // stays on the base config's es2021.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["dom", "es2022", "es2022.intl"]
+  },
+  "include": [".erb/scripts/**/*.ts", ".erb/configs/**/*.ts", "scripts/**/*.ts"]
+}

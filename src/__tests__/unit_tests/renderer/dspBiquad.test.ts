@@ -9,31 +9,8 @@ import {
   biquadCoefficients,
   biquadMagnitudeDb,
   createBiquadState,
-  type IBiquadCoefficients,
-  type IBiquadState,
+  processBiquad,
 } from '../../../renderer/dsp/biquad';
-
-/**
- * The coefficients run over a signal, Direct Form I, in place: the time-domain
- * check on what the graphs draw from them. The app renders the rack natively
- * now; this is the reference the magnitude function is held to.
- */
-const processBiquad = (
-  state: IBiquadState,
-  buffer: Float32Array,
-  { b0, b1, b2, a1, a2 }: IBiquadCoefficients,
-): void => {
-  for (let i = 0; i < buffer.length; i += 1) {
-    const x = buffer[i];
-    const y =
-      b0 * x + b1 * state.x1 + b2 * state.x2 - a1 * state.y1 - a2 * state.y2;
-    state.x2 = state.x1;
-    state.x1 = x;
-    state.y2 = state.y1;
-    state.y1 = y;
-    buffer[i] = y;
-  }
-};
 
 const RATE = 48_000;
 

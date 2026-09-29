@@ -207,12 +207,11 @@ const CORRECT_FROM_HZ = 80;
 const CORRECT_TO_HZ = 16_000;
 const CORRECT_LIMIT_DB = 12;
 
-/** Power at `n` linear bins up to the Nyquist of `rate`, averaged over `set`. */
-const averagePower = (
-  set: number[][],
-  rate: number,
-  bins: number,
-): number[] => {
+/**
+ * Power at `bins` linear bins from 0 to the set's own Nyquist, averaged over
+ * `set`. Which frequency a bin is, is the caller's to say (`hzOf`).
+ */
+const averagePower = (set: number[][], bins: number): number[] => {
   const size = bins * 2;
   const power = new Array<number>(bins).fill(0);
   set.forEach((taps) => {
@@ -232,7 +231,7 @@ const diffuseFieldCorrection = (
   rate: number,
 ): ((hz: number) => number) => {
   const bins = 512;
-  const power = averagePower(set, rate, bins);
+  const power = averagePower(set, bins);
   const hzOf = (bin: number) => (bin * rate) / (bins * 2);
   const levelDb = (bin: number) => 10 * Math.log10(Math.max(power[bin], 1e-20));
   // Third-octave smoothing in the log domain: the bins within ±1/6 octave.
