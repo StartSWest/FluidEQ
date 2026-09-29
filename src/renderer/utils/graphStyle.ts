@@ -46,6 +46,7 @@ import {
   getMemberSceneSummary,
   getUsableMemberScene,
   getUsableMemberScenes,
+  isMemberSceneBlocked,
   isMemberSceneListingLoaded,
   subscribeMemberScenes,
   type IUsableMemberScene,
@@ -54,6 +55,7 @@ import {
   getScenePackSummary,
   getUsableScene,
   getUsableScenes,
+  isSceneBlocked,
   isScenePackListingLoaded,
   subscribeScenePacks,
   type IUsableScene,
@@ -489,14 +491,27 @@ subscribeCustomLooks(() => {
 // Only once the list has actually been received. At startup the store is empty
 // until the main process answers, and re-pointing then would throw away a
 // premium selection on every launch before the packs had a chance to arrive.
+//
+// Written down only when the scene is gone from the account. One this session
+// set aside — a compile that failed here, a machine that could not keep up
+// just now (`useSceneRunner`'s "until the next launch") — falls back for the
+// session and stays chosen on disk: it was written down too, so a Plus member
+// whose graphics card was busy with a game for a moment lost their
+// visualizer for good, the next launch opening on its fallback.
+const repointFromScene = (setAside: boolean) => {
+  selectedId = fallbackLookFor(selectedId).id;
+  if (!setAside) {
+    persistSelection();
+  }
+};
+
 subscribeScenePacks(() => {
   if (
     isPremiumLookId(selectedId) &&
     isScenePackListingLoaded() &&
     !getUsableScene(packIdOfLook(selectedId))
   ) {
-    selectedId = fallbackLookFor(selectedId).id;
-    persistSelection();
+    repointFromScene(isSceneBlocked(packIdOfLook(selectedId)));
   }
   refresh();
 });
@@ -510,8 +525,7 @@ subscribeMemberScenes(() => {
     isMemberSceneListingLoaded() &&
     !getUsableMemberScene(selectedId)
   ) {
-    selectedId = fallbackLookFor(selectedId).id;
-    persistSelection();
+    repointFromScene(isMemberSceneBlocked(selectedId));
   }
   refresh();
 });

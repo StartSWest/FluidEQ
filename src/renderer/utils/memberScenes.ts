@@ -153,6 +153,9 @@ export const getUsableMemberScene = (
   lookId: string,
 ): IUsableMemberScene | undefined =>
   usable.find((scene) => scene.lookId === lookId);
+/** Set aside by this session rather than gone: as `isSceneBlocked`. */
+export const isMemberSceneBlocked = (lookId: string): boolean =>
+  blocked.has(lookId);
 export const getMemberSceneSummary = (
   lookId: string,
 ): IMemberSceneSummary | undefined =>

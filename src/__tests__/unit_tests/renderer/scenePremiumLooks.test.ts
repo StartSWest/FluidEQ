@@ -185,6 +185,44 @@ describe('premium looks in the look store', () => {
     );
   });
 
+  /**
+   * Set aside for this session — the machine could not keep up, or the scene
+   * failed to build here — is not gone: it falls back until the next launch
+   * and the next launch tries it again. Writing the fallback down made a
+   * moment of a busy graphics card cost a Plus member their visualizer.
+   * The lapsed subscription above is the control: that one is written down.
+   */
+  it.each([
+    [
+      'could not keep up',
+      (packs: TScenePacksModule) => packs.blockScene('aurora'),
+    ],
+    [
+      'failed to build here',
+      (packs: TScenePacksModule) => {
+        packs.reportSceneFailure('aurora', 'compile').catch(() => undefined);
+      },
+    ],
+  ])(
+    'falls back for the session, and keeps the choice, when a scene %s',
+    (_why, setAside) => {
+      const first = load('premium:aurora');
+      first.scenePacks.adoptScenePackListingForTesting(listing(true));
+
+      setAside(first.scenePacks);
+      expect(first.graphStyle.getGraphLookId()).toBe('area-auto');
+      expect(window.localStorage.getItem('fluideq-graph-style')).toBe(
+        'premium:aurora',
+      );
+
+      const relaunched = load(
+        window.localStorage.getItem('fluideq-graph-style') ?? undefined,
+      );
+      relaunched.scenePacks.adoptScenePackListingForTesting(listing(true));
+      expect(relaunched.graphStyle.getGraphLookId()).toBe('premium:aurora');
+    },
+  );
+
   it('does not re-point a premium selection on a listing that has not loaded yet', () => {
     const { graphStyle } = load('premium:aurora');
     // No listing adopted: the store has heard nothing from the main process.

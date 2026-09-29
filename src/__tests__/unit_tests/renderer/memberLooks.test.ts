@@ -138,6 +138,33 @@ describe("a member's scenes in the look store", () => {
       graphStyle.getSelectableLooks([]).map((look) => look.id),
     ).not.toContain(LOOK_ID);
   });
+
+  // Set aside for this session only: its fallback now, the scene again at the
+  // next launch. Losing Plus, above, is the case that is written down.
+  it('falls back for the session and keeps the choice when a chosen scene is set aside', () => {
+    const first = load(LOOK_ID);
+    first.members.adoptMemberSceneListingForTesting(listing(true));
+
+    first.members.blockMemberScene(LOOK_ID);
+    expect(first.graphStyle.getGraphLookId()).toBe('skyline-auto');
+    expect(window.localStorage.getItem('fluideq-graph-style')).toBe(LOOK_ID);
+
+    const relaunched = load(
+      window.localStorage.getItem('fluideq-graph-style') ?? undefined,
+    );
+    relaunched.members.adoptMemberSceneListingForTesting(listing(true));
+    expect(relaunched.graphStyle.getGraphLookId()).toBe(LOOK_ID);
+  });
+
+  it('writes the fallback down when Plus lapses under a chosen scene', () => {
+    const { graphStyle, members } = load(LOOK_ID);
+    members.adoptMemberSceneListingForTesting(listing(true));
+    members.adoptMemberSceneListingForTesting(listing(false));
+    expect(graphStyle.getGraphLookId()).toBe('skyline-auto');
+    expect(window.localStorage.getItem('fluideq-graph-style')).toBe(
+      'skyline-auto',
+    );
+  });
 });
 
 /**

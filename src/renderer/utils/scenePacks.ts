@@ -153,6 +153,12 @@ export const isScenePackListingLoaded = (): boolean => loaded;
 export const getUsableScenes = (): readonly IUsableScene[] => usable;
 export const getUsableScene = (packId: string): IUsableScene | undefined =>
   usable.find((scene) => scene.id === packId);
+/**
+ * Set aside by this session — it failed here, or the machine could not run it
+ * just now — rather than gone from the account. The graph falls back for the
+ * session and keeps the listener's choice for the next launch (`graphStyle.ts`).
+ */
+export const isSceneBlocked = (packId: string): boolean => blocked.has(packId);
 export const getScenePackSummary = (
   packId: string,
 ): IScenePackSummary | undefined =>
