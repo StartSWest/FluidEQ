@@ -64,11 +64,11 @@ const WINDOW_BACKDROP_MATERIAL = 'acrylic' as const;
  * keeps doing that whether or not anything of it can be seen through the
  * fill.
  *
- * The default is the default theme's `--surface-base`; the renderer states the
- * theme's own on startup and on every switch, because only the document knows
- * it.
+ * The default is the default Brightness's `--surface-base` (50, `theme.ts`:
+ * `themeShadeTokens(50)`); the renderer states the theme's own on startup and
+ * on every switch, because only the document knows it.
  */
-const DEFAULT_FLOOR = '#050608';
+const DEFAULT_FLOOR = '#0a1722';
 
 /** `#rrggbb`, which is what a resolved CSS colour comes back as. */
 const HEX_COLOUR = /^#[0-9a-f]{6}$/i;

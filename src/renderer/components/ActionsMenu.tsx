@@ -29,7 +29,6 @@ import SliderHandlePicker from './SliderHandlePicker';
 import StartupPicker from './StartupPicker';
 import RainbowSwitch from '../graph/RainbowSwitch';
 import WindowBrightnessSlider from '../graph/WindowBrightnessSlider';
-import BackdropVeilSlider from '../graph/BackdropVeilSlider';
 import '../styles/ActionsMenu.scss';
 
 /**
@@ -414,13 +413,14 @@ const ActionsMenu = ({
           {/* Last, and in every state: someone who cannot read the rest of
               this menu still has to be able to reach the language. */}
           <div className="actions-menu__prefs">
-            {/* The window's look, as Window colours sets it: Brightness and
-                Transparency, the same two sliders (Ivan, 2026-09-26: "do
-                same in the main menu both options bright trans no theme"),
-                and Rainbow mode's switch under them. */}
+            {/* The window's look: Brightness, as Window colours sets it, and
+                Rainbow mode's switch under it. Not Transparency (Ivan,
+                2026-09-28: "remove the transparent slider from the root menu
+                since no point, and keep it on the backdrop menu and amp
+                player"): it only does anything in the Backdrop, and it stands
+                where the Backdrop is chosen and in the amp's own menu. */}
             <div className="actions-menu__sliders">
               <WindowBrightnessSlider />
-              <BackdropVeilSlider />
               <RainbowSwitch />
             </div>
             <SliderHandlePicker />

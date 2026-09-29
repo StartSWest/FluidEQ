@@ -258,24 +258,27 @@ describe('the commands of the actions menu', () => {
 });
 
 describe('the settings tray', () => {
-  // The window's look as Window colours sets it, and no Theme row (Ivan,
+  // The window's Brightness as Window colours sets it, and no Theme row (Ivan,
   // 2026-09-26: "do same in the main menu both options bright trans no
-  // theme").
-  it('offers Brightness and Transparency, and Brightness moves the window as it goes', async () => {
+  // theme"). No Transparency either (2026-09-28: "remove the transparent
+  // slider from the root menu since no point"): it is the Backdrop's, and
+  // stands in the Backdrop's own menu and the amp's.
+  it('offers Brightness and not Transparency, and Brightness moves the window as it goes', async () => {
+    setTheme('black');
     const { trigger } = show('ready');
     open(trigger);
     expect(
       screen.queryByRole('slider', { name: en['theme.aria'] }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('slider', { name: en['graph.backdropVeil'] }),
+    ).not.toBeInTheDocument();
     const brightness = screen.getByRole('slider', {
       name: en['graph.sceneTint.brightness'],
     });
-    // Transparency is the Backdrop's, and stands still under any other mode.
-    expect(
-      screen.getByRole('slider', { name: en['graph.backdropVeil'] }),
-    ).toBeDisabled();
 
-    // Black, the default, at the dark end.
+    // The window's own shade: Black here, where the case put it (a fresh
+    // install's half way is `themeShade.test.ts`'s).
     expect(brightness).toHaveValue('0');
     // The thumb follows at once; the window restyles on the next frame
     // (`useLiveSlider`), never in the same one as the move.
@@ -338,7 +341,6 @@ describe('opening and closing the actions menu', () => {
     ).toHaveFocus();
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' });
-    // Transparency stands still outside the Backdrop, and the arrows pass it.
     expect(
       screen.getByRole('slider', {
         name: en['graph.sceneTint.brightness'],

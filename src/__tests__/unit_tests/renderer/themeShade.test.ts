@@ -203,9 +203,11 @@ describe('a theme chosen before the slider', () => {
     expect(openWith('ocean')).toBe(OCEAN_SHADE);
   });
 
-  it('opens a shade where it was left, and anything else on Black', () => {
+  // Half way is where a window with no choice opens (Ivan, 2026-09-28:
+  // "brightness default to 50%"); Black was the default before.
+  it('opens a shade where it was left, and anything else half way', () => {
     expect(openWith('37')).toBe(37);
-    expect(openWith('purple')).toBe(THEME_SHADE_MIN);
-    expect(openWith(null)).toBe(THEME_SHADE_MIN);
+    expect(openWith('purple')).toBe(50);
+    expect(openWith(null)).toBe(50);
   });
 });

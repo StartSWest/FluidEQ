@@ -25,10 +25,11 @@ import {
  * over that block. Text and the semantic colours are shared — a theme changes
  * what things stand on, not what they say.
  *
- * Black (0) is the default: what a window with no choice stored opens in — a
- * fresh install, and anybody who never moved the slider (Ivan, 2026-09-26,
- * after trying a quarter and a half: "default should be b 0"). It has been
- * since 1.6.
+ * Half way is the default: what a window with no choice stored opens in — a
+ * fresh install, and anybody who never moved the slider — the app and the
+ * amp alike (Ivan, 2026-09-28: "brightness default to 50%"). It was Black (0)
+ * from 1.6 ("default should be b 0", 2026-09-26, after trying a quarter and
+ * a half).
  */
 export const THEMES = ['ocean', 'black'] as const;
 
@@ -56,7 +57,7 @@ export type TThemeScope = 'app' | 'player';
  */
 const STORAGE_KEY = 'fluideq.theme';
 const PLAYER_STORAGE_KEY = 'fluideq.theme.player';
-const DEFAULT_SHADE = THEME_SHADE_MIN;
+const DEFAULT_SHADE = 50;
 
 const SHADE_OF_THEME: Record<TTheme, number> = {
   black: THEME_SHADE_MIN,

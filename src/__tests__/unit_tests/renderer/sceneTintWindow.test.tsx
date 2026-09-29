@@ -69,6 +69,10 @@ let library: typeof TestingLibrary | undefined;
 const THEME = `:root { --surface-base: #0d2030; --surface-panel: #1a3a4e; --accent: #00e5cf; --active: #54ff8a; }`;
 
 beforeEach(() => {
+  // At Black, night (`@0`, below): the step a sky is measured at is the
+  // Brightness's, and a window with no choice stored opens half way
+  // (`theme.ts`). The tests that want Ocean store it over this.
+  window.localStorage.setItem('fluideq.theme', 'black');
   mockLookId = 'premium:bloom';
   mockSwatch = [];
   mockMeasureScene.mockReset().mockResolvedValue(undefined);
@@ -116,7 +120,8 @@ const mount = () => {
 };
 
 // A scene's colour is measured, and remembered, at the step of the day the
-// Brightness stands at (`SceneTint.tsx`): Black, the default, is night — `@0`.
+// Brightness stands at (`SceneTint.tsx`): Black, where these run, is night —
+// `@0`.
 describe('the graph’s visualizer', () => {
   it('opens the window in the colour it was last measured, before anything is drawn', () => {
     remember([['premium:bloom', '3@0', sky(300)]]);
@@ -242,6 +247,31 @@ describe('the graph’s visualizer', () => {
     mount();
     expect(root).toHaveAttribute('data-scene-tint');
     expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
+  });
+
+  // A Plus visualizer's colours hold in Colours and Ambient however low the
+  // Brightness goes (Ivan, 2026-09-28: "on plus viz we keep the viz original
+  // color when moving the app brightness"): their walk starts at 30, so Black
+  // paints them as the Backdrop, which follows the Brightness all the way,
+  // paints them at 30.
+  it('holds a visualizer’s colours at Black in Colours and Ambient', () => {
+    remember([['premium:bloom', '3@0', sky(300)]]);
+    const floorIn = (mode: string, shade: string) => {
+      window.localStorage.setItem('fluideq.sceneTintMode', mode);
+      window.localStorage.setItem('fluideq.theme', shade);
+      const shown = mount();
+      const floor = root.style.getPropertyValue('--surface-base');
+      shown.fresh.cleanup();
+      root.removeAttribute('style');
+      root.removeAttribute('data-scene-tint');
+      return floor;
+    };
+    const colours = floorIn('tint', 'black');
+    expect(colours).toMatch(/^#/);
+    expect(floorIn('pulse', 'black')).toBe(colours);
+    expect(floorIn('cover', '30')).toBe(colours);
+    // POSITIVE CONTROL: the Backdrop at Black has gone darker than that.
+    expect(floorIn('cover', 'black')).not.toBe(colours);
   });
 
   it('gives a look that is not a scene Lagoon, not a remembered scene’s colour', () => {

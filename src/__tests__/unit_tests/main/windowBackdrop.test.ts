@@ -5,6 +5,10 @@ import {
   setWindowFloor,
   windowFloorColour,
 } from '../../../main/windowBackdrop';
+import {
+  THEME_SHADE_MIN,
+  themeShadeTokens,
+} from '../../../renderer/utils/themeShade';
 
 const fakeWindow = (isFullScreen: boolean) => {
   const materials: string[] = [];
@@ -23,6 +27,18 @@ const fakeWindow = (isFullScreen: boolean) => {
 };
 
 describe('what the window stands on', () => {
+  // First, before any test states a floor: what a fresh install's window
+  // shows until the renderer says its theme is the floor of the Brightness
+  // it opens at, half way (`theme.ts`), so nothing changes colour when it
+  // does. Black's floor stood here while Black was the default.
+  it('is the default Brightness’s floor before the renderer states one', () => {
+    expect(windowFloorColour()).toBe(themeShadeTokens(50)['--surface-base']);
+    // POSITIVE CONTROL: Black's is another colour, so the match is not luck.
+    expect(windowFloorColour()).not.toBe(
+      themeShadeTokens(THEME_SHADE_MIN)['--surface-base'],
+    );
+  });
+
   it('is the theme floor under a material, and black with none, full screen', () => {
     const floor = windowFloorColour();
     const windowed = fakeWindow(false);
