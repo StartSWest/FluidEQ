@@ -2831,6 +2831,18 @@ $section-card-pages: ();
   );
 }
 
+// The pages whose graph stands on a card of its own, parted from the page by
+// the divider's strip: every page on a card, and Plus and the forum, whose
+// rails and places are cards of their own inside the panel (Ivan, 2026-09-28:
+// "fix the graph in plus pane is not showing in a rounded wrapper as in other
+// pages"). Under those two the graph ran to the column's edges, square, with
+// the page's cards standing in from them above it.
+$graph-card-pages: list.join(
+  $section-card-pages,
+  ('.workspace-tab-panel--community', '.workspace-tab-panel--forum'),
+  $separator: comma
+);
+
 #{$section-card-pages} {
   @include section-card;
   margin: 0 10px 10px;
@@ -2853,7 +2865,7 @@ $section-card-pages: ();
 // floor all round; and it is the divider's own box, which the split already
 // counts (`paneSizes.ts`) and which keeps the grip centred in the gap.
 .center-workspace:has(> .pane-resizer):has(
-    > .middle-content > :is(#{$section-card-pages})
+    > .middle-content > :is(#{$graph-card-pages})
   ) {
   > .pane-resizer {
     height: 10px;
@@ -2871,6 +2883,14 @@ $section-card-pages: ();
   // Above a graph (DSP, Share Audio) the strip is the card's gap at its foot.
   &:not(.is-graph-first) > .middle-content > :is(#{$section-card-pages}) {
     margin-bottom: 0;
+  }
+
+  // And Plus's and the forum's cards stand on the strip the same way, with
+  // no padding of the panel's under them.
+  &:not(.is-graph-first)
+    > .middle-content
+    > :is(.workspace-tab-panel--community, .workspace-tab-panel--forum) {
+    padding-bottom: 0;
   }
 }
 
@@ -2946,7 +2966,7 @@ $section-card-pages: ();
 // (`.graph-plot`). Its foot is counted out of the split with the divider
 // (`measureSeam`), so at the graph's floor the page is not pushed down.
 .center-workspace:not(.is-graph-first, .is-graph-full):has(
-    > .middle-content > :is(#{$section-card-pages})
+    > .middle-content > :is(#{$graph-card-pages})
   )
   > .graph-wrapper {
   @include section-card;
@@ -3201,6 +3221,14 @@ $section-card-pages: ();
   min-height: 0;
   flex: 1 1 auto;
   overflow: hidden;
+  // Their cards where every page's card stands: 8px under the titlebar and
+  // 10px in from the column's sides and foot, so the graph's card under them
+  // (`$graph-card-pages`) lines up with their edges.
+  padding: 8px 10px 10px;
+  // No room kept for a scrollbar: the panel never scrolls, and the 8px the
+  // shared rule keeps for one stood the cards that much further from the
+  // column's right edge than from its left, and short of the graph's card.
+  scrollbar-gutter: auto;
 }
 
 // Sections that fill a workspace card sit directly on it instead of painting
