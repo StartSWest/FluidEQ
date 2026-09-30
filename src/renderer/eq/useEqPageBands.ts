@@ -32,12 +32,6 @@ import {
   IFilter,
   IFilterEdit,
   isBandEnabled,
-  MAX_FREQUENCY,
-  MAX_GAIN,
-  MAX_QUALITY,
-  MIN_FREQUENCY,
-  MIN_GAIN,
-  MIN_QUALITY,
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
@@ -61,7 +55,7 @@ import {
 } from '../utils/correctionFlash';
 import useBubblePlacement from './useBubblePlacement';
 import { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
-import { clamp, sortHelper, useLatestCall } from '../utils/utils';
+import { sortHelper, useLatestCall } from '../utils/utils';
 import { useOverflowScroll } from '../utils/useOverflowScroll';
 import {
   getPlotGeometry,
@@ -71,6 +65,13 @@ import {
   subscribePlotGeometry,
 } from '../graph/plotGeometry';
 import { applyBandPlacement } from './bandsRail';
+import {
+  bandGainEdits,
+  bandGainWrite,
+  groupEdits as selectionEdits,
+  groupWrite,
+  TBandField,
+} from './bandEdits';
 import { setFilterValues } from '../utils/equalizerApi';
 import { type TBandDensity } from '../components/FrequencyBand';
 
@@ -480,50 +481,27 @@ const useEqPageBands = () => {
   // can go.
   const groupFlush = useLatestCall(flushGroupEdit);
 
-  /**
-   * The edits moving one parameter to `newValue` makes across everything
-   * selected.
-   *
-   * The value handed in is the one the control shows, which belongs to the
-   * primary band; every other band in the selection moves by the same amount
-   * rather than to the same value, so a selection keeps its shape. Bands that
-   * would run past an end of the range stop there — which does mean a group
-   * pushed to the top and then pulled back spreads out, and that is the only
-   * behaviour that does not silently discard the rest of the selection.
-   */
+  // The selection and the bands as they are when the edit runs (`bandEdits`).
   const groupEdits = useCallback(
-    (field: 'frequency' | 'gain' | 'quality', newValue: number) => {
-      const primary = selectedFilterRef.current;
-      if (!primary) {
-        return [];
-      }
-      const liveFilters = filtersRef.current;
-      const ids = selectedFilterIdsRef.current.includes(primary.id)
-        ? selectedFilterIdsRef.current
-        : [primary.id];
-      const delta = newValue - primary[field];
-      const bounds = {
-        frequency: [MIN_FREQUENCY, MAX_FREQUENCY],
-        gain: [MIN_GAIN, MAX_GAIN],
-        quality: [MIN_QUALITY, MAX_QUALITY],
-      }[field];
-
-      const edits: IFilterEdit[] = [];
-      ids.forEach((id) => {
-        const filter = liveFilters[id];
-        if (
-          !filter ||
-          (field === 'gain' && NO_GAIN_FILTER_TYPES.includes(filter.type))
-        ) {
-          return;
-        }
-        const nextValue = clamp(filter[field] + delta, bounds[0], bounds[1]);
-        if (nextValue !== filter[field]) {
-          edits.push({ id, [field]: nextValue });
-        }
-      });
-      return edits;
-    },
+    (field: TBandField, newValue: number) =>
+      selectionEdits(
+        filtersRef.current,
+        selectedFilterRef.current,
+        selectedFilterIdsRef.current,
+        field,
+        newValue,
+      ),
+    [],
+  );
+  const gainEdits = useCallback(
+    (filterId: string, newValue: number) =>
+      bandGainEdits(
+        filtersRef.current,
+        selectedFilterRef.current,
+        selectedFilterIdsRef.current,
+        filterId,
+        newValue,
+      ),
     [],
   );
 
@@ -556,13 +534,21 @@ const useEqPageBands = () => {
    * one that lands last is complete.
    */
   const updateSelectedGroup = useCallback(
-    async (field: 'frequency' | 'gain' | 'quality', newValue: number) => {
+    async (field: TBandField, newValue: number) => {
       const edits = groupEdits(field, newValue);
       if (edits.length === 0) {
         return;
       }
       showGroupEdits(edits);
-      await groupFlush(edits);
+      await groupFlush(
+        groupWrite(
+          filtersRef.current,
+          selectedFilterRef.current,
+          selectedFilterIdsRef.current,
+          field,
+          newValue,
+        ),
+      );
     },
     [groupEdits, groupFlush, showGroupEdits],
   );
@@ -570,19 +556,27 @@ const useEqPageBands = () => {
   // The callbacks every band is handed, stable across a drag: read
   // through refs, so another band's step gives no band a new prop and the
   // memoised bands stay as they are (`FrequencyBand`).
+  // The engine is told where the bands land even when the preview already
+  // shows them there (`bandGainWrite`), or a queued step is dropped.
   const handleBandGainChange = useCallback(
-    (filterId: string, newValue: number) => {
-      const source = filtersRef.current[filterId];
-      if (!source) {
-        return Promise.resolve();
-      }
-      const primaryValue = selectedFilterRef.current?.gain ?? source.gain;
-      return updateSelectedGroup(
-        'gain',
-        primaryValue + (newValue - source.gain),
+    async (filterId: string, newValue: number) => {
+      const write = bandGainWrite(
+        filtersRef.current,
+        selectedFilterRef.current,
+        selectedFilterIdsRef.current,
+        filterId,
+        newValue,
       );
+      if (write.length === 0) {
+        return;
+      }
+      const changes = gainEdits(filterId, newValue);
+      if (changes.length > 0) {
+        showGroupEdits(changes);
+      }
+      await groupFlush(write);
     },
-    [updateSelectedGroup],
+    [gainEdits, groupFlush, showGroupEdits],
   );
 
   // Through a ref: the context's selection callback is made again whenever
@@ -594,17 +588,12 @@ const useEqPageBands = () => {
   // through its own queue, where a reset waits in line behind it.
   const handleBandGainPreview = useCallback(
     (filterId: string, newValue: number) => {
-      const source = filtersRef.current[filterId];
-      if (!source) {
-        return;
-      }
-      const primaryValue = selectedFilterRef.current?.gain ?? source.gain;
-      const edits = groupEdits('gain', primaryValue + (newValue - source.gain));
+      const edits = gainEdits(filterId, newValue);
       if (edits.length > 0) {
         showGroupEdits(edits);
       }
     },
-    [groupEdits, showGroupEdits],
+    [gainEdits, showGroupEdits],
   );
 
   const handleBandSelect = useCallback(

@@ -578,6 +578,12 @@ and Help answers questions in your own words.
 
 ### Fixed
 
+- **A band's fader moves its own band, and stays where you leave it.** Turned
+  with the mouse wheel, the arrow keys or a screen reader, without a click on
+  the band first, a fader moved whichever band was selected, or none at all.
+  And the last step of a quick movement could be lost, leaving the sound and
+  your saved profile a step behind what the fader showed. Each fader now
+  moves its own band, and the band plays exactly where you left it.
 - **The graph fades in, and nothing in it slides.** Opening a page with the
   graph, the grid and the curves used to glide in from the edge, and leaving
   full screen squashed the visualizer through each size the window passed on
