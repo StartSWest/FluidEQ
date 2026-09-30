@@ -416,6 +416,9 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.tintName': 'Cores da janela',
   'help.graph.tint':
     'O tema do app, as cores do visualizador, as cores dele com luz (Ambiente) ou o visualizador atrás de toda a janela (Pano de fundo).',
+  'help.graph.likeName': 'Curtir',
+  'help.graph.like':
+    'Curte a cena que está tocando e dá pontos a quem a criou. Numa cena sua, mostra quantas curtidas ela tem.',
   'help.graph.lighting': 'Ilumina seus dispositivos RGB com esta cena.',
   'help.graph.desktop':
     'Coloca este visualizador atrás dos ícones da área de trabalho.',
@@ -453,8 +456,9 @@ const help: Record<keyof typeof en, string> = {
     'Estilos gratuitos desenhados pelo FluidEQ e os visuais que você salvou.',
   'help.looks.familiesName': 'Filtros de estilos',
   'help.looks.families':
-    'Linhas, Preenchimentos, Barras, Pontos, Cenas e Seus.',
-  'help.looks.plus': 'Cenas do FluidEQ e dos membros, cada uma com uma imagem.',
+    'Análise e Cenas, e Seus assim que você salvar um visual.',
+  'help.looks.plus':
+    'Cenas do FluidEQ e dos membros, e as suas em Feitos por você.',
   'help.looks.categoriesName': 'Categorias',
   'help.looks.categories': 'Natureza, Cidades, Abstrato e mais.',
 
@@ -557,6 +561,8 @@ const help: Record<keyof typeof en, string> = {
     'Seus monitores como o Windows os organiza. Pressione os que quer usar.',
   'help.desktop.music': 'Move-se com o que estiver tocando.',
   'help.desktop.calm': 'Uma animação lenta e tranquila que ignora a música.',
+  'help.desktop.follow':
+    'Muda com o visualizador Plus do gráfico, seja você que o escolha ou a troca automática.',
   'help.desktop.battery':
     'Economiza energia enquanto o computador está fora da tomada.',
   'help.desktop.start': 'Inicia nos monitores que você escolheu.',

@@ -382,6 +382,9 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.tintName': '窗口颜色',
   'help.graph.tint':
     '应用主题、可视化效果的颜色、它的颜色加上环绕的光（“氛围”），或铺在整个窗口背后的可视化效果（“背景”）。',
+  'help.graph.likeName': '点赞',
+  'help.graph.like':
+    '为正在播放的场景点赞，作者会因此得分。在你自己的场景上，它显示获得了多少个赞。',
   'help.graph.lighting': '用这个场景点亮你的 RGB 设备。',
   'help.graph.desktop': '把这个可视化效果放到桌面图标后面。',
   'help.graph.viewCaption': '“视图”菜单',
@@ -413,8 +416,8 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.search': '按名称、作者或分类查找样式和可视化效果。',
   'help.looks.styles': '由 FluidEQ 绘制的免费样式，以及你保存的外观。',
   'help.looks.familiesName': '样式筛选',
-  'help.looks.families': '“线条”“填充”“柱条”“点”“场景”和“你的”。',
-  'help.looks.plus': '来自 FluidEQ 和会员的场景，每个都附有图片。',
+  'help.looks.families': '“分析”和“场景”；保存了外观后还有“你的”。',
+  'help.looks.plus': '来自 FluidEQ 和会员的场景；你自己的在“你创作的”里。',
   'help.looks.categoriesName': '分类',
   'help.looks.categories': '“自然”“城市”“抽象”等。',
 
@@ -503,6 +506,8 @@ const help: Record<keyof typeof en, string> = {
     '你的显示器，按 Windows 中的排列方式显示。点选要使用的显示器。',
   'help.desktop.music': '随正在播放的内容而动。',
   'help.desktop.calm': '缓慢安静的动画，不受音乐影响。',
+  'help.desktop.follow':
+    '随图表上的 Plus 可视化效果一起切换，无论是你选的还是自动切换的。',
   'help.desktop.battery': '电脑未接通电源时节省电量。',
   'help.desktop.start': '在你选择的显示器上启动它。',
 

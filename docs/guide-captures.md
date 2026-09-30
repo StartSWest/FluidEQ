@@ -2,7 +2,7 @@
 
 The guide uses real FluidEQ interface captures, not generated UI artwork.
 
-- Every picture but the Plus ones was taken again from the running FluidEQ 2.0
+- Every picture was taken again from the running FluidEQ 2.0
   development window on September 29, 2026, in English, with the window's
   Brightness at the middle of its slider, so one set reads on a dark window
   and on a light one:
@@ -23,8 +23,12 @@ The guide uses real FluidEQ interface captures, not generated UI artwork.
 
 - The Share Audio picture's connection code and network addresses are
   blurred.
-- `22` to `29` and `31`, the Plus pictures, are from FluidEQ 1.7 and are to
-  be taken again from a window signed in to Plus.
+- The Plus pictures (`22` to `29` and `31`) come from a window signed in as
+  FluidEQ's maker. The Admin channel and the rule above it, which only an
+  administrator sees, are hidden for them; on the leaderboard every member but
+  the one signed in has their name, handle and picture blurred. For the
+  gallery the desktop visualizer was set going on one monitor and stopped
+  after, and for Dynamic lighting the lighting was switched on and back off.
 - `02`, `07` and `10` are no longer in the guide; this repository's README
   still shows them.
 

@@ -3,6 +3,10 @@
 import { type IHelpChapter } from './model';
 
 /** FluidEQ Plus: the account, the gallery, the board, the Studio, the desktop and lighting. */
+// The Plus pictures come from the running window at 2560 x 1392 on
+// 2026-09-29, signed in as FluidEQ's maker. The Admin channel only an
+// administrator sees is hidden for them, and on the leaderboard every member
+// but the one signed in is blurred: they are real people.
 const PLUS_CHAPTERS = [
   {
     id: 'plus',
@@ -10,8 +14,8 @@ const PLUS_CHAPTERS = [
     figures: [
       {
         image: '25-plus-visualizers.png',
-        width: 1984,
-        height: 500,
+        width: 2078,
+        height: 406,
         controls: [
           {
             box: [5, 47, 218, 42],
@@ -48,71 +52,73 @@ const PLUS_CHAPTERS = [
     figures: [
       {
         image: '25-plus-visualizers.png',
-        width: 1984,
-        height: 500,
+        width: 2078,
+        height: 406,
         controls: [
           {
-            box: [240, 61, 320, 32],
+            box: [285, 75, 277, 27],
             name: 'plus.gallery.search',
             text: 'help.gallery.search',
           },
           {
-            box: [571, 66, 73, 21],
+            box: [581, 74, 206, 27],
             name: 'help.gallery.sortName',
             text: 'help.gallery.sort',
           },
           {
             // The chips themselves, not the whole row they sit in: a line to
             // the row's far end pointed at empty space beside them.
-            box: [240, 109, 660, 24],
+            box: [253, 120, 660, 24],
             name: 'help.gallery.categoriesName',
             text: 'help.gallery.categories',
           },
           {
-            box: [240, 149, 211, 229],
+            box: [253, 160, 219, 234],
             name: 'help.gallery.cardName',
             text: 'help.gallery.card',
           },
           {
-            box: [1880, 61, 100, 32],
+            box: [1961, 72, 100, 32],
             name: 'plus.gallery.mine',
             text: 'help.gallery.mine',
           },
           {
-            box: [1844, 2, 66, 32],
+            box: [1940, 13, 66, 32],
             name: 'wallpaper.manage',
             text: 'help.gallery.manage',
           },
           {
-            box: [1917, 2, 63, 32],
-            name: 'wallpaper.stopAll',
+            box: [2014, 13, 47, 32],
+            // "Stop" with one monitor playing, "Stop all" with more: the
+            // picture has one.
+            name: 'wallpaper.stop',
             text: 'help.gallery.stop',
           },
         ],
       },
       {
         image: '26-plus-scene.png',
-        width: 1984,
-        height: 1182,
+        width: 2078,
+        height: 1236,
         caption: 'help.gallery.sceneCaption',
         controls: [
           {
-            box: [1689, 280, 266, 32],
+            box: [1778, 288, 266, 32],
             name: 'plus.scene.play',
             text: 'help.gallery.play',
           },
           {
-            box: [1689, 355, 266, 32],
+            box: [1778, 363, 266, 32],
             name: 'wallpaper.action',
             text: 'help.gallery.desktop',
           },
           {
-            box: [1689, 414, 266, 32],
+            box: [1778, 422, 266, 32],
             name: 'plus.inspect.open',
             text: 'help.gallery.inspect',
           },
           {
-            box: [240, 61, 58, 24],
+            box: [253, 71, 58, 24],
             name: 'plus.scene.back',
             text: 'help.gallery.back',
           },
@@ -126,21 +132,21 @@ const PLUS_CHAPTERS = [
     figures: [
       {
         image: '28-plus-leaderboard.png',
-        width: 1984,
-        height: 1182,
+        width: 2078,
+        height: 834,
         controls: [
           {
-            box: [240, 62, 142, 27],
+            box: [253, 73, 142, 27],
             name: 'help.leaderboard.periodName',
             text: 'help.leaderboard.period',
           },
           {
-            box: [385, 123, 1246, 85],
+            box: [253, 119, 1492, 115],
             name: 'leaderboard.hero.title',
             text: 'help.leaderboard.standing',
           },
           {
-            box: [1687, 123, 270, 32],
+            box: [1776, 134, 270, 32],
             name: 'leaderboard.guide.title',
             text: 'help.leaderboard.earn',
           },
@@ -154,47 +160,43 @@ const PLUS_CHAPTERS = [
     figures: [
       {
         image: '31-plus-studio.png',
-        width: 1984,
-        height: 1182,
+        width: 2372,
+        height: 1236,
         controls: [
           {
-            box: [240, 60, 330, 30],
+            box: [253, 72, 330, 30],
             name: 'studio.project.label',
             text: 'help.studio.project',
           },
           {
-            box: [240, 110, 1460, 632],
+            box: [253, 119, 1830, 779],
             name: 'help.studio.stageName',
             text: 'help.studio.stage',
           },
           {
-            box: [253, 1117, 1313, 19],
+            box: [357, 910, 54, 40],
             name: 'studio.code.title',
             text: 'help.studio.code',
           },
           {
-            box: [1724, 110, 248, 215],
+            box: [2099, 414, 248, 559],
             name: 'studio.meters.title',
             text: 'help.studio.hears',
           },
-          // These three were measured before the column gained its "Trying
-          // the scene" heading, and each pointed one section too high — the
-          // test signals' box sat inside the meters above them. Measured
-          // again off this capture with a ruler, 2026-09-20. The wave's box
-          // stops where the sticky "When it's ready" footer covers the rest
-          // of its section in the capture.
+          // Code is a tab under the stage in 2.0, beside Tune, whose Wave on
+          // the graph is the last box: the picture keeps the Tune tab open.
           {
-            box: [1737, 398, 222, 140],
+            box: [2099, 123, 248, 283],
             name: 'studio.signals.title',
             text: 'help.studio.signals',
           },
           {
-            box: [1737, 666, 222, 68],
+            box: [1969, 135, 31, 28],
             name: 'studio.size.full',
             text: 'help.studio.size',
           },
           {
-            box: [1737, 998, 222, 36],
+            box: [729, 996, 423, 129],
             name: 'studio.wave.title',
             text: 'help.studio.wave',
           },
@@ -208,33 +210,38 @@ const PLUS_CHAPTERS = [
     figures: [
       {
         image: '27-desktop-dialog.png',
-        width: 580,
-        height: 567,
+        width: 924,
+        height: 636,
         controls: [
           {
             // The monitor tiles the line describes, not the "All monitors"
             // box above them, which is where this pointed until 1.7.5.
-            box: [42, 178, 496, 106],
+            box: [305, 104, 578, 181],
             name: 'wallpaper.monitors',
             text: 'help.desktop.monitors',
           },
           {
-            box: [25, 352, 261, 71],
+            box: [305, 321, 285, 71],
             name: 'wallpaper.motion.music',
             text: 'help.desktop.music',
           },
           {
-            box: [294, 352, 261, 71],
+            box: [598, 321, 285, 71],
             name: 'wallpaper.motion.calm',
             text: 'help.desktop.calm',
           },
           {
-            box: [500, 455, 42, 24],
+            box: [306, 407, 576, 72],
+            name: 'wallpaper.follow',
+            text: 'help.desktop.follow',
+          },
+          {
+            box: [306, 479, 576, 58],
             name: 'wallpaper.pauseOnBattery',
             text: 'help.desktop.battery',
           },
           {
-            box: [448, 511, 107, 32],
+            box: [786, 575, 107, 32],
             name: 'wallpaper.start',
             text: 'help.desktop.start',
           },
@@ -248,16 +255,16 @@ const PLUS_CHAPTERS = [
     figures: [
       {
         image: '29-plus-lighting.png',
-        width: 1984,
-        height: 1182,
+        width: 2078,
+        height: 1236,
         controls: [
           {
-            box: [240, 61, 38, 22],
+            box: [253, 72, 38, 22],
             name: 'lighting.switch',
             text: 'help.lighting.switch',
           },
           {
-            box: [240, 170, 1732, 432],
+            box: [253, 181, 1800, 432],
             name: 'help.lighting.previewName',
             text: 'help.lighting.preview',
           },
@@ -265,24 +272,24 @@ const PLUS_CHAPTERS = [
             // The device rows, not the whole card: the card held the "All
             // devices" chip, so that chip's line could run down through every
             // row of the list without it counting as a crossing.
-            box: [256, 684, 934, 304],
+            box: [266, 694, 1028, 366],
             name: 'lighting.devices.title',
             text: 'help.lighting.devices',
           },
           {
             // The four style buttons, not the card's header row — that box
             // put the line on the card's Reset button.
-            box: [1282, 686, 678, 116],
+            box: [1336, 698, 704, 116],
             name: 'lighting.tuning.title',
             text: 'help.lighting.style',
           },
           {
-            box: [1837, 111, 120, 32],
+            box: [1918, 122, 120, 32],
             name: 'lighting.pickScene',
             text: 'help.lighting.browse',
           },
           {
-            box: [1161, 630, 80, 32],
+            box: [1215, 641, 80, 32],
             name: 'lighting.target.all',
             text: 'help.lighting.all',
           },

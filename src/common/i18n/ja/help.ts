@@ -408,6 +408,9 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.tintName': 'ウィンドウの色',
   'help.graph.tint':
     'アプリのテーマ、ビジュアライザーの色、その色と光（環境光）、またはウィンドウ全体の背後のビジュアライザー（背景）。',
+  'help.graph.likeName': 'いいね',
+  'help.graph.like':
+    '再生中のシーンにいいねし、作者にポイントが入ります。自分のシーンでは、いいねの数を表示します。',
   'help.graph.lighting': 'このシーンで RGB デバイスを光らせます。',
   'help.graph.desktop':
     'このビジュアライザーをデスクトップアイコンの背面に表示します。',
@@ -444,9 +447,9 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.styles': 'FluidEQ が描く無料のスタイルと、保存した表示。',
   'help.looks.familiesName': 'スタイルの絞り込み',
   'help.looks.families':
-    '「ライン」「塗り」「バー」「ドット」「シーン」「あなたの」。',
+    '「解析」と「シーン」。表示を保存すると「あなたの」も加わります。',
   'help.looks.plus':
-    'FluidEQ とメンバーのシーン。それぞれに画像が付いています。',
+    'FluidEQ とメンバーのシーン。自分のシーンは「あなたが作成」にあります。',
   'help.looks.categoriesName': 'カテゴリ',
   'help.looks.categories': '自然、都市、抽象など。',
 
@@ -545,6 +548,8 @@ const help: Record<keyof typeof en, string> = {
   'help.desktop.music': '再生中の音楽に合わせて動きます。',
   'help.desktop.calm':
     '音楽に反応しない、ゆっくりとした静かなアニメーションです。',
+  'help.desktop.follow':
+    'グラフの Plus ビジュアライザーに合わせて切り替わります。自分で選んでも、自動切り替えでも同じです。',
   'help.desktop.battery':
     'コンピューターが電源に接続されていないときに電力を節約します。',
   'help.desktop.start': '選んだモニターで開始します。',

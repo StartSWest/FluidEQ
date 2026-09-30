@@ -412,6 +412,9 @@ const help = {
   'help.graph.tintName': 'Window colours',
   'help.graph.tint':
     "The app's theme, the visualizer's colours, its colours with light (Ambient), or the visualizer behind the whole window (Backdrop).",
+  'help.graph.likeName': 'Like',
+  'help.graph.like':
+    'Likes the scene playing, which gives its maker points. On a scene of your own it shows how many likes it has.',
   'help.graph.lighting': 'Lights your RGB devices with this scene.',
   'help.graph.desktop': 'Puts this visualizer behind your desktop icons.',
   'help.graph.viewCaption': 'The View menu',
@@ -445,9 +448,10 @@ const help = {
     'Finds styles and visualizers by name, maker or category.',
   'help.looks.styles': 'Free styles drawn by FluidEQ, and the looks you saved.',
   'help.looks.familiesName': 'Style filters',
-  'help.looks.families': 'Lines, Fills, Bars, Points, Scenes and Yours.',
+  'help.looks.families':
+    'Analysis and Scenes, and Yours once you have saved a look.',
   'help.looks.plus':
-    'Scenes from FluidEQ and from members, each with a picture.',
+    'Scenes from FluidEQ and from members, and your own under Made by you.',
   'help.looks.categoriesName': 'Categories',
   'help.looks.categories': 'Nature, Cities, Abstract and more.',
 
@@ -544,6 +548,8 @@ const help = {
     'Your monitors as Windows arranges them. Press the ones to use.',
   'help.desktop.music': 'Moves to whatever is playing.',
   'help.desktop.calm': 'A slow, quiet animation that ignores the music.',
+  'help.desktop.follow':
+    'Changes with the Plus visualizer on the graph, whether you pick it or automatic switching does.',
   'help.desktop.battery': 'Saves power while the computer is unplugged.',
   'help.desktop.start': 'Starts it on the monitors you chose.',
 

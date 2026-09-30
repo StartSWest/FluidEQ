@@ -506,9 +506,10 @@ The response graph draws your EQ curves over the live sound. The strip above it 
 
 ![With a Plus visualizer](22-graph-strip-plus.png)
 
-1. **Window colours** — The app's theme, the visualizer's colours, its colours with light (Ambient), or the visualizer behind the whole window (Backdrop).
-2. **Dynamic lighting** — Lights your RGB devices with this scene.
-3. **Set as desktop background** — Puts this visualizer behind your desktop icons.
+1. **Like** — Likes the scene playing, which gives its maker points. On a scene of your own it shows how many likes it has.
+2. **Window colours** — The app's theme, the visualizer's colours, its colours with light (Ambient), or the visualizer behind the whole window (Backdrop).
+3. **Dynamic lighting** — Lights your RGB devices with this scene.
+4. **Set as desktop background** — Puts this visualizer behind your desktop icons.
 
 ### The View menu
 
@@ -550,10 +551,10 @@ Standard styles are free drawings of the live sound that you can colour and desi
 ![Styles and Plus visualizers](24-look-picker.png)
 
 1. **Search** — Finds styles and visualizers by name, maker or category.
-2. **Style filters** — Lines, Fills, Bars, Points, Scenes and Yours.
-3. **Categories** — Nature, Cities, Abstract and more.
-4. **Styles** — Free styles drawn by FluidEQ, and the looks you saved.
-5. **Plus visualizers** — Scenes from FluidEQ and from members, each with a picture.
+2. **Styles** — Free styles drawn by FluidEQ, and the looks you saved.
+3. **Plus visualizers** — Scenes from FluidEQ and from members, and your own under Made by you.
+4. **Style filters** — Analysis and Scenes, and Yours once you have saved a look.
+5. **Categories** — Nature, Cities, Abstract and more.
 
 ### Try it
 
@@ -594,7 +595,7 @@ Visualizers holds FluidEQ’s own scenes and the ones members publish. Any accou
 ![The Visualizers gallery](25-plus-visualizers.png)
 
 1. **Manage** — What each monitor shows as a desktop background.
-2. **Stop all** — Stops every desktop background.
+2. **Stop** — Stops every desktop background.
 3. **Search scenes or makers** — Finds scenes and makers.
 4. **Sort** — Most liked, liked this week, or newest.
 5. **Your scenes** — The scenes you published, with their likes.
@@ -647,12 +648,12 @@ The Studio turns a description into a visualizer. Your own AI assistant writes t
 ![Make scenes in the Studio](31-plus-studio.png)
 
 1. **Project** — Your projects, and FluidEQ scenes to look inside.
-2. **What it hears now** — What the scene receives: level, beat, bass, mids, treble.
-3. **Stage** — The scene, playing on your music. Double-click for full screen.
-4. **Preview audio** — Test signals that drive only this preview.
-5. **Fullscreen** — Tries the scene full screen.
-6. **Wave on the graph** — Tries the wave height and position listeners can set.
-7. **Code** — The scene’s code, live, updated as your AI saves it.
+2. **Fullscreen** — Tries the scene full screen.
+3. **Preview audio** — Test signals that drive only this preview.
+4. **Stage** — The scene, playing on your music. Double-click for full screen.
+5. **What it hears now** — What the scene receives: level, beat, bass, mids, treble.
+6. **Code** — The scene’s code, live, updated as your AI saves it.
+7. **Wave on the graph** — Tries the wave height and position listeners can set.
 
 ### Try it
 
@@ -673,8 +674,9 @@ The desktop visualizer puts a Plus visualizer behind your desktop icons, on one 
 1. **Monitors** — Your monitors as Windows arranges them. Press the ones to use.
 2. **With the music** — Moves to whatever is playing.
 3. **Calm** — A slow, quiet animation that ignores the music.
-4. **Pause on battery power** — Saves power while the computer is unplugged.
-5. **Set background** — Starts it on the monitors you chose.
+4. **Follow graph** — Changes with the Plus visualizer on the graph, whether you pick it or automatic switching does.
+5. **Pause on battery power** — Saves power while the computer is unplugged.
+6. **Set background** — Starts it on the monitors you chose.
 
 ### Try it
 

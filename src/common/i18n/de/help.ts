@@ -425,6 +425,9 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.tintName': 'Fensterfarben',
   'help.graph.tint':
     'Das App-Design, die Farben des Visualizers, seine Farben mit Licht (Ambiente) oder der Visualizer hinter dem ganzen Fenster (Kulisse).',
+  'help.graph.likeName': '„Gefällt mir“',
+  'help.graph.like':
+    'Vergibt ein „Gefällt mir“ für die laufende Szene und bringt ihrem Autor Punkte. Bei einer eigenen Szene zeigt es, wie viele „Gefällt mir“ sie hat.',
   'help.graph.lighting': 'Beleuchtet Ihre RGB-Geräte mit dieser Szene.',
   'help.graph.desktop': 'Legt diesen Visualizer hinter Ihre Desktopsymbole.',
   'help.graph.viewCaption': 'Das Menü Ansicht',
@@ -458,9 +461,10 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.styles':
     'Kostenlose Stile, die FluidEQ zeichnet, und die Darstellungen, die Sie gespeichert haben.',
   'help.looks.familiesName': 'Stilfilter',
-  'help.looks.families': 'Linien, Flächen, Balken, Punkte, Szenen und Ihre.',
+  'help.looks.families':
+    'Analyse und Szenen, dazu Ihre, sobald Sie eine Darstellung gespeichert haben.',
   'help.looks.plus':
-    'Szenen von FluidEQ und von Mitgliedern, jede mit einem Bild.',
+    'Szenen von FluidEQ und von Mitgliedern, Ihre eigenen unter „Von Ihnen erstellt“.',
   'help.looks.categoriesName': 'Kategorien',
   'help.looks.categories': 'Natur, Städte, Abstrakt und mehr.',
 
@@ -565,6 +569,8 @@ const help: Record<keyof typeof en, string> = {
   'help.desktop.music': 'Bewegt sich zu dem, was gerade läuft.',
   'help.desktop.calm':
     'Eine langsame, ruhige Animation, die die Musik ignoriert.',
+  'help.desktop.follow':
+    'Wechselt mit dem Plus-Visualizer im Diagramm, ob Sie ihn wählen oder er automatisch wechselt.',
   'help.desktop.battery':
     'Spart Energie, solange der Computer nicht am Stromnetz ist.',
   'help.desktop.start': 'Startet ihn auf den Monitoren, die Sie gewählt haben.',

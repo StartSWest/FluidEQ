@@ -423,6 +423,9 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.tintName': 'Couleurs de la fenêtre',
   'help.graph.tint':
     'Le thème de l’application, les couleurs du visualiseur, ses couleurs avec sa lumière (Ambiance), ou le visualiseur derrière toute la fenêtre (Toile de fond).',
+  'help.graph.likeName': 'J’aime',
+  'help.graph.like':
+    'Aime la scène en cours, ce qui rapporte des points à son auteur. Sur une scène à vous, il montre combien de j’aime elle a.',
   'help.graph.lighting': 'Éclaire vos appareils RVB avec cette scène.',
   'help.graph.desktop': 'Place ce visualiseur derrière les icônes du Bureau.',
   'help.graph.viewCaption': 'Le menu Affichage',
@@ -459,9 +462,9 @@ const help: Record<keyof typeof en, string> = {
     'Les styles gratuits dessinés par FluidEQ, et les styles que vous avez enregistrés.',
   'help.looks.familiesName': 'Filtres de style',
   'help.looks.families':
-    'Lignes, Remplissages, Barres, Points, Scènes et Les vôtres.',
+    'Analyse et Scènes, et Les vôtres dès que vous avez enregistré un style.',
   'help.looks.plus':
-    'Des scènes de FluidEQ et des membres, chacune avec une image.',
+    'Des scènes de FluidEQ et des membres, et les vôtres sous Créés par vous.',
   'help.looks.categoriesName': 'Catégories',
   'help.looks.categories': 'Nature, Villes, Abstrait et plus encore.',
 
@@ -564,6 +567,8 @@ const help: Record<keyof typeof en, string> = {
     'Vos écrans tels que Windows les dispose. Appuyez sur ceux à utiliser.',
   'help.desktop.music': 'Bouge avec ce qui est en lecture.',
   'help.desktop.calm': 'Une animation lente et paisible qui ignore la musique.',
+  'help.desktop.follow':
+    'Change avec le visualiseur Plus du graphique, que vous le choisissiez ou que le défilement automatique le fasse.',
   'help.desktop.battery':
     'Économise l’énergie lorsque l’ordinateur est débranché.',
   'help.desktop.start': 'Le lance sur les écrans choisis.',
