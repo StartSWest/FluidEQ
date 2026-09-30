@@ -212,6 +212,7 @@ const studio = {
   'studio.notice.copyFailed':
     'クリップボードを使えません。下のプロンプトを選択したので Ctrl+C を押してください。',
   'studio.notice.added': '{name} を「あなたが作成」に追加しました。',
+  'studio.notice.updated': '「あなたが作成」の {name} を更新しました。',
   'studio.notice.addFailed':
     'このバージョンは再生できるようになれば追加できます。',
 

@@ -433,9 +433,15 @@ export const registerStudioProjectsIpc = ({
       return { ok: false, reason: 'no-build' };
     }
     try {
+      // Whether the press added the look or brought one up to date, for
+      // what the Studio says it did (Ivan, 2026-09-29: "add to my look need
+      // to show notification look updated or added").
+      const updated = store
+        .list()
+        .some((kept) => kept.authorId === me && kept.packId === build.pack.id);
       const scene = store.save(me, build.pack);
       announceScenes();
-      return { ok: true, scene };
+      return { ok: true, scene, updated };
     } catch (error) {
       logger?.warn(`Adding a member scene failed: ${String(error)}`);
       return { ok: false, reason: 'refused' };

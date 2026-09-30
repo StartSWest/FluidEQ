@@ -168,8 +168,13 @@ describe('member scenes over IPC', () => {
     const added = await invoke<Promise<TAddOutcome>>('studio-add-to-looks');
     expect(added).toMatchObject({
       ok: true,
+      updated: false,
       scene: { packId: 'my-first-scene' },
     });
+    // Pressed again, the same look is brought up to date and said to be.
+    expect(
+      await invoke<Promise<TAddOutcome>>('studio-add-to-looks'),
+    ).toMatchObject({ ok: true, updated: true });
     const listing = invoke<IMemberScenesListing>('member-scenes-list');
     expect(listing.scenes.map((scene) => scene.packId)).toEqual([
       'my-first-scene',

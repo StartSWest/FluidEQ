@@ -33,7 +33,15 @@ export default function useStudioKeep(
     return addStudioSceneToLooks()
       .then((outcome) => {
         if (outcome.ok) {
-          notify({ ok: true, key: 'studio.notice.added', vars: { name } });
+          // Added the first time, updated every time after: the same press
+          // brings the look to the version on the stage.
+          notify({
+            ok: true,
+            key: outcome.updated
+              ? 'studio.notice.updated'
+              : 'studio.notice.added',
+            vars: { name },
+          });
           kept(outcome.scene);
         } else if (outcome.reason === 'inspect-only') {
           notify({ ok: false, key: 'studio.inspect.locked' });

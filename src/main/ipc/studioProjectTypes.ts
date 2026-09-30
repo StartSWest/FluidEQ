@@ -94,7 +94,12 @@ export interface ILinkFolderResult {
 }
 
 export type TAddOutcome =
-  | { ok: true; scene: IMemberSceneSummary }
+  | {
+      ok: true;
+      scene: IMemberSceneSummary;
+      /** The look was already there, and now plays this version. */
+      updated: boolean;
+    }
   | {
       ok: false;
       reason: 'not-entitled' | 'no-build' | 'refused' | 'inspect-only';

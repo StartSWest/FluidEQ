@@ -209,6 +209,8 @@ const studio = {
   'studio.notice.copyFailed':
     'A área de transferência não está disponível. O prompt está selecionado abaixo; pressione Ctrl+C.',
   'studio.notice.added': '{name} está nos seus visuais, em Feitos por você.',
+  'studio.notice.updated':
+    '{name} foi atualizado nos seus visuais, em Feitos por você.',
   'studio.notice.addFailed': 'Esta versão poderá ser adicionada quando tocar.',
 
   'studio.notice.exported':

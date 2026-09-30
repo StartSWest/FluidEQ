@@ -212,6 +212,8 @@ const studio = {
   'studio.notice.copyFailed':
     'El portapapeles no está disponible. El prompt está seleccionado abajo; pulsa Ctrl+C.',
   'studio.notice.added': '{name} está en tus estilos, en Hechos por ti.',
+  'studio.notice.updated':
+    '{name} está actualizado en tus estilos, en Hechos por ti.',
   'studio.notice.addFailed':
     'Esta versión se podrá añadir cuando se reproduzca.',
 

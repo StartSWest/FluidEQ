@@ -215,6 +215,8 @@ const studio = {
   'studio.notice.copyFailed':
     'Le presse-papiers n’est pas disponible. Le prompt est sélectionné ci-dessous ; appuyez sur Ctrl+C.',
   'studio.notice.added': '{name} est dans vos styles, sous Créés par vous.',
+  'studio.notice.updated':
+    '{name} est mis à jour dans vos styles, sous Créés par vous.',
   'studio.notice.addFailed':
     'Cette version pourra être ajoutée une fois qu’elle jouera.',
 

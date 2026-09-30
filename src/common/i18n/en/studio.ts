@@ -217,6 +217,8 @@ const studio = {
   'studio.notice.copyFailed':
     'The clipboard is not available. The prompt is selected below; press Ctrl+C.',
   'studio.notice.added': '{name} is in your looks, under Made by you.',
+  'studio.notice.updated':
+    '{name} is updated in your looks, under Made by you.',
   'studio.notice.addFailed': 'This version can be added once it plays.',
   'studio.notice.exported':
     '{file} is ready. Any Plus member can open it in their Studio.',

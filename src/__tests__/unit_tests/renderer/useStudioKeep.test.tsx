@@ -48,9 +48,11 @@ const settle = () =>
 
 beforeEach(() => {
   jest.mocked(useCanSetDesktop).mockReturnValue(true);
-  jest
-    .mocked(addStudioSceneToLooks)
-    .mockResolvedValue({ ok: true, scene: kept } satisfies TAddOutcome);
+  jest.mocked(addStudioSceneToLooks).mockResolvedValue({
+    ok: true,
+    scene: kept,
+    updated: false,
+  } satisfies TAddOutcome);
 });
 
 afterEach(() => jest.clearAllMocks());
@@ -65,6 +67,23 @@ it('keeps the scene in the looks and says so', async () => {
     vars: { name: 'Aurora' },
   });
   expect(openWallpaperDialog).not.toHaveBeenCalled();
+});
+
+it('says the look was updated when it was already there', async () => {
+  // Added the first time (the control), updated the second, as main reports.
+  jest
+    .mocked(addStudioSceneToLooks)
+    .mockResolvedValueOnce({ ok: true, scene: kept, updated: false })
+    .mockResolvedValueOnce({ ok: true, scene: kept, updated: true });
+  const { notify, hook } = keeping();
+  act(() => hook.result.current.add());
+  await settle();
+  act(() => hook.result.current.add());
+  await settle();
+  expect(notify.mock.calls.map(([notice]) => notice.key)).toEqual([
+    'studio.notice.added',
+    'studio.notice.updated',
+  ]);
 });
 
 it('puts the kept look on the desktop, with the wave the stage shows, and is busy only until then', async () => {

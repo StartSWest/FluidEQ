@@ -218,6 +218,8 @@ const studio = {
     'Die Zwischenablage ist nicht verfügbar. Der Prompt ist unten markiert; drücken Sie Strg+C.',
   'studio.notice.added':
     '{name} ist in Ihren Darstellungen, unter „Von Ihnen erstellt“.',
+  'studio.notice.updated':
+    '{name} ist in Ihren Darstellungen aktualisiert, unter „Von Ihnen erstellt“.',
   'studio.notice.addFailed':
     'Diese Version kann hinzugefügt werden, sobald sie spielt.',
 

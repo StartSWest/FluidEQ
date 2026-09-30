@@ -187,6 +187,7 @@ const studio = {
 
   'studio.notice.copyFailed': '剪贴板不可用。下方已选中提示词，请按 Ctrl+C。',
   'studio.notice.added': '{name} 已加入你的外观，位于“你创作的”下。',
+  'studio.notice.updated': '{name} 已在你的外观中更新，位于“你创作的”下。',
   'studio.notice.addFailed': '这个版本能播放之后才能添加。',
 
   'studio.notice.exported':

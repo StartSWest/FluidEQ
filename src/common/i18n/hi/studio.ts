@@ -207,6 +207,8 @@ const studio = {
   'studio.notice.copyFailed':
     'क्लिपबोर्ड उपलब्ध नहीं है। नीचे प्रॉम्प्ट चुना हुआ है; Ctrl+C दबाएँ।',
   'studio.notice.added': '{name} आपके रूपों में, "आपके बनाए" के नीचे है।',
+  'studio.notice.updated':
+    '{name} आपके रूपों में, "आपके बनाए" के नीचे, अपडेट हो गया है।',
   'studio.notice.addFailed': 'यह संस्करण चलने लगे, तब इसे जोड़ा जा सकेगा।',
 
   'studio.notice.exported':

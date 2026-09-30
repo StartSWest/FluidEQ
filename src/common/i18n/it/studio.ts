@@ -213,6 +213,8 @@ const studio = {
   'studio.notice.copyFailed':
     'Gli appunti non sono disponibili. Il prompt è selezionato qui sotto; premi Ctrl+C.',
   'studio.notice.added': '{name} è nei tuoi aspetti, in Creati da te.',
+  'studio.notice.updated':
+    '{name} è aggiornato nei tuoi aspetti, in Creati da te.',
   'studio.notice.addFailed':
     'Questa versione si potrà aggiungere quando si riproduce.',
 
