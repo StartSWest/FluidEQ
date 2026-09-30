@@ -3,11 +3,10 @@
 import { memo } from 'react';
 import type { HELP_CHAPTERS } from 'common/helpGuide';
 import { useTranslation } from '../utils/I18nContext';
-import { useTheme } from '../utils/theme';
 import HelpFigure from './HelpFigure';
 import { Marked } from './HelpMarks';
 import { helpAnchor, type IHelpHit } from './helpSearch';
-import { helpScreenshot } from './screenshots';
+import helpScreenshot from './screenshots';
 
 type TGuideChapter = (typeof HELP_CHAPTERS)[number];
 
@@ -51,8 +50,6 @@ interface IHelpChapterProps {
  */
 function HelpChapter({ chapter, groupLabel, onEnlarge }: IHelpChapterProps) {
   const { t } = useTranslation();
-  // The pictures follow the window: Light captures in the Light theme.
-  const theme = useTheme();
   return (
     <section
       className="help-guide__chapter"
@@ -86,7 +83,7 @@ function HelpChapter({ chapter, groupLabel, onEnlarge }: IHelpChapterProps) {
       </p>
       {chapter.figures.map((figure, figureIndex) => {
         const title = figure.caption ? t(figure.caption) : chapter.title;
-        const src = helpScreenshot(figure.image, theme);
+        const src = helpScreenshot(figure.image);
         return (
           <HelpFigure
             key={figure.image}

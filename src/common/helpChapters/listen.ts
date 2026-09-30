@@ -5,9 +5,19 @@ import { type IHelpChapter, WINDOW } from './model';
 /** Listening, singing and sharing, and where to turn when something is wrong. */
 const LISTEN_CHAPTERS = [
   {
+    // The running window on 2026-09-29 as it stood, 1776 x 1392, with the
+    // web view laid into its rectangle: a picture of the window leaves it
+    // empty. NASA's channel, signed out, as since 1.7.3: United States
+    // government work, no advertising in it.
     id: 'online',
     group: 'listen',
-    figures: [{ image: '01-online-media-youtube-live-eq.png', ...WINDOW }],
+    figures: [
+      {
+        image: '01-online-media-youtube-live-eq.png',
+        width: 1776,
+        height: 1392,
+      },
+    ],
   },
   {
     id: 'library',
@@ -59,7 +69,7 @@ const LISTEN_CHAPTERS = [
             // The "As recorded" picker itself. The old box ran on over the
             // bin to "Add a language", and its middle — where the line lands —
             // was the bin.
-            box: [226, 1, 118, 40],
+            box: [230, 5, 108, 32],
             name: 'karaoke.translation.picker',
             text: 'help.makerBar.language',
           },
@@ -97,22 +107,22 @@ const LISTEN_CHAPTERS = [
       },
       {
         image: '34-karaoke-maker-lyrics.png',
-        width: 1080,
-        height: 720,
+        width: 1312,
+        height: 852,
         caption: 'help.maker.lyricsCaption',
         controls: [
           {
-            box: [19, 114, 402, 529],
+            box: [309, 65, 369, 685],
             name: 'help.maker.referenceName',
             text: 'help.maker.reference',
           },
           {
-            box: [433, 114, 628, 529],
+            box: [702, 77, 553, 431],
             name: 'help.maker.timingName',
             text: 'help.maker.timing',
           },
           {
-            box: [445, 437, 604, 194],
+            box: [702, 517, 553, 221],
             name: 'help.maker.wordName',
             text: 'help.maker.word',
           },
@@ -120,37 +130,37 @@ const LISTEN_CHAPTERS = [
       },
       {
         image: '33-karaoke-maker-tools.png',
-        width: 430,
-        height: 536,
+        width: 640,
+        height: 790,
         caption: 'help.maker.toolsCaption',
         controls: [
           {
-            box: [17, 40, 396, 32],
+            box: [29, 321, 582, 32],
             name: 'karaoke.maker.removeBackground',
             text: 'help.maker.separate',
           },
           {
-            box: [17, 77, 396, 32],
+            box: [29, 358, 582, 32],
             name: 'karaoke.maker.vocalStem',
             text: 'help.maker.loadVocals',
           },
           {
-            box: [17, 163, 396, 32],
+            box: [29, 444, 582, 32],
             name: 'karaoke.maker.repairLyrics',
             text: 'help.maker.redetectTiming',
           },
           {
-            box: [17, 200, 396, 32],
+            box: [29, 481, 582, 32],
             name: 'karaoke.maker.repairMelody',
             text: 'help.maker.redetectNotes',
           },
           {
-            box: [17, 276, 396, 152],
+            box: [39, 567, 562, 127],
             name: 'help.maker.modelsName',
             text: 'help.maker.models',
           },
           {
-            box: [17, 430, 396, 90],
+            box: [39, 703, 562, 50],
             name: 'help.maker.idleName',
             text: 'help.maker.idle',
           },
@@ -171,7 +181,7 @@ const LISTEN_CHAPTERS = [
   {
     id: 'forum',
     group: 'help',
-    figures: [{ image: '30-forum.png', width: 2560, height: 1230 }],
+    figures: [{ image: '30-forum.png', width: 2560, height: 1392 }],
   },
 ] as const satisfies readonly IHelpChapter[];
 

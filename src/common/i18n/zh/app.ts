@@ -368,7 +368,6 @@ const app: Partial<Dictionary> = {
   'provenance.site': '官方网站: fluideq.com',
   'provenance.repository': '官方源码: github.com/StartSWest/FluidEQ',
   'language.aria': '界面语言',
-  'theme.aria': '主题',
   'motion.aria': '动画',
   'motion.restart': '重新启动 FluidEQ 后生效',
   'startup.label': '随 Windows 启动',

@@ -93,7 +93,7 @@ const help = {
   'help.player.intro':
     'One switch turns FluidEQ’s window into the Compact player: a narrow column with the song, your equaliser, a visualizer and Up Next, in decks you open and close. Whatever is playing keeps playing, and the same switch brings the full app back on the page you left.',
   'help.player.steps':
-    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nOpen and close the decks with EQ, Vis and Queue. The window grows and shrinks by what each takes, and the player remembers its size and place.\nDouble-click the player’s strip, or choose Fold to one line in its menu, to fold it down to one line; the FluidEQ mark unfolds it.\nChoose the player’s own theme in its menu, and keep it above other windows with Always on top.\nDrop music files on Up Next: they join the Library and the queue.',
+    'Press the Compact player switch in the title bar, beside Help. On the player, the same switch brings the full app back.\nOpen and close the decks with EQ, Vis and Queue. The window grows and shrinks by what each takes, and the player remembers its size and place.\nDouble-click the player’s strip, or choose Fold to one line in its menu, to fold it down to one line; the FluidEQ mark unfolds it.\nSet the player’s own Brightness in its menu, and keep it above other windows with Always on top.\nDrop music files on Up Next: they join the Library and the queue.',
   'help.player.tip':
     'The player’s volume is your computer’s own, the same as in Windows, so it sets the level of everything the computer plays. If the player ends up off the screen, right-click FluidEQ in the taskbar’s tray and choose Recover the window.',
   'help.player.keywords':
@@ -104,7 +104,7 @@ const help = {
   'help.player.menuCaption': 'The player’s menu',
   'help.player.foldedCaption': 'Folded to one line',
   'help.player.menu':
-    'Back to the full app or to one of its pages, the player’s theme, Always on top and Fold to one line.',
+    'Back to the full app or to one of its pages, the player’s own Brightness, Always on top and Fold to one line.',
   'help.player.pin': 'Keeps the player above every other window.',
   'help.player.switch': 'Back to the full app, on the page you left.',
   'help.player.clock': 'Time played. Click it for the time left.',
@@ -140,7 +140,7 @@ const help = {
     'What plays next. Double-click a song to play it, or drop music files here to add them.',
   'help.player.openIn': 'Opens the full app on one of its pages.',
   'help.player.theme':
-    'The player’s own Light or Dark theme, apart from the full app’s.',
+    'The player’s own Brightness, apart from the full app’s; Transparency, for the glass player over a visualizer; and Rainbow mode.',
   'help.player.fold':
     'Folds the player to one line. Double-clicking its strip does the same.',
   'help.player.unfold':
@@ -180,7 +180,7 @@ const help = {
   'help.eq.steps':
     'Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone, and Low cut or High cut to trim the extremes. They draw their own Tone line on the graph.\nClick a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active.\nRight-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain, and Bass, Mid and Treble, to 0 dB while keeping your bands. It asks first.',
   'help.eq.tip':
-    'Also applied lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on.',
+    'Curves lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on.',
   'help.eq.keywords':
     'equalizer, equaliser, parametric, parametric eq, graphic eq, bass boost, treble boost, low end, lows, mids, highs, tone, tone controls, peaking, shelving, low pass, high pass, band pass, bandwidth, hz, db, boost, cut, adjust sound, latency',
   'help.eq.bandsCaption': 'The Bands page, nothing selected',
@@ -274,7 +274,7 @@ const help = {
   'help.convolution.intro':
     'Convolution applies a WAV impulse response as another correction layer. FluidEQ includes a searchable AutoEq catalogue and can import your own WAV. It remains separate from the editable parametric bands.',
   'help.convolution.steps':
-    'Open EQ → Convolution. Search by model or measurement author.\nCheck the source, then use Download & apply; the download matches your output’s rate. Use Import a WAV for a file you already have.\nListen with the convolution layer on and off in Also applied.',
+    'Open EQ → Convolution. Search by model or measurement author.\nCheck the source, then use Download & apply; the download matches your output’s rate. Use Import a WAV for a file you already have.\nListen with the convolution layer on and off in Curves.',
   'help.convolution.tip':
     'The FluidEQ Engine converts any impulse rate itself. Equalizer APO needs an imported WAV at the output’s own rate. Catalogue downloads need a connection; the guide does not.',
   'help.convolution.keywords':
@@ -291,9 +291,9 @@ const help = {
     'output, output device, device, speakers, switch device, device switching, auto switch, profile, save settings, named profile, second output, mirror, multiple outputs, two outputs, bluetooth, sync, delay, latency, per device',
   'help.profiles.list':
     'Sounds you saved. ON marks the one this output uses; press another to switch.',
-  'help.profiles.update': 'Saves your changes into the profile you are on.',
+  'help.profiles.update':
+    'Saves your changes into the profile you are on. Restore, beside it, brings the profile back as you last saved it.',
   'help.profiles.new': 'Starts a new profile from the EQ you have now.',
-  'help.profiles.restore': 'Brings the profile back as you last saved it.',
   'help.profiles.output':
     'The output you are listening on. OFF means your EQ does not reach it; ACTIVE, that Windows is playing through it.',
   'help.profiles.mapping':
@@ -336,14 +336,13 @@ const help = {
   'help.dsp.bassPunch': 'Shapes the attack, sustain and bloom of the bass.',
   'help.dsp.dimension':
     'Widens the stereo picture without changing the mono sum.',
+  'help.dsp.room':
+    'Surround on headphones: each channel becomes a speaker in a room around you.',
   'help.dsp.maximizer':
     'Raises the level without letting peaks pass the ceiling.',
   'help.dsp.master': 'Final level, loudness target and peak safety.',
   'help.dsp.crossfade': 'Blends one Library track into the next.',
   'help.dsp.presets': 'Whole-rack chains for genres, devices and repairs.',
-  'help.dsp.scopeName': 'System-wide',
-  'help.dsp.scope':
-    'Where the rack is running, and any delay linear phase adds.',
 
   'help.room.title': 'The Room: surround on headphones',
   'help.room.intro':

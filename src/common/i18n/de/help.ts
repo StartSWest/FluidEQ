@@ -90,7 +90,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     'Mit einem Schalter wechselt das Fenster von FluidEQ in die Ansicht Kompakter Player: eine schmale Spalte mit dem Song, Ihrem Equalizer, einem Visualizer und „Als Nächstes“, in Bereichen, die Sie ein- und ausblenden. Was gerade läuft, läuft weiter, und derselbe Schalter bringt die vollständige App auf der Seite zurück, die Sie verlassen haben.',
   'help.player.steps':
-    'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.\nBlenden Sie die Bereiche mit EQ, Visual und Liste ein und aus. Das Fenster wächst und schrumpft um den Platz, den jeder braucht, und der Player merkt sich Größe und Position.\nDoppelklicken Sie auf die Leiste des Players oder wählen Sie in seinem Menü Auf eine Zeile einklappen, um ihn auf eine Zeile zu verkleinern; das FluidEQ-Logo klappt ihn wieder aus.\nWählen Sie im Menü des Players sein eigenes Design und halten Sie ihn mit Immer im Vordergrund über anderen Fenstern.\nLegen Sie Musikdateien auf „Als Nächstes“ ab, und sie kommen in die Bibliothek und in die Warteschlange.',
+    'Drücken Sie in der Titelleiste neben Hilfe den Schalter Kompakter Player. Im Player holt derselbe Schalter die vollständige App zurück.\nBlenden Sie die Bereiche mit EQ, Visual und Liste ein und aus. Das Fenster wächst und schrumpft um den Platz, den jeder braucht, und der Player merkt sich Größe und Position.\nDoppelklicken Sie auf die Leiste des Players oder wählen Sie in seinem Menü Auf eine Zeile einklappen, um ihn auf eine Zeile zu verkleinern; das FluidEQ-Logo klappt ihn wieder aus.\nStellen Sie im Menü des Players seine eigene Helligkeit ein und halten Sie ihn mit Immer im Vordergrund über anderen Fenstern.\nLegen Sie Musikdateien auf „Als Nächstes“ ab, und sie kommen in die Bibliothek und in die Warteschlange.',
   'help.player.tip':
     'Die Lautstärke des Players ist die Ihres Computers, dieselbe wie in Windows, und regelt daher den Pegel von allem, was der Computer abspielt. Landet der Player außerhalb des Bildschirms, klicken Sie im Infobereich der Taskleiste mit der rechten Maustaste auf FluidEQ und wählen Sie Fenster wiederherstellen.',
   'help.player.keywords':
@@ -101,7 +101,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'Das Player-Menü',
   'help.player.foldedCaption': 'Auf eine Zeile eingeklappt',
   'help.player.menu':
-    'Zurück zur vollständigen App oder zu einer ihrer Seiten, das Design des Players, Immer im Vordergrund und Auf eine Zeile einklappen.',
+    'Zurück zur vollständigen App oder zu einer ihrer Seiten, die eigene Helligkeit des Players, Immer im Vordergrund und Auf eine Zeile einklappen.',
   'help.player.pin': 'Hält den Player über allen anderen Fenstern.',
   'help.player.switch':
     'Zurück zur vollständigen App, auf der Seite, die Sie verlassen haben.',
@@ -140,7 +140,7 @@ const help: Record<keyof typeof en, string> = {
     'Was als Nächstes läuft. Doppelklicken Sie auf einen Song, um ihn abzuspielen, oder legen Sie Musikdateien hier ab, um sie hinzuzufügen.',
   'help.player.openIn': 'Öffnet die vollständige App auf einer ihrer Seiten.',
   'help.player.theme':
-    'Das eigene Design des Players, Hell oder Dunkel, unabhängig vom Design der vollständigen App.',
+    'Die eigene Helligkeit des Players, unabhängig von der vollständigen App; Transparenz für den Glas-Player über einem Visualizer; und der Regenbogenmodus.',
   'help.player.fold':
     'Klappt den Player auf eine Zeile ein. Ein Doppelklick auf die Leiste tut dasselbe.',
   'help.player.unfold':
@@ -181,7 +181,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.steps':
     'Öffnen Sie EQ → Bänder. Ist nichts ausgewählt, drehen Sie an Bass, Mitten oder Höhen, um den Klang schnell zu verändern, und an Tiefensperre oder Höhensperre, um die Enden zu beschneiden. Sie zeichnen ihre eigene Klang-Linie ins Diagramm.\nKlicken Sie auf die Frequenz eines Bands oder auf seinen Punkt im Diagramm, um es auszuwählen. Drehen Sie an seinen Drehreglern Frequenz, Verstärkung und Güte (Q), wählen Sie einen Filter oder schalten Sie es mit Aktiv aus.\nKlicken Sie mit der rechten Maustaste auf ein Band, um es zurückzusetzen, auszuschalten oder daneben ein Band hinzuzufügen. Drücken Sie EQ zurücksetzen, um jede Verstärkung sowie Bass, Mitten und Höhen auf 0 dB zu setzen, ohne Ihre Bänder zu verlieren. Vorher wird nachgefragt.',
   'help.eq.tip':
-    'Unter Ebenfalls aktiv steht, was diesen Ausgang außer Ihren Bändern noch formt, jeweils mit eigener Stärke und ×. Der Spielmodus verkürzt für Spiele und Anrufe die Verzögerung durch FluidEQ; Gaming-Presets schalten ihn ein.',
+    'Unter Kurven steht, was diesen Ausgang außer Ihren Bändern noch formt, jeweils mit eigener Stärke und ×. Der Spielmodus verkürzt für Spiele und Anrufe die Verzögerung durch FluidEQ; Gaming-Presets schalten ihn ein.',
   'help.eq.keywords':
     'equalizer, Q-faktor, parametrischer EQ, grafischer EQ, EQ-einstellungen, klangeinstellungen, klangregelung, klang einstellen, klang anpassen, klang verbessern, sound, bassboost, anheben, absenken, verstärken, bandbreite, hochpass, tiefpass, lowcut, kuhschwanz, notch, schieberegler, frequenzen, voreinstellungen, latenz',
   'help.eq.bandsCaption': 'Die Seite Bänder, nichts ausgewählt',
@@ -284,7 +284,7 @@ const help: Record<keyof typeof en, string> = {
   'help.convolution.intro':
     'Faltung wendet einen WAV-Impuls als eigene Ebene an. Durchsuchen Sie AutoEq oder importieren Sie eine WAV; parametrische Bänder bleiben unabhängig.',
   'help.convolution.steps':
-    'Öffnen Sie EQ → Faltung und suchen Sie nach Modell oder Messautor.\nPrüfen Sie die Quelle und nutzen Sie dann Laden & anwenden; der Download passt zur Abtastrate Ihres Ausgangs. Nutzen Sie WAV importieren für eine Datei, die Sie schon haben.\nVergleichen Sie unter Ebenfalls aktiv die Faltungsebene ein- und ausgeschaltet.',
+    'Öffnen Sie EQ → Faltung und suchen Sie nach Modell oder Messautor.\nPrüfen Sie die Quelle und nutzen Sie dann Laden & anwenden; der Download passt zur Abtastrate Ihres Ausgangs. Nutzen Sie WAV importieren für eine Datei, die Sie schon haben.\nVergleichen Sie unter Kurven die Faltungsebene ein- und ausgeschaltet.',
   'help.convolution.tip':
     'Die FluidEQ-Engine rechnet jede Impulsrate selbst um. Equalizer APO braucht eine importierte WAV mit der Abtastrate des Ausgangs. Katalogdownloads brauchen eine Verbindung, das Handbuch nicht.',
   'help.convolution.keywords':
@@ -301,10 +301,9 @@ const help: Record<keyof typeof en, string> = {
     'lautsprecher, boxen, audiogerät, wiedergabegerät, standardgerät, gerätewechsel, gerät umschalten, Bluetooth, gleichzeitig, mehrere ausgänge, einstellungen speichern, synchronisieren, verzögerung, klangprofil',
   'help.profiles.list':
     'Ihre gespeicherten Klänge. AKT markiert das Profil, das dieser Ausgang nutzt; drücken Sie ein anderes, um zu wechseln.',
-  'help.profiles.update': 'Speichert Ihre Änderungen im aktuellen Profil.',
+  'help.profiles.update':
+    'Speichert Ihre Änderungen im aktuellen Profil. Daneben holt Zurücksetzen das Profil so zurück, wie Sie es zuletzt gespeichert haben.',
   'help.profiles.new': 'Legt aus Ihrem aktuellen EQ ein neues Profil an.',
-  'help.profiles.restore':
-    'Holt das Profil so zurück, wie Sie es zuletzt gespeichert haben.',
   'help.profiles.output':
     'Der Ausgang, über den Sie hören. AUS bedeutet, dass Ihr EQ ihn nicht erreicht; AKTIV, dass Windows über ihn abspielt.',
   'help.profiles.mapping':
@@ -347,6 +346,8 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.bassPunch': 'Formt Attack, Sustain und Blüte des Basses.',
   'help.dsp.dimension':
     'Verbreitert das Stereobild, ohne die Monosumme zu verändern.',
+  'help.dsp.room':
+    'Surround auf Kopfhörern: Jeder Kanal wird zu einem Lautsprecher in einem Raum um Sie herum.',
   'help.dsp.maximizer':
     'Hebt den Pegel an, ohne Spitzen über die Obergrenze zu lassen.',
   'help.dsp.master': 'Endpegel, Lautheitsziel und Spitzenschutz.',
@@ -354,9 +355,6 @@ const help: Record<keyof typeof en, string> = {
     'Blendet einen Titel der Bibliothek in den nächsten über.',
   'help.dsp.presets':
     'Ketten für das ganze Rack, für Genres, Geräte und Reparaturen.',
-  'help.dsp.scopeName': 'Systemweit',
-  'help.dsp.scope':
-    'Wo das Rack läuft und welche Verzögerung lineare Phase hinzufügt.',
 
   'help.room.title': 'Der Raum: Surround auf Kopfhörern',
   'help.room.intro':

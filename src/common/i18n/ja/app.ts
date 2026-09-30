@@ -392,7 +392,6 @@ const app: Partial<Dictionary> = {
   'provenance.site': '公式サイト: fluideq.com',
   'provenance.repository': '公式ソース: github.com/StartSWest/FluidEQ',
   'language.aria': '表示言語',
-  'theme.aria': 'テーマ',
   'motion.aria': 'アニメーション',
   'motion.restart': 'FluidEQ を再起動すると反映されます',
   'startup.label': 'Windows と一緒に起動',

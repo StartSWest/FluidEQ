@@ -91,7 +91,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     'Un seul interrupteur transforme la fenêtre de FluidEQ en Lecteur compact : une colonne étroite avec le morceau, votre égaliseur, un visualiseur et la file À suivre, en volets que vous ouvrez et fermez. Ce qui est en lecture continue de jouer, et le même interrupteur ramène l’application complète sur la page que vous aviez quittée.',
   'help.player.steps':
-    'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.\nOuvrez et fermez les volets avec EQ, Visuel et File. La fenêtre s’agrandit et rétrécit selon la place que prend chacun, et le lecteur retient sa taille et sa position.\nDouble-cliquez sur la barre du lecteur, ou choisissez Replier sur une ligne dans son menu, pour qu’il tienne sur une seule ligne ; le logo FluidEQ le déplie.\nChoisissez le thème propre au lecteur dans son menu, et gardez-le au-dessus des autres fenêtres avec Toujours au premier plan.\nDéposez des fichiers musicaux sur À suivre : ils rejoignent la Bibliothèque et la file de lecture.',
+    'Appuyez sur l’interrupteur Lecteur compact dans la barre de titre, à côté d’Aide. Sur le lecteur, le même interrupteur ramène l’application complète.\nOuvrez et fermez les volets avec EQ, Visuel et File. La fenêtre s’agrandit et rétrécit selon la place que prend chacun, et le lecteur retient sa taille et sa position.\nDouble-cliquez sur la barre du lecteur, ou choisissez Replier sur une ligne dans son menu, pour qu’il tienne sur une seule ligne ; le logo FluidEQ le déplie.\nRéglez la Luminosité propre au lecteur dans son menu, et gardez-le au-dessus des autres fenêtres avec Toujours au premier plan.\nDéposez des fichiers musicaux sur À suivre : ils rejoignent la Bibliothèque et la file de lecture.',
   'help.player.tip':
     'Le volume du lecteur est celui de votre ordinateur, le même que dans Windows : il règle donc le niveau de tout ce que joue l’ordinateur. Si le lecteur se retrouve hors de l’écran, faites un clic droit sur FluidEQ dans la zone de notification de la barre des tâches et choisissez Récupérer la fenêtre.',
   'help.player.keywords':
@@ -102,7 +102,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'Le menu du lecteur',
   'help.player.foldedCaption': 'Replié sur une ligne',
   'help.player.menu':
-    'Revenir à l’application complète ou à l’une de ses pages, le thème du lecteur, Toujours au premier plan et Replier sur une ligne.',
+    'Revenir à l’application complète ou à l’une de ses pages, la Luminosité propre au lecteur, Toujours au premier plan et Replier sur une ligne.',
   'help.player.pin':
     'Garde le lecteur au-dessus de toutes les autres fenêtres.',
   'help.player.switch':
@@ -141,7 +141,7 @@ const help: Record<keyof typeof en, string> = {
     'Ce qui joue ensuite. Double-cliquez sur un morceau pour le lire, ou déposez ici des fichiers musicaux pour les ajouter.',
   'help.player.openIn': 'Ouvre l’application complète sur l’une de ses pages.',
   'help.player.theme':
-    'Le thème Clair ou Sombre propre au lecteur, indépendant de celui de l’application complète.',
+    'La Luminosité propre au lecteur, indépendante de celle de l’application complète ; la Transparence, pour le lecteur en verre au-dessus d’un visualiseur ; et le Mode arc-en-ciel.',
   'help.player.fold':
     'Replie le lecteur sur une ligne. Un double-clic sur sa barre fait de même.',
   'help.player.unfold': 'Déplie le lecteur. La flèche à l’autre bout aussi.',
@@ -180,7 +180,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.steps':
     'Ouvrez Égaliseur → Bandes. Sans bande sélectionnée, tournez Graves, Médiums ou Aigus pour changer rapidement la tonalité, et Coupe-bas ou Coupe-haut pour rogner les extrêmes. Ils tracent leur propre ligne Tonalité sur le graphique.\nCliquez sur la fréquence d’une bande, ou sur son point dans le graphique, pour la sélectionner. Tournez ses boutons Fréquence, Gain et Facteur Q, choisissez un Filtre, ou désactivez-la avec Active.\nFaites un clic droit sur une bande pour la réinitialiser, la désactiver ou ajouter une bande à côté. Appuyez sur Vider l’égaliseur pour mettre chaque gain, ainsi que Graves, Médiums et Aigus, à 0 dB tout en gardant vos bandes. Une confirmation est d’abord demandée.',
   'help.eq.tip':
-    'Également appliqué montre les couches qui façonnent cette sortie en plus de vos bandes, chacune avec sa propre intensité et son ×. Mode jeu réduit la latence qu’ajoute FluidEQ, pour les jeux et les appels ; les préréglages Jeux l’activent.',
+    'Courbes montre les couches qui façonnent cette sortie en plus de vos bandes, chacune avec sa propre intensité et son ×. Mode jeu réduit la latence qu’ajoute FluidEQ, pour les jeux et les appels ; les préréglages Jeux l’activent.',
   'help.eq.keywords':
     'égalisation automatique, EQ intelligent, EQ paramétrique, basses, booster les basses, renforcer les basses, creuser, plateau, bande passante, correcteur, brillance, régler le son, ajuster le son, à plat, remise à zéro, faible latence, equalizer, equaliseur, bass boost, notch, flat, reset, presets',
   'help.eq.bandsCaption': 'La page Bandes, sans sélection',
@@ -281,7 +281,7 @@ const help: Record<keyof typeof en, string> = {
   'help.convolution.intro':
     'Convolution applique une impulsion WAV comme couche séparée. Cherchez dans le catalogue AutoEq ou importez votre WAV ; les bandes paramétriques restent indépendantes.',
   'help.convolution.steps':
-    'Ouvrez Égaliseur → Convolution. Recherchez par modèle ou par auteur de la mesure.\nVérifiez la source, puis utilisez Télécharger et appliquer ; le téléchargement correspond à la fréquence d’échantillonnage de votre sortie. Utilisez Importer un WAV pour un fichier que vous avez déjà.\nÉcoutez avec la couche de convolution activée puis désactivée dans Également appliqué.',
+    'Ouvrez Égaliseur → Convolution. Recherchez par modèle ou par auteur de la mesure.\nVérifiez la source, puis utilisez Télécharger et appliquer ; le téléchargement correspond à la fréquence d’échantillonnage de votre sortie. Utilisez Importer un WAV pour un fichier que vous avez déjà.\nÉcoutez avec la couche de convolution activée puis désactivée dans Courbes.',
   'help.convolution.tip':
     'Le moteur FluidEQ convertit lui-même la fréquence de n’importe quelle impulsion. Equalizer APO a besoin d’un WAV importé à la fréquence de la sortie. Les téléchargements du catalogue nécessitent une connexion ; le guide, non.',
   'help.convolution.keywords':
@@ -299,11 +299,9 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.list':
     'Les sons que vous avez enregistrés. ACT marque celui qu’utilise cette sortie ; appuyez sur un autre pour changer.',
   'help.profiles.update':
-    'Enregistre vos modifications dans le profil en cours.',
+    'Enregistre vos modifications dans le profil en cours. Restaurer, juste à côté, ramène le profil tel que vous l’avez enregistré la dernière fois.',
   'help.profiles.new':
     'Crée un nouveau profil à partir de l’égalisation actuelle.',
-  'help.profiles.restore':
-    'Ramène le profil tel que vous l’avez enregistré la dernière fois.',
   'help.profiles.output':
     'La sortie sur laquelle vous écoutez. DÉSACT. signifie que votre EQ ne l’atteint pas ; ACTIF, que Windows joue le son à travers elle.',
   'help.profiles.mapping':
@@ -346,6 +344,8 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.bassPunch':
     'Façonne l’attaque, le maintien et l’éclosion de la basse.',
   'help.dsp.dimension': 'Élargit l’image stéréo sans changer la somme mono.',
+  'help.dsp.room':
+    'Le surround au casque : chaque canal devient une enceinte dans une salle autour de vous.',
   'help.dsp.maximizer':
     'Augmente le niveau sans laisser les crêtes dépasser le plafond.',
   'help.dsp.master': 'Niveau final, cible de sonie et protection des crêtes.',
@@ -353,9 +353,6 @@ const help: Record<keyof typeof en, string> = {
     'Enchaîne une piste de la Bibliothèque sur la suivante.',
   'help.dsp.presets':
     'Des chaînes pour tout le rack : genres, appareils et corrections.',
-  'help.dsp.scopeName': 'Tout le système',
-  'help.dsp.scope':
-    'Où le rack fonctionne, et la latence qu’ajoute la phase linéaire.',
 
   'help.room.title': 'La Salle : le surround au casque',
   'help.room.intro':

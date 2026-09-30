@@ -10,57 +10,57 @@ const VISUAL_CHAPTERS = [
     figures: [
       {
         image: '21-graph-strip.png',
-        width: 966,
-        height: 52,
+        width: 694,
+        height: 44,
         caption: 'help.graph.stripCaption',
         controls: [
           {
-            box: [289, 12, 81, 28],
+            box: [12, 8, 81, 28],
             name: 'graph.liveOutput',
             text: 'help.graph.live',
           },
           {
-            box: [380, 17, 16, 18],
+            box: [102, 13, 16, 18],
             name: 'graph.style.previous',
             text: 'help.graph.previous',
           },
           {
-            box: [406, 15, 194, 22],
+            box: [128, 8, 194, 28],
             name: 'graph.picker.label',
             text: 'help.graph.picker',
           },
           {
-            box: [610, 17, 16, 18],
+            box: [332, 13, 16, 18],
             name: 'graph.style.next',
             text: 'help.graph.next',
           },
           {
-            box: [738, 17, 18, 18],
+            box: [358, 8, 99, 28],
             name: 'help.graph.autoName',
             text: 'help.graph.auto',
           },
           {
-            box: [738, 17, 18, 18],
+            box: [468, 13, 18, 18],
             name: 'look.palette.cycle',
             text: 'help.graph.colouring',
           },
           {
-            box: [766, 12, 67, 28],
+            box: [496, 8, 67, 28],
             name: 'graph.design.new',
             text: 'help.graph.newLook',
           },
           {
-            box: [842, 17, 18, 18],
+            box: [572, 13, 18, 18],
             name: 'help.graph.bandsName',
             text: 'help.graph.bands',
           },
           {
-            box: [870, 17, 18, 18],
+            box: [600, 13, 18, 18],
             name: 'help.graph.gridName',
             text: 'help.graph.grid',
           },
           {
-            box: [898, 12, 56, 28],
+            box: [628, 8, 56, 28],
             name: 'help.graph.viewName',
             text: 'help.graph.view',
           },

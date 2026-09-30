@@ -90,7 +90,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     'Un interruttore trasforma la finestra di FluidEQ nel Lettore compatto: una colonna stretta con il brano, il tuo equalizzatore, un visualizzatore e In coda, in pannelli che apri e chiudi. Ciò che è in riproduzione continua a suonare, e lo stesso interruttore riporta l’app completa sulla pagina che avevi lasciato.',
   'help.player.steps':
-    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nApri e chiudi i pannelli con EQ, Visual e Coda. La finestra cresce e si riduce di quanto occupa ciascuno, e il lettore ricorda la sua dimensione e la sua posizione.\nPer ridurre il lettore a una riga, fai doppio clic sulla sua barra o scegli Riduci a una riga nel suo menu; il logo di FluidEQ lo espande di nuovo.\nNel menu del lettore scegli il suo tema, e tienilo sopra le altre finestre con Sempre in primo piano.\nTrascina file musicali su In coda: entrano nella Libreria e nella coda.',
+    'Premi l’interruttore Lettore compatto nella barra del titolo, accanto ad Aiuto. Sul lettore, lo stesso interruttore riporta l’app completa.\nApri e chiudi i pannelli con EQ, Visual e Coda. La finestra cresce e si riduce di quanto occupa ciascuno, e il lettore ricorda la sua dimensione e la sua posizione.\nPer ridurre il lettore a una riga, fai doppio clic sulla sua barra o scegli Riduci a una riga nel suo menu; il logo di FluidEQ lo espande di nuovo.\nNel menu del lettore regola la sua Luminosità, e tienilo sopra le altre finestre con Sempre in primo piano.\nTrascina file musicali su In coda: entrano nella Libreria e nella coda.',
   'help.player.tip':
     'Il volume del lettore è quello del tuo computer, lo stesso di Windows, quindi regola il livello di tutto ciò che il computer riproduce. Se il lettore finisce fuori dallo schermo, fai clic destro su FluidEQ nell’area di notifica della barra delle applicazioni e scegli Ripristina la finestra.',
   'help.player.keywords':
@@ -101,7 +101,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'Il menu del lettore',
   'help.player.foldedCaption': 'Ridotto a una riga',
   'help.player.menu':
-    'Il ritorno all’app completa o a una delle sue pagine, il tema del lettore, Sempre in primo piano e Riduci a una riga.',
+    'Il ritorno all’app completa o a una delle sue pagine, la Luminosità del lettore, Sempre in primo piano e Riduci a una riga.',
   'help.player.pin': 'Tiene il lettore sopra tutte le altre finestre.',
   'help.player.switch':
     'Torna all’app completa, sulla pagina che avevi lasciato.',
@@ -139,7 +139,7 @@ const help: Record<keyof typeof en, string> = {
     'Cosa suona dopo. Fai doppio clic su un brano per riprodurlo, o trascina qui dei file musicali per aggiungerli.',
   'help.player.openIn': 'Apre l’app completa su una delle sue pagine.',
   'help.player.theme':
-    'Il tema Chiaro o Scuro del lettore, separato da quello dell’app completa.',
+    'La Luminosità del lettore, separata da quella dell’app completa; la Trasparenza, per il lettore in vetro sopra un visualizzatore; e la Modalità arcobaleno.',
   'help.player.fold':
     'Riduce il lettore a una riga. Il doppio clic sulla sua barra fa lo stesso.',
   'help.player.unfold':
@@ -180,7 +180,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.steps':
     'Apri EQ → Bande. Senza selezionare nulla, ruota Bassi, Medi o Alti per cambiare rapidamente il tono, e Taglio bassi o Taglio alti per rifilare gli estremi. Nel grafico disegnano la propria linea del Tono.\nFai clic sulla frequenza di una banda, o sul suo punto nel grafico, per selezionarla. Ruota le manopole Frequenza, Guadagno e Fattore Q, scegli un Filtro o spegnila con l’interruttore Attiva.\nFai clic destro su una banda per ripristinarla, disattivarla o aggiungere una banda accanto. Premi Azzera l’EQ per portare ogni guadagno, e anche Bassi, Medi e Alti, a 0 dB mantenendo le bande. Prima chiede conferma.',
   'help.eq.tip':
-    'Applicato anche elenca i livelli che modellano questa uscita oltre alle tue bande, ognuno con la sua intensità e la sua ×. Modalità gioco riduce il ritardo aggiunto da FluidEQ, per giochi e chiamate; i preset Gaming la attivano.',
+    'Curve elenca i livelli che modellano questa uscita oltre alle tue bande, ognuno con la sua intensità e la sua ×. Modalità gioco riduce il ritardo aggiunto da FluidEQ, per giochi e chiamate; i preset Gaming la attivano.',
   'help.eq.keywords':
     'equalizzatore, equalizzazione, equalizzare, equalizer, parametrico, acuti, bass boost, aumentare bassi, alzare bassi, controllo toni, gain, peaking, shelving, low pass, high pass, regolare audio, migliorare audio, azzerare EQ, resettare EQ',
   'help.eq.bandsCaption': 'La pagina Bande, senza selezione',
@@ -281,7 +281,7 @@ const help: Record<keyof typeof en, string> = {
   'help.convolution.intro':
     'Convoluzione applica un impulso WAV come livello separato. Cerca nel catalogo AutoEq o importa un WAV; le bande parametriche restano indipendenti.',
   'help.convolution.steps':
-    'Apri EQ → Convoluzione e cerca per modello o autore della misura.\nControlla la fonte, poi usa Scarica e applica: il download corrisponde alla frequenza della tua uscita. Usa Importa un WAV per un file che hai già.\nAscolta con il livello di convoluzione acceso e spento in Applicato anche.',
+    'Apri EQ → Convoluzione e cerca per modello o autore della misura.\nControlla la fonte, poi usa Scarica e applica: il download corrisponde alla frequenza della tua uscita. Usa Importa un WAV per un file che hai già.\nAscolta con il livello di convoluzione acceso e spento in Curve.',
   'help.convolution.tip':
     'Il motore FluidEQ converte da solo qualsiasi frequenza dell’impulso. Equalizer APO richiede un WAV importato alla frequenza dell’uscita. Il catalogo richiede una connessione per scaricare; questa guida no.',
   'help.convolution.keywords':
@@ -298,10 +298,9 @@ const help: Record<keyof typeof en, string> = {
     'casse, speaker, cambiare dispositivo, creare profilo, due uscite, uscite multiple, Bluetooth, sync, ritardo, sfasato, DAC, salvare impostazioni',
   'help.profiles.list':
     'I suoni che hai salvato. ATT indica quello usato da questa uscita; premine un altro per passarci.',
-  'help.profiles.update': 'Salva le tue modifiche nel profilo che stai usando.',
+  'help.profiles.update':
+    'Salva le tue modifiche nel profilo che stai usando. Ripristina, lì accanto, riporta il profilo com’era quando l’hai salvato l’ultima volta.',
   'help.profiles.new': 'Crea un nuovo profilo dall’EQ che hai adesso.',
-  'help.profiles.restore':
-    'Riporta il profilo com’era quando l’hai salvato l’ultima volta.',
   'help.profiles.output':
     'L’uscita con cui stai ascoltando. DISATT. significa che il tuo EQ non la raggiunge; ATTIVO, che Windows sta riproducendo attraverso di essa.',
   'help.profiles.mapping':
@@ -343,6 +342,8 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.bassPunch': 'Modella attacco, sostegno e fioritura dei bassi.',
   'help.dsp.dimension':
     'Allarga l’immagine stereo senza cambiare la somma mono.',
+  'help.dsp.room':
+    'Surround in cuffia: ogni canale diventa un diffusore in una stanza intorno a te.',
   'help.dsp.maximizer':
     'Alza il livello senza lasciare che i picchi superino il tetto.',
   'help.dsp.master':
@@ -350,9 +351,6 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.crossfade': 'Fonde un brano della Libreria con il successivo.',
   'help.dsp.presets':
     'Catene complete del rack per generi, dispositivi e riparazioni.',
-  'help.dsp.scopeName': 'Su tutto il sistema',
-  'help.dsp.scope':
-    'Dove sta lavorando il rack e l’eventuale ritardo aggiunto dalla fase lineare.',
 
   'help.room.title': 'La Stanza: surround in cuffia',
   'help.room.intro':

@@ -268,7 +268,8 @@ describe('the settings tray', () => {
     const { trigger } = show('ready');
     open(trigger);
     expect(
-      screen.queryByRole('slider', { name: en['theme.aria'] }),
+      // The theme slider it replaced, by the name it had (the key is gone).
+      screen.queryByRole('slider', { name: 'Theme' }),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByRole('slider', { name: en['graph.backdropVeil'] }),

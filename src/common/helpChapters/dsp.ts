@@ -5,74 +5,82 @@ import { type IHelpChapter } from './model';
 /** The DSP rack, the Room and the source analysis. */
 const DSP_CHAPTERS = [
   {
+    // The rack from the running window at 2560 x 1392 on 2026-09-29, on
+    // Dimension: a stage the preset already has on, so nothing is switched
+    // and the header keeps the preset's name, and one that draws its curve
+    // with nothing playing. The System-wide pill is gone: Game mode and the
+    // delay it moves sit in the header now, and the Room is a stage of the
+    // rail.
     id: 'dsp',
     group: 'sound',
     figures: [
       {
         image: '20-dsp.png',
-        width: 1976,
-        height: 622,
+        width: 2060,
+        height: 652,
         controls: [
           {
-            box: [0, 83, 200, 42],
+            box: [12, 64, 200, 42],
             name: 'dsp.normalizer.title',
             text: 'help.dsp.normalizer',
           },
           {
-            box: [0, 129, 200, 42],
+            box: [12, 110, 200, 42],
             name: 'dsp.denoise.title',
             text: 'help.dsp.denoise',
           },
           {
-            box: [0, 175, 200, 42],
+            box: [12, 156, 200, 42],
             name: 'dsp.exciter.title',
             text: 'help.dsp.exciter',
           },
           {
-            box: [0, 221, 200, 42],
+            box: [12, 202, 200, 42],
             name: 'dsp.bassForge.title',
             text: 'help.dsp.bassForge',
           },
           {
-            box: [0, 267, 200, 42],
+            box: [12, 248, 200, 42],
             name: 'dsp.eq.title',
             text: 'help.dsp.equaliser',
           },
           {
-            box: [0, 313, 200, 42],
+            box: [12, 294, 200, 42],
             name: 'dsp.bassPunch.title',
             text: 'help.dsp.bassPunch',
           },
           {
-            box: [0, 359, 200, 42],
+            box: [12, 340, 200, 42],
             name: 'dsp.dimension.title',
             text: 'help.dsp.dimension',
           },
           {
-            box: [0, 451, 200, 42],
+            box: [12, 386, 200, 42],
+            name: 'dsp.room.title',
+            text: 'help.dsp.room',
+          },
+          {
+            box: [12, 432, 200, 42],
             name: 'dsp.maximizer.title',
             text: 'help.dsp.maximizer',
           },
           {
-            box: [0, 497, 200, 42],
+            box: [12, 478, 200, 42],
             name: 'dsp.master.title',
             text: 'help.dsp.master',
           },
           {
-            box: [0, 580, 200, 42],
+            box: [12, 561, 200, 42],
             name: 'dsp.crossfade.title',
             text: 'help.dsp.crossfade',
           },
           {
-            // The chip under the header, not the On switch at the other end
-            // of it, which is where this pointed until 1.7.5: the line is
-            // about where the rack runs, and the chip is what says so.
-            box: [0, 30, 580, 31],
-            name: 'help.dsp.scopeName',
-            text: 'help.dsp.scope',
+            box: [1498, 17, 305, 28],
+            name: 'dsp.latency.gameMode',
+            text: 'help.eq.gameMode',
           },
           {
-            box: [123, 3, 210, 32],
+            box: [135, 15, 210, 32],
             name: 'dsp.presets',
             text: 'help.dsp.presets',
           },
@@ -81,8 +89,8 @@ const DSP_CHAPTERS = [
     ],
   },
   {
-    // The Room card alone, at 1372 CSS pixels and 1.5 device pixels to the
-    // pixel like the rest: the Reference room as it ships, stereo playing so
+    // The Room card alone, from the running window at 2560 x 1392 on
+    // 2026-09-29: the room it had on, stereo playing so
     // five speakers and the sub are drawn asleep, and the front left chosen
     // so the pane beside the picture holds a speaker's own controls rather
     // than the card that asks for one. Every box below is that element's own
@@ -93,46 +101,46 @@ const DSP_CHAPTERS = [
     figures: [
       {
         image: '32-dsp-room.png',
-        width: 2010,
-        height: 1131,
+        width: 1838,
+        height: 705,
         controls: [
           {
-            box: [23, 128, 728, 831],
+            box: [32, 102, 502, 502],
             name: 'dsp.room.graphLabel',
             text: 'help.room.picture',
           },
           {
-            box: [765, 128, 604, 250],
+            box: [553, 93, 414, 260],
             name: 'help.room.speakerName',
             text: 'help.room.speaker',
           },
           {
-            box: [1384, 128, 604, 250],
+            box: [977, 93, 414, 260],
             name: 'help.room.dialsName',
             text: 'help.room.dials',
           },
           {
-            box: [23, 92, 164, 21],
+            box: [23, 69, 112, 14],
             name: 'help.room.liveName',
             text: 'help.room.live',
           },
           {
-            box: [89, 24, 315, 48],
+            box: [67, 24, 210, 32],
             name: 'dsp.room.presets',
             text: 'help.room.picker',
           },
           {
-            box: [1579, 988, 213, 48],
+            box: [1537, 478, 142, 32],
             name: 'dsp.room.fitView.start',
             text: 'help.room.fit',
           },
           {
-            box: [1400, 859, 571, 84],
+            box: [1401, 363, 414, 316],
             name: 'dsp.room.groupHead',
             text: 'help.room.head',
           },
           {
-            box: [654, 24, 98, 48],
+            box: [444, 24, 65, 32],
             name: 'dsp.eqSave.save',
             text: 'help.room.saved',
           },
@@ -147,8 +155,8 @@ const DSP_CHAPTERS = [
     figures: [
       {
         image: '13-dsp-denoise-and-source-analysis.png',
-        width: 1762,
-        height: 693,
+        width: 1838,
+        height: 731,
       },
     ],
   },

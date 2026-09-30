@@ -13,34 +13,33 @@ const START_CHAPTERS = [
   },
   {
     // The window's frame, taken from the running window at 2560 x 1392 on
-    // 2026-09-21. The header is cut at the signal into two captures: whole,
-    // it is 2560 x 96 and is drawn about forty pixels tall in the guide, too
-    // small to read a label. Its boxes are the elements' own rectangles.
+    // 2026-09-29. The header is cut at the signal into two captures: whole,
+    // it is 2560 x 84 and is drawn about forty pixels tall in the guide, too
+    // small to read a label. Its boxes are the elements' own rectangles, and
+    // each side column's control is its whole group, name and switch.
     id: 'window',
     group: 'start',
     figures: [
       {
         image: '37-header-left.png',
         width: 1498,
-        height: 96,
+        height: 84,
         caption: 'help.window.headerLeftCaption',
         controls: [
           {
-            box: [664, 29, 150, 39],
+            box: [661, 17, 151, 40],
             name: 'tabs.media',
             text: 'help.window.media',
           },
           {
-            box: [820, 29, 143, 39],
+            box: [818, 17, 144, 40],
             name: 'tabs.share',
             text: 'help.window.share',
           },
-          { box: [969, 29, 85, 39], name: 'tabs.eq', text: 'help.window.eq' },
+          { box: [968, 17, 86, 40], name: 'tabs.eq', text: 'help.window.eq' },
           {
-            // Below where the Rainbow mode pill sat on the signal's top edge
-            // in this picture, which was taken while it had one: a box that
-            // took the whole signal would hold the pill.
-            box: [1070, 34, 420, 47],
+            // The whole signal, its Rainbow badge with it.
+            box: [1070, 10, 420, 54],
             name: 'help.window.waveName',
             text: 'help.window.wave',
           },
@@ -49,37 +48,37 @@ const START_CHAPTERS = [
       {
         image: '38-header-right.png',
         width: 1062,
-        height: 96,
+        height: 84,
         caption: 'help.window.headerRightCaption',
         controls: [
-          { box: [8, 29, 93, 39], name: 'tabs.dsp', text: 'help.window.dsp' },
+          { box: [8, 17, 94, 40], name: 'tabs.dsp', text: 'help.window.dsp' },
           {
-            box: [107, 29, 112, 39],
+            box: [108, 17, 113, 40],
             name: 'tabs.library',
             text: 'help.window.library',
           },
           {
-            box: [225, 29, 118, 39],
+            box: [227, 17, 119, 40],
             name: 'tabs.karaoke',
             text: 'help.window.karaoke',
           },
           {
-            box: [349, 29, 94, 39],
+            box: [352, 17, 95, 40],
             name: 'tabs.plus',
             text: 'help.window.plus',
           },
           {
-            box: [722, 29, 40, 40],
+            box: [703, 17, 40, 40],
             name: 'app.menu.support',
             text: 'help.window.support',
           },
           {
-            box: [772, 31, 55, 36],
+            box: [804, 24, 32, 26],
             name: 'help.menu',
             text: 'help.window.help',
           },
           {
-            box: [838, 31, 52, 36],
+            box: [756, 24, 46, 26],
             name: 'app.actions',
             text: 'help.window.actions',
           },
@@ -87,22 +86,22 @@ const START_CHAPTERS = [
       },
       {
         image: '39-rail-left.png',
-        width: 180,
-        height: 1221,
+        width: 140,
+        height: 1270,
         caption: 'help.window.railCaption',
         controls: [
           {
-            box: [21, 21, 139, 89],
+            box: [18, 22, 96, 123],
             name: 'sidebar.systemEq',
             text: 'help.window.systemEq',
           },
           {
-            box: [21, 120, 139, 202],
+            box: [18, 166, 96, 123],
             name: 'sidebar.preamp',
             text: 'help.window.preamp',
           },
           {
-            box: [21, 332, 139, 89],
+            box: [18, 297, 96, 43],
             name: 'sidebar.autoPreamp',
             text: 'help.window.autoNormalize',
           },
@@ -110,12 +109,12 @@ const START_CHAPTERS = [
             // The card's head and switch only: the meter below is its own
             // control, and one box holding the other would stop either line
             // from reaching its own without crossing.
-            box: [21, 432, 139, 85],
+            box: [18, 361, 96, 43],
             name: 'sidebar.graphView',
             text: 'help.window.responseGraph',
           },
           {
-            box: [29, 527, 122, 662],
+            box: [18, 425, 96, 827],
             name: 'help.window.meterName',
             text: 'help.window.meter',
           },
@@ -124,8 +123,9 @@ const START_CHAPTERS = [
     ],
   },
   {
-    // The Compact player, taken on 2026-09-22 from the real player and its
-    // stylesheets at its first-launch size, 480 x 1080 CSS pixels, drawn at
+    // The Compact player, taken on 2026-09-29 from the real player and its
+    // stylesheets at 480 CSS pixels wide (560 for the folded strip, which
+    // gives up its EQ key below 520), drawn at
     // two device pixels each so it stays sharp enlarged — with a made-up
     // queue and drawn covers, nobody's real albums. Boxes are the elements'
     // own rectangles, doubled. Each deck is its own picture: the whole player
@@ -136,7 +136,7 @@ const START_CHAPTERS = [
       {
         image: '42-player-top.png',
         width: 960,
-        height: 560,
+        height: 564,
         caption: 'help.player.topCaption',
         controls: [
           {
@@ -165,7 +165,7 @@ const START_CHAPTERS = [
             text: 'help.player.well',
           },
           {
-            box: [583, 211, 110, 30],
+            box: [583, 194, 110, 30],
             name: 'player.readout.level',
             text: 'help.player.level',
           },
@@ -180,22 +180,22 @@ const START_CHAPTERS = [
             text: 'help.player.decks',
           },
           {
-            box: [116, 425, 728, 36],
+            box: [116, 425, 728, 32],
             name: 'player.seek',
             text: 'help.player.seek',
           },
           {
-            box: [32, 477, 482, 60],
+            box: [32, 473, 482, 60],
             name: 'help.player.playingName',
             text: 'help.player.playing',
           },
           {
-            box: [736, 477, 130, 60],
+            box: [736, 473, 130, 60],
             name: 'help.player.orderName',
             text: 'help.player.order',
           },
           {
-            box: [876, 479, 52, 56],
+            box: [876, 475, 52, 56],
             name: 'help.player.lookName',
             text: 'help.player.look',
           },
@@ -204,57 +204,57 @@ const START_CHAPTERS = [
       {
         image: '43-player-eq.png',
         width: 960,
-        height: 708,
+        height: 770,
         caption: 'help.player.eqCaption',
         controls: [
           {
-            box: [32, 29, 102, 52],
+            box: [32, 33, 102, 52],
             name: 'player.eq.on',
             text: 'help.window.systemEq',
           },
-          { box: [146, 31, 193, 48], name: 'eq.smart', text: 'help.eq.smart' },
+          { box: [144, 33, 197, 52], name: 'eq.smart', text: 'help.eq.smart' },
           {
-            box: [736, 29, 192, 52],
+            box: [736, 33, 192, 52],
             name: 'dsp.presets',
             text: 'help.eq.voicing',
           },
           {
-            box: [34, 105, 892, 186],
+            box: [32, 101, 896, 230],
             name: 'player.eq.curve',
             text: 'help.player.screen',
           },
           {
-            box: [70, 343, 64, 268],
+            box: [32, 347, 64, 324],
             name: 'sidebar.preamp',
             text: 'help.window.preamp',
           },
           {
-            box: [174, 352, 740, 208],
+            box: [130, 347, 798, 324],
             name: 'tabs.eqMain',
             text: 'help.player.bands',
           },
           {
-            box: [32, 627, 199, 52],
+            box: [32, 687, 199, 52],
             name: 'eq.tone',
             text: 'help.player.tone',
           },
           {
-            box: [241, 627, 151, 52],
+            box: [241, 687, 205, 52],
             name: 'eq.quickLayouts',
             text: 'help.eq.layouts',
           },
-          { box: [402, 627, 286, 52], name: 'eq.mode', text: 'help.eq.mode' },
-          { box: [795, 627, 133, 52], name: 'eq.clear', text: 'help.eq.clear' },
+          { box: [456, 687, 202, 52], name: 'eq.mode', text: 'help.eq.mode' },
+          { box: [868, 687, 60, 52], name: 'eq.clear', text: 'help.eq.clear' },
         ],
       },
       {
         image: '44-player-queue.png',
         width: 960,
-        height: 900,
+        height: 1088,
         caption: 'help.player.queueCaption',
         controls: [
           {
-            box: [144, 44, 169, 26],
+            box: [32, 44, 741, 26],
             name: 'library.upNext',
             text: 'help.player.upNext',
           },
@@ -264,7 +264,7 @@ const START_CHAPTERS = [
             text: 'help.player.library',
           },
           {
-            box: [42, 109, 876, 320],
+            box: [32, 99, 896, 957],
             name: 'help.player.songsName',
             text: 'help.player.songs',
           },
@@ -272,32 +272,32 @@ const START_CHAPTERS = [
       },
       {
         image: '45-player-menu.png',
-        width: 672,
-        height: 736,
+        width: 634,
+        height: 1016,
         caption: 'help.player.menuCaption',
         controls: [
           {
-            box: [30, 85, 612, 60],
+            box: [34, 33, 566, 112],
             name: 'player.menu.fullApp',
             text: 'help.player.switch',
           },
           {
-            box: [30, 179, 612, 260],
+            box: [34, 153, 566, 301],
             name: 'player.menu.openIn',
             text: 'help.player.openIn',
           },
           {
-            box: [30, 465, 612, 88],
-            name: 'theme.aria',
+            box: [54, 472, 534, 228],
+            name: 'graph.sceneTint.brightness',
             text: 'help.player.theme',
           },
           {
-            box: [30, 579, 612, 60],
+            box: [96, 790, 492, 76],
             name: 'player.menu.alwaysOnTop',
             text: 'help.player.pin',
           },
           {
-            box: [30, 643, 612, 60],
+            box: [34, 898, 566, 84],
             name: 'player.menu.fold',
             text: 'help.player.fold',
           },
@@ -305,27 +305,27 @@ const START_CHAPTERS = [
       },
       {
         image: '46-player-folded.png',
-        width: 960,
-        height: 112,
+        width: 1120,
+        height: 80,
         caption: 'help.player.foldedCaption',
         controls: [
           {
-            box: [12, 30, 56, 52],
+            box: [12, 14, 56, 52],
             name: 'player.unfold',
             text: 'help.player.unfold',
           },
           {
-            box: [199, 30, 246, 52],
+            box: [199, 14, 246, 52],
             name: 'help.player.playingName',
             text: 'help.player.foldedPlaying',
           },
           {
-            box: [483, 42, 194, 28],
+            box: [453, 14, 211, 52],
             name: 'player.clock.aria',
             text: 'help.player.foldedClock',
           },
           {
-            box: [685, 30, 96, 52],
+            box: [824, 14, 96, 52],
             name: 'player.eq.short',
             text: 'help.window.systemEq',
           },
@@ -347,21 +347,21 @@ const START_CHAPTERS = [
     figures: [
       {
         image: '15-engine-dialog.png',
-        width: 620,
-        height: 444,
+        width: 832,
+        height: 453,
         controls: [
           {
-            box: [66, 100, 512, 109],
+            box: [309, 65, 478, 159],
             name: 'engine.fluid.name',
             text: 'help.engine.fluid',
           },
           {
-            box: [66, 251, 512, 86],
+            box: [309, 232, 478, 119],
             name: 'engine.apo.name',
             text: 'help.engine.apo',
           },
           {
-            box: [541, 387, 54, 32],
+            box: [743, 389, 54, 32],
             name: 'engine.apply',
             text: 'help.engine.apply',
           },

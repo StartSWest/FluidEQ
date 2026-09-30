@@ -296,7 +296,7 @@ describe('the dictionaries', () => {
           'tour.library.point5',
           'bugReport.title',
           'bugReport.nobodyReadsThis',
-          'theme.aria',
+          'graph.sceneTint.brightness',
         ],
         strings,
       ),

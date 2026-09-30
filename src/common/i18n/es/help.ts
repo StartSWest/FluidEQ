@@ -91,7 +91,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.intro':
     'Un interruptor convierte la ventana de FluidEQ en el Reproductor compacto: una columna estrecha con la canción, tu ecualizador, un visualizador y A continuación, en paneles que abres y cierras. Lo que esté sonando sigue sonando, y el mismo interruptor te devuelve a la app completa, en la página que dejaste.',
   'help.player.steps':
-    'Pulsa el interruptor del Reproductor compacto en la barra de título, junto a Ayuda. En el reproductor, el mismo interruptor te devuelve a la app completa.\nAbre y cierra los paneles con EQ, Visual y Cola. La ventana crece y se encoge según lo que ocupa cada uno, y el reproductor recuerda su tamaño y su posición.\nHaz doble clic en la barra del reproductor, o elige Plegar en una línea en su menú, para plegarlo en una sola línea; el logotipo de FluidEQ lo despliega.\nElige el tema propio del reproductor en su menú, y mantenlo por encima de las demás ventanas con Siempre visible.\nSuelta archivos de música en A continuación: se suman a la Biblioteca y a la cola.',
+    'Pulsa el interruptor del Reproductor compacto en la barra de título, junto a Ayuda. En el reproductor, el mismo interruptor te devuelve a la app completa.\nAbre y cierra los paneles con EQ, Visual y Cola. La ventana crece y se encoge según lo que ocupa cada uno, y el reproductor recuerda su tamaño y su posición.\nHaz doble clic en la barra del reproductor, o elige Plegar en una línea en su menú, para plegarlo en una sola línea; el logotipo de FluidEQ lo despliega.\nAjusta el Brillo propio del reproductor en su menú, y mantenlo por encima de las demás ventanas con Siempre visible.\nSuelta archivos de música en A continuación: se suman a la Biblioteca y a la cola.',
   'help.player.tip':
     'El volumen del reproductor es el de tu ordenador, el mismo que en Windows, así que ajusta el nivel de todo lo que suena en el ordenador. Si el reproductor acaba fuera de la pantalla, haz clic derecho en el icono de FluidEQ en la bandeja del sistema y elige Recuperar la ventana.',
   'help.player.keywords':
@@ -102,7 +102,7 @@ const help: Record<keyof typeof en, string> = {
   'help.player.menuCaption': 'El menú del reproductor',
   'help.player.foldedCaption': 'Plegado en una línea',
   'help.player.menu':
-    'Volver a la app completa o a una de sus páginas, el tema del reproductor, Siempre visible y Plegar en una línea.',
+    'Volver a la app completa o a una de sus páginas, el Brillo propio del reproductor, Siempre visible y Plegar en una línea.',
   'help.player.pin':
     'Mantiene el reproductor por encima de las demás ventanas.',
   'help.player.switch': 'Volver a la app completa, en la página que dejaste.',
@@ -141,7 +141,7 @@ const help: Record<keyof typeof en, string> = {
     'Lo que suena después. Haz doble clic en una canción para reproducirla, o suelta aquí archivos de música para añadirlos.',
   'help.player.openIn': 'Abre la app completa en una de sus páginas.',
   'help.player.theme':
-    'El tema Claro u Oscuro propio del reproductor, independiente del de la app completa.',
+    'El Brillo propio del reproductor, independiente del de la app completa; la Transparencia, para el reproductor de cristal sobre un visualizador; y el Modo arcoíris.',
   'help.player.fold':
     'Pliega el reproductor en una línea. Un doble clic en su barra hace lo mismo.',
   'help.player.unfold':
@@ -182,7 +182,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.steps':
     'Abre EQ → Bandas. Sin nada seleccionado, gira Graves, Medios o Agudos para cambiar el tono rápidamente, y Corte graves o Corte agudos para recortar los extremos. En la gráfica dibujan su propia línea de Tono.\nHaz clic en la frecuencia de una banda, o en su punto de la gráfica, para seleccionarla. Gira sus mandos de Frecuencia, Ganancia y Factor Q, elige un Filtro o desactívala con Activa.\nHaz clic derecho en una banda para restablecerla, desactivarla o añadir otra a su lado. Pulsa Vaciar EQ para poner todas las ganancias, y también Graves, Medios y Agudos, a 0 dB sin perder tus bandas. Antes pide confirmación.',
   'help.eq.tip':
-    'También aplicado muestra lo que moldea esta salida además de tus bandas, cada capa con su propia intensidad y ×. Modo juego reduce el retardo que añade FluidEQ, para juegos y llamadas; los presets de Juegos lo activan.',
+    'Curvas muestra lo que moldea esta salida además de tus bandas, cada capa con su propia intensidad y ×. Modo juego reduce el retardo que añade FluidEQ, para juegos y llamadas; los presets de Juegos lo activan.',
   'help.eq.keywords':
     'ecualizador, ecualización, ecualizar, paramétrico, potenciar graves, bass boost, bajos, pasa altos, pasa bajos, peaking, realzar, atenuar, controles de tono, claridad de voz, voces claras, mejorar el sonido, mejorar el audio, ajustar el sonido, preajustes, agregar banda, resetear, poner a cero, plano',
   'help.eq.bandsCaption': 'La página Bandas, sin nada seleccionado',
@@ -281,7 +281,7 @@ const help: Record<keyof typeof en, string> = {
   'help.convolution.intro':
     'Convolución aplica un impulso WAV como otra capa de corrección. Puedes buscar en el catálogo AutoEq o importar tu WAV; las bandas paramétricas siguen siendo independientes.',
   'help.convolution.steps':
-    'Abre EQ → Convolución y busca el modelo o autor.\nRevisa la fuente y pulsa Descargar y aplicar; la descarga coincide con la frecuencia de tu salida. Usa Importar un WAV para un archivo que ya tengas.\nEscucha con la capa de convolución activada y desactivada en También aplicado.',
+    'Abre EQ → Convolución y busca el modelo o autor.\nRevisa la fuente y pulsa Descargar y aplicar; la descarga coincide con la frecuencia de tu salida. Usa Importar un WAV para un archivo que ya tengas.\nEscucha con la capa de convolución activada y desactivada en Curvas.',
   'help.convolution.tip':
     'El Motor FluidEQ convierte él mismo cualquier frecuencia del impulso. Equalizer APO necesita un WAV importado a la frecuencia de la propia salida. Descargar del catálogo requiere conexión; esta guía no.',
   'help.convolution.keywords':
@@ -298,10 +298,9 @@ const help: Record<keyof typeof en, string> = {
     'altavoces, bocinas, parlantes, audífonos, cascos, salida de audio, dispositivo de audio, Bluetooth, retraso, desfase, delay, eco, desincronizado, sincronizar audio, varias salidas, múltiples salidas, simultáneo, guardar configuración',
   'help.profiles.list':
     'Los sonidos que has guardado. ACT marca el que usa esta salida; pulsa otro para cambiar.',
-  'help.profiles.update': 'Guarda tus cambios en el perfil en el que estás.',
+  'help.profiles.update':
+    'Guarda tus cambios en el perfil en el que estás. Restaurar, a su lado, devuelve el perfil a como lo guardaste por última vez.',
   'help.profiles.new': 'Crea un perfil nuevo a partir del EQ que tienes ahora.',
-  'help.profiles.restore':
-    'Devuelve el perfil a como lo guardaste por última vez.',
   'help.profiles.output':
     'La salida por la que estás escuchando. DESACT. significa que tu EQ no llega a ella; ACTIVO, que Windows está reproduciendo por ella.',
   'help.profiles.mapping':
@@ -343,6 +342,8 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.bassPunch':
     'Moldea el ataque, el sostenimiento y el florecimiento del bajo.',
   'help.dsp.dimension': 'Ensancha la imagen estéreo sin cambiar la suma mono.',
+  'help.dsp.room':
+    'Surround en los auriculares: cada canal se vuelve un altavoz en una sala a tu alrededor.',
   'help.dsp.maximizer':
     'Sube el nivel sin dejar que los picos pasen del techo.',
   'help.dsp.master':
@@ -350,9 +351,6 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.crossfade': 'Funde una pista de la Biblioteca con la siguiente.',
   'help.dsp.presets':
     'Cadenas completas del rack para géneros, dispositivos y reparaciones.',
-  'help.dsp.scopeName': 'En todo el sistema',
-  'help.dsp.scope':
-    'Dónde funciona el rack y el retardo que añada la fase lineal.',
 
   'help.room.title': 'La Sala: surround en los auriculares',
   'help.room.intro':

@@ -380,7 +380,6 @@ const app = {
   'provenance.site': 'Official site: fluideq.com',
   'provenance.repository': 'Official source: github.com/StartSWest/FluidEQ',
   'language.aria': 'Interface language',
-  'theme.aria': 'Theme',
   'motion.aria': 'Animations',
   'motion.restart': 'Restart FluidEQ to apply',
   'startup.label': 'Start with Windows',

@@ -396,7 +396,6 @@ const app: Partial<Dictionary> = {
   'provenance.repository':
     'Sources officielles : github.com/StartSWest/FluidEQ',
   'language.aria': 'Langue de l’interface',
-  'theme.aria': 'Thème',
   'motion.aria': 'Animations',
   'motion.restart': 'Redémarrez FluidEQ pour l’appliquer',
   'startup.label': 'Démarrer avec Windows',

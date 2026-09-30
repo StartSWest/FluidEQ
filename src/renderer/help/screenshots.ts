@@ -43,19 +43,15 @@ import playerEq from '../../../docs/43-player-eq.png';
 import playerQueue from '../../../docs/44-player-queue.png';
 import playerMenu from '../../../docs/45-player-menu.png';
 import playerFolded from '../../../docs/46-player-folded.png';
-import playerTopLight from '../../../docs/light/42-player-top.png';
-import playerEqLight from '../../../docs/light/43-player-eq.png';
-import playerQueueLight from '../../../docs/light/44-player-queue.png';
-import playerMenuLight from '../../../docs/light/45-player-menu.png';
-import playerFoldedLight from '../../../docs/light/46-player-folded.png';
 import type { THelpImage } from '../../common/helpGuide';
-import type { TTheme } from '../utils/theme';
 
 /**
- * Every capture, as taken in the Dark theme. Static imports make webpack
- * include each one in offline packaged builds.
+ * Every capture, one set: taken at the middle of the Brightness slider, where
+ * one picture reads on a dark window and a light one (2026-09-29; the Light
+ * theme's twins went with the themes). Static imports make webpack include
+ * each one in offline packaged builds.
  */
-const DARK: Record<THelpImage, string> = {
+const SHOTS: Record<THelpImage, string> = {
   '01-online-media-youtube-live-eq.png': online,
   '03-eq-parametric-bands-and-live-response.png': eq,
   '04-eq-headphone-correction-and-import.png': headphones,
@@ -101,20 +97,7 @@ const DARK: Record<THelpImage, string> = {
   '46-player-folded.png': playerFolded,
 };
 
-/**
- * The same captures taken in the Light theme, for a reader whose window is
- * Light (Ivan, 2026-09-22). Each is its Dark twin retaken in the same state
- * at the same size, so every numbered box fits both, and `helpFigureSizes`
- * holds the two sizes together. A capture with no Light twin is shown Dark.
- */
-const LIGHT: Partial<Record<THelpImage, string>> = {
-  '42-player-top.png': playerTopLight,
-  '43-player-eq.png': playerEqLight,
-  '44-player-queue.png': playerQueueLight,
-  '45-player-menu.png': playerMenuLight,
-  '46-player-folded.png': playerFoldedLight,
-};
+/** A capture, as the guide shows it. */
+const helpScreenshot = (image: THelpImage): string => SHOTS[image];
 
-/** A capture as the reader's theme shows it. */
-export const helpScreenshot = (image: THelpImage, theme: TTheme): string =>
-  (theme === 'ocean' ? LIGHT[image] : undefined) ?? DARK[image];
+export default helpScreenshot;
