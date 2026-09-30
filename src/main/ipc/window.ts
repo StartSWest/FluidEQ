@@ -21,6 +21,7 @@ import { BrowserWindow, ipcMain, systemPreferences } from 'electron';
 import log from 'electron-log';
 import { loadLocale, resolveLocale } from '../../common/i18n';
 import {
+  PLAYER_AMP_CHANNEL,
   PLAYER_HEIGHT_LIMIT_CHANNEL,
   PLAYER_WIDTH_FLOOR_CHANNEL,
   TITLEBAR_DOUBLE_CLICK_CHANNEL,
@@ -227,6 +228,22 @@ export const registerWindowIpc = ({
         ? width
         : undefined,
     );
+  });
+
+  /**
+   * Which amp the player is — the glass Stage in the Backdrop, the 2.0 amp
+   * otherwise — said by the page whenever it changes, in either mode, so each
+   * amp opens at its own size (`setAmp`).
+   */
+  onWindowMessage(PLAYER_AMP_CHANNEL, (event, arg: unknown) => {
+    const mainWindow = getMainWindow();
+    if (!mainWindow || event.sender !== mainWindow.webContents) {
+      return;
+    }
+    const [amp] = Array.isArray(arg) ? (arg as unknown[]) : [];
+    if (amp === 'classic' || amp === 'stage') {
+      windowModes.setAmp(mainWindow, amp);
+    }
   });
 
   /**

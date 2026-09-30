@@ -125,7 +125,6 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'ビジュアライザーの自動切り替え',
   'graph.autoSwitch.off': '自動: オフ',
   'graph.autoSwitch.every': '自動: {seconds}秒',
-  'graph.sceneTint.cycle': 'FluidEQ：{mode}。クリックで{next}',
   'graph.sceneTint.mode.off': 'アプリのテーマ',
   'graph.sceneTint.mode.tint': 'ビジュアライザーの色',
   'graph.sceneTint.mode.pulse': 'ビジュアライザーの色と、周りに広がる光',
@@ -153,6 +152,18 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.sparks': 'ポインターの火花',
   'graph.sceneTint.sparksHint':
     'ビジュアライザーがマウスから放つもの。画面の上を動かすと軌跡が残り、クリックした場所ではじけます。火花、花びら、雪など、シーンに合わせて。',
+  'graph.sceneTint.daylight': '時間帯',
+  'graph.sceneTint.daylightHint': 'ビジュアライザーの時間帯。夜から真昼まで',
+  'graph.sceneTint.daylightFollowingHint':
+    '明るさに連動しています。「時間帯を明るさに連動」をオフにすると、ビジュアライザーの時間帯を個別に設定できます',
+  'graph.sceneTint.daylightFollows': '時間帯を明るさに連動',
+  'graph.sceneTint.daylightFollowsHint':
+    'オンにすると、ビジュアライザーは明るさに合わせて夜から昼へ移ります。オフにすると上で設定した時間帯を保ち、明るさはウィンドウだけを変えます。',
+  'graph.sceneTint.daylightClock': '時間帯を時計に連動',
+  'graph.sceneTint.daylightClockHint':
+    'オンにすると、このコンピューターの時計に合わせて、ビジュアライザーは夜は夜に、昼は昼になります。オフにすると上で設定した時間帯を保ちます。',
+  'graph.sceneTint.daylightFollowingClockHint':
+    '時計に連動しています。「時間帯を時計に連動」をオフにすると、ビジュアライザーの時間帯を個別に設定できます',
   'graph.sceneTint.brightnessHint':
     'テーマやビジュアライザーの色で表示されるウィンドウの明るさ',
   'graph.member.mine': 'あなたが作成',

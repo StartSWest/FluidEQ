@@ -6,13 +6,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useSyncExternalStore } from 'react';
 import {
+  PLAYER_AMP_CHANNEL,
   PLAYER_HEIGHT_LIMIT_CHANNEL,
   PLAYER_WIDTH_FLOOR_CHANNEL,
   WINDOW_HIDE_FOR_SWITCH_CHANNEL,
   WINDOW_MODE_PARAM,
   WINDOW_REVEAL_CHANNEL,
 } from 'common/windowMode';
-import type { IWindowState, TWindowMode } from 'common/windowMode';
+import type { IWindowState, TPlayerAmp, TWindowMode } from 'common/windowMode';
 
 /**
  * What the window is — the full app or the player — as main says it is.
@@ -78,6 +79,8 @@ let heldHeight: number | null | undefined;
 let floorHeight: number | null | undefined;
 /** The same for the width its equalizer needs. */
 let floorWidth: number | undefined;
+/** Which amp main was last told the player is. */
+let reportedAmp: TPlayerAmp | undefined;
 
 const publish = (state: Partial<IWindowState> | undefined) => {
   const next: IModeSnapshot = {
@@ -146,6 +149,13 @@ const FADE_IN_MS = 170;
 
 /** The fade-out, held at nothing while the window changes size. */
 let held: Animation | undefined;
+
+/**
+ * Which change of amp is the newest (`handOverAmp`). One that finds a newer
+ * change begun — another change of amp, or a switch of mode — leaves the
+ * window to it: bringing it back as well would show the newer one half done.
+ */
+let ampChange = 0;
 
 /** Whether the page can be held dark at all: not in a test's document. */
 const canHold = () =>
@@ -239,6 +249,20 @@ export const untilViewportIsWindow = async (): Promise<void> => {
   await untilViewportIsWindow();
 };
 
+/** The page brought back up out of the hold. */
+const rise = async () => {
+  const rising = document.body.animate([{ opacity: 0 }, { opacity: 1 }], {
+    duration: fadeTime(FADE_IN_MS),
+    easing: 'ease-out',
+  });
+  // Let go of the hold only once the rise is running, or the page is fully
+  // lit for the frame between the two.
+  held?.cancel();
+  held = undefined;
+  await rising.finished.catch(() => undefined);
+  markSwitching(false);
+};
+
 const fadeIn = async () => {
   if (!canHold()) {
     return;
@@ -247,16 +271,7 @@ const fadeIn = async () => {
   // the first frame to show is that one and not the stretched one before it.
   await untilViewportIsWindow();
   await afterNextFrame();
-  const rise = document.body.animate([{ opacity: 0 }, { opacity: 1 }], {
-    duration: fadeTime(FADE_IN_MS),
-    easing: 'ease-out',
-  });
-  // Let go of the hold only once the rise is running, or the page is fully
-  // lit for the frame between the two.
-  held?.cancel();
-  held = undefined;
-  await rise.finished.catch(() => undefined);
-  markSwitching(false);
+  await rise();
 };
 
 /**
@@ -277,6 +292,9 @@ export const hidesWindow = () =>
  * a switch refused or failed must not leave it off the screen.
  */
 export const setWindowMode = async (mode: TWindowMode): Promise<void> => {
+  // Any change of amp still coming back is this switch's now: it brings the
+  // window back itself, drawn as the other mode.
+  ampChange += 1;
   const isHidden = hidesWindow();
   if (isHidden) {
     window.electron.ipcRenderer.sendMessage(WINDOW_HIDE_FOR_SWITCH_CHANNEL, []);
@@ -351,4 +369,92 @@ export const floorPlayerWidth = (cssWidth: number) => {
   }
   floorWidth = next;
   window.electron?.ipcRenderer.sendMessage(PLAYER_WIDTH_FLOOR_CHANNEL, [next]);
+};
+
+/**
+ * Which amp the player is, told to main whenever it changes, in either mode,
+ * so the window opens at that amp's own size and moves to it when the amp
+ * changes under it (`setAmp`). Main forgets the height and width the old amp
+ * held the window to, so the new one has to say them again even where they
+ * come to the same numbers.
+ */
+export const reportPlayerAmp = (amp: TPlayerAmp) => {
+  if (amp === reportedAmp) {
+    return;
+  }
+  reportedAmp = amp;
+  heldHeight = undefined;
+  floorHeight = undefined;
+  floorWidth = undefined;
+  window.electron?.ipcRenderer.sendMessage(PLAYER_AMP_CHANNEL, [amp]);
+};
+
+/**
+ * The window back on the screen once the new amp is drawn at its size — in a
+ * `finally`, as the switch of mode does, because nothing may leave it hidden —
+ * unless a newer change has begun, which brings it back itself.
+ */
+const comeBackAsAmp = async (change: number, isHidden: boolean) => {
+  const isNewest = () => change === ampChange;
+  try {
+    if (isHidden) {
+      // Main hears the page in order, so once it has answered a question
+      // asked after the hide the window is off the screen, and the page can
+      // let go of its own hold and draw the new amp there.
+      await window.electron.ipcRenderer.getWindowState().catch(() => undefined);
+      if (!isNewest()) {
+        return;
+      }
+      held?.cancel();
+      held = undefined;
+      markSwitching(false);
+    } else if (!canHold()) {
+      return;
+    }
+    await untilViewportIsWindow();
+    await afterNextFrame();
+  } finally {
+    if (isNewest() && isHidden) {
+      window.electron.ipcRenderer.sendMessage(WINDOW_REVEAL_CHANNEL, []);
+    } else if (isNewest() && canHold()) {
+      await rise();
+    }
+  }
+};
+
+/**
+ * One amp giving way to the other out of sight, the way the full app and the
+ * amp trade places (Ivan, 2026-09-28: "hide one completely and then show the
+ * other when ready, similar to what we do for full vs amp"). The window colours
+ * turned to the Backdrop, or a Plus look picked or left in it, changes the amp
+ * and the window's size at once, and in view that was the new amp drawn at the
+ * old amp's size, then stretched to the new one, then laid out again.
+ *
+ * Called in the layout pass that put the new amp in, BEFORE it is painted —
+ * what the listener picked has already changed the picture behind the amp in
+ * the same pass, so there is no moment before it to hide in. The page is held
+ * at nothing on the spot, so its first frame is the window's floor whatever
+ * else happens; on Windows the window then leaves the screen whole and the
+ * page draws the new amp there; everywhere it comes back once the page has
+ * drawn the new amp at the window's new size (`comeBackAsAmp`). Main moves the
+ * window to the new amp's own bounds when it hears which amp this is
+ * (`reportPlayerAmp`), which is sent after the hide so it happens out of sight.
+ */
+export const handOverAmp = (amp: TPlayerAmp) => {
+  ampChange += 1;
+  const change = ampChange;
+  const isHidden = hidesWindow();
+  if (canHold()) {
+    markSwitching(true);
+    held?.cancel();
+    held = document.body.animate([{ opacity: 0 }, { opacity: 0 }], {
+      duration: 0,
+      fill: 'forwards',
+    });
+  }
+  if (isHidden) {
+    window.electron.ipcRenderer.sendMessage(WINDOW_HIDE_FOR_SWITCH_CHANNEL, []);
+  }
+  reportPlayerAmp(amp);
+  comeBackAsAmp(change, isHidden).catch(() => undefined);
 };

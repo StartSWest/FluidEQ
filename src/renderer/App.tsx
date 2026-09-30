@@ -68,11 +68,17 @@ import Chevron from './icons/Chevron';
 import { type TEngineState } from './components/ActionsMenu';
 import type { IHelpHandlers } from './help/helpMenuActions';
 import MiniPlayer from './player/MiniPlayer';
+import usePlayerAmp from './player/usePlayerAmp';
 import type { TPlayerPage } from './player/PlayerTitleStrip';
 import { usePlayerVisFull } from './player/playerLayout';
-import { setWindowMode, useWindowMode } from './player/windowModeStore';
+import {
+  reportPlayerAmp,
+  setWindowMode,
+  useWindowMode,
+} from './player/windowModeStore';
 import { applyThemeScope } from './utils/theme';
 import { applyBackdropVeilScope } from './utils/backdropVeil';
+import { applySceneDaylightScope } from './utils/sceneDaylightSetting';
 import { applySliderHandleScope } from './utils/sliderHandle';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
 import {
@@ -95,7 +101,6 @@ import { engineDisplayName } from './utils/audioEngineApi';
 import { preloadTab } from './workspacePages';
 import type { TWorkspaceTab } from './workspaceTabs';
 import {
-  isEqGroupTab,
   SHORT_WINDOW_QUERY,
   SOUND_PANE_DRAWER_QUERY,
 } from './shell/workspaceGroups';
@@ -159,6 +164,15 @@ const AppContent = () => {
   // it onto one of the pages: the page is chosen while the app is still put
   // away, so it comes back already showing it.
   const { mode: windowMode } = useWindowMode();
+  // Which amp the switch will open, said while the window is the full app so
+  // the player opens at that amp's own size; the amp says it itself once it
+  // is on screen (`AmpMark`), ahead of its own limits.
+  const playerAmp = usePlayerAmp();
+  useEffect(() => {
+    if (windowMode === 'app') {
+      reportPlayerAmp(playerAmp);
+    }
+  }, [playerAmp, windowMode]);
   /**
    * THE AMP'S QUEUE DECK NEEDS THE LIBRARY'S PLAYER, whether or not anything
    * is playing (Ivan, 2026-09-22: "drag and drop into the up next doesn't
@@ -176,9 +190,9 @@ const AppContent = () => {
    * THE AMP KEEPS ITS OWN THEME (Ivan, 2026-09-22). The full app can be Dark
    * while the amp is Light: the two are never on screen at once, so there is
    * one theme on the window at a time and a choice remembered for each mode.
-   * Transparency and the EQ sliders' round or rectangular handle are kept
-   * the same way: one control remembered twice (`backdropVeil.ts`,
-   * `sliderHandle.ts`).
+   * Transparency, the EQ sliders' round or rectangular handle and a scene's
+   * own time of day are kept the same way: one control remembered twice
+   * (`backdropVeil.ts`, `sliderHandle.ts`, `sceneDaylightSetting.ts`).
    *
    * Applied from here rather than from the mode store itself, which is where
    * it belongs by subject and cannot go by construction: that module is
@@ -191,6 +205,7 @@ const AppContent = () => {
     applyThemeScope(scope);
     applyBackdropVeilScope(scope);
     applySliderHandleScope(scope);
+    applySceneDaylightScope(scope);
   }, [windowMode]);
   const openPageFromPlayer = useCallback(
     (page: TPlayerPage) => {
@@ -249,18 +264,20 @@ const AppContent = () => {
   });
 
   /**
-   * The EQ pages put their graph ABOVE the page (layout A, the open floor,
+   * The EQ page puts its graph ABOVE the page (layout A, the open floor,
    * Ivan 2026-09-25): the section pills and the Bands title row on top, the
    * graph under them, then the bands — each standing under the point on the
    * graph it moves (`MainContent`, `plotGeometry`). Only while there is a
    * graph beside the page to put there; off, or filling the column, the page
    * keeps its pills and its title as it always has.
    *
-   * Every other page keeps its graph underneath: there the graph is a monitor
-   * of what the page is doing, not the instrument the page is edited on.
+   * Every other page keeps its graph underneath, the EQ group's other pills
+   * included (Ivan, 2026-09-29: "only the one on the EQ page goes on top, the
+   * rest always opens at the bottom"): there the graph is a monitor of what
+   * the page is doing, not the instrument the page is edited on.
    */
   const isGraphFirst =
-    isEqGroupTab(activeWorkspaceTab) && showsGraph && !isGraphFullScreen;
+    activeWorkspaceTab === 'eq' && showsGraph && !isGraphFullScreen;
   const [eqTitleSlot, setEqTitleSlot] = useState<HTMLElement | null>(null);
   const eqGroupPills = (
     <EqGroupPills
@@ -392,7 +409,7 @@ const AppContent = () => {
   let paneKey: string = activeWorkspaceTab;
   if (isGraphFirst) {
     paneKey = belowGraphPaneKey(activeWorkspaceTab);
-  } else if (isShortWindow && !isEqGroupTab(activeWorkspaceTab)) {
+  } else if (isShortWindow && activeWorkspaceTab !== 'eq') {
     paneKey = shortWindowPaneKey(activeWorkspaceTab);
   }
   const resize = useGraphPaneResize(paneKey, isGraphFirst);
@@ -605,7 +622,7 @@ const AppContent = () => {
             exitGraphFullScreen();
           }}
         >
-          {/* The EQ pages' head, above their graph (`isGraphFirst`): the
+          {/* The EQ page's head, above its graph (`isGraphFirst`): the
               section pills, and a slot the Bands page's title row is
               portalled into. First in the column's DOM as well as on screen,
               so the keyboard reaches it before the page. The graph and the

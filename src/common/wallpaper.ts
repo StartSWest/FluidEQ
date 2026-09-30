@@ -30,13 +30,29 @@ export const WALLPAPER = {
    */
   graphLook: 'wallpaper-graph-look',
   /**
-   * The time of day the window's Brightness asks of its scenes
-   * (`sceneDaylight.ts`), for the monitors set to follow the graph: their
+   * The time of day the window asks of its scenes (`sceneDaylight.ts`,
+   * `TWallpaperDaylight`), for the monitors set to follow the graph: their
    * scene turns from night to day with the window's (Ivan, 2026-09-28:
    * "desktop needs to follow that too ... only if follow graph is enabled").
    */
   graphDaylight: 'wallpaper-graph-daylight',
 } as const;
+
+/**
+ * The word for "the clock's time of day" in place of a number
+ * (`TWallpaperDaylight`).
+ */
+export const WALLPAPER_CLOCK_DAYLIGHT = 'clock';
+
+/**
+ * The time of day the window gives a monitor following the graph: 0 night to
+ * 100 day, from its Brightness or set by the listener, or the clock itself
+ * (Ivan, 2026-09-29: "follows the daytime"). The clock is sent as a word and
+ * read on the monitor, frame by frame (`clockDaylight`), rather than as a
+ * number the window keeps sending: the window stops drawing while it is
+ * minimised, and a desktop is exactly what plays then.
+ */
+export type TWallpaperDaylight = number | typeof WALLPAPER_CLOCK_DAYLIGHT;
 
 /** More monitors than a desk has; bounds what one request can create. */
 export const MAX_WALLPAPER_DISPLAYS = 16;
@@ -183,11 +199,11 @@ export interface IWallpaperSurfaceState {
   /** What the listener set for this visualizer, when they set anything. */
   tuning?: IWallpaperTuning;
   /**
-   * The window's time of day, 0 night to 100 day, on a monitor set to follow
-   * the graph. Absent on one that is not: its scene keeps the time of day
-   * its author gave it, whatever the window's Brightness does.
+   * The window's time of day on a monitor set to follow the graph
+   * (`TWallpaperDaylight`). Absent on one that is not: its scene keeps the
+   * time of day its author gave it, whatever the window's Brightness does.
    */
-  daylight?: number;
+  daylight?: TWallpaperDaylight;
 }
 
 /** Scene source is loaded and authorized by main, never sent back by a page. */
@@ -279,12 +295,13 @@ export const isWallpaperWave = (raw: unknown): raw is IWallpaperWave =>
 export const isWallpaperMotion = (raw: unknown): raw is TWallpaperMotion =>
   WALLPAPER_MOTIONS.some((motion) => motion === raw);
 
-/** A time of day as the window's Brightness gives it (`sceneDaylight.ts`). */
-export const isWallpaperDaylight = (raw: unknown): raw is number =>
-  typeof raw === 'number' &&
-  Number.isFinite(raw) &&
-  raw >= SCENE_DAYLIGHT_MIN &&
-  raw <= SCENE_DAYLIGHT_MAX;
+/** A time of day as the window gives it (`TWallpaperDaylight`). */
+export const isWallpaperDaylight = (raw: unknown): raw is TWallpaperDaylight =>
+  raw === WALLPAPER_CLOCK_DAYLIGHT ||
+  (typeof raw === 'number' &&
+    Number.isFinite(raw) &&
+    raw >= SCENE_DAYLIGHT_MIN &&
+    raw <= SCENE_DAYLIGHT_MAX);
 
 const isWallpaperChoice = (
   raw: Record<string, unknown>,

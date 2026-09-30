@@ -127,7 +127,6 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Défilement automatique des visualiseurs',
   'graph.autoSwitch.off': 'Auto : Non',
   'graph.autoSwitch.every': 'Auto : {seconds}s',
-  'graph.sceneTint.cycle': 'FluidEQ : {mode}. Cliquez pour {next}',
   'graph.sceneTint.mode.off': 'le thème de l’application',
   'graph.sceneTint.mode.tint': 'les couleurs du visualiseur',
   'graph.sceneTint.mode.pulse':
@@ -157,6 +156,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.sparks': 'Étincelles du pointeur',
   'graph.sceneTint.sparksHint':
     'Ce que le visualiseur lance depuis la souris : une traînée quand elle traverse l’image et une gerbe là où vous cliquez - étincelles, pétales, neige, ce dont la scène est faite.',
+  'graph.sceneTint.daylight': 'Lumière du jour',
+  'graph.sceneTint.daylightHint':
+    'L’heure du jour du visualiseur, de la nuit au plein jour',
+  'graph.sceneTint.daylightFollowingHint':
+    'Suit la luminosité. Désactivez « Le jour suit la luminosité » pour régler à part l’heure du jour du visualiseur',
+  'graph.sceneTint.daylightFollows': 'Le jour suit la luminosité',
+  'graph.sceneTint.daylightFollowsHint':
+    'Activé, le visualiseur passe de la nuit au jour avec la luminosité. Désactivé, il garde la lumière du jour réglée au-dessus, et la luminosité ne change que la fenêtre.',
+  'graph.sceneTint.daylightClock': 'Le jour suit l’horloge',
+  'graph.sceneTint.daylightClockHint':
+    'Activé, le visualiseur est de nuit la nuit et de jour le jour, selon l’horloge de cet ordinateur. Désactivé, il garde la lumière du jour réglée au-dessus.',
+  'graph.sceneTint.daylightFollowingClockHint':
+    'Suit l’horloge. Désactivez « Le jour suit l’horloge » pour régler à part l’heure du jour du visualiseur',
   'graph.sceneTint.brightnessHint':
     'La clarté de la fenêtre, dans votre thème ou dans les couleurs du visualiseur',
   'graph.member.mine': 'Créés par vous',

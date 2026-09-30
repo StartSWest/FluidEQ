@@ -40,6 +40,7 @@ import {
   watchChromeIdle,
 } from '../utils/idleChrome';
 import { reportError } from '../utils/logger';
+import { isStageFullScreenClaimed } from '../utils/stageFullScreen';
 import useAppFullMark from '../utils/useAppFullMark';
 import type { TWorkspaceTab } from '../workspaceTabs';
 import { isFullscreenMediaTab } from './workspaceGroups';
@@ -365,7 +366,8 @@ const useShellFullScreen = ({
      *    titlebar gone. Put it back. Unless it is the listener's own full
      *    screen (`isSystemFullScreen`): a Mac's green button takes the whole
      *    app full screen, windowed layout and all, and that is the mode they
-     *    asked for, not a disagreement.
+     *    asked for, not a disagreement. Or the Studio's stage, which draws
+     *    its own full screen over the page (`stageFullScreen.ts`).
      *
      * Fed from two places, because the window outlives the page. Every state
      * change the window announces comes through the listener below; the read
@@ -401,6 +403,7 @@ const useShellFullScreen = ({
         wasFullScreen = true;
         if (
           !windowFullScreenClaimRef.current &&
+          !isStageFullScreenClaimed() &&
           state.isSystemFullScreen !== true
         ) {
           window.electron.ipcRenderer

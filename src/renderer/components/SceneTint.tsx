@@ -9,7 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { isMemberLookId } from 'common/memberScenes';
 import { isPremiumLookId } from 'common/scenePacks';
-import { daylightOfShade, daylightTintStep } from '../graph/sceneDaylight';
+import { daylightTintStep, usePageDaylight } from '../graph/sceneDaylight';
 import {
   measureSceneSky,
   measureStudioSky,
@@ -20,7 +20,6 @@ import { LAGOON_SKY } from '../utils/rainbowPalette';
 import { skyFromSwatch } from '../utils/sceneTint';
 import { useUsableMemberScenes } from '../utils/memberScenes';
 import { useUsableScenes } from '../utils/scenePacks';
-import { useThemeShade } from '../utils/theme';
 import {
   lendSceneSky,
   recallSceneSky,
@@ -65,8 +64,9 @@ const SceneTint = () => {
   const memberScenes = useUsableMemberScenes();
   const hasPainted = useRef(false);
   // A scene answers to the time of day (`sceneDaylight.ts`), so its colour
-  // is measured, and remembered, at the step of the day the Brightness is at.
-  const hour = daylightTintStep(daylightOfShade(useThemeShade()));
+  // is measured, and remembered, at the step of the day it is drawn at: the
+  // Brightness's, or the one set apart from it in Window colours.
+  const hour = daylightTintStep(usePageDaylight());
   // Colours and Ambient hold the scene's colour however low the Brightness
   // goes; the Backdrop's glass darkens with it (`TSkyTone`). The Studio's
   // own mode while it is the one asking.

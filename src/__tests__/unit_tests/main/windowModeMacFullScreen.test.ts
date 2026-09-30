@@ -109,7 +109,8 @@ const macWindowAs = (mode: 'app' | 'player') => {
     mode,
     isPinned: false,
     app: {},
-    player: mode === 'player' ? fake.bounds() : undefined,
+    amp: 'classic',
+    players: mode === 'player' ? { classic: fake.bounds() } : {},
   });
   modes.followWindow(fake.win);
   modes.applyLimits(fake.win);
@@ -165,6 +166,6 @@ describe('the player’s visualizer on a Mac', () => {
     modes.setFullScreen(win, false);
     finish();
     expect(bounds()).toEqual(left);
-    expect(modes.memory().player).toEqual(left);
+    expect(modes.memory().players.classic).toEqual(left);
   });
 });

@@ -95,7 +95,8 @@ const playerAt = () => {
     mode: 'player',
     isPinned: false,
     app: {},
-    player: fake.bounds(),
+    amp: 'classic',
+    players: { classic: fake.bounds() },
   });
   modes.followWindow(fake.win);
   // The page says the player is exactly its decks: held to 640.
@@ -125,7 +126,7 @@ describe('the player and full screen', () => {
     expect(bounds()).toEqual(DISPLAY);
     modes.setFullScreen(win, false);
     expect(bounds()).toEqual(left);
-    expect(modes.memory().player).toEqual(left);
+    expect(modes.memory().players.classic).toEqual(left);
   });
 
   it('takes nothing the page measures while the picture has the screen', () => {
@@ -146,15 +147,15 @@ describe('the player and full screen', () => {
 
   it('does not write the screen down as where the player was left', () => {
     const { modes, win } = playerAt();
-    const left = modes.memory().player;
+    const left = modes.memory().players.classic;
     modes.setFullScreen(win, true);
     // Windows reports the transition as the window having been moved and
     // resized, exactly as a drag would.
     win.emit('moved');
     win.emit('resized');
-    expect(modes.memory().player).toEqual(left);
+    expect(modes.memory().players.classic).toEqual(left);
     modes.setFullScreen(win, false);
-    expect(modes.memory().player).toEqual(left);
+    expect(modes.memory().players.classic).toEqual(left);
   });
 
   it('lifts the ceiling for a full screen it was not asked for', () => {

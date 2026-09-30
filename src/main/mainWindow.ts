@@ -32,7 +32,7 @@ import {
   playerMinimumSize,
   WINDOW_MODE_PARAM,
 } from '../common/windowMode';
-import type { IRect, TWindowMode } from '../common/windowMode';
+import type { IRect, TPlayerAmp, TWindowMode } from '../common/windowMode';
 import type { TWindowModes } from './windowMode';
 import { resolveHtmlPath } from './util';
 import openExternalIfSafe from './safeExternal';
@@ -108,6 +108,8 @@ export interface IMainWindowDeps {
     isMaximized?: boolean;
     mode?: TWindowMode;
     player?: IRect;
+    stagePlayer?: IRect;
+    amp?: TPlayerAmp;
     isPinned?: boolean;
   };
   /**
@@ -201,26 +203,28 @@ export const createMainWindowFactory = ({
     // back onto a screen if that one has gone. With nowhere remembered, or a
     // player remembered as the whole screen, which nobody sized
     // (`isPlayerRect`), it opens at its own narrow size in the middle of the
-    // screen, and the record is forgotten.
-    const remembered = isUsableRect(restored.player)
-      ? restored.player
-      : undefined;
+    // screen, and the record is forgotten. Each amp's record is its own, and
+    // it opens as the amp it closed as; the page says straight away if that
+    // has changed, and the window moves to the other amp's place (`setAmp`).
+    const amp = restored.amp ?? 'classic';
+    const playerOnScreen = (rect: IRect | undefined) =>
+      rect && isPlayerRect(rect, screen.getDisplayMatching(rect).workArea)
+        ? rect
+        : undefined;
+    const players = {
+      classic: playerOnScreen(restored.player),
+      stage: playerOnScreen(restored.stagePlayer),
+    };
+    const remembered = amp === 'stage' ? restored.stagePlayer : restored.player;
     const rememberedArea = remembered
       ? screen.getDisplayMatching(remembered).workArea
-      : undefined;
-    const playerRect =
-      remembered && rememberedArea && isPlayerRect(remembered, rememberedArea)
-        ? remembered
-        : undefined;
+      : screen.getPrimaryDisplay().workArea;
+    const playerRect = players[amp];
     let player: IRect | undefined;
     if (restored.mode === 'player') {
-      player =
-        playerRect && rememberedArea
-          ? clampInto(playerRect, rememberedArea)
-          : centreIn(
-              playerFirstSize(1),
-              rememberedArea ?? screen.getPrimaryDisplay().workArea,
-            );
+      player = playerRect
+        ? clampInto(playerRect, rememberedArea)
+        : centreIn(playerFirstSize(1), rememberedArea);
     }
     windowModes.restore({
       mode: player ? 'player' : 'app',
@@ -232,7 +236,8 @@ export const createMainWindowFactory = ({
         height: restored.height,
         isMaximized: restored.isMaximized,
       },
-      player: playerRect,
+      amp,
+      players,
     });
     // The floor for the mode it opens in. The player's is scaled by the
     // page's zoom, which is not known until the page has loaded — this is the
@@ -318,6 +323,18 @@ export const createMainWindowFactory = ({
         contextIsolation: true,
         nodeIntegration: false,
         sandbox: true,
+        // A page's own full screen never moves the window; the window goes
+        // full screen only when the app asks for it (`setFullScreen` in
+        // `windowMode.ts`). Electron syncs a webview guest's HTML full screen
+        // up to its embedder and resizes the window by THIS window's setting,
+        // not the guest's (`videoHardening.ts` sets the guest's, which alone
+        // did nothing): YouTube's full-screen button took the window full
+        // screen by itself, the app's own request then found it full screen
+        // already, and taking YouTube's player back out of its full screen
+        // took the window out with it — the press was undone as it landed
+        // (Ivan, 2026-09-29). The Studio's stage, the one full screen of this
+        // document's own, asks for the window as the app's others do.
+        disableHtmlFullscreenWindowResize: true,
       },
     });
     setMainWindow(created);

@@ -45,27 +45,20 @@ const useTabGraph = ({
     TWorkspaceGraphVisibility | undefined
   >(readWorkspaceGraphVisibility);
 
-  // Each workspace owns this choice. Karaoke starts without the response graph
-  // because its stage and pitch lane need the height; Library starts without
-  // it because the tab is a surface for looking at album art, not at a
-  // spectrum; every other workspace inherits the legacy graph preference until
-  // the user chooses differently.
-  // Library and Karaoke both start closed and stay togglable. Forcing Library
-  // closed outright was tried and taken back out: it did remove the graph's
-  // toolbar from a tab that has no use for it by default, but it also removed
-  // the choice, and the switch in the sidebar then did nothing on that one tab
-  // — a control that visibly does nothing being worse than the row it saved.
+  // Each workspace owns this choice. Only the EQ page starts with its graph
+  // (Ivan, 2026-09-29: "only on EQ main page is on by default"), where the
+  // graph is the instrument the bands are set on; every other page starts
+  // without it and has it one switch away, under the page. Karaoke's stage
+  // and pitch lane need the height, the Library is album art, a forum is read
+  // top to bottom, and a video or a preset list is a page before it is a
+  // spectrum. Each stays togglable: forcing a page closed outright was tried
+  // on the Library and taken back out, because the switch in the sidebar then
+  // did nothing on that one tab — a control that visibly does nothing being
+  // worse than the row it saved.
   const showsGraph =
     (graphView !== 'normal' && isFullscreenMediaTab(activeWorkspaceTab)) ||
     (graphVisibilityByTab?.[activeWorkspaceTab] ??
-      (activeWorkspaceTab === 'karaoke' ||
-      activeWorkspaceTab === 'library' ||
-      activeWorkspaceTab === 'share' ||
-      // A forum is read top to bottom; a spectrum under the thread takes the
-      // height the conversation needs. Still one switch away.
-      activeWorkspaceTab === 'forum'
-        ? false
-        : isGraphViewOn));
+      (activeWorkspaceTab === 'eq' ? isGraphViewOn : false));
 
   const setActiveTabGraphVisibility = useCallback(
     (next: boolean) => {

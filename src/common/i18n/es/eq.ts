@@ -124,7 +124,6 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Cambio automático de visualizadores',
   'graph.autoSwitch.off': 'Auto: No',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
-  'graph.sceneTint.cycle': 'FluidEQ: {mode}. Pulsa para {next}',
   'graph.sceneTint.mode.off': 'el tema de la app',
   'graph.sceneTint.mode.tint': 'los colores del visualizador',
   'graph.sceneTint.mode.pulse':
@@ -154,6 +153,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.sparks': 'Chispas del puntero',
   'graph.sceneTint.sparksHint':
     'Lo que el visualizador lanza desde el ratón: una estela al cruzar la imagen y un estallido donde haces clic: chispas, pétalos, nieve, lo que tenga la escena.',
+  'graph.sceneTint.daylight': 'Luz del día',
+  'graph.sceneTint.daylightHint':
+    'La hora del día del visualizador, de la noche a pleno día',
+  'graph.sceneTint.daylightFollowingHint':
+    'Sigue al brillo. Desactiva «La luz sigue al brillo» para darle al visualizador su propia hora del día',
+  'graph.sceneTint.daylightFollows': 'La luz sigue al brillo',
+  'graph.sceneTint.daylightFollowsHint':
+    'Activado, el visualizador pasa de la noche al día con el brillo. Desactivado, conserva la luz del día que elijas arriba, y el brillo solo cambia la ventana.',
+  'graph.sceneTint.daylightClock': 'La luz sigue al reloj',
+  'graph.sceneTint.daylightClockHint':
+    'Activado, el visualizador es de noche por la noche y de día durante el día, según el reloj de este equipo. Desactivado, conserva la luz del día que elijas arriba.',
+  'graph.sceneTint.daylightFollowingClockHint':
+    'Sigue al reloj. Desactiva «La luz sigue al reloj» para darle al visualizador su propia hora del día',
   'graph.sceneTint.brightnessHint':
     'Qué tan clara u oscura queda la ventana, con tu tema o con los colores del visualizador',
   'graph.member.mine': 'Hechos por ti',

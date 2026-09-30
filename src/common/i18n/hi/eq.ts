@@ -123,7 +123,6 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'विज़ुअलाइज़र अपने आप बदलें',
   'graph.autoSwitch.off': 'ऑटो: बंद',
   'graph.autoSwitch.every': 'ऑटो: {seconds}से',
-  'graph.sceneTint.cycle': 'FluidEQ: {mode}। {next} के लिए क्लिक करें',
   'graph.sceneTint.mode.off': 'ऐप की थीम',
   'graph.sceneTint.mode.tint': 'विज़ुअलाइज़र के रंग',
   'graph.sceneTint.mode.pulse':
@@ -151,6 +150,18 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.sparks': 'पॉइंटर की चिंगारियाँ',
   'graph.sceneTint.sparksHint':
     'विज़ुअलाइज़र माउस से जो उछालता है: तस्वीर पर से गुज़रते हुए एक लकीर, और जहाँ आप क्लिक करें वहाँ एक फुहार — चिंगारियाँ, पंखुड़ियाँ, बर्फ़, जो भी सीन में हो।',
+  'graph.sceneTint.daylight': 'दिन का उजाला',
+  'graph.sceneTint.daylightHint': 'विज़ुअलाइज़र का समय, रात से पूरे दिन तक',
+  'graph.sceneTint.daylightFollowingHint':
+    'चमक के साथ चल रहा है। विज़ुअलाइज़र का समय अलग से चुनने के लिए “उजाला चमक के साथ” बंद करें',
+  'graph.sceneTint.daylightFollows': 'उजाला चमक के साथ',
+  'graph.sceneTint.daylightFollowsHint':
+    'चालू होने पर विज़ुअलाइज़र चमक के साथ रात से दिन में बदलता है। बंद होने पर वह ऊपर चुना गया उजाला रखता है, और चमक सिर्फ़ विंडो बदलती है।',
+  'graph.sceneTint.daylightClock': 'उजाला घड़ी के साथ',
+  'graph.sceneTint.daylightClockHint':
+    'चालू होने पर इस कंप्यूटर की घड़ी के अनुसार विज़ुअलाइज़र में रात को रात और दिन को दिन होता है। बंद होने पर वह ऊपर चुना गया उजाला रखता है।',
+  'graph.sceneTint.daylightFollowingClockHint':
+    'घड़ी के साथ चल रहा है। विज़ुअलाइज़र का समय अलग से चुनने के लिए “उजाला घड़ी के साथ” बंद करें',
   'graph.sceneTint.brightnessHint':
     'आपकी थीम में या विज़ुअलाइज़र के रंगों में विंडो कितनी हल्की या गहरी दिखे',
   'graph.member.mine': 'आपके बनाए',

@@ -46,20 +46,20 @@ afterEach(() => {
 });
 
 describe('the Pointer sparks switch', () => {
-  it('starts off on a new install', () => {
-    expect(launched().checked).toBe(false);
+  it('starts on in a new install', () => {
+    expect(launched().checked).toBe(true);
   });
 
-  it('turns them on and off, and keeps the choice for the next launch', () => {
+  it('turns them off and on, and keeps the choice for the next launch', () => {
     const toggle = launched();
     library?.fireEvent.click(toggle);
-    expect(toggle.checked).toBe(true);
+    expect(toggle.checked).toBe(false);
     library?.cleanup();
 
     const next = launched();
-    expect(next.checked).toBe(true);
-    library?.fireEvent.click(next);
     expect(next.checked).toBe(false);
-    expect(window.localStorage.getItem('fluideq.pointerSparks')).toBe('false');
+    library?.fireEvent.click(next);
+    expect(next.checked).toBe(true);
+    expect(window.localStorage.getItem('fluideq.pointerSparks')).toBe('true');
   });
 });

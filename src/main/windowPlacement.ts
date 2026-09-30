@@ -34,6 +34,7 @@ import {
   rememberedPlayer,
   type IRect,
   type IWindowState as IWindowStatePush,
+  type TPlayerAmp,
   type TWindowMode,
 } from '../common/windowMode';
 import { peekScheduled, scheduleWrite } from './asyncWriter';
@@ -51,13 +52,17 @@ interface IWindowState {
   isMaximized?: boolean;
   /** The app or the player; missing in every file written before the player. */
   mode?: TWindowMode;
-  /** The player's bounds. */
+  /** The 2.0 amp's bounds — the one amp there was when this was named. */
   player?: IRect;
+  /** The Stage's bounds, the amp worn in the Backdrop. */
+  stagePlayer?: IRect;
   /**
-   * Which rule wrote `player` down (`PLAYER_BOUNDS_RULE`); missing in every
-   * file written before the rule.
+   * Which rule wrote the amps' bounds down (`PLAYER_BOUNDS_RULE`); missing in
+   * every file written before the rule.
    */
   playerRule?: number;
+  /** Which amp the player was; missing in every file from before there were two. */
+  amp?: TPlayerAmp;
   /** The player's Always on top. */
   isPinned?: boolean;
 }
@@ -161,10 +166,18 @@ export const createWindowPlacement = ({
         mode: parsed.mode === 'player' ? 'player' : 'app',
         isPinned: parsed.isPinned === true,
       };
+      // Each amp's own size and place (Ivan, 2026-09-28: "we should
+      // preserve 3 window sizes"), and which one the player was.
+      state.amp = parsed.amp === 'stage' ? 'stage' : 'classic';
       const player = rememberedPlayer(parsed);
-      if (player) {
+      const stagePlayer = rememberedPlayer({
+        player: parsed.stagePlayer,
+        playerRule: parsed.playerRule,
+      });
+      if (player || stagePlayer) {
         state.playerRule = PLAYER_BOUNDS_RULE;
         state.player = player;
+        state.stagePlayer = stagePlayer;
       }
       if (isSize(parsed.width) && isSize(parsed.height)) {
         // Up to the app's floor on the screen it was left on. A window saved
@@ -225,8 +238,9 @@ export const createWindowPlacement = ({
       // The full app's bounds are the window's own while it is the app. While
       // it is the player they are the ones the switch put aside, to go back to.
       const bounds = isPlayer ? modes.app : mainWindow.getNormalBounds();
-      // The player's own bounds, never the full screen's or a switch's.
-      const player = windowModes.playerBounds(mainWindow);
+      // Each amp's own bounds, never the full screen's or a switch's.
+      const player = windowModes.playerBounds(mainWindow, 'classic');
+      const stagePlayer = windowModes.playerBounds(mainWindow, 'stage');
       // A window that is off screen right now cannot report the state the user
       // chose. Normally that never happens: the close handler saves before it
       // hides, so the window is still visible at that moment. It does happen
@@ -245,9 +259,12 @@ export const createWindowPlacement = ({
         // The player is never maximised; what it keeps is the app's own.
         isMaximized: isPlayer ? modes.app.isMaximized === true : isAppMaximized,
         mode: modes.mode,
-        ...(isUsableRect(player)
-          ? { player, playerRule: PLAYER_BOUNDS_RULE }
+        ...(isUsableRect(player) ? { player } : {}),
+        ...(isUsableRect(stagePlayer) ? { stagePlayer } : {}),
+        ...(isUsableRect(player) || isUsableRect(stagePlayer)
+          ? { playerRule: PLAYER_BOUNDS_RULE }
           : {}),
+        amp: modes.amp,
         isPinned: modes.isPinned,
       };
       scheduleWrite(windowStatePath(), JSON.stringify(state, null, 2)).catch(

@@ -23,6 +23,8 @@ type TListener = (...args: unknown[]) => unknown;
 const ipcListeners = new Map<string, Set<TListener>>();
 
 interface IFakeWindow extends EventEmitter {
+  /** What the window was built with. */
+  options: { webPreferences?: Record<string, unknown> } | undefined;
   webContents: EventEmitter;
   show: jest.Mock;
   minimize: jest.Mock;
@@ -68,8 +70,11 @@ jest.mock('electron', () => {
       send: jest.fn(),
     });
 
-    constructor() {
+    options: unknown;
+
+    constructor(options?: unknown) {
       super();
+      this.options = options;
       windows.push(this as unknown as IFakeWindow);
     }
 
@@ -241,6 +246,21 @@ describe('when the window appears', () => {
     expect(ipcListeners.get(RENDERER_READY_EVENT)?.size).toBe(1);
     say(RENDERER_READY_EVENT, window.webContents);
     expect(ipcListeners.get(RENDERER_READY_EVENT)?.size).toBe(0);
+  });
+});
+
+// A page's own full screen never moves the window (Ivan, 2026-09-29: YouTube's
+// full-screen press "cancels the action"). Electron takes the window full
+// screen for a webview's HTML full screen by the EMBEDDER's setting, so the
+// guest's own setting did nothing: the window went full screen by itself, and
+// the app's full screen ended with YouTube's the moment the app took the
+// player back out of it.
+describe('a page going full screen', () => {
+  it('leaves the window to the app, which asks for full screen itself', () => {
+    const { window } = open();
+    expect(window.options?.webPreferences).toMatchObject({
+      disableHtmlFullscreenWindowResize: true,
+    });
   });
 });
 

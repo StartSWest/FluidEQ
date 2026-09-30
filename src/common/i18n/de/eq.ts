@@ -127,7 +127,6 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Visualizer automatisch wechseln',
   'graph.autoSwitch.off': 'Auto: Aus',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
-  'graph.sceneTint.cycle': 'FluidEQ: {mode}. Klicken für {next}',
   'graph.sceneTint.mode.off': 'das App-Design',
   'graph.sceneTint.mode.tint': 'die Farben des Visualizers',
   'graph.sceneTint.mode.pulse':
@@ -156,6 +155,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.sparks': 'Zeiger-Funken',
   'graph.sceneTint.sparksHint':
     'Was der Visualizer von der Maus wirft: eine Spur, wenn sie über das Bild fährt, und einen Schauer, wo Sie klicken – Funken, Blütenblätter, Schnee, woraus die Szene besteht.',
+  'graph.sceneTint.daylight': 'Tageslicht',
+  'graph.sceneTint.daylightHint':
+    'Die Tageszeit des Visualizers, von Nacht bis voller Tag',
+  'graph.sceneTint.daylightFollowingHint':
+    'Folgt der Helligkeit. Schalten Sie „Tageslicht folgt Helligkeit“ aus, um die Tageszeit des Visualizers selbst festzulegen',
+  'graph.sceneTint.daylightFollows': 'Tageslicht folgt Helligkeit',
+  'graph.sceneTint.daylightFollowsHint':
+    'Ein: Der Visualizer wechselt mit der Helligkeit von Nacht zu Tag. Aus: Er behält das oben eingestellte Tageslicht, und die Helligkeit ändert nur das Fenster.',
+  'graph.sceneTint.daylightClock': 'Tageslicht folgt der Uhrzeit',
+  'graph.sceneTint.daylightClockHint':
+    'Ein: Beim Visualizer ist es nachts Nacht und tagsüber Tag, nach der Uhr dieses Computers. Aus: Er behält das oben eingestellte Tageslicht.',
+  'graph.sceneTint.daylightFollowingClockHint':
+    'Folgt der Uhrzeit. Schalten Sie „Tageslicht folgt der Uhrzeit“ aus, um die Tageszeit des Visualizers selbst festzulegen',
   'graph.sceneTint.brightnessHint':
     'Wie hell oder dunkel das Fenster steht, in Ihrem Design oder in den Farben des Visualizers',
   'graph.member.mine': 'Von Ihnen erstellt',

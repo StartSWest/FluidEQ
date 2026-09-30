@@ -131,13 +131,16 @@ const createModeSetting = (
 };
 
 /**
- * Ambient from the start: the colours, the light glowing around the scene and
- * its birds, petals or stars. Choosing a Plus visualizer is choosing how the
- * app looks, and somebody who has just become a member should see everything
- * a scene does without first finding the control that turns it on (Ivan,
- * 2026-09-13); it sits beside the picker for anyone who wants less. Only a
- * profile that never chose starts here — a mode picked before, or the old
- * on/off switch, is kept.
+ * The Backdrop from the start: the visualizer behind the whole window, with
+ * Ambient's colours and light around it (Ivan, 2026-09-29: "when the user
+ * selects a Plus viz the settings are Backdrop"; it was Ambient from
+ * 2026-09-13). Choosing a Plus visualizer is choosing how the app looks, and
+ * somebody who has just become a member should see everything a scene does
+ * without first finding the control that turns it on; it sits beside the
+ * picker for anyone who wants less. Only a profile that never chose starts
+ * here — a mode picked before, or the old on/off switch, is kept. A free
+ * look never wears it: the Backdrop needs a Plus visualizer to stand behind
+ * the panes (`useIsBackdrop`).
  *
  * The app's mode, the graph's Window colours. The Studio has its own
  * (`useStudioTintMode`, below), and neither ever sets the other.
@@ -145,7 +148,7 @@ const createModeSetting = (
 const setting = createModeSetting(
   'fluideq.sceneTintMode',
   'fluideq.sceneTint',
-  'pulse',
+  'cover',
 );
 
 export const setSceneTintMode = (next: TSceneTintMode) => setting.set(next);

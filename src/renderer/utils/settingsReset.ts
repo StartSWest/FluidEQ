@@ -61,12 +61,13 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.scenePerformance',
   'fluideq.sceneResponse',
   'fluideq.sceneWaves',
-  // The window: colours, Rainbow, Brightness, Transparency, sparks, sliders,
-  // the language, and how it is divided.
+  // The window: colours, Rainbow, Brightness, Transparency, a scene's own
+  // time of day, sparks, sliders, the language, and how it is divided.
   'fluideq.sceneTintMode',
   'fluideq-rainbow',
   'fluideq.theme',
   'fluideq.backdropVeil',
+  'fluideq.sceneDaylight',
   'fluideq.pointerSparks',
   'fluideq.sliderHandle',
   'fluideq.locale',

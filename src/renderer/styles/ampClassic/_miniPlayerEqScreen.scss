@@ -164,7 +164,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 4px;
   margin-inline-start: auto;
 
-  .graph-look-step {
+  .graph-look-step,
+  .graph-scene-look__trigger {
     display: inline-grid;
     width: 18px;
     height: 16px;
@@ -195,8 +196,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
     // On: lit like a lamp, the key filled with the accent and its glyph
     // glowing, so the difference reads across the room and not only up
-    // close.
-    &[aria-pressed='true'] {
+    // close. The window's colour is a menu and not a switch: it is on while
+    // the window takes any colour from the scene, and lit while it is open.
+    &[aria-pressed='true'],
+    &.graph-scene-look__trigger.is-on,
+    &.graph-scene-look__trigger.is-open {
       border-color: color-mix(in srgb, var(--accent) 75%, transparent);
       background: color-mix(in srgb, var(--accent) 24%, rgba($black, 0.35));
       color: var(--player-ink-bright);
@@ -212,9 +216,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
     }
   }
 
+  // The window's colour as its glyph alone: the name and the caret its menu
+  // carries on the graph are said by its title here, in a key 18px wide.
+  .graph-scene-look__trigger > span,
+  .graph-scene-look__trigger > .arrow {
+    display: none;
+  }
+
   // The tint glyph's filled half says what the switch does, as on the graph:
   // the ring's ink while off, the colour the window is taking while on.
-  .graph-scene-tint {
+  .graph-scene-look__trigger {
     .tint-icon__half {
       fill: currentColor;
       stroke: none;
@@ -231,7 +242,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
       opacity: 0.3;
     }
 
-    &[aria-pressed='true'] .tint-icon__half {
+    &.is-on .tint-icon__half {
       fill: var(--scene-tint-swatch, currentColor);
       opacity: 1;
     }

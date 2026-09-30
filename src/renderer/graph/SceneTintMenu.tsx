@@ -21,8 +21,10 @@ import {
 } from '../utils/sceneTintStore';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import BackdropVeilSlider from './BackdropVeilSlider';
+import DaylightFollowSwitch from './DaylightFollowSwitch';
 import PointerSparksSwitch from './PointerSparksSwitch';
 import RainbowSwitch from './RainbowSwitch';
+import SceneDaylightSlider from './SceneDaylightSlider';
 import WindowBrightnessSlider from './WindowBrightnessSlider';
 
 /**
@@ -35,11 +37,14 @@ import WindowBrightnessSlider from './WindowBrightnessSlider';
  * and all four modes, each with what it does. Brightness is the theme's own
  * slider, walking the visualizer's colours while it lends them; Transparency
  * is the Backdrop's, and says so by standing dimmed under any other mode.
+ * Under them the scene's own time of day, which follows Brightness, or the
+ * clock, or neither (`sceneDaylightSetting.ts`).
  *
- * It was a glyph walking the four (`SceneTintToggle`, which the player's
- * corner keys still are), and a glyph that cycles keeps three of its four
- * choices behind presses nobody knows to make: Ivan found Ambient itself
- * easy to miss ("a tiny icon that can pass desapercibido"). Choosing a mode
+ * It was a glyph walking the four, and a glyph that cycles keeps three of
+ * its four choices behind presses nobody knows to make: Ivan found Ambient
+ * itself easy to miss ("a tiny icon that can pass desapercibido"), and the
+ * 2.0 amp's corner key, the last of them, opens this menu now too (Ivan,
+ * 2026-09-28), drawn there as its glyph alone. Choosing a mode
  * keeps the menu open, since the sliders above are often what comes next.
  *
  * Never disabled: the colour and the beat change the whole window whether or
@@ -120,6 +125,12 @@ const SceneTintMenu = () => {
           <div className="scene-look-menu__sliders">
             <WindowBrightnessSlider />
             <BackdropVeilSlider />
+            {/* The scene's time of day and what it follows — Brightness or
+                the clock — together (Ivan, 2026-09-29), under the two
+                sliders he asked to keep at the head of the menu. */}
+            <SceneDaylightSlider />
+            <DaylightFollowSwitch source="brightness" />
+            <DaylightFollowSwitch source="clock" />
             <RainbowSwitch />
             <PointerSparksSwitch />
           </div>

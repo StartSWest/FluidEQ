@@ -110,10 +110,13 @@ const PlayerStageBar = ({ isScene, isFull, onFull }: IPlayerStageBarProps) => {
           isWaveHidden={false}
           isEditing={false}
         />
-        {isScene && <SceneTintMenu />}
+        {/* The heart first: what the scene does to the window stands beside
+            the desk lights, which follow the same scene (Ivan, 2026-09-29),
+            whether or not the scene has a heart. */}
         {isScene && memberScene && (
           <SceneLikeButton key={memberScene.lookId} scene={memberScene} />
         )}
+        {isScene && <SceneTintMenu />}
         {isScene && <LightingToggle />}
         {isScene && <GraphWallpaperToggle lookId={selectedLookId} />}
         <button

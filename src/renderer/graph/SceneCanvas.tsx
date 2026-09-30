@@ -261,16 +261,29 @@ export default function SceneCanvas({
   // colours from the root (`readSurface`, the level meter's wells) are told
   // by its class, which is what their cache of those colours watches;
   // `is-scene-column` lifts the EQ head over the picture.
+  //
+  // The Backdrop's only once this canvas has drawn a picture. The mark turns
+  // every pane to glass and floats it, and the layer under the glass holds
+  // nothing but the floor until the scene's first frame: marked at once, the
+  // window showed its glass over a flat dark ground for as long as the scene
+  // took to compile, then the picture (Ivan, 2026-09-29: "jump straight to
+  // the visualizer graphics so we don't see this"). Unmarked, the layer
+  // stands under the root's floor, out of sight, and the scene draws there
+  // all the same; the window stays as it was and takes the Backdrop whole
+  // with the picture in it. Any look's first frame counts: the next look is
+  // handed to this same canvas, so changing looks inside the Backdrop does
+  // not take the glass away while the next one compiles.
   const layerName = target.dataset.sceneLayer;
+  const isLayerReady = layerName !== 'backdrop' || drawnIdentity !== undefined;
   useLayoutEffect(() => {
-    if (!layerName) {
+    if (!layerName || !isLayerReady) {
       return undefined;
     }
     const mark = `is-scene-${layerName}`;
     const root = document.documentElement;
     root.classList.add(mark);
     return () => root.classList.remove(mark);
-  }, [layerName]);
+  }, [layerName, isLayerReady]);
 
   // On a layer, the layer's size and where the plot's panel stands on it.
   // Measured whenever either box changes: the graph moving down the column

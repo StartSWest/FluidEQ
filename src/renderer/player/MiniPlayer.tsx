@@ -4,11 +4,13 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import useIsBackdrop from '../utils/useIsBackdrop';
+import type { TPlayerAmp } from 'common/windowMode';
 import ClassicAmp from './classic/ClassicAmp';
 import StageAmp from './StageAmp';
+import usePlayerAmp from './usePlayerAmp';
+import { handOverAmp, reportPlayerAmp } from './windowModeStore';
 import type { TPlayerPage } from './PlayerTitleStrip';
 import '../styles/MiniPlayer.scss';
 
@@ -55,8 +57,36 @@ const usePlayerHost = () => {
   return host.inner;
 };
 
-/** Which amp the window is: the glass Stage, or the 2.0 amp. */
-export type TAmp = 'stage' | 'classic';
+/**
+ * The amp's word on the document and to main, said before anything inside
+ * the amp measures itself: it stands before the amp in the tree, and React
+ * runs an earlier sibling's layout effects first. The amp's parts read their
+ * sizes under their own stylesheet (`data-amp`), and tell main the height and
+ * width they hold the window to only once main knows which amp is asking
+ * (`reportPlayerAmp`) — told the other way round, the new amp's limits were
+ * applied to the old one's window and then forgotten with it.
+ *
+ * A change of amp is made out of sight (`handOverAmp`). The first amp is not
+ * a change: it comes in with the switch from the full app, which takes the
+ * window off the screen itself.
+ */
+const AmpMark = ({ amp }: { amp: TPlayerAmp }) => {
+  const shown = useRef<TPlayerAmp | undefined>(undefined);
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.dataset.amp = amp;
+    if (shown.current !== undefined && shown.current !== amp) {
+      handOverAmp(amp);
+    } else {
+      reportPlayerAmp(amp);
+    }
+    shown.current = amp;
+    return () => {
+      delete root.dataset.amp;
+    };
+  }, [amp]);
+  return null;
+};
 
 /**
  * The window as a player — one of two, the way the full app is one of two
@@ -83,21 +113,19 @@ const MiniPlayer = ({
   onOpenPage: (page: TPlayerPage) => void;
 }) => {
   const host = usePlayerHost();
-  const amp: TAmp = useIsBackdrop() ? 'stage' : 'classic';
-  useLayoutEffect(() => {
-    const root = document.documentElement;
-    root.dataset.amp = amp;
-    return () => {
-      delete root.dataset.amp;
-    };
-  }, [amp]);
-  return createPortal(
-    amp === 'stage' ? (
-      <StageAmp onOpenPage={onOpenPage} />
-    ) : (
-      <ClassicAmp onOpenPage={onOpenPage} />
-    ),
-    host,
+  const amp = usePlayerAmp();
+  return (
+    <>
+      <AmpMark amp={amp} />
+      {createPortal(
+        amp === 'stage' ? (
+          <StageAmp onOpenPage={onOpenPage} />
+        ) : (
+          <ClassicAmp onOpenPage={onOpenPage} />
+        ),
+        host,
+      )}
+    </>
   );
 };
 

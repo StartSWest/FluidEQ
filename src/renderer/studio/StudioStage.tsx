@@ -35,8 +35,28 @@ import {
   type TStudioSignal,
 } from './studioSignals';
 import { stageScreen } from './studioStageScreen';
+import {
+  claimStageFullScreen,
+  isStageFullScreenClaimed,
+} from '../utils/stageFullScreen';
 
 export type TStudioSize = 'graph' | 'full';
+
+/**
+ * The window full screen with the stage, and back. The stage's frame fills
+ * the window through the page's own full screen, which no longer moves the
+ * window (`disableHtmlFullscreenWindowResize` in `mainWindow.ts`), so the
+ * window is asked for as well — claimed first, so the shell finds the claim
+ * when the window says it is full screen (`stageFullScreen.ts`), and given
+ * back only by the stage that asked, never out from under the app's own.
+ */
+const holdWindowFullScreen = (next: boolean) => {
+  if (next === isStageFullScreenClaimed()) {
+    return;
+  }
+  claimStageFullScreen(next);
+  window.electron?.ipcRenderer.setWindowFullScreen(next).catch(() => undefined);
+};
 
 export type TStageTrouble =
   | { kind: 'compile'; log: string }
@@ -224,10 +244,14 @@ export default function StudioStage({
     }
     setIsFullscreen(document.fullscreenElement === frame);
     if (size === 'full' && document.fullscreenElement !== frame) {
+      holdWindowFullScreen(true);
       frame.requestFullscreen().catch(() => onExitFullscreen());
     }
-    if (size !== 'full' && document.fullscreenElement === frame) {
-      document.exitFullscreen().catch(() => undefined);
+    if (size !== 'full') {
+      holdWindowFullScreen(false);
+      if (document.fullscreenElement === frame) {
+        document.exitFullscreen().catch(() => undefined);
+      }
     }
     const onChange = () => {
       const full = document.fullscreenElement === frame;
@@ -239,6 +263,8 @@ export default function StudioStage({
     document.addEventListener('fullscreenchange', onChange);
     return () => document.removeEventListener('fullscreenchange', onChange);
   }, [size, onExitFullscreen]);
+  // A stage taken away while full gives the window back.
+  useEffect(() => () => holdWindowFullScreen(false), []);
 
   /**
    * The way out, from either side: the size goes back to what it was, and

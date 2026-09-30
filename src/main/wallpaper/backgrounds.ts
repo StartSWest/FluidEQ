@@ -5,6 +5,7 @@ import type {
   IWallpaperChoice,
   IWallpaperScreen,
   IWallpaperTuning,
+  TWallpaperDaylight,
   TWallpaperError,
   TWallpaperPause,
 } from '../../common/wallpaper';
@@ -32,7 +33,7 @@ interface IMonitorBackgroundsOptions {
   /** What the listener set for one visualizer, as it is now. */
   tuning(lookId: string): IWallpaperTuning | undefined;
   /** The window's time of day, once it has said it. */
-  daylight(): number | undefined;
+  daylight(): TWallpaperDaylight | undefined;
   /** The last surface has gone. */
   onEmpty(): void;
 }

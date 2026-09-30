@@ -429,7 +429,20 @@ describe('where the graph is not above the page', () => {
     ).toContainElement(bandsTitle());
   });
 
+  // Only the Bands page opens with its graph (Ivan, 2026-09-29: "only on EQ
+  // main page is on by default").
+  it('opens the DSP page without its graph', async () => {
+    const { container } = await renderShell();
+    expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
+    await pressTab('DSP', 'dsp');
+    expect(container.querySelector('.graph-wrapper')).toBeNull();
+  });
+
   it('keeps the DSP page above its graph, with no head', async () => {
+    window.localStorage.setItem(
+      'fluideq.graphVisibilityByTab',
+      JSON.stringify({ dsp: true }),
+    );
     const { container, column } = await renderShell();
     await pressTab('DSP', 'dsp');
 
@@ -446,33 +459,37 @@ describe('where the graph is not above the page', () => {
   });
 });
 
+// Only the Bands page puts its graph on top (Ivan, 2026-09-29: "only the one
+// on the EQ page goes on top, the rest always opens at the bottom").
 describe('the other EQ pages', () => {
-  it('put their pills above the graph too, with nothing in the title slot', async () => {
+  it('open without their graph', async () => {
+    const { container } = await renderShell();
+    await pressTab('EQ Presets', 'presets');
+    expect(container.querySelector('.graph-wrapper')).toBeNull();
+  });
+
+  it('keep their graph under the page, and their pills in the page', async () => {
+    window.localStorage.setItem(
+      'fluideq.graphVisibilityByTab',
+      JSON.stringify({ presets: true }),
+    );
     const { container, column } = await renderShell();
     await pressTab('EQ Presets', 'presets');
 
-    const head = container.querySelector<HTMLElement>('.center-head');
     const page = container.querySelector<HTMLElement>(
       '.workspace-tab-panel--presets',
     );
-    if (!head || !page) {
-      throw new Error('the head or the EQ Presets page is missing');
+    if (!page) {
+      throw new Error('the EQ Presets page is missing');
     }
-    expect(column).toHaveClass('is-graph-first');
-    expect(onScreen(column)).toEqual([
-      'pills and title',
-      'graph',
-      'divider',
-      'page',
-    ]);
+    // POSITIVE CONTROL: the graph is on, so where it stands is the page's
+    // kind, not a missing graph.
+    expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
+    expect(column).not.toHaveClass('is-graph-first');
+    expect(container.querySelector('.center-head')).toBeNull();
+    expect(onScreen(column)).toEqual(['page', 'divider', 'graph']);
     expect(
-      within(head).getByRole('tab', { name: 'EQ Presets' }),
+      within(page).getByRole('tab', { name: 'EQ Presets' }),
     ).toHaveAttribute('aria-selected', 'true');
-    expect(within(page).queryByRole('tablist', { name: 'EQ' })).toBeNull();
-    // Only the Bands page has a row to put there, so the slot stays empty.
-    expect(
-      container.querySelector('.center-head__title'),
-    ).toBeEmptyDOMElement();
-    expect(screen.queryByRole('heading', { name: /Parametric EQ/ })).toBeNull();
   });
 });

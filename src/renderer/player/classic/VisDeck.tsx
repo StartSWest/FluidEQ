@@ -327,14 +327,17 @@ const VisDeck = ({ height }: { height: number }) => {
             isWaveHidden={false}
             isEditing={false}
           />
+          {/* The heart first, so what the scene does to the window stands
+              beside the desk lights, which follow the same scene (Ivan,
+              2026-09-29). */}
+          {isScene && memberScene && (
+            <SceneLikeButton key={memberScene.lookId} scene={memberScene} />
+          )}
           {/* What a Plus visualizer does to the window — nothing, its colours,
               its colours beating with it, or itself behind the window (Ivan,
               2026-09-21) — named, as on the graph. Only on a scene: a free
               look has no colours of its own to lend. */}
           {isScene && <SceneTintMenu />}
-          {isScene && memberScene && (
-            <SceneLikeButton key={memberScene.lookId} scene={memberScene} />
-          )}
           {isScene && <LightingToggle />}
           {isScene && scene.state === 'ready' && (
             <GraphWallpaperToggle lookId={scene.lookId} />

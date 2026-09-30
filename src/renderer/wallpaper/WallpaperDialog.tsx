@@ -77,16 +77,20 @@ export default function WallpaperDialog({
       ? 'calm'
       : 'music');
   // Following the graph, read the same way: on when every monitor showing
-  // this visualizer already follows it. What the switch shows is what is
-  // set on the chosen monitors, so the dialog never changes it unseen.
+  // this visualizer already follows it, so the dialog never changes it
+  // unseen — and on for a visualizer no monitor shows yet (Ivan, 2026-09-29:
+  // "desktop same, all on: follow graph and pause on battery").
   const [followChoice, setFollowChoice] = useState<boolean>();
   const follows =
-    followChoice ??
-    (showing.length > 0 &&
-      showing.every((screen) => screen.followsGraph === true));
-  // Until a monitor is pressed, the choice follows what main reports — the
-  // monitors already showing this visualizer, or else the primary one — so a
-  // dialog opened before the monitors are known still starts with one chosen.
+    followChoice ?? showing.every((screen) => screen.followsGraph === true);
+  // Until a monitor is pressed: the monitors already showing this
+  // visualizer, so Set changes how it plays there rather than moving it; and
+  // for one no monitor shows, the primary monitor, always (Ivan, 2026-09-29:
+  // "always select by default the primary monitor"). It used to pass over
+  // the primary while FluidEQ's own window stood on it, for a visualizer that
+  // would wait there paused behind the window. Read from what main reports,
+  // so a dialog opened before the monitors are known still starts with the
+  // primary chosen once they are.
   const [picked, setPicked] = useState<ReadonlySet<number>>();
   const selected: ReadonlySet<number> =
     picked ??

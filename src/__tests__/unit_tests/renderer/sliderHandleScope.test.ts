@@ -29,17 +29,36 @@ const load = (stored: Record<string, string>): TModule => {
 const onRoot = () => document.documentElement.dataset.sliderHandle;
 
 describe('the EQ sliders’ handle', () => {
+  // A new install: the fader cap in the app, the round knob in the amp
+  // (Ivan, 2026-09-29).
+  it('starts a new install rectangular in the app and round in the amp', () => {
+    load({});
+    expect(onRoot()).toBe('rect');
+    const store = load({});
+    store.applySliderHandleScope('player');
+    expect(onRoot()).toBe('round');
+  });
+
   it('is remembered apart for the app and the amp', () => {
     const store = load({});
     store.setSliderHandle('round');
-    expect(onRoot()).toBe('round');
     store.applySliderHandleScope('player');
-    // The amp opens on the app's choice from before the split: rect.
+    store.setSliderHandle('rect');
     expect(onRoot()).toBe('rect');
     store.applySliderHandleScope('app');
     expect(onRoot()).toBe('round');
     expect(window.localStorage.getItem('fluideq.sliderHandle')).toBe('round');
-    // Nothing chosen in the amp, so nothing written for it.
+    expect(window.localStorage.getItem('fluideq.sliderHandle.player')).toBe(
+      'rect',
+    );
+  });
+
+  it('writes nothing until a choice changes', () => {
+    const store = load({});
+    store.setSliderHandle('rect');
+    store.applySliderHandleScope('player');
+    store.setSliderHandle('round');
+    expect(window.localStorage.getItem('fluideq.sliderHandle')).toBeNull();
     expect(
       window.localStorage.getItem('fluideq.sliderHandle.player'),
     ).toBeNull();
@@ -58,11 +77,16 @@ describe('the EQ sliders’ handle', () => {
     );
   });
 
-  it('starts the amp on the app’s choice when the amp has none yet', () => {
-    const store = load({ 'fluideq.sliderHandle': 'round' });
-    store.applySliderHandleScope('player');
-    expect(onRoot()).toBe('round');
-  });
+  // Somebody who picked in the app before the amp had a choice of its own:
+  // the amp keeps the shape it had, whichever that was.
+  it.each(['round', 'rect'])(
+    'starts the amp on the app’s choice (%s) when the amp has none yet',
+    (app) => {
+      const store = load({ 'fluideq.sliderHandle': app });
+      store.applySliderHandleScope('player');
+      expect(onRoot()).toBe(app);
+    },
+  );
 
   it('keeps each choice across launches', () => {
     const store = load({

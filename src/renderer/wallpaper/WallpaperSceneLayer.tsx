@@ -5,8 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { clockDaylight } from 'common/sceneDaylight';
 import type { IScenePerformance } from 'common/scenePerformance';
-import type { IWallpaperSurfaceBridge } from 'common/wallpaper';
+import {
+  WALLPAPER_CLOCK_DAYLIGHT,
+  type IWallpaperSurfaceBridge,
+} from 'common/wallpaper';
 import { authoredDaylight } from '../graph/sceneDaylight';
 import type { ISceneFrame } from '../graph/sceneGl';
 import useSceneRunner, { type ISceneSource } from '../graph/useSceneRunner';
@@ -59,10 +63,15 @@ export default function WallpaperSceneLayer({
   // scene was made at on one that is not. Read by the runner every frame and
   // eased there, so a Brightness moved in the window turns the desktop with
   // it, and a monitor switched to follow the graph dims or brightens across.
+  // Told to follow the clock, it reads the clock on each of those frames: the
+  // window says so once and may be minimised all day.
   const ownDaylight = authoredDaylight(bootstrap.pack);
   const daylightRef = useRef(daylight ?? ownDaylight);
   daylightRef.current = daylight ?? ownDaylight;
-  const readDaylight = useCallback(() => daylightRef.current, []);
+  const readDaylight = useCallback(() => {
+    const told = daylightRef.current;
+    return told === WALLPAPER_CLOCK_DAYLIGHT ? clockDaylight(new Date()) : told;
+  }, []);
   const [size, setSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight,

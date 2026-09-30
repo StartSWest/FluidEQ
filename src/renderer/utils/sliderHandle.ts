@@ -33,11 +33,14 @@ const KEYS: Record<TSliderHandleScope, string> = {
 };
 
 /**
- * What a new install starts on: the fader cap (Ivan, 2026-09-26: "rect
- * slider are the default when new app"). Anybody who has picked either keeps
- * their pick.
+ * What a new install starts on: the fader cap in the full app (Ivan,
+ * 2026-09-26: "rect slider are the default when new app"), the round knob in
+ * the amp (2026-09-29: "the amp player gets rounded slider knobs, not the
+ * rectangle ones, and the app gets the rectangle ones by default"). Anybody
+ * who has picked either keeps their pick.
  */
 const DEFAULT_HANDLE: TSliderHandle = 'rect';
+const DEFAULT_PLAYER_HANDLE: TSliderHandle = 'round';
 
 const isSliderHandle = (value: string | null): value is TSliderHandle =>
   SLIDER_HANDLES.some((handle) => handle === value);
@@ -48,12 +51,18 @@ const readHandle = (scope: TSliderHandleScope): TSliderHandle => {
 };
 
 /**
- * The amp starts on whatever the app had when it had only one choice, so
- * nobody's amp changes shape on the update that split them.
+ * The amp's own pick, or — for somebody who picked one in the app before the
+ * amp had a choice of its own — the app's, so nobody's amp changes shape on
+ * the update that split them. Nothing picked anywhere is a new install, and
+ * its amp starts round.
  */
-const readPlayerHandle = (app: TSliderHandle): TSliderHandle => {
+const readPlayerHandle = (): TSliderHandle => {
   const stored = readStored(KEYS.player);
-  return isSliderHandle(stored) ? stored : app;
+  if (isSliderHandle(stored)) {
+    return stored;
+  }
+  const app = readStored(KEYS.app);
+  return isSliderHandle(app) ? app : DEFAULT_PLAYER_HANDLE;
 };
 
 /**
@@ -69,10 +78,9 @@ const publish = (value: TSliderHandle) => {
   }
 };
 
-const appHandle = readHandle('app');
 const chosen: Record<TSliderHandleScope, TSliderHandle> = {
-  app: appHandle,
-  player: readPlayerHandle(appHandle),
+  app: readHandle('app'),
+  player: readPlayerHandle(),
 };
 let scope: TSliderHandleScope = 'app';
 publish(chosen[scope]);

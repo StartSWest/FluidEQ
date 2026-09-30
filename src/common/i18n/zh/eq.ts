@@ -118,7 +118,6 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': '自动切换可视化效果',
   'graph.autoSwitch.off': '自动：关',
   'graph.autoSwitch.every': '自动：{seconds}秒',
-  'graph.sceneTint.cycle': 'FluidEQ：{mode}。点击切换为{next}',
   'graph.sceneTint.mode.off': '应用主题',
   'graph.sceneTint.mode.tint': '可视化效果的颜色',
   'graph.sceneTint.mode.pulse': '可视化效果的颜色，以及它周围的光',
@@ -143,6 +142,18 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.sparks': '指针火花',
   'graph.sceneTint.sparksHint':
     '可视化从鼠标处抛出的效果：鼠标划过画面时留下拖尾，点击处迸发——火花、花瓣、雪花，取决于场景。',
+  'graph.sceneTint.daylight': '时段',
+  'graph.sceneTint.daylightHint': '可视化效果的时段，从夜晚到正午',
+  'graph.sceneTint.daylightFollowingHint':
+    '跟随亮度。关闭“时段跟随亮度”即可单独设置可视化效果的时段',
+  'graph.sceneTint.daylightFollows': '时段跟随亮度',
+  'graph.sceneTint.daylightFollowsHint':
+    '开启时，可视化效果随亮度从夜晚变为白天。关闭时，它保持上方设置的时段，亮度只改变窗口。',
+  'graph.sceneTint.daylightClock': '时段跟随时钟',
+  'graph.sceneTint.daylightClockHint':
+    '开启时，可视化效果按这台电脑的时钟，夜里是夜晚，白天是白天。关闭时，它保持上方设置的时段。',
+  'graph.sceneTint.daylightFollowingClockHint':
+    '跟随时钟。关闭“时段跟随时钟”即可单独设置可视化效果的时段',
   'graph.sceneTint.brightnessHint': '窗口在主题或可视化效果颜色下的明暗',
   'graph.member.mine': '你创作的',
   'graph.member.theirs': '会员创作',

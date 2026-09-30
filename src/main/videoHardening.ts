@@ -340,7 +340,9 @@ export const hardenAttachment = (
   // the first one, then VideoBrowser asks the main process for the second one;
   // on a playing video that double resize stalls Chromium's decoder/compositor.
   // Keep the guest in charge of its top-layer player, but let the one explicit
-  // BrowserWindow transition below it own the physical display size.
+  // BrowserWindow transition below it own the physical display size. Electron
+  // resizes the window for a guest's full screen by the EMBEDDER's setting,
+  // which `mainWindow.ts` sets as well; this one covers the guest's own view.
   webPreferences.disableHtmlFullscreenWindowResize = true;
 
   // The tag's own attributes, decided here rather than in markup.

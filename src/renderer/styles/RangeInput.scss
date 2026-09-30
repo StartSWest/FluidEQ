@@ -209,16 +209,6 @@ $range-rail-width: 4px;
       -webkit-appearance: none;
     }
 
-    // Under the pointer: a wider ring of the band's colour round it, and the
-    // glow brighter.
-    &:hover::-webkit-slider-thumb {
-      box-shadow:
-        0 0 0 2px var(--slider-color),
-        0 0 0 5px color-mix(in srgb, var(--slider-color) 16%, transparent),
-        -4px 0 10px rgba($black, 0.5),
-        0 0 16px color-mix(in srgb, var(--slider-color) 55%, transparent);
-    }
-
     &:active::-webkit-slider-thumb {
       transform: scale(1.12);
     }
@@ -246,6 +236,23 @@ $range-rail-width: 4px;
         cursor: default;
         transform: none;
       }
+    }
+  }
+
+  // Under the pointer anywhere on the slider's column — its arrows, its rail
+  // and the scale either side — not only on the input: a wider ring of the
+  // band's colour round the handle, and the glow brighter. The input is the
+  // track's 8px, so the pointer crossing the scale's marks beside it lit the
+  // handle and let it go at every mark (Ivan, 2026-09-29: "the hover is
+  // intermittent, make that hover area wider so the knob stays focused").
+  // Not over the keyboard's focus ring, which says more.
+  &:hover input[type='range']:not(:disabled, :focus-visible) {
+    &::-webkit-slider-thumb {
+      box-shadow:
+        0 0 0 2px var(--slider-color),
+        0 0 0 5px color-mix(in srgb, var(--slider-color) 16%, transparent),
+        -4px 0 10px rgba($black, 0.5),
+        0 0 16px color-mix(in srgb, var(--slider-color) 55%, transparent);
     }
   }
 

@@ -1919,6 +1919,16 @@ const FrequencyResponseChart = ({
               isWaveHidden={isDisplayedWaveHidden}
               isEditing={isDesignerOpen}
             />
+            {/* A member's scene has somebody to thank. The heart stands ahead
+                of the window's colours, so those stand beside the desk lights,
+                which follow the same scene (Ivan, 2026-09-29). Keyed on the
+                scene so the count never carries over from the last one. */}
+            {selectedMemberScene && (
+              <SceneLikeButton
+                key={selectedMemberScene.lookId}
+                scene={selectedMemberScene}
+              />
+            )}
             {/* How the chosen form is coloured.
 
                 It used to be three rows of every form in the list itself, so
@@ -1997,16 +2007,6 @@ const FrequencyResponseChart = ({
                     : t('graph.design.new');
                 })()}
               </button>
-            )}
-            {/* A scene has nothing to design, and a member's scene has
-                somebody to thank: the heart stands where the design button
-                does for a look, so the row keeps its width. Keyed on the
-                scene so the count never carries over from the last one. */}
-            {selectedMemberScene && (
-              <SceneLikeButton
-                key={selectedMemberScene.lookId}
-                scene={selectedMemberScene}
-              />
             )}
             {/* The desk lights follow a Plus scene, so their switch is here
                 only while one is on the graph. */}

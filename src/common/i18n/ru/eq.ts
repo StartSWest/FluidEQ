@@ -124,7 +124,6 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Автосмена визуализаторов',
   'graph.autoSwitch.off': 'Авто: Выкл.',
   'graph.autoSwitch.every': 'Авто: {seconds}с',
-  'graph.sceneTint.cycle': 'FluidEQ: {mode}. Нажмите — {next}',
   'graph.sceneTint.mode.off': 'тема приложения',
   'graph.sceneTint.mode.tint': 'цвета визуализатора',
   'graph.sceneTint.mode.pulse': 'цвета визуализатора и его свет вокруг',
@@ -153,6 +152,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.sparks': 'Искры от указателя',
   'graph.sceneTint.sparksHint':
     'То, что визуализатор бросает от мыши: след, когда она проходит над картинкой, и всплеск там, где вы щёлкнете, — искры, лепестки, снег, из чего сделана сцена.',
+  'graph.sceneTint.daylight': 'Время суток',
+  'graph.sceneTint.daylightHint':
+    'Время суток визуализатора — от ночи до яркого дня',
+  'graph.sceneTint.daylightFollowingHint':
+    'Следует за яркостью. Выключите «Время суток по яркости», чтобы задать время суток визуализатора отдельно',
+  'graph.sceneTint.daylightFollows': 'Время суток по яркости',
+  'graph.sceneTint.daylightFollowsHint':
+    'Включено — визуализатор переходит от ночи к дню вместе с яркостью. Выключено — он сохраняет время суток, заданное выше, а яркость меняет только окно.',
+  'graph.sceneTint.daylightClock': 'Время суток по часам',
+  'graph.sceneTint.daylightClockHint':
+    'Включено — у визуализатора ночью ночь, а днём день, по часам этого компьютера. Выключено — он сохраняет время суток, заданное выше.',
+  'graph.sceneTint.daylightFollowingClockHint':
+    'Следует за часами. Выключите «Время суток по часам», чтобы задать время суток визуализатора отдельно',
   'graph.sceneTint.brightnessHint':
     'Насколько светлым или тёмным будет окно — в вашей теме или в цветах визуализатора',
   'graph.member.mine': 'Созданы вами',

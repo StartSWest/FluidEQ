@@ -416,8 +416,12 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // Rainbow mode's row (`RainbowSwitch`): a switch where the sliders' track and
-// value stand, at the right, the name wrapping as the sliders' names do.
+// value stand, at the right, the name wrapping as the sliders' names do. Its
+// own three columns, the glyph's as wide as the sliders' so the names line
+// up: a switch has no track to align, and "Daylight follows Brightness" in a
+// name column sized to leave the track its 96px broke onto two lines.
 .graph-view-menu__slider--switch {
+  grid-template-columns: auto minmax(0, 1fr) auto;
   cursor: default;
 
   > label {
@@ -429,7 +433,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
   .graph-view-menu__switch {
     display: flex;
-    grid-column: 3 / -1;
+    grid-column: 3;
     justify-self: end;
   }
 

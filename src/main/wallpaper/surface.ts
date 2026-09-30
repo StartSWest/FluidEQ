@@ -11,6 +11,7 @@ import {
   type IWallpaperChoice,
   type IWallpaperSurfaceState,
   type IWallpaperTuning,
+  type TWallpaperDaylight,
   type TWallpaperError,
   type TWallpaperPause,
 } from '../../common/wallpaper';
@@ -34,9 +35,9 @@ interface IDesktopSurfaceOptions {
   tuning: IWallpaperTuning | undefined;
   /**
    * The window's time of day as it is now, once the window has said it: a
-   * monitor following the graph draws its scene at it.
+   * monitor following the graph draws its scene at it, or reads the clock.
    */
-  daylight(): number | undefined;
+  daylight(): TWallpaperDaylight | undefined;
   executable: string;
   /**
    * Why this monitor should not play now, given whether anything of its

@@ -123,7 +123,6 @@ const eq: Partial<Dictionary> = {
   'graph.autoSwitch.label': 'Cambio automatico visualizzatori',
   'graph.autoSwitch.off': 'Auto: No',
   'graph.autoSwitch.every': 'Auto: {seconds}s',
-  'graph.sceneTint.cycle': 'FluidEQ: {mode}. Clic per {next}',
   'graph.sceneTint.mode.off': 'il tema dell’app',
   'graph.sceneTint.mode.tint': 'i colori del visualizzatore',
   'graph.sceneTint.mode.pulse':
@@ -153,6 +152,19 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.sparks': 'Scintille del puntatore',
   'graph.sceneTint.sparksHint':
     'Ciò che il visualizzatore lancia dal mouse: una scia mentre attraversa l’immagine e uno scoppio dove fai clic - scintille, petali, neve, ciò di cui è fatta la scena.',
+  'graph.sceneTint.daylight': 'Luce del giorno',
+  'graph.sceneTint.daylightHint':
+    'L’ora del giorno del visualizzatore, dalla notte al pieno giorno',
+  'graph.sceneTint.daylightFollowingHint':
+    'Segue la luminosità. Disattiva «La luce segue la luminosità» per scegliere a parte l’ora del giorno del visualizzatore',
+  'graph.sceneTint.daylightFollows': 'La luce segue la luminosità',
+  'graph.sceneTint.daylightFollowsHint':
+    'Attivo, il visualizzatore passa dalla notte al giorno con la luminosità. Disattivo, mantiene la luce del giorno impostata sopra e la luminosità cambia solo la finestra.',
+  'graph.sceneTint.daylightClock': 'La luce segue l’orologio',
+  'graph.sceneTint.daylightClockHint':
+    'Attivo, il visualizzatore è di notte la notte e di giorno il giorno, secondo l’orologio di questo computer. Disattivo, mantiene la luce del giorno impostata sopra.',
+  'graph.sceneTint.daylightFollowingClockHint':
+    'Segue l’orologio. Disattiva «La luce segue l’orologio» per scegliere a parte l’ora del giorno del visualizzatore',
   'graph.sceneTint.brightnessHint':
     'Quanto è chiara o scura la finestra, nel tuo tema o nei colori del visualizzatore',
   'graph.member.mine': 'Creati da te',

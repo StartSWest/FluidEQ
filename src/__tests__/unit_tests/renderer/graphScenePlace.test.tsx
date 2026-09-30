@@ -299,7 +299,9 @@ describe('the one renderer', () => {
 
     act(() => setSceneTintMode('cover'));
     expect(backdrop).toContainElement(canvas ?? null);
-    expect(document.documentElement).toHaveClass('is-scene-backdrop');
+    // The worker here never draws, and the Backdrop takes the window only
+    // with a picture in it (`sceneBackdropFirstFrame.test.tsx`).
+    expect(document.documentElement).not.toHaveClass('is-scene-backdrop');
     act(() => setSceneTintMode('pulse'));
     expect(column).toContainElement(canvas ?? null);
     expect(document.documentElement).not.toHaveClass('is-scene-backdrop');

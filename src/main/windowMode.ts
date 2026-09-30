@@ -15,7 +15,7 @@ import {
   playerFirstSize,
   playerMinimumSize,
 } from '../common/windowMode';
-import type { IRect, TWindowMode } from '../common/windowMode';
+import type { IRect, TPlayerAmp, TWindowMode } from '../common/windowMode';
 import { createFullScreenOwner } from './fullScreenOwner';
 import { setWindowTransitions } from './windowDwm';
 
@@ -31,8 +31,17 @@ export interface IWindowModeMemory {
   isPinned: boolean;
   /** The full app's normal bounds, to go back to from the player. */
   app: IAppPlacement;
-  /** The player's bounds, whose size the next switch opens it at. */
-  player?: Partial<IRect>;
+  /**
+   * Which amp the player is (`TPlayerAmp`), as the page last said: the glass
+   * Stage in the Backdrop, the 2.0 amp otherwise.
+   */
+  amp: TPlayerAmp;
+  /**
+   * Each amp's bounds, whose size the next switch to it opens it at. Two
+   * amps, two windows to the listener, as the app and the player are
+   * (Ivan, 2026-09-28: "we should preserve 3 window sizes").
+   */
+  players: Partial<Record<TPlayerAmp, Partial<IRect>>>;
 }
 
 const workAreaOf = (rect: IRect): IRect =>
@@ -64,7 +73,18 @@ const NO_CEILING = 32_767;
 export const createWindowModes = (
   platform: NodeJS.Platform = process.platform,
 ) => {
-  const memory: IWindowModeMemory = { mode: 'app', isPinned: false, app: {} };
+  const memory: IWindowModeMemory = {
+    mode: 'app',
+    isPinned: false,
+    app: {},
+    amp: 'classic',
+    players: {},
+  };
+  /** Where the amp on screen was left. */
+  const ownPlayer = () => memory.players[memory.amp];
+  const keepPlayer = (rect: IRect) => {
+    memory.players = { ...memory.players, [memory.amp]: rect };
+  };
   const fullScreen = createFullScreenOwner();
   // Set once by main, beside the function that tells the page (`listen`).
   let onChange: () => void = () => undefined;
@@ -259,8 +279,9 @@ export const createWindowModes = (
       return;
     }
     applyLimits(win, false);
-    if (memory.mode === 'player' && isUsableRect(memory.player)) {
-      win.setBounds(clampInto(memory.player, workAreaOf(memory.player)));
+    const left = ownPlayer();
+    if (memory.mode === 'player' && isUsableRect(left)) {
+      win.setBounds(clampInto(left, workAreaOf(left)));
     }
     onChange();
   };
@@ -272,22 +293,28 @@ export const createWindowModes = (
     }
   };
 
+  /**
+   * Where the amp on screen opens: where it stood last time, its place as
+   * well as its size (Ivan, 2026-09-21) — the modes are windows of their own
+   * to the listener, and each comes back where they left it. The first time
+   * there is nowhere to come back to, so it opens at its own narrow size in
+   * the middle of the screen the window is on (Ivan, 2026-09-22), and so
+   * does a player remembered as the whole screen, which nobody sized
+   * (`isPlayerRect`).
+   */
+  const playerTarget = (win: BrowserWindow, onScreen: IRect): IRect => {
+    const remembered = ownPlayer();
+    return isUsableRect(remembered) &&
+      isPlayerRect(remembered, workAreaOf(remembered))
+      ? clampInto(remembered, workAreaOf(remembered))
+      : centreIn(playerFirstSize(zoomOf(win)), workAreaOf(onScreen));
+  };
+
   /** Resolves once the window stands at the player's size. */
   const enterPlayer = (win: BrowserWindow): Promise<void> => {
     const onScreen = win.getBounds();
     memory.app = { ...win.getNormalBounds(), isMaximized: win.isMaximized() };
-    // Where the player stood last time, its place as well as its size (Ivan,
-    // 2026-09-21): the two modes are two windows to the listener, and each
-    // comes back where they left it. The first time there is nowhere to come
-    // back to, so it opens at its own narrow size in the middle of the screen
-    // the app is on (Ivan, 2026-09-22) — and so does a player remembered as
-    // the whole screen, which nobody sized (`isPlayerRect`).
-    const remembered = memory.player;
-    const target =
-      isUsableRect(remembered) &&
-      isPlayerRect(remembered, workAreaOf(remembered))
-        ? clampInto(remembered, workAreaOf(remembered))
-        : centreIn(playerFirstSize(zoomOf(win)), workAreaOf(onScreen));
+    const target = playerTarget(win, onScreen);
     memory.mode = 'player';
     isSwitching = true;
     const settle = () => {
@@ -304,7 +331,7 @@ export const createWindowModes = (
       applyPin(win);
       // What the switch just set is where the player stands; the events it
       // is about to raise are the switch and not the listener.
-      memory.player = target;
+      keepPlayer(target);
       isSwitching = false;
       onChange();
     };
@@ -334,7 +361,7 @@ export const createWindowModes = (
     // switch in was still waiting for Windows to restore a maximised app,
     // these were the app's maximised bounds.
     if (isPlayersOwn(win)) {
-      memory.player = onScreen;
+      keepPlayer(onScreen);
     }
     memory.mode = 'app';
     isSwitching = true;
@@ -398,7 +425,11 @@ export const createWindowModes = (
     },
 
     /** A copy of what there is to remember, for the window-state file. */
-    memory: (): IWindowModeMemory => ({ ...memory, app: { ...memory.app } }),
+    memory: (): IWindowModeMemory => ({
+      ...memory,
+      app: { ...memory.app },
+      players: { ...memory.players },
+    }),
 
     /**
      * Where the player stands, for the window-state file, which is written on
@@ -408,8 +439,54 @@ export const createWindowModes = (
      * player's, full screen and switches included — which is how the amp
      * came to be remembered as the size of the screen.
      */
-    playerBounds: (win: BrowserWindow): Partial<IRect> | undefined =>
-      isPlayersOwn(win) ? win.getBounds() : memory.player,
+    playerBounds: (
+      win: BrowserWindow,
+      amp: TPlayerAmp,
+    ): Partial<IRect> | undefined =>
+      amp === memory.amp && isPlayersOwn(win)
+        ? win.getBounds()
+        : memory.players[amp],
+
+    /**
+     * Which amp the player is, as the page says whenever it changes
+     * (`PLAYER_AMP_CHANNEL`). While the window is the player, the amp it
+     * leaves is written down where it stands and the one it becomes is put
+     * where it was left — the window-colours menu turned to the Backdrop and
+     * back is two windows changing places, not one window changing looks.
+     * The picture on the whole screen keeps the screen; the new amp's place
+     * is taken when it comes down (`settleAfterFullScreen`).
+     *
+     * The height and width the page held the window to were the old amp's,
+     * and the new one says its own right after this (`reportPlayerAmp`), so
+     * they come off first: left on, the 2.0 amp's height ceiling held the
+     * Stage to the 2.0 amp's height whatever it had been left at.
+     */
+    setAmp: (win: BrowserWindow, next: TPlayerAmp) => {
+      if (next === memory.amp) {
+        return;
+      }
+      const isPlaced =
+        !win.isDestroyed() &&
+        memory.mode === 'player' &&
+        !isSwitching &&
+        !win.isFullScreen();
+      if (isPlaced && isPlayersOwn(win)) {
+        keepPlayer(win.getBounds());
+      }
+      memory.amp = next;
+      playerHeld = undefined;
+      playerHeightFloor = undefined;
+      playerWidthFloor = undefined;
+      if (isPlaced) {
+        const target = playerTarget(win, win.getBounds());
+        isSwitching = true;
+        applyLimits(win);
+        win.setBounds(target);
+        keepPlayer(target);
+        isSwitching = false;
+      }
+      onChange();
+    },
 
     /** Which of the two the window is now. */
     mode: (): TWindowMode => memory.mode,
@@ -419,7 +496,8 @@ export const createWindowModes = (
       memory.mode = saved.mode;
       memory.isPinned = saved.isPinned;
       memory.app = { ...saved.app };
-      memory.player = saved.player;
+      memory.amp = saved.amp;
+      memory.players = { ...saved.players };
     },
 
     applyLimits,
@@ -478,7 +556,7 @@ export const createWindowModes = (
       }
       if (next) {
         if (memory.mode === 'player') {
-          memory.player = win.getBounds();
+          keepPlayer(win.getBounds());
         }
         applyLimits(win, true);
         fullScreen.asked();
@@ -522,7 +600,7 @@ export const createWindowModes = (
       const placed = centreIn(bounds, workAreaOf(bounds));
       win.setBounds(placed);
       if (memory.mode === 'player') {
-        memory.player = placed;
+        keepPlayer(placed);
       } else {
         memory.app = { ...memory.app, ...placed, isMaximized: false };
       }
@@ -603,7 +681,7 @@ export const createWindowModes = (
         // was the size of the screen. Coming back out, the player was
         // restored to it (Ivan, 2026-09-22).
         if (isPlayersOwn(win)) {
-          memory.player = win.getBounds();
+          keepPlayer(win.getBounds());
         }
       };
       win.on('will-resize', () => {

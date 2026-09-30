@@ -71,10 +71,29 @@ describe("the scene's switches in the corner of the player's equalizer screen", 
       (button) => button.className,
     );
     expect(keys).toHaveLength(3);
-    expect(keys[0]).toContain('graph-scene-tint');
+    expect(keys[0]).toContain('graph-scene-look__trigger');
     expect(keys[1]).toContain('graph-lighting');
     expect(keys[2]).toContain('graph-wallpaper');
     expect(container.firstElementChild).toHaveClass('player-eq-screen__keys');
+  });
+
+  // A menu, as on the graph and the visualizer's bar (Ivan, 2026-09-28:
+  // "instead of toggling, let's open the menu"): a press shows the four
+  // modes and changes none of them.
+  it("opens the window's colours as a menu, and leaves the mode as it was", () => {
+    withState({});
+    window.localStorage.setItem('fluideq.sceneTintMode', 'pulse');
+    const { container } = render(<SceneKeys lookId="premium:crystal" />);
+    const key = container.querySelector('.graph-scene-look__trigger');
+    if (!(key instanceof HTMLElement)) {
+      throw new Error('no window-colours key');
+    }
+    expect(key).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(key).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(key);
+    expect(key).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getAllByRole('radio')).toHaveLength(4);
+    expect(window.localStorage.getItem('fluideq.sceneTintMode')).toBe('pulse');
   });
 
   it('opens the monitors dialog for the scene behind the curve', () => {

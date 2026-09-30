@@ -5,6 +5,7 @@ import {
   type IWallpaperAudio,
   type IWallpaperStart,
   type IWallpaperTuning,
+  type TWallpaperDaylight,
 } from '../common/wallpaper';
 
 /**
@@ -32,10 +33,10 @@ const wallpaperBridge = {
   setGraphLook: (lookId: string) =>
     ipcRenderer.send(WALLPAPER.graphLook, lookId),
   /**
-   * The time of day the window's Brightness asks of its scenes, each time it
-   * moves, for the monitors set to follow the graph.
+   * The time of day the window asks of its scenes, each time it moves — or
+   * the clock, once — for the monitors set to follow the graph.
    */
-  setGraphDaylight: (daylight: number) =>
+  setGraphDaylight: (daylight: TWallpaperDaylight) =>
     ipcRenderer.send(WALLPAPER.graphDaylight, daylight),
   getWallpaperState: (): Promise<unknown> =>
     ipcRenderer.invoke(WALLPAPER.state),

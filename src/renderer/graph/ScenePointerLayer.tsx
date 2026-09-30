@@ -323,8 +323,25 @@ export default function ScenePointerLayer({
       }
     };
 
+    // Sized again whenever its box changes, before that frame is painted.
+    // It was sized only as a trail began, so a box that changed under pieces
+    // still in the air — a pane opening, the window going full screen, the
+    // Backdrop's panes moving — kept the canvas at its old size stretched
+    // over the new box until the last piece landed (Ivan, 2026-09-29: "the
+    // sparks get stretched for a few seconds when the UI updates"). A new
+    // size empties the canvas, so the next frame clears it all.
+    const resized =
+      typeof ResizeObserver === 'undefined'
+        ? undefined
+        : new ResizeObserver(() => {
+            fit();
+            dirty = [0, 0, canvas.width, canvas.height];
+          });
+    resized?.observe(canvas);
+
     const stop = gestures(onGesture);
     return () => {
+      resized?.disconnect();
       stop();
       cancelAnimationFrame(frame);
       context.setTransform(1, 0, 0, 1, 0, 0);

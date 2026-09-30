@@ -123,7 +123,6 @@ const eq = {
   'graph.autoSwitch.every': 'Auto: {seconds}s',
   // The switch beside a Plus visualizer that puts the whole window in the
   // colour of its sky. Named for what pressing it will do, like Show/Hide.
-  'graph.sceneTint.cycle': 'FluidEQ: {mode}. Click for {next}',
   'graph.sceneTint.mode.off': 'the app theme',
   'graph.sceneTint.mode.tint': "the visualizer's colours",
   'graph.sceneTint.mode.pulse':
@@ -160,6 +159,19 @@ const eq = {
   'graph.sceneTint.sparks': 'Pointer sparks',
   'graph.sceneTint.sparksHint':
     'What the visualizer throws from the mouse: a trail as it crosses the picture and a burst where you click - sparks, petals, snow, whatever the scene is made of.',
+  'graph.sceneTint.daylight': 'Daylight',
+  'graph.sceneTint.daylightHint':
+    "The visualizer's time of day, from night to full day",
+  'graph.sceneTint.daylightFollowingHint':
+    "Following Brightness. Turn off Daylight follows Brightness to set the visualizer's time of day on its own",
+  'graph.sceneTint.daylightFollows': 'Daylight follows Brightness',
+  'graph.sceneTint.daylightFollowsHint':
+    'On, the visualizer turns from night to day with Brightness. Off, it keeps the Daylight set above, and Brightness changes only the window.',
+  'graph.sceneTint.daylightClock': 'Daylight follows the clock',
+  'graph.sceneTint.daylightClockHint':
+    "On, the visualizer is night at night and day by day, by this computer's clock. Off, it keeps the Daylight set above.",
+  'graph.sceneTint.daylightFollowingClockHint':
+    "Following the clock. Turn off Daylight follows the clock to set the visualizer's time of day on its own",
   'graph.sceneTint.brightnessHint':
     "How light or dark the window stands, in your theme or in the visualizer's colours",
   // The picker's headings over the scenes members made in the Studio: this

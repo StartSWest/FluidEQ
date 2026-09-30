@@ -732,6 +732,50 @@ describe('App', () => {
     );
   });
 
+  // Ivan, 2026-09-29: YouTube's full-screen press "cancels the action". The
+  // app takes the window full screen for YouTube's request and then takes
+  // YouTube's player out of its own full screen; that second step must not
+  // end the first, a Plus visualizer on the graph or not.
+  it('keeps the app full screen when YouTube lets go of its own, with a Plus visualizer on the graph', async () => {
+    window.localStorage.setItem('fluideq-graph-style', 'premium:aurora');
+    window.localStorage.setItem('fluideq.sceneTintMode', 'cover');
+    const { container } = render(<App />);
+    await act(async () => Promise.resolve());
+    await pressTab('Online Media', 'video');
+
+    const view = container.querySelector('webview');
+    if (!view) {
+      throw new Error('Online Media did not mount its webview');
+    }
+    Object.defineProperty(view, 'executeJavaScript', {
+      configurable: true,
+      value: jest.fn(async () => undefined),
+    });
+
+    fireEvent(view as HTMLElement, new Event('enter-html-full-screen'));
+    await waitFor(() =>
+      expect(setWindowFullScreen).toHaveBeenLastCalledWith(true),
+    );
+    // The window says it is full screen, as it does once main has made it
+    // so, and YouTube's own full screen ends behind it.
+    act(() =>
+      announceWindowState?.({ isMaximized: false, isFullScreen: true }),
+    );
+    fireEvent(view as HTMLElement, new Event('leave-html-full-screen'));
+    await act(async () => Promise.resolve());
+
+    expect(setWindowFullScreen).not.toHaveBeenCalledWith(false);
+    const workspace = container.querySelector('.app-workspace');
+    expect(workspace).toHaveClass('is-app-full', 'is-media-full');
+
+    // POSITIVE CONTROL: the window itself leaving full screen does end the
+    // app's, which is what the window used to do when YouTube's ended.
+    act(() =>
+      announceWindowState?.({ isMaximized: false, isFullScreen: false }),
+    );
+    await waitFor(() => expect(workspace).not.toHaveClass('is-app-full'));
+  });
+
   it('turns a guest video double-click into graph fullscreen', async () => {
     const { container } = render(<App />);
     await act(async () => Promise.resolve());

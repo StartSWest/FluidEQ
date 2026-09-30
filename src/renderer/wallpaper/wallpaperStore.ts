@@ -4,6 +4,7 @@ import {
   type IWallpaperStart,
   type IWallpaperState,
   type IWallpaperTuning,
+  type TWallpaperDaylight,
 } from '../../common/wallpaper';
 
 const INITIAL_STATE: IWallpaperState = {
@@ -24,7 +25,7 @@ interface IWallpaperBridge {
   stopWallpaper?: (displayIds?: number[]) => Promise<unknown>;
   setSceneTuning?: (tuning: Record<string, IWallpaperTuning>) => void;
   setGraphLook?: (lookId: string) => void;
-  setGraphDaylight?: (daylight: number) => void;
+  setGraphDaylight?: (daylight: TWallpaperDaylight) => void;
   onWallpaperState?: (listener: (state: unknown) => void) => () => void;
 }
 
@@ -161,10 +162,10 @@ export const sendGraphLook = (lookId: string) => {
 };
 
 /**
- * The time of day the window's Brightness asks of its scenes, for the
+ * The time of day the window asks of its scenes, or the clock, for the
  * monitors set to follow the graph. Main keeps the last one it was told.
  */
-export const sendGraphDaylight = (daylight: number) => {
+export const sendGraphDaylight = (daylight: TWallpaperDaylight) => {
   bridge()?.setGraphDaylight?.(daylight);
 };
 

@@ -39,29 +39,27 @@ const load = (stored: Record<string, string> = {}) => {
     window.localStorage.setItem(key, value),
   );
   let store: TStore | undefined;
-  let Toggle: (() => ReactElement) | undefined;
   let Menu: (() => ReactElement) | undefined;
   let Tiles: (() => ReactElement) | undefined;
   jest.isolateModules(() => {
     /* eslint-disable global-require */
     library = require('@testing-library/react/pure');
     store = require('../../../renderer/utils/sceneTintStore');
-    Toggle = require('../../../renderer/graph/SceneTintToggle').default;
     Menu = require('../../../renderer/graph/SceneTintMenu').default;
     Tiles = require('../../../renderer/studio/StudioTintSwitch').default;
     /* eslint-enable global-require */
   });
-  if (!store || !Toggle || !Menu || !Tiles || !library) {
+  if (!store || !Menu || !Tiles || !library) {
     throw new Error('the tint modules did not load');
   }
-  return { store, Toggle, Menu, Tiles, library };
+  return { store, Menu, Tiles, library };
 };
 
 describe('the modes a launch starts in', () => {
-  it('starts the whole app on Ambient, the Studio included, for somebody new', () => {
+  it('starts the whole app on the Backdrop, the Studio included, for somebody new', () => {
     const { store, library: fresh } = load();
     const { result } = fresh.renderHook(() => store.useSceneTintMode());
-    expect(result.current).toBe('pulse');
+    expect(result.current).toBe('cover');
   });
 
   it('keeps a mode chosen before the default changed', () => {
@@ -88,7 +86,7 @@ describe('the modes a launch starts in', () => {
       'fluideq.studioTint': 'false',
     });
     const { result } = fresh.renderHook(() => store.useSceneTintMode());
-    expect(result.current).toBe('pulse');
+    expect(result.current).toBe('cover');
   });
 
   it('prefers a mode chosen since over the old switch, and remembers a new choice', () => {
@@ -166,7 +164,7 @@ describe('the graph’s menu', () => {
     ['cover', 'premium:bloom', true],
     ['cover', undefined, false],
   ])(
-    'under %s with %s offers Brightness, and Transparency live: %s',
+    'under %s with %s offers Brightness, Daylight, and Transparency live: %s',
     async (mode, look, isLive) => {
       const { Menu, library: fresh } = load({
         'fluideq.sceneTintMode': mode,
@@ -180,12 +178,21 @@ describe('the graph’s menu', () => {
         fresh.screen
           .queryAllByRole('slider')
           .map((slider) => slider.getAttribute('aria-label')),
-      ).toEqual(['graph.sceneTint.brightness', 'graph.backdropVeil']);
+      ).toEqual([
+        'graph.sceneTint.brightness',
+        'graph.backdropVeil',
+        'graph.sceneTint.daylight',
+      ]);
       expect(
         fresh.screen.getByRole('slider', {
           name: 'graph.sceneTint.brightness',
         }),
       ).toBeEnabled();
+      // The scene's time of day follows Brightness until its switch is
+      // turned off, and its slider stands still while it does.
+      expect(
+        fresh.screen.getByRole('slider', { name: 'graph.sceneTint.daylight' }),
+      ).toBeDisabled();
       expect(
         fresh.screen
           .getByRole('slider', { name: 'graph.backdropVeil' })
@@ -193,36 +200,6 @@ describe('the graph’s menu', () => {
       ).toBe(!isLive);
     },
   );
-});
-
-describe('the player’s corner key', () => {
-  it('walks the four modes in order, naming the one it is in and the next', async () => {
-    const { Toggle, library: fresh } = load({ 'fluideq.sceneTintMode': 'off' });
-    fresh.render(<Toggle />);
-    const button = () => fresh.screen.getByRole('button');
-    expect(button()).toHaveAttribute('aria-pressed', 'false');
-    expect(button()).toHaveAccessibleName(
-      'graph.sceneTint.cycle(graph.sceneTint.mode.off|graph.sceneTint.mode.tint)',
-    );
-    await userEvent.click(button());
-    expect(button()).toHaveAttribute('aria-pressed', 'true');
-    expect(button().querySelector('svg')).toHaveAttribute('data-mode', 'tint');
-    await userEvent.click(button());
-    expect(button()).toHaveAccessibleName(
-      'graph.sceneTint.cycle(graph.sceneTint.mode.pulse|graph.sceneTint.mode.cover)',
-    );
-    expect(button().querySelector('svg')).toHaveAttribute('data-mode', 'pulse');
-    // The Backdrop: Ambient with the scene behind the whole window.
-    await userEvent.click(button());
-    expect(button()).toHaveAccessibleName(
-      'graph.sceneTint.cycle(graph.sceneTint.mode.cover|graph.sceneTint.mode.off)',
-    );
-    expect(button()).toHaveAttribute('aria-pressed', 'true');
-    expect(button().querySelector('svg')).toHaveAttribute('data-mode', 'cover');
-    await userEvent.click(button());
-    expect(button()).toHaveAttribute('aria-pressed', 'false');
-    expect(window.localStorage.getItem('fluideq.sceneTintMode')).toBe('off');
-  });
 });
 
 describe('the Studio’s tiles', () => {

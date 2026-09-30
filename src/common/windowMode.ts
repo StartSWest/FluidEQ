@@ -24,6 +24,22 @@ import {
 export type TWindowMode = 'app' | 'player';
 
 /**
+ * Which of the two amps the player is: the glass Stage, worn while the
+ * window is in the Backdrop, or the 2.0 amp in every other mode
+ * (`MiniPlayer`). Each keeps its own size and place, as the full app keeps
+ * its own (Ivan, 2026-09-28: "we should preserve 3 window sizes: the full
+ * app, the amp standard app and the amp backdrop glassy app").
+ */
+export type TPlayerAmp = 'classic' | 'stage';
+
+/**
+ * The page's word for which amp the player is: `[amp]`, said whenever it
+ * changes, in either mode, so the window already knows which size to open
+ * the player at when the switch is pressed.
+ */
+export const PLAYER_AMP_CHANNEL = 'window-player-amp';
+
+/**
  * The page address's word for the mode: main opens a player window with it,
  * and the page keeps it in step after every switch, so the page can draw the
  * right mode on its first frame and again after a reload.

@@ -117,7 +117,7 @@ describe('choosing how a background moves', () => {
       pauseOnBattery: false,
       wave: { height: 0.75, position: 0.1 },
       motion: 'calm',
-      followsGraph: false,
+      followsGraph: true,
     });
     await screen.findByRole('dialog');
   });
@@ -198,17 +198,13 @@ describe('choosing how a background moves', () => {
 // The graph's desktop button and the player's open this dialog, not the
 // Manage one: the switch was only in Manage, where Ivan never looked for it.
 describe('following the graph from the dialog the graph opens', () => {
+  // On for a visualizer no monitor shows yet (Ivan, 2026-09-29: "desktop
+  // same, all on: follow graph and pause on battery").
   it('sets the chosen monitors to follow the graph, and marks each on its tile', () => {
     withScreens([]);
     render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
     // The app's switch is a checkbox underneath, named by its label.
     const follow = screen.getByRole('checkbox', { name: 'Follow graph' });
-    expect(follow).not.toBeChecked();
-    expect(
-      screen.getByRole('checkbox', { name: /Y27qf-30/ }),
-    ).not.toHaveAccessibleName(/Follow graph/);
-
-    fireEvent.click(follow);
     expect(follow).toBeChecked();
     // The chosen monitor says it will follow; the others do not.
     expect(
@@ -224,6 +220,38 @@ describe('following the graph from the dialog the graph opens', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
     expect(startWallpaper).toHaveBeenCalledWith(
       expect.objectContaining({ displayIds: [2], followsGraph: true }),
+    );
+  });
+
+  it('sends the switch turned off as off, and marks no tile', () => {
+    withScreens([]);
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Follow graph' }));
+    expect(
+      screen.getByRole('checkbox', { name: /Y27qf-30/ }),
+    ).not.toHaveAccessibleName(/Follow graph/);
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(startWallpaper).toHaveBeenCalledWith(
+      expect.objectContaining({ displayIds: [2], followsGraph: false }),
+    );
+  });
+
+  // Ivan, 2026-09-29: "always select by default the primary monitor" — even
+  // where FluidEQ's own window stands, which the dialog used to pass over.
+  it('chooses the primary monitor for a visualizer no monitor shows, even under FluidEQ', () => {
+    jest.mocked(useWallpaperState).mockReturnValue({
+      supported: true,
+      displays: displays.map((display) =>
+        display.primary ? { ...display, holdsWindow: true } : display,
+      ),
+      screens: [],
+      pauseOnBattery: true,
+    });
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    expect(screen.getByRole('checkbox', { name: /Y27qf-30/ })).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(startWallpaper).toHaveBeenCalledWith(
+      expect.objectContaining({ displayIds: [2], pauseOnBattery: true }),
     );
   });
 

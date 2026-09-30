@@ -11,16 +11,17 @@ import { createFlagSetting } from '../utils/graphStorage';
  * Whether the Media sites are shown in the interface's colours
  * (`guestTint.ts`).
  *
- * Off until the user turns it on, and that is the point of it rather than a
- * shy default. YouTube's, Twitch's and Suno's terms ask users not to modify the
- * service; the page around a video coloured to match the rest of the window,
- * on the user's own screen because the user asked for it, is a display choice
- * like a browser's dark mode. The same change made to every page by default
- * would be the app deciding to alter somebody else's site.
+ * On in a new install (Ivan, 2026-09-29: "color pages in online media also
+ * default on"). It was off until the user turned it on, on the reading that
+ * YouTube's, Twitch's and Suno's terms ask users not to modify the service
+ * and a page coloured by default is the app altering somebody else's site
+ * rather than the user choosing a display, like a browser's dark mode; the
+ * default is his to set, and he set it. Anybody who turned it off keeps it
+ * off.
  */
-const setting = createFlagSetting('fluideq.video.matchColours', false);
+const setting = createFlagSetting('fluideq.video.matchColours', true);
 
 export const setGuestTintEnabled = (next: boolean) => setting.set(next);
 
 export const useGuestTintEnabled = (): boolean =>
-  useSyncExternalStore(setting.subscribe, setting.get, () => false);
+  useSyncExternalStore(setting.subscribe, setting.get, () => true);

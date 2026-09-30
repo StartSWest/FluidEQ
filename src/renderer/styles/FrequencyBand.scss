@@ -547,14 +547,6 @@ button.band-frequency-caption {
       box-shadow: none;
     }
 
-    // Under the pointer: the edge in the band's colour and a crisp ring of
-    // it, not a haze.
-    &:hover::-webkit-slider-thumb {
-      border-color: var(--slider-color);
-      box-shadow: 0 0 0 2px
-        color-mix(in srgb, var(--slider-color) 28%, transparent);
-    }
-
     &:focus-visible::-webkit-slider-thumb {
       box-shadow:
         0 0 0 2px $surface-base,
@@ -565,6 +557,17 @@ button.band-frequency-caption {
       border-color: rgba($edge-tint, 0.2);
       background: var(--range-face-foot);
       box-shadow: none;
+    }
+  }
+
+  // Under the pointer anywhere on the slider's column, as the round handle
+  // (`RangeInput.scss`): the edge in the band's colour and a crisp ring of
+  // it, not a haze.
+  .range:hover input[type='range']:not(:disabled, :focus-visible) {
+    &::-webkit-slider-thumb {
+      border-color: var(--slider-color);
+      box-shadow: 0 0 0 2px
+        color-mix(in srgb, var(--slider-color) 28%, transparent);
     }
   }
 }
