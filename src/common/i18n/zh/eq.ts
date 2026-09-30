@@ -38,7 +38,7 @@ const eq: Partial<Dictionary> = {
   'eq.sliders.rect': '矩形',
   'eq.layouts.clearTitle': '清空 EQ？',
   'eq.layouts.clearWarning':
-    '将每个频段的增益以及低音、中音、高音旋钮设为 0 dB。保留当前的频段数、频率、Q 值、低切与高切、EQ 模式和前级增益。',
+    '将每个频段的增益以及低音、中音、高音旋钮设为 0 dB，并关闭低切和高切。保留当前的频段数、频率、Q 值、EQ 模式和前级增益。',
   'eq.layouts.deleteNamed': '删除“{name}”',
   'eq.layouts.deleteWarning':
     '从已保存的布局中删除“{name}”？当前的 EQ 不会改变。',

@@ -40,7 +40,7 @@ const eq: Partial<Dictionary> = {
   'eq.sliders.rect': 'Rectangulaires',
   'eq.layouts.clearTitle': 'Vider l’EQ ?',
   'eq.layouts.clearWarning':
-    'Mettre le gain de chaque bande et les réglages Graves, Médiums et Aigus à 0 dB. Conserver le nombre de bandes, les fréquences, Q, les coupures, le mode EQ et le préampli actuels.',
+    'Mettre le gain de chaque bande et les réglages Graves, Médiums et Aigus à 0 dB, et désactiver Coupe-bas et Coupe-haut. Conserver le nombre de bandes, les fréquences, Q, le mode EQ et le préampli actuels.',
   'eq.layouts.deleteNamed': 'Supprimer « {name} »',
   'eq.layouts.deleteWarning':
     'Supprimer « {name} » des dispositions enregistrées ? Votre EQ actuel reste inchangé.',

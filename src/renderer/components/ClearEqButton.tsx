@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useFluidEqShell } from '../utils/FluidEqContext';
+import { EQ_CUTS } from 'common/eqCuts';
+import { useFluidEqLayers, useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
-import { clearGains, setTone as setToneApi } from '../utils/equalizerApi';
+import {
+  clearGains,
+  setEqCut,
+  setTone as setToneApi,
+} from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
 import useModalKeys from '../utils/useModalKeys';
 import MenuIcon from '../icons/MenuIcon';
@@ -12,6 +17,7 @@ import '../styles/RestartAudioDialog.scss';
 function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const { refreshState, activeDeviceId } = useFluidEqShell();
+  const { eqCuts } = useFluidEqLayers();
   const surface = useRef<HTMLDivElement>(null);
   const cancel = useRef<HTMLButtonElement>(null);
   const pending = useRef(false);
@@ -32,11 +38,19 @@ function ClearEqConfirmation({ onClose }: { onClose: () => void }) {
     setBusy(true);
     setFailed(false);
     try {
-      // Clear EQ clears what the EQ page sets, and Bass, Mid and Treble are
-      // on it. The EQ chip's × clears the bands alone: the Tone is a layer
-      // with a chip of its own (`tone.ts`).
+      // Clear EQ clears what the EQ page sets, and the Tone panel is on it:
+      // Bass, Mid and Treble, and the two cuts either side of them (Ivan,
+      // 2026-09-29: "when resetting the EQ it reset the tones but not the low
+      // cut and high cut"). The EQ chip's × clears the bands alone: the Tone
+      // is a layer with a chip of its own (`tone.ts`). A cut is FluidEQ's own
+      // setting, written for every output (`eqCuts.ts`), so only one that is
+      // on is written, each write reloading every output's engine.
       await clearGains();
       await setToneApi(null);
+      await EQ_CUTS.filter((cut) => (eqCuts?.[cut] ?? 0) > 0).reduce(
+        (written, cut) => written.then(() => setEqCut(cut, 0)),
+        Promise.resolve(),
+      );
       await refreshState();
       onClose();
     } catch (error) {

@@ -39,7 +39,7 @@ const eq: Partial<Dictionary> = {
   'eq.sliders.rect': 'Rettangolari',
   'eq.layouts.clearTitle': 'Svuotare l’EQ?',
   'eq.layouts.clearWarning':
-    'Imposta il guadagno di ogni banda e i controlli Bassi, Medi e Alti a 0 dB. Mantieni numero di bande, frequenze, Q, tagli, modalità EQ e preamplificazione attuali.',
+    'Imposta il guadagno di ogni banda e i controlli Bassi, Medi e Alti a 0 dB e disattiva Taglio bassi e Taglio alti. Mantieni numero di bande, frequenze, Q, modalità EQ e preamplificazione attuali.',
   'eq.layouts.deleteNamed': 'Elimina «{name}»',
   'eq.layouts.deleteWarning':
     'Eliminare «{name}» dalle disposizioni salvate? L’EQ attuale non cambia.',

@@ -10,7 +10,12 @@ import {
   getBandDesigns,
   saveBandDesign,
 } from 'renderer/utils/bandDesignApi';
-import { clearGains, setFixedBand, setTone } from 'renderer/utils/equalizerApi';
+import {
+  clearGains,
+  setEqCut,
+  setFixedBand,
+  setTone,
+} from 'renderer/utils/equalizerApi';
 
 jest.mock('renderer/utils/bandDesignApi', () => ({
   getBandDesigns: jest.fn(),
@@ -20,6 +25,7 @@ jest.mock('renderer/utils/bandDesignApi', () => ({
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({
   clearGains: jest.fn(),
+  setEqCut: jest.fn(),
   setFixedBand: jest.fn(),
   setTone: jest.fn(),
 }));
@@ -32,13 +38,23 @@ const design = {
 };
 const refreshState = jest.fn();
 const context = { ...defaultContext, refreshState, eqBandDesign: design };
-const mount = () =>
+const mount = (value = context) =>
   render(
-    <FluidEqProviderWrapper value={context}>
+    <FluidEqProviderWrapper value={value}>
       <BandLayoutMenu />
       <ClearEqButton />
     </FluidEqProviderWrapper>,
   );
+const confirmClear = async () => {
+  fireEvent.click(screen.getByRole('button', { name: 'Clear EQ' }));
+  await act(async () => {
+    fireEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: 'Clear EQ',
+      }),
+    );
+  });
+};
 const openMenu = async () => {
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: 'Quick layouts' }));
@@ -174,9 +190,42 @@ describe('Empty EQ confirmation', () => {
     // Clear EQ takes the Tone's dials back to zero with the bands.
     expect(setTone).toHaveBeenCalledTimes(1);
     expect(setTone).toHaveBeenCalledWith(null);
+    // No cut is on, so neither is written: each write reloads every output.
+    expect(setEqCut).not.toHaveBeenCalled();
     expect(refreshState).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
     expect(applyBandDesign).not.toHaveBeenCalled();
+  });
+
+  it('turns both cuts off with the bands and the Tone, then reads the state back', async () => {
+    mount({ ...context, eqCuts: { low: 24, high: 12 } });
+    await confirmClear();
+    expect(setEqCut).toHaveBeenCalledTimes(2);
+    expect(setEqCut).toHaveBeenNthCalledWith(1, 'low', 0);
+    expect(setEqCut).toHaveBeenNthCalledWith(2, 'high', 0);
+    expect(jest.mocked(setTone).mock.invocationCallOrder[0]).toBeLessThan(
+      jest.mocked(setEqCut).mock.invocationCallOrder[0],
+    );
+    expect(jest.mocked(setEqCut).mock.invocationCallOrder[1]).toBeLessThan(
+      refreshState.mock.invocationCallOrder[0],
+    );
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
+  });
+
+  it('writes only the cut that is on', async () => {
+    mount({ ...context, eqCuts: { low: 0, high: 24 } });
+    await confirmClear();
+    expect(setEqCut).toHaveBeenCalledTimes(1);
+    expect(setEqCut).toHaveBeenCalledWith('high', 0);
+  });
+
+  it('keeps the dialog and its error when a cut cannot be written', async () => {
+    jest.mocked(setEqCut).mockRejectedValueOnce(new Error('write failed'));
+    mount({ ...context, eqCuts: { low: 12, high: 0 } });
+    await confirmClear();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    expect(refreshState).not.toHaveBeenCalled();
   });
 
   it('keeps errors visible for retry and closes when the output changes', async () => {

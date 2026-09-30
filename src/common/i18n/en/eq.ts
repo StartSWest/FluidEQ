@@ -36,7 +36,7 @@ const eq = {
   'eq.sliders.rect': 'Rectangle',
   'eq.layouts.clearTitle': 'Empty EQ?',
   'eq.layouts.clearWarning':
-    'Set every band gain and the Bass, Mid and Treble dials to 0 dB. Keep the current band count, frequencies, Q, cuts, EQ mode and preamp.',
+    'Set every band gain and the Bass, Mid and Treble dials to 0 dB, and turn Low cut and High cut off. Keep the current band count, frequencies, Q, EQ mode and preamp.',
   'eq.layouts.deleteNamed': 'Delete “{name}”',
   'eq.layouts.deleteWarning':
     'Delete “{name}” from your saved designs? Your current EQ stays unchanged.',
