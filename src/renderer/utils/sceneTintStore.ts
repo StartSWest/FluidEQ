@@ -162,8 +162,11 @@ export const useSceneTintEnabled = () => useSceneTintMode() !== 'off';
  * global ones ... you simply have to use the option that is in the global").
  * Theme is the app's own choice, whatever it is — the Studio then claims
  * nothing and the window is what the graph's Window colours make it; the
- * other three are the app's same three with the project on the bench as the
- * scene, while the bench is on screen (`useStudioTint`).
+ * other two are the app's Colours and Ambient with the project on the bench
+ * as the scene, while the bench is on screen (`useStudioTint`). Not the
+ * app's Backdrop: this page has no graph for a scene to stand behind, and
+ * it showed as Ambient here (Ivan, 2026-09-28: "remove backdrop option from
+ * studio only").
  *
  * The tiles set the app's mode for a day (09-27, "make studio ambient use
  * same mechanism that we use on EQ and graph"), so picking Theme in the
@@ -171,7 +174,7 @@ export const useSceneTintEnabled = () => useSceneTintMode() !== 'off';
  * old `fluideq.studioTintMode` holds whatever an earlier version left there,
  * and following the app is what the Studio did all that day.
  */
-export const STUDIO_TINT_MODES = ['theme', 'tint', 'pulse', 'cover'] as const;
+export const STUDIO_TINT_MODES = ['theme', 'tint', 'pulse'] as const;
 export type TStudioTintMode = (typeof STUDIO_TINT_MODES)[number];
 
 const isStudioTintMode = (value: unknown): value is TStudioTintMode =>

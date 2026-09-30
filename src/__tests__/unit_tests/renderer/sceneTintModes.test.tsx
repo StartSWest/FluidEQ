@@ -204,9 +204,11 @@ describe('the graph’s menu', () => {
 
 describe('the Studio’s tiles', () => {
   // The Studio's own choice, never the app's (Ivan, 2026-09-27: "the studio
-  // options are independent of the global ones"): Theme, and the app's three
-  // with the project on the bench as the scene. Neither sets the other.
-  it('shows all four at once, the Studio’s own mode pressed, each named in a word', async () => {
+  // options are independent of the global ones"): Theme, and the app's
+  // Colours and Ambient with the project on the bench as the scene — not its
+  // Backdrop, which has no graph to stand behind there (2026-09-28: "remove
+  // backdrop option from studio only"). Neither sets the other.
+  it('shows all three at once, the Studio’s own mode pressed, each named in a word', async () => {
     const { Tiles, library: fresh } = load();
     fresh.render(<Tiles />);
     const tiles = fresh.screen.getAllByRole('button');
@@ -214,12 +216,10 @@ describe('the Studio’s tiles', () => {
       'studio.tint.theme',
       'graph.sceneTint.short.tint',
       'graph.sceneTint.short.pulse',
-      'graph.sceneTint.short.cover',
     ]);
     // Theme for somebody new, whatever the app's mode is (Ambient).
     expect(tiles.map((tile) => tile.getAttribute('aria-pressed'))).toEqual([
       'true',
-      'false',
       'false',
       'false',
     ]);
@@ -240,12 +240,28 @@ describe('the Studio’s tiles', () => {
 
   it('never shows the app’s mode as the Studio’s', () => {
     const { Tiles, library: fresh } = load({
+      'fluideq.sceneTintMode': 'pulse',
+    });
+    fresh.render(<Tiles />);
+    expect(
+      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.pulse' }),
+    ).toHaveAttribute('aria-pressed', 'false');
+    expect(
+      fresh.screen.getByRole('button', { name: 'studio.tint.theme' }),
+    ).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('offers no Backdrop, which the graph keeps', () => {
+    const { Tiles, library: fresh } = load({
       'fluideq.sceneTintMode': 'cover',
     });
     fresh.render(<Tiles />);
     expect(
-      fresh.screen.getByRole('button', { name: 'graph.sceneTint.mode.cover' }),
-    ).toHaveAttribute('aria-pressed', 'false');
+      fresh.screen.queryByRole('button', {
+        name: 'graph.sceneTint.mode.cover',
+      }),
+    ).toBeNull();
+    // POSITIVE CONTROL: the tiles are there, the Studio's own on Theme.
     expect(
       fresh.screen.getByRole('button', { name: 'studio.tint.theme' }),
     ).toHaveAttribute('aria-pressed', 'true');

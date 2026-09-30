@@ -200,13 +200,15 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // The project, its version and state, what an action just said, and the ways
-// out of the Studio, on the floor the page stands on.
+// out of the Studio, on the card the page stands on. No fill of its own: it
+// was the floor, opaque, while the page scrolled under it (2026-09-26), and
+// once the bench stopped scrolling and the page became a card, that floor was
+// a darker band across the card's top (Ivan, 2026-09-28: "bg line fix").
 .studio-bench__top {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: $spacing-s $spacing-m;
-  background: $surface-base;
 }
 
 // What the bench is doing, in words and a lamp beside them: never the colour

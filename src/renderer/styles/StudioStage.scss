@@ -411,11 +411,6 @@ $stage-edge: $border-menu;
   text-overflow: ellipsis;
 }
 
-// A size is one word or two short ones in every language; the row is lower.
-.studio-tiles--sizes .studio-tile {
-  min-height: 48px;
-}
-
 // A card with tiles answers to its own width, not the Studio's: the side
 // column the preview audio stands in is 220 to 248 pixels whatever the
 // window does, and a Tune box is as wide as its track leaves it.
@@ -439,10 +434,6 @@ $stage-edge: $border-menu;
 
   .studio-tile__name {
     display: none;
-  }
-
-  .studio-tiles--sizes .studio-tile {
-    min-height: 34px;
   }
 }
 
@@ -491,8 +482,8 @@ $stage-edge: $border-menu;
   font-weight: $weight-semibold;
 }
 
-// What the scene does to the window, as the graph's four choices in tiles,
-// four to a row, and in the narrowest card only their drawings. A card of
+// What the scene does to the window: Theme and the graph's Colours and
+// Ambient in tiles, and in the narrowest card only their drawings. A card of
 // its own in the Tune tab, so no hairline over it: it sat under the test
 // signals once, and alone the line ran across the card under its title.
 .studio-tint {
@@ -500,10 +491,17 @@ $stage-edge: $border-menu;
   gap: 8px;
 }
 
+// Three to a row, where the test signals' tiles are four: the graph's
+// Backdrop is not offered here, having no graph to stand behind on this page
+// (Ivan, 2026-09-28: "remove backdrop option from studio only").
+.studio-tiles--tint {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 // Each glyph in the colour it would give the window, chosen or not: Theme's
 // ring in the theme's own accent (`--theme-accent`, which no tint writes),
-// the other three's dot, halo and glow in the scene's (`--scene-tint-swatch`,
-// `StudioTintSwitch`). The three were the tile's grey ink until chosen, and
+// the other two's dot, halo and glow in the scene's (`--scene-tint-swatch`,
+// `StudioTintSwitch`). They were the tile's grey ink until chosen, and
 // with Theme chosen they said nothing of the scene they stand for (Ivan,
 // 2026-09-27: "theme in studio need to be current selected theme in the
 // app", "fix all this crap"). The graph's Window colours menu draws them the

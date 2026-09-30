@@ -32,15 +32,16 @@ import { useStudio } from './studioStore';
  * 2026-09-27: "the studio options are independent of the global ones, you
  * can't modify the global ones"). Theme is the app's own choice, whatever
  * the graph's Window colours are set to, and the Studio claims nothing; the
- * other three are the graph's Colours, Ambient and Backdrop with the project
- * on the bench as the scene. On this page the Backdrop is Ambient — there is
- * no graph here to put the scene behind. For a day the tiles set the app's
- * one mode, and picking Theme here put the whole app on Original.
+ * other two are the graph's Colours and Ambient with the project on the
+ * bench as the scene. The graph's Backdrop is not offered: there is no graph
+ * here to put the scene behind, and it showed as Ambient (Ivan, 2026-09-28:
+ * "remove backdrop option from studio only"). For a day the tiles set the
+ * app's one mode, and picking Theme here put the whole app on Original.
  *
  * Tiles rather than the graph's single button, because the card has the room
  * and a member judging a scene wants to see every choice at once. Each wears
  * the glyph the graph's menu does for it, in the colour it would give the
- * window: the theme's accent on Theme, the scene's on the other three.
+ * window: the theme's accent on Theme, the scene's on the other two.
  *
  * Never disabled, unlike the test controls above it. The project claims the
  * window's colour even while its scene is loading or too heavy to play, and
