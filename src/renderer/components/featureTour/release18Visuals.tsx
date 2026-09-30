@@ -6,9 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useId } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
-import MenuIcon from '../../icons/MenuIcon';
 import { useTranslation } from '../../utils/I18nContext';
-import sceneAurora from '../../../../assets/tour/scene-aurora.jpg';
 
 /**
  * The pictures on 2.0's headline slides (prepared as 1.8, hence the file's
@@ -17,8 +15,8 @@ import sceneAurora from '../../../../assets/tour/scene-aurora.jpg';
  * the shape the slide gives it beside the text. The presets picker, drawn
  * with the genre notes' own parts,
  * is in `PresetsVisual.tsx`; the Compact player's in
- * `CompactPlayerVisual.tsx`; games in `GameStoryVisual.tsx`; the new look
- * and the graph's views in `release20Visuals.tsx`.
+ * `CompactPlayerVisual.tsx`; games in `GameStoryVisual.tsx`; the new look,
+ * the graph's views and the Studio, photographed, in `release20Visuals.tsx`.
  */
 
 /** Where the three thirds sit on the graph, in its 0..1 width. */
@@ -164,33 +162,6 @@ export function ToneVisual() {
           </ul>
         </div>
       </div>
-    </div>
-  );
-}
-
-/** A scene made in the Studio, the idea it came from, and the two ways in. */
-export function StudioVisual() {
-  const { t } = useTranslation();
-  return (
-    <div
-      className="studio-visual"
-      role="img"
-      aria-label={t('tour.studio.imageAlt')}
-    >
-      <img className="studio-visual__scene" src={sceneAurora} alt="" />
-      <span className="studio-visual__prompt">
-        <span className="studio-visual__label">
-          <MenuIcon name="smart" />
-          {t('studio.maker.describe')}
-        </span>
-        <span className="studio-visual__idea">{t('tour.studio.idea')}</span>
-      </span>
-      <span className="studio-visual__offers">
-        <span className="studio-visual__offer">{t('trial.offer.title')}</span>
-        <span className="studio-visual__offer is-earned">
-          {t('tour.studio.earned')}
-        </span>
-      </span>
     </div>
   );
 }

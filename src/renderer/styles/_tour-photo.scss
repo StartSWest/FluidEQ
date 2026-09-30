@@ -1,0 +1,121 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// The photographed slides (`release20Visuals.tsx`): the window itself on the
+// new look's slide, the graph's and the Studio's. A photograph of the window,
+// and on two of them a part of the same window cut out as a card standing
+// over the photograph's lower right, larger than the window shows it, as a
+// menu opens over the page.
+
+.tour-photo {
+  display: flex;
+  width: 100%;
+  max-width: calc(#{$u} * 36);
+  flex-direction: column;
+  @include animate(rise-in, $motion-slow);
+
+  // Where Brightness is found: the title bar's corner, its pulse ringed and
+  // named, above the window it changes; room under it for the name.
+  > .titlebar-corner {
+    display: flex;
+    width: fit-content;
+    margin: 0 0 calc(#{$u} * 2.9) auto;
+  }
+}
+
+// In the flow rather than absolutely placed: a card's height follows its
+// width, so the column is as tall as the two pictures make it and the slide
+// never has to guess.
+.tour-photo__stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.tour-photo__main {
+  @include framed;
+
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: $radius-m;
+}
+
+.tour-photo__card {
+  position: relative;
+  display: block;
+  height: auto;
+  align-self: flex-end;
+  border: 1px solid rgba($edge-tint, 0.14);
+  border-radius: $radius-m;
+  box-shadow: 0 18px 48px rgba($black, 0.55);
+  @include animate(rise-in, $motion-slow, $ease-out, 140ms);
+}
+
+// A margin in percent is a share of the column's width, so each card is
+// lifted over the same part of its photograph whatever size the slide is.
+
+// The Window colours menu, over the window's bottom third.
+.tour-photo__card--menu {
+  width: 40%;
+  margin: -18% calc(#{$u} * 0.6) 0 0;
+}
+
+// The picker's Analysis list, over the graph's lower right, under the EQ's
+// 0 dB line, where the spectrum falls away into the floor, and on down past
+// the photograph: at the menu's width its names were too small to read, and
+// at half the width it hid the spectrum the slide is about.
+.tour-photo__card--list {
+  width: 36%;
+  margin: -20% calc(#{$u} * 0.6) 0 0;
+}
+
+// What the Studio's scene hears of the song, over the stage's right side,
+// where the same card stands beside the stage in the window.
+.tour-photo__card--meters {
+  width: 29%;
+  margin: -40% calc(#{$u} * 0.6) 0 0;
+}
+
+// The Studio's two ways in are offers, not controls on its page, so they
+// stand just under the photograph, beside the card's foot, instead of over
+// its buttons. A margin in percent is a share of the width, so 62% is the
+// photograph's own height (869 of its 1400); the card reaches a quarter of
+// the width below it, which holds both, wrapped, at the slide's narrowest.
+.tour-photo__offers {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  max-width: 64%;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-top: calc(62% + #{$u} * 0.9);
+  gap: calc(#{$u} * 0.4);
+}
+
+.tour-photo__offer {
+  @include pill;
+
+  color: $surface-base;
+  border-color: transparent;
+  background: $secondary-light;
+  box-shadow: 0 6px 20px rgba($black, 0.35);
+  white-space: normal;
+
+  &.is-earned {
+    color: $text-primary;
+    border-color: color-mix(in srgb, $amber 55%, transparent);
+    background: color-mix(in srgb, $surface-menu 85%, transparent);
+  }
+}

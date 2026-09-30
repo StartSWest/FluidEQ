@@ -121,7 +121,7 @@ const tour: Partial<Dictionary> = {
     'Haz clic en el nombre del estilo que hay sobre la gráfica y elige una vista en {analysis}. Doble clic en la gráfica para llenar la pantalla; Ctrl+G muestra u oculta la cuadrícula.',
   'tour.graph.open': 'Abrir EQ',
   'tour.graph.imageAlt':
-    'El Analizador de la gráfica: el espectro en directo con 80 dB de profundidad, barras de tercio de octava detrás y sus picos encima, la curva del EQ arriba y las doce vistas listadas en Análisis.',
+    'El Analizador de la gráfica con una canción sonando: el espectro en directo con 80 dB de profundidad y sus picos encima, las curvas del EQ arriba y, en la esquina, la lista de vistas de Análisis.',
 
   'tour.games.kicker': 'PRESETS DE JUEGO',
   'tour.games.title': 'Cada juego, su propio sonido',
@@ -189,9 +189,7 @@ const tour: Partial<Dictionary> = {
     'Abre Plus y elige Estudio en su barra lateral. Sin Plus, esa página te ofrece la prueba gratuita.',
   'tour.studio.open': 'Abrir Plus',
   'tour.studio.imageAlt':
-    'Una aurora sobre montañas creada en el Estudio, la idea de la que nació, la prueba de quince días y el mes que se gana con una escena aprobada.',
-  'tour.studio.idea':
-    'Aurora boreal sobre un lago de montaña. Los graves hacen crecer la aurora y las estrellas titilan al compás.',
+    'El Estudio con Alpine en su escenario, un lago bajo picos nevados y una aurora, debajo los tres pasos para crear una escena con tu IA, y luego la prueba de quince días y el mes que se gana con una escena aprobada.',
   'tour.studio.earned': 'Aprobada: próximo mes gratis',
   'tour.help.kicker': 'AYUDA',
   'tour.help.title': 'Pregunta a la guía con tus palabras',

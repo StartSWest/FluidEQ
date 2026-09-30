@@ -124,7 +124,7 @@ const tour: Partial<Dictionary> = {
     'Sur le graphique, cliquez sur le nom du style et choisissez une vue sous {analysis}. Double-cliquez sur le graphique pour remplir l’écran ; Ctrl+G affiche ou masque la grille.',
   'tour.graph.open': 'Ouvrir l’Égaliseur',
   'tour.graph.imageAlt':
-    'L’Analyseur du graphique : le spectre en direct sur 80 dB, des barres au tiers d’octave derrière et ses crêtes au-dessus, la courbe de l’égaliseur par-dessus, et les douze vues listées sous Analyse.',
+    'L’Analyseur du graphique sur un morceau en cours : le spectre en direct sur 80 dB avec ses crêtes au-dessus, les courbes de l’égaliseur par-dessus, et dans le coin la liste des vues sous Analyse.',
 
   'tour.games.kicker': 'PRÉRÉGLAGES DE JEU',
   'tour.games.title': 'À chaque jeu, un son bien à lui',
@@ -192,9 +192,7 @@ const tour: Partial<Dictionary> = {
     'Ouvrez Plus et choisissez Studio dans sa barre latérale. Sans Plus, la page du Studio propose l’essai gratuit.',
   'tour.studio.open': 'Ouvrir Plus',
   'tour.studio.imageAlt':
-    'Une aurore boréale au-dessus des montagnes, créée dans le Studio, l’idée dont elle est née, l’essai de quinze jours et le mois qu’une scène approuvée fait gagner.',
-  'tour.studio.idea':
-    'Une aurore boréale au-dessus d’un lac de montagne. Les basses font enfler l’aurore et les étoiles scintillent en rythme.',
+    'Le Studio avec Alpine sur sa scène, un lac sous des sommets enneigés et une aurore boréale, dessous les trois étapes pour créer une scène avec votre IA, puis l’essai de quinze jours et le mois qu’une scène approuvée fait gagner.',
   'tour.studio.earned': 'Approuvée : le mois prochain offert',
   'tour.help.kicker': 'AIDE',
   'tour.help.title': 'Interrogez le guide avec vos propres mots',

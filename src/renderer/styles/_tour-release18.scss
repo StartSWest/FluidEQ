@@ -8,17 +8,17 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The pictures on 2.0's headline slides (`release18Visuals.tsx`,
 // `release20Visuals.tsx`, `PlayerStageVisual.tsx`), one stylesheet each in
-// the slides’ order; what they share is in `_tour-miniature.scss`.
+// the slides’ order, except the three photographed ones (the new look, the
+// graph's views, the Studio), which share `_tour-photo.scss`; what the drawn
+// ones share is in `_tour-miniature.scss`.
 
 @use 'tour-corner';
-@use 'tour-look';
+@use 'tour-photo';
 @use 'tour-gpu';
 @use 'tour-sparks';
 @use 'tour-sound';
-@use 'tour-graph';
 @use 'tour-player';
 @use 'tour-games';
 @use 'tour-presets';
 @use 'tour-tone';
-@use 'tour-studio';
 @use 'tour-guide';

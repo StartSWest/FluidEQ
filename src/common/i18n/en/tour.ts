@@ -131,7 +131,7 @@ const tour = {
     'Click the look’s name on the graph and choose a view under {analysis}. Double-click the graph to fill the screen; Ctrl+G shows or hides the grid.',
   'tour.graph.open': 'Open EQ',
   'tour.graph.imageAlt':
-    'The graph’s Analyzer: the live spectrum 80 dB deep, third-octave bars behind it and its peaks above, the EQ curve on top, and the twelve views listed under Analysis.',
+    'The graph’s Analyzer on a playing song: the live spectrum 80 dB deep with its peaks over it, the EQ’s curves on top, and in the corner the list of views under Analysis.',
 
   'tour.games.kicker': 'GAME PRESETS',
   'tour.games.title': 'Every game, its own sound',
@@ -202,9 +202,7 @@ const tour = {
     'Open Plus and choose Studio in its rail. Without Plus, the page there offers the free trial.',
   'tour.studio.open': 'Open Plus',
   'tour.studio.imageAlt':
-    'An aurora over mountains made in the Studio, the idea it was made from, the fifteen-day trial and the month an approved scene earns.',
-  'tour.studio.idea':
-    'Northern lights over a mountain lake. The bass swells the aurora and the stars flicker on the beat.',
+    'The Studio playing Alpine on its stage, a lake under snowy peaks and an aurora, with the three steps to make a scene with your AI under it, then the fifteen-day trial and the month an approved scene earns.',
   'tour.studio.earned': 'Approved: next month free',
 
   'tour.help.kicker': 'HELP',

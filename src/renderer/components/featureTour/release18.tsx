@@ -10,9 +10,9 @@ import CompactPlayerVisual from './CompactPlayerVisual';
 import GameStoryVisual from './GameStoryVisual';
 import PresetsVisual from './PresetsVisual';
 import ShowcaseSlide from './ShowcaseSlide';
-import { GuideVisual, StudioVisual, ToneVisual } from './release18Visuals';
+import { GuideVisual, ToneVisual } from './release18Visuals';
 import TitlebarCorner from './TitlebarCorner';
-import { GraphViewsVisual, LookVisual } from './release20Visuals';
+import { GraphViewsVisual, LookVisual, StudioVisual } from './release20Visuals';
 import type { ISlideActions } from './slides';
 
 /**

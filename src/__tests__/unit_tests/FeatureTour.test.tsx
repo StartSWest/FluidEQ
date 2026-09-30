@@ -78,11 +78,15 @@ it('lists every view the look picker has under Analysis, by the picker’s names
       /^Analyzer, Spectrogram, Third-octave RTA, Waterfall, Oscilloscope and seven more, under Analysis/,
     ),
   ).toBeInTheDocument();
-  // The picture draws the picker's own list; the words say "twelve" and
-  // "seven more", so a thirteenth view has to change them too.
-  const drawn = document.querySelectorAll('.analyser-visual__picker li');
-  expect(drawn).toHaveLength(ANALYSIS_STYLES.length);
+  // The words say "twelve" and "seven more", and the slide's photograph shows
+  // the picker listing twelve, so a thirteenth view has to change the words
+  // and retake the picture too.
   expect(ANALYSIS_STYLES).toHaveLength(12);
+  expect(
+    screen.getByRole('img', {
+      name: /^The graph’s Analyzer on a playing song/,
+    }),
+  ).toBeInTheDocument();
 });
 
 it('turns the window into the Compact player from its slide, closing the tour as not done', () => {

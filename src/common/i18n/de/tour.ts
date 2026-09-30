@@ -123,7 +123,7 @@ const tour: Partial<Dictionary> = {
     'Klicken Sie im Diagramm auf den Namen der Darstellung und wählen Sie unter {analysis} eine Ansicht. Ein Doppelklick auf das Diagramm füllt den Bildschirm; Strg+G blendet das Raster ein oder aus.',
   'tour.graph.open': 'EQ öffnen',
   'tour.graph.imageAlt':
-    'Der Analyzer des Diagramms: das Live-Spektrum 80 dB tief, Terzbänder dahinter und seine Spitzen darüber, die EQ-Kurve obenauf und die zwölf Ansichten unter Analyse.',
+    'Der Analyzer des Diagramms bei laufender Musik: das Live-Spektrum 80 dB tief mit seinen Spitzen darüber, die EQ-Kurven obenauf und in der Ecke die Liste der Ansichten unter Analyse.',
 
   'tour.games.kicker': 'SPIEL-PRESETS',
   'tour.games.title': 'Jedem Spiel sein eigener Klang',
@@ -193,9 +193,7 @@ const tour: Partial<Dictionary> = {
     'Öffnen Sie Plus und wählen Sie Studio in der Seitenleiste. Ohne Plus bietet die Seite dort die Gratis-Testphase an.',
   'tour.studio.open': 'Plus öffnen',
   'tour.studio.imageAlt':
-    'Ein im Studio gemachtes Polarlicht über Bergen, die Idee, aus der es entstand, die fünfzehntägige Testphase und der Monat, den eine freigegebene Szene einbringt.',
-  'tour.studio.idea':
-    'Nordlichter über einem Bergsee. Der Bass lässt das Polarlicht anschwellen, und die Sterne flackern im Takt.',
+    'Das Studio mit Alpine auf seiner Bühne, ein See unter verschneiten Gipfeln und ein Polarlicht, darunter die drei Schritte, mit Ihrer KI eine Szene zu erstellen, dann die fünfzehntägige Testphase und der Monat, den eine freigegebene Szene einbringt.',
   'tour.studio.earned': 'Freigegeben: nächster Monat kostenlos',
   'tour.help.kicker': 'HILFE',
   'tour.help.title': 'Fragen Sie das Handbuch mit eigenen Worten',

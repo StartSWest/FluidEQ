@@ -119,7 +119,7 @@ const tour: Partial<Dictionary> = {
     '点击图表上的外观名称，在“{analysis}”下选择一种视图。双击图表可全屏显示；Ctrl+G 显示或隐藏网格。',
   'tour.graph.open': '打开均衡器',
   'tour.graph.imageAlt':
-    '图表的“频谱分析仪”：80 dB 深度的实时频谱，背后是三分之一倍频程柱，上方是峰值，最上面是均衡器曲线，旁边列出“分析”下的十二种视图。',
+    '播放歌曲时图表的“频谱分析仪”：80 dB 深度的实时频谱和上方的峰值，最上面是均衡器曲线，角落里是“分析”下的视图列表。',
 
   'tour.games.kicker': '游戏预设',
   'tour.games.title': '每个游戏，都有自己的音效',
@@ -184,8 +184,7 @@ const tour: Partial<Dictionary> = {
     '打开 Plus，在侧栏中选择“工作室”。没有 Plus 时，那里的页面会提供免费体验。',
   'tour.studio.open': '打开 Plus',
   'tour.studio.imageAlt':
-    '在工作室中做出的群山上空的极光、它所源自的想法、十五天免费体验，以及通过审核的场景换来的一个月。',
-  'tour.studio.idea': '山间湖泊上空的北极光。低音让极光涌动，星星随节拍闪烁。',
+    '舞台上正在播放 Alpine 的工作室：雪峰下的湖泊与极光，下方是用你的 AI 制作场景的三个步骤，然后是十五天免费体验，以及通过审核的场景换来的一个月。',
   'tour.studio.earned': '审核通过：下个月免费',
   'tour.help.kicker': '帮助',
   'tour.help.title': '用你自己的话问指南',

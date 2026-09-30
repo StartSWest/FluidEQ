@@ -121,7 +121,7 @@ const tour: Partial<Dictionary> = {
     'Fai clic sul nome dell’aspetto sul grafico e scegli una vista in {analysis}. Doppio clic sul grafico per riempire lo schermo; Ctrl+G mostra o nasconde la griglia.',
   'tour.graph.open': 'Apri l’EQ',
   'tour.graph.imageAlt':
-    'L’Analizzatore del grafico: lo spettro dal vivo a 80 dB di profondità, le barre a terzi d’ottava dietro e i picchi sopra, la curva dell’EQ in cima e le dodici viste elencate in Analisi.',
+    'L’Analizzatore del grafico su un brano in riproduzione: lo spettro dal vivo a 80 dB di profondità con i picchi sopra, le curve dell’EQ in cima e, nell’angolo, l’elenco delle viste in Analisi.',
 
   'tour.games.kicker': 'PRESET DI GIOCO',
   'tour.games.title': 'Ogni gioco, il suo suono',
@@ -189,9 +189,7 @@ const tour: Partial<Dictionary> = {
     'Apri Plus e scegli Studio nella sua barra laterale. Senza Plus, quella pagina ti offre la prova gratuita.',
   'tour.studio.open': 'Apri Plus',
   'tour.studio.imageAlt':
-    'Un’aurora sopra le montagne creata nello Studio, l’idea da cui è nata, la prova di quindici giorni e il mese che si guadagna con una scena approvata.',
-  'tour.studio.idea':
-    'Aurora boreale sopra un lago di montagna. I bassi gonfiano l’aurora e le stelle tremolano a ritmo.',
+    'Lo Studio con Alpine sul palco, un lago sotto vette innevate e un’aurora, sotto i tre passi per creare una scena con la tua IA, poi la prova di quindici giorni e il mese che si guadagna con una scena approvata.',
   'tour.studio.earned': 'Approvata: prossimo mese gratis',
   'tour.help.kicker': 'AIUTO',
   'tour.help.title': 'Chiedi alla guida con parole tue',
