@@ -45,7 +45,7 @@ const help: Record<keyof typeof en, string> = {
   'help.start.videoTitle': 'FluidEQ はじめの一歩',
   'help.video.play': '動画を再生: {title}',
   'help.video.note':
-    '約 2 分、英語のナレーション付き。再生を押すと fluideq.com から再生されます。',
+    '約 4 分、英語のナレーション付き。再生を押すと fluideq.com から再生されます。',
   'help.video.loading': 'fluideq.com から読み込んでいます…',
   'help.video.failed':
     '動画を読み込めませんでした。fluideq.com から再生するため、インターネット接続が必要です。',

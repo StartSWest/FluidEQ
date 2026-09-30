@@ -43,7 +43,7 @@ const help: Record<keyof typeof en, string> = {
     '新手教程, 使用教程, 安装教程, 快速入门, 快速上手, 怎么用, 怎么使用, 如何使用, 使用方法, 使用说明, 第一次使用, 初次使用, 开始使用, 初始设置, 基础教程, 小白',
   'help.start.videoTitle': 'FluidEQ 入门',
   'help.video.play': '播放视频：{title}',
-  'help.video.note': '约两分钟，英语解说。按下播放后从 fluideq.com 播放。',
+  'help.video.note': '约四分钟，英语解说。按下播放后从 fluideq.com 播放。',
   'help.video.loading': '正在从 fluideq.com 加载…',
   'help.video.failed': '无法加载视频。它从 fluideq.com 播放，因此需要联网。',
   'help.video.retry': '重试',

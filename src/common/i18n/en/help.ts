@@ -49,7 +49,7 @@ const help = {
   'help.start.videoTitle': 'First steps with FluidEQ',
   'help.video.play': 'Play the video: {title}',
   'help.video.note':
-    'About two minutes. It plays from fluideq.com when you press play.',
+    'About four minutes. It plays from fluideq.com when you press play.',
   'help.video.loading': 'Loading from fluideq.com…',
   'help.video.failed':
     'The video could not be loaded. It plays from fluideq.com, so it needs an internet connection.',

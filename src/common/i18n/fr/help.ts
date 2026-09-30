@@ -45,7 +45,7 @@ const help: Record<keyof typeof en, string> = {
   'help.start.videoTitle': 'Premiers pas avec FluidEQ',
   'help.video.play': 'Lire la vidéo : {title}',
   'help.video.note':
-    'Environ deux minutes, commentées en anglais. Elle est lue depuis fluideq.com quand vous appuyez sur lecture.',
+    'Environ quatre minutes, commentées en anglais. Elle est lue depuis fluideq.com quand vous appuyez sur lecture.',
   'help.video.loading': 'Chargement depuis fluideq.com…',
   'help.video.failed':
     'La vidéo n’a pas pu être chargée. Elle est lue depuis fluideq.com et demande donc une connexion à internet.',
