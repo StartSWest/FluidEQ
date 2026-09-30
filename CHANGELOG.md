@@ -154,9 +154,10 @@ and Help answers questions in your own words.
   frame with the same close button, and the keyboard stays inside a dialog
   while it is open.
 - **The sound panel folds to a rail** from a button at its top left, the
-  settings pages and the panel's sections stand on soft cards, and every
-  shade's lines, text and outlines were set for contrast — the darkest end is
-  truly black. The Bands page has its title back, and the curves a band
+  settings pages and the panel's sections stand on soft cards, as does the
+  graph under Plus and the forum, lined up with theirs, and every shade's
+  lines, text and outlines were set for contrast — the darkest end is truly
+  black. The Bands page has its title back, and the curves a band
   layout carries are in one Curves dropdown on its bar.
 - **Small things made clearer.** The info mark beside a preset's name and on
   the DSP page glows like the switches, Game mode's pad reads as a gamepad,
@@ -544,6 +545,9 @@ and Help answers questions in your own words.
   the stage, so a maker sees how it frames in a narrow window. Each "things in
   the window" slider shows the icons of what it moves, and Brightness and the
   wave's height snap to 25, 50 and 75%.
+- **Add to my looks says what it did**: a notice under the button says whether
+  the look was added or updated, and the Studio's notices show above its work
+  again.
 - **The Plus terms, third edition.** They now cover the approval every
   published scene waits for, the free trial, the month an approved scene
   earns and the one Studio project a maker keeps without Plus, that a scene
