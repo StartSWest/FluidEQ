@@ -175,10 +175,16 @@ and a vertexFile defines
   vec3 worldDisplace(vec3 position, vec3 normal, WorldVertex v)
   // v.uv, v.instance = (u, rand, index, count); return the new position
 Both see uTime, uLevel, uBeat, uBands, uAccent, uMusicAccent, uMusicRun,
-uSpectrum, uSpectrumSlow, uWaveform, uRhythm, uDrums, uSong, uStereo,
-uVoice, uPointer, uTap and uCamera, the params as uParam_<id> and the vars as
-uVar_<name>. Use fwidth for lines that stay a pixel or two wide at any
-distance. At most ${WORLD_LIMITS.hookBytes / KB} KB a file and ${WORLD_LIMITS.hookTotalBytes / KB} KB for all of them.
+uSpectrum, uSpectrumSlow, uWaveform, uArtwork, uRhythm, uDrums, uSong,
+uStereo, uVoice, uPointer, uTap and uCamera, the params as uParam_<id> and
+the vars as uVar_<name>. Use fwidth for lines that stay a pixel or two wide
+at any distance. A map repeats the artwork only when its region is the whole
+picture: to tile several textures from one artwork (bark, ground, stone),
+read uArtwork yourself - bottom-left origin, sRGB, so pow(c, vec3(2.2))
+before using it as a colour - at tile.xy + fract(at) * tile.zw, with
+textureGrad(uArtwork, inTile, dFdx(at) * tile.zw, dFdy(at) * tile.zw), or
+every tile edge shows a seam; leave each tile a gutter of its own wrapped
+pixels in the picture so distant mips never mix two textures. At most ${WORLD_LIMITS.hookBytes / KB} KB a file and ${WORLD_LIMITS.hookTotalBytes / KB} KB for all of them.
 
 MODELS. A binary glTF 2 (.glb) carrying everything it needs, one scene:
 triangles only; no file or URL named anywhere inside it; every accessor

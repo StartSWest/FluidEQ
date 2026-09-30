@@ -196,8 +196,30 @@ void worldSurface(inout vec4 colour, inout vec3 emissive, WorldSurface s) {
 
 Both see the shader contract's uniforms (`uTime`, `uLevel`, `uBeat`,
 `uBands`, `uAccent`, `uMusicAccent`, `uMusicRun`, `uSpectrum`,
-`uSpectrumSlow`, `uWaveform`), the pack's `uParam_<id>` and the world's
-variables as `uVar_<name>`. In a Studio project, write them in their own
+`uSpectrumSlow`, `uWaveform`, and the pack's artwork `uArtwork`), the
+pack's `uParam_<id>` and the world's variables as `uVar_<name>`.
+
+A `map` repeats the artwork only when its region is the whole picture, so
+a world with several tiling textures in one atlas tiles them itself from
+`uArtwork`: bottom-left origin, premultiplied, and in sRGB, so a colour
+read from it is taken to light before it is used. Sample with
+`textureGrad` and the derivatives of the unwrapped coordinate, or every
+tile's edge shows as a seam where the mip level jumps:
+
+```glsl
+vec3 bark(vec2 at) {
+  // The bark tile's place in the atlas: x, y, width, height, in 0..1.
+  vec4 tile = vec4(0.0, 0.5, 0.5, 0.5);
+  vec2 inTile = tile.xy + fract(at) * tile.zw;
+  vec3 srgb = textureGrad(uArtwork, inTile, dFdx(at) * tile.zw, dFdy(at) * tile.zw).rgb;
+  return pow(srgb, vec3(2.2));
+}
+```
+
+Leave each tile a gutter of its own wrapped pixels in the picture, so a
+distant mip level never mixes two textures.
+
+In a Studio project, write them in their own
 files and name them from `pack.json` as `vertexFile` / `fragmentFile`; a
 model is `{ "file": "ship.glb" }`. A world too big for `pack.json` (64 KB)
 goes in a file of its own, named as `"worldFile": "world.json"` in place of

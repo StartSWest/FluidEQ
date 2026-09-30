@@ -81,6 +81,13 @@ vec3 worldTerrainNormal(vec2 at) {
 }
 `;
 
+/**
+ * The shader contract a material's own GLSL sees, as the sky does. It
+ * includes the pack's artwork (`uArtwork`: bottom-left origin, premultiplied,
+ * sRGB values), so a hook can tile textures of its own from it: a material's
+ * `map` repeats the artwork only when its region is the whole picture, and a
+ * world with bark and ground in one atlas had no way to tile either.
+ */
 const CONTRACT_UNIFORMS = `
 uniform float uTime;
 uniform float uLevel;
@@ -92,6 +99,7 @@ uniform vec2 uMusicRun;
 uniform sampler2D uSpectrum;
 uniform sampler2D uSpectrumSlow;
 uniform sampler2D uWaveform;
+uniform sampler2D uArtwork;
 uniform vec4 uRhythm;
 uniform vec3 uDrums;
 uniform vec4 uSong;
