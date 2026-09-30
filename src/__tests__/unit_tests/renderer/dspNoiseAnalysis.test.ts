@@ -29,8 +29,9 @@ const RATE = 48_000;
 /**
  * Deterministic, so a failure is reproducible rather than occasionally red.
  *
- * The same linear congruential generator `denoise_test.cpp` uses, so the two
- * sides of this feature are measured against the same noise.
+ * The same linear congruential generator the native denoise tests use
+ * (`denoise_test_support.h`), so the two sides of this feature are measured
+ * against the same noise.
  */
 /* eslint-disable no-bitwise --
  * An LCG is defined over unsigned 32-bit arithmetic, and `>>> 0` is how

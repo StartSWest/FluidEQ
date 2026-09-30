@@ -118,6 +118,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/denoise_voice.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/chain.cpp
+  dsp-core/src/chain_process.cpp
   dsp-core/src/chain_eq.cpp
   dsp-core/src/chain_eq_fade.cpp
   dsp-core/src/chain_mono_maker.cpp
@@ -204,6 +205,10 @@ add_test(NAME bass-isolate COMMAND fluideq-bass-isolate-test)
 add_executable(fluideq-denoise-test dsp-core/tests/denoise_test.cpp)
 target_link_libraries(fluideq-denoise-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME denoise COMMAND fluideq-denoise-test)
+
+add_executable(fluideq-denoise-stage-test dsp-core/tests/denoise_stage_test.cpp)
+target_link_libraries(fluideq-denoise-stage-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME denoise-stage COMMAND fluideq-denoise-stage-test)
 
 add_executable(fluideq-denoise-bounds-test
   dsp-core/tests/denoise_bounds_test.cpp)
@@ -353,7 +358,11 @@ add_test(NAME player-handoff COMMAND fluideq-player-handoff-test)
 
 # Held to the final output of the TypeScript engine that the native rack
 # replaced. The frozen corpus is expanded by `build-native-dsp.ts --test`.
-add_executable(fluideq-dsp-parity-test dsp-core/tests/parity_test.cpp)
+add_executable(fluideq-dsp-parity-test
+  dsp-core/tests/parity_test.cpp
+  dsp-core/tests/parity_fixture.cpp
+  dsp-core/tests/parity_render.cpp
+  dsp-core/tests/parity_render_chain.cpp)
 target_link_libraries(fluideq-dsp-parity-test
   PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dsp-parity
@@ -373,6 +382,12 @@ add_subdirectory(wallpaper)
 
 add_executable(fluideq-dsp-host
   dsp-host/src/main.cpp
+  dsp-host/src/host_audio.cpp
+  dsp-host/src/host_commands.cpp
+  dsp-host/src/host_deck_commands.cpp
+  dsp-host/src/host_device.cpp
+  dsp-host/src/host_telemetry.cpp
+  dsp-host/src/host_wire.cpp
   dsp-host/src/decoders/pcm_decoder.cpp
   dsp-host/src/decoders/compressed_decoder.cpp
   dsp-host/src/decoders/vendor/vendor.cpp

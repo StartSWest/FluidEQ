@@ -246,6 +246,10 @@ target_link_libraries(fluideq-engine-fx-list-test
   PRIVATE fluideq-engine-setup-core feq_strict)
 add_test(NAME engine-fx-list COMMAND fluideq-engine-fx-list-test)
 
+add_executable(fluideq-engine-fx-list-apo-test tests/fx_list_apo_test.cpp)
+target_link_libraries(fluideq-engine-fx-list-apo-test PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-fx-list-apo COMMAND fluideq-engine-fx-list-apo-test)
+
 # The verdict a whole `--attach-all` run reaches, which is the half of the
 # loop that can be tested without a registry: one endpoint that refuses to be
 # read must not fail an install that worked everywhere else.

@@ -1278,13 +1278,14 @@ Out-String` (or any other capture) is what actually waits for it and shows
 - **The Library's DSP host reads the room's head from the shipped folder,
   not from the wire.** The host is spawned with `--room-heads <dir>`
   (`supervisor.ts`, `roomHeadsDir()`), and `apply_room_head` in the host's
-  `main.cpp` parses `<dir>/<small|medium|large>.txt` with the engine's own
-  `room_head.cpp` (shared through the `fluideq-dsp-host` target's sources)
-  whenever the settings arrive with the room on and a head it has not
-  loaded; a head file that cannot be read leaves the room inactive and a
-  line on stderr. The head text travels twice — main writes it beside the
-  engine's rack, the host reads it from assets — because the engine reloads
-  every output on any write in its folder and the host has no folder.
+  `host_device.cpp` parses `<dir>/<small|medium|large>.txt` with the
+  engine's own `room_head.cpp` (shared through the `fluideq-dsp-host`
+  target's sources) whenever the settings arrive with the room on and a head
+  it has not loaded; a head file that cannot be read leaves the room
+  inactive and a line on stderr. The head text travels twice — main writes
+  it beside the engine's rack, the host reads it from assets — because the
+  engine reloads every output on any write in its folder and the host has no
+  folder.
 - **Fit renders its listening pairs in the window, offline, never through
   either engine.** `DspRoomFitDialog` reads each shipped head's text over
   `READ_ROOM_HEAD` (`roomHeadText.ts` parses the 48 kHz block), renders one
