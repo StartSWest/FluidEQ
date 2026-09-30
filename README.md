@@ -1,4 +1,4 @@
-# FluidEQ
+# FluidEQ 2.0
 
 > Your sound, finally worth watching.
 
@@ -11,9 +11,46 @@ and 11, processed by its own audio engine or by
 Tune once per output, and the right sound follows the right device without you
 touching anything again.
 
-![The FluidEQ EQ page on its Bands tab. The graph fills the top: what is playing drawn live as bars from 10 Hz to 20 kHz, and over it the flat EQ line with a point for every band and the other curves applied to this output. Along its top edge sit the Presets picker on Modern Country, Smart EQ on Detail, the EQ mode, the 15-band layout, Add band, Curves with a coloured dot for each curve applied, and Clear EQ, with Game mode and the processing delay beside the FluidEQ Engine's name above them. Under the graph, fifteen parametric bands as vertical sliders from 26 Hz to 16.3 kHz, and under those the Tone row: Low cut, Bass, Mid, Treble and High cut. Down the left are the engine switch, the preamp, Auto normalize, the Response graph switch and a stereo level meter; down the right, the Output panel with the device and its profiles, Second output and the Driver type panel. The live output signal runs across the title bar, between Online Media, Share Audio and EQ on one side and DSP, Library, Karaoke and Plus on the other.](docs/03-eq-parametric-bands-and-live-response.png)
+![FluidEQ 2.0 on the Backdrop: the Aurora visualizer, snowy pines under the northern lights over a still lake, fills the whole window, and the equaliser stands on it as panes of glass: the graph with its curves at the top, the band sliders and the Tone knobs under it, the side column with the engine switch, the preamp and the level meter down the left, and the output and its profiles down the right.](assets/tour/look-backdrop.jpg)
+
+## New in 2.0
+
+The biggest release FluidEQ has had. The whole list is in the
+[release notes](CHANGELOG.md); these are the headlines.
+
+- **A new window, in new colours.** One slider, Brightness, takes the whole
+  window from near-black to a light ocean blue. With a Plus visualizer on the
+  graph the window can take its colours, glow with it, or let it play behind
+  everything on the Backdrop.
+- **Every look on your graphics card.** The graph's forty looks draw at your
+  screen's own refresh rate, eighteen of them new, and a Plus visualizer can
+  be a real 3D world that steps on the kick and leaps at the drop. Move the
+  mouse across one and it throws sparks, petals or snow.
+- **Sound exactly as you drew it.** On the FluidEQ Engine the treble plays as
+  drawn to 20 kHz, every change and every preset switch crossfades instead of
+  clicking, and Auto normalize lands on a new curve's level in one step.
+- **Presets that sound like the music.** 107 whole chains, 83 of them music
+  styles, measured again and levelled so a switch changes the character and
+  not the volume, each explaining itself beside the list.
+- **Bass, Mid and Treble, like an amplifier**, as a curve of their own, with a
+  low and a high cut either side, and every band left as you set it.
+- **A graph that reads sound like a studio.** Twelve measuring views, the
+  live sound 80 dB deep and down to 10 Hz.
+- **The Room.** Twenty-four rooms that turn headphones into a listening room,
+  every channel a speaker around you — all of them free.
+- **Every game, its own sound**, switched when the game comes to the front and
+  put back when it closes.
+- **FluidEQ folded into a player**: the classic amp, or on the Backdrop a
+  player of glass over the visualizer.
+- **Make your own visualizer.** The Studio turns an idea into a scene that
+  moves with your music, with your own AI assistant; a new account can try it
+  free for fifteen days.
+- **Ask the guide in your own words**, in any of ten languages, and it takes
+  you to the control.
 
 ## What it does
+
+![The FluidEQ EQ page on its Bands tab. The graph fills the top: what is playing drawn live as bars from 10 Hz to 20 kHz, and over it the flat EQ line with a point for every band and the other curves applied to this output. Along its top edge sit the Presets picker on Modern Country, Smart EQ on Detail, the EQ mode, the 15-band layout, Add band, Curves with a coloured dot for each curve applied, and Clear EQ, with Game mode and the processing delay beside the FluidEQ Engine's name above them. Under the graph, fifteen parametric bands as vertical sliders from 26 Hz to 16.3 kHz, and under those the Tone row: Low cut, Bass, Mid, Treble and High cut. Down the left are the engine switch, the preamp, Auto normalize, the Response graph switch and a stereo level meter; down the right, the Output panel with the device and its profiles, Second output and the Driver type panel. The live output signal runs across the title bar, between Online Media, Share Audio and EQ on one side and DSP, Library, Karaoke and Plus on the other.](docs/03-eq-parametric-bands-and-live-response.png)
 
 **Follows your output.** Every setting below belongs to the device you tuned it
 on. Plug in your headphones and their tuning comes back; switch to speakers and
@@ -23,8 +60,8 @@ give one a preset under **Game presets**, and FluidEQ switches to it when the
 game comes to the front, keeps it until the game is closed, however often you
 alt-tab, and then puts back what you had.
 
-**Six layers, one chain.** Each is written as its own file in the Equalizer APO
-config, included in this order:
+**Seven layers, one chain.** Each is written as its own file in the Equalizer
+APO config, included in this order:
 
 | Layer                | What it is                                                                                                                                                                                      |
 | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -32,8 +69,14 @@ config, included in this order:
 | Driver type          | Twelve compensation profiles for the kind of transducer you are listening on: dynamic and planar headphones, dynamic, balanced-armature and hybrid IEMs, three diaphragm materials, four sizes. |
 | Headphone correction | A published measurement for your exact model, applied as a layer beside your tuning rather than into it.                                                                                        |
 | Parametric EQ        | Your own bands, up to 128 of them. Peak, low/high shelf, low/high pass, band pass and notch, each with frequency, gain and Q.                                                                   |
-| Preset               | The tone of the preset you pick — one of 105 whole DSP chains, 81 of them music styles — as a curve of its own, on either engine.                                                               |
+| Tone                 | Bass, Mid and Treble, turned with no band selected: two shelves and a bell, as a curve of their own that never rewrites your bands.                                                             |
+| Preset               | The tone of the preset you pick — one of 107 whole DSP chains, 83 of them music styles — as a curve of its own, on either engine.                                                               |
 | Smart EQ             | What a measurement of your own output asked for, one-shot or continuously maintained.                                                                                                           |
+
+A low cut and a high cut, either side of the Tone knobs, follow the preamp: they
+only take away, so no headroom is reserved for them. The treble of every layer
+plays exactly as drawn up to 20 kHz on the FluidEQ Engine, or built the way
+Equalizer APO builds it, as you choose in the EQ mode menu.
 
 **Any layer can be switched off without being lost.** Every one of them has a
 switch on its chip, and the four curves — driver, headphone, preset and
@@ -118,24 +161,33 @@ players outside FluidEQ too, if you ask it to. Its volume slider is Windows' own
 volume, so it sets the level of everything the computer plays.
 
 **Shrinks to a player.** One switch in the title bar, beside Help, turns the
-window into the **Compact player**: a narrow column with the song and its clock
-at the top and, under them, decks you open and close — the equaliser with its
-presets and bands, a visualizer, and Up Next, where dropped music files join the
-Library and the queue. It folds to one line, stays on top of other windows if
-you ask it to, keeps a Light or Dark theme of its own and remembers its own size
-and place. Its volume, like the transport's, is the computer's own. The same
-switch brings the full app back on the page you left.
+window into the **Compact player**. It is the classic amp, with its LED clock,
+its lamps and the whole equaliser — presets, band layouts, EQ mode, Smart EQ,
+Bass, Mid and Treble — a visualizer, and Up Next, where dropped music files join
+the Library and the queue. On the Backdrop, over a Plus visualizer, it turns to
+glass instead: the visualizer edge to edge, the song in large type and the
+controls in a glass dock. It folds to one line, stays on top of other windows if
+you ask it to, keeps a Brightness of its own, and the full app, the amp and the
+glass player each remember their own size and place. Its volume, like the
+transport's, is the computer's own. The same switch brings the full app back on
+the page you left.
 
-**Watch the sound, however you like to.** The live spectrum is a measuring
-view — a third-octave RTA, a spectrogram, a waterfall, an oscilloscope — or a
-drawn form: terraces, a skyline, LED and neon bars, glass towers. Four
-palettes, ten different marks for a lit peak, and a designer that opens on the
-look you are using and changes its fill, glow, thickness, piece count and
-spacing without touching the geometry. The stereo output meter has ten looks of
-its own: bar, segments, LEDs, fluid, mercury, needle, pulse, stack, flow and
-centre.
+<p align="center"><img src="assets/tour/player-stage.jpg" alt="The Compact player on the Backdrop, as a player of glass: the Northern Lights visualizer fills it, with the song Afterglow Avenue by Velvet Circuit in large type at the top over its progress bar and controls, the visualizer's name and Auto switching under them, and at its foot the equaliser sheet with the Equalizer and Up next tabs, System EQ on the FluidEQ Engine, Smart and the Custom preset, the curves and fifteen band sliders." width="360"></p>
 
-![The Library's full-screen player with the visualizer designer open: a mirrored pillar spectrum runs above and below the album artwork, coloured across the frequency axis, over a background blurred out of the cover itself. Down the right, the New look panel sets the colour logic — Flat, Frequency, Level or Heat — the palette and its gradient, the piece count, the gap, the attack and how long a peak hangs before it falls away, whether the form is filled or stroked, the fill amount, the rainbow glow and border, which of ten marks a lit peak uses, and the name the look is saved under.](docs/10-library-customize-visualizer.png)
+**Watch the sound, however you like to.** The graph measures what is playing
+the way studio analysers do: twelve views, from the Analyzer, a spectrogram and
+a waterfall to stereo, loudness and phase, the live sound drawn 80 dB deep and
+down to 10 Hz, a twelfth of an octave per point, on scales that hold still while
+the music moves. Or it draws the music: forty looks in all, every one on your
+graphics card at your screen's own refresh rate — terraces, a skyline, LED and
+neon bars, glass towers, a synthwave road — each one yours to recolour and
+reshape in a designer that opens on the look you are using. The stereo output
+meter has ten looks of its own: bar, segments, LEDs, fluid, mercury, needle,
+pulse, stack, flow and centre.
+
+![The graph on its Analyzer with a song playing: the live spectrum as a filled curve 80 dB deep from 10 Hz to 20 kHz, green in the bass turning blue and violet toward the treble, its peaks traced above it in grey, and the EQ's curves on top — the flat line of the bands with a point for each, the yellow Tone curve lifting the bass and the violet curves of the other layers — with the equaliser's ±20 dB on the left and the analyser's 0 to −80 dB on the right. Along its top, the Presets picker, Smart EQ, the EQ mode, the band layout and Curves, and under them the look picker on Analyzer.](assets/tour/graph-analyzer.jpg)
+
+![Four of the graph's new looks, each under the EQ's curves with its name in the look picker: Synthwave, a sun over a grid road running to the horizon with the spectrum as mountains behind it; Glass towers, a row of lit glass columns with their peaks floating above them; Horizon, tall bars standing on their own reflection; and LED wall, the spectrum as a wall of glowing dots.](docs/graph-looks.jpg)
 
 **Plays in two places at once.** A second output mirrors what you are hearing to
 any number of other devices, with a level for each, and nothing to install.
@@ -147,7 +199,16 @@ enabled second output shows that device's saved profiles and applies a selection
 there without switching the main output. Mirroring runs only while FluidEQ is
 open. Switching the main output stops the old mirrors before the change.
 
-![The Second output panel open down the right of the window, under its One player at a time switch: every other endpoint on the machine listed with its own switch — an NVIDIA display output set to neutral, two Razer outputs, a Realtek output and another monitor — each naming the profile attached to it, above the note that each output uses its own EQ profile and that mirroring runs only while FluidEQ is open. Above it, the automatic profile panel names the output device the sound is following. YouTube is open inside Online Media to the left.](docs/02-online-media-multiple-outputs-one-player-at-a-time.png)
+<p align="center"><img src="docs/40-rail-right.png" alt="The right side of the window. At the top, Output: the device the sound is following, marked Active, and its profiles, with New profile, Restore and Update. Under it, Second output: the One player at a time switch, then every other output on the machine with its own switch — an Odyssey G5 monitor, two Razer headsets, a Realtek output and another monitor — each naming the profile it uses, above the note that each output uses its own EQ profile and that mirroring runs only while FluidEQ is open. At the foot, Driver type on Bio-cellulose, with its curve and its strength." width="300"></p>
+
+**Plays one headset from every computer on the desk.** The **Share Audio** tab
+lets your gaming PC, your work laptop and the media box all play into the one
+headset you are wearing: over your own network, losslessly, encrypted, and
+through the EQ you already tuned on the computer the headset is plugged into.
+One computer creates a connection code, the others paste it, and nothing is
+installed and nothing leaves your network.
+
+![The Share Audio tab, headed "Share audio between your computers": a live strip of the shared sound with the network's rate, its state, the playback delay and the peak level; under it this computer's two roles side by side — Play audio on this computer, chosen, for the computer your headset is connected to, and Send audio from this computer, for each of the others — and below them the connection code, blurred, with Copy code. The equaliser's side column and the output panel stay either side of it.](docs/14-share-audio-roles.png)
 
 **Ten languages.** English, 简体中文, हिन्दी, Español, Français, Português,
 Русский, 日本語, Deutsch, Italiano — the most-spoken left-to-right scripts.
@@ -156,6 +217,12 @@ does the same on first run. Change it any time from the actions menu. Every
 label, hint, error and tooltip is translated, and a test fails the build if a
 locale falls behind English. Right-to-left languages are deliberately absent:
 the layout has never been mirrored, and a broken Arabic is worse than none.
+
+**A guide inside the app.** F1 opens a user guide from anywhere, searched the
+way you would ask a friend — "no sound", "limiter", "wallpaper" — in any of the
+ten languages, forgiving typos and plurals. The best chapter comes first, and
+every control on its pictures is numbered like a printed manual, with the one
+you asked about ringed. The same guide is in [docs/USER-GUIDE.md](docs/USER-GUIDE.md).
 
 **Updates itself, from wherever it came from.** The build published here checks
 GitHub for a new version, downloads it in the background and offers to restart.
@@ -310,23 +377,73 @@ on: under the FluidEQ Engine the engine's rack takes it, and under Equalizer APO
 it plays unchanged, with every stage visibly disabled and the app saying why —
 there is no second implementation waiting to drift away from it.
 
-![The DSP tab with the Maximizer stage selected: the nine stages listed down the left in their fixed order — Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Maximizer, Master — with a dot marking those that are on, and Crossfade under a playback-options heading below them. The stage itself fills the rest: a preset picker reading Rock, a line saying it raises the overall level without letting peaks pass the ceiling, and a rolling six-second graph of the output against the ceiling with the amount being held down shaded under it, annotated with the current reduction, peak hold, output and drive. Beneath the graph sit the drive and ceiling knobs under Loudness, and look-ahead and release under Timing. A line at the top of the page says the rack applies to music played inside FluidEQ and does not change Spotify, YouTube or other apps.](docs/07-dsp-maximizer-and-processing-chain.png)
+![The DSP tab on the Modern Country chain, with its About, Reset, Save, Export and Import beside the picker, and Game mode with the processing delay, Front pair and the rack's On switch at the top right. Down the left, the ten stages in their fixed order — Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension, Room, Maximizer and Master — with a dot on those that are on, and Crossfade under the playback options. Dimension is open: a line saying only the sides are touched, so a mono listener hears exactly what they would with it off; a phase scope and the width it gives each frequency against unchanged; the Low, Mid and High width knobs and the Low split, High split and Spread knobs; and the mono guard along the foot.](docs/20-dsp.png)
+
+**Sit in the Room.** The Room turns headphones into a listening room, every
+channel a speaker standing around you, heard through a measured head and the
+walls of a room: stereo becomes two speakers in front of you, or fills the room
+if you ask; a 5.1 film is five speakers and the sub; a 7.1 game the whole ring.
+Twenty-four rooms to start from — eleven classics and thirteen new ones, each
+told apart by measurement — under Featured, Classic rooms and your own, and
+everything a room is made of is on its page: where each speaker stands, how far,
+its level, the walls, the space and the bass management. A listening test picks
+the head that puts sounds in front of you, by ear, in five pairs. None of it is
+part of Plus.
+
+![The Room stage of the DSP tab on Game World, with Reset and Save beside the picker and the stage's On switch, and a line saying it is folding a stereo stream onto the front stage. On the left, the room drawn from above: your head in the middle, the front left and front right speakers standing in front of it and the other five and the sub dimmed around the ring, 1.6 m away in a room 5 m wide. Beside it, the front left speaker's own pane with its angle, distance and level and its Mute and Solo; then Make it yours, with Space, Ambience and Distance; Room character, with Size, Walls, Tail length and Tail tone and a switch to keep the speakers' positions; Bass and centre, with the sub's crossover and the centre and sub levels; Stereo source, Front stage or Fill the room; and Your head, Small, Medium or Large, with Start the listening test.](docs/32-dsp-room.png)
 
 **Local, and account-free by default.** No cloud, no telemetry, no analytics, no
 proprietary driver, no virtual audio device. Your audio never leaves the
-machine. Signing in is optional and changes none of that — the equaliser, the
-library and the visualizers neither know nor care whether you have. Three downloads are worth naming, because being caught out
-by one of them later is worse than the download itself: asking the Karaoke Maker
-to transcribe lyrics fetches a speech-recognition model (about 570 MB where your
-graphics card can run it, about 1.1 GB where it cannot), asking it to read a
-melody fetches a 361 MB pitch model, and asking it to split a song into voice
-and backing fetches a 700 MB separation model. Each comes down once, on your
-press rather than at launch, and the Maker lists what is on disk and what is in
-memory with a button to give the memory back. Your audio is not part of any of
-those requests — the separation, the transcription, the timing and the melody
-analysis all run on your machine. Pasting the words in skips the first, bringing
-your own instrumental skips the last, and a song you time by ear fetches nothing
-at all.
+machine, except to another computer of yours when you share it with Share
+Audio, over your own network and encrypted. Signing in is optional and changes
+none of that — the equaliser, the rack, the library and the players neither
+know nor care whether you have. Four downloads are worth naming, because being
+caught out by one of them later is worse than the download itself: asking the
+Karaoke Maker to transcribe lyrics fetches a speech-recognition model (about
+570 MB where your graphics card can run it, about 1.1 GB where it cannot),
+asking it to read a melody fetches a 361 MB pitch model, asking it to split a
+song into voice and backing fetches a 700 MB separation model, and switching on
+the Denoise stage's voice cleaner fetches an 11 MB model. Each comes down once,
+on your press rather than at launch, and the Maker lists what is on disk and
+what is in memory with a button to give the memory back. Your audio is not part
+of any of those requests — the separation, the transcription, the timing, the
+melody analysis and the voice cleaning all run on your machine. Pasting the
+words in skips the first, bringing your own instrumental skips the third, and a
+song you time by ear fetches nothing at all.
+
+## FluidEQ Plus
+
+An optional membership that keeps FluidEQ growing, with a tab of its own. The
+equaliser, the DSP rack, the Room, the Library, Karaoke and the players stay
+free, as they always have been; Plus is the visualizers and what is built on
+them.
+
+- **Plus visualizers.** Living scenes — mountains under the stars, curtains of
+  aurora, a neon city, real 3D worlds — drawn on your graphics card under your
+  EQ curves, where the bass, the beat and the treble each move something
+  different. A gallery holds FluidEQ's own and the ones members publish, and
+  anyone signed in can try FluidEQ's samples for ten seconds.
+- **The Studio.** Describe a scene, open its folder in your own AI assistant,
+  and every file it saves plays on the Studio's stage at once, beside meters of
+  what the scene hears of your song. A scene you publish is reviewed before it
+  reaches the gallery, and one that is approved earns your next month of Plus.
+  A new account can try the Studio free for fifteen days, with no card and
+  nothing charged when the trial ends.
+- **Your desktop and your desk.** A Plus visualizer can play behind your
+  desktop icons, a different one on every monitor, pausing while windows cover
+  it, while the computer is locked and on battery; and your RGB keyboard,
+  mouse, headset and stand can take its colours and rhythm through Windows
+  Dynamic Lighting and Razer Chroma (in beta).
+- **A leaderboard** of the members who listen most, if you want to be on it.
+
+Paying happens in your browser and the app never sees a card. The terms, under
+Account in the app, say in plain words what your account and Plus send to
+FluidEQ's server and what is kept — never your audio, what you play, your EQ or
+your devices.
+
+![A Plus visualizer's page in the Visualizers gallery: Neon City, a skyline of neon towers in violet and cyan under a full moon, reflected in the water in front of it, playing on your music, with its category, its maker FluidEQ and its version beside it, and Play on the graph, Set as a desktop background and Open in Studio under them. Under it, more of FluidEQ's scenes: Bloom, a lotus of glowing petals; Neon City 3D; Chrome, a mirrored sphere on a ring of light; and Crystal, a cut gem splitting the light.](docs/26-plus-scene.png)
+
+![The Studio with Alpine on its stage: a lake under snowy peaks and green and violet aurora, a wooden jetty lit by lanterns and a boat on the water. Down the right, Preview audio to drive the scene with your music or a test signal, and What it hears now: the level, bass, mids, treble, voice, balance and width it hears, a spectrum, and the rhythm and the song's intensity, build and drop. Under the stage, the Make with AI, Code, Pictures, Tune and Performance tabs, here on Tune with the window colours, the wave on the graph, the scene's own sliders, how it answers the music and the elements it adds around the window.](docs/31-plus-studio.png)
 
 ## The config is the source of truth
 
@@ -429,8 +546,9 @@ for comfort.
 **EQ mode → Phase** offers independent **Minimum** and **Linear** processing
 for **Your EQ** and **Curves** with FluidEQ Engine 1.6 or later. Minimum is
 the default and keeps the original parametric filters. Linear preserves their
-tuning within a checked tolerance, but adds about 350 ms per active parametric
-group at 48/96 kHz and can ring before sharp transients. If a correction is too
+tuning within a checked tolerance, but adds about 350 ms at 48/96 kHz — once,
+however many groups are set to it, because they share one filter and one delay
+— and can ring before sharp transients. If a correction is too
 narrow for the bounded linear filter, the original filters stay active and the
 app reports it rather than silently reshaping the correction. Smoothing remains
 independent. These phase choices apply across the FluidEQ Engine's outputs;
@@ -534,11 +652,11 @@ Prefer to contribute time? Issues and pull requests are just as welcome — see
 
 <br clear="left">
 
-There is also a game hidden in that panel, for anyone who has contributed. Tap
-the pet or press space on the beat of whatever you are playing — it reads the
-real percussion out of your own audio, so it is your music you are playing
-along to. Thirty-six consecutive perfect taps wins **Rainbow mode**, and the
-whole interface goes rainbow with the sound.
+There is also a game hidden in that panel. Tap the pet or press space on the
+beat of whatever you are playing — it reads the real percussion out of your own
+audio, so it is your music you are playing along to — and share your score as a
+card when you are proud of it. **Rainbow mode**, which it used to unlock, is
+simply a switch in 2.0, on from the start.
 
 ## Development
 
