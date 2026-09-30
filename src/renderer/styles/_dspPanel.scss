@@ -430,9 +430,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 8px;
 }
 
-// Two across on a wide panel, one on a narrow one. Four modules stacked in a
-// single column pushes the live readout below the fold, and a stage's own
-// meters have to be visible while its dials are being turned.
 // The button and its progress on one row, inside the module it belongs to.
 // A download offered somewhere other than beside the control it enables reads
 // as unrelated housekeeping.

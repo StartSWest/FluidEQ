@@ -1,3 +1,4 @@
+import noise from './seededNoise';
 import type { Projected } from './graphStyles';
 
 /**
@@ -11,12 +12,6 @@ import type { Projected } from './graphStyles';
  * swells and narrows on the way down, the whole thing leans a little, and
  * the tip is a rounded bulb where the drip forms rather than a needle.
  */
-
-/** Stable per-column noise in [0, 1). */
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 /**
  * The profile levels from the ceiling (0) to the tip (1), packed toward the

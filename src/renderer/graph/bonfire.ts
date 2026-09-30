@@ -1,5 +1,6 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
+import noise from 'common/seededNoise';
 
 /**
  * The fire behind the Flames form.
@@ -69,11 +70,6 @@ const PUFF_LIMIT = 14;
 const PUFF_EVERY = 0.35;
 /** Samples up each side of a tongue. */
 const TONGUE_STEPS = 6;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 export const createBonfire = (): Bonfire => ({
   reach: [],

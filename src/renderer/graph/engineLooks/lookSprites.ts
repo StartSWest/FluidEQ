@@ -10,6 +10,7 @@ import {
   SPRITES_PER_ROW,
   type IEngineLookInput,
 } from './engineLookInput';
+import { linkProgram, setNearestClamped } from '../glProgram';
 
 /**
  * The sprites a look draws over its picture (`IEngineLookInput.sprites`):
@@ -90,41 +91,13 @@ export interface ILookSprites {
   dispose(): void;
 }
 
-const compile = (
-  gl: WebGL2RenderingContext,
-  type: number,
-  source: string,
-): WebGLShader | null => {
-  const shader = gl.createShader(type);
-  if (!shader) {
-    return null;
-  }
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  return shader;
-};
-
 /** The sprites' program, made on the first frame that has any; or nothing. */
 export const createLookSprites = (
   gl: WebGL2RenderingContext,
 ): ILookSprites | null => {
-  const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX);
-  const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT);
-  const program = gl.createProgram();
+  const program = linkProgram(gl, VERTEX, FRAGMENT);
   const texture = gl.createTexture();
-  if (!vertex || !fragment || !program || !texture) {
-    gl.deleteShader(vertex);
-    gl.deleteShader(fragment);
-    gl.deleteProgram(program);
-    gl.deleteTexture(texture);
-    return null;
-  }
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+  if (!program || !texture) {
     gl.deleteProgram(program);
     gl.deleteTexture(texture);
     return null;
@@ -133,10 +106,7 @@ export const createLookSprites = (
   const cssAt = gl.getUniformLocation(program, 'uCss');
   const scaleAt = gl.getUniformLocation(program, 'uScale');
   gl.bindTexture(gl.TEXTURE_2D, texture);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  setNearestClamped(gl);
   // Three texels a sprite and a row of them 768 wide, sized for the most a
   // frame may hold, so it is allocated once and only ever written after.
   const width = SPRITES_PER_ROW * 3;

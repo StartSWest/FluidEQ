@@ -1,4 +1,5 @@
 import type { Projected } from 'common/graphStyles';
+import noise from 'common/seededNoise';
 
 /**
  * The fireworks over the bridge.
@@ -254,11 +255,6 @@ export const fireworkRgb = (
 /** The same colour as a canvas takes it. */
 export const fireworkColour = (hue: number, lightness: number) =>
   `hsl(${hue.toFixed(0)}, ${FIREWORK_SATURATION}%, ${lightness.toFixed(0)}%)`;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 /** Round the wheel the short way, so a shift never spins through 300°. */
 const mixHue = (from: number, to: number, amount: number) => {

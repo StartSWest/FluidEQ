@@ -22,7 +22,7 @@ import {
 } from './makerAlignment';
 import { flattenTokens } from './makerProjectEdits';
 import { type TDestructiveMakerAction } from './KaraokeMakerConfirmDialog';
-import { type IKaraokeMakerAnalysisResult } from './makerAnalysis';
+import { type IKaraokeMakerAnalysisNote } from './makerAnalysis';
 import { type Translate } from '../../common/i18n';
 import { type TSelection } from './useKaraokeMakerSelection';
 
@@ -57,10 +57,10 @@ interface IMakerLyricsReplaceInput {
   pushHistory: (snapshot: IKaraokeMakerProject) => void;
   setProject: Dispatch<SetStateAction<IKaraokeMakerProject>>;
   setSelection: Dispatch<SetStateAction<TSelection>>;
-  analysisResult: IKaraokeMakerAnalysisResult | undefined;
+  analysisNotes: IKaraokeMakerAnalysisNote[] | undefined;
   project: IKaraokeMakerProject;
-  setAnalysisResult: Dispatch<
-    SetStateAction<IKaraokeMakerAnalysisResult | undefined>
+  setAnalysisNotes: Dispatch<
+    SetStateAction<IKaraokeMakerAnalysisNote[] | undefined>
   >;
 }
 
@@ -88,9 +88,9 @@ const makerLyricsReplace = ({
   pushHistory,
   setProject,
   setSelection,
-  analysisResult,
+  analysisNotes,
   project,
-  setAnalysisResult,
+  setAnalysisNotes,
 }: IMakerLyricsReplaceInput) => {
   const startLineRecordingForProject = (nextProject: IKaraokeMakerProject) => {
     const nextLyricLines = nextProject.lyrics.lines.filter(
@@ -182,10 +182,10 @@ const makerLyricsReplace = ({
     // A complete preparation run must not expose cached/local melody from the
     // previous lyric set. Whisper establishes the new word timing first; only
     // then may the melody pass publish notes linked to those words.
-    let reusableAnalysisNotes = analysisResult?.notes.slice(0, 0) ?? [];
+    let reusableAnalysisNotes: IKaraokeMakerAnalysisNote[] = [];
     if (!detectTimingAndMelody) {
-      reusableAnalysisNotes = analysisResult?.notes.length
-        ? analysisResult.notes
+      reusableAnalysisNotes = analysisNotes?.length
+        ? analysisNotes
         : karaokeMakerAnalysisNotesFromMelody(project);
     }
     const rebuildingEmptyTimeline =
@@ -226,7 +226,7 @@ const makerLyricsReplace = ({
     pushHistory(current);
     setProject(next);
     if (detectTimingAndMelody) {
-      setAnalysisResult(undefined);
+      setAnalysisNotes(undefined);
     }
     setSelection(undefined);
     if (detectTimingAndMelody) {

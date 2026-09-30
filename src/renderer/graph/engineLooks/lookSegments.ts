@@ -19,6 +19,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * window.
  */
 
+import { linkProgram, setNearestClamped } from '../glProgram';
+
 export interface ISegmentPassSpec {
   vertex: string;
   fragment: string;
@@ -49,35 +51,12 @@ export interface ISegmentPass {
   dispose(): void;
 }
 
-const compile = (
-  gl: WebGL2RenderingContext,
-  type: number,
-  source: string,
-): WebGLShader | null => {
-  const shader = gl.createShader(type);
-  if (!shader) {
-    return null;
-  }
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  return shader;
-};
-
-const nearestTexture = (gl: WebGL2RenderingContext) => {
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-};
-
 /** A pass's program and target, made on the first frame that has any. */
 export const createSegmentPass = (
   gl: WebGL2RenderingContext,
   spec: ISegmentPassSpec,
 ): ISegmentPass | null => {
-  const vertex = compile(gl, gl.VERTEX_SHADER, spec.vertex);
-  const fragment = compile(gl, gl.FRAGMENT_SHADER, spec.fragment);
-  const program = gl.createProgram();
+  const program = linkProgram(gl, spec.vertex, spec.fragment);
   const points = gl.createTexture();
   const target = gl.createTexture();
   const framebuffer = gl.createFramebuffer();
@@ -89,26 +68,7 @@ export const createSegmentPass = (
     gl.deleteFramebuffer(framebuffer);
     gl.deleteVertexArray(vertexArray);
   };
-  if (
-    !vertex ||
-    !fragment ||
-    !program ||
-    !points ||
-    !target ||
-    !framebuffer ||
-    !vertexArray
-  ) {
-    gl.deleteShader(vertex);
-    gl.deleteShader(fragment);
-    release();
-    return null;
-  }
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+  if (!program || !points || !target || !framebuffer || !vertexArray) {
     release();
     return null;
   }
@@ -123,7 +83,7 @@ export const createSegmentPass = (
   const rowTexels = spec.pointsPerRow * spec.texelsPerPoint;
   const rowFloats = rowTexels * 4;
   gl.bindTexture(gl.TEXTURE_2D, points);
-  nearestTexture(gl);
+  setNearestClamped(gl);
   gl.texImage2D(
     gl.TEXTURE_2D,
     0,
@@ -136,7 +96,7 @@ export const createSegmentPass = (
     null,
   );
   gl.bindTexture(gl.TEXTURE_2D, target);
-  nearestTexture(gl);
+  setNearestClamped(gl);
   let targetSize = '';
 
   return {

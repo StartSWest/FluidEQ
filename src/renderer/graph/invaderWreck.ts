@@ -1,4 +1,5 @@
 import { BURST, PixelRect, SHIP, spriteRects } from 'common/graphInvaders';
+import noise from 'common/seededNoise';
 import rectsPath from './pixelRects';
 
 /**
@@ -23,11 +24,6 @@ import rectsPath from './pixelRects';
 export const EXPLODE_LIFE = 1.2;
 /** Sparks thrown out of the blast. */
 const SPARKS = 36;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 /**
  * The wreck at an age, as pixel rectangles: the fighter's own pixels flying

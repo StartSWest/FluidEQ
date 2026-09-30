@@ -1,6 +1,7 @@
 import { TERRACE_TIER_FRACTIONS } from 'common/graphTerrace';
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
+import noise from 'common/seededNoise';
 
 /**
  * The valley round the Terrace form, at night. The tiers and the jumper
@@ -78,11 +79,6 @@ export const FIREFLY_LIFE = 2.2;
 export const BIRDS_CROSSING = 7;
 const FIREFLY_LIMIT = 40;
 const STARS = 220;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 export const createTerraceValley = (): TerraceValley => ({
   fireflies: [],

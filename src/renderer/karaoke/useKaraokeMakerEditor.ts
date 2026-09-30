@@ -43,7 +43,7 @@ import {
   TKaraokeMakerWhisperStage,
 } from './makerAi';
 import { IWhisperRunProfile } from './useMakerAnalysisRun';
-import { IKaraokeMakerAnalysisResult } from './makerAnalysis';
+import { IKaraokeMakerAnalysisNote } from './makerAnalysis';
 import { useMakerCanvasGesture } from './useMakerCanvasGesture';
 import { ISentenceAuditionState, useMakerKeyboard } from './useMakerKeyboard';
 import useMakerAuditions from './useMakerAuditions';
@@ -283,8 +283,10 @@ const useKaraokeMakerEditor = ({
   const [analysisRetry, setAnalysisRetry] = useState<
     'whisper' | 'whisper-runtime' | 'pitch'
   >();
-  const [analysisResult, setAnalysisResult] =
-    useState<IKaraokeMakerAnalysisResult>();
+  // The local detector's notes, which a lyric replacement realigns to; the
+  // frames and the waveform they were found in are not kept.
+  const [analysisNotes, setAnalysisNotes] =
+    useState<IKaraokeMakerAnalysisNote[]>();
   const [analysisFile, setAnalysisFile] = useState<File>(audioFile);
   const [exportOpen, setExportOpen] = useState(false);
   const [toolPanel, setToolPanel] = useState<'timing' | 'edit' | 'analysis'>();
@@ -674,8 +676,8 @@ const useKaraokeMakerEditor = ({
     setAnalysisError,
     analysisRetry,
     setAnalysisRetry,
-    analysisResult,
-    setAnalysisResult,
+    analysisNotes,
+    setAnalysisNotes,
     analysisFile,
     setAnalysisFile,
     exportOpen,

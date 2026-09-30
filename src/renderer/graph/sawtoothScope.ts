@@ -1,5 +1,6 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
+import noise from 'common/seededNoise';
 
 /**
  * What makes the sawtooth a scope and not a drawing of one.
@@ -47,12 +48,6 @@ export const createSawtoothScope = () => ({
   sparks: [] as ISpark[],
 });
 export type SawtoothScope = ReturnType<typeof createSawtoothScope>;
-
-/** A cheap deterministic hash in [0, 1). */
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 export const advanceSawtoothScope = (
   state: SawtoothScope,

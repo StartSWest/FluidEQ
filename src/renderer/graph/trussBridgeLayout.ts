@@ -1,6 +1,7 @@
 import { type Projected } from 'common/graphStyles';
 import { vehicleSize } from 'common/graphRoad';
 import createTrussRoad from 'common/graphTruss';
+import noise from 'common/seededNoise';
 import { createFireworkPaths, fireworkLayout } from './bridgeFireworks';
 import type { IBridgeCar, TrussBridge } from './trussBridge';
 import {
@@ -15,7 +16,6 @@ import {
   SEA_STEPS,
   STARS,
   lampBlink,
-  noise,
 } from './trussBridge';
 
 // Where the bridge, its lamps, its cars and the sea under it stand on a

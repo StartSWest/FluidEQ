@@ -11,6 +11,7 @@ import {
   trafficPoses,
   vehicleSize,
 } from 'common/graphRoad';
+import noise from 'common/seededNoise';
 
 /**
  * The road trip in motion: what the still hillside in `graphRoad` does not
@@ -115,12 +116,6 @@ export const advanceRoadTrip = (
 export const highBeam = (state: RoadTrip, seconds: number) => {
   const age = (seconds - state.flashAt) / FLASH_LIFE;
   return state.flashAt < 0 || age < 0 || age > 1 ? 0 : 1 - age;
-};
-
-/** A cheap deterministic hash in [0, 1). */
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
 };
 
 const polygon = (path: Path2D, vertices: readonly Projected[]) => {

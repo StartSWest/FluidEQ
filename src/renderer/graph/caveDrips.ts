@@ -2,6 +2,7 @@ import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
 import { vehicleSize } from 'common/graphRoad';
 import { stalactiteProfiles, IStalactite } from 'common/graphStalactites';
+import noise from 'common/seededNoise';
 
 /**
  * The cave behind the Stalactites form.
@@ -86,11 +87,6 @@ const RIPPLE_LIMIT = 32;
 /** A bead lets go on its own at 1; a hit on the band lets it go from here. */
 const HANG_TO_SHAKE = 0.35;
 const HANG_TO_BIG_BEAT = 0.5;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 const levelOf = (y: number, top: number, bottom: number) =>
   Math.max(0, Math.min(1, (bottom - y) / Math.max(1, bottom - top)));

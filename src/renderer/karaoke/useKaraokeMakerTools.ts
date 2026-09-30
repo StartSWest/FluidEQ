@@ -114,8 +114,8 @@ const useKaraokeMakerTools = (
     setDownloadProgress,
     setAnalysisError,
     setAnalysisRetry,
-    analysisResult,
-    setAnalysisResult,
+    analysisNotes,
+    setAnalysisNotes,
     analysisFile,
     setAnalysisFile,
     setExportOpen,
@@ -388,7 +388,7 @@ const useKaraokeMakerTools = (
     setAnalysisError,
     setAnalysisMessage,
     setAnalysisProgress,
-    setAnalysisResult,
+    setAnalysisNotes,
     setAnalysisRetry,
     setDownloadProgress,
     setLyricsDraft,
@@ -442,9 +442,9 @@ const useKaraokeMakerTools = (
     pushHistory,
     setProject,
     setSelection,
-    analysisResult,
+    analysisNotes,
     project,
-    setAnalysisResult,
+    setAnalysisNotes,
   });
 
   const {

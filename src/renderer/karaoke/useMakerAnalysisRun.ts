@@ -15,7 +15,7 @@ import { useTranslation } from '../utils/I18nContext';
 import useKaraokeMakerProject from './useKaraokeMakerProject';
 import { flattenTokens } from './makerProjectEdits';
 import {
-  IKaraokeMakerAnalysisResult,
+  IKaraokeMakerAnalysisNote,
   analyzeKaraokeMakerAudio,
 } from './makerAnalysis';
 import {
@@ -111,8 +111,8 @@ export interface IMakerAnalysisRunParams extends Pick<
   setAnalysisRetry: Dispatch<
     SetStateAction<'whisper' | 'whisper-runtime' | 'pitch' | undefined>
   >;
-  setAnalysisResult: Dispatch<
-    SetStateAction<IKaraokeMakerAnalysisResult | undefined>
+  setAnalysisNotes: Dispatch<
+    SetStateAction<IKaraokeMakerAnalysisNote[] | undefined>
   >;
   setWhisperStage: Dispatch<
     SetStateAction<TKaraokeMakerWhisperStage | undefined>
@@ -145,7 +145,7 @@ export const useMakerAnalysisRun = ({
   setAnalysisError,
   setAnalysisMessage,
   setAnalysisProgress,
-  setAnalysisResult,
+  setAnalysisNotes,
   setAnalysisRetry,
   setDownloadProgress,
   setLyricsDraft,
@@ -311,7 +311,7 @@ export const useMakerAnalysisRun = ({
           setAnalysisProgress,
           controller.signal,
         );
-        setAnalysisResult(fallback);
+        setAnalysisNotes(fallback.notes);
         const publishBase = baseProject ?? projectRef.current;
         const repairBaseline = baseProject
           ? undefined

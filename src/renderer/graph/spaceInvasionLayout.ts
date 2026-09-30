@@ -10,6 +10,7 @@ import {
   textBitmap,
 } from 'common/graphInvaders';
 import { type Projected } from 'common/graphStyles';
+import noise from 'common/seededNoise';
 import { ALIEN_FLOOR, SHIP_SCALE } from './invaderCabinet';
 import { EXPLODE_LIFE, wreckLayout } from './invaderWreck';
 import rectsPath from './pixelRects';
@@ -27,7 +28,6 @@ import {
   STAR_ALPHAS,
   alienBob,
   alienY,
-  noise,
   poseFor,
   saucerAt,
   wreckAge,

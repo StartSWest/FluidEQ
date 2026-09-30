@@ -9,6 +9,7 @@ import {
   SAUCER,
   SHIP,
 } from 'common/graphInvaders';
+import noise from 'common/seededNoise';
 import {
   ALIEN_FLOOR,
   ALIEN_SCORES,
@@ -246,11 +247,6 @@ export const saucerAt = (
 /** How long ago the last ship was blown apart, or Infinity if it never was. */
 export const wreckAge = (state: SpaceInvasion, seconds: number) =>
   state.explodedAt < 0 ? Infinity : seconds - state.explodedAt;
-
-export const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 export const createSpaceInvasion = (): SpaceInvasion => ({
   stars: Array.from({ length: STARS }, (_, i) => ({

@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
+import { linkProgram } from './glProgram';
 
 /**
  * One full-screen pass of the finishing chain: a program over the shared
@@ -21,50 +22,19 @@ export interface IPostPass {
   dispose(): void;
 }
 
-const compile = (gl: WebGL2RenderingContext, kind: number, source: string) => {
-  const shader = gl.createShader(kind);
-  if (!shader) {
-    return null;
-  }
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    console.error(
-      'Scene finishing shader failed:',
-      gl.getShaderInfoLog(shader),
-    );
-    gl.deleteShader(shader);
-    return null;
-  }
-  return shader;
-};
-
 export const linkPostProgram = (
   gl: WebGL2RenderingContext,
   fragmentSource: string,
   uniforms: readonly string[],
 ): IPostPass | null => {
-  const vertex = compile(gl, gl.VERTEX_SHADER, SCENE_VERTEX_SOURCE);
-  const fragment = compile(gl, gl.FRAGMENT_SHADER, fragmentSource);
-  const program = gl.createProgram();
+  const program = linkProgram(
+    gl,
+    SCENE_VERTEX_SOURCE,
+    fragmentSource,
+    'Scene finishing',
+  );
   const vao = gl.createVertexArray();
-  if (!vertex || !fragment || !program || !vao) {
-    gl.deleteShader(vertex);
-    gl.deleteShader(fragment);
-    gl.deleteProgram(program);
-    gl.deleteVertexArray(vao);
-    return null;
-  }
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    console.error(
-      'Scene finishing program failed:',
-      gl.getProgramInfoLog(program),
-    );
+  if (!program || !vao) {
     gl.deleteProgram(program);
     gl.deleteVertexArray(vao);
     return null;

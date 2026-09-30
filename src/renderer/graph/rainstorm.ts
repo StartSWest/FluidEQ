@@ -1,5 +1,6 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
+import noise from 'common/seededNoise';
 
 /**
  * The storm behind the Rainfall form.
@@ -72,11 +73,6 @@ export const SHAKE_LIFE = 0.45;
 const DROPS_PER_COLUMN = 4;
 export const WATER_DEPTH = 0.1;
 const RING_LIMIT = 28;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 export const createRainstorm = (): Rainstorm => ({
   hang: [],

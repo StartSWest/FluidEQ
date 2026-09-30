@@ -1,5 +1,6 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
+import noise from 'common/seededNoise';
 import type { ISkyFrame } from './terraceValley';
 
 /**
@@ -101,11 +102,6 @@ export const smoothSlopeColumns = (
 
 const levelOf = (y: number, top: number, bottom: number) =>
   Math.max(0, Math.min(1, (bottom - y) / Math.max(1, bottom - top)));
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 /**
  * The curve's height and gradient at an x, from the columns.

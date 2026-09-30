@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import noise from './seededNoise';
 import {
   GraphStyle,
   MAX_GRAPH_COLUMNS,
@@ -71,17 +72,6 @@ export interface IGraphPiece {
 export const LED_CELL_BUDGET = 48 * MAX_GRAPH_COLUMNS;
 
 /**
- * A repeatable number per piece.
- *
- * The roofs must not change between frames, so they are drawn from the
- * piece's index rather than from anything measured off the window.
- */
-const pieceNoise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
-
-/**
  * A TOWER, not a bar with holes in it.
  *
  * The windows used to be punched out of the block, which made them the
@@ -109,7 +99,7 @@ const skylineTower = (
   if (height < 1) {
     return [];
   }
-  const kind = pieceNoise(index * 41 + 7);
+  const kind = noise(index * 41 + 7);
   const half = width / 2;
   if (kind < 0.34) {
     // A setback: the top storey stands in from the walls below it.

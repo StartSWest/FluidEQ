@@ -1,5 +1,6 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
+import noise from 'common/seededNoise';
 
 /**
  * The stage round the Braid form. The braid itself is unchanged: five
@@ -44,11 +45,6 @@ const MOTE_LIMIT = 48;
 const SPARK_LIMIT = 10;
 /** The floor takes this much of the plot from the bottom. */
 export const FLOOR = 0.16;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 export const createBraidStage = (): BraidStage => ({
   motes: [],

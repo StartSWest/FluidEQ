@@ -1,5 +1,6 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
+import noise from 'common/seededNoise';
 
 /**
  * The hyperspace behind the Warp speed form.
@@ -65,11 +66,6 @@ const ROCK_LIMIT = 6;
 /** Streaks per column, at three depths, and the segments a streak's waveform has. */
 export const STREAK_LAYERS = 3;
 const WAVE_STEPS = 6;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 export const createWarpTunnel = (): WarpTunnel => ({
   sky: Array.from({ length: SKY_STARS }, (_, i) => ({

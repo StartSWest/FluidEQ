@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { SCENE_VERTEX_SOURCE } from 'common/sceneUniformContract';
+import { linkProgram, setNearestClamped } from '../glProgram';
 import type { IEngineLookHistory, IEngineLookInput } from './engineLookInput';
 import { createLookLines, type ILookLines } from './lookLines';
 import { createLookStrokes, type ILookStrokes } from './lookStrokes';
@@ -76,42 +77,9 @@ export interface ILookGl {
   dispose(): void;
 }
 
-const compile = (
-  gl: WebGL2RenderingContext,
-  type: number,
-  source: string,
-): WebGLShader | null => {
-  const shader = gl.createShader(type);
-  if (!shader) {
-    return null;
-  }
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  return shader;
-};
-
 /** The blur, compiled and linked where it is made: two dozen lines of GLSL. */
-const createBlurProgram = (gl: WebGL2RenderingContext): WebGLProgram | null => {
-  const vertex = compile(gl, gl.VERTEX_SHADER, SCENE_VERTEX_SOURCE);
-  const fragment = compile(gl, gl.FRAGMENT_SHADER, BLUR_SOURCE);
-  const program = gl.createProgram();
-  if (!vertex || !fragment || !program) {
-    gl.deleteShader(vertex);
-    gl.deleteShader(fragment);
-    gl.deleteProgram(program);
-    return null;
-  }
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    gl.deleteProgram(program);
-    return null;
-  }
-  return program;
-};
+const createBlurProgram = (gl: WebGL2RenderingContext): WebGLProgram | null =>
+  linkProgram(gl, SCENE_VERTEX_SOURCE, BLUR_SOURCE);
 
 interface ITarget {
   texture: WebGLTexture;
@@ -193,10 +161,7 @@ export const createLookGl = (
   gl.bindTexture(gl.TEXTURE_2D, data);
   // Float texels are read with texelFetch, never filtered: RGBA32F is not
   // filterable without an extension, and a layout is not something to blend.
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  setNearestClamped(gl);
   let dataSize = '';
 
   // The bloom's parts, made on the first frame that blooms: a look drawn
@@ -233,10 +198,7 @@ export const createLookGl = (
     if (!history) {
       history = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, history);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      setNearestClamped(gl);
     }
     gl.bindTexture(gl.TEXTURE_2D, history);
     const { width, rows, strips, printed, latest } = kept;

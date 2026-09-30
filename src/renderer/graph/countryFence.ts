@@ -1,5 +1,6 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
+import noise from 'common/seededNoise';
 
 /**
  * The countryside behind the Fence form.
@@ -67,11 +68,6 @@ export const GRASS_BLADES = 170;
 export const TREES = 7;
 /** How much of the plot the ground takes from the floor, for the fence's foot. */
 export const GROUND = 0.16;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 export const createCountryFence = (): CountryFence => ({
   rise: [],

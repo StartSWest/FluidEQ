@@ -42,11 +42,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   z-index: 3;
 }
 
-// The head's shade element (`HeadSceneShade`) shows nothing now.
-.center-head__shade {
-  display: none;
-}
-
 // A veil of the floor over the scene wherever the window is not the graph:
 // the scene is whole and at its own strength in the graph, which is where it
 // is looked at, and the same scene carries on behind the panes a step down,

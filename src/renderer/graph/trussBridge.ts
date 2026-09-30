@@ -1,6 +1,7 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
 import createTrussRoad from 'common/graphTruss';
+import noise from 'common/seededNoise';
 
 import { IRocket, ROCKET_CLIMB, shellFor, shellLife } from './bridgeFireworks';
 
@@ -259,12 +260,6 @@ export const createTrussBridge = () => ({
   deck: [] as number[],
 });
 export type TrussBridge = ReturnType<typeof createTrussBridge>;
-
-/** A cheap deterministic hash in [0, 1). */
-export const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 /**
  * Where the deck wants to be: the road profile, flattened to mid-plot.

@@ -135,6 +135,17 @@ const parse = (tokens: TToken[], scope: IExpressionScope) => {
         evaluate: (rt: IExpressionRuntime) => combine(left(rt), right(rt)),
       };
     }
+    // clamp, mix and smoothstep: spread from a mapped array, each call made
+    // an array per instance per frame.
+    if (evaluators.length === 3) {
+      const [first, second, third] = evaluators;
+      return {
+        evaluate: (rt: IExpressionRuntime) =>
+          combine(first(rt), second(rt), third(rt)),
+      };
+    }
+    // No function takes more than three (`ARITY`); one that does lands here,
+    // and allocates per call until it has a case of its own above.
     return {
       evaluate: (rt: IExpressionRuntime) =>
         combine(...evaluators.map((evaluate) => evaluate(rt))),

@@ -1,5 +1,6 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
+import noise from 'common/seededNoise';
 import type { ISkyFrame } from './terraceValley';
 import { floorLifted } from '../utils/windowInk';
 
@@ -51,11 +52,6 @@ export const CITY_BEACON = '#ff4d4d';
 const STARS = 200;
 /** How long a window stays on before the roster is redrawn, in seconds. */
 const WINDOW_SHIFT = 3.5;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 export const createCitySkyline = (): CitySkyline => ({
   mean: 0,

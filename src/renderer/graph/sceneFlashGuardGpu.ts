@@ -1,4 +1,5 @@
 import { SCENE_VERTEX_SOURCE } from '../../common/sceneUniformContract';
+import { linkProgram } from './glProgram';
 import {
   FLASH_AREA_FULL,
   FLASH_AREA_START,
@@ -231,38 +232,8 @@ interface ITarget {
   height: number;
 }
 
-const compile = (gl: WebGL2RenderingContext, kind: number, source: string) => {
-  const shader = gl.createShader(kind);
-  if (!shader) {
-    return null;
-  }
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    gl.deleteShader(shader);
-    return null;
-  }
-  return shader;
-};
-
-const link = (gl: WebGL2RenderingContext, fragmentSource: string) => {
-  const vertex = compile(gl, gl.VERTEX_SHADER, SCENE_VERTEX_SOURCE);
-  const fragment = compile(gl, gl.FRAGMENT_SHADER, fragmentSource);
-  const program = gl.createProgram();
-  if (!vertex || !fragment || !program) {
-    return null;
-  }
-  gl.attachShader(program, vertex);
-  gl.attachShader(program, fragment);
-  gl.linkProgram(program);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    gl.deleteProgram(program);
-    return null;
-  }
-  return program;
-};
+const link = (gl: WebGL2RenderingContext, fragmentSource: string) =>
+  linkProgram(gl, SCENE_VERTEX_SOURCE, fragmentSource);
 
 /**
  * `null` when the GPU cannot give it what it needs — the scene then must not
@@ -293,6 +264,12 @@ export const createFlashGuard = (
   const calmProgram = link(gl, CALM_SOURCE);
   const vao = gl.createVertexArray();
   if (!composite || !stateProgram || !calmProgram || !vao) {
+    // Whichever of them was made goes with the refusal: the next member's
+    // scene asks for a guard again, and each refusal left its programs behind.
+    gl.deleteProgram(composite);
+    gl.deleteProgram(stateProgram);
+    gl.deleteProgram(calmProgram);
+    gl.deleteVertexArray(vao);
     return null;
   }
   const where = {

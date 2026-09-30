@@ -1,5 +1,6 @@
 import type { Projected } from 'common/graphStyles';
 import { getEaseFactor } from 'common/smoothing';
+import noise from 'common/seededNoise';
 
 /**
  * The aqueduct behind the Arches form.
@@ -65,11 +66,6 @@ export const EMBER_LIFE = 2.2;
 export const BIRDS_CROSSING = 7;
 const EMBER_LIMIT = 40;
 export const RIVER_DEPTH = 0.14;
-
-const noise = (seed: number) => {
-  const v = Math.sin(seed * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-};
 
 export const createStoneArcade = (): StoneArcade => ({
   rise: [],
