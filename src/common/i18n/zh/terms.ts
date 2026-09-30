@@ -204,6 +204,8 @@ const terms = {
     '更新：启动时以及你回到电脑前时，FluidEQ 会在其发布源中检查是否有新版本，并且只有在校验签名之后才会安装。该请求携带一个由更新程序保存在这台电脑上的随机编号，不含任何关于你的信息。',
   'terms.elsewhere.p2':
     '耳机预设：FluidEQ 打开时会在 GitHub 上检查是否有新的耳机预设；“卷积”标签页会在你打开它或选择耳机时从 GitHub 下载 AutoEq 文件。',
+  'terms.elsewhere.p10':
+    '用户指南中的“FluidEQ 入门”视频：在你按下播放之前不会下载任何内容；之后，视频及其英文字幕从 FluidEQ 自己的网站 fluideq.com 以流式传输。该请求不带任何 Cookie，也不含任何关于你或你账户的信息，网站也不会留下记录。如果无法播放，“在 fluideq.com 上打开”会在你的浏览器中显示它。',
   'terms.elsewhere.p3':
     '你使用的模型：“卡拉OK 制作器”从 Hugging Face 下载其语音、人声和旋律模型，语音降噪器从 GitHub 下载其模型。你的音频在你的电脑上处理。',
   'terms.elsewhere.p9':

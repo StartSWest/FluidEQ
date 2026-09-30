@@ -257,6 +257,31 @@ describe('the Plus terms', () => {
   });
 
   /**
+   * The User guide's first-steps video is the app's one connection to
+   * fluideq.com. The terms name it by the title the card wears and the button
+   * that opens it in a browser, so a reader can find both; a card renamed in
+   * one place and not the other points them at something that is not there.
+   */
+  it('name the Help video and its button as the guide shows them, in every language', () => {
+    expect(TERMS_SECTIONS.flatMap((section) => section.lines)).toContain(
+      'terms.elsewhere.p10',
+    );
+    const namesTheVideo = (
+      code: (typeof LOCALES)[number]['code'],
+      key: 'terms.elsewhere.p10' | 'terms.elsewhere.p2',
+    ) =>
+      translate(code, key).includes(translate(code, 'help.start.videoTitle')) &&
+      translate(code, key).includes(translate(code, 'help.video.open'));
+    const unnamed = LOCALES.filter(
+      ({ code }) => !namesTheVideo(code, 'terms.elsewhere.p10'),
+    ).map(({ code }) => code);
+    expect(unnamed).toEqual([]);
+    // The positive control: a line about another download is not read as
+    // naming the video.
+    expect(namesTheVideo('en', 'terms.elsewhere.p2')).toBe(false);
+  });
+
+  /**
    * A scene can carry 3D models, which an export and a publish send and the
    * Studio keeps. Every line that lists what a scene is made of has to name
    * them, in every language: a reader who is told "code, settings and

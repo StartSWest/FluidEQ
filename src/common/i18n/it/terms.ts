@@ -214,6 +214,8 @@ const terms = {
     'Aggiornamenti: all’avvio e quando torni al computer, FluidEQ controlla il suo feed delle versioni per trovarne una nuova, e la installa solo dopo averne controllato la firma. La richiesta porta con sé un numero casuale che il programma di aggiornamento conserva su questo computer, e nulla su di te.',
   'terms.elsewhere.p2':
     'Preset per cuffie: quando FluidEQ si apre, controlla su GitHub se ci sono nuovi preset per cuffie, e la scheda Convoluzione scarica file AutoEq da GitHub quando la apri o scegli delle cuffie.',
+  'terms.elsewhere.p10':
+    'Il video «Primi passi con FluidEQ» nella Guida utente: non viene scaricato nulla finché non premi play; poi il video e i suoi sottotitoli in inglese arrivano da fluideq.com, il sito di FluidEQ stesso. La richiesta non porta alcun cookie né nulla su di te o sul tuo account, e il sito non ne conserva traccia. Se non si può riprodurre, «Apri su fluideq.com» lo mostra nel tuo browser.',
   'terms.elsewhere.p3':
     'Modelli che usi: il Creatore di karaoke scarica da Hugging Face i suoi modelli per il parlato, la voce e la melodia, e la riduzione del rumore per la voce scarica il suo modello da GitHub. Il tuo audio viene elaborato sul tuo computer.',
   'terms.elsewhere.p9':

@@ -298,6 +298,9 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     lines: [
       'terms.elsewhere.p1',
       'terms.elsewhere.p2',
+      // The Help video, written after p9 and read beside the other things
+      // FluidEQ fetches: the numbers are identifiers, this list is the order.
+      'terms.elsewhere.p10',
       'terms.elsewhere.p3',
       // The Studio's AI link, written after p8 and read beside the models:
       // the numbers are identifiers, this list is the order.

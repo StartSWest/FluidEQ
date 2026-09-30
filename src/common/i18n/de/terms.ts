@@ -214,6 +214,8 @@ const terms = {
     'Updates: Beim Start und wenn Sie an den Computer zurückkehren, sieht FluidEQ in seinem Release-Feed nach einer neuen Version und installiert eine erst, nachdem es ihre Signatur geprüft hat. Die Anfrage enthält eine Zufallszahl, die der Updater auf diesem Computer speichert, und nichts über Sie.',
   'terms.elsewhere.p2':
     'Kopfhörer-Presets: Beim Öffnen sieht FluidEQ auf GitHub nach neuen Kopfhörer-Presets, und der Tab „Faltung“ lädt AutoEq-Dateien von GitHub herunter, wenn Sie ihn öffnen oder einen Kopfhörer auswählen.',
+  'terms.elsewhere.p10':
+    'Das Video „Erste Schritte mit FluidEQ“ im Benutzerhandbuch: Nichts wird geladen, bevor Sie auf Wiedergabe drücken; dann kommen das Video und seine englischen Untertitel von fluideq.com, der eigenen Website von FluidEQ. Die Anfrage enthält kein Cookie und nichts über Sie oder Ihr Konto, und die Website speichert keinen Eintrag darüber. Lässt es sich nicht abspielen, zeigt „Auf fluideq.com öffnen“ es in Ihrem Browser.',
   'terms.elsewhere.p3':
     'Modelle, die Sie nutzen: Der „Karaoke-Editor“ lädt seine Sprach-, Gesangs- und Melodiemodelle von Hugging Face herunter, die Rauschentfernung für Stimmen ihr Modell von GitHub. Ihr Audio wird auf Ihrem Computer verarbeitet.',
   'terms.elsewhere.p9':

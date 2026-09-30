@@ -95,6 +95,13 @@
  * the server allows — one administrator account, seeded by address, and no
  * moderator role. Naming a second reviewer changes who reads a member's
  * work, so that needs a raise rather than an amendment.
+ *
+ * And once more before 2.0 shipped (2026-09-30, still only the admin's own
+ * agreement to 9, still no public release carrying it): the User guide's
+ * first-steps video is the app's first connection to fluideq.com, so it has
+ * its line under Where else FluidEQ connects. That line says the site keeps
+ * no record of the request, which is only true while the site's /video/
+ * location has its access log off, as /fonts/ and /img/ already do.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.

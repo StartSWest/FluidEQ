@@ -217,6 +217,8 @@ const terms = {
     'Mises à jour : à son démarrage et quand vous revenez à l’ordinateur, FluidEQ consulte son flux de versions pour voir s’il en existe une nouvelle, et ne l’installe qu’après avoir vérifié sa signature. La requête contient un nombre aléatoire que le programme de mise à jour conserve sur cet ordinateur, et rien sur vous.',
   'terms.elsewhere.p2':
     'Préréglages de casque : à son ouverture, FluidEQ vérifie sur GitHub s’il existe de nouveaux préréglages de casque, et l’onglet Convolution télécharge des fichiers AutoEq depuis GitHub quand vous l’ouvrez ou choisissez un casque.',
+  'terms.elsewhere.p10':
+    'La vidéo « Premiers pas avec FluidEQ » du Guide utilisateur : rien n’est téléchargé tant que vous n’appuyez pas sur lecture ; la vidéo et ses sous-titres en anglais arrivent alors de fluideq.com, le site de FluidEQ lui-même. La requête ne porte aucun cookie ni rien sur vous ou votre compte, et le site n’en garde aucune trace. Si elle ne peut pas être lue, « Ouvrir sur fluideq.com » l’affiche dans votre navigateur.',
   'terms.elsewhere.p3':
     'Modèles que vous utilisez : le Créateur de karaoké télécharge ses modèles de parole, de voix et de mélodie depuis Hugging Face, et le débruitage de la voix, son modèle depuis GitHub. Votre son est traité sur votre ordinateur.',
   'terms.elsewhere.p9':
