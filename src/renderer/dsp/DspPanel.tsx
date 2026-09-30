@@ -299,7 +299,7 @@ const DspPanel = ({
   });
 
   /**
-   * The two bridge calls this panel needs, each checked for individually.
+   * The bridge calls this panel needs, each checked for individually.
    *
    * Not just "is there a bridge": this panel is rendered by tests that have no
    * preload at all AND by ones that supply a partial one, so the object being
@@ -309,6 +309,7 @@ const DspPanel = ({
    */
   const readModelState = window.electron?.ipcRenderer?.readDspDenoiseModelState;
   const downloadModel = window.electron?.ipcRenderer?.downloadDspDenoiseModel;
+  const cancelModel = window.electron?.ipcRenderer?.cancelDspDenoiseModel;
 
   useEffect(() => {
     if (typeof readModelState !== 'function') {
@@ -340,9 +341,9 @@ const DspPanel = ({
       });
     })
       .then((ok) => {
-        // `ok` is false when the bytes arrived but the engine has not taken
-        // them yet — a host that is not running. The file is still on disk, so
-        // the state is re-read rather than assumed failed.
+        // `ok` says whether the file is on disk, not whether the engine has
+        // taken it (main's handler): false is a download that failed, bytes
+        // that were refused, or a cancel.
         setVoiceModel(
           ok
             ? { state: 'ready', fraction: 1 }
@@ -352,6 +353,13 @@ const DspPanel = ({
       })
       .catch(() => setVoiceModel({ state: 'missing', fraction: 0 }));
   }, [downloadModel]);
+
+  // The download's own answer puts the card back to `missing`.
+  const cancelVoiceModel = useCallback(() => {
+    if (typeof cancelModel === 'function') {
+      cancelModel().catch(() => undefined);
+    }
+  }, [cancelModel]);
 
   /**
    * Isolate is an audition state owned by the page that exposes its switch.
@@ -596,6 +604,7 @@ const DspPanel = ({
               analysisState={inputAnalysis}
               model={voiceModel}
               onDownloadModel={downloadVoiceModel}
+              onCancelModel={cancelVoiceModel}
               onRescan={() => requestDspNoiseRescan(inputAnalysis.trackId)}
               onPatch={(next) => patch({ denoise: next })}
               onCommit={onCommit}

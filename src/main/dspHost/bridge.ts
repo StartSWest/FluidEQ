@@ -228,6 +228,10 @@ const downloadDspDenoiseModel = (
     );
 };
 
+/** Stop the Voice model's download; `downloadDspDenoiseModel` answers false. */
+const cancelDspDenoiseModel = (): Promise<void> =>
+  ipcRenderer.invoke('dsp-denoise-model-cancel');
+
 /**
  * The listener's fader, 0 to 1.
  *
@@ -357,6 +361,7 @@ export const dspHostBridge = {
   setDspHostNoiseProfile,
   readDspDenoiseModelState,
   downloadDspDenoiseModel,
+  cancelDspDenoiseModel,
   setDspHostVolume,
   setDspHostAnalysis,
   onDspHostAnalysis,

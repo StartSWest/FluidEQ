@@ -211,6 +211,7 @@ const dsp = {
   'dsp.denoise.voiceModelMissing': '需先一次性下载 10 MB 模型才能运行。',
   'dsp.denoise.voiceDownload': '下载模型',
   'dsp.denoise.voiceDownloading': '正在下载模型 · {progress}%',
+  'dsp.denoise.voiceCancel': '取消',
   'dsp.denoise.voiceReady': '模型就绪',
   'dsp.denoise.analysis': '音源分析',
   'dsp.denoise.rescan': '重新扫描',

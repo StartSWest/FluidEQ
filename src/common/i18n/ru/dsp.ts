@@ -223,6 +223,7 @@ const dsp = {
     'Требуется однократная загрузка модели на 10 МБ, прежде чем это заработает.',
   'dsp.denoise.voiceDownload': 'Загрузить модель',
   'dsp.denoise.voiceDownloading': 'Загрузка модели · {progress}%',
+  'dsp.denoise.voiceCancel': 'Отмена',
   'dsp.denoise.voiceReady': 'Модель готова',
   'dsp.denoise.analysis': 'Анализ источника',
   'dsp.denoise.rescan': 'Повторить анализ',

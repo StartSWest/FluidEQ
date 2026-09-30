@@ -27,6 +27,7 @@ import {
 import { isChainWirePayload } from '../../common/dsp/chainWire';
 import { NOISE_PROFILE_WIRE_LENGTH } from '../../common/dsp/noiseProfile';
 import {
+  cancelDenoiseModelDownload,
   denoiseModelPath,
   downloadDenoiseModel,
   isDenoiseModelPresent,
@@ -336,6 +337,11 @@ export const registerDspHostIpc = ({
    * nothing. Progress goes back on its own channel so the card can show it
    * from the first second rather than after ten megabytes of silence.
    */
+  /** The model's download stopped; its request answers false. */
+  ipcMain.handle('dsp-denoise-model-cancel', (): void => {
+    cancelDenoiseModelDownload();
+  });
+
   ipcMain.handle(
     'dsp-denoise-model-download',
     async (event): Promise<boolean> => {

@@ -38,6 +38,7 @@ interface IDspDenoiseCardProps {
   analysisState: IDspInputAnalysisState;
   model: IDspVoiceModelState;
   onDownloadModel: () => void;
+  onCancelModel: () => void;
   onRescan: () => void;
   onPatch: (next: IDenoiseSettings) => void;
   onCommit: () => void;
@@ -63,6 +64,7 @@ const DspDenoiseCard = ({
   analysisState,
   model,
   onDownloadModel,
+  onCancelModel,
   onRescan,
   onPatch,
   onCommit,
@@ -589,6 +591,15 @@ const DspDenoiseCard = ({
                   >
                     <span style={{ width: `${model.fraction * 100}%` }} />
                   </div>
+                  {/* At the far end of the row, never where the download
+                      button stood: a double press there would cancel. */}
+                  <button
+                    type="button"
+                    className="button small subtle"
+                    onClick={onCancelModel}
+                  >
+                    {t('dsp.denoise.voiceCancel')}
+                  </button>
                 </>
               ) : null}
             </div>

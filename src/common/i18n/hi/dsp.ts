@@ -220,6 +220,7 @@ const dsp = {
     'चलने से पहले एक बार 10 MB का मॉडल डाउनलोड करना होगा।',
   'dsp.denoise.voiceDownload': 'मॉडल डाउनलोड करें',
   'dsp.denoise.voiceDownloading': 'मॉडल डाउनलोड हो रहा है · {progress}%',
+  'dsp.denoise.voiceCancel': 'रद्द करें',
   'dsp.denoise.voiceReady': 'मॉडल तैयार',
   'dsp.denoise.analysis': 'स्रोत विश्लेषण',
   'dsp.denoise.rescan': 'फिर से स्कैन करें',

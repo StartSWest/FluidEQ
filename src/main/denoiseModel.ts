@@ -169,33 +169,41 @@ export interface IDenoiseModelProgress {
   total: number;
 }
 
-let downloading = false;
+type TModelProgress = (progress: IDenoiseModelProgress) => void;
 
 /**
- * Fetch the model to disk, verify it, and only then put it where it is found.
+ * The download in flight, which a later ask joins rather than being refused.
  *
+ * The card forgets a download when the page it is on closes. Coming back and
+ * pressing the button again was answered "no" at once while the first
+ * download carried on unseen, so the button looked as if it did nothing and
+ * the card said "missing" until the page was opened again after it finished.
+ */
+let inFlight:
+  | {
+      done: Promise<boolean>;
+      controller: AbortController;
+      listeners: Set<TModelProgress>;
+    }
+  | undefined;
+
+/**
  * Written chunk by chunk as it arrives, never streamed through `pipeline`:
  * fetch plus pipeline crashes inside Node's HTTP parser when the disk is
  * slower than the socket, and it does so AFTER every byte has arrived — which
  * looks exactly like a flaky mirror and is not (`modelDownload.ts`).
  *
  * Written under a temporary name and renamed only once the hash matches, so a
- * crash or a truncated download cannot leave a file that looks cached forever
- * after and fails at session creation instead.
+ * crash, a truncated download or a cancelled one cannot leave a file that
+ * looks cached forever after and fails at session creation instead.
  */
-export const downloadDenoiseModel = async (
-  onProgress: (progress: IDenoiseModelProgress) => void,
+const fetchModel = async (
+  signal: AbortSignal,
+  report: TModelProgress,
 ): Promise<boolean> => {
-  if (isDenoiseModelPresent()) {
-    return true;
-  }
-  if (downloading) {
-    return false;
-  }
-  downloading = true;
   try {
     await fs.promises.mkdir(modelDir(), { recursive: true });
-    const response = await fetch(MODEL_URL);
+    const response = await fetch(MODEL_URL, { signal });
     if (!response.ok || !response.body) {
       return false;
     }
@@ -203,7 +211,7 @@ export const downloadDenoiseModel = async (
       body: response.body,
       total: Number(response.headers.get('content-length') ?? MODEL_BYTES),
       target: denoiseModelPath(),
-      onBytes: (received, total) => onProgress({ received, total }),
+      onBytes: (received, total) => report({ received, total }),
       accept: (digest) => {
         if (digest === MODEL_SHA256) {
           return true;
@@ -216,9 +224,41 @@ export const downloadDenoiseModel = async (
       },
     });
   } catch (error) {
-    log.error('denoise model download failed', error);
+    // A cancel is the answer somebody asked for, not a failure to log.
+    if (!signal.aborted) {
+      log.error('denoise model download failed', error);
+    }
     return false;
-  } finally {
-    downloading = false;
   }
+};
+
+/**
+ * Fetch the model to disk, verify it, and only then put it where it is found:
+ * true once it is there, false when the download failed, its bytes were
+ * refused, or it was cancelled (`cancelDenoiseModelDownload`).
+ */
+export const downloadDenoiseModel = (
+  onProgress: TModelProgress,
+): Promise<boolean> => {
+  if (isDenoiseModelPresent()) {
+    return Promise.resolve(true);
+  }
+  if (!inFlight) {
+    const controller = new AbortController();
+    const listeners = new Set<TModelProgress>();
+    const done = fetchModel(controller.signal, (progress) =>
+      listeners.forEach((listener) => listener(progress)),
+    ).finally(() => {
+      inFlight = undefined;
+    });
+    inFlight = { done, controller, listeners };
+  }
+  const download = inFlight;
+  download.listeners.add(onProgress);
+  return download.done.finally(() => download.listeners.delete(onProgress));
+};
+
+/** Stop the download in flight, if there is one: every ask for it gets false. */
+export const cancelDenoiseModelDownload = (): void => {
+  inFlight?.controller.abort();
 };

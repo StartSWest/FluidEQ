@@ -218,6 +218,7 @@ const dsp = {
     '動作させるには一度だけ 10 MB のモデルをダウンロードする必要があります。',
   'dsp.denoise.voiceDownload': 'モデルをダウンロード',
   'dsp.denoise.voiceDownloading': 'モデルをダウンロード中 · {progress}%',
+  'dsp.denoise.voiceCancel': 'キャンセル',
   'dsp.denoise.voiceReady': 'モデル準備完了',
   'dsp.denoise.analysis': '音源の解析',
   'dsp.denoise.rescan': '再解析',

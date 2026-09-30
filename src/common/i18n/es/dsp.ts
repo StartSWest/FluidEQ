@@ -224,6 +224,7 @@ const dsp = {
     'Necesita descargar una vez un modelo de 10 MB antes de poder funcionar.',
   'dsp.denoise.voiceDownload': 'Descargar modelo',
   'dsp.denoise.voiceDownloading': 'Descargando el modelo · {progress}%',
+  'dsp.denoise.voiceCancel': 'Cancelar',
   'dsp.denoise.voiceReady': 'Modelo listo',
   'dsp.denoise.analysis': 'Análisis de la fuente',
   'dsp.denoise.rescan': 'Reanalizar',
