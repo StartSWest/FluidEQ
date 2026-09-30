@@ -127,8 +127,8 @@ const look: Partial<Dictionary> = {
   'support.game.share': '分享',
   'support.game.shareEuphoria': '分享彩虹',
   'support.game.shareTitle': '分享你的分数',
-  'support.game.shareUnlock':
-    '通过游戏或确认支持来解锁彩虹模式，让这张卡片呈现彩虹色。',
+  'support.game.shareRainbow':
+    '在“{windowColours}”中打开“{rainbow}”，让这张卡片呈现彩虹色。',
   'support.game.shareNote':
     '先保存卡片，再附加到你的帖子里：这些平台都无法从链接中取出图片。',
   'support.game.shareSave': '保存卡片',

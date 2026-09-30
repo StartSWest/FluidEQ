@@ -133,8 +133,8 @@ const look: Partial<Dictionary> = {
   'support.game.share': 'Compartilhar',
   'support.game.shareEuphoria': 'Compartilhar o arco-íris',
   'support.game.shareTitle': 'Compartilhe sua pontuação',
-  'support.game.shareUnlock':
-    'Desbloqueie o modo arco-íris jogando ou confirmando sua contribuição para dar suas cores a este cartão.',
+  'support.game.shareRainbow':
+    'Ative o {rainbow} em {windowColours} para dar suas cores a este cartão.',
   'support.game.shareNote':
     'Salve o cartão e anexe-o à publicação: nenhuma destas redes consegue tirar uma imagem de um link.',
   'support.game.shareSave': 'Salvar cartão',

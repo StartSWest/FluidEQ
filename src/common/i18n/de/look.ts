@@ -136,8 +136,8 @@ const look: Partial<Dictionary> = {
   'support.game.share': 'Teilen',
   'support.game.shareEuphoria': 'Regenbogen teilen',
   'support.game.shareTitle': 'Teilen Sie Ihr Ergebnis',
-  'support.game.shareUnlock':
-    'Schalten Sie den Regenbogenmodus durch Spielen oder Bestätigen Ihres Beitrags frei, um dieser Karte Regenbogenfarben zu geben.',
+  'support.game.shareRainbow':
+    'Schalten Sie in {windowColours} den {rainbow} ein, um dieser Karte Regenbogenfarben zu geben.',
   'support.game.shareNote':
     'Speichern Sie die Karte und hängen Sie sie an Ihren Beitrag an – keines dieser Netzwerke kann ein Bild aus einem Link ziehen.',
   'support.game.shareSave': 'Karte speichern',

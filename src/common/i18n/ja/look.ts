@@ -131,8 +131,8 @@ const look: Partial<Dictionary> = {
   'support.game.share': '共有',
   'support.game.shareEuphoria': 'レインボーを共有',
   'support.game.shareTitle': 'スコアを共有',
-  'support.game.shareUnlock':
-    'ゲームをプレイするか支援を確認してレインボーモードを解除すると、このカードが虹色になります。',
+  'support.game.shareRainbow':
+    '「{windowColours}」で「{rainbow}」をオンにすると、このカードが虹色になります。',
   'support.game.shareNote':
     'カードを保存して投稿に添付してください。これらのサービスはリンクから画像を取り込めません。',
   'support.game.shareSave': 'カードを保存',

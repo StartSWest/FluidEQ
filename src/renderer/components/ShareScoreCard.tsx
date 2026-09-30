@@ -52,10 +52,9 @@ interface IShareScoreCardProps {
   /**
    * Whether to draw the euphoria card.
    *
-   * Told rather than worked out from the multiplier, because the mode can also
-   * be switched on by somebody who reached the ceiling on an earlier run — the
-   * switch only exists once it has been earned — and a card that refused to
-   * show the look in that case would make the one thing worth sharing
+   * Told rather than worked out from the multiplier, because the mode is a
+   * switch of its own — on from the start since 2.0 — and a card that refused
+   * to show the look while it is on would make the one thing worth sharing
    * unshareable.
    */
   isEuphoric: boolean;
@@ -714,11 +713,18 @@ const ShareScoreCard = ({
       {/* Says why this card is the plain one, for anyone who has only ever
           seen it plain. The euphoric version is a different picture entirely —
           spectrum rim, the pill, the bands lit hue by hue — and without this
-          there is nothing to suggest the card has another form, let alone what
-          it costs. Only ever shown below the ceiling: at the ceiling they are
-          looking at it. */}
+          there is nothing to suggest the card has another form, let alone
+          which switch gives it. It used to say Rainbow mode was unlocked by
+          playing or contributing; since 2.0 it is a switch, on from the start,
+          so the note names the switch and where it is, by the app's own
+          labels. Only ever shown while Rainbow mode is off. */}
       {!isEuphoric && (
-        <p className="share-score__unlock">{t('support.game.shareUnlock')}</p>
+        <p className="share-score__unlock">
+          {t('support.game.shareRainbow', {
+            rainbow: t('graph.sceneTint.rainbow'),
+            windowColours: t('graph.sceneTint.label'),
+          })}
+        </p>
       )}
     </DialogFrame>
   );

@@ -132,8 +132,8 @@ const look: Partial<Dictionary> = {
   'support.game.share': 'साझा करें',
   'support.game.shareEuphoria': 'इंद्रधनुष साझा करें',
   'support.game.shareTitle': 'अपना स्कोर साझा करें',
-  'support.game.shareUnlock':
-    'गेम खेलकर या अपने योगदान की पुष्टि करके इंद्रधनुष मोड खोलें और इस कार्ड को इंद्रधनुषी रंग दें।',
+  'support.game.shareRainbow':
+    '“{windowColours}” में “{rainbow}” चालू करें और इस कार्ड को इंद्रधनुषी रंग दें।',
   'support.game.shareNote':
     'कार्ड सहेजें और उसे अपनी पोस्ट में जोड़ें — इनमें से कोई भी नेटवर्क लिंक से तस्वीर नहीं निकाल सकता।',
   'support.game.shareSave': 'कार्ड सहेजें',

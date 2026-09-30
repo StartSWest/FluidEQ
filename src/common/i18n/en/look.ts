@@ -133,8 +133,8 @@ const look = {
   'support.game.share': 'Share',
   'support.game.shareEuphoria': 'Share rainbow',
   'support.game.shareTitle': 'Share your score',
-  'support.game.shareUnlock':
-    'Unlock Rainbow mode by playing or confirming your contribution to give this card its rainbow colours.',
+  'support.game.shareRainbow':
+    'Switch on {rainbow} in {windowColours} to give this card its rainbow colours.',
   'support.game.shareNote':
     'Save the card, then attach it to your post — none of these networks can pull an image out of a link.',
   'support.game.shareSave': 'Save card',

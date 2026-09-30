@@ -133,8 +133,8 @@ const look: Partial<Dictionary> = {
   'support.game.share': 'Поделиться',
   'support.game.shareEuphoria': 'Поделиться радугой',
   'support.game.shareTitle': 'Поделитесь результатом',
-  'support.game.shareUnlock':
-    'Откройте режим «Радуга» игрой или подтверждением поддержки, чтобы раскрасить эту карточку.',
+  'support.game.shareRainbow':
+    'Включите {rainbow} в разделе «{windowColours}», чтобы раскрасить эту карточку.',
   'support.game.shareNote':
     'Сохраните карточку и прикрепите её к записи: ни одна из этих сетей не может взять изображение из ссылки.',
   'support.game.shareSave': 'Сохранить карточку',

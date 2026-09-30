@@ -135,8 +135,8 @@ const look: Partial<Dictionary> = {
   'support.game.share': 'Condividi',
   'support.game.shareEuphoria': "Condividi l'arcobaleno",
   'support.game.shareTitle': 'Condividi il tuo punteggio',
-  'support.game.shareUnlock':
-    'Sblocca la modalità arcobaleno giocando o confermando il tuo contributo per dare i suoi colori a questa scheda.',
+  'support.game.shareRainbow':
+    'Attiva la {rainbow} in {windowColours} per dare i suoi colori a questa scheda.',
   'support.game.shareNote':
     "Salva la scheda e allegala al post: nessuna di queste reti può ricavare un'immagine da un link.",
   'support.game.shareSave': 'Salva scheda',

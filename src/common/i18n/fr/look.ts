@@ -135,8 +135,8 @@ const look: Partial<Dictionary> = {
   'support.game.share': 'Partager',
   'support.game.shareEuphoria': "Partager l'arc-en-ciel",
   'support.game.shareTitle': 'Partagez votre score',
-  'support.game.shareUnlock':
-    'Débloquez le mode arc-en-ciel en jouant ou en confirmant votre contribution pour donner ses couleurs à cette carte.',
+  'support.game.shareRainbow':
+    'Activez le {rainbow} dans {windowColours} pour donner ses couleurs à cette carte.',
   'support.game.shareNote':
     "Enregistrez la carte puis joignez-la à votre publication : aucun de ces réseaux ne peut extraire une image d'un lien.",
   'support.game.shareSave': 'Enregistrer la carte',
