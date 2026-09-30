@@ -12,6 +12,7 @@ import { readScenePointer, type IScenePointer } from './scenePointer';
 import { readSceneWave, type ISceneWave } from './sceneWave';
 import type { ISceneWorld } from './sceneWorld';
 import normalizeSceneWorld from './sceneWorldRead';
+import isBase64 from './base64';
 import {
   isNeutralResponse,
   readResponse,
@@ -357,11 +358,6 @@ export const parseScenePackPayload = (json: string): IScenePack | null => {
   }
   return normalizeScenePack(raw);
 };
-
-const isBase64 = (value: unknown): value is string =>
-  typeof value === 'string' &&
-  value.length > 0 &&
-  /^[A-Za-z0-9+/]+={0,2}$/.test(value);
 
 /**
  * The wrapper's shape, before any cryptography is attempted on it.

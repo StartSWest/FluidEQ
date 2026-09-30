@@ -26,6 +26,7 @@ import {
   type TWorldToneMapping,
 } from './sceneWorld';
 import { readWorldNodes } from './sceneWorldNodes';
+import isBase64 from './base64';
 import {
   isWorldRecord,
   readBoolean,
@@ -350,7 +351,7 @@ const readModels = (
       if (
         data.length === 0 ||
         data.length % 4 !== 0 ||
-        !/^[A-Za-z0-9+/]+={0,2}$/.test(data) ||
+        !isBase64(data) ||
         bytes + decoded > WORLD_LIMITS.modelBytes
       ) {
         return;

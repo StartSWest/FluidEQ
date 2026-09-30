@@ -56,6 +56,7 @@ import path from 'path';
 import log from 'electron-log';
 import { APP_USER_MODEL_ID } from './appIdentity';
 import { POWERSHELL_PATH } from './powershell';
+import isBase64 from '../common/base64';
 
 /**
  * THIS APP'S OWN PLAYERS ARE NOT "THE REST OF THE MACHINE".
@@ -174,8 +175,6 @@ const COVER_TYPES: ReadonlySet<string> = new Set([
   'image/webp',
   'image/gif',
 ]);
-
-const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
 
 /** How a cover line starts, so a malformed one is never read as a reading. */
 const COVER_LINE = '{"cover":';
@@ -362,7 +361,7 @@ export const parseSystemMediaCover = (
       typeof type !== 'string' ||
       !COVER_TYPES.has(type) ||
       typeof data !== 'string' ||
-      !BASE64.test(data)
+      !isBase64(data)
     ) {
       return undefined;
     }
