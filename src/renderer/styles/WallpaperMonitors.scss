@@ -102,6 +102,16 @@ it under the terms of the GNU General Public License version 3 or later.
   animation: wallpaper-picture-in $motion-slow $ease-out both;
 }
 
+// The scene playing on the chosen monitor's glass, over its still frame and
+// under the shade its name stands on (`MonitorScenePreview`). A picture only:
+// a press anywhere on the tile is the tile's.
+.wallpaper-monitor__scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: wallpaper-picture-in $motion-slow $ease-out both;
+}
+
 @keyframes wallpaper-picture-in {
   from {
     opacity: 0;

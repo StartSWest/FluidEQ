@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { FLUIDEQ_CREATOR_ID } from '../../common/plusGallery';
+import { sceneMakerOf, type TSceneMaker } from '../../common/sceneMaker';
 import { resolveSceneName } from '../../common/scenePacks';
 import type { ILookThumbnailRef } from '../graph/lookThumbnails';
 import { findGalleryScene } from '../plus/galleryStore';
@@ -17,6 +18,12 @@ export interface IWallpaperLook {
    * here — the same picture the graph's picker shows, from the same cache.
    */
   picture?: ILookThumbnailRef;
+  /**
+   * Who made it, for playing it in the monitor it is going to, by the same
+   * rules as everywhere else it plays (`sceneRules.ts`). Present with the
+   * picture.
+   */
+  madeBy?: TSceneMaker;
 }
 
 /** Name and colours of whatever visualizer a monitor shows, by look id. */
@@ -42,6 +49,7 @@ const useWallpaperLooks = (): ((lookId: string) => IWallpaperLook) => {
           },
           load: () => loadScenePack(scene.id),
         },
+        madeBy: sceneMakerOf({ member: false, own: false }),
       }),
     );
     members.forEach((scene) => {
@@ -60,6 +68,7 @@ const useWallpaperLooks = (): ((lookId: string) => IWallpaperLook) => {
           },
           load: () => loadMemberScene(scene.lookId),
         },
+        madeBy: sceneMakerOf({ member: true, own: scene.own }),
       });
     });
     // A scene uninstalled or locked since it was set still has a monitor to

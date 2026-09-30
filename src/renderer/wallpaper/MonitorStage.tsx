@@ -71,6 +71,11 @@ interface IMonitorFaceProps {
   calm: boolean;
   /** It shows whatever Plus visualizer the graph shows, or will. */
   follows: boolean;
+  /**
+   * The visualizer playing on the glass (`MonitorScenePreview`), over its
+   * still frame: the desktop dialog's one monitor that previews the choice.
+   */
+  scene?: ReactNode;
 }
 
 /**
@@ -85,6 +90,7 @@ export function MonitorFace({
   faded,
   calm,
   follows,
+  scene,
 }: IMonitorFaceProps) {
   const { t } = useTranslation();
   const { display, number } = placement;
@@ -98,6 +104,8 @@ export function MonitorFace({
     look?.picture ? glassElement : null,
   );
   const shown = picture.state === 'ready' ? picture.url : undefined;
+  // A picture either way: the still frame, or the scene playing over it.
+  const pictured = shown !== undefined || scene !== undefined;
   const [first, second = first, third = second] = look?.swatch ?? [];
   const glass = first
     ? ({
@@ -114,7 +122,7 @@ export function MonitorFace({
           first ? '' : ' wallpaper-monitor__glass--ordinary'
         }${faded ? ' wallpaper-monitor__glass--faded' : ''}${
           first && calm ? ' wallpaper-monitor__glass--calm' : ''
-        }${shown ? ' wallpaper-monitor__glass--pictured' : ''}`}
+        }${pictured ? ' wallpaper-monitor__glass--pictured' : ''}`}
         style={glass}
         aria-hidden="true"
       >
@@ -126,19 +134,20 @@ export function MonitorFace({
             draggable={false}
           />
         )}
+        {scene}
       </span>
       {/* Over a frame of the scene itself, how it moves is a mark in the
           corner: the silhouette that says it on a plain glass would lie across
           the picture as a set of stripes. Following the graph is a mark beside
           it, on any glass, because nothing else on the tile can say it. */}
-      {(shown || follows) && (
+      {(pictured || follows) && (
         <span className="wallpaper-monitor__marks" aria-hidden="true">
           {follows && (
             <span className="wallpaper-monitor__follow">
               <Glyph name="link" />
             </span>
           )}
-          {shown && (
+          {pictured && (
             <span
               className="wallpaper-monitor__motion"
               data-motion={calm ? 'calm' : 'music'}

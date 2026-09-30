@@ -19,6 +19,7 @@ import {
   useMonitorName,
   useMonitorLayout,
 } from './MonitorStage';
+import MonitorScenePreview, { useMonitorScene } from './MonitorScenePreview';
 import { ERROR_KEYS, MOTION_COPY } from './wallpaperCopy';
 import useWallpaperLooks from './wallpaperLooks';
 import {
@@ -95,6 +96,13 @@ export default function WallpaperDialog({
   const selected: ReadonlySet<number> =
     picked ??
     new Set(showingThis.length > 0 || !primary ? showingThis : [primary.id]);
+  // The first chosen monitor on the desk plays the visualizer; the others
+  // keep their still frame. One scene playing at a time, as on every page
+  // that previews one (`ScenePreview`).
+  const previewId = placements.find((placement) =>
+    selected.has(placement.display.id),
+  )?.display.id;
+  const preview = useMonitorScene(look);
   const [focusId] = useState(() => [...selected][0] ?? primary?.id);
   const [batteryChoice, setBatteryChoice] = useState<boolean>();
   const pauseOnBattery = batteryChoice ?? savedBattery;
@@ -327,6 +335,14 @@ export default function WallpaperDialog({
                       isChosen ? motion === 'calm' : screen?.motion === 'calm'
                     }
                     follows={tileFollows}
+                    scene={
+                      preview && isChosen && display.id === previewId ? (
+                        <MonitorScenePreview
+                          scene={preview}
+                          wave={wave ?? getWatchedGraphWave()}
+                        />
+                      ) : undefined
+                    }
                   />
                 </button>
               );
