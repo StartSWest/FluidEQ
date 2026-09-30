@@ -785,6 +785,18 @@ and Help answers questions in your own words.
   only while you share your audio: a second output and Smart EQ use it too.
 - **The Room is built on other people's measurements, and says so.** The
   acknowledgement names them, and SwiftF0's author with them.
+- **Every library inside FluidEQ is listed with its licence.** The About panel
+  points to a list of all of them, each with its own licence text, beside the
+  notice that says what the main ones are for. A Karaoke Maker project now
+  credits the melody model that actually found its notes, where it named
+  SwiftF0 for notes another model had found.
+- **Bloom draws one flower.** It no longer draws a second flower under its 3D
+  one, and its petal layers no longer show through each other.
+- **The Voice cleaner's model download can be cancelled**, and coming back to
+  the page while it downloads picks it up instead of looking stuck.
+- **Less memory held for nothing.** A graph effect that fails to start no
+  longer leaves its leftovers on the graphics card, and the Karaoke Maker no
+  longer keeps up to thirty minutes of pitch data it never uses.
 
 ---
 
