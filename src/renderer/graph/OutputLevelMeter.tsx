@@ -89,6 +89,24 @@ const isMeterCycleStyle = (value: string | null): value is TMeterCycleStyle =>
   value === 'off' || METER_STYLES.includes(value as MeterStyle);
 
 /**
+ * What each look is called, on the meter and read out with it. It printed
+ * the style's id in capitals, the same English word in every language.
+ */
+const METER_STYLE_NAME_KEYS = {
+  bar: 'look.meter.bar',
+  segments: 'look.meter.segments',
+  leds: 'look.meter.leds',
+  fluid: 'look.meter.fluid',
+  mercury: 'look.meter.mercury',
+  needle: 'look.meter.needle',
+  pulse: 'look.meter.pulse',
+  stack: 'look.meter.stack',
+  flow: 'look.meter.flow',
+  center: 'look.meter.center',
+  off: 'look.meter.off',
+} as const satisfies Record<TMeterCycleStyle, TranslationKey>;
+
+/**
  * What to call a bar.
  *
  * A single letter, and still a key: several of the ten locales do not use L and
@@ -517,7 +535,9 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
           ? { rows: ladderRows(styleRef.current, rectHeight) }
           : undefined,
         letters: easedRef.current.map((_, i) => t(channelNameKey(i, isStereo))),
-        styleName: isOff ? undefined : styleRef.current.toUpperCase(),
+        styleName: isOff
+          ? undefined
+          : t(METER_STYLE_NAME_KEYS[styleRef.current]).toUpperCase(),
         ink: textInk,
       };
       const printKey = `${backingWidth}x${backingHeight}@${ratio} ${JSON.stringify(print)}`;
@@ -634,19 +654,20 @@ const OutputLevelMeter = ({ onReading }: IOutputLevelMeterProps) => {
   }
 
   const isIdle = outputLevels.length === 0;
+  const styleName = t(METER_STYLE_NAME_KEYS[style]);
   return (
     <button
       type="button"
       className={`output-meter${
         isClipping && !isOff ? ' is-clipping' : ''
       }${isIdle && !isOff ? ' is-idle' : ''}${isOff ? ' is-off' : ''}`}
-      aria-label={`${t('graph.meter.aria')} — ${style}`}
-      title={`${t('graph.meter.aria')} — ${style}`}
+      aria-label={`${t('graph.meter.aria')} — ${styleName}`}
+      title={`${t('graph.meter.aria')} — ${styleName}`}
       onClick={cycleStyle}
     >
       <canvas ref={attachCanvas} className="output-meter__canvas" aria-hidden />
       {isOff && (
-        <span className="output-meter__off">{style.toUpperCase()}</span>
+        <span className="output-meter__off">{styleName.toUpperCase()}</span>
       )}
     </button>
   );
