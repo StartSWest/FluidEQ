@@ -394,8 +394,6 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Запускать вместе с Windows',
   'startup.blocked': 'Windows отключил это в «Автозагрузке приложений»',
   'startup.failed': 'Windows не разрешил это изменить',
-  'theme.ocean': 'Светлая',
-  'theme.black': 'Тёмная',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'Картинка',

@@ -385,8 +385,6 @@ const app = {
   'startup.label': 'Start with Windows',
   'startup.blocked': 'Windows has this switched off in Startup apps',
   'startup.failed': 'Windows would not change this',
-  'theme.ocean': 'Light',
-  'theme.black': 'Dark',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'The picture',

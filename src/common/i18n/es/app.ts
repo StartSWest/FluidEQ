@@ -398,8 +398,6 @@ const app: Partial<Dictionary> = {
   'startup.label': 'Iniciar con Windows',
   'startup.blocked': 'Windows lo tiene desactivado en Aplicaciones de inicio',
   'startup.failed': 'Windows no permitió cambiarlo',
-  'theme.ocean': 'Claro',
-  'theme.black': 'Oscuro',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': 'La imagen',

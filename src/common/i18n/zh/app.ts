@@ -373,8 +373,6 @@ const app: Partial<Dictionary> = {
   'startup.label': '随 Windows 启动',
   'startup.blocked': 'Windows 已在“启动应用”中关闭它',
   'startup.failed': 'Windows 不允许更改',
-  'theme.ocean': '浅色',
-  'theme.black': '深色',
   // The settings a visualizer has, grouped the same way and in the same
   // order wherever they are offered — see `common/settingsGroups.ts`.
   'settings.group.picture': '画面',
