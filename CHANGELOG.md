@@ -468,8 +468,9 @@ and Help answers questions in your own words.
   in the Manage dialog, and that monitor changes to whichever Plus visualizer
   the graph shows, whether you picked it or the graph changed looks by itself.
   When the graph shows a standard look, the monitor keeps the last Plus
-  visualizer it had. Follow graph is on when you put a visualizer on the
-  desktop that no monitor shows yet. A monitor that follows the graph wears a
+  visualizer it had. Follow graph starts on when the visualizer you put on
+  the desktop is the one the graph shows, and off for any other, so the one
+  you picked is the one that plays. A monitor that follows the graph wears a
   small link mark in both dialogs, and turns from night to day with the
   window's Daylight: Brightness, the clock, or your own.
 - **The desktop dialog chooses the monitors for you.** A visualizer no monitor

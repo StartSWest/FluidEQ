@@ -51,6 +51,9 @@ jest.mock('../../../renderer/graph/lookThumbnails', () => ({
 jest.mock('../../../renderer/utils/graphOverlaySettings', () => ({
   getWatchedGraphWave: () => ({ height: 0.75, position: 0.1 }),
 }));
+jest.mock('../../../renderer/utils/graphStyle', () => ({
+  useSceneLook: () => null,
+}));
 let mockTrouble: ((trouble: TPreviewTrouble) => void) | undefined;
 jest.mock('../../../renderer/plus/ScenePreview', () => ({
   __esModule: true,

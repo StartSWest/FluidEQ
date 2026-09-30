@@ -9,6 +9,7 @@ import Glyph from '../community/Glyph';
 import DialogFrame from '../components/DialogFrame';
 import MenuIcon from '../icons/MenuIcon';
 import { getWatchedGraphWave } from '../utils/graphOverlaySettings';
+import { useSceneLook } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
 import Switch from '../widgets/Switch';
@@ -79,11 +80,20 @@ export default function WallpaperDialog({
       : 'music');
   // Following the graph, read the same way: on when every monitor showing
   // this visualizer already follows it, so the dialog never changes it
-  // unseen — and on for a visualizer no monitor shows yet (Ivan, 2026-09-29:
-  // "desktop same, all on: follow graph and pause on battery").
+  // unseen. For a visualizer no monitor shows yet, on only when it is the one
+  // the graph shows (Ivan, 2026-09-29: "desktop same, all on: follow graph").
+  // Any other visualizer starts off: main moves a follower onto the graph's
+  // visualizer the moment it is set, so following there put the graph's
+  // scene on the desktop instead of the one picked (Ivan, 2026-09-30: "put on
+  // desktop needs to put on desktop that scene not the current one in graph
+  // and disable the follow graph").
+  const graphLookId = useSceneLook()?.lookId;
   const [followChoice, setFollowChoice] = useState<boolean>();
   const follows =
-    followChoice ?? showing.every((screen) => screen.followsGraph === true);
+    followChoice ??
+    (showing.length > 0
+      ? showing.every((screen) => screen.followsGraph === true)
+      : lookId === graphLookId);
   // Until a monitor is pressed: the monitors already showing this
   // visualizer, so Set changes how it plays there rather than moving it; and
   // for one no monitor shows, the primary monitor, always (Ivan, 2026-09-29:

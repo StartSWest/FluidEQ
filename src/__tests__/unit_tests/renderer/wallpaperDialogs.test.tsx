@@ -46,6 +46,11 @@ jest.mock('../../../renderer/graph/lookThumbnails', () => ({
 jest.mock('../../../renderer/utils/graphOverlaySettings', () => ({
   getWatchedGraphWave: () => ({ height: 0.75, position: 0.1 }),
 }));
+// The Plus visualizer the graph shows, or none while it shows a free look.
+let mockGraphLookId: string | undefined = 'premium:alpine';
+jest.mock('../../../renderer/utils/graphStyle', () => ({
+  useSceneLook: () => (mockGraphLookId ? { lookId: mockGraphLookId } : null),
+}));
 
 const displays: IWallpaperState['displays'] = [
   {
@@ -97,7 +102,10 @@ const withScreens = (screens: IWallpaperScreen[]) =>
     pauseOnBattery: false,
   });
 
-beforeEach(() => jest.clearAllMocks());
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockGraphLookId = 'premium:alpine';
+});
 
 describe('choosing how a background moves', () => {
   it('starts on the music, and sets it calm on the chosen monitor with the graph’s wave', async () => {
@@ -198,8 +206,8 @@ describe('choosing how a background moves', () => {
 // The graph's desktop button and the player's open this dialog, not the
 // Manage one: the switch was only in Manage, where Ivan never looked for it.
 describe('following the graph from the dialog the graph opens', () => {
-  // On for a visualizer no monitor shows yet (Ivan, 2026-09-29: "desktop
-  // same, all on: follow graph and pause on battery").
+  // On for the graph's own visualizer when no monitor shows it yet (Ivan,
+  // 2026-09-29: "desktop same, all on: follow graph and pause on battery").
   it('sets the chosen monitors to follow the graph, and marks each on its tile', () => {
     withScreens([]);
     render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
@@ -217,6 +225,56 @@ describe('following the graph from the dialog the graph opens', () => {
       screen.getByRole('dialog').querySelectorAll('.wallpaper-monitor__follow'),
     ).toHaveLength(1);
 
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(startWallpaper).toHaveBeenCalledWith(
+      expect.objectContaining({ displayIds: [2], followsGraph: true }),
+    );
+  });
+
+  // Main moves a follower onto the graph's visualizer the moment it is set,
+  // so another one set to follow never reached the desktop (Ivan,
+  // 2026-09-30: "put on desktop needs to put on desktop that scene not the
+  // current one in graph and disable the follow graph").
+  it('starts off for a visualizer the graph is not showing, and sets that one', () => {
+    mockGraphLookId = 'premium:aurora';
+    withScreens([]);
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    expect(
+      screen.getByRole('checkbox', { name: 'Follow graph' }),
+    ).not.toBeChecked();
+    expect(
+      screen.getByRole('checkbox', { name: /Y27qf-30/ }),
+    ).not.toHaveAccessibleName(/Follow graph/);
+    expect(
+      screen.getByRole('dialog').querySelectorAll('.wallpaper-monitor__follow'),
+    ).toHaveLength(0);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(startWallpaper).toHaveBeenCalledWith(
+      expect.objectContaining({
+        lookId: 'premium:alpine',
+        displayIds: [2],
+        followsGraph: false,
+      }),
+    );
+  });
+
+  it('starts off while the graph shows no Plus visualizer at all', () => {
+    mockGraphLookId = undefined;
+    withScreens([]);
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    expect(
+      screen.getByRole('checkbox', { name: 'Follow graph' }),
+    ).not.toBeChecked();
+  });
+
+  // Picked by hand, it is sent as picked: the default decides only where the
+  // switch starts.
+  it('follows the graph when turned on for another visualizer', () => {
+    mockGraphLookId = 'premium:aurora';
+    withScreens([]);
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Follow graph' }));
     fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
     expect(startWallpaper).toHaveBeenCalledWith(
       expect.objectContaining({ displayIds: [2], followsGraph: true }),
@@ -255,6 +313,8 @@ describe('following the graph from the dialog the graph opens', () => {
     );
   });
 
+  // Whatever the graph shows now: the dialog never changes a monitor's
+  // following unseen.
   it('opens on when every monitor showing the visualizer already follows', () => {
     withScreens([
       showing(3, { followsGraph: true }),
