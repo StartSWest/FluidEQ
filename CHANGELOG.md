@@ -264,7 +264,8 @@ and Help answers questions in your own words.
   you tuned by hand. The equaliser now opens with nothing selected, showing
   the whole rack.
 - **A low cut and a high cut** on the Tone panel, either side of Bass, Mid
-  and Treble: off, 12 or 24 dB per octave, at 20 Hz and at 20 kHz.
+  and Treble: off, 12 or 24 dB per octave, at 20 Hz and at 20 kHz. Clear EQ
+  turns them off with the bands and the Tone.
 - **The equaliser plays the curve you drew, all the way to the top.** On the
   FluidEQ Engine a band near the top of the range used to play weaker than the
   graph showed — nearly 4 dB short at 20 kHz on a 48 kHz output. It now plays
