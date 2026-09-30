@@ -23,6 +23,11 @@ The guide uses real FluidEQ interface captures, not generated UI artwork.
 
 - The Share Audio picture's connection code and network addresses are
   blurred.
+- The karaoke pictures (`11`, `12`, `33` to `35`) are of FluidEQ's own song,
+  Everything in Tune: somebody else's songs stay out of the guide. The
+  playlist shows only that song and its count is hidden, and the player and
+  the Maker are cut to the Karaoke page, leaving out the bar at the window's
+  foot that names whatever else the computer is playing.
 - The Plus pictures (`22` to `29` and `31`) come from a window signed in as
   FluidEQ's maker. The Admin channel and the rule above it, which only an
   administrator sees, are hidden for them; on the leaderboard every member but

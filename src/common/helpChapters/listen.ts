@@ -32,13 +32,22 @@ const LISTEN_CHAPTERS = [
   {
     id: 'karaoke',
     group: 'listen',
-    figures: [{ image: '11-karaoke-player.png', ...WINDOW }],
+    // The Karaoke page alone, from the running window at 2560 x 1392 on
+    // 2026-09-30, on FluidEQ's own song: somebody else's songs stay out of
+    // the guide, the playlist shows only ours, and the bar at the
+    // window's foot, which names whatever else the computer plays, is
+    // left outside the picture.
+    figures: [{ image: '11-karaoke-player.png', width: 2098, height: 1254 }],
   },
   {
     id: 'maker',
     group: 'listen',
     figures: [
-      { image: '12-karaoke-maker-pitch-and-lyrics.png', ...WINDOW },
+      {
+        image: '12-karaoke-maker-pitch-and-lyrics.png',
+        width: 2098,
+        height: 1254,
+      },
       {
         image: '35-karaoke-maker-toolbar.png',
         width: 830,
@@ -130,37 +139,37 @@ const LISTEN_CHAPTERS = [
       },
       {
         image: '33-karaoke-maker-tools.png',
-        width: 640,
-        height: 790,
+        width: 454,
+        height: 525,
         caption: 'help.maker.toolsCaption',
         controls: [
           {
-            box: [29, 321, 582, 32],
+            box: [29, 52, 396, 32],
             name: 'karaoke.maker.removeBackground',
             text: 'help.maker.separate',
           },
           {
-            box: [29, 358, 582, 32],
+            box: [29, 89, 396, 32],
             name: 'karaoke.maker.vocalStem',
             text: 'help.maker.loadVocals',
           },
           {
-            box: [29, 444, 582, 32],
+            box: [29, 175, 396, 32],
             name: 'karaoke.maker.repairLyrics',
             text: 'help.maker.redetectTiming',
           },
           {
-            box: [29, 481, 582, 32],
+            box: [29, 212, 396, 32],
             name: 'karaoke.maker.repairMelody',
             text: 'help.maker.redetectNotes',
           },
           {
-            box: [39, 567, 562, 127],
+            box: [39, 298, 376, 127],
             name: 'help.maker.modelsName',
             text: 'help.maker.models',
           },
           {
-            box: [39, 703, 562, 50],
+            box: [39, 434, 376, 54],
             name: 'help.maker.idleName',
             text: 'help.maker.idle',
           },

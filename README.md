@@ -244,7 +244,7 @@ anywhere, and no music ships with it — the songs are your own, and the
 instrumental is either one you already have or one the Karaoke Maker splits out
 of the song itself.
 
-![The Karaoke tab mid-song, headed "a stage built around your music": the playlist down the left with the playing song marked, and the stage beside it with the song's title over the words and its cover behind them. The current line is large and lit in the middle with the lines around it dimmed. In the top right corner, the chord finder at work and a panel saying the file carries UltraStar syllables and pitch, with the lyric size under it. Along the foot runs the pitch lane: the song's notes as labelled blocks under their words, with a switch to turn the microphone on and see your own pitch over them.](docs/11-karaoke-player.png)
+![The Karaoke tab mid-song on FluidEQ's own song, headed "a stage built around your music": the playlist down the left with the song marked, and the stage beside it with the song's title over the words. The current line is large and lit in the middle with the lines around it dimmed. In the top right corner sit the chord now and the next one, and a panel saying the file carries UltraStar syllables and pitch, with the lyric size under it. Along the foot runs the pitch lane: the song's notes as labelled blocks under their words, with a switch to turn the microphone on and see your own pitch over them.](docs/11-karaoke-player.png)
 
 **And make the file when the song does not have one.** The **Karaoke Maker**
 builds one out of a song and nothing else. It can split that song into two
@@ -264,7 +264,7 @@ or add to by hand. There is a counted-in preview, undo and redo throughout, and
 what comes out either goes straight to the player or saves as a project to
 return to.
 
-![The Karaoke Maker with a song open: its tools along the top beside the song's name and Use in player; under them the original, the backing track and the separated voice as three waveforms, the words laid out in staggered rows, and a pitch grid from C1 to C7 where the melody sits as labelled note blocks. Below the grid, the song position with a scrubber over the whole track and Follow lyrics. At the foot, a live preview draws the stage exactly as the player will — the current line lit, the lines either side of it dimmed, and a strip of the notes underneath — above a running count of notes, words and how many are still pending, the artist field, and a box confirming there is permission to use and export this audio and these lyrics.](docs/12-karaoke-maker-pitch-and-lyrics.png)
+![The Karaoke Maker with a song open: its tools along the top beside the song's name and Use in player; under them the song's waveform, the words laid out in staggered rows, and a pitch grid from C1 to C7 where the melody sits as labelled note blocks. Below the grid, the song position with a scrubber over the whole track and Follow lyrics. At the foot, a live preview draws the stage exactly as the player will — the current line lit, the lines either side of it dimmed, and a strip of the notes underneath — above a running count of notes, words and how many are still pending, the artist field, and a box confirming there is permission to use and export this audio and these lyrics.](docs/12-karaoke-maker-pitch-and-lyrics.png)
 
 **Shape the sound with a studio rack.** A **DSP** tab adds a rack of ten stages
 — Normalizer, Denoise, Exciter, Bass Forge, Equaliser, Bass Punch, Dimension,
