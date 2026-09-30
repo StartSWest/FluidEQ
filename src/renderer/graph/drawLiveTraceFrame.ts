@@ -29,7 +29,8 @@ import { type IEngineLookInput } from './engineLooks/engineLookInput';
 import { createLookInput } from './engineLooks/lookInput';
 import { getWaveTransform } from './liveTracePaint';
 import getGraphMotionDelta from './graphMotionPacing';
-import { PREVIEW_REACHED_DB, setAlpha } from './liveTraceStyle';
+import { setAlpha } from './liveTraceStyle';
+import easeTraceToward from './traceEasing';
 import { traceStretch } from './traceStretch';
 import { type IAnalysisBand } from './analysis/analysisFrame';
 import { noteLookPreviewPainted } from './lookPreview';
@@ -238,32 +239,10 @@ const drawLiveTraceFrame = (
   const motionDeltaMs = getGraphMotionDelta(deltaMs, plotDepth * heightScale);
   const rise = getEaseFactor(motionDeltaMs, tuning.attackMs);
   const fall = getEaseFactor(motionDeltaMs, tuning.releaseMs);
-  let moving = false;
-  // A point still more than this short of what it was handed has not
-  // reached it yet. A look preview counts as painted only once none is.
-  let rising = false;
-  for (let index = 0; index < eased.length; index += 1) {
-    // Where a point is on the axis is the frame's, never eased: the copy
-    // used to keep the frequencies of the points it was first made from
-    // and was rebuilt only when their number changed, so after a look
-    // preview laid out on another axis the whole spectrum was drawn at
-    // the preview's frequencies — squeezed into 20 Hz to 20 kHz.
-    eased[index].x = data[index].x;
-    const distance = data[index].y - eased[index].y;
-    if (distance > PREVIEW_REACHED_DB) {
-      rising = true;
-    }
-    // In decibels, and a twentieth of one is far below what a pixel on
-    // this graph can show. Tighter than this and the loop never settles:
-    // something among three hundred points is always drifting, so it
-    // would redraw sixty times a second through silence.
-    if (distance > 0.05 || distance < -0.05) {
-      eased[index].y += distance * (distance > 0 ? rise : fall);
-      moving = true;
-    } else {
-      eased[index].y = data[index].y;
-    }
-  }
+  // A look preview counts as painted only once no point is still rising.
+  const easing = easeTraceToward(eased, data, rise, fall);
+  let { moving } = easing;
+  const { rising } = easing;
 
   // The plot's own edges, taken from the scales rather than from props, so
   // everything measured against them follows a resize without being told.
