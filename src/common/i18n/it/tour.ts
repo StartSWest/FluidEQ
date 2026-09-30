@@ -52,7 +52,7 @@ const tour: Partial<Dictionary> = {
     'Sposta {brightness} nel menu delle azioni dietro l’icona a impulso in alto a destra. Con un visualizzatore Plus sul grafico, apri {windowColours} dalla barra del grafico e scegli {backdrop}.',
   'tour.look.open': 'Apri l’EQ',
   'tour.look.imageAlt':
-    'FluidEQ con una scena di montagne di notte dietro i pannelli, e il menu Colori della finestra con Fondale scelto, la Luminosità a metà e la Trasparenza a un quarto.',
+    'FluidEQ nella pagina EQ con l’aurora boreale su un lago dietro i pannelli, e il menu Colori della finestra con Fondale scelto, la Luminosità e la Trasparenza a metà.',
   'tour.gpu.kicker': 'UN NUOVO MOTORE PER I VISUALIZZATORI',
   'tour.gpu.title': 'Ogni visualizzatore sulla tua scheda grafica',
   'tour.gpu.subtitle': 'Quaranta stili al ritmo del tuo schermo, e mondi 3D',

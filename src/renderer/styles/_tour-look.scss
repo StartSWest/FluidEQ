@@ -11,19 +11,13 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 @use 'tour-miniature' as *;
 
-// The new look: the window in miniature with a visualizer behind its panes,
-// and the Window colours menu standing over its corner. The panes let the
-// scene through as Backdrop does at a quarter of Transparency; the graph, the
-// scene's frame, lets all of it through.
+// The new look, photographed: the whole window on the Backdrop, and its Window
+// colours menu cut from the same window standing over the window's lower
+// right, larger than the window shows it, as the menu opens over it.
 
-$pane: color-mix(in srgb, $surface-panel 76%, transparent);
-$hairline: 1px solid rgba($edge-tint, 0.08);
-
-.window-visual {
-  position: relative;
+.look-photo {
   width: 100%;
   max-width: calc(#{$u} * 36);
-  padding-bottom: calc(#{$u} * 5.5);
   @include animate(rise-in, $motion-slow);
 
   // Where Brightness is found: the title bar's corner, its pulse ringed and
@@ -35,369 +29,34 @@ $hairline: 1px solid rgba($edge-tint, 0.08);
   }
 }
 
-.window-visual__window {
+// In the flow rather than absolutely placed: the menu's height follows its
+// width, so the column is as tall as the two pictures make it and the slide
+// never has to guess.
+.look-photo__stage {
+  display: flex;
+  flex-direction: column;
+}
+
+.look-photo__window {
   @include framed;
 
-  position: relative;
-  display: grid;
-  aspect-ratio: 1.2;
-  overflow: hidden;
-  border-radius: $radius-l;
-  grid-template-rows: auto minmax(0, 1fr);
-  isolation: isolate;
-}
-
-.window-visual__scene {
-  position: absolute;
-  z-index: -1;
-  width: 100%;
-  height: 100%;
-  inset: 0;
-  object-fit: cover;
-}
-
-.window-visual__titlebar {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  padding: calc(#{$u} * 0.45) calc(#{$u} * 0.7);
-  border-bottom: $hairline;
-  background: color-mix(in srgb, $surface-base 64%, transparent);
-  gap: calc(#{$u} * 0.5);
-}
-
-// The tile at the bar's scale, its wave following the tile
-// (`.engine-flow__mark` does the same for the engine's card).
-.window-visual__mark-tile.brand-mark {
-  flex: 0 0 auto;
-  width: calc(#{$u} * 1.35);
-  height: calc(#{$u} * 1.35);
-  border-radius: $radius-xs;
-
-  svg {
-    width: 70%;
-    height: 70%;
-  }
-}
-
-.window-visual__name {
-  flex: 0 0 auto;
-  color: $text-primary;
-  font-size: calc(#{$u} * 0.82);
-  font-weight: $weight-bold;
-  @include tracking(0.02em);
-
-  // "EQ" in the icon's colours, as the title bar writes it.
-  span {
-    color: transparent;
-    background: linear-gradient(90deg, $lagoon);
-    background-clip: text;
-  }
-}
-
-.window-visual__tabs {
-  display: flex;
-  min-width: 0;
-  margin-left: calc(#{$u} * 0.6);
-  overflow: hidden;
-  gap: calc(#{$u} * 0.2);
-
-  span {
-    padding: calc(#{$u} * 0.16) calc(#{$u} * 0.5) calc(#{$u} * 0.22);
-    color: $text-muted;
-    font-size: calc(#{$u} * 0.62);
-    font-weight: $weight-semibold;
-    white-space: nowrap;
-  }
-
-  // The bar under the open tab runs aqua to azure, the way the wave does.
-  .is-open {
-    color: $text-primary;
-    background: linear-gradient(90deg, $lagoon) bottom / 100% 2px no-repeat;
-  }
-}
-
-.window-visual__floor {
-  display: grid;
-  min-height: 0;
-  grid-template-columns: calc(#{$u} * 3.4) minmax(0, 1fr);
-}
-
-.window-visual__side {
-  display: grid;
-  align-content: start;
-  justify-items: center;
-  padding: calc(#{$u} * 0.8) calc(#{$u} * 0.3);
-  border-right: $hairline;
-  background: $pane;
-  gap: calc(#{$u} * 0.75);
-}
-
-// The power key, lit: FluidEQ is on.
-.window-visual__power {
-  width: calc(#{$u} * 1.8);
-  height: calc(#{$u} * 1.8);
-  border: 2px solid $secondary-light;
-  border-radius: 50%;
-  box-shadow:
-    0 0 calc(#{$u} * 0.6)
-      color-mix(in srgb, $secondary-default 55%, transparent),
-    inset 0 0 calc(#{$u} * 0.45)
-      color-mix(in srgb, $secondary-default 35%, transparent);
-}
-
-.window-visual__meter {
-  display: flex;
-  align-items: flex-end;
-  width: calc(#{$u} * 0.45);
-  height: calc(#{$u} * 8);
-  overflow: hidden;
-  border-radius: $radius-pill;
-  background: $track-well;
-
-  span {
-    width: 100%;
-    height: 62%;
-    border-radius: inherit;
-    background: linear-gradient(0deg, $lagoon);
-  }
-}
-
-.window-visual__main {
-  display: grid;
-  min-width: 0;
-  min-height: 0;
-  grid-template-rows: minmax(0, 1fr) auto;
-}
-
-.window-visual__curve {
   display: block;
   width: 100%;
-  height: 100%;
-  overflow: visible;
-
-  polyline {
-    fill: none;
-    stroke: $secondary-light;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2.2;
-    filter: drop-shadow(0 0 5px $secondary-default);
-    vector-effect: non-scaling-stroke;
-  }
+  height: auto;
+  border-radius: $radius-m;
 }
 
-.window-visual__bands {
-  display: grid;
-  margin: 0;
-  padding: calc(#{$u} * 0.6) calc(#{$u} * 0.7) calc(#{$u} * 0.4);
-  border-top: $hairline;
-  background: $pane;
-  gap: calc(#{$u} * 0.3);
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  list-style: none;
-
-  li {
-    display: grid;
-    justify-items: center;
-    gap: calc(#{$u} * 0.2);
-  }
-
-  small {
-    color: $text-faint;
-    font-size: calc(#{$u} * 0.5);
-    font-variant-numeric: tabular-nums;
-  }
-}
-
-.window-visual__band-track {
+.look-photo__menu {
   position: relative;
-  width: calc(#{$u} * 0.34);
-  height: calc(#{$u} * 4.4);
-  border-radius: $radius-pill;
-  background: $track-well;
-
-  span {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    height: calc(var(--level) * 100%);
-    border-radius: inherit;
-    background: $secondary-default var(--accent-fill);
-    box-shadow: 0 0 calc(#{$u} * 0.3)
-      color-mix(in srgb, $secondary-default 45%, transparent);
-  }
-}
-
-// The Window colours menu, over the window's corner: the menus' material at
-// 95%, whatever the Transparency.
-.window-visual__menu {
-  position: absolute;
-  right: calc(#{$u} * -0.4);
-  bottom: 0;
-  display: grid;
-  width: min(calc(#{$u} * 14.5), 58%);
-  padding: calc(#{$u} * 0.8) calc(#{$u} * 0.9);
+  display: block;
+  width: 40%;
+  height: auto;
+  align-self: flex-end;
+  // A margin in percent is a share of the column's width: this lifts the
+  // menu over the bottom third of the window, whatever size the slide is.
+  margin: -18% calc(#{$u} * 0.6) 0 0;
   border: 1px solid rgba($edge-tint, 0.14);
-  border-radius: $radius-l;
-  background: color-mix(in srgb, $surface-menu 95%, transparent);
+  border-radius: $radius-m;
   box-shadow: 0 18px 48px rgba($black, 0.55);
-  gap: calc(#{$u} * 0.55);
   @include animate(rise-in, $motion-slow, $ease-out, 140ms);
-}
-
-.window-visual__menu-title {
-  color: $text-muted;
-  font-size: calc(#{$u} * 0.62);
-  font-weight: $weight-bold;
-  text-transform: uppercase;
-  @include tracking(0.12em);
-}
-
-.window-visual__modes {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  gap: calc(#{$u} * 0.3);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  list-style: none;
-
-  li {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    padding: calc(#{$u} * 0.3) calc(#{$u} * 0.45);
-    color: $text-primary;
-    border: 1px solid rgba($edge-tint, 0.1);
-    border-radius: $radius-s;
-    background: $surface-field;
-    font-size: calc(#{$u} * 0.64);
-    font-weight: $weight-semibold;
-    line-height: 1.2;
-    gap: calc(#{$u} * 0.35);
-    overflow-wrap: anywhere;
-  }
-
-  .is-chosen {
-    border-color: color-mix(in srgb, $secondary-light 55%, transparent);
-    background: color-mix(in srgb, $secondary-default 14%, $surface-field);
-    box-shadow: 0 0 calc(#{$u} * 0.5)
-      color-mix(in srgb, $secondary-default 25%, transparent);
-  }
-}
-
-// Each mode's swatch: the theme, a visualizer's colours, those colours
-// glowing, and the visualizer itself behind the window.
-.window-visual__swatch {
-  flex: 0 0 auto;
-  width: calc(#{$u} * 0.8);
-  height: calc(#{$u} * 0.8);
-  border: 1px solid rgba($edge-tint, 0.22);
-  border-radius: $radius-2xs;
-}
-
-.window-visual__swatch--off {
-  background: $surface-panel;
-}
-
-.window-visual__swatch--tint {
-  background: linear-gradient(135deg, $lagoon);
-}
-
-.window-visual__swatch--pulse {
-  background:
-    radial-gradient(circle, $secondary-light, transparent 70%), $surface-panel;
-}
-
-.window-visual__swatch--cover {
-  background:
-    linear-gradient(180deg, transparent 45%, rgba($black, 0.55)),
-    linear-gradient(160deg, $lagoon);
-}
-
-.window-visual__slider {
-  display: grid;
-  gap: calc(#{$u} * 0.28);
-}
-
-.window-visual__slider-label {
-  color: $text-muted;
-  font-size: calc(#{$u} * 0.62);
-  font-weight: $weight-semibold;
-}
-
-.window-visual__track {
-  position: relative;
-  height: calc(#{$u} * 0.42);
-  border: 1px solid rgba($edge-tint, 0.14);
-  border-radius: $radius-pill;
-  background: $track-well;
-}
-
-.window-visual__fill {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: var(--thumb);
-  border-radius: inherit;
-  background: $secondary-default var(--accent-fill);
-}
-
-// The marks at a quarter, a half and three quarters, which the thumb falls
-// into.
-.window-visual__mark {
-  position: absolute;
-  top: 50%;
-  width: 1px;
-  height: calc(#{$u} * 0.8);
-  background: rgba($edge-tint, 0.35);
-  transform: translate(-50%, -50%);
-}
-
-.window-visual__thumb {
-  position: absolute;
-  top: 50%;
-  left: var(--thumb);
-  width: calc(#{$u} * 0.95);
-  height: calc(#{$u} * 0.95);
-  border-radius: 50%;
-  background: $text-primary;
-  box-shadow:
-    0 0 0 2px $secondary-default,
-    0 2px 6px rgba($black, 0.5);
-  transform: translate(-50%, -50%);
-}
-
-.window-visual__rainbow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: $text-primary;
-  font-size: calc(#{$u} * 0.64);
-  font-weight: $weight-semibold;
-  gap: calc(#{$u} * 0.5);
-}
-
-// Rainbow mode on: the switch in Lagoon, its knob at the right.
-.window-visual__switch {
-  position: relative;
-  flex: 0 0 auto;
-  width: calc(#{$u} * 1.7);
-  height: calc(#{$u} * 0.9);
-  border-radius: $radius-pill;
-  background: linear-gradient(90deg, $lagoon);
-
-  &::after {
-    position: absolute;
-    top: 50%;
-    right: calc(#{$u} * 0.1);
-    width: calc(#{$u} * 0.7);
-    height: calc(#{$u} * 0.7);
-    border-radius: 50%;
-    background: $white;
-    content: '';
-    transform: translateY(-50%);
-  }
 }

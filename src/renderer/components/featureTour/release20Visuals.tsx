@@ -4,205 +4,65 @@ Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { CSSProperties } from 'react';
-import { PRODUCT_NAME } from '../../../common/branding';
 import { ANALYSIS_STYLES } from '../../../common/graphAnalysis';
 import type { TranslationKey } from '../../../common/i18n';
-import BrandMark from '../../icons/BrandMark';
 import { useTranslation } from '../../utils/I18nContext';
 import TitlebarCorner from './TitlebarCorner';
-import sceneAlpine from '../../../../assets/tour/scene-alpine.jpg';
+import lookBackdrop from '../../../../assets/tour/look-backdrop.jpg';
+import lookWindowColours from '../../../../assets/tour/look-window-colours.jpg';
 
 /**
  * The pictures on the two headline slides only 2.0 has: the window's new look
  * and the graph's measuring views.
  *
- * Drawn, not captured, like the release's other pictures
- * (`release18Visuals.tsx`): the app's own words in the reader's language and
- * the theme's own colours, so neither goes stale when a pane moves or the
- * theme slider does. The Help pictures are the captures; these are
- * miniatures. Each is composed about as tall as it is wide.
+ * The new look is photographed: it is the window itself, and what the
+ * Backdrop does is only seen in the real thing. The measuring views are drawn
+ * like the release's other pictures (`release18Visuals.tsx`): the app's own
+ * words in the reader's language and the theme's own colours, so neither goes
+ * stale when a pane moves or the Brightness slider does. Each is composed
+ * about as tall as it is wide.
  */
 
 // ---------------------------------------------------------------------------
-// The new look: the window with a visualizer behind its panes, and the Window
-// colours menu that put it there.
-
-/** The window-colours menu's four modes, in the menu's order. */
-const MODES: { id: string; key: TranslationKey }[] = [
-  { id: 'off', key: 'graph.sceneTint.short.off' },
-  { id: 'tint', key: 'graph.sceneTint.short.tint' },
-  { id: 'pulse', key: 'graph.sceneTint.short.pulse' },
-  { id: 'cover', key: 'graph.sceneTint.short.cover' },
-];
-
-/** Backdrop: the mode the picture is drawn in. */
-const CHOSEN_MODE = 'cover';
-
-/** The tabs along the miniature's title bar, EQ open. */
-const TABS: TranslationKey[] = [
-  'tabs.eq',
-  'tabs.dsp',
-  'tabs.library',
-  'tabs.karaoke',
-];
-
-/** The band sliders under the graph: a band's name and how far it is up. */
-const BANDS: { hz: string; level: number }[] = [
-  { hz: '31', level: 0.66 },
-  { hz: '63', level: 0.72 },
-  { hz: '125', level: 0.6 },
-  { hz: '250', level: 0.47 },
-  { hz: '500', level: 0.4 },
-  { hz: '1k', level: 0.43 },
-  { hz: '2k', level: 0.52 },
-  { hz: '4k', level: 0.58 },
-  { hz: '8k', level: 0.66 },
-  { hz: '16k', level: 0.7 },
-];
+// The new look: the window on the Backdrop, photographed, and the Window
+// colours menu that put the visualizer there, cut from the same window.
 
 /**
- * The EQ curve over the backdrop, on a 0..100 box with gain up: a warm low
- * end, a dip in the low mids and some air, the shape the bands below make.
+ * The photographs' own sizes, so each holds its place before it loads. Both
+ * are from the running window at 2560 x 1392 on 2026-09-29, Brightness at
+ * half: the EQ page with Aurora on the Backdrop, and its Window colours menu
+ * cut out at the size the window draws it (Ivan, 2026-09-28: "the number 1
+ * take full picture if the app in backdrop mode"). A drawing small enough for
+ * this slide could not show what the Backdrop is, a scene behind every pane.
+ * Retake both when the window changes.
  */
-const LOOK_CURVE = (() => {
-  const points: string[] = [];
-  for (let step = 0; step <= 60; step += 1) {
-    const x = step / 60;
-    const bass = 15 * Math.exp(-(((x - 0.12) / 0.11) ** 2));
-    const dip = 8 * Math.exp(-(((x - 0.45) / 0.12) ** 2));
-    const air = 12 / (1 + Math.exp(-(x - 0.84) * 16));
-    const y = 56 - bass + dip - air;
-    points.push(`${(x * 100).toFixed(2)},${y.toFixed(2)}`);
-  }
-  return points.join(' ');
-})();
+const WINDOW_PHOTO = { width: 1400, height: 761 };
+const MENU_PHOTO = { width: 301, height: 473 };
 
-/** The name as the title bar writes it: "Fluid" in white, "EQ" in Lagoon. */
-const NAME_SUFFIX = 'EQ';
-const NAME_FIRST = PRODUCT_NAME.endsWith(NAME_SUFFIX)
-  ? PRODUCT_NAME.slice(0, -NAME_SUFFIX.length)
-  : PRODUCT_NAME;
-
-/**
- * A slider as the menu draws it, Brightness and Transparency alike: the accent
- * filling the track up to the thumb, and the marks at the quarters the thumb
- * falls into.
- */
-function MenuSlider({
-  label,
-  value,
-}: {
-  label: string;
-  /** Where the thumb stands, 0..1. */
-  value: number;
-}) {
-  return (
-    <span className="window-visual__slider">
-      <span className="window-visual__slider-label">{label}</span>
-      <span
-        className="window-visual__track"
-        style={{ '--thumb': `${value * 100}%` } as CSSProperties}
-      >
-        <span className="window-visual__fill" />
-        {[25, 50, 75].map((mark) => (
-          <span
-            key={mark}
-            className="window-visual__mark"
-            style={{ left: `${mark}%` }}
-          />
-        ))}
-        <span className="window-visual__thumb" />
-      </span>
-    </span>
-  );
-}
-
-/** FluidEQ with a visualizer behind its panes, and the menu that put it there. */
+/** FluidEQ on the Backdrop, and the menu that put the visualizer there. */
 export function LookVisual() {
   const { t } = useTranslation();
   return (
-    <div
-      className="window-visual"
-      role="img"
-      aria-label={t('tour.look.imageAlt')}
-    >
+    <div className="look-photo" role="img" aria-label={t('tour.look.imageAlt')}>
       <TitlebarCorner
         ringed="actions"
         label={t('graph.sceneTint.brightness')}
       />
-      <div className="window-visual__window">
-        <img className="window-visual__scene" src={sceneAlpine} alt="" />
-        <div className="window-visual__titlebar">
-          <BrandMark className="window-visual__mark-tile" />
-          <span className="window-visual__name">
-            {NAME_FIRST}
-            {NAME_FIRST !== PRODUCT_NAME && <span>{NAME_SUFFIX}</span>}
-          </span>
-          <span className="window-visual__tabs">
-            {TABS.map((tab, index) => (
-              <span key={tab} className={index === 0 ? 'is-open' : undefined}>
-                {t(tab)}
-              </span>
-            ))}
-          </span>
-        </div>
-        <div className="window-visual__floor">
-          <div className="window-visual__side">
-            <span className="window-visual__power" />
-            <span className="window-visual__meter">
-              <span />
-            </span>
-          </div>
-          <div className="window-visual__main">
-            <svg
-              className="window-visual__curve"
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <polyline points={LOOK_CURVE} />
-            </svg>
-            <ul className="window-visual__bands">
-              {BANDS.map((band) => (
-                <li
-                  key={band.hz}
-                  style={{ '--level': band.level } as CSSProperties}
-                >
-                  <span className="window-visual__band-track">
-                    <span />
-                  </span>
-                  <small>{band.hz}</small>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className="window-visual__menu">
-        <strong className="window-visual__menu-title">
-          {t('graph.sceneTint.label')}
-        </strong>
-        <ul className="window-visual__modes">
-          {MODES.map((mode) => (
-            <li
-              key={mode.id}
-              className={mode.id === CHOSEN_MODE ? 'is-chosen' : undefined}
-            >
-              <span
-                className={`window-visual__swatch window-visual__swatch--${mode.id}`}
-              />
-              {t(mode.key)}
-            </li>
-          ))}
-        </ul>
-        <MenuSlider label={t('graph.sceneTint.brightness')} value={0.5} />
-        <MenuSlider label={t('graph.backdropVeil')} value={0.25} />
-        <span className="window-visual__rainbow">
-          <span>{t('graph.sceneTint.rainbow')}</span>
-          <span className="window-visual__switch" />
-        </span>
+      <div className="look-photo__stage">
+        <img
+          className="look-photo__window"
+          src={lookBackdrop}
+          alt=""
+          width={WINDOW_PHOTO.width}
+          height={WINDOW_PHOTO.height}
+        />
+        <img
+          className="look-photo__menu"
+          src={lookWindowColours}
+          alt=""
+          width={MENU_PHOTO.width}
+          height={MENU_PHOTO.height}
+        />
       </div>
     </div>
   );

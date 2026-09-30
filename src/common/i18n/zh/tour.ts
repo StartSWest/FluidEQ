@@ -51,7 +51,7 @@ const tour: Partial<Dictionary> = {
     '在右上角脉冲图标后的操作菜单中拖动“{brightness}”。图表上有 Plus 可视化效果时，从图表的工具栏打开“{windowColours}”并选择“{backdrop}”。',
   'tour.look.open': '打开均衡器',
   'tour.look.imageAlt':
-    '面板背后是一幅夜晚群山场景的 FluidEQ，以及“窗口颜色”菜单：已选“背景”，“亮度”在一半，“透明度”在四分之一。',
+    '在“均衡器”页面上、面板背后是湖上极光的 FluidEQ，以及“窗口颜色”菜单：已选“背景”，“亮度”和“透明度”都在一半。',
   'tour.gpu.kicker': '全新可视化引擎',
   'tour.gpu.title': '所有可视化效果都在你的显卡上运行',
   'tour.gpu.subtitle': '四十种样式跟上屏幕刷新率，还有 3D 世界',
