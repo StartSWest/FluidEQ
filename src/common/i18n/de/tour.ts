@@ -52,7 +52,7 @@ const tour: Partial<Dictionary> = {
     'Verschieben Sie {brightness} im Aktionsmenü hinter dem Puls-Symbol oben rechts. Mit einem Plus-Visualizer im Diagramm öffnen Sie {windowColours} über die Leiste des Diagramms und wählen {backdrop}.',
   'tour.look.open': 'EQ öffnen',
   'tour.look.imageAlt':
-    'FluidEQ auf der EQ-Seite mit Polarlichtern über einem See hinter den Bereichen, und das Menü Fensterfarben mit gewählter Kulisse, Helligkeit und Transparenz auf halber Höhe.',
+    'FluidEQ in seinen eigenen Farben auf der EQ-Seite, der Analyzer zeichnet einen Song unter den Kurven, und das Menü hinter dem Puls-Symbol ist über seiner Ecke geöffnet, mit Helligkeit auf halber Höhe und eingeschaltetem Regenbogenmodus.',
   'tour.gpu.kicker': 'EINE NEUE VISUALIZER-ENGINE',
   'tour.gpu.title': 'Jeder Visualizer auf Ihrer Grafikkarte',
   'tour.gpu.subtitle':

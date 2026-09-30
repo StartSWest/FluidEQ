@@ -52,7 +52,7 @@ const tour: Partial<Dictionary> = {
     '右上のパルスアイコンの「オーディオ操作」メニューで「{brightness}」を動かします。グラフに Plus ビジュアライザーがあるときは、グラフのバーから「{windowColours}」を開き、「{backdrop}」を選びます。',
   'tour.look.open': 'EQ を開く',
   'tour.look.imageAlt':
-    'パネルの背後に湖の上のオーロラが映る EQ ページの FluidEQ と、「背景」を選び、「明るさ」と「透明度」を半分にした「ウィンドウの色」メニュー。',
+    'EQ ページで自分の色の FluidEQ。カーブの下に曲を描く「アナライザー」と、角の上に開いたパルスアイコンのメニュー。「明るさ」は半分、「レインボーモード」はオンです。',
   'tour.gpu.kicker': '新しいビジュアライザーエンジン',
   'tour.gpu.title': 'すべてのビジュアライザーをグラフィックカードで',
   'tour.gpu.subtitle': '40 の表示を画面の速さで、そして 3D の世界',

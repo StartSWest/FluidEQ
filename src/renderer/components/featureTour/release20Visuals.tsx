@@ -6,8 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useTranslation } from '../../utils/I18nContext';
 import TitlebarCorner from './TitlebarCorner';
-import lookBackdrop from '../../../../assets/tour/look-backdrop.jpg';
-import lookWindowColours from '../../../../assets/tour/look-window-colours.jpg';
+import lookNative from '../../../../assets/tour/look-native.jpg';
+import lookPulseMenu from '../../../../assets/tour/look-pulse-menu.jpg';
 import graphAnalyzer from '../../../../assets/tour/graph-analyzer.jpg';
 import graphAnalysisList from '../../../../assets/tour/graph-analysis-list.jpg';
 import studioMain from '../../../../assets/tour/studio-main.jpg';
@@ -18,9 +18,9 @@ import studioMeters from '../../../../assets/tour/studio-meters.jpg';
  * graph's measuring views and the Studio.
  *
  * Each is the running window itself, because what each shows is only seen in
- * the real thing: the Backdrop is a scene behind every pane, the Analyzer is a
- * song's live spectrum with its peaks over it, and the Studio is a scene
- * playing on its stage. The drawings they replaced were sent back as not
+ * the real thing: the new look is the window's own colours and the menu its
+ * Brightness is in, the Analyzer is a song's live spectrum with its peaks
+ * over it, and the Studio is a scene playing on its stage. The drawings they replaced were sent back as not
  * realistic enough (Ivan, 2026-09-30: "a better more realistic picture").
  *
  * All from the running window with Brightness at half, like the Help
@@ -29,18 +29,21 @@ import studioMeters from '../../../../assets/tour/studio-meters.jpg';
  */
 
 // ---------------------------------------------------------------------------
-// The new look: the window on the Backdrop, and the Window colours menu that
-// put the visualizer there, cut from the same window.
+// The new look: the window in its own colours, and the menu the title bar's
+// pulse opens, with Brightness in it, cut from the same window.
 
 /**
- * At 2560 x 1392 on 2026-09-29: the EQ page with Aurora on the Backdrop, and
- * its Window colours menu cut out at the size the window draws it (Ivan,
- * 2026-09-28: "the number 1 take full picture if the app in backdrop mode").
+ * At 2560 x 1392 on 2026-09-30, the window in its own colours (Ivan: "take
+ * pictures on native mode not backdrop"), cut above the bottom bar so no
+ * song is named, and its pulse menu cut out at the size the window draws it.
+ * The menu stands where it drops from, under the ringed pulse: the slide
+ * used to show the Window colours menu there, which the pulse does not open
+ * (Ivan: "windows colours don't show when user click on the root menu").
  */
-const WINDOW_PHOTO = { width: 1400, height: 761 };
-const MENU_PHOTO = { width: 301, height: 473 };
+const WINDOW_PHOTO = { width: 1400, height: 720 };
+const MENU_PHOTO = { width: 296, height: 668 };
 
-/** FluidEQ on the Backdrop, and the menu that put the visualizer there. */
+/** FluidEQ in its own colours, and the pulse menu that holds Brightness. */
 export function LookVisual() {
   const { t } = useTranslation();
   return (
@@ -52,14 +55,14 @@ export function LookVisual() {
       <div className="tour-photo__stage">
         <img
           className="tour-photo__main"
-          src={lookBackdrop}
+          src={lookNative}
           alt=""
           width={WINDOW_PHOTO.width}
           height={WINDOW_PHOTO.height}
         />
         <img
-          className="tour-photo__card tour-photo__card--menu"
-          src={lookWindowColours}
+          className="tour-photo__card tour-photo__card--pulse"
+          src={lookPulseMenu}
           alt=""
           width={MENU_PHOTO.width}
           height={MENU_PHOTO.height}

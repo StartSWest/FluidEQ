@@ -65,10 +65,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // A margin in percent is a share of the column's width, so each card is
 // lifted over the same part of its photograph whatever size the slide is.
 
-// The Window colours menu, over the window's bottom third.
-.tour-photo__card--menu {
-  width: 40%;
-  margin: -18% calc(#{$u} * 0.6) 0 0;
+// The title bar's pulse menu where it drops in the window: its top just
+// under the title bar (49% of the width is the photograph's height, 720 of
+// its 1400, less the title bar) and its right edge where the menu's is,
+// a tenth of the width in from the photograph's; larger than the window
+// draws it, so its Brightness row can be read.
+.tour-photo__card--pulse {
+  width: 30%;
+  margin: -49% 10% 0 0;
 }
 
 // The picker's Analysis list, over the graph's lower right, under the EQ's

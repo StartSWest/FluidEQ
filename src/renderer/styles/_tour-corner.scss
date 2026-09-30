@@ -99,16 +99,22 @@ it under the terms of the GNU General Public License version 3 or later.
   background: rgba($black, 0.22);
   gap: calc(#{$u} * 0.1);
 
+  // The half not lit is the title bar's own faint ink (`WindowModeSwitch`);
+  // drawn in the muted text colour, the Compact player's glyph stood out
+  // brighter than it does in the window (Ivan, 2026-09-30).
   > span:not(.titlebar-corner__tag) {
     display: grid;
     width: calc(#{$u} * 1.5);
     height: calc(#{$u} * 1.26);
-    color: $text-muted;
+    color: $text-faint;
     border-radius: $radius-xs;
     place-items: center;
   }
 
-  > .is-lit {
+  // As specific as the rule above, and after it: written `> .is-lit` it lost
+  // to that rule, so the lit glyph was drawn in the idle ink, pale on the
+  // accent, where the title bar gives it the filled buttons' dark ink.
+  > span.is-lit {
     color: $surface-base;
     background: $secondary-default var(--accent-fill);
   }

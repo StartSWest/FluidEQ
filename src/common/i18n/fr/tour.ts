@@ -53,7 +53,7 @@ const tour: Partial<Dictionary> = {
     'Déplacez {brightness} dans le menu des actions derrière l’icône d’impulsion en haut à droite. Avec un visualiseur Plus sur le graphique, ouvrez {windowColours} depuis la barre du graphique et choisissez {backdrop}.',
   'tour.look.open': 'Ouvrir l’Égaliseur',
   'tour.look.imageAlt':
-    'FluidEQ sur la page Égaliseur avec des aurores boréales au-dessus d’un lac derrière ses panneaux, et le menu Couleurs de la fenêtre avec Toile de fond choisie, la Luminosité et la Transparence à mi-course.',
+    'FluidEQ dans ses propres couleurs sur la page Égaliseur, l’Analyseur dessinant un morceau sous les courbes, et le menu derrière l’icône d’impulsion ouvert au-dessus de son coin, avec la Luminosité à moitié et le Mode arc-en-ciel activé.',
   'tour.gpu.kicker': 'UN NOUVEAU MOTEUR DE VISUALISEURS',
   'tour.gpu.title': 'Tous les visualiseurs sur votre carte graphique',
   'tour.gpu.subtitle':

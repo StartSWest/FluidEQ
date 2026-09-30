@@ -62,7 +62,7 @@ const tour = {
     'Move {brightness} in the menu behind the pulse icon at the top right. With a Plus visualizer on the graph, open {windowColours} from the graph’s bar and choose {backdrop}.',
   'tour.look.open': 'Open EQ',
   'tour.look.imageAlt':
-    'FluidEQ on the EQ page with the northern lights over a lake behind its panes, and the Window colours menu with Backdrop chosen, Brightness and Transparency at half.',
+    'FluidEQ in its own colours on the EQ page, the Analyzer drawing a song under the curves, and the menu behind the pulse icon open over its corner, with Brightness at half and Rainbow mode on.',
   'tour.gpu.kicker': 'A NEW VISUALIZER ENGINE',
   'tour.gpu.title': 'Every visualizer on your graphics card',
   'tour.gpu.subtitle': "Forty looks at your screen's own speed, and 3D worlds",
