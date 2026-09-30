@@ -46,6 +46,15 @@ const help = {
     'System-wide EQ needs Windows and an audio engine: the FluidEQ Engine or Equalizer APO. On macOS and Linux the app shows demonstration outputs, so a moving graph there is not proof that anything is processed.',
   'help.start.keywords':
     'install, installer, setup, set up, getting started, first steps, quick start, beginner, basics, tutorial, how to use, begin',
+  'help.start.videoTitle': 'First steps with FluidEQ',
+  'help.video.play': 'Play the video: {title}',
+  'help.video.note':
+    'About two minutes. It plays from fluideq.com when you press play.',
+  'help.video.loading': 'Loading from fluideq.com…',
+  'help.video.failed':
+    'The video could not be loaded. It plays from fluideq.com, so it needs an internet connection.',
+  'help.video.retry': 'Try again',
+  'help.video.open': 'Open on fluideq.com',
 
   'help.window.title': 'Around the window',
   'help.window.intro':

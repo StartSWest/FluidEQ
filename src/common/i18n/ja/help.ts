@@ -42,6 +42,15 @@ const help: Record<keyof typeof en, string> = {
     'システム全体の EQ には、Windows とオーディオエンジン（FluidEQ エンジンまたは Equalizer APO）が必要です。macOS と Linux ではデモ用の出力が表示されるため、グラフが動いていても何かが処理されている証拠にはなりません。',
   'help.start.keywords':
     '使い方, 始め方, はじめに, 初めて, 初心者, 入門, 導入方法, セットアップ, 初期設定, インストーラー, インストール方法, チュートリアル, クイックスタート, スタートガイド, 基本操作',
+  'help.start.videoTitle': 'FluidEQ はじめの一歩',
+  'help.video.play': '動画を再生: {title}',
+  'help.video.note':
+    '約 2 分、英語のナレーション付き。再生を押すと fluideq.com から再生されます。',
+  'help.video.loading': 'fluideq.com から読み込んでいます…',
+  'help.video.failed':
+    '動画を読み込めませんでした。fluideq.com から再生するため、インターネット接続が必要です。',
+  'help.video.retry': '再試行',
+  'help.video.open': 'fluideq.com で開く',
 
   'help.window.title': 'ウィンドウの各部',
   'help.window.intro':

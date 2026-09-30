@@ -42,6 +42,15 @@ const help: Record<keyof typeof en, string> = {
     'Systemweiter EQ braucht Windows und eine Audio-Engine: die FluidEQ-Engine oder Equalizer APO. Unter macOS und Linux zeigt die App Demonstrationsausgänge, ein bewegtes Diagramm ist dort also kein Beweis, dass etwas verarbeitet wird.',
   'help.start.keywords':
     'erste schritte, einstieg, einsteiger, einführung, schnellstart, kurzanleitung, anleitung, bedienungsanleitung, tutorial, anfänger, grundlagen, setup, installer, einrichten, ersteinrichtung, loslegen, benutzen, installieren, installation',
+  'help.start.videoTitle': 'Erste Schritte mit FluidEQ',
+  'help.video.play': 'Video abspielen: {title}',
+  'help.video.note':
+    'Etwa zwei Minuten, auf Englisch gesprochen. Es wird beim Abspielen von fluideq.com geladen.',
+  'help.video.loading': 'Wird von fluideq.com geladen…',
+  'help.video.failed':
+    'Das Video konnte nicht geladen werden. Es wird von fluideq.com abgespielt und braucht deshalb eine Internetverbindung.',
+  'help.video.retry': 'Erneut versuchen',
+  'help.video.open': 'Auf fluideq.com öffnen',
 
   'help.window.title': 'Rund ums Fenster',
   'help.window.intro':

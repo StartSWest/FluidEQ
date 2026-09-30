@@ -157,6 +157,20 @@ describe('the app window content security policy', () => {
     expect(directives(true)['img-src']).toContain('fluideq-media:');
   });
 
+  it("streams Help's first-steps film from FluidEQ's own site, and from no other", () => {
+    // Without the site on media-src the film's card says it cannot load on a
+    // machine that is online; with any other host there, a page the window
+    // shows could play media from anywhere.
+    const media = directives(false)['media-src'];
+    expect(media).toContain('https://fluideq.com');
+    expect(media.filter((source) => source.startsWith('https:'))).toEqual([
+      'https://fluideq.com',
+    ]);
+    expect(directives(false)['connect-src']).not.toContain(
+      'https://fluideq.com',
+    );
+  });
+
   it("shows the forum's pictures, and only as pictures", () => {
     // Without these every avatar in the Forum tab falls back to initials and
     // every screenshot in a post is a broken link. They are image sources and

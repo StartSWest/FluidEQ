@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { OFFICIAL_SITE_URL } from '../common/branding';
+
 /**
  * Where the on-demand models are fetched from, by their workers.
  *
@@ -94,6 +96,9 @@ const GITHUB_IMAGE_HOSTS = 'https://github.com https://*.githubusercontent.com';
  *  - the model hosts in connect-src, because that is where the speech and
  *    vocal separation models come from, including the redirect targets their
  *    large files are actually served by.
+ *  - FluidEQ's own site in media-src, and nowhere else, because Help's
+ *    first-steps film is streamed from it when the reader presses play
+ *    (`helpChapters/start.ts`) rather than shipped in every installer.
  *  - `fluideq-media:` in img-src and media-src, because the library serves
  *    local audio, video and cached covers over its own scheme — resolved by
  *    id against the index in Task 6 and Task 8, never by a path the document
@@ -114,7 +119,7 @@ const contentSecurityPolicy = (isDebug: boolean): string =>
       : "script-src 'self' 'wasm-unsafe-eval'",
     "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data: blob: fluideq-media: ${GITHUB_IMAGE_HOSTS}`,
-    "media-src 'self' blob: data: file: fluideq-media:",
+    `media-src 'self' blob: data: file: fluideq-media: ${OFFICIAL_SITE_URL}`,
     "font-src 'self' data:",
     "worker-src 'self' blob:",
     isDebug

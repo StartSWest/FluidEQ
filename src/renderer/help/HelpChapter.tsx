@@ -6,6 +6,7 @@ import { useTranslation } from '../utils/I18nContext';
 import HelpFigure from './HelpFigure';
 import { Marked } from './HelpMarks';
 import { helpAnchor, type IHelpHit } from './helpSearch';
+import HelpVideo from './HelpVideo';
 import helpScreenshot from './screenshots';
 
 type TGuideChapter = (typeof HELP_CHAPTERS)[number];
@@ -15,6 +16,7 @@ export interface IHelpShownChapter {
   id: TGuideChapter['id'];
   group: TGuideChapter['group'];
   figures: TGuideChapter['figures'];
+  video?: TGuideChapter['video'];
   /** Its place in the guide, which a search keeps while reordering it. */
   number: number;
   title: string;
@@ -81,6 +83,7 @@ function HelpChapter({ chapter, groupLabel, onEnlarge }: IHelpChapterProps) {
           kind="intro"
         />
       </p>
+      {chapter.video && <HelpVideo video={chapter.video} />}
       {chapter.figures.map((figure, figureIndex) => {
         const title = figure.caption ? t(figure.caption) : chapter.title;
         const src = helpScreenshot(figure.image);

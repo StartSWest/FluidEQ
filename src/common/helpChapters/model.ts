@@ -55,6 +55,28 @@ export type THelpGroup = (typeof HELP_GROUPS)[number];
 /** A capture of the whole window. */
 export const WINDOW = { width: 2560, height: 1392 } as const;
 
+/**
+ * A film a chapter plays from FluidEQ's site. It is streamed when the reader
+ * presses play and never bundled: the installer keeps its size, the film can
+ * be replaced without a release, and nothing is fetched before the press.
+ */
+export interface IHelpVideo<TImage extends string = string> {
+  /** Where the site serves the film. */
+  readonly src: string;
+  /**
+   * Its captions, a WebVTT file the site serves beside it, in the narration's
+   * language. Another origin's captions only load over CORS, so the site
+   * sends `Access-Control-Allow-Origin` for both files.
+   */
+  readonly captions: { readonly src: string; readonly lang: string };
+  /** The site's page that shows it, for a window that cannot play it. */
+  readonly page: string;
+  /** Its name on the card. */
+  readonly title: TranslationKey;
+  /** A capture in `docs/`, shown until the film plays. */
+  readonly poster: TImage;
+}
+
 export interface IHelpChapter<
   TId extends string = string,
   TImage extends string = string,
@@ -62,4 +84,5 @@ export interface IHelpChapter<
   readonly id: TId;
   readonly group: THelpGroup;
   readonly figures: readonly IHelpFigure<TImage>[];
+  readonly video?: IHelpVideo<TImage>;
 }

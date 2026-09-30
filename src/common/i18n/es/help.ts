@@ -42,6 +42,15 @@ const help: Record<keyof typeof en, string> = {
     'El EQ para todo el sistema necesita Windows y un motor de audio: el Motor FluidEQ o Equalizer APO. En macOS y Linux la app muestra salidas de demostración, así que ahí una gráfica en movimiento no demuestra que se esté procesando nada.',
   'help.start.keywords':
     'instalación, primeros pasos, empezar, comenzar, inicio rápido, guía rápida, tutorial, cómo usar, principiante, novato, básico, introducción, configurar, configuración inicial, manual',
+  'help.start.videoTitle': 'Primeros pasos con FluidEQ',
+  'help.video.play': 'Reproducir el vídeo: {title}',
+  'help.video.note':
+    'Unos dos minutos, narrado en inglés. Se reproduce desde fluideq.com cuando pulsas play.',
+  'help.video.loading': 'Cargando desde fluideq.com…',
+  'help.video.failed':
+    'No se pudo cargar el vídeo. Se reproduce desde fluideq.com, así que necesita conexión a internet.',
+  'help.video.retry': 'Reintentar',
+  'help.video.open': 'Abrir en fluideq.com',
 
   'help.window.title': 'Un recorrido por la ventana',
   'help.window.intro':

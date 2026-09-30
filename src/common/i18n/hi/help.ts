@@ -41,6 +41,15 @@ const help: Record<keyof typeof en, string> = {
     'पूरे सिस्टम के EQ के लिए Windows और एक ऑडियो इंजन चाहिए: FluidEQ इंजन या Equalizer APO। macOS और Linux पर ऐप डेमो आउटपुट दिखाता है, इसलिए वहाँ चलता ग्राफ़ इस बात का प्रमाण नहीं है कि कुछ भी प्रोसेस हो रहा है।',
   'help.start.keywords':
     'installation, setup, getting started, quick start, beginner, basics, tutorial, how to use, kaise use kare, first time, इंस्टॉलेशन, इंस्टॉलर, शुरुआत, पहली बार, ट्यूटोरियल, इस्तेमाल कैसे करें',
+  'help.start.videoTitle': 'FluidEQ के पहले कदम',
+  'help.video.play': 'वीडियो चलाएँ: {title}',
+  'help.video.note':
+    'लगभग दो मिनट, अंग्रेज़ी में वर्णन। चलाने पर यह fluideq.com से चलता है।',
+  'help.video.loading': 'fluideq.com से लोड हो रहा है…',
+  'help.video.failed':
+    'वीडियो लोड नहीं हो सका। यह fluideq.com से चलता है, इसलिए इसके लिए इंटरनेट कनेक्शन चाहिए।',
+  'help.video.retry': 'फिर से कोशिश करें',
+  'help.video.open': 'fluideq.com पर खोलें',
 
   'help.window.title': 'विंडो में क्या कहाँ है',
   'help.window.intro':

@@ -118,10 +118,11 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
   // Read once per language: `t` changes exactly when the text can.
   const chapters = useMemo<IHelpShownChapter[]>(
     () =>
-      HELP_CHAPTERS.map(({ id, group, figures }, index) => ({
+      HELP_CHAPTERS.map(({ id, group, figures, video }, index) => ({
         id,
         group,
         figures,
+        video,
         number: index + 1,
         title: t(`help.${id}.title`),
         intro: t(`help.${id}.intro`),
