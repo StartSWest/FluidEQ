@@ -19,6 +19,25 @@ export const SWIFT_F0_PROVENANCE: IKaraokeMakerLicenseRecord = {
 };
 
 /**
+ * The tracker main tries first (`karaokePitch.ts`). Its repository on Hugging
+ * Face declares MIT, read there on 2026-09-30; the RVC project's own licence
+ * carries the copyright lines. Notes it detected used to be signed as
+ * SwiftF0's, because the reply's `model` was dropped on the way here.
+ */
+export const RMVPE_PROVENANCE: IKaraokeMakerLicenseRecord = {
+  component: 'RMVPE vocal pitch model',
+  version: 'lj1995/VoiceConversionWebUI rmvpe.onnx (downloaded on demand)',
+  license: 'MIT',
+  sourceUrl: 'https://huggingface.co/lj1995/VoiceConversionWebUI',
+};
+
+/** The notes, and the model that found them, which signs the project. */
+export interface IDetectedMelody {
+  notes: IKaraokeMakerAnalysisNote[];
+  provenance: IKaraokeMakerLicenseRecord;
+}
+
+/**
  * Detect the sung melody with SwiftF0, one note at a time.
  *
  * Basic Pitch answered "which notes are sounding" — a polyphonic question the
@@ -47,7 +66,7 @@ export const analyzeKaraokeWithSwiftF0 = async (
   onDownload?: (summary: IKaraokeMakerDownloadSummary) => void,
   /** The bundled detector completed the run after the optional fetch failed. */
   onDownloadError?: () => void,
-): Promise<IKaraokeMakerAnalysisNote[]> => {
+): Promise<IDetectedMelody> => {
   onProgress(0.02);
   const samples = await decodeMono(file, 16_000);
   if (signal?.aborted) {
@@ -94,7 +113,7 @@ export const analyzeKaraokeWithSwiftF0 = async (
   if (reply.rmvpeDownloadFailed) {
     onDownloadError?.();
   }
-  const { pitchHz, confidence, hopSeconds, voicedThreshold } = reply;
+  const { pitchHz, confidence, hopSeconds, voicedThreshold, model } = reply;
   if (signal?.aborted) {
     throw new DOMException('Analysis cancelled.', 'AbortError');
   }
@@ -107,5 +126,8 @@ export const analyzeKaraokeWithSwiftF0 = async (
     analysisWindows,
   );
   onProgress(1);
-  return notes;
+  return {
+    notes,
+    provenance: model === 'rmvpe' ? RMVPE_PROVENANCE : SWIFT_F0_PROVENANCE,
+  };
 };

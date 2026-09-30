@@ -6,6 +6,11 @@ see LICENSE.txt. It is built on the work below, which is not, and which carries
 its own terms. Each of these licences requires that its copyright notice travel
 with the software, which is what this file is for.
 
+This file explains the main components and covers what is not an npm package.
+Every npm package installed with FluidEQ, including the ones those packages
+bring with them, is listed with its own licence text in
+THIRD-PARTY-LICENSES.txt, beside this file.
+
 Three larger components have their own files beside this one:
 
   Equalizer APO   GPL-2.0-or-later   EqualizerAPO-LICENSE.txt
@@ -40,42 +45,57 @@ also records what was adapted — the horizontal ring of the compact set,
 diffuse-field equalised and resampled.
 
 
-Karaoke Maker analysis components (Apache-2.0)
-------------------------------------------------
-@huggingface/transformers 3.7.6
+Karaoke Maker and Denoise models
+--------------------------------
+@huggingface/transformers 3.7.6 (Apache-2.0)
 Copyright Hugging Face and contributors
 https://github.com/huggingface/transformers.js
+The library the lyric model runs in. The Apache License 2.0 is included as
+Apache-2.0-LICENSE.txt beside this notice.
 
-onnx-community/whisper-large-v3-turbo_timestamped
-(downloaded only after explicit user consent)
-Derived from openai/whisper-large-v3-turbo
-https://huggingface.co/onnx-community/whisper-large-v3-turbo_timestamped
-https://huggingface.co/openai/whisper-large-v3-turbo
-
-These components and model weights are licensed under the Apache License,
-Version 2.0. The full licence is included as Apache-2.0-LICENSE.txt beside this
-notice. Karaoke media and lyrics imported by a user are not supplied by these
-projects and remain subject to their respective copyright holders' terms.
-
-The melody detector and the vocal separator use model weights that are not
-supplied by the projects above and carry their own terms. What FluidEQ uses,
-and where each comes from:
+Each model below is identified by its own repository, and each licence was read
+there, not at a mirror, on 2026-09-30. Only SwiftF0 ships with FluidEQ. The
+others are downloaded on request, straight from the address given, to the
+user's own profile, and none is fetched until the control that needs it is
+pressed; FluidEQ does not redistribute them.
 
   SwiftF0            MIT, bundled, assets/models/swift-f0.onnx
                      Copyright (c) 2025-2026 Lars Nieradzik
                      https://github.com/lars76/swift-f0
                      the melody detector's fallback
 
-  RMVPE              downloaded on request
+  Whisper            MIT, downloaded on request
+  large-v3-turbo     Copyright (c) 2022 OpenAI
+                     https://huggingface.co/openai/whisper-large-v3-turbo
+                     as exported to ONNX with word timestamps at
+                     https://huggingface.co/onnx-community/whisper-large-v3-turbo_timestamped,
+                     which states no licence of its own for the weights
+                     it converts
+                     the lyric transcriber
+
+  RMVPE              MIT, downloaded on request
+                     Copyright (c) 2023 liujing04, 源文雨, Ftps
+                     (the Retrieval-based Voice Conversion project)
                      https://huggingface.co/lj1995/VoiceConversionWebUI
                      the melody detector's primary model
 
-  Mel-Band RoFormer  downloaded on request
+  Mel-Band RoFormer  MIT, downloaded on request
+                     Kimberley Jensen
+                     https://huggingface.co/KimberleyJSN/melbandroformer
+                     as exported to ONNX, also MIT, at
                      https://huggingface.co/silverdaw/mel-band-roformer-vocals-onnx
                      the voice and backing separator
 
-Neither downloaded model is fetched until the user presses the control that
-needs it, and neither is redistributed by FluidEQ.
+  DPDFNet            Apache-2.0, downloaded on request
+                     Ceva
+                     https://github.com/ceva-ip/DPDFNet
+                     the weights fetched from the sherpa-onnx project's
+                     release and checked against a pinned SHA-256
+                     the Denoise stage's Voice module
+
+The MIT permission notice below covers each MIT model. Karaoke media and lyrics
+a user imports are not supplied by any of these projects and remain subject to
+their own copyright holders' terms.
 
 SwiftF0 is, so its licence travels with it. What ships is the model committed
 in the author's own repository — swift_f0/model.onnx at commit 64700fce, byte
@@ -137,19 +157,19 @@ ajv                 Copyright (c) 2015-2021 Evgeny Poberezkin
 electron-debug      Copyright (c) Sindre Sorhus <sindresorhus@gmail.com>
 electron-log        Copyright (c) 2016 Alexey Prokhorov
 electron-updater    Copyright (c) 2015 Loopline Systems
+koffi               Copyright (C) 2026 Niels Martignène
 music-metadata      Copyright (c) 2026 Borewit
 onnxruntime-common  Copyright (c) Microsoft Corporation
 onnxruntime-node    Copyright (c) Microsoft Corporation
 onnxruntime-web     Copyright (c) Microsoft Corporation
 react               Copyright (c) Meta Platforms, Inc. and affiliates
 react-dom           Copyright (c) Meta Platforms, Inc. and affiliates
-react-router-dom    Copyright (c) React Training LLC 2015-2019
-                    Copyright (c) Remix Software Inc. 2020-2021
-                    Copyright (c) Shopify Inc. 2022-2023
-regedit             Copyright (c) 2014 ironSource
+regedit            Copyright (c) 2014 ironSource
 swift-f0 (weights)  Copyright (c) 2025-2026 Lars Nieradzik
 three               Copyright (c) 2010-2026 three.js authors
 uid                 Copyright (c) Luke Edwards <luke.edwards05@gmail.com>
+ws                  Copyright (c) 2011 Einar Otto Stangvik <einaros@gmail.com>
+                    Copyright (c) 2013 Arnout Kazemier and contributors
 FidelityFX-FSR 1.0  Copyright (c) 2021 Advanced Micro Devices, Inc.
 
 three.js is the 3D engine behind visualizers that carry a 3D world: their
@@ -196,6 +216,8 @@ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 music-metadata reads the tags, cover art and durations behind the Library tab.
+koffi calls the Windows functions the window's title bar and taskbar buttons
+need. ws carries Share Audio between computers on the local network.
 The three onnxruntime packages are the inference runtime the Karaoke Maker's
 models are executed by; they are published by the ONNX Runtime project at
 https://github.com/microsoft/onnxruntime.

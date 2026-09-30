@@ -167,15 +167,26 @@ published source. No part of it has been copied.
 
 ## Libraries FluidEQ is built with
 
-FluidEQ ships Electron and sixteen npm packages. Most are permissively licensed
-— MIT, except d3, which is ISC, and `@huggingface/transformers`, which is
-Apache-2.0 — and each of those licences requires its copyright notice to
-accompany the software rather than stay in a repository. They travel in
+FluidEQ ships Electron and eighteen npm packages of its own choosing. Most are
+permissively licensed — MIT, except d3, which is ISC, and
+`@huggingface/transformers`, which is Apache-2.0 — and each of those licences
+requires its copyright notice to accompany the software rather than stay in a
+repository. What they are for is explained in
 `assets/licenses/THIRD-PARTY-NOTICES.txt`, which is installed alongside the
 application, together with the notices for Chromium and Node.js that Electron
 brings with it.
 
-One of the sixteen is copyleft. `@breezystack/lamejs`, the LAME MP3 encoder the
+Those eighteen bring about a hundred and thirty more with them, and their
+licences ask the same — among them BSD-3-Clause, Python-2.0 and the Blue Oak
+Model License, none of which a hand-kept list had ever named. So the complete
+list is generated from the lock: `assets/licenses/THIRD-PARTY-LICENSES.txt`
+carries every package installed for production with the licence text its own
+package ships, is written by `pnpm licenses:notices`, and `pnpm package`
+refuses to build an installer while it is out of date. It lists a little more
+than the application runs — a package can be installed without its code ever
+being loaded — because under-listing is a breach and over-listing is not.
+
+One of the eighteen is copyleft. `@breezystack/lamejs`, the LAME MP3 encoder the
 Karaoke Maker writes MP3 stems with, is LGPL-3.0. It is used unmodified as
 published, its own licence text ships as `assets/licenses/LGPL-3.0-LICENSE.txt`,
 and the combined work is conveyed under GPL-3.0-or-later as LGPL-3.0 section 2
@@ -230,9 +241,9 @@ holds a licence for the machine it is running on, avoids both.
 On a platform whose own decoder has not been written yet, those formats fall
 back to the browser engine that has always played them.
 
-## Third-party websites reached from the Video tab
+## Third-party websites reached from the Online Media tab
 
-FluidEQ includes a Video tab, which opens a small fixed set of music and video
+FluidEQ includes an Online Media tab, which opens a small fixed set of music and video
 websites in an embedded Chromium window so that something can be playing while
 the equaliser is adjusted.
 
@@ -253,7 +264,7 @@ partition of their own, separate from anything else the application stores, and
 encrypted at rest by the operating system in the same way any browser profile on
 the machine is. FluidEQ does not read it. No credential, token or cookie is
 inspected, transmitted, or sent anywhere by this application, and none is shared
-with any other part of it. The Video tab's toolbar carries a control that
+with any other part of it. The Online Media tab's toolbar carries a control that
 deletes the whole of it — every cookie, sign-in and cached page — in one press.
 
 Use of each site remains subject to that site's own terms of service and to the

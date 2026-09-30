@@ -262,9 +262,11 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
           </section>
 
           <p className="about__footer">
-            The libraries {PRODUCT_NAME} is built on are listed with their
+            The libraries {PRODUCT_NAME} is built on are described with their
             copyright notices in{' '}
-            <code>{LICENSE_DIR}/THIRD-PARTY-NOTICES.txt</code>. The complete
+            <code>{LICENSE_DIR}/THIRD-PARTY-NOTICES.txt</code>, and every
+            package installed with it is listed with its own licence text in{' '}
+            <code>{LICENSE_DIR}/THIRD-PARTY-LICENSES.txt</code>. The complete
             derivative-work and trademark notices install beside the application
             as <code>NOTICE.md</code> and <code>TRADEMARK.md</code>.
             <br />

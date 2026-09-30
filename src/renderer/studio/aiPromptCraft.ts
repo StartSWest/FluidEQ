@@ -61,6 +61,12 @@ idea roughed in, never a placeholder. The bar is that it stands beside the
 best work on Shadertoy and that I want to publish it. Never hand over clip-art
 shapes, a diagram, a test pattern, or a small thing on a flat gradient.
 
+WRITE IT YOURSELF. Never paste, port or closely follow somebody else's shader
+from Shadertoy, a gist, a tutorial or anywhere else: most of that code is
+licensed for non-commercial use or share-alike only, and what I publish has to
+be mine to share. A technique is free to use - a ray march, a noise function,
+a tone curve; another person's scene, or a recognisable part of it, is not.
+
 THE FEELING IS MINE TO CHOOSE: calm or energetic. It sets how far everything
 moves on each beat, how hard a drop hits and how fast the picture changes. If
 my idea says it ("a calm ocean", "a rave in a cave"), follow it. If it does

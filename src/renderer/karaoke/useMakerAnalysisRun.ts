@@ -40,10 +40,7 @@ import {
   transcribeKaraokeWithWhisper,
 } from './makerAi';
 import { plainLyrics } from './useKaraokeMakerLyricsDraft';
-import {
-  analyzeKaraokeWithSwiftF0,
-  SWIFT_F0_PROVENANCE,
-} from './makerAi/swiftF0Notes';
+import { analyzeKaraokeWithSwiftF0 } from './makerAi/swiftF0Notes';
 import {
   mergeKaraokeMakerDetectionRepair,
   protectKaraokeMakerTimedWordsForDetection,
@@ -239,10 +236,11 @@ export const useMakerAnalysisRun = ({
         `[karaoke][melody] swift-f0.start file=${analysisFile.name} bytes=${analysisFile.size}`,
       );
       try {
-        // SwiftF0 asks the monophonic question the Maker actually has —
-        // where is THE voice — where Basic Pitch transcribed harmonics and
-        // breath as extra notes. Basic Pitch remains the fallback below.
-        const notes = await analyzeKaraokeWithSwiftF0(
+        // RMVPE, or SwiftF0 without it, asks the monophonic question the
+        // Maker actually has — where is THE voice — where Basic Pitch
+        // transcribed harmonics and breath as extra notes. Whichever answered
+        // signs the project.
+        const { notes, provenance } = await analyzeKaraokeWithSwiftF0(
           analysisFile,
           setAnalysisProgress,
           controller.signal,
@@ -261,19 +259,9 @@ export const useMakerAnalysisRun = ({
           repairBaseline
             ? mergeKaraokeMakerDetectionRepair(
                 repairBaseline,
-                applyBasicPitchMelody(
-                  publishBase,
-                  notes,
-                  true,
-                  SWIFT_F0_PROVENANCE,
-                ),
+                applyBasicPitchMelody(publishBase, notes, true, provenance),
               )
-            : applyBasicPitchMelody(
-                publishBase,
-                notes,
-                true,
-                SWIFT_F0_PROVENANCE,
-              ),
+            : applyBasicPitchMelody(publishBase, notes, true, provenance),
         );
         projectRef.current = next;
         pushHistory(publishBase);
@@ -668,7 +656,7 @@ export const useMakerAnalysisRun = ({
         );
         try {
           const windows = karaokeMakerVocalAnalysisWindows(completedProject);
-          const notes = await analyzeKaraokeWithSwiftF0(
+          const { notes, provenance } = await analyzeKaraokeWithSwiftF0(
             analysisFile,
             (progress) => setAnalysisProgress(0.72 + progress * 0.28),
             controller.signal,
@@ -684,12 +672,7 @@ export const useMakerAnalysisRun = ({
           // rather than left for the user to drag. Words Whisper did place
           // are above the doubt threshold and are locked out of the repair.
           completedProject = touchKaraokeMakerProject(
-            applyBasicPitchMelody(
-              completedProject,
-              notes,
-              true,
-              SWIFT_F0_PROVENANCE,
-            ),
+            applyBasicPitchMelody(completedProject, notes, true, provenance),
           );
           if (repairMissingTiming) {
             completedProject = touchKaraokeMakerProject(
