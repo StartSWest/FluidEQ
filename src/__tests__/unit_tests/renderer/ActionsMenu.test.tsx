@@ -20,13 +20,28 @@ import en from 'common/i18n/en';
 import ActionsMenu, {
   type TEngineState,
 } from 'renderer/components/ActionsMenu';
+import type { IHelpHandlers } from 'renderer/help/helpMenuActions';
+import { setWindowMode } from 'renderer/player/windowModeStore';
 import { getThemeShade, setTheme } from 'renderer/utils/theme';
 import { OCEAN_SHADE, THEME_SHADE_MAX } from 'renderer/utils/themeShade';
+
+// Whether the titlebar has given up Help and the compact-player switch for
+// want of room, which the bar decides by measuring (`titlebarRoom.test.ts`).
+let mockToolsShed = false;
+jest.mock('renderer/utils/useTitlebarRoom', () => ({
+  ...jest.requireActual('renderer/utils/useTitlebarRoom'),
+  useTitlebarToolsShed: () => mockToolsShed,
+}));
+jest.mock('renderer/player/windowModeStore', () => ({
+  ...jest.requireActual('renderer/player/windowModeStore'),
+  setWindowMode: jest.fn(async () => undefined),
+}));
 
 afterEach(() => {
   cleanup();
   jest.restoreAllMocks();
   setTheme('black');
+  mockToolsShed = false;
 });
 
 const handlers = () => ({
@@ -47,6 +62,7 @@ const show = (
     engineName?: string;
     engineVersion?: string;
     hasAccount?: boolean;
+    help?: IHelpHandlers;
   } = {},
 ) => {
   const actions = handlers();
@@ -54,6 +70,7 @@ const show = (
     hasAccount = true,
     engineName = 'FluidEQ Engine',
     engineVersion,
+    help,
   } = options;
   const view = render(
     <ActionsMenu
@@ -69,6 +86,7 @@ const show = (
       onProcesses={actions.onProcesses}
       onSupport={actions.onSupport}
       onAccount={hasAccount ? actions.onAccount : undefined}
+      help={help}
     />,
   );
   const trigger = screen.getByRole('button', { name: 'FluidEQ actions' });
@@ -250,6 +268,98 @@ describe('the commands of the actions menu', () => {
     open(trigger);
 
     ["What's new", 'Report a problem', 'About FluidEQ…'].forEach((label) =>
+      expect(
+        screen.queryByRole('menuitem', { name: label }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+});
+
+/**
+ * Zoomed in far enough, the titlebar gives up Help's button and the
+ * compact-player switch so the window's own buttons stay on screen (Ivan,
+ * 2026-09-28: "shed small things"), and this menu takes both in: nothing the
+ * bar held is out of reach.
+ */
+describe('Help and the compact switch, while the titlebar has no room for them', () => {
+  const helpHandlers = (): IHelpHandlers => ({
+    onTour: jest.fn(),
+    onTroubleshoot: jest.fn(),
+    onReport: jest.fn(),
+    onForum: jest.fn(),
+    onAbout: jest.fn(),
+  });
+
+  beforeEach(() => {
+    jest.mocked(setWindowMode).mockReset().mockResolvedValue(undefined);
+  });
+
+  it.each([
+    ["What's new", 'onTour'],
+    ['Report a problem', 'onReport'],
+    ['Forum', 'onForum'],
+    ['About FluidEQ…', 'onAbout'],
+  ] as const)('offers %s, which closes the menu and runs', (label, handler) => {
+    mockToolsShed = true;
+    const help = helpHandlers();
+    const { trigger } = show('ready', { help });
+    open(trigger);
+
+    fireEvent.click(screen.getByRole('menuitem', { name: label }));
+
+    expect(help[handler]).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByRole('menu', { name: 'FluidEQ actions' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('offers the user guide, and fixing audio once, as the menu’s own row', () => {
+    mockToolsShed = true;
+    const help = helpHandlers();
+    const { actions, trigger } = show('ready', { help });
+    open(trigger);
+
+    expect(
+      screen.getByRole('menuitem', { name: 'User guide' }),
+    ).toBeInTheDocument();
+    const fixes = screen.getAllByRole('menuitem', {
+      name: 'Fix audio problems…',
+    });
+    expect(fixes).toHaveLength(1);
+    fireEvent.click(fixes[0]);
+    expect(actions.onTroubleshoot).toHaveBeenCalledTimes(1);
+    expect(help.onTroubleshoot).not.toHaveBeenCalled();
+  });
+
+  it('switches to the compact player', () => {
+    mockToolsShed = true;
+    const { trigger } = show('ready', { help: helpHandlers() });
+    open(trigger);
+
+    fireEvent.click(
+      screen.getByRole('menuitem', { name: 'Switch to the compact player' }),
+    );
+
+    expect(setWindowMode).toHaveBeenCalledWith('player');
+    expect(
+      screen.queryByRole('menu', { name: 'FluidEQ actions' }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('leaves them to the titlebar while it has room for them', () => {
+    const { trigger } = show('ready', { help: helpHandlers() });
+    open(trigger);
+
+    // The control: the menu is open, with its own rows.
+    expect(
+      screen.getByRole('menuitem', { name: 'Support the work' }),
+    ).toBeInTheDocument();
+    [
+      'User guide',
+      "What's new",
+      'Forum',
+      'Switch to the compact player',
+    ].forEach((label) =>
       expect(
         screen.queryByRole('menuitem', { name: label }),
       ).not.toBeInTheDocument(),

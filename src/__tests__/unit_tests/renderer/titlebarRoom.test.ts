@@ -15,8 +15,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The layout itself is measured in the running window; this is the rule.
  */
 
+import { act, renderHook } from '@testing-library/react';
 import {
+  isShedFromTitlebar,
   isTitlebarCrowded,
+  useTitlebarToolsShed,
   watchTitlebarRoom,
 } from '../../../renderer/utils/useTitlebarRoom';
 
@@ -153,5 +156,225 @@ describe('the titlebar measured again', () => {
     expect(reads).toHaveBeenCalled();
     stop();
     header.remove();
+  });
+});
+
+/**
+ * Past the tagline and the creature, the bar's own parts (Ivan, 2026-09-28:
+ * "shed small things"): zoomed in, the ends at their content and the meter at
+ * its floor ran the window's buttons off its right edge. The meter goes when
+ * the right end runs past the bar, then Help and the compact-player switch;
+ * each comes back once the ends have spare what it takes back, with a pixel
+ * over.
+ */
+describe('the titlebar shedding its own parts', () => {
+  it('lets one go only once the bar runs past its edge', () => {
+    const fits = { spare: 0, takesBack: 0 };
+    expect(isShedFromTitlebar(false, { ...fits, overrun: 0 })).toBe(false);
+    expect(isShedFromTitlebar(false, { ...fits, overrun: 0.5 })).toBe(false);
+    expect(isShedFromTitlebar(false, { ...fits, overrun: 0.6 })).toBe(true);
+  });
+
+  it('brings it back only once the room covers it with a pixel over', () => {
+    const takesBack = 160;
+    expect(
+      isShedFromTitlebar(true, { overrun: 0, spare: takesBack, takesBack }),
+    ).toBe(true);
+    expect(
+      isShedFromTitlebar(true, { overrun: 0, spare: takesBack + 1, takesBack }),
+    ).toBe(false);
+    // Out, how far the rest runs past the edge says nothing about coming back.
+    expect(
+      isShedFromTitlebar(true, {
+        overrun: 40,
+        spare: takesBack + 1,
+        takesBack,
+      }),
+    ).toBe(false);
+  });
+});
+
+/**
+ * The whole order on a bar laid out the way its grid lays it out: two ends at
+ * `minmax(max-content, 1fr)` either side of the wave's `auto` track, the wave
+ * growing to its 420px before either end gets spare and shrinking to a 200px
+ * floor before anything runs past the edge. The widths are English's, as
+ * measured in the window; jsdom lays nothing out, so every box is answered
+ * from them.
+ */
+describe('the titlebar giving up its parts in order, and taking them back', () => {
+  const NAME = 120;
+  const TAGLINE = 208;
+  const PET = 40;
+  const TABS = 300;
+  const MENU = 32;
+  const HELP = 32;
+  const SWITCH = 32;
+  const METER = 160;
+  const WAVE = 420;
+  const WAVE_FLOOR = 200;
+
+  let width = 0;
+  let resize: (() => void) | undefined;
+
+  const stub = (
+    element: HTMLElement,
+    box: () => { width: number; right?: number },
+  ) => {
+    Object.defineProperty(element, 'offsetWidth', {
+      configurable: true,
+      get: () => box().width,
+    });
+    // eslint-disable-next-line no-param-reassign -- a stand-in for layout jsdom does not do
+    element.getBoundingClientRect = () => {
+      const { width: w, right = w } = box();
+      return { width: w, right, left: right - w } as DOMRect;
+    };
+  };
+
+  const mount = () => {
+    const bar = document.createElement('header');
+    const left = document.createElement('div');
+    const meter = document.createElement('nav');
+    meter.className = 'titlebar-nav';
+    const right = document.createElement('div');
+    const column = document.createElement('span');
+    const tagline = document.createElement('span');
+    tagline.className = 'workspace-header__tagline';
+    column.append(tagline);
+    left.append(column);
+    const tabs = document.createElement('span');
+    const instrument = document.createElement('span');
+    instrument.className = 'titlebar-instrument';
+    const help = document.createElement('span');
+    help.className = 'help-menu';
+    const modeSwitch = document.createElement('span');
+    modeSwitch.className = 'window-mode-switch';
+    instrument.append(help, modeSwitch);
+    const pet = document.createElement('span');
+    pet.className = 'support-pet';
+    right.append(tabs, instrument, pet);
+    bar.append(left, meter, right);
+    document.body.append(bar);
+
+    const has = (name: string) => bar.hasAttribute(name);
+    const crowded = () => has('data-crowded');
+    const leftContent = () => (crowded() ? NAME : TAGLINE);
+    const toolsWidth = () => (has('data-shed-tools') ? 0 : HELP + SWITCH);
+    const rightContent = () =>
+      TABS + MENU + toolsWidth() + (crowded() ? 0 : PET);
+    const meterWidth = () => (has('data-shed-meter') ? 0 : METER);
+    const grid = () => {
+      const ends = leftContent() + meterWidth() + rightContent();
+      const spare = Math.max(0, width - ends - WAVE);
+      const overrun = Math.max(0, ends + WAVE_FLOOR - width);
+      return { spare, overrun };
+    };
+
+    stub(bar, () => ({ width }));
+    stub(left, () => ({ width: leftContent() + grid().spare / 2 }));
+    stub(right, () => ({
+      width: rightContent() + grid().spare / 2,
+      right: width + grid().overrun,
+    }));
+    stub(meter, () => ({ width: METER }));
+    stub(column, () => ({ width: leftContent() }));
+    stub(tagline, () => ({ width: TAGLINE }));
+    stub(tabs, () => ({ width: TABS }));
+    stub(instrument, () => ({ width: MENU + toolsWidth() }));
+    stub(help, () => ({ width: HELP }));
+    stub(modeSwitch, () => ({ width: SWITCH }));
+    // Out of the page while the bar is crowded, as the app takes her out.
+    stub(pet, () => ({ width: crowded() ? 0 : PET }));
+
+    const parts = () => ({
+      crowded: crowded(),
+      meter: !has('data-shed-meter'),
+      tools: !has('data-shed-tools'),
+    });
+    return { bar, left, right, parts };
+  };
+
+  const resizeTo = (next: number) => {
+    width = next;
+    act(() => resize?.());
+  };
+
+  beforeAll(() => {
+    window.ResizeObserver = jest.fn((callback: () => void) => {
+      resize = callback;
+      return {
+        observe: jest.fn(),
+        unobserve: jest.fn(),
+        disconnect: jest.fn(),
+      };
+    }) as unknown as typeof ResizeObserver;
+  });
+
+  afterEach(() => {
+    document.body.innerHTML = '';
+    resize = undefined;
+  });
+
+  it('gives up the tagline and creature, then the meter, then Help and the switch, and takes them back last out first', () => {
+    width = 1400;
+    const { bar, left, right, parts } = mount();
+    const stop = watchTitlebarRoom(bar, left, right);
+    const shed = renderHook(() => useTitlebarToolsShed());
+    const all = { crowded: false, meter: true, tools: true };
+    expect(parts()).toEqual(all);
+
+    // Both ends down to their content: the two that say least go first.
+    resizeTo(1224.2);
+    const crowded = { crowded: true, meter: true, tools: true };
+    expect(parts()).toEqual(crowded);
+    // The wave narrowing to its floor takes nothing more.
+    resizeTo(900);
+    expect(parts()).toEqual(crowded);
+    // Past the edge by 6px: the meter.
+    resizeTo(870);
+    const noMeter = { crowded: true, meter: false, tools: true };
+    expect(parts()).toEqual(noMeter);
+    expect(shed.result.current).toBe(false);
+    // Past it again: Help and the switch, which the actions menu takes in.
+    resizeTo(700);
+    const noTools = { crowded: true, meter: false, tools: false };
+    expect(parts()).toEqual(noTools);
+    expect(shed.result.current).toBe(true);
+
+    // Back the other way: the 64px they take back, with a pixel over.
+    resizeTo(936);
+    expect(parts()).toEqual(noTools);
+    resizeTo(937);
+    expect(parts()).toEqual(noMeter);
+    expect(shed.result.current).toBe(false);
+    // Then the meter's 160, and the tagline and creature only after it.
+    resizeTo(1096);
+    expect(parts()).toEqual(noMeter);
+    resizeTo(1097);
+    expect(parts()).toEqual(crowded);
+    resizeTo(1224);
+    expect(parts()).toEqual(crowded);
+    resizeTo(1225);
+    expect(parts()).toEqual(all);
+
+    stop();
+    shed.unmount();
+  });
+
+  it('opens at its narrowest already down to the tabs and the window buttons, and comes back whole in one measure', () => {
+    width = 600;
+    const { bar, left, right, parts } = mount();
+    const stop = watchTitlebarRoom(bar, left, right);
+    expect(parts()).toEqual({ crowded: true, meter: false, tools: false });
+
+    resizeTo(1400);
+    expect(parts()).toEqual({ crowded: false, meter: true, tools: true });
+
+    // Stopped, the bar is left as it was found, and the menu gives Help back.
+    resizeTo(600);
+    stop();
+    expect(bar.hasAttribute('data-shed-tools')).toBe(false);
+    expect(renderHook(() => useTitlebarToolsShed()).result.current).toBe(false);
   });
 });
