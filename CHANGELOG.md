@@ -83,22 +83,28 @@ and Help answers questions in your own words.
   The window takes a little of it too: the panes lean toward its sky.
 - **Window colours, by name.** The button beside Auto on the graph says what a
   Plus visualizer does to the window — Theme, Colours, Ambient or Backdrop —
-  and opens all four, each with a line on what it does, under two sliders.
+  and opens all four, each with a line on what it does, under three sliders.
   Brightness is the theme's own slider: with the theme it goes from
   near-black to the light ocean blue, and while a visualizer lends the window
   its colours it goes from their darkest, never black, to their lightest.
   Transparency is how much of the visualizer shows through the panes on the
   Backdrop, and stands dimmed in any other mode. Both are marked at a
-  quarter, a half and three quarters, and the thumb falls into each mark. A
-  new install opens at 50% Brightness and 50% Transparency, in the full app
-  and the Compact player alike, and Brightness follows the hand without the
-  window holding it back.
+  quarter, a half and three quarters, and the thumb falls into each mark.
+  Daylight is the visualizer's time of day, from night to full day, and two
+  switches under the sliders can set it for you: Daylight follows Brightness,
+  on in a new install, and Daylight follows the clock — night until 05:30,
+  full day from 08:00 to 17:30, night again from 20:00. With both off,
+  Brightness changes only the window and the scene keeps the Daylight you
+  gave it. A new install opens at 50% Brightness and 50% Transparency, with a
+  Plus visualizer on the Backdrop; the full app and the Compact player each
+  keep their own, and Brightness follows the hand without the window holding
+  it back.
 - **Pointer sparks.** Move the mouse across a Plus visualizer and it throws
   what it is made of — sparks, petals, snow, embers — in a trail behind the
-  pointer, with a burst wherever you click. One switch turns them off or on
-  for every visualizer: Pointer sparks, in Window colours under Rainbow
-  mode. The Studio's stage always shows them, so a scene's maker can shape
-  what it throws.
+  pointer, with a burst wherever you click. They are on in a new install, and
+  one switch turns them off or on for every visualizer: Pointer sparks, in
+  Window colours under Rainbow mode. The Studio's stage always shows them, so
+  a scene's maker can shape what it throws.
 - **Backdrop.** The fourth mode puts the Plus visualizer behind the whole
   window, the graph still its frame, and the panes and everything on them let
   it show through. Menus do not: every menu stands at 95% whatever the
@@ -141,7 +147,9 @@ and Help answers questions in your own words.
 - **One knob, and sliders that feel right.** Every knob in the app is the same
   lit ring with its reading under it, and the reading can be typed into. The
   EQ sliders have round or rectangular handles, as you choose, a core lit
-  with each band's level, a detent at the centre and a snap at 0 dB.
+  with each band's level, a detent at the centre and a snap at 0 dB. A new
+  install gives the full app rectangular handles and the Compact player round
+  ones; a player that never had a choice of its own takes the full app's.
 - **Every dialog on one frame.** Every dialog and notice stands on the same
   frame with the same close button, and the keyboard stays inside a dialog
   while it is open.
@@ -177,7 +185,10 @@ and Help answers questions in your own words.
   Backdrop, the Compact player is the visualizer itself, edge to edge, with
   the song in large type, the controls in a glass dock, and the equaliser and
   Up next in a sheet at its foot; in every other mode it is the classic amp,
-  with its LED clock and lamps. Each keeps a window size of its own.
+  with its LED clock and lamps. The full app, the classic amp and the glass
+  player each keep a window size of their own, and a switch from one player
+  to the other keeps the window hidden until the other has drawn. The classic
+  amp's colour key opens the same Window colours menu as the graph's button.
 - **Where the sound goes.** Under the song one strip shows where the sound
   comes from, FluidEQ, and the output it reaches, with the output's rate and
   layout on the FluidEQ Engine, and a light runs along it while sound is
@@ -343,6 +354,10 @@ and Help answers questions in your own words.
 
 ### The graph and the visualizers
 
+- **The graph opens where it is used.** Only the equaliser's Bands page opens
+  with the graph, above the bands. Every other page — the equaliser's
+  Presets and Convolution, DSP, Online Media, the Library — opens without
+  it, and a graph switched on there stands under the page.
 - **The graph shows the whole spectrum, on scales that hold still.** With the
   grid on it starts an octave below 20 Hz, where a low cut does its work; with
   the grid off it is trimmed to 20 Hz – 16 kHz, where records have sound, so a
@@ -452,11 +467,15 @@ and Help answers questions in your own words.
   in the Manage dialog, and that monitor changes to whichever Plus visualizer
   the graph shows, whether you picked it or the graph changed looks by itself.
   When the graph shows a standard look, the monitor keeps the last Plus
-  visualizer it had. A monitor that follows the graph wears a small link mark
-  in both dialogs, and turns from night to day with your Brightness too.
-- **The desktop dialog opens where you can see it.** It opens on a monitor
-  FluidEQ is not covering, and the monitor you choose plays the visualizer
-  live before you set it.
+  visualizer it had. Follow graph is on when you put a visualizer on the
+  desktop that no monitor shows yet. A monitor that follows the graph wears a
+  small link mark in both dialogs, and turns from night to day with the
+  window's Daylight: Brightness, the clock, or your own.
+- **The desktop dialog chooses the monitors for you.** A visualizer no monitor
+  shows yet starts with your main monitor chosen, and one already on the
+  desktop starts with its own monitors chosen. The first monitor chosen plays
+  the visualizer live in the dialog's picture, with the wave it will be set
+  with, before you set it.
 - **The window gives way on a small or zoomed-in screen.** The graph's
   buttons fold onto a second line instead of running off its edge, and the
   title bar lets its level meter go first, then moves Help and the Compact
