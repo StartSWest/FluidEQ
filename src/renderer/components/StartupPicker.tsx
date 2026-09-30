@@ -12,6 +12,13 @@ import MenuPreferenceIcon from './MenuPreferenceIcon';
 
 const bridge = () => window.electron?.ipcRenderer;
 
+// Windows only. Electron reports Windows' own Startup apps switch on Windows
+// alone, so on a Mac the row was labelled Start with Windows and, once turned
+// on, said Windows had it switched off; Linux has no login items in Electron
+// at all. A Mac's "Open at login" would be a row of its own, with its own
+// words.
+const onWindows = () => window.electron?.platform === 'win32';
+
 // The last answer from main, kept while the menu is closed, so reopening it
 // shows the state straight away rather than a frame of "off".
 let known: IStartWithWindows | undefined;
@@ -36,6 +43,9 @@ const StartupPicker = () => {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    if (!onWindows()) {
+      return undefined;
+    }
     let current = true;
     bridge()
       ?.startWithWindows?.()
@@ -54,7 +64,7 @@ const StartupPicker = () => {
 
   // A window whose bridge predates this row has no answer to show, and a
   // switch that cannot be read is worse than no row at all.
-  if (!state) {
+  if (!state || !onWindows()) {
     return null;
   }
 

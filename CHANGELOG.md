@@ -440,12 +440,20 @@ and Help answers questions in your own words.
   is prepared, pauses while windows cover its whole monitor or a game is in
   front, gives the desktop its own wallpaper back while it waits on battery,
   and follows the visualizer's settings from the window as you change them.
-- **A monitor can follow the graph.** Switch on Follow graph for it in the
-  desktop background's Manage dialog, and it changes to whichever Plus
-  visualizer the graph shows, whether you picked it or the graph changed looks
-  by itself. When the graph shows a standard look, the monitor keeps the last
-  Plus visualizer it had. Each monitor has its own switch. A monitor that
-  follows the graph turns from night to day with your Brightness too.
+- **The desk lights stay on while FluidEQ runs.** Minimised, covered or
+  behind another app, your devices keep following the scene. They stop only
+  when you switch them off, pick a look that isn't a Plus one, or close
+  FluidEQ.
+- **The desk lights come on as FluidEQ opens, music or not.** They used to
+  wait for sound, and stayed dark while Windows was still opening or
+  restarting its audio.
+- **A monitor can follow the graph.** Switch on Follow graph when you put a
+  visualizer on the desktop from the graph or the player, or for each monitor
+  in the Manage dialog, and that monitor changes to whichever Plus visualizer
+  the graph shows, whether you picked it or the graph changed looks by itself.
+  When the graph shows a standard look, the monitor keeps the last Plus
+  visualizer it had. A monitor that follows the graph wears a small link mark
+  in both dialogs, and turns from night to day with your Brightness too.
 - **The desktop dialog opens where you can see it.** It opens on a monitor
   FluidEQ is not covering, and the monitor you choose plays the visualizer
   live before you set it.
@@ -755,8 +763,10 @@ and Help answers questions in your own words.
   page the picture fills the height of the panel beside it instead of leaving
   an empty band under it.
 - **Signing out asks through a clear card**, the Animations switch takes effect
-  at once, and the player bar no longer leaves a second copy of what it
-  watches the rest of the machine with running in the background.
+  at once, and the player bar no longer leaves an extra copy of its helper —
+  the one that follows what other programs play — running in the background
+  after the window reloads, where it could also say Nothing playing over a
+  song another program was playing.
 - **Double-click a playing song to start it again**, in the Library's list,
   grid and Cover Flow and in the Compact player's Up Next. A double-click in
   the Library's Up Next no longer skips to the song after it.
