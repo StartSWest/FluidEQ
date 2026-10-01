@@ -23,8 +23,9 @@ constexpr double kStopbandDb = 100.0;
 // and the filter six times shorter (277 taps at 384 kHz became 45).
 constexpr double kAudibleHz = 20000.0;
 // Partial sums each filter runs over. A single running sum waits on its own
-// last addition at every tap, and the converter then cost a stereo 384 kHz
-// output 0.40 ms of every 10 ms block on a performance core.
+// last addition at every tap: with it, and before the folded sum below, the
+// converter cost a stereo 352.8 kHz output 0.40 ms of every 10 ms block on a
+// performance core, against 0.18 ms with both.
 constexpr uint32_t kLanes = 8;
 
 /** The zeroth-order modified Bessel function, the Kaiser window's own. */
