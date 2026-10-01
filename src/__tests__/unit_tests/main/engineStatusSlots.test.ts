@@ -59,6 +59,15 @@ describe('the slot names main will admit', () => {
     ).toEqual(['lfx', 'efx-single']);
   });
 
+  it('carries the rungs another program holds, dropping names it does not know', () => {
+    expect(
+      statusWith({
+        slot: 'mfx-single',
+        slotsHeld: ['sfx-single', 'from-the-future'],
+      }).slotsHeld,
+    ).toEqual(['sfx-single']);
+  });
+
   it('keeps the readable half of a history it cannot read whole', () => {
     // One rung this app has no name for is one rung it cannot reason about,
     // not a reason to lose the walk and offer the top of the ladder again.

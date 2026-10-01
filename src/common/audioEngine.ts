@@ -86,6 +86,20 @@ export interface IEndpointEffect {
   name: string;
 }
 
+/**
+ * A place the engine can be registered on an output, newest to oldest: the
+ * three lists, the same three as one class id each, then the pre-8.1 pair.
+ */
+export type TEngineSlotName =
+  | 'efx'
+  | 'mfx'
+  | 'sfx'
+  | 'efx-single'
+  | 'mfx-single'
+  | 'sfx-single'
+  | 'gfx'
+  | 'lfx';
+
 export interface IFluidEngineEndpoint {
   guid: string;
   attached: boolean;
@@ -108,31 +122,21 @@ export interface IFluidEngineEndpoint {
    * creates it — which slot a driver builds is not written down anywhere,
    * so the app tries them newest to oldest (`engineOutputRepair.ts`).
    */
-  slot?:
-    | 'efx'
-    | 'mfx'
-    | 'sfx'
-    | 'efx-single'
-    | 'mfx-single'
-    | 'sfx-single'
-    | 'gfx'
-    | 'lfx';
+  slot?: TEngineSlotName;
   /**
    * Every slot this output has already been put in, oldest first, as the
    * helper remembers it. Absent from an older helper. Where the engine is
    * now says only how far down the ladder it got; which rungs were tried is
    * a different question the moment a rung is added to the middle of it.
    */
-  slotsTried?: (
-    | 'efx'
-    | 'mfx'
-    | 'sfx'
-    | 'efx-single'
-    | 'mfx-single'
-    | 'sfx-single'
-    | 'gfx'
-    | 'lfx'
-  )[];
+  slotsTried?: TEngineSlotName[];
+  /**
+   * The rungs another program's effect holds on this output, which the
+   * helper's own planner would refuse — the slot ladder steps past them
+   * (`nextSlot`) instead of spending a Windows prompt on a refusal. Absent
+   * from an older helper.
+   */
+  slotsHeld?: TEngineSlotName[];
   /**
    * Set only by `--attach-all`, on the endpoints it could not attach — an
    * explicit `attach <guid>` reports its one failure as the command's own

@@ -18,7 +18,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 using fluideq_engine::setup::FxValues;
+using fluideq_engine::setup::Slot;
 using fluideq_engine::setup::describe_slots;
+using fluideq_engine::setup::held_slots;
 using fluideq_engine::setup::kEfx;
 using fluideq_engine::setup::kMfx;
 using fluideq_engine::setup::kSfx;
@@ -104,6 +106,44 @@ void survives_no_name_lookup() {
   CHECK(contains(json, L"\"name\":\"\""));
 }
 
+// The engine's own class id, as the helper registers it.
+constexpr wchar_t kOurs[] = L"{B7E2C4D1-5A8F-4C3E-9D2B-6F1A0C8E7D34}";
+// The effect that held the SFX value of an output in a 2.0.0 report.
+constexpr wchar_t kVendor[] = L"{5C8DC6DB-1A99-46FE-90E8-8229A41DD3EF}";
+// "WM LFX APO", Windows' own: the one registration ours may take a value from.
+constexpr wchar_t kWindowsLfx[] = L"{62DC1A93-AE24-464C-A43E-452F824C4250}";
+
+void a_vendors_single_value_is_held() {
+  std::printf("a vendor's single value is held, Windows' own is not\n");
+  FxValues values;
+  values.single[kSfx] = kVendor;
+  values.single[kEfx] = kOurs;
+  values.legacy[0] = kWindowsLfx;
+  CHECK(held_slots(values, values, kOurs) ==
+        std::vector<Slot>{Slot::SfxSingle});
+}
+
+void our_own_rung_is_not_held() {
+  std::printf("our own rung is not held\n");
+  FxValues values;
+  values.single[kSfx] = kOurs;
+  CHECK(held_slots(values, values, kOurs).empty());
+}
+
+void every_one_value_rung_held() {
+  std::printf("every one-value rung held, in ladder order\n");
+  FxValues values;
+  values.single[kSfx] = kVendor;
+  values.single[kMfx] = kVendor;
+  values.single[kEfx] = kVendor;
+  values.legacy[0] = kVendor;
+  values.legacy[1] = kVendor;
+  // GFX before LFX: the order the app's ladder walks them.
+  CHECK(held_slots(values, values, kOurs) ==
+        (std::vector<Slot>{Slot::EfxSingle, Slot::MfxSingle, Slot::SfxSingle,
+                           Slot::Gfx, Slot::Lfx}));
+}
+
 }  // namespace
 
 int main() {
@@ -112,6 +152,9 @@ int main() {
   counts_the_slots_that_hold_nothing();
   nothing_registered_is_three_empty_slots();
   survives_no_name_lookup();
+  a_vendors_single_value_is_held();
+  our_own_rung_is_not_held();
+  every_one_value_rung_held();
   if (g_failures == 0) {
     std::printf("\nall checks passed\n");
     return 0;

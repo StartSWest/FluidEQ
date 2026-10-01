@@ -1091,6 +1091,12 @@ Out-String` (or any other capture) is what actually waits for it and shows
   state stays away (`isTryingSlots`) until an ask has come back with nothing
   done, or a change was followed by the same slot heard failing again; only
   then does the card say what is left. The first rung that is heard stays.
+  A rung another program's effect holds is skipped, not asked for: the
+  helper's `status` names them per output (`slotsHeld`, from `plan_move`
+  itself, `held_slots` in `slot_report.cpp`) and `nextSlot` steps past them.
+  A 2.0.0 report's ladder had stopped at a vendor's SFX value — a Windows
+  prompt spent on a refusal — with GFX, which played on the same user's RME,
+  never offered.
 - **The Room is a stage of the rack that folds every channel onto the
   front pair, and it needs a head file to do anything.** `FeqRoom`
   (`room.h`, `room.cpp`, `room_kernels.cpp`) runs after Bass Punch and

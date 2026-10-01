@@ -121,6 +121,24 @@ describe('the slot ladder', () => {
     expect(nextSlot('mfx', ['efx', 'mfx'])).toBe('sfx');
     expect(nextSlot('efx-single', ['efx', 'efx-single'])).toBe('mfx');
   });
+
+  it('steps past a rung another program holds', () => {
+    // A 2.0.0 report: a vendor's effect in the SFX value, where the walk
+    // used to stop with GFX — what played on the same user's RME — untried.
+    expect(
+      nextSlot('mfx-single', ['efx-single', 'mfx-single'], ['sfx-single']),
+    ).toBe('gfx');
+  });
+
+  it('ends when every rung left is held', () => {
+    expect(
+      nextSlot(
+        'mfx-single',
+        ['efx-single', 'mfx-single'],
+        ['sfx-single', 'gfx', 'lfx'],
+      ),
+    ).toBeUndefined();
+  });
 });
 
 describe('whatToTry', () => {
@@ -156,6 +174,33 @@ describe('whatToTry', () => {
         RME,
       ),
     ).toEqual({ kind: 'move', from: 'gfx', to: 'efx-single' });
+  });
+
+  it('moves past a held rung, and says so when nothing is left', () => {
+    const walked = {
+      guid: RME,
+      attached: true,
+      backupExists: true,
+      slot: 'mfx-single' as const,
+      slotsTried: ['efx-single', 'mfx-single'] as TEngineSlot[],
+    };
+    expect(
+      whatToTry(
+        status({ endpoints: [{ ...walked, slotsHeld: ['sfx-single'] }] }),
+        RME,
+      ),
+    ).toEqual({ kind: 'move', from: 'mfx-single', to: 'gfx' });
+    expect(
+      whatToTry(
+        status({
+          endpoints: [{ ...walked, slotsHeld: ['sfx-single', 'gfx', 'lfx'] }],
+        }),
+        RME,
+      ),
+    ).toMatchObject({
+      kind: 'nothing',
+      because: expect.stringContaining('held by other programs'),
+    });
   });
 
   it('re-installs first where a machine-wide switch was undone', () => {

@@ -38,6 +38,7 @@ import {
   IFluidEngineEndpoint,
   IFluidEngineStatus,
   TAudioEngine,
+  TEngineSlotName,
 } from '../common/audioEngine';
 import { isEqualizerAPOInstalled, noteFluidEngineRegistered } from './registry';
 import { getEngineSetupPath } from './engineSetup';
@@ -90,6 +91,7 @@ interface IGuardedStatusEndpoint {
   emptySlots?: unknown;
   slot?: unknown;
   slotsTried?: unknown;
+  slotsHeld?: unknown;
 }
 
 /**
@@ -103,7 +105,7 @@ interface IGuardedStatusEndpoint {
  * stopped one rung in with the card saying nothing more could be tried.
  * `engineStatusSlots.test.ts` holds it against the wire's own names.
  */
-const SLOT_NAMES: readonly NonNullable<IFluidEngineEndpoint['slot']>[] = [
+const SLOT_NAMES: readonly TEngineSlotName[] = [
   'efx',
   'mfx',
   'sfx',
@@ -114,26 +116,25 @@ const SLOT_NAMES: readonly NonNullable<IFluidEngineEndpoint['slot']>[] = [
   'lfx',
 ];
 
-const parseSlot = (value: unknown): IFluidEngineEndpoint['slot'] | undefined =>
+const parseSlot = (value: unknown): TEngineSlotName | undefined =>
   SLOT_NAMES.find((name) => name === value);
 
 /**
- * Every slot this output has already been put in, as the helper remembers
- * it. Anything unreadable is dropped entry by entry rather than losing the
- * whole history: a name this app does not know is one rung it cannot reason
- * about, not a reason to walk the ladder from the top again.
+ * A list of slot names as the helper wrote it — the rungs this output has
+ * already been put in, or the ones another program holds. Anything
+ * unreadable is dropped entry by entry rather than losing the whole list: a
+ * name this app does not know is one rung it cannot reason about, not a
+ * reason to walk the ladder from the top again.
  */
-const parseSlotsTried = (
-  value: unknown,
-): NonNullable<IFluidEngineEndpoint['slotsTried']> | undefined => {
+const parseSlotList = (value: unknown): TEngineSlotName[] | undefined => {
   if (!Array.isArray(value)) {
     return undefined;
   }
-  const tried = value.flatMap((entry) => {
+  const slots = value.flatMap((entry) => {
     const slot = parseSlot(entry);
     return slot ? [slot] : [];
   });
-  return tried.length > 0 ? tried : undefined;
+  return slots.length > 0 ? slots : undefined;
 };
 
 const isRawStatusEndpoint = (value: unknown): value is IGuardedStatusEndpoint =>
@@ -197,13 +198,15 @@ const parseStatusEndpoints = (value: unknown): IFluidEngineEndpoint[] =>
         const effects = parseEffects(endpoint.effects);
         const { emptySlots } = endpoint;
         const slot = parseSlot(endpoint.slot);
-        const slotsTried = parseSlotsTried(endpoint.slotsTried);
+        const slotsTried = parseSlotList(endpoint.slotsTried);
+        const slotsHeld = parseSlotList(endpoint.slotsHeld);
         return {
           guid: endpoint.guid,
           attached: endpoint.attached,
           backupExists: endpoint.backupExists === true,
           ...(slot ? { slot } : {}),
           ...(slotsTried ? { slotsTried } : {}),
+          ...(slotsHeld ? { slotsHeld } : {}),
           ...(effects ? { effects } : {}),
           ...(typeof emptySlots === 'number' && Number.isInteger(emptySlots)
             ? { emptySlots }
