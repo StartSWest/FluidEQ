@@ -6,6 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "room_head.h"
 
+#include "fluideq/room.h"
+
 #include <sstream>
 
 namespace fluideq_engine {
@@ -18,17 +20,14 @@ namespace {
 constexpr unsigned kMaxDirections = 72;
 constexpr unsigned kMaxTaps = 4096;
 
+// The room's own table (`feq_room_head_rate`), so the block read here is
+// the one the room renders at: a second copy of it once kept every output
+// faster than 192 kHz without a head while the room could play there.
 double block_rate_for(double stream_rate, bool* doubling) {
-  *doubling = false;
-  if (stream_rate == 44100.0 || stream_rate == 48000.0 ||
-      stream_rate == 96000.0) {
-    return stream_rate;
-  }
-  if (stream_rate == 192000.0) {
-    *doubling = true;
-    return 96000.0;
-  }
-  return 0.0;
+  int doubled = 0;
+  const double rate = feq_room_head_rate(stream_rate, &doubled);
+  *doubling = doubled != 0;
+  return rate;
 }
 
 }  // namespace

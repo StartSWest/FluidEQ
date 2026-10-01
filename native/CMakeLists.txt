@@ -104,6 +104,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/room_interpolation.cpp
   dsp-core/src/room_ambience.cpp
   dsp-core/src/room_comparison.cpp
+  dsp-core/src/room_rate.cpp
   dsp-core/src/bass_forge.cpp
   dsp-core/src/bass_forge_meters.cpp
   dsp-core/src/bass_punch.cpp
@@ -278,6 +279,18 @@ add_test(NAME eq-isolate-dynamic COMMAND fluideq-eq-isolate-dynamic-test)
 add_executable(fluideq-room-test dsp-core/tests/room_test.cpp)
 target_link_libraries(fluideq-room-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME room COMMAND fluideq-room-test)
+
+# The converter a room uses on an output faster than its heads: its delay
+# exactly, its level, and blocks that are not a multiple of its factor.
+add_executable(fluideq-room-rate-test dsp-core/tests/room_rate_test.cpp)
+target_link_libraries(fluideq-room-rate-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME room-rate COMMAND fluideq-room-rate-test)
+
+# The room through that converter, sample for sample the room at its head's
+# rate: both renderers, game mode, a handover, switched off and on.
+add_executable(fluideq-room-converted-test dsp-core/tests/room_converted_test.cpp)
+target_link_libraries(fluideq-room-converted-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME room-converted COMMAND fluideq-room-converted-test)
 
 add_executable(fluideq-room-contract-test dsp-core/tests/room_contract_test.cpp)
 target_link_libraries(fluideq-room-contract-test PRIVATE fluideq-dsp-core feq_strict)

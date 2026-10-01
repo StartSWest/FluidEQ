@@ -1198,7 +1198,38 @@ Out-String` (or any other capture) is what actually waits for it and shows
   ratio (the rate's and the head size's), anchored so the medium head's
   48 kHz block is the numbers it shipped as; the doubling halves
   (`head_response`, `RoomInterpolation`). `room_profiles_test.cpp` holds the
-  same tone within 0.3 dB across the four rates on both renderers.
+  same tone within 0.3 dB across the eight rates on both renderers.
+- **Faster than its heads, the Room renders at a head's rate between a
+  converter's two halves.** A 2.0.0 report came from a DAC at 384 kHz, where
+  the card blamed a missing head and the room passed everything through:
+  the heads ship at 44.1, 48 and 96 kHz and only 192 had a way to one. Now
+  88.2, 176.4 and 352.8 kHz render at 44.1 and 384 kHz at 96
+  (`feq_room_head_rate`, the one table the engine's head reader, the
+  Library host's and the room all go by; 192 still doubles the 96 block).
+  `RoomRate` (`room_rate.h`) takes the room's input down by the integer
+  factor and its two ears back up: one linear-phase Kaiser sinc, 100 dB
+  down, flat to 20 kHz and stopped from the room's rate less 20 kHz, so
+  nothing heard aliases or images — 139 to 553 taps at a 44.1 kHz room, 45
+  at 96. Its delay is the filter's length less one exactly, so the room
+  reports its partition times the factor plus that. A handover swaps the
+  converter's histories with the rest (`feq_room_transfer`), and a room that
+  stops rendering starts it clean when it renders again. Interpolating the
+  head four or eight times is not the way: the classic renderer's 2048 taps
+  would be 5.3 ms at 384 kHz, too short for its walls, and either renderer
+  would do four to sixty-four times the work for an octave no measurement
+  carries. Neither converter the core had serves
+  (`resampler.h` is not for the audio thread and has no fixed delay;
+  `oversample.h` stops at 4x and needs whole multiples of its factor). A
+  stereo 10 ms block costs 0.05 ms at 88.2 kHz, 0.10 at 176.4 and 384, 0.18
+  at 352.8 on a performance core — eight partial sums and the folded
+  symmetric filter, because MSVC under `/fp:precise` vectorises neither.
+  `room_rate_test.cpp` holds the converter alone (its delay at 1 and 19.5
+  kHz, any block length, a tone that would fold under 20 kHz 90 dB down,
+  a handover), and `room_converted_test.cpp` the room through it sample for
+  sample against the room at its head's rate behind a converter of its own:
+  both renderers, game mode, a handover, switched off and on. At the rates
+  with a head the room runs the same code as before, and rendered byte for
+  byte what the version before it did.
 - **The featured rooms are measured through the shipped head, from the
   app's own table.** `room_profiles_test.cpp` reads
   `room_profiles_fixture.h`, which `generate-room-profiles-fixture.ts` writes

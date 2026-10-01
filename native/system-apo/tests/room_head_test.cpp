@@ -6,8 +6,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The head file the app writes for the room: the block for the stream's rate
- * is taken, 192 kHz takes the 96 block with doubling, and a short or foreign
- * file is no head at all rather than a head of zeros.
+ * is taken, 192 kHz takes the 96 block with doubling, the rates the room
+ * renders through a converter take the block it renders at, and a short or
+ * foreign file is no head at all rather than a head of zeros.
  */
 
 #include "../src/room_head.h"
@@ -68,8 +69,20 @@ int main() {
   const auto high = parse_room_head(text, 192000);
   CHECK(high && high->sample_rate == 96000 && high->needs_doubling);
 
+  // The room renders these at the block's own rate, between a converter's
+  // two halves, so the block is taken as it is.
+  std::printf("88.2, 176.4 and 352.8 kHz take the 44.1 block, 384 the 96\n");
+  for (const double rate : {88200.0, 176400.0, 352800.0}) {
+    const auto converted = parse_room_head(text, rate);
+    CHECK(converted && converted->sample_rate == 44100 &&
+          !converted->needs_doubling);
+  }
+  const auto fastest = parse_room_head(text, 384000);
+  CHECK(fastest && fastest->sample_rate == 96000 && !fastest->needs_doubling);
+
   std::printf("no head for a rate the file does not carry, or a short file\n");
   CHECK(!parse_room_head(text, 22050).has_value());
+  CHECK(!parse_room_head(text, 64000).has_value());
   CHECK(!parse_room_head("# FluidEQ room head v1\nrate 48000 directions 24 "
                          "taps 8\n1 2 3\n",
                          48000)

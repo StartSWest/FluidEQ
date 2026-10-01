@@ -179,7 +179,9 @@ add_test(NAME engine-channel-layout
 # must read as "no head", never as a head of zeros.
 add_executable(fluideq-engine-room-head-test
   tests/room_head_test.cpp src/room_head.cpp)
-target_link_libraries(fluideq-engine-room-head-test PRIVATE feq_strict)
+# The room's own rate table (`feq_room_head_rate`) decides which block is read.
+target_link_libraries(fluideq-engine-room-head-test
+  PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME engine-room-head COMMAND fluideq-engine-room-head-test)
 
 # The DLL tests load the built module directly, so they take the path

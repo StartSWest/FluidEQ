@@ -43,8 +43,11 @@ struct RoomHead {
  * The block for a stream rate, or nothing.
  *
  * 44.1, 48 and 96 kHz have blocks; 192 kHz takes the 96 block with doubling;
- * any other rate has no head. A block short of its declared numbers is
- * refused whole — a head of zeros plays silence and reports a room.
+ * 88.2, 176.4 and 352.8 kHz take the 44.1 block and 384 kHz the 96 block,
+ * which the room renders at between a converter's two halves
+ * (`feq_room_head_rate`); any other rate has no head. A block short of its
+ * declared numbers is refused whole — a head of zeros plays silence and
+ * reports a room.
  */
 std::optional<RoomHead> parse_room_head(const std::string& text,
                                         double stream_rate);

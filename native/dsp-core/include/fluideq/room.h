@@ -132,6 +132,16 @@ int feq_room_position_protected(const FeqRoom* room);
 
 void feq_room_settings_defaults(FeqRoomSettings* settings);
 
+/**
+ * The rate of the head block a room needs for an output at `stream_rate`:
+ * 44.1, 48 or 96 kHz, or 0 for a rate the room does not play. 192 kHz takes
+ * the 96 block doubled (`*doubling` set); 88.2, 176.4 and 352.8 kHz take the
+ * 44.1 block and 384 kHz the 96 block, and the room renders at that rate
+ * between a converter's two halves (`room_rate.h`). The one table the head
+ * reader and the room both go by, so the block read is the one rendered.
+ */
+double feq_room_head_rate(double stream_rate, int* doubling);
+
 FeqRoom* feq_room_create(double sample_rate, uint32_t channels,
                          uint32_t max_frames);
 void feq_room_destroy(FeqRoom* room);
