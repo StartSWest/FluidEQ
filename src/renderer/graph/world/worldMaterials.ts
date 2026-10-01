@@ -10,10 +10,8 @@ import {
   ClampToEdgeWrapping,
   Color,
   CustomBlending,
-  DataTexture,
   DoubleSide,
   FrontSide,
-  LinearFilter,
   MeshBasicMaterial,
   MeshDepthMaterial,
   MeshDistanceMaterial,
@@ -42,6 +40,7 @@ import {
   type IWorldColourFormula,
   type IWorldFormula,
 } from './worldFormula';
+import createDotTexture from './worldDot';
 import type { IWorldInputs } from './worldInputs';
 import { needsHooks, spliceWorldHooks } from './worldShaderHooks';
 
@@ -391,31 +390,6 @@ export const buildWorldMaterial = (
       emissiveMap?.dispose();
     },
   };
-};
-
-/** A soft round dot, brightest in the middle: what every point is drawn as. */
-const createDotTexture = () => {
-  const size = 64;
-  const data = new Uint8Array(size * size * 4);
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      const dx = (x + 0.5) / size - 0.5;
-      const dy = (y + 0.5) / size - 0.5;
-      const r = Math.min(1, Math.sqrt(dx * dx + dy * dy) * 2);
-      // A bright core with a soft glow round it, gone before the edge.
-      const falloff = Math.exp(-r * r * 6) * (1 - r * r) + (1 - r) ** 3 * 0.15;
-      const at = (y * size + x) * 4;
-      data[at] = 255;
-      data[at + 1] = 255;
-      data[at + 2] = 255;
-      data[at + 3] = Math.round(falloff * 255);
-    }
-  }
-  const texture = new DataTexture(data, size, size);
-  texture.magFilter = LinearFilter;
-  texture.minFilter = LinearFilter;
-  texture.needsUpdate = true;
-  return texture;
 };
 
 export const buildPointsMaterial = (
