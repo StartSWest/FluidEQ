@@ -321,6 +321,9 @@ describe('what the DSP page says its scope is', () => {
       ...DSP_DEFAULTS,
       eq: { ...DSP_DEFAULTS.eq, phase: 'linear' },
     });
+    // The second page reads the output being listened to as it opens; its
+    // answers land inside the case.
+    await act(() => flushBridge());
     expect(screen.queryByText(/171 ms delay/)).not.toBeInTheDocument();
     expect(screen.queryByTitle(en['dsp.latency.hint'])).not.toBeInTheDocument();
   });
@@ -660,7 +663,9 @@ describe('opening the page', () => {
     await waitFor(() => expect(chainsSent).toHaveLength(1));
     rerender(page(false));
     rerender(page(true));
-    await flushBridge();
+    // Inside act: the page opened again reads the output being listened to,
+    // and that answer re-renders it.
+    await act(() => flushBridge());
 
     expect(statusFetches).toBe(1);
   });

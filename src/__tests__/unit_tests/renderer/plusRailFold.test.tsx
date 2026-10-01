@@ -117,6 +117,21 @@ const renderFreshPanel = async () => {
   return view;
 };
 
+/**
+ * A press inside the fresh registry's act. `userEvent` waits in the outer
+ * React's act, which does not cover the panel's renderer, so each press
+ * re-rendered the rail outside act.
+ */
+const press = async (button: HTMLElement) => {
+  const fresh = library;
+  if (!fresh) {
+    throw new Error('render the panel before pressing in it');
+  }
+  await fresh.act(async () => {
+    await userEvent.click(button);
+  });
+};
+
 const panelOf = (container: HTMLElement) =>
   container.querySelector('.community') as HTMLElement;
 
@@ -131,15 +146,13 @@ describe('the Plus rail', () => {
 
   it('folds on a press, pins again on the next, and remembers each', async () => {
     const { container } = await renderFreshPanel();
-    await userEvent.click(
-      screen.getByRole('button', { name: 'plus.rail.collapse' }),
-    );
+    await press(screen.getByRole('button', { name: 'plus.rail.collapse' }));
     const pin = screen.getByRole('button', { name: 'plus.rail.pin' });
     expect(pin).toHaveAttribute('aria-pressed', 'false');
     expect(panelOf(container)).toHaveClass('community--rail-folded');
     expect(window.localStorage.getItem(PINNED_KEY)).toBe('false');
 
-    await userEvent.click(pin);
+    await press(pin);
     expect(
       screen.getByRole('button', { name: 'plus.rail.collapse' }),
     ).toHaveAttribute('aria-pressed', 'true');

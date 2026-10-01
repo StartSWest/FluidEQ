@@ -82,7 +82,8 @@ it('puts the controls back where the published version left them', async () => {
   expect(result.current.tuning.values.glow).toBeCloseTo(0.9);
   expect(result.current.tuning.canResetParams).toBe(true);
 
-  act(() => result.current.tuning.resetParams());
+  // A reset that writes waits for its save, which the tuning records.
+  await act(async () => result.current.tuning.resetParams());
   expect(result.current.tuning.values.glow).toBeCloseTo(0.2);
   expect(write).toHaveBeenCalledWith({ params: { glow: 0.2 } });
 });

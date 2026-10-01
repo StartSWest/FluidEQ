@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import '@testing-library/jest-dom';
 import { act, render } from '@testing-library/react';
+import expectReportedError from '__tests__/utils/reportedError';
 import {
   FilterTypeEnum,
   getDefaultState,
@@ -37,6 +38,14 @@ import {
   IFluidEqContext,
   useFluidEqContext,
 } from 'renderer/utils/FluidEqContext';
+
+// The engine's copy of the rack goes nowhere here, as on an Equalizer APO
+// machine. None of these cases is about that send, and with no preload
+// every rack change reported a TypeError from it instead.
+jest.mock('renderer/utils/audioEngineApi', () => ({
+  ...jest.requireActual('renderer/utils/audioEngineApi'),
+  setSystemDspChain: jest.fn(() => Promise.resolve('not-fluid')),
+}));
 
 jest.mock('renderer/utils/equalizerApi', () => ({
   getEqualizerState: jest.fn(),
@@ -496,9 +505,11 @@ describe('FluidEqProvider and the DSP rack', () => {
     resetRackGate();
     mockedGetEqualizerState.mockRejectedValue(new Error('no state'));
 
-    await act(async () => {
-      await context().refreshState();
-    });
+    await expectReportedError('reached the error banner', () =>
+      act(async () => {
+        await context().refreshState();
+      }),
+    );
 
     expect(readRackGate().eqLoaded).toBe(false);
   });

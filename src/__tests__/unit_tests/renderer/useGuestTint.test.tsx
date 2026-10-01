@@ -275,8 +275,12 @@ describe('the Media page in the interface colours', () => {
     expect(page.sheet('sheet-1')).not.toContain(
       '--color-background-body: #22334a',
     );
-    root.style.removeProperty('--surface-base');
-    root.style.removeProperty('--surface-panel');
+    // The hook is still mounted and watches `:root`: the colours are taken
+    // back inside act, so the change it sees lands before the case ends.
+    await act(async () => {
+      root.style.removeProperty('--surface-base');
+      root.style.removeProperty('--surface-panel');
+    });
   });
 
   it('keeps colouring when the next page leaves out the greys it is changing', async () => {

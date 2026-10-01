@@ -733,8 +733,17 @@ describe('the member’s own published scenes', () => {
 });
 
 describe('a card’s version', () => {
-  it('says which version is published and when, and that it is new', () => {
-    render(
+  /**
+   * Each card asks for its picture as it shows, and a member scene with none
+   * published settles on "no picture". Waited for, or the answer landed
+   * after the case had ended and re-rendered the card outside act.
+   */
+  const pictureSettled = (container: HTMLElement) =>
+    waitFor(() =>
+      expect(container.querySelector('.gallery-picture__none')).not.toBeNull(),
+    );
+  it('says which version is published and when, and that it is new', async () => {
+    const { container } = render(
       <GalleryCard
         scene={scene({
           version: 4,
@@ -748,10 +757,11 @@ describe('a card’s version', () => {
     );
     expect(screen.getByText(/^plus\.version\.line:4,/)).toBeInTheDocument();
     expect(screen.getByText('plus.version.new')).toBeInTheDocument();
+    await pictureSettled(container);
   });
 
-  it('tells a member with an older copy which one they have, and offers the update', () => {
-    render(
+  it('tells a member with an older copy which one they have, and offers the update', async () => {
+    const { container } = render(
       <GalleryCard
         scene={scene({ version: 4, firstVersion: 1 })}
         local={{ version: 3 }}
@@ -761,10 +771,11 @@ describe('a card’s version', () => {
     );
     expect(screen.getByText('plus.version.youHave:3')).toBeInTheDocument();
     expect(screen.getByText('plus.card.updateTo:4')).toBeInTheDocument();
+    await pictureSettled(container);
   });
 
-  it('marks nothing new on a first version, or a copy already up to date', () => {
-    render(
+  it('marks nothing new on a first version, or a copy already up to date', async () => {
+    const { container } = render(
       <GalleryCard
         scene={scene({ version: 1, firstVersion: 1 })}
         local={{ version: 1 }}
@@ -774,5 +785,6 @@ describe('a card’s version', () => {
     );
     expect(screen.queryByText('plus.version.new')).toBeNull();
     expect(screen.queryByText(/plus\.version\.youHave/)).toBeNull();
+    await pictureSettled(container);
   });
 });

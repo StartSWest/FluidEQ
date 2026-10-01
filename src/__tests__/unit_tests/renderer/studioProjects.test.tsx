@@ -8,7 +8,10 @@ import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IStudioState } from '../../../main/ipc/memberScenes';
-import { resetAccountStore } from '../../../renderer/account/accountStore';
+import {
+  resetAccountStore,
+  subscribeAccount,
+} from '../../../renderer/account/accountStore';
 import { refreshModeration } from '../../../renderer/plus/moderationStore';
 import StudioProjects from '../../../renderer/studio/StudioProjects';
 import StudioPublishDialog from '../../../renderer/studio/StudioPublishDialog';
@@ -218,6 +221,18 @@ describe('the Studio’s projects', () => {
 });
 
 describe('the publish dialog', () => {
+  /**
+   * The account known before the dialog opens, as it is in the Studio, where
+   * the window asked at launch: a case that does not wait on anything else
+   * ended before the dialog's own question was answered, which re-rendered it
+   * outside act. Set the account's answer first; the reset after each case
+   * lets the subscription go.
+   */
+  const accountKnown = async () => {
+    subscribeAccount(() => undefined);
+    await act(async () => undefined);
+  };
+
   const pack: IScenePack = {
     schema: 1,
     id: 'neon-city',
@@ -395,7 +410,8 @@ describe('the publish dialog', () => {
   // The number shown is the number the press sends: above what the scene was
   // ever out at (server migration 0039), not only above a live row — an
   // unpublished scene has none, and its members still hold its number.
-  it('names the version this publication will go out as', () => {
+  it('names the version this publication will go out as', async () => {
+    await accountKnown();
     const { rerender } = render(
       <StudioPublishDialog
         name="Neon City"
@@ -473,7 +489,8 @@ describe('the publish dialog', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('asks for the agreement the first time, and starts an update on its category', () => {
+  it('asks for the agreement the first time, and starts an update on its category', async () => {
+    await accountKnown();
     const onPublish = jest.fn();
     render(
       <StudioPublishDialog
@@ -550,7 +567,8 @@ describe('the publish dialog', () => {
   // The line the member's AI wrote about its own change, offered as the note.
   // Nobody remembers what changed three days later; the assistant that
   // changed it does, and it writes the line beside the scene.
-  it('opens the note on what the AI wrote, and publishes with it', () => {
+  it('opens the note on what the AI wrote, and publishes with it', async () => {
+    await accountKnown();
     const onPublish = jest.fn();
     render(
       <StudioPublishDialog

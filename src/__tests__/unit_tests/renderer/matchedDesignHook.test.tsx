@@ -25,7 +25,10 @@ import {
 import useMatchedDesign, {
   TMatchedDesign,
 } from '../../../renderer/graph/useMatchedDesign';
-import { resetTrebleDesigns } from '../../../renderer/utils/useTrebleDesigns';
+import {
+  refreshTrebleDesigns,
+  resetTrebleDesigns,
+} from '../../../renderer/utils/useTrebleDesigns';
 import type { ITrebleDesigns } from '../../../common/filterDesign';
 
 jest.mock('../../../renderer/utils/audioEngineApi', () => ({
@@ -150,6 +153,9 @@ describe('useMatchedDesign', () => {
     render(<Shell />);
     await land(status('fluid', '1.13.0.0'));
     expect(answers).toHaveLength(1);
+    // The Treble choice known too, as the shell knows it by then: left for
+    // the graph's own mount to ask, its answer landed after the case ended.
+    await act(() => refreshTrebleDesigns());
 
     const seen: boolean[] = [];
     render(<Graph seen={seen} />);

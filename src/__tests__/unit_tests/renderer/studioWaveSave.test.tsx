@@ -48,13 +48,13 @@ beforeEach(() => {
   });
 });
 
-it('saves the wave into the scene when the slider is let go', () => {
+it('saves the wave into the scene when the slider is let go', async () => {
   const { result } = tuner(pack());
   act(() => result.current.setWave({ height: 0.4, position: 0.3 }));
   // On the stage at once; written when the slider is released.
   expect(result.current.wave).toEqual({ height: 0.4, position: 0.3 });
   expect(writeStudioSettings).not.toHaveBeenCalled();
-  act(() => result.current.commit());
+  await act(async () => result.current.commit());
   expect(writeStudioSettings).toHaveBeenCalledWith(
     expect.objectContaining({ wave: { height: 0.4, position: 0.3 } }),
   );
@@ -68,11 +68,11 @@ it('asks for nothing when the wave is left where the graph’s own stands', () =
   expect(writeStudioSettings).not.toHaveBeenCalled();
 });
 
-it('takes the scene’s wave out when it goes back to the graph’s own', () => {
+it('takes the scene’s wave out when it goes back to the graph’s own', async () => {
   const { result } = tuner(pack({ wave: { height: 0.4, position: 0.3 } }));
   expect(result.current.wave).toEqual({ height: 0.4, position: 0.3 });
   act(() => result.current.setWave({ height: 1, position: 0 }));
-  act(() => result.current.commit());
+  await act(async () => result.current.commit());
   expect(writeStudioSettings).toHaveBeenCalledWith(
     expect.objectContaining({ wave: null }),
   );
@@ -89,7 +89,7 @@ it('offers Reset only once the wave has left the scene’s own, and goes back to
   expect(writeStudioSettings).not.toHaveBeenCalled();
 });
 
-it('goes back to the wave the project was opened with, not the last one saved', () => {
+it('goes back to the wave the project was opened with, not the last one saved', async () => {
   // A wave saved into the scene becomes the pack's own, and Reset that
   // followed the pack would then have nothing to go back to. It goes back to
   // where the project stood when it was opened, as the controls do.
@@ -99,13 +99,13 @@ it('goes back to the wave the project was opened with, not the last one saved', 
     { initialProps: { scene: pack({ wave: { height: 0.4, position: 0.3 } }) } },
   );
   act(() => result.current.setWave({ height: 0.8, position: 0.1 }));
-  act(() => result.current.commit());
+  await act(async () => result.current.commit());
   // The save lands and the scene is built again, now carrying the new wave.
   rerender({
     scene: pack({ version: 3, wave: { height: 0.8, position: 0.1 } }),
   });
   expect(result.current.canResetWave).toBe(true);
-  act(() => result.current.resetWave());
+  await act(async () => result.current.resetWave());
   expect(result.current.wave).toEqual({ height: 0.4, position: 0.3 });
   expect(writeStudioSettings).toHaveBeenLastCalledWith(
     expect.objectContaining({ wave: { height: 0.4, position: 0.3 } }),

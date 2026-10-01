@@ -1,6 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import RemoteAudioPanel from '../../../renderer/remoteAudio/RemoteAudioPanel';
 import type { IRemoteAudioValue } from '../../../renderer/remoteAudio/remoteAudioState';
 import RemoteAudioContext from '../../../renderer/remoteAudio/remoteAudioValueContext';
@@ -28,6 +28,13 @@ const remoteValue = (role?: 'listener' | 'sender'): IRemoteAudioValue => ({
   stop: jest.fn(),
   subscribeMeter: jest.fn(() => jest.fn()),
 });
+
+/**
+ * The sender role reads the saved pairing code as it opens. Waited for by
+ * the cases that open there, or it lands after the case has ended and
+ * re-renders the panel outside act.
+ */
+const savedCodeRead = () => act(async () => undefined);
 
 const renderPanel = (remote: IRemoteAudioValue) =>
   render(
@@ -71,19 +78,21 @@ describe('Share Audio role tabs', () => {
     expect(remote.startSending).not.toHaveBeenCalled();
   });
 
-  it('selects the role that is already active', () => {
+  it('selects the role that is already active', async () => {
     renderPanel(remoteValue('sender'));
+    await savedCodeRead();
 
     const radios = screen.getAllByRole('radio');
     expect(radios[0].getAttribute('aria-checked')).toBe('false');
     expect(radios[1].getAttribute('aria-checked')).toBe('true');
   });
 
-  it('keeps an active connection running while browsing the other role', () => {
+  it('keeps an active connection running while browsing the other role', async () => {
     const remote = remoteValue('listener');
     renderPanel(remote);
 
     fireEvent.click(screen.getAllByRole('radio')[1]);
+    await savedCodeRead();
 
     // Read the attribute rather than matching it: this file registers no
     // jest-dom matchers of its own, so `toHaveAttribute` was there or not

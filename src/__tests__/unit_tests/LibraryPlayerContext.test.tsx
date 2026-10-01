@@ -38,6 +38,14 @@ import createFakeLibraryStore, {
   IFakeLibraryStore,
 } from '../utils/fakeLibraryStore';
 
+// The engine's copy of the rack goes nowhere here, as on an Equalizer APO
+// machine. None of these cases is about that send, and with no preload
+// every rack change reported a TypeError from it instead.
+jest.mock('renderer/utils/audioEngineApi', () => ({
+  ...jest.requireActual('renderer/utils/audioEngineApi'),
+  setSystemDspChain: jest.fn(() => Promise.resolve('not-fluid')),
+}));
+
 const mediaRoot: ILibraryRoot = {
   id: 'r1',
   path: 'C:\\Media',

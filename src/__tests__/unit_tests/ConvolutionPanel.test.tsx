@@ -48,7 +48,7 @@ describe('Convolution search history UI', () => {
     );
   };
 
-  it('offers recent queries and reruns one when selected', () => {
+  it('offers recent queries and reruns one when selected', async () => {
     addConvolutionSearchToHistory('HD 650');
     renderPanel();
     const search = screen.getByRole('textbox', {
@@ -57,8 +57,12 @@ describe('Convolution search history UI', () => {
 
     fireEvent.focus(search);
     expect(screen.getByText('Recent searches')).toBeInTheDocument();
-    fireEvent.mouseDown(screen.getByRole('button', { name: 'HD 650' }));
+    // The rerun asks the catalogue, and its answer lands inside the case.
+    await act(async () => {
+      fireEvent.mouseDown(screen.getByRole('button', { name: 'HD 650' }));
+    });
     expect(search).toHaveValue('HD 650');
+    expect(mockGetCatalog).toHaveBeenCalledWith('HD 650');
   });
 
   /*

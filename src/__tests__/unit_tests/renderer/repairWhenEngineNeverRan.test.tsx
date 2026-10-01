@@ -17,6 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { act, renderHook } from '@testing-library/react';
+import expectReportedError from '__tests__/utils/reportedError';
 import type { IAudioRestartOutcome } from 'common/audioEngine';
 import type { IAudioDevice } from 'common/constants';
 import type { TEngineTrouble } from 'renderer/audio/engineTrouble';
@@ -215,10 +216,16 @@ describe('useRepairWhenEngineNeverRan', () => {
     const repair = jest.fn(async () => {
       throw new Error('the helper is missing');
     });
-    const { result } = renderHook(() =>
-      useRepairWhenEngineNeverRan(neverRan, false, repair, 'efx'),
+    const { result } = await expectReportedError(
+      'The engine could not be repaired',
+      async () => {
+        const hook = renderHook(() =>
+          useRepairWhenEngineNeverRan(neverRan, false, repair, 'efx'),
+        );
+        await flush();
+        return hook;
+      },
     );
-    await flush();
     expect(result.current.isTryingSlots).toBe(false);
   });
 });

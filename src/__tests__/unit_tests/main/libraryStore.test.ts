@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import expectReportedError from '../../utils/reportedError';
 import {
   ALBUM_KEY_SEPARATOR,
   albumKey,
@@ -308,13 +309,16 @@ describe('the library store', () => {
     }
   });
 
-  it('starts again empty, and says so, when the file on disk is damaged', () => {
+  it('starts again empty, and says so, when the file on disk is damaged', async () => {
     const dir = temp();
     fs.writeFileSync(
       libraryStorePath(dir),
       'this is not a database, just text',
     );
-    const { store, wasReset } = open(dir);
+    const { store, wasReset } = await expectReportedError(
+      'Could not open the library store',
+      () => open(dir),
+    );
     expect(wasReset).toBe(true);
     expect(store.trackCount()).toBe(0);
     expect(fs.existsSync(`${libraryStorePath(dir)}.bak`)).toBe(true);

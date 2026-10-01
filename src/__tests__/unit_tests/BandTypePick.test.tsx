@@ -22,6 +22,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { FilterTypeEnum, IFiltersMap } from 'common/constants';
 import MainContent from 'renderer/MainContent';
 import { setFilterValues } from 'renderer/utils/equalizerApi';
+import { refreshTrebleDesigns } from 'renderer/utils/useTrebleDesigns';
 
 const mockSetSelectedFilterIds = jest.fn();
 const mockDispatchFilter = jest.fn();
@@ -46,6 +47,10 @@ jest.mock('renderer/utils/trebleDesignApi', () => ({
   getTrebleDesigns: async () => ({ eq: 'precise', curves: 'precise' }),
   setTrebleDesign: jest.fn(),
 }));
+// One answer for the whole window, asked the first time anything shows it.
+// Answered before any case renders: left to the first mount, it landed after
+// that case had ended and re-rendered the EQ outside act.
+beforeAll(() => refreshTrebleDesigns());
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
   ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({

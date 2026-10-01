@@ -1,6 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import expectReportedError from '../../utils/reportedError';
 
 const resize = jest.fn(() => ({ toJPEG: () => Buffer.from('jpeg-bytes') }));
 jest.mock('electron', () => ({
@@ -69,7 +70,9 @@ describe('caching a cover', () => {
         throw new Error('disk full');
       },
     }));
-    const id = await storeArtwork(dir, bytes);
+    const id = await expectReportedError('Could not cache artwork', () =>
+      storeArtwork(dir, bytes),
+    );
     expect(id).toBeUndefined();
     const target = artworkPath(dir, artworkId(bytes));
     if (target === undefined) {

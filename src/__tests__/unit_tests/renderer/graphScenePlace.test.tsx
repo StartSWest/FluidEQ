@@ -119,17 +119,23 @@ jest.mock('../../../renderer/graph/sceneUpdateStore', () => ({
   reportScenePlayed: (...args: unknown[]) => mockPlayed(...args),
 }));
 
-/** Settles once the scene's program has been built and drawn from. */
-const built = () =>
+/**
+ * Settles once the scene's program has been built and drawn from, `times`
+ * times over: a renderer built again draws again, and a case that ended
+ * before it had let that land outside act.
+ */
+const built = (times = 1) =>
   act(
     () =>
       new Promise<void>((resolve) => {
-        if (mockPlayed.mock.calls.length > 0) {
+        if (mockPlayed.mock.calls.length >= times) {
           resolve();
           return;
         }
         mockPlayed.mockImplementation(() => {
-          resolve();
+          if (mockPlayed.mock.calls.length >= times) {
+            resolve();
+          }
           return Promise.resolve();
         });
       }),
@@ -352,6 +358,8 @@ describe('the one renderer', () => {
       // The count moves when a renderer really is made again.
       act(() => publishScenePlot(plotOf(true)));
       expect(mockCreate).toHaveBeenCalledTimes(2);
+      // And it draws: the rebuilt scene's program loads and is drawn from.
+      await built(2);
     },
   );
 

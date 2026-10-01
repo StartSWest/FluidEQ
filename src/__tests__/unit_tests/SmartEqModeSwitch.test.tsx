@@ -104,9 +104,13 @@ describe('switching Smart EQ mode', () => {
     setSmartEqMode('smart');
   });
 
-  afterEach(() => {
-    act(() => setSmartEqMode('smart'));
-  });
+  // Leaving a continuous mode stops its running measurement, which then
+  // settles the run's state: waited for here, or it settled after the case.
+  afterEach(() =>
+    act(async () => {
+      setSmartEqMode('smart');
+    }),
+  );
 
   const renderEngine = async () => {
     await act(async () => {

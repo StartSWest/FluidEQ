@@ -27,9 +27,11 @@ jest.mock('renderer/player/usePlayerSource', () => ({
 }));
 jest.mock('renderer/player/usePlayerClock', () => ({
   __esModule: true,
+  // As the real clock answers with nothing playing: a duration of 0, never
+  // none. Left undefined, the seek line was handed NaN for its range.
   default: () => ({
     second: undefined,
-    durationMs: undefined,
+    durationMs: 0,
     hasPosition: false,
   }),
 }));

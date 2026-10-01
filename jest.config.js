@@ -43,6 +43,9 @@ module.exports = {
     './.erb/scripts/check-build-exists.ts',
     './.erb/scripts/jest-setup.ts',
   ],
+  // A case that prints an error or a warning it did not hold fails: the CI
+  // log once carried 451 such blocks while every suite passed.
+  setupFilesAfterEnv: ['./.erb/scripts/jest-console-guard.ts'],
   // Every test runs here, INCLUDING the sixty-two that open with a licence
   // comment and then declare `@jest-environment node` underneath it. Jest
   // reads the first comment in a file and no other, so those declarations are

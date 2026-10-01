@@ -150,9 +150,6 @@ const pastTheLastBeat = (card: Element) => [
 ];
 
 const renderPanel = () => {
-  // The shell's own question, asked once at launch (`AppContent`): the page
-  // reads that answer and asks main nothing itself.
-  refreshAudioEngineStatus();
   return render(
     <FluidEqProviderWrapper
       value={{ ...defaultFluidEqContext, isEnabled: true }}
@@ -167,9 +164,14 @@ const renderPanel = () => {
   );
 };
 
-beforeEach(() => {
+beforeEach(async () => {
   resetAudioEngineStatus();
   jest.mocked(getAudioEngineStatus).mockResolvedValue(APO_STATUS);
+  // The shell's own question, asked once at launch (`AppContent`) and
+  // answered before the page opens: the page reads that answer and asks
+  // main nothing itself. Asked while rendering and never awaited, the
+  // answer landed after each case and re-rendered the page outside act.
+  await act(() => refreshAudioEngineStatus());
   act(() => {
     claimPlayback('library');
     setDspNativeState('engaged');

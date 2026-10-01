@@ -41,6 +41,7 @@ import {
   isContinuousMode,
   setSmartEqMode,
 } from 'renderer/utils/smartEqMode';
+import { refreshTrebleDesigns } from 'renderer/utils/useTrebleDesigns';
 
 /**
  * The tick's own toolbar, rendered the way `SmartEqRun.test.tsx` renders
@@ -73,6 +74,10 @@ jest.mock('renderer/utils/trebleDesignApi', () => ({
   getTrebleDesigns: async () => ({ eq: 'precise', curves: 'precise' }),
   setTrebleDesign: jest.fn(),
 }));
+// One answer for the whole window, asked the first time anything shows it.
+// Answered before any case renders: left to the first mount, it landed after
+// that case had ended and re-rendered the EQ outside act.
+beforeAll(() => refreshTrebleDesigns());
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
   ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
@@ -123,6 +128,7 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   setSmartEq: jest.fn(() => Promise.resolve(undefined)),
   // The output's rate beside the page's name reads the output list.
   getAudioDevices: jest.fn(() => Promise.resolve([])),
+  readKnownAudioDevices: jest.fn(() => Promise.resolve([])),
 }));
 
 jest.mock('renderer/components/VoicingQuickPick', () => () => null);

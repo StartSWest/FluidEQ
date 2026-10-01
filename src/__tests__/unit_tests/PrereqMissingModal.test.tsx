@@ -5,7 +5,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import type { TAudioEngine } from 'common/audioEngine';
 import en from 'common/i18n/en';
 import PrereqMissingModal from 'renderer/PrereqMissingModal';
@@ -39,7 +45,7 @@ describe('PrereqMissingModal', () => {
     jest.clearAllMocks();
   });
 
-  it('offers the bundled Equalizer APO installer under APO', () => {
+  it('offers the bundled Equalizer APO installer under APO', async () => {
     renderModal('apo');
 
     expect(screen.getByRole('heading')).toHaveTextContent(
@@ -53,7 +59,11 @@ describe('PrereqMissingModal', () => {
     });
     expect(install).toHaveClass('button');
     expect(install).not.toHaveClass('subtle');
-    fireEvent.click(install);
+    // The press waits for the installer to start and then settles the
+    // button; that answer lands inside the case.
+    await act(async () => {
+      fireEvent.click(install);
+    });
     expect(startEqualizerApoInstall).toHaveBeenCalledTimes(1);
   });
 

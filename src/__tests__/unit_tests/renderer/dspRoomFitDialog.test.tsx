@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import expectReportedError from '__tests__/utils/reportedError';
 import en from 'common/i18n/en';
 import DspRoomFitDialog from 'renderer/dsp/DspRoomFitDialog';
 import { readRoomHeadText } from 'renderer/utils/equalizerApi';
@@ -91,9 +92,14 @@ describe('the fit dialog', () => {
   it('says so when the heads cannot be loaded, and still closes', async () => {
     (readRoomHeadText as jest.Mock).mockRejectedValue(new Error('gone'));
     const onClose = jest.fn();
-    render(<DspRoomFitDialog onPick={() => undefined} onClose={onClose} />);
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      en['dsp.roomFit.error'],
+    await expectReportedError(
+      'The heads could not be prepared for the fit',
+      async () => {
+        render(<DspRoomFitDialog onPick={() => undefined} onClose={onClose} />);
+        expect(await screen.findByRole('alert')).toHaveTextContent(
+          en['dsp.roomFit.error'],
+        );
+      },
     );
     expect(
       screen.getByRole('button', { name: en['dsp.roomFit.playA'] }),

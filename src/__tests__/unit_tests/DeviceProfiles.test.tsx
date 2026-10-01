@@ -7,6 +7,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
+import expectReportedError from '__tests__/utils/reportedError';
 import type { TAudioEngine } from 'common/audioEngine';
 import en from 'common/i18n/en';
 import DeviceProfiles from 'renderer/DeviceProfiles';
@@ -266,11 +267,15 @@ describe('DeviceProfiles under the FluidEQ Engine', () => {
       })),
     });
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: en['output.enable'] }),
-    );
-
-    expect(await screen.findByText(en['engine.declined'])).toBeInTheDocument();
+    const enable = await screen.findByRole('button', {
+      name: en['output.enable'],
+    });
+    await expectReportedError('was declined', async () => {
+      fireEvent.click(enable);
+      expect(
+        await screen.findByText(en['engine.declined']),
+      ).toBeInTheDocument();
+    });
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 

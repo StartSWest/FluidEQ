@@ -72,9 +72,6 @@ const renderPanel = (
 ) => {
   const onChange = jest.fn();
   const onCommit = jest.fn();
-  // The shell's own question, asked once at launch (`AppContent`): the page
-  // reads that answer and asks main nothing itself.
-  refreshAudioEngineStatus();
   // Both contexts, as `RemoteAudioProvider` supplies them: the page reads the
   // role alone, from its own context.
   const view = render(
@@ -97,13 +94,18 @@ const renderPanel = (
 };
 
 describe('DspPanel presets, isolates and monitors', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     resetAudioEngineStatus();
     // The page opens where it was last left, which is a per-machine preference
     // and not what any of these cases is about: without this, a case that
     // opens a processor decides which card the next one renders.
     window.localStorage.removeItem(DSP_OPEN_SECTION_KEY);
     jest.mocked(getAudioEngineStatus).mockResolvedValue(APO_STATUS);
+    // The shell's own question, asked once at launch (`AppContent`) and
+    // answered before the page opens: the page reads that answer and asks
+    // main nothing itself. Asked while rendering and never awaited, the
+    // answer landed after each case and re-rendered the page outside act.
+    await act(() => refreshAudioEngineStatus());
     act(() => {
       claimPlayback('library');
       setDspNativeState('engaged');

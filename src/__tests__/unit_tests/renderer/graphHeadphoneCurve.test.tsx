@@ -52,6 +52,7 @@ import {
 } from 'renderer/graph/utils';
 import { getStudioEqFilters, TEqMode } from 'common/eqMode';
 import { AudioEngineContext } from 'renderer/utils/audioEngineContext';
+import { refreshTrebleDesigns } from 'renderer/utils/useTrebleDesigns';
 import { IChartCurveData } from 'renderer/graph/ChartController';
 
 /* --- the world the chart reads ------------------------------------------ */
@@ -92,6 +93,10 @@ jest.mock('renderer/utils/trebleDesignApi', () => ({
   getTrebleDesigns: async () => ({ eq: 'precise', curves: 'precise' }),
   setTrebleDesign: jest.fn(),
 }));
+// One answer for the whole window, asked the first time anything shows it.
+// Answered before any case renders: left to the first mount, it landed after
+// that case had ended and re-rendered the EQ outside act.
+beforeAll(() => refreshTrebleDesigns());
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
   useFluidEqContext: () => ({
@@ -131,6 +136,9 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   setGain: jest.fn(),
   setQuality: jest.fn(),
   setMainPreAmp: mockSetMainPreAmp,
+  // The graph draws Classic bands at the output's own rate (`useOutputRate`),
+  // read from the output list; none is known here.
+  readKnownAudioDevices: jest.fn(() => Promise.resolve([])),
 }));
 
 /**

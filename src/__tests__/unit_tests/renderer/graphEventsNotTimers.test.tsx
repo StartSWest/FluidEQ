@@ -28,6 +28,7 @@ import type {
 } from 'renderer/graph/ChartController';
 import { SILENT_WAVEFORM } from 'renderer/graph/liveSpectrumFrames';
 import { AudioEngineContext } from 'renderer/utils/audioEngineContext';
+import { refreshTrebleDesigns } from 'renderer/utils/useTrebleDesigns';
 import {
   toggleLiveOutputSolo,
   useLiveOutputSolo,
@@ -50,6 +51,10 @@ jest.mock('renderer/utils/trebleDesignApi', () => ({
   getTrebleDesigns: async () => ({ eq: 'precise', curves: 'precise' }),
   setTrebleDesign: jest.fn(),
 }));
+// One answer for the whole window, asked the first time anything shows it.
+// Answered before any case renders: left to the first mount, it landed after
+// that case had ended and re-rendered the EQ outside act.
+beforeAll(() => refreshTrebleDesigns());
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
   useFluidEqContext: () => ({
@@ -96,7 +101,10 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   setGain: mockWrite('gain'),
   setQuality: mockWrite('quality'),
   setMainPreAmp: jest.fn(() => Promise.resolve()),
-  readKnownAudioDevices: () => Promise.resolve([]),
+  // Never answered: these cases are about events, not the output's rate, and
+  // an answer landing after a case had ended re-rendered the chart outside
+  // act. Until it is known the graph draws at its own rate, as on launch.
+  readKnownAudioDevices: () => new Promise<never>(() => {}),
 }));
 
 const mockChart: {

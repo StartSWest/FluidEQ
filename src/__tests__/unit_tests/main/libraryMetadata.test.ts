@@ -27,6 +27,7 @@ suite's default test environment, has no reason to run it.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import expectReportedError from '../../utils/reportedError';
 import {
   findFolderArt,
   readLibraryTags,
@@ -90,7 +91,11 @@ describe('reading tags off a file', () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-tags-'));
     const file = path.join(dir, 'broken.flac');
     fs.writeFileSync(file, Buffer.from('OggSnot really a flac file at all'));
-    await expect(readLibraryTags(file)).resolves.toEqual({ readFailed: true });
+    await expect(
+      expectReportedError('Could not read tags from', () =>
+        readLibraryTags(file),
+      ),
+    ).resolves.toEqual({ readFailed: true });
   });
 
   it('strips an embedded NUL from a tag string', async () => {

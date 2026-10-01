@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import expectReportedError from '__tests__/utils/reportedError';
 import type { IAudioDevice } from 'common/constants';
 import en from 'common/i18n/en';
 import RoomOutputNotice from 'renderer/components/RoomOutputNotice';
@@ -131,12 +132,15 @@ describe('the Room’s one press to 7.1', () => {
     render(
       <RoomOutputNotice engine="fluid" device={headset} isHidden={false} />,
     );
-    fireEvent.click(
-      await screen.findByRole('button', { name: en['output.setSevenOne'] }),
-    );
-    expect(
-      await screen.findByText(en['output.sevenOneFailed']),
-    ).toBeInTheDocument();
+    const press = await screen.findByRole('button', {
+      name: en['output.setSevenOne'],
+    });
+    await expectReportedError('Setting Headset to 7.1 failed', async () => {
+      fireEvent.click(press);
+      expect(
+        await screen.findByText(en['output.sevenOneFailed']),
+      ).toBeInTheDocument();
+    });
     expect(
       screen.getByRole('button', { name: en['output.setSevenOne'] }),
     ).toBeInTheDocument();
