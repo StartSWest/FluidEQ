@@ -203,9 +203,10 @@ export const createProfileStore = ({
     // directory.
     //
     // The path is still returned rather than thrown, because the caller asking
-    // is a list that should come back empty, not an error: reading a directory
-    // that is not there fails the same way as reading an empty one, and the
-    // profiles bar already draws nothing until an output is known.
+    // is a list that should come back empty, not an error: the list handler
+    // answers a folder that is not there with no profiles
+    // (`GET_PRESET_FILE_LIST` in `ipc/profiles.ts`) — `readdirSync` itself
+    // throws on one, which is what put an error in front of every launch.
     if (!deviceId) {
       return dir;
     }

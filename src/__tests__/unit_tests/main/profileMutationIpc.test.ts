@@ -206,6 +206,27 @@ describe('renaming and deleting a profile through IPC', () => {
     fs.rmSync(configDir, { recursive: true, force: true });
   });
 
+  it('answers an output with no profile folder yet with no profiles, not an error', async () => {
+    // What the window asks as it mounts, before any output is known: a
+    // folder that is named but was never made. A 2.0.0 report carried the
+    // error from every launch.
+    activeDeviceId = 'not-known-yet';
+    const reply = await fire(ChannelEnum.GET_PRESET_FILE_LIST, []);
+    expect(errors).toEqual([]);
+    expect(reply).toHaveBeenCalledWith(ChannelEnum.GET_PRESET_FILE_LIST, {
+      result: [],
+    });
+  });
+
+  it('still lists an output that has profiles', async () => {
+    // The positive control: a folder that is there is read as it always was.
+    const reply = await fire(ChannelEnum.GET_PRESET_FILE_LIST, []);
+    expect(errors).toEqual([]);
+    expect(reply).toHaveBeenCalledWith(ChannelEnum.GET_PRESET_FILE_LIST, {
+      result: [SHARED],
+    });
+  });
+
   it.each<TEqMode>(['normal', 'double', 'studio'])(
     'loads and restores explicit %s mode without leaking the previous profile',
     async (eqMode) => {

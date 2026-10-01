@@ -544,9 +544,18 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
     const channel = ChannelEnum.GET_PRESET_FILE_LIST;
 
     try {
-      const fileNames: string[] = fs
-        .readdirSync(activePresetDir())
-        .filter((fileName) => !isAutomaticPresetName(fileName));
+      const dir = activePresetDir();
+      // A folder that is not there holds no profiles. The window asks as it
+      // mounts, before any output is known, and `presetDirForDevice` names a
+      // folder for the empty id without making it; `readdirSync` throws ENOENT
+      // on a missing folder rather than returning nothing, so every launch
+      // logged "Request failed on getPresetFileList" and put the profiles
+      // bar's error in front of the user (a 2.0.0 report).
+      const fileNames: string[] = fs.existsSync(dir)
+        ? fs
+            .readdirSync(dir)
+            .filter((fileName) => !isAutomaticPresetName(fileName))
+        : [];
       log.info(`Fetched ${fileNames.length} files`);
       const reply: TSuccess<string[]> = { result: fileNames };
       event.reply(channel, reply);
