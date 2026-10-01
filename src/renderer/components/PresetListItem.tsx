@@ -51,13 +51,24 @@ const PresetListItem = ({
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const handleEditClicked = () => {
+  // The list selects — and attaches — a profile on any click inside its row,
+  // so every click that belongs to this row's own controls stops here: the
+  // pencil, and anything in the rename or the delete question. Without it
+  // the pencil, the field, ✓ and ✕ each loaded the profile, and after ✓ the
+  // load used the name the rename had just taken away ("Failed to read
+  // preset", a 2.0.0 report). Keys need nothing: the row ignores the ones
+  // that come from its children.
+  const keepClickInRow = (e?: MouseEvent) => {
+    e?.stopPropagation();
+  };
+
+  const handleEditClicked = (e?: MouseEvent) => {
+    keepClickInRow(e);
     setIsEditMode(true);
   };
 
   const handleDeleteClicked = (e?: MouseEvent) => {
-    // Prevent list item from receiving the click event when the delete icon is clicked
-    e?.stopPropagation();
+    keepClickInRow(e);
     // Asks rather than deletes. A profile can be minutes of tuning by ear and
     // the bin is next to the pencil, so the click that meant "rename" used to
     // destroy it with nothing in between.
@@ -68,8 +79,7 @@ const PresetListItem = ({
     setIsConfirmingDelete(false);
   };
 
-  const handleConfirmDelete = (e?: MouseEvent) => {
-    e?.stopPropagation();
+  const handleConfirmDelete = () => {
     setIsConfirmingDelete(false);
     handleDelete();
   };
@@ -97,7 +107,14 @@ const PresetListItem = ({
 
   if (isConfirmingDelete) {
     return (
-      <div className="preset-confirm-delete" ref={confirmRowRef}>
+      // A layout box that only keeps clicks from the list underneath; the two
+      // buttons inside are the controls and carry role and keys of their own.
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+      <div
+        className="preset-confirm-delete"
+        ref={confirmRowRef}
+        onClick={keepClickInRow}
+      >
         {/* The name stays on screen. "Delete this profile?" over a row that has
             replaced the only copy of the name is a question about something the
             user can no longer see. */}
@@ -125,7 +142,10 @@ const PresetListItem = ({
 
   if (isEditMode) {
     return (
-      <div className="preset-rename" ref={editRowRef}>
+      // As the delete question above: only keeps clicks from the list
+      // underneath; the field and the two buttons are the controls.
+      // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
+      <div className="preset-rename" ref={editRowRef} onClick={keepClickInRow}>
         <TextInput
           ref={editValueRef}
           value={value}

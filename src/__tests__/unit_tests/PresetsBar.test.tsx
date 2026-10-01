@@ -385,4 +385,67 @@ describe('PresetListItem', () => {
       window.localStorage.removeItem('fluideq.locale');
     }
   });
+
+  // A 2.0.0 report: "Loading preset: Untitled profile 1" three times while
+  // the name was being typed, then the same load failing once ✓ had renamed
+  // it. The list selects — and attaches — a profile on any click inside its
+  // row, and the rename row sits inside one.
+  describe('a rename stays in its row', () => {
+    const renderBar = async () => {
+      fetchPresets.mockReturnValue(samplePresetNames);
+      const user = userEvent.setup();
+      await act(async () => {
+        setup(
+          <FluidEqProviderWrapper value={defaultFluidEqContext}>
+            <PresetsBar
+              fetchPresets={fetchPresets}
+              loadPreset={loadPreset}
+              savePreset={savePreset}
+              createPreset={createPreset}
+              renamePreset={renamePreset}
+              deletePreset={deletePreset}
+            />
+          </FluidEqProviderWrapper>,
+        );
+      });
+      return user;
+    };
+
+    it('renames with the ✓ button without loading the old name', async () => {
+      renamePreset.mockResolvedValue(undefined);
+      const user = await renderBar();
+      await user.click(screen.getAllByLabelText(editIconLabel)[0]);
+      const field = screen.getByLabelText(editModeLabel);
+      await user.click(field);
+      await clearAndType(user, field, 'Apple 2');
+      await user.click(screen.getByLabelText('Accept'));
+      expect(renamePreset).toHaveBeenCalledWith('Apple', 'Apple 2');
+      expect(loadPreset).not.toHaveBeenCalled();
+    });
+
+    it('renames with Enter without loading anything', async () => {
+      renamePreset.mockResolvedValue(undefined);
+      const user = await renderBar();
+      await user.click(screen.getAllByLabelText(editIconLabel)[0]);
+      await clearAndType(user, screen.getByLabelText(editModeLabel), 'Apple 2');
+      await user.keyboard('{Enter}');
+      expect(renamePreset).toHaveBeenCalledWith('Apple', 'Apple 2');
+      expect(loadPreset).not.toHaveBeenCalled();
+    });
+
+    it('cancels a rename without attaching the profile', async () => {
+      const user = await renderBar();
+      await user.click(screen.getAllByLabelText(editIconLabel)[0]);
+      await user.click(screen.getByLabelText('Cancel'));
+      expect(renamePreset).not.toHaveBeenCalled();
+      expect(loadPreset).not.toHaveBeenCalled();
+    });
+
+    it('still loads a profile clicked by its name', async () => {
+      // The positive control: the row itself keeps selecting.
+      const user = await renderBar();
+      await user.click(screen.getByLabelText(samplePresetNames[1]));
+      expect(loadPreset).toHaveBeenCalledWith(samplePresetNames[1]);
+    });
+  });
 });
