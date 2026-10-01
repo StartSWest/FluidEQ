@@ -224,6 +224,10 @@ WHAT A WORLD COSTS, AND HOW TO MAKE IT GOOD - learned on FluidEQ's own:
   eight milliseconds; the world without them, 1.6. Keep point sets small and
   near, give them a plain colour, or move their motion into a vertex file,
   where v.instance gives each copy its place and it costs next to nothing.
+- Copies a vertex file lays out from their number all stand at [0, 0, 0],
+  so give their plane "size": [1000, 1000, 1] and read position at 1/1000:
+  FluidEQ 2.0 and older skip a set whose plane, as built, is out of view,
+  and on a narrow panel the camera can turn away from the middle.
 - A ribbon, a set of copies or points that is only sometimes there gets a
   "visible" formula: hidden, it does no work at all. Keep its formulas
   free of smooth, decay and integrate, which keep working while hidden.
