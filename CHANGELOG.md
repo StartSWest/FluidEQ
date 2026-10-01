@@ -558,10 +558,12 @@ and Help answers questions in your own words.
 
 ### Help
 
-- **A first-steps video.** The guide's first chapter plays a two-minute
-  video of FluidEQ's first steps, narrated in English with captions, streamed
-  from fluideq.com when you press play and never before; the site shows it
-  too.
+- **Two videos.** The guide's first chapter plays a four-minute video of
+  FluidEQ's first steps, and the FluidEQ Plus chapter a tour of Plus:
+  Visualizers, the Studio from an idea to a published scene, the desktop
+  visualizer, Dynamic lighting and the Leaderboard. Both are narrated in
+  English with captions, streamed from fluideq.com when you press play and
+  never before; the site shows them too.
 - **Ask the guide in your own words.** Help's search ranks what it finds,
   forgives typos and plurals, knows the words people use for things in all ten
   languages — "no sound", "limiter", "wallpaper" — and searches the English

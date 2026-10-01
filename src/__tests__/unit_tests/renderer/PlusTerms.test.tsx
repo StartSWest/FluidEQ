@@ -257,12 +257,14 @@ describe('the Plus terms', () => {
   });
 
   /**
-   * The User guide's first-steps video is the app's one connection to
-   * fluideq.com. The terms name it by the title the card wears and the button
-   * that opens it in a browser, so a reader can find both; a card renamed in
-   * one place and not the other points them at something that is not there.
+   * The User guide's two videos, the first steps and the Plus tour, are the
+   * app's one connection to fluideq.com. The terms name each by the title its
+   * card wears and the button that opens it in a browser, so a reader can find
+   * them; a card renamed in one place and not the other points them at
+   * something that is not there, and a film the line does not name is a
+   * connection the terms do not mention.
    */
-  it('name the Help video and its button as the guide shows them, in every language', () => {
+  it('name both Help videos and their button as the guide shows them, in every language', () => {
     expect(TERMS_SECTIONS.flatMap((section) => section.lines)).toContain(
       'terms.elsewhere.p10',
     );
@@ -271,6 +273,7 @@ describe('the Plus terms', () => {
       key: 'terms.elsewhere.p10' | 'terms.elsewhere.p2',
     ) =>
       translate(code, key).includes(translate(code, 'help.start.videoTitle')) &&
+      translate(code, key).includes(translate(code, 'help.plus.videoTitle')) &&
       translate(code, key).includes(translate(code, 'help.video.open'));
     const unnamed = LOCALES.filter(
       ({ code }) => !namesTheVideo(code, 'terms.elsewhere.p10'),

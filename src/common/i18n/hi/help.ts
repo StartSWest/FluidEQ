@@ -42,9 +42,9 @@ const help: Record<keyof typeof en, string> = {
   'help.start.keywords':
     'installation, setup, getting started, quick start, beginner, basics, tutorial, how to use, kaise use kare, first time, इंस्टॉलेशन, इंस्टॉलर, शुरुआत, पहली बार, ट्यूटोरियल, इस्तेमाल कैसे करें',
   'help.start.videoTitle': 'FluidEQ के पहले कदम',
-  'help.video.play': 'वीडियो चलाएँ: {title}',
-  'help.video.note':
+  'help.start.videoNote':
     'लगभग चार मिनट, अंग्रेज़ी में वर्णन। चलाने पर यह fluideq.com से चलता है।',
+  'help.video.play': 'वीडियो चलाएँ: {title}',
   'help.video.loading': 'fluideq.com से लोड हो रहा है…',
   'help.video.failed':
     'वीडियो लोड नहीं हो सका। यह fluideq.com से चलता है, इसलिए इसके लिए इंटरनेट कनेक्शन चाहिए।',
@@ -462,6 +462,9 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.categoriesName': 'श्रेणियाँ',
   'help.looks.categories': 'प्रकृति, शहर, अमूर्त और भी बहुत कुछ।',
 
+  'help.plus.videoTitle': 'FluidEQ Plus की सैर',
+  'help.plus.videoNote':
+    'लगभग साढ़े चार मिनट, अंग्रेज़ी में वर्णन। चलाने पर यह fluideq.com से चलता है।',
   'help.plus.title': 'FluidEQ Plus और आपका खाता',
   'help.plus.intro':
     'खाता वैकल्पिक है: जो कुछ मुफ़्त था, वह बिना खाते के इसी कंप्यूटर पर चलता है। मासिक या वार्षिक FluidEQ Plus विज़ुअलाइज़र, लीडरबोर्ड, स्टूडियो, डायनेमिक लाइटिंग और डेस्कटॉप विज़ुअलाइज़र जोड़ता है। नया खाता Plus को पंद्रह दिन मुफ़्त आज़मा सकता है, और आपकी प्रकाशित की हुई जो सीन मंज़ूर हो जाए, वह आपको एक महीना देती है।',

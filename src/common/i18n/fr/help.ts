@@ -43,9 +43,9 @@ const help: Record<keyof typeof en, string> = {
   'help.start.keywords':
     "premiers pas, prise en main, démarrage rapide, bien démarrer, mise en route, premier lancement, débutant, débuter, tutoriel, mode d'emploi, comment utiliser, comment ça marche, installer, setup",
   'help.start.videoTitle': 'Premiers pas avec FluidEQ',
-  'help.video.play': 'Lire la vidéo : {title}',
-  'help.video.note':
+  'help.start.videoNote':
     'Environ quatre minutes, commentées en anglais. Elle est lue depuis fluideq.com quand vous appuyez sur lecture.',
+  'help.video.play': 'Lire la vidéo : {title}',
   'help.video.loading': 'Chargement depuis fluideq.com…',
   'help.video.failed':
     'La vidéo n’a pas pu être chargée. Elle est lue depuis fluideq.com et demande donc une connexion à internet.',
@@ -477,6 +477,9 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.categoriesName': 'Catégories',
   'help.looks.categories': 'Nature, Villes, Abstrait et plus encore.',
 
+  'help.plus.videoTitle': 'Visite guidée de FluidEQ Plus',
+  'help.plus.videoNote':
+    'Environ quatre minutes et demie, commentées en anglais. Elle est lue depuis fluideq.com quand vous appuyez sur lecture.',
   'help.plus.title': 'FluidEQ Plus et votre compte',
   'help.plus.intro':
     'Un compte est facultatif : tout ce qui était gratuit fonctionne sur cet ordinateur sans compte. FluidEQ Plus, mensuel ou annuel, ajoute les Visualiseurs, le Classement, le Studio, l’Éclairage dynamique et le visualiseur du Bureau. Un nouveau compte peut essayer Plus gratuitement pendant quinze jours, et une scène que vous publiez et qui est approuvée vous offre un mois.',

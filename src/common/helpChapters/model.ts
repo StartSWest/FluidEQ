@@ -73,6 +73,11 @@ export interface IHelpVideo<TImage extends string = string> {
   readonly page: string;
   /** Its name on the card. */
   readonly title: TranslationKey;
+  /**
+   * The line under the name: how long it runs, what it is narrated in and
+   * where it plays from. Each film's own, because each runs its own length.
+   */
+  readonly note: TranslationKey;
   /** A capture in `docs/`, shown until the film plays. */
   readonly poster: TImage;
 }

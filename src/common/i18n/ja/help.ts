@@ -43,9 +43,9 @@ const help: Record<keyof typeof en, string> = {
   'help.start.keywords':
     '使い方, 始め方, はじめに, 初めて, 初心者, 入門, 導入方法, セットアップ, 初期設定, インストーラー, インストール方法, チュートリアル, クイックスタート, スタートガイド, 基本操作',
   'help.start.videoTitle': 'FluidEQ はじめの一歩',
-  'help.video.play': '動画を再生: {title}',
-  'help.video.note':
+  'help.start.videoNote':
     '約 4 分、英語のナレーション付き。再生を押すと fluideq.com から再生されます。',
+  'help.video.play': '動画を再生: {title}',
   'help.video.loading': 'fluideq.com から読み込んでいます…',
   'help.video.failed':
     '動画を読み込めませんでした。fluideq.com から再生するため、インターネット接続が必要です。',
@@ -462,6 +462,9 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.categoriesName': 'カテゴリ',
   'help.looks.categories': '自然、都市、抽象など。',
 
+  'help.plus.videoTitle': 'FluidEQ Plus ツアー',
+  'help.plus.videoNote':
+    '約 4 分半、英語のナレーション付き。再生を押すと fluideq.com から再生されます。',
   'help.plus.title': 'FluidEQ Plus とアカウント',
   'help.plus.intro':
     'アカウントは任意です。無料だった機能はすべて、アカウントなしでこのコンピューター上で動きます。月払いまたは年払いの FluidEQ Plus では、ビジュアライザー、ランキング、スタジオ、ダイナミック ライティング、デスクトップ ビジュアライザーが加わります。新しいアカウントは Plus を15日間無料で試せます。公開して承認されたシーンは、1か月分をもたらします。',

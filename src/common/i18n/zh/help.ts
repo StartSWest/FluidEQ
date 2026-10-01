@@ -42,8 +42,8 @@ const help: Record<keyof typeof en, string> = {
   'help.start.keywords':
     '新手教程, 使用教程, 安装教程, 快速入门, 快速上手, 怎么用, 怎么使用, 如何使用, 使用方法, 使用说明, 第一次使用, 初次使用, 开始使用, 初始设置, 基础教程, 小白',
   'help.start.videoTitle': 'FluidEQ 入门',
+  'help.start.videoNote': '约四分钟，英语解说。按下播放后从 fluideq.com 播放。',
   'help.video.play': '播放视频：{title}',
-  'help.video.note': '约四分钟，英语解说。按下播放后从 fluideq.com 播放。',
   'help.video.loading': '正在从 fluideq.com 加载…',
   'help.video.failed': '无法加载视频。它从 fluideq.com 播放，因此需要联网。',
   'help.video.retry': '重试',
@@ -428,6 +428,9 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.categoriesName': '分类',
   'help.looks.categories': '“自然”“城市”“抽象”等。',
 
+  'help.plus.videoTitle': 'FluidEQ Plus 导览',
+  'help.plus.videoNote':
+    '约四分半钟，英语解说。按下播放后从 fluideq.com 播放。',
   'help.plus.title': 'FluidEQ Plus 与你的账户',
   'help.plus.intro':
     '账户是可选的：原本免费的一切，无需账户也能在这台电脑上运行。FluidEQ Plus 按月或按年订阅，增加“可视化”、排行榜、工作室、动态灯效和桌面可视化效果。新账户可以免费体验 Plus 十五天；你发布并获得批准的场景，可以换来一个月。',

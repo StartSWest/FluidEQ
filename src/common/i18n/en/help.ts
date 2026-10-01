@@ -47,9 +47,9 @@ const help = {
   'help.start.keywords':
     'install, installer, setup, set up, getting started, first steps, quick start, beginner, basics, tutorial, how to use, begin',
   'help.start.videoTitle': 'First steps with FluidEQ',
-  'help.video.play': 'Play the video: {title}',
-  'help.video.note':
+  'help.start.videoNote':
     'About four minutes. It plays from fluideq.com when you press play.',
+  'help.video.play': 'Play the video: {title}',
   'help.video.loading': 'Loading from fluideq.com…',
   'help.video.failed':
     'The video could not be loaded. It plays from fluideq.com, so it needs an internet connection.',
@@ -464,6 +464,9 @@ const help = {
   'help.looks.categoriesName': 'Categories',
   'help.looks.categories': 'Nature, Cities, Abstract and more.',
 
+  'help.plus.videoTitle': 'A tour of FluidEQ Plus',
+  'help.plus.videoNote':
+    'About four and a half minutes. It plays from fluideq.com when you press play.',
   'help.plus.title': 'FluidEQ Plus and your account',
   'help.plus.intro':
     'An account is optional: everything that was free runs on this computer without one. FluidEQ Plus, monthly or yearly, adds Visualizers, the Leaderboard, the Studio, Dynamic lighting and the desktop visualizer. A new account can try Plus free for fifteen days, and a scene you publish that is approved earns you a month.',

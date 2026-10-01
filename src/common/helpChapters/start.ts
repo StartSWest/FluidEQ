@@ -22,6 +22,7 @@ const START_CHAPTERS = [
       },
       page: `${OFFICIAL_SITE_URL}/#first-steps`,
       title: 'help.start.videoTitle',
+      note: 'help.start.videoNote',
       poster: '03-eq-parametric-bands-and-live-response.png',
     },
   },

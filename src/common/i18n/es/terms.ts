@@ -214,7 +214,7 @@ const terms = {
   'terms.elsewhere.p2':
     'Presets de auriculares: al abrirse, FluidEQ busca en GitHub presets de auriculares nuevos, y la pestaña Convolución descarga archivos de AutoEq desde GitHub cuando la abres o eliges unos auriculares.',
   'terms.elsewhere.p10':
-    'El vídeo «Primeros pasos con FluidEQ» de la Guía de usuario: no se descarga nada hasta que pulsas reproducir; entonces el vídeo y sus subtítulos en inglés llegan desde fluideq.com, el sitio del propio FluidEQ. La petición no lleva ninguna cookie ni nada sobre ti o tu cuenta, y el sitio no guarda registro de ella. Si no se puede reproducir, «Abrir en fluideq.com» lo muestra en tu navegador.',
+    'Los vídeos «Primeros pasos con FluidEQ» y «Un recorrido por FluidEQ Plus» de la Guía de usuario: no se descarga nada hasta que pulsas reproducir; entonces el vídeo y sus subtítulos en inglés llegan desde fluideq.com, el sitio del propio FluidEQ. La petición no lleva ninguna cookie ni nada sobre ti o tu cuenta, y el sitio no guarda registro de ella. Si uno no se puede reproducir, «Abrir en fluideq.com» lo muestra en tu navegador.',
   'terms.elsewhere.p3':
     'Modelos que usas: el Creador de karaoke descarga sus modelos de habla, de voz y de melodía desde Hugging Face, y el reductor de ruido de voz descarga su modelo desde GitHub. Tu audio se procesa en tu ordenador.',
   'terms.elsewhere.p9':

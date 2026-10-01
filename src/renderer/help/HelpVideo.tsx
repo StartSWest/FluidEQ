@@ -46,7 +46,7 @@ export default function HelpVideo({
         </span>
         <span className="help-video__caption">
           <strong>{title}</strong>
-          <span>{t('help.video.note')}</span>
+          <span>{t(video.note)}</span>
         </span>
       </button>
     );
