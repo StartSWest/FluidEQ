@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <utility>
 #include <vector>
 
+#include "fx_modes.h"
 #include "json.h"
 
 namespace fluideq_engine::setup {
@@ -282,6 +283,18 @@ FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot) {
       after.legacy[at] = std::wstring(clsid);
     } else {
       after.single[at] = std::wstring(clsid);
+      // The list's rule holds here too: an effect value with no processing
+      // modes beside it is registered for discovery only and never streamed.
+      // Pids 5 to 7 and the lists share one modes value per slot, so it is
+      // written only where none exists — a vendor's says which modes its own
+      // effects run in (`modes_for_empty_slot`). A Sound BlasterX G6
+      // (Creative's effects in pids 5 and 6, nothing in 7) had the engine in
+      // pid 7 without one and never created it; Equalizer APO's installer
+      // writes DEFAULT beside every value it takes for the same reason. The
+      // pre-8.1 pair has no modes at all.
+      if (!after.modes[at].has_value()) {
+        after.modes[at] = modes_for_empty_slot(before, at);
+      }
     }
     plan.changed = after != before;
     return plan;
@@ -328,14 +341,14 @@ FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot) {
     after.composite_was_sz[index] = false;
   }
 
-  // 4. A list with no processing modes beside it is never reached: the engine
-  //    matches the stream's mode against that list and an absent one matches
-  //    nothing. An existing list is never touched — the vendor decided which
-  //    modes its effects run in, and DEFAULT is only what we need for
-  //    ordinary playback.
+  // 4. A list with no processing modes beside it is registered for discovery
+  //    only and never streamed: the engine matches the stream's mode against
+  //    that list and an absent one matches nothing. An existing list is never
+  //    touched — the vendor decided which modes its effects run in. A new one
+  //    carries DEFAULT, and for a stream or mode list the modes the driver
+  //    already streams in (`modes_for_empty_slot`).
   if (!after.modes[index].has_value()) {
-    after.modes[index] =
-        std::vector<std::wstring>{std::wstring(kDefaultProcessingMode)};
+    after.modes[index] = modes_for_empty_slot(before, index);
   }
 
   plan.changed = after != before;
@@ -397,6 +410,11 @@ FxPlan plan_detach(const FxValues& current, const FxValues& backup,
   for (int at = 0; at < kSlotCount; ++at) {
     if (holds_effect(after.single[at]) && equal_ci(*after.single[at], clsid)) {
       after.single[at] = backup.single[at];
+      // And the processing modes the attach wrote beside it, where the
+      // endpoint had none; a modes value that was there stays.
+      if (!backup.modes[at].has_value()) {
+        after.modes[at].reset();
+      }
     }
   }
 

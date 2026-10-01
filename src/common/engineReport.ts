@@ -121,9 +121,15 @@ const describeSlots = (endpoint: IFluidEngineEndpoint): string => {
     endpoint.emptySlots === undefined
       ? ''
       : ` — ${endpoint.emptySlots} of 3 slots free`;
+  // The one fact about the engine's own slot that decides whether Windows
+  // reaches it at all, and that no list of who sits where can show.
+  const mode = endpoint.modeMissing
+    ? `; the engine's slot (${endpoint.slot ?? 'unknown'}) has no processing ` +
+      'mode, so Windows never reaches it'
+    : '';
   return (
     `  Slots: ${inLists.join(' · ')}${free}` +
-    `${elsewhere.length ? `; old single values: ${elsewhere.join(', ')}` : ''}`
+    `${elsewhere.length ? `; old single values: ${elsewhere.join(', ')}` : ''}${mode}`
   );
 };
 

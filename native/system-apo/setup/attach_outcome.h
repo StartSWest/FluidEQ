@@ -28,7 +28,9 @@ struct EndpointResult {
   std::wstring guid;
   bool attached = false;
   /**
-   * Empty unless this endpoint failed. Only `--attach-all` fills it in: an
+   * Empty unless this endpoint failed. Only an install fills it in — an
+   * output `--attach-all` could not attach, or one the engine was already on
+   * that could not be given its processing mode (`complete_modes`): an
    * explicit `attach <guid>` has exactly one endpoint to talk about and
    * reports its failure as the command's failure.
    */

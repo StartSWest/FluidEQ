@@ -163,6 +163,43 @@ describe('describeAudioEngine', () => {
     expect(text).toContain(
       'old single values: SFX: Equalizer APO, EFX: {APO2}',
     );
+    // The control for the line below: a slot with its mode says nothing.
+    expect(text).not.toContain('processing mode');
+  });
+
+  it('says when the engine sits in a slot Windows never reaches', () => {
+    // A Sound BlasterX G6: Creative's effects in the single values, the
+    // engine in the EFX one, and no processing mode beside it.
+    const text = describeAudioEngine({
+      engine: 'fluid',
+      devices: [output],
+      fluid: {
+        ...installed,
+        endpoints: [
+          {
+            guid: output.guid,
+            attached: true,
+            backupExists: true,
+            slot: 'efx-single',
+            modeMissing: true,
+            effects: [
+              {
+                slot: 'efx',
+                from: 'single',
+                clsid: '{OURS}',
+                name: 'FluidEQ Engine',
+              },
+            ],
+            emptySlots: 2,
+          },
+        ],
+      },
+      health: health(),
+    });
+    expect(text).toContain(
+      "the engine's slot (efx-single) has no processing mode, so Windows " +
+        'never reaches it',
+    );
   });
 
   it('shows Windows skipping effects on the output', () => {

@@ -203,6 +203,36 @@ describe('whatToTry', () => {
     });
   });
 
+  it('gives a slot with no processing mode its mode where it is, before any rung below', () => {
+    // A Sound BlasterX G6 as a 2.0.0 report read it: the engine in the EFX
+    // value with no mode beside it, and every rung below it Creative's.
+    const g6 = {
+      guid: RME,
+      attached: true,
+      backupExists: true,
+      slot: 'efx-single' as const,
+      slotsHeld: ['mfx-single', 'sfx-single', 'gfx', 'lfx'] as TEngineSlot[],
+    };
+    expect(
+      whatToTry(status({ endpoints: [{ ...g6, modeMissing: true }] }), RME),
+    ).toEqual({ kind: 'mode', slot: 'efx-single' });
+    // With its mode and still never created, the ladder takes over — and on
+    // this output it has nothing left to offer.
+    expect(whatToTry(status({ endpoints: [g6] }), RME)).toMatchObject({
+      kind: 'nothing',
+    });
+    // A machine that cannot load the engine anywhere still comes first.
+    expect(
+      whatToTry(
+        status({
+          unsignedAllowed: false,
+          endpoints: [{ ...g6, modeMissing: true }],
+        }),
+        RME,
+      ),
+    ).toMatchObject({ kind: 'install' });
+  });
+
   it('re-installs first where a machine-wide switch was undone', () => {
     expect(whatToTry(status({ unsignedAllowed: false }), RME)).toMatchObject({
       kind: 'install',
@@ -299,6 +329,32 @@ describe('createEngineOutputRepair', () => {
       RME,
       '--slot',
       'mfx',
+      '--restart-audio',
+    ]);
+  });
+
+  it('writes a missing processing mode in place: an attach into the same slot', async () => {
+    const { repair, runEngineSetup } = repairFor(() =>
+      status({
+        endpoints: [
+          {
+            guid: RME,
+            attached: true,
+            backupExists: true,
+            slot: 'efx-single',
+            modeMissing: true,
+          },
+        ],
+      }),
+    );
+    await expect(repair.repair(RME)).resolves.toEqual({
+      ok: true,
+      declined: false,
+    });
+    expect(runEngineSetup).toHaveBeenCalledWith('attach', [
+      RME,
+      '--slot',
+      'efx-single',
       '--restart-audio',
     ]);
   });

@@ -37,11 +37,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { useEffect, useRef, useState } from 'react';
-import type { IAudioRestartOutcome } from 'common/audioEngine';
+import type {
+  IAudioRestartOutcome,
+  IFluidEngineEndpoint,
+} from 'common/audioEngine';
 import type { TEngineTrouble } from '../audio/engineTrouble';
 import { reportError, reportInfo } from './logger';
 
 const MEMORY_KEY = 'fluideq.engineNeverRanRepairs';
+
+/**
+ * The slot "once" is keyed by on the troubled output: the one the helper
+ * reports, marked while it still lacks its processing mode. Writing the mode
+ * in place is then one ask and the next rung down, if the mode was not
+ * enough, another; keyed by the slot alone, the second sound past a silent
+ * engine in the same slot read as that change failing, and the ladder below
+ * was never asked for.
+ */
+export const repairSlotKey = (
+  endpoint: Pick<IFluidEngineEndpoint, 'slot' | 'modeMissing'> | undefined,
+): string | undefined => {
+  if (!endpoint?.slot) {
+    return undefined;
+  }
+  return endpoint.modeMissing
+    ? `${endpoint.slot} (no processing mode)`
+    : endpoint.slot;
+};
 
 /**
  * `running`: asked, no answer yet. `skipped`: could not be started (the

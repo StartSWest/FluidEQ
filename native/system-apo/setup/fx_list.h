@@ -155,9 +155,10 @@ struct FxPlan {
 /**
  * `{C18E2F7E-933D-4965-B7D1-1EEF228D2AF3}` — the DEFAULT processing mode.
  *
- * An effect list with no mode list beside it is never reached: the audio
- * engine matches the stream's mode against that list, and an absent one
- * matches nothing. This is the mode ordinary playback runs in.
+ * An effect list, or one of pids 5 to 7, with no mode list beside it is
+ * registered for discovery only and never streamed (`fx_modes.h`). This is
+ * the mode ordinary playback runs in, and the one every mode list this
+ * program writes starts with.
  */
 extern const wchar_t kDefaultProcessingMode[];
 
@@ -176,7 +177,9 @@ extern const wchar_t kDefaultProcessingMode[];
  * vendor's would switch it off, and there is no way to chain two in one
  * value. Neither creates a list: a list is the newer generation, and an
  * endpoint that is read from its single values may only be read from them
- * while no list exists.
+ * while no list exists. Pids 5 to 7 get a processing modes value beside
+ * them where the slot has none (`modes_for_empty_slot`), exactly as a list
+ * does: without one the effect is never streamed.
  */
 FxPlan plan_attach(const FxValues& before, std::wstring_view clsid, Slot slot);
 

@@ -90,6 +90,7 @@ interface IGuardedStatusEndpoint {
   effects?: unknown;
   emptySlots?: unknown;
   slot?: unknown;
+  modeMissing?: unknown;
   slotsTried?: unknown;
   slotsHeld?: unknown;
 }
@@ -205,6 +206,7 @@ const parseStatusEndpoints = (value: unknown): IFluidEngineEndpoint[] =>
           attached: endpoint.attached,
           backupExists: endpoint.backupExists === true,
           ...(slot ? { slot } : {}),
+          ...(endpoint.modeMissing === true ? { modeMissing: true } : {}),
           ...(slotsTried ? { slotsTried } : {}),
           ...(slotsHeld ? { slotsHeld } : {}),
           ...(effects ? { effects } : {}),
@@ -392,8 +394,20 @@ const logEngineStatusChange = (status: IFluidEngineStatus): void => {
         endpoint.emptySlots === undefined
           ? ''
           : `, ${endpoint.emptySlots} free`;
-      return others.length
-        ? `${endpoint.guid} [${others.join(', ')}${free}]`
+      // And where the engine itself sits, and whether Windows can reach it
+      // there: an output read only from its single values has no list to
+      // show, and a 2.0.0 report's sound card logged nothing but its guid.
+      const parts = [
+        ...(others.length ? [`${others.join(', ')}${free}`] : []),
+        ...(endpoint.slot
+          ? [
+              `engine in ${endpoint.slot}` +
+                `${endpoint.modeMissing ? ', no processing mode' : ''}`,
+            ]
+          : []),
+      ];
+      return parts.length
+        ? `${endpoint.guid} [${parts.join('; ')}]`
         : endpoint.guid;
     })
     .join('; ');

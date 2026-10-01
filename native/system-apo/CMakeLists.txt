@@ -212,7 +212,7 @@ add_test(NAME engine-dll-aggregation
 # decide what happens to somebody else's audio driver can be exercised on
 # fixtures instead of on their speakers.
 add_library(fluideq-engine-setup-core STATIC
-  setup/fx_list.cpp setup/json.cpp setup/multi_sz.cpp
+  setup/fx_list.cpp setup/fx_modes.cpp setup/json.cpp setup/multi_sz.cpp
   setup/attach_outcome.cpp setup/com_paths.cpp setup/service_restart.cpp
   setup/retry.cpp setup/slot_report.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
@@ -247,6 +247,12 @@ add_executable(fluideq-engine-fx-list-test tests/fx_list_test.cpp)
 target_link_libraries(fluideq-engine-fx-list-test
   PRIVATE fluideq-engine-setup-core feq_strict)
 add_test(NAME engine-fx-list COMMAND fluideq-engine-fx-list-test)
+
+# The processing modes beside an effect value, without which Windows lists
+# the effect for discovery and never streams through it.
+add_executable(fluideq-engine-fx-list-mode-test tests/fx_list_mode_test.cpp)
+target_link_libraries(fluideq-engine-fx-list-mode-test PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-fx-list-mode COMMAND fluideq-engine-fx-list-mode-test)
 
 add_executable(fluideq-engine-fx-list-apo-test tests/fx_list_apo_test.cpp)
 target_link_libraries(fluideq-engine-fx-list-apo-test PRIVATE fluideq-engine-setup-core feq_strict)

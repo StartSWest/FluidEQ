@@ -80,4 +80,19 @@ describe('the slot names main will admit', () => {
   it('says nothing about a history an older helper does not report', () => {
     expect(statusWith({ slot: 'efx' }).slotsTried).toBeUndefined();
   });
+
+  it('carries a slot with no processing mode, and only a plain true', () => {
+    expect(
+      statusWith({ slot: 'efx-single', modeMissing: true }).modeMissing,
+    ).toBe(true);
+    // Absent — an older helper, or a slot that has its mode — and anything
+    // that is not the boolean the helper writes, read alike.
+    expect(
+      statusWith({ slot: 'efx-single', modeMissing: false }).modeMissing,
+    ).toBeUndefined();
+    expect(
+      statusWith({ slot: 'efx-single', modeMissing: 'true' }).modeMissing,
+    ).toBeUndefined();
+    expect(statusWith({ slot: 'efx-single' }).modeMissing).toBeUndefined();
+  });
 });

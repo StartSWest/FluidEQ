@@ -21,7 +21,9 @@ import expectReportedError from '__tests__/utils/reportedError';
 import type { IAudioRestartOutcome } from 'common/audioEngine';
 import type { IAudioDevice } from 'common/constants';
 import type { TEngineTrouble } from 'renderer/audio/engineTrouble';
-import useRepairWhenEngineNeverRan from 'renderer/utils/useRepairWhenEngineNeverRan';
+import useRepairWhenEngineNeverRan, {
+  repairSlotKey,
+} from 'renderer/utils/useRepairWhenEngineNeverRan';
 
 const device = {
   id: 'speakers',
@@ -124,6 +126,44 @@ describe('useRepairWhenEngineNeverRan', () => {
     rerender({ trouble: neverRan, isSuppressed: false, slot: 'mfx' });
     await flush();
     expect(repair).toHaveBeenCalledTimes(2);
+  });
+
+  it('asks for the rung below once the mode written in place was not enough', async () => {
+    // A Sound BlasterX G6: the engine in the EFX value with no processing
+    // mode. Main writes the mode in place; the audio restarts; the helper now
+    // reports the same slot with its mode, and the sound is heard past a
+    // silent engine again. That is a new ask — for the ladder — not the
+    // first change being judged.
+    const withoutMode = repairSlotKey({
+      slot: 'efx-single',
+      modeMissing: true,
+    });
+    const withMode = repairSlotKey({ slot: 'efx-single' });
+    const { repair, rerender, result } = setup({
+      trouble: neverRan,
+      isSuppressed: false,
+      slot: withoutMode,
+    });
+    await flush();
+    rerender({ trouble: undefined, isSuppressed: false, slot: withMode });
+    rerender({ trouble: neverRan, isSuppressed: false, slot: withMode });
+    await flush();
+    expect(repair).toHaveBeenCalledTimes(2);
+    expect(result.current.isTryingSlots).toBe(true);
+  });
+
+  it('keys a slot apart while it lacks its processing mode', () => {
+    expect(repairSlotKey({ slot: 'efx-single', modeMissing: true })).toBe(
+      'efx-single (no processing mode)',
+    );
+    expect(repairSlotKey({ slot: 'efx-single', modeMissing: false })).toBe(
+      'efx-single',
+    );
+    expect(repairSlotKey({ slot: 'mfx' })).toBe('mfx');
+    // No slot reported (an older helper, or the engine on no output): no key,
+    // which is what the hook has always been given then.
+    expect(repairSlotKey({ modeMissing: true })).toBeUndefined();
+    expect(repairSlotKey(undefined)).toBeUndefined();
   });
 
   it('waits for the trouble to go away before asking for a new slot', async () => {

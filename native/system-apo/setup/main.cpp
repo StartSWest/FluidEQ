@@ -58,6 +58,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "endpoints.h"
 #include "fs.h"
 #include "fx_list.h"
+#include "fx_modes.h"
 #include "json.h"
 #include "registry.h"
 #include "retry.h"
@@ -107,6 +108,7 @@ using fluideq_engine::setup::EndpointResult;
 using fluideq_engine::setup::describe_slots;
 using fluideq_engine::setup::held_slots;
 using fluideq_engine::setup::load_backup;
+using fluideq_engine::setup::mode_missing;
 using fluideq_engine::setup::slot_from_name;
 using fluideq_engine::setup::remembered_slots;
 using fluideq_engine::setup::slot_name;
@@ -380,6 +382,10 @@ int print_status() {
     out += L",\"slot\":";
     out += slot.has_value() ? L"\"" + std::wstring(slot_name(*slot)) + L"\""
                             : L"null";
+    // Whether that slot lacks the processing modes value Windows needs to
+    // reach it, which an attach into the same slot writes (`mode_missing`).
+    out += L",\"modeMissing\":";
+    out += mode_missing(values, kEngineClsid) ? L"true" : L"false";
     // And every slot this output has already been put in, oldest first. The
     // ladder walks newest to oldest, so where the engine is now says only
     // how far down it got — not which rungs were tried, which is a different

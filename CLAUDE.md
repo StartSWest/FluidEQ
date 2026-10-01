@@ -1027,9 +1027,31 @@ Out-String` (or any other capture) is what actually waits for it and shows
   Windows' own default effect, never over a vendor's, and creating no list
   on the way, because a list is the newer generation and its existence is
   what stops an endpoint being read from its singles. `write_fx_values`
-  admits them for our own class id on the same terms. And because the ladder
-  only ever walked downwards, an output that had already reached the bottom
-  would never have been offered a rung added to the middle: the helper's
+  admits them for our own class id on the same terms. Each also gets a
+  processing modes value beside it where its slot has none, as a list always
+  did (`fx_modes.cpp`): the single and the list of a slot share that one
+  value (`{d3993a3f-…},5/6/7`), and an effect without it is registered for
+  discovery only — Windows lists it and never streams through it, per
+  Microsoft's own INF guidance. A vendor's value is never rewritten. The
+  endpoint effect gets DEFAULT alone, the one mode Windows takes after the
+  mix; a stream or mode effect gets DEFAULT plus every mode the driver
+  already lists in its other per-stream slot, RAW aside, because a driver
+  with modes of its own sends media and film streams through those modes and
+  never through DEFAULT. Every helper before 2.0.1 wrote pids 5 to 7 without
+  it, and a Sound BlasterX G6 — Creative's effects in pids 5 and 6 and the
+  legacy pair, nothing in 7, no list — had the engine in pid 7, attached and
+  never once created (2026-10-01); Equalizer APO's installer writes DEFAULT
+  beside every single it takes. Three paths put such an output right: every
+  `install` gives every output the engine is already on the value it lacks
+  and changes nothing else (`complete_modes`), so the engine update reaches
+  them all at once; an attach into the slot the engine is in does it (an
+  Enable, `--attach-all`); and the repair asks for exactly that before any
+  rung below (`whatToTry`, on the status's `modeMissing`), the window keying
+  that slot apart while it lacks the mode (`repairSlotKey`) so a mode that
+  was not enough still lets the ladder go on. And because the ladder only
+  ever walked downwards, an output that
+  had already reached the bottom would never have been offered a rung added
+  to the middle: the helper's
   per-output memory now holds every slot it was asked for by name, one per
   line, oldest last (`remembered_slots`), the status reports it as
   `slotsTried`, and `nextSlot` picks the first rung nobody has tried — with

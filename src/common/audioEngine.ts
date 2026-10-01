@@ -124,6 +124,15 @@ export interface IFluidEngineEndpoint {
    */
   slot?: TEngineSlotName;
   /**
+   * True when that slot has no processing modes value beside it, so Windows
+   * never reaches the engine there — and attaching into the same slot again
+   * writes it (`engineOutputRepair.ts`). Every helper before 2.0.1 attached
+   * to the single values without one: a Sound BlasterX G6 had the engine in
+   * its EFX value, attached on every reading and never once created. Absent
+   * from an older helper.
+   */
+  modeMissing?: boolean;
+  /**
    * Every slot this output has already been put in, oldest first, as the
    * helper remembers it. Absent from an older helper. Where the engine is
    * now says only how far down the ladder it got; which rungs were tried is
@@ -138,10 +147,12 @@ export interface IFluidEngineEndpoint {
    */
   slotsHeld?: TEngineSlotName[];
   /**
-   * Set only by `--attach-all`, on the endpoints it could not attach — an
-   * explicit `attach <guid>` reports its one failure as the command's own
-   * `error` instead. Kept per endpoint so a partial install still names which
-   * outputs need a retry rather than folding into one opaque failure.
+   * Set only by an install: on the endpoints `--attach-all` could not attach,
+   * and on the outputs the engine was already on that it could not give
+   * their processing mode — an explicit `attach <guid>` reports its one
+   * failure as the command's own `error` instead. Kept per endpoint so a
+   * partial install still names which outputs need a retry rather than
+   * folding into one opaque failure.
    */
   error?: string;
 }

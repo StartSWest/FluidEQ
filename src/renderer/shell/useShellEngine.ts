@@ -44,7 +44,9 @@ import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { useEngineMaintenance } from '../utils/useEngineMaintenance';
-import useRepairWhenEngineNeverRan from '../utils/useRepairWhenEngineNeverRan';
+import useRepairWhenEngineNeverRan, {
+  repairSlotKey,
+} from '../utils/useRepairWhenEngineNeverRan';
 
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
 
@@ -498,13 +500,15 @@ const useShellEngine = () => {
   // Where Windows has never created the engine on the output, a restart
   // cannot help; putting the install back, or moving the engine to a slot
   // the driver builds, can — the slot ladder, bounded and silent by design.
-  // Keyed by the slot the helper reports, so each rung is asked for once.
-  const troubledSlot =
+  // Keyed by the slot the helper reports (`repairSlotKey`), so each rung is
+  // asked for once.
+  const troubledSlot = repairSlotKey(
     engineTrouble?.kind === 'off'
       ? engineStatus?.fluid.endpoints.find((endpoint) =>
           sameEndpoint(endpoint.guid, engineTrouble.device.guid),
-        )?.slot
-      : undefined;
+        )
+      : undefined,
+  );
   const { isTryingSlots } = useRepairWhenEngineNeverRan(
     engineTrouble,
     suppressAudioNotices,
