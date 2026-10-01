@@ -68,6 +68,11 @@ export interface IWorldMaterialHandle {
   /** Whether it shows the floor's reflection: its mesh is the mirror. */
   reflects?: boolean;
   /**
+   * Whether it moves its vertices (its own GLSL, or the terrain's), so that
+   * no bounds worked out from the geometry say where it is drawn.
+   */
+  moves?: boolean;
+  /**
    * What a shadow is drawn with when the material moves its vertices (its
    * own GLSL, or the terrain's): three draws a caster's shadow with a depth
    * material of its own, which knew nothing of either, so a shape bent by
@@ -378,6 +383,7 @@ export const buildWorldMaterial = (
     material,
     update,
     reflects,
+    moves,
     ...(shadow ? { shadow } : {}),
     remembers: [colour, emissive, emissiveIntensity, mirrorStrength]
       .concat(scalars.map(({ formula }) => formula))

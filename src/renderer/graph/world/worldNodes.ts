@@ -398,6 +398,16 @@ const buildNode = (node: TWorldNode, state: IBuildState): Object3D => {
     object.castShadow = node.castShadow;
     object.receiveShadow = node.receiveShadow;
   }
+  // Three skips anything whose bounds lie outside the view, and the bounds
+  // are the geometry's as built. A shape that `worldDisplace` moves is drawn
+  // somewhere else entirely - copies whose GLSL lays out a rainfall from a
+  // unit plane each, all standing at the origin - so on a panel where the
+  // origin was out of view the whole rainfall went, and a rainbow placed to
+  // be drawn behind a pane of glass vanished on narrow panels. Its bounds are
+  // unknown, so it is never skipped.
+  if (shaped?.moves === true) {
+    object.frustumCulled = false;
+  }
   if (node.castShadow && shaped?.shadow) {
     Object.assign(object, {
       customDepthMaterial: shaped.shadow.depth,
