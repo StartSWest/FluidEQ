@@ -1549,3 +1549,13 @@ the tree — do not fix the job by making it easier.
   white with nothing in the console that names the cause. Restart `pnpm dev`
   before believing anything else; this is what emptied the window when
   `FLUIDEQ_API_URL` was added.
+- **A change to the window's Content-Security-Policy reaches the dev window
+  only after `pnpm dev` restarts.** The policy is delivered twice: main's
+  response header, which electronmon restarts with main, and the page's own
+  meta tag, which the renderer's webpack config writes from
+  `contentSecurityPolicy()` once, when the dev server starts — and which a
+  packaged build cannot do without, because Electron sends no headers for
+  `file://` (016b474d8). Both must allow a load, so a dev server older than
+  the change keeps refusing it. On 2026-09-30 Help's two films read "could not
+  be loaded" in the dev window while the 2.0 build played them. Judge a build
+  by its `release/app/dist/renderer/index.html`, never by the dev window.
