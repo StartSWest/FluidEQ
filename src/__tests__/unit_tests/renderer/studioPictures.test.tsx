@@ -114,6 +114,27 @@ it('opens a separate piece on that piece, steps through the pieces, and gives fo
   expect(boat).toHaveFocus();
 });
 
+it('asks for no photo over an image made only of the scene’s own pieces', async () => {
+  const user = userEvent.setup();
+  const asks = /^studio\.picture\.(pick|replace|adjust) /;
+  // Control: a scene with places for photos asks for them.
+  const { unmount } = render(<Card pictures={atlas} />);
+  expect(screen.getByText('studio.picture.lead')).toBeVisible();
+  expect(screen.getAllByRole('button', { name: asks })).toHaveLength(3);
+  // The separate pieces' list, and the places' list.
+  expect(screen.getAllByRole('list', { hidden: true })).toHaveLength(2);
+  unmount();
+
+  render(<Card pictures={{ ...atlas, pictures: [] }} />);
+  expect(screen.queryByText('studio.picture.lead')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: asks })).not.toBeInTheDocument();
+  // No empty list of places left holding a row of the card open.
+  expect(screen.getAllByRole('list', { hidden: true })).toHaveLength(1);
+  // Its pieces are still there to look at and save.
+  await user.click(screen.getByText('studio.picture.separate:3'));
+  expect(await view('boat')).toBeVisible();
+});
+
 it('opens a picture among the filled pictures only', async () => {
   const user = userEvent.setup();
   render(<Card pictures={atlas} />);

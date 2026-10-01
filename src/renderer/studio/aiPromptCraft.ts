@@ -1,7 +1,8 @@
 /**
- * The part of the Studio's AI prompt (`aiPrompt.ts`) that sets the bar: what
- * the engine can draw, how to turn a one-line idea into a piece, and the
- * craft and 3D technique that get it there.
+ * The parts of the Studio's AI prompt (`aiPrompt.ts`) that set the bar: what
+ * the engine can draw, how to turn a one-line idea into a piece, the craft
+ * and 3D technique that get it there, what keeps a scene quick to build, and
+ * the few helpers nearly every scene wants.
  *
  * Written because the prompt used to describe only the rules, and a model
  * given only the rules writes to the rules. A member's Codex, asked for "a
@@ -24,9 +25,10 @@ intros and game title screens are made with. It draws ray-marched and
 ray-traced 3D worlds with a moving camera, soft shadows, ambient occlusion,
 reflections on a wet street, refraction through a cut gem with its colours
 split, light shafts through haze, water, clouds, fire, aurora, soft fur-like
-shading, particle swarms, and sprites cut from my photos. A 3D game world is
-in reach too - a neon racer, an endless runner, a starfighter dogfight, a
-platformer - played by the music instead of a controller: the runner jumps on
+shading, particle swarms, and photo-real sprites - cut from my photos, or
+made or found by you (see YOUR OWN ART). A 3D game world is in reach too -
+a neon racer, an endless runner, a starfighter dogfight, a platformer -
+played by the music instead of a controller: the runner jumps on
 the kick, the racer's speed is the flywheel, the shots land on the snare, the
 boss arrives at the drop. The viewer's hand can join in - a tap fires, the
 pointer aims, a drag turns the camera round the world - but no keyboard
@@ -124,4 +126,51 @@ CRAFT
 - A march costs its steps times map() on every pixel. Keep the march under
   about 100 steps, the shadow under 32 and the occlusion to 5, and read the
   cost look_at_scene reports.
+`;
+
+/**
+ * What makes a scene slow to compile, measured on Ivan's own scenes: a driver
+ * builds a fresh copy of a function at every place it is called from.
+ */
+export const QUICK_TO_BUILD = `HOW TO KEEP IT QUICK TO BUILD
+A scene has to be compiled on the machine that plays it - there is no way to
+ship it ready-made, because a compiled shader belongs to one graphics card and
+one driver version. FluidEQ builds it once, in the background, the moment
+somebody adds it, and every play after that is instant. But a scene that takes
+half a minute to build is half a minute of somebody's machine, and if they open
+it before that is done they watch a still picture until it finishes. These are
+measured on my own scenes, not guessed, and they matter far more than length:
+
+- CALL AN EXPENSIVE FUNCTION ONCE. A driver compiles a FRESH COPY of a
+  function's body at EVERY place it is called from. Drawing five boats by
+  calling one boat function five times compiles five boats. Measured: five
+  boat calls and two whale calls in one scene cost eleven seconds of building;
+  calling each body once took the same scene to four and a half.
+- So when several things share a drawing, first work out CHEAPLY which one
+  this pixel belongs to - a few compares, no textures, no sprite work - and
+  then call the expensive body once, with that one's index. A small function
+  called from several places is fine; a big one is not.
+- A loop whose bound is a plain number may be unrolled into that many copies
+  of its body, which costs the same way. Keep a loop's BODY small; put the
+  heavy work after the loop, once, on what the loop picked.
+- Length itself is nearly free: the same scene at 51 KB and at 64 KB built in
+  11.32 and 11.29 seconds. Do not contort the scene to be short. Do not split
+  one body into many small ones either, if that means calling them from many
+  places.
+- Ask yourself, before you finish: which of my functions is the biggest, and
+  how many places call it? If the answer is more than one, change it.
+
+`;
+
+/** Hash, value noise and an eased spectrum read, so none is reinvented. */
+export const HELPERS = `HELPERS YOU MAY COPY
+  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+  float noise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    vec2 u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x),
+               mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+  }
+  float band(float f) { return texture(uSpectrumSlow, vec2(clamp(f, 0.0, 1.0), 0.5)).r; }
+
 `;

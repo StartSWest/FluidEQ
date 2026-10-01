@@ -31,7 +31,15 @@ export interface IStudioNotes {
 }
 
 export const MAX_STUDIO_DESCRIPTION = 1200;
-export const MAX_STUDIO_PROMPT = 64000;
+/**
+ * Room for the whole brief (`aiPrompt.ts`) with the longest description and
+ * a long folder path after it. The brief outgrew the 64000 this was, and
+ * every save from then on dropped the prompt (`parseStudioNotes` keeps the
+ * description and leaves an over-long prompt out), so no scene's notes held
+ * the brief at all. `aiPromptCapabilities.test.ts` fails before the brief
+ * outgrows this one.
+ */
+export const MAX_STUDIO_PROMPT = 128000;
 
 export const parseStudioNotes = (raw: unknown): IStudioNotes | undefined => {
   if (!raw || typeof raw !== 'object') {

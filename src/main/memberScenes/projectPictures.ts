@@ -24,6 +24,7 @@ import {
   resolveInside,
   writeInside,
 } from './projectFiles';
+import { readArtworkRegions } from './artworkRegions';
 
 /**
  * The pictures a member's scene asks for, as the Studio shows and fills them.
@@ -37,7 +38,9 @@ import {
  *                  "x": 0, "y": 0, "width": 1280, "height": 1280 }, ...]
  *
  * in pixels of the picture from its top-left corner, as any image editor
- * counts them. Without `pictures` the whole image is one picture. The member
+ * counts them. Without `pictures` the whole image is one picture, unless
+ * `artworkRegions` lists it as pieces of the scene's own art: then it has
+ * no place for a photo at all. The member
  * never lays anything out: the Studio shows each region by name with what is
  * in it now, and puts a chosen photo into exactly its region.
  *
@@ -193,7 +196,17 @@ export const readPictureAtlas = async (
   ) {
     return { kind: 'impossible' };
   }
-  const pictures = readSlots(manifest.pictures, artworkWidth, artworkHeight);
+  // An image the scene lists as pieces of its own (`artworkRegions`: art its
+  // AI made or fetched and packed) has a place for a photo only where
+  // `pictures` names one. The whole-image place an older pack's single photo
+  // gets would offer one photo to paint over every piece.
+  const ownPieces =
+    manifest.pictures === undefined &&
+    readArtworkRegions(manifest.artworkRegions, artworkWidth, artworkHeight)
+      .length > 0;
+  const pictures = ownPieces
+    ? []
+    : readSlots(manifest.pictures, artworkWidth, artworkHeight);
   return pictures
     ? {
         kind: 'atlas',

@@ -93,6 +93,10 @@ const filledPictures = (
  *
  * Any picture on the card, and any separate piece of the image, opens large
  * in the viewer when it is clicked, and steps through the others of its row.
+ *
+ * An image made only of the scene's own pieces (art its AI packed and
+ * listed) has no place for a photo: the card shows the pieces to look at and
+ * save, and neither the lead nor a list invites a photo over them.
  */
 export default function StudioPictures({
   pictures,
@@ -162,11 +166,11 @@ export default function StudioPictures({
         <span className="studio-card__eyebrow" id={titleId}>
           {t('studio.picture.title')}
         </span>
-        <span className="studio-pictures__lead">
-          {pictures.kind === 'atlas'
-            ? t('studio.picture.lead')
-            : t('studio.picture.badSlot')}
-        </span>
+        {(!atlas || atlas.pictures.length > 0) && (
+          <span className="studio-pictures__lead">
+            {atlas ? t('studio.picture.lead') : t('studio.picture.badSlot')}
+          </span>
+        )}
       </div>
 
       {atlas && (
@@ -183,7 +187,7 @@ export default function StudioPictures({
         />
       )}
 
-      {atlas && (
+      {atlas && atlas.pictures.length > 0 && (
         <ul className="studio-pictures__list">
           {atlas.pictures.map((slot, index) => {
             const preview = previews[slot.id];

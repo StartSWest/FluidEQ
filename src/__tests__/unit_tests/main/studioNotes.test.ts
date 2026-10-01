@@ -12,6 +12,7 @@ jest.mock('electron', () => ({
   },
 }));
 /* eslint-disable import/first -- install the Electron mock first */
+import { MAX_STUDIO_PROMPT } from '../../../common/studioNotes';
 import { registerStudioNotesIpc } from '../../../main/ipc/studioNotes';
 /* eslint-enable import/first */
 
@@ -51,7 +52,7 @@ it('keeps notes with the correct project and refuses unknown paths, invalid data
     expect(
       call('studio-notes-save', 'first', {
         ...notes,
-        prompt: 'x'.repeat(64001),
+        prompt: 'x'.repeat(MAX_STUDIO_PROMPT + 1),
       }),
     ).toBe(true);
     expect(call('studio-notes-read', 'first')).toEqual({

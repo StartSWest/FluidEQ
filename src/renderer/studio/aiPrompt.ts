@@ -17,8 +17,9 @@ import { RUN_MAX_TURNS } from 'common/spectrumEnergy';
 import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
 import type { TranslationKey } from 'common/i18n';
 import { AMBIENT_SECTION } from './aiPromptAmbient';
+import { ARTWORK_SECTION, ART_SECTION } from './aiPromptArt';
 import { connectSection, type IPromptConnection } from './aiPromptConnect';
-import { AIM_HIGH } from './aiPromptCraft';
+import { AIM_HIGH, HELPERS, QUICK_TO_BUILD } from './aiPromptCraft';
 import { HEAR_SECTION } from './aiPromptHear';
 import { lookSection } from './aiPromptLook';
 import { MOTION_SECTIONS } from './aiPromptMotion';
@@ -49,10 +50,12 @@ import { WORLD_SECTION } from './aiPromptWorld';
  * and changes in the same commit as either. A prompt that promises a uniform
  * the app does not upload produces scenes that fail for reasons nobody can see.
  *
- * Seven parts live beside it: the bar and the technique (`aiPromptCraft.ts`),
- * which is what turns a one-line idea into a piece instead of clip-art; the
- * music's time and the viewer's hands (`aiPromptMotion.ts`); a 3D world in
- * front of the shader (`aiPromptWorld.ts`); the ambient elements
+ * Eight parts live beside it: the bar and the technique (`aiPromptCraft.ts`),
+ * which is what turns a one-line idea into a piece instead of clip-art, and
+ * what keeps a scene quick to build; the music's time and the viewer's hands
+ * (`aiPromptMotion.ts`); the pictures - the member's photos, and the images
+ * and models the AI makes or fetches (`aiPromptArt.ts`); a 3D world in front
+ * of the shader (`aiPromptWorld.ts`); the ambient elements
  * (`aiPromptAmbient.ts`); looking at what it made (`aiPromptLook.ts`);
  * hearing the song it is made for (`aiPromptHear.ts`); and the connection
  * that lets it look and hear, which a copy carries and nothing saved ever
@@ -142,7 +145,9 @@ FILES
   scene.frag    the shader body
   world.json    optional: a 3D world in front of the shader, with its
                 material GLSL files and .glb models (see A 3D WORLD)
-  artwork.webp  optional: my photos, which FluidEQ puts together (see ARTWORK)
+  artwork.webp  optional: my photos, which FluidEQ puts together (see
+                ARTWORK), and your own art (see YOUR OWN ART)
+  credits.txt   with library assets: where each came from, and its licence
   ${PREVIEW_FILE}   FluidEQ writes this after each build: your scene, to look at
 
 pack.json:
@@ -229,9 +234,10 @@ pack.json:
   FROM THE HAND).
 - worldFile (optional): "world.json", a 3D world drawn in front of the
   shader (see A 3D WORLD).
-- With photos add: "artworkFile": "artwork.webp", "artworkWidth": W,
-  "artworkHeight": H, and "pictures" naming each photo's place in it (see
-  ARTWORK).
+- With artwork add: "artworkFile": "artwork.webp", "artworkWidth": W,
+  "artworkHeight": H; "pictures" naming each place for a photo of mine (see
+  ARTWORK); and "artworkRegions" listing the pieces of your own (see YOUR
+  OWN ART).
 
 scene.frag must define exactly this function and may define helpers above it:
   vec4 sceneColour(vec2 uv)
@@ -286,8 +292,9 @@ WHAT THE SCENE RECEIVES (already declared; just use them)
                        of the frequency axis, .z = the height of the quietest
                        level and .w = of the loudest, all in uv (see FIT THE
                        PANEL AND MY WAVE).
-  sampler2D uArtwork   my photos, if pack.json names them. Origin at the
-                       bottom-left, premultiplied RGBA. Do not use it otherwise.
+  sampler2D uArtwork   artwork.webp - my photos and your own art - when
+                       pack.json names it; never read it otherwise. Origin at
+                       the bottom-left, premultiplied RGBA.
   vec4  uRhythm      the music's time (see DANCING TO THE MUSIC): x = where in
                      the beat, 0 on a beat rising evenly to 1 where the next
                      is due; y = the same over a bar of four beats; z = the
@@ -449,75 +456,7 @@ ${MOTION_SECTIONS}${POINTER_SECTION}RULES (FluidEQ refuses the scene otherwise)
   runs are nearly free; a chain where each read waits on the last is not.
   Never feed one read's result into the next one's position inside a loop.
 
-HOW TO KEEP IT QUICK TO BUILD
-A scene has to be compiled on the machine that plays it - there is no way to
-ship it ready-made, because a compiled shader belongs to one graphics card and
-one driver version. FluidEQ builds it once, in the background, the moment
-somebody adds it, and every play after that is instant. But a scene that takes
-half a minute to build is half a minute of somebody's machine, and if they open
-it before that is done they watch a still picture until it finishes. These are
-measured on my own scenes, not guessed, and they matter far more than length:
-
-- CALL AN EXPENSIVE FUNCTION ONCE. A driver compiles a FRESH COPY of a
-  function's body at EVERY place it is called from. Drawing five boats by
-  calling one boat function five times compiles five boats. Measured: five
-  boat calls and two whale calls in one scene cost eleven seconds of building;
-  calling each body once took the same scene to four and a half.
-- So when several things share a drawing, first work out CHEAPLY which one
-  this pixel belongs to - a few compares, no textures, no sprite work - and
-  then call the expensive body once, with that one's index. A small function
-  called from several places is fine; a big one is not.
-- A loop whose bound is a plain number may be unrolled into that many copies
-  of its body, which costs the same way. Keep a loop's BODY small; put the
-  heavy work after the loop, once, on what the loop picked.
-- Length itself is nearly free: the same scene at 51 KB and at 64 KB built in
-  11.32 and 11.29 seconds. Do not contort the scene to be short. Do not split
-  one body into many small ones either, if that means calling them from many
-  places.
-- Ask yourself, before you finish: which of my functions is the biggest, and
-  how many places call it? If the answer is more than one, change it.
-
-HELPERS YOU MAY COPY
-  float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-  float noise(vec2 p) {
-    vec2 i = floor(p), f = fract(p);
-    vec2 u = f * f * (3.0 - 2.0 * f);
-    return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x),
-               mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
-  }
-  float band(float f) { return texture(uSpectrumSlow, vec2(clamp(f, 0.0, 1.0), 0.5)).r; }
-
-ARTWORK
-A scene may use photos of mine: my pet, a place, a poster. They all live in
-one image, artwork.webp, W x H pixels, each photo a named place in it:
-  "pictures": [
-    { "id": "pet", "names": { "en": "Your pet" },
-      "x": 0, "y": 0, "width": 1280, "height": 1280 }
-  ]
-- x, y, width, height: pixels from the image's top-left corner, inside it.
-  id: a-z, 0-9, - and _, starting with a letter. Up to 8 photos; one may
-  cover the whole image. Name each for what I should put there, in every
-  language you can.
-- Optional per photo: "fit": "cover" (fill the place, cropping) or
-  "contain" (the whole photo, clear margins), and "focus": [x, y], the point
-  of the photo kept at the centre as fractions from its top-left - [0.5, 0.4]
-  keeps a pet's face in view. I can reframe each photo in FluidEQ.
-- I choose any photo for each place in FluidEQ, which crops it to fill the
-  place, centred, and saves the image. You never make, lay out or split the
-  image, and I will not paint masks. W at most 4096, W x H at most
-  4096 x 2048. Size each place for its photo: 1280 x 1280 for a pet,
-  1920 x 1080 for a landscape.
-- In the shader, a place's own q (0..1, origin bottom-left) is at
-    vec2 a = (vec2(x, H - y - height) + q * vec2(width, height)) / vec2(W, H);
-  and its colour is texture(uArtwork, a).
-Bring each photo alive from what is in it: find parts by brightness, colour,
-edges (compare neighbouring samples) or distance from the centre, where the
-subject usually is, and move, bend, light or tint them with the music - the
-photo breathing on the beat (uRhythm), a glow along its edges on uBeat,
-colours warming with uBands.y, particles in front glinting with uBands.z.
-Keep each photo recognisable: light and move parts of it, never wash it out.
-
-${WORLD_SECTION}${AMBIENT_SECTION}
+${QUICK_TO_BUILD}${HELPERS}${ARTWORK_SECTION}${ART_SECTION}${WORLD_SECTION}${AMBIENT_SECTION}
 MY IDEA:`;
 
 /** One-tap starters: a label for the chip, and the idea it appends. */

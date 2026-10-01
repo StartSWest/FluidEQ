@@ -20,7 +20,11 @@ import { MAX_EXPRESSION_LENGTH } from 'common/worldExpression';
  * sky that ghosts the world's foreground, a field of points whose formulas
  * cost six of a frame's eight milliseconds, a camel in the moon's shadow
  * that read as a black blob, the music bolted on as bright new surfaces
- * where it belonged in the materials.
+ * where it belonged in the materials. The release pass of 2026-09-30 added
+ * the rest: photographs stood in a world facing the camera (a crowd, a
+ * garden, a reef), a copy number a hair off a whole one that striped a
+ * crowd, a power of a negative that specked a tunnel black, a sea lit by its
+ * facets in stripes, and a tunnel that drew its own sky on a colour backdrop.
  */
 
 const MB = 1024 * 1024;
@@ -76,7 +80,9 @@ FILES. The world goes in world.json, named in pack.json as
 "worldFile": "world.json". A material's own GLSL goes in files of its own,
 named from the material as "fragmentFile": "sand.frag" and
 "vertexFile": "sand.vert"; a model is a binary glTF in the folder, named in
-"models" as { "file": "camel.glb" }. Everything else in the world is data.
+"models" as { "file": "camel.glb" }. Everything else in the world is data:
+no JavaScript reaches a scene - three.js is FluidEQ's, and it builds the
+world from these files.
 
 world.json:
 {
@@ -121,8 +127,9 @@ ${wrapNames(' ', WORLD_INSTANCE_SIGNALS, '  ')}.
   the position ever jumping: "integrate(0.1 + bass) * tau".
 - operators + - * / % ^, comparisons (1 or 0), && || !, and a ? b : c;
   constants pi, tau, e. Each formula at most ${MAX_EXPRESSION_LENGTH} characters, 240 tokens
-  and 40 levels deep. A division by nought reads 0; nothing ever breaks a
-  frame.
+  and 40 levels deep; past them it is dropped whole, without a word, and its
+  node plays without it - place many copies by a formula of i, not by a
+  list of values. A division by nought reads 0; nothing ever breaks a frame.
 - vars: at most ${WORLD_LIMITS.vars}, each may use those before it, and each is also
   uVar_<name> in the material GLSL. Never name one like a signal above
   ("drumKick" is taken; "kick" is yours). ${WORLD_LIMITS.vars} goes quickly in a busy world:
@@ -177,8 +184,11 @@ and a vertexFile defines
 Both see uTime, uLevel, uBeat, uBands, uAccent, uMusicAccent, uMusicRun,
 uSpectrum, uSpectrumSlow, uWaveform, uArtwork, uRhythm, uDrums, uSong,
 uStereo, uVoice, uPointer, uTap and uCamera, the params as uParam_<id> and
-the vars as uVar_<name>. Use fwidth for lines that stay a pixel or two wide
-at any distance. A map repeats the artwork only when its region is the whole
+the vars as uVar_<name>. They are spliced into three.js's own shaders
+(three r186), so its names are yours too: cameraPosition and viewMatrix in
+both files, modelMatrix in the vertex file, and instanceMatrix there too in
+an instances node. Use fwidth for lines that stay a pixel or two wide at
+any distance. A map repeats the artwork only when its region is the whole
 picture: to tile several textures from one artwork (bark, ground, stone),
 read uArtwork yourself - bottom-left origin, sRGB, so pow(c, vec3(2.2))
 before using it as a colour - at tile.xy + fract(at) * tile.zw, with
@@ -195,9 +205,10 @@ KHR_mesh_quantization; images PNG, JPEG or WebP, at most ${WORLD_LIMITS.modelIma
 side. At most ${WORLD_LIMITS.models} models, and between them ${WORLD_LIMITS.modelBytes / MB} MB and ${WORLD_LIMITS.modelTriangles.toLocaleString('en-US')}
 triangles. FluidEQ says in the Studio, and look_at_scene says to you, which
 model it could not read and why; the world plays without it. When no plain
-geometry can be the subject - a creature, a vehicle, a figure - make the
-model: build the mesh in a script of your own, kept outside this folder,
-and write only the finished .glb here.
+geometry can be the subject - a creature, a vehicle, a figure - take a CC0
+model or build one in a script of your own, kept outside this folder, and
+write only the finished .glb here (see YOUR OWN ART); or stand a photograph
+of it in the world, below.
 
 BOUNDS AND THE FRAME'S BUDGET. ${WORLD_LIMITS.nodes} nodes, ${WORLD_LIMITS.depth} deep; ${WORLD_LIMITS.instances.toLocaleString('en-US')} copies and
 points in all; ${WORLD_LIMITS.materials} materials; ribbons of ${WORLD_LIMITS.ribbonSegments} segments; the pack at most
@@ -225,6 +236,34 @@ WHAT A WORLD COSTS, AND HOW TO MAKE IT GOOD - learned on FluidEQ's own:
   swell with the bass, a crowd that sways on the bar - not as bright new
   surfaces bolted onto it. A meter strapped to a monument looks like a
   meter; the same monument breathing with the song looks like the place.
+- A photograph standing in the world - a tree, a person, a fish, a ship - is
+  a plane one unit high in an instances node, stood on its place and turned
+  to face the camera about the vertical by its vertex file:
+    vec3 right = normalize(vec3(viewMatrix[0][0], 0.0, viewMatrix[2][0]));
+    mat3 frame = mat3(modelMatrix) * mat3(instanceMatrix);
+    return inverse(frame) * ((right * position.x
+      + vec3(0.0, position.y + 0.5, 0.0)) * length(frame[1]));
+  with a "basic" material whose fragment file samples its region of the
+  artwork, discards below alpha 0.5 and lights it as the scene is lit (dark
+  with a rim of the scene's light by night, as photographed by day). Bend
+  its top there for wind or a sway, lift it for a jump; mirror every other
+  copy and pick its photograph by the copy's number, so a crowd is never
+  clones.
+- In a fragment file the copy's number, s.instance.z, arrives a hair off a
+  whole number: round it, floor(s.instance.z + 0.5), before hashing or
+  comparing it, or some rows of a copy pick another photograph, in stripes.
+- pow() of a value that can dip below 0 is NaN, and a NaN pixel shows black:
+  pow(max(x, 0.0), k). smoothstep's two edges must differ: keep a width from
+  fwidth above nought, max(w, 1e-4).
+- Light a curved surface by a normal worked out from its own shape - the
+  height its vertex file raises it by - never from a coarse mesh's facets:
+  a sea of long triangles flashed the moon facet by facet, in stripes.
+- When the world draws everything in view - a sky dome, a tunnel, a room -
+  give "backdrop" a colour: scene.frag is then never built while the world
+  plays, and the scene opens faster. The fog's colour and a colour backdrop
+  are fixed, so neither can follow the day: give the world's own sky and far
+  surfaces "fog": false and fade their distance to the sky's colour in your
+  GLSL.
 - Everything in DAY AND NIGHT holds for the world too: formulas read the time
   of day as p.${SCENE_DAYLIGHT_PARAM}, material GLSL as uParam_${SCENE_DAYLIGHT_PARAM}. Swing the main light
   from the moon to the sun (its direction, colour and strength), the
