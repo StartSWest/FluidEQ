@@ -1387,12 +1387,18 @@ Out-String` (or any other capture) is what actually waits for it and shows
   mirror each once more. Change what three's loader does — a new plugin, a
   new three — and this check changes with it, or the check approves files
   the engine reads differently.
-- **The EQ and the rack are measured at 44.1, 48, 96 and 192 kHz**
-  (`rate_sweep_test.cpp`). Every other measured engine test builds its graph
-  at 48 kHz, so a coefficient or a stage that assumed one rate would pass all
-  of them and be heard only on somebody's 96 kHz DAC. Measured: the same
+- **The EQ and the rack are measured at all eight shared-mode rates** — 44.1,
+  48, 88.2, 96, 176.4, 192, 352.8 and 384 kHz (`rate_sweep_test.cpp`). Every
+  other measured engine test builds its graph at 48 kHz, so a coefficient or a
+  stage that assumed one rate would pass all of them and be heard only on
+  somebody's 96 kHz DAC; and 192 kHz is not the ceiling — a 2.0.0 report's
+  TOPPING DAC ran the engine at 384 kHz in shared mode. Measured: the same
   −20 dB peak, the same shelf and preamp, and the rack within 0.2 dB across
-  all four.
+  all eight. The work grows with the rate: a Bass Punch and Maximizer rack
+  took 0.65 ms of each 10 ms block at 48 kHz and 2.9 ms at 384 kHz on a
+  performance core of Ivan's i9-14900HX, 5.3 ms at most on an efficiency
+  core — the installed DLL on his own config, counted in thread cycles,
+  because a normal-priority bench's wall clock reads preemption as work.
 - **Windows' "Audio enhancements" switch beats everything either engine does.**
   Off (per output, `PKEY_AudioEndpoint_Disable_SysFx`), Windows loads no
   system effect there at all: the registry still says attached, the engine is
