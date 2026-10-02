@@ -10,7 +10,8 @@ import { useTranslation } from '../../utils/I18nContext';
 /**
  * The Second output panel in miniature, drawn from the panel's own words
  * (`ExtraOutputs.tsx`): "One player at a time", three outputs with a headset
- * switched on under its own EQ profile and volume, and how it keeps up.
+ * switched on under its own EQ profile and volume, and how far behind it
+ * plays — its own figure and, with Share Audio, another computer's.
  *
  * It replaced two captures, one per theme, that stopped matching the panel
  * the day the window lost its two themes; drawn, it wears whatever shade the
@@ -18,8 +19,13 @@ import { useTranslation } from '../../utils/I18nContext';
  */
 
 /** Real devices, because the feature is about the outputs people own. */
-const DEVICES: { name: string; volume?: number; profile?: string }[] = [
-  { name: 'BlackShark V2 Pro', volume: 0.72, profile: 'Gaming' },
+const DEVICES: {
+  name: string;
+  volume?: number;
+  profile?: string;
+  delayMs?: number;
+}[] = [
+  { name: 'BlackShark V2 Pro', volume: 0.72, profile: 'Gaming', delayMs: 38 },
   { name: 'Speakers (Realtek Audio)' },
   { name: 'LG TV (HDMI)' },
 ];
@@ -71,24 +77,23 @@ export default function SecondOutputArt() {
                     <span />
                   </span>
                 )}
+                {device.delayMs !== undefined && (
+                  <span className="output-art__delay">
+                    <span>
+                      {t('extraOutput.delay', { milliseconds: device.delayMs })}
+                    </span>
+                    <span>
+                      {t('extraOutput.delayFrom', {
+                        name: 'Laptop',
+                        milliseconds: device.delayMs + 138,
+                      })}
+                    </span>
+                  </span>
+                )}
               </span>
             </li>
           ))}
         </ul>
-
-        <span className="output-art__mode-title">
-          {t('extraOutput.mode.title')}
-        </span>
-        <span className="output-art__modes">
-          <span className="is-chosen">
-            <strong>{t('extraOutput.mode.video.title')}</strong>
-            <small>{t('extraOutput.mode.video.buffer')}</small>
-          </span>
-          <span>
-            <strong>{t('extraOutput.mode.music.title')}</strong>
-            <small>{t('extraOutput.mode.music.buffer')}</small>
-          </span>
-        </span>
       </div>
     </div>
   );

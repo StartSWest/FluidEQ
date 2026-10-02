@@ -300,7 +300,7 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.intro':
     'Tu EQ sigue al dispositivo de salida. Los cambios se guardan en el perfil activo de la salida actual, y Perfiles te permite conservar sonidos alternativos. Segunda salida duplica la reproducción en otros dispositivos, con un nivel independiente para cada uno.',
   'help.profiles.steps':
-    'Comprueba la salida en la parte superior de la tarjeta Salida antes de editar. Nuevo perfil conserva un sonido; Actualizar guarda sus cambios y Restaurar recupera los ajustes guardados.\nAbre Segunda salida, activa un dispositivo accesible y ajusta su nivel. Elige justo debajo el perfil de EQ guardado de ese dispositivo.\nElige Juego/Vídeo para una reserva inicial menor o Música para más margen. Comprueba la sincronización real.',
+    'Comprueba la salida en la parte superior de la tarjeta Salida antes de editar. Nuevo perfil conserva un sonido; Actualizar guarda sus cambios y Restaurar recupera los ajustes guardados.\nAbre Segunda salida, activa un dispositivo accesible y ajusta su nivel. Elige justo debajo el perfil de EQ guardado de ese dispositivo.\nCada salida sigue el ritmo sola y muestra cuánto va por detrás; con Compartir audio, el sonido de otro ordenador muestra su propio retardo, red incluida.',
   'help.profiles.tip':
     'Cada salida duplicada usa su propio perfil con cualquiera de los dos motores. La duplicación funciona mientras FluidEQ está abierto; al cambiar la salida principal se detienen las duplicaciones anteriores. La latencia del dispositivo sigue afectando a la sincronización.',
   'help.profiles.keywords':

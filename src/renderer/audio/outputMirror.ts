@@ -32,50 +32,23 @@ import { startNativeMirror } from './nativeOutputMirror';
  * media player adds a second playback queue.
  */
 
-export type TMirrorMode = 'video' | 'music';
-
-export const MIRROR_MODES: readonly TMirrorMode[] = ['video', 'music'];
-
-export const isMirrorMode = (value: unknown): value is TMirrorMode =>
-  value === 'video' || value === 'music';
-
 /**
- * How much sound is held back before it plays, per mode.
+ * How much sound is held back before it plays: one automatic profile, the
+ * same idea as the Windows helper's (`mirror_output.h`) and Share Audio's
+ * playback — start 30 ms behind, add 10 ms after a dropout up to 160 ms,
+ * give a step back only after a quiet minute, and never skip to catch up.
  *
- * Smaller than the LAN listener's, because there is no link in the way: the
- * only jitter is the two audio devices' callbacks against each other, which at
- * the 10 ms Windows hands Chromium is about 20 ms peak to peak. Below that the
- * reservoir runs dry on ordinary scheduling; well above it the picture drifts
- * ahead of the sound.
- *
- * Video starts at 30 ms, which with the 5 ms capture blocks and the device's
- * own buffer keeps a screen within roughly a twentieth of a second of its
- * speaker. A starvation adds 10 ms of protection; two stable seconds take it
- * back. Once it is more than 30 ms over target the stale prefix is crossfaded
- * out at the original pitch, so a stall never becomes permanent delay.
- *
- * Music starts at 100 ms and has no catch-up: every sample is kept, a stall
- * costs 50 ms more reservoir, and the sound is allowed to sit up to half a
- * second behind rather than ever break.
+ * There were two, Game/Video and Music, and a picker between them; Ivan
+ * asked for the automatic one (2026-10-02). Smaller than the LAN's start,
+ * because no link is in the way: the only jitter is the two devices'
+ * callbacks against each other.
  */
-export const MIRROR_PLAYBACK_PROFILES: Record<
-  TMirrorMode,
-  IRemoteAudioPlaybackProfile
-> = {
-  video: {
-    catchupThresholdSeconds: 0.03,
-    deadbandSeconds: 0.005,
-    maximumBufferSeconds: 0.12,
-    recoveryDecaySeconds: 2,
-    recoveryStepSeconds: 0.01,
-    startBufferSeconds: 0.03,
-  },
-  music: {
-    deadbandSeconds: 0.02,
-    maximumBufferSeconds: 0.5,
-    recoveryStepSeconds: 0.05,
-    startBufferSeconds: 0.1,
-  },
+export const MIRROR_PLAYBACK_PROFILE: IRemoteAudioPlaybackProfile = {
+  deadbandSeconds: 0.005,
+  maximumBufferSeconds: 0.16,
+  recoveryDecaySeconds: 60,
+  recoveryStepSeconds: 0.01,
+  startBufferSeconds: 0.03,
 };
 
 /**
@@ -144,6 +117,8 @@ export interface IMirrorOutputOptions {
   profile: IRemoteAudioPlaybackProfile;
   /** 0 to 1, applied before the first sample plays. */
   volume: number;
+  /** How far behind it plays, in milliseconds, as its buffer reports. */
+  onDelay?: (milliseconds: number) => void;
 }
 
 /**
@@ -209,6 +184,7 @@ const createAudioOutput = async ({
   peerId,
   profile,
   volume,
+  onDelay,
 }: IMirrorOutputOptions): Promise<IMirrorOutput> => {
   const options: IRoutableAudioContextOptions = {
     latencyHint: 'interactive',
@@ -231,9 +207,25 @@ const createAudioOutput = async ({
       numberOfOutputs: 1,
       outputChannelCount: [2],
     });
-    // The worklet reports a level meter forty-odd times a second and nothing
-    // here reads it. Starting the port without a listener lets those messages
-    // be discarded; left unstarted they would queue for the life of the mirror.
+    // The worklet reports a meter forty-odd times a second; only its buffer
+    // is read, for the delay, with the device's own latency added. Started
+    // either way, or the messages would queue for the life of the mirror.
+    if (onDelay) {
+      receiver.port.onmessage = (event: MessageEvent<unknown>) => {
+        const { data } = event;
+        if (
+          typeof data === 'object' &&
+          data !== null &&
+          'kind' in data &&
+          data.kind === 'meter' &&
+          'bufferedMs' in data &&
+          typeof data.bufferedMs === 'number'
+        ) {
+          const deviceSeconds = context.outputLatency || context.baseLatency;
+          onDelay(data.bufferedMs + deviceSeconds * 1_000);
+        }
+      };
+    }
     receiver.port.start();
     const gain = context.createGain();
     gain.gain.value = volume;
@@ -279,16 +271,17 @@ export interface IOutputMirrorOptions {
   signal?: AbortSignal;
   /** A Chromium sink id from the name bridge. Never `default`. */
   sinkId: string;
-  mode: TMirrorMode;
   /** Starting level, 0 to 1. Applied before the first sample plays. */
   volume?: number;
+  /** How far behind the second output plays, in milliseconds, as it
+   * changes. */
+  onDelay?: (milliseconds: number) => void;
   /** Injectable purely so the tests can watch what happens. */
   engine?: IMirrorEngine;
 }
 
 export interface IOutputMirror {
   readonly sinkId: string;
-  readonly mode: TMirrorMode;
   /** Change the level without restarting anything. */
   setVolume(value: number): void;
   stop(): void;
@@ -308,17 +301,17 @@ export const startOutputMirror = async ({
   onFailure,
   signal,
   sinkId,
-  mode,
   volume = MAX_MIRROR_VOLUME,
+  onDelay,
   engine = audioMirrorEngine,
 }: IOutputMirrorOptions): Promise<IOutputMirror> => {
   if (guid) {
     return startNativeMirror(
       guid,
-      mode,
       clampMirrorVolume(volume),
       onFailure,
       signal,
+      onDelay,
     );
   }
   if (!capture) {
@@ -334,8 +327,9 @@ export const startOutputMirror = async ({
   const output = await engine.createOutput({
     sinkId,
     peerId: MIRROR_PEER_ID,
-    profile: MIRROR_PLAYBACK_PROFILES[mode],
+    profile: MIRROR_PLAYBACK_PROFILE,
     volume: clampMirrorVolume(volume),
+    onDelay,
   });
   let tap: IMirrorTap | undefined;
   try {
@@ -360,7 +354,6 @@ export const startOutputMirror = async ({
 
   return {
     sinkId,
-    mode,
     setVolume: (value: number) => {
       output.setVolume(clampMirrorVolume(value));
     },

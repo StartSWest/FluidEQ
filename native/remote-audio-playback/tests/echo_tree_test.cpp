@@ -10,17 +10,20 @@
 // which is also this test's positive control — a capture that heard nothing
 // at all would pass the first check for the wrong reason.
 //
-// 18.5 kHz at -60 dBFS: inaudible. Played in a fixed on/off pattern, and what
-// a capture is credited with hearing is only the power at that frequency that
-// rises and falls with the pattern. Music this machine is playing meanwhile
-// has energy up there too — a music video received from another computer
-// read as an echo 12 dB under the tone — and it lands on the "on" and "off"
-// stretches alike, so it cancels. Needs an output device; with none (a build
-// server) it reports itself skipped.
+// 21 kHz at -50 dBFS: inaudible, and above where streamed music stops — the
+// codecs YouTube and the streaming services use cut off near 20 kHz. At
+// 18.5 kHz a K-pop video playing on the same machine sat 5 dB under a -60
+// dBFS tone and read as an echo. Played in a fixed on/off pattern, and what a
+// capture is credited with hearing is only the power at that frequency that
+// rises and falls with the pattern, standing out of how much the other
+// delays scatter: whatever else is playing lands on the "on" and "off"
+// stretches alike. Needs an output device; with none (a build server) it
+// reports itself skipped.
 #include <Windows.h>
 #include <mmdeviceapi.h>
 #include <wrl/client.h>
 
+#include <algorithm>
 #include <atomic>
 #include <cmath>
 #include <cstdint>
@@ -35,11 +38,22 @@ namespace {
 
 constexpr int kSkip = 77;
 constexpr double kPi = 3.14159265358979323846;
-constexpr double kToneHz = 18500.0;
-constexpr float kToneAmplitude = 0.001f;  // -60 dBFS
+constexpr double kToneHz = 21000.0;
+constexpr float kToneAmplitude = 0.0031623f;  // -50 dBFS
+constexpr double kToneDb = -50.0;
 // The pattern's unit: ten of the 480-frame blocks this test plays in.
 constexpr std::uint32_t kSegmentFrames = 4800;
 constexpr std::size_t kWindow = 1024;
+/** How many times the scatter of the other delays a match has to stand out
+ * by to be the tone and not the music. A tone that is there stands about
+ * ten out, the most a 60-segment pattern can show; chance matches on music
+ * stood under six. */
+constexpr double kStandout = 5.0;
+
+struct Heard {
+  double db = -999.0;
+  double standout = 0.0;
+};
 
 /** Whether the tone plays in segment `n`: a fixed pseudo-random sequence, so
  * nothing periodic in the music can line up with it. */
@@ -333,7 +347,7 @@ int main(int argc, char** argv) {
   }
 
   // Short Hann windows: the playback helper keeps a link in step by playing
-  // up to 0.1% fast or slow, which moves the tone by up to 18.5 Hz — a long
+  // up to 0.1% fast or slow, which moves the tone by up to 21 Hz — a long
   // lock-in loses it, a 21 ms window does not. Each window's power at the
   // tone, then the pattern laid over them at every delay the capture could
   // be behind by (it started first, and the output adds its own), keeping the
@@ -353,7 +367,7 @@ int main(int argc, char** argv) {
       const double amplitude = 2 * std::sqrt(i * i + q * q) / weight;
       power.push_back(amplitude * amplitude);
     }
-    double best = 0;
+    std::vector<double> contrasts;
     for (std::size_t delay = 0; delay < capture.rate; delay += 256) {
       double on = 0, off = 0;
       std::size_t ons = 0, offs = 0;
@@ -372,27 +386,54 @@ int main(int argc, char** argv) {
         }
       }
       if (ons < 16 || offs < 16) continue;
-      const double contrast = on / static_cast<double>(ons) - off / static_cast<double>(offs);
-      if (contrast > best) best = contrast;
+      contrasts.push_back(on / static_cast<double>(ons) - off / static_cast<double>(offs));
     }
-    return best > 0 ? 10 * std::log10(best) : -999.0;
+    Heard heard;
+    if (contrasts.empty()) return heard;
+    const auto peak = std::max_element(contrasts.begin(), contrasts.end());
+    const double best = *peak;
+    const auto best_at = static_cast<std::size_t>(peak - contrasts.begin());
+    // How far the best delay stands above the scatter of the delays more than
+    // a segment away from it: a tone that is really there lines up at one
+    // delay (and its neighbours inside the same segment) and nowhere else,
+    // while loud music full of treble lines up a little at many by chance —
+    // the best of 180-odd delays read a K-pop video as a 10 dB "echo".
+    std::vector<double> distant;
+    for (std::size_t at = 0; at < contrasts.size(); ++at) {
+      const std::size_t apart = (at > best_at ? at - best_at : best_at - at) * 256;
+      if (apart > kSegmentFrames) distant.push_back(contrasts[at]);
+    }
+    if (distant.size() < 16) return heard;
+    std::vector<double> sorted = distant;
+    std::sort(sorted.begin(), sorted.end());
+    const double median = sorted[sorted.size() / 2];
+    std::vector<double> spread;
+    for (const double value : distant) spread.push_back(std::abs(value - median));
+    std::sort(spread.begin(), spread.end());
+    const double scatter = 1.4826 * spread[spread.size() / 2] + 1e-30;
+    heard.db = best > 0 ? 10 * std::log10(best) : -999.0;
+    heard.standout = (best - median) / scatter;
+    return heard;
   };
-  const double heard_by_network = level(lan);
-  const double heard_locally = level(local);
-  std::printf("echo tree: network capture %.1f dB, local capture %.1f dB\n",
-              heard_by_network, heard_locally);
+  const Heard heard_by_network = level(lan);
+  const Heard heard_locally = level(local);
+  std::printf("echo tree: network capture %.1f dB (%.1f above the scatter), "
+              "local capture %.1f dB (%.1f above)\n",
+              heard_by_network.db, heard_by_network.standout, heard_locally.db,
+              heard_locally.standout);
   if (lan.frames_read < rate) {
     std::printf("FAILED: the network capture never ran, so its silence proves nothing\n");
     ++failures;
   }
-  if (heard_locally < -66.0) {
+  if (heard_locally.db < kToneDb - 6.0) {
     std::printf("FAILED: the local capture did not hear the received sound\n");
     ++failures;
   }
-  // Relative, not absolute: whatever else this machine is playing reaches both
-  // captures alike, while an echo would put the tone in the network's at the
-  // local one's level.
-  if (heard_by_network > heard_locally - 20.0) {
+  // An echo is the tone at one delay, standing out of the scatter, near the
+  // local capture's level. Relative, not absolute: whatever else this machine
+  // is playing reaches both captures alike.
+  if (heard_by_network.db > heard_locally.db - 20.0 &&
+      heard_by_network.standout >= kStandout) {
     std::printf("FAILED: the network capture heard the received sound\n");
     ++failures;
   }

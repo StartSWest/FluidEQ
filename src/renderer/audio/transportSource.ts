@@ -127,6 +127,14 @@ export interface ITransportSource {
    * this is rather than only that it is somewhere else.
    */
   origin?: string;
+  /**
+   * How far behind that computer's sound plays here, in milliseconds, for a
+   * source from another computer — said on the bar's third line beside its
+   * name (Ivan, 2026-10-02). An average that moves only when the delay
+   * really does (`useIncomingDelays.ts`), so the bar is not redrawn with
+   * every reading.
+   */
+  delayMs?: number;
 }
 
 const listeners = new Set<() => void>();

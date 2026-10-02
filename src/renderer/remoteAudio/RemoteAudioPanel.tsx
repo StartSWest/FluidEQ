@@ -19,7 +19,7 @@ import '../styles/RemoteAudio.scss';
 import RemoteAudioCodeList from './RemoteAudioCodeList';
 import RemoteAudioLinkCard from './RemoteAudioLinkCard';
 import RemoteAudioLinkForm from './RemoteAudioLinkForm';
-import { useRemoteAudio } from './remoteAudioValueContext';
+import { useIncomingSound, useRemoteAudio } from './remoteAudioValueContext';
 import {
   describeForRemote,
   pickSourceForRemote,
@@ -56,6 +56,7 @@ const RULES = [
 const RemoteAudioPanel = () => {
   const { t } = useTranslation();
   const remote = useRemoteAudio();
+  const incoming = useIncomingSound();
   const singlePlayer = useSinglePlayer();
   const sources = useTransportSources();
   const playingOwner = usePlaybackOwner();
@@ -172,6 +173,7 @@ const RemoteAudioPanel = () => {
               sending={remote.sending}
               sendingFailed={remote.sendingFailed}
               localNowPlaying={localNowPlaying}
+              delayMs={incoming.find((sound) => sound.id === link.id)?.delayMs}
               networkStats={remote.networkStats}
               subscribe={remote.subscribeMeter}
               onSwitches={(name, switches) => {

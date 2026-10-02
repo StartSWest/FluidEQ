@@ -60,13 +60,7 @@ export const registerOutputMirrorIpc = (
   };
   ipcMain.handle(
     'output-mirror-start',
-    async (
-      event,
-      token: unknown,
-      guid: unknown,
-      mode: unknown,
-      volume: unknown,
-    ) => {
+    async (event, token: unknown, guid: unknown, volume: unknown) => {
       authorize(event);
       if (outputSwitches > 0) {
         return false;
@@ -80,7 +74,6 @@ export const registerOutputMirrorIpc = (
         !/^\{[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\}$/i.test(
           guid,
         ) ||
-        (mode !== 'music' && mode !== 'video') ||
         typeof volume !== 'number' ||
         !Number.isFinite(volume) ||
         volume < 0 ||
@@ -119,9 +112,13 @@ export const registerOutputMirrorIpc = (
         }
         const mirror = await startNativeOutputMirror(
           guid,
-          mode,
           volume,
           failure,
+          (milliseconds) => {
+            if (!event.sender.isDestroyed()) {
+              event.sender.send('output-mirror-delay', token, milliseconds);
+            }
+          },
         );
         if (failed || !pending.has(token) || generation !== startedGeneration) {
           await mirror.close();

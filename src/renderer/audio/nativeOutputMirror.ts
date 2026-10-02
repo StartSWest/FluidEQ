@@ -1,23 +1,29 @@
 /* FluidEQ — GPL-3.0-or-later */
 import { reportError } from '../utils/logger';
-import type { IOutputMirror, TMirrorMode } from './outputMirror';
+import type { IOutputMirror } from './outputMirror';
 
 export const startNativeMirror = async (
   guid: string,
-  mode: TMirrorMode,
   volume: number,
   onFailure?: () => void,
   signal?: AbortSignal,
+  onDelay?: (milliseconds: number) => void,
 ): Promise<IOutputMirror> => {
   const api = window.electron.ipcRenderer;
   const token = crypto.randomUUID();
   signal?.throwIfAborted();
   let stopped = false;
   let lastVolume = volume;
+  const detachDelay = api.onOutputMirrorDelay((delayToken, milliseconds) => {
+    if (delayToken === token && !stopped && Number.isFinite(milliseconds)) {
+      onDelay?.(milliseconds);
+    }
+  });
   const detach = api.onOutputMirrorFailed((failedToken) => {
     if (failedToken === token && !stopped) {
       stopped = true;
       detach();
+      detachDelay();
       signal?.removeEventListener('abort', stop);
       onFailure?.();
     }
@@ -28,6 +34,7 @@ export const startNativeMirror = async (
     }
     stopped = true;
     detach();
+    detachDelay();
     signal?.removeEventListener('abort', stop);
     api
       .stopOutputMirror(token)
@@ -37,7 +44,7 @@ export const startNativeMirror = async (
   };
   signal?.addEventListener('abort', stop, { once: true });
   try {
-    if (!(await api.startOutputMirror(token, guid, mode, volume)) || stopped) {
+    if (!(await api.startOutputMirror(token, guid, volume)) || stopped) {
       throw new Error('The second output was stopped while starting.');
     }
   } catch (error) {
@@ -46,7 +53,6 @@ export const startNativeMirror = async (
   }
   return {
     sinkId: guid,
-    mode,
     setVolume: (next) => {
       if (stopped || next === lastVolume) {
         return;

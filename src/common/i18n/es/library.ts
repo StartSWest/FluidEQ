@@ -144,6 +144,8 @@ const library: Partial<Dictionary> = {
   'library.nothingPlayingHint': 'Elige algo para reproducir',
   'library.systemAudio': 'Audio del sistema',
   'library.remoteAudio': 'Reproduciendo remoto · {name}',
+  'library.remoteAudioDelay':
+    'Reproduciendo remoto · {name} · {milliseconds} ms',
 
   'library.trackActions': 'Qué hacer con esta canción',
   'library.browse.playlist': 'Listas',

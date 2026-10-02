@@ -440,19 +440,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'Nessun’altra uscita trovata',
   'extraOutput.statusOff': 'Spenta',
   'extraOutput.volume': 'Volume',
-  'extraOutput.mode.title': 'Come tiene il passo',
-  'extraOutput.mode.video.title': 'Gioco/Video',
-  'extraOutput.mode.video.body':
-    'Resta a pochi centesimi di secondo dall’immagine e si risincronizza da solo dopo un inciampo.',
-  'extraOutput.mode.video.buffer': 'Avvio ~30 ms',
-  'extraOutput.mode.music.title': 'Musica',
-  'extraOutput.mode.music.body':
-    'Tiene un decimo di secondo di riserva per non balbettare mai.',
-  'extraOutput.mode.music.buffer': 'Avvio ~100 ms',
-  'extraOutput.latency.video':
-    'Il suono duplicato resta abbastanza vicino a uno schermo per il labiale. Se senti entrambe le uscite dallo stesso posto puoi notare un leggero sdoppiamento.',
-  'extraOutput.latency.music':
-    'Il suono duplicato arriva con un decimo di secondo di ritardo e non balbetta mai. Va bene per un’altra stanza; per uno schermo passa a Gioco/Video.',
+  'extraOutput.latency':
+    'Ogni seconda uscita tiene il tempo da sola, come Condividi audio: parte circa 30 ms indietro, aggiunge un po’ solo dopo un’interruzione e lo restituisce quando tutto si stabilizza. Se la senti dallo stesso posto dell’uscita principale puoi notare un leggero sdoppiamento.',
+  'extraOutput.delay': '{milliseconds} ms indietro',
+  'extraOutput.delayFrom': 'Suono di {name}: {milliseconds} ms indietro',
   'extraOutput.virtual':
     'È installato un driver di routing. Punta le tue applicazioni su di esso e le due uscite restano sincronizzate, poi assegna a ciascuna il suo profilo qui sopra.',
   'extraOutput.ambiguous':

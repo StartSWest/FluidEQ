@@ -13,10 +13,9 @@ jest.mock('../../../renderer/audio/outputMirror', () => ({
   MAX_MIRROR_VOLUME: 1,
 }));
 const start = jest.mocked(startOutputMirror);
-const wanted: IDesiredMirror = { guid: 'B', sinkId: 'B', mode: 'video' };
+const wanted: IDesiredMirror = { guid: 'B', sinkId: 'B' };
 const output = (): IOutputMirror => ({
   sinkId: 'B',
-  mode: 'video',
   stop: jest.fn(),
   setVolume: jest.fn(),
 });
@@ -42,7 +41,7 @@ it('stops a late start from the old main output without disconnecting the new mi
     rerender({ source: 'C' });
   });
   expect(staleSignal?.aborted).toBe(true);
-  expect(result.current).toEqual(['B']);
+  expect(result.current.runningGuids).toEqual(['B']);
   const stale = output();
   await act(async () => {
     finish(stale);
@@ -76,7 +75,7 @@ it('does not adopt a cancelled start when the same device is quickly enabled aga
   });
   expect(stale.stop).toHaveBeenCalledTimes(1);
   expect(start).toHaveBeenCalledTimes(2);
-  expect(result.current).toEqual(['B']);
+  expect(result.current.runningGuids).toEqual(['B']);
   unmount();
   expect(current.stop).toHaveBeenCalledTimes(1);
 });
@@ -99,4 +98,28 @@ it('reports a failed start once instead of retrying forever until the user toggl
   });
   expect(start).toHaveBeenCalledTimes(2);
   unmount();
+});
+
+it('keeps each running output’s delay as an average, and forgets it when it stops', async () => {
+  const running = output();
+  start.mockResolvedValueOnce(running);
+  const { result, rerender } = renderHook(
+    ({ desired }) =>
+      useMirrorPlayback(desired, {}, undefined, true, 'A', jest.fn()),
+    { initialProps: { desired: [wanted] } },
+  );
+  await act(async () => undefined);
+  const { onDelay } = start.mock.calls[0][0];
+  expect(onDelay).toBeDefined();
+  act(() => onDelay?.(41.6));
+  expect(result.current.delays).toEqual({ B: 42 });
+  // A reading that does not move the average by a step worth reading is
+  // not a redraw (`steadyReadout.ts`).
+  act(() => onDelay?.(43));
+  expect(result.current.delays).toEqual({ B: 42 });
+  await act(async () => {
+    rerender({ desired: [] });
+  });
+  expect(result.current.delays).toEqual({});
+  expect(running.stop).toHaveBeenCalledTimes(1);
 });

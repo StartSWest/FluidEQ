@@ -300,7 +300,7 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.intro':
     'Votre EQ suit le périphérique de sortie. Les modifications s’enregistrent dans le profil actif de la sortie actuelle, et Profils vous permet de garder d’autres sons. Deuxième sortie duplique la lecture vers d’autres appareils, avec un niveau distinct pour chacun.',
   'help.profiles.steps':
-    'Vérifiez la sortie en haut de la carte Sortie avant toute modification. Utilisez Nouveau profil pour un son à garder ; Mettre à jour enregistre les changements dans ce profil, et Restaurer rétablit ses réglages enregistrés.\nOuvrez Deuxième sortie, activez un appareil accessible et réglez son niveau. Choisissez le profil d’égalisation enregistré de cet appareil juste en dessous.\nUtilisez Jeu/Vidéo pour un tampon de départ plus court ou Musique pour plus de réserve. Comparez la synchronisation sur vos appareils.',
+    'Vérifiez la sortie en haut de la carte Sortie avant toute modification. Utilisez Nouveau profil pour un son à garder ; Mettre à jour enregistre les changements dans ce profil, et Restaurer rétablit ses réglages enregistrés.\nOuvrez Deuxième sortie, activez un appareil accessible et réglez son niveau. Choisissez le profil d’égalisation enregistré de cet appareil juste en dessous.\nChaque sortie suit le rythme toute seule et affiche son retard ; avec Partager l’audio, le son d’un autre ordinateur affiche le sien, réseau compris.',
   'help.profiles.tip':
     'Chaque sortie dupliquée utilise son propre profil, quel que soit le moteur. La duplication fonctionne tant que FluidEQ est ouvert ; changer la sortie principale arrête les anciennes duplications. La latence des appareils influe toujours sur la synchronisation.',
   'help.profiles.keywords':

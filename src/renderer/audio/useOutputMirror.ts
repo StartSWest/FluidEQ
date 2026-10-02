@@ -34,12 +34,7 @@ import { reportInfo, reportError } from '../utils/logger';
 import { useTranslation } from '../utils/I18nContext';
 import { useMirrorPlayback, type IDesiredMirror } from './useMirrorPlayback';
 import { useLiveAudioCapture, useLiveAudioControl } from './LiveAudioContext';
-import {
-  clampMirrorVolume,
-  isMirrorMode,
-  MAX_MIRROR_VOLUME,
-  TMirrorMode,
-} from './outputMirror';
+import { clampMirrorVolume, MAX_MIRROR_VOLUME } from './outputMirror';
 
 /**
  * Where the chosen mirrors live between runs.
@@ -51,12 +46,6 @@ import {
 const MIRROR_TARGETS_KEY = 'fluideq-mirror-target-guids';
 /** Levels, keyed by the same GUIDs and for the same reason. */
 const MIRROR_VOLUMES_KEY = 'fluideq-mirror-volumes';
-/**
- * Which way every mirror buffers. One setting rather than one per speaker:
- * it says what is being watched or listened to, and that is true of the
- * whole room at once.
- */
-const MIRROR_MODE_KEY = 'fluideq-mirror-mode';
 
 const loadSelection = (): string[] => {
   try {
@@ -85,16 +74,6 @@ const loadVolumes = (): Record<string, number> => {
   }
 };
 
-/**
- * Music unless asked otherwise. A mirror nobody has configured is most often
- * a speaker in another room, where a tenth of a second is invisible and a
- * stutter is not; a screen is the case someone notices and switches for.
- */
-const loadMode = (): TMirrorMode => {
-  const stored = localStorage.getItem(MIRROR_MODE_KEY);
-  return isMirrorMode(stored) ? stored : 'music';
-};
-
 /** One endpoint, and whether it can currently be mirrored to. */
 export interface IMirrorTarget {
   device: IAudioDevice;
@@ -109,6 +88,9 @@ export interface IMirrorTarget {
   isRunning: boolean;
   /** How loud this mirror plays, 0 to 1. Full unless turned down. */
   volume: number;
+  /** How far behind the sound it mirrors it plays, in milliseconds, while
+   * it runs and once it has said. */
+  delayMs?: number;
   /**
    * The profile attached to this endpoint, exactly as the output picker means
    * it — raw, so the caller can tell an automatic one from a named one and
@@ -186,7 +168,6 @@ const useOutputMirror = () => {
   >(undefined);
   const [selectedGuids, setSelectedGuids] = useState<string[]>(loadSelection);
   const [volumes, setVolumes] = useState<Record<string, number>>(loadVolumes);
-  const [mode, setModeState] = useState<TMirrorMode>(loadMode);
 
   const [error, setError] = useState('');
 
@@ -269,10 +250,10 @@ const useOutputMirror = () => {
       return selectedGuids.includes(device.guid) &&
         isEligibleMirrorTarget(device, captureSourceGuid) &&
         sinkId
-        ? [{ guid: device.guid, sinkId, mode }]
+        ? [{ guid: device.guid, sinkId }]
         : [];
     });
-  }, [native, devices, outputs, selectedGuids, captureSourceGuid, mode]);
+  }, [native, devices, outputs, selectedGuids, captureSourceGuid]);
   const onMirrorError = useCallback(
     (mirrorError: unknown) => {
       reportError('Second output failed', mirrorError);
@@ -280,7 +261,7 @@ const useOutputMirror = () => {
     },
     [t],
   );
-  const runningGuids = useMirrorPlayback(
+  const { runningGuids, delays } = useMirrorPlayback(
     desired,
     volumes,
     native ? undefined : capture,
@@ -311,12 +292,16 @@ const useOutputMirror = () => {
         isRunning: runningGuids.includes(device.guid),
         presetName: assignments?.assignments[device.id]?.presetName ?? '',
         volume: volumes[device.guid] ?? MAX_MIRROR_VOLUME,
+        delayMs: runningGuids.includes(device.guid)
+          ? delays[device.guid]
+          : undefined,
       };
     });
   }, [
     assignments,
     native,
     captureSourceGuid,
+    delays,
     devices,
     outputs,
     runningGuids,
@@ -353,18 +338,9 @@ const useOutputMirror = () => {
     });
   }, []);
 
-  const setMode = useCallback((next: TMirrorMode) => {
-    setError('');
-    localStorage.setItem(MIRROR_MODE_KEY, next);
-    setModeState(next);
-  }, []);
-
   return {
     error,
     isVirtualRoutingAvailable,
-    /** Game/Video keeps the sound close to the picture; Music never stutters. */
-    mode,
-    setMode,
     setTargetVolume,
     /** True while audio is genuinely going somewhere extra. */
     isMirroring: runningGuids.length > 0,

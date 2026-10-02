@@ -504,7 +504,12 @@ if(WIN32)
     remote-audio-capture/src/capture_queue.cpp
     remote-audio-capture/src/capture_writer.cpp
     remote-audio-capture/src/mirror_output.cpp
-    remote-audio-capture/src/mirror_control.cpp)
+    remote-audio-capture/src/mirror_control.cpp
+    # The second output plays through Share Audio's own playback engine.
+    remote-audio-playback/src/playback_core.cpp
+    remote-audio-playback/src/sinc_kernel.cpp)
+  target_include_directories(fluideq-remote-audio-capture PRIVATE
+    remote-audio-playback/src)
   target_link_libraries(fluideq-remote-audio-capture PRIVATE
     feq_strict ole32 avrt mmdevapi)
   set_target_properties(fluideq-remote-audio-capture PROPERTIES

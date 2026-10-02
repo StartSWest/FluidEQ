@@ -443,19 +443,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'Keine weiteren Ausgänge gefunden',
   'extraOutput.statusOff': 'Aus',
   'extraOutput.volume': 'Lautstärke',
-  'extraOutput.mode.title': 'So hält es Schritt',
-  'extraOutput.mode.video.title': 'Spiel/Video',
-  'extraOutput.mode.video.body':
-    'Bleibt wenige Hundertstelsekunden am Bild dran und synchronisiert sich nach einem Aussetzer selbst wieder.',
-  'extraOutput.mode.video.buffer': 'Start bei ~30 ms',
-  'extraOutput.mode.music.title': 'Musik',
-  'extraOutput.mode.music.body':
-    'Hält eine Zehntelsekunde in Reserve, damit es nie stottert.',
-  'extraOutput.mode.music.buffer': 'Start bei ~100 ms',
-  'extraOutput.latency.video':
-    'Der gespiegelte Ton bleibt nah genug am Bild für Lippensynchronität. Wenn Sie beide Ausgänge von einem Platz aus hören, kann eine leichte Verdopplung auffallen.',
-  'extraOutput.latency.music':
-    'Der gespiegelte Ton kommt etwa eine Zehntelsekunde später an und stottert nie. Für einen anderen Raum in Ordnung; für einen Bildschirm auf Spiel/Video wechseln.',
+  'extraOutput.latency':
+    'Jede zweite Ausgabe hält selbst Schritt, wie Audio teilen: Sie startet etwa 30 ms hinterher, legt nur nach einem Aussetzer etwas zu und gibt es zurück, sobald es ruhig läuft. Hören Sie sie zusammen mit der Hauptausgabe von einem Platz aus, kann eine leichte Verdopplung auffallen.',
+  'extraOutput.delay': '{milliseconds} ms hinterher',
+  'extraOutput.delayFrom': 'Ton von {name}: {milliseconds} ms hinterher',
   'extraOutput.virtual':
     'Ein Routing-Treiber ist installiert. Richten Sie Ihre Anwendungen darauf aus, dann bleiben beide Ausgänge synchron, und geben Sie jedem oben sein eigenes Profil.',
   'extraOutput.ambiguous':

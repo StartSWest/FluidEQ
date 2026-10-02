@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { ITransportSource } from '../audio/transportSource';
+import remoteOriginLine from '../audio/remoteOrigin';
 import { formatDuration } from '../library/player/NowPlayingBar';
 import type { useTranslation } from '../utils/I18nContext';
 
@@ -51,7 +52,7 @@ export const playerStateOf = (
 
 /** Where the sound is from, in the words the bar uses for it. */
 export const sourceLabel = (
-  source: Pick<ITransportSource, 'owner' | 'origin'>,
+  source: Pick<ITransportSource, 'owner' | 'origin' | 'delayMs'>,
   t: TranslateFn,
 ) => {
   switch (source.owner) {
@@ -62,7 +63,7 @@ export const sourceLabel = (
     case 'system':
       return t('library.systemAudio');
     case 'remote':
-      return t('library.remoteAudio', { name: source.origin ?? '' });
+      return remoteOriginLine(t, source);
     default:
       return t('tabs.media');
   }

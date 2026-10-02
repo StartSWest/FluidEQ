@@ -9,7 +9,6 @@ import LiveFigure from '../components/LiveFigure';
 import MenuIcon from '../icons/MenuIcon';
 import { useLiveSurface } from '../utils/theme';
 import useSmoothFrames from '../utils/useSmoothFrames';
-import writeLiveText from '../utils/liveText';
 import Switch from '../widgets/Switch';
 import {
   emptyLaneHistory,
@@ -17,7 +16,7 @@ import {
   laneReading,
   pushLaneReading,
 } from './laneHistory';
-import type { IRemoteAudioMeter, TRemoteAudioMeterListener } from './meter';
+import type { TRemoteAudioMeterListener } from './meter';
 
 /** What the stylesheet paints the bars in before a theme says otherwise. */
 const BAR_INK = '#9cfff4';
@@ -42,13 +41,13 @@ export interface IRemoteAudioLaneProps {
    * computer's own on its way out. */
   meterKey: string | null;
   subscribe(listener: TRemoteAudioMeterListener): () => void;
-  /** The figure on the right, and the word under it. */
+  /** The figure on the right, and the word under it. Written by React: the
+   * incoming delay is an average that moves a few times a minute
+   * (`useIncomingDelays.ts`), not a reading per block. */
   figure: string;
   figureCaption: string;
   /** Every text the figure can show, for its width (`LiveFigure`). */
   figureWidest: readonly string[];
-  /** Rewrites the figure from each reading — the incoming delay. */
-  formatFigure?(meter: IRemoteAudioMeter): string | undefined;
   switchId: string;
   switchLabel: string;
   isOn: boolean;
@@ -76,7 +75,6 @@ const RemoteAudioLane = ({
   figure,
   figureCaption,
   figureWidest,
-  formatFigure,
   switchId,
   switchLabel,
   isOn,
@@ -84,14 +82,11 @@ const RemoteAudioLane = ({
   onToggle,
 }: IRemoteAudioLaneProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const figureRef = useRef<HTMLSpanElement>(null);
   const historyRef = useRef(emptyLaneHistory());
   const sizeRef = useRef({ width: 0, height: 0 });
   const ink = useLiveSurface('--accent-light', BAR_INK);
   const inkRef = useRef(ink);
   inkRef.current = ink;
-  const formatRef = useRef(formatFigure);
-  formatRef.current = formatFigure;
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -170,10 +165,6 @@ const RemoteAudioLane = ({
         return;
       }
       pushLaneReading(historyRef.current, meter.peak);
-      const text = formatRef.current?.(meter);
-      if (text !== undefined) {
-        writeLiveText(figureRef.current, text);
-      }
       kick();
     });
   }, [kick, live, meterKey, subscribe]);
@@ -227,11 +218,7 @@ const RemoteAudioLane = ({
         />
       </div>
       <div className="remote-audio__lane-figure">
-        <LiveFigure
-          className="remote-audio__lane-number"
-          widest={figureWidest}
-          textRef={figureRef}
-        >
+        <LiveFigure className="remote-audio__lane-number" widest={figureWidest}>
           {figure}
         </LiveFigure>
         <span className="remote-audio__lane-caption">{figureCaption}</span>

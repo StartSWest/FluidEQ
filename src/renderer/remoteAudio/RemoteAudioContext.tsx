@@ -25,8 +25,11 @@ import type {
   TRemoteAudioRole,
 } from './remoteAudioState';
 import RemoteAudioContext, {
+  type IIncomingSound,
+  IncomingSoundContext,
   RemoteAudioReceivingContext,
 } from './remoteAudioValueContext';
+import useIncomingDelays from './useIncomingDelays';
 import useSelectedRemoteAudioOutput from './useSelectedRemoteAudioOutput';
 import useRemoteAudioMeterBus from './useRemoteAudioMeterBus';
 import useRemoteAudioNetworkStats from './useRemoteAudioNetworkStats';
@@ -117,8 +120,28 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   });
   useSelectedRemoteAudioOutput(activeDeviceId, mixerRef, outputSinkIdRef);
 
-  const receiving = links.some(
+  const arriving = links.filter(
     (link) => link.receiving && playsHere(link, bothWays),
+  );
+  const receiving = arriving.length > 0;
+  const delays = useIncomingDelays(
+    subscribeMeter,
+    arriving.map((link) => link.id),
+  );
+  const incomingKey = arriving
+    .map((link) => `${link.id}\n${link.name}\n${delays[link.id] ?? ''}`)
+    .join('\n');
+  const incoming = useMemo<IIncomingSound[]>(
+    () =>
+      arriving.map((link) => ({
+        id: link.id,
+        name: link.name,
+        delayMs: delays[link.id],
+      })),
+    // The key is the list as far as anyone reading it can tell: a new
+    // array each render would redraw every reader for nothing.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recomputed exactly when incomingKey changes, see above
+    [incomingKey],
   );
   const { sending, sendingFailed, markSendingFailed } = useRemoteAudioSending({
     bothWays,
@@ -141,6 +164,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const acceptRemoteStart = useRemoteNowPlayingSource(
     links.filter((link) => playsHere(link, bothWays)),
     role === 'listener',
+    delays,
   );
 
   const { rejoin, rehost } = useRemoteAudioRestore({
@@ -450,7 +474,9 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   return (
     <RemoteAudioContext.Provider value={value}>
       <RemoteAudioReceivingContext.Provider value={receiving}>
-        {children}
+        <IncomingSoundContext.Provider value={incoming}>
+          {children}
+        </IncomingSoundContext.Provider>
       </RemoteAudioReceivingContext.Provider>
     </RemoteAudioContext.Provider>
   );

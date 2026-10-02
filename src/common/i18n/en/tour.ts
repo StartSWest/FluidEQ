@@ -419,12 +419,12 @@ const tour = {
   'tour.output.point3':
     'One player at a time: starting something in FluidEQ pauses the rest of the machine, and the other way round.',
   'tour.output.point4':
-    'Game/Video starts with about 30 ms in reserve and catches up after a stall; Music starts with about 100 ms for smoother listening. Device buffering adds to the delay.',
+    'Each output keeps itself in time: about 30 ms behind to start, a little more only after a dropout, and its delay shown in milliseconds — another computer’s sound included when Share Audio plays it here.',
   'tour.output.how':
-    'Open the EQ tab and expand Second output on the right. Switch on a device, choose its EQ profile below its name, then set the volume and choose Game/Video or Music.',
+    'Open the EQ tab and expand Second output on the right. Switch on a device, choose its EQ profile below its name, then set the volume; its delay shows beneath.',
   'tour.output.open': 'Open EQ',
   'tour.output.imageAlt':
-    'The Second output panel with a BlackShark V2 Pro headset enabled, its EQ profile picker and volume slider, and Game/Video and Music mode cards.',
+    'The Second output panel with a BlackShark V2 Pro headset enabled, its EQ profile picker, volume slider and delay.',
 
   'tour.looks.kicker': 'YOUR OWN VISUALIZER',
   'tour.looks.title': 'Custom looks for the graph',

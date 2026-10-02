@@ -70,7 +70,7 @@ afterEach(async () => reset());
 it('waits for a pending mirror to stop before switching the main output', async () => {
   const opening = deferred<ReturnType<typeof mirror>>();
   mockStart.mockReturnValue(opening.promise);
-  const starting = invoke('start', 'one', guid, 'video', 1);
+  const starting = invoke('start', 'one', guid, 1);
   await Promise.resolve();
   expect(mockStart).toHaveBeenCalledTimes(1);
   const changeOutput = jest.fn().mockResolvedValue(undefined);
@@ -82,7 +82,7 @@ it('waits for a pending mirror to stop before switching the main output', async 
   await Promise.resolve();
   expect(output.close).toHaveBeenCalledTimes(1);
   expect(changeOutput).not.toHaveBeenCalled();
-  expect(await invoke('start', 'two', guid, 'music', 1)).toBe(false);
+  expect(await invoke('start', 'two', guid, 1)).toBe(false);
   closing.resolve();
   await expect(starting).resolves.toBe(false);
   await switching;
@@ -92,7 +92,7 @@ it('waits for a pending mirror to stop before switching the main output', async 
 it('closes a late start after the user disables it and never attaches it again', async () => {
   const opening = deferred<ReturnType<typeof mirror>>();
   mockStart.mockReturnValue(opening.promise);
-  const starting = invoke('start', 'one', guid, 'music', 1);
+  const starting = invoke('start', 'one', guid, 1);
   await Promise.resolve();
   await invoke('stop', 'one');
   const output = mirror();
@@ -105,11 +105,9 @@ it('closes a late start after the user disables it and never attaches it again',
 
 it('rejects the current main output and requests from other frames', async () => {
   mockDiscover.mockResolvedValue([{ guid, isActive: true, isDefault: true }]);
-  await expect(invoke('start', 'one', guid, 'music', 1)).rejects.toThrow(
-    'main output',
-  );
+  await expect(invoke('start', 'one', guid, 1)).rejects.toThrow('main output');
   event = { ...event, senderFrame: {} } as IpcMainInvokeEvent;
-  await expect(invoke('start', 'two', guid, 'music', 1)).rejects.toThrow(
+  await expect(invoke('start', 'two', guid, 1)).rejects.toThrow(
     'unknown window',
   );
   expect(mockStart).not.toHaveBeenCalled();
@@ -118,7 +116,29 @@ it('rejects the current main output and requests from other frames', async () =>
 it('stops a running mirror when its page navigates away', async () => {
   const output = mirror();
   mockStart.mockResolvedValue(output);
-  await expect(invoke('start', 'one', guid, 'video', 1)).resolves.toBe(true);
+  await expect(invoke('start', 'one', guid, 1)).resolves.toBe(true);
   event.sender.emit('did-start-navigation', {}, 'about:blank', false, true);
   expect(output.close).toHaveBeenCalledTimes(1);
+});
+
+it('refuses a start that still names a buffering mode', async () => {
+  // The Game/Video and Music choice is gone; an old caller sending it would
+  // be passing the word where the level now goes.
+  await expect(invoke('start', 'one', guid, 'music', 1)).rejects.toThrow(
+    'Invalid second output request.',
+  );
+  expect(mockStart).not.toHaveBeenCalled();
+});
+
+it('tells the window how far behind its mirror plays', async () => {
+  mockStart.mockResolvedValue(mirror());
+  await expect(invoke('start', 'one', guid, 0.5)).resolves.toBe(true);
+  const [startedGuid, volume, , onDelay] = mockStart.mock.calls[0];
+  expect([startedGuid, volume]).toEqual([guid, 0.5]);
+  onDelay(41.6);
+  expect(event.sender.send).toHaveBeenCalledWith(
+    'output-mirror-delay',
+    'one',
+    41.6,
+  );
 });

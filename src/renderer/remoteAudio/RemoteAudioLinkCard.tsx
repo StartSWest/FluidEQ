@@ -4,7 +4,6 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useState } from 'react';
 import type {
   ILanRemoteAudioNetworkStats,
   IRemoteNowPlaying,
@@ -12,9 +11,8 @@ import type {
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { playsHere, sendsThere } from './linkRecords';
-import type { IRemoteAudioMeter, TRemoteAudioMeterListener } from './meter';
+import type { TRemoteAudioMeterListener } from './meter';
 import RemoteAudioLane from './RemoteAudioLane';
-import { createSteadyReadout } from './steadyReadout';
 import type { ILinkSwitches, IRemoteAudioLink } from './remoteAudioState';
 
 interface IRemoteAudioLinkCardProps {
@@ -25,6 +23,9 @@ interface IRemoteAudioLinkCardProps {
   sendingFailed: boolean;
   /** What this computer's bar shows, which is what goes out. */
   localNowPlaying?: IRemoteNowPlaying;
+  /** How far behind its sound plays here, in milliseconds, while it
+   * arrives (`useIncomingDelays.ts`). */
+  delayMs?: number;
   networkStats: ILanRemoteAudioNetworkStats[];
   subscribe(listener: TRemoteAudioMeterListener): () => void;
   onSwitches(name: string, switches: ILinkSwitches): void;
@@ -44,6 +45,7 @@ const RemoteAudioLinkCard = ({
   sending,
   sendingFailed,
   localNowPlaying,
+  delayMs,
   networkStats,
   subscribe,
   onSwitches,
@@ -61,12 +63,6 @@ const RemoteAudioLinkCard = ({
     link.theirs?.sends !== false;
   const sends = sendsThere(link, bothWays);
   const incomingLive = plays && link.receiving;
-  // An average, not every reading: see `steadyReadout.ts`. Started afresh
-  // whenever the sound starts arriving again.
-  const [delayReadout] = useState(createSteadyReadout);
-  useEffect(() => {
-    delayReadout.reset();
-  }, [delayReadout, incomingLive]);
   const playSwitchOn = link.switches.play && canPlay;
   // Off Windows the window itself sends, so main never says it is capturing.
   const outgoingLive = sends && (sending || !bothWays) && !sendingFailed;
@@ -154,15 +150,6 @@ const RemoteAudioLinkCard = ({
     '—',
     t('remoteAudio.lane.megabits', { megabits: '88.8' }),
   ];
-  const formatDelay = (meter: IRemoteAudioMeter) => {
-    const milliseconds =
-      meter.bufferedMs === undefined
-        ? undefined
-        : delayReadout.next(meter.bufferedMs, performance.now());
-    return milliseconds === undefined
-      ? undefined
-      : t('remoteAudio.lane.milliseconds', { milliseconds });
-  };
   const sentRate = megabits(sent);
 
   return (
@@ -225,10 +212,13 @@ const RemoteAudioLinkCard = ({
         live={incomingLive}
         meterKey={link.id}
         subscribe={subscribe}
-        figure="—"
+        figure={
+          incomingLive && delayMs !== undefined
+            ? t('remoteAudio.lane.milliseconds', { milliseconds: delayMs })
+            : '—'
+        }
         figureCaption={t('remoteAudio.lane.delay')}
         figureWidest={delayWidest}
-        formatFigure={formatDelay}
         switchId={`remote-audio-play-${link.id}`}
         switchLabel={t('remoteAudio.lane.playItHere')}
         isOn={playSwitchOn}

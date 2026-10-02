@@ -141,6 +141,7 @@ const library: Partial<Dictionary> = {
   'library.nothingPlayingHint': 'सुनने के लिए कुछ चुनें',
   'library.systemAudio': 'सिस्टम ऑडियो',
   'library.remoteAudio': 'रिमोट प्ले · {name}',
+  'library.remoteAudioDelay': 'रिमोट प्ले · {name} · {milliseconds} ms',
 
   'library.trackActions': 'इस गाने का क्या करें',
   'library.browse.playlist': 'प्लेलिस्ट',

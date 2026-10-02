@@ -440,19 +440,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'Nenhuma outra saída encontrada',
   'extraOutput.statusOff': 'Desligada',
   'extraOutput.volume': 'Volume',
-  'extraOutput.mode.title': 'Como acompanha',
-  'extraOutput.mode.video.title': 'Jogo/Vídeo',
-  'extraOutput.mode.video.body':
-    'Fica a poucos centésimos de segundo da imagem e volta a sincronizar sozinho depois de um tropeço.',
-  'extraOutput.mode.video.buffer': 'Início ~30 ms',
-  'extraOutput.mode.music.title': 'Música',
-  'extraOutput.mode.music.body':
-    'Mantém um décimo de segundo de reserva para nunca engasgar.',
-  'extraOutput.mode.music.buffer': 'Início ~100 ms',
-  'extraOutput.latency.video':
-    'O som espelhado fica perto o bastante de uma tela para a fala bater com a boca. Se você ouvir as duas saídas do mesmo lugar, pode notar um leve eco.',
-  'extraOutput.latency.music':
-    'O som espelhado chega cerca de um décimo de segundo depois e nunca engasga. Serve para outro cômodo; para uma tela, mude para Jogo/Vídeo.',
+  'extraOutput.latency':
+    'Cada segunda saída acompanha o ritmo sozinha, como Compartilhar áudio: começa uns 30 ms atrás, acrescenta um pouco só depois de uma falha e devolve quando tudo se estabiliza. Se você ouvir do mesmo lugar que a saída principal, pode notar um leve eco.',
+  'extraOutput.delay': '{milliseconds} ms atrás',
+  'extraOutput.delayFrom': 'Som de {name}: {milliseconds} ms atrás',
   'extraOutput.virtual':
     'Há um driver de roteamento instalado. Aponte seus aplicativos para ele e as duas saídas ficam em sincronia; depois dê a cada uma o seu próprio perfil acima.',
   'extraOutput.ambiguous':

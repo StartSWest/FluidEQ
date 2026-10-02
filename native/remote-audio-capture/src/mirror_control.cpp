@@ -62,18 +62,18 @@ bool MirrorControl::commands() {
     if (input && id != 0 && request != 0) {
       if (command == "start" && outputs_.size() < 16 && !outputs_.contains(id)) {
         std::string guid;
-        std::string mode;
         float volume = 1;
-        input >> guid >> mode >> volume;
+        input >> guid >> volume;
         if (input && guid.size() == 38 && guid.front() == '{' &&
-            guid.back() == '}' && (mode == "video" || mode == "music") &&
-            std::isfinite(volume) && volume >= 0 && volume <= 1) {
+            guid.back() == '}' && std::isfinite(volume) && volume >= 0 &&
+            volume <= 1) {
           auto output = std::make_unique<MirrorOutput>();
-          result = output->open(guid, rate_, channels_, mode == "video", volume);
+          result = output->open(guid, rate_, channels_, volume);
           if (SUCCEEDED(result)) { outputs_.emplace(id, std::move(output)); }
         }
       } else if (command == "stop") {
         outputs_.erase(id);
+        renders_.erase(id);
         result = S_OK;
       } else if (command == "volume" && outputs_.contains(id)) {
         float volume = 1;
@@ -91,6 +91,7 @@ bool MirrorControl::commands() {
 
 void MirrorControl::fail(std::uint32_t id, HRESULT result) {
   outputs_.erase(id);
+  renders_.erase(id);
   if (!reply_(4, id, result)) { stopping_ = true; }
 }
 
@@ -112,7 +113,14 @@ void MirrorControl::render(HANDLE event) {
     if (entry.second->event() == event) {
       const auto id = entry.first;
       const HRESULT result = entry.second->render();
-      if (FAILED(result)) { fail(id, result); }
+      if (FAILED(result)) {
+        fail(id, result);
+      } else if (++renders_[id] % kDelayEveryRenders == 0) {
+        // The delay rides the result field: microseconds fit in it.
+        if (!reply_(5, id, static_cast<HRESULT>(entry.second->delay_us()))) {
+          stopping_ = true;
+        }
+      }
       return;
     }
   }

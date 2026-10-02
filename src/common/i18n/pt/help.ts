@@ -297,7 +297,7 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.intro':
     'Seu EQ acompanha o dispositivo de saída. As edições são salvas no perfil ativo da saída atual, e Perfis permite manter sons alternativos. Segunda saída espelha a reprodução em outros dispositivos, com um nível separado para cada um.',
   'help.profiles.steps':
-    'Confira a saída no topo do cartão Saída antes de editar. Use Novo perfil para um som que quer manter; Atualizar salva as mudanças nesse perfil e Restaurar traz de volta os ajustes salvos dele.\nAbra Segunda saída, ative um dispositivo acessível e ajuste o nível. Escolha o perfil de EQ salvo desse dispositivo logo abaixo dele.\nUse Jogo/Vídeo para um buffer inicial menor ou Música para mais reserva. Compare a sincronização nos seus dispositivos.',
+    'Confira a saída no topo do cartão Saída antes de editar. Use Novo perfil para um som que quer manter; Atualizar salva as mudanças nesse perfil e Restaurar traz de volta os ajustes salvos dele.\nAbra Segunda saída, ative um dispositivo acessível e ajuste o nível. Escolha o perfil de EQ salvo desse dispositivo logo abaixo dele.\nCada saída acompanha o ritmo sozinha e mostra quanto está atrasada; com Compartilhar áudio, o som de outro computador mostra o próprio atraso, rede incluída.',
   'help.profiles.tip':
     'Cada saída espelhada usa seu próprio perfil, com qualquer um dos motores. O espelhamento funciona enquanto o FluidEQ está aberto; trocar a saída principal encerra os espelhamentos antigos. A latência do dispositivo ainda afeta a sincronização.',
   'help.profiles.keywords':

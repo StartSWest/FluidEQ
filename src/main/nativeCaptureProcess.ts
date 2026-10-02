@@ -49,8 +49,15 @@ const decodeHeader = (buffer: Buffer): ICaptureFrame => ({
   payloadBytes: buffer.readUInt32LE(20),
 });
 
+/**
+ * The second output's replies, which carry no sound: 3 a command's answer, 4
+ * a mirror that failed, 5 a mirror's delay in microseconds (`mirror_control.h`).
+ */
+const isMirrorReply = (kind: number): boolean =>
+  kind === 3 || kind === 4 || kind === 5;
+
 const frameIsValid = (header: ICaptureFrame): boolean => {
-  if (header.kind === 3 || header.kind === 4) {
+  if (isMirrorReply(header.kind)) {
     return (
       header.payloadBytes === 0 && header.frames === 0 && header.channels === 0
     );
@@ -141,7 +148,7 @@ export const createCaptureFrameReader = (handlers: {
           new Error('The capture helper sent audio before it was ready.'),
         );
         return;
-      } else if (header.kind === 3 || header.kind === 4) {
+      } else if (isMirrorReply(header.kind)) {
         handlers.reply(header.kind, header.sequence, header.sampleRate);
       } else {
         handlers.audio(header, payload);

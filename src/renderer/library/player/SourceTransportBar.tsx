@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { CSSProperties, useCallback, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ITransportSource } from '../../audio/transportSource';
+import remoteOriginLine from '../../audio/remoteOrigin';
 import { useSystemFader } from '../../audio/systemVolume';
 import { setTransportSlot } from '../../audio/transportSlot';
 import useTransportStrip from '../../audio/useTransportStrip';
@@ -89,7 +90,7 @@ const SourceTransportBar = ({
     // the computer, because "remote" alone is the question and not the
     // answer when two of them are connected.
     if (source.owner === 'remote') {
-      return t('library.remoteAudio', { name: source.origin ?? '' });
+      return remoteOriginLine(t, source);
     }
     return t('tabs.media');
   })();

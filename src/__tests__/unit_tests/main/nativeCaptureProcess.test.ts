@@ -258,10 +258,21 @@ describe('the capture frame reader', () => {
     expect(handlers.invalid).toHaveBeenCalledTimes(1);
   });
 
-  it('passes on the second output’s replies', () => {
+  it('passes on the second output’s replies, its delay among them', () => {
     const { handlers, read } = reader();
     read(READY);
     read(frame(3, { sequence: 9, rate: 0, channels: 0 }));
     expect(handlers.reply).toHaveBeenCalledWith(3, 9, 0);
+    // 5: a mirror's delay, microseconds in the rate field.
+    read(frame(5, { sequence: 4, rate: 41_600, channels: 0 }));
+    expect(handlers.reply).toHaveBeenLastCalledWith(5, 4, 41_600);
+    expect(handlers.invalid).not.toHaveBeenCalled();
+  });
+
+  it('refuses a reply kind it does not know', () => {
+    const { handlers, read } = reader();
+    read(READY);
+    read(frame(6, { sequence: 4, rate: 1, channels: 0 }));
+    expect(handlers.invalid).toHaveBeenCalledTimes(1);
   });
 });

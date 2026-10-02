@@ -452,19 +452,10 @@ const eq = {
   'extraOutput.none': 'No other outputs found',
   'extraOutput.statusOff': 'Off',
   'extraOutput.volume': 'Volume',
-  'extraOutput.mode.title': 'How it keeps up',
-  'extraOutput.mode.video.title': 'Game/Video',
-  'extraOutput.mode.video.body':
-    'Stays within a few hundredths of a second of the picture and re-syncs itself after a hiccup.',
-  'extraOutput.mode.video.buffer': '~30 ms start',
-  'extraOutput.mode.music.title': 'Music',
-  'extraOutput.mode.music.body':
-    'Keeps a tenth of a second in reserve so it never stutters.',
-  'extraOutput.mode.music.buffer': '~100 ms start',
-  'extraOutput.latency.video':
-    'Mirrored sound stays close enough to a screen for lip-sync. If you can hear both outputs from one seat you may notice a slight doubling.',
-  'extraOutput.latency.music':
-    'Mirrored sound arrives about a tenth of a second late and never stutters. Fine for another room; switch to Game/Video for a screen.',
+  'extraOutput.latency':
+    'Each second output keeps itself in time, the way Share Audio does: it starts about 30 ms behind, adds a little only after a dropout and gives it back once things settle. Heard from one seat with your main output, you may notice a slight doubling.',
+  'extraOutput.delay': '{milliseconds} ms behind',
+  'extraOutput.delayFrom': '{name}’s sound: {milliseconds} ms behind',
   'extraOutput.virtual':
     'A routing driver is installed. Point your applications at it and both outputs stay in sync, then give each one its own profile above.',
   'extraOutput.ambiguous':

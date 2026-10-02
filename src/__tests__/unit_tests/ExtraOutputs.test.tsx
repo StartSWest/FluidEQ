@@ -23,6 +23,10 @@ import ExtraOutputs from '../../renderer/ExtraOutputs';
 import useOutputMirror, {
   IMirrorTarget,
 } from '../../renderer/audio/useOutputMirror';
+import {
+  type IIncomingSound,
+  IncomingSoundContext,
+} from '../../renderer/remoteAudio/remoteAudioValueContext';
 
 jest.mock('../../renderer/audio/useOutputMirror');
 
@@ -34,6 +38,7 @@ const target = (
   name: string,
   isSelected: boolean,
   isRunning = false,
+  delayMs: number | undefined = undefined,
 ): IMirrorTarget => ({
   device: {
     id: name.toLowerCase().replaceAll(' ', '-'),
@@ -54,25 +59,39 @@ const target = (
   isRunning,
   presetName: '',
   volume: 1,
+  delayMs,
 });
+
+const mirrorState = (targets: IMirrorTarget[]) => {
+  const selected = targets.filter((entry) => entry.isSelected);
+  const running = targets.filter((entry) => entry.isRunning);
+  mockedUseOutputMirror.mockReturnValue({
+    error: '',
+    isMirroring: running.length > 0,
+    isVirtualRoutingAvailable: false,
+    mirroringCount: running.length,
+    refresh: jest.fn().mockResolvedValue(undefined),
+    selectedTargets: selected,
+    setTargetVolume: jest.fn(),
+    targets,
+    toggleTarget: jest.fn(),
+  });
+};
+
+const renderOpen = (incoming: IIncomingSound[] = []) => {
+  render(
+    <IncomingSoundContext.Provider value={incoming}>
+      <ExtraOutputs engine="apo" />
+    </IncomingSoundContext.Provider>,
+  );
+  fireEvent.click(screen.getByRole('button', { name: /Second output/i }));
+};
 
 describe('ExtraOutputs', () => {
   it('starts collapsed and names only the enabled outputs in its header', () => {
     const enabled = target('Enabled speakers', true, true);
     const disabled = target('Disabled speakers', false);
-    mockedUseOutputMirror.mockReturnValue({
-      error: '',
-      isMirroring: true,
-      isVirtualRoutingAvailable: false,
-      mirroringCount: 1,
-      mode: 'music',
-      refresh: jest.fn().mockResolvedValue(undefined),
-      setMode: jest.fn(),
-      selectedTargets: [enabled],
-      setTargetVolume: jest.fn(),
-      targets: [enabled, disabled],
-      toggleTarget: jest.fn(),
-    });
+    mirrorState([enabled, disabled]);
 
     render(<ExtraOutputs engine="apo" />);
 
@@ -93,20 +112,7 @@ describe('ExtraOutputs', () => {
   });
 
   it('says Off in its header when no second output is enabled', () => {
-    const disabled = target('Disabled speakers', false);
-    mockedUseOutputMirror.mockReturnValue({
-      error: '',
-      isMirroring: false,
-      isVirtualRoutingAvailable: false,
-      mirroringCount: 0,
-      mode: 'music',
-      refresh: jest.fn().mockResolvedValue(undefined),
-      setMode: jest.fn(),
-      selectedTargets: [],
-      setTargetVolume: jest.fn(),
-      targets: [disabled],
-      toggleTarget: jest.fn(),
-    });
+    mirrorState([target('Disabled speakers', false)]);
 
     render(<ExtraOutputs engine="apo" />);
 
@@ -121,5 +127,38 @@ describe('ExtraOutputs', () => {
         .closest('.sidebar-section')
         ?.querySelector('.sidebar-section__summary'),
     ).not.toBeInTheDocument();
+  });
+
+  it('offers no buffering choice: every output keeps itself in time', () => {
+    mirrorState([target('Headset', true, true, 42)]);
+    renderOpen();
+    expect(screen.queryByRole('radiogroup')).not.toBeInTheDocument();
+    expect(screen.getByText(/keeps itself in time/i)).toBeInTheDocument();
+  });
+
+  it('says how far behind a running output plays', () => {
+    mirrorState([target('Headset', true, true, 41.6)]);
+    renderOpen();
+    expect(screen.getByText('42 ms behind')).toBeInTheDocument();
+  });
+
+  it('says nothing of a delay it has not been told yet', () => {
+    mirrorState([target('Headset', true, false)]);
+    renderOpen();
+    expect(screen.queryByText(/ms behind/)).not.toBeInTheDocument();
+  });
+
+  it('adds the network to another computer’s sound, which it plays later still', () => {
+    mirrorState([target('Headset', true, true, 42)]);
+    renderOpen([
+      { id: 'peer', name: 'SWEST-YOGA', delayMs: 145 },
+      { id: 'quiet', name: 'OFFICE', delayMs: undefined },
+    ]);
+    expect(screen.getByText('42 ms behind')).toBeInTheDocument();
+    expect(
+      screen.getByText('SWEST-YOGA’s sound: 187 ms behind'),
+    ).toBeInTheDocument();
+    // A computer whose delay is not known yet is not guessed at.
+    expect(screen.queryByText(/OFFICE/)).not.toBeInTheDocument();
   });
 });

@@ -14,10 +14,16 @@ interface IClient {
   audio?: (chunk: ILanRemoteAudioChunk) => void;
   failure(): void;
 }
+/** What a running mirror is told by its helper, besides answers. */
+interface IMirrorListener {
+  failed(): void;
+  /** How far behind it plays, in milliseconds. */
+  delay(milliseconds: number): void;
+}
 interface ISession {
   mode: TCaptureMode;
   clients: Set<IClient>;
-  mirrors: Map<number, () => void>;
+  mirrors: Map<number, IMirrorListener>;
   requests: Map<number, { resolve(): void; reject(error: Error): void }>;
   opening?: Promise<INativeCaptureProcess>;
   process?: INativeCaptureProcess;
@@ -59,8 +65,12 @@ const acquire = (mode: TCaptureMode, client: IClient) => {
     () => failSession(current),
     (kind, id, result) => {
       if (kind === 4) {
-        current.mirrors.get(id)?.();
+        current.mirrors.get(id)?.failed();
         current.mirrors.delete(id);
+        return;
+      }
+      if (kind === 5) {
+        current.mirrors.get(id)?.delay(result / 1000);
         return;
       }
       const request = current.requests.get(id);
@@ -161,12 +171,16 @@ export interface INativeOutputMirror extends IRemoteAudioCapture {
  * with it included, played on another device. Rendered by the `local`
  * capture itself, which leaves itself out, so a mirror is never heard twice;
  * the network's capture leaves this one's tree out with it.
+ *
+ * It keeps time by itself, the way Share Audio's playback does; there is no
+ * mode to choose (`mirror_output.h`). `onDelay` hears how far behind it plays,
+ * about twice a second.
  */
 export const startNativeOutputMirror = async (
   guid: string,
-  mode: 'music' | 'video',
   volume: number,
   onFailure: () => void,
+  onDelay: (milliseconds: number) => void,
 ): Promise<INativeOutputMirror> => {
   const lease = acquire('local', { failure: onFailure });
   const id = allocateId();
@@ -187,8 +201,8 @@ export const startNativeOutputMirror = async (
     });
   };
   try {
-    current.mirrors.set(id, onFailure);
-    await command('start', `${guid} ${mode} ${volume}`);
+    current.mirrors.set(id, { failed: onFailure, delay: onDelay });
+    await command('start', `${guid} ${volume}`);
     return {
       setVolume: (value) =>
         closed ? Promise.resolve() : command('volume', String(value)),

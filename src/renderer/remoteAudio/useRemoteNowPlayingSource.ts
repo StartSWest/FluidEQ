@@ -125,10 +125,13 @@ const sendTransport = (peerId: string, command: TRemoteTransportCommand) => {
  * computers that were both already playing, exactly one may pause the other
  * on sight, or each would pause the other and both would fall silent. The
  * press, which only ever comes from one of them, needs no such tie-break.
+ * `delays` is how far behind each one's sound plays here, by peer id, for
+ * the bar to say beside its name.
  */
 const useRemoteNowPlayingSource = (
   computers: IRemoteAudioComputer[],
   pauseNewcomers: boolean,
+  delays: Readonly<Record<string, number>>,
 ): ((peerId: string) => void) => {
   const singlePlayer = useSinglePlayer();
   const [lastStartedId, setLastStartedId] = useState<string | undefined>(
@@ -137,6 +140,7 @@ const useRemoteNowPlayingSource = (
   const computer = pickRemoteNowPlaying(computers, lastStartedId);
   const playing = computer?.nowPlaying;
   const peerId = computer?.id;
+  const delayMs = peerId === undefined ? undefined : delays[peerId];
   const playingIds = computers
     .filter((entry) => entry.nowPlaying?.isPlaying === true)
     .map((entry) => entry.id);
@@ -155,6 +159,7 @@ const useRemoteNowPlayingSource = (
       title: playing.title,
       subtitle: playing.subtitle,
       origin: computer.name,
+      delayMs,
       identity: buildSongIdentity(
         'remote',
         computer.name,
@@ -185,7 +190,7 @@ const useRemoteNowPlayingSource = (
         ? () => sendTransport(peerId, { command: 'previous' })
         : undefined,
     });
-  }, [computer, peerId, playing]);
+  }, [computer, delayMs, peerId, playing]);
 
   const pauseNewcomersRef = useRef(pauseNewcomers);
   pauseNewcomersRef.current = pauseNewcomers;

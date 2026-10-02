@@ -300,7 +300,7 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.intro':
     'L’EQ segue il dispositivo di uscita. Le modifiche si salvano nel profilo attivo sull’uscita corrente; Profili conserva suoni alternativi. Seconda uscita duplica l’audio su altri dispositivi con un livello per ciascuno.',
   'help.profiles.steps':
-    'Verifica l’uscita in cima alla scheda Uscita prima di modificare. Nuovo profilo conserva un suono; Aggiorna salva le modifiche e Ripristina recupera le impostazioni salvate.\nApri Seconda uscita, attiva un dispositivo raggiungibile e imposta il livello. Scegli il suo profilo EQ salvato subito sotto di esso.\nUsa Gioco/Video per una riserva iniziale minore o Musica per più margine. Controlla la sincronizzazione sui tuoi dispositivi.',
+    'Verifica l’uscita in cima alla scheda Uscita prima di modificare. Nuovo profilo conserva un suono; Aggiorna salva le modifiche e Ripristina recupera le impostazioni salvate.\nApri Seconda uscita, attiva un dispositivo raggiungibile e imposta il livello. Scegli il suo profilo EQ salvato subito sotto di esso.\nOgni uscita tiene il tempo da sola e mostra quanto è indietro; con Condividi audio, il suono di un altro computer mostra il proprio ritardo, rete compresa.',
   'help.profiles.tip':
     'Ogni uscita duplicata usa il proprio profilo con entrambi i motori. La duplicazione richiede FluidEQ aperto e si ferma cambiando uscita principale. Conta anche la latenza dei dispositivi.',
   'help.profiles.keywords':

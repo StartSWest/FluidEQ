@@ -404,12 +404,12 @@ const tour: Partial<Dictionary> = {
   'tour.output.point3':
     'Un solo reproductor: iniciar algo en FluidEQ pausa el resto de la máquina, y al revés.',
   'tour.output.point4':
-    'Juego/Vídeo empieza con unos 30 ms de reserva y se resincroniza tras una interrupción; Música empieza con unos 100 ms para una escucha más fluida. El búfer del dispositivo añade retardo.',
+    'Cada salida sigue el ritmo sola: empieza unos 30 ms por detrás, añade un poco solo tras un corte y muestra su retardo en milisegundos, incluido el sonido de otro ordenador cuando Compartir audio lo reproduce aquí.',
   'tour.output.how':
-    'Abre la pestaña EQ y despliega Segunda salida a la derecha. Activa un dispositivo, elige su perfil de EQ bajo el nombre, ajusta el volumen y selecciona Juego/Vídeo o Música.',
+    'Abre la pestaña EQ y despliega Segunda salida a la derecha. Activa un dispositivo, elige su perfil de EQ bajo el nombre y ajusta el volumen; debajo verás su retardo.',
   'tour.output.open': 'Abrir EQ',
   'tour.output.imageAlt':
-    'El panel Segunda salida con unos BlackShark V2 Pro activados, su selector de perfil de EQ, el volumen y los modos Juego/Vídeo y Música.',
+    'El panel Segunda salida con unos BlackShark V2 Pro activados, su selector de perfil de EQ, el volumen y el retardo.',
 
   'tour.looks.kicker': 'TU PROPIO ESTILO',
   'tour.looks.title': 'Estilos propios para la gráfica',

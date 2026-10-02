@@ -293,7 +293,7 @@ const help = {
   'help.profiles.intro':
     'Your EQ follows the output device. Edits save to the profile playing on the current output, and Profiles lets you keep alternative sounds. Second output mirrors playback to other devices with a separate level for each.',
   'help.profiles.steps':
-    'Check the output at the top of the Output card before editing. Use New profile for a sound you want to keep; Update saves changes to that profile, and Restore brings its saved settings back.\nOpen Second output, switch on a reachable device, and set its level. Choose that device’s saved EQ profile directly beneath it.\nUse Game/Video for a smaller starting buffer or Music for more reserve. Compare synchronization on your devices.',
+    'Check the output at the top of the Output card before editing. Use New profile for a sound you want to keep; Update saves changes to that profile, and Restore brings its saved settings back.\nOpen Second output, switch on a reachable device, and set its level. Choose that device’s saved EQ profile directly beneath it.\nEach output keeps itself in time and shows how far behind it plays; with Share Audio, another computer’s sound shows its own delay, the network included.',
   'help.profiles.tip':
     'Each mirrored output uses its own profile under either engine. Mirroring runs while FluidEQ is open; switching the main output stops the old mirrors. Device latency still affects synchronization.',
   'help.profiles.keywords':

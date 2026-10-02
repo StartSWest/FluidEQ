@@ -223,7 +223,7 @@ describe('a computer told of a press', () => {
   const renderListener = (computers: IRemoteAudioComputer[], hub = true) =>
     renderHook(
       ({ list }: { list: IRemoteAudioComputer[] }) =>
-        useRemoteNowPlayingSource(list, hub),
+        useRemoteNowPlayingSource(list, hub, {}),
       { initialProps: { list: computers } },
     );
 

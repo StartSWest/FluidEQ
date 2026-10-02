@@ -444,19 +444,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'Aucune autre sortie trouvée',
   'extraOutput.statusOff': 'Désactivée',
   'extraOutput.volume': 'Volume',
-  'extraOutput.mode.title': 'Comment il suit',
-  'extraOutput.mode.video.title': 'Jeu/Vidéo',
-  'extraOutput.mode.video.body':
-    'Reste à quelques centièmes de seconde de l’image et se resynchronise seul après un accroc.',
-  'extraOutput.mode.video.buffer': 'Départ à ~30 ms',
-  'extraOutput.mode.music.title': 'Musique',
-  'extraOutput.mode.music.body':
-    'Garde un dixième de seconde en réserve pour ne jamais hacher.',
-  'extraOutput.mode.music.buffer': 'Départ à ~100 ms',
-  'extraOutput.latency.video':
-    'Le son dupliqué reste assez proche d’un écran pour la synchronisation labiale. Si vous entendez les deux sorties depuis la même place, un léger dédoublement peut se remarquer.',
-  'extraOutput.latency.music':
-    'Le son dupliqué arrive avec un dixième de seconde de retard et ne hache jamais. Parfait pour une autre pièce ; pour un écran, passez en Jeu/Vidéo.',
+  'extraOutput.latency':
+    'Chaque deuxième sortie suit le rythme toute seule, comme Partager l’audio : elle démarre environ 30 ms en retard, n’ajoute un peu qu’après une coupure et le rend une fois le calme revenu. Si vous l’entendez depuis la même place que la sortie principale, un léger dédoublement peut se remarquer.',
+  'extraOutput.delay': '{milliseconds} ms de retard',
+  'extraOutput.delayFrom': 'Son de {name} : {milliseconds} ms de retard',
   'extraOutput.virtual':
     'Un pilote de routage est installé. Dirigez vos applications vers lui et les deux sorties restent synchronisées, puis donnez à chacune son propre profil ci-dessus.',
   'extraOutput.ambiguous':

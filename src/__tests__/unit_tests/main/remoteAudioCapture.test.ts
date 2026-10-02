@@ -169,13 +169,14 @@ describe('the second output', () => {
 
     const starting = capture.startNativeOutputMirror(
       GUID,
-      'video',
       0.7,
+      jest.fn(),
       jest.fn(),
     );
     only('local').ready();
     await settle();
-    expect(answer()).toContain(`${GUID} video 0.7`);
+    // No mode: the helper keeps the output in time by itself.
+    expect(answer()).toMatch(/^start \d+ \d+ \{[0-9a-f-]+\} 0\.7$/);
     const mirror = await starting;
 
     const turning = mirror.setVolume(0.4);
@@ -197,8 +198,8 @@ describe('the second output', () => {
   it('refuses a mirror Windows would not open, and frees the capture', async () => {
     const starting = capture.startNativeOutputMirror(
       GUID,
-      'music',
       1,
+      jest.fn(),
       jest.fn(),
     );
     only('local').ready();
@@ -210,12 +211,30 @@ describe('the second output', () => {
 
   it('tells a mirror whose device went away', async () => {
     const lost = jest.fn();
-    const starting = capture.startNativeOutputMirror(GUID, 'music', 1, lost);
+    const starting = capture.startNativeOutputMirror(GUID, 1, lost, jest.fn());
     only('local').ready();
     await settle();
     const command = answer();
     await starting;
     only('local').reply(4, Number(command.split(' ')[2]), 0);
     expect(lost).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes on how far behind each mirror plays, in milliseconds', async () => {
+    const heard = jest.fn();
+    const other = jest.fn();
+    const first = capture.startNativeOutputMirror(GUID, 1, jest.fn(), heard);
+    only('local').ready();
+    await settle();
+    const firstId = Number(answer().split(' ')[2]);
+    await first;
+    const second = capture.startNativeOutputMirror(GUID, 1, jest.fn(), other);
+    await settle();
+    answer();
+    await second;
+    // The helper reports microseconds in the result field (`mirror_control.h`).
+    only('local').reply(5, firstId, 41_600);
+    expect(heard).toHaveBeenCalledWith(41.6);
+    expect(other).not.toHaveBeenCalled();
   });
 });

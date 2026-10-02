@@ -13,9 +13,8 @@ import type { TAudioEngine } from 'common/audioEngine';
 import { identifyVirtualDevice } from 'common/virtualAudioDevices';
 import SidebarSection from './components/SidebarSection';
 import Switch from './widgets/Switch';
-import MenuIcon from './icons/MenuIcon';
-import { MIRROR_MODES } from './audio/outputMirror';
 import useOutputMirror, { IMirrorTarget } from './audio/useOutputMirror';
+import { useIncomingSound } from './remoteAudio/remoteAudioValueContext';
 import { useTranslation } from './utils/I18nContext';
 import { setSinglePlayer, useSinglePlayer } from './utils/singlePlayer';
 import './styles/ExtraOutputs.scss';
@@ -33,14 +32,15 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
     error,
     isMirroring,
     isVirtualRoutingAvailable,
-    mode,
     refresh,
     selectedTargets,
-    setMode,
     setTargetVolume,
     targets,
     toggleTarget,
   } = useOutputMirror();
+  // Another computer's sound playing here plays on the second output too,
+  // later by its own delay: each running output says both.
+  const incoming = useIncomingSound();
 
   // Everything the list could offer: the captured endpoint and anything
   // inactive are not merely unusable, they are not choices at all.
@@ -222,6 +222,31 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
                       </span>
                     </div>
                   )}
+                  {/* How far behind it plays, measured, once it has said —
+                      and, while Share Audio plays another computer's sound
+                      here, how far behind that computer this output is. */}
+                  {target.isSelected && target.delayMs !== undefined && (
+                    <p className="extra-outputs__delay">
+                      <span>
+                        {t('extraOutput.delay', {
+                          milliseconds: Math.round(target.delayMs),
+                        })}
+                      </span>
+                      {incoming.map((sound) =>
+                        sound.delayMs === undefined ||
+                        target.delayMs === undefined ? null : (
+                          <span key={sound.id}>
+                            {t('extraOutput.delayFrom', {
+                              name: sound.name,
+                              milliseconds: Math.round(
+                                sound.delayMs + target.delayMs,
+                              ),
+                            })}
+                          </span>
+                        ),
+                      )}
+                    </p>
+                  )}
                 </div>
               </li>
             );
@@ -236,51 +261,11 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
       ))}
       {error && <p className="extra-outputs__obstacle">{error}</p>}
 
-      {/* Only once something is switched on. It decides how much sound is held
-          back before it plays, and a choice under a list with nothing on it
-          adjusts nothing. The same choice as the LAN panel — keep up with a
-          picture, or never stutter — but as a two-way pick with one line of
-          explanation under it for the chosen side: the LAN panel's two cards
-          stacked here were a quarter of the sidebar, each repeating a
-          sentence the other did not need. */}
-      {enabled.length > 0 && (
-        <div className="extra-outputs__mode">
-          <span className="eyebrow">{t('extraOutput.mode.title')}</span>
-          <div
-            className="extra-outputs__modes"
-            role="radiogroup"
-            aria-label={t('extraOutput.mode.title')}
-          >
-            {MIRROR_MODES.map((candidate) => (
-              <button
-                key={candidate}
-                type="button"
-                role="radio"
-                aria-checked={mode === candidate}
-                className={`extra-outputs__modeOption${
-                  mode === candidate ? ' is-selected' : ''
-                }`}
-                onClick={() => setMode(candidate)}
-              >
-                <MenuIcon name={candidate === 'video' ? 'video' : 'song'} />
-                <strong>{t(`extraOutput.mode.${candidate}.title`)}</strong>
-                <em>{t(`extraOutput.mode.${candidate}.buffer`)}</em>
-              </button>
-            ))}
-          </div>
-          <p className="extra-outputs__modeHint">
-            {t(`extraOutput.mode.${mode}.body`)}
-          </p>
-        </div>
-      )}
-
       {/* Shown only while a mirror is what is actually running. With a routing
           driver in use there is no added delay, and warning about one anyway
           is how a user learns to stop reading warnings. */}
       {isMirroring && (
-        <p className="extra-outputs__latency">
-          {t(`extraOutput.latency.${mode}`)}
-        </p>
+        <p className="extra-outputs__latency">{t('extraOutput.latency')}</p>
       )}
       {isVirtualRoutingAvailable && (
         <p className="extra-outputs__virtual">{t('extraOutput.virtual')}</p>

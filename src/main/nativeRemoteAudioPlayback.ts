@@ -45,6 +45,13 @@ export const startNativeRemoteAudioPlayback = async (
   onFailure: () => void,
 ): Promise<INativeRemoteAudioPlayback> => {
   const peers = new Map<string, { id: number; waveform: Float32Array }>();
+  /**
+   * The output device's own buffer, in milliseconds, as the helper reports
+   * it when the device opens (reply 6). Added to every peer's delay, so the
+   * figure is how far behind the other computer's sound plays here, not only
+   * how much waits in this end's buffer.
+   */
+  let outputMs = 0;
   let closed = false;
   let failed = false;
   let closing: Promise<void> | undefined;
@@ -64,6 +71,11 @@ export const startNativeRemoteAudioPlayback = async (
         fail();
         return;
       }
+      if (reply.kind === 6 && reply.payload.byteLength === 8) {
+        const held = reply.payload.readDoubleLE(0);
+        outputMs = Number.isFinite(held) && held >= 0 ? held : 0;
+        return;
+      }
       if (reply.kind !== 5 || reply.payload.byteLength !== 24) {
         return;
       }
@@ -81,7 +93,7 @@ export const startNativeRemoteAudioPlayback = async (
       ) {
         onMeter({
           sourceId: found[0],
-          bufferedMs,
+          bufferedMs: bufferedMs + outputMs,
           peak,
           rms,
           waveform: new Float32Array(found[1].waveform),

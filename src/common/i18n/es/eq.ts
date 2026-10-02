@@ -443,19 +443,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'No se encontraron otras salidas',
   'extraOutput.statusOff': 'Apagada',
   'extraOutput.volume': 'Volumen',
-  'extraOutput.mode.title': 'Cómo sigue el ritmo',
-  'extraOutput.mode.video.title': 'Juego/Vídeo',
-  'extraOutput.mode.video.body':
-    'Se mantiene a unas centésimas de segundo de la imagen y se vuelve a sincronizar solo tras un tropiezo.',
-  'extraOutput.mode.video.buffer': 'Inicio ~30 ms',
-  'extraOutput.mode.music.title': 'Música',
-  'extraOutput.mode.music.body':
-    'Guarda una décima de segundo de reserva para no entrecortarse nunca.',
-  'extraOutput.mode.music.buffer': 'Inicio ~100 ms',
-  'extraOutput.latency.video':
-    'El sonido duplicado queda lo bastante cerca de una pantalla para que los labios cuadren. Si oyes las dos salidas desde el mismo sitio puedes notar un ligero doblado.',
-  'extraOutput.latency.music':
-    'El sonido duplicado llega con una décima de segundo de retraso y nunca se entrecorta. Bien para otra habitación; para una pantalla cambia a Juego/Vídeo.',
+  'extraOutput.latency':
+    'Cada segunda salida sigue el ritmo sola, como Compartir audio: empieza unos 30 ms por detrás, añade un poco solo tras un corte y lo devuelve cuando todo se estabiliza. Si la oyes desde el mismo sitio que la salida principal puedes notar un ligero doblado.',
+  'extraOutput.delay': '{milliseconds} ms por detrás',
+  'extraOutput.delayFrom': 'Sonido de {name}: {milliseconds} ms por detrás',
   'extraOutput.virtual':
     'Hay un controlador de enrutamiento instalado. Apunta tus aplicaciones a él y ambas salidas quedan sincronizadas; luego da a cada una su propio perfil arriba.',
   'extraOutput.ambiguous':

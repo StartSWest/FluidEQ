@@ -143,6 +143,7 @@ const library: Partial<Dictionary> = {
   'library.nothingPlayingHint': '再生するものを選んでください',
   'library.systemAudio': 'システム音声',
   'library.remoteAudio': 'リモート再生 · {name}',
+  'library.remoteAudioDelay': 'リモート再生 · {name} · {milliseconds} ms',
 
   'library.trackActions': 'この曲をどうしますか',
   'library.browse.playlist': 'プレイリスト',

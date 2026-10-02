@@ -438,19 +438,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'ほかの出力が見つかりません',
   'extraOutput.statusOff': 'オフ',
   'extraOutput.volume': '音量',
-  'extraOutput.mode.title': '追従のしかた',
-  'extraOutput.mode.video.title': 'ゲーム/動画',
-  'extraOutput.mode.video.body':
-    '映像から数百分の一秒以内に収まり、途切れたあとは自動で同期し直します。',
-  'extraOutput.mode.video.buffer': '開始時 約30 ms',
-  'extraOutput.mode.music.title': '音楽',
-  'extraOutput.mode.music.body':
-    '10 分の 1 秒を余裕として確保し、途切れません。',
-  'extraOutput.mode.music.buffer': '開始時 約100 ms',
-  'extraOutput.latency.video':
-    'ミラーした音は口の動きと合う程度に画面に追従します。同じ場所で両方の出力が聞こえると、わずかに二重に聞こえることがあります。',
-  'extraOutput.latency.music':
-    'ミラーした音は約 10 分の 1 秒遅れて届き、途切れません。別の部屋なら十分です。画面と合わせるならゲーム/動画に切り替えてください。',
+  'extraOutput.latency':
+    '2 つめの出力は「音声を共有」と同じように自分でタイミングを合わせます。約 30 ms 遅れで始まり、途切れたときだけ少し余裕を増やし、安定すると元に戻します。メインの出力と同じ場所で聞くと、わずかに二重に聞こえることがあります。',
+  'extraOutput.delay': '{milliseconds} ms 遅れ',
+  'extraOutput.delayFrom': '{name} の音：{milliseconds} ms 遅れ',
   'extraOutput.virtual':
     'ルーティング用ドライバーが入っています。アプリの出力先をそちらに向ければ両方の出力がずれません。その上で、上の設定で各出力に個別のプロファイルを割り当ててください。',
   'extraOutput.ambiguous':

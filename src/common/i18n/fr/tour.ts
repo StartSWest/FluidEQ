@@ -407,12 +407,12 @@ const tour: Partial<Dictionary> = {
   'tour.output.point3':
     'Un seul lecteur : lancer quelque chose dans FluidEQ met le reste de la machine en pause, et inversement.',
   'tour.output.point4':
-    'Jeu/Vidéo démarre avec environ 30 ms de réserve et se resynchronise après une interruption ; Musique démarre avec environ 100 ms pour une écoute plus fluide. Le tampon de l’appareil ajoute du retard.',
+    'Chaque sortie suit le rythme toute seule : environ 30 ms de retard au départ, un peu plus seulement après une coupure, et son retard affiché en millisecondes — y compris le son d’un autre ordinateur quand Partager l’audio le joue ici.',
   'tour.output.how':
-    'Ouvrez l’onglet Égaliseur puis Deuxième sortie à droite. Activez un appareil, choisissez son profil sous son nom, réglez le volume et sélectionnez Jeu/Vidéo ou Musique.',
+    'Ouvrez l’onglet Égaliseur puis Deuxième sortie à droite. Activez un appareil, choisissez son profil sous son nom et réglez le volume ; son retard s’affiche en dessous.',
   'tour.output.open': 'Ouvrir l’Égaliseur',
   'tour.output.imageAlt':
-    'Le panneau Deuxième sortie avec un BlackShark V2 Pro activé, son sélecteur de profil, son volume et les modes Jeu/Vidéo et Musique.',
+    'Le panneau Deuxième sortie avec un BlackShark V2 Pro activé, son sélecteur de profil, son volume et son retard.',
 
   'tour.looks.kicker': 'VOTRE PROPRE VISUALISEUR',
   'tour.looks.title': 'Des styles à vous pour le graphique',

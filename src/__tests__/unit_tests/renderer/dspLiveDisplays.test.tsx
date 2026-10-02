@@ -342,14 +342,9 @@ describe('a Share Audio lane', () => {
           listen.current = listener;
           return ignore;
         }}
-        figure="—"
+        figure="120 ms"
         figureCaption="delay"
         figureWidest={['—', '888 ms']}
-        formatFigure={(meter) =>
-          meter.bufferedMs === undefined
-            ? undefined
-            : `${Math.round(meter.bufferedMs)} ms`
-        }
         switchId="lane-in"
         switchLabel="Play it here"
         isOn
@@ -369,6 +364,8 @@ describe('a Share Audio lane', () => {
     expect(pending.size).toBe(1);
     runFrame();
 
+    // The figure is the caller's, an average that moves a few times a
+    // minute: a reading draws bars and never rewrites it.
     expect(screen.getByText('120 ms')).toBeInTheDocument();
     expect(cleared).toHaveBeenCalled();
     expect(pending.size).toBe(0);

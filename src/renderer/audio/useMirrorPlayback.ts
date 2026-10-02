@@ -2,22 +2,32 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ICaptureGraph } from '../graph/useLiveOutputSpectrum';
 import {
+  createSteadyReadout,
+  type ISteadyReadout,
+} from '../remoteAudio/steadyReadout';
+import {
   startOutputMirror,
   MAX_MIRROR_VOLUME,
   type IOutputMirror,
-  type TMirrorMode,
 } from './outputMirror';
 
 export interface IDesiredMirror {
   guid: string;
   sinkId: string;
-  mode: TMirrorMode;
 }
 interface IRunningMirror extends IDesiredMirror {
   mirror: IOutputMirror;
 }
-const same = (a: IDesiredMirror, b: IDesiredMirror) =>
-  a.sinkId === b.sinkId && a.mode === b.mode;
+const same = (a: IDesiredMirror, b: IDesiredMirror) => a.sinkId === b.sinkId;
+
+/** The running mirrors, and how far behind each plays — an average that
+ * moves only when the delay really does (`steadyReadout.ts`), so the panel
+ * redraws a few times a minute, not with every report. */
+export interface IMirrorPlayback {
+  runningGuids: string[];
+  /** Milliseconds, by endpoint GUID; absent until the first report. */
+  delays: Readonly<Record<string, number>>;
+}
 
 /** Starts belong to one capture/device generation. Late promises can only
  * dispose themselves; they cannot resurrect a mirror after a switch/unmount. */
@@ -28,8 +38,10 @@ export const useMirrorPlayback = (
   native: boolean,
   sourceGuid: string | undefined,
   onError: (error: unknown) => void,
-) => {
+): IMirrorPlayback => {
   const [runningGuids, setRunningGuids] = useState<string[]>([]);
+  const [delays, setDelays] = useState<Readonly<Record<string, number>>>({});
+  const readouts = useRef(new Map<string, ISteadyReadout>());
   const [revision, setRevision] = useState(0);
   const running = useRef(new Map<string, IRunningMirror>());
   const pending = useRef(
@@ -45,7 +57,9 @@ export const useMirrorPlayback = (
     const starting = pending.current;
     generation.current += 1;
     failures.current.clear();
+    readouts.current.clear();
     setRunningGuids([]);
+    setDelays({});
     return () => {
       generation.current += 1;
       started.forEach((entry) => entry.mirror.stop());
@@ -64,6 +78,22 @@ export const useMirrorPlayback = (
         previous.every((guid, i) => guid === next[i])
           ? previous
           : next,
+      );
+      // A mirror that stopped has no delay to show, and the next one on the
+      // same output starts its average afresh.
+      [...readouts.current.keys()].forEach((guid) => {
+        if (!running.current.has(guid) && !pending.current.has(guid)) {
+          readouts.current.delete(guid);
+        }
+      });
+      setDelays((previous) =>
+        Object.keys(previous).every((guid) => running.current.has(guid))
+          ? previous
+          : Object.fromEntries(
+              Object.entries(previous).filter(([guid]) =>
+                running.current.has(guid),
+              ),
+            ),
       );
     };
     running.current.forEach((entry, guid) => {
@@ -116,10 +146,23 @@ export const useMirrorPlayback = (
         signal: token.controller.signal,
         guid: native ? wanted.guid : undefined,
         sinkId: wanted.sinkId,
-        mode: wanted.mode,
         volume: current.current.volumes[wanted.guid] ?? MAX_MIRROR_VOLUME,
         onFailure: () =>
           reportFailure(new Error('Second output playback stopped.')),
+        onDelay: (milliseconds) => {
+          if (generation.current !== epoch || token.controller.signal.aborted) {
+            return;
+          }
+          let readout = readouts.current.get(wanted.guid);
+          if (!readout) {
+            readout = createSteadyReadout();
+            readouts.current.set(wanted.guid, readout);
+          }
+          const shown = readout.next(milliseconds, performance.now());
+          if (shown !== undefined) {
+            setDelays((previous) => ({ ...previous, [wanted.guid]: shown }));
+          }
+        },
       })
         .then((mirror) => {
           const latest = current.current.desired.find(
@@ -146,8 +189,9 @@ export const useMirrorPlayback = (
         .finally(() => {
           if (pending.current.get(wanted.guid) === token) {
             pending.current.delete(wanted.guid);
-            // A mode change may have arrived while the previous start was in
-            // flight. Settling that promise, rather than a timer, retries it.
+            // A change of output may have arrived while the previous start was
+            // in flight. Settling that promise, rather than a timer, retries
+            // it.
             if (generation.current === epoch) {
               setRevision((value) => value + 1);
             }
@@ -162,5 +206,5 @@ export const useMirrorPlayback = (
       entry.mirror.setVolume(volumes[guid] ?? MAX_MIRROR_VOLUME),
     );
   }, [runningGuids, volumes]);
-  return runningGuids;
+  return { runningGuids, delays };
 };

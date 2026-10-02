@@ -8,8 +8,12 @@
 #include <mutex>
 #include <string>
 
+// Reply kinds on the frames pipe: 3 a command's answer (under its request
+// id), 4 a mirror that failed, 5 a mirror's delay in microseconds — sent
+// every `kDelayEveryRenders` of its device's periods, about twice a second.
 class MirrorControl final {
  public:
+  static constexpr std::uint32_t kDelayEveryRenders = 50;
   using Reply = bool (*)(std::uint32_t kind, std::uint32_t id, HRESULT result);
   MirrorControl(HANDLE input, std::uint32_t rate, std::uint16_t channels, Reply reply);
   ~MirrorControl();
@@ -32,4 +36,5 @@ class MirrorControl final {
   std::mutex mutex_;
   std::deque<std::string> commands_;
   std::map<std::uint32_t, std::unique_ptr<MirrorOutput>> outputs_;
+  std::map<std::uint32_t, std::uint32_t> renders_;
 };

@@ -436,19 +436,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'कोई दूसरा आउटपुट नहीं मिला',
   'extraOutput.statusOff': 'बंद',
   'extraOutput.volume': 'आवाज़',
-  'extraOutput.mode.title': 'यह कैसे साथ चलता है',
-  'extraOutput.mode.video.title': 'गेम/वीडियो',
-  'extraOutput.mode.video.body':
-    'तस्वीर से सेकंड के कुछ सौवें हिस्से के भीतर रहता है और अटकने के बाद खुद फिर से मिल जाता है।',
-  'extraOutput.mode.video.buffer': 'शुरुआत ~30 ms',
-  'extraOutput.mode.music.title': 'संगीत',
-  'extraOutput.mode.music.body':
-    'सेकंड का दसवाँ हिस्सा रिज़र्व में रखता है ताकि कभी न अटके।',
-  'extraOutput.mode.music.buffer': 'शुरुआत ~100 ms',
-  'extraOutput.latency.video':
-    'मिरर की गई आवाज़ स्क्रीन के इतने पास रहती है कि होंठ मिलते हैं। एक ही जगह से दोनों आउटपुट सुनाई दें तो हल्की दोहरी आवाज़ महसूस हो सकती है।',
-  'extraOutput.latency.music':
-    'मिरर की गई आवाज़ लगभग सेकंड के दसवें हिस्से देर से पहुँचती है और कभी नहीं अटकती। दूसरे कमरे के लिए ठीक है; स्क्रीन के लिए गेम/वीडियो चुनें।',
+  'extraOutput.latency':
+    'हर दूसरा आउटपुट “ऑडियो साझा करें” की तरह खुद तालमेल रखता है: यह लगभग 30 ms पीछे से शुरू होता है, सिर्फ़ रुकावट के बाद थोड़ा बढ़ाता है और सब स्थिर होने पर वापस घटा देता है। मुख्य आउटपुट के साथ एक ही जगह से सुनें तो हल्की दोहरी आवाज़ महसूस हो सकती है।',
+  'extraOutput.delay': '{milliseconds} ms पीछे',
+  'extraOutput.delayFrom': '{name} की आवाज़: {milliseconds} ms पीछे',
   'extraOutput.virtual':
     'एक रूटिंग ड्राइवर पहले से इंस्टॉल है। अपने ऐप्लिकेशन उसी पर भेजें, तो दोनों आउटपुट एक साथ चलेंगे; फिर ऊपर हर एक को अपनी अलग प्रोफ़ाइल दें।',
   'extraOutput.ambiguous':

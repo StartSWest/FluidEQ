@@ -407,12 +407,12 @@ const tour: Partial<Dictionary> = {
   'tour.output.point3':
     'Nur ein Player: Etwas in FluidEQ zu starten pausiert den Rest des Rechners, und umgekehrt.',
   'tour.output.point4':
-    'Spiel/Video startet mit etwa 30 ms Reserve und holt nach einer Unterbrechung auf; Musik startet mit etwa 100 ms für gleichmäßigere Wiedergabe. Der Gerätepuffer erhöht die Verzögerung.',
+    'Jede Ausgabe hält selbst Schritt: etwa 30 ms hinterher zum Start, etwas mehr nur nach einem Aussetzer, und ihre Verzögerung wird in Millisekunden angezeigt – samt dem Ton eines anderen Computers, wenn Audio teilen ihn hier abspielt.',
   'tour.output.how':
-    'Im EQ-Tab rechts Zweite Ausgabe öffnen. Ein Gerät einschalten, unter seinem Namen das EQ-Profil wählen, die Lautstärke einstellen und Spiel/Video oder Musik auswählen.',
+    'Im EQ-Tab rechts Zweite Ausgabe öffnen. Ein Gerät einschalten, unter seinem Namen das EQ-Profil wählen und die Lautstärke einstellen; darunter steht seine Verzögerung.',
   'tour.output.open': 'EQ öffnen',
   'tour.output.imageAlt':
-    'Zweite Ausgabe mit aktiviertem BlackShark V2 Pro, EQ-Profilwähler, Lautstärkeregler und den Modi Spiel/Video und Musik.',
+    'Zweite Ausgabe mit aktiviertem BlackShark V2 Pro, EQ-Profilwähler, Lautstärkeregler und Verzögerung.',
 
   'tour.looks.kicker': 'IHR EIGENER VISUALIZER',
   'tour.looks.title': 'Eigene Darstellungen für das Diagramm',

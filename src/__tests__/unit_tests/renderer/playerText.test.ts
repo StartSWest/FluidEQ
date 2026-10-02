@@ -110,4 +110,17 @@ describe('the source’s name', () => {
       t('library.remoteAudio', { name: 'Laptop' }),
     );
   });
+
+  it('says how far behind another computer’s sound plays, once that is known', () => {
+    expect(
+      sourceLabel(
+        source({ owner: 'remote', origin: 'SWEST-YOGA', delayMs: 144.6 }),
+        t,
+      ),
+    ).toBe('Playing remote · SWEST-YOGA · 145 ms');
+    // POSITIVE CONTROL: only another computer's sound carries one.
+    expect(sourceLabel(source({ owner: 'library', delayMs: 145 }), t)).toBe(
+      en['tabs.library'],
+    );
+  });
 });

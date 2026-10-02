@@ -48,12 +48,6 @@ type TBuilt = string | readonly [keys: string, template: string];
  */
 const BUILDERS: Record<string, readonly TBuilt[]> = {
   'src/common/dsp/presetOrder.ts': ['dsp.eqPreset.*'],
-  'src/renderer/ExtraOutputs.tsx': [
-    'extraOutput.latency.*',
-    'extraOutput.mode.*.title',
-    'extraOutput.mode.*.body',
-    'extraOutput.mode.*.buffer',
-  ],
   'src/renderer/components/BugReportDialog.tsx': [
     [
       'bugReport.{copied,issuePaste,emailOpening,emailOpened,emailOpenedPartial,emailNotOpened}',

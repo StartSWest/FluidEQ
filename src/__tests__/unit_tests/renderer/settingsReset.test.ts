@@ -35,7 +35,6 @@ const KEPT = [
   'fluideq.apoRestartRecommended',
   'fluideq.dsp.rackHeldForApo.v1',
   'fluideq.engineNeverRanRepairs',
-  'fluideq-mirror-mode',
   'fluideq-mirror-target-guids',
   'fluideq-mirror-volumes',
   'fluideq.karaoke.microphoneId',

@@ -9,10 +9,9 @@ export const outputMirrorBridge = {
   startOutputMirror: (
     token: string,
     guid: string,
-    mode: 'music' | 'video',
     volume: number,
   ): Promise<boolean> =>
-    ipcRenderer.invoke('output-mirror-start', token, guid, mode, volume),
+    ipcRenderer.invoke('output-mirror-start', token, guid, volume),
   stopOutputMirror: (token: string): Promise<void> =>
     ipcRenderer.invoke('output-mirror-stop', token),
   setOutputMirrorVolume: (token: string, volume: number): Promise<void> =>
@@ -22,5 +21,18 @@ export const outputMirrorBridge = {
       listener(token);
     ipcRenderer.on('output-mirror-failed', receive);
     return () => ipcRenderer.removeListener('output-mirror-failed', receive);
+  },
+  /** How far behind each running mirror plays, in milliseconds, about twice
+   * a second (`mirror_control.h`). */
+  onOutputMirrorDelay: (
+    listener: (token: string, milliseconds: number) => void,
+  ) => {
+    const receive = (
+      _event: IpcRendererEvent,
+      token: string,
+      milliseconds: number,
+    ) => listener(token, milliseconds);
+    ipcRenderer.on('output-mirror-delay', receive);
+    return () => ipcRenderer.removeListener('output-mirror-delay', receive);
   },
 };

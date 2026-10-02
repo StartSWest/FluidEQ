@@ -416,18 +416,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': '未找到其他输出',
   'extraOutput.statusOff': '关闭',
   'extraOutput.volume': '音量',
-  'extraOutput.mode.title': '跟随方式',
-  'extraOutput.mode.video.title': '游戏/视频',
-  'extraOutput.mode.video.body':
-    '与画面相差不过百分之几秒，卡顿后会自动重新对齐。',
-  'extraOutput.mode.video.buffer': '起始约 30 ms',
-  'extraOutput.mode.music.title': '音乐',
-  'extraOutput.mode.music.body': '预留十分之一秒，保证永不卡顿。',
-  'extraOutput.mode.music.buffer': '起始约 100 ms',
-  'extraOutput.latency.video':
-    '镜像的声音与屏幕足够贴近，口型能对上。若在同一位置同时听到两路输出，可能察觉轻微重影。',
-  'extraOutput.latency.music':
-    '镜像的声音约晚十分之一秒到达，且永不卡顿。放在另一个房间没问题；配合屏幕请切换到游戏/视频。',
+  'extraOutput.latency':
+    '每路第二输出都会像“共享音频”一样自行保持同步：开始时约落后 30 ms，只有出现中断才稍微增加缓冲，稳定后再减回来。若与主输出在同一位置同时收听，可能察觉轻微重影。',
+  'extraOutput.delay': '落后 {milliseconds} 毫秒',
+  'extraOutput.delayFrom': '{name} 的声音：落后 {milliseconds} 毫秒',
   'extraOutput.virtual':
     '系统里已装有路由驱动。把应用的输出指向它，两路输出就能保持同步；然后在上面给每一路各自的配置。',
   'extraOutput.ambiguous':
