@@ -797,24 +797,19 @@ const GraphViewMenu = ({
               being looked at rather than to the graph: in every view mode,
               and kept for that visualizer. */}
             {sceneLookId && <SceneResponseMenu lookId={sceneLookId} />}
-
-            {/* And how hard it may drive the GPU: one choice for every
-              visualizer, so it sits with the rows for this one.
-
-              Heading and divider with it, not around it: a heading over an
-              empty stretch of menu is worse than no heading, and there is
-              nothing to draw here while the plot carries no visualizer. */}
           </Group>
 
-          {sceneLookId && (
-            <Group
-              title={t(SETTINGS_GROUP_TITLE.drawing)}
-              // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
-              {...groupProps('drawing')}
-            >
-              <ScenePerformanceMenu />
-            </Group>
-          )}
+          {/* Standard looks use the same GPU engine, with their own saved
+              drawing choices. Gating this on a Plus id hid their controls. */}
+          <Group
+            title={`${t(SETTINGS_GROUP_TITLE.drawing)} · ${t(
+              sceneLookId ? 'graph.scene.badge' : 'graph.picker.styles',
+            )}`}
+            // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
+            {...groupProps('drawing')}
+          >
+            <ScenePerformanceMenu group={sceneLookId ? 'plus' : 'standard'} />
+          </Group>
 
           {/* Two sliders, in the menu rather than in the strip beside it.
 

@@ -3,6 +3,10 @@ import type { ComponentProps } from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import GraphViewMenu from 'renderer/graph/GraphViewMenu';
 import type { TGraphCurve } from 'renderer/utils/graphStyle';
+import {
+  readScenePerformance,
+  resetScenePerformanceForTesting,
+} from 'renderer/utils/scenePerformanceStore';
 
 const renderMenuForSizing = (
   overrides: Partial<ComponentProps<typeof GraphViewMenu>> = {},
@@ -47,6 +51,29 @@ const renderMenuForSizing = (
   );
 
 describe('GraphViewMenu curve toggles', () => {
+  it('offers drawing controls for a Standard visualizer and saves them separately from Plus', () => {
+    window.localStorage.removeItem('fluideq.standardPerformance');
+    resetScenePerformanceForTesting();
+    const plus = readScenePerformance('plus');
+    const { unmount } = renderMenuForSizing();
+    fireEvent.click(screen.getByRole('button', { name: 'View' }));
+    expect(
+      screen.getByRole('menuitem', { name: 'Resolution Full' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', { name: 'Scaler Plain' }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Smooth edges Off' }));
+    expect(
+      screen.getByRole('menuitem', { name: 'Smooth edges Fast' }),
+    ).toBeInTheDocument();
+    expect(readScenePerformance('standard').smoothing).toBe('fast');
+    expect(readScenePerformance('plus')).toEqual(plus);
+    unmount();
+    window.localStorage.removeItem('fluideq.standardPerformance');
+    resetScenePerformanceForTesting();
+  });
+
   it('shows every active curve in APO application order', () => {
     const onToggleCurve = jest.fn();
     const curveToggles: { curve: TGraphCurve; label: string }[] = [

@@ -134,19 +134,18 @@ describe('the graph View menu', () => {
       en[OWN_GROUP_TITLE.graph],
       en[SETTINGS_GROUP_TITLE.picture],
       en[SETTINGS_GROUP_TITLE.visualizer],
-      // No visualizer on the plot, so nothing is drawn under "How it is
-      // drawn" and the heading stays away rather than heading nothing.
+      `${en[SETTINGS_GROUP_TITLE.drawing]} · ${en['graph.picker.styles']}`,
     ]);
   });
 
-  it('adds how it is drawn once a visualizer is on the plot', () => {
+  it('identifies Plus drawing settings when a Plus visualizer is on the plot', () => {
     renderMenu({ sceneLookId: 'aurora' });
     openMenu();
     expect(headingsShown()).toEqual([
       en[OWN_GROUP_TITLE.graph],
       en[SETTINGS_GROUP_TITLE.picture],
       en[SETTINGS_GROUP_TITLE.visualizer],
-      en[SETTINGS_GROUP_TITLE.drawing],
+      `${en[SETTINGS_GROUP_TITLE.drawing]} · ${en['graph.scene.badge']}`,
     ]);
   });
 

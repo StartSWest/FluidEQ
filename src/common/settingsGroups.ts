@@ -105,9 +105,9 @@ export const SETTINGS_ROWS: readonly ISettingsRow[] = [
   { id: 'response', group: 'visualizer', on: 'both' },
   { id: 'ambient', group: 'visualizer', on: 'studio' },
 
-  // How it is drawn: the same six answers in both places, because there is
-  // only one answer. The graph, the Studio and the desktop all draw under
-  // the same choice — see `common/scenePerformance.ts`.
+  // How it is drawn: Plus shares its choices across the graph, Studio and
+  // desktop. Standard looks keep a separate set on the graph; only the
+  // graphics card is app-wide — see `common/scenePerformance.ts`.
   { id: 'frameRate', group: 'drawing', on: 'both' },
   { id: 'resolution', group: 'drawing', on: 'both' },
   { id: 'floor', group: 'drawing', on: 'both' },

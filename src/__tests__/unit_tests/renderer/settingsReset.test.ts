@@ -220,6 +220,8 @@ describe('Reset all settings', () => {
       'fluideq.theme.player',
       'fluideq.studioGroupFold.song',
       'fluideq.sceneTint',
+      'fluideq.scenePerformance',
+      'fluideq.standardPerformance',
       'fluideq-rainbow',
     ];
     const kept = [

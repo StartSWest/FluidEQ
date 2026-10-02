@@ -14,6 +14,8 @@ import {
   SCENE_RESOLUTIONS,
   SCENE_SMOOTHINGS,
   SCENE_UPSCALERS,
+  type IScenePerformance,
+  type TScenePerformanceGroup,
   type TSceneAutoFloor,
   type TSceneFrameRate,
   type TSceneResolution,
@@ -125,19 +127,26 @@ function CycleRow({
 }
 
 /**
- * How hard Plus visualizers drive the GPU and how their picture is finished,
+ * How hard visualizers drive the GPU and how their picture is finished,
  * in the View menu (`common/scenePerformance.ts`): the frame rate, the
  * resolution — automatic, full, or a fixed preset brought up to size every
  * frame, as DLSS and FSR do in games — the scaler that does it, the edge
  * smoothing, and on a laptop with two graphics cards, which one the app runs
  * on. Rows that cycle on a click, as the wave orientation row does, each
  * showing its current answer where the other rows show their shortcut. One
- * choice for every visualizer: on the graph, in the Studio and on the desktop.
+ * choice per group; Plus shares its choice with the Studio and desktop.
+ * The graphics card itself is app-wide because it is selected at launch.
  */
-export default function ScenePerformanceMenu() {
+export default function ScenePerformanceMenu({
+  group = 'plus',
+}: {
+  group?: TScenePerformanceGroup;
+}) {
   const { t } = useTranslation();
   const { frameRate, resolution, autoFloor, upscaler, smoothing } =
-    useScenePerformance();
+    useScenePerformance(group);
+  const update = (next: Partial<IScenePerformance>) =>
+    setScenePerformance(next, group);
   const onBattery = useOnBattery();
   const gpu = useGraphicsPreference();
   const frameRateValue =
@@ -161,7 +170,7 @@ export default function ScenePerformanceMenu() {
           <path d="M1.5 4.5h3.5v7H1.5zM6.25 4.5h3.5v7h-3.5zM11 4.5h3.5v7H11z" />
         }
         onCycle={() =>
-          setScenePerformance({
+          update({
             frameRate: after(SCENE_FRAME_RATES, frameRate),
           })
         }
@@ -178,7 +187,7 @@ export default function ScenePerformanceMenu() {
           </>
         }
         onCycle={() =>
-          setScenePerformance({
+          update({
             resolution: after(SCENE_RESOLUTIONS, resolution),
           })
         }
@@ -201,7 +210,7 @@ export default function ScenePerformanceMenu() {
           </>
         }
         onCycle={() =>
-          setScenePerformance({
+          update({
             autoFloor: after(SCENE_AUTO_FLOORS, autoFloor),
           })
         }
@@ -219,9 +228,7 @@ export default function ScenePerformanceMenu() {
             <path d="M13.5 2.5l-4 4" />
           </>
         }
-        onCycle={() =>
-          setScenePerformance({ upscaler: after(SCENE_UPSCALERS, upscaler) })
-        }
+        onCycle={() => update({ upscaler: after(SCENE_UPSCALERS, upscaler) })}
       />
       <CycleRow
         hint="graph.scene.smoothingHint"
@@ -235,7 +242,7 @@ export default function ScenePerformanceMenu() {
           </>
         }
         onCycle={() =>
-          setScenePerformance({
+          update({
             smoothing: after(SCENE_SMOOTHINGS, smoothing),
           })
         }

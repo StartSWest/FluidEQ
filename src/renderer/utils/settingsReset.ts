@@ -59,6 +59,7 @@ export const SETTING_STEMS: readonly string[] = [
   // hard the graphics card works.
   'fluideq.sceneParams',
   'fluideq.scenePerformance',
+  'fluideq.standardPerformance',
   'fluideq.sceneResponse',
   'fluideq.sceneWaves',
   // The window: colours, Rainbow, Brightness, Transparency, a scene's own
