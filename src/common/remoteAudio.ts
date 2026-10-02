@@ -54,10 +54,44 @@ export type TRemoteTransportCommand =
  * holding the key is still not trusted to throw the playhead anywhere. */
 export const REMOTE_NUDGE_LIMIT_MS = 60_000;
 
+/**
+ * What one computer does with a link, as it tells the other.
+ *
+ * Share Audio both ways: each linked computer may send its sound and may play
+ * the other's, and each says which. `plays: false` asks the other to stop
+ * sending — there is nobody to hear it — and `sends: false` tells it that the
+ * quiet it hears is a choice. A computer that never says anything is a
+ * FluidEQ from before both ways: it plays what it is sent if it made the
+ * code, and sends if it joined, and is never sent anything it cannot play.
+ */
+export interface IRemoteDuplex {
+  sends: boolean;
+  plays: boolean;
+}
+
 /** Small control messages; the lossless PCM stream travels separately. */
 export type TRemoteAudioSignal =
-  | { kind: 'peer-ready'; deviceName: string; address?: string }
-  | { kind: 'stream-mode'; mode: TRemoteAudioStreamMode }
+  /**
+   * Raised on this computer by the LAN layer when a link authenticates, never
+   * accepted from the wire (`remoteAudioTransport.ts`). `deviceName` is the
+   * OTHER computer's; `joined` says this computer pasted its code.
+   */
+  | {
+      kind: 'peer-ready';
+      deviceName: string;
+      address?: string;
+      joined?: boolean;
+    }
+  /**
+   * `duplex` rides here, on a message every version already accepts, because
+   * a kind an older peer does not know closes its socket: the validator
+   * refuses the whole packet. Extra fields on a known kind are ignored there.
+   */
+  | {
+      kind: 'stream-mode';
+      mode: TRemoteAudioStreamMode;
+      duplex?: IRemoteDuplex;
+    }
   /**
    * Sender → listener. Absent `playing` means the sender's bar is empty.
    *
@@ -74,7 +108,19 @@ export type TRemoteAudioSignal =
    * it — a pause starts nothing, and the player its sender's bar falls
    * through to was playing already — so a pause cannot travel in a circle.
    */
-  | { kind: 'now-playing'; playing?: IRemoteNowPlaying; started?: boolean }
+  | {
+      kind: 'now-playing';
+      playing?: IRemoteNowPlaying;
+      started?: boolean;
+      /**
+       * The one-player switch, CHANGED on the sending computer — present
+       * only on the message that carries the change, never as a statement of
+       * where the switch stands (`singlePlayer.ts`). Here rather than a kind
+       * of its own for the reason `duplex` rides `stream-mode`: an older
+       * FluidEQ ignores a field it does not know and refuses a kind.
+       */
+      singlePlayer?: boolean;
+    }
   /** Listener → sender: a press on the listener's bar, carried out there. */
   | ({ kind: 'transport' } & TRemoteTransportCommand)
   | { kind: 'stop' };
@@ -105,7 +151,12 @@ export interface ILanRemoteAudioNetworkStats {
 }
 
 export type TLanSavedRole = 'listener' | 'sender';
-export type TRemoteAudioStopMode = 'keep-active' | 'pause' | 'forget';
+/**
+ * How a Share Audio session ends. `unlink` forgets the code this computer
+ * pasted and keeps its own, so its code stays the same for the next link.
+ */
+export type TRemoteAudioStopMode =
+  'keep-active' | 'pause' | 'forget' | 'unlink';
 export type TRemoteAudioStreamMode = 'music' | 'video';
 
 export type TLanRestoreResult =
@@ -191,6 +242,11 @@ export const isRemoteTransportCommand = (
     Number.isFinite(value.deltaMs) &&
     Math.abs(value.deltaMs) <= REMOTE_NUDGE_LIMIT_MS);
 
+export const isRemoteDuplex = (value: unknown): value is IRemoteDuplex =>
+  isRecord(value) &&
+  typeof value.sends === 'boolean' &&
+  typeof value.plays === 'boolean';
+
 export const isRemoteAudioSignal = (
   value: unknown,
 ): value is TRemoteAudioSignal =>
@@ -198,10 +254,13 @@ export const isRemoteAudioSignal = (
   (value.kind === 'stop' ||
     (value.kind === 'now-playing' &&
       (value.playing === undefined || isRemoteNowPlaying(value.playing)) &&
-      (value.started === undefined || typeof value.started === 'boolean')) ||
+      (value.started === undefined || typeof value.started === 'boolean') &&
+      (value.singlePlayer === undefined ||
+        typeof value.singlePlayer === 'boolean')) ||
     (value.kind === 'transport' && isRemoteTransportCommand(value)) ||
     (value.kind === 'stream-mode' &&
-      (value.mode === 'music' || value.mode === 'video')) ||
+      (value.mode === 'music' || value.mode === 'video') &&
+      (value.duplex === undefined || isRemoteDuplex(value.duplex))) ||
     (value.kind === 'peer-ready' &&
       typeof value.deviceName === 'string' &&
       value.deviceName.trim().length > 0 &&

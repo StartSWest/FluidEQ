@@ -6,76 +6,103 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.eyebrow': 'LAN-AUDIOVERBINDUNG',
   'remoteAudio.title': 'Audio zwischen Ihren Computern teilen',
   'remoteAudio.subtitle':
-    'Wählen Sie eine Rolle für diesen Computer. Der Empfänger ist der PC mit Ihrem Headset; alle anderen PCs können sich als Sender verbinden.',
-  'remoteAudio.choose': 'Rolle dieses Computers wählen',
+    'Verbinden Sie zwei Computer, und jeder spielt den Ton des anderen. Jeder sendet seinen Ton unverändert; der Computer, an dem Sie hören, wendet seinen eigenen EQ, seine Kurven und DSP an.',
   'remoteAudio.security': 'Verbindungseigenschaften',
   'remoteAudio.badge.local': 'Nur privates LAN',
   'remoteAudio.badge.lossless': 'Verlustfreie Float32-PCM-Übertragung',
   'remoteAudio.badge.encrypted': 'AES-256-GCM-verschlüsselt',
-  'remoteAudio.listen.kicker': 'EMPFÄNGER · SERVER',
-  'remoteAudio.listen.title': 'Audio auf diesem Computer wiedergeben',
-  'remoteAudio.listen.body':
-    'Verwenden Sie dies auf dem Computer mit Headset oder Lautsprechern. Er nimmt einen oder mehrere Sender an und spielt sie über die in FluidEQ ausgewählte Ausgabe ab.',
-  'remoteAudio.listen.start': 'Verbindungscode erstellen',
-  'remoteAudio.listen.newCode': 'Neuen Code erstellen',
-  'remoteAudio.listen.stop': 'Empfang beenden',
-  'remoteAudio.send.kicker': 'SENDER · CLIENT',
-  'remoteAudio.send.title': 'Audio dieses Computers senden',
-  'remoteAudio.send.body':
-    'Führen Sie dies auf jedem Computer aus, den Sie hören möchten. Fügen Sie den Code des Headset-Computers ein.',
-  'remoteAudio.send.codeLabel': 'Verbindungscode',
-  'remoteAudio.send.codePlaceholder': 'FLUIDEQ-LAN-2… einfügen',
-  'remoteAudio.send.start': 'Verbinden und senden',
-  'remoteAudio.send.destination': 'Wiedergabe auf {name}',
-  'remoteAudio.send.stop': 'Senden beenden',
-  'remoteAudio.send.readyHint':
-    'Der gespeicherte Code bleibt nach dem Stoppen hier.',
-  'remoteAudio.status.preparing': 'Wird vorbereitet…',
-  'remoteAudio.status.waiting': 'Warten auf Computer',
-  'remoteAudio.status.connecting': 'Verbindung wird hergestellt…',
-  'remoteAudio.status.connectedOne': '{count} Computer verbunden',
-  'remoteAudio.status.connectedMany': '{count} Computer verbunden',
-  'remoteAudio.status.sending': 'Verlustfreies Audio wird gesendet',
-  'remoteAudio.status.playbackBlocked': 'Zum Hören Fortsetzen drücken',
-  'remoteAudio.status.disconnected': 'Empfänger getrennt',
-  'remoteAudio.monitor.title': 'Live-Verbindung',
-  'remoteAudio.monitor.inactive': 'Wählen Sie eine Rolle, um zu beginnen',
-  'remoteAudio.monitor.ready': 'Bereit für einen Verbindungscode',
-  'remoteAudio.monitor.waveformFor': 'Live-Audiowellenform für {name}',
-  'remoteAudio.monitor.buffer': 'Wiedergabe {milliseconds} ms',
-  'remoteAudio.monitor.sendQueue': 'Sendewarteschlange {milliseconds} ms',
-  'remoteAudio.monitor.noRole': 'Keine Rolle ausgewählt',
-  'remoteAudio.monitor.noSources': 'Keine Quell-Computer verbunden',
-  'remoteAudio.monitor.waitingSource': 'Warten auf einen Sender',
-  'remoteAudio.monitor.outgoing': 'Von diesem Computer gesendetes Audio',
-  'remoteAudio.monitor.transmitting': 'Übertragung',
-  'remoteAudio.monitor.receiving': 'Empfängt',
-  'remoteAudio.monitor.quiet': 'Still',
-  'remoteAudio.monitor.nowPlaying': 'Läuft gerade',
-  'remoteAudio.monitor.paused': 'Pausiert',
-  'remoteAudio.monitor.peakLevel': 'Live-Spitzenpegel',
-  'remoteAudio.monitor.peak': 'Spitze {decibels} dB',
-  'remoteAudio.monitor.networkUsage': '{megabits} Mbit/s LAN',
-  'remoteAudio.monitor.networkHealthy': 'Netzwerk stabil',
-  'remoteAudio.monitor.networkQueued': '{milliseconds} ms in Warteschlange',
-  'remoteAudio.code.title': 'Weitere Computer koppeln',
-  'remoteAudio.code.hint':
-    'Kopieren Sie einen Code auf jeden Sender. Die Kopplung bleibt beim Schließen der App und nach PC-Neustarts gespeichert. Bei mehreren Adressen nehmen Sie das gemeinsame Netzwerk beider Computer.',
+  'remoteAudio.link.section': 'Computer verbinden',
+  'remoteAudio.link.thisComputer': 'Dieser Computer',
+  'remoteAudio.link.thisHint':
+    'Fügen Sie diesen Code auf dem anderen Computer ein oder den Code des anderen Computers hier. Beides funktioniert.',
+  'remoteAudio.link.or': 'oder',
+  'remoteAudio.link.otherComputer': 'Code des anderen Computers',
+  'remoteAudio.link.codeLabel': 'Verbindungscode',
+  'remoteAudio.link.placeholder': 'FLUIDEQ-LAN-2… einfügen',
+  'remoteAudio.link.start': 'Verbinden',
+  'remoteAudio.link.otherHint':
+    'Beide Computer spielen sich sofort gegenseitig. Schalten Sie später eine Richtung aus, wenn Sie nur eine möchten.',
+  'remoteAudio.link.once':
+    'Nur einmal nötig. Verbundene Computer finden sich nach einem Neustart von selbst wieder, von beiden Seiten.',
+  'remoteAudio.rule.echoTitle': 'In beide Richtungen, ohne Echo',
+  'remoteAudio.rule.echo':
+    'Jeder Computer sendet nur, was er selbst abspielt — nie den Ton, den er empfängt —, sodass nichts zurückkommt.',
+  'remoteAudio.rule.eqTitle': 'Ihr EQ dort, wo Sie hören',
+  'remoteAudio.rule.eq':
+    'Der Ton geht unverändert hinaus. Der Computer, an dem Sie ihn hören, wendet seinen EQ, seine Kopfhörerkurve und DSP an — einmal.',
+  'remoteAudio.rule.steadyTitle': 'Stabil, ohne Abdriften',
+  'remoteAudio.rule.steady':
+    'Etwa 30 ms dahinter und dort gehalten: Die beiden Uhren laufen im Gleichschritt, ohne Aussetzer und ohne langsames Abdriften.',
+  'remoteAudio.linked.section': 'Verbunden',
+  'remoteAudio.linked.cardLabel': 'Verbindung mit {name}',
+  'remoteAudio.linked.bothWays': 'In beide Richtungen',
+  'remoteAudio.linked.incomingOnly': 'Nur eingehend',
+  'remoteAudio.linked.outgoingOnly': 'Nur ausgehend',
+  'remoteAudio.linked.paused': 'Pausiert',
+  'remoteAudio.linked.looking': '{name} wird im Netzwerk gesucht…',
+  'remoteAudio.linked.lossless': 'Verlustfrei',
+  'remoteAudio.linked.unlink': 'Trennen',
+  'remoteAudio.linked.noEcho':
+    'Kein Echo: Der Ton von {name} wird nie dorthin zurückgeschickt.',
+  'remoteAudio.linked.untouched':
+    'Geht in beide Richtungen unverändert — jeder Computer wendet seinen eigenen EQ und DSP an.',
+  'remoteAudio.lane.from': 'Von {name}',
+  'remoteAudio.lane.to': 'An {name}',
+  'remoteAudio.lane.playsHere': 'Spielt hier',
+  'remoteAudio.lane.yourSound': 'Ihr Ton',
+  'remoteAudio.lane.playItHere': 'Hier abspielen',
+  'remoteAudio.lane.sendMySound': 'Meinen Ton senden',
+  'remoteAudio.lane.delay': 'Verzögerung',
+  'remoteAudio.lane.sent': 'gesendet',
+  'remoteAudio.lane.milliseconds': '{milliseconds} ms',
+  'remoteAudio.lane.megabits': '{megabits} Mbit/s',
+  'remoteAudio.lane.receiving': 'Empfang läuft',
+  'remoteAudio.lane.paused': 'Pausiert',
+  'remoteAudio.lane.inQuiet': 'Auf {name} läuft nichts',
+  'remoteAudio.lane.inOff':
+    'Ausgeschaltet: Der Ton von {name} wird auf diesem Computer nicht abgespielt.',
+  'remoteAudio.lane.inNotSent': 'Bei {name} ist „Meinen Ton senden“ aus.',
+  'remoteAudio.lane.inOld':
+    '{name} braucht das neueste FluidEQ, um seinen Ton hierher zu senden.',
+  'remoteAudio.lane.inOneWay':
+    'Wiedergabe in beide Richtungen erfordert Windows auf diesem Computer.',
+  'remoteAudio.lane.outQuiet': 'Auf diesem Computer läuft nichts',
+  'remoteAudio.lane.outOff': 'Senden aus. {name} hört diesen Computer nicht.',
+  'remoteAudio.lane.outNotPlayed': 'Bei {name} ist „Hier abspielen“ aus.',
+  'remoteAudio.lane.outOld':
+    '{name} braucht das neueste FluidEQ, um den Ton dieses Computers abzuspielen.',
+  'remoteAudio.lane.outOneWay':
+    'Senden in beide Richtungen erfordert Windows auf diesem Computer.',
+  'remoteAudio.lane.outFailed':
+    'Der Ton dieses Computers konnte nicht aufgenommen werden. Schalten Sie „Meinen Ton senden“ aus und wieder ein, um es erneut zu versuchen.',
+  'remoteAudio.another.section': 'Weiteren Computer verbinden',
+  'remoteAudio.another.hub':
+    'Fügen Sie den Code dieses Computers auf einem anderen Computer ein. Jeder verbundene Computer bekommt oben seine eigene Zeile.',
+  'remoteAudio.another.spoke':
+    'Um einen dritten Computer zu verbinden, fügen Sie dort den Code von {name} ein: Ein Computer verbindet sich mit dem, dessen Code er verwendet.',
+  'remoteAudio.singlePlayer.title': 'Nur ein Player',
+  'remoteAudio.singlePlayer.body':
+    'gilt auch für verbundene Computer: Wird auf einem etwas gestartet, pausiert, was auf dem anderen lief.',
   'remoteAudio.code.copy': 'Code kopieren',
   'remoteAudio.code.copied': 'Kopiert',
   'remoteAudio.code.forAddress': 'Kopplungscode für {address}',
+  'remoteAudio.status.preparing': 'Wird vorbereitet…',
+  'remoteAudio.status.playbackBlocked': 'Zum Hören Fortsetzen drücken',
   'remoteAudio.resume': 'Audio fortsetzen',
+  'remoteAudio.retry': 'Erneut versuchen',
+  'remoteAudio.monitor.networkHealthy': 'Netzwerk stabil',
+  'remoteAudio.monitor.networkQueued': '{milliseconds} ms in Warteschlange',
   'remoteAudio.note.title': 'Leise anfangen.',
   'remoteAudio.note.body':
-    'Mehrere Computer werden gemischt und ihre Lautstärke kann sich schnell addieren. Senken Sie die Headset-Lautstärke vor der ersten Verbindung. Nur ein neuer Code trennt gespeicherte Kopplungen.',
+    'Zwei gleichzeitig spielende Computer addieren sich. Drehen Sie die Lautstärke vor der ersten Verbindung herunter.',
   'remoteAudio.error.lan':
     'FluidEQ konnte die lokale Verbindung nicht öffnen. Prüfen Sie, ob beide Computer im selben privaten Netzwerk sind und die Firewall FluidEQ zulässt.',
   'remoteAudio.error.capture':
-    'FluidEQ konnte den Systemton dieses Computers nicht erfassen. Prüfen Sie das aktuelle Ausgabegerät, stoppen Sie und versuchen Sie es erneut.',
+    'FluidEQ konnte den Systemton dieses Computers nicht aufnehmen. Prüfen Sie das aktuelle Ausgabegerät und versuchen Sie es erneut.',
   'remoteAudio.error.playback':
     'FluidEQ konnte die verlustfreie Audio-Engine nicht starten. Starten Sie FluidEQ neu und versuchen Sie es erneut.',
   'remoteAudio.error.connection':
-    'Die verschlüsselte Audioverbindung wurde beendet. Der gespeicherte Code bleibt unten; verbinden Sie sich erneut, sobald der Empfänger bereit ist.',
+    'Die verschlüsselte Audioverbindung wurde unterbrochen. FluidEQ sucht weiter nach dem anderen Computer und verbindet sich von selbst, sobald er wieder da ist.',
 };
 
 export default remoteAudio;

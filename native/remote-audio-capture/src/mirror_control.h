@@ -11,7 +11,7 @@
 class MirrorControl final {
  public:
   using Reply = bool (*)(std::uint32_t kind, std::uint32_t id, HRESULT result);
-  MirrorControl(std::uint32_t rate, std::uint16_t channels, Reply reply);
+  MirrorControl(HANDLE input, std::uint32_t rate, std::uint16_t channels, Reply reply);
   ~MirrorControl();
   bool valid() const { return thread_ != nullptr && event_ != nullptr; }
   HANDLE event() const { return event_; }
@@ -22,6 +22,7 @@ class MirrorControl final {
  private:
   static DWORD WINAPI read_commands(void* context);
   void fail(std::uint32_t id, HRESULT result);
+  HANDLE input_;
   std::uint32_t rate_;
   std::uint16_t channels_;
   Reply reply_;

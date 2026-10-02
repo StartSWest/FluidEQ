@@ -17,6 +17,7 @@ import { IDspSettings } from '../../common/dsp/chain';
 import { setPlayerProcessingLatency } from './processingLatency';
 import { usePresetTone } from './presetToneStore';
 import {
+  engineOwnsRack,
   playerRunsRack,
   rackFor,
   rackSuspension,
@@ -343,7 +344,7 @@ export const useNativeMeters = (): void => {
   const nativeState = useDspNativeState();
   const gate = useRackGate();
   const settings = useDspSettings();
-  const systemOwnsMeters = gate.engine === 'fluid' && !gate.libraryAudible;
+  const systemOwnsMeters = engineOwnsRack(gate);
   useSystemMeters(
     systemOwnsMeters && settings.enabled && rackSuspension(gate) === undefined,
   );

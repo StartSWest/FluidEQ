@@ -57,6 +57,12 @@ const createRemoteAudioTransport = ({
           if (message.peerId !== peerId) {
             throw new Error('Peer identity changed.');
           }
+          // A link is announced by the LAN layer on this computer when it
+          // authenticates. One arriving from the other end would be that
+          // computer naming itself again, under any name it liked.
+          if (message.signal.kind === 'peer-ready') {
+            return;
+          }
           emitSignal(message);
           return;
         }

@@ -93,7 +93,7 @@ const app = {
     'Captures what this PC plays, before the equalizer, for the Share Audio tab, a second output and Smart EQ. Runs only while one of them is in use.',
   'app.processes.name.sharePlayback': 'Shared audio playback',
   'app.processes.what.sharePlayback':
-    'Plays the sound another FluidEQ shares with this PC. Runs only while you are listening to it.',
+    'Plays the sound another FluidEQ shares with this PC, and starts the audio captures, so what this PC sends never carries that sound back. Runs only while one of them is in use.',
   'app.processes.name.volume': 'System volume',
   'app.processes.what.volume':
     'Follows Windows’ volume and mute for FluidEQ’s volume sliders, and sets it when you move one. Runs only while a slider is on screen.',

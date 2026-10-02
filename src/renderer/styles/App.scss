@@ -3251,14 +3251,16 @@ $graph-card-pages: list.join(
 }
 
 // On the section card, a page's own well keeps its edge and gives up its
-// face: the headphone picker, Share Audio's two roles and the panel under
-// them, the processor on the DSP page. Each was filled because it stood on
+// face: the headphone picker, Share Audio's link form and each linked
+// computer's card, the processor on the DSP page. Each was filled because it stood on
 // the bare floor (`card-surface`); on the section it was a second fill, a
 // lighter slab with its own lit corner, and the card inside a card that the
 // section cards were not to become. What stands in the wells — a module's
 // boxes, a chosen role — keeps its own surface.
 .workspace-tab-panel--presets .autoeq-panel__picker,
-.workspace-tab-panel--share .remote-audio__role-shell,
+.workspace-tab-panel--share .remote-audio__link-form,
+.workspace-tab-panel--share .remote-audio__link,
+.workspace-tab-panel--share .remote-audio__another,
 .workspace-tab-panel--dsp .dsp-card {
   background: transparent;
 }

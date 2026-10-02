@@ -1,0 +1,395 @@
+/* FluidEQ — GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// ── Linking: this computer's code beside the other's ─────────────────────
+
+.remote-audio__link-form {
+  @include card-surface;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.remote-audio__link-form-grid {
+  display: grid;
+  align-items: stretch;
+  grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr);
+}
+
+.remote-audio__link-half {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 20px 22px;
+  gap: 10px;
+}
+
+.remote-audio__link-form-name {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  overflow-wrap: anywhere;
+
+  .menu-icon {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    color: $text-muted;
+  }
+}
+
+.remote-audio__link-or {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: $text-faint;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+
+  > span {
+    width: 1px;
+    flex: 1 1 auto;
+    background: $card-edge;
+  }
+}
+
+.remote-audio__link-label {
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+.remote-audio__link-paste,
+.remote-audio__code-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+
+  > :first-child {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  // As tall as the field beside it: a button shorter than its field read
+  // as belonging to the line under it.
+  > .button {
+    flex: 0 0 auto;
+    align-self: stretch;
+  }
+}
+
+.remote-audio__code-rows {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.remote-audio__code-value {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 9px 11px;
+  overflow: hidden;
+  border: 1px solid $card-edge;
+  border-radius: $radius-xs;
+  // A readout to be copied, on the same well every listing in the app uses.
+  background: $surface-plot;
+  color: $text-muted;
+  font-family: $font-mono;
+  font-size: $text-small;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.remote-audio__code-placeholder {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 8px;
+  color: $text-muted;
+  font-size: $text-small;
+
+  > span {
+    width: 6px;
+    height: 6px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: $secondary-default;
+    box-shadow: 0 0 7px color-mix(in srgb, $secondary-default 58%, transparent);
+  }
+}
+
+.remote-audio__link-hint {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.remote-audio__link-once {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 11px 22px;
+  gap: 10px;
+  color: $text-muted;
+  border-top: 1px solid $card-edge;
+  font-size: $text-small;
+
+  .menu-icon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    color: $secondary-light;
+  }
+}
+
+// ── A linked computer ─────────────────────────────────────────────────────
+
+.remote-audio__link {
+  @include card-surface;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.remote-audio__link-head {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 14px 18px;
+  gap: 12px 14px;
+  border-bottom: 1px solid $card-edge;
+
+  .remote-audio__link.is-looking & {
+    border-bottom: 0;
+  }
+}
+
+.remote-audio__link-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  // A step down from the card it stands on, as every tile in the app is.
+  background: $surface-plot;
+  color: $text-muted;
+
+  .menu-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.remote-audio__link-name {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    font-size: $text-title;
+    font-weight: $weight-bold;
+    overflow-wrap: anywhere;
+  }
+
+  > span {
+    color: $text-faint;
+    font-family: $font-mono;
+    font-size: $text-micro;
+  }
+}
+
+.remote-audio__link.is-looking .remote-audio__link-name > span {
+  font-family: inherit;
+  font-size: $text-small;
+}
+
+.remote-audio__link-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  gap: 7px;
+  border: 1px solid color-mix(in srgb, $secondary-light 36%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  color: $secondary-light;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.1em);
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  > span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $secondary-default;
+    box-shadow: 0 0 7px color-mix(in srgb, $secondary-default 60%, transparent);
+  }
+
+  &.is-paused {
+    border-color: $card-edge;
+    background: transparent;
+    color: $text-muted;
+
+    > span {
+      background: $text-faint;
+      box-shadow: none;
+    }
+  }
+}
+
+.remote-audio__link-spacer {
+  flex: 1 1 auto;
+}
+
+.remote-audio__link-stats {
+  color: $text-muted;
+  font-family: $font-mono;
+  font-size: $text-micro;
+  white-space: nowrap;
+}
+
+// The network's light: lit in the "on" colour while the link keeps up, red
+// once sound queues up behind it — the old monitor's light, which the
+// window's other "on" lights share (`sceneTint.ts`).
+.remote-audio__link-health {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $active;
+  font-weight: $weight-semibold;
+
+  &::before {
+    width: 5px;
+    height: 5px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: $active;
+    box-shadow: 0 0 7px color-mix(in srgb, $active 58%, transparent);
+    content: '';
+  }
+
+  &.is-congested {
+    color: $red;
+
+    &::before {
+      background: $red;
+      box-shadow: 0 0 7px rgba($red, 0.58);
+    }
+  }
+}
+
+.remote-audio__link-foot {
+  display: grid;
+  border-top: 1px solid $card-edge;
+  background: $surface-plot;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  > span {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    padding: 11px 18px;
+    gap: 10px;
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.4;
+
+    + span {
+      border-left: 1px solid $card-edge;
+    }
+  }
+
+  .menu-icon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+    color: $secondary-light;
+  }
+}
+
+// ── Linking one more ──────────────────────────────────────────────────────
+
+.remote-audio__another {
+  @include card-surface;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 14px 18px;
+  gap: 10px;
+
+  > p {
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.45;
+  }
+}
+
+@container eq-panel (max-width: 700px) {
+  .remote-audio__link-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .remote-audio__link-or {
+    flex-direction: row;
+    padding: 0 22px;
+
+    > span {
+      width: auto;
+      height: 1px;
+    }
+  }
+
+  .remote-audio__link-spacer {
+    display: none;
+  }
+
+  // The figures take a line of their own under the name, and Unlink keeps
+  // its place at the end of the name's line rather than wrapping under them.
+  .remote-audio__link-stats {
+    order: 2;
+    flex-basis: 100%;
+    white-space: normal;
+  }
+
+  .remote-audio__link-head > .button {
+    margin-left: auto;
+  }
+
+  .remote-audio__link-foot {
+    grid-template-columns: minmax(0, 1fr);
+
+    > span + span {
+      border-top: 1px solid $card-edge;
+      border-left: 0;
+    }
+  }
+}
+
+@container eq-panel (max-width: 460px) {
+  .remote-audio__link-paste,
+  .remote-audio__code-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

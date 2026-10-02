@@ -31,7 +31,8 @@ add_test(NAME remote-playback COMMAND fluideq-remote-playback-test)
 
 if(WIN32 AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
   add_executable(fluideq-remote-audio-playback
-    src/main.cpp src/wasapi_output.cpp src/playback_runtime.cpp src/replies.cpp)
+    src/main.cpp src/wasapi_output.cpp src/playback_runtime.cpp src/replies.cpp
+    src/capture_children.cpp)
   feq_playback_target(fluideq-remote-audio-playback)
   target_compile_definitions(fluideq-remote-audio-playback PRIVATE
     UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
@@ -42,4 +43,23 @@ if(WIN32 AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp")
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
     RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
+  add_executable(fluideq-capture-request-test tests/capture_request_test.cpp src/capture_children.cpp)
+  feq_playback_target(fluideq-capture-request-test)
+  target_include_directories(fluideq-capture-request-test PRIVATE src)
+  target_compile_definitions(fluideq-capture-request-test PRIVATE
+    UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
+  add_test(NAME capture-request COMMAND fluideq-capture-request-test)
+  # The no-echo guarantee of Share Audio both ways, on the real helpers. It
+  # plays an inaudible tone through the default output and skips (77) where
+  # there is none.
+  if(TARGET fluideq-remote-audio-capture)
+    add_executable(fluideq-echo-tree-test tests/echo_tree_test.cpp)
+    feq_playback_target(fluideq-echo-tree-test)
+    target_compile_definitions(fluideq-echo-tree-test PRIVATE
+      UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _WIN32_WINNT=0x0A00)
+    target_link_libraries(fluideq-echo-tree-test PRIVATE ole32 mmdevapi)
+    add_dependencies(fluideq-echo-tree-test fluideq-remote-audio-playback fluideq-remote-audio-capture)
+    add_test(NAME echo-tree COMMAND fluideq-echo-tree-test $<TARGET_FILE:fluideq-remote-audio-playback>)
+    set_tests_properties(echo-tree PROPERTIES SKIP_RETURN_CODE 77)
+  endif()
 endif()

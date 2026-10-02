@@ -709,13 +709,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.share.title': 'Audio zwischen Computern teilen',
   'help.share.intro':
-    'Audio teilen überträgt Systemklang zwischen Computern im selben privaten Netzwerk. Der Empfänger hat Kopfhörer oder Lautsprecher; andere Computer senden. Das ist etwas anderes als ein zweiter Ausgang am selben Computer.',
+    'Audio teilen verbindet zwei Computer im selben privaten Netzwerk, und jeder spielt den Ton des anderen: An welchem Sie auch sitzen, Sie hören beide. Jeder Computer sendet seinen Ton unverändert und schickt nie zurück, was er empfängt, also gibt es kein Echo; der Computer, an dem Sie hören, wendet seinen eigenen EQ, seine Kurven und DSP an. Das ist etwas anderes als das Spiegeln auf ein zweites Gerät an einem Computer.',
   'help.share.steps':
-    'Öffnen Sie am Hörcomputer Audio teilen, wählen Sie Audio auf diesem Computer wiedergeben und drücken Sie Verbindungscode erstellen. Beginnen Sie leise.\nWählen Sie an jedem Quellcomputer Audio dieses Computers senden, fügen Sie den Code für Ihr Netzwerk ein und drücken Sie Verbinden und senden.\nBehalten Sie den Verbindungsmonitor im Blick. Drücken Sie Senden beenden oder Empfang beenden, wenn Sie fertig sind; Neuen Code erstellen trennt alle gespeicherten Kopplungen.',
+    'Öffnen Sie auf einem Computer Audio teilen und drücken Sie Code kopieren. Beginnen Sie leise.\nÖffnen Sie auf dem anderen Computer Audio teilen, fügen Sie den Code unter Code des anderen Computers ein und drücken Sie Verbinden. Beide Computer spielen sich sofort gegenseitig.\nJeder verbundene Computer hat zwei Schalter: Hier abspielen und Meinen Ton senden. Schalten Sie einen aus, um nur in eine Richtung zu teilen; Trennen beendet die Verbindung endgültig.',
   'help.share.tip':
-    'Halten Sie den Verbindungscode privat: Er erlaubt die Kopplung. Mehrere Sender werden zusammengemischt und erhöhen den Pegel, den die Lautstärke des empfangenden Computers regelt. Unter der FluidEQ-Engine läuft empfangenes Audio außerdem durch das DSP-Rack.',
+    'Halten Sie den Verbindungscode privat: Er erlaubt das Verbinden. Unter der FluidEQ-Engine bleibt das DSP dieses Computers beim Teilen an, und der Computer, der seinen Ton abspielt, wendet sein eigenes an. Gleichzeitig abspielen und senden erfordert Windows auf diesem Computer; anderswo läuft eine Verbindung in eine Richtung.',
   'help.share.keywords':
-    'LAN, WLAN, heimnetzwerk, lokales netzwerk, anderer PC, anderer rechner, audio streamen, audio übertragen, remote, koppeln',
+    'LAN, WLAN, heimnetzwerk, lokales netzwerk, anderer PC, anderer rechner, audio streamen, audio übertragen, remote, koppeln, beide richtungen, zwei richtungen, verbinden, trennen, duplex',
 
   'help.trouble.title': 'Wenn etwas falsch klingt',
   'help.trouble.intro':

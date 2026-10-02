@@ -95,7 +95,7 @@ const app: Partial<Dictionary> = {
     '在均衡器之前采集这台电脑播放的声音，供“共享音频”标签页、第二路输出和智能均衡使用。只在其中之一使用时运行。',
   'app.processes.name.sharePlayback': '共享音频播放',
   'app.processes.what.sharePlayback':
-    '播放另一个 FluidEQ 共享给这台电脑的声音。只在你收听时运行。',
+    '播放另一个 FluidEQ 共享给这台电脑的声音，并启动音频采集，确保这台电脑发出的声音中绝不会带回那个声音。只在其中之一使用时运行。',
   'app.processes.name.volume': '系统音量',
   'app.processes.what.volume':
     '为 FluidEQ 的音量滑块跟随 Windows 的音量和静音，并在你拖动滑块时设置音量。只在屏幕上有音量滑块时运行。',

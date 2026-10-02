@@ -314,35 +314,33 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     '键盘、鼠标和鼠标垫亮起霓虹之城的粉色、紫色和青色。',
 
-  'tour.share.kicker': '聆听每一台电脑',
+  'tour.share.kicker': '每台电脑，双向互通',
   'tour.share.title': '在你的电脑之间共享音频',
-  'tour.share.subtitle': '一副耳机，桌上的每一台机器',
+  'tour.share.subtitle': '无论坐在哪台电脑前，都能听到两台的声音',
   'tour.share.lead':
-    '游戏主机、工作笔记本和媒体盒子，全都播进你正戴着的这副耳机：通过你自己的网络，无损、加密，并经过你已经调好的 EQ。',
-  'tour.share.receiverLabel': '接收端',
-  'tour.share.receiverName': '接耳机的那台电脑',
-  'tour.share.senderLabel': '发送端',
-  'tour.share.senderName': '其他所有电脑',
+    '你的游戏电脑和笔记本互相播放：无论你坐在哪台前，都能听到两台的声音——通过你自己的网络，无损、加密，并经过你在那台电脑上调好的 EQ。',
+  'tour.share.pairLabel': '双向',
+  'tour.share.pairName': '每台电脑播放对方的声音',
   'tour.share.wireLabel': '无损 · 加密 · 私有局域网',
   'tour.share.stepsTitle': '三步完成设置',
-  'tour.share.step1Title': '在耳机电脑上创建连接码',
-  'tour.share.step1':
-    '打开“共享音频”标签页，选择“在此电脑上播放音频”，按下“创建连接码”。复制对应你网络的那条连接码。',
-  'tour.share.step2Title': '在其他每台电脑上粘贴',
+  'tour.share.step1Title': '在一台电脑上复制连接码',
+  'tour.share.step1': '打开“共享音频”标签页，按“复制代码”。连接码每次都一样。',
+  'tour.share.step2Title': '在另一台上粘贴并链接',
   'tour.share.step2':
-    '在那台电脑上打开 FluidEQ，进入“共享音频”，选择“发送此电脑的音频”，粘贴连接码并按“连接并发送”。它的系统音频随即原样传输：效果会在你聆听的那台电脑上应用。',
-  'tour.share.step3Title': '开始聆听，调好音量',
+    '在另一台电脑上打开“共享音频”，把连接码粘贴到“另一台电脑的连接码”下，然后按“链接”。两台会立即原样互相播放：每台都对自己听到的声音套用自己的 EQ。',
+  'tour.share.step3Title': '选择声音的去向',
   'tour.share.step3':
-    '每个发送端都以较短的缓冲播放，偶有卡顿后会自行追上。每个发送端都会混入接收端的输出，并由接收端的 EQ 塑形。接收端的播放栏会显示最近一个发送端的歌曲，其按钮可通过网络远程操作。',
+    '每台已链接的电脑都有两个开关：“在此播放”和“发送我的声音”。关闭其中一个即可只单向共享。播放栏会显示另一台电脑的歌曲，其按钮可跨链接使用。',
   'tour.share.fact1Title': '无损',
   'tour.share.fact1': '端到端 Float32 PCM。没有媒体编解码器，没有转码损失。',
   'tour.share.fact2Title': '加密',
   'tour.share.fact2':
     '每个数据包都经 AES-256-GCM 加密。连接码就是密钥，没有它谁也听不到。',
-  'tour.share.fact3Title': '保持配对',
+  'tour.share.fact3Title': '保持链接',
   'tour.share.fact3':
-    '配对在关闭应用和重启后依然保留。只有创建新连接码才会断开。',
-  'tour.share.tip': '先小声：多台电脑叠加得很快。首次连接前先调低耳机音量。',
+    '关闭应用或重启后，链接依然保留，哪一边都一样。只有“取消链接”才会结束它。',
+  'tour.share.tip':
+    '从小音量开始：两台电脑同时播放会叠加音量。首次链接前请先调低音量。',
   'tour.share.open': '打开共享音频',
 
   'tour.library.kicker': '你的音乐，你的播放器',

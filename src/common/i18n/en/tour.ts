@@ -341,37 +341,35 @@ const tour = {
   'tour.lighting.imageAlt':
     'A keyboard, mouse and mousepad lit in the pink, violet and cyan of Neon City.',
 
-  'tour.share.kicker': 'LISTEN TO EVERY PC',
+  'tour.share.kicker': 'EVERY PC, BOTH WAYS',
   'tour.share.title': 'Share audio between your computers',
-  'tour.share.subtitle': 'One headset, every machine on your desk',
+  'tour.share.subtitle': 'Hear both computers, whichever one you sit at',
   'tour.share.lead':
-    'Your gaming PC, your work laptop and the media box all play into the one headset you are wearing: over your own network, losslessly, encrypted, and through the EQ you already tuned.',
-  'tour.share.receiverLabel': 'RECEIVER',
-  'tour.share.receiverName': 'The PC with your headset',
-  'tour.share.senderLabel': 'SENDERS',
-  'tour.share.senderName': 'Every other computer',
+    'Your gaming PC and your laptop play into each other: whichever one you sit at, you hear both — over your own network, losslessly, encrypted, and through the EQ you tuned on that computer.',
+  'tour.share.pairLabel': 'BOTH WAYS',
+  'tour.share.pairName': 'Each computer plays the other’s sound',
   'tour.share.wireLabel': 'Lossless · Encrypted · Private LAN',
   'tour.share.stepsTitle': 'Set it up in three steps',
-  'tour.share.step1Title': 'On the headset PC, create a code',
+  'tour.share.step1Title': 'On one computer, copy its code',
   'tour.share.step1':
-    'Open the Share Audio tab, choose "Play audio on this computer" and press "Create connection code". Copy the code shown for your network.',
-  'tour.share.step2Title': 'On every other PC, paste it',
+    'Open the Share Audio tab and press “Copy code”. The code stays the same every time.',
+  'tour.share.step2Title': 'On the other, paste it and link',
   'tour.share.step2':
-    'Open FluidEQ there, go to Share Audio, choose “Send audio from this computer”, paste the code and press “Connect and send”. Its system audio starts flowing, untouched: the effects are applied on the computer you listen on.',
-  'tour.share.step3Title': 'Listen, and set the level',
+    'Open Share Audio there, paste the code under “The other computer’s code” and press “Link”. Both start playing each other right away, untouched: each one applies its own EQ to what it hears.',
+  'tour.share.step3Title': 'Choose what goes where',
   'tour.share.step3':
-    'Each sender plays with a short buffer that catches up by itself after a hiccup. Every sender is mixed into the receiver’s output and shaped by its EQ. The receiver’s playback bar shows the latest sender’s song, and its buttons work across the wire.',
+    'Each linked computer has two switches, “Play it here” and “Send my sound”: turn one off for one way only. The bar shows the other computer’s song, and its buttons work across the wire.',
   'tour.share.fact1Title': 'Lossless',
   'tour.share.fact1':
     'Float32 PCM end to end. No media codec, no generation loss.',
   'tour.share.fact2Title': 'Encrypted',
   'tour.share.fact2':
     'AES-256-GCM on every packet. The code is the key; nobody without it can listen in.',
-  'tour.share.fact3Title': 'Stays paired',
+  'tour.share.fact3Title': 'Stays linked',
   'tour.share.fact3':
-    'The pairing survives app closes and reboots. Only creating a new code disconnects it.',
+    'The link survives app closes and reboots, from either side. Only “Unlink” ends it.',
   'tour.share.tip':
-    'Start quietly: several computers add up fast. Lower the headset volume before the first connection.',
+    'Start quietly: two computers playing at once add up. Lower your volume before the first link.',
   'tour.share.open': 'Open Share Audio',
 
   'tour.library.kicker': 'YOUR MUSIC, YOUR PLAYER',

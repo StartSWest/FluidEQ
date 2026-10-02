@@ -325,37 +325,36 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Una tastiera, un mouse e un tappetino illuminati con il rosa, il viola e il ciano di Città al neon.',
 
-  'tour.share.kicker': 'ASCOLTA OGNI PC',
+  'tour.share.kicker': 'OGNI PC, IN ENTRAMBE LE DIREZIONI',
   'tour.share.title': 'Condividi l’audio tra i tuoi computer',
-  'tour.share.subtitle': 'Un paio di cuffie, tutte le macchine sulla scrivania',
+  'tour.share.subtitle':
+    'Senti entrambi i computer, a qualunque dei due tu sia seduto',
   'tour.share.lead':
-    'Il PC da gioco, il portatile del lavoro e il media center suonano tutti nelle cuffie che indossi: sulla tua rete, senza perdite, cifrato e attraverso l’EQ che hai già regolato.',
-  'tour.share.receiverLabel': 'RICEVITORE',
-  'tour.share.receiverName': 'Il PC con le tue cuffie',
-  'tour.share.senderLabel': 'MITTENTI',
-  'tour.share.senderName': 'Tutti gli altri computer',
+    'Il PC da gioco e il portatile suonano l’uno nell’altro: a qualunque dei due tu sia seduto, li senti entrambi — sulla tua rete, senza perdita, cifrato e attraverso l’EQ che hai regolato su quel computer.',
+  'tour.share.pairLabel': 'IN ENTRAMBE LE DIREZIONI',
+  'tour.share.pairName': 'Ogni computer riproduce il suono dell’altro',
   'tour.share.wireLabel': 'Senza perdite · Cifrato · LAN privata',
   'tour.share.stepsTitle': 'Configuralo in tre passaggi',
-  'tour.share.step1Title': 'Sul PC delle cuffie, crea un codice',
+  'tour.share.step1Title': 'Su un computer, copia il suo codice',
   'tour.share.step1':
-    'Apri la scheda Condividi audio, scegli «Riproduci l’audio su questo computer» e premi «Crea codice di connessione». Copia il codice della tua rete.',
-  'tour.share.step2Title': 'Su ogni altro PC, incollalo',
+    'Apri la scheda Condividi audio e premi «Copia codice». Il codice resta sempre lo stesso.',
+  'tour.share.step2Title': 'Sull’altro, incollalo e collega',
   'tour.share.step2':
-    'Apri FluidEQ lì, vai in Condividi audio, scegli «Invia l’audio di questo computer», incolla il codice e premi «Connetti e invia». L’audio di sistema inizia a scorrere, intatto: gli effetti vengono applicati sul computer su cui ascolti.',
-  'tour.share.step3Title': 'Ascolta e regola il livello',
+    'Apri lì Condividi audio, incolla il codice in «Codice dell’altro computer» e premi «Collega». Entrambi iniziano subito a riprodursi a vicenda, intatti: ognuno applica il proprio EQ a ciò che sente.',
+  'tour.share.step3Title': 'Scegli cosa va dove',
   'tour.share.step3':
-    'Ogni mittente suona con un buffer breve che si risincronizza da solo dopo un intoppo. Ogni mittente viene mixato nell’uscita del ricevitore e modellato dal suo EQ. La barra di riproduzione del ricevitore mostra il brano del mittente più recente, e i suoi pulsanti funzionano attraverso la rete.',
+    'Ogni computer collegato ha due interruttori, «Riproduci qui» e «Invia il mio suono»: spegnine uno per una sola direzione. La barra mostra il brano dell’altro computer e i suoi pulsanti funzionano attraverso il collegamento.',
   'tour.share.fact1Title': 'Senza perdite',
   'tour.share.fact1':
     'PCM Float32 da un capo all’altro. Nessun codec, nessuna perdita di generazione.',
   'tour.share.fact2Title': 'Cifrato',
   'tour.share.fact2':
     'AES-256-GCM su ogni pacchetto. Il codice è la chiave; senza, nessuno può ascoltare.',
-  'tour.share.fact3Title': 'Resta abbinato',
+  'tour.share.fact3Title': 'Resta collegato',
   'tour.share.fact3':
-    'L’abbinamento sopravvive a chiusure e riavvii. Solo creare un nuovo codice lo scollega.',
+    'Il collegamento sopravvive alla chiusura dell’app e ai riavvii, da entrambi i lati. Solo «Scollega» lo termina.',
   'tour.share.tip':
-    'Parti piano: più computer si sommano in fretta. Abbassa il volume delle cuffie prima della prima connessione.',
+    'Parti piano: due computer che suonano insieme si sommano. Abbassa il volume prima del primo collegamento.',
   'tour.share.open': 'Apri Condividi audio',
 
   'tour.library.kicker': 'LA TUA MUSICA, IL TUO LETTORE',

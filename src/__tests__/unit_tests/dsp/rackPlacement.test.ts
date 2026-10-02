@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { DSP_DEFAULTS } from 'common/dsp/chain';
 import {
   OPEN_GATE,
+  engineOwnsRack,
   engineRunsRack,
   playerRunsRack,
   rackFor,
@@ -73,6 +74,48 @@ describe('where the rack runs under Equalizer APO', () => {
     const apo = gate({ engine: 'apo', eqEnabled: false, libraryAudible: true });
     expect(rackSuspension(apo)).toBeUndefined();
     expect(playerRunsRack(apo)).toBe(true);
+  });
+
+  it('suspends it while this computer sends its sound, the player being all there is', () => {
+    const sending = gate({ engine: 'apo', sendingRawAudio: true });
+    expect(rackSuspension(sending)).toBe('sharing-raw');
+    expect(playerRunsRack(sending)).toBe(false);
+  });
+});
+
+/**
+ * Sending this computer's sound to another one used to switch the rack off
+ * everywhere, so a computer sharing could not hear its own DSP at all — "when
+ * sending DSP can't be enabled and that's wrong" (Ivan, 2026-10-02). Only the
+ * Library player has to stay untouched while it sends, because its output is
+ * what goes out; under the FluidEQ Engine the engine runs the rack over it.
+ */
+describe('where the rack runs while this computer sends its sound', () => {
+  it('keeps the rack, in the engine, with nothing playing in the Library', () => {
+    const sending = gate({ sendingRawAudio: true });
+    expect(rackSuspension(sending)).toBeUndefined();
+    expect(engineRunsRack(sending)).toBe(true);
+    expect(playerRunsRack(sending)).toBe(false);
+    expect(engineOwnsRack(sending)).toBe(true);
+  });
+
+  it('moves the rack from the Library player to the engine while the Library plays', () => {
+    const sending = gate({ sendingRawAudio: true, libraryAudible: true });
+    expect(engineRunsRack(sending)).toBe(true);
+    expect(playerRunsRack(sending)).toBe(false);
+    expect(engineOwnsRack(sending)).toBe(true);
+    // POSITIVE CONTROL: not sending, the player has it and the engine not.
+    const playing = gate({ libraryAudible: true });
+    expect(engineRunsRack(playing)).toBe(false);
+    expect(playerRunsRack(playing)).toBe(true);
+    expect(engineOwnsRack(playing)).toBe(false);
+  });
+
+  it('still runs nowhere while FluidEQ is switched off', () => {
+    const off = gate({ sendingRawAudio: true, eqEnabled: false });
+    expect(rackSuspension(off)).toBe('switched-off');
+    expect(engineRunsRack(off)).toBe(false);
+    expect(playerRunsRack(off)).toBe(false);
   });
 });
 

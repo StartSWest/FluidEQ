@@ -6,171 +6,216 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @jest-environment node
 */
 
-import { EventEmitter } from 'events';
+/**
+ * The two captures and who shares them.
+ *
+ * The network's capture (`lan`) leaves the LAN audio helper's whole tree out,
+ * so nothing another computer sends here goes back out in it; the second
+ * output's (`local`) leaves only itself out and hears that sound, as it
+ * should. So they are never the same process, whoever asks first — and each
+ * is one process however many ask, ended by the last to let go. The frames and
+ * the pipe each process speaks are `nativeCaptureProcess.test.ts`.
+ */
 
-const mockSpawn = jest.fn();
+import type { ILanRemoteAudioChunk } from 'common/remoteAudio';
 
-jest.mock('child_process', () => ({
-  spawn: (...args: unknown[]) => mockSpawn(...args),
+const mockStart = jest.fn();
+jest.mock('../../../main/nativeCaptureProcess', () => ({
+  startNativeCaptureProcess: (...args: unknown[]) => mockStart(...args),
 }));
-jest.mock('../../../main/remoteAudioCapturePath', () => ({
-  findRemoteAudioCaptureExecutable: () => 'FluidEQ-LAN-Capture.exe',
-}));
 
-// eslint-disable-next-line import/first
-import {
-  startRemoteAudioCapture,
-  startNativeOutputMirror,
-} from '../../../main/remoteAudioCapture';
+type TCaptureModule = typeof import('main/remoteAudioCapture');
 
-const MAGIC = 0x314e414c;
+interface IFakeCapture {
+  mode: 'local' | 'lan';
+  audio(chunk: ILanRemoteAudioChunk): void;
+  fail(): void;
+  reply(kind: number, id: number, result: number): void;
+  process: { close: jest.Mock; command: jest.Mock };
+  ready(): void;
+}
 
-const frame = (
-  kind: number,
-  payload: Buffer,
-  sequence = 0,
-  sampleRate = 48_000,
-  channels = 2,
-  frames = payload.byteLength / channels / 4,
-) => {
-  const header = Buffer.alloc(24);
-  header.writeUInt32LE(MAGIC, 0);
-  header.writeUInt32LE(kind, 4);
-  header.writeUInt32LE(sequence, 8);
-  header.writeUInt32LE(sampleRate, 12);
-  header.writeUInt16LE(channels, 16);
-  header.writeUInt16LE(frames, 18);
-  header.writeUInt32LE(payload.byteLength, 20);
-  return Buffer.concat([header, payload]);
+let capture: TCaptureModule;
+let fakes: IFakeCapture[];
+
+const chunk = (sequence: number): ILanRemoteAudioChunk => ({
+  channels: 2,
+  frames: 1,
+  pcm: new Float32Array([0.25, -0.5]).buffer,
+  peerId: '',
+  sampleRate: 48_000,
+  sequence,
+});
+
+const only = (mode: 'local' | 'lan') => {
+  const found = fakes.filter((fake) => fake.mode === mode);
+  expect(found).toHaveLength(1);
+  return found[0];
 };
 
-const fakeChild = () => {
-  const child = new EventEmitter() as EventEmitter & {
-    kill: jest.Mock;
-    stderr: EventEmitter;
-    stdin: EventEmitter & { write: jest.Mock; writableLength: number };
-    stdout: EventEmitter;
-  };
-  child.kill = jest.fn();
-  child.stderr = new EventEmitter();
-  child.stdin = Object.assign(new EventEmitter(), {
-    write: jest.fn(),
-    writableLength: 0,
-  });
-  child.stdout = new EventEmitter();
-  return child;
+/** Answers the newest command the local capture was given, as the helper
+ * would; returns the command. */
+const answer = (result = 0) => {
+  const local = only('local');
+  const { calls } = local.process.command.mock;
+  const command = calls[calls.length - 1][0] as string;
+  local.reply(3, Number(command.split(' ')[1]), result);
+  return command;
 };
 
-describe('native lossless LAN capture bridge', () => {
-  beforeEach(() => mockSpawn.mockReset());
+/** Lets a chain of awaits inside the module run on. */
+const settle = async () => {
+  for (let step = 0; step < 20; step += 1) {
+    // eslint-disable-next-line no-await-in-loop -- one microtask per step, on purpose
+    await Promise.resolve();
+  }
+};
 
-  it('forwards framed Float32 samples without changing any byte', async () => {
-    const child = fakeChild();
-    mockSpawn.mockReturnValue(child);
-    const onAudio = jest.fn();
-    const starting = startRemoteAudioCapture('source-pc', onAudio, jest.fn());
-    child.stdout.emit('data', frame(1, Buffer.alloc(0)));
-    const capture = await starting;
+beforeEach(() => {
+  jest.resetModules();
+  fakes = [];
+  mockStart.mockReset().mockImplementation(
+    (
+      mode: 'local' | 'lan',
+      onAudio: IFakeCapture['audio'],
+      onFailure: IFakeCapture['fail'],
+      onReply: IFakeCapture['reply'],
+    ) =>
+      new Promise((resolve) => {
+        const process = { close: jest.fn(), command: jest.fn() };
+        fakes.push({
+          mode,
+          audio: onAudio,
+          fail: onFailure,
+          reply: onReply,
+          process,
+          ready: () => resolve(process),
+        });
+      }),
+  );
+  // eslint-disable-next-line global-require -- the module holds its sessions; each case needs a fresh copy after resetModules
+  capture = require('main/remoteAudioCapture');
+});
 
-    const pcm = Buffer.from(new Float32Array([0, -0, 0.5, -0.25]).buffer);
-    const audio = frame(2, pcm, 42);
-    child.stdout.emit('data', audio.subarray(0, 29));
-    child.stdout.emit('data', audio.subarray(29));
-
-    expect(onAudio).toHaveBeenCalledTimes(1);
-    expect(onAudio.mock.calls[0][0]).toMatchObject({
-      channels: 2,
-      frames: 2,
-      peerId: 'source-pc',
-      sampleRate: 48_000,
-      sequence: 42,
-    });
-    expect(Buffer.from(onAudio.mock.calls[0][0].pcm)).toEqual(pcm);
-    capture.close();
-    expect(child.kill).toHaveBeenCalledTimes(1);
-  });
-
-  it('refuses malformed helper frames before the session starts', async () => {
-    const child = fakeChild();
-    mockSpawn.mockReturnValue(child);
-    const starting = startRemoteAudioCapture('source-pc', jest.fn(), jest.fn());
-    const malformed = frame(1, Buffer.alloc(0));
-    malformed.writeUInt32LE(0, 0);
-    child.stdout.emit('data', malformed);
-
-    await expect(starting).rejects.toThrow('invalid frame');
-    expect(child.kill).toHaveBeenCalledTimes(1);
-  });
-
-  it('reports the native activation deadline when the helper cannot become ready', async () => {
-    const child = fakeChild();
-    mockSpawn.mockReturnValue(child);
-    const starting = startRemoteAudioCapture('source-pc', jest.fn(), jest.fn());
-    // The helper owns the WASAPI activation deadline; its failure must reach
-    // the caller even though no ready frame was ever written.
-    child.stderr.emit('data', Buffer.from('WASAPI activation timed out'));
-    child.emit('close', 1);
-
-    await expect(starting).rejects.toThrow('timed out');
-    expect(child.kill).toHaveBeenCalledTimes(1);
-  });
-
-  it('shares one excluded process across LAN listeners and releases only the closing listener', async () => {
-    const child = fakeChild();
-    mockSpawn.mockReturnValue(child);
+describe("the network's capture", () => {
+  it('is one process for every computer it goes to, ended by the last', async () => {
     const firstAudio = jest.fn();
     const secondAudio = jest.fn();
-    const first = startRemoteAudioCapture('first', firstAudio, jest.fn());
-    const second = startRemoteAudioCapture('second', secondAudio, jest.fn());
-    child.stdout.emit('data', frame(1, Buffer.alloc(0)));
+    const first = capture.startNetworkCapture(firstAudio, jest.fn());
+    const second = capture.startNetworkCapture(secondAudio, jest.fn());
+    only('lan').ready();
     const [a, b] = await Promise.all([first, second]);
-    expect(mockSpawn).toHaveBeenCalledTimes(1);
-    const pcm = Buffer.from(new Float32Array([0.25, -0.5]).buffer);
-    child.stdout.emit('data', frame(2, pcm));
-    expect(firstAudio.mock.calls[0][0].peerId).toBe('first');
-    expect(secondAudio.mock.calls[0][0].peerId).toBe('second');
+    expect(mockStart).toHaveBeenCalledTimes(1);
+
+    only('lan').audio(chunk(1));
+    expect(firstAudio).toHaveBeenCalledTimes(1);
+    expect(secondAudio).toHaveBeenCalledTimes(1);
     a.close();
-    expect(child.kill).not.toHaveBeenCalled();
-    child.stdout.emit('data', frame(2, pcm));
+    expect(only('lan').process.close).not.toHaveBeenCalled();
+    only('lan').audio(chunk(2));
     expect(firstAudio).toHaveBeenCalledTimes(1);
     expect(secondAudio).toHaveBeenCalledTimes(2);
     b.close();
-    b.close();
-    expect(child.kill).toHaveBeenCalledTimes(1);
+    expect(only('lan').process.close).toHaveBeenCalledTimes(1);
   });
 
-  it('starts, updates and stops a GUID mirror without stopping the shared LAN capture', async () => {
-    const child = fakeChild();
-    mockSpawn.mockReturnValue(child);
-    const lanStart = startRemoteAudioCapture('source', jest.fn(), jest.fn());
-    child.stdout.emit('data', frame(1, Buffer.alloc(0)));
-    const lan = await lanStart;
-    const guid = '{12345678-1234-1234-1234-123456789abc}';
-    const acknowledge = async (verb: string) => {
-      await Promise.resolve();
-      const { calls } = child.stdin.write.mock;
-      const command = calls[calls.length - 1]?.[0] as string;
-      const [kind, requestId] = command.trim().split(' ');
-      expect(kind).toBe(verb);
-      child.stdout.emit(
-        'data',
-        frame(3, Buffer.alloc(0), Number(requestId), 0, 0, 0),
-      );
-      return command;
-    };
-    const starting = startNativeOutputMirror(guid, 'video', 0.7, jest.fn());
-    expect(await acknowledge('start')).toContain(`${guid} video 0.7`);
+  it('is never the capture Smart EQ and the second output hear', async () => {
+    const network = jest.fn();
+    const source = jest.fn();
+    const sharing = capture.startNetworkCapture(network, jest.fn());
+    const measuring = capture.startRawSourceCapture(source, jest.fn());
+    fakes.forEach((fake) => fake.ready());
+    await Promise.all([sharing, measuring]);
+    expect(fakes.map((fake) => fake.mode).sort()).toEqual(['lan', 'local']);
+
+    // What the local capture hears includes the other computers' sound; none
+    // of it reaches what goes out.
+    only('local').audio(chunk(1));
+    expect(source).toHaveBeenCalledTimes(1);
+    expect(network).not.toHaveBeenCalled();
+  });
+
+  it('tells everyone it served when it fails, and starts afresh after', async () => {
+    const failed = jest.fn();
+    const starting = capture.startNetworkCapture(jest.fn(), failed);
+    only('lan').ready();
+    await starting;
+    only('lan').fail();
+    expect(failed).toHaveBeenCalledTimes(1);
+
+    const again = capture.startNetworkCapture(jest.fn(), jest.fn());
+    expect(mockStart).toHaveBeenCalledTimes(2);
+    fakes[1].ready();
+    await expect(again).resolves.toBeDefined();
+  });
+
+  it('passes on a capture that could not start', async () => {
+    mockStart.mockImplementationOnce(() =>
+      Promise.reject(new Error('activation failed')),
+    );
+    await expect(
+      capture.startNetworkCapture(jest.fn(), jest.fn()),
+    ).rejects.toThrow('activation failed');
+  });
+});
+
+describe('the second output', () => {
+  const GUID = '{12345678-1234-1234-1234-123456789abc}';
+
+  it('starts, turns and stops a mirror on the local capture, not the network’s', async () => {
+    const network = capture.startNetworkCapture(jest.fn(), jest.fn());
+    only('lan').ready();
+    const lan = await network;
+
+    const starting = capture.startNativeOutputMirror(
+      GUID,
+      'video',
+      0.7,
+      jest.fn(),
+    );
+    only('local').ready();
+    await settle();
+    expect(answer()).toContain(`${GUID} video 0.7`);
     const mirror = await starting;
-    expect(mockSpawn).toHaveBeenCalledTimes(1);
-    const changing = mirror.setVolume(0.4);
-    expect(await acknowledge('volume')).toMatch(/ 0.4\n$/);
-    await changing;
+
+    const turning = mirror.setVolume(0.4);
+    await settle();
+    expect(answer()).toMatch(/^volume \d+ \d+ 0\.4$/);
+    await turning;
+
     const stopping = mirror.close();
     expect(mirror.close()).toBe(stopping);
-    await acknowledge('stop');
+    await settle();
+    expect(answer()).toMatch(/^stop /);
     await stopping;
-    expect(child.kill).not.toHaveBeenCalled();
+    expect(only('local').process.close).toHaveBeenCalledTimes(1);
+    expect(only('lan').process.command).not.toHaveBeenCalled();
+    expect(only('lan').process.close).not.toHaveBeenCalled();
     lan.close();
-    expect(child.kill).toHaveBeenCalledTimes(1);
+  });
+
+  it('refuses a mirror Windows would not open, and frees the capture', async () => {
+    const starting = capture.startNativeOutputMirror(
+      GUID,
+      'music',
+      1,
+      jest.fn(),
+    );
+    only('local').ready();
+    await settle();
+    answer(0x8889_0004);
+    await expect(starting).rejects.toThrow('0x88890004');
+    expect(only('local').process.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('tells a mirror whose device went away', async () => {
+    const lost = jest.fn();
+    const starting = capture.startNativeOutputMirror(GUID, 'music', 1, lost);
+    only('local').ready();
+    await settle();
+    const command = answer();
+    await starting;
+    only('local').reply(4, Number(command.split(' ')[2]), 0);
+    expect(lost).toHaveBeenCalledTimes(1);
   });
 });

@@ -96,7 +96,7 @@ const app: Partial<Dictionary> = {
     'Nimmt auf, was dieser PC abspielt, vor dem Equalizer – für den Tab „Audio teilen“, eine zweite Ausgabe und Smart-EQ. Läuft nur, solange eines davon genutzt wird.',
   'app.processes.name.sharePlayback': 'Wiedergabe des geteilten Audios',
   'app.processes.what.sharePlayback':
-    'Spielt den Klang ab, den ein anderes FluidEQ mit diesem PC teilt. Läuft nur, solange Sie ihn hören.',
+    'Spielt den Klang ab, den ein anderes FluidEQ mit diesem PC teilt, und startet die Audioaufnahmen, damit das, was dieser PC sendet, diesen Klang nie zurückträgt. Läuft nur, solange eines davon genutzt wird.',
   'app.processes.name.volume': 'Systemlautstärke',
   'app.processes.what.volume':
     'Folgt der Lautstärke und Stummschaltung von Windows für die Lautstärkeregler von FluidEQ und stellt sie ein, wenn Sie einen bewegen. Läuft nur, solange ein Regler zu sehen ist.',

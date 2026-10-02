@@ -59,7 +59,7 @@ describe('the "on" colour', () => {
   // chosen far enough from never to be mistaken for (`sceneTint.ts`).
   it.each([
     ['StudioStage.scss', '.studio-cost', 'background'],
-    ['_RemoteAudioMonitor.scss', '.remote-audio__network-health', 'background'],
+    ['_RemoteAudioLink.scss', '.remote-audio__link-health', 'background'],
   ])(
     '%s lights a healthy %s in the token and its warnings in their own colours',
     (file, block, property) => {

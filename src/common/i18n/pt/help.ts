@@ -700,13 +700,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.share.title': 'Compartilhe áudio entre computadores',
   'help.share.intro':
-    'Compartilhar áudio envia som do sistema entre computadores da mesma rede privada. O receptor tem os fones ou alto-falantes; os outros enviam. É diferente de espelhar para outro dispositivo no mesmo computador.',
+    'Compartilhar áudio vincula dois computadores da mesma rede privada, e cada um toca o som do outro: seja qual for o que você está usando, você ouve os dois. Cada computador envia o próprio som intacto e nunca devolve o que recebe, então não há eco; o computador em que você ouve aplica o próprio EQ, as curvas e o DSP. Isso é diferente de espelhar para um segundo dispositivo no mesmo computador.',
   'help.share.steps':
-    'No computador de escuta, abra Compartilhar áudio, escolha Reproduzir áudio neste computador e pressione Criar código de conexão. Comece com volume baixo.\nEm cada computador de origem, escolha Enviar o áudio deste computador, cole o código da sua rede e pressione Conectar e enviar.\nAcompanhe o monitor de conexão. Pressione Parar de enviar ou Parar de ouvir ao terminar; Criar novo código desconecta todos os pareamentos salvos.',
+    'Em um computador, abra Compartilhar áudio e pressione Copiar código. Comece com volume baixo.\nNo outro computador, abra Compartilhar áudio, cole o código em Código do outro computador e pressione Vincular. Os dois computadores tocam um ao outro na hora.\nCada computador vinculado tem duas chaves: Tocar aqui e Enviar meu som. Desligue uma para compartilhar em um sentido só; Desvincular encerra o vínculo de vez.',
   'help.share.tip':
-    'Mantenha o código de conexão privado: ele autoriza o pareamento. Vários emissores se misturam e elevam o nível, que o volume do computador receptor ajusta. Com o Motor FluidEQ, o áudio recebido também passa pelo rack DSP.',
+    'Mantenha o código de conexão privado: ele autoriza o vínculo. Com o Motor FluidEQ, este computador mantém o DSP enquanto compartilha, e o computador que toca o som dele aplica o próprio. Tocar e enviar ao mesmo tempo exige Windows nesse computador; em outros, um vínculo funciona em um sentido só.',
   'help.share.keywords':
-    'rede local, LAN, wifi, outro PC, transmitir, receber áudio, remoto',
+    'rede local, LAN, wifi, outro PC, transmitir, receber áudio, remoto, dois sentidos, bidirecional, vincular, desvincular',
 
   'help.trouble.title': 'Quando o som está errado',
   'help.trouble.intro':

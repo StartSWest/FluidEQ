@@ -37,8 +37,11 @@ import {
   setDspNormalizerMeter,
   setDspPeak,
 } from 'renderer/dsp/store';
-import RemoteAudioMonitor from 'renderer/remoteAudio/RemoteAudioMonitor';
-import type { TRemoteAudioMeterListener } from 'renderer/remoteAudio/meter';
+import RemoteAudioLane from 'renderer/remoteAudio/RemoteAudioLane';
+import type {
+  IRemoteAudioMeter,
+  TRemoteAudioMeterListener,
+} from 'renderer/remoteAudio/meter';
 
 const ignore = () => undefined;
 
@@ -314,43 +317,59 @@ describe("the Normalizer's live meter", () => {
   });
 });
 
-describe('the Share Audio monitor', () => {
-  it('draws when a block of audio arrives, and asks for nothing between', () => {
+describe('a Share Audio lane', () => {
+  const reading = (sourceId: string): IRemoteAudioMeter => ({
+    bufferedMs: 120,
+    peak: 0.5,
+    rms: 0.3,
+    sourceId,
+    waveform: new Float32Array(64),
+  });
+
+  it("draws when its computer's sound arrives, and asks for nothing between", () => {
     const measured = jest.spyOn(Element.prototype, 'getBoundingClientRect');
     const styled = jest.spyOn(window, 'getComputedStyle');
     const listen: { current?: TRemoteAudioMeterListener } = {};
     render(
-      <RemoteAudioMonitor
-        active
-        connectedComputers={[
-          { address: '192.168.1.21', id: 'alpha', name: 'STUDIO-PC' },
-        ]}
-        mode="listener"
-        networkStats={[]}
-        status="1 computer connected"
+      <RemoteAudioLane
+        direction="in"
+        kicker="From STUDIO-PC"
+        title="Plays here"
+        line="Receiving"
+        live
+        meterKey="alpha"
         subscribe={(listener) => {
           listen.current = listener;
           return ignore;
         }}
+        figure="—"
+        figureCaption="delay"
+        figureWidest={['—', '888 ms']}
+        formatFigure={(meter) =>
+          meter.bufferedMs === undefined
+            ? undefined
+            : `${Math.round(meter.bufferedMs)} ms`
+        }
+        switchId="lane-in"
+        switchLabel="Play it here"
+        isOn
+        isSwitchDisabled={false}
+        onToggle={ignore}
       />,
     );
     runFrame();
     expect(pending.size).toBe(0);
+    cleared.mockClear();
 
-    act(() =>
-      listen.current?.({
-        bufferedMs: 120,
-        peak: 0.5,
-        rms: 0.3,
-        sourceId: 'alpha',
-        waveform: new Float32Array(64),
-      }),
-    );
+    // Another linked computer's sound belongs to another lane.
+    act(() => listen.current?.(reading('beta')));
+    expect(pending.size).toBe(0);
+
+    act(() => listen.current?.(reading('alpha')));
     expect(pending.size).toBe(1);
     runFrame();
 
-    expect(screen.getByText('Peak -6.0 dB')).toBeInTheDocument();
-    expect(screen.getByText('Playback 120 ms')).toBeInTheDocument();
+    expect(screen.getByText('120 ms')).toBeInTheDocument();
     expect(cleared).toHaveBeenCalled();
     expect(pending.size).toBe(0);
     expect(measured).not.toHaveBeenCalled();

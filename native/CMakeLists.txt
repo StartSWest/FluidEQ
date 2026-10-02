@@ -500,6 +500,7 @@ set_target_properties(fluideq-dsp-host PROPERTIES
 if(WIN32)
   add_executable(fluideq-remote-audio-capture
     remote-audio-capture/src/main.cpp
+    remote-audio-capture/src/capture_args.cpp
     remote-audio-capture/src/capture_queue.cpp
     remote-audio-capture/src/capture_writer.cpp
     remote-audio-capture/src/mirror_output.cpp
@@ -521,6 +522,14 @@ add_executable(fluideq-capture-queue-test
 target_link_libraries(fluideq-capture-queue-test PRIVATE feq_strict)
 target_include_directories(fluideq-capture-queue-test PRIVATE remote-audio-capture/src)
 add_test(NAME capture-queue COMMAND fluideq-capture-queue-test)
+if(WIN32)
+  add_executable(fluideq-capture-args-test
+    remote-audio-capture/tests/capture_args_test.cpp
+    remote-audio-capture/src/capture_args.cpp)
+  target_link_libraries(fluideq-capture-args-test PRIVATE feq_strict)
+  target_include_directories(fluideq-capture-args-test PRIVATE remote-audio-capture/src)
+  add_test(NAME capture-args COMMAND fluideq-capture-args-test)
+endif()
 
 # The Processes list's meter: private working set and CPU time for each of the
 # app's processes, which Node cannot read (process-meter/src/main.cpp). Runs

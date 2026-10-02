@@ -708,13 +708,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.share.title': 'Partagez l’audio entre ordinateurs',
   'help.share.intro':
-    'Partager l’audio transmet le son système entre ordinateurs du même réseau privé. Le récepteur porte le casque ou les enceintes ; les autres émettent. Cela diffère d’une seconde sortie sur le même ordinateur.',
+    'Partager l’audio relie deux ordinateurs du même réseau privé, et chacun joue le son de l’autre : quel que soit celui devant lequel vous êtes, vous entendez les deux. Chaque ordinateur envoie son son intact et ne renvoie jamais ce qu’il reçoit, donc pas d’écho ; l’ordinateur sur lequel vous écoutez applique son propre EQ, ses courbes et son DSP. C’est différent de la recopie vers un deuxième appareil sur un même ordinateur.',
   'help.share.steps':
-    'Sur l’ordinateur d’écoute, ouvrez Partager l’audio, choisissez Lire le son sur cet ordinateur et appuyez sur Créer le code de connexion. Commencez à faible volume.\nSur chaque ordinateur source, choisissez Envoyer le son de cet ordinateur, collez le code de votre réseau et appuyez sur Connecter et envoyer.\nSurveillez le moniteur de connexion. Appuyez sur Arrêter l’envoi ou Arrêter l’écoute une fois terminé ; Créer un nouveau code déconnecte tous les appairages enregistrés.',
+    'Sur un ordinateur, ouvrez Partager l’audio et appuyez sur Copier le code. Commencez à faible volume.\nSur l’autre ordinateur, ouvrez Partager l’audio, collez le code sous Code de l’autre ordinateur et appuyez sur Relier. Les deux ordinateurs se jouent aussitôt l’un l’autre.\nChaque ordinateur relié a deux interrupteurs : Le jouer ici et Envoyer mon son. Coupez-en un pour ne partager que dans un sens ; Délier met fin à la liaison pour de bon.',
   'help.share.tip':
-    'Le code de connexion autorise l’appairage : gardez-le privé. Plusieurs émetteurs se mélangent et augmentent le niveau, que règle le volume de l’ordinateur qui reçoit. Avec le moteur FluidEQ, l’audio reçu passe aussi par le rack DSP.',
+    'Le code de connexion autorise la liaison : gardez-le privé. Avec le moteur FluidEQ, cet ordinateur garde son DSP pendant qu’il partage, et l’ordinateur qui joue son son applique le sien. Jouer et envoyer à la fois demande Windows sur cet ordinateur ; ailleurs, une liaison fonctionne dans un seul sens.',
   'help.share.keywords':
-    'réseau local, diffuser, transmettre, autre PC, deuxième PC, jumelage, LAN, wifi, Ethernet',
+    'réseau local, diffuser, transmettre, autre PC, deuxième PC, jumelage, LAN, wifi, Ethernet, deux sens, bidirectionnel, relier, délier',
 
   'help.trouble.title': 'Quand le son ne va pas',
   'help.trouble.intro':

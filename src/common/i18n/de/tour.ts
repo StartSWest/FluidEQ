@@ -329,37 +329,35 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Eine Tastatur, eine Maus und ein Mauspad, beleuchtet im Pink, Violett und Cyan von Neonstadt.',
 
-  'tour.share.kicker': 'JEDEN PC HÖREN',
+  'tour.share.kicker': 'JEDER PC, IN BEIDE RICHTUNGEN',
   'tour.share.title': 'Audio zwischen Ihren Computern teilen',
-  'tour.share.subtitle': 'Ein Headset, jede Maschine auf Ihrem Schreibtisch',
+  'tour.share.subtitle': 'Hören Sie beide Computer, egal an welchem Sie sitzen',
   'tour.share.lead':
-    'Gaming-PC, Arbeitslaptop und Media-Box spielen alle in das eine Headset, das Sie tragen – über Ihr eigenes Netzwerk, verlustfrei, verschlüsselt und durch den EQ, den Sie bereits eingestellt haben.',
-  'tour.share.receiverLabel': 'EMPFÄNGER',
-  'tour.share.receiverName': 'Der PC mit Ihrem Headset',
-  'tour.share.senderLabel': 'SENDER',
-  'tour.share.senderName': 'Jeder andere Computer',
+    'Ihr Gaming-PC und Ihr Laptop spielen ineinander: An welchem Sie auch sitzen, Sie hören beide – über Ihr eigenes Netzwerk, verlustfrei, verschlüsselt und durch den EQ, den Sie an diesem Computer eingestellt haben.',
+  'tour.share.pairLabel': 'IN BEIDE RICHTUNGEN',
+  'tour.share.pairName': 'Jeder Computer spielt den Ton des anderen',
   'tour.share.wireLabel': 'Verlustfrei · Verschlüsselt · Privates LAN',
   'tour.share.stepsTitle': 'In drei Schritten eingerichtet',
-  'tour.share.step1Title': 'Am Headset-PC einen Code erstellen',
+  'tour.share.step1Title': 'Auf einem Computer den Code kopieren',
   'tour.share.step1':
-    'Öffnen Sie den Tab Audio teilen, wählen Sie „Audio auf diesem Computer wiedergeben“ und drücken Sie „Verbindungscode erstellen“. Kopieren Sie den Code für Ihr Netzwerk.',
-  'tour.share.step2Title': 'An jedem anderen PC einfügen',
+    'Öffnen Sie den Tab „Audio teilen“ und drücken Sie „Code kopieren“. Der Code bleibt jedes Mal derselbe.',
+  'tour.share.step2Title': 'Auf dem anderen einfügen und verbinden',
   'tour.share.step2':
-    'Öffnen Sie dort FluidEQ, gehen Sie zu Audio teilen, wählen Sie „Audio dieses Computers senden“, fügen Sie den Code ein und drücken Sie „Verbinden und senden“. Der Systemton beginnt zu fließen, unverändert: Die Effekte werden auf dem Computer angewendet, an dem Sie hören.',
-  'tour.share.step3Title': 'Hören und Pegel einstellen',
+    'Öffnen Sie dort „Audio teilen“, fügen Sie den Code unter „Code des anderen Computers“ ein und drücken Sie „Verbinden“. Beide spielen sich sofort gegenseitig, unverändert: Jeder wendet seinen eigenen EQ auf das an, was er hört.',
+  'tour.share.step3Title': 'Festlegen, was wohin geht',
   'tour.share.step3':
-    'Jeder Sender spielt mit einem kurzen Puffer, der nach einem Aussetzer von selbst aufholt. Jeder Sender wird in den Ausgang des Empfängers gemischt und von dessen EQ geformt. Die Wiedergabeleiste des Empfängers zeigt den Titel des zuletzt gestarteten Senders, und ihre Tasten wirken über das Netzwerk.',
+    'Jeder verbundene Computer hat zwei Schalter, „Hier abspielen“ und „Meinen Ton senden“: Schalten Sie einen aus, wenn es nur in eine Richtung gehen soll. Die Leiste zeigt den Song des anderen Computers, und ihre Tasten funktionieren über die Verbindung.',
   'tour.share.fact1Title': 'Verlustfrei',
   'tour.share.fact1':
     'Float32-PCM von Ende zu Ende. Kein Codec, kein Generationsverlust.',
   'tour.share.fact2Title': 'Verschlüsselt',
   'tour.share.fact2':
     'AES-256-GCM auf jedem Paket. Der Code ist der Schlüssel; ohne ihn hört niemand mit.',
-  'tour.share.fact3Title': 'Bleibt gekoppelt',
+  'tour.share.fact3Title': 'Bleibt verbunden',
   'tour.share.fact3':
-    'Die Kopplung übersteht Schließen und Neustarts. Nur ein neuer Code trennt sie.',
+    'Die Verbindung übersteht das Schließen der App und Neustarts, auf beiden Seiten. Nur „Trennen“ beendet sie.',
   'tour.share.tip':
-    'Leise anfangen: Mehrere Computer summieren sich schnell. Drehen Sie das Headset vor der ersten Verbindung herunter.',
+    'Leise anfangen: Zwei gleichzeitig spielende Computer addieren sich. Drehen Sie die Lautstärke vor der ersten Verbindung herunter.',
   'tour.share.open': 'Audio teilen öffnen',
 
   'tour.library.kicker': 'IHRE MUSIK, IHR PLAYER',

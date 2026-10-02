@@ -96,7 +96,7 @@ const app: Partial<Dictionary> = {
     'この PC で鳴っている音をイコライザーの前でキャプチャし、「音声を共有」タブ、2 つめの出力、スマート EQ に渡します。これらのどれかを使っている間だけ動作します。',
   'app.processes.name.sharePlayback': '共有された音声の再生',
   'app.processes.what.sharePlayback':
-    '別の FluidEQ がこの PC に共有している音を再生します。聴いている間だけ動作します。',
+    '別の FluidEQ がこの PC に共有している音を再生し、音声キャプチャを起動します。これにより、この PC が送る音にその音が戻って混ざることはありません。これらのどれかを使っている間だけ動作します。',
   'app.processes.name.volume': 'システムの音量',
   'app.processes.what.volume':
     'FluidEQ の音量スライダーのために Windows の音量とミュートを追い、スライダーを動かすと音量を設定します。スライダーが画面にある間だけ動作します。',

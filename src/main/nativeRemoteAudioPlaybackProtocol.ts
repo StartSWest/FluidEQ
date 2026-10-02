@@ -7,7 +7,7 @@ const MAX_REPLY_BYTES = 4_096;
 export const playbackCommand = (
   kind: number,
   id = 0,
-  payload = Buffer.alloc(0),
+  payload: Buffer = Buffer.alloc(0),
   rate = 0,
   channels = 0,
   frames = 0,

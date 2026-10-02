@@ -54,6 +54,13 @@ export interface IRackGate {
   engineOff: boolean;
   /** The Library player is playing through its own engine right now. */
   libraryAudible: boolean;
+  /**
+   * This computer's sound is going to another computer (Share Audio). Main
+   * then holds the Library player untouched, because the capture for the
+   * network hears the player's output and the other computer applies its own
+   * rack; the FluidEQ Engine's copy is never in that capture — Windows hands a
+   * process loopback the mix before the endpoint's effects.
+   */
   sendingRawAudio?: boolean;
 }
 
@@ -68,14 +75,20 @@ export const OPEN_GATE: IRackGate = {
 /** Why the rack is off everywhere, or undefined when it is not. */
 export type TRackSuspension = 'switched-off' | 'engine-off' | 'sharing-raw';
 
+/**
+ * Sending no longer switches the rack off under the FluidEQ Engine. It used
+ * to, everywhere, so a computer sharing its sound could not hear its own DSP
+ * at all — "when sending DSP can't be enabled and that's wrong" (Ivan,
+ * 2026-10-02). Only the Library player has to be untouched while this
+ * computer sends, and under the FluidEQ Engine the engine takes the rack over
+ * for it (`engineRunsRack`). Under Equalizer APO the player is the only place
+ * a rack runs, so there sending still suspends it.
+ */
 export const rackSuspension = (
   gate: IRackGate,
 ): TRackSuspension | undefined => {
-  if (gate.sendingRawAudio) {
-    return 'sharing-raw';
-  }
   if (gate.engine !== 'fluid') {
-    return undefined;
+    return gate.sendingRawAudio ? 'sharing-raw' : undefined;
   }
   if (!gate.eqEnabled) {
     return 'switched-off';
@@ -97,12 +110,19 @@ export const engineRunsRack = (gate: IRackGate): boolean =>
   gate.eqLoaded &&
   gate.eqEnabled &&
   !gate.engineOff &&
-  !gate.libraryAudible &&
-  !gate.sendingRawAudio;
+  // While this computer sends, the Library player plays untouched and the
+  // engine runs the rack over it too: still exactly one place.
+  (!gate.libraryAudible || gate.sendingRawAudio === true);
 
 /** Whether the Library player's copy of the rack should run. */
 export const playerRunsRack = (gate: IRackGate): boolean =>
-  rackSuspension(gate) === undefined;
+  rackSuspension(gate) === undefined && gate.sendingRawAudio !== true;
+
+/** Whether the FluidEQ Engine's copy is the one playing, so its meters are
+ * the page's. */
+export const engineOwnsRack = (gate: IRackGate): boolean =>
+  gate.engine === 'fluid' &&
+  (!gate.libraryAudible || gate.sendingRawAudio === true);
 
 /**
  * The settings as one place should run them: as they are where the rack

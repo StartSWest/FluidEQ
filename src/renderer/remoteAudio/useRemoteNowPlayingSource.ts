@@ -5,7 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The listener's half of "what is playing over there".
+ * The half of "what is playing over there" for the computers whose sound
+ * plays HERE — both ways, any linked computer can be one, whichever side
+ * pasted the code. One whose sound is switched off here is not on this bar
+ * and is not a player here: its press stops nothing on this computer.
  *
  * Turns what a sending computer said its bar is showing into the same
  * `ITransportSource` the app's own players publish, so the listener's bar
@@ -84,10 +87,7 @@ import {
   setTransportSource,
 } from '../audio/transportSource';
 import { useSinglePlayer } from '../utils/singlePlayer';
-import type {
-  IRemoteAudioComputer,
-  TRemoteAudioRole,
-} from './remoteAudioState';
+import type { IRemoteAudioComputer } from './remoteAudioState';
 
 /** The sender worth the bar: the one that started last if it is still
  * playing, then any that is playing, then whoever described itself. */
@@ -119,26 +119,27 @@ const sendTransport = (peerId: string, command: TRemoteTransportCommand) => {
     .catch(() => undefined);
 };
 
+/**
+ * `computers` are the linked computers whose sound plays here.
+ * `pauseNewcomers` is the computer whose code was used: of two linked
+ * computers that were both already playing, exactly one may pause the other
+ * on sight, or each would pause the other and both would fall silent. The
+ * press, which only ever comes from one of them, needs no such tie-break.
+ */
 const useRemoteNowPlayingSource = (
-  role: TRemoteAudioRole | undefined,
   computers: IRemoteAudioComputer[],
+  pauseNewcomers: boolean,
 ): ((peerId: string) => void) => {
   const singlePlayer = useSinglePlayer();
   const [lastStartedId, setLastStartedId] = useState<string | undefined>(
     undefined,
   );
-  const computer =
-    role === 'listener'
-      ? pickRemoteNowPlaying(computers, lastStartedId)
-      : undefined;
+  const computer = pickRemoteNowPlaying(computers, lastStartedId);
   const playing = computer?.nowPlaying;
   const peerId = computer?.id;
-  const playingIds =
-    role === 'listener'
-      ? computers
-          .filter((entry) => entry.nowPlaying?.isPlaying === true)
-          .map((entry) => entry.id)
-      : [];
+  const playingIds = computers
+    .filter((entry) => entry.nowPlaying?.isPlaying === true)
+    .map((entry) => entry.id);
   // Peer ids never contain a newline: they are the transport's own tokens.
   const playingKey = playingIds.join('\n');
   const playingIdsRef = useRef(playingIds);
@@ -186,6 +187,8 @@ const useRemoteNowPlayingSource = (
     });
   }, [computer, peerId, playing]);
 
+  const pauseNewcomersRef = useRef(pauseNewcomers);
+  pauseNewcomersRef.current = pauseNewcomers;
   const knownPlayingRef = useRef<ReadonlySet<string>>(new Set());
   /** The computer whose user pressed play last. Written as that message
    * arrives rather than derived from state, because the round of pauses
@@ -213,7 +216,7 @@ const useRemoteNowPlayingSource = (
       getPlaybackOwner() !== undefined ||
       isTransportPlaying('system') ||
       now.some((id) => !appeared.includes(id));
-    if (singlePlayer && soundHere) {
+    if (singlePlayer && soundHere && pauseNewcomersRef.current) {
       toPause.forEach((id) => sendTransport(id, { command: 'pause' }));
     }
     // The exemption lasts as long as that computer is playing and no longer,

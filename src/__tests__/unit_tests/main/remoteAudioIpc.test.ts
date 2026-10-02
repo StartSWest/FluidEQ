@@ -30,6 +30,7 @@ const lan = {
 const credentials = {
   activate: jest.fn(),
   clear: jest.fn(),
+  forgetSender: jest.fn(),
   pause: jest.fn(),
   read: jest.fn(),
   readListener: jest.fn(),
@@ -46,7 +47,8 @@ jest.mock('../../../main/remoteAudioCredentials', () => ({
   createRemoteAudioCredentialStore: jest.fn(() => credentials),
 }));
 jest.mock('../../../main/remoteAudioCapture', () => ({
-  startRemoteAudioCapture: (...args: unknown[]) => mockCapture(...args),
+  startNetworkCapture: (...args: unknown[]) => mockCapture(...args),
+  startRawSourceCapture: jest.fn(),
 }));
 jest.mock('../../../main/remoteAudioHostSession', () => ({
   __esModule: true,
@@ -58,7 +60,17 @@ jest.mock('../../../main/ipc/dspHost', () => ({
 }));
 
 // eslint-disable-next-line import/first
+import fs from 'fs';
+// eslint-disable-next-line import/first
+import os from 'os';
+// eslint-disable-next-line import/first
+import path from 'path';
+// eslint-disable-next-line import/first
+import type { BrowserWindow } from 'electron';
+// eslint-disable-next-line import/first
 import { registerRemoteAudioIpc } from '../../../main/ipc/remoteAudio';
+// eslint-disable-next-line import/first
+import createRemoteAudioLan from '../../../main/remoteAudioLan';
 // eslint-disable-next-line import/first
 import { encodePairingCode } from '../../../main/remoteAudioLanProtocol';
 
@@ -246,78 +258,148 @@ describe('remote audio IPC session persistence', () => {
   });
 });
 
-it('restores Library processing when the raw-sharing command fails before capture', async () => {
-  handlers.clear();
-  jest.clearAllMocks();
-  mockRawSharing.mockImplementation(async (enabled: boolean) => {
-    if (enabled) {
-      throw new Error('bypass refused');
-    }
+/**
+ * This computer's sound goes out once a link needs it: the computer it joined
+ * is sent to from the moment it connects. What the network gets is the
+ * Library untouched, so its player goes raw first — and a refusal there, or a
+ * link ended while the capture was still starting, must leave neither the
+ * raw player nor a capture behind.
+ */
+describe('the network capture a link starts', () => {
+  const originalPlatform = process.platform;
+  // The switches are remembered on disk; never in a real profile.
+  let userDataDir = '';
+  beforeAll(() => {
+    userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-links-'));
   });
-  registerRemoteAudioIpc({
-    getMainWindow: () => null,
-    userDataDir: 'C:\\FluidEQ-test',
+  afterAll(() => fs.rmSync(userDataDir, { recursive: true, force: true }));
+  const sent: [string, unknown][] = [];
+  const window = {
+    isDestroyed: () => false,
+    webContents: {
+      send: (channel: string, value: unknown) => sent.push([channel, value]),
+    },
+  };
+
+  beforeEach(() => {
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+    handlers.clear();
+    jest.clearAllMocks();
+    sent.length = 0;
+    mockRawSharing.mockReset().mockResolvedValue(undefined);
+    mockCapture.mockReset().mockResolvedValue({ close: jest.fn() });
+    lan.restoreJoin.mockResolvedValue({
+      peerId: 'peer',
+      deviceName: 'Receiver',
+    });
+    registerRemoteAudioIpc({
+      getMainWindow: () => window as unknown as BrowserWindow,
+      userDataDir,
+    });
   });
-  lan.restoreJoin.mockResolvedValue({ peerId: 'peer', deviceName: 'Receiver' });
-  const { platform } = process;
-  Object.defineProperty(process, 'platform', { value: 'win32' });
-  try {
+  afterEach(() =>
+    Object.defineProperty(process, 'platform', { value: originalPlatform }),
+  );
+
+  /** Joins, then the joined computer connects, as the transport reports it. */
+  const linkJoined = async () => {
     const code = encodePairingCode(
       '192.168.1.20',
       49100,
       'c'.repeat(43),
       'Receiver',
     );
-    await expect(
-      handlers.get('remote-audio-lan-join')?.({}, code, 'music'),
-    ).rejects.toThrow('bypass refused');
+    await handlers.get('remote-audio-lan-join')?.({}, code);
+    const [onSignal] = jest.mocked(createRemoteAudioLan).mock.calls[0];
+    onSignal({
+      peerId: 'peer',
+      signal: { kind: 'peer-ready', deviceName: 'Receiver', joined: true },
+    });
+    return onSignal;
+  };
+  /** Lets the chain of promises a link starts run to its end. */
+  const settle = async () => {
+    for (let step = 0; step < 20; step += 1) {
+      // eslint-disable-next-line no-await-in-loop -- one microtask per step, on purpose
+      await Promise.resolve();
+    }
+  };
+
+  it('starts sending to the computer it joined, its Library raw first', async () => {
+    await linkJoined();
+    await settle();
+    expect(mockRawSharing).toHaveBeenCalledWith(true);
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+    expect(sent).toContainEqual(['remote-audio-lan-sending', true]);
+    expect(lan.sendSignal).toHaveBeenCalledWith({
+      peerId: 'peer',
+      signal: {
+        kind: 'stream-mode',
+        mode: 'video',
+        duplex: { sends: true, plays: true },
+      },
+    });
+  });
+
+  it('puts the Library back and says so when it cannot go raw', async () => {
+    mockRawSharing.mockImplementation(async (enabled: boolean) => {
+      if (enabled) {
+        throw new Error('bypass refused');
+      }
+    });
+    await linkJoined();
+    await settle();
     expect(mockRawSharing).toHaveBeenLastCalledWith(false);
     expect(mockCapture).not.toHaveBeenCalled();
-    expect(credentials.activate).not.toHaveBeenCalled();
-    expect(lan.stop).toHaveBeenCalledTimes(1);
-  } finally {
-    Object.defineProperty(process, 'platform', { value: platform });
-  }
-});
-
-it('closes a late capture after Stop without reactivating sender processing', async () => {
-  handlers.clear();
-  jest.clearAllMocks();
-  mockRawSharing.mockReset().mockResolvedValue(undefined);
-  let finishCapture: (capture: { close: () => void }) => void = () => undefined;
-  mockCapture.mockImplementation(
-    () =>
-      new Promise((resolve) => {
-        finishCapture = resolve;
-      }),
-  );
-  registerRemoteAudioIpc({
-    getMainWindow: () => null,
-    userDataDir: 'C:\\FluidEQ-test',
+    expect(sent).toContainEqual(['remote-audio-lan-sending-failed', undefined]);
   });
-  lan.restoreJoin.mockResolvedValue({ peerId: 'peer', deviceName: 'Receiver' });
-  const { platform } = process;
-  Object.defineProperty(process, 'platform', { value: 'win32' });
-  try {
-    const code = encodePairingCode(
-      '192.168.1.20',
-      49100,
-      'c'.repeat(43),
-      'Receiver',
+
+  it('closes a capture that finishes starting after the link ended', async () => {
+    let finishCapture: (capture: { close: () => void }) => void = () =>
+      undefined;
+    mockCapture.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finishCapture = resolve;
+        }),
     );
-    const starting = handlers.get('remote-audio-lan-join')?.({}, code, 'music');
-    await Promise.resolve();
-    await Promise.resolve();
+    const onSignal = await linkJoined();
+    await settle();
     expect(mockCapture).toHaveBeenCalledTimes(1);
-    await handlers.get('remote-audio-lan-stop')?.({}, 'pause');
+    onSignal({ peerId: 'peer', signal: { kind: 'stop' } });
     const close = jest.fn();
     finishCapture({ close });
-    await starting;
+    await settle();
     expect(close).toHaveBeenCalledTimes(1);
     expect(mockRawSharing).toHaveBeenLastCalledWith(false);
-    expect(credentials.activate).not.toHaveBeenCalled();
-    expect(lan.setStreamMode).toHaveBeenCalledWith('peer', 'video');
-  } finally {
-    Object.defineProperty(process, 'platform', { value: platform });
-  }
+    expect(sent).not.toContainEqual(['remote-audio-lan-sending', true]);
+  });
+
+  it('never plays the sound of a computer whose "Play it here" is off', async () => {
+    await linkJoined();
+    await handlers.get('remote-audio-lan-switches')?.({}, 'Receiver', {
+      send: true,
+      play: false,
+    });
+    const [, onAudio] = jest.mocked(createRemoteAudioLan).mock.calls[0];
+    onAudio({
+      channels: 2,
+      frames: 1,
+      pcm: new Float32Array([0.5, 0.5]).buffer,
+      peerId: 'peer',
+      sampleRate: 48_000,
+      sequence: 1,
+    });
+    expect(sent.map(([channel]) => channel)).not.toContain(
+      'remote-audio-lan-streaming',
+    );
+  });
+
+  it('refuses switches that are not two yes-or-noes', async () => {
+    expect(() =>
+      handlers.get('remote-audio-lan-switches')?.({}, 'Receiver', {
+        send: 'yes',
+      }),
+    ).toThrow('Invalid Share Audio switches.');
+  });
 });

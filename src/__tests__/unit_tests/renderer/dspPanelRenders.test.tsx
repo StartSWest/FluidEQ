@@ -46,9 +46,13 @@ import {
   setDspSampleRate,
 } from '../../../renderer/dsp/store';
 import RemoteAudioContext, {
-  RemoteAudioRoleContext,
+  RemoteAudioReceivingContext,
 } from '../../../renderer/remoteAudio/remoteAudioValueContext';
 import type { IRemoteAudioValue } from '../../../renderer/remoteAudio/remoteAudioState';
+import {
+  remoteAudioLink,
+  remoteAudioValue,
+} from '../../utils/remoteAudioValue';
 import { getAudioEngineStatus } from '../../../renderer/utils/audioEngineApi';
 import { FluidEqProviderWrapper } from '../../../renderer/utils/FluidEqContext';
 import {
@@ -95,38 +99,33 @@ const APO_STATUS: IAudioEngineStatus = {
   fluidUpdateReady: false,
 };
 
-const LISTENING: IRemoteAudioValue = {
-  connectedCount: 1,
-  connectedComputers: [],
-  lanOptions: [],
-  networkStats: [],
+const LINKED: IRemoteAudioValue = remoteAudioValue({
   phase: 'connected',
-  role: 'listener',
-  startListening: jest.fn(),
-  startSending: jest.fn(),
-  stop: jest.fn(),
-  resumePlayback: jest.fn(),
-  subscribeMeter: jest.fn(() => jest.fn()),
-};
+  links: [remoteAudioLink({ receiving: true })],
+  sending: true,
+});
 
 let idleHeadroom: IDspHeadroomMeter;
 let idleNormalizer: IDspNormalizerMeter;
 let idleDenoise: IDspDenoiseMeter;
 let setRemote: (next: IRemoteAudioValue) => void = () => undefined;
+let setReceiving: (next: boolean) => void = () => undefined;
 
 /**
  * Share Audio's two contexts as its provider supplies them, with a way to
- * change the value without re-rendering what is inside — which is the case
+ * change either without re-rendering what is inside — which is the case
  * that matters: a provider whose value moves while its children stay put.
  */
 function RemoteAudioHarness({ children }: { children: ReactNode }) {
-  const [value, setValue] = useState(LISTENING);
+  const [value, setValue] = useState(LINKED);
+  const [receiving, setReceivingState] = useState(true);
   setRemote = setValue;
+  setReceiving = setReceivingState;
   return (
     <RemoteAudioContext.Provider value={value}>
-      <RemoteAudioRoleContext.Provider value={value.role}>
+      <RemoteAudioReceivingContext.Provider value={receiving}>
         {children}
-      </RemoteAudioRoleContext.Provider>
+      </RemoteAudioReceivingContext.Provider>
     </RemoteAudioContext.Provider>
   );
 }
@@ -274,17 +273,17 @@ describe('the DSP page while the engine publishes meters', () => {
   });
 });
 
-describe('the DSP page while Share Audio is connected', () => {
-  it('does not redraw for network samples, only for a change of role', async () => {
+describe('the DSP page while Share Audio is linked', () => {
+  it('does not redraw for network samples, only when receiving changes', async () => {
     renderPanel();
     await screen.findByText(/played from Library only/i);
     const before = mockRenders.rail;
 
     // A fresh value for every sample, the way the provider builds one.
-    hostFrames(() => setRemote({ ...LISTENING, networkStats: [] }));
+    hostFrames(() => setRemote({ ...LINKED, networkStats: [] }));
     expect(mockRenders.rail).toBe(before);
 
-    act(() => setRemote({ ...LISTENING, role: undefined }));
+    act(() => setReceiving(false));
     expect(mockRenders.rail).toBeGreaterThan(before);
   });
 });

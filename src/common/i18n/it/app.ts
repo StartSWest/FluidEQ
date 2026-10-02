@@ -96,7 +96,7 @@ const app: Partial<Dictionary> = {
     "Acquisisce ciò che suona su questo PC, prima dell'equalizzatore, per la scheda Condividi audio, una seconda uscita ed EQ intelligente. È attivo solo mentre uno di questi è in uso.",
   'app.processes.name.sharePlayback': 'Riproduzione dell’audio condiviso',
   'app.processes.what.sharePlayback':
-    'Riproduce il suono che un altro FluidEQ condivide con questo PC. È attivo solo mentre lo ascolti.',
+    'Riproduce il suono che un altro FluidEQ condivide con questo PC e avvia le acquisizioni audio, così ciò che questo PC invia non riporta mai indietro quel suono. È attivo solo mentre uno di questi è in uso.',
   'app.processes.name.volume': 'Volume di sistema',
   'app.processes.what.volume':
     'Segue il volume e il muto di Windows per i cursori del volume di FluidEQ, e lo imposta quando ne sposti uno. È attivo solo mentre un cursore è sullo schermo.',

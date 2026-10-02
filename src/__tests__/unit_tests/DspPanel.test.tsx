@@ -16,10 +16,6 @@ import {
   claimPlayback,
   stopAllPlayback,
 } from '../../renderer/audio/playbackOwner';
-import RemoteAudioContext, {
-  RemoteAudioRoleContext,
-} from '../../renderer/remoteAudio/remoteAudioValueContext';
-import type { IRemoteAudioValue } from '../../renderer/remoteAudio/remoteAudioState';
 import type { IAudioEngineStatus } from '../../common/audioEngine';
 import { getAudioEngineStatus } from '../../renderer/utils/audioEngineApi';
 import {
@@ -72,27 +68,20 @@ const APO_STATUS: IAudioEngineStatus = {
 const renderPanel = (
   settings: IDspSettings = DSP_DEFAULTS,
   engineState: TDspEngineState = 'running',
-  remoteAudio: IRemoteAudioValue | undefined = undefined,
 ) => {
   const onChange = jest.fn();
   const onCommit = jest.fn();
-  // Both contexts, as `RemoteAudioProvider` supplies them: the page reads the
-  // role alone, from its own context.
   const view = render(
-    <RemoteAudioContext.Provider value={remoteAudio}>
-      <RemoteAudioRoleContext.Provider value={remoteAudio?.role}>
-        <FluidEqProviderWrapper
-          value={{ ...defaultFluidEqContext, isEnabled: true }}
-        >
-          <DspPanel
-            settings={settings}
-            onChange={onChange}
-            onCommit={onCommit}
-            engineState={engineState}
-          />
-        </FluidEqProviderWrapper>
-      </RemoteAudioRoleContext.Provider>
-    </RemoteAudioContext.Provider>,
+    <FluidEqProviderWrapper
+      value={{ ...defaultFluidEqContext, isEnabled: true }}
+    >
+      <DspPanel
+        settings={settings}
+        onChange={onChange}
+        onCommit={onCommit}
+        engineState={engineState}
+      />
+    </FluidEqProviderWrapper>,
   );
   return { ...view, onChange, onCommit };
 };

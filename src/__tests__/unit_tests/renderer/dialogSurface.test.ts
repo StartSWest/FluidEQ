@@ -195,8 +195,8 @@ describe('what stands on the floor', () => {
   it.each([
     ['Dsp.scss', '.dsp-card'],
     ['Library.scss', '.library-empty__card'],
-    ['RemoteAudio.scss', '.remote-audio__role-shell'],
-    ['RemoteAudio.scss', '.remote-audio__role-card'],
+    ['RemoteAudio.scss', '.remote-audio__link-form'],
+    ['RemoteAudio.scss', '.remote-audio__link'],
     ['Karaoke.scss', '.karaoke-pitch'],
     ['Karaoke.scss', '.karaoke-playlist'],
     ['Karaoke.scss', '.karaoke-maker__header'],
@@ -222,7 +222,8 @@ describe('what stands on the floor', () => {
     ['Games.scss', '.games-row'],
     ['ConfigInspector.scss', '.config-card'],
     ['StudioMaker.scss', '.studio-maker'],
-    ['RemoteAudio.scss', '.remote-audio__role-shell'],
+    ['RemoteAudio.scss', '.remote-audio__link-form'],
+    ['RemoteAudio.scss', '.remote-audio__link'],
     ['Karaoke.scss', '.karaoke-playlist'],
   ])('%s fills %s with the card', (sheet, selector) => {
     const card = declarationsOf(compiledCss(sheet), selector);

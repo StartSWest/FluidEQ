@@ -187,6 +187,16 @@ const PATHS: Record<string, string> = {
   save: 'M5 4.5h11l3 3V19a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 19V4.5zM8 4.5v4.5h7V4.5M8 19.5v-6h8v6',
   // A screen on its stand: the desktop.
   monitor: 'M3.5 5h17v11h-17zM9 20h6M12 16v4',
+  // An arrow coming in from the right: sound arriving from another computer.
+  arrowIn: 'M19 12H5M11 6l-6 6 6 6',
+  // An arrow leaving to the right: this computer's sound going out.
+  arrowOut: 'M5 12h14M13 6l6 6-6 6',
+  // Two arrows passing each other: both ways, and nothing sent back.
+  bothWays: 'M7 8h11l-3-3M17 16H6l3 3',
+  // Four bars of different heights: an equalizer, the sound being shaped.
+  eqBars: 'M5 18V9M10 18v-7M15 18V5M20 18v-9',
+  // A clock face: held steady in time.
+  steady: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8v4l3 2',
   // A camera body with its lens: frame a photo.
   camera:
     'M4 8h3.5l1.5-2.5h6L16.5 8H20v10.5H4zM12 10.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',

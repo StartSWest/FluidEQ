@@ -3,24 +3,24 @@
 /**
  * The pause that came back as a press.
  *
- * Share Audio's one-player rule crosses the wire: what a sending computer's
- * user starts wins, and what this computer's user starts pauses the senders.
+ * Share Audio's one-player rule crosses the wire: what a linked computer's
+ * user starts wins, and what this computer's user starts pauses the others.
  * It went round in a circle. The listener worked out "somebody pressed play
  * over there" by diffing the descriptions each sender sends, and the pause it
  * sent made the next description say playing again — the sender's bar falls
  * through to whatever else was already going on that machine — so the rule
  * fired again and stopped the music the listener's own user had just started.
  *
- * Both halves are held here: the sender only ever calls a player going from
- * paused to playing a press, and the listener only ever acts on being told
- * one — never on a description, and never against the computer that sent it.
+ * Both halves are held here: a computer only ever calls a player going from
+ * paused to playing a press, and a computer told of one only ever acts on
+ * being told — never on a description, and never against the computer that
+ * sent it. Both ways, every linked computer is both halves at once, so two
+ * more things are held: a press goes to every linked computer, and of two
+ * computers that were both already playing only one pauses the other.
  */
 
 import { act, renderHook } from '@testing-library/react';
-import type {
-  IRemoteAudioComputer,
-  TRemoteAudioPhase,
-} from 'renderer/remoteAudio/remoteAudioState';
+import type { IRemoteAudioComputer } from 'renderer/remoteAudio/remoteAudioState';
 import {
   claimPlayback,
   registerPlayer,
@@ -63,16 +63,17 @@ const computer = (id: string, isPlaying: boolean): IRemoteAudioComputer => ({
   },
 });
 
-describe('a sending computer announcing a press', () => {
+describe('a computer announcing a press', () => {
   const sendRemoteAudioLanSignal = jest.fn();
+  const pauseOtherSystemPlayers = jest.fn();
 
-  const lastMessage = () => {
-    const { calls } = sendRemoteAudioLanSignal.mock;
-    return calls[calls.length - 1]?.[0]?.signal;
-  };
+  const messages = () =>
+    sendRemoteAudioLanSignal.mock.calls.map((call) => call[0]);
+  const lastMessage = () => messages()[messages().length - 1]?.signal;
 
   beforeEach(() => {
     sendRemoteAudioLanSignal.mockReset().mockResolvedValue(undefined);
+    pauseOtherSystemPlayers.mockReset().mockResolvedValue(undefined);
     resetTransportSource();
     resetPlaybackOwner();
     Object.assign(window, {
@@ -80,16 +81,17 @@ describe('a sending computer announcing a press', () => {
         ipcRenderer: {
           sendRemoteAudioLanSignal,
           sendSystemMediaCommand: jest.fn(),
+          pauseOtherSystemPlayers,
         },
       },
     });
   });
 
-  const renderSender = () =>
-    renderHook(() =>
-      useRemoteNowPlayingBroadcast('sender', 'connected', {
-        current: 'listener-peer',
-      }),
+  const renderSender = (peers: readonly string[] = ['listener-peer']) =>
+    renderHook(
+      ({ ids }: { ids: readonly string[] }) =>
+        useRemoteNowPlayingBroadcast(ids),
+      { initialProps: { ids: peers } },
     );
 
   it('says so when its own player goes from paused to playing', () => {
@@ -104,6 +106,21 @@ describe('a sending computer announcing a press', () => {
       started: true,
       playing: { title: 'Album', isPlaying: true },
     });
+  });
+
+  it('tells every linked computer of the press, once each', () => {
+    renderSender(['alpha', 'beta']);
+    act(() => setTransportSource(source('library', 'Album', false)));
+    sendRemoteAudioLanSignal.mockClear();
+    act(() => {
+      setTransportSource(source('library', 'Album', true));
+      claimPlayback('library');
+    });
+    const pressed = messages().filter((message) => message.signal.started);
+    expect(pressed.map((message) => message.peerId).sort()).toEqual([
+      'alpha',
+      'beta',
+    ]);
   });
 
   it('never says so because the listener paused it', () => {
@@ -133,17 +150,11 @@ describe('a sending computer announcing a press', () => {
     expect(lastMessage()?.started).toBeUndefined();
   });
 
-  it('never says so for a description it is only repeating', () => {
+  it('tells a computer that arrives what is playing, never as a press', () => {
     // A reconnection re-announces the song that has been playing all along,
-    // under a peer id the listener has never seen. That used to read as a
-    // press and silence whatever the listener was playing.
-    const { rerender } = renderHook(
-      ({ phase }: { phase: TRemoteAudioPhase }) =>
-        useRemoteNowPlayingBroadcast('sender', phase, {
-          current: 'listener-peer',
-        }),
-      { initialProps: { phase: 'connecting' as TRemoteAudioPhase } },
-    );
+    // under a peer id the other computer has never seen. That used to read as
+    // a press and silence whatever the other computer was playing.
+    const { rerender } = renderSender([]);
     act(() => setTransportSource(source('library', 'Album', false)));
     // Played the way the library plays: it claims playback as it starts. A
     // source that says playing without claiming it is a state the app never
@@ -152,14 +163,36 @@ describe('a sending computer announcing a press', () => {
       setTransportSource(source('library', 'Album', true));
       claimPlayback('library');
     });
-    sendRemoteAudioLanSignal.mockClear();
-    rerender({ phase: 'connected' });
+    expect(messages()).toEqual([]);
+    rerender({ ids: ['listener-peer'] });
+    expect(messages()).toHaveLength(1);
     expect(lastMessage()).toMatchObject({ playing: { isPlaying: true } });
     expect(lastMessage()?.started).toBeUndefined();
   });
+
+  it('stops its own player for a pause from the wire, and never sends one back', () => {
+    // Both ways this computer also plays the other's sound, so it has a
+    // `remote` player of its own whose stopper is a pause sent back out. The
+    // pause that arrived must stop the library here and nothing on the wire.
+    const stopLibrary = jest.fn();
+    const pauseTheWire = jest.fn();
+    const { result } = renderSender();
+    act(() => {
+      registerPlayer('library', stopLibrary);
+      registerPlayer('remote', pauseTheWire);
+      setTransportSource(source('library', 'Album', true));
+      claimPlayback('library');
+    });
+    // Claiming playback here paused the other computer, as it should; what
+    // is held is that the pause arriving from it does not.
+    pauseTheWire.mockClear();
+    act(() => result.current({ command: 'pause' }));
+    expect(stopLibrary).toHaveBeenCalledTimes(1);
+    expect(pauseTheWire).not.toHaveBeenCalled();
+  });
 });
 
-describe('a listening computer told of a press', () => {
+describe('a computer told of a press', () => {
   const sendRemoteAudioLanSignal = jest.fn();
   const sendSystemMediaCommand = jest.fn();
   const pauseOtherSystemPlayers = jest.fn();
@@ -186,10 +219,11 @@ describe('a listening computer told of a press', () => {
     });
   });
 
-  const renderListener = (computers: IRemoteAudioComputer[]) =>
+  /** `hub`: this computer's code was used, the one that pauses on sight. */
+  const renderListener = (computers: IRemoteAudioComputer[], hub = true) =>
     renderHook(
       ({ list }: { list: IRemoteAudioComputer[] }) =>
-        useRemoteNowPlayingSource('listener', list),
+        useRemoteNowPlayingSource(list, hub),
       { initialProps: { list: computers } },
     );
 
@@ -245,6 +279,21 @@ describe('a listening computer told of a press', () => {
     act(() => rerender({ list: [computer('a', true)] }));
     expect(stopLibrary).not.toHaveBeenCalled();
     expect(pausedPeers()).toEqual(['a']);
+  });
+
+  it('leaves the pausing on sight to the computer whose code was used', () => {
+    // Both ways, each of two linked computers sees the other turn up playing
+    // over its own music. If both paused on sight, each would pause the other
+    // and both would fall silent; the computer that joined holds back.
+    const stopLibrary = jest.fn();
+    const { rerender } = renderListener([computer('a', false)], false);
+    act(() => {
+      registerPlayer('library', stopLibrary);
+      claimPlayback('library');
+    });
+    act(() => rerender({ list: [computer('a', true)] }));
+    expect(stopLibrary).not.toHaveBeenCalled();
+    expect(pausedPeers()).toEqual([]);
   });
 
   it('never answers a press with a pause, however slow this end is', () => {

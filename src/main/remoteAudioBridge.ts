@@ -101,6 +101,41 @@ const sendRemoteAudioLanAudio = (chunk: ILanRemoteAudioChunk) =>
 const stopRemoteAudioLan = (mode: TRemoteAudioStopMode = 'keep-active') =>
   ipcRenderer.invoke('remote-audio-lan-stop', mode) as Promise<void>;
 
+/** "Send my sound" and "Play it here" for the computer called `name`. */
+const setRemoteAudioLinkSwitches = (
+  name: string,
+  switches: { send: boolean; play: boolean },
+) =>
+  ipcRenderer.invoke(
+    'remote-audio-lan-switches',
+    name,
+    switches,
+  ) as Promise<void>;
+
+const getRemoteAudioLinkSwitches = (name: string) =>
+  ipcRenderer.invoke('remote-audio-lan-switches-for', name) as Promise<
+    { send: boolean; play: boolean } | undefined
+  >;
+
+/** Whether this computer's sound is going to another computer. */
+const onRemoteAudioLanSending = (listener: (sending: boolean) => void) => {
+  const wrapped = (_event: IpcRendererEvent, sending: boolean) =>
+    listener(sending === true);
+  ipcRenderer.on('remote-audio-lan-sending', wrapped);
+  return () => {
+    ipcRenderer.removeListener('remote-audio-lan-sending', wrapped);
+  };
+};
+
+/** This computer's sound could not be captured for the network. */
+const onRemoteAudioLanSendingFailed = (listener: () => void) => {
+  const wrapped = () => listener();
+  ipcRenderer.on('remote-audio-lan-sending-failed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('remote-audio-lan-sending-failed', wrapped);
+  };
+};
+
 const onRemoteAudioLanSignal = (
   listener: (message: ILanRemoteAudioSignal) => void,
 ) => {
@@ -164,6 +199,10 @@ const remoteAudioBridge = {
   sendRemoteAudioLanSignal,
   sendRemoteAudioLanAudio,
   stopRemoteAudioLan,
+  setRemoteAudioLinkSwitches,
+  getRemoteAudioLinkSwitches,
+  onRemoteAudioLanSendingFailed,
+  onRemoteAudioLanSending,
   onRemoteAudioLanSignal,
   onRemoteAudioLanAudio,
   onRemoteAudioLanStreaming,

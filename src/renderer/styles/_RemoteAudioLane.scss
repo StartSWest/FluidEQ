@@ -1,0 +1,207 @@
+/* FluidEQ — GPL-3.0-or-later */
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// One direction of a link: where it goes, what is on it, how far behind it
+// plays, and its switch — one row, so the two directions read as a pair.
+.remote-audio__lane {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  padding: 16px 18px;
+  gap: 18px;
+  grid-template-columns: minmax(170px, 230px) minmax(0, 1fr) 84px auto;
+
+  + .remote-audio__lane {
+    border-top: 1px solid rgba($edge-tint, 0.1);
+  }
+}
+
+.remote-audio__lane-direction {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
+.remote-audio__lane-arrow {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  color: $secondary-light;
+  transition:
+    background $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+
+  .menu-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.remote-audio__lane-names {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+
+  strong {
+    font-size: $text-body;
+    font-weight: $weight-bold;
+  }
+}
+
+// The app's kicker (`.control-kicker`), as a class of its own because the
+// lane dims it with the rest when its direction is off.
+.remote-audio__lane-kicker {
+  overflow: hidden;
+  color: $secondary-light;
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  @include tracking(0.14em);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.remote-audio__lane-body {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.remote-audio__lane-line {
+  display: flex;
+  min-width: 0;
+  margin: 0;
+  gap: 8px;
+  font-size: $text-small;
+  white-space: nowrap;
+}
+
+.remote-audio__lane-song {
+  min-width: 0;
+  overflow: hidden;
+  flex: 0 1 auto;
+  color: $text-primary;
+  text-overflow: ellipsis;
+}
+
+.remote-audio__lane-detail {
+  min-width: 0;
+  overflow: hidden;
+  flex: 0 1000 auto;
+  color: $text-muted;
+  text-overflow: ellipsis;
+
+  &::before {
+    margin-right: 8px;
+    content: '·';
+  }
+}
+
+.remote-audio__lane-wave {
+  display: block;
+  width: 100%;
+  height: 38px;
+}
+
+.remote-audio__lane-figure {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.remote-audio__lane-number {
+  color: $text-primary;
+  font-size: $text-title;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+}
+
+.remote-audio__lane-caption {
+  color: $text-faint;
+  font-size: $text-micro;
+}
+
+.remote-audio__lane-switch {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+}
+
+.remote-audio__lane.is-off {
+  .remote-audio__lane-arrow {
+    background: rgba($edge-tint, 0.08);
+    color: $text-faint;
+  }
+
+  .remote-audio__lane-kicker {
+    color: $text-faint;
+  }
+
+  .remote-audio__lane-names strong,
+  .remote-audio__lane-song,
+  .remote-audio__lane-number {
+    color: $text-muted;
+  }
+}
+
+@container eq-panel (max-width: 900px) {
+  .remote-audio__lane {
+    gap: 12px 16px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'direction switch'
+      'body body'
+      'figure figure';
+  }
+
+  .remote-audio__lane-direction {
+    grid-area: direction;
+  }
+
+  .remote-audio__lane-switch {
+    grid-area: switch;
+  }
+
+  .remote-audio__lane-body {
+    grid-area: body;
+  }
+
+  .remote-audio__lane-figure {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 6px;
+    grid-area: figure;
+  }
+}
+
+@container eq-panel (max-width: 460px) {
+  .remote-audio__lane {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'direction'
+      'body'
+      'figure'
+      'switch';
+  }
+
+  .remote-audio__lane-switch {
+    justify-content: space-between;
+  }
+}

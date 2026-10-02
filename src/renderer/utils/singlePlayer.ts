@@ -71,10 +71,35 @@ const read = (): boolean => {
 
 let enabled = read();
 
+/**
+ * Told of every change of the switch, and of the linked computer it came
+ * from when it came from one.
+ *
+ * Share Audio links reach across machines with the rule, so the switch does
+ * too: turned off on one linked computer it is off on the other (Ivan,
+ * 2026-10-02). What travels is the change, never the state — two computers
+ * that disagree when they link would otherwise each set the other's and
+ * swap for ever — and a change from a link is passed on to every other link
+ * and never back to the one it came from (`useRemoteNowPlayingBroadcast`).
+ */
+type TSinglePlayerChange = (next: boolean, fromLink?: string) => void;
+const changeListeners = new Set<TSinglePlayerChange>();
+
+export const onSinglePlayerChange = (
+  listener: TSinglePlayerChange,
+): (() => void) => {
+  changeListeners.add(listener);
+  return () => {
+    changeListeners.delete(listener);
+  };
+};
+
 /** Whether starting a player should silence whatever else is playing. */
 export const isSinglePlayerEnabled = (): boolean => enabled;
 
-export const setSinglePlayer = (next: boolean): void => {
+const change = (next: boolean, fromLink?: string) => {
+  // Unchanged is nothing, and is also what ends a change going round a
+  // ring of links.
   if (next === enabled) {
     return;
   }
@@ -86,7 +111,15 @@ export const setSinglePlayer = (next: boolean): void => {
     // window, which is better than refusing to change it at all.
   }
   emit();
+  changeListeners.forEach((listener) => listener(next, fromLink));
 };
+
+/** The switch, set here. */
+export const setSinglePlayer = (next: boolean): void => change(next);
+
+/** The switch, set on the linked computer `peerId`. */
+export const setSinglePlayerFromLink = (next: boolean, peerId: string): void =>
+  change(next, peerId);
 
 export const useSinglePlayer = (): boolean =>
   useSyncExternalStore(

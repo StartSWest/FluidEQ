@@ -1,5 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 #include "replies.h"
+#include <mutex>
 namespace {
 bool transfer(bool writing, void* data, std::uint32_t size) {
   auto* bytes = static_cast<unsigned char*>(data);
@@ -18,6 +19,10 @@ bool transfer(bool writing, void* data, std::uint32_t size) {
 bool playback_read(void* data, std::uint32_t size) { return transfer(false, data, size); }
 bool playback_reply(std::uint32_t kind, std::uint32_t id, std::uint32_t result,
                     const void* data, std::uint32_t size) {
+  // The command loop and the capture watcher both reply; one reply is one
+  // header and its body, never interleaved with another's.
+  static std::mutex writing;
+  const std::lock_guard guard(writing);
   PlaybackHeader header;
   header.kind = kind; header.id = id; header.rate = result; header.bytes = size;
   return transfer(true, &header, sizeof(header)) &&

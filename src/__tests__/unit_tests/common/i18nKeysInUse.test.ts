@@ -153,9 +153,6 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     'lighting.focus.*',
     'lighting.idle.*',
   ],
-  'src/renderer/remoteAudio/RemoteAudioMonitor.tsx': [
-    ['remoteAudio.{listen,send}.kicker', 'remoteAudio.*.kicker'],
-  ],
   'src/renderer/remoteAudio/RemoteAudioPanel.tsx': ['remoteAudio.error.*'],
   'src/renderer/studio/StudioListen.tsx': [
     'studio.signal.*',

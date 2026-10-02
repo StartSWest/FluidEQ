@@ -705,13 +705,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.share.title': 'Condividi audio tra computer',
   'help.share.intro':
-    'Condividi audio invia il suono di sistema tra computer della stessa rete privata. Il ricevitore ha cuffie o altoparlanti; gli altri inviano. È diverso dalla seconda uscita sullo stesso computer.',
+    'Condividi audio collega due computer della stessa rete privata e ognuno riproduce il suono dell’altro: a qualunque dei due tu sia seduto, li senti entrambi. Ogni computer invia il proprio suono intatto e non rimanda mai ciò che riceve, quindi niente eco; il computer su cui ascolti applica il suo EQ, le sue curve e il suo DSP. È diverso dal duplicare su un secondo dispositivo dello stesso computer.',
   'help.share.steps':
-    'Sul computer d’ascolto apri Condividi audio, scegli Riproduci l’audio su questo computer e premi Crea codice di connessione. Inizia a volume basso.\nSu ogni computer sorgente scegli Invia l’audio di questo computer, incolla il codice della tua rete e premi Connetti e invia.\nControlla il monitor della connessione. Al termine premi Interrompi invio o Interrompi ascolto; Crea nuovo codice scollega tutti gli abbinamenti salvati.',
+    'Su un computer apri Condividi audio e premi Copia codice. Inizia a volume basso.\nSull’altro computer apri Condividi audio, incolla il codice in Codice dell’altro computer e premi Collega. I due computer si riproducono subito a vicenda.\nOgni computer collegato ha due interruttori: Riproduci qui e Invia il mio suono. Spegnine uno per condividere in una sola direzione; Scollega termina il collegamento per sempre.',
   'help.share.tip':
-    'Il codice autorizza l’abbinamento: tienilo privato. Più mittenti vengono miscelati e alzano il livello, che si regola con il volume del computer che riceve. Con il motore FluidEQ, anche l’audio ricevuto passa dal rack DSP.',
+    'Il codice di connessione autorizza il collegamento: tienilo privato. Con il motore FluidEQ, questo computer mantiene il suo DSP mentre condivide, e il computer che riproduce il suo suono applica il proprio. Riprodurre e inviare insieme richiede Windows su quel computer; altrove un collegamento funziona in una sola direzione.',
   'help.share.keywords':
-    'rete locale, LAN, wifi, altro PC, collegare computer, condividere audio, inviare audio, ricevere audio, trasmettere audio, streaming audio',
+    'rete locale, LAN, wifi, altro PC, collegare computer, condividere audio, inviare audio, ricevere audio, trasmettere audio, streaming audio, due direzioni, bidirezionale, collega, scollega',
 
   'help.trouble.title': 'Quando il suono non va',
   'help.trouble.intro':

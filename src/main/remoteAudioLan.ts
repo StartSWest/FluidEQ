@@ -551,7 +551,9 @@ const createRemoteAudioLan = (
             peerId,
             signal: {
               kind: 'peer-ready',
-              deviceName: os.hostname().trim() || pairing.address,
+              address: pairing.address,
+              deviceName: pairing.deviceName,
+              joined: true,
             },
           };
           emitSignal(ready);

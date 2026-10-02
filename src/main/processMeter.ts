@@ -80,14 +80,14 @@ export const parseMeterReply = (line: string): Map<number, IMeterReading> => {
 
 export interface IProcessMeter {
   /**
-   * A measurement of `pids`, and of every process `childrenOf` started, taken
-   * now. Undefined when there is no meter on this machine, or it went away
+   * A measurement of `pids`, and of every process each of `childrenOf`
+   * started, taken now. Undefined when there is no meter on this machine, or it went away
    * mid-measurement, so the caller keeps Electron's own figures instead of
    * showing dashes forever.
    */
   read: (
     pids: readonly number[],
-    childrenOf?: number,
+    childrenOf?: readonly number[],
   ) => Promise<ReadonlyMap<number, IMeterReading> | undefined>;
   stop: () => void;
 }
@@ -196,7 +196,7 @@ export const createProcessMeter = (
       const running = start();
       const asked = [
         ...pids.map(String),
-        ...(childrenOf === undefined ? [] : [`c${childrenOf}`]),
+        ...(childrenOf ?? []).map((parent) => `c${parent}`),
       ];
       if (!running || asked.length === 0) {
         return Promise.resolve(undefined);

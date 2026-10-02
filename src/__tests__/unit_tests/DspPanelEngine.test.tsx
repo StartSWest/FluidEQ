@@ -15,10 +15,7 @@ import {
   claimPlayback,
   stopAllPlayback,
 } from '../../renderer/audio/playbackOwner';
-import RemoteAudioContext, {
-  RemoteAudioRoleContext,
-} from '../../renderer/remoteAudio/remoteAudioValueContext';
-import type { IRemoteAudioValue } from '../../renderer/remoteAudio/remoteAudioState';
+import { RemoteAudioReceivingContext } from '../../renderer/remoteAudio/remoteAudioValueContext';
 import type { IAudioEngineStatus } from '../../common/audioEngine';
 import { getAudioEngineStatus } from '../../renderer/utils/audioEngineApi';
 import {
@@ -67,27 +64,25 @@ const APO_STATUS: IAudioEngineStatus = {
 const renderPanel = (
   settings: IDspSettings = DSP_DEFAULTS,
   engineState: TDspEngineState = 'running',
-  remoteAudio: IRemoteAudioValue | undefined = undefined,
+  receivingRemoteAudio = false,
 ) => {
   const onChange = jest.fn();
   const onCommit = jest.fn();
-  // Both contexts, as `RemoteAudioProvider` supplies them: the page reads the
-  // role alone, from its own context.
+  // Share Audio as `RemoteAudioProvider` tells the page about it: whether
+  // another computer's sound is playing here, from its own context.
   const view = render(
-    <RemoteAudioContext.Provider value={remoteAudio}>
-      <RemoteAudioRoleContext.Provider value={remoteAudio?.role}>
-        <FluidEqProviderWrapper
-          value={{ ...defaultFluidEqContext, isEnabled: true }}
-        >
-          <DspPanel
-            settings={settings}
-            onChange={onChange}
-            onCommit={onCommit}
-            engineState={engineState}
-          />
-        </FluidEqProviderWrapper>
-      </RemoteAudioRoleContext.Provider>
-    </RemoteAudioContext.Provider>,
+    <RemoteAudioReceivingContext.Provider value={receivingRemoteAudio}>
+      <FluidEqProviderWrapper
+        value={{ ...defaultFluidEqContext, isEnabled: true }}
+      >
+        <DspPanel
+          settings={settings}
+          onChange={onChange}
+          onCommit={onCommit}
+          engineState={engineState}
+        />
+      </FluidEqProviderWrapper>
+    </RemoteAudioReceivingContext.Provider>,
   );
   return { ...view, onChange, onCommit };
 };
@@ -203,31 +198,18 @@ describe('DspPanel and the engine', () => {
   );
 
   /**
-   * The receiver role describes a connection, not the source feeding the
-   * rack. A Library deck that owns playback keeps its controls while Share
-   * Audio is listening; it is only once nothing of the Library's is playing
-   * that received audio, which the rack never touches, leaves the page inert.
+   * A link describes a connection, not the source feeding the rack. A
+   * Library deck that owns playback keeps its controls while another
+   * computer's sound plays here; under Equalizer APO it is only once nothing
+   * of the Library's is playing that received audio, which that rack never
+   * touches, leaves the page inert.
    */
-  describe('while Share Audio is listening', () => {
-    const remote: IRemoteAudioValue = {
-      connectedCount: 1,
-      connectedComputers: [],
-      lanOptions: [],
-      networkStats: [],
-      phase: 'connected',
-      role: 'listener',
-      startListening: jest.fn(),
-      startSending: jest.fn(),
-      stop: jest.fn(),
-      resumePlayback: jest.fn(),
-      subscribeMeter: jest.fn(() => jest.fn()),
-    };
-
+  describe('while another computer’s sound plays here', () => {
     it('keeps the rack for a Library deck that owns playback', () => {
       const { container, onChange } = renderPanel(
         DSP_DEFAULTS,
         'running',
-        remote,
+        true,
       );
       expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeEnabled();
       expect(container.querySelector('.dsp-stage')).not.toHaveAttribute(
@@ -241,7 +223,7 @@ describe('DspPanel and the engine', () => {
       const { container, onChange } = renderPanel(
         DSP_DEFAULTS,
         'running',
-        remote,
+        true,
       );
       expect(screen.getByRole('checkbox', { name: 'DSP' })).toBeDisabled();
       expect(container.querySelector('.dsp-stage')).toHaveAttribute('inert');

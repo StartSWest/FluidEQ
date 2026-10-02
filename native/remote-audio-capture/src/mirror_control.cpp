@@ -3,9 +3,9 @@
 #include <cmath>
 #include <sstream>
 
-MirrorControl::MirrorControl(std::uint32_t rate, std::uint16_t channels,
-                             Reply reply)
-    : rate_(rate), channels_(channels), reply_(reply) {
+MirrorControl::MirrorControl(HANDLE input, std::uint32_t rate,
+                             std::uint16_t channels, Reply reply)
+    : input_(input), rate_(rate), channels_(channels), reply_(reply) {
   event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
   if (event_ != nullptr) {
     thread_ = CreateThread(nullptr, 0, read_commands, this, 0, nullptr);
@@ -25,7 +25,7 @@ MirrorControl::~MirrorControl() {
 DWORD WINAPI MirrorControl::read_commands(void* context) {
   auto& self = *static_cast<MirrorControl*>(context);
   std::string line;
-  const HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+  const HANDLE input = self.input_;
   while (!self.stopping_) {
     char value = 0;
     DWORD read = 0;

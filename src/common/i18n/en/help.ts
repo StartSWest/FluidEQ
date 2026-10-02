@@ -681,13 +681,13 @@ const help = {
 
   'help.share.title': 'Share audio between computers',
   'help.share.intro':
-    'Share Audio sends system audio between computers on the same private network. The receiver is the computer connected to your headphones or speakers; other computers are senders. This is separate from mirroring to a second device on one computer.',
+    'Share Audio links two computers on the same private network, and each plays the other’s sound: whichever one you sit at, you hear both. Each computer sends its sound untouched and never sends back what it receives, so there is no echo; the computer you listen on applies its own EQ, curves and DSP. This is separate from mirroring to a second device on one computer.',
   'help.share.steps':
-    'On the listening computer, open Share Audio, choose Play audio on this computer and press Create connection code. Start at a low volume.\nOn each source computer, choose Send audio from this computer, paste the code for your network and press Connect and send.\nWatch the connection monitor. Press Stop sending or Stop listening when finished; Create new code disconnects every saved pairing.',
+    'On one computer, open Share Audio and press Copy code. Start at a low volume.\nOn the other computer, open Share Audio, paste the code under The other computer’s code and press Link. Both computers play each other right away.\nEach linked computer has two switches: Play it here and Send my sound. Turn one off to share one way only; Unlink ends the link for good.',
   'help.share.tip':
-    'Keep the connection code private: it authorizes pairing. Several senders mix together and raise the level, which the receiving computer’s volume sets. Under the FluidEQ Engine, received audio also goes through the DSP rack.',
+    'Keep the connection code private: it authorizes linking. Under the FluidEQ Engine this computer keeps its DSP on while it shares, and the computer playing its sound applies its own. Playing and sending at once needs Windows on that computer; elsewhere a link runs one way.',
   'help.share.keywords':
-    'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair',
+    'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair, both ways, two way, link, unlink, duplex',
 
   'help.trouble.title': 'When something sounds wrong',
   'help.trouble.intro':

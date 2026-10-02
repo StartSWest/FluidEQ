@@ -325,37 +325,36 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Un teclado, un ratón y una alfombrilla iluminados con el rosa, el violeta y el cian de Ciudad de neón.',
 
-  'tour.share.kicker': 'ESCUCHA TODOS TUS PC',
+  'tour.share.kicker': 'CADA PC, EN LAS DOS DIRECCIONES',
   'tour.share.title': 'Comparte audio entre tus ordenadores',
-  'tour.share.subtitle': 'Unos auriculares, todas las máquinas de tu mesa',
+  'tour.share.subtitle':
+    'Oye los dos ordenadores, te sientes en el que te sientes',
   'tour.share.lead':
-    'Tu PC de juegos, el portátil del trabajo y el equipo multimedia suenan en los auriculares que llevas puestos: por tu propia red, sin pérdidas, cifrado y a través del EQ que ya tienes ajustado.',
-  'tour.share.receiverLabel': 'RECEPTOR',
-  'tour.share.receiverName': 'El PC con tus auriculares',
-  'tour.share.senderLabel': 'EMISORES',
-  'tour.share.senderName': 'Los demás ordenadores',
+    'Tu PC de juegos y tu portátil suenan el uno en el otro: te sientes en el que te sientes, oyes los dos, por tu propia red, sin pérdida, cifrado y con el EQ que ajustaste en ese ordenador.',
+  'tour.share.pairLabel': 'EN LAS DOS DIRECCIONES',
+  'tour.share.pairName': 'Cada ordenador reproduce el sonido del otro',
   'tour.share.wireLabel': 'Sin pérdidas · Cifrado · LAN privada',
   'tour.share.stepsTitle': 'Configúralo en tres pasos',
-  'tour.share.step1Title': 'En el PC de los auriculares, crea un código',
+  'tour.share.step1Title': 'En un ordenador, copia su código',
   'tour.share.step1':
-    'Abre la pestaña Compartir audio, elige «Reproducir audio en este ordenador» y pulsa «Crear código de conexión». Copia el código de tu red.',
-  'tour.share.step2Title': 'En cada otro PC, pégalo',
+    'Abre la pestaña Compartir audio y pulsa «Copiar código». El código es siempre el mismo.',
+  'tour.share.step2Title': 'En el otro, pégalo y enlaza',
   'tour.share.step2':
-    'Abre FluidEQ allí, ve a Compartir audio, elige «Enviar el audio de este ordenador», pega el código y pulsa «Conectar y enviar». Su audio del sistema empieza a fluir, intacto: los efectos se aplican en el ordenador en el que escuchas.',
-  'tour.share.step3Title': 'Escucha y ajusta el nivel',
+    'Abre allí Compartir audio, pega el código en «Código del otro ordenador» y pulsa «Enlazar». Los dos empiezan a reproducirse al instante, sin tocar: cada uno aplica su propio EQ a lo que oye.',
+  'tour.share.step3Title': 'Elige qué va adónde',
   'tour.share.step3':
-    'Los emisores suenan con un búfer corto que se pone al día por sí solo tras un corte. Cada emisor se mezcla en la salida del receptor y pasa por su EQ. La barra de reproducción del receptor muestra la canción del último emisor, y sus botones funcionan a través de la red.',
+    'Cada ordenador enlazado tiene dos interruptores, «Reproducir aquí» y «Enviar mi sonido»: apaga uno si quieres una sola dirección. La barra muestra la canción del otro ordenador y sus botones funcionan a través del enlace.',
   'tour.share.fact1Title': 'Sin pérdidas',
   'tour.share.fact1':
     'PCM Float32 de extremo a extremo. Sin códec, sin pérdida de generación.',
   'tour.share.fact2Title': 'Cifrado',
   'tour.share.fact2':
     'AES-256-GCM en cada paquete. El código es la clave; sin él nadie puede escuchar.',
-  'tour.share.fact3Title': 'Emparejamiento fijo',
+  'tour.share.fact3Title': 'Sigue enlazado',
   'tour.share.fact3':
-    'El emparejamiento sobrevive a cierres y reinicios. Solo crear un código nuevo lo desconecta.',
+    'El enlace sobrevive a cerrar la app y a los reinicios, desde cualquiera de los dos lados. Solo «Desenlazar» lo termina.',
   'tour.share.tip':
-    'Empieza bajito: varios ordenadores suman rápido. Baja el volumen de los auriculares antes de la primera conexión.',
+    'Empieza bajito: dos ordenadores sonando a la vez se suman. Baja el volumen antes del primer enlace.',
   'tour.share.open': 'Abrir Compartir audio',
 
   'tour.library.kicker': 'TU MÚSICA, TU REPRODUCTOR',

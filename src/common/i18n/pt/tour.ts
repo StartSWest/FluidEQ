@@ -326,37 +326,36 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Um teclado, um mouse e um mousepad iluminados no rosa, violeta e ciano da cena Cidade de neon.',
 
-  'tour.share.kicker': 'OUÇA TODOS OS SEUS PCS',
+  'tour.share.kicker': 'CADA PC, NOS DOIS SENTIDOS',
   'tour.share.title': 'Compartilhe áudio entre seus computadores',
-  'tour.share.subtitle': 'Um fone, todas as máquinas da sua mesa',
+  'tour.share.subtitle':
+    'Ouça os dois computadores, seja qual for o que você está usando',
   'tour.share.lead':
-    'Seu PC de jogos, o notebook do trabalho e a central de mídia tocam no fone que você está usando: pela sua própria rede, sem perdas, criptografado e pelo EQ que você já ajustou.',
-  'tour.share.receiverLabel': 'RECEPTOR',
-  'tour.share.receiverName': 'O PC com seu fone',
-  'tour.share.senderLabel': 'EMISSORES',
-  'tour.share.senderName': 'Todos os outros computadores',
+    'Seu PC gamer e seu notebook tocam um no outro: seja qual for o que você está usando, você ouve os dois — pela sua própria rede, sem perdas, criptografado e com o EQ que você ajustou naquele computador.',
+  'tour.share.pairLabel': 'NOS DOIS SENTIDOS',
+  'tour.share.pairName': 'Cada computador toca o som do outro',
   'tour.share.wireLabel': 'Sem perdas · Criptografado · LAN privada',
   'tour.share.stepsTitle': 'Configure em três passos',
-  'tour.share.step1Title': 'No PC do fone, crie um código',
+  'tour.share.step1Title': 'Em um computador, copie o código',
   'tour.share.step1':
-    'Abra a aba Compartilhar áudio, escolha “Reproduzir áudio neste computador” e pressione “Criar código de conexão”. Copie o código da sua rede.',
-  'tour.share.step2Title': 'Em cada outro PC, cole o código',
+    'Abra a aba Compartilhar áudio e pressione “Copiar código”. O código é sempre o mesmo.',
+  'tour.share.step2Title': 'No outro, cole e vincule',
   'tour.share.step2':
-    'Abra o FluidEQ lá, vá em Compartilhar áudio, escolha “Enviar o áudio deste computador”, cole o código e pressione “Conectar e enviar”. O áudio do sistema começa a fluir, intacto: os efeitos são aplicados no computador em que você ouve.',
-  'tour.share.step3Title': 'Ouça e ajuste o nível',
+    'Abra Compartilhar áudio no outro computador, cole o código em “Código do outro computador” e pressione “Vincular”. Os dois começam a tocar um ao outro na hora, intactos: cada um aplica o próprio EQ ao que ouve.',
+  'tour.share.step3Title': 'Escolha o que vai para onde',
   'tour.share.step3':
-    'Cada emissor toca com um buffer curto que se recupera sozinho depois de um engasgo. Todos os emissores são mixados na saída do receptor e moldados pelo EQ dele. A barra de reprodução do receptor mostra a música do emissor mais recente, e os botões dela funcionam pela rede.',
+    'Cada computador vinculado tem duas chaves, “Tocar aqui” e “Enviar meu som”: desligue uma para um sentido só. A barra mostra a música do outro computador, e os botões dela funcionam pela conexão.',
   'tour.share.fact1Title': 'Sem perdas',
   'tour.share.fact1':
     'PCM Float32 de ponta a ponta. Sem codec, sem perda de geração.',
   'tour.share.fact2Title': 'Criptografado',
   'tour.share.fact2':
     'AES-256-GCM em cada pacote. O código é a chave; sem ele ninguém consegue ouvir.',
-  'tour.share.fact3Title': 'Fica pareado',
+  'tour.share.fact3Title': 'Continua vinculado',
   'tour.share.fact3':
-    'O pareamento sobrevive a fechamentos e reinicializações. Só criar um código novo desconecta.',
+    'O vínculo sobrevive a fechar o app e a reinicializações, de qualquer um dos lados. Só “Desvincular” acaba com ele.',
   'tour.share.tip':
-    'Comece baixo: vários computadores somam rápido. Abaixe o volume do fone antes da primeira conexão.',
+    'Comece baixo: dois computadores tocando ao mesmo tempo se somam. Abaixe o volume antes do primeiro vínculo.',
   'tour.share.open': 'Abrir Compartilhar áudio',
 
   'tour.library.kicker': 'SUA MÚSICA, SEU PLAYER',

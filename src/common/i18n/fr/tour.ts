@@ -328,37 +328,36 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     'Un clavier, une souris et un tapis de souris éclairés aux tons rose, violet et cyan de Ville néon.',
 
-  'tour.share.kicker': 'ÉCOUTEZ TOUS VOS PC',
+  'tour.share.kicker': 'CHAQUE PC, DANS LES DEUX SENS',
   'tour.share.title': 'Partagez l’audio entre vos ordinateurs',
-  'tour.share.subtitle': 'Un casque, toutes les machines de votre bureau',
+  'tour.share.subtitle':
+    'Entendez les deux ordinateurs, où que vous soyez assis',
   'tour.share.lead':
-    'Votre PC de jeu, votre portable de travail et votre boîtier multimédia jouent tous dans le casque que vous portez : sur votre propre réseau, sans perte, chiffré, et à travers l’EQ que vous avez déjà réglé.',
-  'tour.share.receiverLabel': 'RÉCEPTEUR',
-  'tour.share.receiverName': 'Le PC avec votre casque',
-  'tour.share.senderLabel': 'ÉMETTEURS',
-  'tour.share.senderName': 'Tous les autres ordinateurs',
+    'Votre PC de jeu et votre portable jouent l’un dans l’autre : quel que soit celui devant lequel vous êtes, vous entendez les deux — sur votre propre réseau, sans perte, chiffré, et à travers l’EQ que vous avez réglé sur cet ordinateur.',
+  'tour.share.pairLabel': 'DANS LES DEUX SENS',
+  'tour.share.pairName': 'Chaque ordinateur joue le son de l’autre',
   'tour.share.wireLabel': 'Sans perte · Chiffré · LAN privé',
   'tour.share.stepsTitle': 'Configurez-le en trois étapes',
-  'tour.share.step1Title': 'Sur le PC du casque, créez un code',
+  'tour.share.step1Title': 'Sur un ordinateur, copiez son code',
   'tour.share.step1':
-    'Ouvrez l’onglet Partager l’audio, choisissez « Lire le son sur cet ordinateur » et appuyez sur « Créer le code de connexion ». Copiez le code de votre réseau.',
-  'tour.share.step2Title': 'Sur chaque autre PC, collez-le',
+    'Ouvrez l’onglet Partager l’audio et appuyez sur « Copier le code ». Le code reste le même à chaque fois.',
+  'tour.share.step2Title': 'Sur l’autre, collez-le et reliez',
   'tour.share.step2':
-    'Ouvrez FluidEQ là-bas, allez dans Partager l’audio, choisissez « Envoyer le son de cet ordinateur », collez le code et appuyez sur « Connecter et envoyer ». Son audio système commence à circuler, intact : les effets s’appliquent sur l’ordinateur où vous écoutez.',
-  'tour.share.step3Title': 'Écoutez, puis réglez le niveau',
+    'Ouvrez Partager l’audio sur l’autre ordinateur, collez le code sous « Code de l’autre ordinateur » et appuyez sur « Relier ». Les deux se jouent aussitôt l’un l’autre, intacts : chacun applique son propre EQ à ce qu’il entend.',
+  'tour.share.step3Title': 'Choisissez ce qui va où',
   'tour.share.step3':
-    'Chaque émetteur joue avec un tampon court qui rattrape son retard tout seul après un accroc. Tous les émetteurs sont mixés dans la sortie du récepteur et façonnés par son EQ. La barre de lecture du récepteur affiche le morceau du dernier émetteur, et ses boutons agissent à travers le réseau.',
+    'Chaque ordinateur relié a deux interrupteurs, « Le jouer ici » et « Envoyer mon son » : coupez-en un pour un seul sens. La barre affiche le morceau de l’autre ordinateur, et ses boutons fonctionnent à travers la liaison.',
   'tour.share.fact1Title': 'Sans perte',
   'tour.share.fact1':
     'PCM Float32 de bout en bout. Aucun codec, aucune perte de génération.',
   'tour.share.fact2Title': 'Chiffré',
   'tour.share.fact2':
     'AES-256-GCM sur chaque paquet. Le code est la clé ; sans lui, personne ne peut écouter.',
-  'tour.share.fact3Title': 'Appairage conservé',
+  'tour.share.fact3Title': 'Reste relié',
   'tour.share.fact3':
-    'L’appairage survit aux fermetures et aux redémarrages. Seule la création d’un nouveau code le déconnecte.',
+    'La liaison survit à la fermeture de l’app et aux redémarrages, d’un côté comme de l’autre. Seul « Délier » y met fin.',
   'tour.share.tip':
-    'Commencez doucement : plusieurs ordinateurs s’additionnent vite. Baissez le volume du casque avant la première connexion.',
+    'Commencez doucement : deux ordinateurs qui jouent en même temps s’additionnent. Baissez le volume avant la première liaison.',
   'tour.share.open': 'Ouvrir Partager l’audio',
 
   'tour.library.kicker': 'VOTRE MUSIQUE, VOTRE LECTEUR',

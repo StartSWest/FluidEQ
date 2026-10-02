@@ -50,11 +50,37 @@ it under the terms of the GNU General Public License version 3 or later.
   fill: rgba($edge-tint, 0.18);
 }
 
-.tour-share__link {
+// The sound travelling: short bright dashes running along each wire the way
+// its sound goes. Still under reduced motion — the arrows say it as well.
+.tour-share__flow {
   fill: none;
-  stroke: color-mix(in srgb, $secondary-default 45%, transparent);
-  stroke-dasharray: 5 6;
-  stroke-width: 1.6;
+  stroke: $secondary-light;
+  stroke-dasharray: 2 18;
+  stroke-linecap: round;
+  stroke-width: 3;
+  animation: tour-share-flow 1.4s linear infinite;
+
+  &--back {
+    animation-delay: -0.7s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes tour-share-flow {
+  from {
+    stroke-dashoffset: 20;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.tour-share__arrow {
+  fill: $secondary-light;
 }
 
 .tour-share__trunk {

@@ -54,7 +54,7 @@ import { readOpenDspSection, writeOpenDspSection } from './openSection';
 import { useNativeMeters } from './useNativeBackend';
 import { usePlaybackOwner } from '../audio/playbackOwner';
 import { useTransportIdentitySources } from '../audio/transportSource';
-import { useRemoteAudioRole } from '../remoteAudio/remoteAudioValueContext';
+import { useRemoteAudioReceiving } from '../remoteAudio/remoteAudioValueContext';
 
 interface IDspPanelProps {
   settings: IDspSettings;
@@ -219,13 +219,13 @@ const DspPanel = ({
   const nativeState = useDspNativeState();
   const playingOwner = usePlaybackOwner();
   const sources = useTransportIdentitySources();
-  // The role and not the whole Share Audio value, which changes with every
+  // One flag and not the whole Share Audio value, which changes with every
   // network sample and redrew this entire page four times a second while a
   // connection was up.
-  const remoteAudioRole = useRemoteAudioRole();
+  const remoteAudioReceiving = useRemoteAudioReceiving();
   /**
-   * Library playback wins even while Share Audio is listening: the receiver
-   * role describes a connection, not the source feeding the native rack.
+   * Library playback wins even while another computer's sound plays here:
+   * a link describes a connection, not the source feeding the native rack.
    * Requiring an ownership claim also locked out a paused/cued Library deck
    * and the gap before native playback publishes its claim. Keep that deck
    * editable unless another source has actually taken over. The Library's
@@ -238,7 +238,7 @@ const DspPanel = ({
       (sources.library?.isPlaying === true ||
         (sources.library !== undefined &&
           sources.system?.isPlaying !== true &&
-          remoteAudioRole !== 'listener')));
+          !remoteAudioReceiving)));
   /**
    * Whether the rack a listener can actually turn on and off right now.
    *

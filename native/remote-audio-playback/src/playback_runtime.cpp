@@ -7,12 +7,22 @@ PlaybackRuntime::~PlaybackRuntime() { output_.close(); }
 HRESULT PlaybackRuntime::open(const std::wstring& guid) {
   const HRESULT result = output_.open(guid);
   retired_.clear(); // open has stopped and joined the former render thread.
-  if (FAILED(result)) return result;
+  // A half-opened device is no device: is_open() must not answer yes to it.
+  if (FAILED(result)) { output_.close(); return result; }
   for (const auto& peer : peers_) if (peer) {
-    if (!peer->output_format(output_.rate(), output_.channels(), output_.mask())) return E_INVALIDARG;
+    if (!peer->output_format(output_.rate(), output_.channels(), output_.mask())) {
+      output_.close();
+      return E_INVALIDARG;
+    }
     peer->reset();
   }
-  return output_.start();
+  const HRESULT started = output_.start();
+  if (FAILED(started)) output_.close();
+  return started;
+}
+void PlaybackRuntime::close() {
+  output_.close();
+  retired_.clear(); // close has stopped and joined the render thread.
 }
 bool PlaybackRuntime::push(unsigned id, std::uint32_t rate, std::uint16_t channels,
                            std::uint32_t frames, std::uint32_t sequence, const float* pcm) {

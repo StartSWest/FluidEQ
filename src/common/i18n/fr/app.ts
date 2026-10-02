@@ -97,7 +97,7 @@ const app: Partial<Dictionary> = {
     "Capture ce que joue ce PC, avant l'égaliseur, pour l'onglet Partager l’audio, une deuxième sortie et l'Égalisation auto. Ne tourne que pendant que l'un d'eux est utilisé.",
   'app.processes.name.sharePlayback': 'Lecture de l’audio partagé',
   'app.processes.what.sharePlayback':
-    'Joue le son qu’un autre FluidEQ partage avec ce PC. Ne tourne que pendant que vous l’écoutez.',
+    'Joue le son qu’un autre FluidEQ partage avec ce PC, et lance les captures audio, pour que ce qu’envoie ce PC ne renvoie jamais ce son. Ne tourne que pendant que l’un d’eux est utilisé.',
   'app.processes.name.volume': 'Volume du système',
   'app.processes.what.volume':
     'Suit le volume et la sourdine de Windows pour les curseurs de volume de FluidEQ, et le règle quand vous en déplacez un. Ne tourne que lorsqu’un curseur est à l’écran.',

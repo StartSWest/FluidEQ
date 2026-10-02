@@ -707,13 +707,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.share.title': 'Comparte audio entre ordenadores',
   'help.share.intro':
-    'Compartir audio envía el sonido del sistema entre ordenadores de la misma red privada. El receptor tiene los auriculares o altavoces; los demás son emisores. Es distinto de duplicar a un segundo dispositivo del mismo ordenador.',
+    'Compartir audio enlaza dos ordenadores de la misma red privada y cada uno reproduce el sonido del otro: te sientes en el que te sientes, oyes los dos. Cada ordenador envía su sonido intacto y nunca devuelve lo que recibe, así que no hay eco; el ordenador en el que escuchas aplica su propio EQ, curvas y DSP. Es distinto de duplicar a un segundo dispositivo en un mismo ordenador.',
   'help.share.steps':
-    'En el ordenador de escucha, abre Compartir audio, elige Reproducir audio en este ordenador y pulsa Crear código de conexión. Empieza con poco volumen.\nEn cada ordenador de origen, elige Enviar el audio de este ordenador, pega el código de tu red y pulsa Conectar y enviar.\nVigila el monitor de conexión. Al terminar, pulsa Dejar de enviar o Dejar de escuchar; Crear código nuevo desconecta todos los emparejamientos guardados.',
+    'En un ordenador, abre Compartir audio y pulsa Copiar código. Empieza con poco volumen.\nEn el otro ordenador, abre Compartir audio, pega el código en Código del otro ordenador y pulsa Enlazar. Los dos ordenadores se reproducen al instante.\nCada ordenador enlazado tiene dos interruptores: Reproducir aquí y Enviar mi sonido. Apaga uno para compartir en una sola dirección; Desenlazar termina el enlace para siempre.',
   'help.share.tip':
-    'El código de conexión autoriza el emparejamiento: mantenlo privado. Varios emisores se mezclan y elevan el nivel, y el volumen del ordenador receptor lo ajusta. Con el Motor FluidEQ, el audio recibido también pasa por el rack DSP.',
+    'El código de conexión autoriza el enlace: mantenlo privado. Con el Motor FluidEQ, este ordenador mantiene su DSP mientras comparte, y el ordenador que reproduce su sonido aplica el suyo. Reproducir y enviar a la vez requiere Windows en ese ordenador; en otros, un enlace funciona en una sola dirección.',
   'help.share.keywords':
-    'red local, LAN, wifi, otro PC, otra computadora, transmitir audio, remoto, emparejar',
+    'red local, LAN, wifi, otro PC, otra computadora, transmitir audio, remoto, emparejar, dos direcciones, bidireccional, enlazar, desenlazar',
 
   'help.trouble.title': 'Cuando algo suena mal',
   'help.trouble.intro':
