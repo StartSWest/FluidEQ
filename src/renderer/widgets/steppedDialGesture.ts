@@ -4,8 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { ChangeEvent, PointerEvent, useRef, WheelEvent } from 'react';
+import {
+  ChangeEvent,
+  KeyboardEvent,
+  PointerEvent,
+  useRef,
+  WheelEvent,
+} from 'react';
 import type { TDialView } from './dialGesture';
+import rangeKeyValue from './rangeKeyValue';
 
 /**
  * Drag from one setting to the next, in pixels.
@@ -77,17 +84,34 @@ const useSteppedDialGesture = ({
   const inputRef = useRef<HTMLInputElement>(null);
   const last = Math.max(0, stops.length - 1);
   const index = nearestStop(stops, value);
+  // A held key must keep stepping even while its parent's update is pending.
+  const latestIndex = useRef(index);
+  const renderedIndex = useRef(index);
+  if (renderedIndex.current !== index) {
+    renderedIndex.current = index;
+    latestIndex.current = index;
+  }
   const progress = last > 0 ? (index / last) * 100 : 0;
   const displayValue = String(stops[index] ?? value);
 
   const turnTo = (next: number) => {
     const clamped = Math.min(last, Math.max(0, next));
-    if (clamped !== index) {
+    if (clamped !== latestIndex.current) {
+      latestIndex.current = clamped;
       handleChange(stops[clamped]);
     }
   };
 
   const wheel = useRef(0);
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const next = rangeKeyValue(event.key, latestIndex.current, 1, 0, last);
+    if (isDisabled || next === undefined) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    turnTo(next);
+  };
   const onWheel = (event: WheelEvent<HTMLDivElement>) => {
     if (isDisabled) {
       return;
@@ -196,6 +220,7 @@ const useSteppedDialGesture = ({
       value: index,
       onChange: (event: ChangeEvent<HTMLInputElement>) =>
         turnTo(Number(event.currentTarget.value)),
+      onKeyDown,
       disabled: isDisabled,
     },
   };

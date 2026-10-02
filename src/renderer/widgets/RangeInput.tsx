@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   ChangeEvent,
+  KeyboardEvent,
+  PointerEvent,
   WheelEvent,
   CSSProperties,
   useEffect,
@@ -30,6 +32,7 @@ import '../styles/RangeInput.scss';
 import { clamp } from '../utils/utils';
 import { getBandColor } from '../utils/bandColors';
 import { useRainbowStops } from '../utils/rainbowPalette';
+import rangeKeyValue from './rangeKeyValue';
 
 /** How close to 0 a drag has to come, in pixels of the track, to land on it. */
 const ZERO_DETENT_PX = 4;
@@ -40,12 +43,14 @@ interface IRangeInputProps {
   min: number;
   max: number;
   isDisabled: boolean;
+  isReadOnly?: boolean;
   incrementPrecision?: number;
   displayPrecision?: number;
   height: string;
   handleChange: (newValue: number) => Promise<void>;
   handleMouseUp: (newValue: number) => Promise<void>;
   handleDragStart?: () => void;
+  onKeyboardSelect?: (event: KeyboardEvent<HTMLInputElement>) => void;
   colorProgress?: number;
 }
 
@@ -55,12 +60,14 @@ const RangeInput = ({
   min,
   max,
   isDisabled,
+  isReadOnly = false,
   incrementPrecision = 0,
   displayPrecision = 1,
   height,
   handleChange,
   handleMouseUp,
   handleDragStart,
+  onKeyboardSelect,
   colorProgress = 0,
 }: IRangeInputProps) => {
   // Store a copy of the last value so it isn't lost to the throttle
@@ -132,6 +139,9 @@ const RangeInput = ({
   };
 
   const onRangeInput = (e: ChangeEvent<HTMLInputElement>) => {
+    if (isDisabled || isReadOnly) {
+      return;
+    }
     const newValue: number = snapToZero(
       Math.round(clamp(parseFloat(e.target.value), min, max) * factor) / factor,
     );
@@ -141,13 +151,21 @@ const RangeInput = ({
   };
 
   const onArrowInput = (isIncrement: boolean) => {
+    if (isDisabled || isReadOnly) {
+      return;
+    }
     const offset = isIncrement ? increment : -increment;
     const newValue =
       Math.round(clamp(offset + value, min, max) * factor) / factor;
     handleChange(newValue);
   };
 
-  const beginGesture = () => {
+  const beginGesture = (event: PointerEvent<HTMLInputElement>) => {
+    if (isReadOnly) {
+      event.preventDefault();
+      inputRef.current?.focus({ preventScroll: true });
+      return;
+    }
     isGestureActive.current = true;
     handleDragStart?.();
   };
@@ -180,8 +198,41 @@ const RangeInput = ({
     handleMouseUp(finalValue);
   };
 
-  const onWheel = (e: WheelEvent) => {
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (isDisabled) {
+      return;
+    }
+    if (onKeyboardSelect && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      event.stopPropagation();
+      onKeyboardSelect(event);
+      return;
+    }
+    const candidate = rangeKeyValue(
+      event.key,
+      lastValue.current ?? draft ?? value,
+      increment,
+      min,
+      max,
+    );
+    if (candidate === undefined) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    if (isReadOnly) {
+      return;
+    }
+    // The native 0.01 step is for dragging. Keys use the visible arrows'
+    // step, from the latest draft so a held key cannot outrun the store.
+    const next = Math.round(clamp(candidate, min, max) * factor) / factor;
+    lastValue.current = next;
+    setDraft(next);
+    handleChange(next);
+  };
+
+  const onWheel = (e: WheelEvent) => {
+    if (isDisabled || isReadOnly) {
       return;
     }
 
@@ -196,7 +247,7 @@ const RangeInput = ({
 
   return (
     <div
-      className={`col center range${isDisabled ? ' is-disabled' : ''}`}
+      className={`col center range${isDisabled || isReadOnly ? ' is-disabled' : ''}`}
       style={
         {
           '--slider-color': rangeColor.color,
@@ -212,8 +263,9 @@ const RangeInput = ({
       <ArrowButton
         name={name}
         type="up"
+        tabIndex={-1}
         handleChange={() => onArrowInput(true)}
-        isDisabled={isDisabled}
+        isDisabled={isDisabled || isReadOnly}
       />
       {/* The groove and its lit core are drawn behind the input rather than
           as its track: the core brightens with the band's own level
@@ -233,11 +285,13 @@ const RangeInput = ({
           step={0.01}
           name={name}
           aria-label={name}
+          aria-readonly={isReadOnly || undefined}
           onChange={onRangeInput}
           onMouseUp={endGesture}
           onPointerDown={beginGesture}
           onPointerUp={endGesture}
           onPointerCancel={endGesture}
+          onKeyDown={onKeyDown}
           onKeyUp={commitPendingValue}
           onBlur={commitPendingValue}
           onWheel={onWheel}
@@ -255,8 +309,9 @@ const RangeInput = ({
       <ArrowButton
         name={name}
         type="down"
+        tabIndex={-1}
         handleChange={() => onArrowInput(false)}
-        isDisabled={isDisabled}
+        isDisabled={isDisabled || isReadOnly}
       />
     </div>
   );

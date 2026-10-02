@@ -206,6 +206,7 @@ export interface IEditableChartPoint {
   onChange: (data: IChartPointData, isBell: boolean) => void;
   onCommit: () => void;
   onQualityWheel: (direction: number) => void;
+  onGainStep: (direction: number) => void;
   onHover: (isHovered: boolean) => void;
 }
 

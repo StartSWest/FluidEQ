@@ -4,8 +4,15 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { ChangeEvent, PointerEvent, useRef, WheelEvent } from 'react';
+import {
+  ChangeEvent,
+  KeyboardEvent,
+  PointerEvent,
+  useRef,
+  WheelEvent,
+} from 'react';
 import centredSweep from './centredSweep';
+import rangeKeyValue from './rangeKeyValue';
 
 /**
  * Vertical travel, in pixels, that sweeps a dial end to end.
@@ -72,6 +79,14 @@ const useDialGesture = ({
   handleChange,
 }: IDialGesture) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  // Selected-band edits render in a transition. Repeated keys accumulate
+  // against the last request while that render is still pending.
+  const latestValue = useRef(value);
+  const renderedValue = useRef(value);
+  if (renderedValue.current !== value) {
+    renderedValue.current = value;
+    latestValue.current = value;
+  }
 
   /**
    * How the sweep maps onto the range, decided by the range itself.
@@ -208,13 +223,25 @@ const useDialGesture = ({
   const updateValue = (nextValue: number) => {
     const rounded = Number(nextValue.toFixed(precision));
     const next = Math.min(max, Math.max(min, rounded));
-    if (next !== value) {
+    if (next !== latestValue.current) {
+      latestValue.current = next;
       handleChange(next);
     }
   };
 
   const onInput = (event: ChangeEvent<HTMLInputElement>) => {
     updateValue(toValue(Number(event.currentTarget.value)));
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const next = rangeKeyValue(event.key, latestValue.current, step, min, max);
+    if (isDisabled || next === undefined) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    // The range stores sweep position; keys step the actual setting.
+    updateValue(next);
   };
 
   const onWheel = (event: WheelEvent<HTMLDivElement>) => {
@@ -339,11 +366,11 @@ const useDialGesture = ({
       'aria-valuetext': `${displayValue} ${unit}`,
       min: 0,
       max: 1,
-      // ~500 stops across the sweep: fine enough that dragging feels
-      // continuous, coarse enough that a keyboard arrow moves perceptibly.
+      // Fine sweep positions for pointer and assistive range input.
       step: 0.002,
       value: position,
       onChange: onInput,
+      onKeyDown,
       disabled: isDisabled,
     },
   };

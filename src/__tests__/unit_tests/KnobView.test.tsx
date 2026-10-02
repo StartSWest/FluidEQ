@@ -12,6 +12,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import '@testing-library/jest-dom';
 import { fireEvent, render } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Knob from 'renderer/widgets/Knob';
 import SteppedKnob from 'renderer/widgets/SteppedKnob';
 
@@ -59,6 +60,44 @@ const mount = ({
 };
 
 describe('the reading under a knob', () => {
+  it('tabs from the dial to a selected number that typing replaces, then moves on', async () => {
+    const user = userEvent.setup();
+    const { field, asked, getByRole } = mount();
+    await user.tab();
+    const dial = getByRole('slider');
+    expect(dial).toHaveFocus();
+    await user.keyboard('{ArrowUp}');
+    expect(asked()).toEqual([3.1]);
+    await user.tab();
+    expect(field()).toHaveFocus();
+    await user.keyboard('-2.5{Enter}');
+    expect(asked()).toEqual([3.1, -2.5]);
+    expect(dial).toHaveFocus();
+    await user.tab();
+    expect(field()).toHaveFocus();
+    await user.keyboard('8{Escape}');
+    expect(asked()).toEqual([3.1, -2.5]);
+    expect(dial).toHaveFocus();
+    await user.tab();
+    await user.tab({ shift: true });
+    expect(dial).toHaveFocus();
+  });
+
+  it('steps a logarithmic dial in its real units, clamping at its limits', async () => {
+    const user = userEvent.setup();
+    const { getByRole, asked } = mount({
+      min: 20,
+      max: 20000,
+      value: 1000,
+      step: 1,
+    });
+    await user.tab();
+    const dial = getByRole('slider');
+    expect(dial).toHaveFocus();
+    await user.keyboard('{ArrowUp}{ArrowDown}{Home}{End}');
+    expect(asked()).toEqual([1001, 1000, 20, 20000]);
+  });
+
   it('says the value and its unit', () => {
     const { reading } = mount({ value: 3 });
     expect(reading()).toHaveTextContent('3.0');

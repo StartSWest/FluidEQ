@@ -33,6 +33,7 @@ interface IArrowButtonProps {
   name: string;
   type: 'up' | 'down';
   isDisabled: boolean;
+  tabIndex?: number;
   handleChange: () => void;
 }
 
@@ -40,6 +41,7 @@ const ArrowButton = ({
   name,
   type,
   isDisabled,
+  tabIndex = 0,
   handleChange,
 }: IArrowButtonProps) => {
   const { t } = useTranslation();
@@ -105,7 +107,7 @@ const ArrowButton = ({
       onMouseUp={stopChange}
       onAnimationIteration={onAnimationIteration}
       onKeyDown={onKeyDown}
-      tabIndex={isDisabled ? -1 : 0}
+      tabIndex={isDisabled ? -1 : tabIndex}
       aria-disabled={isDisabled}
     >
       <ArrowIcon type={type} />

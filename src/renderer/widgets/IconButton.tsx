@@ -35,6 +35,7 @@ export enum IconName {
 interface IIconButtonProps {
   icon: IconName;
   isDisabled: boolean;
+  tabIndex?: number;
   className?: string;
   /**
    * What it says instead of the icon's own name.
@@ -50,6 +51,7 @@ interface IIconButtonProps {
 const IconButton = ({
   icon,
   isDisabled,
+  tabIndex = 0,
   className,
   ariaLabel,
   handleClick,
@@ -105,7 +107,7 @@ const IconButton = ({
       className={`iconButton center ${className || ''}`}
       onKeyUp={onKeyUp}
       onClick={activate}
-      tabIndex={isDisabled ? -1 : 0}
+      tabIndex={isDisabled ? -1 : tabIndex}
       aria-disabled={isDisabled}
     >
       {getIcon}

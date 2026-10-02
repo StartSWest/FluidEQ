@@ -224,7 +224,8 @@ $range-rail-width: 4px;
       }
     }
 
-    &:disabled {
+    &:disabled,
+    &[aria-readonly='true']:not(:focus-visible) {
       &::-webkit-slider-runnable-track {
         background: none;
         cursor: default;
@@ -246,7 +247,8 @@ $range-rail-width: 4px;
   // handle and let it go at every mark (Ivan, 2026-09-29: "the hover is
   // intermittent, make that hover area wider so the knob stays focused").
   // Not over the keyboard's focus ring, which says more.
-  &:hover input[type='range']:not(:disabled, :focus-visible) {
+  &:hover
+    input[type='range']:not(:disabled, [aria-readonly='true'], :focus-visible) {
     &::-webkit-slider-thumb {
       box-shadow:
         0 0 0 2px var(--slider-color),

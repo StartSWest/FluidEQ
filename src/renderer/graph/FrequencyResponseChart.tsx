@@ -27,6 +27,7 @@ import {
   MIN_FREQUENCY,
   MIN_GAIN,
   MIN_QUALITY,
+  NO_GAIN_FILTER_TYPES,
   TApoLayer,
 } from 'common/constants';
 import { SelectionMode } from 'common/bandSelection';
@@ -1197,6 +1198,33 @@ const FrequencyResponseChart = ({
     [dispatchFilter, filters, queuePointEdit, selectedFilterIds],
   );
 
+  const handlePointGainStep = useCallback(
+    (filterId: string, direction: number) => {
+      const ids = selectedFilterIds.includes(filterId)
+        ? selectedFilterIds
+        : [filterId];
+      ids.forEach((id) => {
+        const filter = filtersRef.current[id];
+        if (!filter || NO_GAIN_FILTER_TYPES.includes(filter.type)) {
+          return;
+        }
+        // A point sits on the combined response; keyboard gain changes must
+        // start from its band's own gain, leaving frequency and Q untouched.
+        const gain =
+          Math.round(
+            Math.max(MIN_GAIN, Math.min(MAX_GAIN, filter.gain + direction)) *
+              100,
+          ) / 100;
+        if (gain === filter.gain) {
+          return;
+        }
+        dispatchFilter({ type: FilterActionEnum.GAIN, id, newValue: gain });
+        queuePointEdit(id, { gain });
+      });
+    },
+    [dispatchFilter, queuePointEdit, selectedFilterIds],
+  );
+
   // Rainbow mode's palette: the points and the curve's halo are drawn in it.
   const rainbow = useRainbowStops();
   const { chartData, autoPreAmpValue }: IGraphData = useMemo(
@@ -1715,6 +1743,8 @@ const FrequencyResponseChart = ({
         },
         onQualityWheel: (direction: number) =>
           handlePointQualityWheel(filter.id, direction),
+        onGainStep: (direction: number) =>
+          handlePointGainStep(filter.id, direction),
       };
     });
   }, [
@@ -1724,6 +1754,7 @@ const FrequencyResponseChart = ({
     flushPointEdit,
     handlePointMove,
     handlePointQualityWheel,
+    handlePointGainStep,
     handlePointSelect,
     hoveredFilterId,
     nextFilterSelection,

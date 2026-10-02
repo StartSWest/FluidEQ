@@ -105,7 +105,10 @@ describe('FrequencyBand', () => {
       </FluidEqProviderWrapper>,
     );
     const gainRangeInputs = screen.getAllByLabelText(filterGainRangeLabel);
-    gainRangeInputs.forEach((input) => expect(input).toBeDisabled());
+    gainRangeInputs.forEach((input) => {
+      expect(input).toHaveAttribute('aria-readonly', 'true');
+      expect(input).not.toBeDisabled();
+    });
   });
 
   it('should prevent deleting when min slider count is met', () => {

@@ -21,7 +21,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { act, render } from '@testing-library/react';
-import { FilterTypeEnum, IFiltersMap } from 'common/constants';
+import {
+  FilterTypeEnum,
+  IFiltersMap,
+  MAX_GAIN,
+  NO_GAIN_FILTER_TYPES,
+} from 'common/constants';
 import type {
   IChartCurveData,
   IEditableChartPoint,
@@ -29,6 +34,7 @@ import type {
 import bellGainAt from 'renderer/graph/bellDrag';
 import { AudioEngineContext } from 'renderer/utils/audioEngineContext';
 import { FilterActionEnum } from 'renderer/utils/FluidEqContext';
+import { setGain, setFrequency, setQuality } from 'renderer/utils/equalizerApi';
 
 const TIP_Q = 1.41;
 const band = (id: string, frequency: number) => ({
@@ -101,9 +107,9 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
   }),
 }));
 jest.mock('renderer/utils/equalizerApi', () => ({
-  setFrequency: () => Promise.resolve(),
-  setGain: () => Promise.resolve(),
-  setQuality: () => Promise.resolve(),
+  setFrequency: jest.fn(() => Promise.resolve()),
+  setGain: jest.fn(() => Promise.resolve()),
+  setQuality: jest.fn(() => Promise.resolve()),
   setMainPreAmp: () => Promise.resolve(),
   readKnownAudioDevices: () => Promise.resolve([]),
 }));
@@ -182,9 +188,47 @@ const bellAt = (frequency: number) =>
 const lastSelection = () => mockEq.selections[mockEq.selections.length - 1];
 
 beforeEach(() => {
+  jest.clearAllMocks();
   mockEq.selected = [];
   mockEq.selections = [];
   mockEq.actions = [];
+});
+
+describe('graph keyboard gain steps', () => {
+  it('changes each selected band by one dB without changing frequency or Q', async () => {
+    await showGroup(['a', 'c']);
+    await act(async () => point('c').onGainStep(1));
+    expect(setGain).toHaveBeenCalledWith('a', 1);
+    expect(setGain).toHaveBeenCalledWith('c', 1);
+    expect(setGain).toHaveBeenCalledTimes(2);
+    expect(setFrequency).not.toHaveBeenCalled();
+    expect(setQuality).not.toHaveBeenCalled();
+    expect(landed().a.gain).toBe(1);
+  });
+
+  it('changes only a tab-focused unselected band', async () => {
+    await showGroup(['a']);
+    await act(async () => point('c').onGainStep(-1));
+    expect(setGain).toHaveBeenCalledTimes(1);
+    expect(setGain).toHaveBeenCalledWith('c', -1);
+  });
+
+  it('clamps gain and leaves filter types without gain unchanged', async () => {
+    const original = mockEq.filters;
+    mockEq.filters = {
+      ...original,
+      a: { ...original.a, gain: MAX_GAIN - 0.3 },
+      b: { ...original.b, type: NO_GAIN_FILTER_TYPES[0] },
+    };
+    try {
+      await showGroup(['a', 'b']);
+      await act(async () => point('a').onGainStep(1));
+      expect(setGain).toHaveBeenCalledTimes(1);
+      expect(setGain).toHaveBeenCalledWith('a', MAX_GAIN);
+    } finally {
+      mockEq.filters = original;
+    }
+  });
 });
 
 describe('a group dragged with Ctrl held', () => {

@@ -197,6 +197,7 @@ const EditablePoint = ({
   const handlePointerDown = (event: PointerEvent<SVGCircleElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    groupRef.current?.focus({ preventScroll: true });
     dragging.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
     /*
@@ -256,6 +257,7 @@ const EditablePoint = ({
       className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}${point.isEnabled ? '' : ' graph-edit-point--off'}`}
       transform={`translate(${scaledX}, ${scaledY})`}
       role="slider"
+      tabIndex={0}
       aria-label={`${point.name}. Drag to change frequency and gain. Ctrl-scroll to change Q.`}
       aria-valuetext={`${data.x} Hz, ${data.y.toFixed(2)} dB`}
       // The app's tooltip, where an SVG <title> was the system's
@@ -276,6 +278,21 @@ const EditablePoint = ({
         requestBandMenu(point.id, event.clientX, event.clientY);
       }}
       onWheel={handleWheel}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.stopPropagation();
+          point.onSelect(selectionModeFromEvent(event), data);
+          point.onCommit();
+          return;
+        }
+        if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        point.onGainStep(event.key === 'ArrowUp' ? 1 : -1);
+      }}
       style={
         {
           touchAction: 'none',

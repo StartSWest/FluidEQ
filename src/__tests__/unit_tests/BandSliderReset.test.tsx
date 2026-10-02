@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {
   FilterTypeEnum,
   NO_GAIN_FILTER_TYPES,
@@ -61,6 +62,21 @@ describe('band slider reset', () => {
     jest.useRealTimers();
   });
 
+  it('tabs directly to the fader, skipping its caption and arrow buttons', async () => {
+    jest.useRealTimers();
+    const user = userEvent.setup();
+    mount();
+    await user.tab();
+    expect(screen.getByRole('slider')).toHaveFocus();
+    await user.keyboard(' ');
+    expect(onSelect).toHaveBeenCalledWith(
+      filter.id,
+      expect.objectContaining({ key: ' ' }),
+    );
+    await user.tab();
+    expect(document.body).toHaveFocus();
+  });
+
   it.each([{ ctrlKey: true }, { metaKey: true }])(
     'resets only the clicked gain with %o and prevents a native drag or selection change',
     async (modifier) => {
@@ -119,6 +135,21 @@ describe('band slider reset', () => {
     await act(async () => {
       pointerDown(screen.getByRole('slider'), { ctrlKey: true, button: 2 });
     });
+    expect(setGain).not.toHaveBeenCalled();
+  });
+
+  it('lets a gainless band be selected from its handle without changing its gain', async () => {
+    jest.useRealTimers();
+    const user = userEvent.setup();
+    mount(NO_GAIN_FILTER_TYPES[0]);
+    await user.tab();
+    const slider = screen.getByRole('slider');
+    expect(slider).toHaveFocus();
+    await user.keyboard('{Enter}{ArrowUp}{ArrowDown}{Home}{End}');
+    fireEvent.change(slider, { target: { value: '12' } });
+    fireEvent.wheel(slider, { deltaY: -100 });
+    expect(onSelect).toHaveBeenCalledTimes(1);
+    expect(onGainChange).not.toHaveBeenCalled();
     expect(setGain).not.toHaveBeenCalled();
   });
 });

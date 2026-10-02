@@ -299,6 +299,7 @@ const NumberInput = ({
           aria-label={name}
           value={internalValue}
           onInput={onInput}
+          onFocus={(event) => event.currentTarget.select()}
           onBlur={onSubmit}
           onKeyDown={listenForEnter}
           onWheel={onWheel}

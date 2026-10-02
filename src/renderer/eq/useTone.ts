@@ -62,8 +62,14 @@ const useTone = () => {
           setGlobalError(error as ErrorDescription);
         }
         pending = wanted.current;
+        if (pending === undefined) {
+          // eslint-disable-next-line no-await-in-loop -- readback can receive another edit; drain it before releasing the draft.
+          await refreshState();
+          // A key may arrive while readback is on the wire. Keep draining
+          // until that last value is saved too before releasing the draft.
+          pending = wanted.current;
+        }
       }
-      await refreshState();
     } finally {
       writing.current = false;
       setTurnedTo(undefined);

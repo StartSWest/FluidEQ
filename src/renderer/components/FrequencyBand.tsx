@@ -228,7 +228,8 @@ const FrequencyBand = forwardRef(
             (!event.ctrlKey && !event.metaKey) ||
             !(target instanceof HTMLInputElement) ||
             target.type !== 'range' ||
-            target.disabled
+            target.disabled ||
+            isGainDisabled
           ) {
             return;
           }
@@ -261,6 +262,7 @@ const FrequencyBand = forwardRef(
               // armed state is carried by the button filling in solid rather
               // than by a colour alone.
               icon={IconName.TRASH}
+              tabIndex={-1}
               className={`removeFilter${isDeleteArmed ? ' is-armed' : ''}`}
               ariaLabel={isDeleteArmed ? 'eq.delete.armedAria' : undefined}
               // Arms rather than deletes. This bin sits a few pixels above the
@@ -284,6 +286,7 @@ const FrequencyBand = forwardRef(
             {isDeleteArmed && (
               <IconButton
                 icon={IconName.CANCEL}
+                tabIndex={-1}
                 className="removeFilterKeep"
                 ariaLabel="eq.delete.keepAria"
                 handleClick={() => setIsDeleteArmed(false)}
@@ -315,6 +318,7 @@ const FrequencyBand = forwardRef(
           <button
             type="button"
             className="band-frequency-caption"
+            tabIndex={-1}
             aria-label={t('eq.band.edit', { frequency: filter.frequency })}
             // Only a keyboard activation: a pointer press already reached the
             // wrapper above, and answering the click as well toggled a
@@ -339,7 +343,8 @@ const FrequencyBand = forwardRef(
               value={filter.gain}
               sliderHeight={sliderHeight}
               setValue={handleGainSubmit}
-              isDisabled={isGainDisabled}
+              onKeyboardSelect={(event) => onSelect?.(filter.id, event)}
+              isReadOnly={isGainDisabled}
               colorProgress={colorProgress}
               showNumberInput={false}
             />

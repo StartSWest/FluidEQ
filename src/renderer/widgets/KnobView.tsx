@@ -86,6 +86,7 @@ const KnobView = ({ view, unit, isDisabled }: IKnobViewProps) => {
   const isLit = showsArc && arcLength > 0.5;
   const [typing, setTyping] = useState<ITyping>();
   const field = useRef<HTMLInputElement>(null);
+  const restoreDialFocus = useRef(false);
   const isTyping = typing !== undefined && !isDisabled;
 
   // Selected, so typing replaces the value rather than adding to it; before
@@ -94,8 +95,11 @@ const KnobView = ({ view, unit, isDisabled }: IKnobViewProps) => {
     if (isTyping) {
       field.current?.focus();
       field.current?.select();
+    } else if (restoreDialFocus.current) {
+      restoreDialFocus.current = false;
+      inputRef.current?.focus({ preventScroll: true });
     }
-  }, [isTyping]);
+  }, [inputRef, isTyping]);
 
   const finish = () => {
     if (typing === undefined) {
@@ -117,11 +121,13 @@ const KnobView = ({ view, unit, isDisabled }: IKnobViewProps) => {
   const onFieldKey = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       event.preventDefault();
+      restoreDialFocus.current = true;
       finish();
     } else if (event.key === 'Escape') {
       event.preventDefault();
       // Stopped here, or a dialog or menu round the knob closes as well.
       event.stopPropagation();
+      restoreDialFocus.current = true;
       setTyping(undefined);
     }
   };
@@ -173,6 +179,7 @@ const KnobView = ({ view, unit, isDisabled }: IKnobViewProps) => {
           title={isDisabled ? undefined : t('app.knob.type')}
           aria-label={`${inputProps['aria-label']}: ${displayValue} ${unit}`}
           disabled={isDisabled}
+          onFocus={() => setTyping({ from: displayValue, text: displayValue })}
           onClick={() => setTyping({ from: displayValue, text: displayValue })}
         >
           {displayValue}
