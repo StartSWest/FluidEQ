@@ -46,6 +46,7 @@ import look from './look';
 import video from './video';
 import library from './library';
 import songEq from './songEq';
+import songSound from './songSound';
 import dsp from './dsp';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
@@ -89,6 +90,7 @@ const en = {
   ...video,
   ...library,
   ...songEq,
+  ...songSound,
   ...dsp,
   ...remoteAudio,
   ...tour,

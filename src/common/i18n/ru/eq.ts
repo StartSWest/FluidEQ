@@ -20,6 +20,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'Настроить основной выход',
+  'extraOutput.edit': 'Настроить звук',
+  'extraOutput.done': 'Готово',
+  'extraOutput.editing': 'Редактирование',
+  'extraOutput.editHint': 'Настроить {device}, не меняя основной выход',
+  'extraOutput.editingOutput': 'Редактирование: {device}',
   'eq.layouts.empty':
     'Схемы сохраняют частоты, Q каждой полосы и режим Q. Усиление и интенсивность задаются отдельно.',
   'eq.layouts.qHint':
@@ -448,9 +454,11 @@ const eq: Partial<Dictionary> = {
   'extraOutput.statusOff': 'Выключен',
   'extraOutput.volume': 'Громкость',
   'extraOutput.latency':
-    'Каждый второй выход сам держит синхронизацию, как «Поделиться аудио»: начинает с отставанием примерно 30 мс, добавляет немного только после сбоя и возвращает, когда всё стабильно. Если слышать его с того же места, что и основной выход, можно заметить лёгкое двоение.',
-  'extraOutput.delay': 'отставание {milliseconds} мс',
-  'extraOutput.delayFrom': 'Звук {name}: отставание {milliseconds} мс',
+    'Основной выход не ждёт вторичные. Эти значения оценивают программную буферизацию, а не слышимую задержку. Аудиодрайверы, устройства и беспроводные соединения могут добавлять задержку.',
+  'extraOutput.delayUnavailable': 'Задержка недоступна',
+  'extraOutput.delay': 'Программный буфер: {milliseconds} мс',
+  'extraOutput.delayFrom':
+    'От {name}: {milliseconds} мс программной буферизации',
   'extraOutput.virtual':
     'Установлен драйвер маршрутизации. Направьте приложения на него, и оба выхода останутся синхронными, а затем задайте каждому свой профиль выше.',
   'extraOutput.ambiguous':

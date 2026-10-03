@@ -38,6 +38,7 @@ import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
 import { IChainImport } from 'common/chainBundle';
 import type { ISongEqEntry } from 'common/songEq';
+import type { ISongSoundEntry, TSongSoundLanded } from 'common/songSound';
 import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
 import type { ICurveComparisonStatus } from 'common/curveComparison';
 import type { ITrebleDesigns } from 'common/filterDesign';
@@ -232,6 +233,8 @@ export const buildResponseHandler = <
     | IApoConfigTree
     | IChainImport
     | ISongEqEntry
+    | ISongSoundEntry
+    | TSongSoundLanded
     | IAudioEngineStatus
     | ICurveComparisonStatus
     | ITrebleDesigns
@@ -294,6 +297,8 @@ export const simpleResponseHandler = <
     | IApoConfigTree
     | IChainImport
     | ISongEqEntry
+    | ISongSoundEntry
+    | TSongSoundLanded
     | IAudioEngineStatus
     | ICurveComparisonStatus
     | IAudioRestartOutcome

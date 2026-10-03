@@ -12,7 +12,7 @@
 
 get_filename_component(dir "${ENGINE}" DIRECTORY)
 set(entries "")
-foreach(name FluidEQ-Engine.dll msvcp140.dll vcruntime140.dll vcruntime140_1.dll)
+foreach(name FluidEQ-Engine.dll msvcp140.dll vcruntime140.dll vcruntime140_1.dll onnxruntime.dll)
   if(EXISTS "${dir}/${name}")
     file(SHA256 "${dir}/${name}" digest)
     string(APPEND entries "    {L\"${name}\", \"${digest}\"},\n")

@@ -60,6 +60,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        worst case and climbing back (`level_prediction.h`). Nothing in
  *        the app waits on that last one: the number is here so a report
  *        says which engine it came from.
+ *   1.17 reads fluideq-split.txt and plays a second output straight from the
+ *        main output's engine (`split_tap.h`), reporting it as `split` in
+ *        the second output's status. An older engine ignores the file, so
+ *        the app keeps its own copy of the sound for one
+ *        (`ENGINE_SPLIT_SINCE`).
+ *   1.18 shares main's processed DSP with second outputs; only their own
+ *        curves run on the copy. Reports shared DSP and local curve delay.
+ *   1.19 fans out raw input and runs an independent complete graph per
+ *        output. DSP, room head, phase and treble files are endpoint-scoped.
+ *        Programme levels are endpoint-scoped too. Source-analysis v1
+ *        preserves Library scans and trusted per-output voice restoration.
+ *   1.20 shares raw input across audiodg processes using bounded named
+ *        mappings, with writer recovery and explicit transport failures.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -71,8 +84,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 16, 0, 0
-PRODUCTVERSION 1, 16, 0, 0
+FILEVERSION 1, 20, 0, 0
+PRODUCTVERSION 1, 20, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

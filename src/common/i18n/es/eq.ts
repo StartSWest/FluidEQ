@@ -20,6 +20,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'Editar principal',
+  'extraOutput.edit': 'Editar sonido',
+  'extraOutput.done': 'Listo',
+  'extraOutput.editing': 'Editando',
+  'extraOutput.editHint': 'Editar {device} sin cambiar la salida principal',
+  'extraOutput.editingOutput': 'Editando: {device}',
   'eq.layouts.empty':
     'Los diseños guardan las frecuencias, el Q de cada banda y su comportamiento. La ganancia y la intensidad se guardan por separado.',
   'eq.layouts.qHint':
@@ -453,9 +459,11 @@ const eq: Partial<Dictionary> = {
   'extraOutput.statusOff': 'Apagada',
   'extraOutput.volume': 'Volumen',
   'extraOutput.latency':
-    'Cada segunda salida sigue el ritmo sola, como Compartir audio: empieza unos 30 ms por detrás, añade un poco solo tras un corte y lo devuelve cuando todo se estabiliza. Si la oyes desde el mismo sitio que la salida principal puedes notar un ligero doblado.',
-  'extraOutput.delay': '{milliseconds} ms por detrás',
-  'extraOutput.delayFrom': 'Sonido de {name}: {milliseconds} ms por detrás',
+    'La salida principal no espera a las secundarias. Estas cifras estiman el audio almacenado por el software, no el retraso que oyes. Los controladores, dispositivos y conexiones inalámbricas pueden añadir más retraso.',
+  'extraOutput.delayUnavailable': 'Retraso no disponible',
+  'extraOutput.delay': 'Búfer de software: {milliseconds} ms',
+  'extraOutput.delayFrom':
+    'Desde {name}: {milliseconds} ms de búfer de software',
   'extraOutput.virtual':
     'Hay un controlador de enrutamiento instalado. Apunta tus aplicaciones a él y ambas salidas quedan sincronizadas; luego da a cada una su propio perfil arriba.',
   'extraOutput.ambiguous':

@@ -4391,8 +4391,8 @@ button.graph-legend {
       filter 120ms ease;
   }
 
-  // Hovering is a promise, not a state: the handle half-fills, so it is
-  // obvious which one a click would take without it claiming to be selected.
+  // A translucent accent fill merged the centre into bright traces on hover.
+  // Keep an opaque dark well so the ring and lit core remain distinct.
   &:hover,
   &--hovered {
     .graph-edit-point__halo {
@@ -4400,7 +4400,8 @@ button.graph-legend {
     }
 
     .graph-edit-point__dot {
-      fill: var(--point-muted-color);
+      fill: $surface-well;
+      stroke: color-mix(in srgb, var(--point-color) 80%, $white);
       filter: drop-shadow(0 0 6px var(--point-muted-color));
     }
   }

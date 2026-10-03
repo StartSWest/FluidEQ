@@ -26,6 +26,7 @@ import {
 } from 'common/audioDeviceBridge';
 import { IAudioDevice, IDeviceProfileSettings } from 'common/constants';
 import { hasVirtualRouting } from 'common/virtualAudioDevices';
+import type { TOutputDelayKind } from '../../common/outputDelay';
 import {
   readKnownAudioDevices,
   getDeviceProfileSettings,
@@ -88,9 +89,10 @@ export interface IMirrorTarget {
   isRunning: boolean;
   /** How loud this mirror plays, 0 to 1. Full unless turned down. */
   volume: number;
-  /** How far behind the sound it mirrors it plays, in milliseconds, while
-   * it runs and once it has said. */
+  /** Reported software buffering in milliseconds while running; does not
+   * measure the device or wireless transport's audible delay. */
   delayMs?: number;
+  delayKind?: TOutputDelayKind;
   /**
    * The profile attached to this endpoint, exactly as the output picker means
    * it — raw, so the caller can tell an automatic one from a named one and
@@ -212,14 +214,10 @@ const useOutputMirror = () => {
     () => devices.find((device) => device.isDefault)?.guid,
     [devices],
   );
-
-  // Switching the output you listen on switches every mirror off.
-  //
-  // What a mirror means is "send what I am hearing there as well", and moving
-  // the primary changes what that sentence refers to entirely — the room the
-  // sound was going to may now be the room you are in, and the device you were
-  // mirroring may be the one you just moved to. Rather than guess which of
-  // those the user meant, the mirrors stop and wait to be switched on again.
+  // Picking an enabled secondary in the main output selector trades those
+  // two outputs, keeping every other selected secondary and its native
+  // token. Main retargets those running routes before releasing the obsolete
+  // hold. An unrelated main output still clears the old routing.
   //
   // Only on a genuine change between two known endpoints. The first reading
   // arrives as undefined and then as a GUID, which is discovery rather than a
@@ -229,15 +227,32 @@ const useOutputMirror = () => {
   useEffect(() => {
     const previous = lastCaptureSourceRef.current;
     lastCaptureSourceRef.current = captureSourceGuid;
-    if (!previous || !captureSourceGuid || previous === captureSourceGuid) {
+    if (
+      !previous ||
+      !captureSourceGuid ||
+      previous.toLowerCase() === captureSourceGuid.toLowerCase()
+    ) {
       return;
     }
     setSelectedGuids((current) => {
       if (current.length === 0) {
         return current;
       }
-      localStorage.setItem(MIRROR_TARGETS_KEY, JSON.stringify([]));
-      return [];
+      const next = current.some(
+        (guid) => guid.toLowerCase() === captureSourceGuid.toLowerCase(),
+      )
+        ? [
+            ...new Set(
+              current.map((guid) =>
+                guid.toLowerCase() === captureSourceGuid.toLowerCase()
+                  ? previous
+                  : guid,
+              ),
+            ),
+          ]
+        : [];
+      localStorage.setItem(MIRROR_TARGETS_KEY, JSON.stringify(next));
+      return next;
     });
   }, [captureSourceGuid]);
 
@@ -261,7 +276,7 @@ const useOutputMirror = () => {
     },
     [t],
   );
-  const { runningGuids, delays } = useMirrorPlayback(
+  const { runningGuids, delays, delayKinds } = useMirrorPlayback(
     desired,
     volumes,
     native ? undefined : capture,
@@ -295,6 +310,9 @@ const useOutputMirror = () => {
         delayMs: runningGuids.includes(device.guid)
           ? delays[device.guid]
           : undefined,
+        delayKind: runningGuids.includes(device.guid)
+          ? delayKinds[device.guid]
+          : undefined,
       };
     });
   }, [
@@ -302,6 +320,7 @@ const useOutputMirror = () => {
     native,
     captureSourceGuid,
     delays,
+    delayKinds,
     devices,
     outputs,
     runningGuids,

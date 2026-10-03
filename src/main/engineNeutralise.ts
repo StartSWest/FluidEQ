@@ -35,17 +35,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import fs from 'fs';
-import path from 'path';
 import log from 'electron-log';
 import { IDeviceProfileSettings } from '../common/constants';
-import { FLUID_ENGINE_DSP_FILENAME, TAudioEngine } from '../common/audioEngine';
+import { TAudioEngine } from '../common/audioEngine';
 import { TPresetDirForDevice } from './deviceProfiles';
 import { flushDeviceProfiles } from './deviceProfileFlush';
-import { forgetPath, settlePath } from './asyncWriter';
+import { flushPendingWrites } from './asyncWriter';
+import { forgetOutputSoundFile, outputSoundFiles } from './outputConfigCleanup';
+import { forgetRoomHead } from './roomHead';
 import { getConfigPath, isEngineInstalled } from './registry';
 
 /**
- * Delete the FluidEQ Engine's DSP rack file out of a directory.
+ * Delete the FluidEQ Engine's rack and per-output sound files.
  *
  * The neutral root above stops the EQ, but it cannot stop the rack: the
  * engine DLL reads `fluideq-dsp.txt` before the config tree and outside every
@@ -60,27 +61,26 @@ import { getConfigPath, isEngineInstalled } from './registry';
  * would otherwise skip the next identical write against a file that is no
  * longer there.
  *
- * `settlePath` first: the rack also goes through the coalescing writer from
- * `SET_SYSTEM_DSP_CHAIN`, which returns before its write has reached disk. A
- * write still in flight at the moment of the delete would otherwise land
- * afterwards and resurrect the file the switch just removed, leaving the old
- * engine's rack running again with nothing in the app aware it came back.
+ * Drain the whole operation first, including head reads and rack writes that
+ * have not reached scheduleWrite yet. Settling only a rack path misses these
+ * pending dependencies and allows the old engine's rack to come back later.
  */
-const removeDspRackFile = async (configDirPath: string): Promise<void> => {
-  const rackPath = path.join(configDirPath, FLUID_ENGINE_DSP_FILENAME);
-  try {
-    await settlePath(rackPath);
-    fs.rmSync(rackPath, { force: true });
-    forgetPath(rackPath);
-  } catch (error) {
-    // A rack file we cannot delete is one that keeps processing: worth a line
-    // in the log, but not a reason to abandon the rest of the switch.
-    log.error(
-      `Could not remove the FluidEQ Engine DSP rack file at ${rackPath}: ${
-        error instanceof Error ? error.message : String(error)
-      }`,
-    );
-  }
+const removeDspRackFiles = async (configDirPath: string): Promise<void> => {
+  // A failed earlier save must not prevent removal of every file that landed.
+  await flushPendingWrites().catch(() => undefined);
+  outputSoundFiles(configDirPath).forEach((filePath) => {
+    try {
+      fs.rmSync(filePath, { force: true });
+      forgetOutputSoundFile(filePath);
+    } catch (error) {
+      log.error(
+        `Could not remove the FluidEQ Engine output sound file at ${filePath}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  });
+  forgetRoomHead(configDirPath);
 };
 
 /**
@@ -120,7 +120,7 @@ const neutraliseEngine = async (
   // Only the FluidEQ Engine reads a rack file; Equalizer APO's directory
   // never has one, so there is nothing to delete when `other` is `'apo'`.
   if (other === 'fluid') {
-    await removeDspRackFile(configDirPath);
+    await removeDspRackFiles(configDirPath);
   }
   return 'written';
 };

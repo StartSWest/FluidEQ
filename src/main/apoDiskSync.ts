@@ -250,7 +250,15 @@ const createApoDiskSync = ({
         undefined,
         state.isEnabled,
         sessionHeadroom(),
-        state.eqCuts,
+        undefined,
+        undefined,
+        session.audioDevices ?? session.secondOutputDevices,
+        {
+          writeDsp: session.audioEngine === 'fluid',
+          dspOverrides: session.outputDspOverrides,
+          stateOverrides: session.outputStateOverrides,
+          systemRackEnabled: session.systemRackEnabled,
+        },
       );
     }
 

@@ -652,7 +652,7 @@ export const registerTransferIpc = ({
         session.activeAudioDevice?.name || session.activeAudioDeviceId,
       );
       savePreset(name, bundle.preset, activePresetDir(), 'chain-import');
-      savePresetBaseline(name, bundle.preset, activeBaselineDir());
+      await savePresetBaseline(name, bundle.preset, activeBaselineDir());
       attachPresetToActiveDevice(name);
 
       // The one part of a bundle that is not a tuning but a program. Everything

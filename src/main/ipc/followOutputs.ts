@@ -15,6 +15,7 @@ import { flushDeviceProfiles } from '../deviceProfileFlush';
 import { getConfigPath } from '../registry';
 import mainText from '../mainText';
 import type { IProfilesIpcDeps, IReplySink } from './profiles';
+import { followOutputMirrorMain } from './outputMirror';
 
 export type TOutputFollowerDeps = Pick<
   IProfilesIpcDeps,
@@ -30,6 +31,7 @@ export type TOutputFollowerDeps = Pick<
   | 'captureCurrentLayout'
   | 'notifyOutputStateChanged'
   | 'guardAgainstApo'
+  | 'onPlaybackOutputChanged'
 >;
 
 /**
@@ -65,27 +67,34 @@ export const createOutputFollower = ({
   captureCurrentLayout,
   notifyOutputStateChanged,
   guardAgainstApo,
+  onPlaybackOutputChanged,
 }: TOutputFollowerDeps) => {
   return async (
     devices: IAudioDevice[],
     sink: IReplySink,
     channel: ChannelEnum,
   ): Promise<void> => {
-    const activeDevice = devices.find((device) => device.isDefault);
+    const previousMain = session.playbackAudioDevice?.id;
+    session.audioDevices = devices;
+    session.playbackAudioDevice = devices.find((device) => device.isDefault);
+    const editing = devices.find(
+      (device) => device.id === session.editingAudioDeviceId && device.isActive,
+    );
+    if (!editing) {
+      session.editingAudioDeviceId = undefined;
+    }
+    const activeDevice = editing ?? session.playbackAudioDevice;
     if (activeDevice && activeDevice.id !== session.activeAudioDeviceId) {
       session.activeAudioDeviceId = activeDevice.id;
       session.activeAudioDevice = activeDevice;
+      session.outputEditGeneration = (session.outputEditGeneration ?? 0) + 1;
       // A device switch always starts from that device's attached profile or
       // a clean neutral state. Never carry a previous output's transient EQ.
-      session.hasActiveSessionOverride = false;
       applyDeviceState(
         getStateForAudioDevice(
           deviceProfileSettings,
           activeDevice.id,
           presetDirForDevice,
-          // The preset keeps playing across the switch: it is the machine's
-          // choice, like the rack it comes with. See `voicingForDevice`.
-          { voicing: state.voicing },
         ),
       );
       // Every output keeps at least one named profile, so there is always
@@ -142,7 +151,15 @@ export const createOutputFollower = ({
           undefined,
           state.isEnabled,
           undefined,
-          state.eqCuts,
+          undefined,
+          undefined,
+          session.audioDevices ?? session.secondOutputDevices,
+          {
+            writeDsp: session.audioEngine === 'fluid',
+            dspOverrides: session.outputDspOverrides,
+            stateOverrides: session.outputStateOverrides,
+            systemRackEnabled: session.systemRackEnabled,
+          },
         );
       } catch (error) {
         log.error('Failed to flush the profile for the active output', error);
@@ -151,6 +168,12 @@ export const createOutputFollower = ({
       // Last, and outside the try: the config write can fail without making the
       // swap any less real, and the panels must never be left describing the
       // output the user just moved away from.
+      notifyOutputStateChanged();
+    }
+    const main = session.playbackAudioDevice;
+    if (main && previousMain !== main.id) {
+      await onPlaybackOutputChanged?.();
+      await followOutputMirrorMain(main.id);
       notifyOutputStateChanged();
     }
     const reply: TSuccess<IAudioDevice[]> = { result: devices };

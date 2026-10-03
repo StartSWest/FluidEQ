@@ -15,9 +15,14 @@ import {
 import {
   APO_FEATURE_FILE_WORD_PATTERN,
   IDeviceProfileSettings,
+  IState,
   IEqCuts,
+  IAudioDevice,
 } from '../common/constants';
 import { EQ_CUTS_FILENAME } from '../common/eqCuts';
+import type { IDspSettings } from '../common/dsp/chain';
+import type { TGlobalPreset } from '../common/dsp/presetVoicing';
+import { flushOutputDsp } from './outputDsp';
 import { addFileToPath } from './flush';
 import type {
   IActiveStateOverride,
@@ -77,6 +82,7 @@ const GENERATED_FILE = new RegExp(
     // before it was named `-preset.txt` is swept like any file of ours.
     APO_FEATURE_FILE_WORD_PATTERN,
     ...RETIRED_FEATURES,
+    'cuts',
     // Named here so the config editor may write it — see isGeneratedConfigFile
     // — and NOT so the sweep may delete it. It is the single file here that
     // holds somebody's own work, and CUSTOM_FILE below lifts it back out of
@@ -212,15 +218,43 @@ export const flushDeviceProfiles = (
   isEnabled = true,
   sessionHeadroom: ISessionHeadroom | undefined = undefined,
   cuts: IEqCuts | undefined = undefined,
+  playing: TGlobalPreset | undefined = undefined,
+  secondOutputs: readonly IAudioDevice[] = [],
+  outputDsp:
+    | {
+        dspOverrides?: ReadonlyMap<string, IDspSettings>;
+        stateOverrides?: ReadonlyMap<string, IState>;
+        /** APO needs the live EQ states too, but never writes native rack files. */
+        writeDsp?: boolean;
+        dllVersion?: string;
+        systemRackEnabled?: (deviceId: string) => boolean;
+      }
+    | undefined = undefined,
 ): Promise<void> => {
+  // An editor can change during the queued file writes. Capture its sound
+  // before that first await, so it cannot be published under the former id.
+  const activeSnapshot = activeOverride
+    ? { ...activeOverride, state: structuredClone(activeOverride.state) }
+    : undefined;
+  const stateSnapshots = outputDsp?.stateOverrides
+    ? new Map(
+        [...outputDsp.stateOverrides].map(([deviceId, state]) => [
+          deviceId,
+          structuredClone(state),
+        ]),
+      )
+    : undefined;
   const files = deviceProfilesToFiles(
     settings,
     presetDirForDevice,
     configDirPath,
-    activeOverride,
+    activeSnapshot,
     isEnabled,
     sessionHeadroom,
     cuts,
+    playing,
+    secondOutputs,
+    stateSnapshots,
   );
 
   // Every output that still has a chain, by the digest its files are named
@@ -265,6 +299,19 @@ export const flushDeviceProfiles = (
     for (let index = 0; index < entries.length; index += 1) {
       const [fileName, contents] = entries[index];
       await writeIfChanged(addFileToPath(configDirPath, fileName), contents);
+    }
+
+    if (outputDsp && outputDsp.writeDsp !== false) {
+      await flushOutputDsp({
+        configDirPath,
+        settings,
+        presetDirForDevice,
+        activeOverride: activeSnapshot,
+        outputs: secondOutputs,
+        isEnabled,
+        ...outputDsp,
+        stateOverrides: stateSnapshots,
+      });
     }
 
     // After the root, so nothing is deleted while something still includes it.

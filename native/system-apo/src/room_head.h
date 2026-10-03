@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The head the room renders through, as the app writes it beside the rack.
  *
- * `fluideq-room-head.txt` is one head at three rates: a `# FluidEQ room head
+ * `fluideq-room-head-<guid>.txt` is one head at three rates: a `# FluidEQ room head
  * v1 <size>` line, then for 44.1, 48 and 96 kHz a `rate R directions D taps
  * T` line followed by D lines of 2·T numbers — the left ear's response then
  * the right ear's, for the direction D·15° clockwise from straight ahead,
@@ -24,11 +24,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace fluideq_engine {
 
-/** Beside the rack file, written by the app when the chosen head changes. */
-inline constexpr const wchar_t* kRoomHeadFileName = L"fluideq-room-head.txt";
+/** The endpoint suffix is added by `endpoint_config_name`. */
+inline constexpr const wchar_t* kRoomHeadFileStem = L"fluideq-room-head";
 
 /** One head at one rate: a ring of directions, left ear then right. */
 struct RoomHead {
+  /** The header's small/medium/large selection, or -1 for a legacy header. */
+  int size = -1;
   uint32_t directions = 0;
   uint32_t taps = 0;
   double sample_rate = 0;

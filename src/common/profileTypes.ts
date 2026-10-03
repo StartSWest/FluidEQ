@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { type IBandDesign } from './bandDesigns';
 import { type ITone } from './tone';
+import type { IOutputSound } from './outputSettings';
 import type {
   AutoEqFormat,
   IApoLayerOverride,
@@ -128,7 +129,7 @@ export interface IPresetV1 {
   filters: IFilter[];
 }
 
-export interface IPresetV2 {
+export interface IPresetV2 extends IOutputSound {
   eqBandDesign?: IBandDesign;
   preAmp: number;
   filters: IFiltersMap;

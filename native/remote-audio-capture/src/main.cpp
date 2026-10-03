@@ -228,6 +228,65 @@ bool mirror_reply(std::uint32_t kind, std::uint32_t id, HRESULT result) {
   return result;
 }
 
+/**
+ * The process loopback this helper captures. A hold-only helper captures
+ * nothing and keeps the format it was made with, which its replies carry and
+ * nothing reads.
+ */
+struct Loopback {
+  ComPtr<IAudioClient> client;
+  ComPtr<IAudioCaptureClient> capture;
+  std::uint32_t rate = 48'000;
+  std::uint16_t channels = 2;
+};
+
+/** Activates, formats and starts it. `step` names what failed. */
+[[nodiscard]] HRESULT start_loopback(HANDLE activation_event,
+                                     HANDLE sample_event,
+                                     DWORD exclude_tree_pid, Loopback* loopback,
+                                     const char** step) {
+  *step = "process-loopback activation failed";
+  HRESULT result = activate_process_loopback(activation_event, exclude_tree_pid,
+                                             &loopback->client);
+  if (FAILED(result)) {
+    return result;
+  }
+  WAVEFORMATEX* mix_format = nullptr;
+  result = loopback->client->GetMixFormat(&mix_format);
+  if (FAILED(result)) {
+    result = default_render_mix_format(&mix_format);
+  }
+  if (FAILED(result) || !is_float_mix_format(mix_format)) {
+    CoTaskMemFree(mix_format);
+    *step = "the process mix is not Float32 PCM";
+    return FAILED(result) ? result : E_FAIL;
+  }
+  loopback->rate = mix_format->nSamplesPerSec;
+  loopback->channels = mix_format->nChannels;
+  result = loopback->client->Initialize(
+      AUDCLNT_SHAREMODE_SHARED,
+      AUDCLNT_STREAMFLAGS_LOOPBACK | AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 0, 0,
+      mix_format, nullptr);
+  CoTaskMemFree(mix_format);
+  if (FAILED(result)) {
+    *step = "capture format initialization failed";
+    return result;
+  }
+  result = loopback->client->SetEventHandle(sample_event);
+  if (FAILED(result)) {
+    *step = "capture event registration failed";
+    return result;
+  }
+  result = loopback->client->GetService(
+      IID_PPV_ARGS(loopback->capture.ReleaseAndGetAddressOf()));
+  if (FAILED(result)) {
+    *step = "capture client creation failed";
+    return result;
+  }
+  *step = "capture start failed";
+  return loopback->client->Start();
+}
+
 [[nodiscard]] int fail(const char* message, HRESULT result) {
   std::fprintf(stderr, "FluidEQ-LAN-Capture: %s (0x%08lx)\n", message,
                static_cast<unsigned long>(result));
@@ -242,7 +301,7 @@ int main(int argc, char** argv) {
     std::fprintf(stderr,
                  "FluidEQ-LAN-Capture: expected --parent-pid <positive pid> "
                  "and either --pipe-overlapped or --pipe <name> --token <hex> "
-                 "[--exclude-tree-pid <pid>]\n");
+                 "[--exclude-tree-pid <pid> | --hold-only]\n");
     return 2;
   }
   const bool piped = !args.pipe_name.empty();
@@ -276,62 +335,34 @@ int main(int argc, char** argv) {
     return fail("could not initialize COM", com_result);
   }
 
-  ComPtr<IAudioClient> audio_client;
-  HRESULT result = activate_process_loopback(
-      activation_event.get(),
-      args.exclude_tree_pid != 0 ? args.exclude_tree_pid
-                                 : GetCurrentProcessId(),
-      &audio_client);
-  if (FAILED(result)) {
-    CoUninitialize();
-    return fail("process-loopback activation failed", result);
+  Loopback loopback;
+  if (!args.hold_only) {
+    const char* step = "";
+    const HRESULT result = start_loopback(
+        activation_event.get(), sample_event.get(),
+        args.exclude_tree_pid != 0 ? args.exclude_tree_pid
+                                   : GetCurrentProcessId(),
+        &loopback, &step);
+    if (FAILED(result)) {
+      CoUninitialize();
+      return fail(step, result);
+    }
   }
-
-  WAVEFORMATEX* mix_format = nullptr;
-  result = audio_client->GetMixFormat(&mix_format);
-  if (FAILED(result)) {
-    result = default_render_mix_format(&mix_format);
-  }
-  if (FAILED(result) || !is_float_mix_format(mix_format)) {
-    CoTaskMemFree(mix_format);
-    CoUninitialize();
-    return fail("the process mix is not Float32 PCM", FAILED(result) ? result
-                                                                    : E_FAIL);
-  }
-  const std::uint32_t sample_rate = mix_format->nSamplesPerSec;
-  const std::uint16_t channels = mix_format->nChannels;
-
-  result = audio_client->Initialize(
-      AUDCLNT_SHAREMODE_SHARED,
-      AUDCLNT_STREAMFLAGS_LOOPBACK | AUDCLNT_STREAMFLAGS_EVENTCALLBACK, 0, 0,
-      mix_format, nullptr);
-  CoTaskMemFree(mix_format);
-  if (FAILED(result)) {
-    CoUninitialize();
-    return fail("capture format initialization failed", result);
-  }
-  result = audio_client->SetEventHandle(sample_event.get());
-  if (FAILED(result)) {
-    CoUninitialize();
-    return fail("capture event registration failed", result);
-  }
-
-  ComPtr<IAudioCaptureClient> capture_client;
-  result = audio_client->GetService(IID_PPV_ARGS(&capture_client));
-  if (FAILED(result)) {
-    CoUninitialize();
-    return fail("capture client creation failed", result);
-  }
-  result = audio_client->Start();
-  if (FAILED(result)) {
-    CoUninitialize();
-    return fail("capture start failed", result);
-  }
+  ComPtr<IAudioClient>& audio_client = loopback.client;
+  ComPtr<IAudioCaptureClient>& capture_client = loopback.capture;
+  const std::uint32_t sample_rate = loopback.rate;
+  const std::uint16_t channels = loopback.channels;
+  HRESULT result = S_OK;
+  const auto stop_capture = [&] {
+    if (audio_client) {
+      audio_client->Stop();
+    }
+  };
 
   const HANDLE output = piped ? frames.get() : GetStdHandle(STD_OUTPUT_HANDLE);
   auto writer = std::make_unique<CaptureWriter>(output, parent.get(), sample_rate, channels);
   if (!writer->valid()) {
-    audio_client->Stop();
+    stop_capture();
     CoUninitialize();
     return fail("capture pipe is unavailable",
                 HRESULT_FROM_WIN32(GetLastError()));
@@ -350,7 +381,7 @@ int main(int argc, char** argv) {
       piped ? commands.get() : GetStdHandle(STD_INPUT_HANDLE), sample_rate,
       channels, mirror_reply);
   if (!mirrors->valid()) {
-    audio_client->Stop();
+    stop_capture();
     CoUninitialize();
     return fail("mirror command reader could not start", E_FAIL);
   }
@@ -382,7 +413,8 @@ int main(int argc, char** argv) {
       break;
     }
 
-    while (running) {
+    // A hold-only helper's sample event has no stream behind it.
+    while (running && capture_client) {
       UINT32 packet_frames = 0;
       result = capture_client->GetNextPacketSize(&packet_frames);
       if (FAILED(result)) {
@@ -419,7 +451,7 @@ int main(int argc, char** argv) {
   mirrors.reset();
   reply_writer = nullptr;
   writer->stop();
-  audio_client->Stop();
+  stop_capture();
   if (mmcss != nullptr) {
     AvRevertMmThreadCharacteristics(mmcss);
   }

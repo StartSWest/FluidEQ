@@ -1,11 +1,30 @@
 /* FluidEQ — GPL-3.0-or-later */
-import { FilterTypeEnum, IFiltersMap, IVoicingSettings } from '../constants';
+import {
+  FilterTypeEnum,
+  IFiltersMap,
+  IState,
+  IVoicingSettings,
+} from '../constants';
 import { getVoicingFilters } from '../voicing';
 import { DSP_DEFAULTS, clampDspSettings, IEqSettings } from './chain';
 import modelledQuality from './eqModel';
 
 /** What a Preset layer's id starts with; the preset's own id follows. */
 export const DSP_VOICING_PREFIX = 'dsp:';
+
+/** The machine's preset, independent of any output's saved corrections. */
+export type TGlobalPreset = Pick<
+  IState,
+  'voicing' | 'bypassed' | 'eqMode' | 'isEqDoubleOn' | 'eqBandQ'
+>;
+
+export const globalPresetOf = (state: IState): TGlobalPreset => ({
+  voicing: state.voicing,
+  bypassed: state.bypassed?.includes('voicing') ? ['voicing'] : [],
+  eqMode: state.eqMode,
+  isEqDoubleOn: state.isEqDoubleOn,
+  eqBandQ: state.eqBandQ,
+});
 
 /**
  * A preset's tone as the Preset layer of the main EQ.

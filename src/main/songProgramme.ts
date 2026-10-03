@@ -23,7 +23,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { createHash } from 'crypto';
 import path from 'path';
+import log from 'electron-log';
 import type { IEngineHealth } from '../common/engineHealth';
+import {
+  outputConfigFileName,
+  outputConfigGuid,
+} from '../common/outputConfigFiles';
 import type { ISongLevel, ISongLevelStore } from './songLevels';
 import type { ISystemMediaSnapshot } from './systemMedia';
 
@@ -78,6 +83,8 @@ export interface ISongProgrammeDeps {
   /** Through the coalescing writer, so the quit reset's seal refuses it. */
   write: (filePath: string, contents: string) => Promise<void>;
   fileName: string;
+  /** The legacy engine has one programme file, for the actual playback main. */
+  mainEndpoint?: () => string | undefined;
   /**
    * Make sure the engine's statuses are being watched, so the song this
    * announcement ends is heard when the engine reports it. The window watches
@@ -91,6 +98,8 @@ export interface ISongProgramme {
   onMedia: (snapshot: ISystemMediaSnapshot | undefined) => Promise<void>;
   /** Every engine status change: remembers the songs leveling finished. */
   onHealth: (health: IEngineHealth) => void;
+  /** Engine switches may have removed the files without changing the song. */
+  reflush: () => Promise<void>;
 }
 
 export const createSongProgramme = ({
@@ -98,11 +107,13 @@ export const createSongProgramme = ({
   resolveConfigDir,
   write,
   fileName,
+  mainEndpoint,
   watchEngine,
 }: ISongProgrammeDeps): ISongProgramme => {
   // What the engine was last told, and where: undefined until something has
   // been written. A song only counts as told once its write is scheduled.
-  let told: { id: string | undefined; filePath: string } | undefined;
+  const told = new Map<string, string>();
+  const endpoints = new Set<string>();
   let latest: string | undefined;
   let busy: Promise<void> = Promise.resolve();
   // The seconds each song was last recorded at: a status repeats its song.
@@ -114,45 +125,85 @@ export const createSongProgramme = ({
     if (configDir === undefined || id !== latest) {
       return;
     }
-    const filePath = path.join(configDir, fileName);
-    if (told && told.id === id && told.filePath === filePath) {
-      return;
+    const main = mainEndpoint?.();
+    const mainGuid = main ? outputConfigGuid(main) : undefined;
+    if (mainGuid) {
+      endpoints.add(mainGuid);
     }
-    told = { id, filePath };
-    await write(
-      filePath,
-      formatSongProgramme(id, id ? store.lookup(id) : undefined),
+    const targets = [
+      { name: fileName, endpoint: mainGuid },
+      ...[...endpoints].map((endpoint) => ({
+        name: outputConfigFileName('programme', endpoint)!,
+        endpoint,
+      })),
+    ];
+    await Promise.all(
+      targets.map(async ({ name, endpoint }) => {
+        const filePath = path.join(configDir, name);
+        const contents = formatSongProgramme(
+          id,
+          id ? store.lookup(id, endpoint) : undefined,
+        );
+        if (told.get(filePath) === contents) {
+          return;
+        }
+        await write(filePath, contents);
+        told.set(filePath, contents);
+      }),
     );
     await watchEngine();
   };
 
+  const queueLatest = (): Promise<void> => {
+    const id = latest;
+    // A slow resolve or write cannot land an older song after its successor.
+    busy = busy
+      .then(() => tell(id))
+      .catch((error) => {
+        log.error('Could not publish output song levels', error);
+      });
+    return busy;
+  };
+
   return {
+    reflush: () => {
+      told.clear();
+      return queueLatest();
+    },
     onMedia: (snapshot) => {
       // A player with nothing named is no song; the engine then lets silence
       // decide where one programme ends, the way it did before it knew titles.
       const id = snapshot ? songIdentity(snapshot) : undefined;
       latest = id;
-      if (told && told.id === id) {
-        return busy;
-      }
-      // One at a time and in order, so a slow resolve for one song cannot
-      // land its file after the next song's.
-      busy = busy.then(() => tell(id)).catch(() => undefined);
-      return busy;
+      return queueLatest();
     },
     onHealth: (health) => {
-      health.outputs.forEach(({ lastSong }) => {
+      let changed = false;
+      health.outputs.forEach(({ endpoint, lastSong }) => {
+        const guid = outputConfigGuid(endpoint);
+        if (!guid) {
+          return;
+        }
+        if (!endpoints.has(guid)) {
+          endpoints.add(guid);
+          changed = true;
+        }
         if (!lastSong) {
           return;
         }
         // Every status the engine writes repeats the song it last finished;
-        // one song ending is one record, however many outputs report it.
-        if (recorded.get(lastSong.id) === lastSong.seconds) {
+        // Each output learns through its own chain. A second output's
+        // louder report must never seed the main output's normalizer.
+        const key = `${guid}:${lastSong.id}`;
+        if (recorded.get(key) === lastSong.seconds) {
           return;
         }
-        recorded.set(lastSong.id, lastSong.seconds);
-        store.record(lastSong);
+        recorded.set(key, lastSong.seconds);
+        changed = store.record(lastSong, guid) || changed;
       });
+      if (changed) {
+        queueLatest();
+      }
     },
   };
 };

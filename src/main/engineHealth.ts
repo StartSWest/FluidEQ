@@ -19,10 +19,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
+import { parseEngineSourceAnalysis } from '../common/dsp/sourceAnalysis';
 import {
   IEngineHealth,
   IEngineLatency,
   IEngineOutputHealth,
+  IEngineSplit,
   IFinishedSong,
   LATENCY_STAGES,
   normaliseEndpointGuid,
@@ -89,6 +91,41 @@ const parseFinishedSong = (value: unknown): IFinishedSong | undefined => {
 };
 
 /**
+ * The second output the engine plays on this output, or undefined — dropped
+ * on its own when malformed, like the song.
+ */
+const parseSplit = (value: unknown): IEngineSplit | undefined => {
+  if (!isObject(value)) {
+    return undefined;
+  }
+  const { from, state, lagMs, underruns, sourceDspMs, outputEqMs } = value;
+  if (
+    typeof from !== 'string' ||
+    !/^\{[0-9A-Fa-f-]{36}\}$/.test(from) ||
+    (state !== 'waiting' && state !== 'playing') ||
+    !isFiniteNumber(lagMs) ||
+    lagMs < 0 ||
+    typeof underruns !== 'number' ||
+    !Number.isInteger(underruns) ||
+    underruns < 0
+  ) {
+    return undefined;
+  }
+  return {
+    from: normaliseEndpointGuid(from),
+    state,
+    lagMs,
+    underruns,
+    ...(isFiniteNumber(sourceDspMs) &&
+    sourceDspMs >= 0 &&
+    isFiniteNumber(outputEqMs) &&
+    outputEqMs >= 0
+      ? { sourceDspMs, outputEqMs }
+      : {}),
+  };
+};
+
+/**
  * A status file's text, or undefined for anything that is not a version-1
  * status with every field of the right type. Unknown extra fields are
  * ignored, so an engine that adds one does not go dark to an older app.
@@ -122,6 +159,8 @@ export const parseEngineStatus = (
     return undefined;
   }
   const lastSong = parseFinishedSong(value.lastSong);
+  const split = parseSplit(value.split);
+  const sourceAnalysis = parseEngineSourceAnalysis(value.sourceAnalysis);
   const latency = parseLatency(
     value.rate,
     value.latency,
@@ -159,6 +198,8 @@ export const parseEngineStatus = (
     ...(typeof value.gameMode === 'boolean'
       ? { gameMode: value.gameMode }
       : {}),
+    ...(split ? { split } : {}),
+    ...(sourceAnalysis ? { sourceAnalysis } : {}),
   };
 };
 

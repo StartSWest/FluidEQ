@@ -20,6 +20,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'メイン出力を編集',
+  'extraOutput.edit': 'サウンドを編集',
+  'extraOutput.done': '完了',
+  'extraOutput.editing': '編集中',
+  'extraOutput.editHint': 'メイン出力を切り替えずに {device} を編集',
+  'extraOutput.editingOutput': '編集中: {device}',
   'eq.layouts.empty':
     'デザインには各バンドの周波数、Q値、Qの動作を保存します。ゲインと強度は別に設定します。',
   'eq.layouts.qHint':
@@ -448,9 +454,11 @@ const eq: Partial<Dictionary> = {
   'extraOutput.statusOff': 'オフ',
   'extraOutput.volume': '音量',
   'extraOutput.latency':
-    '2 つめの出力は「音声を共有」と同じように自分でタイミングを合わせます。約 30 ms 遅れで始まり、途切れたときだけ少し余裕を増やし、安定すると元に戻します。メインの出力と同じ場所で聞くと、わずかに二重に聞こえることがあります。',
-  'extraOutput.delay': '{milliseconds} ms 遅れ',
-  'extraOutput.delayFrom': '{name} の音：{milliseconds} ms 遅れ',
+    'メイン出力はセカンド出力を待ちません。この数値はソフトウェアのバッファ時間の推定値で、実際に聞こえる遅延ではありません。オーディオドライバー、機器、無線接続により、さらに遅延が加わる場合があります。',
+  'extraOutput.delayUnavailable': '遅延情報なし',
+  'extraOutput.delay': 'ソフトウェアバッファ：{milliseconds} ms',
+  'extraOutput.delayFrom':
+    '{name} から：ソフトウェアバッファ {milliseconds} ms',
   'extraOutput.virtual':
     'ルーティング用ドライバーが入っています。アプリの出力先をそちらに向ければ両方の出力がずれません。その上で、上の設定で各出力に個別のプロファイルを割り当ててください。',
   'extraOutput.ambiguous':

@@ -13,6 +13,7 @@ import { getEqMode, getCurveEqMode } from '../common/eqMode';
 import { normalizeBandDesign } from '../common/bandDesigns';
 import {
   ICustomFxSettings,
+  IAudioDevice,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
   IEqCuts,
@@ -23,9 +24,11 @@ import {
   apoFeatureFileWord,
   getDefaultState,
 } from '../common/constants';
-import { EQ_CUTS_FILENAME, eqCutsFileText, hasEqCut } from '../common/eqCuts';
+import { eqCutsFileText, hasEqCut, toEqCuts } from '../common/eqCuts';
 import { toTone } from '../common/tone';
-import { dspVoicingPresetId } from '../common/dsp/presetVoicing';
+import { clampDspSettings } from '../common/dsp/chain';
+import type { TGlobalPreset } from '../common/dsp/presetVoicing';
+import { isCurveComparison } from '../common/curveComparison';
 import {
   addFileToPath,
   FLUIDEQ_CONFIG_FILENAME,
@@ -41,6 +44,7 @@ import { layerGroupOf, MATCHED_DESIGN_DIRECTIVE } from '../common/filterDesign';
 import readTextCached from './cachedRead';
 import writeConvolutionWav from './convolution';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
+import { outputDesignsOf } from './outputDesigns';
 
 export interface IActiveStateOverride {
   deviceId?: string;
@@ -140,6 +144,8 @@ const deviceFileName = (slug: string) => `fluideq-device-${slug}.txt`;
 
 const featureFileName = (slug: string, feature: TApoFeature) =>
   `fluideq-${slug}-${apoFeatureFileWord(feature)}.txt`;
+
+const cutsFileName = (slug: string) => `fluideq-${slug}-cuts.txt`;
 
 /**
  * The one file in a device's chain that FluidEQ does not write.
@@ -270,9 +276,11 @@ const chainToFiles = (
   subject: string,
   devicePattern: string,
   deviceKey: string,
-  includesCuts: boolean,
+  cuts: IEqCuts | undefined,
 ): IDeviceFiles => {
   const slug = deviceSlug(deviceKey);
+  const outputCuts = toEqCuts(cuts);
+  const includesCuts = hasEqCut(outputCuts);
   const files: Array<[string, string]> = chain.features.map(
     ({ feature, lines }) => [
       featureFileName(slug, feature),
@@ -289,6 +297,10 @@ const chainToFiles = (
     ],
   );
 
+  if (outputCuts && includesCuts) {
+    files.push([cutsFileName(slug), eqCutsFileText(outputCuts)]);
+  }
+
   files.push([
     deviceFileName(slug),
     [
@@ -304,11 +316,10 @@ const chainToFiles = (
       chain.preAmp,
       ...(chain.engineDirectives ?? []),
       // The cuts, after the preamp because they are not part of what it is
-      // sized for: they only take away (`eqCuts.ts`). One file for every
-      // output, so a cut switched on or off is one write. It is not a layer
-      // and not in this device file, so reading the config back never takes
-      // its lines for bands (`readApoDeviceChain`).
-      ...(includesCuts ? [`Include: ${EQ_CUTS_FILENAME}`] : []),
+      // sized for: they only take away (`eqCuts.ts`). Each output includes
+      // only its own cuts, so editing another output cannot change this one.
+      // It is not a layer, so readback never adopts these as editable bands.
+      ...(includesCuts ? [`Include: ${cutsFileName(slug)}`] : []),
       // And the user's own file after even that.
       //
       // Everything above is generated and rewritten on the next edit, so it is
@@ -372,7 +383,6 @@ const renderAssignedDevice = (
   configDirPath: string | undefined,
   customText: string | undefined,
   headroom: ISessionHeadroom | undefined,
-  includesCuts: boolean,
 ): { device?: IDeviceFiles; keepable: boolean } => {
   const preset = fetchPreset(assignment.presetName, dir);
   if (configDirPath && preset.convolution?.fileName) {
@@ -426,7 +436,7 @@ const renderAssignedDevice = (
           `${assignment.deviceName} -> ${assignment.presetName}`,
           assignment.deviceGuid || assignment.deviceName,
           assignment.deviceId,
-          includesCuts,
+          preset.eqCuts,
         )
       : undefined,
     keepable: !preset.convolution,
@@ -440,7 +450,6 @@ interface IRenderedDeviceInputs {
   customText: string | undefined;
   headroom: string;
   configDirPath: string | undefined;
-  includesCuts: boolean;
   deviceName: string;
   devicePattern: string;
   presetName: string;
@@ -484,7 +493,10 @@ export const deviceProfilesToFiles = (
   activeOverride?: IActiveStateOverride,
   isEnabled = true,
   sessionHeadroom: ISessionHeadroom | undefined = undefined,
-  cuts: IEqCuts | undefined = undefined,
+  _cuts: IEqCuts | undefined = undefined,
+  _playing: TGlobalPreset | undefined = undefined,
+  secondOutputs: readonly IAudioDevice[] = [],
+  stateOverrides: ReadonlyMap<string, IState> | undefined = undefined,
 ): TApoConfigFiles => {
   const files: TApoConfigFiles = new Map();
 
@@ -493,13 +505,31 @@ export const deviceProfilesToFiles = (
     return files;
   }
 
-  // First, because every device file below includes it.
-  const includesCuts = hasEqCut(cuts);
-  if (includesCuts && cuts) {
-    files.set(EQ_CUTS_FILENAME, eqCutsFileText(cuts));
-  }
-
   const blocks: string[] = [];
+  const overrides = new Map<string, IActiveStateOverride>();
+  stateOverrides?.forEach((state, deviceId) => {
+    const assignment = settings.assignments[deviceId];
+    const output = secondOutputs.find((device) => device.id === deviceId);
+    const devicePattern =
+      output?.guid ||
+      assignment?.deviceGuid ||
+      output?.name ||
+      assignment?.deviceName;
+    if (devicePattern) {
+      overrides.set(deviceId, {
+        deviceId,
+        deviceName: output?.name ?? assignment?.deviceName,
+        devicePattern,
+        state,
+      });
+    }
+  });
+  if (activeOverride) {
+    overrides.set(
+      activeOverride.deviceId || activeOverride.devicePattern,
+      activeOverride,
+    );
+  }
   const addDeviceFiles = (device: IDeviceFiles | undefined) => {
     if (!device) {
       return;
@@ -512,10 +542,11 @@ export const deviceProfilesToFiles = (
     subject: string,
     devicePattern: string,
     deviceKey: string,
+    outputCuts?: IEqCuts,
   ) =>
     addDeviceFiles(
       chain
-        ? chainToFiles(chain, subject, devicePattern, deviceKey, includesCuts)
+        ? chainToFiles(chain, subject, devicePattern, deviceKey, outputCuts)
         : undefined,
     );
 
@@ -527,14 +558,11 @@ export const deviceProfilesToFiles = (
   // preset fully audible. The session override wins, so its device drops out
   // of the assignment list entirely.
   const isOverriddenDevice = (assignment: IDeviceProfileAssignment) => {
-    if (!activeOverride) {
-      return false;
-    }
     const pattern = assignment.deviceGuid || assignment.deviceName;
-    return (
-      (!!activeOverride.deviceId &&
-        activeOverride.deviceId === assignment.deviceId) ||
-      activeOverride.devicePattern === pattern
+    return [...overrides.values()].some(
+      (override) =>
+        (!!override.deviceId && override.deviceId === assignment.deviceId) ||
+        override.devicePattern === pattern,
     );
   };
 
@@ -564,7 +592,6 @@ export const deviceProfilesToFiles = (
                   ? JSON.stringify([headroom.programme, headroom.trimDb])
                   : '',
                 configDirPath,
-                includesCuts,
                 deviceName: assignment.deviceName,
                 devicePattern: assignment.deviceGuid || assignment.deviceName,
                 presetName: assignment.presetName,
@@ -585,7 +612,6 @@ export const deviceProfilesToFiles = (
           configDirPath,
           customText,
           headroom,
-          includesCuts,
         );
         if (inputs && rendered.keepable) {
           renderedDevices.set(assignment.deviceId, {
@@ -624,8 +650,8 @@ export const deviceProfilesToFiles = (
     }
   });
 
-  if (activeOverride) {
-    let activeState = activeOverride.state;
+  overrides.forEach((override) => {
+    let activeState = override.state;
     if (configDirPath && activeState.convolution?.fileName) {
       try {
         const hydrated = hydrateConvolutionAnalysis(
@@ -634,7 +660,7 @@ export const deviceProfilesToFiles = (
         );
         if (hydrated !== activeState.convolution) {
           activeState = { ...activeState, convolution: hydrated };
-          activeOverride.state.convolution = hydrated;
+          override.state.convolution = hydrated;
         }
       } catch {
         // Same legacy fallback as assigned profiles above.
@@ -647,10 +673,8 @@ export const deviceProfilesToFiles = (
         isSafeConvolutionFileName(activeState.convolution.fileName)
       ) {
         activeConvolutionFileName = activeState.convolution.fileName;
-      } else if (configDirPath && activeOverride.deviceId) {
-        activeConvolutionFileName = getConvolutionFileName(
-          activeOverride.deviceId,
-        );
+      } else if (configDirPath && override.deviceId) {
+        activeConvolutionFileName = getConvolutionFileName(override.deviceId);
         writeConvolutionWav(
           addFileToPath(configDirPath, activeConvolutionFileName),
           activeState.convolution.filters,
@@ -660,10 +684,10 @@ export const deviceProfilesToFiles = (
 
     const activeCustomFx =
       activeState.customFx ??
-      readCustomFx(configDirPath, activeOverride.deviceId ?? '');
+      readCustomFx(configDirPath, override.deviceId ?? '');
     addDevice(
       stateToApoFiles(
-        { ...activeState, customFx: activeCustomFx },
+        { ...activeState, isEnabled: true, customFx: activeCustomFx },
         activeConvolutionFileName,
       ),
       // In the same `<output> -> <what it is>` shape every other block carries,
@@ -671,18 +695,28 @@ export const deviceProfilesToFiles = (
       // line names the output rather than only the mechanism. Without a name to
       // put there it stays what it was — a caller that cannot say which output
       // this is must not be made to invent one.
-      activeOverride.deviceName
-        ? `${activeOverride.deviceName} -> Active FluidEQ session`
+      override.deviceName
+        ? `${override.deviceName} -> Active FluidEQ session`
         : 'Active FluidEQ session override',
-      activeOverride.devicePattern,
-      activeOverride.deviceId || activeOverride.devicePattern,
+      override.devicePattern,
+      override.deviceId || override.devicePattern,
+      activeState.eqCuts,
     );
-  }
+  });
 
-  // Nothing includes the cuts without an output to carry them.
-  if (blocks.length === 0) {
-    files.delete(EQ_CUTS_FILENAME);
-  }
+  // An output without a saved profile has no chosen sound to restore. Keep
+  // it neutral until its own controls are edited and its profile is saved.
+  secondOutputs.forEach((device) => {
+    if (settings.assignments[device.id] || overrides.has(device.id)) {
+      return;
+    }
+    addDevice(
+      stateToApoFiles({ ...getDefaultState(), isEnabled: true }),
+      `${device.name} -> Neutral output`,
+      device.guid,
+      device.id,
+    );
+  });
 
   // Last, so the file that names every other one is written after them.
   files.set(
@@ -714,46 +748,11 @@ export const deviceProfilesToFiles = (
  * Every optional field is therefore listed explicitly, undefined included, so
  * assigning this over the live state clears what the new device does not have.
  */
-/**
- * A PRESET'S CURVE IS THE MACHINE'S CHOICE, NOT THE OUTPUT'S.
- *
- * The rack is one choice for the whole machine, and a preset is the rack and
- * its curve together — so the curve cannot be per output, or the two disagree
- * the moment an output is switched: the picker still said Pop Rock while the
- * chip beside it said the preset the headset's profile happened to be saved
- * with (Ivan, 2026-09-24: "it says a different preset than selected so we
- * dont save presets on the output switch we replay current preset always").
- *
- * So a Preset layer that is playing survives the switch, and one that is not
- * is not brought back from a profile — a preset cleared by its chip's cross
- * stays cleared. Everything that is not a preset's curve is the output's as
- * it always was: somebody's own voicing belongs to the output they tuned it
- * on.
- *
- * `playing` absent means there is no live answer to prefer — the launch,
- * where the profile IS where the curve comes back from.
- */
-const voicingForDevice = (
-  saved: IVoicingSettings | undefined,
-  playing: { voicing: IVoicingSettings | undefined } | undefined,
-): IVoicingSettings | undefined => {
-  if (!playing) {
-    return saved;
-  }
-  const isPreset = (one: IVoicingSettings | undefined) =>
-    dspVoicingPresetId(one) !== undefined;
-  return isPreset(playing.voicing) || isPreset(saved) ? playing.voicing : saved;
-};
-
 export const getStateForAudioDevice = (
   settings: IDeviceProfileSettings,
   deviceId: string,
   presetDirForDevice: TPresetDirForDevice,
-  /**
-   * What the machine is playing right now, where the output is being switched
-   * while the app runs. See `voicingForDevice`.
-   */
-  playing?: { voicing: IVoicingSettings | undefined },
+  _playing?: { voicing: IVoicingSettings | undefined },
 ): IState => {
   const defaultState = getDefaultState();
   const assignment = settings.assignments[deviceId];
@@ -785,11 +784,23 @@ export const getStateForAudioDevice = (
     curveBandQ: (preset ?? {}).curveBandQ,
     curveSmoothing: (preset ?? {}).curveSmoothing,
     eqBandDesign: normalizeBandDesign(preset?.eqBandDesign),
+    eqCuts: toEqCuts(preset?.eqCuts),
+    trebleDesigns:
+      preset?.trebleDesigns === undefined
+        ? undefined
+        : outputDesignsOf(preset).trebleDesigns,
+    eqPhase: isCurveComparison(preset?.eqPhase) ? preset.eqPhase : undefined,
+    curvePhase: isCurveComparison(preset?.curvePhase)
+      ? preset.curvePhase
+      : undefined,
+    // Missing is distinct from the default rack during the one-time migration
+    // of older installs. Never fill it from the previous output's live rack.
+    dsp: preset?.dsp === undefined ? undefined : clampDspSettings(preset.dsp),
     isEqDoubleOn: getEqMode(preset ?? {}) === 'double',
     // The profile's own tone, or none: a tone left from the output before
     // would follow somebody from the headphones to the speakers.
     tone: toTone(preset?.tone),
-    voicing: voicingForDevice(preset?.voicing, playing),
+    voicing: preset?.voicing,
     driver: preset?.driver,
     // Listed for the same reason as the rest, and missing for as long as it was
     // missing from the saved profile: an output that never asked for the

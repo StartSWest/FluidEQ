@@ -25,6 +25,7 @@ import DeviceProfiles from '../DeviceProfiles';
 import ExtraOutputs from '../ExtraOutputs';
 import MenuIcon from '../icons/MenuIcon';
 import PresetsBar from '../PresetsBar';
+import SongSoundSwitch from '../components/SongSoundSwitch';
 import {
   createPreset,
   deletePreset,
@@ -124,6 +125,7 @@ const SoundPanel = ({
                 renamePreset={renamePreset}
                 deletePreset={deletePreset}
               />
+              <SongSoundSwitch />
             </DeviceProfiles>
           </Activity>
           {/* Directly under the output picker: it is the same question asked

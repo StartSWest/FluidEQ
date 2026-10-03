@@ -15,15 +15,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IDspSettings } from '../../common/dsp/chain';
 import { setPlayerProcessingLatency } from './processingLatency';
-import { usePresetTone } from './presetToneStore';
 import {
   engineOwnsRack,
   playerRunsRack,
+  readRackGate,
   rackFor,
   rackSuspension,
   useRackGate,
 } from './rackPlacement';
 import useSystemMeters from './useSystemMeters';
+import { useOutputEditor } from '../utils/outputEditor';
 import {
   INativeBackendController,
   createNativeBackendController,
@@ -50,7 +51,15 @@ import {
   setDspRackGate,
   useDspNativeState,
   useDspSettings,
+  readPlaybackDspSettings,
+  readPlaybackPresetTone,
+  usePlaybackPresetTone,
 } from './store';
+import {
+  markDspSourceBoundary,
+  prepareDspSourceStart,
+  releaseDspSourcePlayback,
+} from './sourceAnalysis';
 
 /**
  * The preload bridge, read through a widening rather than declared present.
@@ -95,7 +104,7 @@ export const useNativeBackend = (
   );
   // The curve the Preset layer plays after this copy of the rack, for its
   // Maximizer to limit through (`presetTone.ts`).
-  const tone = usePresetTone();
+  const tone = usePlaybackPresetTone();
   const controllerRef = useRef<INativeBackendController | undefined>(undefined);
   const settingsRef = useRef(hostSettings);
   const toneRef = useRef(tone);
@@ -133,6 +142,26 @@ export const useNativeBackend = (
       return undefined;
     }
     const controller = createNativeBackendController(bridge);
+    controller.preparePlayback = async () => {
+      await prepareDspSourceStart((ready) =>
+        setDspRackGate({
+          librarySourceReady: ready,
+          libraryAudible: true,
+        }),
+      );
+      // Gate subscribers update React on its next render. This start needs
+      // the main output's actual rack acknowledged before Play, including
+      // when preparation refused the native path and restores the host.
+      await controller.update(
+        rackFor(readPlaybackDspSettings(), playerRunsRack(readRackGate())),
+        readPlaybackPresetTone(),
+      );
+    };
+    controller.finishPlayback = async (stopped) => {
+      if (await releaseDspSourcePlayback(stopped)) {
+        setDspRackGate({ librarySourceReady: false, libraryAudible: false });
+      }
+    };
     let isCurrent = true;
     controllerRef.current = controller;
     controller
@@ -172,6 +201,9 @@ export const useNativeBackend = (
 
     return () => {
       isCurrent = false;
+      controller
+        .finishPlayback?.(controller.transport.pause())
+        .catch(() => undefined);
       controllerRef.current = undefined;
       setDspNativeState('idle');
       controller.disengage().catch(() => undefined);
@@ -344,12 +376,18 @@ export const useNativeMeters = (): void => {
   const nativeState = useDspNativeState();
   const gate = useRackGate();
   const settings = useDspSettings();
-  const systemOwnsMeters = engineOwnsRack(gate);
+  const { editor, main } = useOutputEditor();
+  const editingOtherOutput = !!editor && !!main && editor.device.id !== main.id;
+  const systemOwnsMeters =
+    gate.engine === 'fluid' && (editingOtherOutput || engineOwnsRack(gate));
   useSystemMeters(
-    systemOwnsMeters && settings.enabled && rackSuspension(gate) === undefined,
+    systemOwnsMeters &&
+      settings.enabled &&
+      gate.eqEnabled &&
+      (editingOtherOutput || rackSuspension(gate) === undefined),
   );
   useEffect(() => {
-    if (nativeState !== 'engaged' || systemOwnsMeters) {
+    if (nativeState !== 'engaged' || systemOwnsMeters || editingOtherOutput) {
       return undefined;
     }
     const bridge = bridgeOf() as unknown as INativeMetersBridge | undefined;
@@ -358,7 +396,7 @@ export const useNativeMeters = (): void => {
     }
     const meters = createNativeMeters(bridge, ANALYSIS_BINS);
     return () => meters.release();
-  }, [nativeState, systemOwnsMeters]);
+  }, [nativeState, systemOwnsMeters, editingOtherOutput]);
 };
 
 /**
@@ -457,9 +495,12 @@ export const useNativeMirror = (
    * telemetry, and that is a different question from whether the mirror
    * exists.
    */
-  return useCallback(
-    (positionMs: number) =>
-      mirrorRef.current?.seek(positionMs) ?? Promise.resolve(false),
-    [],
-  );
+  return useCallback(async (positionMs: number) => {
+    const applied = await (mirrorRef.current?.seek(positionMs) ??
+      Promise.resolve(false));
+    if (applied) {
+      markDspSourceBoundary();
+    }
+    return applied;
+  }, []);
 };

@@ -8,9 +8,11 @@ import { ErrorDescription } from '../../common/errors';
 import { useFluidEqContext } from './FluidEqContext';
 import { getCurveComparison, setCurveComparison } from './curveComparisonApi';
 import { subscribeAudioEngineChanged } from './audioEngineEvents';
+import { readOutputEditor, useOutputEditor } from './outputEditor';
 
 export default function useCurvePhase() {
   const state = useFluidEqContext();
+  const { editor } = useOutputEditor();
   const [status, setStatus] = useState<ICurveComparisonStatus>();
   const mounted = useRef(true);
   const saving = useRef(false);
@@ -22,9 +24,15 @@ export default function useCurvePhase() {
     }
     revision.current += 1;
     const { current } = revision;
+    const target = readOutputEditor().editor;
     try {
       const next = await getCurveComparison();
-      if (mounted.current && !saving.current && current === revision.current) {
+      if (
+        mounted.current &&
+        !saving.current &&
+        current === revision.current &&
+        target === readOutputEditor().editor
+      ) {
         setStatus(next);
       }
     } catch (error) {
@@ -64,14 +72,16 @@ export default function useCurvePhase() {
     state.curveEqMode,
     state.curveBandQ,
     state.curveSmoothing,
+    editor,
   ]);
 
   const select = async (variant: TCurveComparison, scope: TPhaseScope) => {
+    const target = readOutputEditor().editor;
     saving.current = true;
     revision.current += 1;
     try {
       const applied = await setCurveComparison(variant, scope);
-      if (mounted.current) {
+      if (mounted.current && target === readOutputEditor().editor) {
         setStatus(applied);
       }
     } finally {

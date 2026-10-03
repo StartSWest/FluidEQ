@@ -22,6 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import type { TSystemDspChainResult } from '../../common/audioEngine';
+import type { IOutputDspEdit } from '../../common/outputSettings';
 import { setSystemDspChain } from '../utils/audioEngineApi';
 import { reportError } from '../utils/logger';
 
@@ -35,6 +36,7 @@ import { reportError } from '../utils/logger';
  */
 let lastSent: string | null = null;
 let latestValues: number[] | undefined;
+let latestEdit: IOutputDspEdit | undefined;
 let requestGeneration = 0;
 let lastResult: TSystemDspChainResult | undefined;
 const resultListeners = new Set<() => void>();
@@ -82,18 +84,22 @@ const forget = (key: string): void => {
  * switches engines, or a momentary IPC hiccup, must not leave the rack
  * looking delivered when the engine never received it.
  */
-export const sendSystemDspChain = (values: number[]): void => {
-  const key = values.join(' ');
+export const sendSystemDspChain = (
+  values: number[],
+  edit?: IOutputDspEdit,
+): void => {
+  const key = `${edit?.deviceId}:${edit?.generation}:${values.join(' ')}:${JSON.stringify(edit?.savedSettings)}`;
   if (key === lastSent) {
     return;
   }
   latestValues = values;
+  latestEdit = edit;
   lastSent = key;
   requestGeneration += 1;
   const generation = requestGeneration;
   reportResult(undefined);
   try {
-    setSystemDspChain(values).then(
+    setSystemDspChain(values, edit).then(
       (result) => {
         if (generation !== requestGeneration) {
           return result;
@@ -148,6 +154,6 @@ export const resetSystemDspChain = (): void => {
 export const retrySystemDspChain = (): void => {
   lastSent = null;
   if (latestValues) {
-    sendSystemDspChain(latestValues);
+    sendSystemDspChain(latestValues, latestEdit);
   }
 };

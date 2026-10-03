@@ -1,5 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 #pragma once
+#include "hold_output.h"
 #include "mirror_output.h"
 #include <atomic>
 #include <deque>
@@ -9,8 +10,11 @@
 #include <string>
 
 // Reply kinds on the frames pipe: 3 a command's answer (under its request
-// id), 4 a mirror that failed, 5 a mirror's delay in microseconds — sent
-// every `kDelayEveryRenders` of its device's periods, about twice a second.
+// id), 4 a mirror or hold that failed, 5 a mirror's delay in microseconds —
+// sent every `kDelayEveryRenders` of its device's periods, about twice a
+// second. `hold <request> <id> <guid>` keeps a second output running in
+// silence for the FluidEQ Engine to play into (`hold_output.h`); `stop`
+// ends either kind.
 class MirrorControl final {
  public:
   static constexpr std::uint32_t kDelayEveryRenders = 50;
@@ -36,5 +40,6 @@ class MirrorControl final {
   std::mutex mutex_;
   std::deque<std::string> commands_;
   std::map<std::uint32_t, std::unique_ptr<MirrorOutput>> outputs_;
+  std::map<std::uint32_t, std::unique_ptr<HoldOutput>> holds_;
   std::map<std::uint32_t, std::uint32_t> renders_;
 };

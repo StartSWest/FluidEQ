@@ -20,6 +20,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "chain_signature.h"
 #include "config_file.h"
+#include "dsp_chain.h"
 #include "room_head.h"
 #include "watcher.h"
 
@@ -95,38 +96,66 @@ void Watcher::load_chain() {
     if (stop_requested()) {
       return;
     }
-
-    // FluidEQ's presence is part of what was loaded: the same files with and
-    // without it build different graphs.
-    std::string next = signature_of(chain) + (owner ? "|o=1" : "|o=0");
-    // Before the comparison and outside the signature: a new song is a
-    // change worth reading on every wake, and never one worth a new chain.
+    // Source ownership is independent of each output's controls. Resolve
+    // routing first so a receiver uses the source scan only while it reads
+    // that exact endpoint; all other outputs retain their own live leveling.
     const bool finished_song = owner && follow_programme();
+    const bool split_moved = follow_split(owner);
+    const SourceAnalysis source = read_source(owner);
+    if (source_invalid_) {
+      source_prepare_failed_ = true;
+      report_status(true);
+      return;
+    }
+
+    // A head edit can leave every rack value unchanged. Read its identity
+    // before the signature comparison, or a head published after its rack
+    // would never be heard until an unrelated control moved.
+    const auto head_name = endpoint_config_name(kRoomHeadFileStem, endpoint_);
+    std::optional<std::string> head_text = owner && head_name
+        ? read_config_file(config_dir_ + L"\\" + *head_name) : std::nullopt;
+    if (head_text != room_head_text_) {
+      std::optional<RoomHead> parsed = head_text
+          ? parse_room_head(*head_text, static_cast<double>(sample_rate_))
+          : std::nullopt;
+      // Swap only after parsing succeeds, keeping the cached identity and
+      // generation coherent even when an allocation fails during reload.
+      room_head_.swap(parsed);
+      room_head_text_.swap(head_text);
+      room_head_generation_ += 1;
+    }
+    if (stop_requested()) return;
+
+    // Main publishes the selected head before its rack. A notification can
+    // land between those atomic file replacements; keep the complete graph
+    // already playing until both files name the same head.
+    FeqChainSettings requested{};
+    if (room_head_ && room_head_->size >= 0 &&
+        decode_dsp_chain(chain.dsp_values, &requested) &&
+        requested.enabled != 0 && requested.room.enabled != 0 &&
+        requested.room.head != room_head_->size) {
+      return;
+    }
+
+    // Presence and head content both change the graph independently of the
+    // chain. A generation represents the exact cached bytes, including a
+    // missing or invalid head, without copying its 600 kB into the signature.
+    std::string next = signature_of(chain) + (owner ? "|o=1" : "|o=0") +
+                       "|h=" + std::to_string(room_head_generation_) +
+                       "|s=" + source.identity;
     // Nothing to do when the configuration is byte-for-byte what it already
     // was — which is every flush of the audio pipeline, and most of the wakes
     // this directory produces, the app's own temporary files included.
     if (have_signature_ && next == signature_) {
-      if (finished_song) {
+      const bool recovered = source_prepare_failed_;
+      source_prepare_failed_ = false;
+      if (recovered && rack_source_ != nullptr) source_report_ = rack_source_->source_report();
+      if (finished_song || split_moved || recovered) {
         report_status(true);
       }
       return;
     }
 
-    // The room's head, beside the rack file: read with the rest of the
-    // configuration, so a head written after the rack is picked up by the
-    // same notification. No file is no head, which the rack reports. Parsed
-    // again only when the text is not what was parsed last.
-    const std::optional<std::string> head_text =
-        read_config_file(config_dir_ + L"\\" + kRoomHeadFileName);
-    if (!head_text) {
-      if (room_head_) room_head_generation_ += 1;
-      room_head_text_.clear();
-      room_head_.reset();
-    } else if (*head_text != room_head_text_ || !room_head_) {
-      room_head_ = parse_room_head(*head_text, static_cast<double>(sample_rate_));
-      room_head_text_ = room_head_ ? *head_text : std::string();
-      room_head_generation_ += 1;
-    }
     const RoomHead* const head = room_head_ ? &*room_head_ : nullptr;
     // The graph published last runs a rack this one may be able to keep
     // running (`Graph`'s `rack_from`), but only if it was built through the
@@ -143,7 +172,14 @@ void Watcher::load_chain() {
     auto graph = std::make_unique<Graph>(
         chain, sample_rate_, channels_, max_frames_,
         leveling_ ? leveling_->memory() : nullptr, channel_mask_, head,
-        follows_processing, rack_from);
+        follows_processing, rack_from, &source);
+    if (!graph->source_report().ready) {
+      source_report_ = graph->source_report();
+      source_prepare_failed_ = true;
+      for (const auto& warning : graph->warnings()) log_.write(warning);
+      report_status(true);
+      return;
+    }
     // Once per rack built: a kept rack has said it already.
     const bool rack_kept = rack_from != nullptr && graph->rack_is_shared_with(*rack_from);
     if (!graph->room_note().empty() && !rack_kept) {
@@ -154,6 +190,20 @@ void Watcher::load_chain() {
       // reachable from the slot. Recording the signature is left undone with
       // it, so an abandoned rebuild cannot be mistaken for a loaded one.
       return;
+    }
+    if (rack_source_ != nullptr) {
+      const auto& before = rack_source_->source_report();
+      const auto& after = graph->source_report();
+      if (before.library != after.library || before.engine_owner != after.engine_owner ||
+          before.source != after.source ||
+          before.epoch != after.epoch) {
+        // A different source/seek gets a fresh prediction window. Old graphs
+        // own the old window until their ordinary control-thread retirement;
+        // no history is cleared under an active audio callback.
+        owed_level_.reset();
+        others_from_ = UINT64_MAX;
+        open_level_prediction();
+      }
     }
     graph->request_state_transfer();
     const bool level_owed = plan_level(chain, *graph);
@@ -186,6 +236,7 @@ void Watcher::load_chain() {
     last_owner_ = owner;
     graph_problems_.swap(problems);
     reload_failed_ = false;
+    source_prepare_failed_ = false;
     report_status(true);
   } catch (const std::exception& error) {
     log_.write(std::string("configuration reload failed: ") + error.what());
@@ -201,13 +252,14 @@ void Watcher::load_chain() {
 void Watcher::publish(std::unique_ptr<Graph> graph) {
   if (analysis_) graph->set_meters(analysis_->meters(), analysis_->activity());
   if (analysis_) graph->set_output_meters(&analysis_->output_gain, &analysis_->output_enabled, &analysis_->output_active);
-  graph->set_history(history_.get());
+  graph->own_history(history_);
   // Ownership is recorded before the graph becomes reachable: if this
   // allocation throws, the unique_ptr still holds the only reference and
   // frees it, and the audio thread never saw it.
   owned_.push_back(OwnedGraph{graph.get(), 0});
   Graph* const raw = graph.release();
   rack_source_ = raw;
+  source_report_ = raw->source_report();
   rack_source_head_ = room_head_generation_;
 
   slot_.set_latency(raw->latency_frames());

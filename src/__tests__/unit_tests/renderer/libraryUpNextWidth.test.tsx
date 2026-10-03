@@ -24,6 +24,8 @@ import {
   type ILibraryStoreBridge,
 } from '../../utils/libraryStoreBridge';
 
+import { createSourceAnalysisBridge } from '../../utils/sourceAnalysisBridge';
+
 const WIDTH_KEY = 'fluideq.library.upNextWidth';
 
 /** One song in one folder, in main's own store (`libraryStoreBridge.ts`). */
@@ -65,7 +67,7 @@ beforeEach(() => {
       }),
     ],
   });
-  installIpcRenderer({ ...bridge.channels, on: jest.fn(() => jest.fn()) });
+  installIpcRenderer({ ...bridge.channels, ...createSourceAnalysisBridge() });
 });
 
 afterEach(() => {

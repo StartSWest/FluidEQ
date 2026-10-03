@@ -26,6 +26,7 @@ import {
   renamePresetBaseline,
   savePresetBaseline,
 } from '../../../main/flush';
+import { flushPendingWrites } from '../../../main/asyncWriter';
 import { migrateNamedFilesToOutputFolders } from '../../../main/deviceProfileSettings';
 import {
   FilterTypeEnum,
@@ -61,18 +62,19 @@ describe('manually saved profile baselines', () => {
     );
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await flushPendingWrites();
     fs.rmSync(path.dirname(baselineDir), { recursive: true, force: true });
   });
 
-  it('creates its directory on the first save', () => {
+  it('creates its directory on the first save', async () => {
     expect(fs.existsSync(baselineDir)).toBe(false);
-    savePresetBaseline('Studio', presetWith(4, -2), baselineDir);
+    await savePresetBaseline('Studio', presetWith(4, -2), baselineDir);
     expect(hasPresetBaseline('Studio', baselineDir)).toBe(true);
   });
 
-  it('round-trips the saved profile', () => {
-    savePresetBaseline('Studio', presetWith(4, -2), baselineDir);
+  it('round-trips the saved profile', async () => {
+    await savePresetBaseline('Studio', presetWith(4, -2), baselineDir);
     const restored = fetchPresetBaseline('Studio', baselineDir);
 
     expect(restored?.preAmp).toBe(-2);
@@ -81,8 +83,8 @@ describe('manually saved profile baselines', () => {
     expect(restored?.filters.a.type).toBe(FilterTypeEnum.PK);
   });
 
-  it('is unaffected by later edits to the profile itself', () => {
-    savePresetBaseline('Studio', presetWith(4, -2), baselineDir);
+  it('is unaffected by later edits to the profile itself', async () => {
+    await savePresetBaseline('Studio', presetWith(4, -2), baselineDir);
     // Auto-save writes the profile file, never the baseline. Nothing here
     // touches baselineDir, so the kept copy must still read back as saved.
     expect(fetchPresetBaseline('Studio', baselineDir)?.filters.a.gain).toBe(4);
@@ -93,33 +95,35 @@ describe('manually saved profile baselines', () => {
     expect(fetchPresetBaseline('Never', baselineDir)).toBeUndefined();
   });
 
-  it('follows a rename', () => {
-    savePresetBaseline('Old', presetWith(6, -3), baselineDir);
-    renamePresetBaseline('Old', 'New', baselineDir);
+  it('follows a rename', async () => {
+    await savePresetBaseline('Old', presetWith(6, -3), baselineDir);
+    await renamePresetBaseline('Old', 'New', baselineDir);
 
     expect(hasPresetBaseline('Old', baselineDir)).toBe(false);
     expect(fetchPresetBaseline('New', baselineDir)?.filters.a.gain).toBe(6);
   });
 
-  it('survives renaming a profile that has no baseline', () => {
-    expect(() =>
+  it('survives renaming a profile that has no baseline', async () => {
+    await expect(
       renamePresetBaseline('Missing', 'Other', baselineDir),
-    ).not.toThrow();
+    ).resolves.toBeUndefined();
   });
 
-  it('goes away with the profile', () => {
-    savePresetBaseline('Doomed', presetWith(1, 0), baselineDir);
-    deletePresetBaseline('Doomed', baselineDir);
+  it('goes away with the profile', async () => {
+    await savePresetBaseline('Doomed', presetWith(1, 0), baselineDir);
+    await deletePresetBaseline('Doomed', baselineDir);
     expect(hasPresetBaseline('Doomed', baselineDir)).toBe(false);
   });
 
-  it('survives deleting a profile that has no baseline', () => {
-    expect(() => deletePresetBaseline('Missing', baselineDir)).not.toThrow();
+  it('survives deleting a profile that has no baseline', async () => {
+    await expect(
+      deletePresetBaseline('Missing', baselineDir),
+    ).resolves.toBeUndefined();
   });
 
-  it('refuses names that would escape the baseline directory', () => {
-    savePresetBaseline('../escaped', presetWith(9, -9), baselineDir);
-    savePresetBaseline('nested/name', presetWith(9, -9), baselineDir);
+  it('refuses names that would escape the baseline directory', async () => {
+    await savePresetBaseline('../escaped', presetWith(9, -9), baselineDir);
+    await savePresetBaseline('nested/name', presetWith(9, -9), baselineDir);
 
     expect(hasPresetBaseline('../escaped', baselineDir)).toBe(false);
     expect(hasPresetBaseline('nested/name', baselineDir)).toBe(false);
@@ -154,13 +158,22 @@ describe('baselines scoped to one output', () => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-baseline-split-'));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await flushPendingWrites();
     fs.rmSync(root, { recursive: true, force: true });
   });
 
-  it('keeps two outputs’ same-named saved copies apart', () => {
-    savePresetBaseline('Untitled profile 1', presetWith(6, -6), dirFor('hp'));
-    savePresetBaseline('Untitled profile 1', presetWith(2, -2), dirFor('sp'));
+  it('keeps two outputs’ same-named saved copies apart', async () => {
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(6, -6),
+      dirFor('hp'),
+    );
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(2, -2),
+      dirFor('sp'),
+    );
 
     expect(
       fetchPresetBaseline('Untitled profile 1', dirFor('hp'))?.filters.a.gain,
@@ -170,11 +183,19 @@ describe('baselines scoped to one output', () => {
     ).toBe(2);
   });
 
-  it('renames one output’s saved copy and leaves the other’s', () => {
-    savePresetBaseline('Untitled profile 1', presetWith(6, -6), dirFor('hp'));
-    savePresetBaseline('Untitled profile 1', presetWith(2, -2), dirFor('sp'));
+  it('renames one output’s saved copy and leaves the other’s', async () => {
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(6, -6),
+      dirFor('hp'),
+    );
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(2, -2),
+      dirFor('sp'),
+    );
 
-    renamePresetBaseline('Untitled profile 1', 'Studio', dirFor('hp'));
+    await renamePresetBaseline('Untitled profile 1', 'Studio', dirFor('hp'));
 
     // The positive control: asserting only that the speakers kept theirs would
     // pass just as well if the rename had done nothing.
@@ -183,11 +204,19 @@ describe('baselines scoped to one output', () => {
     expect(hasPresetBaseline('Untitled profile 1', dirFor('sp'))).toBe(true);
   });
 
-  it('deletes one output’s saved copy and leaves the other’s', () => {
-    savePresetBaseline('Untitled profile 1', presetWith(6, -6), dirFor('hp'));
-    savePresetBaseline('Untitled profile 1', presetWith(2, -2), dirFor('sp'));
+  it('deletes one output’s saved copy and leaves the other’s', async () => {
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(6, -6),
+      dirFor('hp'),
+    );
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(2, -2),
+      dirFor('sp'),
+    );
 
-    deletePresetBaseline('Untitled profile 1', dirFor('hp'));
+    await deletePresetBaseline('Untitled profile 1', dirFor('hp'));
 
     expect(hasPresetBaseline('Untitled profile 1', dirFor('hp'))).toBe(false);
     expect(hasPresetBaseline('Untitled profile 1', dirFor('sp'))).toBe(true);
@@ -219,12 +248,17 @@ describe('migrating a flat store into per-output folders', () => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-baseline-move-'));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    await flushPendingWrites();
     fs.rmSync(root, { recursive: true, force: true });
   });
 
-  it('moves the flat copy into its output’s folder', () => {
-    savePresetBaseline('Untitled profile 1', presetWith(6, -6), flatDir());
+  it('moves the flat copy into its output’s folder', async () => {
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(6, -6),
+      flatDir(),
+    );
 
     migrateNamedFilesToOutputFolders(
       settingsFor('hp'),
@@ -241,11 +275,15 @@ describe('migrating a flat store into per-output folders', () => {
     );
   });
 
-  it('gives an ambiguous copy to one output and no other', () => {
+  it('gives an ambiguous copy to one output and no other', async () => {
     // The lossy case, stated rather than hidden: one file, three outputs with
     // an equal claim and nothing on disk saying who saved it. It survives under
     // one owner instead of being duplicated into three lies.
-    savePresetBaseline('Untitled profile 1', presetWith(6, -6), flatDir());
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(6, -6),
+      flatDir(),
+    );
 
     migrateNamedFilesToOutputFolders(
       settingsFor('hp', 'sp', 'tv'),
@@ -260,9 +298,17 @@ describe('migrating a flat store into per-output folders', () => {
     expect(owners).toHaveLength(1);
   });
 
-  it('never overwrites a copy the new layout already holds', () => {
-    savePresetBaseline('Untitled profile 1', presetWith(6, -6), flatDir());
-    savePresetBaseline('Untitled profile 1', presetWith(2, -2), dirFor('hp'));
+  it('never overwrites a copy the new layout already holds', async () => {
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(6, -6),
+      flatDir(),
+    );
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(2, -2),
+      dirFor('hp'),
+    );
 
     migrateNamedFilesToOutputFolders(
       settingsFor('hp'),
@@ -276,8 +322,12 @@ describe('migrating a flat store into per-output folders', () => {
     ).toBe(2);
   });
 
-  it('is a no-op the second time', () => {
-    savePresetBaseline('Untitled profile 1', presetWith(6, -6), flatDir());
+  it('is a no-op the second time', async () => {
+    await savePresetBaseline(
+      'Untitled profile 1',
+      presetWith(6, -6),
+      flatDir(),
+    );
     const settings = settingsFor('hp');
 
     migrateNamedFilesToOutputFolders(settings, flatDir(), dirFor, 'saved copy');
@@ -288,8 +338,8 @@ describe('migrating a flat store into per-output folders', () => {
     ).toBe(6);
   });
 
-  it('leaves a copy no output claims where it is', () => {
-    savePresetBaseline('Nobody', presetWith(6, -6), flatDir());
+  it('leaves a copy no output claims where it is', async () => {
+    await savePresetBaseline('Nobody', presetWith(6, -6), flatDir());
 
     migrateNamedFilesToOutputFolders(
       settingsFor('hp'),

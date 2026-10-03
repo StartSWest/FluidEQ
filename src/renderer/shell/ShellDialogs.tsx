@@ -39,6 +39,9 @@ import ProcessesDialog from '../components/ProcessesDialog';
 import RestartAudioDialog from '../components/RestartAudioDialog';
 import SceneReviewNotice from '../components/SceneReviewNotice';
 import SongEqNotice from '../components/SongEqNotice';
+import SongSoundNotice from '../components/SongSoundNotice';
+import SongSoundSaveNotice from '../components/SongSoundSaveNotice';
+import SongSoundHost from '../audio/SongSoundHost';
 import SpeechMemoryNotice from '../components/SpeechMemoryNotice';
 import UpdateNotice from '../components/UpdateNotice';
 import WhatsNewDialog from '../components/WhatsNewDialog';
@@ -230,6 +233,12 @@ const ShellDialogs = ({
           playing while the user is on any tab, and the loaned curve is
           already audible before this ever draws. */}
       <SongEqNotice />
+      {/* And the song's own sound: put on by whichever song settles, on
+          whatever tab is open. Its host beside it, because it reads every
+          band and every position a player reports, and redraws only itself. */}
+      <SongSoundHost />
+      <SongSoundNotice />
+      <SongSoundSaveNotice />
       {/* Here too: the terms promise that the app tells a member when they
           change, and a member need never open the Plus tab to use Plus. */}
       <PlusTermsNotice />

@@ -758,6 +758,14 @@ struct FeqChain {
   /** The Library measured the track, so the chain must not measure it again. */
   int host_track_gains = 0;
 
+  // Immutable source identity on a prepared rack. A settings edit may carry
+  // histories; a new song/seek may not inherit delayed audio from its past.
+  uint32_t source_analysis_version = 0;
+  bool source_library = false;
+  uint64_t source_id = 0;
+  uint64_t source_epoch = 0;
+  uint64_t source_revision = 0;
+
   /** Scratch for the block's pointer arrays, so the loop allocates none. */
   float* pointers_a[FEQ_CHAIN_MAX_CHANNELS] = {};
   float* pointers_b[FEQ_CHAIN_MAX_CHANNELS] = {};

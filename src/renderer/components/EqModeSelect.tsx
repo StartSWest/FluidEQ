@@ -88,7 +88,7 @@ export default function EqModeSelect() {
       ? 'precise'
       : 'classic';
   };
-  const listened = useListenedOutput(Boolean(phase.status?.active));
+  const listened = useListenedOutput(Boolean(phase.status?.active), 'editor');
   const phaseRate = listened.output?.latency?.rate ?? 48000;
   // What Linear costs a group, under the word. On an engine that builds every
   // layer in linear phase into one FIR, a group joining the other's linear

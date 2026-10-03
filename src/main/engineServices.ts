@@ -48,7 +48,13 @@ import {
   isEngineInstalled,
   isEqualizerAPOInstalled,
 } from './registry';
-import { writeSystemDspChain } from './systemDspChain';
+import {
+  writeSystemDspChain,
+  writeLegacySystemDspChain,
+} from './systemDspChain';
+import { createOutputSoundStore } from './outputSoundStore';
+import { getStateForAudioDevice } from './deviceProfiles';
+import { flushOutputDsp } from './outputDsp';
 
 /**
  * Which engine this launch writes to, before anything can ask for a config
@@ -102,6 +108,8 @@ export interface IEngineServicesDeps {
   presetDirForDevice: (deviceId: string) => string;
   /** Rewrites the current state into whichever engine is chosen now. */
   reflush: () => Promise<TReflushResult>;
+  /** A switch of engine finished — `IAudioEngineIpcDeps.onSwitched`. */
+  onEngineSwitched: () => void;
 }
 
 /**
@@ -115,7 +123,21 @@ export const registerEngineServices = ({
   deviceProfileSettings,
   presetDirForDevice,
   reflush,
+  onEngineSwitched,
 }: IEngineServicesDeps) => {
+  const outputSound = createOutputSoundStore(
+    state,
+    session,
+    deviceProfileSettings,
+    presetDirForDevice,
+    userDataDir,
+  );
+  const flushOutputSound = async () => {
+    const result = await reflush();
+    if (!result.ok) {
+      throw new Error('Could not apply the output sound.');
+    }
+  };
   /**
    * The one gate every automatic elevated run passes through: the two halves
    * of the Equalizer APO switch-off and both engine repairs, so no two of them
@@ -142,9 +164,18 @@ export const registerEngineServices = ({
     getStatus: () => readAudioEngineStatus(userDataDir, session.audioEngine),
     getConfigPath: () => getConfigPath('fluid'),
     isSwitching: () => session.engineSwitching,
+    getOutputGuid: () => session.activeAudioDevice?.guid,
+    persist: outputSound.persist,
+    getEditGeneration: () => session.outputEditGeneration ?? 0,
+    flush: flushOutputSound,
   });
 
   registerTrebleDesignIpc({
+    state,
+    getOutputGuid: () => session.activeAudioDevice?.guid,
+    persist: outputSound.persist,
+    getEditGeneration: () => session.outputEditGeneration ?? 0,
+    flush: flushOutputSound,
     getEngine: () => session.audioEngine,
     getConfigPath: () => getConfigPath('fluid'),
   });
@@ -175,6 +206,56 @@ export const registerEngineServices = ({
     neutraliseEngine: (other) =>
       neutraliseEngine(other, deviceProfileSettings, presetDirForDevice),
     writeSystemDspChain,
+    writeLegacySystemDspChain,
+    getDspTarget: () =>
+      session.activeAudioDevice
+        ? {
+            device: session.activeAudioDevice,
+            generation: session.outputEditGeneration ?? 0,
+          }
+        : undefined,
+    getPlaybackGuid: () => session.playbackAudioDevice?.guid,
+    saveOutputDsp: outputSound.saveDsp,
+    isOutputDspCurrent: (edit) =>
+      session.outputDspOverrides?.get(edit.deviceId) === edit.settings,
+    writeOutputDsp: (configDirPath, edit) => {
+      const device =
+        session.audioDevices?.find((entry) => entry.id === edit.deviceId) ??
+        (session.activeAudioDevice?.id === edit.deviceId
+          ? session.activeAudioDevice
+          : undefined);
+      if (!device) {
+        return Promise.reject(new Error('The output is no longer available.'));
+      }
+      const outputState =
+        session.activeAudioDeviceId === edit.deviceId
+          ? state
+          : (session.outputStateOverrides?.get(edit.deviceId) ??
+            getStateForAudioDevice(
+              deviceProfileSettings,
+              edit.deviceId,
+              presetDirForDevice,
+            ));
+      const assignment = deviceProfileSettings.assignments[edit.deviceId];
+      return flushOutputDsp({
+        configDirPath,
+        settings: {
+          ...deviceProfileSettings,
+          assignments: assignment ? { [edit.deviceId]: assignment } : {},
+        },
+        presetDirForDevice,
+        outputs: [device],
+        activeOverride: {
+          deviceId: device.id,
+          devicePattern: device.guid,
+          state: structuredClone(outputState),
+        },
+        isEnabled: state.isEnabled,
+        dspOverrides: new Map([[edit.deviceId, edit.settings]]),
+        stateOverrides: session.outputStateOverrides,
+        systemRackEnabled: session.systemRackEnabled,
+      });
+    },
     isApoOnAnyOutput,
     isApoSwitchedOff,
     repairEngineLoading: createEngineLoadRepair({
@@ -189,6 +270,7 @@ export const registerEngineServices = ({
       automatic: automaticSetup,
     }).repair,
     automatic: automaticSetup,
+    onSwitched: onEngineSwitched,
   });
 
   return { apoGuard };

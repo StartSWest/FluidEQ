@@ -20,6 +20,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'Hauptausgabe bearbeiten',
+  'extraOutput.edit': 'Klang bearbeiten',
+  'extraOutput.done': 'Fertig',
+  'extraOutput.editing': 'In Bearbeitung',
+  'extraOutput.editHint':
+    '{device} bearbeiten, ohne den Hauptausgang zu wechseln',
+  'extraOutput.editingOutput': 'Bearbeiten: {device}',
   'eq.layouts.empty':
     'Designs speichern Bandfrequenzen, jeden Q-Wert und das Q-Verhalten. Verstärkung und Stärke bleiben getrennt.',
   'eq.layouts.qHint':
@@ -453,9 +460,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.statusOff': 'Aus',
   'extraOutput.volume': 'Lautstärke',
   'extraOutput.latency':
-    'Jede zweite Ausgabe hält selbst Schritt, wie Audio teilen: Sie startet etwa 30 ms hinterher, legt nur nach einem Aussetzer etwas zu und gibt es zurück, sobald es ruhig läuft. Hören Sie sie zusammen mit der Hauptausgabe von einem Platz aus, kann eine leichte Verdopplung auffallen.',
-  'extraOutput.delay': '{milliseconds} ms hinterher',
-  'extraOutput.delayFrom': 'Ton von {name}: {milliseconds} ms hinterher',
+    'Der Hauptausgang wartet nicht auf die Zweitausgänge. Diese Werte schätzen die Software-Pufferung, nicht die hörbare Verzögerung. Audiotreiber, Geräte und Funkverbindungen können weitere Verzögerungen verursachen.',
+  'extraOutput.delayUnavailable': 'Verzögerung nicht verfügbar',
+  'extraOutput.delay': 'Software-Puffer: {milliseconds} ms',
+  'extraOutput.delayFrom': 'Von {name}: {milliseconds} ms Software-Pufferung',
   'extraOutput.virtual':
     'Ein Routing-Treiber ist installiert. Richten Sie Ihre Anwendungen darauf aus, dann bleiben beide Ausgänge synchron, und geben Sie jedem oben sein eigenes Profil.',
   'extraOutput.ambiguous':

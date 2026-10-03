@@ -524,8 +524,11 @@ int feq_chain_load_voice_model(FeqChain* chain,
  * `feq_chain_process` stays free of system calls, so a stage whose work
  * happens on a worker only ARMS it; the owner of the callback rings it here
  * once the block has been handed on (the device thread after the period, an
- * offline loop after each block). A chain with no voice model has nothing to
- * ring and this costs one atomic load. Never from inside the callback.
+ * offline loop after each block, or an APO callback tail after its output is
+ * filled). Windows rings a kernel event without waiting for the worker; it
+ * never runs inference or acquires the worker's locks. A chain with no voice
+ * model has nothing to ring and this costs one atomic load. Never from inside
+ * feq_chain_process or between its stages.
  */
 void feq_chain_wake_workers(FeqChain* chain);
 

@@ -55,7 +55,8 @@ import ChannelEnum from '../../common/channels';
 
 import { SelectionMode, nextBandSelection } from '../../common/bandSelection';
 import { getEqualizerState } from './equalizerApi';
-import { setDspRackGate } from '../dsp/store';
+import { adoptOutputDsp, setDspRackGate } from '../dsp/store';
+import { updateOutputEditor } from './outputEditor';
 import { IBandRevealBand, planBandReveal, revealBands } from './bandReveal';
 import {
   FilterAction,
@@ -500,6 +501,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     async (options?: IRefreshStateOptions) => {
       try {
         const state = await getEqualizerState();
+        updateOutputEditor(state);
+        setActiveDeviceId(state.outputEditor?.device.id ?? '');
+        adoptOutputDsp(state);
         setIsEnabled(state.isEnabled);
         // The rack's gate hears the saved switch here, with the news that it
         // is the saved one, in one step. The shell follows every later change

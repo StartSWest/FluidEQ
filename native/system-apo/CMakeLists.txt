@@ -10,7 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 # owns, the effect is code running inside somebody else's.
 
 add_library(fluideq-engine-config STATIC src/config.cpp src/config_grammar.cpp
-  src/programme.cpp)
+  src/programme.cpp src/endpoint_config.cpp)
 target_include_directories(fluideq-engine-config PUBLIC include
   PRIVATE ../dsp-core/include) # Shared chain wire bounds used by the parser.
 target_link_libraries(fluideq-engine-config PRIVATE feq_strict)
@@ -27,7 +27,13 @@ add_library(fluideq-engine-dsp STATIC
   src/graph_handover.cpp src/graph_reclaim.cpp src/iir_cascade.cpp src/curve_stage.cpp
   src/graph_stages.cpp src/eq_phase.cpp src/linear_bands.cpp src/output_guard.cpp
   src/leveling_board.cpp src/channel_layout.cpp src/room_head.cpp
-  src/input_history.cpp)
+  src/input_history.cpp
+  src/source_analysis.cpp
+  src/split_board.cpp src/split_transport.cpp src/split_file.cpp src/split_reader.cpp src/split_tap.cpp
+  # Share Audio's interpolation kernel, which the second output's reader
+  # follows the main output's clock through too.
+  ../remote-audio-playback/src/sinc_kernel.cpp)
+target_include_directories(fluideq-engine-dsp PRIVATE ../remote-audio-playback/src)
 # PUBLIC on both: `graphic_eq.h`'s `design_graphic_kernel` takes a
 # `GraphicPoint` and `graph.h` takes a `Chain` — both defined in
 # fluideq-engine-config's public header, so anything that links this library
@@ -36,7 +42,41 @@ add_library(fluideq-engine-dsp STATIC
 # this library's interface for the same reason.
 target_link_libraries(fluideq-engine-dsp
   PUBLIC fluideq-dsp-core fluideq-engine-config)
-target_link_libraries(fluideq-engine-dsp PRIVATE feq_strict)
+target_link_libraries(fluideq-engine-dsp PRIVATE feq_strict bcrypt)
+
+# The second output played straight from the main output's engine: the file
+# the app writes, the ring between the two, and the reader keeping time with a
+# writer on another clock.
+add_executable(fluideq-engine-split-test tests/split_test.cpp)
+target_link_libraries(fluideq-engine-split-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-split COMMAND fluideq-engine-split-test)
+
+add_executable(fluideq-engine-split-lifecycle-test tests/split_lifecycle_test.cpp)
+target_link_libraries(fluideq-engine-split-lifecycle-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-split-lifecycle COMMAND fluideq-engine-split-lifecycle-test)
+
+add_executable(fluideq-engine-split-graph-test tests/split_graph_test.cpp)
+target_link_libraries(fluideq-engine-split-graph-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-split-graph COMMAND fluideq-engine-split-graph-test)
+
+add_executable(fluideq-engine-split-process-test tests/split_process_test.cpp)
+target_link_libraries(fluideq-engine-split-process-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-split-process COMMAND fluideq-engine-split-process-test)
+
+add_executable(fluideq-engine-split-lease-test tests/split_lease_test.cpp)
+target_link_libraries(fluideq-engine-split-lease-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-split-lease COMMAND fluideq-engine-split-lease-test)
+set_tests_properties(engine-split-lease engine-split-process PROPERTIES TIMEOUT 30)
+
+add_executable(fluideq-engine-output-contract-test tests/output_contract_test.cpp)
+target_link_libraries(fluideq-engine-output-contract-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-output-contract COMMAND fluideq-engine-output-contract-test)
 
 add_executable(fluideq-engine-wav-test tests/wav_test.cpp)
 target_link_libraries(fluideq-engine-wav-test PRIVATE fluideq-engine-dsp feq_strict)
@@ -130,6 +170,7 @@ add_library(fluideq-engine SHARED
   src/apo.cpp src/apo_identity.cpp src/apo_endpoint.cpp
   src/apo_format.cpp src/apo_process.cpp
   src/watcher.cpp src/watcher_load.cpp src/watcher_log.cpp src/watcher_level.cpp
+  src/watcher_source.cpp
   src/level_prediction.cpp src/owner_link.cpp src/config_file.cpp
   src/status_file.cpp src/status_json.cpp src/analysis_link.cpp src/analysis_snapshot.cpp
   src/chain_signature.cpp src/paths.cpp src/log.cpp src/dll.cpp
@@ -140,7 +181,7 @@ target_link_libraries(fluideq-engine PRIVATE
   fluideq-engine-config fluideq-engine-dsp feq_strict
   # `audiomediatypecrt` is the static library that carries
   # `CreateAudioMediaType`; there is no DLL to import it from.
-  ole32 propsys mmdevapi shell32 audiomediatypecrt)
+  ole32 propsys mmdevapi shell32 bcrypt audiomediatypecrt)
 set_target_properties(fluideq-engine PROPERTIES
   OUTPUT_NAME "FluidEQ-Engine"
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
@@ -206,6 +247,12 @@ target_link_libraries(fluideq-engine-dll-aggregation-test
   PRIVATE feq_strict ole32 propsys audiomediatypecrt)
 add_test(NAME engine-dll-aggregation
   COMMAND fluideq-engine-dll-aggregation-test $<TARGET_FILE:fluideq-engine>)
+
+add_executable(fluideq-engine-dll-split-test tests/dll_split_test.cpp)
+target_link_libraries(fluideq-engine-dll-split-test
+  PRIVATE fluideq-engine-dsp feq_strict ole32 propsys audiomediatypecrt)
+add_test(NAME engine-dll-split
+  COMMAND fluideq-engine-dll-split-test $<TARGET_FILE:fluideq-engine>)
 
 # The decision the setup helper makes about an endpoint, with no Windows API
 # anywhere near it. Split out from the helper's executable so the rules that

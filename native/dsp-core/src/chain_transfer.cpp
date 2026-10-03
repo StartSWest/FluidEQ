@@ -189,6 +189,11 @@ extern "C" int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous) 
       prepared->sample_rate != previous->sample_rate ||
       prepared->channels != previous->channels ||
       prepared->max_frames != previous->max_frames ||
+      prepared->source_analysis_version != previous->source_analysis_version ||
+      prepared->source_library != previous->source_library ||
+      (prepared->source_library &&
+       (prepared->source_id != previous->source_id ||
+        prepared->source_epoch != previous->source_epoch)) ||
       (prepared->live_normalizer == nullptr) != (previous->live_normalizer == nullptr) ||
       prepared->kernel_handoff.load(std::memory_order_relaxed) != nullptr ||
       previous->kernel_handoff.load(std::memory_order_relaxed) != nullptr ||
@@ -200,7 +205,15 @@ extern "C" int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous) 
     // discard the level learned by the input Normalizer or unrelated delays.
     feq_denoise_transfer_state(prepared->denoise, previous->denoise);
   }
+  // Histories belong to this passage. Its NEW gains belong to the new
+  // settings/analysis: blindly swapping their targets loses a completed scan
+  // or makes this output keep the old normalizer dial indefinitely.
+  const double input_target = prepared->input_gain_target_db;
+  const double master_target = prepared->master_loudness_target_db;
   transfer_histories(*prepared, *previous);
+  if (prepared->source_library) {
+    feq_chain_set_track_level_gains(prepared, input_target, master_target, 0);
+  }
   transfer_convolvers(*prepared, *previous);
   return 1;
 }

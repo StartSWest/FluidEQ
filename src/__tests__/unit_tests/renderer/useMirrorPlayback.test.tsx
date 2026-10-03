@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
+import type { ICaptureGraph } from '../../../renderer/graph/useLiveOutputSpectrum';
 import {
   useMirrorPlayback,
   IDesiredMirror,
@@ -19,9 +20,26 @@ const output = (): IOutputMirror => ({
   stop: jest.fn(),
   setVolume: jest.fn(),
 });
-beforeEach(() => start.mockReset());
+const resetListeners = new Set<() => void>();
+const previousElectron = window.electron;
+beforeEach(() => {
+  start.mockReset();
+  resetListeners.clear();
+  window.electron = {
+    ipcRenderer: {
+      onOutputMirrorsReset: (listener: () => void) => {
+        resetListeners.add(listener);
+        return () => resetListeners.delete(listener);
+      },
+    },
+  } as unknown as typeof window.electron;
+});
+afterEach(() => {
+  window.electron = previousElectron;
+});
 
-it('stops a late start from the old main output without disconnecting the new mirror', async () => {
+it('stops a late Web Audio start from the old main without disconnecting the new mirror', async () => {
+  const capture = {} as ICaptureGraph;
   let finish: (mirror: IOutputMirror) => void = () => undefined;
   start.mockReturnValueOnce(
     new Promise((resolve) => {
@@ -31,7 +49,7 @@ it('stops a late start from the old main output without disconnecting the new mi
   const onError = jest.fn();
   const { result, rerender, unmount } = renderHook(
     ({ source }) =>
-      useMirrorPlayback([wanted], {}, undefined, true, source, onError),
+      useMirrorPlayback([wanted], {}, capture, false, source, onError),
     { initialProps: { source: 'A' } },
   );
   const staleSignal = start.mock.calls[0][0].signal;
@@ -51,6 +69,49 @@ it('stops a late start from the old main output without disconnecting the new mi
   expect(onError).not.toHaveBeenCalled();
   unmount();
   expect(current.stop).toHaveBeenCalledTimes(1);
+});
+
+it('retains a native receiver when main is retargeted and rebuilds it only on an explicit reset', async () => {
+  const first = output();
+  const replacement = output();
+  start.mockResolvedValueOnce(first).mockResolvedValueOnce(replacement);
+  const onError = jest.fn();
+  const { result, rerender, unmount } = renderHook(
+    ({ source }) =>
+      useMirrorPlayback([wanted], {}, undefined, true, source, onError),
+    { initialProps: { source: 'A' } },
+  );
+  await act(async () => undefined);
+  expect(result.current.runningGuids).toEqual(['B']);
+  await act(async () => rerender({ source: 'C' }));
+  expect(start).toHaveBeenCalledTimes(1);
+  expect(first.stop).not.toHaveBeenCalled();
+  await act(async () => resetListeners.forEach((listener) => listener()));
+  expect(start).toHaveBeenCalledTimes(2);
+  expect(first.stop).toHaveBeenCalledTimes(1);
+  expect(replacement.stop).not.toHaveBeenCalled();
+  expect(result.current.runningGuids).toEqual(['B']);
+  unmount();
+  expect(replacement.stop).toHaveBeenCalledTimes(1);
+  expect(resetListeners.size).toBe(0);
+  expect(onError).not.toHaveBeenCalled();
+});
+
+it('shows configured engine delay immediately and clears it when no current report exists', async () => {
+  start.mockResolvedValueOnce(output());
+  const { result } = renderHook(() =>
+    useMirrorPlayback([wanted], {}, undefined, true, 'A', jest.fn()),
+  );
+  await act(async () => undefined);
+  const { onDelay } = start.mock.calls[0][0];
+  act(() => onDelay?.(36, 'engine'));
+  expect(result.current.delays).toEqual({ B: 36 });
+  act(() => onDelay?.(49, 'engine'));
+  expect(result.current.delays).toEqual({ B: 49 });
+  expect(result.current.delayKinds).toEqual({ B: 'engine' });
+  act(() => onDelay?.(0, 'unavailable'));
+  expect(result.current.delays).toEqual({});
+  expect(result.current.delayKinds).toEqual({ B: 'unavailable' });
 });
 
 it('does not adopt a cancelled start when the same device is quickly enabled again', async () => {

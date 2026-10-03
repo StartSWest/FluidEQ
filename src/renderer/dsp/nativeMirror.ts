@@ -133,6 +133,7 @@ const createNativeMirror = (
   let driftWanted: number | undefined;
   let released = false;
   let working = false;
+  let preparingPlayback = false;
   const clock = watchElementClock();
 
   /**
@@ -157,6 +158,26 @@ const createNativeMirror = (
     handBack(resume);
     await controller.transport.unload(0);
     await controller.transport.unload(1);
+  };
+
+  const preparePlayback = async (): Promise<boolean> => {
+    preparingPlayback = true;
+    try {
+      await controller.preparePlayback?.();
+      return true;
+    } catch {
+      const resume = wanted?.isPlaying === true;
+      await controller
+        .finishPlayback?.(controller.transport.pause())
+        .catch(() => undefined);
+      await giveUpTrack(resume);
+      // The elements now answer this play request. Only a new transport
+      // request retries the host; the worker must not spin on failed setup.
+      playing = resume;
+      return false;
+    } finally {
+      preparingPlayback = false;
+    }
   };
 
   /**
@@ -198,9 +219,22 @@ const createNativeMirror = (
      * that arrives a moment later agrees with a stale flag and is never sent.
      */
     if (isPlaying) {
+      if (!playing) {
+        if (!(await preparePlayback())) {
+          return;
+        }
+      }
+      if (
+        released ||
+        wanted?.isPlaying !== true ||
+        wanted.mediaPath !== mediaPath
+      ) {
+        return;
+      }
       await controller.transport.play();
     } else {
       await controller.transport.pause();
+      await controller.finishPlayback?.();
     }
     if (released) {
       return;
@@ -264,6 +298,16 @@ const createNativeMirror = (
     if (!playing) {
       // The fade was asked for with the host stopped, so it is this track
       // coming in alone; starting the transport is what lets it.
+      if (!(await preparePlayback())) {
+        return;
+      }
+      if (
+        released ||
+        wanted?.isPlaying !== true ||
+        wanted.mediaPath !== mediaPath
+      ) {
+        return;
+      }
       await controller.transport.play();
     }
     if (released) {
@@ -313,6 +357,7 @@ const createNativeMirror = (
           // Both, because a fade leaves the previous track on the other deck.
           await controller.transport.unload(0);
           await controller.transport.unload(1);
+          await controller.finishPlayback?.();
           settleClock();
         };
       }
@@ -353,9 +398,19 @@ const createNativeMirror = (
       const { isPlaying } = want;
       playing = isPlaying;
       return async () => {
-        await (isPlaying
-          ? controller.transport.play()
-          : controller.transport.pause());
+        if (isPlaying) {
+          if (!(await preparePlayback())) {
+            return;
+          }
+          if (released || wanted?.isPlaying !== true) {
+            playing = false;
+            return;
+          }
+          await controller.transport.play();
+        } else {
+          await controller.transport.pause();
+          await controller.finishPlayback?.();
+        }
       };
     }
     if (seekWanted !== undefined) {
@@ -437,6 +492,11 @@ const createNativeMirror = (
       }
       const previous = wanted;
       wanted = state;
+      if (!state.isPlaying && preparingPlayback) {
+        // Cancels an event-based preparation wait; Pause cannot sit behind
+        // a native readiness event for a start the listener no longer wants.
+        controller.finishPlayback?.().catch(() => undefined);
+      }
       const now = performance.now();
       if (previous === undefined || previous.mediaPath !== state.mediaPath) {
         // A seek or a jump asked of the previous track is not this one's.
@@ -479,7 +539,9 @@ const createNativeMirror = (
       loadedPath = undefined;
       playing = false;
       own(false);
-      controller.transport.pause().catch(() => undefined);
+      const stopped = controller.transport.pause();
+      controller.finishPlayback?.(stopped).catch(() => undefined);
+      stopped.catch(() => undefined);
       // Both decks, because a crossfade leaves the previous track loaded on the
       // other one and an unload of only the active deck would leave a whole
       // decoded read-ahead buffer alive for a track nobody is playing.

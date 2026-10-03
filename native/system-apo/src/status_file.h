@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #define FLUIDEQ_ENGINE_STATUS_FILE_H
 
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
@@ -94,6 +95,17 @@ struct EngineStatus {
   std::vector<std::string> latency_active;
   /** Game mode: the Gaming preset on the rack, or the Games voicing. */
   bool game_mode = false;
+  struct SourceAnalysis {
+    unsigned version = 1;
+    std::string kind = "live";
+    std::string owner = "engine";
+    std::string source = "0000000000000000";
+    uint64_t epoch = 0;
+    uint64_t revision = 0;
+    bool ready = false;
+    bool voice_ready = false;
+  };
+  std::optional<SourceAnalysis> source_analysis;
   /**
    * The last named song live leveling finished on this output: sixteen hex
    * digits of the app's own hash, the loudest settled level and peak it
@@ -109,6 +121,24 @@ struct EngineStatus {
     double seconds = 0;
   };
   std::optional<FinishedSong> last_song;
+  /**
+   * The second output this one plays straight from another output's engine
+   * (`split_tap.h`), when it plays one: that output's id, `waiting` or
+   * `playing`, how far behind it in milliseconds, and how often its sound
+   * was not there in time since it started. The app shows the delay beside
+   * the second output (`src/main/outputSplit.ts`).
+   */
+  struct Split {
+    std::wstring from;
+    std::string state;
+    double lag_ms = 0;
+    unsigned underruns = 0;
+    /** Compatibility field: raw fan-out has no source DSP delay. */
+    double source_dsp_ms = 0;
+    /** Whole receiver graph, rack and curves; JSON name kept for older apps. */
+    double output_eq_ms = 0;
+  };
+  std::optional<Split> split;
 };
 
 /**

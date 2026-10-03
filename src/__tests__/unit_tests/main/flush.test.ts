@@ -44,6 +44,15 @@ import {
 const TEST_DATA_DIR = 'src/__tests__/data';
 const TEST_DATA_READ_DIR = addFileToPath(TEST_DATA_DIR, 'read_only');
 const TEST_DATA_WRITE_DIR = addFileToPath(TEST_DATA_DIR, 'write');
+// Missing output choices stay absent for the one-time legacy import, rather
+// than acquiring defaults that would overwrite a listener's existing sound.
+const absentOutputSound = {
+  dsp: undefined,
+  eqCuts: undefined,
+  trebleDesigns: undefined,
+  eqPhase: undefined,
+  curvePhase: undefined,
+};
 const mockSettings = {
   isEnabled: true,
   isAutoPreAmpOn: true,
@@ -301,7 +310,7 @@ describe('flush', () => {
   describe('fetchSettings', () => {
     it('should succesfully fetch settings from the state file', async () => {
       const settings: IState = fetchSettings(TEST_DATA_READ_DIR);
-      expect(settings).toStrictEqual(mockSettings);
+      expect(settings).toStrictEqual({ ...mockSettings, ...absentOutputSound });
     });
   });
 
@@ -378,6 +387,7 @@ describe('flush', () => {
       const presetName = 'presetV2';
       const preset = fetchPreset(presetName, TEST_DATA_READ_DIR);
       expect(preset).toStrictEqual({
+        ...absentOutputSound,
         preAmp: 0,
         filters: {
           '0a04dcf8': {
@@ -401,6 +411,7 @@ describe('flush', () => {
     it('should read succesfully a preset of the IPresetV1 format and replace it with a IPresetV2 format', async () => {
       const preset = fetchPreset('presetV1', TEST_DATA_WRITE_DIR);
       expect(preset).toStrictEqual({
+        ...absentOutputSound,
         preAmp: 0,
         filters: {
           '123': { id: '123', frequency: 2, gain: -4, quality: 6, type: 'PK' },
@@ -511,9 +522,10 @@ describe('flush', () => {
     it('should sucessfully rename a preset', async () => {
       await renamePreset(oldPresetName, newPresetName, TEST_DATA_WRITE_DIR);
       expect(doesPresetExist(oldPresetName, TEST_DATA_WRITE_DIR)).toBe(false);
-      expect(fetchPreset(newPresetName, TEST_DATA_WRITE_DIR)).toStrictEqual(
-        preset,
-      );
+      expect(fetchPreset(newPresetName, TEST_DATA_WRITE_DIR)).toStrictEqual({
+        ...preset,
+        ...absentOutputSound,
+      });
       await renamePreset(newPresetName, oldPresetName, TEST_DATA_WRITE_DIR);
     });
   });

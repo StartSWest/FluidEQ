@@ -1,8 +1,17 @@
 import '@testing-library/jest-dom';
+import type { ReactElement } from 'react';
+import ProfileTestProvider from '__tests__/utils/profileTestProvider';
+import {
+  mainOutput,
+  showOutputEditor,
+} from '__tests__/utils/outputEditorFixture';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import en from '../../common/i18n/en';
 import SecondOutputProfilePicker from '../../renderer/SecondOutputProfilePicker';
 import { assignDeviceProfile } from '../../renderer/utils/equalizerApi';
+
+const renderProfiles = (view: ReactElement) =>
+  render(view, { wrapper: ProfileTestProvider });
 
 jest.mock('../../renderer/utils/equalizerApi', () => ({
   assignDeviceProfile: jest.fn(),
@@ -17,6 +26,7 @@ const device = {
 const getProfiles = jest.fn();
 const assign = jest.mocked(assignDeviceProfile);
 beforeEach(() => {
+  showOutputEditor(mainOutput, device);
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: { ipcRenderer: { getOutputMirrorProfiles: getProfiles } },
@@ -29,7 +39,7 @@ beforeEach(() => {
 
 it('shows this output’s saved profile and changes only this output', async () => {
   const changed = jest.fn().mockResolvedValue(undefined);
-  render(
+  renderProfiles(
     <SecondOutputProfilePicker
       device={device}
       engine="apo"
@@ -59,7 +69,7 @@ it('shows this output’s saved profile and changes only this output', async () 
 
 it('keeps an unassigned output neutral instead of claiming the first saved profile', async () => {
   getProfiles.mockResolvedValue({ current: '', names: ['Warm'] });
-  render(
+  renderProfiles(
     <SecondOutputProfilePicker
       device={device}
       engine="apo"
@@ -80,7 +90,7 @@ describe('the OFF badge under the FluidEQ Engine', () => {
   // FluidEQ Engine printed OFF on every output of a machine that has no
   // Equalizer APO and needs none.
   it('reads the engine’s own flag, not Equalizer APO’s', async () => {
-    render(
+    renderProfiles(
       <SecondOutputProfilePicker
         device={{
           ...device,
@@ -102,7 +112,7 @@ describe('the OFF badge under the FluidEQ Engine', () => {
   });
 
   it('shows OFF when the engine itself is not attached to this output', async () => {
-    render(
+    renderProfiles(
       <SecondOutputProfilePicker
         device={{
           ...device,
@@ -126,7 +136,7 @@ describe('the OFF badge under the FluidEQ Engine', () => {
   // Remote Desktop's audio: no effect slots, so nothing is processing it
   // whichever engine is chosen, even if a flag were to say otherwise.
   it('shows OFF on an output Windows runs no effects on', async () => {
-    render(
+    renderProfiles(
       <SecondOutputProfilePicker
         device={{
           ...device,

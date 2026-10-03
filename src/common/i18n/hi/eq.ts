@@ -20,6 +20,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'मुख्य आउटपुट संपादित करें',
+  'extraOutput.edit': 'ध्वनि संपादित करें',
+  'extraOutput.done': 'हो गया',
+  'extraOutput.editing': 'संपादन',
+  'extraOutput.editHint': 'मुख्य आउटपुट बदले बिना {device} संपादित करें',
+  'extraOutput.editingOutput': 'संपादन: {device}',
   'eq.layouts.empty':
     'डिज़ाइन में बैंड की फ़्रीक्वेंसी, हर Q मान और Q का व्यवहार सहेजा जाता है। गेन और तीव्रता अलग रहते हैं।',
   'eq.layouts.qHint':
@@ -446,9 +452,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.statusOff': 'बंद',
   'extraOutput.volume': 'आवाज़',
   'extraOutput.latency':
-    'हर दूसरा आउटपुट “ऑडियो साझा करें” की तरह खुद तालमेल रखता है: यह लगभग 30 ms पीछे से शुरू होता है, सिर्फ़ रुकावट के बाद थोड़ा बढ़ाता है और सब स्थिर होने पर वापस घटा देता है। मुख्य आउटपुट के साथ एक ही जगह से सुनें तो हल्की दोहरी आवाज़ महसूस हो सकती है।',
-  'extraOutput.delay': '{milliseconds} ms पीछे',
-  'extraOutput.delayFrom': '{name} की आवाज़: {milliseconds} ms पीछे',
+    'मुख्य आउटपुट दूसरे आउटपुट का इंतज़ार नहीं करता। ये आँकड़े सॉफ़्टवेयर बफ़रिंग का अनुमान हैं, सुनाई देने वाली देरी का नहीं। ऑडियो ड्राइवर, डिवाइस और वायरलेस कनेक्शन अतिरिक्त देरी जोड़ सकते हैं।',
+  'extraOutput.delayUnavailable': 'विलंब उपलब्ध नहीं',
+  'extraOutput.delay': 'सॉफ़्टवेयर बफ़र: {milliseconds} ms',
+  'extraOutput.delayFrom': '{name} से: {milliseconds} ms सॉफ़्टवेयर बफ़रिंग',
   'extraOutput.virtual':
     'एक रूटिंग ड्राइवर पहले से इंस्टॉल है। अपने ऐप्लिकेशन उसी पर भेजें, तो दोनों आउटपुट एक साथ चलेंगे; फिर ऊपर हर एक को अपनी अलग प्रोफ़ाइल दें।',
   'extraOutput.ambiguous':

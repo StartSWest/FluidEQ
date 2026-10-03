@@ -18,6 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The equaliser itself: bands, curves, layers, outputs and profiles. */
 const eq = {
+  'extraOutput.editMain': 'Edit main',
+  'extraOutput.edit': 'Edit sound',
+  'extraOutput.done': 'Done',
+  'extraOutput.editing': 'Editing',
+  'extraOutput.editHint': 'Edit {device} without switching the main output',
+  'extraOutput.editingOutput': 'Editing: {device}',
   'eq.layouts.empty':
     'Designs save band frequencies, each Q value, and Q behavior. Gains and strength stay separate.',
   'eq.layouts.qHint':
@@ -463,9 +469,10 @@ const eq = {
   'extraOutput.statusOff': 'Off',
   'extraOutput.volume': 'Volume',
   'extraOutput.latency':
-    'Each second output keeps itself in time, the way Share Audio does: it starts about 30 ms behind, adds a little only after a dropout and gives it back once things settle. Heard from one seat with your main output, you may notice a slight doubling.',
-  'extraOutput.delay': '{milliseconds} ms behind',
-  'extraOutput.delayFrom': '{name}’s sound: {milliseconds} ms behind',
+    'The main output does not wait for second outputs. These numbers estimate software buffering, not the delay you hear. Audio drivers, devices and wireless connections can add further delay.',
+  'extraOutput.delayUnavailable': 'Delay unavailable',
+  'extraOutput.delay': 'Software buffer: {milliseconds} ms',
+  'extraOutput.delayFrom': 'From {name}: {milliseconds} ms software buffering',
   'extraOutput.virtual':
     'A routing driver is installed. Point your applications at it and both outputs stay in sync, then give each one its own profile above.',
   'extraOutput.ambiguous':

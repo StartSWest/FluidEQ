@@ -20,6 +20,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'Modifica uscita principale',
+  'extraOutput.edit': 'Modifica suono',
+  'extraOutput.done': 'Fine',
+  'extraOutput.editing': 'In modifica',
+  'extraOutput.editHint':
+    'Modifica {device} senza cambiare l’uscita principale',
+  'extraOutput.editingOutput': 'Modifica: {device}',
   'eq.layouts.empty':
     'I modelli salvano le frequenze, ogni valore Q e il comportamento del Q. Guadagno e intensità restano separati.',
   'eq.layouts.qHint':
@@ -450,9 +457,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.statusOff': 'Spenta',
   'extraOutput.volume': 'Volume',
   'extraOutput.latency':
-    'Ogni seconda uscita tiene il tempo da sola, come Condividi audio: parte circa 30 ms indietro, aggiunge un po’ solo dopo un’interruzione e lo restituisce quando tutto si stabilizza. Se la senti dallo stesso posto dell’uscita principale puoi notare un leggero sdoppiamento.',
-  'extraOutput.delay': '{milliseconds} ms indietro',
-  'extraOutput.delayFrom': 'Suono di {name}: {milliseconds} ms indietro',
+    'L’uscita principale non attende le uscite secondarie. Questi valori stimano il buffering del software, non il ritardo percepito. Driver audio, dispositivi e connessioni wireless possono aggiungere ulteriore ritardo.',
+  'extraOutput.delayUnavailable': 'Ritardo non disponibile',
+  'extraOutput.delay': 'Buffer software: {milliseconds} ms',
+  'extraOutput.delayFrom': 'Da {name}: {milliseconds} ms di buffer software',
   'extraOutput.virtual':
     'È installato un driver di routing. Punta le tue applicazioni su di esso e le due uscite restano sincronizzate, poi assegna a ciascuna il suo profilo qui sopra.',
   'extraOutput.ambiguous':

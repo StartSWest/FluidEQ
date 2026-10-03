@@ -1,3 +1,4 @@
+/** @jest-environment node */
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -26,8 +27,9 @@ import {
   IDeviceProfileSettings,
   getDefaultState,
 } from '../../../common/constants';
-import type { IProfilesIpcDeps } from '../../../main/ipc/profiles';
 import { flushPendingWrites } from '../../../main/asyncWriter';
+import createMainSession from '../../../main/mainSession';
+import { createProfileStore } from '../../../main/profileStore';
 
 type THandler = (
   event: { reply: jest.Mock },
@@ -78,7 +80,7 @@ const idleSpeakers = { ...speakers, isDefault: false };
 
 describe('following the outputs Windows reported', () => {
   let root: string;
-  let session: IProfilesIpcDeps['session'];
+  let session: ReturnType<typeof createMainSession>;
   let applyDeviceState: jest.Mock;
   let notifyOutputStateChanged: jest.Mock;
   let guardAgainstApo: jest.Mock;
@@ -91,18 +93,27 @@ describe('following the outputs Windows reported', () => {
     root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-follow-outputs-'));
     const settings: IDeviceProfileSettings = { version: 1, assignments: {} };
     session = {
+      ...createMainSession(),
       configPath: root,
       activeAudioDeviceId: speakers.id,
       activeAudioDevice: speakers,
+      playbackAudioDevice: speakers,
       hasActiveSessionOverride: true,
       audioEngine: 'fluid',
     };
-    applyDeviceState = jest.fn();
+    const state = getDefaultState();
+    const store = createProfileStore({
+      state,
+      session,
+      deviceProfileSettings: settings,
+      userDataDir: root,
+    });
+    applyDeviceState = jest.fn(store.applyDeviceState);
     notifyOutputStateChanged = jest.fn();
     guardAgainstApo = jest.fn(async () => undefined);
     adoptExistingApoConfig = jest.fn(() => undefined);
     profiles = registerProfilesIpc({
-      state: getDefaultState(),
+      state,
       userDataDir: root,
       presetDirForDevice: (deviceId) => path.join(root, 'presets', deviceId),
       activePresetDir: () =>
@@ -150,7 +161,8 @@ describe('following the outputs Windows reported', () => {
     expect(session.activeAudioDeviceId).toBe(headset.id);
     expect(session.hasActiveSessionOverride).toBe(false);
     expect(applyDeviceState).toHaveBeenCalledTimes(1);
-    expect(notifyOutputStateChanged).toHaveBeenCalledTimes(1);
+    // The editor changes first; playback and its receivers settle afterwards.
+    expect(notifyOutputStateChanged).toHaveBeenCalledTimes(2);
     expect(send).toHaveBeenCalledWith(ChannelEnum.AUDIO_DEVICES_CHANGED, {
       result: devices,
     });

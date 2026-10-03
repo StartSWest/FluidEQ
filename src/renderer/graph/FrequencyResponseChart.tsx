@@ -767,7 +767,7 @@ const FrequencyResponseChart = ({
   } = useFluidEqContext();
   const currentEngine = useCurrentEngine();
   const matchedDesign = useMatchedDesign();
-  const outputRate = useOutputRate();
+  const outputRate = useOutputRate('editor');
   // Under the FluidEQ Engine's automatic preamp the gain is live and moves at
   // display rate on loud passages, so it never enters this component's state:
   // the curves are built without it and `Chart` moves the output curve by it

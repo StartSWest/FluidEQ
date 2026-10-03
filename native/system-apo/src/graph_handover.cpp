@@ -197,6 +197,15 @@ void Graph::adopt_state(Graph* previous) noexcept {
       channels_ != previous->channels_ || max_frames_ != previous->max_frames_) {
     return;
   }
+  // A Library cut/seek is a source boundary, unlike a Windows stream flush.
+  // Old filters, room tails and held output gain must not cross into it.
+  if (source_report_.library != previous->source_report_.library ||
+      source_report_.engine_owner != previous->source_report_.engine_owner ||
+      source_report_.source != previous->source_report_.source ||
+      source_report_.epoch != previous->source_report_.epoch) return;
+  if (rack_ != previous->rack_ &&
+      (source_report_.warm_handover || previous->source_report_.warm_handover) &&
+      start_crossing(previous)) return;
   // A graph that moves the sound in time crosses over instead of taking the
   // state: see `graph.h`. So does one replacing a graph still crossing over,
   // whatever its delay: what is heard there is not that graph's alone, and
@@ -269,6 +278,15 @@ bool Graph::rack_is_shared_with(const Graph& other) const noexcept {
 }
 
 bool Graph::is_passthrough() const noexcept { return passthrough_; }
+
+void Graph::wake_workers() noexcept {
+  // An APO has no host-owned post-period hook. Its caller invokes this only
+  // after rendering the output: an armed atomic exchange and SetEvent, no
+  // allocation, file access, inference, lock or wait. Each graph rings only
+  // its own workers, including the old rack still heard during a crossover.
+  if (source_report_.voice_ready && rack_) feq_chain_wake_workers(rack_.get());
+  if (source_ != nullptr && !source_shares_rack_) source_->wake_workers();
+}
 
 uint32_t Graph::latency_frames() const noexcept { return latency_frames_; }
 double Graph::auto_preamp_gain_db() const noexcept {

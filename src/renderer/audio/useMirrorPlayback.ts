@@ -1,5 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 import { useEffect, useRef, useState } from 'react';
+import type { TOutputDelayKind } from '../../common/outputDelay';
 import type { ICaptureGraph } from '../graph/useLiveOutputSpectrum';
 import {
   createSteadyReadout,
@@ -27,6 +28,7 @@ export interface IMirrorPlayback {
   runningGuids: string[];
   /** Milliseconds, by endpoint GUID; absent until the first report. */
   delays: Readonly<Record<string, number>>;
+  delayKinds: Readonly<Record<string, TOutputDelayKind>>;
 }
 
 /** Starts belong to one capture/device generation. Late promises can only
@@ -41,8 +43,13 @@ export const useMirrorPlayback = (
 ): IMirrorPlayback => {
   const [runningGuids, setRunningGuids] = useState<string[]>([]);
   const [delays, setDelays] = useState<Readonly<Record<string, number>>>({});
+  const [delayKinds, setDelayKinds] = useState<
+    Readonly<Record<string, TOutputDelayKind>>
+  >({});
+  const kinds = useRef(new Map<string, TOutputDelayKind>());
   const readouts = useRef(new Map<string, ISteadyReadout>());
   const [revision, setRevision] = useState(0);
+  const [nativeReset, setNativeReset] = useState(0);
   const running = useRef(new Map<string, IRunningMirror>());
   const pending = useRef(
     new Map<string, { wanted: IDesiredMirror; controller: AbortController }>(),
@@ -51,6 +58,18 @@ export const useMirrorPlayback = (
   const generation = useRef(0);
   const current = useRef({ desired, volumes, onError });
   current.current = { desired, volumes, onError };
+  // Windows owns the source move in main and retains unaffected tokens.
+  // Web Audio still recreates a graph when its captured endpoint changes.
+  const captureGeneration = native ? undefined : sourceGuid;
+
+  useEffect(() => {
+    if (!native) {
+      return undefined;
+    }
+    return window.electron.ipcRenderer.onOutputMirrorsReset(() => {
+      setNativeReset((value) => value + 1);
+    });
+  }, [native]);
 
   useEffect(() => {
     const started = running.current;
@@ -58,6 +77,8 @@ export const useMirrorPlayback = (
     generation.current += 1;
     failures.current.clear();
     readouts.current.clear();
+    kinds.current.clear();
+    setDelayKinds({});
     setRunningGuids([]);
     setDelays({});
     return () => {
@@ -67,7 +88,11 @@ export const useMirrorPlayback = (
       starting.forEach((entry) => entry.controller.abort());
       starting.clear();
     };
-  }, [capture, native, sourceGuid]);
+  }, [capture, native, captureGeneration, nativeReset]);
+
+  useEffect(() => {
+    failures.current.clear();
+  }, [sourceGuid]);
 
   useEffect(() => {
     const epoch = generation.current;
@@ -84,6 +109,7 @@ export const useMirrorPlayback = (
       [...readouts.current.keys()].forEach((guid) => {
         if (!running.current.has(guid) && !pending.current.has(guid)) {
           readouts.current.delete(guid);
+          kinds.current.delete(guid);
         }
       });
       setDelays((previous) =>
@@ -149,8 +175,36 @@ export const useMirrorPlayback = (
         volume: current.current.volumes[wanted.guid] ?? MAX_MIRROR_VOLUME,
         onFailure: () =>
           reportFailure(new Error('Second output playback stopped.')),
-        onDelay: (milliseconds) => {
+        onDelay: (milliseconds, kind = 'buffer') => {
           if (generation.current !== epoch || token.controller.signal.aborted) {
+            return;
+          }
+          if (kinds.current.get(wanted.guid) !== kind) {
+            readouts.current.delete(wanted.guid);
+            kinds.current.set(wanted.guid, kind);
+            setDelayKinds((previous) => ({ ...previous, [wanted.guid]: kind }));
+          }
+          if (kind === 'unavailable') {
+            // A route without a current engine report has no number to show.
+            setDelays((previous) => {
+              if (!(wanted.guid in previous)) {
+                return previous;
+              }
+              const next = { ...previous };
+              delete next[wanted.guid];
+              return next;
+            });
+            return;
+          }
+          if (kind === 'engine') {
+            // These are the configured processing buffers, like main's
+            // delay. An effects change must appear immediately, not be
+            // averaged with the previous graph's delay.
+            setDelays((previous) =>
+              previous[wanted.guid] === milliseconds
+                ? previous
+                : { ...previous, [wanted.guid]: milliseconds },
+            );
             return;
           }
           let readout = readouts.current.get(wanted.guid);
@@ -199,12 +253,12 @@ export const useMirrorPlayback = (
         });
     });
     publish();
-  }, [capture, desired, native, revision, sourceGuid]);
+  }, [capture, desired, native, nativeReset, revision, sourceGuid]);
 
   useEffect(() => {
     running.current.forEach((entry, guid) =>
       entry.mirror.setVolume(volumes[guid] ?? MAX_MIRROR_VOLUME),
     );
   }, [runningGuids, volumes]);
-  return { runningGuids, delays };
+  return { runningGuids, delays, delayKinds };
 };

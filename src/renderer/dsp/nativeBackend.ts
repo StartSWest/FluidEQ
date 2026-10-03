@@ -67,6 +67,9 @@ export interface INativeBackendBridge {
 }
 
 export interface INativeBackendController {
+  /** Optional source ownership handshake while the transport is stopped. */
+  preparePlayback?: () => Promise<void>;
+  finishPlayback?: (stopped?: Promise<unknown>) => Promise<void>;
   /**
    * Bring the engine up and hand it the current chain, in that order.
    *

@@ -49,7 +49,7 @@ export const roomLiveOf = ({ known, output }: IListenedOutput): IRoomLive => {
 };
 
 export const useRoomLive = (isFluid: boolean): IRoomLive =>
-  roomLiveOf(useListenedOutput(isFluid));
+  roomLiveOf(useListenedOutput(isFluid, 'editor'));
 
 /**
  * The room's chip while the Library player carries the rack.

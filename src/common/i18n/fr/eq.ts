@@ -20,6 +20,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'Modifier la sortie principale',
+  'extraOutput.edit': 'Modifier le son',
+  'extraOutput.done': 'Terminé',
+  'extraOutput.editing': 'Modification',
+  'extraOutput.editHint': 'Modifier {device} sans changer la sortie principale',
+  'extraOutput.editingOutput': 'Modification : {device}',
   'eq.layouts.empty':
     'Les modèles enregistrent les fréquences, chaque valeur Q et son comportement. Le gain et l’intensité restent séparés.',
   'eq.layouts.qHint':
@@ -454,9 +460,11 @@ const eq: Partial<Dictionary> = {
   'extraOutput.statusOff': 'Désactivée',
   'extraOutput.volume': 'Volume',
   'extraOutput.latency':
-    'Chaque deuxième sortie suit le rythme toute seule, comme Partager l’audio : elle démarre environ 30 ms en retard, n’ajoute un peu qu’après une coupure et le rend une fois le calme revenu. Si vous l’entendez depuis la même place que la sortie principale, un léger dédoublement peut se remarquer.',
-  'extraOutput.delay': '{milliseconds} ms de retard',
-  'extraOutput.delayFrom': 'Son de {name} : {milliseconds} ms de retard',
+    'La sortie principale n’attend pas les sorties secondaires. Ces chiffres estiment la mise en mémoire tampon logicielle, pas le retard audible. Les pilotes audio, les appareils et les connexions sans fil peuvent ajouter du retard.',
+  'extraOutput.delayUnavailable': 'Délai indisponible',
+  'extraOutput.delay': 'Tampon logiciel : {milliseconds} ms',
+  'extraOutput.delayFrom':
+    'Depuis {name} : {milliseconds} ms de tampon logiciel',
   'extraOutput.virtual':
     'Un pilote de routage est installé. Dirigez vos applications vers lui et les deux sorties restent synchronisées, puis donnez à chacune son propre profil ci-dessus.',
   'extraOutput.ambiguous':

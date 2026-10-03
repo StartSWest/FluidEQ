@@ -1,3 +1,4 @@
+/** @jest-environment node */
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>

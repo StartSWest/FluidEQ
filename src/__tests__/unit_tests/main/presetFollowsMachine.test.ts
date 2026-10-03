@@ -5,13 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * A preset's curve is the machine's choice, not the output's.
+ * A preset's curve belongs to the output together with its saved rack.
  *
- * The rack is one choice for the whole machine and a preset is the rack and
- * its curve together, so switching output used to bring back whatever preset
- * curve the new output's profile had been saved with — the picker still said
- * one preset while the chip beside it said another (Ivan, 2026-09-24: "we
- * dont save presets on the output switch we replay current preset always").
+ * The former global-preset contract copied the playing output's curve onto
+ * every newly opened output. Independent output editors now restore their
+ * own saved sound, including an explicit absence of a preset curve.
  */
 
 import fs from 'fs';
@@ -76,25 +74,24 @@ afterEach(() => {
   fs.rmSync(presetsDir, { recursive: true, force: true });
 });
 
-describe('switching output while a preset plays', () => {
-  it('keeps the preset that is playing, not the one the output was saved with', () => {
+describe('switching between independent output presets', () => {
+  it('restores the selected output’s saved preset even while another preset plays', () => {
     saveHeadsetProfile(punchy);
-    expect(switchToHeadset(popRock).voicing).toEqual(popRock);
+    expect(switchToHeadset(popRock).voicing).toEqual(punchy);
   });
 
-  it('keeps the preset playing onto an output saved with none', () => {
+  it('keeps an output saved with no preset free of another output’s curve', () => {
     saveHeadsetProfile(undefined);
-    expect(switchToHeadset(popRock).voicing).toEqual(popRock);
+    expect(switchToHeadset(popRock).voicing).toBeUndefined();
   });
 
-  it('does not bring a saved preset back over one cleared by its chip', () => {
+  it('does not clear this output’s saved preset when another output clears its chip', () => {
     saveHeadsetProfile(punchy);
-    expect(switchToHeadset(undefined).voicing).toBeUndefined();
+    expect(switchToHeadset(undefined).voicing).toEqual(punchy);
   });
 
   it('keeps the rest of the output’s own profile', () => {
-    // The preset is the only thing that crosses: the bands and the preamp
-    // are the headset's, as they always were.
+    // Bands and preamp follow the same endpoint boundary as the preset curve.
     saveHeadsetProfile(punchy);
     const state = switchToHeadset(popRock);
     expect(state.preAmp).toBe(-3);
@@ -113,11 +110,9 @@ describe('a voicing of somebody’s own', () => {
     expect(switchToHeadset(undefined).voicing).toEqual(warmHeadphones);
   });
 
-  it('is replaced by a preset that is playing', () => {
-    // One tonal layer at a time: a preset put on replaced the voicing, and
-    // switching output must not undo that choice.
+  it('survives a different preset playing on another output', () => {
     saveHeadsetProfile(warmHeadphones);
-    expect(switchToHeadset(popRock).voicing).toEqual(popRock);
+    expect(switchToHeadset(popRock).voicing).toEqual(warmHeadphones);
   });
 });
 

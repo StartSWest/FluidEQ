@@ -31,8 +31,9 @@ import { useLayoutEffect, useReducer, useSyncExternalStore } from 'react';
  * - **The corner** holds one card at a time, and gives way to everything
  *   that opens in the strip under the titlebar and reaches it below about
  *   1500px of width: anything modal, any card in the engine's spot, the
- *   restart and capture notices, the missing-engine banner, the song EQ
- *   toast that shares the corner, and full screen, which takes away the
+ *   restart and capture notices, the missing-engine banner, the two song
+ *   toasts that share the corner (the Smart EQ one before the song's own
+ *   sound, one card at a time), and full screen, which takes away the
  *   titlebar the corner is placed under. Then the Plus terms notice, then
  *   news of a scene reviewed, then the maker's month running out — the
  *   newest news about a maker's scenes goes before a week's warning.
@@ -51,6 +52,8 @@ export type TNoticeClaim =
   /** The missing-engine banner (`PrereqMissingModal`). */
   | 'prereq'
   | 'songEq'
+  /** A song's own sound put back on (`SongSoundNotice`). */
+  | 'songSound'
   | 'plusTerms'
   | 'sceneReview'
   | 'makerMonth'
@@ -74,6 +77,7 @@ const CORNER_WAITS_FOR: readonly TNoticeClaim[] = [
   'audioRestart',
   'prereq',
   'songEq',
+  'songSound',
   'appFull',
 ];
 
@@ -88,6 +92,7 @@ export const NOTICE_WAITS_FOR: Readonly<
   audioRestart: [],
   prereq: [],
   songEq: [],
+  songSound: ['songEq'],
   plusTerms: CORNER_WAITS_FOR,
   sceneReview: [...CORNER_WAITS_FOR, 'plusTerms'],
   makerMonth: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview'],

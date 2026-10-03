@@ -107,6 +107,42 @@ void a_finished_song() {
 }
 
 /**
+ * A second output the engine plays from another output's engine, in the
+ * exact shape the app parses (`engineHealth.test.ts` holds the same text).
+ */
+void a_second_output() {
+  std::printf("a second output played from another output's engine\n");
+  EngineStatus status;
+  status.endpoint = L"{BBBB}";
+  status.locked = true;
+  status.split = EngineStatus::Split{
+      L"{0a0a0a0a-1111-2222-3333-444455556666}", "playing", 12.737, 2};
+  CHECK(status_json(status, 7, "t") ==
+        "{\"version\":1,\"endpoint\":\"{BBBB}\",\"pid\":7,\"locked\":true,"
+        "\"processing\":false,\"carried\":false,\"owner\":true,"
+        "\"reason\":\"\",\"problems\":[],\"channels\":0,\"room\":\"off\","
+        "\"rate\":0,\"latency\":0,\"latencyParts\":{},\"latencyActive\":[],"
+        "\"gameMode\":false,\"split\":{\"from\":"
+        "\"{0a0a0a0a-1111-2222-3333-444455556666}\",\"state\":\"playing\","
+        "\"lagMs\":12.74,\"sourceDspMs\":0.00,\"outputEqMs\":0.00,"
+        "\"underruns\":2},\"at\":\"t\"}\r\n");
+  // Raw fan-out carries no source DSP latency; the receiver reports its
+  // complete rack + curves separately from the ring/resampling delay.
+  status.rate = 48000;
+  status.latency = 960;
+  status.latency_parts = {{"leveling", 480}, {"curves", 480}};
+  status.split->output_eq_ms = 20;
+  const auto processed = status_json(status, 7, "t");
+  CHECK(processed.find("\"rate\":48000,\"latency\":960") != std::string::npos);
+  CHECK(processed.find("\"lagMs\":12.74,\"sourceDspMs\":0.00,\"outputEqMs\":20.00") !=
+        std::string::npos);
+  // Positive control for the field being optional: an output that plays no
+  // other's sound says nothing about it, as every earlier engine did.
+  status.split.reset();
+  CHECK(status_json(status, 7, "t").find("split") == std::string::npos);
+}
+
+/**
  * The delay, stage by stage, in the exact shape the app parses — and game
  * mode. What the DSP page shows a listener as their lag; `engineHealth.test`
  * holds the app to the same text.
@@ -277,6 +313,7 @@ int main() {
   a_processing_output();
   a_pass_through_with_problems();
   a_finished_song();
+  a_second_output();
   the_delay_and_game_mode();
   text_is_escaped();
   linear_phase_fallback_is_reported();

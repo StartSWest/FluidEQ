@@ -42,6 +42,9 @@ export const FLUID_ENGINE_DSP_FILENAME = 'fluideq-dsp.txt';
 /** Which song is playing, for the engine's live leveling — `songProgramme.ts`. */
 export const FLUID_ENGINE_PROGRAMME_FILENAME = 'fluideq-programme.txt';
 
+/** Which second outputs the engine plays from which output — `outputSplit.ts`. */
+export const FLUID_ENGINE_SPLIT_FILENAME = 'fluideq-split.txt';
+
 /**
  * What a run that ends in restarting Windows audio came back with — "Restart
  * Windows audio" itself, and the engine update, which restarts audio onto the

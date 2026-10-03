@@ -22,9 +22,10 @@ const MAX_COMMAND_QUEUE_BYTES = 32_768;
  * output's mirrors, so it hears the sound other computers send here; `lan`
  * leaves out the LAN audio helper's whole tree, so it never does — the
  * capture sent to the network, which must not send a computer's own sound
- * back to it (`lanAudioHelper.ts`).
+ * back to it (`lanAudioHelper.ts`). `hold` captures nothing: it holds second
+ * outputs open in silence for the FluidEQ Engine to play into.
  */
-export type TCaptureMode = 'local' | 'lan';
+export type TCaptureMode = 'local' | 'lan' | 'hold';
 
 export interface INativeCaptureProcess {
   close(): void;
@@ -186,6 +187,7 @@ export const startNativeCaptureProcess = async (
   let lease: ILanAudioLease | undefined;
   let spawnId = 0;
   let ready = false;
+  let frameReady = false;
   let stopped = false;
   let failureReported = false;
   let settle:
@@ -232,10 +234,25 @@ export const startNativeCaptureProcess = async (
       cleanUp();
     },
   };
-  const readFrames = createCaptureFrameReader({
-    ready: () => {
+  const completeReady = () => {
+    // The two pipe connections arrive independently. A ready audio frame
+    // alone used to expose a handle before its command pipe had connected.
+    if (
+      !ready &&
+      !stopped &&
+      !failureReported &&
+      frameReady &&
+      commands &&
+      frames
+    ) {
       ready = true;
       settle?.resolve(handle);
+    }
+  };
+  const readFrames = createCaptureFrameReader({
+    ready: () => {
+      frameReady = true;
+      completeReady();
     },
     reply: onReply,
     audio: (header, payload) =>
@@ -281,6 +298,7 @@ export const startNativeCaptureProcess = async (
     if (commands && frames) {
       // Both are in: nobody else is let near this pipe.
       server.close();
+      completeReady();
     }
   };
   server.on('connection', (socket) => {

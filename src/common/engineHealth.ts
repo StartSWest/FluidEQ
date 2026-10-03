@@ -36,6 +36,7 @@ export const isEngineProblem = (code: string): code is TEngineProblem =>
   (ENGINE_PROBLEMS as readonly string[]).includes(code);
 
 export interface IEngineOutputHealth {
+  sourceAnalysis?: import('./dsp/sourceAnalysis').IEngineSourceAnalysis;
   /** `{GUID}`, upper-case — `normaliseEndpointGuid`. */
   endpoint: string;
   /**
@@ -107,6 +108,27 @@ export interface IEngineOutputHealth {
    * while the engine is processing the output.
    */
   gameMode?: boolean;
+  /**
+   * This output is a second output the engine plays straight from another
+   * output's engine (`ENGINE_SPLIT_SINCE`, `src/main/secondOutputRoute.ts`).
+   * Absent on every other output and from older engines.
+   */
+  split?: IEngineSplit;
+}
+
+export interface IEngineSplit {
+  /** The output it plays, `{GUID}` upper-case. */
+  from: string;
+  /** `waiting` until the main output has sound to give it. */
+  state: 'waiting' | 'playing';
+  /** The split reader's processing buffer, before this output's curves. */
+  lagMs: number;
+  /** Main's DSP already in the shared audio (engine 1.18+). */
+  sourceDspMs?: number;
+  /** This receiver's own curves, excluding its unused rack (engine 1.18+). */
+  outputEqMs?: number;
+  /** Times the main output's sound was not there in time, since it began. */
+  underruns: number;
 }
 
 /**
@@ -247,6 +269,14 @@ export const engineReportsStatus = (dllVersion: string | undefined): boolean =>
  */
 export const engineReportsCarried = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_CARRIED_SINCE);
+
+/**
+ * The first engine that shares raw source audio across Windows audio
+ * processes. Earlier splits only connected endpoints inside one audiodg
+ * process; treating them as generally available could leave a receiver
+ * silently waiting forever. Older engines retain the helper copy path.
+ */
+export const ENGINE_SPLIT_SINCE: readonly [number, number] = [1, 20];
 
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];

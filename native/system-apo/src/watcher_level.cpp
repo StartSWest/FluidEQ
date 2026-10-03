@@ -33,7 +33,7 @@ constexpr float kNoLevel = std::numeric_limits<float>::quiet_NaN();
 
 void Watcher::open_level_prediction() {
   try {
-    history_ = std::make_unique<InputHistory>(sample_rate_, channels_,
+    history_ = std::make_shared<InputHistory>(sample_rate_, channels_,
                                               kLevelHistorySeconds);
     predictor_ = std::make_unique<LevelPredictor>(sample_rate_, channels_,
                                                   history_->window_frames());

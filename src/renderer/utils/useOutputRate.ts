@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useState } from 'react';
 import { readKnownAudioDevices } from './equalizerApi';
 import { reportError } from './logger';
+import { readOutputEditor } from './outputEditor';
 
 /**
  * The rate Windows runs the output being listened to at: its shared-mode
@@ -17,7 +18,9 @@ import { reportError } from './logger';
  * thing"). Undefined until the list has answered, or for an output Windows
  * would not describe.
  */
-const useOutputRate = (): number | undefined => {
+const useOutputRate = (
+  target: 'playback' | 'editor' = 'playback',
+): number | undefined => {
   const [rate, setRate] = useState<number>();
 
   useEffect(() => {
@@ -26,6 +29,9 @@ const useOutputRate = (): number | undefined => {
     const read = () => {
       asked += 1;
       const request = asked;
+      const editorId =
+        target === 'editor' ? readOutputEditor().editor?.device.id : undefined;
+      setRate(undefined);
       // Called inside the chain, so a bridge that throws rather than rejects
       // costs the rate and not the page it sits on: the effect that threw
       // would have taken the whole equaliser down with it.
@@ -33,8 +39,8 @@ const useOutputRate = (): number | undefined => {
         .then(() => readKnownAudioDevices())
         .then((devices) => {
           if (isLive && request === asked) {
-            const found = devices.find(
-              (device) => device.isDefault,
+            const found = devices.find((device) =>
+              editorId ? device.id === editorId : device.isDefault,
             )?.sampleRate;
             setRate(found !== undefined && found > 0 ? found : undefined);
           }
@@ -52,13 +58,17 @@ const useOutputRate = (): number | undefined => {
     // Sound settings is not, and it is changed away from this window, so the
     // list is read again whenever the window is come back to.
     window.addEventListener('fluideq-output-changed', read);
+    if (target === 'editor') {
+      window.addEventListener('fluideq-editor-changed', read);
+    }
     window.addEventListener('focus', read);
     return () => {
       isLive = false;
       window.removeEventListener('fluideq-output-changed', read);
+      window.removeEventListener('fluideq-editor-changed', read);
       window.removeEventListener('focus', read);
     };
-  }, []);
+  }, [target]);
 
   return rate;
 };

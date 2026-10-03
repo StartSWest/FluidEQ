@@ -128,6 +128,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/chain_stages.cpp
   dsp-core/src/chain_linear.cpp
   dsp-core/src/chain_transfer.cpp
+  dsp-core/src/chain_source.cpp
   dsp-core/src/chain_tone.cpp
   dsp-core/src/chain_decode.cpp
   dsp-core/src/resampler.cpp
@@ -505,6 +506,7 @@ if(WIN32)
     remote-audio-capture/src/capture_writer.cpp
     remote-audio-capture/src/mirror_output.cpp
     remote-audio-capture/src/mirror_control.cpp
+    remote-audio-capture/src/hold_output.cpp
     # The second output plays through Share Audio's own playback engine.
     remote-audio-playback/src/playback_core.cpp
     remote-audio-playback/src/sinc_kernel.cpp)

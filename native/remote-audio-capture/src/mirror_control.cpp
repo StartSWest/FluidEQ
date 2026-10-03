@@ -60,7 +60,8 @@ bool MirrorControl::commands() {
     input >> command >> request >> id;
     HRESULT result = E_INVALIDARG;
     if (input && id != 0 && request != 0) {
-      if (command == "start" && outputs_.size() < 16 && !outputs_.contains(id)) {
+      if (command == "start" && outputs_.size() < 16 &&
+          !outputs_.contains(id) && !holds_.contains(id)) {
         std::string guid;
         float volume = 1;
         input >> guid >> volume;
@@ -71,8 +72,21 @@ bool MirrorControl::commands() {
           result = output->open(guid, rate_, channels_, volume);
           if (SUCCEEDED(result)) { outputs_.emplace(id, std::move(output)); }
         }
+      } else if (command == "hold" && holds_.size() < 16 &&
+                 !holds_.contains(id) && !outputs_.contains(id)) {
+        std::string guid;
+        input >> guid;
+        if (input && guid.size() == 38 && guid.front() == '{' &&
+            guid.back() == '}') {
+          auto hold = std::make_unique<HoldOutput>();
+          result = hold->open(guid);
+          if (SUCCEEDED(result)) {
+            holds_.emplace(id, std::move(hold));
+          }
+        }
       } else if (command == "stop") {
         outputs_.erase(id);
+        holds_.erase(id);
         renders_.erase(id);
         result = S_OK;
       } else if (command == "volume" && outputs_.contains(id)) {
@@ -91,6 +105,7 @@ bool MirrorControl::commands() {
 
 void MirrorControl::fail(std::uint32_t id, HRESULT result) {
   outputs_.erase(id);
+  holds_.erase(id);
   renders_.erase(id);
   if (!reply_(4, id, result)) { stopping_ = true; }
 }
@@ -106,9 +121,18 @@ void MirrorControl::push(const float* samples, std::uint32_t frames, bool silent
 
 void MirrorControl::append_events(std::vector<HANDLE>& events) const {
   for (const auto& entry : outputs_) { events.push_back(entry.second->event()); }
+  for (const auto& entry : holds_) { events.push_back(entry.second->event()); }
 }
 
 void MirrorControl::render(HANDLE event) {
+  for (const auto& entry : holds_) {
+    if (entry.second->event() == event) {
+      const auto id = entry.first;
+      const HRESULT result = entry.second->render();
+      if (FAILED(result)) { fail(id, result); }
+      return;
+    }
+  }
   for (const auto& entry : outputs_) {
     if (entry.second->event() == event) {
       const auto id = entry.first;

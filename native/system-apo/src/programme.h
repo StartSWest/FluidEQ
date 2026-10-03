@@ -7,8 +7,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * Which song the machine is playing, as the app tells the engine.
  *
- * `fluideq-programme.txt`, beside the rack file, written by the app whenever
- * Windows' media session names a different song:
+ * `fluideq-programme-<guid>.txt`, beside this output's rack, written whenever
+ * Windows' media session names a different song. Learned levels belong to
+ * this endpoint; the old global file is never used as a fallback:
  *
  *     # FluidEQ Engine programme v1
  *     song=0123456789abcdef
@@ -31,7 +32,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace fluideq_engine {
 
-inline constexpr const wchar_t* kProgrammeFileName = L"fluideq-programme.txt";
+inline constexpr const wchar_t* kProgrammeFileStem = L"fluideq-programme";
 
 struct Programme {
   /** 0 when nothing names what is playing, which is also a missing file. */

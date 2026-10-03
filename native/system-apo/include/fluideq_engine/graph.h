@@ -28,6 +28,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "fluideq/biquad.h"
@@ -66,6 +67,7 @@ struct ChainDeleter {
 class CurveStage;
 class EqPhaseStage;
 class IirCascade;
+struct SourceAnalysis;
 
 class Graph {
  public:
@@ -104,7 +106,8 @@ class Graph {
         uint32_t max_frames,
         std::shared_ptr<FeqLevelingMemory> leveling = nullptr,
         unsigned long channel_mask = 0, const RoomHead* room_head = nullptr,
-        bool follows_processing = false, const Graph* rack_from = nullptr);
+        bool follows_processing = false, const Graph* rack_from = nullptr,
+        const SourceAnalysis* source_analysis = nullptr);
   ~Graph();
   Graph(const Graph&) = delete;
   Graph& operator=(const Graph&) = delete;
@@ -118,6 +121,21 @@ class Graph {
    * is a glitch, a partially processed one is a glitch plus a discontinuity.
    */
   void process(float* const* planar, uint32_t frames) noexcept;
+
+  /** After rendering: bounded armed worker notifications, never inference. */
+  void wake_workers() noexcept;
+
+  struct SourceReport {
+    bool library = false;
+    bool engine_owner = true;
+    uint64_t source = 0;
+    uint64_t epoch = 0;
+    uint64_t revision = 0;
+    bool ready = true;
+    bool voice_ready = false;
+    bool warm_handover = false;
+  };
+  const SourceReport& source_report() const noexcept { return source_report_; }
 
   // Before publication; the endpoint owns the meters across graph rebuilds.
   // A reused chain already has them, and may be running on the audio thread:
@@ -144,6 +162,11 @@ class Graph {
    * The history outlives every graph; null records nothing.
    */
   void set_history(InputHistory* history) noexcept { history_ = history; }
+  /** Watcher thread: old graphs keep their source's history alive until retired. */
+  void own_history(std::shared_ptr<InputHistory> history) noexcept {
+    history_owner_ = std::move(history);
+    history_ = history_owner_.get();
+  }
 
   /**
    * Watcher thread, before publication: this graph's level will arrive
@@ -329,6 +352,7 @@ class Graph {
   std::atomic<uint32_t> silenced_blocks_{0};
   bool transfer_state_ = false;
   InputHistory* history_ = nullptr;
+  std::shared_ptr<InputHistory> history_owner_;
   // Where this graph's level arrives (`expect_level`); whether it has yet.
   const LevelMailbox* level_mailbox_ = nullptr;
   uint32_t level_generation_ = 0;
@@ -435,6 +459,8 @@ class Graph {
    * change, so a stamp would say "changed" for a rewrite of the same numbers.
    */
   std::vector<double> dsp_values_;
+  std::string source_identity_;
+  SourceReport source_report_;
   bool rack_low_latency_asked_ = false;
   unsigned long channel_mask_ = 0;
   // Compared, never followed: the head it points at may be gone.

@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { ANALYSIS_BINS, IHostAnalysis } from '../../common/dsp/analysisWire';
 import { readKnownAudioDevices } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
+import { readOutputEditor } from '../utils/outputEditor';
 import { createNativeMeters } from './nativeMeters';
 import { setDspSampleRate } from './store';
 
@@ -88,7 +89,9 @@ const useSystemMeters = (enabled: boolean): void => {
         if (disposed || current !== generation) {
           return;
         }
-        endpoint = devices.find((device) => device.isDefault)?.guid;
+        endpoint =
+          readOutputEditor().editor?.device.guid ??
+          devices.find((device) => device.isDefault)?.guid;
         if (endpoint) {
           animation = requestAnimationFrame(paint);
         }
@@ -98,11 +101,13 @@ const useSystemMeters = (enabled: boolean): void => {
     };
     start();
     window.addEventListener('fluideq-output-changed', start);
+    window.addEventListener('fluideq-editor-changed', start);
     document.addEventListener('visibilitychange', start);
     return () => {
       disposed = true;
       stop();
       window.removeEventListener('fluideq-output-changed', start);
+      window.removeEventListener('fluideq-editor-changed', start);
       document.removeEventListener('visibilitychange', start);
     };
   }, [enabled]);

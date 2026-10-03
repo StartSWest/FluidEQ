@@ -22,6 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "iir_cascade.h"
 #include "input_history.h"
 #include "output_guard.h"
+#include "source_analysis.h"
 
 namespace fluideq_engine {
 
@@ -51,7 +52,8 @@ bool all_finite(float* const* planar, uint32_t channels,
 Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
              uint32_t max_frames, std::shared_ptr<FeqLevelingMemory> leveling,
              unsigned long channel_mask, const RoomHead* room_head,
-             bool follows_processing, const Graph* rack_from)
+             bool follows_processing, const Graph* rack_from,
+             const SourceAnalysis* source_analysis)
     : sample_rate_(sample_rate),
       channels_(channels),
       max_frames_(max_frames),
@@ -60,11 +62,19 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
       latency_frames_(0),
       leveling_(std::move(leveling)),
       dsp_values_(chain.dsp_values),
+      source_identity_(source_analysis ? source_analysis->processing_identity() : std::string()),
       rack_low_latency_asked_(chain.low_latency),
       channel_mask_(channel_mask),
       rack_head_(room_head) {
   if (sample_rate_ == 0 || channels_ == 0 || max_frames_ == 0) {
     return;
+  }
+  if (source_analysis != nullptr) {
+    source_report_.library = source_analysis->library;
+    source_report_.engine_owner = source_analysis->engine_owner;
+    source_report_.source = source_analysis->source;
+    source_report_.epoch = source_analysis->epoch;
+    source_report_.revision = source_analysis->revision;
   }
   // For the graph this one may yet cross over from (`start_crossing`):
   // the audio thread may not allocate them when it does.
@@ -75,14 +85,14 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
    * The rack first, and outside the `matched` guard below.
    *
    * `matched` says whether the Equalizer APO configuration names THIS
-   * endpoint. The rack is system-wide — one file, no `Device:` line — so it
-   * applies to an output the user has never opened the EQ page for, which is
-   * every output on a fresh install.
+   * endpoint. Its own rack file is resolved independently of that tree, so
+   * an output can have DSP before its first curve creates a `Device:` block.
    */
   if (!reuse_rack(rack_from, chain, room_head)) {
     RackBuild rack = build_rack(chain.dsp_values, sample_rate_, channels_,
                                 max_frames_, warnings_, leveling_.get(),
-                                channel_mask, room_head, chain.low_latency);
+                                channel_mask, room_head, chain.low_latency,
+                                source_analysis);
     rack_ = std::shared_ptr<FeqChain>(std::move(rack.chain));
     rack_channels_ = rack.channels;
     rack_latency_ = rack.latency;
@@ -95,6 +105,9 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
     room_state_ = rack.room_state;
     rack_failed_ = rack.failed;
     rack_without_head_ = rack.room_without_head;
+    source_report_.ready = rack.source_ready;
+    source_report_.voice_ready = rack.voice_ready;
+    source_report_.warm_handover = rack.warm_handover;
   }
   rack_planes_.assign(rack_channels_, nullptr);
   latency_frames_ += rack_latency_;
@@ -124,12 +137,8 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
     problems_.push_back("room-head");
   }
 
-  // An endpoint the config never named gets no EQ at all, not even a
-  // preamp of 0 dB: `matched` is the difference between "this config has
-  // something to say about this device" and "it does not". The one
-  // exception is FluidEQ switched off on a stream it was changing: empty
-  // stages fade the old bands out, and the guard keeps its delay so the
-  // music does not jump — see the constructor's `follows_processing`.
+  // An unnamed endpoint gets no EQ. After processing, empty stages fade
+  // the old bands out and the guard keeps its delay so music does not jump.
   if (!chain.matched) {
     if (!follows_processing) {
       passthrough_ = rack_ == nullptr;
@@ -292,10 +301,7 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
                  impulse_.empty() && !curves_ && preamp_linear_ == 1.0;
 }
 
-// Every owning member is a `unique_ptr` (the kernels) or a vector of them
-// (the per-channel convolvers), so the compiler-generated destruction order
-// — reverse of declaration in `graph.h` — already tears down the convolvers
-// before the kernels they point into. Nothing left to do by hand.
+// Reverse member destruction frees convolvers before their kernels.
 Graph::~Graph() = default;
 
 bool Graph::reuse_rack(const Graph* rack_from, const Chain& chain,
@@ -311,11 +317,11 @@ bool Graph::reuse_rack(const Graph* rack_from, const Chain& chain,
       max_frames_ != rack_from->max_frames_ || channel_mask_ != rack_from->channel_mask_ ||
       leveling_ != rack_from->leveling_ || room_head != rack_from->rack_head_ ||
       chain.low_latency != rack_from->rack_low_latency_asked_ ||
+      source_identity_ != rack_from->source_identity_ ||
       chain.dsp_values != rack_from->dsp_values_) {
     return false;
   }
-  // Read off `rack_from` as its constructor left them: nothing the audio
-  // thread writes, and `rack_from` may be the graph it is running.
+  // Constructor-only fields: `rack_from` may be running on the audio thread.
   rack_ = rack_from->rack_;
   rack_reused_ = true;
   rack_channels_ = rack_from->rack_channels_;
@@ -327,6 +333,11 @@ bool Graph::reuse_rack(const Graph* rack_from, const Chain& chain,
   room_state_ = rack_from->room_state_;
   rack_failed_ = rack_from->rack_failed_;
   rack_without_head_ = rack_from->rack_without_head_;
+  // The processing is unchanged, but this graph still acknowledges the new
+  // transport metadata. Copying the whole report would echo an old revision.
+  source_report_.ready = rack_from->source_report_.ready;
+  source_report_.voice_ready = rack_from->source_report_.voice_ready;
+  source_report_.warm_handover = rack_from->source_report_.warm_handover;
   return true;
 }
 
@@ -334,8 +345,11 @@ void Graph::process(float* const* planar, uint32_t frames) noexcept {
   // A block larger than this graph was built for is passed through whole. The
   // alternative — processing the first `max_frames_` of it — would leave the
   // rest unfiltered and every filter's history one block behind the stream.
-  if (passthrough_ || planar == nullptr || frames == 0 ||
+  if (planar == nullptr || frames == 0 ||
       frames > max_frames_) {
+    return;
+  }
+  if (passthrough_) {
     return;
   }
   if (source_ == nullptr) {

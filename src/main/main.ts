@@ -35,8 +35,21 @@ import path from 'path';
 import fs from 'fs';
 import { fetchSettings } from './flush';
 import { flushPendingWrites, scheduleWrite } from './asyncWriter';
-import { getConfigPath, isEngineInstalled } from './registry';
-import { FLUID_ENGINE_PROGRAMME_FILENAME } from '../common/audioEngine';
+import {
+  getConfigPath,
+  getFluidEngineConfigDir,
+  isEngineInstalled,
+} from './registry';
+import {
+  FLUID_ENGINE_PROGRAMME_FILENAME,
+  FLUID_ENGINE_SPLIT_FILENAME,
+} from '../common/audioEngine';
+import { readAudioEngineStatus } from './engineStatus';
+import { createSecondOutputs } from './secondOutputRoute';
+import {
+  startNativeOutputHold,
+  startNativeOutputMirror,
+} from './remoteAudioCapture';
 import { createSongLevelStore } from './songLevels';
 import { createSongProgramme } from './songProgramme';
 import { resetEngineAtSessionEnd, resetEngineForQuit } from './engineQuitReset';
@@ -71,6 +84,7 @@ import { registerFiltersIpc } from './ipc/filters';
 import registerBandDesignsIpc from './ipc/bandDesigns';
 import { registerLayersIpc } from './ipc/layers';
 import registerSongEqHandlers from './ipc/songEq';
+import registerSongSoundIpc from './ipc/songSound';
 import { registerPreampIpc } from './ipc/preamp';
 import registerVideoIpc from './ipc/video';
 import { registerKaraokeSeparation } from './karaokeSeparation';
@@ -84,6 +98,7 @@ import {
   dspHostStats,
   registerDspHostIpc,
   shutdownDspHost,
+  setDspHostRawLibrary,
 } from './ipc/dspHost';
 import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
@@ -119,6 +134,9 @@ import registerDevMemoryTrace from './devMemoryTrace';
 import createAppUpdates from './appUpdates';
 import { createWindowPlacement, firstRunPlacement } from './windowPlacement';
 import createMainSession from './mainSession';
+import { getStateForAudioDevice } from './deviceProfiles';
+import { createSourceAnalysisPublisher } from './sourceAnalysis';
+import { registerSourceAnalysisIpc } from './ipc/sourceAnalysis';
 import {
   createProfileStore,
   isAutomaticPresetName,
@@ -348,6 +366,46 @@ registerDiagnosticsIpc({
 
 registerEngineStateIpc({
   state,
+  snapshot: () => {
+    const main = session.playbackAudioDevice;
+    let playbackState: IState | undefined;
+    if (main) {
+      playbackState =
+        main.id === session.activeAudioDeviceId
+          ? { ...state }
+          : structuredClone(
+              session.outputStateOverrides?.get(main.id) ??
+                getStateForAudioDevice(
+                  deviceProfileSettings,
+                  main.id,
+                  profiles.presetDirForDevice,
+                ),
+            );
+      playbackState.isEnabled = state.isEnabled;
+      playbackState.dsp =
+        session.outputDspOverrides?.get(main.id) ?? playbackState.dsp;
+    }
+    const audibleDsp = session.outputDspOverrides?.get(
+      session.activeAudioDeviceId,
+    );
+    const ownsTemporaryRack =
+      audibleDsp !== undefined &&
+      (state.songSoundLoan !== undefined ||
+        JSON.stringify(audibleDsp) !== JSON.stringify(state.dsp));
+    return {
+      ...state,
+      dsp: audibleDsp ?? state.dsp,
+      ownedDsp: ownsTemporaryRack ? state.dsp : undefined,
+      outputEditor: session.activeAudioDevice
+        ? {
+            device: session.activeAudioDevice,
+            generation: session.outputEditGeneration ?? 0,
+          }
+        : undefined,
+      playbackOutput: main,
+      playbackState,
+    };
+  },
   userDataDir,
   updateConfigPath,
   handleUpdate,
@@ -364,6 +422,15 @@ const { apoGuard } = registerEngineServices({
   deviceProfileSettings,
   presetDirForDevice: profiles.presetDirForDevice,
   reflush: reflushCurrentState,
+  onEngineSwitched: () => {
+    Promise.all([
+      secondOutputs.reroute(),
+      songProgramme.reflush(),
+      sourceAnalysis.reflush(),
+    ]).catch((error: unknown) =>
+      log.error('Could not move output processing to the new engine', error),
+    );
+  },
 });
 
 // Two dozen dependencies, and the list is worth reading rather than skipping:
@@ -397,6 +464,7 @@ const profilesIpc = registerProfilesIpc({
   captureCurrentLayout: profiles.captureCurrentLayout,
   notifyOutputStateChanged,
   guardAgainstApo: apoGuard.check,
+  onPlaybackOutputChanged: () => sourceAnalysis.reflush(),
 });
 
 registerApoConfigIpc({
@@ -440,7 +508,9 @@ registerTransferIpc({
 registerPreampIpc({
   state,
   canMeasureHeadroom: () =>
-    session.audioEngine === 'apo' && !session.engineSwitching,
+    session.audioEngine === 'apo' &&
+    !session.engineSwitching &&
+    session.activeAudioDeviceId === session.playbackAudioDevice?.id,
   usesNativeHeadroom: () => session.audioEngine === 'fluid',
   handleUpdate,
   handleUpdateHelper,
@@ -485,6 +555,18 @@ registerLayersIpc({
 });
 
 registerSongEqHandlers(userDataDir);
+registerSongSoundIpc({
+  state,
+  userDataDir,
+  handleUpdateHelper,
+  getOutputEditor: () =>
+    session.activeAudioDevice
+      ? {
+          device: session.activeAudioDevice,
+          generation: session.outputEditGeneration ?? 0,
+        }
+      : undefined,
+});
 
 onWindowMessage(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   const channel = ChannelEnum.SET_WINDOW_SIZE;
@@ -516,6 +598,7 @@ registerWindowsAudioIpc();
  */
 const songProgramme = createSongProgramme({
   store: createSongLevelStore(userDataDir),
+  mainEndpoint: () => session.playbackAudioDevice?.guid,
   fileName: FLUID_ENGINE_PROGRAMME_FILENAME,
   write: scheduleWrite,
   // The rack write's refusals (`ipc/audioEngine.ts`): not this engine, or
@@ -558,7 +641,42 @@ const stopRemoteAudioLan = registerRemoteAudioIpc({
   userDataDir,
 });
 
-const stopOutputMirrors = registerOutputMirrorIpc(getMainWindow);
+// Second outputs, played straight from the FluidEQ Engine where it can and
+// as the helper's copy everywhere else — `secondOutputRoute.ts`.
+const secondOutputs = createSecondOutputs({
+  getEngine: () => session.audioEngine,
+  readStatus: () => readAudioEngineStatus(userDataDir, session.audioEngine),
+  readHealth: () => engineHealth.read(),
+  writeSplit: (text) =>
+    scheduleWrite(
+      path.join(getFluidEngineConfigDir(), FLUID_ENGINE_SPLIT_FILENAME),
+      text,
+    ),
+  startMirror: startNativeOutputMirror,
+  startHold: startNativeOutputHold,
+  syncProfiles: async (outputs) => {
+    const previous = session.secondOutputDevices;
+    session.secondOutputDevices = outputs;
+    try {
+      // The helper can still play when the chosen engine is absent. Keep
+      // the endpoints for a later installation, with no EQ files to prepare.
+      if (
+        !session.audioEngine ||
+        !(await isEngineInstalled(session.audioEngine))
+      ) {
+        return;
+      }
+      const result = await reflushCurrentState();
+      if (!result.ok) {
+        throw new Error('Could not prepare second output profiles.');
+      }
+    } catch (error) {
+      session.secondOutputDevices = previous;
+      throw error;
+    }
+  },
+});
+const stopOutputMirrors = registerOutputMirrorIpc(getMainWindow, secondOutputs);
 
 // Game profiles: what the launchers have installed, and which program
 // Windows has put in front. The watcher behind it runs only while the window
@@ -618,7 +736,52 @@ registerKaraokeIpc({
 // waits until the renderer asks, which it does when something is about to be
 // heard. A checkout that has never built the native target simply reports the
 // engine unavailable and the TypeScript one carries on.
-registerDspHostIpc({ getMainWindow });
+const sourceAnalysis = createSourceAnalysisPublisher({
+  resolveConfigDir: async () => {
+    if (
+      session.audioEngine !== 'fluid' ||
+      session.engineSwitching ||
+      !(await isEngineInstalled('fluid'))
+    ) {
+      return undefined;
+    }
+    return getConfigPath('fluid');
+  },
+  resolveSourceEndpoint: async () => session.playbackAudioDevice?.guid,
+  write: scheduleWrite,
+  readHealth: () => engineHealth.read(),
+  setRawLibrary: setDspHostRawLibrary,
+  prepareEngine: async () => {
+    const result = await reflushCurrentState();
+    if (!result.ok) {
+      throw new Error('Could not prepare the output processing.');
+    }
+  },
+});
+session.systemRackEnabled = (deviceId) => {
+  const device = session.secondOutputDevices?.find(
+    (one) => one.id === deviceId,
+  );
+  const guid =
+    device?.guid ??
+    (session.playbackAudioDevice?.id === deviceId
+      ? session.playbackAudioDevice.guid
+      : undefined) ??
+    session.audioDevices?.find((one) => one.id === deviceId)?.guid ??
+    deviceProfileSettings.assignments[deviceId]?.deviceGuid;
+  return (
+    !guid ||
+    sourceAnalysis.rackEnabledFor(
+      guid,
+      device ? session.playbackAudioDevice?.guid : undefined,
+    )
+  );
+};
+registerSourceAnalysisIpc(getMainWindow, sourceAnalysis);
+registerDspHostIpc({
+  getMainWindow,
+  onVoiceModelChanged: () => sourceAnalysis.refreshVoice(),
+});
 // Dynamic lighting (Plus): keyboards, mice and headsets in the colours of the
 // scene on the graph. Starts nothing until the window sends a frame or opens
 // the page — the helper, Razer's service and the identity registration all
@@ -676,7 +839,11 @@ registerLibraryPlaylistsIpc({
 // until the window first asks or a song is announced to the engine.
 const engineHealth = registerEngineHealthIpc({
   getMainWindow,
-  onHealth: songProgramme.onHealth,
+  onHealth: (health) => {
+    songProgramme.onHealth(health);
+    secondOutputs.onHealth(health);
+    sourceAnalysis.onHealth(health);
+  },
 });
 
 applyLaunchSwitches();
@@ -691,6 +858,9 @@ applyLaunchSwitches();
  */
 const resetActiveEngineForQuit = async (): Promise<void> => {
   if (session.configPath) {
+    await sourceAnalysis.release().catch((error) => {
+      log.error('Clearing the Library source failed', error);
+    });
     await resetEngineForQuit(session.configPath);
   }
 };
@@ -844,6 +1014,9 @@ const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });
 const onAppReady = async () => {
   // Which engine, before anything can ask for a config directory.
   session.audioEngine = await chooseLaunchEngine(userDataDir);
+  await sourceAnalysis.release().catch((error) => {
+    log.error('Clearing the previous Library source failed', error);
+  });
 
   // Identity, set here rather than at module scope on purpose.
   //

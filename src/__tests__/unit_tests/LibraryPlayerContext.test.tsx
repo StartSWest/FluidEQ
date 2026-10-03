@@ -38,6 +38,8 @@ import createFakeLibraryStore, {
   IFakeLibraryStore,
 } from '../utils/fakeLibraryStore';
 
+import { createSourceAnalysisBridge } from '../utils/sourceAnalysisBridge';
+
 // The engine's copy of the rack goes nowhere here, as on an Equalizer APO
 // machine. None of these cases is about that send, and with no preload
 // every rack change reported a TypeError from it instead.
@@ -155,9 +157,7 @@ beforeEach(() => {
       libraryTrackBytes: () => Promise.resolve(undefined),
       libraryTrackSignature: () => Promise.resolve(undefined),
       setLibraryTrackNormalization: () => Promise.resolve(false),
-      // `LibraryVideoStage` listens for 'window-state-changed' the moment it
-      // mounts.
-      on: (_channel: string, _func: (...args: unknown[]) => void) => () => {},
+      ...createSourceAnalysisBridge(),
     },
   } as unknown as typeof window.electron;
 });

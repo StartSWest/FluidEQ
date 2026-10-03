@@ -35,6 +35,8 @@ import {
   openLibraryStoreBridge,
 } from '../utils/libraryStoreBridge';
 
+import { createSourceAnalysisBridge } from '../utils/sourceAnalysisBridge';
+
 // jsdom's own `HTMLMediaElement.prototype.play` returns `undefined` rather
 // than the Promise every real engine (including Electron's Chromium) hands
 // back — `KaraokeWorkspace.test.tsx` stubs the same three methods for the
@@ -108,9 +110,7 @@ const renderWorkspace = ({
     ...opened.channels,
     addLibraryRoot,
     cancelLibraryScan,
-    // `LibraryVideoStage` listens for 'window-state-changed' the moment a
-    // video track opens the stage; nothing here changes the window state.
-    on: jest.fn(() => jest.fn()),
+    ...createSourceAnalysisBridge(),
   });
   render(
     <I18nProvider>
@@ -426,7 +426,7 @@ describe('handing a click off to the player', () => {
       ...opened.channels,
       addLibraryRoot: jest.fn(() => Promise.resolve(opened.summary())),
       cancelLibraryScan,
-      on: jest.fn(() => jest.fn()),
+      ...createSourceAnalysisBridge(),
     });
     const tree = (isFullScreen: boolean) => (
       <I18nProvider>

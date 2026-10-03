@@ -4,6 +4,11 @@ import { DSP_DEFAULTS } from 'common/dsp/chain';
 import { dspPresetSettings } from 'common/dsp/presets';
 import GameModeSwitch from 'renderer/components/GameModeSwitch';
 import {
+  mainOutput,
+  showOutputEditor,
+} from '__tests__/utils/outputEditorFixture';
+import { sendSystemDspChain } from 'renderer/dsp/systemChain';
+import {
   applyDspSettings,
   readDspSettings,
   setGameMode,
@@ -23,6 +28,8 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
 
 beforeEach(() => {
   localStorage.clear();
+  showOutputEditor();
+  jest.mocked(sendSystemDspChain).mockClear();
   applyDspSettings(DSP_DEFAULTS);
 });
 
@@ -45,9 +52,14 @@ it('shares the switch state across tabs and preserves the selected sound', () =>
   expect(switches[0]).not.toBeChecked();
   expect(switches[1]).not.toBeChecked();
   expect(readDspSettings()).toEqual({ ...gaming, gameMode: false });
-  expect(
-    JSON.parse(localStorage.getItem('fluideq.dsp.v1') ?? '{}').gameMode,
-  ).toBe(false);
+  expect(sendSystemDspChain).toHaveBeenLastCalledWith(
+    expect.any(Array),
+    expect.objectContaining({
+      deviceId: mainOutput.id,
+      savedSettings: expect.objectContaining({ gameMode: false }),
+    }),
+  );
+  expect(localStorage.getItem('fluideq.dsp.v1')).toBeNull();
   act(() => setGameMode(true));
   expect(switches[1]).toBeChecked();
 });

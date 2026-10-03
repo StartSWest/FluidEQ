@@ -23,6 +23,7 @@ import {
   waitFor,
 } from '@testing-library/react';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
+import { showOutputEditor } from '__tests__/utils/outputEditorFixture';
 import ChannelEnum from '../../../common/channels';
 import type {
   IAudioEngineStatus,
@@ -35,6 +36,7 @@ import DspPanel from '../../../renderer/dsp/DspPanel';
 import { DSP_OPEN_SECTION_KEY } from '../../../renderer/dsp/openSection';
 import {
   applyDspSettings,
+  adoptOutputDsp,
   setDspNativeState,
   setDspRackGate,
 } from '../../../renderer/dsp/store';
@@ -70,6 +72,7 @@ let statusFetches = 0;
 let switchedTo: boolean[] = [];
 /** What `getAudioEngineStatus` answers with for the case being rendered. */
 let engineStatus: IAudioEngineStatus;
+let editorGeneration = 0;
 
 const FLUID_STATUS: IAudioEngineStatus = {
   engine: 'fluid',
@@ -195,6 +198,9 @@ beforeEach(() => {
   // FluidEQ Engine and sent it a rack before their own answer landed.
   resetAudioEngineStatus();
   installBridge();
+  editorGeneration += 1;
+  const snapshot = showOutputEditor(undefined, undefined, editorGeneration);
+  adoptOutputDsp({ ...snapshot, dsp: DSP_DEFAULTS });
   // The store is a module singleton, so a case that leaves an edited rack
   // behind decides what the next one sends. Put it back to the defaults, then
   // clear what that produced: both the record and the de-duplication, or the

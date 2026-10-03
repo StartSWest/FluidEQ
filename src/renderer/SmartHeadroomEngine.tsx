@@ -26,6 +26,7 @@ import { useCurrentEngine } from './utils/audioEngineContext';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { sendSmartHeadroomMeasurement } from './utils/equalizerApi';
 import ApoHeadroomSupervisor from './utils/apoHeadroomSupervisor';
+import { useOutputEditor } from './utils/outputEditor';
 
 /**
  * One part of the chain as text, spelled as it was inside the array this
@@ -36,6 +37,7 @@ const partText = (part: unknown): string => JSON.stringify(part) ?? 'null';
 
 const SmartHeadroomEngine = () => {
   const engine = useCurrentEngine();
+  const { editor, main } = useOutputEditor();
   const chain = useFluidEqContext();
   const {
     filters,
@@ -89,7 +91,11 @@ const SmartHeadroomEngine = () => {
     trim: smartHeadroomTrimDb,
     programme: smartHeadroomProgramme,
   };
-  const enabled = engine === 'apo' && isAutoPreAmpOn && isEnabled;
+  const enabled =
+    engine === 'apo' &&
+    isAutoPreAmpOn &&
+    isEnabled &&
+    (!editor || editor.device.id === main?.id);
   useLiveAudioCapture(enabled, 'work');
 
   useEffect(() => {

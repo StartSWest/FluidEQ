@@ -37,6 +37,11 @@ export interface IIncomingSound {
   name: string;
   /** Milliseconds, once the first reading has come in. */
   delayMs?: number;
+  /**
+   * Whether sound is coming from it now, rather than a linked stream
+   * carrying silence (`useIncomingSounding`).
+   */
+  isSounding: boolean;
 }
 
 /**

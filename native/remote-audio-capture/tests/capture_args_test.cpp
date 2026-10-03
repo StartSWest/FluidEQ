@@ -57,10 +57,26 @@ int main() {
                  "--exclude-tree-pid", "77"},
                 &args),
           "a piped launch for the network");
-    check(args.exclude_tree_pid == 77,
+    check(args.exclude_tree_pid == 77 && !args.hold_only,
           "the network's capture leaves out the playback helper's tree");
   }
+  {
+    CaptureArgs args;
+    check(parse({"x", "--parent-pid", "42", "--pipe", kPipe, "--token", kToken,
+                 "--hold-only"},
+                &args),
+          "a piped launch that only holds second outputs");
+    check(args.hold_only && args.exclude_tree_pid == 0,
+          "the hold captures nothing and leaves nothing out");
+  }
   CaptureArgs refused;
+  check(!parse({"x", "--parent-pid", "42", "--pipe", kPipe, "--token", kToken,
+                "--hold"},
+               &refused),
+        "a hold flag misspelled");
+  check(!parse({"x", "--parent-pid", "42", "--pipe-overlapped", "--hold-only"},
+               &refused),
+        "a hold on the stdio launch");
   check(!parse({"x"}, &refused), "nothing");
   check(!parse({"x", "--parent-pid", "0", "--pipe-overlapped"}, &refused),
         "a zero parent");

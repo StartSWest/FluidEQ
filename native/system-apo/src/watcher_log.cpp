@@ -19,6 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "config_file.h"
 #include "paths.h"
 #include "programme.h"
+#include "split_file.h"
 #include "status_file.h"
 
 namespace fluideq_engine {
@@ -134,6 +135,21 @@ void Watcher::report_status(bool locked) noexcept {
       status.latency_parts = latency_parts_;
       status.latency_active = latency_active_;
       status.game_mode = game_mode_;
+      char source_id[17] = {};
+      std::snprintf(source_id, sizeof(source_id), "%016llx",
+                    static_cast<unsigned long long>(source_report_.source));
+      const bool source_ready = !source_prepare_failed_ && !source_invalid_ &&
+          rack_source_ != nullptr && slot_.active() == rack_source_ &&
+          source_report_.ready;
+      status.source_analysis = EngineStatus::SourceAnalysis{1,
+          source_report_.library ? "library" : "live",
+          source_report_.engine_owner ? "engine" : "host", source_id,
+          source_report_.epoch, source_report_.revision, source_ready,
+          source_ready && source_report_.voice_ready};
+      if (source_prepare_failed_ || source_invalid_) {
+        status.problems.push_back("source-analysis");
+      }
+      if (split_ && split_->transport_failed()) status.problems.push_back("split-transport");
       // The output's, not this instance's: Windows runs one instance per
       // signal-processing mode and only the one carrying what is playing
       // ever sets it.
@@ -152,6 +168,14 @@ void Watcher::report_status(bool locked) noexcept {
                       static_cast<unsigned long long>(song->song_id));
         status.last_song = EngineStatus::FinishedSong{
             id, song->level_lufs, song->peak_db, song->seconds};
+      }
+      if (const auto split = split_ ? split_->report() : std::nullopt) {
+        status.split = EngineStatus::Split{
+            split->from,
+            split->state == SplitState::playing ? "playing" : "waiting",
+            split->lag_us / 1000.0, split->underruns,
+            0.0,
+            sample_rate_ > 0 ? latency_ * 1000.0 / sample_rate_ : 0.0};
       }
       written = status_.publish(status, &why);
     }
@@ -177,13 +201,27 @@ bool Watcher::follow_programme() noexcept {
     return false;
   }
   try {
-    const std::optional<std::string> text =
-        read_config_file(config_dir_ + L"\\" + kProgrammeFileName);
+    const auto name = endpoint_config_name(kProgrammeFileStem, endpoint_);
+    const std::optional<std::string> text = name
+        ? read_config_file(config_dir_ + L"\\" + *name) : std::nullopt;
     // No file is no song: the app deletes it on quit and writes nothing under
     // Equalizer APO, and silence is then what ends a programme.
     return leveling_->announce(text ? parse_programme(*text) : Programme{});
   } catch (...) {
     return false;  // A song not followed levels like a source with no title.
+  }
+}
+
+bool Watcher::follow_split(bool owner) noexcept {
+  if (split_ == nullptr) {
+    return false;
+  }
+  try {
+    // No file is no second output, which is also what quitting leaves.
+    return split_->follow(
+        read_config_file(config_dir_ + L"\\" + kSplitFileName), owner);
+  } catch (...) {
+    return false;  // `follow` keeps what it had; the next change tries again.
   }
 }
 

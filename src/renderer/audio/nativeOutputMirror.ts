@@ -1,5 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 import { reportError } from '../utils/logger';
+import type { TOutputDelayCallback } from '../../common/outputDelay';
 import type { IOutputMirror } from './outputMirror';
 
 export const startNativeMirror = async (
@@ -7,18 +8,20 @@ export const startNativeMirror = async (
   volume: number,
   onFailure?: () => void,
   signal?: AbortSignal,
-  onDelay?: (milliseconds: number) => void,
+  onDelay?: TOutputDelayCallback,
 ): Promise<IOutputMirror> => {
   const api = window.electron.ipcRenderer;
   const token = crypto.randomUUID();
   signal?.throwIfAborted();
   let stopped = false;
   let lastVolume = volume;
-  const detachDelay = api.onOutputMirrorDelay((delayToken, milliseconds) => {
-    if (delayToken === token && !stopped && Number.isFinite(milliseconds)) {
-      onDelay?.(milliseconds);
-    }
-  });
+  const detachDelay = api.onOutputMirrorDelay(
+    (delayToken, milliseconds, kind) => {
+      if (delayToken === token && !stopped && Number.isFinite(milliseconds)) {
+        onDelay?.(milliseconds, kind);
+      }
+    },
+  );
   const detach = api.onOutputMirrorFailed((failedToken) => {
     if (failedToken === token && !stopped) {
       stopped = true;

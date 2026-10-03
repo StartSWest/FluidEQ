@@ -45,7 +45,7 @@ bool parse_capture_args(int argc, const char* const* argv, CaptureArgs* args) {
   if (argc == 4) {
     return std::string_view(argv[3]) == "--pipe-overlapped";
   }
-  if (argc != 7 && argc != 9) {
+  if (argc != 7 && argc != 8 && argc != 9) {
     return false;
   }
   if (std::string_view(argv[3]) != "--pipe" ||
@@ -60,10 +60,14 @@ bool parse_capture_args(int argc, const char* const* argv, CaptureArgs* args) {
   if (!hex_digits(argv[6], kTokenHexDigits)) {
     return false;
   }
+  if (argc == 8 && std::string_view(argv[7]) != "--hold-only") {
+    return false;
+  }
   if (argc == 9 && (std::string_view(argv[7]) != "--exclude-tree-pid" ||
                     !parse_pid(argv[8], &args->exclude_tree_pid))) {
     return false;
   }
+  args->hold_only = argc == 8;
   // The name is ASCII by the checks above, so widening is exact.
   args->pipe_name.assign(pipe.begin(), pipe.end());
   args->token = argv[6];

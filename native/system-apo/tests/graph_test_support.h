@@ -78,7 +78,7 @@ inline fluideq_engine::FileProvider provider(const Files& files) {
 }
 
 inline const fluideq_engine::Endpoint& endpoint() {
-  static const fluideq_engine::Endpoint value{L"{AAAA}", L"Speakers (Realtek)"};
+  static const fluideq_engine::Endpoint value{L"{aaaaaaaa-1111-2222-3333-444455556666}", L"Speakers (Realtek)"};
   return value;
 }
 

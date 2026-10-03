@@ -4,6 +4,13 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 import { useSyncExternalStore } from 'react';
+import type { IEqualizerSnapshot } from '../../common/outputSettings';
+import { readOutputEditor } from '../utils/outputEditor';
+import { presetToneOf } from '../../common/dsp/presetTone';
+import {
+  publishDspSourceAnalysis,
+  setDspSourcePlayback,
+} from './sourceAnalysis';
 import { setDspRoomReport } from './roomTelemetry';
 
 import {
@@ -193,14 +200,109 @@ const subscribe = (listener: () => void) => {
  * push of its own, which was one of the two halves of the rack running twice.
  * The send is de-duplicated inside `systemChain.ts`.
  */
-const pushSystemChain = (): void => {
+const pushSystemChain = (persist = false): void => {
+  const target = readOutputEditor().editor;
+  if (!target) {
+    return;
+  }
   const rack = rackFor(readDspSettings(), engineRunsRack(readRackGate()));
   // A rack switched off at the root carries no curve: nothing limits through
   // it, and the engine reloads every output on each write it sees.
   const line = encodeChainSettings(rack);
   sendSystemDspChain(
     rack.enabled ? appendPresetTone(line, readPresetTone()) : line,
+    {
+      deviceId: target.device.id,
+      generation: target.generation,
+      settings: readDspSettings(),
+      legacySettings: legacySettings ?? (legacySettings = readStored()),
+      savedSettings:
+        persist || ownRack ? (ownRack ?? readDspSettings()) : undefined,
+    },
   );
+};
+
+let outputKey = '';
+let legacySettings: IDspSettings | undefined;
+const outputRacks = new Map<string, IDspSettings>();
+const outputTones = new Map<string, IPresetTone | undefined>();
+
+export const readPlaybackDspSettings = (): IDspSettings => {
+  const { editor, main } = readOutputEditor();
+  if (!main || editor?.device.id === main.id) {
+    return readDspSettings();
+  }
+  return outputRacks.get(main.id) ?? DSP_DEFAULTS;
+};
+export const usePlaybackDspSettings = (): IDspSettings =>
+  useSyncExternalStore(
+    subscribe,
+    readPlaybackDspSettings,
+    readPlaybackDspSettings,
+  );
+
+export const readPlaybackPresetTone = (): IPresetTone | undefined => {
+  const { editor, main } = readOutputEditor();
+  return !main || editor?.device.id === main.id
+    ? readPresetTone()
+    : outputTones.get(main.id);
+};
+export const usePlaybackPresetTone = (): IPresetTone | undefined =>
+  useSyncExternalStore(
+    subscribe,
+    readPlaybackPresetTone,
+    readPlaybackPresetTone,
+  );
+
+/** Loading an editor must never publish its predecessor's rack to this output. */
+export const adoptOutputDsp = (state: IEqualizerSnapshot): void => {
+  const target = state.outputEditor;
+  if (!target) {
+    return;
+  }
+  let playbackChanged = false;
+  if (state.playbackOutput && state.playbackState) {
+    const { id } = state.playbackOutput;
+    if (state.playbackState.dsp) {
+      const next = clampDspSettings(state.playbackState.dsp);
+      if (JSON.stringify(outputRacks.get(id)) !== JSON.stringify(next)) {
+        outputRacks.set(id, next);
+        playbackChanged = true;
+      }
+    }
+    const tone = presetToneOf(state.playbackState, {
+      eq:
+        readRackGate().engine === 'fluid' &&
+        state.playbackState.trebleDesigns?.eq !== 'classic',
+      curves:
+        readRackGate().engine === 'fluid' &&
+        state.playbackState.trebleDesigns?.curves !== 'classic',
+    });
+    if (JSON.stringify(outputTones.get(id)) !== JSON.stringify(tone)) {
+      outputTones.set(id, tone);
+      playbackChanged = true;
+    }
+  }
+  const key = `${target.device.id}:${target.generation}`;
+  if (key === outputKey) {
+    if (playbackChanged) {
+      emit();
+    }
+    return;
+  }
+  const first = outputKey === '';
+  outputKey = key;
+  ownRack = state.ownedDsp ? clampDspSettings(state.ownedDsp) : undefined;
+  settings = clampDspSettings(
+    state.dsp ?? (first ? readStored() : DSP_DEFAULTS),
+  );
+  outputRacks.set(target.device.id, settings);
+  loaded = true;
+  updatePresetTone(undefined);
+  emit();
+  if (first || !state.dsp) {
+    pushSystemChain(!state.dsp);
+  }
 };
 
 /**
@@ -209,7 +311,12 @@ const pushSystemChain = (): void => {
  * follows through `usePresetTone`.
  */
 export const setDspPresetTone = (next: IPresetTone | undefined): void => {
+  const id = readOutputEditor().editor?.device.id;
+  if (id) {
+    outputTones.set(id, next);
+  }
   if (updatePresetTone(next)) {
+    emit();
     pushSystemChain();
   }
 };
@@ -222,7 +329,18 @@ export const setDspPresetTone = (next: IPresetTone | undefined): void => {
  * own copy follows the same gate through `useRackGate`.
  */
 export const setDspRackGate = (patch: Partial<IRackGate>): void => {
-  if (updateRackGate(patch)) {
+  const changed = updateRackGate(patch);
+  if (
+    patch.libraryAudible !== undefined ||
+    patch.sendingRawAudio !== undefined
+  ) {
+    const gate = readRackGate();
+    setDspSourcePlayback({
+      libraryAudible: gate.libraryAudible,
+      sendingRawAudio: gate.sendingRawAudio,
+    });
+  }
+  if (changed) {
     pushSystemChain();
   }
 };
@@ -266,19 +384,54 @@ export const readDspSettings = (): IDspSettings => {
  */
 export const applyDspSettings = (next: IDspSettings): void => {
   settings = clampDspSettings(next);
+  const id = readOutputEditor().editor?.device.id;
+  if (id) {
+    outputRacks.set(id, settings);
+  }
   loaded = true;
   emit();
   pushSystemChain();
 };
 
+/**
+ * The listener's own rack while a song's preset is lent to it
+ * (`songSoundSession.ts`), and what is written down meanwhile: a song's rack
+ * never outlives its song, not even through an app that ends while it plays.
+ * Main keeps the preset's curve the same way (`songSoundLoan.ts`).
+ */
+let ownRack: IDspSettings | undefined;
+
 /** Write whatever is currently applied. Called when a gesture ends. */
 export const persistDspSettings = (): void => {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(readDspSettings()));
-  } catch {
-    // A full or disabled store costs persistence, not the session. The chain
-    // keeps running on whatever is in memory.
+  pushSystemChain(true);
+};
+
+/**
+ * Play a song's rack. The listener's own is kept aside the first time; a
+ * song following a song keeps the rack the first one took.
+ */
+export const lendDspSettings = (next: IDspSettings): void => {
+  ownRack = ownRack ?? readDspSettings();
+  applyDspSettings(next);
+};
+
+/** Whether a song's rack is playing in place of the listener's own. */
+export const isDspLent = (): boolean => ownRack !== undefined;
+
+/**
+ * End a loan: the listener's own rack back on (`restore`), or what plays kept
+ * as theirs; written down either way.
+ */
+export const endDspLoan = (restore: boolean): void => {
+  const own = ownRack;
+  if (!own) {
+    return;
   }
+  ownRack = undefined;
+  if (restore) {
+    applyDspSettings(own);
+  }
+  persistDspSettings();
 };
 
 /** Game mode is an output preference, independent of the selected sound. */
@@ -538,6 +691,7 @@ const subscribeInputAnalysis = (listener: () => void) => {
 
 export const setDspInputAnalysis = (next: IDspInputAnalysisState): void => {
   inputAnalysis = next;
+  publishDspSourceAnalysis(next);
   inputAnalysisListeners.forEach((listener) => listener());
 };
 

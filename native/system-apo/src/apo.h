@@ -213,9 +213,14 @@ class Apo final : public IAudioProcessingObject,
   std::shared_ptr<std::atomic<bool>> carried_;
   /** False until this instance has told the watcher; audio thread only. */
   bool carried_told_ = false;
+  /** Audio-thread identity only, never dereferenced after replacement. */
+  const Graph* reported_graph_ = nullptr;
 
   GraphSlot slot_;
   std::unique_ptr<Log> log_;
+  // Optional sharing is built by the watcher after main's graph is ready.
+  // The watcher owns it until audio has stopped; callbacks only load it.
+  std::atomic<SplitTap*> split_{nullptr};
   std::unique_ptr<Watcher> watcher_;
 };
 

@@ -28,9 +28,11 @@ import GameModeSwitch from '../components/GameModeSwitch';
 import LatencyReadout from '../components/LatencyReadout';
 import TitleRate from '../components/TitleRate';
 import DspSideTabs from './DspSideTabs';
+import OutputEditingNotice from '../OutputEditingNotice';
 import { rackSuspension, useRackGate } from './rackPlacement';
 import { TDspSection } from './sections';
 import { useTranslation } from '../utils/I18nContext';
+import { useOutputEditor } from '../utils/outputEditor';
 import {
   refreshAudioEngineStatus,
   useKnownAudioEngineStatus,
@@ -204,7 +206,7 @@ const DspPanel = ({
     }
     return allChannels ? 'dsp.surround.onHint' : 'dsp.surround.offHint';
   };
-  const listened = useListenedOutput(isSystemWide);
+  const listened = useListenedOutput(isSystemWide, 'editor');
   const roomLive = useDspPageRoomLive(listened, settings);
   const delay = useListenedDelay(listened);
   /**
@@ -255,7 +257,18 @@ const DspPanel = ({
   // And under the FluidEQ Engine, not while it is off: FluidEQ switched off
   // or the engine not running leaves the rack running nowhere, and a page
   // whose every control still answered would say otherwise.
-  const suspension = rackSuspension(useRackGate());
+  const gate = useRackGate();
+  const { editor, main } = useOutputEditor();
+  const editingAnotherOutput = isSystemWide && editor?.device.id !== main?.id;
+  // The main output's engine warning must not lock a healthy secondary rack.
+  const suspension = rackSuspension(
+    editingAnotherOutput
+      ? {
+          ...gate,
+          engineOff: listened.known && !listened.output?.processing,
+        }
+      : gate,
+  );
   const isRackEngaged =
     suspension === undefined &&
     (isSystemWide || (hasLibraryPlayback && nativeState === 'engaged'));
@@ -425,6 +438,7 @@ const DspPanel = ({
   return (
     <div className="dsp-panel">
       <header className="dsp-header">
+        <OutputEditingNotice />
         <div className="dsp-header-line">
           <h2 className="dsp-title">
             {t('dsp.title')}

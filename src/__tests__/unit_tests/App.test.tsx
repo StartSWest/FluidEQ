@@ -140,6 +140,7 @@ describe('App', () => {
     });
     jest.restoreAllMocks();
   });
+  const outputMirrorResetListeners = new Set<() => void>();
   const setWindowFullScreen = jest.fn(async (next: boolean) => next);
   /** What the window says on start-up, and the way to make it say more. */
   let windowStateOnLoad = { isMaximized: false, isFullScreen: false };
@@ -147,6 +148,7 @@ describe('App', () => {
   const sendMediaTransport = jest.fn(async (_action: string) => undefined);
 
   beforeEach(() => {
+    outputMirrorResetListeners.clear();
     setWindowFullScreen.mockClear();
     sendMediaTransport.mockClear();
     windowStateOnLoad = { isMaximized: false, isFullScreen: false };
@@ -212,6 +214,12 @@ describe('App', () => {
           getWindowState: async () => windowStateOnLoad,
           setWindowFullScreen,
           sendMediaTransport,
+          onOutputMirrorsReset: (listener: () => void) => {
+            outputMirrorResetListeners.add(listener);
+            return () => {
+              outputMirrorResetListeners.delete(listener);
+            };
+          },
           releaseKaraokeSeparationModel: jest.fn(),
           getLibrarySummary: async () => EMPTY_LIBRARY,
           queryLibrary: async (request: TLibraryRequest) =>
@@ -223,9 +231,17 @@ describe('App', () => {
     });
   });
 
-  it('should render', async () => {
-    expect(render(<App />)).toBeTruthy();
+  it('should render and release its native mirror reset subscriptions on unmount', async () => {
+    const app = render(<App />);
     await act(async () => Promise.resolve());
+    expect(outputMirrorResetListeners.size).toBeGreaterThan(0);
+    await act(async () => {
+      outputMirrorResetListeners.forEach((listener) => listener());
+    });
+    await act(async () => {
+      app.unmount();
+    });
+    expect(outputMirrorResetListeners.size).toBe(0);
   });
 
   it('keeps the official website in a fixed right-pane footer', async () => {

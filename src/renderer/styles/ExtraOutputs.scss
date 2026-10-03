@@ -175,6 +175,82 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Which input of a routing driver this is. Voicemeeter's three differ by a
 // single word, so the distinction has to be visible at a glance.
+// The outputs that are on, while the card is folded: one row apiece, each its
+// light, its name and its profile, so two outputs read as two.
+.extra-outputs__onList {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  gap: 6px;
+  list-style: none;
+}
+
+// The light against the first line, the name's, wherever the profile under
+// it wraps to.
+.extra-outputs__on {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 8px;
+
+  > .device-dot {
+    flex: 0 0 auto;
+    margin-top: 5px;
+  }
+}
+
+.extra-outputs__onText {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 2px;
+}
+
+.extra-outputs__onLine {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.extra-outputs__onName {
+  @include truncate;
+  min-width: 0;
+  flex: 0 1 auto;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  line-height: 1.35;
+}
+
+.extra-outputs__onProfile {
+  @include truncate;
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.35;
+}
+
+// The action belongs to the profile line. A separate column beside the
+// endpoint name squeezed both the name and "Edit sound" into fragments.
+.extra-outputs__profileActions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+
+  > .output-profile-select {
+    flex: 1 1 auto;
+  }
+}
+
+.extra-outputs__separator {
+  flex: 0 0 auto;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
 .extra-outputs__tag {
   display: inline-block;
   margin-left: 6px;

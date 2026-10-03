@@ -13,12 +13,14 @@ import type { TAudioEngine } from 'common/audioEngine';
 import { identifyVirtualDevice } from 'common/virtualAudioDevices';
 import SidebarSection from './components/SidebarSection';
 import Switch from './widgets/Switch';
+import MirrorDelay from './MirrorDelay';
 import useOutputMirror, { IMirrorTarget } from './audio/useOutputMirror';
 import { useIncomingSound } from './remoteAudio/remoteAudioValueContext';
 import { useTranslation } from './utils/I18nContext';
 import { setSinglePlayer, useSinglePlayer } from './utils/singlePlayer';
 import './styles/ExtraOutputs.scss';
 import SecondOutputProfilePicker from './SecondOutputProfilePicker';
+import OutputEditButton from './OutputEditButton';
 
 interface IExtraOutputsProps {
   /** Passed straight down to the per-output badge. See the picker. */
@@ -66,16 +68,11 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
     return t('extraOutput.unmatched');
   };
 
-  // The profile an output carries, when saying so tells you anything.
-  //
-  // An automatic profile is named after the endpoint that owns it, so printing
-  // it beside that endpoint's own name says the same thing twice — and it is
-  // what nearly every output has, so the column filled up with one repeated
-  // phrase. A named profile is worth showing; "no profile" is worth showing,
-  // because it means that speaker gets no correction at all.
+  // Named profiles and neutral outputs add useful detail. Automatic profiles
+  // already have the endpoint's name, so showing both would repeat it.
   const describeProfile = (target: IMirrorTarget): string => {
-    // The native Windows path feeds pre-APO audio, so the profile on B is now
-    // exactly what B plays. Other platforms still use endpoint loopback.
+    // The native path shares audio before the endpoint's corrections.
+    // Other platforms still use endpoint loopback.
     if (target.isRunning && window.electron?.platform !== 'win32') {
       return '';
     }
@@ -109,14 +106,69 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
         </svg>
       }
       title={t('extraOutput.title')}
-      // Folded, the header says which outputs are on — or that none is. It
-      // was a list of the enabled outputs under the header, a second row of
-      // names for something the header has room to say.
-      status={
-        enabled.length > 0
-          ? enabled.map((target) => target.device.name).join(' · ')
-          : t('extraOutput.statusOff')
+      // Folded, the outputs that are on each get a row under the header —
+      // the light that says it is playing, its name, and under them the
+      // profile it plays — and the
+      // header says only that none is. One line of names in the header read
+      // for one output and not for two (Ivan, 2026-10-02: "if we have more
+      // than one selected it doesn't make sense").
+      status={enabled.length > 0 ? undefined : t('extraOutput.statusOff')}
+      summary={
+        enabled.length > 0 && (
+          <ul className="extra-outputs__onList">
+            {enabled.map((target) => {
+              const profile = describeProfile(target);
+              return (
+                <li className="extra-outputs__on" key={target.device.guid}>
+                  <span
+                    className={
+                      target.isRunning ? 'device-dot active' : 'device-dot'
+                    }
+                  />
+                  <span className="extra-outputs__onText">
+                    <span className="extra-outputs__onLine">
+                      <span
+                        className="extra-outputs__onName"
+                        title={target.device.name}
+                      >
+                        {target.device.name}
+                      </span>
+                    </span>
+                    <span className="extra-outputs__profileActions">
+                      {profile && (
+                        <>
+                          <span
+                            className="extra-outputs__onProfile"
+                            title={profile}
+                          >
+                            {profile}
+                          </span>
+                          <span
+                            className="extra-outputs__separator"
+                            aria-hidden="true"
+                          >
+                            ·
+                          </span>
+                        </>
+                      )}
+                      <OutputEditButton device={target.device} />
+                    </span>
+                    {(target.delayMs !== undefined ||
+                      target.delayKind === 'unavailable') && (
+                      <MirrorDelay
+                        delayMs={target.delayMs}
+                        kind={target.delayKind}
+                        incoming={incoming}
+                      />
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )
       }
+      summaryWhenCollapsedOnly
       // Never folded away with the rest. It is a rule about the sound, not a
       // detail of the list, and the card is closed by default — folded with
       // the endpoints it would be a setting nobody ever meets.
@@ -222,31 +274,21 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
                       </span>
                     </div>
                   )}
-                  {/* How far behind it plays, measured, once it has said —
-                      and, while Share Audio plays another computer's sound
-                      here, how far behind that computer this output is. */}
-                  {target.isSelected && target.delayMs !== undefined && (
-                    <p className="extra-outputs__delay">
-                      <span>
-                        {t('extraOutput.delay', {
-                          milliseconds: Math.round(target.delayMs),
-                        })}
-                      </span>
-                      {incoming.map((sound) =>
-                        sound.delayMs === undefined ||
-                        target.delayMs === undefined ? null : (
-                          <span key={sound.id}>
-                            {t('extraOutput.delayFrom', {
-                              name: sound.name,
-                              milliseconds: Math.round(
-                                sound.delayMs + target.delayMs,
-                              ),
-                            })}
-                          </span>
-                        ),
-                      )}
-                    </p>
-                  )}
+                  {target.isSelected &&
+                    window.electron?.platform !== 'win32' && (
+                      <OutputEditButton device={target.device} />
+                    )}
+                  {/* Reported software buffering, not acoustic delay;
+                      include incoming buffering only while it has sound. */}
+                  {target.isSelected &&
+                    (target.delayMs !== undefined ||
+                      target.delayKind === 'unavailable') && (
+                      <MirrorDelay
+                        delayMs={target.delayMs}
+                        kind={target.delayKind}
+                        incoming={incoming}
+                      />
+                    )}
                 </div>
               </li>
             );
@@ -264,9 +306,10 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
       {/* Shown only while a mirror is what is actually running. With a routing
           driver in use there is no added delay, and warning about one anyway
           is how a user learns to stop reading warnings. */}
-      {isMirroring && (
-        <p className="extra-outputs__latency">{t('extraOutput.latency')}</p>
-      )}
+      {isMirroring &&
+        enabled.some((target) => target.delayKind === 'buffer') && (
+          <p className="extra-outputs__latency">{t('extraOutput.latency')}</p>
+        )}
       {isVirtualRoutingAvailable && (
         <p className="extra-outputs__virtual">{t('extraOutput.virtual')}</p>
       )}

@@ -99,6 +99,27 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
     active += quoted(status.latency_active[index]);
   }
   active += ']';
+  // Only on a second output fed by the engine, like `lastSong`.
+  std::string split;
+  if (status.split) {
+    split = ",\"split\":{\"from\":" + quoted(narrow_id(status.split->from)) +
+            ",\"state\":" + quoted(status.split->state) +
+            ",\"lagMs\":" + decimal(status.split->lag_ms) +
+            ",\"sourceDspMs\":" + decimal(status.split->source_dsp_ms) +
+            ",\"outputEqMs\":" + decimal(status.split->output_eq_ms) +
+            ",\"underruns\":" + std::to_string(status.split->underruns) + "}";
+  }
+  std::string source_analysis;
+  if (status.source_analysis) {
+    const auto& source = *status.source_analysis;
+    source_analysis = ",\"sourceAnalysis\":{\"version\":" + std::to_string(source.version) +
+        ",\"kind\":" + quoted(source.kind) + ",\"owner\":" + quoted(source.owner) +
+        ",\"source\":" + quoted(source.source) +
+        ",\"epoch\":" + std::to_string(source.epoch) +
+        ",\"revision\":" + std::to_string(source.revision) +
+        ",\"ready\":" + (source.ready ? "true" : "false") +
+        ",\"voiceReady\":" + (source.voice_ready ? "true" : "false") + "}";
+  }
   return std::string("{\"version\":1,\"endpoint\":") +
          quoted(narrow_id(status.endpoint)) +
          ",\"pid\":" + std::to_string(pid) +
@@ -114,7 +135,7 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
          ",\"latency\":" + std::to_string(status.latency) +
          ",\"latencyParts\":" + parts +
          ",\"latencyActive\":" + active +
-         ",\"gameMode\":" + (status.game_mode ? "true" : "false") +
+         ",\"gameMode\":" + (status.game_mode ? "true" : "false") + split + source_analysis +
          ",\"at\":" + quoted(at) + "}\r\n";
 }
 

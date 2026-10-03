@@ -805,6 +805,7 @@ describe('the audio engine channels', () => {
       expect(writeSystemDspChain).toHaveBeenCalledWith(
         path.join(userDataDir, 'config'),
         values,
+        undefined,
       );
     },
   );
@@ -878,6 +879,7 @@ describe('the audio engine channels', () => {
     expect(writeSystemDspChain).toHaveBeenCalledWith(
       path.join(userDataDir, 'config'),
       values,
+      undefined,
     );
     expect(replied(reply)).toEqual({ result: 'written' });
   });

@@ -45,6 +45,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "level_prediction.h"
 #include "leveling_board.h"
 #include "room_head.h"
+#include "split_tap.h"
+#include "source_analysis.h"
 
 namespace fluideq_engine {
 
@@ -156,9 +158,14 @@ class GraphSlot {
  */
 class Watcher {
  public:
+  /**
+   * `split` receives optional sharing built on this watcher's thread, never
+   * during main's initial graph setup. Null disables sharing for this host.
+   */
   Watcher(GraphSlot& slot, Log& log, Endpoint endpoint, std::wstring config_dir,
           uint32_t sample_rate, uint32_t channels, uint32_t max_frames,
-          unsigned long channel_mask = 0);
+          unsigned long channel_mask = 0,
+          std::atomic<SplitTap*>* split = nullptr, bool default_mode = true);
   ~Watcher();
 
   Watcher(const Watcher&) = delete;
@@ -215,14 +222,26 @@ class Watcher {
    *
    * Called at most once per lock, from `APOProcess`, and guarded there by a
    * flag so nothing happens on any block after the first with sound in it.
-   * It is the one call on that thread that reaches the operating system, and
-   * it earns the exception: without it the app can never learn that audio
+   * This bounded status wake reaches the operating system: without it the
+   * app can never learn that audio
    * has come — the status file is rewritten only when the engine is asked to
    * do something different, and a machine playing music while its engine is
    * passed over is asked for nothing at all. One `SetEvent` on an auto-reset
-   * event, once, against a block of ten milliseconds.
+   * event, once, against a block of ten milliseconds. Split changes, graph
+   * adoption and armed voice workers have their own bounded wake contracts.
    */
   void say_it_carried() noexcept;
+
+  /**
+   * The audio thread saying the second output it plays needs this thread:
+   * a kernel for a main output's new rate, or a status that changed —
+   * started, stopped, fell behind. The same one `SetEvent` as
+   * `say_it_carried`, on the same terms: only when something changed, which
+   * is a handful of times in a song, never once a block.
+   */
+  void split_wake() noexcept;
+  /** Callback tail: a prepared source snapshot actually became active. */
+  void graph_adopted() noexcept;
 
  private:
   static unsigned __stdcall thread_entry(void* self);
@@ -286,6 +305,12 @@ class Watcher {
    * the app to remember. Never throws.
    */
   bool follow_programme() noexcept;
+  /**
+   * Tell this instance which second output it plays or feeds — `split_file.h`.
+   * True when the status should say so. Never throws.
+   */
+  bool follow_split(bool owner) noexcept;
+  SourceAnalysis read_source(bool owner);
 
   GraphSlot& slot_;
   Log& log_;
@@ -300,6 +325,9 @@ class Watcher {
    * from it.
    */
   const unsigned long channel_mask_;
+  std::atomic<SplitTap*>* const split_slot_;
+  const bool default_mode_;
+  std::unique_ptr<SplitTap> split_;
   std::unique_ptr<AnalysisLink> analysis_;
   // The output's, shared with every instance locked on it and kept across
   // locks (`leveling_board.h`). Null only if it could not be allocated, and
@@ -308,7 +336,7 @@ class Watcher {
   // The music as it reaches the EQ, and what replays it through each new EQ
   // as that EQ starts to play. Null if either could not be allocated: every
   // edit's level is then found the old way.
-  std::unique_ptr<InputHistory> history_;
+  std::shared_ptr<InputHistory> history_;
   std::unique_ptr<LevelPredictor> predictor_;
   // Where each published graph's level is sent, and the number the last one
   // was published under (0 is never one).
@@ -332,7 +360,7 @@ class Watcher {
   // The room's head as last read and parsed. A head is 600 kB of text and
   // took 8.5 ms to parse, on every edit, for a file that changes only with
   // the head size.
-  std::string room_head_text_;
+  std::optional<std::string> room_head_text_;
   std::optional<RoomHead> room_head_;
   // Counts every change of `room_head_`, which is re-parsed in place, so its
   // address cannot say whether it is the head a rack was built through.
@@ -365,6 +393,9 @@ class Watcher {
   std::vector<std::pair<std::string, unsigned>> latency_parts_;
   std::vector<std::string> latency_active_;
   bool game_mode_ = false;
+  Graph::SourceReport source_report_;
+  bool source_invalid_ = false;
+  bool source_prepare_failed_ = false;
   // The watcher's own problems: a reload that threw (the previous graph
   // keeps running) until one works again, and a directory it cannot watch.
   bool reload_failed_ = false;
@@ -379,6 +410,9 @@ class Watcher {
   HANDLE reset_event_ = nullptr;
   // Auto-reset, set once per lock by the audio thread — `say_it_carried`.
   HANDLE carried_event_ = nullptr;
+  // Auto-reset, set by the audio thread when the second output it plays
+  // changes state — `split_wake`. Null where there is no split part.
+  HANDLE split_event_ = nullptr;
   HANDLE thread_ = nullptr;
 
   // Whether FluidEQ is running — see `owner_link.h`. Without it the engine

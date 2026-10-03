@@ -49,7 +49,6 @@ import {
   AUTOMATIC_PRESET_PREFIX,
 } from '../common/constants';
 import { PRODUCT_NAME } from '../common/branding';
-import { toEqCuts } from '../common/eqCuts';
 import { toTone } from '../common/tone';
 import { sanitizeSmartEqSettings } from '../common/smartEq';
 import {
@@ -57,6 +56,14 @@ import {
   validatePresetV2,
   validateState,
 } from '../common/validator';
+import {
+  forgetProfileOutputSound,
+  moveProfileOutputSound,
+  readProfileOutputSound,
+  rememberProfileOutputSound,
+  restoreOutputSound,
+  sanitizeOutputSound,
+} from './outputSoundPersistence';
 
 const CONFIG_CONTENT = 'Include: fluideq.txt';
 // A value on disk, not a name in code: this is what upstream AQUA wrote into
@@ -314,11 +321,11 @@ export const fetchSettings = (settingsDir: string) => {
     const voicing = normalizeLayerSelection(input.voicing);
     const driver = normalizeLayerSelection(input.driver);
     const smartEq = sanitizeSmartEqSettings(input.smartEq);
-    const eqCuts = toEqCuts(input.eqCuts);
     const tone = toTone(input.tone);
 
     return {
       ...fallbackState,
+      ...restoreOutputSound(input),
       isEnabled:
         typeof input.isEnabled === 'boolean'
           ? input.isEnabled
@@ -358,7 +365,6 @@ export const fetchSettings = (settingsDir: string) => {
       input.curveSmoothing === 'third'
         ? { curveSmoothing: input.curveSmoothing }
         : {}),
-      ...(eqCuts ? { eqCuts } : {}),
       ...(input.eqMode === 'normal' ||
       input.eqMode === 'double' ||
       input.eqMode === 'studio'
@@ -422,19 +428,16 @@ export const fetchSettings = (settingsDir: string) => {
     const {
       smartHeadroomProgramme,
       smartHeadroomTrimDb,
-      eqCuts: storedCuts,
+      songSoundLoan,
       tone: storedTone,
       ...persisted
     } = input;
-    // In slopes the dials offer, whatever an older build saved: a cut at a
-    // slope since taken off loads at the steepest one left.
-    const eqCuts = toEqCuts(storedCuts);
     // Within the dials' travel, whatever the file says.
     const tone = toTone(storedTone);
     // Manually set case sensitivity as false until it is confirmed in app that it can be enabled
     return {
       ...persisted,
-      ...(eqCuts ? { eqCuts } : {}),
+      ...restoreOutputSound(input),
       ...(tone ? { tone } : {}),
       preAmp: clampPreAmp(input.preAmp),
       filters: normalizeFilters(input.filters),
@@ -466,7 +469,10 @@ export const save = (state: IState, settingsDir: string): Promise<void> => {
   // The promise is the writer's, and nothing in the app waits on it: a drag
   // must not. It is here so a caller that has to see the file — a test, a
   // shutdown — can say so instead of guessing at a delay.
-  return scheduleWrite(settingsPath, serializeState(state));
+  return scheduleWrite(
+    settingsPath,
+    serializeState({ ...state, ...sanitizeOutputSound(state) }),
+  );
 };
 
 /**
@@ -485,6 +491,11 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
     if (validatePresetV1(json)) {
       const oldFormat = json as IPresetV1;
       const newFormat: IPresetV2 = {
+        ...readProfileOutputSound(
+          presetFilePath(presetsDir, presetName),
+          content,
+          json,
+        ),
         preAmp: clampPreAmp(oldFormat.preAmp),
         filters: {},
       };
@@ -512,6 +523,11 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
     const bypassed = normalizeBypassed(preset.bypassed);
     return {
       ...preset,
+      ...readProfileOutputSound(
+        presetFilePath(presetsDir, presetName),
+        content,
+        preset,
+      ),
       preAmp: clampPreAmp(preset.preAmp),
       filters: normalizeFilters(preset.filters),
       ...(graphicEq ? { graphicEq } : {}),
@@ -554,10 +570,11 @@ export const savePreset = (
 ): Promise<void> => {
   // Asynchronous and coalesced, like the state file: the attached profile
   // is rewritten on every edit.
-  const landed = scheduleWrite(
-    presetFilePath(presetsDir, presetName),
-    serializePreset(presetInfo),
-  );
+  const filePath = presetFilePath(presetsDir, presetName);
+  const safe = { ...presetInfo, ...sanitizeOutputSound(presetInfo) };
+  const contents = serializePreset(safe);
+  rememberProfileOutputSound(filePath, contents, safe);
+  const landed = scheduleWrite(filePath, contents);
   logPresetWrite(presetName, source);
   return landed;
 };
@@ -572,7 +589,7 @@ export const savePreset = (
  */
 export const PRESET_BASELINES_DIR = 'preset-baselines';
 
-export const savePresetBaseline = (
+export const savePresetBaseline = async (
   presetName: string,
   presetInfo: IPresetV2,
   baselineDir: string,
@@ -583,11 +600,7 @@ export const savePresetBaseline = (
   }
   try {
     fs.mkdirSync(baselineDir, { recursive: true });
-    fs.writeFileSync(
-      path.join(baselineDir, safeName),
-      serializePreset(presetInfo),
-      { encoding: 'utf8' },
-    );
+    await savePreset(safeName, presetInfo, baselineDir, 'manual-save-baseline');
   } catch (ex) {
     // A missing baseline costs the user an undo, not their tuning. Never let
     // it fail the save that triggered it.
@@ -605,9 +618,7 @@ export const fetchPresetBaseline = (
     return undefined;
   }
   try {
-    const json = JSON.parse(
-      fs.readFileSync(path.join(baselineDir, safeName), { encoding: 'utf8' }),
-    );
+    const json = JSON.parse(readTextCached(path.join(baselineDir, safeName)));
     if (!validatePresetV2(json)) {
       return undefined;
     }
@@ -615,6 +626,7 @@ export const fetchPresetBaseline = (
     const graphicEq = normalizeGraphicEq(preset.graphicEq);
     return {
       ...preset,
+      ...restoreOutputSound(preset),
       preAmp: clampPreAmp(preset.preAmp),
       filters: normalizeFilters(preset.filters),
       ...(graphicEq ? { graphicEq } : {}),
@@ -626,10 +638,10 @@ export const fetchPresetBaseline = (
 
 export const hasPresetBaseline = (presetName: string, baselineDir: string) => {
   const safeName = safePresetFileName(presetName);
-  return safeName ? fs.existsSync(path.join(baselineDir, safeName)) : false;
+  return safeName ? doesPresetExist(safeName, baselineDir) : false;
 };
 
-export const deletePresetBaseline = (
+export const deletePresetBaseline = async (
   presetName: string,
   baselineDir: string,
 ) => {
@@ -638,13 +650,17 @@ export const deletePresetBaseline = (
     return;
   }
   try {
-    fs.unlinkSync(path.join(baselineDir, safeName));
+    const filePath = path.join(baselineDir, safeName);
+    await settlePath(filePath);
+    forgetPath(filePath);
+    forgetProfileOutputSound(filePath);
+    fs.unlinkSync(filePath);
   } catch {
     // Nothing to remove is the normal case for a profile never saved by hand.
   }
 };
 
-export const renamePresetBaseline = (
+export const renamePresetBaseline = async (
   oldName: string,
   newName: string,
   baselineDir: string,
@@ -655,10 +671,13 @@ export const renamePresetBaseline = (
     return;
   }
   try {
-    fs.renameSync(
-      path.join(baselineDir, safeOld),
-      path.join(baselineDir, safeNew),
-    );
+    const oldPath = path.join(baselineDir, safeOld);
+    const newPath = path.join(baselineDir, safeNew);
+    await Promise.all([settlePath(oldPath), settlePath(newPath)]);
+    forgetPath(oldPath);
+    forgetPath(newPath);
+    fs.renameSync(oldPath, newPath);
+    moveProfileOutputSound(oldPath, newPath);
   } catch {
     // The profile may never have been saved by hand; that is not an error.
   }
@@ -732,6 +751,7 @@ export const deletePreset = async (presetName: string, presetsDir: string) => {
   // and the profile comes back from the dead.
   await settlePath(presetPath);
   forgetPath(presetPath);
+  forgetProfileOutputSound(presetPath);
   try {
     fs.unlinkSync(presetPath);
   } catch (ex) {
@@ -778,6 +798,7 @@ export const renamePreset = async (
   forgetPath(oldPath);
   try {
     fs.renameSync(oldPath, newPath);
+    moveProfileOutputSound(oldPath, newPath);
   } catch (ex) {
     log.error('Failed to rename preset %s to preset %s', oldName, newName);
     throw ex;

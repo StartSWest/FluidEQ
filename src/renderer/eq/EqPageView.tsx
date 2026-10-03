@@ -34,6 +34,7 @@ import { CSSProperties } from 'react';
 import Spinner from '../icons/Spinner';
 import BandMenu from '../components/BandMenu';
 import OutputRate from '../components/OutputRate';
+import OutputEditingNotice from '../OutputEditingNotice';
 import VoicingQuickPick from '../components/VoicingQuickPick';
 import Button from '../widgets/Button';
 import {
@@ -212,6 +213,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
                 <OutputRate />
               </h2>
             </div>
+            <OutputEditingNotice />
           </div>
           <div className="eq-toolbar">
             <VoicingQuickPick />

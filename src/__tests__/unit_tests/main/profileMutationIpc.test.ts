@@ -1,3 +1,4 @@
+/** @jest-environment node */
 /*
 <FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
@@ -35,7 +36,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import log from 'electron-log';
-import { forgetPath } from '../../../main/asyncWriter';
+import { flushPendingWrites, forgetPath } from '../../../main/asyncWriter';
 import { ErrorCode } from '../../../common/errors';
 import ChannelEnum from '../../../common/channels';
 import { getEqMode, TEqMode } from '../../../common/eqMode';
@@ -151,7 +152,7 @@ describe('renaming and deleting a profile through IPC', () => {
       [HEADPHONES, SPEAKERS].map(async (deviceId, index) => {
         fs.mkdirSync(presetDirFor(deviceId), { recursive: true });
         await savePreset(SHARED, presetWith(index + 1), presetDirFor(deviceId));
-        savePresetBaseline(
+        await savePresetBaseline(
           SHARED,
           presetWith(index + 1),
           baselineDirFor(deviceId),
@@ -164,7 +165,8 @@ describe('renaming and deleting a profile through IPC', () => {
       userDataDir: root,
       presetDirForDevice: presetDirFor,
       activePresetDir: () => presetDirFor(activeDeviceId),
-      activeBaselineDir: () => baselineDirFor(activeDeviceId),
+      activeBaselineDir: (deviceId = activeDeviceId) =>
+        baselineDirFor(deviceId),
       deviceProfileSettings: settings,
       session: {
         configPath: configDir,
@@ -201,6 +203,7 @@ describe('renaming and deleting a profile through IPC', () => {
   });
 
   afterEach(async () => {
+    await flushPendingWrites();
     jest.restoreAllMocks();
     fs.rmSync(root, { recursive: true, force: true });
     fs.rmSync(configDir, { recursive: true, force: true });
@@ -227,6 +230,19 @@ describe('renaming and deleting a profile through IPC', () => {
     });
   });
 
+  it.each([
+    ChannelEnum.GET_PRESET_FILE_LIST,
+    ChannelEnum.GET_PRESET_BASELINE_NAMES,
+  ])('%s rejects a malformed catalogue target', async (channel) => {
+    const report = jest.spyOn(log, 'error').mockImplementation(() => undefined);
+    const reply = await fire(channel, [{ deviceId: '' }]);
+    expect(reply).not.toHaveBeenCalled();
+    expect(errors).toEqual([ErrorCode.PRESET_FILE_ERROR]);
+    expect(report).toHaveBeenCalledTimes(
+      channel === ChannelEnum.GET_PRESET_FILE_LIST ? 2 : 0,
+    );
+  });
+
   it.each<TEqMode>(['normal', 'double', 'studio'])(
     'loads and restores explicit %s mode without leaking the previous profile',
     async (eqMode) => {
@@ -236,7 +252,7 @@ describe('renaming and deleting a profile through IPC', () => {
         isEqDoubleOn: eqMode !== 'double',
       };
       await savePreset(SHARED, preset, presetDirFor(HEADPHONES));
-      savePresetBaseline(SHARED, preset, baselineDirFor(HEADPHONES));
+      await savePresetBaseline(SHARED, preset, baselineDirFor(HEADPHONES));
       state.eqMode = 'studio';
       await fire(ChannelEnum.LOAD_PRESET, [SHARED]);
       expect(errors).toEqual([]);
@@ -255,7 +271,7 @@ describe('renaming and deleting a profile through IPC', () => {
     async (isEqDoubleOn) => {
       const preset = { ...presetWith(3), isEqDoubleOn };
       await savePreset(SHARED, preset, presetDirFor(HEADPHONES));
-      savePresetBaseline(SHARED, preset, baselineDirFor(HEADPHONES));
+      await savePresetBaseline(SHARED, preset, baselineDirFor(HEADPHONES));
       state.isEqDoubleOn = isEqDoubleOn !== true;
       await fire(ChannelEnum.LOAD_PRESET, [SHARED]);
       expect(errors).toEqual([]);
@@ -369,7 +385,8 @@ describe('renaming and deleting a profile through IPC', () => {
     // It used to reply and then run the whole mutation anyway, replying a
     // second time on a channel the renderer had already resolved.
     expect(reply).toHaveBeenCalledTimes(1);
-    expect(mutations).toBe(0);
+    // Even a no-op is ordered with earlier writes and editor changes.
+    expect(mutations).toBe(1);
     expect(presetExists(HEADPHONES, SHARED)).toBe(true);
   });
 
@@ -432,7 +449,7 @@ describe('renaming and deleting a profile through IPC', () => {
 
   it('lists saved copies for the active output only', async () => {
     await savePreset('Desk', presetWith(5), presetDirFor(SPEAKERS));
-    savePresetBaseline('Desk', presetWith(5), baselineDirFor(SPEAKERS));
+    await savePresetBaseline('Desk', presetWith(5), baselineDirFor(SPEAKERS));
 
     const onHeadphones = await fire(ChannelEnum.GET_PRESET_BASELINE_NAMES, []);
     activeDeviceId = SPEAKERS;

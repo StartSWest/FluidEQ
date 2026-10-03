@@ -20,6 +20,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': '编辑主输出',
+  'extraOutput.edit': '编辑声音',
+  'extraOutput.done': '完成',
+  'extraOutput.editing': '编辑中',
+  'extraOutput.editHint': '编辑 {device}，不切换主输出',
+  'extraOutput.editingOutput': '正在编辑：{device}',
   'eq.layouts.empty':
     '设计会保存频率、每个频段的Q值及Q模式。增益和强度单独设置。',
   'eq.layouts.qHint': '新布局的所有频段使用相同的初始Q值。频段越多，带宽越窄。',
@@ -426,9 +432,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.statusOff': '关闭',
   'extraOutput.volume': '音量',
   'extraOutput.latency':
-    '每路第二输出都会像“共享音频”一样自行保持同步：开始时约落后 30 ms，只有出现中断才稍微增加缓冲，稳定后再减回来。若与主输出在同一位置同时收听，可能察觉轻微重影。',
-  'extraOutput.delay': '落后 {milliseconds} 毫秒',
-  'extraOutput.delayFrom': '{name} 的声音：落后 {milliseconds} 毫秒',
+    '主输出不会等待第二输出。这些数值估算的是软件缓冲时间，而非实际听到的延迟。音频驱动、设备和无线连接可能带来额外延迟。',
+  'extraOutput.delayUnavailable': '延迟信息不可用',
+  'extraOutput.delay': '软件缓冲：{milliseconds} 毫秒',
+  'extraOutput.delayFrom': '来自 {name}：软件缓冲 {milliseconds} 毫秒',
   'extraOutput.virtual':
     '系统里已装有路由驱动。把应用的输出指向它，两路输出就能保持同步；然后在上面给每一路各自的配置。',
   'extraOutput.ambiguous':

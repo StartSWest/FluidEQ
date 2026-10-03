@@ -43,6 +43,7 @@ import {
 } from '../dsp/store';
 import { activeDspPresetId } from '../dsp/dspPresetCatalog';
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
+import { ownPresetId, yieldSongSound } from '../audio/songSoundSession';
 import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { GAME_PROFILES_CHANGED, readGameProfiles } from './gameProfiles';
 import { requestGameWatch } from './gameWatchRequest';
@@ -227,9 +228,12 @@ export const useGameSound = ({
       return;
     }
     // Nothing here waits on the switch: the chain it selects is the app's
-    // own, and a failure has already told the window in its own words.
-    latest.current
-      .apply(step.select === '' ? 'none' : step.select)
+    // own, and a failure has already told the window in its own words. A
+    // song's own sound comes off first (`songSoundSession.ts`), so the game's
+    // lands on the listener's and nothing hands the song's back over it.
+    const id = step.select === '' ? 'none' : step.select;
+    yieldSongSound()
+      .then(() => latest.current.apply(id))
       .catch(() => undefined);
   }, []);
 
@@ -241,7 +245,13 @@ export const useGameSound = ({
       }
       const { profiles: known, presetId } = latest.current;
       const profile = gameProfileFor(known, program.path);
-      const step = gameSoundStep(memory.current, profile?.presetId, presetId);
+      // The listener's own preset is what goes back at the game's end, never
+      // a song's that is only lent to it.
+      const step = gameSoundStep(
+        memory.current,
+        profile?.presetId,
+        ownPresetId(presetId),
+      );
       // Ask to be told when this game ends, because that — and not losing
       // the front — is what puts the sound back. Asked every time it comes
       // forward, not only when the chain changes: after a reload the watcher

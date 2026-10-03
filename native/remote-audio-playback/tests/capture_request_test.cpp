@@ -23,6 +23,10 @@ const std::string kToken =
 int main() {
   check(capture_request_valid(kPipe + " " + kToken + " local"), "the second output's capture");
   check(capture_request_valid(kPipe + " " + kToken + " lan"), "the network's capture");
+  check(capture_request_valid(kPipe + " " + kToken + " hold"),
+        "the FluidEQ Engine's hold on a second output");
+  check(!capture_request_valid(kPipe + " " + kToken + " hold --hold-only"),
+        "the hold's flag smuggled after it");
   check(!capture_request_valid(kPipe + " " + kToken + " both"), "an unknown capture");
   check(!capture_request_valid(kPipe + " " + kToken), "no capture named");
   check(!capture_request_valid(kPipe + " " + kToken + " lan --exclude-tree-pid 4"),

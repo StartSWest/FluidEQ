@@ -6,8 +6,9 @@
 namespace {
 
 constexpr std::string_view kPipePrefix = "\\\\.\\pipe\\FluidEQ-LAN-";
-/** Two are ever wanted (the network's and the second output's); the rest of
- * the room keeps one wait within WaitForMultipleObjects' 64 handles. */
+/** Three are ever wanted (the network's, the second output's and the
+ * FluidEQ Engine's hold); the rest of the room keeps one wait within
+ * WaitForMultipleObjects' 64 handles. */
 constexpr std::size_t kMaxChildren = 16;
 
 bool hex_digits(std::string_view text, std::size_t count) {
@@ -33,7 +34,7 @@ bool split(std::string_view request, Request* out) {
   return out->pipe.starts_with(kPipePrefix) &&
          hex_digits(out->pipe.substr(kPipePrefix.size()), 32) &&
          hex_digits(out->token, 64) &&
-         (out->mode == "local" || out->mode == "lan");
+         (out->mode == "local" || out->mode == "lan" || out->mode == "hold");
 }
 
 std::wstring capture_path() {
@@ -110,6 +111,9 @@ HRESULT CaptureChildren::spawn(std::string_view request, std::uint32_t id) {
                          widen(parts.pipe) + L" --token " + widen(parts.token);
   if (parts.mode == "lan") {
     command += L" --exclude-tree-pid " + std::to_wstring(GetCurrentProcessId());
+  } else if (parts.mode == "hold") {
+    // Captures nothing: holds second outputs open for the FluidEQ Engine.
+    command += L" --hold-only";
   }
   STARTUPINFOW startup{};
   startup.cb = sizeof(startup);

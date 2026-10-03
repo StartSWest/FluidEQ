@@ -28,6 +28,12 @@ struct CaptureArgs {
   std::string token;
   /** The process whose tree this capture leaves out; 0 means its own. */
   DWORD exclude_tree_pid = 0;
+  /**
+   * Capture nothing: only hold second outputs in silence for the FluidEQ
+   * Engine to play into (`--hold-only`, `hold_output.h`). A process loopback
+   * nobody listens to would cost its pipe and its device all the same.
+   */
+  bool hold_only = false;
 };
 
 /** Every malformed or unknown argument is a refusal, never a default. */

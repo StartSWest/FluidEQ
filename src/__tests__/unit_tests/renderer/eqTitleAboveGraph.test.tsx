@@ -142,6 +142,15 @@ type TListener = (...args: unknown[]) => void;
  */
 const installMain = () => {
   const listeners = new Map<string, TListener[]>();
+  const subscribe = (channel: string, listener: TListener) => {
+    listeners.set(channel, [...(listeners.get(channel) ?? []), listener]);
+    return () => {
+      listeners.set(
+        channel,
+        (listeners.get(channel) ?? []).filter((each) => each !== listener),
+      );
+    };
+  };
   Object.defineProperty(window, 'electron', {
     configurable: true,
     get: () => ({
@@ -157,17 +166,9 @@ const installMain = () => {
             ),
           );
         },
-        on: (channel: string, listener: TListener) => {
-          listeners.set(channel, [...(listeners.get(channel) ?? []), listener]);
-          return () => {
-            listeners.set(
-              channel,
-              (listeners.get(channel) ?? []).filter(
-                (each) => each !== listener,
-              ),
-            );
-          };
-        },
+        on: subscribe,
+        onOutputMirrorsReset: (listener: () => void) =>
+          subscribe('output-mirrors-reset', listener),
         removeListener: () => {},
         getWindowState: async () => ({
           mode: 'app',

@@ -161,39 +161,36 @@ export const startRawSourceCapture = async (
   }
 };
 
-export interface INativeOutputMirror extends IRemoteAudioCapture {
+export interface INativeOutputHold {
   close(): Promise<void>;
+}
+
+export interface INativeOutputMirror extends INativeOutputHold {
   setVolume(volume: number): Promise<void>;
 }
 
 /**
- * The second output: this computer's sound, the sound other computers share
- * with it included, played on another device. Rendered by the `local`
- * capture itself, which leaves itself out, so a mirror is never heard twice;
- * the network's capture leaves this one's tree out with it.
- *
- * It keeps time by itself, the way Share Audio's playback does; there is no
- * mode to choose (`mirror_output.h`). `onDelay` hears how far behind it plays,
- * about twice a second.
+ * One second output on a capture helper: started with `kind` and `args`,
+ * commanded under its own id, and stopped with `stop`.
  */
-export const startNativeOutputMirror = async (
-  guid: string,
-  volume: number,
-  onFailure: () => void,
-  onDelay: (milliseconds: number) => void,
-): Promise<INativeOutputMirror> => {
-  const lease = acquire('local', { failure: onFailure });
+const startOnHelper = async (
+  mode: TCaptureMode,
+  kind: string,
+  args: string,
+  listener: IMirrorListener,
+) => {
+  const lease = acquire(mode, { failure: listener.failed });
   const id = allocateId();
   const { current } = lease;
   let closed = false;
   let closing: Promise<void> | undefined;
-  const command = async (kind: string, args = '') => {
+  const command = async (verb: string, rest = '') => {
     const process = await lease.ready;
     return new Promise<void>((resolve, reject) => {
       const requestId = allocateId();
       current.requests.set(requestId, { resolve, reject });
       try {
-        process.command(`${kind} ${requestId} ${id}${args ? ` ${args}` : ''}`);
+        process.command(`${verb} ${requestId} ${id}${rest ? ` ${rest}` : ''}`);
       } catch (error) {
         current.requests.delete(requestId);
         reject(error);
@@ -201,11 +198,11 @@ export const startNativeOutputMirror = async (
     });
   };
   try {
-    current.mirrors.set(id, { failed: onFailure, delay: onDelay });
-    await command('start', `${guid} ${volume}`);
+    current.mirrors.set(id, listener);
+    await command(kind, args);
     return {
-      setVolume: (value) =>
-        closed ? Promise.resolve() : command('volume', String(value)),
+      command: (verb: string, rest: string) =>
+        closed ? Promise.resolve() : command(verb, rest),
       close: () => {
         if (closing) {
           return closing;
@@ -227,4 +224,48 @@ export const startNativeOutputMirror = async (
     lease.close();
     throw error;
   }
+};
+
+/**
+ * The second output: this computer's sound, the sound other computers share
+ * with it included, played on another device. Rendered by the `local`
+ * capture itself, which leaves itself out, so a mirror is never heard twice;
+ * the network's capture leaves this one's tree out with it.
+ *
+ * It keeps time by itself, the way Share Audio's playback does; there is no
+ * mode to choose (`mirror_output.h`). `onDelay` hears how far behind it plays,
+ * about twice a second.
+ */
+export const startNativeOutputMirror = async (
+  guid: string,
+  volume: number,
+  onFailure: () => void,
+  onDelay: (milliseconds: number) => void,
+): Promise<INativeOutputMirror> => {
+  const mirror = await startOnHelper('local', 'start', `${guid} ${volume}`, {
+    failed: onFailure,
+    delay: onDelay,
+  });
+  return {
+    setVolume: (value) => mirror.command('volume', String(value)),
+    close: mirror.close,
+  };
+};
+
+/**
+ * A second output held open in silence, so the FluidEQ Engine on it runs and
+ * plays the main output's sound straight from the main output's engine
+ * (`hold_output.h`, `secondOutputRoute.ts`). On the `hold` helper, which
+ * captures nothing: its volume is the engine's, in the split file.
+ */
+export const startNativeOutputHold = async (
+  guid: string,
+  onFailure: () => void,
+): Promise<INativeOutputHold> => {
+  const hold = await startOnHelper('hold', 'hold', guid, {
+    failed: onFailure,
+    // Its processing delay comes from the engine's status, not this helper.
+    delay: () => undefined,
+  });
+  return { close: hold.close };
 };

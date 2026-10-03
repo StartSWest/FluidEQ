@@ -52,7 +52,7 @@ import {
 } from '../../../common/library/queue';
 import type { ILibraryTrack } from '../../../common/library/types';
 import { useDspEngine } from '../../dsp/useDspEngine';
-import { useDspSettings } from '../../dsp/store';
+import { usePlaybackDspSettings } from '../../dsp/store';
 import { usePlaybackHandoff } from '../../audio/playbackHandoff';
 import { claimPlayback, releasePlayback } from '../../audio/playbackOwner';
 import { useLibrary } from '../LibraryContext';
@@ -130,7 +130,7 @@ export const LibraryPlayerProvider = ({
   // Only the audio element. The video element below keeps its direct path —
   // routing it through Web Audio as well would mean a second source node and a
   // second chain for a track type the DSP was never asked to colour.
-  const dspSettings = useDspSettings();
+  const dspSettings = usePlaybackDspSettings();
   useDspEngine(audioElements, dspSettings);
   const dspSettingsRef = useRef(dspSettings);
   dspSettingsRef.current = dspSettings;

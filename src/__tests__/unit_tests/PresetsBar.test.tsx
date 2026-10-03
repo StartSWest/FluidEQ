@@ -26,13 +26,21 @@ import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import { clearAndType, setup } from '__tests__/utils/userEventUtils';
+import {
+  mainOutput,
+  showOutputEditor,
+} from '__tests__/utils/outputEditorFixture';
 
-// No bridge in this suite, so every read of the outputs fails where it is
-// made — and a read that failed later, as the kept list's does, would be left
-// rejected by the one beside it failing first. Nothing here is about outputs.
+// These row interactions take place with main already selected. The dedicated
+// ownership suite also exercises a secondary editor and in-flight output changes.
 jest.mock('renderer/utils/equalizerApi', () => ({
-  ...jest.requireActual('renderer/utils/equalizerApi'),
-  readKnownAudioDevices: () => Promise.resolve([]),
+  getDeviceProfileSettings: async () => ({ version: 1, assignments: {} }),
+  getPresetBaselineNames: async () => [],
+}));
+
+jest.mock('renderer/audio/songSoundSession', () => ({
+  keepSongSound: async () => undefined,
+  yieldSongSound: async () => undefined,
 }));
 
 describe('PresetListItem', () => {
@@ -54,11 +62,19 @@ describe('PresetListItem', () => {
   const deletePreset = jest.fn();
 
   beforeEach(() => {
+    showOutputEditor();
     fetchPresets.mockClear();
     loadPreset.mockClear();
     savePreset.mockClear();
     createPreset.mockClear();
-    renamePreset.mockClear();
+    renamePreset
+      .mockReset()
+      .mockImplementation(async (oldName: string, newName: string) => {
+        const current = await fetchPresets(mainOutput.id);
+        fetchPresets.mockResolvedValue(
+          current.map((name: string) => (name === oldName ? newName : name)),
+        );
+      });
     deletePreset.mockClear();
   });
 
@@ -128,7 +144,10 @@ describe('PresetListItem', () => {
 
     await user.click(screen.getByLabelText(samplePresetNames[0]));
     expect(loadPreset).toHaveBeenCalledTimes(1);
-    expect(loadPreset).toHaveBeenCalledWith(samplePresetNames[0]);
+    expect(loadPreset).toHaveBeenCalledWith(
+      samplePresetNames[0],
+      mainOutput.id,
+    );
   });
 
   it('updates the profile that is selected', async () => {
@@ -157,7 +176,10 @@ describe('PresetListItem', () => {
 
     await user.click(saveButton);
     expect(savePreset).toHaveBeenCalledTimes(1);
-    expect(savePreset).toHaveBeenCalledWith(samplePresetNames[1]);
+    expect(savePreset).toHaveBeenCalledWith(
+      samplePresetNames[1],
+      mainOutput.id,
+    );
   });
 
   // The bin used to do nothing visible when the file could not be deleted:
@@ -189,7 +211,10 @@ describe('PresetListItem', () => {
     await user.click(screen.getAllByLabelText('Delete')[0]);
     await user.click(screen.getByLabelText('Accept'));
 
-    expect(deletePreset).toHaveBeenCalledWith(samplePresetNames[0]);
+    expect(deletePreset).toHaveBeenCalledWith(
+      samplePresetNames[0],
+      mainOutput.id,
+    );
     expect(setGlobalError).toHaveBeenCalledWith({
       shortError: 'locked',
       action: 'close it',
@@ -217,7 +242,10 @@ describe('PresetListItem', () => {
 
     await user.click(screen.getByLabelText(newPresetButtonLabel));
     expect(createPreset).toHaveBeenCalledTimes(1);
-    expect(createPreset).toHaveBeenCalledWith('Untitled profile 1');
+    expect(createPreset).toHaveBeenCalledWith(
+      'Untitled profile 1',
+      mainOutput.id,
+    );
     // Never the update call: that one overwrites whatever it is given.
     expect(savePreset).not.toHaveBeenCalled();
   });
@@ -419,7 +447,11 @@ describe('PresetListItem', () => {
       await user.click(field);
       await clearAndType(user, field, 'Apple 2');
       await user.click(screen.getByLabelText('Accept'));
-      expect(renamePreset).toHaveBeenCalledWith('Apple', 'Apple 2');
+      expect(renamePreset).toHaveBeenCalledWith(
+        'Apple',
+        'Apple 2',
+        mainOutput.id,
+      );
       expect(loadPreset).not.toHaveBeenCalled();
     });
 
@@ -429,7 +461,11 @@ describe('PresetListItem', () => {
       await user.click(screen.getAllByLabelText(editIconLabel)[0]);
       await clearAndType(user, screen.getByLabelText(editModeLabel), 'Apple 2');
       await user.keyboard('{Enter}');
-      expect(renamePreset).toHaveBeenCalledWith('Apple', 'Apple 2');
+      expect(renamePreset).toHaveBeenCalledWith(
+        'Apple',
+        'Apple 2',
+        mainOutput.id,
+      );
       expect(loadPreset).not.toHaveBeenCalled();
     });
 
@@ -445,7 +481,10 @@ describe('PresetListItem', () => {
       // The positive control: the row itself keeps selecting.
       const user = await renderBar();
       await user.click(screen.getByLabelText(samplePresetNames[1]));
-      expect(loadPreset).toHaveBeenCalledWith(samplePresetNames[1]);
+      expect(loadPreset).toHaveBeenCalledWith(
+        samplePresetNames[1],
+        mainOutput.id,
+      );
     });
   });
 });

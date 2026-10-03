@@ -28,6 +28,7 @@ import {
   usePlayerProcessingLatency,
 } from '../dsp/processingLatency';
 import { useRackGate } from '../dsp/rackPlacement';
+import { useOutputEditor } from './outputEditor';
 
 const bridge = () => window.electron?.ipcRenderer;
 
@@ -45,9 +46,17 @@ export interface IListenedOutput {
   output: IEngineOutputHealth | undefined;
 }
 
-export const useListenedOutput = (isFluid: boolean): IListenedOutput => {
+export const useListenedOutput = (
+  isFluid: boolean,
+  target: 'playback' | 'editor' = 'playback',
+): IListenedOutput => {
+  const { editor } = useOutputEditor();
+  const editorGuid = target === 'editor' ? editor?.device.guid : undefined;
   // Replies from a previous engine activation must never describe this one.
-  const session = useMemo(() => ({ isFluid }), [isFluid]);
+  const session = useMemo(
+    () => ({ isFluid, editorGuid }),
+    [isFluid, editorGuid],
+  );
   const [snapshot, setSnapshot] = useState<{
     session: object;
     health?: IEngineHealth;
@@ -98,7 +107,8 @@ export const useListenedOutput = (isFluid: boolean): IListenedOutput => {
       readKnownAudioDevices()
         .then((devices) => {
           if (isLive && request === deviceRequest) {
-            const guid = devices.find((device) => device.isDefault)?.guid;
+            const guid =
+              editorGuid ?? devices.find((device) => device.isDefault)?.guid;
             setSnapshot((previous) => ({
               ...previous,
               session,
@@ -123,7 +133,7 @@ export const useListenedOutput = (isFluid: boolean): IListenedOutput => {
       stop();
       window.removeEventListener('fluideq-output-changed', readDefault);
     };
-  }, [isFluid, session]);
+  }, [isFluid, session, editorGuid]);
 
   if (
     !isFluid ||
@@ -221,5 +231,9 @@ export const combineListenedDelay = (
 export const useListenedDelay = (output: IListenedOutput) => {
   const gate = useRackGate();
   const player = usePlayerProcessingLatency();
-  return combineListenedDelay(output, gate.libraryAudible, player);
+  return combineListenedDelay(
+    output,
+    gate.libraryAudible && gate.librarySourceReady !== true,
+    player,
+  );
 };

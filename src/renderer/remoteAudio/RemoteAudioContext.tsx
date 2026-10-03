@@ -30,6 +30,7 @@ import RemoteAudioContext, {
   RemoteAudioReceivingContext,
 } from './remoteAudioValueContext';
 import useIncomingDelays from './useIncomingDelays';
+import useIncomingSounding from './useIncomingSounding';
 import useSelectedRemoteAudioOutput from './useSelectedRemoteAudioOutput';
 import useRemoteAudioMeterBus from './useRemoteAudioMeterBus';
 import useRemoteAudioNetworkStats from './useRemoteAudioNetworkStats';
@@ -128,8 +129,15 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     subscribeMeter,
     arriving.map((link) => link.id),
   );
+  const sounding = useIncomingSounding(
+    subscribeMeter,
+    arriving.map((link) => link.id),
+  );
   const incomingKey = arriving
-    .map((link) => `${link.id}\n${link.name}\n${delays[link.id] ?? ''}`)
+    .map(
+      (link) =>
+        `${link.id}\n${link.name}\n${delays[link.id] ?? ''}\n${sounding[link.id] === true}`,
+    )
     .join('\n');
   const incoming = useMemo<IIncomingSound[]>(
     () =>
@@ -137,6 +145,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         id: link.id,
         name: link.name,
         delayMs: delays[link.id],
+        isSounding: sounding[link.id] === true,
       })),
     // The key is the list as far as anyone reading it can tell: a new
     // array each render would redraw every reader for nothing.

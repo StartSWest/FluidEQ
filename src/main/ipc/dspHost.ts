@@ -41,6 +41,7 @@ import { IHostAnalysis, IHostStats } from '../dspHost/wire';
 
 export interface IDspHostIpcDeps {
   getMainWindow: () => BrowserWindow | null;
+  onVoiceModelChanged?: () => Promise<void>;
 }
 
 /**
@@ -63,13 +64,30 @@ let supervisor: DspHostSupervisor | undefined;
  */
 let isHostPlaying = false;
 let rawSharing = false;
+let rawLibrary = false;
 
 /** Main enforces raw Library output before capture; renderer settings cannot
  * re-enable effects while sharing, including across host restarts. */
 export const setDspHostRawSharing = async (enabled: boolean): Promise<void> => {
   rawSharing = enabled;
-  if (supervisor && !(await supervisor.setRawSharing(enabled))) {
+  if (
+    supervisor &&
+    !(await supervisor.setRawSharing(rawSharing || rawLibrary))
+  ) {
     throw new Error('Could not change raw sharing on the Library engine.');
+  }
+};
+
+/** Endpoint-owned Library processing bypasses the host without changing sharing. */
+export const setDspHostRawLibrary = async (enabled: boolean): Promise<void> => {
+  rawLibrary = enabled;
+  if (
+    supervisor &&
+    !(await supervisor.setRawSharing(rawSharing || rawLibrary))
+  ) {
+    throw new Error(
+      'Could not change output processing on the Library engine.',
+    );
   }
 };
 
@@ -98,6 +116,7 @@ const isFiniteNumber = (value: unknown): value is number =>
 
 export const registerDspHostIpc = ({
   getMainWindow,
+  onVoiceModelChanged,
 }: IDspHostIpcDeps): void => {
   // Telemetry has its own rule behind a minimised window, because the Library
   // player runs on it. See `windowPublisher`.
@@ -173,7 +192,7 @@ export const registerDspHostIpc = ({
       return unavailable;
     }
     await host.start();
-    if (!(await host.setRawSharing(rawSharing))) {
+    if (!(await host.setRawSharing(rawSharing || rawLibrary))) {
       throw new Error('Could not restore raw sharing on the Library engine.');
     }
     /*
@@ -353,6 +372,9 @@ export const registerDspHostIpc = ({
       if (!ok) {
         return false;
       }
+      await onVoiceModelChanged?.().catch((error) => {
+        log.error('Could not refresh output voice processing', error);
+      });
       /*
        * The answer is about the FILE, not about the engine.
        *

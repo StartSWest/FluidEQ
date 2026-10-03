@@ -44,6 +44,7 @@ import {
   setDefaultAudioDevice,
 } from './utils/equalizerApi';
 import './styles/DeviceProfiles.scss';
+import useMainOutputEditor from './utils/useMainOutputEditor';
 
 const EMPTY_SETTINGS: IDeviceProfileSettings = {
   version: 1,
@@ -98,6 +99,17 @@ const DeviceProfiles = ({
   // profile. See the same note in PresetsBar.
   const { isBlockingError, refreshState, setGlobalError } = useFluidEqShell();
   const { t } = useTranslation();
+  const enterMainEditor = useMainOutputEditor();
+  const handleOutputMenuOpen = useCallback(
+    (isOpen: boolean) => {
+      if (isOpen) {
+        enterMainEditor().catch((error) =>
+          setGlobalError(error as ErrorDescription),
+        );
+      }
+    },
+    [enterMainEditor, setGlobalError],
+  );
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [settings, setSettings] =
     useState<IDeviceProfileSettings>(EMPTY_SETTINGS);
@@ -238,6 +250,7 @@ const DeviceProfiles = ({
   const handleDeviceChange = async (deviceId: string) => {
     setIsBusy(true);
     try {
+      await enterMainEditor();
       await setDefaultAudioDevice(deviceId);
       activeDeviceIdRef.current = '';
       await refresh();
@@ -385,6 +398,7 @@ const DeviceProfiles = ({
           menuClassName="device-profiles-menu"
           options={deviceOptions}
           value={selectedDeviceId}
+          onOpenChange={handleOutputMenuOpen}
           handleChange={handleDeviceChange}
           isDisabled={isBlockingError || isBusy || devices.length === 0}
           emptyOptionsPlaceholder={t('output.none')}

@@ -49,11 +49,91 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: $weight-semibold;
 }
 
+// The song memory's switch under the profiles, fenced above as well as below
+// (`ExtraOutputs.scss` draws the line under it): it is a rule about the sound,
+// and pressed up against the profile buttons it read as one more of them
+// (Ivan, 2026-10-02: "add a gap and splitter"). 10px each side of each line:
+// the section body's 8px gap and this margin above the top one, the padding
+// under it, and the same again round the line below before the hint.
+.device-profiles .presets-bar + .extra-outputs__rule {
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid $border-panel;
+}
+
 .device-profiles__hint {
   margin: 2px 0 0;
   color: $text-muted;
   font-size: $text-small;
   line-height: 1.35;
+}
+
+.device-profiles__editing {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  min-width: 0;
+  color: $neon-yellow;
+  font-size: $text-small;
+
+  > span {
+    overflow-wrap: anywhere;
+  }
+}
+
+// Keep the separator with its action if a long output name wraps. Centering
+// the row also keeps the button's icon baseline from lifting its label.
+.device-profiles__editMain {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.output-profile-select {
+  display: grid;
+  min-width: 0;
+}
+
+.output-profile-select__name {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// The profile name can be longer than the compact field in the editor header.
+.dropdown-menu-layer.output-profile-menu .list-wrapper {
+  width: max-content;
+  min-width: var(--dropdown-trigger-width);
+  max-width: min(360px, calc(100vw - 32px));
+
+  [role='menuitem'] {
+    white-space: nowrap;
+  }
+}
+
+.device-profiles__editingProfile {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+
+  > .output-profile-select {
+    min-width: 70px;
+    max-width: 220px;
+  }
+
+  .dropdown > [role='menu'] {
+    min-height: 22px;
+    padding: 2px 6px;
+    color: inherit;
+    font-size: $text-small;
+  }
 }
 
 // The two badges are one shape: same height, same type, same radius. Lime is

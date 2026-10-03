@@ -23,6 +23,7 @@ import { uid } from 'uid';
 import type { IBandDesign } from './bandDesigns';
 import { DEFAULT_BAND_QUALITY, qualitiesForRack } from './bandQuality';
 import type { ITone } from './tone';
+import type { IOutputSound } from './outputSettings';
 import {
   IConvolutionProfile,
   IHeadphoneSettings,
@@ -408,7 +409,7 @@ export interface IEqCuts {
   high: number;
 }
 
-export interface IState {
+export interface IState extends IOutputSound {
   eqBandDesign?: IBandDesign;
   isEnabled: boolean;
   isAutoPreAmpOn: boolean;
@@ -421,12 +422,6 @@ export interface IState {
   curveBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
   curveSmoothing?: 'off' | 'twelfth' | 'third';
   /**
-   * The cuts, for every output at once. FluidEQ's own setting, like
-   * `isEnabled`: never saved into a profile, and kept when the output
-   * changes (`applyDeviceState`). Absent means both off.
-   */
-  eqCuts?: IEqCuts;
-  /**
    * What the music itself measures, per frequency region. SESSION ONLY.
    *
    * Deliberately never persisted. It is evidence about what HAS played, and
@@ -437,6 +432,14 @@ export interface IState {
   smartHeadroomProgramme?: Array<{ frequency: number; gain: number }>;
   /** The sample peak supervisor's standing correction, in dB. Session only. */
   smartHeadroomTrimDb?: number;
+  /**
+   * The listener's own bands, Tone and preset while a song's own sound is
+   * lent to it (`main/songSoundLoan.ts`). SESSION ONLY: the state file and the
+   * output's profile are written with these in place of the song's, so a
+   * song's sound never outlives its song — not through a profile, and not
+   * through an app that ends while it plays.
+   */
+  songSoundLoan?: TSongSoundLoan;
   isGraphViewOn: boolean;
   isCaseSensitiveFs: boolean;
   /** True after Reset gains until the user edits an EQ band again. */
@@ -512,6 +515,21 @@ export interface IState {
    */
   bypassed?: TApoLayer[];
 }
+
+/**
+ * What a song's own sound replaces while it is lent: the bands and what
+ * putting bands on changes beside them, the Tone, and the preset's curve.
+ */
+export type TSongSoundLoan = Pick<
+  IState,
+  | 'filters'
+  | 'isFlat'
+  | 'eqFormat'
+  | 'graphicEq'
+  | 'eqImport'
+  | 'tone'
+  | 'voicing'
+>;
 
 /**
  * The features a chain is built from, in the order Equalizer APO applies them.

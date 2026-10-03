@@ -102,8 +102,8 @@ struct Chain {
    * The treble choice beside the phase ones: Classic keeps that group's
    * bands on the cookbook even where their layer asks for the matched design
    * — the way Equalizer APO plays them, narrower near the top. Read from
-   * `fluideq-eq-treble.txt` and `fluideq-curve-treble.txt`; absent means
-   * Precise.
+   * `fluideq-eq-treble-<guid>.txt` and `fluideq-curve-treble-<guid>.txt`;
+   * absent means Precise, independently for each endpoint.
    */
   bool classic_eq_treble = false;
   bool classic_curve_treble = false;
@@ -133,7 +133,7 @@ struct Chain {
   /**
    * The DSP rack, exactly as `encodeChainSettings` wrote it.
    *
-   * Read from `<config_dir>\fluideq-dsp.txt`, which is not part of the
+   * Read from `<config_dir>\fluideq-dsp-<guid>.txt`, which is not part of the
    * Equalizer APO include tree above and is never named by an `Include:`
    * line: it is one flat array of doubles the app rewrites on every rack
    * change, and `feq_chain_settings_decode` on the other side is the only
@@ -141,9 +141,9 @@ struct Chain {
    * absent, empty, or carries a token that is not a plain decimal — all of
    * which mean the rack is bypassed and the EQ below still runs.
    *
-   * Deliberately NOT reflected in `matched`: the rack is system-wide and has
-   * no `Device:` guard, so it applies to an endpoint the EQ configuration
-   * never names.
+   * Deliberately NOT reflected in `matched`: its filename selects this
+   * endpoint even when the EQ include tree has no `Device:` block for it.
+   * A missing endpoint file never falls back to the old global rack.
    */
   std::vector<double> dsp_values;
   // The first token of every line whose command this resolver does not
@@ -166,6 +166,14 @@ struct Endpoint {
   std::wstring guid;
   std::wstring friendly_name;
 };
+
+/**
+ * `<stem>-<lowercase bare GUID>.txt`, or nothing for an invalid endpoint id.
+ * Accepts a canonical bare or braced GUID only. The caller supplies `stem`;
+ * an endpoint can never supply a directory or a partial filename.
+ */
+std::optional<std::wstring> endpoint_config_name(
+    std::wstring_view stem, const Endpoint& endpoint);
 
 /** Returns the file's bytes, or nullopt when unreadable. Paths are absolute. */
 using FileProvider =
@@ -227,7 +235,7 @@ std::optional<Band> parse_filter(std::string_view body);
 std::vector<GraphicPoint> parse_graphic(std::string_view body);
 
 /**
- * Parse `fluideq-dsp.txt`: a `#` header line, then one line of doubles.
+ * Parse a DSP file: a `#` header line, then one line of doubles.
  *
  * All-or-nothing, for the same reason `parse_graphic` is: half a rack is a
  * chain of stages the user never asked for, and a file this resolver could

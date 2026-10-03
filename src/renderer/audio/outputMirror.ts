@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import type { ICaptureGraph } from '../graph/useLiveOutputSpectrum';
+import type { TOutputDelayCallback } from '../../common/outputDelay';
 import type { IRemoteAudioPlaybackProfile } from '../remoteAudio/remoteAudioPlaybackProfiles';
 import workletUrl from '../remoteAudio/workletUrl';
 import { reportError } from '../utils/logger';
@@ -118,7 +119,7 @@ export interface IMirrorOutputOptions {
   /** 0 to 1, applied before the first sample plays. */
   volume: number;
   /** How far behind it plays, in milliseconds, as its buffer reports. */
-  onDelay?: (milliseconds: number) => void;
+  onDelay?: TOutputDelayCallback;
 }
 
 /**
@@ -275,7 +276,7 @@ export interface IOutputMirrorOptions {
   volume?: number;
   /** How far behind the second output plays, in milliseconds, as it
    * changes. */
-  onDelay?: (milliseconds: number) => void;
+  onDelay?: TOutputDelayCallback;
   /** Injectable purely so the tests can watch what happens. */
   engine?: IMirrorEngine;
 }

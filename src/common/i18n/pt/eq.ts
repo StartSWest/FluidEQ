@@ -20,6 +20,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'Editar saída principal',
+  'extraOutput.edit': 'Editar som',
+  'extraOutput.done': 'Concluído',
+  'extraOutput.editing': 'Editando',
+  'extraOutput.editHint': 'Editar {device} sem mudar a saída principal',
+  'extraOutput.editingOutput': 'Editando: {device}',
   'eq.layouts.empty':
     'Os designs guardam as frequências, cada valor Q e o comportamento do Q. O ganho e a intensidade ficam separados.',
   'eq.layouts.qHint':
@@ -450,9 +456,10 @@ const eq: Partial<Dictionary> = {
   'extraOutput.statusOff': 'Desligada',
   'extraOutput.volume': 'Volume',
   'extraOutput.latency':
-    'Cada segunda saída acompanha o ritmo sozinha, como Compartilhar áudio: começa uns 30 ms atrás, acrescenta um pouco só depois de uma falha e devolve quando tudo se estabiliza. Se você ouvir do mesmo lugar que a saída principal, pode notar um leve eco.',
-  'extraOutput.delay': '{milliseconds} ms atrás',
-  'extraOutput.delayFrom': 'Som de {name}: {milliseconds} ms atrás',
+    'A saída principal não espera pelas saídas secundárias. Estes valores estimam o buffer do software, não o atraso que ouve. Os controladores de áudio, dispositivos e ligações sem fios podem acrescentar mais atraso.',
+  'extraOutput.delayUnavailable': 'Atraso indisponível',
+  'extraOutput.delay': 'Buffer de software: {milliseconds} ms',
+  'extraOutput.delayFrom': 'De {name}: {milliseconds} ms de buffer de software',
   'extraOutput.virtual':
     'Há um driver de roteamento instalado. Aponte seus aplicativos para ele e as duas saídas ficam em sincronia; depois dê a cada uma o seu próprio perfil acima.',
   'extraOutput.ambiguous':

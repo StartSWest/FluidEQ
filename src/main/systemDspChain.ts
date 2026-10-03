@@ -34,15 +34,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import path from 'path';
 import { FLUID_ENGINE_DSP_FILENAME } from '../common/audioEngine';
+import { engineAtLeast } from '../common/engineHealth';
+import {
+  engineTakesOutputConfig,
+  outputConfigFileName,
+  outputConfigGuid,
+} from '../common/outputConfigFiles';
 import {
   gameModeOnWire,
   hasPresetTone,
   hasRoomTrailer,
   roomHeadOnWire,
 } from '../common/dsp/chainWire';
-import { scheduleWrite } from './asyncWriter';
-import { writeRoomHead } from './roomHead';
+import { scheduleWrite, scheduleWriteOperation } from './asyncWriter';
+import { writeRoomHead, writeLegacyRoomHead } from './roomHead';
 import { readEngineHealth } from './engineHealth';
+import {
+  IOutputDesigns,
+  outputDesignsOf,
+  writeOutputDesigns,
+} from './outputDesigns';
 
 /** CRLF, like every other file in the config directory. */
 const CRLF = '\r\n';
@@ -87,43 +98,105 @@ export const formatSystemDspChain = (
  * every write it sees in this directory, so a write per drag frame would
  * reconfigure the chain per frame on every output on the machine.
  *
- * The room's head goes beside it, from the same message: the rack names
- * which head it wants, and the engine reads both on the same notification.
- * The head is written only when it changes (`roomHead.ts`).
+ * The room's head goes beside it, from the same message. An output's whole
+ * snapshot is serialized, including its asynchronous asset/capability reads,
+ * so a slower earlier request cannot replace either half of a newer one.
  */
 const pendingWrites = new Map<string, object>();
+
+const writeChainFile = async (
+  configDirPath: string,
+  filename: string,
+  values: number[],
+  writeHead: () => Promise<void>,
+  endpoint?: string,
+): Promise<void> => {
+  const target = path.resolve(configDirPath, filename);
+  const filePath = process.platform === 'win32' ? target.toLowerCase() : target;
+  const request = {};
+  const snapshot = [...values];
+  pendingWrites.set(filePath, request);
+  try {
+    await scheduleWriteOperation(filePath, async () => {
+      if (pendingWrites.get(filePath) !== request) {
+        return;
+      }
+      const [, health] = await Promise.all([
+        writeHead(),
+        gameModeOnWire(snapshot)
+          ? readEngineHealth(path.dirname(configDirPath))
+          : Promise.resolve(undefined),
+      ]);
+      if (pendingWrites.get(filePath) !== request) {
+        return;
+      }
+      // Early development DLLs understand the numeric word but predate
+      // metadata. Only this output's live answer proves that for its rack.
+      const acceptsGameWord =
+        health?.outputs.some(
+          (output) =>
+            (endpoint === undefined ||
+              outputConfigGuid(output.endpoint) === endpoint) &&
+            output.locked &&
+            typeof output.gameMode === 'boolean',
+        ) ?? false;
+      await scheduleWrite(
+        filePath,
+        formatSystemDspChain(snapshot, acceptsGameWord),
+      );
+    });
+  } finally {
+    if (pendingWrites.get(filePath) === request) {
+      pendingWrites.delete(filePath);
+    }
+  }
+};
 
 export const writeSystemDspChain = async (
   configDirPath: string,
   values: number[],
+  endpoint?: string,
+  designs?: IOutputDesigns,
 ): Promise<void> => {
-  const request = {};
-  pendingWrites.set(configDirPath, request);
-  try {
-    const [, health] = await Promise.all([
-      writeRoomHead(configDirPath, roomHeadOnWire(values)),
-      gameModeOnWire(values)
-        ? readEngineHealth(path.dirname(configDirPath))
-        : Promise.resolve(undefined),
-    ]);
-    // A mode change that arrived while the capability read was pending owns
-    // the file. Never let the slower previous request replace that newer sound.
-    if (pendingWrites.get(configDirPath) !== request) {
-      return;
-    }
-    // Early development DLLs understand the numeric word but predate metadata.
-    // A live process reporting the field is proof, even under version 1.9.
-    const acceptsGameWord =
-      health?.outputs.some(
-        (output) => output.locked && typeof output.gameMode === 'boolean',
-      ) ?? false;
-    await scheduleWrite(
-      path.join(configDirPath, FLUID_ENGINE_DSP_FILENAME),
-      formatSystemDspChain(values, acceptsGameWord),
-    );
-  } finally {
-    if (pendingWrites.get(configDirPath) === request) {
-      pendingWrites.delete(configDirPath);
-    }
+  const guid = outputConfigGuid(endpoint ?? '');
+  const filename = outputConfigFileName('dsp', endpoint ?? '');
+  if (!guid || !filename) {
+    throw new TypeError('The DSP rack needs a valid output GUID');
   }
+  const head = roomHeadOnWire(values);
+  const snapshot = designs ? outputDesignsOf(designs) : undefined;
+  await writeChainFile(
+    configDirPath,
+    filename,
+    values,
+    async () => {
+      await Promise.all([
+        writeRoomHead(configDirPath, head, guid),
+        snapshot
+          ? writeOutputDesigns(configDirPath, guid, snapshot)
+          : Promise.resolve(),
+      ]);
+    },
+    guid,
+  );
+};
+
+/** Kept only until an older installed engine is upgraded to endpoint files. */
+export const writeLegacySystemDspChain = async (
+  configDirPath: string,
+  values: number[],
+  dllVersion: string,
+): Promise<void> => {
+  if (
+    !engineAtLeast(dllVersion, [1, 0]) ||
+    engineTakesOutputConfig(dllVersion)
+  ) {
+    throw new TypeError(
+      'A legacy DSP write requires an engine older than 1.19',
+    );
+  }
+  const head = roomHeadOnWire(values);
+  await writeChainFile(configDirPath, FLUID_ENGINE_DSP_FILENAME, values, () =>
+    writeLegacyRoomHead(configDirPath, head),
+  );
 };

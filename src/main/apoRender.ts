@@ -63,6 +63,8 @@ import {
   getStudioEqFilters,
   getStudioEqGraphic,
 } from '../common/eqMode';
+import { ownState } from './songSoundLoan';
+import type { TGlobalPreset } from '../common/dsp/presetVoicing';
 
 /**
  * Turning the live state into the text Equalizer APO reads.
@@ -320,6 +322,7 @@ const layerFilters = (filters: TChainFilter[]): TChainFilter[] =>
  */
 const buildLayers = (state: IState): IApoLayer[] => {
   const layers: IApoLayer[] = [];
+  const { voicing } = state;
   const isBypassed = (layer: TApoLayer) =>
     (state.bypassed ?? []).includes(layer);
   const addLayer = (feature: TApoFeature, filters: TChainFilter[]) => {
@@ -437,16 +440,16 @@ const buildLayers = (state: IState): IApoLayer[] => {
   // Deliberately outside the isFlat check: clearing the EQ resets the bands the
   // user tuned, not the target curve they chose, and switching the voicing off
   // restores their tuning untouched.
-  const voicingCurve = graphicEqCommand(getVoicingGraphicEq(state.voicing));
+  const voicingCurve = graphicEqCommand(getVoicingGraphicEq(voicing));
   if (voicingCurve && !isBypassed('voicing')) {
     layers.push({
       feature: 'voicing',
       filters: [],
       graphicEq: voicingCurve,
-      graphicPoints: getVoicingGraphicEq(state.voicing),
+      graphicPoints: getVoicingGraphicEq(voicing),
     });
   } else {
-    addLayer('voicing', layerFilters(getVoicingFilters(state.voicing)));
+    addLayer('voicing', layerFilters(getVoicingFilters(voicing)));
   }
 
   // Outside the isFlat check for the same reason as the other two layers —
@@ -782,6 +785,7 @@ export interface IApoChainFiles {
 export const stateToApoFiles = (
   state: IState,
   convolutionFileName?: string,
+  _playing?: TGlobalPreset,
 ): IApoChainFiles | undefined => {
   if (!state.isEnabled) {
     return undefined;
@@ -835,9 +839,14 @@ export const stateToApoFiles = (
  * at full confidence, before a single frame had been heard. Every launch starts
  * with no opinion, which is the worst case, and listens its way down from
  * there.
+ *
+ * Nor a song's lent sound: the listener's own stands in for it
+ * (`songSoundLoan.ts`), so an app that ends while a remembered song plays
+ * starts again with theirs.
  */
 export const serializeState = (state: IState) => {
-  const { smartHeadroomProgramme, smartHeadroomTrimDb, ...persisted } = state;
+  const { smartHeadroomProgramme, smartHeadroomTrimDb, ...persisted } =
+    ownState(state);
   return JSON.stringify(persisted);
 };
 

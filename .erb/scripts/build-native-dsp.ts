@@ -198,6 +198,25 @@ const copyCrtDlls = (vsRoot: string): void => {
   }
 };
 
+/** audiodg loads only this hash-pinned copy from the protected engine folder. */
+const copyVoiceRuntime = (): void => {
+  const root = path.join(ROOT, 'node_modules', 'onnxruntime-node', 'bin');
+  const versions = existsSync(root) ? readdirSync(root)
+    .filter((name) => /^napi-v\d+$/.test(name))
+    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true })) : [];
+  const source = versions.map((version) =>
+    path.join(root, version, 'win32', 'x64', 'onnxruntime.dll'),
+  ).find((candidate) => existsSync(candidate));
+  if (!source) fail('The Windows x64 ONNX Runtime is missing; the engine voice stage cannot be shipped.');
+  if (source) {
+    const destination = path.join(BUILD_DIR, 'bin', 'onnxruntime.dll');
+    mkdirSync(path.dirname(destination), { recursive: true });
+    if (!existsSync(destination) || statSync(destination).mtimeMs < statSync(source).mtimeMs) {
+      copyFileSync(source, destination);
+    }
+  }
+};
+
 interface ITools {
   cmake: string;
   /** Empty on platforms where the compiler is already on PATH. */
@@ -403,6 +422,7 @@ run(tools, [
 // included, and installs nothing whose bytes differ.
 if (isWindows) {
   copyCrtDlls(tools.vsRoot);
+  copyVoiceRuntime();
 }
 
 run(tools, ['--build', BUILD_DIR, '--config', 'Release']);

@@ -158,7 +158,7 @@ void a_header_only_or_broken_file_is_no_rack() {
 }
 
 void denoise_runs_without_the_neural_runtime() {
-  std::printf("live restoration stays enabled; only neural Voice is unavailable\n");
+  std::printf("wire decoding retains Voice; a legacy rack keeps local restoration\n");
   std::vector<double> values = reference_values();
   values[kDenoiseEnabled] = 1.0;
   values[kDenoiseEnabled + 16] = 1.0;
@@ -166,13 +166,18 @@ void denoise_runs_without_the_neural_runtime() {
   FeqChainSettings settings = {};
   CHECK(decode_dsp_chain(values, &settings));
   CHECK(settings.denoise.enabled == 1);
-  CHECK(settings.denoise.voice.enabled == 0);
-  CHECK(settings.denoise.profile_source == FEQ_DENOISE_PROFILE_ADAPTIVE);
-  // The Library decoder retains the user's scanned-profile and Voice settings.
+  CHECK(settings.denoise.voice.enabled == 1);
+  CHECK(settings.denoise.profile_source == FEQ_DENOISE_PROFILE_SCANNED);
+  // Decoding is shared. Source ownership decides availability during rack
+  // preparation, so a modern engine can prepare its own Voice worker.
   CHECK(feq_chain_settings_decode(values.data(), static_cast<uint32_t>(values.size()), &settings));
   CHECK(settings.denoise.voice.enabled == 1);
   CHECK(settings.denoise.profile_source == FEQ_DENOISE_PROFILE_SCANNED);
   CHECK(settings.exciter.enabled == 1);
+  std::vector<std::string> warnings;
+  const auto legacy = fluideq_engine::build_rack(values, kRate, 2, 480, warnings);
+  CHECK(legacy.chain != nullptr && !legacy.failed && !legacy.voice_ready);
+  CHECK((feq_chain_active_stages(legacy.chain.get()) & (1u << 1)) != 0);
 }
 
 void a_wrong_band_count_is_refused_and_the_eq_still_runs() {
@@ -391,9 +396,8 @@ void a_rack_alone_is_not_a_pass_through() {
   std::printf("a rack with no EQ configuration still processes\n");
   Files files;
   files[kDspPath] = dsp_file(kReferenceLine);
-  // No config.txt at all: `matched` stays false, and the rack is system-wide
-  // so it applies anyway. This is the endpoint a user has never opened the EQ
-  // page for.
+  // No config.txt at all: `matched` stays false, and this endpoint's rack
+  // still applies before its first curve creates a Device block.
   const Chain chain = resolve_chain(kConfigDir, endpoint(), provider(files));
   CHECK(!chain.matched);
   CHECK(!chain.dsp_values.empty());

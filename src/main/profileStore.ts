@@ -53,6 +53,8 @@ import {
 } from './flush';
 import { createLayoutSettingsStore } from './layoutSettings';
 import type { IMainSession } from './mainSession';
+import { migrateLegacyOutputDesigns } from './outputSoundMigration';
+import { defaultOutputSound } from './outputSoundPersistence';
 
 export const getAutomaticPresetName = (deviceId: string) =>
   `${AUTOMATIC_PRESET_PREFIX}${createHash('sha1')
@@ -150,6 +152,19 @@ export const createProfileStore = ({
 }: IProfileStoreDeps) => {
   const presetPath = path.join(userDataDir, PRESETS_DIR);
   const baselinePath = path.join(userDataDir, PRESET_BASELINES_DIR);
+  const headroomByDevice = new Map<string, ISessionHeadroom>();
+  // Callers select the next endpoint before applying its state, so the old
+  // state's owner cannot be recovered from session.activeAudioDeviceId then.
+  let stateDeviceId = session.activeAudioDeviceId;
+  const rememberHeadroom = (deviceId: string) => {
+    if (deviceId) {
+      headroomByDevice.set(deviceId, {
+        deviceId,
+        programme: state.smartHeadroomProgramme?.map((point) => ({ ...point })),
+        trimDb: state.smartHeadroomTrimDb,
+      });
+    }
+  };
 
   /** Backfill measured WAV metadata for profiles created before strict
    * convolution normalization existed. The file analyzer caches by mtime, so
@@ -239,9 +254,9 @@ export const createProfileStore = ({
   const baselineDirForDevice = (deviceId: string) =>
     path.join(baselinePath, outputSlug(deviceId));
 
-  /** The saved-copy folder for whichever output is playing now. */
-  const activeBaselineDir = () =>
-    baselineDirForDevice(session.activeAudioDeviceId);
+  /** A requested output's saved copies; the open editor's when omitted. */
+  const activeBaselineDir = (deviceId = session.activeAudioDeviceId) =>
+    baselineDirForDevice(deviceId);
 
   /**
    * Put the profile store in order before anything reads from it.
@@ -282,6 +297,9 @@ export const createProfileStore = ({
         repaired.join(', '),
       );
     }
+    migrateLegacyOutputDesigns(userDataDir, state).catch((error: unknown) =>
+      log.error('Unable to import the previous output design choices', error),
+    );
   };
 
   /**
@@ -290,32 +308,51 @@ export const createProfileStore = ({
    * Everything a profile can carry moves — bands, preamp, voicing, driver
    * correction, convolution — because all of it was chosen for the headphones
    * or speakers on that endpoint and means nothing on another one. Only the
-   * four app-wide preferences below stay put: whether the engine is on,
-   * whether the graph is showing, what the filesystem is like, and the cuts,
-   * which are written for every output at once. They live in the same IState
+   * three app-wide preferences below stay put: whether the engine is on,
+   * whether the graph is showing, and what the filesystem is like. The cuts
+   * and rack belong to the selected output too. They live in the same IState
    * as the EQ, so assigning a device's state wholesale used to turn the engine
    * back on for anyone who had switched it off, simply because Windows changed
    * the default output.
    */
   const applyDeviceState = (next: IState) => {
-    const {
-      isEnabled,
-      isGraphViewOn,
-      isCaseSensitiveFs,
-      eqCuts,
-      ...deviceState
-    } = next;
+    rememberHeadroom(stateDeviceId);
+    if (
+      stateDeviceId &&
+      stateDeviceId !== session.activeAudioDeviceId &&
+      (session.hasActiveSessionOverride || state.songSoundLoan)
+    ) {
+      session.outputStateOverrides ??= new Map();
+      session.outputStateOverrides.set(stateDeviceId, structuredClone(state));
+    }
+    const restored = session.outputStateOverrides?.get(
+      session.activeAudioDeviceId,
+    );
+    const { isEnabled, isGraphViewOn, isCaseSensitiveFs, ...deviceState } =
+      restored ? structuredClone(restored) : next;
     Object.assign(state, deviceState);
-    // The measurement belongs to the endpoint it was heard on and to nothing
-    // else. A profile carries none, so the spread above cannot clear it, and
-    // leaving it would hand the new output a reserve sized for music that went
-    // through the old one. The capture starts again from no opinion, which is
-    // the worst case — the same place a cold start begins.
-    state.smartHeadroomProgramme = undefined;
-    state.smartHeadroomTrimDb = undefined;
+    stateDeviceId = session.activeAudioDeviceId;
+    // Opening another editor must not reset the main output's preamp. Each
+    // output resumes only its own session sample; a cold output has none.
+    const headroom = headroomByDevice.get(stateDeviceId);
+    state.smartHeadroomProgramme = headroom?.programme?.map((point) => ({
+      ...point,
+    }));
+    state.smartHeadroomTrimDb = headroom?.trimDb;
+    // A remembered song remains on the output it was playing through while
+    // another editor is open. A saved profile starts without any such loan.
+    state.songSoundLoan = restored?.songSoundLoan
+      ? structuredClone(restored.songSoundLoan)
+      : undefined;
+    session.hasActiveSessionOverride = restored !== undefined;
   };
 
   const getCurrentPreset = (): IPresetV2 => ({
+    dsp: state.dsp,
+    eqCuts: state.eqCuts,
+    trebleDesigns: state.trebleDesigns,
+    eqPhase: state.eqPhase,
+    curvePhase: state.curvePhase,
     preAmp: state.preAmp,
     filters: state.filters,
     eqFormat: state.eqFormat,
@@ -365,11 +402,12 @@ export const createProfileStore = ({
    * path that runs while music is playing, is a jump back up to full
    * attenuation and then a whole ramp back down again.
    */
-  const sessionHeadroom = (): ISessionHeadroom => ({
-    deviceId: session.activeAudioDeviceId,
-    programme: state.smartHeadroomProgramme,
-    trimDb: state.smartHeadroomTrimDb,
-  });
+  const sessionHeadroom = (): ISessionHeadroom => {
+    rememberHeadroom(stateDeviceId || session.activeAudioDeviceId);
+    const deviceId =
+      session.playbackAudioDevice?.id || session.activeAudioDeviceId;
+    return headroomByDevice.get(deviceId) ?? { deviceId };
+  };
 
   const switchToParametricEditing = () => {
     state.eqFormat = AutoEqFormat.PARAMETRIC;
@@ -492,12 +530,30 @@ export const createProfileStore = ({
    * the output.
    */
   const resetStateToDefaults = () => {
+    const deviceId = session.activeAudioDeviceId;
+    session.outputDspOverrides?.delete(deviceId);
+    session.outputStateOverrides?.delete(deviceId);
+    headroomByDevice.delete(deviceId);
+    session.hasActiveSessionOverride = false;
+    session.outputEditGeneration = (session.outputEditGeneration ?? 0) + 1;
+    // A reset ends this output's loan. Leaving it held lets the next save or
+    // editor switch put the deleted profile's own sound back over the reset.
+    state.songSoundLoan = undefined;
+    state.smartHeadroomProgramme = undefined;
+    state.smartHeadroomTrimDb = undefined;
     resetEqToDefaults();
+    // Explicit defaults distinguish a deliberate reset from an old profile
+    // still waiting for the one-time renderer rack import.
+    Object.assign(state, defaultOutputSound());
     state.convolution = undefined;
     state.tone = undefined;
     state.voicing = undefined;
     state.driver = undefined;
     state.smartEq = undefined;
+    state.headphone = undefined;
+    state.headset = undefined;
+    state.headsetTarget = undefined;
+    state.headsetSource = undefined;
     // Nothing is left to be switched off. Keeping the list would leave the
     // next layer applied here silent for a reason nothing on screen accounts
     // for.
@@ -559,6 +615,9 @@ export const createProfileStore = ({
     if (!session.activeAudioDeviceId) {
       return;
     }
+    // This is a new empty profile, not Save As. A forgotten output may still
+    // have a session snapshot, but none of that snapshot belongs to this one.
+    resetStateToDefaults();
     const dir = activePresetDir();
     let index = 1;
     while (doesPresetExist(`${UNTITLED_PROFILE_PREFIX} ${index}`, dir)) {

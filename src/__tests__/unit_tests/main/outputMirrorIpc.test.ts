@@ -3,8 +3,10 @@ import { EventEmitter } from 'events';
 import type { BrowserWindow, IpcMainInvokeEvent } from 'electron';
 import {
   registerOutputMirrorIpc,
+  withOutputMirrorsRetargeted,
   withOutputMirrorsStopped,
 } from '../../../main/ipc/outputMirror';
+import type { ISecondOutputs } from '../../../main/secondOutputRoute';
 
 type Handler = (
   event: IpcMainInvokeEvent,
@@ -13,6 +15,10 @@ type Handler = (
 const mockHandlers = new Map<string, Handler>();
 const mockDiscover = jest.fn();
 const mockStart = jest.fn();
+const mockRetarget = jest.fn<
+  ReturnType<ISecondOutputs['retargetMain']>,
+  Parameters<ISecondOutputs['retargetMain']>
+>();
 jest.mock('electron', () => ({
   ipcMain: {
     handle: (name: string, handler: Handler) => mockHandlers.set(name, handler),
@@ -21,11 +27,23 @@ jest.mock('electron', () => ({
 jest.mock('../../../main/audioDevices', () => ({
   discoverAudioDevices: () => mockDiscover(),
 }));
-jest.mock('../../../main/remoteAudioCapture', () => ({
-  startNativeOutputMirror: (...args: unknown[]) => mockStart(...args),
-}));
 
 const guid = '{12345678-1234-1234-1234-123456789abc}';
+const mainGuid = '{87654321-4321-4321-4321-cba987654321}';
+const mainOutput = {
+  id: 'main',
+  name: 'Main',
+  guid: mainGuid,
+  isActive: true,
+  isDefault: true,
+};
+const secondOutput = {
+  id: 'second',
+  name: 'Second',
+  guid,
+  isActive: true,
+  isDefault: false,
+};
 const deferred = <T>() => {
   let complete: (value: T) => void = () => undefined;
   const promise = new Promise<T>((resolve) => {
@@ -48,10 +66,12 @@ const invoke = (name: string, ...args: unknown[]) => {
 };
 beforeEach(() => {
   mockHandlers.clear();
-  mockDiscover
-    .mockReset()
-    .mockResolvedValue([{ guid, isActive: true, isDefault: false }]);
+  mockDiscover.mockReset().mockResolvedValue([mainOutput, secondOutput]);
   mockStart.mockReset();
+  mockRetarget.mockReset().mockImplementation(async (_main, change, after) => {
+    await change();
+    await after?.();
+  });
   const contents = Object.assign(new EventEmitter(), {
     mainFrame: {},
     isDestroyed: () => false,
@@ -63,6 +83,12 @@ beforeEach(() => {
   } as unknown as IpcMainInvokeEvent;
   reset = registerOutputMirrorIpc(
     () => ({ webContents: contents }) as unknown as BrowserWindow,
+    {
+      start: (...args) => mockStart(...args),
+      reroute: () => Promise.resolve(),
+      retargetMain: mockRetarget,
+      onHealth: () => undefined,
+    },
   );
 });
 afterEach(async () => reset());
@@ -82,10 +108,13 @@ it('waits for a pending mirror to stop before switching the main output', async 
   await Promise.resolve();
   expect(output.close).toHaveBeenCalledTimes(1);
   expect(changeOutput).not.toHaveBeenCalled();
-  expect(await invoke('start', 'two', guid, 1)).toBe(false);
+  const waiting = invoke('start', 'two', guid, 1);
+  await invoke('stop', 'two');
+  expect(mockStart).toHaveBeenCalledTimes(1);
   closing.resolve();
   await expect(starting).resolves.toBe(false);
   await switching;
+  await expect(waiting).resolves.toBe(false);
   expect(changeOutput).toHaveBeenCalledTimes(1);
 });
 
@@ -133,12 +162,80 @@ it('refuses a start that still names a buffering mode', async () => {
 it('tells the window how far behind its mirror plays', async () => {
   mockStart.mockResolvedValue(mirror());
   await expect(invoke('start', 'one', guid, 0.5)).resolves.toBe(true);
-  const [startedGuid, volume, , onDelay] = mockStart.mock.calls[0];
-  expect([startedGuid, volume]).toEqual([guid, 0.5]);
-  onDelay(41.6);
+  const [main, second, volume, , onDelay] = mockStart.mock.calls[0];
+  expect([main.guid, second.guid, volume]).toEqual([mainGuid, guid, 0.5]);
+  onDelay(41.6, 'engine');
   expect(event.sender.send).toHaveBeenCalledWith(
     'output-mirror-delay',
     'one',
     41.6,
+    'engine',
   );
+});
+
+it('retargets the selected main output while preserving owned receiver handles', async () => {
+  const output = mirror();
+  mockStart.mockResolvedValue(output);
+  await expect(invoke('start', 'one', guid, 0.5)).resolves.toBe(true);
+  const change = jest.fn().mockResolvedValue(undefined);
+  const after = jest.fn().mockResolvedValue(undefined);
+
+  await withOutputMirrorsRetargeted(secondOutput.id, change, after);
+
+  expect(mockRetarget).toHaveBeenCalledWith(secondOutput, change, after);
+  expect(change).toHaveBeenCalledTimes(1);
+  expect(after).toHaveBeenCalledTimes(1);
+  expect(output.close).not.toHaveBeenCalled();
+  await invoke('volume', 'one', 0.25);
+  expect(output.setVolume).toHaveBeenCalledWith(0.25);
+});
+
+it('waits for an opening receiver before retargeting and holds new starts until it settles', async () => {
+  const opening = deferred<ReturnType<typeof mirror>>();
+  const started = deferred<void>();
+  mockStart.mockImplementationOnce(() => {
+    started.resolve();
+    return opening.promise;
+  });
+  const starting = invoke('start', 'one', guid, 0.5);
+  await started.promise;
+  const switching = deferred<void>();
+  const changing = deferred<void>();
+  const change = jest.fn(async () => {
+    changing.resolve();
+    await switching.promise;
+  });
+  const moved = withOutputMirrorsRetargeted(secondOutput.id, change);
+  const waiting = invoke('start', 'two', guid, 0.75);
+  expect(mockRetarget).not.toHaveBeenCalled();
+
+  const output = mirror();
+  opening.resolve(output);
+  await expect(starting).resolves.toBe(true);
+  await changing.promise;
+  expect(mockStart).toHaveBeenCalledTimes(1);
+  expect(output.close).not.toHaveBeenCalled();
+  mockStart.mockResolvedValue(mirror());
+  switching.resolve();
+  await moved;
+  await expect(waiting).resolves.toBe(true);
+  expect(mockStart).toHaveBeenCalledTimes(2);
+});
+
+it('rejects a disappeared target without moving Windows or closing receivers', async () => {
+  const output = mirror();
+  mockStart.mockResolvedValue(output);
+  await invoke('start', 'one', guid, 1);
+  mockDiscover.mockResolvedValue([mainOutput]);
+  const change = jest.fn().mockResolvedValue(undefined);
+
+  await expect(
+    withOutputMirrorsRetargeted(secondOutput.id, change),
+  ).rejects.toThrow('no longer available');
+
+  expect(mockRetarget).not.toHaveBeenCalled();
+  expect(change).not.toHaveBeenCalled();
+  expect(output.close).not.toHaveBeenCalled();
+  await invoke('volume', 'one', 0.25);
+  expect(output.setVolume).toHaveBeenCalledWith(0.25);
 });

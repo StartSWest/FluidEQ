@@ -29,6 +29,7 @@ import { getResolvedPreAmp, save, savePreset } from './flush';
 import type { TReflushResult } from './ipc/audioEngine';
 import type { IMainSession } from './mainSession';
 import { getAutomaticPresetName } from './profileStore';
+import { ownPreset } from './songSoundLoan';
 import { getConfigPath, isEngineInstalled } from './registry';
 
 /**
@@ -174,6 +175,7 @@ export const createUpdatePath = ({
     syncActiveProfile = false,
     useActiveSessionOverride = false,
   ) => {
+    const editorGeneration = session.outputEditGeneration;
     // Whether the chosen engine is there is asked on every change, because it
     // can be uninstalled while the app is running. Under 'fluid' this is a
     // file check plus the helper's last word on the registration, and no
@@ -202,6 +204,11 @@ export const createUpdatePath = ({
       }
       diskSync.startApoConfigWatcher();
       await diskSync.configInclude.ensure(session.configPath);
+      // A newly opened editor owns state now; never save it as the old edit.
+      if (session.outputEditGeneration !== editorGeneration) {
+        event.reply(channel, { result: response });
+        return;
+      }
       // Keep the root state, the disabled slider and the generated APO line on
       // the same automatic value. The writer derives this independently as its
       // final safety check; synchronizing here prevents the stored manual
@@ -229,7 +236,9 @@ export const createUpdatePath = ({
         // keep.
         savePreset(
           assignment.presetName,
-          getCurrentPreset(),
+          // The listener's own bands, Tone and preset while a song's are lent:
+          // the profile is theirs (`songSoundLoan.ts`).
+          ownPreset(getCurrentPreset(), state),
           presetDirForDevice(assignment.deviceId),
           String(channel),
         );
@@ -253,6 +262,11 @@ export const createUpdatePath = ({
           session.hasActiveSessionOverride = false;
         }
       }
+      if (state.songSoundLoan) {
+        // A song's lent sound plays from the live state, because the profile
+        // it would otherwise be rendered from holds the listener's own.
+        session.hasActiveSessionOverride = true;
+      }
       const activeDevicePattern =
         session.activeAudioDevice?.guid ||
         session.activeAudioDevice?.name ||
@@ -266,6 +280,17 @@ export const createUpdatePath = ({
               state,
             }
           : undefined;
+      if (session.activeAudioDeviceId) {
+        if (activeOverride) {
+          session.outputStateOverrides ??= new Map();
+          session.outputStateOverrides.set(
+            session.activeAudioDeviceId,
+            structuredClone(state),
+          );
+        } else {
+          session.outputStateOverrides?.delete(session.activeAudioDeviceId);
+        }
+      }
       // Flush changes to the engine's config. Once: overlapping requests are
       // the writer's to coalesce, not a race to retry (see
       // `followOutputs.ts`).
@@ -285,7 +310,15 @@ export const createUpdatePath = ({
           activeOverride,
           state.isEnabled,
           sessionHeadroom(),
-          state.eqCuts,
+          undefined,
+          undefined,
+          session.audioDevices ?? session.secondOutputDevices,
+          {
+            writeDsp: session.audioEngine === 'fluid',
+            dspOverrides: session.outputDspOverrides,
+            stateOverrides: session.outputStateOverrides,
+            systemRackEnabled: session.systemRackEnabled,
+          },
         );
       }
     } catch (e) {
@@ -295,8 +328,12 @@ export const createUpdatePath = ({
 
     // Keep a device-scoped snapshot for every fixed layout. This runs after
     // every successful edit, so moving a frequency slider is preserved when
-    // the user temporarily switches to another band count.
-    captureCurrentLayout();
+    // the user temporarily switches to another band count. Not a song's lent
+    // bands: a band count picked later would bring them back as the
+    // listener's own.
+    if (!state.songSoundLoan) {
+      captureCurrentLayout();
+    }
 
     // Return a success message of undefined
     const reply: TSuccess<T> = { result: response };

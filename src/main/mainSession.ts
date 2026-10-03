@@ -18,7 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import type { TAudioEngine } from '../common/audioEngine';
-import type { IAudioDevice } from '../common/constants';
+import type { IAudioDevice, IState } from '../common/constants';
+import type { IDspSettings } from '../common/dsp/chain';
 
 /**
  * What the process currently has open, in one place a module can be handed.
@@ -50,6 +51,19 @@ export interface IMainSession {
   configPath: string;
   activeAudioDeviceId: string;
   activeAudioDevice: IAudioDevice | undefined;
+  /** Playback follows Windows; opening an editor never changes this endpoint. */
+  playbackAudioDevice?: IAudioDevice;
+  audioDevices?: IAudioDevice[];
+  /** Omitted while the editor follows the main output. */
+  editingAudioDeviceId?: string;
+  outputEditGeneration?: number;
+  /** Audible transient rack, kept separate from the listener's saved profile. */
+  outputDspOverrides?: Map<string, IDspSettings>;
+  /** Live song loans and unsaved sound stay on their own output when editing another. */
+  outputStateOverrides?: Map<string, IState>;
+  systemRackEnabled?: (deviceId: string) => boolean;
+  /** Routed native receivers, including outputs without saved profiles. */
+  secondOutputDevices?: IAudioDevice[];
   /** The user opened a device explicitly, so its profile wins over the default. */
   hasActiveSessionOverride: boolean;
   /**

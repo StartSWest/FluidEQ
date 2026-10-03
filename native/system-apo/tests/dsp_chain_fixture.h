@@ -83,7 +83,7 @@ inline constexpr size_t kBandCount = FEQ_CHAIN_PARAM_LEAD - 1;
 inline constexpr size_t kNormalizerModeFromEnd = 3;
 
 inline const std::wstring kConfigDir = L"C:\\cfg";
-inline const std::wstring kDspPath = L"C:\\cfg\\fluideq-dsp.txt";
+inline const std::wstring kDspPath = L"C:\\cfg\\fluideq-dsp-aaaaaaaa-1111-2222-3333-444455556666.txt";
 inline const std::wstring kConfigPath = L"C:\\cfg\\config.txt";
 
 /** The file the app writes: a `#` header line, the numbers, CRLF endings. */

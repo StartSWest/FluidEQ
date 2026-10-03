@@ -131,6 +131,7 @@ jest.mock('../../renderer/player/MiniPlayer', () => {
 
 /** Every listener main's window state goes to: the shell and the mode store. */
 let windowStateListeners: ((state: unknown) => void)[] = [];
+const outputMirrorResetListeners = new Set<() => void>();
 const announceWindowMode = async (mode: 'app' | 'player') => {
   await act(async () => {
     windowStateListeners.forEach((listener) =>
@@ -142,6 +143,7 @@ const announceWindowMode = async (mode: 'app' | 'player') => {
 beforeEach(() => {
   mockLog.length = 0;
   windowStateListeners = [];
+  outputMirrorResetListeners.clear();
   resetPlaybackOwner();
   window.localStorage.clear();
   window.localStorage.setItem(
@@ -177,6 +179,12 @@ beforeEach(() => {
             );
           };
         },
+        onOutputMirrorsReset: (listener: () => void) => {
+          outputMirrorResetListeners.add(listener);
+          return () => {
+            outputMirrorResetListeners.delete(listener);
+          };
+        },
         removeListener: () => {},
         getWindowState: async () => ({
           mode: 'app',
@@ -205,7 +213,7 @@ afterEach(async () => {
 
 describe('the window behind the amp', () => {
   it('puts the page to sleep and keeps the player playing, then wakes the page as it was', async () => {
-    render(<App />);
+    const { unmount } = render(<App />);
     await act(async () => Promise.resolve());
 
     // A player with something in it: opened once, and playing, so the shell
@@ -242,6 +250,9 @@ describe('the window behind the amp', () => {
       screen.getByRole('button', { name: 'eq presses 1' }),
     ).toBeInTheDocument();
     expect(screen.getByTestId('karaoke-player')).toBeInTheDocument();
+    expect(outputMirrorResetListeners.size).toBeGreaterThan(0);
+    await act(async () => unmount());
+    expect(outputMirrorResetListeners.size).toBe(0);
   });
 
   it('leaves the Karaoke page as it was, so a Maker job keeps running behind it', async () => {
