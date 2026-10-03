@@ -28,9 +28,14 @@
     font-weight: $weight-semibold;
   }
 
-  &__values {
+  &__quality {
     fill: $text-muted;
     font-size: 9px;
+  }
+
+  &__gain {
+    fill: $text-primary;
+    font-size: 10px;
   }
 
   &.is-disabled {

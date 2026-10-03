@@ -44,8 +44,16 @@ beforeEach(() => {
 
 it('shows editable band values, updates Q immediately and hides only the label', () => {
   const { container, rerender } = render(fixture());
-  expect(container).toHaveTextContent('1 kHz');
-  expect(container).toHaveTextContent('+3.5 dB · Q 1.44');
+  const readLines = () =>
+    Array.from(container.querySelectorAll('.eq-band-label text')).map(
+      (element) => element.textContent,
+    );
+  expect(readLines()).toEqual(['1 kHz', 'Q 1.44', '+3.5 dB']);
+  const linePositions = Array.from(
+    container.querySelectorAll('.eq-band-label text'),
+  ).map((element) => Number(element.getAttribute('y')));
+  expect(linePositions[0]).toBeLessThan(linePositions[1]);
+  expect(linePositions[1]).toBeLessThan(linePositions[2]);
   expect(container).not.toHaveTextContent('8 dB');
   rerender(
     fixture({
@@ -53,7 +61,7 @@ it('shows editable band values, updates Q immediately and hides only the label',
       parameters: { frequency: 1000, gain: -2, quality: 4 },
     }),
   );
-  expect(container).toHaveTextContent('-2 dB · Q 4');
+  expect(readLines()).toEqual(['1 kHz', 'Q 4', '-2 dB']);
   act(() => toggleGraphBandLabels());
   expect(container.querySelectorAll('.eq-band-label')).toHaveLength(0);
   act(() => setGraphContents('everything'));

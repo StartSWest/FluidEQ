@@ -31,17 +31,24 @@ export default function BandLabels({ points, xScale, yScale, bounds }: IProps) {
       }
       const { gain, quality } = point.parameters;
       const title = frequency(point.parameters.frequency);
-      const details = `${gain > 0 ? '+' : ''}${number(gain)} dB · Q ${number(quality)}`;
+      const qualityLabel = `Q ${number(quality)}`;
+      const gainLabel = `${gain > 0 ? '+' : ''}${number(gain)} dB`;
       return [
         {
           point,
           title,
-          details,
+          qualityLabel,
+          gainLabel,
           id: point.id,
           x: handleXInPlot(Number(xScale(point.data.x)) || 0, xScale.range()),
           y: Number(yScale(point.data.y)) || 0,
-          width: Math.max(56, details.length * 4.9 + 8, title.length * 5.6 + 8),
-          height: 25,
+          width: Math.max(
+            48,
+            title.length * 5.6 + 10,
+            qualityLabel.length * 4.9 + 10,
+            gainLabel.length * 5.6 + 10,
+          ),
+          height: 36,
           // Hover/focus must never reshuffle the readouts around other dots.
           priority: 0,
         },
@@ -91,10 +98,18 @@ export default function BandLabels({ points, xScale, yScale, bounds }: IProps) {
             <text
               x={box.x + box.width / 2}
               y={box.y + 21}
-              className="eq-band-label__values"
+              className="eq-band-label__quality"
               textAnchor="middle"
             >
-              {anchor.details}
+              {anchor.qualityLabel}
+            </text>
+            <text
+              x={box.x + box.width / 2}
+              y={box.y + 32}
+              className="eq-band-label__gain"
+              textAnchor="middle"
+            >
+              {anchor.gainLabel}
             </text>
           </g>
         );
