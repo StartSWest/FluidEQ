@@ -9,7 +9,9 @@
 .eq-band-label {
   rect {
     fill: $surface-floating;
+    fill-opacity: 0.28;
     stroke: $border-subtle;
+    stroke-opacity: 0.4;
     stroke-width: 0.7;
   }
 
