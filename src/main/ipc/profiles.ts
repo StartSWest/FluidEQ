@@ -250,6 +250,7 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
       state.isFlat = presetSettings.isFlat;
       state.eqMode = getEqMode(presetSettings);
       state.curveEqMode = getCurveEqMode(presetSettings);
+      state.mainBandQ = presetSettings.mainBandQ;
       state.eqBandQ = presetSettings.eqBandQ;
       state.curveBandQ = presetSettings.curveBandQ;
       state.curveSmoothing = presetSettings.curveSmoothing;
@@ -304,6 +305,7 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
       state.isFlat = baseline.isFlat;
       state.eqMode = getEqMode(baseline);
       state.curveEqMode = getCurveEqMode(baseline);
+      state.mainBandQ = baseline.mainBandQ;
       state.eqBandQ = baseline.eqBandQ;
       state.curveBandQ = baseline.curveBandQ;
       state.curveSmoothing = baseline.curveSmoothing;

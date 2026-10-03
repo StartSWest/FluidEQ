@@ -9,6 +9,7 @@ import ProfileActionIcon from '../icons/ProfileActionIcon';
 import {
   getEqMode,
   getBandQ,
+  getMainBandQ,
   getCurveEqMode,
   TEqMode,
   TEqModeScope,
@@ -132,10 +133,11 @@ export default function EqModeSelect() {
   const anchor = useRef<HTMLButtonElement>(null);
   const content = useRef<HTMLDivElement>(null);
   const selected = { eq: getEqMode(state), curves: getCurveEqMode(state) };
+  const bandQ = (scope: TEqModeScope) =>
+    scope === 'eq' ? getMainBandQ(state) : getBandQ(state, scope);
   const customized =
     SCOPES.some(
-      (scope) =>
-        selected[scope] !== 'normal' || getBandQ(state, scope) !== 'off',
+      (scope) => selected[scope] !== 'normal' || bandQ(scope) !== 'off',
     ) ||
     (state.curveSmoothing !== undefined && state.curveSmoothing !== 'off') ||
     (phase.status?.active &&
@@ -193,7 +195,7 @@ export default function EqModeSelect() {
       return selected[scope];
     }
     if (kind === 'q') {
-      return getBandQ(state, scope);
+      return bandQ(scope);
     }
     if (kind === 'phase') {
       return scope === 'eq' ? phase.status?.eqVariant : phase.status?.variant;
@@ -360,6 +362,9 @@ export default function EqModeSelect() {
         </div>
         {kind === 'phase' && (
           <p className="eq-mode-menu__note">{t(phaseHint)}</p>
+        )}
+        {kind === 'q' && scope === 'eq' && (
+          <p className="eq-mode-menu__note">{t('eq.mode.mainQHint')}</p>
         )}
         {kind === 'treble' && (
           <p className="eq-mode-menu__note">

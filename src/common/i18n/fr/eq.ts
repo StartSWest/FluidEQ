@@ -20,14 +20,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.empty':
+    'Les modèles enregistrent les fréquences, chaque valeur Q et son comportement. Le gain et l’intensité restent séparés.',
+  'eq.layouts.qHint':
+    'Les nouvelles dispositions utilisent le même Q pour chaque bande. Plus de bandes donnent des bandes plus étroites.',
+  'eq.layouts.resetQ': 'Réinitialiser le Q des bandes',
+  'eq.layouts.resetQHint':
+    'Rétablir un Q recommandé pour toutes les bandes en cloche. Conserver les fréquences, les gains et le comportement du Q.',
+  'eq.mode.mainQHint':
+    'Bandes de l’EQ principal uniquement. Constant conserve le Q quand le gain change. Proportionnel et Asymétrique adaptent le Q au gain.',
+  'graph.item.eqLabels': 'étiquettes de l’EQ',
+  'graph.contents.unlabelled': 'Sans étiquettes de l’EQ',
   'eq.mode.linearDelayInactive': '≈ +{ms} ms avec EQ actif',
   'eq.mode.linearDelay': '≈ +{ms} ms de retard',
   'eq.mode.linearDelayShared': '≈ {ms} ms, partagé',
   'eq.mode.gameMinimum': 'Mode jeu : minimale',
   'eq.layouts.builtIn': 'Dispositions intégrées',
   'eq.layouts.saved': 'Mes dispositions',
-  'eq.layouts.empty':
-    'Enregistrez les fréquences et Q des bandes, pas leurs gains ni le mode EQ.',
   'eq.layouts.loading': 'Chargement des dispositions…',
   'eq.layouts.name': 'Nom de la disposition',
   'eq.layouts.duplicate': 'Ce nom est déjà utilisé. Choisissez-en un autre.',
@@ -591,7 +600,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.cancel': 'Annuler',
   'eq.smart.stopAria': 'Arrêter l’égalisation auto',
   'eq.smart.aria': 'Égalisation auto à partir de la source',
-  'eq.smart.cancelAria': 'Annuler la mesure d’égalisation auto',
   'eq.smart.continuousAria':
     'Continuer à mesurer et ajuster l’égalisation auto pendant la lecture',
   'eq.smart.modeAria': 'Choisir la façon de mesurer',

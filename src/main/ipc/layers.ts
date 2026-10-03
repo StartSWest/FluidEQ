@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { getCurveEqMode, getBandQ } from '../../common/eqMode';
+import { getCurveEqMode, getBandQ, getMainBandQ } from '../../common/eqMode';
 import { APO_LAYERS, IState, TApoLayer } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
@@ -84,6 +84,7 @@ export const registerLayersIpc = ({
     state.curveEqMode = 'normal';
     state.isEqDoubleOn = false;
     state.eqBandQ = 'off';
+    state.mainBandQ = 'off';
     state.curveBandQ = 'off';
     state.curveSmoothing = 'off';
     await handleUpdate(event, ChannelEnum.RESET_EQ_MODE, false, true);
@@ -125,6 +126,7 @@ export const registerLayersIpc = ({
       handleError(event, channel, ErrorCode.INVALID_PARAMETER);
       return;
     }
+    state.mainBandQ = getMainBandQ(state);
     state.eqBandQ = getBandQ(state, 'eq');
     state.curveBandQ = getBandQ(state, 'curves');
     state.curveEqMode = getCurveEqMode(state);
@@ -145,6 +147,7 @@ export const registerLayersIpc = ({
       handleError(event, channel, ErrorCode.INVALID_PARAMETER);
       return;
     }
+    state.mainBandQ = getMainBandQ(state);
     state.eqBandQ = getBandQ(state, 'eq');
     state.curveBandQ = getBandQ(state, 'curves');
     state.curveEqMode = getCurveEqMode(state);
@@ -173,7 +176,7 @@ export const registerLayersIpc = ({
     if (kind === 'smoothing') {
       state.curveSmoothing = value;
     } else if (scope === 'eq') {
-      state.eqBandQ = value;
+      state.mainBandQ = value;
     } else {
       state.curveBandQ = value;
     }

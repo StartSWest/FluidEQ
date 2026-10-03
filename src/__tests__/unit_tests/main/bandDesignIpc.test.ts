@@ -71,12 +71,14 @@ describe('band design and clear commands', () => {
   afterEach(() => fs.rmSync(directory, { recursive: true, force: true }));
 
   it('saves and updates a frequency/Q snapshot without changing any sound settings', async () => {
+    Object.assign(state, { mainBandQ: 'asymmetric' });
     Object.values(state.filters)[0].gain = 8;
     Object.values(state.filters)[0].quality = 4.7;
     const before = JSON.parse(JSON.stringify(state));
     await send(ChannelEnum.SAVE_BAND_DESIGN, ['My design']);
     const saved = readBandDesigns(directory)[0];
     expect(saved.name).toBe('My design');
+    expect(saved).toMatchObject({ bandQ: 'asymmetric' });
     expect(saved.bands).toHaveLength(Object.keys(state.filters).length);
     expect(saved.bands).toContainEqual({
       frequency: Object.values(state.filters)[0].frequency,
@@ -86,13 +88,45 @@ describe('band design and clear commands', () => {
     expect(capture).not.toHaveBeenCalled();
     expect(switchEditing).not.toHaveBeenCalled();
     Object.values(state.filters)[0].quality = 7;
+    Object.assign(state, { mainBandQ: 'off' });
     await send(ChannelEnum.SAVE_BAND_DESIGN, ['My design', saved.id]);
     expect(readBandDesigns(directory)).toHaveLength(1);
     expect(readBandDesigns(directory)[0].bands).toContainEqual({
       frequency: Object.values(state.filters)[0].frequency,
       quality: 7,
     });
+    expect(readBandDesigns(directory)[0]).toMatchObject({ bandQ: 'off' });
   });
+
+  it('restores the main Q behavior without changing any curve settings', async () => {
+    const withMode = { ...design, bandQ: 'asymmetric' as const };
+    writeBandDesign(directory, withMode);
+    await send(ChannelEnum.APPLY_BAND_DESIGN, [design.id]);
+    expect(state).toMatchObject({
+      mainBandQ: 'asymmetric',
+      eqBandQ: 'proportional',
+      curveEqMode: 'studio',
+      eqMode: 'double',
+      preAmp: -9,
+    });
+  });
+
+  it.each([100, 101, 9000])(
+    'adds a band at %s Hz using the existing band Q',
+    async (frequency) => {
+      Object.values(state.filters).forEach((filter) => {
+        filter.quality = 1.44;
+      });
+      const before = { ...state.filters };
+      await send(ChannelEnum.ADD_FILTER, [frequency, 3]);
+      const added = Object.values(state.filters).filter(
+        (filter) => !before[filter.id],
+      );
+      expect(added).toHaveLength(1);
+      expect(added[0]).toMatchObject({ frequency, quality: 1.44 });
+      expect(state.eqBandQ).toBe('proportional');
+    },
+  );
 
   it('loads saved frequency/Q at neutral gains without changing either EQ mode or preamp', async () => {
     writeBandDesign(directory, design);

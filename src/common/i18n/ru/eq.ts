@@ -20,14 +20,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.empty':
+    'Схемы сохраняют частоты, Q каждой полосы и режим Q. Усиление и интенсивность задаются отдельно.',
+  'eq.layouts.qHint':
+    'В новых схемах начальный Q одинаков для всех полос. Чем больше полос, тем они уже.',
+  'eq.layouts.resetQ': 'Сбросить Q полос',
+  'eq.layouts.resetQHint':
+    'Установить рекомендованный Q для всех колоколообразных полос. Сохранить частоты, усиление и режим Q.',
+  'eq.mode.mainQHint':
+    'Только полосы основного EQ. Постоянный Q не меняется при изменении усиления. Пропорциональный и асимметричный режимы меняют Q в зависимости от усиления.',
+  'graph.item.eqLabels': 'подписи EQ',
+  'graph.contents.unlabelled': 'Без подписей EQ',
   'eq.mode.linearDelayInactive': '≈ +{ms} мс с активным EQ',
   'eq.mode.linearDelay': '≈ +{ms} мс задержки',
   'eq.mode.linearDelayShared': '≈ {ms} мс, общая',
   'eq.mode.gameMinimum': 'Игровой режим: минимальная',
   'eq.layouts.builtIn': 'Стандартные схемы',
   'eq.layouts.saved': 'Мои схемы',
-  'eq.layouts.empty':
-    'Сохраняются только частоты и Q полос, без усиления и режима EQ.',
   'eq.layouts.loading': 'Загрузка схем…',
   'eq.layouts.name': 'Название схемы',
   'eq.layouts.duplicate': 'Это название уже используется. Выберите другое.',
@@ -585,7 +594,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.cancel': 'Отмена',
   'eq.smart.stopAria': 'Остановить умный EQ',
   'eq.smart.aria': 'Умный EQ по исходному сигналу',
-  'eq.smart.cancelAria': 'Отменить измерение умного EQ',
   'eq.smart.continuousAria':
     'Продолжать измерять и подстраивать эквалайзер во время музыки',
   'eq.smart.modeAria': 'Выбрать способ измерения',

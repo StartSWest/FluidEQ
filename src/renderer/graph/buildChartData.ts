@@ -87,6 +87,7 @@ export interface IBuildChartDataParams
       | 'isEqDoubleOn'
       | 'eqMode'
       | 'curveEqMode'
+      | 'mainBandQ'
       | 'eqBandQ'
       | 'curveBandQ'
       | 'curveSmoothing'
@@ -167,6 +168,7 @@ export const buildChartData = ({
   isEqDoubleOn,
   eqMode,
   curveEqMode,
+  mainBandQ,
   eqBandQ,
   curveBandQ,
   curveSmoothing,
@@ -183,7 +185,15 @@ export const buildChartData = ({
   voicing,
 }: IBuildChartDataParams): IGraphData => {
   const lines = createLayerLines(
-    { eqMode, curveEqMode, isEqDoubleOn, eqBandQ, curveBandQ, curveSmoothing },
+    {
+      eqMode,
+      curveEqMode,
+      isEqDoubleOn,
+      mainBandQ,
+      eqBandQ,
+      curveBandQ,
+      curveSmoothing,
+    },
     matchedDesign,
     sampleRate,
   );

@@ -35,7 +35,7 @@ import {
   getDefaultFilterWithId,
   getDefaultFilters,
 } from '../../common/constants';
-import { qualitiesForRack } from '../../common/bandQuality';
+import { qualityForAddedBand } from '../../common/bandQuality';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
 import {
@@ -364,20 +364,15 @@ export const registerFiltersIpc = ({
     }
 
     switchToParametricEditing();
-    // The width the rack it is joining uses, not the app's fallback: a band
-    // added to a thirty-one-band rack at Q 2 is three times wider than every
-    // band either side of it, and reads as a fault rather than as a band.
+    // Inherit the main rack's Q without giving close neighbours narrower bands.
     const newFilter: IFilter = {
       ...getDefaultFilterWithId(),
       frequency,
-      // Measured with the new band already among them, so the answer is the
-      // distance to the bands it is actually landing between rather than the
-      // rack's average — which on a layout whose spacing changes along it is
-      // a width no part of the rack uses.
-      quality: qualitiesForRack([
-        ...Object.values(state.filters).map((filter) => filter.frequency),
-        frequency,
-      ]).slice(-1)[0],
+      quality: qualityForAddedBand(
+        Object.values(state.filters)
+          .filter((filter) => filter.type === FilterTypeEnum.PK)
+          .map((filter) => filter.quality),
+      ),
     };
     state.filters[newFilter.id] = newFilter;
     state.isFlat = false;

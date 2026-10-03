@@ -31,7 +31,7 @@ import {
   TApoLayer,
 } from 'common/constants';
 import { SelectionMode } from 'common/bandSelection';
-import { getEqMode, getBandQ } from 'common/eqMode';
+import { getEqMode, getMainBandQ } from 'common/eqMode';
 import { ErrorDescription } from 'common/errors';
 import { GRAPH_PALETTES, GraphPalette } from 'common/graphStyles';
 import { TranslationKey } from 'common/i18n';
@@ -739,6 +739,7 @@ const FrequencyResponseChart = ({
     isEqDoubleOn,
     eqMode,
     curveEqMode,
+    mainBandQ,
     eqBandQ,
     curveBandQ,
     curveSmoothing,
@@ -868,10 +869,14 @@ const FrequencyResponseChart = ({
     // plot with nothing naming it.
     if (
       ((getEqMode({ eqMode, isEqDoubleOn }) !== 'normal' ||
-        getBandQ(
-          { eqMode, curveEqMode, isEqDoubleOn, eqBandQ, curveBandQ },
-          'eq',
-        ) !== 'off') &&
+        getMainBandQ({
+          eqMode,
+          curveEqMode,
+          isEqDoubleOn,
+          mainBandQ,
+          eqBandQ,
+          curveBandQ,
+        }) !== 'off') &&
         !isEqQuiet) ||
       convolution ||
       hasPreAmp ||
@@ -1243,6 +1248,7 @@ const FrequencyResponseChart = ({
         isEqDoubleOn,
         eqMode,
         curveEqMode,
+        mainBandQ,
         eqBandQ,
         curveBandQ,
         curveSmoothing,
@@ -1276,6 +1282,7 @@ const FrequencyResponseChart = ({
       isEqDoubleOn,
       eqMode,
       curveEqMode,
+      mainBandQ,
       eqBandQ,
       curveBandQ,
       curveSmoothing,
@@ -1715,6 +1722,11 @@ const FrequencyResponseChart = ({
       return {
         id: filter.id,
         name: `${filter.type} band`,
+        parameters: {
+          frequency: filter.frequency,
+          gain: filter.gain,
+          quality: filter.quality,
+        },
         color: bandColor.color,
         mutedColor: bandColor.muted,
         // Place each dot on the rendered EQ response at its frequency. This
@@ -2201,7 +2213,9 @@ const FrequencyResponseChart = ({
             }
           }}
         >
-          {modeAnnouncement.label}
+          {modeAnnouncement.label === 'Without EQ labels'
+            ? t('graph.contents.unlabelled')
+            : modeAnnouncement.label}
         </div>
       )}
       <div

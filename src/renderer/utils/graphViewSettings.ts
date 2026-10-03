@@ -226,6 +226,23 @@ export const createPerViewSetting = <T>(
 export const parseFlag = (raw: string) => raw === 'true';
 export const serializeFlag = (value: boolean) => String(value);
 
+const bandLabelsSetting = createPerViewSetting(
+  VIEW_KEYS.bandLabels,
+  false,
+  parseFlag,
+  serializeFlag,
+);
+
+export const getGraphBandLabelsHidden = () => bandLabelsSetting.get();
+export const toggleGraphBandLabels = () =>
+  bandLabelsSetting.set(!bandLabelsSetting.get());
+export const useGraphBandLabelsHidden = () =>
+  useSyncExternalStore(
+    bandLabelsSetting.subscribe,
+    getGraphBandLabelsHidden,
+    () => false,
+  );
+
 /**
  * Whether the graph shows only the live spectrum.
  *
@@ -366,10 +383,11 @@ export const toggleLiveOutputSolo = () =>
  * it names the state it is in for that reason rather than for tidiness.
  */
 export type TGraphContents =
-  'everything' | 'layers' | 'curves' | 'clean' | 'wave';
+  'everything' | 'unlabelled' | 'layers' | 'curves' | 'clean' | 'wave';
 
 const CONTENTS_ORDER: TGraphContents[] = [
   'everything',
+  'unlabelled',
   'layers',
   'curves',
   'clean',
@@ -387,6 +405,7 @@ const CONTENTS_ORDER: TGraphContents[] = [
  */
 export const GRAPH_CONTENTS_LABEL: Record<TGraphContents, string> = {
   everything: 'Everything',
+  unlabelled: 'Without EQ labels',
   // Named for what it is rather than 'Layers only', which it never was: the
   // wave is still running underneath, and that is a useful thing to look at.
   // The state that did earn the older name is gone — see `TGraphContents`.
@@ -414,7 +433,10 @@ export const getGraphContents = (): TGraphContents => {
   if (waveSetting.get()) {
     return 'curves';
   }
-  return quietEqSetting.get() ? 'layers' : 'everything';
+  if (quietEqSetting.get()) {
+    return 'layers';
+  }
+  return bandLabelsSetting.get() ? 'unlabelled' : 'everything';
 };
 
 /**
@@ -439,6 +461,9 @@ export const getGraphContents = (): TGraphContents => {
  * directly.
  */
 export function setGraphContents(next: TGraphContents) {
+  if (next !== 'clean') {
+    bandLabelsSetting.set(next === 'unlabelled');
+  }
   setLiveOutputSolo(next === 'wave');
   setWaveHidden(next === 'curves');
   setEqQuiet(next === 'layers');
@@ -479,11 +504,13 @@ const subscribeContents = (listener: () => void) => {
   waveListeners.add(listener);
   quietEqListeners.add(listener);
   const stopClean = cleanSetting.subscribe(listener);
+  const stopLabels = bandLabelsSetting.subscribe(listener);
   return () => {
     soloListeners.delete(listener);
     waveListeners.delete(listener);
     quietEqListeners.delete(listener);
     stopClean();
+    stopLabels();
   };
 };
 

@@ -73,6 +73,7 @@ export const VIEW_KEYS = {
   // arrangements.
   wave: 'fluideq.graphWaveHidden',
   quietEq: 'fluideq.graphQuietEq',
+  bandLabels: 'fluideq.graphBandLabelsHidden',
   solo: 'fluideq.graphSolo',
   clean: 'fluideq.graphClean',
   grid: 'fluideq.graphGridHidden',

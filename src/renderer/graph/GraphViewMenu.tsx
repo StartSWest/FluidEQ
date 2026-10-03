@@ -24,6 +24,8 @@ import useExitAnimation from '../utils/useExitAnimation';
 import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
   MIN_GRAPH_WAVE_HEIGHT,
+  toggleGraphBandLabels,
+  useGraphBandLabelsHidden,
   TGraphContents,
   TGraphCurve,
   TGraphView,
@@ -138,6 +140,7 @@ const VIEW_LABEL: Record<TGraphView, TranslationKey> = {
 
 const CONTENT_LABEL: Record<TGraphContents, TranslationKey> = {
   everything: 'graph.contents.everything',
+  unlabelled: 'graph.contents.unlabelled',
   layers: 'graph.contents.layers',
   curves: 'graph.contents.curves',
   clean: 'graph.contents.clean',
@@ -182,6 +185,7 @@ const GraphViewMenu = ({
   sceneLookId,
 }: IGraphViewMenuProps) => {
   const { t } = useTranslation();
+  const bandLabelsHidden = useGraphBandLabelsHidden();
   // A Plus visualizer ignores the orientation, so a centred wave locks
   // nothing there.
   const isWavePositionLocked =
@@ -488,6 +492,22 @@ const GraphViewMenu = ({
               away, and as a switch of its own it was the odd one out: the other
               two say which single drawing they take away, where solo took away
               five of them and was named for the one it kept. */}
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={bandLabelsHidden}
+              disabled={!isResponseAvailable}
+              onClick={choose(toggleGraphBandLabels)}
+            >
+              <Icon>
+                <path d="M2 2.5h12v7H9l-3 3v-3H2zM5 5h6M5 7h4" />
+              </Icon>
+              <span>
+                {t(bandLabelsHidden ? 'graph.show' : 'graph.hide', {
+                  item: t('graph.item.eqLabels'),
+                })}
+              </span>
+            </button>
             <button
               type="button"
               role="menuitemcheckbox"

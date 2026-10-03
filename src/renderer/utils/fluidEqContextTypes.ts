@@ -284,6 +284,7 @@ export type IFluidEqLayers = IFluidEqShell &
     | 'eqMode'
     | 'eqBandDesign'
     | 'curveEqMode'
+    | 'mainBandQ'
     | 'eqBandQ'
     | 'curveBandQ'
     | 'curveSmoothing'

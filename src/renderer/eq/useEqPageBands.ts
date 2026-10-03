@@ -61,10 +61,9 @@ import {
   getPlotGeometry,
   IBandPlacement,
   isSamePlacement,
-  placeBandsEvenly,
   subscribePlotGeometry,
 } from '../graph/plotGeometry';
-import { applyBandPlacement } from './bandsRail';
+import { applyBandPlacement, measureBandPlacement } from './bandsRail';
 import {
   bandGainEdits,
   bandGainWrite,
@@ -454,17 +453,10 @@ const useEqPageBands = () => {
       }
       setIsPlaced(next !== undefined);
     };
-    // Measured, not derived: the row sits inside the page's padding and the
-    // plot does not, and the row's own left edge moves when it goes from even
-    // to placed. Its size changes with it, which is what calls this again.
-    // What the page shows of the row: the inside of the scroller it stands
-    // in, between that box's scrollbar gutters, which is where the bands are
-    // clipped.
-    // And never outside the row's own box: the dB scale stands in the column
-    // before it (`.eq-scale`) and the card's padding after it, where the
-    // first and last bands used to hang into the page's padding to meet the
-    // plot's ends (Ivan, 2026-09-27: "less padding to the left", "add some
-    // padding to the right of all").
+    // The rail's width is independent of overflowing bands and scroll arrows.
+    // Watching the row instead fed our own layout change back into the fit
+    // decision and could alternate placed/scrolling forever at a fixed width.
+    const rail = bands.closest('.bands-rail');
     const scroller = bands.closest('.workspace-tab-panel__scroll');
     const place = () => {
       const plot = getPlotGeometry();
@@ -472,20 +464,7 @@ const useEqPageBands = () => {
         settle(undefined);
         return;
       }
-      const row = bands.getBoundingClientRect();
-      const offset = plot.element.getBoundingClientRect().left - row.left;
-      let visible = { left: 0, right: row.width };
-      if (scroller instanceof HTMLElement) {
-        const left =
-          scroller.getBoundingClientRect().left +
-          scroller.clientLeft -
-          row.left;
-        visible = {
-          left: Math.max(0, left),
-          right: Math.min(row.width, left + scroller.clientWidth),
-        };
-      }
-      settle(placeBandsEvenly(bandCount, plot, offset, visible));
+      settle(measureBandPlacement(bands, plot, bandCount));
     };
     place();
     const stopHearing = subscribePlotGeometry(place);
@@ -493,7 +472,12 @@ const useEqPageBands = () => {
       return stopHearing;
     }
     const observer = new ResizeObserver(place);
-    observer.observe(bands);
+    if (rail) {
+      observer.observe(rail);
+    }
+    if (scroller) {
+      observer.observe(scroller);
+    }
     return () => {
       stopHearing();
       observer.disconnect();

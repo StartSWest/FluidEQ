@@ -43,6 +43,31 @@ const overrideFor = (state: IState, feature: TApoFeature) => {
 };
 
 describe('live Equalizer APO feature-file adoption', () => {
+  it.each(['proportional', 'asymmetric'] as const)(
+    'keeps preset curves at %s Q when the main EQ uses Constant',
+    (eqBandQ) => {
+      const state: IState = {
+        ...getDefaultState(),
+        eqMode: 'normal',
+        mainBandQ: 'off',
+        eqBandQ,
+        tone: { bass: 6, mid: -3, treble: 4 },
+      };
+      const before = stateToApoFiles(state)?.features.filter(
+        (feature) => feature.feature !== 'eq',
+      );
+      expect(before?.some((feature) => feature.feature === 'tone')).toBe(true);
+      expect(adoptApoFeatureText(state, 'eq', FILTER).changed).toBe(true);
+      expect(state.mainBandQ).toBe('off');
+      expect(state.eqBandQ).toBe(eqBandQ);
+      expect(
+        stateToApoFiles(state)?.features.filter(
+          (feature) => feature.feature !== 'eq',
+        ),
+      ).toEqual(before);
+    },
+  );
+
   it('compares audible filters instead of comments, ids, or line order', async () => {
     const reordered = [
       'Filter 2: ON HSC Fc 8000 Hz Gain -1.25 dB Q 0.8',

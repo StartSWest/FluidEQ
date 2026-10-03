@@ -146,6 +146,7 @@ export const FluidEqProviderWrapper = ({
     eqMode,
     eqBandDesign,
     curveEqMode,
+    mainBandQ,
     eqBandQ,
     curveBandQ,
     curveSmoothing,
@@ -237,6 +238,7 @@ export const FluidEqProviderWrapper = ({
       eqMode,
       eqBandDesign,
       curveEqMode,
+      mainBandQ,
       eqBandQ,
       curveBandQ,
       curveSmoothing,
@@ -264,6 +266,7 @@ export const FluidEqProviderWrapper = ({
       eqMode,
       eqBandDesign,
       curveEqMode,
+      mainBandQ,
       eqBandQ,
       curveBandQ,
       curveSmoothing,
@@ -316,6 +319,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [eqMode, setEqMode] = useState<IState['eqMode']>();
   const [eqBandDesign, setEqBandDesign] = useState<IState['eqBandDesign']>();
   const [curveEqMode, setCurveEqMode] = useState<IState['curveEqMode']>();
+  const [mainBandQ, setMainBandQ] = useState<IState['mainBandQ']>();
   const [eqBandQ, setEqBandQ] = useState<IState['eqBandQ']>();
   const [curveBandQ, setCurveBandQ] = useState<IState['curveBandQ']>();
   const [curveSmoothing, setCurveSmoothing] =
@@ -510,6 +514,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setEqMode(state.eqMode);
         setEqBandDesign(state.eqBandDesign);
         setCurveEqMode(state.curveEqMode);
+        setMainBandQ(state.mainBandQ);
         setEqBandQ(state.eqBandQ);
         setCurveBandQ(state.curveBandQ);
         setCurveSmoothing(state.curveSmoothing);
@@ -712,6 +717,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       eqMode,
       eqBandDesign,
       curveEqMode,
+      mainBandQ,
       eqBandQ,
       curveBandQ,
       curveSmoothing,
@@ -764,6 +770,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       eqMode,
       eqBandDesign,
       curveEqMode,
+      mainBandQ,
       eqBandQ,
       curveBandQ,
       curveSmoothing,

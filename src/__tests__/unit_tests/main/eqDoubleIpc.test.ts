@@ -45,6 +45,7 @@ describe('Main EQ x2 IPC', () => {
       curveEqMode: 'normal',
       isEqDoubleOn: false,
       eqBandQ: 'off',
+      mainBandQ: 'off',
       curveBandQ: 'off',
       curveSmoothing: 'off',
     };
@@ -161,6 +162,7 @@ describe('Main EQ x2 IPC', () => {
       eqMode: 'double',
       curveEqMode: 'normal',
       eqBandQ: 'off',
+      mainBandQ: 'off',
       curveBandQ: 'off',
     });
     await fire(ChannelEnum.SET_EQ_DOUBLE, [false]);
@@ -170,6 +172,7 @@ describe('Main EQ x2 IPC', () => {
       eqMode: 'normal',
       curveEqMode: 'normal',
       eqBandQ: 'off',
+      mainBandQ: 'off',
       curveBandQ: 'off',
     });
     expect(error).not.toHaveBeenCalled();
@@ -374,7 +377,11 @@ describe('Main EQ x2 import and export IPC', () => {
   });
 });
 it('validates and persists shape choices without crossing groups or changing strength', async () => {
-  const state = { ...getDefaultState(), eqMode: 'studio' as TEqMode };
+  const state = {
+    ...getDefaultState(),
+    eqMode: 'studio' as TEqMode,
+    eqBandQ: 'proportional' as const,
+  };
   const update = jest.fn();
   const error = jest.fn();
   registerLayersIpc({
@@ -388,7 +395,8 @@ it('validates and persists shape choices without crossing groups or changing str
   await fire(ChannelEnum.SET_EQ_SHAPE, ['curves', 'smoothing', 'third']);
   expect(state).toMatchObject({
     eqMode: 'studio',
-    eqBandQ: 'asymmetric',
+    mainBandQ: 'asymmetric',
+    eqBandQ: 'proportional',
     curveBandQ: 'off',
     curveSmoothing: 'third',
   });

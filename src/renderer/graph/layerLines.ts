@@ -11,6 +11,7 @@ import {
 } from 'common/eqShape';
 import {
   getBandQ,
+  getMainBandQ,
   getCurveEqMode,
   getEqMode,
   getStudioEqFilters,
@@ -38,6 +39,7 @@ export type TEqModeSettings = Pick<
   | 'eqMode'
   | 'curveEqMode'
   | 'isEqDoubleOn'
+  | 'mainBandQ'
   | 'eqBandQ'
   | 'curveBandQ'
   | 'curveSmoothing'
@@ -64,11 +66,16 @@ export const createLayerLines = (
 ) => {
   const strength = getEqMode(settings);
   const curveStrength = getCurveEqMode(settings);
-  const mainShape = getBandQ(settings, 'eq');
+  const mainShape = getMainBandQ(settings);
+  const presetShape = getBandQ(settings, 'eq');
   const curveShape = getBandQ(settings, 'curves');
   const settingsFor = (feature?: TApoFeature) =>
     feature !== undefined && layerGroupOf(feature) === 'eq'
-      ? { mode: strength, shape: mainShape, smoothing: 'off' as const }
+      ? {
+          mode: strength,
+          shape: feature === 'eq' ? mainShape : presetShape,
+          smoothing: 'off' as const,
+        }
       : {
           mode: curveStrength,
           shape: curveShape,

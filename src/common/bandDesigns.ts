@@ -11,6 +11,7 @@ import {
   MIN_NUM_FILTERS,
   MIN_QUALITY,
 } from './constants';
+import type { TBandQ } from './eqShape';
 
 export interface IBandDesignBand {
   frequency: number;
@@ -21,6 +22,8 @@ export interface IBandDesign {
   id: string;
   name: string;
   bands: IBandDesignBand[];
+  /** Absent in legacy designs: loading those preserves the current behavior. */
+  bandQ?: TBandQ;
 }
 
 export const MAX_BAND_DESIGN_NAME = 64;
@@ -31,6 +34,7 @@ export const BAND_DESIGN_SCHEMA = {
   additionalProperties: false,
   required: ['id', 'name', 'bands'],
   properties: {
+    bandQ: { type: 'string', enum: ['off', 'proportional', 'asymmetric'] },
     id: { type: 'string', minLength: 1, maxLength: 64 },
     name: {
       type: 'string',
@@ -89,6 +93,10 @@ export const isBandDesign = (value: unknown): value is IBandDesign => {
     design.id.length > 0 &&
     design.id.length <= 64 &&
     isBandDesignName(design.name) &&
+    (design.bandQ === undefined ||
+      design.bandQ === 'off' ||
+      design.bandQ === 'proportional' ||
+      design.bandQ === 'asymmetric') &&
     Array.isArray(design.bands) &&
     design.bands.length >= MIN_NUM_FILTERS &&
     design.bands.length <= MAX_NUM_FILTERS &&
@@ -104,6 +112,7 @@ export const isBandDesign = (value: unknown): value is IBandDesign => {
 export const cloneBandDesign = (design: IBandDesign): IBandDesign => ({
   id: design.id,
   name: design.name.trim(),
+  ...(design.bandQ === undefined ? {} : { bandQ: design.bandQ }),
   bands: design.bands.map((band) => ({
     frequency: band.frequency,
     quality: band.quality,

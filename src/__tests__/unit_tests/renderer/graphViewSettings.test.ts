@@ -126,6 +126,20 @@ const COVERAGE_STEM = 'fluideq.graphCoverageHidden';
 describe('one set of view settings per mode', () => {
   beforeEach(() => window.localStorage.clear());
 
+  it('remembers the label toggle across restart independently in each view', () => {
+    const { style } = load();
+    style.setGraphView('normal');
+    style.toggleGraphBandLabels();
+    expect(style.getGraphContents()).toBe('unlabelled');
+    style.setGraphView('fullscreen');
+    expect(style.getGraphBandLabelsHidden()).toBe(false);
+    const restarted = load().style;
+    restarted.setGraphView('normal');
+    expect(restarted.getGraphBandLabelsHidden()).toBe(true);
+    restarted.setGraphView('fullscreen');
+    expect(restarted.getGraphBandLabelsHidden()).toBe(false);
+  });
+
   it('hides the grid in one mode and leaves the other two alone', () => {
     const { style } = load();
 

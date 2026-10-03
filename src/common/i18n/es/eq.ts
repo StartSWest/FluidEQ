@@ -20,14 +20,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.empty':
+    'Los diseños guardan las frecuencias, el Q de cada banda y su comportamiento. La ganancia y la intensidad se guardan por separado.',
+  'eq.layouts.qHint':
+    'Los diseños nuevos empiezan con el mismo Q en todas las bandas. Más bandas usan anchos menores.',
+  'eq.layouts.resetQ': 'Restablecer Q de bandas',
+  'eq.layouts.resetQHint':
+    'Aplicar un Q recomendado a todas las bandas de campana. Conservar frecuencias, ganancias y comportamiento del Q.',
+  'eq.mode.mainQHint':
+    'Solo las bandas del EQ principal. Constante mantiene el Q al mover la ganancia. Proporcional y Asimétrico lo ajustan según la ganancia.',
+  'graph.item.eqLabels': 'etiquetas del EQ',
+  'graph.contents.unlabelled': 'Sin etiquetas del EQ',
   'eq.mode.linearDelayInactive': '≈ +{ms} ms con EQ activo',
   'eq.mode.linearDelay': '≈ +{ms} ms de retardo',
   'eq.mode.linearDelayShared': '≈ {ms} ms, compartido',
   'eq.mode.gameMinimum': 'Modo juego: mínima',
   'eq.layouts.builtIn': 'Diseños incluidos',
   'eq.layouts.saved': 'Mis diseños',
-  'eq.layouts.empty':
-    'Guarda aquí las frecuencias y Q de las bandas, no las ganancias ni el modo EQ.',
   'eq.layouts.loading': 'Cargando diseños…',
   'eq.layouts.name': 'Nombre del diseño',
   'eq.layouts.duplicate': 'Ese nombre ya está en uso. Elige otro.',
@@ -590,7 +599,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.cancel': 'Cancelar',
   'eq.smart.stopAria': 'Detener el EQ inteligente',
   'eq.smart.aria': 'EQ inteligente a partir de la fuente',
-  'eq.smart.cancelAria': 'Cancelar la medición del EQ inteligente',
   'eq.smart.continuousAria':
     'Mantener el EQ inteligente midiendo y ajustando mientras suena la música',
   'eq.smart.modeAria': 'Elegir cómo mide el EQ inteligente',

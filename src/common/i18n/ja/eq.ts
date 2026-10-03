@@ -20,14 +20,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.empty':
+    'デザインには各バンドの周波数、Q値、Qの動作を保存します。ゲインと強度は別に設定します。',
+  'eq.layouts.qHint':
+    '新しいレイアウトでは全バンドが同じQで始まります。バンド数が多いほど帯域幅が狭くなります。',
+  'eq.layouts.resetQ': 'バンドQをリセット',
+  'eq.layouts.resetQHint':
+    'すべてのベル型バンドを推奨Qに戻します。周波数、ゲイン、Qの動作は維持します。',
+  'eq.mode.mainQHint':
+    'メインEQのバンドのみ。一定ではゲインを変えてもQは変わりません。比例と非対称ではゲインに応じてQが変わります。',
+  'graph.item.eqLabels': 'EQラベル',
+  'graph.contents.unlabelled': 'EQラベルなし',
   'eq.mode.linearDelayInactive': 'EQ有効時 約+{ms} ms',
   'eq.mode.linearDelay': '遅延 約+{ms} ms',
   'eq.mode.linearDelayShared': '約{ms} ms（共有）',
   'eq.mode.gameMinimum': 'ゲームモード：最小位相',
   'eq.layouts.builtIn': '標準レイアウト',
   'eq.layouts.saved': 'マイレイアウト',
-  'eq.layouts.empty':
-    'バンドの周波数とQのみ保存します。ゲインとEQモードは保存しません。',
   'eq.layouts.loading': 'レイアウトを読み込み中…',
   'eq.layouts.name': 'レイアウト名',
   'eq.layouts.duplicate':
@@ -583,7 +592,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.cancel': 'キャンセル',
   'eq.smart.stopAria': 'スマート EQ を停止',
   'eq.smart.aria': 'ソースからスマート EQ を作成',
-  'eq.smart.cancelAria': 'スマート EQ の測定をキャンセル',
   'eq.smart.continuousAria': '再生中もスマート EQ の測定と調整を続ける',
   'eq.smart.modeAria': 'スマート EQ の測定方法を選ぶ',
   'eq.smart.mode.once.note': '1 回の測定を一度に適用',

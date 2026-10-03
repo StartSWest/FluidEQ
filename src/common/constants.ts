@@ -416,6 +416,8 @@ export interface IState {
   eqMode?: 'normal' | 'double' | 'studio';
   curveEqMode?: 'normal' | 'double' | 'studio';
   eqBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
+  /** Main editable bands only; absent preserves the legacy shared Q setting. */
+  mainBandQ?: 'off' | 'proportional' | 'asymmetric';
   curveBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
   curveSmoothing?: 'off' | 'twelfth' | 'third';
   /**

@@ -81,28 +81,16 @@ describe('what width a band opens at', () => {
       });
     });
 
-    it('gives each band the distance to its own neighbours', () => {
-      // The twenty-band runs third-octave at both ends and two-thirds through
-      // the middle, so one number cannot serve it.
-      const widths = qualitiesForRack(
-        FIXED_BAND_FREQUENCIES[FixedBandSizeEnum.TWENTY],
-      );
-      const centres = FIXED_BAND_FREQUENCIES[FixedBandSizeEnum.TWENTY];
-      const at = (frequency: number) => widths[centres.indexOf(frequency)];
-      /**
-       * From the neighbours themselves, not from the nominal spacing: the ISO
-       * centres are rounded, so 80 to 100 is 0.3219 of an octave and not a
-       * third, and a test written against the ideal would be off by more than
-       * the thing it is checking.
-       */
-      const between = (below: number, above: number) =>
-        qualityForSpacing(Math.log2(above / below));
-      // 100 Hz sits between 80 and 125 — third-octave either side.
-      expect(at(100)).toBeCloseTo(between(80, 125), 2);
-      // 1 kHz sits between 630 and 1600 — two-thirds either side.
-      expect(at(1000)).toBeCloseTo(between(630, 1600), 2);
-      // And the wide middle is wider than the close-packed ends.
-      expect(at(1000)).toBeLessThan(at(100));
+    it.each([
+      [FixedBandSizeEnum.SIX, 0.35],
+      [FixedBandSizeEnum.TEN, 0.67],
+      [FixedBandSizeEnum.FIFTEEN, 1.05],
+      [FixedBandSizeEnum.TWENTY, 1.44],
+      [FixedBandSizeEnum.THIRTY_ONE, 2.15],
+    ])('starts all %i main bands at Q %s, including the ends', (size, q) => {
+      expect(
+        Object.values(getDefaultFilters(size)).map((band) => band.quality),
+      ).toEqual(Array.from({ length: size }, () => q));
     });
 
     it('answers in the order it was given, sorted or not', () => {

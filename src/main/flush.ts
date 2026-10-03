@@ -334,6 +334,11 @@ export const fetchSettings = (settingsDir: string) => {
       input.curveEqMode === 'studio'
         ? { curveEqMode: input.curveEqMode }
         : {}),
+      ...(input.mainBandQ === 'off' ||
+      input.mainBandQ === 'proportional' ||
+      input.mainBandQ === 'asymmetric'
+        ? { mainBandQ: input.mainBandQ }
+        : {}),
       ...(input.eqBandQ === 'off' ||
       input.eqBandQ === 'fixed' ||
       input.eqBandQ === 'constant' ||

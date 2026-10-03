@@ -2,6 +2,7 @@ import log from 'electron-log';
 import { uid } from 'uid';
 import ChannelEnum from '../../common/channels';
 import { ErrorCode } from '../../common/errors';
+import { getMainBandQ } from '../../common/eqMode';
 import {
   cloneBandDesign,
   filtersFromBandDesign,
@@ -70,6 +71,7 @@ const registerBandDesignsIpc = ({
           id: id ?? uid(),
           name: name.trim(),
           bands: snapshotBandDesign(state.filters),
+          bandQ: getMainBandQ(state),
         };
         writeBandDesign(userDataDir, design);
         state.eqBandDesign = cloneBandDesign(design);
@@ -120,6 +122,9 @@ const registerBandDesignsIpc = ({
         state.filters = filtersFromBandDesign(design);
         state.eqBandDesign = cloneBandDesign(design);
         state.eqImport = undefined;
+        if (design.bandQ !== undefined) {
+          state.mainBandQ = design.bandQ;
+        }
         state.isFlat = false;
         await handleUpdateHelper(event, channel, design, false, true);
       } catch (error) {

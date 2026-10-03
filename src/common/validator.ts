@@ -120,6 +120,7 @@ const IStateSchema = {
     eqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
     eqBandDesign: BAND_DESIGN_SCHEMA,
     curveEqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
+    mainBandQ: { type: 'string', enum: ['off', 'proportional', 'asymmetric'] },
     eqBandQ: {
       enum: ['off', 'fixed', 'constant', 'proportional', 'asymmetric'],
       type: 'string',
@@ -303,6 +304,7 @@ const IPresetSchemaV2 = {
     eqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
     eqBandDesign: BAND_DESIGN_SCHEMA,
     curveEqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
+    mainBandQ: { type: 'string', enum: ['off', 'proportional', 'asymmetric'] },
     eqBandQ: {
       enum: ['off', 'fixed', 'constant', 'proportional', 'asymmetric'],
       type: 'string',

@@ -46,6 +46,7 @@ import { toggleChromeNow } from '../utils/idleChrome';
 import CoverageOverlay from './CoverageOverlay';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
+import BandLabels from './BandLabels';
 import GenrePins from './GenrePins';
 import LiveTraceCanvas from './LiveTraceCanvas';
 import ScenePlot from './ScenePlot';
@@ -585,6 +586,17 @@ const Chart = ({
           xScale={xScaleFreq}
           yScale={yScaleEq}
           isHidden={isLiveOutputForeground}
+        />
+        <BandLabels
+          points={editablePoints}
+          xScale={xScaleFreq}
+          yScale={yScaleEq}
+          bounds={{
+            left: padding.left + 2,
+            right: svgWidth - padding.right - 2,
+            top: 4,
+            bottom: plotHeight - 4,
+          }}
         />
         {editablePoints.map((point) => (
           <EditablePoint

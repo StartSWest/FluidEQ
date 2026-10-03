@@ -20,14 +20,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.empty':
+    'डिज़ाइन में बैंड की फ़्रीक्वेंसी, हर Q मान और Q का व्यवहार सहेजा जाता है। गेन और तीव्रता अलग रहते हैं।',
+  'eq.layouts.qHint':
+    'नए लेआउट में सभी बैंड एक ही Q से शुरू होते हैं। अधिक बैंड होने पर उनकी चौड़ाई कम होती है।',
+  'eq.layouts.resetQ': 'बैंड Q रीसेट करें',
+  'eq.layouts.resetQHint':
+    'सभी बेल बैंड के लिए अनुशंसित Q बहाल करें। फ़्रीक्वेंसी, गेन और Q का व्यवहार बनाए रखें।',
+  'eq.mode.mainQHint':
+    'केवल मुख्य EQ बैंड। स्थिर मोड में गेन बदलने पर Q नहीं बदलता। आनुपातिक और असममित मोड में Q गेन के अनुसार बदलता है।',
+  'graph.item.eqLabels': 'EQ लेबल',
+  'graph.contents.unlabelled': 'बिना EQ लेबल',
   'eq.mode.linearDelayInactive': 'सक्रिय EQ पर ≈ +{ms} ms',
   'eq.mode.linearDelay': '≈ +{ms} ms देरी',
   'eq.mode.linearDelayShared': '≈ {ms} ms, साझा',
   'eq.mode.gameMinimum': 'गेम मोड: मिनिमम',
   'eq.layouts.builtIn': 'पहले से मौजूद लेआउट',
   'eq.layouts.saved': 'मेरे डिज़ाइन',
-  'eq.layouts.empty':
-    'केवल बैंड की फ़्रीक्वेंसी और Q सहेजें, गेन या EQ मोड नहीं।',
   'eq.layouts.loading': 'डिज़ाइन लोड हो रहे हैं…',
   'eq.layouts.name': 'डिज़ाइन का नाम',
   'eq.layouts.duplicate':
@@ -583,7 +592,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.cancel': 'रद्द करें',
   'eq.smart.stopAria': 'स्मार्ट EQ रोकें',
   'eq.smart.aria': 'स्रोत से स्मार्ट EQ बनाएँ',
-  'eq.smart.cancelAria': 'स्मार्ट EQ माप रद्द करें',
   'eq.smart.continuousAria':
     'संगीत चलते समय स्मार्ट EQ मापता और समायोजित करता रहे',
   'eq.smart.modeAria': 'चुनें कि स्मार्ट EQ कैसे मापे',

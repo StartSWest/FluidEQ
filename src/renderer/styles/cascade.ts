@@ -66,6 +66,7 @@ import './SongEqSaveSwitch.scss';
 import './Dsp.scss';
 import './EqModeSelect.scss';
 import './BandLayoutMenu.scss';
+import './BandLabels.scss';
 import './RestartAudioDialog.scss';
 import './SupportPet.scss';
 import './MemoryTrace.scss';

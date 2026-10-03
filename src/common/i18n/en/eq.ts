@@ -18,13 +18,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /** The equaliser itself: bands, curves, layers, outputs and profiles. */
 const eq = {
+  'eq.layouts.empty':
+    'Designs save band frequencies, each Q value, and Q behavior. Gains and strength stay separate.',
+  'eq.layouts.qHint':
+    'New layouts start every band at the same Q. More bands use narrower widths.',
+  'eq.layouts.resetQ': 'Reset band Q',
+  'eq.layouts.resetQHint':
+    'Restore one recommended Q for all bell bands. Keep frequencies, gains and Q behavior.',
+  'eq.mode.mainQHint':
+    'Main EQ bands only. Constant keeps Q unchanged as gain moves. Proportional and Asymmetric adjust Q with gain.',
+  'graph.item.eqLabels': 'EQ labels',
+  'graph.contents.unlabelled': 'Without EQ labels',
   'eq.mode.linearDelayInactive': '≈ +{ms} ms with active EQ',
   'eq.mode.linearDelay': '≈ +{ms} ms delay',
   'eq.mode.linearDelayShared': '≈ {ms} ms, shared',
   'eq.mode.gameMinimum': 'Game mode: Minimum',
   'eq.layouts.builtIn': 'Built-in layouts',
   'eq.layouts.saved': 'My designs',
-  'eq.layouts.empty': 'Save band frequencies and Q here—not gains or EQ mode.',
   'eq.layouts.loading': 'Loading designs…',
   'eq.layouts.name': 'Design name',
   'eq.layouts.duplicate': 'That name is already in use. Choose another.',
@@ -598,7 +608,6 @@ const eq = {
   'eq.smart.cancel': 'Cancel',
   'eq.smart.stopAria': 'Stop Smart EQ',
   'eq.smart.aria': 'Smart EQ from the source',
-  'eq.smart.cancelAria': 'Cancel Smart EQ measurement',
   'eq.smart.continuousAria':
     'Keep Smart EQ measuring and adjusting while music plays',
   'eq.smart.modeAria': 'Choose how Smart EQ measures',

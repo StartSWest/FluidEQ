@@ -54,6 +54,7 @@ export default function useCurvePhase() {
     state.isFlat,
     state.eqFormat,
     state.eqMode,
+    state.mainBandQ,
     state.eqBandQ,
     state.driver,
     state.headphone,

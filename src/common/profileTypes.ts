@@ -136,6 +136,7 @@ export interface IPresetV2 {
   eqMode?: 'normal' | 'double' | 'studio';
   curveEqMode?: 'normal' | 'double' | 'studio';
   eqBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
+  mainBandQ?: 'off' | 'proportional' | 'asymmetric';
   curveBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
   curveSmoothing?: 'off' | 'twelfth' | 'third';
   eqFormat?: AutoEqFormat;

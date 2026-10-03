@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 */
 
 import { parseEqText } from './apoText';
-import { canAdoptEqModeChange, getCurveEqMode } from './eqMode';
+import { canAdoptEqModeChange, getBandQ, getCurveEqMode } from './eqMode';
 import {
   AutoEqFormat,
   IApoLayerOverride,
@@ -240,9 +240,11 @@ export const adoptApoFeatureText = (
 
   if (feature === 'eq') {
     state.curveEqMode = getCurveEqMode(state);
+    // The imported main bands must not reset Q on existing preset layers.
+    state.eqBandQ = state.eqBandQ ?? getBandQ(state, 'eq');
     state.isEqDoubleOn = false;
     state.eqMode = 'normal';
-    state.eqBandQ = 'constant';
+    state.mainBandQ = 'off';
     state.filters = hasContent ? override.filters : clearEqBands(state.filters);
     state.eqFormat = hasContent ? parsed.eqFormat : AutoEqFormat.PARAMETRIC;
     state.graphicEq = hasContent ? override.graphicEq : undefined;

@@ -780,6 +780,7 @@ export const getStateForAudioDevice = (
     isFlat: preset?.isFlat,
     eqMode: getEqMode(preset ?? {}),
     curveEqMode: getCurveEqMode(preset ?? {}),
+    mainBandQ: (preset ?? {}).mainBandQ,
     eqBandQ: (preset ?? {}).eqBandQ,
     curveBandQ: (preset ?? {}).curveBandQ,
     curveSmoothing: (preset ?? {}).curveSmoothing,

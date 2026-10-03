@@ -26,6 +26,8 @@ import {
   setGraphContents,
   setGraphView,
   toggleGraphCoverage,
+  getGraphBandLabelsHidden,
+  toggleGraphBandLabels,
 } from 'renderer/utils/graphStyle';
 
 const STATES = Object.keys(GRAPH_CONTENTS_LABEL) as TGraphContents[];
@@ -72,11 +74,11 @@ describe('what the plot is showing', () => {
     setGraphView('normal');
   });
 
-  it('has five stops, each with a name of its own', () => {
-    expect(STATES).toHaveLength(5);
+  it('has six stops, including a separate stop for hiding band labels', () => {
+    expect(STATES).toHaveLength(6);
     // The caption after a keypress and the View menu's row read the same list,
     // so two states sharing a word would be two states nobody can tell apart.
-    expect(new Set(Object.values(GRAPH_CONTENTS_LABEL)).size).toBe(5);
+    expect(new Set(Object.values(GRAPH_CONTENTS_LABEL)).size).toBe(6);
   });
 
   it('recognises every state it can be put into', () => {
@@ -101,7 +103,27 @@ describe('what the plot is showing', () => {
 
     // Every state exactly once, in the order the key walks them, ending where
     // it started.
-    expect(seen).toEqual(['layers', 'curves', 'clean', 'wave', 'everything']);
+    expect(seen).toEqual([
+      'unlabelled',
+      'layers',
+      'curves',
+      'clean',
+      'wave',
+      'everything',
+    ]);
+  });
+
+  it('hides labels with the menu or first Ctrl+W stop and restores them on Everything', () => {
+    setGraphContents('everything');
+    expect(getGraphBandLabelsHidden()).toBe(false);
+    toggleGraphBandLabels();
+    expect(getGraphContents()).toBe('unlabelled');
+    expect(getGraphBandLabelsHidden()).toBe(true);
+    setGraphContents('everything');
+    cycleGraphContents();
+    expect(getGraphBandLabelsHidden()).toBe(true);
+    setGraphContents('everything');
+    expect(getGraphBandLabelsHidden()).toBe(false);
   });
 
   it('changes the coverage wash without changing the named graph state', () => {
@@ -169,7 +191,7 @@ describe('what the plot is showing', () => {
     setGraphView('normal');
     setGraphContents('everything');
     cycleGraphContents();
-    expect(getGraphContents()).toBe('layers');
+    expect(getGraphContents()).toBe('unlabelled');
 
     // The neighbours were mid-cycle when the key was pressed and are still
     // exactly there. A press that walked all three at once would be five

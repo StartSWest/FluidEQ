@@ -183,6 +183,7 @@ describe('band design catalog and persistence', () => {
       ...getDefaultState(),
       eqBandDesign: design,
       eqMode: 'double' as const,
+      mainBandQ: 'asymmetric' as const,
       preAmp: -8,
     };
     const filter = Object.values(state.filters)[0];
@@ -193,6 +194,7 @@ describe('band design catalog and persistence', () => {
     expect(fetchSettings(directory)).toMatchObject({
       eqBandDesign: design,
       eqMode: 'double',
+      mainBandQ: 'asymmetric',
       preAmp: -8,
       filters: state.filters,
     });
@@ -201,6 +203,7 @@ describe('band design catalog and persistence', () => {
       preAmp: -8,
       eqBandDesign: design,
       eqMode: 'double' as const,
+      mainBandQ: 'asymmetric' as const,
     };
     expect(validatePresetV2(preset)).toBe(true);
     await savePreset('Saved', preset, directory);

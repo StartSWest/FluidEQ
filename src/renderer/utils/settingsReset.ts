@@ -39,6 +39,7 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq-meter-style',
   'fluideq-waveform-style',
   'fluideq.graphClean',
+  'fluideq.graphBandLabelsHidden',
   'fluideq.graphCoverageHidden',
   'fluideq.graphGridHidden',
   'fluideq.graphHiddenCurves',

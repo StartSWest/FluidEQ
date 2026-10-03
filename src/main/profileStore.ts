@@ -324,6 +324,7 @@ export const createProfileStore = ({
     isFlat: state.isFlat,
     eqMode: getEqMode(state),
     curveEqMode: getCurveEqMode(state),
+    mainBandQ: state.mainBandQ,
     eqBandQ: state.eqBandQ,
     curveBandQ: state.curveBandQ,
     curveSmoothing: state.curveSmoothing,
@@ -452,6 +453,7 @@ export const createProfileStore = ({
     state.isEqDoubleOn = false;
     state.eqMode = 'normal';
     state.curveEqMode = 'normal';
+    state.mainBandQ = undefined;
     state.eqBandQ = undefined;
     state.curveBandQ = undefined;
     state.curveSmoothing = undefined;

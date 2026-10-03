@@ -20,13 +20,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'eq.layouts.empty':
+    '设计会保存频率、每个频段的Q值及Q模式。增益和强度单独设置。',
+  'eq.layouts.qHint': '新布局的所有频段使用相同的初始Q值。频段越多，带宽越窄。',
+  'eq.layouts.resetQ': '重置频段Q值',
+  'eq.layouts.resetQHint':
+    '将所有钟形频段恢复为推荐Q值。保留频率、增益和Q模式。',
+  'eq.mode.mainQHint':
+    '仅适用于主EQ频段。恒定模式下Q值不随增益改变；比例和非对称模式下Q值随增益调整。',
+  'graph.item.eqLabels': 'EQ标签',
+  'graph.contents.unlabelled': '无EQ标签',
   'eq.mode.linearDelayInactive': 'EQ生效时约增加 {ms} ms',
   'eq.mode.linearDelay': '约增加 {ms} ms 延迟',
   'eq.mode.linearDelayShared': '约 {ms} ms（共用）',
   'eq.mode.gameMinimum': '游戏模式：最小相位',
   'eq.layouts.builtIn': '内置布局',
   'eq.layouts.saved': '我的布局',
-  'eq.layouts.empty': '仅保存频段的频率和 Q 值，不保存增益或 EQ 模式。',
   'eq.layouts.loading': '正在加载布局…',
   'eq.layouts.name': '布局名称',
   'eq.layouts.duplicate': '此名称已被使用，请选择其他名称。',
@@ -555,7 +564,6 @@ const eq: Partial<Dictionary> = {
   'eq.smart.cancel': '取消',
   'eq.smart.stopAria': '停止智能均衡',
   'eq.smart.aria': '根据音源生成智能均衡',
-  'eq.smart.cancelAria': '取消智能均衡测量',
   'eq.smart.continuousAria': '播放期间持续测量并调整智能均衡',
   'eq.smart.modeAria': '选择智能均衡的测量方式',
   'eq.smart.mode.once.note': '一次测量，一次性应用',

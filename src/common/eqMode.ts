@@ -56,6 +56,19 @@ export const getBandQ = (
 
 const twoPlaces = (value: number) => Math.round(value * 100) / 100;
 
+/** Keep main-band edits independent of the existing preset/curve shaping. */
+export const getMainBandQ = (
+  state: Pick<
+    IState,
+    | 'mainBandQ'
+    | 'eqBandQ'
+    | 'curveBandQ'
+    | 'eqMode'
+    | 'curveEqMode'
+    | 'isEqDoubleOn'
+  >,
+): TBandQ => state.mainBandQ ?? getBandQ(state, 'eq');
+
 export const getCurveEqMode = (
   state: Pick<IState, 'eqMode' | 'isEqDoubleOn' | 'curveEqMode'>,
 ): TEqMode => state.curveEqMode ?? getEqMode(state);
@@ -89,7 +102,8 @@ export const canAdoptEqModeChange = (
     );
   }
   const writesAsIs =
-    getEqMode(state) === 'normal' && getBandQ(state, 'eq') === 'off';
+    getEqMode(state) === 'normal' &&
+    (feature === 'eq' ? getMainBandQ(state) : getBandQ(state, 'eq')) === 'off';
   if (feature !== 'eq') {
     return writesAsIs;
   }

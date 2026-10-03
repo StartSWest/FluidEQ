@@ -70,6 +70,7 @@ export interface IImportedEq {
   isEqDoubleOn?: boolean;
   eqMode?: IPresetV2['eqMode'];
   curveEqMode?: IPresetV2['curveEqMode'];
+  mainBandQ?: IPresetV2['mainBandQ'];
   eqBandQ?: IPresetV2['eqBandQ'];
   curveBandQ?: IPresetV2['curveBandQ'];
   curveSmoothing?: IPresetV2['curveSmoothing'];
@@ -230,6 +231,7 @@ export const importEqFile = (sourcePath: string): IImportedEq => {
       graphicEq: preset.graphicEq,
       eqMode: getEqMode(preset),
       curveEqMode: getCurveEqMode(preset),
+      mainBandQ: preset.mainBandQ,
       eqBandQ: preset.eqBandQ,
       curveBandQ: preset.curveBandQ,
       curveSmoothing: preset.curveSmoothing,

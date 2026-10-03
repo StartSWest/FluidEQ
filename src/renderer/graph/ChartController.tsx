@@ -196,6 +196,8 @@ export interface IEditableChartPoint {
    * so the handle has to say so or the graph looks like it lost a band.
    */
   isEnabled: boolean;
+  /** Editable main-band values, independent of the summed response at its dot. */
+  parameters?: { frequency: number; gain: number; quality: number };
   /**  is where the press landed, in chart units — see the drag state. */
   onSelect: (mode: SelectionMode, grab: IChartPointData) => void;
   /**

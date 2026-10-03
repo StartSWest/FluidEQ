@@ -57,6 +57,7 @@ import {
   eqModeGainScale,
   convolutionCorrection,
   getBandQ,
+  getMainBandQ,
   getAppliedEqFilters,
   getEqModeCompensation,
   getStudioEqFilters,
@@ -466,7 +467,8 @@ const buildLayers = (state: IState): IApoLayer[] => {
   return layers.map((layer) => {
     const scope = layerGroupOf(layer.feature);
     const mode = scope === 'eq' ? getEqMode(state) : getCurveEqMode(state);
-    const shape = getBandQ(state, scope);
+    const shape =
+      layer.feature === 'eq' ? getMainBandQ(state) : getBandQ(state, scope);
     // A slider's range, or a correction's for the headphone layer: what the
     // correction publishes is what gets written (`correctionRange.ts`).
     const limit = layerGainLimit(layer.feature);
