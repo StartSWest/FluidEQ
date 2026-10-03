@@ -586,6 +586,7 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'EQ paramétrico',
   'eq.smart': 'EQ inteligente',
   'eq.smart.cancel': 'Cancelar',
+  'eq.smart.stopAria': 'Parar o EQ inteligente',
   'eq.smart.aria': 'EQ inteligente a partir da fonte',
   'eq.smart.cancelAria': 'Cancelar a medição do EQ inteligente',
   'eq.smart.continuousAria':

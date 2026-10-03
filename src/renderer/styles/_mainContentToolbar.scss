@@ -57,7 +57,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // to which stylesheet the bundler put last — and it put Button's last, which
   // is why the two halves were drawn as two separate pills. Naming both classes
   // settles it rather than hoping.
-  .button.eq-mode__main {
+  // Only a real split control loses its right-hand corners and edge. A
+  // single menu trigger keeps the normal button shape around its chevron.
+  .button.eq-mode__main:has(+ .eq-mode__caret) {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     // The pair share one edge. Without this the two borders sit side by side
@@ -128,9 +130,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The quiet version of the pair, which every split in the EQ page's toolbar
-// wears: the layout picker and the Curves list, which open a list, and Smart
-// EQ, which was the one filled button in the row until Ivan asked for it like
+// The quiet version of the toolbar's controls. Smart EQ was the one filled
+// button in the row until Ivan asked for it like
 // the others (2026-09-27: "make smart eq button same as the others, no
 // fill"). The caret follows its main half, or a quiet half carries a bright
 // end and the two read as two controls stuck together.
@@ -488,15 +489,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 // It replaces the divider rather than joining it. Both at once is two
 // separators for one seam.
-// The layout picker is one piece, not a split button: pressing anywhere on it
-// opens the list, so there is no second half and no divider. It keeps
-// `eq-mode`'s classes for the hover and the menu surface, and takes its own
-// corners back from the rule above that squares the split button's main half.
+// Both layout pickers are one piece: pressing anywhere opens their list.
 .quick-layouts .button.quick-layouts__trigger {
   gap: 6px;
-  border-right: 1px solid $border-field;
-  border-top-right-radius: $radius-xs;
-  border-bottom-right-radius: $radius-xs;
 
   .chevron {
     margin-left: 1px;

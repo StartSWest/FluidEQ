@@ -145,6 +145,7 @@ const PATHS: Record<string, string> = {
   forward: 'M9.5 6l6 6-6 6',
   play: 'M9 6l8 6-8 6V6z',
   pause: 'M9 6v12M15 6v12',
+  stop: 'M6 6h12v12H6V6z',
   volume: 'M5 10v4h3l4 3V7l-4 3H5M15 9a4 4 0 0 1 0 6',
   // The library's shelves, each drawn as the thing it lists rather than as a
   // generic list glyph: a record, a person, a note, a screen. Folders and

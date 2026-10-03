@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { LAYER_SWATCH } from '../styles/color';
+import Chevron from '../icons/Chevron';
 import ActiveLayerChips from './ActiveLayerChips';
 import useActiveLayers from './useActiveLayers';
 import type { TActiveLayers } from './useActiveLayers';
@@ -30,8 +31,8 @@ import type { TActiveLayers } from './useActiveLayers';
  * never disagree about how many there are. Nothing at all while nothing is
  * applied, rather than a dropdown with an empty menu.
  *
- * The same split control as the Smart EQ button and the layout picker, down
- * to their classes: a main half and a caret attached to it.
+ * One menu trigger: the label and caret perform the same action, so splitting
+ * them would suggest a second action and add a redundant keyboard stop.
  */
 const CurvesMenu = ({ active }: { active: TActiveLayers }) => {
   const { t } = useTranslation();
@@ -76,6 +77,7 @@ const CurvesMenu = ({ active }: { active: TActiveLayers }) => {
         type="button"
         className="button small subtle eq-mode__main active-layers__trigger"
         aria-expanded={isOpen}
+        aria-haspopup="menu"
         onClick={() => setIsOpen((wasOpen) => !wasOpen)}
       >
         <span className="active-layers__dots" aria-hidden>
@@ -92,17 +94,7 @@ const CurvesMenu = ({ active }: { active: TActiveLayers }) => {
           ))}
         </span>
         {t('graph.curves')}
-      </button>
-      <button
-        type="button"
-        className="eq-mode__caret"
-        aria-label={t('eq.layers.aria')}
-        aria-expanded={isOpen}
-        onClick={() => setIsOpen((wasOpen) => !wasOpen)}
-      >
-        <svg viewBox="0 0 16 16" aria-hidden>
-          <path d="M4 6.5l4 4 4-4" />
-        </svg>
+        <Chevron />
       </button>
       <AnchoredMenu
         anchor={holder.current}

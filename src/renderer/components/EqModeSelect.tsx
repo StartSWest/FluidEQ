@@ -290,7 +290,7 @@ export default function EqModeSelect() {
       scope === 'eq' ? 'eq.mode.eqPhaseHint' : 'eq.mode.phaseHint';
     const phaseHint = phaseSupported ? scopePhaseHint : 'eq.mode.phaseUpdate';
     return (
-      <div className="eq-mode-menu__row">
+      <div className={`eq-mode-menu__row eq-mode-menu__row--${kind}`}>
         <span className="eq-mode-menu__row-label">{t(`eq.mode.${kind}`)}</span>
         <div
           className="segmented eq-mode-menu__choices"
@@ -403,7 +403,10 @@ export default function EqModeSelect() {
       >
         <div ref={content} className="eq-mode-menu__content">
           <div className="eq-mode-menu__heading">
-            <span>{t('eq.mode')}</span>
+            <span>
+              <MenuIcon name="settings" />
+              {t('eq.mode')}
+            </span>
             <button
               type="button"
               className="button small subtle eq-mode-menu__reset"
@@ -415,20 +418,24 @@ export default function EqModeSelect() {
               {t('eq.mode.reset')}
             </button>
           </div>
-          {SCOPES.map((scope) => (
-            <section className="eq-mode-menu__group" key={scope}>
-              <strong className="eq-mode-menu__group-title">
-                <EqModeIcon kind={scope} />
-                {t(scope === 'eq' ? 'eq.mode.yourEq' : 'eq.mode.curves')}
-              </strong>
-              {choices(scope, 'strength')}
-              {choices(scope, 'q')}
-              {scope === 'curves' && choices(scope, 'smoothing')}
-              {phase.status?.active && choices(scope, 'phase')}
-              {trebleShown && choices(scope, 'treble')}
-            </section>
-          ))}
-          <p className="eq-mode-menu__note">{t('eq.mode.shapeHint')}</p>
+          <div className="eq-mode-menu__groups">
+            {SCOPES.map((scope) => (
+              <section className="eq-mode-menu__group" key={scope}>
+                <strong className="eq-mode-menu__group-title">
+                  <EqModeIcon kind={scope} />
+                  {t(scope === 'eq' ? 'eq.mode.yourEq' : 'eq.mode.curves')}
+                </strong>
+                {choices(scope, 'strength')}
+                {choices(scope, 'q')}
+                {phase.status?.active && choices(scope, 'phase')}
+                {trebleShown && choices(scope, 'treble')}
+                {scope === 'curves' && choices(scope, 'smoothing')}
+              </section>
+            ))}
+          </div>
+          <p className="eq-mode-menu__note eq-mode-menu__footer">
+            {t('eq.mode.shapeHint')}
+          </p>
         </div>
       </AnchoredMenu>
     </div>

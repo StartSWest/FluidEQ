@@ -581,6 +581,7 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'パラメトリック EQ',
   'eq.smart': 'スマート EQ',
   'eq.smart.cancel': 'キャンセル',
+  'eq.smart.stopAria': 'スマート EQ を停止',
   'eq.smart.aria': 'ソースからスマート EQ を作成',
   'eq.smart.cancelAria': 'スマート EQ の測定をキャンセル',
   'eq.smart.continuousAria': '再生中もスマート EQ の測定と調整を続ける',

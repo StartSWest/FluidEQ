@@ -222,6 +222,8 @@ describe('Reset all settings', () => {
       'fluideq.sceneTint',
       'fluideq.scenePerformance',
       'fluideq.standardPerformance',
+      'fluideq.songSound',
+      'fluideq.singlePlayer',
       'fluideq-rainbow',
     ];
     const kept = [

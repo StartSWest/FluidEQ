@@ -581,6 +581,7 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'पैरामीट्रिक EQ',
   'eq.smart': 'स्मार्ट EQ',
   'eq.smart.cancel': 'रद्द करें',
+  'eq.smart.stopAria': 'स्मार्ट EQ रोकें',
   'eq.smart.aria': 'स्रोत से स्मार्ट EQ बनाएँ',
   'eq.smart.cancelAria': 'स्मार्ट EQ माप रद्द करें',
   'eq.smart.continuousAria':

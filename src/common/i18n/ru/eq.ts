@@ -583,6 +583,7 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'Параметрический эквалайзер',
   'eq.smart': 'Умный EQ',
   'eq.smart.cancel': 'Отмена',
+  'eq.smart.stopAria': 'Остановить умный EQ',
   'eq.smart.aria': 'Умный EQ по исходному сигналу',
   'eq.smart.cancelAria': 'Отменить измерение умного EQ',
   'eq.smart.continuousAria':

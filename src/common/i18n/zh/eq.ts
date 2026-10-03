@@ -553,6 +553,7 @@ const eq: Partial<Dictionary> = {
   'eq.title': '参数均衡',
   'eq.smart': '智能均衡',
   'eq.smart.cancel': '取消',
+  'eq.smart.stopAria': '停止智能均衡',
   'eq.smart.aria': '根据音源生成智能均衡',
   'eq.smart.cancelAria': '取消智能均衡测量',
   'eq.smart.continuousAria': '播放期间持续测量并调整智能均衡',

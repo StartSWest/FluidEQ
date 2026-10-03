@@ -589,6 +589,7 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'Égaliseur paramétrique',
   'eq.smart': 'Égalisation auto',
   'eq.smart.cancel': 'Annuler',
+  'eq.smart.stopAria': 'Arrêter l’égalisation auto',
   'eq.smart.aria': 'Égalisation auto à partir de la source',
   'eq.smart.cancelAria': 'Annuler la mesure d’égalisation auto',
   'eq.smart.continuousAria':

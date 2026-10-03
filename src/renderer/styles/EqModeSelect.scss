@@ -35,36 +35,38 @@
   }
 }
 
-// ================================================================ scale ====
-//
-// Drawn at the amp's scale on the page as well. The panel was built for a
-// page 1024px wide: 420px across, three 54px tiles to a row, a group padded by
-// 16px inside a panel padded by 16px. Dropped into the player's window, about
-// 430px wide, it was the window — three groups deep and running off the
-// bottom (Ivan, 2026-09-22: "we need smaller ui elements ... for amp ui",
-// "the compact eq mode ui"), so the amp got its keys at 38px and its words at
-// 9 to 11px. The Treble rows then made the page's panel 925px tall, and Ivan
-// asked for the page's to match the amp's ("make that ui smaller similar to
-// waht we did on the amp player", 2026-09-22). One scale, so the two cannot
-// drift apart again.
+// Two cards keep matching settings beside one another without making the
+// menu taller with every group. The compact player keeps the same controls
+// in one column when its window cannot hold both cards.
 .eq-mode-menu {
   @include menu-surface;
   z-index: 1000;
-  width: 312px;
+  width: 678px;
   max-width: calc(100vw - 16px);
   overflow-y: auto;
 
   &__content {
     display: grid;
-    gap: $spacing-s;
-    padding: $spacing-s;
+    gap: $spacing-s + $spacing-xs;
+    padding: $spacing-s + $spacing-xs;
+  }
+
+  &__groups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: $spacing-s + $spacing-xs;
   }
 
   &__group {
+    @include card-surface;
     display: grid;
-    gap: $spacing-s;
-    padding: $spacing-s;
-    border: 1px solid $card-edge;
+    // One title and up to five settings share tracks across both cards, so
+    // translated notes cannot push the next setting out of alignment. Space
+    // belongs to the rows: unavailable Phase/Treble leave zero-height tracks.
+    grid-template-rows: subgrid;
+    grid-row: span 6;
+    min-width: 0;
+    padding: $spacing-s + $spacing-xs;
     border-radius: $radius-s;
 
     strong {
@@ -97,9 +99,18 @@
   gap: $spacing-s;
   font-weight: $weight-bold;
   > span {
-    color: $text-faint;
-    font-size: $text-small;
-    font-weight: $weight-regular;
+    display: flex;
+    align-items: center;
+    gap: $spacing-s;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+
+    svg {
+      width: 14px;
+      height: 14px;
+      color: $secondary-default;
+    }
   }
 }
 .eq-mode-menu__reset {
@@ -113,15 +124,26 @@
   display: flex;
   align-items: center;
   gap: $spacing-s;
+  min-width: 0;
+  line-height: 1.35;
   svg {
     width: 14px;
     height: 14px;
+    flex-shrink: 0;
     color: $secondary-default;
   }
 }
 .eq-mode-menu__row {
   display: grid;
+  align-content: start;
   gap: $spacing-xs;
+  min-width: 0;
+  margin-top: $spacing-s + $spacing-xs;
+
+  &--smoothing {
+    padding-top: $spacing-s + $spacing-xs;
+    border-top: 1px solid $card-edge;
+  }
 }
 // The EQ page's own field caption (`.eq-flat-editor__control > span`), so the
 // menu names its rows the way the band editor under it names its fields.
@@ -139,6 +161,25 @@
   font-size: $text-micro;
   line-height: 1.4;
 }
+.eq-mode-menu__footer {
+  padding-inline: $spacing-xs;
+}
+
+@media (max-width: 639px) {
+  .eq-mode-menu {
+    width: 312px;
+
+    &__groups {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: $spacing-s + $spacing-xs;
+    }
+
+    &__group {
+      grid-template-rows: none;
+      grid-row: auto;
+    }
+  }
+}
 // One segment: the word, and under it the delay Linear adds. Words wrap
 // rather than clip or run into the next segment, and break inside a word
 // only when that word alone is wider than its segment: a Russian
@@ -147,7 +188,7 @@
 .eq-mode-menu .segmented__option.eq-mode-choice {
   display: flex;
   min-width: 0;
-  min-height: 26px;
+  min-height: 30px;
   flex-direction: column;
   align-items: center;
   justify-content: center;

@@ -596,6 +596,7 @@ const eq = {
   'eq.title': 'Parametric EQ',
   'eq.smart': 'Smart EQ',
   'eq.smart.cancel': 'Cancel',
+  'eq.smart.stopAria': 'Stop Smart EQ',
   'eq.smart.aria': 'Smart EQ from the source',
   'eq.smart.cancelAria': 'Cancel Smart EQ measurement',
   'eq.smart.continuousAria':

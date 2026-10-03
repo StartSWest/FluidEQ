@@ -34,6 +34,7 @@ import { TREBLE_DESIGNS, TTrebleDesign } from '../../common/filterDesign';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
+import Chevron from '../icons/Chevron';
 import VoicingIcon from '../icons/VoicingIcon';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import RichPick from '../widgets/RichPick';
@@ -454,7 +455,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           )}
         </div>
 
-        {/* The Bands page already solved this exact question: one quiet split
+        {/* The Bands page already solved this exact question: one quiet
           picker that names the active layout and puts every alternative in an
           anchored menu. Reusing its classes keeps the same control looking and
           behaving the same in both equalizers. */}
@@ -466,7 +467,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
         >
           <button
             type="button"
-            className="button small subtle eq-mode__main"
+            className="button small subtle eq-mode__main quick-layouts__trigger"
             aria-label={t('dsp.eq.rack')}
             aria-expanded={isRackMenuOpen}
             aria-haspopup="menu"
@@ -474,17 +475,7 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           >
             <MenuIcon name="layout" className="eq-toolbar__icon" />
             {t('eq.bandCount', { count: eq.bands.length })}
-          </button>
-          <button
-            type="button"
-            className="eq-mode__caret"
-            aria-label={t('dsp.eq.rack')}
-            aria-expanded={isRackMenuOpen}
-            onClick={() => setIsRackMenuOpen((wasOpen) => !wasOpen)}
-          >
-            <svg viewBox="0 0 16 16" aria-hidden="true">
-              <path d="M4 6.5l4 4 4-4" />
-            </svg>
+            <Chevron />
           </button>
           <AnchoredMenu
             anchor={rackMenuHolder.current}

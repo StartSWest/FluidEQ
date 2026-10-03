@@ -118,6 +118,31 @@ const useEqPageBands = () => {
   const smartEqMode = useSmartEqMode();
   const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
   const modeMenuHolder = useRef<HTMLSpanElement>(null);
+  const modeMenuTrigger = useRef<HTMLButtonElement>(null);
+  const modeMenuEntry = useRef<HTMLButtonElement | null>(null);
+  const closeModeMenu = useCallback(() => {
+    setIsModeMenuOpen(false);
+    modeMenuTrigger.current?.focus({ preventScroll: true });
+  }, []);
+  // AnchoredMenu mounts its portal after measuring the anchor. A callback ref
+  // focuses the remembered choice when it exists, without guessing a delay.
+  const attachModeMenuEntry = useCallback(
+    (button: HTMLButtonElement | null) => {
+      modeMenuEntry.current = button;
+      if (button && isModeMenuOpen && !isBalancing && !isContinuousOn) {
+        button.focus({ preventScroll: true });
+        button.scrollIntoView?.({ block: 'nearest' });
+      }
+    },
+    [isModeMenuOpen, isBalancing, isContinuousOn],
+  );
+  // A run can start from another surface while this chooser is open. It
+  // must close with that transition and stay closed when the run finishes.
+  useEffect(() => {
+    if (isBalancing || isContinuousOn) {
+      setIsModeMenuOpen(false);
+    }
+  }, [isBalancing, isContinuousOn]);
   /**
    * On, chosen, and not held up by a switch on the other side of the screen.
    *
@@ -131,10 +156,6 @@ const useEqPageBands = () => {
    * over a stopped loop.
    */
   const isContinuousRunning = useIsAutoEqRunning();
-  const smartLabel = isBalancing
-    ? t('eq.smart.cancelAria')
-    : t('eq.smart.aria');
-  const continuousLabel = t('eq.smart.continuousAria');
   /**
    * A correction landing, for as long as the bubble's text holds the applied
    * colour — its own animation, whose end is what clears the flash.
@@ -188,8 +209,35 @@ const useEqPageBands = () => {
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsModeMenuOpen(false);
+        event.preventDefault();
+        closeModeMenu();
+        return;
       }
+      const menu = modeMenuEntry.current?.closest('[data-anchored-menu]');
+      if (!menu?.contains(document.activeElement)) {
+        return;
+      }
+      const items = Array.from(
+        menu.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]'),
+      );
+      const current = items.findIndex(
+        (item) => item === document.activeElement,
+      );
+      let next: number;
+      if (event.key === 'ArrowDown') {
+        next = (current + 1) % items.length;
+      } else if (event.key === 'ArrowUp') {
+        next = (current - 1 + items.length) % items.length;
+      } else if (event.key === 'Home') {
+        next = 0;
+      } else if (event.key === 'End') {
+        next = items.length - 1;
+      } else {
+        return;
+      }
+      event.preventDefault();
+      items[next]?.focus({ preventScroll: true });
+      items[next]?.scrollIntoView?.({ block: 'nearest' });
     };
     window.addEventListener('mousedown', onPointerDown);
     window.addEventListener('keydown', onKeyDown);
@@ -197,7 +245,7 @@ const useEqPageBands = () => {
       window.removeEventListener('mousedown', onPointerDown);
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [isModeMenuOpen]);
+  }, [isModeMenuOpen, closeModeMenu]);
 
   const frequencySortedFilters = useMemo(
     () => Object.values(filters).sort(sortHelper),
@@ -632,9 +680,10 @@ const useEqPageBands = () => {
     isModeMenuOpen,
     setIsModeMenuOpen,
     modeMenuHolder,
+    modeMenuTrigger,
+    attachModeMenuEntry,
+    closeModeMenu,
     isContinuousRunning,
-    smartLabel,
-    continuousLabel,
     correctionFlash,
     bubbleText,
     bubbleRef,
