@@ -333,7 +333,7 @@ const OpraPicker = () => {
               <p className="autoeq-field__hint">{t('autoeq.target.hint')}</p>
             </div>
             <Button
-              className={isApplied ? 'small is-applied' : 'small'}
+              className={isApplied ? 'small subtle is-applied' : 'small'}
               ariaLabel={t('autoeq.applyAria')}
               isDisabled={
                 isBlockingError || currentProduct === '' || currentCurve === ''
