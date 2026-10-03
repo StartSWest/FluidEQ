@@ -139,7 +139,7 @@ describe('GraphViewMenu curve toggles', () => {
       'Hide Final output',
     ]);
     expect(checkboxRows[curveToggles.length]).toHaveTextContent(
-      'Hide EQ labels',
+      'Show EQ labels',
     );
     expect(checkboxRows[curveToggles.length + 1]).toHaveTextContent(
       'Hide the wave',

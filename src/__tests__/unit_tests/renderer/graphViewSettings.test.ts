@@ -130,14 +130,14 @@ describe('one set of view settings per mode', () => {
     const { style } = load();
     style.setGraphView('normal');
     style.toggleGraphBandLabels();
-    expect(style.getGraphContents()).toBe('unlabelled');
+    expect(style.getGraphContents()).toBe('everything');
     style.setGraphView('fullscreen');
-    expect(style.getGraphBandLabelsHidden()).toBe(false);
+    expect(style.getGraphBandLabelsHidden()).toBe(true);
     const restarted = load().style;
     restarted.setGraphView('normal');
-    expect(restarted.getGraphBandLabelsHidden()).toBe(true);
-    restarted.setGraphView('fullscreen');
     expect(restarted.getGraphBandLabelsHidden()).toBe(false);
+    restarted.setGraphView('fullscreen');
+    expect(restarted.getGraphBandLabelsHidden()).toBe(true);
   });
 
   it('hides the grid in one mode and leaves the other two alone', () => {
@@ -338,7 +338,7 @@ describe('one set of view settings per mode', () => {
     style.toggleGraphCurve('eq');
 
     expect(curves.getSnapshot()).toEqual(['eq']);
-    expect(style.getGraphContents()).toBe('everything');
+    expect(style.getGraphContents()).toBe('unlabelled');
     expect(style.getGraphWaveHidden()).toBe(false);
 
     style.toggleGraphCurve('eq');

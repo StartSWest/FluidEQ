@@ -228,7 +228,7 @@ export const serializeFlag = (value: boolean) => String(value);
 
 const bandLabelsSetting = createPerViewSetting(
   VIEW_KEYS.bandLabels,
-  false,
+  true,
   parseFlag,
   serializeFlag,
 );
@@ -240,7 +240,7 @@ export const useGraphBandLabelsHidden = () =>
   useSyncExternalStore(
     bandLabelsSetting.subscribe,
     getGraphBandLabelsHidden,
-    () => false,
+    () => true,
   );
 
 /**
@@ -518,7 +518,7 @@ export const useGraphContents = () =>
   useSyncExternalStore(
     subscribeContents,
     getGraphContents,
-    () => 'everything' as TGraphContents,
+    () => 'unlabelled' as TGraphContents,
   );
 
 /**
