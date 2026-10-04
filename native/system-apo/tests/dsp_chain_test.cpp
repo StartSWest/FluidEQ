@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <chrono>
 #include <cstdio>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq_engine/config.h"
 #include "fluideq_engine/graph.h"
 #include "../src/room_head.h"
+#include "../src/source_analysis.h"
 #include "dsp_chain_fixture.h"
 #include "graph_test_support.h"
 
@@ -178,6 +180,62 @@ void denoise_runs_without_the_neural_runtime() {
   const auto legacy = fluideq_engine::build_rack(values, kRate, 2, 480, warnings);
   CHECK(legacy.chain != nullptr && !legacy.failed && !legacy.voice_ready);
   CHECK((feq_chain_active_stages(legacy.chain.get()) & (1u << 1)) != 0);
+}
+
+/**
+ * A live output whose Voice cannot run — the sidecar says a model was
+ * downloaded, but there is no trusted runtime beside the DLL and no verified
+ * model — plays the rest of its rack with Voice off. It used to fail the whole
+ * build, and the graph before it went on playing with every edit unheard.
+ */
+void a_live_output_without_voice_plays_its_rack() {
+  std::printf("a live output without the voice runtime plays its rack with voice off\n");
+  std::vector<double> values = reference_values();
+  values[kDenoiseEnabled] = 1.0;
+  values[kDenoiseEnabled + 16] = 1.0;
+  fluideq_engine::SourceAnalysis live;
+  live.library = false;
+  live.voice_available = true;
+  std::vector<std::string> warnings;
+  const auto played = fluideq_engine::build_rack(
+      values, kRate, 2, 480, warnings, nullptr, 0, nullptr, false, &live);
+  CHECK(played.chain != nullptr && !played.failed && !played.voice_ready);
+  CHECK(!warnings.empty());
+  // The rack is there: the stages that need no Voice still run.
+  CHECK((feq_chain_active_stages(played.chain.get()) & (1u << 1)) != 0);
+
+  // Positive control: the Library's own source with the same facts still
+  // refuses, because its host keeps the sound until all it asked for is ready.
+  fluideq_engine::SourceAnalysis library = live;
+  library.library = true;
+  library.engine_owner = true;
+  warnings.clear();
+  const auto refused = fluideq_engine::build_rack(
+      values, kRate, 2, 480, warnings, nullptr, 0, nullptr, false, &library);
+  CHECK(refused.failed && refused.chain == nullptr);
+
+  // A runtime and a model that are there by every check but will not load
+  // (here, paths to nothing) take the second way to the same place: the
+  // prepare fails, Voice goes off, and the rack is prepared again without it.
+  fluideq_engine::SourceAnalysis unloadable = live;
+  unloadable.voice_model = "C:\\FluidEQ-test\\absent\\fluideq-voice.onnx";
+  unloadable.voice_runtime = "C:\\FluidEQ-test\\absent\\onnxruntime.dll";
+  unloadable.voice_model_guard = std::make_shared<int>(0);
+  warnings.clear();
+  const auto retried = fluideq_engine::build_rack(
+      values, kRate, 2, 480, warnings, nullptr, 0, nullptr, false, &unloadable);
+  CHECK(retried.chain != nullptr && !retried.failed && !retried.voice_ready);
+  CHECK(mentions(warnings, "could not be prepared"));
+  CHECK((feq_chain_active_stages(retried.chain.get()) & (1u << 1)) != 0);
+  // And the Library's source, a real one this time, still refuses on it.
+  fluideq_engine::SourceAnalysis library_unloadable = unloadable;
+  library_unloadable.library = true;
+  library_unloadable.engine_owner = true;
+  library_unloadable.source = 7;
+  warnings.clear();
+  const auto held = fluideq_engine::build_rack(values, kRate, 2, 480, warnings,
+      nullptr, 0, nullptr, false, &library_unloadable);
+  CHECK(held.failed && held.chain == nullptr);
 }
 
 void a_wrong_band_count_is_refused_and_the_eq_still_runs() {
@@ -759,6 +817,7 @@ int main() {
   a_header_only_or_broken_file_is_no_rack();
   room_payload_bound_is_shared_with_the_file_parser();
   denoise_runs_without_the_neural_runtime();
+  a_live_output_without_voice_plays_its_rack();
   a_wrong_band_count_is_refused_and_the_eq_still_runs();
   switching_the_rack_off_is_not_a_failure();
   the_maximizer_holds_its_ceiling();

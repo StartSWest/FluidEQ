@@ -368,8 +368,8 @@ typedef struct FeqChainSettings {
  * Punch added seven each, then 114 before the surround switch added one, then
  * 115 before the room added twenty-three, then 138 before the room's bass
  * management added two, then 140 before the music upmix added two, then
- * 142 before each speaker's distance and the eight mutes added fifteen. All
- * of them are appended immediately before the
+ * 142 before each speaker's distance and the eight mutes added fifteen, then
+ * 157 before the Master's limiting allowance added one. All sit just before the
  * band count — which has to stay last, because both `isChainWirePayload`
  * and the decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
  */

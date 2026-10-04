@@ -17,7 +17,9 @@ import fs from 'fs';
 import path from 'path';
 import {
   ENGINE_CARRIED_SINCE,
+  ENGINE_SPLIT_SINCE,
   ENGINE_STATUS_SINCE,
+  engineAtLeast,
   engineReportsCarried,
   engineReportsStatus,
   engineSupportsGameMode,
@@ -37,6 +39,10 @@ import {
   ENGINE_RACK_TREBLE_SINCE,
   engineTakesRackTreble,
 } from 'common/dsp/rackTreble';
+import {
+  ENGINE_OUTPUT_CONFIG_SINCE,
+  engineTakesOutputConfig,
+} from 'common/outputConfigFiles';
 
 const ENGINE_RC = path.join(
   __dirname,
@@ -152,6 +158,28 @@ describe('the engine this tree builds', () => {
     expect(engineTakesRackTreble(binaryVersion('FILEVERSION'))).toBe(true);
     const [major, minor] = ENGINE_RACK_TREBLE_SINCE;
     expect(engineTakesRackTreble(`${major}.${minor - 1}.0.0`)).toBe(false);
+  });
+
+  it('reads each output’s own files, which an engine a version older ignores', () => {
+    // Every rack, room head, phase and treble file is written per output
+    // from this version on, and an older engine is sent the one shared rack
+    // instead; an engine.rc left behind the gate would be written files it
+    // never reads, and every output would play no rack at all.
+    expect(engineTakesOutputConfig(binaryVersion('FILEVERSION'))).toBe(true);
+    const [major, minor] = ENGINE_OUTPUT_CONFIG_SINCE;
+    expect(engineTakesOutputConfig(`${major}.${minor - 1}.0.0`)).toBe(false);
+  });
+
+  it('plays a second output from the main one’s sound, which an engine a version older cannot', () => {
+    // A second output is named in the split file only from this version on;
+    // an older engine gets the helper's copy of the sound instead.
+    expect(
+      engineAtLeast(binaryVersion('FILEVERSION'), ENGINE_SPLIT_SINCE),
+    ).toBe(true);
+    const [major, minor] = ENGINE_SPLIT_SINCE;
+    expect(engineAtLeast(`${major}.${minor - 1}.0.0`, ENGINE_SPLIT_SINCE)).toBe(
+      false,
+    );
   });
 
   it('says the same version in both of its fields', () => {

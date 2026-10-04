@@ -42,7 +42,8 @@ target_include_directories(fluideq-engine-dsp PRIVATE ../remote-audio-playback/s
 # this library's interface for the same reason.
 target_link_libraries(fluideq-engine-dsp
   PUBLIC fluideq-dsp-core fluideq-engine-config)
-target_link_libraries(fluideq-engine-dsp PRIVATE feq_strict bcrypt)
+# advapi32: the split transport reads who owns the named objects it opens.
+target_link_libraries(fluideq-engine-dsp PRIVATE feq_strict bcrypt advapi32)
 
 # The second output played straight from the main output's engine: the file
 # the app writes, the ring between the two, and the reader keeping time with a
@@ -253,6 +254,13 @@ target_link_libraries(fluideq-engine-dll-split-test
   PRIVATE fluideq-engine-dsp feq_strict ole32 propsys audiomediatypecrt)
 add_test(NAME engine-dll-split
   COMMAND fluideq-engine-dll-split-test $<TARGET_FILE:fluideq-engine>)
+
+# The engine carries nothing that depends on the folder it was built in, or
+# every release offers an engine update for an engine that did not change.
+add_executable(fluideq-engine-repro-test tests/repro_test.cpp)
+target_link_libraries(fluideq-engine-repro-test PRIVATE feq_strict)
+add_test(NAME engine-repro
+  COMMAND fluideq-engine-repro-test $<TARGET_FILE:fluideq-engine>)
 
 # The decision the setup helper makes about an endpoint, with no Windows API
 # anywhere near it. Split out from the helper's executable so the rules that

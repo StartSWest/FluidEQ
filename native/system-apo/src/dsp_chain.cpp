@@ -10,6 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/convolver.h"
 #include "source_analysis.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -68,6 +69,23 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
     // always supplies its own snapshot, including a live-source snapshot.
     settings.denoise.voice.enabled = 0;
     settings.denoise.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+  }
+  // A live output (anything but the Library's own source) whose Voice cannot
+  // run — no trusted runtime beside this DLL, or no verified model — plays the
+  // rest of its rack with Voice off, and says so. It used to fail the whole
+  // build, and the watcher then kept the graph before it: every EQ and preset
+  // edit on that output went unheard until the model or runtime came back.
+  // The Library still refuses (below), because its host keeps the sound until
+  // every feature it asked for is ready here.
+  if (source_analysis != nullptr && !source_analysis->library &&
+      settings.denoise.enabled != 0 && settings.denoise.voice.enabled != 0 &&
+      source_analysis->voice_available &&
+      (source_analysis->voice_runtime.empty() ||
+       !source_analysis->voice_model_guard)) {
+    settings.denoise.voice.enabled = 0;
+    warnings.push_back(
+        "Voice restoration is off on this output: it needs the installed "
+        "trusted runtime and the verified model. The rest of the rack plays.");
   }
   if (source_analysis != nullptr && source_analysis->library &&
       !source_analysis->engine_owner) {
@@ -210,8 +228,28 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
         settings.denoise.voice.enabled != 0 &&
         source_analysis->voice_available &&
         (source_analysis->voice_runtime.empty() || !source_analysis->voice_model_guard);
-    if (voice_unavailable || feq_chain_prepare_source_analysis(
-            built.chain.get(), &source, leveling, &status) == 0) {
+    bool prepared = !voice_unavailable &&
+        feq_chain_prepare_source_analysis(built.chain.get(), &source, leveling,
+                                          &status) != 0;
+    if (!prepared && !voice_unavailable && !source_analysis->library &&
+        settings.denoise.enabled != 0 && settings.denoise.voice.enabled != 0) {
+      // A live output's Voice that would not prepare (its model would not
+      // load) goes the same way as one with nothing to run: off, with the
+      // rest of the rack playing.
+      settings.denoise.voice.enabled = 0;
+      feq_chain_configure(built.chain.get(), &settings);
+      // Primed again, as above: the chain's delay is read below and is only
+      // known once it has processed a block in the shape it now has.
+      std::fill(silence.begin(), silence.end(), 0.0f);
+      feq_chain_process(built.chain.get(), planes.data(), max_frames);
+      feq_chain_reset(built.chain.get(), FEQ_CHAIN_RESET_STREAM_START);
+      warnings.push_back(
+          "Voice restoration could not be prepared on this output and is "
+          "off; the rest of the rack plays.");
+      prepared = feq_chain_prepare_source_analysis(built.chain.get(), &source,
+                                                   leveling, &status) != 0;
+    }
+    if (!prepared) {
       built.failed = true;
       built.source_ready = false;
       built.chain.reset();

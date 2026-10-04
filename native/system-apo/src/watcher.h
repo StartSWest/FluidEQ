@@ -31,6 +31,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "fluideq_engine/config.h"
@@ -329,6 +330,14 @@ class Watcher {
   const bool default_mode_;
   std::unique_ptr<SplitTap> split_;
   std::unique_ptr<AnalysisLink> analysis_;
+  // The voice model, hashed once and then held open (`read_source`): every
+  // reload of every output re-read and re-hashed its ten megabytes before
+  // the "nothing changed" check, so each drag step paid for it. Held without
+  // write or delete sharing, the file cannot change while it is held. Null
+  // until a model passes; `voice_refused_` is the size and write time of
+  // one that did not, so the same file is not hashed again.
+  std::shared_ptr<void> voice_guard_;
+  std::optional<std::pair<uint64_t, uint64_t>> voice_refused_;
   // The output's, shared with every instance locked on it and kept across
   // locks (`leveling_board.h`). Null only if it could not be allocated, and
   // then leveling forgets with each chain, as it always used to.

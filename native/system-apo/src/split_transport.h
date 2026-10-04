@@ -43,6 +43,13 @@ static_assert(offsetof(SplitStorage, samples) == 128);
 std::wstring split_transport_name(const std::wstring& config,
                                  const std::wstring& endpoint);
 
+/**
+ * Whether a kernel object's owner is `expected`. The transport refuses any of
+ * its named objects that already existed under another account; this is that
+ * test, apart, so it can be checked against an account other than our own.
+ */
+bool split_object_owned_by(HANDLE object, PSID expected) noexcept;
+
 class SplitTransport {
  public:
   explicit SplitTransport(const std::wstring& name);

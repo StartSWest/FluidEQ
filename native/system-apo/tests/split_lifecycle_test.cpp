@@ -131,6 +131,45 @@ void stalled_receivers_never_hold_up_publication() {
   CHECK(state && state->state == fluideq_engine::SplitState::playing);
 }
 
+void a_main_at_no_output_rate_is_never_converted() {
+  std::printf("a main output at a rate no output runs at is never converted\n");
+  // The rate is read from memory another process writes, and each new one
+  // used to build a 260 kB table kept for the tap's life. Own outputs here, so
+  // no ring an earlier case left behind holds a clock already.
+  const std::wstring main_id = L"{40404040-1111-2222-3333-444455556666}";
+  const std::string route =
+      "# main {40404040-1111-2222-3333-444455556666}\n"
+      "{40404040-1111-2222-3333-444455556666} "
+      "{50505050-1111-2222-3333-444455556666} 1\n";
+  // 96 kHz is the positive control: the same run converts and plays.
+  for (const uint32_t rate : {96000u, 96001u}) {
+    SplitTap main(main_id, rate, 2, 3, true, kTicks);
+    SplitTap receiver(L"{50505050-1111-2222-3333-444455556666}", 48000, 2, 3,
+                      true, kTicks);
+    main.follow(route, true);
+    receiver.follow(route, true);
+    Block source;
+    Block heard;
+    for (int at = 0; at < 100; ++at) {
+      // Two 5 ms blocks of the main output for each 10 ms of the receiver.
+      source.render(main, 0.25f, at * kTicks / 100);
+      source.render(main, 0.25f, at * kTicks / 100 + kTicks / 200);
+      heard.render(receiver, 0.0f, at * kTicks / 100 + kTicks / 300);
+      receiver.prepare();  // What the watcher does when the reader asks.
+    }
+    const auto state = receiver.report();
+    CHECK(state.has_value());
+    if (!state) continue;
+    if (rate == 96000u) {
+      CHECK(state->state == fluideq_engine::SplitState::playing);
+      CHECK(std::fabs(heard.left.back()) > 0.1f);
+    } else {
+      CHECK(state->state == fluideq_engine::SplitState::waiting);
+      CHECK(heard.left.back() == 0.0f);
+    }
+  }
+}
+
 }  // namespace
 
 int main() {
@@ -138,5 +177,6 @@ int main() {
   stopping_a_receiver_finishes_its_listening_volume_ramp();
   a_promoted_main_keeps_only_its_own_raw_audio();
   stalled_receivers_never_hold_up_publication();
+  a_main_at_no_output_rate_is_never_converted();
   return report();
 }

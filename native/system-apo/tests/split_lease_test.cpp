@@ -5,6 +5,7 @@
 #include <cmath>
 #include <string>
 #include <thread>
+#include <vector>
 
 #include "../src/split_tap.h"
 #include "graph_test_support.h"
@@ -116,6 +117,42 @@ void failures_stay_optional() {
   CHECK(!waiting.transport_failed());
   CHECK(waiting.report()->state == SplitState::waiting);
   std::printf("mapping/layout refusal preserves main; idle source is healthy waiting\n");
+}
+
+void foreign_objects_are_refused() {
+  // The three kinds the transport opens by name, made here, as a squatter
+  // would have made them under its own account.
+  const auto name = split_transport_name(root(L"owner"), kMain);
+  HANDLE mutex = CreateMutexW(nullptr, FALSE, (name + L"-init").c_str());
+  HANDLE mapping = CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+      0, sizeof(SplitStorage), name.c_str());
+  HANDLE released = CreateEventW(nullptr, FALSE, FALSE, (name + L"-released").c_str());
+  CHECK(mutex != nullptr && mapping != nullptr && released != nullptr);
+  HANDLE token = nullptr;
+  CHECK(OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) != FALSE);
+  DWORD size = 0;
+  GetTokenInformation(token, TokenOwner, nullptr, 0, &size);
+  std::vector<unsigned char> mine(size);
+  CHECK(size != 0 && GetTokenInformation(token, TokenOwner, mine.data(), size, &size));
+  CloseHandle(token);
+  const PSID own = reinterpret_cast<const TOKEN_OWNER*>(mine.data())->Owner;
+  // Accounts this test never runs as: LOCAL SERVICE is audiodg's own.
+  std::array<unsigned char, SECURITY_MAX_SID_SIZE> other{}, world{};
+  DWORD other_size = static_cast<DWORD>(other.size());
+  DWORD world_size = static_cast<DWORD>(world.size());
+  CHECK(CreateWellKnownSid(WinLocalServiceSid, nullptr, other.data(), &other_size));
+  CHECK(CreateWellKnownSid(WinWorldSid, nullptr, world.data(), &world_size));
+  for (HANDLE object : {mutex, mapping, released}) {
+    CHECK(split_object_owned_by(object, own));  // The positive control.
+    CHECK(!split_object_owned_by(object, other.data()));
+    CHECK(!split_object_owned_by(object, world.data()));
+    CHECK(!split_object_owned_by(object, nullptr));
+  }
+  // Ours, so the transport opens all three and works.
+  SplitTransport transport(name);
+  CHECK(transport.data() != nullptr && !transport.failed());
+  CloseHandle(released); CloseHandle(mapping); CloseHandle(mutex);
+  std::printf("named objects made by this account accepted, owner test refuses others\n");
 }
 
 int abandon_copy(const std::wstring& name, const std::wstring& ready_name) {
@@ -308,6 +345,7 @@ int wmain(int argc, wchar_t** argv) {
   if (argc == 4 && std::wstring(argv[1]) == L"--hold-init") return hold_initialization(argv[2], argv[3]);
   exact_lease_handoff();
   failures_stay_optional();
+  foreign_objects_are_refused();
   wchar_t exe[MAX_PATH]{};
   CHECK(GetModuleFileNameW(nullptr, exe, MAX_PATH) != 0);
   dead_copy_is_recovered(exe);

@@ -25,6 +25,18 @@ bool same_model_path(const std::string& utf8, const std::wstring& expected) {
   return CompareStringOrdinal(path.c_str(), -1, expected.c_str(), -1, TRUE) == CSTR_EQUAL;
 }
 
+/** A file's size and last write time, or nothing for a file not there. */
+std::optional<std::pair<uint64_t, uint64_t>> file_stamp(const std::wstring& path) {
+  WIN32_FILE_ATTRIBUTE_DATA data{};
+  if (!GetFileAttributesExW(path.c_str(), GetFileExInfoStandard, &data)) {
+    return std::nullopt;
+  }
+  return std::make_pair(
+      (static_cast<uint64_t>(data.nFileSizeHigh) << 32) | data.nFileSizeLow,
+      (static_cast<uint64_t>(data.ftLastWriteTime.dwHighDateTime) << 32) |
+          data.ftLastWriteTime.dwLowDateTime);
+}
+
 std::shared_ptr<void> verified_voice_model(const std::wstring& path) {
   // Keep this exact file open through ONNX's model load. Hashing and then
   // reopening an unpinned writable path would permit a different model to
@@ -32,7 +44,12 @@ std::shared_ptr<void> verified_voice_model(const std::wstring& path) {
   const HANDLE raw = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ,
       nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
   if (raw == INVALID_HANDLE_VALUE) return {};
-  std::shared_ptr<void> file(raw, [](void* handle) { CloseHandle(handle); });
+  // Closed through a function pointer, never a lambda: the shared pointer
+  // keeps its deleter's type descriptor, and a lambda in here is named after
+  // this file's anonymous namespace, which MSVC hashes from the file's path.
+  // The engine then built to different bytes in every folder, and every
+  // release would have offered an engine update (`repro_test.cpp`).
+  std::shared_ptr<void> file(raw, &CloseHandle);
   LARGE_INTEGER size{};
   if (!GetFileSizeEx(raw, &size) || size.QuadPart != 10596848) return {};
   struct Hash {
@@ -113,8 +130,22 @@ SourceAnalysis Watcher::read_source(bool owner) {
     // arbitrary file for a privileged process to parse.
     if (same_model_path(parsed->voice_model, model)) {
       parsed->voice_model = to_utf8(model);
-      parsed->voice_model_guard = verified_voice_model(model);
+      // Hashed once, then held (`voice_guard_`): the open handle shares no
+      // write or delete, so the bytes checked are the bytes for as long as it
+      // is held. A file that failed is not hashed again until it changes.
+      if (!voice_guard_) {
+        const auto stamp = file_stamp(model);
+        if (!stamp || stamp != voice_refused_) {
+          voice_guard_ = verified_voice_model(model);
+          voice_refused_ = voice_guard_ ? std::nullopt : stamp;
+        }
+      }
+      parsed->voice_model_guard = voice_guard_;
     }
+  } else {
+    // No model offered: let go of the file, so the app can replace it.
+    voice_guard_.reset();
+    voice_refused_.reset();
   }
   const auto split = split_ ? split_->report() : std::nullopt;
   SourceAnalysis source = source_for_endpoint(parsed, endpoint_,

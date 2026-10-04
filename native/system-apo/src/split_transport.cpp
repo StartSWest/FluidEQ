@@ -1,11 +1,13 @@
 /* FluidEQ — GPL-3.0-or-later */
 #include "split_transport.h"
 
+#include <aclapi.h>
 #include <bcrypt.h>
 #include <cwctype>
 #include <memory>
 #include <new>
 #include <stdexcept>
+#include <vector>
 
 namespace fluideq_engine {
 namespace {
@@ -31,7 +33,58 @@ struct Initializing {
   HANDLE mutex;
   ~Initializing() { ReleaseMutex(mutex); }
 };
+
+/**
+ * Whether an object Windows handed back as already existing was made under
+ * this process's own account. In session zero `Local\` is the global
+ * namespace, which a program in anybody's session reaches as `Global\` (a
+ * mutex or an event with no privilege at all), so another account could
+ * create these names first, with a DACL of its own, and then read the main
+ * output's sound or feed the second output whatever it liked; the name is a
+ * hash of things that are no secret. The engine's own account can already
+ * open what the engine makes (the default DACL grants it), so refusing
+ * everything else closes the hole without trusting anyone new. Somebody can
+ * still take a name first and so keep the second output off; that costs a
+ * second output, never the main one's sound. A refusal is a transport
+ * failure like any other: the status says so, and the app stops that second
+ * output rather than play it out of memory somebody else laid out.
+ */
+bool made_by_this_account(HANDLE object) noexcept {
+  // The pseudo-handle: nothing to open (or be refused) inside audiodg.
+  const HANDLE token = GetCurrentProcessToken();
+  DWORD size = 0;
+  (void)GetTokenInformation(token, TokenOwner, nullptr, 0, &size);
+  if (size == 0) return false;
+  try {
+    std::vector<unsigned char> owner(size);
+    if (!GetTokenInformation(token, TokenOwner, owner.data(), size, &size)) return false;
+    return split_object_owned_by(object,
+        reinterpret_cast<const TOKEN_OWNER*>(owner.data())->Owner);
+  } catch (...) {
+    return false;
+  }
+}
+
+/** Closes an object that existed already under another account, and throws. */
+void refuse_foreign(HANDLE object, bool existed, const char* what) {
+  if (existed && !made_by_this_account(object)) {
+    CloseHandle(object);
+    throw std::runtime_error(what);
+  }
+}
 }  // namespace
+
+bool split_object_owned_by(HANDLE object, PSID expected) noexcept {
+  PSID owner = nullptr;
+  PSECURITY_DESCRIPTOR descriptor = nullptr;
+  if (expected == nullptr ||
+      GetSecurityInfo(object, SE_KERNEL_OBJECT, OWNER_SECURITY_INFORMATION,
+                      &owner, nullptr, nullptr, nullptr, &descriptor) != ERROR_SUCCESS)
+    return false;
+  const bool same = owner != nullptr && EqualSid(owner, expected) != FALSE;
+  LocalFree(descriptor);
+  return same;
+}
 
 std::wstring split_transport_name(const std::wstring& config,
                                  const std::wstring& endpoint) {
@@ -62,8 +115,10 @@ std::wstring split_transport_name(const std::wstring& config,
 SplitTransport::SplitTransport(const std::wstring& name)
     : pid_(GetCurrentProcessId()), created_(creation_time(GetCurrentProcess())), name_(name) {
   if (created_ == 0) throw std::runtime_error("split process identity");
-  initializing_ = CreateMutexW(nullptr, FALSE, (name + L"-init").c_str());
-  if (!initializing_) throw std::runtime_error("split init mutex");
+  HANDLE mutex = CreateMutexW(nullptr, FALSE, (name + L"-init").c_str());
+  if (!mutex) throw std::runtime_error("split init mutex");
+  refuse_foreign(mutex, GetLastError() == ERROR_ALREADY_EXISTS, "split init mutex owner");
+  initializing_ = mutex;
   initialize();
 }
 
@@ -84,9 +139,11 @@ void SplitTransport::initialize(void* acquired) noexcept {
   }
   Initializing locked{initializing_};
   try {
-  Handle mapping{CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
-                                    0, sizeof(SplitStorage), name_.c_str())};
-  if (!mapping.value) throw std::runtime_error("split mapping");
+  HANDLE created = CreateFileMappingW(INVALID_HANDLE_VALUE, nullptr, PAGE_READWRITE,
+                                      0, sizeof(SplitStorage), name_.c_str());
+  if (!created) throw std::runtime_error("split mapping");
+  refuse_foreign(created, GetLastError() == ERROR_ALREADY_EXISTS, "split mapping owner");
+  Handle mapping{created};
   auto* data = static_cast<SplitStorage*>(MapViewOfFile(
       mapping.value, FILE_MAP_READ | FILE_MAP_WRITE, 0, 0, sizeof(SplitStorage)));
   if (!data) throw std::runtime_error("split mapping view");
@@ -98,10 +155,18 @@ void SplitTransport::initialize(void* acquired) noexcept {
     UnmapViewOfFile(data);
     throw std::runtime_error("split mapping layout");
   }
+  // Auto-reset, so one release wakes one waiting writer. Any other is woken
+  // by its own audio thread seeing the owner change (`begin_write`), and a
+  // writer whose audio is not running has nothing to write until it is.
   HANDLE released = CreateEventW(nullptr, FALSE, FALSE, (name_ + L"-released").c_str());
   if (!released) {
     UnmapViewOfFile(data);
     throw std::runtime_error("split ownership event");
+  }
+  if (GetLastError() == ERROR_ALREADY_EXISTS && !made_by_this_account(released)) {
+    CloseHandle(released);
+    UnmapViewOfFile(data);
+    throw std::runtime_error("split ownership event owner");
   }
   // Default token DACL: no Everyone/interactive-user grant to service audio.
   // Touch every page before publishing the pointer to the real-time thread.
@@ -157,7 +222,11 @@ void SplitTransport::remove_writer() noexcept {
 
 void SplitTransport::reset_clock() noexcept {
   const uint32_t odd = data_->sequence.load(std::memory_order_relaxed) | 1u;
-  data_->sequence.store(odd, std::memory_order_release);
+  data_->sequence.store(odd, std::memory_order_relaxed);
+  // Odd before any field, as `publish` does it: a release store orders what
+  // came before it, never the stores after, so a reader could take a cleared
+  // field under the old even count and keep it.
+  std::atomic_thread_fence(std::memory_order_release);
   data_->end.store(0, std::memory_order_relaxed);
   data_->block_start.store(0, std::memory_order_relaxed);
   data_->ticks.store(0, std::memory_order_relaxed);

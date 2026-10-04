@@ -7,11 +7,29 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "split_tap.h"
 
 #include <algorithm>
+#include <iterator>
 
 #include "split_file.h"
 #include "split_transport.h"
 
 namespace fluideq_engine {
+namespace {
+
+/**
+ * Whether `rate` is one a Windows output runs at. The source's rate is read
+ * from memory another process writes, and each new one built a resampling
+ * table of about 260 kB that is kept for the life of the tap: a rate that
+ * changed on every block grew audiodg without end. The list bounds it.
+ */
+bool is_output_rate(uint32_t rate) noexcept {
+  constexpr uint32_t kRates[] = {8000,   11025,  16000,  22050,  32000,
+                                 44100,  48000,  88200,  96000,  176400,
+                                 192000, 352800, 384000, 705600, 768000};
+  return std::find(std::begin(kRates), std::end(kRates), rate) !=
+         std::end(kRates);
+}
+
+}  // namespace
 
 SplitTap::SplitTap(const std::wstring& endpoint, uint32_t rate,
                    uint32_t channels, unsigned long mask, bool default_mode,
@@ -139,6 +157,9 @@ bool SplitTap::transport_failed() const noexcept {
 }
 
 void SplitTap::ensure_kernel(uint32_t rate) {
+  if (!is_output_rate(rate)) {
+    return;
+  }
   for (const auto& kernel : kernels_) {
     if (kernel->source_rate() == rate) {
       kernel_.store(kernel.get(), std::memory_order_release);
