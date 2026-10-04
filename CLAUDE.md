@@ -440,7 +440,10 @@ Everything worth knowing about them is available through commands:
   through the rack twice, and FluidEQ's switch left the rack playing on
   everything. The DSP store is the only sender of the engine's copy and
   switches it off at the root when it belongs elsewhere; anything else that
-  sends a rack to the engine brings the doubling back.
+  sends a rack to the engine brings the doubling back. With a rack per output
+  the rule is per output: while the Library plays, only the output it plays
+  on hands its rack to the host, and a second output keeps running its own in
+  the engine (`session.systemRackEnabled`, asked by `flushOutputDsp`).
 - **A DSP preset's tone is a curve in the main EQ, never a stage of its
   rack.** Each factory preset carries `curve` beside `settings`, and a pick
   sends the curve as the Preset layer (a `dsp:<id>` voicing, written as
@@ -455,16 +458,44 @@ Everything worth knowing about them is available through commands:
   tone back into its rack; the DSP EQ is the listener's own. Under APO an
   EQ-page pick holds the rack off (`rackHeldForApo.ts`) and
   `RackFollowsEngine` puts it back at the switch to the FluidEQ Engine.
-- **A preset's curve is the machine's, like its rack, never the output's.**
-  Switching output while the app runs keeps the Preset layer that is
-  playing (`voicingForDevice` in `deviceProfiles.ts`, given `playing` by
-  both switch paths in `ipc/profiles.ts`): it used to come back as whatever
-  preset the new output's profile was saved with, so the picker named one
-  preset and the chip beside it another (Ivan, 2026-09-24: "we dont save
-  presets on the output switch we replay current preset always"). A preset
-  cleared by its chip stays cleared; somebody's own voicing is still the
-  output's; the launch, with nothing playing yet, restores the profile's.
-  `presetFollowsMachine.test.ts` holds all three.
+- **Every output keeps its own sound: EQ, preset curve, Tone, cuts, rack,
+  Room and leveling** (Ivan, 2026-10-03: "I want everything on each output
+  even the DSP and Preset curves"). From engine 1.19
+  (`ENGINE_OUTPUT_CONFIG_SINCE`) each output's engine reads its own files,
+  named by its endpoint GUID (`outputConfigFiles.ts`: `fluideq-dsp-<guid>.txt`
+  and the programme, room head, phase and Treble files beside it), and main
+  rebuilds every output from its own profile at launch, at an engine switch
+  and on every flush (`flushOutputDsp`). An output with no rack saved is
+  bypassed, never handed the old shared one; an engine older than 1.19 still
+  plays the single root `fluideq-dsp.txt` (`writeLegacySystemDspChain`) until
+  it is updated. Switching output restores that output's saved preset, an
+  explicit "no preset" included. This replaced the 09-24 rule that the
+  playing preset followed the machine across a switch;
+  `presetFollowsMachine.test.ts` (the name is history) holds the new one.
+- **The second output plays from the main output's engine, never through a
+  wait** (engine 1.20, `ENGINE_SPLIT_SINCE`). The main output's engine writes
+  its input, before any processing, into a shared ring
+  (`split_transport.cpp`, `Local\FluidEQ-RawSplit-v1-<hash>` in session zero)
+  and the second output's engine reads it on its own clock and runs its own
+  rack on it (`split_tap.cpp`, `split_reader.cpp`). The main callback takes
+  one try at the ring and never waits for a reader; a stalled, killed or
+  absent receiver changes nothing for main. `fluideq-split.txt` is written
+  only under the FluidEQ Engine and is removed with the rest when the engine
+  is neutralised. The app checks first (`splitRefusal` in `outputSplit.ts`:
+  engine, version, enhancements, slot, ever ran) and plays the helper's copy
+  for anything it cannot be sure of; a transport the engine refuses at run
+  time (`split-transport` in the status) stops that second output. The
+  engine refuses any of the ring's named objects that already existed under
+  another account (`split_object_owned_by`), and builds a resampling kernel
+  only for a rate an output runs at — the rate is read from memory another
+  process writes, and a new table per block grew audiodg without end.
+- **Your bands have their own Band Q, apart from the layers' group**
+  (`mainBandQ`, `getMainBandQ` in `eqMode.ts`): changing how your bands widen
+  with gain reshapes neither a preset nor a correction. Absent, it falls back
+  to the group's `eqBandQ`, which is what every state saved before it holds.
+  A new layout's bands all start at one Q from its span and count
+  (`qualityForMainRack`), and an added band takes the median of the bands
+  already there (`qualityForAddedBand`).
 - **A preset's curve rides the rack's line, so the rack limits through it.**
   The rack's line (`fluideq-dsp.txt`, and the Library host's) ends with a TONE
   trailer — the Preset layer's bands exactly as the writer builds them
@@ -587,9 +618,10 @@ Everything worth knowing about them is available through commands:
 - **The Tone panel's two cuts are a file of their own, and 24 dB/oct is the
   steepest.** Low cut at 20 Hz, high cut at 20 kHz, each a Butterworth of 0,
   12 or 24 dB/oct (`eqCuts.ts`); 36 and 48 were offered and Ivan found them
-  "too aggressive" (a Q 2.56 section ringing at the corner). They are
-  `fluideq-cuts.txt`, included by every device file after the preamp and its
-  directives: no layer, no MATCHED directive, so both engines build them on the
+  "too aggressive" (a Q 2.56 section ringing at the corner). Each output has
+  its own, `fluideq-<slug>-cuts.txt`, included by that output's device file
+  alone after the preamp and its directives (the old shared `fluideq-cuts.txt`
+  is swept as generated): no layer, no MATCHED directive, so both engines build them on the
   cookbook, and they are in neither the preamp nor Auto normalize's input.
   `toEqCuts` reads a stored slope the dials no longer offer as the steepest
   left, and the saved-state schema takes any `eqCuts` object — a state file
@@ -642,6 +674,25 @@ Everything worth knowing about them is available through commands:
   reads as one turned up. A ±20 band's travel is the even one it always was.
   The player's printed scale stands beside the bands it describes rather than
   at the head of the row, where it read as the preamp's as well.
+- **A band's label stays where it was put, above or below its dot, never
+  beside it** (`bandLabelLayout.ts`). Each label remembers its home (where
+  the first layout put it) and its last place; a label moved off its home is
+  placed first, the dragged one before all, and the rest go back home the
+  moment there is room (Ivan, 2026-10-03: "they need to return to original
+  places if they can", "never do the side move always top or bottom"). The
+  dragged label ignores the dots and pins it passes and is pressed against the
+  plot's edge rather than flipped: on the 31-band layout it used to jump from
+  top to bottom at every neighbour. Labels keep off the genre pins and the
+  analyser's key (`legendPlace.ts`, noted by the frame that paints it), and a
+  reset of the EQ lays them out fresh (`bandSetReplacement`, counted on INIT)
+  instead of remembering the bands it replaced.
+- **A slider's edit is drawn in the same frame as the slider** (Ivan,
+  2026-10-03: "if I move the slider the curve movement has a lag"). The band
+  sliders used to send their edits inside `startTransition`, and React throws
+  a transition away whenever a newer update arrives: while the hand kept
+  moving, the curve caught up only when it stopped, while a drag on the curve
+  moved the slider at once. `showGroupEdits` dispatches directly; keep it out
+  of a transition (`bandSliderStepsShowAtOnce.test.tsx`).
 - **The graphs have two fixed scales and their own analyser.** The EQ's ±20 dB
   on the left never stretches, and never cuts either (Ivan, 2026-09-25: "it
   needs to draw completely"): `eqGainScale` gives ±20 the middle eight tenths
@@ -853,7 +904,14 @@ Everything worth knowing about them is available through commands:
   copies of the tree then came out identical. Nothing that varies per build —
   `__DATE__`, `__TIME__`, a git revision, an absolute path — may reach the
   engine or the DSP core it links; `FEQ_BUILD_REVISION` goes into the host
-  alone. `engineUpdate.test.ts` holds both.
+  alone. `engineUpdate.test.ts` holds both. A path also gets in by name: MSVC
+  names an anonymous namespace `?A0x<hash>` from the source file's path, and
+  that name lands in the binary wherever a type inside one is kept by its
+  type descriptor — a lambda given to `shared_ptr` as its deleter did, and
+  the same tree built in two folders differed (2026-10-03). Give such a
+  deleter a function pointer or a named type outside the anonymous
+  namespace; `repro_test.cpp` (ctest `engine-repro`) fails on any `?A0x`
+  name in the built DLL.
 - **The setup helper installs only the DLLs it was built beside.** `install`
   copies them from the app's folder, which a per-user install leaves
   writable by anything the user runs, into Program Files for audiodg — so
@@ -1150,7 +1208,7 @@ Out-String` (or any other capture) is what actually waits for it and shows
   (`uniqueRoomName`). Bass management
   (`bass_management`, `crossover_hz`, the twenty-fourth and twenty-fifth of
   the room's forty-two wire scalars; `FEQ_CHAIN_PARAM_LEAD` was 140 when
-  they landed and is 157 now) is a Linkwitz-Riley 4th-order
+  they landed and is 158 now) is a Linkwitz-Riley 4th-order
   high-pass on every speaker channel and the same low-pass on their sum
   into the sub's path, both ears alike at unity; its coefficients ride the
   kernel set (so a crossover change lands with the set), its histories live

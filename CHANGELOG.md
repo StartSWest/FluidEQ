@@ -6,6 +6,82 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
+## 2.1.0
+
+Every output now keeps its own sound, and a second output plays straight from
+the FluidEQ Engine with a sound of its own. Share Audio works both ways, each
+song can remember how you like it, and the equaliser shows each band's
+numbers right on the graph.
+
+### Outputs
+
+- **Every output keeps its own sound.** The EQ, the preset, the Tone, the
+  cuts, the DSP rack, the Room and the leveling are saved with each output and
+  come back the moment you switch to it — headphones and speakers no longer
+  share one preset.
+- **A second output plays from the FluidEQ Engine itself**, with its own
+  sound, and the main output never waits for it. **Edit sound** beside the
+  second output edits it without switching the main output; **Done** or
+  **Edit main** takes you back.
+- **The second output keeps time by itself**, and every delay is shown in
+  milliseconds, the network's included when the sound comes from another
+  computer.
+- **Share Audio works both ways.** Link two computers once, from either side,
+  and each can send its sound and play the other's, each direction on its own
+  switch.
+- **Bluetooth headphones show their battery** beside the output, and beside
+  the second output.
+
+### The equaliser
+
+- **Band labels on the graph.** Each band can show its frequency, Q and gain
+  over its point (View → Everything, or Ctrl+W). A label sits above or below
+  its point, never beside it, keeps clear of the style dots and the
+  analyser's key, stays put while you drag its band, and goes back to its own
+  place once there is room. Resetting the EQ lays them out fresh.
+- **The curve follows a slider at once.** Moving a band's slider redraws the
+  curve in the same frame, as dragging the curve already moved the slider.
+- **The handles and knobs work from the keyboard**: the arrow keys step a
+  fader, a knob or a point's gain, and a screen reader names each point by its
+  band and frequency. While the EQ is switched off its controls are dimmed and
+  cannot be changed by accident.
+- **A new layout starts every band at the same Q**, from how many bands it has
+  and how wide it spans, and a band you add takes the Q of the ones already
+  there. Your bands' Band Q no longer reshapes a preset or a correction.
+- The Smart EQ toolbar was tidied, and the Applied headphone button stays
+  readable under the mouse.
+
+### Songs
+
+- **Remember each song's sound.** Switched on, a preset, Tone or EQ you set
+  during a song comes back whenever that song plays here, with a notice that
+  says so and an Undo. It starts switched off. **One player at a time** starts
+  switched on.
+
+### Visualizers
+
+- **Standard looks have their own graphics settings**, apart from Plus
+  visualizers: full resolution and plain scaling to start with.
+
+### Fixes
+
+- The Room plays on outputs running at 88.2, 176.4, 352.8 and 384 kHz; it
+  used to say a head file was missing and pass the sound through.
+- The FluidEQ Engine plays on outputs whose driver lists its effects only one
+  at a time, such as Creative's Sound BlasterX G6.
+- Finding the slot an output's driver reads now steps past the slots another
+  program's effect holds, instead of stopping at the first one.
+- On an output where Voice restoration cannot run, the rest of the DSP rack
+  plays and every edit is heard; it used to keep playing the sound from
+  before the edit.
+- Renaming a profile no longer loads it under the old name, and opening the
+  window no longer reports an error for an output with no profiles yet.
+- Play and pause on the bar, and the Library pausing other players, keep
+  working when FluidEQ's media helper stops by itself: it is started again,
+  and so is the volume slider's.
+
+---
+
 ## 2.0.0
 
 FluidEQ 2.0 is a new window around a rebuilt sound.
