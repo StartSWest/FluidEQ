@@ -16,23 +16,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IDspSettings } from '../../common/dsp/chain';
 import { setPlayerProcessingLatency } from './processingLatency';
 import {
-  engineOwnsRack,
   playerRunsRack,
   readRackGate,
   rackFor,
-  rackSuspension,
   useRackGate,
 } from './rackPlacement';
-import useSystemMeters from './useSystemMeters';
-import { useOutputEditor } from '../utils/outputEditor';
 import {
   INativeBackendController,
   createNativeBackendController,
 } from './nativeBackend';
 import createNativeMirror from './nativeMirror';
 import { INativeMirror, INativeMirrorState } from './nativeMirrorTypes';
-import { INativeMetersBridge, createNativeMeters } from './nativeMeters';
-import { ANALYSIS_BINS } from '../../common/dsp/analysisWire';
 import {
   INativeTransportFrame,
   quantizeTransportPosition,
@@ -50,7 +44,6 @@ import {
   setDspNativeState,
   setDspRackGate,
   useDspNativeState,
-  useDspSettings,
   readPlaybackDspSettings,
   readPlaybackPresetTone,
   usePlaybackPresetTone,
@@ -362,41 +355,6 @@ export const useNativeTransport = (
       setPlayerProcessingLatency(undefined);
     };
   }, [controller]);
-};
-
-/**
- * Point the panel's graphs at the native engine while it is the audible one.
- *
- * Keyed on the controller, so it lives exactly as long as the engine it
- * reports on: the analysers are registered when the host engages and cleared
- * when it lets go. Any other lifetime leaves the panel drawing a frozen frame
- * from an engine that has stopped, which is the same defect this fixes.
- */
-export const useNativeMeters = (): void => {
-  const nativeState = useDspNativeState();
-  const gate = useRackGate();
-  const settings = useDspSettings();
-  const { editor, main } = useOutputEditor();
-  const editingOtherOutput = !!editor && !!main && editor.device.id !== main.id;
-  const systemOwnsMeters =
-    gate.engine === 'fluid' && (editingOtherOutput || engineOwnsRack(gate));
-  useSystemMeters(
-    systemOwnsMeters &&
-      settings.enabled &&
-      gate.eqEnabled &&
-      (editingOtherOutput || rackSuspension(gate) === undefined),
-  );
-  useEffect(() => {
-    if (nativeState !== 'engaged' || systemOwnsMeters || editingOtherOutput) {
-      return undefined;
-    }
-    const bridge = bridgeOf() as unknown as INativeMetersBridge | undefined;
-    if (typeof bridge?.onDspHostAnalysis !== 'function') {
-      return undefined;
-    }
-    const meters = createNativeMeters(bridge, ANALYSIS_BINS);
-    return () => meters.release();
-  }, [nativeState, systemOwnsMeters, editingOtherOutput]);
 };
 
 /**
