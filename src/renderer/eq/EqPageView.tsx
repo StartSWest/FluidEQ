@@ -158,6 +158,9 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
     setBandMenu,
   } = actions;
   const bandMenuFilter = bandMenu ? filters[bandMenu.filterId] : undefined;
+  // The EQ layer switched off from its chip: the bands stay where they are
+  // and edit nothing until it is back on.
+  const isEqOff = bypassed.includes('eq');
   // An enabled continuous mode still needs a Stop while its layer is
   // bypassed, or restoring the layer could silently resume a forgotten run.
   const isSmartEqActive =
@@ -292,18 +295,17 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
                     ref={
                       entry === smartEqMode ? attachModeMenuEntry : undefined
                     }
+                    // The menu opens only while nothing runs
+                    // (\`isSmartEqActive\`), so nothing here is running yet.
                     onClick={() => {
                       closeModeMenu();
                       if (entry === smartEqMode) {
                         if (isContinuousMode(entry)) {
                           setContinuousEq(true);
-                        } else if (!isBalancing) {
+                        } else {
                           runSmartEq();
                         }
                         return;
-                      }
-                      if (isBalancing) {
-                        cancelSmartEq();
                       }
                       // A different mode starts through the engine's own
                       // mode transition; asking it to run again would toggle
@@ -433,7 +435,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
       )}
       <div
         className={`main-content main-content--${density}${
-          bypassed.includes('eq') ? ' is-eq-bypassed' : ''
+          isEqOff ? ' is-eq-bypassed' : ''
         }${isPlaced ? ' is-placed' : ''}`}
       >
         {/* The rail scrolls when the bands stop fitting, with an arrow at
@@ -443,7 +445,14 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
             could aim at. Each band keeps a floor of its own instead and the
             row runs past the edge, which is a thing you can scroll. */}
         <BandLevels row={bandsElement} />
-        <div className="bands-rail" ref={attachRail}>
+        {/* With the EQ layer off its bands edit nothing, by pointer or by
+            key: `inert`, where the stylesheet alone left every slider a
+            tab stop that still moved its band. */}
+        <div
+          className="bands-rail"
+          ref={attachRail}
+          inert={isEqOff || undefined}
+        >
           {/* No arrows while the bands are placed across the plot: every one
               of them is inside its width by construction, and the few pixels
               the outermost may hang into the page's padding are not a row to
@@ -542,7 +551,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
           ))}
         </div>
         {selectedFilter && (
-          <div className="eq-flat-editor">
+          <div className="eq-flat-editor" inert={isEqOff || undefined}>
             {/* Which band, or how many. A group edit moves everything
                 selected, so naming one frequency would be a lie about what
                 the controls beside it are about to do. */}

@@ -85,6 +85,11 @@ import { useEngineLookUsable } from './engineLooks/engineLookHealth';
 import useLeavingEngineLook from './engineLooks/useLeavingEngineLook';
 import { engineLookPack, isEngineLookStyle } from './engineLooks/engineLooks';
 import useAnalysisChannels from './analysis/useAnalysisChannels';
+import {
+  ILegendPlace,
+  isSameLegendPlace,
+  takeLegendFrame,
+} from './analysis/legendPlace';
 import { GRAPH_SILENT_POINTS } from './liveGraphBand';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData, ILiveCurveData } from './ChartController';
@@ -132,6 +137,11 @@ interface ILiveTraceCanvasProps {
    * the picture, no where it plays behind another drawing (`EqScreen`).
    */
   hasKey?: boolean;
+  /**
+   * Where that key stands now, in the chart's coordinates, whenever it moves
+   * or goes — for what the chart draws over the canvas to keep off it.
+   */
+  onLegendPlace?: (place: ILegendPlace | undefined) => void;
 }
 
 /** A look being left says nothing more about where the engine is. */
@@ -148,7 +158,12 @@ const LiveTraceCanvas = ({
   isForeground,
   eqResponse,
   hasKey = true,
+  onLegendPlace,
 }: ILiveTraceCanvasProps) => {
+  // Through refs, so a new callback never rebuilds the frame loop.
+  const onLegendPlaceRef = useRef(onLegendPlace);
+  onLegendPlaceRef.current = onLegendPlace;
+  const legendPlaceRef = useRef<ILegendPlace | undefined>(undefined);
   // The measurement, straight from the analyser. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
   // The graph's own points, the plot's whole width with its bottom octaves
@@ -401,8 +416,8 @@ const LiveTraceCanvas = ({
   );
 
   const drawFrame = useCallback(
-    (deltaMs: number) =>
-      drawLiveTraceFrame(
+    (deltaMs: number) => {
+      const moved = drawLiveTraceFrame(
         {
           canvasRef,
           contextRef,
@@ -493,7 +508,16 @@ const LiveTraceCanvas = ({
           haloCanvasRef,
         },
         deltaMs,
-      ),
+      );
+      // The key's place after this frame, told only when it changed.
+      const canvas = canvasRef.current;
+      const frame = canvas ? takeLegendFrame(canvas) : undefined;
+      if (frame && !isSameLegendPlace(frame.place, legendPlaceRef.current)) {
+        legendPlaceRef.current = frame.place;
+        onLegendPlaceRef.current?.(frame.place);
+      }
+      return moved;
+    },
     // `channels` is the per-channel reader, whose identity never changes —
     // named here because the loop reads it and a dependency list that lies
     // about what a callback reads is worse than one that is slightly long.

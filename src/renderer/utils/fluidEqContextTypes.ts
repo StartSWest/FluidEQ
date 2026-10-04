@@ -213,6 +213,14 @@ export interface IFluidEqContext extends IState {
   hoveredFilterId: string;
   setHoveredFilterId: (newValue: string) => void;
   dispatchFilter: FilterDispatch;
+  /**
+   * How many times the whole band map has been replaced from the main
+   * process — a preset, Clear EQ, a reset, another output, the state re-read
+   * after any layer change — as opposed to a band being edited on screen.
+   * State, not a getter, because what reads it draws from it: the graph's
+   * band labels start over when it moves and the bands moved with it.
+   */
+  bandSetReplacement: number;
 }
 
 /**

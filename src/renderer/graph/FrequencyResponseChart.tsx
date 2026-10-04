@@ -145,6 +145,7 @@ import {
   useListenerWave,
 } from '../utils/sceneWaveStore';
 import { useTranslation } from '../utils/I18nContext';
+import FILTER_TYPE_NAME_KEYS from '../utils/filterTypeNames';
 import LookDesigner from '../components/LookDesigner';
 import { ROW_ORDER } from '../components/activeLayerList';
 import GraphAutoCycle from './GraphAutoCycle';
@@ -1721,7 +1722,7 @@ const FrequencyResponseChart = ({
         : filter.gain;
       return {
         id: filter.id,
-        name: `${filter.type} band`,
+        name: t(FILTER_TYPE_NAME_KEYS[filter.type]),
         parameters: {
           frequency: filter.frequency,
           gain: filter.gain,
@@ -1735,6 +1736,7 @@ const FrequencyResponseChart = ({
         selected: selectedFilterIds.includes(filter.id),
         hovered: hoveredFilterId === filter.id,
         isEnabled: isBandEnabled(filter),
+        isLocked: bypassed.includes('eq'),
         onSelect: (mode: SelectionMode, grab: IChartPointData) =>
           handlePointSelect(filter.id, mode, grab),
         onHover: (isHovered: boolean) =>
@@ -1763,6 +1765,8 @@ const FrequencyResponseChart = ({
     filters,
     chartData,
     rainbow,
+    t,
+    bypassed,
     flushPointEdit,
     handlePointMove,
     handlePointQualityWheel,
@@ -2213,9 +2217,7 @@ const FrequencyResponseChart = ({
             }
           }}
         >
-          {modeAnnouncement.label === 'Without EQ labels'
-            ? t('graph.contents.unlabelled')
-            : modeAnnouncement.label}
+          {t(modeAnnouncement.label)}
         </div>
       )}
       <div

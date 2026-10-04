@@ -457,7 +457,7 @@ const eq: Partial<Dictionary> = {
   'extraOutput.statusOff': 'Desligada',
   'extraOutput.volume': 'Volume',
   'extraOutput.latency':
-    'A saída principal não espera pelas saídas secundárias. Estes valores estimam o buffer do software, não o atraso que ouve. Os controladores de áudio, dispositivos e ligações sem fios podem acrescentar mais atraso.',
+    'A saída principal não espera pelas saídas secundárias. Estes valores estimam o buffer de software, não o atraso que você ouve. Drivers de áudio, dispositivos e conexões sem fio podem acrescentar mais atraso.',
   'extraOutput.delayUnavailable': 'Atraso indisponível',
   'extraOutput.delay': 'Buffer de software: {milliseconds} ms',
   'extraOutput.delayFrom': 'De {name}: {milliseconds} ms de buffer de software',
@@ -775,6 +775,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Dispositivo de áudio',
   'autoeq.targetAria': 'Resposta de frequência alvo',
   'eq.band.edit': 'Editar a banda de {frequency} Hz',
+  'eq.band.gainSlider': 'Ganho em {frequency}',
+  'graph.handle.label':
+    '{band}, {frequency}. Arraste para mudar a frequência e o ganho; Ctrl+roda muda o Q.',
+  'graph.handle.off': 'desligada',
+  'graph.handle.select': 'Clique para selecioná-la',
+  'graph.handle.quality': 'Ctrl+roda muda o Q',
   'eq.layers.apoEdit': 'Edição no Equalizer APO',
   'convolution.entryDetail': '{provider} · fase mínima · WAV de {rate} kHz',
   'eq.refused.bandLimit':

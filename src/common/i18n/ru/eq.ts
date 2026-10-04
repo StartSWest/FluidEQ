@@ -771,6 +771,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Аудиоустройство',
   'autoeq.targetAria': 'Целевая АЧХ',
   'eq.band.edit': 'Изменить полосу {frequency} Гц',
+  'eq.band.gainSlider': 'Усиление {frequency}',
+  'graph.handle.label':
+    '{band}, {frequency}. Перетаскивайте, чтобы менять частоту и усиление; Ctrl+колесо меняет добротность (Q).',
+  'graph.handle.off': 'выключена',
+  'graph.handle.select': 'Щёлкните, чтобы выбрать',
+  'graph.handle.quality': 'Ctrl+колесо меняет Q',
   'eq.layers.apoEdit': 'Правка в Equalizer APO',
   'convolution.entryDetail': '{provider} · минимальная фаза · WAV {rate} кГц',
   'eq.refused.bandLimit':

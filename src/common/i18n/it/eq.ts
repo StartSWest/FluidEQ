@@ -777,6 +777,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Dispositivo audio',
   'autoeq.targetAria': 'Risposta in frequenza obiettivo',
   'eq.band.edit': 'Modifica la banda da {frequency} Hz',
+  'eq.band.gainSlider': 'Guadagno a {frequency}',
+  'graph.handle.label':
+    '{band}, {frequency}. Trascina per cambiarne frequenza e guadagno; Ctrl+rotellina ne cambia il Q.',
+  'graph.handle.off': 'spenta',
+  'graph.handle.select': 'Clic per selezionarla',
+  'graph.handle.quality': 'Ctrl+rotellina cambia il Q',
   'eq.layers.apoEdit': 'Modifica in Equalizer APO',
   'convolution.entryDetail': '{provider} · fase minima · WAV a {rate} kHz',
   'eq.refused.bandLimit':

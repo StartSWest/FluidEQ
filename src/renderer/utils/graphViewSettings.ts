@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
+import type { TranslationKey } from 'common/i18n/en';
 
 import {
   VIEW_KEYS,
@@ -395,25 +396,23 @@ const CONTENTS_ORDER: TGraphContents[] = [
 ];
 
 /**
- * What each state is called, in one place.
+ * What each state is called, in one place: the key of its words, in every
+ * language.
  *
  * Exported because the View menu names the state the plot is in rather than
- * leaving its cycle row saying nothing, and a second list of these words in the
- * menu would be a second thing to keep in step with the machine. These are also
+ * leaving its cycle row saying nothing, and a second list of these in the menu
+ * would be a second thing to keep in step with the machine. These are also
  * what `announceGraphMode` says out loud, so the caption after a keypress and
  * the row under the pointer cannot disagree about what the plot is doing.
+ * They were English words here, and the caption showed them as they were.
  */
-export const GRAPH_CONTENTS_LABEL: Record<TGraphContents, string> = {
-  everything: 'Everything',
-  unlabelled: 'Without EQ labels',
-  // Named for what it is rather than 'Layers only', which it never was: the
-  // wave is still running underneath, and that is a useful thing to look at.
-  // The state that did earn the older name is gone — see `TGraphContents`.
-  layers: 'Layers over wave',
-  curves: 'Curves only',
-  // Short on purpose: it is a clear stage for the media underneath.
-  clean: 'Clean',
-  wave: 'Wave only',
+export const GRAPH_CONTENTS_LABEL: Record<TGraphContents, TranslationKey> = {
+  everything: 'graph.contents.everything',
+  unlabelled: 'graph.contents.unlabelled',
+  layers: 'graph.contents.layers',
+  curves: 'graph.contents.curves',
+  clean: 'graph.contents.clean',
+  wave: 'graph.contents.wave',
 };
 
 /**
@@ -461,7 +460,10 @@ export const getGraphContents = (): TGraphContents => {
  * directly.
  */
 export function setGraphContents(next: TGraphContents) {
-  if (next !== 'clean') {
+  // The labels' flag is what tells those two states apart, and only they
+  // move it. Every other state wrote it as well — Ctrl+W through Layers
+  // turned labels hidden by default on for good, and so did leaving Clean.
+  if (next === 'everything' || next === 'unlabelled') {
     bandLabelsSetting.set(next === 'unlabelled');
   }
   setLiveOutputSolo(next === 'wave');
@@ -470,6 +472,14 @@ export function setGraphContents(next: TGraphContents) {
   setCurveHidden('eq', next === 'wave');
   cleanSetting.set(next === 'clean');
 }
+
+/**
+ * Everything on the plot, with the band labels as they were: the state a
+ * control that leaves Clean goes back to, Clean having promised to put the
+ * plot back exactly as it found it.
+ */
+const everythingAsLabelled = (): TGraphContents =>
+  bandLabelsSetting.get() ? 'unlabelled' : 'everything';
 
 /**
  * The caption belongs to the key, not to the writer.
@@ -659,7 +669,7 @@ function setWaveHidden(next: boolean) {
  */
 export const toggleGraphWave = () => {
   if (cleanSetting.get()) {
-    setGraphContents('everything');
+    setGraphContents(everythingAsLabelled());
     return;
   }
   if (!waveSetting.get() && soloSetting.get()) {
@@ -803,7 +813,7 @@ function setCurveHidden(curve: TGraphCurve, next: boolean) {
  */
 export const toggleGraphCurve = (curve: TGraphCurve) => {
   if (cleanSetting.get()) {
-    setGraphContents('everything');
+    setGraphContents(everythingAsLabelled());
     setCurveHidden(curve, false);
     return;
   }

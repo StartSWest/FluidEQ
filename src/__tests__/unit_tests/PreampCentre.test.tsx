@@ -20,7 +20,7 @@ import PlayerFader from 'renderer/player/PlayerFader';
 import centredSweep from 'renderer/widgets/centredSweep';
 
 const dial = (value: number) => {
-  const handleChange = jest.fn(async () => undefined);
+  const handleChange = jest.fn(async (_level: number) => undefined);
   const result = render(
     <Knob
       name="Preamp"
@@ -84,6 +84,23 @@ describe('the side panel preamp dial', () => {
     const at = centredSweep(-60, 0, 20).toPosition(-30);
     fireEvent.change(input, { target: { value: String(at) } });
     expect(handleChange).toHaveBeenCalledWith(-30);
+  });
+
+  it('steps a key along the travel, as fine either side of 0', () => {
+    const sweep = centredSweep(-60, 0, 20);
+    const up = dial(0);
+    fireEvent.keyDown(up.input, { key: 'ArrowUp' });
+    const [[raised]] = up.handleChange.mock.calls;
+    up.unmount();
+    const down = dial(0);
+    fireEvent.keyDown(down.input, { key: 'ArrowDown' });
+    const [[lowered]] = down.handleChange.mock.calls;
+    // A fiftieth of the travel each way: 0.8 dB up the +20 side, and the
+    // -60 side as fine where it leaves 0.
+    expect(raised).toBeCloseTo(sweep.toValue(0.52), 2);
+    expect(lowered).toBeCloseTo(sweep.toValue(0.48), 2);
+    expect(raised).toBeCloseTo(0.8, 2);
+    expect(lowered).toBeCloseTo(-0.8, 1);
   });
 });
 

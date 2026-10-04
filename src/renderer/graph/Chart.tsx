@@ -47,7 +47,9 @@ import CoverageOverlay from './CoverageOverlay';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 import BandLabels from './BandLabels';
-import GenrePins from './GenrePins';
+import type { ILabelBox } from './bandLabelLayout';
+import GenrePins, { useGenrePinSpots } from './GenrePins';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import LiveTraceCanvas from './LiveTraceCanvas';
 import ScenePlot from './ScenePlot';
 import {
@@ -142,6 +144,13 @@ const Chart = ({
   // bottom for the frequency marks, all empty, all taken out of the drawing.
   // The wave runs edge to edge instead.
   const isGridHidden = useGraphGridHidden();
+  // The genre pins as drawn, and where a measuring view's key stands, for
+  // the band labels to keep clear of.
+  const genrePins = useGenrePinSpots(data, isLiveOutputForeground);
+  const [legendPlace, setLegendPlace] = useState<ILabelBox | undefined>(
+    undefined,
+  );
+  const { bandSetReplacement } = useFluidEqContext();
 
   const hasHandles = editablePoints.length > 0;
   const padding = getAxisPadding(isGridHidden, hasHandles);
@@ -391,6 +400,7 @@ const Chart = ({
             eqResponse={
               data.find((curve) => curve.id === OUTPUT_CURVE_ID)?.line.points
             }
+            onLegendPlace={setLegendPlace}
           />
         ))}
       <svg
@@ -589,6 +599,9 @@ const Chart = ({
         />
         <BandLabels
           points={editablePoints}
+          pins={genrePins?.pins}
+          legend={legendPlace}
+          bandSetReplacement={bandSetReplacement}
           xScale={xScaleFreq}
           yScale={yScaleEq}
           bounds={{

@@ -24,6 +24,8 @@ import '../styles/Slider.scss';
 
 interface ISliderProps {
   name: string;
+  /** What assistive tech calls the slider; its form `name` when omitted. */
+  ariaLabel?: string;
   min: number;
   max: number;
   value: number;
@@ -39,6 +41,7 @@ interface ISliderProps {
 
 const Slider = ({
   name,
+  ariaLabel,
   min,
   max,
   value,
@@ -98,6 +101,7 @@ const Slider = ({
     <div className="col center slider">
       <RangeInput
         name={`${name}-range`}
+        ariaLabel={ariaLabel}
         value={sliderValue}
         min={min}
         max={max}

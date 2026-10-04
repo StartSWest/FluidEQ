@@ -45,6 +45,7 @@ import shapeFigure from './liveTraceFigureShape';
 import layOutScenes from './liveTraceSceneLayouts';
 import layOutInstruments from './liveTraceInstrumentLayouts';
 import { drawMeasuringFrame, drawSceneViewFrame } from './liveTraceViews';
+import { noteLegendFrame } from './analysis/legendPlace';
 import drawDesignedFrame from './liveTraceDesignedFrame';
 import { IDrawLiveTraceFrameInput } from './liveTraceFrameInput';
 
@@ -220,6 +221,8 @@ const drawLiveTraceFrame = (
   if (!isHanding && !(phase === 'showing' && blankRef.current)) {
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, canvas.width, canvas.height);
+    // Whatever key the last frame painted is gone now (`legendPlace.ts`).
+    noteLegendFrame(canvas);
   }
   blankRef.current = false;
   context.setTransform(ratio, 0, 0, ratio, 0, 0);

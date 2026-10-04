@@ -780,6 +780,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Audiogerät',
   'autoeq.targetAria': 'Zielfrequenzgang',
   'eq.band.edit': '{frequency}-Hz-Band bearbeiten',
+  'eq.band.gainSlider': 'Verstärkung {frequency}',
+  'graph.handle.label':
+    '{band}, {frequency}. Ziehen Sie, um Frequenz und Verstärkung zu ändern; Strg+Mausrad ändert die Güte (Q).',
+  'graph.handle.off': 'aus',
+  'graph.handle.select': 'Zum Auswählen klicken',
+  'graph.handle.quality': 'Strg+Mausrad ändert Q',
   'eq.layers.apoEdit': 'Änderung in Equalizer APO',
   'convolution.entryDetail': '{provider} · minimalphasig · {rate}-kHz-WAV',
   'eq.refused.bandLimit':

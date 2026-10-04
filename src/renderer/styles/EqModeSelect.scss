@@ -1,3 +1,4 @@
+@use 'constant' as *;
 @use 'theme' as *;
 @use 'spacing' as *;
 @use 'color' as *;
@@ -165,7 +166,9 @@
   padding-inline: $spacing-xs;
 }
 
-@media (max-width: 639px) {
+// One column on a window the two do not fit, on the scale's step for a menu
+// portalled to the window (`$bp-md`), not a width read off a screenshot.
+@media (max-width: $bp-md) {
   .eq-mode-menu {
     width: 312px;
 

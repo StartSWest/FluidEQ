@@ -12,7 +12,6 @@ import {
   WheelEvent,
 } from 'react';
 import centredSweep from './centredSweep';
-import rangeKeyValue from './rangeKeyValue';
 
 /**
  * Vertical travel, in pixels, that sweeps a dial end to end.
@@ -26,6 +25,15 @@ import rangeKeyValue from './rangeKeyValue';
 const DRAG_TRAVEL_PX = 280;
 /** Shift narrows each pixel for placing an exact value. */
 const FINE_DRAG_FACTOR = 4;
+/** How many wheel notches a key turns the dial by, and which way. */
+const KEY_NOTCHES: Partial<Record<string, number>> = {
+  ArrowUp: 1,
+  ArrowRight: 1,
+  ArrowDown: -1,
+  ArrowLeft: -1,
+  PageUp: 10,
+  PageDown: -10,
+};
 
 export interface IDialGesture {
   /** What the dial is called, for assistive tech. */
@@ -79,8 +87,9 @@ const useDialGesture = ({
   handleChange,
 }: IDialGesture) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  // Selected-band edits render in a transition. Repeated keys accumulate
-  // against the last request while that render is still pending.
+  // A dial's value can come back a render or a write after the key that
+  // asked for it. Repeated keys accumulate against the last request until
+  // it does, so a held key cannot outrun the store.
   const latestValue = useRef(value);
   const renderedValue = useRef(value);
   if (renderedValue.current !== value) {
@@ -233,9 +242,56 @@ const useDialGesture = ({
     updateValue(toValue(Number(event.currentTarget.value)));
   };
 
+  /**
+   * Where `notches` notches from `from` land (negative turns down), Shift
+   * for a quarter of each.
+   *
+   * A proportional range notches by a ratio, ~4% (Shift ~1%), so it stays
+   * usable at Q 0.3 and at Q 20 alike. A centred sweep notches along its
+   * travel, as a drag does: an even step in decibels would jump the fine
+   * side near 0 by the coarse side's stride. An even range gets an even
+   * notch, a fiftieth of itself — multiplying would be meaningless there and,
+   * at a value of zero, would be nothing at all. Every notch is at least one
+   * step, or a turn near a range's far end, or on a dial that moves in whole
+   * units, could round back onto where it started.
+   */
+  const notched = (from: number, notches: number, isFine: boolean) => {
+    let next: number;
+    if (isProportional) {
+      next = from * (isFine ? 1.01 : 1.04) ** notches;
+    } else if (sweep) {
+      const along = sweep.toPosition(from) + notches / (isFine ? 200 : 50);
+      next = sweep.toValue(Math.min(1, Math.max(0, along)));
+    } else {
+      next = from + (notches * (max - min)) / (isFine ? 200 : 50);
+    }
+    return from + Math.sign(notches) * Math.max(step, Math.abs(next - from));
+  };
+
+  /**
+   * A key is a wheel notch of the dial's own, Page Up and Page Down ten.
+   *
+   * They used to move by `step`, which is the dial's resolution: a hertz on
+   * the band's Frequency, a hundredth of a decibel on its Gain and on the
+   * preamp, so an arrow did nothing anyone could hear and crossing an octave
+   * took hundreds of presses. Not scaled by `sensitivity`, which is how far
+   * a hand travels for a turn: a key has no travel. A key with Ctrl, Alt or
+   * the Mac's Cmd held is left to whatever shortcut it belongs to.
+   */
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    const next = rangeKeyValue(event.key, latestValue.current, step, min, max);
-    if (isDisabled || next === undefined) {
+    if (isDisabled || event.ctrlKey || event.altKey || event.metaKey) {
+      return;
+    }
+    const notches = KEY_NOTCHES[event.key];
+    let next: number | undefined;
+    if (notches !== undefined) {
+      next = notched(latestValue.current, notches, event.shiftKey);
+    } else if (event.key === 'Home') {
+      next = min;
+    } else if (event.key === 'End') {
+      next = max;
+    }
+    if (next === undefined) {
       return;
     }
     event.preventDefault();
@@ -249,30 +305,9 @@ const useDialGesture = ({
       return;
     }
     event.preventDefault();
-    if (isProportional) {
-      // A notch is worth ~4% of the current value, so it stays usable at Q 0.3
-      // and at Q 20 alike. Shift gives a finer ~1%.
-      const factor = (event.shiftKey ? 1.01 : 1.04) ** sensitivity;
-      const proposed = event.deltaY < 0 ? value * factor : value / factor;
-      const movement = Math.max(step, Math.abs(proposed - value));
-      updateValue(value + (event.deltaY < 0 ? movement : -movement));
-      return;
-    }
-    if (sweep) {
-      // A centred sweep notches along its travel, as a drag does: an even
-      // step in decibels would jump the fine side near 0 by the coarse side's
-      // stride. The notch is still at least one step, or a turn near the far
-      // end could round back onto where it started.
-      const notch = (event.shiftKey ? 1 / 200 : 1 / 50) * sensitivity;
-      const next = toValue(position + (event.deltaY < 0 ? notch : -notch));
-      const movement = Math.max(step, Math.abs(next - value));
-      updateValue(value + (event.deltaY < 0 ? movement : -movement));
-      return;
-    }
-    // An even range gets an even notch. Multiplying would be meaningless here
-    // and, at a value of zero, would be nothing at all: no factor moves it.
-    const notch = ((max - min) / (event.shiftKey ? 200 : 50)) * sensitivity;
-    updateValue(event.deltaY < 0 ? value + notch : value - notch);
+    updateValue(
+      notched(value, (event.deltaY < 0 ? 1 : -1) * sensitivity, event.shiftKey),
+    );
   };
 
   // Drag up to open the filter out, down to narrow it, over a travel distance

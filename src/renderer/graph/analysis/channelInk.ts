@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { floorInk } from '../../utils/windowInk';
+import { noteLegendPlace } from './legendPlace';
 import {
   rampRgba,
   type IAnalysisFrame,
@@ -178,6 +179,8 @@ export const paintLegend = (
     LEGEND_PAD * 2;
   const left = plot.left + 10;
   const top = plot.bottom - LEGEND_FLOOR - height;
+  // For the band labels, which keep off it (`legendPlace.ts`).
+  noteLegendPlace(context.canvas, { x: left, y: top, width, height });
   context.globalAlpha = band.opacity * 0.9;
   // A recessed block, the same idea as the app's own: the window's floor,
   // barely there, so the letters read over any drawing without hiding a

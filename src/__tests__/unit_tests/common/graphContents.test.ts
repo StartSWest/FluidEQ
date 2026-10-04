@@ -29,6 +29,7 @@ import {
   getGraphBandLabelsHidden,
   toggleGraphBandLabels,
 } from 'renderer/utils/graphStyle';
+import { LOCALES, loadLocale, translate } from 'common/i18n';
 
 const STATES = Object.keys(GRAPH_CONTENTS_LABEL) as TGraphContents[];
 
@@ -76,10 +77,23 @@ describe('what the plot is showing', () => {
 
   it('has six stops, including a separate stop for hiding band labels', () => {
     expect(STATES).toHaveLength(6);
-    // The caption after a keypress and the View menu's row read the same list,
-    // so two states sharing a word would be two states nobody can tell apart.
-    expect(new Set(Object.values(GRAPH_CONTENTS_LABEL)).size).toBe(6);
   });
+
+  // The caption after a keypress and the View menu's row read the same list,
+  // so two states sharing a word would be two states nobody can tell apart —
+  // in any language. The list holds keys: it held English words, and the
+  // caption showed them in English whatever language was on screen.
+  it.each(LOCALES.map(({ code, name }) => [name, code] as const))(
+    'names every stop with words of its own in %s',
+    async (_name, code) => {
+      await loadLocale(code);
+      const words = STATES.map((state) =>
+        translate(code, GRAPH_CONTENTS_LABEL[state]),
+      );
+      expect(new Set(words).size).toBe(6);
+      words.forEach((word) => expect(word).not.toMatch(/^graph./));
+    },
+  );
 
   it('recognises every state it can be put into', () => {
     STATES.forEach((state) => {

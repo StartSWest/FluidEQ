@@ -8,12 +8,16 @@ const MODES: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
 const LABELS_KEY = 'fluideq.graphBandLabelsHidden';
 
 const load = (): TViewSettings => {
-  let settings: TViewSettings;
+  // Filled inside the callback, which control flow cannot follow into.
+  const loaded: { settings?: TViewSettings } = {};
   jest.isolateModules(() => {
-    // eslint-disable-next-line global-require
-    settings = require('renderer/utils/graphViewSettings');
+    // eslint-disable-next-line global-require -- a fresh copy of the module, read with nothing stored yet
+    loaded.settings = require('renderer/utils/graphViewSettings');
   });
-  return settings!;
+  if (!loaded.settings) {
+    throw new Error('graphViewSettings did not load');
+  }
+  return loaded.settings;
 };
 
 beforeEach(() => window.localStorage.clear());
@@ -98,3 +102,42 @@ it('Reset All clears legacy and per-view choices and reloads with labels hidden'
     expect(restarted.getGraphContents()).toBe('unlabelled');
   });
 });
+
+/**
+ * Only Everything and Without EQ labels are about the labels, so only they
+ * move the labels' own preference. Every other state wrote it too: Ctrl+W
+ * through Layers turned labels hidden by default on for good.
+ */
+it('leaves the label preference alone through the states that are not about labels', () => {
+  const settings = load();
+  ['layers', 'curves', 'clean', 'wave'].forEach((state) => {
+    settings.setGraphContents(
+      state as Parameters<typeof settings.setGraphContents>[0],
+    );
+    expect(settings.getGraphBandLabelsHidden()).toBe(true);
+  });
+  expect(window.localStorage.getItem(`${LABELS_KEY}.normal`)).toBeNull();
+  // Positive control: the state that is about them does move it.
+  settings.setGraphContents('everything');
+  expect(settings.getGraphBandLabelsHidden()).toBe(false);
+});
+
+it.each([
+  ['hidden', true, 'unlabelled'],
+  ['shown', false, 'everything'],
+] as const)(
+  'leaves Clean by the wave toggle or a curve chip with the labels %s as they were',
+  (_name, hidden, back) => {
+    const settings = load();
+    settings.setGraphContents(hidden ? 'unlabelled' : 'everything');
+    settings.setGraphContents('clean');
+    settings.toggleGraphWave();
+    expect(settings.getGraphContents()).toBe(back);
+    expect(settings.getGraphBandLabelsHidden()).toBe(hidden);
+
+    settings.setGraphContents('clean');
+    settings.toggleGraphCurve('eq');
+    expect(settings.getGraphContents()).toBe(back);
+    expect(settings.getGraphBandLabelsHidden()).toBe(hidden);
+  },
+);

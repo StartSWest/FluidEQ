@@ -23,6 +23,7 @@ import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
 import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
+  GRAPH_CONTENTS_LABEL,
   MIN_GRAPH_WAVE_HEIGHT,
   toggleGraphBandLabels,
   useGraphBandLabelsHidden,
@@ -136,15 +137,6 @@ const VIEW_LABEL: Record<TGraphView, TranslationKey> = {
   normal: 'graph.view.normal',
   expanded: 'graph.view.expanded',
   fullscreen: 'graph.view.fullscreen',
-};
-
-const CONTENT_LABEL: Record<TGraphContents, TranslationKey> = {
-  everything: 'graph.contents.everything',
-  unlabelled: 'graph.contents.unlabelled',
-  layers: 'graph.contents.layers',
-  curves: 'graph.contents.curves',
-  clean: 'graph.contents.clean',
-  wave: 'graph.contents.wave',
 };
 
 const GraphViewMenu = ({
@@ -450,7 +442,9 @@ const GraphViewMenu = ({
                 <path d="M13.8 2.6v4h-4" />
               </Icon>
               <span>
-                {t('graph.showing', { content: t(CONTENT_LABEL[contents]) })}
+                {t('graph.showing', {
+                  content: t(GRAPH_CONTENTS_LABEL[contents]),
+                })}
               </span>
               <kbd>Ctrl+W</kbd>
             </button>

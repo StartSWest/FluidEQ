@@ -196,6 +196,13 @@ export interface IEditableChartPoint {
    * so the handle has to say so or the graph looks like it lost a band.
    */
   isEnabled: boolean;
+  /**
+   * The EQ layer is switched off. The handle is still drawn, dimmed, and
+   * edits nothing: not by pointer (the stylesheet), not by key, and it is no
+   * tab stop. Shaping bands that reach no sound is a minute spent on nothing,
+   * and the way back is one press on the EQ's chip.
+   */
+  isLocked: boolean;
   /** Editable main-band values, independent of the summed response at its dot. */
   parameters?: { frequency: number; gain: number; quality: number };
   /**  is where the press landed, in chart units — see the drag state. */

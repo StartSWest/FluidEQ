@@ -21,6 +21,8 @@ import {
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { selectionModeFromEvent } from 'common/bandSelection';
 import { requestBandMenu } from '../components/BandMenu';
+import { useTranslation } from '../utils/I18nContext';
+import frequencyText from '../utils/frequencyText';
 import { handleXInPlot } from './bandHandlePosition';
 import {
   GRAPH_END,
@@ -100,9 +102,15 @@ const EditablePoint = ({
   xScale,
   yScale,
 }: IEditablePointProps) => {
+  const { t } = useTranslation();
   const dragging = useRef(false);
   const groupRef = useRef<SVGGElement>(null);
   const { data, selected, hovered } = point;
+  // The band's own values, which the keys move, rather than the summed curve
+  // its dot stands on.
+  const frequency = frequencyText(point.parameters?.frequency ?? data.x);
+  const gain = point.parameters?.gain ?? data.y;
+  const gainText = `${gain > 0 ? '+' : ''}${Math.round(gain * 100) / 100} dB`;
 
   // One record per handle, created once and then kept current in place.
   //
@@ -239,14 +247,23 @@ const EditablePoint = ({
       className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}${point.isEnabled ? '' : ' graph-edit-point--off'}`}
       transform={`translate(${scaledX}, ${scaledY})`}
       role="slider"
-      tabIndex={0}
-      aria-label={`${point.name}. Drag to change frequency and gain. Ctrl-scroll to change Q.`}
-      aria-valuetext={`${data.x} Hz, ${data.y.toFixed(2)} dB`}
+      tabIndex={point.isLocked ? -1 : 0}
+      aria-disabled={point.isLocked || undefined}
+      aria-label={t('graph.handle.label', { band: point.name, frequency })}
+      // What the arrow keys move.
+      aria-valuenow={gain}
+      aria-valuemin={MIN_GAIN}
+      aria-valuemax={MAX_GAIN}
+      aria-valuetext={`${frequency}, ${gainText}`}
       // The app's tooltip, where an SVG <title> was the system's
       // (`utils/tooltipLayer.ts`).
-      data-tooltip={`${point.name}: ${data.x} Hz · ${data.y.toFixed(2)} dB${
-        point.isEnabled ? '' : ' · off'
-      }${selected ? ' · Ctrl+scroll changes Q' : ' · Click to select'}`}
+      data-tooltip={[
+        point.name,
+        frequency,
+        gainText,
+        ...(point.isEnabled ? [] : [t('graph.handle.off')]),
+        t(selected ? 'graph.handle.quality' : 'graph.handle.select'),
+      ].join(' · ')}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -263,6 +280,10 @@ const EditablePoint = ({
       }}
       onWheel={handleWheel}
       onKeyDown={(event) => {
+        // Focus can still be here from before the layer was switched off.
+        if (point.isLocked) {
+          return;
+        }
         if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
           event.stopPropagation();

@@ -39,6 +39,8 @@ const ZERO_DETENT_PX = 4;
 
 interface IRangeInputProps {
   name: string;
+  /** What assistive tech calls it, and its arrows; `name` when omitted. */
+  ariaLabel?: string;
   value: number;
   min: number;
   max: number;
@@ -56,6 +58,7 @@ interface IRangeInputProps {
 
 const RangeInput = ({
   name,
+  ariaLabel = name,
   value,
   min,
   max,
@@ -78,16 +81,14 @@ const RangeInput = ({
 
   // The thumb follows the pointer, not the store.
   //
-  // `value` is the band's gain in the app state, and the state is fed by a
-  // throttled dispatch — the parent sends at most one update per hundred
-  // milliseconds so that thirty-one bands and the response graph are not
-  // re-rendered on every pointer event. Rendering the thumb from `value`
-  // alone therefore moved it in ten-per-second steps while the pointer moved
-  // smoothly, which is the whole of what a drag felt like. So during a
-  // gesture the input renders its own last position and the store catches up
-  // underneath; the draft is dropped the moment the store agrees with it, or
-  // once the gesture has ended and the store has moved at all (which is how a
-  // rejected write's rollback still reaches the thumb).
+  // `value` is the band's gain in the app state, and not every parent puts
+  // each step there: some move the store only as fast as the engine takes a
+  // write. Rendering the thumb from `value` alone moved it at that pace while
+  // the pointer moved smoothly, which is the whole of what a drag felt like.
+  // So during a gesture the input renders its own last position and the
+  // store catches up underneath; the draft is dropped the moment the store
+  // agrees with it, or once the gesture has ended and the store has moved at
+  // all (which is how a rejected write's rollback still reaches the thumb).
   const [draft, setDraft] = useState<number | undefined>(undefined);
   const clearDraftOnNextValue = useRef(false);
   useEffect(() => {
@@ -261,7 +262,7 @@ const RangeInput = ({
       }
     >
       <ArrowButton
-        name={name}
+        name={ariaLabel}
         type="up"
         tabIndex={-1}
         handleChange={() => onArrowInput(true)}
@@ -284,7 +285,7 @@ const RangeInput = ({
           value={rangeValue}
           step={0.01}
           name={name}
-          aria-label={name}
+          aria-label={ariaLabel}
           aria-readonly={isReadOnly || undefined}
           onChange={onRangeInput}
           onMouseUp={endGesture}
@@ -307,7 +308,7 @@ const RangeInput = ({
         />
       </span>
       <ArrowButton
-        name={name}
+        name={ariaLabel}
         type="down"
         tabIndex={-1}
         handleChange={() => onArrowInput(false)}

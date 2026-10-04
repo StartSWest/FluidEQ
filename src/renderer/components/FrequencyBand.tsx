@@ -35,6 +35,7 @@ import {
   useState,
 } from 'react';
 import { useLatestCall } from 'renderer/utils/utils';
+import frequencyText from 'renderer/utils/frequencyText';
 import { useTranslation } from 'renderer/utils/I18nContext';
 import { removeEqualizerSlider, setGain } from '../utils/equalizerApi';
 import { requestBandMenu } from './BandMenu';
@@ -163,7 +164,7 @@ const FrequencyBand = forwardRef(
     // *** Define handlers for handling changes in gain, frequency, quality and filter type ***
     //
     // Every step of a drag reaches the store at once where the row takes
-    // previews — `onGainPreview`, the store in a transition, nothing written —
+    // previews — `onGainPreview`, the store and the graph, nothing written —
     // and the engine through `throttleSetGain`. Through the queue alone the
     // store moved at the engine's pace rather than the hand's.
     const handleGainSubmit = useCallback(
@@ -338,6 +339,9 @@ const FrequencyBand = forwardRef(
           <div className="col center slider">
             <Slider
               name={`${filter.frequency}-gain`}
+              ariaLabel={t('eq.band.gainSlider', {
+                frequency: frequencyText(filter.frequency),
+              })}
               min={MIN_GAIN}
               max={MAX_GAIN}
               value={filter.gain}

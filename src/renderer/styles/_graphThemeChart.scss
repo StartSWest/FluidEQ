@@ -381,15 +381,23 @@ it under the terms of the GNU General Public License version 3 or later.
   .chart-curve__glow {
     display: none;
   }
+
+  // The bands' readouts go quiet with their handles: at full strength they
+  // still read as a tuning being applied.
+  .eq-band-labels {
+    opacity: 0.4;
+  }
 }
 
 // The sliders go with the handles: same layer, same reason, and they are the
 // other half of the same editor. The engine-off rule above dims the whole panel
 // because nothing in it is connected; this dims only the bands, because
-// everything else on the tab still is.
-.main-content.is-eq-bypassed {
+// everything else on the tab still is — the Tone and the two cuts beside it
+// are a layer and a setting of their own, and went dim and dead with the
+// bands while they still played. What stops the bands being edited is
+// `inert` on them (`EqPageView`), which the keyboard obeys as well.
+.main-content.is-eq-bypassed > :not(.eq-flat-editor--tone) {
   opacity: 0.45;
-  pointer-events: none;
 }
 
 // What Ctrl+W just did, said once in the middle of the plot.

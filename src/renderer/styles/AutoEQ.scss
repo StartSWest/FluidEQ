@@ -460,4 +460,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: none;
   cursor: default;
   opacity: 1;
+
+  // The face's flat shadow outranked the focus ring, which is a shadow too:
+  // reached by Tab, the button showed no sign of holding the keyboard.
+  &:focus-visible {
+    @include focus-ring;
+  }
 }

@@ -67,23 +67,28 @@ describe('the reading under a knob', () => {
     const dial = getByRole('slider');
     expect(dial).toHaveFocus();
     await user.keyboard('{ArrowUp}');
-    expect(asked()).toEqual([3.1]);
+    expect(asked()).toEqual([3.8]);
     await user.tab();
     expect(field()).toHaveFocus();
     await user.keyboard('-2.5{Enter}');
-    expect(asked()).toEqual([3.1, -2.5]);
+    expect(asked()).toEqual([3.8, -2.5]);
     expect(dial).toHaveFocus();
     await user.tab();
     expect(field()).toHaveFocus();
     await user.keyboard('8{Escape}');
-    expect(asked()).toEqual([3.1, -2.5]);
+    expect(asked()).toEqual([3.8, -2.5]);
     expect(dial).toHaveFocus();
     await user.tab();
     await user.tab({ shift: true });
     expect(dial).toHaveFocus();
   });
 
-  it('steps a logarithmic dial in its real units, clamping at its limits', async () => {
+  /**
+   * A key is a wheel notch. They used to move by the dial's resolution — a
+   * hertz on Frequency, a hundredth of a decibel on Gain — so an arrow did
+   * nothing anyone could hear and an octave took hundreds of presses.
+   */
+  it('steps a logarithmic dial by a ratio in its real units, clamping at its limits', async () => {
     const user = userEvent.setup();
     const { getByRole, asked } = mount({
       min: 20,
@@ -95,7 +100,37 @@ describe('the reading under a knob', () => {
     const dial = getByRole('slider');
     expect(dial).toHaveFocus();
     await user.keyboard('{ArrowUp}{ArrowDown}{Home}{End}');
-    expect(asked()).toEqual([1001, 1000, 20, 20000]);
+    expect(asked()).toEqual([1040, 1000, 20, 20000]);
+  });
+
+  it('turns an even dial a fiftieth of its range a key, a quarter with Shift, ten a page', async () => {
+    const user = userEvent.setup();
+    const { getByRole, asked } = mount({ value: 0, step: 0.01 });
+    await user.tab();
+    expect(getByRole('slider')).toHaveFocus();
+    await user.keyboard('{ArrowUp}{Shift>}{ArrowUp}{/Shift}{PageDown}');
+    expect(asked()).toEqual([0.8, 1, -7]);
+  });
+
+  it('moves a dial in whole units by at least one of them', async () => {
+    const user = userEvent.setup();
+    const { asked } = mount({ min: 0, max: 10, step: 1, value: 3 });
+    await user.tab();
+    await user.keyboard('{ArrowUp}');
+    expect(asked()).toEqual([4]);
+  });
+
+  it('leaves a key with Ctrl, Alt or Cmd held to its shortcut', async () => {
+    const user = userEvent.setup();
+    const { asked } = mount({ value: 0 });
+    await user.tab();
+    await user.keyboard('{Control>}{ArrowUp}{/Control}');
+    await user.keyboard('{Alt>}{ArrowUp}{/Alt}');
+    await user.keyboard('{Meta>}{ArrowUp}{/Meta}');
+    expect(asked()).toEqual([]);
+    // Positive control: the same key alone turns it.
+    await user.keyboard('{ArrowUp}');
+    expect(asked()).toEqual([0.8]);
   });
 
   it('says the value and its unit', () => {

@@ -61,16 +61,20 @@ interface IStores {
 }
 
 const load = (): IStores => {
-  let stores: IStores;
+  // Filled inside the callback, which control flow cannot follow into.
+  const loaded: { stores?: IStores } = {};
   jest.isolateModules(() => {
-    stores = {
-      // eslint-disable-next-line global-require
+    loaded.stores = {
+      // eslint-disable-next-line global-require -- a fresh copy, read with what is stored now
       style: require('renderer/utils/graphStyle'),
-      // eslint-disable-next-line global-require
+      // eslint-disable-next-line global-require -- a fresh copy, read with what is stored now
       overlay: require('renderer/utils/graphOverlay'),
     };
   });
-  return stores!;
+  if (!loaded.stores) {
+    throw new Error('the graph settings did not load');
+  }
+  return loaded.stores;
 };
 
 /** What a `useSyncExternalStore` call was handed, once it is not React's. */
@@ -90,7 +94,7 @@ interface ISubscribed<T> {
  * getter then answers with the mode that was moved to.
  */
 const loadWithoutReact = (): TGraphStyle => {
-  let style: TGraphStyle;
+  const loaded: { style?: TGraphStyle } = {};
   jest.isolateModules(() => {
     jest.doMock('react', () => ({
       useSyncExternalStore: (
@@ -98,11 +102,14 @@ const loadWithoutReact = (): TGraphStyle => {
         getSnapshot: () => unknown,
       ) => ({ subscribe, getSnapshot }),
     }));
-    // eslint-disable-next-line global-require
-    style = require('renderer/utils/graphStyle');
+    // eslint-disable-next-line global-require -- a fresh copy, with React stood aside
+    loaded.style = require('renderer/utils/graphStyle');
   });
   jest.dontMock('react');
-  return style!;
+  if (!loaded.style) {
+    throw new Error('the graph settings did not load');
+  }
+  return loaded.style;
 };
 
 const stored = (key: string) => window.localStorage.getItem(key);

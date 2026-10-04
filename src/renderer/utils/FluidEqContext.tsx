@@ -401,6 +401,8 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   // over it, while added or deleted means this tuning is still the one on
   // screen and the bands the animation never reached are still at 0 dB.
   const bandSetReplacementRef = useRef(0);
+  // The same count, for what draws from it (`IFluidEqContext`).
+  const [bandSetReplacement, setBandSetReplacement] = useState(0);
 
   // Set only while a reveal is drawing. Anything that reaches the context
   // through dispatchFilter while it is — the reveal's own frames go straight
@@ -430,6 +432,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     }
     if (action.type === FilterActionEnum.INIT) {
       bandSetReplacementRef.current += 1;
+      setBandSetReplacement(bandSetReplacementRef.current);
     }
     // Only the gain: a band whose frequency or Q was nudged mid-reveal still
     // wants the reference's gain, and skipping it would strand that one band
@@ -739,6 +742,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       setHoveredFilterId,
       dispatchFilter,
       getBandSetGeneration,
+      bandSetReplacement,
     }),
     [
       activeDeviceId,
@@ -788,6 +792,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       hoveredFilterId,
       dispatchFilter,
       getBandSetGeneration,
+      bandSetReplacement,
     ],
   );
 

@@ -728,6 +728,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': '音频设备',
   'autoeq.targetAria': '目标频率响应',
   'eq.band.edit': '编辑 {frequency} Hz 频段',
+  'eq.band.gainSlider': '{frequency} 增益',
+  'graph.handle.label':
+    '{band}，{frequency}。拖动可改变频率和增益；Ctrl+滚轮可改变 Q。',
+  'graph.handle.off': '已关闭',
+  'graph.handle.select': '点击选择',
+  'graph.handle.quality': 'Ctrl+滚轮改变 Q',
   'eq.layers.apoEdit': 'Equalizer APO 中的编辑',
   'convolution.entryDetail': '{provider} · 最小相位 · {rate} kHz WAV',
   'eq.refused.bandLimit': '频段数已达 FluidEQ 能应用的上限（{max}）。',

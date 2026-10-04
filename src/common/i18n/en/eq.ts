@@ -787,6 +787,15 @@ const eq = {
   'autoeq.deviceAria': 'Audio device',
   'autoeq.targetAria': 'Target frequency response',
   'eq.band.edit': 'Edit {frequency} Hz band',
+  // A band's gain slider, as assistive tech names it (and its arrows).
+  'eq.band.gainSlider': '{frequency} gain',
+  // A band's handle on the graph: its name for assistive tech, and the
+  // words of its tooltip. {band} is the filter type's name.
+  'graph.handle.label':
+    '{band}, {frequency}. Drag to change its frequency and gain; Ctrl+scroll changes its Q.',
+  'graph.handle.off': 'off',
+  'graph.handle.select': 'Click to select',
+  'graph.handle.quality': 'Ctrl+scroll changes Q',
   'eq.layers.apoEdit': 'Equalizer APO edit',
   'convolution.entryDetail': '{provider} · minimum phase · {rate} kHz WAV',
   'eq.refused.bandLimit':

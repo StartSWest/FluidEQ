@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import '@testing-library/jest-dom';
+import frequencyText from 'renderer/utils/frequencyText';
 import { screen } from '@testing-library/react';
 import {
   FilterTypeEnum,
@@ -45,7 +46,8 @@ describe('FrequencyBand', () => {
   // to carry at low counts are gone — they made the strip a different height per
   // layout, and the Selected band editor below offers all four with more room.
   const frequencyCaptionLabel = `Edit ${filter.frequency} Hz band`;
-  const filterGainRangeLabel = `${filter.frequency}-gain-range`;
+  // Named by its band in words ("1 kHz gain"), where it was "1000-gain-range".
+  const filterGainRangeLabel = `${frequencyText(filter.frequency)} gain`;
   const trashIconLabel = 'Remove';
   const handleSubmit = jest.fn();
 

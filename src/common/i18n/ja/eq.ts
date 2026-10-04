@@ -767,6 +767,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'オーディオデバイス',
   'autoeq.targetAria': '目標周波数応答',
   'eq.band.edit': '{frequency} Hz のバンドを編集',
+  'eq.band.gainSlider': '{frequency} のゲイン',
+  'graph.handle.label':
+    '{band}、{frequency}。ドラッグで周波数とゲインを変更、Ctrl+ホイールで Q を変更します。',
+  'graph.handle.off': 'オフ',
+  'graph.handle.select': 'クリックで選択',
+  'graph.handle.quality': 'Ctrl+ホイールで Q を変更',
   'eq.layers.apoEdit': 'Equalizer APO での編集',
   'convolution.entryDetail': '{provider} · 最小位相 · {rate} kHz WAV',
   'eq.refused.bandLimit':

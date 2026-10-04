@@ -767,6 +767,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'ऑडियो डिवाइस',
   'autoeq.targetAria': 'लक्ष्य आवृत्ति प्रतिक्रिया',
   'eq.band.edit': '{frequency} Hz बैंड संपादित करें',
+  'eq.band.gainSlider': '{frequency} गेन',
+  'graph.handle.label':
+    '{band}, {frequency}. इसकी फ़्रीक्वेंसी और गेन बदलने के लिए खींचें; Ctrl+स्क्रॉल इसका Q बदलता है।',
+  'graph.handle.off': 'बंद',
+  'graph.handle.select': 'चुनने के लिए क्लिक करें',
+  'graph.handle.quality': 'Ctrl+स्क्रॉल Q बदलता है',
   'eq.layers.apoEdit': 'Equalizer APO में बदलाव',
   'convolution.entryDetail': '{provider} · मिनिमम फ़ेज़ · {rate} kHz WAV',
   'eq.refused.bandLimit':

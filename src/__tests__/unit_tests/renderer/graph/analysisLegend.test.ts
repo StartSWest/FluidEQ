@@ -12,6 +12,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import type { IAnalysisFrame } from '../../../../renderer/graph/analysis/analysisFrame';
 import { paintLegend } from '../../../../renderer/graph/analysis/channelInk';
+import {
+  isSameLegendPlace,
+  noteLegendFrame,
+  takeLegendFrame,
+} from '../../../../renderer/graph/analysis/legendPlace';
 
 /** A canvas that writes down every chip it is asked to round and every word. */
 const recordingContext = () => {
@@ -71,5 +76,51 @@ describe("a measuring view's key", () => {
 
     expect(words).toEqual([]);
     expect(chips).toEqual([]);
+  });
+});
+
+/**
+ * Where the key was painted is noted for the band labels, which keep off it
+ * (`legendPlace.ts`): a bass band's label below its dot sat on the key and
+ * hid half of it. A frame that clears the canvas starts afresh; one that
+ * draws over the last keeps what was there.
+ */
+describe('the key’s place, for the band labels', () => {
+  it('is the chip the key was painted in, on the frame that painted it', () => {
+    const { context, chips } = recordingContext();
+    const canvas = {};
+    Object.assign(context, { canvas });
+    noteLegendFrame(canvas);
+    paintLegend(frameOn(context, true), ENTRIES);
+    const [chip] = chips;
+    const frame = takeLegendFrame(canvas);
+    expect(frame?.place).toMatchObject({
+      x: 10,
+      y: chip.y,
+      height: chip.height,
+    });
+    expect(frame?.place?.width).toBeGreaterThan(0);
+  });
+
+  it('is gone after a frame that cleared the canvas and painted no key', () => {
+    const { context } = recordingContext();
+    const canvas = {};
+    Object.assign(context, { canvas });
+    noteLegendFrame(canvas);
+    paintLegend(frameOn(context, false), ENTRIES);
+    expect(takeLegendFrame(canvas)).toEqual({});
+  });
+
+  it('says nothing for a frame that drew over the last one', () => {
+    const canvas = {};
+    expect(takeLegendFrame(canvas)).toBeUndefined();
+  });
+
+  it('counts a place moved by less than a pixel as the same place', () => {
+    const place = { x: 10, y: 259, width: 140.2, height: 21 };
+    expect(isSameLegendPlace(place, { ...place, width: 140.4 })).toBe(true);
+    expect(isSameLegendPlace(place, { ...place, width: 160 })).toBe(false);
+    expect(isSameLegendPlace(place, undefined)).toBe(false);
+    expect(isSameLegendPlace(undefined, undefined)).toBe(true);
   });
 });

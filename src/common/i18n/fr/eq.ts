@@ -781,6 +781,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Périphérique audio',
   'autoeq.targetAria': 'Réponse en fréquence cible',
   'eq.band.edit': 'Modifier la bande de {frequency} Hz',
+  'eq.band.gainSlider': 'Gain à {frequency}',
+  'graph.handle.label':
+    '{band}, {frequency}. Faites glisser pour changer sa fréquence et son gain ; Ctrl+molette change son Q.',
+  'graph.handle.off': 'désactivée',
+  'graph.handle.select': 'Cliquez pour la sélectionner',
+  'graph.handle.quality': 'Ctrl+molette change le Q',
   'eq.layers.apoEdit': 'Modification dans Equalizer APO',
   'convolution.entryDetail': '{provider} · phase minimale · WAV {rate} kHz',
   'eq.refused.bandLimit':
