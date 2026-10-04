@@ -18,6 +18,7 @@ import {
   updateOutputEditor,
 } from 'renderer/utils/outputEditor';
 import useMainOutputEditor from 'renderer/utils/useMainOutputEditor';
+import useMainEditorWhile from 'renderer/utils/useMainEditorWhile';
 import {
   activateAudioDeviceProfile,
   assignDeviceProfile,
@@ -65,10 +66,18 @@ beforeEach(() => {
   });
 });
 
+/**
+ * A toggle keeps one name whatever its state, the state being aria-pressed:
+ * it was named "Done" while pressed, and every second output's "Edit sound",
+ * so two outputs' buttons could not be told apart.
+ */
+const EDIT_SECOND = `Edit ${secondOutput.name} without switching the main output`;
+const EDIT_MAIN = `Edit ${mainOutput.name} without switching the main output`;
+
 describe('OutputEditButton', () => {
   it('offers Done for the secondary being edited and exits only that editor', async () => {
     render(<OutputEditButton device={secondOutput} />, { wrapper });
-    const done = screen.getByRole('button', { name: 'Done' });
+    const done = screen.getByRole('button', { name: EDIT_SECOND });
     expect(done).toHaveAttribute('aria-pressed', 'true');
     expect(done).toHaveTextContent('Editing');
     await userEvent.setup().click(done);
@@ -77,7 +86,7 @@ describe('OutputEditButton', () => {
     expect(readOutputEditor().editor?.device.id).toBe(mainOutput.id);
     expect(setDefaultAudioDevice).not.toHaveBeenCalled();
     expect(assignDeviceProfile).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: 'Edit sound' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: EDIT_SECOND })).toHaveAttribute(
       'aria-pressed',
       'false',
     );
@@ -89,11 +98,13 @@ describe('OutputEditButton', () => {
     render(<OutputEditButton device={secondOutput} />, { wrapper });
     await userEvent
       .setup()
-      .click(screen.getByRole('button', { name: 'Edit sound' }));
+      .click(screen.getByRole('button', { name: EDIT_SECOND }));
     expect(activate).toHaveBeenCalledWith(secondOutput.id);
     expect(readOutputEditor().editor?.device.id).toBe(secondOutput.id);
     expect(readOutputEditor().main?.id).toBe(mainOutput.id);
-    expect(screen.getByRole('button', { name: 'Done' })).toBeEnabled();
+    const pressed = screen.getByRole('button', { name: EDIT_SECOND });
+    expect(pressed).toHaveAttribute('aria-pressed', 'true');
+    expect(pressed).not.toHaveAttribute('aria-disabled');
     expect(setDefaultAudioDevice).not.toHaveBeenCalled();
   });
 
@@ -104,26 +115,31 @@ describe('OutputEditButton', () => {
       editor = mainOutput;
     });
     render(<OutputEditButton device={secondOutput} />, { wrapper });
-    const done = screen.getByRole('button', { name: 'Done' });
+    const done = screen.getByRole('button', { name: EDIT_SECOND });
     const user = userEvent.setup();
     await user.tab();
     expect(done).toHaveFocus();
     await user.keyboard('{Enter}');
-    expect(done).toBeDisabled();
+    // Held, and the keyboard keeps its place: a disabled button let it go.
+    expect(done).toHaveAttribute('aria-disabled', 'true');
+    expect(done).toHaveFocus();
     fireEvent.click(done);
     expect(activate).toHaveBeenCalledTimes(1);
     await act(async () => {
       pending.resolve();
     });
-    expect(screen.getByRole('button', { name: 'Edit sound' })).toBeEnabled();
+    expect(done).not.toHaveAttribute('aria-disabled');
+    expect(done).toHaveAttribute('aria-pressed', 'false');
+    expect(done).toHaveFocus();
   });
 
   it('cannot exit an editor that is already main', () => {
     editor = mainOutput;
     showOutputEditor(main, editor);
     render(<OutputEditButton device={mainOutput} />, { wrapper });
-    const selected = screen.getByRole('button', { name: 'Editing' });
-    expect(selected).toBeDisabled();
+    const selected = screen.getByRole('button', { name: EDIT_MAIN });
+    expect(selected).toHaveAttribute('aria-pressed', 'true');
+    expect(selected).toHaveAttribute('aria-disabled', 'true');
     fireEvent.click(selected);
     expect(activate).not.toHaveBeenCalled();
     expect(setDefaultAudioDevice).not.toHaveBeenCalled();
@@ -133,9 +149,13 @@ describe('OutputEditButton', () => {
     const refusal = getErrorDescription(ErrorCode.INVALID_PARAMETER);
     activate.mockRejectedValueOnce(refusal);
     render(<OutputEditButton device={secondOutput} />, { wrapper });
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Done' }));
+    await userEvent
+      .setup()
+      .click(screen.getByRole('button', { name: EDIT_SECOND }));
     expect(setGlobalError).toHaveBeenCalledWith(refusal);
-    expect(screen.getByRole('button', { name: 'Done' })).toBeEnabled();
+    const still = screen.getByRole('button', { name: EDIT_SECOND });
+    expect(still).not.toHaveAttribute('aria-disabled');
+    expect(still).toHaveAttribute('aria-pressed', 'true');
     expect(readOutputEditor().editor?.device.id).toBe(secondOutput.id);
     expect(refreshState).not.toHaveBeenCalled();
   });
@@ -172,10 +192,23 @@ describe('useMainOutputEditor', () => {
     expect(activate).toHaveBeenCalledWith(mainOutput.id);
   });
 
-  it('refuses a control when no main output has been discovered', async () => {
+  /**
+   * No output known to be playing — the first state read, or Windows naming
+   * no default — leaves no other editor to come back from. Refused, the
+   * output picker raised an error as it opened and dropped the output picked
+   * from it.
+   */
+  it('lets a control that names no output go ahead before a main output is known', async () => {
     updateOutputEditor(getDefaultState());
     const { result } = renderHook(() => useMainOutputEditor(), { wrapper });
-    await expect(result.current()).rejects.toEqual(
+    await expect(result.current()).resolves.toBeUndefined();
+    expect(activate).not.toHaveBeenCalled();
+  });
+
+  it('refuses a control that names an output before a main output is known', async () => {
+    updateOutputEditor(getDefaultState());
+    const { result } = renderHook(() => useMainOutputEditor(), { wrapper });
+    await expect(result.current(mainOutput.id)).rejects.toEqual(
       getErrorDescription(ErrorCode.INVALID_PARAMETER),
     );
     expect(activate).not.toHaveBeenCalled();
@@ -218,5 +251,34 @@ describe('useMainOutputEditor', () => {
     await waitFor(() =>
       expect(readOutputEditor().editor?.device.id).toBe(secondOutput.id),
     );
+  });
+});
+
+/**
+ * The amp's faders, game mode and preset pick edit whatever output is being
+ * edited, and the notice that says which sleeps behind it. Entering the amp
+ * — or any surface that speaks for the machine's sound — ends a second
+ * output's edit, the way Done does.
+ */
+describe('useMainEditorWhile', () => {
+  it('brings the editor back to the main output while active', async () => {
+    renderHook(() => useMainEditorWhile(true), { wrapper });
+    await waitFor(() =>
+      expect(readOutputEditor().editor?.device.id).toBe(mainOutput.id),
+    );
+    expect(activate).toHaveBeenCalledWith(mainOutput.id);
+  });
+
+  it('leaves a second output’s edit alone while not active (positive control)', () => {
+    renderHook(() => useMainEditorWhile(false), { wrapper });
+    expect(activate).not.toHaveBeenCalled();
+    expect(readOutputEditor().editor?.device.id).toBe(secondOutput.id);
+  });
+
+  it('asks nothing when the main output is already the one edited', () => {
+    editor = mainOutput;
+    showOutputEditor(main, editor);
+    renderHook(() => useMainEditorWhile(true), { wrapper });
+    expect(activate).not.toHaveBeenCalled();
   });
 });

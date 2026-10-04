@@ -26,6 +26,13 @@ import {
   useTransportSources,
 } from 'renderer/audio/transportSource';
 import { applyDspSettings, readDspSettings } from 'renderer/dsp/store';
+import { activateAudioDeviceProfile } from 'renderer/utils/equalizerApi';
+import { readOutputEditor } from 'renderer/utils/outputEditor';
+import {
+  mainOutput,
+  secondOutput,
+  showOutputEditor,
+} from '__tests__/utils/outputEditorFixture';
 import { toggleFavouriteDspPreset } from 'renderer/dsp/favouriteDspPresets';
 
 jest.mock('renderer/dsp/systemChain', () => ({
@@ -36,7 +43,10 @@ jest.mock('renderer/dsp/systemChain', () => ({
 jest.mock('renderer/utils/useAudioEngineStatus', () => ({
   useKnownAudioEngineStatus: () => ({ engine: 'fluid' }),
 }));
-jest.mock('renderer/utils/equalizerApi', () => ({ setVoicing: jest.fn() }));
+jest.mock('renderer/utils/equalizerApi', () => ({
+  setVoicing: jest.fn(),
+  activateAudioDeviceProfile: jest.fn(),
+}));
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
     isEnabled: true,
@@ -44,6 +54,7 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
     voicing: undefined,
     setVoicing: () => undefined,
     setGlobalError: () => undefined,
+    refreshState: async () => undefined,
   })),
 }));
 
@@ -297,6 +308,38 @@ describe('the Games page', () => {
    * and when the game ends the rack goes back off. That has no chain name,
    * so the card says what happened instead of inventing one.
    */
+  /**
+   * A game's sound is the machine's. With a second output left in "Edit
+   * sound" it was put on that output and kept there for good — the main
+   * output played on without it, and the end of the game, judged against
+   * the main output's preset, never put the second one back.
+   */
+  it('puts a game’s sound on the main output when a second output is being edited', async () => {
+    await show();
+    addFromMenu('Overwatch');
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: en['games.row.sound'].replace('{name}', 'Overwatch'),
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole('menuitemradio', { name: /^Gaming(?!\s·)/ }),
+    );
+    act(() => showOutputEditor(mainOutput, secondOutput));
+    // Going back to the main output is what main answers with a state read.
+    jest.mocked(activateAudioDeviceProfile).mockImplementation(async () => {
+      showOutputEditor(mainOutput, mainOutput);
+    });
+    // The rack the second output had is not what the game changes.
+    const secondOutputsRack = readDspSettings();
+
+    comesToTheFront(OVERWATCH_RUNNING);
+    expect(readDspSettings()).toBe(secondOutputsRack);
+    expect(activateAudioDeviceProfile).toHaveBeenCalledWith(mainOutput.id);
+    await waitFor(() => expect(readDspSettings().presetId).toBe('gaming'));
+    expect(readOutputEditor().editor?.device.id).toBe(mainOutput.id);
+  });
+
   it('puts the rack back off after the game, and says so without naming a chain', async () => {
     applyDspSettings({ ...DSP_DEFAULTS, enabled: false, presetId: 'music' });
     await show();

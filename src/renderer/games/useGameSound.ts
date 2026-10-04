@@ -45,6 +45,9 @@ import { activeDspPresetId } from '../dsp/dspPresetCatalog';
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
 import { ownPresetId, yieldSongSound } from '../audio/songSoundSession';
 import { useFluidEqLayers } from '../utils/FluidEqContext';
+import { reportError } from '../utils/logger';
+import useMainOutputEditor from '../utils/useMainOutputEditor';
+import { useIsMainEdited } from '../utils/useMainEditorWhile';
 import { GAME_PROFILES_CHANGED, readGameProfiles } from './gameProfiles';
 import { requestGameWatch } from './gameWatchRequest';
 
@@ -200,6 +203,26 @@ export const useGameSound = ({
     persistDspSettings,
     true,
   );
+  // A game's sound is the machine's, so it goes on the output that plays.
+  // With a second output left in "Edit sound" the editor goes back to the
+  // main output first, and what the game did is taken once the window has
+  // it — the preset to put back is then the main output's own. Through a
+  // ref: the handlers below are made once.
+  const isMainEdited = useIsMainEdited();
+  const isMainEditedRef = useRef(isMainEdited);
+  isMainEditedRef.current = isMainEdited;
+  const enterMainEditor = useMainOutputEditor();
+  const owed = useRef<Array<() => void>>([]);
+  const owe = useCallback(
+    (step: () => void) => {
+      owed.current.push(step);
+      enterMainEditor().catch((error: unknown) => {
+        owed.current = [];
+        reportError('Could not put a game’s sound on the main output', error);
+      });
+    },
+    [enterMainEditor],
+  );
   const [front, setFront] = useState<IGameProgram | undefined>(undefined);
   const [switched, setSwitched] = useState<IGameSwitch | undefined>(undefined);
   const soundNow = useSounding();
@@ -241,6 +264,10 @@ export const useGameSound = ({
     (program: IGameProgram) => {
       setFront(program);
       if (!applies) {
+        return;
+      }
+      if (!isMainEditedRef.current) {
+        owe(() => heard(program));
         return;
       }
       const { profiles: known, presetId } = latest.current;
@@ -285,13 +312,17 @@ export const useGameSound = ({
       }
       take(step);
     },
-    [applies, take],
+    [applies, take, owe],
   );
 
   /** The game whose sound is on has ended, so the sound before it goes back. */
   const ended = useCallback(
     (pid: number) => {
       if (!applies || pid !== held.current) {
+        return;
+      }
+      if (!isMainEditedRef.current) {
+        owe(() => ended(pid));
         return;
       }
       held.current = 0;
@@ -315,8 +346,19 @@ export const useGameSound = ({
       }
       take(step);
     },
-    [applies, take],
+    [applies, take, owe],
   );
+
+  // What a game did while the editor was on another output, taken now that
+  // the main output is the one being edited.
+  useEffect(() => {
+    if (!isMainEdited || owed.current.length === 0) {
+      return;
+    }
+    const steps = owed.current;
+    owed.current = [];
+    steps.forEach((step) => step());
+  }, [isMainEdited, presetNow]);
 
   useEffect(() => {
     const listen = window.electron?.ipcRenderer?.on;

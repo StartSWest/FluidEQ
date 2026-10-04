@@ -14,7 +14,16 @@ export default function useMainOutputEditor() {
   return useCallback(
     (expectedDeviceId?: string): Promise<void> => {
       const { main, editor } = readOutputEditor();
-      if (!main || (expectedDeviceId && main.id !== expectedDeviceId)) {
+      // No output known to be playing — the first state read, or Windows
+      // naming no default — leaves no other editor to come back from, so an
+      // action that names none goes ahead. It was refused: the output picker
+      // raised an error as it opened and dropped the output picked from it.
+      if (!main) {
+        return expectedDeviceId === undefined
+          ? Promise.resolve()
+          : Promise.reject(getErrorDescription(ErrorCode.INVALID_PARAMETER));
+      }
+      if (expectedDeviceId && main.id !== expectedDeviceId) {
         return Promise.reject(getErrorDescription(ErrorCode.INVALID_PARAMETER));
       }
       if (pending.current?.deviceId === main.id) {

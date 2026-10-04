@@ -28,6 +28,7 @@ import {
 } from './utils/soundPane';
 import GameSound from './games/GameSound';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
+import useMainEditorWhile from './utils/useMainEditorWhile';
 import PresetToneFeed from './dsp/PresetToneFeed';
 import './styles/App.scss';
 // After App.scss: these are the accents in their rainbow form, and they have to
@@ -246,6 +247,10 @@ const AppContent = () => {
    */
   const isAmp = windowMode === 'player';
   const behindAmp = isAmp ? 'hidden' : 'visible';
+  // The amp's faders, game mode and preset pick edit whatever output is
+  // being edited, and the notice that says which sleeps behind it: entering
+  // the amp ends a second output's edit (`useMainEditorWhile`).
+  useMainEditorWhile(isAmp);
   // Entering the amp and leaving it move the live capture's owners in one
   // commit: the sleeping pages let go and the amp takes hold, or the other
   // way round. Without a bridge the capture closed and reopened in between.

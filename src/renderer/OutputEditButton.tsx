@@ -16,9 +16,12 @@ import { useTranslation } from './utils/I18nContext';
 const OutputEditButton = ({
   device,
   label,
+  onDone,
 }: {
   device: IAudioDevice;
   label?: string;
+  /** Called once the editor has moved, before this button may disappear. */
+  onDone?: () => void;
 }) => {
   const { t } = useTranslation();
   const { editor, main } = useOutputEditor();
@@ -34,18 +37,23 @@ const OutputEditButton = ({
     try {
       await activateAudioDeviceProfile(canFinish && main ? main.id : device.id);
       await refreshState();
+      onDone?.();
     } catch (error) {
       setGlobalError(error as ErrorDescription);
     } finally {
       setBusy(false);
     }
   };
+  // A toggle keeps one name whatever its state, and the state is
+  // aria-pressed: it said "Done" while pressed, and every second output's
+  // was "Edit sound" — two buttons nobody could tell apart. Never disabled
+  // while it works: a disabled button lets go of the keyboard's focus.
   return (
     <button
       className={`link-button output-edit-button${canFinish ? ' is-editing' : ''}`}
       type="button"
-      disabled={busy || (selected && !canFinish)}
-      aria-label={canFinish ? t('extraOutput.done') : undefined}
+      aria-disabled={busy || (selected && !canFinish) || undefined}
+      aria-label={label ?? t('extraOutput.editHint', { device: device.name })}
       aria-pressed={selected}
       onClick={edit}
       title={

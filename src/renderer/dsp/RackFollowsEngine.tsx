@@ -8,6 +8,9 @@ import { useEffect, useRef } from 'react';
 import { dspVoicingPresetId } from '../../common/dsp/presetVoicing';
 import { useFluidEqLayers } from '../utils/FluidEqContext';
 import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import { reportError } from '../utils/logger';
+import useMainOutputEditor from '../utils/useMainOutputEditor';
+import { useIsMainEdited } from '../utils/useMainEditorWhile';
 import { resolveDspPreset } from './dspPresetCatalog';
 import {
   holdRackForApo,
@@ -34,6 +37,11 @@ import { applyDspSettings, persistDspSettings, readDspSettings } from './store';
  *
  * Headless, beside the window's other always-on engines: a switch is made in
  * a dialog over any page.
+ *
+ * The main output's rack: a switch with a second output left in "Edit sound"
+ * returns the editor to the main output first and follows the switch once
+ * the window has it. Taken on the edited output, it held the second output's
+ * rack off and left the main output's playing on an engine that has none.
  */
 const RackFollowsEngine = () => {
   // Follows the answer `AppContent` holds rather than asking again.
@@ -41,13 +49,31 @@ const RackFollowsEngine = () => {
   const { voicing } = useFluidEqLayers();
   const engine = status?.engine ?? null;
   const previous = useRef(engine);
+  const isMainEdited = useIsMainEdited();
+  const enterMainEditor = useMainOutputEditor();
+  /** A switch not yet followed, waiting for the main output to be edited. */
+  const owed = useRef<typeof engine>(null);
 
   useEffect(() => {
     const was = previous.current;
     previous.current = engine;
-    if (was === null || engine === null || was === engine) {
+    if (was !== null && engine !== null && was !== engine) {
+      owed.current = engine;
+    }
+    if (owed.current === null || owed.current !== engine) {
       return;
     }
+    if (!isMainEdited) {
+      enterMainEditor().catch((error: unknown) => {
+        owed.current = null;
+        reportError(
+          'Could not follow the engine switch on the main output',
+          error,
+        );
+      });
+      return;
+    }
+    owed.current = null;
     const settings = readDspSettings();
     if (engine === 'apo') {
       const picked = settings.presetId;
@@ -78,7 +104,7 @@ const RackFollowsEngine = () => {
         persistDspSettings();
       }
     }
-  }, [engine, voicing]);
+  }, [engine, voicing, isMainEdited, enterMainEditor]);
 
   return null;
 };

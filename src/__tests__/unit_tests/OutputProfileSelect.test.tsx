@@ -223,3 +223,33 @@ it('cannot publish the old secondary’s catalogue after the editor heading chan
   ).not.toBeInTheDocument();
   expect(screen.queryByText('Warm')).not.toBeInTheDocument();
 });
+
+/**
+ * "Edit main" ends the edit, and the notice — with the button the keyboard
+ * was on — goes with it. Focus fell to the start of the page; it goes to
+ * the control that followed the notice.
+ */
+it('hands the keyboard to what follows the notice when Edit main ends the edit', async () => {
+  const refreshState = jest.fn(async () => {
+    showOutputEditor(mainOutput, mainOutput);
+  });
+  jest.mocked(activateAudioDeviceProfile).mockResolvedValue(undefined);
+  renderProfiles(
+    <FluidEqProviderWrapper value={{ ...defaultFluidEqContext, refreshState }}>
+      <section aria-label="Editor heading">
+        <OutputEditingNotice />
+        <button type="button">The page’s first control</button>
+      </section>
+    </FluidEqProviderWrapper>,
+  );
+  const editMain = screen.getByRole('button', { name: 'Edit main' });
+  editMain.focus();
+  await act(async () => {
+    fireEvent.click(editMain);
+  });
+  expect(activateAudioDeviceProfile).toHaveBeenCalledWith(mainOutput.id);
+  expect(screen.queryByRole('button', { name: 'Edit main' })).toBeNull();
+  expect(
+    screen.getByRole('button', { name: 'The page’s first control' }),
+  ).toHaveFocus();
+});
