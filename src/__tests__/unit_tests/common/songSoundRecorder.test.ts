@@ -27,8 +27,15 @@ const sound = (presetId: string, gain = 0): ISongSound => ({
 const original = sound('music');
 const remembered = sound('cinema', 3);
 const nextRemembered = sound('game', -2);
-const songA = buildSongIdentity('library', 'a', 'Song A', 'Artist')!;
-const songB = buildSongIdentity('library', 'b', 'Song B', 'Artist')!;
+const identity = (...args: Parameters<typeof buildSongIdentity>) => {
+  const song = buildSongIdentity(...args);
+  if (!song) {
+    throw new Error('the fixture names no song');
+  }
+  return song;
+};
+const songA = identity('library', 'a', 'Song A', 'Artist');
+const songB = identity('library', 'b', 'Song B', 'Artist');
 const settledAt = SONG_EQ_SETTLE_MS;
 const entry = (saved: ISongSound): ISongSoundEntry => ({
   sound: saved,

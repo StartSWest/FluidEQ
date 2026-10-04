@@ -9,6 +9,8 @@ import { ErrorCode } from '../../common/errors';
 import type { IProfilesIpcDeps } from './profiles';
 import onWindowMessage from './windowMessages';
 
+const MAX_DEVICE_ID_LENGTH = 256;
+
 export const profileRequestDeviceId = (
   request: unknown,
 ): string | undefined => {
@@ -21,7 +23,11 @@ export const profileRequestDeviceId = (
     Array.isArray(request) ||
     !('deviceId' in request) ||
     typeof request.deviceId !== 'string' ||
-    !request.deviceId.trim()
+    !request.deviceId.trim() ||
+    // A Windows endpoint id is about sixty printable characters; anything
+    // longer, or with a control character in it, names no output.
+    request.deviceId.length > MAX_DEVICE_ID_LENGTH ||
+    [...request.deviceId].some((character) => character < ' ')
   ) {
     throw new Error('Invalid output profile request.');
   }

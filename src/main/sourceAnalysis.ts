@@ -14,7 +14,12 @@ import {
   type ISourceAnalysisUpdate,
 } from '../common/dsp/sourceAnalysis';
 import { encodeNoiseProfile } from '../common/dsp/noiseProfile';
-import { denoiseModelPath, isDenoiseModelPresent } from './denoiseModel';
+import {
+  denoiseModelPath,
+  isPinnedDenoiseModel,
+  readPinnedDenoiseModel,
+} from './denoiseModel';
+import { replaceFileNow } from './asyncWriter';
 
 export interface ISourceVoicePaths {
   model: string;
@@ -41,47 +46,34 @@ interface IPublishedSource {
 const safePath = (value: string): boolean =>
   path.isAbsolute(value) && !/[\r\n\0]/.test(value);
 
+/** The voice model's copy in the engine's folder, where audiodg can read it. */
+export const VOICE_MODEL_FILE = 'fluideq-voice.onnx';
+
 const voicePaths = async (
   directory: string,
 ): Promise<ISourceVoicePaths | undefined> => {
-  if (!isDenoiseModelPresent()) {
+  if (!safePath(denoiseModelPath())) {
     return undefined;
   }
-  const origin = denoiseModelPath();
-  if (!safePath(origin)) {
+  // These exact bytes are checked, not the file a moment earlier: the
+  // download could change in between. Native checks the data independently.
+  const bytes = await readPinnedDenoiseModel();
+  if (!bytes) {
     return undefined;
   }
-  const bytes = await fs.readFile(origin);
-  // Validate these exact bytes too: the downloaded file could change between
-  // the presence check and the copy. Native independently checks the data.
-  const digest =
-    '0b399f8a58dc4d70d8cd97541f5c39869406145193b957d00a03b66070944928';
-  if (
-    bytes.length !== 10_596_848 ||
-    createHash('sha256').update(bytes).digest('hex') !== digest
-  ) {
-    return undefined;
-  }
-  const model = path.join(directory, 'fluideq-voice.onnx');
+  const model = path.join(directory, VOICE_MODEL_FILE);
   const existingStat = await fs.stat(model).catch(() => undefined);
   const existing =
     existingStat?.size === bytes.length
       ? await fs.readFile(model).catch(() => undefined)
       : undefined;
-  if (
-    !existing ||
-    createHash('sha256').update(existing).digest('hex') !== digest
-  ) {
-    const temporary = `${model}.${process.pid}.tmp`;
+  if (!existing || !isPinnedDenoiseModel(existing)) {
     try {
-      await fs.writeFile(temporary, bytes);
-      await fs.rename(temporary, model);
+      await replaceFileNow(model, bytes);
     } catch (error) {
       // The player has this model even if the service copy failed. Keep that
       // fact: native will refuse readiness instead of silently dropping Voice.
       log.warn('Could not prepare the output voice model.', error);
-    } finally {
-      await fs.unlink(temporary).catch(() => undefined);
     }
   }
   return { model };

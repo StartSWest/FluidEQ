@@ -97,8 +97,7 @@ export const adaptLayoutSnapshot = (
   const source = sortBands(sourceSnapshot);
   const targetCount = FIXED_BAND_FREQUENCIES[targetSize].length;
   // Every band this function invents belongs to the TARGET rack, so it takes
-  // that rack's width at its own frequency — which is not one number on a
-  // layout whose spacing changes along it.
+  // that rack's width (`qualitiesForRack`), never the source rack's.
   const widths = qualitiesForRack(FIXED_BAND_FREQUENCIES[targetSize]);
   const filler = (frequency: number) =>
     neutralBand(

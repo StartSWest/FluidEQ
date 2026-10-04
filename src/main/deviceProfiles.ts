@@ -19,7 +19,6 @@ import {
   IEqCuts,
   IPresetV2,
   IState,
-  IVoicingSettings,
   TApoFeature,
   apoFeatureFileWord,
   getDefaultState,
@@ -27,7 +26,6 @@ import {
 import { eqCutsFileText, hasEqCut, toEqCuts } from '../common/eqCuts';
 import { toTone } from '../common/tone';
 import { clampDspSettings } from '../common/dsp/chain';
-import type { TGlobalPreset } from '../common/dsp/presetVoicing';
 import { isCurveComparison } from '../common/curveComparison';
 import {
   addFileToPath,
@@ -493,8 +491,6 @@ export const deviceProfilesToFiles = (
   activeOverride?: IActiveStateOverride,
   isEnabled = true,
   sessionHeadroom: ISessionHeadroom | undefined = undefined,
-  _cuts: IEqCuts | undefined = undefined,
-  _playing: TGlobalPreset | undefined = undefined,
   secondOutputs: readonly IAudioDevice[] = [],
   stateOverrides: ReadonlyMap<string, IState> | undefined = undefined,
 ): TApoConfigFiles => {
@@ -752,7 +748,6 @@ export const getStateForAudioDevice = (
   settings: IDeviceProfileSettings,
   deviceId: string,
   presetDirForDevice: TPresetDirForDevice,
-  _playing?: { voicing: IVoicingSettings | undefined },
 ): IState => {
   const defaultState = getDefaultState();
   const assignment = settings.assignments[deviceId];

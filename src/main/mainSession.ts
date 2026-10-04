@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import type { TAudioEngine } from '../common/audioEngine';
 import type { IAudioDevice, IState } from '../common/constants';
 import type { IDspSettings } from '../common/dsp/chain';
+import type { IOutputEditor } from '../common/outputSettings';
 
 /**
  * What the process currently has open, in one place a module can be handed.
@@ -88,6 +89,17 @@ export interface IMainSession {
    */
   engineSwitching: boolean;
 }
+
+/** The output being edited and its edit's generation, as the window reads it. */
+export const outputEditorOf = (
+  session: Pick<IMainSession, 'activeAudioDevice' | 'outputEditGeneration'>,
+): IOutputEditor | undefined =>
+  session.activeAudioDevice
+    ? {
+        device: session.activeAudioDevice,
+        generation: session.outputEditGeneration ?? 0,
+      }
+    : undefined;
 
 /** The session a launch starts with: no output, no engine, no folder. */
 const createMainSession = (): IMainSession => ({

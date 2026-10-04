@@ -132,10 +132,12 @@ export const createSongProgramme = ({
     }
     const targets = [
       { name: fileName, endpoint: mainGuid },
-      ...[...endpoints].map((endpoint) => ({
-        name: outputConfigFileName('programme', endpoint)!,
-        endpoint,
-      })),
+      // Every endpoint here was named by a valid GUID, so each has a file
+      // name; one that somehow has none is skipped rather than asserted.
+      ...[...endpoints].flatMap((endpoint) => {
+        const name = outputConfigFileName('programme', endpoint);
+        return name ? [{ name, endpoint }] : [];
+      }),
     ];
     await Promise.all(
       targets.map(async ({ name, endpoint }) => {

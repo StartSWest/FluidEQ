@@ -10,8 +10,8 @@ export default {
   'songSound.switchHint':
     'Um preset, Tom ou EQ definidos durante uma música voltam sempre que essa música tocar aqui.',
   'songSound.noticeTitle': 'O som próprio desta música',
-  'songSound.noticeBody': '{title} — {preset}, com o seu Tom e o seu EQ',
-  'songSound.noticeBodyNoPreset': '{title} — o seu Tom e o seu EQ',
+  'songSound.noticeBody': '{title} — {preset}, com Tom e EQ próprios',
+  'songSound.noticeBodyNoPreset': '{title} — Tom e EQ próprios',
   'songSound.undo': 'Desfazer',
   'songSound.forget': 'Esquecer esta música',
   'songSound.willSaveTitle': 'Salvando para esta música',

@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import ChannelEnum from '../../common/channels';
 import { IState } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
-import { ISongIdentity } from '../../common/songIdentity';
+import type { ISongIdentity, TSongSource } from '../../common/songIdentity';
 import type { IOutputEditor } from '../../common/outputSettings';
 import {
   ISongSoundEntry,
@@ -43,11 +43,46 @@ export interface ISongSoundIpcDeps {
   ) => Promise<void>;
 }
 
-const isIdentity = (value: unknown): value is ISongIdentity =>
-  typeof value === 'object' &&
-  value !== null &&
-  typeof (value as { key?: unknown }).key === 'string' &&
-  typeof (value as { title?: unknown }).title === 'string';
+/** Longer than any path, title or artist a player reports; a cap, not a fit. */
+const MAX_TEXT = 2048;
+const SOURCES: readonly string[] = [
+  'library',
+  'karaoke',
+  'media',
+  'system',
+  'remote',
+] satisfies readonly TSongSource[];
+
+const isText = (value: unknown, isOptional = false): boolean =>
+  (isOptional && value === undefined) ||
+  (typeof value === 'string' && value.length <= MAX_TEXT);
+
+/**
+ * A song as the window names it, every string bounded and the source one of
+ * the five, before any of it is kept in a file that lives for good.
+ */
+const isIdentity = (value: unknown): value is ISongIdentity => {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const { key, alias, title, artist, source } = value as Record<
+    string,
+    unknown
+  >;
+  return (
+    isText(key) &&
+    key !== '' &&
+    isText(title) &&
+    isText(alias, true) &&
+    isText(artist, true) &&
+    typeof source === 'string' &&
+    SOURCES.includes(source)
+  );
+};
+
+/** An output id, as short and printable as Windows makes one. */
+const isDeviceId = (value: unknown): value is string =>
+  typeof value === 'string' && value !== '' && value.length <= 256;
 
 const replyInvalidParameter = (
   event: Electron.IpcMainEvent,
@@ -106,7 +141,7 @@ const registerSongSoundIpc = ({
     const channel = ChannelEnum.LOOKUP_SONG_SOUND;
     const deviceId = arg?.[0];
     const identity = arg?.[1];
-    if (typeof deviceId !== 'string' || !isIdentity(identity)) {
+    if (!isDeviceId(deviceId) || !isIdentity(identity)) {
       replyInvalidParameter(event, channel);
       return;
     }
@@ -121,7 +156,7 @@ const registerSongSoundIpc = ({
     const deviceId = arg?.[0];
     const identity = arg?.[1];
     const sound = toSongSound(arg?.[2]);
-    if (typeof deviceId !== 'string' || !isIdentity(identity) || !sound) {
+    if (!isDeviceId(deviceId) || !isIdentity(identity) || !sound) {
       replyInvalidParameter(event, channel);
       return;
     }
@@ -134,7 +169,7 @@ const registerSongSoundIpc = ({
     const channel = ChannelEnum.FORGET_SONG_SOUND;
     const deviceId = arg?.[0];
     const identity = arg?.[1];
-    if (typeof deviceId !== 'string' || !isIdentity(identity)) {
+    if (!isDeviceId(deviceId) || !isIdentity(identity)) {
       replyInvalidParameter(event, channel);
       return;
     }

@@ -835,27 +835,44 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
 
   onWindowMessage(ChannelEnum.ASSIGN_DEVICE_PROFILE, async (event, arg) => {
     const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
-    const assignment = arg[0] as IDeviceProfileAssignment;
+    // The two things the window names, read and checked. The record saved is
+    // built from them and the device found, never the window's object spread
+    // into the settings file, where any extra key it carried was kept.
+    const asked: unknown = Array.isArray(arg) ? arg[0] : undefined;
+    const deviceId =
+      typeof asked === 'object' && asked !== null && 'deviceId' in asked
+        ? asked.deviceId
+        : undefined;
+    const presetName =
+      typeof asked === 'object' && asked !== null && 'presetName' in asked
+        ? asked.presetName
+        : undefined;
+    if (
+      typeof deviceId !== 'string' ||
+      !deviceId ||
+      typeof presetName !== 'string' ||
+      !presetName
+    ) {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
     await runProfileMutation(async () => {
       try {
         const devices = await discoverAudioDevices();
-        const device = devices.find(
-          (candidate) => candidate.id === assignment.deviceId,
-        );
+        const device = devices.find((candidate) => candidate.id === deviceId);
         if (!device?.isActive || (arg[1] === true && device.isDefault)) {
           throw new Error(
             'The second output is unavailable or is now the main output.',
           );
         }
-        fetchPreset(
-          assignment.presetName,
-          presetDirForDevice(assignment.deviceId),
-        );
-        assignDeviceProfile(deviceProfileSettings, {
-          ...assignment,
+        fetchPreset(presetName, presetDirForDevice(deviceId));
+        const assignment: IDeviceProfileAssignment = {
+          deviceId,
+          presetName,
           deviceGuid: device.guid,
           deviceName: device.name,
-        });
+        };
+        assignDeviceProfile(deviceProfileSettings, assignment);
         session.outputDspOverrides?.delete(device.id);
         session.outputStateOverrides?.delete(device.id);
         if (session.activeAudioDeviceId === device.id) {

@@ -63,9 +63,9 @@ export const MIN_GAIN = -20;
 // fifteen-band layout this app opens with.
 //
 // It is the FALLBACK now rather than the answer: a band's width belongs to
-// its rack's spacing, so the layouts and Add band take theirs from
-// `qualityForRack` and only a band with no rack to measure — or a value that
-// failed to parse — lands here. See `bandQuality.ts`.
+// its rack, so the layouts take theirs from `qualityForMainRack`, Add band
+// the rack's median, and only a band with no rack to measure — or a value
+// that failed to parse — lands here. See `bandQuality.ts`.
 export const DEFAULT_QUALITY = DEFAULT_BAND_QUALITY;
 
 export const clampGain = (gain: number) =>
@@ -800,11 +800,11 @@ export const getDefaultFilters = (
   size: FixedBandSizeEnum = FixedBandSizeEnum.FIFTEEN,
 ): IFiltersMap => {
   const filters: IFiltersMap = {};
-  // Each band its own width, from the distance to the bands either side of
-  // it: a thirty-one-band layout at the fifteen-band's Q is three bands
-  // playing every note, a six-band at it leaves holes nothing can reach, and
-  // the twenty-band is close-spaced at both ends and wide through the middle,
-  // so one number cannot serve it. See `bandQuality.ts`.
+  // One Q for the whole layout, from its span and its count: a
+  // thirty-one-band layout at the fifteen-band's Q is three bands playing
+  // every note, and a six-band at it leaves holes nothing can reach. One
+  // number across a layout rather than a width per band, so every band of it
+  // moves the same way (`bandQuality.ts`).
   const widths = qualitiesForRack(FIXED_BAND_FREQUENCIES[size]);
   FIXED_BAND_FREQUENCIES[size].forEach((f, at) => {
     const filter: IFilter = {

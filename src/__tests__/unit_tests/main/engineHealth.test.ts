@@ -154,6 +154,83 @@ describe('parseEngineStatus', () => {
     },
   );
 
+  /**
+   * A second output played from another output's engine, as
+   * `a_second_output` in status_test.cpp writes it once its own graph reports
+   * 20 ms: a field renamed on one side reads as an output playing nothing on
+   * a machine where it plays.
+   */
+  it('reads a second output played from another output’s engine', () => {
+    const text =
+      '{"version":1,"endpoint":"{BBBB}","pid":7,"locked":true,' +
+      '"processing":false,"carried":false,"owner":true,' +
+      '"reason":"","problems":[],"channels":0,"room":"off",' +
+      '"rate":0,"latency":0,"latencyParts":{},"latencyActive":[],' +
+      '"gameMode":false,"split":{"from":' +
+      '"{0a0a0a0a-1111-2222-3333-444455556666}","state":"playing",' +
+      '"lagMs":12.74,"sourceDspMs":0.00,"outputEqMs":20.00,' +
+      '"underruns":2},"at":"t"}\r\n';
+    expect(parseEngineStatus(text)?.split).toEqual({
+      from: '{0A0A0A0A-1111-2222-3333-444455556666}',
+      state: 'playing',
+      lagMs: 12.74,
+      underruns: 2,
+      sourceDspMs: 0,
+      outputEqMs: 20,
+    });
+    // Positive control for the field being optional.
+    expect(parseEngineStatus(ENGINE_TEXT)).not.toHaveProperty('split');
+  });
+
+  it.each([
+    ['a source that is not an endpoint', { from: 'main', state: 'playing' }],
+    ['a state the engine never writes', { state: 'paused' }],
+    ['a negative lag', { lagMs: -1 }],
+    ['a fractional underrun count', { underruns: 1.5 }],
+  ])('drops a second output with %s, and keeps the status', (_label, bad) => {
+    const split = {
+      from: '{0a0a0a0a-1111-2222-3333-444455556666}',
+      state: 'playing',
+      lagMs: 12.74,
+      underruns: 2,
+      ...bad,
+    };
+    const parsed = parseEngineStatus(status({ split }));
+    expect(parsed?.locked).toBe(true);
+    expect(parsed).not.toHaveProperty('split');
+  });
+
+  /** The source analysis block as `status_json.cpp` writes it. */
+  it('reads the source analysis the engine reports', () => {
+    const sourceAnalysis = {
+      version: 1,
+      kind: 'library',
+      owner: 'engine',
+      source: '0123456789abcdef',
+      epoch: 3,
+      revision: 1730000000123,
+      ready: true,
+      voiceReady: false,
+    };
+    expect(
+      parseEngineStatus(status({ sourceAnalysis }))?.sourceAnalysis,
+    ).toEqual({
+      version: 1,
+      kind: 'library',
+      owner: 'engine',
+      epoch: 3,
+      revision: 1730000000123,
+      ready: true,
+      voiceReady: false,
+    });
+    // An owner the app does not know is not half read.
+    expect(
+      parseEngineStatus(
+        status({ sourceAnalysis: { ...sourceAnalysis, owner: 'player' } }),
+      ),
+    ).not.toHaveProperty('sourceAnalysis');
+  });
+
   it('keeps problem codes it does not know, for an engine newer than the app', () => {
     expect(
       parseEngineStatus(

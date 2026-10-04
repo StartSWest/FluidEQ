@@ -10,9 +10,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * Nothing in the test suite could see a band's width before this: it is not a
  * role, not a label and not a string, and every defect it has had — a
  * thirty-one-band rack at the fifteen-band's Q, half a converted rack keeping
- * the width of the rack it came from, a twenty-band rack given one number for
- * a spacing that changes along it — reached the window and was found by ear
- * or by eye.
+ * the width of the rack it came from — reached the window and was found by ear
+ * or by eye. The main equaliser opens every band of a layout at one Q, from
+ * the layout's span and count (Ivan, 2026-10-03), so every band of it moves
+ * the same way; the DSP rack keeps the textbook rule.
  */
 import {
   DEFAULT_BAND_QUALITY,
@@ -93,12 +94,17 @@ describe('what width a band opens at', () => {
       ).toEqual(Array.from({ length: size }, () => q));
     });
 
-    it('answers in the order it was given, sorted or not', () => {
-      const shuffled = [1000, 63, 16000, 250];
-      const widths = qualitiesForRack(shuffled);
-      const sorted = qualitiesForRack([...shuffled].sort((a, b) => a - b));
-      expect(widths[1]).toBeCloseTo(sorted[0], 5);
-      expect(widths[2]).toBeCloseTo(sorted[3], 5);
+    it('answers one Q for every band, from the span and the count alone', () => {
+      // The same span and count in any order and with any gaps between: the
+      // Q of a layout is the layout's, never a band's neighbours'.
+      const even = qualitiesForRack([63, 250, 1000, 4000]);
+      const uneven = qualitiesForRack([4000, 63, 2000, 125]);
+      expect(new Set(even).size).toBe(1);
+      expect(uneven).toEqual(even);
+      // Positive control: a wider span is a different, wider Q.
+      expect(qualitiesForRack([31.5, 250, 1000, 16000])[0]).toBeLessThan(
+        even[0],
+      );
     });
 
     it('falls back where there is nothing to measure against', () => {
@@ -112,17 +118,14 @@ describe('what width a band opens at', () => {
    * the shape their spacing asks for.
    */
   describe('every layout the app ships', () => {
-    it('opens with each band at its own spacing, not the app fallback', () => {
+    it('opens with its rack’s Q, never the app’s fallback', () => {
       Object.values(FixedBandSizeEnum)
         .filter((size): size is FixedBandSizeEnum => typeof size === 'number')
         .forEach((size) => {
-          const bands = Object.values(getDefaultFilters(size)).sort(
-            (one, other) => one.frequency - other.frequency,
-          );
-          const wanted = qualitiesForRack(bands.map((band) => band.frequency));
-          bands.forEach((band, at) => {
-            expect(band.quality).toBeCloseTo(wanted[at], 5);
-          });
+          const bands = Object.values(getDefaultFilters(size));
+          expect(
+            bands.every((band) => band.quality !== DEFAULT_BAND_QUALITY),
+          ).toBe(true);
         });
     });
 

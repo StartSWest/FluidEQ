@@ -35,8 +35,15 @@ const sound = (presetId: string, gain: number): ISongSound => ({
   tone: { bass: gain, mid: 0, treble: 0 },
 });
 
-const librarySong = buildSongIdentity('library', 'file-a', 'Song', 'Artist')!;
-const systemSong = buildSongIdentity('system', 'session-a', 'Song', 'Artist')!;
+const identity = (...args: Parameters<typeof buildSongIdentity>) => {
+  const song = buildSongIdentity(...args);
+  if (!song) {
+    throw new Error('the fixture names no song');
+  }
+  return song;
+};
+const librarySong = identity('library', 'file-a', 'Song', 'Artist');
+const systemSong = identity('system', 'session-a', 'Song', 'Artist');
 
 describe('per-output remembered song sound', () => {
   it('keeps separate sounds and play counts for the same song on two outputs', () => {

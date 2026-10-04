@@ -9,7 +9,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * The former global-preset contract copied the playing output's curve onto
  * every newly opened output. Independent output editors now restore their
- * own saved sound, including an explicit absence of a preset curve.
+ * own saved sound, including an explicit absence of a preset curve (Ivan,
+ * 2026-10-03: "I want everything on each output even the DSP and Preset
+ * curves") — and what plays on another output is not even asked.
  */
 
 import fs from 'fs';
@@ -23,7 +25,6 @@ import {
 import { getStateForAudioDevice } from '../../../main/deviceProfiles';
 import { getDefaultDeviceProfileSettings } from '../../../main/deviceProfileSettings';
 
-const popRock: IVoicingSettings = { profileId: 'dsp:pop-rock', intensity: 1 };
 const punchy: IVoicingSettings = { profileId: 'dsp:punchy', intensity: 1 };
 /** Somebody's own voicing, tuned on one output: that output's, always. */
 const warmHeadphones: IVoicingSettings = {
@@ -54,10 +55,8 @@ const saveHeadsetProfile = (voicing: IVoicingSettings | undefined) => {
   );
 };
 
-const switchToHeadset = (playing: IVoicingSettings | undefined) =>
-  getStateForAudioDevice(settings, 'headset', () => presetsDir, {
-    voicing: playing,
-  });
+const switchToHeadset = () =>
+  getStateForAudioDevice(settings, 'headset', () => presetsDir);
 
 beforeEach(() => {
   presetsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-preset-follow-'));
@@ -75,25 +74,20 @@ afterEach(() => {
 });
 
 describe('switching between independent output presets', () => {
-  it('restores the selected output’s saved preset even while another preset plays', () => {
+  it('restores the selected output’s saved preset', () => {
     saveHeadsetProfile(punchy);
-    expect(switchToHeadset(popRock).voicing).toEqual(punchy);
+    expect(switchToHeadset().voicing).toEqual(punchy);
   });
 
   it('keeps an output saved with no preset free of another output’s curve', () => {
     saveHeadsetProfile(undefined);
-    expect(switchToHeadset(popRock).voicing).toBeUndefined();
-  });
-
-  it('does not clear this output’s saved preset when another output clears its chip', () => {
-    saveHeadsetProfile(punchy);
-    expect(switchToHeadset(undefined).voicing).toEqual(punchy);
+    expect(switchToHeadset().voicing).toBeUndefined();
   });
 
   it('keeps the rest of the output’s own profile', () => {
     // Bands and preamp follow the same endpoint boundary as the preset curve.
     saveHeadsetProfile(punchy);
-    const state = switchToHeadset(popRock);
+    const state = switchToHeadset();
     expect(state.preAmp).toBe(-3);
     expect(state.filters.bass.gain).toBe(2);
   });
@@ -107,12 +101,7 @@ describe('a voicing of somebody’s own', () => {
    */
   it('comes from the output’s profile, as it always did', () => {
     saveHeadsetProfile(warmHeadphones);
-    expect(switchToHeadset(undefined).voicing).toEqual(warmHeadphones);
-  });
-
-  it('survives a different preset playing on another output', () => {
-    saveHeadsetProfile(warmHeadphones);
-    expect(switchToHeadset(popRock).voicing).toEqual(warmHeadphones);
+    expect(switchToHeadset().voicing).toEqual(warmHeadphones);
   });
 });
 

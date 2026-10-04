@@ -40,7 +40,10 @@ import {
 // eslint-disable-next-line import/first
 import { FLUIDEQ_CONFIG_FILENAME } from '../../../main/flush';
 // eslint-disable-next-line import/first
-import { FLUID_ENGINE_DSP_FILENAME } from '../../../common/audioEngine';
+import {
+  FLUID_ENGINE_DSP_FILENAME,
+  FLUID_ENGINE_SPLIT_FILENAME,
+} from '../../../common/audioEngine';
 
 const installed = isEngineInstalled as jest.MockedFunction<
   typeof isEngineInstalled
@@ -183,6 +186,26 @@ describe('neutralising the engine that is not in use', () => {
     await flushPendingWrites();
 
     expect(fs.existsSync(rackPath)).toBe(true);
+  });
+
+  /**
+   * The split file tells the engine to feed a second output the main
+   * output's sound. Left behind, the engine went on doing that while the
+   * helper's copy played there too, and nothing writes the file again until
+   * this engine is chosen again.
+   */
+  it('deletes the second-output split file with the rack when the FluidEQ Engine is left', async () => {
+    const configDir = path.join(root, 'fluid-config-split');
+    fs.mkdirSync(configDir, { recursive: true });
+    const splitPath = path.join(configDir, FLUID_ENGINE_SPLIT_FILENAME);
+    fs.writeFileSync(splitPath, '# main {a}\r\n{a} {b} 0.500\r\n', 'utf8');
+    installed.mockResolvedValue(true);
+    configPath.mockResolvedValue(configDir);
+
+    await neutraliseEngine('fluid', SETTINGS, () => presets);
+    await flushPendingWrites();
+
+    expect(fs.existsSync(splitPath)).toBe(false);
   });
 
   it('leaves a rack file alone when the engine being left is Equalizer APO', async () => {

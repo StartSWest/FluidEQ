@@ -268,4 +268,54 @@ describe('retargeting existing second outputs', () => {
     expect(lastSplit()).toContain('{a} {b} 0.600');
     expect(failure).not.toHaveBeenCalled();
   });
+
+  /**
+   * The split file is the FluidEQ Engine's, in a folder that exists only
+   * where that engine was chosen. Under Equalizer APO the write failed and
+   * took the main output's change down with it, for every listener with a
+   * second output.
+   */
+  it('writes no split file under Equalizer APO, and the main output still moves', async () => {
+    engine = 'apo';
+    writeSplit.mockRejectedValue(
+      Object.assign(new Error('ENOENT: no such folder'), { code: 'ENOENT' }),
+    );
+    try {
+      await start(promoted, 0.4);
+      await start(retained, 0.7);
+      const change = jest.fn(async () => undefined);
+      await routes.retargetMain(promoted, change);
+      expect(change).toHaveBeenCalledTimes(1);
+      expect(writeSplit).not.toHaveBeenCalled();
+      expect(failure).not.toHaveBeenCalled();
+    } finally {
+      writeSplit.mockReset();
+      writeSplit.mockResolvedValue(undefined);
+    }
+  });
+
+  it('closes a second output that cannot be opened again after a refused switch, and keeps the refusal', async () => {
+    engine = 'apo';
+    await start(promoted, 0.4);
+    await start(retained, 0.7);
+    // The two helper copies stop before the switch; reopening the first fails
+    // (unplugged meanwhile), the second comes back.
+    startMirror.mockRejectedValueOnce(new Error('The output is gone'));
+    const change = jest.fn(async () => {
+      throw new Error('Windows refused');
+    });
+
+    await expect(routes.retargetMain(promoted, change)).rejects.toThrow(
+      'Windows refused',
+    );
+
+    expect(failure).toHaveBeenCalledTimes(1);
+    expect(startMirror).toHaveBeenCalledTimes(4);
+    expect(startMirror).toHaveBeenLastCalledWith(
+      retained.guid,
+      0.7,
+      expect.any(Function),
+      expect.any(Function),
+    );
+  });
 });

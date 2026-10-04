@@ -20,24 +20,24 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import log from 'electron-log';
 import type { TOutputDelayCallback } from '../common/outputDelay';
-import type { IAudioEngineStatus, TAudioEngine } from '../common/audioEngine';
 import {
   normaliseEndpointGuid,
   type IEngineHealth,
 } from '../common/engineHealth';
 import type { IAudioDevice } from '../common/profileTypes';
-import { splitFileText, splitRefusal, type ISplitLine } from './outputSplit';
+import {
+  readSplitHealth,
+  readSplitRefusal,
+  splitFileText,
+  type ISplitLine,
+  type ISplitReaders,
+} from './outputSplit';
 import type {
   INativeOutputHold,
   INativeOutputMirror,
 } from './remoteAudioCapture';
 
-export interface ISecondOutputDeps {
-  getEngine: () => TAudioEngine | null;
-  /** The setup helper's report on the installed engine. */
-  readStatus: () => Promise<IAudioEngineStatus>;
-  /** What the engine has said about each output, read now. */
-  readHealth: () => Promise<IEngineHealth>;
+export interface ISecondOutputDeps extends ISplitReaders {
   /** Replaces the engine's split file whole. */
   writeSplit: (text: string) => Promise<void>;
   /** Persist each output's own processing before opening or moving it. */
@@ -87,9 +87,6 @@ interface IRoute {
   closed: boolean;
 }
 
-const describe = (error: unknown): string =>
-  error instanceof Error ? error.message : String(error);
-
 export const createSecondOutputs = (
   deps: ISecondOutputDeps,
 ): ISecondOutputs => {
@@ -119,6 +116,18 @@ export const createSecondOutputs = (
       .sort()
       .join('|');
   const writeLines = async (lines: ISplitLine[]) => {
+    if (deps.getEngine() !== 'fluid') {
+      // The split file is the FluidEQ Engine's alone, and its folder exists
+      // only where that engine was chosen: under Equalizer APO the write
+      // failed (ENOENT) and took the main output's change down with it, for
+      // every listener with a second output. Leaving the engine neutralises
+      // its folder, split file included (`engineNeutralise.ts`), so the next
+      // write under it starts from nothing on disk.
+      published = [];
+      publishedText = '';
+      named = false;
+      return;
+    }
     // A main marker protects a former receiver even while no secondaries
     // remain. Older split engines ignore this comment; 1.19 does no ring
     // publication for the marker alone.
@@ -181,45 +190,16 @@ export const createSecondOutputs = (
       if (!route.engine || route.closed) {
         return;
       }
-      const output = health.outputs.find(
-        (output) =>
-          output.endpoint === normaliseEndpointGuid(route.second.guid),
-      );
-      const source = health.outputs.find(
-        (candidate) =>
-          candidate.endpoint === normaliseEndpointGuid(route.main.guid),
-      );
-      if (
-        [source, output].some(
-          (candidate) =>
-            candidate?.locked &&
-            candidate.owner &&
-            candidate.problems.includes('split-transport'),
-        )
-      ) {
-        // A mapping refusal is not "waiting for music". Stop only this
-        // optional receiver; main's ordinary processing keeps running.
-        route.onDelay(0, 'unavailable');
+      const reading = readSplitHealth(health, route.main, route.second);
+      if (reading.kind === 'playing') {
+        route.onDelay(reading.delayMs, 'engine');
+        return;
+      }
+      route.onDelay(0, 'unavailable');
+      if (reading.kind === 'refused') {
+        // Only this optional receiver stops (`readSplitHealth`).
         failed(route)();
-        return;
       }
-      const split = output?.split;
-      const latency = output?.latency;
-      if (
-        split?.state !== 'playing' ||
-        split.from !== normaliseEndpointGuid(route.main.guid) ||
-        !latency
-      ) {
-        route.onDelay(0, 'unavailable');
-        return;
-      }
-      // 1.18 reported the source rack separately. 1.19 sends raw sound and
-      // reports zero source DSP plus the receiver's complete graph.
-      const processing =
-        split.sourceDspMs !== undefined && split.outputEqMs !== undefined
-          ? split.sourceDspMs + split.outputEqMs
-          : (latency.frames * 1000) / latency.rate;
-      route.onDelay(split.lagMs + processing, 'engine');
     });
   };
 
@@ -250,27 +230,8 @@ export const createSecondOutputs = (
   };
 
   /** Why the engine cannot play it, or undefined when it can. */
-  const refusal = async (route: IRoute): Promise<string | undefined> => {
-    const engine = deps.getEngine();
-    if (engine !== 'fluid') {
-      return 'Equalizer APO is the engine';
-    }
-    try {
-      const [status, health] = await Promise.all([
-        deps.readStatus(),
-        deps.readHealth(),
-      ]);
-      return splitRefusal({
-        engine,
-        status,
-        health,
-        main: route.main,
-        second: route.second,
-      });
-    } catch (error) {
-      return `the engine's status could not be read (${describe(error)})`;
-    }
-  };
+  const refusal = (route: Pick<IRoute, 'main' | 'second'>) =>
+    readSplitRefusal(deps, route.main, route.second);
 
   const open = async (route: IRoute, why: string | undefined) => {
     if (why !== undefined) {
@@ -454,10 +415,23 @@ export const createSecondOutputs = (
               profiled = membershipOf(oldProfiles);
               await publish();
             } finally {
+              // As the resume after a switch does: an output that cannot be
+              // opened again (unplugged meanwhile) is closed and says so,
+              // never left listed as playing with nothing behind it, and its
+              // failure does not replace the switch's own or stop the rest.
               await previous.reduce(async (before, { route }) => {
                 await before;
-                if (!route.closed && !route.held && !route.copy) {
+                if (route.closed || route.held || route.copy) {
+                  return;
+                }
+                try {
                   await open(route, await refusal(route));
+                } catch (reopenError) {
+                  log.error(
+                    `Could not reopen second output ${route.second.name}`,
+                    reopenError,
+                  );
+                  failed(route)();
                 }
               }, Promise.resolve());
             }
@@ -473,6 +447,13 @@ export const createSecondOutputs = (
               await Promise.all(obsolete.map(release));
               await deps.syncProfiles?.(nextProfiles);
               profiled = membershipOf(nextProfiles);
+            } catch (cleanupError) {
+              // Windows has already moved: a tidy-up that failed after it is
+              // logged, never reported as the switch having failed.
+              log.error(
+                'Could not tidy the second outputs after the main output moved',
+                cleanupError,
+              );
             } finally {
               // APO/helper fallback keeps its token and stop-before-switch
               // behavior. A profile cleanup error cannot leave it stopped.

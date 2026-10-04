@@ -310,8 +310,6 @@ export const createUpdatePath = ({
           activeOverride,
           state.isEnabled,
           sessionHeadroom(),
-          undefined,
-          undefined,
           session.audioDevices ?? session.secondOutputDevices,
           {
             writeDsp: session.audioEngine === 'fluid',

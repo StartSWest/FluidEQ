@@ -38,9 +38,10 @@ const setup = () => {
     entered.resolve();
     await release.promise;
   });
-  const write = jest.fn(
-    async (_config: string, _edit: IOutputDspEdit) => undefined,
-  );
+  const written = deferred();
+  const write = jest.fn(async (_config: string, _edit: IOutputDspEdit) => {
+    written.resolve();
+  });
   registerAudioEngineIpc({
     userDataDir: 'C:/test-data',
     getEngine: () => 'fluid',
@@ -92,6 +93,7 @@ const setup = () => {
     send,
     entered: entered.promise,
     release: release.resolve,
+    written: written.promise,
     write,
     save,
   };
@@ -141,5 +143,37 @@ it('a newer accepted main edit still supersedes the pending older rack', async (
   expect(t.write).toHaveBeenCalledWith(
     'C:/test-config',
     expect.objectContaining(newer),
+  );
+});
+
+/**
+ * A rack edit used to wait for the profile's disk write before the engine
+ * heard it, so every knob was heard that much late. The engine is written
+ * while the save is still held here; the answer waits for the save.
+ */
+it('lets the engine hear an edit before its profile save is done', async () => {
+  const t = setup();
+  const reply = t.send(edit);
+  await t.entered;
+  // Resolves only if the write lands while the save is still held.
+  await t.written;
+  expect(t.write).toHaveBeenCalledWith(
+    'C:/test-config',
+    expect.objectContaining(edit),
+  );
+  t.release();
+  expect(await reply).toHaveBeenCalledWith(ChannelEnum.SET_SYSTEM_DSP_CHAIN, {
+    result: 'written',
+  });
+});
+
+it('still reports a profile save that failed', async () => {
+  const t = setup();
+  t.save.mockReset();
+  t.save.mockRejectedValue(new Error('disk full'));
+  const reply = await t.send(edit);
+  expect(reply).toHaveBeenCalledWith(
+    ChannelEnum.SET_SYSTEM_DSP_CHAIN,
+    expect.objectContaining({ errorCode: expect.anything() }),
   );
 });

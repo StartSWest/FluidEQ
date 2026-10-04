@@ -151,8 +151,6 @@ export const createOutputFollower = ({
           undefined,
           state.isEnabled,
           undefined,
-          undefined,
-          undefined,
           session.audioDevices ?? session.secondOutputDevices,
           {
             writeDsp: session.audioEngine === 'fluid',

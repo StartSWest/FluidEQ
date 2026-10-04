@@ -124,3 +124,78 @@ export const splitRefusal = ({
   };
   return refusalFor(main) ?? refusalFor(second);
 };
+
+/** What the split's readings are read from. */
+export interface ISplitReaders {
+  getEngine: () => TAudioEngine | null;
+  /** The setup helper's report on the installed engine. */
+  readStatus: () => Promise<IAudioEngineStatus>;
+  /** What the engine has said about each output, read now. */
+  readHealth: () => Promise<IEngineHealth>;
+}
+
+/** Why the engine cannot play `second` from `main` now, or undefined. */
+export const readSplitRefusal = async (
+  readers: ISplitReaders,
+  main: IAudioDevice,
+  second: IAudioDevice,
+): Promise<string | undefined> => {
+  const engine = readers.getEngine();
+  if (engine !== 'fluid') {
+    return 'Equalizer APO is the engine';
+  }
+  try {
+    const [status, health] = await Promise.all([
+      readers.readStatus(),
+      readers.readHealth(),
+    ]);
+    return splitRefusal({ engine, status, health, main, second });
+  } catch (error) {
+    const said = error instanceof Error ? error.message : String(error);
+    return `the engine's status could not be read (${said})`;
+  }
+};
+
+/** What the engine's health says of a second output it plays. */
+export type TSplitReading =
+  /** The shared transport was refused: this output cannot be played so. */
+  | { kind: 'refused' }
+  /** Not playing from this main output yet, or no delay to report. */
+  | { kind: 'waiting' }
+  | { kind: 'playing'; delayMs: number };
+
+export const readSplitHealth = (
+  health: IEngineHealth,
+  main: IAudioDevice,
+  second: IAudioDevice,
+): TSplitReading => {
+  const from = normaliseEndpointGuid(main.guid);
+  const output = health.outputs.find(
+    ({ endpoint }) => endpoint === normaliseEndpointGuid(second.guid),
+  );
+  const source = health.outputs.find(({ endpoint }) => endpoint === from);
+  if (
+    [source, output].some(
+      (candidate) =>
+        candidate?.locked &&
+        candidate.owner &&
+        candidate.problems.includes('split-transport'),
+    )
+  ) {
+    // A mapping refusal is not "waiting for music": the receiver stops, and
+    // main's ordinary processing keeps running.
+    return { kind: 'refused' };
+  }
+  const split = output?.split;
+  const latency = output?.latency;
+  if (split?.state !== 'playing' || split.from !== from || !latency) {
+    return { kind: 'waiting' };
+  }
+  // 1.18 reported the source rack separately. 1.19 sends raw sound and
+  // reports zero source DSP plus the receiver's complete graph.
+  const processing =
+    split.sourceDspMs !== undefined && split.outputEqMs !== undefined
+      ? split.sourceDspMs + split.outputEqMs
+      : (latency.frames * 1000) / latency.rate;
+  return { kind: 'playing', delayMs: split.lagMs + processing };
+};

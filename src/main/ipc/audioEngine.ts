@@ -16,10 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 import log from 'electron-log';
-import {
-  engineSupportsRoomUpgrade,
-  engineAtLeast,
-} from '../../common/engineHealth';
+import { engineSupportsRoomUpgrade } from '../../common/engineHealth';
+import { engineTakesOutputConfig } from '../../common/outputConfigFiles';
 import {
   hasPresetTone,
   hasRoomTrailer,
@@ -739,18 +737,31 @@ export const registerAudioEngineIpc = ({
     const destination = target?.device.guid ?? 'legacy';
     const request = (dspRequests.get(destination) ?? 0) + 1;
     dspRequests.set(destination, request);
-    if (edit) {
-      // Profile persistence also works under APO, where DSP is player-only.
-      try {
-        await saveOutputDsp?.(edit);
-      } catch (error) {
-        log.error('Could not save the output DSP settings', error);
+    // The profile is saved beside the engine write, never ahead of it: an
+    // edit is heard the moment it is made, and a rack edit that waited for
+    // the profile's disk write first was heard that much later on every
+    // knob. The save starts now — its synchronous part records the edit the
+    // writes below read (`outputSoundStore.ts`) — and every answer waits for
+    // it, so a save that failed is still reported. Profile persistence also
+    // works under APO, where DSP is player-only.
+    const saved: Promise<boolean> = edit
+      ? Promise.resolve(saveOutputDsp?.(edit)).then(
+          () => true,
+          (error: unknown) => {
+            log.error('Could not save the output DSP settings', error);
+            return false;
+          },
+        )
+      : Promise.resolve(true);
+    const answer = async (result: TSystemDspChainResult) => {
+      if (await saved) {
+        succeed<TSystemDspChainResult>(event, channel, result);
+      } else {
         refuse(event, channel, ErrorCode.FAILURE);
-        return;
       }
-    }
+    };
     if (getEngine() !== 'fluid') {
-      succeed<TSystemDspChainResult>(event, channel, 'not-fluid');
+      await answer('not-fluid');
       return;
     }
     // A switch empties the FluidEQ Engine's directory when it is the engine
@@ -759,13 +770,13 @@ export const registerAudioEngineIpc = ({
     // delete and bring the file back with no control in the app that reaches
     // it again — so this is refused as `'not-fluid'` rather than queued.
     if (isSwitching()) {
-      succeed<TSystemDspChainResult>(event, channel, 'not-fluid');
+      await answer('not-fluid');
       return;
     }
 
     try {
       if (!(await isEngineInstalled('fluid'))) {
-        succeed<TSystemDspChainResult>(event, channel, 'not-installed');
+        await answer('not-installed');
         return;
       }
       let supportedValues = values;
@@ -775,7 +786,7 @@ export const registerAudioEngineIpc = ({
       if (hasRoomTrailer(supportedValues) && !(await ensureRoomCapability())) {
         const legacy = legacyChainWithoutInactiveRoom(supportedValues);
         if (!legacy) {
-          succeed<TSystemDspChainResult>(event, channel, 'update-required');
+          await answer('update-required');
           return;
         }
         supportedValues = legacy;
@@ -791,7 +802,7 @@ export const registerAudioEngineIpc = ({
       // another editor. Profile replacement/reset invalidates the audible map.
       const addressedWrite =
         !!writeOutputDsp &&
-        engineAtLeast(version, [1, 19]) &&
+        engineTakesOutputConfig(version) &&
         currentEdit === true;
       if (
         getEngine() !== 'fluid' ||
@@ -803,16 +814,16 @@ export const registerAudioEngineIpc = ({
           (currentTarget?.device.id !== target.device.id ||
             currentTarget.generation !== target.generation))
       ) {
-        succeed<TSystemDspChainResult>(event, channel, 'not-fluid');
+        await answer('not-fluid');
         return;
       }
-      if (target && !engineAtLeast(version, [1, 19])) {
+      if (target && !engineTakesOutputConfig(version)) {
         if (
           target.device.guid === getPlaybackGuid?.() &&
           writeLegacySystemDspChain
         ) {
           if (!version) {
-            succeed<TSystemDspChainResult>(event, channel, 'update-required');
+            await answer('update-required');
             return;
           }
           await writeLegacySystemDspChain(
@@ -821,7 +832,7 @@ export const registerAudioEngineIpc = ({
             version,
           );
         } else {
-          succeed<TSystemDspChainResult>(event, channel, 'update-required');
+          await answer('update-required');
           return;
         }
       } else if (edit && writeOutputDsp) {
@@ -833,11 +844,12 @@ export const registerAudioEngineIpc = ({
           target?.device.guid,
         );
       }
-      succeed<TSystemDspChainResult>(event, channel, 'written');
+      await answer('written');
     } catch (error) {
       // A disk that would not take the file is a fault, not one of the three
       // supported refusals above, and is the one case here worth raising.
       log.error('Could not write the system-wide DSP chain', error);
+      await saved;
       refuse(event, channel, ErrorCode.FAILURE);
     }
   });

@@ -35,9 +35,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import fs from 'fs';
+import path from 'path';
 import log from 'electron-log';
 import { IDeviceProfileSettings } from '../common/constants';
-import { TAudioEngine } from '../common/audioEngine';
+import {
+  FLUID_ENGINE_SPLIT_FILENAME,
+  TAudioEngine,
+} from '../common/audioEngine';
 import { TPresetDirForDevice } from './deviceProfiles';
 import { flushDeviceProfiles } from './deviceProfileFlush';
 import { flushPendingWrites } from './asyncWriter';
@@ -68,7 +72,14 @@ import { getConfigPath, isEngineInstalled } from './registry';
 const removeDspRackFiles = async (configDirPath: string): Promise<void> => {
   // A failed earlier save must not prevent removal of every file that landed.
   await flushPendingWrites().catch(() => undefined);
-  outputSoundFiles(configDirPath).forEach((filePath) => {
+  // The split file with them, as quitting does (`engineQuitReset.ts`): left
+  // behind, the engine went on feeding a second output the main output's
+  // sound while the helper's copy played there too, and nothing writes the
+  // file again until this engine is chosen again (`secondOutputRoute.ts`).
+  [
+    ...outputSoundFiles(configDirPath),
+    path.join(configDirPath, FLUID_ENGINE_SPLIT_FILENAME),
+  ].forEach((filePath) => {
     try {
       fs.rmSync(filePath, { force: true });
       forgetOutputSoundFile(filePath);

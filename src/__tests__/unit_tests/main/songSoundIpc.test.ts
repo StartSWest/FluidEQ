@@ -265,8 +265,6 @@ describe('SongSound IPC ownership and profile persistence', () => {
       expect.anything(),
       expect.anything(),
       undefined,
-      undefined,
-      undefined,
       expect.anything(),
     );
     expect(capture).not.toHaveBeenCalled();

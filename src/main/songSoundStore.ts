@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
+import { scheduleWrite } from './asyncWriter';
 import { ISongMemoryOutput } from '../common/songMemory';
 import {
   ISongSoundEntry,
@@ -81,14 +82,14 @@ export const saveSongSoundSettings = (
   userDataDir: string,
   settings: ISongSoundSettings,
 ): void => {
-  const settingsPath = path.join(userDataDir, SETTINGS_FILENAME);
-  const temporaryPath = `${settingsPath}.tmp`;
-  try {
-    // Written beside and renamed over, so a crash mid-write leaves the
-    // previous file whole rather than a truncated one.
-    fs.writeFileSync(temporaryPath, JSON.stringify(settings), 'utf8');
-    fs.renameSync(temporaryPath, settingsPath);
-  } catch (error) {
-    log.error('Failed to save the songs’ sounds', error);
-  }
+  // Through the writer, off the main thread and whole or not at all: a save
+  // lands as a song changes, and a crash mid-write leaves the previous file
+  // rather than a truncated one. Saves made faster than the disk fold into
+  // the last, which is complete.
+  scheduleWrite(
+    path.join(userDataDir, SETTINGS_FILENAME),
+    JSON.stringify(settings),
+  ).catch((error: unknown) =>
+    log.error('Failed to save the songs’ sounds', error),
+  );
 };

@@ -50,6 +50,15 @@ const modelDir = () => path.join(app.getPath('userData'), 'denoise-models');
 
 export const denoiseModelPath = (): string => path.join(modelDir(), MODEL_FILE);
 
+/**
+ * Whether `bytes` are the exact pinned model. The one place the pin is
+ * checked: the output engine's copy is held to it too (`sourceAnalysis.ts`),
+ * where a second copy of the digest was one more thing to move with it.
+ */
+export const isPinnedDenoiseModel = (bytes: Uint8Array): boolean =>
+  bytes.length === MODEL_BYTES &&
+  createHash('sha256').update(bytes).digest('hex') === MODEL_SHA256;
+
 /** Whether the exact pinned model is on disk. */
 export const isDenoiseModelPresent = (): boolean => {
   try {
@@ -60,12 +69,22 @@ export const isDenoiseModelPresent = (): boolean => {
     // Size alone let a same-length damaged file survive every restart and be
     // handed back to ONNX Runtime. Ten megabytes is cheap to identify here,
     // and the download path already defines the digest that is trusted.
-    return (
-      createHash('sha256').update(fs.readFileSync(modelPath)).digest('hex') ===
-      MODEL_SHA256
-    );
+    return isPinnedDenoiseModel(fs.readFileSync(modelPath));
   } catch {
     return false;
+  }
+};
+
+/**
+ * The pinned model's bytes, checked as they were read — the file could change
+ * between a presence check and a copy — or nothing.
+ */
+export const readPinnedDenoiseModel = async (): Promise<Buffer | undefined> => {
+  try {
+    const bytes = await fs.promises.readFile(denoiseModelPath());
+    return isPinnedDenoiseModel(bytes) ? bytes : undefined;
+  } catch {
+    return undefined;
   }
 };
 

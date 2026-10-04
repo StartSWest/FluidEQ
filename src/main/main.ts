@@ -133,7 +133,7 @@ import { declineDefaultMenu } from './menu';
 import registerDevMemoryTrace from './devMemoryTrace';
 import createAppUpdates from './appUpdates';
 import { createWindowPlacement, firstRunPlacement } from './windowPlacement';
-import createMainSession from './mainSession';
+import createMainSession, { outputEditorOf } from './mainSession';
 import { getStateForAudioDevice } from './deviceProfiles';
 import { createSourceAnalysisPublisher } from './sourceAnalysis';
 import { registerSourceAnalysisIpc } from './ipc/sourceAnalysis';
@@ -396,12 +396,7 @@ registerEngineStateIpc({
       ...state,
       dsp: audibleDsp ?? state.dsp,
       ownedDsp: ownsTemporaryRack ? state.dsp : undefined,
-      outputEditor: session.activeAudioDevice
-        ? {
-            device: session.activeAudioDevice,
-            generation: session.outputEditGeneration ?? 0,
-          }
-        : undefined,
+      outputEditor: outputEditorOf(session),
       playbackOutput: main,
       playbackState,
     };
@@ -559,13 +554,7 @@ registerSongSoundIpc({
   state,
   userDataDir,
   handleUpdateHelper,
-  getOutputEditor: () =>
-    session.activeAudioDevice
-      ? {
-          device: session.activeAudioDevice,
-          generation: session.outputEditGeneration ?? 0,
-        }
-      : undefined,
+  getOutputEditor: () => outputEditorOf(session),
 });
 
 onWindowMessage(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {

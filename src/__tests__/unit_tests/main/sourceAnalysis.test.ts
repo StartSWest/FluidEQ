@@ -4,8 +4,11 @@ import type { ISourceAnalysisUpdate } from '../../../common/dsp/sourceAnalysis';
 import type { IEngineHealth } from '../../../common/engineHealth';
 import { createSourceAnalysisPublisher } from '../../../main/sourceAnalysis';
 
+// No voice model downloaded: the publication says voice is unavailable.
 jest.mock('../../../main/denoiseModel', () => ({
-  isDenoiseModelPresent: () => false,
+  denoiseModelPath: () => 'C:/test-data/denoise-models/voice.onnx',
+  isPinnedDenoiseModel: () => false,
+  readPinnedDenoiseModel: async () => undefined,
 }));
 
 const deferred = () => {

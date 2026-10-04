@@ -16,12 +16,10 @@ import {
   APO_FEATURE_FILE_WORD_PATTERN,
   IDeviceProfileSettings,
   IState,
-  IEqCuts,
   IAudioDevice,
 } from '../common/constants';
 import { EQ_CUTS_FILENAME } from '../common/eqCuts';
 import type { IDspSettings } from '../common/dsp/chain';
-import type { TGlobalPreset } from '../common/dsp/presetVoicing';
 import { flushOutputDsp } from './outputDsp';
 import { addFileToPath } from './flush';
 import type {
@@ -217,8 +215,6 @@ export const flushDeviceProfiles = (
   activeOverride?: IActiveStateOverride,
   isEnabled = true,
   sessionHeadroom: ISessionHeadroom | undefined = undefined,
-  cuts: IEqCuts | undefined = undefined,
-  playing: TGlobalPreset | undefined = undefined,
   secondOutputs: readonly IAudioDevice[] = [],
   outputDsp:
     | {
@@ -251,8 +247,6 @@ export const flushDeviceProfiles = (
     activeSnapshot,
     isEnabled,
     sessionHeadroom,
-    cuts,
-    playing,
     secondOutputs,
     stateSnapshots,
   );
