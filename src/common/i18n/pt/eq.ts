@@ -443,6 +443,7 @@ const eq: Partial<Dictionary> = {
   'output.undoSevenOne': 'Desfazer',
   'output.sevenOneFailed': 'O Windows não aceitou o formato 7.1 nesta saída.',
   'output.none': 'Nenhuma saída ativa encontrada',
+  'output.battery': 'Bateria {percent}%',
   'output.mapping': 'Vínculo automático',
   'output.mapping.neutral': 'Saída neutra',
   'output.mapping.live': 'Ajuste ao vivo vinculado',

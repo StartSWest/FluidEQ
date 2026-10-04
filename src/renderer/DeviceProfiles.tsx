@@ -38,12 +38,15 @@ import { reportError } from './utils/logger';
 import { subscribeAudioEngineChanged } from './utils/audioEngineEvents';
 import { useNoticeClaim } from './utils/noticeTurn';
 import useOutputReadings from './utils/useOutputReadings';
+import useReadWhenShown from './utils/useReadWhenShown';
+import withoutBatteryLevels from './utils/withoutBatteryLevels';
 import {
   getAudioDevices,
   getDeviceProfileSettings,
   setDefaultAudioDevice,
 } from './utils/equalizerApi';
 import './styles/DeviceProfiles.scss';
+import BatteryLevel from './widgets/BatteryLevel';
 import useMainOutputEditor from './utils/useMainOutputEditor';
 
 const EMPTY_SETTINGS: IDeviceProfileSettings = {
@@ -71,6 +74,12 @@ interface IDeviceProfilesProps {
    */
   engine: TAudioEngine | null;
   isNoticeHidden?: boolean;
+  /**
+   * Whether the pane holding this card is on screen: coming into view, it
+   * reads the outputs again, for the battery levels on them. On screen unless
+   * a pane says otherwise.
+   */
+  isPaneShown?: boolean;
   onConfigureApo: () => Promise<boolean>;
   onAttachFluidEngine: (guid: string) => Promise<IEngineSetupResult>;
   /**
@@ -89,6 +98,7 @@ interface IDeviceProfilesProps {
 const DeviceProfiles = ({
   engine,
   isNoticeHidden = false,
+  isPaneShown = true,
   onConfigureApo,
   onAttachFluidEngine,
   children,
@@ -162,6 +172,9 @@ const DeviceProfiles = ({
         });
         return true;
       } catch (e) {
+        // The outputs stay; their levels do not outlive the reading that
+        // failed (`withoutBatteryLevels`).
+        setDevices(withoutBatteryLevels);
         setGlobalError(e as ErrorDescription);
         return false;
       }
@@ -175,6 +188,9 @@ const DeviceProfiles = ({
   // when the window is come back to — no longer every three seconds; see
   // `useOutputReadings` for what that poll cost and what it missed.
   useOutputReadings(refresh, show);
+  // And when the pane comes into view or the card is opened: a battery level
+  // moves without anything announcing it to the window (`useReadWhenShown`).
+  useReadWhenShown(isPaneShown, refresh);
 
   const selectedDevice = useMemo(
     () => devices.find((device) => device.id === selectedDeviceId),
@@ -358,9 +374,21 @@ const DeviceProfiles = ({
               <span className="device-option__text">
                 <span className="device-option__name">{device.name}</span>
                 <span className={`device-option__sub${isOff ? ' is-off' : ''}`}>
+                  {/* First, so a long profile name truncates and the level
+                      never does. */}
+                  {typeof device.batteryPercent === 'number' && (
+                    <BatteryLevel percent={device.batteryPercent} />
+                  )}
                   {describeMapping(device.id)}
                 </span>
               </span>
+              {/* The list's own place for it, every output a row: the face
+                  shows its output's level in the line under the name. */}
+              {typeof device.batteryPercent === 'number' && (
+                <span className="device-option__battery">
+                  <BatteryLevel percent={device.batteryPercent} />
+                </span>
+              )}
               <span className="device-option__badges">
                 {isOff && <span className="apo-badge">{t('output.off')}</span>}
                 {device.isDefault && (
@@ -383,6 +411,7 @@ const DeviceProfiles = ({
     // otherwise obvious.
     <SidebarSection
       className="device-profiles"
+      onOpen={refresh}
       glyph={
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <path d="M4 9v6h4l5 4V5L8 9H4z" />

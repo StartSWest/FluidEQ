@@ -77,6 +77,7 @@ const mirrorState = (targets: IMirrorTarget[]) => {
     isVirtualRoutingAvailable: false,
     mirroringCount: running.length,
     refresh: jest.fn().mockResolvedValue(undefined),
+    reread: jest.fn().mockResolvedValue(undefined),
     selectedTargets: selected,
     setTargetVolume: jest.fn(),
     targets,

@@ -40,12 +40,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *        command ends the volume helper.
  *
  * What counts as a change: an endpoint added, removed or changing state;
- * the default render endpoint changing for any role; and a property written
+ * the default render endpoint changing for any role; a property written
  * that the output list reads — the names, the "Audio enhancements" switch,
  * the shared-mode format, and the effect lists both engines are registered
- * through. Every other property (a Bluetooth headset's battery, a jack's
- * details) is ignored: each line costs the app a PowerShell run, and those
- * change nothing the list says. Added, removed and state changes are not
+ * through; and a Bluetooth device's battery level, which the list carries
+ * beside the outputs it belongs to. That one is not an endpoint property: it
+ * lives on the Bluetooth device's own node, so it is watched through a
+ * device query Windows updates when the level moves (`DevCreateObjectQuery`,
+ * as Windows' own Bluetooth page is) — nothing polls, and a percent moves
+ * every few minutes at most. Every other property (a jack's details) is
+ * ignored: each line costs the app a PowerShell run, and those change
+ * nothing the list says. Added, removed and state changes are not
  * filtered to render endpoints: the only cheap test is the endpoint id's
  * layout, which Windows documents as opaque, so a microphone costs one
  * harmless read instead.
@@ -62,6 +67,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+#include <devquery.h>
 #include <mmdeviceapi.h>
 #include <winsvc.h>
 
@@ -163,6 +169,98 @@ class OutputsCallback final : public IMMNotificationClient {
 // Lives for the whole run, so its reference count is for show: COM holds it
 // only between the Register and Unregister calls below.
 OutputsCallback outputs_callback;
+
+// DEVPKEY_Bluetooth_Battery: the percentage a Bluetooth device reports to
+// Windows. Not in the SDK's headers; the same key `windows-audio-devices.ps1`
+// reads the level with.
+constexpr DEVPROPKEY kBluetoothBattery = {
+    {0x104ea319, 0x6ee2, 0x4701, {0xbd, 0x47, 0x8d, 0xdb, 0xf4, 0x25, 0xbb, 0xe5}},
+    2};
+
+/**
+ * Whether the battery query has listed what was already there. Its first
+ * answers are every device that has a level now, which the app's first read
+ * already holds; only what comes after is news.
+ */
+std::atomic<bool> batteries_listed{false};
+
+/** Told on a thread of the query's own, so it only wakes the loop. */
+void WINAPI on_battery(HDEVQUERY, PVOID,
+                       const DEV_QUERY_RESULT_ACTION_DATA* action) {
+  if (action == nullptr) {
+    return;
+  }
+  if (action->Action == DevQueryResultStateChange) {
+    // Aborted leaves the batteries unwatched and everything else working:
+    // a level is something the panel shows, never something it needs.
+    if (action->Data.State == DevQueryStateEnumCompleted) {
+      batteries_listed.store(true);
+    }
+    return;
+  }
+  if (batteries_listed.load()) {
+    SetEvent(state.changed);
+  }
+}
+
+/**
+ * The device query's two calls, from `cfgmgr32.dll` itself.
+ *
+ * Windows has exported them there since 10, but the SDK's `cfgmgr32.lib` does
+ * not carry them; `OneCore.lib`, which does, would also move this program's
+ * other imports onto API sets, for two functions. Missing, the batteries go
+ * unwatched and nothing else changes.
+ */
+struct DeviceQuery {
+  decltype(&DevCreateObjectQuery) create = nullptr;
+  decltype(&DevCloseObjectQuery) close = nullptr;
+};
+
+DeviceQuery device_query() {
+  const HMODULE module =
+      LoadLibraryExW(L"cfgmgr32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+  if (module == nullptr) {
+    return {};
+  }
+  DeviceQuery api;
+  api.create = reinterpret_cast<decltype(&DevCreateObjectQuery)>(
+      GetProcAddress(module, "DevCreateObjectQuery"));
+  api.close = reinterpret_cast<decltype(&DevCloseObjectQuery)>(
+      GetProcAddress(module, "DevCloseObjectQuery"));
+  if (api.create == nullptr || api.close == nullptr) {
+    return {};
+  }
+  return api;
+}
+
+/**
+ * Every present device that has a battery level, kept up to date by Windows:
+ * a level moving is an update, a headset connecting or going is an add or a
+ * removal. Nothing when the query cannot be made, which costs the live level
+ * and nothing else — the list still reads it whenever it is read.
+ */
+HDEVQUERY watch_batteries(const DeviceQuery& api) {
+  if (api.create == nullptr) {
+    return nullptr;
+  }
+  DEVPROPCOMPKEY battery{};
+  battery.Key = kBluetoothBattery;
+  battery.Store = DEVPROP_STORE_SYSTEM;
+  // EXISTS, which reads no value. NOT_EQUALS against an empty value does not
+  // mean the same: measured, it matched all 422 of a machine's devices where
+  // one has a battery.
+  DEVPROP_FILTER_EXPRESSION has_battery{};
+  has_battery.Operator = DEVPROP_OPERATOR_EXISTS;
+  has_battery.Property.CompKey = battery;
+  has_battery.Property.Type = DEVPROP_TYPE_EMPTY;
+  HDEVQUERY query = nullptr;
+  if (FAILED(api.create(DevObjectTypeDevice, DevQueryFlagUpdateResults, 1,
+                        &battery, 1, &has_battery, on_battery, nullptr,
+                        &query))) {
+    return nullptr;
+  }
+  return query;
+}
 
 /** A fresh enumerator with the callback registered on it, or nothing. */
 IMMDeviceEnumerator* listen() {
@@ -325,12 +423,19 @@ int run() {
   if (devices == nullptr) {
     return 1;
   }
+  // Not renewed with the audio services: it is the device manager's, which
+  // they do not take down.
+  const DeviceQuery query_api = device_query();
+  const HDEVQUERY batteries = watch_batteries(query_api);
   const SC_HANDLE manager = OpenSCManagerW(nullptr, nullptr, SC_MANAGER_CONNECT);
   if (manager != nullptr) {
     watch_services(manager);
   }
   const HANDLE reader = CreateThread(nullptr, 0, read_input, nullptr, 0, nullptr);
   if (reader == nullptr) {
+    if (batteries != nullptr) {
+      query_api.close(batteries);
+    }
     stop_watching_services();
     stop_listening(devices);
     return 1;
@@ -381,6 +486,11 @@ int run() {
     if (result == WAIT_OBJECT_0 + 1) {
       say_outputs();
     }
+  }
+  // Closed first: once it returns no callback runs, and none may wake a loop
+  // that has ended.
+  if (batteries != nullptr) {
+    query_api.close(batteries);
   }
   stop_watching_services();
   if (manager != nullptr) {

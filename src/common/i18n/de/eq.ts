@@ -447,6 +447,7 @@ const eq: Partial<Dictionary> = {
   'output.sevenOneFailed':
     'Windows hat das 7.1-Format auf diesem Ausgang nicht angenommen.',
   'output.none': 'Keine aktiven Ausgänge gefunden',
+  'output.battery': 'Akku {percent}%',
   'output.mapping': 'Automatische Zuordnung',
   'output.mapping.neutral': 'Neutrale Ausgabe',
   'output.mapping.live': 'Laufende Abstimmung zugeordnet',

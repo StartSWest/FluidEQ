@@ -68,6 +68,8 @@ interface ISidebarSectionProps {
    * reclaims space, it is not a setting to go looking for.
    */
   defaultOpen?: boolean;
+  /** Told when somebody opens it, for a card that reads what it shows then. */
+  onOpen?: () => void;
   children: ReactNode;
 }
 
@@ -93,10 +95,17 @@ export default function SidebarSection({
   aside,
   className,
   defaultOpen = true,
+  onOpen,
   children,
 }: ISidebarSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const contentId = useId();
+  const toggle = () => {
+    setIsOpen(!isOpen);
+    if (!isOpen) {
+      onOpen?.();
+    }
+  };
 
   return (
     <section
@@ -109,7 +118,7 @@ export default function SidebarSection({
         className="sidebar-section__header"
         aria-expanded={isOpen}
         aria-controls={contentId}
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={toggle}
       >
         {glyph && (
           <span className="sidebar-section__glyph" aria-hidden="true">

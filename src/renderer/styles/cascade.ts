@@ -148,6 +148,7 @@ import './SquiglinkImport.scss';
 import './AutoEQPanel.scss';
 import './DeviceProfiles.scss';
 import './OutputEditButton.scss';
+import './BatteryLevel.scss';
 import './ExtraOutputs.scss';
 import './DriverPicker.scss';
 import './WaveformVisualizer.scss';

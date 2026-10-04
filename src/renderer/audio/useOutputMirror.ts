@@ -28,10 +28,13 @@ import { IAudioDevice, IDeviceProfileSettings } from 'common/constants';
 import { hasVirtualRouting } from 'common/virtualAudioDevices';
 import type { TOutputDelayKind } from '../../common/outputDelay';
 import {
+  getAudioDevices,
   readKnownAudioDevices,
   getDeviceProfileSettings,
+  subscribeAudioDevices,
 } from '../utils/equalizerApi';
 import { reportInfo, reportError } from '../utils/logger';
+import withoutBatteryLevels from '../utils/withoutBatteryLevels';
 import { useTranslation } from '../utils/I18nContext';
 import { useMirrorPlayback, type IDesiredMirror } from './useMirrorPlayback';
 import { useLiveAudioCapture, useLiveAudioControl } from './LiveAudioContext';
@@ -173,21 +176,47 @@ const useOutputMirror = () => {
 
   const [error, setError] = useState('');
 
-  const refresh = useCallback(async () => {
-    try {
-      const [nextDevices, nextOutputs, nextSettings] = await Promise.all([
-        readKnownAudioDevices(),
-        native ? Promise.resolve([]) : listMediaOutputs(),
-        getDeviceProfileSettings(),
-      ]);
-      setDevices(nextDevices);
-      setOutputs(nextOutputs);
-      setAssignments(nextSettings);
-    } catch {
-      // A failed enumeration is not worth an error banner: the list simply
-      // stays as it was, and the next device change refreshes it again.
-    }
-  }, [native]);
+  const load = useCallback(
+    async (readDevices: () => Promise<IAudioDevice[]>) => {
+      try {
+        const [nextDevices, nextOutputs, nextSettings] = await Promise.all([
+          readDevices(),
+          native ? Promise.resolve([]) : listMediaOutputs(),
+          getDeviceProfileSettings(),
+        ]);
+        setDevices(nextDevices);
+        setOutputs(nextOutputs);
+        setAssignments(nextSettings);
+      } catch {
+        // A failed enumeration is not worth an error banner: the list simply
+        // stays as it was, and the next device change refreshes it again —
+        // without the battery levels it carried, which only a reading that
+        // succeeded may show (`withoutBatteryLevels`).
+        setDevices(withoutBatteryLevels);
+      }
+    },
+    [native],
+  );
+  const refresh = useCallback(() => load(readKnownAudioDevices), [load]);
+  /**
+   * A fresh reading rather than the window's kept list, for the card being
+   * opened: a battery level moves without anything announcing it to the
+   * window.
+   */
+  const reread = useCallback(() => load(getAudioDevices), [load]);
+
+  // Main's own readings as well, pushed when Windows says something the list
+  // holds moved — a device's battery among them (`outputWatch.ts`).
+  useEffect(
+    () =>
+      subscribeAudioDevices((reading) => {
+        reading.then(setDevices).catch(() => {
+          // Only a reading that succeeded may show a level.
+          setDevices(withoutBatteryLevels);
+        });
+      }),
+    [],
+  );
 
   useEffect(() => {
     refresh();
@@ -365,6 +394,7 @@ const useOutputMirror = () => {
     isMirroring: runningGuids.length > 0,
     mirroringCount: runningGuids.length,
     refresh,
+    reread,
     selectedTargets,
     targets,
     toggleTarget,

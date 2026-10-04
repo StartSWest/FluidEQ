@@ -420,6 +420,7 @@ const eq: Partial<Dictionary> = {
   'output.undoSevenOne': '撤销',
   'output.sevenOneFailed': 'Windows 未接受此输出的 7.1 格式。',
   'output.none': '未找到活动的输出设备',
+  'output.battery': '电量 {percent}%',
   'output.mapping': '自动绑定',
   'output.mapping.neutral': '无处理输出',
   'output.mapping.live': '已绑定当前调音',

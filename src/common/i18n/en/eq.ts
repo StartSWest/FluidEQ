@@ -456,6 +456,7 @@ const eq = {
   'output.sevenOneFailed':
     'Windows did not take the 7.1 format on this output.',
   'output.none': 'No active outputs found',
+  'output.battery': 'Battery {percent}%',
   'output.mapping': 'Automatic mapping',
   'output.mapping.neutral': 'Neutral output',
   'output.mapping.live': 'Live tuning attached',

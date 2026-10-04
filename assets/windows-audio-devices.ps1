@@ -236,6 +236,139 @@ public static class AquaAudioDevices
         }
     }
 
+    // PKEY_Device_ContainerId on the endpoint's own store: the physical device
+    // an output belongs to. A Bluetooth headset's outputs and the Bluetooth
+    // device node that carries its battery share one, which is how Windows'
+    // own Bluetooth page puts the two together.
+    private static readonly PROPERTYKEY ContainerIdKey = new PROPERTYKEY {
+        formatId = new Guid("8C7ED206-3F8A-4827-B3AB-AE9E1FAEFC6C"),
+        propertyId = 2
+    };
+
+    // Never throws: an output whose container cannot be read is listed with
+    // no battery, never dropped, and never takes the list down with it.
+    private static Nullable<Guid> ReadContainerId(IPropertyStore store)
+    {
+        try
+        {
+            var key = ContainerIdKey;
+            PROPVARIANT value;
+            if (store.GetValue(ref key, out value) != 0)
+                return null;
+            try
+            {
+                // VT_CLSID: a pointer to the GUID.
+                if (value.valueType != 72 || value.pointerValue == IntPtr.Zero)
+                    return null;
+                return (Guid)Marshal.PtrToStructure(value.pointerValue, typeof(Guid));
+            }
+            finally
+            {
+                PropVariantClear(ref value);
+            }
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct DEVPROPKEY
+    {
+        public Guid formatId;
+        public uint propertyId;
+    }
+
+    [DllImport("CfgMgr32.dll", CharSet = CharSet.Unicode)]
+    private static extern int CM_Get_Device_ID_List_SizeW(out uint length, string filter, uint flags);
+
+    [DllImport("CfgMgr32.dll", CharSet = CharSet.Unicode)]
+    private static extern int CM_Get_Device_ID_ListW(string filter, char[] buffer, uint length, uint flags);
+
+    [DllImport("CfgMgr32.dll", CharSet = CharSet.Unicode)]
+    private static extern int CM_Locate_DevNodeW(out uint devInst, string deviceId, uint flags);
+
+    [DllImport("CfgMgr32.dll", CharSet = CharSet.Unicode)]
+    private static extern int CM_Get_DevNode_PropertyW(uint devInst, ref DEVPROPKEY key, out uint type, byte[] buffer, ref uint size, uint flags);
+
+    // DEVPKEY_Bluetooth_Battery: the percentage a Bluetooth device reports to
+    // Windows, the number on Windows' own Bluetooth page. A headset that never
+    // reports one has none, and a 2.4 GHz dongle is not a Bluetooth device at
+    // all: its battery stays between the headset and its maker's software.
+    private static readonly DEVPROPKEY BluetoothBatteryKey = new DEVPROPKEY {
+        formatId = new Guid("104EA319-6EE2-4701-BD47-8DDBF425BBE5"),
+        propertyId = 2
+    };
+
+    private static readonly DEVPROPKEY DeviceContainerKey = new DEVPROPKEY {
+        formatId = new Guid("8C7ED206-3F8A-4827-B3AB-AE9E1FAEFC6C"),
+        propertyId = 2
+    };
+
+    // Where Windows enumerates Bluetooth device nodes: classic profiles,
+    // Low Energy devices and their services, and hands-free audio.
+    private static readonly string[] BluetoothEnumerators = {
+        "BTHENUM", "BTHLE", "BTHLEDEVICE", "BTHHFENUM"
+    };
+
+    private static byte[] ReadDevNodeProperty(uint devInst, DEVPROPKEY key, uint wantedType)
+    {
+        uint type;
+        uint size = 0;
+        CM_Get_DevNode_PropertyW(devInst, ref key, out type, null, ref size, 0);
+        if (size == 0)
+            return null;
+        var buffer = new byte[size];
+        if (CM_Get_DevNode_PropertyW(devInst, ref key, out type, buffer, ref size, 0) != 0 ||
+            type != wantedType)
+            return null;
+        return buffer;
+    }
+
+    // Each present Bluetooth device's battery, by the container its outputs
+    // share. Read once per listing; every call here is a local property read,
+    // no radio traffic, so a few milliseconds in all.
+    private static Dictionary<Guid, int> BatteryByContainer()
+    {
+        var result = new Dictionary<Guid, int>();
+        try
+        {
+            foreach (var enumerator in BluetoothEnumerators)
+            {
+                // CM_GETIDLIST_FILTER_ENUMERATOR | CM_GETIDLIST_FILTER_PRESENT:
+                // a device paired and away keeps the last level it sent.
+                const uint flags = 0x1 | 0x100;
+                uint length;
+                if (CM_Get_Device_ID_List_SizeW(out length, enumerator, flags) != 0 || length == 0)
+                    continue;
+                var buffer = new char[length];
+                if (CM_Get_Device_ID_ListW(enumerator, buffer, length, flags) != 0)
+                    continue;
+                foreach (var deviceId in new string(buffer).Split(new[] { '\0' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    uint devInst;
+                    if (CM_Locate_DevNodeW(out devInst, deviceId, 0) != 0)
+                        continue;
+                    // DEVPROP_TYPE_BYTE, then DEVPROP_TYPE_GUID.
+                    var battery = ReadDevNodeProperty(devInst, BluetoothBatteryKey, 0x3);
+                    if (battery == null || battery.Length < 1 || battery[0] > 100)
+                        continue;
+                    var container = ReadDevNodeProperty(devInst, DeviceContainerKey, 0xD);
+                    if (container == null || container.Length != 16)
+                        continue;
+                    result[new Guid(container)] = battery[0];
+                }
+            }
+        }
+        catch
+        {
+            // No level is the answer for anything this could not read: a
+            // battery is something the panel shows, never something it needs.
+        }
+        return result;
+    }
+
     public class Device
     {
         public string id { get; set; }
@@ -249,6 +382,7 @@ public static class AquaAudioDevices
         public Nullable<bool> effectsEnabled { get; set; }
         public Nullable<int> sampleRate { get; set; }
         public Nullable<int> channels { get; set; }
+        public Nullable<int> batteryPercent { get; set; }
     }
 
     // The two probes below answer "not attached" for an output with no key
@@ -401,6 +535,7 @@ public static class AquaAudioDevices
             formatId = new Guid("A45C254E-DF1C-4EFD-8020-67D146A850E0"),
             propertyId = 14
         };
+        var batteries = BatteryByContainer();
 
         for (uint i = 0; i < count; i++)
         {
@@ -419,6 +554,10 @@ public static class AquaAudioDevices
                 continue;
             var marker = id.LastIndexOf("{");
             var guid = marker >= 0 ? id.Substring(marker) : id;
+            var container = ReadContainerId(store);
+            int battery = 0;
+            var hasBattery = container.HasValue &&
+                batteries.TryGetValue(container.Value, out battery);
             result.Add(new Device {
                 id = id,
                 name = friendlyName.Trim(),
@@ -430,7 +569,8 @@ public static class AquaAudioDevices
                 canHostEffects = CanHostEffects(guid),
                 effectsEnabled = ReadEffectsEnabled(store),
                 sampleRate = ReadSampleRate(store),
-                channels = ReadChannels(store)
+                channels = ReadChannels(store),
+                batteryPercent = hasBattery ? (Nullable<int>)battery : null
             });
         }
         return result;

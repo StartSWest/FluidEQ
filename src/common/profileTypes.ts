@@ -269,6 +269,14 @@ export interface IAudioDevice {
    * Windows did not say.
    */
   channels?: number;
+  /**
+   * The battery left in the device this output belongs to, 0–100, as it
+   * reported it to Windows: a Bluetooth headset, speaker or earbuds that
+   * sends one — the number on Windows' own Bluetooth page. Missing or `null`
+   * for everything else, a 2.4 GHz dongle included: its battery stays
+   * between the headset and its maker's software, and Windows never sees it.
+   */
+  batteryPercent?: number | null;
 }
 
 export interface IDeviceProfileAssignment {

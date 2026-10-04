@@ -13,7 +13,9 @@ import type { TAudioEngine } from 'common/audioEngine';
 import { identifyVirtualDevice } from 'common/virtualAudioDevices';
 import SidebarSection from './components/SidebarSection';
 import Switch from './widgets/Switch';
+import BatteryLevel from './widgets/BatteryLevel';
 import MirrorDelay from './MirrorDelay';
+import useReadWhenShown from './utils/useReadWhenShown';
 import useOutputMirror, { IMirrorTarget } from './audio/useOutputMirror';
 import { useIncomingSound } from './remoteAudio/remoteAudioValueContext';
 import { useTranslation } from './utils/I18nContext';
@@ -25,9 +27,14 @@ import OutputEditButton from './OutputEditButton';
 interface IExtraOutputsProps {
   /** Passed straight down to the per-output badge. See the picker. */
   engine: TAudioEngine | null;
+  /**
+   * Whether the pane holding this card is on screen: coming into view, it
+   * reads again. On screen unless a pane says otherwise.
+   */
+  isPaneShown?: boolean;
 }
 
-const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
+const ExtraOutputs = ({ engine, isPaneShown = true }: IExtraOutputsProps) => {
   const { t } = useTranslation();
   const isSinglePlayer = useSinglePlayer();
   const {
@@ -35,11 +42,16 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
     isMirroring,
     isVirtualRoutingAvailable,
     refresh,
+    reread,
     selectedTargets,
     setTargetVolume,
     targets,
     toggleTarget,
   } = useOutputMirror();
+  // Read afresh when the pane comes into view or the card is opened, for the
+  // battery levels on it (`useReadWhenShown`).
+  useReadWhenShown(isPaneShown, reread);
+
   // Another computer's sound playing here plays on the second output too,
   // later by its own delay: each running output says both.
   const incoming = useIncomingSound();
@@ -97,6 +109,7 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
     <SidebarSection
       className="extra-outputs"
       defaultOpen={false}
+      onOpen={reread}
       glyph={
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <rect x="3" y="4" width="7" height="16" rx="2" />
@@ -107,8 +120,8 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
       }
       title={t('extraOutput.title')}
       // Folded, the outputs that are on each get a row under the header —
-      // the light that says it is playing, its name, and under them the
-      // profile it plays — and the
+      // the light that says it is playing, its name and its battery where its
+      // device reports one, and under them the profile it plays — and the
       // header says only that none is. One line of names in the header read
       // for one output and not for two (Ivan, 2026-10-02: "if we have more
       // than one selected it doesn't make sense").
@@ -133,6 +146,9 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
                       >
                         {target.device.name}
                       </span>
+                      {typeof target.device.batteryPercent === 'number' && (
+                        <BatteryLevel percent={target.device.batteryPercent} />
+                      )}
                     </span>
                     <span className="extra-outputs__profileActions">
                       {profile && (
@@ -229,6 +245,9 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
                       <span className="extra-outputs__tag">
                         {virtual.inputLabel}
                       </span>
+                    )}
+                    {typeof target.device.batteryPercent === 'number' && (
+                      <BatteryLevel percent={target.device.batteryPercent} />
                     )}
                   </span>
                   {/* The profile this output already carries — the same one it

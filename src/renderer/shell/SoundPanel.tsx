@@ -114,6 +114,7 @@ const SoundPanel = ({
             <DeviceProfiles
               engine={engine}
               isNoticeHidden={isNoticeHidden}
+              isPaneShown={isShown}
               onConfigureApo={onConfigureApo}
               onAttachFluidEngine={onAttachFluidEngine}
             >
@@ -134,7 +135,7 @@ const SoundPanel = ({
           {/* Awake behind the amp: it plays the mirror to the second output
               (`useOutputMirror`), and asleep it would silence that output
               the moment the window became the amp. */}
-          <ExtraOutputs engine={engine} />
+          <ExtraOutputs engine={engine} isPaneShown={isShown} />
           {/* Sits with the output device because it answers the same question:
               what is this sound coming out of. */}
           <Activity mode={behindAmp}>

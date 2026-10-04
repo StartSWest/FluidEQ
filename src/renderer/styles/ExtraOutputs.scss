@@ -176,7 +176,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // Which input of a routing driver this is. Voicemeeter's three differ by a
 // single word, so the distinction has to be visible at a glance.
 // The outputs that are on, while the card is folded: one row apiece, each its
-// light, its name and its profile, so two outputs read as two.
+// light, its name and its battery, so two outputs read as two and the level
+// is never cut off — the name gives way first.
 .extra-outputs__onList {
   display: grid;
   min-width: 0;
@@ -249,6 +250,12 @@ it under the terms of the GNU General Public License version 3 or later.
   flex: 0 0 auto;
   color: $text-faint;
   font-size: $text-small;
+}
+
+// The device's battery, where it reports one, after the name the way the tag
+// is: on the name's last line, never breaking inside itself.
+.extra-outputs__name .battery-level {
+  margin-left: 6px;
 }
 
 .extra-outputs__tag {

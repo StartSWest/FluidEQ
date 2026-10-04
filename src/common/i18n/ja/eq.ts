@@ -441,6 +441,7 @@ const eq: Partial<Dictionary> = {
   'output.sevenOneFailed':
     'Windows はこの出力で 7.1 フォーマットを受け付けませんでした。',
   'output.none': '有効な出力が見つかりません',
+  'output.battery': 'バッテリー {percent}%',
   'output.mapping': '自動割り当て',
   'output.mapping.neutral': '無処理の出力',
   'output.mapping.live': '現在の調整を割り当て済み',

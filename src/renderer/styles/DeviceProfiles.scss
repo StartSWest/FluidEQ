@@ -218,6 +218,14 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 1px;
 }
 
+// An output's battery at the end of its row in the list, so every output that
+// reports one shows it, not only the one being listened on. The face carries
+// its own in the line under the name, and hides this one (below).
+.device-option__battery {
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
 .device-option__name {
   min-width: 0;
   overflow-wrap: anywhere;
@@ -243,7 +251,8 @@ it under the terms of the GNU General Public License version 3 or later.
     gap: 9px;
   }
 
-  .device-dot {
+  .device-dot,
+  .device-option__battery {
     display: none;
   }
 
@@ -274,6 +283,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
     &.is-off {
       color: $red;
+    }
+
+    .battery-level {
+      margin-right: 6px;
     }
   }
 
