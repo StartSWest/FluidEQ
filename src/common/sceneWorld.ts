@@ -320,6 +320,15 @@ export interface ISceneWorld {
   bloom?: IWorldBloom;
   /** 0..1: how far the corners are darkened. */
   vignette: number;
+  /**
+   * Whether the world's edges are multisampled four times. A world made of
+   * glows and soft sprites has no hard edge to smooth, and multisampling
+   * still writes every sample of every glow: on Intel UHD at 1080p that was
+   * Galaxy's world 16 ms where 1.1 drew the picture to within a few levels
+   * at the rims of its stars, and Supernova's lost the context. Such a world
+   * says false.
+   */
+  multisample: boolean;
   materials: Readonly<Record<string, IWorldMaterial>>;
   models: Readonly<Record<string, IWorldModel>>;
   nodes: TWorldNode[];

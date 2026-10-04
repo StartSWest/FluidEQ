@@ -105,6 +105,11 @@ world.json:
   zoom are applied after your formulas, about what the camera looks at.
 - toneMapping "aces", "agx", "neutral" or "none"; environment "studio" (soft
   reflections) or "none".
+- "multisample": false for a world made only of glows and soft sprites
+  (stars, nebulae, sparks, smoke): its edges are soft already, and drawn
+  with the four samples a pixel that solid edges need, such a world ran up
+  to fifteen times slower on integrated graphics. Leave it out where
+  anything solid has an edge to smooth.
 
 FORMULAS. Any number may be a string that is a formula, worked out every
 frame:
