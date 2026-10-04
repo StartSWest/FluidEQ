@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   ReactElement,
-  startTransition,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -537,20 +536,19 @@ const useEqPageBands = () => {
     [],
   );
 
-  // THE STORE IN A TRANSITION, THE ENGINE AFTER IT (Ivan, 2026-09-26: "so
-  // the user feels it is really fast … and the settings come after, non
-  // blocking UI"). A dragged slider's thumb is already under the pointer
-  // (RangeInput's draft); what a step set off behind it — every band and the
-  // whole graph rendered again, then a layout of the page — was about 9 ms of
-  // React and 7 of layout per step at 1440x900, measured, run inside the
-  // input event, so the next step waited on it. As a transition React renders
-  // it between pointer events and drops a render the next step has already
-  // made stale.
+  // THE STORE AT ONCE, THE ENGINE AFTER IT (Ivan, 2026-09-26: "so the user
+  // feels it is really fast … and the settings come after, non blocking UI").
+  // Every step renders the bands and the graph in the same frame as the
+  // thumb, the way a drag on the graph always has. It was a transition, which
+  // React throws away whenever a newer update arrives: while the hand kept
+  // moving, each step's render was dropped for the next one's and the curve
+  // only caught up when the hand slowed — the slider moved and the curve
+  // trailed it, where dragging the dot moved both together (Ivan,
+  // 2026-10-03: "if I move the slider the curve movement has a lag"). The
+  // engine still hears it one write at a time (`groupFlush`).
   const showGroupEdits = useCallback(
     (edits: IFilterEdit[]) =>
-      startTransition(() => {
-        dispatchFilter({ type: FilterActionEnum.EDITS, edits });
-      }),
+      dispatchFilter({ type: FilterActionEnum.EDITS, edits }),
     [dispatchFilter],
   );
 
