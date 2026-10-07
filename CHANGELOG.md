@@ -65,6 +65,8 @@ numbers right on the graph.
 
 ### Fixes
 
+- Stopping the music no longer slides the live graph to the right: what is
+  left of the sound falls where each frequency was heard.
 - The Room plays on outputs running at 88.2, 176.4, 352.8 and 384 kHz; it
   used to say a head file was missing and pass the sound through.
 - The FluidEQ Engine plays on outputs whose driver lists its effects only one

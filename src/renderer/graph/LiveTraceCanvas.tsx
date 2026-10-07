@@ -90,7 +90,7 @@ import {
   isSameLegendPlace,
   takeLegendFrame,
 } from './analysis/legendPlace';
-import { GRAPH_SILENT_POINTS } from './liveGraphBand';
+import { useSilentFloor } from './silentFloor';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData, ILiveCurveData } from './ChartController';
 import { resolvePresentedStrokeWidth } from './liveTracePaint';
@@ -349,7 +349,10 @@ const LiveTraceCanvas = ({
   // source because it is a property of the drawing, not of the measurement:
   // nothing else reading the analyser — the meter, the Smart EQ solver, the
   // rhythm game — should ever see an invented frame.
-  const previewPoints = useLookPreviewPoints(livePoints, look.id);
+  // Silence on the frequencies the music was last measured at, so the trace
+  // falls where it was heard (`silentFloor.ts`).
+  const silentFloor = useSilentFloor(livePoints);
+  const previewPoints = useLookPreviewPoints(livePoints, look.id, silentFloor);
   // What the frame loop reports as painted: the preview's own identity, which
   // is what lets it go, even where the drawing shows the floor in its place.
   const previewPointsRef = useRef(previewPoints);
@@ -369,8 +372,8 @@ const LiveTraceCanvas = ({
     if (previewPoints.length > 0) {
       return previewPoints.map(({ x }) => ({ x, y: MIN_GAIN }));
     }
-    return GRAPH_SILENT_POINTS;
-  }, [ambient, isPaused, previewPoints]);
+    return silentFloor;
+  }, [ambient, isPaused, previewPoints, silentFloor]);
   const displayedWaveform = useMemo(
     () => resolveLookWaveform(points, livePoints, waveform),
     [points, livePoints, waveform],
@@ -720,8 +723,9 @@ const LiveTraceCanvas = ({
   // No early return on an empty frame any more. Leaving the document was what
   // made the drawing disappear the instant the music stopped — the pixels go
   // with the element, so a pause, a track change or a quiet passage blanked the
-  // plot. Silence is now drawn rather than unmounted: `SILENT_POINTS` puts every
-  // band on the floor and the form keeps its shape, which is also how the
+  // plot. Silence is now drawn rather than unmounted: the silent floor puts
+  // every band on the floor, at the frequency it was last heard at
+  // (`silentFloor.ts`), and the form keeps its shape, which is also how the
   // scenery styles have always behaved.
   return (
     <>
