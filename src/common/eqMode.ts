@@ -1,4 +1,6 @@
 import {
+  curveSmoothingOf,
+  DEFAULT_CURVE_SMOOTHING,
   shapeEqFilters,
   smoothEqCurve,
   TBandQ,
@@ -97,7 +99,7 @@ export const canAdoptEqModeChange = (
   if (layerGroupOf(feature) === 'curves') {
     return (
       getBandQ(state, 'curves') === 'off' &&
-      (!state.curveSmoothing || state.curveSmoothing === 'off') &&
+      curveSmoothingOf(state.curveSmoothing) === 'off' &&
       getCurveEqMode(state) === 'normal'
     );
   }
@@ -238,7 +240,7 @@ export const convolutionCorrection = (
   profile: IConvolutionProfile | undefined,
   mode: TEqMode,
   shape: TBandQ = 'off',
-  smoothing: TCurveSmoothing = 'off',
+  smoothing: TCurveSmoothing = DEFAULT_CURVE_SMOOTHING,
 ): IGraphicEqPoint[] => {
   if (mode !== 'studio' && shape === 'off' && smoothing === 'off') {
     return [];

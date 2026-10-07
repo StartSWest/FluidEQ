@@ -9,6 +9,21 @@ import {
 export type TBandQ = 'off' | 'proportional' | 'asymmetric';
 export type TCurveSmoothing = 'off' | 'twelfth' | 'third';
 
+/**
+ * How the Corrections row smooths a sampled curve until somebody chooses
+ * (Ivan, 2026-10-06: "curves 1/12 octave as default"). An unset choice means
+ * this one everywhere — what is written for either engine, what the graph
+ * draws, what Auto normalize sizes the preamp for — so read a saved value
+ * through `curveSmoothingOf`, never as Off when it is missing.
+ */
+export const DEFAULT_CURVE_SMOOTHING: TCurveSmoothing = 'twelfth';
+
+/** A saved smoothing choice, or the default where none is. */
+export const curveSmoothingOf = (saved: unknown): TCurveSmoothing =>
+  saved === 'off' || saved === 'twelfth' || saved === 'third'
+    ? saved
+    : DEFAULT_CURVE_SMOOTHING;
+
 export const shapeEqFilters = <
   T extends Pick<IFilter, 'type' | 'gain' | 'quality'>,
 >(
@@ -31,8 +46,9 @@ export const shapeEqFilters = <
 /** Integrates dB over a log-frequency window so dense samples cannot bias smoothing. */
 export const smoothEqCurve = (
   points: IGraphicEqPoint[],
-  smoothing: TCurveSmoothing = 'off',
+  saved?: TCurveSmoothing,
 ): IGraphicEqPoint[] => {
+  const smoothing = curveSmoothingOf(saved);
   if (smoothing === 'off' || points.length < 2) {
     return points;
   }
@@ -91,8 +107,9 @@ export const smoothEqCurve = (
 };
 export const filterSmoothingCorrection = (
   filters: Array<Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>>,
-  smoothing: TCurveSmoothing = 'off',
+  saved?: TCurveSmoothing,
 ): IGraphicEqPoint[] => {
+  const smoothing = curveSmoothingOf(saved);
   if (smoothing === 'off' || !filters.length) {
     return [];
   }

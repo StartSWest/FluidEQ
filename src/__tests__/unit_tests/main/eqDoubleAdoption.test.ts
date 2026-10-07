@@ -79,6 +79,15 @@ describe('two-pass external EQ adoption', () => {
       expect(getEqMode(state)).toBe('normal');
       expect(getCurveEqMode(state)).toBe(eqMode);
       state.curveEqMode = 'normal';
+      // The correction's file holds it smoothed at 1/12 octave, the
+      // default, which no edit to it can be read back through.
+      const smoothed = JSON.stringify(state);
+      expect(
+        adoptApoFeatureText(state, 'headphone', external).unsupported,
+      ).toBeGreaterThan(0);
+      expect(JSON.stringify(state)).toBe(smoothed);
+      // CONTROL: written as it is, it is taken.
+      state.curveSmoothing = 'off';
       expect(adoptApoFeatureText(state, 'headphone', external).changed).toBe(
         true,
       );

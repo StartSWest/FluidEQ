@@ -333,6 +333,9 @@ describe('preamp headroom', () => {
 
   it('uses the measured response of a file-backed convolution', () => {
     const state = getDefaultState();
+    // Unsmoothed: the numbers below are the curve's own. The 1/12 octave
+    // default has a case of its own further down.
+    state.curveSmoothing = 'off';
     state.isFlat = true;
     state.isAutoPreAmpOn = true;
     state.convolution = {
@@ -352,6 +355,9 @@ describe('preamp headroom', () => {
 
   it('strictly normalizes the affected AutoEq profile instead of weighting program material', () => {
     const state = getDefaultState();
+    // Unsmoothed: the numbers below are the curve's own. The 1/12 octave
+    // default has a case of its own further down.
+    state.curveSmoothing = 'off';
     state.isFlat = true;
     state.isAutoPreAmpOn = true;
     state.headphone = {
@@ -433,6 +439,31 @@ describe('preamp headroom', () => {
     const peak = getChainPeakGain(Object.values(state.headphone.filters));
     expect(peak).toBe(6.35);
     expect(preampValue(state)).toBe(-6.55);
+  });
+
+  it('sizes the preamp for a correction as it plays, smoothed at 1/12 octave with nothing chosen', () => {
+    const state = getDefaultState();
+    state.isFlat = true;
+    state.isAutoPreAmpOn = true;
+    state.headphone = {
+      intensity: 1,
+      filters: {
+        narrow: {
+          id: 'narrow',
+          frequency: 3244,
+          gain: 6,
+          quality: 6,
+          type: FilterTypeEnum.PK,
+        },
+      },
+    };
+    expect(state.curveSmoothing).toBeUndefined();
+    const smoothed = preampValue(state);
+    expect(smoothed).toBe(preampValue({ ...state, curveSmoothing: 'twelfth' }));
+    // CONTROL: unsmoothed, the narrow peak stands taller and takes more.
+    expect(preampValue({ ...state, curveSmoothing: 'off' })).toBeLessThan(
+      smoothed,
+    );
   });
 
   it('reserves headroom for the measurable part of the custom FX file', () => {

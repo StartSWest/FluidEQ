@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { getCurveEqMode, getBandQ, getMainBandQ } from '../../common/eqMode';
+import { DEFAULT_CURVE_SMOOTHING } from '../../common/eqShape';
 import { APO_LAYERS, IState, TApoLayer } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
@@ -86,7 +87,7 @@ export const registerLayersIpc = ({
     state.eqBandQ = 'off';
     state.mainBandQ = 'off';
     state.curveBandQ = 'off';
-    state.curveSmoothing = 'off';
+    state.curveSmoothing = DEFAULT_CURVE_SMOOTHING;
     await handleUpdate(event, ChannelEnum.RESET_EQ_MODE, false, true);
   });
 

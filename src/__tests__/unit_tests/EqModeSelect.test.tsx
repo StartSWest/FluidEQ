@@ -299,7 +299,7 @@ it('keeps only the latest queued choice per row without losing another group', a
   expect(mockRefresh).toHaveBeenCalledTimes(3);
   expect(screen.getByRole('dialog')).toBeVisible();
 });
-it('offers Constant instead of Off in both Q groups without removing smoothing Off', () => {
+it('offers Constant instead of Off in both Q groups, and smoothing at 1/12 octave with Off still offered', () => {
   render(<EqModeSelect />);
   fireEvent.click(menu());
   ['Your EQ', 'Corrections'].forEach((scope) => {
@@ -317,11 +317,18 @@ it('offers Constant instead of Off in both Q groups without removing smoothing O
     expect(group.getByRole('button', { name: 'Proportional' })).toBeVisible();
     expect(group.getByRole('button', { name: 'Asymmetric' })).toBeVisible();
   });
+  // Nothing chosen is 1/12 octave (Ivan, 2026-10-06: "curves 1/12 octave as
+  // default"), and Off is still there to choose.
+  const smoothing = within(
+    screen.getByRole('group', { name: 'Corrections · Curve smoothing' }),
+  );
   expect(
-    within(
-      screen.getByRole('group', { name: 'Corrections · Curve smoothing' }),
-    ).getByRole('button', { name: 'Off' }),
+    smoothing.getByRole('button', { name: '1/12 octave' }),
   ).toHaveAttribute('aria-pressed', 'true');
+  expect(smoothing.getByRole('button', { name: 'Off' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
   expect(menu()).toHaveTextContent('Normal');
 });
 
@@ -331,6 +338,8 @@ it.each([
   { eqBandQ: 'proportional' as const },
   { curveBandQ: 'asymmetric' as const },
   { curveSmoothing: 'third' as const },
+  // Off is a choice of its own now that 1/12 octave is where curves start.
+  { curveSmoothing: 'off' as const },
 ])('shows a compact Custom summary for %j', (settings) => {
   Object.assign(mockWorld, settings);
   const { rerender } = render(<EqModeSelect />);
@@ -341,7 +350,7 @@ it.each([
     curveEqMode: 'normal',
     eqBandQ: 'off',
     curveBandQ: 'off',
-    curveSmoothing: 'off',
+    curveSmoothing: 'twelfth',
   });
   rerender(<EqModeSelect />);
   expect(menu()).toHaveTextContent('Normal');

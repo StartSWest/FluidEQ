@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { TBandQ, TCurveSmoothing } from '../../common/eqShape';
+import {
+  curveSmoothingOf,
+  DEFAULT_CURVE_SMOOTHING,
+  TBandQ,
+  TCurveSmoothing,
+} from '../../common/eqShape';
 import {
   DEFAULT_CURVE_COMPARISON,
   TCurveComparison,
@@ -139,7 +144,7 @@ export default function EqModeSelect() {
     SCOPES.some(
       (scope) => selected[scope] !== 'normal' || bandQ(scope) !== 'off',
     ) ||
-    (state.curveSmoothing !== undefined && state.curveSmoothing !== 'off') ||
+    curveSmoothingOf(state.curveSmoothing) !== DEFAULT_CURVE_SMOOTHING ||
     (phase.status?.active &&
       (phase.status.variant !== DEFAULT_CURVE_COMPARISON ||
         phase.status.eqVariant !== DEFAULT_CURVE_COMPARISON)) ||
@@ -203,7 +208,7 @@ export default function EqModeSelect() {
     if (kind === 'treble') {
       return trebleOf(scope);
     }
-    return state.curveSmoothing ?? 'off';
+    return curveSmoothingOf(state.curveSmoothing);
   };
 
   const select = async (

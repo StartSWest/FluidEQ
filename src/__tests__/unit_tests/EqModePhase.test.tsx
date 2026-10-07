@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { ICurveComparisonStatus } from 'common/curveComparison';
+import { TCurveSmoothing } from 'common/eqShape';
 import EqModeSelect from 'renderer/components/EqModeSelect';
 import { refreshTrebleDesigns } from 'renderer/utils/useTrebleDesigns';
 
@@ -9,6 +10,9 @@ const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockError = jest.fn();
 const mockReset = jest.fn().mockResolvedValue(undefined);
 let mockStatus: ICurveComparisonStatus;
+// Unset is the 1/12 octave default: anything else makes the menu Custom by
+// itself, and a Custom read after a phase change would then prove nothing.
+let mockSmoothing: TCurveSmoothing | undefined;
 let mockRate = 48000;
 let mockGameMode = false;
 jest.mock('renderer/utils/useListenedOutput', () => ({
@@ -30,7 +34,7 @@ beforeAll(() => refreshTrebleDesigns());
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
     isBlockingError: false,
-    curveSmoothing: 'off',
+    curveSmoothing: mockSmoothing,
     refreshState: mockRefresh,
     setGlobalError: mockError,
   })),
@@ -59,6 +63,7 @@ const pick = async (scope: string, phase: string) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockSmoothing = undefined;
   mockRate = 48000;
   mockGameMode = false;
   mockSelect.mockResolvedValue(undefined);
@@ -73,6 +78,7 @@ beforeEach(() => {
 });
 
 it('defaults both groups to Minimum even with smoothing off and no sampled curves', () => {
+  mockSmoothing = 'off';
   open();
   ['Your EQ', 'Corrections'].forEach((scope) => {
     expect(
@@ -80,6 +86,10 @@ it('defaults both groups to Minimum even with smoothing off and no sampled curve
     ).toHaveAttribute('aria-pressed', 'true');
     expect(group(scope).getByRole('button', { name: 'Linear' })).toBeEnabled();
   });
+});
+
+it('calls both groups at Minimum nothing changed', () => {
+  open();
   expect(screen.getByRole('button', { name: 'EQ mode' })).toHaveTextContent(
     'Normal',
   );

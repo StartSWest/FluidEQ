@@ -1,5 +1,6 @@
 import { getResponseGainAtFrequencies } from '../common/response';
 import {
+  curveSmoothingOf,
   shapeEqFilters,
   smoothEqCurve,
   filterSmoothingCorrection,
@@ -532,7 +533,7 @@ const customEqCompensation = (state: IState): string[] => {
   if (
     (mode === 'normal' &&
       getBandQ(state, 'curves') === 'off' &&
-      (!state.curveSmoothing || state.curveSmoothing === 'off')) ||
+      curveSmoothingOf(state.curveSmoothing) === 'off') ||
     !state.customFx ||
     state.bypassed?.includes('custom')
   ) {

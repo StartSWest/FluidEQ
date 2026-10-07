@@ -39,6 +39,8 @@ numbers right on the graph.
   its point, never beside it, keeps clear of the style dots and the
   analyser's key, stays put while you drag its band, and goes back to its own
   place once there is room. Resetting the EQ lays them out fresh.
+- **Corrections are smoothed at 1/12 octave until you choose otherwise**, and
+  Reset in EQ mode goes back there. Off is still one press away.
 - **The curve follows a slider at once.** Moving a band's slider redraws the
   curve in the same frame, as dragging the curve already moved the slider.
 - **The handles and knobs work from the keyboard**: the arrow keys step a

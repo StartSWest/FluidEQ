@@ -152,6 +152,10 @@ describe('live Equalizer APO feature-file adoption', () => {
     'keeps an external %s edit in that layer instead of flattening it into EQ',
     (feature) => {
       const state = getDefaultState();
+      // A correction's file is read back only as it was written, unsmoothed:
+      // at the 1/12 octave default an edit to it is refused
+      // (eqDoubleAdoption.test.ts).
+      state.curveSmoothing = 'off';
 
       adoptApoFeatureText(state, feature, FILTER);
 
