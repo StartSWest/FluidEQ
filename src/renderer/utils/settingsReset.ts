@@ -76,6 +76,7 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.plusRailPinned',
   'fluideq.editorShareByTab',
   'fluideq.soundPaneFolded',
+  'fluideq.eqModePinned',
   'fluideq.singlePlayer',
   'fluideq.songSound',
   'fluideq.dsp.phaseView',

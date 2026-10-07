@@ -17,12 +17,20 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Activity, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Activity,
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { isAccountConfigured } from 'common/accountConfig';
 import useMediaQuery from './utils/useMediaQuery';
 import {
   setSoundPaneFolded,
+  subscribeSoundPaneRequests,
   useSoundPaneFolded,
   useSoundPaneSlide,
 } from './utils/soundPane';
@@ -397,6 +405,16 @@ const AppContent = () => {
   const isSoundPaneShown = isSoundPaneOverPage
     ? rightPaneOpen
     : !isSoundPaneFolded;
+  // Put on screen for what stands in it (`requestSoundPane`): the EQ mode
+  // card pinned into it, revealed with the panel folded or shut.
+  const showSoundPane = useEffectEvent(() => {
+    if (isSoundPaneOverPage) {
+      setRightPaneOpen(true);
+    } else {
+      setSoundPaneFolded(false);
+    }
+  });
+  useEffect(() => subscribeSoundPaneRequests(() => showSoundPane()), []);
   // The panel slides on the compositor; the page is laid out once per fold
   // (`useSoundPaneSlide`). Beside the page the column is its rail from the
   // start of a fold, and until an unfold's slide has finished — the panel

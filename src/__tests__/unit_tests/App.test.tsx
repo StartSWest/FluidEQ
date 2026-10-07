@@ -53,6 +53,12 @@ import {
   setGraphContents,
   setGraphView,
 } from '../../renderer/utils/graphStyle';
+import { SOUND_PANE_DRAWER_QUERY } from '../../renderer/shell/workspaceGroups';
+import {
+  requestSoundPane,
+  resetSoundPaneForTesting,
+  setSoundPaneFolded,
+} from '../../renderer/utils/soundPane';
 import { preloadTab } from '../../renderer/workspacePages';
 import type { TWorkspaceTab } from '../../renderer/workspaceTabs';
 
@@ -276,6 +282,64 @@ describe('App', () => {
     expect(
       screen.getByRole('button', { name: /Second output/i }),
     ).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  // The EQ mode settings stand in the sound panel, beside the graph, and the
+  // EQ page's button asks for them (`requestSoundPane`): the panel comes on
+  // screen however it was put away (Ivan, 2026-10-06: "it needs to open the
+  // side menu if closed"). What the button sends is held by
+  // `eqModeCard.test.tsx`; this is the shell's answer.
+  it('unfolds the sound panel when something in it is asked for', async () => {
+    setSoundPaneFolded(true);
+    try {
+      const { container } = render(<App />);
+      await act(async () => Promise.resolve());
+      const panel = container.querySelector('.right-content');
+      expect(panel).not.toHaveClass('is-shown');
+      act(() => {
+        requestSoundPane();
+      });
+      expect(panel).toHaveClass('is-shown');
+      expect(panel).not.toHaveClass('is-open');
+      expect(window.localStorage.getItem('fluideq.soundPaneFolded')).toBe(
+        'false',
+      );
+    } finally {
+      resetSoundPaneForTesting();
+    }
+  });
+
+  it('opens the sound panel over the page where it is a drawer', async () => {
+    // jsdom has no `matchMedia`; here the window is narrow enough for the
+    // panel to open over the page rather than stand beside it.
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: (query: string) => ({
+        matches: query === SOUND_PANE_DRAWER_QUERY,
+        media: query,
+        onchange: null,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        dispatchEvent: () => false,
+      }),
+    });
+    try {
+      const { container } = render(<App />);
+      await act(async () => Promise.resolve());
+      const panel = container.querySelector('.right-content');
+      expect(panel).not.toHaveClass('is-open');
+      act(() => {
+        requestSoundPane();
+      });
+      expect(panel).toHaveClass('is-open');
+      expect(panel).toHaveClass('is-shown');
+      // The column's own fold, for a wider window, is left as it was.
+      expect(window.localStorage.getItem('fluideq.soundPaneFolded')).toBeNull();
+    } finally {
+      delete (window as unknown as { matchMedia?: unknown }).matchMedia;
+    }
   });
 
   // This used to pin the transport the titlebar carried. There is one

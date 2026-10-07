@@ -83,6 +83,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.trebleUpdate':
     'Mettez à jour le moteur FluidEQ pour choisir le rendu des aigus.',
   'eq.mode.reset': 'Réinitialiser',
+  'eq.mode.pin': 'Épingler à côté du graphique',
+  'eq.mode.unpin': 'Remettre dans le menu',
+  'eq.mode.showPinned': 'Afficher le mode EQ à côté du graphique',
   'eq.mode.customized': 'Personnalisé',
   'eq.mode.strength': 'Intensité',
   'eq.mode.q': 'Q des bandes',

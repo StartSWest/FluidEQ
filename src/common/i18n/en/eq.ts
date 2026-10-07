@@ -79,6 +79,9 @@ const eq = {
   'eq.mode.trebleUpdate':
     'Update the FluidEQ Engine to choose how treble plays.',
   'eq.mode.reset': 'Reset',
+  'eq.mode.pin': 'Pin beside the graph',
+  'eq.mode.unpin': 'Put back in the menu',
+  'eq.mode.showPinned': 'Show EQ mode beside the graph',
   'eq.mode.customized': 'Custom',
   'eq.mode.strength': 'Strength',
   'eq.mode.q': 'Band Q',

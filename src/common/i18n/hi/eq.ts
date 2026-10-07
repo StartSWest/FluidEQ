@@ -82,6 +82,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.trebleUpdate':
     'ट्रेबल कैसे बजे, यह चुनने के लिए FluidEQ इंजन अपडेट करें।',
   'eq.mode.reset': 'रीसेट',
+  'eq.mode.pin': 'ग्राफ़ के पास पिन करें',
+  'eq.mode.unpin': 'वापस मेनू में रखें',
+  'eq.mode.showPinned': 'ग्राफ़ के पास EQ मोड दिखाएँ',
   'eq.mode.customized': 'कस्टम',
   'eq.mode.strength': 'तीव्रता',
   'eq.mode.q': 'बैंड Q',

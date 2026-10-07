@@ -85,6 +85,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.trebleUpdate':
     'Aktualisieren Sie die FluidEQ-Engine, um die Wiedergabe der Höhen zu wählen.',
   'eq.mode.reset': 'Zurücksetzen',
+  'eq.mode.pin': 'Neben dem Diagramm anheften',
+  'eq.mode.unpin': 'Zurück ins Menü',
+  'eq.mode.showPinned': 'EQ-Modus neben dem Diagramm anzeigen',
   'eq.mode.customized': 'Individuell',
   'eq.mode.strength': 'Stärke',
   'eq.mode.q': 'Band-Q',

@@ -216,6 +216,8 @@ const PATHS: Record<string, string> = {
   lock: 'M6.5 10.5h11v9h-11zM8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5',
   // A pencil: change what this is called.
   pencil: 'M15.5 5l3.5 3.5L9 18.5l-4 1 1-4L15.5 5zM13.5 7l3.5 3.5',
+  // A pushpin: kept on screen, beside what it is about.
+  pin: 'M8 3.5h8M9.5 3.5V10L6 13.5h12L14.5 10V3.5M12 13.5V21',
 };
 
 export type MenuIconName = keyof typeof PATHS;

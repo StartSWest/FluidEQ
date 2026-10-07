@@ -54,8 +54,9 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
       'bugReport.*',
     ],
   ],
-  'src/renderer/components/EqModeSelect.tsx': [
-    // The menu's rows, its band shapes and its smoothing steps.
+  'src/renderer/components/eqMode/EqModeRows.tsx': [
+    // The EQ mode rows, in the menu and in the card it pins as: the rows,
+    // their band shapes and the smoothing steps.
     [
       'eq.mode.{phase,q,strength,smoothing,treble,constant,proportional,asymmetric,off,twelfth,third}',
       'eq.mode.*',

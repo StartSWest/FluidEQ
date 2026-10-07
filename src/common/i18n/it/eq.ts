@@ -82,6 +82,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.trebleUpdate':
     'Aggiorna il motore FluidEQ per scegliere come suonano gli alti.',
   'eq.mode.reset': 'Ripristina',
+  'eq.mode.pin': 'Fissa accanto al grafico',
+  'eq.mode.unpin': 'Rimetti nel menu',
+  'eq.mode.showPinned': 'Mostra la modalità EQ accanto al grafico',
   'eq.mode.customized': 'Personalizzato',
   'eq.mode.strength': 'Intensità',
   'eq.mode.q': 'Q delle bande',

@@ -46,6 +46,8 @@ jest.mock('renderer/components/VoicingQuickPick', () => () => null);
 jest.mock('renderer/components/CurvesPicker', () => () => null);
 jest.mock('renderer/components/FrequencyBand', () => () => null);
 jest.mock('renderer/components/EqModeSelect', () => () => null);
+// The EQ page's own EQ mode button, pinned beside the graph at first.
+jest.mock('renderer/components/eqMode/EqPageModeSelect', () => () => null);
 jest.mock('renderer/components/BandLayoutMenu', () => () => null);
 jest.mock('renderer/components/OutputRate', () => () => null);
 

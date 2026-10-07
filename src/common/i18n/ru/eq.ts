@@ -81,6 +81,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.trebleUpdate':
     'Обновите движок FluidEQ, чтобы выбрать, как звучат высокие.',
   'eq.mode.reset': 'Сбросить',
+  'eq.mode.pin': 'Закрепить рядом с графиком',
+  'eq.mode.unpin': 'Вернуть в меню',
+  'eq.mode.showPinned': 'Показать режим EQ рядом с графиком',
   'eq.mode.customized': 'Свой',
   'eq.mode.strength': 'Интенсивность',
   'eq.mode.q': 'Добротность полос',

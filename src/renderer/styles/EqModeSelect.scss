@@ -2,6 +2,7 @@
 @use 'theme' as *;
 @use 'spacing' as *;
 @use 'color' as *;
+@use 'motion' as *;
 
 .eq-mode-trigger {
   @include choice-surface;
@@ -29,6 +30,15 @@
     white-space: nowrap;
     color: $text-faint;
     font-size: $text-small;
+  }
+
+  // Pinned, the chevron's place holds the pin: the button shows the card
+  // beside the graph instead of opening a menu.
+  &__pin {
+    width: 12px;
+    height: 12px;
+    flex: 0 0 auto;
+    color: $secondary-default;
   }
 
   &:focus-visible {
@@ -74,23 +84,24 @@
       font-weight: $weight-bold;
     }
   }
+}
 
-  // Every row is the app's segmented track (`.segmented`, Dsp.scss): a
-  // closed set of choices, all showing, the chosen one lit. Each row used to
-  // be a grid of tiles with the chosen tile filled solid, and a panel of nine
-  // solid tiles gave the eye nothing to find (Ivan, 2026-09-22: "improve this
-  // ui"). Equal widths, so a row reads as one control whatever its words;
-  // scoped past `.segmented`'s own `display: flex` whichever stylesheet
-  // loads first.
-  .segmented.eq-mode-menu__choices {
-    // The track's own face, as everywhere (`.segmented`): the block colour it
-    // had here was the pale slab every segmented row was (Ivan, 2026-09-26:
-    // "not good, too light color", "all of those").
-    display: grid;
-    grid-auto-columns: minmax(0, 1fr);
-    grid-auto-flow: column;
-    border-radius: $radius-xs;
-  }
+// Every row is the app's segmented track (`.segmented`, Dsp.scss): a closed
+// set of choices, all showing, the chosen one lit. Each row used to be a grid
+// of tiles with the chosen tile filled solid, and a panel of nine solid tiles
+// gave the eye nothing to find (Ivan, 2026-09-22: "improve this ui"). Equal
+// widths, so a row reads as one control whatever its words; scoped past
+// `.segmented`'s own `display: flex` whichever stylesheet loads first. The
+// same rows stand in the menu and in the card it pins as (`.eq-mode-choices`
+// is both).
+.eq-mode-choices .segmented.eq-mode-choices__track {
+  // The track's own face, as everywhere (`.segmented`): the block colour it
+  // had here was the pale slab every segmented row was (Ivan, 2026-09-26:
+  // "not good, too light color", "all of those").
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  border-radius: $radius-xs;
 }
 .eq-mode-menu__heading {
   display: flex;
@@ -114,8 +125,31 @@
     }
   }
 }
-.eq-mode-menu__reset {
+.eq-mode-menu__actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
   margin-left: auto;
+}
+// The glyph clear of the word, as on every button of the toolbar the menu
+// opens from (`.main-content-title > .eq-toolbar .button`). Flush against it,
+// the arrow read as part of the word.
+.eq-mode-choices__reset {
+  gap: $spacing-xs + $spacing-xxs;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+// The pin, and the card's way back: a glyph each, square, the quiet style —
+// moving the settings is never the suggested action.
+.eq-mode-menu__pin.button.small,
+.eq-mode-card__unpin.button.small {
+  width: $control-height-sm;
+  min-width: 0;
+  padding: 0;
+
   svg {
     width: 14px;
     height: 14px;
@@ -134,7 +168,7 @@
     color: $secondary-default;
   }
 }
-.eq-mode-menu__row {
+.eq-mode-choices__row {
   display: grid;
   align-content: start;
   gap: $spacing-xs;
@@ -148,7 +182,7 @@
 }
 // The EQ page's own field caption (`.eq-flat-editor__control > span`), so the
 // menu names its rows the way the band editor under it names its fields.
-.eq-mode-menu__row-label {
+.eq-mode-choices__label {
   color: $text-muted;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
@@ -156,7 +190,7 @@
   line-height: 14px;
   text-transform: uppercase;
 }
-.eq-mode-menu__note {
+.eq-mode-choices__note {
   margin: 0;
   color: $text-faint;
   font-size: $text-micro;
@@ -188,7 +222,7 @@
 // only when that word alone is wider than its segment: a Russian
 // "Proportional" ("Пропорциональная") is, and ran into "Asymmetric" beside
 // it; the English one fits whole.
-.eq-mode-menu .segmented__option.eq-mode-choice {
+.eq-mode-choices .segmented__option.eq-mode-choice {
   display: flex;
   min-width: 0;
   min-height: 30px;
@@ -271,4 +305,165 @@
   font-weight: $weight-regular;
   font-variant-numeric: tabular-nums;
   opacity: 0.75;
+}
+
+// ---- Pinned beside the graph (`EqModeCard`) --------------------------------
+
+// The way back stands in the card's header row, between the title and the
+// chevron, where the mockup Ivan chose drew it (2026-10-06). Not inside the
+// header: the whole header is the fold's button, and a button in a button is
+// neither valid nor reachable. So the two share the section's first grid row
+// — the header across it, the pin over its right end — and the header keeps
+// the pin's room free in front of its chevron. The offsets are the header's
+// own: its 12px inset in the panel (`SidebarSection.scss`), the 11px chevron
+// (`.chevron`, `App.scss`) and the 10px between its parts.
+$eq-mode-unpin: 26px;
+$eq-mode-header-gap: 10px;
+
+.right-content .sidebar-section.eq-mode-card {
+  > .sidebar-section__header,
+  > .sidebar-section__aside {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  > .sidebar-section__aside {
+    justify-self: end;
+    align-self: center;
+    padding: 0;
+    margin-inline-end: 12px + 11px + $eq-mode-header-gap;
+  }
+
+  .sidebar-section__chevron {
+    margin-inline-start: $eq-mode-unpin + $eq-mode-header-gap;
+  }
+
+  .eq-mode-card__unpin.button.small {
+    width: $eq-mode-unpin;
+    height: $eq-mode-unpin;
+    min-height: $eq-mode-unpin;
+  }
+
+  // A reveal says where the settings went: the card's edge lights and fades
+  // once, so a press that opened nothing new still visibly lands somewhere.
+  // A change of light, not of place, so reduced motion keeps it.
+  &.is-arriving {
+    animation: eq-mode-card-arrive 1.4s $ease-out;
+  }
+}
+@keyframes eq-mode-card-arrive {
+  from {
+    border-color: color-mix(in srgb, $secondary-default 70%, transparent);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, $secondary-default 40%, transparent),
+      0 0 24px color-mix(in srgb, $secondary-default 26%, transparent);
+  }
+}
+
+.eq-mode-card__body {
+  display: grid;
+  min-width: 0;
+  gap: $spacing-s + $spacing-xs;
+}
+
+// The two groups as tabs on a rule, the account form's (`.account-form__tab`):
+// which group the rows belong to, told apart from the settings themselves,
+// which are all segmented tracks. One group at a time, or the card would stand
+// as tall as the panel above the output it shares the panel with.
+.eq-mode-card__groups {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  border-bottom: 1px solid $border-subtle;
+}
+.eq-mode-card__group {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-s;
+  margin-bottom: -1px;
+  padding: $spacing-s $spacing-xs ($spacing-s + 1px);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: $text-faint;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+  transition: color $motion-fast $ease-out;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    color: $secondary-default;
+  }
+
+  span {
+    @include truncate;
+  }
+
+  &::after {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: transparent;
+    content: '';
+    transition: background $motion-fast $ease-out;
+  }
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &[aria-selected='true'] {
+    color: $text-primary;
+
+    &::after {
+      background: $secondary-default;
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+// The two groups in one cell, the one not on show hidden but still sizing it.
+.eq-mode-card__panels {
+  display: grid;
+  min-width: 0;
+}
+.eq-mode-card__rows {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  grid-area: 1 / 1;
+
+  &[inert] {
+    visibility: hidden;
+  }
+}
+// Each row's own margin spaces it from the one before; the first stands under
+// the tabs, which the body's gap already spaces.
+.eq-mode-card__rows > .eq-mode-choices__row:first-child {
+  margin-top: 0;
+}
+.eq-mode-card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+  padding-top: $spacing-s + $spacing-xs;
+  border-top: 1px solid $card-edge;
+
+  .eq-mode-choices__note {
+    flex: 1 1 10rem;
+    min-width: 0;
+  }
 }

@@ -55,7 +55,7 @@ import { PetArt } from '../SupportPet';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { endCorrectionFlash } from '../utils/correctionFlash';
 import SongEqSaveSwitch from '../components/SongEqSaveSwitch';
-import EqModeSelect from '../components/EqModeSelect';
+import EqPageModeSelect from '../components/eqMode/EqPageModeSelect';
 import BandLayoutMenu from '../components/BandLayoutMenu';
 import CurvesPicker from '../components/CurvesPicker';
 import ClearEqButton from '../components/ClearEqButton';
@@ -409,7 +409,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
               ticked on, it counted out the two minutes, and it committed
               nothing at the end of them. */}
             {isContinuousRunning && <SongEqSaveSwitch id="songEqSave" />}
-            <EqModeSelect />
+            <EqPageModeSelect />
             {/* The band count and its plus, as one "15 bands, +". Its word
               stays under the page's own title and goes above the graph,
               where the glyph beside the count says it (`MainContent.scss`). */}

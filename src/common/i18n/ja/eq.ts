@@ -84,6 +84,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.trebleUpdate':
     '高音の鳴らし方を選ぶにはFluidEQエンジンを更新してください。',
   'eq.mode.reset': 'リセット',
+  'eq.mode.pin': 'グラフの横に固定',
+  'eq.mode.unpin': 'メニューに戻す',
+  'eq.mode.showPinned': 'グラフの横にEQモードを表示',
   'eq.mode.customized': 'カスタム',
   'eq.mode.strength': '強度',
   'eq.mode.q': 'バンドQ',

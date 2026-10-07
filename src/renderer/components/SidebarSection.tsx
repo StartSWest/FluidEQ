@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ReactNode, useId, useState } from 'react';
+import { ReactNode, Ref, useId, useState } from 'react';
 import Chevron from '../icons/Chevron';
 import '../styles/SidebarSection.scss';
 
@@ -70,6 +70,8 @@ interface ISidebarSectionProps {
   defaultOpen?: boolean;
   /** Told when somebody opens it, for a card that reads what it shows then. */
   onOpen?: () => void;
+  /** The section itself, for a card that scrolls itself into view. */
+  ref?: Ref<HTMLElement>;
   children: ReactNode;
 }
 
@@ -96,6 +98,7 @@ export default function SidebarSection({
   className,
   defaultOpen = true,
   onOpen,
+  ref,
   children,
 }: ISidebarSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
@@ -109,6 +112,7 @@ export default function SidebarSection({
 
   return (
     <section
+      ref={ref}
       className={`sidebar-section${eyebrow ? '' : ' sidebar-section--row'}${
         isOpen ? ' is-open' : ''
       }${className ? ` ${className}` : ''}`}

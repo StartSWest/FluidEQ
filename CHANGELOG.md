@@ -39,6 +39,11 @@ numbers right on the graph.
   its point, never beside it, keeps clear of the style dots and the
   analyser's key, stays put while you drag its band, and goes back to its own
   place once there is room. Resetting the EQ lays them out fresh.
+- **EQ mode sits beside the graph.** Its settings are the first card of the
+  side panel on the EQ page, Your EQ and Corrections one at a time, so they
+  no longer cover the curves they change. The EQ mode button brings the card
+  into view, opening the panel if it was closed; the pin on the card puts the
+  settings back in a menu.
 - **Corrections are smoothed at 1/12 octave until you choose otherwise**, and
   Reset in EQ mode goes back there. Off is still one press away.
 - **The curve follows a slider at once.** Moving a band's slider redraws the
