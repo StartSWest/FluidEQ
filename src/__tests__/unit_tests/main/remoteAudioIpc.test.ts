@@ -380,6 +380,8 @@ describe('the network capture a link starts', () => {
     await handlers.get('remote-audio-lan-switches')?.({}, 'Receiver', {
       send: true,
       play: false,
+      paused: false,
+      volume: 1,
     });
     const [, onAudio] = jest.mocked(createRemoteAudioLan).mock.calls[0];
     onAudio({
