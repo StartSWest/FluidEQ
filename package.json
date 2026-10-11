@@ -32,6 +32,7 @@
   "main": "./src/main/main.ts",
   "scripts": {
     "docs:guide": "ts-node ./.erb/scripts/export-user-guide.ts",
+    "docs:captures": "cross-env TS_NODE_TRANSPILE_ONLY=true ts-node ./scripts/help-captures/capture.ts",
     "dev": "node ./.erb/scripts/dev.cjs",
     "build": "pnpm build:native-dsp && concurrently \"pnpm build:main\" \"pnpm build:renderer\"",
     "build:native-dsp": "ts-node ./.erb/scripts/build-native-dsp.ts",
