@@ -1,5 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
+import CAPTURED from './captured';
 import { type IHelpChapter } from './model';
 
 /** The graph, its looks and the Plus visualizers in it. */
@@ -94,100 +95,8 @@ const VISUAL_CHAPTERS = [
           },
         ],
       },
-      {
-        image: '23-graph-view-menu.png',
-        width: 396,
-        height: 928,
-        caption: 'help.graph.viewCaption',
-        controls: [
-          {
-            box: [18, 79, 360, 28],
-            name: 'graph.view.expand',
-            text: 'help.graph.expand',
-            keys: 'Ctrl+S',
-          },
-          {
-            box: [18, 107, 360, 28],
-            name: 'graph.view.fullscreen',
-            text: 'help.graph.fullscreen',
-            keys: 'Ctrl+F',
-          },
-          {
-            box: [18, 200, 360, 28],
-            name: 'help.graph.showingName',
-            text: 'help.graph.showing',
-            keys: 'Ctrl+W',
-          },
-          {
-            box: [18, 368, 360, 28],
-            name: 'help.graph.waveName',
-            text: 'help.graph.wave',
-          },
-          {
-            box: [18, 396, 360, 28],
-            name: 'help.graph.topWaveName',
-            text: 'help.graph.topWave',
-          },
-          {
-            box: [18, 424, 360, 28],
-            name: 'help.graph.gridName',
-            text: 'help.graph.grid',
-            keys: 'Ctrl+G',
-          },
-          {
-            box: [18, 452, 360, 28],
-            name: 'help.graph.bandsName',
-            text: 'help.graph.bandsMenu',
-          },
-          {
-            box: [18, 480, 360, 28],
-            name: 'help.graph.meterName',
-            text: 'help.graph.meter',
-          },
-          {
-            box: [18, 508, 360, 24],
-            name: 'graph.waveHeight',
-            text: 'help.graph.waveHeight',
-          },
-          {
-            box: [18, 532, 360, 24],
-            name: 'graph.wavePosition',
-            text: 'help.graph.wavePosition',
-          },
-          {
-            box: [18, 593, 360, 28],
-            name: 'graph.style.next',
-            text: 'help.graph.next',
-            keys: 'Space',
-          },
-          {
-            box: [18, 621, 360, 28],
-            name: 'graph.style.previous',
-            text: 'help.graph.previous',
-            keys: 'Ctrl+Space',
-          },
-          {
-            box: [18, 797, 360, 24],
-            name: 'graph.scene.attack',
-            text: 'help.graph.attack',
-          },
-          {
-            box: [18, 821, 360, 24],
-            name: 'graph.scene.release',
-            text: 'help.graph.release',
-          },
-          {
-            box: [18, 845, 360, 28],
-            name: 'graph.scene.ownTiming',
-            text: 'help.graph.ownTiming',
-          },
-          {
-            box: [18, 135, 360, 28],
-            name: 'wallpaper.action',
-            text: 'help.graph.desktop',
-          },
-        ],
-      },
+      // Taken by `scripts/help-captures` (`captured.ts`).
+      CAPTURED['23-graph-view-menu.png'],
     ],
   },
   {

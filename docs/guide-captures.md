@@ -21,6 +21,16 @@ The guide uses real FluidEQ interface captures, not generated UI artwork.
   window at the same moment, and live in `src/common/helpChapters/`: a new
   capture of any of these files needs its boxes measured again.
 
+- The six pictures release 2.1 changed — `16`, `36`, `18`, `40`, `23` and
+  `14` — are taken by one script, `scripts/help-captures/capture.ts`
+  (`pnpm docs:captures`), which mounts the real window in headless Chrome or
+  Edge with the main process simulated, sets each figure up, takes the
+  picture and measures every numbered box in the same render. It writes the
+  pictures here and the boxes to `src/common/helpChapters/captured.ts`; its
+  README says how to run it on Windows, where the window's font is the one
+  the app ships with. Until that run, those six files are still the 2.0
+  pictures above and their boxes are the ones measured with them; the guide's
+  text already describes 2.1.
 - The Share Audio picture's connection code and network addresses are
   blurred.
 - The karaoke pictures (`11`, `12`, `33` to `35`) are of FluidEQ's own song,

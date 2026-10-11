@@ -124,6 +124,8 @@ describe('a linked computer', () => {
     expect(remote.setSwitches).toHaveBeenLastCalledWith('SWEST-YOGA', {
       send: true,
       play: false,
+      paused: false,
+      volume: 1,
     });
     fireEvent.click(
       card().getByRole('checkbox', { name: 'remoteAudio.lane.sendMySound' }),
@@ -131,6 +133,8 @@ describe('a linked computer', () => {
     expect(remote.setSwitches).toHaveBeenLastCalledWith('SWEST-YOGA', {
       send: false,
       play: true,
+      paused: false,
+      volume: 1,
     });
   });
 

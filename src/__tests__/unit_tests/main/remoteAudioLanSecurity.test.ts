@@ -160,7 +160,7 @@ describe('LAN listener authentication limits', () => {
     candidates.forEach((candidate) => {
       server.clients.add(candidate);
       server.emit('connection', candidate, {
-        socket: { remoteAddress: '192.168.1.100' },
+        socket: { remoteAddress: '192.168.1.100', setKeepAlive: jest.fn() },
       });
     });
 
@@ -189,7 +189,10 @@ describe('LAN listener authentication limits', () => {
       const candidate = fakeSocket();
       server.clients.add(candidate);
       server.emit('connection', candidate, {
-        socket: { remoteAddress: `192.168.1.${10 + Math.floor(index / 8)}` },
+        socket: {
+          remoteAddress: `192.168.1.${10 + Math.floor(index / 8)}`,
+          setKeepAlive: jest.fn(),
+        },
       });
       return candidate;
     });
@@ -235,7 +238,7 @@ describe('LAN listener authentication limits', () => {
     const connect = (socket: IFakeSocket) => {
       server.clients.add(socket);
       server.emit('connection', socket, {
-        socket: { remoteAddress: '192.168.1.101' },
+        socket: { remoteAddress: '192.168.1.101', setKeepAlive: jest.fn() },
       });
       const packet = openPacket(socket.sent[0], key);
       expect(packet.kind).toBe(PACKET_AUTH_CHALLENGE);
@@ -288,7 +291,10 @@ describe('LAN listener authentication limits', () => {
     candidates.forEach((candidate, index) => {
       server.clients.add(candidate);
       server.emit('connection', candidate, {
-        socket: { remoteAddress: `192.168.1.${index + 50}` },
+        socket: {
+          remoteAddress: `192.168.1.${index + 50}`,
+          setKeepAlive: jest.fn(),
+        },
       });
       const packet = openPacket(candidate.sent[0], key);
       const { challenge } = openAuthChallenge(packet.clear);
@@ -326,7 +332,7 @@ describe('LAN listener authentication limits', () => {
     const candidate = fakeSocket();
     server.clients.add(candidate);
     server.emit('connection', candidate, {
-      socket: { remoteAddress: '192.168.1.90' },
+      socket: { remoteAddress: '192.168.1.90', setKeepAlive: jest.fn() },
     });
     const packet = openPacket(candidate.sent[0], key);
     const { challenge } = openAuthChallenge(packet.clear);
@@ -364,7 +370,7 @@ describe('LAN listener authentication limits', () => {
     const candidate = fakeSocket();
     server.clients.add(candidate);
     server.emit('connection', candidate, {
-      socket: { remoteAddress: '192.168.1.91' },
+      socket: { remoteAddress: '192.168.1.91', setKeepAlive: jest.fn() },
     });
     const packet = openPacket(candidate.sent[0], key);
     const { challenge } = openAuthChallenge(packet.clear);
@@ -386,7 +392,7 @@ describe('LAN listener authentication limits', () => {
     Array.from({ length: 8 }, () => fakeSocket()).forEach((newer) => {
       server.clients.add(newer);
       server.emit('connection', newer, {
-        socket: { remoteAddress: '192.168.1.91' },
+        socket: { remoteAddress: '192.168.1.91', setKeepAlive: jest.fn() },
       });
     });
     expect(candidate.close).toHaveBeenCalledWith(

@@ -67,6 +67,9 @@ describe('who this computer sends to', () => {
   });
 });
 
+/** What the window sends: both switches, the pause and the link's volume. */
+const ON = { send: true, play: true, paused: false, volume: 1 };
+
 describe('the two switches', () => {
   it('tell the other computer what this one does, as they are and as they change', () => {
     const { announce, links, targets } = create();
@@ -75,7 +78,7 @@ describe('the two switches', () => {
       sends: true,
       plays: true,
     });
-    links.choose('GAMING', { send: false, play: true });
+    links.choose('GAMING', { ...ON, send: false });
     expect(announce).toHaveBeenLastCalledWith('host', {
       sends: false,
       plays: true,
@@ -87,19 +90,16 @@ describe('the two switches', () => {
     const { links } = create();
     links.connected('host', 'GAMING', true);
     expect(links.plays('host')).toBe(true);
-    links.choose('GAMING', { send: true, play: false });
+    links.choose('GAMING', { ...ON, play: false });
     expect(links.plays('host')).toBe(false);
     expect(links.plays('stranger')).toBe(false);
   });
 
   it('are remembered by name, for the next link and the next launch', () => {
     const first = create();
-    first.links.choose('GAMING', { send: false, play: true });
+    first.links.choose('GAMING', { ...ON, send: false });
     const next = create();
-    expect(next.links.switchesFor('GAMING')).toEqual({
-      send: false,
-      play: true,
-    });
+    expect(next.links.switchesFor('GAMING')).toEqual({ ...ON, send: false });
     next.links.connected('new-peer-id', 'GAMING', true);
     expect(next.targets()).toEqual([]);
   });

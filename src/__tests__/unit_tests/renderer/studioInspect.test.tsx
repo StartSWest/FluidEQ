@@ -34,7 +34,9 @@ import {
   resetStudioStore,
   type IStudioView,
 } from '../../../renderer/studio/studioStore';
+import { resetStudioChatStore } from '../../../renderer/studio/chat/studioChatStore';
 import { memberPack } from '../../utils/memberSceneFixtures';
+import studioChatBridge from '../../utils/studioChatBridge';
 
 jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: jest.fn(),
@@ -75,10 +77,12 @@ beforeEach(() => {
   resetGalleryActions();
   resetPlusNavigation();
   resetStudioStore();
+  resetStudioChatStore();
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: {
       ipcRenderer: {
+        ...studioChatBridge(),
         inspectOfficialScene,
         onStudioChanged: jest.fn(() => () => undefined),
         readStudioNotes: jest.fn(async () => ({ description: '', prompt: '' })),
@@ -202,7 +206,12 @@ describe('the share card', () => {
 
   it('says what a FluidEQ scene opened to look inside is, in place of keeping and sending it', async () => {
     const { rerender } = render(<StudioBench view={view(FLUIDEQS)} />);
-    await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+    // The chat, settled: it says such a scene is there to look inside, and
+    // offers no box to change it with.
+    await screen.findByText('studioChat.inspect');
+    expect(
+      screen.queryByRole('textbox', { name: 'studioChat.label' }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText('studio.inspect.title')).toBeInTheDocument();
     expect(screen.getByText('studio.inspect.body')).toBeInTheDocument();
     [
@@ -218,6 +227,9 @@ describe('the share card', () => {
     await act(async () => {
       rerender(<StudioBench view={view(MINE)} />);
     });
+    expect(
+      await screen.findByRole('textbox', { name: 'studioChat.label' }),
+    ).toBeInTheDocument();
     [
       'studio.action.addToLooks',
       'studio.action.publish',

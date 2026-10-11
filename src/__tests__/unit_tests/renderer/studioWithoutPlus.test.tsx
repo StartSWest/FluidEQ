@@ -25,7 +25,9 @@ import {
   type IStudioView,
 } from '../../../renderer/studio/studioStore';
 import { useCanSetDesktop } from '../../../renderer/wallpaper/WallpaperControls';
+import { resetStudioChatStore } from '../../../renderer/studio/chat/studioChatStore';
 import { memberPack } from '../../utils/memberSceneFixtures';
+import studioChatBridge from '../../utils/studioChatBridge';
 
 jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: jest.fn(),
@@ -81,6 +83,7 @@ const selectStudioProject = jest.fn(async () => undefined);
 
 beforeEach(() => {
   resetStudioStore();
+  resetStudioChatStore();
   jest.clearAllMocks();
   jest.mocked(useCanSetDesktop).mockReturnValue(true);
   jest.mocked(linkStudioFolder).mockResolvedValue('cancelled');
@@ -88,6 +91,7 @@ beforeEach(() => {
     configurable: true,
     value: {
       ipcRenderer: {
+        ...studioChatBridge(project.id),
         onStudioChanged: jest.fn(() => () => undefined),
         readStudioNotes: jest.fn(async () => ({ description: '', prompt: '' })),
         saveStudioNotes: jest.fn(async () => true),
@@ -100,6 +104,13 @@ beforeEach(() => {
 it('gives the whole editor to a member without Plus', async () => {
   render(<StudioBench view={view()} />);
   expect(screen.getByTestId('studio-stage')).toBeInTheDocument();
+  // The chat with Claude, and the prompt for any other AI behind its switch.
+  expect(
+    await screen.findByRole('textbox', { name: 'studioChat.label' }),
+  ).toBeInTheDocument();
+  await userEvent.click(
+    screen.getByRole('button', { name: 'studioChat.otherAi' }),
+  );
   expect(
     await screen.findByRole('textbox', { name: 'studio.maker.describe' }),
   ).toBeInTheDocument();
@@ -113,7 +124,7 @@ it('keeps Publish open to a maker, and the other ways out locked under More, ope
   // it locked, which shut the one way back while the server would have
   // taken the scene (`is_scene_maker`).
   render(<StudioBench view={view()} />);
-  await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+  await screen.findByRole('textbox', { name: 'studioChat.label' });
   const publish = screen.getByRole('button', {
     name: 'studio.action.publish',
   });
@@ -147,7 +158,7 @@ it('keeps Publish open to a maker, and the other ways out locked under More, ope
 it('locks no desktop on a computer that cannot have one, as Plus offers none there', async () => {
   jest.mocked(useCanSetDesktop).mockReturnValue(false);
   render(<StudioBench view={view()} />);
-  await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+  await screen.findByRole('textbox', { name: 'studioChat.label' });
   await userEvent.click(
     screen.getByRole('button', { name: 'studio.ship.more' }),
   );
@@ -161,7 +172,7 @@ it('locks no desktop on a computer that cannot have one, as Plus offers none the
 
 it('offers those four for real once there is Plus', async () => {
   render(<StudioBench view={view({ entitled: true, mayAddProject: true })} />);
-  await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+  await screen.findByRole('textbox', { name: 'studioChat.label' });
   const add = screen.getByRole('button', {
     name: 'studio.action.addToLooks',
   });
@@ -182,7 +193,7 @@ it('says what a FluidEQ scene opened to look inside is for, whatever the members
       })}
     />,
   );
-  await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+  await screen.findByText('studioChat.inspect');
   expect(screen.getByText('studio.inspect.title')).toBeInTheDocument();
   expect(
     screen.queryByRole('button', { name: 'studio.action.addToLooks' }),
@@ -197,7 +208,7 @@ it('lists a project Plus would open with a lock, and opens Plus when it is picke
     locked: true,
   };
   render(<StudioBench view={view({ projects: [project, aurora] })} />);
-  await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+  await screen.findByRole('textbox', { name: 'studioChat.label' });
   // One project to step to: the arrows have nowhere to go.
   expect(
     screen.getByRole('button', { name: 'studio.project.next' }),
@@ -242,7 +253,7 @@ const openMenu = async () => {
 
 it('locks the ways to a second project, and says the Studio keeps one', async () => {
   render(<StudioBench view={view()} />);
-  await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+  await screen.findByRole('textbox', { name: 'studioChat.label' });
   const menu = await openMenu();
   const starting = menu.getByRole('button', { name: 'studio.project.new' });
   expect(starting).toHaveAttribute('title', 'studio.plus.oneProject');

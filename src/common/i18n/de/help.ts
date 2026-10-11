@@ -21,7 +21,7 @@ const help: Record<keyof typeof en, string> = {
   'help.closeImage': 'Bildschirmaufnahme schließen',
   'help.controlsOf': 'Was jedes Bedienelement tut: {title}',
   'help.captureNote':
-    'Echte Aufnahmen aus FluidEQ 1.6 und 1.7. Farben, Bezeichnungen und Positionen von Bedienelementen können in Ihrer Version abweichen. Die Einstellungen sind Beispiele, keine empfohlenen Presets.',
+    'Echte Aufnahmen des FluidEQ-Fensters. Farben, Bezeichnungen und Positionen von Bedienelementen können in Ihrer Version abweichen. Die Einstellungen sind Beispiele, keine empfohlenen Presets.',
   'help.steps': 'Ausprobieren',
   'help.tip': 'Gut zu wissen',
   'help.back': 'Nach oben',
@@ -188,11 +188,11 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.intro':
     'Frequenz bestimmt, wo ein Band wirkt, Verstärkung die Anhebung oder Absenkung und Q seine Breite: höheres Q bedeutet schmaler. Ist kein Band ausgewählt, formen die Klang-Regler — Bass, Mitten und Höhen, mit Tiefensperre und Höhensperre zu beiden Seiten — den Klang als eigene Kurve und lassen Ihre Bänder unverändert. Beginnen Sie mit kleinen, breiten Änderungen und vergleichen Sie oft.',
   'help.eq.steps':
-    'Öffnen Sie EQ → Bänder. Ist nichts ausgewählt, drehen Sie an Bass, Mitten oder Höhen, um den Klang schnell zu verändern, und an Tiefensperre oder Höhensperre, um die Enden zu beschneiden. Sie zeichnen ihre eigene Klang-Linie ins Diagramm.\nKlicken Sie auf die Frequenz eines Bands oder auf seinen Punkt im Diagramm, um es auszuwählen. Drehen Sie an seinen Drehreglern Frequenz, Verstärkung und Güte (Q), wählen Sie einen Filter oder schalten Sie es mit Aktiv aus.\nKlicken Sie mit der rechten Maustaste auf ein Band, um es zurückzusetzen, auszuschalten oder daneben ein Band hinzuzufügen. Drücken Sie EQ zurücksetzen, um jede Verstärkung sowie Bass, Mitten und Höhen auf 0 dB zu setzen, ohne Ihre Bänder zu verlieren. Vorher wird nachgefragt.',
+    'Öffnen Sie EQ → Bänder. Ist nichts ausgewählt, drehen Sie an Bass, Mitten oder Höhen, um den Klang schnell zu verändern, und an Tiefensperre oder Höhensperre, um die Enden zu beschneiden. Sie zeichnen ihre eigene Klang-Linie ins Diagramm.\nKlicken Sie auf die Frequenz eines Bands oder auf seinen Punkt im Diagramm, um es auszuwählen. Drehen Sie an seinen Drehreglern Frequenz, Verstärkung und Güte (Q), wählen Sie einen Filter oder schalten Sie es mit Aktiv aus. Die Kurve folgt einem Schieberegler, während Sie ihn bewegen.\nAlles geht auch mit der Tastatur: Springen Sie mit der Tab-Taste zu einem Fader, einem Drehregler oder einem Punkt im Diagramm, und die Pfeiltasten verstellen ihn schrittweise; Bild auf und Bild ab machen größere Schritte.\nUm Frequenz, Q und Verstärkung jedes Bands im Diagramm zu sehen, öffnen Sie darüber Ansicht und drücken Sie EQ-Beschriftungen anzeigen, oder drücken Sie Strg+W, bis Alles angezeigt wird. Eine Beschriftung steht über oder unter ihrem Punkt, nie daneben, und kehrt an ihren Platz zurück, sobald dort Raum ist.\nKlicken Sie mit der rechten Maustaste auf ein Band, um es zurückzusetzen, auszuschalten oder daneben ein Band hinzuzufügen. Drücken Sie EQ zurücksetzen, um jede Verstärkung sowie Bass, Mitten und Höhen auf 0 dB zu setzen, ohne Ihre Bänder zu verlieren. Vorher wird nachgefragt.',
   'help.eq.tip':
-    'Unter Kurven steht, was diesen Ausgang außer Ihren Bändern noch formt, jeweils mit eigener Stärke und ×. Der Spielmodus verkürzt für Spiele und Anrufe die Verzögerung durch FluidEQ; Gaming-Presets schalten ihn ein.',
+    'Unter Kurven steht, was diesen Ausgang außer Ihren Bändern noch formt, jeweils mit eigener Stärke und ×. Der Spielmodus verkürzt für Spiele und Anrufe die Verzögerung durch FluidEQ; Gaming-Presets schalten ihn ein. Solange der EQ ausgeschaltet ist, sind seine Bänder abgeblendet und lassen sich nicht versehentlich ändern; die Klang-Regler funktionieren weiterhin.',
   'help.eq.keywords':
-    'equalizer, Q-faktor, parametrischer EQ, grafischer EQ, EQ-einstellungen, klangeinstellungen, klangregelung, klang einstellen, klang anpassen, klang verbessern, sound, bassboost, anheben, absenken, verstärken, bandbreite, hochpass, tiefpass, lowcut, kuhschwanz, notch, schieberegler, frequenzen, voreinstellungen, latenz',
+    'equalizer, Q-faktor, parametrischer EQ, grafischer EQ, EQ-einstellungen, klangeinstellungen, klangregelung, klang einstellen, klang anpassen, klang verbessern, sound, bassboost, anheben, absenken, verstärken, bandbreite, hochpass, tiefpass, lowcut, kuhschwanz, notch, schieberegler, frequenzen, voreinstellungen, latenz, beschriftungen, bandbeschriftungen, EQ-beschriftungen, labels, werte anzeigen, tastatur, pfeiltasten, tastenbedienung, barrierefreiheit, bildschirmleser, screenreader',
   'help.eq.bandsCaption': 'Die Seite Bänder, nichts ausgewählt',
   'help.eq.bandCaption': 'Ein Band ausgewählt',
   'help.eq.gameMode':
@@ -201,7 +201,10 @@ const help: Record<keyof typeof en, string> = {
     'Was diesen Ausgang sonst noch formt – eine Kopfhörerkorrektur, Smart-EQ, eine Faltung –, jeweils mit Stärke, Schalter und ×.',
   'help.eq.bandName': 'Ein Band',
   'help.eq.band':
-    'Ziehen Sie seinen Punkt, um anzuheben oder abzusenken. Klicken Sie auf seine Frequenz, um es auszuwählen.',
+    'Ziehen Sie seinen Punkt, um anzuheben oder abzusenken, oder verstellen Sie ihn mit den Pfeiltasten. Klicken Sie auf seine Frequenz, um es auszuwählen.',
+  'help.eq.labelName': 'Bandbeschriftung',
+  'help.eq.label':
+    'Seine Frequenz, sein Q und seine Verstärkung, über oder unter seinem Punkt. Ansicht → EQ-Beschriftungen anzeigen, oder Strg+W.',
   'help.eq.bass': 'Hebt oder senkt die Tiefen der ganzen Kurve.',
   'help.eq.mid': 'Hebt oder senkt die Mitten, wo die Stimmen liegen.',
   'help.eq.treble': 'Hebt oder senkt die Höhen, die Luft und die Details.',
@@ -215,10 +218,12 @@ const help: Record<keyof typeof en, string> = {
     'Hört, was läuft, und korrigiert es: Detail, Balance oder Ziel.',
   'help.eq.clear':
     'Setzt jede Verstärkung auf 0 dB und behält Ihre Bänder. Fragt vorher nach.',
-  'help.eq.mode': 'Wie stark Ihr EQ und Ihre Kurven wirken, Band-Q und Phase.',
-  'help.eq.add': 'Fügt neben dem ausgewählten Band ein weiteres hinzu.',
+  'help.eq.mode':
+    'Holt die Karte EQ-Modus ins Bild: wie stark Ihr EQ und Ihre Kurven wirken, Band-Q, Phase und Höhen.',
+  'help.eq.add':
+    'Fügt neben dem ausgewählten Band ein weiteres hinzu, mit dem Q der vorhandenen Bänder.',
   'help.eq.layouts':
-    'Bandanzahlen und die Band-Designs, die Sie gespeichert haben.',
+    'Bandanzahlen, die jedes Band mit einem gemeinsamen Q beginnen, und die Band-Designs, die Sie gespeichert haben.',
   'help.eq.frequency': 'Wo das ausgewählte Band wirkt, von 1 Hz bis 20 kHz.',
   'help.eq.gain':
     'Wie stark es anhebt oder absenkt. Strg+Klick setzt es auf 0 dB zurück.',
@@ -236,23 +241,30 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'EQ-Modus und Band-Designs',
   'help.eqmode.intro':
-    'Der EQ-Modus ändert, wie Ihr Klang geformt wird, ohne etwas zu bearbeiten. Ihr EQ umfasst Ihre Bänder, die Klang-Regler, Presets, den Treibertyp und Smart-EQ; Korrekturen umfasst Kopfhörerkorrekturen sowie importierte oder eigene Kurven. Band-Designs bewahren die Frequenzen und das Q eines Layouts, das Ihnen gefällt, bereit für jeden Ausgang.',
+    'Der EQ-Modus ändert, wie Ihr Klang geformt wird, ohne etwas zu bearbeiten. Seine Einstellungen sind die erste Karte der Seitenleiste auf der EQ-Seite, neben den Kurven, die sie verändern, in zwei Tabs: Ihr EQ umfasst Ihre Bänder, die Klang-Regler, Presets, den Treibertyp und Smart-EQ; Korrekturen umfasst Kopfhörerkorrekturen sowie importierte oder eigene Kurven. Band-Designs bewahren die Frequenzen und das Q eines Layouts, das Ihnen gefällt, bereit für jeden Ausgang.',
   'help.eqmode.steps':
-    'Öffnen Sie in der Leiste der Seite Bänder den EQ-Modus. Probieren Sie bei laufender Musik eine Einstellung unter Stärke, Band-Q oder Kurvenglättung; das Panel bleibt offen.\nWählen Sie unter der FluidEQ-Engine die Phase Minimal oder Linear und unter Höhen Präzise oder Klassisch. Drücken Sie Zurücksetzen, um alles auf Normal zurückzustellen.\nÖffnen Sie neben Band hinzufügen den Knopf Schnelle Anordnungen. Wählen Sie 6, 10, 15, 20 oder 31 Bänder oder drücken Sie Design speichern…, um das aktuelle Layout zu benennen.',
+    'Drücken Sie EQ-Modus über dem Diagramm. Die Karte kommt ins Bild, und die Seitenleiste öffnet sich, falls sie geschlossen war.\nWählen Sie den Tab Ihr EQ oder Korrekturen und probieren Sie bei laufender Musik eine Einstellung unter Stärke oder Band-Q. Wählen Sie unter der FluidEQ-Engine für jeden Tab die Phase Minimal oder Linear und unter Höhen Präzise oder Klassisch.\nUnter Korrekturen glättet die Kurvenglättung abgetastete Kurven mit 1/12 Oktave, bis Sie etwas anderes wählen. Zurücksetzen stellt alles auf Normal und die Glättung auf 1/12 Oktave zurück.\nLieber ein Menü? Drücken Sie die Stecknadel auf der Karte: Der EQ-Modus öffnet sich dann als Menü über dem Diagramm, und die Stecknadel in diesem Menü holt die Karte zurück.\nÖffnen Sie neben Band hinzufügen den Knopf Schnelle Anordnungen. Wählen Sie 6, 10, 15, 20 oder 31 Bänder oder drücken Sie Design speichern…, um das aktuelle Layout zu benennen.',
   'help.eqmode.tip':
-    'Ein Design speichert nur Frequenzen und Q: Wird eines geladen, beginnt jedes Band bei 0 dB. Lineare Phase fügt Verzögerung hinzu und kann vor harten Schlägen vorschwingen.',
+    'Ein neues Layout beginnt jedes Band mit einem gemeinsamen Q, und ein hinzugefügtes Band übernimmt das Q der anderen. Ein Design speichert nur Frequenzen und Q: Wird eines geladen, beginnt jedes Band bei 0 dB. Lineare Phase fügt Verzögerung hinzu und kann vor harten Schlägen vorschwingen.',
   'help.eqmode.keywords':
-    'bandanzahl, bandlayout, 10-band-EQ, 31-band-EQ, grafischer EQ, intensität, linearphasig, minimalphasig, konstantes Q, proportionales Q, pre-ringing, Höhen, präzise, klassisch',
-  'help.eqmode.modeCaption': 'EQ-Modus',
+    'bandanzahl, bandlayout, 10-band-EQ, 31-band-EQ, grafischer EQ, intensität, linearphasig, minimalphasig, konstantes Q, proportionales Q, pre-ringing, Höhen, präzise, klassisch, stärke, glättung, kurvenglättung, band-design, anheften, stecknadel, pin, lösen, karte, seitenleiste, menü, tabs, ihr EQ, korrekturen, 1/12 oktave',
+  'help.eqmode.modeCaption': 'Die Karte EQ-Modus',
+  'help.eqmode.tabsName': 'Ihr EQ und Korrekturen',
+  'help.eqmode.tabs': 'Zwei Tabs, jeder mit eigenen Einstellungen.',
+  'help.eqmode.pin':
+    'Legt diese Einstellungen wieder in ein Menü über dem Diagramm. Die Stecknadel des Menüs holt die Karte zurück.',
   'help.eqmode.strength':
-    'Normal, Studio ×1.5 oder ×2, getrennt für Ihren EQ und Ihre Korrekturen.',
+    'Normal, Studio ×1.5 oder ×2. Jeder Tab behält seine eigene.',
   'help.eqmode.q':
-    'Konstant behält jedes Q; Proportional und Asymmetrisch machen Bänder schmaler, je stärker sie werden.',
-  'help.eqmode.smoothing': 'Glättet abgetastete Korrekturkurven.',
-  'help.eqmode.phase': 'Minimal oder Linear. Nur mit der FluidEQ-Engine.',
+    'Konstant behält jedes Q; Proportional und Asymmetrisch machen Bänder schmaler, je stärker sie werden. Unter Ihr EQ formt es nur Ihre eigenen Bänder, nie ein Preset oder eine Korrektur.',
+  'help.eqmode.smoothing':
+    'Glättet abgetastete Korrekturkurven: 1/12 Oktave, bis Sie etwas anderes wählen.',
+  'help.eqmode.phase':
+    'Minimal oder Linear, für jeden Tab. Nur mit der FluidEQ-Engine.',
   'help.eqmode.treble':
     'Präzise klingt wie gezeichnet, Klassisch wie in Equalizer APO. Nur mit der FluidEQ-Engine.',
-  'help.eqmode.reset': 'Alles zurück auf Normal.',
+  'help.eqmode.reset':
+    'Alles zurück auf Normal und die Kurvenglättung zurück auf 1/12 Oktave.',
   'help.eqmode.designsCaption': 'Band-Designs',
   'help.eqmode.builtIn': 'Standard-Layouts mit 6, 10, 15, 20 oder 31 Bändern.',
   'help.eqmode.save':
@@ -301,26 +313,32 @@ const help: Record<keyof typeof en, string> = {
 
   'help.profiles.title': 'Geräte, Profile und zweite Ausgabe',
   'help.profiles.intro':
-    'Ihr EQ folgt dem Ausgabegerät. Änderungen werden im Profil gespeichert, das auf dem aktuellen Ausgang aktiv ist, und unter Profile behalten Sie alternative Klänge. Zweite Ausgabe spiegelt die Wiedergabe auf andere Geräte, mit eigenem Pegel für jedes.',
+    'Jeder Ausgang behält seinen eigenen Klang: EQ, Preset, Klang-Regler, Tiefen- und Höhensperre, DSP-Rack, Raum und Lautheitsausgleich werden mit ihm gespeichert und sind sofort wieder da, wenn Sie zu ihm wechseln. Profile bewahren weitere Klänge für denselben Ausgang. Zweite Ausgabe spielt gleichzeitig auf einem anderen Gerät, mit eigenem Klang und eigenem Pegel.',
   'help.profiles.steps':
-    'Prüfen Sie vor dem Bearbeiten den Ausgang oben auf der Karte Ausgabe. Nutzen Sie Neues Profil für einen Klang, den Sie behalten wollen; Aktualisieren speichert Änderungen in diesem Profil, und Zurücksetzen holt seine gespeicherten Einstellungen zurück.\nÖffnen Sie Zweite Ausgabe, aktivieren Sie ein erreichbares Gerät und stellen Sie seinen Pegel ein. Wählen Sie direkt darunter das gespeicherte EQ-Profil dieses Geräts.\nJede Ausgabe hält selbst Schritt und zeigt, wie weit sie hinterher spielt; mit Audio teilen zeigt der Ton eines anderen Computers seine eigene Verzögerung, das Netzwerk eingerechnet.',
+    'Prüfen Sie vor dem Bearbeiten den Ausgang oben auf der Karte Ausgabe; bei Bluetooth-Kopfhörern steht daneben ihr Akku. Nutzen Sie Neues Profil für einen Klang, den Sie behalten wollen; Aktualisieren speichert Änderungen in diesem Profil, und Zurücksetzen holt seine gespeicherten Einstellungen zurück.\nSchalten Sie Klang jedes Songs merken ein, dann kommen Preset, Klang-Regler und EQ, die Sie während eines Songs einstellen, wieder, sobald dieser Song hier läuft. Ein Hinweis sagt es Ihnen, mit Rückgängig und Diesen Song vergessen.\nÖffnen Sie Zweite Ausgabe, aktivieren Sie ein Gerät und stellen Sie seinen Pegel ein. Wählen Sie darunter sein Profil oder drücken Sie Klang bearbeiten, um seinen Klang auf der EQ-Seite zu ändern, ohne die Hauptausgabe zu wechseln; Fertig oder Hauptausgabe bearbeiten bringt Sie zurück.\nJede zweite Ausgabe hält selbst Schritt und zeigt ihre Verzögerung in Millisekunden; mit Audio teilen zeigt der Ton eines anderen Computers seine eigene Verzögerung, das Netzwerk eingerechnet.',
   'help.profiles.tip':
-    'Jeder gespiegelte Ausgang nutzt mit beiden Engines sein eigenes Profil. Die Spiegelung läuft, solange FluidEQ geöffnet ist; ein Wechsel des Hauptausgangs beendet die alten Spiegelungen. Die Gerätelatenz beeinflusst die Synchronität trotzdem.',
+    'Unter der FluidEQ-Engine spielt eine zweite Ausgabe direkt aus der Engine, und der Hauptausgang wartet nie auf sie. Klang jedes Songs merken ist anfangs ausgeschaltet und merkt sich die Songs je Ausgang. Auf der EQ-Seite beginnt die Seitenleiste mit der Karte EQ-Modus; klappen Sie sie ein, um schneller zu Ihren Ausgängen zu kommen.',
   'help.profiles.keywords':
-    'lautsprecher, boxen, audiogerät, wiedergabegerät, standardgerät, gerätewechsel, gerät umschalten, Bluetooth, gleichzeitig, mehrere ausgänge, einstellungen speichern, synchronisieren, verzögerung, klangprofil',
+    'lautsprecher, boxen, audiogerät, wiedergabegerät, standardgerät, gerätewechsel, gerät umschalten, Bluetooth, gleichzeitig, mehrere ausgänge, einstellungen speichern, synchronisieren, verzögerung, klangprofil, ausgang, ausgabe, zweite ausgabe, zwei ausgänge, je ausgang, pro gerät, eigener klang, akku, batterie, akkustand, klang bearbeiten, hauptausgabe bearbeiten, song, lied, titel, pro song, klang jedes songs merken, song merken, song vergessen',
   'help.profiles.list':
     'Ihre gespeicherten Klänge. AKT markiert das Profil, das dieser Ausgang nutzt; drücken Sie ein anderes, um zu wechseln.',
   'help.profiles.update':
     'Speichert Ihre Änderungen im aktuellen Profil. Daneben holt Zurücksetzen das Profil so zurück, wie Sie es zuletzt gespeichert haben.',
   'help.profiles.new': 'Legt aus Ihrem aktuellen EQ ein neues Profil an.',
+  'help.profiles.eqMode':
+    'Die Einstellungen des EQ-Modus, zuerst auf der EQ-Seite. Klappen Sie die Karte ein, damit sie nicht im Weg ist.',
+  'help.profiles.songSound':
+    'Holt Preset, Klang-Regler und EQ eines Songs zurück, sobald er hier läuft. Aus, bis Sie es einschalten.',
+  'help.profiles.editSound':
+    'Bearbeitet den Klang dieses Ausgangs auf der EQ-Seite, ohne die Hauptausgabe zu wechseln.',
   'help.profiles.output':
-    'Der Ausgang, über den Sie hören. AUS bedeutet, dass Ihr EQ ihn nicht erreicht; AKTIV, dass Windows über ihn abspielt.',
+    'Der Ausgang, über den Sie hören, bei Bluetooth-Kopfhörern mit ihrem Akku. AUS bedeutet, dass Ihr EQ ihn nicht erreicht; AKTIV, dass Windows über ihn abspielt.',
   'help.profiles.mapping':
     'Das Profil, dem dieser Ausgang folgt. Jede Änderung wird von selbst darin gespeichert.',
   'help.profiles.onePlayer':
     'Starten Sie etwas in FluidEQ, hält das an, was anderswo auf dem PC läuft – und umgekehrt.',
   'help.profiles.outputs':
-    'Ihre anderen Ausgänge. Schalten Sie einen ein, damit die Wiedergabe auch dort läuft, mit seinem eigenen Profil.',
+    'Ihre anderen Ausgänge. Schalten Sie einen ein, damit die Wiedergabe auch dort läuft, mit eigenem Klang, Pegel und einer Verzögerung in Millisekunden.',
   'help.profiles.driver':
     'Ein dezenter Ausgangspunkt für das, worüber Sie hören – Kopfhörer, Ohrhörer, eine Treibergröße oder ein Material. Lassen Sie es bei Keine Korrektur, wenn der Klang schon stimmt.',
 
@@ -407,11 +425,11 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'Das Frequenzgangdiagramm zeichnet Ihre EQ-Kurven über den Live-Klang. Die Leiste darüber bestimmt, was und wie gezeichnet wird, und sie ändert sich mit der Darstellung: ein Standardstil oder ein Plus-Visualizer.',
   'help.graph.steps':
-    'Klicken Sie auf den Namen der Darstellung, um einen Stil oder einen Visualizer zu wählen. Die Pfeile daneben, die Leertaste und Strg+Leertaste blättern durch sie.\nÖffnen Sie Ansicht für die Größe des Diagramms, für das, was es zeigt, und für Höhe und Position der Welle. Die Bildrate steht ebenfalls dort: jedes Bild, das Ihr Bildschirm anbietet, oder 60 oder 30, und 60 im Akkubetrieb.\nEin Plus-Visualizer fügt Ansicht seine eigenen Regler hinzu — was sein Autor Ihnen überlassen hat — und Eigene Welle der Szene bringt die Welle auf Höhe und Position zurück, die dieser Autor gewählt hat.\nDoppelklicken Sie auf das Diagramm für Vollbild, mit Strg für die erweiterte Ansicht im Fenster; ein weiterer Doppelklick bringt es zurück. Ein einfacher Klick blendet die Leiste aus oder ein.\nTasten: Strg+F Vollbild, Strg+S erweiterte Ansicht, Esc zurück zur normalen Ansicht, Strg+G das Raster, Strg+W was das Diagramm zeigt, Strg+I die Richtung der Welle, Strg+A alle Bänder. Auf dem Punkt eines Bands verschieben Sie es durch Ziehen, ein Rechtsklick öffnet sein Menü; Strg+Mausrad ändert das Q eines ausgewählten Punkts.',
+    'Klicken Sie auf den Namen der Darstellung, um einen Stil oder einen Visualizer zu wählen. Die Pfeile daneben, die Leertaste und Strg+Leertaste blättern durch sie.\nÖffnen Sie Ansicht für die Größe des Diagramms, für das, was es zeigt, und für Höhe und Position der Welle. EQ-Beschriftungen anzeigen schreibt Frequenz, Q und Verstärkung jedes Bands über seinen Punkt. Wie es gezeichnet wird legt die Bildrate fest — jedes Bild, das Ihr Bildschirm anbietet, oder 60 oder 30, und 60 im Akkubetrieb — sowie Auflösung und Glättung; Standardstile behalten ihre eigene Wahl, getrennt von Plus-Visualizern.\nEin Plus-Visualizer fügt Ansicht seine eigenen Regler hinzu — was sein Autor Ihnen überlassen hat — und Eigene Welle der Szene bringt die Welle auf Höhe und Position zurück, die dieser Autor gewählt hat.\nDoppelklicken Sie auf das Diagramm für Vollbild, mit Strg für die erweiterte Ansicht im Fenster; ein weiterer Doppelklick bringt es zurück. Ein einfacher Klick blendet die Leiste aus oder ein.\nTasten: Strg+F Vollbild, Strg+S erweiterte Ansicht, Esc zurück zur normalen Ansicht, Strg+G das Raster, Strg+W was das Diagramm zeigt, Bandbeschriftungen eingeschlossen, Strg+I die Richtung der Welle, Strg+A alle Bänder. Auf dem Punkt eines Bands verschieben Sie es durch Ziehen, verstellen es mit den Pfeiltasten schrittweise, und ein Rechtsklick öffnet sein Menü; Strg+Mausrad ändert das Q eines ausgewählten Punkts.',
   'help.graph.tip':
     'Alles hier ändert nur, was gezeichnet wird, nie Ihren Klang.',
   'help.graph.keywords':
-    'graph, spektrumanalysator, analyzer, frequenzanalyse, fullscreen, FPS, framerate, bildwiederholfrequenz, wellenform, gitternetz, ausblenden, einblenden, tastenkürzel, shortcuts, doppelklick, erweitert',
+    'graph, spektrumanalysator, analyzer, frequenzanalyse, fullscreen, FPS, framerate, bildwiederholfrequenz, wellenform, gitternetz, ausblenden, einblenden, tastenkürzel, shortcuts, doppelklick, erweitert, beschriftungen, bandbeschriftungen, EQ-beschriftungen, labels, tastatur, pfeiltasten, grafik, grafikeinstellungen, auflösung, glättung, bildrate',
   'help.graph.stripCaption': 'Mit einem Standardstil',
   'help.graph.live': 'Blendet die Live-Welle ein oder aus.',
   'help.graph.previous': 'Springt zur vorherigen Darstellung zurück.',
@@ -443,27 +461,29 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.expand': 'Das Diagramm wächst über den Editor.',
   'help.graph.fullscreen': 'Das Diagramm füllt den Bildschirm.',
   'help.graph.showingName': 'Anzeige',
-  'help.graph.showing': 'Schaltet durch, was das Diagramm zeigt.',
+  'help.graph.showing':
+    'Schaltet durch, was das Diagramm zeigt, Bandbeschriftungen eingeschlossen.',
+  'help.graph.labels':
+    'Frequenz, Q und Verstärkung jedes Bands über seinem Punkt.',
   'help.graph.waveName': 'Die Welle',
   'help.graph.wave': 'Die Live-Zeichnung des Spektrums.',
   'help.graph.topWaveName': 'Obere Welle',
   'help.graph.topWave': 'Die kleine Welle in der Kopfzeile.',
   'help.graph.meterName': 'Pegelanzeige',
   'help.graph.meter': 'Die Ausgangsanzeige in der linken Leiste.',
+  'help.graph.drawing':
+    'Bildrate, Auflösung und Glättung, getrennt für Standardstile und Plus-Visualizer.',
   'help.graph.waveHeight': 'Wie hoch die Welle gezeichnet wird.',
   'help.graph.wavePosition': 'Vom unteren Rand bis zur Mitte.',
-  'help.graph.attack': 'Wie schnell ein Plus-Visualizer zur Musik ansteigt.',
-  'help.graph.release': 'Wie langsam er nach jedem Schlag wieder fällt.',
-  'help.graph.ownTiming': 'Zurück zum Timing, mit dem der Visualizer kam.',
   'help.looks.title': 'Stile und Plus-Visualizer',
   'help.looks.intro':
     'Standardstile sind kostenlose Zeichnungen des Live-Klangs, die Sie selbst einfärben und gestalten können: Linie und Fläche für eine klare Spur, LED-Blöcke und Spitzen für Wucht, Fachwerk, Skyline und Tanzende Flammen für ganze Szenen. Plus-Visualizer sind auf der Grafikkarte gezeichnete Szenen wie Alpin, Aurora, Blüte und Neonstadt, in denen Bass, Beat und Höhen jeweils etwas anderes bewegen.',
   'help.looks.steps':
     'Klicken Sie im Diagramm auf den Namen der Darstellung. Suchen oder filtern Sie die Stile über Linien, Flächen, Balken, Punkte oder Szenen.\nWählen Sie rechts einen Plus-Visualizer. Ohne Plus ist er gesperrt, und wenn Sie ihn wählen, erfahren Sie, wie Sie ihn bekommen.\nDrücken Sie bei einem Standardstil Neue Darstellung, um Farben, Bewegung und Spitzen zu ändern, und speichern Sie sie dann; sie erscheint unter dem Filter Ihre.',
   'help.looks.tip':
-    'Ein Plus-Visualizer bringt seine eigenen Farben mit: Attack und Release stellen Sie unter Ansicht ein. Kann eine Szene auf diesem Computer nicht laufen, zeichnet das Diagramm statt einer leeren Fläche einen kostenlosen Stil.',
+    'Ein Plus-Visualizer bringt seine eigenen Farben mit: Attack und Release stellen Sie unter Ansicht ein. Standardstile haben unter Ansicht eigene Grafikeinstellungen, getrennt von Plus-Visualizern: anfangs volle Auflösung und einfache Skalierung. Kann eine Szene auf diesem Computer nicht laufen, zeichnet das Diagramm statt einer leeren Fläche einen kostenlosen Stil.',
   'help.looks.keywords':
-    'visualisierung, aussehen, erscheinungsbild, skins, theme, look, farbschema, personalisieren, animationen',
+    'visualisierung, aussehen, erscheinungsbild, skins, theme, look, farbschema, personalisieren, animationen, grafik, grafikeinstellungen, auflösung, qualität, grafikqualität',
   'help.looks.searchName': 'Suche',
   'help.looks.search':
     'Findet Stile und Visualizer nach Name, Ersteller oder Kategorie.',
@@ -711,11 +731,11 @@ const help: Record<keyof typeof en, string> = {
   'help.share.intro':
     'Audio teilen verbindet zwei Computer im selben privaten Netzwerk, und jeder spielt den Ton des anderen: An welchem Sie auch sitzen, Sie hören beide. Jeder Computer sendet seinen Ton unverändert und schickt nie zurück, was er empfängt, also gibt es kein Echo; der Computer, an dem Sie hören, wendet seinen eigenen EQ, seine Kurven und DSP an. Das ist etwas anderes als das Spiegeln auf ein zweites Gerät an einem Computer.',
   'help.share.steps':
-    'Öffnen Sie auf einem Computer Audio teilen und drücken Sie Code kopieren. Beginnen Sie leise.\nÖffnen Sie auf dem anderen Computer Audio teilen, fügen Sie den Code unter Code des anderen Computers ein und drücken Sie Verbinden. Beide Computer spielen sich sofort gegenseitig.\nJeder verbundene Computer hat zwei Schalter: Hier abspielen und Meinen Ton senden. Schalten Sie einen aus, um nur in eine Richtung zu teilen; Trennen beendet die Verbindung endgültig.',
+    'Öffnen Sie auf einem Computer Audio teilen und drücken Sie Code kopieren. Beginnen Sie leise.\nÖffnen Sie auf dem anderen Computer Audio teilen, fügen Sie den Code unter Code des anderen Computers ein und drücken Sie Verbinden. Beide Computer spielen sich sofort gegenseitig.\nJeder verbundene Computer hat zwei Schalter: Hier abspielen und Meinen Ton senden. Schalten Sie einen aus, um nur in eine Richtung zu teilen. Der Schieberegler neben Hier abspielen bestimmt, wie laut dieser Computer hier spielt.\nPausieren hält beide Richtungen an, bis Sie Fortsetzen drücken; Trennen beendet die Verbindung endgültig.',
   'help.share.tip':
     'Halten Sie den Verbindungscode privat: Er erlaubt das Verbinden. Unter der FluidEQ-Engine bleibt das DSP dieses Computers beim Teilen an, und der Computer, der seinen Ton abspielt, wendet sein eigenes an. Gleichzeitig abspielen und senden erfordert Windows auf diesem Computer; anderswo läuft eine Verbindung in eine Richtung.',
   'help.share.keywords':
-    'LAN, WLAN, heimnetzwerk, lokales netzwerk, anderer PC, anderer rechner, audio streamen, audio übertragen, remote, koppeln, beide richtungen, zwei richtungen, verbinden, trennen, duplex',
+    'LAN, WLAN, heimnetzwerk, lokales netzwerk, anderer PC, anderer rechner, audio streamen, audio übertragen, remote, koppeln, beide richtungen, zwei richtungen, verbinden, trennen, duplex, pausieren, pause, fortsetzen, lautstärke',
 
   'help.trouble.title': 'Wenn etwas falsch klingt',
   'help.trouble.intro':

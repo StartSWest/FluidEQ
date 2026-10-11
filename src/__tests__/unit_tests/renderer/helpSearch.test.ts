@@ -1,6 +1,6 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { HELP_CHAPTERS } from 'common/helpGuide';
+import { HELP_CHAPTERS, type HelpChapterId } from 'common/helpGuide';
 import { LOCALES, loadLocale, type LocaleCode } from 'common/i18n';
 import {
   buildHelpIndex,
@@ -127,6 +127,90 @@ describe('searchHelp', () => {
         chapter,
       ]),
     );
+  });
+
+  it('finds what 2.1 brought, in every language, among the first hits', () => {
+    // Band labels, the battery, a song's own sound, the EQ mode card's pin,
+    // the keyboard and Edit sound, each in the words of the language read in
+    // and, for Edit sound, the button's own label in it. Among the first
+    // three rather than first, because three of the words mean two things
+    // here: labels are on the graph's View menu too, the keyboard is also an
+    // RGB device Dynamic lighting colours, and the player has a pin of its
+    // own.
+    const words: Record<LocaleCode, readonly string[]> = {
+      en: ['labels', 'battery', 'song', 'pin', 'keyboard', 'Edit sound'],
+      es: [
+        'etiquetas',
+        'batería',
+        'canción',
+        'fijar',
+        'teclado',
+        'Editar sonido',
+      ],
+      pt: ['rótulos', 'bateria', 'música', 'fixar', 'teclado', 'Editar som'],
+      fr: [
+        'étiquettes',
+        'batterie',
+        'chanson',
+        'épingler',
+        'clavier',
+        'Modifier le son',
+      ],
+      de: [
+        'Beschriftungen',
+        'Akku',
+        'Lied',
+        'anheften',
+        'Tastatur',
+        'Klang bearbeiten',
+      ],
+      it: [
+        'etichette',
+        'batteria',
+        'brano',
+        'puntina',
+        'tastiera',
+        'Modifica suono',
+      ],
+      ru: [
+        'подписи',
+        'батарея',
+        'песня',
+        'закрепить',
+        'клавиатура',
+        'Настроить звук',
+      ],
+      zh: ['标签', '电量', '歌曲', '固定', '键盘', '编辑声音'],
+      ja: [
+        'ラベル',
+        'バッテリー',
+        '曲',
+        'ピン留め',
+        'キーボード',
+        'サウンドを編集',
+      ],
+      hi: ['लेबल', 'बैटरी', 'गाना', 'पिन', 'कीबोर्ड', 'ध्वनि संपादित करें'],
+    };
+    const chapters: readonly HelpChapterId[] = [
+      'eq',
+      'profiles',
+      'profiles',
+      'eqmode',
+      'eq',
+      'profiles',
+    ];
+    // Every miss at once: they come a language at a time.
+    const missed = LOCALES.flatMap(({ code }) =>
+      words[code].flatMap((query, at) => {
+        const first = (searchHelp(guideIn(code), query)?.hits ?? [])
+          .slice(0, 3)
+          .map((hit) => hit.chapterId);
+        return first.includes(chapters[at])
+          ? []
+          : [`${code} ${query}: ${first.join(', ')}`];
+      }),
+    );
+    expect(missed).toEqual([]);
   });
 
   it('also finds the English guide from another language', () => {
