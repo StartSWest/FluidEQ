@@ -346,7 +346,7 @@ const tour: Partial<Dictionary> = {
     'Ouvrez Partager l’audio sur l’autre ordinateur, collez le code sous « Code de l’autre ordinateur » et appuyez sur « Relier ». Les deux se jouent aussitôt l’un l’autre, intacts : chacun applique son propre EQ à ce qu’il entend.',
   'tour.share.step3Title': 'Choisissez ce qui va où',
   'tour.share.step3':
-    'Chaque ordinateur relié a deux interrupteurs, « Le jouer ici » et « Envoyer mon son » : coupez-en un pour un seul sens. La barre affiche le morceau de l’autre ordinateur, et ses boutons fonctionnent à travers la liaison.',
+    'Chaque ordinateur relié a deux interrupteurs, « Le jouer ici » et « Envoyer mon son » : coupez-en un pour un seul sens. La barre affiche le morceau de l’autre ordinateur et le pilote à distance.',
   'tour.share.fact1Title': 'Sans perte',
   'tour.share.fact1':
     'PCM Float32 de bout en bout. Aucun codec, aucune perte de génération.',
@@ -403,7 +403,7 @@ const tour: Partial<Dictionary> = {
   'tour.output.point1':
     'Activez un autre appareil dans Deuxième sortie et réglez son volume.',
   'tour.output.point2':
-    'Choisissez un profil enregistré avec le sélecteur de profil d’égalisation sous cet appareil. La sortie principale garde ses réglages.',
+    'Choisissez un de ses profils enregistrés sous l’appareil, ou appuyez sur {editSound} à côté pour modifier son son sans changer de sortie principale. La sortie principale garde ses réglages.',
   'tour.output.point3':
     'Un seul lecteur : lancer quelque chose dans FluidEQ met le reste de la machine en pause, et inversement.',
   'tour.output.point4':
@@ -413,6 +413,59 @@ const tour: Partial<Dictionary> = {
   'tour.output.open': 'Ouvrir l’Égaliseur',
   'tour.output.imageAlt':
     'Le panneau Deuxième sortie avec un BlackShark V2 Pro activé, son sélecteur de profil, son volume et son retard.',
+
+  'tour.outputs.kicker': 'CHAQUE SORTIE SE SOUVIENT',
+  'tour.outputs.title': 'Chaque sortie garde son propre son',
+  'tour.outputs.subtitle': 'Casque et enceintes, chacun réglé à sa façon',
+  'tour.outputs.lead':
+    'Passez du casque aux enceintes et chaque sortie ramène son son avec elle : l’égaliseur, le préréglage, la Tonalité, les filtres, le rack DSP, la Salle et le nivellement sont gardés avec chaque sortie.',
+  'tour.outputs.point1':
+    'Choisissez une sortie et tout ce que vous avez réglé pour elle revient aussitôt. Casque et enceintes ne partagent plus un même préréglage ni une même courbe.',
+  'tour.outputs.point2':
+    'Une deuxième sortie joue directement depuis le moteur FluidEQ avec un son à elle, et la sortie principale ne l’attend jamais. {editSound}, juste à côté, modifie ce son sans changer de sortie principale.',
+  'tour.outputs.point3':
+    'Les casques Bluetooth affichent leur batterie à côté de la sortie, et une deuxième sortie indique en millisecondes de combien elle joue en retard.',
+  'tour.outputs.how':
+    'Ouvrez l’Égaliseur et choisissez une sortie sous {output}, à droite : tout ce que vous réglez ensuite reste avec elle. Pour une deuxième, activez-la sous {secondOutput} et appuyez sur {editSound}.',
+  'tour.outputs.open': 'Ouvrir l’Égaliseur',
+  'tour.outputs.imageAlt':
+    'La carte Sortie avec un casque et des enceintes, chacun avec son préréglage, sa courbe et ses étages DSP, qui jouent à tour de rôle, et à côté une deuxième sortie qui joue en même temps avec son propre son, sa batterie et Modifier le son.',
+
+  'tour.bands.kicker': 'L’ÉGALISEUR EN CHIFFRES',
+  'tour.bands.title': 'Les valeurs de chaque bande, sur le graphique',
+  'tour.bands.subtitle': 'Des étiquettes sur la courbe, le Mode EQ à côté',
+  'tour.bands.lead':
+    'Chaque bande peut afficher sa fréquence, son Q et son gain au-dessus de son point, sans que les étiquettes se chevauchent. Le Mode EQ se tient désormais à côté du graphique : les courbes restent visibles pendant que vous changez leur façon de jouer.',
+  'tour.bands.point1':
+    'Une étiquette se place juste au-dessus ou au-dessous de son point, jamais sur une autre, ne bouge pas quand vous faites glisser sa bande et retrouve sa position dès que la place se libère.',
+  'tour.bands.point2':
+    '{eqMode} est la première carte du panneau latéral, avec un onglet pour {yourEq} et un pour {corrections}. Son bouton au-dessus du graphique fait apparaître la carte.',
+  'tour.bands.point3':
+    'Chaque poignée, curseur et bouton se manie au clavier, et déplacer un curseur redessine la courbe dans la même image.',
+  'tour.bands.how':
+    'Ouvrez l’Égaliseur, choisissez {view} → {everything} au-dessus du graphique (ou appuyez sur {shortcut}) et déplacez une bande : ses valeurs la suivent. {eqMode} vous attend en haut du panneau de droite.',
+  'tour.bands.open': 'Ouvrir l’Égaliseur',
+  'tour.bands.imageAlt':
+    'Le graphique de l’égaliseur avec la fréquence, le Q et le gain de chaque bande au-dessus de son point, une bande qui bouge aux flèches du clavier, et en dessous la carte Mode EQ avec Votre EQ et Corrections.',
+  'tour.bands.shortcut': 'Ctrl+W',
+
+  'tour.songs.kicker': 'UN SON POUR CHAQUE CHANSON',
+  'tour.songs.title': 'Des chansons qui se souviennent de vos goûts',
+  'tour.songs.subtitle':
+    'Réglez une chanson une fois, entendez-la ainsi à chaque fois',
+  'tour.songs.lead':
+    'Activez {songSound} : le préréglage, la Tonalité et l’égaliseur avec lesquels une chanson se termine reviennent la prochaine fois qu’elle joue, sur la sortie où vous l’avez réglée.',
+  'tour.songs.point1':
+    'Changez le préréglage, la Tonalité ou une bande pendant qu’une chanson joue, et c’est ce qu’elle garde. Une chanson que vous ne touchez pas ne garde rien.',
+  'tour.songs.point2':
+    'Son réglage revient avec un avis qui nomme la chanson et ce qu’il ramène, avec {undo} et {forget} juste à côté.',
+  'tour.songs.point3':
+    'Quand la chanson se termine, le son d’avant revient, et chaque sortie garde le sien : une même chanson peut sonner d’une façon au casque et d’une autre sur les enceintes.',
+  'tour.songs.how':
+    'Ouvrez l’Égaliseur et activez {songSound} dans {output}, à droite. Lancez une chanson, choisissez un préréglage ou tournez la Tonalité, puis laissez-la finir ou passez-la.',
+  'tour.songs.open': 'Ouvrir l’Égaliseur',
+  'tour.songs.imageAlt':
+    'Une file de quatre chansons jouées à tour de rôle, trois avec le préréglage et la courbe qu’on leur a laissés et une jamais réglée, et au-dessus l’avis qu’affiche une chanson mémorisée, avec Annuler et Oublier cette chanson.',
 
   'tour.looks.kicker': 'VOTRE PROPRE VISUALISEUR',
   'tour.looks.title': 'Des styles à vous pour le graphique',

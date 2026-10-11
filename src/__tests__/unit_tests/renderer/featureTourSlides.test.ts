@@ -7,6 +7,46 @@ const idsOf = (version: string, release?: string) =>
     .filter((slide) => slide.release === release)
     .map((slide) => slide.id);
 
+describe("What's new in 2.1", () => {
+  it('opens on what 2.1 brought, every output first', () => {
+    expect(idsOf('2.1.0', '2.1')).toEqual([
+      'every-output',
+      'share-audio',
+      'band-labels',
+      'song-sound',
+    ]);
+  });
+
+  it('keeps showing 2.0 as new under its own number, and 1.7 no longer', () => {
+    expect(idsOf('2.1.0', '2.0')).toEqual(idsOf('2.0.0', '2.0'));
+    expect(idsOf('2.1.0', '1.7')).toEqual([]);
+  });
+
+  it('stands 1.7’s slides first among the rest, ahead of the tabs', () => {
+    expect(idsOf('2.1.0').slice(0, 5)).toEqual(idsOf('2.0.0', '1.7'));
+  });
+
+  it('shows every slide once and loses nothing 2.0 showed', () => {
+    const ids = featureTourFor('2.1.0').map((slide) => slide.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    featureTourFor('2.0.0').forEach((slide) => expect(ids).toContain(slide.id));
+    // Share Audio is announced again, both ways now, and not repeated
+    // among the standing slides.
+    expect(idsOf('2.1.0')).not.toContain('share-audio');
+    expect(idsOf('2.1.0')).toContain('second-output');
+  });
+
+  it('groups 2.1, then 2.0, then the standing slides', () => {
+    const releases = featureTourFor('2.1.0').map(
+      (slide) => slide.release ?? 'always',
+    );
+    const groups = releases.filter(
+      (release, index) => index === 0 || release !== releases[index - 1],
+    );
+    expect(groups).toEqual(['2.1', '2.0', 'always']);
+  });
+});
+
 describe("What's new, slide by slide", () => {
   it('opens 2.0 on what 2.0 brought, in the order Ivan named it', () => {
     expect(idsOf('2.0.0', '2.0')).toEqual([

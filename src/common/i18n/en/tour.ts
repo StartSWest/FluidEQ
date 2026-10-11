@@ -415,7 +415,7 @@ const tour = {
   'tour.output.point1':
     'Switch on another device in Second output and set its own volume.',
   'tour.output.point2':
-    'Use the EQ profile picker below that device to choose one of its saved profiles. The main output keeps its tuning.',
+    'Choose one of its saved profiles under the device, or press {editSound} beside it to change its sound without switching the main output. The main output keeps its tuning.',
   'tour.output.point3':
     'One player at a time: starting something in FluidEQ pauses the rest of the machine, and the other way round.',
   'tour.output.point4':
@@ -425,6 +425,58 @@ const tour = {
   'tour.output.open': 'Open EQ',
   'tour.output.imageAlt':
     'The Second output panel with a BlackShark V2 Pro headset enabled, its EQ profile picker, volume slider and delay.',
+
+  'tour.outputs.kicker': 'EACH OUTPUT REMEMBERS',
+  'tour.outputs.title': 'Every output keeps its own sound',
+  'tour.outputs.subtitle': 'Headphones and speakers, each tuned its own way',
+  'tour.outputs.lead':
+    'Switch from your headphones to your speakers and each one brings its sound back with it: the EQ, the preset, the Tone, the cuts, the DSP rack, the Room and the leveling are kept with every output.',
+  'tour.outputs.point1':
+    'Pick an output and everything you set for it is back at once. Headphones and speakers no longer share one preset or one curve.',
+  'tour.outputs.point2':
+    'A second output plays straight from the FluidEQ Engine with a sound of its own, and the main output never waits for it. {editSound} beside it changes that sound without switching the main output.',
+  'tour.outputs.point3':
+    'Bluetooth headphones show their battery beside the output, and a second output shows how far behind it plays, in milliseconds.',
+  'tour.outputs.how':
+    'Open EQ and pick an output under {output} on the right: whatever you set from then on stays with it. For a second one, switch it on under {secondOutput} and press {editSound}.',
+  'tour.outputs.open': 'Open EQ',
+  'tour.outputs.imageAlt':
+    'The Output card with a headset and speakers, each under its own preset, curve and DSP stages, taking turns to play, and a second output playing beside them with its own sound, its battery and Edit sound.',
+
+  'tour.bands.kicker': 'THE EQ, IN NUMBERS',
+  'tour.bands.title': 'Every band’s numbers, right on the graph',
+  'tour.bands.subtitle': 'Labels on the curve, EQ mode beside it',
+  'tour.bands.lead':
+    'Each band can show its frequency, Q and gain over its own point, and the labels keep out of each other’s way. EQ mode now stands beside the graph instead of over it, so the curves stay in sight while you change how they play.',
+  'tour.bands.point1':
+    'A label sits straight above or below its point, never over another, stays put while you drag its band and goes back to its place once there is room.',
+  'tour.bands.point2':
+    '{eqMode} is the first card of the side panel, with {yourEq} and {corrections} a tab each. Its button above the graph brings the card into view.',
+  'tour.bands.point3':
+    'Every handle, slider and knob works from the keyboard, and moving a slider redraws the curve in the same frame.',
+  'tour.bands.how':
+    'Open EQ, choose {view} → {everything} above the graph (or press {shortcut}) and move a band: its numbers follow it. {eqMode} waits at the top of the panel on the right.',
+  'tour.bands.open': 'Open EQ',
+  'tour.bands.imageAlt':
+    'The EQ graph with each band’s frequency, Q and gain stacked over its point, one band moving under the arrow keys, and the EQ mode card under the curves with Your EQ and Corrections.',
+  'tour.bands.shortcut': 'Ctrl+W',
+
+  'tour.songs.kicker': 'A SOUND FOR EVERY SONG',
+  'tour.songs.title': 'Songs that remember how you like them',
+  'tour.songs.subtitle': 'Tune a song once, hear it that way every time',
+  'tour.songs.lead':
+    'Switch on {songSound} and the preset, Tone and EQ a song ends with come back the next time it plays, on the output you tuned it on.',
+  'tour.songs.point1':
+    'Change the preset, the Tone or a band while a song plays and that is what it keeps. A song you never touch keeps nothing.',
+  'tour.songs.point2':
+    'It comes back with a notice that names the song and what it brought, with {undo} and {forget} right there.',
+  'tour.songs.point3':
+    'When the song ends, the sound you had before it returns, and each output remembers its own: one song can sound one way on headphones and another on speakers.',
+  'tour.songs.how':
+    'Open EQ and switch on {songSound} in {output} on the right. Play a song, pick a preset or turn the Tone, then let it finish or skip it.',
+  'tour.songs.open': 'Open EQ',
+  'tour.songs.imageAlt':
+    'A queue of four songs played in turn, three with the preset and curve each was left with and one never tuned, and above it the notice a remembered song brings up, with Undo and Forget this song.',
 
   'tour.looks.kicker': 'YOUR OWN VISUALIZER',
   'tour.looks.title': 'Custom looks for the graph',

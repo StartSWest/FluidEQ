@@ -384,7 +384,7 @@ const tour: Partial<Dictionary> = {
     '耳机和音箱可以同时播放，并使用各自的均衡器。第二路输出接收主输出均衡器处理前的声音，再应用自己的已保存配置，无需安装路由驱动。',
   'tour.output.point1': '在第二路输出中开启另一个设备，并设置它自己的音量。',
   'tour.output.point2':
-    '使用该设备下方的均衡器配置选择器，选择为它保存的配置。主输出的调音保持不变。',
+    '在设备下方选择它的一个已保存配置，或点击旁边的“{editSound}”，无需切换主输出就能修改它的声音。主输出的调音保持不变。',
   'tour.output.point3':
     '同时只播放一处：在 FluidEQ 里开始播放会暂停机器上的其他播放，反之亦然。',
   'tour.output.point4':
@@ -394,6 +394,58 @@ const tour: Partial<Dictionary> = {
   'tour.output.open': '打开均衡器',
   'tour.output.imageAlt':
     '第二路输出面板，已开启 BlackShark V2 Pro，显示均衡器配置选择器、音量滑块和延迟。',
+
+  'tour.outputs.kicker': '每路输出都记得',
+  'tour.outputs.title': '每路输出都有自己的声音',
+  'tour.outputs.subtitle': '耳机和音箱，各调各的',
+  'tour.outputs.lead':
+    '从耳机切换到音箱，每路输出都会带回自己的声音：均衡器、预设、音色、低切与高切、DSP 机架、房间和响度调节都随每路输出保存。',
+  'tour.outputs.point1':
+    '选一路输出，你为它做的设置会立刻回来。耳机和音箱不再共用同一个预设或同一条曲线。',
+  'tour.outputs.point2':
+    '第二路输出直接从 FluidEQ 引擎播放，拥有自己的声音，主输出从不等它。旁边的“{editSound}”可以修改这份声音，而无需切换主输出。',
+  'tour.outputs.point3':
+    '蓝牙耳机会在输出旁显示电量，第二路输出会以毫秒显示它落后多少。',
+  'tour.outputs.how':
+    '打开均衡器，在右侧“{output}”中选择一路输出：之后的所有设置都会留在它那里。第二路输出在“{secondOutput}”中打开，再点击“{editSound}”。',
+  'tour.outputs.open': '打开均衡器',
+  'tour.outputs.imageAlt':
+    '“输出”卡片上有一副耳机和一对音箱，各有自己的预设、曲线和 DSP 环节，轮流播放；旁边的第二路输出同时播放，带着自己的声音、电量和“编辑声音”。',
+
+  'tour.bands.kicker': '均衡器，一目了然',
+  'tour.bands.title': '每个频段的数值，直接显示在图上',
+  'tour.bands.subtitle': '曲线上有标签，旁边是 EQ 模式',
+  'tour.bands.lead':
+    '每个频段都可以在自己的点上显示频率、Q 值和增益，标签互不遮挡。EQ 模式现在位于图表旁边而不是盖在上面，你调整曲线的播放方式时，曲线始终可见。',
+  'tour.bands.point1':
+    '标签总在点的正上方或正下方，从不压住别的标签；拖动频段时它保持不动，一有空间就回到原位。',
+  'tour.bands.point2':
+    '“{eqMode}”是侧边面板的第一张卡片，“{yourEq}”和“{corrections}”各占一个标签页。图表上方的按钮会把这张卡片带到眼前。',
+  'tour.bands.point3':
+    '每个控制点、滑块和旋钮都能用键盘操作，移动滑块时曲线会在同一帧重绘。',
+  'tour.bands.how':
+    '打开均衡器，在图表上方选择“{view}”→“{everything}”（或按 {shortcut}），然后移动一个频段：数值会跟着它走。“{eqMode}”就在右侧面板的最上方。',
+  'tour.bands.open': '打开均衡器',
+  'tour.bands.imageAlt':
+    '均衡器图表上每个频段的点上方显示着频率、Q 值和增益，一个频段正随方向键移动，曲线下方是带有“自定义 EQ”和“校正”标签页的“EQ 模式”卡片。',
+  'tour.bands.shortcut': 'Ctrl+W',
+
+  'tour.songs.kicker': '每首歌都有自己的声音',
+  'tour.songs.title': '记得你喜好的歌曲',
+  'tour.songs.subtitle': '调一次，每次都这样听',
+  'tour.songs.lead':
+    '打开“{songSound}”后，一首歌结束时的预设、音色和均衡器会在它下次播放时回来，就在你调它的那路输出上。',
+  'tour.songs.point1':
+    '在歌曲播放时改变预设、音色或某个频段，它就会记住这些。你从没动过的歌什么也不会记。',
+  'tour.songs.point2':
+    '回来时会出现一条通知，写明歌名和带回的内容，旁边就是“{undo}”和“{forget}”。',
+  'tour.songs.point3':
+    '歌曲结束后，之前的声音会回来；每路输出各记各的：同一首歌在耳机上和音箱上可以听起来不一样。',
+  'tour.songs.how':
+    '打开均衡器，在右侧“{output}”中打开“{songSound}”。播放一首歌，选一个预设或转动音色，然后让它播完或跳过。',
+  'tour.songs.open': '打开均衡器',
+  'tour.songs.imageAlt':
+    '一个轮流播放的四首歌队列：三首带着各自留下的预设和曲线，一首从未调整过；上方是被记住的歌曲弹出的通知，带有“撤销”和“忘记这首歌”。',
 
   'tour.looks.kicker': '你自己的可视化效果',
   'tour.looks.title': '自定义图表外观',

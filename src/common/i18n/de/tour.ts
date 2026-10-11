@@ -343,10 +343,10 @@ const tour: Partial<Dictionary> = {
     'Öffnen Sie den Tab „Audio teilen“ und drücken Sie „Code kopieren“. Der Code bleibt jedes Mal derselbe.',
   'tour.share.step2Title': 'Auf dem anderen einfügen und verbinden',
   'tour.share.step2':
-    'Öffnen Sie dort „Audio teilen“, fügen Sie den Code unter „Code des anderen Computers“ ein und drücken Sie „Verbinden“. Beide spielen sich sofort gegenseitig, unverändert: Jeder wendet seinen eigenen EQ auf das an, was er hört.',
+    'Öffnen Sie dort „Audio teilen“, fügen Sie den Code unter „Code des anderen Computers“ ein und drücken Sie „Verbinden“. Beide spielen sich sofort unverändert gegenseitig, jeder mit seinem eigenen EQ.',
   'tour.share.step3Title': 'Festlegen, was wohin geht',
   'tour.share.step3':
-    'Jeder verbundene Computer hat zwei Schalter, „Hier abspielen“ und „Meinen Ton senden“: Schalten Sie einen aus, wenn es nur in eine Richtung gehen soll. Die Leiste zeigt den Song des anderen Computers, und ihre Tasten funktionieren über die Verbindung.',
+    'Jeder verbundene Computer hat zwei Schalter, „Hier abspielen“ und „Meinen Ton senden“; mit einem davon aus geht es nur in eine Richtung. Die Leiste zeigt den Song des anderen Computers und steuert ihn.',
   'tour.share.fact1Title': 'Verlustfrei',
   'tour.share.fact1':
     'Float32-PCM von Ende zu Ende. Kein Codec, kein Generationsverlust.',
@@ -403,7 +403,7 @@ const tour: Partial<Dictionary> = {
   'tour.output.point1':
     'Ein weiteres Gerät unter Zweite Ausgabe einschalten und seine Lautstärke einstellen.',
   'tour.output.point2':
-    'Im EQ-Profilwähler unter dem Gerät eines seiner gespeicherten Profile auswählen. Die Abstimmung des Hauptausgangs bleibt erhalten.',
+    'Wählen Sie unter dem Gerät ein Profil, oder ändern Sie seinen Klang mit {editSound}, ohne die Hauptausgabe zu wechseln oder anzutasten.',
   'tour.output.point3':
     'Nur ein Player: Etwas in FluidEQ zu starten pausiert den Rest des Rechners, und umgekehrt.',
   'tour.output.point4':
@@ -413,6 +413,59 @@ const tour: Partial<Dictionary> = {
   'tour.output.open': 'EQ öffnen',
   'tour.output.imageAlt':
     'Zweite Ausgabe mit aktiviertem BlackShark V2 Pro, EQ-Profilwähler, Lautstärkeregler und Verzögerung.',
+
+  'tour.outputs.kicker': 'JEDE AUSGABE ERINNERT SICH',
+  'tour.outputs.title': 'Jede Ausgabe behält ihren eigenen Klang',
+  'tour.outputs.subtitle':
+    'Kopfhörer und Lautsprecher, jedes eigens abgestimmt',
+  'tour.outputs.lead':
+    'Wechseln Sie von den Kopfhörern zu den Lautsprechern, und jede Ausgabe bringt ihren Klang mit: EQ, Preset, Bass, Mitten und Höhen, Filter, DSP-Rack, Raum und Pegelausgleich bleiben bei jeder Ausgabe gespeichert.',
+  'tour.outputs.point1':
+    'Wählen Sie eine Ausgabe, und alles, was Sie für sie eingestellt haben, ist sofort wieder da. Kopfhörer und Lautsprecher teilen sich kein Preset und keine Kurve mehr.',
+  'tour.outputs.point2':
+    'Eine zweite Ausgabe spielt mit eigenem Klang direkt aus der FluidEQ-Engine, ohne die Hauptausgabe aufzuhalten. {editSound} ändert ihn, ohne die Hauptausgabe zu wechseln.',
+  'tour.outputs.point3':
+    'Bluetooth-Kopfhörer zeigen ihren Akkustand, eine zweite Ausgabe ihre Verzögerung in Millisekunden.',
+  'tour.outputs.how':
+    'Öffnen Sie EQ und wählen Sie rechts unter {output} eine Ausgabe: Alles, was Sie danach einstellen, bleibt bei ihr. Eine zweite schalten Sie unter {secondOutput} ein und klicken auf {editSound}.',
+  'tour.outputs.open': 'EQ öffnen',
+  'tour.outputs.imageAlt':
+    'Die Karte „Ausgabe“ mit einem Headset und Lautsprechern, jeweils mit eigenem Preset, eigener Kurve und eigenen DSP-Stufen, die abwechselnd spielen, und daneben eine zweite Ausgabe mit eigenem Klang, Akkustand und „Klang bearbeiten“.',
+
+  'tour.bands.kicker': 'DER EQ IN ZAHLEN',
+  'tour.bands.title': 'Die Werte jedes Bands direkt im Diagramm',
+  'tour.bands.subtitle': 'Beschriftungen an der Kurve, EQ-Modus daneben',
+  'tour.bands.lead':
+    'Jedes Band kann Frequenz, Q und Verstärkung über seinem Punkt zeigen, und die Beschriftungen gehen einander aus dem Weg. Der EQ-Modus steht jetzt neben dem Diagramm statt darüber, sodass die Kurven sichtbar bleiben, während Sie ändern, wie sie spielen.',
+  'tour.bands.point1':
+    'Eine Beschriftung steht genau über oder unter ihrem Punkt, nie über einer anderen, bleibt beim Ziehen ihres Bands stehen und kehrt an ihren Platz zurück, sobald wieder Raum ist.',
+  'tour.bands.point2':
+    '{eqMode} ist die erste Karte der Seitenleiste, mit je einem Tab für {yourEq} und {corrections}. Sein Knopf über dem Diagramm holt die Karte ins Bild.',
+  'tour.bands.point3':
+    'Jeder Punkt, Schieberegler und Drehknopf lässt sich mit der Tastatur bedienen, und ein Schieberegler zeichnet die Kurve im selben Bild neu.',
+  'tour.bands.how':
+    'Öffnen Sie EQ, wählen Sie über dem Diagramm {view} → {everything} (oder drücken Sie {shortcut}) und bewegen Sie ein Band: Seine Werte folgen ihm. {eqMode} wartet oben in der Leiste rechts.',
+  'tour.bands.open': 'EQ öffnen',
+  'tour.bands.imageAlt':
+    'Das EQ-Diagramm mit Frequenz, Q und Verstärkung jedes Bands über seinem Punkt, ein Band, das sich mit den Pfeiltasten bewegt, und darunter die Karte „EQ-Modus“ mit „Ihr EQ“ und „Korrekturen“.',
+  'tour.bands.shortcut': 'Strg+W',
+
+  'tour.songs.kicker': 'EIN KLANG FÜR JEDEN SONG',
+  'tour.songs.title': 'Songs, die sich merken, wie Sie sie mögen',
+  'tour.songs.subtitle': 'Einmal abstimmen, jedes Mal so hören',
+  'tour.songs.lead':
+    'Schalten Sie {songSound} ein, und Preset, Bass, Mitten, Höhen und EQ, mit denen ein Song endet, kommen beim nächsten Abspielen zurück, auf der Ausgabe, auf der Sie ihn abgestimmt haben.',
+  'tour.songs.point1':
+    'Ändern Sie Preset, Bass, Mitten, Höhen oder ein Band, während ein Song läuft, und genau das behält er. Ein Song, den Sie nie anfassen, behält nichts.',
+  'tour.songs.point2':
+    'Er kommt mit einem Hinweis zurück, der den Song und das Mitgebrachte nennt, mit {undo} und {forget} gleich daneben.',
+  'tour.songs.point3':
+    'Endet der Song, kehrt der Klang von vorher zurück, und jede Ausgabe merkt sich ihren eigenen: Ein Song kann auf Kopfhörern anders klingen als auf Lautsprechern.',
+  'tour.songs.how':
+    'Öffnen Sie EQ und schalten Sie rechts in {output} {songSound} ein. Spielen Sie einen Song, wählen Sie ein Preset oder drehen Sie an Bass, Mitten und Höhen, und lassen Sie ihn zu Ende laufen oder überspringen Sie ihn.',
+  'tour.songs.open': 'EQ öffnen',
+  'tour.songs.imageAlt':
+    'Eine Warteschlange aus vier Songs, die nacheinander spielen, drei mit dem Preset und der Kurve, mit denen sie verlassen wurden, einer nie abgestimmt, und darüber der Hinweis eines gemerkten Songs mit „Rückgängig“ und „Diesen Song vergessen“.',
 
   'tour.looks.kicker': 'IHR EIGENER VISUALIZER',
   'tour.looks.title': 'Eigene Darstellungen für das Diagramm',

@@ -344,7 +344,7 @@ const tour: Partial<Dictionary> = {
     'Abra Compartilhar áudio no outro computador, cole o código em “Código do outro computador” e pressione “Vincular”. Os dois começam a tocar um ao outro na hora, intactos: cada um aplica o próprio EQ ao que ouve.',
   'tour.share.step3Title': 'Escolha o que vai para onde',
   'tour.share.step3':
-    'Cada computador vinculado tem duas chaves, “Tocar aqui” e “Enviar meu som”: desligue uma para um sentido só. A barra mostra a música do outro computador, e os botões dela funcionam pela conexão.',
+    'Cada computador vinculado tem duas chaves, “Tocar aqui” e “Enviar meu som”: desligue uma para um sentido só. A barra mostra a música do outro computador e a controla pela conexão.',
   'tour.share.fact1Title': 'Sem perdas',
   'tour.share.fact1':
     'PCM Float32 de ponta a ponta. Sem codec, sem perda de geração.',
@@ -401,7 +401,7 @@ const tour: Partial<Dictionary> = {
   'tour.output.point1':
     'Ative outro dispositivo em Segunda saída e ajuste seu volume.',
   'tour.output.point2':
-    'Use o seletor de perfil de EQ abaixo do dispositivo para escolher um dos perfis salvos para ele. A saída principal mantém sua regulagem.',
+    'Escolha um dos perfis salvos dele abaixo do dispositivo, ou clique em {editSound} ao lado para mudar o som dele sem trocar a saída principal. A saída principal mantém sua regulagem.',
   'tour.output.point3':
     'Um reprodutor de cada vez: iniciar algo no FluidEQ pausa o resto da máquina, e vice-versa.',
   'tour.output.point4':
@@ -411,6 +411,58 @@ const tour: Partial<Dictionary> = {
   'tour.output.open': 'Abrir EQ',
   'tour.output.imageAlt':
     'O painel Segunda saída com o BlackShark V2 Pro ativado, seu seletor de perfil de EQ, volume e atraso.',
+
+  'tour.outputs.kicker': 'CADA SAÍDA LEMBRA',
+  'tour.outputs.title': 'Cada saída mantém o próprio som',
+  'tour.outputs.subtitle': 'Fone e caixas, cada um ajustado do seu jeito',
+  'tour.outputs.lead':
+    'Troque do fone para as caixas e cada saída traz o próprio som junto: o EQ, o preset, o Tom, os cortes, o rack DSP, a Sala e o nivelamento ficam guardados com cada saída.',
+  'tour.outputs.point1':
+    'Escolha uma saída e tudo o que você ajustou para ela volta na hora. Fone e caixas não dividem mais o mesmo preset nem a mesma curva.',
+  'tour.outputs.point2':
+    'Uma segunda saída toca direto do Motor FluidEQ com um som próprio, e a saída principal nunca espera por ela. {editSound}, ao lado, muda esse som sem trocar a saída principal.',
+  'tour.outputs.point3':
+    'Fones Bluetooth mostram a bateria ao lado da saída, e uma segunda saída mostra em milissegundos o quanto toca atrasada.',
+  'tour.outputs.how':
+    'Abra o EQ e escolha uma saída em {output}, à direita: tudo o que você ajustar a partir daí fica com ela. Para uma segunda, ative-a em {secondOutput} e clique em {editSound}.',
+  'tour.outputs.open': 'Abrir EQ',
+  'tour.outputs.imageAlt':
+    'O cartão Saída com um headset e caixas de som, cada um com seu preset, sua curva e seus estágios DSP, tocando em turnos, e ao lado uma segunda saída tocando ao mesmo tempo com o próprio som, a bateria e Editar som.',
+
+  'tour.bands.kicker': 'O EQ EM NÚMEROS',
+  'tour.bands.title': 'Os valores de cada banda, direto no gráfico',
+  'tour.bands.subtitle': 'Rótulos na curva, Modo EQ ao lado',
+  'tour.bands.lead':
+    'Cada banda pode mostrar frequência, Q e ganho sobre o próprio ponto, e os rótulos não atrapalham uns aos outros. O Modo EQ agora fica ao lado do gráfico em vez de por cima, então as curvas continuam à vista enquanto você muda como elas tocam.',
+  'tour.bands.point1':
+    'Um rótulo fica logo acima ou abaixo do seu ponto, nunca sobre outro, não sai do lugar enquanto você arrasta a banda e volta para a sua posição assim que há espaço.',
+  'tour.bands.point2':
+    '{eqMode} é o primeiro cartão do painel lateral, com uma aba para {yourEq} e outra para {corrections}. O botão dele acima do gráfico traz o cartão para a vista.',
+  'tour.bands.point3':
+    'Cada ponto, controle deslizante e botão giratório funciona pelo teclado, e mover um controle deslizante redesenha a curva no mesmo quadro.',
+  'tour.bands.how':
+    'Abra o EQ, escolha {view} → {everything} acima do gráfico (ou pressione {shortcut}) e mova uma banda: os valores dela a acompanham. {eqMode} fica no topo do painel à direita.',
+  'tour.bands.open': 'Abrir EQ',
+  'tour.bands.imageAlt':
+    'O gráfico do EQ com a frequência, o Q e o ganho de cada banda sobre o seu ponto, uma banda se movendo com as setas do teclado e, embaixo, o cartão Modo EQ com Seu EQ e Correções.',
+  'tour.bands.shortcut': 'Ctrl+W',
+
+  'tour.songs.kicker': 'UM SOM PARA CADA MÚSICA',
+  'tour.songs.title': 'Músicas que lembram como você gosta delas',
+  'tour.songs.subtitle': 'Ajuste uma vez e ouça assim sempre',
+  'tour.songs.lead':
+    'Ative {songSound} e o preset, o Tom e o EQ com que uma música termina voltam na próxima vez que ela tocar, na saída em que você a ajustou.',
+  'tour.songs.point1':
+    'Mude o preset, o Tom ou uma banda enquanto uma música toca e é isso que ela guarda. Uma música em que você nunca mexe não guarda nada.',
+  'tour.songs.point2':
+    'O som volta com um aviso que diz o nome da música e o que ela trouxe, com {undo} e {forget} ali mesmo.',
+  'tour.songs.point3':
+    'Quando a música termina, o som que você tinha antes volta, e cada saída lembra o seu: a mesma música pode soar de um jeito no fone e de outro nas caixas.',
+  'tour.songs.how':
+    'Abra o EQ e ative {songSound} em {output}, à direita. Toque uma música, escolha um preset ou gire o Tom e deixe-a terminar ou pule-a.',
+  'tour.songs.open': 'Abrir EQ',
+  'tour.songs.imageAlt':
+    'Uma fila de quatro músicas tocando em turnos, três com o preset e a curva com que ficaram e uma nunca ajustada, e acima o aviso que uma música lembrada mostra, com Desfazer e Esquecer esta música.',
 
   'tour.looks.kicker': 'SEU PRÓPRIO VISUALIZADOR',
   'tour.looks.title': 'Visuais próprios para o gráfico',

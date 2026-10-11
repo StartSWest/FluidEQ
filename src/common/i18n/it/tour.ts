@@ -399,7 +399,7 @@ const tour: Partial<Dictionary> = {
   'tour.output.point1':
     'Attiva un altro dispositivo in Seconda uscita e regola il suo volume.',
   'tour.output.point2':
-    'Scegli uno dei profili salvati dal selettore del profilo EQ sotto il dispositivo. L’uscita principale mantiene la sua regolazione.',
+    'Scegli uno dei suoi profili salvati sotto il dispositivo, oppure premi {editSound} accanto per cambiarne il suono senza cambiare l’uscita principale. L’uscita principale mantiene la sua regolazione.',
   'tour.output.point3':
     'Un solo lettore: avviare qualcosa in FluidEQ mette in pausa il resto della macchina, e viceversa.',
   'tour.output.point4':
@@ -409,6 +409,58 @@ const tour: Partial<Dictionary> = {
   'tour.output.open': 'Apri l’EQ',
   'tour.output.imageAlt':
     'Il pannello Seconda uscita con BlackShark V2 Pro attivo, il selettore del profilo EQ, il volume e il ritardo.',
+
+  'tour.outputs.kicker': 'OGNI USCITA RICORDA',
+  'tour.outputs.title': 'Ogni uscita mantiene il suo suono',
+  'tour.outputs.subtitle': 'Cuffie e altoparlanti, ognuno regolato a modo suo',
+  'tour.outputs.lead':
+    'Passa dalle cuffie agli altoparlanti e ogni uscita riporta con sé il suo suono: l’EQ, il preset, il Tono, i tagli, il rack DSP, la Stanza e il livellamento vengono salvati con ogni uscita.',
+  'tour.outputs.point1':
+    'Scegli un’uscita e tutto ciò che hai impostato per lei torna subito. Cuffie e altoparlanti non condividono più lo stesso preset né la stessa curva.',
+  'tour.outputs.point2':
+    'Una seconda uscita suona direttamente dal motore FluidEQ con un suono tutto suo, e l’uscita principale non la aspetta mai. {editSound}, lì accanto, cambia quel suono senza cambiare l’uscita principale.',
+  'tour.outputs.point3':
+    'Le cuffie Bluetooth mostrano la batteria accanto all’uscita, e una seconda uscita mostra in millisecondi quanto è in ritardo.',
+  'tour.outputs.how':
+    'Apri l’EQ e scegli un’uscita in {output}, a destra: tutto ciò che imposti da quel momento resta con lei. Per una seconda, attivala in {secondOutput} e premi {editSound}.',
+  'tour.outputs.open': 'Apri l’EQ',
+  'tour.outputs.imageAlt':
+    'Il riquadro Uscita con delle cuffie e degli altoparlanti, ciascuno con il suo preset, la sua curva e i suoi stadi DSP, che suonano a turno, e accanto una seconda uscita che suona insieme con il suo suono, la sua batteria e Modifica suono.',
+
+  'tour.bands.kicker': 'L’EQ IN NUMERI',
+  'tour.bands.title': 'I valori di ogni banda, direttamente sul grafico',
+  'tour.bands.subtitle': 'Etichette sulla curva, Modalità EQ accanto',
+  'tour.bands.lead':
+    'Ogni banda può mostrare frequenza, Q e guadagno sopra il suo punto, e le etichette non si intralciano. La Modalità EQ ora sta accanto al grafico invece che sopra, così le curve restano in vista mentre cambi come suonano.',
+  'tour.bands.point1':
+    'Un’etichetta sta proprio sopra o sotto il suo punto, mai sopra un’altra, resta ferma mentre trascini la sua banda e torna al suo posto appena c’è spazio.',
+  'tour.bands.point2':
+    '{eqMode} è il primo riquadro del pannello laterale, con una scheda per {yourEq} e una per {corrections}. Il suo pulsante sopra il grafico porta il riquadro in vista.',
+  'tour.bands.point3':
+    'Ogni punto, cursore e manopola si usa da tastiera, e spostare un cursore ridisegna la curva nello stesso fotogramma.',
+  'tour.bands.how':
+    'Apri l’EQ, scegli {view} → {everything} sopra il grafico (o premi {shortcut}) e sposta una banda: i suoi valori la seguono. {eqMode} ti aspetta in cima al pannello di destra.',
+  'tour.bands.open': 'Apri l’EQ',
+  'tour.bands.imageAlt':
+    'Il grafico dell’EQ con frequenza, Q e guadagno di ogni banda sopra il suo punto, una banda che si muove con le frecce della tastiera e, sotto, il riquadro Modalità EQ con Il tuo EQ e Correzioni.',
+  'tour.bands.shortcut': 'Ctrl+W',
+
+  'tour.songs.kicker': 'UN SUONO PER OGNI BRANO',
+  'tour.songs.title': 'Brani che ricordano come ti piacciono',
+  'tour.songs.subtitle': 'Regolalo una volta, ascoltalo così ogni volta',
+  'tour.songs.lead':
+    'Attiva {songSound} e il preset, il Tono e l’EQ con cui finisce un brano tornano la volta successiva che suona, sull’uscita su cui l’hai regolato.',
+  'tour.songs.point1':
+    'Cambia il preset, il Tono o una banda mentre un brano suona e quello è ciò che conserva. Un brano che non tocchi non conserva nulla.',
+  'tour.songs.point2':
+    'Torna con un avviso che nomina il brano e ciò che riporta, con {undo} e {forget} lì accanto.',
+  'tour.songs.point3':
+    'Quando il brano finisce, torna il suono che avevi prima, e ogni uscita ricorda il proprio: lo stesso brano può suonare in un modo in cuffia e in un altro sugli altoparlanti.',
+  'tour.songs.how':
+    'Apri l’EQ e attiva {songSound} in {output}, a destra. Fai partire un brano, scegli un preset o gira il Tono, poi lascialo finire o saltalo.',
+  'tour.songs.open': 'Apri l’EQ',
+  'tour.songs.imageAlt':
+    'Una coda di quattro brani che suonano a turno, tre con il preset e la curva con cui sono stati lasciati e uno mai regolato, e sopra l’avviso che mostra un brano ricordato, con Annulla e Dimentica questo brano.',
 
   'tour.looks.kicker': 'IL TUO VISUALIZZATORE',
   'tour.looks.title': 'Aspetti personalizzati per il grafico',

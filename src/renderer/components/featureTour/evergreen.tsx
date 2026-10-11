@@ -14,6 +14,7 @@ import {
   LibraryArt,
   OnlineMediaArt,
 } from './artwork';
+import { useTranslation } from '../../utils/I18nContext';
 import FeatureSlide from './FeatureSlide';
 import SecondOutputArt from './SecondOutputArt';
 import { DRAWN_FORM_COUNT } from './lookCounts';
@@ -54,12 +55,14 @@ export function DspSlide({ actions }: ISlideProps) {
  * what the feature is faster than any diagram of it.
  */
 export function SecondOutputSlide({ actions }: ISlideProps) {
+  const { t } = useTranslation();
   return (
     <FeatureSlide
       prefix="tour.output"
       tab="eq"
       art={<SecondOutputArt />}
       actions={actions}
+      values={{ editSound: t('extraOutput.edit') }}
     />
   );
 }

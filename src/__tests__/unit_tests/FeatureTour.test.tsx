@@ -21,13 +21,13 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-const showTour = () => {
+const showTour = (version = '2.0.0') => {
   const onClose = jest.fn();
   const onOpenTab = jest.fn();
   render(
     <FeatureTour
-      version="2.0.0"
-      slides={featureTourFor('2.0.0')}
+      version={version}
+      slides={featureTourFor(version)}
       onClose={onClose}
       onShowReleaseNotes={jest.fn()}
       onOpenTab={onOpenTab}
@@ -50,6 +50,72 @@ it('heads each release it shows as new with its own number, then the rest', () =
   expect(headings).toEqual(['NEW IN 2.0', 'NEW IN 1.7', 'ALSO IN FLUIDEQ']);
   expect(
     screen.getByRole('heading', { name: 'A new window, in new colours' }),
+  ).toBeInTheDocument();
+});
+
+it('opens 2.1 on every output keeping its own sound, with 2.0 still new', () => {
+  showTour('2.1.0');
+  const headings = Array.from(
+    document.querySelectorAll('.feature-tour__rail-heading'),
+    (heading) => heading.textContent,
+  );
+  expect(headings).toEqual(['NEW IN 2.1', 'NEW IN 2.0', 'ALSO IN FLUIDEQ']);
+  expect(
+    screen.getByRole('heading', { name: 'Every output keeps its own sound' }),
+  ).toBeInTheDocument();
+});
+
+it('names 2.1’s controls by the labels the window gives them', () => {
+  const { onOpenTab } = showTour('2.1.0');
+  expect(
+    screen.getByText(
+      'Open EQ and pick an output under Output on the right: whatever you set from then on stays with it. For a second one, switch it on under Second output and press Edit sound.',
+    ),
+  ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Open EQ' }));
+  expect(onOpenTab).toHaveBeenCalledWith('eq');
+
+  goTo('Every band’s numbers, right on the graph');
+  expect(
+    screen.getByText(
+      'Open EQ, choose View → Everything above the graph (or press Ctrl+W) and move a band: its numbers follow it. EQ mode waits at the top of the panel on the right.',
+    ),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      'EQ mode is the first card of the side panel, with Your EQ and Corrections a tab each. Its button above the graph brings the card into view.',
+    ),
+  ).toBeInTheDocument();
+
+  goTo('Songs that remember how you like them');
+  expect(
+    screen.getByText(
+      'Open EQ and switch on Remember each song’s sound in Output on the right. Play a song, pick a preset or turn the Tone, then let it finish or skip it.',
+    ),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      'It comes back with a notice that names the song and what it brought, with Undo and Forget this song right there.',
+    ),
+  ).toBeInTheDocument();
+});
+
+it('reads each band out as the graph does, a cut with a real minus', () => {
+  showTour('2.1.0');
+  goTo('Every band’s numbers, right on the graph');
+  // The 250 Hz band is a cut, and its label hangs below its point.
+  const cut = screen.getByText('250 Hz').closest('.bands-visual__band');
+  expect(cut).toHaveClass('is-below');
+  expect(cut).toHaveTextContent('250 HzQ 1.2−2.0 dB');
+});
+
+it('sends a second output’s sound to the button that changes it', () => {
+  showTour('2.1.0');
+  goTo('Second-output profiles');
+  expect(
+    screen.getByText(
+      'Choose one of its saved profiles under the device, or press Edit sound beside it to change its sound without switching the main output. The main output keeps its tuning.',
+    ),
   ).toBeInTheDocument();
 });
 

@@ -1,0 +1,322 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// Songs that remember their sound (`SongsVisual.tsx`): the notice a
+// remembered song brings up, and a queue of four songs played in turn, each
+// with the preset and curve it was left with — the last one untuned, which
+// brings nothing.
+
+// One song's turn; four songs make the whole round.
+$song-turn: 3.6s;
+$round: $song-turn * 4;
+
+.songs-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 30);
+  gap: calc(#{$u} * 1);
+  @include animate(rise-in, $motion-slow);
+}
+
+// The notices stand in one place, the one for the song playing showing.
+.songs-visual__notices {
+  display: grid;
+  min-height: calc(#{$u} * 5.2);
+}
+
+.songs-visual__notice {
+  @include panel;
+
+  display: grid;
+  align-content: center;
+  padding: calc(#{$u} * 0.65) calc(#{$u} * 0.8);
+  border-color: color-mix(in srgb, $secondary-light 35%, transparent);
+  gap: calc(#{$u} * 0.5);
+  grid-area: 1 / 1;
+  opacity: 0;
+  animation: songs-visual-notice $round ease-in-out infinite;
+  animation-delay: calc(var(--turn) * #{$song-turn});
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+
+    &:first-child {
+      opacity: 1;
+    }
+  }
+}
+
+@keyframes songs-visual-notice {
+  0% {
+    opacity: 0;
+    translate: 0 calc(#{$u} * 0.4);
+  }
+
+  5%,
+  22% {
+    opacity: 1;
+    translate: 0 0;
+  }
+
+  25%,
+  100% {
+    opacity: 0;
+    translate: 0 0;
+  }
+}
+
+.songs-visual__notice-text {
+  display: grid;
+  min-width: 0;
+  gap: calc(#{$u} * 0.15);
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.9);
+    font-weight: $weight-bold;
+  }
+
+  span {
+    overflow: hidden;
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.76);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.songs-visual__notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: calc(#{$u} * 0.35);
+}
+
+// Undo is the suggested answer and wears the filled style; Forget the quiet.
+.songs-visual__undo,
+.songs-visual__forget {
+  @include pill;
+
+  font-size: calc(#{$u} * 0.72);
+}
+
+.songs-visual__undo {
+  color: $surface-base;
+  border-color: transparent;
+  background: $secondary-default var(--control-fill);
+}
+
+.songs-visual__forget {
+  color: $secondary-light;
+  border-color: $border-control;
+  background: $surface-control;
+}
+
+.songs-visual__queue {
+  @include panel;
+
+  display: grid;
+  padding: calc(#{$u} * 0.8);
+  gap: calc(#{$u} * 0.6);
+}
+
+// The switch that turns the memory on, as the Output card draws it.
+.songs-visual__switch {
+  display: flex;
+  align-items: center;
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.8);
+  font-weight: $weight-semibold;
+  gap: calc(#{$u} * 0.5);
+}
+
+.songs-visual__toggle {
+  position: relative;
+  flex: 0 0 auto;
+  width: calc(#{$u} * 1.5);
+  height: calc(#{$u} * 0.8);
+  border-radius: $radius-pill;
+  background: $secondary-default var(--accent-fill);
+
+  &::after {
+    position: absolute;
+    top: 50%;
+    right: calc(#{$u} * 0.1);
+    width: calc(#{$u} * 0.58);
+    height: calc(#{$u} * 0.58);
+    border-radius: 50%;
+    background: $white;
+    content: '';
+    transform: translateY(-50%);
+  }
+}
+
+.songs-visual__songs {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: calc(#{$u} * 0.3);
+  list-style: none;
+}
+
+// How the queue lights the song playing.
+@mixin song-playing {
+  border-color: color-mix(in srgb, $secondary-light 40%, transparent);
+  background: color-mix(in srgb, $secondary-default 10%, $surface-field);
+}
+
+// A song in the queue, lit while it plays.
+.songs-visual__song {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  align-items: center;
+  padding: calc(#{$u} * 0.55) calc(#{$u} * 0.6);
+  border: 1px solid transparent;
+  border-radius: $radius-m;
+  gap: calc(#{$u} * 0.6);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  animation: songs-visual-playing $round ease-in-out infinite;
+  animation-delay: calc(var(--turn) * #{$song-turn});
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+
+    &:first-child {
+      @include song-playing;
+    }
+  }
+}
+
+// How far the song playing has got, along the foot of its row.
+.songs-visual__progress {
+  position: absolute;
+  right: calc(#{$u} * 0.6);
+  bottom: 0;
+  left: calc(#{$u} * 0.6);
+  height: 2px;
+  border-radius: $radius-pill;
+  background: $secondary-light;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: songs-visual-progress $round linear infinite;
+  animation-delay: calc(var(--turn) * #{$song-turn});
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+
+    .songs-visual__song:first-child & {
+      opacity: 1;
+      transform: scaleX(0.4);
+    }
+  }
+}
+
+@keyframes songs-visual-progress {
+  0% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+
+  24% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
+  25%,
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes songs-visual-playing {
+  0%,
+  23% {
+    @include song-playing;
+  }
+
+  26%,
+  100% {
+    border-color: transparent;
+    background: transparent;
+  }
+}
+
+.songs-visual__art {
+  width: calc(#{$u} * 2.6);
+  height: calc(#{$u} * 2.6);
+  border-radius: $radius-xs;
+  background: linear-gradient(135deg, var(--art-from), var(--art-to));
+  box-shadow: 0 4px 12px rgba($black, 0.35);
+}
+
+.songs-visual__title {
+  display: grid;
+  min-width: 0;
+
+  strong,
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: $text-primary;
+    font-size: calc(#{$u} * 0.86);
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $text-faint;
+    font-size: calc(#{$u} * 0.7);
+  }
+}
+
+.songs-visual__sound {
+  display: flex;
+  align-items: center;
+  gap: calc(#{$u} * 0.45);
+
+  svg {
+    width: calc(#{$u} * 4.2);
+    height: calc(#{$u} * 1.5);
+    overflow: visible;
+  }
+
+  path {
+    fill: none;
+    stroke: $secondary-light;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+    vector-effect: non-scaling-stroke;
+  }
+}
+
+.songs-visual__preset {
+  @include pill;
+
+  color: $text-primary;
+  background: $surface-control;
+  font-size: calc(#{$u} * 0.68);
+}
+
+// A song nobody tuned keeps nothing, and plays with the sound from before.
+.songs-visual__nothing {
+  padding-right: calc(#{$u} * 1.5);
+  color: $text-faint;
+  font-size: calc(#{$u} * 0.7);
+}
