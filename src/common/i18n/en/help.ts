@@ -25,7 +25,7 @@ const help = {
   'help.closeImage': 'Close screenshot',
   'help.controlsOf': 'What each control in {title} does',
   'help.captureNote':
-    'Real FluidEQ captures from versions 1.6 and 1.7. Colours, labels and control positions may differ in your version. Example settings are illustrations, not recommended presets.',
+    'Real captures of the FluidEQ window. Colours, labels and control positions may differ in your version. Example settings are illustrations, not recommended presets.',
   'help.steps': 'Try it',
   'help.tip': 'Good to know',
   'help.back': 'Back to top',
@@ -187,11 +187,11 @@ const help = {
   'help.eq.intro':
     'Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its width: higher Q is narrower. With no band selected, the Tone dials — Bass, Mid and Treble, with Low cut and High cut on either side — shape the sound as a curve of their own and leave your bands as they are. Begin with small, broad changes and compare often.',
   'help.eq.steps':
-    'Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone, and Low cut or High cut to trim the extremes. They draw their own Tone line on the graph.\nClick a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active.\nRight-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain, and Bass, Mid and Treble, to 0 dB while keeping your bands. It asks first.',
+    'Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone, and Low cut or High cut to trim the extremes. They draw their own Tone line on the graph.\nClick a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active. The curve follows a slider as you move it.\nEverything works from the keyboard too: Tab to a fader, a dial or a point on the graph, and the arrow keys step it; Page Up and Page Down take bigger steps.\nTo see each band’s frequency, Q and gain on the graph, open View above it and press Show EQ labels, or press Ctrl+W until it shows Everything. A label sits above or below its point, never beside it, and goes back to its place once there is room.\nRight-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain, and Bass, Mid and Treble, to 0 dB while keeping your bands. It asks first.',
   'help.eq.tip':
-    'Curves lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on.',
+    'Curves lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on. While the EQ is switched off its bands are dimmed and cannot be changed by accident; the Tone dials still work.',
   'help.eq.keywords':
-    'equalizer, equaliser, parametric, parametric eq, graphic eq, bass boost, treble boost, low end, lows, mids, highs, tone, tone controls, peaking, shelving, low pass, high pass, band pass, bandwidth, hz, db, boost, cut, adjust sound, latency',
+    'equalizer, equaliser, parametric, parametric eq, graphic eq, bass boost, treble boost, low end, lows, mids, highs, tone, tone controls, peaking, shelving, low pass, high pass, band pass, bandwidth, hz, db, boost, cut, adjust sound, latency, labels, band labels, eq labels, readout, keyboard, arrow keys, accessibility, screen reader',
   'help.eq.bandsCaption': 'The Bands page, nothing selected',
   'help.eq.bandCaption': 'A band selected',
   'help.eq.gameMode':
@@ -200,7 +200,10 @@ const help = {
     'What else shapes this output — a headphone correction, Smart EQ, a convolution — each with its strength, its switch and ×.',
   'help.eq.bandName': 'A band',
   'help.eq.band':
-    'Drag its point to boost or cut. Click its frequency to select it.',
+    'Drag its point to boost or cut, or step it with the arrow keys. Click its frequency to select it.',
+  'help.eq.labelName': 'Band label',
+  'help.eq.label':
+    'Its frequency, Q and gain, above or below its point. View → Show EQ labels, or Ctrl+W.',
   'help.eq.bass': 'Raises or lowers the low end of the whole curve.',
   'help.eq.mid': 'Raises or lowers the middle, where voices sit.',
   'help.eq.treble': 'Raises or lowers the top, the air and the detail.',
@@ -212,9 +215,12 @@ const help = {
   'help.eq.smart':
     'Listens to what plays and corrects it: Detail, Balance or Target.',
   'help.eq.clear': 'Sets every gain to 0 dB and keeps your bands. Asks first.',
-  'help.eq.mode': 'How strongly your EQ and curves apply, band Q and phase.',
-  'help.eq.add': 'Adds a band beside the selected one.',
-  'help.eq.layouts': 'Band counts, and the band designs you saved.',
+  'help.eq.mode':
+    'Brings the EQ mode card into view: how strongly your EQ and curves apply, band Q, phase and treble.',
+  'help.eq.add':
+    'Adds a band beside the selected one, at the Q of the bands already there.',
+  'help.eq.layouts':
+    'Band counts, each starting every band at one Q, and the band designs you saved.',
   'help.eq.frequency': 'Where the selected band acts, from 1 Hz to 20 kHz.',
   'help.eq.gain': 'How much it boosts or cuts. Ctrl-click returns it to 0 dB.',
   'help.eq.q': 'How wide it is: higher is narrower.',
@@ -227,23 +233,29 @@ const help = {
 
   'help.eqmode.title': 'EQ mode and band designs',
   'help.eqmode.intro':
-    'EQ mode changes how your sound is shaped, without editing anything. Your EQ covers your bands, the Tone, presets, Driver type and Smart EQ; Corrections covers headphone corrections and imported or custom curves. Band designs keep the frequencies and Q of a layout you like, ready for any output.',
+    'EQ mode changes how your sound is shaped, without editing anything. Its settings are the first card of the side panel on the EQ page, beside the curves they change, in two tabs: Your EQ covers your bands, the Tone, presets, Driver type and Smart EQ; Corrections covers headphone corrections and imported or custom curves. Band designs keep the frequencies and Q of a layout you like, ready for any output.',
   'help.eqmode.steps':
-    'Open EQ mode on the Bands toolbar. Try a Strength, Band Q or Curve smoothing choice while music plays; the panel stays open.\nUnder the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble. Press Reset to return everything to Normal.\nOpen the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
+    'Press EQ mode above the graph. The card comes into view, and the side panel opens if it was closed.\nPick the Your EQ or Corrections tab, then try a Strength or Band Q choice while music plays. Under the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble, for each tab.\nOn Corrections, Curve smoothing softens sampled curves at 1/12 octave until you choose otherwise. Reset puts everything back to Normal, and smoothing back to 1/12 octave.\nWould you rather have a menu? Press the pin on the card: EQ mode then opens as a menu over the graph, and the pin in that menu brings the card back.\nOpen the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
   'help.eqmode.tip':
-    'A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits.',
+    'A new layout starts every band at one Q, and a band you add takes the Q of the others. A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits.',
   'help.eqmode.keywords':
-    'band layout, band count, 10 band, 31 band, graphic eq, band design, strength, intensity, linear phase, minimum phase, smoothing, constant q, proportional q, treble, precise, classic',
-  'help.eqmode.modeCaption': 'EQ mode',
-  'help.eqmode.strength':
-    'Normal, Studio ×1.5 or ×2, for Your EQ and your Corrections separately.',
+    'band layout, band count, 10 band, 31 band, graphic eq, band design, strength, intensity, linear phase, minimum phase, smoothing, constant q, proportional q, treble, precise, classic, pin, unpin, card, side panel, menu, tabs, your eq, corrections, 1/12 octave',
+  'help.eqmode.modeCaption': 'The EQ mode card',
+  'help.eqmode.tabsName': 'Your EQ and Corrections',
+  'help.eqmode.tabs': 'Two tabs, each with its own settings.',
+  'help.eqmode.pin':
+    'Puts these settings back in a menu over the graph. The menu’s pin brings the card back.',
+  'help.eqmode.strength': 'Normal, Studio ×1.5 or ×2. Each tab keeps its own.',
   'help.eqmode.q':
-    'Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow.',
-  'help.eqmode.smoothing': 'Softens sampled correction curves.',
-  'help.eqmode.phase': 'Minimum or Linear. With the FluidEQ Engine only.',
+    'Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow. On Your EQ it shapes your own bands alone, never a preset or a correction.',
+  'help.eqmode.smoothing':
+    'Softens sampled correction curves: 1/12 octave until you choose otherwise.',
+  'help.eqmode.phase':
+    'Minimum or Linear, for each tab. With the FluidEQ Engine only.',
   'help.eqmode.treble':
     'Precise plays treble as drawn; Classic as Equalizer APO does. With the FluidEQ Engine only.',
-  'help.eqmode.reset': 'Everything back to Normal.',
+  'help.eqmode.reset':
+    'Everything back to Normal, and Curve smoothing back to 1/12 octave.',
   'help.eqmode.designsCaption': 'Band designs',
   'help.eqmode.builtIn': 'Standard layouts of 6, 10, 15, 20 or 31 bands.',
   'help.eqmode.save':
@@ -291,26 +303,32 @@ const help = {
 
   'help.profiles.title': 'Devices, profiles & second output',
   'help.profiles.intro':
-    'Your EQ follows the output device. Edits save to the profile playing on the current output, and Profiles lets you keep alternative sounds. Second output mirrors playback to other devices with a separate level for each.',
+    'Every output keeps its own sound: the EQ, the preset, the Tone, the cuts, the DSP rack, the Room and the leveling are saved with it and come back the moment you switch to it. Profiles keep other sounds for the same output. Second output plays on another device at the same time, with a sound and a level of its own.',
   'help.profiles.steps':
-    'Check the output at the top of the Output card before editing. Use New profile for a sound you want to keep; Update saves changes to that profile, and Restore brings its saved settings back.\nOpen Second output, switch on a reachable device, and set its level. Choose that device’s saved EQ profile directly beneath it.\nEach output keeps itself in time and shows how far behind it plays; with Share Audio, another computer’s sound shows its own delay, the network included.',
+    'Check the output at the top of the Output card before editing; Bluetooth headphones show their battery beside it. Use New profile for a sound you want to keep; Update saves changes to that profile, and Restore brings its saved settings back.\nSwitch on Remember each song’s sound, and the preset, Tone and EQ you set during a song come back whenever that song plays here. A notice says so, with Undo and Forget this song.\nOpen Second output, switch on a device and set its level. Choose its profile beneath it, or press Edit sound to change its sound on the EQ page without switching the main output; Done or Edit main takes you back.\nEach second output keeps itself in time and shows its delay in milliseconds; with Share Audio, another computer’s sound shows its own delay, the network included.',
   'help.profiles.tip':
-    'Each mirrored output uses its own profile under either engine. Mirroring runs while FluidEQ is open; switching the main output stops the old mirrors. Device latency still affects synchronization.',
+    'Under the FluidEQ Engine a second output plays straight from the engine, and the main output never waits for it. Remember each song’s sound starts switched off, and remembers per output. On the EQ page the panel starts with the EQ mode card; fold it to reach your outputs sooner.',
   'help.profiles.keywords':
-    'output, output device, device, speakers, switch device, device switching, auto switch, profile, save settings, named profile, second output, mirror, multiple outputs, two outputs, bluetooth, sync, delay, latency, per device',
+    'output, output device, device, speakers, switch device, device switching, auto switch, profile, save settings, named profile, second output, mirror, multiple outputs, two outputs, bluetooth, sync, delay, latency, per device, per output, every output, own sound, battery, edit sound, edit main, song, per song, remember song, song sound, forget song',
   'help.profiles.list':
     'Sounds you saved. ON marks the one this output uses; press another to switch.',
   'help.profiles.update':
     'Saves your changes into the profile you are on. Restore, beside it, brings the profile back as you last saved it.',
   'help.profiles.new': 'Starts a new profile from the EQ you have now.',
+  'help.profiles.eqMode':
+    'EQ mode’s settings, first on the EQ page. Fold the card to keep it out of the way.',
+  'help.profiles.songSound':
+    'Brings back a song’s preset, Tone and EQ whenever it plays here. Off until you switch it on.',
+  'help.profiles.editSound':
+    'Edits that output’s sound on the EQ page without switching the main output.',
   'help.profiles.output':
-    'The output you are listening on. OFF means your EQ does not reach it; ACTIVE, that Windows is playing through it.',
+    'The output you are listening on, with its battery for Bluetooth headphones. OFF means your EQ does not reach it; ACTIVE, that Windows is playing through it.',
   'help.profiles.mapping':
     'The profile this output follows. Any change you make is saved to it by itself.',
   'help.profiles.onePlayer':
     'Starting something in FluidEQ pauses what plays elsewhere on the PC, and the other way round.',
   'help.profiles.outputs':
-    'Your other outputs. Switch one on to play there too, with its own profile.',
+    'Your other outputs. Switch one on to play there too, with its own sound, level and delay in milliseconds.',
   'help.profiles.driver':
     'A gentle starting point for what you listen on — headphones, earphones, a driver size or material. Leave it at No compensation if the sound is already right.',
 
@@ -394,11 +412,11 @@ const help = {
   'help.graph.intro':
     'The response graph draws your EQ curves over the live sound. The strip above it chooses what is drawn and how, and it changes with the look: a standard style or a Plus visualizer.',
   'help.graph.steps':
-    'Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Frame rate is there too: every frame your display offers, or 60 or 30, held at 60 on battery.\nA Plus visualizer adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.\nKeys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it and right-click for its menu; Ctrl+scroll changes the Q of a selected point.',
+    'Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Show EQ labels writes each band’s frequency, Q and gain over its point. How it is drawn sets the frame rate — every frame your display offers, or 60 or 30, held at 60 on battery — and the resolution and smoothing; standard styles keep their own choices, apart from Plus visualizers.\nA Plus visualizer adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.\nKeys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, band labels included, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.',
   'help.graph.tip':
     'Everything here changes only the drawing, never your sound.',
   'help.graph.keywords':
-    'graph, spectrum, spectrum analyzer, analyzer, analyser, frequency response, curve, full screen, fullscreen, frame rate, fps, refresh rate, wave, waveform, grid, view, shortcuts, keyboard shortcuts, hotkeys, double-click, expanded, expand',
+    'graph, spectrum, spectrum analyzer, analyzer, analyser, frequency response, curve, full screen, fullscreen, frame rate, fps, refresh rate, wave, waveform, grid, view, shortcuts, keyboard shortcuts, hotkeys, double-click, expanded, expand, labels, band labels, eq labels, keyboard, arrow keys, graphics, resolution, smoothing',
   'help.graph.stripCaption': 'With a standard style',
   'help.graph.live': 'Shows or hides the live wave.',
   'help.graph.previous': 'Steps back to the previous look.',
@@ -430,18 +448,19 @@ const help = {
   'help.graph.expand': 'The graph grows over the editor.',
   'help.graph.fullscreen': 'The graph fills the screen.',
   'help.graph.showingName': 'Showing',
-  'help.graph.showing': 'Steps through what the graph shows.',
+  'help.graph.showing':
+    'Steps through what the graph shows, band labels included.',
+  'help.graph.labels': 'Each band’s frequency, Q and gain over its point.',
   'help.graph.waveName': 'The wave',
   'help.graph.wave': 'The live spectrum drawing.',
   'help.graph.topWaveName': 'Top wave',
   'help.graph.topWave': 'The small wave in the title bar.',
   'help.graph.meterName': 'Level meter',
   'help.graph.meter': 'The output meter in the left rail.',
+  'help.graph.drawing':
+    'Frame rate, resolution and smoothing, kept apart for standard styles and Plus visualizers.',
   'help.graph.waveHeight': 'How tall the wave is drawn.',
   'help.graph.wavePosition': 'From the bottom edge up to the middle.',
-  'help.graph.attack': 'How fast a Plus visualizer rises to the music.',
-  'help.graph.release': 'How slowly it falls back after each hit.',
-  'help.graph.ownTiming': 'Back to the timing the visualizer came with.',
 
   'help.looks.title': 'Styles and Plus visualizers',
   'help.looks.intro':
@@ -449,9 +468,9 @@ const help = {
   'help.looks.steps':
     'Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points or Scenes.\nChoose a Plus visualizer on the right. Without Plus it is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.',
   'help.looks.tip':
-    'A Plus visualizer brings its own colours: set its attack and release in View. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.',
+    'A Plus visualizer brings its own colours: set its attack and release in View. Standard styles have graphics settings of their own in View, apart from Plus visualizers: full resolution and plain scaling to start with. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.',
   'help.looks.keywords':
-    'styles, style, skins, skin, appearance, visualizer, visualiser, visualization, colours, colors, look, customize, customise, animation',
+    'styles, style, skins, skin, appearance, visualizer, visualiser, visualization, colours, colors, look, customize, customise, animation, graphics, graphics settings, resolution, quality',
   'help.looks.searchName': 'Search',
   'help.looks.search':
     'Finds styles and visualizers by name, maker or category.',
@@ -683,11 +702,11 @@ const help = {
   'help.share.intro':
     'Share Audio links two computers on the same private network, and each plays the other’s sound: whichever one you sit at, you hear both. Each computer sends its sound untouched and never sends back what it receives, so there is no echo; the computer you listen on applies its own EQ, curves and DSP. This is separate from mirroring to a second device on one computer.',
   'help.share.steps':
-    'On one computer, open Share Audio and press Copy code. Start at a low volume.\nOn the other computer, open Share Audio, paste the code under The other computer’s code and press Link. Both computers play each other right away.\nEach linked computer has two switches: Play it here and Send my sound. Turn one off to share one way only; Unlink ends the link for good.',
+    'On one computer, open Share Audio and press Copy code. Start at a low volume.\nOn the other computer, open Share Audio, paste the code under The other computer’s code and press Link. Both computers play each other right away.\nEach linked computer has two switches: Play it here and Send my sound. Turn one off to share one way only. The slider beside Play it here sets how loud that computer plays here.\nPause stops both directions until you press Resume; Unlink ends the link for good.',
   'help.share.tip':
     'Keep the connection code private: it authorizes linking. Under the FluidEQ Engine this computer keeps its DSP on while it shares, and the computer playing its sound applies its own. Playing and sending at once needs Windows on that computer; elsewhere a link runs one way.',
   'help.share.keywords':
-    'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair, both ways, two way, link, unlink, duplex',
+    'network, lan, wifi, local network, stream audio, send audio, another pc, another computer, second computer, remote, receiver, sender, connection code, pair, both ways, two way, link, unlink, duplex, pause, resume, volume',
 
   'help.trouble.title': 'When something sounds wrong',
   'help.trouble.intro':
