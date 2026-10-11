@@ -196,7 +196,9 @@ const renderGallery = () => {
   };
 };
 
-it('lists official scenes by FluidEQ without social counts or hearts alongside member controls', async () => {
+// FluidEQ's own scenes are liked like any member's (server 0048), but their
+// adds go through the pack store, which counts nobody, so they show no adds.
+it('lists official scenes by FluidEQ with a heart and no adds count, beside member controls', async () => {
   renderGallery();
   await screen.findByRole('button', { name: 'Aurora' });
   const card = officialCard();
@@ -205,11 +207,16 @@ it('lists official scenes by FluidEQ without social counts or hearts alongside m
     card.getByRole('button', { name: 'plus.card.by:FluidEQ' }),
   ).toBeInTheDocument();
   expect(card.queryByText(/plus.card.adds/)).not.toBeInTheDocument();
-  expect(
-    card.queryByRole('button', { name: /plus.like.label/ }),
-  ).not.toBeInTheDocument();
   expect(card.getByRole('button', { name: 'plus.card.add' })).toBeEnabled();
   expect(screen.getByText('plus.card.adds:5')).toBeInTheDocument();
+  bridge.likeMemberScene.mockResolvedValue({ likes: 1, liked: true });
+  await userEvent.click(
+    card.getByRole('button', { name: 'plus.like.label:Aurora,0' }),
+  );
+  expect(bridge.likeMemberScene).toHaveBeenCalledWith(official.lookId, true);
+  expect(
+    card.getByRole('button', { name: 'plus.like.label:Aurora,1' }),
+  ).toHaveAttribute('aria-pressed', 'true');
   bridge.likeMemberScene.mockResolvedValue({ likes: 13, liked: true });
   await userEvent.click(
     screen.getByRole('button', { name: 'plus.like.label:Neon City,12' }),
@@ -271,16 +278,19 @@ it('uses official pack versions for Added and Update on the list and maker page'
   expectAdded();
 });
 
-it('shows official details and maker without reports, social stats, or leaderboard rank', async () => {
+it('shows official details with likes but no adds or reports, and the maker without leaderboard rank', async () => {
   renderGallery();
   await userEvent.click(await screen.findByRole('button', { name: 'Aurora' }));
   expect(await screen.findByTestId('official-preview')).toBeInTheDocument();
   expect(screen.getByText('plus.official.included')).toBeInTheDocument();
-  ['plus.scene.likes', 'plus.scene.week', 'plus.scene.adds'].forEach((key) => {
-    expect(screen.queryByText(key)).not.toBeInTheDocument();
-  });
+  expect(screen.getByText('plus.scene.likes')).toBeInTheDocument();
+  expect(screen.getByText('plus.scene.week')).toBeInTheDocument();
+  expect(screen.queryByText('plus.scene.adds')).not.toBeInTheDocument();
   expect(
-    screen.queryByRole('button', { name: /plus.like.label|plus.scene.report/ }),
+    screen.getAllByRole('button', { name: 'plus.like.label:Aurora,0' }).length,
+  ).toBeGreaterThan(0);
+  expect(
+    screen.queryByRole('button', { name: /plus.scene.report/ }),
   ).not.toBeInTheDocument();
   await userEvent.click(
     screen.getByRole('button', { name: 'plus.card.by:FluidEQ' }),
@@ -358,7 +368,7 @@ it('keeps failed official Adds retryable without inventing stats or a usable loo
   });
 });
 
-it('keeps official browsing available without Plus, with no Add or passive heart', async () => {
+it('keeps official browsing available without Plus, with no Add and a passive heart', async () => {
   mockEntitled = false;
   const { container } = renderGallery();
   await screen.findByRole('button', { name: 'Aurora' });
@@ -368,8 +378,12 @@ it('keeps official browsing available without Plus, with no Add or passive heart
   expect(
     officialCard().queryByRole('button', { name: 'plus.card.add' }),
   ).not.toBeInTheDocument();
-  // Positive control: the member card still has its passive heart/count.
-  expect(container.querySelectorAll('.gallery-like.is-count')).toHaveLength(1);
+  // Without Plus a heart is a count alone, on FluidEQ's scenes as on members'.
+  expect(officialCard().getByTitle('plus.like.plusOnly:0')).toBeInTheDocument();
+  expect(container.querySelectorAll('.gallery-like.is-count')).toHaveLength(2);
+  expect(
+    screen.queryByRole('button', { name: /plus.like.label/ }),
+  ).not.toBeInTheDocument();
   await userEvent.click(screen.getByRole('button', { name: 'Aurora' }));
   expect(
     await screen.findByRole('button', { name: 'plus.scene.getPlus' }),

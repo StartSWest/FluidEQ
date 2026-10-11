@@ -5,22 +5,27 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The Studio's two panes (layout A, 2026-09-27): the stage and the work on
- * it, in tabs under it, in one; what it is played with and what it hears in
- * the other; and the ways out of the Studio in the bar above both. What is
- * held here is which pane each part is in, since a part moved into the wrong
- * one scrolls the stage away again and still passes every other test.
+ * The Studio's two panes (layout A, 2026-09-27; the chat took the second on
+ * 2026-10-09): the stage and the work on it, in tabs under it — what it is
+ * played with and what it hears among them — in one; the chat with Claude
+ * that makes it in the other; and the ways out of the Studio in the bar above
+ * both. What is held here is which pane each part is in, since a part moved
+ * into the wrong one scrolls the stage away again and still passes every
+ * other test.
  */
 
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import type { IStudioProject } from '../../../main/ipc/memberScenes';
 import StudioBench from '../../../renderer/studio/StudioBench';
 import {
   resetStudioStore,
   type IStudioView,
 } from '../../../renderer/studio/studioStore';
+import { resetStudioChatStore } from '../../../renderer/studio/chat/studioChatStore';
 import { memberPack } from '../../utils/memberSceneFixtures';
+import studioChatBridge from '../../utils/studioChatBridge';
 
 jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
   useLiveAudioCapture: jest.fn(),
@@ -69,10 +74,12 @@ const view: IStudioView = {
 
 beforeEach(() => {
   resetStudioStore();
+  resetStudioChatStore();
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: {
       ipcRenderer: {
+        ...studioChatBridge(project.id),
         onStudioChanged: jest.fn(() => () => undefined),
         readStudioNotes: jest.fn(async () => ({ description: '', prompt: '' })),
         saveStudioNotes: jest.fn(async () => true),
@@ -84,7 +91,7 @@ beforeEach(() => {
 const panesOf = (container: HTMLElement) => {
   const top = container.querySelector('.studio-bench__top');
   const main = container.querySelector('.studio-bench__main');
-  const side = container.querySelector('.studio-bench__side');
+  const side = container.querySelector('.studio-bench__chat');
   if (
     !(top instanceof HTMLElement) ||
     !(main instanceof HTMLElement) ||
@@ -96,21 +103,31 @@ const panesOf = (container: HTMLElement) => {
 };
 
 describe("the Studio's panes", () => {
-  it('keeps the stage and the work on it in one pane, what it hears in the other, and the ways out in the bar', async () => {
+  it('keeps the stage and the work on it, what it hears included, in one pane, the chat in the other, and the ways out in the bar', async () => {
     const { container } = render(<StudioBench view={view} />);
+    // The chat asks for Claude Code and the project's conversation on
+    // arrival; settled first.
+    const composer = await screen.findByRole('textbox', {
+      name: 'studioChat.label',
+    });
     const { top, main, side } = panesOf(container);
 
     expect(main).toContainElement(screen.getByTestId('studio-stage'));
-    // The work is a tab under the stage; making it with an AI is the first.
-    expect(main).toContainElement(
-      screen.getByRole('tablist', { name: 'studio.work.label' }),
+    // The chat that makes the scene is the pane beside the stage, not a tab.
+    expect(side).toContainElement(composer);
+    expect(main).not.toContainElement(composer);
+    // The work is in tabs under the stage; what it hears is one of them.
+    const tabs = screen.getByRole('tablist', { name: 'studio.work.label' });
+    expect(main).toContainElement(tabs);
+    expect(
+      within(tabs).queryByRole('tab', { name: 'studio.work.make' }),
+    ).toBeNull();
+    await userEvent.click(
+      within(tabs).getByRole('tab', { name: 'studio.meters.title' }),
     );
-    expect(main).toContainElement(
-      await screen.findByRole('textbox', { name: 'studio.maker.describe' }),
-    );
-    expect(side).toContainElement(
-      screen.getByRole('group', { name: 'studio.signals.title' }),
-    );
+    const hears = screen.getByRole('group', { name: 'studio.signals.title' });
+    expect(main).toContainElement(hears);
+    expect(side).not.toContainElement(hears);
     // The control: the bar's own actions are found, and in neither pane.
     const add = screen.getByRole('button', {
       name: 'studio.action.addToLooks',
@@ -122,8 +139,9 @@ describe("the Studio's panes", () => {
 
   it('keeps the two panes apart, under the project bar', async () => {
     const { container } = render(<StudioBench view={view} />);
-    // The making card reads the project's notes on arrival; settled first.
-    await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+    // The chat asks for Claude Code and the project's conversation on
+    // arrival; settled first.
+    await screen.findByRole('textbox', { name: 'studioChat.label' });
     const { top, main, side } = panesOf(container);
 
     expect(main).not.toContainElement(side);
@@ -135,7 +153,7 @@ describe("the Studio's panes", () => {
 
   it('puts the graph’s divider under the stage', async () => {
     const { container } = render(<StudioBench view={view} />);
-    await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+    await screen.findByRole('textbox', { name: 'studioChat.label' });
     const divider = screen.getByRole('separator', {
       name: 'studio.stage.resize',
     });
@@ -154,7 +172,8 @@ describe("the Studio's panes", () => {
         }}
       />,
     );
-    await screen.findByRole('textbox', { name: 'studio.maker.describe' });
+    // With no project the chat says where the first one starts.
+    await screen.findByText('studioChat.noProject');
     expect(
       screen.queryByRole('separator', { name: 'studio.stage.resize' }),
     ).toBeNull();
