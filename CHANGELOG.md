@@ -8,10 +8,12 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ## 2.1.0
 
-Every output now keeps its own sound, and a second output plays straight from
-the FluidEQ Engine with a sound of its own. Share Audio works both ways, each
-song can remember how you like it, and the equaliser shows each band's
-numbers right on the graph.
+FluidEQ 2.1 gives every output a sound of its own. Put your headphones on and
+they sound the way you tuned them; switch to the speakers and their preset,
+DSP rack and Room come back with them. A second output now plays straight
+from the FluidEQ Engine, Share Audio works both ways between two computers,
+songs can remember how you like them, and the graph shows every band's
+numbers right on the curve.
 
 ### Outputs
 
@@ -69,11 +71,24 @@ numbers right on the graph.
 
 - **Standard looks have their own graphics settings**, apart from Plus
   visualizers: full resolution and plain scaling to start with.
+- **Tap a 3D world's birds or fish and they fly off the way they face**,
+  larger near the bottom of the screen and smaller towards the top, as they
+  would be nearer or farther away. They used to spin like petals and fly on
+  their backs.
+- **Galaxy, Nebula Heart and Nebula draw many times faster on integrated
+  graphics** (Galaxy from 16 ms to about 1 ms a frame on Intel UHD), and
+  Supernova no longer loses its picture there.
 
 ### Fixes
 
 - Stopping the music no longer slides the live graph to the right: what is
   left of the sound falls where each frequency was heard.
+- The stars, glints and out-of-focus lights of the 3D worlds are soft dots
+  again; each was drawn as a glowing ring round a dark centre.
+- Aurora's snowfall, and the rain, snow and crowds of other 3D worlds, no
+  longer vanish on the compact player when the camera turns away from the
+  middle. Scenes the Studio's AI writes lay theirs out so they show on 2.0
+  too.
 - The Room plays on outputs running at 88.2, 176.4, 352.8 and 384 kHz; it
   used to say a head file was missing and pass the sound through.
 - The FluidEQ Engine plays on outputs whose driver lists its effects only one
