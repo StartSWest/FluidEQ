@@ -12,6 +12,7 @@ import type { TDeleteAccountFailure } from 'main/plus/accountDeletionApi';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import AccountGiftButton from './AccountGiftButton';
+import AccountGiftTakeBack from './AccountGiftTakeBack';
 import '../styles/AccountDeletion.scss';
 
 const DELETE_ERRORS: Record<TDeleteAccountFailure, TranslationKey> = {
@@ -30,8 +31,9 @@ interface IAccountDeletionProps {
   /** The account is gone, with this many files. */
   onDeleted: (files: number) => void;
   /**
-   * Plus was given to this account, so whatever holds the row reads it
-   * again: its plan and its gift note are the server's to say.
+   * Plus was given to this account or its gift taken back, so whatever holds
+   * the row reads it again: its plan and its gift note are the server's to
+   * say.
    */
   onGiven?: () => void;
 }
@@ -72,7 +74,9 @@ export function AccountDeletionBody({
   const { t, locale } = useTranslation();
   // One question at a time in this footer: two open at once would be two
   // sentences about the same account asking for opposite things.
-  const [asking, setAsking] = useState<'none' | 'delete' | 'gift'>('none');
+  const [asking, setAsking] = useState<'none' | 'delete' | 'gift' | 'takeBack'>(
+    'none',
+  );
   const confirming = asking === 'delete';
   const setConfirming = (open: boolean) => setAsking(open ? 'delete' : 'none');
   const [working, setWorking] = useState(false);
@@ -88,6 +92,14 @@ export function AccountDeletionBody({
   // else's: the admin's own is not gifted from here.
   const canGive =
     !gone && !account.admin && account.plusUntil === undefined && !!onGiven;
+  // A gift to this address while it is giving Plus. One that has run out is
+  // given again rather than taken back, so the two never stand side by side.
+  const canTakeBack =
+    !gone &&
+    !account.admin &&
+    account.gifted &&
+    account.plusUntil !== undefined &&
+    !!onGiven;
 
   const facts: Array<{ key: TranslationKey; value: number }> = [
     { key: 'plus.accounts.fact.published', value: account.published },
@@ -219,8 +231,8 @@ export function AccountDeletionBody({
                   the gifts page. Only to an account that has none: giving a
                   gift to somebody already paying changes nothing they can
                   see, and one that already has a gift says so in the note
-                  above — the gifts page is where a gift is taken back. */}
-              {canGive && (
+                  above, and takes it back here. */}
+              {canGive && asking !== 'takeBack' && (
                 <AccountGiftButton
                   account={account}
                   name={name}
@@ -229,7 +241,16 @@ export function AccountDeletionBody({
                   onGiven={() => onGiven?.()}
                 />
               )}
-              {asking !== 'gift' && (
+              {canTakeBack && asking !== 'gift' && (
+                <AccountGiftTakeBack
+                  account={account}
+                  name={name}
+                  asking={asking === 'takeBack'}
+                  onAsk={(open) => setAsking(open ? 'takeBack' : 'none')}
+                  onTakenBack={() => onGiven?.()}
+                />
+              )}
+              {asking !== 'gift' && asking !== 'takeBack' && (
                 <button
                   type="button"
                   className="button small subtle"

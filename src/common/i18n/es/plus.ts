@@ -268,13 +268,23 @@ const plus = {
   'plus.accounts.note.deleting':
     'Un borrado anterior de esta cuenta se quedó a medias. Terminar de borrar lo completa.',
   'plus.accounts.note.gift':
-    'El Plus regalado a este correo se mantiene, como dicen las condiciones. Quítalo en Plus regalado si también lo pidieron.',
+    'El Plus regalado a este correo se mantiene, como dicen las condiciones. Quítalo aquí o en Plus regalado si también lo pidieron.',
   'plus.accounts.give': 'Dar Plus',
   'plus.accounts.giveConfirm':
     '¿Dar Plus a {name}? Dura hasta que se lo quites.',
   'plus.accounts.giving': 'Dando Plus a {name}…',
   'plus.accounts.giveYes': 'Dar Plus',
   'plus.accounts.giveNo': 'Ahora no',
+  'plus.accounts.takeBack': 'Quitar Plus',
+  'plus.accounts.takeBackTrial':
+    '¿Quitarle a {name} el Plus que le diste? Termina ahora y se le ofrece la prueba gratis en su lugar, salvo que ya la haya tenido.',
+  'plus.accounts.takeBackNoTrial':
+    '¿Quitarle a {name} el Plus que le diste? Termina ahora y esta cuenta no puede tener la prueba gratis, así que se queda sin Plus.',
+  'plus.accounts.takeBackPaid':
+    '¿Quitarle a {name} el Plus que le diste? El Plus que paga sigue igual.',
+  'plus.accounts.takeBackPlain':
+    '¿Quitarle a {name} el Plus que le diste? Termina ahora.',
+  'plus.accounts.takingBack': 'Quitando Plus a {name}…',
   'plus.accounts.delete': 'Borrar cuenta',
   'plus.accounts.finish': 'Terminar de borrar',
   'plus.accounts.confirm':

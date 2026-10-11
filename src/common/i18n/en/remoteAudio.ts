@@ -47,6 +47,12 @@ const remoteAudio = {
   'remoteAudio.linked.looking': 'Looking for {name} on your network…',
   'remoteAudio.linked.lossless': 'Lossless',
   'remoteAudio.linked.unlink': 'Unlink',
+  'remoteAudio.linked.pause': 'Pause',
+  'remoteAudio.linked.resume': 'Resume',
+  'remoteAudio.lane.inPaused': 'Paused. Nothing plays here until you resume.',
+  'remoteAudio.lane.outPaused': 'Paused. Nothing is sent until you resume.',
+  'remoteAudio.lane.volume': 'Volume of {name}’s sound',
+  'remoteAudio.lane.pausedThere': '{name} paused the link.',
   'remoteAudio.linked.noEcho':
     'No echo: {name}’s sound is never sent back to it.',
   'remoteAudio.linked.untouched':

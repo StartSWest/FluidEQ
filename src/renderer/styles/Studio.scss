@@ -29,7 +29,8 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: $spacing-m;
   min-height: 0;
   padding: $spacing-m 4px $spacing-s;
-  // Never sideways: see `studio-pane` below.
+  // Never sideways: a line a few pixels too wide put a horizontal scrollbar
+  // along the page's foot.
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -274,32 +275,36 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-accent;
 }
 
-// What a pane keeps clear inside its scroll edge, and gives back with its
-// margins so nothing moves: a scroller clips at its own box, and a focused
-// control's ring reaches a few pixels past it.
-$studio-pane-bleed: 4px;
-
-// The side column's cards are 248px, the width their tiles were laid out at;
-// the column is that and the scrollbar it always keeps.
-$studio-side-cards: 248px;
-$studio-scrollbar: 8px;
+// The chat's pane beside the stage: room for a conversation's lines at the
+// app's reading size, growing with the window to a measure past which lines
+// get too long to follow, and the rail it folds into.
+$studio-chat-min: 320px;
+$studio-chat-max: 440px;
+$studio-chat-rail: 40px;
+// The least the stage keeps beside a chat dragged wide (`useChatWidth.ts`
+// holds the drag to the same number).
+$studio-stage-min: 480px;
 
 // Kept under the stage whatever its shape: the tabs' rail and enough of a
 // panel to work in. The stage gives way to it on a short window instead of
 // pushing the work off the bottom.
 $studio-room-under-stage: 220px;
+// The chat tab's room: its head, a few lines of conversation and its
+// message box. A 760px-high window keeps a stage of about 140px over it.
+$studio-room-under-chat: 380px;
 
 .studio-bench__grid {
   display: grid;
-  grid-template-columns:
-    minmax(0, 1fr)
-    minmax(220px, $studio-side-cards + $studio-scrollbar);
+  // The chat's column is as wide as the chat says (`.studio-bench__chat`),
+  // measured against this grid: a size container on its width.
+  grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas: 'main side';
   gap: $spacing-m;
   min-height: 0;
+  container: studio-grid / inline-size;
 
-  // Too narrow for the column (`useStudioBenchLayout.ts`): what it held is
-  // a tab under the stage instead.
+  // Too narrow for the pane (`useStudioBenchLayout.ts`): the chat is the
+  // first tab under the stage instead.
   &.is-single {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'main';
@@ -349,48 +354,70 @@ $studio-room-under-stage: 220px;
 // its shape (a scene drawn at the wrong one is the wrong scene) and grows
 // narrower instead, centred.
 .studio-bench__main {
+  --studio-room: #{$studio-room-under-stage};
+
+  // The chat as the tab under the stage, in a bench too narrow for its pane:
+  // a conversation and its message box need far more than the other tabs'
+  // room, and the stage gives it up while that tab is open.
+  &:has(.studio-work__panel .studio-chat) {
+    --studio-room: #{$studio-room-under-chat};
+  }
+
   // The wells that stand where a stage will be, held the same way.
   .studio-stage__well--empty,
   .studio-stage__well--start {
-    max-height: calc(100cqh - #{$studio-room-under-stage});
+    max-height: calc(100cqh - var(--studio-room));
   }
 
   .studio-stage--graph {
     max-width: calc(
-      (100cqh - #{$studio-room-under-stage}) * var(--studio-stage-ratio, 2.35)
+      (100cqh - var(--studio-room)) * var(--studio-stage-ratio, 2.35)
     );
     margin-inline: auto;
   }
 
   .studio-stage--full {
-    max-width: calc((100cqh - #{$studio-room-under-stage}) * 2.35);
+    max-width: calc((100cqh - var(--studio-room)) * 2.35);
     margin-inline: auto;
   }
 }
 
-// Shared by the scrolling column. The scrollbar's room is kept whether or not
-// there is anything to scroll: a column that grew a scrollbar when a group
-// opened would narrow its tiles under the pointer.
-@mixin studio-pane {
-  min-height: 0;
-  margin: 0 (-$studio-pane-bleed);
-  padding: $studio-pane-bleed;
-  // Up and down only: a line a few pixels too wide put a horizontal
-  // scrollbar along the column's foot.
-  overflow-x: hidden;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
-  @include slim-scrollbar;
-}
-
-.studio-bench__side {
-  display: grid;
+// The chat's pane, the bench's whole height: the conversation scrolls inside
+// it and the message box stays at its foot (`StudioChat.scss`).
+// Its width is the member's drag (`--studio-chat-width`, from
+// `useChatWidth.ts`) or, never dragged, 30% of the bench between the two
+// measures — and never so wide the stage keeps less than its least, so a
+// width saved on a big window still fits a small one.
+.studio-bench__chat {
+  position: relative;
+  display: flex;
+  width: clamp(
+    #{$studio-chat-min},
+    var(
+      --studio-chat-width,
+      clamp(#{$studio-chat-min}, 30cqw, #{$studio-chat-max})
+    ),
+    calc(100cqw - #{$studio-stage-min} - #{$spacing-m})
+  );
+  flex-direction: column;
   grid-area: side;
-  align-content: start;
-  gap: $spacing-s;
   min-width: 0;
-  @include studio-pane;
+  min-height: 0;
+
+  // Folded away (`StudioChatColumn`): the stage takes the width.
+  &.is-folded {
+    width: $studio-chat-rail;
+  }
+
+  // The divider stands in the gap at the column's left edge, its middle on
+  // the gap's middle.
+  > .column-resizer {
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    bottom: 0;
+    left: calc(-1 * (#{$spacing-m} + 12px) / 2);
+  }
 }
 
 // What to do with the scene once it plays: keep it, publish it, send it —

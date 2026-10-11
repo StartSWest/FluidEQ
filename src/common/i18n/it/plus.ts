@@ -268,13 +268,23 @@ const plus = {
   'plus.accounts.note.deleting':
     'Un’eliminazione precedente di questo account si è fermata a metà. Completa eliminazione la porta a termine.',
   'plus.accounts.note.gift':
-    'Il Plus regalato a questo indirizzo resta, come dicono le condizioni. Ritiralo in Plus in regalo se è stato chiesto anche questo.',
+    'Il Plus regalato a questo indirizzo resta, come dicono le condizioni. Ritiralo qui o in Plus in regalo se è stato chiesto anche questo.',
   'plus.accounts.give': 'Regala Plus',
   'plus.accounts.giveConfirm':
     'Regalare Plus a {name}? Dura finché non lo togli.',
   'plus.accounts.giving': 'Sto regalando Plus a {name}…',
   'plus.accounts.giveYes': 'Regala Plus',
   'plus.accounts.giveNo': 'Non ora',
+  'plus.accounts.takeBack': 'Ritira Plus',
+  'plus.accounts.takeBackTrial':
+    'Ritirare il Plus regalato a {name}? Finisce subito, e al suo posto gli viene offerta la prova gratuita, a meno che non l’abbia già avuta.',
+  'plus.accounts.takeBackNoTrial':
+    'Ritirare il Plus regalato a {name}? Finisce subito, e questo account non può avere la prova gratuita, quindi resterà senza Plus.',
+  'plus.accounts.takeBackPaid':
+    'Ritirare il Plus regalato a {name}? Il Plus che paga continua.',
+  'plus.accounts.takeBackPlain':
+    'Ritirare il Plus regalato a {name}? Finisce subito.',
+  'plus.accounts.takingBack': 'Sto ritirando Plus a {name}…',
   'plus.accounts.delete': 'Elimina account',
   'plus.accounts.finish': 'Completa eliminazione',
   'plus.accounts.confirm':

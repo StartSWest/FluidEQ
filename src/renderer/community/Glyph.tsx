@@ -4,6 +4,11 @@ export type TCommunityGlyph =
   | 'feature-requests'
   | 'board'
   | 'send'
+  | 'arrow-up'
+  | 'history'
+  | 'arrow-mark'
+  | 'text-mark'
+  | 'stop'
   | 'report'
   | 'delete'
   | 'lock'
@@ -104,6 +109,36 @@ export default function Glyph({ name, className }: IGlyphProps) {
         );
       case 'send':
         return <path d="M3 10 17 3l-3.5 14-4-5.5L3 10Zm6.5 1.5L17 3" />;
+      case 'arrow-up':
+        // Up and away: a message leaving, as chat apps draw Send.
+        return <path d="M10 16V4.5M5 9.5l5-5 5 5" />;
+      case 'history':
+        // A clock turned back: what was before.
+        return (
+          <>
+            <path d="M3.8 10a6.2 6.2 0 1 0 1.9-4.5" />
+            <path d="M3.5 3.6v3h3" />
+            <path d="M10 6.6V10l2.4 1.6" />
+          </>
+        );
+      case 'arrow-mark':
+        // An arrow drawn on a picture, pointing up and to the right.
+        return <path d="M4.5 15.5 15 5M8.5 5H15v6.5" />;
+      case 'text-mark':
+        // A letter T: words written on a picture.
+        return <path d="M4.5 5h11M10 5v11" />;
+      case 'stop':
+        // A filled square: what is running ends here.
+        return (
+          <rect
+            x="5.5"
+            y="5.5"
+            width="9"
+            height="9"
+            rx="1.8"
+            fill="currentColor"
+          />
+        );
       case 'report':
         // A flag.
         return <path d="M5 17V3.5h9l-2 3.5 2 3.5H5" />;

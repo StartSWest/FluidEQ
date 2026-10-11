@@ -53,18 +53,21 @@ const FOLLOWED: Record<
  * (`setDaylightSource`), so nothing on screen jumps.
  *
  * A row of the Window colours menu's own grid, drawn as Rainbow mode's switch
- * is.
+ * is. While the Studio is open it shows Brightness followed and does not
+ * turn: the Studio holds the time of day to its Brightness, and a switch
+ * turned there would change a choice nothing on screen is using.
  */
 const DaylightFollowSwitch = ({ source }: { source: TFollowed }) => {
   const { t } = useTranslation();
   const id = useId();
   const setting = useSceneDaylightSetting();
   const isOn = setting.source === source;
+  const held = setting.heldByStudio === true;
   const { name, hint, glyph } = FOLLOWED[source];
   return (
     <div
       className="graph-view-menu__slider graph-view-menu__slider--switch"
-      title={t(hint)}
+      title={t(held ? 'graph.sceneTint.daylightStudioHint' : hint)}
     >
       <svg className="graph-view-menu__icon" viewBox="0 0 16 16" aria-hidden>
         {glyph}
@@ -74,7 +77,7 @@ const DaylightFollowSwitch = ({ source }: { source: TFollowed }) => {
         <Switch
           id={id}
           isOn={isOn}
-          isDisabled={false}
+          isDisabled={held}
           handleToggle={() =>
             setDaylightSource(isOn ? 'own' : source, pageDaylight())
           }

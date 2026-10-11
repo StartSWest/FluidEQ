@@ -57,6 +57,7 @@ import forum from './forum';
 import leaderboard from './leaderboard';
 import terms from './terms';
 import studio from './studio';
+import studioChat from './studioChat';
 import plus from './plus';
 import plusWelcome from './plusWelcome';
 import trial from './trial';
@@ -101,6 +102,7 @@ const en = {
   ...leaderboard,
   ...terms,
   ...studio,
+  ...studioChat,
   ...plus,
   ...plusWelcome,
   ...trial,

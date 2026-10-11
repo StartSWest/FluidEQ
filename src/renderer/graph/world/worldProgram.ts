@@ -99,6 +99,13 @@ const compileWorld = async (
     depth: false,
     stencil: false,
   });
+  // Glass (a material with transmission) has three draw every solid thing a
+  // second time into a picture of its own, at the frame's size and four
+  // times multisampled: Prism Bloom's crystal heart cost 6.8 ms of a 20.6 ms
+  // frame that way on Intel UHD graphics at 1080p. At half the size each
+  // way the refraction, which three blurs by the glass's roughness anyway,
+  // reads the same, and that frame took 16.1 ms.
+  renderer.transmissionResolutionScale = 0.5;
   // A lost context takes every object with it, and the worker lets the
   // program go without disposing it (`sceneRenderer.worker.ts`). Three's
   // listeners on the canvas would outlive it and bring this renderer back to

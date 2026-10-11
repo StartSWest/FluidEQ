@@ -55,6 +55,7 @@ import { plusTrialBridge } from './plusTrialBridge';
 import { plusReviewBridge } from './plusReviewBridge';
 import { makerMonthBridge } from './makerMonthBridge';
 import { studioAgentBridge } from './studioAgentBridge';
+import { studioChatBridge } from './studioChatBridge';
 
 export type Channels = string;
 
@@ -406,6 +407,7 @@ export default {
     ...plusReviewBridge,
     ...makerMonthBridge,
     ...studioAgentBridge,
+    ...studioChatBridge,
     ...engineHealthBridge,
     ...lightingBridge,
     ...wallpaperBridge,

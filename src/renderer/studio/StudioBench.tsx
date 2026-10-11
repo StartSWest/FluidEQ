@@ -10,8 +10,11 @@ import { resolveSceneName } from 'common/scenePacks';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import PlusToastStack from '../plus/PlusToastStack';
 import { useTranslation } from '../utils/I18nContext';
+import StudioChat from './chat/StudioChat';
+import StudioChatColumn from './chat/StudioChatColumn';
+import useStageCapture from './chat/useStageCapture';
+import { useStudioChat } from './chat/studioChatStore';
 import StudioCode, { problemLinesOf } from './StudioCode';
-import StudioMaker from './StudioMaker';
 import StudioMeters from './StudioMeters';
 import StudioNewProjectDialog from './StudioNewProjectDialog';
 import StudioProblems from './StudioProblems';
@@ -59,11 +62,13 @@ interface IStudioBenchProps {
 }
 
 /**
- * The Studio: the scene live on the stage, what it hears and what to test it
- * with beside it, and how to make it under it — one surface whether a project
- * is open or not, so nothing a member saw on the first visit is gone once
- * they have a project. With none, the stage is where the first one starts
- * and everything that needs a scene waits, unlit, where it will be.
+ * The Studio: the scene live on the stage, the work on it in tabs under it,
+ * and the chat with Claude that makes it in a pane the bench's whole height
+ * beside it (Ivan, 2026-10-09, the redesign around the chat) — one surface
+ * whether a project is open or not, so nothing a member saw on the first
+ * visit is gone once they have a project. With none, the stage is where the
+ * first one starts and everything that needs a scene waits, unlit, where it
+ * will be.
  */
 export default function StudioBench({ view }: IStudioBenchProps) {
   const { t, locale } = useTranslation();
@@ -144,8 +149,13 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     playing && !pausedForPublish,
   );
 
+  const chatBusy = useStudioChat().chat?.busy === true;
+  const captureStage = useStageCapture(playing ? pack : undefined, tuner.wave);
+
   let status: TranslationKey = 'studio.status.waiting';
-  if (
+  if (chatBusy) {
+    status = 'studioChat.status.working';
+  } else if (
     pack &&
     (problems ||
       trouble?.kind === 'compile' ||
@@ -274,16 +284,32 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   }
 
   const idle = !(pack && playing);
-  // "What it hears" beside the stage, or a tab under it when the bench is too
-  // narrow for the column: one live copy of the meters either way.
-  const listening = (
-    <>
-      <StudioListen signal={signal} onSignal={setSignal} idle={idle} />
-      <StudioMeters feed={feed} response={tuner.response} />
-    </>
-  );
+  // The chat beside the stage, or the first tab under it when the bench is
+  // too narrow for the column: one live copy of it either way.
   const panels: Partial<Record<TStudioWorkTab, ReactNode>> = {
-    make: <StudioMaker key={project?.id ?? 'draft'} project={project} />,
+    ...(isWide
+      ? {}
+      : {
+          chat: (
+            <StudioChat
+              project={project}
+              version={version}
+              captureStage={captureStage}
+            />
+          ),
+        }),
+    // What the scene hears and what to test it with: a tab of its own since
+    // the chat took the column beside the stage.
+    hears: (
+      <div
+        className="studio-work__hears"
+        role="group"
+        aria-label={t('studio.test.title')}
+      >
+        <StudioListen signal={signal} onSignal={setSignal} idle={idle} />
+        <StudioMeters feed={feed} response={tuner.response} />
+      </div>
+    ),
     tune: (
       <StudioTune
         wave={tuner.wave}
@@ -344,9 +370,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         onOpen={picture.open}
       />
     );
-  }
-  if (!isWide) {
-    panels.hears = <div className="studio-work__hears">{listening}</div>;
   }
   const problemCount =
     (problems?.length ?? 0) + (trouble?.kind === 'compile' ? 1 : 0);
@@ -416,12 +439,11 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         </div>
 
         {isWide && (
-          <aside
-            className="studio-bench__side"
-            aria-label={t('studio.test.title')}
-          >
-            {listening}
-          </aside>
+          <StudioChatColumn
+            project={project}
+            version={version}
+            captureStage={captureStage}
+          />
         )}
       </div>
 

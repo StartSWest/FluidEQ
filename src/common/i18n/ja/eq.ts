@@ -182,6 +182,8 @@ const eq: Partial<Dictionary> = {
     'オンにすると、このコンピューターの時計に合わせて、ビジュアライザーは夜は夜に、昼は昼になります。オフにすると上で設定した時間帯を保ちます。',
   'graph.sceneTint.daylightFollowingClockHint':
     '時計に連動しています。「時間帯を時計に連動」をオフにすると、ビジュアライザーの時間帯を個別に設定できます',
+  'graph.sceneTint.daylightStudioHint':
+    'スタジオを開いている間は、明るさがビジュアライザーの時間帯を決めるので、シーンを夜から昼まで試せます。スタジオを離れると、ここでの選択に戻ります',
   'graph.sceneTint.brightnessHint':
     'テーマやビジュアライザーの色で表示されるウィンドウの明るさ',
   'graph.member.mine': 'あなたが作成',

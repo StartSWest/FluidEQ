@@ -53,6 +53,13 @@ export interface IRemoteAudioLaneProps {
   isOn: boolean;
   isSwitchDisabled: boolean;
   onToggle(): void;
+  /** How loud this lane's sound plays here, where it has a level of its own. */
+  level?: {
+    value: number;
+    label: string;
+    isDisabled: boolean;
+    onChange(value: number): void;
+  };
 }
 
 /**
@@ -80,6 +87,7 @@ const RemoteAudioLane = ({
   isOn,
   isSwitchDisabled,
   onToggle,
+  level,
 }: IRemoteAudioLaneProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const historyRef = useRef(emptyLaneHistory());
@@ -224,6 +232,27 @@ const RemoteAudioLane = ({
         <span className="remote-audio__lane-caption">{figureCaption}</span>
       </div>
       <div className="remote-audio__lane-switch">
+        {level && (
+          <div className="remote-audio__lane-level">
+            <MenuIcon name="volume" />
+            <input
+              aria-label={level.label}
+              disabled={level.isDisabled}
+              max="100"
+              min="0"
+              onChange={(event) =>
+                level.onChange(Number(event.target.value) / 100)
+              }
+              step="1"
+              title={level.label}
+              type="range"
+              value={Math.round(level.value * 100)}
+            />
+            <span className="remote-audio__lane-level-value">
+              {Math.round(level.value * 100)}%
+            </span>
+          </div>
+        )}
         <span id={`${switchId}-label`}>{switchLabel}</span>
         <Switch
           id={switchId}

@@ -11,20 +11,24 @@ import { readStored, writeStored } from '../utils/graphStorage';
 import StudioWorkTabs, { type IStudioWorkTab } from './StudioWorkTabs';
 
 export type TStudioWorkTab =
-  'make' | 'code' | 'pictures' | 'tune' | 'drawing' | 'hears';
+  'chat' | 'tune' | 'code' | 'pictures' | 'drawing' | 'hears';
 
-/** In the order they are offered, which is the order a scene is made in. */
+/**
+ * In the order they are offered. The chat is a tab only in a bench too
+ * narrow for its pane, and then it comes first: it is where the scene is
+ * made. "Make with AI" was the first tab before the chat took its place.
+ */
 const ORDER: readonly TStudioWorkTab[] = [
-  'make',
+  'chat',
+  'tune',
   'code',
   'pictures',
-  'tune',
   'drawing',
   'hears',
 ];
 
 const LABELS: Record<TStudioWorkTab, TranslationKey> = {
-  make: 'studio.work.make',
+  chat: 'studio.work.make',
   code: 'studio.code.title',
   pictures: 'studio.work.pictures',
   tune: 'studio.work.tune',
@@ -36,7 +40,7 @@ const STORAGE_KEY = 'fluideq.studio.workTab';
 
 const readTab = (): TStudioWorkTab => {
   const stored = readStored(STORAGE_KEY);
-  return ORDER.find((tab) => tab === stored) ?? 'make';
+  return ORDER.find((tab) => tab === stored) ?? 'chat';
 };
 
 interface IStudioWorkProps {

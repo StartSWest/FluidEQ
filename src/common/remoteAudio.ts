@@ -67,7 +67,61 @@ export const REMOTE_NUDGE_LIMIT_MS = 60_000;
 export interface IRemoteDuplex {
   sends: boolean;
   plays: boolean;
+  /**
+   * The link is paused over there: nothing either way, and nothing of this
+   * computer's players acted on, until it resumes. `sends` and `plays` are
+   * false with it, so a FluidEQ that does not know the word still stops.
+   * Absent from a FluidEQ without the pause.
+   */
+  paused?: boolean;
 }
+
+/**
+ * What the user chose for one linked computer, remembered by its name:
+ * "Send my sound", "Play it here", and the link's Pause, which stops both
+ * without forgetting either (Ivan, 2026-10-04: "a pause transmission button
+ * so I dont have to unlink the pc when I want to not send or receive").
+ */
+export interface ILinkSwitches {
+  send: boolean;
+  play: boolean;
+  paused: boolean;
+  /**
+   * How loud its sound plays here, 0 to 1 (Ivan, 2026-10-10: "we should be
+   * able to control each stream volume"). At 1 its samples are played as
+   * they arrived, bit for bit — the "Lossless" on the card stays true.
+   */
+  volume: number;
+}
+
+export const LINK_SWITCHES_ON: ILinkSwitches = {
+  send: true,
+  play: true,
+  paused: false,
+  volume: 1,
+};
+
+const isLevel = (value: unknown): value is number =>
+  typeof value === 'number' &&
+  Number.isFinite(value) &&
+  value >= 0 &&
+  value <= 1;
+
+/** What the switches let through now: a paused link neither sends nor plays. */
+export const linkSwitchesInEffect = ({
+  send,
+  play,
+  paused,
+}: ILinkSwitches): { send: boolean; play: boolean } =>
+  paused ? { send: false, play: false } : { send, play };
+
+export const isLinkSwitches = (value: unknown): value is ILinkSwitches =>
+  typeof value === 'object' &&
+  value !== null &&
+  typeof (value as Partial<ILinkSwitches>).send === 'boolean' &&
+  typeof (value as Partial<ILinkSwitches>).play === 'boolean' &&
+  typeof (value as Partial<ILinkSwitches>).paused === 'boolean' &&
+  isLevel((value as Partial<ILinkSwitches>).volume);
 
 /** Small control messages; the lossless PCM stream travels separately. */
 export type TRemoteAudioSignal =
@@ -245,7 +299,8 @@ export const isRemoteTransportCommand = (
 export const isRemoteDuplex = (value: unknown): value is IRemoteDuplex =>
   isRecord(value) &&
   typeof value.sends === 'boolean' &&
-  typeof value.plays === 'boolean';
+  typeof value.plays === 'boolean' &&
+  (value.paused === undefined || typeof value.paused === 'boolean');
 
 export const isRemoteAudioSignal = (
   value: unknown,

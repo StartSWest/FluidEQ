@@ -24,6 +24,7 @@ import type {
   ILanRemoteAudioChunk,
   ILanRemoteAudioNetworkStats,
   ILanRemoteAudioSignal,
+  ILinkSwitches,
   TLanRestoreResult,
   TLanSavedRole,
   TRemoteAudioStopMode,
@@ -101,11 +102,8 @@ const sendRemoteAudioLanAudio = (chunk: ILanRemoteAudioChunk) =>
 const stopRemoteAudioLan = (mode: TRemoteAudioStopMode = 'keep-active') =>
   ipcRenderer.invoke('remote-audio-lan-stop', mode) as Promise<void>;
 
-/** "Send my sound" and "Play it here" for the computer called `name`. */
-const setRemoteAudioLinkSwitches = (
-  name: string,
-  switches: { send: boolean; play: boolean },
-) =>
+/** "Send my sound", "Play it here" and Pause for the computer called `name`. */
+const setRemoteAudioLinkSwitches = (name: string, switches: ILinkSwitches) =>
   ipcRenderer.invoke(
     'remote-audio-lan-switches',
     name,
@@ -114,7 +112,7 @@ const setRemoteAudioLinkSwitches = (
 
 const getRemoteAudioLinkSwitches = (name: string) =>
   ipcRenderer.invoke('remote-audio-lan-switches-for', name) as Promise<
-    { send: boolean; play: boolean } | undefined
+    ILinkSwitches | undefined
   >;
 
 /** Whether this computer's sound is going to another computer. */

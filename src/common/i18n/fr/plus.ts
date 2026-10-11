@@ -270,13 +270,23 @@ const plus = {
   'plus.accounts.note.deleting':
     'Une suppression précédente de ce compte s’est arrêtée en route. Terminer la suppression la mène au bout.',
   'plus.accounts.note.gift':
-    'Le Plus offert à cette adresse reste en place, comme le disent les conditions. Reprenez-le dans Plus offert si cela a aussi été demandé.',
+    'Le Plus offert à cette adresse reste en place, comme le disent les conditions. Reprenez-le ici ou dans Plus offert si cela a aussi été demandé.',
   'plus.accounts.give': 'Offrir Plus',
   'plus.accounts.giveConfirm':
     'Offrir Plus à {name} ? Cela dure jusqu’à ce que vous le repreniez.',
   'plus.accounts.giving': 'Plus est offert à {name}…',
   'plus.accounts.giveYes': 'Offrir Plus',
   'plus.accounts.giveNo': 'Pas maintenant',
+  'plus.accounts.takeBack': 'Reprendre Plus',
+  'plus.accounts.takeBackTrial':
+    'Reprendre le Plus offert à {name} ? Il prend fin maintenant, et l’essai gratuit lui est proposé à la place, sauf s’il l’a déjà eu.',
+  'plus.accounts.takeBackNoTrial':
+    'Reprendre le Plus offert à {name} ? Il prend fin maintenant, et ce compte ne peut pas avoir l’essai gratuit : il n’aura plus Plus.',
+  'plus.accounts.takeBackPaid':
+    'Reprendre le Plus offert à {name} ? Le Plus qu’il paie continue.',
+  'plus.accounts.takeBackPlain':
+    'Reprendre le Plus offert à {name} ? Il prend fin maintenant.',
+  'plus.accounts.takingBack': 'Plus est repris à {name}…',
   'plus.accounts.delete': 'Supprimer le compte',
   'plus.accounts.finish': 'Terminer la suppression',
   'plus.accounts.confirm':

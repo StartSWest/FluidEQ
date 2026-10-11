@@ -127,10 +127,19 @@ export type TWallpaperError =
 /**
  * Why a monitor is not drawing. `covered` means no part of that
  * monitor's desktop can be seen: windows over every piece of its work
- * area, not merely an app in front of the background.
+ * area, not merely an app in front of the background. `window` is that
+ * cover resting on FluidEQ's own window, so minimising it brings the
+ * desktop back (`TWallpaperCover`).
  */
 export type TWallpaperPause =
-  'locked' | 'suspended' | 'battery' | 'game' | 'covered';
+  'locked' | 'suspended' | 'battery' | 'game' | 'covered' | 'window';
+
+/**
+ * What keeps a monitor's desktop out of sight, as its helper reports it:
+ * nothing; FluidEQ's own window, without which some of it would show; or
+ * other windows, which hide it with or without FluidEQ's.
+ */
+export type TWallpaperCover = 'none' | 'window' | 'others';
 
 /** A monitor as Windows' display settings describe it, in physical pixels. */
 export interface IWallpaperDisplay {
@@ -266,6 +275,7 @@ const WALLPAPER_PAUSES: readonly TWallpaperPause[] = [
   'battery',
   'game',
   'covered',
+  'window',
 ];
 
 const isRecord = (raw: unknown): raw is Record<string, unknown> =>
@@ -436,7 +446,7 @@ export const wallpaperPauseReason = (conditions: {
   battery: boolean;
   /** A game is in front: every screen holds still, covered or not. */
   game: boolean;
-  covered: boolean;
+  cover: TWallpaperCover;
   pauseOnBattery: boolean;
 }): TWallpaperPause | undefined => {
   if (conditions.locked) {
@@ -454,7 +464,10 @@ export const wallpaperPauseReason = (conditions: {
   if (conditions.game) {
     return 'game';
   }
-  if (conditions.covered) {
+  if (conditions.cover === 'window') {
+    return 'window';
+  }
+  if (conditions.cover === 'others') {
     return 'covered';
   }
   return undefined;

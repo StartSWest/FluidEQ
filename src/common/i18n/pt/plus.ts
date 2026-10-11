@@ -266,12 +266,22 @@ const plus = {
   'plus.accounts.note.deleting':
     'Uma exclusão anterior desta conta parou no meio. Terminar exclusão conclui o processo.',
   'plus.accounts.note.gift':
-    'O Plus de presente para este endereço continua, como dizem os termos. Retire em Plus de presente se isso também foi pedido.',
+    'O Plus de presente para este endereço continua, como dizem os termos. Retire aqui ou em Plus de presente se isso também foi pedido.',
   'plus.accounts.give': 'Dar Plus',
   'plus.accounts.giveConfirm': 'Dar Plus a {name}? Dura até você retirá-lo.',
   'plus.accounts.giving': 'Dando Plus a {name}…',
   'plus.accounts.giveYes': 'Dar Plus',
   'plus.accounts.giveNo': 'Agora não',
+  'plus.accounts.takeBack': 'Retirar Plus',
+  'plus.accounts.takeBackTrial':
+    'Retirar o Plus que você deu a {name}? Ele termina agora, e o teste gratuito é oferecido no lugar, a menos que já tenha sido usado.',
+  'plus.accounts.takeBackNoTrial':
+    'Retirar o Plus que você deu a {name}? Ele termina agora, e esta conta não pode ter o teste gratuito, então fica sem Plus.',
+  'plus.accounts.takeBackPaid':
+    'Retirar o Plus que você deu a {name}? O Plus pago continua.',
+  'plus.accounts.takeBackPlain':
+    'Retirar o Plus que você deu a {name}? Ele termina agora.',
+  'plus.accounts.takingBack': 'Retirando o Plus de {name}…',
   'plus.accounts.delete': 'Apagar conta',
   'plus.accounts.finish': 'Terminar exclusão',
   'plus.accounts.confirm':

@@ -7,10 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type {
   ILanPairingOption,
   ILanRemoteAudioNetworkStats,
+  ILinkSwitches,
   IRemoteDuplex,
   IRemoteNowPlaying,
 } from '../../common/remoteAudio';
 import type { TRemoteAudioMeterListener } from './meter';
+
+export type { ILinkSwitches };
 
 /** One computer linked with this one, as the one-player rule knows it. */
 export interface IRemoteAudioComputer {
@@ -19,12 +22,6 @@ export interface IRemoteAudioComputer {
   name: string;
   /** What its bar is showing, as it last told us. Absent until it says. */
   nowPlaying?: IRemoteNowPlaying;
-}
-
-/** "Send my sound" and "Play it here", for one linked computer. */
-export interface ILinkSwitches {
-  send: boolean;
-  play: boolean;
 }
 
 /** One linked computer, as the Share Audio page draws it. */

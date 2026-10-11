@@ -187,6 +187,8 @@ const eq: Partial<Dictionary> = {
     'Ein: Beim Visualizer ist es nachts Nacht und tagsüber Tag, nach der Uhr dieses Computers. Aus: Er behält das oben eingestellte Tageslicht.',
   'graph.sceneTint.daylightFollowingClockHint':
     'Folgt der Uhrzeit. Schalten Sie „Tageslicht folgt der Uhrzeit“ aus, um die Tageszeit des Visualizers selbst festzulegen',
+  'graph.sceneTint.daylightStudioHint':
+    'Solange das Studio geöffnet ist, bestimmt die Helligkeit die Tageszeit des Visualizers, damit Sie eine Szene von Nacht bis Tag ausprobieren können. Diese Wahl gilt wieder, sobald Sie das Studio verlassen',
   'graph.sceneTint.brightnessHint':
     'Wie hell oder dunkel das Fenster steht, in Ihrem Design oder in den Farben des Visualizers',
   'graph.member.mine': 'Von Ihnen erstellt',

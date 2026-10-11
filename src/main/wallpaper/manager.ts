@@ -118,12 +118,12 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
 
   const backgrounds = createMonitorBackgrounds({
     executable: wallpaperHostPath,
-    pauseReason: (covered) =>
+    pauseReason: (cover) =>
       wallpaperPauseReason({
         ...conditions,
         pauseOnBattery,
         game: gameInFront,
-        covered,
+        cover,
       }),
     performance: () => performance,
     tuning: (lookId) => tuning[lookId],

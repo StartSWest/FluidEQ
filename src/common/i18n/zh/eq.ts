@@ -172,6 +172,8 @@ const eq: Partial<Dictionary> = {
     '开启时，可视化效果按这台电脑的时钟，夜里是夜晚，白天是白天。关闭时，它保持上方设置的时段。',
   'graph.sceneTint.daylightFollowingClockHint':
     '跟随时钟。关闭“时段跟随时钟”即可单独设置可视化效果的时段',
+  'graph.sceneTint.daylightStudioHint':
+    '工作室打开时，可视化效果的时段由亮度决定，便于从夜晚到白天检验场景。离开工作室后，此处的选择恢复生效',
   'graph.sceneTint.brightnessHint': '窗口在主题或可视化效果颜色下的明暗',
   'graph.member.mine': '你创作的',
   'graph.member.theirs': '会员创作',

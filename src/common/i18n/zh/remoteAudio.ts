@@ -42,6 +42,12 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.linked.looking': '正在你的网络中查找 {name}…',
   'remoteAudio.linked.lossless': '无损',
   'remoteAudio.linked.unlink': '取消链接',
+  'remoteAudio.linked.pause': '暂停',
+  'remoteAudio.linked.resume': '继续',
+  'remoteAudio.lane.inPaused': '已暂停。在你继续之前，这里不会播放任何声音。',
+  'remoteAudio.lane.outPaused': '已暂停。在你继续之前，不会发送任何声音。',
+  'remoteAudio.lane.volume': '{name} 的声音音量',
+  'remoteAudio.lane.pausedThere': '{name} 暂停了链接。',
   'remoteAudio.linked.noEcho': '无回声：{name} 的声音绝不会被发回给它。',
   'remoteAudio.linked.untouched':
     '双向都原样发送——每台电脑套用自己的 EQ 和 DSP。',

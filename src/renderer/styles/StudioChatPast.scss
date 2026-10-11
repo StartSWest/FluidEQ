@@ -1,0 +1,187 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// ---------------------------------------------------------------- past chats
+
+// The open project's earlier chats (`StudioChatPast.tsx`), where the
+// conversation stands: a list that scrolls, each chat a row to press.
+.studio-chat-past {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 12px;
+  overflow-y: auto;
+  @include slim-scrollbar;
+
+  ul {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &.is-empty {
+    align-items: center;
+    justify-content: center;
+    color: $text-muted;
+    font-size: $text-body;
+    text-align: center;
+
+    p {
+      max-width: 30ch;
+      margin: 0;
+      line-height: 1.5;
+    }
+  }
+}
+
+.studio-chat-past__heading {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+}
+
+.studio-chat-past__mark {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: $text-accent;
+  border-radius: 50%;
+  background: color-mix(in srgb, $text-accent 12%, transparent);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.studio-chat-past__busy {
+  margin: 0;
+  color: $amber;
+  font-size: $text-small;
+}
+
+// A chat in the list, in the version card's face: what was asked first, and
+// when, then a delete that asks once.
+.studio-chat-past__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: $surface-well;
+  transition: border-color $motion-fast $ease-out;
+
+  &:hover {
+    border-color: color-mix(in srgb, $text-accent 40%, transparent);
+  }
+}
+
+.studio-chat-past__open {
+  display: grid;
+  flex: 1 1 180px;
+  gap: 3px;
+  min-width: 0;
+  padding: 6px 8px;
+  color: inherit;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+.studio-chat-past__title {
+  overflow: hidden;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.studio-chat-past__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 8px;
+  color: $text-faint;
+  font-size: $text-micro;
+}
+
+// Kept by Claude Code, not FluidEQ: said, in the amber the app says
+// "this came from somewhere else" in.
+.studio-chat-past__tag {
+  padding: 1px 6px;
+  color: $amber;
+  border: 1px solid color-mix(in srgb, $amber 40%, transparent);
+  border-radius: $radius-pill;
+}
+
+.studio-chat-past__delete {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  cursor: pointer;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &:hover {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 6%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.studio-chat-past__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-left: auto;
+  padding: 0 4px 4px;
+}

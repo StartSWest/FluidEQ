@@ -54,7 +54,11 @@ const SceneDaylightSlider = () => {
     <label
       className={`graph-view-menu__slider${isOwn ? '' : ' is-disabled'}`}
       htmlFor={id}
-      title={t(FOLLOWING_HINT[setting.source])}
+      title={t(
+        setting.heldByStudio
+          ? 'graph.sceneTint.daylightStudioHint'
+          : FOLLOWING_HINT[setting.source],
+      )}
     >
       <svg className="graph-view-menu__icon" viewBox="0 0 16 16" aria-hidden>
         <path d="M1.5 12h13M4.5 12a3.5 3.5 0 0 1 7 0" />

@@ -184,6 +184,8 @@ const eq: Partial<Dictionary> = {
     'Attivo, il visualizzatore è di notte la notte e di giorno il giorno, secondo l’orologio di questo computer. Disattivo, mantiene la luce del giorno impostata sopra.',
   'graph.sceneTint.daylightFollowingClockHint':
     'Segue l’orologio. Disattiva «La luce segue l’orologio» per scegliere a parte l’ora del giorno del visualizzatore',
+  'graph.sceneTint.daylightStudioHint':
+    'Con lo Studio aperto, la Luminosità decide l’ora del giorno del visualizzatore, per provare una scena dalla notte al giorno. Questa scelta torna quando esci dallo Studio',
   'graph.sceneTint.brightnessHint':
     'Quanto è chiara o scura la finestra, nel tuo tema o nei colori del visualizzatore',
   'graph.member.mine': 'Creati da te',

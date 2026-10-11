@@ -261,6 +261,23 @@
   flex: 1 1 auto;
 }
 
+// Pause and Unlink, kept together at the end of the head's line.
+.remote-audio__link-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+
+  .button {
+    gap: 6px;
+  }
+
+  .menu-icon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
 .remote-audio__link-stats {
   color: $text-muted;
   font-family: $font-mono;
@@ -372,7 +389,7 @@
     white-space: normal;
   }
 
-  .remote-audio__link-head > .button {
+  .remote-audio__link-actions {
     margin-left: auto;
   }
 

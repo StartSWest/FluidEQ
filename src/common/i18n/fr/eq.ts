@@ -187,6 +187,8 @@ const eq: Partial<Dictionary> = {
     'Activé, le visualiseur est de nuit la nuit et de jour le jour, selon l’horloge de cet ordinateur. Désactivé, il garde la lumière du jour réglée au-dessus.',
   'graph.sceneTint.daylightFollowingClockHint':
     'Suit l’horloge. Désactivez « Le jour suit l’horloge » pour régler à part l’heure du jour du visualiseur',
+  'graph.sceneTint.daylightStudioHint':
+    'Tant que le Studio est ouvert, la Luminosité règle l’heure du jour du visualiseur, pour essayer une scène de la nuit au jour. Ce choix revient quand vous quittez le Studio',
   'graph.sceneTint.brightnessHint':
     'La clarté de la fenêtre, dans votre thème ou dans les couleurs du visualiseur',
   'graph.member.mine': 'Créés par vous',

@@ -7,7 +7,7 @@ import {
   MEMBER_SCENE_FILE_EXTENSION,
   memberSceneFileName,
 } from '../../common/memberSceneFile';
-import { parseMemberLookId } from '../../common/memberScenes';
+import { likedSceneOf } from '../../common/plusGallery';
 import type { IScenePack } from '../../common/scenePacks';
 import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
@@ -208,7 +208,7 @@ export const registerMemberSharingIpc = ({
   };
 
   const refOf = (lookId: unknown) =>
-    typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
+    typeof lookId === 'string' ? likedSceneOf(lookId) : undefined;
 
   // For whoever is signed in. An agreement another account made on this
   // computer says nothing about this one, and answering with it let a second

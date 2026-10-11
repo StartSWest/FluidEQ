@@ -42,6 +42,14 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.linked.looking': '{name} wird im Netzwerk gesucht…',
   'remoteAudio.linked.lossless': 'Verlustfrei',
   'remoteAudio.linked.unlink': 'Trennen',
+  'remoteAudio.linked.pause': 'Pausieren',
+  'remoteAudio.linked.resume': 'Fortsetzen',
+  'remoteAudio.lane.inPaused':
+    'Pausiert. Bis Sie fortsetzen, wird hier nichts abgespielt.',
+  'remoteAudio.lane.outPaused':
+    'Pausiert. Bis Sie fortsetzen, wird nichts gesendet.',
+  'remoteAudio.lane.volume': 'Lautstärke des Tons von {name}',
+  'remoteAudio.lane.pausedThere': '{name} hat die Verbindung pausiert.',
   'remoteAudio.linked.noEcho':
     'Kein Echo: Der Ton von {name} wird nie dorthin zurückgeschickt.',
   'remoteAudio.linked.untouched':

@@ -131,6 +131,26 @@ inline bool covered(const RECT& area, const RECT* windows, int count) {
   return pieces == 0;
 }
 
+/** What keeps a monitor's desktop out of sight, if anything does. */
+enum class Cover { none, owner, others };
+
+/**
+ * `covered`, and if so, whether the owner's own windows are what it rests
+ * on: `others` is the same walk with the owner's windows left out.
+ *
+ * FluidEQ's own window over a monitor is the one cover that goes the moment
+ * FluidEQ is minimised, which is also the moment its hidden page loses the
+ * means to start listening again in time: a capture reopened behind a hidden
+ * window took seconds, and on a busy machine much longer. Told `owner`, the
+ * app keeps listening through the pause, so the background moves with the
+ * music from its first frame back.
+ */
+inline Cover cover_of(const RECT& area, const RECT* windows, int count,
+                      const RECT* others, int other_count) {
+  if (!covered(area, windows, count)) return Cover::none;
+  return covered(area, others, other_count) ? Cover::others : Cover::owner;
+}
+
 // True when `window` is stacked somewhere below `above` and above `below`.
 // Every monitor has its own wallpaper window between the same two shell
 // windows, so demanding the slot directly under the icons made two helpers

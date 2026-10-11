@@ -19,7 +19,7 @@ export const remoteAudioLink = (
   address: '192.168.1.40',
   joined: false,
   theirs: { sends: true, plays: true },
-  switches: { send: true, play: true },
+  switches: { send: true, play: true, paused: false, volume: 1 },
   receiving: false,
   ...overrides,
 });

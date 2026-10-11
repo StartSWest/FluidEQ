@@ -154,28 +154,35 @@ export default function GalleryCard({
               ? officialLabel
               : t('plus.card.adds', { count: adds })}
           </span>
-          <SceneHeart scene={scene} name={name} own={own} />
-          {entitled && (
-            <button
-              type="button"
-              className={`button small subtle gallery-card__add${addState}${adding ? ' is-running' : ''}`}
-              aria-busy={adding}
-              disabled={adding}
-              aria-label={addState ? t('plus.card.remove') : undefined}
-              title={addState ? t('plus.card.remove') : undefined}
-              onClick={() => {
-                const action = addState ? removeGalleryScene : addGalleryScene;
-                action(scene, name).catch(() => undefined);
-              }}
-            >
-              <span className="gallery-card__add-label">{addLabel}</span>
-              {addState && (
-                <span className="gallery-card__remove-label" aria-hidden="true">
-                  {t('plus.card.remove')}
-                </span>
-              )}
-            </button>
-          )}
+          <span className="gallery-card__controls">
+            <SceneHeart scene={scene} name={name} own={own} />
+            {entitled && (
+              <button
+                type="button"
+                className={`button small subtle gallery-card__add${addState}${adding ? ' is-running' : ''}`}
+                aria-busy={adding}
+                disabled={adding}
+                aria-label={addState ? t('plus.card.remove') : undefined}
+                title={addState ? t('plus.card.remove') : undefined}
+                onClick={() => {
+                  const action = addState
+                    ? removeGalleryScene
+                    : addGalleryScene;
+                  action(scene, name).catch(() => undefined);
+                }}
+              >
+                <span className="gallery-card__add-label">{addLabel}</span>
+                {addState && (
+                  <span
+                    className="gallery-card__remove-label"
+                    aria-hidden="true"
+                  >
+                    {t('plus.card.remove')}
+                  </span>
+                )}
+              </button>
+            )}
+          </span>
         </div>
       </div>
     </article>

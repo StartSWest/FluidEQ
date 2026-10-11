@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
+import { holdDaylightToBrightness } from '../utils/sceneDaylightSetting';
 import StudioBench from './StudioBench';
 import StudioLocked from './StudioLocked';
 import { openStudioSession, useStudio } from './studioStore';
@@ -36,6 +37,9 @@ export default function StudioPanel() {
   const view = useStudio();
 
   useEffect(() => openStudioSession(), []);
+  // Its Brightness row tries a scene from night to day, whatever the window's
+  // time of day is set to follow (`holdDaylightToBrightness`).
+  useEffect(() => holdDaylightToBrightness(), []);
 
   // A moment, the first time only: the store keeps what it last heard.
   let body = null;

@@ -11,12 +11,27 @@ import {
   type IWallpaperChoice,
   type IWallpaperSurfaceState,
   type IWallpaperTuning,
+  type TWallpaperCover,
   type TWallpaperDaylight,
   type TWallpaperError,
   type TWallpaperPause,
 } from '../../common/wallpaper';
-import { startWallpaperHost, type IWallpaperHost } from './nativeHost';
+import {
+  startWallpaperHost,
+  type IWallpaperHost,
+  type TWallpaperHostEvent,
+} from './nativeHost';
 import { createWallpaperWindow, wallpaperUrl } from './window';
+
+/** The cover each of the helper's reports describes. */
+const COVERS: Record<
+  Exclude<TWallpaperHostEvent, 'ready' | 'error'>,
+  TWallpaperCover
+> = {
+  active: 'none',
+  paused: 'others',
+  'paused-owner': 'window',
+};
 
 export interface IWallpaperScene {
   pack: IScenePack;
@@ -40,10 +55,10 @@ interface IDesktopSurfaceOptions {
   daylight(): TWallpaperDaylight | undefined;
   executable: string;
   /**
-   * Why this monitor should not play now, given whether anything of its
-   * desktop can still be seen.
+   * Why this monitor should not play now, given what keeps its desktop out
+   * of sight, if anything does.
    */
-  pauseReason(covered: boolean): TWallpaperPause | undefined;
+  pauseReason(cover: TWallpaperCover): TWallpaperPause | undefined;
   /**
    * Once, as soon as this surface is on the desktop — or has been told the
    * monitor is covered and it must not be seen at all. Whatever it replaced
@@ -138,7 +153,7 @@ export const createDesktopSurface = (
   let released = false;
   let attached = false;
   let coverKnown = false;
-  let covered = false;
+  let cover: TWallpaperCover = 'none';
   let shown = false;
   let ready = false;
   let frameReady = false;
@@ -210,7 +225,7 @@ export const createDesktopSurface = (
     if (released || !host || !attached || !coverKnown) {
       return;
     }
-    const reason = options.pauseReason(covered);
+    const reason = options.pauseReason(cover);
     if (reason) {
       phase = 'paused';
     } else {
@@ -277,7 +292,7 @@ export const createDesktopSurface = (
             attached = true;
           } else {
             coverKnown = true;
-            covered = message === 'paused';
+            cover = COVERS[message];
           }
           applyPolicy();
         },

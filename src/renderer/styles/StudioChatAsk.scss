@@ -1,0 +1,130 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// ---------------------------------------------------------------- asks
+
+// What Claude's use of ChatGPT waits on: a card at the foot of the
+// conversation, over the message box, in the version card's face with the
+// accent's edge, because it is waiting on the member.
+.studio-chat__ask {
+  display: flex;
+  flex: none;
+  gap: 10px;
+  margin: 0 12px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, $text-accent 45%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $text-accent 5%, $surface-well);
+  animation: studio-chat-ask-in $motion-fast $ease-out;
+}
+
+@keyframes studio-chat-ask-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.studio-chat__ask-mark {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: $text-accent;
+  border-radius: 50%;
+  background: color-mix(in srgb, $text-accent 14%, transparent);
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.studio-chat__ask-content {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 6px;
+  min-width: 0;
+
+  p {
+    margin: 0;
+  }
+}
+
+.studio-chat__ask-title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.studio-chat__ask-body,
+.studio-chat__ask-why {
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.studio-chat__ask-why {
+  color: $text-primary;
+}
+
+.studio-chat__ask-need {
+  color: $amber;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// What ChatGPT is asked to draw, as Claude wrote it: the member sees it
+// whole before saying yes, held to a few lines with the rest a scroll away.
+.studio-chat__ask-prompt {
+  max-height: 6.2em;
+  margin: 0;
+  padding: 6px 9px;
+  overflow-y: auto;
+  color: $text-muted;
+  border-left: 2px solid color-mix(in srgb, $text-accent 40%, transparent);
+  border-radius: 0 $radius-xs $radius-xs 0;
+  background: color-mix(in srgb, $white 3%, transparent);
+  font-size: $text-small;
+  font-style: italic;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  @include slim-scrollbar;
+}
+
+.studio-chat__ask-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  color: $text-faint;
+  font-size: $text-micro;
+
+  span + span::before {
+    margin-right: 10px;
+    content: '·';
+  }
+}
+
+.studio-chat__ask-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-chat__ask {
+    animation: none;
+  }
+}

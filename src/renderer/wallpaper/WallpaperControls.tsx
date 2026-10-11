@@ -173,8 +173,10 @@ export function WallpaperStatus() {
         : t('wallpaper.status.failedMany', { count: failed.length });
   } else if (paused.length === present.length) {
     tone = 'paused';
+    // By what the reason says, not its name: behind FluidEQ's own window and
+    // behind other windows both read as covered.
     const oneReason = paused.every(
-      (screen) => screen.pauseReason === paused[0].pauseReason,
+      (screen) => screenStatusKey(screen) === screenStatusKey(paused[0]),
     );
     status = oneReason
       ? t(screenStatusKey(paused[0]))

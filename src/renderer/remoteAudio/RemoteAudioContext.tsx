@@ -11,7 +11,9 @@ import { setSinglePlayerFromLink } from '../utils/singlePlayer';
 import { measureRemoteAudioChunk } from './meter';
 import {
   ALL_ON,
+  applySwitches,
   type ILinkRecord,
+  linkPaused,
   linkPhase,
   linkViews,
   playsHere,
@@ -25,12 +27,10 @@ import type {
   TRemoteAudioRole,
 } from './remoteAudioState';
 import RemoteAudioContext, {
-  type IIncomingSound,
   IncomingSoundContext,
   RemoteAudioReceivingContext,
 } from './remoteAudioValueContext';
-import useIncomingDelays from './useIncomingDelays';
-import useIncomingSounding from './useIncomingSounding';
+import useArrivingSound from './useArrivingSound';
 import useSelectedRemoteAudioOutput from './useSelectedRemoteAudioOutput';
 import useRemoteAudioMeterBus from './useRemoteAudioMeterBus';
 import useRemoteAudioNetworkStats from './useRemoteAudioNetworkStats';
@@ -121,36 +121,10 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   });
   useSelectedRemoteAudioOutput(activeDeviceId, mixerRef, outputSinkIdRef);
 
-  const arriving = links.filter(
-    (link) => link.receiving && playsHere(link, bothWays),
-  );
-  const receiving = arriving.length > 0;
-  const delays = useIncomingDelays(
+  const { receiving, delays, incoming } = useArrivingSound(
+    links,
+    bothWays,
     subscribeMeter,
-    arriving.map((link) => link.id),
-  );
-  const sounding = useIncomingSounding(
-    subscribeMeter,
-    arriving.map((link) => link.id),
-  );
-  const incomingKey = arriving
-    .map(
-      (link) =>
-        `${link.id}\n${link.name}\n${delays[link.id] ?? ''}\n${sounding[link.id] === true}`,
-    )
-    .join('\n');
-  const incoming = useMemo<IIncomingSound[]>(
-    () =>
-      arriving.map((link) => ({
-        id: link.id,
-        name: link.name,
-        delayMs: delays[link.id],
-        isSounding: sounding[link.id] === true,
-      })),
-    // The key is the list as far as anyone reading it can tell: a new
-    // array each render would redraw every reader for nothing.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- recomputed exactly when incomingKey changes, see above
-    [incomingKey],
   );
   const { sending, sendingFailed, markSendingFailed } = useRemoteAudioSending({
     bothWays,
@@ -167,8 +141,10 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     onFailure: markSendingFailed,
   });
 
+  // A paused link hears nothing of this computer's players either; it hears
+  // the description as it stands again the moment it resumes.
   const performRemoteTransport = useRemoteNowPlayingBroadcast(
-    links.map((link) => link.id),
+    links.filter((link) => !linkPaused(link)).map((link) => link.id),
   );
   const acceptRemoteStart = useRemoteNowPlayingSource(
     links.filter((link) => playsHere(link, bothWays)),
@@ -176,7 +152,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     delays,
   );
 
-  const { rejoin, rehost } = useRemoteAudioRestore({
+  const { rejoin, rehost, lookedUp } = useRemoteAudioRestore({
     phase,
     roleRef,
     stoppingRef,
@@ -241,6 +217,10 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       if (signal.kind === 'now-playing') {
         record.nowPlaying = signal.playing;
         publish();
+        // Paused, its players and its one-player switch reach nothing here.
+        if (linkPaused(record)) {
+          return;
+        }
         // The one-player switch, changed over there: the same switch here.
         if (signal.singlePlayer !== undefined) {
           setSinglePlayerFromLink(signal.singlePlayer, peerId);
@@ -261,8 +241,11 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       if (signal.kind === 'transport') {
-        // A press on the other computer's bar, carried out on this one's.
-        performRemoteTransport(signal);
+        // A press on the other computer's bar, carried out on this one's —
+        // never while the link is paused.
+        if (!linkPaused(record)) {
+          performRemoteTransport(signal);
+        }
         return;
       }
       if (signal.kind === 'stop') {
@@ -323,11 +306,17 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
 
   const showCode = useCallback(
     async (replaceCode = false) => {
+      // After the saved link, never ahead of it: a computer that joined
+      // another keeps that link until Unlink ends it.
+      await lookedUp;
+      const { current } = roleRef;
+      const settled = phaseRef.current;
       if (
-        roleRef.current === 'listener' &&
-        !replaceCode &&
-        phaseRef.current !== 'error' &&
-        phaseRef.current !== 'disconnected'
+        current === 'sender' ||
+        (current === 'listener' &&
+          !replaceCode &&
+          settled !== 'error' &&
+          settled !== 'disconnected')
       ) {
         return;
       }
@@ -353,7 +342,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         }
       }
     },
-    [bridge, clearLinks, setPhase, setRole],
+    [bridge, clearLinks, lookedUp, setPhase, setRole],
   );
 
   const link = useCallback(
@@ -416,16 +405,11 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
 
   const setSwitches = useCallback(
     async (name: string, switches: ILinkSwitches) => {
-      await bridge.setRemoteAudioLinkSwitches(name, switches);
-      recordsRef.current.forEach((record) => {
-        if (record.name === name) {
-          Object.assign(record, {
-            switches,
-            receiving: switches.play ? record.receiving : false,
-          });
-        }
-      });
+      // Shown first, so a volume drag follows the hand; main acts on it as
+      // it arrives.
+      applySwitches(recordsRef.current.values(), name, switches);
       publish();
+      await bridge.setRemoteAudioLinkSwitches(name, switches);
     },
     [bridge, publish],
   );

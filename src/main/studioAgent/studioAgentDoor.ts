@@ -355,10 +355,7 @@ export const createStudioAgentDoor = ({
   // member types nothing and their AI connects itself. Never over the
   // member's own switch — one they turned off stays off, and the prompt then
   // goes without the connection.
-  ipcMain.handle('studio-agent-door-for-prompt', async (event) => {
-    if (!fromWindow(event)) {
-      return { open: false };
-    }
+  const openForMember = async () => {
     if (!settings.open && !settings.chosen) {
       settings = { ...settings, open: true };
       save();
@@ -368,7 +365,11 @@ export const createStudioAgentDoor = ({
     // the door listens on, and a copy made before it listened went without.
     await follow();
     return state();
-  });
+  };
+
+  ipcMain.handle('studio-agent-door-for-prompt', (event) =>
+    fromWindow(event) ? openForMember() : { open: false },
+  );
 
   ipcMain.handle('studio-agent-new-key', (event) => {
     if (fromWindow(event)) {
@@ -471,6 +472,13 @@ export const createStudioAgentDoor = ({
   }
 
   return {
+    /**
+     * Look and hear for the Studio's chat, which carries them on a door of
+     * its own beside its picture tools (`studioChat/chatServer.ts`): this
+     * door stays as narrow as it says, whatever the chat can do.
+     */
+    look,
+    hear,
     dispose: async () => {
       [
         'studio-agent-door',

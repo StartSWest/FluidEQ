@@ -12,10 +12,18 @@ export default function WallpaperAudio() {
   // Only a background following the music holds the capture: a calm one never
   // hears it, and one left holding it would keep the analyser running for
   // nothing while FluidEQ sits hidden.
+  //
+  // One paused behind FluidEQ's own window holds it too, because minimising
+  // the window is what brings that monitor back. Let go with the window, the
+  // capture had to be opened again from behind it as the monitor came back:
+  // a second or two of a background deaf to the music at best, and far longer
+  // on a busy machine, where Windows runs a hidden window's page last.
   const wanted = state.screens.some(
     (screen) =>
       screen.motion === 'music' &&
-      (screen.phase === 'starting' || screen.phase === 'running'),
+      (screen.phase === 'starting' ||
+        screen.phase === 'running' ||
+        (screen.phase === 'paused' && screen.pauseReason === 'window')),
   );
   useLiveAudioCapture(wanted, 'work');
   const control = useLiveAudioControl();

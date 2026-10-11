@@ -191,6 +191,8 @@ const eq = {
     "On, the visualizer is night at night and day by day, by this computer's clock. Off, it keeps the Daylight set above.",
   'graph.sceneTint.daylightFollowingClockHint':
     "Following the clock. Turn off Daylight follows the clock to set the visualizer's time of day on its own",
+  'graph.sceneTint.daylightStudioHint':
+    "While the Studio is open, Brightness sets the visualizer's time of day, so a scene can be tried from night to day. This choice comes back when you leave the Studio",
   'graph.sceneTint.brightnessHint':
     "How light or dark the window stands, in your theme or in the visualizer's colours",
   // The picker's headings over the scenes members made in the Studio: this

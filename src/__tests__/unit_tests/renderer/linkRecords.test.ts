@@ -50,7 +50,12 @@ describe('playsHere', () => {
     expect(playsHere(record(), true)).toBe(true);
     expect(playsHere(record({ joined: true }), true)).toBe(true);
     expect(
-      playsHere(record({ switches: { send: true, play: false } }), true),
+      playsHere(
+        record({
+          switches: { send: true, play: false, paused: false, volume: 1 },
+        }),
+        true,
+      ),
     ).toBe(false);
   });
 
@@ -66,7 +71,12 @@ describe('sendsThere', () => {
   it('sends to a computer that said it plays, while the switch is on', () => {
     expect(sendsThere(record(), true)).toBe(true);
     expect(
-      sendsThere(record({ switches: { send: false, play: true } }), true),
+      sendsThere(
+        record({
+          switches: { send: false, play: true, paused: false, volume: 1 },
+        }),
+        true,
+      ),
     ).toBe(false);
     expect(
       sendsThere(record({ theirs: { sends: true, plays: false } }), true),

@@ -12,11 +12,12 @@ import {
 } from '../utils/soundPane';
 
 /**
- * The bench width under which "What it hears" leaves its column for a tab:
- * the stage and the tabs need about 680px to be worth having, and the column
- * is 256px of tiles laid out at that width, with the gap between them.
+ * The bench width under which the chat leaves its pane for a tab: the stage
+ * and the tabs need about 540px to be worth having, and the pane is at least
+ * 320px of conversation, with the gap between them. A 1366px laptop leaves
+ * the bench about 940px, and keeps the pane.
  */
-export const STUDIO_SIDE_COLUMN_MIN = 980;
+export const STUDIO_SIDE_COLUMN_MIN = 880;
 
 /**
  * Two things the bench decides from where it is on screen.

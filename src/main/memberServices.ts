@@ -42,6 +42,7 @@ import { registerScenePacksIpc } from './ipc/scenePacks';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { createGalleryAccess } from './plus/galleryAccess';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
+import { createStudioChat } from './studioChat/studioChat';
 import { createArrangementStore } from './wallpaper/arrangement';
 import registerWallpaperIpc from './wallpaper/register';
 import { createWallpaperScenes } from './wallpaper/scenes';
@@ -241,6 +242,17 @@ const registerMemberServices = ({
     appVersion: appVersion(),
     logger: log,
   });
+  // The Studio's chat: the member's own Claude Code, working in the open
+  // project, looking and hearing as the door above does, and making
+  // pictures with the member's ChatGPT when they say so.
+  const studioChat = createStudioChat({
+    userDataDir,
+    getMainWindow,
+    agentProject: () => memberScenesIpc.agentProject(),
+    door: { look: studioAgentDoor.look, hear: studioAgentDoor.hear },
+    version: appVersion(),
+    logger: log,
+  });
   const plusPublishingIpc = registerPlusPublishingIpc({
     access: galleryAccess,
     userDataDir,
@@ -333,6 +345,9 @@ const registerMemberServices = ({
     makerMonthIpc.dispose();
     // Its listening socket, like the forum's, must not outlive the app.
     studioAgentDoor.dispose().catch(() => undefined);
+    // Claude Code ends with the app: nothing works in the member's project
+    // once FluidEQ is gone.
+    studioChat.dispose();
     plusProfileIpc.dispose();
     leaderboardIpc.dispose();
   };

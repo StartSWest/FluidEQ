@@ -185,6 +185,8 @@ const eq: Partial<Dictionary> = {
     'Ativado, o visualizador fica de noite à noite e de dia durante o dia, pelo relógio deste computador. Desativado, ele mantém a luz do dia escolhida acima.',
   'graph.sceneTint.daylightFollowingClockHint':
     'Segue o relógio. Desative “A luz segue o relógio” para escolher à parte a hora do dia do visualizador',
+  'graph.sceneTint.daylightStudioHint':
+    'Com o Estúdio aberto, o Brilho define a hora do dia do visualizador, para você testar uma cena da noite ao dia. Esta escolha volta quando você sai do Estúdio',
   'graph.sceneTint.brightnessHint':
     'O quanto a janela fica clara ou escura, no seu tema ou nas cores do visualizador',
   'graph.member.mine': 'Feitos por você',

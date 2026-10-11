@@ -4,7 +4,13 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { type MutableRefObject, useCallback, useEffect, useRef } from 'react';
+import {
+  type MutableRefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { ILanPairingOption } from '../../common/remoteAudio';
 import type {
   TRemoteAudioError,
@@ -27,6 +33,22 @@ interface IRemoteAudioRestoreDeps {
   /** Redraws every link and the page's word for them. */
   publish(): void;
 }
+
+/**
+ * The answer to "was anything linked last time?", which the page has to
+ * wait for. Opening on Share Audio used to show this computer's code before
+ * the answer came: a computer that had joined another became the one that
+ * waits, was saved that way, and never went back to the one it had joined.
+ */
+const createLookup = () => {
+  let settle: () => void = () => undefined;
+  // The executor runs before the constructor returns, so `settle` is the
+  // promise's own by the time it is handed out.
+  const promise = new Promise<void>((resolve) => {
+    settle = resolve;
+  });
+  return { promise, settle };
+};
 
 /**
  * A link made once stays made: through the app closing, the computer
@@ -144,12 +166,17 @@ const useRemoteAudioRestore = ({
   }, [phase, rehost, rejoin, roleRef]);
 
   // Whatever was linked last time is linked again, under the same code.
+  const [lookedUp] = useState(createLookup);
   const restoreAttemptedRef = useRef(false);
   useEffect(() => {
-    if (restoreAttemptedRef.current || !bridge?.getSavedRemoteAudioLanRole) {
+    if (restoreAttemptedRef.current) {
       return;
     }
     restoreAttemptedRef.current = true;
+    if (!bridge?.getSavedRemoteAudioLanRole) {
+      lookedUp.settle();
+      return;
+    }
     bridge
       .getSavedRemoteAudioLanRole()
       .then((saved) => {
@@ -157,12 +184,16 @@ const useRemoteAudioRestore = ({
           return undefined;
         }
         setRole(saved);
+        // Settled once the role is set, not once the link is back: going
+        // back can wait as long as the other computer stays away.
+        lookedUp.settle();
         return saved === 'sender' ? rejoin() : rehost();
       })
-      .catch(() => undefined);
-  }, [bridge, rehost, rejoin, roleRef, setRole]);
+      .catch(() => undefined)
+      .finally(lookedUp.settle);
+  }, [bridge, lookedUp, rehost, rejoin, roleRef, setRole]);
 
-  return { rejoin, rehost };
+  return { rejoin, rehost, lookedUp: lookedUp.promise };
 };
 
 export default useRemoteAudioRestore;

@@ -11,7 +11,8 @@ import type { TPlusGiftFailure } from 'main/plus/plusGiftsApi';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 
-const GIVE_ERRORS: Record<TPlusGiftFailure, TranslationKey> = {
+/** What giving or taking back Plus from an account's row says on a refusal. */
+export const GIFT_ERRORS: Record<TPlusGiftFailure, TranslationKey> = {
   offline: 'plus.gallery.error.offline',
   'signed-out': 'plus.gallery.error.signedOut',
   server: 'plus.gallery.error.server',
@@ -42,7 +43,8 @@ interface IAccountGiftButtonProps {
  * Behind a second press that names who is about to get it, like Delete
  * beside it: both are the admin's word about somebody else's account.
  * Without an end, which the server keeps as "until taken back" — a date is
- * the gifts page's business, and the one place that can take a gift back.
+ * the gifts page's business. Taking it back is `AccountGiftTakeBack`, on the
+ * same row once the gift is there.
  */
 export default function AccountGiftButton({
   account,
@@ -74,7 +76,7 @@ export default function AccountGiftButton({
           onGiven();
           return undefined;
         }
-        setFailure(GIVE_ERRORS[outcome.reason]);
+        setFailure(GIFT_ERRORS[outcome.reason]);
         return undefined;
       })
       .catch(() => {

@@ -264,13 +264,23 @@ const plus = {
   'plus.accounts.note.deleting':
     'An earlier deletion of this account stopped part way. Finish deleting completes it.',
   'plus.accounts.note.gift':
-    'A gift of Plus to this address stays, as the terms say. Take it back on Plus gifts if they asked for that too.',
+    'A gift of Plus to this address stays, as the terms say. Take it back here or on Plus gifts if they asked for that too.',
   'plus.accounts.give': 'Give Plus',
   'plus.accounts.giveConfirm':
     'Give Plus to {name}? It lasts until you take it back.',
   'plus.accounts.giving': 'Giving Plus to {name}…',
   'plus.accounts.giveYes': 'Give Plus',
   'plus.accounts.giveNo': 'Not now',
+  'plus.accounts.takeBack': 'Take back Plus',
+  'plus.accounts.takeBackTrial':
+    'Take back the Plus you gave {name}? It ends now, and they are offered the free trial instead, unless they have had it before.',
+  'plus.accounts.takeBackNoTrial':
+    'Take back the Plus you gave {name}? It ends now, and this account cannot have the free trial, so they will have no Plus.',
+  'plus.accounts.takeBackPaid':
+    'Take back the Plus you gave {name}? The Plus they pay for carries on.',
+  'plus.accounts.takeBackPlain':
+    'Take back the Plus you gave {name}? It ends now.',
+  'plus.accounts.takingBack': 'Taking back Plus from {name}…',
   'plus.accounts.delete': 'Delete account',
   'plus.accounts.finish': 'Finish deleting',
   'plus.accounts.confirm':

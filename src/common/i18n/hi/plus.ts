@@ -259,13 +259,23 @@ const plus = {
   'plus.accounts.note.deleting':
     'इस खाते को हटाने की पिछली कोशिश बीच में रुक गई थी। “हटाना पूरा करें” उसे पूरा करता है।',
   'plus.accounts.note.gift':
-    'शर्तों के अनुसार, इस पते को उपहार में मिला Plus बना रहता है। अगर यह भी माँगा गया हो, तो “उपहार में Plus” पेज पर उसे वापस लें।',
+    'शर्तों के अनुसार, इस पते को उपहार में मिला Plus बना रहता है। अगर यह भी माँगा गया हो, तो उसे यहीं या “उपहार में Plus” पेज पर वापस लें।',
   'plus.accounts.give': 'Plus दें',
   'plus.accounts.giveConfirm':
     '{name} को Plus दें? जब तक आप वापस न लें, यह चलता रहेगा।',
   'plus.accounts.giving': '{name} को Plus दिया जा रहा है…',
   'plus.accounts.giveYes': 'Plus दें',
   'plus.accounts.giveNo': 'अभी नहीं',
+  'plus.accounts.takeBack': 'Plus वापस लें',
+  'plus.accounts.takeBackTrial':
+    '{name} को दिया Plus वापस लें? यह अभी खत्म होगा, और इसकी जगह उन्हें मुफ़्त ट्रायल दिया जाएगा, अगर वे इसे पहले नहीं ले चुके हैं।',
+  'plus.accounts.takeBackNoTrial':
+    '{name} को दिया Plus वापस लें? यह अभी खत्म होगा, और इस खाते को मुफ़्त ट्रायल नहीं मिल सकता, इसलिए उनके पास Plus नहीं रहेगा।',
+  'plus.accounts.takeBackPaid':
+    '{name} को दिया Plus वापस लें? जिस Plus का वे भुगतान करते हैं, वह चलता रहेगा।',
+  'plus.accounts.takeBackPlain':
+    '{name} को दिया Plus वापस लें? यह अभी खत्म होगा।',
+  'plus.accounts.takingBack': '{name} से Plus वापस लिया जा रहा है…',
   'plus.accounts.delete': 'खाता हटाएँ',
   'plus.accounts.finish': 'हटाना पूरा करें',
   'plus.accounts.confirm':

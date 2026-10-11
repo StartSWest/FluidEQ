@@ -22,6 +22,7 @@ import { createRemoteAudioCredentialStore } from '../remoteAudioCredentials';
 import startRemoteAudioHostSession from '../remoteAudioHostSession';
 import type { IRemoteAudioLan } from '../remoteAudioLanTypes';
 import { decodePairingCode } from '../remoteAudioLanProtocol';
+import createRemoteAudioLevels from '../remoteAudioLevels';
 import { createRemoteAudioLinks } from '../remoteAudioLinks';
 import createRemoteAudioPorts from '../remoteAudioPorts';
 import onWindowMessage from './windowMessages';
@@ -83,6 +84,7 @@ export const registerRemoteAudioIpc = ({
     sendToWindow('remote-audio-lan-streaming', peerId),
   );
   const playback = registerRemoteAudioPlayback(getMainWindow);
+  const levels = createRemoteAudioLevels();
   const streaming = new Set<string>();
   let link: IRemoteAudioLan | undefined;
   /**
@@ -114,18 +116,20 @@ export const registerRemoteAudioIpc = ({
             links.heard(peerId, signal.signal.duplex);
           } else if (signal.signal.kind === 'stop') {
             links.disconnected(peerId);
+            levels.forget(peerId);
             playback.remove(peerId);
             streaming.delete(peerId);
           }
           ports.signal(signal);
           sendToWindow(LAN_SIGNAL_CHANNEL, signal);
         },
-        (chunk) => {
+        (arrived) => {
           // "Play it here", switched off: the other computer was told and
           // stops sending, and whatever was already on its way is dropped.
-          if (!links.plays(chunk.peerId)) {
+          if (!links.plays(arrived.peerId)) {
             return;
           }
+          const chunk = levels.apply(arrived, links.volume(arrived.peerId));
           if (process.platform !== 'win32') {
             ports.audio(chunk);
             return;

@@ -37,7 +37,8 @@ const megabits = (stats?: ILanRemoteAudioNetworkStats) =>
 
 /**
  * One linked computer: its sound coming in, this computer's going out, each
- * on its own switch, and the link itself — how it travels and how to end it.
+ * on its own switch, and the link itself — how it travels, how to pause it
+ * without losing it, and how to end it.
  */
 const RemoteAudioLinkCard = ({
   link,
@@ -62,6 +63,10 @@ const RemoteAudioLinkCard = ({
     !(link.joined && link.theirs === undefined) &&
     link.theirs?.sends !== false;
   const sends = sendsThere(link, bothWays);
+  // Paused here keeps both switches as they were for the resume; paused
+  // there is the other computer's choice, and each lane says whose it is.
+  const pausedHere = link.switches.paused;
+  const pausedThere = !pausedHere && link.theirs?.paused === true;
   const incomingLive = plays && link.receiving;
   const playSwitchOn = link.switches.play && canPlay;
   // Off Windows the window itself sends, so main never says it is capturing.
@@ -98,6 +103,10 @@ const RemoteAudioLinkCard = ({
   let inDetail: string | undefined;
   if (!canPlay) {
     inLine = t('remoteAudio.lane.inOneWay');
+  } else if (pausedHere) {
+    inLine = t('remoteAudio.lane.inPaused');
+  } else if (pausedThere) {
+    inLine = t('remoteAudio.lane.pausedThere', { name });
   } else if (!link.switches.play) {
     inLine = t('remoteAudio.lane.inOff', { name });
   } else if (link.joined && link.theirs === undefined) {
@@ -122,6 +131,10 @@ const RemoteAudioLinkCard = ({
   let outDetail: string | undefined;
   if (!canSend) {
     outLine = t('remoteAudio.lane.outOneWay');
+  } else if (pausedHere) {
+    outLine = t('remoteAudio.lane.outPaused');
+  } else if (pausedThere) {
+    outLine = t('remoteAudio.lane.pausedThere', { name });
   } else if (!link.switches.send) {
     outLine = t('remoteAudio.lane.outOff', { name });
   } else if (sendingFailed) {
@@ -195,62 +208,91 @@ const RemoteAudioLinkCard = ({
               : t('remoteAudio.monitor.networkHealthy')}
           </span>
         </span>
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={onUnlink}
-        >
-          {t('remoteAudio.linked.unlink')}
-        </button>
+        <span className="remote-audio__link-actions">
+          {/* Resume is the way back, so it wears the loud style; Pause is
+              one more thing the card can do, quiet like Unlink. */}
+          <button
+            type="button"
+            className={pausedHere ? 'button small' : 'button small subtle'}
+            aria-pressed={pausedHere}
+            onClick={() =>
+              onSwitches(name, { ...link.switches, paused: !pausedHere })
+            }
+          >
+            <MenuIcon name={pausedHere ? 'play' : 'pause'} />
+            {pausedHere
+              ? t('remoteAudio.linked.resume')
+              : t('remoteAudio.linked.pause')}
+          </button>
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={onUnlink}
+          >
+            {t('remoteAudio.linked.unlink')}
+          </button>
+        </span>
       </header>
-      <RemoteAudioLane
-        direction="in"
-        kicker={t('remoteAudio.lane.from', { name })}
-        title={t('remoteAudio.lane.playsHere')}
-        line={inLine}
-        lineDetail={inDetail || undefined}
-        live={incomingLive}
-        meterKey={link.id}
-        subscribe={subscribe}
-        figure={
-          incomingLive && delayMs !== undefined
-            ? t('remoteAudio.lane.milliseconds', { milliseconds: delayMs })
-            : '—'
-        }
-        figureCaption={t('remoteAudio.lane.delay')}
-        figureWidest={delayWidest}
-        switchId={`remote-audio-play-${link.id}`}
-        switchLabel={t('remoteAudio.lane.playItHere')}
-        isOn={playSwitchOn}
-        isSwitchDisabled={!canPlay}
-        onToggle={() =>
-          onSwitches(name, { ...link.switches, play: !link.switches.play })
-        }
-      />
-      <RemoteAudioLane
-        direction="out"
-        kicker={t('remoteAudio.lane.to', { name })}
-        title={t('remoteAudio.lane.yourSound')}
-        line={outLine}
-        lineDetail={outDetail || undefined}
-        live={outgoingLive}
-        meterKey={null}
-        subscribe={subscribe}
-        figure={
-          outgoingLive && sentRate !== undefined
-            ? t('remoteAudio.lane.megabits', { megabits: sentRate })
-            : '—'
-        }
-        figureCaption={t('remoteAudio.lane.sent')}
-        figureWidest={rateWidest}
-        switchId={`remote-audio-send-${link.id}`}
-        switchLabel={t('remoteAudio.lane.sendMySound')}
-        isOn={link.switches.send && canSend}
-        isSwitchDisabled={!canSend}
-        onToggle={() =>
-          onSwitches(name, { ...link.switches, send: !link.switches.send })
-        }
-      />
+      {/* One grid for both directions, so the wave, the figure and the
+          controls stand in the same columns on both rows whatever each
+          row holds. */}
+      <div className="remote-audio__lanes">
+        <RemoteAudioLane
+          direction="in"
+          kicker={t('remoteAudio.lane.from', { name })}
+          title={t('remoteAudio.lane.playsHere')}
+          line={inLine}
+          lineDetail={inDetail || undefined}
+          live={incomingLive}
+          meterKey={link.id}
+          subscribe={subscribe}
+          figure={
+            incomingLive && delayMs !== undefined
+              ? t('remoteAudio.lane.milliseconds', { milliseconds: delayMs })
+              : '—'
+          }
+          figureCaption={t('remoteAudio.lane.delay')}
+          figureWidest={delayWidest}
+          switchId={`remote-audio-play-${link.id}`}
+          switchLabel={t('remoteAudio.lane.playItHere')}
+          isOn={playSwitchOn}
+          isSwitchDisabled={!canPlay || pausedHere}
+          onToggle={() =>
+            onSwitches(name, { ...link.switches, play: !link.switches.play })
+          }
+          level={{
+            value: link.switches.volume,
+            label: t('remoteAudio.lane.volume', { name }),
+            isDisabled: !playSwitchOn || pausedHere,
+            onChange: (volume) =>
+              onSwitches(name, { ...link.switches, volume }),
+          }}
+        />
+        <RemoteAudioLane
+          direction="out"
+          kicker={t('remoteAudio.lane.to', { name })}
+          title={t('remoteAudio.lane.yourSound')}
+          line={outLine}
+          lineDetail={outDetail || undefined}
+          live={outgoingLive}
+          meterKey={null}
+          subscribe={subscribe}
+          figure={
+            outgoingLive && sentRate !== undefined
+              ? t('remoteAudio.lane.megabits', { megabits: sentRate })
+              : '—'
+          }
+          figureCaption={t('remoteAudio.lane.sent')}
+          figureWidest={rateWidest}
+          switchId={`remote-audio-send-${link.id}`}
+          switchLabel={t('remoteAudio.lane.sendMySound')}
+          isOn={link.switches.send && canSend}
+          isSwitchDisabled={!canSend || pausedHere}
+          onToggle={() =>
+            onSwitches(name, { ...link.switches, send: !link.switches.send })
+          }
+        />
+      </div>
       <footer className="remote-audio__link-foot">
         <span>
           <MenuIcon name="bothWays" />

@@ -269,13 +269,23 @@ const plus = {
   'plus.accounts.note.deleting':
     'このアカウントの以前の削除が途中で止まりました。「削除を完了」で最後まで行います。',
   'plus.accounts.note.gift':
-    '規約のとおり、このアドレスへの Plus のギフトは残ります。それも依頼されている場合は「Plus のギフト」で取り消してください。',
+    '規約のとおり、このアドレスへの Plus のギフトは残ります。それも依頼されている場合は、ここか「Plus のギフト」で取り消してください。',
   'plus.accounts.give': 'Plus を贈る',
   'plus.accounts.giveConfirm':
     '{name} に Plus を贈りますか? 取り消すまで続きます。',
   'plus.accounts.giving': '{name} に Plus を贈っています…',
   'plus.accounts.giveYes': 'Plus を贈る',
   'plus.accounts.giveNo': '今はしない',
+  'plus.accounts.takeBack': 'Plus を取り消す',
+  'plus.accounts.takeBackTrial':
+    '{name} に贈った Plus を取り消しますか? 今すぐ終了し、代わりに無料体験が案内されます (すでに体験済みの場合を除く)。',
+  'plus.accounts.takeBackNoTrial':
+    '{name} に贈った Plus を取り消しますか? 今すぐ終了します。このアカウントは無料体験を受けられないため、Plus はなくなります。',
+  'plus.accounts.takeBackPaid':
+    '{name} に贈った Plus を取り消しますか? 支払い中の Plus はそのまま続きます。',
+  'plus.accounts.takeBackPlain':
+    '{name} に贈った Plus を取り消しますか? 今すぐ終了します。',
+  'plus.accounts.takingBack': '{name} の Plus を取り消しています…',
   'plus.accounts.delete': 'アカウントを削除',
   'plus.accounts.finish': '削除を完了',
   'plus.accounts.confirm':

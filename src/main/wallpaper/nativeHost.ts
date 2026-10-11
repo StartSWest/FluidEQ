@@ -23,11 +23,26 @@ export interface IWallpaperHost {
   stop(): void;
 }
 
+/**
+ * What the helper says (`native/wallpaper/README.md`): attached, then whether
+ * any of its monitor's desktop is in sight — `paused-owner` when only
+ * FluidEQ's own windows keep it out of sight — and a failure.
+ */
+export type TWallpaperHostEvent =
+  'ready' | 'active' | 'paused' | 'paused-owner' | 'error';
+
+const REPORTS: readonly TWallpaperHostEvent[] = [
+  'ready',
+  'active',
+  'paused',
+  'paused-owner',
+];
+
 /** Windows supplies lifecycle/foreground events; there is no polling clock. */
 export const startWallpaperHost = (
   executable: string,
   handle: Buffer,
-  onEvent: (event: 'ready' | 'active' | 'paused' | 'error') => void,
+  onEvent: (event: TWallpaperHostEvent) => void,
 ): IWallpaperHost => {
   const hwnd =
     handle.length === 8
@@ -52,8 +67,9 @@ export const startWallpaperHost = (
     if (stopped || failed) {
       return;
     }
-    if (line === 'ready' || line === 'active' || line === 'paused') {
-      onEvent(line);
+    const report = REPORTS.find((known) => known === line);
+    if (report) {
+      onEvent(report);
     } else if (line.startsWith('error:')) {
       fail(line);
     }

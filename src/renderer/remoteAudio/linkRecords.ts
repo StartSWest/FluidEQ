@@ -4,9 +4,11 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type {
-  IRemoteDuplex,
-  IRemoteNowPlaying,
+import {
+  LINK_SWITCHES_ON,
+  linkSwitchesInEffect,
+  type IRemoteDuplex,
+  type IRemoteNowPlaying,
 } from '../../common/remoteAudio';
 import type {
   ILinkSwitches,
@@ -26,7 +28,33 @@ export interface ILinkRecord {
   nowPlaying?: IRemoteNowPlaying;
 }
 
-export const ALL_ON: ILinkSwitches = { send: true, play: true };
+export const ALL_ON: ILinkSwitches = LINK_SWITCHES_ON;
+
+/**
+ * Paused on either computer: nothing goes either way, and neither one acts
+ * on the other's players or its one-player switch until it resumes.
+ */
+export const linkPaused = (link: ILinkRecord): boolean =>
+  link.switches.paused || link.theirs?.paused === true;
+
+/**
+ * The user's new switches on every link to the computer called `name`. One
+ * that no longer plays here is no longer receiving, whatever was arriving.
+ */
+export const applySwitches = (
+  records: Iterable<ILinkRecord>,
+  name: string,
+  switches: ILinkSwitches,
+): void => {
+  [...records].forEach((record) => {
+    if (record.name === name) {
+      record.switches = switches;
+      if (!linkSwitchesInEffect(switches).play) {
+        record.receiving = false;
+      }
+    }
+  });
+};
 
 export const linkViews = (
   records: ReadonlyMap<string, ILinkRecord>,
@@ -42,11 +70,11 @@ export const linkViews = (
  * sends to. That is the link as it ran before both ways.
  */
 export const playsHere = (link: ILinkRecord, bothWays: boolean): boolean =>
-  link.switches.play && (bothWays || !link.joined);
+  linkSwitchesInEffect(link.switches).play && (bothWays || !link.joined);
 
 /** Whether this computer's sound goes to a link, as the window can tell. */
 export const sendsThere = (link: ILinkRecord, bothWays: boolean): boolean =>
-  link.switches.send &&
+  linkSwitchesInEffect(link.switches).send &&
   (bothWays || link.joined) &&
   (link.joined ? link.theirs?.plays !== false : link.theirs?.plays === true);
 

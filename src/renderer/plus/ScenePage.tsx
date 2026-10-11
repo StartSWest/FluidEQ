@@ -441,26 +441,33 @@ export default function ScenePage({
 
         <SceneVersions scene={scene} />
 
-        {scene.official ? (
-          <p className="gallery-included">
-            <Glyph name="plus" />
-            {t('plus.official.included')}
-          </p>
-        ) : (
-          <dl className="gallery-figures">
-            <div>
-              <dt>{t('plus.scene.likes')}</dt>
-              <dd>{numbers.format(scene.likes)}</dd>
-            </div>
-            <div>
-              <dt>{t('plus.scene.week')}</dt>
-              <dd>{numbers.format(scene.likesWeek)}</dd>
-            </div>
+        {/* FluidEQ's own scenes are liked like any other (server 0048), but
+            what adds them is the pack store, which counts nobody: their adds
+            would only ever read 0, so the line saying they come with Plus
+            stands in that figure's place. */}
+        <dl
+          className={`gallery-figures${scene.official ? ' gallery-figures--two' : ''}`}
+        >
+          <div>
+            <dt>{t('plus.scene.likes')}</dt>
+            <dd>{numbers.format(scene.likes)}</dd>
+          </div>
+          <div>
+            <dt>{t('plus.scene.week')}</dt>
+            <dd>{numbers.format(scene.likesWeek)}</dd>
+          </div>
+          {!scene.official && (
             <div>
               <dt>{t('plus.scene.adds')}</dt>
               <dd>{numbers.format(scene.adds)}</dd>
             </div>
-          </dl>
+          )}
+        </dl>
+        {scene.official && (
+          <p className="gallery-included">
+            <Glyph name="plus" />
+            {t('plus.official.included')}
+          </p>
         )}
 
         <div className="gallery-scene__actions">

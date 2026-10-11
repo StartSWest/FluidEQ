@@ -266,13 +266,23 @@ const plus = {
   'plus.accounts.note.deleting':
     'Прежнее удаление этого аккаунта остановилось на полпути. «Завершить удаление» доведёт его до конца.',
   'plus.accounts.note.gift':
-    'Plus, подаренный на этот адрес, остаётся, как сказано в условиях. Отзовите подарок в разделе «Plus в подарок», если об этом тоже просили.',
+    'Plus, подаренный на этот адрес, остаётся, как сказано в условиях. Отзовите подарок здесь или в разделе «Plus в подарок», если об этом тоже просили.',
   'plus.accounts.give': 'Подарить Plus',
   'plus.accounts.giveConfirm':
     'Подарить Plus пользователю {name}? Он будет действовать, пока вы его не заберёте.',
   'plus.accounts.giving': 'Дарим Plus пользователю {name}…',
   'plus.accounts.giveYes': 'Подарить Plus',
   'plus.accounts.giveNo': 'Не сейчас',
+  'plus.accounts.takeBack': 'Отозвать Plus',
+  'plus.accounts.takeBackTrial':
+    'Отозвать Plus, подаренный пользователю {name}? Он закончится сейчас, а взамен будет предложен бесплатный период, если его ещё не было.',
+  'plus.accounts.takeBackNoTrial':
+    'Отозвать Plus, подаренный пользователю {name}? Он закончится сейчас, а этому аккаунту бесплатный период недоступен, так что Plus не останется.',
+  'plus.accounts.takeBackPaid':
+    'Отозвать Plus, подаренный пользователю {name}? Оплаченный Plus продолжит действовать.',
+  'plus.accounts.takeBackPlain':
+    'Отозвать Plus, подаренный пользователю {name}? Он закончится сейчас.',
+  'plus.accounts.takingBack': 'Отзываем Plus у пользователя {name}…',
   'plus.accounts.delete': 'Удалить аккаунт',
   'plus.accounts.finish': 'Завершить удаление',
   'plus.accounts.confirm':

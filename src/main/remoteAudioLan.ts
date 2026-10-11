@@ -45,7 +45,9 @@ import {
   encodeDiscoveryQuery,
   isDiscoveryQuery,
 } from './remoteAudioDiscovery';
-import createRemoteAudioTransport from './remoteAudioTransport';
+import createRemoteAudioTransport, {
+  probeWhileQuiet,
+} from './remoteAudioTransport';
 import type {
   ILanHostCredentials,
   ILanHostSession,
@@ -238,6 +240,7 @@ const createRemoteAudioLan = (
         );
         return;
       }
+      probeWhileQuiet(request.socket);
       const fromAddress =
         pendingByAddress.get(remoteAddress) ?? new Set<WebSocket>();
       if (fromAddress.size >= MAX_PENDING_SOCKETS_PER_ADDRESS) {
@@ -307,7 +310,12 @@ const createRemoteAudioLan = (
               }
               candidate.removeListener('close', releasePending);
               releasePending();
-              transport.attach(message.peerId, candidate, sessionKey);
+              transport.attach(
+                message.peerId,
+                candidate,
+                sessionKey,
+                `${remoteAddress}\n${message.deviceName}`,
+              );
               candidate.removeListener('error', onPendingError);
               emitSignal({
                 peerId: message.peerId,
@@ -482,6 +490,7 @@ const createRemoteAudioLan = (
     });
     pendingSocket = socket;
     key = nextKey;
+    socket.once('upgrade', (response) => probeWhileQuiet(response.socket));
 
     return new Promise<ILanRemoteComputer>((resolve, reject) => {
       let challenge: string | undefined;

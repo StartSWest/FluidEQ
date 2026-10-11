@@ -5,6 +5,7 @@ import { useEntitlement } from '../account/entitlementStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { toggleGalleryLike } from './galleryActions';
+import { useModeration } from './moderationStore';
 import { useScenePicture } from './scenePictures';
 
 export const categoryKey = (category: TPlusCategory): TranslationKey =>
@@ -151,21 +152,27 @@ interface ISceneHeartProps {
   className?: string;
 }
 
-/** A scene's heart as this member can use it. */
+/**
+ * A scene's heart as this member can use it.
+ *
+ * FluidEQ's own scenes have one too (server 0048): they are most of the
+ * gallery, and without it nobody could see which of them members like. The
+ * admin publishes those, so to the admin they are their own scenes and show
+ * the count alone, as the server refuses their publisher's like.
+ */
 export function SceneHeart({ scene, name, own, className }: ISceneHeartProps) {
   const { t } = useTranslation();
   const entitled = usePlusEntitled();
+  const { admin } = useModeration();
   const count = String(scene.likes);
-  if (scene.official) {
-    return null;
-  }
-  if (own || !entitled) {
+  const mine = own || (scene.official && admin);
+  if (mine || !entitled) {
     return (
       <LikeCount
         scene={scene}
         className={className}
         title={
-          own
+          mine
             ? t('plus.like.own', { count })
             : t('plus.like.plusOnly', { count })
         }

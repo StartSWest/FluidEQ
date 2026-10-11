@@ -3,12 +3,31 @@ import {
   memberLookId,
   parseMemberLookId,
   sanitizeDisplayText,
+  type IMemberLookRef,
 } from './memberScenes';
-import { premiumLookId, type TLocalizedName } from './scenePacks';
+import {
+  isPremiumLookId,
+  packIdOfLook,
+  premiumLookId,
+  type TLocalizedName,
+} from './scenePacks';
 import { readVersionNote } from './sceneVersionNote';
 
 /** Reserved catalogue identity, never a member account or leaderboard entry. */
 export const FLUIDEQ_CREATOR_ID = '00000000-0000-4000-8000-000000000001';
+
+/**
+ * Whose scene a like on this look is, as the server files it: the member who
+ * made it, or the FluidEQ author for one of FluidEQ's own, which the server
+ * has counted likes on since 0048. Nothing for a standard look or an id that
+ * does not parse, so neither is ever sent.
+ */
+export const likedSceneOf = (lookId: string): IMemberLookRef | undefined =>
+  parseMemberLookId(
+    isPremiumLookId(lookId)
+      ? memberLookId(FLUIDEQ_CREATOR_ID, packIdOfLook(lookId))
+      : lookId,
+  );
 
 /**
  * The Plus gallery: scenes members publish, as the server lists them and the

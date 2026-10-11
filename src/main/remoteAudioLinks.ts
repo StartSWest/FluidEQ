@@ -2,7 +2,13 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { IRemoteDuplex } from '../common/remoteAudio';
+import {
+  LINK_SWITCHES_ON,
+  isLinkSwitches,
+  linkSwitchesInEffect,
+  type ILinkSwitches,
+  type IRemoteDuplex,
+} from '../common/remoteAudio';
 
 /**
  * Share Audio both ways: who this computer sends its sound to, and whose
@@ -15,16 +21,13 @@ import type { IRemoteDuplex } from '../common/remoteAudio';
  * THIS one is sent to only once it has said it plays (`duplex.plays`): an
  * older one never asks, and must not be sent sound it would only throw away.
  *
- * The two switches on each link — "Send my sound", "Play it here" — are
- * remembered by the other computer's name, because a link's peer id is new
- * at every connection and a switch the user turned off must hold from the
- * first packet of the next one, not from whenever the window gets to it.
+ * The two switches on each link — "Send my sound", "Play it here" — and its
+ * Pause are remembered by the other computer's name, because a link's peer
+ * id is new at every connection and a switch the user turned off must hold
+ * from the first packet of the next one, not from whenever the window gets
+ * to it. A paused link sends and plays nothing and says so; the two switches
+ * keep what they were for when it resumes.
  */
-
-export interface ILinkSwitches {
-  send: boolean;
-  play: boolean;
-}
 
 interface IPeer {
   name: string;
@@ -35,13 +38,30 @@ interface IPeer {
 
 const FILE_NAME = 'remote-audio-links.json';
 const MAX_REMEMBERED = 64;
-const ON: ILinkSwitches = { send: true, play: true };
 
-const isSwitches = (value: unknown): value is ILinkSwitches =>
-  typeof value === 'object' &&
-  value !== null &&
-  typeof (value as Partial<ILinkSwitches>).send === 'boolean' &&
-  typeof (value as Partial<ILinkSwitches>).play === 'boolean';
+/**
+ * A remembered entry, read leniently: a file written before the Pause and
+ * the volume has the two switches alone, and those links were neither paused
+ * nor turned down.
+ */
+const storedSwitches = (value: unknown): ILinkSwitches | undefined => {
+  if (typeof value !== 'object' || value === null) {
+    return undefined;
+  }
+  const { send, play, paused, volume } = value as Partial<ILinkSwitches>;
+  if (
+    typeof send !== 'boolean' ||
+    typeof play !== 'boolean' ||
+    (paused !== undefined && typeof paused !== 'boolean')
+  ) {
+    return undefined;
+  }
+  const level =
+    typeof volume === 'number' && Number.isFinite(volume)
+      ? Math.min(1, Math.max(0, volume))
+      : 1;
+  return { send, play, paused: paused === true, volume: level };
+};
 
 export interface IRemoteAudioLinkDeps {
   /** Tell one computer what this one does with their link. */
@@ -75,8 +95,9 @@ export const createRemoteAudioLinks = ({
       Object.entries(stored as Record<string, unknown>)
         .slice(0, MAX_REMEMBERED)
         .forEach(([name, value]) => {
-          if (isSwitches(value) && name.length <= 128) {
-            remembered.set(name, { send: value.send, play: value.play });
+          const switches = storedSwitches(value);
+          if (switches && name.length <= 128) {
+            remembered.set(name, switches);
           }
         });
     }
@@ -100,10 +121,12 @@ export const createRemoteAudioLinks = ({
     }
   };
 
-  /** What this computer does with one link, as the switches and the
-   * platform allow it. */
-  const switches = (peer: IPeer): ILinkSwitches => {
-    const chosen = remembered.get(peer.name) ?? ON;
+  /** What this computer does with one link, as the switches, the Pause and
+   * the platform allow it. */
+  const switches = (peer: IPeer): { send: boolean; play: boolean } => {
+    const chosen = linkSwitchesInEffect(
+      remembered.get(peer.name) ?? LINK_SWITCHES_ON,
+    );
     if (bothWays) {
       return chosen;
     }
@@ -137,7 +160,14 @@ export const createRemoteAudioLinks = ({
 
   const tell = (peerId: string, peer: IPeer) => {
     const { send, play } = switches(peer);
-    announce(peerId, { sends: send, plays: play });
+    const paused = remembered.get(peer.name)?.paused === true;
+    // `paused` only when it is: the message an older FluidEQ already reads
+    // is unchanged for every link that is not.
+    announce(peerId, {
+      sends: send,
+      plays: play,
+      ...(paused ? { paused } : {}),
+    });
   };
 
   return {
@@ -162,11 +192,16 @@ export const createRemoteAudioLinks = ({
     /** The user's switches for the computer called `name`, every link to it.
      * Checked here, because they arrive from the window. */
     choose(name: string, chosen: unknown) {
-      if (!isSwitches(chosen) || name.length === 0 || name.length > 128) {
+      if (!isLinkSwitches(chosen) || name.length === 0 || name.length > 128) {
         throw new Error('Invalid Share Audio switches.');
       }
       remembered.delete(name);
-      remembered.set(name, { send: chosen.send, play: chosen.play });
+      remembered.set(name, {
+        send: chosen.send,
+        play: chosen.play,
+        paused: chosen.paused,
+        volume: chosen.volume,
+      });
       while (remembered.size > MAX_REMEMBERED) {
         const [oldest] = remembered.keys();
         remembered.delete(oldest);
@@ -184,8 +219,13 @@ export const createRemoteAudioLinks = ({
       const peer = peers.get(peerId);
       return peer !== undefined && switches(peer).play;
     },
+    /** How loud the sound arriving from `peerId` plays here, 0 to 1. */
+    volume(peerId: string): number {
+      const peer = peers.get(peerId);
+      return peer ? (remembered.get(peer.name)?.volume ?? 1) : 1;
+    },
     switchesFor(name: string): ILinkSwitches {
-      return remembered.get(name) ?? ON;
+      return remembered.get(name) ?? LINK_SWITCHES_ON;
     },
     reset() {
       peers.clear();
