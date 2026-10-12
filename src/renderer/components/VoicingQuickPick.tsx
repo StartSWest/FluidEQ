@@ -34,9 +34,9 @@ import '../styles/VoicingQuickPick.scss';
  * or a star, the rack, a layer, the engine — and not when its parent does.
  */
 const VoicingQuickPick = memo(() => {
-  const { t, locale } = useTranslation();
+  const { t } = useTranslation();
   const settings = useDspSettings();
-  const { favorites, catalog } = useDspPresetCatalog(t, locale);
+  const { favorites, catalog } = useDspPresetCatalog(t);
   const { isEnabled, isBlockingError, voicing } = useFluidEqLayers();
   // What the window already holds: asking main on mount ran the engine
   // helper again every time the equaliser's page or the player's deck opened.
