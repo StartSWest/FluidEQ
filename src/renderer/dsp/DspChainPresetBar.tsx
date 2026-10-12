@@ -28,6 +28,7 @@ import { openGenreNotes } from './genreNotesStore';
 import {
   DSP_PRESETS_CHANGED,
   readFavouriteDspPresets,
+  sortFavouritesByName,
   toggleFavouriteDspPreset,
 } from './favouriteDspPresets';
 import { SAVED_GROUP, eqPresetGroupLabel } from './presetPickEntries';
@@ -76,7 +77,7 @@ const DspChainPresetBar = ({
   onChange,
   onCommit,
 }: IDspChainPresetBarProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { voicing } = useFluidEqLayers();
   const [notice, setNotice] = useState('');
   const [isImporting, setIsImporting] = useState(false);
@@ -116,7 +117,7 @@ const DspChainPresetBar = ({
       })),
     ),
   ];
-  // The starred ones first, in the order they were starred, then the usual
+  // The starred ones first, by name (`sortFavouritesByName`), then the usual
   // ones in the order the equaliser's quick pick gives them, each under a
   // heading of its own — once each: a preset listed twice is two rows lit at
   // once and an arrow that visits it twice. `ordered` follows, so the arrows
@@ -129,7 +130,12 @@ const DspChainPresetBar = ({
   // None above all of them, the starred ones included, with no heading and no
   // star, as on the equaliser's picker: it is the absence of a choice, and
   // a star it was given before it stood here is not a second place for it.
-  const starred = favourites.filter((id) => id !== NONE_CHAIN_ID);
+  const starred = sortFavouritesByName(
+    filed.filter(
+      (entry) => entry.id !== NONE_CHAIN_ID && favourites.includes(entry.id),
+    ),
+    locale,
+  ).map((entry) => entry.id);
   const usual = QUICK_DSP_PRESETS.filter((id) => !starred.includes(id));
   const entries: IRichPickEntry[] = [
     ...lifted([NONE_CHAIN_ID], NONE_GROUP),

@@ -247,10 +247,11 @@ Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its 
 5. **Add band** — Adds a band beside the selected one, at the Q of the bands already there.
 6. **Curves** — What else shapes this output — a headphone correction, Smart EQ, a convolution — each with its strength, its switch and ×.
 7. **Clear EQ** — Sets every gain to 0 dB and keeps your bands. Asks first.
-8. **A band** — Drag its point to boost or cut, or step it with the arrow keys. Click its frequency to select it.
-9. **Bass** — Raises or lowers the low end of the whole curve.
-10. **Mid** — Raises or lowers the middle, where voices sit.
-11. **Treble** — Raises or lowers the top, the air and the detail.
+8. **Band label** — Its frequency, Q and gain, above or below its point. View → Show EQ labels, or Ctrl+W.
+9. **A band** — Drag its point to boost or cut, or step it with the arrow keys. Click its frequency to select it.
+10. **Bass** — Raises or lowers the low end of the whole curve.
+11. **Mid** — Raises or lowers the middle, where voices sit.
+12. **Treble** — Raises or lowers the top, the air and the detail.
 
 ### A band selected
 
@@ -294,12 +295,14 @@ EQ mode changes how your sound is shaped, without editing anything. Its settings
 
 ![The EQ mode card](18-eq-mode.png)
 
-1. **Reset** — Everything back to Normal, and Curve smoothing back to 1/12 octave.
-2. **Strength** — Normal, Studio ×1.5 or ×2. Each tab keeps its own.
-3. **Band Q** — Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow. On Your EQ it shapes your own bands alone, never a preset or a correction.
-4. **Phase** — Minimum or Linear, for each tab. With the FluidEQ Engine only.
-5. **Treble** — Precise plays treble as drawn; Classic as Equalizer APO does. With the FluidEQ Engine only.
-6. **Curve smoothing** — Softens sampled correction curves: 1/12 octave until you choose otherwise.
+1. **Put back in the menu** — Puts these settings back in a menu over the graph. The menu’s pin brings the card back.
+2. **Your EQ and Corrections** — Two tabs, each with its own settings.
+3. **Strength** — Normal, Studio ×1.5 or ×2. Each tab keeps its own.
+4. **Band Q** — Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow. On Your EQ it shapes your own bands alone, never a preset or a correction.
+5. **Phase** — Minimum or Linear, for each tab. With the FluidEQ Engine only.
+6. **Treble** — Precise plays treble as drawn; Classic as Equalizer APO does. With the FluidEQ Engine only.
+7. **Curve smoothing** — Softens sampled correction curves: 1/12 octave until you choose otherwise.
+8. **Reset** — Everything back to Normal, and Curve smoothing back to 1/12 octave.
 
 ### Band designs
 
@@ -380,14 +383,16 @@ Every output keeps its own sound: the EQ, the preset, the Tone, the cuts, the DS
 
 ![Devices, profiles & second output](40-rail-right.png)
 
-1. **Output device** — The output you are listening on, with its battery for Bluetooth headphones. OFF means your EQ does not reach it; ACTIVE, that Windows is playing through it.
-2. **Profiles** — Sounds you saved. ON marks the one this output uses; press another to switch.
-3. **New profile** — Starts a new profile from the EQ you have now.
-4. **Update** — Saves your changes into the profile you are on. Restore, beside it, brings the profile back as you last saved it.
-5. **Automatic mapping** — The profile this output follows. Any change you make is saved to it by itself.
-6. **One player at a time** — Starting something in FluidEQ pauses what plays elsewhere on the PC, and the other way round.
-7. **Second output** — Your other outputs. Switch one on to play there too, with its own sound, level and delay in milliseconds.
-8. **Driver type** — A gentle starting point for what you listen on — headphones, earphones, a driver size or material. Leave it at No compensation if the sound is already right.
+1. **EQ mode** — EQ mode’s settings, first on the EQ page. Fold the card to keep it out of the way.
+2. **Output device** — The output you are listening on, with its battery for Bluetooth headphones. OFF means your EQ does not reach it; ACTIVE, that Windows is playing through it.
+3. **Profiles** — Sounds you saved. ON marks the one this output uses; press another to switch.
+4. **New profile** — Starts a new profile from the EQ you have now.
+5. **Update** — Saves your changes into the profile you are on. Restore, beside it, brings the profile back as you last saved it.
+6. **Remember each song’s sound** — Brings back a song’s preset, Tone and EQ whenever it plays here. Off until you switch it on.
+7. **One player at a time** — Starting something in FluidEQ pauses what plays elsewhere on the PC, and the other way round.
+8. **Second output** — Your other outputs. Switch one on to play there too, with its own sound, level and delay in milliseconds.
+9. **Edit sound** — Edits that output’s sound on the EQ page without switching the main output.
+10. **Driver type** — A gentle starting point for what you listen on — headphones, earphones, a driver size or material. Leave it at No compensation if the sound is already right.
 
 ### Try it
 
@@ -522,17 +527,18 @@ The response graph draws your EQ curves over the live sound. The strip above it 
 
 1. **Expand view** (`Ctrl+S`) — The graph grows over the editor.
 2. **Full screen** (`Ctrl+F`) — The graph fills the screen.
-3. **Set as desktop background** — Puts this visualizer behind your desktop icons.
-4. **Showing** (`Ctrl+W`) — Steps through what the graph shows, band labels included.
+3. **Showing** (`Ctrl+W`) — Steps through what the graph shows, band labels included.
+4. **EQ labels** — Each band’s frequency, Q and gain over its point.
 5. **The wave** — The live spectrum drawing.
 6. **Top wave** — The small wave in the title bar.
 7. **Grid** (`Ctrl+G`) — Shows or hides the grid and scales.
 8. **Listening bands** — The same shading; greyed over a Plus visualizer, which never draws it.
 9. **Level meter** — The output meter in the left rail.
-10. **Wave height** — How tall the wave is drawn.
-11. **Wave position** — From the bottom edge up to the middle.
-12. **Next style** (`Space`) — Steps forward to the next look.
-13. **Previous style** (`Ctrl+Space`) — Steps back to the previous look.
+10. **How it is drawn** — Frame rate, resolution and smoothing, kept apart for standard styles and Plus visualizers.
+11. **Wave height** — How tall the wave is drawn.
+12. **Wave position** — From the bottom edge up to the middle.
+13. **Next style** (`Space`) — Steps forward to the next look.
+14. **Previous style** (`Ctrl+Space`) — Steps back to the previous look.
 
 ### Try it
 

@@ -298,8 +298,6 @@ const help: Record<keyof typeof en, string> = {
   'help.profiles.editSound': '在 EQ 页面编辑那个输出的声音，而不切换主输出。',
   'help.profiles.output':
     '你正在聆听的输出，蓝牙耳机还会显示电量。“已关闭”表示你的 EQ 作用不到它；“使用中”表示 Windows 正在通过它播放。',
-  'help.profiles.mapping':
-    '这个输出所跟随的配置。你做的任何修改都会自动保存到其中。',
   'help.profiles.onePlayer':
     '在 FluidEQ 中开始播放，会暂停电脑上其他地方正在播放的内容，反之亦然。',
   'help.profiles.outputs':

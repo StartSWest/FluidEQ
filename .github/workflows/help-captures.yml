@@ -1,0 +1,63 @@
+name: Help captures
+
+# The guide's pictures are taken on Windows, where the window's own font,
+# Segoe UI, is installed: anywhere else the text is drawn in another face and
+# the boxes measured round it are not the app's. This takes them on a Windows
+# runner with `pnpm docs:captures` (scripts/help-captures) and pushes the
+# result — the pictures, their boxes and the exported guide — to the branch
+# `help-captures/<branch>`, for somebody to look at before any of it is
+# merged. What's New's slides are taken alongside, only to be looked at.
+#
+# Runs by hand, or when the capture script or its figures change on a branch.
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [main, 'help-captures/**']
+    paths: ['scripts/help-captures/**']
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out FluidEQ
+        uses: actions/checkout@v7
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 11.7.0
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Take the guide's pictures and measure their boxes
+        run: pnpm docs:captures
+
+      - name: Take What's New's slides, to be looked at
+        run: pnpm exec ts-node --transpile-only scripts/help-captures/tour.ts --out whats-new-review
+
+      - name: Write the exported guide again
+        run: pnpm docs:guide
+
+      - name: Push the result for review
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898313+github-actions[bot]@users.noreply.github.com"
+          branch="help-captures/${GITHUB_REF_NAME}"
+          git checkout -B "$branch"
+          git add docs src/common/helpChapters/captured.ts whats-new-review
+          git commit -m "Take the guide's pictures on Windows (run ${GITHUB_RUN_ID})" --no-verify
+          git push --force origin "$branch"

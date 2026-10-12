@@ -165,8 +165,11 @@ export default function OutputsVisual() {
             <Curve bands={SECOND.bands} />
           </span>
           <span className="outputs-visual__foot">
+            {/* As the side panel says it for an output the FluidEQ Engine
+                plays, which is what the slide is about: the engine's own
+                delay, not a software buffer (`MirrorDelay.tsx`). */}
             <span className="outputs-visual__delay">
-              {t('extraOutput.delay', { milliseconds: 38 })}
+              {`${t('dsp.latency.label')}: ${t('dsp.latency.ms', { ms: 38 })}`}
             </span>
             <span className="outputs-visual__edit">
               {t('extraOutput.edit')}

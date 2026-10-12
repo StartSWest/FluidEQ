@@ -358,7 +358,7 @@ const tour = {
     'Open Share Audio there, paste the code under “The other computer’s code” and press “Link”. Both start playing each other right away, untouched: each one applies its own EQ to what it hears.',
   'tour.share.step3Title': 'Choose what goes where',
   'tour.share.step3':
-    'Each linked computer has two switches, “Play it here” and “Send my sound”: turn one off for one way only. The bar shows the other computer’s song, and its buttons work across the wire.',
+    'Each linked computer has two switches, “Play it here” and “Send my sound”: turn one off for one way only. The bar shows the other computer’s song, and its buttons work across the wire. A slider beside “Play it here” sets how loud it plays, and “Pause” stops both ways until “Resume”.',
   'tour.share.fact1Title': 'Lossless',
   'tour.share.fact1':
     'Float32 PCM end to end. No media codec, no generation loss.',

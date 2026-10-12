@@ -7,6 +7,7 @@ import { applyDspSettings, readDspSettings } from 'renderer/dsp/store';
 import {
   toggleFavouriteDspPreset,
   readFavouriteDspPresets,
+  sortFavouritesByName,
   DSP_PRESETS_CHANGED,
 } from 'renderer/dsp/favouriteDspPresets';
 import { holdRackForApo, rackHeldForApo } from 'renderer/dsp/rackHeldForApo';
@@ -277,4 +278,46 @@ it('stars a preset into the list the DSP page shares, and never None', () => {
     .map((row) => row.textContent ?? '');
   expect(rows[0]).toMatch(/^None/);
   expect(rows[1]).toMatch(/^Rock/);
+});
+
+it('lists the starred presets by name, each Room copy straight after its chain', () => {
+  // Starred out of order, with a Room copy whose chain is not starred.
+  localStorage.setItem(
+    'fluideq.dsp.favouritePresets.v1',
+    JSON.stringify([
+      'warm',
+      'gaming-competitive',
+      'movie-room',
+      'gaming-room',
+      'gaming',
+    ]),
+  );
+  show();
+  fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
+  const names = screen
+    .getAllByRole('menuitemradio')
+    .slice(1, 6)
+    .map((item) => item.querySelector('strong, .rich-pick__name')?.textContent);
+  // By name alone, Gaming · Competitive would stand between Gaming and its
+  // Room copy; Movie · Room has no Movie starred to follow.
+  expect(names).toEqual([
+    'Gaming',
+    'Gaming · Room',
+    'Gaming · Competitive',
+    'Movie · Room',
+    'Warm',
+  ]);
+});
+
+it('sorts by the name read, in the language read, numbers as numbers', () => {
+  const sorted = sortFavouritesByName(
+    [
+      { id: 'b', name: 'Chain 10' },
+      { id: 'a', name: 'chain 9' },
+      { id: 'c', name: 'Älter' },
+      { id: 'c-room', name: 'Zimmer' },
+    ],
+    'de',
+  );
+  expect(sorted.map((preset) => preset.id)).toEqual(['c', 'c-room', 'a', 'b']);
 });

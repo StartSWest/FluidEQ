@@ -344,7 +344,7 @@ const tour: Partial<Dictionary> = {
     'Abra Compartilhar áudio no outro computador, cole o código em “Código do outro computador” e pressione “Vincular”. Os dois começam a tocar um ao outro na hora, intactos: cada um aplica o próprio EQ ao que ouve.',
   'tour.share.step3Title': 'Escolha o que vai para onde',
   'tour.share.step3':
-    'Cada computador vinculado tem duas chaves, “Tocar aqui” e “Enviar meu som”: desligue uma para um sentido só. A barra mostra a música do outro computador e a controla pela conexão.',
+    'Cada computador vinculado tem duas chaves, “Tocar aqui” e “Enviar meu som”: desligue uma para um sentido só. A barra mostra a música do outro computador e a controla pela conexão. Um controle ao lado de “Tocar aqui” ajusta o volume, e “Pausar” para os dois sentidos até você tocar em “Retomar”.',
   'tour.share.fact1Title': 'Sem perdas',
   'tour.share.fact1':
     'PCM Float32 de ponta a ponta. Sem codec, sem perda de geração.',

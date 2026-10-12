@@ -80,3 +80,39 @@ export const toggleFavouriteDspPreset = (
   window.dispatchEvent(new Event(DSP_PRESETS_CHANGED));
   return next;
 };
+
+/** A chain's Room copy is the chain's id with this after it (`QUICK_DSP_PRESETS`). */
+const ROOM_COPY = '-room';
+
+/**
+ * The starred presets in the order of their names as they read in `locale`,
+ * whatever order they were starred in, and a chain's Room copy straight after
+ * the chain when both are starred (Ivan, 2026-10-12: "sorted always by name
+ * and if they have room next to normal" — Gaming, Gaming · Room, then Gaming
+ * · Competitive, which by name alone would have come between them). Both
+ * pickers list them this way, and their arrows walk them in it. Numbers in a
+ * name count as numbers, and case and accents do not part two names.
+ */
+export const sortFavouritesByName = <T extends { id: string; name: string }>(
+  presets: readonly T[],
+  locale: string,
+): T[] => {
+  const collator = new Intl.Collator(locale, {
+    sensitivity: 'base',
+    numeric: true,
+  });
+  const byName = [...presets].sort((one, other) =>
+    collator.compare(one.name, other.name),
+  );
+  const ids = new Set(byName.map((preset) => preset.id));
+  const isPlacedCopy = (preset: T) =>
+    preset.id.endsWith(ROOM_COPY) &&
+    ids.has(preset.id.slice(0, -ROOM_COPY.length));
+  return byName.flatMap((preset) => {
+    if (isPlacedCopy(preset)) {
+      return [];
+    }
+    const copy = byName.find((one) => one.id === `${preset.id}${ROOM_COPY}`);
+    return copy ? [preset, copy] : [preset];
+  });
+};

@@ -20,6 +20,7 @@ import type { TranslationKey } from '../../common/i18n/en';
 import {
   DSP_PRESETS_CHANGED,
   readFavouriteDspPresets,
+  sortFavouritesByName,
 } from './favouriteDspPresets';
 import { genreHookKey } from './genreNotesModel';
 import {
@@ -228,7 +229,7 @@ const readSaved = () => ({
  * another window's is a `storage` event, so a read that waits for one of
  * those misses nothing.
  */
-export const useDspPresetCatalog = (t: Translate) => {
+export const useDspPresetCatalog = (t: Translate, locale: string) => {
   const [saved, setSaved] = useState(readSaved);
   useEffect(() => {
     const changed = () => setSaved(readSaved());
@@ -243,10 +244,13 @@ export const useDspPresetCatalog = (t: Translate) => {
     const catalog = catalogOf(t, saved.chains);
     // None stands above the starred ones already; a star it was given before
     // it did is not a second place for it.
-    const favorites = saved.starred.flatMap((id) => {
-      const preset = catalog.find((one) => one.id === id);
-      return preset && id !== NONE_CHAIN_ID ? [preset] : [];
-    });
+    const favorites = sortFavouritesByName(
+      saved.starred.flatMap((id) => {
+        const preset = catalog.find((one) => one.id === id);
+        return preset && id !== NONE_CHAIN_ID ? [preset] : [];
+      }),
+      locale,
+    );
     return { catalog, favorites };
-  }, [t, saved]);
+  }, [t, locale, saved]);
 };

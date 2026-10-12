@@ -2,7 +2,7 @@
 
 The guide uses real FluidEQ interface captures, not generated UI artwork.
 
-- Every picture was taken again from the running FluidEQ 2.0
+- Every picture but those six was taken again from the running FluidEQ 2.0
   development window on September 29, 2026, in English, with the window's
   Brightness at the middle of its slider, so one set reads on a dark window
   and on a light one:
@@ -28,9 +28,10 @@ The guide uses real FluidEQ interface captures, not generated UI artwork.
   picture and measures every numbered box in the same render. It writes the
   pictures here and the boxes to `src/common/helpChapters/captured.ts`; its
   README says how to run it on Windows, where the window's font is the one
-  the app ships with. Until that run, those six files are still the 2.0
-  pictures above and their boxes are the ones measured with them; the guide's
-  text already describes 2.1.
+  the app ships with. These six were taken that way on October 12, 2026, on
+  GitHub's Windows runner (`.github/workflows/help-captures.yml`), with the
+  window at 2560 × 1392 and Brightness 50, nobody signed in, made-up outputs
+  and the harness's own music on the live graph.
 - The Share Audio picture's connection code and network addresses are
   blurred.
 - The karaoke pictures (`11`, `12`, `33` to `35`) are of FluidEQ's own song,

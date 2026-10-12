@@ -325,8 +325,6 @@ const help: Record<keyof typeof en, string> = {
     'Edita o som dessa saída na página EQ sem trocar a saída principal.',
   'help.profiles.output':
     'A saída pela qual você está ouvindo, com a bateria em fones Bluetooth. DESLIG. significa que seu EQ não chega a ela; ATIVO, que o Windows está tocando por ela.',
-  'help.profiles.mapping':
-    'O perfil que esta saída segue. Qualquer mudança que você fizer é salva nele automaticamente.',
   'help.profiles.onePlayer':
     'Começar algo no FluidEQ pausa o que toca em outro lugar do PC, e vice-versa.',
   'help.profiles.outputs':

@@ -329,8 +329,6 @@ const help: Record<keyof typeof en, string> = {
     'Modifica il suono di quell’uscita nella pagina EQ senza cambiare l’uscita principale.',
   'help.profiles.output':
     'L’uscita con cui stai ascoltando, con la batteria per le cuffie Bluetooth. DISATT. significa che il tuo EQ non la raggiunge; ATTIVO, che Windows sta riproducendo attraverso di essa.',
-  'help.profiles.mapping':
-    'Il profilo seguito da questa uscita. Ogni modifica che fai viene salvata lì automaticamente.',
   'help.profiles.onePlayer':
     'Avviare qualcosa in FluidEQ mette in pausa ciò che suona altrove sul PC, e viceversa.',
   'help.profiles.outputs':
