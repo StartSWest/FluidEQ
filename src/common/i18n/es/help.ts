@@ -329,8 +329,6 @@ const help: Record<keyof typeof en, string> = {
     'Edita el sonido de esa salida en la página EQ sin cambiar la salida principal.',
   'help.profiles.output':
     'La salida por la que estás escuchando, con su batería si son auriculares Bluetooth. DESACT. significa que tu EQ no llega a ella; ACTIVO, que Windows está reproduciendo por ella.',
-  'help.profiles.mapping':
-    'El perfil que sigue esta salida. Cualquier cambio que hagas se guarda en él automáticamente.',
   'help.profiles.onePlayer':
     'Iniciar algo en FluidEQ pausa lo que suena en otra parte del PC, y al revés.',
   'help.profiles.outputs':

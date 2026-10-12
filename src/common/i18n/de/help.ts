@@ -333,8 +333,6 @@ const help: Record<keyof typeof en, string> = {
     'Bearbeitet den Klang dieses Ausgangs auf der EQ-Seite, ohne die Hauptausgabe zu wechseln.',
   'help.profiles.output':
     'Der Ausgang, über den Sie hören, bei Bluetooth-Kopfhörern mit ihrem Akku. AUS bedeutet, dass Ihr EQ ihn nicht erreicht; AKTIV, dass Windows über ihn abspielt.',
-  'help.profiles.mapping':
-    'Das Profil, dem dieser Ausgang folgt. Jede Änderung wird von selbst darin gespeichert.',
   'help.profiles.onePlayer':
     'Starten Sie etwas in FluidEQ, hält das an, was anderswo auf dem PC läuft – und umgekehrt.',
   'help.profiles.outputs':

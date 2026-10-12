@@ -323,8 +323,6 @@ const help = {
     'Edits that output’s sound on the EQ page without switching the main output.',
   'help.profiles.output':
     'The output you are listening on, with its battery for Bluetooth headphones. OFF means your EQ does not reach it; ACTIVE, that Windows is playing through it.',
-  'help.profiles.mapping':
-    'The profile this output follows. Any change you make is saved to it by itself.',
   'help.profiles.onePlayer':
     'Starting something in FluidEQ pauses what plays elsewhere on the PC, and the other way round.',
   'help.profiles.outputs':

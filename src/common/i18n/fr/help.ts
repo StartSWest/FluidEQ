@@ -329,8 +329,6 @@ const help: Record<keyof typeof en, string> = {
     'Modifie le son de cette sortie dans la page Égaliseur sans changer de sortie principale.',
   'help.profiles.output':
     'La sortie sur laquelle vous écoutez, avec sa batterie pour un casque Bluetooth. DÉSACT. signifie que votre EQ ne l’atteint pas ; ACTIF, que Windows joue le son à travers elle.',
-  'help.profiles.mapping':
-    'Le profil que suit cette sortie. Toute modification que vous faites y est enregistrée d’elle-même.',
   'help.profiles.onePlayer':
     'Lancer quelque chose dans FluidEQ met en pause ce qui joue ailleurs sur le PC, et inversement.',
   'help.profiles.outputs':

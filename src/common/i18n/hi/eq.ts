@@ -445,7 +445,6 @@ const eq: Partial<Dictionary> = {
     'Windows ने इस आउटपुट पर 7.1 फ़ॉर्मैट स्वीकार नहीं किया।',
   'output.none': 'कोई चालू आउटपुट नहीं मिला',
   'output.battery': 'बैटरी {percent}%',
-  'output.mapping': 'स्वचालित जोड़',
   'output.mapping.neutral': 'बिना बदलाव वाला आउटपुट',
   'output.mapping.live': 'चालू ट्यूनिंग जुड़ी है',
   'output.hint':

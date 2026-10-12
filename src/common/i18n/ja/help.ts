@@ -322,8 +322,6 @@ const help: Record<keyof typeof en, string> = {
     'メインの出力を切り替えずに、EQ ページでその出力のサウンドを編集します。',
   'help.profiles.output':
     '今聴いている出力。Bluetooth ヘッドホンならバッテリー残量も表示されます。「オフ」は EQ がその出力に届いていないこと、「使用中」は Windows がその出力で再生していることを示します。',
-  'help.profiles.mapping':
-    'この出力が従うプロファイル。加えた変更は、自動でこのプロファイルに保存されます。',
   'help.profiles.onePlayer':
     'FluidEQ で何かを再生すると、PC のほかの場所で再生中のものが一時停止し、その逆も同じです。',
   'help.profiles.outputs':
