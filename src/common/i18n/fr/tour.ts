@@ -346,7 +346,7 @@ const tour: Partial<Dictionary> = {
     'Ouvrez Partager l’audio sur l’autre ordinateur, collez le code sous « Code de l’autre ordinateur » et appuyez sur « Relier ». Les deux se jouent aussitôt l’un l’autre, intacts : chacun applique son propre EQ à ce qu’il entend.',
   'tour.share.step3Title': 'Choisissez ce qui va où',
   'tour.share.step3':
-    'Chaque ordinateur relié a deux interrupteurs, « Le jouer ici » et « Envoyer mon son » : coupez-en un pour un seul sens. La barre affiche le morceau de l’autre ordinateur et le pilote à distance.',
+    'Chaque ordinateur relié a deux interrupteurs, « Le jouer ici » et « Envoyer mon son » : coupez-en un pour un seul sens. La barre affiche le morceau de l’autre ordinateur et le pilote à distance. Un curseur à côté de « Le jouer ici » règle son volume, et « Pause » arrête les deux sens jusqu’à « Reprendre ».',
   'tour.share.fact1Title': 'Sans perte',
   'tour.share.fact1':
     'PCM Float32 de bout en bout. Aucun codec, aucune perte de génération.',

@@ -2,8 +2,8 @@
 
 import { spawn, type ChildProcess } from 'child_process';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
+import BUILT from './built';
 
 /**
  * Just enough of the Chrome DevTools Protocol to drive one page: start a
@@ -98,7 +98,13 @@ export const openPage = async (
   width: number,
   height: number,
 ): Promise<IPage> => {
-  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-captures-'));
+  // A fresh profile per run, emptied as the run starts rather than as it
+  // ends: the browser's helper processes go on writing into it for a moment
+  // after the browser itself has exited, and Windows will not delete a
+  // folder somebody still has open.
+  const profile = path.join(BUILT, '..', 'fluideq-help-captures-profile');
+  fs.rmSync(profile, { recursive: true, force: true });
+  fs.mkdirSync(profile, { recursive: true });
   const browser = spawn(
     executable,
     [
@@ -208,7 +214,6 @@ export const openPage = async (
     socket.close();
     browser.kill();
     await exited;
-    fs.rmSync(profile, { recursive: true, force: true });
   };
 
   const on = (method: string, listener: (params: unknown) => void) => {

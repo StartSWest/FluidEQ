@@ -343,7 +343,7 @@ const tour: Partial<Dictionary> = {
     'Apri lì Condividi audio, incolla il codice in «Codice dell’altro computer» e premi «Collega». Entrambi iniziano subito a riprodursi a vicenda, intatti: ognuno applica il proprio EQ a ciò che sente.',
   'tour.share.step3Title': 'Scegli cosa va dove',
   'tour.share.step3':
-    'Ogni computer collegato ha due interruttori, «Riproduci qui» e «Invia il mio suono»: spegnine uno per una sola direzione. La barra mostra il brano dell’altro computer e i suoi pulsanti funzionano attraverso il collegamento.',
+    'Ogni computer collegato ha due interruttori, «Riproduci qui» e «Invia il mio suono»: spegnine uno per una sola direzione. La barra mostra il brano dell’altro computer e i suoi pulsanti funzionano attraverso il collegamento. Un cursore accanto a «Riproduci qui» ne regola il volume, e «Pausa» ferma entrambe le direzioni finché non premi «Riprendi».',
   'tour.share.fact1Title': 'Senza perdite',
   'tour.share.fact1':
     'PCM Float32 da un capo all’altro. Nessun codec, nessuna perdita di generazione.',

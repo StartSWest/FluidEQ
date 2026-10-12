@@ -346,7 +346,7 @@ const tour: Partial<Dictionary> = {
     'Öffnen Sie dort „Audio teilen“, fügen Sie den Code unter „Code des anderen Computers“ ein und drücken Sie „Verbinden“. Beide spielen sich sofort unverändert gegenseitig, jeder mit seinem eigenen EQ.',
   'tour.share.step3Title': 'Festlegen, was wohin geht',
   'tour.share.step3':
-    'Jeder verbundene Computer hat zwei Schalter, „Hier abspielen“ und „Meinen Ton senden“; mit einem davon aus geht es nur in eine Richtung. Die Leiste zeigt den Song des anderen Computers und steuert ihn.',
+    'Jeder verbundene Computer hat zwei Schalter, „Hier abspielen“ und „Meinen Ton senden“; mit einem davon aus geht es nur in eine Richtung. Die Leiste zeigt den Song des anderen Computers und steuert ihn. Ein Regler neben „Hier abspielen“ bestimmt die Lautstärke, und „Pausieren“ hält beide Richtungen an, bis Sie „Fortsetzen“ drücken.',
   'tour.share.fact1Title': 'Verlustfrei',
   'tour.share.fact1':
     'Float32-PCM von Ende zu Ende. Kein Codec, kein Generationsverlust.',
