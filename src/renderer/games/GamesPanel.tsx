@@ -46,11 +46,11 @@ const sourceKey = (source: TGameSource): TranslationKey =>
  * the launchers rather than the task list.
  */
 const GamesPanel = () => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   // Watching while the page is open as well, so the line at the top can say
   // what is in front while a profile is being made for it.
   const { profiles, playing, sounding } = useGameSound({ always: true });
-  const { catalog, favorites } = useDspPresetCatalog(t);
+  const { catalog, favorites } = useDspPresetCatalog(t, locale);
   const [known, setKnown] = useState<IGameProgram[]>([]);
   const [asked, setAsked] = useState(false);
 
