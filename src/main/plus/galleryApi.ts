@@ -366,6 +366,24 @@ export const recordAdd = async (
   }
 };
 
+/**
+ * An add of one of FluidEQ's own scenes (premium migration 0047), which
+ * `record_scene_add` cannot hold: those have no author account.
+ */
+export const recordOfficialAdd = async (
+  auth: IAuthorised,
+  sceneId: string,
+): Promise<boolean> => {
+  try {
+    const response = await rpc(auth, 'record_official_scene_add', {
+      p_scene: sceneId,
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
 export const reportScene = async (
   auth: IAuthorised,
   authorId: string,

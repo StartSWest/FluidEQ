@@ -8,6 +8,7 @@ import { useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IAccountToDelete } from 'common/accountDeletion';
 import { GIFT_FOREVER_AFTER, GIFT_PLAN } from 'common/plusGifts';
+import { PLUS_TRIAL_PLAN } from 'common/plusTrial';
 import type { TDeleteAccountFailure } from 'main/plus/accountDeletionApi';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
@@ -53,6 +54,10 @@ export const useAccountPlan = (account: IAccountToDelete): string => {
   const date = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
     account.plusUntil,
   );
+  // When it ends is the line's own trial tag (`AdminAccountRow`).
+  if (account.plan === PLUS_TRIAL_PLAN) {
+    return t('plus.accounts.plan.trial');
+  }
   if (account.plan !== GIFT_PLAN) {
     return t('plus.accounts.plan.paid', { date });
   }

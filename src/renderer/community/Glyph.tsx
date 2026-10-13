@@ -21,6 +21,7 @@ export type TCommunityGlyph =
   | 'person'
   | 'upload'
   | 'monitor'
+  | 'server'
   | 'mail'
   | 'refresh'
   | 'studio'
@@ -220,6 +221,15 @@ export default function Glyph({ name, className }: IGlyphProps) {
           <>
             <rect x="2.5" y="3.5" width="15" height="10" rx="1.8" />
             <path d="M7 17h6M10 13.5V17" />
+          </>
+        );
+      case 'server':
+        // The database: a stack of discs, the middle seam lighter.
+        return (
+          <>
+            <ellipse cx="10" cy="4.8" rx="6" ry="2.3" />
+            <path d="M4 4.8v10.4c0 1.3 2.7 2.3 6 2.3s6-1 6-2.3V4.8" />
+            <path d="M4 10c0 1.3 2.7 2.3 6 2.3s6-1 6-2.3" opacity="0.6" />
           </>
         );
       case 'mail':

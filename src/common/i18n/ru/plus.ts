@@ -225,6 +225,7 @@ const plus = {
   'plus.accounts.filter.all': 'Все аккаунты',
   'plus.accounts.filter.plus': 'С Plus',
   'plus.accounts.filter.free': 'Без Plus',
+  'plus.accounts.filter.trial': 'В бесплатном периоде',
   'plus.accounts.admin': 'Админ',
   'plus.accounts.loading': 'Загрузка аккаунтов…',
   'plus.accounts.shown': 'Показано {shown} из {total}',
@@ -232,6 +233,20 @@ const plus = {
   'plus.accounts.empty.search': 'Нет аккаунтов по запросу {query}',
   'plus.accounts.empty.plus': 'Ни у одного из этих аккаунтов нет Plus',
   'plus.accounts.empty.free': 'У всех этих аккаунтов есть Plus',
+  'plus.accounts.empty.trial':
+    'Ни один из этих аккаунтов не в бесплатном периоде',
+  'plus.accounts.trial.thisWeek': 'Заканчиваются на этой неделе: {count}',
+  'plus.accounts.trial.today': 'Бесплатный период заканчивается сегодня',
+  'plus.accounts.trial.tomorrow': 'Бесплатный период заканчивается завтра',
+  'plus.accounts.trial.inDays':
+    'Бесплатный период заканчивается через {days} дн.',
+  'plus.accounts.trial.ends': 'Бесплатный период заканчивается {date}.',
+  'plus.accounts.engine.title': 'Движок',
+  'plus.accounts.engine.fluid': 'Движок FluidEQ',
+  'plus.accounts.engine.apo': 'Equalizer APO',
+  'plus.accounts.engine.unknown': 'Не сообщили {count}',
+  'plus.accounts.engine.summary':
+    'Движок FluidEQ {fluid}, Equalizer APO {apo}, не сообщили {unknown}',
   'plus.accounts.moreError':
     'Не удалось загрузить больше аккаунтов. Попробуйте ещё раз.',
   'plus.accounts.error.offline':
@@ -251,6 +266,7 @@ const plus = {
   'plus.accounts.appVersion': 'FluidEQ {version}',
   'plus.accounts.plan.none': 'Без Plus',
   'plus.accounts.plan.paid': 'Plus до {date}',
+  'plus.accounts.plan.trial': 'Бесплатный период',
   'plus.accounts.plan.gift': 'Plus в подарок',
   'plus.accounts.plan.giftUntil': 'Подарок до {date}',
   'plus.accounts.goes': 'Удаляется вместе с ним',

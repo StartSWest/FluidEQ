@@ -37,8 +37,10 @@ export type TPlusPlace = (typeof PLUS_PLACES)[number];
 
 /**
  * The admin's pages: the scenes waiting to be approved, the scenes members
- * reported, every account, and the Plus given away. Only the admin is offered
- * the place; the server refuses anybody else on every call regardless.
+ * reported, every account, the Plus given away, the scenes members come back
+ * to, the announcements of new ones, and how full the server is. Only the
+ * admin is offered the place;
+ * the server refuses anybody else on every call regardless.
  *
  * Approving first, and where the place opens: it is the one page with work
  * that holds members up — a scene nobody has approved is a scene its maker
@@ -49,6 +51,9 @@ export const ADMIN_SECTIONS = [
   'reported',
   'accounts',
   'gifts',
+  'favourites',
+  'announcements',
+  'server',
 ] as const;
 export type TAdminSection = (typeof ADMIN_SECTIONS)[number];
 

@@ -5,13 +5,16 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useId } from 'react';
-import type { IAccountToDelete } from 'common/accountDeletion';
+import type { IAccountToDelete, TAccountEngine } from 'common/accountDeletion';
+import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import {
   AccountDeletionBody,
   accountName,
   useAccountPlan,
 } from './AccountDeletionCard';
+import AdminAccountScenes from './AdminAccountScenes';
+import { daysUntil, trialEndKey } from './insightsFormat';
 
 /**
  * Counted as here now.
@@ -23,6 +26,11 @@ import {
  */
 const ONLINE_WITHIN_MS = 60 * 60 * 1000;
 
+const ENGINE_NAMES: Record<TAccountEngine, TranslationKey> = {
+  fluid: 'plus.accounts.engine.fluid',
+  apo: 'plus.accounts.engine.apo',
+};
+
 interface IAdminAccountRowProps {
   account: IAccountToDelete;
   open: boolean;
@@ -33,8 +41,9 @@ interface IAdminAccountRowProps {
 }
 
 /**
- * One account: who it is, when it joined, which FluidEQ it runs, whether it
- * is there now and its Plus on one line, which opens onto what the account
+ * One account: who it is, when it joined, which FluidEQ and which engine it
+ * runs, whether it is there now, its Plus and when a trial ends on one line,
+ * which opens onto the scenes it adds, likes and plays, what the account
  * holds and Delete.
  *
  * The version and the last sign-in are read from the account's own sessions
@@ -53,9 +62,14 @@ export default function AdminAccountRow({
   const bodyId = useId();
   const name = accountName(account);
   const plus = account.plusUntil !== undefined;
+  const now = Date.now();
   const online =
-    account.seenAt !== undefined &&
-    Date.now() - account.seenAt < ONLINE_WITHIN_MS;
+    account.seenAt !== undefined && now - account.seenAt < ONLINE_WITHIN_MS;
+  const trialDays =
+    account.trialEndsAt === undefined
+      ? undefined
+      : daysUntil(account.trialEndsAt, now);
+  const trialEnd = trialDays === undefined ? undefined : trialEndKey(trialDays);
 
   return (
     <li
@@ -115,6 +129,20 @@ export default function AdminAccountRow({
           </span>
         </span>
         <span className="admin-account__tags">
+          {trialEnd && trialDays !== undefined && (
+            <span
+              className={`admin-account__tag is-trial${trialEnd.urgent ? ' is-urgent' : ''}`}
+            >
+              {t(trialEnd.key, { days: String(trialDays) })}
+            </span>
+          )}
+          {account.engine && (
+            <span
+              className={`admin-account__tag is-engine is-${account.engine}`}
+            >
+              {t(ENGINE_NAMES[account.engine])}
+            </span>
+          )}
           {account.appVersion && (
             <span
               className="admin-account__tag is-version"
@@ -138,6 +166,19 @@ export default function AdminAccountRow({
       </button>
       {open && (
         <div id={bodyId} className="admin-account__body">
+          {account.trialEndsAt !== undefined && (
+            <p className="admin-account__trial">
+              {t('plus.accounts.trial.ends', {
+                date: new Intl.DateTimeFormat(locale, {
+                  dateStyle: 'full',
+                  timeStyle: 'short',
+                }).format(account.trialEndsAt),
+              })}
+            </p>
+          )}
+          {account.createdAt !== undefined && (
+            <AdminAccountScenes userId={account.userId} />
+          )}
           <AccountDeletionBody
             account={account}
             onDeleted={onDeleted}

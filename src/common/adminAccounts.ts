@@ -14,8 +14,11 @@ import { parseAccountRow, type IAccountToDelete } from './accountDeletion';
  * to say; this is only the shape on its way to the page.
  */
 
-/** Every account, only those with Plus now, or only those without. */
-export const ACCOUNT_PLAN_FILTERS = ['all', 'plus', 'free'] as const;
+/**
+ * Every account, only those with Plus now, only those without, or only those
+ * on a free trial — that one ending soonest first (premium migration 0049).
+ */
+export const ACCOUNT_PLAN_FILTERS = ['all', 'plus', 'free', 'trial'] as const;
 export type TAccountPlanFilter = (typeof ACCOUNT_PLAN_FILTERS)[number];
 
 /** Accounts asked for at a time. */
@@ -38,6 +41,15 @@ export interface IAccountListPage {
   paying: number;
   /** Accounts the filter leaves in all, so the page knows what is still to show. */
   listed: number;
+  /**
+   * Of the matched, how many are on a free trial, how many of those end
+   * within a week, and how many run each engine. Absent from a server before
+   * premium migration 0049, which the page says as a dash.
+   */
+  trialing?: number;
+  trialsThisWeek?: number;
+  engineFluid?: number;
+  engineApo?: number;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -86,9 +98,10 @@ export const parseAccountListPage = (
   if (!Array.isArray(rows) || !Array.isArray(totals) || totals.length !== 1) {
     return undefined;
   }
-  const [counted] = totals;
-  const matched = isRecord(counted) ? countOf(counted.matched) : undefined;
-  const paying = isRecord(counted) ? countOf(counted.paying) : undefined;
+  const [firstTotal]: unknown[] = totals;
+  const counted = isRecord(firstTotal) ? firstTotal : {};
+  const matched = countOf(counted.matched);
+  const paying = countOf(counted.paying);
   const accounts = rows
     .map(parseAccountRow)
     .filter((account): account is IAccountToDelete => account !== undefined);
@@ -102,5 +115,18 @@ export const parseAccountListPage = (
   ) {
     return undefined;
   }
-  return { accounts, matched, paying, listed };
+  const trialing = countOf(counted.trialing);
+  const trialsThisWeek = countOf(counted.trials_this_week);
+  const engineFluid = countOf(counted.engine_fluid);
+  const engineApo = countOf(counted.engine_apo);
+  return {
+    accounts,
+    matched,
+    paying,
+    listed,
+    ...(trialing === undefined ? {} : { trialing }),
+    ...(trialsThisWeek === undefined ? {} : { trialsThisWeek }),
+    ...(engineFluid === undefined ? {} : { engineFluid }),
+    ...(engineApo === undefined ? {} : { engineApo }),
+  };
 };

@@ -67,6 +67,8 @@ export interface IAccountRefreshers {
   sceneReviews: { refreshIfDue(reason: string): Promise<void> };
   plusTermsNotice: { checkIfDue(reason: string): Promise<void> };
   leaderboard: { uploadIfDue(reason: string): Promise<void> };
+  sceneTaste: { uploadIfDue(reason: string): Promise<void> };
+  sceneAnnouncements: { refreshIfDue(reason: string): Promise<void> };
 }
 
 /**
@@ -84,8 +86,10 @@ export const accountComeBackSteps = ({
   memberSharing,
   plusGallery,
   plusTermsNotice,
+  sceneAnnouncements,
   sceneReviews,
   scenePacks,
+  sceneTaste,
 }: IAccountRefreshers): IComeBackStep[] => [
   { name: 'membership', run: (reason) => entitlement.checkIfDue(reason) },
   {
@@ -103,6 +107,16 @@ export const accountComeBackSteps = ({
   {
     name: 'leaderboard upload',
     run: (reason) => leaderboard.uploadIfDue(reason),
+  },
+  // After the terms notice: what it sends waits on the member having been
+  // shown terms 10, which that step is what finds out.
+  {
+    name: 'scene plays and engine',
+    run: (reason) => sceneTaste.uploadIfDue(reason),
+  },
+  {
+    name: 'scene announcements',
+    run: (reason) => sceneAnnouncements.refreshIfDue(reason),
   },
 ];
 

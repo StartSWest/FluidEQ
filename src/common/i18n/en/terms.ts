@@ -109,7 +109,25 @@ const terms = {
   'terms.sent.sceneLike.when':
     'When a member’s scene plays, to show its likes, and when you press the heart or take a like back',
   'terms.sent.sceneLike.who':
-    'Your like is kept with your account. Members see how many likes a scene has, never who gave them. Nothing else about what is on screen is kept.',
+    'Your like is kept with your account. Members see how many likes a scene has, never who gave them. How long each scene is on screen is the next line.',
+  'terms.sent.sceneTime.what':
+    'How long each Plus scene was on your screen: one number of seconds per scene per day, with the scene and the date',
+  'terms.sent.sceneTime.when':
+    'While you have Plus, once you have been shown this version of these terms: when FluidEQ starts, when you come back to the computer, and at most once an hour while a scene plays',
+  'terms.sent.sceneTime.who':
+    'Only FluidEQ’s maker, with your account, to learn which scenes members enjoy and make more like them. Members never see it. Your computer keeps the last {windowDays} days.',
+  'terms.sent.engine.what':
+    'Which audio engine you chose: the FluidEQ Engine or Equalizer APO',
+  'terms.sent.engine.when':
+    'While you have Plus, once you have been shown this version of these terms: when FluidEQ starts, when you come back to the computer and when you switch engines',
+  'terms.sent.engine.who':
+    'Only FluidEQ’s maker, with your account, to know which engine to work on. Only the last one is kept.',
+  'terms.sent.announcements.what':
+    'Your sign-in token, to ask whether FluidEQ has announced new scenes',
+  'terms.sent.announcements.when':
+    'When FluidEQ starts, when you sign in and when you come back to the computer',
+  'terms.sent.announcements.who':
+    'Nothing is kept. Which announcements you have already seen stays on your computer.',
   'terms.sent.scenePublish.what':
     'A scene you publish, as for an export, with one cover picture, up to two categories and a note about what is new, if you write one',
   'terms.sent.scenePublish.when': 'When you press Publish in the Studio',
