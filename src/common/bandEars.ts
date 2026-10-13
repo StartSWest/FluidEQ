@@ -118,6 +118,29 @@ const middleOf = (a: IEarBand, b: IEarBand): IEarMiddle => ({
 });
 
 /**
+ * The halves left alone when `deleted` go: each deleted half of a pair whose
+ * twin stays. Those go back on both ears, so deleting one half never leaves
+ * the band playing on one ear only.
+ */
+export const twinsLeftAlone = (
+  bands: readonly IEarBand[],
+  deleted: readonly string[],
+): string[] => {
+  const gone = new Set(deleted);
+  const claimed = new Set(deleted);
+  const alone: string[] = [];
+  deleted.forEach((key) => {
+    const band = bands.find((one) => one.key === key);
+    const twin = band && twinOf(bands, band, claimed);
+    if (twin && !gone.has(twin.key)) {
+      claimed.add(twin.key);
+      alone.push(twin.key);
+    }
+  });
+  return alone;
+};
+
+/**
  * What choosing `choice` for `targets` does to the EQ. `room` is how many
  * bands it can still take: a band with no room for its twin stays on both
  * ears, because half of a pair alone would silence that band on one ear.

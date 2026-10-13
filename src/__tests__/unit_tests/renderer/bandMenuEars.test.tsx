@@ -96,6 +96,29 @@ describe("a band's menu chooses its ear", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('deletes the bands it acts on, and offers it only where the EQ allows', () => {
+    const filters = [band('a'), band('b')];
+    const onDelete = jest.fn();
+    render(
+      <BandMenu
+        filter={filters[0]}
+        filters={filters}
+        x={10}
+        y={10}
+        onReset={jest.fn()}
+        onSetEnabled={jest.fn()}
+        onAddBeside={jest.fn()}
+        onDelete={onDelete}
+        onClose={jest.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByText('Delete 2 bands'));
+    expect(onDelete).toHaveBeenCalledWith(filters);
+    cleanup();
+    show([band('a')]);
+    expect(screen.queryByText('Delete band')).toBeNull();
+  });
+
   it('says an older FluidEQ Engine plays a one-ear band on both, and only then', () => {
     mockEngine = { engine: 'fluid', fluid: { dllVersion: '1.20.0.0' } };
     show([band('a', 'left')]);

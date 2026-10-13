@@ -699,6 +699,7 @@ const eq: Partial<Dictionary> = {
   'eq.menu.enable': 'Band aktivieren',
   'eq.menu.disableSelection': '{count} Bänder deaktivieren',
   'eq.menu.enableSelection': '{count} Bänder aktivieren',
+  'eq.menu.deleteSelection': '{count} Bänder löschen',
   'eq.menu.addLeft': 'Band links hinzufügen',
   'eq.menu.addRight': 'Band rechts hinzufügen',
   'eq.menu.selection': '{count} Bänder ausgewählt',

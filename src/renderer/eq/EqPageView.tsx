@@ -154,6 +154,8 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
     addFilterBeside,
     setFiltersEnabled,
     setFiltersChannel,
+    deleteFilters,
+    canDeleteFilters,
     resetFilters,
     bandMenu,
     setBandMenu,
@@ -194,6 +196,13 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
           onReset={resetFilters}
           onSetEnabled={setFiltersEnabled}
           onAddBeside={addFilterBeside}
+          onDelete={
+            canDeleteFilters
+              ? (targets) => {
+                  deleteFilters(targets).catch(() => undefined);
+                }
+              : undefined
+          }
           onSetChannel={(targets, side) => {
             setFiltersChannel(
               targets.map((one) => one.id),

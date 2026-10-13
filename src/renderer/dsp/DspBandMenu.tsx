@@ -12,7 +12,7 @@ import {
 import type { IEqBandSettings, IEqSettings } from '../../common/dsp/chain';
 import { engineRackKeepsEars } from '../../common/engineHealth';
 import BandMenu from '../components/BandMenu';
-import { withEarChange } from './dspEqEars';
+import { withBandDeleted, withEarChange } from './dspEqEars';
 
 interface IDspBandMenuProps {
   eq: IEqSettings;
@@ -85,6 +85,13 @@ const DspBandMenu = ({
         onPatch(index, { ...band, enabled: isEnabled })
       }
       onAddBeside={(_, side) => onAddBeside(index, side)}
+      onDelete={
+        // The rack keeps one band at least: an EQ with none has nothing
+        // left to select or to add beside.
+        eq.bands.length > 1
+          ? () => onBands(withBandDeleted(eq.bands, index))
+          : undefined
+      }
       onSetChannel={
         eq.stereo === 'stereo'
           ? (_, choice) => onBands(withEarChange(eq.bands, index, choice))

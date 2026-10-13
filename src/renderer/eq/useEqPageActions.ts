@@ -30,7 +30,12 @@ import {
   MIN_NUM_FILTERS,
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
-import { planEarChange, type IEarPlan, type TEarChoice } from 'common/bandEars';
+import {
+  planEarChange,
+  twinsLeftAlone,
+  type IEarPlan,
+  type TEarChoice,
+} from 'common/bandEars';
 import { ErrorDescription } from 'common/errors';
 import {
   addEqualizerSlider,
@@ -336,6 +341,40 @@ const useEqPageActions = (bands: TEqPageBands) => {
     }
   };
 
+  /** Whether the band menu may take bands out: not at the fewest the EQ keeps. */
+  const canDeleteFilters = frequencySortedFilters.length > MIN_NUM_FILTERS;
+
+  /**
+   * The band menu's Delete: the bands asked, down to the fewest the EQ keeps,
+   * the other half of a left + right pair put back on both ears so that
+   * frequency never plays on one ear alone (`twinsLeftAlone`).
+   */
+  const deleteFilters = async (targets: readonly IFilter[]) => {
+    const doomed = targets
+      .slice(0, Math.max(0, frequencySortedFilters.length - MIN_NUM_FILTERS))
+      .map((filter) => filter.id);
+    const alone: IFilterEdit[] = twinsLeftAlone(earBands(), doomed).map(
+      (id) => ({ id, channel: 'both' }),
+    );
+    try {
+      // eslint-disable-next-line no-restricted-syntax -- sequential: each step rewrites the config
+      for (const id of doomed) {
+        // eslint-disable-next-line no-await-in-loop -- one band at a time, as a deletion is
+        await removeEqualizerSlider(id);
+        dispatchFilter({ type: FilterActionEnum.REMOVE, id });
+      }
+      if (alone.length > 0) {
+        dispatchFilter({ type: FilterActionEnum.EDITS, edits: alone });
+        await setFilterValues(alone);
+      }
+      setSelectedFilterIds(
+        selectedFilterIds.filter((id) => !doomed.includes(id)),
+      );
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
   /**
    * Both ears, or left + right: a band split into a pair the two ears move
    * apart, or a pair joined back in its middle (`planEarChange`). Absolute
@@ -618,6 +657,8 @@ const useEqPageActions = (bands: TEqPageBands) => {
     addFilterBeside,
     setFiltersEnabled,
     setFiltersChannel,
+    deleteFilters,
+    canDeleteFilters,
     resetFilters,
     bandMenu,
     setBandMenu,

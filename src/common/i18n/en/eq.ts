@@ -706,6 +706,7 @@ const eq = {
   'eq.menu.enable': 'Enable band',
   'eq.menu.disableSelection': 'Disable {count} bands',
   'eq.menu.enableSelection': 'Enable {count} bands',
+  'eq.menu.deleteSelection': 'Delete {count} bands',
   'eq.menu.addLeft': 'Add band to the left',
   'eq.menu.addRight': 'Add band to the right',
   'eq.menu.selection': '{count} bands selected',

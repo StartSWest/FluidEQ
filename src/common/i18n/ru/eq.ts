@@ -693,6 +693,7 @@ const eq: Partial<Dictionary> = {
   'eq.menu.enable': 'Включить полосу',
   'eq.menu.disableSelection': 'Отключить полосы ({count})',
   'eq.menu.enableSelection': 'Включить полосы ({count})',
+  'eq.menu.deleteSelection': 'Удалить полосы: {count}',
   'eq.menu.addLeft': 'Добавить полосу слева',
   'eq.menu.addRight': 'Добавить полосу справа',
   'eq.menu.selection': 'Выбрано полос: {count}',

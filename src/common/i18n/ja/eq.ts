@@ -688,6 +688,7 @@ const eq: Partial<Dictionary> = {
   'eq.menu.enable': 'バンドを有効化',
   'eq.menu.disableSelection': '{count} 個のバンドを無効化',
   'eq.menu.enableSelection': '{count} 個のバンドを有効化',
+  'eq.menu.deleteSelection': '{count} 個のバンドを削除',
   'eq.menu.addLeft': '左にバンドを追加',
   'eq.menu.addRight': '右にバンドを追加',
   'eq.menu.selection': '{count} バンドを選択中',

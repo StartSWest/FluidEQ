@@ -155,6 +155,22 @@ describe("the DSP EQ band's menu", () => {
     expect(reset[0].gainDb).toBe(0);
   });
 
+  it('deletes a band, the other half of its pair back on both ears', () => {
+    const onDelete = show(
+      eqWith([band('left'), { ...band('right'), frequency: 3400 }, band()]),
+    );
+    fireEvent.click(screen.getByText('Delete band'));
+    const [left] = onDelete.mock.calls[0] as [IEqBandSettings[]];
+    expect(left.map((one) => [one.frequency, one.ear])).toEqual([
+      [3400, undefined],
+      [3000, undefined],
+    ]);
+    cleanup();
+    // The control: the last band of the rack is not offered for deleting.
+    show(eqWith([band()]));
+    expect(screen.queryByText('Delete band')).toBeNull();
+  });
+
   it('offers no ear in Mid or Sides, where there is none to keep a band to', () => {
     show(eqWith([band()], 'mid'));
     expect(screen.queryAllByRole('menuitemradio')).toHaveLength(0);

@@ -10,6 +10,7 @@
 import {
   earChoiceOf,
   planEarChange,
+  twinsLeftAlone,
   type IEarBand,
 } from '../../../common/bandEars';
 
@@ -106,5 +107,18 @@ describe('what the menu ticks', () => {
       'split',
     );
     expect(earChoiceOf([{}, { channel: 'left' }])).toBeUndefined();
+  });
+});
+
+describe('deleting one half of a pair', () => {
+  it('puts the other half back on both ears, and nothing when both halves go', () => {
+    const rack = [
+      band('l', 1000, 'left'),
+      band('r', 1100, 'right'),
+      band('x', 5000),
+    ];
+    expect(twinsLeftAlone(rack, ['l'])).toEqual(['r']);
+    expect(twinsLeftAlone(rack, ['l', 'r'])).toEqual([]);
+    expect(twinsLeftAlone(rack, ['x'])).toEqual([]);
   });
 });

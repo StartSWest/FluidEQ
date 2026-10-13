@@ -657,6 +657,7 @@ const eq: Partial<Dictionary> = {
   'eq.menu.enable': '启用频段',
   'eq.menu.disableSelection': '停用 {count} 个频段',
   'eq.menu.enableSelection': '启用 {count} 个频段',
+  'eq.menu.deleteSelection': '删除 {count} 个频段',
   'eq.menu.addLeft': '在左侧添加频段',
   'eq.menu.addRight': '在右侧添加频段',
   'eq.menu.selection': '已选中 {count} 个频段',

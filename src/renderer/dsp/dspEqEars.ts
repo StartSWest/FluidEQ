@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { TBandChannel, TBandSide } from '../../common/constants';
 import {
   planEarChange,
+  twinsLeftAlone,
   type IEarMiddle,
   type TEarChoice,
 } from '../../common/bandEars';
@@ -86,6 +87,32 @@ const onEar = (
       }
     : rest;
   return ear === 'both' ? placed : { ...placed, ear };
+};
+
+/**
+ * The rack's bands without band `index`: the other half of a left + right
+ * pair goes back on both ears (`twinsLeftAlone`).
+ */
+export const withBandDeleted = (
+  bands: readonly IEqBandSettings[],
+  index: number,
+): IEqBandSettings[] => {
+  const alone = new Set(
+    twinsLeftAlone(
+      bands.map((band, at) => ({
+        key: String(at),
+        frequency: band.frequency,
+        gain: band.gainDb,
+        quality: band.quality,
+        type: band.type,
+        ear: band.ear,
+      })),
+      [String(index)],
+    ),
+  );
+  return bands
+    .map((band, at) => (alone.has(String(at)) ? onEar(band, 'both') : band))
+    .filter((_, at) => at !== index);
 };
 
 /**

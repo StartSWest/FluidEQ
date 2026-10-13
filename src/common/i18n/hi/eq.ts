@@ -688,6 +688,7 @@ const eq: Partial<Dictionary> = {
   'eq.menu.enable': 'बैंड चालू करें',
   'eq.menu.disableSelection': '{count} बैंड बंद करें',
   'eq.menu.enableSelection': '{count} बैंड चालू करें',
+  'eq.menu.deleteSelection': '{count} बैंड हटाएँ',
   'eq.menu.addLeft': 'बाईं ओर बैंड जोड़ें',
   'eq.menu.addRight': 'दाईं ओर बैंड जोड़ें',
   'eq.menu.selection': '{count} बैंड चुने गए',

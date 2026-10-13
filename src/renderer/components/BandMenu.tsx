@@ -46,6 +46,11 @@ interface IBandMenuProps {
   onSetEnabled: (filters: readonly IFilter[], isEnabled: boolean) => void;
   onAddBeside: (filter: IFilter, side: 'left' | 'right') => void;
   /**
+   * Take the bands out. Absent where the EQ is down to the fewest bands it
+   * keeps, so the line is not offered rather than offered and refused.
+   */
+  onDelete?: (filters: readonly IFilter[]) => void;
+  /**
    * Both ears, or left + right: a band split into a pair the two ears move
    * apart, or a pair joined again. Absent where there is no ear to choose —
    * the DSP EQ applied to Mid or Sides.
@@ -74,6 +79,7 @@ const BandMenu = ({
   onReset,
   onSetEnabled,
   onAddBeside,
+  onDelete,
   onSetChannel,
   engineKeepsEarsFrom = engineKeepsEars,
   onClose,
@@ -179,6 +185,24 @@ const BandMenu = ({
             })()}
           </span>
         </button>
+        {/* Beside Disable, the other thing done to the band itself (Ivan,
+            2026-10-13: "we also need delete band on both dsp and main eq"). */}
+        {onDelete && (
+          <button
+            type="button"
+            onClick={() => {
+              onDelete(filters);
+              onClose();
+            }}
+          >
+            <MenuIcon name="trash" className="band-menu__icon" />
+            <span>
+              {isSelection
+                ? t('eq.menu.deleteSelection', { count: filters.length })
+                : t('eq.delete')}
+            </span>
+          </button>
+        )}
         {/* Both ears or left + right, as two of the menu's own lines with a
             tick on the one in use (three, with each ear alone, read as
             confusing: Ivan, 2026-10-13) — no switch anywhere else on the page (Ivan, 2026-10-13:
