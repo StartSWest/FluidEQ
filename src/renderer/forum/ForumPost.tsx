@@ -15,6 +15,8 @@ interface IForumPostProps {
   /** The person who started the topic, for the "Author" mark. */
   topicAuthor: string;
   isAnswer?: boolean;
+  /** Written after the reader last looked at this topic. */
+  isNew?: boolean;
   /** Present where replying makes sense and the topic is open for it. */
   onReply?: () => void;
   className?: string;
@@ -33,6 +35,7 @@ export default function ForumPost({
   kind,
   topicAuthor,
   isAnswer = false,
+  isNew = false,
   onReply,
   className,
 }: IForumPostProps) {
@@ -45,7 +48,7 @@ export default function ForumPost({
 
   return (
     <article
-      className={`forum-post${isAnswer ? ' is-answer' : ''}${className ? ` ${className}` : ''}`}
+      className={`forum-post${isAnswer ? ' is-answer' : ''}${isNew ? ' is-new' : ''}${className ? ` ${className}` : ''}`}
     >
       <header className="forum-post__head">
         <ForumAvatar person={post.author} className="forum-post__avatar" />
@@ -74,6 +77,11 @@ export default function ForumPost({
           )}
           {post.author.login === topicAuthor && kind === 'comment' && (
             <span className="forum-post__mark">{t('forum.post.author')}</span>
+          )}
+          {isNew && (
+            <span className="forum__chip forum__chip--new">
+              {t('forum.topic.new')}
+            </span>
           )}
           <time
             className="forum-post__time"

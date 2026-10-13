@@ -20,7 +20,6 @@ import type { TranslationKey } from '../../common/i18n/en';
 import {
   DSP_PRESETS_CHANGED,
   readFavouriteDspPresets,
-  sortFavouritesByName,
 } from './favouriteDspPresets';
 import { genreHookKey } from './genreNotesModel';
 import {
@@ -47,6 +46,21 @@ export const QUICK_DSP_PRESETS: readonly string[] = [
   'gaming-competitive',
   'speech',
   'late-night',
+];
+
+/**
+ * A picker's whole list in the order it is read: the usual chains first, as
+ * `QUICK_DSP_PRESETS` gives them, then everything else in the order it came.
+ * The starred ones are this list with the unstarred taken out, never an order
+ * of their own (Ivan, 2026-10-12: "same order we use on the other lists") —
+ * so Gaming · Room sits after Gaming in Favourites as it does under them, and
+ * a new star lands where its preset stands rather than at the foot.
+ */
+export const inListOrder = <T extends { id: string }>(
+  list: readonly T[],
+): T[] => [
+  ...QUICK_DSP_PRESETS.flatMap((id) => list.filter((one) => one.id === id)),
+  ...list.filter((one) => !QUICK_DSP_PRESETS.includes(one.id)),
 ];
 
 /**
@@ -229,7 +243,7 @@ const readSaved = () => ({
  * another window's is a `storage` event, so a read that waits for one of
  * those misses nothing.
  */
-export const useDspPresetCatalog = (t: Translate, locale: string) => {
+export const useDspPresetCatalog = (t: Translate) => {
   const [saved, setSaved] = useState(readSaved);
   useEffect(() => {
     const changed = () => setSaved(readSaved());
@@ -244,13 +258,10 @@ export const useDspPresetCatalog = (t: Translate, locale: string) => {
     const catalog = catalogOf(t, saved.chains);
     // None stands above the starred ones already; a star it was given before
     // it did is not a second place for it.
-    const favorites = sortFavouritesByName(
-      saved.starred.flatMap((id) => {
-        const preset = catalog.find((one) => one.id === id);
-        return preset && id !== NONE_CHAIN_ID ? [preset] : [];
-      }),
-      locale,
+    const favorites = inListOrder(catalog).filter(
+      (preset) =>
+        preset.id !== NONE_CHAIN_ID && saved.starred.includes(preset.id),
     );
     return { catalog, favorites };
-  }, [t, locale, saved]);
+  }, [t, saved]);
 };

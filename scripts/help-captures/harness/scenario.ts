@@ -12,6 +12,7 @@ import type { IAudioDevice, IDeviceProfileSettings } from 'common/profileTypes';
 import type { IAudioEngineStatus } from 'common/audioEngine';
 import { DEFAULT_LIGHTING_SETTINGS } from 'common/lighting/lightingModel';
 import type { TEmit } from './fakeMain';
+import { FORUM_INVOKES } from './forumScenario';
 
 /**
  * The machine the captures show: three outputs, the FluidEQ Engine on all of
@@ -174,6 +175,7 @@ export const REQUESTS: Record<string, TAnswer> = {
 
 /** Calls made with `invoke`, by channel. */
 export const INVOKES: Record<string, TAnswer> = {
+  ...FORUM_INVOKES,
   'window-get-state': () => ({ mode: 'normal', isMaximized: true }),
   'window-is-maximized': () => true,
   // Signed out, no Plus: nothing of anybody's account is in a picture.

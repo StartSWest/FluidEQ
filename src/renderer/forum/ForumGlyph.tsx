@@ -1,7 +1,9 @@
 import Glyph from '../community/Glyph';
+import { NEW_BOARD } from './forumState';
 
 export type TForumGlyph =
   | 'threads'
+  | 'inbox'
   | 'megaphone'
   | 'general'
   | 'ideas'
@@ -59,6 +61,16 @@ export default function ForumGlyph({ name, className }: IForumGlyphProps) {
           <>
             <path d="M3.5 3.5h13a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1H9l-2.5 2V8.5h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z" />
             <path d="M5 13h12M5 16.5h8" opacity="0.65" />
+          </>
+        );
+      case 'inbox':
+        // A tray with something just landed in it: what has come in since
+        // the reader last looked.
+        return (
+          <>
+            <path d="M3 11.5 5.2 5.5a1 1 0 0 1 .94-.65h7.72a1 1 0 0 1 .94.65L17 11.5v3.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" />
+            <path d="M3 11.5h3.8l1 1.8h4.4l1-1.8H17" />
+            <path d="M10 2v5.2M7.9 5.2 10 7.3l2.1-2.1" opacity="0.7" />
           </>
         );
       case 'megaphone':
@@ -209,6 +221,8 @@ export function GithubMark({ className }: { className?: string }) {
 /** Which picture a board gets, by the slug GitHub gives its categories. */
 export const boardGlyph = (slug: string): TForumGlyph => {
   switch (slug) {
+    case NEW_BOARD:
+      return 'inbox';
     case 'announcements':
       return 'megaphone';
     case 'general':

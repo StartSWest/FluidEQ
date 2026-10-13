@@ -37,6 +37,12 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // The accepted answer: the accent all round and a glow, because it is what
   // everybody after the asker came to the thread for.
+  // Written since the reader last looked: the edge lit, quieter than an
+  // answer's glow so the two never read as one.
+  &.is-new {
+    border-color: color-mix(in srgb, $secondary-default 35%, transparent);
+  }
+
   &.is-answer {
     border-color: color-mix(in srgb, $secondary-default 55%, transparent);
     background: color-mix(in srgb, $secondary-default 7%, transparent);
@@ -66,7 +72,7 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 9px;
   min-width: 0;
 
-  .forum__chip {
+  > .forum__chip {
     margin-left: auto;
   }
 
