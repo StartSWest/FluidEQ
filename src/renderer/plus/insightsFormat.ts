@@ -29,7 +29,11 @@ export const INSIGHT_ERRORS: Record<TAdminFailure, TranslationKey> = {
 const HOUR = 3600;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-/** "5 h 10 min", "55 min", "under a minute" — in the reader's language. */
+/**
+ * "5h 10m", "55m", "40s" — in the reader's language. Under a minute it says
+ * the seconds: "under a minute" told the admin nothing about a scene put on
+ * the graph moments ago (Ivan, 2026-10-12: "it need to show for how long").
+ */
 export const formatDuration = (
   seconds: number,
   locale: LocaleCode,
@@ -37,7 +41,7 @@ export const formatDuration = (
 ): string => {
   const hours = Math.floor(seconds / HOUR);
   const minutes = Math.floor((seconds % HOUR) / 60);
-  const unit = (value: number, kind: 'hour' | 'minute') =>
+  const unit = (value: number, kind: 'hour' | 'minute' | 'second') =>
     new Intl.NumberFormat(locale, {
       style: 'unit',
       unit: kind,
@@ -45,7 +49,7 @@ export const formatDuration = (
       maximumFractionDigits: 0,
     }).format(value);
   if (hours === 0 && minutes === 0) {
-    return t('insights.time.underMinute');
+    return unit(Math.floor(seconds), 'second');
   }
   if (hours === 0) {
     return unit(minutes, 'minute');

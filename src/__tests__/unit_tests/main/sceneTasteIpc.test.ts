@@ -29,7 +29,10 @@ import type { IAccountConfig } from '../../../common/accountConfig';
 import type { TAudioEngine } from '../../../common/audioEngine';
 import { memberLookId } from '../../../common/memberScenes';
 import { premiumLookId } from '../../../common/scenePacks';
-import { registerSceneTasteIpc } from '../../../main/ipc/sceneTaste';
+import {
+  registerSceneTasteIpc,
+  SCENE_PLAYS_SEND_AFTER_MS,
+} from '../../../main/ipc/sceneTaste';
 import type { IGalleryAccess } from '../../../main/plus/galleryAccess';
 import { fakeResponse, ME, SOMEONE } from '../../utils/memberSceneFixtures';
 /* eslint-enable import/first */
@@ -87,7 +90,7 @@ beforeEach(() => {
     toldOf: (version) => told && version === 10,
     getEngine: () => engine,
     // A clock that never moves: seconds arriving never send by themselves
-    // (that waits an hour), so each case sends exactly when it says.
+    // (that waits five minutes), so each case sends exactly when it says.
     now: () => 0,
   });
 });
@@ -143,6 +146,49 @@ describe('scene time and the engine', () => {
         .filter((call) => call.rpc === 'report_audio_engine')
         .map((call) => call.body.p_engine),
     ).toEqual(['fluid', 'apo']);
+  });
+
+  // Ivan, 2026-10-12: a scene put on the graph read "Not played" on the
+  // account for most of an hour, the old wait between sends.
+  it('sends a playing scene’s seconds by themselves, five minutes after the last send', async () => {
+    registration.dispose();
+    let clock = SCENE_PLAYS_SEND_AFTER_MS;
+    // A send starts by asking for the engine before anything is awaited, so
+    // the asks say whether seconds arriving started one.
+    const getEngine = jest.fn(() => engine);
+    registration = registerSceneTasteIpc({
+      userDataDir: dir,
+      access,
+      toldOf: (version) => told && version === 10,
+      getEngine,
+      now: () => clock,
+    });
+    // Joins the send the seconds started, so it lands before the next step.
+    const settle = () => registration.uploadIfDue('settled');
+    // The account shows a scene within minutes of it going on the graph.
+    expect(SCENE_PLAYS_SEND_AFTER_MS).toBeLessThanOrEqual(5 * 60 * 1000);
+
+    // Nothing sent yet: the first minute of a scene goes out at once.
+    accrue(premiumLookId('alpine'), 60);
+    expect(getEngine).toHaveBeenCalledTimes(1);
+    await settle();
+
+    clock += SCENE_PLAYS_SEND_AFTER_MS - 1;
+    accrue(premiumLookId('alpine'), 60);
+    expect(getEngine).toHaveBeenCalledTimes(1);
+
+    clock += 1;
+    accrue(premiumLookId('alpine'), 60);
+    expect(getEngine).toHaveBeenCalledTimes(2);
+    await settle();
+    expect(
+      calls
+        .filter((call) => call.rpc === 'record_scene_plays')
+        .map((call) => call.body.p_plays),
+    ).toEqual([
+      [{ author: null, scene: 'alpine', seconds: 60 }],
+      [{ author: null, scene: 'alpine', seconds: 120 }],
+    ]);
   });
 
   it('counts nothing for a look that is not a scene, and caps one report', async () => {

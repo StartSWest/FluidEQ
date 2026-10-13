@@ -45,7 +45,6 @@ const insights = {
   'insights.chip.added': 'Добавлена {date}',
   'insights.chip.liked': 'Лайк',
   'insights.kind.other': 'Без категории',
-  'insights.time.underMinute': 'меньше минуты',
   'insights.time.hoursMinutes': '{hours} {minutes}',
   'insights.error.offline':
     'FluidEQ не удалось связаться со своим сервером. Проверьте подключение и попробуйте ещё раз.',

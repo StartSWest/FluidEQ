@@ -44,7 +44,6 @@ const insights = {
   'insights.chip.added': '{date} को जोड़ा',
   'insights.chip.liked': 'पसंद किया',
   'insights.kind.other': 'कोई श्रेणी नहीं',
-  'insights.time.underMinute': 'एक मिनट से कम',
   'insights.time.hoursMinutes': '{hours} {minutes}',
   'insights.error.offline':
     'FluidEQ अपने सर्वर तक नहीं पहुँच सका। अपना कनेक्शन जाँचें और फिर कोशिश करें।',

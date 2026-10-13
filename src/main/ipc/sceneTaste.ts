@@ -13,9 +13,9 @@ import { createScenePlayLedger } from '../usage/scenePlayLedger';
  * The window reports seconds a scene was drawn as it observes them; this
  * keeps them per account and day on disk and sends what is new on the same
  * events as everything else about the account — launch, somebody coming back
- * to the computer — and, while somebody is watching, at most once an hour as
- * the seconds arrive. The engine goes with it whenever it differs from what
- * was last sent for this account.
+ * to the computer — and, while somebody is watching, at most once every five
+ * minutes as the seconds arrive. The engine goes with it whenever it differs
+ * from what was last sent for this account.
  *
  * Nothing is counted for an account that has not been told: seconds kept
  * before the terms were shown would be sent the moment they were, about a
@@ -24,8 +24,13 @@ import { createScenePlayLedger } from '../usage/scenePlayLedger';
 
 /** The longest a single report from the window may claim. */
 const MAX_REPORT_SECONDS = 120;
-/** While seconds arrive, how stale the last send may get before the next. */
-const SEND_AFTER_MS = 60 * 60 * 1000;
+/**
+ * While seconds arrive, how stale the last send may get before the next.
+ * It was an hour, and a scene put on the graph read "Not played" on the
+ * account for most of that hour (Ivan, 2026-10-12). Five minutes is at most
+ * twelve small calls an hour from a computer that is playing a scene.
+ */
+export const SCENE_PLAYS_SEND_AFTER_MS = 5 * 60 * 1000;
 
 const CHANNELS = ['scene-play-accrue'] as const;
 
@@ -162,7 +167,7 @@ export const registerSceneTasteIpc = ({
         return;
       }
       ledger.accrue(accountId, scene, Math.min(MAX_REPORT_SECONDS, seconds));
-      if (now() - lastSentAt >= SEND_AFTER_MS) {
+      if (now() - lastSentAt >= SCENE_PLAYS_SEND_AFTER_MS) {
         uploadIfDue('a scene playing').catch(() => undefined);
       }
     },

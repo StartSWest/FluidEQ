@@ -45,7 +45,6 @@ const insights = {
   'insights.chip.added': 'Añadida el {date}',
   'insights.chip.liked': 'Me gusta',
   'insights.kind.other': 'Sin categoría',
-  'insights.time.underMinute': 'menos de un minuto',
   'insights.time.hoursMinutes': '{hours} {minutes}',
   'insights.error.offline':
     'FluidEQ no pudo conectar con su servidor. Comprueba tu conexión y vuelve a intentarlo.',

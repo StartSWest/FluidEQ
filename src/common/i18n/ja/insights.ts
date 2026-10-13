@@ -44,7 +44,6 @@ const insights = {
   'insights.chip.added': '{date} に追加',
   'insights.chip.liked': 'いいね済み',
   'insights.kind.other': 'カテゴリなし',
-  'insights.time.underMinute': '1分未満',
   'insights.time.hoursMinutes': '{hours} {minutes}',
   'insights.error.offline':
     'FluidEQ がサーバーに接続できませんでした。接続を確認して、もう一度お試しください。',
