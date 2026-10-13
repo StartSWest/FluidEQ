@@ -313,8 +313,7 @@ const eq: Partial<Dictionary> = {
   'eq.channels.update':
     'Движок FluidEQ на этом компьютере играет эту полосу в обоих ушах, пока не установлено его обновление.',
   'eq.channels.both': 'Оба уха',
-  'eq.channels.left': 'Только левое ухо',
-  'eq.channels.right': 'Только правое ухо',
+  'eq.channels.split': 'Левое + правое',
   'eq.channels.letter.left': 'Л',
   'eq.channels.letter.right': 'П',
   'graph.curve.voicing': 'Пресет',

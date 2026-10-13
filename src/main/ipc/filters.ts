@@ -36,6 +36,7 @@ import {
   getDefaultFilterWithId,
   getDefaultFilters,
 } from '../../common/constants';
+import { planEarChange } from '../../common/bandEars';
 import { qualityForAddedBand } from '../../common/bandQuality';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
@@ -420,6 +421,40 @@ export const registerFiltersIpc = ({
 
   onWindowMessage(ChannelEnum.CLEAR_GAINS, async (event) => {
     const channel = ChannelEnum.CLEAR_GAINS;
+
+    // Every left + right pair is joined back into one band on both ears, in
+    // its middle (Ivan, 2026-10-13: "reset EQ resets those bands to
+    // joined"), before the gains go flat.
+    const filters = Object.values(state.filters);
+    const joined = planEarChange(
+      filters.map((filter) => ({
+        key: filter.id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+        ear: filter.channel,
+      })),
+      filters
+        .filter((filter) => filter.channel !== undefined)
+        .map((filter) => filter.id),
+      'both',
+      0,
+    );
+    joined.removed.forEach((id) => {
+      delete state.filters[id];
+    });
+    joined.ears.forEach(({ key, middle }) => {
+      const filter = state.filters[key];
+      if (filter === undefined) {
+        return;
+      }
+      delete filter.channel;
+      if (middle) {
+        filter.frequency = middle.frequency;
+        filter.quality = middle.quality;
+      }
+    });
 
     Object.values(state.filters).forEach((filter) => {
       filter.gain = 0;

@@ -2,9 +2,10 @@
 
 /**
  * Which ear a band plays on is chosen in the band's own menu and nowhere
- * else: three of the menu's lines with a tick on the one in use (Ivan,
- * 2026-10-13: "something really nice and simple and not really messing with
- * ui", "I dont like the joined left right pill").
+ * else: two of the menu's lines, Both ears and Left + right, with a tick on
+ * the one in use (Ivan, 2026-10-13: "something really nice and simple",
+ * then of three lines with each ear alone, "no too confusing lets do both
+ * and left + right").
  */
 
 import '@testing-library/jest-dom';
@@ -60,15 +61,14 @@ const show = (filters: IFilter[]) => {
 const earLines = () => screen.getAllByRole('menuitemradio');
 
 describe("a band's menu chooses its ear", () => {
-  it('offers both ears, the left and the right as three lines, ticking the one in use', () => {
+  it('offers both ears and left + right as two lines, ticking the one in use', () => {
     show([band('a', 'left')]);
     expect(earLines().map((line) => line.textContent)).toEqual([
       'Both ears',
-      'Left ear only',
-      'Right ear only',
+      'Left + right',
     ]);
     expect(earLines().map((line) => line.getAttribute('aria-checked'))).toEqual(
-      ['false', 'true', 'false'],
+      ['false', 'true'],
     );
     // No joined track anywhere: the lines are the menu's own.
     expect(document.querySelector('.segmented')).toBeNull();
@@ -79,8 +79,8 @@ describe("a band's menu chooses its ear", () => {
     expect(earLines()[0]).toHaveAttribute('aria-checked', 'true');
   });
 
-  it('ticks nothing over a selection split between the ears', () => {
-    show([band('a', 'left'), band('b', 'right')]);
+  it('ticks nothing over a selection holding a pair and a band on both', () => {
+    show([band('a', 'left'), band('b')]);
     expect(
       earLines().filter((line) => line.getAttribute('aria-checked') === 'true'),
     ).toHaveLength(0);
@@ -90,9 +90,9 @@ describe("a band's menu chooses its ear", () => {
     const filters = [band('a'), band('b')];
     const { onSetChannel, onClose } = show(filters);
     fireEvent.click(
-      screen.getByRole('menuitemradio', { name: 'Right ear only' }),
+      screen.getByRole('menuitemradio', { name: 'Left + right' }),
     );
-    expect(onSetChannel).toHaveBeenCalledWith(filters, 'right');
+    expect(onSetChannel).toHaveBeenCalledWith(filters, 'split');
     expect(onClose).toHaveBeenCalled();
   });
 

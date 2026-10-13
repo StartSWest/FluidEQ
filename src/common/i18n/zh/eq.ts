@@ -294,8 +294,7 @@ const eq: Partial<Dictionary> = {
   'eq.channels.update':
     '在安装更新之前，此电脑上的 FluidEQ Engine 会在两只耳朵播放此频段。',
   'eq.channels.both': '双耳',
-  'eq.channels.left': '仅左耳',
-  'eq.channels.right': '仅右耳',
+  'eq.channels.split': '左 + 右',
   'eq.channels.letter.left': '左',
   'eq.channels.letter.right': '右',
   'graph.curve.voicing': '预设',

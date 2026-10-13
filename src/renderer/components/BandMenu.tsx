@@ -8,14 +8,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  bandChannelOf,
-  IFilter,
-  isBandEnabled,
-  type TBandSide,
-} from 'common/constants';
+import { EAR_CHOICES, earChoiceOf, type TEarChoice } from 'common/bandEars';
+import { IFilter, isBandEnabled } from 'common/constants';
 import { engineKeepsEars } from '../../common/engineHealth';
-import { SIDE_MENU_KEYS } from '../eq/earNames';
+import { EAR_CHOICE_KEYS } from '../eq/earNames';
 import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { requestEngineUpdate } from '../utils/engineUpdateRequest';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
@@ -50,10 +46,11 @@ interface IBandMenuProps {
   onSetEnabled: (filters: readonly IFilter[], isEnabled: boolean) => void;
   onAddBeside: (filter: IFilter, side: 'left' | 'right') => void;
   /**
-   * Which ear the bands play on: one of the two, or both again. Absent where
-   * there is no ear to choose — the DSP EQ applied to Mid or Sides.
+   * Both ears, or left + right: a band split into a pair the two ears move
+   * apart, or a pair joined again. Absent where there is no ear to choose —
+   * the DSP EQ applied to Mid or Sides.
    */
-  onSetChannel?: (filters: readonly IFilter[], side: TBandSide) => void;
+  onSetChannel?: (filters: readonly IFilter[], choice: TEarChoice) => void;
   /**
    * Whether the installed FluidEQ Engine plays a band on its ear: the main
    * EQ's lines from 1.21 (`engineKeepsEars`), the DSP rack's from 1.22
@@ -62,8 +59,6 @@ interface IBandMenuProps {
   engineKeepsEarsFrom?: (dllVersion: string | undefined) => boolean;
   onClose: () => void;
 }
-
-const SIDES: readonly TBandSide[] = ['both', 'left', 'right'];
 
 /**
  * What a band offers when it is right-clicked: put it back to neutral, or
@@ -90,9 +85,8 @@ const BandMenu = ({
   // Same reading as the switch in the editor row: any band still in the chain
   // means the entry offers to take them out.
   const isAnyEnabled = filters.some(isBandEnabled);
-  // The ear they share, or none lit when a selection is split between them.
-  const sides = new Set(filters.map(bandChannelOf));
-  const sharedSide = sides.size === 1 ? [...sides][0] : undefined;
+  // Both ears or a pair, or none lit when a selection holds some of each.
+  const sharedChoice = earChoiceOf(filters);
   // Held in state, not a ref: `AnchoredMenu` measures the anchor in an
   // effect keyed on the element, and a ref's current is still null on the
   // render that mounts it.
@@ -185,28 +179,29 @@ const BandMenu = ({
             })()}
           </span>
         </button>
-        {/* Which ear, as three of the menu's own lines with a tick on the one
-            in use — no switch anywhere else on the page (Ivan, 2026-10-13:
+        {/* Both ears or left + right, as two of the menu's own lines with a
+            tick on the one in use (three, with each ear alone, read as
+            confusing: Ivan, 2026-10-13) — no switch anywhere else on the page (Ivan, 2026-10-13:
             "really nice and simple and not really messing with ui"). */}
         {onSetChannel && <div className="band-menu__rule" role="none" />}
         {onSetChannel &&
-          SIDES.map((side) => (
+          EAR_CHOICES.map((choice) => (
             <button
               type="button"
               role="menuitemradio"
-              key={side}
-              aria-checked={sharedSide === side}
+              key={choice}
+              aria-checked={sharedChoice === choice}
               onClick={() => {
-                onSetChannel(filters, side);
+                onSetChannel(filters, choice);
                 onClose();
               }}
             >
-              {sharedSide === side ? (
+              {sharedChoice === choice ? (
                 <MenuIcon name="check" className="band-menu__icon is-on" />
               ) : (
                 <span className="band-menu__icon" aria-hidden="true" />
               )}
-              <span>{t(SIDE_MENU_KEYS[side])}</span>
+              <span>{t(EAR_CHOICE_KEYS[choice])}</span>
             </button>
           ))}
         {isEngineBehind && (

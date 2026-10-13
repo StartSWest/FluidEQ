@@ -327,8 +327,7 @@ const eq = {
   'eq.channels.update':
     'The FluidEQ Engine on this computer plays this band on both ears until its update is installed.',
   'eq.channels.both': 'Both ears',
-  'eq.channels.left': 'Left ear only',
-  'eq.channels.right': 'Right ear only',
+  'eq.channels.split': 'Left + right',
   'eq.channels.letter.left': 'L',
   'eq.channels.letter.right': 'R',
   'graph.curve.voicing': 'Preset',

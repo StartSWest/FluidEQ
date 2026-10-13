@@ -5,7 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type { TBandChannel, TBandSide } from '../../common/constants';
-import { planEarChange } from '../../common/bandEars';
+import {
+  planEarChange,
+  type IEarMiddle,
+  type TEarChoice,
+} from '../../common/bandEars';
 import {
   EQ_MAX_BAND_COUNT,
   type IEqBandSettings,
@@ -66,34 +70,50 @@ export const drawEarTag = (
   context.restore();
 };
 
-/** The band with its ear set, or none for both ears. */
-const onEar = (band: IEqBandSettings, ear: TBandSide): IEqBandSettings => {
+/** The band with its ear set, or none for both ears, at a pair's middle when joined. */
+const onEar = (
+  band: IEqBandSettings,
+  ear: TBandSide,
+  middle?: IEarMiddle,
+): IEqBandSettings => {
   const { ear: _, ...rest } = band;
-  return ear === 'both' ? rest : { ...rest, ear };
+  const placed = middle
+    ? {
+        ...rest,
+        frequency: middle.frequency,
+        gainDb: middle.gain,
+        quality: middle.quality,
+      }
+    : rest;
+  return ear === 'both' ? placed : { ...placed, ear };
 };
 
 /**
- * The rack's bands after putting band `index` on `side`: split into a twin on
- * the other ear, right beside it, or joined with it (`planEarChange`, the
- * rule the main EQ's bands follow too).
+ * The rack's bands after choosing `choice` for band `index`: split into a
+ * left + right pair, the right half right beside it, or a pair joined in its
+ * middle (`planEarChange`, the rule the main EQ's bands follow too). `then`
+ * changes the band asked afterwards — Reset band joins and then flattens.
  */
 export const withEarChange = (
   bands: readonly IEqBandSettings[],
   index: number,
-  side: TBandSide,
+  choice: TEarChoice,
+  then: (band: IEqBandSettings) => IEqBandSettings = (band) => band,
 ): IEqBandSettings[] => {
   const plan = planEarChange(
     bands.map((band, at) => ({
       key: String(at),
       frequency: band.frequency,
+      gain: band.gainDb,
+      quality: band.quality,
       type: band.type,
       ear: band.ear,
     })),
     [String(index)],
-    side,
+    choice,
     EQ_MAX_BAND_COUNT - bands.length,
   );
-  const ears = new Map(plan.ears.map(({ key, ear }) => [key, ear]));
+  const ears = new Map(plan.ears.map((change) => [change.key, change]));
   const removed = new Set(plan.removed);
   const next: IEqBandSettings[] = [];
   bands.forEach((band, at) => {
@@ -101,8 +121,10 @@ export const withEarChange = (
     if (removed.has(key)) {
       return;
     }
-    const ear = ears.get(key);
-    next.push(ear === undefined ? band : onEar(band, ear));
+    const change = ears.get(key);
+    const placed =
+      change === undefined ? band : onEar(band, change.ear, change.middle);
+    next.push(at === index ? then(placed) : placed);
     plan.copies
       .filter(({ from }) => from === key)
       .forEach(({ ear: twinEar }) => next.push(onEar(band, twinEar)));

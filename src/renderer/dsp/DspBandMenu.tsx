@@ -69,11 +69,17 @@ const DspBandMenu = ({
       x={x}
       y={y}
       onReset={() =>
-        // Flat where the shape has a gain, as the main EQ's Reset leaves it.
-        onPatch(index, {
-          ...band,
-          ...(NO_GAIN_FILTER_TYPES.includes(filter.type) ? {} : { gainDb: 0 }),
-        })
+        // Flat where the shape has a gain, as the main EQ's Reset leaves it,
+        // and a left + right pair joined back into one band first (Ivan,
+        // 2026-10-13: "reset band does too").
+        onBands(
+          withEarChange(eq.bands, index, 'both', (joined) => ({
+            ...joined,
+            ...(NO_GAIN_FILTER_TYPES.includes(filter.type)
+              ? {}
+              : { gainDb: 0 }),
+          })),
+        )
       }
       onSetEnabled={(_, isEnabled) =>
         onPatch(index, { ...band, enabled: isEnabled })
@@ -81,7 +87,7 @@ const DspBandMenu = ({
       onAddBeside={(_, side) => onAddBeside(index, side)}
       onSetChannel={
         eq.stereo === 'stereo'
-          ? (_, side) => onBands(withEarChange(eq.bands, index, side))
+          ? (_, choice) => onBands(withEarChange(eq.bands, index, choice))
           : undefined
       }
       engineKeepsEarsFrom={engineRackKeepsEars}

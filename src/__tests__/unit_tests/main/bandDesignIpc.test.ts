@@ -236,6 +236,22 @@ describe('band design and clear commands', () => {
     expect(release).not.toHaveBeenCalled();
   });
 
+  // Ivan, 2026-10-13: "reset EQ resets those bands to joined".
+  it('joins every left + right pair back into one band in its middle', async () => {
+    const [first, second] = Object.values(state.filters);
+    first.frequency = 1000;
+    first.channel = 'left';
+    second.frequency = 4000;
+    second.type = first.type;
+    second.channel = 'right';
+    const count = Object.keys(state.filters).length;
+    await send(ChannelEnum.CLEAR_GAINS);
+    expect(Object.keys(state.filters)).toHaveLength(count - 1);
+    expect(state.filters[second.id]).toBeUndefined();
+    expect(state.filters[first.id]).toMatchObject({ frequency: 2000, gain: 0 });
+    expect(state.filters[first.id].channel).toBeUndefined();
+  });
+
   it('flattens sampled points without replacing their frequencies or format', async () => {
     state.eqFormat = AutoEqFormat.GRAPHIC;
     state.graphicEq = [

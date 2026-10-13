@@ -101,7 +101,7 @@ describe('a DSP EQ band kept to one ear', () => {
 
 describe("the DSP EQ band's menu", () => {
   const show = (eq: IEqSettings) => {
-    const onBands = jest.fn();
+    const onBands = jest.fn<void, [IEqBandSettings[]]>();
     render(
       <DspBandMenu
         eq={eq}
@@ -117,12 +117,11 @@ describe("the DSP EQ band's menu", () => {
     return onBands;
   };
 
-  it('splits a band into a twin on the other ear, and Both joins them', () => {
-    // Both ears to the left: the band keeps the left, its twin the right,
-    // the same band beside it.
+  it('splits a band into a left + right pair, and Both joins it in the middle', () => {
+    // Left + right: the band keeps the left, the same band the right, beside it.
     const onSplit = show(eqWith([band(), { ...band(), frequency: 9000 }]));
     fireEvent.click(
-      screen.getByRole('menuitemradio', { name: 'Left ear only' }),
+      screen.getByRole('menuitemradio', { name: 'Left + right' }),
     );
     const [split] = onSplit.mock.calls[0] as [IEqBandSettings[]];
     expect(split.map((one) => [one.frequency, one.ear])).toEqual([
@@ -139,14 +138,21 @@ describe("the DSP EQ band's menu", () => {
     const [joined] = onJoin.mock.calls[0] as [IEqBandSettings[]];
     expect(joined).toHaveLength(1);
     expect('ear' in joined[0]).toBe(false);
-    cleanup();
-    // To the other ear: the twin crosses the other way.
-    const onSwap = show(eqWith(pair));
-    fireEvent.click(
-      screen.getByRole('menuitemradio', { name: 'Right ear only' }),
-    );
-    const [swapped] = onSwap.mock.calls[0] as [IEqBandSettings[]];
-    expect(swapped.map((one) => one.ear)).toEqual(['right', 'left']);
+    // Halfway between 3000 and 3400 Hz as the ear hears it.
+    expect(joined[0].frequency).toBe(3194);
+  });
+
+  it('joins a pair back into one band when the band is reset', () => {
+    const pair = [
+      { ...band('left'), gainDb: 6 },
+      { ...band('right'), frequency: 3400 },
+    ];
+    const onReset = show(eqWith(pair));
+    fireEvent.click(screen.getByText('Reset band'));
+    const [reset] = onReset.mock.calls[0] as [IEqBandSettings[]];
+    expect(reset).toHaveLength(1);
+    expect('ear' in reset[0]).toBe(false);
+    expect(reset[0].gainDb).toBe(0);
   });
 
   it('offers no ear in Mid or Sides, where there is none to keep a band to', () => {

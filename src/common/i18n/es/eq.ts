@@ -317,8 +317,7 @@ const eq: Partial<Dictionary> = {
   'eq.channels.update':
     'El FluidEQ Engine de este equipo toca esta banda en ambos oídos hasta que se instale su actualización.',
   'eq.channels.both': 'Ambos oídos',
-  'eq.channels.left': 'Solo oído izquierdo',
-  'eq.channels.right': 'Solo oído derecho',
+  'eq.channels.split': 'Izquierdo + derecho',
   'eq.channels.letter.left': 'I',
   'eq.channels.letter.right': 'D',
   'graph.curve.voicing': 'Preset',

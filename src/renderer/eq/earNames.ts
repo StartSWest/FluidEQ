@@ -1,4 +1,5 @@
-import type { TBandChannel, TBandSide } from 'common/constants';
+import type { TEarChoice } from 'common/bandEars';
+import type { TBandChannel } from 'common/constants';
 
 /**
  * How each ear is named on screen: a letter where a band's side has to fit
@@ -16,9 +17,8 @@ export const EAR_NAME_KEYS = {
   right: 'graph.curve.rightEar',
 } as const satisfies Record<TBandChannel, string>;
 
-/** The band menu's three lines: "Both ears", "Left ear only", "Right ear only". */
-export const SIDE_MENU_KEYS = {
+/** The band menu's two lines: "Both ears" and "Left + right". */
+export const EAR_CHOICE_KEYS = {
   both: 'eq.channels.both',
-  left: 'eq.channels.left',
-  right: 'eq.channels.right',
-} as const satisfies Record<TBandSide, string>;
+  split: 'eq.channels.split',
+} as const satisfies Record<TEarChoice, string>;

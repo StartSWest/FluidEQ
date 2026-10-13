@@ -310,8 +310,7 @@ const eq: Partial<Dictionary> = {
   'eq.channels.update':
     'इस कंप्यूटर का FluidEQ Engine अपना अपडेट इंस्टॉल होने तक इस बैंड को दोनों कानों में बजाता है।',
   'eq.channels.both': 'दोनों कान',
-  'eq.channels.left': 'केवल बायाँ कान',
-  'eq.channels.right': 'केवल दायाँ कान',
+  'eq.channels.split': 'बायाँ + दायाँ',
   'eq.channels.letter.left': 'बा',
   'eq.channels.letter.right': 'दा',
   'graph.curve.voicing': 'प्रीसेट',

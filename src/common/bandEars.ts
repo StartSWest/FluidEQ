@@ -7,34 +7,51 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { TBandChannel, TBandSide } from './constants';
 
 /**
- * A band kept to one ear leaves its twin on the other (Ivan, 2026-10-13: "if
- * they wanna move x band on the left we still need same band for the right
- * to be available").
+ * A band plays on both ears, or as a pair: one on the left and one on the
+ * right at the same frequency, each moved on its own (Ivan, 2026-10-13: "lets
+ * do both and left + right if user choose left + right for that band then
+ * they can control same freq individual", "if they choose both then it joins
+ * the mid"). Choosing an ear alone is not offered: three lines of left, right
+ * and both read as confusing, and a band on one ear only is a pair whose
+ * other half sits flat.
  *
- * Picking Left ear only on a band on both ears keeps it on the left and adds
- * the same band — shape, frequency, gain, width, switch — on the right, so
- * each ear can then be moved on its own and neither loses what it had.
- * Picking Both ears on either of the two joins them again: the band asked
- * becomes both-eared and its twin goes. Moving a one-ear band to the other
- * ear moves its twin the other way, so the pair stays a pair.
+ * Left + right on a band on both ears keeps it on the left and adds the same
+ * band — shape, frequency, gain, width, switch — on the right. Both ears on
+ * either half joins them in the middle: the frequency halfway on a log scale,
+ * the gain and the width their average, and the other half goes.
  *
- * A twin is not stored as a link: it is the band on the other ear, of the
- * same shape, nearest in frequency (on a log scale, as the graph draws it),
- * and each band is claimed once. Both EQs run this one rule — the main EQ's
- * bands and the DSP rack's — so a pair splits and joins the same in either.
+ * A pair is not stored as a link: a band's twin is the band on the other ear,
+ * of the same shape, nearest in frequency (on a log scale, as the graph draws
+ * it), and each band is claimed once. Both EQs run this one rule — the main
+ * EQ's bands and the DSP rack's — so a pair splits and joins the same in
+ * either.
  */
+
+/** What the band menu offers: one band on both ears, or a pair. */
+export type TEarChoice = 'both' | 'split';
+
+export const EAR_CHOICES: readonly TEarChoice[] = ['both', 'split'];
 
 /** What the rule needs of a band, whichever EQ it belongs to. */
 export interface IEarBand {
   key: string;
   frequency: number;
+  gain: number;
+  quality: number;
   type: string;
   ear?: TBandChannel;
 }
 
+/** Where a pair is joined: the values the joined band takes. */
+export interface IEarMiddle {
+  frequency: number;
+  gain: number;
+  quality: number;
+}
+
 export interface IEarPlan {
   /** Bands whose ear changes, to `ear` (`both` takes the ear away). */
-  ears: { key: string; ear: TBandSide }[];
+  ears: { key: string; ear: TBandSide; middle?: IEarMiddle }[];
   /** New twins: a copy of `from` on `ear`. */
   copies: { from: string; ear: TBandChannel }[];
   /** Twins joined back into the band asked. */
@@ -43,6 +60,18 @@ export interface IEarPlan {
 
 export const otherEar = (ear: TBandChannel): TBandChannel =>
   ear === 'left' ? 'right' : 'left';
+
+/** What a band's menu shows ticked: both ears, a pair, or nothing when mixed. */
+export const earChoiceOf = (
+  bands: readonly { channel?: TBandChannel }[],
+): TEarChoice | undefined => {
+  if (bands.every((band) => band.channel === undefined)) {
+    return 'both';
+  }
+  return bands.every((band) => band.channel !== undefined)
+    ? 'split'
+    : undefined;
+};
 
 /**
  * The twin of `band`: on the other ear, the same shape, nearest in
@@ -78,50 +107,58 @@ const twinOf = (
 };
 
 /**
- * What putting `targets` on `side` does to the rack. `room` is how many
- * bands the rack can still take: past it a band is kept to its ear without
- * a twin, which is what it did before twins existed.
+ * The middle of a pair: halfway in frequency as the ear hears it (the
+ * geometric mean), and the average gain and width — rounded to the steps the
+ * editor shows, a whole hertz, a tenth of a decibel, a hundredth of Q.
+ */
+const middleOf = (a: IEarBand, b: IEarBand): IEarMiddle => ({
+  frequency: Math.round(Math.sqrt(a.frequency * b.frequency)),
+  gain: Math.round(((a.gain + b.gain) / 2) * 10) / 10,
+  quality: Math.round(((a.quality + b.quality) / 2) * 100) / 100,
+});
+
+/**
+ * What choosing `choice` for `targets` does to the EQ. `room` is how many
+ * bands it can still take: a band with no room for its twin stays on both
+ * ears, because half of a pair alone would silence that band on one ear.
  */
 export const planEarChange = (
   bands: readonly IEarBand[],
   targets: readonly string[],
-  side: TBandSide,
+  choice: TEarChoice,
   room: number,
 ): IEarPlan => {
   const plan: IEarPlan = { ears: [], copies: [], removed: [] };
-  // The bands asked are never one another's twin, and no twin serves twice.
-  const claimed = new Set(targets);
+  // Every band already joined or split here, so none is handled twice: a
+  // selection holding both halves of a pair joins it once.
+  const handled = new Set<string>();
   let left = room;
   targets.forEach((key) => {
     const band = bands.find((one) => one.key === key);
-    if (band === undefined || (band.ear ?? 'both') === side) {
+    if (band === undefined || handled.has(key)) {
       return;
     }
-    if (side === 'both') {
-      // Joined: the twin's work is this band's now, on both ears.
-      plan.ears.push({ key, ear: 'both' });
-      const twin = twinOf(bands, band, claimed);
-      if (twin) {
-        claimed.add(twin.key);
-        plan.removed.push(twin.key);
+    handled.add(key);
+    if (choice === 'split') {
+      if (band.ear !== undefined || left === 0) {
+        return;
       }
+      left -= 1;
+      plan.ears.push({ key, ear: 'left' });
+      plan.copies.push({ from: key, ear: 'right' });
       return;
     }
     if (band.ear === undefined) {
-      plan.ears.push({ key, ear: side });
-      if (left > 0) {
-        left -= 1;
-        plan.copies.push({ from: key, ear: otherEar(side) });
-      }
       return;
     }
-    // From one ear to the other: the twin crosses the other way.
-    plan.ears.push({ key, ear: side });
-    const twin = twinOf(bands, band, claimed);
-    if (twin) {
-      claimed.add(twin.key);
-      plan.ears.push({ key: twin.key, ear: otherEar(side) });
+    const twin = twinOf(bands, band, handled);
+    if (twin === undefined) {
+      plan.ears.push({ key, ear: 'both' });
+      return;
     }
+    handled.add(twin.key);
+    plan.ears.push({ key, ear: 'both', middle: middleOf(band, twin) });
+    plan.removed.push(twin.key);
   });
   return plan;
 };
