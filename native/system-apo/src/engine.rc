@@ -79,6 +79,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *   1.21 reads `Channel:` and runs each band on the channels it names: a band
  *        kept to one ear plays on that ear (`ENGINE_CHANNELS_SINCE`). Every
  *        engine before read the line and ignored it, playing it on both.
+ *   1.22 plays a DSP rack band on the ear it names, carried in the band's
+ *        switch word (`ENGINE_RACK_EARS_SINCE`). Every engine before read the
+ *        word as on and played the band on both ears.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -90,8 +93,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 21, 0, 0
-PRODUCTVERSION 1, 21, 0, 0
+FILEVERSION 1, 22, 0, 0
+PRODUCTVERSION 1, 22, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

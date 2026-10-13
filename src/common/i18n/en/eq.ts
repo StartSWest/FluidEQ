@@ -325,7 +325,7 @@ const eq = {
   'graph.curve.leftEar': 'Left ear',
   'graph.curve.rightEar': 'Right ear',
   'eq.channels.update':
-    'The FluidEQ Engine on this computer plays every band on both ears until its update is installed. Equalizer APO plays them apart already.',
+    'The FluidEQ Engine on this computer plays this band on both ears until its update is installed.',
   'eq.channels.both': 'Both ears',
   'eq.channels.left': 'Left ear only',
   'eq.channels.right': 'Right ear only',

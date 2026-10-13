@@ -203,6 +203,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// A band kept to one ear: the ear's letter beside its number, the tag its
+// handle carries on the graph and a main EQ band's slider. Beside rather than
+// over it: at 26px a corner tag covered the digit, and the dynamic dot keeps
+// the top-right corner. The button grows to hold both.
+.dsp-eq-pick:has(.dsp-eq-pick__ear) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: auto;
+  min-width: 26px;
+  padding: 0 4px;
+}
+
+.dsp-eq-pick__ear {
+  min-width: 13px;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: $secondary-light;
+  color: $surface-base;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  line-height: 13px;
+  text-align: center;
+  pointer-events: none;
+}
+
 .dsp-eq-pick.is-active {
   border-color: color-mix(in srgb, $secondary-default 65%, transparent);
   background: color-mix(in srgb, $secondary-default 22%, transparent);

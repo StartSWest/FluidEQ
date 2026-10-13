@@ -84,6 +84,16 @@ typedef struct FeqChainEqBand {
   double gain_db;
   double quality;
   double threshold_db;
+  /**
+   * The one ear the band plays on: 0 both, 1 left, 2 right (Ivan,
+   * 2026-10-13, "EQ per ear"). Carried in the band's switch word on the
+   * wire — 1 both, 2 left, 3 right — so an engine before it reads any of
+   * them as on and plays the band on both ears. Heard only on a stereo
+   * arrangement of two channels or more, where the left is the first
+   * channel and the right the second; in Mid or Sides, and on a mono
+   * stream, every band is on both (`chain_band_ear`).
+   */
+  int ear;
 } FeqChainEqBand;
 
 typedef struct FeqChainExciterBand {

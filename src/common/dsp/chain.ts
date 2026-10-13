@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { clampCrossfadeShape } from './crossfadeShape';
 
 import { isTrebleDesign } from '../filterDesign';
+import { isBandChannel } from '../constants';
 
 import {
   CROSSFADE_CURVES,
@@ -238,6 +239,8 @@ const clampEqBand = (
       RANGES.eqThresholdDb,
       fallback.thresholdDb,
     ),
+    // Kept only as one of the two ears; anything else is both, and absent.
+    ...(isBandChannel(value.ear) ? { ear: value.ear } : {}),
   };
 };
 

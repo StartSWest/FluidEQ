@@ -36,6 +36,9 @@ uint32_t live_band_count(const FeqChain* chain) {
   return static_cast<uint32_t>(chain->active->bands.size());
 }
 
+/** A filter that passes the sound exactly: a band where it is not heard. */
+constexpr FeqBiquadCoefficients kIdentity{1.0, 0.0, 0.0, 0.0, 0.0};
+
 /** Capture this EQ domain's isolate references at exact unity input. */
 bool prepare_eq_channel(FeqChain* chain,
                         float* target,
@@ -202,6 +205,16 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
     for (uint32_t channel = 0; channel < channel_count; ++channel) {
       chain_eq_fade_capture(chain, channel, channels[channel], frames);
     }
+    // Each channel's filters: the rack's own, or — with a band kept to one
+    // ear — that channel's copy, with the identity where the band is not
+    // heard (`chain_refresh_eq`).
+    const FeqChain::ChainCoefficients& set = *chain->active;
+    const FeqBiquadCoefficients* each[FEQ_CHAIN_MAX_CHANNELS] = {};
+    for (uint32_t channel = 0; channel < channel_count; ++channel) {
+      each[channel] = set.has_ears != 0
+                          ? set.ear_bands[ear_array_of(channel)].data()
+                          : set.bands.data();
+    }
     if (chain->active->has_subsonic != 0) {
       for (uint32_t channel = 0; channel < channel_count; ++channel) {
         feq_biquad_process(&chain->slots[channel].subsonic, channels[channel],
@@ -219,12 +232,11 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
       for (uint32_t channel = 0; channel < channel_count; ++channel) {
         oversamplers[channel] = chain->slots[channel].eq_oversampler;
       }
-      feq_eq_process_oversampled_linked(
-          chain->band_states.data(), FeqChain::kBandStride,
-          chain->active->bands.data(), live, channels,
-          channel_count, frames, eq.engine, oversamplers, eq.oversample,
-          chain->pointers_a, chain->pointers_b, chain->pointers_c,
-          chain->pointers_d,
+      feq_eq_process_oversampled_linked_each(
+          chain->band_states.data(), FeqChain::kBandStride, each, live,
+          channels, channel_count, frames, eq.engine, oversamplers,
+          eq.oversample, chain->pointers_a, chain->pointers_b,
+          chain->pointers_c, chain->pointers_d,
           live == 0 ? nullptr : chain->band_dynamics.data());
       for (uint32_t channel = 0; channel < channel_count; ++channel) {
         chain->slots[channel].eq_oversampler = oversamplers[channel];
@@ -234,10 +246,9 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
         chain->pointers_a[channel] = chain->linked_dry[channel].data();
         chain->pointers_b[channel] = chain->linked_wet[channel].data();
       }
-      feq_eq_process_bands_linked(
-          chain->band_states.data(), FeqChain::kBandStride,
-          chain->active->bands.data(), live, channels,
-          channel_count, frames, eq.engine, chain->pointers_a,
+      feq_eq_process_bands_linked_each(
+          chain->band_states.data(), FeqChain::kBandStride, each, live,
+          channels, channel_count, frames, eq.engine, chain->pointers_a,
           chain->pointers_b,
           live == 0 ? nullptr : chain->band_dynamics.data());
     }
@@ -268,6 +279,15 @@ void process_eq_stereo(FeqChain* chain, float* const* channels,
 }
 
 }  // namespace
+
+int chain_band_ear(const FeqChain* chain, const FeqChainEqBand& band) {
+  if (band.ear != 1 && band.ear != 2) {
+    return 0;
+  }
+  return chain->settings.eq.stereo == FEQ_STEREO_STEREO && chain->channels >= 2
+             ? band.ear
+             : 0;
+}
 
 void chain_refresh_eq(FeqChain* chain) {
   const FeqChainEqSettings& eq = chain->settings.eq;
@@ -307,9 +327,14 @@ void chain_refresh_eq(FeqChain* chain) {
   built.bands.clear();
   built.dynamic.clear();
   built.identity.clear();
+  built.has_ears = 0;
+  for (auto& ear_bands : built.ear_bands) {
+    ear_bands.clear();
+  }
   std::fill(built.live_of, built.live_of + FEQ_CHAIN_MAX_EQ_BANDS, -1);
   std::fill(built.dynamic_of, built.dynamic_of + FEQ_CHAIN_MAX_EQ_BANDS, -1);
   std::vector<const FeqChainEqBand*> live;
+  std::vector<int> ears;
   const uint32_t settings_count = eq.band_count > FEQ_CHAIN_MAX_EQ_BANDS
                                       ? FEQ_CHAIN_MAX_EQ_BANDS
                                       : eq.band_count;
@@ -320,6 +345,9 @@ void chain_refresh_eq(FeqChain* chain) {
     }
     built.live_of[index] = static_cast<int32_t>(live.size());
     live.push_back(&band);
+    const int ear = chain_band_ear(chain, band);
+    ears.push_back(ear);
+    built.has_ears = ear != 0 ? 1 : built.has_ears;
     built.bands.push_back(feq_biquad_coefficients_designed(
         band.type, band.frequency, band.gain_db, band.quality, design_rate,
         eq.model, eq.model_amount, eq.matched));
@@ -329,7 +357,10 @@ void chain_refresh_eq(FeqChain* chain) {
     identity.quality = band.quality;
     identity.dynamic = band.dynamic != 0 ? 1 : 0;
     built.identity.push_back(identity);
-    if (band.dynamic != 0) {
+    // Left out of a linear-phase kernel and run after it: a dynamic band,
+    // and a band kept to one ear, because the kernel is one filter for every
+    // channel (`describe_dynamic_bands`).
+    if (band.dynamic != 0 || ear != 0) {
       built.dynamic_of[index] = static_cast<int32_t>(built.dynamic.size());
       // Built at the base rate, not the design rate: these run after the
       // convolution, which is base rate, and never inside the oversampler.
@@ -338,6 +369,22 @@ void chain_refresh_eq(FeqChain* chain) {
           chain->sample_rate, eq.model, eq.model_amount, eq.matched));
     }
   }
+  // Each channel's copy, with the identity where a band is not heard: the
+  // left channel's, the right's, and every other channel's (`kEarArrays`),
+  // which take only the bands on both ears.
+  if (built.has_ears != 0) {
+    for (uint32_t array = 0; array < kEarArrays; ++array) {
+      built.ear_bands[array].reserve(built.bands.size());
+      for (size_t index = 0; index < built.bands.size(); ++index) {
+        const bool heard =
+            array < 2 ? chain_ear_on_channel(ears[index], array)
+                      : ears[index] == 0;
+        built.ear_bands[array].push_back(heard ? built.bands[index]
+                                               : kIdentity);
+      }
+    }
+  }
+
   // How the cascade runs this set, for the fade from the one before it
   // (`chain_eq_fade.cpp`); numbered like the tone, so the audio thread sees
   // it came.

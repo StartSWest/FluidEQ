@@ -288,7 +288,12 @@ int feq_chain_settings_decode(const double* values,
     return 0;
   }
   for (uint32_t band = 0; band < out->eq.band_count; ++band) {
-    out->eq.bands[band].enabled = flag();
+    // The switch word carries the ear (`FeqChainEqBand::ear`): 1 both, 2
+    // left, 3 right. Any other non-zero word is on, on both ears, which is
+    // what every engine before the ear made of it.
+    const double on = next();
+    out->eq.bands[band].enabled = on != 0.0 ? 1 : 0;
+    out->eq.bands[band].ear = on == 2.0 ? 1 : (on == 3.0 ? 2 : 0);
     out->eq.bands[band].type =
         static_cast<FeqFilterType>(static_cast<int>(next()));
     out->eq.bands[band].frequency = next();

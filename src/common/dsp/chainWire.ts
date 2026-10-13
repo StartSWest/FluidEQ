@@ -30,6 +30,7 @@ import {
   EQ_PHASE_MODES,
   EQ_STEREO_MODES,
   IDspSettings,
+  IEqBandSettings,
   DSP_DEFAULTS,
   ROOM_HEADS,
   ROOM_PRESETS,
@@ -121,6 +122,22 @@ export const CHAIN_FILTER_TYPES: readonly FilterTypeEnum[] = [
   FilterTypeEnum.HPQ,
   FilterTypeEnum.BP,
 ];
+
+/**
+ * A band's switch word: 0 off, and on as 1 for both ears, 2 for the left and
+ * 3 for the right (`FeqChainEqBand::ear`). Every engine reads a non-zero word
+ * as on, so one before the ear plays the band on both ears rather than
+ * refusing the rack, and no band's offset moves.
+ */
+const bandSwitchWord = (band: IEqBandSettings): number => {
+  if (!band.enabled) {
+    return 0;
+  }
+  if (band.ear === 'left') {
+    return 2;
+  }
+  return band.ear === 'right' ? 3 : 1;
+};
 
 export const encodeChainSettings = (settings: IDspSettings): number[] => {
   const {
@@ -309,7 +326,7 @@ export const encodeChainSettings = (settings: IDspSettings): number[] => {
   }
   eq.bands.forEach((band) => {
     values.push(
-      band.enabled ? 1 : 0,
+      bandSwitchWord(band),
       CHAIN_FILTER_TYPES.indexOf(band.type as FilterTypeEnum),
       band.frequency,
       band.gainDb,

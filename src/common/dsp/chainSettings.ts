@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { TBandChannel } from '../constants';
 import { TTrebleDesign } from '../filterDesign';
 import {
   IBassForgeSettings,
@@ -120,6 +121,15 @@ export interface IEqBandSettings {
    * controls fight and neither can be set.
    */
   thresholdDb: number;
+  /**
+   * The one ear the band plays on, picked in its menu; absent is both, which
+   * is every rack before the choice existed (Ivan, 2026-10-13, "EQ per
+   * ear"). Heard only while the EQ applies to Stereo: Mid and Sides have no
+   * left or right to keep a band to. It travels in the band's switch word
+   * (`chainWire.ts`), which an engine before 1.22 reads as on, playing the
+   * band on both ears.
+   */
+  ear?: TBandChannel;
 }
 
 /**

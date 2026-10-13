@@ -287,6 +287,16 @@ export const ENGINE_CHANNELS_SINCE: readonly [number, number] = [1, 21];
 export const engineKeepsEars = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_CHANNELS_SINCE);
 
+/**
+ * The DSP rack's EQ plays a band on the ear it names (`FeqChainEqBand::ear`,
+ * carried in the band's switch word). An engine before reads the word as on
+ * and plays the band on both ears; the Library's host is built with the app
+ * and always has it.
+ */
+export const ENGINE_RACK_EARS_SINCE: readonly [number, number] = [1, 22];
+export const engineRackKeepsEars = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_RACK_EARS_SINCE);
+
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];
 export const engineSupportsRoomUpgrade = (

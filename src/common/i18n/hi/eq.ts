@@ -308,7 +308,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.leftEar': 'बायाँ कान',
   'graph.curve.rightEar': 'दायाँ कान',
   'eq.channels.update':
-    'इस कंप्यूटर का FluidEQ Engine अपना अपडेट इंस्टॉल होने तक हर बैंड दोनों कानों में बजाता है। Equalizer APO उन्हें पहले से अलग बजाता है।',
+    'इस कंप्यूटर का FluidEQ Engine अपना अपडेट इंस्टॉल होने तक इस बैंड को दोनों कानों में बजाता है।',
   'eq.channels.both': 'दोनों कान',
   'eq.channels.left': 'केवल बायाँ कान',
   'eq.channels.right': 'केवल दायाँ कान',

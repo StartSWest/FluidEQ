@@ -292,7 +292,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.leftEar': '左耳',
   'graph.curve.rightEar': '右耳',
   'eq.channels.update':
-    '在安装更新之前，此电脑上的 FluidEQ Engine 会在两只耳朵播放每个频段。Equalizer APO 已经可以分开播放。',
+    '在安装更新之前，此电脑上的 FluidEQ Engine 会在两只耳朵播放此频段。',
   'eq.channels.both': '双耳',
   'eq.channels.left': '仅左耳',
   'eq.channels.right': '仅右耳',

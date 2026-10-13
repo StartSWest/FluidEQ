@@ -20,6 +20,8 @@ import {
   ENGINE_SPLIT_SINCE,
   ENGINE_CHANNELS_SINCE,
   engineKeepsEars,
+  ENGINE_RACK_EARS_SINCE,
+  engineRackKeepsEars,
   ENGINE_STATUS_SINCE,
   engineAtLeast,
   engineReportsCarried,
@@ -190,6 +192,14 @@ describe('the engine this tree builds', () => {
     expect(engineKeepsEars(binaryVersion('FILEVERSION'))).toBe(true);
     const [major, minor] = ENGINE_CHANNELS_SINCE;
     expect(engineKeepsEars(`${major}.${minor - 1}.0.0`)).toBe(false);
+  });
+
+  it('plays a rack band on the ear it is kept to, which an engine a version older cannot', () => {
+    // Older engines read the band's switch word as on and played it on both
+    // ears: the band menu says so rather than leaving it to be found by ear.
+    expect(engineRackKeepsEars(binaryVersion('FILEVERSION'))).toBe(true);
+    const [major, minor] = ENGINE_RACK_EARS_SINCE;
+    expect(engineRackKeepsEars(`${major}.${minor - 1}.0.0`)).toBe(false);
   });
 
   it('says the same version in both of its fields', () => {

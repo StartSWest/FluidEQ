@@ -316,7 +316,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.leftEar': 'Oreille gauche',
   'graph.curve.rightEar': 'Oreille droite',
   'eq.channels.update':
-    'Le FluidEQ Engine de cet ordinateur joue chaque bande sur les deux oreilles jusqu’à l’installation de sa mise à jour. Equalizer APO les sépare déjà.',
+    'Le FluidEQ Engine de cet ordinateur joue cette bande sur les deux oreilles jusqu’à l’installation de sa mise à jour.',
   'eq.channels.both': 'Les deux oreilles',
   'eq.channels.left': 'Oreille gauche seule',
   'eq.channels.right': 'Oreille droite seule',

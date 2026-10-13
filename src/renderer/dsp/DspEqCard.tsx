@@ -19,7 +19,10 @@ import LabelledKnob from '../components/LabelledKnob';
 import FILTER_TYPE_NAME_KEYS from '../utils/filterTypeNames';
 import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
+import { EAR_LETTER_KEYS, EAR_NAME_KEYS } from '../eq/earNames';
+import DspBandMenu from './DspBandMenu';
 import DspEqGraph from './DspEqGraph';
+import { rackPlaysEars } from './dspEqEars';
 import DspEqLegend from './DspEqLegend';
 import DspFilterShapeIcon from './DspFilterShapeIcon';
 import DspPhaseMeter from './DspPhaseMeter';
@@ -64,6 +67,10 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
   const { t } = useTranslation();
   const matched = rackPlaysMatched(eq.treble, useRackTreble());
   const [selected, setSelected] = useState(0);
+  /** The band menu, opened by a right-click on a handle or a band's number. */
+  const [menu, setMenu] = useState<
+    { index: number; x: number; y: number } | undefined
+  >();
   /** Survives a deselection, so the strip has something to show. */
   const lastPicked = useRef(0);
   // Clamped rather than stored clamped: the rack can shrink under the
@@ -105,11 +112,11 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
    * changed the sound the moment it appeared would be a second edit nobody
    * asked for.
    */
-  const addBand = (side: 'left' | 'right') => {
-    if (eq.bands.length >= EQ_MAX_BAND_COUNT) {
+  const addBand = (beside: number, side: 'left' | 'right') => {
+    if (eq.bands.length >= EQ_MAX_BAND_COUNT || beside < 0) {
       return;
     }
-    const at = side === 'left' ? active : active + 1;
+    const at = side === 'left' ? beside : beside + 1;
     const before = eq.bands[at - 1];
     const after = eq.bands[at];
     let frequency: number;
@@ -130,7 +137,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
       type: FilterTypeEnum.PK,
       frequency: Math.round(Math.min(20_000, Math.max(20, frequency))),
       gainDb: 0,
-      quality: band.quality,
+      quality: eq.bands[beside]?.quality ?? band.quality,
     };
     const bands = [...eq.bands.slice(0, at), inserted, ...eq.bands.slice(at)];
     onChange({
@@ -148,9 +155,12 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
   };
 
   const patchBand = (index: number, next: Partial<IEqBandSettings>) => {
-    const bands = eq.bands.map((one, at) =>
-      at === index ? { ...one, ...next } : one,
-    );
+    replaceBand(index, { ...eq.bands[index], ...next });
+  };
+
+  /** One band whole: what the band menu hands back, an ear taken off too. */
+  function replaceBand(index: number, next: IEqBandSettings) {
+    const bands = eq.bands.map((one, at) => (at === index ? next : one));
     onChange({
       ...eq,
       // Any hand-made change means the curve is no longer the preset it came
@@ -162,7 +172,9 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
       // since moved away from.
       sourceBands: bands,
     });
-  };
+  }
+
+  const twoEared = rackPlaysEars(eq);
 
   return (
     <div className="dsp-eq">
@@ -179,6 +191,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
           onSelect={setSelected}
           onChange={patchBand}
           onCommit={onCommit}
+          onMenu={(index, x, y) => setMenu({ index, x, y })}
         />
         <DspEqLegend
           hasDynamic={eq.bands.some(
@@ -212,11 +225,39 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
               one.enabled ? '' : ' is-off'
             }${one.dynamic ? ' is-dynamic' : ''}`}
             onClick={() => setSelected(index)}
+            onContextMenu={(event) => {
+              event.preventDefault();
+              setSelected(index);
+              setMenu({ index, x: event.clientX, y: event.clientY });
+            }}
           >
             {index + 1}
+            {/* The ear's letter, as its handle on the graph carries it. */}
+            {twoEared && one.ear && (
+              <span
+                className="dsp-eq-pick__ear"
+                title={t(EAR_NAME_KEYS[one.ear])}
+              >
+                {t(EAR_LETTER_KEYS[one.ear])}
+              </span>
+            )}
           </button>
         ))}
       </div>
+      {menu && (
+        <DspBandMenu
+          eq={eq}
+          index={menu.index}
+          x={menu.x}
+          y={menu.y}
+          onPatch={(index, next) => {
+            replaceBand(index, next);
+            onCommit();
+          }}
+          onAddBeside={(index, side) => addBand(index, side)}
+          onClose={() => setMenu(undefined)}
+        />
+      )}
 
       {/* Two deliberate rows with one centred axis: global controls and phase
           above, then the selected band's controls below. */}
@@ -408,7 +449,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
                 className="button small subtle"
                 disabled={eq.bands.length >= EQ_MAX_BAND_COUNT}
                 title={t('dsp.eq.addLeft')}
-                onClick={() => addBand('left')}
+                onClick={() => addBand(active, 'left')}
               >
                 + ◀
               </button>
@@ -417,7 +458,7 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
                 className="button small subtle"
                 disabled={eq.bands.length >= EQ_MAX_BAND_COUNT}
                 title={t('dsp.eq.addRight')}
-                onClick={() => addBand('right')}
+                onClick={() => addBand(active, 'right')}
               >
                 ▶ +
               </button>
