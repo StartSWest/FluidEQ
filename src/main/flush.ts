@@ -32,6 +32,7 @@ import readTextCached from './cachedRead';
 import {
   AutoEqFormat,
   FilterTypeEnum,
+  isBandChannel,
   APO_LAYERS,
   TApoLayer,
   clampGain,
@@ -167,6 +168,9 @@ const normalizeFilter = (
     // the file, including a hand-edited `true`, comes back as the band being
     // on, which is what every state written before the switch existed means.
     ...(filter.isEnabled === false ? { isEnabled: false } : {}),
+    // Kept only as one of the two ears: anything else is a band that plays
+    // on both, which is what every band written before the choice did.
+    ...(isBandChannel(filter.channel) ? { channel: filter.channel } : {}),
   };
 };
 
@@ -393,6 +397,7 @@ export const fetchSettings = (settingsDir: string) => {
       ...(typeof input.isFlat === 'boolean' ? { isFlat: input.isFlat } : {}),
       ...(convolution ? { convolution } : {}),
       ...(tone ? { tone } : {}),
+      ...(input.channelsApart === true ? { channelsApart: true } : {}),
       ...(voicing ? { voicing } : {}),
       ...(driver ? { driver } : {}),
       ...(smartEq ? { smartEq } : {}),
@@ -430,6 +435,7 @@ export const fetchSettings = (settingsDir: string) => {
       smartHeadroomTrimDb,
       songSoundLoan,
       tone: storedTone,
+      channelsApart,
       ...persisted
     } = input;
     // Within the dials' travel, whatever the file says.
@@ -439,6 +445,8 @@ export const fetchSettings = (settingsDir: string) => {
       ...persisted,
       ...restoreOutputSound(input),
       ...(tone ? { tone } : {}),
+      // Only a real `true` sets them apart; anything else is linked.
+      ...(channelsApart === true ? { channelsApart: true } : {}),
       preAmp: clampPreAmp(input.preAmp),
       filters: normalizeFilters(input.filters),
       ...(Array.isArray(input.graphicEq)

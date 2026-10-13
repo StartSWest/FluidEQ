@@ -14,6 +14,7 @@ import {
   clampFrequency,
   clampGain,
   clampQuality,
+  isBandChannel,
   isBandEnabled,
 } from './constants';
 import { ISongIdentity } from './songIdentity';
@@ -76,10 +77,8 @@ const toFilter = (id: string, value: unknown): IFilter | undefined => {
   if (typeof value !== 'object' || value === null) {
     return undefined;
   }
-  const { frequency, gain, quality, type, isEnabled } = value as Record<
-    string,
-    unknown
-  >;
+  const { frequency, gain, quality, type, isEnabled, channel } =
+    value as Record<string, unknown>;
   if (
     typeof frequency !== 'number' ||
     typeof gain !== 'number' ||
@@ -96,6 +95,7 @@ const toFilter = (id: string, value: unknown): IFilter | undefined => {
     quality: clampQuality(quality),
     type: type as FilterTypeEnum,
     ...(isEnabled === false ? { isEnabled: false } : {}),
+    ...(isBandChannel(channel) ? { channel } : {}),
   };
 };
 

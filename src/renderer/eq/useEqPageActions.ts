@@ -29,6 +29,7 @@ import {
   MIN_FREQUENCY,
   MIN_NUM_FILTERS,
   NO_GAIN_FILTER_TYPES,
+  TBandSide,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import {
@@ -63,6 +64,8 @@ const useEqPageActions = (bands: TEqPageBands) => {
     bandsRef,
     selectionBox,
     setSelectionBox,
+    channelsApart,
+    editingEar,
   } = bands;
   const getSelectionPoint = (event: PointerEvent<HTMLDivElement>) => {
     const bounds = bandsRef.current?.getBoundingClientRect();
@@ -271,6 +274,33 @@ const useEqPageActions = (bands: TEqPageBands) => {
     }
   };
 
+  /**
+   * Which ear bands play on: one of the two, or both again. Like the on and
+   * off switch above, absolute across a selection.
+   */
+  const setFiltersChannel = async (ids: readonly string[], side: TBandSide) => {
+    const edits: IFilterEdit[] = ids.map((id) => ({ id, channel: side }));
+    if (edits.length === 0) {
+      return;
+    }
+    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+    try {
+      await setFilterValues(edits);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
+  /**
+   * A band added while one ear is being edited is that ear's: added on Left,
+   * it would otherwise move the right ear the page has just drawn back.
+   */
+  const landOnEditingEar = async (id: string) => {
+    if (channelsApart && editingEar !== 'both') {
+      await setFiltersChannel([id], editingEar);
+    }
+  };
+
   const addFilter = async () => {
     if (frequencySortedFilters.length >= MAX_NUM_FILTERS) {
       return;
@@ -307,6 +337,7 @@ const useEqPageActions = (bands: TEqPageBands) => {
           id,
           frequency,
         });
+        await landOnEditingEar(id);
       } catch (e) {
         setGlobalError(e as ErrorDescription);
       }
@@ -372,6 +403,7 @@ const useEqPageActions = (bands: TEqPageBands) => {
         id,
         frequency: boundedFrequency,
       });
+      await landOnEditingEar(id);
       // The new band is the one being worked on now.
       setSelectedFilterIds([id]);
     } catch (e) {
@@ -510,6 +542,7 @@ const useEqPageActions = (bands: TEqPageBands) => {
     addFilter,
     addFilterBeside,
     setFiltersEnabled,
+    setFiltersChannel,
     resetFilters,
     bandMenu,
     setBandMenu,

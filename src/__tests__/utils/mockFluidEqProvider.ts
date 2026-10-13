@@ -35,6 +35,10 @@ const defaultFluidEqContext: IFluidEqContext = {
   driver: undefined,
   setDriver: () => {},
   setHeadphone: () => {},
+  channelsApart: false,
+  setChannelsApart: () => {},
+  editingEar: 'both',
+  setEditingEar: () => {},
   // Nothing switched off, which is what a test that has not said otherwise is
   // describing.
   bypassed: [],

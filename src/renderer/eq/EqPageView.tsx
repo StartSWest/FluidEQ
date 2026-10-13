@@ -29,6 +29,7 @@ import {
   MIN_GAIN,
   MIN_NUM_FILTERS,
   MIN_QUALITY,
+  type TBandSide,
 } from 'common/constants';
 import { CSSProperties } from 'react';
 import Spinner from '../icons/Spinner';
@@ -74,6 +75,7 @@ import { TONE_CONTROLS } from './useTone';
 import { TONE_MAX_DB } from '../../common/tone';
 import { type TEqPageBands } from './useEqPageBands';
 import { type TEqPageActions } from './useEqPageActions';
+import EarPicker from './EarPicker';
 
 type TEqPageViewProps = {
   bands: TEqPageBands;
@@ -89,6 +91,8 @@ type TEqPageViewProps = {
 const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
   const {
     filters,
+    channelsApart,
+    editingEar,
     isLoading,
     isBlockingError,
     selectedFilterIds,
@@ -153,6 +157,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
     addFilter,
     addFilterBeside,
     setFiltersEnabled,
+    setFiltersChannel,
     resetFilters,
     bandMenu,
     setBandMenu,
@@ -193,6 +198,16 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
           onReset={resetFilters}
           onSetEnabled={setFiltersEnabled}
           onAddBeside={addFilterBeside}
+          onSetChannel={
+            channelsApart
+              ? (targets: readonly IFilter[], side: TBandSide) => {
+                  setFiltersChannel(
+                    targets.map((one) => one.id),
+                    side,
+                  ).catch(() => undefined);
+                }
+              : undefined
+          }
           onClose={() => setBandMenu(undefined)}
         />
       )}
@@ -409,6 +424,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
               ticked on, it counted out the two minutes, and it committed
               nothing at the end of them. */}
             {isContinuousRunning && <SongEqSaveSwitch id="songEqSave" />}
+            <EarPicker />
             <EqPageModeSelect />
             {/* The band count and its plus, as one "15 bands, +". Its word
               stays under the page's own title and goes above the graph,
@@ -510,6 +526,13 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
                   density={density}
                   flatLayout
                   isSelected={selectedFilterIds.includes(filter.id)}
+                  ear={channelsApart ? filter.channel : undefined}
+                  isOtherEar={
+                    channelsApart &&
+                    filter.channel !== undefined &&
+                    editingEar !== 'both' &&
+                    editingEar !== filter.channel
+                  }
                   onSelect={handleBandSelect}
                   isHovered={hoveredFilterId === filter.id}
                   onHover={handleBandHover}

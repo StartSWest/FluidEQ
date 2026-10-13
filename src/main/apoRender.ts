@@ -40,6 +40,7 @@ import {
   MAX_GAIN,
   TApoFeature,
   TApoLayer,
+  TBandChannel,
 } from '../common/constants';
 import { getVoicingFilters, getVoicingGraphicEq } from '../common/voicing';
 import { getDriverFilters, getDriverGraphicEq } from '../common/driver';
@@ -180,9 +181,16 @@ const resolvePreAmp = (
     ]);
   }
 
-  const response = {
+  const response = (ear?: TBandChannel) => ({
     filters: [
-      ...writtenFilters,
+      // One ear's chain at a time when a band is kept to one ear: the two
+      // ears never hear each other's bands, so summing them would reserve
+      // room for a boost neither ear gets.
+      ...(ear
+        ? writtenFilters.filter(
+            (filter) => filter.channel === undefined || filter.channel === ear,
+          )
+        : writtenFilters),
       ...convolutionFilters,
       ...(getCurveEqMode(state) === 'double' ? convolutionFilters : []),
       ...customFilters,
@@ -236,7 +244,7 @@ const resolvePreAmp = (
         : []),
     ],
     constantGain: customFx?.preAmp ?? 0,
-  };
+  });
 
   /*
    * ONE SWITCH, AND ON MEANS BOTH HALVES OF IT.
@@ -260,15 +268,27 @@ const resolvePreAmp = (
    * opens all behave precisely like the auto-normalize that shipped, by
    * construction rather than by a special case written here.
    */
-  return getSmartPreAmpGain(
-    response,
-    state.smartHeadroomProgramme ?? [],
-    state.smartHeadroomTrimDb ?? 0,
-  );
+  const preAmpFor = (ear?: TBandChannel) =>
+    getSmartPreAmpGain(
+      response(ear),
+      state.smartHeadroomProgramme ?? [],
+      state.smartHeadroomTrimDb ?? 0,
+    );
+  // One preamp for both ears, so it is the louder ear's: the other ear is
+  // turned down by the same amount and keeps its balance against it.
+  return writtenFilters.some((filter) => filter.channel !== undefined)
+    ? Math.min(preAmpFor('left'), preAmpFor('right'))
+    : preAmpFor();
 };
 
-/** A filter stripped to the four things a config line is made of. */
-type TChainFilter = Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>;
+/**
+ * A filter stripped to what a config line is made of: its four numbers, and
+ * the one ear it is kept to when its output has left and right apart.
+ */
+type TChainFilter = Pick<
+  IFilter,
+  'type' | 'frequency' | 'gain' | 'quality' | 'channel'
+>;
 
 /** What one feature contributes to a device's chain. */
 interface IApoLayer {
@@ -299,11 +319,12 @@ interface IApoLayer {
 const layerFilters = (filters: TChainFilter[]): TChainFilter[] =>
   filters
     .filter(isRenderableFilter)
-    .map(({ type, frequency, gain, quality }) => ({
+    .map(({ type, frequency, gain, quality, channel }) => ({
       type,
       frequency,
       gain,
       quality,
+      ...(channel ? { channel } : {}),
     }));
 
 /**
@@ -409,9 +430,14 @@ const buildLayers = (state: IState): IApoLayer[] => {
         });
       }
     } else {
+      // A band's ear travels only while the output has left and right
+      // apart; linked, the side is kept on the band and not played.
       const filters = Object.values(state.filters)
         .filter(isBandEnabled)
-        .filter(isRenderableFilter);
+        .filter(isRenderableFilter)
+        .map(({ channel, ...band }) =>
+          state.channelsApart && channel ? { ...band, channel } : band,
+        );
       addLayer(
         'eq',
         // A band switched off is dropped here rather than written as an APO
@@ -581,6 +607,13 @@ const customEqCompensation = (state: IState): string[] => {
   return lines;
 };
 
+/** Equalizer APO's own names for the front pair, and for every channel. */
+const CHANNEL_LINE = {
+  both: 'Channel: all',
+  left: 'Channel: L',
+  right: 'Channel: R',
+} as const;
+
 const renderFilter = (
   filter: TChainFilter,
   index: number,
@@ -614,17 +647,33 @@ const renderFilter = (
  * Written into a file per feature each starts at 1, which is what makes a
  * feature file independent of every other feature — the point of splitting them.
  */
-const renderLayer = (layer: IApoLayer, startIndex = 0): string[] =>
-  Array.from({ length: layer.passes ?? 1 }, (_unused, pass) => [
-    ...layer.filters.map((filter, offset) =>
-      renderFilter(
-        filter,
-        startIndex + pass * layer.filters.length + offset + 1,
-        layer.gainLimit,
+const renderLayer = (layer: IApoLayer, startIndex = 0): string[] => {
+  // Both ears' bands first, then each ear's own under its `Channel:` line,
+  // then every channel again so nothing after this layer — in this file or
+  // the next one included — inherits an ear. Biquads in a cascade commute,
+  // so grouping by ear changes no sound, only the order the lines read in.
+  const groups = (['both', 'left', 'right'] as const)
+    .map((side) => ({
+      side,
+      filters: layer.filters.filter(
+        (filter) => (filter.channel ?? 'both') === side,
       ),
-    ),
+    }))
+    .filter((group) => group.filters.length > 0);
+  const isOneEared = groups.some((group) => group.side !== 'both');
+  let index = startIndex;
+  return Array.from({ length: layer.passes ?? 1 }, () => [
+    ...groups.flatMap((group) => [
+      ...(isOneEared ? [CHANNEL_LINE[group.side]] : []),
+      ...group.filters.map((filter) => {
+        index += 1;
+        return renderFilter(filter, index, layer.gainLimit);
+      }),
+    ]),
+    ...(isOneEared ? [CHANNEL_LINE.both] : []),
     ...(layer.graphicEq ? [layer.graphicEq] : []),
   ]).flat();
+};
 
 /**
  * The one `Preamp:` line for a chain.

@@ -23,7 +23,9 @@ import {
   MAX_GAIN,
   MIN_GAIN,
   NO_GAIN_FILTER_TYPES,
+  type TBandChannel,
 } from 'common/constants';
+import { EAR_LETTER_KEYS, EAR_NAME_KEYS } from 'renderer/eq/earNames';
 import IconButton, { IconName } from 'renderer/widgets/IconButton';
 import {
   ForwardedRef,
@@ -55,6 +57,10 @@ interface IFrequencyBandProps {
   flatLayout?: boolean;
   isSelected?: boolean;
   isHovered?: boolean;
+  /** The one ear it plays on, while its output has left and right apart. */
+  ear?: TBandChannel;
+  /** Kept to the ear the page is not editing: drawn back. */
+  isOtherEar?: boolean;
   // Both told the band's id, so the row can hand every band the same two
   // callbacks and a band whose props have not changed does not draw again.
   onSelect?: (
@@ -81,6 +87,8 @@ const FrequencyBand = forwardRef(
       flatLayout = false,
       isSelected = false,
       isHovered = false,
+      ear,
+      isOtherEar = false,
       onSelect,
       onHover,
       colorProgress = 0,
@@ -215,7 +223,7 @@ const FrequencyBand = forwardRef(
     return (
       <div
         ref={ref}
-        className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}${isBandEnabled(filter) ? '' : ' is-off'}`}
+        className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}${isBandEnabled(filter) ? '' : ' is-off'}${isOtherEar ? ' is-other-ear' : ''}`}
         data-filter-id={filter.id}
         // What its slider's lit core answers to (`BandLevels`).
         data-frequency={filter.frequency}
@@ -255,6 +263,11 @@ const FrequencyBand = forwardRef(
           setIsDeleteArmed(false);
         }}
       >
+        {ear && (
+          <span className="band-ear" title={t(EAR_NAME_KEYS[ear])}>
+            {t(EAR_LETTER_KEYS[ear])}
+          </span>
+        )}
         {!flatLayout && (
           <div className={`removeFilterRow${isDeleteArmed ? ' is-armed' : ''}`}>
             <IconButton

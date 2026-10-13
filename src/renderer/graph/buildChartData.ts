@@ -28,8 +28,11 @@ import {
   AutoEqFormat,
   IFilter,
   isBandEnabled,
+  isBandOnChannel,
   IState,
   TApoLayer,
+  TBandChannel,
+  TBandSide,
 } from 'common/constants';
 import type {
   IChartCurveData,
@@ -135,6 +138,13 @@ export interface IBuildChartDataParams
    */
   rainbow?: readonly string[];
   t: ReturnType<typeof useTranslation>['t'];
+  /**
+   * Left and right apart (`IState.channelsApart`), and which ear the page is
+   * editing. Absent where a graph has no say in it — the player's decks —
+   * which draws one curve as before.
+   */
+  channelsApart?: boolean;
+  editingEar?: TBandSide;
 }
 
 /** A curve's points, or nothing where none of its lines are drawn. */
@@ -183,6 +193,8 @@ export const buildChartData = ({
   t,
   tone,
   voicing,
+  channelsApart = false,
+  editingEar = 'both',
 }: IBuildChartDataParams): IGraphData => {
   const lines = createLayerLines(
     {
@@ -301,7 +313,28 @@ export const buildChartData = ({
   // neither").
   // What the output curve sums for the EQ: the bands as the EQ mode plays
   // them, where the EQ curve above shows them as tuned.
-  const enabledBands = Object.values(filters).filter(isBandEnabled);
+  const allEnabledBands = Object.values(filters).filter(isBandEnabled);
+  // Two ears drawn only while a band is actually kept to one: apart with
+  // every band on both, the two curves are one curve. A GraphicEQ import has
+  // no bands to keep to an ear.
+  const isTwoEared =
+    channelsApart &&
+    !nativeEqGraphic &&
+    allEnabledBands.some((filter) => filter.channel !== undefined);
+  // The output curve is one ear's: the one being edited, the left otherwise.
+  const shownEar: TBandChannel = editingEar === 'right' ? 'right' : 'left';
+  const enabledBands = isTwoEared
+    ? allEnabledBands.filter((filter) =>
+        isBandOnChannel(filter, shownEar, true),
+      )
+    : allEnabledBands;
+  const earLines = (ear: TBandChannel): IChartLineDataPointsById =>
+    Object.fromEntries(
+      Object.entries(eqLines).filter(([id]) => {
+        const filter = filters[id];
+        return filter === undefined || isBandOnChannel(filter, ear, true);
+      }),
+    );
   const drawBands = (bands: IFilter[]): IChartLineDataPointsById =>
     Object.fromEntries(
       bands.map((filter) => [
@@ -309,7 +342,7 @@ export const buildChartData = ({
         getDesignedFilterLineData(filter, eqMatched, sampleRate),
       ]),
     );
-  let appliedEqLines = eqLines;
+  let appliedEqLines = isTwoEared ? earLines(shownEar) : eqLines;
   if (hasEq && strength === 'studio') {
     appliedEqLines = nativeEqGraphic
       ? {
@@ -418,9 +451,20 @@ export const buildChartData = ({
         : undefined,
       eq: hasEq
         ? {
-            points: getCombinedLineData(0, eqLines),
+            points: getCombinedLineData(
+              0,
+              isTwoEared ? earLines('left') : eqLines,
+            ),
             isQuiet: isEqQuiet,
             gradientStops: eqGradientStops(filters, rainbow),
+            ...(isTwoEared
+              ? {
+                  ears: {
+                    right: getCombinedLineData(0, earLines('right')),
+                    editing: editingEar,
+                  },
+                }
+              : {}),
           }
         : undefined,
     }),

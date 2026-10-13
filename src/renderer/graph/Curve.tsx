@@ -55,6 +55,7 @@ const Curve = ({
         gradientId={line.gradientId}
         glow={line.glow}
         opacity={line.opacity}
+        dashed={line.dashed}
         // Every curve that reaches here is the user's own tuning, so every one
         // of them is drawn on — except a step of the live preamp, which moves
         // the output curve and is not a new tuning to draw.

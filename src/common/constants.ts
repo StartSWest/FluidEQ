@@ -357,7 +357,41 @@ export interface IFilter {
    * answer available.
    */
   isEnabled?: boolean;
+  /**
+   * The one ear this band plays on, while its output has left and right
+   * apart (`IOutputSound.channelsApart`). Absent means both, which is every
+   * band written before the choice existed; and with the output's channels
+   * linked a side is kept but not played, as a switched-off band keeps its
+   * gain. Ask through `bandChannelOf`.
+   */
+  channel?: TBandChannel;
 }
+
+/** One ear: what a band can be kept to (Ivan, 2026-10-13, "EQ per channel"). */
+export type TBandChannel = 'left' | 'right';
+
+/** Where a band plays, the absent side spelled out. */
+export type TBandSide = TBandChannel | 'both';
+
+export const BAND_CHANNELS: readonly TBandChannel[] = ['left', 'right'];
+
+export const isBandChannel = (value: unknown): value is TBandChannel =>
+  value === 'left' || value === 'right';
+
+/** Which ear `filter` plays on: one, or both. */
+export const bandChannelOf = (filter: Pick<IFilter, 'channel'>): TBandSide =>
+  filter.channel ?? 'both';
+
+/**
+ * Whether `filter` is heard on `ear`. A band kept to one ear is heard on
+ * both while the output's channels are linked: the side waits, unplayed.
+ */
+export const isBandOnChannel = (
+  filter: Pick<IFilter, 'channel'>,
+  ear: TBandChannel,
+  channelsApart: boolean,
+): boolean =>
+  !channelsApart || filter.channel === undefined || filter.channel === ear;
 
 /**
  * Whether a band contributes to what is heard.
@@ -385,6 +419,8 @@ export interface IFilterEdit {
   quality?: number;
   type?: FilterTypeEnum;
   isEnabled?: boolean;
+  /** `both` takes a band's side away, which no other value can say. */
+  channel?: TBandSide;
 }
 
 /** Provenance shown when an EQ export was imported from an external tool. */
@@ -456,6 +492,12 @@ export interface IState extends IOutputSound {
    * and never written into them (`tone.ts`). Absent means all three at zero.
    */
   tone?: ITone;
+  /**
+   * Left and right apart: each band plays on the ear its `channel` names.
+   * Absent is linked, every band on both — what every profile before the
+   * choice did. Saved with the output's profile, like the Tone.
+   */
+  channelsApart?: boolean;
   /** Curated target curve applied as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
   /** Transducer-family correction, its own APO layer after the voicing. */

@@ -37,6 +37,7 @@ import {
   IState,
   OUTPUT_STATE_CHANGED_EVENT,
   TApoLayer,
+  TBandSide,
   IHeadphoneSettings,
 } from '../../common/constants';
 import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
@@ -140,6 +141,8 @@ export const FluidEqProviderWrapper = ({
     driver,
     smartEq,
     tone,
+    channelsApart,
+    editingEar,
     headphone,
     customFx,
     bypassed,
@@ -232,6 +235,8 @@ export const FluidEqProviderWrapper = ({
       driver,
       smartEq,
       tone,
+      channelsApart,
+      editingEar,
       headphone,
       customFx,
       bypassed,
@@ -260,6 +265,8 @@ export const FluidEqProviderWrapper = ({
       driver,
       smartEq,
       tone,
+      channelsApart,
+      editingEar,
       headphone,
       customFx,
       bypassed,
@@ -358,6 +365,10 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     DEFAULT_STATE.smartEq,
   );
   const [tone, setTone] = useState<ITone | undefined>(DEFAULT_STATE.tone);
+  const [channelsApart, setChannelsApart] = useState(
+    DEFAULT_STATE.channelsApart === true,
+  );
+  const [editingEar, setEditingEar] = useState<TBandSide>('both');
   const [headphone, setHeadphone] = useState<IHeadphoneSettings | undefined>(
     DEFAULT_STATE.headphone,
   );
@@ -537,6 +548,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setDriver(state.driver ?? DEFAULT_DRIVER);
         setSmartEq(state.smartEq);
         setTone(state.tone);
+        setChannelsApart(state.channelsApart === true);
         setHeadphone(state.headphone);
         setCustomFx(state.customFx);
         setBypassed(state.bypassed ?? []);
@@ -716,6 +728,10 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       smartEq,
       tone,
       setTone,
+      channelsApart,
+      setChannelsApart,
+      editingEar,
+      setEditingEar,
       headphone,
       customFx,
       setHeadphone,
@@ -771,6 +787,8 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       driver,
       smartEq,
       tone,
+      channelsApart,
+      editingEar,
       headphone,
       customFx,
       bypassed,

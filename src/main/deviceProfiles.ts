@@ -795,6 +795,9 @@ export const getStateForAudioDevice = (
     // The profile's own tone, or none: a tone left from the output before
     // would follow somebody from the headphones to the speakers.
     tone: toTone(preset?.tone),
+    // Linked unless this profile was set apart: the previous output's choice
+    // never follows a switch, as its tone does not.
+    channelsApart: preset?.channelsApart === true ? true : undefined,
     voicing: preset?.voicing,
     driver: preset?.driver,
     // Listed for the same reason as the rest, and missing for as long as it was

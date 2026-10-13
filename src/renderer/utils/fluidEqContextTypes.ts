@@ -25,6 +25,7 @@ import {
   IHeadphoneSettings,
   IState,
   TApoLayer,
+  TBandSide,
 } from '../../common/constants';
 import { IBandRevealBand } from './bandReveal';
 import { ErrorDescription } from '../../common/errors';
@@ -190,6 +191,16 @@ export interface IFluidEqContext extends IState {
   setSmartEq: (newValue?: ISmartEqSettings) => void;
   /** The Tone panel's three dials as main last wrote them (`tone.ts`). */
   setTone: (newValue?: ITone) => void;
+  /** This output plays each band on the ear it names (`IState.channelsApart`). */
+  channelsApart: boolean;
+  setChannelsApart: (newValue: boolean) => void;
+  /**
+   * Which ear the EQ page is editing while channels are apart: a band added
+   * lands on it, and the other ear's bands are drawn quiet. The window's own
+   * choice, never saved — a restart edits both, as a new user would.
+   */
+  editingEar: TBandSide;
+  setEditingEar: (newValue: TBandSide) => void;
   /** The published headphone correction, as its own layer. */
   headphone?: IHeadphoneSettings;
   setHeadphone: (newValue?: IHeadphoneSettings) => void;
@@ -285,6 +296,8 @@ export type IFluidEqLayers = IFluidEqShell &
     | 'driver'
     | 'smartEq'
     | 'tone'
+    | 'channelsApart'
+    | 'editingEar'
     | 'headphone'
     | 'customFx'
     | 'bypassed'

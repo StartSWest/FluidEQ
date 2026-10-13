@@ -56,6 +56,13 @@ it under the terms of the GNU General Public License version 3 or later.
   stroke: var(--curve-gradient);
 }
 
+// The right ear's EQ curve beside the left's solid one. A class rather than
+// the attribute: the draw-on animation writes `stroke-dasharray` itself and
+// clears it when done, and a rule outranks what it writes.
+.chart-curve--dashed {
+  stroke-dasharray: 9 7;
+}
+
 .chart-live-canvas {
   position: absolute;
   z-index: 0;

@@ -23,6 +23,7 @@ import { selectionModeFromEvent } from 'common/bandSelection';
 import { requestBandMenu } from '../components/BandMenu';
 import { useTranslation } from '../utils/I18nContext';
 import frequencyText from '../utils/frequencyText';
+import { EAR_LETTER_KEYS, EAR_NAME_KEYS } from '../eq/earNames';
 import { handleXInPlot } from './bandHandlePosition';
 import {
   GRAPH_END,
@@ -244,7 +245,7 @@ const EditablePoint = ({
   return (
     <g
       ref={groupRef}
-      className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}${point.isEnabled ? '' : ' graph-edit-point--off'}`}
+      className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}${point.isEnabled ? '' : ' graph-edit-point--off'}${point.isOtherEar ? ' graph-edit-point--other-ear' : ''}`}
       transform={`translate(${scaledX}, ${scaledY})`}
       role="slider"
       tabIndex={point.isLocked ? -1 : 0}
@@ -262,6 +263,7 @@ const EditablePoint = ({
         frequency,
         gainText,
         ...(point.isEnabled ? [] : [t('graph.handle.off')]),
+        ...(point.ear ? [t(EAR_NAME_KEYS[point.ear])] : []),
         t(selected ? 'graph.handle.quality' : 'graph.handle.select'),
       ].join(' · ')}
       onPointerDown={handlePointerDown}
@@ -313,6 +315,16 @@ const EditablePoint = ({
       <rect className="graph-edit-point__halo" />
       <rect className="graph-edit-point__dot" />
       <rect className="graph-edit-point__core" />
+      {/* Which ear, as the band's strip tags it, beside the dot rather than
+          in it: inside, a letter at a handle's size is a smudge on its core. */}
+      {point.ear && (
+        <g className="graph-edit-point__ear" aria-hidden="true">
+          <rect className="graph-edit-point__ear-tag" />
+          <text className="graph-edit-point__ear-letter">
+            {t(EAR_LETTER_KEYS[point.ear])}
+          </text>
+        </g>
+      )}
     </g>
   );
 };

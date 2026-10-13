@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { IFiltersMap } from 'common/constants';
+import type { IFiltersMap, TBandSide } from 'common/constants';
 import {
   GRAPH_END,
   GRAPH_START,
@@ -72,11 +72,23 @@ export interface IChartCurvePoints {
   /** At full weight while an EQ mode is doing something to the sound. */
   total?: { points: IChartPointData[]; isEmphasised: boolean };
   eq?: {
+    /** Both ears' curve, or the left ear's while `ears` is given. */
     points: IChartPointData[];
     isQuiet: boolean;
     gradientStops: IChartGradientStop[];
+    /** Left and right apart with a band kept to one ear: the right's curve. */
+    ears?: { right: IChartPointData[]; editing: TBandSide };
   };
 }
+
+/** The right ear's curve: the EQ line's id with its ear after it. */
+export const RIGHT_EAR_CURVE_ID = 'EQ Response Right';
+
+/**
+ * How far an ear not being edited is drawn back: present enough to read the
+ * gap between the two, and plainly not the line the handles are on.
+ */
+const OTHER_EAR_OPACITY = 0.45;
 
 /** Every curve the graph draws, in the order they are painted. */
 const chartCurves = ({
@@ -185,11 +197,33 @@ const chartCurves = ({
   // gradient, and two dozen handles on top of the very curves somebody is
   // trying to see. So in the reading state the furniture goes and the line
   // stays, thin and plain.
+  // The right ear first, so the left — the line the handles of both-ear
+  // bands stand on — is painted over it where the two meet. Dashed in the
+  // EQ's own colours: every hue the plot has left is another layer's, and
+  // the two ears are one layer (Ivan, 2026-10-13, "EQ per channel").
+  ...(eq?.ears
+    ? [
+        {
+          id: RIGHT_EAR_CURVE_ID,
+          name: t('graph.curve.rightEar'),
+          line: {
+            color: 'currentColor' as const,
+            strokeWidth: eq.isQuiet ? 1.5 : 2.5,
+            points: eq.ears.right,
+            gradientId: 'chart-eq-spectrum-gradient',
+            gradientStops: eq.gradientStops,
+            dashed: true,
+            opacity:
+              eq.isQuiet || eq.ears.editing === 'left' ? OTHER_EAR_OPACITY : 1,
+          },
+        },
+      ]
+    : []),
   ...(eq
     ? [
         {
           id: 'EQ Response',
-          name: t('graph.curve.eq'),
+          name: eq.ears ? t('graph.curve.leftEar') : t('graph.curve.eq'),
           line: eq.isQuiet
             ? {
                 color: 'currentColor' as const,
@@ -204,6 +238,9 @@ const chartCurves = ({
                 gradientId: 'chart-eq-spectrum-gradient',
                 gradientStops: eq.gradientStops,
                 glow: true,
+                ...(eq.ears?.editing === 'right'
+                  ? { opacity: OTHER_EAR_OPACITY }
+                  : {}),
               },
         },
       ]

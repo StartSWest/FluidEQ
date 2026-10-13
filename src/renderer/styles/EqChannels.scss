@@ -1,0 +1,102 @@
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'color' as *;
+
+// Left and right apart (Ivan, 2026-10-13, "EQ per channel"): the ear the page
+// edits, the letter on a one-eared band's handle and slider, and the other
+// ear drawn back. The two ears are told apart by line, never by hue — the
+// left ear's curve solid, the right's dashed, both in the EQ's own colour —
+// because every hue the plot has left belongs to another layer.
+
+// ------------------------------------------------------------ the picker
+
+.eq-ear-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eq-ear-picker__label {
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+// A button's height in the toolbar, as the EQ mode's trigger beside it.
+.eq-ear-picker__track {
+  min-height: $control-height-sm;
+  align-items: stretch;
+}
+
+.eq-ear-picker__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+// The ear's own line, as the graph draws it: a solid stroke for the left,
+// dashes for the right.
+.eq-ear-picker__swatch {
+  width: 16px;
+  height: 0;
+  border-top: 2.5px solid currentColor;
+
+  .eq-ear-picker__option--right & {
+    border-top-style: dashed;
+  }
+}
+
+// ------------------------------------------------------------ the graph
+
+// Beside the dot, up and to the right, where a band's label never stands:
+// labels sit straight above or below (`bandLabelLayout.ts`). The strip's own
+// tag, filled; a bare letter over the curve and the analyser was lost.
+.graph-edit-point__ear {
+  pointer-events: none;
+  user-select: none;
+}
+
+.graph-edit-point__ear-tag {
+  x: 7px;
+  y: -23px;
+  width: 15px;
+  height: 15px;
+  rx: 4px;
+  fill: $secondary-light;
+}
+
+.graph-edit-point__ear-letter {
+  transform: translate(14.5px, -11.5px);
+  fill: $surface-base;
+  font-size: 10px;
+  font-weight: $weight-bold;
+  text-anchor: middle;
+}
+
+// The ear not being edited: there, still draggable, plainly not the subject.
+.graph-edit-point--other-ear {
+  opacity: 0.4;
+}
+
+// ------------------------------------------------------------ the bands
+
+// A one-eared band's letter in the corner of its strip, the same letter its
+// handle carries on the graph.
+.band-ear {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 15px;
+  padding: 0 3px;
+  border-radius: $radius-2xs;
+  background: $secondary-light;
+  color: $surface-base;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  line-height: 15px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.bandWrapper.is-other-ear {
+  opacity: 0.45;
+}

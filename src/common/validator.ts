@@ -96,6 +96,8 @@ const IStateSchema = {
         isEnabled: {
           type: 'boolean',
         },
+        // Not required either, for the same reason: absent is both ears.
+        channel: { enum: ['left', 'right'], type: 'string' },
         quality: {
           type: 'number',
         },
@@ -137,6 +139,7 @@ const IStateSchema = {
     eqCuts: { type: 'object' },
     // Any object, for the same reason: the loader bounds it (`toTone`).
     tone: { type: 'object' },
+    channelsApart: { type: 'boolean' },
     isEnabled: {
       type: 'boolean',
     },
@@ -203,6 +206,8 @@ export const IPresetSchemaV1 = {
         isEnabled: {
           type: 'boolean',
         },
+        // Not required either, for the same reason: absent is both ears.
+        channel: { enum: ['left', 'right'], type: 'string' },
         quality: {
           type: 'number',
         },
@@ -283,6 +288,8 @@ const IPresetSchemaV2 = {
         isEnabled: {
           type: 'boolean',
         },
+        // Not required either, for the same reason: absent is both ears.
+        channel: { enum: ['left', 'right'], type: 'string' },
         quality: {
           type: 'number',
         },

@@ -8,7 +8,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { IFilter, isBandEnabled } from 'common/constants';
+import {
+  bandChannelOf,
+  IFilter,
+  isBandEnabled,
+  type TBandSide,
+} from 'common/constants';
+import { SIDE_NAME_KEYS } from '../eq/earNames';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -40,8 +46,15 @@ interface IBandMenuProps {
   /** Put the bands in or out of the chain, keeping everything they are set to. */
   onSetEnabled: (filters: readonly IFilter[], isEnabled: boolean) => void;
   onAddBeside: (filter: IFilter, side: 'left' | 'right') => void;
+  /**
+   * Which ear the bands play on. Given only while the output's channels are
+   * apart: linked, every band plays on both and there is nothing to choose.
+   */
+  onSetChannel?: (filters: readonly IFilter[], side: TBandSide) => void;
   onClose: () => void;
 }
+
+const SIDES: readonly TBandSide[] = ['both', 'left', 'right'];
 
 /**
  * What a band offers when it is right-clicked: put it back to neutral, or
@@ -57,6 +70,7 @@ const BandMenu = ({
   onReset,
   onSetEnabled,
   onAddBeside,
+  onSetChannel,
   onClose,
 }: IBandMenuProps) => {
   const { t } = useTranslation();
@@ -66,6 +80,9 @@ const BandMenu = ({
   // Same reading as the switch in the editor row: any band still in the chain
   // means the entry offers to take them out.
   const isAnyEnabled = filters.some(isBandEnabled);
+  // The ear they share, or none lit when a selection is split between them.
+  const sides = new Set(filters.map(bandChannelOf));
+  const sharedSide = sides.size === 1 ? [...sides][0] : undefined;
   // Held in state, not a ref: `AnchoredMenu` measures the anchor in an
   // effect keyed on the element, and a ref's current is still null on the
   // render that mounts it.
@@ -149,6 +166,39 @@ const BandMenu = ({
             })()}
           </span>
         </button>
+        {onSetChannel && (
+          <>
+            <div className="band-menu__rule" role="none" />
+            <div className="band-menu__ears">
+              <span className="band-menu__ears-label" id="band-menu-ears">
+                {t('eq.channels.playsOn')}
+              </span>
+              <div
+                className="segmented band-menu__ears-track"
+                role="radiogroup"
+                aria-labelledby="band-menu-ears"
+              >
+                {SIDES.map((side) => (
+                  <button
+                    type="button"
+                    role="radio"
+                    key={side}
+                    aria-checked={sharedSide === side}
+                    className={`segmented__option${
+                      sharedSide === side ? ' is-selected' : ''
+                    }`}
+                    onClick={() => {
+                      onSetChannel(filters, side);
+                      onClose();
+                    }}
+                  >
+                    {t(SIDE_NAME_KEYS[side])}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
         {!isSelection && (
           <>
             <div className="band-menu__rule" role="none" />
