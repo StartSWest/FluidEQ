@@ -44,6 +44,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { useEngineMaintenance } from '../utils/useEngineMaintenance';
+import { ENGINE_UPDATE_REQUEST_EVENT } from '../utils/engineUpdateRequest';
 import useRepairWhenEngineNeverRan, {
   repairSlotKey,
 } from '../utils/useRepairWhenEngineNeverRan';
@@ -441,6 +442,14 @@ const useShellEngine = () => {
       performEngineUpdate,
       performEngineRepair,
     );
+  // The card on request, from a note that says an update is what is missing
+  // (`engineUpdateRequest.ts`): the same card, its own button and prompt.
+  const openEngineUpdate = engineUpdate.open;
+  useEffect(() => {
+    window.addEventListener(ENGINE_UPDATE_REQUEST_EVENT, openEngineUpdate);
+    return () =>
+      window.removeEventListener(ENGINE_UPDATE_REQUEST_EVENT, openEngineUpdate);
+  }, [openEngineUpdate]);
   // Never restarted by itself. The engine on the output being listened to
   // and Windows not running it used to get Windows audio restarted the
   // moment sound was heard — once a session, without a press — and that

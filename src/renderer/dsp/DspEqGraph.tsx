@@ -854,6 +854,7 @@ const DspEqGraph = ({
             ),
             readAccentLight(1, '#a1fcff'),
             readSurfaceAlpha('--surface-base', 1, '#061821'),
+            one.ear === 'left',
           );
         }
         context.globalAlpha = 1;

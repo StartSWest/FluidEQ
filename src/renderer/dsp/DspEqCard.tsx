@@ -254,6 +254,10 @@ const DspEqCard = ({ eq, sampleRate, onChange, onCommit }: IDspEqCardProps) => {
             replaceBand(index, next);
             onCommit();
           }}
+          onBands={(bands) => {
+            onChange({ ...eq, presetId: '', bands, sourceBands: bands });
+            onCommit();
+          }}
           onAddBeside={(index, side) => addBand(index, side)}
           onClose={() => setMenu(undefined)}
         />

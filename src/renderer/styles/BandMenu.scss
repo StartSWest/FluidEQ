@@ -37,7 +37,8 @@ $band-menu-width: 200px;
   padding: 5px;
   gap: 1px;
 
-  button {
+  // The menu's own rows; a `.button` inside keeps the app's own look.
+  button:not(.button) {
     display: grid;
     align-items: center;
     gap: 9px;
@@ -100,4 +101,12 @@ $band-menu-width: 200px;
   color: $text-muted;
   font-size: $text-small;
   line-height: 1.35;
+}
+
+// The app's filled accent (`button small`), under the note it answers
+// rather than laid out as one of the menu's rows: an action the note
+// recommends, not another way to set the band.
+.band-menu__update {
+  justify-self: start;
+  margin: 0 10px 8px;
 }

@@ -4,8 +4,13 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { TBandChannel } from '../../common/constants';
-import type { IEqBandSettings, IEqSettings } from '../../common/dsp/chain';
+import type { TBandChannel, TBandSide } from '../../common/constants';
+import { planEarChange } from '../../common/bandEars';
+import {
+  EQ_MAX_BAND_COUNT,
+  type IEqBandSettings,
+  type IEqSettings,
+} from '../../common/dsp/chain';
 
 /**
  * The DSP EQ with a band kept to one ear (Ivan, 2026-10-13, "EQ per ear"):
@@ -39,9 +44,12 @@ export const drawEarTag = (
   letter: string,
   fill: string,
   ink: string,
+  isLeftEar: boolean,
 ): void => {
   const size = 15;
-  const left = x + 7;
+  // The left ear's up and to the left, the right's to the right, as the main
+  // EQ draws them: a band and its twin share one spot until one is moved.
+  const left = isLeftEar ? x - 7 - size : x + 7;
   const top = y - 23;
   context.save();
   context.beginPath();
@@ -56,4 +64,48 @@ export const drawEarTag = (
   context.textBaseline = 'middle';
   context.fillText(letter, left + size / 2, top + size / 2 + 0.5);
   context.restore();
+};
+
+/** The band with its ear set, or none for both ears. */
+const onEar = (band: IEqBandSettings, ear: TBandSide): IEqBandSettings => {
+  const { ear: _, ...rest } = band;
+  return ear === 'both' ? rest : { ...rest, ear };
+};
+
+/**
+ * The rack's bands after putting band `index` on `side`: split into a twin on
+ * the other ear, right beside it, or joined with it (`planEarChange`, the
+ * rule the main EQ's bands follow too).
+ */
+export const withEarChange = (
+  bands: readonly IEqBandSettings[],
+  index: number,
+  side: TBandSide,
+): IEqBandSettings[] => {
+  const plan = planEarChange(
+    bands.map((band, at) => ({
+      key: String(at),
+      frequency: band.frequency,
+      type: band.type,
+      ear: band.ear,
+    })),
+    [String(index)],
+    side,
+    EQ_MAX_BAND_COUNT - bands.length,
+  );
+  const ears = new Map(plan.ears.map(({ key, ear }) => [key, ear]));
+  const removed = new Set(plan.removed);
+  const next: IEqBandSettings[] = [];
+  bands.forEach((band, at) => {
+    const key = String(at);
+    if (removed.has(key)) {
+      return;
+    }
+    const ear = ears.get(key);
+    next.push(ear === undefined ? band : onEar(band, ear));
+    plan.copies
+      .filter(({ from }) => from === key)
+      .forEach(({ ear: twinEar }) => next.push(onEar(band, twinEar)));
+  });
+  return next;
 };

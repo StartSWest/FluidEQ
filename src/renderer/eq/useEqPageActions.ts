@@ -31,6 +31,7 @@ import {
   NO_GAIN_FILTER_TYPES,
   TBandSide,
 } from 'common/constants';
+import { planEarChange } from 'common/bandEars';
 import { ErrorDescription } from 'common/errors';
 import {
   addEqualizerSlider,
@@ -273,17 +274,67 @@ const useEqPageActions = (bands: TEqPageBands) => {
   };
 
   /**
-   * Which ear bands play on: one of the two, or both again. Like the on and
-   * off switch above, absolute across a selection.
+   * Which ear bands play on: one of the two, or both again — split into a
+   * twin on the other ear, or joined with it (`planEarChange`). Like the on
+   * and off switch above, absolute across a selection.
    */
   const setFiltersChannel = async (ids: readonly string[], side: TBandSide) => {
-    const edits: IFilterEdit[] = ids.map((id) => ({ id, channel: side }));
-    if (edits.length === 0) {
-      return;
-    }
-    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+    const plan = planEarChange(
+      frequencySortedFilters.map((filter) => ({
+        key: filter.id,
+        frequency: filter.frequency,
+        type: filter.type,
+        ear: filter.channel,
+      })),
+      ids,
+      side,
+      MAX_NUM_FILTERS - frequencySortedFilters.length,
+    );
+    const edits: IFilterEdit[] = plan.ears.map(({ key, ear }) => ({
+      id: key,
+      channel: ear,
+    }));
     try {
-      await setFilterValues(edits);
+      if (edits.length > 0) {
+        dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+        await setFilterValues(edits);
+      }
+      // One at a time, as a deletion is: main rewrites the config on each.
+      // eslint-disable-next-line no-restricted-syntax -- sequential: each step rewrites the config
+      for (const id of plan.removed) {
+        // eslint-disable-next-line no-await-in-loop -- one band at a time, as a deletion is
+        await removeEqualizerSlider(id);
+        dispatchFilter({ type: FilterActionEnum.REMOVE, id });
+      }
+      // eslint-disable-next-line no-restricted-syntax -- sequential: each step rewrites the config
+      for (const { from, ear } of plan.copies) {
+        const source = filters[from];
+        if (source === undefined) {
+          // eslint-disable-next-line no-continue -- a band gone since the menu opened has no twin to make
+          continue;
+        }
+        // eslint-disable-next-line no-await-in-loop -- one band at a time, as a deletion is
+        const id = await addEqualizerSlider(source.frequency);
+        dispatchFilter({
+          type: FilterActionEnum.ADD,
+          id,
+          frequency: source.frequency,
+        });
+        // The same band in every respect but its ear.
+        const twin: IFilterEdit[] = [
+          {
+            id,
+            gain: source.gain,
+            quality: source.quality,
+            type: source.type,
+            isEnabled: isBandEnabled(source),
+            channel: ear,
+          },
+        ];
+        dispatchFilter({ type: FilterActionEnum.EDITS, edits: twin });
+        // eslint-disable-next-line no-await-in-loop -- one band at a time, as a deletion is
+        await setFilterValues(twin);
+      }
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }

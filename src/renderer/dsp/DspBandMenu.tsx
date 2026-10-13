@@ -8,11 +8,11 @@ import {
   FilterTypeEnum,
   NO_GAIN_FILTER_TYPES,
   type IFilter,
-  type TBandSide,
 } from '../../common/constants';
 import type { IEqBandSettings, IEqSettings } from '../../common/dsp/chain';
 import { engineRackKeepsEars } from '../../common/engineHealth';
 import BandMenu from '../components/BandMenu';
+import { withEarChange } from './dspEqEars';
 
 interface IDspBandMenuProps {
   eq: IEqSettings;
@@ -20,6 +20,8 @@ interface IDspBandMenuProps {
   x: number;
   y: number;
   onPatch: (index: number, next: IEqBandSettings) => void;
+  /** The whole rack after an ear change, which can add or join a twin. */
+  onBands: (next: IEqBandSettings[]) => void;
   onAddBeside: (index: number, side: 'left' | 'right') => void;
   onClose: () => void;
 }
@@ -34,12 +36,6 @@ const asFilter = (band: IEqBandSettings, index: number): IFilter => ({
   isEnabled: band.enabled,
   ...(band.ear ? { channel: band.ear } : {}),
 });
-
-/** The band with its ear set, or none for both ears. */
-const withEar = (band: IEqBandSettings, side: TBandSide): IEqBandSettings => {
-  const { ear: _, ...rest } = band;
-  return side === 'both' ? rest : { ...rest, ear: side };
-};
 
 /**
  * The DSP EQ's band menu: the main EQ's own, on a rack band — reset it,
@@ -57,6 +53,7 @@ const DspBandMenu = ({
   x,
   y,
   onPatch,
+  onBands,
   onAddBeside,
   onClose,
 }: IDspBandMenuProps) => {
@@ -84,7 +81,7 @@ const DspBandMenu = ({
       onAddBeside={(_, side) => onAddBeside(index, side)}
       onSetChannel={
         eq.stereo === 'stereo'
-          ? (_, side) => onPatch(index, withEar(band, side))
+          ? (_, side) => onBands(withEarChange(eq.bands, index, side))
           : undefined
       }
       engineKeepsEarsFrom={engineRackKeepsEars}

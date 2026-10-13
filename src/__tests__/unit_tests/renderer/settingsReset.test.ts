@@ -103,6 +103,7 @@ const NOT_STORED = [
   'fluideq-clear-autoeq-selection',
   'fluideq-dsp-presets-changed',
   'fluideq-editor-changed',
+  'fluideq-engine-update-request',
   'fluideq-game-profiles-changed',
   'fluideq-game-sounding-changed',
   'fluideq-opra-updated',

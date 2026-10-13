@@ -318,7 +318,10 @@ const EditablePoint = ({
       {/* Which ear, as the band's strip tags it, beside the dot rather than
           in it: inside, a letter at a handle's size is a smudge on its core. */}
       {point.ear && (
-        <g className="graph-edit-point__ear" aria-hidden="true">
+        <g
+          className={`graph-edit-point__ear graph-edit-point__ear--${point.ear}`}
+          aria-hidden="true"
+        >
           <rect className="graph-edit-point__ear-tag" />
           <text className="graph-edit-point__ear-letter">
             {t(EAR_LETTER_KEYS[point.ear])}

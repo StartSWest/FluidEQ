@@ -34,6 +34,19 @@
   text-anchor: middle;
 }
 
+// The left ear's tag up and to the left: a band and its twin on the other ear
+// stand on one spot until one is moved, and a tag on the same side covered
+// the other's letter.
+.graph-edit-point__ear--left {
+  .graph-edit-point__ear-tag {
+    x: -22px;
+  }
+
+  .graph-edit-point__ear-letter {
+    transform: translate(-14.5px, -11.5px);
+  }
+}
+
 // ------------------------------------------------------------ the bands
 
 // A one-eared band's letter in the corner of its strip, the same letter its
