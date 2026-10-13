@@ -14,6 +14,15 @@ const forum = {
   'forum.source': 'GitHub Discussions',
   'forum.allTopics': 'All topics',
   'forum.allTopics.blurb': 'Every board, latest activity first',
+  'forum.new': 'New for you',
+  'forum.new.blurb': 'What came in since you last looked',
+  'forum.new.countLabel': 'New: {count}',
+  'forum.new.markAllRead': 'Mark all as read',
+  'forum.new.empty': 'You’re all caught up',
+  'forum.new.emptyHint':
+    'New topics and replies show up here until you open them.',
+  'forum.topic.new': 'New',
+  'forum.thread.newReplies': 'New: {count}',
 
   'forum.board.announcements': 'Announcements',
   'forum.board.general': 'General',

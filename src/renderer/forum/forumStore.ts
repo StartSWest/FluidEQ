@@ -1,103 +1,43 @@
-import { useSyncExternalStore } from 'react';
 import type {
-  IForumBoard,
-  IForumFailure,
-  IForumTopic,
-  IForumTopicSummary,
   TForumAuthState,
   TForumFilter,
   TForumPostKind,
   TForumResult,
 } from 'common/forum/forumTypes';
+import { loadNewTopics, loadRecent, showNewTopics } from './forumNew';
+import {
+  bridge,
+  call,
+  failureOf,
+  forumNow,
+  listKey,
+  NEW_BOARD,
+  publish,
+  resetForumState,
+  tickets,
+} from './forumState';
+import { markTopicRead, readForumRead, readUpTo } from './forumUnread';
+
+export {
+  type IForumState,
+  type TForumView,
+  type TLoadStatus,
+  listKey,
+  NEW_BOARD,
+  useForum,
+} from './forumState';
+export { isListedTopicNew, markAllForumRead, newTopics } from './forumNew';
 
 /**
- * The forum, as one snapshot the panel reads.
+ * The forum's loads and writes.
  *
  * Nothing here reaches the network. The main process owns GitHub and the
  * feed; this side asks and is told, and keeps only what is on screen: the
  * boards, the page of topics under the current board or search, and the one
- * thread that is open.
- *
- * Answers can arrive out of order — switch boards twice quickly and the first
- * board's topics may land last — so every load carries a ticket, and an
- * answer whose ticket is no longer the current one is dropped rather than
- * painted over the newer one.
+ * thread that is open (`forumState.ts`).
  */
 
-export type TForumView =
-  { kind: 'list' } | { kind: 'topic'; number: number } | { kind: 'compose' };
-
-export type TLoadStatus = 'idle' | 'loading' | 'more' | 'ready' | 'error';
-
-export interface IForumState {
-  auth: TForumAuthState;
-  boards: IForumBoard[];
-  canStartIn: string[];
-  boardsStatus: TLoadStatus;
-  /** A board's slug, or empty for every board. */
-  board: string;
-  filter: TForumFilter;
-  /** The search that produced the list — not what is being typed. */
-  search: string;
-  topics: IForumTopicSummary[];
-  /**
-   * Which list `topics` is — see `listKey`. A list for another board, filter
-   * or search is not shown while its replacement loads.
-   */
-  listedFor: string;
-  total: number;
-  cursor?: string;
-  listStatus: TLoadStatus;
-  view: TForumView;
-  topic?: IForumTopic;
-  topicStatus: TLoadStatus;
-  /** The last failure, until dismissed or something succeeds. */
-  error?: IForumFailure;
-}
-
-const INITIAL: IForumState = {
-  auth: { status: 'signed-out' },
-  boards: [],
-  canStartIn: [],
-  boardsStatus: 'idle',
-  board: '',
-  filter: 'all',
-  search: '',
-  topics: [],
-  listedFor: '',
-  total: 0,
-  listStatus: 'idle',
-  view: { kind: 'list' },
-  topicStatus: 'idle',
-};
-
-let state: IForumState = INITIAL;
-const listeners = new Set<() => void>();
-const tickets = { boards: 0, list: 0, topic: 0 };
 let unsubscribe: (() => void) | undefined;
-
-const bridge = () => window.electron?.ipcRenderer;
-
-const publish = (next: Partial<IForumState>) => {
-  state = { ...state, ...next };
-  listeners.forEach((listener) => listener());
-};
-
-const failureOf = (result: TForumResult<unknown>): IForumFailure | undefined =>
-  result.ok
-    ? undefined
-    : {
-        failure: result.failure,
-        ...(result.retryAt === undefined ? {} : { retryAt: result.retryAt }),
-        ...(result.detail === undefined ? {} : { detail: result.detail }),
-      };
-
-/** A bridge that is not there (tests, a broken preload) reads as offline. */
-const OFFLINE: IForumFailure = { failure: 'network' };
-
-const call = async <T>(
-  request: (() => Promise<TForumResult<T>> | undefined) | undefined,
-): Promise<TForumResult<T>> => (await request?.()) ?? { ok: false, ...OFFLINE };
 
 const loadBoards = async () => {
   tickets.boards += 1;
@@ -118,25 +58,21 @@ const loadBoards = async () => {
   }
 };
 
-/** One list's identity: the board, the filter and the search that make it. */
-export const listKey = ({
-  board,
-  filter,
-  search,
-}: Pick<IForumState, 'board' | 'filter' | 'search'>) =>
-  JSON.stringify([board, filter, search]);
-
 const loadList = async (more = false) => {
+  if (forumNow().board === NEW_BOARD) {
+    await loadNewTopics();
+    return;
+  }
   tickets.list += 1;
   const ticket = tickets.list;
-  const cursor = more ? state.cursor : undefined;
-  const asked = listKey(state);
+  const cursor = more ? forumNow().cursor : undefined;
+  const asked = listKey(forumNow());
   publish({ listStatus: more ? 'more' : 'loading' });
   const result = await call(() =>
     bridge()?.forumTopics?.({
-      board: state.board,
-      filter: state.filter,
-      search: state.search,
+      board: forumNow().board,
+      filter: forumNow().filter,
+      search: forumNow().search,
       ...(cursor ? { cursor } : {}),
     }),
   );
@@ -150,10 +86,12 @@ const loadList = async (more = false) => {
   const page = result.value;
   // A page appended under a list that already shows some of the same topics
   // (one moved up while reading) keeps each topic once, where it was first.
-  const seen = new Set(more ? state.topics.map((topic) => topic.number) : []);
+  const seen = new Set(
+    more ? forumNow().topics.map((topic) => topic.number) : [],
+  );
   publish({
     topics: [
-      ...(more ? state.topics : []),
+      ...(more ? forumNow().topics : []),
       ...page.topics.filter((topic) => !seen.has(topic.number)),
     ],
     listedFor: asked,
@@ -166,7 +104,8 @@ const loadList = async (more = false) => {
 const loadTopic = async (number: number, more = false) => {
   tickets.topic += 1;
   const ticket = tickets.topic;
-  const current = state.topic?.number === number ? state.topic : undefined;
+  const { topic } = forumNow();
+  const current = topic?.number === number ? topic : undefined;
   const cursor = more ? current?.commentsCursor : undefined;
   publish({
     topicStatus: more ? 'more' : 'loading',
@@ -181,7 +120,10 @@ const loadTopic = async (number: number, more = false) => {
     return;
   }
   const loaded = result.value;
+  // Opening a topic reads it, and so does every reload while it is open:
+  // what is on screen has been seen.
   publish({
+    read: markTopicRead(forumNow().read, loaded),
     topic:
       more && current
         ? {
@@ -202,10 +144,12 @@ const loadTopic = async (number: number, more = false) => {
 
 /** Everything on screen again, from whichever source now answers. */
 export const refreshForum = async (): Promise<void> => {
-  const { view } = state;
+  const { view } = forumNow();
   await Promise.all([
     loadBoards(),
     loadList(),
+    // The new ones' list reads them itself.
+    forumNow().board === NEW_BOARD ? Promise.resolve() : loadRecent(),
     view.kind === 'topic' ? loadTopic(view.number) : Promise.resolve(),
   ]);
 };
@@ -235,6 +179,7 @@ export const openForum = async (): Promise<void> => {
   const api = bridge();
   unsubscribe?.();
   unsubscribe = api?.onForumState?.(onAuth);
+  publish({ read: readForumRead() });
   const auth = await api?.forumState?.();
   if (auth) {
     publish({ auth });
@@ -266,24 +211,31 @@ export const searchForum = (text: string) => {
 };
 
 export const loadMoreTopics = () => {
-  if (state.cursor && state.listStatus === 'ready') {
+  if (forumNow().cursor && forumNow().listStatus === 'ready') {
     loadList(true).catch(() => undefined);
   }
 };
 
 export const openTopic = (number: number) => {
-  publish({ view: { kind: 'topic', number } });
+  publish({
+    view: { kind: 'topic', number },
+    openedReadAt: readUpTo(forumNow().read, number),
+  });
   loadTopic(number).catch(() => undefined);
 };
 
 export const loadMoreComments = () => {
-  const { topic } = state;
-  if (topic?.commentsCursor && state.topicStatus === 'ready') {
+  const { topic } = forumNow();
+  if (topic?.commentsCursor && forumNow().topicStatus === 'ready') {
     loadTopic(topic.number, true).catch(() => undefined);
   }
 };
 
-export const backToList = () => publish({ view: { kind: 'list' } });
+export const backToList = () => {
+  publish({ view: { kind: 'list' } });
+  // A topic read from the new ones' list leaves it on the way back.
+  showNewTopics();
+};
 
 export const startCompose = () => publish({ view: { kind: 'compose' } });
 
@@ -322,8 +274,9 @@ const write = async (
     return false;
   }
   publish({ error: undefined });
-  if (state.view.kind === 'topic') {
-    await loadTopic(state.view.number);
+  const { view } = forumNow();
+  if (view.kind === 'topic') {
+    await loadTopic(view.number);
   }
   return true;
 };
@@ -378,7 +331,7 @@ export const vote = async (id: string, on: boolean): Promise<void> => {
     publish({ error: failureOf(result) });
     return;
   }
-  const { topic } = state;
+  const { topic } = forumNow();
   if (!topic) {
     return;
   }
@@ -410,24 +363,9 @@ export const vote = async (id: string, on: boolean): Promise<void> => {
 export const previewMarkdown = (body: string) =>
   call(() => bridge()?.forumPreview?.(body));
 
-const subscribe = (listener: () => void) => {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-};
-
-const snapshot = () => state;
-
-export const useForum = (): IForumState =>
-  useSyncExternalStore(subscribe, snapshot, snapshot);
-
 /** Test seam: back to a fresh store. */
 export const resetForumStore = () => {
   closeForum();
-  state = INITIAL;
+  resetForumState();
   readFrom = 'feed';
-  tickets.boards = 0;
-  tickets.list = 0;
-  tickets.topic = 0;
 };

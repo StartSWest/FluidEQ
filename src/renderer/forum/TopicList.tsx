@@ -9,8 +9,11 @@ import ForumGlyph, { boardGlyph } from './ForumGlyph';
 import { ForumLoadingLayer, TopicListLoading } from './ForumLoading';
 import {
   type IForumState,
+  isListedTopicNew,
   listKey,
   loadMoreTopics,
+  markAllForumRead,
+  NEW_BOARD,
   openTopic,
   refreshForum,
   searchForum,
@@ -43,6 +46,13 @@ const headingOf = (forum: IForumState, t: Translate) => {
       glyph: 'search' as const,
     };
   }
+  if (forum.board === NEW_BOARD) {
+    return {
+      title: t('forum.new'),
+      description: t('forum.new.blurb'),
+      glyph: 'inbox' as const,
+    };
+  }
   if (forum.board) {
     return {
       title: boardName(forum.board, forum.boards, t),
@@ -60,6 +70,7 @@ const headingOf = (forum: IForumState, t: Translate) => {
 export default function TopicList({ forum }: ITopicListProps) {
   const { t, locale } = useTranslation();
   const searching = forum.search !== '';
+  const isNewList = !searching && forum.board === NEW_BOARD;
   const current = forum.boards.find((board) => board.slug === forum.board);
   const signedIn = forum.auth.status === 'signed-in';
   const canWrite = forum.auth.status !== 'unconfigured';
@@ -69,6 +80,20 @@ export default function TopicList({ forum }: ITopicListProps) {
   // loaded, or topics from another board, filter or search. A reload of the
   // list already on screen keeps its rows — the turning refresh button is
   // the whole signal, or coming back to the window would flash the page.
+  const empty = (() => {
+    if (searching) {
+      return {
+        title: 'forum.empty.search',
+        hint: 'forum.empty.searchHint',
+      } as const;
+    }
+    return isNewList
+      ? ({ title: 'forum.new.empty', hint: 'forum.new.emptyHint' } as const)
+      : ({
+          title: 'forum.empty.board',
+          hint: 'forum.empty.boardHint',
+        } as const);
+  })();
   const placeholder =
     (loading || forum.listStatus === 'idle') &&
     (forum.topics.length === 0 || forum.listedFor !== listKey(forum));
@@ -88,6 +113,15 @@ export default function TopicList({ forum }: ITopicListProps) {
           )}
         </span>
         <span className="forum__head-actions">
+          {isNewList && forum.topics.length > 0 && (
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={markAllForumRead}
+            >
+              {t('forum.new.markAllRead')}
+            </button>
+          )}
           <button
             type="button"
             className={`forum__icon-button${loading ? ' is-busy' : ''}`}
@@ -158,7 +192,8 @@ export default function TopicList({ forum }: ITopicListProps) {
                   <TopicRow
                     topic={topic}
                     boards={forum.boards}
-                    showBoard={searching || !forum.board}
+                    showBoard={searching || !forum.board || isNewList}
+                    isNew={isListedTopicNew(forum, topic)}
                     locale={locale}
                   />
                 </li>
@@ -169,16 +204,10 @@ export default function TopicList({ forum }: ITopicListProps) {
           {forum.listStatus === 'ready' && forum.topics.length === 0 && (
             <div className="community__empty">
               <span className="community__empty-mark" aria-hidden="true">
-                <ForumGlyph name={searching ? 'search' : 'threads'} />
+                <ForumGlyph name={heading.glyph} />
               </span>
-              <p className="community__empty-title">
-                {searching ? t('forum.empty.search') : t('forum.empty.board')}
-              </p>
-              <p className="community__empty-hint">
-                {searching
-                  ? t('forum.empty.searchHint')
-                  : t('forum.empty.boardHint')}
-              </p>
+              <p className="community__empty-title">{t(empty.title)}</p>
+              <p className="community__empty-hint">{t(empty.hint)}</p>
             </div>
           )}
 
@@ -253,16 +282,18 @@ interface ITopicRowProps {
   topic: IForumTopicSummary;
   boards: readonly IForumBoard[];
   showBoard: boolean;
+  /** Something in it this reader has not read. */
+  isNew: boolean;
   locale: string;
 }
 
-function TopicRow({ topic, boards, showBoard, locale }: ITopicRowProps) {
+function TopicRow({ topic, boards, showBoard, isNew, locale }: ITopicRowProps) {
   const { t } = useTranslation();
   const count = new Intl.NumberFormat(locale);
   return (
     <button
       type="button"
-      className={`forum__topic${topic.answered ? ' is-answered' : ''}`}
+      className={`forum__topic${topic.answered ? ' is-answered' : ''}${isNew ? ' is-new' : ''}`}
       onClick={() => openTopic(topic.number)}
     >
       <ForumAvatar person={topic.author} className="forum__topic-avatar" />
@@ -272,6 +303,11 @@ function TopicRow({ topic, boards, showBoard, locale }: ITopicRowProps) {
           <span className="forum__topic-excerpt">{topic.excerpt}</span>
         )}
         <span className="forum__topic-meta">
+          {isNew && (
+            <span className="forum__chip forum__chip--new">
+              {t('forum.topic.new')}
+            </span>
+          )}
           {showBoard && (
             <span className="forum__chip">
               <ForumGlyph name={boardGlyph(topic.board)} />

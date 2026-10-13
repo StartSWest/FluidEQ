@@ -4,6 +4,15 @@ const forum = {
   'forum.source': 'GitHub Discussions',
   'forum.allTopics': 'सभी विषय',
   'forum.allTopics.blurb': 'हर बोर्ड, नई गतिविधि पहले',
+  'forum.new': 'आपके लिए नया',
+  'forum.new.blurb': 'पिछली बार के बाद से जो आया',
+  'forum.new.countLabel': 'नए: {count}',
+  'forum.new.markAllRead': 'सब पढ़ा हुआ मानें',
+  'forum.new.empty': 'आप सब पढ़ चुके हैं',
+  'forum.new.emptyHint':
+    'नए विषय और जवाब यहाँ तब तक दिखते हैं जब तक आप उन्हें खोलते नहीं।',
+  'forum.topic.new': 'नया',
+  'forum.thread.newReplies': 'नए: {count}',
 
   'forum.board.announcements': 'घोषणाएँ',
   'forum.board.general': 'सामान्य',
