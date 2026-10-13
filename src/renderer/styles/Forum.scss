@@ -66,6 +66,27 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The new ones' count is the one number in the rail that asks to be acted
+// on, so it is the filled accent where every topic count is quiet — lit or
+// not, it reads the same.
+.forum__count--new,
+.community__channel.is-active .forum__count--new {
+  color: $surface-base;
+  background: $secondary-light;
+}
+
+// A board with something unread: the accent's dot after its name.
+.forum__new-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-left: 7px;
+  vertical-align: 0.1em;
+  border-radius: 50%;
+  background: $secondary-light;
+  box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 70%, transparent);
+}
+
 // Who is writing, or how to start: the rail's foot, above a rule like the
 // Plus tab's own.
 .forum__identity {

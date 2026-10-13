@@ -54,6 +54,9 @@ const KEPT = [
   'fluideq-rhythm-high-score',
   // Where they were.
   'fluideq.workspaceTab',
+  // Which forum topics have been read: a reset is not a reason to call
+  // every topic new again.
+  'fluideq.forum.read.v1',
   'fluideq.plusPlace',
   'fluideq.dsp.openSection',
   'fluideq.studio.workTab',

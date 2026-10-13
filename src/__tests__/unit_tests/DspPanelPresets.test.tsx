@@ -322,9 +322,14 @@ describe('DspPanel presets, isolates and monitors', () => {
       .getAllByRole('menuitemradio')
       .map((row) => row.textContent ?? '');
     expect(rows[0]).toMatch(/^None/);
-    // POSITIVE CONTROL: the starred ones are there, straight under it.
+    // POSITIVE CONTROL: the starred ones are there, straight under it, in
+    // the list's own order — the usual chains first, so Movie leads the
+    // default stars and Default follows Gaming (Ivan, 2026-10-12: "same
+    // order we use on the other lists").
     expect(screen.getByText('Favourites')).toBeInTheDocument();
-    expect(rows[1]).toMatch(/^Default/);
+    expect(rows[1]).toMatch(/^Movie/);
+    expect(rows[2]).toMatch(/^Gaming/);
+    expect(rows[3]).toMatch(/^Default/);
     expect(
       screen.queryByRole('button', { name: /Favourites: None$/ }),
     ).not.toBeInTheDocument();

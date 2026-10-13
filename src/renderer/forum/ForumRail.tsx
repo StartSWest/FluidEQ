@@ -1,11 +1,15 @@
 import { REPOSITORY_URL } from 'common/branding';
-import type { IForumBoard, TForumAuthState } from 'common/forum/forumTypes';
+import type {
+  IForumBoard,
+  IForumTopicSummary,
+  TForumAuthState,
+} from 'common/forum/forumTypes';
 import { useTranslation } from '../utils/I18nContext';
 import { boardDescription, boardName } from './boardNames';
 import ForumAvatar from './ForumAvatar';
 import ForumGlyph, { boardGlyph, GithubMark } from './ForumGlyph';
 import { BoardsLoading } from './ForumLoading';
-import { cancelSignIn, signIn, signOut } from './forumStore';
+import { cancelSignIn, NEW_BOARD, signIn, signOut } from './forumStore';
 
 interface IForumRailProps {
   boards: readonly IForumBoard[];
@@ -15,6 +19,8 @@ interface IForumRailProps {
   auth: TForumAuthState;
   /** The boards are being asked for and none are known yet. */
   loadingBoards: boolean;
+  /** Every board's topics with something this reader has not read. */
+  fresh: readonly IForumTopicSummary[];
   onSelect: (board: string) => void;
 }
 
@@ -31,6 +37,7 @@ export default function ForumRail({
   searching,
   auth,
   loadingBoards,
+  fresh,
   onSelect,
 }: IForumRailProps) {
   const { t, locale } = useTranslation();
@@ -48,6 +55,10 @@ export default function ForumRail({
     topics: number | undefined,
   ) => {
     const isActive = !searching && slug === board;
+    // A board with something unread carries the accent's dot; the new ones'
+    // own row carries their number instead, filled, because that number is
+    // the request for attention a topic count is not.
+    const unread = fresh.filter((topic) => topic.board === slug).length;
     return (
       <button
         key={slug || 'all'}
@@ -61,13 +72,27 @@ export default function ForumRail({
           <ForumGlyph name={glyph} />
         </span>
         <span className="community__channel-text">
-          <span className="community__channel-name">{name}</span>
+          <span className="community__channel-name">
+            {name}
+            {slug !== NEW_BOARD && slug !== '' && unread > 0 && (
+              <span
+                className="forum__new-dot"
+                role="img"
+                aria-label={t('forum.new.countLabel', { count: unread })}
+              />
+            )}
+          </span>
           <span className="community__channel-blurb">{blurb}</span>
         </span>
         {topics !== undefined && topics > 0 && (
           <span
-            className="forum__count"
-            aria-label={t('forum.board.countLabel', { count: topics })}
+            className={`forum__count${slug === NEW_BOARD ? ' forum__count--new' : ''}`}
+            aria-label={t(
+              slug === NEW_BOARD
+                ? 'forum.new.countLabel'
+                : 'forum.board.countLabel',
+              { count: topics },
+            )}
           >
             {count.format(topics)}
           </span>
@@ -87,6 +112,13 @@ export default function ForumRail({
       </div>
 
       <div className="community__channels">
+        {row(
+          NEW_BOARD,
+          t('forum.new'),
+          t('forum.new.blurb'),
+          'inbox',
+          fresh.length || undefined,
+        )}
         {row(
           '',
           t('forum.allTopics'),
