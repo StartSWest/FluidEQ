@@ -43,6 +43,10 @@ const files = {
   'files.chain.notChain': 'That file is not a FluidEQ chain.',
   'files.squiglink.empty': 'Paste a Squiglink EQ export before importing it.',
   'files.squiglink.tooLarge': 'That EQ export is too large to import.',
+  'files.squiglink.earsNeedBands':
+    'This export is a sampled curve, which covers both ears at once. Apply it to both ears, or export it as parametric filters.',
+  'files.squiglink.tooManyBands':
+    'That would make more than {max} bands. Delete some bands first, or apply it to both ears.',
   'files.squiglink.noFilters':
     'No Equalizer APO filters were found. Copy the exported ParametricEQ or GraphicEQ text from Squiglink.',
   'files.eq.tooLarge': 'That file is too large to be an EQ setting.',

@@ -187,7 +187,6 @@ describe('renaming and deleting a profile through IPC', () => {
         await work();
       },
       attachPresetToActiveDevice: () => undefined,
-      clearCurrentLayoutSettings: () => undefined,
       createEmptyProfileForActiveDevice: () => undefined,
       getCurrentPreset: () => presetWith(0),
       hydrateActiveConvolution: () => undefined,
@@ -196,7 +195,6 @@ describe('renaming and deleting a profile through IPC', () => {
       resetStateToDefaults: () => undefined,
       adoptExistingApoConfig: () => undefined,
       applyDeviceState: () => undefined,
-      captureCurrentLayout: () => undefined,
       notifyOutputStateChanged: () => undefined,
       guardAgainstApo: async () => undefined,
     });

@@ -28,7 +28,6 @@ export type TOutputFollowerDeps = Pick<
   | 'createEmptyProfileForActiveDevice'
   | 'adoptExistingApoConfig'
   | 'applyDeviceState'
-  | 'captureCurrentLayout'
   | 'notifyOutputStateChanged'
   | 'guardAgainstApo'
   | 'onPlaybackOutputChanged'
@@ -64,7 +63,6 @@ export const createOutputFollower = ({
   createEmptyProfileForActiveDevice,
   adoptExistingApoConfig,
   applyDeviceState,
-  captureCurrentLayout,
   notifyOutputStateChanged,
   guardAgainstApo,
   onPlaybackOutputChanged,
@@ -120,7 +118,6 @@ export const createOutputFollower = ({
         return;
       }
       save(state, userDataDir);
-      captureCurrentLayout();
 
       // A Windows output change must immediately replace the APO rules. This
       // prevents the previous device's profile from remaining active until a

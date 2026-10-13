@@ -20,6 +20,7 @@ import {
   TEqStereo,
   buildEqRack,
   eqEdited,
+  EQ_MAX_BAND_COUNT,
 } from '../../common/dsp/chain';
 import { rackMatchingCurveOf } from './rack';
 import linearPhaseLatencyMs from './linearPhase';
@@ -41,6 +42,8 @@ import RichPick from '../widgets/RichPick';
 import SegmentedControl from '../widgets/SegmentedControl';
 import { eqPresetEntries, eqPresetGroupLabel } from './presetPickEntries';
 import DspPresetImportDialog from './DspPresetImportDialog';
+import ImportEarsPick from '../eq/ImportEarsPick';
+import { withImportedEars, type TImportEars } from '../../common/bandEars';
 import DspBarIcon from './DspBarIcon';
 import DspPresetSaveDialog from './DspPresetSaveDialog';
 import useRackTreble from './useRackTreble';
@@ -282,6 +285,8 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
     setNotice(t('dsp.eqSave.deleted', { name: saved.name }));
   };
 
+  const [importEars, setImportEars] = useState<TImportEars>('both');
+
   const handleImport = (text: string) => {
     /**
      * A shared preset first, then APO text.
@@ -308,6 +313,22 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       setNotice(t('dsp.eqPreset.importEmpty'));
       return;
     }
+    // One ear: that ear's bands replaced, the other ear kept (Ivan,
+    // 2026-10-13: "fill either or both left and right").
+    const placed =
+      eq.stereo === 'stereo' && importEars !== 'both'
+        ? withImportedEars(
+            eq.bands,
+            bands,
+            importEars,
+            (band) => band.ear,
+            (band, ear) => ({ ...band, ear }),
+          )
+        : bands;
+    if (placed.length > EQ_MAX_BAND_COUNT) {
+      setNotice(t('dsp.eqImport.tooMany', { max: EQ_MAX_BAND_COUNT }));
+      return;
+    }
     setIsImporting(false);
     onChange({
       ...eq,
@@ -316,11 +337,11 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
       // The file decides the rack size. Padding it out to fifteen left silent
       // bands behind, and cutting it to fifteen threw away filters the author
       // put there.
-      bands,
+      bands: placed,
       // The published curve is the reference from here on, so every rack size
       // is read from the file rather than from the last size that was on
       // screen.
-      sourceBands: bands,
+      sourceBands: placed,
     });
     onCommit();
     const notes = [
@@ -664,6 +685,12 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           error={notice}
           onImport={handleImport}
           onClose={() => setIsImporting(false)}
+          aboveText={
+            // Ears exist only while the EQ applies to Stereo.
+            eq.stereo === 'stereo' ? (
+              <ImportEarsPick value={importEars} onChange={setImportEars} />
+            ) : undefined
+          }
         />
       )}
 

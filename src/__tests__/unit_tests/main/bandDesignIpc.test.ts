@@ -5,10 +5,13 @@ import ChannelEnum from 'common/channels';
 import { ErrorCode } from 'common/errors';
 import {
   AutoEqFormat,
+  FIXED_BAND_FREQUENCIES,
   FilterTypeEnum,
+  FixedBandSizeEnum,
   getDefaultFilterWithId,
   getDefaultState,
 } from 'common/constants';
+import { qualitiesForRack } from 'common/bandQuality';
 import { cloneBandDesign } from 'common/bandDesigns';
 import registerBandDesignsIpc from 'main/ipc/bandDesigns';
 import { registerFiltersIpc } from 'main/ipc/filters';
@@ -33,7 +36,6 @@ describe('band design and clear commands', () => {
   const event = { reply: jest.fn() };
   const update = jest.fn();
   const error = jest.fn();
-  const capture = jest.fn();
   const switchEditing = jest.fn();
   const release = jest.fn();
   const send = async (channel: ChannelEnum, args?: unknown) => {
@@ -57,14 +59,12 @@ describe('band design and clear commands', () => {
       handleUpdateHelper: update,
       handleError: error,
       switchToParametricEditing: switchEditing,
-      captureCurrentLayout: capture,
     };
     registerBandDesignsIpc({ ...deps, userDataDir: directory });
     registerFiltersIpc({
       ...deps,
       handleUpdate: update,
       doesFilterIdExist: () => true,
-      getStoredLayout: () => undefined,
       applyingLayer: release,
     });
   });
@@ -85,7 +85,6 @@ describe('band design and clear commands', () => {
       quality: 4.7,
     });
     expect(state).toEqual({ ...before, eqBandDesign: saved });
-    expect(capture).not.toHaveBeenCalled();
     expect(switchEditing).not.toHaveBeenCalled();
     Object.values(state.filters)[0].quality = 7;
     Object.assign(state, { mainBandQ: 'off' });
@@ -128,6 +127,30 @@ describe('band design and clear commands', () => {
     },
   );
 
+  // Ivan, 2026-10-13: "switching built in layout needs to reset all bands and
+  // their freq", "the q too needs to reset".
+  it('starts a built-in layout fresh: its frequencies, its Q, flat, both ears', async () => {
+    Object.values(state.filters).forEach((filter, index) => {
+      filter.frequency = 1590 + index * 37;
+      filter.gain = 4;
+      filter.quality = 1.05;
+      filter.channel = 'left';
+    });
+    state.mainBandQ = 'proportional';
+    await send(ChannelEnum.SET_FIXED_BAND, [FixedBandSizeEnum.FIFTEEN]);
+    const bands = Object.values(state.filters).sort(
+      (a, b) => a.frequency - b.frequency,
+    );
+    const frequencies = FIXED_BAND_FREQUENCIES[FixedBandSizeEnum.FIFTEEN];
+    expect(bands.map((band) => band.frequency)).toEqual(frequencies);
+    expect(bands.map((band) => band.quality)).toEqual(
+      qualitiesForRack(frequencies),
+    );
+    expect(bands.every((band) => band.gain === 0)).toBe(true);
+    expect(bands.every((band) => band.channel === undefined)).toBe(true);
+    expect(state.mainBandQ).toBeUndefined();
+  });
+
   it('loads saved frequency/Q at neutral gains without changing either EQ mode or preamp', async () => {
     writeBandDesign(directory, design);
     await send(ChannelEnum.APPLY_BAND_DESIGN, [design.id]);
@@ -146,7 +169,6 @@ describe('band design and clear commands', () => {
       eqBandQ: 'proportional',
       preAmp: -9,
     });
-    expect(capture).toHaveBeenCalledTimes(1);
     expect(switchEditing).toHaveBeenCalledTimes(1);
     expect(error).not.toHaveBeenCalled();
   });
@@ -205,7 +227,6 @@ describe('band design and clear commands', () => {
       await send(ChannelEnum.CLEAR_GAINS);
       expect(state).toEqual(expected);
       expect(switchEditing).not.toHaveBeenCalled();
-      expect(capture).not.toHaveBeenCalled();
       expect(update).toHaveBeenCalledTimes(1);
     },
   );

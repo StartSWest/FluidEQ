@@ -40,6 +40,10 @@ const files = {
     'Incolla un’esportazione EQ di Squiglink prima di importarla.',
   'files.squiglink.tooLarge':
     'Quell’esportazione EQ è troppo grande da importare.',
+  'files.squiglink.earsNeedBands':
+    'Questa esportazione è una curva campionata, che vale per entrambe le orecchie. Applicala a entrambe le orecchie, oppure esportala come filtri parametrici.',
+  'files.squiglink.tooManyBands':
+    'Si supererebbero le {max} bande. Elimina prima qualche banda, oppure applicalo a entrambe le orecchie.',
   'files.squiglink.noFilters':
     'Non sono stati trovati filtri di Equalizer APO. Copia il testo ParametricEQ o GraphicEQ esportato da Squiglink.',
   'files.eq.tooLarge':

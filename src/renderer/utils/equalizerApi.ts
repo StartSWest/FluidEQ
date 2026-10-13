@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { TImportEars } from 'common/bandEars';
 import ChannelEnum from 'common/channels';
 import { IGatheredFacts } from 'common/bugReport';
 import {
@@ -676,11 +677,12 @@ export const importEqText = (
   text: string,
   label = 'Squiglink export',
   destination: 'eq' | 'curve' = 'eq',
+  ears: TImportEars = 'both',
 ): Promise<string> => {
   const channel = ChannelEnum.IMPORT_EQ_TEXT;
   return sendRequest(
     channel,
-    [text, label, destination],
+    [text, label, destination, ears],
     simpleResponseHandler<string>(),
   );
 };

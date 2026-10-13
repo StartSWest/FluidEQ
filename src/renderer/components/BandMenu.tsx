@@ -97,6 +97,8 @@ const BandMenu = ({
   // effect keyed on the element, and a ref's current is still null on the
   // render that mounts it.
   const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
+  // Delete's first press arms it; only the second deletes.
+  const [isDeleteArmed, setIsDeleteArmed] = useState(false);
   // What the window already holds, never a new ask on opening the menu.
   const status = useKnownAudioEngineStatus();
   // Equalizer APO has always read `Channel:`; the FluidEQ Engine from 1.21.
@@ -187,19 +189,32 @@ const BandMenu = ({
         </button>
         {/* Beside Disable, the other thing done to the band itself (Ivan,
             2026-10-13: "we also need delete band on both dsp and main eq"). */}
+        {/* Asked before it is done (Ivan, 2026-10-13: "delete band or
+            bands needs confirmation"): the first press turns the line red
+            and asks again, the second deletes. The menu stays open between. */}
         {onDelete && (
           <button
             type="button"
+            className={isDeleteArmed ? 'is-armed' : undefined}
             onClick={() => {
+              if (!isDeleteArmed) {
+                setIsDeleteArmed(true);
+                return;
+              }
               onDelete(filters);
               onClose();
             }}
           >
             <MenuIcon name="trash" className="band-menu__icon" />
             <span>
-              {isSelection
-                ? t('eq.menu.deleteSelection', { count: filters.length })
-                : t('eq.delete')}
+              {(() => {
+                if (isDeleteArmed) {
+                  return t('eq.menu.deleteConfirm');
+                }
+                return isSelection
+                  ? t('eq.menu.deleteSelection', { count: filters.length })
+                  : t('eq.delete');
+              })()}
             </span>
           </button>
         )}

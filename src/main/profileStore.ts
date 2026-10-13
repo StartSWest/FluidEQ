@@ -25,7 +25,6 @@ import path from 'path';
 import {
   AUTOMATIC_PRESET_PREFIX,
   AutoEqFormat,
-  FixedBandSizeEnum,
   getDefaultFilters,
   IDeviceProfileSettings,
   IFiltersMap,
@@ -35,7 +34,6 @@ import {
   TApoLayer,
 } from '../common/constants';
 import { getCurveEqMode, getEqMode } from '../common/eqMode';
-import type { ILayoutSnapshot } from '../common/layouts';
 import { compressChainToLimit } from '../common/response';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 import { ISessionHeadroom } from './deviceProfiles';
@@ -51,7 +49,6 @@ import {
   repairUnusedPreamps,
   savePreset,
 } from './flush';
-import { createLayoutSettingsStore } from './layoutSettings';
 import type { IMainSession } from './mainSession';
 import { migrateLegacyOutputDesigns } from './outputSoundMigration';
 import { defaultOutputSound } from './outputSoundPersistence';
@@ -188,23 +185,6 @@ export const createProfileStore = ({
     }
     return false;
   };
-
-  const layoutSettings = createLayoutSettingsStore(userDataDir);
-
-  const getLayoutDeviceKey = () => session.activeAudioDeviceId || 'global';
-
-  const captureCurrentLayout = () => {
-    layoutSettings.capture(getLayoutDeviceKey(), state.filters);
-  };
-
-  const clearCurrentLayoutSettings = () => {
-    layoutSettings.clear(getLayoutDeviceKey());
-  };
-
-  const getStoredLayout = (
-    size: FixedBandSizeEnum,
-  ): ILayoutSnapshot | undefined =>
-    layoutSettings.stored(getLayoutDeviceKey(), size);
 
   const presetDirForDevice = (deviceId: string) => {
     const dir = path.join(presetPath, outputSlug(deviceId));
@@ -468,9 +448,7 @@ export const createProfileStore = ({
    * Back to the default editable EQ: ten neutral Peak bands and no preamp.
    *
    * The default layout rather than only zeroed gains, because band pass, notch
-   * and the pass filters still shape the signal at 0 dB, and because the stored
-   * per-size layout snapshots have to go with them — otherwise pressing a band
-   * count afterwards resurrects the tuning that was just cleared. The flat flag
+   * and the pass filters still shape the signal at 0 dB. The flat flag
    * is what actually takes the bands out of the config; without it they would
    * be stored and then never written.
    *
@@ -484,7 +462,6 @@ export const createProfileStore = ({
    */
   const resetEqToDefaults = () => {
     switchToParametricEditing();
-    clearCurrentLayoutSettings();
     state.filters = getDefaultFilters();
     state.preAmp = 0;
     state.isFlat = true;
@@ -676,9 +653,6 @@ export const createProfileStore = ({
 
   return {
     hydrateActiveConvolution,
-    captureCurrentLayout,
-    clearCurrentLayoutSettings,
-    getStoredLayout,
     presetDirForDevice,
     activePresetDir,
     activeBaselineDir,

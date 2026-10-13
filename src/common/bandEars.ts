@@ -117,6 +117,39 @@ const middleOf = (a: IEarBand, b: IEarBand): IEarMiddle => ({
   quality: Math.round(((a.quality + b.quality) / 2) * 100) / 100,
 });
 
+/** Which ears an imported curve fills (Ivan, 2026-10-13). */
+export type TImportEars = 'both' | TBandChannel;
+
+export const IMPORT_EARS: readonly TImportEars[] = ['both', 'left', 'right'];
+
+export const isImportEars = (value: unknown): value is TImportEars =>
+  (IMPORT_EARS as readonly unknown[]).includes(value);
+
+/**
+ * An imported curve put on `ears` (Ivan, 2026-10-13: "to be able to fill
+ * either or both left and right"). Both replaces every band. One ear takes
+ * the curve and keeps the other ear's sound: that ear's own bands go, a band
+ * on both ears stays on the other one only, and the other ear's bands stay —
+ * so a left file and then a right file make one EQ, each ear its own.
+ */
+export const withImportedEars = <T>(
+  existing: readonly T[],
+  imported: readonly T[],
+  ears: TImportEars,
+  earOf: (band: T) => TBandChannel | undefined,
+  onEar: (band: T, ear: TBandChannel) => T,
+): T[] => {
+  if (ears === 'both') {
+    return [...imported];
+  }
+  const kept = existing
+    .filter((band) => earOf(band) !== ears)
+    .map((band) =>
+      earOf(band) === undefined ? onEar(band, otherEar(ears)) : band,
+    );
+  return [...kept, ...imported.map((band) => onEar(band, ears))];
+};
+
 /**
  * The halves left alone when `deleted` go: each deleted half of a pair whose
  * twin stays. Those go back on both ears, so deleting one half never leaves

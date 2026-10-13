@@ -40,11 +40,6 @@ import { planEarChange } from '../../common/bandEars';
 import { qualityForAddedBand } from '../../common/bandQuality';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
-import {
-  ILayoutSnapshot,
-  adaptLayoutToFixedFrequencies,
-  snapshotFilters,
-} from '../../common/layouts';
 import { isFixedBandSizeEnumValue } from '../../common/utils';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import onWindowMessage from './windowMessages';
@@ -90,9 +85,6 @@ export interface IFiltersIpcDeps {
     channel: ChannelEnum,
     filterId: string,
   ) => boolean;
-  /** Remember where the current bands sit, before the count changes. */
-  captureCurrentLayout: () => void;
-  getStoredLayout: (size: FixedBandSizeEnum) => ILayoutSnapshot | undefined;
   switchToParametricEditing: () => void;
   /** Take a layer off the bypass list, because it is being cleared. */
   applyingLayer: (layer: TApoLayer) => void;
@@ -110,8 +102,6 @@ export const registerFiltersIpc = ({
   handleUpdateHelper,
   handleError,
   doesFilterIdExist,
-  captureCurrentLayout,
-  getStoredLayout,
   switchToParametricEditing,
   applyingLayer,
 }: IFiltersIpcDeps) => {
@@ -496,29 +486,16 @@ export const registerFiltersIpc = ({
       return;
     }
 
-    // Capture the high-resolution layout before replacing it. The snapshot is
-    // device-scoped and survives app restarts, so returning to a previous band
-    // count restores its original frequencies and tuning.
-    captureCurrentLayout();
-    const sourceSnapshot = snapshotFilters(state.filters);
+    // A built-in layout starts fresh: its own frequencies, every band at the
+    // layout's Q, flat, on both ears, and the Band Q behaviour back to its
+    // default (Ivan, 2026-10-13: "switching built in layout needs to reset
+    // all bands and their freq", "the q too needs to reset"). It used to
+    // bring back a snapshot of the last time that count was used, or fit the
+    // current curve onto it, and the 15 Band button then showed some other
+    // layout's frequencies.
     switchToParametricEditing();
-    const storedSnapshot = getStoredLayout(size);
-    const targetSnapshot =
-      storedSnapshot || adaptLayoutToFixedFrequencies(sourceSnapshot, size);
-    const nextFilters = getDefaultFilters(size);
-    Object.values(nextFilters)
-      .sort((left, right) => left.frequency - right.frequency)
-      .forEach((filter, index) => {
-        const savedBand = targetSnapshot[index];
-        if (!savedBand) {
-          return;
-        }
-        filter.frequency = savedBand.frequency;
-        filter.gain = savedBand.gain;
-        filter.quality = savedBand.quality;
-        filter.type = savedBand.type;
-      });
-    state.filters = nextFilters;
+    state.filters = getDefaultFilters(size);
+    state.mainBandQ = undefined;
     state.eqBandDesign = undefined;
     state.isFlat = false;
 

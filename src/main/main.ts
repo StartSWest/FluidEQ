@@ -355,7 +355,6 @@ const {
   getCurrentPreset: profiles.getCurrentPreset,
   sessionHeadroom: profiles.sessionHeadroom,
   attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
-  captureCurrentLayout: profiles.captureCurrentLayout,
 });
 
 registerDiagnosticsIpc({
@@ -448,7 +447,6 @@ const profilesIpc = registerProfilesIpc({
   handleError,
   runProfileMutation: profiles.runProfileMutation,
   attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
-  clearCurrentLayoutSettings: profiles.clearCurrentLayoutSettings,
   createEmptyProfileForActiveDevice: profiles.createEmptyProfileForActiveDevice,
   getCurrentPreset: profiles.getCurrentPreset,
   hydrateActiveConvolution: profiles.hydrateActiveConvolution,
@@ -460,7 +458,6 @@ const profilesIpc = registerProfilesIpc({
   resetStateToDefaults: profiles.resetStateToDefaults,
   adoptExistingApoConfig,
   applyDeviceState: profiles.applyDeviceState,
-  captureCurrentLayout: profiles.captureCurrentLayout,
   notifyOutputStateChanged,
   guardAgainstApo: apoGuard.check,
   onPlaybackOutputChanged: () => sourceAnalysis.reflush(),
@@ -491,7 +488,6 @@ registerTransferIpc({
   availableProfileNameForActiveDevice:
     profiles.availableProfileNameForActiveDevice,
   activeBaselineDir: profiles.activeBaselineDir,
-  clearCurrentLayoutSettings: profiles.clearCurrentLayoutSettings,
   resetEqToDefaults: profiles.resetEqToDefaults,
   deviceProfileSettings,
   getMainWindow,
@@ -531,7 +527,6 @@ registerBandDesignsIpc({
   handleUpdateHelper,
   handleError,
   switchToParametricEditing: profiles.switchToParametricEditing,
-  captureCurrentLayout: profiles.captureCurrentLayout,
 });
 
 registerFiltersIpc({
@@ -540,8 +535,6 @@ registerFiltersIpc({
   handleUpdateHelper,
   handleError,
   doesFilterIdExist,
-  captureCurrentLayout: profiles.captureCurrentLayout,
-  getStoredLayout: profiles.getStoredLayout,
   switchToParametricEditing: profiles.switchToParametricEditing,
   applyingLayer: profiles.applyingLayer,
 });

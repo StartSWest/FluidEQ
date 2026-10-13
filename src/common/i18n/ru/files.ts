@@ -39,6 +39,10 @@ const files = {
   'files.squiglink.empty': 'Сначала вставьте экспорт эквалайзера из Squiglink.',
   'files.squiglink.tooLarge':
     'Этот экспорт эквалайзера слишком велик для импорта.',
+  'files.squiglink.earsNeedBands':
+    'Этот экспорт — снятая по точкам кривая, она действует сразу на оба уха. Примените её к обоим ушам или экспортируйте как параметрические фильтры.',
+  'files.squiglink.tooManyBands':
+    'Получится больше {max} полос. Сначала удалите часть полос или примените к обоим ушам.',
   'files.squiglink.noFilters':
     'Фильтры Equalizer APO не найдены. Скопируйте экспортированный из Squiglink текст ParametricEQ или GraphicEQ.',
   'files.eq.tooLarge': 'Этот файл слишком велик для настроек эквалайзера.',

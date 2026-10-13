@@ -129,7 +129,6 @@ describe('following the outputs Windows reported', () => {
       },
       runProfileMutation: async (work) => work(),
       attachPresetToActiveDevice: () => undefined,
-      clearCurrentLayoutSettings: () => undefined,
       createEmptyProfileForActiveDevice: () => undefined,
       getCurrentPreset: () => ({ preAmp: 0, filters: {} }),
       hydrateActiveConvolution: () => undefined,
@@ -138,7 +137,6 @@ describe('following the outputs Windows reported', () => {
       resetStateToDefaults: () => undefined,
       adoptExistingApoConfig,
       applyDeviceState,
-      captureCurrentLayout: () => undefined,
       notifyOutputStateChanged,
       guardAgainstApo,
     });

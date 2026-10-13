@@ -19,11 +19,7 @@ import onWindowMessage from './windowMessages';
 
 interface IBandDesignDeps extends Pick<
   IFiltersIpcDeps,
-  | 'state'
-  | 'handleUpdateHelper'
-  | 'handleError'
-  | 'switchToParametricEditing'
-  | 'captureCurrentLayout'
+  'state' | 'handleUpdateHelper' | 'handleError' | 'switchToParametricEditing'
 > {
   userDataDir: string;
 }
@@ -34,7 +30,6 @@ const registerBandDesignsIpc = ({
   handleUpdateHelper,
   handleError,
   switchToParametricEditing,
-  captureCurrentLayout,
 }: IBandDesignDeps) => {
   onWindowMessage(ChannelEnum.GET_BAND_DESIGNS, (event) => {
     try {
@@ -117,7 +112,6 @@ const registerBandDesignsIpc = ({
           handleError(event, channel, ErrorCode.INVALID_PARAMETER);
           return;
         }
-        captureCurrentLayout();
         switchToParametricEditing();
         state.filters = filtersFromBandDesign(design);
         state.eqBandDesign = cloneBandDesign(design);

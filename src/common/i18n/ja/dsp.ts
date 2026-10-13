@@ -387,6 +387,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'ファイルを選ぶ',
   'dsp.eqImport.apply': '読み込む',
   'dsp.eqImport.cancel': 'キャンセル',
+  'dsp.eqImport.tooMany':
+    'バンドが {max} 個を超えます。先にバンドをいくつか削除するか、両耳に読み込んでください。',
 
   'dsp.eq.title': 'イコライザー',
   'dsp.eq.band': 'バンド',

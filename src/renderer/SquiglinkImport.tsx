@@ -24,6 +24,8 @@ import { useTranslation } from './utils/I18nContext';
 import Button from './widgets/Button';
 import MenuIcon from './icons/MenuIcon';
 import { clearGains, importEqText, setHeadphone } from './utils/equalizerApi';
+import ImportEarsPick from './eq/ImportEarsPick';
+import type { TImportEars } from '../common/bandEars';
 import EqCurveChart from './graph/EqCurveChart';
 import SquiglinkImportConfirm from './components/SquiglinkImportConfirm';
 import { PREVIEW_BOX, makeCurve, makePath } from './graph/curvePreview';
@@ -237,13 +239,20 @@ const SquiglinkImport = () => {
     }
   };
 
+  const [ears, setEars] = useState<TImportEars>('both');
+
   const handleImport = async (destination: 'eq' | 'curve') => {
     if (!text.trim()) {
       return;
     }
     setIsImporting(true);
     try {
-      await importEqText(text, fileName || 'Squiglink export', destination);
+      await importEqText(
+        text,
+        fileName || 'Squiglink export',
+        destination,
+        destination === 'eq' ? ears : 'both',
+      );
       await refreshState({ revealBands: destination === 'eq' });
     } catch (error) {
       setGlobalError(error as ErrorDescription);
@@ -363,6 +372,12 @@ const SquiglinkImport = () => {
               <MenuIcon name="import" />
               {fileName || t('squigImport.chooseFile')}
             </Button>
+            {/* Which ears Apply as EQ fills; a curve is always both. */}
+            <ImportEarsPick
+              value={ears}
+              onChange={setEars}
+              disabled={isBlockingError || isImporting}
+            />
             <Button
               className="small squig-import__apply"
               ariaLabel={t('squigImport.applyAria')}

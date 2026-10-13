@@ -49,7 +49,6 @@ const setup = () => {
     activePresetDir: () => '',
     availableProfileNameForActiveDevice: (name) => name,
     attachPresetToActiveDevice: jest.fn(),
-    clearCurrentLayoutSettings: jest.fn(),
     resetEqToDefaults: jest.fn(() => {
       state.eqImport = undefined;
       state.filters = {};
@@ -134,4 +133,54 @@ it('rejects an unknown destination before changing the current tuning', async ()
   );
   expect(JSON.stringify(state)).toBe(before);
   expect(deps.handleUpdateHelper).not.toHaveBeenCalled();
+});
+
+// Ivan, 2026-10-13: "to be able to fill either or both left and right".
+describe('Apply as EQ into one ear', () => {
+  const into = (ears: string) => {
+    const made = setup();
+    const handler = handlers.get(ChannelEnum.IMPORT_EQ_TEXT);
+    if (!handler) {
+      throw new Error('Import handler was not registered');
+    }
+    return {
+      ...made,
+      run: () => handler(made.event, [text, 'Left', 'eq', ears]),
+    };
+  };
+
+  it('puts the curve on that ear and keeps the other ear what it had', async () => {
+    const { state, deps, run } = into('left');
+    await run();
+    expect(deps.handleError).not.toHaveBeenCalled();
+    const bands = Object.values(state.filters);
+    // The band that was on both ears stays, on the right only.
+    expect(state.filters.original).toMatchObject({
+      channel: 'right',
+      gain: -2,
+    });
+    expect(bands.filter((one) => one.channel === 'left')).toEqual([
+      expect.objectContaining({ frequency: 1000, gain: 4 }),
+    ]);
+    // One ear's file leaves the level alone.
+    expect(state.preAmp).not.toBe(-6);
+  });
+
+  it('replaces only that ear on a second import', async () => {
+    const { state, run } = into('left');
+    await run();
+    await run();
+    expect(
+      Object.values(state.filters).filter((one) => one.channel === 'left'),
+    ).toHaveLength(1);
+    expect(state.filters.original.channel).toBe('right');
+  });
+
+  it('refuses an ear it does not know before touching the tuning', async () => {
+    const { state, deps, run } = into('middle');
+    const before = JSON.stringify(state.filters);
+    await run();
+    expect(deps.handleError).toHaveBeenCalled();
+    expect(JSON.stringify(state.filters)).toBe(before);
+  });
 });

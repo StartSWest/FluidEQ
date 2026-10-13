@@ -43,6 +43,10 @@ const files = {
     'Collez un export d’égalisation Squiglink avant de l’importer.',
   'files.squiglink.tooLarge':
     'Cet export d’égalisation est trop volumineux pour être importé.',
+  'files.squiglink.earsNeedBands':
+    'Cet export est une courbe échantillonnée, qui couvre les deux oreilles à la fois. Appliquez-le aux deux oreilles, ou exportez-le en filtres paramétriques.',
+  'files.squiglink.tooManyBands':
+    'Cela ferait plus de {max} bandes. Supprimez d’abord quelques bandes, ou appliquez-le aux deux oreilles.',
   'files.squiglink.noFilters':
     'Aucun filtre Equalizer APO n’a été trouvé. Copiez le texte ParametricEQ ou GraphicEQ exporté depuis Squiglink.',
   'files.eq.tooLarge':

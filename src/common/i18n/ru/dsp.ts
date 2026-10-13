@@ -390,6 +390,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'Выбрать файл',
   'dsp.eqImport.apply': 'Импортировать',
   'dsp.eqImport.cancel': 'Отмена',
+  'dsp.eqImport.tooMany':
+    'Получится больше {max} полос. Сначала удалите часть полос или импортируйте для обоих ушей.',
 
   'dsp.eq.title': 'Эквалайзер',
   'dsp.eq.band': 'Полоса',

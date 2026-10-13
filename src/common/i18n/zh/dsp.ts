@@ -374,6 +374,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': '选择文件',
   'dsp.eqImport.apply': '导入',
   'dsp.eqImport.cancel': '取消',
+  'dsp.eqImport.tooMany':
+    '这样会超过 {max} 个频段。请先删除一些频段，或导入到双耳。',
 
   'dsp.eq.title': '均衡器',
   'dsp.eq.band': '频段',

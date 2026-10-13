@@ -107,6 +107,8 @@ describe('Squiglink import preview', () => {
       exportText,
       'Squiglink export',
       'eq',
+      // Into both ears unless another is chosen beside Apply as EQ.
+      'both',
     );
     expect(textarea).toHaveValue(exportText);
   });
@@ -143,6 +145,7 @@ describe('Squiglink import preview', () => {
         text,
         'Squiglink export',
         destination,
+        'both',
       );
       expect(refreshState).toHaveBeenCalledWith({
         revealBands: destination === 'eq',

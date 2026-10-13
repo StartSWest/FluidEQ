@@ -172,7 +172,6 @@ export interface IProfilesIpcDeps {
   /** Serialises profile writes, because deleting several quickly is normal. */
   runProfileMutation: (work: () => Promise<void>) => Promise<void>;
   attachPresetToActiveDevice: (presetName: string) => void;
-  clearCurrentLayoutSettings: () => void;
   createEmptyProfileForActiveDevice: () => void;
   getCurrentPreset: () => IPresetV2;
   hydrateActiveConvolution: () => void;
@@ -183,7 +182,6 @@ export interface IProfilesIpcDeps {
   adoptExistingApoConfig: () => boolean | void;
   /** Adopt a device's stored chain into the live state, minus app-wide flags. */
   applyDeviceState: (next: IState) => void;
-  captureCurrentLayout: () => void;
   /** Tell the renderer which output is live now. */
   notifyOutputStateChanged: () => void;
   onPlaybackOutputChanged?: () => Promise<void>;
@@ -237,8 +235,6 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
     handleError,
     runProfileMutation,
     attachPresetToActiveDevice,
-    clearCurrentLayoutSettings,
-    captureCurrentLayout,
     createEmptyProfileForActiveDevice,
     getCurrentPreset,
     hydrateActiveConvolution,
@@ -261,7 +257,6 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
         presetName,
         owner.presetDir,
       );
-      clearCurrentLayoutSettings();
       state.dsp = presetSettings.dsp;
       session.outputDspOverrides?.delete(session.activeAudioDeviceId);
       session.outputStateOverrides?.delete(session.activeAudioDeviceId);
@@ -332,7 +327,6 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
           handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
           return;
         }
-        clearCurrentLayoutSettings();
         state.dsp = baseline.dsp;
         session.outputDspOverrides?.delete(session.activeAudioDeviceId);
         session.outputStateOverrides?.delete(session.activeAudioDeviceId);
@@ -771,7 +765,6 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
           session.activeAudioDevice = device;
           session.outputEditGeneration =
             (session.outputEditGeneration ?? 0) + 1;
-          clearCurrentLayoutSettings();
           applyDeviceState(
             getStateForAudioDevice(
               deviceProfileSettings,
@@ -782,7 +775,6 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
           if (!deviceProfileSettings.assignments[device.id]) {
             createEmptyProfileForActiveDevice();
           }
-          captureCurrentLayout();
           const generation = session.outputEditGeneration;
           await save(state, userDataDir);
           if (
@@ -878,7 +870,6 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
         if (session.activeAudioDeviceId === device.id) {
           session.outputEditGeneration =
             (session.outputEditGeneration ?? 0) + 1;
-          clearCurrentLayoutSettings();
           session.hasActiveSessionOverride = false;
           applyDeviceState(
             getStateForAudioDevice(
@@ -887,7 +878,6 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
               presetDirForDevice,
             ),
           );
-          captureCurrentLayout();
         }
         await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
         await handleUpdate(event, channel);

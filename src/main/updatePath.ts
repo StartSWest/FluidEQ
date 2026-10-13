@@ -96,7 +96,6 @@ export interface IUpdatePathDeps {
   getCurrentPreset: () => IPresetV2;
   sessionHeadroom: () => ISessionHeadroom;
   attachPresetToActiveDevice: (presetName: string) => boolean;
-  captureCurrentLayout: () => void;
 }
 
 /**
@@ -113,7 +112,6 @@ export const createUpdatePath = ({
   getCurrentPreset,
   sessionHeadroom,
   attachPresetToActiveDevice,
-  captureCurrentLayout,
 }: IUpdatePathDeps) => {
   const updateConfigPath = async (
     event: TReplySink,
@@ -322,15 +320,6 @@ export const createUpdatePath = ({
     } catch (e) {
       handleError(event, channel, ErrorCode.FAILURE);
       return;
-    }
-
-    // Keep a device-scoped snapshot for every fixed layout. This runs after
-    // every successful edit, so moving a frequency slider is preserved when
-    // the user temporarily switches to another band count. Not a song's lent
-    // bands: a band count picked later would bring them back as the
-    // listener's own.
-    if (!state.songSoundLoan) {
-      captureCurrentLayout();
     }
 
     // Return a success message of undefined

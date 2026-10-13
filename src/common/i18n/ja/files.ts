@@ -40,6 +40,10 @@ const files = {
   'files.squiglink.empty':
     '読み込む前に、Squiglink の EQ の書き出しを貼り付けてください。',
   'files.squiglink.tooLarge': 'その EQ の書き出しは大きすぎて読み込めません。',
+  'files.squiglink.earsNeedBands':
+    'このエクスポートは両耳に同時にかかるサンプリング曲線です。両耳に適用するか、パラメトリックフィルターとしてエクスポートしてください。',
+  'files.squiglink.tooManyBands':
+    'バンドが {max} 個を超えます。先にバンドをいくつか削除するか、両耳に適用してください。',
   'files.squiglink.noFilters':
     'Equalizer APO のフィルターが見つかりませんでした。Squiglink から書き出した ParametricEQ または GraphicEQ のテキストをコピーしてください。',
   'files.eq.tooLarge': 'そのファイルは EQ 設定としては大きすぎます。',

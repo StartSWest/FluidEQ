@@ -389,6 +389,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'फ़ाइल चुनें',
   'dsp.eqImport.apply': 'आयात करें',
   'dsp.eqImport.cancel': 'रद्द करें',
+  'dsp.eqImport.tooMany':
+    'इससे {max} से ज़्यादा बैंड हो जाएँगे। पहले कुछ बैंड हटाइए, या दोनों कानों में आयात कीजिए।',
 
   'dsp.eq.title': 'इक्वलाइज़र',
   'dsp.eq.band': 'बैंड',

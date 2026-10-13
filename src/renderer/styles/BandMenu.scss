@@ -90,6 +90,18 @@ $band-menu-width: 200px;
   background: $menu-rule;
 }
 
+// Delete armed: the next press deletes, in the red the band editor's armed
+// bin wears.
+.band-menu button.is-armed:not(.button) {
+  color: $red;
+  border-color: color-mix(in srgb, $red 45%, transparent);
+  background: color-mix(in srgb, $red 12%, transparent);
+
+  .band-menu__icon {
+    color: $red;
+  }
+}
+
 // The tick on the ear in use, in the accent like a row under the pointer.
 .band-menu__icon.is-on {
   color: $secondary-light;

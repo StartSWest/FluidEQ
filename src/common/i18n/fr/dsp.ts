@@ -393,6 +393,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'Choisir un fichier',
   'dsp.eqImport.apply': 'Importer',
   'dsp.eqImport.cancel': 'Annuler',
+  'dsp.eqImport.tooMany':
+    'Cela ferait plus de {max} bandes. Supprimez d’abord quelques bandes, ou importez pour les deux oreilles.',
 
   'dsp.eq.title': 'Égaliseur',
   'dsp.eq.band': 'Bande',

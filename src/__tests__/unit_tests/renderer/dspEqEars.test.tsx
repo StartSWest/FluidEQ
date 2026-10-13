@@ -160,6 +160,7 @@ describe("the DSP EQ band's menu", () => {
       eqWith([band('left'), { ...band('right'), frequency: 3400 }, band()]),
     );
     fireEvent.click(screen.getByText('Delete band'));
+    fireEvent.click(screen.getByText('Press again to delete'));
     const [left] = onDelete.mock.calls[0] as [IEqBandSettings[]];
     expect(left.map((one) => [one.frequency, one.ear])).toEqual([
       [3400, undefined],

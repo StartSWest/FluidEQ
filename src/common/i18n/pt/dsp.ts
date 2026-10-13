@@ -392,6 +392,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'Escolher arquivo',
   'dsp.eqImport.apply': 'Importar',
   'dsp.eqImport.cancel': 'Cancelar',
+  'dsp.eqImport.tooMany':
+    'Isso daria mais de {max} bandas. Exclua algumas bandas antes ou importe para os dois ouvidos.',
 
   'dsp.eq.title': 'Equalizador',
   'dsp.eq.band': 'Banda',

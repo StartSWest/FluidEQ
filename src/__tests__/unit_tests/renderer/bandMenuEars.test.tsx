@@ -112,7 +112,10 @@ describe("a band's menu chooses its ear", () => {
         onClose={jest.fn()}
       />,
     );
+    // The first press asks; only the second deletes.
     fireEvent.click(screen.getByText('Delete 2 bands'));
+    expect(onDelete).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText('Press again to delete'));
     expect(onDelete).toHaveBeenCalledWith(filters);
     cleanup();
     show([band('a')]);

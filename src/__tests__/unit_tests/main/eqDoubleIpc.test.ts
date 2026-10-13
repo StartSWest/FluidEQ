@@ -244,7 +244,6 @@ describe('Main EQ x2 import and export IPC', () => {
       activePresetDir: () => directory,
       availableProfileNameForActiveDevice: (name) => name,
       attachPresetToActiveDevice: jest.fn(),
-      clearCurrentLayoutSettings: jest.fn(),
       resetEqToDefaults: jest.fn(),
       hydrateActiveConvolution: jest.fn(),
       shieldReferenceBands: (filters) => filters,

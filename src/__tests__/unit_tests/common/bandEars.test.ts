@@ -11,6 +11,7 @@ import {
   earChoiceOf,
   planEarChange,
   twinsLeftAlone,
+  withImportedEars,
   type IEarBand,
 } from '../../../common/bandEars';
 
@@ -120,5 +121,35 @@ describe('deleting one half of a pair', () => {
     expect(twinsLeftAlone(rack, ['l'])).toEqual(['r']);
     expect(twinsLeftAlone(rack, ['l', 'r'])).toEqual([]);
     expect(twinsLeftAlone(rack, ['x'])).toEqual([]);
+  });
+});
+
+describe('an imported curve on one ear', () => {
+  type T = { f: number; ear?: 'left' | 'right' };
+  const put = (existing: T[], imported: T[], ears: 'both' | 'left' | 'right') =>
+    withImportedEars(
+      existing,
+      imported,
+      ears,
+      (one) => one.ear,
+      (one, ear) => ({ ...one, ear }),
+    );
+
+  it('replaces everything for both ears', () => {
+    expect(put([{ f: 1 }], [{ f: 2 }], 'both')).toEqual([{ f: 2 }]);
+  });
+
+  it('takes that ear and keeps the other ear, a band on both moving to the other', () => {
+    expect(
+      put(
+        [{ f: 1 }, { f: 2, ear: 'left' }, { f: 3, ear: 'right' }],
+        [{ f: 9 }],
+        'left',
+      ),
+    ).toEqual([
+      { f: 1, ear: 'right' },
+      { f: 3, ear: 'right' },
+      { f: 9, ear: 'left' },
+    ]);
   });
 });

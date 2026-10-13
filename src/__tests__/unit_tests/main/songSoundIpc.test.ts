@@ -87,7 +87,6 @@ describe('SongSound IPC ownership and profile persistence', () => {
   let session: ReturnType<typeof createMainSession>;
   let profiles: ReturnType<typeof createProfileStore>;
   let editorAvailable: boolean;
-  const capture = jest.fn();
   const ensure = jest.fn(async (_configPath: string) => undefined);
   const expectedEditor = () => ({
     deviceId: session.activeAudioDeviceId,
@@ -108,7 +107,6 @@ describe('SongSound IPC ownership and profile persistence', () => {
     fire(ChannelEnum.APPLY_SONG_SOUND, [song, true, null, expectedEditor()]);
   beforeEach(async () => {
     handlers.clear();
-    capture.mockReset();
     mockFlush.mockClear();
     ensure.mockReset().mockResolvedValue(undefined);
     editorAvailable = true;
@@ -152,7 +150,6 @@ describe('SongSound IPC ownership and profile persistence', () => {
       session,
       deviceProfileSettings: settings,
       userDataDir: root,
-      captureCurrentLayout: capture,
       diskSync: {
         configInclude: { ensure, forget: () => undefined },
         startApoConfigWatcher: () => undefined,
@@ -267,7 +264,6 @@ describe('SongSound IPC ownership and profile persistence', () => {
       undefined,
       expect.anything(),
     );
-    expect(capture).not.toHaveBeenCalled();
   });
 
   it('keeps the first owned sound across consecutive song loans and restores it when returned', async () => {
@@ -293,7 +289,6 @@ describe('SongSound IPC ownership and profile persistence', () => {
     expect(state.tone).toBeUndefined();
     expect(state.songSoundLoan).toBeUndefined();
     expect(read('main').filters).toEqual(own(1).filters);
-    expect(capture).toHaveBeenCalledTimes(1);
   });
 
   it('persists the lent sound only after an explicit Keep from its current editor', async () => {
@@ -304,7 +299,6 @@ describe('SongSound IPC ownership and profile persistence', () => {
     expect(read('main').filters).toEqual(song.filters);
     expect(read('main').tone).toEqual(song.tone);
     expect(read('second').filters).toEqual(own(2).filters);
-    expect(capture).toHaveBeenCalledTimes(1);
   });
 
   it('does not save a newly opened output as an earlier apply while engine preparation is pending', async () => {
@@ -327,6 +321,5 @@ describe('SongSound IPC ownership and profile persistence', () => {
     expect(read('main').filters).toEqual(own(1).filters);
     expect(read('second').filters).toEqual(own(2).filters);
     expect(mockFlush).not.toHaveBeenCalled();
-    expect(capture).not.toHaveBeenCalled();
   });
 });
