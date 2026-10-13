@@ -32,6 +32,7 @@ import readTextCached from './cachedRead';
 import {
   AutoEqFormat,
   FilterTypeEnum,
+  isBandChannel,
   APO_LAYERS,
   TApoLayer,
   clampGain,
@@ -167,6 +168,9 @@ const normalizeFilter = (
     // the file, including a hand-edited `true`, comes back as the band being
     // on, which is what every state written before the switch existed means.
     ...(filter.isEnabled === false ? { isEnabled: false } : {}),
+    // Kept only as one of the two ears: anything else is a band that plays
+    // on both, which is what every band written before the choice did.
+    ...(isBandChannel(filter.channel) ? { channel: filter.channel } : {}),
   };
 };
 

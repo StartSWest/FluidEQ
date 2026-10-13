@@ -84,4 +84,24 @@ int speaker_of_channel(unsigned long mask, unsigned short channels,
   return -1;
 }
 
+uint32_t selected_channels(const ChannelSelection& selection,
+                           unsigned long mask, unsigned short channels) {
+  const unsigned count = channels < 32 ? channels : 32;
+  const uint32_t every = count >= 32 ? ~0u : (1u << count) - 1u;
+  if (selection.all) {
+    return every;
+  }
+  uint32_t bits = selection.indices & every;
+  const int lfe = lfe_channel_of(mask, channels);
+  for (unsigned channel = 0; channel < count; ++channel) {
+    const int speaker = static_cast<int>(channel) == lfe
+                            ? static_cast<int>(kLowFrequencySpeaker)
+                            : speaker_of_channel(mask, channels, channel);
+    if (speaker >= 0 && (selection.speakers & (1u << speaker)) != 0) {
+      bits |= 1u << channel;
+    }
+  }
+  return bits;
+}
+
 }  // namespace fluideq_engine

@@ -29,6 +29,7 @@ import {
   MIN_FREQUENCY,
   MIN_NUM_FILTERS,
   NO_GAIN_FILTER_TYPES,
+  TBandSide,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import {
@@ -260,6 +261,23 @@ const useEqPageActions = (bands: TEqPageBands) => {
     const edits: IFilterEdit[] = selectedFilters
       .filter((filter) => filter.type !== newType)
       .map((filter) => ({ id: filter.id, type: newType }));
+    if (edits.length === 0) {
+      return;
+    }
+    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+    try {
+      await setFilterValues(edits);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
+  /**
+   * Which ear bands play on: one of the two, or both again. Like the on and
+   * off switch above, absolute across a selection.
+   */
+  const setFiltersChannel = async (ids: readonly string[], side: TBandSide) => {
+    const edits: IFilterEdit[] = ids.map((id) => ({ id, channel: side }));
     if (edits.length === 0) {
       return;
     }
@@ -510,6 +528,7 @@ const useEqPageActions = (bands: TEqPageBands) => {
     addFilter,
     addFilterBeside,
     setFiltersEnabled,
+    setFiltersChannel,
     resetFilters,
     bandMenu,
     setBandMenu,

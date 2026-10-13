@@ -8,7 +8,15 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { IFilter, isBandEnabled } from 'common/constants';
+import {
+  bandChannelOf,
+  IFilter,
+  isBandEnabled,
+  type TBandSide,
+} from 'common/constants';
+import { engineKeepsEars } from '../../common/engineHealth';
+import { SIDE_MENU_KEYS } from '../eq/earNames';
+import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -40,8 +48,12 @@ interface IBandMenuProps {
   /** Put the bands in or out of the chain, keeping everything they are set to. */
   onSetEnabled: (filters: readonly IFilter[], isEnabled: boolean) => void;
   onAddBeside: (filter: IFilter, side: 'left' | 'right') => void;
+  /** Which ear the bands play on: one of the two, or both again. */
+  onSetChannel: (filters: readonly IFilter[], side: TBandSide) => void;
   onClose: () => void;
 }
+
+const SIDES: readonly TBandSide[] = ['both', 'left', 'right'];
 
 /**
  * What a band offers when it is right-clicked: put it back to neutral, or
@@ -57,6 +69,7 @@ const BandMenu = ({
   onReset,
   onSetEnabled,
   onAddBeside,
+  onSetChannel,
   onClose,
 }: IBandMenuProps) => {
   const { t } = useTranslation();
@@ -66,10 +79,21 @@ const BandMenu = ({
   // Same reading as the switch in the editor row: any band still in the chain
   // means the entry offers to take them out.
   const isAnyEnabled = filters.some(isBandEnabled);
+  // The ear they share, or none lit when a selection is split between them.
+  const sides = new Set(filters.map(bandChannelOf));
+  const sharedSide = sides.size === 1 ? [...sides][0] : undefined;
   // Held in state, not a ref: `AnchoredMenu` measures the anchor in an
   // effect keyed on the element, and a ref's current is still null on the
   // render that mounts it.
   const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
+  // What the window already holds, never a new ask on opening the menu.
+  const status = useKnownAudioEngineStatus();
+  // Equalizer APO has always read `Channel:`; the FluidEQ Engine from 1.21.
+  // Said only where it matters: a band kept to one ear on an older engine.
+  const isEngineBehind =
+    status?.engine === 'fluid' &&
+    !engineKeepsEars(status.fluid?.dllVersion) &&
+    filters.some((one) => one.channel !== undefined);
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
@@ -149,6 +173,32 @@ const BandMenu = ({
             })()}
           </span>
         </button>
+        {/* Which ear, as three of the menu's own lines with a tick on the one
+            in use — no switch anywhere else on the page (Ivan, 2026-10-13:
+            "really nice and simple and not really messing with ui"). */}
+        <div className="band-menu__rule" role="none" />
+        {SIDES.map((side) => (
+          <button
+            type="button"
+            role="menuitemradio"
+            key={side}
+            aria-checked={sharedSide === side}
+            onClick={() => {
+              onSetChannel(filters, side);
+              onClose();
+            }}
+          >
+            {sharedSide === side ? (
+              <MenuIcon name="check" className="band-menu__icon is-on" />
+            ) : (
+              <span className="band-menu__icon" aria-hidden="true" />
+            )}
+            <span>{t(SIDE_MENU_KEYS[side])}</span>
+          </button>
+        ))}
+        {isEngineBehind && (
+          <p className="band-menu__note">{t('eq.channels.update')}</p>
+        )}
         {!isSelection && (
           <>
             <div className="band-menu__rule" role="none" />

@@ -23,6 +23,10 @@ bool same_coefficients(const FeqBiquadCoefficients& left,
          left.a1 == right.a1 && left.a2 == right.a2;
 }
 
+bool runs_on(uint32_t channels, uint32_t channel) {
+  return channel < 32 && (channels & (1u << channel)) != 0;
+}
+
 }  // namespace
 
 FeqFilterType to_core_type(FilterType type) {
@@ -70,6 +74,7 @@ IirCascade::IirCascade(std::vector<IirBand> bands, uint32_t sample_rate,
     : bands_(std::move(bands)),
       states_(static_cast<size_t>(channels) * bands_.size(), FeqBiquadState{}),
       outgoing_(kMaxFadeBands, FeqBiquadCoefficients{}),
+      outgoing_channels_(kMaxFadeBands, ~0u),
       outgoing_states_(static_cast<size_t>(channels) * kMaxFadeBands,
                        FeqBiquadState{}),
       scratch_(max_frames, 0.0f),
@@ -84,7 +89,8 @@ bool IirCascade::same_response(const IirCascade& other) const noexcept {
   }
   for (size_t at = 0; at < bands_.size(); ++at) {
     if (!same_coefficients(bands_[at].coefficients,
-                           other.bands_[at].coefficients)) {
+                           other.bands_[at].coefficients) ||
+        bands_[at].channels != other.bands_[at].channels) {
       return false;
     }
   }
@@ -102,6 +108,8 @@ void IirCascade::adopt(const IirCascade& previous) noexcept {
   if (previous.fade_left_ > 0) {
     outgoing_count_ = previous.outgoing_count_;
     std::copy_n(previous.outgoing_.begin(), outgoing_count_, outgoing_.begin());
+    std::copy_n(previous.outgoing_channels_.begin(), outgoing_count_,
+                outgoing_channels_.begin());
     std::copy(previous.outgoing_states_.begin(), previous.outgoing_states_.end(),
               outgoing_states_.begin());
     fade_total_ = previous.fade_total_;
@@ -110,6 +118,7 @@ void IirCascade::adopt(const IirCascade& previous) noexcept {
     outgoing_count_ = before;
     for (size_t band = 0; band < before; ++band) {
       outgoing_[band] = previous.bands_[band].coefficients;
+      outgoing_channels_[band] = previous.bands_[band].channels;
     }
     for (uint32_t channel = 0; channel < channels_; ++channel) {
       std::copy_n(previous.states_.begin() +
@@ -125,7 +134,9 @@ void IirCascade::adopt(const IirCascade& previous) noexcept {
   // Every band still here carries on from where it was: first the same band
   // exactly, then the same type at the same frequency with a new width, then
   // — for a band whose frequency was dragged — the same type in the same
-  // place. Past `kMaxFadeBands` earlier bands are not searched.
+  // place. Past `kMaxFadeBands` earlier bands are not searched. Always on
+  // the same channels: a band moved to the other ear is a new band there,
+  // and the ear it left has no history of it to carry.
   std::bitset<kMaxFadeBands> taken;
   std::bitset<kMaxFadeBands> found;
   const size_t searched = std::min(before, kMaxFadeBands);
@@ -144,7 +155,8 @@ void IirCascade::adopt(const IirCascade& previous) noexcept {
       const IirBand& now = bands_[band];
       if (pass == 2) {
         if (band < searched && !taken.test(band) &&
-            previous.bands_[band].type == now.type) {
+            previous.bands_[band].type == now.type &&
+            previous.bands_[band].channels == now.channels) {
           carry(band, band);
         }
         continue;
@@ -152,6 +164,7 @@ void IirCascade::adopt(const IirCascade& previous) noexcept {
       for (size_t from = 0; from < searched; ++from) {
         const IirBand& then = previous.bands_[from];
         if (taken.test(from) || then.type != now.type ||
+            then.channels != now.channels ||
             then.frequency != now.frequency ||
             (pass == 0 && then.quality != now.quality)) {
           continue;
@@ -189,13 +202,18 @@ void IirCascade::process(float* const* planar, uint32_t frames) noexcept {
       FeqBiquadState* old_state =
           outgoing_states_.data() + static_cast<size_t>(channel) * kMaxFadeBands;
       for (size_t band = 0; band < outgoing_count_; ++band) {
-        feq_biquad_process(old_state + band, scratch_.data(), frames,
-                           &outgoing_[band]);
+        if (runs_on(outgoing_channels_[band], channel)) {
+          feq_biquad_process(old_state + band, scratch_.data(), frames,
+                             &outgoing_[band]);
+        }
       }
     }
     FeqBiquadState* state = states_.data() + static_cast<size_t>(channel) * count;
     for (size_t band = 0; band < count; ++band) {
-      feq_biquad_process(state + band, buffer, frames, &bands_[band].coefficients);
+      if (runs_on(bands_[band].channels, channel)) {
+        feq_biquad_process(state + band, buffer, frames,
+                           &bands_[band].coefficients);
+      }
     }
     if (fading) {
       for (uint32_t frame = 0; frame < frames; ++frame) {

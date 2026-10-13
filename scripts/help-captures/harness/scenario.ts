@@ -92,9 +92,49 @@ const filters = (): IFiltersMap =>
     }),
   );
 
+/**
+ * `?scenario=channels`: the same headset with bands kept to one ear, the
+ * kind of thing a person tunes per ear — a left driver a little bright in
+ * the presence region, a right one recessed there and short of air.
+ */
+const isChannels =
+  new URLSearchParams(window.location.search).get('scenario') === 'channels';
+
+const EAR_BANDS: readonly IFilter[] = [
+  {
+    id: 'ear-left-1',
+    frequency: 5600,
+    gain: -2.5,
+    quality: 3,
+    type: FilterTypeEnum.PK,
+    channel: 'left',
+  },
+  {
+    id: 'ear-right-1',
+    frequency: 3200,
+    gain: 2,
+    quality: 2,
+    type: FilterTypeEnum.PK,
+    channel: 'right',
+  },
+  {
+    id: 'ear-right-2',
+    frequency: 11000,
+    gain: 2.5,
+    quality: 1.4,
+    type: FilterTypeEnum.HSC,
+    channel: 'right',
+  },
+];
+
 export const STATE: IEqualizerSnapshot = {
   ...getDefaultState(),
-  filters: filters(),
+  filters: isChannels
+    ? {
+        ...filters(),
+        ...Object.fromEntries(EAR_BANDS.map((band) => [band.id, band])),
+      }
+    : filters(),
   preAmp: -3.5,
   curveSmoothing: 'twelfth',
   // The headset is what Windows plays through and what the EQ page edits.

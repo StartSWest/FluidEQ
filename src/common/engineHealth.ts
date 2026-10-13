@@ -278,6 +278,15 @@ export const engineReportsCarried = (dllVersion: string | undefined): boolean =>
  */
 export const ENGINE_SPLIT_SINCE: readonly [number, number] = [1, 20];
 
+/**
+ * The first engine that plays a band on the channels its `Channel:` line
+ * names. Every one before read the line and played the band on both ears, so
+ * a band kept to one ear would be heard on both with nothing to say so.
+ */
+export const ENGINE_CHANNELS_SINCE: readonly [number, number] = [1, 21];
+export const engineKeepsEars = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_CHANNELS_SINCE);
+
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];
 export const engineSupportsRoomUpgrade = (

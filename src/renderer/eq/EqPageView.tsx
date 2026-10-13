@@ -153,6 +153,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
     addFilter,
     addFilterBeside,
     setFiltersEnabled,
+    setFiltersChannel,
     resetFilters,
     bandMenu,
     setBandMenu,
@@ -193,6 +194,12 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
           onReset={resetFilters}
           onSetEnabled={setFiltersEnabled}
           onAddBeside={addFilterBeside}
+          onSetChannel={(targets, side) => {
+            setFiltersChannel(
+              targets.map((one) => one.id),
+              side,
+            ).catch(() => undefined);
+          }}
           onClose={() => setBandMenu(undefined)}
         />
       )}
@@ -510,6 +517,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
                   density={density}
                   flatLayout
                   isSelected={selectedFilterIds.includes(filter.id)}
+                  ear={filter.channel}
                   onSelect={handleBandSelect}
                   isHovered={hoveredFilterId === filter.id}
                   onHover={handleBandHover}

@@ -23,7 +23,9 @@ import {
   MAX_GAIN,
   MIN_GAIN,
   NO_GAIN_FILTER_TYPES,
+  type TBandChannel,
 } from 'common/constants';
+import { EAR_LETTER_KEYS, EAR_NAME_KEYS } from 'renderer/eq/earNames';
 import IconButton, { IconName } from 'renderer/widgets/IconButton';
 import {
   ForwardedRef,
@@ -42,6 +44,7 @@ import { requestBandMenu } from './BandMenu';
 import { FilterActionEnum, useFluidEqShell } from '../utils/FluidEqContext';
 import Slider from './Slider';
 import '../styles/FrequencyBand.scss';
+import '../styles/EqChannels.scss';
 
 type TGainAction = { kind: 'set'; value: number } | { kind: 'reset' };
 
@@ -55,6 +58,8 @@ interface IFrequencyBandProps {
   flatLayout?: boolean;
   isSelected?: boolean;
   isHovered?: boolean;
+  /** The one ear it plays on; absent for both. */
+  ear?: TBandChannel;
   // Both told the band's id, so the row can hand every band the same two
   // callbacks and a band whose props have not changed does not draw again.
   onSelect?: (
@@ -81,6 +86,7 @@ const FrequencyBand = forwardRef(
       flatLayout = false,
       isSelected = false,
       isHovered = false,
+      ear,
       onSelect,
       onHover,
       colorProgress = 0,
@@ -255,6 +261,11 @@ const FrequencyBand = forwardRef(
           setIsDeleteArmed(false);
         }}
       >
+        {ear && (
+          <span className="band-ear" title={t(EAR_NAME_KEYS[ear])}>
+            {t(EAR_LETTER_KEYS[ear])}
+          </span>
+        )}
         {!flatLayout && (
           <div className={`removeFilterRow${isDeleteArmed ? ' is-armed' : ''}`}>
             <IconButton

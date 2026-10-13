@@ -357,7 +357,36 @@ export interface IFilter {
    * answer available.
    */
   isEnabled?: boolean;
+  /**
+   * The one ear this band plays on, picked in the band's menu. Absent means
+   * both, which is every band written before the choice existed. There is no
+   * output-wide switch: a band with an ear is the whole of the feature (Ivan,
+   * 2026-10-13: "something really nice and simple and not really messing
+   * with ui"). Ask through `bandChannelOf`.
+   */
+  channel?: TBandChannel;
 }
+
+/** One ear: what a band can be kept to (Ivan, 2026-10-13, "EQ per channel"). */
+export type TBandChannel = 'left' | 'right';
+
+/** Where a band plays, the absent side spelled out. */
+export type TBandSide = TBandChannel | 'both';
+
+export const BAND_CHANNELS: readonly TBandChannel[] = ['left', 'right'];
+
+export const isBandChannel = (value: unknown): value is TBandChannel =>
+  value === 'left' || value === 'right';
+
+/** Which ear `filter` plays on: one, or both. */
+export const bandChannelOf = (filter: Pick<IFilter, 'channel'>): TBandSide =>
+  filter.channel ?? 'both';
+
+/** Whether `filter` is heard on `ear`: a band on both ears is heard on each. */
+export const isBandOnChannel = (
+  filter: Pick<IFilter, 'channel'>,
+  ear: TBandChannel,
+): boolean => filter.channel === undefined || filter.channel === ear;
 
 /**
  * Whether a band contributes to what is heard.
@@ -385,6 +414,8 @@ export interface IFilterEdit {
   quality?: number;
   type?: FilterTypeEnum;
   isEnabled?: boolean;
+  /** `both` takes a band's side away, which no other value can say. */
+  channel?: TBandSide;
 }
 
 /** Provenance shown when an EQ export was imported from an external tool. */

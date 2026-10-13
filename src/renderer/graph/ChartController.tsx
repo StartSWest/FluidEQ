@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useMemo } from 'react';
 import * as d3 from 'd3';
-import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { MAX_GAIN, MIN_GAIN, type TBandChannel } from 'common/constants';
 import { SelectionMode } from 'common/bandSelection';
 import { Color } from 'renderer/styles/color';
 
@@ -106,6 +106,8 @@ export interface IChartCurveData {
      * so they are drawn back rather than competing with it.
      */
     opacity?: number;
+    /** Drawn in dashes: the right ear's EQ curve beside the left's solid one. */
+    dashed?: boolean;
   };
   controlPoint?: IChartPointData;
 }
@@ -203,6 +205,8 @@ export interface IEditableChartPoint {
    * and the way back is one press on the EQ's chip.
    */
   isLocked: boolean;
+  /** The one ear the band plays on, shown as its letter; absent for both. */
+  ear?: TBandChannel;
   /** Editable main-band values, independent of the summed response at its dot. */
   parameters?: { frequency: number; gain: number; quality: number };
   /**  is where the press landed, in chart units — see the drag state. */

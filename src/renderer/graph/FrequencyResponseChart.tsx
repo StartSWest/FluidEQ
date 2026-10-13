@@ -172,8 +172,10 @@ import {
   IGraphData,
   SUPPORTING_CURVE_OPACITY,
 } from './buildChartData';
+import { RIGHT_EAR_CURVE_ID } from './chartCurves';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
+import '../styles/EqChannels.scss';
 
 type PendingPointEdit = Partial<
   Pick<IFilter, 'frequency' | 'gain' | 'quality'>
@@ -309,6 +311,8 @@ const LookAnnouncement = () => {
 const CURVE_BY_CHART_ID: Record<string, TGraphCurve> = {
   'Headphone Convolution': 'convolution',
   'EQ Response': 'eq',
+  // The two ears are one layer, shown and hidden together.
+  [RIGHT_EAR_CURVE_ID]: 'eq',
   Voicing: 'voicing',
   Driver: 'driver',
   // Spelled out rather than left as `Headphone`, which would sit one line under
@@ -1709,6 +1713,11 @@ const FrequencyResponseChart = ({
     );
     const eqCurve = chartData.find((curve) => curve.id === 'EQ Response')?.line
       .points;
+    // A band kept to the right ear stands on the right ear's curve; every
+    // other band on the left's, which is also the both-ears curve.
+    const rightCurve = chartData.find(
+      (curve) => curve.id === RIGHT_EAR_CURVE_ID,
+    )?.line.points;
 
     return Object.values(filters).map((filter) => {
       const bandColor = colorsById.get(filter.id) || getBandColor(0, rainbow);
@@ -1717,8 +1726,10 @@ const FrequencyResponseChart = ({
       // than gain plus preamp, matching the curve now that the curve is drawn
       // from zero; the old fallback jumped every handle by the headroom on any
       // frame the curve was missing.
-      const curveGain = eqCurve
-        ? getLineGainAtFrequency(eqCurve, filter.frequency)
+      const ear = filter.channel;
+      const handleCurve = ear === 'right' && rightCurve ? rightCurve : eqCurve;
+      const curveGain = handleCurve
+        ? getLineGainAtFrequency(handleCurve, filter.frequency)
         : filter.gain;
       return {
         id: filter.id,
@@ -1737,6 +1748,7 @@ const FrequencyResponseChart = ({
         hovered: hoveredFilterId === filter.id,
         isEnabled: isBandEnabled(filter),
         isLocked: bypassed.includes('eq'),
+        ...(ear ? { ear } : {}),
         onSelect: (mode: SelectionMode, grab: IChartPointData) =>
           handlePointSelect(filter.id, mode, grab),
         onHover: (isHovered: boolean) =>

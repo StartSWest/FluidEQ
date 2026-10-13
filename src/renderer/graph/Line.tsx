@@ -72,6 +72,8 @@ interface ILineProps {
    * tangle where nothing is obviously the answer.
    */
   opacity?: number;
+  /** In dashes, through a class: the draw-on animation owns the attribute. */
+  dashed?: boolean;
 }
 
 const Line = ({
@@ -85,6 +87,7 @@ const Line = ({
   glow = false,
   animation = AnimationOptionsEnum.NONE,
   opacity = 1,
+  dashed = false,
 }: ILineProps) => {
   const ref = useRef<SVGPathElement>(null);
 
@@ -280,7 +283,7 @@ const Line = ({
       <path
         name={name}
         ref={ref}
-        className={`chart-curve${spectrum ? ' chart-curve--spectrum' : ''}`}
+        className={`chart-curve${spectrum ? ' chart-curve--spectrum' : ''}${dashed ? ' chart-curve--dashed' : ''}`}
         style={spectrum}
         stroke={color}
         strokeWidth={strokeWidth}

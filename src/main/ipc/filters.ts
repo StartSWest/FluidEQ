@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   FilterTypeEnum,
+  isBandChannel,
   FixedBandSizeEnum,
   IFilter,
   IFilterEdit,
@@ -293,7 +294,10 @@ export const registerFiltersIpc = ({
         isInRange(edit.quality, MIN_QUALITY, MAX_QUALITY) &&
         (edit.type === undefined ||
           Object.values(FilterTypeEnum).includes(edit.type)) &&
-        (edit.isEnabled === undefined || typeof edit.isEnabled === 'boolean'),
+        (edit.isEnabled === undefined || typeof edit.isEnabled === 'boolean') &&
+        (edit.channel === undefined ||
+          edit.channel === 'both' ||
+          isBandChannel(edit.channel)),
     );
 
     if (!isValid) {
@@ -318,6 +322,11 @@ export const registerFiltersIpc = ({
       }
       if (edit.isEnabled !== undefined) {
         filter.isEnabled = edit.isEnabled;
+      }
+      if (edit.channel === 'both') {
+        delete filter.channel;
+      } else if (edit.channel !== undefined) {
+        filter.channel = edit.channel;
       }
     });
     state.isFlat = false;

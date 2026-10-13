@@ -96,6 +96,13 @@ add_test(NAME engine-phase COMMAND fluideq-engine-phase-test)
 # convolution checks below: one file holding both was past the 500-line limit,
 # and the two halves ask different questions — this one measures level in
 # decibels, the other measures where in time a tap lands.
+# A band kept to one ear: the `Channel:` lines read, the ear found in the
+# stream's layout, and the band run on that channel alone.
+add_executable(fluideq-engine-channels-test tests/config_channels_test.cpp)
+target_link_libraries(fluideq-engine-channels-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-channels COMMAND fluideq-engine-channels-test)
+
 add_executable(fluideq-engine-graph-test tests/graph_test.cpp)
 target_link_libraries(fluideq-engine-graph-test
   PRIVATE fluideq-engine-dsp feq_strict)
@@ -213,7 +220,10 @@ add_test(NAME engine-status COMMAND fluideq-engine-status-test)
 # leaves that one alone, and a rule off by one buzzes a subwoofer.
 add_executable(fluideq-engine-channel-layout-test
   tests/channel_layout_test.cpp src/channel_layout.cpp)
-target_link_libraries(fluideq-engine-channel-layout-test PRIVATE feq_strict)
+# The config library for `ChannelSelection`, which `selected_channels` reads
+# a band's `Channel:` line from.
+target_link_libraries(fluideq-engine-channel-layout-test
+  PRIVATE fluideq-engine-config feq_strict)
 add_test(NAME engine-channel-layout
   COMMAND fluideq-engine-channel-layout-test)
 

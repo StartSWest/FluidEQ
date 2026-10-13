@@ -88,3 +88,16 @@ $band-menu-width: 200px;
   // Every menu's inner line (`$menu-rule`).
   background: $menu-rule;
 }
+
+// The tick on the ear in use, in the accent like a row under the pointer.
+.band-menu__icon.is-on {
+  color: $secondary-light;
+}
+
+// Only on an engine that plays every band on both ears: what to do about it.
+.band-menu__note {
+  margin: 2px 10px 6px;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.35;
+}
