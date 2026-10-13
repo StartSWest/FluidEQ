@@ -101,36 +101,52 @@ describe('a DSP EQ band kept to one ear', () => {
 
 describe("the DSP EQ band's menu", () => {
   const show = (eq: IEqSettings) => {
-    const onPatch = jest.fn();
+    const onBands = jest.fn();
     render(
       <DspBandMenu
         eq={eq}
         index={0}
         x={10}
         y={10}
-        onPatch={onPatch}
+        onPatch={jest.fn()}
+        onBands={onBands}
         onAddBeside={jest.fn()}
         onClose={jest.fn()}
       />,
     );
-    return onPatch;
+    return onBands;
   };
 
-  it('sets the ear, and Both takes it off again', () => {
-    const onPatch = show(eqWith([band('left')]));
-    expect(
+  it('splits a band into a twin on the other ear, and Both joins them', () => {
+    // Both ears to the left: the band keeps the left, its twin the right,
+    // the same band beside it.
+    const onSplit = show(eqWith([band(), { ...band(), frequency: 9000 }]));
+    fireEvent.click(
       screen.getByRole('menuitemradio', { name: 'Left ear only' }),
-    ).toHaveAttribute('aria-checked', 'true');
-    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Both ears' }));
-    const [index, next] = onPatch.mock.calls[0] as [number, IEqBandSettings];
-    expect(index).toBe(0);
-    expect('ear' in next).toBe(false);
+    );
+    const [split] = onSplit.mock.calls[0] as [IEqBandSettings[]];
+    expect(split.map((one) => [one.frequency, one.ear])).toEqual([
+      [3000, 'left'],
+      [3000, 'right'],
+      [9000, undefined],
+    ]);
+    expect(split[1]).toMatchObject({ gainDb: -4, quality: 2, type: 'PK' });
     cleanup();
-    const onRight = show(eqWith([band()]));
+    // The pair, each since moved, joined from either: one band on both.
+    const pair = [band('left'), { ...band('right'), frequency: 3400 }];
+    const onJoin = show(eqWith(pair));
+    fireEvent.click(screen.getByRole('menuitemradio', { name: 'Both ears' }));
+    const [joined] = onJoin.mock.calls[0] as [IEqBandSettings[]];
+    expect(joined).toHaveLength(1);
+    expect('ear' in joined[0]).toBe(false);
+    cleanup();
+    // To the other ear: the twin crosses the other way.
+    const onSwap = show(eqWith(pair));
     fireEvent.click(
       screen.getByRole('menuitemradio', { name: 'Right ear only' }),
     );
-    expect(onRight.mock.calls[0][1]).toMatchObject({ ear: 'right' });
+    const [swapped] = onSwap.mock.calls[0] as [IEqBandSettings[]];
+    expect(swapped.map((one) => one.ear)).toEqual(['right', 'left']);
   });
 
   it('offers no ear in Mid or Sides, where there is none to keep a band to', () => {
