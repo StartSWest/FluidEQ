@@ -220,7 +220,10 @@ add_test(NAME engine-status COMMAND fluideq-engine-status-test)
 # leaves that one alone, and a rule off by one buzzes a subwoofer.
 add_executable(fluideq-engine-channel-layout-test
   tests/channel_layout_test.cpp src/channel_layout.cpp)
-target_link_libraries(fluideq-engine-channel-layout-test PRIVATE feq_strict)
+# The config library for `ChannelSelection`, which `selected_channels` reads
+# a band's `Channel:` line from.
+target_link_libraries(fluideq-engine-channel-layout-test
+  PRIVATE fluideq-engine-config feq_strict)
 add_test(NAME engine-channel-layout
   COMMAND fluideq-engine-channel-layout-test)
 
