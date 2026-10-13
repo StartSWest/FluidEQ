@@ -320,6 +320,8 @@ const eq: Partial<Dictionary> = {
   'eq.channels.note':
     'Para esta salida: cada banda puede sonar en un solo oído. Elige su oído en el menú de la banda, o edita un oído encima de la gráfica.',
   'eq.channels.editing': 'Editando',
+  'eq.channels.update':
+    'El FluidEQ Engine de este equipo toca cada banda en ambos oídos hasta que se instale su actualización. Equalizer APO ya las separa.',
   'eq.channels.both': 'Ambos',
   'eq.channels.left': 'Izquierdo',
   'eq.channels.right': 'Derecho',

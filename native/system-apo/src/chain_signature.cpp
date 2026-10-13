@@ -89,6 +89,12 @@ std::string signature_of(const Chain& chain) {
     out += band.user_eq ? ",eq" : ",other";
     out += band.curve_layer ? ",curve" : ",untagged";
     out += band.matched ? ",matched" : ",cookbook";
+    // Which channels it plays on: moving a band to the other ear changes the
+    // sound and nothing else about the band.
+    if (!band.channels.all) {
+      out += ",ch" + std::to_string(band.channels.speakers) + '.' +
+             std::to_string(band.channels.indices);
+    }
     out += ';';
   }
   out += "|g=";

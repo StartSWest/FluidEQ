@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { ErrorDescription } from '../../../common/errors';
+import { engineKeepsEars } from '../../../common/engineHealth';
 import { useFluidEqContext } from '../../utils/FluidEqContext';
+import { useKnownAudioEngineStatus } from '../../utils/useAudioEngineStatus';
 import { useTranslation } from '../../utils/I18nContext';
 import { setChannelsApart as sendChannelsApart } from '../../utils/equalizerEditApi';
 
@@ -14,6 +16,11 @@ const EqChannelsRow = () => {
   const { channelsApart, setChannelsApart, setEditingEar, setGlobalError } =
     useFluidEqContext();
   const [isPending, setIsPending] = useState(false);
+  // What the window already holds, never a new ask on opening the menu.
+  const status = useKnownAudioEngineStatus();
+  // Equalizer APO has always read `Channel:`; the FluidEQ Engine from 1.21.
+  const isEngineBehind =
+    status?.engine === 'fluid' && !engineKeepsEars(status.fluid?.dllVersion);
 
   const choose = async (apart: boolean) => {
     if (apart === channelsApart || isPending) {
@@ -68,7 +75,13 @@ const EqChannelsRow = () => {
           </button>
         ))}
       </div>
-      <p className="eq-mode-choices__note">{t('eq.channels.note')}</p>
+      <p className="eq-mode-choices__note">
+        {t(
+          channelsApart && isEngineBehind
+            ? 'eq.channels.update'
+            : 'eq.channels.note',
+        )}
+      </p>
     </div>
   );
 };

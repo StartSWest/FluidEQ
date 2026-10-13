@@ -316,6 +316,8 @@ const eq: Partial<Dictionary> = {
   'eq.channels.note':
     'この出力では、各バンドを片耳だけで鳴らせます。バンドのメニューで耳を選ぶか、グラフの上で片耳を編集します。',
   'eq.channels.editing': '編集中',
+  'eq.channels.update':
+    'このコンピューターの FluidEQ Engine は、更新がインストールされるまで各バンドを両耳で鳴らします。Equalizer APO はすでに左右別々に鳴らします。',
   'eq.channels.both': '両方',
   'eq.channels.left': '左',
   'eq.channels.right': '右',

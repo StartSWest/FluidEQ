@@ -206,6 +206,9 @@ struct Frame {
   // file this one includes, are built analog-matched rather than from the
   // cookbook (`Band::matched`).
   bool matched_design = false;
+  // The `Channel:` line in force: the filters after it, here and in any file
+  // this one includes, play on those channels alone.
+  ChannelSelection channels{};
 };
 
 }  // namespace
@@ -309,7 +312,8 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
       continue;
     }
     if (detail::iequals(line.command, "Channel")) {
-      continue;  // Recognised, never fatal, never part of this resolver's job.
+      stack.back().channels = parse_channels(line.body);
+      continue;
     }
     if (!matching) {
       continue;  // Nothing else applies to an endpoint this block does not name.
@@ -334,8 +338,9 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
       const bool curve_layer = stack.back().curve_layer;
       const bool eq_layer = stack.back().eq_layer;
       const bool matched_design = stack.back().matched_design;
+      const ChannelSelection channels = stack.back().channels;
       stack.push_back(Frame{*resolved, tokenize(*contents), 0, matching,
-                            curve_layer, eq_layer, matched_design});
+                            curve_layer, eq_layer, matched_design, channels});
       continue;
     }
 
@@ -416,6 +421,7 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
         chain.bands.push_back(*band);
         chain.bands.back().user_eq = stack.back().eq_layer;
         chain.bands.back().curve_layer = stack.back().curve_layer;
+        chain.bands.back().channels = stack.back().channels;
         chain.bands.back().matched =
             stack.back().matched_design &&
             !(stack.back().eq_layer ? chain.classic_eq_treble

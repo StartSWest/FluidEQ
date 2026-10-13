@@ -15,6 +15,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <utility>
 #include <vector>
 
+#include "channel_layout.h"
 #include "curve_stage.h"
 #include "dsp_chain.h"
 #include "eq_phase.h"
@@ -173,12 +174,24 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   std::vector<IirBand> eq_bands;
   std::vector<IirBand> curve_bands;
   std::vector<IirBand> plain_bands;
+  const uint32_t every_channel = selected_channels(
+      ChannelSelection{}, channel_mask_, static_cast<unsigned short>(channels_));
   for (const Band& band : chain.bands) {
     auto& scoped = band.user_eq ? eq_bands
                    : band.curve_layer ? curve_bands
                                       : plain_bands;
-    scoped.push_back(design_band(band, sample_rate_));
+    IirBand designed = design_band(band, sample_rate_);
+    designed.channels = selected_channels(
+        band.channels, channel_mask_, static_cast<unsigned short>(channels_));
+    scoped.push_back(designed);
   }
+  // A band kept to some channels stays with the biquads when its group is in
+  // linear phase: the linear stage is one kernel run on every channel, and a
+  // kernel per channel would double its convolution for the few bands an ear
+  // needs. Those bands play minimum phase, on their channels, after the FIR.
+  const auto is_every_channel = [every_channel](const IirBand& band) {
+    return (band.channels & every_channel) == every_channel;
+  };
   plain_ = std::make_unique<IirCascade>(std::move(plain_bands), sample_rate_,
                                         channels_, max_frames_);
   if (!plain_->empty()) active_stages_.emplace_back("filters");
@@ -203,14 +216,18 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   // moves the FIR in the chain — which would have skipped the music forward
   // by the delay and then replayed it.
   std::vector<IirBand> linear_bands;
+  const auto move_whole = [&](std::vector<IirBand>& group) {
+    std::vector<IirBand> kept;
+    for (IirBand& band : group) {
+      (is_every_channel(band) ? linear_bands : kept).push_back(band);
+    }
+    group = std::move(kept);
+  };
   if (eq_linear) {
-    linear_bands.insert(linear_bands.end(), eq_bands.begin(), eq_bands.end());
-    eq_bands.clear();
+    move_whole(eq_bands);
   }
   if (curve_linear) {
-    linear_bands.insert(linear_bands.end(), curve_bands.begin(),
-                        curve_bands.end());
-    curve_bands.clear();
+    move_whole(curve_bands);
   }
   linear_phase_ = std::make_unique<EqPhaseStage>(std::move(linear_bands), true,
       sample_rate_, channels_, max_frames_);

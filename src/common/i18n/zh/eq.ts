@@ -297,6 +297,8 @@ const eq: Partial<Dictionary> = {
   'eq.channels.note':
     '此输出：每个频段可以只在一只耳朵播放。在频段菜单中选择耳朵，或在图表上方编辑一只耳朵。',
   'eq.channels.editing': '正在编辑',
+  'eq.channels.update':
+    '在安装更新之前，此电脑上的 FluidEQ Engine 会在两只耳朵播放每个频段。Equalizer APO 已经可以分开播放。',
   'eq.channels.both': '两者',
   'eq.channels.left': '左',
   'eq.channels.right': '右',

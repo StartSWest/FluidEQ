@@ -18,6 +18,8 @@ import path from 'path';
 import {
   ENGINE_CARRIED_SINCE,
   ENGINE_SPLIT_SINCE,
+  ENGINE_CHANNELS_SINCE,
+  engineKeepsEars,
   ENGINE_STATUS_SINCE,
   engineAtLeast,
   engineReportsCarried,
@@ -180,6 +182,14 @@ describe('the engine this tree builds', () => {
     expect(engineAtLeast(`${major}.${minor - 1}.0.0`, ENGINE_SPLIT_SINCE)).toBe(
       false,
     );
+  });
+
+  it('plays a band on the ear it is kept to, which an engine a version older cannot', () => {
+    // Older engines read `Channel:` and ignored it: the window says so beside
+    // the Channels row rather than leaving a one-eared band on both ears.
+    expect(engineKeepsEars(binaryVersion('FILEVERSION'))).toBe(true);
+    const [major, minor] = ENGINE_CHANNELS_SINCE;
+    expect(engineKeepsEars(`${major}.${minor - 1}.0.0`)).toBe(false);
   });
 
   it('says the same version in both of its fields', () => {

@@ -316,6 +316,8 @@ const eq: Partial<Dictionary> = {
   'eq.channels.note':
     'Для этого выхода: каждая полоса может звучать в одном ухе. Выберите ухо в меню полосы или правьте одно ухо над графиком.',
   'eq.channels.editing': 'Правка',
+  'eq.channels.update':
+    'Движок FluidEQ на этом компьютере играет каждую полосу в обоих ушах, пока не установлено его обновление. Equalizer APO уже разделяет их.',
   'eq.channels.both': 'Оба',
   'eq.channels.left': 'Левый',
   'eq.channels.right': 'Правый',

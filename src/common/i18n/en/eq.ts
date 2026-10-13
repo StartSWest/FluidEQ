@@ -330,6 +330,8 @@ const eq = {
   'eq.channels.note':
     "For this output: each band can play on one ear. Pick its ear in the band's menu, or edit one ear above the graph.",
   'eq.channels.editing': 'Editing',
+  'eq.channels.update':
+    'The FluidEQ Engine on this computer plays every band on both ears until its update is installed. Equalizer APO plays them apart already.',
   'eq.channels.both': 'Both',
   'eq.channels.left': 'Left',
   'eq.channels.right': 'Right',

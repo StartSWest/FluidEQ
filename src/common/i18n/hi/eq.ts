@@ -313,6 +313,8 @@ const eq: Partial<Dictionary> = {
   'eq.channels.note':
     'इस आउटपुट के लिए: हर बैंड एक ही कान में बज सकता है। बैंड के मेनू में उसका कान चुनें, या ग्राफ़ के ऊपर एक कान संपादित करें।',
   'eq.channels.editing': 'संपादन',
+  'eq.channels.update':
+    'इस कंप्यूटर का FluidEQ Engine अपना अपडेट इंस्टॉल होने तक हर बैंड दोनों कानों में बजाता है। Equalizer APO उन्हें पहले से अलग बजाता है।',
   'eq.channels.both': 'दोनों',
   'eq.channels.left': 'बायाँ',
   'eq.channels.right': 'दायाँ',

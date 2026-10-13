@@ -318,6 +318,8 @@ const eq: Partial<Dictionary> = {
   'eq.channels.note':
     'Per questa uscita: ogni banda può suonare su un solo orecchio. Scegli il suo orecchio nel menu della banda, oppure modifica un orecchio sopra il grafico.',
   'eq.channels.editing': 'Modifica',
+  'eq.channels.update':
+    'Il FluidEQ Engine di questo computer suona ogni banda su entrambe le orecchie finché non viene installato il suo aggiornamento. Equalizer APO le separa già.',
   'eq.channels.both': 'Entrambi',
   'eq.channels.left': 'Sinistro',
   'eq.channels.right': 'Destro',
