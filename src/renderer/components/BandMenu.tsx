@@ -17,6 +17,7 @@ import {
 import { engineKeepsEars } from '../../common/engineHealth';
 import { SIDE_MENU_KEYS } from '../eq/earNames';
 import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
+import { requestEngineUpdate } from '../utils/engineUpdateRequest';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -210,6 +211,21 @@ const BandMenu = ({
           ))}
         {isEngineBehind && (
           <p className="band-menu__note">{t('eq.channels.update')}</p>
+        )}
+        {/* The update itself, where this build carries a newer engine than
+            the one installed — the card the window offers at launch, which
+            "Not now" otherwise put away until the next start. */}
+        {isEngineBehind && status?.fluidUpdateReady === true && (
+          <button
+            type="button"
+            className="button small band-menu__update"
+            onClick={() => {
+              requestEngineUpdate();
+              onClose();
+            }}
+          >
+            {t('engineUpdate.action')}
+          </button>
         )}
         {!isSelection && (
           <>

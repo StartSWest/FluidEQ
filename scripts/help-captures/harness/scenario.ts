@@ -167,7 +167,9 @@ const ENGINE: IAudioEngineStatus = {
   engine: 'fluid',
   apo: { installed: false },
   fluidSupported: true,
-  fluidUpdateReady: false,
+  // Per ear, the installed engine is older than this build's, as on a
+  // machine the update has not reached yet: the band menu offers it.
+  fluidUpdateReady: isChannels,
   fluid: {
     installed: true,
     dllVersion: '1.20.0.0',

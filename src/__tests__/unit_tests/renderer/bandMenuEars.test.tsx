@@ -11,8 +11,13 @@ import '@testing-library/jest-dom';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { FilterTypeEnum, type IFilter } from 'common/constants';
 import BandMenu from 'renderer/components/BandMenu';
+import { ENGINE_UPDATE_REQUEST_EVENT } from 'renderer/utils/engineUpdateRequest';
 
-let mockEngine: { engine: string; fluid?: { dllVersion?: string } } = {
+let mockEngine: {
+  engine: string;
+  fluidUpdateReady?: boolean;
+  fluid?: { dllVersion?: string };
+} = {
   engine: 'apo',
 };
 jest.mock('renderer/utils/useAudioEngineStatus', () => ({
@@ -104,5 +109,30 @@ describe("a band's menu chooses its ear", () => {
     mockEngine = { engine: 'fluid', fluid: { dllVersion: '1.20.0.0' } };
     show([band('a')]);
     expect(screen.queryByText(/plays this band on both ears/)).toBeNull();
+  });
+
+  it('offers the update itself where this build carries a newer engine', () => {
+    const asked = jest.fn();
+    window.addEventListener(ENGINE_UPDATE_REQUEST_EVENT, asked);
+    mockEngine = {
+      engine: 'fluid',
+      fluidUpdateReady: true,
+      fluid: { dllVersion: '1.20.0.0' },
+    };
+    const { onClose } = show([band('a', 'left')]);
+    fireEvent.click(screen.getByRole('button', { name: 'Update engine' }));
+    expect(asked).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalled();
+    window.removeEventListener(ENGINE_UPDATE_REQUEST_EVENT, asked);
+    cleanup();
+    // The control: nothing newer to install, so the note stands alone.
+    mockEngine = {
+      engine: 'fluid',
+      fluidUpdateReady: false,
+      fluid: { dllVersion: '1.20.0.0' },
+    };
+    show([band('a', 'left')]);
+    expect(screen.getByText(/plays this band on both ears/)).toBeVisible();
+    expect(screen.queryByRole('button', { name: 'Update engine' })).toBeNull();
   });
 });
