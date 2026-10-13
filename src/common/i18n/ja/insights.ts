@@ -53,6 +53,37 @@ const insights = {
   'insights.error.forbidden': 'これは FluidEQ の管理者だけが見られます。',
   'insights.error.notDeployed':
     'サーバーはまだこれに対応していません。このバージョンの FluidEQ に合わせたサーバー更新で対応します。',
+  'insights.server.tab': 'サーバー',
+  'insights.server.loading': 'サーバーを計測しています',
+  'insights.server.plan': 'Supabase 無料プラン',
+  'insights.server.measured': '{time} に計測',
+  'insights.server.database': 'データベース',
+  'insights.server.files': 'ファイル',
+  'insights.server.active': 'アクティブなアカウント（30 日間）',
+  'insights.server.activeNote': 'アカウント合計 {accounts}',
+  'insights.server.of': '/ {limit}',
+  'insights.server.used': '{share} 使用中',
+  'insights.server.requests': 'リクエスト（過去 7 日間）',
+  'insights.server.unlimited': '無料プランでは無制限',
+  'insights.server.kind.rest': 'データベース',
+  'insights.server.kind.auth': 'サインイン',
+  'insights.server.kind.storage': 'ファイル',
+  'insights.server.kind.realtime': 'ライブ',
+  'insights.server.noToken': 'リクエスト数には使用量キーが必要です。',
+  'insights.server.tokenSteps':
+    'supabase.com の Account → Access tokens でアクセストークンを作成し（選べる場合は「read analytics usage」のみ）、プロジェクトの Edge Functions → Secrets に USAGE_ACCESS_TOKEN という名前で追加してください。',
+  'insights.server.tokenRefused':
+    'Supabase が使用量キーを拒否しました。新しいキーを作成し、同じ名前でもう一度保存してください。',
+  'insights.server.tables': 'サイズの大きいテーブル',
+  'insights.server.buckets': 'フォルダー別のファイル',
+  'insights.server.bucketFiles': '{count} ファイル',
+  'insights.server.noFiles': '保存されたファイルはまだありません。',
+  'insights.server.egress': '送信データ',
+  'insights.server.egressBody':
+    '無料プランには月 {limit} が含まれ、たいていこれが最初に達する上限です。メンバーがダウンロードするシーンと画像がすべて数えられます。API では取得できず、Supabase がプロジェクトの Usage ページに表示します。',
+  'insights.server.openSupabase': 'Supabase を開く',
+  'insights.server.rules':
+    '無料プランに期限はありません。上限を超えるとメールが届いて猶予期間に入り、超過が続くと、翌月かアップグレードまで Supabase はリクエストに「payment required」と応答します。{days} 日間リクエストのないプロジェクトは一時停止されますが、FluidEQ 自体の通信がそれを防ぎます。',
 } as const;
 
 export default insights;

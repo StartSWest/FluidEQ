@@ -50,6 +50,37 @@ const insights = {
   'insights.error.forbidden': '只有 FluidEQ 管理员可以查看。',
   'insights.error.notDeployed':
     '服务器还没有这项功能。它会随与这个版本的 FluidEQ 配套的服务器更新一起到来。',
+  'insights.server.tab': '服务器',
+  'insights.server.loading': '正在测量服务器',
+  'insights.server.plan': 'Supabase 免费计划',
+  'insights.server.measured': '测量于 {time}',
+  'insights.server.database': '数据库',
+  'insights.server.files': '文件',
+  'insights.server.active': '活跃账户（30 天）',
+  'insights.server.activeNote': '共 {accounts} 个账户',
+  'insights.server.of': '/ {limit}',
+  'insights.server.used': '已用 {share}',
+  'insights.server.requests': '请求（最近 7 天）',
+  'insights.server.unlimited': '免费计划不限量',
+  'insights.server.kind.rest': '数据库',
+  'insights.server.kind.auth': '登录',
+  'insights.server.kind.storage': '文件',
+  'insights.server.kind.realtime': '实时',
+  'insights.server.noToken': '请求数需要一个用量密钥。',
+  'insights.server.tokenSteps':
+    '在 supabase.com 的 Account → Access tokens 中创建访问令牌（如果可以选择，只勾选“read analytics usage”），然后在项目的 Edge Functions → Secrets 中以 USAGE_ACCESS_TOKEN 为名添加。',
+  'insights.server.tokenRefused':
+    'Supabase 拒绝了这个用量密钥。请新建一个，并以同样的名称重新保存。',
+  'insights.server.tables': '最大的表',
+  'insights.server.buckets': '按文件夹的文件',
+  'insights.server.bucketFiles': '{count} 个文件',
+  'insights.server.noFiles': '还没有保存任何文件。',
+  'insights.server.egress': '发送的数据',
+  'insights.server.egressBody':
+    '免费计划每月包含 {limit}，通常这是最先用完的额度：成员下载的每个场景和每张图片都会计入。没有 API 提供这个数字；Supabase 在项目的 Usage 页面中显示。',
+  'insights.server.openSupabase': '打开 Supabase',
+  'insights.server.rules':
+    '免费计划没有截止日期。超出某项额度会收到一封邮件并进入宽限期；如果持续超出，Supabase 会对请求返回“payment required”，直到下个月或升级计划。连续 {days} 天没有任何请求的项目会被暂停，而 FluidEQ 自身的流量可以防止这种情况。',
 } as const;
 
 export default insights;

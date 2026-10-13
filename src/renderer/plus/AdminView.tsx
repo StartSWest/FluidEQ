@@ -11,6 +11,7 @@ import { useTranslation } from '../utils/I18nContext';
 import AdminAccounts from './AdminAccounts';
 import AdminAnnouncements from './AdminAnnouncements';
 import AdminFavourites from './AdminFavourites';
+import AdminServer from './AdminServer';
 import { useGalleryNotice, type IGalleryNotice } from './galleryActions';
 import { useModeration } from './moderationStore';
 import {
@@ -36,13 +37,14 @@ const SECTIONS: Record<
   review: { glyph: 'check', name: 'review.tab' },
   favourites: { glyph: 'heart', name: 'insights.tab' },
   announcements: { glyph: 'send', name: 'announce.tab' },
+  server: { glyph: 'server', name: 'insights.server.tab' },
 };
 
 /**
  * The admin's own place in the Plus tab: the scenes waiting to be approved,
  * the scenes members reported, every account, the Plus given away, which
- * scenes members come back to and the announcements of new ones, one page at
- * a time under a row of tabs.
+ * scenes members come back to, the announcements of new ones and how full
+ * the server is, one page at a time under a row of tabs.
  *
  * These pages lived behind three buttons on the gallery's toolbar, where they
  * crowded a member's page with things no member could use. Only the account
@@ -123,6 +125,7 @@ export default function AdminView() {
         {section === 'review' && <ReviewQueue me={account.identity?.id} />}
         {section === 'favourites' && <AdminFavourites />}
         {section === 'announcements' && <AdminAnnouncements />}
+        {section === 'server' && <AdminServer />}
       </div>
     </>
   );

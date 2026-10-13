@@ -54,6 +54,37 @@ const insights = {
   'insights.error.forbidden': 'Nur der Admin von FluidEQ kann das sehen.',
   'insights.error.notDeployed':
     'Der Server hat das noch nicht. Es kommt mit dem Server-Update, das zu dieser Version von FluidEQ gehört.',
+  'insights.server.tab': 'Server',
+  'insights.server.loading': 'Der Server wird gemessen',
+  'insights.server.plan': 'Supabase-Gratisplan',
+  'insights.server.measured': 'Gemessen um {time}',
+  'insights.server.database': 'Datenbank',
+  'insights.server.files': 'Dateien',
+  'insights.server.active': 'Aktive Konten, 30 Tage',
+  'insights.server.activeNote': '{accounts} Konten insgesamt',
+  'insights.server.of': 'von {limit}',
+  'insights.server.used': '{share} belegt',
+  'insights.server.requests': 'Anfragen, letzte 7 Tage',
+  'insights.server.unlimited': 'im Gratisplan unbegrenzt',
+  'insights.server.kind.rest': 'Datenbank',
+  'insights.server.kind.auth': 'Anmeldung',
+  'insights.server.kind.storage': 'Dateien',
+  'insights.server.kind.realtime': 'Live',
+  'insights.server.noToken': 'Für Anfragen braucht es einen Nutzungsschlüssel.',
+  'insights.server.tokenSteps':
+    'Erstellen Sie auf supabase.com unter Account → Access tokens ein Zugriffstoken (nur mit „read analytics usage“, falls angeboten) und fügen Sie es im Projekt unter Edge Functions → Secrets als USAGE_ACCESS_TOKEN hinzu.',
+  'insights.server.tokenRefused':
+    'Supabase hat den Nutzungsschlüssel abgelehnt. Erstellen Sie einen neuen und speichern Sie ihn unter demselben Namen.',
+  'insights.server.tables': 'Größte Tabellen',
+  'insights.server.buckets': 'Dateien nach Ordner',
+  'insights.server.bucketFiles': '{count} Dateien',
+  'insights.server.noFiles': 'Noch keine Dateien gespeichert.',
+  'insights.server.egress': 'Gesendete Daten',
+  'insights.server.egressBody':
+    'Der Gratisplan enthält {limit} im Monat, und das ist meist das erste Limit, das erreicht wird: Jede Szene und jedes Bild, das ein Mitglied lädt, zählt. Keine API meldet den Wert; Supabase zeigt ihn auf der Usage-Seite des Projekts.',
+  'insights.server.openSupabase': 'Supabase öffnen',
+  'insights.server.rules':
+    'Der Gratisplan hat kein Enddatum. Wird ein Limit überschritten, kommt eine E-Mail und eine Schonfrist; hält es an, beantwortet Supabase Anfragen mit „payment required“, bis zum nächsten Monat oder einem Upgrade. Ein Projekt ohne Anfragen in {days} Tagen wird pausiert, was der eigene Verkehr von FluidEQ verhindert.',
 } as const;
 
 export default insights;

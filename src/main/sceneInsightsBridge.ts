@@ -6,6 +6,8 @@ import type {
   TAdminAnnouncementsOutcome,
   TAdminOutcome,
   TFavouriteScenesOutcome,
+  TRequestUsageOutcome,
+  TServerUsageOutcome,
 } from './ipc/adminInsights';
 import type { TSceneAnnouncementState } from './ipc/sceneAnnouncements';
 
@@ -53,4 +55,8 @@ export const sceneInsightsBridge = {
     ipcRenderer.invoke('admin-announcement-cancel', id),
   adminTrialEnds: (): Promise<TAdminOutcome<number[]>> =>
     ipcRenderer.invoke('admin-trial-ends'),
+  adminServerUsage: (): Promise<TServerUsageOutcome> =>
+    ipcRenderer.invoke('admin-server-usage'),
+  adminRequestUsage: (): Promise<TRequestUsageOutcome> =>
+    ipcRenderer.invoke('admin-request-usage'),
 };

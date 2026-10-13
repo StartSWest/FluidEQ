@@ -10,6 +10,12 @@ import {
   type IFavouriteScene,
   type TFavouritePeriod,
 } from '../../common/sceneTaste';
+import {
+  parseRequestUsage,
+  parseServerUsage,
+  type IServerUsage,
+  type TRequestUsage,
+} from '../../common/serverUsage';
 import { adminFailureOf, type TAccountListFailure } from './adminAccountsApi';
 import type { IGalleryAuth } from './galleryAccess';
 import { rpc } from './galleryApi';
@@ -99,6 +105,49 @@ export const cancelAnnouncement = (
   id: number,
 ): Promise<TAdminOutcome<true>> =>
   ask(auth, 'admin_cancel_announcement', { p_id: id }, () => true);
+
+/** How full the server is: the database, its files and its accounts (0053). */
+export const serverUsage = (
+  auth: IGalleryAuth,
+): Promise<TAdminOutcome<IServerUsage>> =>
+  ask(auth, 'admin_server_usage', {}, parseServerUsage);
+
+/**
+ * The week's requests, through the `admin-server-usage` function, which
+ * holds the management API's token so the app never does. A refused token
+ * comes back as 502 with a body that says so, and is an answer, not a fault.
+ */
+export const requestUsage = async (
+  auth: IGalleryAuth,
+): Promise<TAdminOutcome<TRequestUsage>> => {
+  let response: Response;
+  try {
+    response = await (auth.fetchImpl ?? fetch)(
+      `${auth.config.apiUrl}/admin-server-usage`,
+      {
+        method: 'POST',
+        headers: {
+          apikey: auth.config.supabaseAnonKey,
+          Authorization: `Bearer ${auth.accessToken}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: '{}',
+      },
+    );
+  } catch {
+    return { ok: false, reason: 'offline' };
+  }
+  // The gateway's answer for a function that was never deployed.
+  if (response.status === 404) {
+    return { ok: false, reason: 'not-deployed' };
+  }
+  if (!response.ok && response.status !== 502) {
+    return { ok: false, reason: await adminFailureOf(response) };
+  }
+  const usage = parseRequestUsage(await response.json().catch(() => undefined));
+  return usage ? { ok: true, value: usage } : { ok: false, reason: 'server' };
+};
 
 /** Every live trial's end, for counting by the admin's own days. */
 export const trialEnds = (

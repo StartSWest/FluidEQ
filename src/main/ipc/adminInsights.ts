@@ -8,12 +8,15 @@ import {
   type IAccountScene,
   type IFavouriteScene,
 } from '../../common/sceneTaste';
+import type { IServerUsage, TRequestUsage } from '../../common/serverUsage';
 import {
   accountScenes,
   adminAnnouncements,
   cancelAnnouncement,
   favouriteScenes,
+  requestUsage,
   saveAnnouncement,
+  serverUsage,
   trialEnds,
   type TAdminOutcome,
 } from '../plus/adminInsightsApi';
@@ -31,6 +34,8 @@ export type { TAdminOutcome };
 export type TAccountScenesOutcome = TAdminOutcome<IAccountScene[]>;
 export type TFavouriteScenesOutcome = TAdminOutcome<IFavouriteScene[]>;
 export type TAdminAnnouncementsOutcome = TAdminOutcome<IAdminAnnouncement[]>;
+export type TServerUsageOutcome = TAdminOutcome<IServerUsage>;
+export type TRequestUsageOutcome = TAdminOutcome<TRequestUsage>;
 
 const CHANNELS = [
   'admin-account-scenes',
@@ -39,10 +44,24 @@ const CHANNELS = [
   'admin-announcement-save',
   'admin-announcement-cancel',
   'admin-trial-ends',
+  'admin-server-usage',
+  'admin-request-usage',
 ] as const;
 
 const ACCOUNT_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/**
+ * The project's page on supabase.com, from the address the app talks to:
+ * `https://<ref>.supabase.co` is project `<ref>`. Nothing for an address that
+ * is not one, such as a local development server.
+ */
+export const dashboardOf = (supabaseUrl: string): string | undefined => {
+  const match = /^https:\/\/([a-z0-9]{20})\.supabase\.co\/?$/.exec(supabaseUrl);
+  return match
+    ? `https://supabase.com/dashboard/project/${match[1]}`
+    : undefined;
+};
 
 export const registerAdminInsightsIpc = ({
   access,
@@ -122,6 +141,27 @@ export const registerAdminInsightsIpc = ({
 
   ipcMain.handle('admin-trial-ends', (): Promise<TAdminOutcome<number[]>> =>
     asMe(trialEnds),
+  );
+
+  // How full the server is, with where Supabase shows the rest (the data
+  // sent each month, which no API reports): this project's own dashboard.
+  ipcMain.handle('admin-server-usage', (): Promise<TServerUsageOutcome> =>
+    asMe(async (auth) => {
+      const outcome = await serverUsage(auth);
+      return outcome.ok
+        ? {
+            ok: true,
+            value: {
+              ...outcome.value,
+              dashboardUrl: dashboardOf(auth.config.supabaseUrl),
+            },
+          }
+        : outcome;
+    }),
+  );
+
+  ipcMain.handle('admin-request-usage', (): Promise<TRequestUsageOutcome> =>
+    asMe(requestUsage),
   );
 
   return {

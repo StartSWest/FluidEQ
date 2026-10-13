@@ -52,6 +52,37 @@ const insights = {
   'insights.error.forbidden': 'इसे सिर्फ़ FluidEQ के एडमिन देख सकते हैं।',
   'insights.error.notDeployed':
     'सर्वर में यह अभी नहीं है। यह FluidEQ के इस संस्करण के साथ आने वाले सर्वर अपडेट के साथ आएगा।',
+  'insights.server.tab': 'सर्वर',
+  'insights.server.loading': 'सर्वर को मापा जा रहा है',
+  'insights.server.plan': 'Supabase का मुफ़्त प्लान',
+  'insights.server.measured': '{time} पर मापा गया',
+  'insights.server.database': 'डेटाबेस',
+  'insights.server.files': 'फ़ाइलें',
+  'insights.server.active': 'सक्रिय खाते, 30 दिन',
+  'insights.server.activeNote': 'कुल {accounts} खाते',
+  'insights.server.of': '{limit} में से',
+  'insights.server.used': '{share} इस्तेमाल हुआ',
+  'insights.server.requests': 'अनुरोध, पिछले 7 दिन',
+  'insights.server.unlimited': 'मुफ़्त प्लान में असीमित',
+  'insights.server.kind.rest': 'डेटाबेस',
+  'insights.server.kind.auth': 'साइन-इन',
+  'insights.server.kind.storage': 'फ़ाइलें',
+  'insights.server.kind.realtime': 'लाइव',
+  'insights.server.noToken': 'अनुरोधों की गिनती के लिए एक उपयोग कुंजी चाहिए।',
+  'insights.server.tokenSteps':
+    'supabase.com पर Account → Access tokens में एक ऐक्सेस टोकन बनाइए (विकल्प मिले तो सिर्फ़ “read analytics usage” के साथ), फिर उसे प्रोजेक्ट में Edge Functions → Secrets में USAGE_ACCESS_TOKEN नाम से जोड़िए।',
+  'insights.server.tokenRefused':
+    'Supabase ने उपयोग कुंजी अस्वीकार कर दी। नई कुंजी बनाइए और उसी नाम से फिर सहेजिए।',
+  'insights.server.tables': 'सबसे बड़ी तालिकाएँ',
+  'insights.server.buckets': 'फ़ोल्डर के हिसाब से फ़ाइलें',
+  'insights.server.bucketFiles': '{count} फ़ाइलें',
+  'insights.server.noFiles': 'अभी कोई फ़ाइल सहेजी नहीं गई है।',
+  'insights.server.egress': 'भेजा गया डेटा',
+  'insights.server.egressBody':
+    'मुफ़्त प्लान में हर महीने {limit} शामिल है, और आमतौर पर यही सीमा सबसे पहले पूरी होती है: सदस्य जो भी सीन और तस्वीर डाउनलोड करते हैं, सब गिना जाता है। कोई API इसे नहीं बताता; Supabase इसे प्रोजेक्ट के Usage पेज पर दिखाता है।',
+  'insights.server.openSupabase': 'Supabase खोलें',
+  'insights.server.rules':
+    'मुफ़्त प्लान की कोई अंतिम तिथि नहीं है। किसी सीमा से आगे जाने पर एक ईमेल आता है और एक रियायती अवधि शुरू होती है; अगर ऐसा जारी रहे, तो अगले महीने या अपग्रेड तक Supabase अनुरोधों का जवाब “payment required” से देता है। {days} दिन तक बिना किसी अनुरोध वाला प्रोजेक्ट रोक दिया जाता है, जिसे FluidEQ का अपना ट्रैफ़िक होने नहीं देता।',
 } as const;
 
 export default insights;

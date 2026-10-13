@@ -53,6 +53,37 @@ const insights = {
   'insights.error.forbidden': 'Это может видеть только администратор FluidEQ.',
   'insights.error.notDeployed':
     'На сервере этого пока нет. Это появится с обновлением сервера, которое выходит вместе с этой версией FluidEQ.',
+  'insights.server.tab': 'Сервер',
+  'insights.server.loading': 'Измеряем сервер',
+  'insights.server.plan': 'Бесплатный план Supabase',
+  'insights.server.measured': 'Измерено в {time}',
+  'insights.server.database': 'База данных',
+  'insights.server.files': 'Файлы',
+  'insights.server.active': 'Активные аккаунты, 30 дней',
+  'insights.server.activeNote': 'Всего аккаунтов: {accounts}',
+  'insights.server.of': 'из {limit}',
+  'insights.server.used': 'Занято: {share}',
+  'insights.server.requests': 'Запросы за 7 дней',
+  'insights.server.unlimited': 'без ограничений на бесплатном плане',
+  'insights.server.kind.rest': 'База данных',
+  'insights.server.kind.auth': 'Вход',
+  'insights.server.kind.storage': 'Файлы',
+  'insights.server.kind.realtime': 'Онлайн',
+  'insights.server.noToken': 'Для запросов нужен ключ статистики.',
+  'insights.server.tokenSteps':
+    'Создайте токен доступа на supabase.com в разделе Account → Access tokens (только с правом «read analytics usage», если есть выбор) и добавьте его в проект в Edge Functions → Secrets под именем USAGE_ACCESS_TOKEN.',
+  'insights.server.tokenRefused':
+    'Supabase отклонил ключ статистики. Создайте новый и сохраните его под тем же именем.',
+  'insights.server.tables': 'Самые большие таблицы',
+  'insights.server.buckets': 'Файлы по папкам',
+  'insights.server.bucketFiles': 'Файлов: {count}',
+  'insights.server.noFiles': 'Файлов пока нет.',
+  'insights.server.egress': 'Отправленные данные',
+  'insights.server.egressBody':
+    'Бесплатный план включает {limit} в месяц, и обычно этот лимит заканчивается первым: считается каждая сцена и картинка, которую скачивает участник. Ни один API его не сообщает; Supabase показывает его на странице Usage проекта.',
+  'insights.server.openSupabase': 'Открыть Supabase',
+  'insights.server.rules':
+    'У бесплатного плана нет даты окончания. При превышении лимита приходит письмо и начинается льготный период; если превышение продолжается, Supabase отвечает на запросы «payment required» до следующего месяца или перехода на платный план. Проект без единого запроса в течение {days} дней приостанавливается — этого не даёт случиться собственный трафик FluidEQ.',
 } as const;
 
 export default insights;
