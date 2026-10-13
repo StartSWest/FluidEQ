@@ -45,6 +45,7 @@ import './styles/Rainbow.scss';
 import SmartEqEngine from './SmartEqEngine';
 import SmartHeadroomEngine from './SmartHeadroomEngine';
 import showGalleryGraph from './plus/showGalleryGraph';
+import { subscribeGraphShowRequests } from './plus/graphShowRequest';
 import useStudioAgent from './studio/useStudioAgent';
 import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
@@ -275,6 +276,19 @@ const AppContent = () => {
     graphView,
     isGraphViewOn,
   });
+
+  // The announcement of new scenes plays its first one on the EQ page's
+  // graph (`SceneAnnouncementDialog`), as the gallery's own button does.
+  useEffect(
+    () =>
+      subscribeGraphShowRequests(() =>
+        showGalleryGraph(() => {
+          showGraphOn('eq');
+          selectTopWorkspaceTab('eq');
+        }),
+      ),
+    [showGraphOn, selectTopWorkspaceTab],
+  );
 
   /**
    * The EQ page puts its graph ABOVE the page (layout A, the open floor,

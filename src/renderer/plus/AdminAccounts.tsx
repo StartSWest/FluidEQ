@@ -12,7 +12,6 @@ import {
   type IAccountToDelete,
 } from 'common/accountDeletion';
 import {
-  ACCOUNT_PLAN_FILTERS,
   MAX_ACCOUNT_QUERY,
   type IAccountListPage,
   type IAccountListRequest,
@@ -26,6 +25,7 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import AccountDeletionCard from './AccountDeletionCard';
 import AdminAccountRow from './AdminAccountRow';
+import AdminAccountStats from './AdminAccountStats';
 import GalleryListNotice from './GalleryListNotice';
 import '../styles/Admin.scss';
 
@@ -39,16 +39,11 @@ const LIST_ERRORS: Record<TAccountListFailure, TranslationKey> = {
   'not-deployed': 'plus.accounts.error.notDeployed',
 };
 
-const FILTER_LABELS: Record<TAccountPlanFilter, TranslationKey> = {
-  all: 'plus.accounts.filter.all',
-  plus: 'plus.accounts.filter.plus',
-  free: 'plus.accounts.filter.free',
-};
-
 const EMPTY: Record<TAccountPlanFilter, TranslationKey> = {
   all: 'plus.accounts.empty.none',
   plus: 'plus.accounts.empty.plus',
   free: 'plus.accounts.empty.free',
+  trial: 'plus.accounts.empty.trial',
 };
 
 interface IAsk {
@@ -252,15 +247,6 @@ export default function AdminAccounts() {
   };
 
   const numbers = new Intl.NumberFormat(locale);
-  const share = new Intl.NumberFormat(locale, {
-    style: 'percent',
-    maximumFractionDigits: 1,
-  });
-  const counts: Record<TAccountPlanFilter, number> | undefined = shown && {
-    all: shown.matched,
-    plus: shown.paying,
-    free: shown.matched - shown.paying,
-  };
   const dimmed = asking && shown !== undefined;
 
   let empty = t('plus.accounts.empty.none');
@@ -300,53 +286,12 @@ export default function AdminAccounts() {
         </button>
       </div>
 
-      <div
-        className="admin-accounts__stats"
-        role="group"
-        aria-label={t('plus.accounts.filter')}
-      >
-        {ACCOUNT_PLAN_FILTERS.map((filter) => {
-          const value = counts?.[filter];
-          const part =
-            filter !== 'all' &&
-            shown &&
-            shown.matched > 0 &&
-            value !== undefined
-              ? share.format(value / shown.matched)
-              : undefined;
-          return (
-            <button
-              key={filter}
-              type="button"
-              className={`admin-accounts__stat is-${filter}`}
-              aria-pressed={ask.plan === filter}
-              onClick={() => choosePlan(filter)}
-            >
-              <span className="admin-accounts__stat-label">
-                {t(FILTER_LABELS[filter])}
-              </span>
-              <span className="admin-accounts__stat-figures">
-                {value === undefined && asking && (
-                  <span className="admin-accounts__stat-value is-waiting" />
-                )}
-                {value === undefined && !asking && (
-                  <span className="admin-accounts__stat-value is-unknown">
-                    –
-                  </span>
-                )}
-                {value !== undefined && (
-                  <span className="admin-accounts__stat-value">
-                    {numbers.format(value)}
-                  </span>
-                )}
-                {part && (
-                  <span className="admin-accounts__stat-share">{part}</span>
-                )}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <AdminAccountStats
+        page={shown}
+        asking={asking}
+        plan={ask.plan}
+        onChoose={choosePlan}
+      />
       <p className="gallery-fine">{t('plus.accounts.listHint')}</p>
 
       {deleted && (

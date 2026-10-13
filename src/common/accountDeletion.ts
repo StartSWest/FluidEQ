@@ -47,7 +47,22 @@ export interface IAccountToDelete {
    * FluidEQ signed in", to within about an hour; nothing reports a heartbeat.
    */
   seenAt?: number;
+  /** While the account is on a free trial, when it ends (premium 0049). */
+  trialEndsAt?: number;
+  /**
+   * The audio engine the account last reported running (premium 0049): only
+   * from a FluidEQ carrying terms revision 10, so absent for most at first.
+   */
+  engine?: TAccountEngine;
 }
+
+/** The two engines an account reports, as the server keeps them. */
+export const ACCOUNT_ENGINES = ['fluid', 'apo'] as const;
+export type TAccountEngine = (typeof ACCOUNT_ENGINES)[number];
+
+export const isAccountEngine = (value: unknown): value is TAccountEngine =>
+  typeof value === 'string' &&
+  (ACCOUNT_ENGINES as readonly string[]).includes(value);
 
 const ACCOUNT_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -119,6 +134,9 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
   // nothing about either. A row is never dropped for their sake.
   const appVersion = textOf(row.app_version)?.slice(0, 32);
   const seenAt = timeOf(row.seen_at);
+  // Lenient for the same reason: a server before 0049 has neither column.
+  const trialEndsAt = timeOf(row.trial_ends_at);
+  const engine = isAccountEngine(row.engine) ? row.engine : undefined;
   return {
     userId: row.user_id,
     email: row.email,
@@ -137,5 +155,7 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
     deleting: row.deleting,
     ...(appVersion ? { appVersion } : {}),
     ...(seenAt ? { seenAt } : {}),
+    ...(trialEndsAt ? { trialEndsAt } : {}),
+    ...(engine ? { engine } : {}),
   };
 };

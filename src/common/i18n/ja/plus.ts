@@ -227,6 +227,7 @@ const plus = {
   'plus.accounts.filter.all': 'すべてのアカウント',
   'plus.accounts.filter.plus': 'Plus あり',
   'plus.accounts.filter.free': 'Plus なし',
+  'plus.accounts.filter.trial': '無料体験中',
   'plus.accounts.admin': '管理者',
   'plus.accounts.loading': 'アカウントを読み込み中…',
   'plus.accounts.shown': '{total} 件中 {shown} 件を表示',
@@ -234,6 +235,19 @@ const plus = {
   'plus.accounts.empty.search': '{query} に一致するアカウントはありません',
   'plus.accounts.empty.plus': 'これらのアカウントに Plus はありません',
   'plus.accounts.empty.free': 'これらのアカウントはすべて Plus です',
+  'plus.accounts.empty.trial':
+    'これらのアカウントに無料体験中のものはありません',
+  'plus.accounts.trial.thisWeek': '今週終了 {count} 件',
+  'plus.accounts.trial.today': '無料体験は今日終了',
+  'plus.accounts.trial.tomorrow': '無料体験は明日終了',
+  'plus.accounts.trial.inDays': '無料体験はあと {days} 日で終了',
+  'plus.accounts.trial.ends': '無料体験は {date} に終了します。',
+  'plus.accounts.engine.title': 'エンジン',
+  'plus.accounts.engine.fluid': 'FluidEQ エンジン',
+  'plus.accounts.engine.apo': 'Equalizer APO',
+  'plus.accounts.engine.unknown': '未報告 {count}',
+  'plus.accounts.engine.summary':
+    'FluidEQ エンジン {fluid}、Equalizer APO {apo}、未報告 {unknown}',
   'plus.accounts.moreError':
     'これ以上のアカウントを読み込めませんでした。もう一度お試しください。',
   'plus.accounts.error.offline':
@@ -254,6 +268,7 @@ const plus = {
   'plus.accounts.appVersion': 'FluidEQ {version}',
   'plus.accounts.plan.none': 'Plus なし',
   'plus.accounts.plan.paid': '{date} まで Plus',
+  'plus.accounts.plan.trial': '無料体験',
   'plus.accounts.plan.gift': 'ギフトの Plus',
   'plus.accounts.plan.giftUntil': '{date} までギフト',
   'plus.accounts.goes': '一緒に削除されるもの',

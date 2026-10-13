@@ -103,6 +103,17 @@
  * no record of the request, which is only true while the site's /video/
  * location has its access log off, as /fonts/ and /img/ already do.
  */
+/**
+ * 10: the app sends how long each Plus scene is on a member's screen, one
+ * number per scene per day, and which audio engine they chose, both only to
+ * FluidEQ's maker (premium migrations 0047 and 0049); it asks whether new
+ * scenes were announced; and adding one of FluidEQ's own scenes is kept like
+ * any other add. Revision 9 promised "Nothing else about what is on screen is
+ * kept", so this is a raise and edition 4: the app sends none of it until the
+ * member has been shown this text (`toldOf` in `ipc/plusTermsNotice.ts`).
+ * The server's `plus_terms_version()` moves to 10 in premium migration 0051,
+ * deployed with the release that carries this.
+ */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
  *
@@ -111,14 +122,14 @@
  * tells every eligible new account to update FluidEQ, on the newest build
  * there is. Raise both in the same release.
  */
-export const PLUS_TERMS_VERSION = 9;
+export const PLUS_TERMS_VERSION = 10;
 
 /** Published editions. Pre-release acceptance revisions are not editions. */
-export const PLUS_TERMS_EDITION = 3;
+export const PLUS_TERMS_EDITION = 4;
 export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-09-20';
+export const PLUS_TERMS_EFFECTIVE = '2026-10-13';
 
 /**
  * Days Plus keeps working without the server confirming the membership: a

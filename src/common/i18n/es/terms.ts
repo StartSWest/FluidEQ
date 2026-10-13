@@ -99,7 +99,25 @@ const terms = {
   'terms.sent.sceneLike.when':
     'Cuando se reproduce la escena de un miembro, para mostrar sus me gusta, y cuando pulsas el corazón o retiras un me gusta',
   'terms.sent.sceneLike.who':
-    'Tu me gusta se guarda con tu cuenta. Los miembros ven cuántos me gusta tiene una escena, nunca quién los dio. No se guarda nada más de lo que está en pantalla.',
+    'Tu me gusta se guarda con tu cuenta. Los miembros ven cuántos me gusta tiene una escena, nunca quién los dio. Cuánto tiempo está cada escena en pantalla es la línea siguiente.',
+  'terms.sent.sceneTime.what':
+    'Cuánto tiempo estuvo cada escena Plus en tu pantalla: un número de segundos por escena y por día, con la escena y la fecha',
+  'terms.sent.sceneTime.when':
+    'Mientras tengas Plus, una vez que se te haya mostrado esta versión de estas condiciones: al abrir FluidEQ, al volver al ordenador y, como mucho, una vez por hora mientras se reproduce una escena',
+  'terms.sent.sceneTime.who':
+    'Solo el creador de FluidEQ, con tu cuenta, para saber qué escenas disfrutan los miembros y hacer más como ellas. Los miembros nunca lo ven. Tu ordenador guarda los últimos {windowDays} días.',
+  'terms.sent.engine.what':
+    'Qué motor de audio elegiste: el Motor FluidEQ o Equalizer APO',
+  'terms.sent.engine.when':
+    'Mientras tengas Plus, una vez que se te haya mostrado esta versión de estas condiciones: al abrir FluidEQ, al volver al ordenador y al cambiar de motor',
+  'terms.sent.engine.who':
+    'Solo el creador de FluidEQ, con tu cuenta, para saber en qué motor trabajar. Solo se guarda el último.',
+  'terms.sent.announcements.what':
+    'Tu token de sesión, para preguntar si FluidEQ ha anunciado escenas nuevas',
+  'terms.sent.announcements.when':
+    'Al abrir FluidEQ, al iniciar sesión y al volver al ordenador',
+  'terms.sent.announcements.who':
+    'No se guarda nada. Qué anuncios ya has visto queda en tu ordenador.',
   'terms.sent.scenePublish.what':
     'Una escena que publicas, igual que en una exportación, con una imagen de portada, hasta dos categorías y una nota sobre lo que hay de nuevo, si la escribes',
   'terms.sent.scenePublish.when': 'Cuando pulsas Publicar en el Estudio',

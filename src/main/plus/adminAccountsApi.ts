@@ -27,7 +27,13 @@ export type TAccountListOutcome =
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const failureOf = async (response: Response): Promise<TAccountListFailure> => {
+/**
+ * What an admin call's refusal means, for every admin page: the account list,
+ * the scenes and the announcements all answer the same way.
+ */
+export const adminFailureOf = async (
+  response: Response,
+): Promise<TAccountListFailure> => {
   if (response.status === 401) {
     return 'signed-out';
   }
@@ -71,10 +77,10 @@ export const listAccounts = async (
     return { ok: false, reason: 'offline' };
   }
   if (!list.ok) {
-    return { ok: false, reason: await failureOf(list) };
+    return { ok: false, reason: await adminFailureOf(list) };
   }
   if (!totals.ok) {
-    return { ok: false, reason: await failureOf(totals) };
+    return { ok: false, reason: await adminFailureOf(totals) };
   }
   try {
     const page = parseAccountListPage(await list.json(), await totals.json());

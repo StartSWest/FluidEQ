@@ -102,7 +102,25 @@ const terms = {
   'terms.sent.sceneLike.when':
     'Quand la scène d’un membre est jouée, pour afficher ses J’aime, et quand vous cliquez sur le cœur ou retirez un J’aime',
   'terms.sent.sceneLike.who':
-    'Votre J’aime est conservé avec votre compte. Les membres voient combien de J’aime a une scène, jamais qui les a donnés. Rien d’autre sur ce qui est à l’écran n’est conservé.',
+    'Votre J’aime est conservé avec votre compte. Les membres voient combien de J’aime a une scène, jamais qui les a donnés. La durée pendant laquelle chaque scène est à l’écran fait l’objet de la ligne suivante.',
+  'terms.sent.sceneTime.what':
+    'Combien de temps chaque scène Plus a été à votre écran : un nombre de secondes par scène et par jour, avec la scène et la date',
+  'terms.sent.sceneTime.when':
+    'Tant que vous avez Plus, une fois que cette version de ces conditions vous a été présentée : au démarrage de FluidEQ, quand vous revenez à l’ordinateur, et au plus une fois par heure pendant qu’une scène est jouée',
+  'terms.sent.sceneTime.who':
+    'Seulement le créateur de FluidEQ, avec votre compte, pour savoir quelles scènes plaisent aux membres et en faire d’autres dans le même esprit. Les membres ne le voient jamais. Votre ordinateur conserve les {windowDays} derniers jours.',
+  'terms.sent.engine.what':
+    'Le moteur audio que vous avez choisi : le Moteur FluidEQ ou Equalizer APO',
+  'terms.sent.engine.when':
+    'Tant que vous avez Plus, une fois que cette version de ces conditions vous a été présentée : au démarrage de FluidEQ, quand vous revenez à l’ordinateur et quand vous changez de moteur',
+  'terms.sent.engine.who':
+    'Seulement le créateur de FluidEQ, avec votre compte, pour savoir sur quel moteur travailler. Seul le dernier est conservé.',
+  'terms.sent.announcements.what':
+    'Votre jeton de connexion, pour demander si FluidEQ a annoncé de nouvelles scènes',
+  'terms.sent.announcements.when':
+    'Au démarrage de FluidEQ, quand vous vous connectez et quand vous revenez à l’ordinateur',
+  'terms.sent.announcements.who':
+    'Rien n’est conservé. Les annonces que vous avez déjà vues restent mémorisées sur votre ordinateur.',
   'terms.sent.scenePublish.what':
     'Une scène que vous publiez, comme pour un export, avec une image de couverture, jusqu’à deux catégories et une note sur les nouveautés, si vous en écrivez une',
   'terms.sent.scenePublish.when':

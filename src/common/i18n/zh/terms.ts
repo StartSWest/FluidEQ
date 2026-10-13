@@ -90,7 +90,24 @@ const terms = {
   'terms.sent.sceneLike.when':
     '播放会员的场景时（用于显示点赞数），以及你点击爱心或取消点赞时',
   'terms.sent.sceneLike.who':
-    '你的赞会随你的账户保存。会员能看到一个场景有多少个赞，但看不到是谁点的。关于屏幕上显示的内容，其他任何信息都不会被保存。',
+    '你的赞会随你的账户保存。会员能看到一个场景有多少个赞，但看不到是谁点的。每个场景在屏幕上显示多长时间，见下一行。',
+  'terms.sent.sceneTime.what':
+    '每个 Plus 场景在你屏幕上显示了多长时间：每个场景每天一个秒数，附带场景和日期',
+  'terms.sent.sceneTime.when':
+    '在你拥有 Plus 期间，且已向你展示过这个版本的条款之后：FluidEQ 启动时、你回到电脑前时，以及场景播放期间最多每小时一次',
+  'terms.sent.sceneTime.who':
+    '只有 FluidEQ 作者会看到，并与你的账户关联，用于了解会员喜欢哪些场景，从而制作更多类似的场景。会员永远看不到。你的电脑会保留最近 {windowDays} 天的数据。',
+  'terms.sent.engine.what': '你选择的音频引擎：FluidEQ 引擎或 Equalizer APO',
+  'terms.sent.engine.when':
+    '在你拥有 Plus 期间，且已向你展示过这个版本的条款之后：FluidEQ 启动时、你回到电脑前时，以及你切换引擎时',
+  'terms.sent.engine.who':
+    '只有 FluidEQ 作者会看到，并与你的账户关联，用于了解应该在哪个引擎上投入工作。只保留最近一次的选择。',
+  'terms.sent.announcements.what':
+    '你的登录令牌，用于询问 FluidEQ 是否发布了新场景公告',
+  'terms.sent.announcements.when':
+    'FluidEQ 启动时、你登录时，以及你回到电脑前时',
+  'terms.sent.announcements.who':
+    '不会保存任何内容。你已经看过哪些公告，只保存在你的电脑上。',
   'terms.sent.scenePublish.what':
     '你发布的场景，内容与导出时相同，并附带一张封面图片、最多两个分类，以及一段关于新内容的说明（如果你写了的话）',
   'terms.sent.scenePublish.when': '在工作室中点击“发布”时',

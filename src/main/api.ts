@@ -50,6 +50,7 @@ import { engineHealthBridge } from './engineHealthBridge';
 import { lightingBridge } from './lightingBridge';
 import { outputMirrorBridge } from './outputMirrorBridge';
 import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
+import { sceneInsightsBridge } from './sceneInsightsBridge';
 import { plusWelcomeBridge } from './plusWelcomeBridge';
 import { plusTrialBridge } from './plusTrialBridge';
 import { plusReviewBridge } from './plusReviewBridge';
@@ -402,6 +403,7 @@ export default {
     ...communityBridge,
     ...outputMirrorBridge,
     ...plusTermsNoticeBridge,
+    ...sceneInsightsBridge,
     ...plusWelcomeBridge,
     ...plusTrialBridge,
     ...plusReviewBridge,

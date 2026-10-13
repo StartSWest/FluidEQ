@@ -124,6 +124,27 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     who: 'terms.sent.sceneLike.who',
   },
   {
+    id: 'scene-time',
+    glyph: 'looks',
+    what: 'terms.sent.sceneTime.what',
+    when: 'terms.sent.sceneTime.when',
+    who: 'terms.sent.sceneTime.who',
+  },
+  {
+    id: 'engine',
+    glyph: 'music',
+    what: 'terms.sent.engine.what',
+    when: 'terms.sent.engine.when',
+    who: 'terms.sent.engine.who',
+  },
+  {
+    id: 'announcements',
+    glyph: 'mail',
+    what: 'terms.sent.announcements.what',
+    when: 'terms.sent.announcements.when',
+    who: 'terms.sent.announcements.who',
+  },
+  {
     id: 'scene-publish',
     glyph: 'upload',
     what: 'terms.sent.scenePublish.what',

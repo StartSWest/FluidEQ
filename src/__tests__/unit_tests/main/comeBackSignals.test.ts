@@ -204,9 +204,11 @@ describe('accountComeBackSteps', () => {
       plusGallery: { refreshIfDue: jest.fn(record('gallery scenes')) },
       sceneReviews: { refreshIfDue: jest.fn(record('scene reviews')) },
       plusTermsNotice: { checkIfDue: jest.fn(record('Plus terms notice')) },
-      leaderboard: {
-        uploadIfDue: jest.fn(async () => {
-          calls.push('leaderboard upload');
+      leaderboard: { uploadIfDue: jest.fn(record('leaderboard upload')) },
+      sceneTaste: { uploadIfDue: jest.fn(record('scene plays and engine')) },
+      sceneAnnouncements: {
+        refreshIfDue: jest.fn(async () => {
+          calls.push('scene announcements');
           done.emit('done');
         }),
       },
@@ -246,6 +248,8 @@ describe('accountComeBackSteps', () => {
       'scene reviews',
       'Plus terms notice',
       'leaderboard upload',
+      'scene plays and engine',
+      'scene announcements',
     ]);
     expect(refreshers.entitlement.checkIfDue).toHaveBeenCalledWith(
       'wake from sleep',
@@ -264,6 +268,12 @@ describe('accountComeBackSteps', () => {
       'wake from sleep',
     );
     expect(refreshers.leaderboard.uploadIfDue).toHaveBeenCalledWith(
+      'wake from sleep',
+    );
+    expect(refreshers.sceneTaste.uploadIfDue).toHaveBeenCalledWith(
+      'wake from sleep',
+    );
+    expect(refreshers.sceneAnnouncements.refreshIfDue).toHaveBeenCalledWith(
       'wake from sleep',
     );
     expect(harness.logger.warn).not.toHaveBeenCalled();
@@ -292,6 +302,8 @@ describe('accountComeBackSteps', () => {
       'scene reviews',
       'Plus terms notice',
       'leaderboard upload',
+      'scene plays and engine',
+      'scene announcements',
     ]);
     expect(harness.logger.warn.mock.calls).toEqual([
       ['Refreshing the FluidEQ scenes after screen unlock failed.', rejected],

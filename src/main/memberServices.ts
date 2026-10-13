@@ -21,10 +21,12 @@ import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import path from 'path';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
+import type { TAudioEngine } from '../common/audioEngine';
 import { setKnownMaker } from './account/knownMakers';
 import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
 import { registerAccountDeletionIpc } from './ipc/accountDeletion';
+import { registerAdminInsightsIpc } from './ipc/adminInsights';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
 import { registerMakerMonthIpc } from './ipc/makerMonth';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
@@ -38,6 +40,8 @@ import { registerPlusReviewIpc } from './ipc/plusReview';
 import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
 import { registerPlusTrialIpc } from './ipc/plusTrial';
 import { registerPlusWelcomeIpc } from './ipc/plusWelcome';
+import { registerSceneAnnouncementsIpc } from './ipc/sceneAnnouncements';
+import { registerSceneTasteIpc } from './ipc/sceneTaste';
 import { registerScenePacksIpc } from './ipc/scenePacks';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
 import { createGalleryAccess } from './plus/galleryAccess';
@@ -50,6 +54,8 @@ import { createWallpaperScenes } from './wallpaper/scenes';
 export interface IMemberServicesDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
+  /** The engine this computer runs, reported with the scenes (premium 0049). */
+  getEngine: () => TAudioEngine | null;
 }
 
 /**
@@ -65,6 +71,7 @@ export interface IMemberServicesDeps {
 const registerMemberServices = ({
   getMainWindow,
   userDataDir,
+  getEngine,
 }: IMemberServicesDeps) => {
   // DEVELOPMENT ONLY, and compiled to nothing in a packaged build:
   // `isPackaged` is decided by the binary's name, which nothing here can
@@ -305,6 +312,41 @@ const registerMemberServices = ({
     access: galleryAccess,
   });
 
+  // What the admin reads of how members watch: each scene's time on screen
+  // and the engine, sent only once the member has been shown terms 10.
+  const sceneTasteIpc = registerSceneTasteIpc({
+    userDataDir,
+    access: galleryAccess,
+    toldOf: plusTermsNoticeIpc.toldOf,
+    getEngine,
+    logger: log,
+  });
+
+  // The big card announcing new scenes, and the admin's readings and
+  // composer behind it (premium migrations 0047, 0049, 0050).
+  const sceneAnnouncementsIpc = registerSceneAnnouncementsIpc({
+    getMainWindow,
+    userDataDir,
+    access: galleryAccess,
+    onAccountChange: (listener) => {
+      const offMembership = accountIpc.entitlement.subscribe(listener);
+      const offIdentity = accountIpc.onIdentityChange(listener);
+      return () => {
+        offMembership();
+        offIdentity();
+      };
+    },
+    logger: log,
+  });
+  const adminInsightsIpc = registerAdminInsightsIpc({
+    access: galleryAccess,
+    onAnnouncementsChanged: () => {
+      sceneAnnouncementsIpc
+        .refreshIfDue('an announcement changed')
+        .catch(() => undefined);
+    },
+  });
+
   // The member's name on the board and in the gallery. Registering contacts
   // nothing; the Plus tab asks for it when it opens.
   const plusProfileIpc = registerPlusProfileIpc({
@@ -350,6 +392,9 @@ const registerMemberServices = ({
     studioChat.dispose();
     plusProfileIpc.dispose();
     leaderboardIpc.dispose();
+    sceneTasteIpc.dispose();
+    sceneAnnouncementsIpc.dispose();
+    adminInsightsIpc.dispose();
   };
 
   return {
@@ -360,6 +405,8 @@ const registerMemberServices = ({
     plusGalleryIpc,
     plusReviewIpc,
     leaderboardIpc,
+    sceneTasteIpc,
+    sceneAnnouncementsIpc,
     wallpaperIpc,
     dispose,
   };
