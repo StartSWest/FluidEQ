@@ -64,8 +64,6 @@ const useEqPageActions = (bands: TEqPageBands) => {
     bandsRef,
     selectionBox,
     setSelectionBox,
-    channelsApart,
-    editingEar,
   } = bands;
   const getSelectionPoint = (event: PointerEvent<HTMLDivElement>) => {
     const bounds = bandsRef.current?.getBoundingClientRect();
@@ -291,16 +289,6 @@ const useEqPageActions = (bands: TEqPageBands) => {
     }
   };
 
-  /**
-   * A band added while one ear is being edited is that ear's: added on Left,
-   * it would otherwise move the right ear the page has just drawn back.
-   */
-  const landOnEditingEar = async (id: string) => {
-    if (channelsApart && editingEar !== 'both') {
-      await setFiltersChannel([id], editingEar);
-    }
-  };
-
   const addFilter = async () => {
     if (frequencySortedFilters.length >= MAX_NUM_FILTERS) {
       return;
@@ -337,7 +325,6 @@ const useEqPageActions = (bands: TEqPageBands) => {
           id,
           frequency,
         });
-        await landOnEditingEar(id);
       } catch (e) {
         setGlobalError(e as ErrorDescription);
       }
@@ -403,7 +390,6 @@ const useEqPageActions = (bands: TEqPageBands) => {
         id,
         frequency: boundedFrequency,
       });
-      await landOnEditingEar(id);
       // The new band is the one being worked on now.
       setSelectedFilterIds([id]);
     } catch (e) {

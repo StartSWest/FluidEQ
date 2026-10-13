@@ -28,12 +28,11 @@ const band = (
   ...(channel ? { channel } : {}),
 });
 
-const stateWith = (filters: IFilter[], channelsApart: boolean): IState => ({
+const stateWith = (filters: IFilter[]): IState => ({
   ...getDefaultState(),
   isFlat: false,
   isAutoPreAmpOn: true,
   filters: Object.fromEntries(filters.map((filter) => [filter.id, filter])),
-  ...(channelsApart ? { channelsApart: true } : {}),
 });
 
 const eqLines = (state: IState) =>
@@ -48,7 +47,7 @@ const preampOf = (state: IState) =>
     )?.[1] ?? 'NaN',
   );
 
-describe('Your EQ with left and right apart', () => {
+describe('Your EQ with a band kept to one ear', () => {
   const bands = [
     band('a', 100, 3),
     band('b', 5600, -2.5, 'left'),
@@ -56,7 +55,7 @@ describe('Your EQ with left and right apart', () => {
   ];
 
   it('writes both ears first, each ear under its own line, then every channel', () => {
-    expect(eqLines(stateWith(bands, true))).toEqual([
+    expect(eqLines(stateWith(bands))).toEqual([
       'Channel: all',
       'Filter 1: ON PK Fc 100 Hz Gain 3 dB Q 1',
       'Channel: L',
@@ -67,38 +66,26 @@ describe('Your EQ with left and right apart', () => {
     ]);
   });
 
-  it('plays every band on both ears while linked, the sides kept unplayed', () => {
-    // The control: the same bands, linked, are three plain lines.
-    expect(eqLines(stateWith(bands, false))).toEqual([
-      'Filter 1: ON PK Fc 100 Hz Gain 3 dB Q 1',
-      'Filter 2: ON PK Fc 5600 Hz Gain -2.5 dB Q 1',
-      'Filter 3: ON PK Fc 3200 Hz Gain 2 dB Q 1',
-    ]);
-  });
-
   it('writes no Channel line when no band is kept to an ear', () => {
-    expect(
-      eqLines(stateWith([band('a', 100, 3), band('b', 1000, 2)], true)),
-    ).toEqual([
-      'Filter 1: ON PK Fc 100 Hz Gain 3 dB Q 1',
-      'Filter 2: ON PK Fc 1000 Hz Gain 2 dB Q 1',
-    ]);
+    expect(eqLines(stateWith([band('a', 100, 3), band('b', 1000, 2)]))).toEqual(
+      [
+        'Filter 1: ON PK Fc 100 Hz Gain 3 dB Q 1',
+        'Filter 2: ON PK Fc 1000 Hz Gain 2 dB Q 1',
+      ],
+    );
   });
 
   it('reserves the louder ear’s headroom, not both ears’ boosts summed', () => {
     // Two boosts at the same frequency, one per ear: each ear hears 6 dB.
-    const apart = stateWith(
-      [band('l', 1000, 6, 'left'), band('r', 1000, 6, 'right')],
-      true,
-    );
-    // Linked, the same two bands are one ear's 12 dB: the positive control
-    // that the preamp does sum what one ear actually hears.
-    const linked = stateWith(
-      [band('l', 1000, 6, 'left'), band('r', 1000, 6, 'right')],
-      false,
-    );
-    const oneEar = stateWith([band('l', 1000, 6)], false);
+    const apart = stateWith([
+      band('l', 1000, 6, 'left'),
+      band('r', 1000, 6, 'right'),
+    ]);
+    // On both ears the same two bands are one ear's 12 dB: the positive
+    // control that the preamp does sum what one ear actually hears.
+    const together = stateWith([band('l', 1000, 6), band('r', 1000, 6)]);
+    const oneEar = stateWith([band('l', 1000, 6)]);
     expect(preampOf(apart)).toBeCloseTo(preampOf(oneEar), 1);
-    expect(preampOf(linked)).toBeLessThan(preampOf(apart) - 5);
+    expect(preampOf(together)).toBeLessThan(preampOf(apart) - 5);
   });
 });

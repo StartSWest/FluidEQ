@@ -245,7 +245,7 @@ const EditablePoint = ({
   return (
     <g
       ref={groupRef}
-      className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}${point.isEnabled ? '' : ' graph-edit-point--off'}${point.isOtherEar ? ' graph-edit-point--other-ear' : ''}`}
+      className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}${point.isEnabled ? '' : ' graph-edit-point--off'}`}
       transform={`translate(${scaledX}, ${scaledY})`}
       role="slider"
       tabIndex={point.isLocked ? -1 : 0}

@@ -430,14 +430,9 @@ const buildLayers = (state: IState): IApoLayer[] => {
         });
       }
     } else {
-      // A band's ear travels only while the output has left and right
-      // apart; linked, the side is kept on the band and not played.
       const filters = Object.values(state.filters)
         .filter(isBandEnabled)
-        .filter(isRenderableFilter)
-        .map(({ channel, ...band }) =>
-          state.channelsApart && channel ? { ...band, channel } : band,
-        );
+        .filter(isRenderableFilter);
       addLayer(
         'eq',
         // A band switched off is dropped here rather than written as an APO

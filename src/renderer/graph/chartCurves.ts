@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import type { IFiltersMap, TBandSide } from 'common/constants';
+import type { IFiltersMap } from 'common/constants';
 import {
   GRAPH_END,
   GRAPH_START,
@@ -76,19 +76,13 @@ export interface IChartCurvePoints {
     points: IChartPointData[];
     isQuiet: boolean;
     gradientStops: IChartGradientStop[];
-    /** Left and right apart with a band kept to one ear: the right's curve. */
-    ears?: { right: IChartPointData[]; editing: TBandSide };
+    /** A band kept to one ear: the right ear's curve, beside the left's. */
+    ears?: { right: IChartPointData[] };
   };
 }
 
 /** The right ear's curve: the EQ line's id with its ear after it. */
 export const RIGHT_EAR_CURVE_ID = 'EQ Response Right';
-
-/**
- * How far an ear not being edited is drawn back: present enough to read the
- * gap between the two, and plainly not the line the handles are on.
- */
-const OTHER_EAR_OPACITY = 0.45;
 
 /** Every curve the graph draws, in the order they are painted. */
 const chartCurves = ({
@@ -213,8 +207,7 @@ const chartCurves = ({
             gradientId: 'chart-eq-spectrum-gradient',
             gradientStops: eq.gradientStops,
             dashed: true,
-            opacity:
-              eq.isQuiet || eq.ears.editing === 'left' ? OTHER_EAR_OPACITY : 1,
+            ...(eq.isQuiet ? { opacity: SUPPORTING_CURVE_OPACITY } : {}),
           },
         },
       ]
@@ -238,9 +231,6 @@ const chartCurves = ({
                 gradientId: 'chart-eq-spectrum-gradient',
                 gradientStops: eq.gradientStops,
                 glow: true,
-                ...(eq.ears?.editing === 'right'
-                  ? { opacity: OTHER_EAR_OPACITY }
-                  : {}),
               },
         },
       ]

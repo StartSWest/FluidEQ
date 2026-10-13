@@ -205,13 +205,8 @@ export interface IEditableChartPoint {
    * and the way back is one press on the EQ's chip.
    */
   isLocked: boolean;
-  /**
-   * The one ear the band plays on while the output's channels are apart,
-   * shown as its letter; absent for a band on both ears.
-   */
+  /** The one ear the band plays on, shown as its letter; absent for both. */
   ear?: TBandChannel;
-  /** Kept to the ear the page is not editing: drawn back, still draggable. */
-  isOtherEar?: boolean;
   /** Editable main-band values, independent of the summed response at its dot. */
   parameters?: { frequency: number; gain: number; quality: number };
   /**  is where the press landed, in chart units — see the drag state. */

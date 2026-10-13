@@ -287,8 +287,6 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
       state.eqBandDesign = normalizeBandDesign(presetSettings.eqBandDesign);
       state.isEqDoubleOn = state.eqMode === 'double';
       state.tone = toTone(presetSettings.tone);
-      state.channelsApart =
-        presetSettings.channelsApart === true ? true : undefined;
       state.voicing = presetSettings.voicing;
       state.driver = presetSettings.driver;
       state.smartEq = presetSettings.smartEq;
@@ -360,8 +358,6 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
         state.eqBandDesign = normalizeBandDesign(baseline.eqBandDesign);
         state.isEqDoubleOn = state.eqMode === 'double';
         state.tone = toTone(baseline.tone);
-        state.channelsApart =
-          baseline.channelsApart === true ? true : undefined;
         state.voicing = baseline.voicing;
         state.driver = baseline.driver;
         state.smartEq = baseline.smartEq;

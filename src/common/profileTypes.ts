@@ -156,8 +156,6 @@ export interface IPresetV2 extends IOutputSound {
    * correction measured on one output says nothing about another.
    */
   tone?: ITone;
-  /** Left and right apart on this output (`IState.channelsApart`). */
-  channelsApart?: boolean;
   voicing?: IVoicingSettings;
   driver?: IDriverSettings;
   smartEq?: ISmartEqSettings;

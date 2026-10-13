@@ -44,6 +44,7 @@ import { requestBandMenu } from './BandMenu';
 import { FilterActionEnum, useFluidEqShell } from '../utils/FluidEqContext';
 import Slider from './Slider';
 import '../styles/FrequencyBand.scss';
+import '../styles/EqChannels.scss';
 
 type TGainAction = { kind: 'set'; value: number } | { kind: 'reset' };
 
@@ -57,10 +58,8 @@ interface IFrequencyBandProps {
   flatLayout?: boolean;
   isSelected?: boolean;
   isHovered?: boolean;
-  /** The one ear it plays on, while its output has left and right apart. */
+  /** The one ear it plays on; absent for both. */
   ear?: TBandChannel;
-  /** Kept to the ear the page is not editing: drawn back. */
-  isOtherEar?: boolean;
   // Both told the band's id, so the row can hand every band the same two
   // callbacks and a band whose props have not changed does not draw again.
   onSelect?: (
@@ -88,7 +87,6 @@ const FrequencyBand = forwardRef(
       isSelected = false,
       isHovered = false,
       ear,
-      isOtherEar = false,
       onSelect,
       onHover,
       colorProgress = 0,
@@ -223,7 +221,7 @@ const FrequencyBand = forwardRef(
     return (
       <div
         ref={ref}
-        className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}${isBandEnabled(filter) ? '' : ' is-off'}${isOtherEar ? ' is-other-ear' : ''}`}
+        className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}${isBandEnabled(filter) ? '' : ' is-off'}`}
         data-filter-id={filter.id}
         // What its slider's lit core answers to (`BandLevels`).
         data-frequency={filter.frequency}

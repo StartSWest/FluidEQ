@@ -147,6 +147,8 @@ import './SceneUpdateNotice.scss';
 import './GraphSceneRemove.scss';
 import './LookPicker.scss';
 import './GraphTheme.scss';
+// The ear tags on a band's handle and strip, over the graph's own rules.
+import './EqChannels.scss';
 import './PresetsBar.scss';
 import './SidebarSection.scss';
 import './AutoEQ.scss';

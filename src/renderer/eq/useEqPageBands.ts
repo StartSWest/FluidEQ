@@ -93,8 +93,6 @@ const useEqPageBands = () => {
     hoveredFilterId,
     setHoveredFilterId,
     bypassed,
-    channelsApart,
-    editingEar,
   } = useFluidEqContext();
   const { t } = useTranslation();
   const filterOptions = useMemo(() => labelledFilterOptions(t), [t]);
@@ -645,8 +643,6 @@ const useEqPageBands = () => {
 
   return {
     filters,
-    channelsApart,
-    editingEar,
     isLoading,
     isBlockingError,
     dispatchFilter,

@@ -12,11 +12,13 @@ export const EAR_LETTER_KEYS = {
 } as const satisfies Record<TBandChannel, string>;
 
 export const EAR_NAME_KEYS = {
-  left: 'eq.channels.left',
-  right: 'eq.channels.right',
+  left: 'graph.curve.leftEar',
+  right: 'graph.curve.rightEar',
 } as const satisfies Record<TBandChannel, string>;
 
-export const SIDE_NAME_KEYS = {
+/** The band menu's three lines: "Both ears", "Left ear only", "Right ear only". */
+export const SIDE_MENU_KEYS = {
   both: 'eq.channels.both',
-  ...EAR_NAME_KEYS,
+  left: 'eq.channels.left',
+  right: 'eq.channels.right',
 } as const satisfies Record<TBandSide, string>;

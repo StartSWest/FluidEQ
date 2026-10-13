@@ -396,19 +396,6 @@ export const setTone = (tone: ITone | null): Promise<void> => {
 };
 
 /**
- * Left and right apart on the output being edited, or linked.
- *
- * The bands keep the ear they were given either way; linked, a side waits
- * unplayed, as a switched-off band keeps its gain.
- * @param { boolean } apart - true to play each band on the ear it names
- * @returns { Promise<void> } exception if the value is not a boolean
- */
-export const setChannelsApart = (apart: boolean): Promise<void> => {
-  const channel = ChannelEnum.SET_CHANNELS_APART;
-  return sendRequest(channel, [apart], setterResponseHandler);
-};
-
-/**
  * Switch a layer out of the Equalizer APO config, or back into it.
  *
  * Nothing about the layer changes — its settings stay exactly where they were,

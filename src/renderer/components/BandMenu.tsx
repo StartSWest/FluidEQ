@@ -14,7 +14,9 @@ import {
   isBandEnabled,
   type TBandSide,
 } from 'common/constants';
-import { SIDE_NAME_KEYS } from '../eq/earNames';
+import { engineKeepsEars } from '../../common/engineHealth';
+import { SIDE_MENU_KEYS } from '../eq/earNames';
+import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
@@ -46,11 +48,8 @@ interface IBandMenuProps {
   /** Put the bands in or out of the chain, keeping everything they are set to. */
   onSetEnabled: (filters: readonly IFilter[], isEnabled: boolean) => void;
   onAddBeside: (filter: IFilter, side: 'left' | 'right') => void;
-  /**
-   * Which ear the bands play on. Given only while the output's channels are
-   * apart: linked, every band plays on both and there is nothing to choose.
-   */
-  onSetChannel?: (filters: readonly IFilter[], side: TBandSide) => void;
+  /** Which ear the bands play on: one of the two, or both again. */
+  onSetChannel: (filters: readonly IFilter[], side: TBandSide) => void;
   onClose: () => void;
 }
 
@@ -87,6 +86,14 @@ const BandMenu = ({
   // effect keyed on the element, and a ref's current is still null on the
   // render that mounts it.
   const [anchor, setAnchor] = useState<HTMLSpanElement | null>(null);
+  // What the window already holds, never a new ask on opening the menu.
+  const status = useKnownAudioEngineStatus();
+  // Equalizer APO has always read `Channel:`; the FluidEQ Engine from 1.21.
+  // Said only where it matters: a band kept to one ear on an older engine.
+  const isEngineBehind =
+    status?.engine === 'fluid' &&
+    !engineKeepsEars(status.fluid?.dllVersion) &&
+    filters.some((one) => one.channel !== undefined);
 
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
@@ -166,38 +173,31 @@ const BandMenu = ({
             })()}
           </span>
         </button>
-        {onSetChannel && (
-          <>
-            <div className="band-menu__rule" role="none" />
-            <div className="band-menu__ears">
-              <span className="band-menu__ears-label" id="band-menu-ears">
-                {t('eq.channels.playsOn')}
-              </span>
-              <div
-                className="segmented band-menu__ears-track"
-                role="radiogroup"
-                aria-labelledby="band-menu-ears"
-              >
-                {SIDES.map((side) => (
-                  <button
-                    type="button"
-                    role="radio"
-                    key={side}
-                    aria-checked={sharedSide === side}
-                    className={`segmented__option${
-                      sharedSide === side ? ' is-selected' : ''
-                    }`}
-                    onClick={() => {
-                      onSetChannel(filters, side);
-                      onClose();
-                    }}
-                  >
-                    {t(SIDE_NAME_KEYS[side])}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
+        {/* Which ear, as three of the menu's own lines with a tick on the one
+            in use — no switch anywhere else on the page (Ivan, 2026-10-13:
+            "really nice and simple and not really messing with ui"). */}
+        <div className="band-menu__rule" role="none" />
+        {SIDES.map((side) => (
+          <button
+            type="button"
+            role="menuitemradio"
+            key={side}
+            aria-checked={sharedSide === side}
+            onClick={() => {
+              onSetChannel(filters, side);
+              onClose();
+            }}
+          >
+            {sharedSide === side ? (
+              <MenuIcon name="check" className="band-menu__icon is-on" />
+            ) : (
+              <span className="band-menu__icon" aria-hidden="true" />
+            )}
+            <span>{t(SIDE_MENU_KEYS[side])}</span>
+          </button>
+        ))}
+        {isEngineBehind && (
+          <p className="band-menu__note">{t('eq.channels.update')}</p>
         )}
         {!isSelection && (
           <>

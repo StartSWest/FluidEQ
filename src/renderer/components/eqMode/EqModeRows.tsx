@@ -10,7 +10,6 @@ import { TREBLE_DESIGNS, TTrebleDesign } from '../../../common/filterDesign';
 import ProfileActionIcon from '../../icons/ProfileActionIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import { EQ_MODES, TEqModeChoices, TEqModeRowKind } from './useEqModeChoices';
-import EqChannelsRow from './EqChannelsRow';
 
 const qName = (value: TBandQ) => (value === 'off' ? 'constant' : value);
 
@@ -166,7 +165,6 @@ export const EqModeRows = ({
   <>
     <EqModeRow choices={choices} scope={scope} kind="strength" />
     <EqModeRow choices={choices} scope={scope} kind="q" />
-    {scope === 'eq' && <EqChannelsRow />}
     {choices.phase.status?.active && (
       <EqModeRow choices={choices} scope={scope} kind="phase" />
     )}

@@ -2,48 +2,10 @@
 @use 'theme' as *;
 @use 'color' as *;
 
-// Left and right apart (Ivan, 2026-10-13, "EQ per channel"): the ear the page
-// edits, the letter on a one-eared band's handle and slider, and the other
-// ear drawn back. The two ears are told apart by line, never by hue — the
+// EQ per ear (Ivan, 2026-10-13, "EQ per channel"): the letter on a one-eared
+// band's handle and slider. The two ears are told apart by line, never by hue — the
 // left ear's curve solid, the right's dashed, both in the EQ's own colour —
 // because every hue the plot has left belongs to another layer.
-
-// ------------------------------------------------------------ the picker
-
-.eq-ear-picker {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.eq-ear-picker__label {
-  color: $text-faint;
-  font-size: $text-small;
-}
-
-// A button's height in the toolbar, as the EQ mode's trigger beside it.
-.eq-ear-picker__track {
-  min-height: $control-height-sm;
-  align-items: stretch;
-}
-
-.eq-ear-picker__option {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-
-// The ear's own line, as the graph draws it: a solid stroke for the left,
-// dashes for the right.
-.eq-ear-picker__swatch {
-  width: 16px;
-  height: 0;
-  border-top: 2.5px solid currentColor;
-
-  .eq-ear-picker__option--right & {
-    border-top-style: dashed;
-  }
-}
 
 // ------------------------------------------------------------ the graph
 
@@ -72,11 +34,6 @@
   text-anchor: middle;
 }
 
-// The ear not being edited: there, still draggable, plainly not the subject.
-.graph-edit-point--other-ear {
-  opacity: 0.4;
-}
-
 // ------------------------------------------------------------ the bands
 
 // A one-eared band's letter in the corner of its strip, the same letter its
@@ -95,8 +52,4 @@
   line-height: 15px;
   text-align: center;
   pointer-events: none;
-}
-
-.bandWrapper.is-other-ear {
-  opacity: 0.45;
 }

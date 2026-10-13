@@ -93,7 +93,7 @@ const filters = (): IFiltersMap =>
   );
 
 /**
- * `?scenario=channels`: the same headset with left and right apart, and the
+ * `?scenario=channels`: the same headset with bands kept to one ear, the
  * kind of thing a person tunes per ear — a left driver a little bright in
  * the presence region, a right one recessed there and short of air.
  */
@@ -135,7 +135,6 @@ export const STATE: IEqualizerSnapshot = {
         ...Object.fromEntries(EAR_BANDS.map((band) => [band.id, band])),
       }
     : filters(),
-  ...(isChannels ? { channelsApart: true } : {}),
   preAmp: -3.5,
   curveSmoothing: 'twelfth',
   // The headset is what Windows plays through and what the EQ page edits.

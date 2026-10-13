@@ -175,6 +175,7 @@ import {
 import { RIGHT_EAR_CURVE_ID } from './chartCurves';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
+import '../styles/EqChannels.scss';
 
 type PendingPointEdit = Partial<
   Pick<IFilter, 'frequency' | 'gain' | 'quality'>
@@ -768,8 +769,6 @@ const FrequencyResponseChart = ({
     tone,
     bypassed,
     customFx,
-    channelsApart,
-    editingEar,
   } = useFluidEqContext();
   const currentEngine = useCurrentEngine();
   const matchedDesign = useMatchedDesign();
@@ -1272,8 +1271,6 @@ const FrequencyResponseChart = ({
         t,
         tone,
         voicing,
-        channelsApart,
-        editingEar,
       }),
     [
       bypassed,
@@ -1305,8 +1302,6 @@ const FrequencyResponseChart = ({
       tone,
       voicing,
       rainbow,
-      channelsApart,
-      editingEar,
     ],
   );
 
@@ -1731,7 +1726,7 @@ const FrequencyResponseChart = ({
       // than gain plus preamp, matching the curve now that the curve is drawn
       // from zero; the old fallback jumped every handle by the headroom on any
       // frame the curve was missing.
-      const ear = channelsApart ? filter.channel : undefined;
+      const ear = filter.channel;
       const handleCurve = ear === 'right' && rightCurve ? rightCurve : eqCurve;
       const curveGain = handleCurve
         ? getLineGainAtFrequency(handleCurve, filter.frequency)
@@ -1753,12 +1748,7 @@ const FrequencyResponseChart = ({
         hovered: hoveredFilterId === filter.id,
         isEnabled: isBandEnabled(filter),
         isLocked: bypassed.includes('eq'),
-        ...(ear
-          ? {
-              ear,
-              isOtherEar: editingEar !== 'both' && editingEar !== ear,
-            }
-          : {}),
+        ...(ear ? { ear } : {}),
         onSelect: (mode: SelectionMode, grab: IChartPointData) =>
           handlePointSelect(filter.id, mode, grab),
         onHover: (isHovered: boolean) =>
@@ -1789,8 +1779,6 @@ const FrequencyResponseChart = ({
     rainbow,
     t,
     bypassed,
-    channelsApart,
-    editingEar,
     flushPointEdit,
     handlePointMove,
     handlePointQualityWheel,

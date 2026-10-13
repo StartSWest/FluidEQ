@@ -120,19 +120,6 @@ export const registerLayersIpc = ({
     await handleUpdate(event, channel, false, true);
   });
 
-  // Left and right apart for this output, or linked. The bands keep their
-  // sides either way: linked, a side waits unplayed (`isBandOnChannel`).
-  onWindowMessage(ChannelEnum.SET_CHANNELS_APART, async (event, arg) => {
-    const channel = ChannelEnum.SET_CHANNELS_APART;
-    const apart: unknown = arg?.[0];
-    if (typeof apart !== 'boolean') {
-      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-      return;
-    }
-    state.channelsApart = apart ? true : undefined;
-    await handleUpdate(event, channel, false, true);
-  });
-
   onWindowMessage(ChannelEnum.SET_EQ_DOUBLE, async (event, arg) => {
     const channel = ChannelEnum.SET_EQ_DOUBLE;
     const enabled: unknown = arg?.[0];

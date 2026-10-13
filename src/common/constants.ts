@@ -358,11 +358,11 @@ export interface IFilter {
    */
   isEnabled?: boolean;
   /**
-   * The one ear this band plays on, while its output has left and right
-   * apart (`IOutputSound.channelsApart`). Absent means both, which is every
-   * band written before the choice existed; and with the output's channels
-   * linked a side is kept but not played, as a switched-off band keeps its
-   * gain. Ask through `bandChannelOf`.
+   * The one ear this band plays on, picked in the band's menu. Absent means
+   * both, which is every band written before the choice existed. There is no
+   * output-wide switch: a band with an ear is the whole of the feature (Ivan,
+   * 2026-10-13: "something really nice and simple and not really messing
+   * with ui"). Ask through `bandChannelOf`.
    */
   channel?: TBandChannel;
 }
@@ -382,16 +382,11 @@ export const isBandChannel = (value: unknown): value is TBandChannel =>
 export const bandChannelOf = (filter: Pick<IFilter, 'channel'>): TBandSide =>
   filter.channel ?? 'both';
 
-/**
- * Whether `filter` is heard on `ear`. A band kept to one ear is heard on
- * both while the output's channels are linked: the side waits, unplayed.
- */
+/** Whether `filter` is heard on `ear`: a band on both ears is heard on each. */
 export const isBandOnChannel = (
   filter: Pick<IFilter, 'channel'>,
   ear: TBandChannel,
-  channelsApart: boolean,
-): boolean =>
-  !channelsApart || filter.channel === undefined || filter.channel === ear;
+): boolean => filter.channel === undefined || filter.channel === ear;
 
 /**
  * Whether a band contributes to what is heard.
@@ -492,12 +487,6 @@ export interface IState extends IOutputSound {
    * and never written into them (`tone.ts`). Absent means all three at zero.
    */
   tone?: ITone;
-  /**
-   * Left and right apart: each band plays on the ear its `channel` names.
-   * Absent is linked, every band on both — what every profile before the
-   * choice did. Saved with the output's profile, like the Tone.
-   */
-  channelsApart?: boolean;
   /** Curated target curve applied as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
   /** Transducer-family correction, its own APO layer after the voicing. */

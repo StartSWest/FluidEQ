@@ -161,7 +161,6 @@ enum ChannelEnum {
   SET_EQ_SHAPE = 'setEqShape',
   SET_EQ_CUT = 'setEqCut',
   SET_TONE = 'setTone',
-  SET_CHANNELS_APART = 'setChannelsApart',
   RESET_EQ_MODE = 'resetEqMode',
   // Clearing a reference clears the bands it wrote, because applying one wrote
   // them. The layers stacked after them are untouched: none of them came from

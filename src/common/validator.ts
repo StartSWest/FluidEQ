@@ -139,7 +139,6 @@ const IStateSchema = {
     eqCuts: { type: 'object' },
     // Any object, for the same reason: the loader bounds it (`toTone`).
     tone: { type: 'object' },
-    channelsApart: { type: 'boolean' },
     isEnabled: {
       type: 'boolean',
     },

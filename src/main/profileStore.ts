@@ -378,7 +378,6 @@ export const createProfileStore = ({
     // rendered it from the state while the profile was written without it —
     // and the profile is what the config is built from.
     tone: state.tone,
-    channelsApart: state.channelsApart,
     voicing: state.voicing,
     driver: state.driver,
     smartEq: state.smartEq,
@@ -548,7 +547,6 @@ export const createProfileStore = ({
     Object.assign(state, defaultOutputSound());
     state.convolution = undefined;
     state.tone = undefined;
-    state.channelsApart = undefined;
     state.voicing = undefined;
     state.driver = undefined;
     state.smartEq = undefined;
