@@ -24,6 +24,11 @@ bool same_kernel(const FeqChain& prepared, const FeqChain& previous) noexcept {
         wanted.gain_db != playing.gain_db || wanted.quality != playing.quality) {
       return false;
     }
+    // A band moved between the ears leaves the kernel's bands alike: both
+    // kernels leave it out, and run it after them on another channel.
+    if (prepared.kernel_ears[index] != previous.kernel_ears[index]) {
+      return false;
+    }
   }
   return true;
 }

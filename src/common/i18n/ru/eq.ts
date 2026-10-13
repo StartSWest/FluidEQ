@@ -311,7 +311,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.leftEar': 'Левое ухо',
   'graph.curve.rightEar': 'Правое ухо',
   'eq.channels.update':
-    'Движок FluidEQ на этом компьютере играет каждую полосу в обоих ушах, пока не установлено его обновление. Equalizer APO уже разделяет их.',
+    'Движок FluidEQ на этом компьютере играет эту полосу в обоих ушах, пока не установлено его обновление.',
   'eq.channels.both': 'Оба уха',
   'eq.channels.left': 'Только левое ухо',
   'eq.channels.right': 'Только правое ухо',

@@ -311,7 +311,7 @@ const eq: Partial<Dictionary> = {
   'graph.curve.leftEar': '左耳',
   'graph.curve.rightEar': '右耳',
   'eq.channels.update':
-    'このコンピューターの FluidEQ Engine は、更新がインストールされるまで各バンドを両耳で鳴らします。Equalizer APO はすでに左右別々に鳴らします。',
+    'このコンピューターの FluidEQ Engine は、更新がインストールされるまでこのバンドを両耳で鳴らします。',
   'eq.channels.both': '両耳',
   'eq.channels.left': '左耳のみ',
   'eq.channels.right': '右耳のみ',

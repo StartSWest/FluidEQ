@@ -94,15 +94,15 @@ describe("a band's menu chooses its ear", () => {
   it('says an older FluidEQ Engine plays a one-ear band on both, and only then', () => {
     mockEngine = { engine: 'fluid', fluid: { dllVersion: '1.20.0.0' } };
     show([band('a', 'left')]);
-    expect(screen.getByText(/plays every band on both ears/)).toBeVisible();
+    expect(screen.getByText(/plays this band on both ears/)).toBeVisible();
     cleanup();
     // The controls: an up-to-date engine, and a band on both ears.
     mockEngine = { engine: 'fluid', fluid: { dllVersion: '1.21.0.0' } };
     show([band('a', 'left')]);
-    expect(screen.queryByText(/plays every band on both ears/)).toBeNull();
+    expect(screen.queryByText(/plays this band on both ears/)).toBeNull();
     cleanup();
     mockEngine = { engine: 'fluid', fluid: { dllVersion: '1.20.0.0' } };
     show([band('a')]);
-    expect(screen.queryByText(/plays every band on both ears/)).toBeNull();
+    expect(screen.queryByText(/plays this band on both ears/)).toBeNull();
   });
 });

@@ -48,8 +48,17 @@ interface IBandMenuProps {
   /** Put the bands in or out of the chain, keeping everything they are set to. */
   onSetEnabled: (filters: readonly IFilter[], isEnabled: boolean) => void;
   onAddBeside: (filter: IFilter, side: 'left' | 'right') => void;
-  /** Which ear the bands play on: one of the two, or both again. */
-  onSetChannel: (filters: readonly IFilter[], side: TBandSide) => void;
+  /**
+   * Which ear the bands play on: one of the two, or both again. Absent where
+   * there is no ear to choose — the DSP EQ applied to Mid or Sides.
+   */
+  onSetChannel?: (filters: readonly IFilter[], side: TBandSide) => void;
+  /**
+   * Whether the installed FluidEQ Engine plays a band on its ear: the main
+   * EQ's lines from 1.21 (`engineKeepsEars`), the DSP rack's from 1.22
+   * (`engineRackKeepsEars`). The menu says so beside a one-ear band when not.
+   */
+  engineKeepsEarsFrom?: (dllVersion: string | undefined) => boolean;
   onClose: () => void;
 }
 
@@ -70,6 +79,7 @@ const BandMenu = ({
   onSetEnabled,
   onAddBeside,
   onSetChannel,
+  engineKeepsEarsFrom = engineKeepsEars,
   onClose,
 }: IBandMenuProps) => {
   const { t } = useTranslation();
@@ -91,8 +101,9 @@ const BandMenu = ({
   // Equalizer APO has always read `Channel:`; the FluidEQ Engine from 1.21.
   // Said only where it matters: a band kept to one ear on an older engine.
   const isEngineBehind =
+    onSetChannel !== undefined &&
     status?.engine === 'fluid' &&
-    !engineKeepsEars(status.fluid?.dllVersion) &&
+    !engineKeepsEarsFrom(status.fluid?.dllVersion) &&
     filters.some((one) => one.channel !== undefined);
 
   useEffect(() => {
@@ -176,26 +187,27 @@ const BandMenu = ({
         {/* Which ear, as three of the menu's own lines with a tick on the one
             in use — no switch anywhere else on the page (Ivan, 2026-10-13:
             "really nice and simple and not really messing with ui"). */}
-        <div className="band-menu__rule" role="none" />
-        {SIDES.map((side) => (
-          <button
-            type="button"
-            role="menuitemradio"
-            key={side}
-            aria-checked={sharedSide === side}
-            onClick={() => {
-              onSetChannel(filters, side);
-              onClose();
-            }}
-          >
-            {sharedSide === side ? (
-              <MenuIcon name="check" className="band-menu__icon is-on" />
-            ) : (
-              <span className="band-menu__icon" aria-hidden="true" />
-            )}
-            <span>{t(SIDE_MENU_KEYS[side])}</span>
-          </button>
-        ))}
+        {onSetChannel && <div className="band-menu__rule" role="none" />}
+        {onSetChannel &&
+          SIDES.map((side) => (
+            <button
+              type="button"
+              role="menuitemradio"
+              key={side}
+              aria-checked={sharedSide === side}
+              onClick={() => {
+                onSetChannel(filters, side);
+                onClose();
+              }}
+            >
+              {sharedSide === side ? (
+                <MenuIcon name="check" className="band-menu__icon is-on" />
+              ) : (
+                <span className="band-menu__icon" aria-hidden="true" />
+              )}
+              <span>{t(SIDE_MENU_KEYS[side])}</span>
+            </button>
+          ))}
         {isEngineBehind && (
           <p className="band-menu__note">{t('eq.channels.update')}</p>
         )}

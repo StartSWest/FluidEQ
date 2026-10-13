@@ -37,6 +37,12 @@ struct LinearBand {
       where that kernel baked the band in. */
   const ChainKernelBand* now = nullptr;
   const ChainKernelBand* coming = nullptr;
+  /**
+   * The ear its detector listens to: the kernel playing now's record, else
+   * the one coming's, else the rack's. A band kept to one ear decides from
+   * that ear alone, as the cascade's identity on the other channel makes it.
+   */
+  int ear = 0;
 };
 
 /**
@@ -66,6 +72,13 @@ uint32_t linear_bands(const FeqChain* chain, LinearBand* out) {
     entry.live = static_cast<uint32_t>(set.live_of[band]);
     entry.now = in_now >= 0 ? &now->dynamic[in_now] : nullptr;
     entry.coming = in_coming >= 0 ? &coming->dynamic[in_coming] : nullptr;
+    if (entry.now != nullptr) {
+      entry.ear = entry.now->ear;
+    } else if (entry.coming != nullptr) {
+      entry.ear = entry.coming->ear;
+    } else {
+      entry.ear = chain_band_ear(chain, chain->settings.eq.bands[band]);
+    }
     if (current >= 0) {
       entry.filter = &set.dynamic[static_cast<size_t>(current)];
       entry.leaving = nullptr;
@@ -122,8 +135,15 @@ BandShare band_share(FeqChain* chain,
   // a replacement still warming runs, but is not yet heard.
   share.blending =
       chain->convolvers_next[slot] != nullptr && chain->convolver_warmup <= 0;
-  share.in_now = band.now != nullptr;
-  share.in_coming = share.blending && band.coming != nullptr;
+  // A kernel that left the band out for the other ear left it out of this
+  // channel too, and carries nothing for it here: it is heard on this
+  // channel exactly as a band baked in — not at all past the kernel. A move
+  // from one ear to the other is then one kernel's share leaving and the
+  // other's arriving, on the kernels' own blend.
+  share.in_now =
+      band.now != nullptr && chain_ear_on_channel(band.now->ear, slot);
+  share.in_coming = share.blending && band.coming != nullptr &&
+                    chain_ear_on_channel(band.coming->ear, slot);
   if (share.in_now && band.now->change >= 0) {
     feq_convolver_read_change(chain->convolvers[slot],
                               static_cast<uint32_t>(band.now->change),
@@ -256,6 +276,9 @@ void process_linear_dynamics(FeqChain* chain,
       if (!in_full) {
         double loudest = 0.0;
         for (uint32_t index = 0; index < count; ++index) {
+          if (!chain_ear_on_channel(band.ear, slots[index])) {
+            continue;
+          }
           const double difference = static_cast<double>(wet[index][at]) -
                                     static_cast<double>(input[index][at]);
           if (std::fabs(difference) > std::fabs(loudest)) {

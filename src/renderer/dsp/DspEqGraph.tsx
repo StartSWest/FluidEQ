@@ -4,9 +4,9 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { PointerEvent, useEffect, useRef } from 'react';
+import { MouseEvent, PointerEvent, useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
-import { FilterTypeEnum } from '../../common/constants';
+import { FilterTypeEnum, type TBandChannel } from '../../common/constants';
 import { IEqBandSettings, IEqSettings } from '../../common/dsp/chain';
 import {
   createGraphSliceReader,
@@ -26,6 +26,7 @@ import {
   readSurfaceAlpha,
 } from '../utils/theme';
 import { spectrumInk } from './dspInks';
+import { drawEarTag, isHeardOn, rackPlaysEars } from './dspEqEars';
 import {
   GRAB_RADIUS,
   GRID_DB,
@@ -67,6 +68,11 @@ interface IDspEqGraphProps {
   onChange: (index: number, next: Partial<IEqBandSettings>) => void;
   /** Once the drag ends. */
   onCommit: () => void;
+  /**
+   * A right-click on a handle: the band's menu, at the pointer — the menu a
+   * band of the main EQ opens, so the two EQs are worked the same way.
+   */
+  onMenu: (index: number, x: number, y: number) => void;
 }
 
 /**
@@ -99,6 +105,7 @@ const DspEqGraph = ({
   onSelect,
   onChange,
   onCommit,
+  onMenu,
 }: IDspEqGraphProps) => {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -117,9 +124,15 @@ const DspEqGraph = ({
     sampleRate: number;
     matched: boolean;
     selected: number;
-    /** The one string the canvas draws. Through the ref like everything else,
+    /** The strings the canvas draws. Through the ref like everything else,
      * so switching language repaints without rebuilding the observer. */
-    t: (key: 'dsp.eq.thresholdMark', values: Record<string, string>) => string;
+    t: (
+      key:
+        | 'dsp.eq.thresholdMark'
+        | 'eq.channels.letter.left'
+        | 'eq.channels.letter.right',
+      values?: Record<string, string>,
+    ) => string;
     redraw?: () => void;
   }>({ eq, sampleRate, matched, selected, t });
   // Assigned field by field: replacing the object would drop `redraw`, which
@@ -177,6 +190,8 @@ const DspEqGraph = ({
     let plotHz = new Float64Array(0);
     let plotTotal = new Float64Array(0);
     let plotRest = new Float64Array(0);
+    /** The right ear's curve, while a band is kept to one ear. */
+    let plotRight = new Float64Array(0);
     const canvas = canvasRef.current;
     const context = canvas?.getContext('2d');
     if (!canvas || !context) {
@@ -454,10 +469,21 @@ const DspEqGraph = ({
       });
       const amountOf = (index: number): number => drawnAmounts[index] ?? 1;
 
-      const totalAt = (hz: number): number => {
+      /**
+       * Two ears while a band is kept to one: the curve, its at-rest twin, the
+       * shading and the grain are the left ear's, and the right ear's runs
+       * beside it dashed. With every band on both the two are one curve.
+       */
+      const twoEared = rackPlaysEars(liveEq);
+      const heardOn = (index: number, ear: TBandChannel): boolean => {
+        const one = liveEq.bands[index];
+        return !twoEared || one === undefined || isHeardOn(one, ear);
+      };
+
+      const totalAt = (hz: number, ear: TBandChannel = 'left'): number => {
         let total = subsonic ? biquadMagnitudeDb(subsonic, hz, rate) : 0;
         active.forEach((coefficients, index) => {
-          if (coefficients) {
+          if (coefficients && heardOn(index, ear)) {
             total +=
               biquadMagnitudeDb(coefficients, hz, designRate) * amountOf(index);
           }
@@ -481,7 +507,11 @@ const DspEqGraph = ({
       const restAt = (hz: number): number => {
         let total = subsonic ? biquadMagnitudeDb(subsonic, hz, rate) : 0;
         active.forEach((coefficients, index) => {
-          if (coefficients && !liveEq.bands[index]?.dynamic) {
+          if (
+            coefficients &&
+            !liveEq.bands[index]?.dynamic &&
+            heardOn(index, 'left')
+          ) {
             total += biquadMagnitudeDb(coefficients, hz, designRate);
           }
         });
@@ -492,12 +522,35 @@ const DspEqGraph = ({
         plotHz = new Float64Array(steps + 1);
         plotTotal = new Float64Array(steps + 1);
         plotRest = new Float64Array(steps + 1);
+        plotRight = new Float64Array(steps + 1);
       }
       for (let i = 0; i <= steps; i += 1) {
         const hz = MIN_HZ * (MAX_HZ / MIN_HZ) ** (i / steps);
         plotHz[i] = hz;
         plotTotal[i] = totalAt(hz);
         plotRest[i] = hasDynamic ? restAt(hz) : plotTotal[i];
+        plotRight[i] = twoEared ? totalAt(hz, 'right') : plotTotal[i];
+      }
+
+      // The right ear first, so the left — the solid line — is painted over
+      // it where the two meet. Dashed longer and fuller than the at-rest
+      // twin, which is a third of the curve's weight: the two must not be
+      // read as each other.
+      if (twoEared) {
+        context.beginPath();
+        for (let i = 0; i <= steps; i += 1) {
+          const y = Y(plotRight[i]);
+          if (i === 0) {
+            context.moveTo(X(plotHz[i]), y);
+          } else {
+            context.lineTo(X(plotHz[i]), y);
+          }
+        }
+        context.strokeStyle = readAccent(0.9, 'rgba(0,229,207,0.9)');
+        context.lineWidth = 2.5;
+        context.setLineDash([9, 7]);
+        context.stroke();
+        context.setLineDash([]);
       }
 
       if (hasDynamic) {
@@ -788,6 +841,21 @@ const DspEqGraph = ({
           : readAccent(0.7, 'rgba(0,229,207,0.7)');
         context.lineWidth = 2;
         context.stroke();
+        // Which ear, beside the handle, on a band kept to one.
+        if (twoEared && one.ear !== undefined) {
+          drawEarTag(
+            context,
+            x,
+            y,
+            translate(
+              one.ear === 'left'
+                ? 'eq.channels.letter.left'
+                : 'eq.channels.letter.right',
+            ),
+            readAccentLight(1, '#a1fcff'),
+            readSurfaceAlpha('--surface-base', 1, '#061821'),
+          );
+        }
         context.globalAlpha = 1;
       });
     };
@@ -856,7 +924,9 @@ const DspEqGraph = ({
     view.current.redraw?.();
   });
 
-  const localPoint = (event: PointerEvent<HTMLCanvasElement>) => {
+  const localPoint = (
+    event: PointerEvent<HTMLCanvasElement> | MouseEvent<HTMLCanvasElement>,
+  ) => {
     const canvas = canvasRef.current;
     if (!canvas) {
       return undefined;
@@ -865,9 +935,48 @@ const DspEqGraph = ({
     return { x: event.clientX - box.left, y: event.clientY - box.top };
   };
 
+  /**
+   * The nearest handle within reach, or -1, so a click near two of them takes
+   * the one actually aimed at rather than the first in the array.
+   */
+  const nearestHandle = (point: { x: number; y: number }): number => {
+    let best = -1;
+    let bestDistance = GRAB_RADIUS;
+    eq.bands.forEach((one, index) => {
+      const distance = Math.hypot(
+        point.x - toX(one.frequency),
+        point.y - toY(one.gainDb),
+      );
+      if (distance <= bestDistance) {
+        best = index;
+        bestDistance = distance;
+      }
+    });
+    return best;
+  };
+
+  const onContextMenu = (event: MouseEvent<HTMLCanvasElement>) => {
+    const point = localPoint(event);
+    const index = point ? nearestHandle(point) : -1;
+    if (index < 0) {
+      return;
+    }
+    event.preventDefault();
+    onMenu(index, event.clientX, event.clientY);
+  };
+
   const onDown = (event: PointerEvent<HTMLCanvasElement>) => {
     const point = localPoint(event);
     if (!point) {
+      return;
+    }
+    // A right-click picks the band and leaves its menu to `onContextMenu`:
+    // it is not the start of a drag, of a band or of the threshold line.
+    if (event.button !== 0) {
+      const aimed = nearestHandle(point);
+      if (aimed >= 0) {
+        onSelect(aimed);
+      }
       return;
     }
     /**
@@ -897,20 +1006,7 @@ const DspEqGraph = ({
       }
     }
 
-    // Nearest handle within reach, so a click near two of them takes the one
-    // actually aimed at rather than the first in the array.
-    let best = -1;
-    let bestDistance = GRAB_RADIUS;
-    eq.bands.forEach((one, index) => {
-      const distance = Math.hypot(
-        point.x - toX(one.frequency),
-        point.y - toY(one.gainDb),
-      );
-      if (distance <= bestDistance) {
-        best = index;
-        bestDistance = distance;
-      }
-    });
+    const best = nearestHandle(point);
     // Empty space deselects. A band stays picked for as long as it is being
     // worked on and lets go when the pointer says so, which is what every
     // other canvas of handles does — and it is the only way to put the
@@ -969,6 +1065,7 @@ const DspEqGraph = ({
       onPointerMove={onMove}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
+      onContextMenu={onContextMenu}
     />
   );
 };

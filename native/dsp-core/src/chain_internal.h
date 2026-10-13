@@ -177,6 +177,18 @@ struct ChainBandIdentity {
 };
 
 /**
+ * The coefficient arrays of a rack with a band kept to one ear: the left
+ * channel's, the right's, and every other channel's, in that order. On each,
+ * a band that is not heard there is the identity filter.
+ */
+constexpr uint32_t kEarArrays = 3;
+
+/** Which of the `kEarArrays` a channel plays: the left, the right, the rest. */
+constexpr uint32_t ear_array_of(uint32_t channel) {
+  return channel < 2 ? channel : 2u;
+}
+
+/**
  * The EQ as the cascade played it last, copied by the audio thread when it
  * took the set up (`chain_eq_fade.cpp`).
  *
@@ -199,6 +211,9 @@ struct ChainEqPlaying {
   uint32_t count = 0;
   FeqBiquadCoefficients bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
   ChainBandIdentity identity[FEQ_CHAIN_MAX_EQ_BANDS] = {};
+  /** A band kept to one ear: each channel's own filters (`kEarArrays`). */
+  int has_ears = 0;
+  FeqBiquadCoefficients ear_bands[kEarArrays][FEQ_CHAIN_MAX_EQ_BANDS] = {};
 };
 
 /**
@@ -218,6 +233,9 @@ struct ChainEqFade {
   FeqBiquadCoefficients subsonic{};
   uint32_t count = 0;
   FeqBiquadCoefficients bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
+  /** As `ChainEqPlaying::ear_bands`, in `bands` order. */
+  int has_ears = 0;
+  FeqBiquadCoefficients ear_bands[kEarArrays][FEQ_CHAIN_MAX_EQ_BANDS] = {};
   /** `[slot * kBandStride + band]`, like the live histories. */
   std::vector<FeqBiquadState> states;
   FeqBiquadState subsonic_states[FEQ_CHAIN_MAX_CHANNELS] = {};
@@ -255,6 +273,12 @@ struct ChainKernelBand {
   FeqBandDynamics detector{};
   /** Its change on the convolution, or -1: a kernel for listening has none. */
   int change = -1;
+  /**
+   * The ear it was kept to when the kernel was made (`chain_band_ear`), or 0
+   * for both: a band kept to one ear is left out of the kernel, which is one
+   * filter for every channel, and run after it on its ear alone.
+   */
+  int ear = 0;
 };
 
 /**
@@ -349,6 +373,14 @@ struct FeqChain {
    */
   struct ChainCoefficients {
     std::vector<FeqBiquadCoefficients> bands;
+    /**
+     * A band kept to one ear on a stereo arrangement (`chain_band_ear`):
+     * the stereo cascade then plays `ear_bands[ear_array_of(channel)]` on
+     * each channel, `bands` with the identity where the band is not heard.
+     * Empty and unread while every band is on both.
+     */
+    int has_ears = 0;
+    std::vector<FeqBiquadCoefficients> ear_bands[kEarArrays];
     /** The dynamic bands' filters at the base rate, in settings order. */
     std::vector<FeqBiquadCoefficients> dynamic;
     /**
@@ -621,6 +653,9 @@ struct FeqChain {
   int kernel_matched = 0;
   double kernel_subsonic_hz = 0.0;
   FeqLinearPhaseBand kernel_bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
+  /** Each band's ear when the kernel was made: a move from one ear to the
+      other leaves the kernel's bands alike and still has to cross. */
+  int kernel_ears[FEQ_CHAIN_MAX_EQ_BANDS] = {};
 
   /* --------------------------------------------------------- maximizer -- */
   FeqLinkedLimiter maximizer{};
@@ -864,6 +899,19 @@ void chain_kernel_destroy(ChainEqKernel* kernel);
 /** Whether a convolver is actually in the path, which is what needs matching. */
 
 int chain_linear_running(const FeqChain* chain);
+
+/**
+ * The ear a band is heard on, as the rack plays it: 0 for both, 1 left, 2
+ * right. Its own ear on a stereo arrangement of two channels or more, and 0
+ * otherwise — Mid and Sides have no left or right to keep it to, and a mono
+ * stream has one channel.
+ */
+int chain_band_ear(const FeqChain* chain, const FeqChainEqBand& band);
+
+/** Whether a band kept to `ear` is heard on `channel`. */
+constexpr bool chain_ear_on_channel(int ear, uint32_t channel) {
+  return ear == 0 || (ear == 1 && channel == 0) || (ear == 2 && channel == 1);
+}
 
 /** Rebuild the EQ's coefficients and dynamics from the current settings. */
 void chain_refresh_eq(FeqChain* chain);

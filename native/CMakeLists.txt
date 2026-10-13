@@ -312,6 +312,9 @@ add_test(NAME bass-limiter COMMAND fluideq-bass-limiter-test)
 add_executable(fluideq-eq-fade-test dsp-core/tests/eq_fade_test.cpp)
 target_link_libraries(fluideq-eq-fade-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME eq-fade COMMAND fluideq-eq-fade-test)
+add_executable(fluideq-chain-ears-test dsp-core/tests/chain_ears_test.cpp)
+target_link_libraries(fluideq-chain-ears-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME chain-ears COMMAND fluideq-chain-ears-test)
 
 add_executable(fluideq-room-interpolation-test
   dsp-core/tests/room_interpolation_test.cpp system-apo/src/room_head.cpp)

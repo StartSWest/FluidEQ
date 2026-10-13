@@ -123,6 +123,54 @@ void feq_eq_process_oversampled_linked(FeqBiquadState* states,
                                        float* const* middle,
                                        FeqBandDynamics* dynamics);
 
+/**
+ * The most channels the `_each` forms below take, and so the linked forms
+ * above, which hand every channel the same coefficients through them. The
+ * chain has eight at most.
+ */
+#define FEQ_EQ_MAX_LINKED_CHANNELS 32
+
+/**
+ * The linked rack with each channel's own coefficients: `coefficients[c]` is
+ * channel c's `band_count` filters, in the same band order on every channel.
+ *
+ * What a band kept to one ear is (`FeqChainEqBand::ear`): on the other
+ * channels its filter is the identity, which passes the sound exactly and
+ * changes nothing, so its detector hears only its own ear and a dynamic band
+ * still makes one decision. More than `FEQ_EQ_MAX_LINKED_CHANNELS` channels
+ * is refused, as a null argument is.
+ */
+void feq_eq_process_bands_linked_each(
+    FeqBiquadState* states,
+    uint32_t state_stride,
+    const FeqBiquadCoefficients* const* coefficients,
+    uint32_t band_count,
+    float* const* targets,
+    uint32_t channels,
+    uint32_t frames,
+    FeqEqEngine engine,
+    float* const* dry,
+    float* const* wet,
+    FeqBandDynamics* dynamics);
+
+/** Oversampled, with each channel's own coefficients. */
+void feq_eq_process_oversampled_linked_each(
+    FeqBiquadState* states,
+    uint32_t state_stride,
+    const FeqBiquadCoefficients* const* coefficients,
+    uint32_t band_count,
+    float* const* targets,
+    uint32_t channels,
+    uint32_t frames,
+    FeqEqEngine engine,
+    FeqOversampler* oversamplers,
+    uint32_t factor,
+    float* const* doubled,
+    float* const* dry_doubled,
+    float* const* wet_doubled,
+    float* const* middle,
+    FeqBandDynamics* dynamics);
+
 #ifdef __cplusplus
 }
 #endif

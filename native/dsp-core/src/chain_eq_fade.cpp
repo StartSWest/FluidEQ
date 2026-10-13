@@ -81,10 +81,21 @@ bool same_sound(const ChainEqPlaying& playing,
       playing.count != set.bands.size()) {
     return false;
   }
+  if (playing.has_ears != set.has_ears) {
+    return false;
+  }
   for (uint32_t band = 0; band < playing.count; ++band) {
     if (!same_coefficients(playing.bands[band], set.bands[band]) ||
         playing.identity[band].dynamic != set.identity[band].dynamic) {
       return false;
+    }
+    // A band moved to the other ear keeps its filter and changes the sound.
+    for (uint32_t array = 0; playing.has_ears != 0 && array < kEarArrays;
+         ++array) {
+      if (!same_coefficients(playing.ear_bands[array][band],
+                             set.ear_bands[array][band])) {
+        return false;
+      }
     }
   }
   return true;
@@ -135,6 +146,7 @@ void start_fade(FeqChain* chain) {
   fade.oversample = playing.oversample;
   fade.has_subsonic = playing.has_subsonic;
   fade.subsonic = playing.subsonic;
+  fade.has_ears = playing.has_ears;
   for (uint32_t band = 0; band < playing.count; ++band) {
     if (playing.identity[band].dynamic != 0) {
       continue;
@@ -144,6 +156,10 @@ void start_fade(FeqChain* chain) {
           chain->band_states[slot * stride + band];
     }
     fade.bands[fade.count] = playing.bands[band];
+    for (uint32_t array = 0; playing.has_ears != 0 && array < kEarArrays;
+         ++array) {
+      fade.ear_bands[array][fade.count] = playing.ear_bands[array][band];
+    }
     fade.count += 1;
   }
   for (uint32_t slot = 0; slot < chain->channels; ++slot) {
@@ -258,6 +274,11 @@ void remember(ChainEqPlaying& playing, const FeqChain::ChainCoefficients& set) {
                                      FEQ_CHAIN_MAX_EQ_BANDS);
   std::copy_n(set.bands.begin(), playing.count, playing.bands);
   std::copy_n(set.identity.begin(), playing.count, playing.identity);
+  playing.has_ears = set.has_ears;
+  for (uint32_t array = 0; set.has_ears != 0 && array < kEarArrays; ++array) {
+    std::copy_n(set.ear_bands[array].begin(), playing.count,
+                playing.ear_bands[array]);
+  }
 }
 
 }  // namespace
@@ -301,14 +322,20 @@ void chain_eq_fade_capture(FeqChain* chain, uint32_t slot_index,
   FeqBiquadState* states =
       fade.states.data() +
       static_cast<size_t>(slot_index) * FeqChain::kBandStride;
+  // What this channel heard: its own copy while a band was on one ear. The
+  // per-slot path never has one — Mid, Sides and mono keep every band on
+  // both — and the stereo path's slot is its channel.
+  const FeqBiquadCoefficients* bands =
+      fade.has_ears != 0 ? fade.ear_bands[ear_array_of(slot_index)]
+                         : fade.bands;
   if (fade.oversample > 1) {
     feq_eq_process_oversampled(
-        states, fade.bands, fade.count, outgoing, frames, fade.engine,
+        states, bands, fade.count, outgoing, frames, fade.engine,
         &fade.oversamplers[slot_index], fade.oversample,
         chain->eq_doubled.data(), chain->eq_dry_doubled.data(),
         chain->eq_wet_doubled.data(), chain->eq_middle.data(), nullptr);
   } else if (fade.count > 0) {
-    feq_eq_process_bands(states, fade.bands, fade.count, outgoing, frames,
+    feq_eq_process_bands(states, bands, fade.count, outgoing, frames,
                          fade.engine, chain->eq_dry.data(),
                          chain->eq_wet.data(), nullptr);
   }
@@ -376,6 +403,10 @@ void chain_eq_fade_transfer(FeqChain& prepared, FeqChain& previous) {
   to.subsonic = from.subsonic;
   to.count = from.count;
   std::copy_n(from.bands, from.count, to.bands);
+  to.has_ears = from.has_ears;
+  for (uint32_t array = 0; array < kEarArrays; ++array) {
+    std::copy_n(from.ear_bands[array], from.count, to.ear_bands[array]);
+  }
   std::copy_n(from.subsonic_states, FEQ_CHAIN_MAX_CHANNELS, to.subsonic_states);
   std::copy_n(from.oversamplers, FEQ_CHAIN_MAX_CHANNELS, to.oversamplers);
   swap(to.states, from.states);
