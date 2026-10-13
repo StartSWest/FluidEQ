@@ -12,6 +12,13 @@ interface IPlayerMountFacts {
   isHandingOver: boolean;
   /** The last thing played — what the bar's play button resumes. */
   isLastOwner: boolean;
+  /**
+   * Silent for less than its hold after it last made sound. Only the Media
+   * tab has one (`useSilenceHold`): a site's gap between two videos — an ad,
+   * the ad blocker jumping one — can outlast any handover lease, and a page
+   * thrown away in that gap never plays the next video.
+   */
+  isRecentlyHeard?: boolean;
 }
 
 /**
@@ -30,13 +37,18 @@ interface IPlayerMountFacts {
  * never mounted off its tab, and the bar read "Nothing playing" over the queue
  * waiting in storage (Ivan, 2026-09-24). Being the last owner is the fact the
  * five seconds stood in for, and it holds for as long as it is true.
+ *
+ * The Media tab's hold after its sound stops is not that lease back: it keeps
+ * a page that was just playing through the site's own silence between two
+ * items, and being the last owner still keeps it however long that lasts.
  */
 const keepsPlayerMounted = ({
   isActive,
   isPlaying,
   isHandingOver,
   isLastOwner,
+  isRecentlyHeard = false,
 }: IPlayerMountFacts): boolean =>
-  isActive || isPlaying || isHandingOver || isLastOwner;
+  isActive || isPlaying || isHandingOver || isLastOwner || isRecentlyHeard;
 
 export default keepsPlayerMounted;

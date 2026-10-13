@@ -22,6 +22,7 @@ import { albumKey } from '../../common/library/grouping';
 import type { ILibraryTrack } from '../../common/library/types';
 import { usePlaybackOwner } from '../audio/playbackOwner';
 import keepsPlayerMounted from '../audio/playerMount';
+import useSilenceHold, { MEDIA_SILENCE_HOLD_MS } from '../audio/useSilenceHold';
 import {
   readRememberedTransportOwner,
   useHasTransportTitle,
@@ -116,12 +117,22 @@ const usePlayerMounts = ({
   // expanded graph counts as seen: a paused song there is on screen, not
   // behind another tab, and unmounting it blacked the card out.
   const lastTransportOwner = useLastTransportOwner();
+  const isMediaPlaying =
+    playingOwner === 'media' || transportIdentities.media?.isPlaying === true;
+  const isMediaHandingOver =
+    transportIdentities.media?.retainWhenHidden === true;
+  // The page that was just playing outlives the site's silence before its
+  // next video — see `MEDIA_SILENCE_HOLD_MS`.
+  const isMediaRecentlyHeard = useSilenceHold(
+    isMediaPlaying || isMediaHandingOver,
+    MEDIA_SILENCE_HOLD_MS,
+  );
   const keepVideoMounted = keepsPlayerMounted({
     isActive: isVideoTab || showsMediaGraphBackdrop,
-    isPlaying:
-      playingOwner === 'media' || transportIdentities.media?.isPlaying === true,
-    isHandingOver: transportIdentities.media?.retainWhenHidden === true,
+    isPlaying: isMediaPlaying,
+    isHandingOver: isMediaHandingOver,
     isLastOwner: lastTransportOwner === 'media',
+    isRecentlyHeard: isMediaRecentlyHeard,
   });
   const keepLibraryMounted = keepsPlayerMounted({
     // The native DSP engine lives in this provider as well. If it has already
