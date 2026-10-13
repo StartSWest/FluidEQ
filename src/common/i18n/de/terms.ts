@@ -99,7 +99,25 @@ const terms = {
   'terms.sent.sceneLike.when':
     'Wenn die Szene eines Mitglieds läuft, um ihre „Gefällt mir“ anzuzeigen, und wenn Sie auf das Herz klicken oder ein „Gefällt mir“ zurücknehmen',
   'terms.sent.sceneLike.who':
-    'Ihr „Gefällt mir“ wird bei Ihrem Konto gespeichert. Mitglieder sehen, wie viele „Gefällt mir“ eine Szene hat, nie, von wem. Sonst wird nichts darüber gespeichert, was gerade läuft.',
+    'Ihr „Gefällt mir“ wird bei Ihrem Konto gespeichert. Mitglieder sehen, wie viele „Gefällt mir“ eine Szene hat, nie, von wem. Wie lange jede Szene auf dem Bildschirm ist, steht in der nächsten Zeile.',
+  'terms.sent.sceneTime.what':
+    'Wie lange jede Plus-Szene auf Ihrem Bildschirm war: eine Zahl von Sekunden pro Szene und Tag, mit der Szene und dem Datum',
+  'terms.sent.sceneTime.when':
+    'Solange Sie Plus haben, sobald Ihnen diese Version dieser Bedingungen angezeigt wurde: beim Start von FluidEQ, wenn Sie an den Computer zurückkehren, und höchstens einmal pro Stunde, während eine Szene läuft',
+  'terms.sent.sceneTime.who':
+    'Nur der Macher von FluidEQ, mit Ihrem Konto, um zu erfahren, welche Szenen Mitgliedern gefallen, und mehr davon zu machen. Mitglieder sehen es nie. Ihr Computer behält die letzten {windowDays} Tage.',
+  'terms.sent.engine.what':
+    'Welche Audio-Engine Sie gewählt haben: die FluidEQ-Engine oder Equalizer APO',
+  'terms.sent.engine.when':
+    'Solange Sie Plus haben, sobald Ihnen diese Version dieser Bedingungen angezeigt wurde: beim Start von FluidEQ, wenn Sie an den Computer zurückkehren, und wenn Sie die Engine wechseln',
+  'terms.sent.engine.who':
+    'Nur der Macher von FluidEQ, mit Ihrem Konto, um zu wissen, an welcher Engine er arbeiten soll. Nur die letzte Angabe wird gespeichert.',
+  'terms.sent.announcements.what':
+    'Ihr Anmelde-Token, um zu fragen, ob FluidEQ neue Szenen angekündigt hat',
+  'terms.sent.announcements.when':
+    'Beim Start von FluidEQ, wenn Sie sich anmelden, und wenn Sie an den Computer zurückkehren',
+  'terms.sent.announcements.who':
+    'Nichts wird gespeichert. Welche Ankündigungen Sie schon gesehen haben, bleibt auf Ihrem Computer.',
   'terms.sent.scenePublish.what':
     'Eine Szene, die Sie veröffentlichen, wie bei einem Export, mit einem Titelbild, bis zu zwei Kategorien und einer Notiz dazu, was neu ist, falls Sie eine schreiben',
   'terms.sent.scenePublish.when':

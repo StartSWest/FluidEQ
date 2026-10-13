@@ -57,6 +57,8 @@ export type TNoticeClaim =
   | 'plusTerms'
   | 'sceneReview'
   | 'makerMonth'
+  /** New scenes announced, big (`SceneAnnouncementDialog`). */
+  | 'sceneAnnouncement'
   /** The window is full screen: graph or media (`useAppFullMark`). */
   | 'appFull'
   /**
@@ -96,6 +98,14 @@ export const NOTICE_WAITS_FOR: Readonly<
   plusTerms: CORNER_WAITS_FOR,
   sceneReview: [...CORNER_WAITS_FOR, 'plusTerms'],
   makerMonth: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview'],
+  // Waits for every notice that carries something to do or to know first:
+  // an announcement is news, never urgent.
+  sceneAnnouncement: [
+    ...CORNER_WAITS_FOR,
+    'plusTerms',
+    'sceneReview',
+    'makerMonth',
+  ],
   appFull: [],
   modal: [],
 };

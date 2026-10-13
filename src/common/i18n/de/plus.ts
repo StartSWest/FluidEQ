@@ -234,6 +234,7 @@ const plus = {
   'plus.accounts.filter.all': 'Alle Konten',
   'plus.accounts.filter.plus': 'Mit Plus',
   'plus.accounts.filter.free': 'Ohne Plus',
+  'plus.accounts.filter.trial': 'In der Gratis-Testphase',
   'plus.accounts.admin': 'Admin',
   'plus.accounts.loading': 'Konten werden geladen …',
   'plus.accounts.shown': '{shown} von {total} angezeigt',
@@ -241,6 +242,19 @@ const plus = {
   'plus.accounts.empty.search': 'Kein Konto passt zu {query}',
   'plus.accounts.empty.plus': 'Keines dieser Konten hat Plus',
   'plus.accounts.empty.free': 'Alle diese Konten haben Plus',
+  'plus.accounts.empty.trial':
+    'Keines dieser Konten ist in der Gratis-Testphase',
+  'plus.accounts.trial.thisWeek': '{count} enden diese Woche',
+  'plus.accounts.trial.today': 'Testphase endet heute',
+  'plus.accounts.trial.tomorrow': 'Testphase endet morgen',
+  'plus.accounts.trial.inDays': 'Testphase endet in {days} Tagen',
+  'plus.accounts.trial.ends': 'Die Gratis-Testphase endet am {date}.',
+  'plus.accounts.engine.title': 'Engine',
+  'plus.accounts.engine.fluid': 'FluidEQ-Engine',
+  'plus.accounts.engine.apo': 'Equalizer APO',
+  'plus.accounts.engine.unknown': 'Nicht gemeldet {count}',
+  'plus.accounts.engine.summary':
+    'FluidEQ-Engine {fluid}, Equalizer APO {apo}, nicht gemeldet {unknown}',
   'plus.accounts.moreError':
     'Weitere Konten konnten nicht geladen werden. Versuchen Sie es erneut.',
   'plus.accounts.error.offline':
@@ -260,6 +274,7 @@ const plus = {
   'plus.accounts.appVersion': 'FluidEQ {version}',
   'plus.accounts.plan.none': 'Kein Plus',
   'plus.accounts.plan.paid': 'Plus bis {date}',
+  'plus.accounts.plan.trial': 'Gratis-Testphase',
   'plus.accounts.plan.gift': 'Plus als Geschenk',
   'plus.accounts.plan.giftUntil': 'Geschenk bis {date}',
   'plus.accounts.goes': 'Wird mitgelöscht',

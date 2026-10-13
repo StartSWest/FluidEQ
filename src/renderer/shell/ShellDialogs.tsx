@@ -35,6 +35,7 @@ import MakerMonthNotice from '../components/MakerMonthNotice';
 import MandatoryUpdateModal from '../components/MandatoryUpdateModal';
 import PlusTermsNotice from '../components/PlusTermsNotice';
 import PlusWelcomeDialog from '../components/PlusWelcomeDialog';
+import SceneAnnouncementDialog from '../components/SceneAnnouncementDialog';
 import ProcessesDialog from '../components/ProcessesDialog';
 import RestartAudioDialog from '../components/RestartAudioDialog';
 import SceneReviewNotice from '../components/SceneReviewNotice';
@@ -256,6 +257,9 @@ const ShellDialogs = ({
           in the Plus tab, because paying is done from the account panel and
           the answer can land with any tab open. */}
       <PlusWelcomeDialog />
+      {/* New scenes announced, once, on whichever tab is open: the set's
+          first scene plays on the graph from its button. */}
+      <SceneAnnouncementDialog />
       {showFeatureTour && (
         <FeatureTour
           version={PRODUCT_VERSION}

@@ -100,7 +100,25 @@ const terms = {
   'terms.sent.sceneLike.when':
     'Quando la scena di un membro è in riproduzione, per mostrarne i mi piace, e quando premi il cuore o togli un mi piace',
   'terms.sent.sceneLike.who':
-    'Il tuo mi piace viene conservato con il tuo account. I membri vedono quanti mi piace ha una scena, mai chi li ha messi. Nient’altro di ciò che è sullo schermo viene conservato.',
+    'Il tuo mi piace viene conservato con il tuo account. I membri vedono quanti mi piace ha una scena, mai chi li ha messi. Quanto tempo ogni scena resta sullo schermo è la riga successiva.',
+  'terms.sent.sceneTime.what':
+    'Quanto tempo ogni scena Plus è rimasta sul tuo schermo: un numero di secondi per scena al giorno, con la scena e la data',
+  'terms.sent.sceneTime.when':
+    'Finché hai Plus, dopo che ti è stata mostrata questa versione di queste condizioni: all’avvio di FluidEQ, quando torni al computer e al massimo una volta all’ora mentre una scena è in riproduzione',
+  'terms.sent.sceneTime.who':
+    'Solo il creatore di FluidEQ, con il tuo account, per capire quali scene piacciono ai membri e farne altre simili. I membri non lo vedono mai. Il tuo computer conserva gli ultimi {windowDays} giorni.',
+  'terms.sent.engine.what':
+    'Quale motore audio hai scelto: il Motore FluidEQ o Equalizer APO',
+  'terms.sent.engine.when':
+    'Finché hai Plus, dopo che ti è stata mostrata questa versione di queste condizioni: all’avvio di FluidEQ, quando torni al computer e quando cambi motore',
+  'terms.sent.engine.who':
+    'Solo il creatore di FluidEQ, con il tuo account, per sapere su quale motore lavorare. Viene conservato solo l’ultimo.',
+  'terms.sent.announcements.what':
+    'Il tuo token di accesso, per chiedere se FluidEQ ha annunciato nuove scene',
+  'terms.sent.announcements.when':
+    'All’avvio di FluidEQ, quando accedi e quando torni al computer',
+  'terms.sent.announcements.who':
+    'Non viene conservato nulla. Quali annunci hai già visto resta sul tuo computer.',
   'terms.sent.scenePublish.what':
     'Una scena che pubblichi, come per un’esportazione, con un’immagine di copertina, fino a due categorie e una nota sulle novità, se ne scrivi una',
   'terms.sent.scenePublish.when': 'Quando premi Pubblica nello Studio',

@@ -9,6 +9,8 @@ import { useAccount } from '../account/accountStore';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import AdminAccounts from './AdminAccounts';
+import AdminAnnouncements from './AdminAnnouncements';
+import AdminFavourites from './AdminFavourites';
 import { useGalleryNotice, type IGalleryNotice } from './galleryActions';
 import { useModeration } from './moderationStore';
 import {
@@ -32,12 +34,15 @@ const SECTIONS: Record<
   gifts: { glyph: 'gift', name: 'plus.gallery.gifts' },
   reported: { glyph: 'report', name: 'plus.gallery.reported' },
   review: { glyph: 'check', name: 'review.tab' },
+  favourites: { glyph: 'heart', name: 'insights.tab' },
+  announcements: { glyph: 'send', name: 'announce.tab' },
 };
 
 /**
  * The admin's own place in the Plus tab: the scenes waiting to be approved,
- * the scenes members reported, every account and the Plus given away, one
- * page at a time under a row of tabs.
+ * the scenes members reported, every account, the Plus given away, which
+ * scenes members come back to and the announcements of new ones, one page at
+ * a time under a row of tabs.
  *
  * These pages lived behind three buttons on the gallery's toolbar, where they
  * crowded a member's page with things no member could use. Only the account
@@ -116,6 +121,8 @@ export default function AdminView() {
         {section === 'gifts' && <PlusGifts />}
         {section === 'reported' && <ReportedScenes me={account.identity?.id} />}
         {section === 'review' && <ReviewQueue me={account.identity?.id} />}
+        {section === 'favourites' && <AdminFavourites />}
+        {section === 'announcements' && <AdminAnnouncements />}
       </div>
     </>
   );

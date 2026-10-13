@@ -24,6 +24,7 @@ import {
   listGallery,
   listVersions,
   recordAdd,
+  recordOfficialAdd,
   reportScene,
   type TGalleryFailure,
 } from '../plus/galleryApi';
@@ -535,6 +536,11 @@ export const registerPlusGalleryIpc = ({
             return { ok: false, reason: 'refused' };
           }
           announceOfficial?.();
+          // Kept for the admin's reading of what members add (premium 0047);
+          // the scene is in the member's looks whether or not this lands.
+          if (auth) {
+            await recordOfficialAdd(auth, ref.packId);
+          }
           return { ok: true, lookId: premiumLookId(ref.packId) };
         } catch (error) {
           logger?.warn(

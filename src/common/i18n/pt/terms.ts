@@ -100,7 +100,25 @@ const terms = {
   'terms.sent.sceneLike.when':
     'Quando a cena de um membro é reproduzida, para mostrar as curtidas, e quando você clica no coração ou retira uma curtida',
   'terms.sent.sceneLike.who':
-    'Sua curtida fica armazenada com sua conta. Os membros veem quantas curtidas uma cena tem, nunca quem as deu. Nada mais sobre o que está na tela é armazenado.',
+    'Sua curtida fica armazenada com sua conta. Os membros veem quantas curtidas uma cena tem, nunca quem as deu. Quanto tempo cada cena fica na tela é a linha seguinte.',
+  'terms.sent.sceneTime.what':
+    'Quanto tempo cada cena Plus ficou na sua tela: um número de segundos por cena por dia, com a cena e a data',
+  'terms.sent.sceneTime.when':
+    'Enquanto você tiver o Plus, depois que esta versão destes termos tiver sido mostrada a você: quando o FluidEQ inicia, quando você volta ao computador e no máximo uma vez por hora enquanto uma cena é reproduzida',
+  'terms.sent.sceneTime.who':
+    'Só o criador do FluidEQ, com sua conta, para saber de quais cenas os membros gostam e fazer mais cenas assim. Os membros nunca veem isso. Seu computador guarda os últimos {windowDays} dias.',
+  'terms.sent.engine.what':
+    'Qual motor de áudio você escolheu: o Motor FluidEQ ou o Equalizer APO',
+  'terms.sent.engine.when':
+    'Enquanto você tiver o Plus, depois que esta versão destes termos tiver sido mostrada a você: quando o FluidEQ inicia, quando você volta ao computador e quando você troca de motor',
+  'terms.sent.engine.who':
+    'Só o criador do FluidEQ, com sua conta, para saber em qual motor trabalhar. Só o último é guardado.',
+  'terms.sent.announcements.what':
+    'Seu token de sessão, para perguntar se o FluidEQ anunciou novas cenas',
+  'terms.sent.announcements.when':
+    'Quando o FluidEQ inicia, quando você entra e quando você volta ao computador',
+  'terms.sent.announcements.who':
+    'Nada é guardado. Quais anúncios você já viu fica no seu computador.',
   'terms.sent.scenePublish.what':
     'Uma cena que você publica, como numa exportação, com uma imagem de capa, até duas categorias e uma nota sobre o que há de novo, se você escrever uma',
   'terms.sent.scenePublish.when': 'Quando você clica em Publicar no Estúdio',
