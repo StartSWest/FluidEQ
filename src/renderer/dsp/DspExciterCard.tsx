@@ -238,9 +238,10 @@ const DspExciterCard = ({
             layout has to split. That keeps the same scope-first hierarchy as
             the EQ without changing the controls' reading order in the DOM. */}
         <div className="dsp-exciter-global-row">
-          {/* Timing is intentionally one control. Its hardware-style crossover
-              points are fixed in the DSP; exposing them made a simple punch
-              and clarity tool look like another multiband EQ. */}
+          {/* Timing is intentionally one control: exposing its corners made a
+              simple punch and clarity tool look like another multiband EQ.
+              Amount scales both delays, and with them both corners
+              (`phase_align.cpp`). */}
           <div className="dsp-band dsp-band-align">
             <div className="dsp-band-head">
               <span className="dsp-band-title">{t('dsp.exciter.align')}</span>

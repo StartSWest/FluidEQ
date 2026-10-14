@@ -50,6 +50,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <stdint.h>
 
+#include "fluideq/deesser.h"
 #include "fluideq/denoise.h"
 #include "fluideq/loudness_meter.h"
 #include "fluideq/room.h"
@@ -373,6 +374,17 @@ void feq_meters_read_bass_punch(FeqMeters* meters,
                                 float* out_transient_db,
                                 float* out_sustain_db,
                                 float* out_duck_db);
+
+/**
+ * What the De-esser cut, where, and how sure it was that it was a voice.
+ * **Audio thread.** Folded over the window: the deepest cut and the band
+ * levels at their extremes, the thresholds as last measured.
+ */
+void feq_meters_publish_deesser(FeqMeters* meters,
+                                const FeqDeEsserReport* report);
+
+/** The folded window, cleared as it is taken. **Control thread.** */
+void feq_meters_read_deesser(FeqMeters* meters, FeqDeEsserReport* out);
 
 /** The published exciter activity. **Control thread.** */
 void feq_meters_read_exciter(FeqMeters* meters,

@@ -138,6 +138,11 @@ void drain_analysis(HostState& state) {
   feq_meters_read_bass_punch(state.meters, &frame.bass_punch_transient_db,
                              &frame.bass_punch_sustain_db,
                              &frame.bass_punch_duck_db);
+  {
+    FeqDeEsserReport deesser{};
+    feq_meters_read_deesser(state.meters, &deesser);
+    feq_wire_deesser_report(frame, deesser);
+  }
   frame.correlation = correlation;
   frame.peak_left = peaks[0];
   frame.peak_right = peaks[1];

@@ -19,6 +19,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import SegmentedControl from '../widgets/SegmentedControl';
+import useStagePresets from './useStagePresets';
 
 interface IDspExciterBarProps {
   exciter: IExciterSettings;
@@ -70,22 +71,29 @@ const DspExciterBar = ({
   onCommit,
 }: IDspExciterBarProps) => {
   const { t } = useTranslation();
-  const entries: IRichPickEntry[] = EXCITER_PRESET_GROUPS.flatMap((group) =>
-    EXCITER_CATALOGUE.profiles
-      .filter((preset) => preset.group === group)
-      .map((preset) => ({
-        id: preset.id,
-        name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset, t),
-        group,
-        icon: (
-          <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
-        ),
-      })),
+  const saved = useStagePresets('exciter', exciter, onChange, onCommit);
+  const factoryEntries: IRichPickEntry[] = EXCITER_PRESET_GROUPS.flatMap(
+    (group) =>
+      EXCITER_CATALOGUE.profiles
+        .filter((preset) => preset.group === group)
+        .map((preset) => ({
+          id: preset.id,
+          name: t(preset.labelKey as TranslationKey),
+          hint: profileHint(preset, t),
+          group,
+          icon: (
+            <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
+          ),
+        })),
   );
+  // Saved profiles first, as the EQ lists its own.
+  const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string) => {
+    if (saved.apply(id)) {
+      return;
+    }
     const next = EXCITER_CATALOGUE.settings(id, true);
     if (next === undefined) {
       return;
@@ -116,7 +124,8 @@ const DspExciterBar = ({
           <RichPick
             entries={entries}
             groupLabel={(group) =>
-              group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
+              saved.savedGroupLabel(group) ??
+              (group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : '')
             }
             activeId={exciter.presetId}
             onPick={applyPreset}
@@ -168,6 +177,7 @@ const DspExciterBar = ({
             }}
           />
         </div>
+        <div className="dsp-eq-transfer">{saved.buttons}</div>
       </div>
 
       {/* What the processor is, on a full line of the header under the
@@ -177,6 +187,8 @@ const DspExciterBar = ({
           row in the space that was left. A sibling of the bar, not its last
           child, so the line spans the space under the bypass cluster too. */}
       <p className="dsp-exciter-note">{t('dsp.exciter.description')}</p>
+      {saved.notice}
+      {saved.dialog}
     </>
   );
 };

@@ -114,8 +114,8 @@ Graph::Graph(const Chain& chain, uint32_t sample_rate, uint32_t channels,
   latency_frames_ += rack_latency_;
   const char* const names[] = {"leveler", "restoration", "exciter", "bassForge",
       "linearEq", "bassPunch", "room", "dimension", "maximizer",
-      "headroom", "master"};
-  for (uint32_t stage = 0; stage < 11u; ++stage) {
+      "headroom", "master", "deEsser"};
+  for (uint32_t stage = 0; stage < 12u; ++stage) {
     if ((rack_active_ & (1u << stage)) != 0u) active_stages_.emplace_back(names[stage]);
   }
   // The channels the rack does not cover, put back in step with the ones it

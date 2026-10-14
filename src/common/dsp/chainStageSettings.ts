@@ -207,7 +207,9 @@ export const organicBandEdges = (
  * No harmonics and no generated signal — it delays the lower bands against
  * the higher ones, following the timing half of the classic three-way enhancer
  * topology. Because it is a time relationship rather than a tone control, the
- * UI exposes one depth control and keeps the hardware-style split points fixed.
+ * UI exposes one depth control. Its corners are not fixed: two first-order
+ * all-passes cannot hold a corner while their delay changes, so the depth
+ * moves them too (`phase_align.cpp`).
  */
 export interface IPhaseAlignSettings {
   enabled: boolean;

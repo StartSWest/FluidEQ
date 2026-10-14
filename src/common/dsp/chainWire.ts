@@ -36,6 +36,7 @@ import {
   ROOM_PRESETS,
   TRoomHead,
 } from './chain';
+import { DE_ESSER_MODES, IDeEsserSettings } from './deEsser';
 import { roomMuteWire } from './roomSpeakers';
 
 /**
@@ -139,6 +140,45 @@ const bandSwitchWord = (band: IEqBandSettings): number => {
   return band.ear === 'right' ? 3 : 1;
 };
 
+/**
+ * The pair after the De-esser's twelve words that says they are its own
+ * (`FEQ_CHAIN_DEESSER_SIGNATURE` and `_FIELDS` in `fluideq/chain.h`). An app
+ * from before 2026-09-22 wrote the multiband compressor in these words, its
+ * corners where the De-esser's switch is now; the engine reads a line without
+ * the pair with the De-esser off.
+ */
+export const CHAIN_DEESSER_SIGNATURE = 4207;
+export const CHAIN_DEESSER_FIELDS = 12;
+
+/**
+ * The De-esser in the compressor's retired eighteen words: the first stays
+ * the compressor's switch, written 0 so an engine from before the compressor
+ * went keeps it off; the De-esser's twelve follow, which every engine since
+ * decodes and ignores (`ENGINE_DEESSER_SINCE`); then the signature pair and
+ * three zeros. An engine without the De-esser therefore plays the rack
+ * without it rather than refusing the line, and no word after these moves.
+ */
+export const deEsserWords = (deEsser: IDeEsserSettings): number[] => [
+  0,
+  deEsser.enabled ? 1 : 0,
+  deEsser.isolate ? 1 : 0,
+  deEsser.sensitivity,
+  deEsser.lowHz,
+  deEsser.highHz,
+  deEsser.rangeDb,
+  deEsser.widthOct,
+  DE_ESSER_MODES.indexOf(deEsser.mode),
+  deEsser.attackMs,
+  deEsser.releaseMs,
+  deEsser.centreOnly ? 1 : 0,
+  deEsser.keepCymbals,
+  CHAIN_DEESSER_SIGNATURE,
+  CHAIN_DEESSER_FIELDS,
+  0,
+  0,
+  0,
+];
+
 export const encodeChainSettings = (settings: IDspSettings): number[] => {
   const {
     exciter,
@@ -192,10 +232,9 @@ export const encodeChainSettings = (settings: IDspSettings): number[] => {
     eq.fuzzAmount,
     // The multiband compressor's eighteen words — its switch, two corners
     // and three bands of five — until it was removed on 2026-09-22 at
-    // Ivan's call: a stage every preset set and no page showed. They stay
-    // as zeros so nothing after them moves, and an older engine reads a
-    // compressor that is off.
-    ...new Array<number>(18).fill(0),
+    // Ivan's call: a stage every preset set and no page showed. They stay so
+    // nothing after them moves, and carry the De-esser now (`deEsserWords`).
+    ...deEsserWords(settings.deEsser),
     dimension.enabled ? 1 : 0,
     dimension.lowWidth,
     dimension.midWidth,

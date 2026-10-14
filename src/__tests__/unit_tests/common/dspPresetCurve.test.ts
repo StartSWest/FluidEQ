@@ -124,14 +124,25 @@ describe('a preset’s tone and its rack’s support, split', () => {
   it('keeps the rack’s EQ on only for what supports the rest of the rack', () => {
     const rackEq = (id: string) =>
       DSP_PRESETS.find((preset) => preset.id === id)?.settings.eq;
-    // The de-essers and the late-night bass guard act only above their
-    // threshold, which no curve can do.
-    ['podcast', 'audiobook', 'late-night'].forEach((id) => {
+    // The late-night bass guard acts only above its threshold, which no
+    // curve can do.
+    ['late-night'].forEach((id) => {
       expect({
         id,
         dynamic: rackEq(id)?.bands.some((one) => one.dynamic),
       }).toEqual({ id, dynamic: true });
       expect(rackEq(id)?.enabled).toBe(true);
+    });
+    // Podcast and Audiobook de-essed through two such bands until the
+    // De-esser stage took the job; their racks switch that stage on and
+    // keep no de-essing band of their own.
+    ['podcast', 'audiobook'].forEach((id) => {
+      const chain = DSP_PRESETS.find((preset) => preset.id === id)?.settings;
+      expect({
+        id,
+        dynamic: chain?.eq.bands.some((one) => one.dynamic),
+        deEsser: chain?.deEsser.enabled,
+      }).toEqual({ id, dynamic: false, deEsser: true });
     });
     // Bass mono is processing, not tone.
     expect(rackEq('pop')?.monoBelowHz).toBeGreaterThan(0);

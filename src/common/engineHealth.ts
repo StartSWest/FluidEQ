@@ -138,6 +138,7 @@ export interface IEngineSplit {
 export const LATENCY_STAGES = [
   'leveler',
   'restoration',
+  'deEsser',
   'exciter',
   'bassForge',
   'linearEq',
@@ -296,6 +297,16 @@ export const engineKeepsEars = (dllVersion: string | undefined): boolean =>
 export const ENGINE_RACK_EARS_SINCE: readonly [number, number] = [1, 22];
 export const engineRackKeepsEars = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_RACK_EARS_SINCE);
+
+/**
+ * The first engine that runs the De-esser (`deesser.h`). An older one reads
+ * its words — the retired compressor's — and plays the rack without it, so
+ * the page says the engine needs updating rather than letting the dials
+ * look broken. The Library's host is built with the app and always has it.
+ */
+export const ENGINE_DEESSER_SINCE: readonly [number, number] = [1, 23];
+export const engineRunsDeEsser = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_DEESSER_SINCE);
 
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];

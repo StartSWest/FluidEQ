@@ -121,6 +121,7 @@ export const dspPresetHint = (
   [
     settings.normalizer.mode !== 'off' ? t('dsp.normalizer.title') : '',
     settings.denoise.enabled ? t('dsp.denoise.title') : '',
+    settings.deEsser.enabled ? t('dsp.deEsser.title') : '',
     settings.exciter.enabled ? t('dsp.exciter.title') : '',
     settings.bassForge.enabled ? t('dsp.bassForge.title') : '',
     settings.eq.enabled || curve ? t('dsp.eq.title') : '',

@@ -13,6 +13,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/bass_forge.h"
 #include "fluideq/convolver.h"
+#include "meters_deesser.h"
 
 /*
  * `meters.h` mirrors this count rather than including the header, so that
@@ -282,6 +283,8 @@ struct FeqMeters {
   std::atomic<float> bass_punch_transient_db{0.0f};
   std::atomic<float> bass_punch_sustain_db{0.0f};
   std::atomic<float> bass_punch_duck_db{0.0f};
+  /** The De-esser's window (`meters_deesser.h`). */
+  DeEsserMeterWindow deesser;
   std::vector<double> window;
   /** Reader-side scratch, so the transform allocates nothing per frame. */
   std::vector<double> real;
@@ -734,6 +737,22 @@ void feq_meters_read_bass_punch(FeqMeters* meters, float* out_transient_db,
   *out_sustain_db =
       meters->bass_punch_sustain_db.load(std::memory_order_relaxed);
   *out_duck_db = meters->bass_punch_duck_db.load(std::memory_order_relaxed);
+}
+
+void feq_meters_publish_deesser(FeqMeters* meters,
+                                const FeqDeEsserReport* report) {
+  if (meters == nullptr || report == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  deesser_window_fold(meters->deesser, *report);
+}
+
+void feq_meters_read_deesser(FeqMeters* meters, FeqDeEsserReport* out) {
+  if (meters == nullptr || out == nullptr) {
+    return;
+  }
+  deesser_window_take(meters->deesser, out);
 }
 
 void feq_meters_publish_master(FeqMeters* meters,

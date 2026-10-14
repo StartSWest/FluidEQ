@@ -328,6 +328,8 @@ struct FeqChain {
    * not allocate is worse than a rack missing one processor.
    */
   FeqDenoise* denoise = nullptr;
+  /** The De-esser, owned and made with the chain; null leaves it out. */
+  FeqDeEsser* deesser = nullptr;
 
   ChainEqSlot slots[FEQ_CHAIN_MAX_CHANNELS];
   ChainExciterPath paths[kExciterPaths];
@@ -849,6 +851,16 @@ void chain_process_punch_align(FeqChain* chain, float* const* channels,
     thread, after `feq_denoise_configure`; the lines themselves never move. */
 void chain_apply_denoise_alignment(FeqChain* chain);
 
+/* --- the De-esser, from `chain_deesser.cpp` ------------------------------ */
+
+/** Hand it the dials and the preset's curve. CONTROL thread. */
+void chain_configure_deesser(FeqChain* chain);
+/** Tell it which channels are the LFE and the centre. CONTROL thread. */
+void chain_apply_deesser_layout(FeqChain* chain);
+/** Run it on the block and report what it did. AUDIO thread. */
+void chain_process_deesser(FeqChain* chain, float* const* channels,
+                           uint32_t frames);
+
 /** The mono maker after the EQ, and its return to a stream's start. */
 void chain_process_mono_maker(FeqChain* chain, float* const* channels,
                               uint32_t frames);
@@ -1005,6 +1017,15 @@ inline uint32_t chain_headroom_look_ahead(const FeqChain* chain) {
 inline bool chain_leveler_idle(const FeqChain* chain) {
   return chain->settings.low_latency != 0 &&
          chain->settings.normalizer.mode == 0;
+}
+
+/**
+ * Game mode with the De-esser off: its look-ahead goes, as Bass Punch's FIR
+ * does. Read by the stage and by the latency, so the two always agree.
+ */
+inline bool chain_deesser_idle(const FeqChain* chain) {
+  return chain->settings.low_latency != 0 &&
+         chain->settings.deesser.enabled == 0;
 }
 
 #endif /* FLUIDEQ_CHAIN_INTERNAL_H */

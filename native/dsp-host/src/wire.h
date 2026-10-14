@@ -31,6 +31,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/room.h"
 
 /* For the profile's band and partial counts, which size its payload. */
+#include "fluideq/deesser.h"
 #include "fluideq/denoise.h"
 /* For FEQ_BASS_FORGE_BANDS, which sizes the two runs in the analysis frame. */
 #include "fluideq/bass_forge.h"
@@ -543,6 +544,25 @@ typedef struct FeqWireAnalysisFrame {
    * renderer cannot truthfully derive this curve from the dials.
    */
   float denoise_hiss_reduction_bands[FEQ_DENOISE_PROFILE_BANDS];
+  /*
+   * The De-esser, appended after the complete previous header: what it cut
+   * and where, how sure it was that it was a voice and each of the three
+   * tells that says so, and every band's level, threshold and cut
+   * (`FeqDeEsserReport`). Measured, not settings: none of it can be drawn
+   * from the dials. 56 words, 224 bytes, onto 560: 784, still eight-aligned.
+   */
+  float deesser_reduction_db;
+  float deesser_frequency_hz;
+  float deesser_confidence;
+  float deesser_centre;
+  float deesser_shape;
+  float deesser_onset;
+  float deesser_sibilance_db;
+  uint32_t deesser_band_count;
+  float deesser_band_hz[FEQ_DEESSER_MAX_BANDS];
+  float deesser_band_level_db[FEQ_DEESSER_MAX_BANDS];
+  float deesser_band_threshold_db[FEQ_DEESSER_MAX_BANDS];
+  float deesser_band_cut_db[FEQ_DEESSER_MAX_BANDS];
 } FeqWireAnalysisFrame;
 
 #ifdef __cplusplus
@@ -556,6 +576,24 @@ typedef struct FeqWireAnalysisFrame {
  * garbage telemetry there. If one of these fails, fix the TypeScript to match;
  * do not pad the struct to suit it.
  */
+/** The De-esser's window into the frame; both writers call this. */
+inline void feq_wire_deesser_report(FeqWireAnalysisFrame& frame,
+                                    const FeqDeEsserReport& report) {
+  frame.deesser_reduction_db = report.reduction_db;
+  frame.deesser_frequency_hz = report.frequency_hz;
+  frame.deesser_confidence = report.confidence;
+  frame.deesser_centre = report.centre;
+  frame.deesser_shape = report.shape;
+  frame.deesser_onset = report.onset;
+  frame.deesser_sibilance_db = report.sibilance_db;
+  frame.deesser_band_count = report.band_count;
+  for (uint32_t band = 0; band < FEQ_DEESSER_MAX_BANDS; ++band) {
+    frame.deesser_band_hz[band] = report.band_hz[band];
+    frame.deesser_band_level_db[band] = report.band_level_db[band];
+    frame.deesser_band_threshold_db[band] = report.band_threshold_db[band];
+    frame.deesser_band_cut_db[band] = report.band_cut_db[band];
+  }
+}
 inline void feq_wire_room_report(FeqWireAnalysisFrame& frame,
                                  const FeqRoomReport& room) {
   frame.reserved_tail = room.flags;
@@ -575,9 +613,12 @@ static_assert(sizeof(FeqWireStatsFrame) == 24, "stats frame size");
  * to 160 and its forty floor bands to 320. The two bass stages add sixteen
  * floats for Forge and three for Punch — 76 bytes, which lands on 396 and is
  * rounded to 400 by the explicit `bass_reserved_tail`. Denoise's forty live
- * hiss-gain bands append 160 bytes, for a 560-byte header.
+ * hiss-gain bands append 160 bytes, for a 560-byte header, and the De-esser's
+ * fifty-six words 224 more, for 784.
  */
-static_assert(sizeof(FeqWireAnalysisFrame) == 560, "analysis frame size");
+static_assert(sizeof(FeqWireAnalysisFrame) == 784, "analysis frame size");
+static_assert(offsetof(FeqWireAnalysisFrame, deesser_reduction_db) == 560,
+              "De-esser offset");
 #endif
 
 #endif /* FLUIDEQ_HOST_WIRE_H */

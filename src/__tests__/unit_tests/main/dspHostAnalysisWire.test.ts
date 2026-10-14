@@ -570,7 +570,7 @@ it('decodes the tagged Room report without changing legacy meter framing', () =>
 
 it('decodes the actual native meter-to-host/APO encoder fixture', () => {
   const bytes = Buffer.from(ROOM_REPORT_NATIVE_FRAME, 'base64');
-  expect(bytes.length).toBe(560);
+  expect(bytes.length).toBe(784);
   expect(decodeAnalysis(bytes)?.room).toEqual({
     active: true,
     original: true,

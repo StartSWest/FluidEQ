@@ -60,6 +60,7 @@ export const portableDspChainSettings = (
     presetId: '',
     crossfade: DSP_DEFAULTS.crossfade,
     denoise: { ...settings.denoise, isolate: false },
+    deEsser: { ...settings.deEsser, isolate: false },
     eq: { ...settings.eq, isolate: false },
     exciter: { ...settings.exciter, isolate: false },
     bassForge: { ...settings.bassForge, isolate: false },

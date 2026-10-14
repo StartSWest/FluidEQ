@@ -16,6 +16,7 @@ import { useSyncExternalStore } from 'react';
 import { ANALYSIS_BASS_FORGE_BANDS } from '../../common/dsp/analysisWire';
 import { ILibraryNormalizationAnalysis } from '../../common/library/types';
 import { TDspAnalyserStage } from './monitorOutputs';
+import { setDspDeEsserReport } from './deEsserTelemetry';
 import { setDspRoomReport } from './roomTelemetry';
 import { publishDspSourceAnalysis } from './sourceAnalysis';
 import {
@@ -403,6 +404,7 @@ export const clearDspMeterTelemetry = (): void => {
   const floor = new Array<number>(ANALYSIS_BASS_FORGE_BANDS).fill(-120);
   setDspBassForgeBands(floor, floor);
   setDspBassPunchActivity(0, 0, 0);
+  setDspDeEsserReport(undefined);
   setDspLoudness({
     momentaryLufs: -120,
     shortTermLufs: -120,

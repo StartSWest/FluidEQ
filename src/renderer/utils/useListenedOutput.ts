@@ -187,6 +187,7 @@ export const listenedDelay = ({
 const RACK_STAGES = new Set([
   'leveler',
   'restoration',
+  'deEsser',
   'exciter',
   'bassForge',
   'linearEq',

@@ -41,6 +41,7 @@ std::vector<std::pair<std::string, unsigned>> latency_parts_of(
   const std::pair<const char*, uint32_t> named[] = {
       {"leveler", parts.rack.leveler},
       {"restoration", parts.rack.restoration},
+      {"deEsser", parts.rack.deesser},
       {"exciter", 0u},
       {"bassForge", 0u},
       {"linearEq", parts.rack.linear_eq},

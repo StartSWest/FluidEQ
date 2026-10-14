@@ -547,8 +547,10 @@ int main(int argc, char** argv) {
   wire.magic = FEQ_MAGIC_ANALYSIS;
   wire.bins = FEQ_METER_BINS;
   feq_wire_room_report(wire, read);
+  // 784 since the De-esser's window joined the header (`wire.h`); the app
+  // reads a 560-byte header too, from an engine installed before it.
   check(wire.reserved_tail == report.flags && wire.bass_reserved_tail == -3 &&
-            sizeof(wire) == 560,
+            sizeof(wire) == 784,
         "actual meter and shared host/APO encoder preserve tagged fields and "
         "framing");
   if (argc > 1) {

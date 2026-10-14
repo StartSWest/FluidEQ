@@ -10,22 +10,24 @@ import {
   MAGIC_ANALYSIS,
 } from '../../../main/dspHost/wire';
 import decodeEngineAnalysis from '../../../main/dspHost/engineAnalysis';
+import {
+  ANALYSIS_DEESSER_BANDS,
+  ANALYSIS_LEGACY_HEADER_BYTES,
+} from '../../../common/dsp/analysisWire';
 
-const packet = (extra: readonly number[] = []) => {
-  const frame = Buffer.alloc(
-    ANALYSIS_HEADER_BYTES + ANALYSIS_BINS * 4 + extra.length * 4,
-  );
+const packet = (
+  extra: readonly number[] = [],
+  header: number = ANALYSIS_HEADER_BYTES,
+) => {
+  const frame = Buffer.alloc(header + ANALYSIS_BINS * 4 + extra.length * 4);
   frame.writeUInt32LE(MAGIC_ANALYSIS, 0);
   frame.writeUInt32LE(1, 8);
   frame.writeUInt32LE(ANALYSIS_BINS, 12);
   for (let bin = 0; bin < ANALYSIS_BINS; bin += 1) {
-    frame.writeFloatLE(-42, ANALYSIS_HEADER_BYTES + bin * 4);
+    frame.writeFloatLE(-42, header + bin * 4);
   }
   extra.forEach((value, index) =>
-    frame.writeFloatLE(
-      value,
-      ANALYSIS_HEADER_BYTES + ANALYSIS_BINS * 4 + index * 4,
-    ),
+    frame.writeFloatLE(value, header + ANALYSIS_BINS * 4 + index * 4),
   );
   return frame;
 };
@@ -60,5 +62,54 @@ describe('external engine analysis', () => {
     ).toBeUndefined();
     frame.writeUInt32LE(0, 0);
     expect(decodeEngineAnalysis(frame)).toBeUndefined();
+  });
+});
+
+/**
+ * The engine is installed apart from the app, so the app reads the frame of
+ * an engine from before the De-esser too: 224 bytes shorter, with nothing of
+ * the stage in it.
+ */
+describe('an engine with the De-esser and one without', () => {
+  it('reads the De-esser’s window where the engine writes it', () => {
+    const frame = packet([-6, -18]);
+    frame.writeFloatLE(-4.5, 560);
+    frame.writeFloatLE(7200, 564);
+    frame.writeFloatLE(0.85, 568);
+    frame.writeUInt32LE(3, 588);
+    [5000, 6300, 8000].forEach((hz, band) => {
+      frame.writeFloatLE(hz, 592 + band * 4);
+      frame.writeFloatLE(
+        -4.5 + band,
+        592 + ANALYSIS_DEESSER_BANDS * 12 + band * 4,
+      );
+    });
+    const read = decodeEngineAnalysis(frame);
+    expect(read?.deEsser).toMatchObject({
+      reductionDb: -4.5,
+      frequencyHz: 7200,
+      bandHz: [5000, 6300, 8000],
+      bandCutDb: [-4.5, -3.5, -2.5],
+    });
+    expect(read?.deEsser?.confidence).toBeCloseTo(0.85, 6);
+    // The extension after the spectrum is still read at the new length.
+    expect(read?.normalizer.inputLufs).toBe(-18);
+  });
+
+  it('reads an older engine’s frame, with no De-esser in it', () => {
+    const older = packet([-6, -18], ANALYSIS_LEGACY_HEADER_BYTES);
+    const read = decodeEngineAnalysis(older);
+    expect(read).toBeDefined();
+    expect(read?.deEsser).toBeUndefined();
+    expect(read?.normalizer.inputLufs).toBe(-18);
+  });
+
+  it('never reads one length as the other', () => {
+    expect(ANALYSIS_HEADER_BYTES - ANALYSIS_LEGACY_HEADER_BYTES).toBe(224);
+    const frame = packet();
+    // Cut to a length neither header explains: refused, not misread.
+    expect(decodeEngineAnalysis(frame.subarray(0, frame.length - 100))).toBe(
+      undefined,
+    );
   });
 });

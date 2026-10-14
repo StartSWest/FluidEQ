@@ -13,6 +13,7 @@ import {
 } from './chain';
 import { bassForgePresetSettings } from './bassForgePresets';
 import { bassPunchPresetSettings } from './bassPunchPresets';
+import { deEsserPresetSettings } from './deEsserPresets';
 import { denoisePresetSettings } from './denoisePresets';
 import { dimensionPresetSettings } from './dimensionPresets';
 import { EQ_PRESETS, eqSettingsForPreset } from './eqPresets';
@@ -27,7 +28,7 @@ import {
   IDspPresetRecipe,
   TDspPresetGroup,
 } from './presetRecipes';
-import { presetCurve, presetSupport } from './presetCurve';
+import { presetCurve, presetSupport, withoutDeEssBands } from './presetCurve';
 import { roomPresetSettings } from './roomPresets';
 import { withRoomTone } from './roomTone';
 import {
@@ -119,6 +120,15 @@ const recipeEq = (recipe: IDspPresetRecipe): IEqSettings => {
   return recipe.eq ? eqProfile(recipe.eq) : DSP_DEFAULTS.eq;
 };
 
+/**
+ * What of a recipe's EQ stays in its rack, with its de-essing handed to the
+ * De-esser where the chain switches that stage on.
+ */
+const recipeSupport = (recipe: IDspPresetRecipe): IEqSettings =>
+  presetSupport(
+    recipe.deEsser ? withoutDeEssBands(recipeEq(recipe)) : recipeEq(recipe),
+  );
+
 const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
   clampDspSettings({
     ...DSP_DEFAULTS,
@@ -134,8 +144,11 @@ const materialize = (recipe: IDspPresetRecipe): IDspSettings =>
     // curve (`presetCurve.ts`). A Room copy adds what keeps its chain's tone
     // through the Room, which belongs in front of the Room: see `roomTone.ts`.
     eq: recipe.room
-      ? withRoomTone(presetSupport(recipeEq(recipe)), recipe.room)
-      : presetSupport(recipeEq(recipe)),
+      ? withRoomTone(recipeSupport(recipe), recipe.room)
+      : recipeSupport(recipe),
+    deEsser: recipe.deEsser
+      ? deEsserPresetSettings(recipe.deEsser, true)
+      : DSP_DEFAULTS.deEsser,
     exciter: recipe.exciter
       ? exciterPresetSettings(recipe.exciter, true)
       : DSP_DEFAULTS.exciter,

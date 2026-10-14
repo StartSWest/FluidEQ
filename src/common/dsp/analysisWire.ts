@@ -52,7 +52,8 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * sixteen floats for Forge's eight bands in and out and three for Punch's
  * gains, which is 76 bytes onto 320 and lands on 396 — rounded to 400 by one
  * explicit pad float, for the same alignment reason. The forty actual hiss
- * gain bands append 160 bytes after that complete layout, taking it to 560.
+ * gain bands append 160 bytes after that complete layout, taking it to 560,
+ * and the De-esser's fifty-six words 224 more, to 784.
  * Every pre-existing offset is untouched on purpose: this constant, the
  * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
  * move in one commit, and new fields go after everything already decoded,
@@ -66,7 +67,19 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 560;
+export const ANALYSIS_HEADER_BYTES = 784;
+
+/**
+ * The header every engine before the De-esser writes (`ENGINE_DEESSER_SINCE`):
+ * everything above, without the De-esser's 224 bytes. An engine is installed
+ * apart from the app and may be older, so its frames are read at this length
+ * too (`engineAnalysis.ts`); the Library host is built with the app and only
+ * ever writes the full one.
+ */
+export const ANALYSIS_LEGACY_HEADER_BYTES = 560;
+
+/** The De-esser's bands, matching `FEQ_DEESSER_MAX_BANDS`. */
+export const ANALYSIS_DEESSER_BANDS = 12;
 
 /** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
 export const ANALYSIS_MAX_BANDS = 64;
@@ -148,6 +161,33 @@ export interface IHostAnalysis {
   denoise: IHostAnalysisDenoise;
   bassForge: IHostAnalysisBassForge;
   bassPunch: IHostAnalysisBassPunch;
+  /** Absent from an engine before the De-esser. */
+  deEsser?: IHostAnalysisDeEsser;
+}
+
+/**
+ * What the De-esser cut since the last frame, and why.
+ *
+ * Measured, never derived from the dials: whether a band is cut depends on
+ * the song, and whether a sound was taken for a voice depends on where it
+ * sits, what air it has and how it began — the three tells, each 0 to 1.
+ */
+export interface IHostAnalysisDeEsser {
+  /** The deepest cut, dB, never positive. */
+  reductionDb: number;
+  /** Where the S was at that cut, Hz; 0 with no cut. */
+  frequencyHz: number;
+  /** How sure it was the sound was a voice, 0 to 1. */
+  confidence: number;
+  centre: number;
+  shape: number;
+  onset: number;
+  /** The loudest band against the voice's body, dB. */
+  sibilanceDb: number;
+  bandHz: readonly number[];
+  bandLevelDb: readonly number[];
+  bandThresholdDb: readonly number[];
+  bandCutDb: readonly number[];
 }
 
 /**

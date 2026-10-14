@@ -1,0 +1,156 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'dspTokens' as *;
+
+// The De-esser's two pictures, on the card above its four groups. Claims the
+// whole row the way every stage's display does.
+.dsp-de-esser-display {
+  flex: 1 1 100%;
+  width: 100%;
+  min-width: 0;
+}
+
+// Definite, as every DSP canvas is: its backing store follows this box, so an
+// intrinsic height would feed the measurement into itself.
+.dsp-de-esser-canvas {
+  width: 100%;
+  height: 300px;
+}
+
+// Each chip in its own trace's ink, as Bass Punch's row does, so the row is
+// the plot's key: the S in the voice's teal, the cut in the amber it hangs in.
+.dsp-de-esser-status {
+  > span {
+    display: inline-flex;
+    gap: 6px;
+    align-items: baseline;
+  }
+
+  .is-s {
+    border-color: color-mix(in srgb, var(--dsp-base-curve) 30%, transparent);
+    color: color-mix(in srgb, var(--dsp-base-curve) 92%, transparent);
+  }
+
+  .is-cut,
+  .is-isolate {
+    border-color: rgba($amber, 0.3);
+    color: rgba($amber, 0.92);
+  }
+
+  // Shown for a moment after a loud sound the stage did not take for a voice
+  // went by uncut: the one thing a de-esser is usually blamed for not doing.
+  .is-spared {
+    border-color: rgba($white, 0.14);
+  }
+
+  .is-hidden {
+    display: none;
+  }
+
+  b {
+    color: inherit;
+    font-weight: $weight-bold;
+  }
+}
+
+// The legend's dashed mark is the line every column is read against: drawn
+// in the plot's own pale white, not in a series colour.
+.dsp-de-esser-legend .dsp-eq-legend-mark.is-dashed {
+  color: rgba($white, 0.6);
+}
+
+// FOUR GROUPS ON ONE GRID, SO NEVER THREE OVER ONE AND EVERY ROW ON A LINE.
+//
+// Two columns, four once the card is a large one's width — never three, which
+// broke three over one with a hole the size of two groups beside the last.
+// Each group spans three rows of the grid and lays itself out on them
+// (`subgrid`): its name with any choice under it, its note, its dials. Groups
+// standing side by side share those rows, so every name, note and row of
+// dials starts on one line whatever a language makes of the words; with the
+// rows each group's own, the German choices wrapping under one name and a
+// two-line dial label under another left them 8 and 13px apart.
+.dsp-de-esser-controls {
+  display: grid;
+  flex: 1 1 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+
+  > .dsp-band {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 6px;
+    align-items: start;
+  }
+}
+
+@container dsp-card (min-width: #{$bp-lg}) {
+  .dsp-de-esser-controls {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+// A group's name, and the choice it makes under it where it has one. The
+// choice stands on the group's middle, over the dials it sets, which are
+// centred too; the name keeps the left edge every group's name has.
+.dsp-de-esser-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+
+  .segmented {
+    align-self: center;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+// The old engine's notice: amber, the rack's colour for a fact rather than a
+// fault — the rest of the rack is playing, this one stage is not yet.
+.dsp-de-esser-engine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 7px 10px;
+  border: 1px solid rgba($amber, 0.4);
+  border-radius: $radius-xs;
+  background: rgba($amber, 0.07);
+
+  > p {
+    flex: 1 1 320px;
+    margin: 0;
+    color: $amber;
+    font-size: $text-body;
+    line-height: 1.4;
+  }
+}
+
+// A laptop's height brings the picture down with every other stage's.
+@media (max-height: $bp-laptop-height) {
+  .dsp-de-esser-canvas {
+    height: 240px;
+  }
+}
+
+// A narrow card stacks the two pictures, and this height is what tells the
+// graph to (`STACKED_HEIGHT` in `DspDeEsserGraph.tsx`): one source for the
+// arrangement and the room it needs. After the laptop rule so a short window
+// cannot squeeze a stack into a side-by-side height.
+@container dsp-card (max-width: #{$bp-md}) {
+  .dsp-de-esser-canvas {
+    height: 420px;
+  }
+}

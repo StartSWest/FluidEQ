@@ -44,6 +44,7 @@ const KEPT = [
   'fluideq.dsp.crossfadeCurves.v1',
   'fluideq.dsp.favouritePresets.v1',
   'fluideq.dsp.savedRooms.v1',
+  'fluideq.dsp.stagePresets.v1',
   'fluideq.dsp.userChainPresets.v1',
   'fluideq.dsp.userPresets.v1',
   'fluideq.games.profiles.v1',

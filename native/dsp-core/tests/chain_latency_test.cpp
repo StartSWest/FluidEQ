@@ -227,10 +227,10 @@ void reported_latency_is_the_measured_delay() {
 /**
  * GAME MODE TAKES AWAY THE DELAY THE RACK CARRIES FOR COMFORT, AND NO MORE.
  *
- * Four stages hold the audio back while they have nothing to do, so that
+ * Five stages hold the audio back while they have nothing to do, so that
  * switching them on never moves it: Bass Punch's FIR alignment, the
- * Maximizer's look-ahead, the Master's auto headroom and, in the engine, the
- * Normalizer's peak guard. In game mode each of
+ * De-esser's and the Maximizer's look-aheads, the Master's auto headroom and,
+ * in the engine, the Normalizer's peak guard. In game mode each of
  * them, while off, costs nothing — and each, while on, still costs what it
  * costs, because then the delay is the effect and not a courtesy.
  */
@@ -260,6 +260,10 @@ void game_mode_drops_the_standby_delay() {
         "the Maximizer's standby look-ahead goes");
   check(idle.headroom > 0u && dropped.headroom == 0u,
         "the auto headroom's standby look-ahead goes");
+  std::printf("  de-esser:   standby %u, game mode %u\n", idle.deesser,
+              dropped.deesser);
+  check(idle.deesser > 0u && dropped.deesser == 0u,
+        "the De-esser's standby look-ahead goes");
   // The engine's live leveler: its peak guard holds its look-ahead with the
   // Normalizer off, so that switching it on never shifts the audio. Game
   // mode takes that away — and leaves a guard that is working alone.
@@ -287,11 +291,13 @@ void game_mode_drops_the_standby_delay() {
             "a Normalizer that is on keeps its look-ahead in game mode");
     }
   }
-  // POSITIVE CONTROL: with all three running, game mode leaves them alone.
+  // POSITIVE CONTROL: with all four running, game mode leaves them alone.
+  normal.deesser.enabled = 1;
   normal.bass_punch.enabled = 1;
   normal.maximizer.enabled = 1;
   normal.master.enabled = 1;
   normal.master.loudness_maximize = 1;
+  game.deesser.enabled = 1;
   game.bass_punch.enabled = 1;
   game.maximizer.enabled = 1;
   game.master.enabled = 1;
@@ -410,9 +416,10 @@ void game_mode_room_is_the_room_on_time() {
   check(on_time_parts.room == 0u, "game mode's room adds nothing");
   const uint32_t partition = feq_chain_latency_frames(late.get()) -
                              feq_chain_latency_frames(on_time.get());
-  // The Master is off here, so game mode also drops the auto headroom's
-  // standby look-ahead: the room's partition and that, and nothing else.
-  check(partition == feq_convolver_latency() + late_parts.headroom,
+  // The Master and the De-esser are off here, so game mode also drops their
+  // standby look-aheads: the room's partition and those, and nothing else.
+  check(partition == feq_convolver_latency() + late_parts.headroom +
+                         late_parts.deesser,
         "game mode gives up the partition and the idle headroom, no more");
   std::vector<std::vector<float>> a(2), b(2);
   Pink source;

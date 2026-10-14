@@ -28,6 +28,25 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/chain.h"
 #include <cmath>
 
+namespace {
+
+/**
+ * Where the De-esser's words start: after the master switch and the retired
+ * guard (2), the Exciter (9 and three bands of 6), the EQ's eleven, and the
+ * compressor's old switch.
+ */
+constexpr uint32_t kDeEsserSlot = 2 + 9 + 18 + 11 + 1;
+constexpr uint32_t kDeEsserModeSlot = kDeEsserSlot + 7;
+constexpr uint32_t kDeEsserSignatureSlot = kDeEsserSlot + FEQ_CHAIN_DEESSER_FIELDS;
+
+/** Whether the line's De-esser words are the De-esser's (`chain.h`). */
+bool signs_deesser(const double* values) {
+  return values[kDeEsserSignatureSlot] == FEQ_CHAIN_DEESSER_SIGNATURE &&
+         values[kDeEsserSignatureSlot + 1] == FEQ_CHAIN_DEESSER_FIELDS;
+}
+
+}  // namespace
+
 extern "C" {
 
 int feq_chain_settings_decode(const double* values,
@@ -127,6 +146,17 @@ int feq_chain_settings_decode(const double* values,
     }
   }
 
+  // The De-esser's mode is an index; in a line that signs its De-esser words,
+  // anything but its three is a line this engine does not know. Checked
+  // before `out` is touched, like the rest.
+  const bool has_deesser = signs_deesser(values);
+  if (has_deesser) {
+    const double mode = values[kDeEsserModeSlot];
+    if (mode != 0.0 && mode != 1.0 && mode != 2.0) {
+      return 0;
+    }
+  }
+
   feq_chain_settings_defaults(out);
   uint32_t at = 0;
   const auto next = [values, &at]() { return values[at++]; };
@@ -169,9 +199,31 @@ int feq_chain_settings_decode(const double* values,
   out->eq.fuzz_amount = next();
 
   // The multiband compressor's eighteen words — switch, two corners, three
-  // bands of five — until it was removed on 2026-09-22. The app writes zeros
-  // there and the layout keeps them, so no band moves.
-  at += 18;
+  // bands of five — until it was removed on 2026-09-22. The layout keeps
+  // them, so no band moves. The first is still the compressor's switch,
+  // written 0 for the engines from before it went; the De-esser's twelve
+  // follow, which every engine since reads and ignores; the last five are
+  // zeros but for the signature pair (`chainWire.ts`). A line without the
+  // pair keeps the De-esser at its defaults, which are off: it was written
+  // before the stage, and its words there are a compressor's.
+  next();
+  if (has_deesser) {
+    out->deesser.enabled = flag();
+    out->deesser.isolate = flag();
+    out->deesser.sensitivity = next();
+    out->deesser.low_hz = next();
+    out->deesser.high_hz = next();
+    out->deesser.range_db = next();
+    out->deesser.width_oct = next();
+    out->deesser.mode = static_cast<int>(next());
+    out->deesser.attack_ms = next();
+    out->deesser.release_ms = next();
+    out->deesser.centre_only = flag();
+    out->deesser.keep_cymbals = next();
+    at += 5;
+  } else {
+    at += 17;
+  }
 
   out->dimension.enabled = flag();
   out->dimension.low_width = next();

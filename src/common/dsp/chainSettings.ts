@@ -28,6 +28,7 @@ import {
   IInputNormalizerSettings,
   IMaximizerSettings,
 } from './chainStageSettings';
+import type { IDeEsserSettings } from './deEsser';
 
 // The rest of the rack's settings - the Master, the EQ and its bands, the
 // Room, surround - and IDspSettings, the whole rack as one value. chain.ts
@@ -392,6 +393,8 @@ export interface IDspSettings {
   presetId: string;
   normalizer: IInputNormalizerSettings;
   denoise: IDenoiseSettings;
+  /** The De-esser, between the repair and the Exciter (`deEsser.ts`). */
+  deEsser: IDeEsserSettings;
   crossfade: ICrossfadeSettings;
   eq: IEqSettings;
   exciter: IExciterSettings;

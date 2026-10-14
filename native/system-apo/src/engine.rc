@@ -82,6 +82,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *   1.22 plays a DSP rack band on the ear it names, carried in the band's
  *        switch word (`ENGINE_RACK_EARS_SINCE`). Every engine before read the
  *        word as on and played the band on both ears.
+ *   1.23 runs the De-esser (`deesser.h`), from the multiband compressor's
+ *        retired words every engine since 2026-09-22 decodes and ignores
+ *        (`ENGINE_DEESSER_SINCE`): an older engine plays the rack without it
+ *        rather than refusing it. It also reports the De-esser in its
+ *        stages, its delay and its readings for the page.
  * ENGINE_STATUS_SINCE stays at 1.1: older status-capable engines still report
  * their health even when the new display connection is unavailable.
  */
@@ -93,8 +98,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #endif
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 22, 0, 0
-PRODUCTVERSION 1, 22, 0, 0
+FILEVERSION 1, 23, 0, 0
+PRODUCTVERSION 1, 23, 0, 0
 FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 FILEFLAGS 0
 FILEOS VOS_NT_WINDOWS32

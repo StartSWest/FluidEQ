@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import clampDeEsserSettings from './deEsserClamp';
 import { clampCrossfadeShape } from './crossfadeShape';
 
 import { isTrebleDesign } from '../filterDesign';
@@ -63,6 +64,8 @@ import {
 // The rack's settings, stage by stage, and its defaults live in the modules
 // beside this one; this module stays the one name the app reads them from.
 export { DSP_DEFAULTS, EQ_RACK_SIZES, buildEqRack } from './chainDefaults';
+export { DE_ESSER_MODES } from './deEsser';
+export type { IDeEsserSettings, TDeEsserMode } from './deEsser';
 export {
   EQ_BAND_COUNT,
   EQ_ENGINES,
@@ -646,6 +649,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         DSP_DEFAULTS.bassForge.mix,
       ),
     },
+    deEsser: clampDeEsserSettings(value.deEsser),
     bassPunch: {
       enabled: clampBoolean(bassPunch.enabled, DSP_DEFAULTS.bassPunch.enabled),
       isolate: clampBoolean(bassPunch.isolate, DSP_DEFAULTS.bassPunch.isolate),

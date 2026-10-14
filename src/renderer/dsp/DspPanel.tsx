@@ -9,6 +9,7 @@ import { IDspSettings, clampDspSettings } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
 import DspBassForgeCard from './DspBassForgeCard';
 import DspBassPunchCard from './DspBassPunchCard';
+import DspDeEsserCard from './DspDeEsserCard';
 import { ProcessorCard } from './DspControls';
 import DspEqBar from './DspEqBar';
 import DspEqCard from './DspEqCard';
@@ -83,7 +84,7 @@ interface IDspPanelProps {
 }
 
 /**
- * The five sections that own an isolate switch. Each id IS its settings key.
+ * The six sections that own an isolate switch. Each id IS its settings key.
  *
  * One list rather than a branch per stage, because a branch per stage is what
  * shipped broken: the two clearing paths below named denoise, EQ and the
@@ -92,11 +93,12 @@ interface IDspPanelProps {
  * the whole rack playing that stage's contribution and nothing else, with the
  * switch that did it out of sight.
  *
- * `readStored` in `store.ts` already drops all five on load, which is the
+ * `readStored` in `store.ts` already drops all six on load, which is the
  * evidence this list is the one that fell behind rather than the other.
  */
 const ISOLATING_SECTIONS = [
   'denoise',
+  'deEsser',
   'eq',
   'exciter',
   'bassForge',
@@ -114,6 +116,7 @@ const isSoloing = (of: IDspSettings) =>
 const withoutIsolate = (from: IDspSettings): IDspSettings => ({
   ...from,
   denoise: { ...from.denoise, isolate: false },
+  deEsser: { ...from.deEsser, isolate: false },
   eq: { ...from.eq, isolate: false },
   exciter: { ...from.exciter, isolate: false },
   bassForge: { ...from.bassForge, isolate: false },
@@ -180,6 +183,7 @@ const DspPanel = ({
   const {
     normalizer,
     denoise,
+    deEsser,
     crossfade,
     eq,
     exciter,
@@ -585,6 +589,7 @@ const DspPanel = ({
           enabled={{
             normalizer: normalizer.mode !== 'off',
             denoise: denoise.enabled,
+            deEsser: deEsser.enabled,
             crossfade: crossfade.enabled,
             eq: eq.enabled,
             exciter: exciter.enabled,
@@ -621,6 +626,14 @@ const DspPanel = ({
               onCancelModel={cancelVoiceModel}
               onRescan={() => requestDspNoiseRescan(inputAnalysis.trackId)}
               onPatch={(next) => patch({ denoise: next })}
+              onCommit={onCommit}
+            />
+          )}
+
+          {section === 'deEsser' && (
+            <DspDeEsserCard
+              deEsser={deEsser}
+              onPatch={(next) => patch({ deEsser: next })}
               onCommit={onCommit}
             />
           )}

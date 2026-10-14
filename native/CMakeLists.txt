@@ -117,7 +117,11 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/denoise_live_hum.cpp
   dsp-core/src/denoise_click.cpp
   dsp-core/src/denoise_voice.cpp
+  dsp-core/src/deesser.cpp
+  dsp-core/src/deesser_process.cpp
+  dsp-core/src/deesser_decide.cpp
   dsp-core/src/meters.cpp
+  dsp-core/src/meters_deesser.cpp
   dsp-core/src/chain.cpp
   dsp-core/src/chain_process.cpp
   dsp-core/src/chain_eq.cpp
@@ -131,6 +135,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/chain_source.cpp
   dsp-core/src/chain_tone.cpp
   dsp-core/src/chain_decode.cpp
+  dsp-core/src/chain_deesser.cpp
   dsp-core/src/resampler.cpp
   dsp-core/src/player.cpp
   dsp-core/src/player_roles.cpp
@@ -175,6 +180,17 @@ add_test(NAME exciter COMMAND fluideq-exciter-test)
 add_executable(fluideq-dimension-test dsp-core/tests/dimension_test.cpp)
 target_link_libraries(fluideq-dimension-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dimension COMMAND fluideq-dimension-test)
+
+# The De-esser on a mix: the S down, the panned hi-hat kept, the same quiet
+# or loud, a ride learned as the bed, and its delay alone at rest.
+add_executable(fluideq-deesser-test dsp-core/tests/deesser_test.cpp)
+target_link_libraries(fluideq-deesser-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME deesser COMMAND fluideq-deesser-test)
+# Its three cuts, Isolate, the depth dial, surround, a handover and an edit
+# mid-S, each beside the control that would fail it.
+add_executable(fluideq-deesser-modes-test dsp-core/tests/deesser_modes_test.cpp)
+target_link_libraries(fluideq-deesser-modes-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME deesser-modes COMMAND fluideq-deesser-modes-test)
 
 # The three-band split every multiband stage shares, held to the response of
 # the bands put back together rather than to any one of them.
@@ -240,6 +256,9 @@ add_test(NAME chain-transfer COMMAND fluideq-chain-transfer-test)
 add_executable(fluideq-chain-switch-test dsp-core/tests/chain_switch_test.cpp)
 target_link_libraries(fluideq-chain-switch-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME chain-switch COMMAND fluideq-chain-switch-test)
+add_executable(fluideq-exciter-stereo-test dsp-core/tests/exciter_stereo_test.cpp)
+target_link_libraries(fluideq-exciter-stereo-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME exciter-stereo COMMAND fluideq-exciter-stereo-test)
 
 # The Master's loudness target with no track analysis behind it, which is
 # every stream the system engine plays: measured as the loudness of what

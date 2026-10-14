@@ -40,7 +40,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   background: none;
 }
 
-// Nine beats for the nine filters, in signal order. The rail is keyed by
+// One beat per filter, in signal order. The rail is keyed by
 // section id and never unmounts, so this runs once when the tab is opened and
 // not on section changes.
 //
@@ -49,8 +49,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // delay — so the rail would run out of stagger partway down and finish with
 // several entries arriving together. That is exactly what happened when Bass
 // Forge and Bass Punch took the list from eight entries to ten and the count
-// stayed at nine: the Maximizer and the Master flew in on the same beat.
-$dsp-rail-filters: 10;
+// stayed at nine: the Maximizer and the Master flew in on the same beat. The
+// De-esser made it eleven.
+$dsp-rail-filters: 11;
 
 $dsp-rail-step: 26ms;
 

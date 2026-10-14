@@ -15,6 +15,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import useStagePresets from './useStagePresets';
 
 interface IDspBassForgeBarProps {
   bassForge: IBassForgeSettings;
@@ -65,22 +66,29 @@ const DspBassForgeBar = ({
   onCommit,
 }: IDspBassForgeBarProps) => {
   const { t } = useTranslation();
-  const entries: IRichPickEntry[] = BASS_FORGE_PRESET_GROUPS.flatMap((group) =>
-    BASS_FORGE_CATALOGUE.profiles
-      .filter((preset) => preset.group === group)
-      .map((preset) => ({
-        id: preset.id,
-        name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset),
-        group,
-        icon: (
-          <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
-        ),
-      })),
+  const saved = useStagePresets('bassForge', bassForge, onChange, onCommit);
+  const factoryEntries: IRichPickEntry[] = BASS_FORGE_PRESET_GROUPS.flatMap(
+    (group) =>
+      BASS_FORGE_CATALOGUE.profiles
+        .filter((preset) => preset.group === group)
+        .map((preset) => ({
+          id: preset.id,
+          name: t(preset.labelKey as TranslationKey),
+          hint: profileHint(preset),
+          group,
+          icon: (
+            <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
+          ),
+        })),
   );
+  // Saved profiles first, as the EQ lists its own.
+  const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string, enable = true) => {
+    if (saved.apply(id)) {
+      return;
+    }
     const next = BASS_FORGE_CATALOGUE.settings(
       id,
       enable ? true : bassForge.enabled,
@@ -114,7 +122,8 @@ const DspBassForgeBar = ({
           <RichPick
             entries={entries}
             groupLabel={(group) =>
-              group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
+              saved.savedGroupLabel(group) ??
+              (group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : '')
             }
             activeId={bassForge.presetId}
             onPick={applyPreset}
@@ -163,6 +172,7 @@ const DspBassForgeBar = ({
             <DspBarIcon name="reset" />
             {t('dsp.eqPreset.reset')}
           </button>
+          {saved.buttons}
         </div>
       </div>
 
@@ -170,6 +180,8 @@ const DspBassForgeBar = ({
           as the card's description — the same arrangement the Exciter's,
           Maximizer's and Dimension's bars use, so the headers read alike. */}
       <p className="dsp-bass-forge-note">{t('dsp.bassForge.description')}</p>
+      {saved.notice}
+      {saved.dialog}
     </>
   );
 };

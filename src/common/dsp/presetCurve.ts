@@ -104,3 +104,30 @@ export const presetSupport = (eq: IEqSettings): IEqSettings => {
     sourceBands: bands.map((band) => ({ ...band })),
   };
 };
+
+/**
+ * Where a band is an S being cut rather than a boom or a bed: the lowest
+ * listening range the De-esser offers (`DE_ESSER_RANGES.lowHz.min`). Written
+ * here, not imported, because the rack's defaults load this module.
+ */
+const SIBILANCE_FLOOR_HZ = 2000;
+
+/**
+ * A chain's EQ with its de-essing handed to the De-esser.
+ *
+ * Podcast and Audiobook de-essed through two dynamic bells at the top of
+ * their curve, cut by the band's whole level rather than by whether the
+ * sound was a voice. A chain that switches the De-esser stage on drops them:
+ * the two would cut the same S twice. Taken out of the support only, and
+ * switched off rather than flattened, so the rack keeps the preset's band
+ * layout with no band standing for a tone it never carried; the curve the
+ * chain plays in the main EQ is unchanged.
+ */
+export const withoutDeEssBands = (eq: IEqSettings): IEqSettings => {
+  const bands = eq.bands.map((band) =>
+    band.dynamic && band.frequency >= SIBILANCE_FLOOR_HZ
+      ? { ...band, enabled: false, dynamic: false }
+      : band,
+  );
+  return { ...eq, bands, sourceBands: bands.map((band) => ({ ...band })) };
+};

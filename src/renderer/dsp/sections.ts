@@ -16,6 +16,7 @@ import { TranslationKey } from '../../common/i18n/en';
 export type TDspSection =
   | 'normalizer'
   | 'denoise'
+  | 'deEsser'
   | 'crossfade'
   | 'eq'
   | 'exciter'
@@ -38,6 +39,10 @@ export const DSP_SECTIONS: { id: TDspSection; labelKey: TranslationKey }[] = [
   // Beside the Normalizer rather than beside the creative stages: both of
   // these fix the source, and the rack reads as repair-then-colour.
   { id: 'denoise', labelKey: 'dsp.denoise.title' },
+  // Beside Denoise, where the audio runs (`chain_process_deesser` follows the
+  // restoration): a harsh S is a fault of the recording, mended before any
+  // stage adds colour that would be cut with it.
+  { id: 'deEsser', labelKey: 'dsp.deEsser.title' },
   { id: 'exciter', labelKey: 'dsp.exciter.title' },
   // Beside the Exciter, and ahead of the EQ, because that is where the audio
   // runs: `chain_process_bass_forge` sits between the two so the EQ shapes

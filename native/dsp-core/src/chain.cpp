@@ -220,6 +220,7 @@ void feq_chain_settings_defaults(FeqChainSettings* settings) {
   settings->normalizer.ceiling_db = -1;
   settings->normalizer.target_lufs = -14;
   feq_denoise_settings_defaults(&settings->denoise);
+  feq_deesser_settings_defaults(&settings->deesser);
   settings->eq.model_amount = 1.0;
   settings->eq.oversample = 1;
   // The cookbook, which is what every test and fixture was built against;
@@ -416,6 +417,9 @@ FeqChain* feq_chain_create(double sample_rate,
   // rack missing one processor.
   chain->denoise =
       feq_denoise_create(sample_rate, chain->channels, maximum_block_frames);
+  // Skipped rather than fatal for the same reason: a rack missing its
+  // De-esser still plays.
+  chain->deesser = feq_deesser_create(sample_rate, chain->channels);
 
   // Both sets, so the first published one is complete and the spare is not a
   // half-built rack waiting to be swapped in.
@@ -465,6 +469,8 @@ void feq_chain_destroy(FeqChain* chain) {
   chain->room = nullptr;
   feq_denoise_destroy(chain->denoise);
   chain->denoise = nullptr;
+  feq_deesser_destroy(chain->deesser);
+  chain->deesser = nullptr;
   delete chain;
 }
 
@@ -518,6 +524,9 @@ void feq_chain_configure(FeqChain* chain, const FeqChainSettings* settings) {
   // After the restoration, whose modules decide how far behind the front
   // pair now runs — and so how far the other channels must be held back.
   chain_apply_denoise_alignment(chain);
+  // After the tone is in `settings`, which the De-esser hears its bands
+  // through.
+  chain_configure_deesser(chain);
   {
     FeqRoomSettings room{};
     feq_room_settings_defaults(&room);
@@ -574,6 +583,7 @@ void feq_chain_set_lfe_channel(FeqChain* chain, int channel) {
           ? channel
           : -1;
   feq_room_set_layout(chain->room, chain->room_speakers, chain->lfe_channel);
+  chain_apply_deesser_layout(chain);
 }
 
 void feq_chain_set_room_head(FeqChain* chain, const float* left,
@@ -593,6 +603,7 @@ void feq_chain_set_room_layout(FeqChain* chain, const int* speaker) {
     chain->room_speakers[channel] = speaker != nullptr ? speaker[channel] : -1;
   }
   feq_room_set_layout(chain->room, chain->room_speakers, chain->lfe_channel);
+  chain_apply_deesser_layout(chain);
 }
 
 int feq_chain_room_active(const FeqChain* chain) {
@@ -645,6 +656,8 @@ void feq_chain_reset_room(FeqChain* chain) {
   feq_bass_punch_reset(&chain->bass_punch);
   // Room output already queued downstream is stale Room audio too.
   feq_dimension_reset(&chain->dimension);
+  // And the De-esser's look-ahead line upstream of it, for Punch's reason.
+  feq_deesser_reset(chain->deesser);
   for (uint32_t channel = 0; channel < chain->channels; ++channel) {
     // Both alignment lines, as `feq_chain_reset` clears them: each holds
     // audio from before the route changed, on its way to the Room. Only the
@@ -696,6 +709,9 @@ void feq_chain_reset(FeqChain* chain, FeqChainResetReason reason) {
   feq_bass_forge_reset(&chain->bass_forge);
   chain->bass_forge_run = FeqChain::BassForgeRun{};
   feq_bass_punch_reset(&chain->bass_punch);
+  // Its look-ahead line is delayed audio, and its bands' beds belong to
+  // the passage before.
+  feq_deesser_reset(chain->deesser);
 
   if (reason != FEQ_CHAIN_RESET_SEEK) {
     /**
@@ -762,6 +778,8 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out) {
   // less a hop. A stage reporting a latency it is not actually adding puts the
   // deck's crossfade out by that much on every handoff.
   out->restoration = feq_denoise_latency_frames(chain->denoise);
+  out->deesser =
+      feq_deesser_latency_frames(chain->deesser, chain_deesser_idle(chain) ? 1 : 0);
   out->leveler = feq_live_normalizer_latency(chain->live_normalizer);
   out->room = feq_room_latency_frames(chain->room);
   if (chain->channels >= 2 && !chain_bass_punch_idle(chain)) {
@@ -785,8 +803,8 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out) {
 uint32_t feq_chain_latency_frames(const FeqChain* chain) {
   FeqChainLatencyParts parts{};
   feq_chain_latency_parts(chain, &parts);
-  return parts.linear_eq + parts.restoration + parts.leveler + parts.room +
-         parts.bass_punch + parts.maximizer + parts.headroom;
+  return parts.linear_eq + parts.restoration + parts.deesser + parts.leveler +
+         parts.room + parts.bass_punch + parts.maximizer + parts.headroom;
 }
 
 uint32_t feq_chain_active_stages(const FeqChain* chain) {
@@ -805,9 +823,10 @@ uint32_t feq_chain_active_stages(const FeqChain* chain) {
       settings.maximizer.enabled != 0,
       settings.master.enabled != 0 && settings.master.loudness_maximize != 0,
       settings.master.enabled != 0,
+      settings.deesser.enabled != 0 && chain->deesser != nullptr,
   };
   uint32_t mask = 0;
-  for (uint32_t stage = 0; stage < 11u; ++stage) {
+  for (uint32_t stage = 0; stage < 12u; ++stage) {
     if (active[stage]) mask |= 1u << stage;
   }
   return mask;

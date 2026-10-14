@@ -30,6 +30,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/biquad.h"
 #include "fluideq/crossfade.h"
+#include "fluideq/deesser.h"
 #include "fluideq/denoise.h"
 #include "fluideq/eq.h"
 #include "fluideq/meters.h"
@@ -197,6 +198,17 @@ typedef struct FeqChainSettings {
    * signal that no longer exists and the ceiling stops holding silently.
    */
   FeqDenoiseSettings denoise;
+  /**
+   * The De-esser, after the restoration and before the Exciter (`deesser.h`).
+   *
+   * On the wire in the multiband compressor's retired words, after their
+   * first: every engine since the compressor went reads those words and
+   * nothing from them, so an older engine plays a rack that asks for the
+   * De-esser exactly as it played it before — without it, and without
+   * refusing the line. The first word stays the compressor's switch, written
+   * 0, so the engines from before it went keep their compressor off too.
+   */
+  FeqDeEsserSettings deesser;
   FeqChainExciterSettings exciter;
   FeqChainEqSettings eq;
   /**
@@ -396,6 +408,17 @@ typedef struct FeqChainSettings {
  */
 #define FEQ_MASTER_LOUDNESS_MIN_DB (-48.0)
 #define FEQ_MASTER_LOUDNESS_MAX_DB 12.0
+/**
+ * The pair that follows the De-esser's twelve words in the compressor's
+ * retired eighteen, and says they are the De-esser's. An app from before
+ * 2026-09-22 wrote the compressor there — its corners where the De-esser's
+ * switch now is — and a line without the pair is read with the De-esser off,
+ * never as one. Where the pair stands, that compressor wrote its third band's
+ * switch (0 or 1) and threshold (never positive), so neither value can be
+ * one of those.
+ */
+#define FEQ_CHAIN_DEESSER_SIGNATURE 4207
+#define FEQ_CHAIN_DEESSER_FIELDS 12
 /** ROOM tag, schema version, payload size, then eight Room values. */
 #define FEQ_CHAIN_ROOM_TAG 1380929357
 #define FEQ_CHAIN_ROOM_SCHEMA 1
@@ -585,6 +608,8 @@ typedef struct FeqChainLatencyParts {
   uint32_t linear_eq;
   /** The restoration's modules that are on. */
   uint32_t restoration;
+  /** The De-esser's look-ahead, on or off; nothing in game mode when off. */
+  uint32_t deesser;
   /** Live leveling's look-ahead. */
   uint32_t leveler;
   /** The room's convolution partition; nothing in game mode. */
@@ -601,7 +626,8 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out);
 
 /** Active processors, including those with no fixed buffering. Bit order is
  * leveler, restoration, exciter, bass forge, EQ, bass punch, room, dimension,
- * maximizer, headroom, master. CONTROL planning snapshot,
+ * maximizer, headroom, master, de-esser — the last appended, so every bit an
+ * older reader knows keeps its place. CONTROL planning snapshot,
  * read before publishing a prepared chain. Room protection reflects the planned
  * configuration, not an audio-owned Room report during a handover. */
 uint32_t feq_chain_active_stages(const FeqChain* chain);

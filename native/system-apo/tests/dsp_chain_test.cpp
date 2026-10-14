@@ -143,6 +143,58 @@ void the_encoder_s_own_line_decodes() {
   CHECK(settings.eq.band_count == 15);
 }
 
+/**
+ * THE DE-ESSER IS READ ONLY FROM A LINE THAT SIGNS ITS WORDS.
+ *
+ * Its twelve words sit in the multiband compressor's retired eighteen, and
+ * the reference line was frozen while the compressor was still in them: its
+ * corners, 200 and 3000, stand where the De-esser's switch and Isolate now
+ * are. Read as the De-esser, that line would switch it on and monitor it.
+ */
+void the_de_esser_reads_only_from_a_signed_line() {
+  std::printf("the De-esser is read only from a line that signs its words\n");
+  // After the master switch, the retired guard, the Exciter, the EQ and the
+  // compressor's own switch (`kDeEsserSlot` in `chain_decode.cpp`).
+  constexpr size_t kDeEsser = 2 + 9 + 18 + 11 + 1;
+  const std::vector<double> frozen = reference_values();
+  FeqChainSettings settings = {};
+  CHECK(frozen[kDeEsser] == 200.0 && frozen[kDeEsser + 1] == 3000.0);
+  CHECK(decode_dsp_chain(frozen, &settings));
+  CHECK(settings.deesser.enabled == 0 && settings.deesser.isolate == 0);
+  // The rest of the old line is read as before.
+  CHECK(settings.exciter.enabled == 1 && settings.eq.band_count == 15);
+
+  // The same line with the De-esser's words as the app writes them now.
+  std::vector<double> signed_line = frozen;
+  const double words[17] = {1,   0,  0.4, 5000, 10000, 8, 0.5, 2, 1.5,
+                            120, 1,  0.3, FEQ_CHAIN_DEESSER_SIGNATURE,
+                            FEQ_CHAIN_DEESSER_FIELDS, 0, 0, 0};
+  for (size_t at = 0; at < 17; ++at) signed_line[kDeEsser + at] = words[at];
+  CHECK(decode_dsp_chain(signed_line, &settings));
+  CHECK(settings.deesser.enabled == 1 && settings.deesser.isolate == 0);
+  CHECK(settings.deesser.sensitivity == 0.4);
+  CHECK(settings.deesser.low_hz == 5000 && settings.deesser.high_hz == 10000);
+  CHECK(settings.deesser.range_db == 8 && settings.deesser.width_oct == 0.5);
+  CHECK(settings.deesser.mode == FEQ_DEESSER_WHOLE);
+  CHECK(settings.deesser.attack_ms == 1.5 &&
+        settings.deesser.release_ms == 120);
+  CHECK(settings.deesser.centre_only == 1 &&
+        settings.deesser.keep_cymbals == 0.3);
+  // Nothing after the eighteen moved.
+  CHECK(settings.eq.band_count == 15 && settings.normalizer.mode == 1);
+
+  // A signed line naming a fourth mode is one this engine does not know.
+  std::vector<double> unknown = signed_line;
+  unknown[kDeEsser + 7] = 3;
+  CHECK(!decode_dsp_chain(unknown, &settings));
+  // The same unknown mode in an unsigned line is the compressor's band, read
+  // as nothing: the control that the refusal above is the signature's.
+  std::vector<double> unsigned_line = unknown;
+  unsigned_line[kDeEsser + FEQ_CHAIN_DEESSER_FIELDS] = 0;
+  CHECK(decode_dsp_chain(unsigned_line, &settings));
+  CHECK(settings.deesser.enabled == 0);
+}
+
 void room_payload_bound_is_shared_with_the_file_parser() {
   std::string text;
   for (size_t index = 0; index < FEQ_CHAIN_MAX_PARAMS; ++index) text += "0 ";
@@ -596,8 +648,8 @@ void the_whole_path_reports_its_delay_and_game_mode_shortens_it() {
   values[kRoomEnabled] = 1.0;
   const auto sum_of = [](const Graph::LatencyParts& parts) {
     const FeqChainLatencyParts& rack = parts.rack;
-    return rack.linear_eq + rack.restoration + rack.leveler + rack.room +
-           rack.bass_punch + rack.maximizer + rack.headroom +
+    return rack.linear_eq + rack.restoration + rack.deesser + rack.leveler +
+           rack.room + rack.bass_punch + rack.maximizer + rack.headroom +
            parts.curves + parts.eq_phase + parts.curve_phase +
            parts.convolution + parts.guard;
   };
@@ -814,6 +866,7 @@ void a_changed_rack_is_never_shared() {
 int main() {
   std::printf("fluideq engine system-wide DSP rack\n");
   the_encoder_s_own_line_decodes();
+  the_de_esser_reads_only_from_a_signed_line();
   a_header_only_or_broken_file_is_no_rack();
   room_payload_bound_is_shared_with_the_file_parser();
   denoise_runs_without_the_neural_runtime();

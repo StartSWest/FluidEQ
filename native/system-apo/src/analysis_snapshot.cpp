@@ -82,6 +82,11 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
                             frame.bass_forge_output_db);
   feq_meters_read_bass_punch(meters_, &frame.bass_punch_transient_db,
       &frame.bass_punch_sustain_db, &frame.bass_punch_duck_db);
+  {
+    FeqDeEsserReport deesser{};
+    feq_meters_read_deesser(meters_, &deesser);
+    feq_wire_deesser_report(frame, deesser);
+  }
   const size_t spectrum_bytes = sizeof(float) * present * FEQ_METER_BINS;
   const size_t scope_bytes = sizeof(float) * frame.pairs * 2;
   const size_t band_bytes = sizeof(float) * frame.bands;

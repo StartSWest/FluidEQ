@@ -240,6 +240,39 @@ void dimension_arrives_with_its_network_filled() {
   switched("switched off", on, off);
 }
 
+/**
+ * The Exciter's stereo selector, and Isolate under it, cross.
+ *
+ * The paths a selector left stopped being called in one sample, their
+ * returns at full mix with them, and the half Isolate leaves out was zeroed
+ * at once while the selected half's dry faded over 18 ms. Now a domain the
+ * selector leaves runs out its returns, and the half left out fades the way
+ * the selected half's dry does (`PathRole` in `chain_exciter.cpp`). Timing
+ * is on throughout: it is the whole programme's in every mode, so a switch
+ * moves nothing of it.
+ */
+void the_exciter_s_stereo_selector_crosses() {
+  std::printf("the Exciter's stereo selector, and Isolate under it\n");
+  FeqChainSettings stereo = quiet();
+  stereo.exciter.enabled = 1;
+  stereo.exciter.align_enabled = 1;
+  stereo.exciter.align_amount = 0.45;
+  for (auto& band : stereo.exciter.bands) {
+    band.enabled = 1;
+    band.mix = 1.0;
+  }
+  FeqChainSettings mid = stereo;
+  mid.exciter.stereo = FEQ_STEREO_MID;
+  FeqChainSettings sides = stereo;
+  sides.exciter.stereo = FEQ_STEREO_SIDE;
+  FeqChainSettings mid_isolated = mid;
+  mid_isolated.exciter.isolate = 1;
+  switched("Stereo to Mid only", stereo, mid);
+  switched("Mid only to Sides only", mid, sides);
+  switched("Sides only to Stereo", sides, stereo);
+  switched("Isolate on in Mid only", mid, mid_isolated);
+}
+
 }  // namespace
 
 int main() {
@@ -247,5 +280,6 @@ int main() {
   the_maximizer_glides_and_lets_go();
   bass_forge_fades_both_ways();
   dimension_arrives_with_its_network_filled();
+  the_exciter_s_stereo_selector_crosses();
   return feq_test::finish();
 }

@@ -111,6 +111,9 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.bass_forge_low, previous.bass_forge_low);
   swap(prepared.bass_forge_scratch, previous.bass_forge_scratch);
   swap(prepared.bass_punch, previous.bass_punch);
+  // What the De-esser is hearing, holding and cutting; the prepared chain
+  // keeps the layout it was configured with (`feq_deesser_transfer`).
+  feq_deesser_transfer(prepared.deesser, previous.deesser);
   swap(prepared.bass_punch_low, previous.bass_punch_low);
   swap(prepared.bass_punch_bloom, previous.bass_punch_bloom);
   swap(prepared.bass_punch_bloom_pointers, previous.bass_punch_bloom_pointers);

@@ -27,6 +27,8 @@ import library from './library';
 import songEq from './songEq';
 import songSound from './songSound';
 import dsp from './dsp';
+import dspDeEsser from './dspDeEsser';
+import dspStageSave from './dspStageSave';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
 import help from './help';
@@ -74,6 +76,8 @@ const fr: Partial<Dictionary> = {
   ...songEq,
   ...songSound,
   ...dsp,
+  ...dspDeEsser,
+  ...dspStageSave,
   ...remoteAudio,
   ...tour,
   ...help,

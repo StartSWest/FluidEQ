@@ -74,6 +74,10 @@ void feq_chain_process(FeqChain* chain, float* const* channels,
   }
   feq_meters_capture(chain->meters, FEQ_METER_STAGE_DENOISE, channels, frames);
 
+  // The De-esser between the repair and the Exciter: see
+  // `chain_deesser.cpp` for why it stands exactly there.
+  chain_process_deesser(chain, channels, frames);
+
   chain_process_exciter(chain, channels, frames);
   /**
    * Tapped where the visible chain draws its boundary, not where it is

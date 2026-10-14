@@ -15,6 +15,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import useStagePresets from './useStagePresets';
 
 interface IDspDimensionBarProps {
   dimension: IDimensionSettings;
@@ -53,22 +54,29 @@ const DspDimensionBar = ({
   onCommit,
 }: IDspDimensionBarProps) => {
   const { t } = useTranslation();
-  const entries: IRichPickEntry[] = DIMENSION_PRESET_GROUPS.flatMap((group) =>
-    DIMENSION_CATALOGUE.profiles
-      .filter((preset) => preset.group === group)
-      .map((preset) => ({
-        id: preset.id,
-        name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset),
-        group,
-        icon: (
-          <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
-        ),
-      })),
+  const saved = useStagePresets('dimension', dimension, onChange, onCommit);
+  const factoryEntries: IRichPickEntry[] = DIMENSION_PRESET_GROUPS.flatMap(
+    (group) =>
+      DIMENSION_CATALOGUE.profiles
+        .filter((preset) => preset.group === group)
+        .map((preset) => ({
+          id: preset.id,
+          name: t(preset.labelKey as TranslationKey),
+          hint: profileHint(preset),
+          group,
+          icon: (
+            <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
+          ),
+        })),
   );
+  // Saved profiles first, as the EQ lists its own.
+  const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string, enable = true) => {
+    if (saved.apply(id)) {
+      return;
+    }
     const next = DIMENSION_CATALOGUE.settings(
       id,
       enable ? true : dimension.enabled,
@@ -102,7 +110,8 @@ const DspDimensionBar = ({
           <RichPick
             entries={entries}
             groupLabel={(group) =>
-              group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
+              saved.savedGroupLabel(group) ??
+              (group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : '')
             }
             activeId={dimension.presetId}
             onPick={applyPreset}
@@ -151,10 +160,15 @@ const DspDimensionBar = ({
             <DspBarIcon name="reset" />
             {t('dsp.eqPreset.reset')}
           </button>
+          {saved.buttons}
         </div>
       </div>
 
       <p className="dsp-dimension-note">{t('dsp.dimension.monoNote')}</p>
+
+      {saved.notice}
+
+      {saved.dialog}
     </>
   );
 };

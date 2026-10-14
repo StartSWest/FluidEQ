@@ -3,6 +3,7 @@
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
+import { setDspDeEsserReport } from './deEsserTelemetry';
 import { setDspRoomReport } from './roomTelemetry';
 
 /**
@@ -222,6 +223,9 @@ export const createNativeMeters = (
       frame.bassPunch.sustainGainDb,
       frame.bassPunch.duckGainDb,
     );
+    // Absent from an engine before the stage; the page says so rather than
+    // drawing a De-esser that is cutting nothing.
+    setDspDeEsserReport(frame.deEsser);
     // The one reading the Master page never had. Its target was a number the
     // user set beside a spectrum, with nothing anywhere in the app that could
     // say what the output measured — which is how a makeup applying exactly
