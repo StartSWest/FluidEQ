@@ -94,7 +94,7 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
   ],
   'src/renderer/components/featureTour/ShowcaseSlide.tsx': [
     [
-      'tour.{engine,room,plus,visualizers,desktop,lighting,look,gpu,sparks,sound,graph,player,games,presets,tone,studio,help,outputs,bands,songs}.{kicker,title,lead,how,open,point1,point2,point3}',
+      'tour.{engine,room,plus,visualizers,desktop,lighting,look,gpu,sparks,sound,graph,player,games,presets,tone,studio,help,outputs,bands,ears,songs,deesser}.{kicker,title,lead,how,open,point1,point2,point3}',
       '*.*',
     ],
   ],

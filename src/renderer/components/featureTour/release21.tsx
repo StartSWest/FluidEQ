@@ -6,6 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useTranslation } from '../../utils/I18nContext';
 import BandsVisual from './BandsVisual';
+import DeEsserVisual from './DeEsserVisual';
+import EarsVisual from './EarsVisual';
 import OutputsVisual from './OutputsVisual';
 import ShowcaseSlide from './ShowcaseSlide';
 import SongsVisual from './SongsVisual';
@@ -13,7 +15,8 @@ import type { ISlideActions } from './slides';
 
 /**
  * 2.1's slides: every output keeping its own sound, the bands read out on
- * the graph with EQ mode beside it, and songs that remember their sound. Each
+ * the graph with EQ mode beside it, a band tuned for each ear, songs that
+ * remember their sound, and the DSP rack's De-esser. Each
  * quotes the app's own labels for the controls it sends the reader to, so a
  * renamed control renames the slide.
  */
@@ -51,6 +54,44 @@ export function BandsSlide({ actions }: ISlideProps) {
         eqMode: t('eq.mode'),
         yourEq: t('eq.mode.yourEq'),
         corrections: t('eq.mode.curves'),
+      }}
+    />
+  );
+}
+
+export function EarsSlide({ actions }: ISlideProps) {
+  const { t } = useTranslation();
+  return (
+    <ShowcaseSlide
+      prefix="tour.ears"
+      onOpen={() => actions.openTab('eq')}
+      visual={<EarsVisual />}
+      values={{
+        both: t('eq.channels.both'),
+        split: t('eq.channels.split'),
+        delete: t('eq.delete'),
+        reset: t('eq.menu.reset'),
+        clear: t('eq.clear'),
+        importInto: t('eq.channels.importInto'),
+      }}
+    />
+  );
+}
+
+export function DeEsserSlide({ actions }: ISlideProps) {
+  const { t } = useTranslation();
+  return (
+    <ShowcaseSlide
+      prefix="tour.deesser"
+      onOpen={() => actions.openTab('dsp')}
+      visual={<DeEsserVisual />}
+      values={{
+        deEsser: t('dsp.deEsser.title'),
+        isolate: t('dsp.deEsser.isolate'),
+        sensitivity: t('dsp.deEsser.sensitivity'),
+        speech: t('dsp.preset.speech'),
+        podcast: t('dsp.eqPreset.podcast'),
+        audiobook: t('dsp.eqPreset.audiobook'),
       }}
     />
   );

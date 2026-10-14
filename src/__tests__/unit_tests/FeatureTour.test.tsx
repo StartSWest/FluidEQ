@@ -100,6 +100,40 @@ it('names 2.1’s controls by the labels the window gives them', () => {
   ).toBeInTheDocument();
 });
 
+it('sends the reader to each ear’s split by the band menu’s own words', () => {
+  const { onOpenTab } = showTour('2.1.0');
+  goTo('Tune each ear on its own');
+  expect(
+    screen.getByText(
+      'Open EQ, right-click a band on the graph and choose Left + right. The DSP rack’s EQ has the same menu while it applies to Stereo.',
+    ),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      'Both ears joins the two again in their middle, halfway in frequency and gain. Reset band and Clear EQ join them too.',
+    ),
+  ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Open EQ' }));
+  expect(onOpenTab).toHaveBeenCalledWith('eq');
+});
+
+it('names the De-esser and the chains that switch it on as the rack does', () => {
+  const { onOpenTab } = showTour('2.1.0');
+  goTo('A De-esser in the DSP rack');
+  expect(
+    screen.getByText(
+      'Speech, Podcast and Audiobook switch it on. Every filter of the rack can now save profiles of your own.',
+    ),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      'Open DSP and choose De-esser in the list on the left, or pick Podcast. Start from a profile, then raise Sensitivity until each S is caught.',
+    ),
+  ).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: 'Open DSP' }));
+  expect(onOpenTab).toHaveBeenCalledWith('dsp');
+});
+
 it('reads each band out as the graph does, a cut with a real minus', () => {
   showTour('2.1.0');
   goTo('Every band’s numbers, right on the graph');

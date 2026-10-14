@@ -68,11 +68,8 @@ const insights = {
   'insights.server.kind.auth': 'साइन-इन',
   'insights.server.kind.storage': 'फ़ाइलें',
   'insights.server.kind.realtime': 'लाइव',
-  'insights.server.noToken': 'अनुरोधों की गिनती के लिए एक उपयोग कुंजी चाहिए।',
-  'insights.server.tokenSteps':
-    'supabase.com पर Account → Access tokens में एक ऐक्सेस टोकन बनाइए (विकल्प मिले तो सिर्फ़ “read analytics usage” के साथ), फिर उसे प्रोजेक्ट में Edge Functions → Secrets में USAGE_ACCESS_TOKEN नाम से जोड़िए।',
-  'insights.server.tokenRefused':
-    'Supabase ने उपयोग कुंजी अस्वीकार कर दी। नई कुंजी बनाइए और उसी नाम से फिर सहेजिए।',
+  'insights.server.noToken': 'इस सर्वर पर अनुरोधों की गिनती चालू नहीं है।',
+  'insights.server.tokenRefused': 'सर्वर अनुरोधों की गिनती नहीं पढ़ सका।',
   'insights.server.tables': 'सबसे बड़ी तालिकाएँ',
   'insights.server.buckets': 'फ़ोल्डर के हिसाब से फ़ाइलें',
   'insights.server.bucketFiles': '{count} फ़ाइलें',

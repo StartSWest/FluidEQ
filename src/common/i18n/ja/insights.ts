@@ -69,11 +69,10 @@ const insights = {
   'insights.server.kind.auth': 'サインイン',
   'insights.server.kind.storage': 'ファイル',
   'insights.server.kind.realtime': 'ライブ',
-  'insights.server.noToken': 'リクエスト数には使用量キーが必要です。',
-  'insights.server.tokenSteps':
-    'supabase.com の Account → Access tokens でアクセストークンを作成し（選べる場合は「read analytics usage」のみ）、プロジェクトの Edge Functions → Secrets に USAGE_ACCESS_TOKEN という名前で追加してください。',
+  'insights.server.noToken':
+    'このサーバーではリクエスト数の集計がオンになっていません。',
   'insights.server.tokenRefused':
-    'Supabase が使用量キーを拒否しました。新しいキーを作成し、同じ名前でもう一度保存してください。',
+    'サーバーがリクエスト数を読み取れませんでした。',
   'insights.server.tables': 'サイズの大きいテーブル',
   'insights.server.buckets': 'フォルダー別のファイル',
   'insights.server.bucketFiles': '{count} ファイル',

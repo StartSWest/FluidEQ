@@ -66,11 +66,8 @@ const insights = {
   'insights.server.kind.auth': '登录',
   'insights.server.kind.storage': '文件',
   'insights.server.kind.realtime': '实时',
-  'insights.server.noToken': '请求数需要一个用量密钥。',
-  'insights.server.tokenSteps':
-    '在 supabase.com 的 Account → Access tokens 中创建访问令牌（如果可以选择，只勾选“read analytics usage”），然后在项目的 Edge Functions → Secrets 中以 USAGE_ACCESS_TOKEN 为名添加。',
-  'insights.server.tokenRefused':
-    'Supabase 拒绝了这个用量密钥。请新建一个，并以同样的名称重新保存。',
+  'insights.server.noToken': '此服务器未开启请求计数。',
+  'insights.server.tokenRefused': '服务器无法读取请求计数。',
   'insights.server.tables': '最大的表',
   'insights.server.buckets': '按文件夹的文件',
   'insights.server.bucketFiles': '{count} 个文件',

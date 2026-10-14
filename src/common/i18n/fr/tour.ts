@@ -449,6 +449,23 @@ const tour: Partial<Dictionary> = {
     'Le graphique de l’égaliseur avec la fréquence, le Q et le gain de chaque bande au-dessus de son point, une bande qui bouge aux flèches du clavier, et en dessous la carte Mode EQ avec Votre EQ et Corrections.',
   'tour.bands.shortcut': 'Ctrl+W',
 
+  'tour.ears.kicker': 'UNE BANDE, DEUX OREILLES',
+  'tour.ears.title': 'Réglez chaque oreille à part',
+  'tour.ears.subtitle': 'Gauche + droite dans le menu de la bande',
+  'tour.ears.lead':
+    'Faites un clic droit sur une bande et choisissez {split} : elle devient une bande pour chaque oreille, sur la même fréquence, et vous déplacez chacune seule. La courbe de l’oreille gauche est pleine, celle de la droite en pointillés.',
+  'tour.ears.point1':
+    '{both} les réunit en leur milieu, à mi-chemin en fréquence et en gain. {reset} et {clear} les réunissent aussi.',
+  'tour.ears.point2':
+    '{delete} se trouve dans le même menu, dans l’égaliseur principal et dans le rack DSP, et demande une seconde pression avant de supprimer.',
+  'tour.ears.point3':
+    'Une courbe Squiglink peut s’importer dans une seule oreille : {importInto} remplit seulement la gauche ou la droite et laisse l’autre comme elle était.',
+  'tour.ears.how':
+    'Ouvrez l’égaliseur, faites un clic droit sur une bande du graphique et choisissez {split}. L’égaliseur du rack DSP a le même menu tant qu’il s’applique à la stéréo.',
+  'tour.ears.open': 'Ouvrir l’Égaliseur',
+  'tour.ears.imageAlt':
+    'Le graphique de l’égaliseur avec une bande partagée en une bande pour l’oreille gauche et une pour la droite, qui s’écartent puis se rejoignent en leur milieu, la courbe gauche pleine et la droite en pointillés, à côté du menu de la bande avec Les deux oreilles et Gauche + droite.',
+
   'tour.songs.kicker': 'UN SON POUR CHAQUE CHANSON',
   'tour.songs.title': 'Des chansons qui se souviennent de vos goûts',
   'tour.songs.subtitle':
@@ -466,6 +483,23 @@ const tour: Partial<Dictionary> = {
   'tour.songs.open': 'Ouvrir l’Égaliseur',
   'tour.songs.imageAlt':
     'Une file de quatre chansons jouées à tour de rôle, trois avec le préréglage et la courbe qu’on leur a laissés et une jamais réglée, et au-dessus l’avis qu’affiche une chanson mémorisée, avec Annuler et Oublier cette chanson.',
+
+  'tour.deesser.kicker': 'UN S PLUS DOUX',
+  'tour.deesser.title': 'Un dé-esseur dans le rack DSP',
+  'tour.deesser.subtitle': 'Les S aigus baissés, les cymbales intactes',
+  'tour.deesser.lead':
+    '{deEsser} baisse les S, T et CH aigus d’une voix seulement quand ils sonnent, et laisse les cymbales, les charlestons et le reste des aigus tels qu’ils étaient.',
+  'tour.deesser.point1':
+    'Il repère chaque S par rapport au niveau du morceau lui-même : un titre calme et un titre fort sont traités pareil, et vous voyez chaque S repéré et ce qu’il a retiré.',
+  'tour.deesser.point2':
+    'Il baisse seulement les fréquences dont le S est fait, tout ce qui est au-dessus ou la voix entière, et {isolate} ne fait entendre que ce qu’il retire.',
+  'tour.deesser.point3':
+    '{speech}, {podcast} et {audiobook} l’activent. Chaque filtre du rack peut désormais enregistrer vos propres profils.',
+  'tour.deesser.how':
+    'Ouvrez le DSP et choisissez {deEsser} dans la liste à gauche, ou le préréglage {podcast}. Partez d’un profil, puis montez {sensitivity} jusqu’à ce que chaque S soit repéré.',
+  'tour.deesser.open': 'Ouvrir le DSP',
+  'tour.deesser.imageAlt':
+    'La bande du dé-esseur qui défile : chaque S d’une voix au-dessus de la ligne où l’étage commence, avec sa réduction suspendue dessous en ambre, et les charlestons en gris, intacts ; au-dessus l’étage avec Spectral choisi, et dessous Voix, Podcast et Livre audio.',
 
   'tour.looks.kicker': 'VOTRE PROPRE VISUALISEUR',
   'tour.looks.title': 'Des styles à vous pour le graphique',

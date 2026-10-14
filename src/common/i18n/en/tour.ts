@@ -461,6 +461,40 @@ const tour = {
     'The EQ graph with each band’s frequency, Q and gain stacked over its point, one band moving under the arrow keys, and the EQ mode card under the curves with Your EQ and Corrections.',
   'tour.bands.shortcut': 'Ctrl+W',
 
+  'tour.ears.kicker': 'ONE BAND, TWO EARS',
+  'tour.ears.title': 'Tune each ear on its own',
+  'tour.ears.subtitle': 'Left + right in the band’s own menu',
+  'tour.ears.lead':
+    'Right-click a band and choose {split}: it becomes one band for each ear, at the same frequency, and you move each one by itself. The left ear’s curve is drawn solid and the right ear’s dashed.',
+  'tour.ears.point1':
+    '{both} joins the two again in their middle, halfway in frequency and gain. {reset} and {clear} join them too.',
+  'tour.ears.point2':
+    '{delete} is in the same menu, in the main EQ and in the DSP rack, and asks for a second press before it deletes.',
+  'tour.ears.point3':
+    'A Squiglink curve can be imported into one ear: {importInto} fills only the left or the right and leaves the other ear as it was.',
+  'tour.ears.how':
+    'Open EQ, right-click a band on the graph and choose {split}. The DSP rack’s EQ has the same menu while it applies to Stereo.',
+  'tour.ears.open': 'Open EQ',
+  'tour.ears.imageAlt':
+    'The EQ graph with one band split into a left-ear and a right-ear band that move apart and join again in their middle, the left ear’s curve solid and the right’s dashed, beside the band menu with Both ears and Left + right.',
+
+  'tour.deesser.kicker': 'A SOFTER S',
+  'tour.deesser.title': 'A De-esser in the DSP rack',
+  'tour.deesser.subtitle': 'Sharp S sounds down, cymbals left alone',
+  'tour.deesser.lead':
+    '{deEsser} turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals, hi-hats and the rest of the treble as they were.',
+  'tour.deesser.point1':
+    'It finds each S against the song’s own level, so a quiet track and a loud one are treated alike, and you watch every one it caught and how much it took.',
+  'tour.deesser.point2':
+    'It turns down only the frequencies the S is made of, everything above it, or the whole voice, and {isolate} plays only what it takes away.',
+  'tour.deesser.point3':
+    '{speech}, {podcast} and {audiobook} switch it on. Every filter of the rack can now save profiles of your own.',
+  'tour.deesser.how':
+    'Open DSP and choose {deEsser} in the list on the left, or pick {podcast}. Start from a profile, then raise {sensitivity} until each S is caught.',
+  'tour.deesser.open': 'Open DSP',
+  'tour.deesser.imageAlt':
+    'The De-esser’s strip scrolling by: each S of a voice standing over the line where the stage starts with its cut hanging under it in amber, and the hi-hats in grey, left alone; above it the stage with Spectral chosen, and under it Speech, Podcast and Audiobook.',
+
   'tour.songs.kicker': 'A SOUND FOR EVERY SONG',
   'tour.songs.title': 'Songs that remember how you like them',
   'tour.songs.subtitle': 'Tune a song once, hear it that way every time',

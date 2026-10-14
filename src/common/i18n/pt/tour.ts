@@ -447,6 +447,23 @@ const tour: Partial<Dictionary> = {
     'O gráfico do EQ com a frequência, o Q e o ganho de cada banda sobre o seu ponto, uma banda se movendo com as setas do teclado e, embaixo, o cartão Modo EQ com Seu EQ e Correções.',
   'tour.bands.shortcut': 'Ctrl+W',
 
+  'tour.ears.kicker': 'UMA BANDA, DOIS OUVIDOS',
+  'tour.ears.title': 'Ajuste cada ouvido separadamente',
+  'tour.ears.subtitle': 'Esquerdo + direito no menu da banda',
+  'tour.ears.lead':
+    'Clique com o botão direito em uma banda e escolha {split}: ela vira uma banda para cada ouvido, na mesma frequência, e você move cada uma sozinha. A curva do ouvido esquerdo é contínua e a do direito, tracejada.',
+  'tour.ears.point1':
+    '{both} junta as duas de novo no meio, a meio caminho em frequência e ganho. {reset} e {clear} também as juntam.',
+  'tour.ears.point2':
+    '{delete} fica no mesmo menu, no EQ principal e no rack DSP, e pede um segundo clique antes de apagar.',
+  'tour.ears.point3':
+    'Uma curva do Squiglink pode ser importada em um só ouvido: {importInto} preenche só o esquerdo ou o direito e deixa o outro como estava.',
+  'tour.ears.how':
+    'Abra o EQ, clique com o botão direito em uma banda no gráfico e escolha {split}. O EQ do rack DSP tem o mesmo menu enquanto se aplica ao estéreo.',
+  'tour.ears.open': 'Abrir EQ',
+  'tour.ears.imageAlt':
+    'O gráfico do EQ com uma banda dividida em uma para o ouvido esquerdo e outra para o direito, que se afastam e voltam a se juntar no meio, a curva esquerda contínua e a direita tracejada, ao lado do menu da banda com Ambos os ouvidos e Esquerdo + direito.',
+
   'tour.songs.kicker': 'UM SOM PARA CADA MÚSICA',
   'tour.songs.title': 'Músicas que lembram como você gosta delas',
   'tour.songs.subtitle': 'Ajuste uma vez e ouça assim sempre',
@@ -463,6 +480,23 @@ const tour: Partial<Dictionary> = {
   'tour.songs.open': 'Abrir EQ',
   'tour.songs.imageAlt':
     'Uma fila de quatro músicas tocando em turnos, três com o preset e a curva com que ficaram e uma nunca ajustada, e acima o aviso que uma música lembrada mostra, com Desfazer e Esquecer esta música.',
+
+  'tour.deesser.kicker': 'UM S MAIS SUAVE',
+  'tour.deesser.title': 'Um De-esser no rack DSP',
+  'tour.deesser.subtitle': 'S agudos mais baixos, pratos intactos',
+  'tour.deesser.lead':
+    '{deEsser} abaixa os S, T e CH agudos de uma voz só enquanto soam, e deixa os pratos, os chimbais e o resto dos agudos como estavam.',
+  'tour.deesser.point1':
+    'Ele encontra cada S pelo nível da própria música, então trata igual uma faixa baixa e uma alta, e você vê cada S que ele pegou e quanto tirou.',
+  'tour.deesser.point2':
+    'Ele abaixa só as frequências de que o S é feito, tudo acima dele ou a voz inteira, e {isolate} toca só o que ele tira.',
+  'tour.deesser.point3':
+    '{speech}, {podcast} e {audiobook} o ativam. Cada filtro do rack agora pode salvar perfis seus.',
+  'tour.deesser.how':
+    'Abra o DSP e escolha {deEsser} na lista à esquerda, ou o preset {podcast}. Comece por um perfil e suba {sensitivity} até ele pegar cada S.',
+  'tour.deesser.open': 'Abrir DSP',
+  'tour.deesser.imageAlt':
+    'A faixa do De-esser passando: cada S de uma voz acima da linha onde o estágio começa, com o corte pendurado embaixo em âmbar, e os chimbais em cinza, intactos; em cima o estágio com Espectral escolhido e embaixo Voz, Podcast e Audiolivro.',
 
   'tour.looks.kicker': 'SEU PRÓPRIO VISUALIZADOR',
   'tour.looks.title': 'Visuais próprios para o gráfico',

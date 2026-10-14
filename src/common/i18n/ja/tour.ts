@@ -442,6 +442,23 @@ const tour: Partial<Dictionary> = {
     '各バンドの周波数、Q、ゲインがポイントの上に表示された EQ グラフ。1 つのバンドが矢印キーで動いており、カーブの下には「ユーザーEQ」と「補正」のタブを持つ「EQモード」カードがあります。',
   'tour.bands.shortcut': 'Ctrl+W',
 
+  'tour.ears.kicker': 'ひとつのバンドを左右の耳に',
+  'tour.ears.title': '左右の耳を別々に調整',
+  'tour.ears.subtitle': 'バンドのメニューで左 + 右',
+  'tour.ears.lead':
+    'バンドを右クリックして「{split}」を選ぶと、同じ周波数で左右の耳それぞれのバンドになり、ひとつずつ動かせます。左耳のカーブは実線、右耳は破線で描かれます。',
+  'tour.ears.point1':
+    '「{both}」は 2 つを周波数とゲインの中間でひとつに戻します。「{reset}」と「{clear}」でもひとつに戻ります。',
+  'tour.ears.point2':
+    '「{delete}」も同じメニューにあり、メイン EQ でも DSP ラックでも使えます。削除の前にもう一度押すよう確認します。',
+  'tour.ears.point3':
+    'Squiglink のカーブを片耳だけにインポートできます。「{importInto}」で左か右だけを埋め、もう片方はそのまま残ります。',
+  'tour.ears.how':
+    'EQ を開き、グラフ上のバンドを右クリックして「{split}」を選びます。DSP ラックの EQ でも、ステレオに適用している間は同じメニューが使えます。',
+  'tour.ears.open': 'EQ を開く',
+  'tour.ears.imageAlt':
+    'EQ グラフ。ひとつのバンドが左耳用と右耳用に分かれて離れ、中間で再びひとつになる。左耳のカーブは実線、右耳は破線。横に「両耳」と「左 + 右」のあるバンドメニュー。',
+
   'tour.songs.kicker': '曲ごとにサウンドを',
   'tour.songs.title': '好みのサウンドを覚えている曲',
   'tour.songs.subtitle': '一度調整すれば、毎回そのサウンドで',
@@ -458,6 +475,23 @@ const tour: Partial<Dictionary> = {
   'tour.songs.open': 'EQ を開く',
   'tour.songs.imageAlt':
     '順番に再生される 4 曲のキュー。3 曲にはそれぞれ残されたプリセットとカーブがあり、1 曲は未調整です。その上には、記憶された曲が表示する通知と「元に戻す」「この曲の記憶を消す」があります。',
+
+  'tour.deesser.kicker': 'やわらかな S',
+  'tour.deesser.title': 'DSP ラックにディエッサー',
+  'tour.deesser.subtitle': '鋭い S だけを下げ、シンバルはそのまま',
+  'tour.deesser.lead':
+    '「{deEsser}」は声の鋭い S・T・SH の音を、鳴っている間だけ下げます。シンバルやハイハット、ほかの高域はそのままです。',
+  'tour.deesser.point1':
+    '曲そのもののレベルを基準に S を見つけるので、静かな曲も大きな曲も同じように扱い、捉えた S とどれだけ下げたかがひとつずつ見えます。',
+  'tour.deesser.point2':
+    'S を構成する周波数だけ、その上の帯域すべて、または声全体を下げられます。「{isolate}」では取り除いた音だけを聴けます。',
+  'tour.deesser.point3':
+    '「{speech}」「{podcast}」「{audiobook}」でオンになります。ラックのどのフィルターも自分のプロファイルを保存できるようになりました。',
+  'tour.deesser.how':
+    'DSP を開き、左のリストで「{deEsser}」を選ぶか、「{podcast}」プリセットを選びます。プロファイルから始めて、すべての S を捉えるまで「{sensitivity}」を上げてください。',
+  'tour.deesser.open': 'DSP を開く',
+  'tour.deesser.imageAlt':
+    '流れていくディエッサーの帯。声の S はステージが働き始める線の上に立ち、その下に琥珀色のカットが下がる。ハイハットは灰色でそのまま。上には「スペクトル」を選んだステージ、下には「音声」「ポッドキャスト」「オーディオブック」。',
 
   'tour.looks.kicker': '自分だけのビジュアライザー',
   'tour.looks.title': 'グラフの表示を自分で作る',

@@ -69,11 +69,8 @@ const insights = {
   'insights.server.kind.auth': 'Вход',
   'insights.server.kind.storage': 'Файлы',
   'insights.server.kind.realtime': 'Онлайн',
-  'insights.server.noToken': 'Для запросов нужен ключ статистики.',
-  'insights.server.tokenSteps':
-    'Создайте токен доступа на supabase.com в разделе Account → Access tokens (только с правом «read analytics usage», если есть выбор) и добавьте его в проект в Edge Functions → Secrets под именем USAGE_ACCESS_TOKEN.',
-  'insights.server.tokenRefused':
-    'Supabase отклонил ключ статистики. Создайте новый и сохраните его под тем же именем.',
+  'insights.server.noToken': 'Подсчёт запросов на этом сервере не включён.',
+  'insights.server.tokenRefused': 'Сервер не смог прочитать число запросов.',
   'insights.server.tables': 'Самые большие таблицы',
   'insights.server.buckets': 'Файлы по папкам',
   'insights.server.bucketFiles': 'Файлов: {count}',

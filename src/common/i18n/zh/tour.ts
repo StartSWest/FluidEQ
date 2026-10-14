@@ -430,6 +430,23 @@ const tour: Partial<Dictionary> = {
     '均衡器图表上每个频段的点上方显示着频率、Q 值和增益，一个频段正随方向键移动，曲线下方是带有“自定义 EQ”和“校正”标签页的“EQ 模式”卡片。',
   'tour.bands.shortcut': 'Ctrl+W',
 
+  'tour.ears.kicker': '一个频段，两只耳朵',
+  'tour.ears.title': '左右耳分别调',
+  'tour.ears.subtitle': '在频段自己的菜单里选左 + 右',
+  'tour.ears.lead':
+    '右键点击一个频段，选择“{split}”：它会在同一频率上变成左右耳各一个频段，你可以分别移动。左耳的曲线画成实线，右耳画成虚线。',
+  'tour.ears.point1':
+    '“{both}”会把两者在中间重新合并，频率和增益都取一半。“{reset}”和“{clear}”也会合并它们。',
+  'tour.ears.point2':
+    '“{delete}”就在同一个菜单里，主均衡器和 DSP 机架都有，删除前会请你再按一次确认。',
+  'tour.ears.point3':
+    'Squiglink 曲线可以只导入一只耳朵：“{importInto}”只填充左耳或右耳，另一只保持原样。',
+  'tour.ears.how':
+    '打开均衡器，在图上右键点击一个频段，选择“{split}”。DSP 机架的均衡器作用于立体声时，也有同样的菜单。',
+  'tour.ears.open': '打开均衡器',
+  'tour.ears.imageAlt':
+    '均衡器图：一个频段分成左耳和右耳两个频段，分开后又在中间合并，左耳曲线为实线、右耳为虚线，旁边是带有“双耳”和“左 + 右”的频段菜单。',
+
   'tour.songs.kicker': '每首歌都有自己的声音',
   'tour.songs.title': '记得你喜好的歌曲',
   'tour.songs.subtitle': '调一次，每次都这样听',
@@ -446,6 +463,23 @@ const tour: Partial<Dictionary> = {
   'tour.songs.open': '打开均衡器',
   'tour.songs.imageAlt':
     '一个轮流播放的四首歌队列：三首带着各自留下的预设和曲线，一首从未调整过；上方是被记住的歌曲弹出的通知，带有“撤销”和“忘记这首歌”。',
+
+  'tour.deesser.kicker': '更柔和的 S',
+  'tour.deesser.title': 'DSP 机架里的齿音消除器',
+  'tour.deesser.subtitle': '压低尖锐的 S，镲片不受影响',
+  'tour.deesser.lead':
+    '“{deEsser}”只在人声尖锐的 S、T、SH 发出时把它们压低，镲片、踩镲和其余高频保持原样。',
+  'tour.deesser.point1':
+    '它按歌曲自身的电平来找每个 S，所以安静和响亮的曲目一视同仁；你能看到它抓到的每个 S 和压了多少。',
+  'tour.deesser.point2':
+    '它可以只压低构成 S 的频率、S 以上的全部，或整个人声；“{isolate}”只播放它去掉的部分。',
+  'tour.deesser.point3':
+    '“{speech}”“{podcast}”和“{audiobook}”会开启它。机架里的每个滤波器现在都能保存你自己的配置。',
+  'tour.deesser.how':
+    '打开 DSP，在左侧列表中选择“{deEsser}”，或选择“{podcast}”预设。从一个配置开始，再调高“{sensitivity}”，直到每个 S 都被抓到。',
+  'tour.deesser.open': '打开 DSP',
+  'tour.deesser.imageAlt':
+    '齿音消除器的条带滚动而过：人声的每个 S 高出该级开始起作用的线，下方以琥珀色挂着它的削减量，踩镲为灰色、不受影响；上方是选中“频谱”的该级，下方是“语音”“播客”和“有声书”。',
 
   'tour.looks.kicker': '你自己的可视化效果',
   'tour.looks.title': '自定义图表外观',

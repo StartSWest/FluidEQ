@@ -10,10 +10,15 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 FluidEQ 2.1 gives every output a sound of its own. Put your headphones on and
 they sound the way you tuned them; switch to the speakers and their preset,
-DSP rack and Room come back with them. A second output now plays straight
-from the FluidEQ Engine, Share Audio works both ways between two computers,
-songs can remember how you like them, and the graph shows every band's
-numbers right on the curve.
+DSP rack and Room come back with them. Any band can now be tuned for each ear
+on its own, the DSP rack gains a De-esser that turns down only a voice's
+sharp S, a second output plays straight from the FluidEQ Engine, Share Audio
+works both ways between two computers, songs can remember how you like them,
+and the graph shows every band's numbers right on the curve.
+
+This release brings FluidEQ Engine 1.23. FluidEQ offers the update after it
+starts, with one Windows prompt; until then each ear plays both ears' bands
+and the De-esser is not heard, and everything else plays as before.
 
 ### Outputs
 
@@ -30,12 +35,28 @@ numbers right on the curve.
   computer.
 - **Share Audio works both ways.** Link two computers once, from either side,
   and each can send its sound and play the other's, each direction on its own
-  switch.
+  switch. Each link can be paused and resumed and has a volume of its own,
+  and a link no longer stays stuck after either computer restarts.
 - **Bluetooth headphones show their battery** beside the output, and beside
   the second output.
 
 ### The equaliser
 
+- **Tune each ear on its own.** Right-click a band and choose **Left + right**:
+  it becomes two bands at the same frequency, one for each ear, that you move
+  separately. **Both ears** joins them again in their middle, and Reset band
+  and Clear EQ join them too. The graph draws the left ear solid and the right
+  dashed. The same menu does it in the DSP rack's EQ while it applies to
+  Stereo.
+- **Delete band** is in the band menu, in the main EQ and the DSP rack, for
+  one band or a selection. It asks for a second press before it deletes.
+  Deleting one ear's half of a pair puts the other half back on both ears.
+- **Import into one ear.** Squiglink's Apply as EQ, and the DSP EQ's Import,
+  can fill Both ears, the Left ear or the Right ear. One ear replaces only
+  that ear's bands and leaves the other ear sounding as it did.
+- **Picking a built-in layout starts it fresh**: 10, 15 or 31 bands at that
+  layout's own frequencies and Q, flat and on both ears. It used to bring back
+  what you last had on that layout.
 - **Band labels on the graph.** Each band can show its frequency, Q and gain
   over its point (View → Everything, or Ctrl+W). A label sits above or below
   its point, never beside it, keeps clear of the style dots and the
@@ -60,6 +81,26 @@ numbers right on the curve.
 - The Smart EQ toolbar was tidied, and the Applied headphone button stays
   readable under the mouse.
 
+### The DSP rack
+
+- **De-esser.** A new stage, after the restorations and before the Exciter,
+  that turns down the sharp S, T and SH of a voice only while they sound and
+  leaves cymbals and hi-hats alone. It reduces the S's own frequencies
+  (Spectral), everything above it (Treble) or the whole voice; it listens in
+  the centre of the stereo picture or to all of it; and Isolate plays only
+  what it takes away. A four-second strip beside the treble shows each S and
+  the cut over it, with the cymbals it let through in grey. Seven profiles to
+  start from, for music and for speech; Speech, Podcast and Audiobook switch
+  it on. Switching it on or off never moves the sound in time.
+- **Save on every filter.** Denoise, De-esser, Exciter, Bass Forge, Bass
+  Punch, Dimension, Maximizer and Master each keep profiles of your own,
+  listed first under Yours, saved and deleted the way the EQ's are.
+- The Exciter's bars no longer go dark on Mid only and Sides only, and its
+  Timing no longer moves part of a sound from one side to the other; switching
+  between its modes no longer jumps in level.
+- The starred presets are listed in the same order as the full list, with each
+  Room copy right after its chain.
+
 ### Songs
 
 - **Remember each song's sound.** Switched on, a preset, Tone or EQ you set
@@ -77,7 +118,22 @@ numbers right on the curve.
   their backs.
 - **Galaxy, Nebula Heart and Nebula draw many times faster on integrated
   graphics** (Galaxy from 16 ms to about 1 ms a frame on Intel UHD), and
-  Supernova no longer loses its picture there.
+  Supernova no longer loses its picture there. Glass in the 3D worlds costs
+  less too (Prism Bloom from 20.6 to 16.1 ms a frame on Intel UHD at 1080p).
+- **New sets of scenes are announced in the app**, once each, with the set's
+  scenes framed and Try them now to play the first on the graph.
+- **Your account shows how long each scene has played**, your own scenes
+  included, down to the second under a minute. Counting starts only once you
+  have seen the revised Plus terms, which say what is kept: how long each
+  scene is on screen, per scene and day, and which audio engine you use.
+
+### Forum
+
+- **New for you.** The forum's first row lists only what is new to you —
+  topics you have not opened and replies since you last looked — from every
+  board, latest first. Boards with something new carry a dot, new topics and
+  replies are marked, a chip in a thread jumps to the first new reply, and
+  **Mark all as read** clears them.
 
 ### Fixes
 
@@ -103,6 +159,13 @@ numbers right on the curve.
 - Play and pause on the bar, and the Library pausing other players, keep
   working when FluidEQ's media helper stops by itself: it is started again,
   and so is the volume slider's.
+- The Media page keeps playing a site's next video after a long gap between
+  two, such as an ad being skipped; it used to close in the gap and the next
+  video never started.
+- The desktop visualizer keeps following the music when FluidEQ's window is
+  minimised.
+- The band menu offers **Update engine** where it says a band needs a newer
+  FluidEQ Engine.
 
 ---
 

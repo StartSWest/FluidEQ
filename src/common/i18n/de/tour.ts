@@ -450,6 +450,23 @@ const tour: Partial<Dictionary> = {
     'Das EQ-Diagramm mit Frequenz, Q und Verstärkung jedes Bands über seinem Punkt, ein Band, das sich mit den Pfeiltasten bewegt, und darunter die Karte „EQ-Modus“ mit „Ihr EQ“ und „Korrekturen“.',
   'tour.bands.shortcut': 'Strg+W',
 
+  'tour.ears.kicker': 'EIN BAND, ZWEI OHREN',
+  'tour.ears.title': 'Jedes Ohr für sich abstimmen',
+  'tour.ears.subtitle': 'Links + rechts im Menü des Bands',
+  'tour.ears.lead':
+    'Klicken Sie mit der rechten Maustaste auf ein Band und wählen Sie {split}: Es wird zu je einem Band pro Ohr, auf derselben Frequenz, und Sie bewegen jedes für sich. Die Kurve des linken Ohrs ist durchgezogen, die des rechten gestrichelt.',
+  'tour.ears.point1':
+    '{both} fügt die beiden in ihrer Mitte wieder zusammen, auf halbem Weg in Frequenz und Pegel. {reset} und {clear} tun das auch.',
+  'tour.ears.point2':
+    '{delete} steht im selben Menü, im Haupt-EQ und im DSP-Rack, und fragt vor dem Löschen ein zweites Mal.',
+  'tour.ears.point3':
+    'Eine Squiglink-Kurve lässt sich in ein Ohr importieren: {importInto} füllt nur das linke oder das rechte und lässt das andere, wie es war.',
+  'tour.ears.how':
+    'Öffnen Sie den EQ, klicken Sie mit der rechten Maustaste auf ein Band im Diagramm und wählen Sie {split}. Der EQ des DSP-Racks hat dasselbe Menü, solange er auf Stereo wirkt.',
+  'tour.ears.open': 'EQ öffnen',
+  'tour.ears.imageAlt':
+    'Das EQ-Diagramm mit einem Band, geteilt in ein Band fürs linke und eines fürs rechte Ohr, die auseinandergehen und sich in ihrer Mitte wieder treffen, die Kurve des linken Ohrs durchgezogen und die des rechten gestrichelt, neben dem Band-Menü mit Beide Ohren und Links + rechts.',
+
   'tour.songs.kicker': 'EIN KLANG FÜR JEDEN SONG',
   'tour.songs.title': 'Songs, die sich merken, wie Sie sie mögen',
   'tour.songs.subtitle': 'Einmal abstimmen, jedes Mal so hören',
@@ -466,6 +483,23 @@ const tour: Partial<Dictionary> = {
   'tour.songs.open': 'EQ öffnen',
   'tour.songs.imageAlt':
     'Eine Warteschlange aus vier Songs, die nacheinander spielen, drei mit dem Preset und der Kurve, mit denen sie verlassen wurden, einer nie abgestimmt, und darüber der Hinweis eines gemerkten Songs mit „Rückgängig“ und „Diesen Song vergessen“.',
+
+  'tour.deesser.kicker': 'EIN WEICHERES S',
+  'tour.deesser.title': 'Ein De-Esser im DSP-Rack',
+  'tour.deesser.subtitle': 'Scharfe S leiser, Becken unberührt',
+  'tour.deesser.lead':
+    '{deEsser} senkt die scharfen S-, T- und Sch-Laute einer Stimme nur, während sie klingen, und lässt Becken, Hi-Hats und die übrigen Höhen, wie sie waren.',
+  'tour.deesser.point1':
+    'Er erkennt jedes S am eigenen Pegel des Songs, so werden leise und laute Titel gleich behandelt, und Sie sehen jedes erkannte S und wie viel er weggenommen hat.',
+  'tour.deesser.point2':
+    'Er senkt nur die Frequenzen, aus denen das S besteht, alles darüber oder die ganze Stimme, und {isolate} spielt nur, was er wegnimmt.',
+  'tour.deesser.point3':
+    '{speech}, {podcast} und {audiobook} schalten ihn ein. Jeder Filter des Racks kann jetzt eigene Profile speichern.',
+  'tour.deesser.how':
+    'Öffnen Sie DSP und wählen Sie links {deEsser} oder das Preset {podcast}. Beginnen Sie mit einem Profil und erhöhen Sie dann {sensitivity}, bis jedes S erkannt wird.',
+  'tour.deesser.open': 'DSP öffnen',
+  'tour.deesser.imageAlt':
+    'Der Verlauf des De-Essers läuft vorbei: jedes S einer Stimme über der Linie, ab der die Stufe greift, mit seiner Absenkung in Bernstein darunter, und die Hi-Hats in Grau, unberührt; darüber die Stufe mit Spektral gewählt, darunter Sprache, Podcast und Hörbuch.',
 
   'tour.looks.kicker': 'IHR EIGENER VISUALIZER',
   'tour.looks.title': 'Eigene Darstellungen für das Diagramm',

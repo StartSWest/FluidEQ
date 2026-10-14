@@ -310,11 +310,11 @@ function Requests({ requests }: { requests: TAsked<TRequestUsage> }) {
       {requests.state === 'failed' && (
         <p className="admin-server__quiet">{t(requests.key)}</p>
       )}
+      {/* How the server is set up to count them is the server's business:
+          the app every member installs says nothing about it (Ivan,
+          2026-10-14: "that cannot be on client app"). */}
       {usage?.state === 'unconfigured' && (
-        <p className="admin-server__quiet">
-          <strong>{t('insights.server.noToken')}</strong>{' '}
-          {t('insights.server.tokenSteps')}
-        </p>
+        <p className="admin-server__quiet">{t('insights.server.noToken')}</p>
       )}
       {usage?.state === 'token' && (
         <p className="admin-server__quiet is-alert">

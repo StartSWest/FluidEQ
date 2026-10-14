@@ -42,7 +42,13 @@ import {
   SparksSlide,
   VisualizerEngineSlide,
 } from './release20';
-import { BandsSlide, OutputsSlide, SongsSlide } from './release21';
+import {
+  BandsSlide,
+  DeEsserSlide,
+  EarsSlide,
+  OutputsSlide,
+  SongsSlide,
+} from './release21';
 
 /**
  * The workspace tabs a slide can send the user to. `community` is Plus;
@@ -227,9 +233,10 @@ const RELEASE_20: TSlideEntry[] = [
 
 /**
  * 2.1, in the order of what a listener meets first: every output keeping its
- * own sound, Share Audio both ways (its slide says so now; it was a standing
- * one), the bands read out on the graph with EQ mode beside it, and songs
- * that remember their sound.
+ * own sound, a band tuned for each ear, Share Audio both ways (its slide says
+ * so now; it was a standing one), the bands read out on the graph with EQ
+ * mode beside it, songs that remember their sound, and the DSP rack's
+ * De-esser.
  */
 const RELEASE_21: TSlideEntry[] = [
   {
@@ -237,6 +244,12 @@ const RELEASE_21: TSlideEntry[] = [
     titleKey: 'tour.outputs.title',
     subtitleKey: 'tour.outputs.subtitle',
     Body: OutputsSlide,
+  },
+  {
+    id: 'each-ear',
+    titleKey: 'tour.ears.title',
+    subtitleKey: 'tour.ears.subtitle',
+    Body: EarsSlide,
   },
   SHARE_AUDIO,
   {
@@ -250,6 +263,12 @@ const RELEASE_21: TSlideEntry[] = [
     titleKey: 'tour.songs.title',
     subtitleKey: 'tour.songs.subtitle',
     Body: SongsSlide,
+  },
+  {
+    id: 'de-esser',
+    titleKey: 'tour.deesser.title',
+    subtitleKey: 'tour.deesser.subtitle',
+    Body: DeEsserSlide,
   },
 ];
 

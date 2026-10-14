@@ -69,11 +69,10 @@ const insights = {
   'insights.server.kind.auth': 'Accesso',
   'insights.server.kind.storage': 'File',
   'insights.server.kind.realtime': 'Live',
-  'insights.server.noToken': 'Per le richieste serve una chiave d’uso.',
-  'insights.server.tokenSteps':
-    'Crea un token di accesso su supabase.com, in Account → Access tokens (solo con “read analytics usage”, se te lo fa scegliere), poi aggiungilo al progetto in Edge Functions → Secrets come USAGE_ACCESS_TOKEN.',
+  'insights.server.noToken':
+    'Il conteggio delle richieste non è attivo su questo server.',
   'insights.server.tokenRefused':
-    'Supabase ha rifiutato la chiave d’uso. Creane una nuova e salvala di nuovo con lo stesso nome.',
+    'Il server non è riuscito a leggere il conteggio delle richieste.',
   'insights.server.tables': 'Tabelle più grandi',
   'insights.server.buckets': 'File per cartella',
   'insights.server.bucketFiles': '{count} file',

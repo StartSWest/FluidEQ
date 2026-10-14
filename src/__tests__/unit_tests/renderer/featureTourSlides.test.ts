@@ -11,9 +11,11 @@ describe("What's new in 2.1", () => {
   it('opens on what 2.1 brought, every output first', () => {
     expect(idsOf('2.1.0', '2.1')).toEqual([
       'every-output',
+      'each-ear',
       'share-audio',
       'band-labels',
       'song-sound',
+      'de-esser',
     ]);
   });
 

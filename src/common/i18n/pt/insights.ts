@@ -68,11 +68,10 @@ const insights = {
   'insights.server.kind.auth': 'Login',
   'insights.server.kind.storage': 'Arquivos',
   'insights.server.kind.realtime': 'Ao vivo',
-  'insights.server.noToken': 'As requisições precisam de uma chave de uso.',
-  'insights.server.tokenSteps':
-    'Crie um token de acesso em supabase.com, em Account → Access tokens (só com “read analytics usage”, se der para escolher), e adicione-o ao projeto em Edge Functions → Secrets como USAGE_ACCESS_TOKEN.',
+  'insights.server.noToken':
+    'A contagem de requisições não está ativada neste servidor.',
   'insights.server.tokenRefused':
-    'O Supabase recusou a chave de uso. Crie uma nova e salve-a de novo com o mesmo nome.',
+    'O servidor não conseguiu ler a contagem de requisições.',
   'insights.server.tables': 'Maiores tabelas',
   'insights.server.buckets': 'Arquivos por pasta',
   'insights.server.bucketFiles': '{count} arquivos',

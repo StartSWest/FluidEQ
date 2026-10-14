@@ -72,11 +72,10 @@ const insights = {
   'insights.server.kind.auth': 'Sign-in',
   'insights.server.kind.storage': 'Files',
   'insights.server.kind.realtime': 'Live',
-  'insights.server.noToken': 'Requests need a usage key.',
-  'insights.server.tokenSteps':
-    'Make an access token on supabase.com under Account → Access tokens (with only “read analytics usage”, if it offers the choice), then add it to the project under Edge Functions → Secrets as USAGE_ACCESS_TOKEN.',
+  'insights.server.noToken':
+    'Request counts are not switched on for this server.',
   'insights.server.tokenRefused':
-    'Supabase refused the usage key. Make a new one and save it again under the same name.',
+    'The server could not read the request counts.',
   'insights.server.tables': 'Largest tables',
   'insights.server.buckets': 'Files by folder',
   'insights.server.bucketFiles': '{count} files',

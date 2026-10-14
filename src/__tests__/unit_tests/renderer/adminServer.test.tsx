@@ -14,6 +14,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import '@testing-library/jest-dom';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {
+  loadLocale,
+  LOCALES,
+  translate,
+  type TranslationKey,
+} from '../../../common/i18n';
+import en from '../../../common/i18n/en';
 import type { IServerUsage, TRequestUsage } from '../../../common/serverUsage';
 import AdminServer, { formatBytes } from '../../../renderer/plus/AdminServer';
 
@@ -126,11 +133,31 @@ describe('the week’s requests', () => {
     expect(gauge).toHaveTextContent('insights.server.kind.rest 1M');
   });
 
-  it('says how to add a usage key, and that a refused one needs making again', async () => {
+  it('names no server secret in any language the app ships', async () => {
+    await Promise.all(LOCALES.map(({ code }) => loadLocale(code)));
+    // Every line of every dictionary, not only this page's: a secret's name
+    // anywhere in the app is in every member's copy of it.
+    const keys = Object.keys(en) as TranslationKey[];
+    const naming = LOCALES.flatMap(({ code }) =>
+      keys
+        .map((key) => translate(code, key))
+        .filter((line) =>
+          /USAGE_ACCESS_TOKEN|Edge Functions → Secrets/.test(line),
+        ),
+    );
+    expect(naming).toEqual([]);
+    expect(translate('de', 'insights.server.noToken')).not.toBe(
+      translate('en', 'insights.server.noToken'),
+    );
+  });
+
+  // How the server counts requests is the server's business: the app every
+  // member installs says only that counting is off or failed (Ivan,
+  // 2026-10-14: "that cannot be on client app").
+  it('says counting is off or failed, and nothing about how the server is set up', async () => {
     const { unmount } = show(usage(), { state: 'unconfigured' });
-    expect(
-      await screen.findByText('insights.server.noToken'),
-    ).toBeInTheDocument();
+    const off = await screen.findByText('insights.server.noToken');
+    expect(off.closest('p')).toHaveTextContent(/^insights\.server\.noToken$/);
     unmount();
     show(usage(), { state: 'token' });
     expect(
