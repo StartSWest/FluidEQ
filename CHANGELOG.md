@@ -36,7 +36,9 @@ and the De-esser is not heard, and everything else plays as before.
 - **Share Audio works both ways.** Link two computers once, from either side,
   and each can send its sound and play the other's, each direction on its own
   switch. Each link can be paused and resumed and has a volume of its own,
-  and a link no longer stays stuck after either computer restarts.
+  and a link no longer stays stuck after either computer restarts. The sound
+  arriving shows the rate it comes in at, the incoming line no longer goes
+  blank after a pause, and a new connection always starts playing.
 - **Bluetooth headphones show their battery** beside the output, and beside
   the second output.
 
