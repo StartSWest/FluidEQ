@@ -575,6 +575,7 @@ const eq: Partial<Dictionary> = {
   'opra.createdBy': 'Préréglage créé par {author}',
   'opra.distributedBy': 'Distribué par OPRA by Roon',
   'opra.source': 'Source',
+  'opra.onSite': 'Toutes ses corrections sur fluideq.com',
   'autoeq.curveTitle': 'Correction appliquée',
   'autoeq.curveEmptyHint':
     'Choisissez un casque et une cible, puis appliquez — la correction obtenue est tracée ici.',

@@ -569,6 +569,7 @@ const eq: Partial<Dictionary> = {
   'opra.createdBy': 'Пресет создан: {author}',
   'opra.distributedBy': 'Распространяется OPRA by Roon',
   'opra.source': 'Источник',
+  'opra.onSite': 'Все коррекции для них на fluideq.com',
   'autoeq.curveTitle': 'Применённая коррекция',
   'autoeq.curveEmptyHint':
     'Выберите модель наушников и целевую кривую, затем примените — здесь будет показана получившаяся коррекция.',

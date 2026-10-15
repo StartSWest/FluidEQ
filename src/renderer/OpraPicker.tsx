@@ -11,6 +11,7 @@ the Free Software Foundation, either version 3 of the License, or
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IOpraCurve, IOpraProduct, OPRA_SOURCE_ID } from 'common/constants';
+import { headphonePageUrl } from 'common/headphonePage';
 import { useFluidEqLayers } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import {
@@ -353,6 +354,26 @@ const OpraPicker = () => {
                   {' · '}
                   <a href={selectedCurve.link} target="_blank" rel="noreferrer">
                     {t('opra.source')}
+                  </a>
+                </>
+              )}
+              {/*
+                The headphone's page on fluideq.com: every correction for it
+                drawn and credited, and each as Equalizer APO text to share.
+                Opened in the browser like every external link here.
+              */}
+              {selectedProduct && (
+                <>
+                  {' · '}
+                  <a
+                    href={headphonePageUrl(
+                      selectedProduct.vendor,
+                      selectedProduct.name,
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t('opra.onSite')}
                   </a>
                 </>
               )}

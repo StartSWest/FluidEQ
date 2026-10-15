@@ -566,6 +566,7 @@ const eq: Partial<Dictionary> = {
   'opra.createdBy': '{author} द्वारा बनाया गया प्रीसेट',
   'opra.distributedBy': 'OPRA by Roon द्वारा वितरित',
   'opra.source': 'स्रोत',
+  'opra.onSite': 'fluideq.com पर इसके सारे करेक्शन',
   'autoeq.curveTitle': 'लागू सुधार',
   'autoeq.curveEmptyHint':
     'कोई हेडफ़ोन और लक्ष्य चुनें, फिर लागू करें — उससे होने वाला सुधार यहाँ दिखेगा।',
