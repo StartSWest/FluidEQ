@@ -13,6 +13,22 @@ touching anything again.
 
 ![FluidEQ 2.0 on the Backdrop: the Aurora visualizer, snowy pines under the northern lights over a still lake, fills the whole window, and the equaliser stands on it as panes of glass: the graph with its curves at the top, the band sliders and the Tone knobs under it, the side column with the engine switch, the preamp and the level meter down the left, and the output and its profiles down the right.](assets/tour/look-backdrop.jpg)
 
+## Coming from another equalizer?
+
+| You use now   | Read                                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Equalizer APO | [FluidEQ vs Equalizer APO](https://fluideq.com/compare/equalizer-apo) — FluidEQ runs on it, or on an engine of its own             |
+| Peace         | [FluidEQ vs Peace Equalizer](https://fluideq.com/compare/peace-equalizer) — Peace needs Equalizer APO underneath; FluidEQ does not |
+| FxSound       | [FluidEQ vs FxSound](https://fluideq.com/compare/fxsound) — no virtual audio device                                                |
+| Boom 3D       | [FluidEQ vs Boom 3D](https://fluideq.com/compare/boom-3d) — free, with surround on headphones in the Room                          |
+
+**Headphone corrections.** 6,229 headphones and 12,594 corrections are built
+in, made by AutoEq, oratory1990 and Rtings from measurements by crinacle,
+Innerfidelity, Super Review and others, and collected by
+[OPRA](https://github.com/opra-project/OPRA).
+[Find yours, and who made it](https://fluideq.com/headphones): every model has a
+page with its corrections drawn and given as Equalizer APO settings.
+
 ## New in 2.0
 
 The biggest release FluidEQ has had. The whole list is in the
