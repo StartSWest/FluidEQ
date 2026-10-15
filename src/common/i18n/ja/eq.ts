@@ -568,6 +568,7 @@ const eq: Partial<Dictionary> = {
   'opra.createdBy': 'プリセット作成: {author}',
   'opra.distributedBy': '配信: OPRA by Roon',
   'opra.source': 'ソース',
+  'opra.onSite': 'この機種の補正をすべて fluideq.com で見る',
   'autoeq.curveTitle': '適用中の補正',
   'autoeq.curveEmptyHint':
     'ヘッドホンとターゲットを選んで適用すると、その補正がここに描かれます。',

@@ -540,6 +540,7 @@ const eq: Partial<Dictionary> = {
   'opra.createdBy': '预设由 {author} 创建',
   'opra.distributedBy': '由 OPRA by Roon 分发',
   'opra.source': '来源',
+  'opra.onSite': '在 fluideq.com 查看它的全部校正',
   'autoeq.curveTitle': '已应用的校正',
   'autoeq.curveEmptyHint':
     '选择耳机和目标曲线，然后应用——由此产生的校正会绘制在这里。',

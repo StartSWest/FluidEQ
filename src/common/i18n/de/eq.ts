@@ -575,6 +575,7 @@ const eq: Partial<Dictionary> = {
   'opra.createdBy': 'Preset erstellt von {author}',
   'opra.distributedBy': 'Bereitgestellt von OPRA by Roon',
   'opra.source': 'Quelle',
+  'opra.onSite': 'Alle Korrekturen dafür auf fluideq.com',
   'autoeq.curveTitle': 'Angewendete Korrektur',
   'autoeq.curveEmptyHint':
     'Kopfhörer und Zielkurve wählen, dann anwenden – die Korrektur, die daraus entsteht, wird hier gezeichnet.',

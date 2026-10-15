@@ -583,6 +583,7 @@ const eq = {
   'opra.createdBy': 'Preset created by {author}',
   'opra.distributedBy': 'Distributed by OPRA by Roon',
   'opra.source': 'Source',
+  'opra.onSite': 'Every correction for it on fluideq.com',
   'autoeq.curveTitle': 'Applied correction',
   'autoeq.curveEmptyHint':
     'Pick a headphone and a target, then apply — the correction it makes is drawn here.',

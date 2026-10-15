@@ -170,6 +170,28 @@ describe('OpraPicker', () => {
   });
 
   /*
+   * The headphone's page on fluideq.com, from the names the picker shows. The
+   * site addresses it by those names' slugs alone, so a link that lands
+   * anywhere else is a page that does not exist.
+   */
+  it('links the chosen headphone to its page on fluideq.com', async () => {
+    await renderPanel({
+      headset: PRODUCT_ID,
+      headsetTarget: CURVE_ID,
+      headsetSource: 'opra',
+    });
+
+    expect(
+      screen.getByRole('link', {
+        name: 'Every correction for it on fluideq.com',
+      }),
+    ).toHaveAttribute(
+      'href',
+      'https://fluideq.com/headphones/sennheiser/hd-600',
+    );
+  });
+
+  /*
    * A preset saved before the switch names an AutoEq model that no longer
    * resolves. Its bands are stored with it and still apply, so the correction is
    * intact and audible — there is simply no row here to light up. Showing the
