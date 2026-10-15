@@ -2,11 +2,7 @@ import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
 import path from 'path';
 import { STUDIO_TRIAL_PROJECTS } from '../../common/memberScenes';
 import type { IScenePack } from '../../common/scenePacks';
-import {
-  readProject,
-  writeProjectSource,
-  type TSourceWrite,
-} from '../memberScenes/project';
+import { writeProjectSource, type TSourceWrite } from '../memberScenes/project';
 import {
   mayAddProject as mayAdd,
   mayUseProject,
@@ -19,6 +15,7 @@ import {
   findProjectFolders,
 } from '../memberScenes/projectFolders';
 import { renameProjectFolder } from '../memberScenes/projectRename';
+import createStudioLooksCopy from './studioLooksCopy';
 import {
   findAgentProject,
   type TAgentProject,
@@ -40,7 +37,6 @@ import {
   studioStateOf,
   type ILinkFolderResult,
   type IStudioState,
-  type TAddOutcome,
   type TInspection,
   type TNewProjectResult,
   type TProjectRestore,
@@ -210,7 +206,8 @@ export const registerStudioProjectsIpc = ({
 
   const studioState = (): IStudioState => {
     const build = studioOpen ? bench.lastBuild() : undefined;
-    return studioStateOf(projects, {
+    const look = looksCopy.copyOf(build);
+    const state = studioStateOf(projects, {
       entitled: entitled(),
       maker: maker(),
       mayAddProject: mayAddProject(),
@@ -219,10 +216,23 @@ export const registerStudioProjectsIpc = ({
       usable,
       ...(build ? { build } : {}),
     });
+    return look ? { ...state, look } : state;
   };
 
   const announceStudio = () =>
     getMainWindow()?.webContents.send('studio-changed', studioState());
+
+  // The project's copy in the looks: kept from here, compared on the bench.
+  const looksCopy = createStudioLooksCopy({
+    store,
+    accountId,
+    entitled,
+    activeFolder,
+    activeIsInspection,
+    announceScenes,
+    announceStudio: () => announceStudio(),
+    ...(logger ? { logger } : {}),
+  });
 
   // What is watching the open project, and what it has read.
   const bench = createProjectBench({
@@ -413,40 +423,6 @@ export const registerStudioProjectsIpc = ({
         return 'written';
       }),
   );
-
-  ipcMain.handle('studio-add-to-looks', async (): Promise<TAddOutcome> => {
-    const me = accountId();
-    if (!entitled() || !me) {
-      return { ok: false, reason: 'not-entitled' };
-    }
-    const folder = activeFolder();
-    if (!folder) {
-      return { ok: false, reason: 'no-build' };
-    }
-    if (activeIsInspection()) {
-      return { ok: false, reason: 'inspect-only' };
-    }
-    // Read the folder again rather than trusting the last watched build: the
-    // press may land between a save and the watcher's rebuild.
-    const build = await readProject(folder);
-    if (!build.ok) {
-      return { ok: false, reason: 'no-build' };
-    }
-    try {
-      // Whether the press added the look or brought one up to date, for
-      // what the Studio says it did (Ivan, 2026-09-29: "add to my look need
-      // to show notification look updated or added").
-      const updated = store
-        .list()
-        .some((kept) => kept.authorId === me && kept.packId === build.pack.id);
-      const scene = store.save(me, build.pack);
-      announceScenes();
-      return { ok: true, scene, updated };
-    } catch (error) {
-      logger?.warn(`Adding a member scene failed: ${String(error)}`);
-      return { ok: false, reason: 'refused' };
-    }
-  });
 
   ipcMain.handle('studio-show-folder', async () => {
     const folder = activeFolder();

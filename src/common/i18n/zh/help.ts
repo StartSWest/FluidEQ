@@ -503,11 +503,11 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.intro':
     '工作室能把一段描述变成可视化效果。你自己的 AI 助手在项目文件夹中编写场景，每个版本一保存，FluidEQ 就会立即随你的音乐播放它。工作室属于 Plus；新账户可以用免费体验打开它。',
   'help.studio.steps':
-    '打开“Plus → 工作室”，按“新建项目…”。给它起个名字；FluidEQ 会创建它的文件夹，里面已有一个会动的场景。\n描述你的想法，在你的 AI 助手中打开这个文件夹，然后粘贴用“复制 AI 提示词”复制的提示词。\n保存文件时观察舞台，并试试测试信号。然后选择“添加到我的外观”“发布…”或“导出…”。',
+    '打开“Plus → 工作室”，按“新建项目…”。给它起个名字；FluidEQ 会创建它的文件夹，里面已有一个会动的场景。\n描述你的想法，在你的 AI 助手中打开这个文件夹，然后粘贴用“复制 AI 提示词”复制的提示词。\n或者在舞台旁的聊天里写下要改什么：这台电脑上用你自己的方案登录的 Claude Code 会编辑场景并播放每个版本。每条回复都保留它的版本，可用“恢复”换回。\n保存文件时观察舞台，并试试测试信号。然后选择“添加到我的外观”“发布…”或“导出…”。',
   'help.studio.tip':
     '双击舞台可全屏。“查看 FluidEQ 场景的内部…”会打开 FluidEQ 自己的某个场景供你学习；它不能被发布。闪烁过于强烈或运行过重的场景会被拦下。你发布的场景会先由 FluidEQ 作者阅读，获得批准的场景可以换来一个月的 Plus。',
   'help.studio.keywords':
-    '着色器, shader, GLSL, 编程, ChatGPT, Claude, DeepSeek, prompt, 制作场景, 制作可视化, 场景编辑器, 创作者, 投稿',
+    '着色器, shader, GLSL, 编程, ChatGPT, Claude, DeepSeek, prompt, 制作场景, 制作可视化, 场景编辑器, 创作者, 投稿, 聊天, 工作室聊天, 提出修改, claude code, 恢复, 版本',
   'help.studio.project': '你的项目，以及可查看内部的 FluidEQ 场景。',
   'help.studio.stageName': '舞台',
   'help.studio.stage': '随你的音乐播放的场景。双击可全屏。',

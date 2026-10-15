@@ -20,7 +20,7 @@ class ProcessingLatency {
     // guard was removed on 2026-09-22; it carries the De-esser's look-ahead
     // now, which the host and the app always ship together to read.
     const uint32_t words[] = {
-        feq_chain_latency_frames(chain), parts.linear_eq, parts.restoration,
+        feq_chain_latency_frames(chain), parts.eq, parts.restoration,
         parts.leveler, parts.room, parts.bass_punch, parts.maximizer,
         parts.headroom, parts.deesser, feq_chain_processed_stages(chain)};
     sequence_.fetch_add(1);

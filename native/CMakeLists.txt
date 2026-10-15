@@ -90,6 +90,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/exciter_guard.cpp
   dsp-core/src/organic.cpp
   dsp-core/src/organic_stage.cpp
+  dsp-core/src/exciter_oversample.cpp
   dsp-core/src/exciter.cpp
   dsp-core/src/fft.cpp
   dsp-core/src/convolver.cpp
@@ -125,6 +126,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/chain.cpp
   dsp-core/src/chain_process.cpp
   dsp-core/src/chain_eq.cpp
+  dsp-core/src/chain_eq_delay.cpp
   dsp-core/src/chain_eq_fade.cpp
   dsp-core/src/chain_mono_maker.cpp
   dsp-core/src/chain_eq_linear.cpp
@@ -259,6 +261,9 @@ add_test(NAME chain-switch COMMAND fluideq-chain-switch-test)
 add_executable(fluideq-exciter-stereo-test dsp-core/tests/exciter_stereo_test.cpp)
 target_link_libraries(fluideq-exciter-stereo-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME exciter-stereo COMMAND fluideq-exciter-stereo-test)
+add_executable(fluideq-exciter-oversample-test dsp-core/tests/exciter_oversample_test.cpp)
+target_link_libraries(fluideq-exciter-oversample-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME exciter-oversample COMMAND fluideq-exciter-oversample-test)
 
 # The Master's loudness target with no track analysis behind it, which is
 # every stream the system engine plays: measured as the loudness of what

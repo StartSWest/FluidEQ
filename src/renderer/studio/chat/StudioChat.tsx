@@ -5,20 +5,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { resolveSceneName } from 'common/scenePacks';
 import type { IStudioProject } from 'main/ipc/studioProjectTypes';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import StudioMaker from '../StudioMaker';
+import StudioChatAccounts, { planName } from './StudioChatAccounts';
 import StudioChatAsk from './StudioChatAsk';
 import StudioChatComposer from './StudioChatComposer';
+import StudioChatMenu from './StudioChatMenu';
 import StudioChatPast from './StudioChatPast';
+import StudioChatQueue from './StudioChatQueue';
 import StudioChatSetup from './StudioChatSetup';
 import StudioChatThread from './StudioChatThread';
 import useChatZoomWheel from './useChatZoomWheel';
 import {
   checkStudioChat,
   checkStudioChatCodex,
-  disconnectStudioChatCodex,
   loadStudioChat,
   newStudioChat,
   sendToStudioChat,
@@ -37,9 +40,6 @@ interface IStudioChatProps {
   onFold?: () => void;
 }
 
-/** "max" as Claude Code writes it, "Max" as a plan is named. */
-const planName = (plan: string) => plan.charAt(0).toUpperCase() + plan.slice(1);
-
 /**
  * The Studio's chat with the member's own Claude Code (Ivan, 2026-10-09:
  * "a side pane instead for the chat"): the whole height of the bench beside
@@ -54,13 +54,15 @@ export default function StudioChat({
   captureStage,
   onFold,
 }: IStudioChatProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { availability, chat, ask, codex, zoom } = useStudioChat();
   const pane = useRef<HTMLElement>(null);
   useChatZoomWheel(pane);
   // What the pane shows: the chat, the prompt for another AI, or the
   // earlier chats.
-  const [view, setView] = useState<'chat' | 'other' | 'past'>('chat');
+  const [view, setView] = useState<'chat' | 'other' | 'past' | 'accounts'>(
+    'chat',
+  );
   const otherAi = view === 'other';
   // Held here, so an idea chosen in the thread lands in the message box.
   const [draft, setDraft] = useState('');
@@ -85,9 +87,16 @@ export default function StudioChat({
   const ready = availability.state === 'ready';
   const canChat = ready && project !== undefined && !project.official;
   const plan = ready && availability.plan ? planName(availability.plan) : '';
+  // A project that already holds a scene is named by it: its chat starts on
+  // what to change, not on what to make.
+  const sceneName = project?.names
+    ? resolveSceneName({ names: project.names }, locale)
+    : undefined;
 
   let body;
-  if (view === 'past' && canChat) {
+  if (view === 'accounts') {
+    body = <StudioChatAccounts />;
+  } else if (view === 'past' && canChat) {
     body = <StudioChatPast onOpened={() => setView('chat')} />;
   } else if (otherAi) {
     body = (
@@ -108,6 +117,7 @@ export default function StudioChat({
       <>
         <StudioChatThread
           chat={chat}
+          sceneName={sceneName}
           version={version}
           onIdea={setDraft}
           onCarryOn={() => {
@@ -120,32 +130,15 @@ export default function StudioChat({
         {ask && ask.projectId === chat?.projectId && (
           <StudioChatAsk ask={ask} />
         )}
+        <StudioChatQueue queued={chat?.queued ?? []} />
         <StudioChatComposer
           draft={draft}
           onDraft={setDraft}
           busy={chat?.busy ?? false}
-          first={(chat?.entries.length ?? 0) === 0}
+          first={(chat?.entries.length ?? 0) === 0 && !sceneName}
           folder={project.path}
           captureStage={captureStage}
         />
-        {/* ChatGPT's pictures connected: said under the box, with the way to
-            turn them off; the next picture then asks to connect again. Not
-            in the head, where a word beside the plan's name broke it into
-            three lines in a pane 320px wide. */}
-        {codex?.connected && (
-          <p className="studio-chat__gpt">
-            <Glyph name="image" />
-            <span>{t('studioChat.chatgptOn')}</span>
-            <button
-              type="button"
-              onClick={() => {
-                disconnectStudioChatCodex().catch(() => undefined);
-              }}
-            >
-              {t('studioChat.chatgptTurnOff')}
-            </button>
-          </p>
-        )}
       </>
     );
   }
@@ -164,9 +157,30 @@ export default function StudioChat({
         />
         <span className="studio-chat__who">
           <span className="studio-chat__name">{t('studioChat.title')}</span>
-          <span className="studio-chat__where">
+          {/* Whose plan the chat runs on is a press away (`StudioChatAccounts`):
+              the line naming it opens the accounts, and closes them again. */}
+          <button
+            type="button"
+            className="studio-chat__where"
+            aria-pressed={view === 'accounts'}
+            title={t('studioChat.accounts.open')}
+            onClick={() =>
+              setView((shown) => (shown === 'accounts' ? 'chat' : 'accounts'))
+            }
+          >
             {plan ? t('studioChat.wherePlan', { plan }) : t('studioChat.where')}
-          </span>
+            {/* ChatGPT's pictures on: a glyph beside the plan, never words,
+                which broke the head into three lines in a pane 320px wide.
+                The words and the way to turn them off are behind ⋯. */}
+            {codex?.connected && (
+              <span
+                className="studio-chat__gpt-on"
+                title={t('studioChat.chatgptOn')}
+              >
+                <Glyph name="image" />
+              </span>
+            )}
+          </button>
         </span>
         {canChat && !otherAi && (
           <button
@@ -196,23 +210,30 @@ export default function StudioChat({
             <Glyph name="plus" />
           </button>
         )}
-        <button
-          type="button"
-          className="studio-chat__switch"
-          aria-pressed={otherAi}
-          title={t(otherAi ? 'studioChat.backToChat' : 'studioChat.otherAi')}
-          onClick={() =>
+        {/* "Use another AI" is behind ⋯; while it is open, the way back to
+            the chat is here, where the member is looking. */}
+        {otherAi && (
+          <button
+            type="button"
+            className="studio-chat__switch"
+            aria-pressed
+            title={t('studioChat.backToChat')}
+            onClick={() => setView('chat')}
+          >
+            {/* The words give way to the glyph in a narrow pane, where the
+                head's buttons pushed the plan's name onto two lines; the
+                title keeps them. */}
+            <Glyph name="link" />
+            <span>{t('studioChat.backToChat')}</span>
+          </button>
+        )}
+        <StudioChatMenu
+          onAccounts={() => setView('accounts')}
+          otherAi={otherAi}
+          onOtherAi={() =>
             setView((shown) => (shown === 'other' ? 'chat' : 'other'))
           }
-        >
-          {/* The words give way to the glyph in a narrow pane, where the
-              head's buttons pushed the plan's name onto two lines; the
-              title keeps them. */}
-          <Glyph name="link" />
-          <span>
-            {t(otherAi ? 'studioChat.backToChat' : 'studioChat.otherAi')}
-          </span>
-        </button>
+        />
         {onFold && (
           <button
             type="button"

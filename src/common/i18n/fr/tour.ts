@@ -501,6 +501,27 @@ const tour: Partial<Dictionary> = {
   'tour.deesser.imageAlt':
     'La bande du dé-esseur qui défile : chaque S d’une voix au-dessus de la ligne où l’étage commence, avec sa réduction suspendue dessous en ambre, et les charlestons en gris, intacts ; au-dessus l’étage avec Spectral choisi, et dessous Voix, Podcast et Livre audio.',
 
+  'tour.chat.kicker': 'UNE SCÈNE SUR DEMANDE',
+  'tour.chat.title': 'Demandez un changement, voyez-le sur la scène',
+  'tour.chat.subtitle': 'Une discussion à côté de la scène du Studio',
+  'tour.chat.lead':
+    'Le {studio} a maintenant une discussion à côté de sa scène. Dites ce qui doit changer – allure, mouvement avec la musique, couleurs ou lumière – et votre propre IA modifie la scène et joue chaque version sur la scène.',
+  'tour.chat.point1':
+    'Chaque réponse garde la version qu’elle a faite, et {bringBack} remet une version précédente. Chaque scène garde ses discussions passées.',
+  'tour.chat.point2':
+    '{attach} envoie une image de la scène, sur laquelle vous pouvez dessiner. Ce que vous envoyez pendant qu’elle travaille attend dans une file et part ensemble.',
+  'tour.chat.point3':
+    'Elle fonctionne avec Claude Code sur cet ordinateur, avec votre propre abonnement, et montre ce qu’il reste de vos limites. Avec ChatGPT, elle peint des images pour la scène, en demandant avant chacune.',
+  'tour.chat.how':
+    'Ouvrez {plus}, choisissez {studio} dans son rail, choisissez une scène ou commencez-en une, et écrivez dans la zone à côté de la scène.',
+  'tour.chat.open': 'Ouvrir Plus',
+  'tour.chat.imageAlt':
+    'La scène du Studio à côté de sa discussion : une demande pour que les lumières de la scène flashent sur la caisse claire, les étapes de la réponse cochées une à une, la version 2 gardée avec Rétablir, et les lumières de la scène qui se mettent à flasher quand la version 2 joue.',
+  'tour.chat.ask':
+    'Fais flasher les lumières de la scène sur la caisse claire.',
+  'tour.chat.reply':
+    'C’est fait : les deux projecteurs flashent en blanc sur chaque caisse claire et reviennent au rose.',
+
   'tour.looks.kicker': 'VOTRE PROPRE VISUALISEUR',
   'tour.looks.title': 'Des styles à vous pour le graphique',
   'tour.looks.subtitle': 'Vos formes, vos couleurs, votre mouvement',

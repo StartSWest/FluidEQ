@@ -463,6 +463,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
 }
 
+// Two groups of a bar that wrap as one, so the last of them is never left on
+// a line by itself: the Exciter's Save stood alone under its Oversampling in
+// French at a 1080p window. Spaced and ruled as the bar's own groups are.
+.dsp-eq-bar-unit {
+  display: flex;
+  align-items: center;
+  gap: inherit;
+  column-rule: inherit;
+  min-width: 0;
+}
+
 // The glyph on a preset-row button. Sized to the text beside it rather than to
 // a grid, so the pair reads as one word with a picture in front of it.
 .dsp-bar-icon {

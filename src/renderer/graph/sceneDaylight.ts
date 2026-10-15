@@ -115,16 +115,6 @@ export const authoredDaylight = (pack: Pick<IScenePack, 'params'>): number =>
   );
 
 /**
- * The time of day a scene's colour for the window is measured at, in steps
- * a quarter of the day apart: each step is measured once, so dragging the
- * Brightness does not set a drawing off for every value it passes, and the
- * window takes the colour of the scene's night, its day, and three hours
- * between.
- */
-export const daylightTintStep = (daylight: number): number =>
-  Math.round(daylight / 25) * 25;
-
-/**
  * How long a playing scene takes to go most of the way (63%) to a new time
  * of day. Dragging the Brightness is followed with no lag worth seeing; a
  * jump - the amp and the app keep a Brightness each - dims or brightens the

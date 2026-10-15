@@ -496,6 +496,26 @@ const tour: Partial<Dictionary> = {
   'tour.deesser.imageAlt':
     'La striscia del de-esser che scorre: ogni S di una voce sopra la linea in cui lo stadio entra in azione, con il suo taglio appeso sotto in ambra, e gli hi-hat in grigio, intatti; sopra lo stadio con Spettrale scelto e sotto Voce, Podcast e Audiolibro.',
 
+  'tour.chat.kicker': 'UNA SCENA SU RICHIESTA',
+  'tour.chat.title': 'Chiedi una modifica, guardala sul palco',
+  'tour.chat.subtitle': 'Una chat accanto al palco dello Studio',
+  'tour.chat.lead':
+    'Lo {studio} ora ha una chat accanto al suo palco. Di’ cosa deve cambiare – come appare una scena, come si muove con la musica, i suoi colori o la sua luce – e la tua IA modifica la scena e suona ogni versione sul palco man mano.',
+  'tour.chat.point1':
+    'Ogni risposta tiene la versione che ha fatto, e {bringBack} rimette una versione precedente. Ogni scena tiene le sue chat passate.',
+  'tour.chat.point2':
+    '{attach} invia un’immagine della scena con il tuo messaggio, e puoi disegnarci sopra per mostrare cosa intendi. I messaggi inviati mentre lavora aspettano in coda e partono insieme.',
+  'tour.chat.point3':
+    'Funziona con Claude Code installato su questo computer, con il tuo piano, e mostra quanto resta dei tuoi limiti. Con ChatGPT collegato può dipingere immagini per la scena, chiedendoti prima di ognuna.',
+  'tour.chat.how':
+    'Apri {plus}, scegli {studio} nella sua barra, scegli una scena o iniziane una e scrivi nella casella accanto al palco.',
+  'tour.chat.open': 'Apri Plus',
+  'tour.chat.imageAlt':
+    'Il palco dello Studio accanto alla sua chat: la richiesta di far lampeggiare le luci del palco sul rullante, i passi della risposta spuntati uno a uno, la versione 2 tenuta con Ripristina, e le luci del palco che iniziano a lampeggiare quando suona la versione 2.',
+  'tour.chat.ask': 'Fai lampeggiare le luci del palco sul rullante.',
+  'tour.chat.reply':
+    'Fatto: i due fari lampeggiano bianchi a ogni rullante e tornano al rosa.',
+
   'tour.looks.kicker': 'IL TUO VISUALIZZATORE',
   'tour.looks.title': 'Aspetti personalizzati per il grafico',
   'tour.looks.subtitle': 'Le tue forme, i tuoi colori, il tuo movimento',

@@ -41,7 +41,7 @@ export default {
   'dsp.deEsser.mode.trebleHint':
     'ज़्यादातर डी-एसर की तरह स के ऊपर का सब कुछ घटाता है। ज़्यादा पक्का, थोड़ा धीमा।',
   'dsp.deEsser.mode.wholeHint':
-    'हर स के दौरान पूरी ध्वनि घटाता है। बोलचाल पर स्वाभाविक, संगीत पर ज़्यादा।',
+    'हर स पर पूरी ध्वनि घटाता है, उसके नीचे बज रहा सब कुछ भी, इसलिए आवाज़ ऊपर-नीचे होती लग सकती है। सिर्फ़ अकेले रिकॉर्ड की गई आवाज़ के लिए।',
 
   'dsp.deEsser.where.label': 'स्टीरियो छवि का कौन-सा हिस्सा',
   'dsp.deEsser.where.centre': 'केंद्र',
@@ -62,6 +62,14 @@ export default {
   'dsp.deEsser.engineOld':
     'यहाँ स्थापित FluidEQ Engine डी-एसर से पुराना है, इसलिए यह चरण अभी सुनाई नहीं देता। रैक का बाकी हिस्सा पहले की तरह बजता है।',
   'dsp.deEsser.upTo': 'अधिकतम {db}',
+  'dsp.deEsser.lens.trebleNow': 'अभी का ट्रेबल',
+  'dsp.deEsser.lens.underVoice': 'आवाज़ से {db} नीचे',
+  'dsp.deEsser.lens.ahead': '{ms} पहले सुना',
+  'dsp.deEsser.lens.cymbalNeeds': 'सिम्बल को {db} और चाहिए',
+  'dsp.deEsser.lens.cymbal': 'सिम्बल',
+  'dsp.deEsser.lens.s': 'स',
+  'dsp.deEsser.lens.left': 'बा',
+  'dsp.deEsser.lens.right': 'दा',
 
   'dsp.deEsserPresetGroup.music': 'संगीत',
   'dsp.deEsserPresetGroup.speech': 'बोलचाल',

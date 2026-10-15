@@ -135,15 +135,18 @@ export const DE_ESSER_PRESET_BY_ID = {
     id: 'podcast',
     labelKey: 'dsp.deEsserPreset.podcast',
     group: 'speech',
-    // Whole voice, the way broadcast does it: on speech a short dip of the
-    // whole sound is the most natural cut there is.
+    // Spectral, as every profile is. It was Whole voice, broadcast's way,
+    // and on a finished show that took everything under each S down with it
+    // — the bed, the other voice, the vowel's start: 3.9 dB under 1 kHz at
+    // these settings, given back over 50 ms, heard as a limiter pumping
+    // (Ivan, 2026-10-14). Spectral takes the S down as far and leaves the
+    // rest at its level (`speech_keeps_its_level_through_an_s`).
     settings: {
       ...vocalMusic,
       sensitivity: 0.6,
       lowHz: 4000,
       highHz: 10000,
       rangeDb: 8,
-      mode: 'whole',
       releaseMs: 50,
       centreOnly: false,
       keepCymbals: 0.3,

@@ -41,7 +41,7 @@ export default {
   'dsp.deEsser.mode.trebleHint':
     'Senkt alles oberhalb des S, wie die meisten De-Esser. Fester, etwas dumpfer.',
   'dsp.deEsser.mode.wholeHint':
-    'Senkt den ganzen Klang für die Dauer jedes S. Natürlich bei Sprache, zu viel bei Musik.',
+    'Senkt bei jedem S den ganzen Klang, alles darunter eingeschlossen, und kann daher pumpen. Nur für eine allein aufgenommene Stimme.',
 
   'dsp.deEsser.where.label': 'Welcher Teil des Stereobilds',
   'dsp.deEsser.where.centre': 'Mitte',
@@ -62,6 +62,14 @@ export default {
   'dsp.deEsser.engineOld':
     'Die hier installierte FluidEQ Engine ist älter als der De-Esser, daher ist diese Stufe noch nicht zu hören. Der Rest des Racks klingt wie bisher.',
   'dsp.deEsser.upTo': 'bis zu {db}',
+  'dsp.deEsser.lens.trebleNow': 'Höhen jetzt',
+  'dsp.deEsser.lens.underVoice': '{db} unter der Stimme',
+  'dsp.deEsser.lens.ahead': '{ms} im Voraus gehört',
+  'dsp.deEsser.lens.cymbalNeeds': 'ein Becken braucht {db} mehr',
+  'dsp.deEsser.lens.cymbal': 'Becken',
+  'dsp.deEsser.lens.s': 'S',
+  'dsp.deEsser.lens.left': 'L',
+  'dsp.deEsser.lens.right': 'R',
 
   'dsp.deEsserPresetGroup.music': 'Musik',
   'dsp.deEsserPresetGroup.speech': 'Sprache',

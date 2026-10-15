@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { IExciterSettings } from './chain';
+import { DSP_DEFAULTS, IExciterSettings } from './chain';
 import { IExciterPreset, exciterProfile } from './exciterProfile';
 
 export { EXCITER_PRESET_GROUPS, exciterProfile } from './exciterProfile';
@@ -330,6 +330,9 @@ export const exciterSettingsOf = (
   bands: preset.settings.bands.map((band) => ({ ...band })),
   organic: { ...preset.settings.organic },
   align: { ...preset.settings.align },
+  // No profile carries one: it is the listener's, and whoever puts a profile
+  // on the stage keeps the stage's own over this.
+  oversampling: DSP_DEFAULTS.exciter.oversampling,
   isolate: false,
 });
 

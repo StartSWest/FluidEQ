@@ -29,8 +29,10 @@ import {
   EQ_MODELS,
   EQ_PHASE_MODES,
   EQ_STEREO_MODES,
+  EXCITER_OVERSAMPLING,
   IDspSettings,
   IEqBandSettings,
+  IExciterSettings,
   DSP_DEFAULTS,
   ROOM_HEADS,
   ROOM_PRESETS,
@@ -154,9 +156,10 @@ export const CHAIN_DEESSER_FIELDS = 12;
  * The De-esser in the compressor's retired eighteen words: the first stays
  * the compressor's switch, written 0 so an engine from before the compressor
  * went keeps it off; the De-esser's twelve follow, which every engine since
- * decodes and ignores (`ENGINE_DEESSER_SINCE`); then the signature pair and
- * three zeros. An engine without the De-esser therefore plays the rack
- * without it rather than refusing the line, and no word after these moves.
+ * decodes and ignores (`ENGINE_DEESSER_SINCE`); then the signature pair. An
+ * engine without the De-esser therefore plays the rack without it rather
+ * than refusing the line, and no word after these moves. The three words
+ * left are `signedSpareWords`.
  */
 export const deEsserWords = (deEsser: IDeEsserSettings): number[] => [
   0,
@@ -174,7 +177,17 @@ export const deEsserWords = (deEsser: IDeEsserSettings): number[] => [
   deEsser.keepCymbals,
   CHAIN_DEESSER_SIGNATURE,
   CHAIN_DEESSER_FIELDS,
-  0,
+];
+
+/**
+ * The last three of the retired words, read only behind the signature pair:
+ * an engine that finds no pair reads the line as one from before it and
+ * these as the compressor's, which its switch word keeps off. The first is
+ * the Exciter's oversampling (`kExciterOversamplingSlot` in
+ * `chain_decode.cpp`, engine 1.23 with the De-esser); the other two are free.
+ */
+export const signedSpareWords = (exciter: IExciterSettings): number[] => [
+  EXCITER_OVERSAMPLING.indexOf(exciter.oversampling),
   0,
   0,
 ];
@@ -235,6 +248,7 @@ export const encodeChainSettings = (settings: IDspSettings): number[] => {
     // Ivan's call: a stage every preset set and no page showed. They stay so
     // nothing after them moves, and carry the De-esser now (`deEsserWords`).
     ...deEsserWords(settings.deEsser),
+    ...signedSpareWords(exciter),
     dimension.enabled ? 1 : 0,
     dimension.lowWidth,
     dimension.midWidth,

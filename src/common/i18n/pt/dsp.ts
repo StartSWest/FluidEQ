@@ -446,6 +446,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Médios',
   'dsp.exciter.band.high': 'Agudos',
   'dsp.exciter.texture': 'Textura',
+  'dsp.exciter.oversampling': 'Sobreamostragem',
+  'dsp.exciter.oversampling.off': 'Desligado',
+  'dsp.exciter.oversampling.standard': 'Padrão',
+  'dsp.exciter.oversampling.high': 'Alto',
+  'dsp.exciter.oversampling.offHint':
+    'Harmônicos criados na taxa da própria saída: a carga mais leve, com alguma aspereza pelo que se dobra de volta do topo.',
+  'dsp.exciter.oversampling.standardHint':
+    'Harmônicos criados em até quatro vezes a taxa da saída, como o Excitador sempre funcionou.',
+  'dsp.exciter.oversampling.highHint':
+    'A mesma taxa com um filtro bem mais íngreme, para que nada se dobre de volta do topo. Um pouco mais de trabalho para o processador.',
   'dsp.exciter.organic': 'Orgânico',
   'dsp.exciter.organicHint':
     'Adiciona corpo suave de harmônicos pares na região escolhida. Ideal para tornar uma apresentação limpa e metálica, inclusive com drivers de titânio, mais quente e orgânica sem perder detalhe.',

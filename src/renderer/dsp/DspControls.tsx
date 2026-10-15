@@ -31,6 +31,8 @@ interface IDialProps {
   isDisabled: boolean;
   onChange: (next: number) => void;
   onCommit: () => void;
+  /** @see ILabelledKnobProps.onEngage */
+  onEngage?: (engaged: boolean) => void;
 }
 
 /**
@@ -52,6 +54,7 @@ export const Dial = ({
   isDisabled,
   onChange,
   onCommit,
+  onEngage,
 }: IDialProps) => {
   const { t } = useTranslation();
   return (
@@ -66,6 +69,7 @@ export const Dial = ({
       isDisabled={isDisabled}
       onChange={onChange}
       onCommit={onCommit}
+      onEngage={onEngage}
     />
   );
 };

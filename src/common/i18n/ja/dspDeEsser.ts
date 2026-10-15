@@ -41,7 +41,7 @@ export default {
   'dsp.deEsser.mode.trebleHint':
     '一般的なディエッサーと同じく、歯擦音より上をすべて下げます。より確実ですが、少しこもります。',
   'dsp.deEsser.mode.wholeHint':
-    '歯擦音の間だけ音全体を下げます。話し声では自然、音楽では下げすぎです。',
+    '歯擦音のたびに、その下で鳴る音も含めて音全体を下げるため、ポンピングが起こることがあります。単独で録音された声にだけ向いています。',
 
   'dsp.deEsser.where.label': 'ステレオ像のどの部分か',
   'dsp.deEsser.where.centre': '中央',
@@ -62,6 +62,14 @@ export default {
   'dsp.deEsser.engineOld':
     'ここにインストールされている FluidEQ Engine はディエッサーより古いため、この段はまだ聞こえません。ラックの他の部分はこれまでどおり鳴ります。',
   'dsp.deEsser.upTo': '最大 {db}',
+  'dsp.deEsser.lens.trebleNow': '現在の高域',
+  'dsp.deEsser.lens.underVoice': '声より {db} 下',
+  'dsp.deEsser.lens.ahead': '{ms} 先読み',
+  'dsp.deEsser.lens.cymbalNeeds': 'シンバルはさらに {db} 必要',
+  'dsp.deEsser.lens.cymbal': 'シンバル',
+  'dsp.deEsser.lens.s': 'S',
+  'dsp.deEsser.lens.left': '左',
+  'dsp.deEsser.lens.right': '右',
 
   'dsp.deEsserPresetGroup.music': '音楽',
   'dsp.deEsserPresetGroup.speech': '話し声',

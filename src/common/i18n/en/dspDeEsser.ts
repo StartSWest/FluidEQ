@@ -45,7 +45,7 @@ export default {
   'dsp.deEsser.mode.trebleHint':
     'Turns down everything above the S, like most de-essers. Firmer, a little duller.',
   'dsp.deEsser.mode.wholeHint':
-    'Dips the whole sound for the length of each S. Natural on speech, too much on music.',
+    'Dips the whole sound for each S, everything under it included, so it can pump. Only for a voice recorded on its own.',
 
   'dsp.deEsser.where.label': 'Which part of the stereo picture',
   'dsp.deEsser.where.centre': 'Centre',
@@ -66,6 +66,14 @@ export default {
   'dsp.deEsser.engineOld':
     'The FluidEQ Engine installed here is older than the De-esser, so this stage is not heard yet. The rest of the rack plays as before.',
   'dsp.deEsser.upTo': 'up to {db}',
+  'dsp.deEsser.lens.trebleNow': 'Treble now',
+  'dsp.deEsser.lens.underVoice': '{db} under the voice',
+  'dsp.deEsser.lens.ahead': 'heard {ms} ahead',
+  'dsp.deEsser.lens.cymbalNeeds': 'a cymbal needs {db} more',
+  'dsp.deEsser.lens.cymbal': 'Cymbal',
+  'dsp.deEsser.lens.s': 'S',
+  'dsp.deEsser.lens.left': 'L',
+  'dsp.deEsser.lens.right': 'R',
 
   'dsp.deEsserPresetGroup.music': 'Music',
   'dsp.deEsserPresetGroup.speech': 'Speech',

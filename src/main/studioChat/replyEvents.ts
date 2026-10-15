@@ -15,6 +15,37 @@ const withEvent = (
   reply: TReply,
   event: Exclude<TChatStreamEvent, { type: 'session' } | { type: 'end' }>,
 ): TReply => {
+  if (event.type === 'compacting') {
+    return {
+      ...reply,
+      steps: [
+        ...reply.steps,
+        { id: event.id, kind: 'compact', state: 'running' },
+      ],
+    };
+  }
+  if (event.type === 'compacted') {
+    // The compaction under way ends; one that came with no "compacting"
+    // first is added as it ended.
+    const running = reply.steps.find(
+      (step) => step.kind === 'compact' && step.state === 'running',
+    );
+    const done = {
+      state: 'done' as const,
+      ...(event.tokens ? { tokens: event.tokens } : {}),
+    };
+    return {
+      ...reply,
+      steps: running
+        ? reply.steps.map((step) =>
+            step === running ? { ...step, ...done } : step,
+          )
+        : [
+            ...reply.steps,
+            { id: `compact-${reply.steps.length}`, kind: 'compact', ...done },
+          ],
+    };
+  }
   if (event.type === 'text') {
     return { ...reply, text: reply.text + event.text };
   }

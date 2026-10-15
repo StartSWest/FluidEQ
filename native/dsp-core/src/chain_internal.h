@@ -965,6 +965,27 @@ void chain_eq_fade_transfer(FeqChain& prepared, FeqChain& previous);
 void chain_process_eq(FeqChain* chain, float* const* channels,
                       uint32_t frames);
 
+/** How late the EQ stage brings the sound back (`FeqChainLatencyParts::eq`). */
+uint32_t chain_eq_latency_frames(const FeqChain* chain);
+
+/** The factor the EQ's Colour stage runs at on this rate. */
+uint32_t chain_eq_colour_factor(const FeqChain* chain);
+
+/**
+ * `target` up by `factor` and back through `state`, in place: the delay and
+ * the skirts of a round trip with nothing done in it (`chain_eq_delay.cpp`).
+ */
+void chain_eq_round_trip(FeqChain* chain, float* target, uint32_t frames,
+                         FeqOversampler* state, uint32_t factor, float* work);
+
+/**
+ * The half Mid only or Sides only leaves alone, in place: made as late as
+ * the half the EQ works on — the linear kernel's delay, the oversampler's
+ * and Colour's round trips — and faded out under Isolate.
+ */
+void chain_eq_pass_untouched(FeqChain* chain, ChainEqSlot& slot,
+                             float* target, uint32_t frames);
+
 /**
  * The EQ through its linear-phase kernel, dynamic bands included, over
  * `count` channels in place (`chain_eq_linear.cpp`). `linked` gives every

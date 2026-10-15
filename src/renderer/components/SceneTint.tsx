@@ -9,7 +9,6 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useLayoutEffect, useMemo, useRef } from 'react';
 import { isMemberLookId } from 'common/memberScenes';
 import { isPremiumLookId } from 'common/scenePacks';
-import { daylightTintStep, usePageDaylight } from '../graph/sceneDaylight';
 import {
   measureSceneSky,
   measureStudioSky,
@@ -63,10 +62,6 @@ const SceneTint = () => {
   const scenes = useUsableScenes();
   const memberScenes = useUsableMemberScenes();
   const hasPainted = useRef(false);
-  // A scene answers to the time of day (`sceneDaylight.ts`), so its colour
-  // is measured, and remembered, at the step of the day it is drawn at: the
-  // Brightness's, or the one set apart from it in Window colours.
-  const hour = daylightTintStep(usePageDaylight());
   // Colours and Ambient hold the scene's colour however low the Brightness
   // goes; the Backdrop's glass darkens with it (`TSkyTone`). The Studio's
   // own mode while it is the one asking.
@@ -126,7 +121,7 @@ const SceneTint = () => {
       const remembered = recallSceneSky(studioSkyKey(studio.project));
       showSceneSky(remembered?.sky ?? undefined, fade, tone);
       const { playing } = studio;
-      const build = playing && `${playing.build}@${hour}`;
+      const build = playing?.build;
       if (playing && build && remembered?.version !== build) {
         showMeasured(measureStudioSky(studio.project, build, playing.pack));
       }
@@ -160,12 +155,11 @@ const SceneTint = () => {
         showSceneSky(provisional, fade, tone);
       }
     }
-    const measuredAs = version === undefined ? undefined : `${version}@${hour}`;
-    if (measuredAs !== undefined && remembered?.version !== measuredAs) {
-      showMeasured(measureSceneSky(lookId, measuredAs));
+    if (version !== undefined && remembered?.version !== version) {
+      showMeasured(measureSceneSky(lookId, version));
     }
     return stop;
-  }, [studio, isEnabled, isSceneLook, lookId, version, swatch, hour, tone]);
+  }, [studio, isEnabled, isSceneLook, lookId, version, swatch, tone]);
 
   return null;
 };

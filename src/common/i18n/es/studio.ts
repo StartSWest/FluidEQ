@@ -313,6 +313,12 @@ const studio = {
   'studio.status.problem': 'La última versión que funciona sigue sonando',
   'studio.status.waiting': 'Esperando una versión que se reproduzca',
 
+  'studio.version.group': 'Versiones',
+  'studio.version.looks': 'Mis estilos v{version}',
+  'studio.version.looksCurrent': 'Tus estilos tienen exactamente esta escena.',
+  'studio.version.looksBehind':
+    'Tus estilos tienen un guardado anterior de la versión {version}. «Añadir a mis estilos» los pone al día.',
+  'studio.version.gallery': 'Galería v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Versión {version} de esta escena. Todavía no se ha publicado.',

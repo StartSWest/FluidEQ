@@ -387,7 +387,11 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             the number is a property of the scene, and after a sentence it
             read as a trailing afterthought. */}
         {project && version !== undefined && (
-          <StudioVersion version={version} published={tuner.publishedVersion} />
+          <StudioVersion
+            version={version}
+            published={tuner.publishedVersion}
+            look={state.look}
+          />
         )}
         {project && (
           <span

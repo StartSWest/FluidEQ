@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useState } from 'react';
 import { IDeEsserSettings } from '../../common/dsp/deEsser';
 import { engineRunsDeEsser } from '../../common/engineHealth';
 import { requestEngineUpdate } from '../utils/engineUpdateRequest';
@@ -14,6 +15,7 @@ import { ProcessorCard } from './DspControls';
 import DspDeEsserBar from './DspDeEsserBar';
 import DspDeEsserControls from './DspDeEsserControls';
 import DspDeEsserGraph from './DspDeEsserGraph';
+import { sameTune, TDeEsserTune } from './deEsserLens';
 
 interface IDspDeEsserCardProps {
   deEsser: IDeEsserSettings;
@@ -40,6 +42,20 @@ const DspDeEsserCard = ({
   /** A sound edit stops a profile being that profile; bypass does not. */
   const patch = (next: Partial<IDeEsserSettings>) =>
     onPatch({ ...deEsser, ...next, presetId: '' });
+
+  /**
+   * The control in hand, which the display draws in the history's place. A
+   * control letting go clears only itself: the pointer leaves one and enters
+   * the next as two events, and the second must not be undone by the first.
+   */
+  const [tune, setTune] = useState<TDeEsserTune | undefined>(undefined);
+  const onTune = (next: TDeEsserTune, engaged: boolean) =>
+    setTune((now) => {
+      if (engaged) {
+        return next;
+      }
+      return now !== undefined && sameTune(now, next) ? undefined : now;
+    });
 
   const isOff = !deEsser.enabled;
 
@@ -107,12 +123,13 @@ const DspDeEsserCard = ({
         </div>
       ) : null}
 
-      <DspDeEsserGraph deEsser={deEsser} />
+      <DspDeEsserGraph deEsser={deEsser} tune={tune} />
 
       <DspDeEsserControls
         deEsser={deEsser}
         onEdit={patch}
         onCommit={onCommit}
+        onTune={onTune}
       />
     </ProcessorCard>
   );

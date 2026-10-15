@@ -95,6 +95,25 @@ export const memberSceneFingerprint = (authorId: string, packId: string) =>
     .update(`${authorId.toLowerCase()}:${packId}`, 'utf8')
     .digest('hex');
 
+/** What tells two copies of one version apart: the pack as the looks hold it. */
+const revisionOf = (pack: IScenePack) =>
+  createHash('sha256').update(JSON.stringify(pack)).digest('hex');
+
+/**
+ * The revision a pack would have once kept in the looks, without keeping it:
+ * checked as `save` checks it, written and read back as the looks read it,
+ * so a pack equal to the kept one gives the kept one's revision exactly.
+ * Nothing for a pack the looks would refuse.
+ */
+export const keptRevisionOf = (pack: IScenePack): string | undefined => {
+  const checked = checkMemberScene(pack);
+  if (!checked.ok) {
+    return undefined;
+  }
+  const kept = readMemberScene(JSON.parse(JSON.stringify(checked.pack)));
+  return kept ? revisionOf(kept) : undefined;
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
@@ -196,7 +215,7 @@ export const createMemberSceneStore = ({
       authorId,
       packId: pack.id,
       version: pack.version,
-      revision: createHash('sha256').update(JSON.stringify(pack)).digest('hex'),
+      revision: revisionOf(pack),
       names: pack.names,
       fallbackStyle: pack.fallbackStyle,
       swatch: pack.swatch,

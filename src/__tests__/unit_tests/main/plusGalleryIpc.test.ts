@@ -90,17 +90,22 @@ let signedIn: boolean;
 let store: IMemberSceneStore;
 let announced: number;
 let refreshed: number;
-let calls: Array<{ url: string; body?: unknown }>;
+/** Each request: its address without the query, and the query apart. */
+let calls: Array<{ url: string; search: string; body?: unknown }>;
 /** What the bucket holds, by object path. */
 let bucket: Map<string, unknown>;
 let rows: unknown[];
 
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
-  const url = String(input);
+  const parsed = new URL(String(input));
+  const url = `${parsed.origin}${parsed.pathname}`;
   calls.push({
     url,
+    search: parsed.search,
     body: init?.body ? JSON.parse(String(init.body)) : undefined,
   });
+  // The object is named by the path alone: `?version=` only keys the CDN's
+  // cache (`fetchEnvelope`), as on the real storage server.
   const object = url.match(/member-scenes\/(.+)$/)?.[1];
   if (object) {
     return bucket.has(object)
@@ -430,9 +435,11 @@ describe('adding', () => {
     publishScene(SOMEONE);
     await invoke('plus-gallery-preview', SOMEONE, 'neon-city', 1);
     await invoke('plus-gallery-add', SOMEONE, 'neon-city', 1);
-    expect(
-      calls.filter((call) => call.url.endsWith('scene.json')),
-    ).toHaveLength(1);
+    const fetched = calls.filter((call) => call.url.endsWith('scene.json'));
+    expect(fetched).toHaveLength(1);
+    // Asked for by the version the gallery row names, so the storage CDN
+    // cannot hand back the copy a republication just replaced.
+    expect(fetched[0].search).toMatch(/[?&]version=/);
   });
 
   it('brings the member’s own scene back as their own', async () => {
@@ -584,6 +591,7 @@ describe('reporting', () => {
     ).toEqual([
       {
         url: 'https://project.supabase.co/rest/v1/rpc/report_scene',
+        search: '',
         body: { p_author: SOMEONE, p_scene: 'neon-city', p_reason: 'rights' },
       },
     ]);

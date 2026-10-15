@@ -467,6 +467,7 @@ export const DSP_DEFAULTS: IDspSettings = {
       range: 0.3,
     },
     align: { enabled: false, amount: 0.45 },
+    oversampling: 'standard',
     isolate: false,
   },
   bassForge: {

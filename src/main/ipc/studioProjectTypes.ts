@@ -70,6 +70,17 @@ export interface IStudioState {
   activeId?: string;
   /** The latest build of the open project, while the Studio is open. */
   build?: TProjectBuild;
+  /** The open project's copy in the member's looks, once they kept one. */
+  look?: IStudioLookCopy;
+}
+
+/**
+ * A scene's copy in the member's looks, beside the same scene on the bench:
+ * its version number, and whether it is exactly what the bench plays.
+ */
+export interface IStudioLookCopy {
+  version: number;
+  current: boolean;
 }
 
 export type TNewProjectResult =

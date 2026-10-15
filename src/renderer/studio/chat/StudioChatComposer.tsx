@@ -8,15 +8,11 @@ import { useState, type KeyboardEvent } from 'react';
 import { STUDIO_CHAT_MAX_TEXT } from 'common/studioChat';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
-import StudioChatEffortDots, { isHeavyEffort } from './StudioChatEffortDots';
+import StudioChatEffortDots from './StudioChatEffortDots';
 import StudioChatAttachment from './StudioChatAttachment';
 import StudioChatModelPick from './StudioChatModelPick';
-import StudioChatZoom from './StudioChatZoom';
-import {
-  sendToStudioChat,
-  stopStudioChat,
-  useStudioChat,
-} from './studioChatStore';
+import StudioChatContext from './StudioChatContext';
+import { sendToStudioChat, stopStudioChat } from './studioChatStore';
 import '../../styles/StudioChatComposer.scss';
 
 interface IStudioChatComposerProps {
@@ -51,7 +47,6 @@ export default function StudioChatComposer({
   captureStage,
 }: IStudioChatComposerProps) {
   const { t } = useTranslation();
-  const { effort } = useStudioChat();
   // The stage's picture going with the next message: taken when the camera
   // is pressed, so it can be drawn on before it goes.
   const [stage, setStage] = useState<Uint8Array>();
@@ -59,7 +54,9 @@ export default function StudioChatComposer({
   // Between the press and main's first word back: no second send.
   const [sending, setSending] = useState(false);
   const text = draft.trim();
-  const blocked = busy || sending;
+  // While Claude answers, a message still goes: main queues it behind the
+  // reply (Ivan, 2026-10-14: "we need to be able to queue messages").
+  const blocked = sending;
 
   const send = async () => {
     if (!text || blocked) {
@@ -113,7 +110,9 @@ export default function StudioChatComposer({
           onChange={(event) => onDraft(event.target.value)}
           onKeyDown={onKeyDown}
         />
-        <div className="studio-chat__bar">
+        {/* Stop and Send side by side take the effort's name's room: it
+            gives way to the dots alone until one of them goes. */}
+        <div className={`studio-chat__bar${busy && text ? ' is-crowded' : ''}`}>
           {/* The camera alone; its words go to its name and hint. It takes
               the picture at once, which then stands in the box to be drawn
               on, and lights while one will go with the message; pressed
@@ -147,7 +146,8 @@ export default function StudioChatComposer({
           </button>
           <StudioChatModelPick disabled={blocked} />
           <StudioChatEffortDots disabled={blocked} />
-          {busy ? (
+          <StudioChatContext folder={folder} />
+          {busy && (
             <button
               type="button"
               className="button small subtle studio-chat__send"
@@ -159,12 +159,15 @@ export default function StudioChatComposer({
             >
               <Glyph name="stop" />
             </button>
-          ) : (
+          )}
+          {/* While Claude answers, Send queues: it stands beside Stop once
+              there is something to send, and says what it will do. */}
+          {(!busy || text) && (
             <button
               type="submit"
               className={`button small studio-chat__send${sending ? ' is-running' : ''}`}
-              aria-label={t('studioChat.send')}
-              title={t('studioChat.send')}
+              aria-label={t(busy ? 'studioChat.queue.send' : 'studioChat.send')}
+              title={t(busy ? 'studioChat.queue.send' : 'studioChat.send')}
               disabled={!text || blocked}
               aria-busy={sending}
             >
@@ -172,16 +175,6 @@ export default function StudioChatComposer({
             </button>
           )}
         </div>
-      </div>
-      {isHeavyEffort(effort) && (
-        <p className="studio-chat__effort-warning" role="status">
-          <Glyph name="alert" />
-          {t('studioChat.effortWarning')}
-        </p>
-      )}
-      <div className="studio-chat__foot">
-        <p className="studio-chat__fine">{t('studioChat.fine')}</p>
-        <StudioChatZoom />
       </div>
     </form>
   );

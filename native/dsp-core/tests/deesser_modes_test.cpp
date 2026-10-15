@@ -108,6 +108,49 @@ void three_ways_of_cutting() {
   }
 }
 
+/**
+ * At the speech chains' settings, a spectral cut leaves the sound under an
+ * S at its level.
+ *
+ * The Speech and Podcast chains ran the De-esser in Whole voice: every S
+ * turned everything down by up to 8 dB — the bed under the voice, a second
+ * voice, the start of the next vowel — and gave it back over 50 ms, heard as
+ * a limiter pumping (Ivan, 2026-10-14). Measured under 1 kHz while each S
+ * plays — the scene leaves a gap before the next vowel, so what an S takes
+ * down there is the bed — at the settings those chains used; Whole voice at
+ * the same settings is the control.
+ */
+void speech_keeps_its_level_through_an_s() {
+  std::printf("the sound under an S, at the speech chains' settings\n");
+  SceneOptions options;
+  options.hats = false;
+  const Scene scene = make_scene(options);
+  const std::vector<Event>& through = scene.esses;
+  const double in = low_energy(scene.mix, through, 0, scene.rate);
+  double losses[2] = {};
+  for (const int mode : {FEQ_DEESSER_SPECTRAL, FEQ_DEESSER_WHOLE}) {
+    FeqDeEsserSettings settings = vocal_music();
+    settings.sensitivity = 0.6;
+    settings.low_hz = 4000.0;
+    settings.high_hz = 10000.0;
+    settings.range_db = 8.0;
+    settings.release_ms = 50.0;
+    settings.centre_only = 0;
+    settings.keep_cymbals = 0.3;
+    settings.mode = mode;
+    const Signal out = run(scene, settings);
+    const double loss =
+        10.0 * std::log10(in / low_energy(out, through, 96, scene.rate));
+    const double s = loss_db(scene, out, 2, scene.esses);
+    std::printf("  %-8s S %.2f dB, under 1 kHz through it %.2f dB\n",
+                mode == FEQ_DEESSER_WHOLE ? "whole" : "spectral", s, loss);
+    losses[mode == FEQ_DEESSER_WHOLE ? 1 : 0] = loss;
+    check(s >= 3.0, "the S loses at least 3 dB");
+  }
+  check(losses[1] >= 2.0, "control: Whole voice takes the sound under it down");
+  check(losses[0] <= 0.1, "a spectral cut leaves it at its level");
+}
+
 void isolate_is_what_is_taken() {
   std::printf("Isolate plays exactly what is taken away\n");
   const Scene scene = make_scene(SceneOptions{});
@@ -362,6 +405,7 @@ void every_way_mono() {
 
 int main() {
   three_ways_of_cutting();
+  speech_keeps_its_level_through_an_s();
   isolate_is_what_is_taken();
   the_cut_stays_within_the_dial();
   surround_keeps_its_lfe_and_rears();

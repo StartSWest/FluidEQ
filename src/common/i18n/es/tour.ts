@@ -497,6 +497,26 @@ const tour: Partial<Dictionary> = {
   'tour.deesser.imageAlt':
     'La franja del De-esser pasando: cada S de una voz por encima de la línea donde empieza la etapa, con su recorte colgando debajo en ámbar, y los hi-hats en gris, intactos; arriba la etapa con Espectral elegido y abajo Voz, Pódcast y Audiolibro.',
 
+  'tour.chat.kicker': 'UNA ESCENA CON SOLO PEDIRLA',
+  'tour.chat.title': 'Pide un cambio y míralo en el escenario',
+  'tour.chat.subtitle': 'Un chat junto al escenario del Estudio',
+  'tour.chat.lead':
+    'El {studio} ahora tiene un chat junto a su escenario. Di qué debe cambiar —cómo se ve una escena, cómo se mueve con la música, sus colores o su luz— y tu propia IA edita la escena y reproduce cada versión en el escenario sobre la marcha.',
+  'tour.chat.point1':
+    'Cada respuesta guarda la versión que hizo, y {bringBack} vuelve a poner una anterior. Cada escena guarda sus chats anteriores.',
+  'tour.chat.point2':
+    '{attach} envía una imagen de la escena con tu mensaje, y puedes dibujar encima para mostrar lo que quieres decir. Los mensajes que envías mientras trabaja esperan en una cola y salen juntos.',
+  'tour.chat.point3':
+    'Funciona con Claude Code instalado en este equipo, con tu propio plan, y muestra cuánto te queda de tus límites. Con ChatGPT conectado puede pintar imágenes para la escena, y te pregunta antes de cada una.',
+  'tour.chat.how':
+    'Abre {plus}, elige {studio} en su barra lateral, elige una escena o empieza una y escribe en el cuadro junto al escenario.',
+  'tour.chat.open': 'Abrir Plus',
+  'tour.chat.imageAlt':
+    'El escenario del Estudio junto a su chat: una petición para que las luces del escenario destellen con la caja, los pasos de la respuesta marcándose uno a uno, la versión 2 guardada con Recuperar, y las luces del escenario empezando a destellar cuando suena la versión 2.',
+  'tour.chat.ask': 'Haz que las luces del escenario destellen con la caja.',
+  'tour.chat.reply':
+    'Hecho: los dos focos destellan en blanco con cada golpe de caja y vuelven al rosa.',
+
   'tour.looks.kicker': 'TU PROPIO ESTILO',
   'tour.looks.title': 'Estilos propios para la gráfica',
   'tour.looks.subtitle': 'Tus formas, tus colores, tu movimiento',

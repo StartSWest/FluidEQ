@@ -40,7 +40,7 @@ export default {
   'dsp.deEsser.mode.trebleHint':
     '和大多数齿音消除器一样，压低齿音以上的全部内容。更稳，略显发闷。',
   'dsp.deEsser.mode.wholeHint':
-    '在每个齿音持续期间压低整个声音。用于语音很自然，用于音乐则太多。',
+    '每个齿音都会压低整个声音，连同其下的一切，因此可能产生抽吸感。只适用于单独录制的人声。',
 
   'dsp.deEsser.where.label': '立体声像的哪一部分',
   'dsp.deEsser.where.centre': '中央',
@@ -61,6 +61,14 @@ export default {
   'dsp.deEsser.engineOld':
     '这里安装的 FluidEQ Engine 早于齿音消除，所以这一级还听不到。机架的其余部分照常工作。',
   'dsp.deEsser.upTo': '最多 {db}',
+  'dsp.deEsser.lens.trebleNow': '当前高频',
+  'dsp.deEsser.lens.underVoice': '比人声低 {db}',
+  'dsp.deEsser.lens.ahead': '提前 {ms} 听到',
+  'dsp.deEsser.lens.cymbalNeeds': '镲片需再高 {db}',
+  'dsp.deEsser.lens.cymbal': '镲片',
+  'dsp.deEsser.lens.s': 'S',
+  'dsp.deEsser.lens.left': '左',
+  'dsp.deEsser.lens.right': '右',
 
   'dsp.deEsserPresetGroup.music': '音乐',
   'dsp.deEsserPresetGroup.speech': '语音',

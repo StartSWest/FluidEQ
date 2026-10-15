@@ -562,11 +562,11 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.intro':
     'El Estudio convierte una descripción en un visualizador. Tu propio asistente de IA escribe la escena en una carpeta de proyecto, y FluidEQ reproduce cada versión con tu música en cuanto se guarda. El Estudio es parte de Plus; una cuenta nueva puede abrirlo con la prueba gratuita.',
   'help.studio.steps':
-    'Abre Plus → Estudio, pulsa Proyecto nuevo… y ponle un nombre; FluidEQ crea su carpeta con una escena que ya se mueve.\nDescribe tu idea, abre la carpeta en tu asistente de IA y pega el prompt que copias con Copiar prompt para IA.\nMira el escenario mientras se guardan los archivos y usa las señales de prueba. Después pulsa Añadir a mis estilos, Publicar… o Exportar…',
+    'Abre Plus → Estudio, pulsa Proyecto nuevo… y ponle un nombre; FluidEQ crea su carpeta con una escena que ya se mueve.\nDescribe tu idea, abre la carpeta en tu asistente de IA y pega el prompt que copias con Copiar prompt para IA.\nO escribe qué debe cambiar en el chat junto al escenario: Claude Code en este equipo, con tu propio plan, edita la escena y reproduce cada versión. Cada respuesta guarda su versión, con Recuperar.\nMira el escenario mientras se guardan los archivos y usa las señales de prueba. Después pulsa Añadir a mis estilos, Publicar… o Exportar…',
   'help.studio.tip':
     'Haz doble clic en el escenario para verlo a pantalla completa. Ver por dentro una escena de FluidEQ… abre una de las escenas de FluidEQ para aprender de ella; no se puede publicar. Las escenas que parpadean demasiado o son demasiado pesadas quedan bloqueadas. Una escena que publicas la lee antes el creador de FluidEQ, y una que se aprueba te da un mes de Plus.',
   'help.studio.keywords':
-    'hacer visualizadores, shader, GLSL, programar, ChatGPT, Claude, Gemini, inteligencia artificial, editor de escenas, creador de visualizadores, subir escena',
+    'hacer visualizadores, shader, GLSL, programar, ChatGPT, Claude, Gemini, inteligencia artificial, editor de escenas, creador de visualizadores, subir escena, chat, chat del estudio, pedir un cambio, claude code, recuperar, versiones',
   'help.studio.project':
     'Tus proyectos y escenas de FluidEQ para ver por dentro.',
   'help.studio.stageName': 'Escenario',

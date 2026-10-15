@@ -313,6 +313,13 @@ const studio = {
   'studio.status.problem': '最後に動いたバージョンを再生中です',
   'studio.status.waiting': '再生できるバージョンを待っています',
 
+  'studio.version.group': 'バージョン',
+  'studio.version.looks': 'マイ表示 v{version}',
+  'studio.version.looksCurrent':
+    'マイ表示にはこのシーンがそのまま入っています。',
+  'studio.version.looksBehind':
+    'マイ表示にはバージョン {version} の以前の保存が入っています。「マイ表示に追加」で最新にできます。',
+  'studio.version.gallery': 'ギャラリー v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'このシーンのバージョン {version} です。まだ公開されていません。',

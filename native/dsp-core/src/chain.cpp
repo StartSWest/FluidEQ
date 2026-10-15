@@ -771,8 +771,7 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out) {
   if (chain == nullptr || chain->settings.enabled == 0) {
     return;
   }
-  out->linear_eq =
-      chain_linear_running(chain) != 0 ? feq_linear_phase_latency() : 0u;
+  out->eq = chain_eq_latency_frames(chain);
   // Denoise adds delay only for the modules that are on: the comb is zero
   // latency, the repair costs its lookahead, the spectral module its window
   // less a hop. A stage reporting a latency it is not actually adding puts the
@@ -803,7 +802,7 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out) {
 uint32_t feq_chain_latency_frames(const FeqChain* chain) {
   FeqChainLatencyParts parts{};
   feq_chain_latency_parts(chain, &parts);
-  return parts.linear_eq + parts.restoration + parts.deesser + parts.leveler +
+  return parts.eq + parts.restoration + parts.deesser + parts.leveler +
          parts.room + parts.bass_punch + parts.maximizer + parts.headroom;
 }
 

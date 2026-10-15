@@ -5,6 +5,7 @@ const studioChat = {
   'studioChat.wherePlan': 'Claude Code · план {plan}',
   'studioChat.new': 'Новый чат',
   'studioChat.otherAi': 'Другой ИИ',
+  'studioChat.menu': 'Параметры чата',
   'studioChat.backToChat': 'Вернуться в чат',
   'studioChat.fold': 'Свернуть чат',
   'studioChat.unfold': 'Чат с Claude',
@@ -158,6 +159,54 @@ const studioChat = {
   'studioChat.sketch.arrow': 'Стрелка',
   'studioChat.sketch.text': 'Текст',
   'studioChat.sketch.textHint': 'Введите и нажмите Enter',
+  'studioChat.accounts.title': 'Аккаунты',
+  'studioChat.accounts.open':
+    'Посмотреть, какие аккаунты Claude и ChatGPT использует чат',
+  'studioChat.accounts.claude': 'Claude',
+  'studioChat.accounts.chatgpt': 'ChatGPT',
+  'studioChat.accounts.unknown': 'Вход выполнен',
+  'studioChat.accounts.switch': 'Использовать другой аккаунт',
+  'studioChat.accounts.claudeMissing':
+    'Claude Code не установлен на этом компьютере.',
+  'studioChat.accounts.claudeOut': 'В Claude Code не выполнен вход.',
+  'studioChat.accounts.codexMissing':
+    'Приложение Codex не установлено, поэтому ChatGPT не может создавать изображения.',
+  'studioChat.accounts.codexOut': 'В Codex не выполнен вход через ChatGPT.',
+  'studioChat.accounts.picturesOn':
+    'Создаёт изображения в этом чате, когда вы одобряете каждое.',
+  'studioChat.accounts.picturesOff':
+    'Пока без изображений: когда Claude впервые захочет создать изображение, он спросит вас.',
+  'studioChat.accounts.picturesOffButton': 'Выключить изображения',
+  'studioChat.accounts.codexPlan': 'План ChatGPT {plan} · через Codex',
+  'studioChat.accounts.fine':
+    'FluidEQ показывает, какие это аккаунты, и никогда не видит их данные входа.',
+  'studioChat.welcomeSceneTitle': 'Что изменить в {name}?',
+  'studioChat.welcomeSceneBody':
+    'Скажите Claude, что изменить: внешний вид, движение под музыку, цвета или свет. Claude редактирует эту сцену и показывает каждую версию на сцене.',
+  'studioChat.queue.title':
+    'В очереди · отправятся вместе, когда Claude закончит',
+  'studioChat.queue.send':
+    'В очередь: отправится вместе с остальными, когда Claude закончит',
+  'studioChat.queue.remove': 'Убрать',
+  'studioChat.queue.picture': 'С изображением сцены',
+  'studioChat.step.compact': 'Беседа сжата',
+  'studioChat.step.compactNow': 'Сжимаю беседу…',
+  'studioChat.step.compactTokens': '{before} → {after} токенов',
+  'studioChat.compact.label': 'Сжать',
+  'studioChat.context.share': '{percent}% контекста',
+  'studioChat.context.detail':
+    '{used} из {window} токенов в контекстном окне Claude. Сжатие освобождает место.',
+  'studioChat.context.tokens': '{used} токенов контекста',
+  'studioChat.limits.fiveHour': 'Текущий сеанс (5 часов)',
+  'studioChat.limits.week': 'Эта неделя',
+  'studioChat.limits.used': 'Использовано {percent}%',
+  'studioChat.limits.resets': 'Сброс: {time}',
+  'studioChat.limits.asOf': 'На {time} · обновляется при каждом ответе Claude',
+  'studioChat.limits.none':
+    'Лимиты на 5 часов и на неделю появятся здесь, когда Claude ответит на сообщение.',
+  'studioChat.context.tokensOf': '{used} из {window} токенов',
+  'studioChat.context.explain':
+    'Каждое сообщение несёт всю беседу. Сжатие подытоживает её до этого места, и следующие сообщения становятся легче.',
 } as const;
 
 export default studioChat;

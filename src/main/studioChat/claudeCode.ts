@@ -8,15 +8,20 @@ import { spawn, type ChildProcess, type SpawnOptions } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import type { TStudioChatAvailability } from '../../common/studioChat';
+import {
+  accountEmailOf,
+  accountPlanOf,
+  type TStudioChatAvailability,
+} from '../../common/studioChat';
 
 /**
  * The member's own Claude Code: found where it was installed, asked whether
  * it is signed in, and started — always the program as Anthropic ships it,
  * never a copy of FluidEQ's, and never with a sign-in of FluidEQ's.
  *
- * FluidEQ does not read the member's account: `auth status` is asked only
- * for whether it is signed in and the plan's name, and the sign-in itself is
+ * FluidEQ does not read the member's sign-in: `auth status` is asked only
+ * whether it is signed in, the plan's name and the account's email, to show
+ * whose plan the chat runs on, and the sign-in itself is
  * Claude Code's own (`auth login`), on Anthropic's page in the browser.
  */
 
@@ -109,17 +114,23 @@ export const readAuthStatus = (
     if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
       return undefined;
     }
-    const { loggedIn, subscriptionType } = raw as Record<string, unknown>;
+    const { loggedIn, subscriptionType, email } = raw as Record<
+      string,
+      unknown
+    >;
     if (typeof loggedIn !== 'boolean') {
       return undefined;
     }
     if (!loggedIn) {
       return { state: 'signed-out' };
     }
-    return typeof subscriptionType === 'string' &&
-      /^[a-z0-9_-]{1,24}$/i.test(subscriptionType)
-      ? { state: 'ready', plan: subscriptionType.toLowerCase() }
-      : { state: 'ready' };
+    const plan = accountPlanOf(subscriptionType);
+    const account = accountEmailOf(email);
+    return {
+      state: 'ready',
+      ...(plan ? { plan } : {}),
+      ...(account ? { email: account } : {}),
+    };
   } catch {
     return undefined;
   }

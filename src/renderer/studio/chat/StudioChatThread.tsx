@@ -24,6 +24,13 @@ interface IStudioChatThreadProps {
   onIdea: (idea: string) => void;
   /** Asks Claude to carry on a reply that was cut short. */
   onCarryOn: () => void;
+  /**
+   * The open scene's name, when the project already holds one: an empty
+   * chat then asks what should change in it, and offers no ideas for a new
+   * scene (Ivan, 2026-10-13: "having pre prompts there when already a scene
+   * is open doesn't make sense").
+   */
+  sceneName?: string | undefined;
 }
 
 /**
@@ -36,6 +43,7 @@ export default function StudioChatThread({
   version,
   onIdea,
   onCarryOn,
+  sceneName,
 }: IStudioChatThreadProps) {
   const { t } = useTranslation();
   const scroller = useRef<HTMLDivElement>(null);
@@ -72,25 +80,34 @@ export default function StudioChatThread({
           <span className="studio-chat__welcome-mark" aria-hidden="true">
             <Glyph name="studio" />
           </span>
-          <h3>{t('studioChat.welcomeTitle')}</h3>
-          <p>{t('studioChat.welcomeBody')}</p>
-          <div
-            className="studio-chat__ideas"
-            role="group"
-            aria-label={t('studio.maker.examples')}
-          >
-            {AI_IDEAS.map((entry) => (
-              <button
-                key={entry.label}
-                type="button"
-                className="studio-idea"
-                title={t(entry.idea)}
-                onClick={() => onIdea(t(entry.idea))}
+          {sceneName ? (
+            <>
+              <h3>{t('studioChat.welcomeSceneTitle', { name: sceneName })}</h3>
+              <p>{t('studioChat.welcomeSceneBody')}</p>
+            </>
+          ) : (
+            <>
+              <h3>{t('studioChat.welcomeTitle')}</h3>
+              <p>{t('studioChat.welcomeBody')}</p>
+              <div
+                className="studio-chat__ideas"
+                role="group"
+                aria-label={t('studio.maker.examples')}
               >
-                {t(entry.label)}
-              </button>
-            ))}
-          </div>
+                {AI_IDEAS.map((entry) => (
+                  <button
+                    key={entry.label}
+                    type="button"
+                    className="studio-idea"
+                    title={t(entry.idea)}
+                    onClick={() => onIdea(t(entry.idea))}
+                  >
+                    {t(entry.label)}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     );

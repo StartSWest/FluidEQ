@@ -1,0 +1,155 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// ---------------------------------------------------------------- accounts
+
+// Which accounts the chat runs on (`StudioChatAccounts.tsx`): one card for
+// Claude and one for ChatGPT, in the version card's face, where the
+// conversation stands.
+.studio-chat-accounts {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  padding: 12px;
+  overflow-y: auto;
+  zoom: var(--chat-zoom, 1);
+  @include slim-scrollbar;
+}
+
+.studio-chat-accounts__card {
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: $surface-well;
+
+  p {
+    margin: 0;
+  }
+}
+
+.studio-chat-accounts__service {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: $text-faint;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  text-transform: uppercase;
+  @include tracking(0.08em);
+}
+
+// The account itself, the line the member came to read.
+.studio-chat-accounts__email {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.studio-chat-accounts__detail {
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.studio-chat-accounts__note {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.studio-chat-accounts__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.studio-chat-accounts__fine {
+  margin: 2px 2px 0;
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.45;
+}
+
+// The Claude plan's two usage windows (`StudioChatLimits.tsx`), under who the
+// account is: a name and its share on one line, the bar, when it starts
+// over. The bar is the app's green until the member nears the wall.
+.studio-chat-limits {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px solid $card-edge;
+}
+
+.studio-chat-limits__row {
+  display: grid;
+  gap: 4px;
+  --limit: #{$active};
+
+  &.is-near {
+    --limit: #{$amber};
+  }
+
+  &.is-full {
+    --limit: #{$red};
+  }
+}
+
+.studio-chat-limits__name {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.studio-chat-limits__percent {
+  flex: none;
+  color: $text-primary;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-chat-limits__bar {
+  height: 6px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 8%, transparent);
+
+  span {
+    display: block;
+    height: 100%;
+    min-width: 3px;
+    border-radius: inherit;
+    background: var(--limit);
+  }
+}
+
+.studio-chat-limits__resets,
+.studio-chat-limits__as-of,
+.studio-chat-limits__none {
+  color: $text-faint;
+  font-size: $text-micro;
+  line-height: 1.45;
+}
+
+.studio-chat-limits__none {
+  margin-top: 6px;
+}

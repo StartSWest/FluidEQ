@@ -567,11 +567,11 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.intro':
     'Das Studio macht aus einer Beschreibung einen Visualizer. Ihr eigener KI-Assistent schreibt die Szene in einen Projektordner, und FluidEQ spielt jede Version zu Ihrer Musik ab, sobald sie gespeichert ist. Das Studio gehört zu Plus; ein neues Konto kann es mit der Gratis-Testphase öffnen.',
   'help.studio.steps':
-    'Öffnen Sie Plus → Studio und drücken Sie Neues Projekt…. Geben Sie ihm einen Namen; FluidEQ legt seinen Ordner mit einer Szene an, die sich schon bewegt.\nBeschreiben Sie Ihre Idee, öffnen Sie den Ordner in Ihrem KI-Assistenten und fügen Sie den Prompt aus KI-Prompt kopieren ein.\nBeobachten Sie die Bühne, während Dateien gespeichert werden, und probieren Sie die Testsignale aus. Dann Zu meinen Darstellungen, Veröffentlichen… oder Exportieren….',
+    'Öffnen Sie Plus → Studio und drücken Sie Neues Projekt…. Geben Sie ihm einen Namen; FluidEQ legt seinen Ordner mit einer Szene an, die sich schon bewegt.\nBeschreiben Sie Ihre Idee, öffnen Sie den Ordner in Ihrem KI-Assistenten und fügen Sie den Prompt aus KI-Prompt kopieren ein.\nOder schreiben Sie in den Chat neben der Bühne, was sich ändern soll: Claude Code auf diesem Computer, mit Ihrem eigenen Abo angemeldet, bearbeitet die Szene und spielt jede Version. Jede Antwort behält ihre Version, mit Zurückholen.\nBeobachten Sie die Bühne, während Dateien gespeichert werden, und probieren Sie die Testsignale aus. Dann Zu meinen Darstellungen, Veröffentlichen… oder Exportieren….',
   'help.studio.tip':
     'Doppelklicken Sie auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten. Eine Szene, die Sie veröffentlichen, liest zuerst der Macher von FluidEQ, und eine freigegebene Szene bringt Ihnen einen Monat Plus.',
   'help.studio.keywords':
-    'visualizer erstellen, szeneneditor, shader, GLSL, programmieren, ChatGPT, Claude, creator, hochladen',
+    'visualizer erstellen, szeneneditor, shader, GLSL, programmieren, ChatGPT, Claude, creator, hochladen, Chat, Studio-Chat, Änderung erbitten, Claude Code, Zurückholen, Versionen',
   'help.studio.project': 'Ihre Projekte und FluidEQ-Szenen zum Hineinschauen.',
   'help.studio.stageName': 'Bühne',
   'help.studio.stage':

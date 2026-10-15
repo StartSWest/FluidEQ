@@ -25,6 +25,13 @@ export type TStudioChatAvailability =
       state: 'ready';
       /** The member's plan as Claude Code names it ("pro", "max"), if it says. */
       plan?: string;
+      /**
+       * The Claude account Claude Code is signed in to, as it reports it, so
+       * the member can see whose plan the chat runs on (Ivan, 2026-10-13: "I
+       * need to know in studio which claude account and gpt account is
+       * logged in"). Shown, never kept or sent anywhere.
+       */
+      email?: string;
     };
 
 /** One thing Claude did on the way to an answer, as the chat shows it. */
@@ -38,6 +45,7 @@ export interface IStudioChatStep {
     | 'search'
     | 'picture'
     | 'pack'
+    | 'compact'
     | 'other';
   /** The file it read or wrote, by name only, never a path. */
   file?: string;
@@ -48,6 +56,12 @@ export interface IStudioChatStep {
    * the picture ChatGPT made, a PNG that keeps its transparency.
    */
   picture?: string;
+  /**
+   * A compaction's size, before and after, in tokens: Claude Code shrinking
+   * the conversation into a summary so it can go on (Ivan, 2026-10-14: "we
+   * also need to add the compact feature for the chat").
+   */
+  tokens?: { before: number; after: number };
 }
 
 /** Why a reply stopped short. */
@@ -82,6 +96,52 @@ export interface IStudioChat {
   busy: boolean;
   /** A card standing in the chat, waiting on the member. */
   ask?: TStudioChatAsk;
+  /** Messages waiting for the reply being written to end, oldest first. */
+  queued?: IStudioChatQueued[];
+  /** How full Claude's context window is, as of the last reply. */
+  context?: IStudioChatContext;
+}
+
+/**
+ * How much of Claude's context window the conversation takes (Ivan,
+ * 2026-10-14: "show the context windows in the chat"), in tokens, as Claude
+ * Code reported it on the last message: everything the next one carries.
+ */
+export interface IStudioChatContext {
+  used: number;
+  /** The model's whole window; unknown until a reply has finished. */
+  window?: number;
+}
+
+/** One of the plan's usage windows: how much is used, 0 to 1, and when it starts over. */
+export interface IStudioChatLimit {
+  used: number;
+  /** Milliseconds since the epoch. */
+  resetsAt: number;
+}
+
+/**
+ * The member's Claude plan limits (Ivan, 2026-10-14: "show the 5h and weekly
+ * limits … under accounts"), as Claude Code last reported them while
+ * answering: there is no asking for them without sending something.
+ */
+export interface IStudioChatLimits {
+  fiveHour?: IStudioChatLimit;
+  week?: IStudioChatLimit;
+  /** When Claude Code reported them, in milliseconds since the epoch. */
+  at: number;
+}
+
+/**
+ * A message the member sent while Claude was still answering (Ivan,
+ * 2026-10-14: "we need to be able to queue messages to claude"): it waits,
+ * and goes the moment the reply in progress ends well.
+ */
+export interface IStudioChatQueued {
+  id: string;
+  text: string;
+  /** A picture of the stage goes with it. */
+  picture: boolean;
 }
 
 /** What the window sends with a message. */
@@ -99,6 +159,9 @@ export interface IStudioChatMessage {
   /** How hard it thinks; `default` is its own setting. */
   effort?: TStudioChatEffort;
 }
+
+/** What the window sends to compact the conversation: the picks a new process needs. */
+export type IStudioChatCompact = Omit<IStudioChatMessage, 'text' | 'stage'>;
 
 /**
  * The models the member may pick in the chat (Ivan, 2026-10-09: "user needs
@@ -180,6 +243,16 @@ export type TStudioChatRestore =
  */
 export type TStudioChatCodex = 'missing' | 'signed-out' | 'ready';
 
+/** ChatGPT's pictures as the chat shows them: Codex here, and whose. */
+export interface IStudioChatCodexState {
+  codex: TStudioChatCodex;
+  /** The member let ChatGPT make pictures in the chat. */
+  connected: boolean;
+  /** The ChatGPT account Codex is signed in to, and its plan, when it says. */
+  email?: string;
+  plan?: string;
+}
+
 /**
  * What the chat asks the member before Claude uses ChatGPT (Ivan,
  * 2026-10-09: "it needs to ask the user if you connect gpt codex … and also
@@ -255,6 +328,20 @@ export interface IStudioChatPackAsk {
 export type TStudioChatPackAnswer =
   | { ok: true; webp: Uint8Array }
   | { ok: false; reason: 'too-big' | 'unreadable' | 'failed' };
+
+/** An account's email as a sign-in reports it, or undefined if it is not one. */
+export const accountEmailOf = (value: unknown): string | undefined =>
+  typeof value === 'string' &&
+  value.length <= 254 &&
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+    ? value
+    : undefined;
+
+/** A plan's name as a sign-in reports it ("max", "prolite"), or undefined. */
+export const accountPlanOf = (value: unknown): string | undefined =>
+  typeof value === 'string' && /^[a-z0-9_-]{1,24}$/i.test(value)
+    ? value.toLowerCase()
+    : undefined;
 
 /** A message is at most this long; the composer stops there too. */
 export const STUDIO_CHAT_MAX_TEXT = 4000;

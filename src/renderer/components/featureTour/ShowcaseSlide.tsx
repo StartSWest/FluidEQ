@@ -39,7 +39,8 @@ interface IShowcaseSlideProps {
     | 'tour.bands'
     | 'tour.ears'
     | 'tour.songs'
-    | 'tour.deesser';
+    | 'tour.deesser'
+    | 'tour.chat';
   /** What the slide's button does: land somewhere, and close the tour. */
   onOpen: () => void;
   visual: ReactNode;

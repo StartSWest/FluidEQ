@@ -123,6 +123,96 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-top: 2px;
 }
 
+// Messages waiting their turn, over the message box (`StudioChatQueue.tsx`):
+// quieter than the conversation, each on a line of its own with its cross.
+.studio-chat__queue {
+  display: grid;
+  flex: none;
+  gap: 4px;
+  margin: 0 12px;
+  padding: 8px 10px;
+  border: 1px dashed $card-edge;
+  border-radius: $radius-s;
+  zoom: var(--chat-zoom, 1);
+
+  ol {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    min-width: 0;
+  }
+}
+
+.studio-chat__queue-title {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  text-transform: uppercase;
+  @include tracking(0.08em);
+}
+
+.studio-chat__queue-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.studio-chat__queue-picture {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  height: 18px;
+  color: $text-faint;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.studio-chat__queue-remove {
+  display: inline-grid;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  place-items: center;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  cursor: pointer;
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  &:hover {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 6%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .studio-chat__ask {
     animation: none;

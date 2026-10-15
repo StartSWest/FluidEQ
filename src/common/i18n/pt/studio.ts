@@ -308,6 +308,12 @@ const studio = {
   'studio.status.problem': 'A última versão que funciona continua tocando',
   'studio.status.waiting': 'Aguardando uma versão que toque',
 
+  'studio.version.group': 'Versões',
+  'studio.version.looks': 'Meus visuais v{version}',
+  'studio.version.looksCurrent': 'Seus visuais têm exatamente esta cena.',
+  'studio.version.looksBehind':
+    'Seus visuais têm um salvamento anterior da versão {version}. “Adicionar aos meus visuais” os atualiza.',
+  'studio.version.gallery': 'Galeria v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Versão {version} desta cena. Ainda não foi publicada.',

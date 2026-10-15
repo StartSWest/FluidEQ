@@ -6,6 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/exciter.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace {
@@ -239,10 +240,11 @@ void shape_band(FeqExciterChannel* state, uint32_t band, const float* source,
                 const FeqExciterBandSetup& setup, uint32_t frames,
                 double sample_rate) {
   const uint32_t oversample =
-      feq_oversample_factor_for_sample_rate(sample_rate);
+      feq_exciter_oversample_factor(sample_rate, state->quality);
   const uint32_t wide_frames = frames * oversample;
-  feq_oversample_up(&state->oversamplers[band], source, state->wide_dry, frames,
-                    oversample, state->middle);
+  feq_exciter_oversample_up(&state->oversamplers[band], source,
+                            state->wide_dry, frames, oversample,
+                            state->quality, state->middle);
 
   const double wide_rate = sample_rate * static_cast<double>(oversample);
   const double smooth = smoothing(kParameterSmoothingMs, wide_rate);
@@ -267,8 +269,11 @@ void shape_band(FeqExciterChannel* state, uint32_t band, const float* source,
         band_even_weight(band, state->texture[band]), wide_rate));
   }
 
-  feq_oversample_down(&state->oversamplers[band], state->wide,
-                      state->wet_return, frames, oversample, state->middle);
+  feq_exciter_oversample_down(&state->oversamplers[band], state->wide,
+                              state->wet_return, frames, oversample,
+                              state->quality, state->middle);
+  feq_exciter_oversample_ramp(state->wet_return, frames, state->switch_from,
+                              state->switch_to);
   block_dc(&state->dc[band], state->wet_return, frames);
   feq_biquad_process(&state->residue_filters[band], state->wet_return, frames,
                      &state->band_cache[band].residue);
@@ -288,6 +293,10 @@ void shape_band(FeqExciterChannel* state, uint32_t band, const float* source,
                               sample_rate, 1.0);
   }
 }
+
+/** How long the harmonics take to leave, and to come back, around a change
+ * of oversampling. */
+constexpr double kSwitchMs = 20.0;
 
 double add_band(FeqExciterChannel* state, uint32_t band, float* target,
                 const float* source, const FeqExciterBandSetup& setup,
@@ -351,7 +360,7 @@ void feq_exciter_channel_init(FeqExciterChannel* state, float* band0,
     identity(&state->band_cache[band].highpass);
     identity(&state->band_cache[band].lowpass);
     identity(&state->band_cache[band].residue);
-    feq_oversampler_reset(&state->oversamplers[band]);
+    feq_exciter_oversampler_reset(&state->oversamplers[band]);
     state->drive[band] = 0.0;
     state->texture[band] = 0.0;
     state->mix[band] = 0.0;
@@ -360,6 +369,11 @@ void feq_exciter_channel_init(FeqExciterChannel* state, float* band0,
     state->dc[band].x = 0.0;
     state->dc[band].y = 0.0;
   }
+  state->quality = FEQ_EXCITER_OVERSAMPLING_STANDARD;
+  state->switch_gain = 1.0;
+  state->switch_from = 1.0;
+  state->switch_to = 1.0;
+  state->switch_hold = 0;
 }
 
 int feq_exciter_channel_is_active(const FeqExciterChannel* state) {
@@ -367,7 +381,8 @@ int feq_exciter_channel_is_active(const FeqExciterChannel* state) {
     return 0;
   }
   return (state->mix[0] > 0.0001 || state->mix[1] > 0.0001 ||
-          state->mix[2] > 0.0001 || std::fabs(1.0 - state->dry_mix) > 0.0001)
+          state->mix[2] > 0.0001 || std::fabs(1.0 - state->dry_mix) > 0.0001 ||
+          state->switch_gain < 1.0)
              ? 1
              : 0;
 }
@@ -388,10 +403,34 @@ void feq_exciter_channel_process(FeqExciterChannel* state, float* target,
   for (uint32_t at = 0; at < frames; ++at) {
     state->dry[at] = target[at];
   }
+  const int wanted = settings->oversampling == FEQ_EXCITER_OVERSAMPLING_OFF ||
+                             settings->oversampling ==
+                                 FEQ_EXCITER_OVERSAMPLING_HIGH
+                         ? settings->oversampling
+                         : FEQ_EXCITER_OVERSAMPLING_STANDARD;
   // Off AND settled. Off but still gliding has to keep running, or Isolate
   // coming back would step rather than fade.
   if (settings->enabled == 0 && feq_exciter_channel_is_active(state) == 0) {
     return;
+  }
+  // The harmonics' ramp for this block: down while another way is wanted,
+  // silent while the new way's filters fill, then up, 20 ms each way. Always
+  // through the fade, sounding or not: Organic, which this channel cannot
+  // see, follows the same switch (`chain_exciter.cpp`) and may be the one
+  // sounding.
+  {
+    const double step = static_cast<double>(frames) /
+                        ((kSwitchMs / 1000.0) * sample_rate);
+    state->switch_from = state->switch_gain;
+    if (state->quality != wanted) {
+      state->switch_gain = std::max(0.0, state->switch_gain - step);
+    } else if (state->switch_hold > 0) {
+      state->switch_hold =
+          state->switch_hold > frames ? state->switch_hold - frames : 0;
+    } else {
+      state->switch_gain = std::min(1.0, state->switch_gain + step);
+    }
+    state->switch_to = state->switch_gain;
   }
 
   const double target_dry_mix =
@@ -435,6 +474,19 @@ void feq_exciter_channel_process(FeqExciterChannel* state, float* target,
     if (report_bands != nullptr) {
       report_bands[band] = mean;
     }
+  }
+  // Down to nothing in the old way: the new one starts from oversamplers
+  // with nothing of the old filter in them, and its harmonics come back
+  // once those hold nothing of their empty start either. Measured on the
+  // switch probe, fading in while they filled read 3 dB over the steady
+  // racks above 5 kHz going from Standard to High.
+  if (state->switch_gain <= 0.0 && state->quality != wanted) {
+    state->quality = wanted;
+    for (uint32_t band = 0; band < FEQ_EXCITER_BANDS; ++band) {
+      feq_exciter_oversampler_reset(&state->oversamplers[band]);
+    }
+    state->switch_hold = feq_exciter_oversample_warmup(
+        feq_exciter_oversample_factor(sample_rate, wanted), wanted);
   }
 }
 

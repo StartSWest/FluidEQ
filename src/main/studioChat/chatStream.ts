@@ -36,6 +36,10 @@ export type TChatStreamEvent =
       /** The picture a look or make_picture returned, as a data URL. */
       picture?: string;
     }
+  /** Claude Code began shrinking the conversation into a summary. */
+  | { type: 'compacting'; id: string }
+  /** It finished: how many tokens the conversation was, and is now. */
+  | { type: 'compacted'; tokens?: { before: number; after: number } }
   | { type: 'end'; failure?: TStudioChatFailure };
 
 /** Claude Code names FluidEQ's tools by the server they came from. */
@@ -139,6 +143,36 @@ export const failureOf = (text: unknown): TStudioChatFailure => {
   return 'crashed';
 };
 
+/**
+ * A system line: the session it is, and Claude Code compacting the
+ * conversation — asked for with /compact, or by itself when a reply ran out
+ * of room — which the chat shows as a step.
+ */
+const systemEvents = (message: Record<string, unknown>): TChatStreamEvent[] => {
+  if (message.subtype === 'init' && typeof message.session_id === 'string') {
+    return [{ type: 'session', sessionId: message.session_id }];
+  }
+  if (
+    message.subtype === 'status' &&
+    message.status === 'compacting' &&
+    typeof message.uuid === 'string'
+  ) {
+    return [{ type: 'compacting', id: message.uuid }];
+  }
+  if (message.subtype === 'compact_boundary') {
+    const meta = isRecord(message.compact_metadata)
+      ? message.compact_metadata
+      : {};
+    const { pre_tokens: before, post_tokens: after } = meta;
+    return [
+      typeof before === 'number' && typeof after === 'number'
+        ? { type: 'compacted', tokens: { before, after } }
+        : { type: 'compacted' },
+    ];
+  }
+  return [];
+};
+
 /** The events one line of the stream holds; none for a line passed over. */
 export const readStreamLine = (line: string): TChatStreamEvent[] => {
   let message: unknown;
@@ -152,10 +186,7 @@ export const readStreamLine = (line: string): TChatStreamEvent[] => {
   }
   switch (message.type) {
     case 'system':
-      return message.subtype === 'init' &&
-        typeof message.session_id === 'string'
-        ? [{ type: 'session', sessionId: message.session_id }]
-        : [];
+      return systemEvents(message);
     case 'stream_event': {
       const { event } = message;
       if (!isRecord(event)) {

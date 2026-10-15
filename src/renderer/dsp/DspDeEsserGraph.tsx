@@ -5,12 +5,23 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
-import type { IHostAnalysisDeEsser } from '../../common/dsp/analysisWire';
 import { IDeEsserSettings } from '../../common/dsp/deEsser';
 import LiveFigure from '../components/LiveFigure';
 import { useTranslation } from '../utils/I18nContext';
 import writeLiveText from '../utils/liveText';
 import { readTextInk } from '../utils/theme';
+import { DE_ESSER_MODE_KEYS } from './DspDeEsserBar';
+import { drawLens, ILensLabels, lensShows, TDeEsserTune } from './deEsserLens';
+import {
+  eased,
+  MAX_FADE_STEP_MS,
+  MAX_STEP_MS,
+  MOTION,
+  moveSibilance,
+  moveTreble,
+  stepToward,
+  toward,
+} from './deEsserMotion';
 import { readDspDeEsserReport } from './deEsserTelemetry';
 import {
   drawHistory,
@@ -51,103 +62,6 @@ const HISTORY = Math.ceil(WINDOW_MS / SAMPLE_MS) + 1;
  */
 const VOICE_CONFIDENCE = 0.5;
 
-/**
- * How the treble picture moves between readings, by elapsed time and never
- * per frame, so a 144 Hz screen draws the same motion a 60 Hz one does.
- *
- * Readings arrive about every 43 ms and each one is a fresh window, so drawn
- * as they come every mark jumped: a band's bar fell 8 dB a frame between
- * readings and rose again, its threshold mark stepped with every window, and
- * the S line went on and off with each one. Now each quantity is quick to
- * arrive and slow to leave, as a meter's needle is.
- */
-const MOTION = {
-  /** A band rising: nearly at once. */
-  levelRiseMs: 15,
-  /** A band falling, dB per second. */
-  levelFallDbPerS: 24,
-  /** Where the stage starts on a band, which moves with the song. */
-  thresholdMs: 180,
-  /** A cut deepening, and letting go. */
-  cutAttackMs: 20,
-  cutReleaseMs: 220,
-  /** The S line sliding to where the S is, appearing and fading. */
-  sMoveMs: 70,
-  sAppearMs: 40,
-  sFadeMs: 450,
-  /** The cut readout letting go. */
-  readoutReleaseMs: 300,
-} as const;
-
-/** The share of the way a one-pole covers in `dt` with time constant `tau`. */
-const toward = (dt: number, tau: number): number =>
-  1 - Math.exp(-dt / Math.max(1, tau));
-
-/** The longest step taken at once: a tab brought back is not a jump. */
-const MAX_STEP_MS = 100;
-
-/**
- * The treble picture one frame on: each band's level, threshold and cut
- * moved toward the reading by the time that passed, and the S line slid and
- * faded rather than switched. A reading on other bands — the range was
- * moved — is taken as it comes, since there is nothing to move from.
- */
-const moveTreble = (
-  drawn: ITrebleNow,
-  report: Readonly<IHostAnalysisDeEsser>,
-  dt: number,
-): ITrebleNow => {
-  const sameBands =
-    drawn.hz.length === report.bandHz.length &&
-    drawn.hz.every((hz, band) => Math.abs(hz - (report.bandHz[band] ?? 0)) < 1);
-  if (!sameBands) {
-    return {
-      hz: [...report.bandHz],
-      levelDb: [...report.bandLevelDb],
-      thresholdDb: [...report.bandThresholdDb],
-      cutDb: [...report.bandCutDb],
-      sHz: report.frequencyHz,
-      sAlpha: 0,
-    };
-  }
-  const rise = toward(dt, MOTION.levelRiseMs);
-  const fall = (MOTION.levelFallDbPerS * dt) / 1000;
-  const levelDb = report.bandLevelDb.map((target, band) => {
-    const at = drawn.levelDb[band] ?? target;
-    return target > at
-      ? at + (target - at) * rise
-      : Math.max(target, at - fall);
-  });
-  const settle = toward(dt, MOTION.thresholdMs);
-  const thresholdDb = report.bandThresholdDb.map((target, band) => {
-    const at = drawn.thresholdDb[band] ?? target;
-    return at + (target - at) * settle;
-  });
-  const cutDb = report.bandCutDb.map((target, band) => {
-    const at = drawn.cutDb[band] ?? target;
-    const tau = target < at ? MOTION.cutAttackMs : MOTION.cutReleaseMs;
-    return at + (target - at) * toward(dt, tau);
-  });
-  const cutting = report.reductionDb < -0.05 && report.frequencyHz > 0;
-  let { sHz } = drawn;
-  if (cutting) {
-    // Slid in octaves from where it was showing; placed where it is when
-    // nothing was showing.
-    sHz =
-      drawn.sHz > 0 && drawn.sAlpha > 0.01
-        ? 2 **
-          (Math.log2(drawn.sHz) +
-            (Math.log2(report.frequencyHz) - Math.log2(drawn.sHz)) *
-              toward(dt, MOTION.sMoveMs))
-        : report.frequencyHz;
-  }
-  const sAlpha =
-    drawn.sAlpha +
-    ((cutting ? 1 : 0) - drawn.sAlpha) *
-      toward(dt, cutting ? MOTION.sAppearMs : MOTION.sFadeMs);
-  return { hz: drawn.hz, levelDb, thresholdDb, cutDb, sHz, sAlpha };
-};
-
 /** How long "Cymbals let through" stays up after the sound it names. */
 const SPARED_HOLD_MS = 1_500;
 
@@ -177,11 +91,26 @@ const CUT_WIDEST = [formatCut(-18)];
 
 interface IDspDeEsserGraphProps {
   deEsser: IDeEsserSettings;
+  /** The control in hand, drawn in the history's place (`deEsserLens.ts`). */
+  tune: TDeEsserTune | undefined;
 }
 
-const DspDeEsserGraph = ({ deEsser }: IDspDeEsserGraphProps) => {
+const DspDeEsserGraph = ({ deEsser, tune }: IDspDeEsserGraphProps) => {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  /**
+   * What the lens reads, kept current by every render rather than by the
+   * loop's dependencies: a dial turns many times a second, and restarting
+   * the loop for each would throw its motion away.
+   */
+  const tuneRef = useRef(tune);
+  const settingsRef = useRef(deEsser);
+  /** The last control the lens drew, kept while it fades out. */
+  const shownTune = useRef<TDeEsserTune | undefined>(undefined);
+  const lensAlpha = useRef(0);
+  const rangeLit = useRef(0);
+  const thresholdsLit = useRef(0);
+  const sibilance = useRef(Number.NaN);
   const sRef = useRef<HTMLSpanElement | null>(null);
   const cutRef = useRef<HTMLSpanElement | null>(null);
   const sparedRef = useRef<HTMLSpanElement | null>(null);
@@ -219,6 +148,29 @@ const DspDeEsserGraph = ({ deEsser }: IDspDeEsserGraphProps) => {
   const { enabled, isolate, lowHz, highHz, mode, rangeDb } = deEsser;
 
   useEffect(() => {
+    const lensLabels: ILensLabels = {
+      voice: t('dsp.deEsser.graph.voice'),
+      cymbal: t('dsp.deEsser.lens.cymbal'),
+      s: t('dsp.deEsser.lens.s'),
+      cut: t('dsp.deEsser.graph.cut'),
+      threshold: t('dsp.deEsser.graph.threshold'),
+      trebleNow: t('dsp.deEsser.lens.trebleNow'),
+      left: t('dsp.deEsser.lens.left'),
+      right: t('dsp.deEsser.lens.right'),
+      attack: t('dsp.deEsser.attackMs'),
+      release: t('dsp.deEsser.releaseMs'),
+      underVoice: (db) => t('dsp.deEsser.lens.underVoice', { db }),
+      upTo: (db) => t('dsp.deEsser.upTo', { db }),
+      ahead: (ms) => t('dsp.deEsser.lens.ahead', { ms }),
+      cymbalNeeds: (db) => t('dsp.deEsser.lens.cymbalNeeds', { db }),
+      modes: {
+        spectral: t(DE_ESSER_MODE_KEYS.spectral),
+        treble: t(DE_ESSER_MODE_KEYS.treble),
+        whole: t(DE_ESSER_MODE_KEYS.whole),
+      },
+      centre: t('dsp.deEsser.where.centre'),
+      everything: t('dsp.deEsser.where.all'),
+    };
     const paint = ({ schedule }: IGraphLoopFrame) => {
       const canvas = canvasRef.current;
       const context = canvas?.getContext('2d');
@@ -269,6 +221,43 @@ const DspDeEsserGraph = ({ deEsser }: IDspDeEsserGraphProps) => {
           ...held.current,
           sAlpha: held.current.sAlpha * (1 - toward(dt, MOTION.sFadeMs)),
         };
+      }
+
+      // The control in hand: the lens fades over the history, and the treble
+      // picture lights what From, To and Sensitivity move.
+      const inHand = enabled ? tuneRef.current : undefined;
+      if (inHand !== undefined && lensShows(inHand)) {
+        shownTune.current = inHand;
+      }
+      const fadeStep = Math.min(dt, MAX_FADE_STEP_MS);
+      const fade = (value: number, on: boolean) =>
+        stepToward(
+          value,
+          on ? 1 : 0,
+          fadeStep,
+          MOTION.lensInMs,
+          MOTION.lensOutMs,
+        );
+      lensAlpha.current = fade(lensAlpha.current, lensShows(inHand));
+      rangeLit.current = fade(
+        rangeLit.current,
+        inHand?.control === 'listening',
+      );
+      thresholdsLit.current = fade(
+        thresholdsLit.current,
+        inHand?.control === 'sensitivity',
+      );
+      sibilance.current = moveSibilance(
+        sibilance.current,
+        report?.sibilanceDb,
+        dt,
+      );
+      const fading = [lensAlpha, rangeLit, thresholdsLit].some(
+        ({ current }) => current > 0 && current < 1,
+      );
+      if (fading) {
+        // The loop sleeps while nothing plays; a fade asks for its frames.
+        schedule();
       }
 
       if (now - sampledAt.current >= SAMPLE_MS) {
@@ -336,25 +325,45 @@ const DspDeEsserGraph = ({ deEsser }: IDspDeEsserGraphProps) => {
             height: inner.height - historyBox.height - PANE_GAP,
           };
 
-      drawHistory(
-        context,
-        historyBox,
-        {
-          standout: standout.current,
-          cut: cut.current,
-          voice: voice.current,
-          live: live.current,
-          at: (index) => (writeAt.current + index) % HISTORY,
-        },
-        HISTORY,
-        // How far into the next column time has gone, so the strip glides
-        // left every frame instead of stepping a column at a time.
-        Math.min(1, (now - sampledAt.current) / SAMPLE_MS),
-        span,
-        isolate,
-        inks,
-        t('dsp.deEsser.graph.now'),
-      );
+      // The history and the lens share its box, crossing as the lens fades.
+      const lens = eased(lensAlpha.current);
+      if (lens < 1) {
+        context.save();
+        context.globalAlpha = 1 - lens;
+        drawHistory(
+          context,
+          historyBox,
+          {
+            standout: standout.current,
+            cut: cut.current,
+            voice: voice.current,
+            live: live.current,
+            at: (index) => (writeAt.current + index) % HISTORY,
+          },
+          HISTORY,
+          // How far into the next column time has gone, so the strip glides
+          // left every frame instead of stepping a column at a time.
+          Math.min(1, (now - sampledAt.current) / SAMPLE_MS),
+          span,
+          isolate,
+          inks,
+          t('dsp.deEsser.graph.now'),
+        );
+        context.restore();
+      }
+      if (lens > 0 && shownTune.current !== undefined) {
+        context.save();
+        context.globalAlpha = lens;
+        drawLens(context, {
+          box: historyBox,
+          settings: settingsRef.current,
+          tune: shownTune.current,
+          sibilanceDb: sibilance.current,
+          inks,
+          labels: lensLabels,
+        });
+        context.restore();
+      }
       drawTreble(
         context,
         trebleBox,
@@ -364,6 +373,10 @@ const DspDeEsserGraph = ({ deEsser }: IDspDeEsserGraphProps) => {
         mode,
         span,
         inks,
+        {
+          range: eased(rangeLit.current),
+          thresholds: eased(thresholdsLit.current),
+        },
       );
     };
 
@@ -401,8 +414,11 @@ const DspDeEsserGraph = ({ deEsser }: IDspDeEsserGraphProps) => {
     };
   }, [enabled, isolate, lowHz, highHz, mode, rangeDb, size, t]);
 
-  // The range and the mode reach the canvas through here while nothing plays.
+  // The range and the mode reach the canvas through here while nothing plays,
+  // and so does the lens: the control in hand and every value it draws.
   useEffect(() => {
+    tuneRef.current = tune;
+    settingsRef.current = deEsser;
     redraw.current?.();
   });
 

@@ -40,6 +40,8 @@ export type TCommunityGlyph =
   | 'next'
   | 'zoom-in'
   | 'zoom-out'
+  | 'compact'
+  | 'more'
   | 'fit'
   | 'pin'
   | 'rail-collapse'
@@ -313,6 +315,20 @@ export default function Glyph({ name, className }: IGlyphProps) {
         return <path d="M12.5 4.5 7 10l5.5 5.5" />;
       case 'next':
         return <path d="M7.5 4.5 13 10l-5.5 5.5" />;
+      case 'more':
+        // Three dots in a row: more of what is here, behind a press.
+        return (
+          <g fill="currentColor" stroke="none">
+            <circle cx="4.5" cy="10" r="1.5" />
+            <circle cx="10" cy="10" r="1.5" />
+            <circle cx="15.5" cy="10" r="1.5" />
+          </g>
+        );
+      case 'compact':
+        // Two arrows pressing onto one line: the same, in less room.
+        return (
+          <path d="M3 10h14M10 2.5v5M7.5 5 10 7.5 12.5 5M10 17.5v-5M7.5 15l2.5-2.5 2.5 2.5" />
+        );
       case 'zoom-in':
         // A lens with a plus: closer.
         return (

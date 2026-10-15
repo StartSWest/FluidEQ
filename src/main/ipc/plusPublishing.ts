@@ -199,9 +199,20 @@ export const registerPlusPublishingIpc = ({
       if (!scene) {
         return { ok: true };
       }
-      const envelope = await fetchEnvelope(auth, me, scene.sceneId);
+      const envelope = await fetchEnvelope(
+        auth,
+        me,
+        scene.sceneId,
+        scene.version,
+      );
       const payload = envelope ? openMemberEnvelope(envelope) : null;
-      if (!payload || payload.pack.id !== build.pack.id) {
+      // The file must be the version the gallery lists, or Reset would go
+      // back to settings the gallery no longer has.
+      if (
+        !payload ||
+        payload.pack.id !== build.pack.id ||
+        payload.pack.version !== scene.version
+      ) {
         return { ok: false };
       }
       return {

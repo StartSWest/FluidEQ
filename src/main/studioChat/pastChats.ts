@@ -265,14 +265,30 @@ export const createPastChats = ({
     fromWindow(event) ? remove(id) : [],
   );
 
+  // A new chat moves the open one aside, never erases it.
+  ipcMain.handle('studio-chat-new', (event) => {
+    const project = agentProject();
+    if (!fromWindow(event) || !project.ok || isBusy(project.id)) {
+      return activeChat();
+    }
+    letGo(project.id);
+    try {
+      putAside(project.id);
+    } catch (error) {
+      logger?.warn(
+        `The Studio's chat could not be put aside: ${String(error)}`,
+      );
+    }
+    return activeChat();
+  });
+
   return {
-    /** "New chat": the open one moved aside, never erased. */
-    putAside,
     dispose: () =>
       [
         'studio-chat-past',
         'studio-chat-open-past',
         'studio-chat-delete-past',
+        'studio-chat-new',
       ].forEach((channel) => ipcMain.removeHandler(channel)),
   };
 };

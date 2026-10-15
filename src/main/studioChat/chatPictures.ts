@@ -7,8 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { ipcMain, type IpcMainInvokeEvent, type WebContents } from 'electron';
 import {
   isStudioChatAnswer,
+  type IStudioChatCodexState,
   type IStudioChatPackAsk,
-  type TStudioChatCodex,
   type TStudioChatPackAnswer,
 } from '../../common/studioChat';
 import {
@@ -22,6 +22,7 @@ import {
 } from '../studioAgent/studioTools';
 import { createChatAsks } from './chatAsks';
 import { createChatServer } from './chatServer';
+import { codexAccount, type ICodexAccount } from './codexAccount';
 import { codexState, signInToCodex } from './codexPictures';
 import { createPictureTools } from './pictureTools';
 
@@ -148,14 +149,26 @@ export const createChatPictures = ({
     ...(logger ? { logger } : {}),
   });
 
-  /** What the chat's head shows: Codex here, and whether it is connected. */
-  const codexOf = async (): Promise<{
-    codex: TStudioChatCodex;
-    connected: boolean;
-  }> => ({
-    codex: (await codexState()).state,
-    connected: asks.isConnected(),
-  });
+  /**
+   * Whose ChatGPT the signed-in Codex is, asked once per Codex and kept until
+   * a sign-in through the chat could have changed it: an app-server started
+   * for every look at the head would be a second or so each time.
+   */
+  let account: { executable: string; account: ICodexAccount } | undefined;
+  const accountOf = async (executable: string) => {
+    if (account?.executable !== executable) {
+      account = { executable, account: await codexAccount(executable) };
+    }
+    return account.account;
+  };
+
+  /** What the chat's head shows: Codex here, whose it is, and if connected. */
+  const codexOf = async (): Promise<IStudioChatCodexState> => {
+    const { state, executable } = await codexState();
+    const known =
+      state === 'ready' && executable ? await accountOf(executable) : {};
+    return { codex: state, connected: asks.isConnected(), ...known };
+  };
 
   ipcMain.handle(
     'studio-chat-answer',
@@ -182,6 +195,8 @@ export const createChatPictures = ({
     if (executable) {
       await signInToCodex(executable);
     }
+    // Possibly someone else now: asked again.
+    account = undefined;
     return codexOf();
   });
 

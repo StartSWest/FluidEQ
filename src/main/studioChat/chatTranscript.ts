@@ -7,11 +7,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import path from 'path';
 import type {
+  IStudioChatContext,
   IStudioChatStep,
   TStudioChatEntry,
   TStudioChatFailure,
 } from '../../common/studioChat';
 import writeFileAtomically from '../atomicWrite';
+import { readChatContext } from './chatUsage';
 
 /**
  * A project's chat as the Studio shows it, and the Claude Code session it
@@ -25,6 +27,8 @@ import writeFileAtomically from '../atomicWrite';
 export interface IChatTranscript {
   sessionId?: string;
   entries: TStudioChatEntry[];
+  /** How full the session's context window was at its last message. */
+  context?: IStudioChatContext;
 }
 
 /** A long chat keeps its latest entries; the session itself keeps the rest. */
@@ -55,6 +59,7 @@ const STEP_KINDS = new Set([
   'search',
   'picture',
   'pack',
+  'compact',
   'other',
 ]);
 const STEP_STATES = new Set(['running', 'done', 'failed']);
@@ -67,6 +72,15 @@ const FAILURES: ReadonlySet<string> = new Set<TStudioChatFailure>([
 ]);
 const isFailure = (value: unknown): value is TStudioChatFailure =>
   typeof value === 'string' && FAILURES.has(value);
+
+const tokensOf = (raw: unknown) =>
+  isRecord(raw) &&
+  typeof raw.before === 'number' &&
+  typeof raw.after === 'number' &&
+  Number.isFinite(raw.before) &&
+  Number.isFinite(raw.after)
+    ? { tokens: { before: raw.before, after: raw.after } }
+    : {};
 
 const readStep = (raw: unknown): IStudioChatStep | undefined => {
   if (
@@ -83,6 +97,7 @@ const readStep = (raw: unknown): IStudioChatStep | undefined => {
     state: raw.state as IStudioChatStep['state'],
     ...(typeof raw.file === 'string' ? { file: raw.file } : {}),
     ...pictureOf(raw.picture),
+    ...tokensOf(raw.tokens),
   };
 };
 
@@ -141,7 +156,9 @@ export const createTranscripts = (root: string) => {
       if (!isRecord(raw) || !Array.isArray(raw.entries)) {
         return { entries: [] };
       }
+      const context = readChatContext(raw.context);
       return {
+        ...(context ? { context } : {}),
         ...(typeof raw.sessionId === 'string' &&
         /^[A-Za-z0-9-]{8,64}$/.test(raw.sessionId)
           ? { sessionId: raw.sessionId }

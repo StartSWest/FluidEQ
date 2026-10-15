@@ -14,10 +14,28 @@ import {
   IDeEsserSettings,
   TDeEsserMode,
 } from './deEsser';
+import { DE_ESSER_PRESET_BY_ID } from './deEsserPresets';
 
 const isMode = (value: unknown): value is TDeEsserMode =>
   typeof value === 'string' &&
   (DE_ESSER_MODES as readonly string[]).includes(value);
+
+/**
+ * The Podcast profile played in Whole voice until 2026-10-14 and pumped
+ * (`deEsserPresets.ts`). A stage still named after it in Whole voice can only
+ * be that profile as it was — the card clears the name on any edit — so it is
+ * read as the profile is now, and a Speech or Podcast chain stored before the
+ * change stops pumping without being picked again.
+ */
+const storedMode = (stored: Record<string, unknown>): TDeEsserMode => {
+  if (!isMode(stored.mode)) {
+    return DE_ESSER_DEFAULTS.mode;
+  }
+  return stored.mode === 'whole' &&
+    stored.presetId === DE_ESSER_PRESET_BY_ID.podcast.id
+    ? DE_ESSER_PRESET_BY_ID.podcast.settings.mode
+    : stored.mode;
+};
 
 /**
  * A stored De-esser read back. Anything missing or out of range falls back to
@@ -58,7 +76,7 @@ const clampDeEsserSettings = (value: unknown): IDeEsserSettings => {
       DE_ESSER_RANGES.widthOct,
       fallback.widthOct,
     ),
-    mode: isMode(stored.mode) ? stored.mode : fallback.mode,
+    mode: storedMode(stored),
     attackMs: clampNumber(
       stored.attackMs,
       DE_ESSER_RANGES.attackMs,

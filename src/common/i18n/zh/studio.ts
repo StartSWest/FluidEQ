@@ -276,6 +276,12 @@ const studio = {
   'studio.status.problem': '上一个可用版本仍在播放',
   'studio.status.waiting': '正在等待一个能播放的版本',
 
+  'studio.version.group': '版本',
+  'studio.version.looks': '我的外观 v{version}',
+  'studio.version.looksCurrent': '你的外观中正是这个场景。',
+  'studio.version.looksBehind':
+    '你的外观中是版本 {version} 较早的保存。“添加到我的外观”可将其更新。',
+  'studio.version.gallery': '图库 v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished': '这个场景的第 {version} 版，尚未发布。',
   'studio.version.live': '这个场景的第 {version} 版，也是大家拿到的那一版。',

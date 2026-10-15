@@ -33,6 +33,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/deesser.h"
 #include "fluideq/denoise.h"
 #include "fluideq/eq.h"
+#include "fluideq/exciter_oversample.h"
 #include "fluideq/meters.h"
 #include "fluideq/live_normalizer.h"
 #include "fluideq/room.h"
@@ -117,6 +118,11 @@ typedef struct FeqChainExciterSettings {
   double organic_focus_hz;
   double organic_range;
   FeqChainExciterBand bands[FEQ_CHAIN_EXCITER_BANDS];
+  /**
+   * `FeqExciterOversampling`, the listener's: Standard (0) unless a signed
+   * line says otherwise, in the word after the De-esser's signature pair.
+   */
+  int oversampling;
 } FeqChainExciterSettings;
 
 /**
@@ -604,8 +610,13 @@ uint32_t feq_chain_latency_frames(const FeqChain* chain);
 
 /** What each stage adds to that delay, in samples. */
 typedef struct FeqChainLatencyParts {
-  /** The EQ under linear phase: its kernel's half length and a partition. */
-  uint32_t linear_eq;
+  /**
+   * The rack's EQ: under linear phase its kernel's half length and a
+   * partition, otherwise its oversampler's round trip; and its Colour
+   * stage's round trip, in either. Carried to the app as `linearEq`, the
+   * name it had when the kernel was all of it.
+   */
+  uint32_t eq;
   /** The restoration's modules that are on. */
   uint32_t restoration;
   /** The De-esser's look-ahead, on or off; nothing in game mode when off. */

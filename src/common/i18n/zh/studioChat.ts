@@ -5,6 +5,7 @@ const studioChat = {
   'studioChat.wherePlan': 'Claude Code · {plan} 套餐',
   'studioChat.new': '新聊天',
   'studioChat.otherAi': '使用其他 AI',
+  'studioChat.menu': '聊天选项',
   'studioChat.backToChat': '回到聊天',
   'studioChat.fold': '收起聊天',
   'studioChat.unfold': '与 Claude 聊天',
@@ -151,6 +152,49 @@ const studioChat = {
   'studioChat.sketch.arrow': '箭头',
   'studioChat.sketch.text': '文字',
   'studioChat.sketch.textHint': '输入后按回车',
+  'studioChat.accounts.title': '账号',
+  'studioChat.accounts.open': '查看聊天使用的 Claude 和 ChatGPT 账号',
+  'studioChat.accounts.claude': 'Claude',
+  'studioChat.accounts.chatgpt': 'ChatGPT',
+  'studioChat.accounts.unknown': '已登录',
+  'studioChat.accounts.switch': '使用其他账号',
+  'studioChat.accounts.claudeMissing': '这台电脑上没有安装 Claude Code。',
+  'studioChat.accounts.claudeOut': 'Claude Code 尚未登录。',
+  'studioChat.accounts.codexMissing':
+    '没有安装 Codex 应用，所以 ChatGPT 无法生成图片。',
+  'studioChat.accounts.codexOut': 'Codex 尚未用 ChatGPT 登录。',
+  'studioChat.accounts.picturesOn': '每张图片经你同意后，在此聊天中生成。',
+  'studioChat.accounts.picturesOff':
+    '还没有生成图片：Claude 第一次需要图片时会先问你。',
+  'studioChat.accounts.picturesOffButton': '关闭图片',
+  'studioChat.accounts.codexPlan': 'ChatGPT {plan} 套餐 · 通过 Codex',
+  'studioChat.accounts.fine':
+    'FluidEQ 只显示是哪些账号，从不查看它们的登录信息。',
+  'studioChat.welcomeSceneTitle': '{name} 要改哪里？',
+  'studioChat.welcomeSceneBody':
+    '告诉 Claude 要改什么：外观、随音乐的动作、颜色或光线。Claude 会编辑这个场景，并在舞台上播放每个版本。',
+  'studioChat.queue.title': '排队中 · Claude 完成后一并发送',
+  'studioChat.queue.send': '加入队列：Claude 完成后与其他消息一并发送',
+  'studioChat.queue.remove': '撤回',
+  'studioChat.queue.picture': '附带舞台图片',
+  'studioChat.step.compact': '已压缩对话',
+  'studioChat.step.compactNow': '正在压缩对话…',
+  'studioChat.step.compactTokens': '{before} → {after} 个 token',
+  'studioChat.compact.label': '压缩',
+  'studioChat.context.share': '上下文 {percent}%',
+  'studioChat.context.detail':
+    'Claude 上下文窗口 {window} 个 token 中已用 {used}。压缩可腾出空间。',
+  'studioChat.context.tokens': '上下文 {used} 个 token',
+  'studioChat.limits.fiveHour': '当前会话（5 小时）',
+  'studioChat.limits.week': '本周',
+  'studioChat.limits.used': '已用 {percent}%',
+  'studioChat.limits.resets': '{time} 重置',
+  'studioChat.limits.asOf': '截至 {time} · Claude 每次回答时更新',
+  'studioChat.limits.none':
+    'Claude 回答过一条消息后，这里会显示 5 小时和每周的限额。',
+  'studioChat.context.tokensOf': '{window} 个 token 中已用 {used}',
+  'studioChat.context.explain':
+    '每条消息都会带上整个对话。压缩会总结到目前为止的内容，之后的消息负担更小。',
 } as const;
 
 export default studioChat;

@@ -670,7 +670,8 @@ The Studio turns a description into a visualizer. Your own AI assistant writes t
 
 1. Open Plus → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.
 2. Describe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.
-3. Watch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….
+3. Or type what should change in the chat beside the stage: Claude Code on this computer, signed in with your own plan, edits the scene and plays each version. Every reply keeps its version, with Bring back.
+4. Watch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….
 
 > **Good to know:** Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and one that is approved earns you a month of Plus.
 

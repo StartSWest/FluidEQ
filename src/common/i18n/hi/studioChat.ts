@@ -5,6 +5,7 @@ const studioChat = {
   'studioChat.wherePlan': 'Claude Code · {plan} प्लान',
   'studioChat.new': 'नई चैट',
   'studioChat.otherAi': 'कोई दूसरा AI इस्तेमाल करें',
+  'studioChat.menu': 'चैट विकल्प',
   'studioChat.backToChat': 'चैट पर वापस',
   'studioChat.fold': 'चैट समेटें',
   'studioChat.unfold': 'Claude से चैट करें',
@@ -156,6 +157,54 @@ const studioChat = {
   'studioChat.sketch.arrow': 'तीर',
   'studioChat.sketch.text': 'टेक्स्ट',
   'studioChat.sketch.textHint': 'लिखें, फिर Enter दबाएँ',
+  'studioChat.accounts.title': 'खाते',
+  'studioChat.accounts.open':
+    'देखें कि चैट कौन-से Claude और ChatGPT खाते इस्तेमाल करती है',
+  'studioChat.accounts.claude': 'Claude',
+  'studioChat.accounts.chatgpt': 'ChatGPT',
+  'studioChat.accounts.unknown': 'साइन इन है',
+  'studioChat.accounts.switch': 'दूसरा खाता इस्तेमाल करें',
+  'studioChat.accounts.claudeMissing':
+    'इस कंप्यूटर पर Claude Code इंस्टॉल नहीं है।',
+  'studioChat.accounts.claudeOut': 'Claude Code साइन इन नहीं है।',
+  'studioChat.accounts.codexMissing':
+    'Codex ऐप इंस्टॉल नहीं है, इसलिए ChatGPT चित्र नहीं बना सकता।',
+  'studioChat.accounts.codexOut': 'Codex, ChatGPT से साइन इन नहीं है।',
+  'studioChat.accounts.picturesOn':
+    'हर चित्र के लिए आपकी हाँ पर इस चैट में चित्र बनाता है।',
+  'studioChat.accounts.picturesOff':
+    'अभी चित्र नहीं: पहली बार Claude को चित्र चाहिए होगा तो वह आपसे पूछेगा।',
+  'studioChat.accounts.picturesOffButton': 'चित्र बंद करें',
+  'studioChat.accounts.codexPlan': 'ChatGPT {plan} प्लान · Codex के ज़रिए',
+  'studioChat.accounts.fine':
+    'FluidEQ दिखाता है कि ये कौन-से खाते हैं और उनके साइन इन कभी नहीं देखता।',
+  'studioChat.welcomeSceneTitle': '{name} में क्या बदलना है?',
+  'studioChat.welcomeSceneBody':
+    'Claude को बताएँ क्या बदलना है: यह कैसा दिखता है, संगीत के साथ कैसे चलता है, इसके रंग या इसकी रोशनी। Claude यह दृश्य बदलता है और हर संस्करण स्टेज पर चलाता है।',
+  'studioChat.queue.title':
+    'कतार में · Claude के पूरा करने पर एक साथ भेजे जाएँगे',
+  'studioChat.queue.send':
+    'कतार में रखें: Claude के पूरा करने पर बाकी के साथ भेजा जाएगा',
+  'studioChat.queue.remove': 'वापस लें',
+  'studioChat.queue.picture': 'स्टेज के चित्र के साथ',
+  'studioChat.step.compact': 'बातचीत संक्षिप्त की गई',
+  'studioChat.step.compactNow': 'बातचीत संक्षिप्त की जा रही है…',
+  'studioChat.step.compactTokens': '{before} → {after} टोकन',
+  'studioChat.compact.label': 'संक्षिप्त करें',
+  'studioChat.context.share': 'संदर्भ का {percent}%',
+  'studioChat.context.detail':
+    'Claude की संदर्भ विंडो में {window} में से {used} टोकन। संक्षिप्त करने से जगह बनती है।',
+  'studioChat.context.tokens': '{used} टोकन संदर्भ',
+  'studioChat.limits.fiveHour': 'मौजूदा सत्र (5 घंटे)',
+  'studioChat.limits.week': 'इस सप्ताह',
+  'studioChat.limits.used': '{percent}% उपयोग हुआ',
+  'studioChat.limits.resets': '{time} को रीसेट होगा',
+  'studioChat.limits.asOf': '{time} तक · Claude के हर उत्तर पर अपडेट होता है',
+  'studioChat.limits.none':
+    'Claude के किसी संदेश का उत्तर देने के बाद आपकी 5-घंटे और साप्ताहिक सीमाएँ यहाँ दिखेंगी।',
+  'studioChat.context.tokensOf': '{window} में से {used} टोकन',
+  'studioChat.context.explain':
+    'हर संदेश पूरी बातचीत साथ ले जाता है। संक्षिप्त करना अब तक का सार बनाता है, ताकि आगे के संदेश कम भार ले जाएँ।',
 } as const;
 
 export default studioChat;

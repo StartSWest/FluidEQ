@@ -8,6 +8,7 @@ const studioChat = {
   'studioChat.wherePlan': 'Claude Code · {plan} plan',
   'studioChat.new': 'New chat',
   'studioChat.otherAi': 'Use another AI',
+  'studioChat.menu': 'Chat options',
   'studioChat.backToChat': 'Back to the chat',
   'studioChat.fold': 'Fold the chat away',
   'studioChat.unfold': 'Chat with Claude',
@@ -159,6 +160,52 @@ const studioChat = {
   'studioChat.sketch.arrow': 'Arrow',
   'studioChat.sketch.text': 'Text',
   'studioChat.sketch.textHint': 'Type, then Enter',
+  'studioChat.accounts.title': 'Accounts',
+  'studioChat.accounts.open':
+    'See which Claude and ChatGPT accounts the chat uses',
+  'studioChat.accounts.claude': 'Claude',
+  'studioChat.accounts.chatgpt': 'ChatGPT',
+  'studioChat.accounts.unknown': 'Signed in',
+  'studioChat.accounts.switch': 'Use another account',
+  'studioChat.accounts.claudeMissing':
+    'Claude Code is not installed on this computer.',
+  'studioChat.accounts.claudeOut': 'Claude Code is not signed in.',
+  'studioChat.accounts.codexMissing':
+    'The Codex app is not installed, so ChatGPT cannot make pictures.',
+  'studioChat.accounts.codexOut': 'Codex is not signed in with ChatGPT.',
+  'studioChat.accounts.picturesOn':
+    'Makes pictures in this chat when you say yes to each one.',
+  'studioChat.accounts.picturesOff':
+    'Not making pictures yet: the first time Claude wants one, it asks you.',
+  'studioChat.accounts.picturesOffButton': 'Turn off pictures',
+  'studioChat.accounts.codexPlan': 'ChatGPT {plan} plan · through Codex',
+  'studioChat.accounts.fine':
+    'FluidEQ shows which accounts these are and never sees their sign-ins.',
+  'studioChat.welcomeSceneTitle': 'What should change in {name}?',
+  'studioChat.welcomeSceneBody':
+    'Tell Claude what to change: how it looks, how it moves with the music, its colours or its light. Claude edits this scene and plays each version on the stage.',
+  'studioChat.queue.title': 'Queued · sent together when Claude finishes',
+  'studioChat.queue.send': 'Queue: sent with any others when Claude finishes',
+  'studioChat.queue.remove': 'Take back',
+  'studioChat.queue.picture': 'With a picture of the stage',
+  'studioChat.step.compact': 'Compacted the conversation',
+  'studioChat.step.compactNow': 'Compacting the conversation…',
+  'studioChat.step.compactTokens': '{before} → {after} tokens',
+  'studioChat.compact.label': 'Compact',
+  'studioChat.context.share': '{percent}% of context',
+  'studioChat.context.detail':
+    '{used} of {window} tokens in Claude’s context window. Compact makes room.',
+  'studioChat.context.tokens': '{used} tokens of context',
+  'studioChat.limits.fiveHour': 'Current session (5 hours)',
+  'studioChat.limits.week': 'This week',
+  'studioChat.limits.used': '{percent}% used',
+  'studioChat.limits.resets': 'Resets {time}',
+  'studioChat.limits.asOf': 'As of {time} · updated each time Claude answers',
+  'studioChat.limits.none':
+    'Your 5-hour and weekly limits show here once Claude has answered a message.',
+  'studioChat.context.tokensOf': '{used} of {window} tokens',
+  'studioChat.context.explain':
+    'Every message carries the whole conversation. Compact sums it up so far, so the messages after it carry less.',
 } as const;
 
 export default studioChat;

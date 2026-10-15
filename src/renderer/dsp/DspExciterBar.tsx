@@ -13,6 +13,7 @@ import {
   EQ_STEREO_MODES,
   IExciterSettings,
   TEqStereo,
+  TExciterOversampling,
 } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
@@ -31,6 +32,29 @@ const BAND_LABELS: readonly TranslationKey[] = [
   'dsp.exciter.band.low',
   'dsp.exciter.band.mid',
   'dsp.exciter.band.high',
+];
+
+/** Lightest to cleanest, which is not the wire's order. */
+const OVERSAMPLING_OPTIONS: readonly {
+  value: TExciterOversampling;
+  label: TranslationKey;
+  title: TranslationKey;
+}[] = [
+  {
+    value: 'off',
+    label: 'dsp.exciter.oversampling.off',
+    title: 'dsp.exciter.oversampling.offHint',
+  },
+  {
+    value: 'standard',
+    label: 'dsp.exciter.oversampling.standard',
+    title: 'dsp.exciter.oversampling.standardHint',
+  },
+  {
+    value: 'high',
+    label: 'dsp.exciter.oversampling.high',
+    title: 'dsp.exciter.oversampling.highHint',
+  },
 ];
 
 /** A preset's audible sections, derived from the settings that are applied. */
@@ -98,7 +122,8 @@ const DspExciterBar = ({
     if (next === undefined) {
       return;
     }
-    onChange(next);
+    // A profile is which harmonics; how they are made stays the listener's.
+    onChange({ ...next, oversampling: exciter.oversampling });
     onCommit();
   };
 
@@ -177,7 +202,32 @@ const DspExciterBar = ({
             }}
           />
         </div>
-        <div className="dsp-eq-transfer">{saved.buttons}</div>
+        <div className="dsp-eq-bar-unit">
+          <div className="dsp-eq-preset">
+            <span className="dsp-eq-preset-label">
+              {t('dsp.exciter.oversampling')}
+            </span>
+            {/* The profile's name stays: how the harmonics are made is not
+                which ones a profile asks for. */}
+            <SegmentedControl
+              name={t('dsp.exciter.oversampling')}
+              value={exciter.oversampling}
+              options={OVERSAMPLING_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(option.label),
+                title: t(option.title),
+              }))}
+              onChange={(next: string) => {
+                onChange({
+                  ...exciter,
+                  oversampling: next as TExciterOversampling,
+                });
+                onCommit();
+              }}
+            />
+          </div>
+          <div className="dsp-eq-transfer">{saved.buttons}</div>
+        </div>
       </div>
 
       {/* What the processor is, on a full line of the header under the

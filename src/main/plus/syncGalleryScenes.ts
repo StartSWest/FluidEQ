@@ -113,7 +113,12 @@ export const createGallerySceneSync = ({
         announceOfficial?.();
       }
     } else {
-      const envelope = await fetchEnvelope(auth, scene.authorId, scene.sceneId);
+      const envelope = await fetchEnvelope(
+        auth,
+        scene.authorId,
+        scene.sceneId,
+        scene.version,
+      );
       const next = envelope ? openMemberEnvelope(envelope) : undefined;
       if (
         !next ||

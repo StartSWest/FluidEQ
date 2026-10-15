@@ -1,0 +1,292 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// ------------------------------------------------------------- popovers
+
+// The chat's small panels (Ivan, 2026-10-14, pick A of the composer mockups:
+// nothing under the message box): the context ring's, beside Send, and the
+// head's ⋯. The app's menu surface (`menu-surface`), so they arrive and
+// leave as every menu here does.
+.studio-chat-pop {
+  @include menu-surface;
+  z-index: 1001;
+  display: grid;
+  gap: 8px;
+  width: 260px;
+  padding: 12px;
+  --pop-level: #{$active};
+
+  &.is-near {
+    --pop-level: #{$amber};
+  }
+
+  &.is-full {
+    --pop-level: #{$red};
+  }
+}
+
+.studio-chat-pop--menu {
+  gap: 4px;
+  width: 280px;
+  padding: 6px;
+}
+
+.studio-chat-pop__title {
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-chat-pop__meter {
+  height: 6px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 8%, transparent);
+
+  span {
+    display: block;
+    height: 100%;
+    min-width: 3px;
+    border-radius: inherit;
+    background: var(--pop-level);
+  }
+}
+
+.studio-chat-pop__figures,
+.studio-chat-pop__text,
+.studio-chat-pop__fine {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.studio-chat-pop__figures {
+  margin-top: -4px;
+  color: $text-faint;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-chat-pop__fine {
+  padding: 2px 8px 6px;
+  color: $text-faint;
+  font-size: $text-micro;
+}
+
+// Compact: the thing this panel is for, so the loud style.
+.studio-chat-pop__action {
+  justify-content: center;
+  width: 100%;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+// A row of the ⋯ menu: what it is on the left, its control on the right.
+.studio-chat-pop__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  min-height: 34px;
+  padding: 4px 6px 4px 8px;
+  color: $text-primary;
+  font-size: $text-small;
+}
+
+.studio-chat-pop__on {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+
+  svg {
+    flex: none;
+    width: 13px;
+    height: 13px;
+    color: $text-accent;
+  }
+}
+
+.studio-chat-pop__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 8px;
+  color: $text-primary;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  font: inherit;
+  font-size: $text-small;
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    color: $text-muted;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: $hover-accent;
+    outline: none;
+  }
+}
+
+.studio-chat-pop__rule {
+  height: 1px;
+  margin: 2px 6px;
+  background: $menu-rule;
+}
+
+// The chat's text size, a row of the ⋯ menu.
+.studio-chat__zoom {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  border: 1px solid $card-edge;
+  border-radius: $radius-pill;
+
+  button {
+    display: inline-grid;
+    min-width: 24px;
+    height: 22px;
+    padding: 0 4px;
+    place-items: center;
+    color: $text-faint;
+    border: 0;
+    border-radius: $radius-pill;
+    background: none;
+    font: inherit;
+    font-size: $text-micro;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    &:hover:not(:disabled) {
+      color: $text-primary;
+      background: color-mix(in srgb, $white 6%, transparent);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.4;
+    }
+  }
+
+  // The size itself, wide enough for "150%" so the group never changes
+  // width as it steps.
+  .studio-chat__zoom-size {
+    min-width: 38px;
+  }
+}
+
+// What the chat runs on, at the foot of the setup card.
+.studio-chat__fine {
+  margin: 0;
+  color: $text-dim;
+  font-size: $text-micro;
+  line-height: 1.45;
+}
+
+// The context ring (`StudioChatContext.tsx`), in the message box's bar
+// beside Send: fills as the conversation grows, amber then red as Compact
+// becomes the thing to do; pressed, it opens what it measures.
+.studio-chat__context {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 7px 0 5px;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-pill;
+  background: none;
+  font: inherit;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  --context: #{$active};
+
+  &.is-near {
+    --context: #{$amber};
+    color: $amber;
+  }
+
+  &.is-full {
+    --context: #{$red};
+    color: $red;
+  }
+
+  &:hover,
+  &[aria-expanded='true'] {
+    background: color-mix(in srgb, $white 7%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  svg {
+    flex: none;
+    width: 15px;
+    height: 15px;
+    transform: rotate(-90deg);
+  }
+}
+
+.studio-chat__context-track,
+.studio-chat__context-fill {
+  fill: none;
+  stroke-width: 2.4;
+}
+
+.studio-chat__context-track {
+  stroke: color-mix(in srgb, $white 14%, transparent);
+}
+
+.studio-chat__context-fill {
+  stroke: var(--context);
+  stroke-linecap: round;
+}
+
+// ChatGPT's pictures on: a glyph beside the plan's name in the head.
+.studio-chat__gpt-on {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  color: $text-accent;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}

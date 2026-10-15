@@ -16,6 +16,7 @@ describe("What's new in 2.1", () => {
       'band-labels',
       'song-sound',
       'de-esser',
+      'studio-chat',
     ]);
   });
 

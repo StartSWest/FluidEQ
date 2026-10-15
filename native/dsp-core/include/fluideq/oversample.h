@@ -55,6 +55,15 @@ void feq_oversampler_reset(FeqOversampler* state);
 uint32_t feq_oversample_factor_for_sample_rate(double sample_rate);
 
 /**
+ * How late a sound comes back from going up by `factor` and down again, in
+ * frames at the base rate: each halving's filter is half its taps late at
+ * its own rate, both ways — 31 at 2x, 46.5 at 4x, none otherwise. Whatever
+ * runs the whole sound through the round trip owes this to the delay the
+ * rack reports.
+ */
+double feq_oversample_round_trip_frames(uint32_t factor);
+
+/**
  * `input` at `frames` becomes `output` at `frames * factor`.
  *
  * `middle` is scratch of at least `frames * 2` floats and is only touched at
@@ -79,6 +88,24 @@ void feq_oversample_down(FeqOversampler* state,
                          uint32_t frames,
                          uint32_t factor,
                          float* middle);
+
+/**
+ * One doubling through `stage`'s own history: `frames` in, `frames * 2`
+ * out. For a caller that builds its own first stage (`exciter_oversample.h`)
+ * and keeps this one for the second.
+ */
+void feq_oversample_stage_up(FeqOversampler* state,
+                             int stage,
+                             const float* input,
+                             float* output,
+                             uint32_t frames);
+
+/** One halving through `stage`'s history: `frames * 2` in, `frames` out. */
+void feq_oversample_stage_down(FeqOversampler* state,
+                               int stage,
+                               const float* input,
+                               float* output,
+                               uint32_t frames);
 
 #ifdef __cplusplus
 }

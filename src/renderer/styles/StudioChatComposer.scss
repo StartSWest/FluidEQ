@@ -358,6 +358,12 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Stop and Send both on the bar, while a message is typed during a reply:
+// the name gives way, the dots still say it.
+.studio-chat__bar.is-crowded .studio-chat__effort-name {
+  display: none;
+}
+
 // The effort's name gives way first when the bar runs short: a long one
 // ends in an ellipsis, and a box narrower than the chat's least width (the
 // container is the composer's inside, 294px in a 320px chat) drops it — the
@@ -368,89 +374,12 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Under the box while an effort past Medium is picked: what it costs.
-.studio-chat__effort-warning {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  margin: 0;
-  color: $amber;
-  font-size: $text-micro;
-  line-height: 1.45;
-
-  svg {
-    flex: none;
-    width: 13px;
-    height: 13px;
-    margin-top: 1px;
+// With the context ring beside Send the bar holds one more thing, and the
+// name gives way sooner: a 320px chat cut it to "Me…" otherwise.
+@container studio-chat-composer (width < 360px) {
+  .studio-chat__bar:has(.studio-chat__context) .studio-chat__effort-name {
+    display: none;
   }
-}
-
-// The fine print and the chat's text size, on one line when they fit.
-.studio-chat__foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px 10px;
-}
-
-.studio-chat__zoom {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  margin-left: auto;
-  border: 1px solid $card-edge;
-  border-radius: $radius-pill;
-
-  button {
-    display: inline-grid;
-    min-width: 24px;
-    height: 22px;
-    padding: 0 4px;
-    place-items: center;
-    color: $text-faint;
-    border: 0;
-    border-radius: $radius-pill;
-    background: none;
-    font: inherit;
-    font-size: $text-micro;
-    font-variant-numeric: tabular-nums;
-    cursor: pointer;
-
-    svg {
-      width: 12px;
-      height: 12px;
-    }
-
-    &:hover:not(:disabled) {
-      color: $text-primary;
-      background: color-mix(in srgb, $white 6%, transparent);
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 0.4;
-    }
-  }
-
-  // The size itself, wide enough for "150%" so the group never changes
-  // width as it steps.
-  .studio-chat__zoom-size {
-    min-width: 38px;
-  }
-}
-
-.studio-chat__fine {
-  flex: 1 1 180px;
-  margin: 0;
-  color: $text-dim;
-  font-size: $text-micro;
-  line-height: 1.45;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -11,27 +11,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace {
 
-/**
- * Pass a dry reference through one identity oversampling round trip.
- *
- * A plain integer delay is not enough at 4x: the two half-band stages have a
- * half-sample group delay and their skirts are part of the result. Running the
- * same filters is the only sample-for-sample reference for what reaches the
- * processed path — and the isolate monitor is a subtraction, so a reference
- * half a sample early leaves a comb filter behind instead of silence.
- */
-void match_oversampling(FeqChain* chain,
-                        float* target,
-                        uint32_t frames,
-                        FeqOversampler* state,
-                        uint32_t factor,
-                        float* work) {
-  feq_oversample_up(state, target, work, frames, factor,
-                    chain->eq_middle.data());
-  feq_oversample_down(state, work, target, frames, factor,
-                      chain->eq_middle.data());
-}
-
 uint32_t live_band_count(const FeqChain* chain) {
   return static_cast<uint32_t>(chain->active->bands.size());
 }
@@ -91,14 +70,22 @@ void finish_eq_channel(FeqChain* chain,
                                                chain->sample_rate));
   const bool linear = chain_linear_running(chain) != 0;
   float* reference = linear ? slot.delayed_input.data() : slot.input.data();
+  // The dry reference through the same round trips with nothing in them. A
+  // plain integer delay is not enough at 4x: the two half-band stages have a
+  // half-sample group delay and their skirts are part of the result, and the
+  // monitor is a subtraction, so a reference half a sample early leaves a
+  // comb filter behind instead of silence. Colour's factor is the rate's, as
+  // the stage's own is: 4x at 44.1 and 48 kHz, 2x at 88.2 and 96, where a
+  // fixed 4x left the monitor a comb.
   if (!linear && eq.oversample > 1) {
-    match_oversampling(chain, reference, frames, &slot.isolate_oversampler,
-                       eq.oversample, slot.isolate_oversampled.data());
+    chain_eq_round_trip(chain, reference, frames, &slot.isolate_oversampler,
+                        eq.oversample, slot.isolate_oversampled.data());
   }
   if (eq.fuzz_amount > 0.0) {
-    match_oversampling(chain, reference, frames,
-                       &slot.isolate_colour_oversampler, 4,
-                       slot.isolate_oversampled.data());
+    chain_eq_round_trip(chain, reference, frames,
+                        &slot.isolate_colour_oversampler,
+                        chain_eq_colour_factor(chain),
+                        slot.isolate_oversampled.data());
   }
   for (uint32_t at = 0; at < frames; ++at) {
     dry_mix += (dry_target - dry_mix) * smooth;
@@ -465,45 +452,8 @@ void chain_process_eq(FeqChain* chain, float* const* channels,
         process_eq_channel(chain, channels[channel], frames, slot_index);
         continue;
       }
-      ChainEqSlot& slot = chain->slots[slot_index];
-      // Keep this domain's isolate reference current even while it is the half
-      // the selected mid/side mode passes through untouched.
-      std::copy(channels[channel], channels[channel] + frames,
-                slot.delayed_input.begin());
-      feq_delay_line_process(&slot.isolate_delay, slot.delayed_input.data(),
-                             frames);
-      if (chain_linear_running(chain) != 0) {
-        // Untouched, but exactly as late as the half that went through the
-        // convolver. Without this the decode below recombines two signals
-        // 181 ms apart.
-        feq_delay_line_process(&slot.bypass_delay, channels[channel], frames);
-      }
-      if (eq.enabled == 0) {
-        continue;
-      }
-      // The unselected half contributes nothing. Fade that dry-only domain out
-      // under isolate rather than leaving it audible beside the selected
-      // domain's difference signal.
-      if (eq.phase == FEQ_PHASE_MINIMUM && eq.isolate != 0 &&
-          (chain->convolvers[0] == nullptr || chain->convolver_priming > 0)) {
-        std::fill(channels[channel], channels[channel] + frames, 0.0f);
-        slot.dry_mix = 0.0;
-        continue;
-      }
-      const double dry_target = eq.isolate != 0 ? 0.0 : 1.0;
-      double dry_mix = slot.dry_mix;
-      const double smooth =
-          1.0 - std::exp(-1.0 / ((kEqIsolateSmoothingMs / 1000.0) *
-                                 chain->sample_rate));
-      for (uint32_t at = 0; at < frames; ++at) {
-        dry_mix += (dry_target - dry_mix) * smooth;
-        channels[channel][at] = static_cast<float>(
-            static_cast<double>(channels[channel][at]) * dry_mix);
-      }
-      if (std::fabs(dry_target - dry_mix) < 0.0001) {
-        dry_mix = dry_target;
-      }
-      slot.dry_mix = dry_mix;
+      chain_eq_pass_untouched(chain, chain->slots[slot_index],
+                              channels[channel], frames);
     }
   }
   // Every domain this block was mixed at the same point of the crossing.

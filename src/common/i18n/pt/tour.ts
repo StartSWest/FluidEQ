@@ -498,6 +498,26 @@ const tour: Partial<Dictionary> = {
   'tour.deesser.imageAlt':
     'A faixa do De-esser passando: cada S de uma voz acima da linha onde o estágio começa, com o corte pendurado embaixo em âmbar, e os chimbais em cinza, intactos; em cima o estágio com Espectral escolhido e embaixo Voz, Podcast e Audiolivro.',
 
+  'tour.chat.kicker': 'UMA CENA SÓ DE PEDIR',
+  'tour.chat.title': 'Peça uma mudança e veja no palco',
+  'tour.chat.subtitle': 'Um chat ao lado do palco do Estúdio',
+  'tour.chat.lead':
+    'O {studio} agora tem um chat ao lado do palco. Diga o que deve mudar — como uma cena aparece, como ela se move com a música, as cores ou a luz — e a sua própria IA edita a cena e toca cada versão no palco enquanto trabalha.',
+  'tour.chat.point1':
+    'Cada resposta guarda a versão que fez, e {bringBack} coloca uma anterior de volta. Cada cena guarda os chats anteriores.',
+  'tour.chat.point2':
+    '{attach} envia uma imagem da cena com a sua mensagem, e você pode desenhar nela para mostrar o que quer dizer. Mensagens enviadas enquanto ele trabalha esperam numa fila e vão juntas.',
+  'tour.chat.point3':
+    'Ele roda no Claude Code instalado neste computador, com o seu próprio plano, e mostra quanto resta dos seus limites. Com o ChatGPT conectado, pode pintar imagens para a cena, perguntando antes de cada uma.',
+  'tour.chat.how':
+    'Abra o {plus}, escolha {studio} na barra lateral, escolha uma cena ou comece uma e escreva na caixa ao lado do palco.',
+  'tour.chat.open': 'Abrir Plus',
+  'tour.chat.imageAlt':
+    'O palco do Estúdio ao lado do chat: um pedido para as luzes do palco piscarem na caixa, os passos da resposta marcados um a um, a versão 2 guardada com Trazer de volta, e as luzes do palco começando a piscar quando a versão 2 toca.',
+  'tour.chat.ask': 'Faça as luzes do palco piscarem na caixa.',
+  'tour.chat.reply':
+    'Pronto: os dois holofotes piscam em branco a cada caixa e voltam ao rosa.',
+
   'tour.looks.kicker': 'SEU PRÓPRIO VISUALIZADOR',
   'tour.looks.title': 'Visuais próprios para o gráfico',
   'tour.looks.subtitle': 'Suas formas, suas cores, seu movimento',

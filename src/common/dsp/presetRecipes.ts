@@ -142,8 +142,8 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.preset.speech',
     group: 'scene',
     voicing: 'speech',
-    // Every voice's S's, wherever it sits: speech is all voice, and a short
-    // dip of the whole sound is the cut broadcast makes.
+    // Every voice's S's, wherever it sits: speech is all voice. Only the S
+    // comes down; a dip of the whole sound pumped (see the profile).
     deEsser: 'podcast',
     // Speech is listened to in the places music is not — a train, a kitchen,
     // a car — where what costs a sentence is the level, not the tone. This

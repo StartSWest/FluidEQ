@@ -91,7 +91,13 @@ and the De-esser is not heard, and everything else plays as before.
   what it takes away. A four-second strip beside the treble shows each S and
   the cut over it, with the cymbals it let through in grey. Seven profiles to
   start from, for music and for speech; Speech, Podcast and Audiobook switch
-  it on. Switching it on or off never moves the sound in time.
+  it on. Switching it on or off never moves the sound in time. Beside the
+  strip, the treble as it is now shows how far the S stands over the voice,
+  and how much more a cymbal would need before it is touched.
+- **Exciter oversampling: Off, Standard or High.** Standard is how the Exciter
+  has always run; High uses a much sharper filter so nothing folds back off
+  the top, for a little more work; Off is the lightest. A profile you pick
+  leaves your choice as it is.
 - **Save on every filter.** Denoise, De-esser, Exciter, Bass Forge, Bass
   Punch, Dimension, Maximizer and Master each keep profiles of your own,
   listed first under Yours, saved and deleted the way the EQ's are.
@@ -122,10 +128,36 @@ and the De-esser is not heard, and everything else plays as before.
   less too (Prism Bloom from 20.6 to 16.1 ms a frame on Intel UHD at 1080p).
 - **New sets of scenes are announced in the app**, once each, with the set's
   scenes framed and Try them now to play the first on the graph.
+- **Hearts on members' scenes.** Like a scene in the gallery and its maker
+  sees it; FluidEQ's own scenes carry no counts.
 - **Your account shows how long each scene has played**, your own scenes
   included, down to the second under a minute. Counting starts only once you
   have seen the revised Plus terms, which say what is kept: how long each
   scene is on screen, per scene and day, and which audio engine you use.
+
+### The Studio
+
+- **Ask for a change and watch it on the stage.** The Studio has a chat beside
+  its stage: say what should change — how a scene looks, how it moves with the
+  music, its colours or its light — and your own AI edits the scene and plays
+  each version as it goes. It runs on Claude Code installed on your computer,
+  signed in with your own plan; FluidEQ never sees the sign-in.
+  - Every reply keeps the version it made, with **Bring back**; each scene
+    keeps its past chats, and chats Claude Code kept for the project's folder
+    can be opened too.
+  - **Attach the stage** sends a picture of the scene with your message, and
+    you can draw on it — arrows, words, marks — to show what you mean.
+  - Messages sent while it works wait in a queue and go together, as one turn.
+  - Pick the model and how hard it thinks; a ring shows how much of the
+    conversation's room is used, **Compact** makes more, and the accounts
+    card shows how much of your 5-hour and weekly limits is left.
+  - With ChatGPT connected through Codex, it can paint pictures for the scene,
+    asking you before each one.
+- **The Studio says which versions you have**: the bench's, the copy in your
+  looks (and whether it is behind), and the gallery's.
+- **While the Studio is open, the scenes' time of day follows its
+  Brightness**, so a scene can be checked at night and in daylight before it
+  is published.
 
 ### Forum
 
@@ -166,6 +198,11 @@ and the De-esser is not heard, and everything else plays as before.
   minimised.
 - The band menu offers **Update engine** where it says a band needs a newer
   FluidEQ Engine.
+- The window's colours under a scene stay that scene's own at any
+  Brightness, only lighter or darker; dimming used to swap them for the
+  scene's night palette (Bloom turned from green to purple).
+- A scene republished a moment ago opens as the new version in the Studio and
+  the gallery; it could come back as the version before it for a minute.
 
 ---
 

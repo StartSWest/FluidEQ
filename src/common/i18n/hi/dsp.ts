@@ -443,6 +443,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'मिड',
   'dsp.exciter.band.high': 'हाई',
   'dsp.exciter.texture': 'बनावट',
+  'dsp.exciter.oversampling': 'ओवरसैंपलिंग',
+  'dsp.exciter.oversampling.off': 'बंद',
+  'dsp.exciter.oversampling.standard': 'सामान्य',
+  'dsp.exciter.oversampling.high': 'उच्च',
+  'dsp.exciter.oversampling.offHint':
+    'हार्मोनिक्स आउटपुट की अपनी दर पर बनते हैं: सबसे हल्का भार, पर ऊपर से वापस मुड़ने वाले हिस्से से थोड़ी खुरदराहट।',
+  'dsp.exciter.oversampling.standardHint':
+    'हार्मोनिक्स आउटपुट की दर से चार गुना तक की दर पर बनते हैं, जैसे एक्साइटर हमेशा से चलता आया है।',
+  'dsp.exciter.oversampling.highHint':
+    'वही दर, कहीं ज़्यादा तीखे फ़िल्टर के साथ, ताकि ऊपर से कुछ भी वापस न मुड़े। प्रोसेसर के लिए थोड़ा ज़्यादा काम।',
   'dsp.exciter.organic': 'ऑर्गेनिक',
   'dsp.exciter.organicHint':
     'चुनी हुई रेंज में सम हार्मोनिक्स वाली मुलायम बॉडी जोड़ता है। साफ़, मेटैलिक या टाइटेनियम-ड्राइवर प्रस्तुति को बिना डिटेल खोए अधिक गर्म और ऑर्गेनिक बनाने के लिए आदर्श है।',

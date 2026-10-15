@@ -104,12 +104,15 @@ beforeEach(() => {
 it('gives the whole editor to a member without Plus', async () => {
   render(<StudioBench view={view()} />);
   expect(screen.getByTestId('studio-stage')).toBeInTheDocument();
-  // The chat with Claude, and the prompt for any other AI behind its switch.
+  // The chat with Claude, and the prompt for any other AI behind its ⋯.
   expect(
     await screen.findByRole('textbox', { name: 'studioChat.label' }),
   ).toBeInTheDocument();
   await userEvent.click(
-    screen.getByRole('button', { name: 'studioChat.otherAi' }),
+    screen.getByRole('button', { name: 'studioChat.menu' }),
+  );
+  await userEvent.click(
+    await screen.findByRole('button', { name: 'studioChat.otherAi' }),
   );
   expect(
     await screen.findByRole('textbox', { name: 'studio.maker.describe' }),

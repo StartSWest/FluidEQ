@@ -481,6 +481,25 @@ const tour: Partial<Dictionary> = {
   'tour.deesser.imageAlt':
     '齿音消除器的条带滚动而过：人声的每个 S 高出该级开始起作用的线，下方以琥珀色挂着它的削减量，踩镲为灰色、不受影响；上方是选中“频谱”的该级，下方是“语音”“播客”和“有声书”。',
 
+  'tour.chat.kicker': '说一句，场景就变',
+  'tour.chat.title': '提出修改，在舞台上看效果',
+  'tour.chat.subtitle': '工作室舞台旁的聊天',
+  'tour.chat.lead':
+    '“{studio}”的舞台旁现在有了聊天。说出要改什么——场景的样子、随音乐的动态、颜色或光线——你自己的 AI 就会编辑场景，并边改边在舞台上播放每个版本。',
+  'tour.chat.point1':
+    '每条回复都保留它做出的版本，“{bringBack}”可以换回之前的版本。每个场景都保留它的历史聊天。',
+  'tour.chat.point2':
+    '“{attach}”会把场景的画面随消息一起发送，你还可以在上面画出你的意思。它工作时发送的消息会排队，之后一起发出。',
+  'tour.chat.point3':
+    '它运行在这台电脑上安装的 Claude Code 上，用你自己的方案，并显示你的额度还剩多少。连接 ChatGPT 后，它可以为场景绘制图片，每张之前都会先问你。',
+  'tour.chat.how':
+    '打开“{plus}”，在侧栏选择“{studio}”，选择一个场景或新建一个，然后在舞台旁的输入框里输入。',
+  'tour.chat.open': '打开 Plus',
+  'tour.chat.imageAlt':
+    '工作室的舞台和旁边的聊天：一条让舞台灯随军鼓闪烁的请求，回复的步骤逐一打勾，带“恢复”的版本 2 被保留，版本 2 播放时舞台灯开始闪烁。',
+  'tour.chat.ask': '让舞台灯随军鼓闪烁。',
+  'tour.chat.reply': '完成：两盏聚光灯在每一下军鼓时闪白光，再渐渐回到粉色。',
+
   'tour.looks.kicker': '你自己的可视化效果',
   'tour.looks.title': '自定义图表外观',
   'tour.looks.subtitle': '你的形态，你的颜色，你的律动',

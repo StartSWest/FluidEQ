@@ -501,6 +501,26 @@ const tour: Partial<Dictionary> = {
   'tour.deesser.imageAlt':
     'Der Verlauf des De-Essers läuft vorbei: jedes S einer Stimme über der Linie, ab der die Stufe greift, mit seiner Absenkung in Bernstein darunter, und die Hi-Hats in Grau, unberührt; darüber die Stufe mit Spektral gewählt, darunter Sprache, Podcast und Hörbuch.',
 
+  'tour.chat.kicker': 'EINE SZENE PER ANFRAGE',
+  'tour.chat.title': 'Um eine Änderung bitten, sie auf der Bühne sehen',
+  'tour.chat.subtitle': 'Ein Chat neben der Bühne des Studios',
+  'tour.chat.lead':
+    'Das {studio} hat jetzt einen Chat neben seiner Bühne. Sagen Sie, was sich ändern soll – Aussehen, Bewegung zur Musik, Farben oder Licht –, und Ihre eigene KI bearbeitet die Szene und spielt jede Version auf der Bühne.',
+  'tour.chat.point1':
+    'Jede Antwort behält die Version, die sie erstellt hat, und {bringBack} holt eine frühere zurück. Jede Szene behält ihre früheren Chats.',
+  'tour.chat.point2':
+    '{attach} schickt ein Bild der Szene mit, auf das Sie zeichnen können. Was Sie während der Arbeit senden, wartet in einer Schlange und geht gemeinsam hinaus.',
+  'tour.chat.point3':
+    'Er läuft mit Claude Code auf diesem Computer, mit Ihrem eigenen Abo, und zeigt Ihre restlichen Limits. Mit ChatGPT malt er Bilder für die Szene und fragt vor jedem.',
+  'tour.chat.how':
+    'Öffnen Sie {plus}, wählen Sie in der Leiste {studio}, wählen oder beginnen Sie eine Szene und schreiben Sie in das Feld neben der Bühne.',
+  'tour.chat.open': 'Plus öffnen',
+  'tour.chat.imageAlt':
+    'Die Bühne des Studios neben seinem Chat: die Bitte, das Bühnenlicht auf der Snare blitzen zu lassen, die Schritte der Antwort nacheinander abgehakt, Version 2 mit Zurückholen behalten, und das Licht der Bühne, das zu blitzen beginnt, sobald Version 2 spielt.',
+  'tour.chat.ask': 'Lass das Bühnenlicht auf der Snare blitzen.',
+  'tour.chat.reply':
+    'Erledigt: Beide Spots blitzen auf jeder Snare weiß und klingen wieder zu Pink ab.',
+
   'tour.looks.kicker': 'IHR EIGENER VISUALIZER',
   'tour.looks.title': 'Eigene Darstellungen für das Diagramm',
   'tour.looks.subtitle': 'Ihre Formen, Ihre Farben, Ihre Bewegung',

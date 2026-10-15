@@ -48,6 +48,7 @@ import {
   EarsSlide,
   OutputsSlide,
   SongsSlide,
+  StudioChatSlide,
 } from './release21';
 
 /**
@@ -235,8 +236,8 @@ const RELEASE_20: TSlideEntry[] = [
  * 2.1, in the order of what a listener meets first: every output keeping its
  * own sound, a band tuned for each ear, Share Audio both ways (its slide says
  * so now; it was a standing one), the bands read out on the graph with EQ
- * mode beside it, songs that remember their sound, and the DSP rack's
- * De-esser.
+ * mode beside it, songs that remember their sound, the DSP rack's
+ * De-esser, and the Studio's chat.
  */
 const RELEASE_21: TSlideEntry[] = [
   {
@@ -269,6 +270,12 @@ const RELEASE_21: TSlideEntry[] = [
     titleKey: 'tour.deesser.title',
     subtitleKey: 'tour.deesser.subtitle',
     Body: DeEsserSlide,
+  },
+  {
+    id: 'studio-chat',
+    titleKey: 'tour.chat.title',
+    subtitleKey: 'tour.chat.subtitle',
+    Body: StudioChatSlide,
   },
 ];
 

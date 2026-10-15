@@ -1,30 +1,28 @@
 import { ipcRenderer, type IpcRendererEvent } from 'electron';
 import type {
   IStudioChat,
+  IStudioChatCompact,
+  IStudioChatContext,
+  IStudioChatLimits,
   IStudioChatMessage,
   IStudioChatPackAsk,
+  IStudioChatCodexState,
   IStudioChatPast,
+  IStudioChatQueued,
   TStudioChatAnswer,
   TStudioChatAsk,
   TStudioChatAvailability,
-  TStudioChatCodex,
   TStudioChatEntry,
   TStudioChatPackAnswer,
   TStudioChatRestore,
 } from '../common/studioChat';
-
-/** ChatGPT's pictures as the chat's head shows them. */
-export interface IStudioChatCodexState {
-  codex: TStudioChatCodex;
-  connected: boolean;
-}
 
 /**
  * The window's side of the Studio's chat (`studioChat/studioChat.ts`). It
  * works on the open project only: main decides which that is, and no path,
  * no process and nothing of the member's Claude account reaches the page.
  */
-export const studioChatBridge = {
+const studioChatBridge = {
   studioChatAvailability: (): Promise<TStudioChatAvailability> =>
     ipcRenderer.invoke('studio-chat-availability'),
   /** Claude Code's own sign-in; settles when it has ended. */
@@ -34,7 +32,55 @@ export const studioChatBridge = {
     ipcRenderer.invoke('studio-chat-load'),
   studioChatSend: (message: IStudioChatMessage): Promise<void> =>
     ipcRenderer.invoke('studio-chat-send', message),
+  /** Claude Code's /compact, on the member's picks. */
+  studioChatCompact: (picks: IStudioChatCompact): Promise<void> =>
+    ipcRenderer.invoke('studio-chat-compact', picks),
   studioChatStop: (): Promise<void> => ipcRenderer.invoke('studio-chat-stop'),
+  /** A queued message taken back before it went. */
+  studioChatUnqueue: (id: string): Promise<void> =>
+    ipcRenderer.invoke('studio-chat-unqueue', id),
+  onStudioChatQueue: (
+    listener: (change: {
+      projectId: string;
+      queued: IStudioChatQueued[];
+    }) => void,
+  ) => {
+    const wrapped = (
+      _event: IpcRendererEvent,
+      change: { projectId: string; queued: IStudioChatQueued[] },
+    ) => listener(change);
+    ipcRenderer.on('studio-chat-queue', wrapped);
+    return () => {
+      ipcRenderer.removeListener('studio-chat-queue', wrapped);
+    };
+  },
+  /** How full a project's context window is, after each message Claude writes. */
+  onStudioChatContext: (
+    listener: (change: {
+      projectId: string;
+      context: IStudioChatContext;
+    }) => void,
+  ) => {
+    const wrapped = (
+      _event: IpcRendererEvent,
+      change: { projectId: string; context: IStudioChatContext },
+    ) => listener(change);
+    ipcRenderer.on('studio-chat-context', wrapped);
+    return () => {
+      ipcRenderer.removeListener('studio-chat-context', wrapped);
+    };
+  },
+  /** The plan's limits as Claude Code last reported them, if ever. */
+  studioChatLimits: (): Promise<IStudioChatLimits | undefined> =>
+    ipcRenderer.invoke('studio-chat-limits'),
+  onStudioChatLimits: (listener: (limits: IStudioChatLimits) => void) => {
+    const wrapped = (_event: IpcRendererEvent, limits: IStudioChatLimits) =>
+      listener(limits);
+    ipcRenderer.on('studio-chat-limits', wrapped);
+    return () => {
+      ipcRenderer.removeListener('studio-chat-limits', wrapped);
+    };
+  },
   studioChatNew: (): Promise<IStudioChat | undefined> =>
     ipcRenderer.invoke('studio-chat-new'),
   studioChatRestore: (entryId: string): Promise<TStudioChatRestore> =>
@@ -99,3 +145,5 @@ export const studioChatBridge = {
     };
   },
 };
+
+export default studioChatBridge;

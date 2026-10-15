@@ -16,6 +16,7 @@ import {
   CHAIN_PARAM_LEAD,
   deEsserWords,
   encodeChainSettings,
+  signedSpareWords,
 } from '../../../common/dsp/chainWire';
 import {
   DE_ESSER_DEFAULTS,
@@ -81,6 +82,18 @@ describe('De-esser profiles', () => {
       );
     });
   });
+
+  // Whole voice took everything under each S down with it, and the Speech
+  // and Podcast chains pumped like a limiter (2026-10-14). Measured in the
+  // engine: `speech_keeps_its_level_through_an_s`.
+  it('every one cuts only what the S is made of', () => {
+    DE_ESSER_PRESETS.forEach((preset) => {
+      expect([preset.id, preset.settings.mode]).toEqual([
+        preset.id,
+        'spectral',
+      ]);
+    });
+  });
 });
 
 describe('a stored De-esser read back', () => {
@@ -110,6 +123,17 @@ describe('a stored De-esser read back', () => {
     expect(read.rangeDb).toBe(DE_ESSER_RANGES.rangeDb.min);
     expect(read.mode).toBe(DE_ESSER_DEFAULTS.mode);
     expect(read.releaseMs).toBe(DE_ESSER_RANGES.releaseMs.min);
+  });
+
+  it('reads the Podcast profile stored in Whole voice as it is now', () => {
+    const stored = { ...deEsserPresetSettings('podcast', true), mode: 'whole' };
+    expect(clampDeEsserSettings(stored)).toEqual(
+      deEsserPresetSettings('podcast', true),
+    );
+    // Control: Whole voice chosen by hand, which clears the name, stays.
+    expect(clampDeEsserSettings({ ...stored, presetId: '' }).mode).toBe(
+      'whole',
+    );
   });
 });
 
@@ -190,14 +214,42 @@ describe('the chains that de-ess', () => {
 
 describe('the De-esser on the rack’s line', () => {
   it('fills the compressor’s retired eighteen words and signs them', () => {
-    const words = deEsserWords({ ...DE_ESSER_DEFAULTS, enabled: true });
+    const words = [
+      ...deEsserWords({ ...DE_ESSER_DEFAULTS, enabled: true }),
+      ...signedSpareWords(DSP_DEFAULTS.exciter),
+    ];
     expect(words).toHaveLength(18);
     // The compressor's own switch stays off for an engine from before.
     expect(words[0]).toBe(0);
     expect(words[1]).toBe(1);
     expect(words[1 + CHAIN_DEESSER_FIELDS]).toBe(CHAIN_DEESSER_SIGNATURE);
     expect(words[2 + CHAIN_DEESSER_FIELDS]).toBe(CHAIN_DEESSER_FIELDS);
+    // Standard is the first choice on the wire, as every line before it.
     expect(words.slice(3 + CHAIN_DEESSER_FIELDS)).toEqual([0, 0, 0]);
+  });
+
+  it('carries the Exciter’s oversampling in the first word after the pair', () => {
+    const slot = DE_ESSER_SLOT + CHAIN_DEESSER_FIELDS + 2;
+    const lineFor = (oversampling: 'standard' | 'off' | 'high') =>
+      encodeChainSettings(
+        clampDspSettings({
+          ...DSP_DEFAULTS,
+          exciter: { ...DSP_DEFAULTS.exciter, oversampling },
+        }),
+      );
+    // In `FeqExciterOversampling`'s order.
+    expect(lineFor('standard')[slot]).toBe(0);
+    expect(lineFor('off')[slot]).toBe(1);
+    expect(lineFor('high')[slot]).toBe(2);
+    // Nothing else moves.
+    const standard = lineFor('standard');
+    const high = lineFor('high');
+    expect(high.length).toBe(standard.length);
+    expect(
+      high.flatMap((value, index) =>
+        value === standard[index] ? [] : [index],
+      ),
+    ).toEqual([slot]);
   });
 
   it('stands where the engine reads it, and moves nothing after it', () => {

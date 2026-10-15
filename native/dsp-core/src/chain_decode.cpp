@@ -38,6 +38,12 @@ namespace {
 constexpr uint32_t kDeEsserSlot = 2 + 9 + 18 + 11 + 1;
 constexpr uint32_t kDeEsserModeSlot = kDeEsserSlot + 7;
 constexpr uint32_t kDeEsserSignatureSlot = kDeEsserSlot + FEQ_CHAIN_DEESSER_FIELDS;
+/**
+ * The first spare word after the signature pair: the Exciter's oversampling.
+ * In the signed block because a line without the pair is one from before
+ * either, and reads Standard, the way the Exciter always ran.
+ */
+constexpr uint32_t kExciterOversamplingSlot = kDeEsserSignatureSlot + 2;
 
 /** Whether the line's De-esser words are the De-esser's (`chain.h`). */
 bool signs_deesser(const double* values) {
@@ -152,7 +158,11 @@ int feq_chain_settings_decode(const double* values,
   const bool has_deesser = signs_deesser(values);
   if (has_deesser) {
     const double mode = values[kDeEsserModeSlot];
+    const double oversampling = values[kExciterOversamplingSlot];
     if (mode != 0.0 && mode != 1.0 && mode != 2.0) {
+      return 0;
+    }
+    if (oversampling != 0.0 && oversampling != 1.0 && oversampling != 2.0) {
       return 0;
     }
   }
@@ -220,7 +230,9 @@ int feq_chain_settings_decode(const double* values,
     out->deesser.release_ms = next();
     out->deesser.centre_only = flag();
     out->deesser.keep_cymbals = next();
-    at += 5;
+    at += 2;  // the signature pair
+    out->exciter.oversampling = static_cast<int>(next());
+    at += 2;
   } else {
     at += 17;
   }

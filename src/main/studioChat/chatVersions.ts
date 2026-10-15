@@ -6,6 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import fs from 'fs';
 import path from 'path';
+import type {
+  TStudioChatEntry,
+  TStudioChatRestore,
+} from '../../common/studioChat';
 import writeFileAtomically from '../atomicWrite';
 
 /**
@@ -118,4 +122,47 @@ export const bringBackVersion = (kept: string, folder: string): boolean => {
   } catch {
     return false;
   }
+};
+
+/**
+ * The version a reply in the chat made, put back in the project: only a
+ * reply the chat has, that made a version, and only a version kept for it.
+ */
+export const restoreReplyVersion = (
+  entries: readonly TStudioChatEntry[],
+  versionsDir: string,
+  folder: string,
+  entryId: unknown,
+): TStudioChatRestore => {
+  const known = entries.some(
+    (entry) =>
+      entry.id === entryId &&
+      entry.kind === 'claude' &&
+      entry.version !== undefined,
+  );
+  if (!known || typeof entryId !== 'string') {
+    return { ok: false, reason: 'gone' };
+  }
+  return bringBackVersion(path.join(versionsDir, entryId), folder)
+    ? { ok: true }
+    : { ok: false, reason: 'failed' };
+};
+
+/**
+ * The project as a reply that changed it left it, kept under the reply's id
+ * so it can be brought back: the version it stands at, or undefined when
+ * the reply wrote nothing or the copy could not be kept.
+ */
+export const keepReplyVersion = (
+  reply: Extract<TStudioChatEntry, { kind: 'claude' }>,
+  folder: string,
+  versionsDir: string,
+): number | undefined => {
+  const wrote = reply.steps.some(
+    (step) =>
+      (step.kind === 'write' || step.kind === 'pack') && step.state === 'done',
+  );
+  return wrote && keepVersion(folder, path.join(versionsDir, reply.id))
+    ? projectVersion(folder)
+    : undefined;
 };

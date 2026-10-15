@@ -9,11 +9,12 @@ import {
   isStudioChatEffort,
   isStudioChatModel,
   type IStudioChat,
+  type IStudioChatCodexState,
+  type IStudioChatLimits,
   type IStudioChatPast,
   type TStudioChatAnswer,
   type TStudioChatAsk,
   type TStudioChatAvailability,
-  type TStudioChatCodex,
   type TStudioChatEffort,
   type TStudioChatEntry,
   type TStudioChatModel,
@@ -57,13 +58,15 @@ interface IChatState {
   /** A card the chat put up for the member: connect ChatGPT, or a picture. */
   ask?: TStudioChatAsk;
   /** ChatGPT's pictures here: Codex's state, and whether it is connected. */
-  codex?: { codex: TStudioChatCodex; connected: boolean };
+  codex?: IStudioChatCodexState;
   /** Codex's sign-in window is open. */
   codexSigningIn: boolean;
   /** The open project's earlier chats, once asked for. */
   past?: IStudioChatPast[];
   /** How large the conversation is drawn, one of STUDIO_CHAT_ZOOMS. */
   zoom: number;
+  /** The Claude plan's limits, as Claude Code last reported them. */
+  limits?: IStudioChatLimits;
 }
 
 const storedModel = (): TStudioChatModel => {
@@ -137,6 +140,17 @@ const listen = () => {
         },
       });
     }),
+    api?.onStudioChatQueue?.(({ projectId, queued }) => {
+      if (state.chat?.projectId === projectId) {
+        set({ chat: { ...state.chat, queued } });
+      }
+    }),
+    api?.onStudioChatContext?.(({ projectId, context }) => {
+      if (state.chat?.projectId === projectId) {
+        set({ chat: { ...state.chat, context } });
+      }
+    }),
+    api?.onStudioChatLimits?.((limits) => set({ limits })),
     api?.onStudioChatAsk?.(({ projectId, ask }) => {
       if (state.chat?.projectId === projectId) {
         set({ ask });
@@ -195,6 +209,14 @@ export const signInToStudioChat = async () => {
 export const loadStudioChat = async () => {
   const chat = await bridge()?.studioChatLoad?.();
   set({ chat: chat ?? undefined, ask: chat?.ask });
+};
+
+/** The Claude plan's limits as last reported, kept from earlier sittings too. */
+export const checkStudioChatLimits = async () => {
+  const limits = await bridge()?.studioChatLimits?.();
+  if (limits) {
+    set({ limits });
+  }
 };
 
 /** The member's answer to the card standing in the chat. */
@@ -271,6 +293,21 @@ export const sendToStudioChat = (
     effort: state.effort,
     ...(stage ? { stage } : {}),
   }) ?? Promise.resolve();
+
+/**
+ * Claude Code's /compact on the conversation about the project in `folder`:
+ * the picks go with it, because a different one starts Claude Code anew.
+ */
+export const compactStudioChat = (folder: string) =>
+  bridge()?.studioChatCompact?.({
+    brief: chatBrief(folder),
+    model: state.model,
+    effort: state.effort,
+  }) ?? Promise.resolve();
+
+/** A queued message taken back before it went. */
+export const unqueueStudioChat = (id: string) =>
+  bridge()?.studioChatUnqueue?.(id) ?? Promise.resolve();
 
 export const stopStudioChat = () =>
   bridge()?.studioChatStop?.() ?? Promise.resolve();

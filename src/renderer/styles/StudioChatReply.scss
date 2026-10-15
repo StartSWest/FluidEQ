@@ -112,6 +112,13 @@ it under the terms of the GNU General Public License version 3 or later.
     $surface-well;
 }
 
+// A step's measure beside its words: a compaction's size before and after.
+.studio-chat__step-note {
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
 .studio-chat__step-mark {
   display: inline-grid;
   flex: none;

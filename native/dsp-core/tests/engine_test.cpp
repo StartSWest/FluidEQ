@@ -354,7 +354,7 @@ void test_crossfade_mixer() {
 uint32_t linear_part(const FeqChain* chain) {
   FeqChainLatencyParts parts{};
   feq_chain_latency_parts(chain, &parts);
-  return parts.linear_eq;
+  return parts.eq;
 }
 
 /**

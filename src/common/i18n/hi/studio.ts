@@ -305,6 +305,12 @@ const studio = {
   'studio.status.problem': 'पिछला चलता हुआ संस्करण अब भी बज रहा है',
   'studio.status.waiting': 'ऐसे संस्करण का इंतज़ार जो चल सके',
 
+  'studio.version.group': 'संस्करण',
+  'studio.version.looks': 'मेरे रूप v{version}',
+  'studio.version.looksCurrent': 'आपके रूपों में ठीक यही दृश्य है।',
+  'studio.version.looksBehind':
+    'आपके रूपों में संस्करण {version} का पहले का सहेजा हुआ रूप है। "मेरे रूपों में जोड़ें" उसे अद्यतन करता है।',
+  'studio.version.gallery': 'गैलरी v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'इस सीन का संस्करण {version}। यह अभी प्रकाशित नहीं हुआ है।',

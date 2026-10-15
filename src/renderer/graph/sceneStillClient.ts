@@ -1,7 +1,7 @@
 import type { IScenePack } from 'common/scenePacks';
 import textDigest from 'common/textDigest';
 import type { ISceneFrame } from './sceneGl';
-import { pageDaylight } from './sceneDaylight';
+import { authoredDaylight, pageDaylight } from './sceneDaylight';
 import { afterLinkTurns, sceneProgramKey } from './sceneLinkTurns';
 import type {
   TSceneStillRefusal,
@@ -250,7 +250,16 @@ const untilHidden = (done: AbortSignal): Promise<void> =>
     );
   });
 
-/** `pack`'s showcase frames, drawn small and read back as RGBA. */
+/**
+ * `pack`'s showcase frames, drawn small and read back as RGBA, at the time
+ * of day its author set it at. They are read for the scene's colour, and a
+ * scene's colour is its own whatever the Brightness: drawn at the window's
+ * time of day, each step of the slider measured the scene's day or night
+ * palette instead, so the window changed hue as it was dimmed (Ivan,
+ * 2026-10-14: "each scene has their colors cant be like that due to day or
+ * night just darker or lighter"). The Brightness tones the colour found here
+ * (`sceneTintStore.ts`); it never chooses it.
+ */
 export const sampleSceneInWorker = async (
   pack: IScenePack,
 ): Promise<Uint8Array | undefined> => {
@@ -260,7 +269,7 @@ export const sampleSceneInWorker = async (
       kind: 'sample',
       pack,
       accent: pageAccent(),
-      daylight: pageDaylight(),
+      daylight: authoredDaylight(pack),
     })
   )?.pixels;
 };

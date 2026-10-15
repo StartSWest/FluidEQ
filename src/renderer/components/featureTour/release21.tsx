@@ -11,12 +11,13 @@ import EarsVisual from './EarsVisual';
 import OutputsVisual from './OutputsVisual';
 import ShowcaseSlide from './ShowcaseSlide';
 import SongsVisual from './SongsVisual';
+import StudioChatVisual from './StudioChatVisual';
 import type { ISlideActions } from './slides';
 
 /**
  * 2.1's slides: every output keeping its own sound, the bands read out on
  * the graph with EQ mode beside it, a band tuned for each ear, songs that
- * remember their sound, and the DSP rack's De-esser. Each
+ * remember their sound, the DSP rack's De-esser and the Studio's chat. Each
  * quotes the app's own labels for the controls it sends the reader to, so a
  * renamed control renames the slide.
  */
@@ -109,6 +110,23 @@ export function SongsSlide({ actions }: ISlideProps) {
         output: t('output.title'),
         undo: t('songSound.undo'),
         forget: t('songSound.forget'),
+      }}
+    />
+  );
+}
+
+export function StudioChatSlide({ actions }: ISlideProps) {
+  const { t } = useTranslation();
+  return (
+    <ShowcaseSlide
+      prefix="tour.chat"
+      onOpen={() => actions.openTab('community')}
+      visual={<StudioChatVisual />}
+      values={{
+        plus: t('tabs.plus'),
+        studio: t('studio.title'),
+        bringBack: t('studioChat.bringBack'),
+        attach: t('studioChat.attach'),
       }}
     />
   );

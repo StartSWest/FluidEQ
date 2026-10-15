@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IStudioChatStep, TStudioChatEntry } from 'common/studioChat';
 import Glyph from '../../community/Glyph';
@@ -35,6 +35,10 @@ const STEP_WORDS: Record<
     now: 'studioChat.step.pictureNow',
   },
   pack: { done: 'studioChat.step.pack', now: 'studioChat.step.packNow' },
+  compact: {
+    done: 'studioChat.step.compact',
+    now: 'studioChat.step.compactNow',
+  },
   other: { done: 'studioChat.step.other', now: 'studioChat.step.otherNow' },
 };
 
@@ -66,8 +70,12 @@ const shownSteps = (steps: readonly IStudioChatStep[]) =>
   });
 
 function Step({ step }: { step: IStudioChatStep }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [large, setLarge] = useState(false);
+  const tokenCount = useMemo(
+    () => new Intl.NumberFormat(locale, { notation: 'compact' }),
+    [locale],
+  );
   const words = STEP_WORDS[step.kind];
   const running = step.state === 'running';
   const file = step.file ?? t('studioChat.step.theScene');
@@ -79,6 +87,14 @@ function Step({ step }: { step: IStudioChatStep }) {
         {step.state === 'failed' && <Glyph name="alert" />}
       </span>
       <span>{label}</span>
+      {step.tokens && (
+        <span className="studio-chat__step-note">
+          {t('studioChat.step.compactTokens', {
+            before: tokenCount.format(step.tokens.before),
+            after: tokenCount.format(step.tokens.after),
+          })}
+        </span>
+      )}
       {/* What the look is drawing, or ChatGPT is painting, held open while
           it works, then the picture itself, the moment it comes back. */}
       {(step.kind === 'look' || step.kind === 'picture') && running && (

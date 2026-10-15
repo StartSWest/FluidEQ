@@ -5,6 +5,7 @@ const studioChat = {
   'studioChat.wherePlan': 'Claude Code · {plan} プラン',
   'studioChat.new': '新しいチャット',
   'studioChat.otherAi': 'ほかの AI を使う',
+  'studioChat.menu': 'チャットのオプション',
   'studioChat.backToChat': 'チャットに戻る',
   'studioChat.fold': 'チャットを折りたたむ',
   'studioChat.unfold': 'Claude とチャット',
@@ -158,6 +159,53 @@ const studioChat = {
   'studioChat.sketch.arrow': '矢印',
   'studioChat.sketch.text': '文字',
   'studioChat.sketch.textHint': '入力して Enter',
+  'studioChat.accounts.title': 'アカウント',
+  'studioChat.accounts.open':
+    'チャットが使う Claude と ChatGPT のアカウントを見る',
+  'studioChat.accounts.claude': 'Claude',
+  'studioChat.accounts.chatgpt': 'ChatGPT',
+  'studioChat.accounts.unknown': 'サインイン済み',
+  'studioChat.accounts.switch': '別のアカウントを使う',
+  'studioChat.accounts.claudeMissing':
+    'このコンピューターに Claude Code がインストールされていません。',
+  'studioChat.accounts.claudeOut': 'Claude Code にサインインしていません。',
+  'studioChat.accounts.codexMissing':
+    'Codex アプリがインストールされていないため、ChatGPT は画像を作れません。',
+  'studioChat.accounts.codexOut': 'Codex が ChatGPT でサインインしていません。',
+  'studioChat.accounts.picturesOn':
+    '画像ごとにあなたが許可すると、このチャットで画像を作ります。',
+  'studioChat.accounts.picturesOff':
+    'まだ画像は作っていません。Claude が初めて画像を作るときに確認します。',
+  'studioChat.accounts.picturesOffButton': '画像をオフにする',
+  'studioChat.accounts.codexPlan': 'ChatGPT {plan} プラン · Codex 経由',
+  'studioChat.accounts.fine':
+    'FluidEQ はどのアカウントかを表示するだけで、サインイン情報は見ません。',
+  'studioChat.welcomeSceneTitle': '{name} のどこを変えますか？',
+  'studioChat.welcomeSceneBody':
+    '見た目、音楽に合わせた動き、色、光など、変えたいところを Claude に伝えてください。Claude はこのシーンを編集し、各バージョンをステージで再生します。',
+  'studioChat.queue.title': '待機中 · Claude が終わったらまとめて送信',
+  'studioChat.queue.send':
+    'キューに入れる：Claude が終わったら他とまとめて送信',
+  'studioChat.queue.remove': '取り消す',
+  'studioChat.queue.picture': 'ステージの画像付き',
+  'studioChat.step.compact': '会話を圧縮しました',
+  'studioChat.step.compactNow': '会話を圧縮中…',
+  'studioChat.step.compactTokens': '{before} → {after} トークン',
+  'studioChat.compact.label': '圧縮',
+  'studioChat.context.share': 'コンテキストの {percent}%',
+  'studioChat.context.detail':
+    'Claude のコンテキストウィンドウ {window} トークン中 {used}。圧縮すると空きができます。',
+  'studioChat.context.tokens': 'コンテキスト {used} トークン',
+  'studioChat.limits.fiveHour': '現在のセッション（5 時間）',
+  'studioChat.limits.week': '今週',
+  'studioChat.limits.used': '{percent}% 使用',
+  'studioChat.limits.resets': '{time} にリセット',
+  'studioChat.limits.asOf': '{time} 時点 · Claude が答えるたびに更新',
+  'studioChat.limits.none':
+    'Claude がメッセージに答えると、5 時間と週ごとの上限がここに表示されます。',
+  'studioChat.context.tokensOf': '{window} トークン中 {used}',
+  'studioChat.context.explain':
+    'メッセージごとに会話全体が送られます。圧縮するとここまでが要約され、以降のメッセージが軽くなります。',
 } as const;
 
 export default studioChat;

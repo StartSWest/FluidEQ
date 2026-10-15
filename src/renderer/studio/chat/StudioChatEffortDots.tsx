@@ -28,14 +28,6 @@ const STEPS = STUDIO_CHAT_EFFORTS.filter(
 /** Where Medium stands among the dots: past it, the composer warns. */
 const MEDIUM = STEPS.indexOf('medium');
 
-/**
- * Above Medium: Claude thinks longer, replies slow down and the member's plan
- * runs out sooner, so the box says so while one is picked (Ivan, 2026-10-09:
- * "warn about using higher effort levels").
- */
-export const isHeavyEffort = (effort: TStudioChatEffort) =>
-  STEPS.findIndex((step) => step === effort) > MEDIUM;
-
 /** Each arrow's step along the row, as ARIA's radio group moves them. */
 const ARROW_MOVES: Partial<Record<string, number>> = {
   ArrowRight: 1,
@@ -82,7 +74,17 @@ export default function StudioChatEffortDots({
   };
 
   return (
-    <div className="studio-chat__effort" title={t('studioChat.effortHint')}>
+    // Above Medium Claude thinks longer, replies slow down and the plan runs
+    // out sooner (Ivan, 2026-10-09: "warn about using higher effort
+    // levels"). Said as the group's own hint beside amber dots: a line of its
+    // own under the box was one more thing between the member and the box
+    // (2026-10-14: "I dont like stuffs underneath the input chat").
+    <div
+      className="studio-chat__effort"
+      title={t(
+        level > MEDIUM ? 'studioChat.effortWarning' : 'studioChat.effortHint',
+      )}
+    >
       <div
         className="studio-chat__effort-dots"
         role="radiogroup"

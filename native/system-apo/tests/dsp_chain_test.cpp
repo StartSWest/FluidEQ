@@ -193,6 +193,31 @@ void the_de_esser_reads_only_from_a_signed_line() {
   unsigned_line[kDeEsser + FEQ_CHAIN_DEESSER_FIELDS] = 0;
   CHECK(decode_dsp_chain(unsigned_line, &settings));
   CHECK(settings.deesser.enabled == 0);
+
+  // The Exciter's oversampling is the first word after the signature pair:
+  // Standard on the line as it was, High and Off as named, and a value no
+  // choice has refused. Unsigned, the word is the compressor's and the
+  // Exciter runs as it always did.
+  constexpr size_t kOversampling = kDeEsser + FEQ_CHAIN_DEESSER_FIELDS + 2;
+  CHECK(decode_dsp_chain(signed_line, &settings));
+  CHECK(settings.exciter.oversampling == FEQ_EXCITER_OVERSAMPLING_STANDARD);
+  std::vector<double> high = signed_line;
+  high[kOversampling] = FEQ_EXCITER_OVERSAMPLING_HIGH;
+  CHECK(decode_dsp_chain(high, &settings));
+  CHECK(settings.exciter.oversampling == FEQ_EXCITER_OVERSAMPLING_HIGH);
+  // Nothing around it moved.
+  CHECK(settings.deesser.keep_cymbals == 0.3 && settings.eq.band_count == 15);
+  std::vector<double> off = signed_line;
+  off[kOversampling] = FEQ_EXCITER_OVERSAMPLING_OFF;
+  CHECK(decode_dsp_chain(off, &settings));
+  CHECK(settings.exciter.oversampling == FEQ_EXCITER_OVERSAMPLING_OFF);
+  std::vector<double> unknown_choice = signed_line;
+  unknown_choice[kOversampling] = 3;
+  CHECK(!decode_dsp_chain(unknown_choice, &settings));
+  std::vector<double> unsigned_choice = high;
+  unsigned_choice[kDeEsser + FEQ_CHAIN_DEESSER_FIELDS] = 0;
+  CHECK(decode_dsp_chain(unsigned_choice, &settings));
+  CHECK(settings.exciter.oversampling == FEQ_EXCITER_OVERSAMPLING_STANDARD);
 }
 
 void room_payload_bound_is_shared_with_the_file_parser() {
@@ -547,7 +572,7 @@ void an_eq_only_edit_keeps_the_rack_running() {
   // What the build reported comes with the chain.
   CHECK(inheriting.latency_frames() == fresh.latency_frames());
   CHECK(inheriting.active_stages() == fresh.active_stages());
-  CHECK(inheriting.latency_parts().rack.linear_eq == fresh.latency_parts().rack.linear_eq);
+  CHECK(inheriting.latency_parts().rack.eq == fresh.latency_parts().rack.eq);
 
   std::vector<std::vector<float>> through_inherited(
       2, tone(1000.0, 0.5, 480, 0));
@@ -648,7 +673,7 @@ void the_whole_path_reports_its_delay_and_game_mode_shortens_it() {
   values[kRoomEnabled] = 1.0;
   const auto sum_of = [](const Graph::LatencyParts& parts) {
     const FeqChainLatencyParts& rack = parts.rack;
-    return rack.linear_eq + rack.restoration + rack.deesser + rack.leveler +
+    return rack.eq + rack.restoration + rack.deesser + rack.leveler +
            rack.room + rack.bass_punch + rack.maximizer + rack.headroom +
            parts.curves + parts.eq_phase + parts.curve_phase +
            parts.convolution + parts.guard;

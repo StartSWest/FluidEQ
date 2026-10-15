@@ -319,6 +319,12 @@ const studio = {
   // The version on the bench, beside the status word. The number is what a
   // publication is called and what an installed copy compares itself
   // against, so the author needs it where they are working.
+  'studio.version.group': 'Versions',
+  'studio.version.looks': 'Looks v{version}',
+  'studio.version.looksCurrent': 'Your looks have exactly this scene.',
+  'studio.version.looksBehind':
+    'Your looks have an earlier save of version {version}. Add to my looks brings them up to date.',
+  'studio.version.gallery': 'Gallery v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Version {version} of this scene. It has not been published.',

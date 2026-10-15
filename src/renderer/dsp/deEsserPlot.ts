@@ -236,6 +236,9 @@ const xOf = (box: IPlotBox, hz: number) =>
   (Math.log(hz / TREBLE_LOW_HZ) / Math.log(TREBLE_HIGH_HZ / TREBLE_LOW_HZ)) *
     box.width;
 
+/** A range edge in kilohertz, as its dial reads it. */
+const formatEdge = (hz: number) => `${(hz / 1000).toFixed(1)}k`;
+
 /** A complex number, as the analog prototypes below need. */
 type TComplex = readonly [number, number];
 
@@ -259,7 +262,7 @@ const qualityFor = (octaves: number) => {
  * too; Whole voice scales everything. The gains are the engine's own
  * (`band_cut_db`); only the curve between them is computed here.
  */
-const cutAt = (
+export const cutAt = (
   hz: number,
   treble: ITrebleNow,
   mode: TDeEsserMode,
@@ -305,6 +308,16 @@ const cutAt = (
  * The treble now, 2 to 20 kHz: the range it listens to, each band's level
  * against where the stage starts on it, and the cut hanging from the top.
  */
+/**
+ * How much of the treble picture is lit for the control being turned, 0 to
+ * 1 each, moving as the lens fades: the range's edges for From and To, the
+ * bands' threshold marks for Sensitivity.
+ */
+export interface ITrebleEmphasis {
+  range: number;
+  thresholds: number;
+}
+
 export const drawTreble = (
   context: CanvasRenderingContext2D,
   box: IPlotBox,
@@ -314,6 +327,7 @@ export const drawTreble = (
   mode: TDeEsserMode,
   spanDb: number,
   inks: IDeEsserInks,
+  emphasis: ITrebleEmphasis,
 ) => {
   const { x, y, width, height } = box;
   const plotBottom = y + height - 16;
@@ -348,16 +362,33 @@ export const drawTreble = (
     context.fillText(`${hz / 1000}k`, at, y + height - 6);
   });
 
-  // The range it listens to, shaded, its edges dashed.
+  // The range it listens to, shaded, its edges dashed — and lit, solid and
+  // named in kilohertz while From or To is being turned.
   const from = xOf(box, lowHz);
   const to = xOf(box, highHz);
-  context.fillStyle = `rgba(${inks.voice},0.07)`;
+  const lit = emphasis.range;
+  context.fillStyle = `rgba(${inks.voice},${(0.07 + 0.09 * lit).toFixed(3)})`;
   context.fillRect(from, y, to - from, plotBottom - y);
-  context.setLineDash([3, 3]);
-  context.strokeStyle = `rgba(${inks.voice},0.55)`;
+  context.setLineDash(lit > 0.5 ? [] : [3, 3]);
+  context.strokeStyle = `rgba(${inks.voice},${(0.55 + 0.45 * lit).toFixed(3)})`;
+  context.lineWidth = 1 + lit;
+  if (lit > 0) {
+    context.shadowColor = `rgba(${inks.voice},${(0.6 * lit).toFixed(3)})`;
+    context.shadowBlur = 10 * lit;
+  }
   line(context, Math.round(from) + 0.5, y, Math.round(from) + 0.5, plotBottom);
   line(context, Math.round(to) + 0.5, y, Math.round(to) + 0.5, plotBottom);
+  context.shadowColor = 'transparent';
+  context.shadowBlur = 0;
+  context.lineWidth = 1;
   context.setLineDash([]);
+  if (lit > 0.01) {
+    context.fillStyle = `rgba(${inks.voice},${lit.toFixed(3)})`;
+    context.textAlign = 'right';
+    context.fillText(formatEdge(lowHz), from - 5, y + (plotBottom - y) * 0.5);
+    context.textAlign = 'left';
+    context.fillText(formatEdge(highHz), to + 5, y + (plotBottom - y) * 0.5);
+  }
 
   const { hz: centres, levelDb, thresholdDb } = treble;
   if (centres.length > 0) {
@@ -375,10 +406,14 @@ export const drawTreble = (
         context.fillStyle = `rgba(${inks.voice},0.85)`;
         context.fillRect(left, top, right - left, levelY(threshold) - top);
       }
-      // Where the stage starts on this band.
-      context.strokeStyle = 'rgba(255,255,255,0.55)';
+      // Where the stage starts on this band, brighter while Sensitivity is
+      // the dial being turned.
+      const marked = emphasis.thresholds;
+      context.strokeStyle = `rgba(255,255,255,${(0.55 + 0.45 * marked).toFixed(3)})`;
+      context.lineWidth = 1 + marked;
       const mark = Math.round(levelY(threshold)) + 0.5;
       line(context, left, mark, right, mark);
+      context.lineWidth = 1;
     });
   }
 

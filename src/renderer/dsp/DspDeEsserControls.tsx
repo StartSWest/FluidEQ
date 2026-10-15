@@ -16,12 +16,15 @@ import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
 import { Dial } from './DspControls';
 import { DE_ESSER_MODE_KEYS } from './DspDeEsserBar';
+import { TDeEsserTune } from './deEsserLens';
 
 interface IDspDeEsserControlsProps {
   deEsser: IDeEsserSettings;
   /** A sound edit: the card clears the profile's name with it. */
   onEdit: (next: Partial<IDeEsserSettings>) => void;
   onCommit: () => void;
+  /** A control started or stopped being worked, for the display's lens. */
+  onTune: (tune: TDeEsserTune, engaged: boolean) => void;
 }
 
 const MODE_HINTS: Record<TDeEsserMode, TranslationKey> = {
@@ -47,9 +50,29 @@ const DspDeEsserControls = ({
   deEsser,
   onEdit,
   onCommit,
+  onTune,
 }: IDspDeEsserControlsProps) => {
   const { t } = useTranslation();
   const isOff = !deEsser.enabled;
+
+  /** A dial's report to the lens. */
+  const engage = (tune: TDeEsserTune) => (engaged: boolean) =>
+    onTune(tune, engaged);
+  /**
+   * A choice's: the option under the pointer or the keyboard's ring, so the
+   * lens shows what that option would do before it is picked. Nothing while
+   * the stage is off, as the dials report nothing then.
+   */
+  const pointAt = (tune: TDeEsserTune, engaged: boolean) => {
+    if (!isOff) {
+      onTune(tune, engaged);
+    }
+  };
+  const focusOn = (tune: TDeEsserTune, target: Element) => {
+    if (target.matches(':focus-visible')) {
+      pointAt(tune, true);
+    }
+  };
 
   /**
    * The range keeps a third of an octave between its ends, as the engine
@@ -89,6 +112,7 @@ const DspDeEsserControls = ({
         <div className="dsp-band-dials">
           <Dial
             labelKey="dsp.deEsser.sensitivity"
+            onEngage={engage({ control: 'sensitivity' })}
             value={deEsser.sensitivity * 100}
             defaultValue={DE_ESSER_DEFAULTS.sensitivity * 100}
             min={0}
@@ -101,6 +125,7 @@ const DspDeEsserControls = ({
           />
           <Dial
             labelKey="dsp.deEsser.lowHz"
+            onEngage={engage({ control: 'listening' })}
             value={deEsser.lowHz / 1000}
             defaultValue={DE_ESSER_DEFAULTS.lowHz / 1000}
             min={DE_ESSER_RANGES.lowHz.min / 1000}
@@ -113,6 +138,7 @@ const DspDeEsserControls = ({
           />
           <Dial
             labelKey="dsp.deEsser.highHz"
+            onEngage={engage({ control: 'listening' })}
             value={deEsser.highHz / 1000}
             defaultValue={DE_ESSER_DEFAULTS.highHz / 1000}
             min={DE_ESSER_RANGES.highHz.min / 1000}
@@ -146,6 +172,12 @@ const DspDeEsserControls = ({
                 aria-pressed={deEsser.mode === mode}
                 disabled={isOff}
                 onClick={() => choose({ mode })}
+                onPointerEnter={() => pointAt({ control: 'mode', mode }, true)}
+                onPointerLeave={() => pointAt({ control: 'mode', mode }, false)}
+                onFocus={(event) =>
+                  focusOn({ control: 'mode', mode }, event.target)
+                }
+                onBlur={() => pointAt({ control: 'mode', mode }, false)}
               >
                 {t(DE_ESSER_MODE_KEYS[mode])}
               </button>
@@ -156,6 +188,7 @@ const DspDeEsserControls = ({
         <div className="dsp-band-dials">
           <Dial
             labelKey="dsp.deEsser.rangeDb"
+            onEngage={engage({ control: 'depth' })}
             value={deEsser.rangeDb}
             defaultValue={DE_ESSER_DEFAULTS.rangeDb}
             min={DE_ESSER_RANGES.rangeDb.min}
@@ -171,6 +204,7 @@ const DspDeEsserControls = ({
               so it rests there rather than turning nothing. */}
           <Dial
             labelKey="dsp.deEsser.widthOct"
+            onEngage={engage({ control: 'width' })}
             value={deEsser.widthOct}
             defaultValue={DE_ESSER_DEFAULTS.widthOct}
             min={DE_ESSER_RANGES.widthOct.min}
@@ -194,6 +228,7 @@ const DspDeEsserControls = ({
         <div className="dsp-band-dials">
           <Dial
             labelKey="dsp.deEsser.attackMs"
+            onEngage={engage({ control: 'attack' })}
             value={deEsser.attackMs}
             defaultValue={DE_ESSER_DEFAULTS.attackMs}
             min={DE_ESSER_RANGES.attackMs.min}
@@ -206,6 +241,7 @@ const DspDeEsserControls = ({
           />
           <Dial
             labelKey="dsp.deEsser.releaseMs"
+            onEngage={engage({ control: 'release' })}
             value={deEsser.releaseMs}
             defaultValue={DE_ESSER_DEFAULTS.releaseMs}
             min={DE_ESSER_RANGES.releaseMs.min}
@@ -237,6 +273,16 @@ const DspDeEsserControls = ({
                 aria-pressed={deEsser.centreOnly === centreOnly}
                 disabled={isOff}
                 onClick={() => choose({ centreOnly })}
+                onPointerEnter={() =>
+                  pointAt({ control: 'where', centreOnly }, true)
+                }
+                onPointerLeave={() =>
+                  pointAt({ control: 'where', centreOnly }, false)
+                }
+                onFocus={(event) =>
+                  focusOn({ control: 'where', centreOnly }, event.target)
+                }
+                onBlur={() => pointAt({ control: 'where', centreOnly }, false)}
               >
                 {centreOnly
                   ? t('dsp.deEsser.where.centre')
@@ -253,6 +299,7 @@ const DspDeEsserControls = ({
         <div className="dsp-band-dials">
           <Dial
             labelKey="dsp.deEsser.keepCymbals"
+            onEngage={engage({ control: 'keepCymbals' })}
             value={deEsser.keepCymbals * 100}
             defaultValue={DE_ESSER_DEFAULTS.keepCymbals * 100}
             min={0}

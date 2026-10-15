@@ -78,10 +78,37 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Wraps rather than cuts: in the longer languages the switch beside it
 // leaves the narrowest pane too little room for the plan's name on one line.
+// A button too: it opens the accounts the chat runs on.
 .studio-chat__where {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  padding: 0;
   color: $text-faint;
+  border: 0;
+  background: none;
+  font: inherit;
   font-size: $text-small;
+  text-align: left;
   overflow-wrap: anywhere;
+  cursor: pointer;
+
+  svg {
+    flex: none;
+    width: 11px;
+    height: 11px;
+    opacity: 0.7;
+  }
+
+  &:hover,
+  &[aria-pressed='true'] {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
 }
 
 .studio-chat__icon {
@@ -148,45 +175,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
   &:focus-visible {
     @include focus-ring;
-  }
-}
-
-// ChatGPT's pictures connected: a line under the message box, in the fine
-// print's size, with the way to turn them off as a quiet link.
-.studio-chat__gpt {
-  display: flex;
-  flex: none;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 2px 6px;
-  margin: -4px 12px 10px;
-  color: $text-faint;
-  font-size: $text-micro;
-
-  svg {
-    flex: none;
-    width: 12px;
-    height: 12px;
-    color: $text-accent;
-  }
-
-  button {
-    padding: 0;
-    color: $text-accent;
-    border: 0;
-    background: none;
-    font: inherit;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: pointer;
-
-    &:hover {
-      color: $text-primary;
-    }
-
-    &:focus-visible {
-      @include focus-ring;
-    }
   }
 }
 

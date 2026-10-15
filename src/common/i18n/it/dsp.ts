@@ -445,6 +445,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Medi',
   'dsp.exciter.band.high': 'Alti',
   'dsp.exciter.texture': 'Trama',
+  'dsp.exciter.oversampling': 'Sovracampionamento',
+  'dsp.exciter.oversampling.off': 'Spento',
+  'dsp.exciter.oversampling.standard': 'Standard',
+  'dsp.exciter.oversampling.high': 'Alto',
+  'dsp.exciter.oversampling.offHint':
+    'Armoniche create alla frequenza propria dell’uscita: il carico più leggero, con un po’ di grana per ciò che si ripiega dall’alto.',
+  'dsp.exciter.oversampling.standardHint':
+    'Armoniche create fino a quattro volte la frequenza dell’uscita, come l’Exciter ha sempre funzionato.',
+  'dsp.exciter.oversampling.highHint':
+    'La stessa frequenza con un filtro molto più ripido, così nulla si ripiega dall’alto. Un po’ più di lavoro per il processore.',
   'dsp.exciter.organic': 'Organico',
   'dsp.exciter.organicHint':
     'Aggiunge un corpo morbido di armoniche pari nella zona scelta. Ideale per rendere una resa pulita e metallica, anche con driver in titanio, più calda e organica senza perdere dettaglio.',

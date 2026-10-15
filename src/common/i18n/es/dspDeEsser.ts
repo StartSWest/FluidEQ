@@ -41,7 +41,7 @@ export default {
   'dsp.deEsser.mode.trebleHint':
     'Baja todo lo que está por encima de la S, como la mayoría de los de-essers. Más firme, algo más apagado.',
   'dsp.deEsser.mode.wholeHint':
-    'Baja todo el sonido mientras dura cada S. Natural en la voz hablada, demasiado en la música.',
+    'Baja todo el sonido en cada S, con todo lo que suena debajo, así que puede bombear. Solo para una voz grabada sola.',
 
   'dsp.deEsser.where.label': 'Qué parte de la imagen estéreo',
   'dsp.deEsser.where.centre': 'Centro',
@@ -62,6 +62,14 @@ export default {
   'dsp.deEsser.engineOld':
     'El FluidEQ Engine instalado aquí es anterior al De-esser, así que esta etapa todavía no se oye. El resto del rack suena como antes.',
   'dsp.deEsser.upTo': 'hasta {db}',
+  'dsp.deEsser.lens.trebleNow': 'Agudos ahora',
+  'dsp.deEsser.lens.underVoice': '{db} por debajo de la voz',
+  'dsp.deEsser.lens.ahead': 'oída {ms} antes',
+  'dsp.deEsser.lens.cymbalNeeds': 'un platillo necesita {db} más',
+  'dsp.deEsser.lens.cymbal': 'Platillo',
+  'dsp.deEsser.lens.s': 'S',
+  'dsp.deEsser.lens.left': 'I',
+  'dsp.deEsser.lens.right': 'D',
 
   'dsp.deEsserPresetGroup.music': 'Música',
   'dsp.deEsserPresetGroup.speech': 'Voz hablada',

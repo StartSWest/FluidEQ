@@ -321,6 +321,12 @@ const studio = {
   'studio.status.problem': 'Die letzte funktionierende Version läuft weiter',
   'studio.status.waiting': 'Wartet auf eine Version, die spielt',
 
+  'studio.version.group': 'Versionen',
+  'studio.version.looks': 'Darstellungen v{version}',
+  'studio.version.looksCurrent': 'Ihre Darstellungen haben genau diese Szene.',
+  'studio.version.looksBehind':
+    'Ihre Darstellungen haben einen früheren Stand von Version {version}. „Zu meinen Darstellungen“ bringt sie auf den neuesten Stand.',
+  'studio.version.gallery': 'Galerie v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Version {version} dieser Szene. Sie ist noch nicht veröffentlicht.',

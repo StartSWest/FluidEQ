@@ -314,6 +314,13 @@ const studio = {
     'L’ultima versione funzionante è ancora in riproduzione',
   'studio.status.waiting': 'In attesa di una versione che si riproduca',
 
+  'studio.version.group': 'Versioni',
+  'studio.version.looks': 'I miei aspetti v{version}',
+  'studio.version.looksCurrent':
+    'I tuoi aspetti hanno esattamente questa scena.',
+  'studio.version.looksBehind':
+    'I tuoi aspetti hanno un salvataggio precedente della versione {version}. «Aggiungi ai miei aspetti» li aggiorna.',
+  'studio.version.gallery': 'Galleria v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Versione {version} di questa scena. Non è ancora pubblicata.',

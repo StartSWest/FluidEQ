@@ -495,6 +495,26 @@ const tour = {
   'tour.deesser.imageAlt':
     'The De-esser’s strip scrolling by: each S of a voice standing over the line where the stage starts with its cut hanging under it in amber, and the hi-hats in grey, left alone; above it the stage with Spectral chosen, and under it Speech, Podcast and Audiobook.',
 
+  'tour.chat.kicker': 'MAKE A SCENE BY ASKING',
+  'tour.chat.title': 'Ask for a change, watch it on the stage',
+  'tour.chat.subtitle': 'A chat beside the Studio’s stage',
+  'tour.chat.lead':
+    'The {studio} now has a chat beside its stage. Say what should change — how a scene looks, how it moves with the music, its colours or its light — and your own AI edits the scene and plays each version on the stage as it goes.',
+  'tour.chat.point1':
+    'Every reply keeps the version it made, and {bringBack} puts an earlier one back. Each scene keeps its past chats.',
+  'tour.chat.point2':
+    '{attach} sends a picture of the scene with your message, and you can draw on it to show what you mean. Messages sent while it works wait in a queue and go together.',
+  'tour.chat.point3':
+    'It runs on Claude Code installed on this computer, on your own plan, and shows how much of your limits is left. With ChatGPT connected it can paint pictures for the scene, asking you before each one.',
+  'tour.chat.how':
+    'Open {plus}, choose {studio} in its rail, pick a scene or start one, and type in the box beside the stage.',
+  'tour.chat.open': 'Open Plus',
+  'tour.chat.imageAlt':
+    'The Studio’s stage beside its chat: a request to make the stage lights flash on the snare, the steps of the reply ticking in, version 2 kept with Bring back, and the stage’s lights starting to flash as version 2 plays.',
+  'tour.chat.ask': 'Make the stage lights flash on the snare.',
+  'tour.chat.reply':
+    'Done: both spotlights flash white on every snare and fade back to pink.',
+
   'tour.songs.kicker': 'A SOUND FOR EVERY SONG',
   'tour.songs.title': 'Songs that remember how you like them',
   'tour.songs.subtitle': 'Tune a song once, hear it that way every time',

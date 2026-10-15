@@ -41,7 +41,7 @@ export default {
   'dsp.deEsser.mode.trebleHint':
     'Приглушает всё выше «с», как большинство де-эссеров. Твёрже, немного глуше.',
   'dsp.deEsser.mode.wholeHint':
-    'Приглушает весь звук на время каждого «с». Естественно для речи, слишком сильно для музыки.',
+    'Приглушает весь звук на каждом «с» вместе со всем, что звучит под ним, поэтому может «качать». Только для голоса, записанного отдельно.',
 
   'dsp.deEsser.where.label': 'Какая часть стереокартины',
   'dsp.deEsser.where.centre': 'Центр',
@@ -62,6 +62,14 @@ export default {
   'dsp.deEsser.engineOld':
     'Установленный здесь FluidEQ Engine старше де-эссера, поэтому этот этап пока не слышен. Остальная цепочка звучит как раньше.',
   'dsp.deEsser.upTo': 'до {db}',
+  'dsp.deEsser.lens.trebleNow': 'Верха сейчас',
+  'dsp.deEsser.lens.underVoice': 'на {db} ниже голоса',
+  'dsp.deEsser.lens.ahead': 'слышит на {ms} раньше',
+  'dsp.deEsser.lens.cymbalNeeds': 'тарелке нужно на {db} больше',
+  'dsp.deEsser.lens.cymbal': 'Тарелка',
+  'dsp.deEsser.lens.s': 'С',
+  'dsp.deEsser.lens.left': 'Л',
+  'dsp.deEsser.lens.right': 'П',
 
   'dsp.deEsserPresetGroup.music': 'Музыка',
   'dsp.deEsserPresetGroup.speech': 'Речь',

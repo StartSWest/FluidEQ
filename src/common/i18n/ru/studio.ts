@@ -309,6 +309,12 @@ const studio = {
   'studio.status.problem': 'Последняя рабочая версия продолжает играть',
   'studio.status.waiting': 'Ждём версию, которая заиграет',
 
+  'studio.version.group': 'Версии',
+  'studio.version.looks': 'Мои оформления v{version}',
+  'studio.version.looksCurrent': 'В ваших оформлениях именно эта сцена.',
+  'studio.version.looksBehind':
+    'В ваших оформлениях более раннее сохранение версии {version}. «Добавить в мои оформления» обновит их.',
+  'studio.version.gallery': 'Галерея v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Версия {version} этой сцены. Она ещё не опубликована.',

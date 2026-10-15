@@ -28,11 +28,13 @@ import {
   DENOISE_PROFILE_SOURCES,
   EXCITER_MIN_OCTAVES,
   EXCITER_OCTAVE_SPAN,
+  EXCITER_OVERSAMPLING,
   IExciterBandSettings,
   NORMALIZER_MODES,
   TCrossfadeCurve,
   TDenoiseHumMode,
   TDenoiseProfileSource,
+  TExciterOversampling,
   TNormalizerMode,
   constrainExciterBandPosition,
 } from './chainStageSettings';
@@ -99,6 +101,7 @@ export {
   CROSSFADE_CURVES,
   DENOISE_HUM_MODES,
   DENOISE_PROFILE_SOURCES,
+  EXCITER_OVERSAMPLING,
   DENOISE_VOICE_MODES,
   EXCITER_BAND_LIMITS,
   EXCITER_MIN_OCTAVES,
@@ -135,6 +138,7 @@ export type {
   TDenoiseHumMode,
   TDenoiseProfileSource,
   TDenoiseVoiceMode,
+  TExciterOversampling,
   TNormalizerMode,
 } from './chainStageSettings';
 
@@ -602,6 +606,12 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
           DSP_DEFAULTS.exciter.align.amount,
         ),
       },
+      // A rack stored before the choice existed runs as the stage always did.
+      oversampling: EXCITER_OVERSAMPLING.includes(
+        exciter.oversampling as TExciterOversampling,
+      )
+        ? (exciter.oversampling as TExciterOversampling)
+        : DSP_DEFAULTS.exciter.oversampling,
       // Clamped like any other flag, and NOT forced false here.
       //
       // Forcing it here is what stopped isolate working at all. This function

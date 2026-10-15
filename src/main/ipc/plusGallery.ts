@@ -248,7 +248,9 @@ export const registerPlusGalleryIpc = ({
     const auth = fromDisk ? undefined : await access.auth();
     const bytes =
       fromDisk ??
-      (auth ? await fetchPicture(auth, authorId, sceneId) : undefined);
+      (auth
+        ? await fetchPicture(auth, authorId, sceneId, `${version}-${revision}`)
+        : undefined);
     if (!bytes) {
       // A failure is not remembered: the next time the card is on screen is
       // the next chance.
@@ -295,7 +297,7 @@ export const registerPlusGalleryIpc = ({
     }
     const auth = await access.auth();
     const envelope = auth
-      ? await fetchEnvelope(auth, authorId, sceneId)
+      ? await fetchEnvelope(auth, authorId, sceneId, version)
       : undefined;
     if (!envelope) {
       return 'unavailable';

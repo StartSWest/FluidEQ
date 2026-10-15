@@ -154,6 +154,17 @@ uint32_t feq_oversample_factor_for_sample_rate(double sample_rate) {
   return rate * 2.0 <= 192000.0 ? 2u : 1u;
 }
 
+double feq_oversample_round_trip_frames(uint32_t factor) {
+  if (factor != 2 && factor != 4) {
+    return 0.0;
+  }
+  const double half_taps = (kTaps - 1) / 2.0;
+  // The first halving runs at twice the base rate, the second at four times.
+  const double one_way =
+      half_taps / 2.0 + (factor == 4 ? half_taps / 4.0 : 0.0);
+  return 2.0 * one_way;
+}
+
 void feq_oversample_up(FeqOversampler* state,
                        const float* input,
                        float* output,
@@ -209,6 +220,31 @@ void feq_oversample_down(FeqOversampler* state,
   down_once(state->down[1], state->down_position, 1, input, middle,
             frames * 2);
   down_once(state->down[0], state->down_position, 0, middle, output, frames);
+}
+
+void feq_oversample_stage_up(FeqOversampler* state,
+                             int stage,
+                             const float* input,
+                             float* output,
+                             uint32_t frames) {
+  if (state == nullptr || input == nullptr || output == nullptr ||
+      stage < 0 || stage >= FEQ_OVERSAMPLE_STAGES || frames == 0) {
+    return;
+  }
+  up_once(state->up[stage], state->up_position, stage, input, output, frames);
+}
+
+void feq_oversample_stage_down(FeqOversampler* state,
+                               int stage,
+                               const float* input,
+                               float* output,
+                               uint32_t frames) {
+  if (state == nullptr || input == nullptr || output == nullptr ||
+      stage < 0 || stage >= FEQ_OVERSAMPLE_STAGES || frames == 0) {
+    return;
+  }
+  down_once(state->down[stage], state->down_position, stage, input, output,
+            frames);
 }
 
 }  // extern "C"

@@ -444,6 +444,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Средние',
   'dsp.exciter.band.high': 'Высокие',
   'dsp.exciter.texture': 'Текстура',
+  'dsp.exciter.oversampling': 'Передискр.',
+  'dsp.exciter.oversampling.off': 'Выкл',
+  'dsp.exciter.oversampling.standard': 'Обычная',
+  'dsp.exciter.oversampling.high': 'Высокая',
+  'dsp.exciter.oversampling.offHint':
+    'Гармоники создаются на собственной частоте выхода: самая лёгкая нагрузка, но с шероховатостью от того, что отражается сверху.',
+  'dsp.exciter.oversampling.standardHint':
+    'Гармоники создаются на частоте до четырёх раз выше частоты выхода, как Эксайтер работал всегда.',
+  'dsp.exciter.oversampling.highHint':
+    'Та же частота с гораздо более крутым фильтром, поэтому сверху ничего не отражается. Немного больше работы для процессора.',
   'dsp.exciter.organic': 'Органика',
   'dsp.exciter.organicHint':
     'Добавляет мягкую плотность чётных гармоник в выбранной области. Идеально, чтобы сделать чистую металлическую подачу или титановые драйверы теплее и органичнее без потери деталей.',

@@ -43,6 +43,7 @@ FeqExciterSettings exciter_setup(const FeqChainExciterSettings& source) {
   FeqExciterSettings setup{};
   setup.enabled = source.enabled;
   setup.isolate = source.isolate;
+  setup.oversampling = source.oversampling;
   for (uint32_t band = 0; band < FEQ_CHAIN_EXCITER_BANDS; ++band) {
     setup.bands[band].enabled = source.bands[band].enabled;
     setup.bands[band].freq_hz = source.bands[band].freq_hz;
@@ -59,6 +60,15 @@ void process_path(FeqChain* chain, float* target, uint32_t frames,
                   uint32_t path, PathRole role, bool reports) {
   const FeqChainExciterSettings& settings = chain->settings.exciter;
   ChainExciterPath& state = chain->paths[path];
+
+  // Organic runs the way the bands run, changed in the same fade. Taken
+  // here, before the bands' block, because the bands switch at the END of a
+  // block whose ramp has reached nothing: Organic then changes at the start
+  // of the next, the first one ramping up, and never mid-ramp.
+  if (state.organic.shaper.quality != state.exciter.quality) {
+    state.organic.shaper.quality = state.exciter.quality;
+    feq_exciter_oversampler_reset(&state.organic.shaper.oversampler);
+  }
 
   FeqExciterSettings setup = exciter_setup(settings);
   if (role != PathRole::kFull) {
@@ -101,6 +111,10 @@ void process_path(FeqChain* chain, float* target, uint32_t frames,
     return;
   }
 
+  // The bands' ramp for this block, which the harmonics of Organic go
+  // through as the bands' do: the clean part of its return never fades.
+  state.organic.shaper.switch_from = state.exciter.switch_from;
+  state.organic.shaper.switch_to = state.exciter.switch_to;
   feq_organic_path_process(&state.organic, state.exciter.dry, frames,
                            settings.organic_focus_hz, settings.organic_range,
                            settings.organic_amount, chain->sample_rate,
