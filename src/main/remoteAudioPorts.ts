@@ -80,6 +80,10 @@ const createRemoteAudioPorts = (
         onStreaming(chunk.peerId);
       }
     },
+    /** Its sound stopped arriving: the next chunk is announced again. */
+    forget: (peerId: string) => {
+      streaming.delete(peerId);
+    },
     analyze: (chunk: ILanRemoteAudioChunk) => {
       post('analysis', chunk);
     },

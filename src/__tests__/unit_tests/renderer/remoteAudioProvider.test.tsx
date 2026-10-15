@@ -12,6 +12,7 @@
  */
 
 import { act, render } from '@testing-library/react';
+import { useEffect } from 'react';
 import type {
   ILanPairingOption,
   ILanRemoteAudioSignal,
@@ -174,6 +175,42 @@ describe('a link kept through restarts', () => {
       listener: { deviceName: 'YOGA', peerId: 'peer' },
     });
     await renderProvider();
+    expect(value().role).toBe('sender');
+    expect(value().deviceName).toBe('YOGA');
+  });
+
+  it('keeps the computer it joined when the app opens on Share Audio', async () => {
+    let answer: (role: string) => void = () => undefined;
+    bridge.getSavedRemoteAudioLanRole.mockReturnValue(
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
+    );
+    bridge.restoreRemoteAudioLan.mockResolvedValue({
+      role: 'sender',
+      listener: { deviceName: 'YOGA', peerId: 'peer' },
+    });
+    // The page asks for this computer's code as it opens, and its effect
+    // runs before the provider's own.
+    const Page = () => {
+      const remote = useRemoteAudio();
+      useEffect(() => {
+        if (remote.role === undefined && remote.phase === 'idle') {
+          remote.showCode().catch(() => undefined);
+        }
+      }, [remote]);
+      return null;
+    };
+    render(
+      <RemoteAudioProvider>
+        <Page />
+        <Probe />
+      </RemoteAudioProvider>,
+    );
+    await settle();
+    answer('sender');
+    await settle();
+    expect(bridge.startRemoteAudioLanHost).not.toHaveBeenCalled();
     expect(value().role).toBe('sender');
     expect(value().deviceName).toBe('YOGA');
   });

@@ -13,7 +13,14 @@
   display: grid;
   min-width: 0;
   column-gap: 18px;
-  grid-template-columns: minmax(170px, 230px) minmax(0, 1fr) 84px auto;
+  // Rate, then delay: the rate stands in one column on both lanes, and the
+  // outgoing lane, which has no delay, leaves the second one empty.
+  grid-template-columns: minmax(170px, 230px) minmax(0, 1fr) 84px 72px auto;
+}
+
+// Its figures are the lane's own grid items, one column each.
+.remote-audio__lane-figures {
+  display: contents;
 }
 
 .remote-audio__lane {
@@ -184,10 +191,12 @@
   font-size: $text-micro;
 }
 
+// The last column on both lanes, however many figures stand before it.
 .remote-audio__lane-switch {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  grid-column: -2 / -1;
   gap: 10px;
   font-size: $text-small;
   font-weight: $weight-semibold;
@@ -238,12 +247,18 @@
     grid-area: body;
   }
 
+  .remote-audio__lane-figures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 24px;
+    grid-area: figure;
+  }
+
   .remote-audio__lane-figure {
     flex-direction: row;
     align-items: baseline;
     justify-content: flex-start;
     gap: 6px;
-    grid-area: figure;
   }
 }
 

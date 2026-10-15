@@ -342,9 +342,9 @@ describe('a Share Audio lane', () => {
           listen.current = listener;
           return ignore;
         }}
-        figure="120 ms"
-        figureCaption="delay"
-        figureWidest={['—', '888 ms']}
+        figures={[
+          { value: '120 ms', caption: 'delay', widest: ['—', '888 ms'] },
+        ]}
         switchId="lane-in"
         switchLabel="Play it here"
         isOn

@@ -89,10 +89,10 @@ describe('the two switches', () => {
   it('decide whether what arrives is played here', () => {
     const { links } = create();
     links.connected('host', 'GAMING', true);
-    expect(links.plays('host')).toBe(true);
+    expect(links.hears('host')).toBe(true);
     links.choose('GAMING', { ...ON, play: false });
-    expect(links.plays('host')).toBe(false);
-    expect(links.plays('stranger')).toBe(false);
+    expect(links.hears('host')).toBe(false);
+    expect(links.hears('stranger')).toBe(false);
   });
 
   it('are remembered by name, for the next link and the next launch', () => {
@@ -122,7 +122,7 @@ describe('a computer that cannot do both', () => {
       sends: true,
       plays: false,
     });
-    expect(links.plays('host')).toBe(false);
+    expect(links.hears('host')).toBe(false);
     links.connected('spoke', 'YOGA', false);
     links.heard('spoke', { sends: true, plays: true });
     expect(announce).toHaveBeenLastCalledWith('spoke', {
@@ -130,6 +130,6 @@ describe('a computer that cannot do both', () => {
       plays: true,
     });
     expect(targets()).toEqual(['host']);
-    expect(links.plays('spoke')).toBe(true);
+    expect(links.hears('spoke')).toBe(true);
   });
 });

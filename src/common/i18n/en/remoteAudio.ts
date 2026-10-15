@@ -65,6 +65,7 @@ const remoteAudio = {
   'remoteAudio.lane.sendMySound': 'Send my sound',
   'remoteAudio.lane.delay': 'delay',
   'remoteAudio.lane.sent': 'sent',
+  'remoteAudio.lane.received': 'received',
   'remoteAudio.lane.milliseconds': '{milliseconds} ms',
   'remoteAudio.lane.megabits': '{megabits} Mb/s',
   'remoteAudio.lane.receiving': 'Receiving',

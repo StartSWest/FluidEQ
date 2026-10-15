@@ -81,14 +81,6 @@ const RemoteAudioLinkCard = ({
     received?.queuedMilliseconds ?? 0,
     sent?.queuedMilliseconds ?? 0,
   );
-  const totalMegabits =
-    received || sent
-      ? (
-          (((received?.bytesPerSecond ?? 0) + (sent?.bytesPerSecond ?? 0)) *
-            8) /
-          1_000_000
-        ).toFixed(1)
-      : undefined;
 
   let pill = t('remoteAudio.linked.paused');
   if (plays && sends) {
@@ -164,6 +156,7 @@ const RemoteAudioLinkCard = ({
     t('remoteAudio.lane.megabits', { megabits: '88.8' }),
   ];
   const sentRate = megabits(sent);
+  const receivedRate = megabits(received);
 
   return (
     <article
@@ -188,13 +181,9 @@ const RemoteAudioLinkCard = ({
         </span>
         <span className="remote-audio__link-spacer" />
         <span className="remote-audio__link-stats">
+          {/* No rate here: each lane has its own. The two added together
+              read as one stream twice as heavy as either. */}
           {t('remoteAudio.linked.lossless')}
-          {totalMegabits !== undefined && (
-            <>
-              {' '}
-              · {t('remoteAudio.lane.megabits', { megabits: totalMegabits })}
-            </>
-          )}
           {' · '}
           <span
             className={`remote-audio__link-health${
@@ -246,13 +235,26 @@ const RemoteAudioLinkCard = ({
           live={incomingLive}
           meterKey={link.id}
           subscribe={subscribe}
-          figure={
-            incomingLive && delayMs !== undefined
-              ? t('remoteAudio.lane.milliseconds', { milliseconds: delayMs })
-              : '—'
-          }
-          figureCaption={t('remoteAudio.lane.delay')}
-          figureWidest={delayWidest}
+          figures={[
+            {
+              value:
+                incomingLive && receivedRate !== undefined
+                  ? t('remoteAudio.lane.megabits', { megabits: receivedRate })
+                  : '—',
+              caption: t('remoteAudio.lane.received'),
+              widest: rateWidest,
+            },
+            {
+              value:
+                incomingLive && delayMs !== undefined
+                  ? t('remoteAudio.lane.milliseconds', {
+                      milliseconds: delayMs,
+                    })
+                  : '—',
+              caption: t('remoteAudio.lane.delay'),
+              widest: delayWidest,
+            },
+          ]}
           switchId={`remote-audio-play-${link.id}`}
           switchLabel={t('remoteAudio.lane.playItHere')}
           isOn={playSwitchOn}
@@ -277,13 +279,16 @@ const RemoteAudioLinkCard = ({
           live={outgoingLive}
           meterKey={null}
           subscribe={subscribe}
-          figure={
-            outgoingLive && sentRate !== undefined
-              ? t('remoteAudio.lane.megabits', { megabits: sentRate })
-              : '—'
-          }
-          figureCaption={t('remoteAudio.lane.sent')}
-          figureWidest={rateWidest}
+          figures={[
+            {
+              value:
+                outgoingLive && sentRate !== undefined
+                  ? t('remoteAudio.lane.megabits', { megabits: sentRate })
+                  : '—',
+              caption: t('remoteAudio.lane.sent'),
+              widest: rateWidest,
+            },
+          ]}
           switchId={`remote-audio-send-${link.id}`}
           switchLabel={t('remoteAudio.lane.sendMySound')}
           isOn={link.switches.send && canSend}

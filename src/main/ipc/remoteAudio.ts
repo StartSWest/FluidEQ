@@ -86,6 +86,19 @@ export const registerRemoteAudioIpc = ({
   const playback = registerRemoteAudioPlayback(getMainWindow);
   const levels = createRemoteAudioLevels();
   const streaming = new Set<string>();
+  /**
+   * The window is told once that a computer's sound is arriving, and it
+   * forgets that by itself whenever the sound stops: the other computer
+   * pausing or turning off "Send my sound", or "Play it here" turned off
+   * here. Main has to forget it at the same moments, or it never says so
+   * again. It used to keep the peer for the life of the link, so after one
+   * pause the sound played on with its lane dead: no wave, no delay, and
+   * "Nothing playing" over music (Ivan, 2026-10-14).
+   */
+  const forgetArriving = (peerId: string) => {
+    streaming.delete(peerId);
+    ports.forget(peerId);
+  };
   let link: IRemoteAudioLan | undefined;
   /**
    * The LAN link, built the first time anything asks for it.
@@ -114,6 +127,9 @@ export const registerRemoteAudioIpc = ({
             signal.signal.duplex
           ) {
             links.heard(peerId, signal.signal.duplex);
+            if (!links.hears(peerId)) {
+              forgetArriving(peerId);
+            }
           } else if (signal.signal.kind === 'stop') {
             links.disconnected(peerId);
             levels.forget(peerId);
@@ -124,9 +140,13 @@ export const registerRemoteAudioIpc = ({
           sendToWindow(LAN_SIGNAL_CHANNEL, signal);
         },
         (arrived) => {
-          // "Play it here", switched off: the other computer was told and
-          // stops sending, and whatever was already on its way is dropped.
-          if (!links.plays(arrived.peerId)) {
+          // "Play it here" switched off, or the other computer saying it has
+          // stopped sending: what was already on its way is dropped. A chunk
+          // is decoded after the signal sent behind it has been read, so
+          // without this the tail of a pause would announce the sound as
+          // arriving again just after the pause had ended it.
+          if (!links.hears(arrived.peerId)) {
+            forgetArriving(arrived.peerId);
             return;
           }
           const chunk = levels.apply(arrived, links.volume(arrived.peerId));
@@ -371,6 +391,11 @@ export const registerRemoteAudioIpc = ({
         throw new Error('Invalid Share Audio switches.');
       }
       links.choose(name, switches);
+      [...streaming].forEach((peerId) => {
+        if (!links.hears(peerId)) {
+          forgetArriving(peerId);
+        }
+      });
     },
   );
   ipcMain.handle('remote-audio-lan-switches-for', (_event, name: unknown) =>

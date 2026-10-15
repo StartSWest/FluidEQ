@@ -286,6 +286,10 @@ describe('the network capture a link starts', () => {
     handlers.clear();
     jest.clearAllMocks();
     sent.length = 0;
+    // Each test's switches are its own, not the last test's saved ones.
+    fs.rmSync(path.join(userDataDir, 'remote-audio-links.json'), {
+      force: true,
+    });
     mockRawSharing.mockReset().mockResolvedValue(undefined);
     mockCapture.mockReset().mockResolvedValue({ close: jest.fn() });
     lan.restoreJoin.mockResolvedValue({
@@ -395,6 +399,82 @@ describe('the network capture a link starts', () => {
     expect(sent.map(([channel]) => channel)).not.toContain(
       'remote-audio-lan-streaming',
     );
+  });
+
+  /** One block of the joined computer's sound, as the transport hands it. */
+  const arrive = (sequence: number) => {
+    const [, onAudio] = jest.mocked(createRemoteAudioLan).mock.calls[0];
+    onAudio({
+      channels: 2,
+      frames: 1,
+      pcm: new Float32Array([0.5, 0.5]).buffer,
+      peerId: 'peer',
+      sampleRate: 48_000,
+      sequence,
+    });
+  };
+  const arrivalsTold = () =>
+    sent.filter(([channel]) => channel === 'remote-audio-lan-streaming').length;
+  const theySay = (
+    onSignal: Awaited<ReturnType<typeof linkJoined>>,
+    duplex: { sends: boolean; plays: boolean; paused?: boolean },
+  ) =>
+    onSignal({
+      peerId: 'peer',
+      signal: { kind: 'stream-mode', mode: 'video', duplex },
+    });
+
+  it('tells the window again when the sound comes back after the other computer paused', async () => {
+    const onSignal = await linkJoined();
+    arrive(1);
+    arrive(2);
+    expect(arrivalsTold()).toBe(1);
+    // The window stops showing it arriving at this word (`acceptSignal`).
+    theySay(onSignal, { sends: false, plays: false, paused: true });
+    theySay(onSignal, { sends: true, plays: true });
+    arrive(3);
+    expect(arrivalsTold()).toBe(2);
+  });
+
+  it('drops what was decoded after the other computer said it stopped', async () => {
+    const onSignal = await linkJoined();
+    arrive(1);
+    theySay(onSignal, { sends: false, plays: false, paused: true });
+    // A block decoded after the word was read: the tail of the pause. Told,
+    // it would show the sound arriving again just after the pause.
+    arrive(2);
+    expect(arrivalsTold()).toBe(1);
+  });
+
+  it('tells the window again when "Play it here" comes back on', async () => {
+    await linkJoined();
+    arrive(1);
+    const choose = handlers.get('remote-audio-lan-switches');
+    const on = { send: true, play: true, paused: false, volume: 1 };
+    // Nothing arrives in between: the other computer was told to stop.
+    await choose?.({}, 'Receiver', { ...on, paused: true });
+    await choose?.({}, 'Receiver', on);
+    arrive(2);
+    expect(arrivalsTold()).toBe(2);
+  });
+
+  it('starts every new connection playing, whatever Pause was left on', async () => {
+    const onSignal = await linkJoined();
+    const choose = handlers.get('remote-audio-lan-switches');
+    await choose?.({}, 'Receiver', {
+      send: false,
+      play: true,
+      paused: true,
+      volume: 0.4,
+    });
+    onSignal({ peerId: 'peer', signal: { kind: 'stop' } });
+    onSignal({
+      peerId: 'peer-again',
+      signal: { kind: 'peer-ready', deviceName: 'Receiver', joined: true },
+    });
+    expect(
+      await handlers.get('remote-audio-lan-switches-for')?.({}, 'Receiver'),
+    ).toEqual({ send: false, play: true, paused: false, volume: 0.4 });
   });
 
   it('refuses switches that are not two yes-or-noes', async () => {

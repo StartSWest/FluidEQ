@@ -27,6 +27,14 @@ const BAR_GAP_PX = 2.5;
 const barsFor = (cssWidth: number) =>
   Math.max(1, Math.floor(cssWidth / (BAR_WIDTH_PX + BAR_GAP_PX)));
 
+/** One figure at the lane's right, and the word under it. */
+export interface IRemoteAudioLaneFigure {
+  value: string;
+  caption: string;
+  /** Every text the figure can show, for its width (`LiveFigure`). */
+  widest: readonly string[];
+}
+
 export interface IRemoteAudioLaneProps {
   direction: 'in' | 'out';
   kicker: string;
@@ -41,13 +49,11 @@ export interface IRemoteAudioLaneProps {
    * computer's own on its way out. */
   meterKey: string | null;
   subscribe(listener: TRemoteAudioMeterListener): () => void;
-  /** The figure on the right, and the word under it. Written by React: the
-   * incoming delay is an average that moves a few times a minute
-   * (`useIncomingDelays.ts`), not a reading per block. */
-  figure: string;
-  figureCaption: string;
-  /** Every text the figure can show, for its width (`LiveFigure`). */
-  figureWidest: readonly string[];
+  /** The figures on the right: the rate first, in the same column on both
+   * lanes, then the incoming delay. Written by React: the delay is an
+   * average that moves a few times a minute (`useIncomingDelays.ts`) and
+   * the rate a reading a few times a second, not a reading per block. */
+  figures: readonly IRemoteAudioLaneFigure[];
   switchId: string;
   switchLabel: string;
   isOn: boolean;
@@ -79,9 +85,7 @@ const RemoteAudioLane = ({
   live,
   meterKey,
   subscribe,
-  figure,
-  figureCaption,
-  figureWidest,
+  figures,
   switchId,
   switchLabel,
   isOn,
@@ -225,11 +229,18 @@ const RemoteAudioLane = ({
           aria-hidden="true"
         />
       </div>
-      <div className="remote-audio__lane-figure">
-        <LiveFigure className="remote-audio__lane-number" widest={figureWidest}>
-          {figure}
-        </LiveFigure>
-        <span className="remote-audio__lane-caption">{figureCaption}</span>
+      <div className="remote-audio__lane-figures">
+        {figures.map((figure) => (
+          <div className="remote-audio__lane-figure" key={figure.caption}>
+            <LiveFigure
+              className="remote-audio__lane-number"
+              widest={figure.widest}
+            >
+              {figure.value}
+            </LiveFigure>
+            <span className="remote-audio__lane-caption">{figure.caption}</span>
+          </div>
+        ))}
       </div>
       <div className="remote-audio__lane-switch">
         {level && (

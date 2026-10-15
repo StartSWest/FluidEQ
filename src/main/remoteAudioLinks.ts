@@ -22,11 +22,12 @@ import {
  * older one never asks, and must not be sent sound it would only throw away.
  *
  * The two switches on each link — "Send my sound", "Play it here" — and its
- * Pause are remembered by the other computer's name, because a link's peer
+ * volume are remembered by the other computer's name, because a link's peer
  * id is new at every connection and a switch the user turned off must hold
  * from the first packet of the next one, not from whenever the window gets
  * to it. A paused link sends and plays nothing and says so; the two switches
- * keep what they were for when it resumes.
+ * keep what they were for when it resumes. The Pause lasts for the
+ * connection it was pressed on: every new connection starts playing.
  */
 
 interface IPeer {
@@ -172,6 +173,14 @@ export const createRemoteAudioLinks = ({
 
   return {
     connected(peerId: string, name: string, joined: boolean) {
+      // A Pause holds for one connection. A new one starts playing (Ivan,
+      // 2026-10-14: "it cannot start as paused"); the two switches and the
+      // volume stay as they were left.
+      const kept = remembered.get(name);
+      if (kept?.paused) {
+        remembered.set(name, { ...kept, paused: false });
+        persist();
+      }
       const peer: IPeer = { name, joined };
       peers.set(peerId, peer);
       tell(peerId, peer);
@@ -214,10 +223,16 @@ export const createRemoteAudioLinks = ({
       });
       refresh();
     },
-    /** Whether the sound arriving from `peerId` is played here. */
-    plays(peerId: string): boolean {
+    /**
+     * Whether sound from `peerId` is to arrive and play here: played here,
+     * and the other computer has not said it stopped sending. A FluidEQ from
+     * before both ways never says, and sends.
+     */
+    hears(peerId: string): boolean {
       const peer = peers.get(peerId);
-      return peer !== undefined && switches(peer).play;
+      return (
+        peer !== undefined && switches(peer).play && peer.heard?.sends !== false
+      );
     },
     /** How loud the sound arriving from `peerId` plays here, 0 to 1. */
     volume(peerId: string): number {

@@ -138,6 +138,39 @@ describe('a linked computer', () => {
     });
   });
 
+  it('shows what arrives on the incoming line and what leaves on the outgoing one', () => {
+    const stats = (direction: 'receive' | 'send') => ({
+      peerId: 'peer-1',
+      direction,
+      bytesPerSecond: 400_000,
+      queuedBytes: 0,
+      queuedMilliseconds: 0,
+    });
+    const remote = remoteAudioValue({
+      phase: 'connected',
+      links: [remoteAudioLink({ receiving: true })],
+      sending: true,
+      networkStats: [stats('receive'), stats('send')],
+    });
+    renderPanel(remote);
+    // What the figure says, not the widest texts it keeps room for.
+    const figureOf = (caption: string) =>
+      card()
+        .getByText(caption)
+        .closest('.remote-audio__lane-figure')
+        ?.querySelector('.live-figure__text');
+    expect(figureOf('remoteAudio.lane.received')).toHaveTextContent(
+      'remoteAudio.lane.megabits',
+    );
+    expect(figureOf('remoteAudio.lane.sent')).toHaveTextContent(
+      'remoteAudio.lane.megabits',
+    );
+    // Each line has its rate; the head adds none of its own.
+    expect(
+      card().getByText('remoteAudio.linked.lossless', { exact: false }),
+    ).not.toHaveTextContent('remoteAudio.lane.megabits');
+  });
+
   it('runs one way when the other computer switched a direction off', () => {
     renderPanel(
       remoteAudioValue({

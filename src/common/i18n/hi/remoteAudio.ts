@@ -62,6 +62,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.sendMySound': 'मेरी आवाज़ भेजें',
   'remoteAudio.lane.delay': 'देरी',
   'remoteAudio.lane.sent': 'भेजा गया',
+  'remoteAudio.lane.received': 'प्राप्त',
   'remoteAudio.lane.milliseconds': '{milliseconds} ms',
   'remoteAudio.lane.megabits': '{megabits} Mb/s',
   'remoteAudio.lane.receiving': 'मिल रही है',
