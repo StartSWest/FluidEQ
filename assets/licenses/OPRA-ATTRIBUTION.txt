@@ -17,8 +17,8 @@ published dataset is a single JSONL file, and it is reshaped at build time into
 an index and one file of curve data per vendor so the application can list six
 thousand headphones without reading all of them. No curve is altered by that
 process — the frequency, gain, Q and slope of every band are the published
-values. Gains are bounded when a curve is applied, which is a property of how
-FluidEQ renders a correction and not a change to the data on disk.
+values — and FluidEQ plays each correction as published, at every gain it
+carries.
 
 The adapted database is licensed under CC BY-SA 4.0, the same terms it arrived
 under. This file and the licence beside it travel inside the database archive
