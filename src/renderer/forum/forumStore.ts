@@ -37,7 +37,17 @@ export { isListedTopicNew, markAllForumRead, newTopics } from './forumNew';
  * thread that is open (`forumState.ts`).
  */
 
-let unsubscribe: (() => void) | undefined;
+/**
+ * Sign-in changes are heard by one subscription, held while anything that
+ * shows the forum is on screen: the Forum's page, and the titlebar's count of
+ * what is new. Each holder gets its own release, so a page closed twice (a
+ * remount) cannot let go of the titlebar's hold.
+ */
+const authHolders = new Set<symbol>();
+let stopAuth: (() => void) | undefined;
+let releasePanel: (() => void) | undefined;
+/** The Forum's page is on screen and keeps everything fresh itself. */
+let panelOpen = false;
 
 const loadBoards = async () => {
   tickets.boards += 1;
@@ -170,27 +180,76 @@ const onAuth = (auth: TForumAuthState) => {
   const source = sourceOf(auth);
   if (source !== readFrom) {
     readFrom = source;
-    refreshForum().catch(() => undefined);
+    // With the page closed, only the count is on screen, and the count is
+    // the new ones alone.
+    (panelOpen ? refreshForum() : loadRecent(false)).catch(() => undefined);
+  }
+};
+
+const holdAuth = (): (() => void) => {
+  const hold = Symbol('forum auth hold');
+  authHolders.add(hold);
+  if (authHolders.size === 1) {
+    stopAuth = bridge()?.onForumState?.(onAuth);
+  }
+  return () => {
+    if (authHolders.delete(hold) && authHolders.size === 0) {
+      stopAuth?.();
+      stopAuth = undefined;
+    }
+  };
+};
+
+/** Who is reading, which decides the source and whose topics are their own. */
+const readAuth = async () => {
+  const auth = await bridge()?.forumState?.();
+  if (auth) {
+    publish({ auth });
+    readFrom = sourceOf(auth);
   }
 };
 
 /** The tab is on screen: listen for sign-in changes and read the forum. */
 export const openForum = async (): Promise<void> => {
-  const api = bridge();
-  unsubscribe?.();
-  unsubscribe = api?.onForumState?.(onAuth);
+  releasePanel?.();
+  releasePanel = holdAuth();
+  panelOpen = true;
   publish({ read: readForumRead() });
-  const auth = await api?.forumState?.();
-  if (auth) {
-    publish({ auth });
-    readFrom = sourceOf(auth);
-  }
+  await readAuth();
   await refreshForum();
 };
 
 export const closeForum = () => {
-  unsubscribe?.();
-  unsubscribe = undefined;
+  releasePanel?.();
+  releasePanel = undefined;
+  panelOpen = false;
+};
+
+/**
+ * Keeps the count of what is new up to date while the Forum's page is not
+ * open (Ivan, 2026-10-14: a count on Help's button, "to make users more
+ * engaged with the forums"): read once now, and again whenever the window
+ * comes back — the moment somebody expects replies they were waiting for,
+ * and the same moment the open page reads itself again. While the page is
+ * open it does that itself, so this stands aside rather than ask twice.
+ * Answers the way to stop.
+ */
+export const watchForumNews = (): (() => void) => {
+  const release = holdAuth();
+  publish({ read: readForumRead() });
+  const look = () => {
+    if (!panelOpen) {
+      loadRecent(false).catch(() => undefined);
+    }
+  };
+  readAuth()
+    .then(look)
+    .catch(() => undefined);
+  window.addEventListener('focus', look);
+  return () => {
+    window.removeEventListener('focus', look);
+    release();
+  };
 };
 
 export const clearForumError = () => publish({ error: undefined });
@@ -366,6 +425,9 @@ export const previewMarkdown = (body: string) =>
 /** Test seam: back to a fresh store. */
 export const resetForumStore = () => {
   closeForum();
+  stopAuth?.();
+  stopAuth = undefined;
+  authHolders.clear();
   resetForumState();
   readFrom = 'feed';
 };

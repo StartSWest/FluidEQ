@@ -19,6 +19,10 @@ import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
 import { useTitlebarToolsShed } from '../utils/useTitlebarRoom';
+import ForumNewsBadge, {
+  forumNewsText,
+  useForumNewsCount,
+} from '../forum/ForumNewsBadge';
 import { requestHelpGuide } from '../help/helpGuideRequests';
 import helpMenuActions, { type IHelpHandlers } from '../help/helpMenuActions';
 import PlayerIcon from '../player/PlayerIcon';
@@ -147,8 +151,11 @@ const ActionsMenu = ({
   onAccount,
   help,
 }: IActionsMenuProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const isToolsShed = useTitlebarToolsShed();
+  // Help's count of what is new in the Forum comes here with Help's entries
+  // while Help's own button is away.
+  const forumNews = useForumNewsCount();
   const [open, setOpen] = useState(false);
   // Held here rather than in the menu's panel, which is gone the moment the
   // row is pressed.
@@ -263,7 +270,13 @@ const ActionsMenu = ({
         ref={trigger}
         type="button"
         className="workspace-header__tools-trigger"
-        aria-label={t('app.actions')}
+        aria-label={
+          isToolsShed && help && forumNews > 0
+            ? `${t('app.actions')} · ${t('forum.new.countLabel', {
+                count: forumNewsText(forumNews, locale),
+              })}`
+            : t('app.actions')
+        }
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={exit.present ? panelId : undefined}
@@ -282,6 +295,9 @@ const ActionsMenu = ({
         <span
           className={`status-dot${engineState === 'failing' ? ' error' : ''}`}
         />
+        {isToolsShed && help && (
+          <ForumNewsBadge count={forumNews} placement="corner" />
+        )}
       </button>
       {exit.present && (
         <div
@@ -400,7 +416,14 @@ const ActionsMenu = ({
                     icon={action.icon}
                     onSelect={run(action.run)}
                   >
-                    {action.label}
+                    {action.id === 'forum' ? (
+                      <span className="help-menu__label">
+                        {action.label}
+                        <ForumNewsBadge count={forumNews} placement="row" />
+                      </span>
+                    ) : (
+                      action.label
+                    )}
                   </Item>
                 ))}
               <button

@@ -43,8 +43,13 @@ export const isListedTopicNew = (
  * Every board's topics, latest activity first, page after page until the
  * pages reach activity that is all read (`allReadAt`) or run out. Below
  * that line nothing can be new, so after "Mark all as read" this is one page.
+ *
+ * `reportFailure` false is the titlebar's count reading in the background: a
+ * failure there leaves the count as it was and says nothing, because the
+ * Forum's error bar would otherwise greet somebody who opens it later, online,
+ * with a failure from before they arrived.
  */
-export const loadRecent = async () => {
+export const loadRecent = async (reportFailure = true) => {
   tickets.recent += 1;
   const ticket = tickets.recent;
   publish({ recentStatus: 'loading' });
@@ -82,7 +87,10 @@ export const loadRecent = async () => {
   if (result.ok) {
     publish({ recent: gathered, recentStatus: 'ready' });
   } else {
-    publish({ recentStatus: 'error', error: failureOf(result) });
+    publish({
+      recentStatus: 'error',
+      ...(reportFailure ? { error: failureOf(result) } : {}),
+    });
   }
 };
 

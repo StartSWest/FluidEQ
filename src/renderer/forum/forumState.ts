@@ -142,6 +142,19 @@ const subscribe = (listener: () => void) => {
 export const useForum = (): IForumState =>
   useSyncExternalStore(subscribe, forumNow, forumNow);
 
+/**
+ * One value read from the snapshot, for a surface outside the Forum that
+ * should redraw only when that value changes — not on every load and keystroke
+ * of a forum it is not showing. `select` must answer a primitive, or the same
+ * object for the same snapshot.
+ */
+export const useForumValue = <T>(select: (forum: IForumState) => T): T =>
+  useSyncExternalStore(
+    subscribe,
+    () => select(state),
+    () => select(state),
+  );
+
 /** Test seam: the snapshot and every ticket as they started. */
 export const resetForumState = () => {
   state = INITIAL;

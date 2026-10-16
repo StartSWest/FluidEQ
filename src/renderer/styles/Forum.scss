@@ -360,6 +360,63 @@ input.forum__search-input {
   flex: 0 0 auto;
 }
 
+// ---------------------------------------------------------------- news
+//
+// The count of what is new, outside the Forum: on Help's button in the
+// titlebar, and at the end of the Forum's row in the menus that lead there
+// (`ForumNewsBadge.tsx`). In the yellow a second output's EQ is edited in —
+// the titlebar's one colour that is not the accent, so it reads as something
+// waiting rather than as a state of the app — with dark ink, in either theme,
+// because the yellow does not change with it.
+.forum-news-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 4px;
+  color: rgba($black, 0.86);
+  border-radius: $radius-pill;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, $white 22%, $neon-yellow),
+    $neon-yellow 55%
+  );
+  font-size: $text-eyebrow;
+  font-weight: $weight-bold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  @include animate(pop-in, $motion-base, $ease-spring);
+
+  // On a button's top right corner, cut out of the capsule by a ring of its
+  // face, so it sits over the glyph's corner without touching its lines.
+  &--corner {
+    position: absolute;
+    z-index: 1;
+    top: -4px;
+    right: -5px;
+    box-shadow:
+      0 0 0 2px $surface-control,
+      0 0 10px color-mix(in srgb, $neon-yellow 45%, transparent);
+
+    // On the engine's button, where it stands in for Help's while the
+    // titlebar is narrow, the engine's status dot is under that corner:
+    // 2px higher, or the ring bites into the dot (measured at 400px).
+    .actions-menu > .workspace-header__tools-trigger > & {
+      top: -6px;
+    }
+  }
+
+  // At the end of a menu row, level with the label it counts for.
+  &--row {
+    margin-left: auto;
+    box-shadow: 0 0 8px color-mix(in srgb, $neon-yellow 30%, transparent);
+  }
+}
+
 // What reading signed out means, said once and quietly above the list.
 .forum__notice {
   display: flex;
