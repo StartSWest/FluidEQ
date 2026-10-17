@@ -13,7 +13,10 @@ type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
 /** The reply with one event of Claude Code's stream in it. */
 const withEvent = (
   reply: TReply,
-  event: Exclude<TChatStreamEvent, { type: 'session' } | { type: 'end' }>,
+  event: Exclude<
+    TChatStreamEvent,
+    { type: 'session' } | { type: 'read' } | { type: 'end' }
+  >,
 ): TReply => {
   if (event.type === 'compacting') {
     return {

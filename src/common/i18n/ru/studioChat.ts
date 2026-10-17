@@ -35,7 +35,6 @@ const studioChat = {
   'studioChat.claude': 'Claude',
   'studioChat.attachedNote': 'С изображением сцены',
   'studioChat.seenLarger': 'Показать изображение крупнее',
-  'studioChat.seenSmaller': 'Показать изображение мельче',
   'studioChat.thinking': 'Думает…',
   'studioChat.step.theScene': 'сцену',
   'studioChat.step.look': 'Посмотрел на сцену',
@@ -183,11 +182,11 @@ const studioChat = {
   'studioChat.welcomeSceneTitle': 'Что изменить в {name}?',
   'studioChat.welcomeSceneBody':
     'Скажите Claude, что изменить: внешний вид, движение под музыку, цвета или свет. Claude редактирует эту сцену и показывает каждую версию на сцене.',
-  'studioChat.queue.title':
-    'В очереди · отправятся вместе, когда Claude закончит',
-  'studioChat.queue.send':
-    'В очередь: отправится вместе с остальными, когда Claude закончит',
+  'studioChat.queue.title': 'В очереди · Claude прочитает на следующем шаге',
+  'studioChat.queue.send': 'В очередь: Claude прочитает на следующем шаге',
   'studioChat.queue.remove': 'Убрать',
+  'studioChat.queue.sent':
+    'Передано Claude: он прочитает, как только закончит текущий шаг',
   'studioChat.queue.picture': 'С изображением сцены',
   'studioChat.step.compact': 'Беседа сжата',
   'studioChat.step.compactNow': 'Сжимаю беседу…',

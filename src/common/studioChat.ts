@@ -142,6 +142,11 @@ export interface IStudioChatQueued {
   text: string;
   /** A picture of the stage goes with it. */
   picture: boolean;
+  /**
+   * Handed to Claude, which reads it when its current step returns; until
+   * then it waits, and can be taken back.
+   */
+  sent: boolean;
 }
 
 /** What the window sends with a message. */

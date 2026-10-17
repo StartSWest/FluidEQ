@@ -11,36 +11,16 @@ import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import ChatText from './ChatText';
 import StudioChatCopy from './StudioChatCopy';
+import { pictureKey, stepLabel } from './chatPictureList';
 import { CLAUDE_CODE_INSTALL_URL } from './StudioChatSetup';
 import {
   restoreStudioChatVersion,
   signInToStudioChat,
+  useStudioChat,
 } from './studioChatStore';
 import '../../styles/StudioChatReply.scss';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
-
-/** Each step as the chat says it: done, and while it is happening. */
-const STEP_WORDS: Record<
-  IStudioChatStep['kind'],
-  { done: TranslationKey; now: TranslationKey }
-> = {
-  look: { done: 'studioChat.step.look', now: 'studioChat.step.lookNow' },
-  hear: { done: 'studioChat.step.hear', now: 'studioChat.step.hearNow' },
-  read: { done: 'studioChat.step.read', now: 'studioChat.step.readNow' },
-  write: { done: 'studioChat.step.write', now: 'studioChat.step.writeNow' },
-  search: { done: 'studioChat.step.search', now: 'studioChat.step.searchNow' },
-  picture: {
-    done: 'studioChat.step.picture',
-    now: 'studioChat.step.pictureNow',
-  },
-  pack: { done: 'studioChat.step.pack', now: 'studioChat.step.packNow' },
-  compact: {
-    done: 'studioChat.step.compact',
-    now: 'studioChat.step.compactNow',
-  },
-  other: { done: 'studioChat.step.other', now: 'studioChat.step.otherNow' },
-};
 
 const FAILURE_WORDS: Record<NonNullable<TReply['failure']>, TranslationKey> = {
   missing: 'studioChat.failed.missing',
@@ -69,17 +49,14 @@ const shownSteps = (steps: readonly IStudioChatStep[]) =>
     );
   });
 
-function Step({ step }: { step: IStudioChatStep }) {
+function Step({ step, onOpen }: { step: IStudioChatStep; onOpen: () => void }) {
   const { t, locale } = useTranslation();
-  const [large, setLarge] = useState(false);
   const tokenCount = useMemo(
     () => new Intl.NumberFormat(locale, { notation: 'compact' }),
     [locale],
   );
-  const words = STEP_WORDS[step.kind];
   const running = step.state === 'running';
-  const file = step.file ?? t('studioChat.step.theScene');
-  const label = t(running ? words.now : words.done, { file });
+  const label = stepLabel(t, step);
   return (
     <li className={`studio-chat__step is-${step.state}`}>
       <span className="studio-chat__step-mark" aria-hidden="true">
@@ -103,14 +80,12 @@ function Step({ step }: { step: IStudioChatStep }) {
       {step.picture && (
         <button
           type="button"
-          className={`studio-chat__seen${large ? ' is-large' : ''}${
+          className={`studio-chat__seen${
             step.kind === 'picture' ? ' is-made' : ''
           }`}
-          aria-pressed={large}
-          aria-label={t(
-            large ? 'studioChat.seenSmaller' : 'studioChat.seenLarger',
-          )}
-          onClick={() => setLarge((open) => !open)}
+          aria-label={t('studioChat.seenLarger')}
+          aria-haspopup="dialog"
+          onClick={onOpen}
         >
           <img src={step.picture} alt={label} />
         </button>
@@ -125,14 +100,25 @@ interface IStudioChatReplyProps {
   playing: boolean;
   /** Offered on a reply cut short, the last in the chat. */
   onCarryOn?: () => void;
+  /**
+   * The last reply, failed: answers it again. A sign-in from its card ends
+   * with it, so the message goes on its own (Ivan, 2026-10-16: "after
+   * signed in with claude it needs to auto refresh").
+   */
+  onRetry?: () => void;
+  /** Opens the viewer on one of the chat's pictures, by its key. */
+  onOpenPicture: (key: string) => void;
 }
 
 export default function StudioChatReply({
   reply,
   playing,
   onCarryOn,
+  onRetry,
+  onOpenPicture,
 }: IStudioChatReplyProps) {
   const { t } = useTranslation();
+  const { signingIn } = useStudioChat();
   const [restore, setRestore] = useState<
     'idle' | 'running' | 'done' | 'failed'
   >('idle');
@@ -157,7 +143,11 @@ export default function StudioChatReply({
       {steps.length > 0 && (
         <ol className="studio-chat__steps">
           {steps.map((step) => (
-            <Step key={step.id} step={step} />
+            <Step
+              key={step.id}
+              step={step}
+              onOpen={() => onOpenPicture(pictureKey(reply.id, step.id))}
+            />
           ))}
         </ol>
       )}
@@ -219,9 +209,18 @@ export default function StudioChatReply({
           {reply.failure === 'signed-out' && (
             <button
               type="button"
-              className="button small"
+              className={`button small${signingIn ? ' is-running' : ''}`}
+              aria-busy={signingIn}
+              disabled={signingIn}
               onClick={() => {
-                signInToStudioChat().catch(() => undefined);
+                signInToStudioChat()
+                  .then((answer) => {
+                    if (answer?.state === 'ready') {
+                      onRetry?.();
+                    }
+                    return undefined;
+                  })
+                  .catch(() => undefined);
               }}
             >
               {t('studioChat.signIn')}

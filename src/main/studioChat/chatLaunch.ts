@@ -65,6 +65,13 @@ export interface IChatSession {
   /** Aborted when that reply ends or is stopped: what it started ends too. */
   controller?: AbortController;
   stopping: boolean;
+  /**
+   * Every line written and not yet read, oldest first: the queued messages
+   * it carried, by id, or none for a line of the chat's own (a message shown
+   * when it was sent, /compact). Claude Code reads them in order and says so
+   * once for each (`read`), so the head is always the one just read.
+   */
+  written: string[][];
 }
 
 export interface IClaudeLaunch {
@@ -107,6 +114,9 @@ export const launchClaudeCode = ({
     'stream-json',
     '--verbose',
     '--include-partial-messages',
+    // Every line written comes back once Claude Code has read it, which is
+    // how a message queued mid-reply knows when Claude took it.
+    '--replay-user-messages',
     '--append-system-prompt-file',
     briefFile,
     '--permission-mode',

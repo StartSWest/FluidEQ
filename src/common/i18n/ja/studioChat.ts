@@ -35,7 +35,6 @@ const studioChat = {
   'studioChat.claude': 'Claude',
   'studioChat.attachedNote': 'ステージの画像付き',
   'studioChat.seenLarger': 'この画像を大きく表示',
-  'studioChat.seenSmaller': 'この画像を小さく表示',
   'studioChat.thinking': '考えています…',
   'studioChat.step.theScene': 'シーン',
   'studioChat.step.look': 'シーンを見ました',
@@ -183,10 +182,11 @@ const studioChat = {
   'studioChat.welcomeSceneTitle': '{name} のどこを変えますか？',
   'studioChat.welcomeSceneBody':
     '見た目、音楽に合わせた動き、色、光など、変えたいところを Claude に伝えてください。Claude はこのシーンを編集し、各バージョンをステージで再生します。',
-  'studioChat.queue.title': '待機中 · Claude が終わったらまとめて送信',
-  'studioChat.queue.send':
-    'キューに入れる：Claude が終わったら他とまとめて送信',
+  'studioChat.queue.title': '待機中 · Claude は次のステップで読みます',
+  'studioChat.queue.send': 'キューに入れる：Claude は次のステップで読みます',
   'studioChat.queue.remove': '取り消す',
+  'studioChat.queue.sent':
+    'Claude に渡しました：今のステップが終わるとすぐに読みます',
   'studioChat.queue.picture': 'ステージの画像付き',
   'studioChat.step.compact': '会話を圧縮しました',
   'studioChat.step.compactNow': '会話を圧縮中…',

@@ -13,20 +13,27 @@ import type { IChatMessage } from './chatMessage';
  * 2026-10-14: "we need to be able to queue messages to claude"), per
  * project, oldest first.
  *
- * When the reply in progress ends well, every message waiting goes at once,
- * as one turn (Ivan, 2026-10-14: "if I have 3 all at once so we save
- * tokens"): one answer reads the conversation once, where three would each
- * read it again and each be answered without the others. A reply that is stopped, fails or is cut short takes the queue
- * with it — the member pressed Stop, or the plan's limit or a sign-in would
- * refuse the next message the same way — and the window is told.
+ * Read the way Claude Code reads its own (2026-10-16: "queue needs to work
+ * as claude code so they are read faster not when the turn ends"): a message
+ * waits here only until Claude's next step starts, is then handed to Claude
+ * Code, and Claude reads it the moment that step returns, in the middle of
+ * the reply (`chatTurns.ts`). Waiting, it can be taken back; handed over, it
+ * is Claude's, and leaves the queue when Claude Code says it read it.
+ *
+ * Nothing here is lost to a stop (2026-10-16: "when I stoped I lossed the
+ * queue"): a stop ends what Claude is doing and what waits goes on. A
+ * failure keeps it waiting for the member's next press; Claude Code ending
+ * before it read one puts that one back to wait.
  *
  * Held in memory only: a queue is the next few seconds or minutes of one
- * sitting, and FluidEQ closing ends the reply it was waiting on anyway.
+ * sitting.
  */
 
 interface IQueued {
   id: string;
   message: IChatMessage;
+  /** Handed to Claude Code, which has not said it read it yet. */
+  sent: boolean;
 }
 
 const createChatQueue = (
@@ -34,56 +41,111 @@ const createChatQueue = (
   tell: (projectId: string, queued: IStudioChatQueued[]) => void,
 ) => {
   const queues = new Map<string, IQueued[]>();
+  const of = (projectId: string) => queues.get(projectId) ?? [];
 
   const list = (projectId: string): IStudioChatQueued[] =>
-    (queues.get(projectId) ?? []).map(({ id, message }) => ({
+    of(projectId).map(({ id, message, sent }) => ({
       id,
       text: message.words,
       picture: message.picture !== undefined,
+      sent,
     }));
 
-  const changed = (projectId: string) => tell(projectId, list(projectId));
+  const set = (projectId: string, next: IQueued[]) => {
+    if (next.length > 0) {
+      queues.set(projectId, next);
+    } else {
+      queues.delete(projectId);
+    }
+    tell(projectId, list(projectId));
+  };
 
   return {
     list,
 
-    add: (projectId: string, message: IChatMessage) => {
-      queues.set(projectId, [
-        ...(queues.get(projectId) ?? []),
-        { id: randomUUID(), message },
-      ]);
-      changed(projectId);
-    },
+    add: (projectId: string, message: IChatMessage) =>
+      set(projectId, [
+        ...of(projectId),
+        { id: randomUUID(), message, sent: false },
+      ]),
 
-    /** The member took one back before it went. */
+    /** The member took one back before it was handed over. */
     remove: (projectId: string, id: string) => {
-      const queue = queues.get(projectId) ?? [];
-      if (queue.some((entry) => entry.id === id)) {
-        queues.set(
+      const queue = of(projectId);
+      if (queue.some((entry) => entry.id === id && !entry.sent)) {
+        set(
           projectId,
           queue.filter((entry) => entry.id !== id),
         );
-        changed(projectId);
       }
     },
 
-    /** Every message waiting, oldest first, taken off the queue to go now. */
-    takeAll: (projectId: string): IChatMessage[] => {
-      const waiting = queues.get(projectId) ?? [];
+    /** Whether Claude Code holds messages it has not read yet. */
+    hasSent: (projectId: string) => of(projectId).some((entry) => entry.sent),
+
+    /** Every waiting message, handed to Claude Code now: their ids and words. */
+    send: (projectId: string) => {
+      const queue = of(projectId);
+      const waiting = queue.filter((entry) => !entry.sent);
       if (waiting.length > 0) {
-        queues.delete(projectId);
-        changed(projectId);
+        set(
+          projectId,
+          queue.map((entry) => ({ ...entry, sent: true })),
+        );
+      }
+      return {
+        ids: waiting.map(({ id }) => id),
+        messages: waiting.map(({ message }) => message),
+      };
+    },
+
+    /** Claude Code read these: taken off the queue, to join the conversation. */
+    read: (projectId: string, ids: readonly string[]): IChatMessage[] => {
+      const queue = of(projectId);
+      const taken = queue.filter((entry) => ids.includes(entry.id));
+      if (taken.length > 0) {
+        set(
+          projectId,
+          queue.filter((entry) => !ids.includes(entry.id)),
+        );
+      }
+      return taken.map(({ message }) => message);
+    },
+
+    /** Claude Code ended without reading these: they wait again. */
+    unsend: (projectId: string, ids: readonly string[]) => {
+      const queue = of(projectId);
+      if (queue.some((entry) => entry.sent && ids.includes(entry.id))) {
+        set(
+          projectId,
+          queue.map((entry) =>
+            ids.includes(entry.id) ? { ...entry, sent: false } : entry,
+          ),
+        );
+      }
+    },
+
+    /** The waiting messages taken off, to go with the member's next message. */
+    takeWaiting: (projectId: string): IChatMessage[] => {
+      const queue = of(projectId);
+      const waiting = queue.filter((entry) => !entry.sent);
+      if (waiting.length > 0) {
+        set(
+          projectId,
+          queue.filter((entry) => entry.sent),
+        );
       }
       return waiting.map(({ message }) => message);
     },
 
     clear: (projectId: string) => {
-      if ((queues.get(projectId) ?? []).length > 0) {
-        queues.delete(projectId);
-        changed(projectId);
+      if (of(projectId).length > 0) {
+        set(projectId, []);
       }
     },
   };
 };
+
+export type TChatQueue = ReturnType<typeof createChatQueue>;
 
 export default createChatQueue;

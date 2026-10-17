@@ -11,10 +11,12 @@ import { unqueueStudioChat } from './studioChatStore';
 
 /**
  * Messages sent while Claude was still answering, over the message box
- * (Ivan, 2026-10-14: "we need to be able to queue messages to claude"):
- * each goes, oldest first, when the reply before it has ended, and joins
- * the conversation then. Each can be taken back before it goes; Stop takes
- * them all, with the reply.
+ * (Ivan, 2026-10-14: "we need to be able to queue messages to claude"). Each
+ * is handed to Claude when its next step starts and read the moment that
+ * step returns (2026-10-16: "so they are read faster not when the turn
+ * ends"), and joins the conversation there. Waiting, it can be taken back;
+ * handed over, it is Claude's, and says so. A stop keeps them: Claude reads
+ * them next.
  */
 export default function StudioChatQueue({
   queued,
@@ -43,17 +45,25 @@ export default function StudioChatQueue({
               </span>
             )}
             <span className="studio-chat__queue-text">{item.text}</span>
-            <button
-              type="button"
-              className="studio-chat__queue-remove"
-              title={t('studioChat.queue.remove')}
-              aria-label={t('studioChat.queue.remove')}
-              onClick={() => {
-                unqueueStudioChat(item.id).catch(() => undefined);
-              }}
-            >
-              <Glyph name="close" />
-            </button>
+            {item.sent ? (
+              <span
+                className="studio-chat__queue-sent"
+                title={t('studioChat.queue.sent')}
+                aria-label={t('studioChat.queue.sent')}
+              />
+            ) : (
+              <button
+                type="button"
+                className="studio-chat__queue-remove"
+                title={t('studioChat.queue.remove')}
+                aria-label={t('studioChat.queue.remove')}
+                onClick={() => {
+                  unqueueStudioChat(item.id).catch(() => undefined);
+                }}
+              >
+                <Glyph name="close" />
+              </button>
+            )}
           </li>
         ))}
       </ol>

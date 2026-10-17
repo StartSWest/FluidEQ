@@ -200,10 +200,22 @@ export const signInToStudioChat = async () => {
     if (answer) {
       set({ availability: answer });
     }
+    return answer;
   } finally {
     set({ signingIn: false });
   }
 };
+
+/**
+ * The failed reply at the end of the chat answered again in its place, on
+ * the member's picks: what a sign-in from that reply's card ends with.
+ */
+export const retryStudioChat = (folder: string) =>
+  bridge()?.studioChatRetry?.({
+    brief: chatBrief(folder),
+    model: state.model,
+    effort: state.effort,
+  }) ?? Promise.resolve();
 
 /** The open project's conversation, as main keeps it. */
 export const loadStudioChat = async () => {

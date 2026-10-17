@@ -40,6 +40,12 @@ export type TChatStreamEvent =
   | { type: 'compacting'; id: string }
   /** It finished: how many tokens the conversation was, and is now. */
   | { type: 'compacted'; tokens?: { before: number; after: number } }
+  /**
+   * Claude Code read the oldest line it was written and has not said it read
+   * (`--replay-user-messages`): one for every line, a message or /compact,
+   * at the start of a turn or in the middle of one.
+   */
+  | { type: 'read' }
   | { type: 'end'; failure?: TStudioChatFailure };
 
 /** Claude Code names FluidEQ's tools by the server they came from. */
@@ -228,6 +234,9 @@ export const readStreamLine = (line: string): TChatStreamEvent[] => {
       );
     }
     case 'user': {
+      if (message.isReplay === true) {
+        return [{ type: 'read' }];
+      }
       const content = isRecord(message.message)
         ? message.message.content
         : undefined;

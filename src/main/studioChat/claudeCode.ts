@@ -13,6 +13,7 @@ import {
   accountPlanOf,
   type TStudioChatAvailability,
 } from '../../common/studioChat';
+import untilSignedIn from './signInWindow';
 
 /**
  * The member's own Claude Code: found where it was installed, asked whether
@@ -167,10 +168,18 @@ export const claudeCodeAvailability = async (
   return readAuthStatus(stdout) ?? { state: 'ready' };
 };
 
+/** Who Claude Code says is signed in, or nothing for nobody. */
+const signedInAs = async (where: IClaudeCodeEnv) => {
+  const now = await claudeCodeAvailability(where);
+  return now.state === 'ready' ? `ready:${now.email ?? ''}` : undefined;
+};
+
 /**
  * Claude Code's own sign-in, which opens Anthropic's page in the browser.
  * On Windows it runs in a console window of its own, so anything it asks
- * is in front of the member; settles when it has ended, however it ended.
+ * is in front of the member; settles once the sign-in has landed in Claude
+ * Code's own file (`untilSignedIn`), or the window has ended, however it
+ * ended.
  */
 export const signInToClaudeCode = async (
   where: IClaudeCodeEnv = systemEnv(),
@@ -179,6 +188,7 @@ export const signInToClaudeCode = async (
   if (!executable) {
     return;
   }
+  const before = await signedInAs(where);
   const child =
     process.platform === 'win32'
       ? spawn(
@@ -192,8 +202,11 @@ export const signInToClaudeCode = async (
           { windowsVerbatimArguments: true, stdio: 'ignore' },
         )
       : startClaudeCode(executable, ['auth', 'login'], { stdio: 'ignore' });
-  await new Promise<void>((resolve) => {
-    child.on('error', () => resolve());
-    child.on('close', () => resolve());
+  await untilSignedIn({
+    child,
+    folder: where.env.CLAUDE_CONFIG_DIR ?? path.join(where.home, '.claude'),
+    file: '.credentials.json',
+    who: () => signedInAs(where),
+    before,
   });
 };

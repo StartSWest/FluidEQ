@@ -35,7 +35,6 @@ const studioChat = {
   'studioChat.claude': 'Claude',
   'studioChat.attachedNote': 'Con una imagen del escenario',
   'studioChat.seenLarger': 'Ver esta imagen más grande',
-  'studioChat.seenSmaller': 'Ver esta imagen más pequeña',
   'studioChat.thinking': 'Pensando…',
   'studioChat.step.theScene': 'la escena',
   'studioChat.step.look': 'Miró la escena',
@@ -181,10 +180,11 @@ const studioChat = {
   'studioChat.welcomeSceneTitle': '¿Qué quieres cambiar en {name}?',
   'studioChat.welcomeSceneBody':
     'Dile a Claude qué cambiar: cómo se ve, cómo se mueve con la música, sus colores o su luz. Claude edita esta escena y reproduce cada versión en el escenario.',
-  'studioChat.queue.title': 'En cola · se envían juntos cuando Claude termine',
-  'studioChat.queue.send':
-    'Poner en cola: se envía con los demás cuando Claude termine',
+  'studioChat.queue.title': 'En cola · Claude los lee en su siguiente paso',
+  'studioChat.queue.send': 'Poner en cola: Claude lo lee en su siguiente paso',
   'studioChat.queue.remove': 'Retirar',
+  'studioChat.queue.sent':
+    'Entregado a Claude: lo lee cuando termine el paso en curso',
   'studioChat.queue.picture': 'Con una imagen del escenario',
   'studioChat.step.compact': 'Conversación compactada',
   'studioChat.step.compactNow': 'Compactando la conversación…',

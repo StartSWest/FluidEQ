@@ -16,7 +16,6 @@ import {
 } from '../../common/studioChat';
 import type { TAgentProject } from '../studioAgent/agentProject';
 import type { IStudioLook } from '../studioAgent/studioTools';
-import { chatPictureFromBytes } from './chatPicture';
 import {
   launchClaudeCode,
   watchClaudeCode,
@@ -25,19 +24,19 @@ import {
 import {
   readChatMessage,
   readChatPicks,
+  retryOf,
   userLine,
   type IChatMessage,
 } from './chatMessage';
 import { createChatPictures } from './chatPictures';
 import createChatQueue from './chatQueue';
+import createChatTurns from './chatTurns';
 import createChatUsage from './chatUsage';
 import createChatWindow from './chatWindow';
 import registerChatHandlers from './chatHandlers';
 import endProcessTree from './endProcessTree';
 import { createPastChats } from './pastChats';
-import { keepReplyVersion } from './chatVersions';
 import { createTranscripts } from './chatTranscript';
-import withEvent from './replyEvents';
 import createTranscriptCache from './transcriptCache';
 import { findClaudeCode, systemEnv } from './claudeCode';
 
@@ -101,7 +100,7 @@ export const createStudioChat = ({
   });
 
   const isBusy = (projectId: string) =>
-    sessions.get(projectId)?.reply !== undefined;
+    turns.isWorking(projectId, sessions.get(projectId));
 
   /** One entry changed: the window upserts it by id. */
   const tell = (projectId: string, entry: TStudioChatEntry) => {
@@ -137,56 +136,15 @@ export const createStudioChat = ({
     tell(projectId, entry);
   };
 
-  /** A reply's end: its state, the version it left, and the chat saved. */
-  const finish = (
-    projectId: string,
-    folder: string,
-    session: IChatSession,
-    failure?: TStudioChatFailure,
-  ) => {
-    const { reply } = session;
-    if (!reply) {
-      return;
-    }
-    session.reply = undefined;
-    session.controller?.abort();
-    session.controller = undefined;
-    pictures.asks.drop(projectId);
-    const version = keepReplyVersion(
-      reply,
-      folder,
-      transcripts.versionsOf(projectId),
-    );
-    let state: 'done' | 'stopped' | 'failed' = 'done';
-    if (session.stopping) {
-      state = 'stopped';
-    } else if (failure) {
-      state = 'failed';
-    }
-    upsert(projectId, {
-      ...reply,
-      state,
-      steps: reply.steps.map((step) =>
-        step.state === 'running' ? { ...step, state: 'failed' } : step,
-      ),
-      ...(failure && state === 'failed' ? { failure } : {}),
-      ...(version === undefined ? {} : { version }),
-    });
-    session.stopping = false;
-    save(projectId);
-    // What was queued goes, all as one turn, once this reply has ended well;
-    // a stop or a failure takes the queue with it (`chatQueue.ts`).
-    if (state !== 'done') {
-      queue.clear(projectId);
-      return;
-    }
-    const waiting = queue.takeAll(projectId);
-    if (waiting.length > 0) {
-      dispatch(projectId, folder, waiting).catch((error: unknown) =>
-        logger?.warn(`A queued Studio message did not go: ${String(error)}`),
-      );
-    }
-  };
+  const turns = createChatTurns({
+    queue,
+    upsert,
+    tell,
+    save,
+    saveWith,
+    versionsOf: transcripts.versionsOf,
+    dropAsks: pictures.asks.drop,
+  });
 
   const start = (
     projectId: string,
@@ -213,11 +171,11 @@ export const createStudioChat = ({
       model,
       effort,
       stopping: false,
+      written: [],
     };
     watchClaudeCode(
       child,
       (event) => {
-        const { reply } = session;
         if (event.type === 'session') {
           const transcript = transcriptOf(projectId);
           if (transcript.sessionId !== event.sessionId) {
@@ -226,32 +184,26 @@ export const createStudioChat = ({
           }
           return;
         }
-        if (!reply) {
-          return;
+        turns.onEvent(projectId, session, event);
+        // A Claude Code that answered "signed out" holds the sign-in it
+        // started with, and a sign-in renewed since does not reach it: it
+        // ends, and the next message starts one that reads the sign-in
+        // afresh (the head said "Max plan" over a reply saying signed out).
+        if (event.type === 'end' && event.failure === 'signed-out') {
+          endProcessTree(child);
         }
-        if (event.type === 'end') {
-          finish(projectId, folder, session, event.failure);
-          return;
-        }
-        session.reply = withEvent(reply, event);
-        if (event.type !== 'text') {
-          saveWith(projectId, { ...session.reply });
-        }
-        tell(projectId, { ...session.reply });
       },
       (use) => usage.note(projectId, use),
       (failure, errors) => {
         if (sessions.get(projectId) === session) {
           sessions.delete(projectId);
         }
-        if (session.reply) {
-          if (!session.stopping) {
-            logger?.warn(
-              `Claude Code ended in the middle of a Studio reply: ${errors.trim().slice(-400)}`,
-            );
-          }
-          finish(projectId, folder, session, failure);
+        if (session.reply && !session.stopping) {
+          logger?.warn(
+            `Claude Code ended in the middle of a Studio reply: ${errors.trim().slice(-400)}`,
+          );
         }
+        turns.ended(projectId, session, failure);
       },
     );
     sessions.set(projectId, session);
@@ -317,21 +269,6 @@ export const createStudioChat = ({
     );
   };
 
-  /** A reply begins: the chat shows it working, then Claude Code is written to. */
-  const begin = (projectId: string, session: IChatSession, line: string) => {
-    session.reply = {
-      kind: 'claude',
-      id: randomUUID(),
-      text: '',
-      steps: [],
-      state: 'working',
-    };
-    session.controller = new AbortController();
-    tell(projectId, session.reply);
-    session.child.stdin?.write(line);
-    saveWith(projectId, { ...session.reply });
-  };
-
   /**
    * Messages to Claude, now, as one turn: each shown as the member wrote it,
    * then all written to Claude Code together, on the latest one's picks.
@@ -345,18 +282,10 @@ export const createStudioChat = ({
     if (!latest) {
       return;
     }
-    messages.forEach(({ words, picture }) => {
-      const shown = picture ? chatPictureFromBytes(picture) : undefined;
-      upsert(projectId, {
-        kind: 'me',
-        id: randomUUID(),
-        text: words,
-        ...(shown ? { picture: shown } : {}),
-      });
-    });
+    turns.show(projectId, messages);
     const session = await sessionFor(projectId, folder, latest);
     if (session) {
-      begin(projectId, session, userLine(...messages));
+      turns.begin(projectId, session, userLine(...messages));
     }
   };
 
@@ -376,11 +305,18 @@ export const createStudioChat = ({
     }
     const session = await sessionFor(project.id, project.folder, picks);
     if (session) {
-      begin(project.id, session, userLine({ ...picks, words: '/compact' }));
+      turns.begin(
+        project.id,
+        session,
+        userLine({ ...picks, words: '/compact' }),
+      );
     }
   };
 
-  /** A message from the window: sent now, or queued behind the reply being written. */
+  /**
+   * A message from the window: sent now, with anything a failure left
+   * waiting, or queued for Claude to read at its next step.
+   */
   const send = async (raw: unknown): Promise<void> => {
     const message = readChatMessage(raw);
     const project = agentProject();
@@ -388,10 +324,52 @@ export const createStudioChat = ({
       return;
     }
     if (isBusy(project.id)) {
-      queue.add(project.id, message);
+      turns.queueMessage(project.id, sessions.get(project.id), message);
       return;
     }
-    await dispatch(project.id, project.folder, [message]);
+    await dispatch(project.id, project.folder, [
+      ...queue.takeWaiting(project.id),
+      message,
+    ]);
+  };
+
+  /**
+   * The failed reply at the end of the chat answered again, in its place, on
+   * the member's words before it (Ivan, 2026-10-16: "after signed in with
+   * claude it needs to auto refresh"): signing in from the reply's card ends
+   * here, so the message goes on its own rather than being typed again. On
+   * a Claude Code started afresh, which reads the sign-in as it is now.
+   */
+  const retry = async (raw: unknown): Promise<void> => {
+    const project = agentProject();
+    const picks = readChatPicks(raw);
+    if (!project.ok || !picks || isBusy(project.id)) {
+      return;
+    }
+    const transcript = transcriptOf(project.id);
+    const again = retryOf(transcript.entries);
+    if (!again) {
+      return;
+    }
+    const stale = sessions.get(project.id);
+    if (stale) {
+      sessions.delete(project.id);
+      endProcessTree(stale.child);
+    }
+    const session = await sessionFor(project.id, project.folder, picks);
+    if (!session) {
+      return;
+    }
+    const at = transcript.entries.findIndex(({ id }) => id === again.replyId);
+    if (at !== -1) {
+      transcript.entries.splice(at, 1);
+    }
+    turns.begin(
+      project.id,
+      session,
+      userLine(...again.messages),
+      again.replyId,
+    );
   };
 
   const activeChat = (): IStudioChat | undefined => {
@@ -407,7 +385,7 @@ export const createStudioChat = ({
     return {
       projectId: project.id,
       entries: reply ? [...entries, { ...reply }] : entries,
-      busy: reply !== undefined,
+      busy: isBusy(project.id),
       ...(ask ? { ask } : {}),
       ...(queued.length ? { queued } : {}),
       ...(context ? { context } : {}),
@@ -444,13 +422,18 @@ export const createStudioChat = ({
   registerChatHandlers({
     handle,
     agentProject,
-    sessions,
     isBusy,
     activeChat,
     send,
     compact,
+    retry,
     unqueue: queue.remove,
-    dropAsks: pictures.asks.drop,
+    stop: (projectId) => {
+      const session = sessions.get(projectId);
+      if (session) {
+        turns.stop(projectId, session);
+      }
+    },
     entriesOf: (projectId) => transcriptOf(projectId).entries,
     versionsOf: transcripts.versionsOf,
     limits: usage.limits,
@@ -466,7 +449,7 @@ export const createStudioChat = ({
       // and can carry on from there.
       sessions.forEach((session, projectId) => {
         session.stopping = true;
-        finish(projectId, session.folder, session);
+        turns.ended(projectId, session, 'crashed');
         endProcessTree(session.child);
       });
       sessions.clear();

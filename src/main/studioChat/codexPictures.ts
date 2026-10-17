@@ -11,8 +11,10 @@ import path from 'path';
 import { nativeImage, type NativeImage } from 'electron';
 import type { TStudioChatCodex } from '../../common/studioChat';
 import { keyOut, premultiply, type TKey } from './chromaKey';
+import { codexAccount } from './codexAccount';
 import { startClaudeCode as startInstalled } from './claudeCode';
 import endProcessTree from './endProcessTree';
+import untilSignedIn from './signInWindow';
 
 /**
  * Pictures from ChatGPT, through the member's own Codex (Ivan, 2026-10-09:
@@ -184,9 +186,21 @@ export const codexState = async (
 
 /**
  * Codex's own sign-in, in a console window of its own on Windows, so its
- * question to choose ChatGPT is in front of the member. Settles when it ends.
+ * question to choose ChatGPT is in front of the member. Settles once the
+ * sign-in has landed in Codex's own file (`untilSignedIn`), or the window
+ * has ended.
  */
-export const signInToCodex = async (executable: string) => {
+export const signInToCodex = async (
+  executable: string,
+  deps: ICodexDeps = systemCodexDeps(),
+) => {
+  const who = async () => {
+    const { state } = await codexState(deps);
+    return state === 'ready'
+      ? `ready:${(await codexAccount(executable)).email ?? ''}`
+      : undefined;
+  };
+  const before = await who();
   const child =
     process.platform === 'win32'
       ? spawn(
@@ -195,9 +209,12 @@ export const signInToCodex = async (executable: string) => {
           { windowsVerbatimArguments: true, stdio: 'ignore' },
         )
       : startInstalled(executable, ['login'], { stdio: 'ignore' });
-  await new Promise<void>((resolve) => {
-    child.on('error', () => resolve());
-    child.on('close', () => resolve());
+  await untilSignedIn({
+    child,
+    folder: codexHome(deps),
+    file: 'auth.json',
+    who,
+    before,
   });
 };
 

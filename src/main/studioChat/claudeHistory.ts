@@ -187,7 +187,12 @@ export const readClaudeHistory = (
       }
     });
     readStreamLine(line).forEach((event) => {
-      if (reply && event.type !== 'session' && event.type !== 'end') {
+      if (
+        reply &&
+        event.type !== 'session' &&
+        event.type !== 'read' &&
+        event.type !== 'end'
+      ) {
         reply = withEvent(reply, event);
       }
     });

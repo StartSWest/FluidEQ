@@ -69,14 +69,6 @@ it under the terms of the GNU General Public License version 3 or later.
     object-fit: contain;
   }
 
-  &.is-large {
-    cursor: zoom-out;
-
-    img {
-      max-height: none;
-    }
-  }
-
   &:focus-visible {
     @include focus-ring;
   }

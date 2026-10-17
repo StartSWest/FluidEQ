@@ -12,24 +12,23 @@ import type {
   TStudioChatRestore,
 } from '../../common/studioChat';
 import type { TAgentProject } from '../studioAgent/agentProject';
-import type { IChatSession } from './chatLaunch';
 import { restoreReplyVersion } from './chatVersions';
 import type createChatWindow from './chatWindow';
 import { claudeCodeAvailability, signInToClaudeCode } from './claudeCode';
-import endProcessTree from './endProcessTree';
 
 interface IChatHandlersDeps {
   handle: ReturnType<typeof createChatWindow>['handle'];
   agentProject(): TAgentProject;
-  sessions: ReadonlyMap<string, IChatSession>;
   isBusy(projectId: string): boolean;
   activeChat(): IStudioChat | undefined;
   send(raw: unknown): Promise<void>;
   compact(raw: unknown): Promise<void>;
+  /** The failed reply at the end of the chat, answered again in its place. */
+  retry(raw: unknown): Promise<void>;
   /** A queued message taken back. */
   unqueue(projectId: string, id: string): void;
-  /** A card waiting on the member, or a picture being made, ends. */
-  dropAsks(projectId: string): void;
+  /** What Claude is doing in the project, stopped (`chatTurns.ts`). */
+  stop(projectId: string): void;
   entriesOf(projectId: string): readonly TStudioChatEntry[];
   versionsOf(projectId: string): string;
   limits(): IStudioChatLimits | undefined;
@@ -39,13 +38,13 @@ interface IChatHandlersDeps {
 const registerChatHandlers = ({
   handle,
   agentProject,
-  sessions,
   isBusy,
   activeChat,
   send,
   compact,
+  retry,
   unqueue,
-  dropAsks,
+  stop,
   entriesOf,
   versionsOf,
   limits,
@@ -60,6 +59,7 @@ const registerChatHandlers = ({
   handle('studio-chat-load', undefined, activeChat);
   handle('studio-chat-send', undefined, send);
   handle('studio-chat-compact', undefined, compact);
+  handle('studio-chat-retry', undefined, retry);
   handle('studio-chat-limits', undefined, limits);
   handle('studio-chat-unqueue', undefined, (id) => {
     const project = agentProject();
@@ -69,13 +69,8 @@ const registerChatHandlers = ({
   });
   handle('studio-chat-stop', undefined, () => {
     const project = agentProject();
-    const session = project.ok ? sessions.get(project.id) : undefined;
-    if (project.ok && session?.reply) {
-      session.stopping = true;
-      // A picture being made, or a card waiting on the member, ends with it.
-      session.controller?.abort();
-      dropAsks(project.id);
-      endProcessTree(session.child);
+    if (project.ok) {
+      stop(project.id);
     }
   });
   handle<TStudioChatRestore>(

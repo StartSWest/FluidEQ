@@ -35,6 +35,9 @@ const studioChatBridge = {
   /** Claude Code's /compact, on the member's picks. */
   studioChatCompact: (picks: IStudioChatCompact): Promise<void> =>
     ipcRenderer.invoke('studio-chat-compact', picks),
+  /** The failed reply at the end of the chat, answered again in its place. */
+  studioChatRetry: (picks: IStudioChatCompact): Promise<void> =>
+    ipcRenderer.invoke('studio-chat-retry', picks),
   studioChatStop: (): Promise<void> => ipcRenderer.invoke('studio-chat-stop'),
   /** A queued message taken back before it went. */
   studioChatUnqueue: (id: string): Promise<void> =>

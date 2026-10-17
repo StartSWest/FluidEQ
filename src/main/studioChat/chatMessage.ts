@@ -10,6 +10,7 @@ import {
   STUDIO_CHAT_MAX_TEXT,
   type IStudioChatCompact,
   type IStudioChatMessage,
+  type TStudioChatEntry,
   type TStudioChatEffort,
   type TStudioChatModel,
 } from '../../common/studioChat';
@@ -91,4 +92,46 @@ export const userLine = (
     { type: 'text', text: words },
   ]);
   return `${JSON.stringify({ type: 'user', message: { role: 'user', content } })}\n`;
+};
+
+const JPEG_PREFIX = 'data:image/jpeg;base64,';
+
+/**
+ * What answering the last reply again would send: the member's messages
+ * since the reply before it, as they were shown (each one's picture back as
+ * the JPEG it was kept as), and the failed reply they take the place of.
+ * Nothing unless the chat ends on a failed reply after something the member
+ * wrote.
+ */
+export const retryOf = (
+  entries: readonly TStudioChatEntry[],
+):
+  | { replyId: string; messages: Pick<IChatMessage, 'words' | 'picture'>[] }
+  | undefined => {
+  const last = entries[entries.length - 1];
+  if (last?.kind !== 'claude' || last.state !== 'failed') {
+    return undefined;
+  }
+  const before = entries.slice(0, -1);
+  const from = before.map((entry) => entry.kind).lastIndexOf('claude') + 1;
+  const messages = before.slice(from).flatMap((entry) =>
+    entry.kind === 'me'
+      ? [
+          {
+            words: entry.text,
+            ...(entry.picture?.startsWith(JPEG_PREFIX)
+              ? {
+                  picture: new Uint8Array(
+                    Buffer.from(
+                      entry.picture.slice(JPEG_PREFIX.length),
+                      'base64',
+                    ),
+                  ),
+                }
+              : {}),
+          },
+        ]
+      : [],
+  );
+  return messages.length > 0 ? { replyId: last.id, messages } : undefined;
 };

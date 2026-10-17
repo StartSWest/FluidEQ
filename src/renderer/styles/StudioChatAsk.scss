@@ -213,8 +213,30 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Handed to Claude, which reads it when its current step returns: a lamp
+// in the accent where the cross stood, breathing while it waits to be read.
+// Taken back no longer, so nothing to press.
+.studio-chat__queue-sent {
+  display: inline-grid;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+
+  &::before {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $text-accent;
+    box-shadow: 0 0 0 3px color-mix(in srgb, $text-accent 22%, transparent);
+    animation: studio-chat-pulse 1.4s $ease-out infinite;
+    content: '';
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .studio-chat__ask {
+  .studio-chat__ask,
+  .studio-chat__queue-sent::before {
     animation: none;
   }
 }

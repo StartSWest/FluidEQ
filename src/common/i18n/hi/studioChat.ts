@@ -35,7 +35,6 @@ const studioChat = {
   'studioChat.claude': 'Claude',
   'studioChat.attachedNote': 'स्टेज की तस्वीर के साथ',
   'studioChat.seenLarger': 'यह तस्वीर बड़ी दिखाएँ',
-  'studioChat.seenSmaller': 'यह तस्वीर छोटी दिखाएँ',
   'studioChat.thinking': 'सोच रहा है…',
   'studioChat.step.theScene': 'सीन',
   'studioChat.step.look': 'सीन देखा',
@@ -182,10 +181,12 @@ const studioChat = {
   'studioChat.welcomeSceneBody':
     'Claude को बताएँ क्या बदलना है: यह कैसा दिखता है, संगीत के साथ कैसे चलता है, इसके रंग या इसकी रोशनी। Claude यह दृश्य बदलता है और हर संस्करण स्टेज पर चलाता है।',
   'studioChat.queue.title':
-    'कतार में · Claude के पूरा करने पर एक साथ भेजे जाएँगे',
+    'कतार में · Claude इन्हें अपने अगले चरण में पढ़ता है',
   'studioChat.queue.send':
-    'कतार में रखें: Claude के पूरा करने पर बाकी के साथ भेजा जाएगा',
+    'कतार में रखें: Claude इसे अपने अगले चरण में पढ़ता है',
   'studioChat.queue.remove': 'वापस लें',
+  'studioChat.queue.sent':
+    'Claude को सौंपा गया: मौजूदा चरण पूरा होते ही वह इसे पढ़ता है',
   'studioChat.queue.picture': 'स्टेज के चित्र के साथ',
   'studioChat.step.compact': 'बातचीत संक्षिप्त की गई',
   'studioChat.step.compactNow': 'बातचीत संक्षिप्त की जा रही है…',

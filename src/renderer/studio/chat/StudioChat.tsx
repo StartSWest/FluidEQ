@@ -24,6 +24,7 @@ import {
   checkStudioChatCodex,
   loadStudioChat,
   newStudioChat,
+  retryStudioChat,
   sendToStudioChat,
   useStudioChat,
 } from './studioChatStore';
@@ -75,6 +76,7 @@ export default function StudioChat({
     // again, so the pane does not go on saying it is missing.
     const onFocus = () => {
       checkStudioChat().catch(() => undefined);
+      checkStudioChatCodex().catch(() => undefined);
     };
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
@@ -125,6 +127,9 @@ export default function StudioChat({
               t('studioChat.carryOnMessage'),
               project.path,
             ).catch(() => undefined);
+          }}
+          onRetry={() => {
+            retryStudioChat(project.path).catch(() => undefined);
           }}
         />
         {ask && ask.projectId === chat?.projectId && (
