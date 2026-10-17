@@ -149,7 +149,9 @@ and the De-esser is not heard, and everything else plays as before.
     can be opened too.
   - **Attach the stage** sends a picture of the scene with your message, and
     you can draw on it — arrows, words, marks — to show what you mean.
-  - Messages sent while it works wait in a queue and go together, as one turn.
+  - Messages you send while it works are read at its next step, not after
+    the reply, and **Stop** keeps them going. Signing in from a failed reply
+    sends it again, and every picture in the chat opens full size.
   - Pick the model and how hard it thinks; a ring shows how much of the
     conversation's room is used, **Compact** makes more, and the accounts
     card shows how much of your 5-hour and weekly limits is left.
