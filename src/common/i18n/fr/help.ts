@@ -239,7 +239,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'Mode EQ change la façon dont votre son est façonné, sans rien modifier. Ses réglages forment la première carte du panneau latéral de la page Égaliseur, à côté des courbes qu’ils changent, en deux onglets : Votre EQ regroupe vos bandes, la Tonalité, les préréglages, le Type de transducteur et l’Égalisation auto ; Corrections regroupe les corrections du casque et les courbes importées ou personnalisées. Les dispositions de bandes conservent les fréquences et le Q d’un agencement qui vous plaît, prêtes pour n’importe quelle sortie.',
   'help.eqmode.steps':
-    'Appuyez sur Mode EQ au-dessus du graphique. La carte apparaît, et le panneau latéral s’ouvre s’il était fermé.\nChoisissez l’onglet Votre EQ ou Corrections, puis essayez un choix d’Intensité ou de Q des bandes pendant que la musique joue. Avec le moteur FluidEQ, choisissez la phase Minimale ou Linéaire, et Précis ou Classique pour les aigus, pour chaque onglet.\nDans Corrections, Lissage des courbes adoucit les courbes échantillonnées à 1/12 d’octave tant que vous ne choisissez rien d’autre. Réinitialiser ramène tout à Normal, et le lissage à 1/12 d’octave.\nVous préférez un menu ? Appuyez sur l’épingle de la carte : Mode EQ s’ouvre alors en menu par-dessus le graphique, et l’épingle de ce menu ramène la carte.\nCliquez sur le bouton des dispositions, à côté d’Ajouter une bande. Choisissez 6, 10, 15, 20 ou 31 bandes, ou appuyez sur Enregistrer… pour nommer la disposition actuelle.',
+    'Appuyez sur Mode EQ au-dessus du graphique. La carte apparaît, et le panneau latéral s’ouvre s’il était fermé.\nChoisissez l’onglet Votre EQ ou Corrections, puis essayez un choix d’Intensité ou de Q des bandes pendant que la musique joue. Avec le moteur FluidEQ, choisissez la phase Minimale ou Linéaire, et Précis ou Classique pour les aigus, pour chaque onglet.\nDans Corrections, Lissage des courbes peut adoucir les courbes échantillonnées à 1/12 ou 1/3 d’octave ; il reste sur Désactivé tant que vous ne choisissez rien. Réinitialiser ramène tout à Normal, et le lissage à Désactivé.\nVous préférez un menu ? Appuyez sur l’épingle de la carte : Mode EQ s’ouvre alors en menu par-dessus le graphique, et l’épingle de ce menu ramène la carte.\nCliquez sur le bouton des dispositions, à côté d’Ajouter une bande. Choisissez 6, 10, 15, 20 ou 31 bandes, ou appuyez sur Enregistrer… pour nommer la disposition actuelle.',
   'help.eqmode.tip':
     'Une nouvelle disposition démarre toutes les bandes au même Q, et une bande ajoutée prend le Q des autres. Une disposition ne stocke que les fréquences et le Q : en charger une remet chaque bande à 0 dB. La phase linéaire ajoute du retard et peut résonner avant les attaques franches. Choisir une disposition intégrée la fait repartir de zéro : ses propres fréquences et Q, chaque bande à 0 dB et sur les deux oreilles.',
   'help.eqmode.keywords':
@@ -254,13 +254,13 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.q':
     'Constant garde chaque Q ; Proportionnel et Asymétrique resserrent les bandes à mesure qu’elles se renforcent. Dans Votre EQ, il ne façonne que vos propres bandes, jamais un préréglage ni une correction.',
   'help.eqmode.smoothing':
-    'Adoucit les courbes de correction échantillonnées : 1/12 d’octave tant que vous ne choisissez rien d’autre.',
+    'Adoucit les courbes de correction échantillonnées à 1/12 ou 1/3 d’octave. Désactivé tant que vous ne choisissez rien.',
   'help.eqmode.phase':
     'Minimale ou Linéaire, pour chaque onglet. Avec le moteur FluidEQ uniquement.',
   'help.eqmode.treble':
     'Précis sonne comme tracé, Classique comme dans Equalizer APO. Avec le moteur FluidEQ uniquement.',
   'help.eqmode.reset':
-    'Tout revient à Normal, et Lissage des courbes à 1/12 d’octave.',
+    'Tout revient à Normal, et Lissage des courbes à Désactivé.',
   'help.eqmode.designsCaption': 'Dispositions de bandes',
   'help.eqmode.builtIn': 'Dispositions standard de 6, 10, 15, 20 ou 31 bandes.',
   'help.eqmode.save':

@@ -10,13 +10,14 @@ export type TBandQ = 'off' | 'proportional' | 'asymmetric';
 export type TCurveSmoothing = 'off' | 'twelfth' | 'third';
 
 /**
- * How the Corrections row smooths a sampled curve until somebody chooses
- * (Ivan, 2026-10-06: "curves 1/12 octave as default"). An unset choice means
- * this one everywhere — what is written for either engine, what the graph
- * draws, what Auto normalize sizes the preamp for — so read a saved value
- * through `curveSmoothingOf`, never as Off when it is missing.
+ * How the Corrections row smooths a sampled curve until somebody chooses:
+ * not at all (Ivan, 2026-10-15: "remove curve smoothing as default ... put it
+ * as off"; 1/12 octave, his 2026-10-06 choice, was the default until then).
+ * An unset choice means this one everywhere — what is written for either
+ * engine, what the graph draws, what Auto normalize sizes the preamp for — so
+ * read a saved value through `curveSmoothingOf`, never as a literal.
  */
-export const DEFAULT_CURVE_SMOOTHING: TCurveSmoothing = 'twelfth';
+export const DEFAULT_CURVE_SMOOTHING: TCurveSmoothing = 'off';
 
 /** A saved smoothing choice, or the default where none is. */
 export const curveSmoothingOf = (saved: unknown): TCurveSmoothing =>

@@ -113,6 +113,9 @@ export const createUpdatePath = ({
   sessionHeadroom,
   attachPresetToActiveDevice,
 }: IUpdatePathDeps) => {
+  /** The newest flush asked for: what a caller that must see it land waits on. */
+  let lastFlush: Promise<void> = Promise.resolve();
+
   const updateConfigPath = async (
     event: TReplySink,
     channel: ChannelEnum | string,
@@ -300,8 +303,18 @@ export const createUpdatePath = ({
       // the reply is a success — because the state is real; only its
       // destination is in doubt, and the reflush that ends the switch settles
       // that.
+      //
+      // Not waited on before the reply. The window sends a band's next
+      // position only once this one is answered, and the flush resolves only
+      // when every output's files have landed: 60 to 400 ms on Ivan's 24
+      // outputs, paid twice per drag step (frequency, then gain), so the
+      // sound trailed the hand by whole seconds (2026-10-15: "the EQ changes
+      // needs to be instant"). The writer already keeps only the newest
+      // snapshot and serializes them, so answering at once loses nothing;
+      // a write that fails is logged here, and the reflush that ends an
+      // engine switch, which has to know, waits on `lastFlush` itself.
       if (!session.engineSwitching) {
-        await flushDeviceProfiles(
+        lastFlush = flushDeviceProfiles(
           deviceProfileSettings,
           presetDirForDevice,
           session.configPath,
@@ -316,6 +329,12 @@ export const createUpdatePath = ({
             systemRackEnabled: session.systemRackEnabled,
           },
         );
+        lastFlush.catch((error: unknown) => {
+          log.error(
+            `The engine's files did not all land after ${channel}`,
+            error,
+          );
+        });
       }
     } catch (e) {
       handleError(event, channel, ErrorCode.FAILURE);
@@ -401,6 +420,15 @@ export const createUpdatePath = ({
     const channel = 'engineReflush';
     if (await updateConfigPath(sink, channel)) {
       await handleUpdate(sink, channel);
+      // The update path answers before the files land; a switch has to know
+      // they did, or a chain that never reached the new engine reads as
+      // the switch working.
+      try {
+        await lastFlush;
+      } catch (error) {
+        log.error('Reflush could not write the engine files', error);
+        failure = failure ?? { errorCode: ErrorCode.FAILURE };
+      }
     }
     return failure ? { ok: false, error: failure } : { ok: true };
   };

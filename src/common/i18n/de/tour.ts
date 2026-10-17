@@ -466,6 +466,133 @@ const tour: Partial<Dictionary> = {
   'tour.ears.open': 'EQ öffnen',
   'tour.ears.imageAlt':
     'Das EQ-Diagramm mit einem Band, geteilt in ein Band fürs linke und eines fürs rechte Ohr, die auseinandergehen und sich in ihrer Mitte wieder treffen, die Kurve des linken Ohrs durchgezogen und die des rechten gestrichelt, neben dem Band-Menü mit Beide Ohren und Links + rechts.',
+  // Film voice: generated from .claude/video-kit/films/narration/lines.cjs — edit there.
+  'tour.film.eachEar.intro':
+    'Jedes Band in FluidEQ kann jetzt auf jedem Ohr anders klingen.',
+  'tour.film.eachEar.menu':
+    'Klicken Sie mit der rechten Maustaste auf ein Band, um sein Menü zu öffnen.',
+  'tour.film.eachEar.split':
+    'Wählen Sie Links + rechts. Das Band teilt sich in zwei Hälften, eine für jedes Ohr.',
+  'tour.film.eachEar.lines':
+    'Ziehen Sie jede Hälfte für sich. Die durchgezogene Linie ist Ihr linkes Ohr, die gestrichelte Ihr rechtes.',
+  'tour.film.eachEar.sliders':
+    'Jedes Ohr hat auch seinen eigenen Regler, mit L oder R markiert.',
+  'tour.film.eachEar.join':
+    'Um sie wieder zu vereinen, wählen Sie Beide Ohren. Die zwei Hälften treffen sich in der Mitte.',
+  'tour.film.sound.intro':
+    'Jede Änderung in FluidEQ hören Sie sofort, und ganz sanft.',
+  'tour.film.sound.glide':
+    'Bewegen Sie ein Band, während Musik läuft. Jede Änderung gleitet hinein, ohne jedes Klicken.',
+  'tour.film.sound.precise':
+    'Im Menü EQ-Modus steht Höhen auf Präzise. Jedes Band klingt genau wie gezeichnet, bis hinauf zu zwanzig Kilohertz.',
+  'tour.film.sound.classic':
+    'Wählen Sie Klassisch, damit die Bänder so gebaut werden wie in Equalizer APO.',
+  'tour.film.games.intro':
+    'FluidEQ kann jedem Ihrer Spiele einen eigenen Klang geben.',
+  'tour.film.games.add':
+    'Drücken Sie Spiel hinzufügen und wählen Sie es aus den Spielen Ihrer Launcher.',
+  'tour.film.games.sound': 'Dann wählen Sie den Klang, den es haben soll.',
+  'tour.film.games.front':
+    'Sobald das Spiel im Vordergrund ist, wird sein Klang von selbst geladen.',
+  'tour.film.games.closed':
+    'Schließen Sie das Spiel, und Ihr eigener Klang kehrt zurück.',
+  'tour.film.compact.intro':
+    'Wenn Sie nur die Bedienelemente brauchen, wird FluidEQ zu einem kleinen Player.',
+  'tour.film.compact.go':
+    'Drücken Sie oben auf die Player-Taste, und das Fenster wird zum Kompakten Player.',
+  'tour.film.compact.eq':
+    'Ihr EQ kommt mit. Drehen Sie einen Regler, und Sie hören es sofort.',
+  'tour.film.compact.back': 'Ein Klick bringt Sie zurück zum vollen Fenster.',
+  'tour.film.deleteImport.intro':
+    'Zwei kleine Änderungen, die Ihren EQ schützen.',
+  'tour.film.deleteImport.asks':
+    'Band löschen fragt jetzt erst nach. Drücken Sie noch einmal, um das Band wirklich zu löschen.',
+  'tour.film.deleteImport.oneEar':
+    'Ein Import kann auch nur ein Ohr füllen. Wählen Sie Importieren in, dann Linkes Ohr.',
+  'tour.film.deleteImport.otherEar':
+    'Nur das linke Ohr wird ersetzt. Das rechte bleibt genau, wie es war.',
+  'tour.film.outputs.intro':
+    'Jede Ausgabe Ihres Computers behält ihren eigenen Klang.',
+  'tour.film.outputs.each':
+    'Wechseln Sie von den Lautsprechern zum Kopfhörer, und der EQ wechselt zu dem des Kopfhörers.',
+  'tour.film.outputs.back':
+    'Wechseln Sie zurück, und die Lautsprecher klingen genau so, wie Sie sie verlassen haben.',
+  'tour.film.outputs.second':
+    'Sie können auch gleichzeitig über eine Zweite Ausgabe abspielen, mit eigenem Klang.',
+  'tour.film.outputs.edit':
+    'Drücken Sie Klang bearbeiten, um sie gleich hier einzustellen, während die Hauptausgabe weiterspielt.',
+  'tour.film.dsp.intro':
+    'Das DSP-Rack formt alles, was Sie hören, nach Ihrem EQ.',
+  'tour.film.dsp.preset':
+    'Wählen Sie ein Preset, und es stellt das ganze Rack auf einmal ein.',
+  'tour.film.dsp.stages':
+    'Jede Stufe hat eine eigene Seite, mit allen Reglern im Blick.',
+  'tour.film.dsp.meters':
+    'Seine Anzeigen bewegen sich mit der Musik, so sehen Sie, was es tut.',
+  'tour.film.deesser.intro':
+    'Das DSP-Rack hat jetzt einen De-Esser, für Stimmen mit scharfen S-Lauten.',
+  'tour.film.deesser.cuts':
+    'Wählen Sie ein Preset wie Podcast & Sprache. Jedes scharfe S wird leiser und bernsteinfarben angezeigt, Becken bleiben unberührt.',
+  'tour.film.deesser.isolate':
+    'Drücken Sie Isolieren, um nur das zu hören, was er entfernt.',
+  'tour.film.headphones.intro':
+    'FluidEQ kann Ihren Kopfhörer mit Messungen anderer korrigieren.',
+  'tour.film.headphones.search':
+    'Öffnen Sie EQ-Presets und suchen Sie Ihren Kopfhörer in der OPRA-Bibliothek.',
+  'tour.film.headphones.measure':
+    'Wählen Sie eine Messung. Bei jeder steht, wer sie gemacht hat.',
+  'tour.film.headphones.applied':
+    'Drücken Sie Modell-EQ anwenden. Die Korrektur kommt auf eine eigene Ebene, und Ihre Bänder bleiben, wie sie sind.',
+  'tour.film.headphones.paste':
+    'Sie können auch einen Export aus Squiglink einfügen.',
+  'tour.film.headphones.ears':
+    'Wenden Sie ihn als EQ an, auf beide Ohren oder nur auf eines.',
+  'tour.film.headphones.curve': 'Oder wenden Sie ihn als eigene Kurve an.',
+  'tour.film.karaoke.intro':
+    'Karaoke macht FluidEQ zur Bühne für Ihre eigenen Songs.',
+  'tour.film.karaoke.open':
+    'Drücken Sie Song öffnen und wählen Sie den Song zusammen mit seiner Textdatei.',
+  'tour.film.karaoke.words':
+    'Drücken Sie auf Wiedergabe. Jedes Wort leuchtet auf, während es gesungen wird.',
+  'tour.film.karaoke.pitch':
+    'Darunter zeigt die Tonhöhenanzeige jede Note, die zu singen ist. Schalten Sie Ihr Mikrofon ein, um Ihre eigene Stimme darauf zu sehen.',
+  'tour.film.maker.intro':
+    'Der Karaoke-Editor macht aus einem Song eine Karaoke-Datei.',
+  'tour.film.maker.timeline':
+    'Laden Sie einen Song und drücken Sie Erstellen. Jedes Wort und jede Note liegt auf einer Zeitleiste.',
+  'tour.film.maker.play':
+    'Spielen Sie ihn ab, und der Abspielkopf läuft über jedes Wort und jede Note. Ziehen Sie eines davon, um Timing oder Tonhöhe zu korrigieren.',
+  'tour.film.maker.use':
+    'Der Editor kann einen Song auch selbst vorbereiten, aus der Stimme des Sängers. Wenn es stimmt, drücken Sie Im Player verwenden.',
+  'tour.film.looks.intro':
+    'Das Spektrum unter Ihrem EQ lässt sich ganz nach Ihrem Geschmack zeichnen.',
+  'tour.film.looks.open':
+    'Drücken Sie Neue Darstellung in der Werkzeugleiste des Diagramms.',
+  'tour.film.looks.forms':
+    'Blättern Sie mit dem Pfeil durch die Formen: LED-Balken, Neonbalken, Skylines, Glastürme und mehr.',
+  'tour.film.looks.shape':
+    'Dann formen Sie sie. Teile legt fest, wie viele Balken es gibt, und auch Farben, Abstände und Bewegung bestimmen Sie.',
+  'tour.film.looks.save':
+    'Drücken Sie Speichern, um sie als eigene Darstellung zu behalten, oder teilen Sie sie als Datei.',
+  'tour.film.engine.intro':
+    'FluidEQ hat eine eigene Audio-Engine. Sie bringt Ihren EQ und das DSP-Rack zu allem, was der Computer abspielt.',
+  'tour.film.engine.choose':
+    'Öffnen Sie das Aktionsmenü oben rechts und drücken Sie auf die Karte der Engine. Wählen Sie die FluidEQ-Engine.',
+  'tour.film.engine.rack':
+    'Öffnen Sie dann DSP und wählen Sie ein Preset. Spiele, Browser und Musik-Apps laufen alle hindurch.',
+  'tour.film.library.intro':
+    'Die Bibliothek spielt Ihre eigene Musik, durch Ihren EQ.',
+  'tour.film.library.albums':
+    'Ihre Alben erscheinen als Cover. Blättern Sie mit den Pfeilen durch.',
+  'tour.film.library.album':
+    'Klicken Sie auf ein Album, um es mit all seinen Songs zu öffnen.',
+  'tour.film.library.play':
+    'Drücken Sie auf Wiedergabe, und es läuft durch denselben EQ und dasselbe DSP-Rack wie alles andere.',
+  // End of film voice.
+  'tour.film.soundOn': 'Ton einschalten',
+  'tour.film.soundOff': 'Ton ausschalten',
+  'tour.film.enlarge': 'Größer ansehen',
+  'tour.film.close': 'Video schließen',
 
   'tour.songs.kicker': 'EIN KLANG FÜR JEDEN SONG',
   'tour.songs.title': 'Songs, die sich merken, wie Sie sie mögen',

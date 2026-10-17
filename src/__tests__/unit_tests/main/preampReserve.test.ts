@@ -441,7 +441,7 @@ describe('preamp headroom', () => {
     expect(preampValue(state)).toBe(-6.55);
   });
 
-  it('sizes the preamp for a correction as it plays, smoothed at 1/12 octave with nothing chosen', () => {
+  it('sizes the preamp for a correction as it plays, unsmoothed with nothing chosen', () => {
     const state = getDefaultState();
     state.isFlat = true;
     state.isAutoPreAmpOn = true;
@@ -458,12 +458,12 @@ describe('preamp headroom', () => {
       },
     };
     expect(state.curveSmoothing).toBeUndefined();
-    const smoothed = preampValue(state);
-    expect(smoothed).toBe(preampValue({ ...state, curveSmoothing: 'twelfth' }));
-    // CONTROL: unsmoothed, the narrow peak stands taller and takes more.
-    expect(preampValue({ ...state, curveSmoothing: 'off' })).toBeLessThan(
-      smoothed,
-    );
+    const asPlayed = preampValue(state);
+    expect(asPlayed).toBe(preampValue({ ...state, curveSmoothing: 'off' }));
+    // CONTROL: smoothed, the narrow peak stands lower and takes less.
+    expect(
+      preampValue({ ...state, curveSmoothing: 'twelfth' }),
+    ).toBeGreaterThan(asPlayed);
   });
 
   it('reserves headroom for the measurable part of the custom FX file', () => {

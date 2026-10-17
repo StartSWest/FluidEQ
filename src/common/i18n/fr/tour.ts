@@ -465,6 +465,132 @@ const tour: Partial<Dictionary> = {
   'tour.ears.open': 'Ouvrir l’Égaliseur',
   'tour.ears.imageAlt':
     'Le graphique de l’égaliseur avec une bande partagée en une bande pour l’oreille gauche et une pour la droite, qui s’écartent puis se rejoignent en leur milieu, la courbe gauche pleine et la droite en pointillés, à côté du menu de la bande avec Les deux oreilles et Gauche + droite.',
+  // Film voice: generated from .claude/video-kit/films/narration/lines.cjs — edit there.
+  'tour.film.eachEar.intro':
+    'Chaque bande de FluidEQ peut désormais sonner différemment dans chaque oreille.',
+  'tour.film.eachEar.menu':
+    'Faites un clic droit sur une bande pour ouvrir son menu.',
+  'tour.film.eachEar.split':
+    'Choisissez Gauche + droite. La bande se divise en deux, une moitié pour chaque oreille.',
+  'tour.film.eachEar.lines':
+    'Faites glisser chaque moitié séparément. La ligne pleine est votre oreille gauche, la ligne pointillée votre oreille droite.',
+  'tour.film.eachEar.sliders':
+    'Chaque oreille a aussi son propre curseur, marqué L ou R.',
+  'tour.film.eachEar.join':
+    'Pour les réunir, choisissez Les deux oreilles. Les deux moitiés se rejoignent au milieu.',
+  'tour.film.sound.intro':
+    'Chaque changement que vous faites dans FluidEQ s’entend aussitôt, et en douceur.',
+  'tour.film.sound.glide':
+    'Déplacez une bande pendant la musique. Chaque changement arrive en glissant, sans aucun clic.',
+  'tour.film.sound.precise':
+    'Dans le menu Mode EQ, Aigus est réglé sur Précis. Chaque bande sonne exactement comme dessinée, jusqu’à vingt kilohertz.',
+  'tour.film.sound.classic':
+    'Choisissez Classique pour construire les bandes comme le fait Equalizer APO.',
+  'tour.film.games.intro':
+    'FluidEQ peut donner à chacun de vos jeux un son bien à lui.',
+  'tour.film.games.add':
+    'Appuyez sur Ajouter un jeu, puis choisissez-le parmi les jeux installés par vos lanceurs.',
+  'tour.film.games.sound': 'Choisissez ensuite le son qu’il doit avoir.',
+  'tour.film.games.front':
+    'Quand le jeu passe au premier plan, son son se charge tout seul.',
+  'tour.film.games.closed': 'Fermez le jeu, et votre propre son revient.',
+  'tour.film.compact.intro':
+    'Quand vous n’avez besoin que des commandes, FluidEQ se replie en un petit lecteur.',
+  'tour.film.compact.go':
+    'Appuyez sur le bouton du lecteur en haut, et la fenêtre devient le Lecteur compact.',
+  'tour.film.compact.eq':
+    'Votre EQ vous suit. Tournez un bouton, et vous l’entendez aussitôt.',
+  'tour.film.compact.back': 'Un seul clic vous ramène à la fenêtre complète.',
+  'tour.film.deleteImport.intro':
+    'Deux petits changements qui protègent votre EQ.',
+  'tour.film.deleteImport.asks':
+    'Supprimer la bande demande d’abord confirmation. Appuyez de nouveau pour vraiment la supprimer.',
+  'tour.film.deleteImport.oneEar':
+    'Une importation peut aussi ne remplir qu’une oreille. Choisissez Importer dans, puis Oreille gauche.',
+  'tour.film.deleteImport.otherEar':
+    'Seule l’oreille gauche est remplacée. La droite reste exactement comme avant.',
+  'tour.film.outputs.intro':
+    'Chaque sortie de votre ordinateur garde son propre son.',
+  'tour.film.outputs.each':
+    'Passez des enceintes au casque, et l’EQ devient celui du casque.',
+  'tour.film.outputs.back':
+    'Revenez en arrière, et les enceintes sonnent exactement comme vous les avez laissées.',
+  'tour.film.outputs.second':
+    'Vous pouvez aussi jouer en même temps sur une Deuxième sortie, avec son propre son.',
+  'tour.film.outputs.edit':
+    'Appuyez sur Modifier le son pour la régler ici même, pendant que la sortie principale continue de jouer.',
+  'tour.film.dsp.intro':
+    'Le rack DSP façonne tout ce que vous entendez, après votre EQ.',
+  'tour.film.dsp.preset':
+    'Choisissez un préréglage, et il règle tout le rack d’un coup.',
+  'tour.film.dsp.stages':
+    'Chaque étage a sa propre page, avec toutes les commandes en vue.',
+  'tour.film.dsp.meters':
+    'Ses indicateurs bougent avec la musique, pour voir ce qu’il fait.',
+  'tour.film.deesser.intro':
+    'Le rack DSP a maintenant un Dé-esseur, pour les voix aux S trop durs.',
+  'tour.film.deesser.cuts':
+    'Choisissez un préréglage comme Podcast et parole. Chaque S dur est atténué et affiché en ambre, les cymbales restent intactes.',
+  'tour.film.deesser.isolate':
+    'Appuyez sur Isoler pour n’entendre que ce qu’il retire.',
+  'tour.film.headphones.intro':
+    'FluidEQ peut corriger votre casque grâce aux mesures d’autres personnes.',
+  'tour.film.headphones.search':
+    'Ouvrez Préréglages EQ et cherchez votre casque dans la bibliothèque OPRA.',
+  'tour.film.headphones.measure':
+    'Choisissez une mesure. Chacune indique qui l’a faite.',
+  'tour.film.headphones.applied':
+    'Appuyez sur Appliquer l’égalisation du modèle. La correction va sur sa propre couche, et vos bandes restent telles quelles.',
+  'tour.film.headphones.paste':
+    'Vous pouvez aussi coller un export de Squiglink.',
+  'tour.film.headphones.ears':
+    'Appliquez-le comme votre EQ, aux deux oreilles ou à une seule.',
+  'tour.film.headphones.curve': 'Ou appliquez-le comme une courbe à part.',
+  'tour.film.karaoke.intro':
+    'Karaoké transforme FluidEQ en scène pour vos propres chansons.',
+  'tour.film.karaoke.open':
+    'Appuyez sur Ouvrir une chanson, et choisissez la chanson avec son fichier de paroles.',
+  'tour.film.karaoke.words':
+    'Appuyez sur Lecture. Chaque mot s’allume au moment où il est chanté.',
+  'tour.film.karaoke.pitch':
+    'En dessous, le guide de hauteur montre chaque note à chanter. Activez votre micro pour y voir votre propre voix.',
+  'tour.film.maker.intro':
+    'Le Créateur de karaoké transforme une chanson en fichier karaoké.',
+  'tour.film.maker.timeline':
+    'Chargez une chanson et appuyez sur Créer. Chaque mot et chaque note se placent sur une ligne du temps.',
+  'tour.film.maker.play':
+    'Lancez la lecture, et la tête de lecture passe sur chaque mot et chaque note. Faites-en glisser un pour corriger son timing ou sa hauteur.',
+  'tour.film.maker.use':
+    'Le Créateur peut aussi préparer une chanson tout seul, à partir de la voix du chanteur. Quand c’est juste, appuyez sur Utiliser dans le lecteur.',
+  'tour.film.looks.intro':
+    'Le spectre sous votre EQ peut être dessiné exactement comme vous le voulez.',
+  'tour.film.looks.open':
+    'Appuyez sur Nouveau style dans la barre d’outils du graphique.',
+  'tour.film.looks.forms':
+    'Parcourez les formes avec la flèche : barres LED, barres néon, silhouettes de villes, tours de verre et bien d’autres.',
+  'tour.film.looks.shape':
+    'Puis façonnez-la. Éléments règle le nombre de barres, et les couleurs, les espaces et le mouvement sont aussi à vous.',
+  'tour.film.looks.save':
+    'Appuyez sur Enregistrer pour le garder comme votre propre style, ou partagez-le sous forme de fichier.',
+  'tour.film.engine.intro':
+    'FluidEQ a son propre moteur audio. Il applique votre EQ et le rack DSP à tout ce que joue l’ordinateur.',
+  'tour.film.engine.choose':
+    'Ouvrez le menu des actions en haut à droite et appuyez sur la carte du moteur. Le moteur FluidEQ est celui à choisir.',
+  'tour.film.engine.rack':
+    'Ouvrez ensuite le DSP et choisissez un préréglage. Jeux, navigateurs et applications de musique passent tous par lui.',
+  'tour.film.library.intro':
+    'La Bibliothèque joue la musique que vous possédez, à travers votre EQ.',
+  'tour.film.library.albums':
+    'Vos albums apparaissent sous forme de pochettes. Feuilletez-les avec les flèches.',
+  'tour.film.library.album':
+    'Cliquez sur un album pour l’ouvrir, avec toutes ses chansons.',
+  'tour.film.library.play':
+    'Appuyez sur Lecture, et elle passe par le même EQ et le même rack DSP que tout le reste.',
+  // End of film voice.
+  'tour.film.soundOn': 'Activer le son',
+  'tour.film.soundOff': 'Couper le son',
+  'tour.film.enlarge': 'Regarder en plus grand',
+  'tour.film.close': 'Fermer la vidéo',
 
   'tour.songs.kicker': 'UN SON POUR CHAQUE CHANSON',
   'tour.songs.title': 'Des chansons qui se souviennent de vos goûts',

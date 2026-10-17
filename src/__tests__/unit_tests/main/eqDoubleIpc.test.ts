@@ -48,7 +48,7 @@ describe('Main EQ x2 IPC', () => {
       mainBandQ: 'off',
       curveBandQ: 'off',
       // Reset is where a new install starts: 1/12 octave, not Off.
-      curveSmoothing: 'twelfth',
+      curveSmoothing: 'off',
     };
     const update = jest.fn().mockResolvedValue(undefined);
     registerLayersIpc({

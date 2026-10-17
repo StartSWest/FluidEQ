@@ -20,7 +20,7 @@ const termsNotice = {
   'termsNotice.change.9':
     'Désormais, chaque scène publiée dans Visualiseurs est lue par le créateur de FluidEQ avant que quiconque la voie. Et Plus peut arriver sans paiement : un essai gratuit qu’un nouveau compte peut prendre une fois, et un mois gagné grâce à une scène approuvée. Ni l’un ni l’autre ne se renouvelle, et rien n’est jamais prélevé pour eux.',
   'termsNotice.change.10':
-    'Tant que vous avez Plus, FluidEQ indique désormais à son créateur combien de temps chaque scène est à votre écran, un nombre par scène et par jour, et quel moteur audio vous utilisez, pour que les nouvelles scènes suivent ce qui plaît aux membres. Personne d’autre ne voit ni l’un ni l’autre. FluidEQ peut aussi annoncer de nouvelles scènes dans l’application.',
+    'Tant que vous avez Plus, FluidEQ indique désormais à son créateur combien de temps chaque scène est à votre écran, un nombre par scène et par jour, et quel moteur audio vous utilisez, pour que les nouvelles scènes suivent ce qui plaît aux membres. Personne d’autre ne voit ni l’un ni l’autre. FluidEQ peut aussi annoncer de nouvelles scènes dans l’application. Les Nouveautés peuvent aussi lire de courtes vidéos de l’application depuis fluideq.com, sans rien sur vous.',
 } as const;
 
 export default termsNotice;

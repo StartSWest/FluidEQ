@@ -235,7 +235,7 @@ const help = {
   'help.eqmode.intro':
     'EQ mode changes how your sound is shaped, without editing anything. Its settings are the first card of the side panel on the EQ page, beside the curves they change, in two tabs: Your EQ covers your bands, the Tone, presets, Driver type and Smart EQ; Corrections covers headphone corrections and imported or custom curves. Band designs keep the frequencies and Q of a layout you like, ready for any output.',
   'help.eqmode.steps':
-    'Press EQ mode above the graph. The card comes into view, and the side panel opens if it was closed.\nPick the Your EQ or Corrections tab, then try a Strength or Band Q choice while music plays. Under the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble, for each tab.\nOn Corrections, Curve smoothing softens sampled curves at 1/12 octave until you choose otherwise. Reset puts everything back to Normal, and smoothing back to 1/12 octave.\nWould you rather have a menu? Press the pin on the card: EQ mode then opens as a menu over the graph, and the pin in that menu brings the card back.\nOpen the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
+    'Press EQ mode above the graph. The card comes into view, and the side panel opens if it was closed.\nPick the Your EQ or Corrections tab, then try a Strength or Band Q choice while music plays. Under the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble, for each tab.\nOn Corrections, Curve smoothing can soften sampled curves at 1/12 or 1/3 octave; it is Off until you choose. Reset puts everything back to Normal, and smoothing back to Off.\nWould you rather have a menu? Press the pin on the card: EQ mode then opens as a menu over the graph, and the pin in that menu brings the card back.\nOpen the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.',
   'help.eqmode.tip':
     'A new layout starts every band at one Q, and a band you add takes the Q of the others. A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits. Picking a built-in layout starts it fresh: its own frequencies and Q, every band at 0 dB and on both ears.',
   'help.eqmode.keywords':
@@ -249,13 +249,13 @@ const help = {
   'help.eqmode.q':
     'Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow. On Your EQ it shapes your own bands alone, never a preset or a correction.',
   'help.eqmode.smoothing':
-    'Softens sampled correction curves: 1/12 octave until you choose otherwise.',
+    'Softens sampled correction curves at 1/12 or 1/3 octave. Off until you choose.',
   'help.eqmode.phase':
     'Minimum or Linear, for each tab. With the FluidEQ Engine only.',
   'help.eqmode.treble':
     'Precise plays treble as drawn; Classic as Equalizer APO does. With the FluidEQ Engine only.',
   'help.eqmode.reset':
-    'Everything back to Normal, and Curve smoothing back to 1/12 octave.',
+    'Everything back to Normal, and Curve smoothing back to Off.',
   'help.eqmode.designsCaption': 'Band designs',
   'help.eqmode.builtIn': 'Standard layouts of 6, 10, 15, 20 or 31 bands.',
   'help.eqmode.save':

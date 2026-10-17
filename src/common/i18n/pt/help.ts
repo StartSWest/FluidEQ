@@ -237,7 +237,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'O Modo EQ muda como o seu som é moldado, sem editar nada. Os ajustes dele são o primeiro cartão do painel lateral na página EQ, ao lado das curvas que eles mudam, em duas abas: Seu EQ reúne suas bandas, o Tom, os presets, o Tipo de driver e o EQ inteligente; Correções reúne as correções de fones e as curvas importadas ou personalizadas. Os designs de bandas armazenam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
   'help.eqmode.steps':
-    'Pressione Modo EQ acima do gráfico. O cartão aparece, e o painel lateral se abre se estiver fechado.\nEscolha a aba Seu EQ ou Correções e experimente uma opção de Intensidade ou Q das bandas com a música tocando. Com o Motor FluidEQ, escolha a fase Mínima ou Linear, e Preciso ou Clássico nos agudos, para cada aba.\nEm Correções, Suavização das curvas suaviza as curvas amostradas em 1/12 de oitava até você escolher outra coisa. Redefinir volta tudo ao Normal, e a suavização a 1/12 de oitava.\nPrefere um menu? Pressione o alfinete do cartão: o Modo EQ passa a abrir como um menu sobre o gráfico, e o alfinete desse menu traz o cartão de volta.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
+    'Pressione Modo EQ acima do gráfico. O cartão aparece, e o painel lateral se abre se estiver fechado.\nEscolha a aba Seu EQ ou Correções e experimente uma opção de Intensidade ou Q das bandas com a música tocando. Com o Motor FluidEQ, escolha a fase Mínima ou Linear, e Preciso ou Clássico nos agudos, para cada aba.\nEm Correções, Suavização das curvas pode suavizar as curvas amostradas em 1/12 ou 1/3 de oitava; fica em Desativada até você escolher. Redefinir volta tudo ao Normal, e a suavização a Desativada.\nPrefere um menu? Pressione o alfinete do cartão: o Modo EQ passa a abrir como um menu sobre o gráfico, e o alfinete desse menu traz o cartão de volta.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
   'help.eqmode.tip':
     'Um layout novo começa todas as bandas em um mesmo Q, e uma banda que você adiciona recebe o Q das outras. Um design armazena só frequências e Q: ao carregar um, todas as bandas começam em 0 dB. A fase linear acrescenta atraso e pode ressoar antes de ataques rápidos. Escolher um layout embutido o faz começar do zero: suas próprias frequências e Q, cada banda em 0 dB e nos dois ouvidos.',
   'help.eqmode.keywords':
@@ -251,13 +251,13 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.q':
     'Constante mantém cada Q; Proporcional e Assimétrico estreitam as bandas conforme elas crescem. Em Seu EQ, ele molda só as suas bandas, nunca um preset ou uma correção.',
   'help.eqmode.smoothing':
-    'Suaviza curvas de correção amostradas: 1/12 de oitava até você escolher outra coisa.',
+    'Suaviza curvas de correção amostradas em 1/12 ou 1/3 de oitava. Desativada até você escolher.',
   'help.eqmode.phase':
     'Mínima ou Linear, para cada aba. Só com o Motor FluidEQ.',
   'help.eqmode.treble':
     'Preciso soa como desenhado; Clássico, como no Equalizer APO. Só com o Motor FluidEQ.',
   'help.eqmode.reset':
-    'Tudo de volta ao Normal, e Suavização das curvas de volta a 1/12 de oitava.',
+    'Tudo de volta ao Normal, e Suavização das curvas de volta a Desativada.',
   'help.eqmode.designsCaption': 'Designs de bandas',
   'help.eqmode.builtIn': 'Layouts padrão de 6, 10, 15, 20 ou 31 bandas.',
   'help.eqmode.save':

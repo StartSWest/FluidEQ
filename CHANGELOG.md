@@ -161,8 +161,22 @@ and the De-esser is not heard, and everything else plays as before.
   Brightness**, so a scene can be checked at night and in daylight before it
   is published.
 
+### What's New and Help
+
+- **Films of the real app.** Fourteen of What's New's slides, and the Help
+  topics they belong to, now show a short film of the feature being used,
+  with a voice saying what it is and how to use it, in your language, and the
+  line being said written under the picture. The films in What's New start
+  by themselves without sound, the speaker key turns the voice on for every
+  film after it, and the enlarge key opens a film as large as the window.
+  In Help nothing is fetched until you press play. The films come from
+  fluideq.com.
+
 ### Forum
 
+- **Help's button counts what is new in the Forum**, in yellow (99+ past
+  99), and so does the Forum entry in its menu, so new topics and replies
+  are never missed.
 - **New for you.** The forum's first row lists only what is new to you —
   topics you have not opened and replies since you last looked — from every
   board, latest first. Boards with something new carry a dot, new topics and
@@ -171,6 +185,14 @@ and the De-esser is not heard, and everything else plays as before.
 
 ### Fixes
 
+- Dragging a band is heard as it moves again. Each step used to wait until
+  every output's settings had been written, so with many outputs the sound
+  trailed the hand by seconds.
+- Curve smoothing starts Off: a headphone correction plays exactly as it was
+  measured until you choose 1/12 or 1/3 octave in EQ mode.
+- Switching to an output no longer brings back a preset curve that does not
+  match the preset shown on its picker, which outputs set up before 2.1
+  could carry.
 - Stopping the music no longer slides the live graph to the right: what is
   left of the sound falls where each frequency was heard.
 - The stars, glints and out-of-focus lights of the 3D worlds are soft dots

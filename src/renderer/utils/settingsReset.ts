@@ -133,9 +133,14 @@ export const SETTING_STEMS: readonly string[] = [
 /**
  * Forgotten as named and nothing under it: the Window colours switch an
  * earlier version kept, read when the mode is empty, beside the sky colours
- * measured for each visualizer (`.skies`), a cache that stays.
+ * measured for each visualizer (`.skies`), a cache that stays; and whether
+ * What's New's films play with their sound (`FilmPicture.tsx`), its stem
+ * being the tour's, whose other names are not settings.
  */
-export const SETTING_KEYS: readonly string[] = ['fluideq.sceneTint'];
+export const SETTING_KEYS: readonly string[] = [
+  'fluideq.sceneTint',
+  'fluideq.tour.filmSound',
+];
 
 export const isSettingKey = (key: string) =>
   SETTING_KEYS.includes(key) ||

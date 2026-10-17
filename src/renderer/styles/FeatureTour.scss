@@ -19,6 +19,8 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'tour-lighting';
 @use 'tour-release18';
 @use 'tour-release21';
+@use 'tour-film';
+@use 'tour-miniature';
 
 // Below the changelog (1450): "full release notes" opens on top of this and
 // closes back onto it. Above the support dialog (1400) and every notice.
@@ -47,7 +49,7 @@ it under the terms of the GNU General Public License version 3 or later.
   height: max(66vh, min(72vh, 780px), min(600px, 100vh - #{$spacing-l} * 2));
 
   // The slide's type scale, one unit everything on the stage is a multiple of.
-  --tour-unit: clamp(11px, 0.78vw, 17px);
+  --tour-unit: #{tour-miniature.$tour-unit-size};
 }
 
 // The stage is the tour's own scroller, laid out to fit the panel at its

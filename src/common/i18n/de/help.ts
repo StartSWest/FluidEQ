@@ -243,7 +243,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'Der EQ-Modus ändert, wie Ihr Klang geformt wird, ohne etwas zu bearbeiten. Seine Einstellungen sind die erste Karte der Seitenleiste auf der EQ-Seite, neben den Kurven, die sie verändern, in zwei Tabs: Ihr EQ umfasst Ihre Bänder, die Klang-Regler, Presets, den Treibertyp und Smart-EQ; Korrekturen umfasst Kopfhörerkorrekturen sowie importierte oder eigene Kurven. Band-Designs bewahren die Frequenzen und das Q eines Layouts, das Ihnen gefällt, bereit für jeden Ausgang.',
   'help.eqmode.steps':
-    'Drücken Sie EQ-Modus über dem Diagramm. Die Karte kommt ins Bild, und die Seitenleiste öffnet sich, falls sie geschlossen war.\nWählen Sie den Tab Ihr EQ oder Korrekturen und probieren Sie bei laufender Musik eine Einstellung unter Stärke oder Band-Q. Wählen Sie unter der FluidEQ-Engine für jeden Tab die Phase Minimal oder Linear und unter Höhen Präzise oder Klassisch.\nUnter Korrekturen glättet die Kurvenglättung abgetastete Kurven mit 1/12 Oktave, bis Sie etwas anderes wählen. Zurücksetzen stellt alles auf Normal und die Glättung auf 1/12 Oktave zurück.\nLieber ein Menü? Drücken Sie die Stecknadel auf der Karte: Der EQ-Modus öffnet sich dann als Menü über dem Diagramm, und die Stecknadel in diesem Menü holt die Karte zurück.\nÖffnen Sie neben Band hinzufügen den Knopf Schnelle Anordnungen. Wählen Sie 6, 10, 15, 20 oder 31 Bänder oder drücken Sie Design speichern…, um das aktuelle Layout zu benennen.',
+    'Drücken Sie EQ-Modus über dem Diagramm. Die Karte kommt ins Bild, und die Seitenleiste öffnet sich, falls sie geschlossen war.\nWählen Sie den Tab Ihr EQ oder Korrekturen und probieren Sie bei laufender Musik eine Einstellung unter Stärke oder Band-Q. Wählen Sie unter der FluidEQ-Engine für jeden Tab die Phase Minimal oder Linear und unter Höhen Präzise oder Klassisch.\nUnter Korrekturen kann die Kurvenglättung abgetastete Kurven mit 1/12 oder 1/3 Oktave glätten; sie steht auf Aus, bis Sie etwas wählen. Zurücksetzen stellt alles auf Normal und die Glättung auf Aus zurück.\nLieber ein Menü? Drücken Sie die Stecknadel auf der Karte: Der EQ-Modus öffnet sich dann als Menü über dem Diagramm, und die Stecknadel in diesem Menü holt die Karte zurück.\nÖffnen Sie neben Band hinzufügen den Knopf Schnelle Anordnungen. Wählen Sie 6, 10, 15, 20 oder 31 Bänder oder drücken Sie Design speichern…, um das aktuelle Layout zu benennen.',
   'help.eqmode.tip':
     'Ein neues Layout beginnt jedes Band mit einem gemeinsamen Q, und ein hinzugefügtes Band übernimmt das Q der anderen. Ein Design speichert nur Frequenzen und Q: Wird eines geladen, beginnt jedes Band bei 0 dB. Lineare Phase fügt Verzögerung hinzu und kann vor harten Schlägen vorschwingen. Ein eingebautes Layout beginnt neu, wenn Sie es wählen: mit seinen eigenen Frequenzen und Q, jedes Band auf 0 dB und auf beiden Ohren.',
   'help.eqmode.keywords':
@@ -258,13 +258,13 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.q':
     'Konstant behält jedes Q; Proportional und Asymmetrisch machen Bänder schmaler, je stärker sie werden. Unter Ihr EQ formt es nur Ihre eigenen Bänder, nie ein Preset oder eine Korrektur.',
   'help.eqmode.smoothing':
-    'Glättet abgetastete Korrekturkurven: 1/12 Oktave, bis Sie etwas anderes wählen.',
+    'Glättet abgetastete Korrekturkurven mit 1/12 oder 1/3 Oktave. Aus, bis Sie etwas wählen.',
   'help.eqmode.phase':
     'Minimal oder Linear, für jeden Tab. Nur mit der FluidEQ-Engine.',
   'help.eqmode.treble':
     'Präzise klingt wie gezeichnet, Klassisch wie in Equalizer APO. Nur mit der FluidEQ-Engine.',
   'help.eqmode.reset':
-    'Alles zurück auf Normal und die Kurvenglättung zurück auf 1/12 Oktave.',
+    'Alles zurück auf Normal und die Kurvenglättung zurück auf Aus.',
   'help.eqmode.designsCaption': 'Band-Designs',
   'help.eqmode.builtIn': 'Standard-Layouts mit 6, 10, 15, 20 oder 31 Bändern.',
   'help.eqmode.save':

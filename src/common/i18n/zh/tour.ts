@@ -446,6 +446,94 @@ const tour: Partial<Dictionary> = {
   'tour.ears.open': '打开均衡器',
   'tour.ears.imageAlt':
     '均衡器图：一个频段分成左耳和右耳两个频段，分开后又在中间合并，左耳曲线为实线、右耳为虚线，旁边是带有“双耳”和“左 + 右”的频段菜单。',
+  // Film voice: generated from .claude/video-kit/films/narration/lines.cjs — edit there.
+  'tour.film.eachEar.intro': '现在，FluidEQ 的每个频段都可以在左右耳各自发声。',
+  'tour.film.eachEar.menu': '右键点击一个频段，打开它的菜单。',
+  'tour.film.eachEar.split': '选择“左 + 右”，频段会一分为二，左右耳各一半。',
+  'tour.film.eachEar.lines': '分别拖动每一半。实线是你的左耳，虚线是你的右耳。',
+  'tour.film.eachEar.sliders': '每只耳朵也有自己的滑块，标着 L 或 R。',
+  'tour.film.eachEar.join': '要重新合并，选择“双耳”，两半会在中间汇合。',
+  'tour.film.sound.intro':
+    '你在 FluidEQ 里的每一处改动，都会立刻、平滑地听到。',
+  'tour.film.sound.glide':
+    '在音乐播放时移动一个频段，每次变化都平滑过渡，听不到咔哒声。',
+  'tour.film.sound.precise':
+    '在 EQ 模式菜单里，高音设为“精确”。每个频段都按画出的样子发声，一直到两万赫兹。',
+  'tour.film.sound.classic': '选择“经典”，频段会按 Equalizer APO 的方式构建。',
+  'tour.film.games.intro': 'FluidEQ 可以为你的每个游戏设置专属的声音。',
+  'tour.film.games.add': '点击“添加游戏”，从启动器已安装的游戏中选择它。',
+  'tour.film.games.sound': '然后选择它应有的声音。',
+  'tour.film.games.front': '游戏切到前台时，它的声音会自动载入。',
+  'tour.film.games.closed': '关闭游戏，你自己的声音就会回来。',
+  'tour.film.compact.intro': '只需要控制按钮时，FluidEQ 可以收成一个小播放器。',
+  'tour.film.compact.go': '点击顶部的播放器按钮，窗口就变成迷你播放器。',
+  'tour.film.compact.eq': '你的 EQ 也一起带过来。转动旋钮，立刻就能听到。',
+  'tour.film.compact.back': '一键即可回到完整窗口。',
+  'tour.film.deleteImport.intro': '两个小改动，让你的 EQ 更安全。',
+  'tour.film.deleteImport.asks':
+    '“删除频段”现在会先确认。再点一次才会真正删除。',
+  'tour.film.deleteImport.oneEar':
+    '导入也可以只填一只耳朵。选择“导入到”，再选“左耳”。',
+  'tour.film.deleteImport.otherEar': '只替换左耳，右耳保持原样。',
+  'tour.film.outputs.intro': '电脑上的每路输出都保留各自的声音。',
+  'tour.film.outputs.each': '从音箱切换到耳机，EQ 就换成耳机自己的。',
+  'tour.film.outputs.back': '切回去，音箱的声音和你离开时一模一样。',
+  'tour.film.outputs.second': '你也可以同时用第二路输出播放，它有自己的声音。',
+  'tour.film.outputs.edit':
+    '点击“编辑声音”，就能在这里调整它，主输出照常播放。',
+  'tour.film.dsp.intro': 'DSP 机架在 EQ 之后，塑造你听到的一切。',
+  'tour.film.dsp.preset': '选一个预设，就能一次设好整个机架。',
+  'tour.film.dsp.stages': '每个环节都有自己的页面，所有控件一目了然。',
+  'tour.film.dsp.meters': '它的表头随音乐跳动，让你看到它在做什么。',
+  'tour.film.deesser.intro': 'DSP 机架新增了齿音消除，专治刺耳的 S 音。',
+  'tour.film.deesser.cuts':
+    '选一个预设，比如“播客与语音”。每个尖锐的 S 都会被压低并以琥珀色标出，镲片则不受影响。',
+  'tour.film.deesser.isolate': '点击“独听”，只听它去掉的部分。',
+  'tour.film.headphones.intro': 'FluidEQ 可以用别人做的测量来校正你的耳机。',
+  'tour.film.headphones.search':
+    '打开“EQ 预设”，在 OPRA 资料库里搜索你的耳机。',
+  'tour.film.headphones.measure': '选一个测量，每个都写明了是谁做的。',
+  'tour.film.headphones.applied':
+    '点击“应用该型号的均衡”，校正会放在单独的一层，你自己的频段保持不变。',
+  'tour.film.headphones.paste': '你也可以粘贴从 Squiglink 导出的内容。',
+  'tour.film.headphones.ears': '把它作为你的 EQ 应用，双耳或只用一只耳朵都行。',
+  'tour.film.headphones.curve': '或者把它作为一条独立的曲线应用。',
+  'tour.film.karaoke.intro': '卡拉OK 让 FluidEQ 变成你自己歌曲的舞台。',
+  'tour.film.karaoke.open': '点击“打开歌曲”，把歌曲和它的歌词文件一起选中。',
+  'tour.film.karaoke.words': '点击播放，每个词会在唱到时亮起。',
+  'tour.film.karaoke.pitch':
+    '下方的音高引导会显示每个要唱的音。打开麦克风，就能在上面看到自己的声音。',
+  'tour.film.maker.intro': '卡拉OK 制作器能把一首歌做成卡拉OK 文件。',
+  'tour.film.maker.timeline':
+    '载入一首歌，点击“制作”，歌里的每个词和每个音都排在时间线上。',
+  'tour.film.maker.play':
+    '播放时，播放头会经过每个词和每个音。拖动任何一个，就能修正它的时间或音高。',
+  'tour.film.maker.use':
+    '制作器也能根据歌手的声音自动做好一首歌。听着没问题，就点“在播放器中使用”。',
+  'tour.film.looks.intro': 'EQ 下方的频谱，可以画成你喜欢的任何样子。',
+  'tour.film.looks.open': '在图表的工具栏里点击“新建外观”。',
+  'tour.film.looks.forms':
+    '用箭头切换各种形状：LED 柱、霓虹柱、城市天际线、玻璃塔，还有更多。',
+  'tour.film.looks.shape':
+    '然后调整它的样子。“分段”决定有多少根柱子，颜色、间隙和动态也都由你决定。',
+  'tour.film.looks.save':
+    '点击“保存”，把它留作你自己的外观，也可以存成文件分享。',
+  'tour.film.engine.intro':
+    'FluidEQ 有自己的音频引擎，它把你的 EQ 和 DSP 机架用到电脑播放的一切声音上。',
+  'tour.film.engine.choose':
+    '打开右上角的操作菜单，点击引擎卡片，选择“FluidEQ 引擎”。',
+  'tour.film.engine.rack':
+    '然后打开 DSP，选一个预设。游戏、浏览器和音乐应用，都会经过它播放。',
+  'tour.film.library.intro': '媒体库用你的 EQ 播放你自己的音乐。',
+  'tour.film.library.albums': '你的专辑以封面显示，用箭头翻看。',
+  'tour.film.library.album': '点击一张专辑，打开它和里面的所有歌曲。',
+  'tour.film.library.play':
+    '点击播放，它会经过和其他声音相同的 EQ 与 DSP 机架。',
+  // End of film voice.
+  'tour.film.soundOn': '打开声音',
+  'tour.film.soundOff': '关闭声音',
+  'tour.film.enlarge': '放大观看',
+  'tour.film.close': '关闭视频',
 
   'tour.songs.kicker': '每首歌都有自己的声音',
   'tour.songs.title': '记得你喜好的歌曲',

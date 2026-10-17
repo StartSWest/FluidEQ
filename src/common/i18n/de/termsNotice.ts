@@ -20,7 +20,7 @@ const termsNotice = {
   'termsNotice.change.9':
     'Jede in Visualizer veröffentlichte Szene liest jetzt der Macher von FluidEQ, bevor sie jemand anderes sieht. Und Plus kann ohne Zahlung dazukommen: eine Gratis-Testphase, die ein neues Konto einmal nehmen kann, und ein Monat, den eine freigegebene Szene einbringt. Beides verlängert sich nicht, und es wird nie etwas dafür berechnet.',
   'termsNotice.change.10':
-    'Solange Sie Plus haben, teilt FluidEQ seinem Macher jetzt mit, wie lange jede Szene auf Ihrem Bildschirm ist – eine Zahl pro Szene und Tag – und welche Audio-Engine Sie verwenden, damit sich neue Szenen danach richten können, was Mitgliedern gefällt. Sonst sieht niemand etwas davon. Außerdem kann FluidEQ neue Szenen in der App ankündigen.',
+    'Solange Sie Plus haben, teilt FluidEQ seinem Macher jetzt mit, wie lange jede Szene auf Ihrem Bildschirm ist – eine Zahl pro Szene und Tag – und welche Audio-Engine Sie verwenden, damit sich neue Szenen danach richten können, was Mitgliedern gefällt. Sonst sieht niemand etwas davon. Außerdem kann FluidEQ neue Szenen in der App ankündigen. „Neu in FluidEQ“ kann außerdem kurze Filme der App von fluideq.com abspielen, ohne etwas über Sie.',
 } as const;
 
 export default termsNotice;

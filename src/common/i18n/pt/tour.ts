@@ -463,6 +463,131 @@ const tour: Partial<Dictionary> = {
   'tour.ears.open': 'Abrir EQ',
   'tour.ears.imageAlt':
     'O gráfico do EQ com uma banda dividida em uma para o ouvido esquerdo e outra para o direito, que se afastam e voltam a se juntar no meio, a curva esquerda contínua e a direita tracejada, ao lado do menu da banda com Ambos os ouvidos e Esquerdo + direito.',
+  // Film voice: generated from .claude/video-kit/films/narration/lines.cjs — edit there.
+  'tour.film.eachEar.intro':
+    'Agora cada banda do FluidEQ pode soar diferente em cada ouvido.',
+  'tour.film.eachEar.menu':
+    'Clique com o botão direito em uma banda para abrir o menu dela.',
+  'tour.film.eachEar.split':
+    'Escolha Esquerdo + direito. A banda se divide em duas, uma metade para cada ouvido.',
+  'tour.film.eachEar.lines':
+    'Arraste cada metade separadamente. A linha contínua é o seu ouvido esquerdo, e a tracejada, o direito.',
+  'tour.film.eachEar.sliders':
+    'Cada ouvido também tem seu próprio controle deslizante, marcado com L ou R.',
+  'tour.film.eachEar.join':
+    'Para juntá-las de novo, escolha Ambos os ouvidos. As duas metades se encontram no meio.',
+  'tour.film.sound.intro':
+    'Cada mudança que você faz no FluidEQ é ouvida na hora, e com suavidade.',
+  'tour.film.sound.glide':
+    'Mova uma banda enquanto a música toca. Cada mudança entra deslizando, sem nenhum clique.',
+  'tour.film.sound.precise':
+    'No menu Modo EQ, Agudos está em Preciso. Cada banda soa exatamente como foi desenhada, até vinte quilohertz.',
+  'tour.film.sound.classic':
+    'Escolha Clássico para construir as bandas do jeito que o Equalizer APO constrói.',
+  'tour.film.games.intro':
+    'O FluidEQ pode dar a cada um dos seus jogos um som próprio.',
+  'tour.film.games.add':
+    'Pressione Adicionar um jogo e escolha entre os jogos instalados pelos seus launchers.',
+  'tour.film.games.sound': 'Depois escolha o som que ele deve ter.',
+  'tour.film.games.front':
+    'Quando o jogo vem para a frente, o som dele carrega sozinho.',
+  'tour.film.games.closed': 'Feche o jogo, e o seu próprio som volta.',
+  'tour.film.compact.intro':
+    'Quando você só precisa dos controles, o FluidEQ vira um player pequeno.',
+  'tour.film.compact.go':
+    'Pressione o botão do player no topo, e a janela vira o Player compacto.',
+  'tour.film.compact.eq':
+    'O seu EQ vem junto. Gire um botão e você ouve na hora.',
+  'tour.film.compact.back': 'Um clique leva você de volta à janela completa.',
+  'tour.film.deleteImport.intro':
+    'Duas pequenas mudanças que protegem o seu EQ.',
+  'tour.film.deleteImport.asks':
+    'Excluir banda agora pergunta antes. Pressione de novo para excluir a banda de verdade.',
+  'tour.film.deleteImport.oneEar':
+    'Uma importação também pode preencher só um ouvido. Escolha Importar em e depois Ouvido esquerdo.',
+  'tour.film.deleteImport.otherEar':
+    'Só o ouvido esquerdo é substituído. O direito fica exatamente como estava.',
+  'tour.film.outputs.intro':
+    'Cada saída do seu computador guarda o próprio som.',
+  'tour.film.outputs.each':
+    'Troque das caixas de som para os fones, e o EQ passa a ser o dos fones.',
+  'tour.film.outputs.back':
+    'Volte, e as caixas soam exatamente como você deixou.',
+  'tour.film.outputs.second':
+    'Você também pode tocar por uma Segunda saída ao mesmo tempo, com som próprio.',
+  'tour.film.outputs.edit':
+    'Pressione Editar som para ajustar ali mesmo, enquanto a saída principal continua tocando.',
+  'tour.film.dsp.intro':
+    'O rack DSP molda tudo o que você ouve, depois do seu EQ.',
+  'tour.film.dsp.preset':
+    'Escolha um preset, e ele configura o rack inteiro de uma vez.',
+  'tour.film.dsp.stages':
+    'Cada estágio tem a própria página, com todos os controles à vista.',
+  'tour.film.dsp.meters':
+    'Os medidores se movem com a música, para você ver o que ele faz.',
+  'tour.film.deesser.intro':
+    'O rack DSP agora tem um De-esser, para vozes com S ásperos.',
+  'tour.film.deesser.cuts':
+    'Escolha um preset como Podcast e fala. Cada S áspero é atenuado e aparece em âmbar, enquanto os pratos ficam intactos.',
+  'tour.film.deesser.isolate': 'Pressione Isolar para ouvir só o que ele tira.',
+  'tour.film.headphones.intro':
+    'O FluidEQ pode corrigir seus fones com medições feitas por outras pessoas.',
+  'tour.film.headphones.search':
+    'Abra Presets EQ e procure seus fones na biblioteca do OPRA.',
+  'tour.film.headphones.measure':
+    'Escolha uma medição. Cada uma diz quem a fez.',
+  'tour.film.headphones.applied':
+    'Pressione Aplicar EQ do modelo. A correção vai para uma camada própria, e as suas bandas ficam como estão.',
+  'tour.film.headphones.paste':
+    'Você também pode colar uma exportação do Squiglink.',
+  'tour.film.headphones.ears':
+    'Aplique como o seu EQ, nos dois ouvidos ou só em um.',
+  'tour.film.headphones.curve': 'Ou aplique como uma curva própria.',
+  'tour.film.karaoke.intro':
+    'O Karaokê transforma o FluidEQ em um palco para as suas músicas.',
+  'tour.film.karaoke.open':
+    'Pressione Abrir música e escolha a música junto com o arquivo da letra.',
+  'tour.film.karaoke.words':
+    'Pressione Reproduzir. Cada palavra acende enquanto é cantada.',
+  'tour.film.karaoke.pitch':
+    'Abaixo, o guia de afinação mostra cada nota a cantar. Ligue o microfone para ver a sua própria voz nele.',
+  'tour.film.maker.intro':
+    'O Criador de karaokê transforma uma música em um arquivo de karaokê.',
+  'tour.film.maker.timeline':
+    'Carregue uma música e pressione Criar. Cada palavra e cada nota ficam em uma linha do tempo.',
+  'tour.film.maker.play':
+    'Toque, e o cursor passa por cada palavra e nota. Arraste qualquer uma para corrigir o tempo ou a afinação.',
+  'tour.film.maker.use':
+    'O Criador também pode preparar uma música sozinho, a partir da voz de quem canta. Quando estiver certo, pressione Usar no player.',
+  'tour.film.looks.intro':
+    'O espectro embaixo do seu EQ pode ser desenhado do jeito que você quiser.',
+  'tour.film.looks.open':
+    'Pressione Novo visual na barra de ferramentas do gráfico.',
+  'tour.film.looks.forms':
+    'Passe pelas formas com a seta: barras de LED, barras de neon, horizontes de cidade, torres de vidro e mais.',
+  'tour.film.looks.shape':
+    'Depois dê forma a ele. Partes define quantas barras existem, e as cores, os espaços e o movimento também são escolha sua.',
+  'tour.film.looks.save':
+    'Pressione Salvar para guardar como um visual seu, ou compartilhe como arquivo.',
+  'tour.film.engine.intro':
+    'O FluidEQ tem um motor de áudio próprio. Ele leva o seu EQ e o rack DSP a tudo o que o computador toca.',
+  'tour.film.engine.choose':
+    'Abra o menu de ações no canto superior direito e pressione o cartão do motor. O Motor FluidEQ é o que você deve escolher.',
+  'tour.film.engine.rack':
+    'Depois abra o DSP e escolha um preset. Jogos, navegadores e apps de música tocam todos por ele.',
+  'tour.film.library.intro':
+    'A Biblioteca toca as músicas que você tem, pelo seu EQ.',
+  'tour.film.library.albums':
+    'Seus álbuns aparecem como capas. Folheie com as setas.',
+  'tour.film.library.album':
+    'Clique em um álbum para abri-lo, com todas as músicas.',
+  'tour.film.library.play':
+    'Pressione Reproduzir, e ela toca pelo mesmo EQ e rack DSP de todo o resto.',
+  // End of film voice.
+  'tour.film.soundOn': 'Ligar o som',
+  'tour.film.soundOff': 'Desligar o som',
+  'tour.film.enlarge': 'Ver maior',
+  'tour.film.close': 'Fechar o vídeo',
 
   'tour.songs.kicker': 'UM SOM PARA CADA MÚSICA',
   'tour.songs.title': 'Músicas que lembram como você gosta delas',

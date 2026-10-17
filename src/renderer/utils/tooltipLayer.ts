@@ -381,11 +381,37 @@ const onScroll = (event: Event) => {
   }
 };
 
+/**
+ * Between a press and its release. A press puts the tooltip away, and the
+ * focus the press itself moves must not bring it back: the EQ graph's points
+ * take focus in code as they are pressed, which Chromium can count as
+ * keyboard focus, and a right-click on a band put "Click to select" back over
+ * the band's menu a moment after it had gone.
+ */
+let isPressing = false;
+const onPress = () => {
+  isPressing = true;
+  dismiss();
+};
+const onRelease = () => {
+  isPressing = false;
+};
+// A press that never comes back up here (cancelled, or the window losing
+// focus mid-press) ends all the same, or Tab would stay silent until the next.
+const onLostPress = () => {
+  onRelease();
+  dismiss();
+};
+
 // The keyboard's equivalent of resting the pointer on something: a control
 // reached with Tab shows what the pointer would have been told.
 const onFocusIn = (event: FocusEvent) => {
   const { target } = event;
-  if (!(target instanceof Element) || !target.matches(':focus-visible')) {
+  if (
+    isPressing ||
+    !(target instanceof Element) ||
+    !target.matches(':focus-visible')
+  ) {
     return;
   }
   const lent = loans.find((loan) => loan.element === target);
@@ -411,8 +437,9 @@ const onFocusOut = (event: FocusEvent) => {
 const installTooltipLayer = () => {
   document.addEventListener('pointerover', onPointerOver, true);
   document.addEventListener('pointerout', onPointerOut, true);
-  document.addEventListener('pointerdown', dismiss, true);
-  document.addEventListener('pointercancel', dismiss, true);
+  document.addEventListener('pointerdown', onPress, true);
+  document.addEventListener('pointerup', onRelease, true);
+  document.addEventListener('pointercancel', onLostPress, true);
   document.addEventListener('keydown', dismiss, true);
   document.addEventListener('wheel', dismiss, { capture: true, passive: true });
   document.addEventListener('scroll', onScroll, {
@@ -421,7 +448,7 @@ const installTooltipLayer = () => {
   });
   document.addEventListener('focusin', onFocusIn, true);
   document.addEventListener('focusout', onFocusOut, true);
-  window.addEventListener('blur', dismiss);
+  window.addEventListener('blur', onLostPress);
   window.addEventListener('resize', dismiss);
 };
 

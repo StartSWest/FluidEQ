@@ -458,6 +458,124 @@ const tour: Partial<Dictionary> = {
   'tour.ears.open': 'EQ を開く',
   'tour.ears.imageAlt':
     'EQ グラフ。ひとつのバンドが左耳用と右耳用に分かれて離れ、中間で再びひとつになる。左耳のカーブは実線、右耳は破線。横に「両耳」と「左 + 右」のあるバンドメニュー。',
+  // Film voice: generated from .claude/video-kit/films/narration/lines.cjs — edit there.
+  'tour.film.eachEar.intro':
+    'FluidEQ のすべてのバンドが、左右の耳で別々に鳴らせるようになりました。',
+  'tour.film.eachEar.menu': 'バンドを右クリックして、メニューを開きます。',
+  'tour.film.eachEar.split':
+    '「左 + 右」を選ぶと、バンドが左右の耳ごとに二つに分かれます。',
+  'tour.film.eachEar.lines':
+    'それぞれの半分を別々にドラッグします。実線が左耳、破線が右耳です。',
+  'tour.film.eachEar.sliders':
+    '左右それぞれに、L または R の印が付いた専用のスライダーもあります。',
+  'tour.film.eachEar.join':
+    '元に戻すには「両耳」を選びます。二つの半分が真ん中で一つになります。',
+  'tour.film.sound.intro': 'FluidEQ での変更は、すぐに、なめらかに聞こえます。',
+  'tour.film.sound.glide':
+    '音楽の再生中にバンドを動かしてみてください。変化はなめらかに移り、クリック音は出ません。',
+  'tour.film.sound.precise':
+    'EQモードのメニューで、高音は「精密」になっています。どのバンドも描いたとおりに、二十キロヘルツまで鳴ります。',
+  'tour.film.sound.classic':
+    '「クラシック」を選ぶと、Equalizer APO と同じ作り方でバンドを鳴らします。',
+  'tour.film.games.intro':
+    'FluidEQ では、ゲームごとに専用のサウンドを設定できます。',
+  'tour.film.games.add':
+    '「ゲームを追加」を押して、ランチャーにインストールされたゲームから選びます。',
+  'tour.film.games.sound': '次に、そのゲームのサウンドを選びます。',
+  'tour.film.games.front':
+    'ゲームが前面に来ると、そのサウンドが自動で読み込まれます。',
+  'tour.film.games.closed': 'ゲームを閉じると、いつものサウンドに戻ります。',
+  'tour.film.compact.intro':
+    '操作だけで十分なときは、FluidEQ を小さなプレーヤーにたためます。',
+  'tour.film.compact.go':
+    '上部のプレーヤーボタンを押すと、ウィンドウがコンパクトプレーヤーになります。',
+  'tour.film.compact.eq':
+    'EQ もそのまま使えます。ノブを回すと、すぐに音が変わります。',
+  'tour.film.compact.back': 'ワンクリックで、元の大きなウィンドウに戻ります。',
+  'tour.film.deleteImport.intro': 'EQ を守るための、二つの小さな変更です。',
+  'tour.film.deleteImport.asks':
+    '「バンドを削除」は、まず確認するようになりました。もう一度押すと本当に削除されます。',
+  'tour.film.deleteImport.oneEar':
+    '読み込みは片耳だけにもできます。「読み込み先」から「左耳」を選びます。',
+  'tour.film.deleteImport.otherEar':
+    '置き換わるのは左耳だけで、右耳はそのまま残ります。',
+  'tour.film.outputs.intro':
+    'パソコンの出力ごとに、それぞれのサウンドが保たれます。',
+  'tour.film.outputs.each':
+    'スピーカーからヘッドホンに切り替えると、EQ もヘッドホン用に切り替わります。',
+  'tour.film.outputs.back': '戻すと、スピーカーは前のままの音で鳴ります。',
+  'tour.film.outputs.second':
+    '2 つめの出力から同時に鳴らすこともでき、そちらにも専用のサウンドがあります。',
+  'tour.film.outputs.edit':
+    '「サウンドを編集」を押すと、メインの出力を鳴らしたまま、ここで調整できます。',
+  'tour.film.dsp.intro':
+    'DSP ラックは、EQ のあとで、聞こえるすべての音を整えます。',
+  'tour.film.dsp.preset':
+    'プリセットを一つ選ぶだけで、ラック全体が一度に設定されます。',
+  'tour.film.dsp.stages':
+    'ステージごとに専用のページがあり、すべての操作が見渡せます。',
+  'tour.film.dsp.meters':
+    'メーターが音楽に合わせて動くので、何をしているかが見えます。',
+  'tour.film.deesser.intro':
+    'DSP ラックにディエッサーが加わりました。耳に刺さる「S」の音を抑えます。',
+  'tour.film.deesser.cuts':
+    '「ポッドキャストと話し声」などのプリセットを選ぶと、鋭い S の音だけが抑えられて琥珀色で示され、シンバルはそのまま残ります。',
+  'tour.film.deesser.isolate':
+    '「アイソレート」を押すと、取り除いた音だけが聞こえます。',
+  'tour.film.headphones.intro':
+    'FluidEQ は、ほかの人が測定したデータでヘッドホンを補正できます。',
+  'tour.film.headphones.search':
+    '「EQ プリセット」を開いて、OPRA のライブラリからお使いのヘッドホンを探します。',
+  'tour.film.headphones.measure':
+    '測定を一つ選びます。どれも、誰が測ったかが書かれています。',
+  'tour.film.headphones.applied':
+    '「この機種の EQ を適用」を押すと、補正は専用のレイヤーに入り、あなたのバンドはそのまま残ります。',
+  'tour.film.headphones.paste':
+    'Squiglink から書き出したデータを貼り付けることもできます。',
+  'tour.film.headphones.ears': 'EQ として、両耳にも片耳だけにも適用できます。',
+  'tour.film.headphones.curve': 'または、独立したカーブとして適用します。',
+  'tour.film.karaoke.intro':
+    'カラオケで、FluidEQ があなたの曲のステージになります。',
+  'tour.film.karaoke.open':
+    '「曲を開く」を押して、曲と歌詞ファイルを一緒に選びます。',
+  'tour.film.karaoke.words': '再生を押すと、歌われている言葉が順に光ります。',
+  'tour.film.karaoke.pitch':
+    '下のピッチガイドには、歌う音がすべて表示されます。マイクをオンにすると、自分の声も重なって見えます。',
+  'tour.film.maker.intro':
+    'カラオケメーカーで、曲をカラオケファイルにできます。',
+  'tour.film.maker.timeline':
+    '曲を読み込んで「作成」を押すと、言葉と音符がすべてタイムラインに並びます。',
+  'tour.film.maker.play':
+    '再生すると、再生ヘッドが言葉と音符の上を進みます。どれでもドラッグして、タイミングや音程を直せます。',
+  'tour.film.maker.use':
+    'メーカーは、歌声から曲を自動で準備することもできます。よければ「プレーヤーで使用」を押します。',
+  'tour.film.looks.intro': 'EQ の下のスペクトラムは、好きなように描けます。',
+  'tour.film.looks.open': 'グラフのツールバーで「新しい表示」を押します。',
+  'tour.film.looks.forms':
+    '矢印で形を切り替えていけます。LED バー、ネオンバー、スカイライン、ガラスの塔など、さまざまです。',
+  'tour.film.looks.shape':
+    'そして形を整えます。「分割数」でバーの数が決まり、色やすき間、動きも自由に変えられます。',
+  'tour.film.looks.save':
+    '「保存」を押すと自分だけの表示として残せます。ファイルにして共有することもできます。',
+  'tour.film.engine.intro':
+    'FluidEQ には独自のオーディオエンジンがあります。EQ と DSP ラックを、パソコンで鳴るすべての音に届けます。',
+  'tour.film.engine.choose':
+    '右上の「オーディオ操作」メニューを開いて、エンジンのカードを押します。選ぶのは「FluidEQ エンジン」です。',
+  'tour.film.engine.rack':
+    '次に「DSP」を開いてプリセットを選びます。ゲームもブラウザも音楽アプリも、すべてこれを通って鳴ります。',
+  'tour.film.library.intro':
+    'ライブラリでは、手持ちの音楽を EQ を通して再生できます。',
+  'tour.film.library.albums':
+    'アルバムはジャケットで並びます。矢印でめくっていけます。',
+  'tour.film.library.album':
+    'アルバムをクリックすると、収録曲と一緒に開きます。',
+  'tour.film.library.play':
+    '再生を押すと、ほかの音と同じ EQ と DSP ラックを通して鳴ります。',
+  // End of film voice.
+  'tour.film.soundOn': '音声をオンにする',
+  'tour.film.soundOff': '音声をオフにする',
+  'tour.film.enlarge': '大きく見る',
+  'tour.film.close': '動画を閉じる',
 
   'tour.songs.kicker': '曲ごとにサウンドを',
   'tour.songs.title': '好みのサウンドを覚えている曲',

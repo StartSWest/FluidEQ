@@ -20,7 +20,7 @@ const termsNotice = {
   'termsNotice.change.9':
     'Agora, cada cena publicada em Visualizadores é lida pelo criador do FluidEQ antes de qualquer outra pessoa a ver. E o Plus pode chegar sem pagamento: um teste gratuito que uma conta nova pode usar uma vez, e um mês ganho com uma cena aprovada. Nenhum dos dois se renova, e nunca é cobrado nada por eles.',
   'termsNotice.change.10':
-    'Enquanto você tiver o Plus, o FluidEQ agora informa ao seu criador quanto tempo cada cena fica na sua tela, um número por cena por dia, e qual motor de áudio você usa, para que as novas cenas acompanhem o que os membros curtem. Ninguém mais vê nenhum dos dois. O FluidEQ também pode anunciar novas cenas no app.',
+    'Enquanto você tiver o Plus, o FluidEQ agora informa ao seu criador quanto tempo cada cena fica na sua tela, um número por cena por dia, e qual motor de áudio você usa, para que as novas cenas acompanhem o que os membros curtem. Ninguém mais vê nenhum dos dois. O FluidEQ também pode anunciar novas cenas no app. Novidades também pode tocar vídeos curtos do app vindos de fluideq.com, sem nada sobre você.',
 } as const;
 
 export default termsNotice;

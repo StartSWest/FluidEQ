@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import type { ReactNode } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
 import { useTranslation } from '../../utils/I18nContext';
+import FeatureFilm from './FeatureFilm';
 
 /**
  * A feature release's headline slide: the picture larger than the words.
@@ -44,6 +45,11 @@ interface IShowcaseSlideProps {
   /** What the slide's button does: land somewhere, and close the tour. */
   onOpen: () => void;
   visual: ReactNode;
+  /**
+   * The slide's id, when a film of it is in `featureFilms.ts`: the film plays
+   * in place of the drawing once it can (`FeatureFilm`).
+   */
+  film?: string;
   /** A word beside the kicker for something still being finished: "Beta". */
   tag?: TranslationKey;
   /**
@@ -68,6 +74,7 @@ export default function ShowcaseSlide({
   prefix,
   onOpen,
   visual,
+  film,
   tag,
   values,
 }: IShowcaseSlideProps) {
@@ -99,7 +106,9 @@ export default function ShowcaseSlide({
         </div>
       </div>
 
-      <figure className="tour-showcase__visual">{visual}</figure>
+      <figure className="tour-showcase__visual">
+        {film ? <FeatureFilm id={film}>{visual}</FeatureFilm> : visual}
+      </figure>
     </div>
   );
 }

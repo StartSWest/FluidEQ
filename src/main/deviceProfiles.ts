@@ -26,6 +26,7 @@ import {
 import { eqCutsFileText, hasEqCut, toEqCuts } from '../common/eqCuts';
 import { toTone } from '../common/tone';
 import { clampDspSettings } from '../common/dsp/chain';
+import presetLayerForRack from '../common/dsp/presetLayerForRack';
 import { isCurveComparison } from '../common/curveComparison';
 import {
   addFileToPath,
@@ -795,7 +796,12 @@ export const getStateForAudioDevice = (
     // The profile's own tone, or none: a tone left from the output before
     // would follow somebody from the headphones to the speakers.
     tone: toTone(preset?.tone),
-    voicing: preset?.voicing,
+    // The curve of the preset the rack names (`presetLayerForRack`): an
+    // older profile can carry another preset's curve beside the rack.
+    voicing: presetLayerForRack(
+      preset?.voicing,
+      preset?.dsp === undefined ? undefined : clampDspSettings(preset.dsp),
+    ),
     driver: preset?.driver,
     // Listed for the same reason as the rest, and missing for as long as it was
     // missing from the saved profile: an output that never asked for the

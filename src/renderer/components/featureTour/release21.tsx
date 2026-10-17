@@ -30,6 +30,7 @@ export function OutputsSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.outputs"
+      film="every-output"
       onOpen={() => actions.openTab('eq')}
       visual={<OutputsVisual />}
       values={{
@@ -65,6 +66,7 @@ export function EarsSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.ears"
+      film="each-ear"
       onOpen={() => actions.openTab('eq')}
       visual={<EarsVisual />}
       values={{
@@ -84,6 +86,7 @@ export function DeEsserSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.deesser"
+      film="de-esser"
       onOpen={() => actions.openTab('dsp')}
       visual={<DeEsserVisual />}
       values={{

@@ -112,7 +112,10 @@
  * kept", so this is a raise and edition 4: the app sends none of it until the
  * member has been shown this text (`toldOf` in `ipc/plusTermsNotice.ts`).
  * The server's `plus_terms_version()` moves to 10 in premium migration 0051,
- * deployed with the release that carries this.
+ * deployed with the release that carries this. Amended before that release,
+ * still revision 10: What's New plays short films from fluideq.com by itself
+ * as a slide opens (`FeatureFilm`), said under Where else FluidEQ connects
+ * and in this revision's notice.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.

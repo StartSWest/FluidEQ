@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import type { ReactNode } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
 import { useTranslation } from '../../utils/I18nContext';
+import FeatureFilm from './FeatureFilm';
 import type { ISlideActions, TTourTab } from './slides';
 
 /**
@@ -32,6 +33,11 @@ interface IFeatureSlideProps {
     | 'tour.media';
   tab: TTourTab;
   art: ReactNode;
+  /**
+   * The slide's film, when one is in `featureFilms.ts`: it plays in place of
+   * the picture once it can (`FeatureFilm`), as on the release slides.
+   */
+  film?: string;
   actions: ISlideActions;
   /** Numbers the slide's words quote, counted by the app rather than typed. */
   values?: Record<string, string | number>;
@@ -56,6 +62,7 @@ export default function FeatureSlide({
   prefix,
   tab,
   art,
+  film,
   actions,
   values,
 }: IFeatureSlideProps) {
@@ -88,7 +95,9 @@ export default function FeatureSlide({
         </div>
       </div>
 
-      <figure className="tour-slide__art">{art}</figure>
+      <figure className="tour-slide__art">
+        {film ? <FeatureFilm id={film}>{art}</FeatureFilm> : art}
+      </figure>
     </div>
   );
 }

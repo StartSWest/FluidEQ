@@ -241,7 +241,7 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.intro':
     'Modalità EQ cambia il modo in cui il suono viene modellato, senza modificare nulla. Le sue impostazioni sono la prima scheda del pannello laterale nella pagina EQ, accanto alle curve che cambiano, divise in due schede: Il tuo EQ comprende le tue bande, il Tono, i preset, il Tipo di driver e l’EQ intelligente; Correzioni comprende le correzioni delle cuffie e le curve importate o personalizzate. Le disposizioni delle bande salvano frequenze e Q di un assetto che ti piace, pronto per qualsiasi uscita.',
   'help.eqmode.steps':
-    'Premi Modalità EQ sopra il grafico. La scheda compare, e il pannello laterale si apre se era chiuso.\nScegli la scheda Il tuo EQ o Correzioni, poi prova un’opzione di Intensità o Q delle bande mentre suona la musica. Con il motore FluidEQ, scegli la fase Minima o Lineare, e Preciso o Classico per gli alti, per ciascuna scheda.\nIn Correzioni, Levigatura curve ammorbidisce le curve campionate a 1/12 di ottava finché non scegli altro. Ripristina riporta tutto a Normale e la levigatura a 1/12 di ottava.\nPreferisci un menu? Premi la puntina sulla scheda: Modalità EQ si apre allora come menu sopra il grafico, e la puntina in quel menu riporta la scheda.\nPremi il pulsante delle disposizioni accanto ad Aggiungi banda. Scegli 6, 10, 15, 20 o 31 bande, oppure premi Salva disposizione… per dare un nome alla disposizione attuale.',
+    'Premi Modalità EQ sopra il grafico. La scheda compare, e il pannello laterale si apre se era chiuso.\nScegli la scheda Il tuo EQ o Correzioni, poi prova un’opzione di Intensità o Q delle bande mentre suona la musica. Con il motore FluidEQ, scegli la fase Minima o Lineare, e Preciso o Classico per gli alti, per ciascuna scheda.\nIn Correzioni, Levigatura curve può ammorbidire le curve campionate a 1/12 o 1/3 di ottava; resta su Disattivata finché non scegli. Ripristina riporta tutto a Normale e la levigatura a Disattivata.\nPreferisci un menu? Premi la puntina sulla scheda: Modalità EQ si apre allora come menu sopra il grafico, e la puntina in quel menu riporta la scheda.\nPremi il pulsante delle disposizioni accanto ad Aggiungi banda. Scegli 6, 10, 15, 20 o 31 bande, oppure premi Salva disposizione… per dare un nome alla disposizione attuale.',
   'help.eqmode.tip':
     'Una nuova disposizione fa partire tutte le bande dallo stesso Q, e una banda che aggiungi prende il Q delle altre. Una disposizione salva solo frequenze e Q: caricarne una fa partire ogni banda da 0 dB. La fase lineare aggiunge ritardo e può risuonare prima dei transienti. Scegliere un layout integrato lo fa ripartire da zero: le sue frequenze e il suo Q, ogni banda a 0 dB e su entrambe le orecchie.',
   'help.eqmode.keywords':
@@ -255,13 +255,13 @@ const help: Record<keyof typeof en, string> = {
   'help.eqmode.q':
     'Costante mantiene ogni Q; Proporzionale e Asimmetrico stringono le bande man mano che crescono. In Il tuo EQ modella solo le tue bande, mai un preset o una correzione.',
   'help.eqmode.smoothing':
-    'Ammorbidisce le curve di correzione campionate: 1/12 di ottava finché non scegli altro.',
+    'Ammorbidisce le curve di correzione campionate a 1/12 o 1/3 di ottava. Disattivata finché non scegli.',
   'help.eqmode.phase':
     'Minima o Lineare, per ciascuna scheda. Solo con il motore FluidEQ.',
   'help.eqmode.treble':
     'Preciso suona come disegnato, Classico come in Equalizer APO. Solo con il motore FluidEQ.',
   'help.eqmode.reset':
-    'Riporta tutto a Normale, e Levigatura curve a 1/12 di ottava.',
+    'Riporta tutto a Normale, e Levigatura curve a Disattivata.',
   'help.eqmode.designsCaption': 'Disposizioni delle bande',
   'help.eqmode.builtIn': 'Disposizioni standard da 6, 10, 15, 20 o 31 bande.',
   'help.eqmode.save':
