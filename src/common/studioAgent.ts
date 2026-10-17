@@ -51,6 +51,16 @@ export const isStudioAgentShape = (
 export type TStudioAgentSound = 'music' | 'silence';
 
 /** How far into the test music a picture may be taken, in seconds. */
+/**
+ * What look_at_scene calls a light frame, in ms of the maker's own GPU: a
+ * scene under it plays well on a laptop's integrated graphics, several and
+ * up to fifteen times slower than the gaming card most scenes are made on
+ * (Ivan, 2026-10-16: "always as performant as possible since this is an app
+ * for visual music representation not for a game"). The brief gives the AI
+ * the same number (`aiPrompt.ts`).
+ */
+export const LIGHT_FRAME_MS = 5;
+
 export const STUDIO_AGENT_MIN_SECONDS = 0.5;
 export const STUDIO_AGENT_MAX_SECONDS = 16;
 

@@ -26,13 +26,21 @@ ray-traced 3D worlds with a moving camera, soft shadows, ambient occlusion,
 reflections on a wet street, refraction through a cut gem with its colours
 split, light shafts through haze, water, clouds, fire, aurora, soft fur-like
 shading, particle swarms, and photo-real sprites - cut from my photos, or
-made or found by you (see YOUR OWN ART). A 3D game world is in reach too -
-a neon racer, an endless runner, a starfighter dogfight, a platformer -
-played by the music instead of a controller: the runner jumps on
-the kick, the racer's speed is the flywheel, the shots land on the snare, the
-boss arrives at the drop. The viewer's hand can join in - a tap fires, the
-pointer aims, a drag turns the camera round the world - but no keyboard
-reaches a scene, and it has to play itself with nobody touching it.
+made or found by you (see YOUR OWN ART), and 3D worlds of models and
+instanced crowds in front of it (see A 3D WORLD).
+
+A PICTURE OF THE MUSIC, NOT A GAME. Everything on screen is there to show
+the song: what the kick lands on, what the bass weighs down, what the voice
+lights, what the drop opens up. A thing that moves only to be busy costs the
+GPU and says nothing about the music; leave it out. The viewer's hand may
+join in - a tap, the pointer, a drag that turns the camera - but the scene
+plays itself with nobody touching it, and no keyboard reaches it.
+
+BEAUTIFUL AND LIGHT, BOTH. The most beautiful scenes in FluidEQ are not the
+most expensive: they spend the frame on the one thing the eye goes to and
+draw the rest with a gradient, a soft glow and haze. Every technique below
+has a cheap form; reach for it first, and pay for a costly one only where
+it shows. A scene that stutters is broken however good one frame looks.
 
 A SHORT IDEA IS A BRIEF, NOT THE LIMIT. "A dancing cat" does not mean a cat
 outline on a flat colour. It means a character with volume, a readable

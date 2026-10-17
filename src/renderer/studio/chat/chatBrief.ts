@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { promptWithIdea } from '../aiPrompt';
+import { chatPrompt } from '../aiPrompt';
 import CRAFT_SECTION from './chatCraft';
 
 /**
@@ -31,7 +31,10 @@ first one usually describes it, and stands where MY IDEA would.
   now: answer what it shows.
 - You can read, search and write files in this project's folder and nowhere
   else, and look at and hear the scene with FluidEQ's look_at_scene and
-  hear_the_music. Anything else is refused; do not ask for it.
+  hear_the_music. You cannot run programs or reach the internet: no
+  scripts and no downloads, so no library textures or models and no
+  packing by hand. Pictures come from make_picture and pack_artwork;
+  everything else you draw. Anything else is refused; do not ask for it.
 - Look at the scene before you say a version is done.
 - PICTURES FROM CHATGPT: make_picture asks ChatGPT, through the member's own
   Codex on their ChatGPT plan, for one picture - a material, or a subject
@@ -48,8 +51,6 @@ first one usually describes it, and stands where MY IDEA would.
 
 /** The brief for a chat on the project in `folder`. */
 const chatBrief = (folder: string): string =>
-  `${promptWithIdea('', folder)
-    .replace(/MY IDEA:\s*$/, '')
-    .trimEnd()}\n\n${CHAT_SECTION}\n\n${CRAFT_SECTION}\n`;
+  `${chatPrompt(folder)}\n\n${CHAT_SECTION}\n\n${CRAFT_SECTION}\n`;
 
 export default chatBrief;
