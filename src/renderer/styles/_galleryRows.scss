@@ -340,6 +340,23 @@ it under the terms of the GNU General Public License version 3 or later.
   @include dialog.size(640px, 560px);
 }
 
+// Why a trial ended without Plus (`TrialExitDialog`): the report's rows, seven
+// of them and a line to write in under them, so a taller frame.
+.dialog-frame.gallery-report-dialog.trial-exit-dialog {
+  @include dialog.size(640px, 760px);
+}
+
+.trial-exit-dialog__note {
+  display: grid;
+  gap: 6px;
+
+  textarea {
+    width: 100%;
+    min-height: 72px;
+    resize: vertical;
+  }
+}
+
 // The four reasons as one card of choices, a row each with the hairline
 // between them, the way the panes list a set: the card's own padding goes to
 // the rows, so a row's tint and its focus run to the card's edge.

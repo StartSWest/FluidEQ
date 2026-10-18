@@ -63,6 +63,28 @@ const trial = {
   'trial.settings.saved': '优惠设置已保存。',
   'trial.settings.on': '开启 — 符合条件的新账户可用',
   'trial.settings.disabled': '关闭 — 不再开启新的免费体验',
+  'trialExit.notice.title': '你的免费体验已结束',
+  'trialExit.notice.body':
+    '是什么让你没有开通 Plus？只需几秒，只有 FluidEQ 的作者会看到。',
+  'trialExit.notice.open': '告诉我们',
+  'trialExit.later': '以后再说',
+  'trialExit.title': '是什么让你没有开通 Plus？',
+  'trialExit.lead':
+    '选一个最接近的原因。只有 FluidEQ 的作者会看到，它会决定接下来做什么。',
+  'trialExit.reason.price': '价格超出了我愿意支付的范围',
+  'trialExit.reason.not-enough': '对我来说内容不够',
+  'trialExit.reason.free-is-enough': '免费版 FluidEQ 已能满足我的需要',
+  'trialExit.reason.no-time': '我没有时间试用',
+  'trialExit.reason.problems': '在我的电脑上运行得不好',
+  'trialExit.reason.payment': '无法用我想要的方式付款',
+  'trialExit.reason.other': '其他原因',
+  'trialExit.note': '还有什么想说的吗？（可选）',
+  'trialExit.notePlaceholder': '怎样的 Plus 才值得你开通？',
+  'trialExit.send': '发送',
+  'trialExit.sending': '正在发送…',
+  'trialExit.failed': '没有发送成功。请检查网络后重试。',
+  'trialExit.thanks.title': '谢谢',
+  'trialExit.thanks.body': '你的回答已送到 FluidEQ 的作者手中。',
 };
 
 export default trial;

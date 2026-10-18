@@ -36,7 +36,8 @@ import { useLayoutEffect, useReducer, useSyncExternalStore } from 'react';
  *   sound, one card at a time), and full screen, which takes away the
  *   titlebar the corner is placed under. Then the Plus terms notice, then
  *   news of a scene reviewed, then the maker's month running out — the
- *   newest news about a maker's scenes goes before a week's warning.
+ *   newest news about a maker's scenes goes before a week's warning — then
+ *   the one question asked when a free trial ended without Plus.
  *
  * Everything not named as waiting for something above never waits.
  */
@@ -57,6 +58,8 @@ export type TNoticeClaim =
   | 'plusTerms'
   | 'sceneReview'
   | 'makerMonth'
+  /** Why a free trial ended without Plus, asked once (`TrialExitNotice`). */
+  | 'trialExit'
   /** New scenes announced, big (`SceneAnnouncementDialog`). */
   | 'sceneAnnouncement'
   /** The window is full screen: graph or media (`useAppFullMark`). */
@@ -98,6 +101,8 @@ export const NOTICE_WAITS_FOR: Readonly<
   plusTerms: CORNER_WAITS_FOR,
   sceneReview: [...CORNER_WAITS_FOR, 'plusTerms'],
   makerMonth: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview'],
+  // A question, so after everything that tells the member something.
+  trialExit: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview', 'makerMonth'],
   // Waits for every notice that carries something to do or to know first:
   // an announcement is news, never urgent.
   sceneAnnouncement: [
@@ -105,6 +110,7 @@ export const NOTICE_WAITS_FOR: Readonly<
     'plusTerms',
     'sceneReview',
     'makerMonth',
+    'trialExit',
   ],
   appFull: [],
   modal: [],

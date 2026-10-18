@@ -73,6 +73,31 @@ const trial = {
   'trial.settings.saved': 'ऑफ़र की सेटिंग सहेज दी गई है।',
   'trial.settings.on': 'चालू — पात्र नए खातों के लिए उपलब्ध',
   'trial.settings.disabled': 'बंद — नए मुफ़्त ट्रायल उपलब्ध नहीं',
+  'trialExit.notice.title': 'आपका मुफ़्त ट्रायल खत्म हो गया है',
+  'trialExit.notice.body':
+    'आपने Plus क्यों नहीं लिया? इसमें कुछ सेकंड लगेंगे, और इसे सिर्फ़ FluidEQ के निर्माता पढ़ते हैं।',
+  'trialExit.notice.open': 'बताएँ',
+  'trialExit.later': 'अभी नहीं',
+  'trialExit.title': 'आपने Plus क्यों नहीं लिया?',
+  'trialExit.lead':
+    'जो सबसे करीब हो, वह चुनें। इसे सिर्फ़ FluidEQ के निर्माता पढ़ते हैं, और इसी से तय होता है कि आगे क्या बनेगा।',
+  'trialExit.reason.price': 'यह मेरी चाही कीमत से महँगा है',
+  'trialExit.reason.not-enough': 'मेरे लिए इसमें काफ़ी कुछ नहीं था',
+  'trialExit.reason.free-is-enough':
+    'मुफ़्त FluidEQ पहले से वह करता है जो मुझे चाहिए',
+  'trialExit.reason.no-time': 'मुझे इसे आज़माने का समय नहीं मिला',
+  'trialExit.reason.problems': 'यह मेरे कंप्यूटर पर ठीक से नहीं चला',
+  'trialExit.reason.payment': 'मैं अपने चाहे तरीके से भुगतान नहीं कर पाया',
+  'trialExit.reason.other': 'कुछ और',
+  'trialExit.note': 'कुछ और कहना है? (वैकल्पिक)',
+  'trialExit.notePlaceholder':
+    'Plus को आपके लिए किस बात से फ़ायदेमंद बनाया जा सकता था?',
+  'trialExit.send': 'भेजें',
+  'trialExit.sending': 'भेजा जा रहा है…',
+  'trialExit.failed':
+    'यह नहीं भेजा जा सका। अपना कनेक्शन जाँचें और फिर से कोशिश करें।',
+  'trialExit.thanks.title': 'धन्यवाद',
+  'trialExit.thanks.body': 'आपका जवाब FluidEQ के निर्माता तक पहुँच गया है।',
 };
 
 export default trial;

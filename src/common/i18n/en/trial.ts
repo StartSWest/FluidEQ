@@ -72,6 +72,30 @@ const trial = {
   'trial.settings.saved': 'Offer setting saved.',
   'trial.settings.on': 'On — available to eligible new accounts',
   'trial.settings.disabled': 'Off — no new free trials',
+  'trialExit.notice.title': 'Your free trial has ended',
+  'trialExit.notice.body':
+    'What kept you from Plus? It takes a few seconds, and only the maker of FluidEQ reads it.',
+  'trialExit.notice.open': 'Tell us',
+  'trialExit.later': 'Not now',
+  'trialExit.title': 'What kept you from Plus?',
+  'trialExit.lead':
+    'Pick the one closest to it. Only the maker of FluidEQ reads this, and it shapes what gets made next.',
+  'trialExit.reason.price': 'It costs more than I want to pay',
+  'trialExit.reason.not-enough': 'There was not enough in it for me',
+  'trialExit.reason.free-is-enough':
+    'The free FluidEQ already does what I need',
+  'trialExit.reason.no-time': 'I did not have time to try it',
+  'trialExit.reason.problems': 'It did not run well on my computer',
+  'trialExit.reason.payment': 'I could not pay the way I wanted',
+  'trialExit.reason.other': 'Something else',
+  'trialExit.note': 'Anything to add? (optional)',
+  'trialExit.notePlaceholder': 'What would have made Plus worth it for you?',
+  'trialExit.send': 'Send',
+  'trialExit.sending': 'Sending…',
+  'trialExit.failed':
+    'That did not go through. Check your connection and try again.',
+  'trialExit.thanks.title': 'Thank you',
+  'trialExit.thanks.body': 'Your answer is with the maker of FluidEQ.',
 };
 
 export default trial;

@@ -6,9 +6,11 @@ import {
 import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
 import {
   PLUS_TRIAL_TERMS_VERSION,
+  type TPlusTrialFailure,
   type TPlusTrialOutcome,
   type TPlusTrialSettingsOutcome,
 } from '../../common/plusTrial';
+import { readTrialExitAnswer } from '../../common/trialExit';
 import type { IEntitlement } from '../account/entitlement';
 import { AuthError } from '../account/authClient';
 import type { IAccountSession } from '../account/session';
@@ -19,12 +21,20 @@ import {
   startPlusTrial,
   type IPlusTrialAuth,
 } from '../plus/trialApi';
+import {
+  getTrialExit,
+  reportTrialExit,
+  type TTrialExitOutcome,
+  type TTrialExitReportOutcome,
+} from '../plus/trialExitApi';
 
 const CHANNELS = [
   'plus-trial-offer',
   'plus-trial-start',
   'plus-trial-settings',
   'plus-trial-set-offer',
+  'plus-trial-exit',
+  'plus-trial-exit-report',
 ] as const;
 const signedOut = () => ({ ok: false as const, reason: 'signed-out' as const });
 
@@ -184,6 +194,44 @@ export const registerPlusTrialIpc = ({
       : setPlusTrialOffer(auth, enabled));
     return accountId() === id ? outcome : signedOut();
   };
+  // The question asked once a trial ends without Plus (premium 0054).
+  const withAuth = async <T>(
+    act: (auth: IPlusTrialAuth & { accessToken: string }) => Promise<T>,
+  ): Promise<T | { ok: false; reason: TPlusTrialFailure }> => {
+    if (!isAccountConfigured(config)) {
+      return { ok: false, reason: 'unavailable' };
+    }
+    const id = accountId();
+    const auth = await authFor(id);
+    if (accountId() !== id) {
+      return signedOut();
+    }
+    if ('ok' in auth) {
+      return auth;
+    }
+    if (!auth.accessToken) {
+      return signedOut();
+    }
+    const outcome = await act({ ...auth, accessToken: auth.accessToken });
+    return accountId() === id ? outcome : signedOut();
+  };
+  ipcMain.handle('plus-trial-exit', (): Promise<TTrialExitOutcome> =>
+    withAuth(getTrialExit),
+  );
+  ipcMain.handle(
+    'plus-trial-exit-report',
+    (
+      _event,
+      reason: unknown,
+      note: unknown,
+    ): Promise<TTrialExitReportOutcome> => {
+      const answer = readTrialExitAnswer(reason, note);
+      return answer
+        ? withAuth((auth) => reportTrialExit(auth, answer))
+        : Promise.resolve({ ok: false, reason: 'forbidden' });
+    },
+  );
+
   ipcMain.handle('plus-trial-settings', () => settings());
   ipcMain.handle(
     'plus-trial-set-offer',

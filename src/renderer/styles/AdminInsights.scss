@@ -50,6 +50,54 @@ SPDX-License-Identifier: GPL-3.0-or-later
   --stat-tone: #{$amber};
 }
 
+// ---------------------------------------------------------------- trial ended
+
+// A trial that ended without Plus is the one that got away: the warm red the
+// gallery keeps for what asks for attention, quieter than the badge's.
+.admin-accounts__stat.is-lapsed {
+  --stat-tone: #{color-mix(in srgb, $red 70%, $amber)};
+}
+
+.admin-account__tag {
+  &.is-lapsed {
+    color: color-mix(in srgb, $red 55%, $white);
+    background: color-mix(in srgb, $red 13%, transparent);
+  }
+
+  // What they said, read rather than shouted, like the version.
+  &.is-reason {
+    color: $text-muted;
+    font-weight: $weight-semibold;
+    @include tracking(0.01em);
+    text-transform: none;
+  }
+}
+
+.admin-account__trial.is-lapsed {
+  display: grid;
+  gap: 4px;
+  border-color: color-mix(in srgb, $red 28%, transparent);
+  background: color-mix(in srgb, $red 7%, transparent);
+
+  q {
+    color: $text-primary;
+    font-style: italic;
+  }
+}
+
+// The silence is a bar too, but in the track's own colour: nobody said it.
+.admin-trial-exits .is-silent .admin-taste__meter i {
+  background: color-mix(in srgb, $edge-tint 30%, transparent);
+}
+
+.admin-trial-exits h3 {
+  margin: 0;
+}
+
+.admin-trial-exits p {
+  margin: 0;
+}
+
 .admin-account__trial {
   margin: 0 0 $spacing-s;
   padding: 8px 12px;

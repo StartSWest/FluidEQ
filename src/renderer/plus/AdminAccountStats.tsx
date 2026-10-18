@@ -17,6 +17,7 @@ const FILTER_LABELS: Record<TAccountPlanFilter, TranslationKey> = {
   plus: 'plus.accounts.filter.plus',
   free: 'plus.accounts.filter.free',
   trial: 'plus.accounts.filter.trial',
+  lapsed: 'plus.accounts.filter.lapsed',
 };
 
 interface IAdminAccountStatsProps {
@@ -28,10 +29,11 @@ interface IAdminAccountStatsProps {
 }
 
 /**
- * How many accounts there are — with Plus, without, and on a free trial —
- * each count also the filter that lists them, and under them which engine
- * the accounts that said run. A count the server does not answer yet (one
- * before premium migration 0049) is a dash, never a zero.
+ * How many accounts there are — with Plus, without, on a free trial, and
+ * whose trial ended without Plus — each count also the filter that lists
+ * them, and under them which engine the accounts that said run. A count the
+ * server does not answer yet (one before premium migration 0049, or 0054 for
+ * the ended trials) is a dash, never a zero.
  */
 export default function AdminAccountStats({
   page,
@@ -50,6 +52,7 @@ export default function AdminAccountStats({
     plus: page?.paying,
     free: page && page.matched - page.paying,
     trial: page?.trialing,
+    lapsed: page?.lapsed,
   };
 
   const fluid = page?.engineFluid;

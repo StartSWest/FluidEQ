@@ -5,6 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { validAccountEmail } from './accountRules';
+import {
+  isTrialExitReason,
+  MAX_TRIAL_EXIT_NOTE,
+  type TTrialExitReason,
+} from './trialExit';
 
 /**
  * An account the admin is about to delete, as the server describes it
@@ -54,6 +59,11 @@ export interface IAccountToDelete {
    * from a FluidEQ carrying terms revision 10, so absent for most at first.
    */
   engine?: TAccountEngine;
+  /** When the free trial ended, on an account it left without Plus (0054). */
+  trialEndedAt?: number;
+  /** What that member answered when asked why (0054), and their note. */
+  exitReason?: TTrialExitReason;
+  exitNote?: string;
 }
 
 /** The two engines an account reports, as the server keeps them. */
@@ -137,6 +147,12 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
   // Lenient for the same reason: a server before 0049 has neither column.
   const trialEndsAt = timeOf(row.trial_ends_at);
   const engine = isAccountEngine(row.engine) ? row.engine : undefined;
+  // And for 0054's three: a server before it has none of them.
+  const trialEndedAt = timeOf(row.trial_ended_at);
+  const exitReason = isTrialExitReason(row.exit_reason)
+    ? row.exit_reason
+    : undefined;
+  const exitNote = textOf(row.exit_note)?.slice(0, MAX_TRIAL_EXIT_NOTE);
   return {
     userId: row.user_id,
     email: row.email,
@@ -157,5 +173,8 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
     ...(seenAt ? { seenAt } : {}),
     ...(trialEndsAt ? { trialEndsAt } : {}),
     ...(engine ? { engine } : {}),
+    ...(trialEndedAt ? { trialEndedAt } : {}),
+    ...(exitReason ? { exitReason } : {}),
+    ...(exitNote ? { exitNote } : {}),
   };
 };

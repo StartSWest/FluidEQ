@@ -32,6 +32,7 @@ import EngineUpdateNotice from '../components/EngineUpdateNotice';
 import FeatureTour from '../components/featureTour/FeatureTour';
 import { featureTourFor } from '../components/featureTour/slides';
 import MakerMonthNotice from '../components/MakerMonthNotice';
+import TrialExitNotice from '../components/TrialExitNotice';
 import MandatoryUpdateModal from '../components/MandatoryUpdateModal';
 import PlusTermsNotice from '../components/PlusTermsNotice';
 import PlusWelcomeDialog from '../components/PlusWelcomeDialog';
@@ -250,6 +251,9 @@ const ShellDialogs = ({
           the review news, because it is the same kind of thing: something
           about their scenes that can land on any tab. */}
       <MakerMonthNotice />
+      {/* Why a free trial ended without Plus, asked once and here: a member
+          whose trial is over may never open the Plus tab again. */}
+      <TrialExitNotice />
       {/* A scene reported from the looks: the menu it was asked from
           closes under the dialog, so the dialog lives here. */}
       <SceneReportHost />

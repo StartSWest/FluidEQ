@@ -75,6 +75,31 @@ const trial = {
   'trial.settings.saved': 'Angebotseinstellung gespeichert.',
   'trial.settings.on': 'Ein — für berechtigte neue Konten verfügbar',
   'trial.settings.disabled': 'Aus — keine neuen Gratis-Testphasen',
+  'trialExit.notice.title': 'Ihre Gratis-Testphase ist abgelaufen',
+  'trialExit.notice.body':
+    'Was hat Sie von Plus abgehalten? Es dauert nur Sekunden, und nur der Entwickler von FluidEQ liest es.',
+  'trialExit.notice.open': 'Antworten',
+  'trialExit.later': 'Jetzt nicht',
+  'trialExit.title': 'Was hat Sie von Plus abgehalten?',
+  'trialExit.lead':
+    'Wählen Sie, was am ehesten zutrifft. Nur der Entwickler von FluidEQ liest es, und es bestimmt, was als Nächstes entsteht.',
+  'trialExit.reason.price': 'Es kostet mehr, als ich zahlen möchte',
+  'trialExit.reason.not-enough': 'Für mich war nicht genug dabei',
+  'trialExit.reason.free-is-enough':
+    'Das kostenlose FluidEQ kann schon, was ich brauche',
+  'trialExit.reason.no-time': 'Ich hatte keine Zeit, es auszuprobieren',
+  'trialExit.reason.problems': 'Es lief auf meinem Computer nicht gut',
+  'trialExit.reason.payment': 'Ich konnte nicht so zahlen, wie ich wollte',
+  'trialExit.reason.other': 'Etwas anderes',
+  'trialExit.note': 'Noch etwas? (optional)',
+  'trialExit.notePlaceholder': 'Was hätte Plus für Sie lohnenswert gemacht?',
+  'trialExit.send': 'Senden',
+  'trialExit.sending': 'Wird gesendet …',
+  'trialExit.failed':
+    'Das hat nicht geklappt. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.',
+  'trialExit.thanks.title': 'Danke',
+  'trialExit.thanks.body':
+    'Ihre Antwort ist beim Entwickler von FluidEQ angekommen.',
 };
 
 export default trial;

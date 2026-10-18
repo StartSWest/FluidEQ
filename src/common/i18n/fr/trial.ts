@@ -75,6 +75,32 @@ const trial = {
   'trial.settings.on':
     'Activée — disponible pour les nouveaux comptes éligibles',
   'trial.settings.disabled': 'Désactivée — aucun nouveau essai gratuit',
+  'trialExit.notice.title': 'Votre essai gratuit est terminé',
+  'trialExit.notice.body':
+    'Qu’est-ce qui vous a retenu de prendre Plus ? Quelques secondes suffisent, et seul le créateur de FluidEQ le lit.',
+  'trialExit.notice.open': 'Répondre',
+  'trialExit.later': 'Pas maintenant',
+  'trialExit.title': 'Qu’est-ce qui vous a retenu de prendre Plus ?',
+  'trialExit.lead':
+    'Choisissez ce qui s’en rapproche le plus. Seul le créateur de FluidEQ le lit, et cela décide de la suite.',
+  'trialExit.reason.price': 'C’est plus cher que ce que je veux payer',
+  'trialExit.reason.not-enough': 'Il n’y avait pas assez pour moi',
+  'trialExit.reason.free-is-enough':
+    'FluidEQ gratuit fait déjà ce dont j’ai besoin',
+  'trialExit.reason.no-time': 'Je n’ai pas eu le temps de l’essayer',
+  'trialExit.reason.problems': 'Il ne marchait pas bien sur mon ordinateur',
+  'trialExit.reason.payment': 'Je n’ai pas pu payer comme je voulais',
+  'trialExit.reason.other': 'Autre chose',
+  'trialExit.note': 'Autre chose à ajouter ? (facultatif)',
+  'trialExit.notePlaceholder':
+    'Qu’est-ce qui aurait rendu Plus intéressant pour vous ?',
+  'trialExit.send': 'Envoyer',
+  'trialExit.sending': 'Envoi…',
+  'trialExit.failed':
+    'Cela n’a pas abouti. Vérifiez votre connexion et réessayez.',
+  'trialExit.thanks.title': 'Merci',
+  'trialExit.thanks.body':
+    'Votre réponse est entre les mains du créateur de FluidEQ.',
 };
 
 export default trial;

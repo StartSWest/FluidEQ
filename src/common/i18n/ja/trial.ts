@@ -72,6 +72,29 @@ const trial = {
   'trial.settings.saved': '特典の設定を保存しました。',
   'trial.settings.on': 'オン — 対象の新規アカウントが利用可能',
   'trial.settings.disabled': 'オフ — 新たな無料体験の開始は不可',
+  'trialExit.notice.title': '無料体験が終了しました',
+  'trialExit.notice.body':
+    'Plus にしなかった理由を教えてください。数秒で終わり、読むのは FluidEQ の制作者だけです。',
+  'trialExit.notice.open': '答える',
+  'trialExit.later': '今はしない',
+  'trialExit.title': 'Plus にしなかった理由は?',
+  'trialExit.lead':
+    'いちばん近いものを選んでください。読むのは FluidEQ の制作者だけで、次に作るものの参考になります。',
+  'trialExit.reason.price': '払いたい額より高い',
+  'trialExit.reason.not-enough': '自分には内容が物足りなかった',
+  'trialExit.reason.free-is-enough': '無料の FluidEQ で必要なことは足りている',
+  'trialExit.reason.no-time': '試す時間がなかった',
+  'trialExit.reason.problems': '自分のパソコンでうまく動かなかった',
+  'trialExit.reason.payment': '希望の方法で支払えなかった',
+  'trialExit.reason.other': 'その他',
+  'trialExit.note': 'ほかに何かあれば (任意)',
+  'trialExit.notePlaceholder': 'どうなっていれば Plus にしましたか?',
+  'trialExit.send': '送信',
+  'trialExit.sending': '送信中…',
+  'trialExit.failed':
+    '送信できませんでした。接続を確認して、もう一度お試しください。',
+  'trialExit.thanks.title': 'ありがとうございます',
+  'trialExit.thanks.body': '回答は FluidEQ の制作者に届きました。',
 };
 
 export default trial;

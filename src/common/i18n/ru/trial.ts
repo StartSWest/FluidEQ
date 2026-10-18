@@ -74,6 +74,30 @@ const trial = {
   'trial.settings.saved': 'Настройка предложения сохранена.',
   'trial.settings.on': 'Вкл. — доступно подходящим новым аккаунтам',
   'trial.settings.disabled': 'Выкл. — без новых бесплатных периодов',
+  'trialExit.notice.title': 'Ваш бесплатный период закончился',
+  'trialExit.notice.body':
+    'Что помешало вам взять Plus? Это займёт пару секунд, и прочитает это только автор FluidEQ.',
+  'trialExit.notice.open': 'Ответить',
+  'trialExit.later': 'Не сейчас',
+  'trialExit.title': 'Что помешало вам взять Plus?',
+  'trialExit.lead':
+    'Выберите самое близкое. Это прочитает только автор FluidEQ, и от этого зависит, что появится дальше.',
+  'trialExit.reason.price': 'Это дороже, чем я готов платить',
+  'trialExit.reason.not-enough': 'Для меня там было мало полезного',
+  'trialExit.reason.free-is-enough':
+    'Бесплатный FluidEQ уже делает всё, что мне нужно',
+  'trialExit.reason.no-time': 'Не успел попробовать',
+  'trialExit.reason.problems': 'На моём компьютере работало плохо',
+  'trialExit.reason.payment': 'Не смог оплатить так, как хотел',
+  'trialExit.reason.other': 'Другое',
+  'trialExit.note': 'Хотите что-то добавить? (необязательно)',
+  'trialExit.notePlaceholder': 'Что сделало бы Plus стоящим для вас?',
+  'trialExit.send': 'Отправить',
+  'trialExit.sending': 'Отправка…',
+  'trialExit.failed':
+    'Не удалось отправить. Проверьте подключение и попробуйте ещё раз.',
+  'trialExit.thanks.title': 'Спасибо',
+  'trialExit.thanks.body': 'Ваш ответ получил автор FluidEQ.',
 };
 
 export default trial;

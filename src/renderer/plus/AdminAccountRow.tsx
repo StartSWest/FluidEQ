@@ -14,6 +14,7 @@ import {
   useAccountPlan,
 } from './AccountDeletionCard';
 import AdminAccountScenes from './AdminAccountScenes';
+import { TRIAL_EXIT_SHORT } from './AdminTrialExitReasons';
 import { daysUntil, trialEndKey } from './insightsFormat';
 
 /**
@@ -70,6 +71,15 @@ export default function AdminAccountRow({
       ? undefined
       : daysUntil(account.trialEndsAt, now);
   const trialEnd = trialDays === undefined ? undefined : trialEndKey(trialDays);
+  // How long ago a trial ended without Plus, in whole calendar days the
+  // reader's language says ("yesterday", "3 days ago").
+  const endedWhen =
+    account.trialEndedAt === undefined
+      ? undefined
+      : new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(
+          Math.min(0, daysUntil(account.trialEndedAt, now)),
+          'day',
+        );
 
   return (
     <li
@@ -136,6 +146,16 @@ export default function AdminAccountRow({
               {t(trialEnd.key, { days: String(trialDays) })}
             </span>
           )}
+          {endedWhen && (
+            <span className="admin-account__tag is-lapsed">
+              {t('plus.accounts.trial.ended', { when: endedWhen })}
+            </span>
+          )}
+          {account.exitReason && (
+            <span className="admin-account__tag is-reason">
+              {t(TRIAL_EXIT_SHORT[account.exitReason])}
+            </span>
+          )}
           {account.engine && (
             <span
               className={`admin-account__tag is-engine is-${account.engine}`}
@@ -175,6 +195,25 @@ export default function AdminAccountRow({
                 }).format(account.trialEndsAt),
               })}
             </p>
+          )}
+          {account.trialEndedAt !== undefined && (
+            <div className="admin-account__trial is-lapsed">
+              <span>
+                {t('plus.accounts.trial.endedOn', {
+                  date: new Intl.DateTimeFormat(locale, {
+                    dateStyle: 'full',
+                  }).format(account.trialEndedAt),
+                })}
+              </span>
+              <span>
+                {account.exitReason
+                  ? t('plus.accounts.exit.said', {
+                      reason: t(TRIAL_EXIT_SHORT[account.exitReason]),
+                    })
+                  : t('plus.accounts.exit.notSaid')}
+              </span>
+              {account.exitNote && <q>{account.exitNote}</q>}
+            </div>
           )}
           {account.createdAt !== undefined && (
             <AdminAccountScenes userId={account.userId} />
