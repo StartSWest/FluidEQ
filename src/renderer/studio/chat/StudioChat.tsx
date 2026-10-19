@@ -135,7 +135,7 @@ export default function StudioChat({
         {ask && ask.projectId === chat?.projectId && (
           <StudioChatAsk ask={ask} />
         )}
-        <StudioChatQueue queued={chat?.queued ?? []} />
+        <StudioChatQueue queued={chat?.queued ?? []} folder={project.path} />
         <StudioChatComposer
           draft={draft}
           onDraft={setDraft}

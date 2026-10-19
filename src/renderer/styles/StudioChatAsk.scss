@@ -151,7 +151,24 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The queue's name, and Send now on the same line, wrapping under it when
+// the pane is narrow.
+.studio-chat__queue-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 8px;
+
+  .button svg {
+    width: 11px;
+    height: 11px;
+  }
+}
+
 .studio-chat__queue-title {
+  flex: 1 1 140px;
+  min-width: 0;
   margin: 0;
   color: $text-faint;
   font-size: $text-micro;

@@ -45,7 +45,15 @@ export type TChatStreamEvent =
    * (`--replay-user-messages`): one for every line, a message or /compact,
    * at the start of a turn or in the middle of one.
    */
-  | { type: 'read' }
+  | {
+      type: 'read';
+      /** The uuid FluidEQ stamped on the line, when it carried one. */
+      uuid?: string;
+      /** Its words, a block each; several lines read as one hold them all. */
+      texts: string[];
+      /** The first picture it carried, as a data URL. */
+      picture?: string;
+    }
   | { type: 'end'; failure?: TStudioChatFailure };
 
 /** Claude Code names FluidEQ's tools by the server they came from. */
@@ -235,7 +243,29 @@ export const readStreamLine = (line: string): TChatStreamEvent[] => {
     }
     case 'user': {
       if (message.isReplay === true) {
-        return [{ type: 'read' }];
+        const said = isRecord(message.message)
+          ? message.message.content
+          : undefined;
+        const texts =
+          typeof said === 'string'
+            ? [said.trim()]
+            : (Array.isArray(said) ? said : []).flatMap((block: unknown) =>
+                isRecord(block) &&
+                block.type === 'text' &&
+                typeof block.text === 'string' &&
+                block.text.trim()
+                  ? [block.text.trim()]
+                  : [],
+              );
+        const picture = pictureOf(said);
+        return [
+          {
+            type: 'read',
+            ...(typeof message.uuid === 'string' ? { uuid: message.uuid } : {}),
+            texts,
+            ...(picture ? { picture } : {}),
+          },
+        ];
       }
       const content = isRecord(message.message)
         ? message.message.content

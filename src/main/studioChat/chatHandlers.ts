@@ -29,6 +29,8 @@ interface IChatHandlersDeps {
   unqueue(projectId: string, id: string): void;
   /** What Claude is doing in the project, stopped (`chatTurns.ts`). */
   stop(projectId: string): void;
+  /** What waits, read by Claude now (`chatTurns.ts`). */
+  sendNow(raw: unknown): Promise<void>;
   entriesOf(projectId: string): readonly TStudioChatEntry[];
   versionsOf(projectId: string): string;
   limits(): IStudioChatLimits | undefined;
@@ -45,6 +47,7 @@ const registerChatHandlers = ({
   retry,
   unqueue,
   stop,
+  sendNow,
   entriesOf,
   versionsOf,
   limits,
@@ -67,6 +70,7 @@ const registerChatHandlers = ({
       unqueue(project.id, id);
     }
   });
+  handle('studio-chat-send-now', undefined, sendNow);
   handle('studio-chat-stop', undefined, () => {
     const project = agentProject();
     if (project.ok) {

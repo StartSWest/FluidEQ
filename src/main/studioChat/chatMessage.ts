@@ -74,6 +74,8 @@ export const readChatMessage = (raw: unknown): IChatMessage | undefined => {
  * written.
  */
 export const userLine = (
+  /** Echoed by Claude Code when it reads the line (`chatTurns.ts`). */
+  uuid: string,
   ...messages: readonly Pick<IChatMessage, 'words' | 'picture'>[]
 ) => {
   const content = messages.flatMap(({ words, picture }) => [
@@ -91,7 +93,7 @@ export const userLine = (
       : []),
     { type: 'text', text: words },
   ]);
-  return `${JSON.stringify({ type: 'user', message: { role: 'user', content } })}\n`;
+  return `${JSON.stringify({ type: 'user', uuid, message: { role: 'user', content } })}\n`;
 };
 
 const JPEG_PREFIX = 'data:image/jpeg;base64,';

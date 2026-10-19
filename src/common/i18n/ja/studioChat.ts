@@ -182,7 +182,7 @@ const studioChat = {
   'studioChat.welcomeSceneTitle': '{name} のどこを変えますか？',
   'studioChat.welcomeSceneBody':
     '見た目、音楽に合わせた動き、色、光など、変えたいところを Claude に伝えてください。Claude はこのシーンを編集し、各バージョンをステージで再生します。',
-  'studioChat.queue.title': '待機中 · Claude は次のステップで読みます',
+  'studioChat.queue.title': '待機中 · Claude は次のステップでまとめて読みます',
   'studioChat.queue.send': 'キューに入れる：Claude は次のステップで読みます',
   'studioChat.queue.remove': '取り消す',
   'studioChat.queue.sent':
@@ -206,6 +206,10 @@ const studioChat = {
   'studioChat.context.tokensOf': '{window} トークン中 {used}',
   'studioChat.context.explain':
     'メッセージごとに会話全体が送られます。圧縮するとここまでが要約され、以降のメッセージが軽くなります。',
+  'studioChat.queue.sendNow': '今すぐ送信',
+  'studioChat.queue.sendNowHint':
+    'Claude の今のステップを止め、これらを1つのメッセージとして今すぐ読ませます',
+  'studioChat.step.times': '×{count}',
 } as const;
 
 export default studioChat;

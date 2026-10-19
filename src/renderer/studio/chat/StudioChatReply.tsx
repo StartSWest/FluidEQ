@@ -30,26 +30,45 @@ const FAILURE_WORDS: Record<NonNullable<TReply['failure']>, TranslationKey> = {
 };
 
 /**
- * Steps that would read the same twice in a row — the scene file changed in
- * three edits — shown once, as the last of them. Reads and searches fold
- * whatever their file: what was read is never the point. Looks never fold:
- * each is a picture of its own, and seeing every one is the point (Ivan,
- * 2026-10-09: "so I can see all the time what is looking at").
+ * Steps that would read the same twice in a row - the scene file changed in
+ * six edits - shown once, with how many there were (Ivan, 2026-10-18: "WTF
+ * is that same file"), running while any of them runs. Reads and searches
+ * fold whatever their file: what was read is never the point. Looks never
+ * fold: each is a picture of its own, and seeing every one is the point
+ * (2026-10-09: "so I can see all the time what is looking at").
  */
 const shownSteps = (steps: readonly IStudioChatStep[]) =>
-  steps.filter((step, index) => {
-    const next = steps[index + 1];
+  steps.reduce<{ step: IStudioChatStep; count: number }[]>((shown, step) => {
+    const last = shown[shown.length - 1];
     const quiet = step.kind === 'read' || step.kind === 'search';
-    return !(
-      next &&
+    if (
+      last &&
       step.kind !== 'look' &&
-      next.kind === step.kind &&
-      (quiet || next.file === step.file) &&
-      step.state !== 'running'
-    );
-  });
+      last.step.kind === step.kind &&
+      (quiet || last.step.file === step.file)
+    ) {
+      const running = last.step.state === 'running' || step.state === 'running';
+      return [
+        ...shown.slice(0, -1),
+        {
+          step: running ? { ...step, state: 'running' } : step,
+          count: last.count + 1,
+        },
+      ];
+    }
+    return [...shown, { step, count: 1 }];
+  }, []);
 
-function Step({ step, onOpen }: { step: IStudioChatStep; onOpen: () => void }) {
+function Step({
+  step,
+  count,
+  onOpen,
+}: {
+  step: IStudioChatStep;
+  /** How many steps in a row this line stands for. */
+  count: number;
+  onOpen: () => void;
+}) {
   const { t, locale } = useTranslation();
   const tokenCount = useMemo(
     () => new Intl.NumberFormat(locale, { notation: 'compact' }),
@@ -64,6 +83,11 @@ function Step({ step, onOpen }: { step: IStudioChatStep; onOpen: () => void }) {
         {step.state === 'failed' && <Glyph name="alert" />}
       </span>
       <span>{label}</span>
+      {count > 1 && (
+        <span className="studio-chat__step-note">
+          {t('studioChat.step.times', { count: String(count) })}
+        </span>
+      )}
       {step.tokens && (
         <span className="studio-chat__step-note">
           {t('studioChat.step.compactTokens', {
@@ -142,10 +166,11 @@ export default function StudioChatReply({
     >
       {steps.length > 0 && (
         <ol className="studio-chat__steps">
-          {steps.map((step) => (
+          {steps.map(({ step, count }) => (
             <Step
               key={step.id}
               step={step}
+              count={count}
               onOpen={() => onOpenPicture(pictureKey(reply.id, step.id))}
             />
           ))}
@@ -189,7 +214,7 @@ export default function StudioChatReply({
           while it does: without this a reply with every step ticked read as
           finished, or stuck (Ivan, 2026-10-09: "I dont see is doing
           something"). Always at the reply's foot until it ends. */}
-      {working && !steps.some((step) => step.state === 'running') && (
+      {working && !steps.some(({ step }) => step.state === 'running') && (
         <p className="studio-chat__thinking" role="status">
           <span className="studio-chat__dots" aria-hidden="true">
             <i />

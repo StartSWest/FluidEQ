@@ -182,7 +182,8 @@ const studioChat = {
   'studioChat.welcomeSceneTitle': 'Что изменить в {name}?',
   'studioChat.welcomeSceneBody':
     'Скажите Claude, что изменить: внешний вид, движение под музыку, цвета или свет. Claude редактирует эту сцену и показывает каждую версию на сцене.',
-  'studioChat.queue.title': 'В очереди · Claude прочитает на следующем шаге',
+  'studioChat.queue.title':
+    'В очереди · Claude прочитает всё вместе на следующем шаге',
   'studioChat.queue.send': 'В очередь: Claude прочитает на следующем шаге',
   'studioChat.queue.remove': 'Убрать',
   'studioChat.queue.sent':
@@ -206,6 +207,10 @@ const studioChat = {
   'studioChat.context.tokensOf': '{used} из {window} токенов',
   'studioChat.context.explain':
     'Каждое сообщение несёт всю беседу. Сжатие подытоживает её до этого места, и следующие сообщения становятся легче.',
+  'studioChat.queue.sendNow': 'Отправить сейчас',
+  'studioChat.queue.sendNowHint':
+    'Останавливает текущий шаг Claude и передаёт всё это сейчас одним сообщением',
+  'studioChat.step.times': '×{count}',
 } as const;
 
 export default studioChat;

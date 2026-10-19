@@ -25,7 +25,6 @@ import {
   readChatMessage,
   readChatPicks,
   retryOf,
-  userLine,
   type IChatMessage,
 } from './chatMessage';
 import { createChatPictures } from './chatPictures';
@@ -171,7 +170,7 @@ export const createStudioChat = ({
       model,
       effort,
       stopping: false,
-      written: [],
+      sendingNow: false,
     };
     watchClaudeCode(
       child,
@@ -285,7 +284,7 @@ export const createStudioChat = ({
     turns.show(projectId, messages);
     const session = await sessionFor(projectId, folder, latest);
     if (session) {
-      turns.begin(projectId, session, userLine(...messages));
+      turns.begin(projectId, session, messages);
     }
   };
 
@@ -305,11 +304,7 @@ export const createStudioChat = ({
     }
     const session = await sessionFor(project.id, project.folder, picks);
     if (session) {
-      turns.begin(
-        project.id,
-        session,
-        userLine({ ...picks, words: '/compact' }),
-      );
+      turns.begin(project.id, session, [{ words: '/compact' }]);
     }
   };
 
@@ -324,7 +319,7 @@ export const createStudioChat = ({
       return;
     }
     if (isBusy(project.id)) {
-      turns.queueMessage(project.id, sessions.get(project.id), message);
+      turns.queueMessage(project.id, message);
       return;
     }
     await dispatch(project.id, project.folder, [
@@ -364,12 +359,31 @@ export const createStudioChat = ({
     if (at !== -1) {
       transcript.entries.splice(at, 1);
     }
-    turns.begin(
-      project.id,
-      session,
-      userLine(...again.messages),
-      again.replyId,
-    );
+    turns.begin(project.id, session, again.messages, again.replyId);
+  };
+
+  /**
+   * Send now: with a reply running, Claude Code ends the step it is on and
+   * reads what waits next (`chatTurns.ts`); with none, what waits goes as
+   * a message of its own.
+   */
+  const sendNow = async (raw: unknown): Promise<void> => {
+    const project = agentProject();
+    const picks = readChatPicks(raw);
+    if (!project.ok || !picks) {
+      return;
+    }
+    const session = sessions.get(project.id);
+    if (session && turns.sendNow(project.id, session)) {
+      return;
+    }
+    if (isBusy(project.id)) {
+      return;
+    }
+    const waiting = queue.takeWaiting(project.id);
+    if (waiting.length > 0) {
+      await dispatch(project.id, project.folder, waiting);
+    }
   };
 
   const activeChat = (): IStudioChat | undefined => {
@@ -427,7 +441,9 @@ export const createStudioChat = ({
     send,
     compact,
     retry,
-    unqueue: queue.remove,
+    unqueue: (projectId, id) =>
+      turns.unqueue(projectId, sessions.get(projectId), id),
+    sendNow,
     stop: (projectId) => {
       const session = sessions.get(projectId);
       if (session) {

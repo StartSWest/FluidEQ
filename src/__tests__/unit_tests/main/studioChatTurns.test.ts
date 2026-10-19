@@ -6,10 +6,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The Studio chat's replies on a running Claude Code (`chatTurns.ts`) and
- * its queue (`chatQueue.ts`), held to what was measured of Claude Code on
- * 2026-10-16: a line written while a step runs is read when that step
- * returns, every line is reported read once and in order, and an interrupt
- * ends the turn but keeps the process, which reads what it was handed next.
+ * its queue (`chatQueue.ts`), held to what was measured of Claude Code
+ * 2.1.296: every line carries a uuid it echoes when it reads it, several
+ * lines waiting at a turn's start are read as ONE under the first's uuid
+ * (which hung the first version), cancel_async_message takes back a line not
+ * read yet, and an interrupt with send_now ends the step so it is read next.
  */
 
 jest.mock('../../../main/studioChat/chatVersions', () => ({
@@ -17,6 +18,7 @@ jest.mock('../../../main/studioChat/chatVersions', () => ({
 }));
 jest.mock('../../../main/studioChat/chatPicture', () => ({
   chatPictureFromBytes: jest.fn(() => 'data:image/jpeg;base64,AA=='),
+  chatPictureFromDataUrl: jest.fn(() => 'data:image/jpeg;base64,AA=='),
 }));
 jest.mock('../../../main/studioChat/endProcessTree', () => ({
   __esModule: true,
@@ -25,10 +27,7 @@ jest.mock('../../../main/studioChat/endProcessTree', () => ({
 
 /* eslint-disable import/first -- the mocks must be installed first */
 import type { ChildProcess } from 'child_process';
-import type {
-  IStudioChatQueued,
-  TStudioChatEntry,
-} from '../../../common/studioChat';
+import type { TStudioChatEntry } from '../../../common/studioChat';
 import type { IChatSession } from '../../../main/studioChat/chatLaunch';
 import type { IChatMessage } from '../../../main/studioChat/chatMessage';
 import { retryOf } from '../../../main/studioChat/chatMessage';
@@ -49,23 +48,28 @@ const message = (words: string): IChatMessage => ({
   effort: 'default',
 });
 
+interface IWritten {
+  type: string;
+  uuid?: string;
+  message?: { content: { type: string; text?: string }[] };
+  request?: Record<string, unknown>;
+}
+
 /** A chat on a fake Claude Code: every line written, every entry shown. */
 const setUp = () => {
-  const lines: string[] = [];
-  const told: IStudioChatQueued[][] = [];
+  const lines: IWritten[] = [];
   const entries: TStudioChatEntry[] = [];
-  const queue = createChatQueue((_projectId, queued) => told.push(queued));
-  const upsert = (_projectId: string, entry: TStudioChatEntry) => {
-    const at = entries.findIndex(({ id }) => id === entry.id);
-    if (at === -1) {
-      entries.push(entry);
-    } else {
-      entries[at] = entry;
-    }
-  };
+  const queue = createChatQueue(() => undefined);
   const turns = createChatTurns({
     queue,
-    upsert,
+    upsert: (_projectId, entry) => {
+      const at = entries.findIndex(({ id }) => id === entry.id);
+      if (at === -1) {
+        entries.push(entry);
+      } else {
+        entries[at] = entry;
+      }
+    },
     tell: () => undefined,
     save: () => undefined,
     saveWith: () => undefined,
@@ -74,188 +78,278 @@ const setUp = () => {
   });
   const session: IChatSession = {
     child: {
-      stdin: { write: (line: string) => lines.push(line) },
+      stdin: {
+        write: (line: string) => lines.push(JSON.parse(line) as IWritten),
+      },
     } as unknown as ChildProcess,
     folder: 'folder',
     model: 'default',
     effort: 'default',
     stopping: false,
-    written: [],
+    sendingNow: false,
   };
-  const wordsOf = (line: string) =>
-    (
-      JSON.parse(line) as { message?: { content: { text?: string }[] } }
-    ).message?.content.map(({ text }) => text);
-  return { lines, told, entries, queue, turns, session, wordsOf };
+  const texts = (line: IWritten) =>
+    line.message?.content.flatMap(({ text }) => (text ? [text] : []));
+  const users = () => lines.filter(({ type }) => type === 'user');
+  const controls = () =>
+    lines.flatMap(({ request }) => (request ? [request] : []));
+  return { lines, entries, queue, turns, session, texts, users, controls };
 };
 
-const runningStep = {
+const step = (id: string) => ({
   type: 'step' as const,
-  step: { id: 'read-1', kind: 'read' as const, state: 'running' as const },
-};
+  step: {
+    id,
+    kind: 'write' as const,
+    state: 'running' as const,
+    file: 'scene.frag',
+  },
+});
 
 describe('the Studio chat queue', () => {
-  it('waits until handed over, then can no longer be taken back', () => {
+  it('hands every waiting message over in one line, and keeps it till read', () => {
     const { queue } = setUp();
     queue.add(PROJECT, message('one'));
-    const [waiting] = queue.list(PROJECT);
-    expect(waiting.sent).toBe(false);
-    const { ids, messages } = queue.send(PROJECT);
-    expect(messages.map(({ words }) => words)).toEqual(['one']);
-    expect(queue.list(PROJECT)[0].sent).toBe(true);
-    queue.remove(PROJECT, ids[0]);
-    expect(queue.list(PROJECT)).toHaveLength(1);
-  });
-
-  it('a waiting one is taken back', () => {
-    const { queue } = setUp();
-    queue.add(PROJECT, message('one'));
-    queue.remove(PROJECT, queue.list(PROJECT)[0].id);
-    expect(queue.list(PROJECT)).toEqual([]);
-  });
-
-  it('read takes exactly the messages named, unsend puts them back to wait', () => {
-    const { queue } = setUp();
-    queue.add(PROJECT, message('one'));
-    const { ids } = queue.send(PROJECT);
     queue.add(PROJECT, message('two'));
-    queue.unsend(PROJECT, ids);
-    expect(queue.list(PROJECT).map(({ sent }) => sent)).toEqual([false, false]);
-    const again = queue.send(PROJECT);
-    expect(queue.read(PROJECT, again.ids.slice(0, 1))).toEqual([
-      message('one'),
+    expect(queue.send(PROJECT, 'line-a').map(({ words }) => words)).toEqual([
+      'one',
+      'two',
     ]);
-    expect(queue.list(PROJECT).map(({ text }) => text)).toEqual(['two']);
+    expect(queue.list(PROJECT).map(({ sent }) => sent)).toEqual([true, true]);
+    expect(queue.lines(PROJECT)).toEqual(['line-a']);
   });
 
-  it('takeWaiting leaves what Claude Code already holds', () => {
+  it('a handed message taken back names its line, and the line’s others wait again', () => {
+    const { queue } = setUp();
+    queue.add(PROJECT, message('one'));
+    queue.add(PROJECT, message('two'));
+    queue.send(PROJECT, 'line-a');
+    expect(queue.remove(PROJECT, queue.list(PROJECT)[0].id)).toBe('line-a');
+    expect(queue.list(PROJECT)).toMatchObject([{ text: 'two', sent: false }]);
+  });
+
+  it('a read takes its line, and any other line whose words it holds', () => {
+    const { queue } = setUp();
+    queue.add(PROJECT, message('first'));
+    queue.send(PROJECT, 'line-a');
+    queue.add(PROJECT, message('second'));
+    queue.send(PROJECT, 'line-b');
+    queue.add(PROJECT, message('waiting'));
+    expect(queue.read(PROJECT, 'line-a', ['first', 'second'])).toBe(true);
+    expect(queue.list(PROJECT).map(({ text }) => text)).toEqual(['waiting']);
+    expect(queue.read(PROJECT, 'unknown', ['nothing of ours'])).toBe(false);
+  });
+
+  it('unsend and takeWaiting', () => {
     const { queue } = setUp();
     queue.add(PROJECT, message('held'));
-    queue.send(PROJECT);
+    queue.send(PROJECT, 'line-a');
     queue.add(PROJECT, message('waiting'));
     expect(queue.takeWaiting(PROJECT)).toEqual([message('waiting')]);
-    expect(queue.list(PROJECT).map(({ text }) => text)).toEqual(['held']);
     expect(queue.hasSent(PROJECT)).toBe(true);
+    queue.unsend(PROJECT);
+    expect(queue.hasSent(PROJECT)).toBe(false);
   });
 });
 
 describe("the Studio chat's turns", () => {
-  it('a message queued while no step runs waits, and goes when the next step starts', () => {
-    const { lines, turns, session, queue, wordsOf } = setUp();
-    turns.begin(PROJECT, session, 'first\n');
-    turns.queueMessage(PROJECT, session, message('also this'));
-    expect(lines).toEqual(['first\n']);
-    turns.onEvent(PROJECT, session, runningStep);
-    expect(lines).toHaveLength(2);
-    expect(wordsOf(lines[1])).toEqual(['also this']);
-    expect(queue.list(PROJECT)[0].sent).toBe(true);
+  it('every line written carries a uuid', () => {
+    const { users, turns, session } = setUp();
+    turns.begin(PROJECT, session, [message('hello')]);
+    expect(users()[0].uuid).toMatch(/^[0-9a-f-]{36}$/);
   });
 
-  it('a message queued while a step runs is handed over at once', () => {
-    const { lines, turns, session } = setUp();
-    turns.begin(PROJECT, session, 'first\n');
-    turns.onEvent(PROJECT, session, runningStep);
-    turns.queueMessage(PROJECT, session, message('now'));
-    expect(lines).toHaveLength(2);
+  it('messages queued between steps go together, as one message, when the next step starts', () => {
+    const { users, texts, turns, session } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.queueMessage(PROJECT, message('that sucks'));
+    turns.queueMessage(PROJECT, message('WTF'));
+    expect(users()).toHaveLength(1);
+    turns.onEvent(PROJECT, session, step('edit-1'));
+    expect(users()).toHaveLength(2);
+    expect(texts(users()[1])).toEqual(['that sucks', 'WTF']);
   });
 
-  it("Claude Code reading the member's own line shows nothing new", () => {
-    const { entries, turns, session } = setUp();
-    turns.begin(PROJECT, session, 'first\n');
-    turns.onEvent(PROJECT, session, { type: 'read' });
-    expect(session.written).toEqual([]);
-    expect(entries).toEqual([]);
-    expect(session.reply?.state).toBe('working');
-  });
-
-  it('a queued message read mid-reply joins the chat there, and the reply goes on under it', () => {
-    const { entries, turns, session, queue } = setUp();
-    turns.begin(PROJECT, session, 'first\n');
-    turns.onEvent(PROJECT, session, { type: 'read' });
+  it('a queued line read mid-reply joins the chat there as one message, and the reply goes on under it', () => {
+    const { users, entries, turns, session, queue } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
     turns.onEvent(PROJECT, session, { type: 'text', text: 'Working on it.' });
-    turns.queueMessage(PROJECT, session, message('make it red'));
-    turns.onEvent(PROJECT, session, runningStep);
+    turns.queueMessage(PROJECT, message('make it red'));
+    turns.queueMessage(PROJECT, message('and slower'));
+    turns.onEvent(PROJECT, session, step('edit-1'));
     const before = session.reply?.id;
-    turns.onEvent(PROJECT, session, { type: 'read' });
+    turns.onEvent(PROJECT, session, {
+      type: 'read',
+      uuid: users()[1].uuid,
+      texts: ['make it red', 'and slower'],
+    });
     expect(entries.map((entry) => entry.kind)).toEqual(['claude', 'me']);
     expect(entries[0]).toMatchObject({ state: 'done', text: 'Working on it.' });
-    expect(entries[1]).toMatchObject({ kind: 'me', text: 'make it red' });
+    expect(entries[1]).toMatchObject({ text: 'make it red\n\nand slower' });
     expect(session.reply?.state).toBe('working');
     expect(session.reply?.id).not.toBe(before);
     expect(queue.list(PROJECT)).toEqual([]);
   });
 
-  it('Stop asks Claude Code to stop and keeps it; a second press ends it', () => {
-    const { lines, turns, session } = setUp();
-    turns.begin(PROJECT, session, 'first\n');
-    turns.stop(PROJECT, session);
-    expect(JSON.parse(lines[1])).toMatchObject({
-      type: 'control_request',
-      request: { subtype: 'interrupt' },
+  it('lines read as one at a turn’s start do not leave the chat waiting for the others (the hang)', () => {
+    const { users, entries, turns, session } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.queueMessage(PROJECT, message('no dude'));
+    turns.onEvent(PROJECT, session, step('edit-1'));
+    turns.queueMessage(PROJECT, message('that sucks'));
+    turns.onEvent(PROJECT, session, step('edit-2'));
+    turns.onEvent(PROJECT, session, { type: 'end' });
+    expect(turns.isWorking(PROJECT, session)).toBe(true);
+    turns.onEvent(PROJECT, session, {
+      type: 'read',
+      uuid: users()[1].uuid,
+      texts: ['no dude', 'that sucks'],
     });
+    expect(turns.isWorking(PROJECT, session)).toBe(true);
+    expect(session.reply?.state).toBe('working');
+    turns.onEvent(PROJECT, session, { type: 'end' });
+    expect(turns.isWorking(PROJECT, session)).toBe(false);
+    expect(entries.filter(({ kind }) => kind === 'me')).toHaveLength(1);
+  });
+
+  it("Claude Code reading the member's own line shows nothing new", () => {
+    const { users, entries, turns, session } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.onEvent(PROJECT, session, {
+      type: 'read',
+      uuid: users()[0].uuid,
+      texts: ['first'],
+    });
+    expect(entries).toEqual([]);
+    expect(session.reply?.state).toBe('working');
+  });
+
+  it('a handed message taken back is withdrawn from Claude Code by its line', () => {
+    const { users, controls, turns, session, queue } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.queueMessage(PROJECT, message('never mind'));
+    turns.onEvent(PROJECT, session, step('edit-1'));
+    turns.unqueue(PROJECT, session, queue.list(PROJECT)[0].id);
+    expect(controls()).toEqual([
+      { subtype: 'cancel_async_message', message_uuid: users()[1].uuid },
+    ]);
+    expect(queue.list(PROJECT)).toEqual([]);
+    expect(turns.isWorking(PROJECT, session)).toBe(true);
+  });
+
+  it('a waiting message taken back writes nothing', () => {
+    const { lines, turns, session, queue } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.queueMessage(PROJECT, message('never mind'));
+    turns.unqueue(PROJECT, session, queue.list(PROJECT)[0].id);
+    expect(lines).toHaveLength(1);
+  });
+
+  it('Send now hands what waits over and asks Claude Code to read it now; the reply it cuts ends well', () => {
+    const { users, controls, entries, turns, session } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.queueMessage(PROJECT, message('do this instead'));
+    expect(turns.sendNow(PROJECT, session)).toBe(true);
+    expect(controls()).toEqual([
+      { subtype: 'interrupt', send_now: true, message_uuid: users()[1].uuid },
+    ]);
+    turns.onEvent(PROJECT, session, { type: 'end', failure: 'crashed' });
+    expect(entries[0]).toMatchObject({ state: 'done' });
+  });
+
+  it('Send now with no reply running leaves it to the caller', () => {
+    const { lines, turns, session } = setUp();
+    turns.queueMessage(PROJECT, message('waiting'));
+    expect(turns.sendNow(PROJECT, session)).toBe(false);
+    expect(lines).toEqual([]);
+  });
+
+  it('Stop asks Claude Code to stop and keeps it; a second press ends it', () => {
+    const { controls, turns, session } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.stop(PROJECT, session);
+    expect(controls()).toEqual([{ subtype: 'interrupt' }]);
     expect(endProcessTree).not.toHaveBeenCalled();
     turns.stop(PROJECT, session);
     expect(endProcessTree).toHaveBeenCalledWith(session.child);
   });
 
-  it('a stopped reply hands on what waits', () => {
-    const { lines, entries, turns, session, queue, wordsOf } = setUp();
-    turns.begin(PROJECT, session, 'first\n');
-    turns.queueMessage(PROJECT, session, message('then this'));
-    turns.stop(PROJECT, session);
-    turns.onEvent(PROJECT, session, { type: 'end', failure: 'crashed' });
-    expect(entries[0]).toMatchObject({ state: 'stopped' });
-    expect(wordsOf(lines[lines.length - 1])).toEqual(['then this']);
-    expect(queue.hasSent(PROJECT)).toBe(true);
+  it('Stop with no reply running withdraws what was handed over, and the chat is free', () => {
+    const { users, controls, turns, session, queue } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.queueMessage(PROJECT, message('then this'));
+    turns.onEvent(PROJECT, session, step('edit-1'));
+    turns.onEvent(PROJECT, session, { type: 'end' });
     expect(turns.isWorking(PROJECT, session)).toBe(true);
-  });
-
-  it('a failed reply keeps what waits, unsent', () => {
-    const { lines, entries, turns, session, queue } = setUp();
-    turns.begin(PROJECT, session, 'first\n');
-    turns.queueMessage(PROJECT, session, message('then this'));
-    turns.onEvent(PROJECT, session, { type: 'end', failure: 'limit' });
-    expect(entries[0]).toMatchObject({ state: 'failed', failure: 'limit' });
-    expect(lines).toEqual(['first\n']);
+    turns.stop(PROJECT, session);
+    expect(controls()).toEqual([
+      { subtype: 'cancel_async_message', message_uuid: users()[1].uuid },
+    ]);
+    expect(turns.isWorking(PROJECT, session)).toBe(false);
     expect(queue.list(PROJECT)).toMatchObject([
       { text: 'then this', sent: false },
     ]);
-    expect(turns.isWorking(PROJECT, session)).toBe(false);
   });
 
-  it('Claude Code ending before it read a queued line puts it back to wait', () => {
-    const { entries, turns, session, queue } = setUp();
-    turns.begin(PROJECT, session, 'first\n');
-    turns.onEvent(PROJECT, session, runningStep);
-    turns.queueMessage(PROJECT, session, message('unread'));
-    expect(queue.hasSent(PROJECT)).toBe(true);
+  it('a stopped reply hands on what waits', () => {
+    const { users, texts, entries, turns, session } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.queueMessage(PROJECT, message('then this'));
+    turns.stop(PROJECT, session);
+    turns.onEvent(PROJECT, session, { type: 'end', failure: 'crashed' });
+    expect(entries[0]).toMatchObject({ state: 'stopped' });
+    expect(texts(users()[users().length - 1])).toEqual(['then this']);
+  });
+
+  it('a failed reply keeps what waits, unsent', () => {
+    const { users, entries, turns, session, queue } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.queueMessage(PROJECT, message('then this'));
+    turns.onEvent(PROJECT, session, { type: 'end', failure: 'limit' });
+    expect(entries[0]).toMatchObject({ state: 'failed', failure: 'limit' });
+    expect(users()).toHaveLength(1);
+    expect(queue.list(PROJECT)).toMatchObject([{ sent: false }]);
+  });
+
+  it('Claude Code ending before it read a line puts it back to wait', () => {
+    const { turns, session, queue } = setUp();
+    turns.begin(PROJECT, session, [message('first')]);
+    turns.queueMessage(PROJECT, message('unread'));
+    turns.onEvent(PROJECT, session, step('edit-1'));
     turns.ended(PROJECT, session, 'crashed');
     expect(queue.list(PROJECT)).toMatchObject([
       { text: 'unread', sent: false },
     ]);
-    expect(entries[0]).toMatchObject({ state: 'failed', failure: 'crashed' });
-    expect(session.written).toEqual([]);
+    expect(turns.isWorking(PROJECT, session)).toBe(false);
   });
 
   it('a retry takes the failed reply’s place, by its id', () => {
-    const { entries, turns, session } = setUp();
-    turns.begin(PROJECT, session, 'again\n', 'failed-reply');
+    const { turns, session } = setUp();
+    turns.begin(PROJECT, session, [message('again')], 'failed-reply');
     expect(session.reply?.id).toBe('failed-reply');
-    expect(entries).toEqual([]);
   });
 });
 
-describe('reading the stream and the chat for the queue and the retry', () => {
-  it('a replayed user line is read as one read, a tool result is not', () => {
+describe('reading the stream and the chat', () => {
+  it('a replayed line is read with its uuid and its words; a tool result is not', () => {
     expect(
       readStreamLine(
         JSON.stringify({
           type: 'user',
           isReplay: true,
-          message: { role: 'user', content: [{ type: 'text', text: 'hi' }] },
+          uuid: 'u-1',
+          message: {
+            role: 'user',
+            content: [
+              { type: 'text', text: 'no dude WTF\n' },
+              { type: 'text', text: 'that suckjs\n' },
+            ],
+          },
         }),
       ),
-    ).toEqual([{ type: 'read' }]);
+    ).toEqual([
+      { type: 'read', uuid: 'u-1', texts: ['no dude WTF', 'that suckjs'] },
+    ]);
     expect(
       readStreamLine(
         JSON.stringify({

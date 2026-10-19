@@ -11,7 +11,7 @@ import type {
 } from '../../common/studioChat';
 import type { IChatSession } from './chatLaunch';
 import { userLine, type IChatMessage } from './chatMessage';
-import { chatPictureFromBytes } from './chatPicture';
+import { chatPictureFromBytes, chatPictureFromDataUrl } from './chatPicture';
 import type { TChatQueue } from './chatQueue';
 import type { TChatStreamEvent } from './chatStream';
 import { keepReplyVersion } from './chatVersions';
@@ -19,6 +19,7 @@ import endProcessTree from './endProcessTree';
 import withEvent from './replyEvents';
 
 type TReply = Extract<TStudioChatEntry, { kind: 'claude' }>;
+type TWords = Pick<IChatMessage, 'words' | 'picture'>;
 
 interface IChatTurnsDeps {
   queue: TChatQueue;
@@ -34,25 +35,23 @@ interface IChatTurnsDeps {
   dropAsks(projectId: string): void;
 }
 
-/** Claude Code's own way to stop a turn and keep the process (and its queue). */
-const INTERRUPT = `${JSON.stringify({
-  type: 'control_request',
-  request_id: 'fluideq-stop',
-  request: { subtype: 'interrupt' },
-})}\n`;
+/** One of Claude Code's own control requests, as a line of its input. */
+const controlLine = (request: Record<string, unknown>) =>
+  `${JSON.stringify({ type: 'control_request', request_id: randomUUID(), request })}\n`;
 
 /**
  * A project's replies on its running Claude Code: how one begins, how a
- * message queued while it is written joins it, how it is stopped, and how it
- * ends.
+ * message queued while it is written joins it, how it is stopped, sent past
+ * and taken back, and how it ends.
  *
- * A queued message is handed over when Claude starts a step, and Claude
- * reads it as that step returns (measured 2026-10-16: a line written while
- * a Read ran was read the moment its result came back, and answered in the
- * same reply). Claude Code says when it read each line; at that moment the
- * member's words join the conversation where Claude took them, and what
- * Claude says next is a reply of its own under them, as Claude Code itself
- * shows a message it took mid-turn.
+ * Every line written to Claude Code carries a uuid, which Claude Code echoes
+ * when it reads the line (`--replay-user-messages`, measured 2026-10-18 on
+ * 2.1.296): a queued line is matched by it, never by counting. Counting was
+ * the first version, and it hung the chat: Claude Code reads several lines
+ * waiting at a turn's start as ONE message under the first one's uuid
+ * ("no dude WTF", "that suckjs" and "WTF" in one turn), so two of three
+ * expected reads never came, the chat stayed busy with no reply running, and
+ * Stop, which stopped only a reply, did nothing.
  */
 const createChatTurns = ({
   queue,
@@ -63,8 +62,7 @@ const createChatTurns = ({
   versionsOf,
   dropAsks,
 }: IChatTurnsDeps) => {
-  const write = (session: IChatSession, line: string, ids: string[] = []) => {
-    session.written.push(ids);
+  const write = (session: IChatSession, line: string) => {
     session.child.stdin?.write(line);
   };
 
@@ -94,7 +92,7 @@ const createChatTurns = ({
   ) => {
     const { reply } = session;
     if (!reply) {
-      return undefined;
+      return;
     }
     session.reply = undefined;
     session.controller?.abort();
@@ -115,38 +113,44 @@ const createChatTurns = ({
       ...(version === undefined ? {} : { version }),
     });
     save(projectId);
-    return state;
   };
 
-  /** What waits in the queue, handed to Claude Code to read at its next step. */
+  /**
+   * Everything waiting, handed to Claude Code as one message, to read at its
+   * next step. The line's uuid, or nothing when nothing waited.
+   */
   const hand = (projectId: string, session: IChatSession) => {
-    const { ids, messages } = queue.send(projectId);
-    if (messages.length > 0) {
-      write(session, userLine(...messages), ids);
+    const line = randomUUID();
+    const messages = queue.send(projectId, line);
+    if (messages.length === 0) {
+      return undefined;
     }
+    write(session, userLine(line, ...messages));
+    return line;
   };
 
-  /** The member's messages joining the conversation, as they were written. */
-  const show = (projectId: string, messages: readonly IChatMessage[]) =>
-    messages.forEach(({ words, picture }) => {
-      const shown = picture ? chatPictureFromBytes(picture) : undefined;
-      upsert(projectId, {
-        kind: 'me',
-        id: randomUUID(),
-        text: words,
-        ...(shown ? { picture: shown } : {}),
-      });
-    });
-
-  /** Claude Code read the oldest line it had not read yet. */
-  const read = (projectId: string, session: IChatSession) => {
-    const ids = session.written.shift() ?? [];
-    const messages = ids.length > 0 ? queue.read(projectId, ids) : [];
-    if (messages.length === 0) {
+  /** Claude Code read a line: when it was queued, it joins the chat there. */
+  const read = (
+    projectId: string,
+    session: IChatSession,
+    event: Extract<TChatStreamEvent, { type: 'read' }>,
+  ) => {
+    if (!queue.read(projectId, event.uuid, event.texts)) {
       return;
     }
+    // The member's words land where Claude read them, as one message, in
+    // the words Claude Code says it read; the reply so far ends there, and
+    // what Claude does next is a reply of its own under them.
     close(projectId, session, 'done');
-    show(projectId, messages);
+    const shown = event.picture
+      ? chatPictureFromDataUrl(event.picture)
+      : undefined;
+    upsert(projectId, {
+      kind: 'me',
+      id: randomUUID(),
+      text: event.texts.join('\n\n'),
+      ...(shown ? { picture: shown } : {}),
+    });
     open(projectId, session);
   };
 
@@ -155,30 +159,79 @@ const createChatTurns = ({
     begin: (
       projectId: string,
       session: IChatSession,
-      line: string,
+      messages: readonly TWords[],
       /** The failed reply this one takes the place of, by its id. */
       replacing?: string,
     ) => {
       open(projectId, session, replacing);
-      write(session, line);
+      write(session, userLine(randomUUID(), ...messages));
     },
 
-    show,
+    /** The member's messages as one, joining the conversation as written. */
+    show: (projectId: string, messages: readonly TWords[]) => {
+      const picture = messages.find((message) => message.picture)?.picture;
+      const shown = picture ? chatPictureFromBytes(picture) : undefined;
+      upsert(projectId, {
+        kind: 'me',
+        id: randomUUID(),
+        text: messages.map(({ words }) => words).join('\n\n'),
+        ...(shown ? { picture: shown } : {}),
+      });
+    },
 
     /** Whether Claude is answering, or about to answer what it was handed. */
     isWorking: (projectId: string, session: IChatSession | undefined) =>
       session?.reply !== undefined || queue.hasSent(projectId),
 
-    /** A message sent while Claude answers: queued, and handed over at once if a step is running. */
-    queueMessage: (
+    /** A message sent while Claude answers: it waits for Claude's next step. */
+    queueMessage: (projectId: string, message: IChatMessage) =>
+      queue.add(projectId, message),
+
+    /**
+     * A queued message taken back: from the queue, and from Claude Code when
+     * it had been handed over, which cancels its whole line - the line's
+     * other messages wait again and go with the next.
+     */
+    unqueue: (
       projectId: string,
       session: IChatSession | undefined,
-      message: IChatMessage,
+      id: string,
     ) => {
-      queue.add(projectId, message);
-      if (session?.reply?.steps.some((step) => step.state === 'running')) {
-        hand(projectId, session);
+      const line = queue.remove(projectId, id);
+      if (line !== undefined && session) {
+        write(
+          session,
+          controlLine({ subtype: 'cancel_async_message', message_uuid: line }),
+        );
       }
+    },
+
+    /**
+     * Send now (Ivan, 2026-10-18: "I also need the send now that will send
+     * it now"): what waits is handed over at once, and Claude Code's own
+     * send-now ends the step Claude is on so the message is read next.
+     * Whether there was a reply to cut short; without one the caller sends
+     * what waits as a message of its own.
+     */
+    sendNow: (projectId: string, session: IChatSession) => {
+      if (!session.reply) {
+        return false;
+      }
+      const handed = queue.lines(projectId);
+      const line = hand(projectId, session) ?? handed[handed.length - 1];
+      if (line === undefined) {
+        return true;
+      }
+      session.sendingNow = true;
+      write(
+        session,
+        controlLine({
+          subtype: 'interrupt',
+          send_now: true,
+          message_uuid: line,
+        }),
+      );
+      return true;
     },
 
     /** One event of Claude Code's stream, into the reply it belongs to. */
@@ -188,7 +241,7 @@ const createChatTurns = ({
       event: Exclude<TChatStreamEvent, { type: 'session' }>,
     ) => {
       if (event.type === 'read') {
-        read(projectId, session);
+        read(projectId, session, event);
         return;
       }
       const { reply } = session;
@@ -196,19 +249,19 @@ const createChatTurns = ({
         return;
       }
       if (event.type === 'end') {
-        const stopped = session.stopping;
-        session.stopping = false;
         let state: 'done' | 'stopped' | 'failed' = 'done';
-        if (stopped) {
+        if (session.stopping) {
           state = 'stopped';
-        } else if (event.failure) {
+        } else if (event.failure && !session.sendingNow) {
           state = 'failed';
         }
+        session.stopping = false;
+        session.sendingNow = false;
         close(projectId, session, state, event.failure);
         // Stopped or done, what waits goes on, read as Claude's next turn
-        // (Ivan, 2026-10-16: "stop but read any pending message and
-        // continue with those until user stop them"). A failure keeps it
-        // waiting: the plan's limit or a sign-in would refuse it the same way.
+        // (2026-10-16: "stop but read any pending message and continue with
+        // those until user stop them"). A failure keeps it waiting: the
+        // plan's limit or a sign-in would refuse it the same way.
         if (state !== 'failed') {
           hand(projectId, session);
         }
@@ -219,19 +272,32 @@ const createChatTurns = ({
         saveWith(projectId, { ...session.reply });
       }
       tell(projectId, { ...session.reply });
-      // A step began: whatever waits is read the moment it returns.
+      // A step began: what waits goes now, as one, read when it returns.
       if (event.type === 'step') {
         hand(projectId, session);
       }
     },
 
     /**
-     * Stop: Claude Code ends the turn and keeps going, so what waits is read
-     * next. Pressed again before it has, the process ends: a Claude Code that
-     * does not answer its own stop is not left running.
+     * Stop. With a reply running, Claude Code ends the turn and keeps going,
+     * so what waits is read next; pressed again before it has, the process
+     * ends. With none running but lines handed over (Claude about to start
+     * on them), they are withdrawn and wait again: Stop always does
+     * something, and never leaves the chat busy with nothing to stop.
      */
     stop: (projectId: string, session: IChatSession) => {
       if (!session.reply) {
+        const lines = queue.lines(projectId);
+        lines.forEach((line) =>
+          write(
+            session,
+            controlLine({
+              subtype: 'cancel_async_message',
+              message_uuid: line,
+            }),
+          ),
+        );
+        queue.unsend(projectId);
         return;
       }
       if (session.stopping) {
@@ -242,7 +308,7 @@ const createChatTurns = ({
       // A picture being made, or a card waiting on the member, ends with it.
       session.controller?.abort();
       dropAsks(projectId);
-      session.child.stdin?.write(INTERRUPT);
+      write(session, controlLine({ subtype: 'interrupt' }));
     },
 
     /**
@@ -254,13 +320,10 @@ const createChatTurns = ({
       session: IChatSession,
       failure: TStudioChatFailure,
     ) => {
-      const unread = session.written.flat();
-      session.written = [];
-      if (unread.length > 0) {
-        queue.unsend(projectId, unread);
-      }
+      queue.unsend(projectId);
       const stopped = session.stopping;
       session.stopping = false;
+      session.sendingNow = false;
       close(
         projectId,
         session,

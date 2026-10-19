@@ -181,7 +181,7 @@ const studioChat = {
   'studioChat.welcomeSceneBody':
     'Claude को बताएँ क्या बदलना है: यह कैसा दिखता है, संगीत के साथ कैसे चलता है, इसके रंग या इसकी रोशनी। Claude यह दृश्य बदलता है और हर संस्करण स्टेज पर चलाता है।',
   'studioChat.queue.title':
-    'कतार में · Claude इन्हें अपने अगले चरण में पढ़ता है',
+    'कतार में · Claude इन्हें अपने अगले चरण में एक साथ पढ़ता है',
   'studioChat.queue.send':
     'कतार में रखें: Claude इसे अपने अगले चरण में पढ़ता है',
   'studioChat.queue.remove': 'वापस लें',
@@ -206,6 +206,10 @@ const studioChat = {
   'studioChat.context.tokensOf': '{window} में से {used} टोकन',
   'studioChat.context.explain':
     'हर संदेश पूरी बातचीत साथ ले जाता है। संक्षिप्त करना अब तक का सार बनाता है, ताकि आगे के संदेश कम भार ले जाएँ।',
+  'studioChat.queue.sendNow': 'अभी भेजें',
+  'studioChat.queue.sendNowHint':
+    'Claude का मौजूदा चरण रोककर इन्हें अभी एक संदेश के रूप में पढ़वाता है',
+  'studioChat.step.times': '×{count}',
 } as const;
 
 export default studioChat;

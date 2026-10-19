@@ -318,6 +318,14 @@ export const compactStudioChat = (folder: string) =>
   }) ?? Promise.resolve();
 
 /** A queued message taken back before it went. */
+/** What waits in the queue, read by Claude now, on the member's picks. */
+export const sendNowStudioChat = (folder: string) =>
+  bridge()?.studioChatSendNow?.({
+    brief: chatBrief(folder),
+    model: state.model,
+    effort: state.effort,
+  }) ?? Promise.resolve();
+
 export const unqueueStudioChat = (id: string) =>
   bridge()?.studioChatUnqueue?.(id) ?? Promise.resolve();
 

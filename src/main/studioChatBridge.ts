@@ -39,6 +39,9 @@ const studioChatBridge = {
   studioChatRetry: (picks: IStudioChatCompact): Promise<void> =>
     ipcRenderer.invoke('studio-chat-retry', picks),
   studioChatStop: (): Promise<void> => ipcRenderer.invoke('studio-chat-stop'),
+  /** What waits in the queue, read by Claude now, on the member's picks. */
+  studioChatSendNow: (picks: IStudioChatCompact): Promise<void> =>
+    ipcRenderer.invoke('studio-chat-send-now', picks),
   /** A queued message taken back before it went. */
   studioChatUnqueue: (id: string): Promise<void> =>
     ipcRenderer.invoke('studio-chat-unqueue', id),

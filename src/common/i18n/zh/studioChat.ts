@@ -172,7 +172,7 @@ const studioChat = {
   'studioChat.welcomeSceneTitle': '{name} 要改哪里？',
   'studioChat.welcomeSceneBody':
     '告诉 Claude 要改什么：外观、随音乐的动作、颜色或光线。Claude 会编辑这个场景，并在舞台上播放每个版本。',
-  'studioChat.queue.title': '排队中 · Claude 会在下一步读取',
+  'studioChat.queue.title': '排队中 · Claude 会在下一步一起读取',
   'studioChat.queue.send': '加入队列：Claude 会在下一步读取',
   'studioChat.queue.remove': '撤回',
   'studioChat.queue.sent': '已交给 Claude：当前这一步完成后它就会读取',
@@ -195,6 +195,10 @@ const studioChat = {
   'studioChat.context.tokensOf': '{window} 个 token 中已用 {used}',
   'studioChat.context.explain':
     '每条消息都会带上整个对话。压缩会总结到目前为止的内容，之后的消息负担更小。',
+  'studioChat.queue.sendNow': '立即发送',
+  'studioChat.queue.sendNowHint':
+    '停下 Claude 当前这一步，现在把这些作为一条消息读取',
+  'studioChat.step.times': '×{count}',
 } as const;
 
 export default studioChat;

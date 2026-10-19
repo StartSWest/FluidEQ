@@ -184,7 +184,8 @@ const studioChat = {
   'studioChat.welcomeSceneTitle': 'Que faut-il changer dans {name} ?',
   'studioChat.welcomeSceneBody':
     'Dites à Claude quoi changer : son apparence, sa façon de bouger avec la musique, ses couleurs ou sa lumière. Claude modifie cette scène et joue chaque version sur la scène.',
-  'studioChat.queue.title': 'En attente · Claude les lit à sa prochaine étape',
+  'studioChat.queue.title':
+    'En attente · Claude les lit ensemble à sa prochaine étape',
   'studioChat.queue.send':
     'Mettre en attente : Claude le lit à sa prochaine étape',
   'studioChat.queue.remove': 'Retirer',
@@ -209,6 +210,10 @@ const studioChat = {
   'studioChat.context.tokensOf': '{used} sur {window} jetons',
   'studioChat.context.explain':
     'Chaque message emporte toute la conversation. Compacter la résume jusqu’ici, pour que les messages suivants pèsent moins.',
+  'studioChat.queue.sendNow': 'Envoyer maintenant',
+  'studioChat.queue.sendNowHint':
+    'Arrête l’étape en cours de Claude et les lit maintenant, en un seul message',
+  'studioChat.step.times': '×{count}',
 } as const;
 
 export default studioChat;
