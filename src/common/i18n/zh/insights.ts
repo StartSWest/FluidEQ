@@ -42,6 +42,7 @@ const insights = {
   'insights.member': '一位会员',
   'insights.chip.added': '{date} 添加',
   'insights.chip.liked': '已点赞',
+  'insights.chip.unpublished': '未发布',
   'insights.kind.other': '无分类',
   'insights.time.hoursMinutes': '{hours} {minutes}',
   'insights.error.offline': 'FluidEQ 无法连接到服务器。请检查网络连接后重试。',

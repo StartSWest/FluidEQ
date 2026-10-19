@@ -44,6 +44,7 @@ const insights = {
   'insights.member': 'участник',
   'insights.chip.added': 'Добавлена {date}',
   'insights.chip.liked': 'Лайк',
+  'insights.chip.unpublished': 'Не опубликована',
   'insights.kind.other': 'Без категории',
   'insights.time.hoursMinutes': '{hours} {minutes}',
   'insights.error.offline':

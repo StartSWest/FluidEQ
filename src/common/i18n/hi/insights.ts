@@ -43,6 +43,7 @@ const insights = {
   'insights.member': 'एक सदस्य',
   'insights.chip.added': '{date} को जोड़ा',
   'insights.chip.liked': 'पसंद किया',
+  'insights.chip.unpublished': 'प्रकाशित नहीं',
   'insights.kind.other': 'कोई श्रेणी नहीं',
   'insights.time.hoursMinutes': '{hours} {minutes}',
   'insights.error.offline':

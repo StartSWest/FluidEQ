@@ -44,6 +44,7 @@ const insights = {
   'insights.member': 'un membro',
   'insights.chip.added': 'Aggiunta il {date}',
   'insights.chip.liked': 'Mi piace',
+  'insights.chip.unpublished': 'Non pubblicata',
   'insights.kind.other': 'Nessuna categoria',
   'insights.time.hoursMinutes': '{hours} {minutes}',
   'insights.error.offline':

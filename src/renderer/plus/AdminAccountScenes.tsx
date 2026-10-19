@@ -184,6 +184,14 @@ function AccountTaste({ scenes }: { scenes: IAccountScene[] }) {
                   {t(kindKey(scene.category))}
                 </span>
                 <span className="admin-taste__chips">
+                  {/* A member's own scene that was never published: played
+                      from their looks, as the server keeps it since 0058. */}
+                  {scene.authorId !== undefined &&
+                    scene.version === undefined && (
+                      <span className="admin-taste__chip">
+                        {t('insights.chip.unpublished')}
+                      </span>
+                    )}
                   {scene.addedAt !== undefined && (
                     <span className="admin-taste__chip is-added">
                       {t('insights.chip.added', {

@@ -43,6 +43,7 @@ const insights = {
   'insights.member': 'メンバー',
   'insights.chip.added': '{date} に追加',
   'insights.chip.liked': 'いいね済み',
+  'insights.chip.unpublished': '未公開',
   'insights.kind.other': 'カテゴリなし',
   'insights.time.hoursMinutes': '{hours} {minutes}',
   'insights.error.offline':
