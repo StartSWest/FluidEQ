@@ -43,7 +43,7 @@ export interface IForumFeedSource {
 
 const ROLES: readonly TForumAuthorRole[] = ['maker', 'maintainer', 'none'];
 
-const roleOf = (value: unknown): TForumAuthorRole =>
+export const roleOf = (value: unknown): TForumAuthorRole =>
   ROLES.find((role) => role === value) ?? 'none';
 
 const escapeHtml = (text: string): string =>
@@ -68,7 +68,7 @@ export const textToHtml = (text: string): string =>
     )
     .join('\n');
 
-const bodyHtmlOf = (node: Record<string, unknown>): string =>
+export const bodyHtmlOf = (node: Record<string, unknown>): string =>
   str(node.bodyHtml) || textToHtml(str(node.body));
 
 /**
@@ -76,10 +76,10 @@ const bodyHtmlOf = (node: Record<string, unknown>): string =>
  * counted those carries only GitHub's upvote arrow (`upvotes`), which is what
  * its readers were shown at the time: better the count they know than a zero.
  */
-const votesOf = (node: Record<string, unknown>): number =>
+export const votesOf = (node: Record<string, unknown>): number =>
   node.votes === undefined ? num(node.upvotes) : num(node.votes);
 
-const feedPost = (value: unknown): IForumPost => {
+export const feedPost = (value: unknown): IForumPost => {
   const node = rec(value);
   return {
     id: str(node.id),
@@ -207,14 +207,21 @@ export const readFeed = (payload: unknown): IForumFeed => {
   return { boards: boardsOf(payload, topics), topics };
 };
 
-export const createForumFeed = (
+/**
+ * One published JSON file, read through `read`, kept with its ETag. `missing`
+ * is the answer for a file that is not there at all (a 404): the issues' file
+ * is absent until the workflow first publishes it, and in every fork.
+ */
+export const createJsonFeed = <T>(
   url: string,
-  fetchImpl: typeof fetch = fetch,
-): IForumFeedSource => {
-  let cached: { etag: string; feed: IForumFeed } | undefined;
-  let inFlight: Promise<IForumFeed> | undefined;
+  read: (payload: unknown) => T,
+  fetchImpl: typeof fetch,
+  missing?: T,
+): { load(): Promise<T> } => {
+  let cached: { etag: string; feed: T } | undefined;
+  let inFlight: Promise<T> | undefined;
 
-  const fetchFeed = async (): Promise<IForumFeed> => {
+  const fetchFeed = async (): Promise<T> => {
     let response: Response;
     try {
       response = await fetchImpl(url, {
@@ -234,13 +241,17 @@ export const createForumFeed = (
     if (response.status === 304 && cached) {
       return cached.feed;
     }
+    if (response.status === 404 && missing !== undefined) {
+      cached = undefined;
+      return missing;
+    }
     if (!response.ok) {
       if (cached) {
         return cached.feed;
       }
       throw new ForumError('network', `The feed answered ${response.status}.`);
     }
-    const feed = readFeed(await response.json());
+    const feed = read(await response.json());
     const etag = response.headers.get('etag');
     cached = etag ? { etag, feed } : undefined;
     return feed;
@@ -257,3 +268,8 @@ export const createForumFeed = (
     },
   };
 };
+
+export const createForumFeed = (
+  url: string,
+  fetchImpl: typeof fetch = fetch,
+): IForumFeedSource => createJsonFeed(url, readFeed, fetchImpl);

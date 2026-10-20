@@ -218,6 +218,16 @@ const PATHS: Record<string, string> = {
   pencil: 'M15.5 5l3.5 3.5L9 18.5l-4 1 1-4L15.5 5zM13.5 7l3.5 3.5',
   // A pushpin: kept on screen, beside what it is about.
   pin: 'M8 3.5h8M9.5 3.5V10L6 13.5h12L14.5 10V3.5M12 13.5V21',
+  // A bell: a count that asks for attention.
+  bell: 'M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5l1.5-1.5zM10 20.5h4',
+  // The bell struck through: that count switched off.
+  bellOff:
+    'M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5l1.5-1.5zM10 20.5h4M4 4l16 16',
+  // A credit, the scene store's coin: the Glyph's, on this grid.
+  credit:
+    'M12 3.5a8 8.5 0 1 0 0 17 8 8.5 0 0 0 0-17zM12 7.5a4.2 4.6 0 1 0 0 9.2 4.2 4.6 0 0 0 0-9.2zM12 10v4.2',
+  // Two ticks: everything read.
+  checkAll: 'M2.5 12.5l4.5 4.5 9.5-9.5M11 17l9.5-9.5',
 };
 
 export type MenuIconName = keyof typeof PATHS;

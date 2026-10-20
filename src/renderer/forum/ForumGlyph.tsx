@@ -1,3 +1,4 @@
+import { FORUM_ISSUES_BOARD } from 'common/forum/forumTypes';
 import Glyph from '../community/Glyph';
 import { NEW_BOARD } from './forumState';
 
@@ -10,6 +11,8 @@ export type TForumGlyph =
   | 'poll'
   | 'question'
   | 'showcase'
+  | 'issue'
+  | 'issueClosed'
   | 'vote'
   | 'reply'
   | 'edit'
@@ -103,6 +106,22 @@ export default function ForumGlyph({ name, className }: IForumGlyphProps) {
             <rect x="2.5" y="5" width="11" height="10" rx="1.6" />
             <path d="m4.8 12.6 2.6-2.8 2 2 1.3-1.3 1.8 2.1" opacity="0.7" />
             <path d="M16.5 2.5v4M14.5 4.5h4M16.8 10.5v2.6M15.5 11.8h2.6" />
+          </>
+        );
+      case 'issue':
+        // GitHub's own sign for an open issue: a ring with its dot.
+        return (
+          <>
+            <circle cx="10" cy="10" r="7.5" />
+            <circle cx="10" cy="10" r="1.6" fill="currentColor" />
+          </>
+        );
+      case 'issueClosed':
+        // And a closed one: the ring with a tick, its dot gone.
+        return (
+          <>
+            <circle cx="10" cy="10" r="7.5" />
+            <path d="m6.8 10.3 2.2 2.2 4.2-4.5" />
           </>
         );
       case 'vote':
@@ -235,6 +254,8 @@ export const boardGlyph = (slug: string): TForumGlyph => {
       return 'question';
     case 'show-and-tell':
       return 'showcase';
+    case FORUM_ISSUES_BOARD:
+      return 'issue';
     default:
       return 'threads';
   }

@@ -8,6 +8,8 @@ const forum = {
   'forum.new.blurb': 'Что появилось с вашего прошлого визита',
   'forum.new.countLabel': 'Новых: {count}',
   'forum.new.markAllRead': 'Отметить всё как прочитанное',
+  'forum.news.hide': 'Выключить уведомления форума',
+  'forum.news.show': 'Включить уведомления форума',
   'forum.new.empty': 'Всё прочитано',
   'forum.new.emptyHint':
     'Новые темы и ответы показываются здесь, пока вы их не откроете.',
@@ -26,6 +28,14 @@ const forum = {
   'forum.boardDescription.polls': 'Голосуйте за то, что будет дальше',
   'forum.boardDescription.qa': 'Спросите и отметьте ответ, который помог',
   'forum.boardDescription.showAndTell': 'Настройка, которой вы гордитесь',
+  'forum.board.issues': 'Проблемы',
+  'forum.boardDescription.issues':
+    'Проблемы, о которых сообщили на GitHub, и что с каждой',
+  'forum.issue.open': 'Открыта',
+  'forum.issue.closed': 'Закрыта',
+  'forum.issue.newOnGithub': 'Сообщить о проблеме на GitHub',
+  'forum.issue.commentHint': 'Комментарии к проблеме пишутся на GitHub.',
+  'forum.issue.commentOnGithub': 'Прокомментировать на GitHub',
   'forum.board.countLabel': 'Тем: {count}',
 
   'forum.me.signedOutTitle': 'Присоединяйтесь к обсуждению',

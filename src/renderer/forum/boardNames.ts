@@ -1,4 +1,4 @@
-import type { IForumBoard } from 'common/forum/forumTypes';
+import { FORUM_ISSUES_BOARD, type IForumBoard } from 'common/forum/forumTypes';
 import type { Translate, TranslationKey } from 'common/i18n';
 
 /**
@@ -23,6 +23,7 @@ const KEYS: Record<string, [TranslationKey, TranslationKey]> = {
     'forum.board.showAndTell',
     'forum.boardDescription.showAndTell',
   ],
+  [FORUM_ISSUES_BOARD]: ['forum.board.issues', 'forum.boardDescription.issues'],
 };
 
 export const boardName = (

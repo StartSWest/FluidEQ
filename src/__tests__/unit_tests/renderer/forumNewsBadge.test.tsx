@@ -12,12 +12,15 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import type {
-  IForumTopicSummary,
-  TForumAuthState,
+import {
+  FORUM_ISSUES_BOARD,
+  type IForumTopicQuery,
+  type IForumTopicSummary,
+  type TForumAuthState,
 } from '../../../common/forum/forumTypes';
 import ForumPanel from '../../../renderer/forum/ForumPanel';
 import { forumNewsText } from '../../../renderer/forum/ForumNewsBadge';
+import { reloadForumNewsHidden } from '../../../renderer/forum/forumNewsPref';
 import { resetForumStore } from '../../../renderer/forum/forumStore';
 import HelpMenu from '../../../renderer/help/HelpMenu';
 
@@ -60,9 +63,22 @@ const topic = (
 const page = (topics: IForumTopicSummary[]) =>
   Promise.resolve({ ok: true, value: { topics, total: topics.length } });
 
+/** The topics for every board's list, the issues for the issues' row. */
+const byBoard =
+  (topics: IForumTopicSummary[], issues: IForumTopicSummary[] = []) =>
+  (query: IForumTopicQuery) =>
+    page(query.board === FORUM_ISSUES_BOARD ? issues : topics);
+
+/** How many times the topics — not the issues — were asked for. */
+const topicReads = (forumTopics: jest.Mock) =>
+  forumTopics.mock.calls.filter(
+    ([query]: [IForumTopicQuery]) => query.board !== FORUM_ISSUES_BOARD,
+  ).length;
+
 const installBridge = (
   topics: IForumTopicSummary[],
   overrides: Record<string, unknown> = {},
+  issues: IForumTopicSummary[] = [],
 ) => {
   const bridge = {
     forumState: jest.fn((): Promise<TForumAuthState> =>
@@ -72,7 +88,7 @@ const installBridge = (
     forumBoards: jest.fn(() =>
       Promise.resolve({ ok: true, value: { boards: [], canStartIn: [] } }),
     ),
-    forumTopics: jest.fn(() => page(topics)),
+    forumTopics: jest.fn(byBoard(topics, issues)),
     ...overrides,
   };
   Object.defineProperty(window, 'electron', {
@@ -94,9 +110,13 @@ const renderHelp = () =>
     />,
   );
 
+const HIDDEN_KEY = 'fluideq.forum.newsHidden.v1';
+
 beforeEach(() => {
   resetForumStore();
   window.localStorage.removeItem(READ_KEY);
+  window.localStorage.removeItem(HIDDEN_KEY);
+  reloadForumNewsHidden();
 });
 
 describe("Help's count of what is new in the Forum", () => {
@@ -164,7 +184,7 @@ describe("Help's count of what is new in the Forum", () => {
   it('reads again when the window comes back', async () => {
     const topics = [topic(1)];
     const bridge = installBridge([], {
-      forumTopics: jest.fn(() => page(topics)),
+      forumTopics: jest.fn(byBoard(topics)),
     });
     renderHelp();
     await screen.findByRole('button', {
@@ -179,7 +199,26 @@ describe("Help's count of what is new in the Forum", () => {
         name: 'help.menu · forum.new.countLabel:2',
       }),
     ).toBeInTheDocument();
-    expect(bridge.forumTopics).toHaveBeenCalledTimes(2);
+    expect(topicReads(bridge.forumTopics)).toBe(2);
+  });
+
+  it('counts new activity on the repository’s issues as well', async () => {
+    installBridge([topic(1)], {}, [
+      topic(40, {
+        board: FORUM_ISSUES_BOARD,
+        issue: { closed: false, labels: [] },
+      }),
+      topic(41, {
+        board: FORUM_ISSUES_BOARD,
+        issue: { closed: true, labels: [] },
+      }),
+    ]);
+    renderHelp();
+    expect(
+      await screen.findByRole('button', {
+        name: 'help.menu · forum.new.countLabel:3',
+      }),
+    ).toHaveTextContent('3');
   });
 
   it('keeps a failure in the background out of the Forum’s error bar', async () => {
@@ -210,6 +249,65 @@ describe("Help's count of what is new in the Forum", () => {
       window.dispatchEvent(new Event('focus'));
     });
     // The page's own refresh: the list and the new ones, and nothing more.
-    expect(bridge.forumTopics).toHaveBeenCalledTimes(2);
+    expect(topicReads(bridge.forumTopics)).toBe(2);
+  });
+});
+
+describe('clearing the count, and switching it off', () => {
+  const openMenu = async (name: string) => {
+    fireEvent.click(await screen.findByRole('button', { name }));
+  };
+
+  it('marks everything read from the menu the count is on', async () => {
+    installBridge([topic(1), topic(2)]);
+    renderHelp();
+    await openMenu('help.menu · forum.new.countLabel:2');
+    fireEvent.click(
+      screen.getByRole('menuitem', { name: 'forum.new.markAllRead' }),
+    );
+    expect(
+      screen.getByRole('button', { name: 'help.menu' }),
+    ).toBeInTheDocument();
+    expect(document.querySelector('.forum-news-badge')).toBeNull();
+    // And for good: what was read is kept.
+    expect(
+      JSON.parse(window.localStorage.getItem(READ_KEY) ?? '{}'),
+    ).toMatchObject({
+      allReadAt: Date.parse('2026-10-12T00:00:00Z'),
+    });
+  });
+
+  it('turns the count off and on again, and remembers it', async () => {
+    const bridge = installBridge([topic(1)]);
+    const { unmount } = renderHelp();
+    await openMenu('help.menu · forum.new.countLabel:1');
+    fireEvent.click(screen.getByRole('menuitem', { name: 'forum.news.hide' }));
+    expect(
+      screen.getByRole('button', { name: 'help.menu' }),
+    ).toBeInTheDocument();
+    expect(document.querySelector('.forum-news-badge')).toBeNull();
+    // Off, nothing reads the Forum in the background — not even on focus.
+    bridge.forumTopics.mockClear();
+    await act(async () => {
+      window.dispatchEvent(new Event('focus'));
+    });
+    expect(bridge.forumTopics).not.toHaveBeenCalled();
+
+    unmount();
+    resetForumStore();
+    reloadForumNewsHidden();
+    renderHelp();
+    await act(async () => {});
+    expect(bridge.forumTopics).not.toHaveBeenCalled();
+    await openMenu('help.menu');
+    expect(
+      screen.queryByRole('menuitem', { name: 'forum.new.markAllRead' }),
+    ).toBeNull();
+    fireEvent.click(screen.getByRole('menuitem', { name: 'forum.news.show' }));
+    expect(
+      await screen.findByRole('button', {
+        name: 'help.menu · forum.new.countLabel:1',
+      }),
+    ).toBeInTheDocument();
   });
 });

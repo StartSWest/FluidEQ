@@ -67,6 +67,7 @@ export default function ForumPanel() {
           forum.boardsStatus === 'loading' || forum.boardsStatus === 'idle'
         }
         fresh={newTopics(forum)}
+        issueCount={forum.issueCount}
         onSelect={selectBoard}
       />
       <section className="community__main forum__main">

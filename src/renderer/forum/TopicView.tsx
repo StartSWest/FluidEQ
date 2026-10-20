@@ -22,6 +22,7 @@ import {
   signIn,
 } from './forumStore';
 import { isPostNew } from './forumUnread';
+import { IssueFoot, IssueLabels, IssueState } from './IssueParts';
 import PostComposer from './PostComposer';
 
 interface ITopicViewProps {
@@ -139,7 +140,8 @@ export default function TopicView({ forum }: ITopicViewProps) {
     );
   }
 
-  const canReply = signedIn && !topic.locked;
+  // An issue is answered on GitHub (`IssueFoot`), never from here.
+  const canReply = signedIn && !topic.locked && !topic.issue;
   // What came after the reader last looked, their own words aside: those
   // they have read by writing them.
   const viewer =
@@ -169,6 +171,12 @@ export default function TopicView({ forum }: ITopicViewProps) {
                 <ForumGlyph name={boardGlyph(topic.board)} />
                 {boardName(topic.board, forum.boards, t)}
               </span>
+              {topic.issue && (
+                <>
+                  <IssueState issue={topic.issue} />
+                  <IssueLabels issue={topic.issue} />
+                </>
+              )}
               {answer && (
                 <button
                   type="button"
@@ -319,8 +327,10 @@ export default function TopicView({ forum }: ITopicViewProps) {
                 onSubmit={(body) => reply(topic.id, body)}
               />
             )}
+            {topic.issue && <IssueFoot url={topic.url} />}
             {!signedIn &&
               !topic.locked &&
+              !topic.issue &&
               forum.auth.status !== 'unconfigured' && (
                 <div className="forum__sign-in-prompt">
                   <span>{t('forum.thread.signInToReply')}</span>

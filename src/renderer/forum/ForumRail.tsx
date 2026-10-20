@@ -1,14 +1,16 @@
 import { REPOSITORY_URL } from 'common/branding';
-import type {
-  IForumBoard,
-  IForumTopicSummary,
-  TForumAuthState,
+import {
+  FORUM_ISSUES_BOARD,
+  type IForumBoard,
+  type IForumTopicSummary,
+  type TForumAuthState,
 } from 'common/forum/forumTypes';
 import { useTranslation } from '../utils/I18nContext';
 import { boardDescription, boardName } from './boardNames';
 import ForumAvatar from './ForumAvatar';
 import ForumGlyph, { boardGlyph, GithubMark } from './ForumGlyph';
 import { BoardsLoading } from './ForumLoading';
+import ForumNewsBadge from './ForumNewsBadge';
 import { cancelSignIn, NEW_BOARD, signIn, signOut } from './forumStore';
 
 interface IForumRailProps {
@@ -21,6 +23,8 @@ interface IForumRailProps {
   loadingBoards: boolean;
   /** Every board's topics with something this reader has not read. */
   fresh: readonly IForumTopicSummary[];
+  /** The repository's issues, open and closed, once known. */
+  issueCount?: number;
   onSelect: (board: string) => void;
 }
 
@@ -38,6 +42,7 @@ export default function ForumRail({
   auth,
   loadingBoards,
   fresh,
+  issueCount,
   onSelect,
 }: IForumRailProps) {
   const { t, locale } = useTranslation();
@@ -59,6 +64,9 @@ export default function ForumRail({
     // own row carries their number instead, filled, because that number is
     // the request for attention a topic count is not.
     const unread = fresh.filter((topic) => topic.board === slug).length;
+    // The issues' row says how many are new in the yellow Help's button
+    // wears for the same news (Ivan, 2026-10-16), in place of its total.
+    const isIssues = slug === FORUM_ISSUES_BOARD;
     return (
       <button
         key={slug || 'all'}
@@ -74,7 +82,7 @@ export default function ForumRail({
         <span className="community__channel-text">
           <span className="community__channel-name">
             {name}
-            {slug !== NEW_BOARD && slug !== '' && unread > 0 && (
+            {slug !== NEW_BOARD && slug !== '' && !isIssues && unread > 0 && (
               <span
                 className="forum__new-dot"
                 role="img"
@@ -84,7 +92,10 @@ export default function ForumRail({
           </span>
           <span className="community__channel-blurb">{blurb}</span>
         </span>
-        {topics !== undefined && topics > 0 && (
+        {isIssues && unread > 0 && (
+          <ForumNewsBadge count={unread} placement="row" />
+        )}
+        {topics !== undefined && topics > 0 && !(isIssues && unread > 0) && (
           <span
             className={`forum__count${slug === NEW_BOARD ? ' forum__count--new' : ''}`}
             aria-label={t(
@@ -138,6 +149,15 @@ export default function ForumRail({
               candidate.topicCount,
             ),
           )
+        )}
+        {/* GitHub's issues, after the boards: read here by everybody,
+            answered on GitHub. */}
+        {row(
+          FORUM_ISSUES_BOARD,
+          t('forum.board.issues'),
+          t('forum.boardDescription.issues'),
+          'issue',
+          issueCount,
         )}
       </div>
 

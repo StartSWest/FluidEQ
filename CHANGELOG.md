@@ -179,6 +179,14 @@ and the De-esser is not heard, and everything else plays as before.
 - **Help's button counts what is new in the Forum**, in yellow (99+ past
   99), and so does the Forum entry in its menu, so new topics and replies
   are never missed.
+- **GitHub Issues in the Forum.** A row of their own lists every reported
+  problem, open and closed, with its labels; open one to read the whole
+  thread, and **Comment on GitHub** answers it there. New activity on an
+  issue counts in Help's yellow number too. Everyone can read them, signed
+  in or not.
+- **Clear or switch off the count.** Under **Forum** in the Help menu,
+  **Mark all as read** clears it, and **Turn off Forum notifications**
+  takes the number off Help's button for good, until you turn it on again.
 - **New for you.** The forum's first row lists only what is new to you —
   topics you have not opened and replies since you last looked — from every
   board, latest first. Boards with something new carry a dot, new topics and

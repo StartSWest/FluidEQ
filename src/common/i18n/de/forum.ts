@@ -8,6 +8,8 @@ const forum = {
   'forum.new.blurb': 'Was seit deinem letzten Besuch kam',
   'forum.new.countLabel': 'Neu: {count}',
   'forum.new.markAllRead': 'Alles als gelesen markieren',
+  'forum.news.hide': 'Forum-Benachrichtigungen ausschalten',
+  'forum.news.show': 'Forum-Benachrichtigungen einschalten',
   'forum.new.empty': 'Alles gelesen',
   'forum.new.emptyHint':
     'Neue Themen und Antworten erscheinen hier, bis du sie öffnest.',
@@ -26,6 +28,15 @@ const forum = {
   'forum.boardDescription.polls': 'Abstimmen, was als Nächstes kommt',
   'forum.boardDescription.qa': 'Fragen – und die hilfreiche Antwort markieren',
   'forum.boardDescription.showAndTell': 'Ein Klang, auf den Sie stolz sind',
+  'forum.board.issues': 'Issues',
+  'forum.boardDescription.issues':
+    'Auf GitHub gemeldete Probleme und wie es um jedes steht',
+  'forum.issue.open': 'Offen',
+  'forum.issue.closed': 'Geschlossen',
+  'forum.issue.newOnGithub': 'Neues Issue auf GitHub',
+  'forum.issue.commentHint':
+    'Kommentare zu einem Issue schreiben Sie auf GitHub.',
+  'forum.issue.commentOnGithub': 'Auf GitHub kommentieren',
   'forum.board.countLabel': 'Themen: {count}',
 
   'forum.me.signedOutTitle': 'Diskutieren Sie mit',

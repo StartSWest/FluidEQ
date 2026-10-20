@@ -37,6 +37,8 @@ export interface IForumState {
   auth: TForumAuthState;
   boards: IForumBoard[];
   canStartIn: string[];
+  /** The repository's issues, open and closed, once the boards are read. */
+  issueCount?: number;
   boardsStatus: TLoadStatus;
   /** A board's slug, `NEW_BOARD`, or empty for every board. */
   board: string;

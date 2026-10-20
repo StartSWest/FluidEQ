@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  Fragment,
   KeyboardEvent,
   useEffect,
   useId,
@@ -23,6 +24,8 @@ import ForumNewsBadge, {
   forumNewsText,
   useForumNewsCount,
 } from '../forum/ForumNewsBadge';
+import ForumNewsMenuItems from '../forum/ForumNewsMenuItems';
+import { useForumNewsHidden } from '../forum/forumNewsPref';
 import { requestHelpGuide } from '../help/helpGuideRequests';
 import helpMenuActions, { type IHelpHandlers } from '../help/helpMenuActions';
 import PlayerIcon from '../player/PlayerIcon';
@@ -155,7 +158,9 @@ const ActionsMenu = ({
   const isToolsShed = useTitlebarToolsShed();
   // Help's count of what is new in the Forum comes here with Help's entries
   // while Help's own button is away.
-  const forumNews = useForumNewsCount();
+  const forumNewsAll = useForumNewsCount();
+  const forumNewsHidden = useForumNewsHidden();
+  const forumNews = forumNewsHidden ? 0 : forumNewsAll;
   const [open, setOpen] = useState(false);
   // Held here rather than in the menu's panel, which is gone the moment the
   // row is pressed.
@@ -411,20 +416,25 @@ const ActionsMenu = ({
               {helpMenuActions(t, help, requestHelpGuide)
                 .filter((action) => action.id !== 'fixAudio')
                 .map((action) => (
-                  <Item
-                    key={action.id}
-                    icon={action.icon}
-                    onSelect={run(action.run)}
-                  >
-                    {action.id === 'forum' ? (
-                      <span className="help-menu__label">
-                        {action.label}
-                        <ForumNewsBadge count={forumNews} placement="row" />
-                      </span>
-                    ) : (
-                      action.label
+                  <Fragment key={action.id}>
+                    <Item icon={action.icon} onSelect={run(action.run)}>
+                      {action.id === 'forum' ? (
+                        <span className="help-menu__label">
+                          {action.label}
+                          <ForumNewsBadge count={forumNews} placement="row" />
+                        </span>
+                      ) : (
+                        action.label
+                      )}
+                    </Item>
+                    {action.id === 'forum' && (
+                      <ForumNewsMenuItems
+                        news={forumNewsAll}
+                        hidden={forumNewsHidden}
+                        run={run}
+                      />
                     )}
-                  </Item>
+                  </Fragment>
                 ))}
               <button
                 type="button"

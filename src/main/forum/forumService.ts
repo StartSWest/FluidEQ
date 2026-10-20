@@ -1,16 +1,18 @@
-import type {
-  IForumBoard,
-  IForumBoards,
-  IForumPerson,
-  IForumTopic,
-  IForumTopicPage,
-  IForumTopicQuery,
-  IForumTopicSummary,
-  TForumPostKind,
+import {
+  FORUM_ISSUES_BOARD,
+  type IForumBoard,
+  type IForumBoards,
+  type IForumPerson,
+  type IForumTopic,
+  type IForumTopicPage,
+  type IForumTopicQuery,
+  type IForumTopicSummary,
+  type TForumPostKind,
 } from '../../common/forum/forumTypes';
 import type { IForumConfig } from './forumConfig';
 import ForumError from './forumError';
 import type { IForumFeedSource } from './forumFeed';
+import type { IForumIssuesSource } from './forumIssues';
 import {
   type IRepositoryBoards,
   readBoardCounts,
@@ -74,8 +76,12 @@ export interface IForumServiceDeps {
   config: IForumConfig;
   session: IForumSession;
   feed: IForumFeedSource;
+  /** The repository's issues; none where nothing publishes them. */
+  issues?: IForumIssuesSource;
   fetchImpl?: typeof fetch;
 }
+
+const NO_ISSUES: IForumIssuesSource = { load: () => Promise.resolve([]) };
 
 /**
  * The words of a search, and nothing that reads as a qualifier. The query is
@@ -104,6 +110,7 @@ const summaryOf = (topic: IForumTopic): IForumTopicSummary => ({
   replyCount: topic.replyCount,
   votes: topic.votes,
   author: topic.author,
+  ...(topic.issue ? { issue: topic.issue } : {}),
 });
 
 const matchesWords = (topic: IForumTopic, words: string[]): boolean => {
@@ -130,10 +137,12 @@ const feedPage = (
       if (query.board && topic.board !== query.board) {
         return false;
       }
+      // On the issues' row, "answered" is closed and "unanswered" open.
+      const settled = topic.issue ? topic.issue.closed : topic.answered;
       if (query.filter === 'answered') {
-        return topic.answered;
+        return settled;
       }
-      return query.filter === 'unanswered' ? !topic.answered : true;
+      return query.filter === 'unanswered' ? !settled : true;
     })
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   const start = Math.max(0, Math.floor(Number(query.cursor ?? 0)) || 0);
@@ -149,8 +158,13 @@ export const createForumService = ({
   config,
   session,
   feed,
+  issues = NO_ISSUES,
   fetchImpl = fetch,
 }: IForumServiceDeps): IForumService => {
+  // Opening a topic asks first whether its number is an issue's. A file that
+  // cannot be read then means "not an issue", so a missing or unreachable
+  // issues' file never stops a discussion from opening.
+  const issuesOrNone = () => issues.load().catch(() => []);
   const repository = { owner: config.owner, name: config.name };
   const api: IGithubApi = createGithubApi({
     accessToken: () => session.accessToken(),
@@ -199,9 +213,20 @@ export const createForumService = ({
     boards: async () => {
       if (!signedIn()) {
         known = undefined;
-        return { boards: (await feed.load()).boards, canStartIn: [] };
+        const [loaded, issueList] = await Promise.all([
+          feed.load(),
+          issuesOrNone(),
+        ]);
+        return {
+          boards: loaded.boards,
+          canStartIn: [],
+          issueCount: issueList.length,
+        };
       }
-      const repo = await loadBoards();
+      const [repo, issueList] = await Promise.all([
+        loadBoards(),
+        issuesOrNone(),
+      ]);
       const variables: Record<string, unknown> = { ...repository };
       repo.boards.forEach((board, index) => {
         variables[`c${index}`] = board.id;
@@ -213,10 +238,16 @@ export const createForumService = ({
       return {
         boards: readBoardCounts(counts, repo.boards),
         canStartIn: startable(repo),
+        issueCount: issueList.length,
       };
     },
 
     topics: async (query) => {
+      // The issues' row reads the issues' file for everybody (`forumIssues.ts`).
+      // A search still spans the discussions alone.
+      if (query.board === FORUM_ISSUES_BOARD && !searchWords(query.search)) {
+        return feedPage(await issues.load(), query);
+      }
       if (!signedIn()) {
         return feedPage((await feed.load()).topics, query);
       }
@@ -245,6 +276,12 @@ export const createForumService = ({
     },
 
     topic: async (number, cursor) => {
+      const issue = (await issuesOrNone()).find(
+        (candidate) => candidate.number === number,
+      );
+      if (issue) {
+        return issue;
+      }
       if (!signedIn()) {
         const found = (await feed.load()).topics.find(
           (topic) => topic.number === number,

@@ -279,6 +279,28 @@ it under the terms of the GNU General Public License version 3 or later.
     color: $text-dim;
   }
 
+  // An issue's state, in the two colours GitHub gives the same two signs:
+  // green while it is open, purple once it is closed. Outlined, like the
+  // answer's, because it is a state and not a request for attention.
+  &--issue {
+    color: $neon-lime;
+    border-color: color-mix(in srgb, $neon-lime 40%, transparent);
+    background: color-mix(in srgb, $neon-lime 9%, transparent);
+
+    &.is-closed {
+      color: color-mix(in srgb, $neon-purple 55%, $white);
+      border-color: color-mix(in srgb, $neon-purple 50%, transparent);
+      background: color-mix(in srgb, $neon-purple 12%, transparent);
+    }
+  }
+
+  // An issue's labels: the owner's words, quieter than its state.
+  &--label {
+    padding-left: 8px;
+    color: $text-dim;
+    border-style: dashed;
+  }
+
   // New: filled, as the rail's count of them is — the outlined accent is
   // the answer's.
   &--new {

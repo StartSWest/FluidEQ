@@ -1,7 +1,8 @@
-import type {
-  IForumTopicSummary,
-  TForumAuthState,
-  TForumResult,
+import {
+  FORUM_ISSUES_BOARD,
+  type IForumTopicSummary,
+  type TForumAuthState,
+  type TForumResult,
 } from 'common/forum/forumTypes';
 import {
   bridge,
@@ -40,24 +41,19 @@ export const isListedTopicNew = (
 ): boolean => isTopicNew(forum.read, topic, viewerOf(forum.auth));
 
 /**
- * Every board's topics, latest activity first, page after page until the
- * pages reach activity that is all read (`allReadAt`) or run out. Below
- * that line nothing can be new, so after "Mark all as read" this is one page.
- *
- * `reportFailure` false is the titlebar's count reading in the background: a
- * failure there leaves the count as it was and says nothing, because the
- * Forum's error bar would otherwise greet somebody who opens it later, online,
- * with a failure from before they arrived.
+ * One list's rows, latest activity first, page after page until the pages
+ * reach activity that is all read (`allReadAt`) or run out. Below that line
+ * nothing can be new, so after "Mark all as read" this is one page.
  */
-export const loadRecent = async (reportFailure = true) => {
-  tickets.recent += 1;
-  const ticket = tickets.recent;
-  publish({ recentStatus: 'loading' });
+const gatherRecent = async (
+  board: string,
+  ticket: number,
+): Promise<TForumResult<IForumTopicSummary[]>> => {
   const gathered: IForumTopicSummary[] = [];
   const page = async (cursor?: string): Promise<TForumResult<null>> => {
     const result = await call(() =>
       bridge()?.forumTopics?.({
-        board: '',
+        board,
         filter: 'all',
         search: '',
         ...(cursor ? { cursor } : {}),
@@ -81,17 +77,51 @@ export const loadRecent = async (reportFailure = true) => {
       : { ok: true, value: null };
   };
   const result = await page();
+  return result.ok ? { ok: true, value: gathered } : result;
+};
+
+const byLatest = (a: IForumTopicSummary, b: IForumTopicSummary) =>
+  b.updatedAt.localeCompare(a.updatedAt);
+
+/**
+ * What the new ones are picked from: every board's topics and the
+ * repository's issues (Ivan, 2026-10-16: "be able to see the yellow number
+ * for the issue too"), latest activity first.
+ *
+ * The issues come from a file of their own, so a failure to read them keeps
+ * the issues already known and still shows what is new in the topics; a
+ * failure to read the topics is the failure.
+ *
+ * `reportFailure` false is the titlebar's count reading in the background: a
+ * failure there leaves the count as it was and says nothing, because the
+ * Forum's error bar would otherwise greet somebody who opens it later, online,
+ * with a failure from before they arrived.
+ */
+export const loadRecent = async (reportFailure = true) => {
+  tickets.recent += 1;
+  const ticket = tickets.recent;
+  publish({ recentStatus: 'loading' });
+  const [topics, issues] = await Promise.all([
+    gatherRecent('', ticket),
+    gatherRecent(FORUM_ISSUES_BOARD, ticket),
+  ]);
   if (ticket !== tickets.recent) {
     return;
   }
-  if (result.ok) {
-    publish({ recent: gathered, recentStatus: 'ready' });
-  } else {
+  if (!topics.ok) {
     publish({
       recentStatus: 'error',
-      ...(reportFailure ? { error: failureOf(result) } : {}),
+      ...(reportFailure ? { error: failureOf(topics) } : {}),
     });
+    return;
   }
+  const knownIssues = forumNow().recent.filter((row) => row.issue);
+  publish({
+    recent: [...topics.value, ...(issues.ok ? issues.value : knownIssues)].sort(
+      byLatest,
+    ),
+    recentStatus: 'ready',
+  });
 };
 
 /** The new topics as the list's page, when the list is the new ones. */

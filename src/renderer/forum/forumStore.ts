@@ -61,6 +61,7 @@ const loadBoards = async () => {
     publish({
       boards: result.value.boards,
       canStartIn: result.value.canStartIn,
+      issueCount: result.value.issueCount,
       boardsStatus: 'ready',
     });
   } else {

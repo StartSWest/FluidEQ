@@ -147,8 +147,9 @@ it('routes the keyboard-selected menu action and dismisses the menu', () => {
 });
 
 /**
- * The Forum has no tab in the titlebar: it opens from here, just before
- * About, and while it is open the Help button is what says where it is.
+ * The Forum has no tab in the titlebar: it opens from here, after the ways
+ * to get help and before About — with its notifications' switch under it —
+ * and while it is open the Help button is what says where it is.
  */
 it('opens the Forum from the Help menu, and lights Help while it is open', () => {
   const { onForum } = showMenu();
@@ -157,7 +158,12 @@ it('opens the Forum from the Help menu, and lights Help while it is open', () =>
   fireEvent.click(trigger);
   const items = screen.getAllByRole('menuitem');
   const forum = screen.getByRole('menuitem', { name: 'Forum' });
-  expect(items.indexOf(forum)).toBe(items.length - 2);
+  const report = screen.getByRole('menuitem', { name: 'Report a problem' });
+  expect(items.indexOf(forum)).toBe(items.indexOf(report) + 1);
+  expect(items[items.indexOf(forum) + 1]).toHaveTextContent(
+    'Turn off Forum notifications',
+  );
+  expect(items[items.length - 1]).toHaveTextContent(/About/);
   fireEvent.click(forum);
   expect(onForum).toHaveBeenCalledTimes(1);
   expect(screen.queryByRole('menu')).not.toBeInTheDocument();
