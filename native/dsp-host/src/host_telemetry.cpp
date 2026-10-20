@@ -23,9 +23,10 @@ namespace feq_host {
  * Send the panel one frame of what the chain just did, if there is any.
  *
  * Called from the telemetry thread, which is the whole point: the transforms
- * happen here rather than in the audio callback. Three 2048-point FFTs is tens
- * of microseconds of work, and a meter that can cost a dropout is a worse
- * defect than a meter that does not move.
+ * happen here rather than in the audio callback. The 2048-point ones are tens
+ * of microseconds of work and the EQ tap's long window a few hundred, thirty
+ * times a second; a meter that can cost a dropout is a worse defect than a
+ * meter that does not move.
  *
  * Sends nothing at all when no stage has published a new window and the scope
  * has not either — a repeated frame would be twelve kilobytes down the pipe to
@@ -57,6 +58,18 @@ void drain_analysis(HostState& state) {
       present += 1;
     }
   }
+
+  // The EQ tap's long window, taken only beside a fresh short one: the graph
+  // times the long window's detail by the short window's level, so the two
+  // travel as a pair. A long window that is due waits for the next frame.
+  static thread_local std::vector<float> detail;
+  detail.resize(FEQ_METER_DETAIL_BINS);
+  const bool eq_fresh = (stage_mask & (1u << FEQ_METER_STAGE_EQ)) != 0u;
+  const uint32_t detail_bins =
+      eq_fresh && feq_meters_read_eq_detail(state.meters, detail.data(),
+                                            FEQ_METER_DETAIL_BINS) != 0
+          ? FEQ_METER_DETAIL_BINS
+          : 0u;
 
   double correlation = 1.0;
   float peaks[2] = {0.0f, 0.0f};
@@ -102,8 +115,8 @@ void drain_analysis(HostState& state) {
   frame.safety_reduction_db = 0.0f;
   frame.safety_true_peak_db = 0.0f;
   frame.dc_correction_db = 0.0f;
-  frame.repaired_samples = 0u;
-  frame.true_peak_factor = 0u;
+  frame.eq_detail_window = FEQ_METER_DETAIL_WINDOW;
+  frame.eq_detail_bins = detail_bins;
   frame.safety_enabled = 0u;
   feq_meters_read_normalizer(state.meters, frame.normalizer_input_peaks,
                              frame.normalizer_output_peaks,
@@ -166,7 +179,9 @@ void drain_analysis(HostState& state) {
       has_scope != 0
           ? sizeof(float) * static_cast<size_t>(FEQ_METER_SCOPE_PAIRS) * 2
           : 0;
-  packet.resize(sizeof(frame) + spectrum_bytes + scope_bytes + band_bytes);
+  const size_t detail_bytes = sizeof(float) * static_cast<size_t>(detail_bins);
+  packet.resize(sizeof(frame) + spectrum_bytes + scope_bytes + band_bytes +
+                detail_bytes);
 
   size_t at = 0;
   std::memcpy(packet.data() + at, &frame, sizeof(frame));
@@ -185,6 +200,10 @@ void drain_analysis(HostState& state) {
     std::memcpy(packet.data() + at, band_amounts.data(), band_bytes / 2);
     at += band_bytes / 2;
     std::memcpy(packet.data() + at, band_levels.data(), band_bytes / 2);
+    at += band_bytes / 2;
+  }
+  if (detail_bytes > 0) {
+    std::memcpy(packet.data() + at, detail.data(), detail_bytes);
   }
   write_frame(packet.data(), packet.size());
 }

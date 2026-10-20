@@ -21,6 +21,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import { FrameReader } from '../../../main/dspHost/transport';
 import {
+  ANALYSIS_EQ_DETAIL_BINS,
+  ANALYSIS_EQ_DETAIL_WINDOW,
+} from '../../../common/dsp/analysisWire';
+import {
   ANALYSIS_BASS_FORGE_BANDS,
   ANALYSIS_BINS,
   ANALYSIS_HEADER_BYTES,
@@ -70,6 +74,11 @@ const buildAnalysis = (options: {
   fill?: (stageIndex: number, bin: number) => number;
   tail?: IAnalysisTail;
   bass?: IAnalysisBass;
+  /**
+   * The EQ tap's long window: its size and count at 84 and 88, where
+   * `wire.h` puts them, and `values` after everything else.
+   */
+  detail?: { window: number; count: number; values?: (bin: number) => number };
 }): Buffer => {
   const stageMask = options.stages.reduce(
     // The wire field IS a bit mask; the arithmetic spelling is less readable.
@@ -78,10 +87,12 @@ const buildAnalysis = (options: {
     0,
   );
   const pairs = options.withScope ? ANALYSIS_SCOPE_PAIRS : 0;
+  const detailCount = options.detail?.values ? options.detail.count : 0;
   const bytes =
     ANALYSIS_HEADER_BYTES +
     options.stages.length * ANALYSIS_BINS * 4 +
-    pairs * 2 * 4;
+    pairs * 2 * 4 +
+    detailCount * 4;
   const frame = Buffer.alloc(bytes);
   frame.writeUInt32LE(MAGIC_ANALYSIS, 0);
   frame.writeUInt32LE(options.sequence ?? 1, 4);
@@ -109,10 +120,12 @@ const buildAnalysis = (options: {
     frame.writeFloatLE(tail.autoHeadroomReductionDb, 64);
     frame.writeFloatLE(tail.autoHeadroomTruePeakDb, 68);
     // 72 through 92 were the final guard's six words, zero since its removal;
-    // written as something else here so a decoder that read them would show.
-    for (let offset = 72; offset <= 92; offset += 4) {
+    // the four still retired are written as something else here so a
+    // decoder that read them would show. 84 and 88 carry the EQ tap's long
+    // window now, and stay zero: no long window in this frame.
+    [72, 76, 80, 92].forEach((offset) => {
       frame.writeUInt32LE(0xdeadbeef, offset);
-    }
+    });
     frame.writeFloatLE(tail.normalizerInputPeaks[0], 96);
     frame.writeFloatLE(tail.normalizerInputPeaks[1], 100);
     frame.writeFloatLE(tail.normalizerOutputPeaks[0], 104);
@@ -151,6 +164,15 @@ const buildAnalysis = (options: {
   for (let sample = 0; sample < pairs * 2; sample += 1) {
     frame.writeFloatLE(sample / 1000, at);
     at += 4;
+  }
+  const { detail } = options;
+  if (detail) {
+    frame.writeUInt32LE(detail.window, 84);
+    frame.writeUInt32LE(detail.count, 88);
+    for (let bin = 0; bin < detailCount; bin += 1) {
+      frame.writeFloatLE(detail.values?.(bin) ?? 0, at);
+      at += 4;
+    }
   }
   return frame;
 };
@@ -619,4 +641,99 @@ it('delivers a report-only inactive Room frame through the real transport reader
     referenceGainDb: 0,
   });
   expect(analyses[1].spectra).toEqual({});
+});
+
+/**
+ * The EQ tap's long window (`meters_eq_live.h`), after everything else in
+ * the frame, sized and counted in two of the retired guard's words.
+ */
+describe("the EQ tap's long window", () => {
+  const values = (bin: number) => -30 - bin / 100;
+
+  it('reads back after every other part of the frame', () => {
+    const decoded = decodeAnalysis(
+      buildAnalysis({
+        stages: ['eq', 'master'],
+        withScope: true,
+        fill: () => -12,
+        detail: {
+          window: ANALYSIS_EQ_DETAIL_WINDOW,
+          count: ANALYSIS_EQ_DETAIL_BINS,
+          values,
+        },
+      }),
+    );
+    expect(decoded?.eqLive?.detailWindow).toBe(ANALYSIS_EQ_DETAIL_WINDOW);
+    expect(decoded?.eqLive?.detail).toHaveLength(ANALYSIS_EQ_DETAIL_BINS);
+    expect(decoded?.eqLive?.detail?.[0]).toBeCloseTo(values(0), 5);
+    expect(decoded?.eqLive?.detail?.[ANALYSIS_EQ_DETAIL_BINS - 1]).toBeCloseTo(
+      values(ANALYSIS_EQ_DETAIL_BINS - 1),
+      5,
+    );
+    // Nothing in front of it moved.
+    expect(decoded?.spectra.master?.[ANALYSIS_BINS - 1]).toBeCloseTo(-12, 6);
+    expect(decoded?.scatter?.[3]).toBeCloseTo(0.003, 6);
+  });
+
+  it('is counted in the frame, so the next one is found where it starts', () => {
+    const frame = buildAnalysis({
+      stages: ['eq'],
+      withScope: false,
+      detail: {
+        window: ANALYSIS_EQ_DETAIL_WINDOW,
+        count: ANALYSIS_EQ_DETAIL_BINS,
+        values,
+      },
+    });
+    expect(analysisFrameLength(frame)).toBe(
+      ANALYSIS_HEADER_BYTES + ANALYSIS_BINS * 4 + ANALYSIS_EQ_DETAIL_BINS * 4,
+    );
+    const { reader, analyses, desynchronised, telemetryCount } =
+      collectingReader();
+    reader.push(Buffer.concat([frame, telemetryFrame()]));
+    expect(analyses).toHaveLength(1);
+    expect(telemetryCount()).toBe(1);
+    expect(desynchronised).toEqual([]);
+  });
+
+  it('says the engine is live in a frame between long windows', () => {
+    const decoded = decodeAnalysis(
+      buildAnalysis({
+        stages: ['eq'],
+        withScope: false,
+        detail: { window: ANALYSIS_EQ_DETAIL_WINDOW, count: 0 },
+      }),
+    );
+    expect(decoded?.eqLive).toEqual({
+      detailWindow: ANALYSIS_EQ_DETAIL_WINDOW,
+      detail: undefined,
+    });
+  });
+
+  it('is absent from a writer from before it', () => {
+    const decoded = decodeAnalysis(
+      buildAnalysis({ stages: ['eq'], withScope: false }),
+    );
+    expect(decoded).toBeDefined();
+    expect(decoded?.eqLive).toBeUndefined();
+  });
+
+  it('refuses a size or a count it does not know', () => {
+    [
+      { window: 8192, count: 0 },
+      { window: ANALYSIS_EQ_DETAIL_WINDOW, count: 1000 },
+      { window: 0, count: ANALYSIS_EQ_DETAIL_BINS },
+    ].forEach((detail) => {
+      const frame = buildAnalysis({
+        stages: ['eq'],
+        withScope: false,
+        detail: { ...detail, values },
+      });
+      expect({ detail, length: analysisFrameLength(frame) }).toEqual({
+        detail,
+        length: 0,
+      });
+      expect(decodeAnalysis(frame)).toBeUndefined();
+    });
+  });
 });

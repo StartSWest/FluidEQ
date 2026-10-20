@@ -123,6 +123,8 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/deesser_decide.cpp
   dsp-core/src/meters.cpp
   dsp-core/src/meters_deesser.cpp
+  dsp-core/src/meters_eq_live.cpp
+  dsp-core/src/meters_transform.cpp
   dsp-core/src/chain.cpp
   dsp-core/src/chain_process.cpp
   dsp-core/src/chain_eq.cpp
@@ -243,6 +245,9 @@ add_test(NAME denoise-live COMMAND fluideq-denoise-live-test)
 add_executable(fluideq-meters-test dsp-core/tests/meters_test.cpp)
 target_link_libraries(fluideq-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME meters COMMAND fluideq-meters-test)
+add_executable(fluideq-meters-eq-live-test dsp-core/tests/meters_eq_live_test.cpp)
+target_link_libraries(fluideq-meters-eq-live-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME meters-eq-live COMMAND fluideq-meters-eq-live-test)
 
 # Separate from `meters` because it asks a different question: not whether the
 # meters measure, but where in the chain each one is tapped. A tap taken at the

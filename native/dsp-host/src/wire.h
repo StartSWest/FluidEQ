@@ -56,6 +56,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * exactly; the other three are fixed structs whose sizes are hard-coded on
  * both sides, so this number is what stands between them and a stale binary.
  * Move it, or the next person debugging silence starts where we started.
+ *
+ * Not moved for the EQ tap's long window (`eq_detail_bins`), deliberately:
+ * the analysis header says how many of its floats follow, and every host
+ * before it says zero, so a stale host is read correctly by a newer app —
+ * which is the one stale pairing `pnpm dev` produces. Moving the number would
+ * refuse that host and silence the Library to protect a frame that was never
+ * at risk.
  */
 #define FEQ_WIRE_PROTOCOL_VERSION 8
 
@@ -383,14 +390,17 @@ typedef struct FeqWireStatsFrame {
  *
  * Followed by its payload: for each stage named in `stage_mask`, ascending,
  * `bins` floats of dB; then `pairs * 2` floats of interleaved left and right
- * for the goniometer. Variable length, like `LOAD_DECK` and `APPLY_CHAIN`
+ * for the goniometer; then `bands` amounts and `bands` levels; then
+ * `eq_detail_bins` floats of the EQ tap's long window, in dB.
+ * Variable length, like `LOAD_DECK` and `APPLY_CHAIN`
  * before it — a fixed field big enough for three spectra would make every
  * telemetry frame carry twelve kilobytes it does not need.
  *
  * Separate from `FeqWireTelemetryFrame` because they answer to different
  * clocks. Telemetry reports per callback and must stay small enough to be sent
- * that often; this is published once per 2048-sample window, about 23 times a
- * second, and is two orders of magnitude larger.
+ * that often; this is published when a tap has a new window — with every
+ * block of audio for the EQ tap, about 23 times a second for the rest — and
+ * is two orders of magnitude larger.
  */
 typedef struct FeqWireAnalysisFrame {
   uint32_t magic;
@@ -446,15 +456,26 @@ typedef struct FeqWireAnalysisFrame {
   /**
    * The final guard's readings, until the guard was removed on 2026-09-22.
    *
-   * Six words that stay in the layout as zeros: everything after them is
+   * Six words that stayed in the layout as zeros: everything after them is
    * found by offset, and a frame the app reads by the same offsets must not
-   * move because a stage went.
+   * move because a stage went. Two of them carry the EQ tap's long window
+   * now, below; the other four are still zeros.
    */
   float safety_reduction_db;
   float safety_true_peak_db;
   float dc_correction_db;
-  uint32_t repaired_samples;
-  uint32_t true_peak_factor;
+  /**
+   * The EQ tap's long window (`FEQ_METER_DETAIL_WINDOW`), from a writer whose
+   * EQ spectrum is the live, unsmoothed one (`meters_eq_live.h`); zero from
+   * every writer before, which is how the app tells the two apart.
+   */
+  uint32_t eq_detail_window;
+  /**
+   * How many of that window's bins follow the bands in this frame:
+   * `FEQ_METER_DETAIL_BINS` when a fresh one was read, zero between, which
+   * is about one frame in two at a 60 Hz poll.
+   */
+  uint32_t eq_detail_bins;
   uint32_t safety_enabled;
   float normalizer_input_peaks[2];
   float normalizer_output_peaks[2];
@@ -603,6 +624,10 @@ static_assert(offsetof(FeqWireAnalysisFrame, reserved_tail) == 116,
               "Room flags offset");
 static_assert(offsetof(FeqWireAnalysisFrame, bass_reserved_tail) == 396,
               "Room gain offset");
+static_assert(offsetof(FeqWireAnalysisFrame, eq_detail_window) == 84,
+              "EQ detail window offset");
+static_assert(offsetof(FeqWireAnalysisFrame, eq_detail_bins) == 88,
+              "EQ detail bins offset");
 static_assert(sizeof(FeqWireHandshake) == 104, "handshake frame size");
 static_assert(sizeof(FeqWireCommandFrame) == 32, "command frame size");
 static_assert(sizeof(FeqWireAckFrame) == 32, "ack frame size");

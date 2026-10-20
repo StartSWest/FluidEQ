@@ -12,6 +12,8 @@ import {
 import decodeEngineAnalysis from '../../../main/dspHost/engineAnalysis';
 import {
   ANALYSIS_DEESSER_BANDS,
+  ANALYSIS_EQ_DETAIL_BINS,
+  ANALYSIS_EQ_DETAIL_WINDOW,
   ANALYSIS_LEGACY_HEADER_BYTES,
 } from '../../../common/dsp/analysisWire';
 
@@ -111,5 +113,45 @@ describe('an engine with the De-esser and one without', () => {
     expect(decodeEngineAnalysis(frame.subarray(0, frame.length - 100))).toBe(
       undefined,
     );
+  });
+});
+
+/**
+ * The EQ tap's long window (`meters_eq_live.h`) sits between the bands and
+ * the engine's own live-input tail, which is found by length from the end:
+ * the window has to be counted, or the tail is read out of its last floats.
+ */
+describe('an engine that sends the EQ tap live', () => {
+  it('reads its long window and the tail after it', () => {
+    const detail = Array.from(
+      { length: ANALYSIS_EQ_DETAIL_BINS },
+      (_unused, bin) => -40 - bin / 1000,
+    );
+    const frame = packet([...detail, -6, -32, -18, 3]);
+    frame.writeUInt32LE(ANALYSIS_EQ_DETAIL_WINDOW, 84);
+    frame.writeUInt32LE(ANALYSIS_EQ_DETAIL_BINS, 88);
+    const read = decodeEngineAnalysis(frame);
+    expect(read?.eqLive?.detailWindow).toBe(ANALYSIS_EQ_DETAIL_WINDOW);
+    expect(read?.eqLive?.detail?.[ANALYSIS_EQ_DETAIL_BINS - 1]).toBeCloseTo(
+      detail[ANALYSIS_EQ_DETAIL_BINS - 1],
+      5,
+    );
+    expect(read?.normalizer).toMatchObject({
+      inputTruePeakDb: -6,
+      inputLufs: -32,
+      referenceLufs: -18,
+      levelState: 3,
+    });
+  });
+
+  it('refuses a frame that says it carries a long window and does not', () => {
+    const frame = packet([-6, -32, -18, 3]);
+    frame.writeUInt32LE(ANALYSIS_EQ_DETAIL_WINDOW, 84);
+    frame.writeUInt32LE(ANALYSIS_EQ_DETAIL_BINS, 88);
+    expect(decodeEngineAnalysis(frame)).toBeUndefined();
+    // Control: the same frame saying it carries none reads.
+    frame.writeUInt32LE(0, 88);
+    expect(decodeEngineAnalysis(frame)?.eqLive?.detail).toBeUndefined();
+    expect(decodeEngineAnalysis(frame)?.normalizer.inputLufs).toBe(-32);
   });
 });

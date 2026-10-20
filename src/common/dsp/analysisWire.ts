@@ -34,6 +34,13 @@ export const ANALYSIS_BINS = 1024;
 export const ANALYSIS_SCOPE_PAIRS = 256;
 
 /**
+ * The EQ tap's long window, and how many of its lowest bins a frame carries
+ * when it carries one: `FEQ_METER_DETAIL_WINDOW` and `FEQ_METER_DETAIL_BINS`.
+ */
+export const ANALYSIS_EQ_DETAIL_WINDOW = 16384;
+export const ANALYSIS_EQ_DETAIL_BINS = 2048;
+
+/**
  * Bass Forge's band count, matching `FEQ_BASS_FORGE_BANDS`.
  *
  * Eight log-spaced band-pass followers between 20 Hz and 1 kHz, which is the
@@ -163,6 +170,20 @@ export interface IHostAnalysis {
   bassPunch: IHostAnalysisBassPunch;
   /** Absent from an engine before the De-esser. */
   deEsser?: IHostAnalysisDeEsser;
+  /**
+   * Said by an engine whose EQ spectrum is the live one: the window ending
+   * now, unsmoothed, with a long window for the bass beside it every few
+   * frames (`meters_eq_live.h`). Absent from every engine before, whose EQ
+   * spectrum is one smoothed window in every 2048 samples.
+   */
+  eqLive?: IHostAnalysisEqLive;
+}
+
+export interface IHostAnalysisEqLive {
+  /** The long window's size, `ANALYSIS_EQ_DETAIL_WINDOW`. */
+  detailWindow: number;
+  /** Its lowest `ANALYSIS_EQ_DETAIL_BINS` bins in dB, in a frame with one. */
+  detail?: Float32Array;
 }
 
 /**

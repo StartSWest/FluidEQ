@@ -289,6 +289,21 @@ export const useDspNormalizerMeterValue = <
 export interface IDspAnalyser {
   frequencyBinCount: number;
   getFloatFrequencyData(target: Float32Array): void;
+  /**
+   * The EQ tap from an engine that sends it live (`meters_eq_live.h`): its
+   * bins are the window ending now, unsmoothed, and a long window for the
+   * bass arrives beside them. Absent from every other tap and older engine.
+   */
+  readonly live?: IDspLiveSpectrum;
+}
+
+export interface IDspLiveSpectrum {
+  /** Moves with every fresh short window, so a graph can tell new from again. */
+  readonly generation: number;
+  /** The long window's size. */
+  readonly detailWindow: number;
+  /** Its lowest bins in dB, the latest that arrived; absent until one has. */
+  readonly detail?: Float32Array;
 }
 
 const analysers: Partial<Record<TDspAnalyserStage, IDspAnalyser>> = {};
