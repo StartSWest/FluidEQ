@@ -129,6 +129,15 @@
  * this version (create-credit-checkout refuses an older one), and the
  * server's `plus_terms_version()` moves to 11 in premium migration 0062,
  * deployed with the release that carries this.
+ *
+ * Amended, not raised, before its first release (2026-10-21): the only
+ * agreements to 11 on the server are FluidEQ's own test purchases. Credits
+ * not spent are refunded within `CREDIT_REFUND_DAYS` of buying their pack, and
+ * only those credits go back (Ivan, 2026-10-21; premium 0065 takes back the
+ * share a partial refund pays for, where every refund used to take the whole
+ * pack). And creators are paid for their scenes through Stripe (premium 0064):
+ * a section quoting the creator terms the sign-up shows, word for word, with
+ * the numbers below; what payouts send and keep; Stripe named as paying them.
  */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
@@ -193,6 +202,24 @@ export const PLUS_MAX_PUBLISHED_SCENES = 200;
  * down, enforced by the server's `member_share_refusal`.
  */
 export const PLUS_TAKEDOWN_PAUSE_DAYS = 30;
+
+/**
+ * Days after buying a pack in which its unspent credits are refunded on
+ * request. Refunds are made by hand in Stripe; the server takes back only
+ * the credits a partial refund pays for (premium 0065).
+ */
+export const CREDIT_REFUND_DAYS = 14;
+
+/**
+ * The creator terms as the terms page quotes them. What pays is the server's
+ * `creator_terms()` (premium 0064), which the sign-up dialog reads live; keep
+ * these in step with it, or the page promises a share nobody is paid.
+ */
+export const CREATOR_SHARE_PERCENT = 50;
+export const CREATOR_HOLD_DAYS = 30;
+export const CREATOR_MINIMUM_CENTS = 1000;
+/** Days between payout runs (Ivan, 2026-10-21: "cada 15"). */
+export const CREATOR_PAYOUT_EVERY_DAYS = 15;
 
 /** A calendar date (`YYYY-MM-DD`) as a Date at noon UTC, so no zone moves it a day. */
 export const termsEffectiveDate = (): Date =>

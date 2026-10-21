@@ -14,7 +14,7 @@ const terms = {
   'terms.title': 'Terms and privacy',
   'terms.meta': 'Version {version} · In effect since {date}',
   'terms.intro':
-    'These terms cover your FluidEQ account: credits and the scenes you get with them, Plus for the members who still have it, Visualizers, the Studio and the scenes you share, and the leaderboard. They list everything the app sends to FluidEQ’s service, when it goes and who can see it, and, near the end, every other place FluidEQ connects to.',
+    'These terms cover your FluidEQ account: credits and the scenes you get with them, Plus for the members who still have it, Visualizers, the Studio, the scenes you share and getting paid for them, and the leaderboard. They list everything the app sends to FluidEQ’s service, when it goes and who can see it, and, near the end, every other place FluidEQ connects to.',
   'terms.link': 'Terms and privacy',
 
   'terms.short.title': 'The short version',
@@ -163,7 +163,7 @@ const terms = {
   'terms.protect.p4':
     'The maker runs the service and can see what it stores, to keep it working, to match payments and to moderate what members publish. Nothing is sold or used for advertising, and there is no tracking or analytics.',
   'terms.protect.p5':
-    'The service runs on Supabase (sign-in, database and files) and sends email through Resend; credits are paid through Stripe, Plus through Buy Me a Coffee, and the Forum goes through GitHub. Each receives only what its part needs.',
+    'The service runs on Supabase (sign-in, database and files) and sends email through Resend; credits are paid through Stripe, which also pays creators, Plus through Buy Me a Coffee, and the Forum goes through GitHub. Each receives only what its part needs.',
   'terms.protect.p6':
     'FluidEQ keeps no IP addresses. Supabase records the address of each request in short-lived logs, and keeps the address and app details of each signed-in computer with that computer’s session and in Supabase’s own sign-in security log, to keep sign-in working and safe.',
   'terms.protect.p7':
@@ -219,7 +219,7 @@ const terms = {
   'terms.scenes.p3':
     'When you export a scene, you let FluidEQ check it — including against FluidEQ’s own scenes — remove the comments from its code and sign it with your display name and account id, so other members who own it can play it and see that you made it. That is the whole permission: FluidEQ’s maker will not sell your scene or use it in advertising, will not make it one of the Plus looks without asking you first, and does not stop you doing anything else with your own work.',
   'terms.scenes.p4':
-    'Nobody is paid money for a scene. When an account that has paid for a pack of credits gets a scene of yours, you earn one credit — credit to get scenes with, never cash. And, while FluidEQ offers Plus, a scene of yours that FluidEQ’s maker approves earns you a month of it.',
+    'When an account gets a scene of yours with a credit from a pack it paid for, you earn from it: once you have set up payouts in the Account panel, money, under the creator terms in Getting paid for your scenes; until then, or where Stripe cannot pay you, one credit — credit to get scenes with, never cash. A scene got with a free credit earns nothing. And, while FluidEQ offers Plus, a scene of yours that FluidEQ’s maker approves earns you a month of it.',
   'terms.scenes.p5':
     'Members who like your scene give you points on the leaderboard, if you have joined it. Likes are counted by the server; see Fair play.',
   'terms.scenes.p6':
@@ -253,7 +253,7 @@ const terms = {
   'terms.elsewhere.p7':
     'Lighting and desktop backgrounds: lighting talks only to Razer Chroma and Windows on this computer, and desktop backgrounds never go online.',
   'terms.elsewhere.p8':
-    'Your browser: payment for credits on Stripe and for Plus on Buy Me a Coffee, your membership page, the support links and the Forum’s GitHub sign-in open there, under those sites’ own terms.',
+    'Your browser: payment for credits on Stripe and for Plus on Buy Me a Coffee, Stripe’s sign-up and dashboard for creator payouts, your membership page, the support links and the Forum’s GitHub sign-in open there, under those sites’ own terms.',
 
   'terms.changes.title': 'Changes, and the fine print',
   'terms.changes.p1':
@@ -275,7 +275,7 @@ const terms = {
   'terms.credits.p2':
     'Credits come in packs, paid once on Stripe, under its own terms. FluidEQ never sees your card or bank details, and nothing renews. A confirmed account gets {starterCredits} credits once, free. Credits have no cash value, cannot be sold or moved to another account, and buy scenes and nothing else.',
   'terms.credits.p3':
-    'If a payment for a pack is refunded or disputed, the pack’s credits are taken back, even ones you already spent: your balance can go below zero, and no scene can be got until a new pack brings it back up. Scenes you already have stay yours.',
+    'If a payment for a pack is refunded in full or disputed, the pack’s credits are taken back, even ones you already spent: your balance can go below zero, and no scene can be got until a new pack brings it back up. Scenes you already have stay yours.',
   'terms.credits.p4':
     'Scenes you make are yours to play for free once they are published: after FluidEQ’s maker approves one and it is in Visualizers, it plays everywhere for you. Until then it is a draft, and plays only on the Studio’s stage, marked as a draft. A scene another member makes is never free for you; you get it with a credit like any other.',
   'terms.credits.p5':
@@ -299,11 +299,24 @@ const terms = {
   'terms.sent.sceneGet.when':
     'When you confirm getting a scene, and when you take the starter credits',
   'terms.sent.sceneGet.who':
-    'Kept with your account, so the scene stays yours. The maker of a member’s scene earns a credit when an account that has paid for a pack gets it, and never learns who.',
+    'Kept with your account, so the scene stays yours. When it was got with a paid credit, the maker of a member’s scene earns from it — money once Stripe can pay them, a credit until then — and never learns who got it.',
   'terms.keep.p7':
     'Credits: each pack you paid for, each credit you spent and each scene you own are kept with your account, so your scenes stay yours on every computer; Stripe’s ids for each payment are kept to give its credits and to take them back after a refund. All of it is deleted with your account.',
   'terms.scenes.p11':
     'Until a scene of yours is published, it plays only on the Studio’s stage, marked as a draft. Once it is in Visualizers, it plays for you everywhere, for free.',
+  'terms.credits.p7':
+    'Credits you have not spent are refunded if you ask within {refundDays} days of buying their pack: write to {contact}. Only those credits are taken back; a credit already spent is not refunded, and the scenes you got stay yours.',
+  'terms.payouts.title': 'Getting paid for your scenes',
+  'terms.payouts.p1':
+    'A member who publishes scenes can be paid for them through Stripe, by setting up payouts in the Account panel. Stripe pays creators in the US, the UK, Canada, Switzerland and the European Economic Area; anywhere else, each sale earns a credit instead. These are the creator terms you accept before Stripe’s page opens:',
+  'terms.sent.payouts.what':
+    'Your sign-in token, to read where your payouts stand; if you set up payouts, the country you live in and which version of the creator terms you accepted; and then, from Stripe, your Stripe account’s id and whether Stripe can pay you',
+  'terms.sent.payouts.when':
+    'When you open the Account panel, when you press Set up payouts, Finish setting up or Check again, and when you come back from Stripe’s page; Stripe tells FluidEQ’s service when your account there changes',
+  'terms.sent.payouts.who':
+    'Only you and the maker. You see what is held, ready to pay and paid, never who bought; the maker sees what each creator is owed, to pay it. Your identity, bank and tax details go only to Stripe.',
+  'terms.keep.p8':
+    'Payouts: your Stripe account’s id, your country, the version of the creator terms you accepted, each sale your scenes earned and each payout are kept to pay you and to account for the payments, and are deleted with your account. When a buyer’s account is deleted, the sales it made stay in the creator’s earnings, without the buyer. What Stripe keeps is under its own terms.',
 } as const;
 
 export default terms;

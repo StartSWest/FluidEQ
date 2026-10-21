@@ -3,7 +3,7 @@ const terms = {
   'terms.title': 'Termos e privacidade',
   'terms.meta': 'Versão {version} · Em vigor desde {date}',
   'terms.intro':
-    'Estes termos cobrem a sua conta FluidEQ: os créditos e as cenas que você obtém com eles, o Plus para os membros que ainda o têm, Visualizadores, o Estúdio e as cenas que você compartilha, e a classificação. Eles listam tudo o que o app envia ao serviço do FluidEQ, quando envia e quem pode ver, e, perto do fim, todos os outros lugares a que o FluidEQ se conecta.',
+    'Estes termos cobrem a sua conta FluidEQ: os créditos e as cenas que você obtém com eles, o Plus para os membros que ainda o têm, Visualizadores, o Estúdio, as cenas que você compartilha e o pagamento por elas, e a classificação. Eles listam tudo o que o app envia ao serviço do FluidEQ, quando envia e quem pode ver, e, perto do fim, todos os outros lugares a que o FluidEQ se conecta.',
   'terms.link': 'Termos e privacidade',
 
   'terms.short.title': 'A versão curta',
@@ -154,7 +154,7 @@ const terms = {
   'terms.protect.p4':
     'O criador administra o serviço e pode ver o que ele armazena, para mantê-lo funcionando, associar pagamentos e moderar o que os membros publicam. Nada é vendido ou usado para publicidade, e não há rastreamento nem análises.',
   'terms.protect.p5':
-    'O serviço roda no Supabase (login, banco de dados e arquivos) e envia e-mails pelo Resend; os créditos são pagos pela Stripe, o Plus pelo Buy Me a Coffee, e o Fórum passa pelo GitHub. Cada um recebe apenas o que a sua parte precisa.',
+    'O serviço roda no Supabase (login, banco de dados e arquivos) e envia e-mails pelo Resend; os créditos são pagos pela Stripe, que também paga os criadores, o Plus pelo Buy Me a Coffee, e o Fórum passa pelo GitHub. Cada um recebe apenas o que a sua parte precisa.',
   'terms.protect.p6':
     'O FluidEQ não armazena endereços IP. O Supabase registra o endereço de cada pedido em registros de curta duração, e armazena o endereço e os dados do app de cada computador conectado junto com a sessão desse computador e no próprio registro de segurança de login do Supabase, para manter o login funcionando e seguro.',
   'terms.protect.p7':
@@ -210,7 +210,7 @@ const terms = {
   'terms.scenes.p3':
     'Quando você exporta uma cena, permite que o FluidEQ a verifique — inclusive comparando-a com as cenas do próprio FluidEQ —, remova os comentários do código dela e a assine com seu nome visível e seu id de conta, para que outros membros que a tenham possam reproduzi-la e ver que foi você quem a criou. Essa é toda a permissão: o criador do FluidEQ não vai vender sua cena nem usá-la em publicidade, não vai transformá-la num dos visuais Plus sem perguntar antes, e não impede você de fazer o que quiser com seu próprio trabalho.',
   'terms.scenes.p4':
-    'Ninguém recebe dinheiro por uma cena. Quando uma conta que pagou por um pacote de créditos obtém uma cena sua, você ganha um crédito: crédito para obter cenas, nunca dinheiro. E, enquanto o FluidEQ oferecer o Plus, uma cena sua aprovada pelo criador do FluidEQ lhe dá um mês dele.',
+    'Quando uma conta obtém uma cena sua com um crédito de um pacote que pagou, você ganha com ela: assim que você configurar os pagamentos no painel Conta, dinheiro, conforme os termos para criadores em Receber pelas suas cenas; até lá, ou onde a Stripe não puder pagar você, um crédito: crédito para obter cenas, nunca dinheiro. Uma cena obtida com um crédito grátis não rende nada. E, enquanto o FluidEQ oferecer o Plus, uma cena sua aprovada pelo criador do FluidEQ lhe dá um mês dele.',
   'terms.scenes.p5':
     'Os membros que curtem sua cena lhe dão pontos na classificação, se você entrou nela. As curtidas são contadas no servidor; veja Jogo limpo.',
   'terms.scenes.p6':
@@ -244,7 +244,7 @@ const terms = {
   'terms.elsewhere.p7':
     'Iluminação e fundos da área de trabalho: a iluminação se comunica só com o Razer Chroma e o Windows neste computador, e os fundos da área de trabalho nunca vão à internet.',
   'terms.elsewhere.p8':
-    'Seu navegador: o pagamento de créditos na Stripe e o do Plus no Buy Me a Coffee, a página da sua assinatura, os links de suporte e o login do GitHub do Fórum abrem lá, sob os termos desses sites.',
+    'Seu navegador: o pagamento de créditos na Stripe e o do Plus no Buy Me a Coffee, o cadastro e o painel da Stripe para os pagamentos a criadores, a página da sua assinatura, os links de suporte e o login do GitHub do Fórum abrem lá, sob os termos desses sites.',
 
   'terms.changes.title': 'Alterações, e as letras miúdas',
   'terms.changes.p1':
@@ -266,7 +266,7 @@ const terms = {
   'terms.credits.p2':
     'Os créditos vêm em pacotes, pagos uma única vez na Stripe, sob os termos dela. O FluidEQ nunca vê seu cartão nem seus dados bancários, e nada é renovado. Uma conta confirmada recebe {starterCredits} créditos uma vez, grátis. Os créditos não têm valor em dinheiro, não podem ser vendidos nem passados para outra conta, e servem para obter cenas e nada mais.',
   'terms.credits.p3':
-    'Se o pagamento de um pacote for reembolsado ou contestado, os créditos desse pacote são retirados, até os que você já gastou: seu saldo pode ficar abaixo de zero, e nenhuma cena pode ser obtida até um novo pacote recuperá-lo. As cenas que você já tem continuam sendo suas.',
+    'Se o pagamento de um pacote for reembolsado por inteiro ou contestado, os créditos desse pacote são retirados, até os que você já gastou: seu saldo pode ficar abaixo de zero, e nenhuma cena pode ser obtida até um novo pacote recuperá-lo. As cenas que você já tem continuam sendo suas.',
   'terms.credits.p4':
     'As cenas que você cria são suas para usar de graça assim que forem publicadas: quando o criador do FluidEQ aprova uma e ela está em Visualizadores, ela toca para você em todos os lugares. Até lá, é um rascunho e só toca no palco do Estúdio, marcada como rascunho. Uma cena que outro membro cria nunca é grátis para você; você a obtém com um crédito como qualquer outra.',
   'terms.credits.p5':
@@ -290,11 +290,24 @@ const terms = {
   'terms.sent.sceneGet.when':
     'Quando você confirma que vai obter uma cena, e quando pega os créditos iniciais',
   'terms.sent.sceneGet.who':
-    'Guardado com sua conta, para que a cena continue sendo sua. Quem criou a cena de um membro ganha um crédito quando uma conta que pagou por um pacote a obtém, e nunca sabe quem foi.',
+    'Guardado com sua conta, para que a cena continue sendo sua. Quando foi obtida com um crédito pago, quem criou a cena de um membro ganha com ela (dinheiro quando a Stripe pode pagá-lo, um crédito até lá) e nunca sabe quem a obteve.',
   'terms.keep.p7':
     'Créditos: cada pacote que você pagou, cada crédito que gastou e cada cena que tem ficam guardados com sua conta, para que suas cenas continuem sendo suas em todo computador; os ids da Stripe de cada pagamento são guardados para dar os créditos dele e retirá-los depois de um reembolso. Tudo é apagado com sua conta.',
   'terms.scenes.p11':
     'Até uma cena sua ser publicada, ela só toca no palco do Estúdio, marcada como rascunho. Quando está em Visualizadores, ela toca para você em todos os lugares, de graça.',
+  'terms.credits.p7':
+    'Os créditos que você não gastou são reembolsados se você pedir em até {refundDays} dias após comprar o pacote deles: escreva para {contact}. Só esses créditos são retirados; um crédito já gasto não é reembolsado, e as cenas que você obteve continuam sendo suas.',
+  'terms.payouts.title': 'Receber pelas suas cenas',
+  'terms.payouts.p1':
+    'Um membro que publica cenas pode receber por elas pela Stripe, configurando os pagamentos no painel Conta. A Stripe paga criadores nos EUA, no Reino Unido, no Canadá, na Suíça e no Espaço Econômico Europeu; em qualquer outro lugar, cada venda rende um crédito. Estes são os termos para criadores que você aceita antes de a página da Stripe abrir:',
+  'terms.sent.payouts.what':
+    'Seu token de login, para ler como estão seus pagamentos; se você configurar os pagamentos, o país onde mora e qual versão dos termos para criadores aceitou; e depois, vindos da Stripe, o id da sua conta Stripe e se a Stripe já pode pagar você',
+  'terms.sent.payouts.when':
+    'Quando você abre o painel Conta, quando toca em Configurar pagamentos, Concluir a configuração ou Verificar de novo, e quando volta da página da Stripe; a Stripe avisa o serviço do FluidEQ quando sua conta lá muda',
+  'terms.sent.payouts.who':
+    'Só você e o criador do FluidEQ. Você vê o que está retido, pronto para pagar e pago, nunca quem comprou; o criador vê quanto se deve a cada criador, para pagar. Seus dados de identidade, banco e impostos vão só para a Stripe.',
+  'terms.keep.p8':
+    'Pagamentos: o id da sua conta Stripe, seu país, a versão dos termos para criadores que você aceitou, cada venda que suas cenas renderam e cada pagamento ficam guardados para pagar você e prestar contas dos pagamentos, e são apagados com sua conta. Quando a conta de um comprador é apagada, as vendas que ele fez continuam nos ganhos do criador, sem o comprador. O que a Stripe guarda segue os termos dela.',
 } as const;
 
 export default terms;

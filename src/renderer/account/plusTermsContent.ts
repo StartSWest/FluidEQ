@@ -91,6 +91,15 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     who: 'terms.sent.credits.who',
   },
   {
+    // Creator payouts (premium 0064): the card's status read, the sign-up,
+    // and what Stripe reports back about the creator's account.
+    id: 'payouts',
+    glyph: 'card',
+    what: 'terms.sent.payouts.what',
+    when: 'terms.sent.payouts.when',
+    who: 'terms.sent.payouts.who',
+  },
+  {
     id: 'scene-get',
     glyph: 'check',
     what: 'terms.sent.sceneGet.what',
@@ -222,6 +231,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.credits.p4',
       'terms.credits.p5',
       'terms.credits.p6',
+      'terms.credits.p7',
     ],
   },
   {
@@ -319,6 +329,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.keep.p4',
       'terms.keep.p5',
       'terms.keep.p7',
+      'terms.keep.p8',
       'terms.keep.p6',
     ],
   },
@@ -349,6 +360,25 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.scenes.p9',
       'terms.scenes.p10',
       'terms.scenes.p11',
+    ],
+  },
+  {
+    // Getting paid: the creator terms the sign-up dialog shows, quoted from
+    // its own keys so the two can never say different things.
+    id: 'payouts',
+    glyph: 'credit',
+    title: 'terms.payouts.title',
+    body: 'points',
+    lines: [
+      'terms.payouts.p1',
+      'creator.terms.share',
+      'creator.terms.paidCredits',
+      'creator.terms.hold',
+      'creator.terms.minimum',
+      'creator.terms.stripe',
+      'creator.terms.rights',
+      'creator.terms.taxes',
+      'creator.terms.changes',
     ],
   },
   {

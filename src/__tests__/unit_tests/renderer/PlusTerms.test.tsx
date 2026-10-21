@@ -9,6 +9,9 @@ import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IAccountState } from '../../../main/account/session';
 import {
+  CREATOR_MINIMUM_CENTS,
+  CREATOR_SHARE_PERCENT,
+  CREDIT_REFUND_DAYS,
   PLUS_MINIMUM_AGE,
   PLUS_TERMS_EDITION,
   PLUS_TERMS_VERSION,
@@ -181,15 +184,60 @@ describe('the Plus terms', () => {
       expect(item.getByText(new RegExp(`^${row.who}`))).toBeInTheDocument();
     });
     // The numbers are filled from the code that keeps them, not typed in.
-    // The refund paragraph that used to be checked here went in revision 8:
-    // the terms say nothing about refunds now, so there is nothing to assert
-    // but its absence.
+    // The membership's fourteen-day refund went in revision 8 and stays gone;
+    // what is refunded now is unspent credits (terms.credits.p7).
     expect(screen.queryByText(/^terms\.membership\.p3/)).toBeNull();
     expect(
       screen.getByText(
         new RegExp(`^terms\\.account\\.p1:.*\\b${PLUS_MINIMUM_AGE}\\b`),
       ),
     ).toBeInTheDocument();
+  });
+
+  /**
+   * Unspent credits are refunded within a number of days the code keeps
+   * (Ivan, 2026-10-21), and a creator is promised the share and the minimum
+   * the server pays: each is filled from its constant in every language,
+   * and the payouts section says the sign-up dialog's own sentences, so the
+   * two can never promise different things.
+   */
+  it('quote the refund and the creator terms from the code that keeps them, in every language', () => {
+    // What payouts send has its row, and the creator terms their section.
+    expect(TERMS_SENT_ROWS.map((row) => row.what)).toContain(
+      'terms.sent.payouts.what',
+    );
+    const lines = TERMS_SECTIONS.flatMap((section) => section.lines);
+    expect(lines).toEqual(
+      expect.arrayContaining([
+        'terms.credits.p7',
+        'creator.terms.share',
+        'creator.terms.minimum',
+      ]),
+    );
+    const wrong = LOCALES.flatMap(({ code }) => {
+      const values = termsValues(code);
+      const said = (
+        key:
+          'terms.credits.p7' | 'creator.terms.share' | 'creator.terms.minimum',
+      ) => translate(code, key, values);
+      return [
+        said('terms.credits.p7').includes(String(CREDIT_REFUND_DAYS))
+          ? []
+          : [`${code} refund`],
+        said('creator.terms.share').includes(String(CREATOR_SHARE_PERCENT))
+          ? []
+          : [`${code} share`],
+        said('creator.terms.minimum').includes(
+          String(CREATOR_MINIMUM_CENTS / 100),
+        )
+          ? []
+          : [`${code} minimum`],
+      ].flat();
+    });
+    expect(wrong).toEqual([]);
+    // The positive control: the numbers are placeholders, not typed by hand.
+    expect(translate('en', 'terms.credits.p7', {})).toContain('{refundDays}');
+    expect(translate('en', 'creator.terms.share', {})).toContain('{share}');
   });
 
   /**

@@ -9,7 +9,13 @@ import {
   LISTENING_WINDOW_DAYS,
   PART_POINTS,
 } from 'common/leaderboardScore';
+import { formatDollars } from 'common/creatorPayouts';
 import {
+  CREATOR_HOLD_DAYS,
+  CREATOR_MINIMUM_CENTS,
+  CREATOR_PAYOUT_EVERY_DAYS,
+  CREATOR_SHARE_PERCENT,
+  CREDIT_REFUND_DAYS,
   PLUS_ACCOUNT_DELETION_DAYS,
   PLUS_MAX_COMPUTERS,
   PLUS_MAX_PUBLISHED_SCENES,
@@ -35,9 +41,12 @@ import '../styles/PlusTerms.scss';
  * Every number the terms quote, from the constant the code keeps it with.
  * The contact is the support address the build was made with; a build
  * without one points at the site instead, so the sentence never ends in a
- * blank.
+ * blank. The creator terms' names (share, days, amount) are the sign-up
+ * dialog's own, because the section quotes its sentences.
  */
-export const termsValues = (): Record<string, string | number> => ({
+export const termsValues = (
+  locale = 'en',
+): Record<string, string | number> => ({
   graceDays: PLUS_OFFLINE_GRACE_DAYS,
   deletionDays: PLUS_ACCOUNT_DELETION_DAYS,
   age: PLUS_MINIMUM_AGE,
@@ -57,6 +66,11 @@ export const termsValues = (): Record<string, string | number> => ({
   dayPoints: PART_POINTS.days,
   likePoints: PART_POINTS.likes,
   contact: REPORT_EMAIL || new URL(OFFICIAL_SITE_URL).host,
+  refundDays: CREDIT_REFUND_DAYS,
+  share: CREATOR_SHARE_PERCENT,
+  days: CREATOR_HOLD_DAYS,
+  amount: formatDollars(CREATOR_MINIMUM_CENTS, locale),
+  every: CREATOR_PAYOUT_EVERY_DAYS,
 });
 
 /**
@@ -73,7 +87,7 @@ export const termsValues = (): Record<string, string | number> => ({
  */
 export default function PlusTermsDocument() {
   const { t, locale } = useTranslation();
-  const values = useMemo(() => termsValues(), []);
+  const values = useMemo(() => termsValues(locale), [locale]);
   const effective = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {
