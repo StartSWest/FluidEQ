@@ -73,6 +73,10 @@ const files = {
   'files.apo.editorMissing': 'Equalizer APO की सेटिंग्स नहीं मिलीं।',
   'files.wav.tooLong':
     'वह इम्पल्स रिस्पॉन्स सुरक्षित नॉर्मलाइज़ेशन के लिए विश्लेषण करने को बहुत लंबा है।',
+  // My curves out through Save As (main/ipc/curveExport.ts).
+  'files.title.exportCurves': 'मेरे कर्व निर्यात करें',
+  'files.type.curveList': 'FluidEQ कर्व सूची',
+  'files.title.exportCurveFolder': 'कर्व के लिए एक फ़ोल्डर चुनें',
 } as const;
 
 export default files;

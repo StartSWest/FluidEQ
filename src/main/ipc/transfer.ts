@@ -61,6 +61,7 @@ import {
 import type { TranslationKey } from '../../common/i18n';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import onWindowMessage from './windowMessages';
+import { registerCurveExportIpc } from './curveExport';
 import mainText from '../mainText';
 import { Refusal, userMessageOf } from '../refusal';
 
@@ -793,4 +794,6 @@ export const registerTransferIpc = ({
       handleError(event, channel, ErrorCode.IMPORT_ERROR, userMessageOf(e));
     }
   });
+
+  registerCurveExportIpc({ getMainWindow, handleError });
 };

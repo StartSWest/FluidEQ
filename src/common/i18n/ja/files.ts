@@ -74,6 +74,10 @@ const files = {
   'files.apo.editorMissing': 'Equalizer APO の設定が見つかりません。',
   'files.wav.tooLong':
     'そのインパルス応答は長すぎて、安全にノーマライズするための解析ができません。',
+  // My curves out through Save As (main/ipc/curveExport.ts).
+  'files.title.exportCurves': 'マイカーブを書き出す',
+  'files.type.curveList': 'FluidEQカーブリスト',
+  'files.title.exportCurveFolder': 'カーブの保存先フォルダーを選択',
 } as const;
 
 export default files;

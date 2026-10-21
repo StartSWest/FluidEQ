@@ -807,6 +807,87 @@ const eq: Partial<Dictionary> = {
   'eq.refused.preampRange.action': 'Предусиление осталось прежним.',
   'eq.refused.externalEq':
     'Во внешнем эквалайзере есть ступени, которые FluidEQ не может безопасно перенять. Его файлы не изменены.',
+  // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.tab.opra': 'Библиотека OPRA',
+  'myCurves.tab.mine': 'Мои кривые',
+  'myCurves.search': 'Поиск по вашим кривым',
+  'myCurves.sort': 'Сортировка',
+  'myCurves.sort.recent': 'Недавние',
+  'myCurves.sort.name': 'А–Я',
+  'myCurves.add': 'Добавить кривую',
+  'myCurves.import': 'Импорт списка',
+  'myCurves.export': 'Экспорт списка',
+  'myCurves.empty.title': 'Своих кривых пока нет',
+  'myCurves.empty.body':
+    'Добавьте кривую из экспорта Squiglink или файла .txt либо сохраните её в панели Squiglink ниже. Ваши кривые хранятся на этом компьютере, пока вы их не экспортируете.',
+  'myCurves.noMatch': 'Ни в одном названии кривой этого нет.',
+  'myCurves.source.squiglink': 'Squiglink',
+  'myCurves.source.file': 'Файл',
+  'myCurves.source.eq': 'Мой EQ',
+  'myCurves.source.opra': 'Из OPRA',
+  'myCurves.added': 'Добавлена {date}',
+  'myCurves.playing': 'Звучит',
+  'myCurves.applyEqHint':
+    'Заменяет ваши редактируемые полосы полосами этой кривой. Нажмите ещё раз для подтверждения.',
+  'myCurves.replaceBands': 'Заменить ваши полосы?',
+  'myCurves.more': 'Ещё для {name}',
+  'myCurves.rename': 'Переименовать',
+  'myCurves.duplicate': 'Дублировать',
+  'myCurves.copyText': 'Копировать как текст',
+  'myCurves.copied': 'Скопировано',
+  'myCurves.delete': 'Удалить',
+  'myCurves.deleteConfirm': 'Нажмите ещё раз, чтобы удалить',
+  'myCurves.cancel': 'Отмена',
+  'myCurves.addTitle': 'Добавить кривую',
+  'myCurves.addIntro':
+    'Она попадёт в «Мои кривые». Ничего не зазвучит, пока вы её не примените.',
+  'myCurves.textLabel': 'Текст ParametricEQ',
+  'myCurves.textPlaceholder':
+    'Вставьте сюда экспорт ParametricEQ или GraphicEQ',
+  'myCurves.read': 'Прочитано: полос {count}, предусиление {preamp} дБ',
+  'myCurves.readNothing':
+    'В этом тексте пока нет кривой. Вставьте экспорт ParametricEQ или GraphicEQ.',
+  'myCurves.fileFailed': 'Этот файл не удалось прочитать как кривую.',
+  'myCurves.name': 'Название',
+  'myCurves.ears': 'Уши',
+  'myCurves.defaultName': 'Кривая Squiglink, {date}',
+  'myCurves.chartAria': 'Кривая {name}, от 20 Гц до 20 кГц',
+  'myCurves.save': 'Сохранить в «Мои кривые»',
+  'myCurves.saveApply': 'Сохранить и применить как кривую',
+  'myCurves.exportTitle': 'Экспорт «Моих кривых»',
+  'myCurves.exportIntro':
+    'Кривых в списке: {count}. Ничего о ваших выходах или аккаунте в файл не попадает.',
+  'myCurves.format': 'Формат',
+  'myCurves.format.list': 'Один список кривых FluidEQ (.fqcurves)',
+  'myCurves.format.listHint':
+    'Импортируется целиком в любой FluidEQ: каждое название, кривая, предусиление и ухо.',
+  'myCurves.format.folder': 'Папка файлов .txt',
+  'myCurves.format.folderHint':
+    'По одному файлу ParametricEQ на кривую, с её названием, для Equalizer APO, Squiglink и инструментов AutoEQ.',
+  'myCurves.exportRun': 'Экспортировать',
+  'myCurves.exportFailed':
+    'Не удалось записать кривые туда. Выберите другое место и попробуйте ещё раз.',
+  'myCurves.fileName': 'Мои кривые',
+  'myCurves.importTitle': 'Импорт кривых',
+  'myCurves.importIntro':
+    'Выберите список кривых FluidEQ или один либо несколько файлов .txt ParametricEQ.',
+  'myCurves.importFrom': 'Из {files}',
+  'myCurves.chooseFiles': 'Выбрать файлы',
+  'myCurves.importHint':
+    'Вы увидите каждую кривую, прежде чем что-либо будет добавлено.',
+  'myCurves.importNothing':
+    'В этих файлах нет кривых, которые FluidEQ может прочитать.',
+  'myCurves.clash': 'У вас уже есть кривая с таким названием',
+  'myCurves.clashChoice': 'Что сделать с {name}',
+  'myCurves.new': 'Новая',
+  'myCurves.choice.keepBoth': 'Оставить обе',
+  'myCurves.choice.replace': 'Заменить',
+  'myCurves.choice.skip': 'Пропустить',
+  'myCurves.importRun': 'Импортировать ({count})',
+  'myCurves.importSkipped': 'Пропущено записей без кривой: {count}',
+  'myCurves.importNote':
+    'Импортированные кривые никогда не включаются сами; та, что звучит сейчас, продолжает звучать.',
+  'squigImport.saveMine': 'Сохранить в «Мои кривые»',
 };
 
 export default eq;

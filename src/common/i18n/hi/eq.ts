@@ -802,6 +802,87 @@ const eq: Partial<Dictionary> = {
   'eq.refused.preampRange.action': 'प्रीऐम्प जहाँ था, वहीं छोड़ दिया गया।',
   'eq.refused.externalEq':
     'बाहरी EQ में ऐसे चरण हैं जिन्हें FluidEQ सुरक्षित रूप से नहीं अपना सकता। उसकी फ़ाइलें नहीं बदली गईं।',
+  // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.tab.opra': 'OPRA लाइब्रेरी',
+  'myCurves.tab.mine': 'मेरे कर्व',
+  'myCurves.search': 'अपने कर्व खोजें',
+  'myCurves.sort': 'क्रम',
+  'myCurves.sort.recent': 'हाल के',
+  'myCurves.sort.name': 'A–Z',
+  'myCurves.add': 'कर्व जोड़ें',
+  'myCurves.import': 'सूची आयात करें',
+  'myCurves.export': 'सूची निर्यात करें',
+  'myCurves.empty.title': 'अभी तक आपका कोई कर्व नहीं',
+  'myCurves.empty.body':
+    'Squiglink एक्सपोर्ट या .txt फ़ाइल से एक जोड़ें, या नीचे Squiglink पैनल से सेव करें। आपके कर्व इस कंप्यूटर पर रहते हैं, जब तक आप उन्हें निर्यात न करें।',
+  'myCurves.noMatch': 'किसी कर्व के नाम में यह नहीं है।',
+  'myCurves.source.squiglink': 'Squiglink',
+  'myCurves.source.file': 'फ़ाइल',
+  'myCurves.source.eq': 'मेरा EQ',
+  'myCurves.source.opra': 'OPRA से',
+  'myCurves.added': '{date} को जोड़ा गया',
+  'myCurves.playing': 'चल रहा है',
+  'myCurves.applyEqHint':
+    'आपके बदले जा सकने वाले बैंड इस कर्व के बैंड से बदल देता है। पक्का करने के लिए फिर से दबाएँ।',
+  'myCurves.replaceBands': 'अपने बैंड बदलें?',
+  'myCurves.more': '{name} के लिए और',
+  'myCurves.rename': 'नाम बदलें',
+  'myCurves.duplicate': 'डुप्लिकेट करें',
+  'myCurves.copyText': 'टेक्स्ट के रूप में कॉपी करें',
+  'myCurves.copied': 'कॉपी हो गया',
+  'myCurves.delete': 'हटाएँ',
+  'myCurves.deleteConfirm': 'हटाने के लिए फिर से दबाएँ',
+  'myCurves.cancel': 'रद्द करें',
+  'myCurves.addTitle': 'कर्व जोड़ें',
+  'myCurves.addIntro':
+    'यह मेरे कर्व में जाता है। जब तक आप इसे लागू न करें, कुछ नहीं बजता।',
+  'myCurves.textLabel': 'ParametricEQ टेक्स्ट',
+  'myCurves.textPlaceholder':
+    'यहाँ ParametricEQ या GraphicEQ एक्सपोर्ट पेस्ट करें',
+  'myCurves.read': 'पढ़ा गया: {count} बैंड, प्रीऐम्प {preamp} dB',
+  'myCurves.readNothing':
+    'इस टेक्स्ट में अभी कोई कर्व नहीं है। ParametricEQ या GraphicEQ एक्सपोर्ट पेस्ट करें।',
+  'myCurves.fileFailed': 'उस फ़ाइल को कर्व के रूप में नहीं पढ़ा जा सका।',
+  'myCurves.name': 'नाम',
+  'myCurves.ears': 'कान',
+  'myCurves.defaultName': 'Squiglink कर्व, {date}',
+  'myCurves.chartAria': 'कर्व {name}, 20 Hz से 20 kHz तक',
+  'myCurves.save': 'मेरे कर्व में सेव करें',
+  'myCurves.saveApply': 'सेव करें और कर्व के रूप में लागू करें',
+  'myCurves.exportTitle': 'मेरे कर्व निर्यात करें',
+  'myCurves.exportIntro':
+    'सूची में कर्व: {count}। आपके आउटपुट या खाते के बारे में कुछ भी फ़ाइल में नहीं जाता।',
+  'myCurves.format': 'फ़ॉर्मैट',
+  'myCurves.format.list': 'एक FluidEQ कर्व सूची (.fqcurves)',
+  'myCurves.format.listHint':
+    'किसी भी FluidEQ में पूरी आयात होती है: हर नाम, कर्व, प्रीऐम्प और कान।',
+  'myCurves.format.folder': '.txt फ़ाइलों का एक फ़ोल्डर',
+  'myCurves.format.folderHint':
+    'हर कर्व के लिए उसके नाम वाली एक ParametricEQ फ़ाइल, Equalizer APO, Squiglink और AutoEQ टूल के लिए।',
+  'myCurves.exportRun': 'निर्यात करें',
+  'myCurves.exportFailed':
+    'कर्व वहाँ नहीं लिखे जा सके। कोई दूसरी जगह चुनें और फिर से कोशिश करें।',
+  'myCurves.fileName': 'मेरे कर्व',
+  'myCurves.importTitle': 'कर्व आयात करें',
+  'myCurves.importIntro':
+    'एक FluidEQ कर्व सूची, या एक या अधिक ParametricEQ .txt फ़ाइलें चुनें।',
+  'myCurves.importFrom': '{files} से',
+  'myCurves.chooseFiles': 'फ़ाइलें चुनें',
+  'myCurves.importHint': 'कुछ भी जोड़ने से पहले आप हर कर्व देखते हैं।',
+  'myCurves.importNothing':
+    'इन फ़ाइलों में ऐसा कोई कर्व नहीं है जिसे FluidEQ पढ़ सके।',
+  'myCurves.clash': 'इस नाम का कर्व आपके पास पहले से है',
+  'myCurves.clashChoice': '{name} के साथ क्या करें',
+  'myCurves.new': 'नया',
+  'myCurves.choice.keepBoth': 'दोनों रखें',
+  'myCurves.choice.replace': 'बदलें',
+  'myCurves.choice.skip': 'छोड़ें',
+  'myCurves.importRun': 'आयात करें ({count})',
+  'myCurves.importSkipped':
+    'कर्व न होने के कारण छोड़ी गई प्रविष्टियाँ: {count}',
+  'myCurves.importNote':
+    'आयात किए गए कर्व अपने आप कभी नहीं बजते; जो अभी बज रहा है वह बजता रहता है।',
+  'squigImport.saveMine': 'मेरे कर्व में सेव करें',
 };
 
 export default eq;

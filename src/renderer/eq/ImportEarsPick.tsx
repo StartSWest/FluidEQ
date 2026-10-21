@@ -10,7 +10,7 @@ import { useTranslation } from '../utils/I18nContext';
 import '../styles/ImportEarsPick.scss';
 
 /** Each choice by the words the ears go by elsewhere on screen. */
-const NAMES: Record<TImportEars, TranslationKey> = {
+export const IMPORT_EAR_NAMES: Record<TImportEars, TranslationKey> = {
   both: 'eq.channels.both',
   left: 'graph.curve.leftEar',
   right: 'graph.curve.rightEar',
@@ -49,7 +49,7 @@ export default function ImportEarsPick({
           disabled={disabled}
           onClick={() => onChange(ears)}
         >
-          {t(NAMES[ears])}
+          {t(IMPORT_EAR_NAMES[ears])}
         </button>
       ))}
     </div>

@@ -213,3 +213,55 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 4px 10px 10px;
   }
 }
+
+// The two libraries, one tab each (`EqPresetsPanel.tsx`): OPRA's and the
+// listener's own. The EQ mode card's underline tabs, kept to their words'
+// width at the card's left edge rather than stretched across the page.
+.autoeq-panel__libraries {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  margin-bottom: -8px;
+  border-bottom: 1px solid $border-subtle;
+}
+
+.autoeq-panel__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: -1px;
+  padding: 8px 14px 9px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: $text-faint;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+  transition: color $motion-fast $ease-out;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &[aria-selected='true'] {
+    border-bottom-color: $secondary-default;
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-default;
+    outline-offset: -2px;
+  }
+}
+
+.autoeq-panel__tab-count {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: $radius-2xs;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  color: $text-muted;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}

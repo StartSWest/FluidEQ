@@ -825,6 +825,85 @@ const eq = {
   'eq.refused.preampRange.action': 'The preamp was left where it was.',
   'eq.refused.externalEq':
     'The external EQ contains stages FluidEQ cannot safely adopt. Its files were left unchanged.',
+  // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.tab.opra': 'OPRA library',
+  'myCurves.tab.mine': 'My curves',
+  'myCurves.search': 'Search your curves',
+  'myCurves.sort': 'Sort',
+  'myCurves.sort.recent': 'Recent',
+  'myCurves.sort.name': 'A–Z',
+  'myCurves.add': 'Add curve',
+  'myCurves.import': 'Import list',
+  'myCurves.export': 'Export list',
+  'myCurves.empty.title': 'No curves of your own yet',
+  'myCurves.empty.body':
+    'Add one from a Squiglink export or a .txt file, or save one from the Squiglink panel below. Your curves stay on this computer until you export them.',
+  'myCurves.noMatch': 'No curve has that in its name.',
+  'myCurves.source.squiglink': 'Squiglink',
+  'myCurves.source.file': 'File',
+  'myCurves.source.eq': 'My EQ',
+  'myCurves.source.opra': 'From OPRA',
+  'myCurves.added': 'Added {date}',
+  'myCurves.playing': 'Playing',
+  'myCurves.applyEqHint':
+    'Replaces your editable bands with this curve’s. Press again to confirm.',
+  'myCurves.replaceBands': 'Replace your bands?',
+  'myCurves.more': 'More for {name}',
+  'myCurves.rename': 'Rename',
+  'myCurves.duplicate': 'Duplicate',
+  'myCurves.copyText': 'Copy as text',
+  'myCurves.copied': 'Copied',
+  'myCurves.delete': 'Delete',
+  'myCurves.deleteConfirm': 'Press again to delete',
+  'myCurves.cancel': 'Cancel',
+  'myCurves.addTitle': 'Add a curve',
+  'myCurves.addIntro':
+    'It goes into My curves. Nothing plays until you apply it.',
+  'myCurves.textLabel': 'ParametricEQ text',
+  'myCurves.textPlaceholder': 'Paste a ParametricEQ or GraphicEQ export here',
+  'myCurves.read': 'Read: {count} bands, preamp {preamp} dB',
+  'myCurves.readNothing':
+    'No curve in this text yet. Paste a ParametricEQ or GraphicEQ export.',
+  'myCurves.fileFailed': 'That file could not be read as a curve.',
+  'myCurves.name': 'Name',
+  'myCurves.ears': 'Ears',
+  'myCurves.defaultName': 'Squiglink curve, {date}',
+  'myCurves.chartAria': 'The curve {name}, from 20 Hz to 20 kHz',
+  'myCurves.save': 'Save to My curves',
+  'myCurves.saveApply': 'Save and apply as curve',
+  'myCurves.exportTitle': 'Export My curves',
+  'myCurves.exportIntro':
+    'Curves in the list: {count}. Nothing about your outputs or account goes into the file.',
+  'myCurves.format': 'Format',
+  'myCurves.format.list': 'One FluidEQ curve list (.fqcurves)',
+  'myCurves.format.listHint':
+    'Imports whole into any FluidEQ: every name, curve, preamp and ear.',
+  'myCurves.format.folder': 'A folder of .txt files',
+  'myCurves.format.folderHint':
+    'One ParametricEQ file per curve, named after it, for Equalizer APO, Squiglink and AutoEQ tools.',
+  'myCurves.exportRun': 'Export',
+  'myCurves.exportFailed':
+    'The curves could not be written there. Choose another place and try again.',
+  'myCurves.fileName': 'My curves',
+  'myCurves.importTitle': 'Import curves',
+  'myCurves.importIntro':
+    'Choose a FluidEQ curve list, or one or more ParametricEQ .txt files.',
+  'myCurves.importFrom': 'From {files}',
+  'myCurves.chooseFiles': 'Choose files',
+  'myCurves.importHint': 'You see every curve before anything is added.',
+  'myCurves.importNothing': 'Those files hold no curve FluidEQ can read.',
+  'myCurves.clash': 'You already have a curve with this name',
+  'myCurves.clashChoice': 'What to do with {name}',
+  'myCurves.new': 'New',
+  'myCurves.choice.keepBoth': 'Keep both',
+  'myCurves.choice.replace': 'Replace',
+  'myCurves.choice.skip': 'Skip',
+  'myCurves.importRun': 'Import ({count})',
+  'myCurves.importSkipped':
+    'Entries left out because they held no curve: {count}',
+  'myCurves.importNote':
+    'Imported curves never play by themselves; the one playing now keeps playing.',
+  'squigImport.saveMine': 'Save to My curves',
 } as const;
 
 export default eq;

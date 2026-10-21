@@ -817,6 +817,87 @@ const eq: Partial<Dictionary> = {
   'eq.refused.preampRange.action': 'Le préampli est resté où il était.',
   'eq.refused.externalEq':
     'L’égaliseur externe contient des étapes que FluidEQ ne peut pas reprendre sans risque. Ses fichiers n’ont pas été modifiés.',
+  // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.tab.opra': 'Bibliothèque OPRA',
+  'myCurves.tab.mine': 'Mes courbes',
+  'myCurves.search': 'Rechercher dans vos courbes',
+  'myCurves.sort': 'Trier',
+  'myCurves.sort.recent': 'Récentes',
+  'myCurves.sort.name': 'A–Z',
+  'myCurves.add': 'Ajouter une courbe',
+  'myCurves.import': 'Importer une liste',
+  'myCurves.export': 'Exporter la liste',
+  'myCurves.empty.title': 'Pas encore de courbes à vous',
+  'myCurves.empty.body':
+    'Ajoutez-en une depuis un export Squiglink ou un fichier .txt, ou enregistrez-en une depuis le panneau Squiglink ci-dessous. Vos courbes restent sur cet ordinateur jusqu’à ce que vous les exportiez.',
+  'myCurves.noMatch': 'Aucune courbe n’a cela dans son nom.',
+  'myCurves.source.squiglink': 'Squiglink',
+  'myCurves.source.file': 'Fichier',
+  'myCurves.source.eq': 'Mon EQ',
+  'myCurves.source.opra': 'Depuis OPRA',
+  'myCurves.added': 'Ajoutée le {date}',
+  'myCurves.playing': 'En cours',
+  'myCurves.applyEqHint':
+    'Remplace vos bandes modifiables par celles de cette courbe. Appuyez à nouveau pour confirmer.',
+  'myCurves.replaceBands': 'Remplacer vos bandes ?',
+  'myCurves.more': 'Plus pour {name}',
+  'myCurves.rename': 'Renommer',
+  'myCurves.duplicate': 'Dupliquer',
+  'myCurves.copyText': 'Copier en texte',
+  'myCurves.copied': 'Copiée',
+  'myCurves.delete': 'Supprimer',
+  'myCurves.deleteConfirm': 'Appuyez à nouveau pour supprimer',
+  'myCurves.cancel': 'Annuler',
+  'myCurves.addTitle': 'Ajouter une courbe',
+  'myCurves.addIntro':
+    'Elle va dans Mes courbes. Rien ne joue tant que vous ne l’appliquez pas.',
+  'myCurves.textLabel': 'Texte ParametricEQ',
+  'myCurves.textPlaceholder': 'Collez ici un export ParametricEQ ou GraphicEQ',
+  'myCurves.read': 'Lu : {count} bandes, préampli {preamp} dB',
+  'myCurves.readNothing':
+    'Ce texte ne contient pas encore de courbe. Collez un export ParametricEQ ou GraphicEQ.',
+  'myCurves.fileFailed': 'Ce fichier n’a pas pu être lu comme une courbe.',
+  'myCurves.name': 'Nom',
+  'myCurves.ears': 'Oreilles',
+  'myCurves.defaultName': 'Courbe Squiglink, {date}',
+  'myCurves.chartAria': 'La courbe {name}, de 20 Hz à 20 kHz',
+  'myCurves.save': 'Enregistrer dans Mes courbes',
+  'myCurves.saveApply': 'Enregistrer et appliquer comme courbe',
+  'myCurves.exportTitle': 'Exporter Mes courbes',
+  'myCurves.exportIntro':
+    'Courbes dans la liste : {count}. Rien sur vos sorties ni votre compte n’entre dans le fichier.',
+  'myCurves.format': 'Format',
+  'myCurves.format.list': 'Une liste de courbes FluidEQ (.fqcurves)',
+  'myCurves.format.listHint':
+    'S’importe entière dans n’importe quel FluidEQ : chaque nom, courbe, préampli et oreille.',
+  'myCurves.format.folder': 'Un dossier de fichiers .txt',
+  'myCurves.format.folderHint':
+    'Un fichier ParametricEQ par courbe, à son nom, pour Equalizer APO, Squiglink et les outils AutoEQ.',
+  'myCurves.exportRun': 'Exporter',
+  'myCurves.exportFailed':
+    'Les courbes n’ont pas pu être écrites là. Choisissez un autre emplacement et réessayez.',
+  'myCurves.fileName': 'Mes courbes',
+  'myCurves.importTitle': 'Importer des courbes',
+  'myCurves.importIntro':
+    'Choisissez une liste de courbes FluidEQ, ou un ou plusieurs fichiers .txt ParametricEQ.',
+  'myCurves.importFrom': 'Depuis {files}',
+  'myCurves.chooseFiles': 'Choisir des fichiers',
+  'myCurves.importHint':
+    'Vous voyez chaque courbe avant que rien ne soit ajouté.',
+  'myCurves.importNothing':
+    'Ces fichiers ne contiennent aucune courbe que FluidEQ puisse lire.',
+  'myCurves.clash': 'Vous avez déjà une courbe de ce nom',
+  'myCurves.clashChoice': 'Que faire de {name}',
+  'myCurves.new': 'Nouvelle',
+  'myCurves.choice.keepBoth': 'Garder les deux',
+  'myCurves.choice.replace': 'Remplacer',
+  'myCurves.choice.skip': 'Ignorer',
+  'myCurves.importRun': 'Importer ({count})',
+  'myCurves.importSkipped':
+    'Entrées laissées de côté faute de courbe : {count}',
+  'myCurves.importNote':
+    'Les courbes importées ne jouent jamais d’elles-mêmes ; celle qui joue maintenant continue.',
+  'squigImport.saveMine': 'Enregistrer dans Mes courbes',
 };
 
 export default eq;

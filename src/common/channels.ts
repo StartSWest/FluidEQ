@@ -114,6 +114,10 @@ enum ChannelEnum {
   // owns both the chosen destination and the write.
   EXPORT_EQ_PRESET = 'exportEqPreset',
   EXPORT_DSP_PRESET = 'exportDspPreset',
+  // My curves out: the whole list through Save As, or one .txt a curve
+  // into a folder (`main/ipc/curveExport.ts`).
+  EXPORT_CURVE_LIST = 'exportCurveList',
+  EXPORT_CURVE_FOLDER = 'exportCurveFolder',
   IMPORT_CONVOLUTION_FILE = 'importConvolutionFile',
   CHECK_OPRA_UPDATE = 'checkOpraUpdate',
   UPDATE_OPRA_DATABASE = 'updateOpraDatabase',

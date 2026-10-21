@@ -1,0 +1,529 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// My curves (`eq/MyCurvesPanel.tsx`): the listener's own curves, in the card
+// OPRA's library stands in, one row a curve — its name and where it came
+// from, its shape, which ears, and the two ways to play it.
+
+.my-curves {
+  display: grid;
+  gap: 12px;
+  padding: 14px 14px 10px;
+}
+
+.my-curves__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  > .button {
+    gap: 6px;
+  }
+
+  // A menu icon has no size of its own; the place it stands in gives it one.
+  .button .menu-icon {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+  }
+}
+
+.my-curves__search {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 220px;
+  align-items: center;
+  gap: 8px;
+  height: $control-height-sm;
+  padding: 0 10px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: $surface-field;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: $text-faint;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+
+  input {
+    min-width: 0;
+    flex: 1 1 auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $text-primary;
+    font: inherit;
+    outline: none;
+  }
+
+  &:focus-within {
+    border-color: $secondary-default;
+  }
+}
+
+.my-curves__spacer {
+  flex: 1 1 auto;
+}
+
+.my-curves__empty {
+  display: grid;
+  gap: 4px;
+  padding: 22px 18px;
+  border: 1px dashed $border-subtle;
+  border-radius: $radius-m;
+  text-align: center;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+  }
+
+  p {
+    max-width: 62ch;
+    margin: 0 auto;
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.5;
+  }
+}
+
+.my-curves__list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.my-curves__none {
+  padding: 10px 4px;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+// One curve. Name and meta take what the row has left; the shape, the ears
+// and the keys keep their own widths, so every row's keys line up. Where the
+// row is too narrow for all four on one line it wraps instead of squeezing:
+// the keys go to a line of their own, then the shape and the ears, the name
+// keeping the whole width. Held on one line, the keys left the name a few
+// letters at 420px and sat on top of its source chip.
+.my-curve {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 9px 10px 9px 12px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $surface-field 60%, transparent);
+  transition: border-color $motion-fast $ease-out;
+
+  &.is-playing {
+    border-color: color-mix(in srgb, $secondary-default 55%, $card-edge);
+    background: color-mix(in srgb, $secondary-default 7%, $surface-field);
+  }
+}
+
+// Room for a name to be read before the row wraps rather than shrinks it.
+.my-curve__name {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 220px;
+  gap: 3px;
+
+  strong {
+    overflow: hidden;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.my-curve__rename {
+  min-width: 0;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid $secondary-default;
+  border-radius: $radius-xs;
+  background: $surface-field;
+  color: $text-primary;
+  font: inherit;
+  font-weight: $weight-semibold;
+}
+
+.my-curve__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: $text-faint;
+  font-size: $text-micro;
+}
+
+// The same chip as a profile's ON on the Output card.
+.my-curve__on {
+  padding: 1px 6px;
+  border-radius: $radius-2xs;
+  background: $active;
+  color: $surface-base;
+  font-weight: $weight-bold;
+  @include tracking(0.04em);
+}
+
+.my-curve__source {
+  padding: 1px 6px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-2xs;
+  color: $text-muted;
+  font-weight: $weight-semibold;
+}
+
+.my-curve__spark {
+  display: block;
+  width: 120px;
+  height: 34px;
+  flex: 0 0 auto;
+}
+
+.my-curve__zero {
+  stroke: $border-subtle;
+  stroke-width: 1;
+}
+
+.my-curve__line {
+  fill: none;
+  stroke: $secondary-default;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6;
+}
+
+.my-curve__ears {
+  flex: 0 0 92px;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.my-curve__actions {
+  display: flex;
+  min-width: 0;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-left: auto;
+
+  .button.is-armed {
+    border-color: $amber;
+    color: $amber;
+  }
+}
+
+.my-curve__more {
+  position: relative;
+}
+
+.my-curve__more-button {
+  display: grid;
+  width: $control-height-sm;
+  height: $control-height-sm;
+  padding: 0;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  background: none;
+  color: $text-faint;
+  cursor: pointer;
+
+  &:hover,
+  &[aria-expanded='true'] {
+    border-color: $card-edge;
+    color: $text-primary;
+  }
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.my-curve__menu {
+  @include animate(rise-in, $motion-fast);
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 4px);
+  right: 0;
+  display: grid;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: $surface-panel;
+  box-shadow: 0 12px 30px rgba($black, 0.4);
+
+  button {
+    padding: 7px 10px;
+    border: 0;
+    border-radius: $radius-s;
+    background: none;
+    color: $text-primary;
+    font: inherit;
+    font-size: $text-small;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      background: color-mix(in srgb, $secondary-default 12%, transparent);
+    }
+  }
+
+  .my-curve__delete {
+    color: $red;
+  }
+}
+
+// The dialogs: Add, Export, Import.
+.my-curve-dialog-backdrop {
+  @include dialog.backdrop(1500);
+}
+
+.my-curve-dialog {
+  width: min(100%, 760px);
+}
+
+.my-curve-dialog__error {
+  margin: 10px 0 0;
+  color: $red;
+  font-size: $text-small;
+}
+
+.my-curve-add {
+  display: grid;
+  gap: 10px;
+}
+
+.my-curve-add__source {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.my-curve-add__label {
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+.my-curve-add__text {
+  width: 100%;
+  min-height: 132px;
+  padding: 10px 12px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: $surface-field;
+  color: $text-primary;
+  font-family: $font-mono;
+  font-size: $text-small;
+  line-height: 1.55;
+  resize: vertical;
+
+  &:focus {
+    border-color: $secondary-default;
+    outline: none;
+  }
+}
+
+.my-curve-add__read {
+  min-height: 1.4em;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+
+  &.is-read {
+    color: $active;
+  }
+}
+
+.my-curve-add__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.my-curve-add__field {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 260px;
+  gap: 6px;
+
+  input {
+    height: $control-height-sm;
+    padding: 0 10px;
+    border: 1px solid $card-edge;
+    border-radius: $radius-s;
+    background: $surface-field;
+    color: $text-primary;
+    font: inherit;
+
+    &:focus {
+      border-color: $secondary-default;
+      outline: none;
+    }
+  }
+
+  &:last-child {
+    flex: 0 0 auto;
+  }
+}
+
+.my-curve-add__chart {
+  color: $secondary-default;
+}
+
+.my-curve-add__curve {
+  stroke-width: 2;
+}
+
+.my-curve-options {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+
+  > legend {
+    margin-bottom: 8px;
+    padding: 0;
+  }
+}
+
+.my-curve-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  padding: 11px 12px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  cursor: pointer;
+
+  &.is-selected {
+    border-color: $secondary-default;
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+  }
+
+  input {
+    margin: 3px 0 0;
+    accent-color: $secondary-default;
+  }
+}
+
+.my-curve-option__copy {
+  display: grid;
+  gap: 2px;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+  }
+
+  span {
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.45;
+  }
+}
+
+.my-curve-import__pick {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 26px 16px;
+  border: 1px dashed $border-subtle;
+  border-radius: $radius-m;
+  text-align: center;
+
+  [role='alert'] {
+    margin: 0;
+    color: $amber;
+    font-size: $text-small;
+  }
+}
+
+.my-curve-import__hint,
+.my-curve-import__skipped {
+  margin: 8px 0 0;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.my-curve-import__rows {
+  display: grid;
+  gap: 6px;
+  max-height: min(48vh, 420px);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+// Wraps like a row of My curves: the choice drops under the name before the
+// name is squeezed.
+.my-curve-import__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 8px 10px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+}
+
+.my-curve-import__name {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 220px;
+  gap: 2px;
+
+  strong {
+    overflow: hidden;
+    color: $text-primary;
+    font-size: $text-body;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.my-curve-import__clash {
+  color: $amber;
+  font-size: $text-micro;
+}
+
+.my-curve-import__new {
+  color: $text-faint;
+  font-size: $text-micro;
+}
+
+.my-curve-import__choice {
+  margin-left: auto;
+}

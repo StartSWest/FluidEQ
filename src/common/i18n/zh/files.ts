@@ -62,6 +62,10 @@ const files = {
   'files.apo.selectorMissing': '找不到 Equalizer APO 的设备配置程序。',
   'files.apo.editorMissing': '找不到 Equalizer APO 的设置。',
   'files.wav.tooLong': '该脉冲响应太长，无法为安全归一化进行分析。',
+  // My curves out through Save As (main/ipc/curveExport.ts).
+  'files.title.exportCurves': '导出“我的曲线”',
+  'files.type.curveList': 'FluidEQ 曲线列表',
+  'files.title.exportCurveFolder': '为曲线选择一个文件夹',
 } as const;
 
 export default files;

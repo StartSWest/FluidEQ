@@ -803,6 +803,85 @@ const eq: Partial<Dictionary> = {
   'eq.refused.preampRange.action': 'プリアンプは元のままです。',
   'eq.refused.externalEq':
     '外部の EQ に、FluidEQ が安全に引き継げない処理が含まれています。そのファイルは変更していません。',
+  // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.tab.opra': 'OPRAライブラリ',
+  'myCurves.tab.mine': 'マイカーブ',
+  'myCurves.search': 'カーブを検索',
+  'myCurves.sort': '並べ替え',
+  'myCurves.sort.recent': '新しい順',
+  'myCurves.sort.name': 'A–Z',
+  'myCurves.add': 'カーブを追加',
+  'myCurves.import': 'リストを読み込む',
+  'myCurves.export': 'リストを書き出す',
+  'myCurves.empty.title': 'まだ自分のカーブがありません',
+  'myCurves.empty.body':
+    'SquiglinkのエクスポートやTXTファイルから追加するか、下のSquiglinkパネルから保存してください。カーブは書き出すまでこのパソコンに保存されます。',
+  'myCurves.noMatch': 'その名前を含むカーブはありません。',
+  'myCurves.source.squiglink': 'Squiglink',
+  'myCurves.source.file': 'ファイル',
+  'myCurves.source.eq': 'マイEQ',
+  'myCurves.source.opra': 'OPRAから',
+  'myCurves.added': '{date}に追加',
+  'myCurves.playing': '再生中',
+  'myCurves.applyEqHint':
+    '編集できるバンドをこのカーブのバンドで置き換えます。もう一度押すと確定します。',
+  'myCurves.replaceBands': 'バンドを置き換えますか？',
+  'myCurves.more': '{name}のその他',
+  'myCurves.rename': '名前を変更',
+  'myCurves.duplicate': '複製',
+  'myCurves.copyText': 'テキストとしてコピー',
+  'myCurves.copied': 'コピーしました',
+  'myCurves.delete': '削除',
+  'myCurves.deleteConfirm': 'もう一度押すと削除',
+  'myCurves.cancel': 'キャンセル',
+  'myCurves.addTitle': 'カーブを追加',
+  'myCurves.addIntro': 'マイカーブに入ります。適用するまで何も鳴りません。',
+  'myCurves.textLabel': 'ParametricEQテキスト',
+  'myCurves.textPlaceholder':
+    'ParametricEQまたはGraphicEQのエクスポートをここに貼り付けます',
+  'myCurves.read': '読み込み：{count}バンド、プリアンプ{preamp} dB',
+  'myCurves.readNothing':
+    'このテキストにはまだカーブがありません。ParametricEQまたはGraphicEQのエクスポートを貼り付けてください。',
+  'myCurves.fileFailed': 'そのファイルはカーブとして読み込めませんでした。',
+  'myCurves.name': '名前',
+  'myCurves.ears': '耳',
+  'myCurves.defaultName': 'Squiglinkカーブ、{date}',
+  'myCurves.chartAria': 'カーブ{name}、20 Hzから20 kHzまで',
+  'myCurves.save': 'マイカーブに保存',
+  'myCurves.saveApply': '保存してカーブとして適用',
+  'myCurves.exportTitle': 'マイカーブを書き出す',
+  'myCurves.exportIntro':
+    'リストのカーブ：{count}。出力やアカウントの情報はファイルに入りません。',
+  'myCurves.format': '形式',
+  'myCurves.format.list': 'FluidEQカーブリスト1つ（.fqcurves）',
+  'myCurves.format.listHint':
+    'どのFluidEQにもそのまま読み込めます：名前、カーブ、プリアンプ、耳のすべて。',
+  'myCurves.format.folder': '.txtファイルのフォルダー',
+  'myCurves.format.folderHint':
+    'カーブごとに名前の付いたParametricEQファイル1つ。Equalizer APO、Squiglink、AutoEQツール用です。',
+  'myCurves.exportRun': '書き出す',
+  'myCurves.exportFailed':
+    'そこにカーブを書き込めませんでした。別の場所を選んでもう一度お試しください。',
+  'myCurves.fileName': 'マイカーブ',
+  'myCurves.importTitle': 'カーブを読み込む',
+  'myCurves.importIntro':
+    'FluidEQのカーブリスト、または1つ以上のParametricEQ .txtファイルを選んでください。',
+  'myCurves.importFrom': '{files}から',
+  'myCurves.chooseFiles': 'ファイルを選ぶ',
+  'myCurves.importHint': '追加する前にすべてのカーブを確認できます。',
+  'myCurves.importNothing':
+    'これらのファイルにはFluidEQが読めるカーブがありません。',
+  'myCurves.clash': '同じ名前のカーブがすでにあります',
+  'myCurves.clashChoice': '{name}をどうするか',
+  'myCurves.new': '新規',
+  'myCurves.choice.keepBoth': '両方残す',
+  'myCurves.choice.replace': '置き換える',
+  'myCurves.choice.skip': 'スキップ',
+  'myCurves.importRun': '読み込む（{count}）',
+  'myCurves.importSkipped': 'カーブがなかったため除外した項目：{count}',
+  'myCurves.importNote':
+    '読み込んだカーブが勝手に鳴ることはありません。今鳴っているカーブはそのままです。',
+  'squigImport.saveMine': 'マイカーブに保存',
 };
 
 export default eq;

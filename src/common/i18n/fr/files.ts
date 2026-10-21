@@ -80,6 +80,10 @@ const files = {
   'files.apo.editorMissing': 'Les réglages d’Equalizer APO sont introuvables.',
   'files.wav.tooLong':
     'Cette réponse impulsionnelle est trop longue pour être analysée en vue d’une normalisation sûre.',
+  // My curves out through Save As (main/ipc/curveExport.ts).
+  'files.title.exportCurves': 'Exporter Mes courbes',
+  'files.type.curveList': 'Liste de courbes FluidEQ',
+  'files.title.exportCurveFolder': 'Choisissez un dossier pour les courbes',
 } as const;
 
 export default files;

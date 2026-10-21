@@ -28,6 +28,7 @@ import ImportEarsPick from './eq/ImportEarsPick';
 import type { TImportEars } from '../common/bandEars';
 import EqCurveChart from './graph/EqCurveChart';
 import SquiglinkImportConfirm from './components/SquiglinkImportConfirm';
+import MyCurveAddDialog from './eq/MyCurveAddDialog';
 import { PREVIEW_BOX, makeCurve, makePath } from './graph/curvePreview';
 import { hasCustomFxCurve } from '../common/customFx';
 import {
@@ -65,6 +66,8 @@ const SquiglinkImport = () => {
     () => storedEqTextRef.current ?? eqImport?.text ?? '',
   );
   const [fileName, setFileName] = useState('');
+  // The pasted curve, handed to My curves' own dialog to be named and kept.
+  const [isSaving, setSaving] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [confirmDeviceId, setConfirmDeviceId] = useState<string>();
   const cancelImport = useCallback(() => setConfirmDeviceId(undefined), []);
@@ -398,7 +401,29 @@ const SquiglinkImport = () => {
                 ? t('squigImport.importing')
                 : t('squigImport.applyCurve')}
             </Button>
+            <Button
+              className="small subtle squig-import__save"
+              ariaLabel={t('squigImport.saveMine')}
+              isDisabled={isImporting || !parsedText || parsedText.isEmpty}
+              handleChange={() => setSaving(true)}
+            >
+              <MenuIcon name="save" />
+              {t('squigImport.saveMine')}
+            </Button>
           </div>
+          {isSaving && (
+            <MyCurveAddDialog
+              initial={{
+                text,
+                // The file's name when there is one; otherwise the
+                // dialog's own "Squiglink curve, <date>".
+                name: fileName ? fileName.replace(/\.[^.]+$/, '') : undefined,
+                source: fileName ? 'file' : 'squiglink',
+                ears,
+              }}
+              onClose={() => setSaving(false)}
+            />
+          )}
         </div>
 
         <div className="squig-import__preview">

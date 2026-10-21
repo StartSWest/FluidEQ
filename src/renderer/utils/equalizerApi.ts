@@ -353,6 +353,34 @@ export const exportEqPreset = (
   );
 };
 
+/**
+ * My curves as one list file, through the desktop Save As dialog. False when
+ * the dialog was cancelled; main checks the list reads back whole first.
+ */
+export const exportCurveList = (
+  suggestedName: string,
+  contents: string,
+): Promise<boolean> => {
+  const channel = ChannelEnum.EXPORT_CURVE_LIST;
+  return sendRequest(
+    channel,
+    [suggestedName, contents],
+    simpleResponseHandler<boolean>(),
+  );
+};
+
+/**
+ * My curves as one ParametricEQ .txt each, into a folder the person picks.
+ * False when the picker was cancelled; a file already there is never written
+ * over.
+ */
+export const exportCurveFolder = (
+  files: ReadonlyArray<{ name: string; text: string }>,
+): Promise<boolean> => {
+  const channel = ChannelEnum.EXPORT_CURVE_FOLDER;
+  return sendRequest(channel, [files], simpleResponseHandler<boolean>());
+};
+
 /** Show the desktop Save As dialog for a complete DSP filter chain. */
 export const exportDspChainPreset = (
   suggestedName: string,

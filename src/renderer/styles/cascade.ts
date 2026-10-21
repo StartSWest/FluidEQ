@@ -162,6 +162,7 @@ import './EqCurveChart.scss';
 import './SquiglinkImport.scss';
 import './ImportEarsPick.scss';
 import './AutoEQPanel.scss';
+import './MyCurves.scss';
 import './DeviceProfiles.scss';
 import './OutputEditButton.scss';
 import './BatteryLevel.scss';

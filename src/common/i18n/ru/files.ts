@@ -73,6 +73,10 @@ const files = {
   'files.apo.editorMissing': 'Настройки Equalizer APO не найдены.',
   'files.wav.tooLong':
     'Эта импульсная характеристика слишком длинная для анализа и безопасной нормализации.',
+  // My curves out through Save As (main/ipc/curveExport.ts).
+  'files.title.exportCurves': 'Экспорт «Моих кривых»',
+  'files.type.curveList': 'Список кривых FluidEQ',
+  'files.title.exportCurveFolder': 'Выберите папку для кривых',
 } as const;
 
 export default files;

@@ -44,6 +44,18 @@ and the De-esser is not heard, and everything else plays as before.
 
 ### The equaliser
 
+- **My curves: your own list beside OPRA's.** EQ Presets has a **My curves**
+  tab next to the OPRA library. Keep any curve there under a name of your
+  choosing, pasted from Squiglink, read from a .txt file, or saved from the
+  Squiglink panel with **Save to My curves**. Each one shows its shape, where
+  it came from and which ears it is for, and plays with one press as the
+  headphone correction or goes into your EQ bands (that one asks for a second
+  press, because it replaces them). The curve playing now is marked.
+  Search, sort by name or by date, rename, duplicate, copy as text, delete.
+  **Export list** writes them all to one file that another FluidEQ imports
+  whole, or to a folder of .txt files for Equalizer APO and AutoEQ tools.
+  **Import list** shows every curve before adding any, and never overwrites a
+  name you already have without asking: keep both, replace or skip.
 - **Tune each ear on its own.** Right-click a band and choose **Left + right**:
   it becomes two bands at the same frequency, one for each ear, that you move
   separately. **Both ears** joins them again in their middle, and Reset band
