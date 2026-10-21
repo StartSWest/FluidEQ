@@ -123,7 +123,6 @@ const bridge = {
   removeScenePack: jest.fn(),
   listScenePacks: jest.fn(),
   onMemberScenesChanged: jest.fn(() => () => undefined),
-  leaderboardBoard: jest.fn(),
 };
 
 beforeEach(() => {
@@ -154,7 +153,6 @@ beforeEach(() => {
     more: false,
   });
   bridge.galleryPicture.mockResolvedValue(undefined);
-  bridge.leaderboardBoard.mockResolvedValue({ ok: false, failure: 'network' });
   bridge.listMemberScenes.mockResolvedValue({
     scenes: [],
     locked: [],
@@ -591,30 +589,6 @@ describe('a scene’s page', () => {
     expect(
       screen.queryByRole('heading', { name: 'Neon City' }),
     ).not.toBeInTheDocument();
-  });
-
-  it('shows the maker’s place on the leaderboard', async () => {
-    bridge.previewGalleryScene.mockResolvedValue({
-      ok: false,
-      reason: 'unavailable',
-    });
-    bridge.leaderboardBoard.mockResolvedValue({
-      ok: true,
-      value: {
-        period: 'all',
-        rows: [
-          { rank: 3, handle: 'ada', displayName: 'Ada', points: 900 },
-          { rank: 7, handle: 'mei', displayName: 'Mei Tanaka', points: 400 },
-        ],
-      },
-    });
-    await openNeonCity();
-    await userEvent.click(
-      await screen.findByRole('button', { name: 'plus.card.by:Mei Tanaka' }),
-    );
-    expect(await screen.findByText('#7')).toBeInTheDocument();
-    expect(screen.getByText('plus.maker.rank')).toBeInTheDocument();
-    expect(bridge.leaderboardBoard).toHaveBeenCalledWith('all');
   });
 
   it('steps through the list it was opened from, and Back goes to that list', async () => {

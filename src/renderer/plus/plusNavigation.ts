@@ -11,8 +11,7 @@ import { readStored, removeStored, writeStored } from '../utils/graphStorage';
 
 /**
  * Where the member is inside the Plus tab: which place in its rail — the
- * Visualizers gallery, the leaderboard, the Studio, the lighting, or the
- * admin's own place — in the gallery which page, and in the admin's place
+ * Visualizers gallery, the Studio, the lighting, or the admin's own place — in the gallery which page, and in the admin's place
  * which of its pages.
  *
  * Kept outside the components so it outlives them. The tab unmounts whenever
@@ -28,7 +27,6 @@ import { readStored, removeStored, writeStored } from '../utils/graphStorage';
 
 export const PLUS_PLACES = [
   'visualizers',
-  'board',
   'studio',
   'lighting',
   'admin',

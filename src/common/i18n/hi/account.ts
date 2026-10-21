@@ -29,7 +29,7 @@ const account = {
   'account.name.change': 'नाम बदलें',
   'account.name.changeTitle': 'बदलें कि आप कैसे दिखते हैं',
   'account.name.changeBody':
-    'लीडरबोर्ड और आपकी प्रकाशित सीन पर आपका हैंडल और नाम। वे हर जगह एक साथ बदलते हैं; आपका ईमेल निजी रहता है।',
+    'आपकी प्रकाशित सीन पर आपका हैंडल और नाम। वे हर जगह एक साथ बदलते हैं; आपका ईमेल निजी रहता है।',
   'account.name.cancel': 'रद्द करें',
   'account.backToSignIn': 'साइन इन पर वापस',
 
@@ -86,12 +86,10 @@ const account = {
     'इस पते से पहले से एक खाता है। इसके बजाय साइन इन करें।',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.active': 'सक्रिय',
 
   'account.perk.looks': 'हमेशा के लिए आपके सीन, हर एक एक क्रेडिट का।',
   'account.perk.visualizers':
     'विज़ुअलाइज़र: सदस्यों के बनाए सीन, हर खाते के लिए खुले।',
-  'account.perk.board': 'सबसे ज़्यादा सुनने वालों का लीडरबोर्ड।',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Google के साथ जारी रखें',
   'account.or': 'या',

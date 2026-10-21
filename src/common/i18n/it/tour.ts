@@ -255,7 +255,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.title': 'Scene che sono tue per sempre',
   'tour.plus.subtitle': 'Visualizzatori, Studio, illuminazione e altro',
   'tour.plus.lead':
-    'Un’intera scheda di extra che fa crescere FluidEQ: scene disegnate sulla tua scheda grafica, uno Studio per creare le tue, la classifica, sfondi del desktop e l’Illuminazione dinamica. Una scena costa un credito e resta tua, e l’equalizzatore, il rack e i player restano gratuiti, come sempre.',
+    'Un’intera scheda di extra che fa crescere FluidEQ: scene disegnate sulla tua scheda grafica, uno Studio per creare le tue, sfondi del desktop e l’Illuminazione dinamica. Una scena costa un credito e resta tua, e l’equalizzatore, il rack e i player restano gratuiti, come sempre.',
   'tour.plus.point1':
     'Accedi da Account nel menu delle azioni: un account confermato riceve crediti gratis per iniziare.',
   'tour.plus.point2':
@@ -263,10 +263,10 @@ const tour: Partial<Dictionary> = {
   'tour.plus.point3':
     'Ogni scena si può guardare prima, e quelle che ottieni suonano su ogni computer in cui accedi.',
   'tour.plus.how':
-    'Apri la scheda Plus: Classifica, Visualizzatori, Studio e Illuminazione dinamica sono sul lato sinistro.',
+    'Apri la scheda Plus: Visualizzatori, Studio e Illuminazione dinamica sono sul lato sinistro.',
   'tour.plus.open': 'Apri Plus',
   'tour.plus.imageAlt':
-    'La scheda Plus: Classifica, Visualizzatori, Studio e Illuminazione dinamica sul lato, e la galleria Visualizzatori con Cromo, Fioritura, Aurora, Alpino e Città al neon.',
+    'La scheda Plus: Visualizzatori, Studio e Illuminazione dinamica sul lato, e la galleria Visualizzatori con Cromo, Fioritura, Aurora, Alpino e Città al neon.',
   'tour.scene.alpine': 'Alpino',
   'tour.scene.aurora': 'Aurora',
   'tour.scene.bloom': 'Fioritura',

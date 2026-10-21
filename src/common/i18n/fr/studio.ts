@@ -129,8 +129,6 @@ const studio = {
   'studio.publish.noteNeeded': 'Obligatoire',
   'studio.publish.point1':
     'Toute personne connectée peut la voir dans Visualiseurs, la regarder quelques secondes et l’obtenir avec un crédit. Pour vous, elle joue gratuitement.',
-  'studio.publish.point2':
-    'Chaque « j’aime » vous rapporte des points au classement.',
   'studio.publish.point3':
     'Vous pouvez la dépublier pour que personne de nouveau ne puisse l’obtenir. Ceux qui l’ont déjà la gardent.',
   'studio.publish.point3Update':
@@ -207,8 +205,6 @@ const studio = {
     'Vos scènes restent à vous. En exporter une permet à d’autres membres de l’ouvrir, et ils la lancent une fois qu’ils la possèdent.',
   'studio.share.point1':
     'Quiconque reçoit le fichier ne la lance qu’une fois la scène à lui, avec un crédit après sa publication. Il ne peut pas la vendre.',
-  'studio.share.point2':
-    'Chaque J’aime d’un autre membre vous rapporte des points au classement.',
   'studio.share.point3':
     'Les commentaires du shader sont retirés, et votre nom affiché accompagne la scène.',
   'studio.share.read': 'Lire les conditions',

@@ -154,7 +154,7 @@ const PATHS: Record<string, string> = {
     'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 10.4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z',
   artist: 'M12 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5.5 19.5a6.5 6.5 0 0 1 13 0',
   // A spark with a small plus beside it: the Plus tab, where the members'
-  // visualizers, the leaderboard and the Studio live. The same spark the Plus
+  // visualizers and the Studio live. The same spark the Plus
   // card inside it wears. It was a speech bubble while the tab was only the
   // community's chat, which has since given way to the Forum tab.
   plusTab:

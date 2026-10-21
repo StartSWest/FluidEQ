@@ -72,15 +72,6 @@ jest.mock('../../../renderer/account/entitlementStore', () => ({
   refreshEntitlement: () => Promise.resolve(),
 }));
 
-jest.mock('../../../renderer/usage/leaderboardStore', () => ({
-  useLeaderboard: () => ({
-    status: { optedIn: false, todayMinutes: 0, eligible: false },
-  }),
-}));
-
-// The leaderboard card has its own suite; here it would only be noise.
-jest.mock('../../../renderer/account/LeaderboardCard', () => () => null);
-
 describe('the Plus terms', () => {
   // Every language but English is a chunk of its own, loaded when it is
   // first chosen; these read all ten, so all ten are loaded first.

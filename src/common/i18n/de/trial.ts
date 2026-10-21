@@ -7,7 +7,6 @@ const trial = {
   'trial.extras.studio':
     'Eigene Szenen im Studio erstellen und veröffentlichen',
   'trial.extras.desktop': 'Ihre Szenen auf dem Desktop und der RGB-Beleuchtung',
-  'trial.extras.board': 'Freiwillige Teilnahme an der Rangliste',
   'trial.browse':
     'Mit einem kostenlosen Konto können Sie die Galerie durchstöbern und im Forum mitmachen.',
 };

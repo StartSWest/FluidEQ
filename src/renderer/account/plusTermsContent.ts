@@ -137,13 +137,6 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     who: 'terms.sent.profile.who',
   },
   {
-    id: 'board',
-    glyph: 'board',
-    what: 'terms.sent.board.what',
-    when: 'terms.sent.board.when',
-    who: 'terms.sent.board.who',
-  },
-  {
     id: 'scene-export',
     glyph: 'studio',
     what: 'terms.sent.sceneExport.what',
@@ -297,13 +290,6 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     ],
   },
   {
-    id: 'fair',
-    glyph: 'shield',
-    title: 'terms.fair.title',
-    body: 'paragraphs',
-    lines: ['terms.fair.p1', 'terms.fair.p2', 'terms.fair.p3', 'terms.fair.p4'],
-  },
-  {
     // What may be published, now that a scene is the only thing a member
     // puts in front of the others: the forum is GitHub's, under its rules.
     id: 'rules',
@@ -323,7 +309,6 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     title: 'terms.keep.title',
     body: 'points',
     lines: [
-      'terms.keep.p1',
       'terms.keep.p2',
       'terms.keep.p3',
       'terms.keep.p4',
@@ -353,7 +338,6 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.scenes.p2',
       'terms.scenes.p3',
       'terms.scenes.p4',
-      'terms.scenes.p5',
       'terms.scenes.p6',
       'terms.scenes.p7',
       'terms.scenes.p8',

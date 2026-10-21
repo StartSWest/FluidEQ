@@ -2,11 +2,10 @@
 
 import { type IHelpChapter } from './model';
 
-/** FluidEQ Plus: the account, the gallery, the board, the Studio, the desktop and lighting. */
+/** FluidEQ Plus: the account, the gallery, the Studio, the desktop and lighting. */
 // The Plus pictures come from the running window at 2560 x 1392 on
 // 2026-09-29, signed in as FluidEQ's maker. The Admin channel only an
-// administrator sees is hidden for them, and on the leaderboard every member
-// but the one signed in is blurred: they are real people.
+// administrator sees is hidden for them.
 const PLUS_CHAPTERS = [
   {
     id: 'plus',
@@ -17,11 +16,6 @@ const PLUS_CHAPTERS = [
         width: 2078,
         height: 406,
         controls: [
-          {
-            box: [5, 47, 218, 42],
-            name: 'leaderboard.title',
-            text: 'help.plus.leaderboard',
-          },
           {
             box: [5, 91, 218, 42],
             name: 'plus.visualizers.title',
@@ -123,34 +117,6 @@ const PLUS_CHAPTERS = [
             box: [253, 71, 58, 24],
             name: 'plus.scene.back',
             text: 'help.gallery.back',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'leaderboard',
-    group: 'plus',
-    figures: [
-      {
-        image: '28-plus-leaderboard.png',
-        width: 2078,
-        height: 834,
-        controls: [
-          {
-            box: [253, 73, 142, 27],
-            name: 'help.leaderboard.periodName',
-            text: 'help.leaderboard.period',
-          },
-          {
-            box: [253, 119, 1492, 115],
-            name: 'leaderboard.hero.title',
-            text: 'help.leaderboard.standing',
-          },
-          {
-            box: [1776, 134, 270, 32],
-            name: 'leaderboard.guide.title',
-            text: 'help.leaderboard.earn',
           },
         ],
       },

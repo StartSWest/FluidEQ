@@ -50,32 +50,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .gallery-maker__figures {
   flex: 1 1 280px;
-  // Three figures, or four with a place on the leaderboard: as many columns
-  // as there are, each at least wide enough for its number.
+  // As many columns as there are figures, each at least wide enough for its
+  // number.
   grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
   max-width: 480px;
 
   div {
     background: color-mix(in srgb, $black 22%, transparent);
-  }
-}
-
-// The maker's place on the leaderboard, in the trophy's gold: the one
-// figure here that is a standing rather than a count.
-.gallery-maker__figures .gallery-maker__rank {
-  border-color: color-mix(in srgb, $amber 42%, transparent);
-  background: color-mix(in srgb, $amber 10%, rgba($black, 0.22));
-
-  dd {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    color: color-mix(in srgb, $amber 70%, $white);
-  }
-
-  svg {
-    width: 15px;
-    height: 15px;
   }
 }
 

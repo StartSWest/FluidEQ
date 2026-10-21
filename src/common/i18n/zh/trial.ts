@@ -6,7 +6,6 @@ const trial = {
   'trial.extras.scenes': '观看任意场景，保留你获取的场景',
   'trial.extras.studio': '在工作室中创作并发布自己的场景',
   'trial.extras.desktop': '你的场景出现在桌面和 RGB 灯光上',
-  'trial.extras.board': '自愿参与排行榜',
   'trial.browse': '免费账户即可浏览图库并参与论坛。',
 };
 

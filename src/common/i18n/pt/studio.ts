@@ -125,7 +125,6 @@ const studio = {
   'studio.publish.noteNeeded': 'Obrigatório',
   'studio.publish.point1':
     'Qualquer pessoa conectada pode vê-la em Visualizadores, assistir por alguns segundos e obtê-la com um crédito. Para você ela toca de graça.',
-  'studio.publish.point2': 'Cada curtida vale pontos na classificação.',
   'studio.publish.point3':
     'Você pode despublicá-la para que ninguém novo possa obtê-la. Quem já a tem fica com ela.',
   'studio.publish.point3Update':
@@ -201,8 +200,6 @@ const studio = {
     'Suas cenas continuam suas. Exportar uma permite que outros membros a abram, e eles a reproduzem quando a tiverem.',
   'studio.share.point1':
     'Quem receber o arquivo só a reproduz quando tiver a cena, com um crédito depois que ela for publicada. Não pode vendê-la.',
-  'studio.share.point2':
-    'Cada curtida de outro membro rende pontos para você na classificação.',
   'studio.share.point3':
     'Os comentários do shader são removidos, e seu nome visível vai junto com a cena.',
   'studio.share.read': 'Ler os termos',

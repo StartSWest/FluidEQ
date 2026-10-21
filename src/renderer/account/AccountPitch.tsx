@@ -21,12 +21,6 @@ export default function AccountPitch({ termsLink }: { termsLink: ReactNode }) {
           </span>
           {t('account.perk.visualizers')}
         </li>
-        <li>
-          <span className="account__perk-mark" aria-hidden="true">
-            <Glyph name="board" />
-          </span>
-          {t('account.perk.board')}
-        </li>
       </ul>
       {termsLink}
     </aside>

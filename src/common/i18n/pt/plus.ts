@@ -119,7 +119,6 @@ const plus = {
   'plus.scene.moreByYou': 'Mais suas',
 
   'plus.maker.you': 'Você',
-  'plus.maker.rank': 'Posição',
   'plus.maker.scenes': 'Cenas',
   'plus.maker.empty': 'Nada publicado no momento.',
 
@@ -289,7 +288,6 @@ const plus = {
   'plus.accounts.plan.giftUntil': 'Presente até {date}',
   'plus.accounts.goes': 'Apagado junto',
   'plus.accounts.fact.published': 'Cenas publicadas',
-  'plus.accounts.fact.boardDays': 'Dias na classificação',
   'plus.accounts.fact.likes': 'Curtidas dadas',
   'plus.accounts.fact.adds': 'Cenas adicionadas',
   'plus.accounts.fact.reports': 'Denúncias enviadas',

@@ -6,7 +6,6 @@ const trial = {
   'trial.extras.scenes': 'Mira cualquier escena y quédate con las que consigas',
   'trial.extras.studio': 'Crea y publica tus propias escenas en el Estudio',
   'trial.extras.desktop': 'Tus escenas en el escritorio y en tus luces RGB',
-  'trial.extras.board': 'Participación opcional en la clasificación',
   'trial.browse':
     'Con una cuenta gratuita puedes explorar la galería y participar en el Foro.',
 };

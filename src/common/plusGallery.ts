@@ -13,7 +13,7 @@ import {
 } from './scenePacks';
 import { readVersionNote } from './sceneVersionNote';
 
-/** Reserved catalogue identity, never a member account or leaderboard entry. */
+/** Reserved catalogue identity, never a member account. */
 export const FLUIDEQ_CREATOR_ID = '00000000-0000-4000-8000-000000000001';
 
 /**

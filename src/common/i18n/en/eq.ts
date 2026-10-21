@@ -202,8 +202,8 @@ const eq = {
   'graph.member.by': 'by {name}',
   // A member who sent a scene without a display name on their account.
   'graph.member.anonymous': 'a member',
-  // The heart on a member's scene while it plays. A like is a point for the
-  // author on the leaderboard, so the wording is about them, not the scene.
+  // The heart on a member's scene while it plays. A like is for the author,
+  // so the wording is about them, not the scene.
   'graph.member.like': 'Like {name}',
   'graph.member.unlike': 'Take your like back',
   // A label and a number, so no language needs a plural form for it.

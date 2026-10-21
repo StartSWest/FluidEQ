@@ -110,7 +110,6 @@ const plus = {
   'plus.scene.moreByYou': '你的更多作品',
 
   'plus.maker.you': '你',
-  'plus.maker.rank': '排名',
   'plus.maker.scenes': '场景',
   'plus.maker.empty': '目前没有已发布的作品。',
 
@@ -268,7 +267,6 @@ const plus = {
   'plus.accounts.plan.giftUntil': '赠送至 {date}',
   'plus.accounts.goes': '一并删除',
   'plus.accounts.fact.published': '已发布的场景',
-  'plus.accounts.fact.boardDays': '排行榜天数',
   'plus.accounts.fact.likes': '点过的赞',
   'plus.accounts.fact.adds': '添加的场景',
   'plus.accounts.fact.reports': '发出的举报',

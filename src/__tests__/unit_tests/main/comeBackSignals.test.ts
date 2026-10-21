@@ -188,8 +188,8 @@ describe('createComeBackWatch', () => {
 
 describe('accountComeBackSteps', () => {
   /**
-   * Every refresher, recording the order it was called in. The leaderboard
-   * upload is the last step, and says so on `done`.
+   * Every refresher, recording the order it was called in. The scene
+   * announcements are the last step, and say so on `done`.
    */
   const makeRefreshers = () => {
     const calls: string[] = [];
@@ -205,7 +205,6 @@ describe('accountComeBackSteps', () => {
       plusGallery: { refreshIfDue: jest.fn(record('gallery scenes')) },
       sceneReviews: { refreshIfDue: jest.fn(record('scene reviews')) },
       plusTermsNotice: { checkIfDue: jest.fn(record('Plus terms notice')) },
-      leaderboard: { uploadIfDue: jest.fn(record('leaderboard upload')) },
       sceneTaste: { uploadIfDue: jest.fn(record('scene plays and engine')) },
       sceneAnnouncements: {
         refreshIfDue: jest.fn(async () => {
@@ -249,7 +248,6 @@ describe('accountComeBackSteps', () => {
       'gallery scenes',
       'scene reviews',
       'Plus terms notice',
-      'leaderboard upload',
       'scene plays and engine',
       'scene announcements',
     ]);
@@ -267,9 +265,6 @@ describe('accountComeBackSteps', () => {
       'wake from sleep',
     );
     expect(refreshers.plusTermsNotice.checkIfDue).toHaveBeenCalledWith(
-      'wake from sleep',
-    );
-    expect(refreshers.leaderboard.uploadIfDue).toHaveBeenCalledWith(
       'wake from sleep',
     );
     expect(refreshers.sceneTaste.uploadIfDue).toHaveBeenCalledWith(
@@ -304,7 +299,6 @@ describe('accountComeBackSteps', () => {
       'block list',
       'scene reviews',
       'Plus terms notice',
-      'leaderboard upload',
       'scene plays and engine',
       'scene announcements',
     ]);

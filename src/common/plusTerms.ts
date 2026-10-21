@@ -4,8 +4,8 @@
  *
  * The words live in the `terms.*` dictionaries, all ten languages. The
  * numbers live here, next to the version, because each one is also enforced
- * somewhere — the offline grace by the entitlement check, the listening
- * window and the daily cap by the leaderboard's server — and a promise in the
+ * somewhere — the offline grace by the entitlement check, the scene-play
+ * window and the daily cap by the server — and a promise in the
  * terms that disagreed with the code keeping it would be the worst kind of
  * bug: one a person reads, relies on, and finds false.
  *

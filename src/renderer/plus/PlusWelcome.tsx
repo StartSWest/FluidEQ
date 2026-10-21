@@ -37,7 +37,6 @@ const PERKS: readonly {
   { glyph: 'looks', key: 'trial.extras.scenes' },
   { glyph: 'studio', key: 'trial.extras.studio' },
   { glyph: 'lighting', key: 'trial.extras.desktop' },
-  { glyph: 'board', key: 'trial.extras.board' },
 ];
 
 /**

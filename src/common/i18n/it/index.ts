@@ -35,7 +35,7 @@ import help from './help';
 import about from './about';
 import account from './account';
 import forum from './forum';
-import leaderboard from './leaderboard';
+import profile from './profile';
 import terms from './terms';
 import studio from './studio';
 import studioChat from './studioChat';
@@ -85,7 +85,7 @@ const it: Partial<Dictionary> = {
   ...about,
   ...account,
   ...forum,
-  ...leaderboard,
+  ...profile,
   ...terms,
   ...studio,
   ...studioChat,

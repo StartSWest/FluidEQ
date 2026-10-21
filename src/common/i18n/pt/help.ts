@@ -79,7 +79,8 @@ const help: Record<keyof typeof en, string> = {
     'Seus arquivos de música, álbuns e a fila de reprodução.',
   'help.window.karaoke':
     'Cante junto e transforme suas próprias músicas em karaokê.',
-  'help.window.plus': 'Visualizadores, a galeria, a Classificação e o Estúdio.',
+  'help.window.plus':
+    'Visualizadores, a galeria, o Estúdio e a Iluminação dinâmica.',
   'help.window.support': 'Formas de apoiar o desenvolvimento do FluidEQ.',
   'help.window.help':
     'Este guia, Novidades, a solução de problemas de áudio e Relatar um problema.',
@@ -487,15 +488,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'Sua conta, os créditos e a aba Plus',
   'help.plus.intro':
-    'A conta é opcional: tudo o que era gratuito funciona neste computador sem ela. Conectado, a aba Plus reúne Visualizadores, a Classificação, o Estúdio, a Iluminação dinâmica e o visualizador de área de trabalho. Uma cena de Visualizadores custa um crédito e é sua para sempre; uma conta confirmada recebe alguns créditos grátis, e os pacotes de créditos são pagos uma única vez.',
+    'A conta é opcional: tudo o que era gratuito funciona neste computador sem ela. Conectado, a aba Plus reúne Visualizadores, o Estúdio, a Iluminação dinâmica e o visualizador de área de trabalho. Uma cena de Visualizadores custa um crédito e é sua para sempre; uma conta confirmada recebe alguns créditos grátis, e os pacotes de créditos são pagos uma única vez.',
   'help.plus.steps':
     'Abra Conta no menu de ações. Entre, ou crie uma conta e digite o código de seis dígitos enviado para seu email.\nAbra a aba Plus e escolha Visualizadores. Abra uma cena, assista e pressione Obter para gastar um crédito nela.\nPara ter mais créditos, abra Conta e escolha um pacote. Ele é pago uma única vez na Stripe, no seu navegador.',
   'help.plus.tip':
     'O app nunca vê seu cartão, e nada é renovado. Uma conta fica conectada em até cinco computadores.',
   'help.plus.keywords':
     'conta, entrar, login, cadastrar, registrar, créditos, crédito, pacote, comprar, preço, preços, custo, pagamento, pagar, premium, pago, cena, assinatura, cancelar, membro, código por email',
-  'help.plus.leaderboard':
-    'Quem ouve mais, entre os membros Plus que participam.',
   'help.plus.visualizers':
     'Cenas do FluidEQ e dos membros, prontas para sua música.',
   'help.plus.studio': 'Crie suas próprias cenas com sua IA.',
@@ -531,22 +530,6 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.desktop': 'Coloca a cena atrás dos ícones da área de trabalho.',
   'help.gallery.inspect':
     'Abre a cena do FluidEQ no Estúdio para ver como ela é feita.',
-
-  'help.leaderboard.title': 'A Classificação',
-  'help.leaderboard.intro':
-    'A Classificação ordena os membros Plus que participam dela pelo quanto ouvem e pelas curtidas que suas cenas recebem. Ela fica desligada a menos que você entre.',
-  'help.leaderboard.steps':
-    'Abra Conta e pressione Entrar na classificação.\nAbra Plus → Classificação. Escolha o nome de usuário e o nome visível que a classificação mostra, e depois alterne entre Desde sempre e Este mês.\nPara parar, pressione Sair da classificação. Remover todos os meus dados apaga tudo o que você enviou.',
-  'help.leaderboard.tip':
-    'Um número por dia sai do seu computador (os minutos de música que tocaram), e nunca o que você toca. Cada número é verificado no servidor. Seu nome de usuário e seu nome visível podem ser mudados depois em Conta → Mudar nome; a Classificação e suas cenas publicadas acompanham.',
-  'help.leaderboard.keywords':
-    'ranking, leaderboard, pontuação, estatísticas, tempo de escuta, top ouvintes, competição, apelido, privacidade',
-  'help.leaderboard.periodName': 'Desde sempre ou Este mês',
-  'help.leaderboard.period': 'Todo o histórico, ou só este mês.',
-  'help.leaderboard.standing':
-    'Sua posição e seus pontos, e quanto falta para o próximo lugar.',
-  'help.leaderboard.earn':
-    '10 pontos por hora, 20 por dia com 30 minutos ou mais, 5 por curtida.',
 
   'help.studio.title': 'Crie cenas no Estúdio',
   'help.studio.intro':

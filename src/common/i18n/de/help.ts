@@ -78,7 +78,8 @@ const help: Record<keyof typeof en, string> = {
   'help.window.library': 'Ihre Musikdateien, Alben und die Warteschlange.',
   'help.window.karaoke':
     'Singen Sie mit und machen Sie aus Ihren eigenen Liedern Karaoke.',
-  'help.window.plus': 'Visualizer, die Galerie, die Rangliste und das Studio.',
+  'help.window.plus':
+    'Visualizer, die Galerie, das Studio und die dynamische Beleuchtung.',
   'help.window.support':
     'Möglichkeiten, die Arbeit an FluidEQ zu unterstützen.',
   'help.window.help':
@@ -497,15 +498,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'Ihr Konto, Credits und der Plus-Tab',
   'help.plus.intro':
-    'Ein Konto ist optional: Alles, was kostenlos war, läuft auf diesem Computer auch ohne. Angemeldet bündelt der Plus-Tab „Visualizer“, die Rangliste, das Studio, die dynamische Beleuchtung und den Desktop-Visualizer. Eine Szene aus „Visualizer“ kostet einen Credit und gehört Ihnen für immer; ein bestätigtes Konto erhält einige Credits gratis, und Credit-Pakete werden einmalig bezahlt.',
+    'Ein Konto ist optional: Alles, was kostenlos war, läuft auf diesem Computer auch ohne. Angemeldet bündelt der Plus-Tab „Visualizer“, das Studio, die dynamische Beleuchtung und den Desktop-Visualizer. Eine Szene aus „Visualizer“ kostet einen Credit und gehört Ihnen für immer; ein bestätigtes Konto erhält einige Credits gratis, und Credit-Pakete werden einmalig bezahlt.',
   'help.plus.steps':
     'Öffnen Sie Konto im Aktionsmenü. Melden Sie sich an, oder erstellen Sie ein Konto und geben Sie den sechsstelligen Code ein, der an Ihre E-Mail-Adresse geschickt wurde.\nÖffnen Sie den Plus-Tab und wählen Sie „Visualizer“. Öffnen Sie eine Szene, sehen Sie sie an, und drücken Sie Holen, um einen Credit dafür einzusetzen.\nFür weitere Credits öffnen Sie Konto und wählen ein Paket. Es wird einmalig über Stripe in Ihrem Browser bezahlt.',
   'help.plus.tip':
     'Die App sieht Ihre Karte nie, und nichts verlängert sich. Ein Konto bleibt auf bis zu fünf Computern angemeldet.',
   'help.plus.keywords':
     'Konto, anmelden, Anmeldung, Login, registrieren, Credits, Credit, Paket, kaufen, Preis, Preise, Kosten, Zahlung, bezahlen, Premium, kostenpflichtig, Szene, Abo, Abonnement, kündigen, Mitgliedschaft, Mitglied, E-Mail-Code',
-  'help.plus.leaderboard':
-    'Wer am meisten hört, unter den Plus-Mitgliedern, die beitreten.',
   'help.plus.visualizers':
     'Szenen von FluidEQ und Mitgliedern, bereit für Ihre Musik.',
   'help.plus.studio': 'Bauen Sie mit Ihrer KI eigene Szenen.',
@@ -543,22 +542,6 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.desktop': 'Legt die Szene hinter Ihre Desktopsymbole.',
   'help.gallery.inspect':
     'Öffnet die Szene von FluidEQ im Studio, damit Sie sehen, wie sie gemacht ist.',
-
-  'help.leaderboard.title': 'Die Rangliste',
-  'help.leaderboard.intro':
-    'Die Rangliste ordnet die Plus-Mitglieder, die ihr beitreten, danach, wie viel sie hören und wie viele „Gefällt mir“ ihre Szenen bekommen. Solange Sie nicht beitreten, ist sie aus.',
-  'help.leaderboard.steps':
-    'Öffnen Sie Konto und drücken Sie Der Rangliste beitreten.\nÖffnen Sie Plus → Rangliste. Wählen Sie das Kürzel und den Namen, die die Rangliste zeigt, und wechseln Sie dann zwischen Gesamt und Dieser Monat.\nZum Aufhören drücken Sie Rangliste verlassen. Alle meine Daten löschen entfernt alles, was Sie gesendet haben.',
-  'help.leaderboard.tip':
-    'Eine Zahl pro Tag verlässt Ihren Computer – die Minuten Musik, die gelaufen sind – und nie, was Sie abspielen. Jede Zahl wird auf dem Server geprüft. Kürzel und Name lassen sich später unter Konto → Namen ändern anpassen; Rangliste und veröffentlichte Szenen ziehen mit.',
-  'help.leaderboard.keywords':
-    'ranking, leaderboard, bestenliste, platzierung, punktestand, score, statistik, hörzeit, hördauer, wettbewerb',
-  'help.leaderboard.periodName': 'Gesamt oder Dieser Monat',
-  'help.leaderboard.period': 'Der gesamte Verlauf oder nur dieser Monat.',
-  'help.leaderboard.standing':
-    'Ihr Rang und Ihre Punkte und wie weit es bis zum nächsten Platz ist.',
-  'help.leaderboard.earn':
-    '10 Punkte pro Stunde, 20 für jeden Tag mit 30 Minuten oder mehr, 5 für jedes „Gefällt mir“.',
 
   'help.studio.title': 'Szenen im Studio bauen',
   'help.studio.intro':

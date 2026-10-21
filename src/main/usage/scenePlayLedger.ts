@@ -1,16 +1,17 @@
 import fs from 'fs';
 import path from 'path';
-import { DAILY_LISTENING_CAP_HOURS } from '../../common/leaderboardScore';
-import type { ISceneRef } from '../../common/sceneTaste';
+import {
+  SCENE_PLAY_DAY_CAP_HOURS,
+  SCENE_PLAY_WINDOW_DAYS,
+  type ISceneRef,
+} from '../../common/sceneTaste';
 import writeFileAtomically from '../atomicWrite';
-import { KEEP_DAYS, localDayKey } from './usageLedger';
 
 /**
  * How long each scene was drawn, per account, per day, on this computer —
  * and how much of it the server has already been told (premium migration
- * 0047). Plain JSON beside the listening ledger, for the same reason: a count
- * of seconds is not a secret, and a file a person can open and read is the
- * right shape for what the app sends about them.
+ * 0047). Plain JSON: a count of seconds is not a secret, and a file a person
+ * can open and read is the right shape for what the app sends about them.
  *
  * Kept per account so a computer shared by two members never sends one's
  * scenes as the other's, and for the fortnight the server still takes; a day
@@ -19,7 +20,15 @@ import { KEEP_DAYS, localDayKey } from './usageLedger';
  */
 
 const FILE_NAME = 'scene-plays.json';
-const DAY_CAP_SECONDS = DAILY_LISTENING_CAP_HOURS * 60 * 60;
+
+/** The local calendar day, as `YYYY-MM-DD`. The reader's day, not UTC's. */
+export const localDayKey = (epochMs: number): string => {
+  const date = new Date(epochMs);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+const DAY_CAP_SECONDS = SCENE_PLAY_DAY_CAP_HOURS * 60 * 60;
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 const SCENE_KEY =
   /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})?\/[a-z][a-z0-9-]{1,47}$/;
@@ -106,7 +115,8 @@ export const createScenePlayLedger = ({
   const filePath = path.join(userDataDir, FILE_NAME);
   let ledger = readLedger(filePath);
 
-  const cutoff = () => localDayKey(now() - KEEP_DAYS * 24 * 60 * 60 * 1000);
+  const cutoff = () =>
+    localDayKey(now() - SCENE_PLAY_WINDOW_DAYS * 24 * 60 * 60 * 1000);
 
   const save = () => {
     const oldest = cutoff();

@@ -2,7 +2,6 @@ export type TCommunityGlyph =
   | 'general'
   | 'looks'
   | 'feature-requests'
-  | 'board'
   | 'send'
   | 'arrow-up'
   | 'history'
@@ -101,15 +100,6 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <path d="M6.5 8.5a3.5 3.5 0 1 1 7 0c0 1.6-1 2.4-1.6 3.2-.4.5-.5 1-.5 1.6H8.6c0-.6-.1-1.1-.5-1.6C7.5 10.9 6.5 10.1 6.5 8.5Z" />
             <path d="M8.5 16h3M9 18h2" />
             <path d="M10 2v1.4M4.2 5.5l1 .8M15.8 5.5l-1 .8" opacity="0.6" />
-          </>
-        );
-      case 'board':
-        // A trophy.
-        return (
-          <>
-            <path d="M6 3h8v4.5a4 4 0 0 1-8 0V3Z" />
-            <path d="M6 5H3.5a2.5 2.5 0 0 0 2.6 3.2M14 5h2.5a2.5 2.5 0 0 1-2.6 3.2" />
-            <path d="M10 11.5v2.5M7 17h6M8.5 14h3v3h-3z" />
           </>
         );
       case 'send':

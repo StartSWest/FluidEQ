@@ -256,7 +256,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.title': 'Cenas que são suas para sempre',
   'tour.plus.subtitle': 'Visualizadores, Estúdio, iluminação e mais',
   'tour.plus.lead':
-    'Uma aba inteira de extras que faz o FluidEQ crescer: cenas desenhadas na sua placa de vídeo, um Estúdio para criar as suas, a classificação, fundos de área de trabalho e a Iluminação dinâmica. Uma cena custa um crédito e fica com você, e o equalizador, o rack e os players continuam gratuitos, como sempre.',
+    'Uma aba inteira de extras que faz o FluidEQ crescer: cenas desenhadas na sua placa de vídeo, um Estúdio para criar as suas, fundos de área de trabalho e a Iluminação dinâmica. Uma cena custa um crédito e fica com você, e o equalizador, o rack e os players continuam gratuitos, como sempre.',
   'tour.plus.point1':
     'Entre por Conta no menu de ações: uma conta confirmada recebe créditos grátis para começar.',
   'tour.plus.point2':
@@ -264,10 +264,10 @@ const tour: Partial<Dictionary> = {
   'tour.plus.point3':
     'Cada cena pode ser assistida antes, e as que você obtém tocam em todo computador em que você entra.',
   'tour.plus.how':
-    'Abra a aba Plus: Classificação, Visualizadores, Estúdio e Iluminação dinâmica ficam do lado esquerdo.',
+    'Abra a aba Plus: Visualizadores, Estúdio e Iluminação dinâmica ficam do lado esquerdo.',
   'tour.plus.open': 'Abrir Plus',
   'tour.plus.imageAlt':
-    'A aba Plus: Classificação, Visualizadores, Estúdio e Iluminação dinâmica na lateral, e a galeria de Visualizadores com Cromo, Floração, Aurora, Alpino e Cidade de neon.',
+    'A aba Plus: Visualizadores, Estúdio e Iluminação dinâmica na lateral, e a galeria de Visualizadores com Cromo, Floração, Aurora, Alpino e Cidade de neon.',
   'tour.scene.alpine': 'Alpino',
   'tour.scene.aurora': 'Aurora',
   'tour.scene.bloom': 'Floração',

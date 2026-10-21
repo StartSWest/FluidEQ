@@ -3,7 +3,7 @@ const terms = {
   'terms.title': 'Condizioni e privacy',
   'terms.meta': 'Versione {version} · In vigore dal {date}',
   'terms.intro':
-    'Queste condizioni riguardano il tuo account FluidEQ: i crediti e le scene che ottieni con essi, Plus per i membri che lo hanno ancora, Visualizzatori, lo Studio, le scene che condividi e i pagamenti per esse, e la classifica. Elencano tutto ciò che l’app invia al servizio di FluidEQ, quando lo invia e chi può vederlo, e, verso la fine, ogni altro luogo a cui FluidEQ si collega.',
+    'Queste condizioni riguardano il tuo account FluidEQ: i crediti e le scene che ottieni con essi, Plus per i membri che lo hanno ancora, Visualizzatori, lo Studio, e le scene che condividi e i pagamenti per esse. Elencano tutto ciò che l’app invia al servizio di FluidEQ, quando lo invia e chi può vederlo, e, verso la fine, ogni altro luogo a cui FluidEQ si collega.',
   'terms.link': 'Condizioni e privacy',
 
   'terms.short.title': 'La versione breve',
@@ -13,14 +13,14 @@ const terms = {
     'FluidEQ continua a funzionare offline e senza account, come sempre. Anche lo Studio e la pubblicazione sono gratuiti.',
   'terms.short.choice.title': 'Scegli tu cosa condividere',
   'terms.short.choice.body':
-    'La classifica è disattivata finché non partecipi, e nulla di ciò che crei lascia il tuo computer se non lo esporti o lo pubblichi.',
+    'Nulla di ciò che crei lascia il tuo computer se non lo esporti o lo pubblichi.',
   'terms.short.music.title': 'Mai la tua musica',
   'terms.short.music.body':
     'Il servizio di FluidEQ non riceve mai il tuo audio, i titoli dei tuoi brani né il tuo EQ.',
 
   'terms.membership.title': 'Plus',
   'terms.membership.p1':
-    'Plus era un abbonamento e non è più in vendita: al suo posto ci sono i crediti. Un abbonamento già attivo continua a riprodurre e aggiungere ogni scena di Visualizzatori, gli aspetti Plus, la classifica e le scene sul tuo desktop e sulle tue luci RGB, finché FluidEQ non passa i suoi membri ai crediti. Quel giorno ogni scena che un membro ha aggiunto diventa sua per sempre, e ogni account che ha pagato Plus riceve almeno {moveCredits} crediti. Non vengono offerte nuove prove gratuite; una scena che il creatore di FluidEQ approva prima di quel giorno può ancora darti un mese di Plus. Senza Plus, un account guarda qualsiasi scena per {tasteSeconds} secondi, ottiene scene con i crediti, vede la classifica, e crea, esporta e pubblica scene nello Studio.',
+    'Plus era un abbonamento e non è più in vendita: al suo posto ci sono i crediti. Un abbonamento già attivo continua a riprodurre e aggiungere ogni scena di Visualizzatori, gli aspetti Plus e le scene sul tuo desktop e sulle tue luci RGB, finché FluidEQ non passa i suoi membri ai crediti. Quel giorno ogni scena che un membro ha aggiunto diventa sua per sempre, e ogni account che ha pagato Plus riceve almeno {moveCredits} crediti. Non vengono offerte nuove prove gratuite; una scena che il creatore di FluidEQ approva prima di quel giorno può ancora darti un mese di Plus. Senza Plus, un account guarda qualsiasi scena per {tasteSeconds} secondi, ottiene scene con i crediti, e crea, esporta e pubblica scene nello Studio.',
   'terms.membership.p2':
     'Plus si pagava tramite Buy Me a Coffee, secondo le sue condizioni, e FluidEQ non ha mai visto la tua carta né i tuoi dati bancari. Un abbonamento che stai ancora pagando si può disdire in qualsiasi momento su Buy Me a Coffee: Plus resta attivo fino alla fine del periodo pagato e non viene addebitato altro. Tutto ciò che Buy Me a Coffee addebita per Plus dopo che FluidEQ ha passato i suoi membri ai crediti viene rimborsato.',
   'terms.membership.p4':
@@ -32,7 +32,7 @@ const terms = {
   'terms.account.p1':
     'Un account è un indirizzo email, una password e, se lo indichi, un nome, e devi avere almeno {age} anni per crearne uno. La password viaggia cifrata fino al servizio di accesso e lì viene conservata solo come hash a senso unico, che nessuno può rileggere, nemmeno il creatore.',
   'terms.account.p2':
-    'La tua email riceve i codici che confermano l’indirizzo e reimpostano la password. Non viene mai mostrata agli altri membri: in classifica e in Visualizzatori compari con il nickname e il nome visualizzato che scegli.',
+    'La tua email riceve i codici che confermano l’indirizzo e reimpostano la password. Non viene mai mostrata agli altri membri: in Visualizzatori compari con il nickname e il nome visualizzato che scegli.',
   'terms.account.p3':
     'Sul tuo computer, l’app conserva la sessione cifrata dal sistema operativo. Gli account sono personali: tieni per te la tua password.',
   'terms.account.p4':
@@ -78,15 +78,9 @@ const terms = {
   'terms.sent.catalogue.who':
     'Non viene conservato nulla. La richiesta scarica solo l’elenco pubblico degli aspetti.',
   'terms.sent.profile.what': 'Il nickname e il nome visualizzato che scegli',
-  'terms.sent.profile.when': 'Quando li scegli in classifica',
+  'terms.sent.profile.when': 'Quando li scegli o li cambi nel pannello Account',
   'terms.sent.profile.who':
-    'Ogni account che ha effettuato l’accesso: in classifica, sulle scene che pubblichi e sulla tua pagina di autore in Visualizzatori, dove si possono cercare. I nomi che si spacciano per FluidEQ o per il suo staff vengono rifiutati.',
-  'terms.sent.board.what':
-    'Un numero al giorno da ciascuno dei tuoi computer: i minuti interi di musica riprodotta, fino a {capHours} ore, con la sua data e un numero casuale che distingue i tuoi computer',
-  'terms.sent.board.when':
-    'Solo se partecipi alla classifica: quando ti unisci, quando torni al computer al massimo ogni {uploadHours} ore, e quando apri la classifica o la pagina di un autore in Visualizzatori',
-  'terms.sent.board.who':
-    'Il tuo nickname, il nome visualizzato, la posizione, i punti e di cosa sono fatti: ogni account che ha effettuato l’accesso, in classifica e sulla tua pagina di autore.',
+    'Ogni account che ha effettuato l’accesso: sulle scene che pubblichi e sulla tua pagina di autore in Visualizzatori, dove si possono cercare. I nomi che si spacciano per FluidEQ o per il suo staff vengono rifiutati.',
   'terms.sent.sceneExport.what':
     'Una scena che esporti: il suo codice, le impostazioni, le immagini, i modelli 3D e gli elementi d’ambiente',
   'terms.sent.sceneExport.when': 'Quando premi Esporta nello Studio',
@@ -150,7 +144,7 @@ const terms = {
   'terms.protect.p2':
     'Le regole stanno sul server, non nell’app: ogni account può modificare solo i propri dati, e una copia modificata di FluidEQ riceve esattamente le stesse risposte.',
   'terms.protect.p3':
-    'Classifica e Visualizzatori mostrano nickname e nomi visualizzati, mai indirizzi email. Gli id degli account non vengono mai mostrati, ma si trovano nei file delle scene e in ciò che Visualizzatori invia all’app.',
+    'Visualizzatori mostra nickname e nomi visualizzati, mai indirizzi email. Gli id degli account non vengono mai mostrati, ma si trovano nei file delle scene e in ciò che Visualizzatori invia all’app.',
   'terms.protect.p4':
     'Il creatore gestisce il servizio e può vedere ciò che conserva, per tenerlo in funzione, collegare i pagamenti e moderare ciò che i membri pubblicano. Nulla viene venduto o usato per pubblicità, e non c’è tracciamento né analisi.',
   'terms.protect.p5':
@@ -159,16 +153,6 @@ const terms = {
     'FluidEQ non conserva indirizzi IP. Supabase registra l’indirizzo di ogni richiesta in log di breve durata, e conserva l’indirizzo e i dettagli dell’app di ogni computer connesso insieme alla sessione di quel computer e nel registro di sicurezza degli accessi di Supabase stesso, per mantenere l’accesso funzionante e sicuro.',
   'terms.protect.p7':
     'Le scene sono firmate, e il tuo computer controlla la firma prima di riprodurne una. Un aggiornamento dell’app si installa solo dopo che la firma di FluidEQ su di esso è stata controllata.',
-
-  'terms.fair.title': 'Correttezza in classifica',
-  'terms.fair.p1':
-    'I punti vengono dall’ascolto e dai mi piace: {hourPoints} per ogni ora di musica, {dayPoints} per ogni giorno con almeno {activeMinutes} minuti di musica, e {likePoints} per ogni mi piace alle tue scene. La classifica mostra i primi 100 e include un account solo finché ha un Plus pagato, regalato o guadagnato pubblicando: una prova gratuita non entra in classifica. I suoi giorni restano comunque e tornano a contare quando Plus ritorna.',
-  'terms.fair.p2':
-    'Il tempo di ascolto è contato dall’app sul tuo computer, quindi il server non può vederlo accadere. Controlla invece ogni numero: non più di {capHours} ore al giorno, nessun giorno che non sia ancora iniziato, nulla più vecchio di {windowDays} giorni, e nessun giorno che cresca più veloce dell’orologio. I numeri dei tuoi computer si sommano in un solo giorno, che a sua volta non cresce più veloce dell’orologio: più computer che suonano insieme non possono sommare più tempo di quanto ne sia passato.',
-  'terms.fair.p3':
-    'Tutti guadagnano punti allo stesso modo, il creatore compreso. Modificare l’app o ciò che invia, automatizzare l’ascolto, o salire con più di un account ti toglie dalla classifica, e può impedire all’account di pubblicare, mettere mi piace e segnalare scene.',
-  'terms.fair.p4':
-    'Un mi piace conta una volta per membro e per scena, solo da un account che possiede la scena — ottenuta con un credito, gratuita o con Plus — e mai dal tuo stesso account. I mi piace su una scena rimossa, o da un account escluso, non contano. I mi piace da un tuo secondo account contano come salire con più di un account.',
 
   'terms.rules.title': 'Regole per ciò che pubblichi',
   'terms.rules.p1':
@@ -181,14 +165,12 @@ const terms = {
     'Per mantenere il servizio funzionante per tutti, un account può esportare o pubblicare fino a {sharesPerHour} scene all’ora, tentativi rifiutati compresi, e tenere pubblicate fino a {maxPublished} scene. Una scena che pubblichi, e ogni sua nuova versione, aspetta che il creatore di FluidEQ la legga prima che chiunque altro la veda; c’è un limite a quante puoi mandare in revisione in un mese di calendario, e lo Studio te lo dice quando lo raggiungi.',
 
   'terms.keep.title': 'Cosa viene conservato, e come cancellarlo',
-  'terms.keep.p1':
-    'Classifica: i giorni che invii restano in classifica finché non li rimuovi. «Rimuovi tutti i miei dati» nel pannello Account cancella in un colpo ogni giorno che hai inviato; lasciare la classifica interrompe solo l’invio. Il tuo computer conserva solo i totali degli ultimi {windowDays} giorni.',
   'terms.keep.p2':
     'Il tuo nickname e il nome visualizzato: conservati finché hai un account, e cancellati con esso.',
   'terms.keep.p3':
     'Abbonamento: la tua email di pagamento, lo stato e gli id di Buy Me a Coffee per il tuo abbonamento sono conservati per collegare i pagamenti al tuo account, e vengono cancellati con esso. Il registro di ogni evento di pagamento conserva solo gli id di Buy Me a Coffee e l’ora.',
   'terms.keep.p4':
-    'Il tuo account: chiedi di eliminarlo e sparisce entro {deletionDays} giorni, insieme al tuo profilo, ai giorni in classifica, ai tuoi crediti, alle scene che possiedi, all’abbonamento, alle prove gratuite e ai mesi guadagnati, alle accettazioni, ai mi piace, alle aggiunte, alle segnalazioni e alle scene che hai pubblicato con i loro file. I crediti rimasti su un account eliminato spariscono con esso. Un regalo di Plus al tuo indirizzo resta finché il creatore non lo toglie.',
+    'Il tuo account: chiedi di eliminarlo e sparisce entro {deletionDays} giorni, insieme al tuo profilo, ai tuoi crediti, alle scene che possiedi, all’abbonamento, alle prove gratuite e ai mesi guadagnati, alle accettazioni, ai mi piace, alle aggiunte, alle segnalazioni e alle scene che hai pubblicato con i loro file. I crediti rimasti su un account eliminato spariscono con esso. Un regalo di Plus al tuo indirizzo resta finché il creatore non lo toglie.',
   'terms.keep.p5':
     'Scene: ritirare una scena la rimuove da Visualizzatori insieme alla sua immagine, al suo file e alla cronologia delle versioni. I mi piace, le aggiunte e le segnalazioni che ha ricevuto restano finché quegli account non vengono eliminati, e tornano a contare se la pubblichi di nuovo. Una scena bloccata per aver violato queste condizioni conserva un’impronta ricavata dall’id del tuo account e dall’id della scena, con il motivo e la data, così resta bloccata.',
   'terms.keep.p6':
@@ -211,8 +193,6 @@ const terms = {
     'Quando esporti una scena, permetti a FluidEQ di controllarla — anche confrontandola con le scene di FluidEQ —, rimuovere i commenti dal suo codice e firmarla con il tuo nome visualizzato e il tuo id account, così gli altri membri che la possiedono possono riprodurla e vedere che l’hai creata tu. È tutto il permesso: il creatore di FluidEQ non venderà la tua scena né la userà in pubblicità, non la renderà uno degli aspetti Plus senza chiedertelo prima, e non ti impedisce di fare nient’altro con il tuo lavoro.',
   'terms.scenes.p4':
     'Quando un account ottiene una tua scena con un credito di un pacchetto che ha pagato, ci guadagni: appena configuri i pagamenti nel pannello Account, denaro, secondo le condizioni per i creatori di Farti pagare per le tue scene; fino ad allora, o dove Stripe non può pagarti, un credito: credito per ottenere scene, mai denaro. Una scena ottenuta con un credito gratuito non rende nulla. E, finché FluidEQ offre Plus, una tua scena approvata dal creatore di FluidEQ ti dà un mese di Plus.',
-  'terms.scenes.p5':
-    'I membri a cui piace la tua scena ti danno punti in classifica, se vi partecipi. I mi piace vengono contati dal server; vedi Correttezza in classifica.',
   'terms.scenes.p6':
     'Condividi solo lavori che hai il diritto di condividere: le tue foto, i tuoi disegni e i tuoi modelli 3D, o quelli di chi lo permette. Le regole per ciò che pubblichi valgono per ogni scena che condividi. Il creatore di FluidEQ può impedire che una scena si apra se viola queste condizioni o i diritti di qualcun altro.',
   'terms.scenes.p7':

@@ -2,13 +2,6 @@ import { useMemo } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { OFFICIAL_SITE_URL } from 'common/branding';
 import { REPORT_EMAIL } from 'common/bugReport';
-import {
-  ACTIVE_DAY_MINUTES,
-  DAILY_LISTENING_CAP_HOURS,
-  LISTENING_UPLOAD_INTERVAL_HOURS,
-  LISTENING_WINDOW_DAYS,
-  PART_POINTS,
-} from 'common/leaderboardScore';
 import { formatDollars } from 'common/creatorPayouts';
 import {
   CREATOR_HOLD_DAYS,
@@ -28,6 +21,7 @@ import {
   termsEffectiveDate,
 } from 'common/plusTerms';
 import { PLUS_MOVE_CREDITS, STARTER_CREDITS } from 'common/sceneStore';
+import { SCENE_PLAY_WINDOW_DAYS } from 'common/sceneTaste';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -57,14 +51,8 @@ export const termsValues = (
   sharesPerHour: PLUS_SHARES_PER_HOUR,
   maxPublished: PLUS_MAX_PUBLISHED_SCENES,
   takedownDays: PLUS_TAKEDOWN_PAUSE_DAYS,
-  capHours: DAILY_LISTENING_CAP_HOURS,
-  windowDays: LISTENING_WINDOW_DAYS,
-  uploadHours: LISTENING_UPLOAD_INTERVAL_HOURS,
-  activeMinutes: ACTIVE_DAY_MINUTES,
-  // Per hour, as the server scores it (minutes / 6).
-  hourPoints: PART_POINTS.hours,
-  dayPoints: PART_POINTS.days,
-  likePoints: PART_POINTS.likes,
+  // How long a computer keeps scene plays the server has not been sent.
+  windowDays: SCENE_PLAY_WINDOW_DAYS,
   contact: REPORT_EMAIL || new URL(OFFICIAL_SITE_URL).host,
   refundDays: CREDIT_REFUND_DAYS,
   share: CREATOR_SHARE_PERCENT,

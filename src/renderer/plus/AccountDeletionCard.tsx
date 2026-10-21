@@ -108,7 +108,6 @@ export function AccountDeletionBody({
 
   const facts: Array<{ key: TranslationKey; value: number }> = [
     { key: 'plus.accounts.fact.published', value: account.published },
-    { key: 'plus.accounts.fact.boardDays', value: account.boardDays },
     { key: 'plus.accounts.fact.likes', value: account.likes },
     { key: 'plus.accounts.fact.adds', value: account.adds },
     { key: 'plus.accounts.fact.reports', value: account.reports },

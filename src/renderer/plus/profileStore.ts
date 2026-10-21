@@ -3,8 +3,8 @@ import type { IPlusProfile, TProfileFailure } from 'common/plusProfile';
 import type { TPlusProfileResult } from 'main/ipc/plusProfile';
 
 /**
- * The member's name — the @handle and display name the leaderboard ranks and
- * the Visualizers gallery credits — as the Plus tab sees it.
+ * The member's name — the @handle and display name the Visualizers gallery
+ * credits — as the Plus tab sees it.
  *
  * Kept per account: the answer for one account is never shown for another.
  * Every load names the account it is for, a different account starts from

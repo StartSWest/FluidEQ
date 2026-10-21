@@ -117,7 +117,6 @@ const plus = {
   'plus.scene.moreByYou': 'आपके और सीन',
 
   'plus.maker.you': 'आप',
-  'plus.maker.rank': 'रैंक',
   'plus.maker.scenes': 'सीन',
   'plus.maker.empty': 'अभी कुछ प्रकाशित नहीं है।',
 
@@ -283,7 +282,6 @@ const plus = {
   'plus.accounts.plan.giftUntil': '{date} तक उपहार',
   'plus.accounts.goes': 'इसके साथ हटेगा',
   'plus.accounts.fact.published': 'प्रकाशित सीन',
-  'plus.accounts.fact.boardDays': 'लीडरबोर्ड के दिन',
   'plus.accounts.fact.likes': 'दी गई पसंद',
   'plus.accounts.fact.adds': 'जोड़े गए सीन',
   'plus.accounts.fact.reports': 'भेजी गई रिपोर्टें',

@@ -45,7 +45,7 @@ const useShellDialogs = (
 ) => {
   const [showSupportDialog, setShowSupportDialog] = useState(false);
   // Which page of the Account panel is open, or none. A page rather than a
-  // flag because the leaderboard's guide opens it straight on the terms.
+  // flag because a link to the terms opens it straight on them.
   const [accountDialogPage, setAccountDialogPage] = useState<
     TAccountPanelPage | undefined
   >();

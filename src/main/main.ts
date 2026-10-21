@@ -877,7 +877,6 @@ const comeBack = createComeBackWatch({
     plusGallery: members.plusGalleryIpc,
     sceneReviews: members.plusReviewIpc,
     plusTermsNotice: members.plusTermsNoticeIpc,
-    leaderboard: members.leaderboardIpc,
     sceneTaste: members.sceneTasteIpc,
     sceneAnnouncements: members.sceneAnnouncementsIpc,
   }),

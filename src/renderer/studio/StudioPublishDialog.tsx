@@ -201,10 +201,6 @@ export default function StudioPublishDialog({
             </li>
             <li>
               <MenuIcon name="check" />
-              <span>{t('studio.publish.point2')}</span>
-            </li>
-            <li>
-              <MenuIcon name="check" />
               <span>
                 {update
                   ? t('studio.publish.point3Update')

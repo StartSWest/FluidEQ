@@ -122,7 +122,6 @@ const plus = {
   'plus.scene.moreByYou': 'あなたのほかのシーン',
 
   'plus.maker.you': 'あなた',
-  'plus.maker.rank': '順位',
   'plus.maker.scenes': 'シーン',
   'plus.maker.empty': '現在公開されているものはありません。',
 
@@ -292,7 +291,6 @@ const plus = {
   'plus.accounts.plan.giftUntil': '{date} までギフト',
   'plus.accounts.goes': '一緒に削除されるもの',
   'plus.accounts.fact.published': '公開したシーン',
-  'plus.accounts.fact.boardDays': 'ランキングの日数',
   'plus.accounts.fact.likes': '付けたいいね',
   'plus.accounts.fact.adds': '追加したシーン',
   'plus.accounts.fact.reports': '送った報告',

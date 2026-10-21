@@ -12,7 +12,6 @@ import { PLUS_TERMS_EDITION } from 'common/plusTerms';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from '../components/DialogFrame';
-import LeaderboardName from '../community/LeaderboardName';
 import { identityStyle } from '../community/identity';
 import {
   createProfile,
@@ -25,8 +24,8 @@ import type { TAccountPanelPage } from './accountPanel';
 import { useAccount } from './accountStore';
 import SceneBand from '../plus/SceneBand';
 import CreditsCard from './CreditsCard';
+import ProfileNameForm from './ProfileNameForm';
 import PlusTermsDocument from './PlusTermsDocument';
-import LeaderboardCard from './LeaderboardCard';
 import { useSceneStore } from '../plus/sceneStore';
 import CreatorPayoutsCard from './CreatorPayoutsCard';
 import { forgetCreator } from './creatorStore';
@@ -53,7 +52,7 @@ interface IAccountFramePage {
 
 interface IAccountDialogProps {
   onClose: () => void;
-  /** The page to open on. The leaderboard's guide opens straight on the terms. */
+  /** The page to open on: the terms, from a link that asks for them. */
   initialPage?: TAccountPanelPage;
 }
 
@@ -100,7 +99,7 @@ const ERROR_KEYS: Record<TAuthFailure, TranslationKey> = {
  * this without typing anything.
  *
  * The terms are a page of the same panel rather than a dialog of their own:
- * reached from a link on either side and from the leaderboard. Paying for
+ * reached from a link on either side. Paying for
  * credits has its own agreement, beside the packs (`PackPurchase`).
  */
 export default function AccountDialog({
@@ -141,7 +140,7 @@ export default function AccountDialog({
     store && (store.everything || store.owned.length > 0),
   );
 
-  // The name the board and the gallery show, when one has been chosen: it is
+  // The name the gallery shows, when one has been chosen: it is
   // what the panel leads with, and what "Change name" edits. The provider's
   // name stands in until then.
   const { profile, loaded: profileLoaded } = useProfile();
@@ -253,7 +252,7 @@ export default function AccountDialog({
     }
     if (onProfile) {
       // The initials of the name shown beside them, not of the one the
-      // sign-in provider holds: a board name of "Ivan" over an account
+      // sign-in provider holds: a chosen name of "Ivan" over an account
       // registered as something else drew that something else's letter, and
       // the avatar and the name disagreed.
       const initials = initialsOf(displayName, identity.email);
@@ -309,11 +308,7 @@ export default function AccountDialog({
                     className="account-link"
                     onClick={() => setEditingName(true)}
                   >
-                    {t(
-                      profile
-                        ? 'account.name.change'
-                        : 'leaderboard.name.choose',
-                    )}
+                    {t(profile ? 'account.name.change' : 'profile.name.choose')}
                   </button>
                 )}
                 <button
@@ -402,7 +397,7 @@ export default function AccountDialog({
                   nothing (Ivan, 2026-09-16). */}
               {editingName && (
                 <div className="account__name-form">
-                  <LeaderboardName
+                  <ProfileNameForm
                     initial={
                       profile
                         ? {
@@ -432,7 +427,6 @@ export default function AccountDialog({
               <CreditsCard />
               {/* Getting paid for the scenes members keep. */}
               {accountId && <CreatorPayoutsCard accountId={accountId} />}
-              <LeaderboardCard />
 
               {errorLine}
 

@@ -23,8 +23,8 @@ const Heart = () => (
  * on screen in the normal view and in full screen alike, and fades with it.
  *
  * It takes the place of the design button, which a scene has no use for, so
- * the row is no wider with a scene playing than with a look. A like is points
- * for the author on the leaderboard: a member's own scene shows its count and
+ * the row is no wider with a scene playing than with a look. A like is for
+ * the author: a member's own scene shows its count and
  * cannot be pressed. Nobody is shown who liked what; the count is all there
  * is. Hovering names the scene and who made it.
  */

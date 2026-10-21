@@ -134,7 +134,6 @@ const studio = {
   'studio.publish.noteNeeded': 'Needed',
   'studio.publish.point1':
     'Anyone signed in can see it in Visualizers, watch it for a few seconds and get it with a credit. It plays free for you.',
-  'studio.publish.point2': 'Each like earns you points on the leaderboard.',
   'studio.publish.point3':
     'You can unpublish it so nobody new can get it. Whoever already has it keeps it.',
   'studio.publish.point3Update':
@@ -211,8 +210,6 @@ const studio = {
     'Your scenes stay yours. Exporting one lets other members open it, and they play it once they own it.',
   'studio.share.point1':
     'Anyone you give the file to plays it only once they own the scene, with a credit after it is published. They cannot sell it.',
-  'studio.share.point2':
-    'Every like from another member earns you points on the leaderboard.',
   'studio.share.point3':
     'Comments are removed from the shader, and your display name goes with the scene.',
   'studio.share.read': 'Read the terms',

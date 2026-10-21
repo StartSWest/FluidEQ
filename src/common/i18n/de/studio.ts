@@ -127,8 +127,6 @@ const studio = {
   'studio.publish.noteNeeded': 'Erforderlich',
   'studio.publish.point1':
     'Alle Angemeldeten können sie in „Visualizer“ sehen, einige Sekunden ansehen und mit einem Credit holen. Für Sie läuft sie kostenlos.',
-  'studio.publish.point2':
-    'Jedes „Gefällt mir“ bringt Ihnen Punkte in der Rangliste.',
   'studio.publish.point3':
     'Sie können die Veröffentlichung zurücknehmen, damit niemand Neues sie holen kann. Wer sie schon hat, behält sie.',
   'studio.publish.point3Update':
@@ -208,8 +206,6 @@ const studio = {
     'Ihre Szenen bleiben Ihre. Wenn Sie eine exportieren, können andere Mitglieder sie öffnen, und sie spielen sie ab, sobald sie ihnen gehört.',
   'studio.share.point1':
     'Wer die Datei bekommt, spielt die Szene erst ab, wenn sie ihm gehört, mit einem Credit nach der Veröffentlichung. Verkaufen darf er sie nicht.',
-  'studio.share.point2':
-    'Jedes „Gefällt mir“ eines anderen Mitglieds bringt Ihnen Punkte in der Rangliste.',
   'studio.share.point3':
     'Kommentare im Shader werden entfernt, und Ihr Anzeigename geht mit der Szene mit.',
   'studio.share.read': 'Bedingungen lesen',

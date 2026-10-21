@@ -80,7 +80,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.karaoke':
     'Chantez en suivant les paroles, et transformez vos propres chansons en karaoké.',
   'help.window.plus':
-    'Les visualiseurs, la galerie, le classement et le Studio.',
+    'Les visualiseurs, la galerie, le Studio et l’Éclairage dynamique.',
   'help.window.support': 'Des façons de soutenir le travail sur FluidEQ.',
   'help.window.help':
     'Ce guide, Nouveautés, le dépannage audio et Signaler un problème.',
@@ -493,15 +493,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'Votre compte, les crédits et l’onglet Plus',
   'help.plus.intro':
-    'Le compte est facultatif : tout ce qui était gratuit fonctionne sur cet ordinateur sans compte. Une fois connecté, l’onglet Plus réunit Visualiseurs, le Classement, le Studio, l’Éclairage dynamique et le visualiseur de Bureau. Une scène de Visualiseurs coûte un crédit et vous appartient pour de bon ; un compte confirmé reçoit quelques crédits gratuits, et les packs de crédits se paient une seule fois.',
+    'Le compte est facultatif : tout ce qui était gratuit fonctionne sur cet ordinateur sans compte. Une fois connecté, l’onglet Plus réunit Visualiseurs, le Studio, l’Éclairage dynamique et le visualiseur de Bureau. Une scène de Visualiseurs coûte un crédit et vous appartient pour de bon ; un compte confirmé reçoit quelques crédits gratuits, et les packs de crédits se paient une seule fois.',
   'help.plus.steps':
     'Ouvrez Compte dans le menu des actions. Connectez-vous, ou créez un compte et saisissez le code à six chiffres envoyé à votre adresse e-mail.\nOuvrez l’onglet Plus et choisissez Visualiseurs. Ouvrez une scène, regardez-la, et appuyez sur Obtenir pour y dépenser un crédit.\nPour plus de crédits, ouvrez Compte et choisissez un pack. Il se paie une seule fois sur Stripe, dans votre navigateur.',
   'help.plus.tip':
     'L’application ne voit jamais votre carte, et rien ne se renouvelle. Un compte reste connecté sur cinq ordinateurs au plus.',
   'help.plus.keywords':
     'compte, se connecter, connexion, s’inscrire, inscription, crédits, crédit, pack, acheter, prix, tarif, coût, paiement, payer, premium, payant, scène, abonnement, résilier, membre, code e-mail',
-  'help.plus.leaderboard':
-    'Qui écoute le plus, parmi les membres Plus qui y participent.',
   'help.plus.visualizers':
     'Des scènes de FluidEQ et des membres, prêtes pour votre musique.',
   'help.plus.studio': 'Créez vos propres scènes avec votre IA.',
@@ -538,22 +536,6 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.desktop': 'Place la scène derrière les icônes du Bureau.',
   'help.gallery.inspect':
     'Ouvre la scène de FluidEQ dans le Studio pour voir comment elle est faite.',
-
-  'help.leaderboard.title': 'Le classement',
-  'help.leaderboard.intro':
-    'Le classement range les membres Plus qui le rejoignent selon leur temps d’écoute et les j’aime que reçoivent leurs scènes. Il reste désactivé tant que vous ne le rejoignez pas.',
-  'help.leaderboard.steps':
-    'Ouvrez le panneau Compte et appuyez sur Rejoindre le classement.\nOuvrez Plus → Classement. Choisissez le pseudo et le nom affichés au classement, puis basculez entre Depuis toujours et Ce mois-ci.\nPour arrêter, appuyez sur Quitter le classement. Supprimer toutes mes données efface tout ce que vous avez envoyé.',
-  'help.leaderboard.tip':
-    'Un seul nombre par jour quitte votre ordinateur — les minutes de musique jouées — et jamais ce que vous écoutez. Chaque nombre est vérifié sur le serveur. Votre pseudo et votre nom se changent plus tard depuis Compte → Changer de nom ; le classement et vos scènes publiées suivent.',
-  'help.leaderboard.keywords':
-    'palmarès, meilleurs auditeurs, statistiques, compétition, concours, top, score, leaderboard',
-  'help.leaderboard.periodName': 'Depuis toujours ou Ce mois-ci',
-  'help.leaderboard.period': 'Tout l’historique, ou ce mois-ci seulement.',
-  'help.leaderboard.standing':
-    'Votre rang et vos points, et l’écart avec la place suivante.',
-  'help.leaderboard.earn':
-    '10 points par heure, 20 par jour d’au moins 30 minutes, 5 par j’aime.',
 
   'help.studio.title': 'Créez des scènes dans le Studio',
   'help.studio.intro':

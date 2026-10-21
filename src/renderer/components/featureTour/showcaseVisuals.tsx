@@ -36,11 +36,6 @@ const PLACES: {
   blurb: TranslationKey;
 }[] = [
   {
-    glyph: 'board',
-    name: 'leaderboard.title',
-    blurb: 'leaderboard.rail.blurb',
-  },
-  {
     glyph: 'looks',
     name: 'plus.visualizers.title',
     blurb: 'plus.visualizers.blurb',

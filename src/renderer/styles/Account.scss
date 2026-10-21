@@ -362,11 +362,10 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The board's own name form, under the person it is about. The form lays
-// itself out by the `leaderboard` container it expects on the board; here the
-// wrapper is that container, so the narrow layout applies at the same width.
+// The name form, under the person it is about. It lays itself out by the
+// `profile-name` container, which this wrapper is.
 .account__name-form {
-  container: leaderboard / inline-size;
+  container: profile-name / inline-size;
 }
 
 // Signed out, the rail: why to sign in, beside the form that does it.
@@ -500,8 +499,7 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.55;
 }
 
-// The leaderboard card lives in Leaderboard.scss, beside the board it puts
-// you on. The Plus terms, the panel's other page, live in PlusTerms.scss.
+// The Plus terms, the panel's other page, live in PlusTerms.scss.
 
 .account__foot {
   display: flex;

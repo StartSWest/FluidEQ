@@ -8,21 +8,21 @@ import {
 } from 'common/plusProfile';
 import { useTranslation } from '../utils/I18nContext';
 import { clearProfileError, useProfile } from '../plus/profileStore';
-import Avatar from './Avatar';
-import { identityStyle } from './identity';
-import '../styles/LeaderboardName.scss';
+import Avatar from '../community/Avatar';
+import { identityStyle } from '../community/identity';
+import '../styles/ProfileNameForm.scss';
 
 /** Exhaustive by type: a new failure does not compile until it has a sentence. */
 const ERROR_KEYS: Record<TProfileFailure, TranslationKey> = {
-  handle_taken: 'leaderboard.name.error.handleTaken',
-  name_reserved: 'leaderboard.name.error.reserved',
-  name_unreadable: 'leaderboard.name.error.unreadable',
-  signed_out: 'leaderboard.name.error.signedOut',
-  network: 'leaderboard.name.error.network',
-  rejected: 'leaderboard.name.error.rejected',
+  handle_taken: 'profile.name.error.handleTaken',
+  name_reserved: 'profile.name.error.reserved',
+  name_unreadable: 'profile.name.error.unreadable',
+  signed_out: 'profile.name.error.signedOut',
+  network: 'profile.name.error.network',
+  rejected: 'profile.name.error.rejected',
 };
 
-interface ILeaderboardNameProps {
+interface IProfileNameFormProps {
   /**
    * The name as it is now, when one has been chosen: the form starts from it
    * and says it is a change, and nothing is sent until something differs.
@@ -30,29 +30,26 @@ interface ILeaderboardNameProps {
   initial?: { handle: string; displayName: string };
   /** Sends the name; resolves whether the server took it. */
   save: (handle: string, displayName: string) => Promise<boolean>;
-  /** The name was saved; the board can be asked for again, now with them in it. */
+  /** The name was saved. */
   onSaved: () => void;
   /** Offered only where the form can be put away without a name being saved. */
   onCancel?: () => void;
 }
 
 /**
- * Choosing the name the board ranks — once, before a member can be on it —
- * and changing it later from the account panel.
+ * Choosing the name the Visualizers gallery credits a member's published
+ * scenes with, and changing it later, from the account panel.
  *
- * The server keeps each computer's listening under the member's profile, so
- * without one there is nothing to rank; and the handle and name are what the
- * Visualizers gallery credits a published scene with. The card shows the
- * member as the board will — their disc in their own colour, the name, the
- * @handle — and redraws it with every key, so the choice is made looking at
- * the result rather than at two empty boxes.
+ * The card shows the member as the gallery will — their disc in their own
+ * colour, the name, the @handle — and redraws it with every key, so the
+ * choice is made looking at the result rather than at two empty boxes.
  */
-export default function LeaderboardName({
+export default function ProfileNameForm({
   initial,
   save,
   onSaved,
   onCancel,
-}: ILeaderboardNameProps) {
+}: IProfileNameFormProps) {
   const { t } = useTranslation();
   const { saving, error } = useProfile();
   const [handle, setHandle] = useState(initial?.handle ?? '');
@@ -67,7 +64,7 @@ export default function LeaderboardName({
     trimmedName === initial.displayName;
   const valid =
     HANDLE_PATTERN.test(handle) && trimmedName.length > 0 && !unchanged;
-  const shownName = trimmedName || t('leaderboard.name.previewName');
+  const shownName = trimmedName || t('profile.name.previewName');
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -81,43 +78,43 @@ export default function LeaderboardName({
 
   return (
     <form
-      className="leaderboard-name"
+      className="profile-name"
       style={identityStyle(handle)}
       aria-labelledby={`${handleId}-title`}
       onSubmit={(event) => {
         submit(event).catch(() => undefined);
       }}
     >
-      {/* How the board will show them, drawn from what is typed. */}
-      <div className="leaderboard-name__preview" aria-hidden="true">
+      {/* How the gallery will show them, drawn from what is typed. */}
+      <div className="profile-name__preview" aria-hidden="true">
         <Avatar handle={handle} displayName={shownName} size="podium" />
-        <span className="leaderboard-name__preview-name community__name community__name--hued">
+        <span className="profile-name__preview-name community__name community__name--hued">
           {shownName}
         </span>
         <span className="community__handle">@{handle || '…'}</span>
       </div>
 
-      <div className="leaderboard-name__body">
-        <span id={`${handleId}-title`} className="leaderboard-name__title">
-          {t(initial ? 'account.name.changeTitle' : 'leaderboard.name.title')}
+      <div className="profile-name__body">
+        <span id={`${handleId}-title`} className="profile-name__title">
+          {t(initial ? 'account.name.changeTitle' : 'profile.name.title')}
         </span>
-        <span className="leaderboard-name__lead">
-          {t(initial ? 'account.name.changeBody' : 'leaderboard.name.body')}
+        <span className="profile-name__lead">
+          {t(initial ? 'account.name.changeBody' : 'profile.name.body')}
         </span>
 
-        <div className="leaderboard-name__fields">
-          <label className="leaderboard-name__field" htmlFor={handleId}>
-            <span className="leaderboard-name__label">
-              {t('leaderboard.name.handle')}
-              <span className="leaderboard-name__hint">
-                {t('leaderboard.name.handleHint')}
+        <div className="profile-name__fields">
+          <label className="profile-name__field" htmlFor={handleId}>
+            <span className="profile-name__label">
+              {t('profile.name.handle')}
+              <span className="profile-name__hint">
+                {t('profile.name.handleHint')}
               </span>
             </span>
-            <span className="leaderboard-name__at">
+            <span className="profile-name__at">
               <span aria-hidden="true">@</span>
               <input
                 id={handleId}
-                className="leaderboard-name__handle"
+                className="profile-name__handle"
                 type="text"
                 value={handle}
                 maxLength={MAX_HANDLE}
@@ -132,13 +129,13 @@ export default function LeaderboardName({
               />
             </span>
           </label>
-          <label className="leaderboard-name__field" htmlFor={nameId}>
-            <span className="leaderboard-name__label">
-              {t('leaderboard.name.name')}
+          <label className="profile-name__field" htmlFor={nameId}>
+            <span className="profile-name__label">
+              {t('profile.name.name')}
             </span>
             <input
               id={nameId}
-              className="leaderboard-name__input"
+              className="profile-name__input"
               type="text"
               value={displayName}
               maxLength={MAX_DISPLAY_NAME}
@@ -151,15 +148,15 @@ export default function LeaderboardName({
           </label>
           <button
             type="submit"
-            className="button small leaderboard-name__save"
+            className="button small profile-name__save"
             disabled={!valid || saving}
           >
-            {t('leaderboard.name.save')}
+            {t('profile.name.save')}
           </button>
           {onCancel && (
             <button
               type="button"
-              className="button small subtle leaderboard-name__cancel"
+              className="button small subtle profile-name__cancel"
               onClick={() => {
                 clearProfileError();
                 onCancel();
@@ -171,7 +168,7 @@ export default function LeaderboardName({
         </div>
 
         {error && (
-          <p className="leaderboard__error" role="alert">
+          <p className="profile-name__error" role="alert">
             {t(ERROR_KEYS[error])}
           </p>
         )}

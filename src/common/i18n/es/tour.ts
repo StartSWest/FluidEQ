@@ -255,7 +255,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.title': 'Escenas que son tuyas para siempre',
   'tour.plus.subtitle': 'Visualizadores, Estudio, iluminación y más',
   'tour.plus.lead':
-    'Una pestaña entera de extras que hace crecer FluidEQ: escenas dibujadas en tu tarjeta gráfica, un Estudio para crear las tuyas, la clasificación, fondos de escritorio e Iluminación dinámica. Una escena cuesta un crédito y se queda contigo, y el ecualizador, el rack y los reproductores siguen siendo gratis, como siempre.',
+    'Una pestaña entera de extras que hace crecer FluidEQ: escenas dibujadas en tu tarjeta gráfica, un Estudio para crear las tuyas, fondos de escritorio e Iluminación dinámica. Una escena cuesta un crédito y se queda contigo, y el ecualizador, el rack y los reproductores siguen siendo gratis, como siempre.',
   'tour.plus.point1':
     'Inicia sesión desde Cuenta en el menú de acciones: una cuenta confirmada recibe créditos gratis para empezar.',
   'tour.plus.point2':
@@ -263,10 +263,10 @@ const tour: Partial<Dictionary> = {
   'tour.plus.point3':
     'Cada escena se puede ver antes, y las que consigues suenan en cada equipo en el que inicias sesión.',
   'tour.plus.how':
-    'Abre la pestaña Plus: en su lateral izquierdo tienes Clasificación, Visualizadores, Estudio e Iluminación dinámica.',
+    'Abre la pestaña Plus: en su lateral izquierdo tienes Visualizadores, Estudio e Iluminación dinámica.',
   'tour.plus.open': 'Abrir Plus',
   'tour.plus.imageAlt':
-    'La pestaña Plus: Clasificación, Visualizadores, Estudio e Iluminación dinámica en el lateral, y la galería de Visualizadores con Cromo, Floración, Aurora, Alpino y Ciudad de neón.',
+    'La pestaña Plus: Visualizadores, Estudio e Iluminación dinámica en el lateral, y la galería de Visualizadores con Cromo, Floración, Aurora, Alpino y Ciudad de neón.',
   'tour.scene.alpine': 'Alpino',
   'tour.scene.aurora': 'Aurora',
   'tour.scene.bloom': 'Floración',

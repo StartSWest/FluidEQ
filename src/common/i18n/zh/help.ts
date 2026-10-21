@@ -71,7 +71,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.dsp': '效果机架：预设、“房间”，以及处理链的每个环节。',
   'help.window.library': '你的音乐文件、专辑和播放队列。',
   'help.window.karaoke': '跟着唱，也可以用你自己的歌曲制作卡拉OK。',
-  'help.window.plus': '可视化、图库、排行榜和工作室。',
+  'help.window.plus': '可视化、图库、工作室和动态灯光。',
   'help.window.support': '支持 FluidEQ 开发工作的几种方式。',
   'help.window.help': '本指南、“更新说明”、音频排障工具和“报告问题”。',
   'help.window.actions':
@@ -444,14 +444,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': '你的账户、点数和 Plus 标签页',
   'help.plus.intro':
-    '账户是可选的：原本免费的一切在这台电脑上无需账户即可运行。登录后，Plus 标签页包含“可视化”、排行榜、工作室、动态灯光和桌面可视化。“可视化”中的场景每个一点，并永久归你；已确认的账户可免费获得一些点数，点数包只需付款一次。',
+    '账户是可选的：原本免费的一切在这台电脑上无需账户即可运行。登录后，Plus 标签页包含“可视化”、工作室、动态灯光和桌面可视化。“可视化”中的场景每个一点，并永久归你；已确认的账户可免费获得一些点数，点数包只需付款一次。',
   'help.plus.steps':
     '在操作菜单中打开“账户”。登录，或创建账户并输入发送到你邮箱的六位验证码。\n打开 Plus 标签页并选择“可视化”。打开一个场景，观看后按“获取”为它花费一点。\n需要更多点数时，打开“账户”并选择一个点数包。它在浏览器中通过 Stripe 一次性付款。',
   'help.plus.tip':
     '应用从不接触你的银行卡，也不会自动续费。一个账户最多可在五台电脑上保持登录。',
   'help.plus.keywords':
     '账户, 登录, 注册, 点数, 积分, 点数包, 购买, 价格, 费用, 付款, 支付, 高级, 付费, 场景, 订阅, 取消, 会员, 邮箱验证码',
-  'help.plus.leaderboard': '在加入的 Plus 会员中，谁听得最多。',
   'help.plus.visualizers': 'FluidEQ 和会员创作的场景，随你的音乐律动。',
   'help.plus.studio': '用你的 AI 创作自己的场景。',
   'help.plus.lighting': '你的 RGB 设备跟随场景变化。',
@@ -480,21 +479,6 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.play': '把场景添加到你的外观，或在图表上播放它。',
   'help.gallery.desktop': '把场景放到桌面图标后面。',
   'help.gallery.inspect': '在工作室中打开 FluidEQ 的场景，看看它是怎么做的。',
-
-  'help.leaderboard.title': '排行榜',
-  'help.leaderboard.intro':
-    '排行榜按收听时长和场景获得的点赞，为加入的 Plus 会员排名。除非你加入，否则它处于关闭状态。',
-  'help.leaderboard.steps':
-    '打开“账户”，按“加入排行榜”。\n打开“Plus → 排行榜”。选择排行榜上显示的用户名和显示名，然后在“全部时间”和“本月”之间切换。\n想停止时，按“退出排行榜”。“删除我的全部数据”会删除你发送过的所有内容。',
-  'help.leaderboard.tip':
-    '每天只有一个数字离开你的电脑——播放音乐的分钟数——绝不会包含你播放的内容。每个数字都会在服务器上核查。 昵称和名字以后可在“账户 → 更改名字”里修改；排行榜和你发布的场景会一起更新。',
-  'help.leaderboard.keywords':
-    '榜单, 统计, 听歌时长, 听歌排行, 分数, 比赛, 隐私',
-  'help.leaderboard.periodName': '全部时间或本月',
-  'help.leaderboard.period': '全部历史记录，或仅限本月。',
-  'help.leaderboard.standing': '你的名次和积分，以及距离下一个名次还差多少分。',
-  'help.leaderboard.earn':
-    '每小时 10 分，每天收听 30 分钟或以上得 20 分，每个赞 5 分。',
 
   'help.studio.title': '在工作室中创作场景',
   'help.studio.intro':

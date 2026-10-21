@@ -80,7 +80,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.karaoke':
     'Canta con la música y convierte tus propias canciones en karaoke.',
   'help.window.plus':
-    'Visualizadores, la galería, la Clasificación y el Estudio.',
+    'Visualizadores, la galería, el Estudio y la Iluminación dinámica.',
   'help.window.support': 'Formas de apoyar el desarrollo de FluidEQ.',
   'help.window.help':
     'Esta guía, Novedades, el solucionador de problemas de audio e Informar de un problema.',
@@ -494,15 +494,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.plus.title': 'Tu cuenta, los créditos y la pestaña Plus',
   'help.plus.intro':
-    'La cuenta es opcional: todo lo que era gratis funciona en este equipo sin ella. Con la sesión iniciada, la pestaña Plus reúne Visualizadores, la Clasificación, el Estudio, la Iluminación dinámica y el visualizador de escritorio. Una escena de Visualizadores cuesta un crédito y es tuya para siempre; una cuenta confirmada recibe algunos créditos gratis, y los paquetes de créditos se pagan una sola vez.',
+    'La cuenta es opcional: todo lo que era gratis funciona en este equipo sin ella. Con la sesión iniciada, la pestaña Plus reúne Visualizadores, el Estudio, la Iluminación dinámica y el visualizador de escritorio. Una escena de Visualizadores cuesta un crédito y es tuya para siempre; una cuenta confirmada recibe algunos créditos gratis, y los paquetes de créditos se pagan una sola vez.',
   'help.plus.steps':
     'Abre Cuenta en el menú de acciones. Inicia sesión, o crea una cuenta y escribe el código de seis dígitos que llega a tu correo.\nAbre la pestaña Plus y elige Visualizadores. Abre una escena, mírala y pulsa Conseguir para gastar un crédito en ella.\nPara tener más créditos, abre Cuenta y elige un paquete. Se paga una sola vez en Stripe, en tu navegador.',
   'help.plus.tip':
     'La app nunca ve tu tarjeta y nada se renueva. Una cuenta puede tener la sesión abierta en hasta cinco equipos.',
   'help.plus.keywords':
     'cuenta, iniciar sesión, entrar, registrarse, crear cuenta, créditos, crédito, paquete, comprar, precio, precios, coste, pago, pagar, premium, de pago, escena, suscripción, cancelar, membresía, miembro, código de correo',
-  'help.plus.leaderboard':
-    'Quién escucha más, entre los miembros Plus que se unen.',
   'help.plus.visualizers':
     'Escenas de FluidEQ y de los miembros, listas para tu música.',
   'help.plus.studio': 'Crea tus propias escenas con tu IA.',
@@ -538,22 +536,6 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.desktop': 'Pone la escena detrás de los iconos del escritorio.',
   'help.gallery.inspect':
     'Abre la escena de FluidEQ en el Estudio para ver cómo está hecha.',
-
-  'help.leaderboard.title': 'La Clasificación',
-  'help.leaderboard.intro':
-    'La Clasificación ordena a los miembros Plus que se unen a ella según cuánto escuchan y los me gusta que reciben sus escenas. Está desactivada salvo que te unas.',
-  'help.leaderboard.steps':
-    'Abre Cuenta y pulsa Unirme a la clasificación.\nAbre Plus → Clasificación. Elige el alias y el nombre con los que apareces en la clasificación, y cambia entre Histórico y Este mes.\nPara dejarlo, pulsa Salir de la clasificación. Eliminar todos mis datos borra todo lo que has enviado.',
-  'help.leaderboard.tip':
-    'De tu ordenador sale un solo número al día, los minutos de música que han sonado, y nunca lo que escuchas. Cada número se comprueba en el servidor. Tu alias y tu nombre se pueden cambiar después desde Cuenta → Cambiar nombre; la clasificación y tus escenas publicadas lo siguen.',
-  'help.leaderboard.keywords':
-    'ranking, tabla de posiciones, top, estadísticas, tiempo de escucha, competencia, competición, apodo, nick, nombre de usuario, oyentes',
-  'help.leaderboard.periodName': 'Histórico o Este mes',
-  'help.leaderboard.period': 'Todo el historial, o solo este mes.',
-  'help.leaderboard.standing':
-    'Tu puesto y tus puntos, y cuánto te falta para el siguiente puesto.',
-  'help.leaderboard.earn':
-    '10 puntos por hora, 20 por cada día de 30 minutos o más y 5 por cada me gusta.',
 
   'help.studio.title': 'Crea escenas en el Estudio',
   'help.studio.intro':

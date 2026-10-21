@@ -19,12 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import type {
-  ILeaderboardBoard,
-  ILeaderboardStatus,
-  TLeaderboardResult,
-} from './ipc/leaderboard';
-import type { TLeaderboardPeriod } from './usage/leaderboardApi';
-import type {
   IForumBoards,
   IForumTopic,
   IForumTopicPage,
@@ -35,38 +29,8 @@ import type {
 } from '../common/forum/forumTypes';
 
 /**
- * Listening minutes and the leaderboard, and the forum.
+ * The forum.
  */
-
-// Listening minutes and the leaderboard. Seconds go up as they are observed;
-// whether any of it leaves the machine is the person's choice, kept by main.
-const usageAccrue = (seconds: number) =>
-  ipcRenderer.invoke('usage-accrue', seconds) as Promise<void>;
-const leaderboardStatus = () =>
-  ipcRenderer.invoke('leaderboard-status') as Promise<ILeaderboardStatus>;
-const leaderboardOptIn = (value: boolean) =>
-  ipcRenderer.invoke(
-    'leaderboard-opt-in',
-    value,
-  ) as Promise<ILeaderboardStatus>;
-const leaderboardBoard = (period: TLeaderboardPeriod) =>
-  ipcRenderer.invoke('leaderboard-board', period) as Promise<
-    TLeaderboardResult<ILeaderboardBoard>
-  >;
-const leaderboardRemoveMe = () =>
-  ipcRenderer.invoke('leaderboard-remove-me') as Promise<
-    TLeaderboardResult<void>
-  >;
-const onLeaderboardStatus = (
-  listener: (status: ILeaderboardStatus) => void,
-) => {
-  const wrapped = (_event: IpcRendererEvent, status: ILeaderboardStatus) =>
-    listener(status);
-  ipcRenderer.on('leaderboard-status-changed', wrapped);
-  return () => {
-    ipcRenderer.removeListener('leaderboard-status-changed', wrapped);
-  };
-};
 
 // The forum: the project's GitHub Discussions. Every call answers a result
 // rather than throwing, so the reason something failed survives the bridge.
@@ -131,12 +95,6 @@ const onForumState = (listener: (state: TForumAuthState) => void) => {
 };
 
 const communityBridge = {
-  usageAccrue,
-  leaderboardStatus,
-  leaderboardOptIn,
-  leaderboardBoard,
-  leaderboardRemoveMe,
-  onLeaderboardStatus,
   forumState,
   forumSignIn,
   forumCancelSignIn,

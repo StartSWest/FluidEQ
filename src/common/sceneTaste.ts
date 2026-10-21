@@ -22,6 +22,15 @@ import type { TLocalizedName } from './scenePackFields';
 /** The terms revision that names what the app sends about scenes and engines. */
 export const SCENE_TASTE_TERMS = 10;
 
+/**
+ * How many days of scene plays a computer keeps and the server still takes,
+ * and the most one scene may count in a day — a computer left drawing
+ * overnight is not somebody watching. The server holds the same two numbers
+ * (premium migration 0047); the terms quote them.
+ */
+export const SCENE_PLAY_WINDOW_DAYS = 14;
+export const SCENE_PLAY_DAY_CAP_HOURS = 16;
+
 /** The periods the favourites page offers, in days; the last is "all time". */
 export const FAVOURITE_PERIODS = [7, 30, 90, 3650] as const;
 export type TFavouritePeriod = (typeof FAVOURITE_PERIODS)[number];

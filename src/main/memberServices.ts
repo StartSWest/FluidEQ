@@ -27,7 +27,6 @@ import { registerAccountIpc } from './ipc/account';
 import { registerAccountDeletionIpc } from './ipc/accountDeletion';
 import { registerAdminInsightsIpc } from './ipc/adminInsights';
 import { registerCreatorIpc } from './ipc/creator';
-import { registerLeaderboardIpc } from './ipc/leaderboard';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
@@ -40,6 +39,7 @@ import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
 import { registerSceneAnnouncementsIpc } from './ipc/sceneAnnouncements';
 import { registerSceneStoreIpc } from './ipc/sceneStore';
 import { registerSceneTasteIpc } from './ipc/sceneTaste';
+import forgetListening from './usage/forgetListening';
 import { registerSceneVersionsIpc } from './ipc/sceneVersions';
 import { createVersionPins } from './keptVersions';
 import { registerScenePacksIpc } from './ipc/scenePacks';
@@ -67,7 +67,7 @@ export interface IMemberServicesDeps {
 /**
  * The account and everything that rides on it: the Plus membership, its
  * terms, the looks, the members' scenes and the Studio, the gallery and its
- * review, the desktop backgrounds and the leaderboard.
+ * review and the desktop backgrounds.
  *
  * Registers the channels and reads whatever session is already on disk; it
  * contacts nothing. A build with no backend configured resolves to a store
@@ -90,10 +90,6 @@ const registerMemberServices = ({
     !app.isPackaged && process.env.FLUIDEQ_DEV_ENTITLED === '1'
       ? { state: 'active' as const, plan: 'plus (development)', renewing: true }
       : undefined;
-  // The leaderboard had a cast of twelve sample people ranked into it in
-  // development, for a board with nobody in it. There are real people on it
-  // now, and a made-up cast over them hides what is actually happening (Ivan,
-  // 2026-09-20): the board is the server's answer, in every build.
 
   const accountIpc = registerAccountIpc({
     getMainWindow,
@@ -101,6 +97,9 @@ const registerMemberServices = ({
     logger: log,
     developmentEntitlement,
   });
+
+  // The leaderboard's listening tally and computer id, gone with the board.
+  forgetListening(userDataDir, log);
 
   // The Plus terms promise that a member is told when they change. Asks the
   // server which version this account agreed to on the same events as the
@@ -359,22 +358,11 @@ const registerMemberServices = ({
     },
   });
 
-  // The member's name on the board and in the gallery. Registering contacts
+  // The member's name in the gallery. Registering contacts
   // nothing; the Plus tab asks for it when it opens.
   const plusProfileIpc = registerPlusProfileIpc({
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
-  });
-
-  // Listening minutes. Counted always, kept on this machine, and uploaded only
-  // for an account that opted in — on the same events as everything else.
-  const leaderboardIpc = registerLeaderboardIpc({
-    getMainWindow,
-    userDataDir,
-    config: ACCOUNT_CONFIG,
-    session: accountIpc.session,
-    entitlement: accountIpc.entitlement,
-    logger: log,
   });
 
   /** Everything above let go of, at quit. */
@@ -404,7 +392,6 @@ const registerMemberServices = ({
     // once FluidEQ is gone.
     studioChat.dispose();
     plusProfileIpc.dispose();
-    leaderboardIpc.dispose();
     sceneTasteIpc.dispose();
     sceneAnnouncementsIpc.dispose();
     adminInsightsIpc.dispose();
@@ -418,7 +405,6 @@ const registerMemberServices = ({
     memberSharingIpc,
     plusGalleryIpc,
     plusReviewIpc,
-    leaderboardIpc,
     sceneTasteIpc,
     sceneAnnouncementsIpc,
     wallpaperIpc,

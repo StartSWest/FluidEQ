@@ -38,26 +38,25 @@ Real captures of the FluidEQ window. Colours, labels and control positions may d
 
 **FluidEQ Plus**
 
-18. [FluidEQ Plus and your account](#plus)
+18. [Your account, credits and the Plus tab](#plus)
 19. [The Visualizers gallery](#gallery)
-20. [The Leaderboard](#leaderboard)
-21. [Make scenes in the Studio](#studio)
-22. [The desktop visualizer](#desktop)
-23. [Dynamic lighting (beta)](#lighting)
+20. [Make scenes in the Studio](#studio)
+21. [The desktop visualizer](#desktop)
+22. [Dynamic lighting (beta)](#lighting)
 
 **Listen, sing and share**
 
-24. [Listen with Online Media](#online)
-25. [Build your local library](#library)
-26. [Albums & your play queue](#queue)
-27. [Sing with Karaoke](#karaoke)
-28. [Create in Karaoke Maker](#maker)
-29. [Share audio between computers](#share)
+23. [Listen with Online Media](#online)
+24. [Build your local library](#library)
+25. [Albums & your play queue](#queue)
+26. [Sing with Karaoke](#karaoke)
+27. [Create in Karaoke Maker](#maker)
+28. [Share audio between computers](#share)
 
 **When you need help**
 
-30. [When something sounds wrong](#trouble)
-31. [Ask in the Forum](#forum)
+29. [When something sounds wrong](#trouble)
+30. [Ask in the Forum](#forum)
 
 <a id="start"></a>
 
@@ -97,7 +96,7 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 1. **DSP** — The effects rack: presets, the Room and every stage of the chain.
 2. **Library** — Your music files, albums and play queue.
 3. **Karaoke** — Sing along, and make karaoke out of your own songs.
-4. **Plus** — Visualizers, the gallery, the leaderboard and the Studio.
+4. **Plus** — Visualizers, the gallery, the Studio and Dynamic lighting.
 5. **Support the work** — Ways to support the work on FluidEQ.
 6. **FluidEQ actions** — The engine, your account, importing EQ settings, restarting Windows audio and Processes; Brightness and Transparency, animations, Start with Windows and the language.
 7. **Help** — This guide, What’s new, the audio troubleshooter and Report a problem.
@@ -302,8 +301,8 @@ EQ mode changes how your sound is shaped, without editing anything. Its settings
 4. **Band Q** — Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow. On Your EQ it shapes your own bands alone, never a preset or a correction.
 5. **Phase** — Minimum or Linear, for each tab. With the FluidEQ Engine only.
 6. **Treble** — Precise plays treble as drawn; Classic as Equalizer APO does. With the FluidEQ Engine only.
-7. **Curve smoothing** — Softens sampled correction curves: 1/12 octave until you choose otherwise.
-8. **Reset** — Everything back to Normal, and Curve smoothing back to 1/12 octave.
+7. **Curve smoothing** — Softens sampled correction curves at 1/12 or 1/3 octave. Off until you choose.
+8. **Reset** — Everything back to Normal, and Curve smoothing back to Off.
 
 ### Band designs
 
@@ -316,7 +315,7 @@ EQ mode changes how your sound is shaped, without editing anything. Its settings
 
 1. Press EQ mode above the graph. The card comes into view, and the side panel opens if it was closed.
 2. Pick the Your EQ or Corrections tab, then try a Strength or Band Q choice while music plays. Under the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble, for each tab.
-3. On Corrections, Curve smoothing softens sampled curves at 1/12 octave until you choose otherwise. Reset puts everything back to Normal, and smoothing back to 1/12 octave.
+3. On Corrections, Curve smoothing can soften sampled curves at 1/12 or 1/3 octave; it is Off until you choose. Reset puts everything back to Normal, and smoothing back to Off.
 4. Would you rather have a menu? Press the pin on the card: EQ mode then opens as a menu over the graph, and the pin in that menu brings the card back.
 5. Open the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.
 
@@ -356,8 +355,9 @@ A headphone correction compensates for a measured model. It is a starting point 
 
 1. Open EQ → EQ presets and search for your headphone model. Review the available measurements and choose the matching entry.
 2. For EQ text from another tool, use Import EQ settings in the actions menu. Review the parsed bands and curve before applying.
-3. For Squiglink, paste its export into the import panel. Apply as EQ replaces your bands; Apply as curve adds it as a headphone correction with its own strength.
-4. Import into, beside Apply as EQ, picks Both ears, Left ear or Right ear: one ear replaces only that ear’s bands and leaves the other ear as it was.
+3. For Squiglink, open the Squiglink tab and paste its export. Apply as EQ replaces your bands; Apply as curve adds it as a headphone correction with its own strength; Save to My curves keeps it with one press.
+4. My curves is your own list beside the OPRA library: Add curve takes a Squiglink export, a .txt file, your EQ as it is now or an OPRA pick. Each curve has Apply as curve and Apply as EQ, and its menu renames it, edits its bands, duplicates it, copies it as text or deletes it. Export list and Import list carry the whole list to another computer.
+5. Import into, beside Apply as EQ, picks Both ears, Left ear or Right ear: one ear replaces only that ear’s bands and leaves the other ear as it was.
 
 > **Good to know:** A preview marked not applied is not changing your sound. Avoid stacking two full corrections for the same headphones unless that is deliberate; compare with the headphone layer switched off.
 
@@ -577,31 +577,30 @@ Standard styles are free drawings of the live sound that you can colour and desi
 
 <a id="plus"></a>
 
-## FluidEQ Plus and your account
+## Your account, credits and the Plus tab
 
-An account is optional: everything that was free runs on this computer without one. FluidEQ Plus, monthly or yearly, adds Visualizers, the Leaderboard, the Studio, Dynamic lighting and the desktop visualizer. A new account can try Plus free for fifteen days, and a scene you publish that is approved earns you a month.
+An account is optional: everything that was free runs on this computer without one. Signed in, the Plus tab holds Visualizers, the Studio, Dynamic lighting and the desktop visualizer. A scene from Visualizers costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.
 
-![FluidEQ Plus and your account](25-plus-visualizers.png)
+![Your account, credits and the Plus tab](25-plus-visualizers.png)
 
 1. **Collapse the sidebar** — Folds the rail to its pictures; it opens again on hover.
-2. **Leaderboard** — Who listens most, among Plus members who join.
-3. **Visualizers** — Scenes by FluidEQ and members, ready for your music.
-4. **Studio** — Make your own scenes with your AI.
-5. **Dynamic lighting** — Your RGB devices follow the scene.
+2. **Visualizers** — Scenes by FluidEQ and members, ready for your music.
+3. **Studio** — Make your own scenes with your AI.
+4. **Dynamic lighting** — Your RGB devices follow the scene.
 
 ### Try it
 
 1. Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.
-2. Press Upgrade to Plus, read the terms, tick that you agree, and pay on Buy Me a Coffee in your browser with the same email.
-3. Open the Plus tab. Its rail leads to the Leaderboard, Visualizers, the Studio and Dynamic lighting.
+2. Open the Plus tab and choose Visualizers. Open a scene, watch it, and press Get to spend a credit on it.
+3. For more credits, open Account and choose a pack. It is paid once on Stripe, in your browser.
 
-> **Good to know:** The app never sees your card; Manage subscription changes or cancels it. The free trial asks for no card and charges nothing when it ends. An account stays signed in on up to five computers, and Plus keeps working offline for a while.
+> **Good to know:** The app never sees your card, and nothing renews. An account stays signed in on up to five computers.
 
 <a id="gallery"></a>
 
 ## The Visualizers gallery
 
-Visualizers holds FluidEQ’s own scenes and the ones members publish. Any account can browse and try FluidEQ’s free samples for ten seconds; Plus plays every scene on your music and adds it to your looks.
+Visualizers holds FluidEQ’s own scenes and the ones members publish. Any account can browse them and watch any scene for ten seconds; a scene you get with a credit plays on your music and stays in your looks, for good.
 
 ![The Visualizers gallery](25-plus-visualizers.png)
 
@@ -625,36 +624,16 @@ Visualizers holds FluidEQ’s own scenes and the ones members publish. Any accou
 ### Try it
 
 1. Open Plus → Visualizers. Search, sort by Most liked, This week or Newest, or pick a category.
-2. Open a scene, press Add to my looks, then Play on the graph. The arrows, or ← and →, step between scenes.
-3. Like members’ scenes with the heart, and report one that should not be there.
+2. Open a scene and press Get to keep it with a credit, then Play on the graph. The arrows, or ← and →, step between scenes.
+3. Like the scenes you have with the heart, and report one that should not be there.
 
 > **Good to know:** Scenes in your looks update themselves, and a scene’s page says what changed in each version. A scene you publish appears once FluidEQ’s maker has approved it. Open in Studio shows how FluidEQ’s own scenes are made.
-
-<a id="leaderboard"></a>
-
-## The Leaderboard
-
-The Leaderboard ranks the Plus members who join it, by how much they listen and by the likes their scenes earn. It is off unless you join.
-
-![The Leaderboard](28-plus-leaderboard.png)
-
-1. **All time or This month** — The whole history, or this month only.
-2. **How to earn points** — 10 points an hour, 20 for each day of 30 minutes or more, 5 for each like.
-3. **Your standing** — Your rank and points, and how far the next place is.
-
-### Try it
-
-1. Open Account and press Join the leaderboard.
-2. Open Plus → Leaderboard. Choose the handle and name the board shows, then switch between All time and This month.
-3. To stop, press Leave the leaderboard. Remove all my data deletes everything you sent.
-
-> **Good to know:** One number a day leaves your computer — the minutes of music that played — and never what you play. Every number is checked on the server. Your handle and name can be changed later from Account → Change name; the board and your published scenes follow.
 
 <a id="studio"></a>
 
 ## Make scenes in the Studio
 
-The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved. The Studio is part of Plus; a new account can open it on the free trial.
+The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved. The Studio is free for every account.
 
 ![Make scenes in the Studio](31-plus-studio.png)
 
@@ -673,7 +652,7 @@ The Studio turns a description into a visualizer. Your own AI assistant writes t
 3. Or type what should change in the chat beside the stage: Claude Code on this computer, signed in with your own plan, edits the scene and plays each version. Every reply keeps its version, with Bring back.
 4. Watch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….
 
-> **Good to know:** Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and one that is approved earns you a month of Plus.
+> **Good to know:** Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and once it is approved it plays free for you everywhere.
 
 <a id="desktop"></a>
 
@@ -706,7 +685,7 @@ Dynamic lighting lights your keyboard, mouse, mousepad, headset and stand with t
 
 ![Dynamic lighting (beta)](29-plus-lighting.png)
 
-1. **Light my devices while a Plus scene plays** — Lights your devices while a Plus visualizer plays.
+1. **Light my devices while a scene plays** — Lights your devices while a Plus visualizer plays.
 2. **Browse visualizers** — Opens the gallery to choose a visualizer.
 3. **Live desk preview** — Your own desk, lit with the colours sent to it.
 4. **All devices** — Back to tuning every device at once.

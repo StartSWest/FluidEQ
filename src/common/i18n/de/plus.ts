@@ -127,7 +127,6 @@ const plus = {
   'plus.scene.moreByYou': 'Mehr von Ihnen',
 
   'plus.maker.you': 'Sie',
-  'plus.maker.rank': 'Platz',
   'plus.maker.scenes': 'Szenen',
   'plus.maker.empty': 'Derzeit nichts veröffentlicht.',
 
@@ -299,7 +298,6 @@ const plus = {
   'plus.accounts.plan.giftUntil': 'Geschenk bis {date}',
   'plus.accounts.goes': 'Wird mitgelöscht',
   'plus.accounts.fact.published': 'Veröffentlichte Szenen',
-  'plus.accounts.fact.boardDays': 'Ranglistentage',
   'plus.accounts.fact.likes': 'Vergebene „Gefällt mir“',
   'plus.accounts.fact.adds': 'Hinzugefügte Szenen',
   'plus.accounts.fact.reports': 'Gesendete Meldungen',

@@ -27,7 +27,7 @@ const account = {
   'account.name.change': '更改名字',
   'account.name.changeTitle': '更改你的显示方式',
   'account.name.changeBody':
-    '你在排行榜和已发布场景上的昵称与名字。改动会同时在所有地方生效；你的邮箱仍然保密。',
+    '你在已发布场景上的昵称与名字。改动会同时在所有地方生效；你的邮箱仍然保密。',
   'account.name.cancel': '取消',
   'account.backToSignIn': '返回登录',
 
@@ -74,11 +74,9 @@ const account = {
   'account.error.alreadyRegistered': '该地址已有账户。请直接登录。',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.active': '已激活',
 
   'account.perk.looks': '永久归你的场景，每个一点。',
   'account.perk.visualizers': '“可视化”：会员创作的场景，向所有账户开放。',
-  'account.perk.board': '谁听得最多的排行榜。',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': '使用 Google 继续',
   'account.or': '或',

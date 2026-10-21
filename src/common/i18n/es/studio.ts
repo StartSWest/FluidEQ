@@ -127,7 +127,6 @@ const studio = {
   'studio.publish.noteNeeded': 'Obligatorio',
   'studio.publish.point1':
     'Cualquiera con la sesión iniciada puede verla en Visualizadores, mirarla unos segundos y conseguirla con un crédito. Para ti suena gratis.',
-  'studio.publish.point2': 'Cada me gusta te da puntos en la clasificación.',
   'studio.publish.point3':
     'Puedes dejar de publicarla para que nadie nuevo pueda conseguirla. Quien ya la tiene se la queda.',
   'studio.publish.point3Update':
@@ -205,8 +204,6 @@ const studio = {
     'Tus escenas siguen siendo tuyas. Exportar una permite que otros miembros la abran, y la reproducen cuando la tienen.',
   'studio.share.point1':
     'Quien reciba el archivo solo la reproduce cuando tiene la escena, con un crédito una vez publicada. No puede venderla.',
-  'studio.share.point2':
-    'Cada me gusta de otro miembro te suma puntos en la clasificación.',
   'studio.share.point3':
     'Los comentarios del shader se eliminan y tu nombre visible va con la escena.',
   'studio.share.read': 'Leer las condiciones',

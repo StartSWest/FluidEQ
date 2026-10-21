@@ -29,7 +29,7 @@ const account = {
   'account.name.change': 'Mudar nome',
   'account.name.changeTitle': 'Mude como você aparece',
   'account.name.changeBody':
-    'Seu nome de usuário e seu nome na classificação e nas cenas que você publicou. Mudam em todo lugar ao mesmo tempo; seu email continua privado.',
+    'Seu nome de usuário e seu nome nas cenas que você publicou. Mudam em todo lugar ao mesmo tempo; seu email continua privado.',
   'account.name.cancel': 'Cancelar',
   'account.backToSignIn': 'Voltar para o login',
 
@@ -84,12 +84,10 @@ const account = {
     'Já existe uma conta com esse endereço. Entre em vez disso.',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.active': 'Ativa',
 
   'account.perk.looks': 'Cenas que são suas para sempre, um crédito cada.',
   'account.perk.visualizers':
     'Visualizadores: as cenas que os membros criam, abertas a todas as contas.',
-  'account.perk.board': 'Uma classificação de quem ouve mais.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continuar com o Google',
   'account.or': 'ou',

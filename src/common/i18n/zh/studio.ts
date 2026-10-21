@@ -117,7 +117,6 @@ const studio = {
   'studio.publish.noteNeeded': '必填',
   'studio.publish.point1':
     '任何已登录的人都能在“可视化”中看到它，观看几秒，并用一点获取它。对你来说它免费播放。',
-  'studio.publish.point2': '每个赞都会为你在排行榜上加分。',
   'studio.publish.point3':
     '你可以取消发布，这样就没有新的人能获取它。已经拥有的人会保留它。',
   'studio.publish.point3Update':
@@ -182,7 +181,6 @@ const studio = {
     '你的场景始终属于你。导出后其他会员可以打开它，在拥有它之后即可播放。',
   'studio.share.point1':
     '收到文件的人只有在拥有该场景后才能播放——在它发布后用一点获取。他们不能出售它。',
-  'studio.share.point2': '其他会员的每一个赞，都会为你在排行榜上赢得积分。',
   'studio.share.point3': '着色器中的注释会被移除，你的显示名会随场景一起发送。',
   'studio.share.read': '阅读条款',
   'studio.share.cancel': '以后再说',

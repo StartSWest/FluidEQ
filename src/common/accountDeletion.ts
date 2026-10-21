@@ -32,7 +32,6 @@ export interface IAccountToDelete {
   plan?: string;
   plusUntil?: number;
   published: number;
-  boardDays: number;
   likes: number;
   adds: number;
   reports: number;
@@ -120,7 +119,6 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
   const createdAt = timeOf(row.created_at);
   const plusUntil = timeOf(row.plus_until);
   const published = countOf(row.published);
-  const boardDays = countOf(row.board_days);
   const likes = countOf(row.likes);
   const adds = countOf(row.adds);
   const reports = countOf(row.reports);
@@ -128,7 +126,6 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
     createdAt === undefined ||
     plusUntil === undefined ||
     published === undefined ||
-    boardDays === undefined ||
     likes === undefined ||
     adds === undefined ||
     reports === undefined
@@ -163,7 +160,6 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
     ...(displayName ? { displayName } : {}),
     ...(plan && plusUntil !== null ? { plan, plusUntil } : {}),
     published,
-    boardDays,
     likes,
     adds,
     reports,

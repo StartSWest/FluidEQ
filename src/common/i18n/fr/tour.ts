@@ -258,7 +258,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.title': 'Des scènes à vous pour de bon',
   'tour.plus.subtitle': 'Visualiseurs, Studio, éclairage et plus encore',
   'tour.plus.lead':
-    'Un onglet entier d’extras qui fait grandir FluidEQ : des scènes dessinées sur votre carte graphique, un Studio pour créer les vôtres, le classement, des fonds de Bureau et l’Éclairage dynamique. Une scène coûte un crédit et vous reste, et l’égaliseur, le rack et les lecteurs restent gratuits, comme toujours.',
+    'Un onglet entier d’extras qui fait grandir FluidEQ : des scènes dessinées sur votre carte graphique, un Studio pour créer les vôtres, des fonds de Bureau et l’Éclairage dynamique. Une scène coûte un crédit et vous reste, et l’égaliseur, le rack et les lecteurs restent gratuits, comme toujours.',
   'tour.plus.point1':
     'Connectez-vous depuis Compte dans le menu des actions : un compte confirmé reçoit des crédits gratuits pour commencer.',
   'tour.plus.point2':
@@ -266,10 +266,10 @@ const tour: Partial<Dictionary> = {
   'tour.plus.point3':
     'Chaque scène peut être regardée d’abord, et celles que vous obtenez jouent sur chaque ordinateur où vous vous connectez.',
   'tour.plus.how':
-    'Ouvrez l’onglet Plus : Classement, Visualiseurs, Studio et Éclairage dynamique se trouvent sur sa gauche.',
+    'Ouvrez l’onglet Plus : Visualiseurs, Studio et Éclairage dynamique se trouvent sur sa gauche.',
   'tour.plus.open': 'Ouvrir Plus',
   'tour.plus.imageAlt':
-    'L’onglet Plus : Classement, Visualiseurs, Studio et Éclairage dynamique sur le côté, et la galerie Visualiseurs avec Chrome, Floraison, Aurore, Alpin et Ville néon.',
+    'L’onglet Plus : Visualiseurs, Studio et Éclairage dynamique sur le côté, et la galerie Visualiseurs avec Chrome, Floraison, Aurore, Alpin et Ville néon.',
   'tour.scene.alpine': 'Alpin',
   'tour.scene.aurora': 'Aurore',
   'tour.scene.bloom': 'Floraison',

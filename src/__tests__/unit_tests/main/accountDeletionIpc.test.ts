@@ -126,7 +126,6 @@ describe('finding the account behind an address', () => {
           userId: SOMEONE,
           email: 'Leaving@Example.com',
           published: 2,
-          boardDays: 9,
         }),
       ],
     });

@@ -143,7 +143,6 @@ const bridge = {
   listScenePacks: jest.fn(),
   refreshScenePacks: jest.fn(),
   onScenePacksChanged: jest.fn(),
-  leaderboardBoard: jest.fn(),
 };
 
 beforeEach(() => {
@@ -169,7 +168,6 @@ beforeEach(() => {
   bridge.refreshScenePacks.mockResolvedValue(listing);
   bridge.onMemberScenesChanged.mockReturnValue(() => undefined);
   bridge.onScenePacksChanged.mockReturnValue(() => undefined);
-  bridge.leaderboardBoard.mockResolvedValue({ ok: false, failure: 'network' });
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: { ipcRenderer: bridge },

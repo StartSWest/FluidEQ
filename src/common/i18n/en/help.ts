@@ -82,7 +82,7 @@ const help = {
   'help.window.library': 'Your music files, albums and play queue.',
   'help.window.karaoke': 'Sing along, and make karaoke out of your own songs.',
   'help.window.plus':
-    'Visualizers, the gallery, the leaderboard and the Studio.',
+    'Visualizers, the gallery, the Studio and Dynamic lighting.',
   'help.window.support': 'Ways to support the work on FluidEQ.',
   'help.window.help':
     'This guide, What’s new, the audio troubleshooter and Report a problem.',
@@ -483,14 +483,13 @@ const help = {
 
   'help.plus.title': 'Your account, credits and the Plus tab',
   'help.plus.intro':
-    'An account is optional: everything that was free runs on this computer without one. Signed in, the Plus tab holds Visualizers, the Leaderboard, the Studio, Dynamic lighting and the desktop visualizer. A scene from Visualizers costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.',
+    'An account is optional: everything that was free runs on this computer without one. Signed in, the Plus tab holds Visualizers, the Studio, Dynamic lighting and the desktop visualizer. A scene from Visualizers costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.',
   'help.plus.steps':
     'Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.\nOpen the Plus tab and choose Visualizers. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open Account and choose a pack. It is paid once on Stripe, in your browser.',
   'help.plus.tip':
     'The app never sees your card, and nothing renews. An account stays signed in on up to five computers.',
   'help.plus.keywords':
     'account, sign in, login, log in, sign up, register, credits, credit, pack, buy, price, pricing, cost, payment, pay, premium, paid, scene, subscription, cancel, membership, member, email code',
-  'help.plus.leaderboard': 'Who listens most, among Plus members who join.',
   'help.plus.visualizers':
     'Scenes by FluidEQ and members, ready for your music.',
   'help.plus.studio': 'Make your own scenes with your AI.',
@@ -524,22 +523,6 @@ const help = {
   'help.gallery.desktop': 'Puts the scene behind your desktop icons.',
   'help.gallery.inspect':
     'Opens FluidEQ’s scene in the Studio to see how it is made.',
-
-  'help.leaderboard.title': 'The Leaderboard',
-  'help.leaderboard.intro':
-    'The Leaderboard ranks the Plus members who join it, by how much they listen and by the likes their scenes earn. It is off unless you join.',
-  'help.leaderboard.steps':
-    'Open Account and press Join the leaderboard.\nOpen Plus → Leaderboard. Choose the handle and name the board shows, then switch between All time and This month.\nTo stop, press Leave the leaderboard. Remove all my data deletes everything you sent.',
-  'help.leaderboard.tip':
-    'One number a day leaves your computer — the minutes of music that played — and never what you play. Every number is checked on the server. Your handle and name can be changed later from Account → Change name; the board and your published scenes follow.',
-  'help.leaderboard.keywords':
-    'ranking, ranks, rank, points, score, top listeners, stats, statistics, listening time, competition, board',
-  'help.leaderboard.periodName': 'All time or This month',
-  'help.leaderboard.period': 'The whole history, or this month only.',
-  'help.leaderboard.standing':
-    'Your rank and points, and how far the next place is.',
-  'help.leaderboard.earn':
-    '10 points an hour, 20 for each day of 30 minutes or more, 5 for each like.',
 
   'help.studio.title': 'Make scenes in the Studio',
   'help.studio.intro':

@@ -36,7 +36,6 @@ const account = (over: Partial<IAccountToDelete> = {}): IAccountToDelete => ({
   handle: 'leaving_one',
   displayName: 'Leaving One',
   published: 6,
-  boardDays: 41,
   likes: 128,
   adds: 17,
   reports: 0,

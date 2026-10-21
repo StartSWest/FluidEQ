@@ -15,7 +15,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { createScenePlayLedger } from '../../../main/usage/scenePlayLedger';
+import {
+  createScenePlayLedger,
+  localDayKey,
+} from '../../../main/usage/scenePlayLedger';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const NOON = new Date(2026, 9, 13, 12).getTime();
@@ -108,5 +111,18 @@ describe('the scene play ledger', () => {
     expect(ledger().pending(ME)).toEqual([
       { day: '2026-10-13', plays: [{ sceneId: 'alpine', seconds: 30 }] },
     ]);
+  });
+});
+
+describe('the day a play is filed under', () => {
+  // The reader's calendar, not UTC's: a scene watched at a quarter past
+  // midnight belongs to the day the clock on the wall says.
+  it('is the local day, padded', () => {
+    expect(localDayKey(new Date(2026, 0, 5, 0, 15).getTime())).toBe(
+      '2026-01-05',
+    );
+    expect(localDayKey(new Date(2026, 11, 31, 23, 59).getTime())).toBe(
+      '2026-12-31',
+    );
   });
 });

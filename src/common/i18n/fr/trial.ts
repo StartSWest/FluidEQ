@@ -8,7 +8,6 @@ const trial = {
     'Regardez n’importe quelle scène et gardez celles que vous obtenez',
   'trial.extras.studio': 'Créez et publiez vos propres scènes dans le Studio',
   'trial.extras.desktop': 'Vos scènes sur le Bureau et sur vos éclairages RGB',
-  'trial.extras.board': 'Participation facultative au classement',
   'trial.browse':
     'Un compte gratuit vous permet de parcourir la galerie et de participer au Forum.',
 };

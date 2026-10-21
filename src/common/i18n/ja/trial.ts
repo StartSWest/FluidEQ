@@ -6,7 +6,6 @@ const trial = {
   'trial.extras.scenes': 'どのシーンも見られて、入手したものは手元に',
   'trial.extras.studio': 'スタジオで自分のシーンを作成・公開',
   'trial.extras.desktop': 'あなたのシーンをデスクトップと RGB ライトに',
-  'trial.extras.board': '希望者のみランキングに参加',
   'trial.browse':
     '無料アカウントでギャラリーの閲覧やフォーラムへの参加ができます。',
 };

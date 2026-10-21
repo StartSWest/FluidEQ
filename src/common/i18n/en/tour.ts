@@ -269,7 +269,7 @@ const tour = {
   'tour.plus.title': 'Scenes that are yours for good',
   'tour.plus.subtitle': 'Visualizers, Studio, lighting and more',
   'tour.plus.lead':
-    'A whole tab of extras that keeps FluidEQ growing: scenes drawn on your graphics card, a Studio to make your own, the leaderboard, desktop backgrounds and Dynamic lighting. A scene costs one credit and stays yours, and the equaliser, the rack and the players stay free, as they always have been.',
+    'A whole tab of extras that keeps FluidEQ growing: scenes drawn on your graphics card, a Studio to make your own, desktop backgrounds and Dynamic lighting. A scene costs one credit and stays yours, and the equaliser, the rack and the players stay free, as they always have been.',
   'tour.plus.point1':
     'Sign in from Account in the actions menu: a confirmed account gets free credits to start.',
   'tour.plus.point2':
@@ -277,10 +277,10 @@ const tour = {
   'tour.plus.point3':
     'Every scene can be watched first, and the ones you get play on every computer you sign in to.',
   'tour.plus.how':
-    'Open the Plus tab: the Leaderboard, Visualizers, the Studio and Dynamic lighting are down its left side.',
+    'Open the Plus tab: Visualizers, the Studio and Dynamic lighting are down its left side.',
   'tour.plus.open': 'Open Plus',
   'tour.plus.imageAlt':
-    'The Plus tab: Leaderboard, Visualizers, Studio and Dynamic lighting down the side, and the Visualizers gallery with Chrome, Bloom, Aurora, Alpine and Neon City.',
+    'The Plus tab: Visualizers, Studio and Dynamic lighting down the side, and the Visualizers gallery with Chrome, Bloom, Aurora, Alpine and Neon City.',
   // The scenes the tour's pictures show, by the names they are published
   // under in each language.
   'tour.scene.alpine': 'Alpine',

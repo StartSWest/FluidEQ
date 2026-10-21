@@ -1,11 +1,11 @@
 /**
  * The FluidEQ terms: linked beside the credit packs before anybody pays, and
- * readable from the Account panel and the leaderboard at any time.
+ * readable from the Account panel at any time.
  *
  * Written to be read rather than clicked past — short paragraphs, plain
  * words, and every piece of information the app sends listed with when it
  * goes and who can see it. The numbers are placeholders filled from
- * `common/plusTerms.ts` and the leaderboard's scoring, so the text cannot
+ * `common/plusTerms.ts` and the code that keeps them, so the text cannot
  * promise what the code does not do. Changing what this says means raising
  * PLUS_TERMS_VERSION, in every language at once.
  */
@@ -14,7 +14,7 @@ const terms = {
   'terms.title': 'Terms and privacy',
   'terms.meta': 'Version {version} · In effect since {date}',
   'terms.intro':
-    'These terms cover your FluidEQ account: credits and the scenes you get with them, Plus for the members who still have it, Visualizers, the Studio, the scenes you share and getting paid for them, and the leaderboard. They list everything the app sends to FluidEQ’s service, when it goes and who can see it, and, near the end, every other place FluidEQ connects to.',
+    'These terms cover your FluidEQ account: credits and the scenes you get with them, Plus for the members who still have it, Visualizers, the Studio, and the scenes you share and getting paid for them. They list everything the app sends to FluidEQ’s service, when it goes and who can see it, and, near the end, every other place FluidEQ connects to.',
   'terms.link': 'Terms and privacy',
 
   'terms.short.title': 'The short version',
@@ -23,14 +23,14 @@ const terms = {
     'FluidEQ keeps working offline and without an account, as it always has. The Studio and publishing are free too.',
   'terms.short.choice.title': 'You choose what is shared',
   'terms.short.choice.body':
-    'The leaderboard is off unless you join, and nothing you make leaves your computer unless you export or publish it.',
+    'Nothing you make leaves your computer unless you export or publish it.',
   'terms.short.music.title': 'Never your music',
   'terms.short.music.body':
     'FluidEQ’s service never receives your audio, your track names or your EQ.',
 
   'terms.membership.title': 'Plus',
   'terms.membership.p1':
-    'Plus was a membership, and it is not sold any more: credits took its place. A membership already running keeps playing and adding every scene in Visualizers, the Plus looks, the leaderboard, and scenes on your desktop and your RGB lights, until FluidEQ moves its members to credits. On that day every scene a member added becomes theirs for good, and every account that paid for Plus gets at least {moveCredits} credits. No new free trials are offered; a scene FluidEQ’s maker approves before that day can still earn a month of Plus. Without Plus, an account watches any scene for {tasteSeconds} seconds, gets scenes with credits, sees the leaderboard, and makes, exports and publishes scenes in the Studio.',
+    'Plus was a membership, and it is not sold any more: credits took its place. A membership already running keeps playing and adding every scene in Visualizers, the Plus looks, and scenes on your desktop and your RGB lights, until FluidEQ moves its members to credits. On that day every scene a member added becomes theirs for good, and every account that paid for Plus gets at least {moveCredits} credits. No new free trials are offered; a scene FluidEQ’s maker approves before that day can still earn a month of Plus. Without Plus, an account watches any scene for {tasteSeconds} seconds, gets scenes with credits, and makes, exports and publishes scenes in the Studio.',
   'terms.membership.p2':
     'Plus was paid through Buy Me a Coffee, under its own terms, and FluidEQ never saw your card or bank details. A membership you still pay for can be cancelled at any time on Buy Me a Coffee: Plus stays on until the end of the period you paid for, and nothing more is charged. Anything Buy Me a Coffee charges for Plus after FluidEQ moves its members to credits is refunded.',
   'terms.membership.p4':
@@ -42,7 +42,7 @@ const terms = {
   'terms.account.p1':
     'An account is an email address, a password and, if you give one, a name, and you need to be at least {age} to create one. The password travels encrypted to the sign-in service and is stored there only as a one-way hash, which nobody can read back, the maker included.',
   'terms.account.p2':
-    'Your email receives the codes that confirm your address and reset your password. It is never shown to other members: on the leaderboard and in Visualizers you appear by the handle and display name you choose.',
+    'Your email receives the codes that confirm your address and reset your password. It is never shown to other members: in Visualizers you appear by the handle and display name you choose.',
   'terms.account.p3':
     'On your computer, the app keeps your session encrypted by the operating system. Accounts are personal, so keep your password to yourself.',
   'terms.account.p4':
@@ -87,15 +87,10 @@ const terms = {
   'terms.sent.catalogue.who':
     'Nothing is kept. The request only fetches the public list of looks.',
   'terms.sent.profile.what': 'The handle and display name you choose',
-  'terms.sent.profile.when': 'When you choose them on the leaderboard',
+  'terms.sent.profile.when':
+    'When you choose or change them in the Account panel',
   'terms.sent.profile.who':
-    'Every signed-in account: on the leaderboard, on the scenes you publish and on your maker page in Visualizers, where they can be searched. Names that pose as FluidEQ or its staff are refused.',
-  'terms.sent.board.what':
-    'One number per day from each of your computers: the whole minutes of music that played, up to {capHours} hours, with its date and a random number that tells your computers apart',
-  'terms.sent.board.when':
-    'Only if you join the leaderboard: when you join, when you come back to the computer at most every {uploadHours} hours, and when you open the board or a maker’s page in Visualizers',
-  'terms.sent.board.who':
-    'Your handle, display name, rank, points and what they are made of: every signed-in account, on the board and on your maker page.',
+    'Every signed-in account: on the scenes you publish and on your maker page in Visualizers, where they can be searched. Names that pose as FluidEQ or its staff are refused.',
   'terms.sent.sceneExport.what':
     'A scene you export: its code, settings, pictures, 3D models and ambient elements',
   'terms.sent.sceneExport.when': 'When you press Export in the Studio',
@@ -159,7 +154,7 @@ const terms = {
   'terms.protect.p2':
     'The rules live on the server, not in the app: each account can change only its own data, and a modified copy of FluidEQ gets exactly the same answers.',
   'terms.protect.p3':
-    'The board and Visualizers show handles and display names, never email addresses. Account ids are never shown, but they are inside scene files and in what Visualizers sends to the app.',
+    'Visualizers shows handles and display names, never email addresses. Account ids are never shown, but they are inside scene files and in what Visualizers sends to the app.',
   'terms.protect.p4':
     'The maker runs the service and can see what it stores, to keep it working, to match payments and to moderate what members publish. Nothing is sold or used for advertising, and there is no tracking or analytics.',
   'terms.protect.p5':
@@ -168,16 +163,6 @@ const terms = {
     'FluidEQ keeps no IP addresses. Supabase records the address of each request in short-lived logs, and keeps the address and app details of each signed-in computer with that computer’s session and in Supabase’s own sign-in security log, to keep sign-in working and safe.',
   'terms.protect.p7':
     'Scenes are signed, and your computer checks the signature before playing one. An app update installs only after FluidEQ’s own signature on it has been checked.',
-
-  'terms.fair.title': 'Fair play on the leaderboard',
-  'terms.fair.p1':
-    'Points come from listening and likes: {hourPoints} for each hour of music, {dayPoints} for each day with at least {activeMinutes} minutes of it, and {likePoints} for each like on your scenes. The board shows the top 100, and ranks an account only while it has Plus that was paid for, given or earned by publishing — a free trial is not ranked. Its days are kept either way, and count again when Plus returns.',
-  'terms.fair.p2':
-    'Listening time is counted by the app on your computer, so the server cannot watch it happen. It checks every number instead: no more than {capHours} hours in a day, no day that has not begun, nothing older than {windowDays} days, and no day that grows faster than the clock. Your computers’ numbers add up to one day, and that day too grows no faster than the clock, so several playing at once cannot add up to more time than has passed.',
-  'terms.fair.p3':
-    'Everyone earns points the same way, the maker included. Changing the app or what it sends, automating listening, or climbing with more than one account takes you off the board, and can stop the account from publishing, liking and reporting scenes.',
-  'terms.fair.p4':
-    'A like counts once per member per scene, only from an account that has the scene — got with a credit, free, or with Plus — and never from your own account. Likes on a scene that was taken down, or from an account that was banned, do not count. Likes from a second account of your own count as climbing with more than one account.',
 
   'terms.rules.title': 'Rules for what you publish',
   'terms.rules.p1':
@@ -190,14 +175,12 @@ const terms = {
     'To keep the service working for everyone, an account can export or publish up to {sharesPerHour} scenes an hour, refused attempts included, and keep up to {maxPublished} scenes published. A scene you publish, and each new version of it, waits for FluidEQ’s maker to read it before anyone else sees it; there is a limit on how many you can send for review in a calendar month, and the Studio says when you have reached it.',
 
   'terms.keep.title': 'What is kept, and how to delete it',
-  'terms.keep.p1':
-    'Leaderboard: the days you send stay on the board until you remove them. “Remove all my data” in the Account panel deletes every day you ever sent, at once; leaving the board only stops sending. Your computer keeps only the last {windowDays} days of totals.',
   'terms.keep.p2':
     'Your handle and display name: kept while you have an account, and deleted with it.',
   'terms.keep.p3':
     'Membership: your payment email, status and Buy Me a Coffee’s ids for your membership are kept to match payments to your account, and are deleted with it. The record of each payment event keeps only Buy Me a Coffee’s ids and the time.',
   'terms.keep.p4':
-    'Your account: ask for it to be deleted and it is gone within {deletionDays} days, together with your profile, leaderboard days, credits, the scenes you own, membership, free trials and earned months, agreements, likes, adds, reports, and the scenes you published with their files. Credits left on an account that is deleted are gone with it. A gift of Plus to your email stays until the maker removes it.',
+    'Your account: ask for it to be deleted and it is gone within {deletionDays} days, together with your profile, credits, the scenes you own, membership, free trials and earned months, agreements, likes, adds, reports, and the scenes you published with their files. Credits left on an account that is deleted are gone with it. A gift of Plus to your email stays until the maker removes it.',
   'terms.keep.p5':
     'Scenes: unpublishing removes a scene from Visualizers with its picture, file and version history. Likes, adds and reports on it stay until those accounts are deleted, and count again if you publish it once more. A scene blocked for breaking these terms keeps a fingerprint made from your account id and the scene’s id, with the reason and the date, so it stays blocked.',
   'terms.keep.p6':
@@ -220,8 +203,6 @@ const terms = {
     'When you export a scene, you let FluidEQ check it — including against FluidEQ’s own scenes — remove the comments from its code and sign it with your display name and account id, so other members who own it can play it and see that you made it. That is the whole permission: FluidEQ’s maker will not sell your scene or use it in advertising, will not make it one of the Plus looks without asking you first, and does not stop you doing anything else with your own work.',
   'terms.scenes.p4':
     'When an account gets a scene of yours with a credit from a pack it paid for, you earn from it: once you have set up payouts in the Account panel, money, under the creator terms in Getting paid for your scenes; until then, or where Stripe cannot pay you, one credit — credit to get scenes with, never cash. A scene got with a free credit earns nothing. And, while FluidEQ offers Plus, a scene of yours that FluidEQ’s maker approves earns you a month of it.',
-  'terms.scenes.p5':
-    'Members who like your scene give you points on the leaderboard, if you have joined it. Likes are counted by the server; see Fair play.',
   'terms.scenes.p6':
     'Only share work you have the right to share: your own photos, drawings and 3D models, or ones whose owner allows it. The rules for what you publish apply to every scene you share. FluidEQ’s maker can stop a scene from opening if it breaks these terms or someone else’s rights.',
   'terms.scenes.p7':

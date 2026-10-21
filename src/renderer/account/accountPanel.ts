@@ -7,9 +7,9 @@
  * picker has no business knowing there is a dialog, only that choosing a
  * locked look should lead to the place where it stops being locked.
  *
- * A request may name the page to open on. The leaderboard's guide links to
- * the terms, and landing on the account's front page with the terms one more
- * click away would make the link read as broken. The front page is where the
+ * A request may name the page to open on. A link to the terms that landed on
+ * the account's front page, with the terms one more click away, would read as
+ * broken. The front page is where the
  * credits are, so it is also where anything locked leads.
  *
  * One listener in practice. `App.tsx` subscribes while mounted; a request with

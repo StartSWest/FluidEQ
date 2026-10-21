@@ -119,7 +119,6 @@ const plus = {
   'plus.scene.moreByYou': 'Ещё ваши',
 
   'plus.maker.you': 'Вы',
-  'plus.maker.rank': 'Место',
   'plus.maker.scenes': 'Сцены',
   'plus.maker.empty': 'Сейчас ничего не опубликовано.',
 
@@ -292,7 +291,6 @@ const plus = {
   'plus.accounts.plan.giftUntil': 'Подарок до {date}',
   'plus.accounts.goes': 'Удаляется вместе с ним',
   'plus.accounts.fact.published': 'Опубликованные сцены',
-  'plus.accounts.fact.boardDays': 'Дни в таблице лидеров',
   'plus.accounts.fact.likes': 'Поставленные лайки',
   'plus.accounts.fact.adds': 'Добавленные сцены',
   'plus.accounts.fact.reports': 'Отправленные жалобы',

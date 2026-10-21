@@ -260,7 +260,7 @@ const tour: Partial<Dictionary> = {
   'tour.plus.title': 'Szenen, die Ihnen für immer gehören',
   'tour.plus.subtitle': 'Visualizer, Studio, Beleuchtung und mehr',
   'tour.plus.lead':
-    'Ein ganzer Tab mit Extras, der FluidEQ wachsen lässt: Szenen, die auf Ihrer Grafikkarte gezeichnet werden, ein Studio für eigene Szenen, die Rangliste, Desktop-Hintergründe und dynamische Beleuchtung. Eine Szene kostet einen Credit und bleibt Ihre, und der Equalizer, das Rack und die Player bleiben kostenlos, wie sie es immer waren.',
+    'Ein ganzer Tab mit Extras, der FluidEQ wachsen lässt: Szenen, die auf Ihrer Grafikkarte gezeichnet werden, ein Studio für eigene Szenen, Desktop-Hintergründe und dynamische Beleuchtung. Eine Szene kostet einen Credit und bleibt Ihre, und der Equalizer, das Rack und die Player bleiben kostenlos, wie sie es immer waren.',
   'tour.plus.point1':
     'Melden Sie sich über Konto im Aktionsmenü an: Ein bestätigtes Konto erhält zum Start Credits gratis.',
   'tour.plus.point2':
@@ -268,10 +268,10 @@ const tour: Partial<Dictionary> = {
   'tour.plus.point3':
     'Jede Szene lässt sich zuerst ansehen, und die geholten laufen auf jedem Computer, auf dem Sie sich anmelden.',
   'tour.plus.how':
-    'Öffnen Sie den Tab Plus: Links untereinander stehen Rangliste, Visualizer, Studio und Dynamische Beleuchtung.',
+    'Öffnen Sie den Tab Plus: Links untereinander stehen Visualizer, Studio und Dynamische Beleuchtung.',
   'tour.plus.open': 'Plus öffnen',
   'tour.plus.imageAlt':
-    'Der Tab Plus: Rangliste, Visualizer, Studio und Dynamische Beleuchtung seitlich untereinander und die Visualizer-Galerie mit Chrom, Blüte, Aurora, Alpin und Neonstadt.',
+    'Der Tab Plus: Visualizer, Studio und Dynamische Beleuchtung seitlich untereinander und die Visualizer-Galerie mit Chrom, Blüte, Aurora, Alpin und Neonstadt.',
   'tour.scene.alpine': 'Alpin',
   'tour.scene.aurora': 'Aurora',
   'tour.scene.bloom': 'Blüte',

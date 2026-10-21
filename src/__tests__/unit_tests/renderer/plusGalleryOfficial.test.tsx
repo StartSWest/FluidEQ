@@ -112,7 +112,6 @@ const bridge = {
   listScenePacks: jest.fn(),
   refreshScenePacks: jest.fn(),
   onScenePacksChanged: jest.fn(() => () => undefined),
-  leaderboardBoard: jest.fn(),
 };
 
 beforeEach(() => {
@@ -149,7 +148,6 @@ beforeEach(() => {
   bridge.refreshScenePacks.mockResolvedValue(listing);
   bridge.onMemberScenesChanged.mockReturnValue(() => undefined);
   bridge.onScenePacksChanged.mockReturnValue(() => undefined);
-  bridge.leaderboardBoard.mockResolvedValue({ ok: false, failure: 'network' });
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: { ipcRenderer: bridge },
@@ -279,7 +277,7 @@ it('uses official pack versions for Added and Update on the list and maker page'
   expectAdded();
 });
 
-it('shows official details with likes but no adds or reports, and the maker without leaderboard rank', async () => {
+it('shows official details with likes but no adds or reports', async () => {
   renderGallery();
   await userEvent.click(await screen.findByRole('button', { name: 'Aurora' }));
   expect(await screen.findByTestId('official-preview')).toBeInTheDocument();
@@ -307,10 +305,9 @@ it('shows official details with likes but no adds or reports, and the maker with
     }),
   );
   expect(screen.getByText('plus.maker.scenes')).toBeInTheDocument();
-  ['plus.scene.likes', 'plus.scene.adds', 'plus.maker.rank'].forEach((key) => {
+  ['plus.scene.likes', 'plus.scene.adds'].forEach((key) => {
     expect(screen.queryByText(key)).not.toBeInTheDocument();
   });
-  expect(bridge.leaderboardBoard).not.toHaveBeenCalled();
   expect(bridge.reportGalleryScene).not.toHaveBeenCalled();
 });
 

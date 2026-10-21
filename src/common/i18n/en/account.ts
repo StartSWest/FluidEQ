@@ -35,12 +35,12 @@ const account = {
   'account.signOut.detailPlus':
     'Your scenes stay locked here until you sign back in.',
   'account.signOut.kept': 'Nothing on this computer is deleted.',
-  // The name on the board and on published scenes, changed from here. The
-  // fields and their refusals are the board's own (leaderboard.name.*).
+  // The name on published scenes, changed from here. The fields and their
+  // refusals are the name form's own (profile.name.*).
   'account.name.change': 'Change name',
   'account.name.changeTitle': 'Change how you appear',
   'account.name.changeBody':
-    'Your handle and name on the board and on the scenes you have published. They change everywhere at once; your email stays private.',
+    'Your handle and name on the scenes you have published. They change everywhere at once; your email stays private.',
   'account.name.cancel': 'Cancel',
   'account.backToSignIn': 'Back to sign in',
 
@@ -98,12 +98,10 @@ const account = {
     'There is already an account with that address. Sign in instead.',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.active': 'Active',
 
   'account.perk.looks': 'Scenes that are yours for good, one credit each.',
   'account.perk.visualizers':
     'Visualizers: the scenes members make, open to every account.',
-  'account.perk.board': 'A leaderboard of who listens most.',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continue with Google',
   'account.or': 'or',

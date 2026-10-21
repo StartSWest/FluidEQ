@@ -8,12 +8,10 @@ import {
 import jwtSubject from '../account/jwtSubject';
 
 /**
- * The member's name: the @handle and display name the leaderboard ranks and
- * the Visualizers gallery credits.
+ * The member's name: the @handle and display name the Visualizers gallery
+ * credits.
  *
- * It lives in the server's `profiles` table, which is also the parent row of
- * every day of listening a computer reports — so a member has to choose one
- * before the board can count them. Anyone signed in may read every profile;
+ * It lives in the server's `profiles` table. Anyone signed in may read every profile;
  * each account may create and change only its own, and the role on it is the
  * admin's to give. Those rules are policies in the database; this module only
  * carries the request and reads the answer.
@@ -86,7 +84,7 @@ export interface IProfileApi {
   mine(): Promise<IPlusProfile | undefined>;
   create(handle: string, displayName: string): Promise<IPlusProfile>;
   /**
-   * Changes the name already chosen. The board, the gallery's credits and
+   * Changes the name already chosen. The gallery's credits and
    * every scene page read the profile when they are asked, so the new name
    * is everywhere at once; the same rules and refusals as choosing it.
    */
