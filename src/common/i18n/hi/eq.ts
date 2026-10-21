@@ -878,11 +878,46 @@ const eq: Partial<Dictionary> = {
   'myCurves.choice.replace': 'बदलें',
   'myCurves.choice.skip': 'छोड़ें',
   'myCurves.importRun': 'आयात करें ({count})',
-  'myCurves.importSkipped':
-    'कर्व न होने के कारण छोड़ी गई प्रविष्टियाँ: {count}',
+  'myCurves.importSkipped': 'कर्व न होने के कारण छोड़ी गईं: {names}',
   'myCurves.importNote':
     'आयात किए गए कर्व अपने आप कभी नहीं बजते; जो अभी बज रहा है वह बजता रहता है।',
   'squigImport.saveMine': 'मेरे कर्व में सेव करें',
+  'myCurves.from': 'यह कहाँ से आता है',
+  'myCurves.from.paste': 'पेस्ट करें',
+  'myCurves.from.pasteHint': 'Squiglink का ParametricEQ टेक्स्ट, या AutoEQ का',
+  'myCurves.from.file': 'एक .txt फ़ाइल',
+  'myCurves.from.fileHint': 'Equalizer APO या AutoEQ फ़ॉर्मैट',
+  'myCurves.from.eq': 'मेरा EQ अभी',
+  'myCurves.from.eqHint': 'आपके सेट किए बैंड, जैसे वे बजते हैं',
+  'myCurves.from.opra': 'OPRA से',
+  'myCurves.from.opraHint':
+    'चल रहे सुधार की एक कॉपी, नाम बदलने और एडिट करने के लिए',
+  'myCurves.from.opraNone': 'पहले OPRA लाइब्रेरी से कोई सुधार चलाएँ',
+  'myCurves.defaultNameEq': 'मेरा EQ, {date}',
+  'myCurves.defaultNameOpra': 'OPRA कर्व, {date}',
+  'myCurves.unread': 'जो लाइनें पढ़ी नहीं गईं, वे कर्व में नहीं हैं: {lines}',
+  'myCurves.eqLeftOut':
+    'एक ही कान वाले बैंड छोड़ दिए गए: {count}। उन्हें रखने के लिए बायाँ कान या दायाँ कान चुनें।',
+  'myCurves.full':
+    'मेरे कर्व में अधिकतम {count} कर्व आते हैं और यह भर गया है। जगह बनाने के लिए कुछ हटाएँ।',
+  'myCurves.editTitle': 'कर्व एडिट करें',
+  'myCurves.editIntro':
+    'इसका नाम, कान या बैंड बदलें। अगर यह चल रहा है, तो बदलाव सुनने के लिए इसे फिर से लागू करें।',
+  'myCurves.saveChanges': 'बदलाव सेव करें',
+  'myCurves.editBands': 'बैंड एडिट करें',
+  'myCurves.readFailed': 'आपके कर्व पढ़े नहीं जा सके',
+  'myCurves.readFailedBody':
+    'वे अब भी इस कंप्यूटर पर हैं और कुछ नहीं बदला गया। थोड़ी देर में फिर कोशिश करें।',
+  'myCurves.retry': 'फिर कोशिश करें',
+  'myCurves.importSkippedMore':
+    'कर्व न होने के कारण छोड़ी गईं: {names} और {count} अन्य',
+  'myCurves.importRoom':
+    'मेरे कर्व में {max} आते हैं। इनमें से {room} के लिए जगह है; बाकी {count} बाहर रहेंगे।',
+  'myCurves.quick.label': 'सुधार',
+  'myCurves.quick.previous': 'पिछला सुधार',
+  'myCurves.quick.next': 'अगला सुधार',
+  'myCurves.quick.none': 'कोई नहीं चल रहा',
+  'myCurves.quick.opra': 'OPRA · {name}',
 };
 
 export default eq;

@@ -62,6 +62,7 @@ import type { TranslationKey } from '../../common/i18n';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import onWindowMessage from './windowMessages';
 import { registerCurveExportIpc } from './curveExport';
+import { registerMyCurvesIpc } from './myCurves';
 import mainText from '../mainText';
 import { Refusal, userMessageOf } from '../refusal';
 
@@ -79,6 +80,8 @@ import { Refusal, userMessageOf } from '../refusal';
  * import and is told what was applied.
  */
 export interface ITransferIpcDeps {
+  /** The app's data folder: where My curves are kept (`myCurves.ts`). */
+  userDataDir: string;
   state: IState;
   deviceProfileSettings: IDeviceProfileSettings;
   session: {
@@ -151,6 +154,7 @@ export const registerTransferIpc = ({
   session,
   shieldReferenceBands,
   state,
+  userDataDir,
 }: ITransferIpcDeps) => {
   /**
    * Pick a file the user already has and apply it.
@@ -796,4 +800,5 @@ export const registerTransferIpc = ({
   });
 
   registerCurveExportIpc({ getMainWindow, handleError });
+  registerMyCurvesIpc({ userDataDir, handleError, logger: log });
 };

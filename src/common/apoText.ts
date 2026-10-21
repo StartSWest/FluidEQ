@@ -137,6 +137,13 @@ export interface IParsedEqText {
   convolutionFileName?: string;
   /** How many bands were recognised but had no FluidEQ equivalent. */
   unsupported: number;
+  /**
+   * The lines, counted from 1, that said something and were not taken: text
+   * no command matches, and the bands counted in `unsupported`. Blank lines,
+   * comments and bands switched OFF are not among them. My curves names
+   * them, so a pasted curve never loses a line without saying which.
+   */
+  unreadLines: number[];
   /** True when the file yielded no EQ content at all. */
   isEmpty: boolean;
 }
@@ -163,8 +170,9 @@ export const parseEqText = (
   let hasPreAmp = false;
   let convolutionFileName: string | undefined;
   let unsupported = 0;
+  const unreadLines: number[] = [];
 
-  text.split(/\r?\n/).forEach((rawLine) => {
+  text.split(/\r?\n/).forEach((rawLine, lineIndex) => {
     // Everything after `#` is a comment in APO, and FluidEQ's own output is
     // full of them.
     const line = rawLine.split('#')[0].trim();
@@ -218,6 +226,7 @@ export const parseEqText = (
 
     const filterMatch = line.match(FILTER_LINE);
     if (!filterMatch) {
+      unreadLines.push(lineIndex + 1);
       return;
     }
     // A disabled band is not an error and not a band. APO ignores it and so
@@ -228,16 +237,19 @@ export const parseEqText = (
     const type = TYPE_ALIASES[filterMatch[2].toUpperCase()];
     if (!type) {
       unsupported += 1;
+      unreadLines.push(lineIndex + 1);
       return;
     }
     if (Object.keys(filters).length >= MAX_NUM_FILTERS) {
       unsupported += 1;
+      unreadLines.push(lineIndex + 1);
       return;
     }
 
     const frequency = Number(filterMatch[3]);
     if (!Number.isFinite(frequency)) {
       unsupported += 1;
+      unreadLines.push(lineIndex + 1);
       return;
     }
 
@@ -287,6 +299,7 @@ export const parseEqText = (
     ...(eqFormat === AutoEqFormat.GRAPHIC ? { graphicEq } : {}),
     convolutionFileName,
     unsupported,
+    unreadLines,
     // A file with only a preamp in it is still a file that said something.
     isEmpty:
       Object.keys(filters).length === 0 && graphicEq.length === 0 && !hasPreAmp,

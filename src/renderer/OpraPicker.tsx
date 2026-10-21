@@ -29,16 +29,17 @@ import opraLogo from '../../assets/opra-logo.png';
 import './styles/AutoEQ.scss';
 import { loadOpraPreset, clearHeadset } from './utils/equalizerApi';
 import {
+  appliedOpraName,
   knownOpraProducts,
   loadOpraProducts,
+  opraProductLabel as productLabel,
   subscribeOpraProducts,
 } from './opraProducts';
+import SaveOpraToMyCurves from './eq/SaveOpraToMyCurves';
 
 const OPRA_URL = 'https://github.com/opra-project/OPRA';
 
 /** `Sennheiser HD 650`, which is what the old library called a model. */
-const productLabel = (product: IOpraProduct) =>
-  `${product.vendor} ${product.name}`;
 
 /**
  * The rows that light up for whatever is applied, if it came from this
@@ -259,24 +260,10 @@ const OpraPicker = () => {
   );
 
   /** What is applied, in words, whichever library it came from. */
-  const appliedLabel = useMemo(() => {
-    if (!headset) {
-      return undefined;
-    }
-    if (headsetSource !== OPRA_SOURCE_ID) {
-      // Saved before the switch. The id is not ours to resolve, and it was a
-      // readable model name back when it was written, so show it as it stands.
-      return headsetTarget ? `${headset} · ${headsetTarget}` : headset;
-    }
-    const product = products.find((entry) => entry.id === headset);
-    if (!product) {
-      return headset;
-    }
-    const curve = product.curves.find((entry) => entry.id === headsetTarget);
-    return curve
-      ? `${productLabel(product)} · ${curve.details}`
-      : productLabel(product);
-  }, [headset, headsetSource, headsetTarget, products]);
+  const appliedLabel = useMemo(
+    () => appliedOpraName(products, headset, headsetSource, headsetTarget),
+    [headset, headsetSource, headsetTarget, products],
+  );
 
   let applyLabel = t('autoeq.apply');
   if (isApplying) {
@@ -343,6 +330,9 @@ const OpraPicker = () => {
             >
               {applyLabel}
             </Button>
+            {isApplied && headphone && !headphone.eqImport && appliedLabel && (
+              <SaveOpraToMyCurves headphone={headphone} name={appliedLabel} />
+            )}
           </div>
           {selectedCurve && (
             <p className="opra-curve-credit">

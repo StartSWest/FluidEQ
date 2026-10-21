@@ -888,10 +888,47 @@ const eq: Partial<Dictionary> = {
   'myCurves.choice.replace': 'Sostituisci',
   'myCurves.choice.skip': 'Salta',
   'myCurves.importRun': 'Importa ({count})',
-  'myCurves.importSkipped': 'Voci escluse perché senza curva: {count}',
+  'myCurves.importSkipped': 'Escluse perché senza curva: {names}',
   'myCurves.importNote':
     'Le curve importate non suonano mai da sole; quella che suona ora continua.',
   'squigImport.saveMine': 'Salva in Le mie curve',
+  'myCurves.from': 'Da dove arriva',
+  'myCurves.from.paste': 'Incolla',
+  'myCurves.from.pasteHint':
+    'Il testo ParametricEQ di Squiglink, o quello di AutoEQ',
+  'myCurves.from.file': 'Un file .txt',
+  'myCurves.from.fileHint': 'Formato Equalizer APO o AutoEQ',
+  'myCurves.from.eq': 'Il mio EQ ora',
+  'myCurves.from.eqHint': 'Le bande che hai impostato, come suonano',
+  'myCurves.from.opra': 'Da OPRA',
+  'myCurves.from.opraHint':
+    'Una copia della correzione in riproduzione, da rinominare e modificare',
+  'myCurves.from.opraNone': 'Avvia prima una correzione dalla libreria OPRA',
+  'myCurves.defaultNameEq': 'Il mio EQ, {date}',
+  'myCurves.defaultNameOpra': 'Curva OPRA, {date}',
+  'myCurves.unread': 'Righe non lette, assenti dalla curva: {lines}',
+  'myCurves.eqLeftOut':
+    'Le bande per un solo orecchio restano fuori: {count}. Scegli Orecchio sinistro o Orecchio destro per tenerle.',
+  'myCurves.full':
+    'Le mie curve contiene al massimo {count} curve ed è pieno. Eliminane alcune per fare spazio.',
+  'myCurves.editTitle': 'Modifica curva',
+  'myCurves.editIntro':
+    'Cambia nome, orecchie o bande. Se è in riproduzione, applicala di nuovo per sentire la modifica.',
+  'myCurves.saveChanges': 'Salva modifiche',
+  'myCurves.editBands': 'Modifica bande',
+  'myCurves.readFailed': 'Impossibile leggere le tue curve',
+  'myCurves.readFailedBody':
+    'Sono ancora su questo computer e non è cambiato nulla. Riprova tra un momento.',
+  'myCurves.retry': 'Riprova',
+  'myCurves.importSkippedMore':
+    'Escluse perché senza curva: {names} e altre {count}',
+  'myCurves.importRoom':
+    'Le mie curve ne contiene {max}. C’è spazio per {room} di queste; le altre {count} restano fuori.',
+  'myCurves.quick.label': 'Correzione',
+  'myCurves.quick.previous': 'Correzione precedente',
+  'myCurves.quick.next': 'Correzione successiva',
+  'myCurves.quick.none': 'Nessuna attiva',
+  'myCurves.quick.opra': 'OPRA · {name}',
 };
 
 export default eq;

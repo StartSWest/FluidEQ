@@ -482,6 +482,7 @@ registerReferencesIpc({
 });
 
 registerTransferIpc({
+  userDataDir,
   activePresetDir: profiles.activePresetDir,
   applyingLayer: profiles.applyingLayer,
   attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,

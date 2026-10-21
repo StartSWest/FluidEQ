@@ -831,10 +831,43 @@ const eq: Partial<Dictionary> = {
   'myCurves.choice.replace': '替换',
   'myCurves.choice.skip': '跳过',
   'myCurves.importRun': '导入（{count}）',
-  'myCurves.importSkipped': '因没有曲线而略过的条目：{count}',
+  'myCurves.importSkipped': '因没有曲线而略过：{names}',
   'myCurves.importNote':
     '导入的曲线永远不会自行播放；当前正在播放的曲线继续播放。',
   'squigImport.saveMine': '保存到“我的曲线”',
+  'myCurves.from': '来源',
+  'myCurves.from.paste': '粘贴',
+  'myCurves.from.pasteHint': 'Squiglink 或 AutoEQ 的 ParametricEQ 文本',
+  'myCurves.from.file': '.txt 文件',
+  'myCurves.from.fileHint': 'Equalizer APO 或 AutoEQ 格式',
+  'myCurves.from.eq': '我当前的 EQ',
+  'myCurves.from.eqHint': '你设置的频段，按正在播放的样子',
+  'myCurves.from.opra': '来自 OPRA',
+  'myCurves.from.opraHint': '正在播放的校正的副本，可重命名和编辑',
+  'myCurves.from.opraNone': '请先从 OPRA 库中播放一个校正',
+  'myCurves.defaultNameEq': '我的 EQ，{date}',
+  'myCurves.defaultNameOpra': 'OPRA 曲线，{date}',
+  'myCurves.unread': '未读取、因此不在曲线中的行：{lines}',
+  'myCurves.eqLeftOut':
+    '只作用于单耳的频段未包含：{count}。如需保留，请选择左耳或右耳。',
+  'myCurves.full':
+    '“我的曲线”最多保存 {count} 条曲线，现已满。请删除一些以腾出空间。',
+  'myCurves.editTitle': '编辑曲线',
+  'myCurves.editIntro':
+    '修改名称、耳朵或频段。如果它正在播放，请再次应用以听到变化。',
+  'myCurves.saveChanges': '保存更改',
+  'myCurves.editBands': '编辑频段',
+  'myCurves.readFailed': '无法读取你的曲线',
+  'myCurves.readFailedBody': '它们仍在这台电脑上，没有任何改动。请稍后再试。',
+  'myCurves.retry': '重试',
+  'myCurves.importSkippedMore': '因没有曲线而略过：{names} 等另外 {count} 条',
+  'myCurves.importRoom':
+    '“我的曲线”可保存 {max} 条。其中 {room} 条有空间；其余 {count} 条不会加入。',
+  'myCurves.quick.label': '校正',
+  'myCurves.quick.previous': '上一个校正',
+  'myCurves.quick.next': '下一个校正',
+  'myCurves.quick.none': '无正在播放',
+  'myCurves.quick.opra': 'OPRA · {name}',
 };
 
 export default eq;

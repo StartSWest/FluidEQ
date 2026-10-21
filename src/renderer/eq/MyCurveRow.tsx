@@ -75,6 +75,7 @@ interface IMyCurveRowProps {
   onApplyEq: (curve: IMyCurve) => void;
   onRename: (curve: IMyCurve, name: string) => void;
   onDuplicate: (curve: IMyCurve) => void;
+  onEdit: (curve: IMyCurve) => void;
   onDelete: (curve: IMyCurve) => void;
 }
 
@@ -93,6 +94,7 @@ export default function MyCurveRow({
   onApplyEq,
   onRename,
   onDuplicate,
+  onEdit,
   onDelete,
 }: IMyCurveRowProps) {
   const { t, locale } = useTranslation();
@@ -236,6 +238,16 @@ export default function MyCurveRow({
                 }}
               >
                 {t('myCurves.rename')}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onEdit(curve);
+                }}
+              >
+                {t('myCurves.editBands')}
               </button>
               <button
                 type="button"

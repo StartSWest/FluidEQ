@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { IOpraProduct } from 'common/constants';
+import { IOpraProduct, OPRA_SOURCE_ID } from 'common/constants';
 import { OPRA_UPDATED_EVENT } from './components/OpraLibraryStatus';
 import { getOpraProductList } from './utils/equalizerApi';
 
@@ -49,6 +49,39 @@ const listenForReplacement = () => {
     window.removeEventListener(OPRA_UPDATED_EVENT, forget);
     stopSync?.();
   };
+};
+
+/** A headphone as the library lists it: vendor, then model. */
+export const opraProductLabel = (product: IOpraProduct) =>
+  `${product.vendor} ${product.name}`;
+
+/**
+ * The name of the OPRA correction playing, as the library shows it, or
+ * nothing when none plays. The picker heads its preview with it, and My
+ * curves names a saved copy after it.
+ */
+export const appliedOpraName = (
+  products: readonly IOpraProduct[],
+  headset: string | undefined,
+  headsetSource: string | undefined,
+  headsetTarget: string | undefined,
+): string | undefined => {
+  if (!headset) {
+    return undefined;
+  }
+  if (headsetSource !== OPRA_SOURCE_ID) {
+    // Saved before the switch. The id is not ours to resolve, and it was a
+    // readable model name back when it was written, so show it as it stands.
+    return headsetTarget ? `${headset} · ${headsetTarget}` : headset;
+  }
+  const product = products.find((entry) => entry.id === headset);
+  if (!product) {
+    return headset;
+  }
+  const curve = product.curves.find((entry) => entry.id === headsetTarget);
+  return curve
+    ? `${opraProductLabel(product)} · ${curve.details}`
+    : opraProductLabel(product);
 };
 
 /** The products this window has already read, if it has. */

@@ -219,6 +219,7 @@ describe('Main EQ x2 import and export IPC', () => {
       path.join(os.tmpdir(), 'fluideq-eq-double-ipc-'),
     );
     deps = {
+      userDataDir: directory,
       state: getDefaultState(),
       deviceProfileSettings: {
         version: 1,

@@ -892,10 +892,47 @@ const eq: Partial<Dictionary> = {
   'myCurves.choice.replace': 'Ersetzen',
   'myCurves.choice.skip': 'Überspringen',
   'myCurves.importRun': 'Importieren ({count})',
-  'myCurves.importSkipped': 'Ausgelassene Einträge ohne Kurve: {count}',
+  'myCurves.importSkipped': 'Ausgelassen, weil ohne Kurve: {names}',
   'myCurves.importNote':
     'Importierte Kurven spielen nie von selbst; die gerade laufende läuft weiter.',
   'squigImport.saveMine': 'In Meine Kurven speichern',
+  'myCurves.from': 'Woher sie kommt',
+  'myCurves.from.paste': 'Einfügen',
+  'myCurves.from.pasteHint': 'ParametricEQ-Text von Squiglink oder AutoEQ',
+  'myCurves.from.file': 'Eine .txt-Datei',
+  'myCurves.from.fileHint': 'Format von Equalizer APO oder AutoEQ',
+  'myCurves.from.eq': 'Mein EQ jetzt',
+  'myCurves.from.eqHint': 'Ihre Bänder, so wie sie klingen',
+  'myCurves.from.opra': 'Aus OPRA',
+  'myCurves.from.opraHint':
+    'Eine Kopie der laufenden Korrektur, zum Umbenennen und Bearbeiten',
+  'myCurves.from.opraNone':
+    'Spielen Sie zuerst eine Korrektur aus der OPRA-Bibliothek ab',
+  'myCurves.defaultNameEq': 'Mein EQ, {date}',
+  'myCurves.defaultNameOpra': 'OPRA-Kurve, {date}',
+  'myCurves.unread': 'Nicht gelesene Zeilen, nicht in der Kurve: {lines}',
+  'myCurves.eqLeftOut':
+    'Bänder für nur ein Ohr bleiben außen vor: {count}. Wählen Sie Linkes Ohr oder Rechtes Ohr, um sie zu behalten.',
+  'myCurves.full':
+    'Meine Kurven fasst bis zu {count} Kurven und ist voll. Löschen Sie einige, um Platz zu schaffen.',
+  'myCurves.editTitle': 'Kurve bearbeiten',
+  'myCurves.editIntro':
+    'Ändern Sie Namen, Ohren oder Bänder. Läuft sie gerade, wenden Sie sie erneut an, um die Änderung zu hören.',
+  'myCurves.saveChanges': 'Änderungen speichern',
+  'myCurves.editBands': 'Bänder bearbeiten',
+  'myCurves.readFailed': 'Ihre Kurven konnten nicht gelesen werden',
+  'myCurves.readFailedBody':
+    'Sie sind weiterhin auf diesem Computer, und nichts wurde geändert. Versuchen Sie es gleich noch einmal.',
+  'myCurves.retry': 'Erneut versuchen',
+  'myCurves.importSkippedMore':
+    'Ausgelassen, weil ohne Kurve: {names} und {count} weitere',
+  'myCurves.importRoom':
+    'Meine Kurven fasst {max}. Platz ist für {room} davon; die übrigen {count} bleiben draußen.',
+  'myCurves.quick.label': 'Korrektur',
+  'myCurves.quick.previous': 'Vorherige Korrektur',
+  'myCurves.quick.next': 'Nächste Korrektur',
+  'myCurves.quick.none': 'Keine aktiv',
+  'myCurves.quick.opra': 'OPRA · {name}',
 };
 
 export default eq;

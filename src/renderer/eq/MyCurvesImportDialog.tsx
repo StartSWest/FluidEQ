@@ -1,8 +1,10 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import type { ErrorDescription } from 'common/errors';
 import {
   CURVE_LIST_FILE_MAX,
+  CURVE_LIST_MAX,
   CURVE_NAME_MAX,
   CURVE_TEXT_MAX,
   fromCurveListFile,
@@ -13,6 +15,7 @@ import {
   type TCurveImportChoice,
 } from 'common/myCurves';
 import type { TranslationKey } from 'common/i18n';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import MyCurveDialogShell from './MyCurveDialogShell';
 import { CurveSpark } from './MyCurveRow';
@@ -48,11 +51,14 @@ const readChosen = async (
           ears: 'both',
         },
       ],
-      skipped: 0,
+      skipped: [],
     };
   }
-  return { curves: [], skipped: 1 };
+  return { curves: [], skipped: [file.name] };
 };
+
+/** How many names of what was left out are spelled out before "and N more". */
+const SKIPPED_SHOWN = 6;
 
 /**
  * Curves into My curves: a FluidEQ curve list, one ParametricEQ .txt, or
@@ -67,11 +73,13 @@ export default function MyCurvesImportDialog({
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const { setGlobalError } = useFluidEqContext();
   const fileRef = useRef<HTMLInputElement>(null);
   const importRef = useRef<HTMLButtonElement>(null);
   const [rows, setRows] = useState<ICurveImportRow[] | undefined>();
   const [choices, setChoices] = useState<TCurveImportChoice[]>([]);
-  const [skipped, setSkipped] = useState(0);
+  const [skipped, setSkipped] = useState<string[]>([]);
+  const [busy, setBusy] = useState(false);
   const [fileNames, setFileNames] = useState('');
 
   const choose = (event: ChangeEvent<HTMLInputElement>) => {
@@ -89,9 +97,8 @@ export default function MyCurvesImportDialog({
         setRows(plan);
         setChoices(plan.map(() => 'keep-both'));
         setSkipped(
-          readings.reduce(
-            (sum, reading) => sum + (reading ? reading.skipped : 1),
-            0,
+          readings.flatMap((reading, index) =>
+            reading ? reading.skipped : [files[index].name],
           ),
         );
         setFileNames(files.map((file) => file.name).join(', '));
@@ -99,44 +106,75 @@ export default function MyCurvesImportDialog({
       })
       .catch(() => {
         setRows([]);
-        setSkipped(files.length);
+        setSkipped(files.map((file) => file.name));
       });
   };
 
-  const run = () => {
+  const run = async () => {
     if (!rows) {
       return;
     }
-    importMyCurves(
-      rows.flatMap((row, index) => {
-        const choice = choices[index];
-        if (row.clashesWith && choice === 'skip') {
-          return [];
-        }
-        return [
-          {
-            curve: {
-              name: row.name,
-              text: row.text,
-              source: row.source,
-              ears: row.ears,
+    setBusy(true);
+    try {
+      await importMyCurves(
+        rows.flatMap((row, index) => {
+          const choice = choices[index];
+          if (row.clashesWith && choice === 'skip') {
+            return [];
+          }
+          return [
+            {
+              curve: {
+                name: row.name,
+                text: row.text,
+                source: row.source,
+                ears: row.ears,
+              },
+              replaces:
+                row.clashesWith && choice === 'replace'
+                  ? row.clashesWith
+                  : undefined,
             },
-            replaces:
-              row.clashesWith && choice === 'replace'
-                ? row.clashesWith
-                : undefined,
-          },
-        ];
-      }),
-    );
-    onClose();
+          ];
+        }),
+      );
+      onClose();
+    } catch (error) {
+      setGlobalError(error as ErrorDescription);
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const coming = rows
+  // What the choices make of the rows: curves replacing one already kept,
+  // and new ones, of which only as many as the list has room for come in.
+  const replacing = rows
     ? rows.filter(
-        (row, index) => !(row.clashesWith && choices[index] === 'skip'),
+        (row, index) => row.clashesWith && choices[index] === 'replace',
       ).length
     : 0;
+  const adding = rows
+    ? rows.filter(
+        (row, index) => !row.clashesWith || choices[index] === 'keep-both',
+      ).length
+    : 0;
+  const room = Math.max(0, CURVE_LIST_MAX - getMyCurves().length);
+  const outOfRoom = Math.max(0, adding - room);
+  const coming = replacing + Math.min(adding, room);
+  const skippedNames = skipped.slice(0, SKIPPED_SHOWN).join(', ');
+  // Every file or entry left out, by name: shown under the rows, and under
+  // the alert when nothing at all could be read.
+  const skippedLine =
+    skipped.length > 0 ? (
+      <p className="my-curve-import__skipped">
+        {skipped.length > SKIPPED_SHOWN
+          ? t('myCurves.importSkippedMore', {
+              names: skippedNames,
+              count: skipped.length - SKIPPED_SHOWN,
+            })
+          : t('myCurves.importSkipped', { names: skippedNames })}
+      </p>
+    ) : null;
 
   // Reading the files takes away the Choose files button that held the
   // keyboard; the next thing to press is Import, so the keyboard goes there
@@ -157,6 +195,7 @@ export default function MyCurvesImportDialog({
           ? t('myCurves.importFrom', { files: fileNames })
           : t('myCurves.importIntro')
       }
+      busy={busy}
       onClose={onClose}
       footer={
         <div className="dialog-frame__actions">
@@ -171,8 +210,10 @@ export default function MyCurvesImportDialog({
             type="button"
             className="button small"
             ref={importRef}
-            disabled={coming === 0}
-            onClick={run}
+            disabled={coming === 0 || busy}
+            onClick={() => {
+              run().catch(() => undefined);
+            }}
           >
             {t('myCurves.importRun', { count: coming })}
           </button>
@@ -190,6 +231,7 @@ export default function MyCurvesImportDialog({
       {!rows || rows.length === 0 ? (
         <div className="my-curve-import__pick">
           {rows && <p role="alert">{t('myCurves.importNothing')}</p>}
+          {rows && skippedLine}
           <button
             type="button"
             className="button small"
@@ -248,9 +290,14 @@ export default function MyCurvesImportDialog({
               </li>
             ))}
           </ul>
-          {skipped > 0 && (
-            <p className="my-curve-import__skipped">
-              {t('myCurves.importSkipped', { count: skipped })}
+          {skippedLine}
+          {outOfRoom > 0 && (
+            <p className="my-curve-import__room" role="alert">
+              {t('myCurves.importRoom', {
+                max: CURVE_LIST_MAX,
+                room,
+                count: outOfRoom,
+              })}
             </p>
           )}
           <p className="my-curve-import__hint">{t('myCurves.importNote')}</p>

@@ -63,7 +63,7 @@ describe('the list file', () => {
       curve({ id: 'c2', name: 'Left fix', ears: 'left', source: 'file' }),
     ];
     const reading = fromCurveListFile(toCurveListFile(list));
-    expect(reading?.skipped).toBe(0);
+    expect(reading?.skipped).toEqual([]);
     expect(reading?.curves).toEqual(
       list.map(({ name, text, source, ears, addedAt }) => ({
         name,
@@ -87,7 +87,7 @@ describe('the list file', () => {
     expect(fromCurveListFile('not json')).toBeUndefined();
   });
 
-  it('leaves out, and counts, an entry that holds no curve', () => {
+  it('leaves out, and names, an entry that holds no curve: by its name, or its place without one', () => {
     const reading = fromCurveListFile(
       JSON.stringify({
         format: CURVE_LIST_FORMAT,
@@ -102,7 +102,7 @@ describe('the list file', () => {
     );
     expect(reading?.curves.map((entry) => entry.name)).toEqual(['Good']);
     expect(reading?.curves[0].ears).toBe('right');
-    expect(reading?.skipped).toBe(3);
+    expect(reading?.skipped).toEqual(['Empty', '#3', '#4']);
   });
 
   it('reads an unknown source or ear as a file for both ears', () => {

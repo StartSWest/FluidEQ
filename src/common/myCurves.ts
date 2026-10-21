@@ -128,9 +128,22 @@ const readListedCurve = (
 
 export interface ICurveFileReading {
   curves: Array<Omit<IMyCurve, 'id' | 'addedAt'> & { addedAt?: number }>;
-  /** Entries in the file that held no usable curve, by their place in it. */
-  skipped: number;
+  /**
+   * What was left out, each by the name it had (or its place in the file,
+   * `#4`, when it had none): named, so the person can tell which, rather than
+   * a count of things that quietly did not arrive.
+   */
+  skipped: string[];
 }
+
+/** How an entry that held no curve is named in what was left out. */
+const skippedLabel = (entry: unknown, index: number): string => {
+  const name =
+    isRecord(entry) && typeof entry.name === 'string'
+      ? cleanCurveName(entry.name)
+      : '';
+  return name || `#${index + 1}`;
+};
 
 /**
  * A list file read back: every curve that holds one, and how many did not.
@@ -158,16 +171,17 @@ export const fromCurveListFile = (
     return undefined;
   }
   const curves: ICurveFileReading['curves'] = [];
-  let skipped = 0;
-  parsed.curves.slice(0, CURVE_LIST_MAX).forEach((entry: unknown) => {
+  const skipped: string[] = [];
+  // Every entry is looked at, the ones past the list's limit too: the
+  // import says how many fit, and names nothing it never read.
+  parsed.curves.forEach((entry: unknown, index: number) => {
     const curve = readListedCurve(entry);
     if (curve) {
       curves.push(curve);
     } else {
-      skipped += 1;
+      skipped.push(skippedLabel(entry, index));
     }
   });
-  skipped += Math.max(0, parsed.curves.length - CURVE_LIST_MAX);
   return { curves, skipped };
 };
 

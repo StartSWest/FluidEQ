@@ -453,6 +453,32 @@ $eq-mode-header-gap: 10px;
 .eq-mode-card__rows > .eq-mode-choices__row:first-child {
   margin-top: 0;
 }
+
+// The correction playing (`CorrectionQuickPick.tsx`), the first row of the
+// Corrections tab: the picker as wide as the card between its two arrows,
+// a long curve name cut short rather than pushing an arrow off the card.
+.correction-quick-pick__field {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.correction-quick-pick__pick {
+  min-width: 0;
+  flex: 1 1 auto;
+
+  .rich-pick__trigger {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .rich-pick__label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
 .eq-mode-card__foot {
   display: flex;
   flex-wrap: wrap;

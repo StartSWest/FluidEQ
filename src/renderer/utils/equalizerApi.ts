@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import type { TImportEars } from 'common/bandEars';
+import type { IMyCurve } from 'common/myCurves';
 import ChannelEnum from 'common/channels';
 import { IGatheredFacts } from 'common/bugReport';
 import {
@@ -379,6 +380,23 @@ export const exportCurveFolder = (
 ): Promise<boolean> => {
   const channel = ChannelEnum.EXPORT_CURVE_FOLDER;
   return sendRequest(channel, [files], simpleResponseHandler<boolean>());
+};
+
+/** My curves as main keeps them (`main/ipc/myCurves.ts`). */
+export const readMyCurves = (): Promise<IMyCurve[]> => {
+  const channel = ChannelEnum.GET_MY_CURVES;
+  return sendRequest(channel, [], simpleResponseHandler<IMyCurve[]>());
+};
+
+/**
+ * Keep `curves` as the whole of My curves. Rejects, and nothing is written,
+ * when main cannot keep it.
+ */
+export const writeMyCurves = (
+  curves: readonly IMyCurve[],
+): Promise<boolean> => {
+  const channel = ChannelEnum.SET_MY_CURVES;
+  return sendRequest(channel, [curves], simpleResponseHandler<boolean>());
 };
 
 /** Show the desktop Save As dialog for a complete DSP filter chain. */

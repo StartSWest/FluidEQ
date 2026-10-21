@@ -23,6 +23,7 @@ import {
 } from 'renderer/utils/eqModePin';
 import { subscribeSoundPaneRequests } from 'renderer/utils/soundPane';
 import { refreshTrebleDesigns } from 'renderer/utils/useTrebleDesigns';
+import { retryMyCurves } from 'renderer/eq/myCurvesStore';
 
 const mockSetMode = jest.fn().mockResolvedValue(undefined);
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
@@ -34,6 +35,8 @@ jest.mock('renderer/utils/trebleDesignApi', () => ({
 // Answered before any case renders, so no case's first mount re-renders
 // outside act when the answer lands.
 beforeAll(() => refreshTrebleDesigns());
+// The Corrections tab's picker lists My curves; read (none) the same way.
+beforeAll(() => retryMyCurves());
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
     isEqDoubleOn: false,
@@ -46,6 +49,8 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   resetEqMode: jest.fn().mockResolvedValue(undefined),
   setEqMode: (...args: unknown[]) => mockSetMode(...args),
   setEqShape: jest.fn().mockResolvedValue(undefined),
+  readMyCurves: jest.fn().mockResolvedValue([]),
+  writeMyCurves: jest.fn().mockResolvedValue(true),
 }));
 jest.mock('renderer/utils/useCurvePhase', () => ({
   __esModule: true,

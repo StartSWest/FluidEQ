@@ -46,16 +46,24 @@ and the De-esser is not heard, and everything else plays as before.
 
 - **My curves: your own list beside OPRA's.** EQ Presets has a **My curves**
   tab next to the OPRA library. Keep any curve there under a name of your
-  choosing, pasted from Squiglink, read from a .txt file, or saved from the
-  Squiglink panel with **Save to My curves**. Each one shows its shape, where
-  it came from and which ears it is for, and plays with one press as the
-  headphone correction or goes into your EQ bands (that one asks for a second
-  press, because it replaces them). The curve playing now is marked.
-  Search, sort by name or by date, rename, duplicate, copy as text, delete.
-  **Export list** writes them all to one file that another FluidEQ imports
-  whole, or to a folder of .txt files for Equalizer APO and AutoEQ tools.
-  **Import list** shows every curve before adding any, and never overwrites a
-  name you already have without asking: keep both, replace or skip.
+  choosing: pasted from Squiglink or AutoEQ, read from a .txt file, taken from
+  your EQ as it plays, or copied from the OPRA correction playing (the OPRA
+  tab and the Squiglink panel each have **Save to My curves** too). A line
+  that cannot be read is named, never dropped without a word. Each curve shows
+  its shape, where it came from and which ears it is for, and plays with one
+  press as the headphone correction or goes into your EQ bands (that one asks
+  for a second press, because it replaces them). The curve playing now is
+  marked. Search, sort by name or by date, rename, edit its bands, duplicate,
+  copy as text, delete. **Export list** writes them all to one file that
+  another FluidEQ imports whole, or to a folder of .txt files for Equalizer
+  APO and AutoEQ tools. **Import list** shows every curve before adding any,
+  names whatever it leaves out, and never overwrites a name you already have
+  without asking: keep both, replace or skip. Your curves are kept in a file
+  of their own in FluidEQ's data folder.
+- **Switch corrections in one press.** The EQ mode card's Corrections tab has
+  a **Correction** picker: your curves first, then the OPRA curves for the
+  headphone playing, with arrows either side to step through them, so
+  comparing two corrections is one press. Each output keeps the one it plays.
 - **Tune each ear on its own.** Right-click a band and choose **Left + right**:
   it becomes two bands at the same frequency, one for each ear, that you move
   separately. **Both ears** joins them again in their middle, and Reset band

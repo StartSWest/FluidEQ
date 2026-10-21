@@ -893,11 +893,48 @@ const eq: Partial<Dictionary> = {
   'myCurves.choice.replace': 'Remplacer',
   'myCurves.choice.skip': 'Ignorer',
   'myCurves.importRun': 'Importer ({count})',
-  'myCurves.importSkipped':
-    'Entrées laissées de côté faute de courbe : {count}',
+  'myCurves.importSkipped': 'Laissées de côté faute de courbe : {names}',
   'myCurves.importNote':
     'Les courbes importées ne jouent jamais d’elles-mêmes ; celle qui joue maintenant continue.',
   'squigImport.saveMine': 'Enregistrer dans Mes courbes',
+  'myCurves.from': 'D’où elle vient',
+  'myCurves.from.paste': 'Coller',
+  'myCurves.from.pasteHint':
+    'Le texte ParametricEQ de Squiglink, ou celui d’AutoEQ',
+  'myCurves.from.file': 'Un fichier .txt',
+  'myCurves.from.fileHint': 'Format Equalizer APO ou AutoEQ',
+  'myCurves.from.eq': 'Mon EQ actuel',
+  'myCurves.from.eqHint': 'Vos bandes, telles qu’elles jouent',
+  'myCurves.from.opra': 'Depuis OPRA',
+  'myCurves.from.opraHint':
+    'Une copie de la correction en cours, à renommer et modifier',
+  'myCurves.from.opraNone':
+    'Lancez d’abord une correction de la bibliothèque OPRA',
+  'myCurves.defaultNameEq': 'Mon EQ, {date}',
+  'myCurves.defaultNameOpra': 'Courbe OPRA, {date}',
+  'myCurves.unread': 'Lignes non lues, absentes de la courbe : {lines}',
+  'myCurves.eqLeftOut':
+    'Les bandes réservées à une oreille sont laissées de côté : {count}. Choisissez Oreille gauche ou Oreille droite pour les garder.',
+  'myCurves.full':
+    'Mes courbes contient au plus {count} courbes et est plein. Supprimez-en pour faire de la place.',
+  'myCurves.editTitle': 'Modifier la courbe',
+  'myCurves.editIntro':
+    'Changez son nom, ses oreilles ou ses bandes. Si elle joue, appliquez-la de nouveau pour entendre le changement.',
+  'myCurves.saveChanges': 'Enregistrer les modifications',
+  'myCurves.editBands': 'Modifier les bandes',
+  'myCurves.readFailed': 'Vos courbes n’ont pas pu être lues',
+  'myCurves.readFailedBody':
+    'Elles sont toujours sur cet ordinateur et rien n’a été modifié. Réessayez dans un instant.',
+  'myCurves.retry': 'Réessayer',
+  'myCurves.importSkippedMore':
+    'Laissées de côté faute de courbe : {names} et {count} autres',
+  'myCurves.importRoom':
+    'Mes courbes en contient {max}. Il reste de la place pour {room} d’entre elles ; les {count} autres restent dehors.',
+  'myCurves.quick.label': 'Correction',
+  'myCurves.quick.previous': 'Correction précédente',
+  'myCurves.quick.next': 'Correction suivante',
+  'myCurves.quick.none': 'Aucune en cours',
+  'myCurves.quick.opra': 'OPRA · {name}',
 };
 
 export default eq;

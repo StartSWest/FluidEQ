@@ -23,6 +23,7 @@ import {
   useEqModeRevealGeneration,
 } from '../../utils/eqModePin';
 import SidebarSection from '../SidebarSection';
+import CorrectionQuickPick from './CorrectionQuickPick';
 import { EqModeReset, EqModeRows } from './EqModeRows';
 import useEqModeChoices, { EQ_MODE_SCOPES } from './useEqModeChoices';
 // The segmented track every closed set of choices in the app is drawn on.
@@ -164,6 +165,7 @@ const PinnedEqModeCard = ({ isPaneShown, scrollRef }: IEqModeCardProps) => {
               aria-labelledby={`${id}-${scope}`}
               inert={group !== scope}
             >
+              {scope === 'curves' && <CorrectionQuickPick />}
               <EqModeRows choices={choices} scope={scope} />
             </div>
           ))}

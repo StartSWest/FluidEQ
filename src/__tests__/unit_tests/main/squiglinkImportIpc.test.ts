@@ -34,6 +34,7 @@ const setup = () => {
     },
   };
   const deps: ITransferIpcDeps = {
+    userDataDir: 'unused',
     state,
     deviceProfileSettings: { version: 1, assignments: {} },
     session: {

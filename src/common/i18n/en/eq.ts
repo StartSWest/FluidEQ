@@ -899,11 +899,46 @@ const eq = {
   'myCurves.choice.replace': 'Replace',
   'myCurves.choice.skip': 'Skip',
   'myCurves.importRun': 'Import ({count})',
-  'myCurves.importSkipped':
-    'Entries left out because they held no curve: {count}',
+  'myCurves.importSkipped': 'Left out, holding no curve: {names}',
   'myCurves.importNote':
     'Imported curves never play by themselves; the one playing now keeps playing.',
   'squigImport.saveMine': 'Save to My curves',
+  'myCurves.from': 'Where it comes from',
+  'myCurves.from.paste': 'Paste',
+  'myCurves.from.pasteHint': 'Squiglink’s ParametricEQ text, or AutoEQ’s',
+  'myCurves.from.file': 'A .txt file',
+  'myCurves.from.fileHint': 'Equalizer APO or AutoEQ format',
+  'myCurves.from.eq': 'My EQ now',
+  'myCurves.from.eqHint': 'The bands you have set, as they play',
+  'myCurves.from.opra': 'From OPRA',
+  'myCurves.from.opraHint':
+    'A copy of the correction playing, to rename and edit',
+  'myCurves.from.opraNone': 'Play a correction from the OPRA library first',
+  'myCurves.defaultNameEq': 'My EQ, {date}',
+  'myCurves.defaultNameOpra': 'OPRA curve, {date}',
+  'myCurves.unread': 'Lines not read, so not in the curve: {lines}',
+  'myCurves.eqLeftOut':
+    'Bands kept to one ear are left out: {count}. Choose Left ear or Right ear to keep them.',
+  'myCurves.full':
+    'My curves holds up to {count} curves and is full. Delete some to make room.',
+  'myCurves.editTitle': 'Edit curve',
+  'myCurves.editIntro':
+    'Change its name, its ears or its bands. If it is playing, apply it again to hear the change.',
+  'myCurves.saveChanges': 'Save changes',
+  'myCurves.editBands': 'Edit bands',
+  'myCurves.readFailed': 'Your curves could not be read',
+  'myCurves.readFailedBody':
+    'They are still on this computer and nothing was changed. Try again in a moment.',
+  'myCurves.retry': 'Try again',
+  'myCurves.importSkippedMore':
+    'Left out, holding no curve: {names} and {count} more',
+  'myCurves.importRoom':
+    'My curves holds {max}. There is room for {room} of these; the other {count} stay out.',
+  'myCurves.quick.label': 'Correction',
+  'myCurves.quick.previous': 'Previous correction',
+  'myCurves.quick.next': 'Next correction',
+  'myCurves.quick.none': 'None playing',
+  'myCurves.quick.opra': 'OPRA · {name}',
 } as const;
 
 export default eq;

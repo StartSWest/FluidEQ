@@ -82,6 +82,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .my-curves__empty {
   display: grid;
+  justify-items: center;
   gap: 4px;
   padding: 22px 18px;
   border: 1px dashed $border-subtle;
@@ -321,11 +322,72 @@ SPDX-License-Identifier: GPL-3.0-or-later
   gap: 10px;
 }
 
-.my-curve-add__source {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+// The four ways in, side by side, two by two where the dialog is narrow.
+.my-curve-sources {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.my-curve-source {
+  display: grid;
+  align-content: start;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color $motion-fast $ease-out;
+
+  strong {
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $text-muted;
+    font-size: $text-small;
+    line-height: 1.4;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: color-mix(in srgb, $secondary-default 50%, $card-edge);
+  }
+
+  &.is-selected {
+    border-color: $secondary-default;
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+.my-curve-add__status {
+  display: grid;
+  gap: 2px;
+}
+
+.my-curve-add__unread {
+  margin: 0;
+  color: $amber;
+  font-size: $text-small;
+}
+
+.my-curve-add__full {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, $amber 45%, transparent);
+  border-radius: $radius-s;
+  color: $amber;
+  font-size: $text-small;
 }
 
 .my-curve-add__label {
@@ -468,6 +530,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
     color: $amber;
     font-size: $text-small;
   }
+}
+
+.my-curve-import__room {
+  margin: 8px 0 0;
+  color: $amber;
+  font-size: $text-small;
 }
 
 .my-curve-import__hint,

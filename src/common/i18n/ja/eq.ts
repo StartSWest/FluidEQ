@@ -878,10 +878,44 @@ const eq: Partial<Dictionary> = {
   'myCurves.choice.replace': '置き換える',
   'myCurves.choice.skip': 'スキップ',
   'myCurves.importRun': '読み込む（{count}）',
-  'myCurves.importSkipped': 'カーブがなかったため除外した項目：{count}',
+  'myCurves.importSkipped': 'カーブがないため除外：{names}',
   'myCurves.importNote':
     '読み込んだカーブが勝手に鳴ることはありません。今鳴っているカーブはそのままです。',
   'squigImport.saveMine': 'マイカーブに保存',
+  'myCurves.from': '取り込み元',
+  'myCurves.from.paste': '貼り付け',
+  'myCurves.from.pasteHint': 'SquiglinkまたはAutoEQのParametricEQテキスト',
+  'myCurves.from.file': '.txtファイル',
+  'myCurves.from.fileHint': 'Equalizer APOまたはAutoEQ形式',
+  'myCurves.from.eq': '今のマイEQ',
+  'myCurves.from.eqHint': '設定中のバンドを、鳴っているとおりに',
+  'myCurves.from.opra': 'OPRAから',
+  'myCurves.from.opraHint': '再生中の補正のコピー。名前の変更や編集ができます',
+  'myCurves.from.opraNone': '先にOPRAライブラリから補正を再生してください',
+  'myCurves.defaultNameEq': 'マイEQ、{date}',
+  'myCurves.defaultNameOpra': 'OPRAカーブ、{date}',
+  'myCurves.unread': '読み取れずカーブに含まれない行：{lines}',
+  'myCurves.eqLeftOut':
+    '片耳だけのバンドは除外されます：{count}。残すには左耳か右耳を選んでください。',
+  'myCurves.full':
+    'マイカーブには最大{count}本まで保存でき、いっぱいです。空きを作るにはいくつか削除してください。',
+  'myCurves.editTitle': 'カーブを編集',
+  'myCurves.editIntro':
+    '名前、耳、バンドを変更します。再生中の場合は、変更を聞くためにもう一度適用してください。',
+  'myCurves.saveChanges': '変更を保存',
+  'myCurves.editBands': 'バンドを編集',
+  'myCurves.readFailed': 'カーブを読み込めませんでした',
+  'myCurves.readFailedBody':
+    'カーブはこのコンピューターに残っており、何も変更されていません。少ししてからもう一度お試しください。',
+  'myCurves.retry': '再試行',
+  'myCurves.importSkippedMore': 'カーブがないため除外：{names} ほか{count}件',
+  'myCurves.importRoom':
+    'マイカーブには{max}本まで入ります。このうち{room}本分の空きがあり、残りの{count}本は入りません。',
+  'myCurves.quick.label': '補正',
+  'myCurves.quick.previous': '前の補正',
+  'myCurves.quick.next': '次の補正',
+  'myCurves.quick.none': '再生中なし',
+  'myCurves.quick.opra': 'OPRA · {name}',
 };
 
 export default eq;

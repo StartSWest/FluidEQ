@@ -891,10 +891,47 @@ const eq: Partial<Dictionary> = {
   'myCurves.choice.replace': 'Reemplazar',
   'myCurves.choice.skip': 'Omitir',
   'myCurves.importRun': 'Importar ({count})',
-  'myCurves.importSkipped': 'Entradas omitidas porque no tenían curva: {count}',
+  'myCurves.importSkipped': 'Omitidas por no tener curva: {names}',
   'myCurves.importNote':
     'Las curvas importadas nunca suenan solas; la que suena ahora sigue sonando.',
   'squigImport.saveMine': 'Guardar en Mis curvas',
+  'myCurves.from': 'De dónde viene',
+  'myCurves.from.paste': 'Pegar',
+  'myCurves.from.pasteHint':
+    'El texto ParametricEQ de Squiglink, o el de AutoEQ',
+  'myCurves.from.file': 'Un archivo .txt',
+  'myCurves.from.fileHint': 'Formato de Equalizer APO o AutoEQ',
+  'myCurves.from.eq': 'Mi EQ ahora',
+  'myCurves.from.eqHint': 'Las bandas que tienes, tal como suenan',
+  'myCurves.from.opra': 'De OPRA',
+  'myCurves.from.opraHint':
+    'Una copia de la corrección que suena, para renombrarla y editarla',
+  'myCurves.from.opraNone': 'Primero pon una corrección de la biblioteca OPRA',
+  'myCurves.defaultNameEq': 'Mi EQ, {date}',
+  'myCurves.defaultNameOpra': 'Curva de OPRA, {date}',
+  'myCurves.unread': 'Líneas no leídas, que no están en la curva: {lines}',
+  'myCurves.eqLeftOut':
+    'Las bandas de un solo oído quedan fuera: {count}. Elige Oído izquierdo u Oído derecho para conservarlas.',
+  'myCurves.full':
+    'Mis curvas guarda hasta {count} curvas y está lleno. Borra algunas para hacer sitio.',
+  'myCurves.editTitle': 'Editar curva',
+  'myCurves.editIntro':
+    'Cambia su nombre, sus oídos o sus bandas. Si está sonando, vuelve a aplicarla para oír el cambio.',
+  'myCurves.saveChanges': 'Guardar cambios',
+  'myCurves.editBands': 'Editar bandas',
+  'myCurves.readFailed': 'No se pudieron leer tus curvas',
+  'myCurves.readFailedBody':
+    'Siguen en este ordenador y no se cambió nada. Inténtalo de nuevo en un momento.',
+  'myCurves.retry': 'Reintentar',
+  'myCurves.importSkippedMore':
+    'Omitidas por no tener curva: {names} y {count} más',
+  'myCurves.importRoom':
+    'Mis curvas guarda {max}. Hay sitio para {room} de estas; las otras {count} se quedan fuera.',
+  'myCurves.quick.label': 'Corrección',
+  'myCurves.quick.previous': 'Corrección anterior',
+  'myCurves.quick.next': 'Corrección siguiente',
+  'myCurves.quick.none': 'Ninguna sonando',
+  'myCurves.quick.opra': 'OPRA · {name}',
 };
 
 export default eq;

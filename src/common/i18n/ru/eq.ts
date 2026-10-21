@@ -884,10 +884,46 @@ const eq: Partial<Dictionary> = {
   'myCurves.choice.replace': 'Заменить',
   'myCurves.choice.skip': 'Пропустить',
   'myCurves.importRun': 'Импортировать ({count})',
-  'myCurves.importSkipped': 'Пропущено записей без кривой: {count}',
+  'myCurves.importSkipped': 'Пропущены, так как в них нет кривой: {names}',
   'myCurves.importNote':
     'Импортированные кривые никогда не включаются сами; та, что звучит сейчас, продолжает звучать.',
   'squigImport.saveMine': 'Сохранить в «Мои кривые»',
+  'myCurves.from': 'Откуда она',
+  'myCurves.from.paste': 'Вставить',
+  'myCurves.from.pasteHint': 'Текст ParametricEQ из Squiglink или AutoEQ',
+  'myCurves.from.file': 'Файл .txt',
+  'myCurves.from.fileHint': 'Формат Equalizer APO или AutoEQ',
+  'myCurves.from.eq': 'Мой EQ сейчас',
+  'myCurves.from.eqHint': 'Ваши полосы такими, как они звучат',
+  'myCurves.from.opra': 'Из OPRA',
+  'myCurves.from.opraHint':
+    'Копия звучащей коррекции, чтобы переименовать и изменить',
+  'myCurves.from.opraNone': 'Сначала включите коррекцию из библиотеки OPRA',
+  'myCurves.defaultNameEq': 'Мой EQ, {date}',
+  'myCurves.defaultNameOpra': 'Кривая OPRA, {date}',
+  'myCurves.unread': 'Непрочитанные строки, не вошедшие в кривую: {lines}',
+  'myCurves.eqLeftOut':
+    'Полосы только для одного уха не вошли: {count}. Чтобы сохранить их, выберите «Левое ухо» или «Правое ухо».',
+  'myCurves.full':
+    'В «Мои кривые» помещается до {count} кривых, и там нет места. Удалите несколько, чтобы освободить его.',
+  'myCurves.editTitle': 'Изменить кривую',
+  'myCurves.editIntro':
+    'Измените название, уши или полосы. Если она звучит, примените её снова, чтобы услышать изменения.',
+  'myCurves.saveChanges': 'Сохранить изменения',
+  'myCurves.editBands': 'Изменить полосы',
+  'myCurves.readFailed': 'Не удалось прочитать ваши кривые',
+  'myCurves.readFailedBody':
+    'Они по-прежнему на этом компьютере, и ничего не изменилось. Повторите попытку чуть позже.',
+  'myCurves.retry': 'Повторить',
+  'myCurves.importSkippedMore':
+    'Пропущены, так как в них нет кривой: {names} и ещё {count}',
+  'myCurves.importRoom':
+    'В «Мои кривые» помещается {max}. Места хватит для {room} из них; остальные {count} не войдут.',
+  'myCurves.quick.label': 'Коррекция',
+  'myCurves.quick.previous': 'Предыдущая коррекция',
+  'myCurves.quick.next': 'Следующая коррекция',
+  'myCurves.quick.none': 'Ничего не звучит',
+  'myCurves.quick.opra': 'OPRA · {name}',
 };
 
 export default eq;

@@ -118,6 +118,8 @@ enum ChannelEnum {
   // into a folder (`main/ipc/curveExport.ts`).
   EXPORT_CURVE_LIST = 'exportCurveList',
   EXPORT_CURVE_FOLDER = 'exportCurveFolder',
+  GET_MY_CURVES = 'getMyCurves',
+  SET_MY_CURVES = 'setMyCurves',
   IMPORT_CONVOLUTION_FILE = 'importConvolutionFile',
   CHECK_OPRA_UPDATE = 'checkOpraUpdate',
   UPDATE_OPRA_DATABASE = 'updateOpraDatabase',

@@ -15,7 +15,8 @@ import {
   duplicateMyCurve,
   removeMyCurve,
   renameMyCurve,
-  useMyCurves,
+  retryMyCurves,
+  useMyCurvesState,
 } from './myCurvesStore';
 import '../styles/MyCurves.scss';
 
@@ -31,12 +32,13 @@ type TDialog = 'add' | 'export' | 'import' | undefined;
  */
 export default function MyCurvesPanel() {
   const { t } = useTranslation();
-  const curves = useMyCurves();
+  const { curves, isLoaded, isFailed } = useMyCurvesState();
   const { headphone, isBlockingError, refreshState, setGlobalError } =
     useFluidEqContext();
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<TSort>('recent');
   const [dialog, setDialog] = useState<TDialog>();
+  const [editing, setEditing] = useState<IMyCurve>();
   const [isApplying, setApplying] = useState(false);
   // The correction playing now, by its text: a curve is playing when it is
   // the very curve the correction layer holds, whatever it was called there.
@@ -51,6 +53,11 @@ export default function MyCurvesPanel() {
       ? found.sort((a, b) => a.name.localeCompare(b.name))
       : found;
   }, [curves, query, sort]);
+
+  // A change main could not keep is taken back by the store and said here.
+  const report = (pending: Promise<unknown>) => {
+    pending.catch((error) => setGlobalError(error as ErrorDescription));
+  };
 
   const apply = async (curve: IMyCurve, destination: 'curve' | 'eq') => {
     setApplying(true);
@@ -111,6 +118,7 @@ export default function MyCurvesPanel() {
         <button
           type="button"
           className="button small subtle"
+          disabled={!isLoaded}
           onClick={() => setDialog('import')}
         >
           {/* Into the tray, where Export comes out of it: side by side the
@@ -130,6 +138,7 @@ export default function MyCurvesPanel() {
         <button
           type="button"
           className="button small"
+          disabled={!isLoaded}
           onClick={() => setDialog('add')}
         >
           <MenuIcon name="plus" />
@@ -137,12 +146,26 @@ export default function MyCurvesPanel() {
         </button>
       </div>
 
-      {curves.length === 0 ? (
+      {isFailed && (
+        <div className="my-curves__empty" role="alert">
+          <strong>{t('myCurves.readFailed')}</strong>
+          <p>{t('myCurves.readFailedBody')}</p>
+          <button
+            type="button"
+            className="button small subtle my-curves__retry"
+            onClick={() => report(retryMyCurves())}
+          >
+            {t('myCurves.retry')}
+          </button>
+        </div>
+      )}
+      {isLoaded && curves.length === 0 && (
         <div className="my-curves__empty">
           <strong>{t('myCurves.empty.title')}</strong>
           <p>{t('myCurves.empty.body')}</p>
         </div>
-      ) : (
+      )}
+      {isLoaded && curves.length > 0 && (
         <ul className="my-curves__list">
           {shown.map((curve) => (
             <MyCurveRow
@@ -156,17 +179,24 @@ export default function MyCurvesPanel() {
               onApplyEq={(chosen) => {
                 apply(chosen, 'eq').catch(() => undefined);
               }}
-              onRename={(chosen, name) => renameMyCurve(chosen.id, name)}
-              onDuplicate={(chosen) => {
-                duplicateMyCurve(chosen.id);
-              }}
-              onDelete={(chosen) => removeMyCurve(chosen.id)}
+              onRename={(chosen, name) =>
+                report(renameMyCurve(chosen.id, name))
+              }
+              onDuplicate={(chosen) => report(duplicateMyCurve(chosen.id))}
+              onEdit={setEditing}
+              onDelete={(chosen) => report(removeMyCurve(chosen.id))}
             />
           ))}
           {shown.length === 0 && (
             <li className="my-curves__none">{t('myCurves.noMatch')}</li>
           )}
         </ul>
+      )}
+      {editing && (
+        <MyCurveAddDialog
+          editing={editing}
+          onClose={() => setEditing(undefined)}
+        />
       )}
 
       {dialog === 'add' && (
