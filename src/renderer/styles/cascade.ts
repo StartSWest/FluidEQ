@@ -80,7 +80,6 @@ import './SceneBand.scss';
 import './PlusTerms.scss';
 import './AccountForms.scss';
 import './SignOutConfirm.scss';
-import './GalleryIntro.scss';
 import './About.scss';
 import './Account.scss';
 import './AccountDeletion.scss';

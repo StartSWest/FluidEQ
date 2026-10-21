@@ -211,8 +211,9 @@ describe('Visualizers', () => {
     expect(
       await screen.findByRole('button', { name: 'Neon City' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('trial.free.title')).toBeInTheDocument();
-    expect(screen.getByText(/^trial.free.body/)).toBeInTheDocument();
+    // No banner over the gallery: what the free app is was said before
+    // signing in (Ivan, 2026-10-21).
+    expect(screen.queryByText('trial.free.title')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'plus.card.add' }),
     ).not.toBeInTheDocument();

@@ -26,6 +26,32 @@ it under the terms of the GNU General Public License version 3 or later.
   @include slim-scrollbar;
 }
 
+// What the free app is and how scenes are got: a heading and a line across
+// the top of the page, over the scenes and the way in.
+.plus-free-intro {
+  grid-column: 1 / -1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+
+  h2 {
+    margin: 0 0 $spacing-xs;
+    color: $text-primary;
+    font-size: clamp(1.25rem, 3cqi, 1.9rem);
+    font-weight: $weight-bold;
+    line-height: 1.25;
+    text-wrap: balance;
+  }
+
+  p {
+    max-width: 75ch;
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.65;
+  }
+}
+
 // `margin: auto` rather than centring the content: it centres while the page
 // fits and never pushes its top out of reach when it does not.
 .plus-welcome__inner {

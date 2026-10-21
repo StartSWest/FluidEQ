@@ -9,7 +9,6 @@ import { refreshGalleryOnShow } from './galleryStore';
 import GalleryView from './GalleryView';
 import MakerPage from './MakerPage';
 import PlusToastStack from './PlusToastStack';
-import GalleryIntro from './GalleryIntro';
 import {
   galleryPageKey,
   galleryScrollOf,
@@ -140,7 +139,6 @@ export default function VisualizersView({
         }
       >
         {page.kind !== 'browse' && <PageBar page={page} />}
-        {page.kind === 'browse' && <GalleryIntro />}
         {content}
       </div>
     </>
