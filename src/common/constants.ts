@@ -809,7 +809,10 @@ const DEFAULT_FILTER_TEMPLATE = {
 
 export const getDefaultFilterWithId = (): IFilter => {
   return {
-    id: uid(8),
+    // Never all digits: uid's hex is decimal one time in forty, and an
+    // integer-like key is listed first by every Object.values, which read a
+    // curve file's bands back out of order (CI, 2026-10-21).
+    id: `b${uid(8)}`,
     ...DEFAULT_FILTER_TEMPLATE,
   };
 };
