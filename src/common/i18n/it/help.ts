@@ -491,18 +491,15 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.categoriesName': 'Categorie',
   'help.looks.categories': 'Natura, Città, Astratto e altro.',
 
-  'help.plus.videoTitle': 'Un tour di FluidEQ Plus',
-  'help.plus.videoNote':
-    'Circa quattro minuti e mezzo, narrato in inglese. Viene riprodotto da fluideq.com quando premi play.',
-  'help.plus.title': 'FluidEQ Plus e il tuo account',
+  'help.plus.title': 'Il tuo account, i crediti e la scheda Plus',
   'help.plus.intro':
-    'Un account è facoltativo: tutto ciò che era gratuito funziona su questo computer anche senza. FluidEQ Plus, mensile o annuale, aggiunge Visualizzatori, la Classifica, lo Studio, l’Illuminazione dinamica e il visualizzatore del desktop. Un account nuovo può provare Plus gratis per quindici giorni, e una scena che pubblichi e che viene approvata ti regala un mese.',
+    'L’account è facoltativo: tutto ciò che era gratuito funziona su questo computer anche senza. Con l’accesso, la scheda Plus raccoglie Visualizzatori, la Classifica, lo Studio, l’Illuminazione dinamica e il visualizzatore sul desktop. Una scena di Visualizzatori costa un credito ed è tua per sempre; un account confermato riceve alcuni crediti gratis, e i pacchetti di crediti si pagano una sola volta.',
   'help.plus.steps':
-    'Apri Account nel menu delle azioni. Accedi, oppure crea un account e inserisci il codice di sei cifre inviato alla tua email.\nPremi Passa a Plus, leggi le condizioni, spunta la casella per accettarle e paga su Buy Me a Coffee nel browser con la stessa email.\nApri la scheda Plus. La sua barra laterale porta a Classifica, Visualizzatori, Studio e Illuminazione dinamica.',
+    'Apri Account nel menu delle azioni. Accedi, oppure crea un account e inserisci il codice di sei cifre inviato alla tua email.\nApri la scheda Plus e scegli Visualizzatori. Apri una scena, guardala e premi Ottieni per spenderci un credito.\nPer avere altri crediti, apri Account e scegli un pacchetto. Si paga una sola volta su Stripe, nel browser.',
   'help.plus.tip':
-    'L’app non vede mai la tua carta; Gestisci abbonamento lo modifica o lo disdice. La prova gratuita non chiede la carta e non addebita nulla alla fine. Un account resta connesso su un massimo di cinque computer, e Plus continua a funzionare offline per un po’.',
+    'L’app non vede mai la tua carta, e nulla si rinnova. Un abbonamento Plus che hai già continua a funzionare finché FluidEQ non passa i suoi membri ai crediti, e Gestisci abbonamento lo disdice. Un account resta connesso su un massimo di cinque computer.',
   'help.plus.keywords':
-    'login, logout, accedere, accesso, registrarsi, registrazione account, iscrizione, premium, prezzo, costo, quanto costa, pagamento, carta di credito, acquistare, comprare, trial, annullare abbonamento, rinnovo, upgrade, membership, codice di verifica, sbloccare',
+    'account, accedi, accesso, login, registrati, registrazione, crediti, credito, pacchetto, comprare, prezzo, prezzi, costo, pagamento, pagare, premium, a pagamento, scena, abbonamento, disdire, membro, codice email',
   'help.plus.leaderboard':
     'Chi ascolta di più, tra i membri Plus che partecipano.',
   'help.plus.visualizers':
@@ -514,9 +511,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.gallery.title': 'La galleria Visualizzatori',
   'help.gallery.intro':
-    'Visualizzatori raccoglie le scene di FluidEQ e quelle pubblicate dai membri. Qualsiasi account può sfogliarle e provare per dieci secondi gli esempi gratuiti di FluidEQ; Plus riproduce ogni scena con la tua musica e la aggiunge ai tuoi aspetti.',
+    'Visualizzatori raccoglie le scene di FluidEQ e quelle pubblicate dai membri. Ogni account può sfogliarle e guardare qualsiasi scena per dieci secondi; una scena ottenuta con un credito suona con la tua musica e resta nei tuoi aspetti, per sempre.',
   'help.gallery.steps':
-    'Apri Plus → Visualizzatori. Cerca, ordina per Più apprezzate, Questa settimana o Più recenti, oppure scegli una categoria.\nApri una scena, premi Aggiungi ai miei aspetti, poi Riproduci sul grafico. Le frecce, o ← e →, passano da una scena all’altra.\nMetti mi piace alle scene dei membri con il cuore e segnala quelle che non dovrebbero esserci.',
+    'Apri Plus → Visualizzatori. Cerca, ordina per Più apprezzate, Questa settimana o Più recenti, oppure scegli una categoria.\nApri una scena e premi Ottieni per tenerla con un credito, poi Riproduci sul grafico. Le frecce, o ← e →, passano da una scena all’altra.\nMetti mi piace con il cuore alle scene che hai, e segnala quella che non dovrebbe esserci.',
   'help.gallery.tip':
     'Le scene nei tuoi aspetti si aggiornano da sole, e la pagina di una scena dice cosa è cambiato in ogni versione. Una scena che pubblichi compare quando il creatore di FluidEQ l’ha approvata. Apri nello Studio mostra come sono fatte le scene di FluidEQ.',
   'help.gallery.keywords':
@@ -559,11 +556,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.studio.title': 'Crea scene nello Studio',
   'help.studio.intro':
-    'Lo Studio trasforma una descrizione in un visualizzatore. Il tuo assistente IA scrive la scena in una cartella di progetto, e FluidEQ riproduce ogni versione con la tua musica non appena viene salvata. Lo Studio fa parte di Plus; un account nuovo può aprirlo con la prova gratuita.',
+    'Lo Studio trasforma una descrizione in un visualizzatore. Il tuo assistente IA scrive la scena in una cartella di progetto, e FluidEQ riproduce ogni versione con la tua musica non appena viene salvata. Lo Studio è gratuito per ogni account.',
   'help.studio.steps':
     'Apri Plus → Studio e premi Nuovo progetto…. Dagli un nome: FluidEQ crea la sua cartella con una scena che si muove già.\nDescrivi la tua idea, apri la cartella nel tuo assistente IA e incolla il prompt di Copia prompt per IA.\nOppure scrivi cosa deve cambiare nella chat accanto al palco: Claude Code su questo computer, con il tuo piano, modifica la scena e suona ogni versione. Ogni risposta tiene la sua versione, con Ripristina.\nGuarda il palco mentre i file vengono salvati e usa i segnali di prova. Poi Aggiungi ai miei aspetti, Pubblica… o Esporta….',
   'help.studio.tip':
-    'Fai doppio clic sul palco per lo schermo intero. Guarda dentro una scena di FluidEQ… apre una delle scene di FluidEQ da cui imparare; non si può pubblicare. Le scene che lampeggiano troppo o sono troppo pesanti vengono bloccate. Una scena che pubblichi viene prima letta dal creatore di FluidEQ, e una scena approvata ti regala un mese di Plus.',
+    'Fai doppio clic sul palco per lo schermo intero. Guarda dentro una scena di FluidEQ… apre una delle scene di FluidEQ da cui imparare; non si può pubblicare. Le scene che lampeggiano troppo o sono troppo pesanti vengono bloccate. Una scena che pubblichi viene prima letta dal creatore di FluidEQ, e una volta approvata suona gratis per te ovunque.',
   'help.studio.keywords':
     'creare visualizzatore, shader, GLSL, intelligenza artificiale, ChatGPT, Claude, programmare, editor, chat, chat dello studio, chiedere una modifica, claude code, ripristina, versioni',
   'help.studio.project':

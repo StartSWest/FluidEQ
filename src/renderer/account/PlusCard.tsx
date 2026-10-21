@@ -6,9 +6,7 @@ import { PLUS_MAX_COMPUTERS } from 'common/plusTerms';
 import { PLUS_TRIAL_PLAN } from 'common/plusTrial';
 import { MAKER_PLAN } from 'common/makerMonth';
 import type { TranslationKey } from 'common/i18n/en';
-import { isCheckoutConfigured } from 'common/accountConfig';
 import { useTranslation } from '../utils/I18nContext';
-import plusPriceText from './plusPrice';
 import {
   isMembershipSimulatorAvailable,
   openSubscriptionPortal,
@@ -19,46 +17,29 @@ import {
 
 interface IPlusCardProps {
   entitlement: IEntitlementStatus;
-  /** Show the terms, with the agreement that leads to the checkout. */
-  onUpgrade: () => void;
-  /** The checkout was opened from the terms and is waiting in the browser. */
-  checkoutOpened: boolean;
 }
 
 const ERROR_KEYS: Record<TBillingFailure, TranslationKey> = {
   network: 'account.error.network',
   signed_out: 'account.error.expired',
   rejected: 'account.plus.error.rejected',
-  terms_outdated: 'terms.error.outdated',
-  price_outdated: 'terms.error.priceOutdated',
 };
 
 /**
- * The subscription, inside the account panel.
+ * A Plus membership still running, inside the account panel.
  *
- * One card, three states, and it is absent entirely when there is nothing to
- * buy — a build with accounts but no price configured is every build until a
- * merchant account exists, and an offer with no way to accept it is a broken
- * button with a paragraph attached.
- *
- * The loud button appears exactly once, on the upgrade. Managing an existing
- * subscription and re-checking a doubtful one are things a person is already
- * committed to; neither needs encouraging.
- *
- * The upgrade does not open the checkout: it opens the terms, and the
- * agreement at their foot does. Nobody pays without having been shown what
- * the app sends and what they are agreeing to.
+ * Plus is not sold any more — credits took its place (`CreditsCard`, right
+ * under this) — so the card is there only for an account that has one, and
+ * says what it is and until when. A paid one keeps its Manage button: a
+ * member who still pays must always be one press from the page that stops
+ * it. Nothing here is loud; nothing here needs encouraging.
  *
  * The management page is minted by the server on request, so a press is a
  * round trip before the browser opens. The button says so while it waits — a
  * click that visibly does nothing for a second reads as broken — and a
  * failure is named where it happened rather than left to the silence.
  */
-export default function PlusCard({
-  entitlement,
-  onUpgrade,
-  checkoutOpened,
-}: IPlusCardProps) {
+export default function PlusCard({ entitlement }: IPlusCardProps) {
   const { t, locale } = useTranslation();
   const [opening, setOpening] = useState<
     'portal' | TMembershipSimulation | undefined
@@ -108,7 +89,9 @@ export default function PlusCard({
     }
   };
 
-  if (entitlement.state === 'none' && !isCheckoutConfigured()) {
+  // The development strip below is the one thing that may stand here without
+  // a membership: it is how one is pretended into being.
+  if (entitlement.state === 'none' && !simulator) {
     return null;
   }
 
@@ -181,30 +164,6 @@ export default function PlusCard({
         )}
       </div>
 
-      {entitlement.state === 'none' && (
-        <>
-          <p className="plus-card__pitch">{t('account.plus.pitch')}</p>
-          <p className="plus-card__price">{plusPriceText(t)}</p>
-          <div className="plus-card__actions">
-            <button
-              type="button"
-              className="button small"
-              disabled={opening !== undefined}
-              onClick={onUpgrade}
-            >
-              {t('account.plus.upgrade')}
-            </button>
-          </div>
-          {checkoutOpened ? (
-            <p className="plus-card__line" role="status">
-              {t('account.plus.checkoutOpened')}
-            </p>
-          ) : (
-            <p className="plus-card__hint">{t('account.plus.checkoutHint')}</p>
-          )}
-        </>
-      )}
-
       {entitlement.state === 'active' && (
         <>
           {/* The development override carries no period; a "Renews" with
@@ -220,18 +179,6 @@ export default function PlusCard({
                 })}
               </p>
               <p className="plus-card__hint">{t('trial.active.body')}</p>
-              <p className="plus-card__hint">{t('trial.offer.fine')}</p>
-              {isCheckoutConfigured() && (
-                <div className="plus-card__actions">
-                  <button
-                    type="button"
-                    className="button small subtle"
-                    onClick={onUpgrade}
-                  >
-                    {t('trial.ended.plans')}
-                  </button>
-                </div>
-              )}
             </>
           )}
           {/* A month earned by publishing: free, ending on a date, with no
@@ -280,11 +227,8 @@ export default function PlusCard({
                 )}
                 {/* The one rule a member can walk into, from the constant the
                   server enforces it with — and only while the membership is
-                  going on, since it is no use to somebody leaving. No price:
-                  `plusPriceText` is the offer — both plans, or the monthly
-                  one — and somebody paying yearly would read it as their own
-                  bill. What they pay is behind the button, on the merchant's
-                  own page. */}
+                  going on, since it is no use to somebody leaving. What they
+                  pay is behind the button, on the merchant's own page. */}
                 {entitlement.renewing !== false && (
                   <p className="plus-card__hint">
                     {t('account.plus.computers', {

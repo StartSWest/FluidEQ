@@ -1,22 +1,21 @@
-import { isCheckoutConfigured } from 'common/accountConfig';
-import { requestAccountPanel } from '../account/accountPanel';
 import Glyph from '../community/Glyph';
-import { useTranslation } from '../utils/I18nContext';
 import { usePlusEntitled } from './GalleryParts';
 import { PlusFreeIntro, PlusTrialCard } from './PlusTrialCard';
 import { usePlusTrial } from './trialStore';
 
-/** Stays inside the Plus gallery; never interrupts the free app. */
+/**
+ * Stays inside the gallery; never interrupts the free app. What the free app
+ * is and how scenes are got, for an account without Plus, and a free trial
+ * already taken while it runs or once it has ended.
+ */
 export default function PlusTrialBanner({
   onKeepFree,
 }: {
   onKeepFree: () => void;
 }) {
-  const { t } = useTranslation();
   const { offer, owner } = usePlusTrial();
   const entitled = usePlusEntitled();
-  const showTrial =
-    offer && ['eligible', 'active', 'ended'].includes(offer.state);
+  const showTrial = offer && ['active', 'ended'].includes(offer.state);
   if (entitled && !showTrial) {
     return null;
   }
@@ -30,16 +29,6 @@ export default function PlusTrialBanner({
             </span>
             <PlusFreeIntro compact />
           </div>
-          {!showTrial && isCheckoutConfigured() && (
-            <button
-              type="button"
-              className="button small subtle plus-trial-banner__plans"
-              onClick={() => requestAccountPanel('subscribe')}
-            >
-              <span>{t('trial.ended.plans')}</span>
-              <Glyph name="next" />
-            </button>
-          )}
         </div>
       )}
       {showTrial && (

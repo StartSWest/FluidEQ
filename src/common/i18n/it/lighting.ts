@@ -46,35 +46,34 @@ const lighting = {
   'lighting.description':
     'Tastiera, mouse, tappetino, cuffie e supporto si accendono con la scena',
 
-  'lighting.gate.title': 'Accendi tastiera, mouse e cuffie con ogni scena Plus',
+  'lighting.gate.title': 'Illumina tastiera, mouse e cuffie con le tue scene',
   'lighting.gate.body':
-    'L’illuminazione dinamica fa parte di FluidEQ Plus. I tuoi dispositivi prendono i colori della scena sul grafico e pulsano a tempo.',
-  'lighting.gate.cta': 'Scopri Plus',
+    'Ottieni una scena qualsiasi in Visualizzatori e l’illuminazione dinamica è tua: i tuoi dispositivi prendono i colori della scena sul grafico e pulsano al suo ritmo.',
+  'lighting.gate.cta': 'Trova una scena',
 
   'lighting.preview.status':
     'Anteprima — i tuoi dispositivi si illuminano finché questa pagina è aperta',
   'lighting.preview.lit': 'Sto illuminando i tuoi dispositivi con la scena',
   'lighting.preview.oneScene': 'Una scena per mostrare come funziona',
-  'lighting.preview.noScene': 'Una scena Plus sulla tua scrivania',
-  'lighting.preview.moreScenes': 'Tutte le scene con Plus',
+  'lighting.preview.noScene': 'Una scena sulla tua scrivania',
+  'lighting.preview.moreScenes': 'Sfoglia le scene',
   'lighting.preview.held':
-    'Con Plus i tuoi dispositivi restano illuminati così, con ogni scena.',
+    'Con una scena tua, i tuoi dispositivi restano illuminati così.',
   'lighting.preview.locked':
-    'Luminosità, stile e allineamento arrivano con Plus.',
+    'Luminosità, stile e allineamento si sbloccano con una scena tua.',
 
   'lighting.unsupported.title': 'L’illuminazione dinamica funziona su Windows',
   'lighting.unsupported.body':
     'Illumina i dispositivi tramite Windows Dynamic Lighting e Razer Chroma, che esistono solo su Windows.',
 
-  'lighting.switch': 'Illumina i miei dispositivi mentre suona una scena Plus',
+  'lighting.switch': 'Illumina i miei dispositivi mentre suona una scena',
   'lighting.status.live': 'Segue {scene}',
   'lighting.status.waiting': 'In attesa di musica',
   'lighting.status.nothingLit':
     'La scena è in riproduzione, ma nessun dispositivo è acceso',
   'lighting.status.off':
     'Spenta: i tuoi dispositivi mantengono la loro illuminazione',
-  'lighting.status.noScene':
-    'Scegli una scena Plus e i tuoi dispositivi la seguiranno',
+  'lighting.status.noScene': 'Scegli una scena e i tuoi dispositivi la seguono',
   'lighting.pickScene': 'Sfoglia i visualizzatori',
   'lighting.showGraph': 'Mostra il grafico',
 
@@ -187,6 +186,7 @@ const lighting = {
 
   'lighting.graph.on': 'Smetti di illuminare i miei dispositivi',
   'lighting.graph.off': 'Illumina i miei dispositivi con questa scena',
+  'lighting.gate.eyebrow': 'Basta una scena',
 } as const;
 
 export default lighting;

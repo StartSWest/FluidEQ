@@ -5,19 +5,14 @@ const plus = {
   'plus.remove.done': '表示から「{name}」を削除しました。',
   'plus.card.remove': '削除',
   'plus.official.author': 'FluidEQ · 公式',
-  'plus.official.included': 'Plus に含まれます',
-  'plus.official.sample': '{seconds} 秒のプレビュー',
+  'plus.official.included': '1シーン1クレジット、ずっとあなたのもの',
   'plus.official.badge': '公式',
-  'plus.official.fine':
-    'FluidEQ コレクションの一部です。Plus の間、マイ表示から再生できます。',
   'plus.visualizers.title': 'ビジュアライザー',
   'plus.visualizers.description':
     'FluidEQ と Plus コミュニティのシーンを、あなたの音楽とともに',
   'plus.visualizers.blurb': 'メンバーのシーン',
   'plus.rail.pin': 'サイドバーを固定',
   'plus.rail.collapse': 'サイドバーを折りたたむ',
-
-  'plus.gate.cta': 'Plus を見る',
 
   'plus.gallery.search': 'シーンや作者を検索',
   'plus.gallery.sort': '並べ替え',
@@ -71,11 +66,17 @@ const plus = {
   'plus.version.earlier': '以前のバージョン（{count}）',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'メモなし',
+  'plus.version.play': '使う',
+  'plus.version.playLabel': 'バージョン {version} を使う',
+  'plus.version.playing': '使用中',
+  'plus.version.playingLine':
+    'このコンピューターに保存されたバージョン {version} を使っています。',
+  'plus.version.backToNewest': '最新版に戻す',
+  'plus.version.keptHere': 'このコンピューターに保存',
   'plus.card.open': '{name} を開く',
 
   'plus.like.label': '{name} にいいね（{count} 件）',
   'plus.like.own': 'あなたのシーンへのいいね：{count} 件',
-  'plus.like.plusOnly': 'いいね：{count} 件。いいねは Plus の機能です。',
   'plus.like.offline':
     'いいねには接続が必要です。オンラインでもう一度お試しください。',
 
@@ -92,11 +93,7 @@ const plus = {
   'plus.scene.next': '次のシーン：{name}',
   'plus.scene.loading': 'シーンを読み込み中…',
   'plus.scene.playing': 'あなたの音楽でライブ再生中',
-  'plus.scene.plusPlays':
-    'Plus なら、このシーンがここであなたの音楽に合わせて動きます',
   'plus.scene.taste': 'プレビュー · {seconds} 秒',
-  'plus.scene.keepWatching':
-    'Plus なら、あなたの音楽で見続けて、マイ表示に追加できます。',
   'plus.scene.unavailable': 'このシーンは今はダウンロードできません。',
   'plus.scene.blocked': 'このシーンは削除されました。',
   'plus.scene.changed':
@@ -109,7 +106,6 @@ const plus = {
   'plus.scene.adds': '追加',
   'plus.scene.add': 'マイ表示に追加',
   'plus.scene.update': '自分のコピーを更新',
-  'plus.scene.getPlus': 'Plus で追加する',
   'plus.inspect.open': 'スタジオで開く',
   'plus.inspect.hint':
     'どう作られているかを見て、自分のシーンのアイデアにしてください。公開用ではなく、中を見るためのプロジェクトとして開きます。',
@@ -120,8 +116,6 @@ const plus = {
   'plus.scene.inLooks': 'マイ表示の「メンバーが作成」にあります',
   'plus.scene.inLooksOwn': 'マイ表示の「あなたが作成」にあります',
   'plus.scene.inLooksPlus': 'マイ表示の「FluidEQ Plus」にあります',
-  'plus.scene.fine':
-    '追加したシーンは Plus の間、マイ表示から再生できます。誰も販売することはできません。',
   'plus.scene.report': 'このシーンを報告',
   'plus.scene.reported': '報告しました。ありがとうございます。',
   'plus.scene.moreBy': '{name} のほかのシーン',
@@ -372,6 +366,8 @@ const plus = {
     '完全に削除しますか？ギャラリーとすべてのメンバーの表示から消え、ファイルも消去され、二度と公開できなくなります。',
   'plus.moderation.deleteForGood': '完全に削除',
   'plus.moderation.done.deleted': '{name} を削除しました。',
+  'plus.add.notOwned':
+    'まず「{name}」を入手してください。1クレジットで入手でき、その後マイ表示に入ります。',
 } as const;
 
 export default plus;

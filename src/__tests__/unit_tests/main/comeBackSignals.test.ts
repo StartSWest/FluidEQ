@@ -199,6 +199,7 @@ describe('accountComeBackSteps', () => {
     };
     const refreshers = {
       entitlement: { checkIfDue: jest.fn(record('membership')) },
+      sceneStore: { refreshIfDue: jest.fn(record('owned scenes')) },
       scenePacks: { refreshIfDue: jest.fn(record('FluidEQ scenes')) },
       memberSharing: { refreshIfDue: jest.fn(record('block list')) },
       plusGallery: { refreshIfDue: jest.fn(record('gallery scenes')) },
@@ -242,6 +243,7 @@ describe('accountComeBackSteps', () => {
 
     expect(calls).toEqual([
       'membership',
+      'owned scenes',
       'FluidEQ scenes',
       'block list',
       'gallery scenes',
@@ -298,6 +300,7 @@ describe('accountComeBackSteps', () => {
 
     expect(calls).toEqual([
       'membership',
+      'owned scenes',
       'block list',
       'scene reviews',
       'Plus terms notice',

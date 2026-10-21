@@ -93,3 +93,16 @@ it('keeps the most recently played looks when it runs out of room', () => {
   expect(again.seenSceneVersion('member:look-0')).toBeUndefined();
   expect(again.seenSceneVersion('member:look-204')).toBe(1);
 });
+
+// An owner going back to an earlier version they kept, and then to the newest
+// again, has seen nothing new: the highest version played is what is kept.
+it('is not lowered by an earlier version played, and announces nothing on the way back', () => {
+  const store = load()();
+  store.markSceneVersionSeen('premium:alpine', 49);
+  expect(store.markSceneVersionSeen('premium:alpine', 46)).toBeUndefined();
+  expect(store.seenSceneVersion('premium:alpine')).toBe(49);
+  expect(store.isUnseenSceneVersion('premium:alpine', 49)).toBe(false);
+  expect(store.markSceneVersionSeen('premium:alpine', 49)).toBeUndefined();
+  // The control: a version newer than the highest is still news.
+  expect(store.markSceneVersionSeen('premium:alpine', 50)).toBe(49);
+});

@@ -40,8 +40,6 @@ const config: IAccountConfig = {
   supabaseUrl: 'https://project.supabase.co',
   supabaseAnonKey: 'sb_publishable_test',
   apiUrl: 'https://project.supabase.co/functions/v1',
-  plusPrice: '$5',
-  plusYearlyPrice: '',
 };
 
 const ACTIVE: IEntitlementStatus = { state: 'active', plan: 'plus' };
@@ -183,8 +181,8 @@ describe('telling a member the Plus terms changed', () => {
     expect(shown()).toBeNull();
   });
 
-  it('tells nobody, and asks nothing, in a build that does not sell Plus', async () => {
-    const launched = register(root, { ...config, plusPrice: '' });
+  it('tells nobody, and asks nothing, in a build with no account backend', async () => {
+    const launched = register(root, { ...config, supabaseUrl: '' });
     await launched.checkIfDue('window focused');
     expect(asked).toEqual([]);
     expect(shown()).toBeNull();

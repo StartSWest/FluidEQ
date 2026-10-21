@@ -3,7 +3,6 @@ import type { TranslationKey } from 'common/i18n';
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
 import { resolveSceneName } from 'common/scenePacks';
 import type { IStudioState } from 'main/ipc/memberScenes';
-import { requestAccountPanel } from '../account/accountPanel';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import Chevron from '../icons/Chevron';
 import { openGalleryPage, type IMakerRef } from '../plus/plusNavigation';
@@ -51,35 +50,6 @@ function MenuAction({
     >
       <Glyph name={glyph} />
       {t(label)}
-    </button>
-  );
-}
-
-/**
- * The same row, for something Plus would open: it says so, and goes to Plus
- * instead of doing nothing. The main process refuses the action anyway; the
- * lock is what the member is told, not what stops them.
- */
-function LockedMenuAction({
-  glyph,
-  label,
-  close,
-  hint,
-}: IMenuRow & { hint: TranslationKey }) {
-  const { t } = useTranslation();
-  return (
-    <button
-      type="button"
-      className="rich-pick__action is-locked"
-      title={t(hint)}
-      onClick={() => {
-        close();
-        requestAccountPanel('subscribe');
-      }}
-    >
-      <Glyph name={glyph} />
-      {t(label)}
-      <Glyph name="lock" className="rich-pick__action-lock" />
     </button>
   );
 }
@@ -145,26 +115,16 @@ export default function StudioProjects({
               className="rich-pick__glyph"
             />
           ),
-          ...(project.locked ? { locked: t('studio.plus.lockedProject') } : {}),
         })),
-    [state.projects, locale, t],
+    [state.projects, locale],
   );
   const active = entries.find((entry) => entry.id === state.activeId);
-  // The arrows walk the projects the bench can hold; a locked one is in the
-  // menu to be seen, and stepping onto it would only open Plus.
-  const openable = entries.filter((entry) => !entry.locked);
-  const at = openable.findIndex((entry) => entry.id === state.activeId);
-  const previous = openable[(at > 0 ? at : openable.length) - 1];
-  const next = openable[(at + 1) % openable.length];
-  const canStep = openable.length > 1 && !switching;
+  const at = entries.findIndex((entry) => entry.id === state.activeId);
+  const previous = entries[(at > 0 ? at : entries.length) - 1];
+  const next = entries[(at + 1) % entries.length];
+  const canStep = entries.length > 1 && !switching;
   const pick = async (id: string) => {
     if (picking.current) {
-      return;
-    }
-    // A locked project is Plus's to open; the main process would refuse the
-    // pick, and the member is shown what opens it instead.
-    if (entries.some((entry) => entry.id === id && entry.locked)) {
-      requestAccountPanel('subscribe');
       return;
     }
     picking.current = true;
@@ -209,68 +169,38 @@ export default function StudioProjects({
         }
         renderFooter={(close) => (
           <>
-            {state.mayAddProject ? (
-              <MenuAction
-                glyph="studio"
-                label="studio.project.new"
-                close={close}
-                onPick={onNewProject}
-              />
-            ) : (
-              <LockedMenuAction
-                glyph="studio"
-                label="studio.project.new"
-                close={close}
-                hint="studio.plus.oneProject"
-              />
+            {state.mayAddProject && (
+              <>
+                <MenuAction
+                  glyph="studio"
+                  label="studio.project.new"
+                  close={close}
+                  onPick={onNewProject}
+                />
+                <MenuAction
+                  glyph="folder"
+                  label="studio.project.add"
+                  close={close}
+                  onPick={onLinkFolder}
+                />
+              </>
             )}
-            {state.mayAddProject ? (
-              <MenuAction
-                glyph="folder"
-                label="studio.project.add"
-                close={close}
-                onPick={onLinkFolder}
-              />
-            ) : (
-              <LockedMenuAction
-                glyph="folder"
-                label="studio.project.add"
-                close={close}
-                hint="studio.plus.oneProject"
-              />
-            )}
-            {state.entitled ? (
-              <MenuAction
-                glyph="download"
-                label="studio.action.import"
-                close={close}
-                onPick={onOpenFile}
-              />
-            ) : (
-              <LockedMenuAction
-                glyph="download"
-                label="studio.action.import"
-                close={close}
-                hint="studio.plus.locked"
-              />
-            )}
-            {state.entitled ? (
-              <MenuAction
-                glyph="looks"
-                label="studio.project.inspect"
-                close={close}
-                onPick={() =>
-                  openGalleryPage({ kind: 'maker', maker: FLUIDEQ_MAKER })
-                }
-              />
-            ) : (
-              <LockedMenuAction
-                glyph="looks"
-                label="studio.project.inspect"
-                close={close}
-                hint="studio.plus.locked"
-              />
-            )}
+            <MenuAction
+              glyph="download"
+              label="studio.action.import"
+              close={close}
+              onPick={onOpenFile}
+            />
+            {/* FluidEQ's own scenes open to look inside once they are this
+                account's; their maker page is where each one says so. */}
+            <MenuAction
+              glyph="looks"
+              label="studio.project.inspect"
+              close={close}
+              onPick={() =>
+                openGalleryPage({ kind: 'maker', maker: FLUIDEQ_MAKER })
+              }
+            />
             {active &&
               state.projects.some(
                 (project) => project.id === active.id && !project.official,

@@ -9,8 +9,8 @@ import {
 } from '../../common/memberSceneFile';
 import { likedSceneOf } from '../../common/plusGallery';
 import type { IScenePack } from '../../common/scenePacks';
-import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
+import type { ISceneOwnership } from '../plus/sceneOwnership';
 import writeFileAtomically from '../atomicWrite';
 import type { TProjectRestore } from './memberScenes';
 import { readProject } from '../memberScenes/project';
@@ -60,7 +60,7 @@ export type TImportOutcome =
     }
   | {
       ok: false;
-      reason: 'not-entitled' | 'cancelled' | 'blocked' | TReadFailure;
+      reason: 'signed-out' | 'cancelled' | 'blocked' | TReadFailure;
     };
 
 interface IDialogLike {
@@ -73,7 +73,8 @@ export interface IMemberSharingIpcDeps {
   userDataDir: string;
   config: IAccountConfig;
   session: IAccountSession;
-  entitlement: IEntitlement;
+  /** Which scenes this account owns, which is who may like one (premium 0056). */
+  ownership: Pick<ISceneOwnership, 'owns' | 'subscribe'>;
   store: IMemberSceneStore;
   /** The Studio's open project's folder, from its own registration. */
   activeFolder: () => string | undefined;
@@ -154,7 +155,7 @@ export const registerMemberSharingIpc = ({
   userDataDir,
   config,
   session,
-  entitlement,
+  ownership,
   store,
   activeFolder,
   activeIsInspection,
@@ -174,8 +175,10 @@ export const registerMemberSharingIpc = ({
   store.setBlocked(readBlocked(blockedPath));
 
   const accountId = () => session.state().identity?.id;
-  const entitled = () =>
-    entitlement.status().state !== 'none' && accountId() !== undefined;
+  // The Studio, its export and an import are any account's (Ivan,
+  // 2026-10-18); the block list is every signed-in account's, because the
+  // computers holding a scene are no longer only paying ones (premium 0059).
+  const signedIn = () => accountId() !== undefined;
 
   const token = async (): Promise<string | undefined> => {
     try {
@@ -186,7 +189,7 @@ export const registerMemberSharingIpc = ({
   };
 
   const refreshBlocked = async () => {
-    if (!entitled()) {
+    if (!signedIn()) {
       return;
     }
     const accessToken = await token();
@@ -221,8 +224,8 @@ export const registerMemberSharingIpc = ({
   ipcMain.handle(
     'studio-export',
     async (_event, termsVersion: unknown): Promise<TExportOutcome> => {
-      if (!entitled()) {
-        return { ok: false, reason: 'not-entitled' };
+      if (!signedIn()) {
+        return { ok: false, reason: 'signed-out' };
       }
       const folder = activeFolder();
       if (!folder || typeof termsVersion !== 'number') {
@@ -287,8 +290,8 @@ export const registerMemberSharingIpc = ({
 
   ipcMain.handle('member-scenes-import', async (): Promise<TImportOutcome> => {
     const me = accountId();
-    if (!entitled() || !me) {
-      return { ok: false, reason: 'not-entitled' };
+    if (!me) {
+      return { ok: false, reason: 'signed-out' };
     }
     const window = getMainWindow();
     const options = {
@@ -352,7 +355,10 @@ export const registerMemberSharingIpc = ({
     lookId: unknown,
   ): Promise<ILikeStatus | undefined> => {
     const ref = refOf(lookId);
-    const accessToken = entitled() ? await token() : undefined;
+    const accessToken =
+      typeof lookId === 'string' && ownership.owns(lookId)
+        ? await token()
+        : undefined;
     if (!ref || !accessToken) {
       return undefined;
     }
@@ -373,7 +379,10 @@ export const registerMemberSharingIpc = ({
     'member-scenes-like',
     async (_event, lookId: unknown, liked: unknown) => {
       const ref = refOf(lookId);
-      const accessToken = entitled() ? await token() : undefined;
+      const accessToken =
+        typeof lookId === 'string' && ownership.owns(lookId)
+          ? await token()
+          : undefined;
       if (
         !ref ||
         !accessToken ||
@@ -394,7 +403,9 @@ export const registerMemberSharingIpc = ({
     },
   );
 
-  const unsubscribe = entitlement.subscribe(() => {
+  // An account signing in, or a buy: either may be the first time this
+  // computer is allowed the list.
+  const unsubscribe = ownership.subscribe(() => {
     refreshBlocked().catch(() => undefined);
   });
   refreshBlocked().catch(() => undefined);

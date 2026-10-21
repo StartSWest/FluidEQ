@@ -1,19 +1,16 @@
 const terms = {
-  'terms.eyebrow': 'FluidEQ Plus',
-  'terms.title': 'Condizioni e privacy di Plus',
+  'terms.eyebrow': 'Account FluidEQ',
+  'terms.title': 'Condizioni e privacy',
   'terms.meta': 'Versione {version} · In vigore dal {date}',
   'terms.intro':
-    'Queste condizioni riguardano il tuo account FluidEQ e Plus: abbonamento, pagamenti, Visualizzatori, le scene che condividi e la classifica. Elencano tutto ciò che l’app invia al servizio di FluidEQ, quando viene inviato e chi può vederlo e, verso la fine, ogni altra destinazione a cui FluidEQ si collega.',
-  'terms.link': 'Condizioni e privacy di Plus',
+    'Queste condizioni riguardano il tuo account FluidEQ: i crediti e le scene che ottieni con essi, Plus per i membri che lo hanno ancora, Visualizzatori, lo Studio e le scene che condividi, e la classifica. Elencano tutto ciò che l’app invia al servizio di FluidEQ, quando lo invia e chi può vederlo, e, verso la fine, ogni altro luogo a cui FluidEQ si collega.',
+  'terms.link': 'Condizioni e privacy',
 
   'terms.short.title': 'La versione breve',
-  'terms.short.price.title': '{price}, disdici quando vuoi',
-  'terms.short.price.body':
-    'Si paga su Buy Me a Coffee. FluidEQ non vede mai la tua carta.',
   'terms.short.free.title':
     'L’equalizzatore, il rack e i player restano gratuiti',
   'terms.short.free.body':
-    'FluidEQ continua a funzionare offline e senza account, come sempre.',
+    'FluidEQ continua a funzionare offline e senza account, come sempre. Anche lo Studio e la pubblicazione sono gratuiti.',
   'terms.short.choice.title': 'Scegli tu cosa condividere',
   'terms.short.choice.body':
     'La classifica è disattivata finché non partecipi, e nulla di ciò che crei lascia il tuo computer se non lo esporti o lo pubblichi.',
@@ -21,15 +18,15 @@ const terms = {
   'terms.short.music.body':
     'Il servizio di FluidEQ non riceve mai il tuo audio, i titoli dei tuoi brani né il tuo EQ.',
 
-  'terms.membership.title': 'L’abbonamento',
+  'terms.membership.title': 'Plus',
   'terms.membership.p1':
-    'Con un account gratuito puoi esplorare Visualizzatori, vedere l’immagine e i dettagli di ogni scena pubblicata, provare per {tasteSeconds} secondi ciascuna delle scene di prova gratuite di FluidEQ e vedere la classifica. Plus ti permette di riprodurre e aggiungere ogni scena, sblocca gli aspetti Plus, ti permette di creare scene nello Studio ed esportarle o pubblicarle e di partecipare alla classifica, e porta le scene sul tuo desktop e sulle tue luci RGB. Costa {price} e si rinnova alla fine di ogni periodo pagato finché non disdici. Plus può arrivare anche senza pagare. Quando FluidEQ propone una prova gratuita, un account creato dal giorno in cui è iniziata quell’offerta può usarla una volta sola, per {trialDays} giorni, senza carta e senza alcun addebito alla fine. E una scena che pubblichi e che il creatore di FluidEQ approva può darti un mese di Plus. Nessuno dei due è un abbonamento: nulla li rinnova e non viene mai addebitato nulla. Quando una tua scena ti ha già fatto guadagnare un mese, lo Studio ti lascia un progetto aperto anche senza Plus, così puoi pubblicare la tua scena successiva; esportare un file resta una funzione di Plus.',
+    'Plus era un abbonamento e non è più in vendita: al suo posto ci sono i crediti. Un abbonamento già attivo continua a riprodurre e aggiungere ogni scena di Visualizzatori, gli aspetti Plus, la classifica e le scene sul tuo desktop e sulle tue luci RGB, finché FluidEQ non passa i suoi membri ai crediti. Quel giorno ogni scena che un membro ha aggiunto diventa sua per sempre, e ogni account che ha pagato Plus riceve almeno {moveCredits} crediti. Non vengono offerte nuove prove gratuite; una scena che il creatore di FluidEQ approva prima di quel giorno può ancora darti un mese di Plus. Senza Plus, un account guarda qualsiasi scena per {tasteSeconds} secondi, ottiene scene con i crediti, vede la classifica, e crea, esporta e pubblica scene nello Studio.',
   'terms.membership.p2':
-    'Il pagamento è gestito da Buy Me a Coffee, secondo le sue condizioni. FluidEQ non vede mai la tua carta né i tuoi dati bancari. Puoi disdire in qualsiasi momento su Buy Me a Coffee: Plus resta attivo fino alla fine del periodo pagato e non viene addebitato altro.',
+    'Plus si pagava tramite Buy Me a Coffee, secondo le sue condizioni, e FluidEQ non ha mai visto la tua carta né i tuoi dati bancari. Un abbonamento che stai ancora pagando si può disdire in qualsiasi momento su Buy Me a Coffee: Plus resta attivo fino alla fine del periodo pagato e non viene addebitato altro. Tutto ciò che Buy Me a Coffee addebita per Plus dopo che FluidEQ ha passato i suoi membri ai crediti viene rimborsato.',
   'terms.membership.p4':
-    'Quando un abbonamento finisce, gli aspetti Plus e le scene dei membri tornano bloccati e FluidEQ torna ai suoi aspetti gratuiti; nulla di ciò che hai creato viene eliminato. Senza connessione, Plus continua a funzionare fino alla fine del periodo pagato, e fino a {graceDays} giorni dopo se l’app non è riuscita a confermare un rinnovo. Una prova gratuita, un regalo e un mese guadagnato pubblicando finiscono alla loro data: nulla li rinnova, quindi dopo non c’è alcun margine. Nulla di gratuito viene mai toccato.',
+    'Quando un abbonamento termina, gli aspetti Plus e le scene create dai membri si bloccano di nuovo — tranne quelle che possiedi, quelle che FluidEQ ha reso gratuite e le tue scene pubblicate — e FluidEQ torna ai suoi aspetti gratuiti; nulla di ciò che hai creato viene cancellato. Senza connessione, un abbonamento pagato continua a funzionare fino alla fine del periodo pagato, e fino a {graceDays} giorni dopo se l’app non ha potuto confermare un rinnovo. Una prova gratuita, un regalo e un mese guadagnato pubblicando finiscono alla loro data, senza giorni di tolleranza dopo.',
   'terms.membership.p5':
-    'Il creatore può regalare Plus a un indirizzo email. Si attiva quando un account conferma quell’indirizzo e dura fino alla data di fine scelta dal creatore, se c’è, o finché il creatore non lo ritira.',
+    'Fino a quel giorno, un regalo di Plus del creatore a un indirizzo email funziona allo stesso modo: si attiva quando un account conferma quell’indirizzo e dura fino alla data di fine scelta dal creatore, se c’è, o finché il creatore non lo riprende.',
 
   'terms.account.title': 'Il tuo account',
   'terms.account.p1':
@@ -57,7 +54,7 @@ const terms = {
   'terms.sent.membership.when':
     'All’avvio dell’app, quando accedi, quando torni al computer (al massimo ogni poche ore) e quando premi Controlla di nuovo',
   'terms.sent.membership.who':
-    'Solo tu e il creatore. Il servizio conferma il tuo abbonamento, cerca un pagamento su Buy Me a Coffee effettuato con la tua email confermata e legge quale versione di queste condizioni hai accettato, così l’app può avvisarti quando cambiano. Lo stesso token chiede se questo account può iniziare una prova gratuita e come stanno i suoi mesi guadagnati.',
+    'Solo tu e il creatore. Il servizio conferma un abbonamento che hai già, cerca un pagamento Buy Me a Coffee fatto con la tua email confermata e legge quale versione di queste condizioni hai accettato, così l’app può avvisarti quando cambiano. Lo stesso token chiede come procede una prova gratuita o un mese guadagnato su questo account.',
   'terms.sent.payment.what':
     'L’email con cui paghi, lo stato e il periodo del tuo abbonamento, e gli id di Buy Me a Coffee per il tuo abbonamento, inviati da Buy Me a Coffee',
   'terms.sent.payment.when': 'Quando paghi, rinnovi o disdici',
@@ -66,7 +63,7 @@ const terms = {
   'terms.sent.agreement.what':
     'Quale versione di queste condizioni hai accettato, e quando',
   'terms.sent.agreement.when':
-    'Quando vai al pagamento, avvii una prova gratuita, esporti una scena o ne pubblichi una',
+    'Quando prosegui verso il pagamento dei crediti, esporti una scena o ne pubblichi una',
   'terms.sent.agreement.who':
     'Il creatore. L’informazione viene conservata con il tuo account, anche se poi non procedi al pagamento.',
   'terms.sent.looks.what':
@@ -94,7 +91,7 @@ const terms = {
     'Una scena che esporti: il suo codice, le impostazioni, le immagini, i modelli 3D e gli elementi d’ambiente',
   'terms.sent.sceneExport.when': 'Quando premi Esporta nello Studio',
   'terms.sent.sceneExport.who':
-    'Il servizio controlla la scena, toglie i commenti dal suo codice e la firma, aggiungendo al file il tuo nome visualizzato e l’id del tuo account. Conserva un registro di quale scena e versione hai esportato, quando, e un’impronta del file. Chi riceve il file vede il tuo nome visualizzato e l’id del tuo account.',
+    'Il servizio controlla la scena, rimuove i commenti dal suo codice e la firma, aggiungendo al file il tuo nome visualizzato e il tuo id account. Conserva un registro di quale scena e versione hai esportato, quando, e un’impronta del file. Chi riceve il file vede il tuo nome visualizzato e il tuo id account; la scena si riproduce per quella persona quando le appartiene.',
   'terms.sent.sceneLike.what':
     'Quale scena di un membro è sullo schermo, e il tuo mi piace',
   'terms.sent.sceneLike.when':
@@ -123,7 +120,7 @@ const terms = {
     'Una scena che pubblichi, come per un’esportazione, con un’immagine di copertina, fino a due categorie e una nota sulle novità, se ne scrivi una',
   'terms.sent.scenePublish.when': 'Quando premi Pubblica nello Studio',
   'terms.sent.scenePublish.who':
-    'Una volta che il creatore di FluidEQ l’ha approvata, in Visualizzatori, finché non la ritiri, chiunque abbia effettuato l’accesso a FluidEQ vede la sua immagine, il nome, le categorie, le note di versione, i mi piace e le aggiunte, con il tuo nome visualizzato, il tuo nickname e la tua pagina di autore. Solo i membri Plus possono riprodurre la scena e aggiungerla. Il creatore di FluidEQ conserva la scena e il registro della pubblicazione, come per un’esportazione.',
+    'Una volta approvata dal creatore di FluidEQ, in Visualizzatori, finché non la ritiri, chiunque abbia effettuato l’accesso a FluidEQ vede la sua immagine, il nome, le categorie, le note di versione, i mi piace e le aggiunte, con il tuo nome visualizzato, il tuo nickname e la tua pagina da creatore, e può guardarla per {tasteSeconds} secondi. I membri che la possiedono — ottenuta con un credito, o con Plus — la riproducono e la aggiungono. Il creatore di FluidEQ conserva la scena e il registro della pubblicazione, come per un’esportazione.',
   'terms.sent.gallery.what':
     'In Visualizzatori: cosa cerchi, le scene e gli autori che apri, le scene che aggiungi, e ogni scena che segnali con il motivo',
   'terms.sent.gallery.when':
@@ -157,7 +154,7 @@ const terms = {
   'terms.protect.p4':
     'Il creatore gestisce il servizio e può vedere ciò che conserva, per tenerlo in funzione, collegare i pagamenti e moderare ciò che i membri pubblicano. Nulla viene venduto o usato per pubblicità, e non c’è tracciamento né analisi.',
   'terms.protect.p5':
-    'Il servizio gira su Supabase (accesso, database e file) e invia le email tramite Resend; i pagamenti passano da Buy Me a Coffee, e il Forum da GitHub. Ognuno riceve solo ciò che serve alla sua parte.',
+    'Il servizio funziona su Supabase (accesso, database e file) e invia email tramite Resend; i crediti si pagano tramite Stripe, Plus tramite Buy Me a Coffee, e il Forum passa da GitHub. Ognuno riceve solo ciò che serve alla sua parte.',
   'terms.protect.p6':
     'FluidEQ non conserva indirizzi IP. Supabase registra l’indirizzo di ogni richiesta in log di breve durata, e conserva l’indirizzo e i dettagli dell’app di ogni computer connesso insieme alla sessione di quel computer e nel registro di sicurezza degli accessi di Supabase stesso, per mantenere l’accesso funzionante e sicuro.',
   'terms.protect.p7':
@@ -171,7 +168,7 @@ const terms = {
   'terms.fair.p3':
     'Tutti guadagnano punti allo stesso modo, il creatore compreso. Modificare l’app o ciò che invia, automatizzare l’ascolto, o salire con più di un account ti toglie dalla classifica, e può impedire all’account di pubblicare, mettere mi piace e segnalare scene.',
   'terms.fair.p4':
-    'Un mi piace conta una volta per membro e per scena, solo quando lo mette un membro Plus, e mai dal tuo stesso account. I mi piace su una scena rimossa, o da un account bloccato, non contano. I mi piace da un tuo secondo account contano come salire con più di un account.',
+    'Un mi piace conta una volta per membro e per scena, solo da un account che possiede la scena — ottenuta con un credito, gratuita o con Plus — e mai dal tuo stesso account. I mi piace su una scena rimossa, o da un account escluso, non contano. I mi piace da un tuo secondo account contano come salire con più di un account.',
 
   'terms.rules.title': 'Regole per ciò che pubblichi',
   'terms.rules.p1':
@@ -191,17 +188,17 @@ const terms = {
   'terms.keep.p3':
     'Abbonamento: la tua email di pagamento, lo stato e gli id di Buy Me a Coffee per il tuo abbonamento sono conservati per collegare i pagamenti al tuo account, e vengono cancellati con esso. Il registro di ogni evento di pagamento conserva solo gli id di Buy Me a Coffee e l’ora.',
   'terms.keep.p4':
-    'Il tuo account: chiedi che venga eliminato e sparisce entro {deletionDays} giorni, insieme a profilo, giorni in classifica, abbonamento, prove gratuite e mesi guadagnati, accettazioni delle condizioni, mi piace, aggiunte, segnalazioni e le scene che hai pubblicato con i loro file. Un Plus regalato alla tua email resta finché il creatore non lo rimuove.',
+    'Il tuo account: chiedi di eliminarlo e sparisce entro {deletionDays} giorni, insieme al tuo profilo, ai giorni in classifica, ai tuoi crediti, alle scene che possiedi, all’abbonamento, alle prove gratuite e ai mesi guadagnati, alle accettazioni, ai mi piace, alle aggiunte, alle segnalazioni e alle scene che hai pubblicato con i loro file. I crediti rimasti su un account eliminato spariscono con esso. Un regalo di Plus al tuo indirizzo resta finché il creatore non lo toglie.',
   'terms.keep.p5':
     'Scene: ritirare una scena la rimuove da Visualizzatori insieme alla sua immagine, al suo file e alla cronologia delle versioni. I mi piace, le aggiunte e le segnalazioni che ha ricevuto restano finché quegli account non vengono eliminati, e tornano a contare se la pubblichi di nuovo. Una scena bloccata per aver violato queste condizioni conserva un’impronta ricavata dall’id del tuo account e dall’id della scena, con il motivo e la data, così resta bloccata.',
   'terms.keep.p6':
-    'Sul tuo computer: gli aspetti Plus e le scene che hai aggiunto, cifrati; le immagini della galleria, fino a 128 MB; e l’elenco delle scene bloccate. Restano finché non li rimuovi o non disinstalli FluidEQ.',
+    'Sul tuo computer: gli aspetti Plus e le scene che hai aggiunto, cifrati; i tuoi crediti e le scene che possiedi, cifrati; le immagini della galleria, fino a 128 MB; e l’elenco delle scene bloccate. Restano finché non li rimuovi o non disinstalli FluidEQ.',
 
   'terms.looks.title': 'Gli aspetti Plus',
   'terms.looks.p1':
-    'Gli aspetti Plus sono opera del creatore, concessi in licenza per il tuo uso personale finché sei membro. Per favore non copiarli, condividerli o rivenderli.',
+    'Gli aspetti Plus sono opera del creatore stesso, concessi in licenza per il tuo uso personale finché sei membro, o per sempre quando uno è tuo — ottenuto con un credito o reso gratuito. Per favore non copiarli, condividerli o rivenderli.',
   'terms.looks.p2':
-    'I membri Plus possono aprire nello Studio le scene di FluidEQ per guardarci dentro e prendere idee. Una copia aperta in questo modo non si può aggiungere ai tuoi aspetti, esportare o pubblicare.',
+    'Se possiedi una delle scene di FluidEQ, puoi aprirla nello Studio per guardarci dentro e prendere spunti. Una copia aperta così non può essere aggiunta ai tuoi aspetti, esportata o pubblicata.',
   'terms.looks.p3':
     'FluidEQ resta software libero sotto licenza GPL. Nulla di tutto questo cambia un diritto che la GPL ti dà.',
 
@@ -211,19 +208,19 @@ const terms = {
   'terms.scenes.p2':
     'Le scene dello Studio rimangono sul tuo computer, salvo quando le esporti, le pubblichi o le condividi con un altro strumento, come il tuo assistente IA.',
   'terms.scenes.p3':
-    'Quando esporti una scena, permetti a FluidEQ di controllarla — anche confrontandola con le scene di FluidEQ stesso — di togliere i commenti dal suo codice e di firmarla con il tuo nome visualizzato e l’id del tuo account, così che altri membri Plus possano riprodurla e vedere che l’hai fatta tu. Questo è tutto il permesso: il creatore di FluidEQ non venderà la tua scena né la userà per pubblicità, non la renderà uno degli aspetti Plus senza chiedertelo prima, e non ti impedisce di fare altro con il tuo lavoro.',
+    'Quando esporti una scena, permetti a FluidEQ di controllarla — anche confrontandola con le scene di FluidEQ —, rimuovere i commenti dal suo codice e firmarla con il tuo nome visualizzato e il tuo id account, così gli altri membri che la possiedono possono riprodurla e vedere che l’hai creata tu. È tutto il permesso: il creatore di FluidEQ non venderà la tua scena né la userà in pubblicità, non la renderà uno degli aspetti Plus senza chiedertelo prima, e non ti impedisce di fare nient’altro con il tuo lavoro.',
   'terms.scenes.p4':
-    'Condividere fa parte di Plus, non è un lavoro: nessuno viene pagato in denaro per una scena e nessuno ne paga una. Quello che ricevi in cambio sono tutte le scene che condividono gli altri membri e, quando il creatore di FluidEQ approva una tua scena, un mese di Plus, che è accesso e mai denaro.',
+    'Nessuno viene pagato in denaro per una scena. Quando un account che ha pagato un pacchetto di crediti ottiene una tua scena, guadagni un credito: credito per ottenere scene, mai denaro. E, finché FluidEQ offre Plus, una tua scena approvata dal creatore di FluidEQ ti dà un mese di Plus.',
   'terms.scenes.p5':
     'I membri a cui piace la tua scena ti danno punti in classifica, se vi partecipi. I mi piace vengono contati dal server; vedi Correttezza in classifica.',
   'terms.scenes.p6':
     'Condividi solo lavori che hai il diritto di condividere: le tue foto, i tuoi disegni e i tuoi modelli 3D, o quelli di chi lo permette. Le regole per ciò che pubblichi valgono per ogni scena che condividi. Il creatore di FluidEQ può impedire che una scena si apra se viola queste condizioni o i diritti di qualcun altro.',
   'terms.scenes.p7':
-    'Una scena condivisa da un altro membro è opera sua, concessa in licenza per il tuo uso personale finché sei membro. Puoi riprodurla, metterle mi piace e passare il file invariato ad altri membri Plus. Per favore non modificarla, non presentarla come tua, non pubblicarla altrove e non venderla.',
+    'Una scena condivisa da un altro membro è opera sua, concessa in licenza per il tuo uso personale finché ti appartiene — per sempre, se l’hai ottenuta con un credito — o finché hai Plus. Puoi riprodurla, metterle mi piace e passare il file senza modifiche; per gli altri si riproduce solo quando appartiene a loro. Per favore non modificarla, non presentarla come tua, non pubblicarla altrove e non venderla.',
   'terms.scenes.p8':
-    'Un file che hai inviato resta a chi lo ha, e ritirare una scena non riprende le copie che i membri hanno già aggiunto; restano concesse in licenza per uso personale finché quei membri hanno Plus. Se vuoi che una scena smetta di aprirsi ovunque, chiedilo al creatore di FluidEQ, che può bloccarla allo stesso modo di una scena che viola le regole.',
+    'Un file che hai inviato resta a chi lo ha, e ritirare la pubblicazione non riprende le copie che i membri hanno già ottenuto; restano in licenza per uso personale finché appartengono a quei membri. Se vuoi che una scena smetta di aprirsi ovunque, chiedilo al creatore di FluidEQ, che può bloccarla come una scena che viola le regole.',
   'terms.scenes.p9':
-    'Se pubblichi una scena in Visualizzatori, permetti anche al creatore di FluidEQ di leggerla prima che chiunque altro la veda, e a FluidEQ di conservarla lì finché non la ritiri, di mostrare la sua immagine, il nome, le categorie e le note di versione, con il tuo nome visualizzato e il tuo nickname, a chiunque abbia effettuato l’accesso a FluidEQ, e di offrire la scena stessa ai membri Plus, che possono riprodurla e aggiungerla. Gli elementi d’ambiente che le assegni viaggiano con lei, e i membri che scelgono la modalità Ambiente li vedono intorno alla loro finestra. Puoi ritirarla quando vuoi, con o senza Plus.',
+    'Se pubblichi una scena in Visualizzatori, permetti anche al creatore di FluidEQ di leggerla prima che chiunque altro la veda, e a FluidEQ di conservarla lì finché non la ritiri, di mostrare la sua immagine, il nome, le categorie e le note di versione, con il tuo nome visualizzato e il tuo nickname, a chiunque abbia effettuato l’accesso a FluidEQ, di lasciarla guardare per {tasteSeconds} secondi, e di permettere ai membri di ottenerla con un credito o di riprodurla con Plus. Gli elementi d’ambiente che le assegni viaggiano con lei, e i membri che scelgono la modalità Ambiente li vedono intorno alla loro finestra. Puoi ritirarla quando vuoi.',
   'terms.scenes.p10':
     'Pubblicare è facoltativo e diverso dall’esportare un file. Una nota di versione è pubblica come la scena a cui appartiene.',
 
@@ -233,7 +230,7 @@ const terms = {
   'terms.elsewhere.p2':
     'Preset per cuffie: quando FluidEQ si apre, controlla su GitHub se ci sono nuovi preset per cuffie, e la scheda Convoluzione scarica file AutoEq da GitHub quando la apri o scegli delle cuffie.',
   'terms.elsewhere.p10':
-    'I video «Primi passi con FluidEQ» e «Un tour di FluidEQ Plus» nella Guida utente: non viene scaricato nulla finché non premi play; poi il video e i suoi sottotitoli in inglese arrivano da fluideq.com, il sito di FluidEQ stesso. La richiesta non porta alcun cookie né nulla su di te o sul tuo account, e il sito non ne conserva traccia. Se uno non si può riprodurre, «Apri su fluideq.com» lo mostra nel tuo browser. I brevi filmati delle diapositive delle Novità arrivano da fluideq.com allo stesso modo e partono da soli all’apertura di una diapositiva: nessun cookie, niente su di te o sul tuo account, e nessuna traccia conservata. Senza connessione, la diapositiva mostra il suo disegno.',
+    'Il video «Primi passi con FluidEQ» nella Guida utente: non viene scaricato nulla finché non premi play; poi il video e i suoi sottotitoli in inglese arrivano da fluideq.com, il sito di FluidEQ stesso. La richiesta non porta alcun cookie né nulla su di te o sul tuo account, e il sito non ne conserva traccia. Se non si può riprodurre, «Apri su fluideq.com» lo mostra nel tuo browser. I brevi filmati delle diapositive delle Novità arrivano da fluideq.com allo stesso modo e partono da soli all’apertura di una diapositiva: nessun cookie, niente su di te o sul tuo account, e nessuna traccia conservata. Senza connessione, la diapositiva mostra il suo disegno.',
   'terms.elsewhere.p3':
     'Modelli che usi: il Creatore di karaoke scarica da Hugging Face i suoi modelli per il parlato, la voce e la melodia, e la riduzione del rumore per la voce scarica il suo modello da GitHub. Il tuo audio viene elaborato sul tuo computer.',
   'terms.elsewhere.p9':
@@ -247,29 +244,57 @@ const terms = {
   'terms.elsewhere.p7':
     'Illuminazione e sfondi del desktop: l’illuminazione comunica solo con Razer Chroma e Windows su questo computer, e gli sfondi del desktop non vanno mai online.',
   'terms.elsewhere.p8':
-    'Il tuo browser: il pagamento, la pagina del tuo abbonamento, i link di supporto e l’accesso GitHub del Forum si aprono lì, secondo le condizioni di quei siti.',
+    'Il tuo browser: il pagamento dei crediti su Stripe e di Plus su Buy Me a Coffee, la pagina del tuo abbonamento, i link di supporto e l’accesso con GitHub del Forum si aprono lì, secondo le condizioni di quei siti.',
 
   'terms.changes.title': 'Modifiche, e le clausole in piccolo',
   'terms.changes.p1':
     'Se queste condizioni cambiano, la nuova versione compare qui con la sua data, e l’app ti avvisa prima che si applichi a te.',
   'terms.changes.p2':
-    'FluidEQ e Plus sono forniti così come sono, senza garanzie, nei limiti consentiti dalla legge. Il creatore non risponde oltre quanto hai pagato per Plus negli ultimi dodici mesi. Nulla di tutto questo ti toglie i diritti che la legge ti riconosce come consumatore.',
+    'FluidEQ, Plus e i crediti sono forniti così come sono, senza garanzie, nei limiti consentiti dalla legge. Il creatore non risponde oltre quanto hai pagato per Plus e per i crediti negli ultimi dodici mesi. Nulla di tutto questo ti toglie i diritti che la legge ti riconosce come consumatore.',
 
   'terms.contact.title': 'Contatti',
   'terms.contact.p1':
     'Domande, eliminazione dell’account o segnalazione di una scena che usa il tuo lavoro: {contact}.',
 
-  'terms.agree.check':
-    'Ho letto queste condizioni, compreso ciò che l’app invia, e le accetto.',
-  'terms.agree.continue': 'Accetta e vai al pagamento',
-  'terms.agree.opening': 'Apertura di Buy Me a Coffee…',
-  'terms.agree.hint':
-    'Il pagamento si apre nel browser. Usa la stessa email del tuo account FluidEQ.',
   'terms.back': 'Indietro',
-  'terms.error.outdated':
-    'Queste condizioni sono cambiate. Aggiorna FluidEQ per leggere la nuova versione prima di abbonarti.',
-  'terms.error.priceOutdated':
-    'Il prezzo è cambiato. Aggiorna FluidEQ per vedere il prezzo attuale prima di abbonarti.',
+  'terms.short.credits.title': 'Una scena è tua per sempre',
+  'terms.short.credits.body':
+    'Un credito ciascuna, da pacchetti che paghi una sola volta su Stripe. Nulla si rinnova, e FluidEQ non vede mai la tua carta.',
+  'terms.credits.title': 'I crediti e le tue scene',
+  'terms.credits.p1':
+    'Un credito ti dà una scena di Visualizzatori — una di FluidEQ o una pubblicata da un membro — e la scena diventa tua per sempre: sul grafico, sul desktop e sulle tue luci, su ogni computer in cui accedi, con ogni nuova versione che il suo autore pubblica. Prima di ottenerla, qualsiasi scena si riproduce sulla sua pagina per {tasteSeconds} secondi. FluidEQ ti chiede conferma prima di spendere un credito, e un credito speso non si può riprendere.',
+  'terms.credits.p2':
+    'I crediti sono in pacchetti, pagati una sola volta su Stripe, secondo le sue condizioni. FluidEQ non vede mai la tua carta né i tuoi dati bancari, e nulla si rinnova. Un account confermato riceve {starterCredits} crediti una volta, gratis. I crediti non hanno valore in denaro, non si possono vendere né trasferire a un altro account, e servono per ottenere scene e nient’altro.',
+  'terms.credits.p3':
+    'Se il pagamento di un pacchetto viene rimborsato o contestato, i crediti di quel pacchetto vengono ripresi, anche quelli già spesi: il tuo saldo può scendere sotto zero, e nessuna scena si può ottenere finché un nuovo pacchetto non lo riporta su. Le scene che hai già restano tue.',
+  'terms.credits.p4':
+    'Le scene che crei sono tue da usare gratis appena vengono pubblicate: quando il creatore di FluidEQ ne approva una ed è in Visualizzatori, si riproduce per te ovunque. Fino ad allora è una bozza, e si riproduce solo sul palco dello Studio, segnata come bozza. Una scena creata da un altro membro non è mai gratis per te; la ottieni con un credito come qualsiasi altra.',
+  'terms.credits.p5':
+    'Il creatore di FluidEQ può rendere gratuite per tutti gli account alcune delle scene di FluidEQ, e renderle di nuovo a pagamento. Finché una scena è gratuita, si riproduce per chiunque abbia effettuato l’accesso; quando torna a pagamento, resta tua solo se l’hai ottenuta con un credito.',
+  'terms.credits.p6':
+    'Una scena che il suo autore ritira non può essere ottenuta da nessun altro; se l’avevi già, continua a riprodursi per te. Una scena rimossa per aver violato queste condizioni smette di aprirsi ovunque, come dicono le regole per ciò che pubblichi.',
+  'terms.sent.store.what':
+    'Il tuo token di accesso, per leggere i tuoi crediti, le scene che possiedi, quali delle tue scene sono pubblicate e quali scene di FluidEQ sono gratuite',
+  'terms.sent.store.when':
+    'Quando l’app si avvia, quando accedi, quando torni al computer (al massimo ogni poche ore, e ogni volta finché un pagamento che hai iniziato non è arrivato) e quando apri i tuoi crediti o ottieni una scena',
+  'terms.sent.store.who':
+    'Solo tu e il creatore. Il tuo computer conserva la risposta cifrata, così le scene che possiedi si riproducono senza connessione.',
+  'terms.sent.credits.what':
+    'Il pacchetto che scegli e la versione delle condizioni che hai accettato, e poi, da Stripe: l’email con cui paghi, l’importo, il pacchetto e gli id di Stripe del pagamento',
+  'terms.sent.credits.when':
+    'Quando scegli un pacchetto e prosegui al pagamento, e quando Stripe conferma, rimborsa o contesta quel pagamento',
+  'terms.sent.credits.who':
+    'Il creatore, per dare i crediti del pacchetto al tuo account e riprenderli se il pagamento viene rimborsato o contestato. La tua carta va solo a Stripe.',
+  'terms.sent.sceneGet.what':
+    'Quale scena ottieni con un credito, e i crediti iniziali quando li ricevi',
+  'terms.sent.sceneGet.when':
+    'Quando confermi di ottenere una scena, e quando ricevi i crediti iniziali',
+  'terms.sent.sceneGet.who':
+    'Conservato con il tuo account, così la scena resta tua. L’autore della scena di un membro guadagna un credito quando la ottiene un account che ha pagato un pacchetto, e non sa mai chi.',
+  'terms.keep.p7':
+    'Crediti: ogni pacchetto che hai pagato, ogni credito che hai speso e ogni scena che possiedi sono conservati con il tuo account, così le tue scene restano tue su ogni computer; gli id di Stripe di ogni pagamento sono conservati per dare i suoi crediti e riprenderli dopo un rimborso. Tutto viene eliminato con il tuo account.',
+  'terms.scenes.p11':
+    'Finché una tua scena non è pubblicata, si riproduce solo sul palco dello Studio, segnata come bozza. Una volta in Visualizzatori, si riproduce per te ovunque, gratis.',
 } as const;
 
 export default terms;

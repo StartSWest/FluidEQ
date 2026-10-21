@@ -30,9 +30,10 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
   }),
 }));
 
-const requestAccountPanel = jest.fn();
-jest.mock('renderer/account/accountPanel', () => ({
-  requestAccountPanel: (...args: unknown[]) => requestAccountPanel(...args),
+// Every lock leads to Visualizers, where a scene is got: Plus is not sold.
+const openPlusPlace = jest.fn();
+jest.mock('renderer/plus/plusNavigation', () => ({
+  openPlusPlace: (...args: unknown[]) => openPlusPlace(...args),
 }));
 
 const starter = {
@@ -75,7 +76,7 @@ const stateWith = (overrides: Partial<ILightingState>): ILightingState => ({
 });
 
 beforeEach(() => {
-  requestAccountPanel.mockClear();
+  openPlusPlace.mockClear();
   demo = { state: 'still', pack: starter };
   window.electron = {
     ipcRenderer: { openRazerChroma: jest.fn(async () => true) },
@@ -94,16 +95,16 @@ it('shows the whole page with nothing to work, and Plus above it', () => {
   expect(
     document.querySelector('.lighting > :first-child')?.contains(buttons[0]),
   ).toBe(true);
-  // The switch is there, off, and pressing it opens the way to Plus rather
-  // than doing nothing: a dead switch read as broken.
+  // The switch is there, off, and pressing it opens the way to a scene
+  // rather than doing nothing: a dead switch read as broken.
   const toggle = screen.getByRole('checkbox', { name: 'lighting.switch' });
   expect(toggle).toBeEnabled();
   expect(toggle).not.toBeChecked();
   fireEvent.click(toggle);
-  expect(requestAccountPanel).toHaveBeenCalledWith('subscribe');
+  expect(openPlusPlace).toHaveBeenCalledWith('visualizers');
   expect(toggle).not.toBeChecked();
   expect(screen.getByText('lighting.preview.status')).toBeVisible();
-  // One scene, named, and every other one behind Plus.
+  // One scene, named, and every other one behind getting a scene.
   expect(
     screen.getByText('lighting.scene.title {"scene":"Lantern night"}'),
   ).toBeVisible();
@@ -128,7 +129,7 @@ it('shows the whole page with nothing to work, and Plus above it', () => {
     .forEach((button) => expect(button).toBeDisabled());
 });
 
-it('opens the way to Plus from the strip, the scene row and the line under the desk', () => {
+it('opens Visualizers from the strip, the scene row and the line under the desk', () => {
   render(
     <LightingPlusPreview state={stateWith({ devices: [] })} feed={undefined} />,
   );
@@ -141,10 +142,10 @@ it('opens the way to Plus from the strip, the scene row and the line under the d
   fireEvent.click(
     screen.getAllByRole('button', { name: 'lighting.gate.cta' })[1],
   );
-  expect(requestAccountPanel.mock.calls).toEqual([
-    ['subscribe'],
-    ['subscribe'],
-    ['subscribe'],
+  expect(openPlusPlace.mock.calls).toEqual([
+    ['visualizers'],
+    ['visualizers'],
+    ['visualizers'],
   ]);
   expect(screen.getByText('lighting.preview.held')).toBeVisible();
 });

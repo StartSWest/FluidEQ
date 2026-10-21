@@ -4,19 +4,14 @@ const plus = {
   'plus.remove.done': '{name} a été retiré de vos styles.',
   'plus.card.remove': 'Enlever',
   'plus.official.author': 'FluidEQ · Officiel',
-  'plus.official.included': 'Inclus avec Plus',
-  'plus.official.sample': 'Aperçu de {seconds} s',
+  'plus.official.included': 'Un crédit par scène, à vous pour de bon',
   'plus.official.badge': 'Officiel',
-  'plus.official.fine':
-    'Fait partie de la collection FluidEQ : se lance depuis vos styles tant que vous avez Plus.',
   'plus.visualizers.title': 'Visualiseurs',
   'plus.visualizers.description':
     'Des scènes de FluidEQ et de la communauté Plus, prêtes pour votre musique',
   'plus.visualizers.blurb': 'Scènes des membres',
   'plus.rail.pin': 'Épingler la barre latérale',
   'plus.rail.collapse': 'Replier la barre latérale',
-
-  'plus.gate.cta': 'Découvrir Plus',
 
   'plus.gallery.search': 'Rechercher des scènes ou des créateurs',
   'plus.gallery.sort': 'Trier',
@@ -68,11 +63,17 @@ const plus = {
   'plus.version.earlier': 'Versions précédentes ({count})',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'Sans note',
+  'plus.version.play': 'Utiliser',
+  'plus.version.playLabel': 'Utiliser la version {version}',
+  'plus.version.playing': 'En cours',
+  'plus.version.playingLine':
+    'Vous utilisez la version {version}, conservée sur cet ordinateur.',
+  'plus.version.backToNewest': 'Revenir à la plus récente',
+  'plus.version.keptHere': 'Conservée sur cet ordinateur',
   'plus.card.open': 'Ouvrir {name}',
 
   'plus.like.label': 'Aimer {name} ({count} j’aime)',
   'plus.like.own': 'Votre scène a {count} j’aime',
-  'plus.like.plusOnly': '{count} j’aime. Aimer des scènes fait partie de Plus.',
   'plus.like.offline':
     'Aimer une scène demande une connexion. Réessayez en ligne.',
 
@@ -89,11 +90,7 @@ const plus = {
   'plus.scene.next': 'Scène suivante : {name}',
   'plus.scene.loading': 'Chargement de la scène…',
   'plus.scene.playing': 'En direct sur votre musique',
-  'plus.scene.plusPlays':
-    'Avec Plus, cette scène s’anime ici sur votre musique',
   'plus.scene.taste': 'Aperçu · {seconds} s',
-  'plus.scene.keepWatching':
-    'Continuez à la regarder sur votre musique, et ajoutez-la à vos styles, avec Plus.',
   'plus.scene.unavailable':
     'Cette scène ne peut pas être téléchargée pour l’instant.',
   'plus.scene.blocked': 'Cette scène a été retirée.',
@@ -108,7 +105,6 @@ const plus = {
   'plus.scene.adds': 'Ajouts',
   'plus.scene.add': 'Ajouter à mes styles',
   'plus.scene.update': 'Mettre à jour ma copie',
-  'plus.scene.getPlus': 'Passez à Plus pour l’ajouter',
   'plus.inspect.open': 'Ouvrir dans le Studio',
   'plus.inspect.hint':
     'Voyez comment elle est faite et prenez des idées pour vos propres scènes. Elle s’ouvre comme un projet à explorer, pas à publier.',
@@ -119,8 +115,6 @@ const plus = {
   'plus.scene.inLooks': 'Dans vos styles, sous « Créés par des membres »',
   'plus.scene.inLooksOwn': 'Dans vos styles, sous « Créés par vous »',
   'plus.scene.inLooksPlus': 'Dans vos styles, sous « FluidEQ Plus »',
-  'plus.scene.fine':
-    'Les scènes ajoutées se lancent depuis vos styles tant que vous avez Plus. Personne ne peut les vendre.',
   'plus.scene.report': 'Signaler cette scène',
   'plus.scene.reported': 'Signalée. Merci.',
   'plus.scene.moreBy': 'Plus de {name}',
@@ -374,6 +368,8 @@ const plus = {
     'La supprimer définitivement ? Elle quitte la galerie et les styles de tous les membres, ses fichiers sont effacés et elle ne pourra plus jamais être publiée.',
   'plus.moderation.deleteForGood': 'Supprimer définitivement',
   'plus.moderation.done.deleted': '{name} a été supprimée.',
+  'plus.add.notOwned':
+    'Obtenez d’abord {name} : cela coûte un crédit, puis elle rejoint vos styles.',
 } as const;
 
 export default plus;

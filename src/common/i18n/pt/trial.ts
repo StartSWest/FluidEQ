@@ -1,38 +1,14 @@
 const trial = {
-  'trial.free.title': 'O FluidEQ é gratuito. O Plus é opcional.',
+  'trial.free.title': 'O FluidEQ é gratuito. As cenas são suas para sempre.',
   'trial.free.body':
-    'Seu equalizador, a reprodução de música, os presets e os visualizadores gratuitos continuam gratuitos. O Plus acrescenta funcionalidades opcionais.',
-  'trial.extras.title': 'Só com Plus',
-  'trial.extras.scenes': 'Visualizadores Plus e cenas da comunidade',
-  'trial.extras.studio': 'Exportar e publicar cenas no Estúdio',
-  'trial.extras.desktop': 'Cenas na área de trabalho e iluminação RGB',
+    'Seu equalizador, a reprodução de música, as predefinições gratuitas e os visualizadores gratuitos continuam gratuitos. Uma cena de Visualizadores custa um crédito e fica com você, e uma conta confirmada recebe {starterCredits} créditos para começar.',
+  'trial.extras.title': 'Com uma conta gratuita',
+  'trial.extras.scenes': 'Assista a qualquer cena e fique com as que obtiver',
+  'trial.extras.studio': 'Crie e publique suas próprias cenas no Estúdio',
+  'trial.extras.desktop': 'Suas cenas na área de trabalho e nas luzes RGB',
   'trial.extras.board': 'Participação opcional na classificação',
   'trial.browse':
     'Uma conta gratuita permite que você explore a galeria e participe do Fórum.',
-  'trial.offer.title': 'Experimente o Plus gratuitamente durante 15 dias',
-  'trial.offer.body':
-    'Um teste gratuito opcional para novas contas. Só começa quando você o escolhe.',
-  'trial.offer.action': 'Conhecer o teste gratuito',
-  'trial.offer.fine': 'Sem cartão. Sem cobranças automáticas.',
-  'trial.consent.title': 'Seu teste gratuito opcional',
-  'trial.consent.period': '15 dias a partir da ativação',
-  'trial.consent.after':
-    'Após 15 dias, termina apenas o acesso às funcionalidades Plus. O FluidEQ continua funcionando normalmente e seus projetos do Estúdio são mantidos.',
-  'trial.consent.paid':
-    'Para continuar usando as funcionalidades Plus depois, você pode escolher uma assinatura paga. Nada começa automaticamente.',
-  'trial.consent.checkbox':
-    'Aceito os termos do Plus e as condições do teste gratuito.',
-  'trial.consent.start': 'Iniciar os meus 15 dias gratuitos',
-  'trial.consent.starting': 'Iniciando seu teste gratuito…',
-  'trial.consent.fullTerms': 'Ler os termos completos do Plus',
-  'trial.consent.signIn':
-    'Crie uma conta ou entre para verificar se você pode usufruir da oferta. Criar uma conta não inicia o teste gratuito.',
-  'trial.consent.checking': 'Verificando sua oferta de um teste gratuito…',
-  'trial.terms.title': 'Condições do teste gratuito',
-  'trial.terms.body':
-    'Esta oferta opcional dá às novas contas elegíveis acesso ao Plus durante 15 dias consecutivos a partir da ativação, uma única vez por conta. Não são necessários dados de pagamento e não há renovação nem cobrança automáticas. Quando termina, apenas as funcionalidades Plus ficam indisponíveis; as funcionalidades gratuitas do FluidEQ continuam funcionando. Uma assinatura paga exige uma compra e uma aceitação separadas.',
-  'trial.terms.record':
-    'Registramos sua aceitação destas condições e dos termos do Plus, juntamente com as datas de ativação e de fim, para disponibilizar esta oferta uma única vez.',
   'trial.active.title': 'Seu teste gratuito de Plus está ativo',
   'trial.active.until': 'O Plus é gratuito até {date}.',
   'trial.active.body':
@@ -42,9 +18,8 @@ const trial = {
   'trial.ended.body':
     'O FluidEQ continua funcionando normalmente. Seu equalizador, a reprodução de música, os presets e os visualizadores gratuitos continuam gratuitos. Seus projetos do Estúdio são mantidos.',
   'trial.ended.paid':
-    'Você só precisa de uma assinatura paga do Plus se quiser continuar usando as funcionalidades Plus.',
+    'Uma cena que você quer manter custa um crédito, e uma conta confirmada recebe alguns créditos grátis para começar.',
   'trial.ended.free': 'Continuar usando gratuitamente',
-  'trial.ended.plans': 'Ver planos do Plus',
   'trial.error.offline':
     'Não foi possível contatar o serviço. Verifique sua conexão e tente novamente.',
   'trial.error.signedOut':

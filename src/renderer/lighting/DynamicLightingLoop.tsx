@@ -10,7 +10,6 @@ import {
   useLiveAudioCapture,
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
-import { usePlusEntitled } from '../plus/GalleryParts';
 import useLampIdleClock from './lampIdleClock';
 import { createLampPlayer, type ILampPlayer } from './lampScenePlay';
 import { loadLampScene, useLampScene } from './lampScene';
@@ -27,8 +26,8 @@ import { useLighting } from './lightingStore';
  * desk. It holds the capture as work rather than display for the same reason:
  * hiding the window must not take the music away from the lamps.
  *
- * The lamps go out for exactly four things: the look chosen is not a Plus one,
- * the membership lapses, the switch goes off, or the window closes. Nothing
+ * The lamps go out for exactly three things: the look chosen is not one the
+ * account owns, the switch goes off, or the window closes. Nothing
  * else starts them again either: the scene the graph can or cannot draw this
  * moment, the capture Windows restarts and a new version of the scene are all
  * taken in by the one player (`lampScenePlay.ts`). Silence keeps the scene
@@ -38,15 +37,12 @@ import { useLighting } from './lightingStore';
  */
 export default function DynamicLightingLoop() {
   const { state, loaded } = useLighting();
-  const entitled = usePlusEntitled();
+  // Only a scene this account owns is a lamp scene (`lampScene.ts` reads the
+  // owned lists), so a scene at all is the whole of the account's answer.
   const scene = useLampScene();
   const { capture, isPaused } = useLiveAudioControl();
   const wanted =
-    loaded &&
-    state.supported &&
-    state.settings.enabled &&
-    entitled &&
-    scene !== null;
+    loaded && state.supported && state.settings.enabled && scene !== null;
   useLiveAudioCapture(wanted, 'work');
   const idleClock = useLampIdleClock(wanted && !capture);
 

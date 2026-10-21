@@ -7,6 +7,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { toggleGalleryLike } from './galleryActions';
 import { useModeration } from './moderationStore';
 import { useScenePicture } from './scenePictures';
+import { useOwnsLook } from './sceneStore';
 
 export const categoryKey = (category: TPlusCategory): TranslationKey =>
   `plus.category.${category}` as TranslationKey;
@@ -158,15 +159,17 @@ interface ISceneHeartProps {
  * FluidEQ's own scenes have one too (server 0048): they are most of the
  * gallery, and without it nobody could see which of them members like. The
  * admin publishes those, so to the admin they are their own scenes and show
- * the count alone, as the server refuses their publisher's like.
+ * the count alone, as the server refuses their publisher's like. Only a scene
+ * this account owns can be liked by it (server 0056): a like is somebody who
+ * has it saying it is good.
  */
 export function SceneHeart({ scene, name, own, className }: ISceneHeartProps) {
   const { t } = useTranslation();
-  const entitled = usePlusEntitled();
+  const owned = useOwnsLook(scene.lookId);
   const { admin } = useModeration();
   const count = String(scene.likes);
   const mine = own || (scene.official && admin);
-  if (mine || !entitled) {
+  if (mine || !owned) {
     return (
       <LikeCount
         scene={scene}
@@ -174,7 +177,7 @@ export function SceneHeart({ scene, name, own, className }: ISceneHeartProps) {
         title={
           mine
             ? t('plus.like.own', { count })
-            : t('plus.like.plusOnly', { count })
+            : t('store.like.ownersOnly', { count })
         }
       />
     );

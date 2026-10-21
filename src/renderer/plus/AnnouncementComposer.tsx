@@ -9,7 +9,6 @@ import type { TranslationKey } from 'common/i18n';
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
 import {
   ANNOUNCEMENT_AUDIENCES,
-  ANNOUNCEMENT_TRIAL_WINDOW_MS,
   MAX_ANNOUNCEMENT_BODY,
   MAX_ANNOUNCEMENT_SCENES,
   MAX_ANNOUNCEMENT_TITLE,
@@ -147,8 +146,6 @@ export default function AnnouncementComposer({
           : [];
       }),
       startsAt: Number.isFinite(startsAt) ? startsAt : Date.now(),
-      // As a member whose trial ends tomorrow meets it: the line included.
-      trialEndsAt: Date.now() + ANNOUNCEMENT_TRIAL_WINDOW_MS / 2,
     });
   };
 

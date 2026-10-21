@@ -8,7 +8,7 @@ import prismBloom from '../../../assets/plus/prism-bloom.jpg';
 import reefLight from '../../../assets/plus/reef-light.jpg';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import PlusTrialOffer, { PlusFreeIntro } from './PlusTrialCard';
+import { PlusFreeIntro } from './PlusTrialCard';
 import '../styles/PlusWelcome.scss';
 
 /**
@@ -66,7 +66,7 @@ export default function PlusWelcome({ onSignIn }: { onSignIn: () => void }) {
             <span className="plus-welcome__brand-mark" aria-hidden="true">
               <Glyph name="plus" />
             </span>
-            {t('account.plus.eyebrow')}
+            {t('terms.eyebrow')}
           </span>
           <h3 className="plus-welcome__title">{t('trial.extras.title')}</h3>
           <ul className="plus-welcome__perks">
@@ -79,7 +79,6 @@ export default function PlusWelcome({ onSignIn }: { onSignIn: () => void }) {
               </li>
             ))}
           </ul>
-          <PlusTrialOffer />
           <p className="gallery-fine">{t('trial.browse')}</p>
           <button
             type="button"

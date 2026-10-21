@@ -189,21 +189,20 @@ const tour = {
 
   'tour.studio.kicker': 'FLUIDEQ PLUS',
   'tour.studio.title': 'Make your own visualizer',
-  'tour.studio.subtitle': 'Free for 15 days, or earn a month',
+  'tour.studio.subtitle': 'Free for every account',
   'tour.studio.lead':
-    'The Studio turns an idea into a scene that moves with your music. It is part of Plus now, and a new account can try it free for fifteen days, with no card and nothing charged when the trial ends.',
+    'The Studio turns an idea into a scene that moves with your music. It is free for every account: make, export and publish as many scenes as you like.',
   'tour.studio.point1':
-    'Every scene is reviewed before it reaches the gallery, and one that is approved earns your next month of Plus.',
+    'Every scene is reviewed before it reaches the gallery, and once it is approved it plays everywhere for you, free.',
   'tour.studio.point2':
     'Scenes can be real 3D worlds that step on the kick and leap at the drop.',
   'tour.studio.point3':
     'Copy the AI prompt and your AI assistant can see your scene and hear how the song moves.',
-  'tour.studio.how':
-    'Open Plus and choose Studio in its rail. Without Plus, the page there offers the free trial.',
+  'tour.studio.how': 'Open Plus and choose Studio in its rail.',
   'tour.studio.open': 'Open Plus',
   'tour.studio.imageAlt':
-    'The Studio playing Alpine on its stage, a lake under snowy peaks and an aurora, with the three steps to make a scene with your AI under it, then the fifteen-day trial and the month an approved scene earns.',
-  'tour.studio.earned': 'Approved: next month free',
+    'The Studio playing Alpine on its stage, a lake under snowy peaks and an aurora, with the three steps to make a scene with your AI under it, and two notes: free for every account, and a published scene plays free for its maker.',
+  'tour.studio.earned': 'Published: plays free for you',
 
   'tour.help.kicker': 'HELP',
   'tour.help.title': 'Ask the guide in your own words',
@@ -267,16 +266,16 @@ const tour = {
     'A room seen from above: seven speakers and a sub standing around a head in the middle, each with its path to the ears.',
 
   'tour.plus.kicker': 'FLUIDEQ PLUS',
-  'tour.plus.title': 'Welcome to FluidEQ Plus',
+  'tour.plus.title': 'Scenes that are yours for good',
   'tour.plus.subtitle': 'Visualizers, Studio, lighting and more',
   'tour.plus.lead':
-    'An optional membership that keeps FluidEQ growing, with a whole new tab for it: scenes drawn on your graphics card, a Studio to make your own, the leaderboard, desktop backgrounds and Dynamic lighting. The equaliser, the rack and the players stay free, as they always have been.',
+    'A whole tab of extras that keeps FluidEQ growing: scenes drawn on your graphics card, a Studio to make your own, the leaderboard, desktop backgrounds and Dynamic lighting. A scene costs one credit and stays yours, and the equaliser, the rack and the players stay free, as they always have been.',
   'tour.plus.point1':
-    'Sign in from Account in the actions menu; paying happens in your browser, and Plus switches on by itself.',
+    'Sign in from Account in the actions menu: a confirmed account gets free credits to start.',
   'tour.plus.point2':
-    'Monthly or yearly, with terms in plain words before you pay. The app never sees your card.',
+    'Packs of credits are paid once, with terms in plain words before you pay. Nothing renews, and the app never sees your card.',
   'tour.plus.point3':
-    'Signed in on up to five computers, with new visualizers added over time.',
+    'Every scene can be watched first, and the ones you get play on every computer you sign in to.',
   'tour.plus.how':
     'Open the Plus tab: the Leaderboard, Visualizers, the Studio and Dynamic lighting are down its left side.',
   'tour.plus.open': 'Open Plus',
@@ -735,6 +734,7 @@ const tour = {
   'tour.media.how':
     'Open the Online Media tab, pick a site from the row at the top, type in the search field and press Search. Back, Forward and Reload work as in a browser.',
   'tour.media.open': 'Open Online Media',
+  'tour.studio.free': 'Free for every account',
 } as const;
 
 export default tour;

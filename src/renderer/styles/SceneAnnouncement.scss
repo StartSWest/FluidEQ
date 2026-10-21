@@ -32,30 +32,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
   aspect-ratio: auto;
 }
 
-.scene-announcement__trial {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: auto 0 0;
-  padding: 10px 12px;
-  color: $text-primary;
-  border: 1px solid color-mix(in srgb, $amber 60%, transparent);
-  border-radius: $radius-m;
-  background: color-mix(in srgb, $surface-menu-top 82%, transparent);
-  box-shadow:
-    inset 0 0 0 100vmax color-mix(in srgb, $amber 16%, transparent),
-    0 8px 24px -12px color-mix(in srgb, $amber 55%, transparent);
-  font-size: $text-small;
-
-  svg {
-    flex: 0 0 auto;
-    width: 15px;
-    height: 15px;
-    margin-top: 1px;
-    color: $amber;
-  }
-}
-
 // The set: the lead two frames tall and two wide, the rest around it, three
 // to a row. A set of one is the lead alone, as wide as the body.
 .scene-announcement__frames {

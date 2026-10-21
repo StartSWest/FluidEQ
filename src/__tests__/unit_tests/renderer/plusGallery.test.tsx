@@ -32,6 +32,9 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 jest.mock('../../../renderer/account/entitlementStore', () => ({
   useEntitlement: () => ({ state: mockEntitled ? 'active' : 'none' }),
+  getEntitlementSnapshot: () => ({
+    state: mockEntitled ? 'active' : 'none',
+  }),
   subscribeEntitlement: () => () => undefined,
 }));
 
@@ -135,7 +138,6 @@ beforeEach(() => {
   resetMemberSceneStore();
   resetScenePackStore();
   bridge.listScenePacks.mockResolvedValue({
-    entitled: true,
     packs: [],
     locked: [],
   });
@@ -167,7 +169,6 @@ beforeEach(() => {
     },
   });
   bridge.listMemberScenes.mockResolvedValue({
-    entitled: true,
     scenes: [],
     locked: [],
   });
@@ -202,8 +203,20 @@ afterAll(() => {
 
 const renderGallery = () => render(<VisualizersView onShowGraph={jest.fn()} />);
 
+// The scene page's own Get: the loud one, beside the cards' quiet ones.
+const pageGet = async () => {
+  await screen.findAllByText(/^store.scene./);
+  const page = document.querySelector('.gallery-scene');
+  if (!(page instanceof HTMLElement)) {
+    throw new Error('the scene page is not open');
+  }
+  return within(page)
+    .getAllByRole('button', { name: /^store.get:/ })
+    .filter((button) => !button.classList.contains('subtle'));
+};
+
 describe('Visualizers', () => {
-  it('lets members without Plus browse, with the way into Plus and no Add', async () => {
+  it('lets members browse scenes they do not own, with the way to get one and no Add', async () => {
     mockEntitled = false;
     bridge.previewGalleryScene.mockResolvedValue({
       ok: false,
@@ -214,7 +227,7 @@ describe('Visualizers', () => {
       await screen.findByRole('button', { name: 'Neon City' }),
     ).toBeInTheDocument();
     expect(screen.getByText('trial.free.title')).toBeInTheDocument();
-    expect(screen.getByText('trial.free.body')).toBeInTheDocument();
+    expect(screen.getByText(/^trial.free.body/)).toBeInTheDocument();
     expect(
       screen.queryByRole('button', { name: 'plus.card.add' }),
     ).not.toBeInTheDocument();
@@ -224,17 +237,15 @@ describe('Visualizers', () => {
     ).not.toBeInTheDocument();
 
     // A scene's page, when the scene could not be had to play: its picture
-    // and the way in.
+    // and the way to get it.
     await userEvent.click(screen.getByRole('button', { name: 'Neon City' }));
-    expect(
-      await screen.findByRole('button', { name: 'plus.scene.getPlus' }),
-    ).toBeInTheDocument();
-    expect(await screen.findByText('plus.scene.plusPlays')).toBeInTheDocument();
+    expect(await screen.findByText('store.scene.locked')).toBeInTheDocument();
+    expect(await pageGet()).toHaveLength(1);
     expect(screen.queryByTestId('scene-preview')).not.toBeInTheDocument();
     expect(bridge.addGalleryScene).not.toHaveBeenCalled();
   });
 
-  it('plays a scene for ten seconds without Plus, then offers Plus', async () => {
+  it('plays a scene for ten seconds before it is owned, then offers to get it', async () => {
     mockEntitled = false;
     bridge.previewGalleryScene.mockResolvedValue({
       ok: true,
@@ -250,15 +261,19 @@ describe('Visualizers', () => {
     await userEvent.click(
       screen.getByRole('button', { name: 'draw eleven seconds' }),
     );
-    // Over: the picture, what Plus would do, and the way in right there.
+    // Over: the picture, what owning it does, and the way to get it right
+    // there on the stage as well as beside it.
     expect(
-      await screen.findByText('plus.scene.keepWatching'),
+      await screen.findByText('store.scene.tasted:10'),
     ).toBeInTheDocument();
     expect(screen.queryByTestId('scene-preview')).not.toBeInTheDocument();
-    // The gallery offer stays on Browse; this action belongs to the stage.
+    const veil = screen
+      .getByText('store.scene.tasted:10')
+      .closest('.gallery-preview__plus');
+    expect(veil).not.toBeNull();
     expect(
-      screen.getAllByRole('button', { name: 'plus.gate.cta' }),
-    ).toHaveLength(1);
+      within(veil as HTMLElement).getByRole('button', { name: /^store.get:/ }),
+    ).toBeInTheDocument();
     expect(screen.queryByText('trial.free.title')).not.toBeInTheDocument();
     expect(bridge.addGalleryScene).not.toHaveBeenCalled();
   });
@@ -660,7 +675,6 @@ describe('the member’s own published scenes', () => {
       bridge.removeScenePack.mockResolvedValue(true);
       bridge.listMemberScenes.mockResolvedValue({ entitled: true, scenes: [] });
       bridge.listScenePacks.mockResolvedValue({
-        entitled: true,
         packs: [],
         locked: [],
       });

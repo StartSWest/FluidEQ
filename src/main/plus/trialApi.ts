@@ -1,7 +1,6 @@
 import {
   parsePlusTrialOffer,
   parsePlusTrialSettings,
-  type IPlusTrialAcceptance,
   type TPlusTrialFailure,
   type TPlusTrialOutcome,
   type TPlusTrialSettingsOutcome,
@@ -98,25 +97,6 @@ export const getPlusTrialOffer = async (
   auth: IPlusTrialAuth,
 ): Promise<TPlusTrialOutcome> => {
   const result = await read(auth, 'plus_trial_offer', {}, parsePlusTrialOffer);
-  if (!auth.isCurrent()) {
-    return failed('signed-out');
-  }
-  return result.ok ? { ok: true, offer: result.value } : result;
-};
-
-export const startPlusTrial = async (
-  auth: IPlusTrialAuth,
-  acceptance: IPlusTrialAcceptance,
-): Promise<TPlusTrialOutcome> => {
-  const result = await read(
-    auth,
-    'start_plus_trial',
-    {
-      p_terms_version: acceptance.termsVersion,
-      p_trial_terms_version: acceptance.trialTermsVersion,
-    },
-    parsePlusTrialOffer,
-  );
   if (!auth.isCurrent()) {
     return failed('signed-out');
   }

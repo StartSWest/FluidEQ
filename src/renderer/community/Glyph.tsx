@@ -27,6 +27,7 @@ export type TCommunityGlyph =
   | 'studio'
   | 'heart'
   | 'plus'
+  | 'credit'
   | 'folder'
   | 'copy'
   | 'check'
@@ -252,6 +253,15 @@ export default function Glyph({ name, className }: IGlyphProps) {
           <>
             <path d="M9 2.5Q9.8 7.7 15 8.5 9.8 9.3 9 14.5 8.2 9.3 3 8.5 8.2 7.7 9 2.5Z" />
             <path d="M15.5 13v4.5M13.25 15.25h4.5" opacity="0.7" />
+          </>
+        );
+      case 'credit':
+        // A credit: a coin seen a little from the side, its rim and its face.
+        return (
+          <>
+            <ellipse cx="10" cy="10" rx="6.8" ry="7.2" />
+            <ellipse cx="10" cy="10" rx="3.6" ry="4" opacity="0.7" />
+            <path d="M10 8.2v3.6" />
           </>
         );
       case 'folder':

@@ -203,87 +203,6 @@
   }
 }
 
-.plus-trial-banner .button.plus-trial-banner__plans {
-  justify-self: end;
-  gap: $spacing-s;
-  max-width: 100%;
-  height: auto;
-  min-height: $control-height;
-  white-space: normal;
-
-  svg {
-    flex: 0 0 auto;
-    width: 15px;
-    height: 15px;
-  }
-
-  @container plus-trial-banner (max-width: 620px) {
-    justify-self: start;
-    margin-inline-start: 64px;
-    max-width: calc(100% - 64px);
-  }
-
-  @container plus-trial-banner (max-width: 380px) {
-    margin-inline-start: 52px;
-    max-width: calc(100% - 52px);
-  }
-}
-
-.plus-trial-agreement {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-m;
-  color: $text-muted;
-  font-size: $text-body;
-  line-height: 1.65;
-
-  > p {
-    margin: 0;
-  }
-}
-
-.plus-trial-summary {
-  display: grid;
-  gap: $spacing-s;
-  margin: 0;
-  padding: $spacing-m;
-  border: 1px solid $border-field;
-  border-radius: $radius-m;
-
-  dt {
-    color: $text-primary;
-    font-weight: $weight-semibold;
-  }
-  dd {
-    margin: $spacing-xs 0 0;
-  }
-}
-
-.plus-trial-conditions {
-  h3 {
-    margin: 0;
-    color: $text-primary;
-    font-size: $text-body;
-  }
-  p {
-    margin: $spacing-xs 0 0;
-  }
-}
-
-.plus-trial-document {
-  border-top: 1px solid $border-field;
-  padding-top: $spacing-s;
-
-  summary {
-    color: $secondary-light;
-    cursor: pointer;
-    font-weight: $weight-semibold;
-  }
-  &[open] summary {
-    margin-bottom: $spacing-m;
-  }
-}
-
 .plus-trial-settings {
   display: grid;
   gap: $spacing-s;
@@ -309,19 +228,5 @@
   }
   .button {
     justify-self: start;
-  }
-}
-
-.plus-trial-agreement + .plus-terms-agree .plus-terms-agree__buttons {
-  flex: 0 1 auto;
-  min-width: 0;
-  max-width: 100%;
-  flex-wrap: wrap;
-  .button {
-    min-width: 0;
-    max-width: 100%;
-    white-space: normal;
-    height: auto;
-    min-height: $control-height-sm;
   }
 }

@@ -21,10 +21,9 @@ import {
   PLUS_TERMS_EDITION,
   termsEffectiveDate,
 } from 'common/plusTerms';
-import { PLUS_TRIAL_DAYS } from 'common/plusTrial';
+import { PLUS_MOVE_CREDITS, STARTER_CREDITS } from 'common/sceneStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import plusPriceText from './plusPrice';
 import {
   TERMS_HIGHLIGHTS,
   TERMS_SECTIONS,
@@ -34,24 +33,18 @@ import '../styles/PlusTerms.scss';
 
 /**
  * Every number the terms quote, from the constant the code keeps it with.
- *
- * The price is the configured amount with the period in the reader's own
- * language ("$5 / Monat", and the yearly one beside it when the build offers
- * one): the amount is what the checkout charges, the period is ours to say.
  * The contact is the support address the build was made with; a build
  * without one points at the site instead, so the sentence never ends in a
  * blank.
  */
-export const termsValues = (
-  price: string,
-): Record<string, string | number> => ({
-  price,
+export const termsValues = (): Record<string, string | number> => ({
   graceDays: PLUS_OFFLINE_GRACE_DAYS,
   deletionDays: PLUS_ACCOUNT_DELETION_DAYS,
   age: PLUS_MINIMUM_AGE,
   computers: PLUS_MAX_COMPUTERS,
   tasteSeconds: PLUS_TASTE_SECONDS,
-  trialDays: PLUS_TRIAL_DAYS,
+  starterCredits: STARTER_CREDITS,
+  moveCredits: PLUS_MOVE_CREDITS,
   sharesPerHour: PLUS_SHARES_PER_HOUR,
   maxPublished: PLUS_MAX_PUBLISHED_SCENES,
   takedownDays: PLUS_TAKEDOWN_PAUSE_DAYS,
@@ -80,7 +73,7 @@ export const termsValues = (
  */
 export default function PlusTermsDocument() {
   const { t, locale } = useTranslation();
-  const values = useMemo(() => termsValues(plusPriceText(t)), [t]);
+  const values = useMemo(() => termsValues(), []);
   const effective = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {

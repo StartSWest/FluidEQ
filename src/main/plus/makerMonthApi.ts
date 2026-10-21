@@ -42,17 +42,10 @@ export const myMakerMonth = async (
     return { ok: true, month };
   }
   // A server from before the earned month answers something this cannot read,
-  // which is an account that has never earned one — what it was until now.
-  //
-  // `guessed` is what stops that standing in for the server having said no.
-  // This shape is also what a rolled-back server, or one answering something
-  // new, produces; acted on as an answer it would take the Studio away from
-  // a maker mid-scene (`knownMakers.ts` forgets on a no). Shown, it is the
-  // harmless "nothing to say"; believed, it is a member locked out by a
-  // server that never mentioned them.
+  // which is an account that has never earned one — what it was until now:
+  // shown, it is the harmless "nothing to say".
   return {
     ok: true,
-    guessed: true,
     month: {
       running: false,
       earnedThisMonth: false,

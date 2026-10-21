@@ -25,7 +25,7 @@ const account = {
   'account.signOut.confirm': 'Sair desta conta?',
   'account.signOut.detail': 'Você pode entrar de novo quando quiser.',
   'account.signOut.detailPlus':
-    'O Plus fica bloqueado aqui até você entrar de novo.',
+    'Suas cenas ficam bloqueadas aqui até você entrar de novo.',
   'account.signOut.kept': 'Nada é apagado deste computador.',
   'account.name.change': 'Mudar nome',
   'account.name.changeTitle': 'Mude como você aparece',
@@ -69,7 +69,7 @@ const account = {
     'O serviço de contas recusou isso. Tente de novo daqui a um momento.',
   'account.error.expired': 'Essa sessão não é mais válida. Entre de novo.',
   'account.error.signedOutElsewhere':
-    'Este computador foi desconectado porque sua conta entrou em outro. O Plus funciona em até 5 computadores ao mesmo tempo: entre de novo para usá-lo aqui, e o que está há mais tempo sem uso é desconectado no lugar dele.',
+    'Este computador saiu da conta porque ela entrou em outro. Uma conta fica conectada em até 5 computadores ao mesmo tempo: entre de novo para usá-la aqui, e o computador usado há mais tempo sai no lugar dele.',
   'account.error.malformed':
     'O serviço de contas enviou algo que o FluidEQ não conseguiu ler.',
   'account.error.wrongCredentials': 'Email ou senha errados.',
@@ -85,12 +85,7 @@ const account = {
     'Já existe uma conta com esse endereço. Entre em vez disso.',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.pitch':
-    'Visualizadores premium que não existem em nenhum outro lugar, o Estúdio para você criar os seus, a classificação — e cada funcionalidade nova a partir de agora, primeiro para os membros. O equalizador, o rack e os players continuam gratuitos, como sempre foram.',
-  'account.plus.upgrade': 'Passar ao Plus',
   'account.plus.opening': 'Abrindo…',
-  'account.plus.checkoutHint':
-    'Abre o Buy Me a Coffee no seu navegador. Pague com o mesmo email desta conta para que o FluidEQ o reconheça; o app nunca vê seu cartão.',
   'account.plus.active': 'Ativa',
   'account.plus.ending': 'Sem renovação',
   'account.plus.renews': 'Renova em {date}',
@@ -105,11 +100,6 @@ const account = {
   'account.plus.grace':
     'Não foi possível confirmar sua assinatura. Ela continua ativa até {date} — conecte-se à internet antes disso para mantê-la.',
   'account.plus.checkAgain': 'Verificar de novo',
-  'account.plus.perMonth': '{price} / mês',
-  'account.plus.perYear': '{price} / ano',
-  'account.plus.priceChoice': '{monthly} ou {yearly}',
-  'account.plus.checkoutOpened':
-    'O Buy Me a Coffee está aberto no seu navegador. Volte aqui depois de pagar e o Plus fica ativo.',
   'account.plus.error.rejected':
     'Não foi possível abrir a página de pagamento. Tente de novo daqui a um momento.',
 
@@ -118,7 +108,7 @@ const account = {
   'account.dev.cancel': 'Simular um cancelamento',
   'account.dev.working': 'Enviando…',
 
-  'account.perk.looks': 'Visuais Plus, desenhados na placa de vídeo.',
+  'account.perk.looks': 'Cenas que são suas para sempre, um crédito cada.',
   'account.perk.visualizers':
     'Visualizadores: as cenas que os membros criam, abertas a todas as contas.',
   'account.perk.board': 'Uma classificação de quem ouve mais.',

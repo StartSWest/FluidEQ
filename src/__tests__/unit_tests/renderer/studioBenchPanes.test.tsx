@@ -63,8 +63,6 @@ const view: IStudioView = {
   serial: 1,
   pack: memberPack(),
   state: {
-    entitled: true,
-    maker: false,
     mayAddProject: true,
     projectsRoot: 'D:\\Studio',
     projects: [project],

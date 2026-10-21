@@ -63,6 +63,7 @@ import studioChat from './studioChat';
 import plus from './plus';
 import plusWelcome from './plusWelcome';
 import trial from './trial';
+import store from './store';
 import termsNotice from './termsNotice';
 import engineHealth from './engineHealth';
 import dspOff from './dspOff';
@@ -112,6 +113,7 @@ const en = {
   ...plus,
   ...plusWelcome,
   ...trial,
+  ...store,
   ...termsNotice,
   ...engineHealth,
   ...dspOff,

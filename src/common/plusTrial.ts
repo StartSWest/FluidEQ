@@ -1,7 +1,6 @@
 /** The optional free month is separate from merchant trials and subscriptions. */
 export const PLUS_TRIAL_PLAN = 'trial';
 export const PLUS_TRIAL_DAYS = 15;
-export const PLUS_TRIAL_TERMS_VERSION = 1;
 
 export interface IPlusTrialOffer {
   enabled: boolean;
@@ -18,12 +17,6 @@ export interface IPlusTrialSettings {
   enabled: boolean;
   days: typeof PLUS_TRIAL_DAYS;
   eligibleSince?: number;
-}
-
-export interface IPlusTrialAcceptance {
-  accepted: true;
-  termsVersion: number;
-  trialTermsVersion: number;
 }
 
 export type TPlusTrialFailure =

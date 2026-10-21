@@ -47,33 +47,33 @@ const lighting = {
     'Клавиатура, мышь, коврик, гарнитура и подставка светятся вместе со сценой',
 
   'lighting.gate.title':
-    'Подсветите клавиатуру, мышь и гарнитуру любой сценой Plus',
+    'Подсветка клавиатуры, мыши и гарнитуры вашими сценами',
   'lighting.gate.body':
-    'Динамическая подсветка входит в FluidEQ Plus. Ваши устройства берут цвета сцены на графике и пульсируют в её ритме.',
-  'lighting.gate.cta': 'Узнать о Plus',
+    'Получите любую сцену в «Визуализаторах», и динамическая подсветка ваша: устройства берут цвета сцены на графике и пульсируют в её ритме.',
+  'lighting.gate.cta': 'Найти сцену',
 
   'lighting.preview.status':
     'Предпросмотр: устройства светятся, пока открыта эта страница',
   'lighting.preview.lit': 'Подсвечиваем ваши устройства сценой',
   'lighting.preview.oneScene': 'Одна сцена, чтобы показать, как это работает',
-  'lighting.preview.noScene': 'Сцена Plus на вашем столе',
-  'lighting.preview.moreScenes': 'Все сцены — с Plus',
+  'lighting.preview.noScene': 'Сцена на вашем столе',
+  'lighting.preview.moreScenes': 'Смотреть сцены',
   'lighting.preview.held':
-    'С Plus ваши устройства светятся так постоянно — в любой сцене.',
-  'lighting.preview.locked': 'Яркость, стиль и выравнивание — с Plus.',
+    'Со своей сценой ваши устройства остаются подсвеченными вот так.',
+  'lighting.preview.locked':
+    'Яркость, стиль и выравнивание открываются со своей сценой.',
 
   'lighting.unsupported.title': 'Динамическая подсветка работает в Windows',
   'lighting.unsupported.body':
     'Она управляет устройствами через Windows Dynamic Lighting и Razer Chroma, а они есть только в Windows.',
 
-  'lighting.switch': 'Подсвечивать мои устройства, пока играет сцена Plus',
+  'lighting.switch': 'Подсвечивать устройства, пока играет сцена',
   'lighting.status.live': 'Следует за сценой «{scene}»',
   'lighting.status.waiting': 'Ждёт музыку',
   'lighting.status.nothingLit':
     'Сцена играет, но ни одно устройство не светится',
   'lighting.status.off': 'Выключено: устройства сохраняют свою подсветку',
-  'lighting.status.noScene':
-    'Выберите сцену Plus, и устройства будут следовать за ней',
+  'lighting.status.noScene': 'Выберите сцену, и устройства последуют за ней',
   'lighting.pickScene': 'Открыть визуализаторы',
   'lighting.showGraph': 'Показать график',
 
@@ -182,6 +182,7 @@ const lighting = {
 
   'lighting.graph.on': 'Больше не подсвечивать мои устройства',
   'lighting.graph.off': 'Подсвечивать мои устройства этой сценой',
+  'lighting.gate.eyebrow': 'Хватит одной сцены',
 } as const;
 
 export default lighting;

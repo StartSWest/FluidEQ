@@ -27,6 +27,8 @@ describe('FluidEQ scenes listed in the gallery', () => {
   const access: IGalleryAccess = {
     accountId: () => 'me',
     entitled: () => true,
+    // Plus owns every scene while it lasts (`sceneOwnership.ts`).
+    owns: () => true,
     auth: async () => ({}) as Awaited<ReturnType<IGalleryAccess['auth']>>,
   };
   const memberStore = {
@@ -53,7 +55,7 @@ describe('FluidEQ scenes listed in the gallery', () => {
   // must not download an 11 MB scene to find it is the one already held.
   it('downloads only a version newer than the one held', async () => {
     const officialStore = {
-      load: () => ({ id: 'alpine', version: 49 }),
+      newest: () => ({ id: 'alpine', version: 49 }),
       adopt: jest.fn(() => 0),
     } as unknown as IScenePackStore;
     const sync = createGallerySceneSync({
@@ -70,12 +72,33 @@ describe('FluidEQ scenes listed in the gallery', () => {
     await sync([listed(50, '2026-09-14T01:00:00Z')]);
     expect(fetchOfficialScene).toHaveBeenCalledTimes(1);
   });
+
+  // An owner playing an earlier version they kept (`keptVersions.ts`) is
+  // measured by the newest held, not the one playing: measured by the pinned
+  // one, every session would download the newest again to find it here.
+  it('measures an update by the newest held, never a pinned earlier one', async () => {
+    const officialStore = {
+      load: () => ({ id: 'alpine', version: 46 }),
+      newest: () => ({ id: 'alpine', version: 49 }),
+      adopt: jest.fn(() => 0),
+    } as unknown as IScenePackStore;
+    const sync = createGallerySceneSync({
+      access,
+      store: memberStore,
+      officialStore,
+      announce: () => {},
+    });
+    await sync([listed(49)]);
+    expect(fetchOfficialScene).not.toHaveBeenCalled();
+  });
 });
 
 describe('a member scene already installed', () => {
   const access: IGalleryAccess = {
     accountId: () => 'me',
     entitled: () => true,
+    // Plus owns every scene while it lasts (`sceneOwnership.ts`).
+    owns: () => true,
     auth: async () => ({}) as Awaited<ReturnType<IGalleryAccess['auth']>>,
   };
 
@@ -96,7 +119,7 @@ describe('a member scene already installed', () => {
       store: {
         isBlocked: () => false,
         list: () => [],
-        load: () => pack,
+        newest: () => pack,
         save: jest.fn(),
         saveImported,
       } as unknown as IMemberSceneStore,

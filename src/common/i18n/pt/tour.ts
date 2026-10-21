@@ -177,21 +177,20 @@ const tour: Partial<Dictionary> = {
     'A curva do equalizador nos seus terços de graves, médios e agudos, os três botões que os movem e os layouts rápidos de seis a trinta e uma bandas.',
   'tour.studio.kicker': 'FLUIDEQ PLUS',
   'tour.studio.title': 'Crie seu próprio visualizador',
-  'tour.studio.subtitle': 'Grátis por 15 dias, ou ganhe um mês',
+  'tour.studio.subtitle': 'Grátis para todas as contas',
   'tour.studio.lead':
-    'O Estúdio transforma uma ideia em uma cena que se move com sua música. Agora ele faz parte do Plus, e uma conta nova pode experimentá-lo grátis por quinze dias, sem cartão e sem nenhuma cobrança quando o teste terminar.',
+    'O Estúdio transforma uma ideia numa cena que se move com a sua música. Ele é grátis para todas as contas: crie, exporte e publique quantas cenas quiser.',
   'tour.studio.point1':
-    'Cada cena é revisada antes de chegar à galeria, e uma cena aprovada garante seu próximo mês de Plus grátis.',
+    'Cada cena é revisada antes de chegar à galeria e, depois de aprovada, toca em todo lugar para você, de graça.',
   'tour.studio.point2':
     'As cenas podem ser mundos 3D de verdade que pisam no bumbo e saltam no drop.',
   'tour.studio.point3':
     'Copie o prompt para a IA e o seu assistente de IA pode ver a sua cena e ouvir como a música se move.',
-  'tour.studio.how':
-    'Abra Plus e escolha Estúdio na barra lateral. Sem o Plus, a página ali oferece o teste gratuito.',
+  'tour.studio.how': 'Abra Plus e escolha Estúdio na barra lateral.',
   'tour.studio.open': 'Abrir Plus',
   'tour.studio.imageAlt':
-    'O Estúdio com Alpine no palco, um lago sob picos nevados e uma aurora, embaixo os três passos para criar uma cena com sua IA, depois o teste de quinze dias e o mês que uma cena aprovada rende.',
-  'tour.studio.earned': 'Aprovada: próximo mês grátis',
+    'O Estúdio com Alpine no palco, um lago sob picos nevados e uma aurora, com os três passos para criar uma cena com a sua IA abaixo, e duas notas: grátis para todas as contas, e uma cena publicada toca de graça para quem a criou.',
+  'tour.studio.earned': 'Publicada: toca de graça para você',
   'tour.help.kicker': 'AJUDA',
   'tour.help.title': 'Pergunte ao guia com suas palavras',
   'tour.help.subtitle': 'Erros de digitação, plurais e dez idiomas',
@@ -254,16 +253,16 @@ const tour: Partial<Dictionary> = {
     'Uma sala vista de cima: sete alto-falantes e um sub ao redor de uma cabeça no centro, cada um com o seu caminho até os ouvidos.',
 
   'tour.plus.kicker': 'FLUIDEQ PLUS',
-  'tour.plus.title': 'Boas-vindas ao FluidEQ Plus',
+  'tour.plus.title': 'Cenas que são suas para sempre',
   'tour.plus.subtitle': 'Visualizadores, Estúdio, iluminação e mais',
   'tour.plus.lead':
-    'Uma assinatura opcional que mantém o FluidEQ crescendo, com uma aba nova só para ela: cenas desenhadas na sua placa de vídeo, um Estúdio para criar as suas, a Classificação, fundos da área de trabalho e a Iluminação dinâmica. O equalizador, o rack e os players continuam gratuitos, como sempre foram.',
+    'Uma aba inteira de extras que faz o FluidEQ crescer: cenas desenhadas na sua placa de vídeo, um Estúdio para criar as suas, a classificação, fundos de área de trabalho e a Iluminação dinâmica. Uma cena custa um crédito e fica com você, e o equalizador, o rack e os players continuam gratuitos, como sempre.',
   'tour.plus.point1':
-    'Entre pelo painel Conta, no menu de ações; o pagamento é feito no seu navegador e o Plus é ativado sozinho.',
+    'Entre por Conta no menu de ações: uma conta confirmada recebe créditos grátis para começar.',
   'tour.plus.point2':
-    'Mensal ou anual, com termos em linguagem simples antes de você pagar. O app nunca vê seu cartão.',
+    'Os pacotes de créditos são pagos uma única vez, com termos em palavras simples antes de pagar. Nada é renovado, e o app nunca vê seu cartão.',
   'tour.plus.point3':
-    'Conta conectada em até cinco computadores, com novos visualizadores adicionados ao longo do tempo.',
+    'Cada cena pode ser assistida antes, e as que você obtém tocam em todo computador em que você entra.',
   'tour.plus.how':
     'Abra a aba Plus: Classificação, Visualizadores, Estúdio e Iluminação dinâmica ficam do lado esquerdo.',
   'tour.plus.open': 'Abrir Plus',
@@ -727,6 +726,7 @@ const tour: Partial<Dictionary> = {
   'tour.media.how':
     'Abra a aba Mídia online, escolha um site na fileira de cima, digite no campo de busca e pressione Buscar. Voltar, Avançar e Recarregar funcionam como em um navegador.',
   'tour.media.open': 'Abrir Mídia online',
+  'tour.studio.free': 'Grátis para todas as contas',
 };
 
 export default tour;

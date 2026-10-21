@@ -66,6 +66,8 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
 const access: IGalleryAccess = {
   accountId: () => ME,
   entitled: () => entitled,
+  // Plus owns every scene while it lasts (`sceneOwnership.ts`).
+  owns: () => entitled,
   auth: async () => ({ config, accessToken: 'token', fetchImpl }),
 };
 

@@ -21,6 +21,8 @@ const termsNotice = {
     'Désormais, chaque scène publiée dans Visualiseurs est lue par le créateur de FluidEQ avant que quiconque la voie. Et Plus peut arriver sans paiement : un essai gratuit qu’un nouveau compte peut prendre une fois, et un mois gagné grâce à une scène approuvée. Ni l’un ni l’autre ne se renouvelle, et rien n’est jamais prélevé pour eux.',
   'termsNotice.change.10':
     'Tant que vous avez Plus, FluidEQ indique désormais à son créateur combien de temps chaque scène est à votre écran, un nombre par scène et par jour, et quel moteur audio vous utilisez, pour que les nouvelles scènes suivent ce qui plaît aux membres. Personne d’autre ne voit ni l’un ni l’autre. FluidEQ peut aussi annoncer de nouvelles scènes dans l’application. Les Nouveautés peuvent aussi lire de courtes vidéos de l’application depuis fluideq.com, sans rien sur vous.',
+  'termsNotice.change.11':
+    'Les scènes sont désormais à vous pour de bon : un crédit chacune, en packs payés une seule fois sur Stripe, et un compte confirmé reçoit quelques crédits gratuits pour commencer. Chaque scène peut être regardée quelques secondes avant. Le Studio et la publication sont gratuits pour tous les comptes, et vos propres scènes jouent partout une fois publiées. FluidEQ peut aussi rendre certaines de ses propres scènes gratuites pour tous. Plus n’est plus vendu : un abonnement déjà en cours continue de fonctionner jusqu’à ce que FluidEQ passe ses membres aux crédits, et les scènes qu’un membre a ajoutées lui restent alors.',
 } as const;
 
 export default termsNotice;

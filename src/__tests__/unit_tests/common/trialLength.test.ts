@@ -5,11 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The free trial's length, said once in code and sixty times in words.
+ * The free trial's length, said once in code and ten times in words.
  *
- * Six sentences in each of ten languages spell the number out — "Try Plus free
- * for 15 days", "15 days from activation", "15 consecutive days from
- * activation" — because a placeholder inside a heading reads worse in half of
+ * Sentences in each of ten languages spell the number out — "Offer 15 days
+ * of Plus" — because a placeholder inside a heading reads worse in half of
  * them than the figure does. That is a fine trade until the constant moves,
  * at which point the app offers one length, counts another, and nothing
  * anywhere says so: the server grants what `plus_trial_days()` answers and the
@@ -53,13 +52,10 @@ const DICTIONARIES: Record<string, Record<string, string>> = {
  * being found by a regular expression that would also match a price or a
  * year.
  */
-const KEYS = [
-  'trial.offer.title',
-  'trial.consent.period',
-  'trial.consent.start',
-  'trial.terms.body',
-  'trial.settings.label',
-] as const;
+// The offer, its consent and its conditions went with Plus's sale: no trial
+// is started from the app now, and only the admin's switch still names the
+// length.
+const KEYS = ['trial.settings.label'] as const;
 
 describe('the free trial says the length it grants', () => {
   it.each(Object.entries(DICTIONARIES))(

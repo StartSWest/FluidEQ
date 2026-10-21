@@ -11,11 +11,8 @@ jest.mock('electron', () => ({
 
 /* eslint-disable import/first -- the electron mock must be installed first */
 import type { IAccountState } from '../../../main/account/session';
-import type { IEntitlementStatus } from '../../../main/account/entitlement';
 import { AuthError } from '../../../main/account/authClient';
 import { registerPlusTrialIpc } from '../../../main/ipc/plusTrial';
-// The version this build carries, never a literal: what is under test is
-// that consent has to name THIS one, not that it happens to be a number.
 import { PLUS_TERMS_VERSION } from '../../../common/plusTerms';
 /* eslint-enable import/first */
 
@@ -23,8 +20,6 @@ const config = {
   supabaseUrl: 'https://project.supabase.co',
   supabaseAnonKey: 'sb_publishable_public-key',
   apiUrl: 'https://project.supabase.co/functions/v1',
-  plusPrice: '',
-  plusYearlyPrice: '',
 };
 const OFFER = {
   enabled: true,
@@ -41,10 +36,10 @@ const ACTIVE = {
   startedAt: '2026-09-19T12:00:00Z',
   endsAt: '2026-10-19T12:00:00Z',
 };
-const ACCEPTANCE = {
-  accepted: true,
-  termsVersion: PLUS_TERMS_VERSION,
-  trialTermsVersion: 1,
+const SETTINGS = {
+  enabled: true,
+  days: 15,
+  eligibleSince: '2026-09-19T12:00:00Z',
 };
 
 const deferred = <T>() => {
@@ -62,8 +57,6 @@ const response = (body: unknown, status = 200) =>
 let account: string | undefined;
 let fetchImpl: jest.Mock<Promise<Response>, [string, RequestInit?]>;
 let accessToken: jest.Mock<Promise<string>, []>;
-let checkNow: jest.Mock<Promise<IEntitlementStatus>, []>;
-let effects: string[];
 let registration: ReturnType<typeof registerPlusTrialIpc>;
 
 const invoke = (channel: string, ...args: unknown[]): Promise<unknown> => {
@@ -84,11 +77,6 @@ const register = (backend = config) => {
           : { status: 'signed-out' },
       accessToken,
     },
-    entitlement: {
-      expectChange: () => effects.push('expect'),
-      checkNow,
-    },
-    onTermsAgreed: (version) => effects.push(`agreed:${version}`),
     fetchImpl: fetchImpl as typeof fetch,
   });
 };
@@ -96,15 +84,10 @@ const register = (backend = config) => {
 beforeEach(() => {
   handlers.clear();
   account = 'account-a';
-  effects = [];
   fetchImpl = jest.fn<Promise<Response>, [string, RequestInit?]>(async () =>
     response(OFFER),
   );
   accessToken = jest.fn(async () => 'account-a-token');
-  checkNow = jest.fn<Promise<IEntitlementStatus>, []>(async () => {
-    effects.push('checked');
-    return { state: 'active', plan: 'trial' };
-  });
   register();
 });
 
@@ -133,98 +116,23 @@ it('loads a generic signed-out offer using only the public API key', async () =>
   expect(accessToken).not.toHaveBeenCalled();
 });
 
-it.each([
-  undefined,
-  { ...ACCEPTANCE, accepted: false },
-  { ...ACCEPTANCE, accepted: 'true' },
-])(
-  'refuses missing explicit consent without contacting the server: %j',
-  async (value) => {
-    expect(await invoke('plus-trial-start', value)).toEqual({
-      ok: false,
-      reason: 'consent-required',
-    });
-    expect(fetchImpl).not.toHaveBeenCalled();
-    expect(effects).toEqual([]);
-  },
-);
-
-it.each([
-  { ...ACCEPTANCE, termsVersion: PLUS_TERMS_VERSION - 1 },
-  { ...ACCEPTANCE, trialTermsVersion: 0 },
-  { ...ACCEPTANCE, termsVersion: String(PLUS_TERMS_VERSION) },
-])(
-  'refuses consent to different terms without contacting the server: %j',
-  async (value) => {
-    expect(await invoke('plus-trial-start', value)).toEqual({
-      ok: false,
-      reason: 'terms-outdated',
-    });
-    expect(fetchImpl).not.toHaveBeenCalled();
-  },
-);
-
-it('waits for the entitlement refresh before returning a successful grant', async () => {
-  fetchImpl.mockResolvedValue(response(ACTIVE));
-  const checked = deferred<IEntitlementStatus>();
-  const checking = deferred<void>();
-  checkNow.mockImplementation(() => {
-    effects.push('checking');
-    checking.complete();
-    return checked.promise;
-  });
-  let completed = false;
-  const starting = invoke('plus-trial-start', ACCEPTANCE).then((outcome) => {
-    completed = true;
-    return outcome;
-  });
-  await checking.promise;
-  expect(completed).toBe(false);
-  expect(effects).toEqual([
-    `agreed:${PLUS_TERMS_VERSION}`,
-    'expect',
-    'checking',
-  ]);
-  checked.complete({ state: 'active', plan: 'trial' });
-  expect(await starting).toMatchObject({
-    ok: true,
-    offer: { state: 'active', endsAt: 1792411200000 },
-  });
-  const [url, init] = fetchImpl.mock.calls[0];
-  expect(url).toMatch(/\/rest\/v1\/rpc\/start_plus_trial$/);
-  expect(JSON.parse(String(init?.body))).toEqual({
-    p_terms_version: PLUS_TERMS_VERSION,
-    p_trial_terms_version: 1,
-  });
-  expect(init?.headers).toMatchObject({
-    Authorization: 'Bearer account-a-token',
-  });
+// Plus is not sold any more (credits replaced it), so a trial is only read
+// here, never started: there is no channel to start one through.
+it('offers no way to start a trial', () => {
+  expect(handlers.has('plus-trial-start')).toBe(false);
+  // The positive control: the reading channels are there.
+  expect(handlers.has('plus-trial-offer')).toBe(true);
+  expect(handlers.has('plus-trial-settings')).toBe(true);
 });
 
-it('does not send an activation after the account changes during token refresh', async () => {
+it('does not send a request after the account changes during token refresh', async () => {
   const token = deferred<string>();
   accessToken.mockReturnValue(token.promise);
-  const starting = invoke('plus-trial-start', ACCEPTANCE);
+  const reading = invoke('plus-trial-settings');
   account = 'account-b';
   token.complete('account-b-token');
-  expect(await starting).toEqual({ ok: false, reason: 'signed-out' });
+  expect(await reading).toEqual({ ok: false, reason: 'signed-out' });
   expect(fetchImpl).not.toHaveBeenCalled();
-  expect(effects).toEqual([]);
-});
-
-it('discards a grant returned after switching accounts, without refreshing the new account', async () => {
-  const reply = deferred<Response>();
-  const requested = deferred<void>();
-  fetchImpl.mockImplementation(() => {
-    requested.complete();
-    return reply.promise;
-  });
-  const starting = invoke('plus-trial-start', ACCEPTANCE);
-  await requested.promise;
-  account = 'account-b';
-  reply.complete(response(ACTIVE));
-  expect(await starting).toEqual({ ok: false, reason: 'signed-out' });
-  expect(effects).toEqual([]);
 });
 
 it('discards a body read after switching accounts', async () => {
@@ -243,21 +151,6 @@ it('discards a body read after switching accounts', async () => {
   account = 'account-b';
   body.complete(ACTIVE);
   expect(await readingOffer).toEqual({ ok: false, reason: 'signed-out' });
-});
-
-it('discards a successful start if the account changes while its entitlement is refreshing', async () => {
-  fetchImpl.mockResolvedValue(response(ACTIVE));
-  const checking = deferred<void>();
-  const checked = deferred<IEntitlementStatus>();
-  checkNow.mockImplementation(() => {
-    checking.complete();
-    return checked.promise;
-  });
-  const starting = invoke('plus-trial-start', ACCEPTANCE);
-  await checking.promise;
-  account = 'account-b';
-  checked.complete({ state: 'active', plan: 'trial' });
-  expect(await starting).toEqual({ ok: false, reason: 'signed-out' });
 });
 
 it('does not carry an anonymous offer into a newly signed-in account', async () => {
@@ -282,11 +175,10 @@ it.each([
   'translates the server refusal %s / %s',
   async (status, message, code, reason) => {
     fetchImpl.mockResolvedValue(response({ code, message }, status));
-    expect(await invoke('plus-trial-start', ACCEPTANCE)).toEqual({
+    expect(await invoke('plus-trial-settings')).toEqual({
       ok: false,
       reason,
     });
-    expect(effects).toEqual([]);
   },
 );
 
@@ -297,19 +189,14 @@ it('fails closed when the server or a token cannot be reached', async () => {
     reason: 'offline',
   });
   accessToken.mockRejectedValue(new Error('offline'));
-  expect(await invoke('plus-trial-start', ACCEPTANCE)).toEqual({
+  expect(await invoke('plus-trial-settings')).toEqual({
     ok: false,
     reason: 'offline',
   });
-  expect(effects).toEqual([]);
 });
 
-it('keeps signed-out activation and settings local, and unconfigured offers unavailable', async () => {
+it('keeps signed-out settings local, and unconfigured offers unavailable', async () => {
   account = undefined;
-  expect(await invoke('plus-trial-start', ACCEPTANCE)).toEqual({
-    ok: false,
-    reason: 'signed-out',
-  });
   expect(await invoke('plus-trial-settings')).toEqual({
     ok: false,
     reason: 'signed-out',
@@ -327,13 +214,7 @@ it('keeps signed-out activation and settings local, and unconfigured offers unav
 });
 
 it('reads and changes administrator settings with the caller token', async () => {
-  fetchImpl.mockResolvedValueOnce(
-    response({
-      enabled: true,
-      days: 15,
-      eligibleSince: '2026-09-19T12:00:00Z',
-    }),
-  );
+  fetchImpl.mockResolvedValueOnce(response(SETTINGS));
   fetchImpl.mockResolvedValueOnce(
     response({
       enabled: false,
@@ -362,29 +243,18 @@ it('reads and changes administrator settings with the caller token', async () =>
   expect(fetchImpl).toHaveBeenCalledTimes(2);
 });
 
-it('rejects malformed replies without granting or refreshing Plus', async () => {
-  fetchImpl.mockResolvedValue(response({ ...ACTIVE, endsAt: 'someday' }));
-  expect(await invoke('plus-trial-start', ACCEPTANCE)).toEqual({
+it('rejects malformed settings', async () => {
+  fetchImpl.mockResolvedValue(response({ ...SETTINGS, days: 30 }));
+  expect(await invoke('plus-trial-settings')).toEqual({
     ok: false,
     reason: 'server',
   });
-  expect(effects).toEqual([]);
-});
-
-it('does not report an unactivated offer as a successful start', async () => {
-  expect(await invoke('plus-trial-start', ACCEPTANCE)).toEqual({
-    ok: false,
-    reason: 'server',
-  });
-  expect(effects).toEqual([]);
 });
 
 it('continues normally when refreshing the token keeps the same account', async () => {
   accessToken.mockResolvedValue('account-a-refreshed');
-  fetchImpl.mockResolvedValue(response(ACTIVE));
-  expect(await invoke('plus-trial-start', ACCEPTANCE)).toMatchObject({
-    ok: true,
-  });
+  fetchImpl.mockResolvedValue(response(SETTINGS));
+  expect(await invoke('plus-trial-settings')).toMatchObject({ ok: true });
   expect(fetchImpl.mock.calls[0][1]?.headers).toMatchObject({
     Authorization: 'Bearer account-a-refreshed',
   });
@@ -419,25 +289,16 @@ it('discards administrator settings when the account changes during the request'
   expect(await saving).toEqual({ ok: false, reason: 'signed-out' });
 });
 
-it('returns a typed failure when membership refresh fails after a server grant', async () => {
-  fetchImpl.mockResolvedValue(response(ACTIVE));
-  checkNow.mockRejectedValue(new Error('store unavailable'));
-  expect(await invoke('plus-trial-start', ACCEPTANCE)).toEqual({
-    ok: false,
-    reason: 'server',
-  });
-});
-
 it('keeps an expired refresh distinct from a temporary authentication service failure', async () => {
   accessToken.mockRejectedValueOnce(
     new AuthError('expired', 'Session changed'),
   );
-  expect(await invoke('plus-trial-start', ACCEPTANCE)).toEqual({
+  expect(await invoke('plus-trial-settings')).toEqual({
     ok: false,
     reason: 'signed-out',
   });
   accessToken.mockRejectedValueOnce(new AuthError('rate_limited', 'Try later'));
-  expect(await invoke('plus-trial-start', ACCEPTANCE)).toEqual({
+  expect(await invoke('plus-trial-settings')).toEqual({
     ok: false,
     reason: 'server',
   });

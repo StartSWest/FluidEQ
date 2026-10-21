@@ -5,11 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 const announce = {
-  'announce.eyebrow': 'Nuevo en Plus · {count} escenas',
-  'announce.trialEnds':
-    'Tu prueba gratis termina pronto. Conserva estas escenas y todas las demás con Plus.',
+  'announce.eyebrow': 'Novedades en Visualizadores · {count} escenas',
   'announce.try': 'Probarlas ahora',
-  'announce.keepPlus': 'Conservar Plus',
   'announce.later': 'Más tarde',
   'announce.previewNote': 'Vista previa. No se ha enviado ni registrado nada.',
   'announce.untitled': 'Escenas nuevas',

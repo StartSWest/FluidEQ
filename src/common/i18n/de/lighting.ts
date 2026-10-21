@@ -46,35 +46,33 @@ const lighting = {
   'lighting.description':
     'Tastatur, Maus, Mauspad, Headset und Ständer leuchten mit der Szene',
 
-  'lighting.gate.title':
-    'Tastatur, Maus und Headset leuchten mit jeder Plus-Szene',
+  'lighting.gate.title': 'Tastatur, Maus und Headset im Licht Ihrer Szenen',
   'lighting.gate.body':
-    'Dynamische Beleuchtung gehört zu FluidEQ Plus. Ihre Geräte übernehmen die Farben der Szene im Diagramm und pulsieren mit ihrem Beat.',
-  'lighting.gate.cta': 'Plus ansehen',
+    'Holen Sie sich eine beliebige Szene in „Visualizer“, und die dynamische Beleuchtung gehört Ihnen: Ihre Geräte übernehmen die Farben der Szene im Diagramm und pulsieren im Takt.',
+  'lighting.gate.cta': 'Szene finden',
 
   'lighting.preview.status':
     'Vorschau – Ihre Geräte leuchten, solange diese Seite offen ist',
   'lighting.preview.lit': 'Ihre Geräte leuchten mit der Szene',
   'lighting.preview.oneScene': 'Eine Szene, die zeigt, was es kann',
-  'lighting.preview.noScene': 'Eine Plus-Szene auf Ihrem Schreibtisch',
-  'lighting.preview.moreScenes': 'Alle Szenen mit Plus',
+  'lighting.preview.noScene': 'Eine Szene auf Ihrem Schreibtisch',
+  'lighting.preview.moreScenes': 'Szenen ansehen',
   'lighting.preview.held':
-    'Mit Plus bleiben Ihre Geräte so beleuchtet – in jeder Szene.',
+    'Mit einer eigenen Szene bleiben Ihre Geräte so beleuchtet.',
   'lighting.preview.locked':
-    'Helligkeit, Stil und Ausrichtung gibt es mit Plus.',
+    'Helligkeit, Stil und Ausrichtung werden mit einer eigenen Szene freigeschaltet.',
 
   'lighting.unsupported.title': 'Dynamische Beleuchtung gibt es unter Windows',
   'lighting.unsupported.body':
     'Sie steuert Geräte über Windows Dynamic Lighting und Razer Chroma, und beides gibt es nur unter Windows.',
 
-  'lighting.switch':
-    'Meine Geräte leuchten lassen, während eine Plus-Szene läuft',
+  'lighting.switch': 'Meine Geräte beleuchten, während eine Szene läuft',
   'lighting.status.live': 'Folgt {scene}',
   'lighting.status.waiting': 'Wartet auf Musik',
   'lighting.status.nothingLit': 'Die Szene läuft, aber kein Gerät leuchtet',
   'lighting.status.off': 'Aus – Ihre Geräte behalten ihre eigene Beleuchtung',
   'lighting.status.noScene':
-    'Wählen Sie eine Plus-Szene, und Ihre Geräte folgen ihr',
+    'Wählen Sie eine Szene, und Ihre Geräte folgen ihr',
   'lighting.pickScene': 'Visualizer durchsuchen',
   'lighting.showGraph': 'Diagramm anzeigen',
 
@@ -189,6 +187,7 @@ const lighting = {
 
   'lighting.graph.on': 'Meine Geräte nicht mehr beleuchten',
   'lighting.graph.off': 'Meine Geräte mit dieser Szene beleuchten',
+  'lighting.gate.eyebrow': 'Eine Szene schaltet es frei',
 } as const;
 
 export default lighting;

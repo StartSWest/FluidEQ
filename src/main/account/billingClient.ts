@@ -1,30 +1,17 @@
 import type { IAccountConfig } from 'common/accountConfig';
 
 /**
- * The two things the app asks the billing server for: a checkout to open, and
- * the page where an existing subscription is managed.
+ * What the app asks the billing server for about a Plus membership: the page
+ * where one already running is managed or cancelled, and a look-up at the
+ * merchant. Plus is not sold any more (credits replaced it, `sceneStore.ts`),
+ * so there is no checkout here: a member who still pays can always reach the
+ * page that stops it.
  *
- * Both come from the server, on request, for the signed-in account — the app
- * sends its token and gets back a URL to open. That is why neither address is
- * configured into the build: which merchant, and whether it can mint a
- * per-person page, is the server's business, and a change of merchant is a
- * server deploy rather than an app release. The card, the price and the tax
- * all live on the merchant's page; the app only ever opens it.
+ * The page comes from the server, on request, for the signed-in account — the
+ * app sends its token and gets back a URL to open, so no merchant address is
+ * configured into the build.
  */
-
-/**
- * `terms_outdated` is the server refusing a checkout because the terms the
- * person agreed to are older than the ones it now requires: the app is out
- * of date, and paying under text nobody showed them is exactly what the
- * version exists to prevent.
- *
- * `price_outdated` is the same refusal for the price: the prices this build
- * shows are not the ones the merchant charges. An old build after a price
- * change, or a copy somebody edited — either way the person would be agreeing
- * to one figure and paying another, and updating the app is the way through.
- */
-export type TBillingFailure =
-  'network' | 'signed_out' | 'rejected' | 'terms_outdated' | 'price_outdated';
+export type TBillingFailure = 'network' | 'signed_out' | 'rejected';
 
 export class BillingError extends Error {
   readonly failure: TBillingFailure;
@@ -59,29 +46,11 @@ export const readBillingUrl = (value: unknown): string | undefined => {
   }
 };
 
-/** Which of the outdated-app refusals a 409 names, if either. */
-const outdatedFailure = async (
-  response: Response,
-): Promise<'terms_outdated' | 'price_outdated' | undefined> => {
-  try {
-    const body: unknown = await response.json();
-    if (!isRecord(body)) {
-      return undefined;
-    }
-    return body.error === 'terms_outdated' || body.error === 'price_outdated'
-      ? body.error
-      : undefined;
-  } catch {
-    return undefined;
-  }
-};
-
 const call = async (
   config: IAccountConfig,
-  name: 'create-checkout' | 'create-portal',
+  name: 'create-portal',
   accessToken: string,
   fetchImpl: typeof fetch,
-  request: Record<string, unknown> = {},
 ): Promise<string> => {
   let response: Response;
   try {
@@ -92,7 +61,7 @@ const call = async (
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(request),
+      body: '{}',
     });
   } catch (error) {
     throw new BillingError('network', `${name} is unreachable: ${error}`);
@@ -101,12 +70,7 @@ const call = async (
     throw new BillingError('signed_out', `${name} refused the token.`);
   }
   if (!response.ok) {
-    const outdated =
-      response.status === 409 ? await outdatedFailure(response) : undefined;
-    throw new BillingError(
-      outdated ?? 'rejected',
-      `${name} answered ${response.status}.`,
-    );
+    throw new BillingError('rejected', `${name} answered ${response.status}.`);
   }
   let body: unknown;
   try {
@@ -171,13 +135,6 @@ const sync = async (
 };
 
 export interface IBillingClient {
-  /**
-   * Where to pay, for this account, having agreed to this version of the Plus
-   * terms at the prices this build shows. The server refuses either one when
-   * it is not what it now requires, and records the agreement as it answers,
-   * so the record and the checkout cannot come apart.
-   */
-  checkoutUrl(accessToken: string, termsVersion: number): Promise<string>;
   /** Where this account's subscription is managed. */
   portalUrl(accessToken: string): Promise<string>;
   /** Have the server match this account against the merchant's records. */
@@ -188,13 +145,6 @@ export const createBillingClient = (
   config: IAccountConfig,
   fetchImpl: typeof fetch = fetch,
 ): IBillingClient => ({
-  // The prices come from the main process's own copy of the build's values,
-  // never from the window: what is checked is what this build quotes.
-  checkoutUrl: (accessToken, termsVersion) =>
-    call(config, 'create-checkout', accessToken, fetchImpl, {
-      termsVersion,
-      prices: { monthly: config.plusPrice, yearly: config.plusYearlyPrice },
-    }),
   portalUrl: (accessToken) =>
     call(config, 'create-portal', accessToken, fetchImpl),
   syncMembership: (accessToken) => sync(config, accessToken, fetchImpl),

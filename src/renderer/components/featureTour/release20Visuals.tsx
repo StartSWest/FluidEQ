@@ -156,7 +156,7 @@ export function StudioVisual() {
           height={METERS_PHOTO.height}
         />
         <span className="tour-photo__offers">
-          <span className="tour-photo__offer">{t('trial.offer.title')}</span>
+          <span className="tour-photo__offer">{t('tour.studio.free')}</span>
           <span className="tour-photo__offer is-earned">
             {t('tour.studio.earned')}
           </span>

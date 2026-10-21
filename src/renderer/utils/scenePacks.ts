@@ -13,8 +13,8 @@ import { isSceneRenderingAvailable } from '../graph/sceneHealth';
  * source crosses from the main process when a scene is about to be drawn, and
  * not before — the picker does not need sixty kilobytes of GLSL to draw a row.
  *
- * "Usable" is decided here, once, from two facts: the account is entitled,
- * and this machine can run a scene at all. Everything that offers a premium
+ * "Usable" is decided here, once, from two facts: the account owns the scene
+ * (main lists only those as packs), and this machine can run a scene at all. Everything that offers a premium
  * look — the picker, the arrows, Space, the click on the plot and the
  * auto-cycle — reads that one list through `getSelectableLooks`, so a look
  * that cannot draw is never offered anywhere.
@@ -53,7 +53,7 @@ export interface ILockedScene {
   swatch: string[];
 }
 
-const EMPTY: IScenePacksListing = { entitled: false, packs: [], locked: [] };
+const EMPTY: IScenePacksListing = { packs: [], locked: [] };
 
 let listing: IScenePacksListing = EMPTY;
 /** Whether the main process has answered at least once. */
@@ -77,34 +77,30 @@ const recompute = () => {
   // Neither list exists on a machine that cannot run a scene: a locked row
   // that would still not draw after paying is a promise the app cannot keep.
   const canDraw = isSceneRenderingAvailable();
-  usable =
-    listing.entitled && canDraw
-      ? listing.packs
-          .filter((pack) => !blocked.has(pack.id))
-          .map((pack) => ({
-            id: pack.id,
-            version: pack.version,
-            revision: pack.revision,
-            lookId: premiumLookId(pack.id),
-            names: pack.names,
-            fallbackStyle: pack.fallbackStyle,
-            swatch: pack.swatch,
-            ...(pack.spectrumRange
-              ? { spectrumRange: pack.spectrumRange }
-              : {}),
-            ...(pack.wave ? { wave: pack.wave } : {}),
-          }))
-      : [];
-  locked =
-    !listing.entitled && canDraw
-      ? listing.locked.map((entry) => ({
-          id: entry.id,
-          lookId: lockedLookId(entry.id),
-          names: entry.names,
-          fallbackStyle: entry.fallbackStyle,
-          swatch: entry.swatch,
+  usable = canDraw
+    ? listing.packs
+        .filter((pack) => !blocked.has(pack.id))
+        .map((pack) => ({
+          id: pack.id,
+          version: pack.version,
+          revision: pack.revision,
+          lookId: premiumLookId(pack.id),
+          names: pack.names,
+          fallbackStyle: pack.fallbackStyle,
+          swatch: pack.swatch,
+          ...(pack.spectrumRange ? { spectrumRange: pack.spectrumRange } : {}),
+          ...(pack.wave ? { wave: pack.wave } : {}),
         }))
-      : [];
+    : [];
+  locked = canDraw
+    ? listing.locked.map((entry) => ({
+        id: entry.id,
+        lookId: lockedLookId(entry.id),
+        names: entry.names,
+        fallbackStyle: entry.fallbackStyle,
+        swatch: entry.swatch,
+      }))
+    : [];
 };
 
 const publish = () => {
@@ -165,14 +161,25 @@ export const getScenePackSummary = (
   listing.packs.find((pack) => pack.id === packId);
 
 /**
+ * The free form a FluidEQ scene is drawn as when it cannot run, whether this
+ * account owns it or not: a scene no longer owned is in the locked list, not
+ * among the packs, and a selection of it still lands on its own form — an
+ * aurora on the area it falls back to, not on the default.
+ */
+export const getScenePackFallbackStyle = (packId: string) =>
+  (
+    listing.packs.find((pack) => pack.id === packId) ??
+    listing.locked.find((entry) => entry.id === packId)
+  )?.fallbackStyle;
+
+/**
  * A pack this account may play, whether or not the graph can draw it right
  * now: the desk lights draw the member's choice in a worker of their own, so
  * a scene the graph set aside for this session is still theirs to light.
  */
 export const getEntitledScene = (
   packId: string,
-): IScenePackSummary | undefined =>
-  listing.entitled ? getScenePackSummary(packId) : undefined;
+): IScenePackSummary | undefined => getScenePackSummary(packId);
 
 export const useUsableScenes = (): readonly IUsableScene[] =>
   useSyncExternalStore(subscribeScenePacks, getUsableScenes, getUsableScenes);

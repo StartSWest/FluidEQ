@@ -10,8 +10,6 @@ const CONFIG = {
   supabaseUrl: 'https://project.supabase.co',
   supabaseAnonKey: 'sb_publishable_public-key',
   apiUrl: 'https://project.supabase.co/functions/v1',
-  plusPrice: '',
-  plusYearlyPrice: '',
 };
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status });

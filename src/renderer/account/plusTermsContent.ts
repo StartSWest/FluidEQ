@@ -20,9 +20,9 @@ export interface ITermsHighlight {
 /** The four facts that matter most, on top, before a word of the rest. */
 export const TERMS_HIGHLIGHTS: readonly ITermsHighlight[] = [
   {
-    glyph: 'card',
-    title: 'terms.short.price.title',
-    body: 'terms.short.price.body',
+    glyph: 'credit',
+    title: 'terms.short.credits.title',
+    body: 'terms.short.credits.body',
   },
   {
     glyph: 'monitor',
@@ -71,6 +71,31 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     what: 'terms.sent.payment.what',
     when: 'terms.sent.payment.when',
     who: 'terms.sent.payment.who',
+  },
+  {
+    // Credits and the scenes owned, read on the same events as the
+    // membership (`plus/sceneOwnership.ts`).
+    id: 'store',
+    glyph: 'credit',
+    what: 'terms.sent.store.what',
+    when: 'terms.sent.store.when',
+    who: 'terms.sent.store.who',
+  },
+  {
+    // A pack paid for on Stripe: the checkout the app asks for, and the
+    // signed events Stripe sends the server (premium 0057).
+    id: 'credits',
+    glyph: 'card',
+    what: 'terms.sent.credits.what',
+    when: 'terms.sent.credits.when',
+    who: 'terms.sent.credits.who',
+  },
+  {
+    id: 'scene-get',
+    glyph: 'check',
+    what: 'terms.sent.sceneGet.what',
+    when: 'terms.sent.sceneGet.when',
+    who: 'terms.sent.sceneGet.who',
   },
   {
     // Recorded by the checkout, the export and the publish alike, and kept
@@ -184,6 +209,22 @@ export interface ITermsSection {
 
 export const TERMS_SECTIONS: readonly ITermsSection[] = [
   {
+    // First: how a scene becomes the reader's, which is now how most of
+    // what follows is reached (revision 11).
+    id: 'credits',
+    glyph: 'credit',
+    title: 'terms.credits.title',
+    body: 'paragraphs',
+    lines: [
+      'terms.credits.p1',
+      'terms.credits.p2',
+      'terms.credits.p3',
+      'terms.credits.p4',
+      'terms.credits.p5',
+      'terms.credits.p6',
+    ],
+  },
+  {
     id: 'membership',
     glyph: 'card',
     title: 'terms.membership.title',
@@ -277,6 +318,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.keep.p3',
       'terms.keep.p4',
       'terms.keep.p5',
+      'terms.keep.p7',
       'terms.keep.p6',
     ],
   },
@@ -306,6 +348,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.scenes.p8',
       'terms.scenes.p9',
       'terms.scenes.p10',
+      'terms.scenes.p11',
     ],
   },
   {

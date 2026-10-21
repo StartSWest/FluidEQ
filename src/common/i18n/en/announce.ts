@@ -9,11 +9,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * admin's page where one is written and scheduled.
  */
 const announce = {
-  'announce.eyebrow': 'New in Plus · {count} scenes',
-  'announce.trialEnds':
-    'Your free trial ends soon. Keep these scenes and every other one with Plus.',
+  'announce.eyebrow': 'New in Visualizers · {count} scenes',
   'announce.try': 'Try them now',
-  'announce.keepPlus': 'Keep Plus',
   'announce.later': 'Later',
   'announce.previewNote': 'Preview. Nothing was sent and nothing was recorded.',
   'announce.untitled': 'New scenes',

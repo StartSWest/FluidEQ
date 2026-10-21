@@ -1,6 +1,5 @@
 import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
 import path from 'path';
-import { STUDIO_TRIAL_PROJECTS } from '../../common/memberScenes';
 import type { IScenePack } from '../../common/scenePacks';
 import { writeProjectSource, type TSourceWrite } from '../memberScenes/project';
 import {
@@ -58,9 +57,8 @@ import { registerStudioProjectPanes } from './studioProjectPanes';
  * can see which is which; it cannot send one.
  *
  * Only the open project is watched, and only while the Studio is open.
- * Switching projects, closing the Studio or quitting stops the watcher, and
- * so does losing Plus on one of FluidEQ's own scenes opened to look inside;
- * the projects not open are a line in a list and cost nothing.
+ * Switching projects, closing the Studio, signing out or quitting stops the
+ * watcher; the projects not open are a line in a list and cost nothing.
  *
  * Which projects may be used at all is `projectAccess.ts`, which is asked and
  * never re-derived here.
@@ -76,15 +74,14 @@ export interface IStudioProjectsIpcDeps {
   /** The member's Documents folder, where projects go until they choose. */
   documentsDir: string;
   store: IMemberSceneStore;
-  /** Read fresh on every call, exactly as the Plus looks are. */
+  /** Read fresh on every call: the Studio is any signed-in account's. */
   accountId: () => string | undefined;
-  entitled: () => boolean;
   /**
-   * Whether this account has had a scene approved before. A maker keeps the
-   * single-project bench once their earned month runs out, or publishing —
-   * the only way they earn Plus — would be closed to them (`knownMakers.ts`).
+   * Whether this account may play a look anywhere (`mayPlayLook`): a scene
+   * goes into the looks from here only once it would play there, which for
+   * the member's own is once it is published.
    */
-  isMaker: (accountId: string) => boolean;
+  mayKeep: (lookId: string) => boolean;
   /** The member scenes list changed: "Add to my looks" and a settings save. */
   announceScenes: () => void;
   logger?: { info(message: string): void; warn(message: string): void };
@@ -97,13 +94,7 @@ export interface IStudioProjectsIpcRegistration {
   activeFolder(): string | undefined;
   /** Whether the open project is a FluidEQ scene, opened only to look inside. */
   activeIsInspection(): boolean;
-  /**
-   * Whether the open project may be used by who is asking: any with Plus,
-   * the one a maker keeps without it (`projectAccess.ts`). Publishing asks
-   * it, because publishing is how a maker earns their next month — the
-   * server's `is_scene_maker` holds the same door open, and a window that
-   * asked for Plus alone refused what the server would have taken.
-   */
+  /** Whether the open project may be used by who is asking (`projectAccess.ts`). */
   mayUseActive(): boolean;
   /** The member's own imported scene, back on the Studio's list. */
   restoreOwnProject(pack: IScenePack): Promise<TProjectRestore>;
@@ -112,11 +103,10 @@ export interface IStudioProjectsIpcRegistration {
   /** The project the member's AI names by folder, or the open one (`agentProject.ts`). */
   agentProject(folder?: string): TAgentProject;
   /**
-   * Plus came or went. Losing it moves the bench off a FluidEQ scene opened
-   * to look inside and stops its watcher; gaining it (with the Studio open)
-   * starts one. Either way the Studio is told.
+   * The account changed, or what it owns: the bench settles on a project
+   * the account may use and the Studio is told.
    */
-  entitlementChanged(): void;
+  accountChanged(): void;
   dispose(): void;
 }
 
@@ -142,8 +132,7 @@ export const registerStudioProjectsIpc = ({
   documentsDir,
   store,
   accountId,
-  entitled,
-  isMaker,
+  mayKeep,
   announceScenes,
   logger,
   dialogImpl = dialog,
@@ -159,19 +148,13 @@ export const registerStudioProjectsIpc = ({
   const activeFolder = () => activeProject()?.folder;
   const activeIsInspection = () => activeProject()?.official !== undefined;
 
-  const maker = () => {
-    const me = accountId();
-    return me !== undefined && isMaker(me);
-  };
-
   /** Who is asking, for the access rules in `projectAccess.ts`. */
   const asking = (): IStudioAccess => ({
-    entitled: entitled(),
-    maker: maker(),
+    signedIn: accountId() !== undefined,
   });
 
   const usable = (project: IStoredProject | undefined) =>
-    project !== undefined && mayUseProject(project, projects, asking());
+    project !== undefined && mayUseProject(asking());
 
   const mayUseActive = () => usable(activeProject());
 
@@ -184,13 +167,13 @@ export const registerStudioProjectsIpc = ({
   const settled = (list: IProjectList): IProjectList =>
     settledList(list, asking());
 
-  const mayAddProject = () => mayAdd(projects, asking());
+  const mayAddProject = () => mayAdd(asking());
 
   /**
-   * Adding a project runs one call at a time. The limit is read before the
-   * folder is made or chosen and the list is written after, and two calls in
-   * flight together both read a list with room in it: a page that sent them
-   * both in one tick ended up with two projects without Plus.
+   * Adding a project runs one call at a time. The list is read before the
+   * folder is made or chosen and written after, and two calls in flight
+   * together each wrote the list they had read, so one of the two projects
+   * was lost.
    */
   let adding: Promise<unknown> = Promise.resolve();
   const oneAtATime = <T>(work: () => Promise<T>): Promise<T> => {
@@ -208,8 +191,6 @@ export const registerStudioProjectsIpc = ({
     const build = studioOpen ? bench.lastBuild() : undefined;
     const look = looksCopy.copyOf(build);
     const state = studioStateOf(projects, {
-      entitled: entitled(),
-      maker: maker(),
       mayAddProject: mayAddProject(),
       projectsRoot: projectsRoot(),
       names: bench.names,
@@ -226,7 +207,7 @@ export const registerStudioProjectsIpc = ({
   const looksCopy = createStudioLooksCopy({
     store,
     accountId,
-    entitled,
+    mayKeep,
     activeFolder,
     activeIsInspection,
     announceScenes,
@@ -269,7 +250,7 @@ export const registerStudioProjectsIpc = ({
 
   ipcMain.handle('studio-open', () => {
     studioOpen = true;
-    // The list as saved may open on a project Plus has since left behind.
+    // The list as saved may open on a project another account left open.
     adopt(projects);
     bench.start();
     bench.refreshNames().catch(() => undefined);
@@ -284,29 +265,20 @@ export const registerStudioProjectsIpc = ({
   ipcMain.handle('studio-link-folder', (): Promise<ILinkFolderResult> =>
     oneAtATime(async () => {
       if (!mayAddProject()) {
-        return { state: studioState(), outcome: 'plus-only' };
+        return { state: studioState(), outcome: 'signed-out' };
       }
       const folder = await chooseFolder(['openDirectory']);
       if (!folder) {
         return { state: studioState(), outcome: 'cancelled' };
       }
       // A folder of scene folders lists every one of them, the first open.
-      // Without Plus the first is the one the Studio keeps and the rest are
-      // listed locked — seen, named, and Plus's to open — rather than
-      // dropped by name with nothing said about them.
       const found = await findProjectFolders(folder);
       if (!mayAddProject()) {
-        return { state: studioState(), outcome: 'plus-only' };
+        return { state: studioState(), outcome: 'signed-out' };
       }
       adopt(withFolders(projects, found, Date.now()));
       await bench.refreshNames();
-      return {
-        state: studioState(),
-        outcome:
-          !entitled() && found.length > STUDIO_TRIAL_PROJECTS
-            ? 'one-opened'
-            : 'linked',
-      };
+      return { state: studioState(), outcome: 'linked' };
     }),
   );
 
@@ -319,16 +291,14 @@ export const registerStudioProjectsIpc = ({
   });
 
   // Takes the project off the list. Its folder, and every file in it, stays
-  // exactly where it is. A FluidEQ scene opened to look inside is Plus's to
-  // let go of: its mark lives on this list, and a project forgotten and then
-  // opened again from its folder would come back as the member's own.
+  // exactly where it is. A FluidEQ scene opened to look inside and opened
+  // again from its folder comes back as the member's own project; that gives
+  // nothing away, because it plays outside the Studio only once published,
+  // and the server refuses to publish a copy of FluidEQ's own
+  // (`official_copy`).
   ipcMain.handle('studio-forget-project', (_event, id: unknown) => {
     const project = projects.projects.find((entry) => entry.id === id);
-    if (
-      typeof id === 'string' &&
-      project &&
-      (entitled() || !project.official)
-    ) {
+    if (typeof id === 'string' && project) {
       adopt(without(projects, id));
       bench.forget(id);
     }
@@ -346,8 +316,8 @@ export const registerStudioProjectsIpc = ({
       id: unknown,
       name: unknown,
     ): Promise<TRenameProjectResult> => {
-      // A member's own project is theirs to rename with or without Plus;
-      // FluidEQ's own, opened to look inside, is nobody's to rename.
+      // A member's own project is theirs to rename; FluidEQ's own, opened to
+      // look inside, is nobody's to rename.
       const project = projects.projects.find((entry) => entry.id === id);
       if (project?.official) {
         return 'refused';
@@ -404,7 +374,7 @@ export const registerStudioProjectsIpc = ({
     (_event, name: unknown): Promise<TNewProjectResult> =>
       oneAtATime(async () => {
         if (!mayAddProject()) {
-          return 'plus-only';
+          return 'signed-out';
         }
         if (typeof name !== 'string') {
           return 'invalid';
@@ -451,9 +421,10 @@ export const registerStudioProjectsIpc = ({
     usableProject,
     mayUseActive,
     activeFolder,
-    // The look a settings save refreshes is one Plus added; refreshing it is
-    // adding it again, and adding is Plus's.
-    mayUpdateLook: () => entitled() && !activeIsInspection(),
+    // A settings save refreshes a copy already in the looks; that gives the
+    // account nothing it did not have, so it asks only that this is the
+    // member's own project.
+    mayUpdateLook: () => !activeIsInspection(),
     accountId,
     store,
     announceScenes,
@@ -468,7 +439,7 @@ export const registerStudioProjectsIpc = ({
     restoreOwnProject,
     openInspection,
     agentProject: (folder) => findAgentProject(projects, folder, usable),
-    entitlementChanged: () => {
+    accountChanged: () => {
       adopt(projects);
       bench.start();
       announceStudio();

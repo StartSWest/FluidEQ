@@ -120,6 +120,56 @@ it under the terms of the GNU General Public License version 3 or later.
 // Signing out asks in place of these links: its card is `SignOutConfirm.scss`,
 // imported by the component that draws it.
 
+// The account's credits (`CreditsCard`): a section like the membership's, led
+// by the balance as a figure — the one number on it anybody looks for.
+.credits-card {
+  @include account-section;
+}
+
+.credits-card__figures {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+}
+
+.credits-card__balance {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  color: $text-primary;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    color: $secondary-light;
+    align-self: center;
+  }
+}
+
+.credits-card__count {
+  font-size: $text-title * 1.6;
+  font-weight: $weight-bold;
+  line-height: 1;
+}
+
+.credits-card__unit {
+  color: $text-muted;
+  font-size: $text-body;
+}
+
+.credits-card__owned {
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.credits-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 // What publishing earned: a section under the membership, in the same shape
 // (`_accountSection.scss`), because for a maker it is where the membership
 // comes from.

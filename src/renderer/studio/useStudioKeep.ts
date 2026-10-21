@@ -45,6 +45,8 @@ export default function useStudioKeep(
           kept(outcome.scene);
         } else if (outcome.reason === 'inspect-only') {
           notify({ ok: false, key: 'studio.inspect.locked' });
+        } else if (outcome.reason === 'unpublished') {
+          notify({ ok: false, key: 'studio.notice.unpublished' });
         } else {
           failed();
         }

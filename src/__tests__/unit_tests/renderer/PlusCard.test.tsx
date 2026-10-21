@@ -10,12 +10,7 @@ import userEvent from '@testing-library/user-event';
 import type { TBillingOutcome } from '../../../main/ipc/account';
 import PlusCard from '../../../renderer/account/PlusCard';
 
-let mockCheckoutConfigured = true;
-let mockPrice = '$3.99';
-let mockYearlyPrice = '';
-const mockOpenCheckout = jest.fn((): Promise<TBillingOutcome> =>
-  Promise.resolve({ ok: true }),
-);
+let mockSimulator = false;
 const mockOpenPortal = jest.fn((): Promise<TBillingOutcome> =>
   Promise.resolve({ ok: true }),
 );
@@ -29,106 +24,69 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
   }),
 }));
 
-jest.mock('../../../common/accountConfig', () => ({
-  get ACCOUNT_CONFIG() {
-    return { plusPrice: mockPrice, plusYearlyPrice: mockYearlyPrice };
-  },
-  isCheckoutConfigured: () => mockCheckoutConfigured,
-}));
-
 jest.mock('../../../renderer/account/entitlementStore', () => ({
-  openCheckout: () => mockOpenCheckout(),
   openSubscriptionPortal: () => mockOpenPortal(),
   refreshEntitlement: () => mockRefresh(),
-  // A packaged build: the pretend-membership strip never appears.
-  isMembershipSimulatorAvailable: () => Promise.resolve(false),
+  // A packaged build unless a test says otherwise: no pretend-membership strip.
+  isMembershipSimulatorAvailable: () => Promise.resolve(mockSimulator),
   simulateMembership: () => Promise.resolve({ ok: false }),
 }));
 
 const JUNE_FIRST = Date.UTC(2027, 5, 1, 12);
-const onUpgrade = jest.fn();
 
 describe('the Plus card', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCheckoutConfigured = true;
-    mockPrice = '$3.99';
-    mockYearlyPrice = '';
-  });
-
-  it('quotes the yearly plan beside the monthly one when the build has one', () => {
-    mockPrice = '$5';
-    mockYearlyPrice = '$40';
-    render(
-      <PlusCard
-        entitlement={{ state: 'none' }}
-        onUpgrade={onUpgrade}
-        checkoutOpened={false}
-      />,
-    );
-    expect(
-      screen.getByText(
-        'account.plus.priceChoice:account.plus.perMonth:$5,account.plus.perYear:$40',
-      ),
-    ).toBeInTheDocument();
+    mockSimulator = false;
   });
 
   /**
-   * A build with accounts but nothing to buy is every build until a merchant
-   * account exists. An offer with no way to accept it is a broken button with
-   * a paragraph attached.
+   * Plus is not sold any more (credits replaced it): an account without a
+   * membership is offered nothing here, not a price and not an upgrade.
    */
-  it('is absent entirely when there is nothing to buy', () => {
-    mockCheckoutConfigured = false;
-    const { container } = render(
-      <PlusCard
-        entitlement={{ state: 'none' }}
-        onUpgrade={onUpgrade}
-        checkoutOpened={false}
-      />,
-    );
+  it('is absent entirely for an account without Plus', () => {
+    const { container } = render(<PlusCard entitlement={{ state: 'none' }} />);
     expect(container).toBeEmptyDOMElement();
   });
 
-  /**
-   * The upgrade leads to the terms, never straight to the checkout: nobody
-   * pays without having been shown what they agree to and what is sent.
-   */
-  it('offers the upgrade with the loud style and the price, and asks for the terms rather than the checkout', async () => {
+  // Positive control for the case above: the same render with a membership
+  // draws the card, so an empty one is the rule and not a broken render.
+  it('draws for an account with Plus, with no upgrade on it', () => {
     render(
       <PlusCard
-        entitlement={{ state: 'none' }}
-        onUpgrade={onUpgrade}
-        checkoutOpened={false}
+        entitlement={{
+          state: 'active',
+          renewing: true,
+          periodEndsAt: JUNE_FIRST,
+        }}
       />,
     );
-
-    expect(screen.getByText('account.plus.pitch')).toBeInTheDocument();
-    // The amount as configured, the month in the reader's language.
-    expect(screen.getByText('account.plus.perMonth:$3.99')).toBeInTheDocument();
-    const upgrade = screen.getByRole('button', {
-      name: 'account.plus.upgrade',
-    });
-    expect(upgrade).toHaveClass('button', 'small');
-    expect(upgrade).not.toHaveClass('subtle');
-
-    await userEvent.click(upgrade);
-    expect(onUpgrade).toHaveBeenCalledTimes(1);
-    expect(mockOpenCheckout).not.toHaveBeenCalled();
+    expect(screen.getByText('account.plus.eyebrow')).toBeInTheDocument();
+    expect(
+      screen.queryByText(/account.plus.(upgrade|pitch|perMonth)/),
+    ).toBeNull();
   });
 
-  it('says the checkout is waiting in the browser once the terms opened it', () => {
+  it('keeps the development strip for an account without Plus', async () => {
+    mockSimulator = true;
+    render(<PlusCard entitlement={{ state: 'none' }} />);
+    expect(
+      await screen.findByRole('button', { name: 'account.dev.start' }),
+    ).toBeInTheDocument();
+  });
+
+  it('offers nothing to buy on a running free trial', () => {
     render(
       <PlusCard
-        entitlement={{ state: 'none' }}
-        onUpgrade={onUpgrade}
-        checkoutOpened
+        entitlement={{
+          state: 'active',
+          plan: 'trial',
+          periodEndsAt: JUNE_FIRST,
+        }}
       />,
     );
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'account.plus.checkoutOpened',
-    );
-    expect(screen.queryByText('account.plus.checkoutHint')).toBeNull();
+    expect(screen.getByText('trial.active.badge')).toBeInTheDocument();
+    expect(screen.queryByRole('button')).toBeNull();
   });
 
   it('shows an active subscription with its renewal date and a quiet manage button', async () => {
@@ -139,8 +97,6 @@ describe('the Plus card', () => {
           renewing: true,
           periodEndsAt: JUNE_FIRST,
         }}
-        onUpgrade={onUpgrade}
-        checkoutOpened={false}
       />,
     );
 
@@ -152,9 +108,6 @@ describe('the Plus card', () => {
     ).toBeInTheDocument();
     const manage = screen.getByRole('button', { name: 'account.plus.manage' });
     expect(manage).toHaveClass('subtle');
-    expect(
-      screen.queryByRole('button', { name: 'account.plus.upgrade' }),
-    ).not.toBeInTheDocument();
 
     await userEvent.click(manage);
     expect(mockOpenPortal).toHaveBeenCalled();
@@ -170,8 +123,6 @@ describe('the Plus card', () => {
           // The server's stand-in for "until taken back" (premium 0021).
           periodEndsAt: Date.UTC(2999, 11, 31),
         }}
-        onUpgrade={onUpgrade}
-        checkoutOpened={false}
       />,
     );
     expect(screen.getByText('account.plus.gift')).toBeInTheDocument();
@@ -192,8 +143,6 @@ describe('the Plus card', () => {
           renewing: true,
           periodEndsAt: JUNE_FIRST,
         }}
-        onUpgrade={onUpgrade}
-        checkoutOpened={false}
       />,
     );
     expect(
@@ -213,8 +162,6 @@ describe('the Plus card', () => {
           renewing: false,
           periodEndsAt: JUNE_FIRST,
         }}
-        onUpgrade={onUpgrade}
-        checkoutOpened={false}
       />,
     );
     const badge = screen.getByText('account.maker.badge');
@@ -247,8 +194,6 @@ describe('the Plus card', () => {
           renewing: false,
           periodEndsAt: JUNE_FIRST,
         }}
-        onUpgrade={onUpgrade}
-        checkoutOpened={false}
       />,
     );
     expect(screen.getByText('account.plus.sorry')).toBeInTheDocument();
@@ -273,8 +218,6 @@ describe('the Plus card', () => {
           renewing: true,
           periodEndsAt: JUNE_FIRST,
         }}
-        onUpgrade={onUpgrade}
-        checkoutOpened={false}
       />,
     );
     expect(screen.getByText(/account\.plus\.renews:/)).toBeInTheDocument();
@@ -286,11 +229,7 @@ describe('the Plus card', () => {
 
   it('explains a grace period, names its end, and offers to check again', async () => {
     render(
-      <PlusCard
-        entitlement={{ state: 'grace', graceEndsAt: JUNE_FIRST }}
-        onUpgrade={onUpgrade}
-        checkoutOpened={false}
-      />,
+      <PlusCard entitlement={{ state: 'grace', graceEndsAt: JUNE_FIRST }} />,
     );
 
     expect(screen.getByRole('status')).toHaveTextContent(

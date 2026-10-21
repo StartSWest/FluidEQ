@@ -179,21 +179,20 @@ const tour: Partial<Dictionary> = {
     'La courbe de l’égaliseur en ses trois tiers (graves, médiums et aigus), les trois boutons qui les déplacent, et les dispositions rapides de six à trente et une bandes.',
   'tour.studio.kicker': 'FLUIDEQ PLUS',
   'tour.studio.title': 'Créez votre propre visualiseur',
-  'tour.studio.subtitle': 'Gratuit pendant 15 jours, ou gagnez un mois',
+  'tour.studio.subtitle': 'Gratuit pour tous les comptes',
   'tour.studio.lead':
-    'Le Studio transforme une idée en une scène qui bouge avec votre musique. Il fait désormais partie de Plus, et un nouveau compte peut l’essayer gratuitement pendant quinze jours, sans carte et sans aucun prélèvement à la fin de l’essai.',
+    'Le Studio transforme une idée en une scène qui bouge avec votre musique. Il est gratuit pour tous les comptes : créez, exportez et publiez autant de scènes que vous voulez.',
   'tour.studio.point1':
-    'Chaque scène est examinée avant d’arriver dans la galerie, et une scène approuvée vous offre le mois de Plus suivant.',
+    'Chaque scène est relue avant d’arriver dans la galerie, et une fois approuvée elle joue partout pour vous, gratuitement.',
   'tour.studio.point2':
     'Les scènes peuvent être de vrais mondes en 3D qui marchent sur la grosse caisse et bondissent au drop.',
   'tour.studio.point3':
     'Copiez le prompt pour l’IA, et votre assistant IA peut voir votre scène et entendre comment le morceau évolue.',
-  'tour.studio.how':
-    'Ouvrez Plus et choisissez Studio dans sa barre latérale. Sans Plus, la page du Studio propose l’essai gratuit.',
+  'tour.studio.how': 'Ouvrez Plus et choisissez Studio dans sa barre latérale.',
   'tour.studio.open': 'Ouvrir Plus',
   'tour.studio.imageAlt':
-    'Le Studio avec Alpine sur sa scène, un lac sous des sommets enneigés et une aurore boréale, dessous les trois étapes pour créer une scène avec votre IA, puis l’essai de quinze jours et le mois qu’une scène approuvée fait gagner.',
-  'tour.studio.earned': 'Approuvée : le mois prochain offert',
+    'Le Studio avec Alpine sur sa scène, un lac sous des sommets enneigés et une aurore, les trois étapes pour créer une scène avec votre IA en dessous, et deux notes : gratuit pour tous les comptes, et une scène publiée joue gratuitement pour son créateur.',
+  'tour.studio.earned': 'Publiée : joue gratuitement pour vous',
   'tour.help.kicker': 'AIDE',
   'tour.help.title': 'Interrogez le guide avec vos propres mots',
   'tour.help.subtitle': 'Fautes de frappe, pluriels et dix langues',
@@ -256,16 +255,16 @@ const tour: Partial<Dictionary> = {
     'Une salle vue de dessus : sept enceintes et un sub autour d’une tête au centre, chacune avec son chemin vers les oreilles.',
 
   'tour.plus.kicker': 'FLUIDEQ PLUS',
-  'tour.plus.title': 'Bienvenue dans FluidEQ Plus',
+  'tour.plus.title': 'Des scènes à vous pour de bon',
   'tour.plus.subtitle': 'Visualiseurs, Studio, éclairage et plus encore',
   'tour.plus.lead':
-    'Un abonnement facultatif qui permet à FluidEQ de continuer à grandir, avec un tout nouvel onglet rien que pour lui : des scènes dessinées par votre carte graphique, un Studio pour créer les vôtres, le classement, des arrière-plans du Bureau et l’éclairage dynamique. L’égaliseur, le rack et les lecteurs restent gratuits, comme ils l’ont toujours été.',
+    'Un onglet entier d’extras qui fait grandir FluidEQ : des scènes dessinées sur votre carte graphique, un Studio pour créer les vôtres, le classement, des fonds de Bureau et l’Éclairage dynamique. Une scène coûte un crédit et vous reste, et l’égaliseur, le rack et les lecteurs restent gratuits, comme toujours.',
   'tour.plus.point1':
-    'Connectez-vous depuis Compte dans le menu des actions ; le paiement se fait dans votre navigateur, et Plus s’active tout seul.',
+    'Connectez-vous depuis Compte dans le menu des actions : un compte confirmé reçoit des crédits gratuits pour commencer.',
   'tour.plus.point2':
-    'Mensuel ou annuel, avec des conditions en langage clair avant de payer. L’application ne voit jamais votre carte.',
+    'Les packs de crédits se paient une seule fois, avec des conditions en mots simples avant de payer. Rien ne se renouvelle, et l’application ne voit jamais votre carte.',
   'tour.plus.point3':
-    'Connexion sur cinq ordinateurs au maximum, et de nouveaux visualiseurs ajoutés au fil du temps.',
+    'Chaque scène peut être regardée d’abord, et celles que vous obtenez jouent sur chaque ordinateur où vous vous connectez.',
   'tour.plus.how':
     'Ouvrez l’onglet Plus : Classement, Visualiseurs, Studio et Éclairage dynamique se trouvent sur sa gauche.',
   'tour.plus.open': 'Ouvrir Plus',
@@ -733,6 +732,7 @@ const tour: Partial<Dictionary> = {
   'tour.media.how':
     'Ouvrez l’onglet Médias en ligne, choisissez un site dans la rangée du haut, tapez dans le champ de recherche et appuyez sur Rechercher. Précédent, Suivant et Actualiser fonctionnent comme dans un navigateur.',
   'tour.media.open': 'Ouvrir Médias en ligne',
+  'tour.studio.free': 'Gratuit pour tous les comptes',
 };
 
 export default tour;

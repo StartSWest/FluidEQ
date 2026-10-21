@@ -17,8 +17,9 @@ jest.mock('renderer/wallpaper/wallpaperDialogs', () => ({
 jest.mock('renderer/wallpaper/wallpaperStore', () => ({
   useWallpaperState: jest.fn(),
 }));
-jest.mock('renderer/plus/GalleryParts', () => ({
-  usePlusEntitled: () => true,
+// The lights follow a scene this account may play: one it owns.
+jest.mock('renderer/plus/sceneStore', () => ({
+  useOwnsAnything: () => true,
 }));
 jest.mock('renderer/lighting/lightingStore', () => ({
   setLightingSettings: jest.fn(),

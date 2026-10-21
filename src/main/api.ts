@@ -53,6 +53,7 @@ import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
 import { sceneInsightsBridge } from './sceneInsightsBridge';
 import { plusWelcomeBridge } from './plusWelcomeBridge';
 import { plusTrialBridge } from './plusTrialBridge';
+import { sceneStoreBridge } from './sceneStoreBridge';
 import { plusReviewBridge } from './plusReviewBridge';
 import { makerMonthBridge } from './makerMonthBridge';
 import { studioAgentBridge } from './studioAgentBridge';
@@ -406,6 +407,7 @@ export default {
     ...sceneInsightsBridge,
     ...plusWelcomeBridge,
     ...plusTrialBridge,
+    ...sceneStoreBridge,
     ...plusReviewBridge,
     ...makerMonthBridge,
     ...studioAgentBridge,

@@ -4,12 +4,20 @@ import path from 'path';
 import {
   isScenePackEnvelope,
   parseScenePackPayload,
+  premiumLookId,
   type IScenePack,
   type IScenePackEnvelope,
 } from '../common/scenePacks';
 import type { ISceneWave } from '../common/sceneWave';
 import { verifyScenePackEnvelope } from './scenePackVerify';
 import { readSceneCache, writeSceneCache } from './sceneCacheFile';
+import {
+  forgetKeptVersions,
+  keptVersionFile,
+  keptVersionsOf,
+  replaceKeepingVersion,
+  type IVersionPins,
+} from './keptVersions';
 import { createSceneSummaryCache } from './sceneSummaryCache';
 
 /**
@@ -76,16 +84,31 @@ export interface IScenePackListing {
 export interface IScenePackStore {
   /** Everything held and verified, minus the shader source. */
   list(): IScenePackSummary[];
-  /** The whole pack, verified afresh, or nothing if it is not fit to run. */
+  /**
+   * The whole pack, verified afresh, or nothing if it is not fit to run: the
+   * version the look plays, which is an earlier one while it is pinned.
+   */
   load(id: string): IScenePack | undefined;
+  /**
+   * The newest version held, whatever plays. What an update is measured
+   * against: measured against a pinned one, every check would download the
+   * newest again and find it already here.
+   */
+  newest(id: string): IScenePack | undefined;
+  /** `newest`'s version, from the summary kept while its file is unchanged. */
+  newestVersion(id: string): number | undefined;
   /** Take in listings from the server; returns how many changed. */
   adopt(listings: readonly IScenePackListing[], explicit?: boolean): number;
   /** Remove locally and keep background refreshes from adding it again. */
   remove(id: string): boolean;
+  /** The earlier versions this computer kept of a scene, newest first. */
+  keptVersions(id: string): number[];
 }
 
 export interface IScenePackStoreOptions {
   userDataDir: string;
+  /** Which earlier version a look plays (`keptVersions.ts`); none, the newest. */
+  pins?: IVersionPins;
   logger?: { info(message: string): void; warn(message: string): void };
 }
 
@@ -124,6 +147,7 @@ const readJsonRecord = (filePath: string): Record<string, string> => {
 
 export const createScenePackStore = ({
   userDataDir,
+  pins,
   logger,
 }: IScenePackStoreOptions): IScenePackStore => {
   const root = path.join(userDataDir, DIRECTORY);
@@ -188,6 +212,34 @@ export const createScenePackStore = ({
     return verified;
   };
 
+  /**
+   * One earlier version, read and verified as the current file is — a copy
+   * that no longer verifies is not played, and is let go of.
+   */
+  const readKept = (id: string, version: number): IScenePack | undefined => {
+    const kept = keptVersionFile(packPath(id), version);
+    return readSceneCache(kept, `official/${id}`, (raw) => {
+      const payload = isScenePackEnvelope(raw)
+        ? verifyScenePackEnvelope(raw)
+        : null;
+      const pack = payload ? parseScenePackPayload(payload) : null;
+      if (!pack || pack.id !== id || pack.version !== version) {
+        fs.rmSync(kept, { force: true });
+        return undefined;
+      }
+      return pack;
+    });
+  };
+
+  /** The version a look is pinned to, while this computer still has it. */
+  const pinnedOf = (id: string): number | undefined => {
+    const version = pins?.pinned(premiumLookId(id));
+    return version !== undefined &&
+      keptVersionsOf(packPath(id)).includes(version)
+      ? version
+      : undefined;
+  };
+
   const heldIds = (): string[] => {
     try {
       return Array.from(
@@ -229,10 +281,17 @@ export const createScenePackStore = ({
       heldIds()
         .filter((id) => !removed[id])
         .flatMap((id) => {
-          const summary = summaries.get(fileOf(id), () => {
-            const pack = readVerified(id);
-            return pack && summarise(pack);
-          });
+          const pinned = pinnedOf(id);
+          const summary =
+            pinned === undefined
+              ? summaries.get(fileOf(id), () => {
+                  const pack = readVerified(id);
+                  return pack && summarise(pack);
+                })
+              : summaries.get(keptVersionFile(packPath(id), pinned), () => {
+                  const pack = readKept(id, pinned);
+                  return pack && summarise(pack);
+                });
           return summary ? [summary] : [];
         }),
 
@@ -245,8 +304,20 @@ export const createScenePackStore = ({
       // FluidEQ that uses nothing new plays here perfectly. A shader that does
       // need a uniform this build has not got fails to compile and is drawn as
       // its own fallbackStyle, which is the author's choice for this case.
-      return readVerified(id);
+      const pinned = pinnedOf(id);
+      return pinned === undefined ? readVerified(id) : readKept(id, pinned);
     },
+
+    newest: (id) =>
+      ID.test(id) && !removed[id] ? readVerified(id) : undefined,
+
+    newestVersion: (id) =>
+      ID.test(id) && !removed[id]
+        ? summaries.get(fileOf(id), () => {
+            const pack = readVerified(id);
+            return pack && summarise(pack);
+          })?.version
+        : undefined,
 
     adopt: (listings, explicit = false) => {
       let changed = 0;
@@ -288,10 +359,21 @@ export const createScenePackStore = ({
           return;
         }
         forgetSummaries(pack.id);
-        writeSceneCache(
-          packPath(pack.id),
-          `official/${pack.id}`,
-          listing.envelope,
+        // The version being replaced stays playable on this computer. A
+        // legacy file is not kept: it is not the encrypted file a kept
+        // version is read as.
+        const replaced =
+          current &&
+          current.version < pack.version &&
+          fileOf(pack.id) === packPath(pack.id)
+            ? current.version
+            : undefined;
+        replaceKeepingVersion(packPath(pack.id), replaced, () =>
+          writeSceneCache(
+            packPath(pack.id),
+            `official/${pack.id}`,
+            listing.envelope,
+          ),
         );
         if (removed[pack.id]) {
           const { [pack.id]: _removed, ...rest } = removed;
@@ -314,7 +396,10 @@ export const createScenePackStore = ({
       forgetSummaries(id);
       fs.rmSync(packPath(id), { force: true });
       fs.rmSync(legacyPath(id), { force: true });
+      forgetKeptVersions(packPath(id));
       return true;
     },
+
+    keptVersions: (id) => (ID.test(id) ? keptVersionsOf(packPath(id)) : []),
   };
 };

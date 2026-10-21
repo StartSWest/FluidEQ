@@ -25,7 +25,7 @@ const account = {
   'account.signOut.confirm': 'このアカウントからサインアウトしますか？',
   'account.signOut.detail': 'いつでもサインインし直せます。',
   'account.signOut.detailPlus':
-    'もう一度サインインするまで、ここでは Plus がロックされます。',
+    '再びサインインするまで、ここではあなたのシーンはロックされたままです。',
   'account.signOut.kept': 'このパソコンのものは何も削除されません。',
   'account.name.change': '名前を変更',
   'account.name.changeTitle': '表示のされ方を変える',
@@ -70,7 +70,7 @@ const account = {
   'account.error.expired':
     'このサインインは無効になりました。もう一度サインインしてください。',
   'account.error.signedOutElsewhere':
-    'アカウントが別のパソコンでサインインしたため、このパソコンはサインアウトされました。Plus は同時に最大 5 台のパソコンで使えます。ここでもう一度サインインすると、最も長く使われていないパソコンがサインアウトされます。',
+    'あなたのアカウントが別のコンピューターでサインインしたため、このコンピューターはサインアウトされました。アカウントは同時に最大 5 台のコンピューターでサインインしたままにできます。ここで使うにはもう一度サインインしてください。代わりに最も長く使われていないコンピューターがサインアウトされます。',
   'account.error.malformed':
     'アカウントサービスから FluidEQ が読めない応答が返りました。',
   'account.error.wrongCredentials': 'メールアドレスかパスワードが違います。',
@@ -87,12 +87,7 @@ const account = {
     'このアドレスのアカウントはすでにあります。代わりにサインインしてください。',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.pitch':
-    'ここにしかないプレミアムなビジュアライザー、自分のシーンを作れるスタジオ、ランキング。そしてこれから追加されるすべての新機能は、メンバーが最初に使えます。イコライザー、ラック、プレーヤーは、これまでどおり無料のままです。',
-  'account.plus.upgrade': 'Plus にアップグレード',
   'account.plus.opening': '開いています…',
-  'account.plus.checkoutHint':
-    'ブラウザで Buy Me a Coffee を開きます。FluidEQ が認識できるよう、このアカウントと同じメールアドレスで支払ってください。アプリがカード情報を見ることはありません。',
   'account.plus.active': '有効',
   'account.plus.ending': '更新なし',
   'account.plus.renews': '{date} に更新',
@@ -105,11 +100,6 @@ const account = {
   'account.plus.grace':
     'サブスクリプションを確認できませんでした。{date} まで有効です。それまでにインターネットに接続すると維持されます。',
   'account.plus.checkAgain': 'もう一度確認',
-  'account.plus.perMonth': '{price} / 月',
-  'account.plus.perYear': '{price} / 年',
-  'account.plus.priceChoice': '{monthly} または {yearly}',
-  'account.plus.checkoutOpened':
-    'ブラウザで Buy Me a Coffee が開いています。お支払い後にここへ戻ると、Plus が有効になります。',
   'account.plus.error.rejected':
     '決済ページを開けませんでした。しばらくしてからもう一度お試しください。',
 
@@ -118,7 +108,7 @@ const account = {
   'account.dev.cancel': '解約を模擬する',
   'account.dev.working': '送信中…',
 
-  'account.perk.looks': 'グラフィックカードで描かれる Plus のルック。',
+  'account.perk.looks': '永久にあなたのものになるシーン。1シーン1クレジット。',
   'account.perk.visualizers':
     'ビジュアライザー：メンバーが作ったシーンを、すべてのアカウントに公開。',
   'account.perk.board': '最もよく聴く人のランキング。',

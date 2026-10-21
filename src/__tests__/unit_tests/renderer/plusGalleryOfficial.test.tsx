@@ -31,6 +31,9 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 }));
 jest.mock('../../../renderer/account/entitlementStore', () => ({
   useEntitlement: () => ({ state: mockEntitled ? 'active' : 'none' }),
+  getEntitlementSnapshot: () => ({
+    state: mockEntitled ? 'active' : 'none',
+  }),
   subscribeEntitlement: () => () => undefined,
 }));
 jest.mock('../../../renderer/account/accountStore', () => ({
@@ -98,7 +101,7 @@ const pack = {
   swatch: official.swatch,
   fallbackStyle: 'bars' as const,
 };
-const listing = { entitled: true, packs: [pack], locked: [] };
+const listing = { packs: [pack], locked: [] };
 const bridge = {
   listGallery: jest.fn(),
   previewGalleryScene: jest.fn(),
@@ -139,12 +142,10 @@ beforeEach(() => {
     return { ok: true, lookId: official.lookId };
   });
   bridge.listMemberScenes.mockResolvedValue({
-    entitled: true,
     scenes: [],
     locked: [],
   });
   bridge.listScenePacks.mockResolvedValue({
-    entitled: true,
     packs: [],
     locked: [],
   });
@@ -198,11 +199,24 @@ const renderGallery = () => {
 
 // FluidEQ's own scenes are liked like any member's (server 0048), but their
 // adds go through the pack store, which counts nobody, so they show no adds.
+// The scene page's own Get: the loud one, beside the cards' quiet ones.
+const pageGet = async () => {
+  await screen.findAllByText(/^store.scene./);
+  const page = document.querySelector('.gallery-scene');
+  if (!(page instanceof HTMLElement)) {
+    throw new Error('the scene page is not open');
+  }
+  return within(page)
+    .getAllByRole('button', { name: /^store.get:/ })
+    .filter((button) => !button.classList.contains('subtle'));
+};
+
 it('lists official scenes by FluidEQ with a heart and no adds count, beside member controls', async () => {
   renderGallery();
   await screen.findByRole('button', { name: 'Aurora' });
   const card = officialCard();
-  expect(card.getByText('plus.official.included')).toBeInTheDocument();
+  // Plus owns every scene while it lasts.
+  expect(card.getByText('store.scene.yours')).toBeInTheDocument();
   expect(
     card.getByRole('button', { name: 'plus.card.by:FluidEQ' }),
   ).toBeInTheDocument();
@@ -282,7 +296,7 @@ it('shows official details with likes but no adds or reports, and the maker with
   renderGallery();
   await userEvent.click(await screen.findByRole('button', { name: 'Aurora' }));
   expect(await screen.findByTestId('official-preview')).toBeInTheDocument();
-  expect(screen.getByText('plus.official.included')).toBeInTheDocument();
+  expect(screen.getByText('store.scene.yours')).toBeInTheDocument();
   expect(screen.getByText('plus.scene.likes')).toBeInTheDocument();
   expect(screen.getByText('plus.scene.week')).toBeInTheDocument();
   expect(screen.queryByText('plus.scene.adds')).not.toBeInTheDocument();
@@ -372,22 +386,20 @@ it('keeps official browsing available without Plus, with no Add and a passive he
   mockEntitled = false;
   const { container } = renderGallery();
   await screen.findByRole('button', { name: 'Aurora' });
-  expect(
-    officialCard().getByText('plus.official.included'),
-  ).toBeInTheDocument();
+  expect(officialCard().getByText('store.scene.keep')).toBeInTheDocument();
   expect(
     officialCard().queryByRole('button', { name: 'plus.card.add' }),
   ).not.toBeInTheDocument();
   // Without Plus a heart is a count alone, on FluidEQ's scenes as on members'.
-  expect(officialCard().getByTitle('plus.like.plusOnly:0')).toBeInTheDocument();
+  expect(
+    officialCard().getByTitle('store.like.ownersOnly:0'),
+  ).toBeInTheDocument();
   expect(container.querySelectorAll('.gallery-like.is-count')).toHaveLength(2);
   expect(
     screen.queryByRole('button', { name: /plus.like.label/ }),
   ).not.toBeInTheDocument();
   await userEvent.click(screen.getByRole('button', { name: 'Aurora' }));
-  expect(
-    await screen.findByRole('button', { name: 'plus.scene.getPlus' }),
-  ).toBeInTheDocument();
+  expect(await pageGet()).toHaveLength(1);
   expect(
     screen.queryByRole('button', { name: 'plus.scene.play' }),
   ).not.toBeInTheDocument();

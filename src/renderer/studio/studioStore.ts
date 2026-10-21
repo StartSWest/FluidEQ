@@ -55,8 +55,6 @@ export interface IStudioView {
 const INITIAL: IStudioView = {
   loaded: false,
   state: {
-    entitled: false,
-    maker: false,
     mayAddProject: false,
     projectsRoot: '',
     projects: [],

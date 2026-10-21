@@ -14,23 +14,28 @@ import { listGallery } from './galleryApi';
  * enough to ask every time. The sync downloads a scene only when its
  * publication is one it has not taken this session (`syncGalleryScenes.ts`).
  *
- * FluidEQ's own scenes are not asked here: the pack listing asks for exactly
- * their versions (`ipc/scenePacks.ts`).
+ * FluidEQ's own scenes are asked here only for an account without Plus: the
+ * pack listing asks a Plus member's for exactly their versions
+ * (`ipc/scenePacks.ts`), and that listing is Plus's alone on the server.
  */
 export const createGalleryRefresh = (
   access: IGalleryAccess,
   sync: (scenes: readonly IGalleryScene[]) => Promise<void>,
-  /** The makers of the scenes installed from the gallery, repeats allowed. */
+  /**
+   * The makers of the installed scenes this account owns, repeats allowed;
+   * FluidEQ's own id for its scenes.
+   */
   installedAuthors: () => readonly string[],
 ) => {
   let inFlight: Promise<void> | undefined;
   const run = async () => {
     const me = access.accountId();
-    if (!me || !access.entitled()) {
+    if (!me) {
       return;
     }
+    const plus = access.entitled();
     const authors = [...new Set(installedAuthors())].filter(
-      (author) => author !== FLUIDEQ_CREATOR_ID,
+      (author) => !plus || author !== FLUIDEQ_CREATOR_ID,
     );
     if (authors.length === 0) {
       return;
@@ -51,7 +56,7 @@ export const createGalleryRefresh = (
           authorId,
           offset,
         });
-        if (!result.ok || me !== access.accountId() || !access.entitled()) {
+        if (!result.ok || me !== access.accountId()) {
           return;
         }
         await sync(result.scenes);

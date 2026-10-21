@@ -26,8 +26,6 @@ export interface IAccountEnv {
   FLUIDEQ_SUPABASE_URL?: string;
   FLUIDEQ_SUPABASE_ANON_KEY?: string;
   FLUIDEQ_API_URL?: string;
-  FLUIDEQ_PLUS_PRICE?: string;
-  FLUIDEQ_PLUS_PRICE_YEARLY?: string;
 }
 
 export interface IAccountConfig {
@@ -36,7 +34,8 @@ export interface IAccountConfig {
   /** The publishable key. Public by design; see the note above. */
   supabaseAnonKey: string;
   /**
-   * Where the server-side functions answer — checkout, the billing portal.
+   * Where the server-side functions answer — the credit checkout, the
+   * billing portal.
    *
    * Defaults to the Supabase project's own functions gateway, and exists as a
    * separate value so the functions can move under the product's domain later
@@ -44,41 +43,12 @@ export interface IAccountConfig {
    * function name is appended.
    */
   apiUrl: string;
-  /**
-   * The monthly amount as text — "$5" — shown on the upgrade offer and in the
-   * Plus terms with "/ month" after it in the reader's language, and the
-   * switch for the offer itself: empty means signing in works but nothing is
-   * for sale, which is every build until a merchant account exists.
-   *
-   * The amount alone: a period written here would be English in all ten
-   * languages. Text rather than a number and a currency, because the checkout
-   * page shows the real figure — with the buyer's tax — and anything the app
-   * computed would disagree with it somewhere in the world. Requiring it for
-   * the offer is deliberate: a button that opens a checkout without saying
-   * what it costs is the kind of thing that earns a chargeback.
-   */
-  plusPrice: string;
-  /**
-   * The yearly amount as text — "$40" — offered beside the monthly one, with
-   * "/ year" after it in the reader's language. Empty means monthly only.
-   *
-   * Only ever alongside a monthly price: the monthly one is what switches the
-   * offer on, and a yearly figure with nothing to buy would be an orphan.
-   */
-  plusYearlyPrice: string;
 }
 
 const EMPTY_CONFIG: IAccountConfig = {
   supabaseUrl: '',
   supabaseAnonKey: '',
   apiUrl: '',
-  plusPrice: '',
-  plusYearlyPrice: '',
-};
-
-const readPlainText = (value: string | undefined): string => {
-  const text = value?.trim() ?? '';
-  return text.length <= 40 ? text : '';
 };
 
 /**
@@ -161,39 +131,15 @@ export const buildAccountConfig = (env: IAccountEnv): IAccountConfig => {
   const supabaseUrl = readOrigin(env.FLUIDEQ_SUPABASE_URL);
   const supabaseAnonKey = readAnonKey(env.FLUIDEQ_SUPABASE_ANON_KEY);
   // Both or none. One of two is a build that offers a sign-in button which
-  // cannot complete, and a dead button is worse than no button. The price
-  // rides on top: no accounts means nothing to sell to.
+  // cannot complete, and a dead button is worse than no button.
   if (!supabaseUrl || !supabaseAnonKey) {
     return EMPTY_CONFIG;
   }
-  const plusPrice = readPlainText(env.FLUIDEQ_PLUS_PRICE);
   return {
     supabaseUrl,
     supabaseAnonKey,
     apiUrl: readApiBase(env.FLUIDEQ_API_URL) || `${supabaseUrl}/functions/v1`,
-    plusPrice,
-    plusYearlyPrice: plusPrice
-      ? readPlainText(env.FLUIDEQ_PLUS_PRICE_YEARLY)
-      : '',
   };
-};
-
-/**
- * The yearly price, read so that a dev server started before it existed
- * survives.
- *
- * webpack swaps `process.env.NAME` for a literal only for the names it was
- * given when it started, and a renderer has no `process`: an unswapped read
- * throws while the module loads and the whole window goes white. Every build
- * and every fresh `pnpm dev` swaps this one; a window already running simply
- * shows no yearly price until it is restarted.
- */
-const readYearlyPrice = (): string | undefined => {
-  try {
-    return process.env.FLUIDEQ_PLUS_PRICE_YEARLY;
-  } catch {
-    return undefined;
-  }
 };
 
 // Named one at a time rather than handing over `process.env`, because webpack
@@ -203,16 +149,9 @@ export const ACCOUNT_CONFIG: IAccountConfig = buildAccountConfig({
   FLUIDEQ_SUPABASE_URL: process.env.FLUIDEQ_SUPABASE_URL,
   FLUIDEQ_SUPABASE_ANON_KEY: process.env.FLUIDEQ_SUPABASE_ANON_KEY,
   FLUIDEQ_API_URL: process.env.FLUIDEQ_API_URL,
-  FLUIDEQ_PLUS_PRICE: process.env.FLUIDEQ_PLUS_PRICE,
-  FLUIDEQ_PLUS_PRICE_YEARLY: readYearlyPrice(),
 });
 
 /** Whether this build has a backend to sign in to at all. */
 export const isAccountConfigured = (
   config: IAccountConfig = ACCOUNT_CONFIG,
 ): boolean => config.supabaseUrl !== '';
-
-/** Whether this build has something to upgrade to. */
-export const isCheckoutConfigured = (
-  config: IAccountConfig = ACCOUNT_CONFIG,
-): boolean => isAccountConfigured(config) && config.plusPrice !== '';

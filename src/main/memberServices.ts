@@ -22,7 +22,6 @@ import log from 'electron-log';
 import path from 'path';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
 import type { TAudioEngine } from '../common/audioEngine';
-import { setKnownMaker } from './account/knownMakers';
 import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
 import { registerAccountDeletionIpc } from './ipc/accountDeletion';
@@ -41,10 +40,19 @@ import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
 import { registerPlusTrialIpc } from './ipc/plusTrial';
 import { registerPlusWelcomeIpc } from './ipc/plusWelcome';
 import { registerSceneAnnouncementsIpc } from './ipc/sceneAnnouncements';
+import { registerSceneStoreIpc } from './ipc/sceneStore';
 import { registerSceneTasteIpc } from './ipc/sceneTaste';
+import { registerSceneVersionsIpc } from './ipc/sceneVersions';
+import { createVersionPins } from './keptVersions';
 import { registerScenePacksIpc } from './ipc/scenePacks';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
+import { createEncryptedJsonStore } from './encryptedJsonStore';
 import { createGalleryAccess } from './plus/galleryAccess';
+import {
+  createSceneOwnership,
+  isSceneStoreRecord,
+} from './plus/sceneOwnership';
+import openExternalIfSafe from './safeExternal';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
 import { createStudioChat } from './studioChat/studioChat';
 import { createArrangementStore } from './wallpaper/arrangement';
@@ -125,22 +133,50 @@ const registerMemberServices = ({
     logger: log,
   });
 
-  const plusTrialIpc = registerPlusTrialIpc({
+  // Which scenes this account may play: the ones it bought, and every one
+  // while Plus lasts. Every gate below asks it, so a scene is one answer on
+  // the graph, the desktop and the lamps (premium 0055).
+  const sceneOwnership = createSceneOwnership({
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
     entitlement: accountIpc.entitlement,
-    onTermsAgreed: plusTermsNoticeIpc.agreed,
+    onIdentityChange: accountIpc.onIdentityChange,
+    store: createEncryptedJsonStore(
+      userDataDir,
+      'scene-store.json',
+      isSceneStoreRecord,
+    ),
+    logger: log,
+  });
+  // Credits, a buy and a pack paid for in the browser, for the window.
+  const sceneStoreIpc = registerSceneStoreIpc({
+    getMainWindow,
+    config: ACCOUNT_CONFIG,
+    ownership: sceneOwnership,
+    openExternal: openExternalIfSafe,
+  });
+
+  // A free trial already taken, read; and the admin's offer switch. No trial
+  // is started any more: Plus is not sold, and starter credits are the way in.
+  const plusTrialIpc = registerPlusTrialIpc({
+    config: ACCOUNT_CONFIG,
+    session: accountIpc.session,
   });
 
   // The premium looks ride on the account: they are listed only while the
   // subscription is live, and fetched on the same "somebody is back at the
   // machine" events. Registering reads the cache; it contacts nothing.
+  // Which earlier version of a scene plays, for both kinds of scene: the
+  // versions themselves are kept by the stores (`keptVersions.ts`).
+  const versionPins = createVersionPins(userDataDir);
   const scenePacksIpc = registerScenePacksIpc({
     getMainWindow,
     userDataDir,
+    pins: versionPins,
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
     entitlement: accountIpc.entitlement,
+    ownership: sceneOwnership,
     logger: log,
     // Late-bound: the gallery is registered further down, and this is only
     // called once the looks are opened.
@@ -154,13 +190,22 @@ const registerMemberServices = ({
     userDataDir,
     documentsDir: app.getPath('documents'),
     session: accountIpc.session,
-    entitlement: accountIpc.entitlement,
+    ownership: sceneOwnership,
+    pins: versionPins,
     logger: log,
+  });
+  const disposeSceneVersions = registerSceneVersionsIpc({
+    pins: versionPins,
+    officialStore: scenePacksIpc.store,
+    memberStore: memberScenesIpc.store,
+    ownership: sceneOwnership,
+    announceOfficial: scenePacksIpc.announce,
+    announceMember: memberScenesIpc.announce,
   });
 
   const wallpaperIpc = registerWallpaperIpc({
     getMainWindow,
-    entitlement: accountIpc.entitlement,
+    ownership: sceneOwnership,
     arrangement: createArrangementStore(userDataDir, log),
     ...createWallpaperScenes(scenePacksIpc, memberScenesIpc),
   });
@@ -172,7 +217,7 @@ const registerMemberServices = ({
     userDataDir,
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
-    entitlement: accountIpc.entitlement,
+    ownership: sceneOwnership,
     store: memberScenesIpc.store,
     activeFolder: memberScenesIpc.activeFolder,
     activeIsInspection: memberScenesIpc.activeIsInspection,
@@ -189,14 +234,13 @@ const registerMemberServices = ({
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
     entitlement: accountIpc.entitlement,
+    ownership: sceneOwnership,
   });
   const plusGalleryIpc = registerPlusGalleryIpc({
     access: galleryAccess,
     store: memberScenesIpc.store,
     refreshBlocked: memberSharingIpc.refreshBlocked,
     announce: memberScenesIpc.announce,
-    onEntitlementChange: (listener) =>
-      accountIpc.entitlement.subscribe(listener),
     officialStore: scenePacksIpc.store,
     announceOfficial: scenePacksIpc.announce,
     logger: log,
@@ -229,17 +273,7 @@ const registerMemberServices = ({
   // What a maker earned by publishing, for the account panel to count down —
   // and, when the server says this account is one, the note that keeps their
   // single Studio project open after the earned month runs out.
-  const makerMonthIpc = registerMakerMonthIpc({
-    access: galleryAccess,
-    onMaker: (id, maker) => {
-      if (setKnownMaker(userDataDir, id, maker)) {
-        // The Studio is drawn from what it was last told; an answer that
-        // changed has to reach it, or a first approval leaves the page locked
-        // until the window is opened again.
-        memberScenesIpc.makerChanged();
-      }
-    },
-  });
+  const makerMonthIpc = registerMakerMonthIpc({ access: galleryAccess });
   // The member's own AI looking at the scene it is writing, over MCP on this
   // computer only — shut until the member opens it on the Studio's card.
   const studioAgentDoor = createStudioAgentDoor({
@@ -374,12 +408,15 @@ const registerMemberServices = ({
     plusTermsNoticeIpc.dispose();
     plusWelcomeIpc.dispose();
     plusTrialIpc.dispose();
+    sceneStoreIpc.dispose();
+    sceneOwnership.dispose();
     scenePacksIpc.dispose();
     plusModerationIpc.dispose();
     plusReviewIpc.dispose();
     plusGiftsIpc.dispose();
     accountDeletionIpc.dispose();
     disposeStudioInspect();
+    disposeSceneVersions();
     plusPublishingIpc.dispose();
     plusGalleryIpc.dispose();
     memberSharingIpc.dispose();
@@ -399,6 +436,7 @@ const registerMemberServices = ({
 
   return {
     accountIpc,
+    sceneOwnership,
     plusTermsNoticeIpc,
     scenePacksIpc,
     memberSharingIpc,

@@ -3,7 +3,6 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { holdDaylightToBrightness } from '../utils/sceneDaylightSetting';
 import StudioBench from './StudioBench';
-import StudioLocked from './StudioLocked';
 import { openStudioSession, useStudio } from './studioStore';
 import '../styles/Studio.scss';
 import '../styles/StudioStage.scss';
@@ -18,19 +17,11 @@ import '../styles/StudioWork.scss';
  * a folder is watched only while somebody is looking at what it builds, and
  * only the one project on the bench is ever watched or played.
  *
- * The Studio is Plus's, reached first through the free trial. A member with
- * neither Plus nor a scene of their own already approved is met by what it
- * is and how to get in (`StudioLocked`), not by a bench that refuses every
- * press. A maker whose month has run out keeps one project and Publish,
- * which is how they earn the next month, with everything else that would
- * take a scene out of this window locked (`StudioShipMaker`,
- * `StudioProjects`) — a thing to try, not a wall to read. What each member
- * may actually do is the main process's answer, never this page's: it says
- * what is locked, and refuses anyway.
- *
- * The session opens for both, because opening it is how the page learns
- * which of the two this member is; with no project it may use, nothing is
- * watched and nothing plays.
+ * The Studio is every signed-in member's, with as many projects as they
+ * like (Ivan, 2026-10-18): what is sold is a scene, never the right to make
+ * one. A scene made here plays outside the Studio once it is published; on
+ * the stage until then it wears the draft's mark (`StudioDraftMark`). What
+ * each member may do is the main process's answer, never this page's.
  */
 export default function StudioPanel() {
   const { t } = useTranslation();
@@ -42,15 +33,7 @@ export default function StudioPanel() {
   useEffect(() => holdDaylightToBrightness(), []);
 
   // A moment, the first time only: the store keeps what it last heard.
-  let body = null;
-  if (view.loaded) {
-    body =
-      view.state.entitled || view.state.maker ? (
-        <StudioBench view={view} />
-      ) : (
-        <StudioLocked />
-      );
-  }
+  const body = view.loaded ? <StudioBench view={view} /> : null;
 
   return (
     <>

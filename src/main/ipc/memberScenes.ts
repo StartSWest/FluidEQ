@@ -1,8 +1,9 @@
 import { dialog, ipcMain, shell, type BrowserWindow } from 'electron';
 import { parseMemberLookId } from '../../common/memberScenes';
 import type { IScenePack } from '../../common/scenePacks';
-import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
+import type { IVersionPins } from '../keptVersions';
+import type { ISceneOwnership } from '../plus/sceneOwnership';
 import {
   createMemberSceneStore,
   type IMemberSceneStore,
@@ -16,7 +17,6 @@ import {
   type IVisibleScene,
 } from '../memberScenes/visibleScenes';
 import { isSceneFailure, type TSceneFailure } from '../scenePackStore';
-import { isKnownMaker } from '../account/knownMakers';
 import {
   registerStudioProjectsIpc,
   type IStudioProjectsIpcRegistration,
@@ -26,10 +26,10 @@ import type { TInspection, TProjectRestore } from './studioProjectTypes';
 /**
  * Member scenes, as the renderer sees them, and the Studio hung off them.
  *
- * Everything that makes or runs a member scene needs an active Plus
- * membership, asked fresh on every call rather than once at startup, exactly
- * as the Plus looks are. Removing one's own scene does not: a member whose
- * membership ended can still take their work out of the app.
+ * A member scene plays for an account that owns it — bought, or its own once
+ * published (`mayPlayLook`) — asked fresh on every call rather than once at
+ * startup, exactly as FluidEQ's own looks are. Removing one does not ask: a
+ * member can always take a scene out of the app.
  *
  * What is here is the scenes themselves — which of them this account may see,
  * load and remove. The Studio's projects are `studioProjectsIpc.ts`, which
@@ -59,7 +59,10 @@ export interface IMemberScenesIpcDeps {
   /** The member's Documents folder, where projects go until they choose. */
   documentsDir: string;
   session: IAccountSession;
-  entitlement: IEntitlement;
+  /** Which scenes this account may play (`plus/sceneOwnership.ts`). */
+  ownership: Pick<ISceneOwnership, 'owns' | 'subscribe'>;
+  /** Which earlier version each look plays (`keptVersions.ts`). */
+  pins?: IVersionPins;
   logger?: { info(message: string): void; warn(message: string): void };
   dialogImpl?: IDialogLike;
   openPath?: (target: string) => Promise<string>;
@@ -68,7 +71,7 @@ export interface IMemberScenesIpcDeps {
 export interface IMemberScenesIpcRegistration {
   store: IMemberSceneStore;
   /**
-   * The same account and entitlement check as the renderer's load request,
+   * The same account and ownership check as the renderer's load request,
    * and whether this account made the scene: a desktop background is run
    * by who made it (`sceneRules.ts`), as the window's own list says.
    */
@@ -94,13 +97,6 @@ export interface IMemberScenesIpcRegistration {
   agentProject: IStudioProjectsIpcRegistration['agentProject'];
   /** The scene list changed outside this file: an import, a takedown. */
   announce(): void;
-  /**
-   * The server's answer about this account being a maker changed, which
-   * decides the same thing an entitlement does: which projects may be
-   * opened. Without it the page keeps what it was told when it opened — the
-   * Studio locked to somebody whose first scene has just been approved.
-   */
-  makerChanged(): void;
   dispose(): void;
 }
 
@@ -116,19 +112,21 @@ export const registerMemberScenesIpc = ({
   userDataDir,
   documentsDir,
   session,
-  entitlement,
+  ownership,
+  pins,
   logger,
   dialogImpl = dialog,
   openPath = (target) => shell.openPath(target),
 }: IMemberScenesIpcDeps): IMemberScenesIpcRegistration => {
-  const store = createMemberSceneStore({ userDataDir, logger });
+  const store = createMemberSceneStore({ userDataDir, pins, logger });
 
   const accountId = () => session.state().identity?.id;
-  const entitled = () =>
-    entitlement.status().state !== 'none' && accountId() !== undefined;
 
   /** Who is asking, for the rules in `visibleScenes.ts`. */
-  const viewer: ISceneViewer = { accountId, entitled };
+  const viewer: ISceneViewer = {
+    accountId,
+    owns: (lookId) => ownership.owns(lookId),
+  };
 
   const visible = () => visibleScenes(store, viewer);
 
@@ -150,22 +148,17 @@ export const registerMemberScenesIpc = ({
     documentsDir,
     store,
     accountId,
-    entitled,
-    // A maker keeps the single-project bench once the month they earned by
-    // publishing runs out: without it, the one way they earn Plus would be
-    // shut to them (`knownMakers.ts`).
-    isMaker: (id: string) => isKnownMaker(userDataDir, id),
+    mayKeep: (lookId) => ownership.owns(lookId),
     announceScenes,
     dialogImpl,
     openPath,
     ...(logger ? { logger } : {}),
   });
 
-  const unsubscribe = entitlement.subscribe(() => {
-    // Losing Plus moves the bench off a FluidEQ scene opened to look inside
-    // and stops its watcher; gaining it (with the Studio open) starts one.
-    // Either way both views are told.
-    studio.entitlementChanged();
+  // A buy, a publication, an account changing, Plus: which scenes play
+  // changed, and the Studio settles on a project the account may use.
+  const unsubscribe = ownership.subscribe(() => {
+    studio.accountChanged();
     announceScenes();
   });
 
@@ -231,8 +224,6 @@ export const registerMemberScenesIpc = ({
     openInspection: studio.openInspection,
     agentProject: studio.agentProject,
     announce: announceScenes,
-    // The same settling as an entitlement change, for the same reason.
-    makerChanged: studio.entitlementChanged,
     dispose: () => {
       unsubscribe();
       studio.dispose();

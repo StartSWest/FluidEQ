@@ -1,6 +1,6 @@
 import { app, ipcMain, type BrowserWindow } from 'electron';
 import {
-  isCheckoutConfigured,
+  isAccountConfigured,
   type IAccountConfig,
 } from '../../common/accountConfig';
 import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
@@ -90,7 +90,7 @@ export const registerPlusTermsNoticeIpc = ({
   const facts = (): IPlusTermsNoticeFacts => {
     const id = accountId();
     return {
-      termsOffered: isCheckoutConfigured(config),
+      termsOffered: isAccountConfigured(config),
       accountId: id,
       member: entitlement.status().state !== 'none',
       agreed: id === undefined ? undefined : agreedBy(id),

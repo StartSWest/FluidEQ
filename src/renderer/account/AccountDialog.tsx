@@ -7,9 +7,8 @@ import {
 } from 'react';
 import type { TAuthFailure } from 'main/account/authClient';
 import type { TranslationKey } from 'common/i18n/en';
-import { isCheckoutConfigured } from 'common/accountConfig';
+import { isAccountConfigured } from 'common/accountConfig';
 import { PLUS_TERMS_EDITION } from 'common/plusTerms';
-import { PLUS_TRIAL_PLAN } from 'common/plusTrial';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from '../components/DialogFrame';
@@ -27,14 +26,13 @@ import { useAccount } from './accountStore';
 import { useEntitlement } from './entitlementStore';
 import SceneBand from '../plus/SceneBand';
 import PlusCard from './PlusCard';
+import CreditsCard from './CreditsCard';
 import PlusTermsDocument from './PlusTermsDocument';
 import LeaderboardCard from './LeaderboardCard';
 import MakerMonthCard from './MakerMonthCard';
 import { forgetMakerMonth } from '../plus/makerMonthStore';
 import SignInForms from './SignInForms';
 import SignOutConfirm from './SignOutConfirm';
-import SubscribeAgreement from './SubscribeAgreement';
-import PlusTrialAgreement, { PlusTrialConsent } from './PlusTrialAgreement';
 import AccountPitch from './AccountPitch';
 import initialsOf from './initials';
 // The panel sits on the About panel's backdrop, so it asks for the sheet that
@@ -56,11 +54,7 @@ interface IAccountFramePage {
 
 interface IAccountDialogProps {
   onClose: () => void;
-  /**
-   * The page to open on. The leaderboard's guide opens straight on the terms,
-   * and every way into paying opens on the terms with the agreement under
-   * them.
-   */
+  /** The page to open on. The leaderboard's guide opens straight on the terms. */
   initialPage?: TAccountPanelPage;
 }
 
@@ -106,9 +100,9 @@ const ERROR_KEYS: Record<TAuthFailure, TranslationKey> = {
  * it is local and account-free, and that is still true for anybody who closes
  * this without typing anything.
  *
- * The Plus terms are a page of the same panel rather than a dialog of their
- * own: reached from a link on either side, from the leaderboard, and — with
- * the agreement in the foot — from every button that leads to paying.
+ * The terms are a page of the same panel rather than a dialog of their own:
+ * reached from a link on either side and from the leaderboard. Paying for
+ * credits has its own agreement, beside the packs (`PackPurchase`).
  */
 export default function AccountDialog({
   onClose,
@@ -121,7 +115,6 @@ export default function AccountDialog({
   const account = useAccount();
   const entitlement = useEntitlement();
   const [page, setPage] = useState<TAccountPanelPage>(initialPage);
-  const [checkoutOpened, setCheckoutOpened] = useState(false);
 
   // A request for another page while the panel is already open — the
   // composer's upgrade with the panel on screen — moves it there.
@@ -141,7 +134,7 @@ export default function AccountDialog({
 
   const { identity, status } = account;
   const signedIn = status === 'signed-in' && identity !== undefined;
-  const termsOffered = isCheckoutConfigured();
+  const termsOffered = isAccountConfigured();
   const member = entitlement.state !== 'none';
 
   // The name the board and the gallery show, when one has been chosen: it is
@@ -179,31 +172,11 @@ export default function AccountDialog({
   const displayName =
     profile?.displayName ?? identity?.name ?? identity?.email ?? '';
 
-  // Paying needs an account with nothing to pay for yet: signed out, the
-  // panel asks for the account first; already a member, there is nothing to
-  // agree to and the terms are simply shown. Without a price configured there
-  // is no Plus to describe at all.
-  const shown: TAccountPanelPage = (() => {
-    if (page === 'trial') {
-      return signedIn ? 'trial' : 'home';
-    }
-    if (!termsOffered) {
-      return 'home';
-    }
-    if (page === 'subscribe') {
-      if (!signedIn) {
-        return 'home';
-      }
-      return entitlement.state === 'none' ||
-        entitlement.plan === PLUS_TRIAL_PLAN
-        ? 'subscribe'
-        : 'terms';
-    }
-    return page;
-  })();
-  const onTerms = shown === 'terms' || shown === 'subscribe';
-  const onTrial = shown === 'trial';
-  const onDocument = onTerms || onTrial;
+  // Without an account backend there are no terms to read.
+  const shown: TAccountPanelPage =
+    page === 'terms' && !termsOffered ? 'home' : page;
+  const onTerms = shown === 'terms';
+  const onDocument = onTerms;
   // The front page with somebody signed in: the person, as a profile.
   const onProfile = signedIn && !onDocument;
 
@@ -249,9 +222,9 @@ export default function AccountDialog({
     </p>
   );
 
-  // What the rail says the panel is, page by page: the terms and the trial
-  // are documents about Plus; signed in, it is the person; otherwise it is
-  // the account the menu row named.
+  // What the rail says the panel is, page by page: the terms are a
+  // document; signed in, it is the person; otherwise it is the account the
+  // menu row named.
   const frame = ((): IAccountFramePage => {
     if (onTerms) {
       return {
@@ -261,34 +234,17 @@ export default function AccountDialog({
         badge: (
           <span className="dialog-frame__badge">v{PLUS_TERMS_EDITION}</span>
         ),
-        footer:
-          shown === 'subscribe' ? (
-            <SubscribeAgreement
-              onBack={() => setPage('home')}
-              onOpened={() => {
-                setCheckoutOpened(true);
-                setPage('home');
-              }}
-            />
-          ) : (
-            <div className="dialog-frame__actions">
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => setPage('home')}
-              >
-                {t('terms.back')}
-              </button>
-            </div>
-          ),
-      };
-    }
-    if (onTrial) {
-      return {
-        icon: <MenuIcon name="plusTab" />,
-        eyebrow: t('account.eyebrow'),
-        title: t('trial.consent.title'),
-        footer: <PlusTrialConsent key={accountId} onClose={onClose} />,
+        footer: (
+          <div className="dialog-frame__actions">
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={() => setPage('home')}
+            >
+              {t('terms.back')}
+            </button>
+          </div>
+        ),
       };
     }
     if (onProfile) {
@@ -381,12 +337,12 @@ export default function AccountDialog({
     return {
       icon: <MenuIcon name="artist" />,
       eyebrow: t('account.eyebrow'),
-      title: page === 'trial' ? t('trial.consent.title') : t('account.title'),
+      title: t('account.title'),
       rail:
         status === 'unavailable' ? (
           <p className="dialog-frame__rail-text">{t('account.optional')}</p>
         ) : (
-          <AccountPitch trial={page === 'trial'} termsLink={termsLink} />
+          <AccountPitch termsLink={termsLink} />
         ),
     };
   })();
@@ -418,7 +374,6 @@ export default function AccountDialog({
         onClose={onClose}
         closeRef={closeRef}
       >
-        {onTrial && <PlusTrialAgreement key={accountId} onClose={onClose} />}
         {/* Keyed on the page so switching between reading and agreeing
             starts the document from its top. */}
         {onTerms && (
@@ -469,11 +424,11 @@ export default function AccountDialog({
                 />
               )}
 
-              <PlusCard
-                entitlement={entitlement}
-                onUpgrade={() => setPage('subscribe')}
-                checkoutOpened={checkoutOpened}
-              />
+              {/* A membership still running, for as long as there are any:
+                  Plus is not sold any more, so the card is absent without
+                  one. The credits are under it, which is what gets scenes. */}
+              <PlusCard entitlement={entitlement} />
+              <CreditsCard />
               {/* Under the membership, because it is where the membership
                   comes from for a maker: the month their last approved scene
                   earned, and when it runs out. */}
@@ -502,9 +457,7 @@ export default function AccountDialog({
             <div className="account__form-column">
               <SignInForms
                 account={account}
-                initialMode={
-                  page === 'signUp' || page === 'trial' ? 'signUp' : 'signIn'
-                }
+                initialMode={page === 'signUp' ? 'signUp' : 'signIn'}
               />
               {errorLine}
             </div>

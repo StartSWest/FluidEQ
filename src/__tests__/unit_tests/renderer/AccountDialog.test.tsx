@@ -21,6 +21,12 @@ const mockReset = jest.fn((_details: unknown) => Promise.resolve());
 const mockAbandon = jest.fn(() => Promise.resolve());
 const mockSignOut = jest.fn(() => Promise.resolve());
 
+// The credits card loads the account's store on its own (`plus/sceneStore.ts`)
+// and has its own tests; what is held here is the panel around it.
+jest.mock('../../../renderer/account/CreditsCard', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
     locale: 'en',
@@ -31,6 +37,8 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 jest.mock('../../../renderer/account/accountStore', () => ({
   useAccount: () => mockAccountState,
+  getAccountSnapshot: () => mockAccountState,
+  subscribeAccount: () => () => undefined,
   signUpAccount: (details: unknown) => mockSignUp(details),
   signInAccount: (credentials: unknown) => mockSignIn(credentials),
   confirmAccountCode: (code: string) => mockConfirm(code),

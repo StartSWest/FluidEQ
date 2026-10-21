@@ -18,20 +18,9 @@ const CHANNEL = 'maker-month';
 
 export interface IMakerMonthIpcDeps {
   access: IGalleryAccess;
-  /**
-   * What the server says about this account having had a scene approved, so
-   * the Studio can keep its single-project bench open to a maker whose
-   * earned month has run out — and close it again if the approval is gone.
-   * A convenience: the publication itself is the server's to accept or
-   * refuse.
-   */
-  onMaker?: (accountId: string, maker: boolean) => void;
 }
 
-export const registerMakerMonthIpc = ({
-  access,
-  onMaker,
-}: IMakerMonthIpcDeps) => {
+export const registerMakerMonthIpc = ({ access }: IMakerMonthIpcDeps) => {
   ipcMain.handle(CHANNEL, async (): Promise<TMakerMonthOutcome> => {
     const me = access.accountId();
     const auth = me ? await access.auth() : undefined;
@@ -40,16 +29,9 @@ export const registerMakerMonthIpc = ({
       return { ok: false, reason: 'signed-out' };
     }
     const outcome = await myMakerMonth(auth);
-    if (access.accountId() !== me) {
-      return { ok: false, reason: 'signed-out' };
-    }
-    // Only what the server actually said. A body this could not read comes
-    // back as an empty month so the page has something to draw, and taking
-    // that for a "no" would forget a maker the server never mentioned.
-    if (me && outcome.ok && !outcome.guessed) {
-      onMaker?.(me, outcome.month.maker);
-    }
-    return outcome;
+    return access.accountId() === me
+      ? outcome
+      : { ok: false, reason: 'signed-out' };
   });
 
   return {

@@ -23,7 +23,7 @@ const account = {
   'account.signOut': '退出登录',
   'account.signOut.confirm': '要退出这个账户吗？',
   'account.signOut.detail': '你可以随时重新登录。',
-  'account.signOut.detailPlus': '重新登录之前，Plus 在这里会保持锁定。',
+  'account.signOut.detailPlus': '在你重新登录之前，你的场景在这里会保持锁定。',
   'account.signOut.kept': '这台电脑上的任何内容都不会被删除。',
   'account.name.change': '更改名字',
   'account.name.changeTitle': '更改你的显示方式',
@@ -63,7 +63,7 @@ const account = {
   'account.error.rejected': '账户服务拒绝了该请求。请稍后重试。',
   'account.error.expired': '该登录已失效。请重新登录。',
   'account.error.signedOutElsewhere':
-    '此电脑已退出登录，因为你的账户在另一台电脑上登录了。Plus 最多可同时在 5 台电脑上使用：在这里重新登录即可继续使用，最久未使用的那台电脑会被退出登录。',
+    '这台电脑已退出登录，因为你的账户在另一台电脑上登录了。一个账户最多可同时在 5 台电脑上保持登录：重新登录即可在这里使用，届时最久未使用的那台会被退出。',
   'account.error.malformed': '账户服务返回了 FluidEQ 无法读取的内容。',
   'account.error.wrongCredentials': '邮箱或密码错误。',
   'account.error.unconfirmed': '该账户尚未确认。请输入邮件中的验证码以完成。',
@@ -75,12 +75,7 @@ const account = {
   'account.error.alreadyRegistered': '该地址已有账户。请直接登录。',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.pitch':
-    '别处没有的高级可视化效果、创作你自己场景的工作室、排行榜——以及从现在起的每一项新功能，会员优先。均衡器、机架和播放器一如既往，依然免费。',
-  'account.plus.upgrade': '升级到 Plus',
   'account.plus.opening': '正在打开…',
-  'account.plus.checkoutHint':
-    '在浏览器中打开 Buy Me a Coffee。请使用与此账户相同的邮箱付款，以便 FluidEQ 识别；应用永远不会看到你的银行卡。',
   'account.plus.active': '已激活',
   'account.plus.ending': '不再续订',
   'account.plus.renews': '{date} 续订',
@@ -93,11 +88,6 @@ const account = {
   'account.plus.grace':
     '无法确认你的订阅。它将保持有效至 {date}——请在此之前连接网络以保留。',
   'account.plus.checkAgain': '再次检查',
-  'account.plus.perMonth': '{price} / 月',
-  'account.plus.perYear': '{price} / 年',
-  'account.plus.priceChoice': '{monthly} 或 {yearly}',
-  'account.plus.checkoutOpened':
-    'Buy Me a Coffee 已在你的浏览器中打开。付款后回到这里，Plus 就会开启。',
   'account.plus.error.rejected': '无法打开付款页面。请稍后重试。',
 
   'account.dev.label': '开发',
@@ -105,7 +95,7 @@ const account = {
   'account.dev.cancel': '模拟一次取消',
   'account.dev.working': '发送中…',
 
-  'account.perk.looks': '由显卡绘制的 Plus 外观。',
+  'account.perk.looks': '永久归你的场景，每个一点。',
   'account.perk.visualizers': '“可视化”：会员创作的场景，向所有账户开放。',
   'account.perk.board': '谁听得最多的排行榜。',
   // What publishing earns: one approved scene a month keeps Plus free

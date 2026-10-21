@@ -66,7 +66,7 @@ const review = {
     "Approved, but its files didn't reach the gallery. Press Approve and publish again to finish.",
   'review.forbidden': 'Only the FluidEQ admin can approve scenes.',
   'review.fine.new':
-    'Approving puts it in the gallery at version {version}: everyone signed in sees it, and Plus members can add it.',
+    'Approving puts it in the gallery at version {version}: everyone signed in sees it and can get it with a credit, and it plays free for its maker.',
   'review.fine.update':
     'Approving replaces version {version} for everyone who has the scene. Not approving leaves version {version} where it is.',
   'review.state.pending': 'Under review',
@@ -85,7 +85,8 @@ const review = {
   'review.notice.later': 'Later',
   'review.notice.review': 'Review now',
   'review.notice.approved': '{name} is in the gallery',
-  'review.notice.approvedBody': 'It was approved. Plus members can add it now.',
+  'review.notice.approvedBody':
+    'It was approved. It plays free for you everywhere now, and anyone can get it.',
   'review.notice.approvedUpdate':
     'Version {version} of {name} is in the gallery',
   'review.notice.approvedUpdateBody':

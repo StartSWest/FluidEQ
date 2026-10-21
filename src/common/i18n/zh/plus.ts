@@ -4,19 +4,14 @@ const plus = {
   'plus.remove.done': '已从你的外观中移除 {name}。',
   'plus.card.remove': '移除',
   'plus.official.author': 'FluidEQ · 官方',
-  'plus.official.included': 'Plus 已包含',
-  'plus.official.sample': '{seconds} 秒预览',
+  'plus.official.included': '每个场景一点，永久归你',
   'plus.official.badge': '官方',
-  'plus.official.fine':
-    'FluidEQ 合集的一部分：在你拥有 Plus 期间可从外观中播放。',
   'plus.visualizers.title': '可视化',
   'plus.visualizers.description':
     'FluidEQ 和 Plus 社区创作的场景，随你的音乐律动',
   'plus.visualizers.blurb': '会员的场景',
   'plus.rail.pin': '固定侧边栏',
   'plus.rail.collapse': '收起侧边栏',
-
-  'plus.gate.cta': '了解 Plus',
 
   'plus.gallery.search': '搜索场景或作者',
   'plus.gallery.sort': '排序',
@@ -65,11 +60,16 @@ const plus = {
   'plus.version.earlier': '更早的版本（{count}）',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': '没有说明',
+  'plus.version.play': '使用',
+  'plus.version.playLabel': '使用版本 {version}',
+  'plus.version.playing': '使用中',
+  'plus.version.playingLine': '你正在使用保存在这台电脑上的版本 {version}。',
+  'plus.version.backToNewest': '回到最新版本',
+  'plus.version.keptHere': '保存在这台电脑上',
   'plus.card.open': '打开 {name}',
 
   'plus.like.label': '为 {name} 点赞（{count} 个赞）',
   'plus.like.own': '你的场景获得了 {count} 个赞',
-  'plus.like.plusOnly': '{count} 个赞。给场景点赞是 Plus 的功能。',
   'plus.like.offline': '点赞需要网络连接。请联网后重试。',
 
   'plus.add.done': '{name} 已添加到你的外观。',
@@ -83,10 +83,7 @@ const plus = {
   'plus.scene.next': '下一个场景：{name}',
   'plus.scene.loading': '正在加载场景…',
   'plus.scene.playing': '随你的音乐实时播放',
-  'plus.scene.plusPlays': '有了 Plus，这个场景会在这里随你的音乐播放',
   'plus.scene.taste': '预览 · {seconds} 秒',
-  'plus.scene.keepWatching':
-    '开通 Plus，继续随你的音乐观看，并把它添加到你的外观。',
   'plus.scene.unavailable': '暂时无法下载这个场景。',
   'plus.scene.blocked': '这个场景已被下架。',
   'plus.scene.changed': '这个场景未通过 FluidEQ 的检查，因此不会播放。',
@@ -98,7 +95,6 @@ const plus = {
   'plus.scene.adds': '添加',
   'plus.scene.add': '添加到我的外观',
   'plus.scene.update': '更新我的副本',
-  'plus.scene.getPlus': '开通 Plus 即可添加',
   'plus.inspect.open': '在工作室中打开',
   'plus.inspect.hint':
     '看看它是怎么做的，为你自己的场景汲取灵感。它会作为查看内部的项目打开，而不是用来发布。',
@@ -108,8 +104,6 @@ const plus = {
   'plus.scene.inLooks': '已在你的外观中，位于“会员创作”',
   'plus.scene.inLooksOwn': '已在你的外观中，位于“你创作的”',
   'plus.scene.inLooksPlus': '已在你的外观中，位于“FluidEQ Plus”',
-  'plus.scene.fine':
-    '添加的场景在你拥有 Plus 期间可从外观中播放。任何人都不能出售它们。',
   'plus.scene.report': '举报这个场景',
   'plus.scene.reported': '已举报，谢谢。',
   'plus.scene.moreBy': '{name} 的更多作品',
@@ -339,6 +333,7 @@ const plus = {
     '要永久删除吗？它会从图库和所有会员的外观中消失，文件也会被清除，并且再也不能发布。',
   'plus.moderation.deleteForGood': '永久删除',
   'plus.moderation.done.deleted': '{name} 已删除。',
+  'plus.add.notOwned': '先获取“{name}”：需要一点，之后它会进入你的外观。',
 } as const;
 
 export default plus;

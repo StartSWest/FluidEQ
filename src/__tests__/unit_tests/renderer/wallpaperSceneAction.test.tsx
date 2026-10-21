@@ -4,20 +4,22 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+/**
+ * "Set as desktop background" on a scene's page: offered for a scene this
+ * account owns, and only where the desktop can take a visualizer. A scene
+ * not owned has the page's own Get as its way in, not a second lock here.
+ */
+
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { IWallpaperState } from 'common/wallpaper';
-import { requestAccountPanel } from 'renderer/account/accountPanel';
-import { useEntitlement } from 'renderer/account/entitlementStore';
+import { useOwnsLook } from 'renderer/plus/sceneStore';
 import { WallpaperSceneAction } from 'renderer/wallpaper/WallpaperControls';
 import { openWallpaperDialog } from 'renderer/wallpaper/wallpaperDialogs';
 import { useWallpaperState } from 'renderer/wallpaper/wallpaperStore';
 
-jest.mock('renderer/account/accountPanel', () => ({
-  requestAccountPanel: jest.fn(),
-}));
-jest.mock('renderer/account/entitlementStore', () => ({
-  useEntitlement: jest.fn(),
+jest.mock('renderer/plus/sceneStore', () => ({
+  useOwnsLook: jest.fn(),
 }));
 jest.mock('renderer/wallpaper/wallpaperDialogs', () => ({
   openWallpaperDialog: jest.fn(),
@@ -42,50 +44,40 @@ const withDesktop = (over: Partial<IWallpaperState> = {}) =>
     ...over,
   });
 
-const paying = (state: 'active' | 'none') =>
-  jest
-    .mocked(useEntitlement)
-    .mockReturnValue({ state } as ReturnType<typeof useEntitlement>);
+const owning = (owned: boolean) =>
+  jest.mocked(useOwnsLook).mockReturnValue(owned);
 
 beforeEach(() => jest.clearAllMocks());
 
 describe('the desktop background button on a scene page', () => {
-  it('asks which monitors while the account pays', () => {
+  it('asks which monitors for a scene this account owns', () => {
     withDesktop();
-    paying('active');
+    owning(true);
     render(<WallpaperSceneAction lookId="premium:alpine" />);
-    const button = screen.getByRole('button', {
-      name: 'Set as desktop background',
-    });
-    fireEvent.click(button);
+    expect(useOwnsLook).toHaveBeenCalledWith('premium:alpine');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Set as desktop background' }),
+    );
     expect(openWallpaperDialog).toHaveBeenCalledWith('premium:alpine');
-    expect(requestAccountPanel).not.toHaveBeenCalled();
   });
 
   /**
-   * A scene's file stays on disk when Plus lapses, and the page offers this
-   * button from what is installed: without the check it reached accounts the
-   * desktop manager then refused, at the end of the monitors dialog.
+   * A scene's file stays on disk when it is no longer owned, and the page is
+   * drawn from what is installed: without the check the button reached
+   * accounts the desktop manager then refused, at the end of the dialog.
    */
-  it('leads to Plus instead, without Plus, and never opens the dialog', () => {
+  it('is not there for a scene this account does not own', () => {
     withDesktop();
-    paying('none');
-    render(<WallpaperSceneAction lookId="premium:alpine" />);
-    const button = screen.getByRole('button', {
-      name: 'Set as desktop background',
-    });
-    expect(button).not.toBeDisabled();
-    expect(button).toHaveAttribute(
-      'title',
-      'Set as desktop background, with FluidEQ Plus',
+    owning(false);
+    const { container } = render(
+      <WallpaperSceneAction lookId="premium:alpine" />,
     );
-    fireEvent.click(button);
-    expect(requestAccountPanel).toHaveBeenCalledWith('subscribe');
+    expect(container).toBeEmptyDOMElement();
     expect(openWallpaperDialog).not.toHaveBeenCalled();
   });
 
   it('is not there at all where the desktop cannot take a visualizer', () => {
-    paying('none');
+    owning(true);
     withDesktop({ supported: false });
     const { container, rerender } = render(
       <WallpaperSceneAction lookId="premium:alpine" />,

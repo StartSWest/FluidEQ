@@ -5,17 +5,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { isCheckoutConfigured } from 'common/accountConfig';
 import { FLUIDEQ_CREATOR_ID } from 'common/plusGallery';
-import { trialEndsSoon } from 'common/sceneAnnouncements';
 import { premiumLookId, resolveSceneName } from 'common/scenePacks';
-import { requestAccountPanel } from '../account/accountPanel';
 import Glyph from '../community/Glyph';
 import MenuIcon from '../icons/MenuIcon';
-import { ScenePicture, usePlusEntitled } from '../plus/GalleryParts';
+import { ScenePicture } from '../plus/GalleryParts';
 import { requestGraphShow } from '../plus/graphShowRequest';
 import { openPlusPlace } from '../plus/plusNavigation';
 import { requestPlusTab } from '../plus/plusTabRequest';
+import { useOwnsLook } from '../plus/sceneStore';
 import {
   putAnnouncementAway,
   useShownAnnouncement,
@@ -64,12 +62,11 @@ export default function SceneAnnouncementDialog() {
 
 function Announcement({ shown }: { shown: IShownAnnouncement }) {
   const { t, locale } = useTranslation();
-  const entitled = usePlusEntitled();
   const surfaceRef = useRef<HTMLDivElement>(null);
   const tryRef = useRef<HTMLButtonElement>(null);
   const { announcement } = shown;
   const [lead, ...rest] = announcement.scenes;
-  const endsSoon = trialEndsSoon(announcement, Date.now());
+  const ownsLead = useOwnsLook(lead ? premiumLookId(lead.sceneId) : '');
 
   const close = useCallback(() => {
     putAnnouncementAway(shown).catch((error: unknown) =>
@@ -98,22 +95,17 @@ function Announcement({ shown }: { shown: IShownAnnouncement }) {
     };
   }, [close]);
 
-  // A member plays the first scene on the graph at once; anybody else meets
-  // the set where they can try it, in Visualizers.
+  // Somebody who has the first scene plays it on the graph at once; anybody
+  // else meets the set where they can watch it and get it, in Visualizers.
   const tryThem = () => {
     close();
-    if (entitled && lead) {
+    if (ownsLead && lead) {
       setGraphLook(premiumLookId(lead.sceneId));
       requestGraphShow();
     } else {
       openPlusPlace('visualizers');
       requestPlusTab();
     }
-  };
-
-  const keepPlus = () => {
-    close();
-    requestAccountPanel('subscribe');
   };
 
   const ref = (scene: (typeof announcement.scenes)[number]) => ({
@@ -142,12 +134,6 @@ function Announcement({ shown }: { shown: IShownAnnouncement }) {
             {lead && (
               <ScenePicture scene={ref(lead)} className="dialog-frame__scene" />
             )}
-            {endsSoon && isCheckoutConfigured() && (
-              <p className="scene-announcement__trial">
-                <Glyph name="calendar" />
-                <span>{t('announce.trialEnds')}</span>
-              </p>
-            )}
           </>
         }
         closeLabel={t('support.close')}
@@ -161,15 +147,6 @@ function Announcement({ shown }: { shown: IShownAnnouncement }) {
             >
               {t('announce.later')}
             </button>
-            {endsSoon && isCheckoutConfigured() && (
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={keepPlus}
-              >
-                {t('announce.keepPlus')}
-              </button>
-            )}
             <button
               ref={tryRef}
               type="button"

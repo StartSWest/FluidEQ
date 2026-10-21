@@ -1,4 +1,5 @@
 import { ipcMain } from 'electron';
+import { memberLookId } from '../../common/memberScenes';
 import { readProject, type TProjectBuild } from '../memberScenes/project';
 import { keptRevisionOf, type IMemberSceneStore } from '../memberScenes/store';
 import type { IStudioLookCopy, TAddOutcome } from './studioProjectTypes';
@@ -6,7 +7,8 @@ import type { IStudioLookCopy, TAddOutcome } from './studioProjectTypes';
 interface IStudioLooksCopyDeps {
   store: IMemberSceneStore;
   accountId: () => string | undefined;
-  entitled: () => boolean;
+  /** Whether the look would play here (`mayPlayLook`): published, for one's own. */
+  mayKeep: (lookId: string) => boolean;
   activeFolder: () => string | undefined;
   activeIsInspection: () => boolean;
   /** The looks changed: every list of them is told. */
@@ -30,7 +32,7 @@ interface IStudioLooksCopyDeps {
 const createStudioLooksCopy = ({
   store,
   accountId,
-  entitled,
+  mayKeep,
   activeFolder,
   activeIsInspection,
   announceScenes,
@@ -53,7 +55,7 @@ const createStudioLooksCopy = ({
     build: TProjectBuild | undefined,
   ): IStudioLookCopy | undefined => {
     const me = accountId();
-    if (!me || !entitled() || !build?.ok || activeIsInspection()) {
+    if (!me || !build?.ok || activeIsInspection()) {
       return undefined;
     }
     const kept = store
@@ -74,8 +76,8 @@ const createStudioLooksCopy = ({
 
   ipcMain.handle('studio-add-to-looks', async (): Promise<TAddOutcome> => {
     const me = accountId();
-    if (!entitled() || !me) {
-      return { ok: false, reason: 'not-entitled' };
+    if (!me) {
+      return { ok: false, reason: 'signed-out' };
     }
     const folder = activeFolder();
     if (!folder) {
@@ -89,6 +91,12 @@ const createStudioLooksCopy = ({
     const build = await readProject(folder);
     if (!build.ok) {
       return { ok: false, reason: 'no-build' };
+    }
+    // A draft plays on the Studio's stage and nowhere else, so it does not
+    // go into the looks until it is in the gallery (Ivan, 2026-10-18:
+    // "necesitan publicar para poder ver").
+    if (!mayKeep(memberLookId(me, build.pack.id))) {
+      return { ok: false, reason: 'unpublished' };
     }
     try {
       // Whether the press added the look or brought one up to date, for

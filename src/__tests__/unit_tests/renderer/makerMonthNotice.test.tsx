@@ -35,6 +35,8 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 jest.mock('../../../renderer/account/accountStore', () => ({
   useAccount: () => account,
+  getAccountSnapshot: () => account,
+  subscribeAccount: () => () => undefined,
 }));
 
 const mockOpenPlace = jest.fn();

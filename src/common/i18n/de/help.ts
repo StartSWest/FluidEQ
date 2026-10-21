@@ -495,18 +495,15 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.categoriesName': 'Kategorien',
   'help.looks.categories': 'Natur, Städte, Abstrakt und mehr.',
 
-  'help.plus.videoTitle': 'Ein Rundgang durch FluidEQ Plus',
-  'help.plus.videoNote':
-    'Etwa viereinhalb Minuten, auf Englisch gesprochen. Es wird beim Abspielen von fluideq.com geladen.',
-  'help.plus.title': 'FluidEQ Plus und Ihr Konto',
+  'help.plus.title': 'Ihr Konto, Credits und der Plus-Tab',
   'help.plus.intro':
-    'Ein Konto ist freiwillig: Alles, was kostenlos war, läuft auch ohne Konto auf diesem Computer. FluidEQ Plus, monatlich oder jährlich, fügt Visualizer, die Rangliste, das Studio, Dynamische Beleuchtung und den Desktop-Visualizer hinzu. Ein neues Konto kann Plus fünfzehn Tage kostenlos testen, und eine Szene, die Sie veröffentlichen und die freigegeben wird, bringt Ihnen einen Monat.',
+    'Ein Konto ist optional: Alles, was kostenlos war, läuft auf diesem Computer auch ohne. Angemeldet bündelt der Plus-Tab „Visualizer“, die Rangliste, das Studio, die dynamische Beleuchtung und den Desktop-Visualizer. Eine Szene aus „Visualizer“ kostet einen Credit und gehört Ihnen für immer; ein bestätigtes Konto erhält einige Credits gratis, und Credit-Pakete werden einmalig bezahlt.',
   'help.plus.steps':
-    'Öffnen Sie Konto im Aktionsmenü. Melden Sie sich an, oder erstellen Sie ein Konto und geben Sie den sechsstelligen Code ein, der an Ihre E-Mail-Adresse geschickt wurde.\nDrücken Sie Auf Plus umsteigen, lesen Sie die Bedingungen, setzen Sie das Häkchen, dass Sie zustimmen, und bezahlen Sie in Ihrem Browser bei Buy Me a Coffee mit derselben E-Mail-Adresse.\nÖffnen Sie den Tab Plus. In seiner Seitenleiste finden Sie Rangliste, Visualizer, Studio und Dynamische Beleuchtung.',
+    'Öffnen Sie Konto im Aktionsmenü. Melden Sie sich an, oder erstellen Sie ein Konto und geben Sie den sechsstelligen Code ein, der an Ihre E-Mail-Adresse geschickt wurde.\nÖffnen Sie den Plus-Tab und wählen Sie „Visualizer“. Öffnen Sie eine Szene, sehen Sie sie an, und drücken Sie Holen, um einen Credit dafür einzusetzen.\nFür weitere Credits öffnen Sie Konto und wählen ein Paket. Es wird einmalig über Stripe in Ihrem Browser bezahlt.',
   'help.plus.tip':
-    'Die App sieht Ihre Karte nie; über Abonnement verwalten ändern oder kündigen Sie es. Die Gratis-Testphase verlangt keine Karte und kostet am Ende nichts. Ein Konto bleibt auf bis zu fünf Computern angemeldet, und Plus funktioniert eine Zeit lang auch offline.',
+    'Die App sieht Ihre Karte nie, und nichts verlängert sich. Eine Plus-Mitgliedschaft, die Sie bereits haben, funktioniert weiter, bis FluidEQ seine Mitglieder auf Credits umstellt, und Abo verwalten kündigt sie. Ein Konto bleibt auf bis zu fünf Computern angemeldet.',
   'help.plus.keywords':
-    'account, anmelden, anmeldung, einloggen, login, abmelden, registrieren, registrierung, passwort vergessen, mitgliedschaft, premium, vollversion, preis, kaufen, bezahlung, kreditkarte, testversion, trial, kündigung, upgrade, bestätigungscode, abo, abonnement',
+    'Konto, anmelden, Anmeldung, Login, registrieren, Credits, Credit, Paket, kaufen, Preis, Preise, Kosten, Zahlung, bezahlen, Premium, kostenpflichtig, Szene, Abo, Abonnement, kündigen, Mitgliedschaft, Mitglied, E-Mail-Code',
   'help.plus.leaderboard':
     'Wer am meisten hört, unter den Plus-Mitgliedern, die beitreten.',
   'help.plus.visualizers':
@@ -518,9 +515,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.gallery.title': 'Die Visualizer-Galerie',
   'help.gallery.intro':
-    'Visualizer enthält die eigenen Szenen von FluidEQ und die, die Mitglieder veröffentlichen. Mit jedem Konto können Sie stöbern und die kostenlosen Kostproben von FluidEQ zehn Sekunden lang ausprobieren; mit Plus spielen Sie jede Szene zu Ihrer Musik ab und fügen sie Ihren Darstellungen hinzu.',
+    '„Visualizer“ enthält die Szenen von FluidEQ selbst und die, die Mitglieder veröffentlichen. Jedes Konto kann sie durchstöbern und jede Szene zehn Sekunden lang ansehen; eine mit einem Credit geholte Szene läuft zu Ihrer Musik und bleibt für immer in Ihren Darstellungen.',
   'help.gallery.steps':
-    'Öffnen Sie Plus → Visualizer. Suchen Sie, sortieren Sie nach Beliebteste, Diese Woche oder Neueste, oder wählen Sie eine Kategorie.\nÖffnen Sie eine Szene, drücken Sie Zu meinen Darstellungen und dann Im Diagramm abspielen. Die Pfeile oder ← und → wechseln zwischen den Szenen.\nGeben Sie Szenen von Mitgliedern mit dem Herzsymbol ein „Gefällt mir“ und melden Sie eine, die dort nicht hingehört.',
+    'Öffnen Sie Plus → Visualizer. Suchen Sie, sortieren Sie nach Beliebteste, Diese Woche oder Neueste, oder wählen Sie eine Kategorie.\nÖffnen Sie eine Szene und drücken Sie Holen, um sie mit einem Credit zu behalten, dann Im Diagramm abspielen. Die Pfeile oder ← und → wechseln zwischen den Szenen.\nGeben Sie Ihren Szenen mit dem Herz ein Like, und melden Sie eine, die nicht dorthin gehört.',
   'help.gallery.tip':
     'Szenen in Ihren Darstellungen aktualisieren sich selbst, und die Seite einer Szene zeigt, was sich in jeder Version geändert hat. Eine Szene, die Sie veröffentlichen, erscheint, sobald der Macher von FluidEQ sie freigegeben hat. Im Studio öffnen zeigt, wie die eigenen Szenen von FluidEQ gemacht sind.',
   'help.gallery.keywords':
@@ -565,11 +562,11 @@ const help: Record<keyof typeof en, string> = {
 
   'help.studio.title': 'Szenen im Studio bauen',
   'help.studio.intro':
-    'Das Studio macht aus einer Beschreibung einen Visualizer. Ihr eigener KI-Assistent schreibt die Szene in einen Projektordner, und FluidEQ spielt jede Version zu Ihrer Musik ab, sobald sie gespeichert ist. Das Studio gehört zu Plus; ein neues Konto kann es mit der Gratis-Testphase öffnen.',
+    'Das Studio macht aus einer Beschreibung einen Visualizer. Ihr eigener KI-Assistent schreibt die Szene in einen Projektordner, und FluidEQ spielt jede Version zu Ihrer Musik ab, sobald sie gespeichert ist. Das Studio ist für jedes Konto kostenlos.',
   'help.studio.steps':
     'Öffnen Sie Plus → Studio und drücken Sie Neues Projekt…. Geben Sie ihm einen Namen; FluidEQ legt seinen Ordner mit einer Szene an, die sich schon bewegt.\nBeschreiben Sie Ihre Idee, öffnen Sie den Ordner in Ihrem KI-Assistenten und fügen Sie den Prompt aus KI-Prompt kopieren ein.\nOder schreiben Sie in den Chat neben der Bühne, was sich ändern soll: Claude Code auf diesem Computer, mit Ihrem eigenen Abo angemeldet, bearbeitet die Szene und spielt jede Version. Jede Antwort behält ihre Version, mit Zurückholen.\nBeobachten Sie die Bühne, während Dateien gespeichert werden, und probieren Sie die Testsignale aus. Dann Zu meinen Darstellungen, Veröffentlichen… oder Exportieren….',
   'help.studio.tip':
-    'Doppelklicken Sie auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten. Eine Szene, die Sie veröffentlichen, liest zuerst der Macher von FluidEQ, und eine freigegebene Szene bringt Ihnen einen Monat Plus.',
+    'Doppelklicken Sie auf die Bühne für Vollbild. In eine FluidEQ-Szene hineinschauen… öffnet eine der eigenen Szenen von FluidEQ zum Lernen; sie kann nicht veröffentlicht werden. Szenen, die stark flackern oder zu aufwendig sind, werden zurückgehalten. Eine Szene, die Sie veröffentlichen, liest zuerst der Macher von FluidEQ, und sobald sie freigegeben ist, läuft sie für Sie überall kostenlos.',
   'help.studio.keywords':
     'visualizer erstellen, szeneneditor, shader, GLSL, programmieren, ChatGPT, Claude, creator, hochladen, Chat, Studio-Chat, Änderung erbitten, Claude Code, Zurückholen, Versionen',
   'help.studio.project': 'Ihre Projekte und FluidEQ-Szenen zum Hineinschauen.',

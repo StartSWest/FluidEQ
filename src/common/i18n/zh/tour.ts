@@ -171,21 +171,20 @@ const tour: Partial<Dictionary> = {
     '均衡器曲线的低音、中音和高音三段，移动它们的三个旋钮，以及从六段到三十一段的快速布局。',
   'tour.studio.kicker': 'FluidEQ Plus',
   'tour.studio.title': '打造你自己的可视化效果',
-  'tour.studio.subtitle': '免费体验 15 天，或换来一个月',
+  'tour.studio.subtitle': '所有账户免费',
   'tour.studio.lead':
-    '工作室能把一个想法变成随你的音乐而动的场景。它现在属于 Plus，新账户可以免费体验十五天，无需银行卡，体验结束时也不会扣费。',
+    '工作室把一个想法变成随音乐律动的场景。它对所有账户免费：想创作、导出和发布多少场景都可以。',
   'tour.studio.point1':
-    '每个场景在进入图库前都会经过审核，通过审核的场景会让你下个月的 Plus 免费。',
+    '每个场景在进入画廊前都会经过审核，获批后它会在任何地方为你免费播放。',
   'tour.studio.point2':
     '场景可以是真正的 3D 世界，踩着底鼓的节拍，在 drop 时一跃而起。',
   'tour.studio.point3':
     '复制 AI 提示词，你的 AI 助手就能看到你的场景，并听出歌曲如何起伏。',
-  'tour.studio.how':
-    '打开 Plus，在侧栏中选择“工作室”。没有 Plus 时，那里的页面会提供免费体验。',
+  'tour.studio.how': '打开 Plus，在侧栏中选择“工作室”。',
   'tour.studio.open': '打开 Plus',
   'tour.studio.imageAlt':
-    '舞台上正在播放 Alpine 的工作室：雪峰下的湖泊与极光，下方是用你的 AI 制作场景的三个步骤，然后是十五天免费体验，以及通过审核的场景换来的一个月。',
-  'tour.studio.earned': '审核通过：下个月免费',
+    '工作室的舞台上正播放 Alpine：雪峰下的湖泊和极光，下方是用你的 AI 创作场景的三个步骤，以及两条说明：所有账户免费，发布的场景对其作者免费播放。',
+  'tour.studio.earned': '已发布：为你免费播放',
   'tour.help.kicker': '帮助',
   'tour.help.title': '用你自己的话问指南',
   'tour.help.subtitle': '不怕错字和单复数，支持十种语言',
@@ -246,15 +245,16 @@ const tour: Partial<Dictionary> = {
     '俯视的房间：七只音箱和一只低音炮围绕中央的头部，每只都有通往双耳的路径。',
 
   'tour.plus.kicker': 'FluidEQ Plus',
-  'tour.plus.title': '欢迎来到 FluidEQ Plus',
+  'tour.plus.title': '永久归你的场景',
   'tour.plus.subtitle': '可视化、工作室、灯效，还有更多',
   'tour.plus.lead':
-    '这是一项可选的会员服务，支持 FluidEQ 持续成长，并拥有一个全新的专属标签页：由显卡绘制的场景、用来创作自己场景的工作室、排行榜、桌面背景和动态灯效。均衡器、机架和播放器一如既往，依然免费。',
+    '一整个让 FluidEQ 不断成长的扩展标签页：在显卡上绘制的场景、创作自己场景的工作室、排行榜、桌面背景和动态灯光。每个场景一点并永久归你，而均衡器、效果架和播放器一如既往保持免费。',
   'tour.plus.point1':
-    '在操作菜单的“账户”中登录；付款在浏览器中完成，之后 Plus 会自动开启。',
+    '从操作菜单中的“账户”登录：已确认的账户可免费获得起步点数。',
   'tour.plus.point2':
-    '按月或按年订阅，付款前就能读到通俗易懂的条款。应用永远不会看到你的银行卡。',
-  'tour.plus.point3': '最多可在五台电脑上登录，新的可视化效果也会陆续加入。',
+    '点数包只需付款一次，付款前有用平实语言写成的条款。不会自动续费，应用也从不接触你的银行卡。',
+  'tour.plus.point3':
+    '每个场景都可以先观看，你获取的场景会在你登录的每台电脑上播放。',
   'tour.plus.how':
     '打开 Plus 标签页：“排行榜”“可视化”“工作室”和“动态灯效”都在它的左侧。',
   'tour.plus.open': '打开 Plus',
@@ -672,6 +672,7 @@ const tour: Partial<Dictionary> = {
   'tour.media.how':
     '打开“在线媒体”标签页，在顶部一行选一个网站，在搜索框输入并按搜索。后退、前进和刷新与浏览器一样。',
   'tour.media.open': '打开在线媒体',
+  'tour.studio.free': '所有账户免费',
 };
 
 export default tour;

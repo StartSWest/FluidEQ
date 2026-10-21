@@ -23,26 +23,6 @@ const studio = {
   'studio.description': 'Crea scene con la tua IA e guardale dal vivo',
   'studio.rail.blurb': 'Crea le tue scene',
 
-  'studio.plus.locked': 'Solo con Plus',
-  'studio.locked.title': 'Lo Studio fa parte di Plus',
-  'studio.locked.body':
-    'Qui nascono le scene di FluidEQ, e qui può nascere la tua.',
-  'studio.locked.write':
-    'Scrivi la scena accanto a un palco che si ricostruisce a ogni salvataggio',
-  'studio.locked.test': 'Provala sulla musica e guarda quanto costa disegnarla',
-  'studio.locked.publish': 'Pubblicala nella galleria per tutti i membri',
-  'studio.locked.keptOne': 'Il tuo progetto è dove l’hai lasciato, in',
-  'studio.locked.keptMany':
-    'I tuoi {count} progetti sono dove li hai lasciati, in',
-  'studio.locked.earn':
-    'Una scena che pubblichi regala un mese di Plus appena viene approvata.',
-  'studio.plus.oneFolder':
-    'Senza Plus si apre la prima; le altre restano in elenco con un lucchetto, per Plus.',
-  'studio.plus.lockedProject':
-    'Con Plus si apre anche questo progetto; senza Plus lo Studio ne tiene uno.',
-  'studio.plus.oneProject':
-    'Senza Plus lo Studio tiene un progetto. Pubblica una scena e, appena viene approvata, il mese successivo è gratis, oppure prendi Plus per averne quanti vuoi.',
-
   'studio.maker.title': 'Creala con la tua IA',
   'studio.maker.describe': 'Descrivi la tua scena',
   'studio.maker.placeholder':
@@ -146,11 +126,11 @@ const studio = {
   'studio.publish.needNote': 'Dì prima cosa c’è di nuovo in questa versione',
   'studio.publish.noteNeeded': 'Obbligatorio',
   'studio.publish.point1':
-    'Chiunque abbia effettuato l’accesso la vedrà in Visualizzatori. I membri Plus potranno riprodurla, aggiungerla ai loro aspetti e metterle mi piace.',
+    'Chiunque abbia effettuato l’accesso può vederla in Visualizzatori, guardarla per qualche secondo e ottenerla con un credito. Per te suona gratis.',
   'studio.publish.point2':
     'Ogni mi piace ti fa guadagnare punti in classifica.',
   'studio.publish.point3':
-    'Puoi ritirarla per impedire nuovi download. Le copie già scaricate restano disponibili con Plus.',
+    'Puoi ritirarla dalla pubblicazione perché nessuno di nuovo possa ottenerla. Chi ce l’ha già la tiene.',
   'studio.publish.point3Update':
     'Chi l’ha aggiunta vedrà Aggiorna e terrà la versione precedente finché non lo preme.',
   'studio.publish.read': 'Leggi le condizioni',
@@ -177,7 +157,7 @@ const studio = {
   'studio.publish.officialCopy':
     'Questa scena è in gran parte una di quelle di FluidEQ. Prendi pure idee, ma rendi la scena tua prima di pubblicarla.',
   'studio.publish.outdated':
-    'Le condizioni di Plus hanno una versione più recente. Aggiorna FluidEQ per leggerla e pubblicare.',
+    'Le condizioni hanno una versione più recente. Aggiorna FluidEQ per leggerla e pubblicare.',
   'studio.publish.versionTaken':
     'Questa scena è stata pubblicata di nuovo poco fa. Riprova e uscirà come versione successiva.',
   'studio.publish.takenDown':
@@ -219,13 +199,13 @@ const studio = {
     'Questa versione si potrà aggiungere quando si riproduce.',
 
   'studio.notice.exported':
-    '{file} è pronto. Qualsiasi membro Plus può aprirlo nel suo Studio.',
+    '{file} è pronto. Chi lo riceve può aprirlo in FluidEQ.',
 
   'studio.share.title': 'Condividi le scene che crei',
   'studio.share.lead':
-    'Le tue scene restano tue. Esportarne una permette agli altri membri Plus di riprodurla, ed è parte di ciò che Plus è.',
+    'Le tue scene restano tue. Esportarne una permette ad altri membri di aprirla, e la riproducono quando ce l’hanno.',
   'studio.share.point1':
-    'Chi riceve il file può riprodurlo finché ha Plus. Non può venderlo.',
+    'Chi riceve il file la riproduce solo quando la scena è sua, con un credito dopo la pubblicazione. Non può venderla.',
   'studio.share.point2':
     'Ogni mi piace di un altro membro ti fa guadagnare punti in classifica.',
   'studio.share.point3':
@@ -252,7 +232,7 @@ const studio = {
     'Questa è una scena di FluidEQ, aperta per guardarci dentro. Non si può aggiungere ai tuoi aspetti, pubblicare o esportare.',
   'studio.export.banned': 'Questo account non può più condividere scene.',
   'studio.export.outdated':
-    'Le condizioni di Plus hanno una nuova versione. Aggiorna FluidEQ per leggerla ed esportare.',
+    'Le condizioni hanno una versione più recente. Aggiorna FluidEQ per leggerla ed esportare.',
 
   'studio.import.done': '{name}, di {author}, è nei tuoi aspetti.',
   'studio.import.doneAnonymous': '{name} è nei tuoi aspetti.',
@@ -260,6 +240,12 @@ const studio = {
   'studio.import.ownRestored':
     '{name} è tua. È di nuovo nei tuoi aspetti e aperta qui per continuare a lavorarci.',
   'studio.import.unreadable': 'Quel file non è una scena di FluidEQ.',
+  'studio.import.signedOut': 'Accedi per aprire un file di scena.',
+  'studio.draft.badge': 'Bozza',
+  'studio.draft.line': 'Pubblicala per vederla intera',
+  'studio.new.signedOut': 'Accedi per iniziare un progetto.',
+  'studio.notice.unpublished':
+    'Prima pubblicala: la tua scena entra nei tuoi look quando è nella galleria.',
   'studio.import.changed':
     'Quel file è stato modificato dopo l’esportazione, quindi FluidEQ non lo riprodurrà.',
   'studio.import.blocked': 'Quella scena è stata rimossa.',
@@ -366,7 +352,6 @@ const studio = {
   'studio.work.pictures': 'Immagini',
   'studio.work.tune': 'Regola',
   'studio.ship.more': 'Altro',
-  'studio.ship.makerTitle': 'Puoi continuare a pubblicare',
   'studio.signals.title': 'Audio dell’anteprima',
   'studio.signals.hint':
     'La scena reagisce sempre alla musica di ogni utente. I segnali di prova animano solo questa anteprima: non vengono salvati né pubblicati e non modificano mai il tuo audio.',

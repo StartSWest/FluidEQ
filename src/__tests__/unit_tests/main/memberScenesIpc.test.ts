@@ -36,8 +36,6 @@ import {
   type TNewProjectResult,
 } from '../../../main/ipc/memberScenes';
 import { writeStarterProject } from '../../../main/memberScenes/project';
-import { setKnownMaker } from '../../../main/account/knownMakers';
-import type { IEntitlementStatus } from '../../../main/account/entitlement';
 import { memberPack } from '../../utils/memberSceneFixtures';
 /* eslint-enable import/first */
 
@@ -53,8 +51,10 @@ const invoke = <T>(channel: string, ...args: unknown[]) => {
 };
 
 let root: string;
-let status: IEntitlementStatus;
-let listeners: Array<(value: IEntitlementStatus) => void>;
+/** Who is signed in, and whether every scene is theirs to play. */
+let me: string | undefined;
+let owned: boolean;
+let listeners: Array<() => void>;
 let chosen: string | undefined;
 /** Where the last folder dialog opened. */
 let dialogOpenedAt: string | undefined;
@@ -97,15 +97,18 @@ const setup = (
     userDataDir: path.join(root, 'userData'),
     documentsDir: path.join(root, 'Documents'),
     session: {
-      state: () => ({ status: 'signed-in', identity: { id: ME } }),
+      state: () =>
+        me
+          ? { status: 'signed-in', identity: { id: me } }
+          : { status: 'signed-out' },
     } as never,
-    entitlement: {
-      status: () => status,
-      subscribe: (listener: (value: IEntitlementStatus) => void) => {
+    ownership: {
+      owns: () => owned,
+      subscribe: (listener: () => void) => {
         listeners.push(listener);
         return () => undefined;
       },
-    } as never,
+    },
     dialogImpl: {
       showOpenDialog: (async (_window: unknown, options: unknown) => {
         dialogOpenedAt = (options as { defaultPath?: string }).defaultPath;
@@ -119,16 +122,14 @@ const setup = (
   });
 };
 
-/**
- * The account has had a scene approved before. That, not merely being
- * signed in, is what keeps one Studio project open without Plus.
- */
-const asMaker = () => setKnownMaker(path.join(root, 'userData'), ME, true);
+/** A buy, a publication, Plus or the account changed what plays. */
+const ownershipChanged = () => listeners.forEach((listener) => listener());
 
 beforeEach(() => {
   handlers.clear();
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-studio-ipc-'));
-  status = { state: 'active' };
+  me = ME;
+  owned = true;
   listeners = [];
   chosen = undefined;
   dialogOpenedAt = undefined;
@@ -186,7 +187,7 @@ describe('member scenes over IPC', () => {
     registration.dispose();
   });
 
-  it('refuses every drawing and sharing call without Plus, and keeps the one project', async () => {
+  it('plays and adds only what the account owns, and locks the rest without losing it', async () => {
     const registration = setup();
     chosen = await project();
     await invoke<Promise<IStudioState>>('studio-open');
@@ -195,21 +196,20 @@ describe('member scenes over IPC', () => {
     const { lookId } =
       invoke<IMemberScenesListing>('member-scenes-list').scenes[0];
 
-    status = { state: 'none' };
-    asMaker();
-    listeners.forEach((listener) => listener(status));
+    // Not owned now: a draft of their own taken out of the gallery, say.
+    owned = false;
+    ownershipChanged();
     expect(invoke('member-scenes-load', lookId)).toBeUndefined();
-    // The project they have stays; a second one is Plus's.
-    expect(await invoke('studio-create-project', 'Neon City')).toBe(
-      'plus-only',
-    );
+    // The Studio stays theirs: another project is made as before.
+    expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
+    // A draft goes into the looks once it is in the gallery.
     expect(await invoke('studio-add-to-looks')).toEqual({
       ok: false,
-      reason: 'not-entitled',
+      reason: 'unpublished',
     });
     // Kept and shown locked, never deleted.
     const listing = invoke<IMemberScenesListing>('member-scenes-list');
-    expect(listing.entitled).toBe(false);
+    expect(listing.scenes).toEqual([]);
     expect(listing.locked.map((scene) => scene.lookId)).toEqual([lookId]);
     // And the member can still take their own work out.
     expect(invoke('member-scenes-remove', lookId)).toBe(true);
@@ -412,110 +412,63 @@ describe('member scenes over IPC', () => {
       'failed',
     );
 
-    // Their own project is theirs to work on with or without Plus.
-    status = { state: 'none' };
-    asMaker();
-    listeners.forEach((listener) => listener(status));
-    expect(await invoke('studio-write-source', '// without Plus')).toBe(
+    // Their own project is theirs to work on whatever they own.
+    owned = false;
+    ownershipChanged();
+    expect(await invoke('studio-write-source', '// owning nothing')).toBe(
       'written',
     );
-    expect(fs.readFileSync(file, 'utf8')).toBe('// without Plus');
+    expect(fs.readFileSync(file, 'utf8')).toBe('// owning nothing');
     registration.dispose();
   });
 
-  it('gives a maker without Plus one project, made and worked on here', async () => {
-    status = { state: 'none' };
-    asMaker();
+  it('gives a signed-in account as many projects as it likes, owning nothing', async () => {
+    owned = false;
     const registration = setup();
     const opened = await invoke<Promise<IStudioState>>('studio-open');
-    expect(opened).toMatchObject({ entitled: false, mayAddProject: true });
+    expect(opened).toMatchObject({ mayAddProject: true });
 
     expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
-    const state = await invoke<Promise<IStudioState>>('studio-open');
-    expect(state.projects.map((entry) => entry.names?.en)).toEqual([
-      'Neon City',
-    ]);
-    // It plays and is edited like any other: the source is written, its
-    // settings and notes are saved, and the folder is watched.
     expect(await invoke('studio-write-source', '// mine')).toBe('written');
-    const folder = state.projects[0]?.path ?? '';
-    expect(fs.readFileSync(path.join(folder, 'scene.frag'), 'utf8')).toBe(
-      '// mine',
-    );
-
-    // The second one, and every other way to one, is Plus's.
-    expect(state.mayAddProject).toBe(false);
-    expect(await invoke('studio-create-project', 'Deep Sea')).toBe('plus-only');
+    expect(await invoke('studio-create-project', 'Deep Sea')).toBe('written');
     chosen = await project();
-    expect((await link()).projects.map((entry) => entry.names?.en)).toEqual([
+    const linked = await link();
+    expect(linked.projects.map((entry) => entry.folderName).sort()).toEqual([
+      'Deep Sea',
       'Neon City',
+      'my-scene',
     ]);
-    expect(await invoke('studio-add-to-looks')).toEqual({
-      ok: false,
-      reason: 'not-entitled',
-    });
-    expect(invoke<IMemberScenesListing>('member-scenes-list').scenes).toEqual(
-      [],
-    );
+    expect(linked.mayAddProject).toBe(true);
+    // Publishing asks this (`plusPublishing.ts`): the open project goes out.
+    expect(registration.mayUseActive()).toBe(true);
     registration.dispose();
   });
 
-  it('gives a member with neither Plus nor an approved scene no project at all', async () => {
-    // The Studio is Plus's, reached through the trial (Ivan, 2026-09-20).
-    // The one project above is the maker's way back in — somebody who has
-    // never had a scene approved has nothing to be locked out of, and the
-    // page shows them what the Studio is instead of a bench.
-    status = { state: 'none' };
+  it('gives nobody signed out a project, and opens one again on signing in', async () => {
+    me = undefined;
     const registration = setup();
     const opened = await invoke<Promise<IStudioState>>('studio-open');
-    expect(opened).toMatchObject({
-      entitled: false,
-      maker: false,
-      mayAddProject: false,
-    });
-
+    expect(opened).toMatchObject({ mayAddProject: false });
     expect(await invoke('studio-create-project', 'Neon City')).toBe(
-      'plus-only',
+      'signed-out',
     );
     chosen = await project();
-    expect((await link()).projects).toEqual([]);
-
-    // And the same account, once the server says it is a maker: the state
-    // the page is given says so, and the project can be made. Without this
-    // control the refusals above could be anything at all.
-    asMaker();
-    registration.makerChanged();
-    const asMakerNow = await invoke<Promise<IStudioState>>('studio-open');
-    expect(asMakerNow).toMatchObject({ maker: true, mayAddProject: true });
-    expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
-    registration.dispose();
-  });
-
-  it('lets publishing reach the project a maker keeps without Plus, and nobody else', async () => {
-    status = { state: 'none' };
-    asMaker();
-    const registration = setup();
-    await invoke<Promise<IStudioState>>('studio-open');
-    expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
-    // Publishing asks this (`plusPublishing.ts`): it is how a maker earns
-    // their next month, so the project they keep has to be able to go out.
-    expect(registration.mayUseActive()).toBe(true);
-    // With Plus, whatever the server says about approvals.
-    setKnownMaker(path.join(root, 'userData'), ME, false);
-    status = { state: 'active' };
-    listeners.forEach((listener) => listener(status));
-    expect(registration.mayUseActive()).toBe(true);
-    // Neither — Plus gone, the approval taken back by a takedown — and there
-    // is no project left to publish from, as there is none left to open.
-    status = { state: 'none' };
-    listeners.forEach((listener) => listener(status));
+    expect(
+      (await invoke<Promise<ILinkFolderResult>>('studio-link-folder')).outcome,
+    ).toBe('signed-out');
     expect(registration.mayUseActive()).toBe(false);
+
+    // The control: the same account signed in makes one at once.
+    me = ME;
+    ownershipChanged();
+    expect(
+      (await invoke<Promise<IStudioState>>('studio-open')).mayAddProject,
+    ).toBe(true);
+    expect(await invoke('studio-create-project', 'Neon City')).toBe('written');
     registration.dispose();
   });
 
-  it('opens the first of a folder of several without Plus, and lists the rest locked', async () => {
-    status = { state: 'none' };
-    asMaker();
+  it('opens every project of a folder of several, none of them locked', async () => {
     const registration = setup();
     const many = path.join(root, 'many');
     fs.mkdirSync(many);
@@ -530,129 +483,64 @@ describe('member scenes over IPC', () => {
     chosen = many;
     const linked =
       await invoke<Promise<ILinkFolderResult>>('studio-link-folder');
-    expect(linked.outcome).toBe('one-opened');
-    const byName = (state: IStudioState) =>
-      [...state.projects]
-        .sort((a, b) => a.folderName.localeCompare(b.folderName))
-        .map((entry) => `${entry.folderName}${entry.locked ? ':locked' : ''}`);
-    // All three listed, the first by name on the bench, the others locked.
-    expect(byName(linked.state)).toEqual(['one', 'three:locked', 'two:locked']);
-    const one = linked.state.projects.find(
-      (entry) => entry.folderName === 'one',
-    );
+    expect(linked.outcome).toBe('linked');
+    expect(
+      linked.state.projects.map((entry) => entry.folderName).sort(),
+    ).toEqual(['one', 'three', 'two']);
     const two = linked.state.projects.find(
       (entry) => entry.folderName === 'two',
     );
-    expect(linked.state.activeId).toBe(one?.id);
-    expect(linked.state.mayAddProject).toBe(false);
-    // A locked one is not picked, and its notes are not read or written.
-    expect(
-      (await invoke<Promise<IStudioState>>('studio-select-project', two?.id))
-        .activeId,
-    ).toBe(one?.id);
-    const notes = { description: 'two', prompt: 'the second scene' };
-    expect(invoke('studio-notes-save', two?.id, notes)).toBe(false);
-    // Letting the open one go moves the bench to the next: one at a time.
-    const after = await invoke<Promise<IStudioState>>(
-      'studio-forget-project',
-      one?.id,
-    );
-    expect(after.projects.map((entry) => entry.locked)).toContain(undefined);
-    expect(after.activeId).toBeDefined();
-    expect(
-      after.projects.find((entry) => entry.id === after.activeId)?.locked,
-    ).toBeUndefined();
-    // With Plus every one of them opens, and lapsing keeps the open one.
-    status = { state: 'active' };
-    listeners.forEach((listener) => listener(status));
-    const opened = await invoke<Promise<IStudioState>>(
+    const picked = await invoke<Promise<IStudioState>>(
       'studio-select-project',
       two?.id,
     );
-    expect(opened.activeId).toBe(two?.id);
-    expect(opened.projects.every((entry) => !entry.locked)).toBe(true);
-    status = { state: 'none' };
-    asMaker();
-    listeners.forEach((listener) => listener(status));
-    const lapsed = await invoke<Promise<IStudioState>>('studio-open');
-    expect(lapsed.activeId).toBe(two?.id);
-    expect(byName(lapsed)).toEqual(['three:locked', 'two']);
+    expect(picked.activeId).toBe(two?.id);
+    const notes = { description: 'two', prompt: 'the second scene' };
+    expect(invoke('studio-notes-save', two?.id, notes)).toBe(true);
     // A cancelled dialog says so.
     chosen = undefined;
-    status = { state: 'active' };
     expect(
       (await invoke<Promise<ILinkFolderResult>>('studio-link-folder')).outcome,
     ).toBe('cancelled');
     registration.dispose();
   });
 
-  it('makes one project at a time: two asked for together leave one without Plus', async () => {
-    status = { state: 'none' };
-    asMaker();
+  it('makes two projects asked for together, each in a folder of its own', async () => {
     const registration = setup();
     await invoke<Promise<IStudioState>>('studio-open');
     const results = await Promise.all([
       invoke<Promise<TNewProjectResult>>('studio-create-project', 'One'),
       invoke<Promise<TNewProjectResult>>('studio-create-project', 'Two'),
     ]);
-    expect(results).toEqual(['written', 'plus-only']);
+    expect(results).toEqual(['written', 'written']);
     const state = await invoke<Promise<IStudioState>>('studio-open');
-    expect(state.projects).toHaveLength(1);
+    expect(state.projects).toHaveLength(2);
     expect(
       fs.existsSync(path.join(root, 'Documents', 'FluidEQ Studio', 'Two')),
-    ).toBe(false);
+    ).toBe(true);
     registration.dispose();
   });
 
-  it('moves the bench off a FluidEQ scene when Plus lapses, and keeps its mark for when it returns', async () => {
+  it('keeps a FluidEQ scene open to look inside whatever the account owns', async () => {
     const registration = setup();
     await invoke<Promise<IStudioState>>('studio-open');
     chosen = await project();
-    const mine = (await link()).projects[0];
+    await link();
     const aurora = memberPack({ id: 'aurora', names: { en: 'Aurora' } });
     await registration.openInspection(aurora);
-    const withPlus = await invoke<Promise<IStudioState>>('studio-open');
-    const official = withPlus.projects.find((entry) => entry.official);
-    expect(withPlus.activeId).toBe(official?.id);
+    const before = await invoke<Promise<IStudioState>>('studio-open');
+    const official = before.projects.find((entry) => entry.official);
+    expect(before.activeId).toBe(official?.id);
 
-    status = { state: 'none' };
-    asMaker();
-    listeners.forEach((listener) => listener(status));
-    const lapsed = await invoke<Promise<IStudioState>>('studio-open');
-    // Listed with a lock and off the bench: the member's own project opens.
-    expect(
-      lapsed.projects.map((entry) => [entry.id, entry.locked ?? false]),
-    ).toEqual([
-      [mine?.id, false],
-      [official?.id, true],
-    ]);
-    expect(lapsed.activeId).toBe(mine?.id);
-    expect(registration.activeIsInspection()).toBe(false);
-    // Not to be picked, read, or let go of — letting go would drop the mark,
-    // and the folder opened again would come back as the member's own.
-    expect(
-      (
-        await invoke<Promise<IStudioState>>(
-          'studio-select-project',
-          official?.id,
-        )
-      ).activeId,
-    ).toBe(mine?.id);
-    const notes = { description: 'mine', prompt: 'a scene of my own' };
-    expect(invoke('studio-notes-save', official?.id, notes)).toBe(false);
-    expect(invoke('studio-notes-save', mine?.id, notes)).toBe(true);
-    await invoke<Promise<IStudioState>>('studio-forget-project', official?.id);
-
-    status = { state: 'active' };
-    listeners.forEach((listener) => listener(status));
-    const back = await invoke<Promise<IStudioState>>('studio-open');
-    expect(back.projects.find((entry) => entry.official)?.id).toBe(
-      official?.id,
-    );
+    owned = false;
+    ownershipChanged();
+    const after = await invoke<Promise<IStudioState>>('studio-open');
+    expect(after.activeId).toBe(official?.id);
+    expect(registration.activeIsInspection()).toBe(true);
     registration.dispose();
   });
 
-  it('refreshes a look from a settings save only with Plus', async () => {
+  it('refreshes a look from a settings save, whatever the account owns', async () => {
     const registration = setup();
     await invoke<Promise<IStudioState>>('studio-open');
     chosen = await project();
@@ -663,15 +551,11 @@ describe('member scenes over IPC', () => {
       written: 'written',
       lookUpdated: true,
     });
-
-    status = { state: 'none' };
-    asMaker();
-    listeners.forEach((listener) => listener(status));
-    // The project is still theirs to edit; the look they added stays as it
-    // was, since saving it again is adding it, and adding is Plus's.
+    owned = false;
+    ownershipChanged();
     expect(
       await invoke('studio-write-settings', { params: { glow: 0.5 } }),
-    ).toEqual({ written: 'written', lookUpdated: false });
+    ).toEqual({ written: 'written', lookUpdated: true });
     registration.dispose();
   });
 

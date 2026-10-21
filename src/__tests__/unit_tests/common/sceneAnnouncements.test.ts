@@ -12,14 +12,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import {
-  ANNOUNCEMENT_TRIAL_WINDOW_MS,
   MAX_ANNOUNCEMENT_SCENES,
   nextAnnouncement,
   parseAdminAnnouncements,
   parseAnnouncements,
   readAnnouncementDraft,
   trialEndsByDay,
-  trialEndsSoon,
   type IAnnouncement,
 } from '../../../common/sceneAnnouncements';
 
@@ -62,11 +60,14 @@ describe('what a member’s app reads', () => {
     ]);
   });
 
-  it('carries the member’s own trial end when they are on one', () => {
+  // The card's line about a trial ending offered Plus, which is not sold any
+  // more: a row that still carries the end reads as one without it.
+  it('reads past the trial end a row still carries', () => {
     const [read] = parseAnnouncements([
       { ...row, trial_ends_at: '2026-10-15T08:00:00Z' },
     ]);
-    expect(read?.trialEndsAt).toBe(Date.parse('2026-10-15T08:00:00Z'));
+    expect(read).toBeDefined();
+    expect(read && 'trialEndsAt' in read).toBe(false);
   });
 
   it('passes over a row that does not read and keeps the rest', () => {
@@ -146,28 +147,17 @@ describe('what the composer may send', () => {
 });
 
 describe('which one a member is shown', () => {
-  const at = (id: number, trialEndsAt?: number): IAnnouncement => ({
+  const at = (id: number): IAnnouncement => ({
     id,
     title: 't',
     body: '',
     scenes: [],
     startsAt: 0,
-    ...(trialEndsAt === undefined ? {} : { trialEndsAt }),
   });
 
   it('is the newest not yet seen', () => {
     expect(nextAnnouncement([at(3), at(2), at(1)], new Set([3]))?.id).toBe(2);
     expect(nextAnnouncement([at(3)], new Set([3]))).toBeUndefined();
-  });
-
-  it('adds the trial line only within two days of the trial’s end', () => {
-    const now = 1_000_000_000_000;
-    expect(trialEndsSoon(at(1, now + 3_600_000), now)).toBe(true);
-    expect(
-      trialEndsSoon(at(1, now + ANNOUNCEMENT_TRIAL_WINDOW_MS + 1), now),
-    ).toBe(false);
-    expect(trialEndsSoon(at(1, now - 1), now)).toBe(false);
-    expect(trialEndsSoon(at(1), now)).toBe(false);
   });
 });
 

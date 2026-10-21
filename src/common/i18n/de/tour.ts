@@ -180,21 +180,21 @@ const tour: Partial<Dictionary> = {
     'Die Kurve des Equalizers in ihren Dritteln für Bass, Mitten und Höhen, die drei Regler, die sie bewegen, und Schnelle Anordnungen von sechs bis einunddreißig Bändern.',
   'tour.studio.kicker': 'FLUIDEQ PLUS',
   'tour.studio.title': 'Bauen Sie Ihren eigenen Visualizer',
-  'tour.studio.subtitle': '15 Tage kostenlos oder einen Monat verdienen',
+  'tour.studio.subtitle': 'Kostenlos für jedes Konto',
   'tour.studio.lead':
-    'Das Studio macht aus einer Idee eine Szene, die sich mit Ihrer Musik bewegt. Es gehört jetzt zu Plus, und ein neues Konto kann es fünfzehn Tage kostenlos testen – ohne Karte, und am Ende der Testphase wird nichts berechnet.',
+    'Das Studio macht aus einer Idee eine Szene, die sich mit Ihrer Musik bewegt. Es ist für jedes Konto kostenlos: Erstellen, exportieren und veröffentlichen Sie so viele Szenen, wie Sie möchten.',
   'tour.studio.point1':
-    'Jede Szene wird geprüft, bevor sie in die Galerie kommt, und eine freigegebene bringt Ihnen den nächsten Monat Plus.',
+    'Jede Szene wird geprüft, bevor sie in die Galerie kommt, und sobald sie freigegeben ist, läuft sie für Sie überall kostenlos.',
   'tour.studio.point2':
     'Szenen können echte 3D-Welten sein, die im Takt der Kick tanzen und beim Drop abheben.',
   'tour.studio.point3':
     'Kopieren Sie den KI-Prompt, und Ihr KI-Assistent kann Ihre Szene sehen und hören, wie sich der Song bewegt.',
   'tour.studio.how':
-    'Öffnen Sie Plus und wählen Sie Studio in der Seitenleiste. Ohne Plus bietet die Seite dort die Gratis-Testphase an.',
+    'Öffnen Sie Plus und wählen Sie Studio in der Seitenleiste.',
   'tour.studio.open': 'Plus öffnen',
   'tour.studio.imageAlt':
-    'Das Studio mit Alpine auf seiner Bühne, ein See unter verschneiten Gipfeln und ein Polarlicht, darunter die drei Schritte, mit Ihrer KI eine Szene zu erstellen, dann die fünfzehntägige Testphase und der Monat, den eine freigegebene Szene einbringt.',
-  'tour.studio.earned': 'Freigegeben: nächster Monat kostenlos',
+    'Das Studio mit Alpine auf der Bühne, ein See unter verschneiten Gipfeln und ein Polarlicht, darunter die drei Schritte, mit Ihrer KI eine Szene zu erstellen, und zwei Hinweise: kostenlos für jedes Konto, und eine veröffentlichte Szene läuft für ihren Macher kostenlos.',
+  'tour.studio.earned': 'Veröffentlicht: läuft für Sie kostenlos',
   'tour.help.kicker': 'HILFE',
   'tour.help.title': 'Fragen Sie das Handbuch mit eigenen Worten',
   'tour.help.subtitle': 'Tippfehler, Pluralformen und zehn Sprachen',
@@ -257,16 +257,16 @@ const tour: Partial<Dictionary> = {
     'Ein Raum von oben: sieben Lautsprecher und ein Sub um einen Kopf in der Mitte, jeder mit seinem Weg zu den Ohren.',
 
   'tour.plus.kicker': 'FLUIDEQ PLUS',
-  'tour.plus.title': 'Willkommen bei FluidEQ Plus',
+  'tour.plus.title': 'Szenen, die Ihnen für immer gehören',
   'tour.plus.subtitle': 'Visualizer, Studio, Beleuchtung und mehr',
   'tour.plus.lead':
-    'Eine freiwillige Mitgliedschaft, die FluidEQ weiter wachsen lässt, mit einem ganz neuen Tab dafür: auf Ihrer Grafikkarte gezeichnete Szenen, ein Studio für eigene Szenen, die Rangliste, Desktophintergründe und Dynamische Beleuchtung. Der Equalizer, das Rack und die Player bleiben kostenlos, wie sie es immer waren.',
+    'Ein ganzer Tab mit Extras, der FluidEQ wachsen lässt: Szenen, die auf Ihrer Grafikkarte gezeichnet werden, ein Studio für eigene Szenen, die Rangliste, Desktop-Hintergründe und dynamische Beleuchtung. Eine Szene kostet einen Credit und bleibt Ihre, und der Equalizer, das Rack und die Player bleiben kostenlos, wie sie es immer waren.',
   'tour.plus.point1':
-    'Melden Sie sich im Aktionsmenü unter Konto an; bezahlt wird in Ihrem Browser, und Plus schaltet sich von selbst ein.',
+    'Melden Sie sich über Konto im Aktionsmenü an: Ein bestätigtes Konto erhält zum Start Credits gratis.',
   'tour.plus.point2':
-    'Monatlich oder jährlich, mit Bedingungen in klaren Worten, bevor Sie zahlen. Die App sieht Ihre Karte nie.',
+    'Credit-Pakete werden einmalig bezahlt, mit Bedingungen in klaren Worten vor der Zahlung. Nichts verlängert sich, und die App sieht Ihre Karte nie.',
   'tour.plus.point3':
-    'Auf bis zu fünf Computern angemeldet, mit neuen Visualizern, die nach und nach hinzukommen.',
+    'Jede Szene lässt sich zuerst ansehen, und die geholten laufen auf jedem Computer, auf dem Sie sich anmelden.',
   'tour.plus.how':
     'Öffnen Sie den Tab Plus: Links untereinander stehen Rangliste, Visualizer, Studio und Dynamische Beleuchtung.',
   'tour.plus.open': 'Plus öffnen',
@@ -732,6 +732,7 @@ const tour: Partial<Dictionary> = {
   'tour.media.how':
     'Öffnen Sie den Tab Online-Medien, wählen Sie oben eine Seite, tippen Sie ins Suchfeld und drücken Sie Suchen. Zurück, Vorwärts und Neu laden funktionieren wie im Browser.',
   'tour.media.open': 'Online-Medien öffnen',
+  'tour.studio.free': 'Kostenlos für jedes Konto',
 };
 
 export default tour;

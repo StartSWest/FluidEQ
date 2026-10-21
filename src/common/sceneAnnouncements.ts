@@ -29,13 +29,6 @@ export const MAX_ANNOUNCEMENT_TITLE = 80;
 export const MAX_ANNOUNCEMENT_BODY = 280;
 export const MAX_ANNOUNCEMENT_SCENES = 6;
 
-/**
- * How close a trial's end has to be for the card to add its line about the
- * trial — the same two days the server's trial-ending audience uses
- * (`announcement_trial_window`).
- */
-export const ANNOUNCEMENT_TRIAL_WINDOW_MS = 2 * 24 * 60 * 60 * 1000;
-
 export const isAnnouncementAudience = (
   value: unknown,
 ): value is TAnnouncementAudience =>
@@ -55,12 +48,10 @@ export interface IAnnouncement {
   body: string;
   scenes: IAnnouncedScene[];
   startsAt: number;
-  /** The member's own trial end, while they are on one. */
-  trialEndsAt?: number;
 }
 
 /** An announcement as the admin's page lists it. */
-export interface IAdminAnnouncement extends Omit<IAnnouncement, 'trialEndsAt'> {
+export interface IAdminAnnouncement extends IAnnouncement {
   audience: TAnnouncementAudience;
   createdAt: number;
 }
@@ -143,18 +134,11 @@ export const parseAnnouncements = (rows: unknown): IAnnouncement[] => {
   if (!Array.isArray(rows)) {
     return [];
   }
+  // The row's `trial_ends_at` is not read: the card's line about a trial
+  // ending offered Plus, which is not sold any more.
   return rows.flatMap((raw: unknown): IAnnouncement[] => {
     const read = readCommon(raw);
-    if (!read) {
-      return [];
-    }
-    const trialEndsAt = timeOf(read.row.trial_ends_at);
-    return [
-      {
-        ...read.announcement,
-        ...(Number.isFinite(trialEndsAt) ? { trialEndsAt } : {}),
-      },
-    ];
+    return read ? [read.announcement] : [];
   });
 };
 
@@ -237,15 +221,6 @@ export const nextAnnouncement = (
   seen: ReadonlySet<number>,
 ): IAnnouncement | undefined =>
   announcements.find((announcement) => !seen.has(announcement.id));
-
-/** Whether the card adds its line about the member's trial ending. */
-export const trialEndsSoon = (
-  announcement: IAnnouncement,
-  now: number,
-): boolean =>
-  announcement.trialEndsAt !== undefined &&
-  announcement.trialEndsAt > now &&
-  announcement.trialEndsAt - now <= ANNOUNCEMENT_TRIAL_WINDOW_MS;
 
 /**
  * Trial ends counted by the admin's own calendar day, for "N trials end the

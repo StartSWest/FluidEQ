@@ -45,6 +45,7 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 }));
 jest.mock('../../../renderer/account/entitlementStore', () => ({
   useEntitlement: () => ({ state: 'active' }),
+  getEntitlementSnapshot: () => ({ state: 'active' }),
   subscribeEntitlement: () => () => undefined,
 }));
 jest.mock('../../../renderer/account/accountStore', () => ({
@@ -163,11 +164,10 @@ beforeEach(() => {
   });
   bridge.previewGalleryScene.mockResolvedValue({ ok: true, own: false, pack });
   bridge.listMemberScenes.mockResolvedValue({
-    entitled: true,
     scenes: [],
     locked: [],
   });
-  const listing = { entitled: true, packs: [pack], locked: [] };
+  const listing = { packs: [pack], locked: [] };
   bridge.listScenePacks.mockResolvedValue(listing);
   bridge.refreshScenePacks.mockResolvedValue(listing);
   bridge.onMemberScenesChanged.mockReturnValue(() => undefined);
@@ -211,10 +211,10 @@ describe('the panel beside the stage', () => {
       'community__role',
     );
     // A fact said as a line with its mark, not a stretched pill.
-    expect(panel.getByText('plus.official.included')).toHaveClass(
+    expect(panel.getByText('store.scene.yours')).toHaveClass(
       'gallery-included',
     );
-    expect(panel.getByText('plus.official.fine')).toBeInTheDocument();
+    expect(panel.getByText('store.official.fine')).toBeInTheDocument();
     // FluidEQ's own scenes are Plus looks, not member scenes.
     expect(
       await panel.findByText('plus.scene.inLooksPlus'),
@@ -228,7 +228,7 @@ describe('the panel beside the stage', () => {
     expect(panelElement.querySelector('.gallery-scene__brand')).toBeNull();
     expect(panelElement.querySelector('.community__avatar')).not.toBeNull();
     expect(panel.queryByText('plus.official.badge')).toBeNull();
-    expect(panel.getByText('plus.scene.fine')).toBeInTheDocument();
+    expect(panel.getByText('store.scene.fine')).toBeInTheDocument();
     expect(
       panel.getByRole('button', { name: 'plus.scene.report' }),
     ).toBeEnabled();

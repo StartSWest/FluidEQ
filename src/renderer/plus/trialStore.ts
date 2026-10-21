@@ -1,7 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { PLUS_TERMS_VERSION } from 'common/plusTerms';
 import {
-  PLUS_TRIAL_TERMS_VERSION,
   PLUS_TRIAL_PLAN,
   type IPlusTrialOffer,
   type TPlusTrialFailure,
@@ -13,11 +11,15 @@ import {
   useEntitlement,
 } from '../account/entitlementStore';
 
+/**
+ * A free trial of Plus already taken, as the server reports it: running, or
+ * ended. No trial is started from here any more — Plus is not sold, and the
+ * starter credits are the way in now — so this only reads.
+ */
 interface ITrialState {
   owner: string;
   offer?: IPlusTrialOffer;
   loading: boolean;
-  starting: boolean;
   error?: TPlusTrialFailure;
 }
 
@@ -28,7 +30,6 @@ const ownerNow = () => {
 const initial = (owner: string): ITrialState => ({
   owner,
   loading: true,
-  starting: false,
 });
 let state = initial('');
 let generation = 0;
@@ -54,11 +55,8 @@ const bindAccount = () => {
 };
 
 /** Account, focus and entitlement events refresh this; no background clock. */
-export const refreshPlusTrial = (): Promise<void> => {
+const refreshPlusTrial = (): Promise<void> => {
   bindAccount();
-  if (state.starting) {
-    return Promise.resolve();
-  }
   if (pending) {
     return pending;
   }
@@ -94,50 +92,6 @@ export const refreshPlusTrial = (): Promise<void> => {
     }
   });
   return pending;
-};
-
-/** Never starts from a signup, a page visit, or a remembered checkbox. */
-export const activatePlusTrial = async (
-  accepted: boolean,
-): Promise<boolean> => {
-  bindAccount();
-  if (
-    !accepted ||
-    !state.owner ||
-    state.starting ||
-    state.offer?.state !== 'eligible'
-  ) {
-    return false;
-  }
-  const { owner } = state;
-  const epoch = generation;
-  request += 1;
-  pending = undefined;
-  publish({ starting: true, error: undefined });
-  let result: TPlusTrialOutcome;
-  try {
-    result = (await bridge()?.startPlusTrial?.({
-      accepted: true,
-      termsVersion: PLUS_TERMS_VERSION,
-      trialTermsVersion: PLUS_TRIAL_TERMS_VERSION,
-    })) ?? { ok: false, reason: 'unavailable' };
-  } catch {
-    result = { ok: false, reason: 'offline' };
-  }
-  if (epoch !== generation || ownerNow() !== owner) {
-    return false;
-  }
-  if (!result.ok) {
-    publish({ starting: false, loading: false, error: result.reason });
-    return false;
-  }
-  publish({
-    offer: result.offer,
-    starting: false,
-    loading: false,
-    error: undefined,
-  });
-  return result.offer.state === 'active';
 };
 
 let stop = () => {};

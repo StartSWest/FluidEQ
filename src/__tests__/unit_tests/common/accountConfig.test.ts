@@ -7,7 +7,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   buildAccountConfig,
   isAccountConfigured,
-  isCheckoutConfigured,
 } from '../../../common/accountConfig';
 
 const URL_OK = 'https://abcdefghijklm.supabase.co';
@@ -22,8 +21,6 @@ const OFF = {
   supabaseUrl: '',
   supabaseAnonKey: '',
   apiUrl: '',
-  plusPrice: '',
-  plusYearlyPrice: '',
 };
 
 describe('account backend configuration', () => {
@@ -35,12 +32,8 @@ describe('account backend configuration', () => {
       supabaseUrl: URL_OK,
       supabaseAnonKey: KEY_OK,
       apiUrl: `${URL_OK}/functions/v1`,
-      plusPrice: '',
-      plusYearlyPrice: '',
     });
     expect(isAccountConfigured(buildAccountConfig(valid))).toBe(true);
-    // Accounts without anything to buy is a whole state, not a half-configured one.
-    expect(isCheckoutConfigured(buildAccountConfig(valid))).toBe(false);
   });
 
   /** The one line that changes when the functions move under the product's domain. */
@@ -64,56 +57,22 @@ describe('account backend configuration', () => {
     ).toBe(`${URL_OK}/functions/v1`);
   });
 
-  it('offers the upgrade once a price is given, trimmed', () => {
-    const config = buildAccountConfig({
-      ...valid,
-      FLUIDEQ_PLUS_PRICE: ' $3.99 / month ',
-    });
-    expect(config.plusPrice).toBe('$3.99 / month');
-    expect(isCheckoutConfigured(config)).toBe(true);
-  });
-
-  it('offers a yearly plan beside the monthly one, trimmed', () => {
+  // Plus is not sold any more (credits replaced it), so no price is read
+  // from the build: an old .env that still names one changes nothing.
+  it('reads no Plus price from the build', () => {
     const config = buildAccountConfig({
       ...valid,
       FLUIDEQ_PLUS_PRICE: '$5',
-      FLUIDEQ_PLUS_PRICE_YEARLY: ' $40 ',
-    });
-    expect(config.plusPrice).toBe('$5');
-    expect(config.plusYearlyPrice).toBe('$40');
+    } as Parameters<typeof buildAccountConfig>[0]);
+    expect(Object.keys(config).sort()).toEqual([
+      'apiUrl',
+      'supabaseAnonKey',
+      'supabaseUrl',
+    ]);
   });
 
-  /** The monthly price is the switch; a yearly one alone sells nothing. */
-  it('ignores a yearly price when there is no monthly one', () => {
-    const config = buildAccountConfig({
-      ...valid,
-      FLUIDEQ_PLUS_PRICE_YEARLY: '$40',
-    });
-    expect(config.plusYearlyPrice).toBe('');
-    expect(isCheckoutConfigured(config)).toBe(false);
-  });
-
-  /** A price is a short line beside a button, not a paragraph. */
-  it('drops a price that is too long to be one', () => {
-    const config = buildAccountConfig({
-      ...valid,
-      FLUIDEQ_PLUS_PRICE: 'x'.repeat(41),
-    });
-    expect(config.plusPrice).toBe('');
-    expect(isCheckoutConfigured(config)).toBe(false);
-    expect(
-      buildAccountConfig({
-        ...valid,
-        FLUIDEQ_PLUS_PRICE: '$5',
-        FLUIDEQ_PLUS_PRICE_YEARLY: 'x'.repeat(41),
-      }).plusYearlyPrice,
-    ).toBe('');
-  });
-
-  it('offers no checkout when the account pair is incomplete', () => {
-    const config = buildAccountConfig({ FLUIDEQ_PLUS_PRICE: '$3.99' });
-    expect(isCheckoutConfigured(config)).toBe(false);
-    expect(config).toEqual(OFF);
+  it('is off entirely when the account pair is incomplete', () => {
+    expect(buildAccountConfig({ FLUIDEQ_SUPABASE_URL: URL_OK })).toEqual(OFF);
   });
 
   it('is off entirely when nothing is set', () => {

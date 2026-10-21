@@ -781,7 +781,7 @@ const lighting = registerLightingIpc({
   userDataDir,
   appVersion: appVersion(),
   getMainWindow,
-  entitled: () => members.accountIpc.entitlement.status().state !== 'none',
+  entitled: () => members.sceneOwnership.ownsAnything(),
 });
 // The helper's exit hands every Windows lamp back; Razer's session is ended
 // rather than left to lapse.
@@ -870,6 +870,7 @@ const comeBack = createComeBackWatch({
   powerMonitor,
   accountSteps: accountComeBackSteps({
     entitlement: members.accountIpc.entitlement,
+    sceneStore: members.sceneOwnership,
     scenePacks: members.scenePacksIpc,
     memberSharing: members.memberSharingIpc,
     plusGallery: members.plusGalleryIpc,

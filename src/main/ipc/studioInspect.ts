@@ -1,6 +1,6 @@
 import { ipcMain } from 'electron';
 import { FLUIDEQ_CREATOR_ID } from '../../common/plusGallery';
-import type { IScenePack } from '../../common/scenePacks';
+import { premiumLookId, type IScenePack } from '../../common/scenePacks';
 import { sceneRefOf, type IGalleryAccess } from '../plus/galleryAccess';
 import { fetchOfficialScene } from '../plus/officialGallery';
 import type { IScenePackStore } from '../scenePackStore';
@@ -52,7 +52,12 @@ export const registerStudioInspectIpc = ({
       // The id checked as a look id is, under FluidEQ's own author.
       const ref = sceneRefOf(FLUIDEQ_CREATOR_ID, sceneId);
       const me = access.accountId();
-      if (!access.entitled() || !me) {
+      // A scene of FluidEQ's own opens to look inside for whoever owns it.
+      const mayOpen = () =>
+        ref !== undefined &&
+        access.accountId() === me &&
+        access.owns(premiumLookId(ref.packId));
+      if (!me || (ref && !mayOpen())) {
         return 'not-entitled';
       }
       if (!ref) {
@@ -66,8 +71,8 @@ export const registerStudioInspectIpc = ({
           : undefined;
         pack = typeof fetched === 'object' ? fetched.pack : undefined;
       }
-      // The account that asked is still the one signed in, still with Plus.
-      if (!access.entitled() || access.accountId() !== me) {
+      // The account that asked is still the one signed in, still the owner.
+      if (!mayOpen()) {
         return 'not-entitled';
       }
       if (!pack) {

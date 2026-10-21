@@ -34,7 +34,7 @@ const account = {
   'account.signOut.confirm': 'Sign out of this account?',
   'account.signOut.detail': 'You can sign back in whenever you like.',
   'account.signOut.detailPlus':
-    'Plus stays locked here until you sign back in.',
+    'Your scenes stay locked here until you sign back in.',
   'account.signOut.kept': 'Nothing on this computer is deleted.',
   // The name on the board and on published scenes, changed from here. The
   // fields and their refusals are the board's own (leaderboard.name.*).
@@ -82,7 +82,7 @@ const account = {
     'That sign-in is no longer valid. Please sign in again.',
   // Signing in on a sixth computer signs out the least recently used one.
   'account.error.signedOutElsewhere':
-    'This computer was signed out because your account signed in on another one. Plus runs on up to 5 computers at a time: sign in again to use it here, and the one used least recently is signed out instead.',
+    'This computer was signed out because your account signed in on another one. An account stays signed in on up to 5 computers at a time: sign in again to use it here, and the one used least recently is signed out instead.',
   'account.error.malformed':
     'The account service sent something FluidEQ could not read.',
   'account.error.wrongCredentials': 'Wrong email or password.',
@@ -99,12 +99,7 @@ const account = {
     'There is already an account with that address. Sign in instead.',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.pitch':
-    'Premium visualizers that exist nowhere else, the Studio for making your own, the leaderboard — and every new feature from here on, for members first. The equaliser, the rack and the players stay free, as they always have been.',
-  'account.plus.upgrade': 'Upgrade to Plus',
   'account.plus.opening': 'Opening…',
-  'account.plus.checkoutHint':
-    'Opens Buy Me a Coffee in your browser. Pay with the same email as this account so FluidEQ can recognise it; the app never sees your card.',
   'account.plus.active': 'Active',
   'account.plus.ending': 'Not renewing',
   'account.plus.renews': 'Renews {date}',
@@ -118,13 +113,6 @@ const account = {
   'account.plus.grace':
     'Your subscription could not be confirmed. It stays on until {date} — connect to the internet before then to keep it.',
   'account.plus.checkAgain': 'Check again',
-  // The configured amount, as the checkout shows it ("$5"), per month.
-  'account.plus.perMonth': '{price} / month',
-  // The yearly amount ("$40"), per year, and the two offered together.
-  'account.plus.perYear': '{price} / year',
-  'account.plus.priceChoice': '{monthly} or {yearly}',
-  'account.plus.checkoutOpened':
-    'Buy Me a Coffee is open in your browser. Come back here once you have paid, and Plus turns on.',
   'account.plus.error.rejected':
     'The billing page could not be opened. Try again in a moment.',
 
@@ -135,7 +123,7 @@ const account = {
   'account.dev.cancel': 'Pretend a cancellation',
   'account.dev.working': 'Sending…',
 
-  'account.perk.looks': 'Plus looks, drawn on the graphics card.',
+  'account.perk.looks': 'Scenes that are yours for good, one credit each.',
   'account.perk.visualizers':
     'Visualizers: the scenes members make, open to every account.',
   'account.perk.board': 'A leaderboard of who listens most.',

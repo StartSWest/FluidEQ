@@ -5,11 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 const announce = {
-  'announce.eyebrow': 'Plus の新着 · {count} 本のシーン',
-  'announce.trialEnds':
-    '無料体験はまもなく終了します。Plus なら、これらのシーンもほかのすべてのシーンも使い続けられます。',
+  'announce.eyebrow': 'ビジュアライザーの新着 · {count} シーン',
   'announce.try': '今すぐ試す',
-  'announce.keepPlus': 'Plus を続ける',
   'announce.later': 'あとで',
   'announce.previewNote':
     'プレビューです。何も送信されず、何も記録されていません。',

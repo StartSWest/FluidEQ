@@ -59,31 +59,32 @@ const lighting = {
     'Your keyboard, mouse, mousepad, headset and stand light up with the scene',
 
   'lighting.gate.title':
-    'Light your keyboard, mouse and headset with every Plus scene',
+    'Light your keyboard, mouse and headset with your scenes',
   'lighting.gate.body':
-    'Dynamic lighting is part of FluidEQ Plus. Your devices take the colours of the scene on the graph and pulse with its beat.',
-  'lighting.gate.cta': 'See Plus',
+    'Get any scene in Visualizers and dynamic lighting is yours: your devices take the colours of the scene on the graph and pulse with its beat.',
+  'lighting.gate.cta': 'Find a scene',
 
   'lighting.preview.status':
     'Preview — your devices light up while this page is open',
   'lighting.preview.lit': 'Lighting your devices with the scene',
   'lighting.preview.oneScene': 'One scene to show what it does',
-  'lighting.preview.noScene': 'A Plus scene on your desk',
-  'lighting.preview.moreScenes': 'Every scene with Plus',
+  'lighting.preview.noScene': 'A scene on your desk',
+  'lighting.preview.moreScenes': 'Browse the scenes',
   'lighting.preview.held':
-    'With Plus your devices stay lit like this, on every scene.',
-  'lighting.preview.locked': 'Brightness, style and alignment come with Plus.',
+    'With a scene of your own, your devices stay lit like this.',
+  'lighting.preview.locked':
+    'Brightness, style and alignment open with a scene of your own.',
 
   'lighting.unsupported.title': 'Dynamic lighting works on Windows',
   'lighting.unsupported.body':
     'It lights devices through Windows Dynamic Lighting and Razer Chroma, and both are only on Windows.',
 
-  'lighting.switch': 'Light my devices while a Plus scene plays',
+  'lighting.switch': 'Light my devices while a scene plays',
   'lighting.status.live': 'Following {scene}',
   'lighting.status.waiting': 'Waiting for music',
   'lighting.status.nothingLit': 'The scene is playing, but no device is lit',
   'lighting.status.off': 'Off — your devices keep their own lighting',
-  'lighting.status.noScene': 'Pick a Plus scene and your devices follow it',
+  'lighting.status.noScene': 'Pick a scene and your devices follow it',
   'lighting.pickScene': 'Browse visualizers',
   'lighting.showGraph': 'Show the graph',
 
@@ -193,6 +194,7 @@ const lighting = {
 
   'lighting.graph.on': 'Stop lighting my devices',
   'lighting.graph.off': 'Light my devices with this scene',
+  'lighting.gate.eyebrow': 'One scene opens it',
 } as const;
 
 export default lighting;

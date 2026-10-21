@@ -256,8 +256,13 @@ export const registerPlusPublishingIpc = ({
       category2?: unknown,
       rawNote?: unknown,
     ): Promise<TPublishOutcome> => {
+      // The Studio is any signed-in account's, so a project it may not use
+      // is either nobody signed in or no project open.
       if (!mayPublishActive()) {
-        return { ok: false, reason: 'not-entitled' };
+        return {
+          ok: false,
+          reason: access.accountId() ? 'no-build' : 'signed-out',
+        };
       }
       // Cleaned here as the server cleans it; one it would refuse is refused
       // before a picture or a pack is sent.
@@ -300,8 +305,13 @@ export const registerPlusPublishingIpc = ({
       if (!auth || !me || access.accountId() !== me) {
         return { ok: false, reason: 'signed-out' };
       }
+      // The Studio is any signed-in account's, so a project it may not use
+      // is either nobody signed in or no project open.
       if (!mayPublishActive()) {
-        return { ok: false, reason: 'not-entitled' };
+        return {
+          ok: false,
+          reason: access.accountId() ? 'no-build' : 'signed-out',
+        };
       }
       if (activeFolder() !== folder) {
         return { ok: false, reason: 'no-build' };

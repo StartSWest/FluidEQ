@@ -102,8 +102,8 @@ export default function MakerPage({ maker, me }: IMakerPageProps) {
             <span className="gallery-maker__official">
               <OfficialBadge />
               <span className="gallery-included">
-                <Glyph name="plus" />
-                {t('plus.official.included')}
+                <Glyph name="credit" />
+                {t('store.scene.keep')}
               </span>
             </span>
           )}

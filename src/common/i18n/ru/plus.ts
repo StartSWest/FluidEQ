@@ -4,19 +4,14 @@ const plus = {
   'plus.remove.done': '{name} удалено из ваших оформлений.',
   'plus.card.remove': 'Убрать',
   'plus.official.author': 'FluidEQ · Официально',
-  'plus.official.included': 'Входит в Plus',
-  'plus.official.sample': 'Предпросмотр {seconds} с',
+  'plus.official.included': 'Один кредит за сцену, ваша навсегда',
   'plus.official.badge': 'Официально',
-  'plus.official.fine':
-    'Часть коллекции FluidEQ: запускается из ваших оформлений, пока у вас есть Plus.',
   'plus.visualizers.title': 'Визуализаторы',
   'plus.visualizers.description':
     'Сцены от FluidEQ и сообщества Plus для вашей музыки',
   'plus.visualizers.blurb': 'Сцены участников',
   'plus.rail.pin': 'Закрепить боковую панель',
   'plus.rail.collapse': 'Свернуть боковую панель',
-
-  'plus.gate.cta': 'Узнать о Plus',
 
   'plus.gallery.search': 'Поиск сцен или авторов',
   'plus.gallery.sort': 'Сортировка',
@@ -69,11 +64,17 @@ const plus = {
   'plus.version.earlier': 'Предыдущие версии ({count})',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'Без заметки',
+  'plus.version.play': 'Включить',
+  'plus.version.playLabel': 'Включить версию {version}',
+  'plus.version.playing': 'Включена',
+  'plus.version.playingLine':
+    'У вас включена версия {version}, сохранённая на этом компьютере.',
+  'plus.version.backToNewest': 'Вернуться к новейшей',
+  'plus.version.keptHere': 'Сохранена на этом компьютере',
   'plus.card.open': 'Открыть «{name}»',
 
   'plus.like.label': 'Лайкнуть «{name}» (лайков: {count})',
   'plus.like.own': 'У вашей сцены лайков: {count}',
-  'plus.like.plusOnly': 'Лайков: {count}. Ставить лайки можно с Plus.',
   'plus.like.offline':
     'Для лайков нужно подключение. Попробуйте снова, когда будете онлайн.',
 
@@ -89,10 +90,7 @@ const plus = {
   'plus.scene.next': 'Следующая сцена: {name}',
   'plus.scene.loading': 'Сцена загружается…',
   'plus.scene.playing': 'Вживую под вашу музыку',
-  'plus.scene.plusPlays': 'С Plus эта сцена оживает здесь под вашу музыку',
   'plus.scene.taste': 'Превью · {seconds} с',
-  'plus.scene.keepWatching':
-    'Смотрите дальше под свою музыку и добавляйте в оформления — с Plus.',
   'plus.scene.unavailable': 'Эту сцену сейчас нельзя скачать.',
   'plus.scene.blocked': 'Эта сцена удалена.',
   'plus.scene.changed':
@@ -105,7 +103,6 @@ const plus = {
   'plus.scene.adds': 'Добавили',
   'plus.scene.add': 'Добавить в мои оформления',
   'plus.scene.update': 'Обновить мою копию',
-  'plus.scene.getPlus': 'Оформите Plus, чтобы добавить',
   'plus.inspect.open': 'Открыть в Студии',
   'plus.inspect.hint':
     'Посмотрите, как она сделана, и возьмите идеи для своих сцен. Она откроется как проект, чтобы заглянуть внутрь, а не чтобы публиковать.',
@@ -116,8 +113,6 @@ const plus = {
   'plus.scene.inLooks': 'В ваших оформлениях, в разделе «Созданы участниками»',
   'plus.scene.inLooksOwn': 'В ваших оформлениях, в разделе «Созданы вами»',
   'plus.scene.inLooksPlus': 'В ваших оформлениях, в разделе «FluidEQ Plus»',
-  'plus.scene.fine':
-    'Добавленные сцены запускаются из ваших оформлений, пока у вас есть Plus. Продавать их никто не может.',
   'plus.scene.report': 'Пожаловаться на сцену',
   'plus.scene.reported': 'Жалоба отправлена. Спасибо.',
   'plus.scene.moreBy': 'Ещё от {name}',
@@ -371,6 +366,8 @@ const plus = {
     'Удалить насовсем? Сцена исчезнет из галереи и из оформлений всех участников, её файлы будут стёрты, и опубликовать её снова будет нельзя.',
   'plus.moderation.deleteForGood': 'Удалить насовсем',
   'plus.moderation.done.deleted': '{name} удалена.',
+  'plus.add.notOwned':
+    'Сначала получите «{name}»: это стоит один кредит, и после этого она попадёт в ваши оформления.',
 } as const;
 
 export default plus;

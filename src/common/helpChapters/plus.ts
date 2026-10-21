@@ -1,6 +1,5 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { OFFICIAL_SITE_URL } from '../branding';
 import { type IHelpChapter } from './model';
 
 /** FluidEQ Plus: the account, the gallery, the board, the Studio, the desktop and lighting. */
@@ -46,20 +45,8 @@ const PLUS_CHAPTERS = [
         ],
       },
     ],
-    // The Plus tour, where the site shows it, played like the first-steps
-    // film (Ivan, 2026-09-30: approved for 2.0). Its poster is the Studio's
-    // capture, the part of Plus the tour spends longest on.
-    video: {
-      src: `${OFFICIAL_SITE_URL}/video/plus-tour.mp4`,
-      captions: {
-        src: `${OFFICIAL_SITE_URL}/video/plus-tour.en.vtt`,
-        lang: 'en',
-      },
-      page: `${OFFICIAL_SITE_URL}/#plus-tour`,
-      title: 'help.plus.videoTitle',
-      note: 'help.plus.videoNote',
-      poster: '31-plus-studio.png',
-    },
+    // The Plus tour film (approved for 2.0) is not played here any more: it
+    // walks through upgrading and paying monthly, and Plus is not sold now.
   },
   {
     id: 'gallery',

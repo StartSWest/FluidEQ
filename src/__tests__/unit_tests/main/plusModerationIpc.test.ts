@@ -62,6 +62,8 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
 const access = (): IGalleryAccess => ({
   accountId: () => (signedIn ? signedInAs : undefined),
   entitled: () => signedIn,
+  // Plus owns every scene while it lasts (`sceneOwnership.ts`).
+  owns: () => signedIn,
   auth: async () => {
     if (switchDuringAuth) {
       signedInAs = SOMEONE;

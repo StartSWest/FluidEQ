@@ -9,19 +9,14 @@ const plus = {
   'plus.remove.done': '{name} removed from your looks.',
   'plus.card.remove': 'Remove',
   'plus.official.author': 'FluidEQ · Official',
-  'plus.official.included': 'Included with Plus',
-  'plus.official.sample': '{seconds}-second preview',
+  'plus.official.included': 'One credit a scene, yours for good',
   'plus.official.badge': 'Official',
-  'plus.official.fine':
-    'Part of the FluidEQ collection: it plays from your looks for as long as you have Plus.',
   'plus.visualizers.title': 'Visualizers',
   'plus.visualizers.description':
     'Scenes by FluidEQ and the Plus community, ready for your music',
   'plus.visualizers.blurb': 'Scenes members made',
   'plus.rail.pin': 'Pin the sidebar',
   'plus.rail.collapse': 'Collapse the sidebar',
-
-  'plus.gate.cta': 'See Plus',
 
   'plus.gallery.search': 'Search scenes or makers',
   'plus.gallery.sort': 'Sort',
@@ -72,11 +67,17 @@ const plus = {
   'plus.version.earlier': 'Earlier versions ({count})',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'No note',
+  'plus.version.play': 'Play',
+  'plus.version.playLabel': 'Play version {version}',
+  'plus.version.playing': 'Playing',
+  'plus.version.playingLine':
+    'You are playing version {version}, kept on this computer.',
+  'plus.version.backToNewest': 'Back to the newest',
+  'plus.version.keptHere': 'Kept on this computer',
   'plus.card.open': 'Open {name}',
 
   'plus.like.label': 'Like {name} ({count} likes)',
   'plus.like.own': 'Your scene has {count} likes',
-  'plus.like.plusOnly': '{count} likes. Liking scenes is part of Plus.',
   'plus.like.offline': 'Liking needs a connection. Try again online.',
 
   'plus.add.done': '{name} is in your looks.',
@@ -92,10 +93,7 @@ const plus = {
   'plus.scene.next': 'Next scene: {name}',
   'plus.scene.loading': 'Loading the scene…',
   'plus.scene.playing': 'Playing on your music',
-  'plus.scene.plusPlays': 'With Plus, this scene plays here on your music',
   'plus.scene.taste': 'Preview · {seconds} s',
-  'plus.scene.keepWatching':
-    'Keep watching it on your music, and add it to your looks, with Plus.',
   'plus.scene.unavailable': 'This scene cannot be downloaded right now.',
   'plus.scene.blocked': 'This scene has been taken down.',
   'plus.scene.changed':
@@ -108,7 +106,6 @@ const plus = {
   'plus.scene.adds': 'Added',
   'plus.scene.add': 'Add to my looks',
   'plus.scene.update': 'Update my copy',
-  'plus.scene.getPlus': 'Get Plus to add it',
   'plus.inspect.open': 'Open in Studio',
   'plus.inspect.hint':
     'See how it is made and take ideas for your own scenes. It opens as a project to look inside, not one to publish.',
@@ -119,8 +116,6 @@ const plus = {
   'plus.scene.inLooks': 'In your looks, under Made by members',
   'plus.scene.inLooksOwn': 'In your looks, under Made by you',
   'plus.scene.inLooksPlus': 'In your looks, under FluidEQ Plus',
-  'plus.scene.fine':
-    'Added scenes play from your looks while you have Plus. Nobody can sell them.',
   'plus.scene.report': 'Report this scene',
   'plus.scene.reported': 'Reported. Thank you.',
   'plus.scene.moreBy': 'More by {name}',
@@ -367,6 +362,8 @@ const plus = {
     "Delete it for good? It leaves the gallery and every member's looks, its files are erased, and it can never be published again.",
   'plus.moderation.deleteForGood': 'Delete for good',
   'plus.moderation.done.deleted': '{name} was deleted.',
+  'plus.add.notOwned':
+    'Get {name} first: it takes one credit, and then it goes in your looks.',
 } as const;
 
 export default plus;

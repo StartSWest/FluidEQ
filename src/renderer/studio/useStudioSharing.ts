@@ -26,6 +26,7 @@ const EXPORT_FAILURES: Record<string, TranslationKey> = {
   'rate-limited': 'studio.export.rateLimited',
   refused: 'studio.export.refused',
   'signed-out': 'studio.export.signedOut',
+  unconfirmed: 'store.error.unconfirmed',
   'no-build': 'studio.export.refused',
   'official-copy': 'studio.export.officialCopy',
   'inspect-only': 'studio.inspect.locked',
@@ -33,6 +34,7 @@ const EXPORT_FAILURES: Record<string, TranslationKey> = {
 };
 
 const IMPORT_FAILURES: Record<string, TranslationKey> = {
+  'signed-out': 'studio.import.signedOut',
   unreadable: 'studio.import.unreadable',
   changed: 'studio.import.changed',
   blocked: 'studio.import.blocked',
@@ -70,8 +72,9 @@ export default function useStudioSharing() {
     if (outcome.reason === 'cancelled') {
       return;
     }
+    // Only a server from before the free Studio still says this.
     if (outcome.reason === 'not-entitled') {
-      requestAccountPanel('subscribe');
+      requestAccountPanel('home');
       return;
     }
     setNotice({
@@ -117,10 +120,6 @@ export default function useStudioSharing() {
       return;
     }
     if (outcome.reason === 'cancelled') {
-      return;
-    }
-    if (outcome.reason === 'not-entitled') {
-      requestAccountPanel('subscribe');
       return;
     }
     setNotice({ ok: false, key: IMPORT_FAILURES[outcome.reason] });

@@ -451,33 +451,34 @@ melody analysis and the voice cleaning all run on your machine. Pasting the
 words in skips the first, bringing your own instrumental skips the third, and a
 song you time by ear fetches nothing at all.
 
-## FluidEQ Plus
+## FluidEQ Plus: scenes that are yours for good
 
-An optional membership that keeps FluidEQ growing, with a tab of its own. The
-equaliser, the DSP rack, the Room, the Library, Karaoke and the players stay
-free, as they always have been; Plus is the visualizers and what is built on
-them.
+A tab of its own that keeps FluidEQ growing. The equaliser, the DSP rack, the
+Room, the Library, Karaoke and the players stay free, as they always have been;
+Plus is the visualizers and what is built on them. There is no subscription: a
+scene costs one credit and stays yours, on every computer you sign in to, with
+every new version its maker publishes. Credits come in packs paid once, nothing
+renews, and a confirmed account gets three to start.
 
 - **Plus visualizers.** Living scenes — mountains under the stars, curtains of
   aurora, a neon city, real 3D worlds — drawn on your graphics card under your
   EQ curves, where the bass, the beat and the treble each move something
   different. A gallery holds FluidEQ's own and the ones members publish, and
-  anyone signed in can try FluidEQ's samples for ten seconds.
+  anyone signed in can watch any of them for ten seconds before getting it.
 - **The Studio.** Describe a scene, open its folder in your own AI assistant,
   and every file it saves plays on the Studio's stage at once, beside meters of
-  what the scene hears of your song. A scene you publish is reviewed before it
-  reaches the gallery, and one that is approved earns your next month of Plus.
-  A new account can try the Studio free for fifteen days, with no card and
-  nothing charged when the trial ends.
-- **Your desktop and your desk.** A Plus visualizer can play behind your
+  what the scene hears of your song. It is free for every account. A scene you
+  publish is reviewed before it reaches the gallery, and once it is approved it
+  plays free for you everywhere.
+- **Your desktop and your desk.** A scene of yours can play behind your
   desktop icons, a different one on every monitor, pausing while windows cover
   it, while the computer is locked and on battery; and your RGB keyboard,
   mouse, headset and stand can take its colours and rhythm through Windows
   Dynamic Lighting and Razer Chroma (in beta).
 - **A leaderboard** of the members who listen most, if you want to be on it.
 
-Paying happens in your browser and the app never sees a card. The terms, under
-Account in the app, say in plain words what your account and Plus send to
+Paying happens in your browser, on Stripe, and the app never sees a card. The
+terms, under Account in the app, say in plain words what your account sends to
 FluidEQ's server and what is kept — never your audio, what you play, your EQ or
 your devices.
 

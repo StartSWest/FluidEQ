@@ -61,6 +61,7 @@ export interface IComeBackStep {
 
 export interface IAccountRefreshers {
   entitlement: { checkIfDue(reason: string): Promise<void> };
+  sceneStore: { refreshIfDue(reason: string): Promise<void> };
   scenePacks: { refreshIfDue(reason: string): Promise<void> };
   memberSharing: { refreshIfDue(reason: string): Promise<void> };
   plusGallery: { refreshIfDue(): Promise<void> };
@@ -82,6 +83,7 @@ export interface IAccountRefreshers {
  */
 export const accountComeBackSteps = ({
   entitlement,
+  sceneStore,
   leaderboard,
   memberSharing,
   plusGallery,
@@ -92,6 +94,8 @@ export const accountComeBackSteps = ({
   sceneTaste,
 }: IAccountRefreshers): IComeBackStep[] => [
   { name: 'membership', run: (reason) => entitlement.checkIfDue(reason) },
+  // Right after: every scene step below plays or keeps only what is owned.
+  { name: 'owned scenes', run: (reason) => sceneStore.refreshIfDue(reason) },
   {
     name: 'FluidEQ scenes',
     run: (reason) => scenePacks.refreshIfDue(reason),

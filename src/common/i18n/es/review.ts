@@ -57,7 +57,7 @@ const review = {
     'Aprobada, pero sus archivos no llegaron a la galería. Pulsa Aprobar y publicar otra vez para terminar.',
   'review.forbidden': 'Solo el administrador de FluidEQ puede aprobar escenas.',
   'review.fine.new':
-    'Aprobarla la pone en la galería en la versión {version}: la ve cualquiera con sesión iniciada y los miembros de Plus pueden añadirla.',
+    'Aprobarla la pone en la galería en la versión {version}: todos los que tienen la sesión iniciada la ven y pueden conseguirla con un crédito, y para quien la creó suena gratis.',
   'review.fine.update':
     'Aprobarla sustituye la versión {version} para todos los que tienen la escena. Si no la apruebas, la versión {version} se queda como está.',
   'review.state.pending': 'En revisión',
@@ -77,7 +77,7 @@ const review = {
   'review.notice.review': 'Revisar ahora',
   'review.notice.approved': '{name} está en la galería',
   'review.notice.approvedBody':
-    'Se aprobó. Los miembros de Plus ya pueden añadirla.',
+    'Se aprobó. Ahora suena gratis para ti en todas partes, y cualquiera puede conseguirla.',
   'review.notice.approvedUpdate':
     'La versión {version} de {name} está en la galería',
   'review.notice.approvedUpdateBody':

@@ -75,8 +75,8 @@ const registerWallpaperIpc = (
       if (!surface) {
         return undefined;
       }
-      if (!manager.entitled()) {
-        manager.failEverywhere('not-entitled');
+      if (!manager.surfaceOwned(surface)) {
+        manager.failUnowned();
         return undefined;
       }
       return { ...surface.scene, state: surface.surfaceState() };
@@ -87,8 +87,8 @@ const registerWallpaperIpc = (
     if (!surface) {
       return undefined;
     }
-    if (!manager.entitled()) {
-      manager.failEverywhere('not-entitled');
+    if (!manager.surfaceOwned(surface)) {
+      manager.failUnowned();
       return undefined;
     }
     return manager.requestAudio(surface);
@@ -136,8 +136,8 @@ const registerWallpaperIpc = (
       if (!surface) {
         return;
       }
-      if (!manager.entitled()) {
-        manager.failEverywhere('not-entitled');
+      if (!manager.surfaceOwned(surface)) {
+        manager.failUnowned();
         return;
       }
       surface.drawn(generation);

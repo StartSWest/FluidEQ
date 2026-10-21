@@ -46,32 +46,30 @@ const lighting = {
   'lighting.description':
     'आपका कीबोर्ड, माउस, माउसपैड, हेडसेट और स्टैंड सीन के साथ जगमगाते हैं',
 
-  'lighting.gate.title':
-    'हर Plus सीन के साथ अपना कीबोर्ड, माउस और हेडसेट जगमगाइए',
+  'lighting.gate.title': 'अपने सीन से कीबोर्ड, माउस और हेडसेट रोशन करें',
   'lighting.gate.body':
-    'डायनेमिक लाइटिंग FluidEQ Plus का हिस्सा है। आपके डिवाइस ग्राफ़ पर चल रहे सीन के रंग लेते हैं और उसकी बीट पर धड़कते हैं।',
-  'lighting.gate.cta': 'Plus देखें',
+    'विज़ुअलाइज़र में कोई भी सीन लें और डायनेमिक लाइटिंग आपकी है: आपके डिवाइस ग्राफ़ पर चल रहे सीन के रंग लेते हैं और उसकी बीट पर धड़कते हैं।',
+  'lighting.gate.cta': 'सीन खोजें',
 
   'lighting.preview.status':
     'प्रीव्यू: यह पेज खुला रहने तक आपके डिवाइस जगमगाते हैं',
   'lighting.preview.lit': 'सीन से आपके डिवाइस जगमगा रहे हैं',
   'lighting.preview.oneScene': 'यह क्या करता है, दिखाने के लिए एक सीन',
-  'lighting.preview.noScene': 'आपकी डेस्क पर एक Plus सीन',
-  'lighting.preview.moreScenes': 'हर सीन Plus के साथ',
-  'lighting.preview.held':
-    'Plus के साथ आपके डिवाइस हर सीन में ऐसे ही जगमगाते रहते हैं।',
-  'lighting.preview.locked': 'चमक, शैली और संरेखण Plus के साथ आते हैं।',
+  'lighting.preview.noScene': 'आपकी डेस्क पर एक सीन',
+  'lighting.preview.moreScenes': 'सीन देखें',
+  'lighting.preview.held': 'अपने सीन के साथ आपके डिवाइस ऐसे ही रोशन रहते हैं।',
+  'lighting.preview.locked': 'चमक, स्टाइल और संरेखण अपने सीन के साथ खुलते हैं।',
 
   'lighting.unsupported.title': 'डायनेमिक लाइटिंग Windows पर काम करती है',
   'lighting.unsupported.body':
     'यह Windows Dynamic Lighting और Razer Chroma के ज़रिए डिवाइस जगमगाती है, और ये दोनों सिर्फ़ Windows पर हैं।',
 
-  'lighting.switch': 'Plus सीन चलते समय मेरे डिवाइस जगमगाएँ',
+  'lighting.switch': 'सीन चलते समय मेरे डिवाइस रोशन करें',
   'lighting.status.live': '{scene} के साथ',
   'lighting.status.waiting': 'संगीत का इंतज़ार',
   'lighting.status.nothingLit': 'सीन चल रहा है, पर कोई डिवाइस नहीं जगमगा रहा',
   'lighting.status.off': 'बंद: आपके डिवाइस अपनी लाइटिंग रखते हैं',
-  'lighting.status.noScene': 'कोई Plus सीन चुनिए, आपके डिवाइस उसके साथ चलेंगे',
+  'lighting.status.noScene': 'एक सीन चुनें और आपके डिवाइस उसके साथ चलेंगे',
   'lighting.pickScene': 'विज़ुअलाइज़र देखें',
   'lighting.showGraph': 'ग्राफ़ दिखाएँ',
 
@@ -179,6 +177,7 @@ const lighting = {
 
   'lighting.graph.on': 'मेरे डिवाइस जगमगाना बंद करें',
   'lighting.graph.off': 'इस सीन से मेरे डिवाइस जगमगाएँ',
+  'lighting.gate.eyebrow': 'एक सीन से खुलता है',
 } as const;
 
 export default lighting;

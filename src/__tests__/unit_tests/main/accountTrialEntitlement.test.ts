@@ -25,8 +25,6 @@ const config = {
   supabaseUrl: 'https://project.supabase.co',
   supabaseAnonKey: 'public',
   apiUrl: 'https://project.supabase.co/functions/v1',
-  plusPrice: '',
-  plusYearlyPrice: '',
 };
 const row = (over: Record<string, unknown> = {}) => [
   {

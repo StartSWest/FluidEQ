@@ -24,7 +24,8 @@ const account = {
   'account.signOut': 'साइन आउट',
   'account.signOut.confirm': 'इस खाते से साइन आउट करें?',
   'account.signOut.detail': 'आप कभी भी फिर से साइन इन कर सकते हैं।',
-  'account.signOut.detailPlus': 'फिर से साइन इन करने तक Plus यहाँ लॉक रहेगा।',
+  'account.signOut.detailPlus':
+    'जब तक आप फिर से साइन इन नहीं करते, आपके सीन यहाँ लॉक रहते हैं।',
   'account.signOut.kept': 'इस कंप्यूटर से कुछ भी नहीं हटाया जाता।',
   'account.name.change': 'नाम बदलें',
   'account.name.changeTitle': 'बदलें कि आप कैसे दिखते हैं',
@@ -69,7 +70,7 @@ const account = {
   'account.error.expired':
     'यह साइन इन अब मान्य नहीं है। कृपया फिर साइन इन करें।',
   'account.error.signedOutElsewhere':
-    'इस कंप्यूटर से साइन आउट हो गया, क्योंकि आपके खाते ने किसी दूसरे कंप्यूटर पर साइन इन किया। Plus एक साथ ज़्यादा से ज़्यादा 5 कंप्यूटरों पर चलता है: यहाँ इस्तेमाल करने के लिए फिर से साइन इन करें, तब सबसे लंबे समय से इस्तेमाल न हुए कंप्यूटर से साइन आउट हो जाएगा।',
+    'इस कंप्यूटर से साइन आउट हो गया क्योंकि आपका खाता दूसरे कंप्यूटर पर साइन इन हुआ। एक खाता एक साथ अधिकतम 5 कंप्यूटरों पर साइन इन रहता है: यहाँ इस्तेमाल करने के लिए फिर से साइन इन करें, और उसकी जगह सबसे पहले इस्तेमाल हुआ कंप्यूटर साइन आउट हो जाएगा।',
   'account.error.malformed':
     'खाता सेवा ने ऐसा कुछ भेजा जिसे FluidEQ पढ़ नहीं सका।',
   'account.error.wrongCredentials': 'ईमेल या पासवर्ड गलत है।',
@@ -86,12 +87,7 @@ const account = {
     'इस पते से पहले से एक खाता है। इसके बजाय साइन इन करें।',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.pitch':
-    'ऐसे प्रीमियम विज़ुअलाइज़र जो और कहीं नहीं, अपने सीन बनाने के लिए स्टूडियो, लीडरबोर्ड — और अब से हर नई सुविधा, पहले सदस्यों के लिए। इक्वलाइज़र, रैक और प्लेयर हमेशा की तरह मुफ़्त ही रहेंगे।',
-  'account.plus.upgrade': 'Plus में अपग्रेड करें',
   'account.plus.opening': 'खोल रहे हैं…',
-  'account.plus.checkoutHint':
-    'आपके ब्राउज़र में Buy Me a Coffee खुलेगा। इसी खाते वाले ईमेल से भुगतान करें ताकि FluidEQ उसे पहचान सके; ऐप कभी आपका कार्ड नहीं देखता।',
   'account.plus.active': 'सक्रिय',
   'account.plus.ending': 'नवीनीकरण नहीं',
   'account.plus.renews': '{date} को नवीनीकरण',
@@ -105,11 +101,6 @@ const account = {
   'account.plus.grace':
     'आपकी सदस्यता की पुष्टि नहीं हो सकी। यह {date} तक चालू रहेगी — इसे बनाए रखने के लिए उससे पहले इंटरनेट से जुड़ें।',
   'account.plus.checkAgain': 'फिर जाँचें',
-  'account.plus.perMonth': '{price} / माह',
-  'account.plus.perYear': '{price} / वर्ष',
-  'account.plus.priceChoice': '{monthly} या {yearly}',
-  'account.plus.checkoutOpened':
-    'Buy Me a Coffee आपके ब्राउज़र में खुला है। भुगतान के बाद यहाँ लौटें, और Plus चालू हो जाएगा।',
   'account.plus.error.rejected':
     'भुगतान पेज नहीं खुल सका। थोड़ी देर में फिर कोशिश करें।',
 
@@ -118,7 +109,7 @@ const account = {
   'account.dev.cancel': 'रद्द करने का अनुकरण करें',
   'account.dev.working': 'भेजा जा रहा है…',
 
-  'account.perk.looks': 'ग्राफ़िक्स कार्ड पर बनने वाले Plus रूप।',
+  'account.perk.looks': 'हमेशा के लिए आपके सीन, हर एक एक क्रेडिट का।',
   'account.perk.visualizers':
     'विज़ुअलाइज़र: सदस्यों के बनाए सीन, हर खाते के लिए खुले।',
   'account.perk.board': 'सबसे ज़्यादा सुनने वालों का लीडरबोर्ड।',

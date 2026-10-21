@@ -1,37 +1,14 @@
 const trial = {
-  'trial.free.title': 'FluidEQ は無料です。Plus の利用は自由です。',
+  'trial.free.title': 'FluidEQ は無料。シーンは永久にあなたのもの。',
   'trial.free.body':
-    'イコライザー、音楽再生、無料のプリセットとビジュアライザーは、これからも無料です。Plus では、希望する方が追加機能を利用できます。',
-  'trial.extras.title': 'Plus 限定の機能',
-  'trial.extras.scenes': 'Plus のビジュアライザーとコミュニティのシーン',
-  'trial.extras.studio': 'スタジオでシーンをエクスポート・公開',
-  'trial.extras.desktop': 'デスクトップのシーンと RGB ライティング',
+    'イコライザー、音楽再生、無料のプリセット、無料のビジュアライザーは引き続き無料です。ビジュアライザーのシーンは1クレジットで、ずっとあなたのものになります。確認済みのアカウントには最初に {starterCredits} クレジットが付きます。',
+  'trial.extras.title': '無料アカウントで',
+  'trial.extras.scenes': 'どのシーンも見られて、入手したものは手元に',
+  'trial.extras.studio': 'スタジオで自分のシーンを作成・公開',
+  'trial.extras.desktop': 'あなたのシーンをデスクトップと RGB ライトに',
   'trial.extras.board': '希望者のみランキングに参加',
   'trial.browse':
     '無料アカウントでギャラリーの閲覧やフォーラムへの参加ができます。',
-  'trial.offer.title': 'Plus を15日間無料で試す',
-  'trial.offer.body':
-    '新規アカウント向けの無料体験です。利用は任意で、ご自身で選んだときにだけ始まります。',
-  'trial.offer.action': '無料体験について見る',
-  'trial.offer.fine': 'カード不要。自動課金なし。',
-  'trial.consent.title': 'ご希望の方に無料体験',
-  'trial.consent.period': '利用開始から15日間',
-  'trial.consent.after':
-    '15日後に終了するのは、Plus の追加機能へのアクセスだけです。FluidEQ は通常どおり動作し、スタジオのプロジェクトも保持されます。',
-  'trial.consent.paid':
-    'その後も Plus の追加機能を使い続けたい場合は、有料プランを選べます。自動で始まることはありません。',
-  'trial.consent.checkbox': 'Plus の利用規約と無料体験の条件に同意します。',
-  'trial.consent.start': '15日間の無料体験を始める',
-  'trial.consent.starting': '無料体験を開始しています…',
-  'trial.consent.fullTerms': 'Plus の利用規約をすべて読む',
-  'trial.consent.signIn':
-    'アカウントを作成するかサインインして、対象かどうかを確認してください。アカウントを作成しただけでは無料体験は始まりません。',
-  'trial.consent.checking': '無料体験の対象か確認しています…',
-  'trial.terms.title': '無料体験の条件',
-  'trial.terms.body':
-    'この任意の特典では、対象の新規アカウントで、利用開始から連続15日間 Plus を利用できます。利用は1アカウントにつき1回限りです。支払い情報は不要で、自動更新や自動課金はありません。終了後は Plus の追加機能のみ利用できなくなり、FluidEQ の無料機能は引き続き使えます。有料プランの利用には、別途購入と同意が必要です。',
-  'trial.terms.record':
-    'この特典を1回限り提供するため、これらの条件と Plus の利用規約への同意、および利用開始日と終了日を記録します。',
   'trial.active.title': 'Plus の無料体験が有効です',
   'trial.active.until': 'Plus は {date} まで無料です。',
   'trial.active.body':
@@ -41,9 +18,8 @@ const trial = {
   'trial.ended.body':
     'FluidEQ は引き続き通常どおり動作します。イコライザー、音楽再生、無料のプリセットとビジュアライザーは無料のままです。スタジオのプロジェクトも保持されます。',
   'trial.ended.paid':
-    '有料の Plus プランが必要なのは、Plus の追加機能を使い続けたい場合だけです。',
+    '残したいシーンは1クレジットで、確認済みのアカウントには最初に無料のクレジットが付きます。',
   'trial.ended.free': '無料で使い続ける',
-  'trial.ended.plans': 'Plus のプランを見る',
   'trial.error.offline':
     'サービスに接続できませんでした。接続を確認して、もう一度お試しください。',
   'trial.error.signedOut':

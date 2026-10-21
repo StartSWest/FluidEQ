@@ -25,12 +25,10 @@ const NEON: IMemberSceneSummary = {
 };
 
 const listing = (
-  entitled: boolean,
+  owned: boolean,
   scenes: IMemberSceneSummary[] = [NEON],
 ): IMemberScenesListing =>
-  entitled
-    ? { entitled, scenes, locked: [] }
-    : { entitled, scenes: [], locked: scenes };
+  owned ? { scenes, locked: [] } : { scenes: [], locked: scenes };
 
 /** Module state: a fresh registry per case, GPU declared present. */
 const load = (storedLookId?: string) => {

@@ -132,3 +132,23 @@ it('cancels through the newest handler, and gives focus back on the way out', ()
   expect(opener).toHaveFocus();
   opener.remove();
 });
+
+// The store's terms open over the pack purchase: Escape and Tab belong to
+// the one on top alone, and the one under it takes them back when it closes.
+it('lets only the topmost of two open modals take Escape', () => {
+  const under = jest.fn();
+  const over = jest.fn();
+  const view = render(
+    <>
+      <Cancelling cancel={under} />
+      <Cancelling cancel={over} />
+    </>,
+  );
+  fireEvent.keyDown(document.body, { key: 'Escape' });
+  expect(over).toHaveBeenCalledTimes(1);
+  expect(under).not.toHaveBeenCalled();
+  view.rerender(<Cancelling cancel={under} />);
+  fireEvent.keyDown(document.body, { key: 'Escape' });
+  expect(under).toHaveBeenCalledTimes(1);
+  view.unmount();
+});

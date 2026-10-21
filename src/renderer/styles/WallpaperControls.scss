@@ -432,17 +432,6 @@ it under the terms of the GNU General Public License version 3 or later.
     width: 15px;
     height: 15px;
   }
-
-  // Without Plus the button is live and leads to Plus, so it says so before
-  // the press: smaller than the monitor at the other end, and in the accent
-  // rather than the label's own colour. Nested, or the rule above it — one
-  // class and an element — would win and paint it at the monitor's size.
-  .wallpaper-scene-action__lock {
-    width: 13px;
-    height: 13px;
-    margin-left: 2px;
-    color: $secondary-light;
-  }
 }
 
 // ---------------------------------------------------------------- the status

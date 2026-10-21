@@ -53,7 +53,6 @@ interface ISetup {
   body?: unknown;
   status?: number;
   onEachCall?: () => void;
-  onMaker?: (id: string, maker: boolean) => void;
 }
 
 const setup = ({
@@ -61,7 +60,6 @@ const setup = ({
   body = answer(),
   status = 200,
   onEachCall,
-  onMaker,
 }: ISetup = {}) => {
   let current: string | undefined = account ?? undefined;
   const access = {
@@ -88,7 +86,6 @@ const setup = ({
   } as unknown as IGalleryAccess;
   const registration = registerMakerMonthIpc({
     access,
-    ...(onMaker ? { onMaker } : {}),
   });
   return {
     registration,
@@ -158,20 +155,6 @@ test('a server that refuses is a failure, not an empty month', async () => {
   await expect(other.ask()).resolves.toEqual({ ok: false, reason: 'server' });
 });
 
-test('a server answer that cannot be read is never taken for a no', async () => {
-  // The empty month below is this app's stand-in so the page has something
-  // to draw. Acted on, it says "not a maker" — and the Studio would shut on
-  // somebody the server never mentioned: a rollback, or one new field.
-  const told: [string, boolean][] = [];
-  const { ask } = setup({
-    body: 'no such function',
-    onMaker: (id, maker) => told.push([id, maker]),
-  });
-  const answer = await ask();
-  expect(answer).toMatchObject({ ok: true, guessed: true });
-  expect(told).toEqual([]);
-});
-
 test('a server from before the earned month reads as an account that never published', async () => {
   const { ask } = setup({ body: 'no such function' });
 
@@ -188,46 +171,4 @@ test('a server from before the earned month reads as an account that never publi
       maker: false,
     },
   });
-});
-
-test('the Studio is told what the server says, both ways', async () => {
-  const told: [string, boolean][] = [];
-  const kit = setup({
-    body: answer({ maker: true }),
-    onMaker: (id, maker) => told.push([id, maker]),
-  });
-  await kit.ask();
-  expect(told).toEqual([[ME, true]]);
-
-  // And the no as well. A scene taken down or deleted takes the last
-  // approval with it, and a bench left open on this computer to somebody the
-  // server refuses is the Studio saying one thing and publishing another.
-  handlers.clear();
-  told.length = 0;
-  const notAMaker = setup({
-    body: answer({ maker: false }),
-    onMaker: (id, maker) => told.push([id, maker]),
-  });
-  await notAMaker.ask();
-  expect(told).toEqual([[ME, false]]);
-});
-
-// The bug this is for: an answer is about the account that asked, and the
-// token that fetched it belongs to that account alone. Signing out between
-// the ask and the answer must not tell the Studio about somebody else.
-test('nothing is remembered about an account that has signed out', async () => {
-  const told: [string, boolean][] = [];
-  const kit = setup({
-    body: answer({ maker: true }),
-    onMaker: (id, maker) => told.push([id, maker]),
-  });
-  // Positive control: the same setup tells, when the account stays.
-  await kit.ask();
-  expect(told).toEqual([[ME, true]]);
-
-  told.length = 0;
-  const asked = kit.ask();
-  kit.signIn(SOMEONE);
-  await asked;
-  expect(told).toEqual([]);
 });

@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { lightsAnyDevice } from 'common/lighting/lightingModel';
 import { setLightingSettings, useLighting } from '../lighting/lightingStore';
-import { usePlusEntitled } from '../plus/GalleryParts';
+import { useOwnsAnything } from '../plus/sceneStore';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/Lighting.scss';
 
@@ -22,7 +22,7 @@ import '../styles/Lighting.scss';
 export default function LightingToggle() {
   const { t } = useTranslation();
   const { state, loaded } = useLighting();
-  const entitled = usePlusEntitled();
+  const entitled = useOwnsAnything();
   if (!loaded || !state.supported || !entitled) {
     return null;
   }

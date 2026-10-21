@@ -5,11 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 const announce = {
-  'announce.eyebrow': 'Plus 新增 · {count} 个场景',
-  'announce.trialEnds':
-    '你的免费体验即将结束。开通 Plus 即可保留这些场景以及其他所有场景。',
+  'announce.eyebrow': '“可视化”新增 · {count} 个场景',
   'announce.try': '立即试用',
-  'announce.keepPlus': '保留 Plus',
   'announce.later': '稍后',
   'announce.previewNote': '预览。没有发送任何内容，也没有记录任何内容。',
   'announce.untitled': '新场景',

@@ -520,7 +520,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // The name's stretched target covers gaps; these controls retain their actions.
 .gallery-card__by:not(.gallery-card__by--plain),
 .gallery-card .gallery-like,
-.gallery-card__add {
+.gallery-card__add,
+.gallery-card__get {
   position: relative;
   z-index: 2;
 }

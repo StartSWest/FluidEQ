@@ -8,13 +8,13 @@ import '@testing-library/jest-dom';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IAccountState } from '../../../main/account/session';
-import type { TBillingOutcome } from '../../../main/ipc/account';
 import {
   PLUS_MINIMUM_AGE,
   PLUS_TERMS_EDITION,
   PLUS_TERMS_VERSION,
 } from '../../../common/plusTerms';
 import { LOCALES, loadLocale, translate } from '../../../common/i18n';
+import { PLUS_MOVE_CREDITS } from '../../../common/sceneStore';
 import AccountDialog from '../../../renderer/account/AccountDialog';
 import { termsValues } from '../../../renderer/account/PlusTermsDocument';
 import {
@@ -28,10 +28,13 @@ let mockAccountState: IAccountState = {
   identity: { id: 'u-1', name: 'Ada', email: 'ada@example.com' },
 };
 let mockEntitlement: { state: 'none' | 'active' } = { state: 'none' };
-const mockOpenCheckout = jest.fn((_version: number): Promise<TBillingOutcome> =>
-  Promise.resolve({ ok: true }),
-);
 
+// The credits card loads the account's store on its own (`plus/sceneStore.ts`)
+// and has its own tests; what is held here is the panel around it.
+jest.mock('../../../renderer/account/CreditsCard', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
     locale: 'en',
@@ -41,12 +44,14 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 }));
 
 jest.mock('../../../common/accountConfig', () => ({
-  ACCOUNT_CONFIG: { plusPrice: '$3.99' },
-  isCheckoutConfigured: () => true,
+  ACCOUNT_CONFIG: {},
+  isAccountConfigured: () => true,
 }));
 
 jest.mock('../../../renderer/account/accountStore', () => ({
   useAccount: () => mockAccountState,
+  getAccountSnapshot: () => mockAccountState,
+  subscribeAccount: () => () => undefined,
   signOutAccount: () => Promise.resolve(),
   signUpAccount: () => Promise.resolve(),
   signInAccount: () => Promise.resolve(),
@@ -59,7 +64,8 @@ jest.mock('../../../renderer/account/accountStore', () => ({
 
 jest.mock('../../../renderer/account/entitlementStore', () => ({
   useEntitlement: () => mockEntitlement,
-  openCheckout: (version: number) => mockOpenCheckout(version),
+  getEntitlementSnapshot: () => mockEntitlement,
+  subscribeEntitlement: () => () => undefined,
   openSubscriptionPortal: () => Promise.resolve({ ok: true }),
   refreshEntitlement: () => Promise.resolve(),
   isMembershipSimulatorAvailable: () => Promise.resolve(false),
@@ -74,9 +80,6 @@ jest.mock('../../../renderer/usage/leaderboardStore', () => ({
 
 // The leaderboard card has its own suite; here it would only be noise.
 jest.mock('../../../renderer/account/LeaderboardCard', () => () => null);
-
-const agreeButton = () =>
-  screen.getByRole('button', { name: 'terms.agree.continue' });
 
 describe('the Plus terms', () => {
   // Every language but English is a chunk of its own, loaded when it is
@@ -93,15 +96,14 @@ describe('the Plus terms', () => {
   });
 
   /**
-   * Nobody pays without having been shown what they agree to: the upgrade
-   * opens the terms, the loud button waits for the box, and the version
-   * agreed to is what the checkout is opened with.
+   * Plus is not sold any more (credits replaced it): the panel has no
+   * upgrade and the terms are only ever read, never agreed to on the way to
+   * a Plus checkout. Paying for credits agrees beside the packs instead.
    */
-  it('stand between the upgrade and the checkout, and open it only once agreed to', async () => {
+  it('offer no Plus upgrade, and open read-only with the published edition', async () => {
     render(<AccountDialog onClose={jest.fn()} />);
-    await userEvent.click(
-      screen.getByRole('button', { name: 'account.plus.upgrade' }),
-    );
+    expect(screen.queryByText(/^account\.plus\./)).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'terms.link' }));
 
     expect(
       screen.getByRole('heading', { name: 'terms.title' }),
@@ -115,67 +117,46 @@ describe('the Plus terms', () => {
     expect(
       screen.queryByText(`v${PLUS_TERMS_VERSION}`),
     ).not.toBeInTheDocument();
-    expect(mockOpenCheckout).not.toHaveBeenCalled();
-    expect(agreeButton()).toBeDisabled();
-    expect(agreeButton()).not.toHaveClass('subtle');
+    expect(screen.queryByRole('checkbox')).toBeNull();
     expect(screen.getByRole('button', { name: 'terms.back' })).toHaveClass(
       'subtle',
     );
-
-    await userEvent.click(screen.getByLabelText('terms.agree.check'));
-    expect(agreeButton()).toBeEnabled();
-    await userEvent.click(agreeButton());
-
-    expect(mockOpenCheckout).toHaveBeenCalledWith(PLUS_TERMS_VERSION);
-    // Back on the account, saying where the payment is waiting.
-    expect(await screen.findByRole('status')).toHaveTextContent(
-      'account.plus.checkoutOpened',
-    );
-    expect(screen.queryByRole('heading', { name: 'terms.title' })).toBeNull();
   });
 
-  it('names a refusal for outdated terms where it happened, and stays on them', async () => {
-    mockOpenCheckout.mockResolvedValueOnce({
-      ok: false,
-      failure: 'terms_outdated',
-    });
-    render(<AccountDialog onClose={jest.fn()} initialPage="subscribe" />);
-    await userEvent.click(screen.getByLabelText('terms.agree.check'));
-    await userEvent.click(agreeButton());
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'terms.error.outdated',
-    );
-    expect(
-      screen.getByRole('heading', { name: 'terms.title' }),
-    ).toBeInTheDocument();
-  });
-
-  it('names a refusal for an outdated price where it happened, and stays on the terms', async () => {
-    mockOpenCheckout.mockResolvedValueOnce({
-      ok: false,
-      failure: 'price_outdated',
-    });
-    render(<AccountDialog onClose={jest.fn()} initialPage="subscribe" />);
-    await userEvent.click(screen.getByLabelText('terms.agree.check'));
-    await userEvent.click(agreeButton());
-
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'terms.error.priceOutdated',
-    );
-    expect(
-      screen.getByRole('heading', { name: 'terms.title' }),
-    ).toBeInTheDocument();
-  });
-
-  it('go back agreeing to nothing', async () => {
-    render(<AccountDialog onClose={jest.fn()} initialPage="subscribe" />);
+  it('go back to the person', async () => {
+    render(<AccountDialog onClose={jest.fn()} initialPage="terms" />);
     await userEvent.click(screen.getByRole('button', { name: 'terms.back' }));
-    expect(mockOpenCheckout).not.toHaveBeenCalled();
     // Back to the person: signed in, the panel's front page is their profile
     // and its heading is their name, where it used to be a dialog header
     // saying "Account".
     expect(screen.getByRole('heading', { name: 'Ada' })).toBeInTheDocument();
+  });
+
+  /**
+   * What a Plus member is promised at the move to credits is a number the
+   * server's move has to honour (Ivan, 2026-10-21: at least 5 for anyone who
+   * paid), so it comes from the constant, in every language, and no
+   * language still quotes a price or a renewal to subscribe to.
+   */
+  it('promise Plus members the credits of the move, and sell no Plus, in every language', () => {
+    const values = termsValues();
+    const p1 = LOCALES.map(({ code }) => [
+      code,
+      translate(code, 'terms.membership.p1', values),
+    ]);
+    expect(
+      p1.filter(([, text]) => !text.includes(String(PLUS_MOVE_CREDITS))),
+    ).toEqual([]);
+    expect(
+      LOCALES.filter(({ code }) =>
+        /\{price\}|\$\d/.test(translate(code, 'terms.membership.p1', {})),
+      ),
+    ).toEqual([]);
+    // The positive control: the number is there because the value filled it,
+    // not because the text carries it by hand.
+    expect(translate('en', 'terms.membership.p1', {})).toContain(
+      '{moveCredits}',
+    );
   });
 
   /** Every section, and every thing the app sends with when and who sees it. */
@@ -184,7 +165,7 @@ describe('the Plus terms', () => {
     await userEvent.click(screen.getByRole('button', { name: 'terms.link' }));
 
     // Read-only: a way back, and no agreement.
-    expect(screen.queryByLabelText('terms.agree.check')).toBeNull();
+    expect(screen.queryByRole('checkbox')).toBeNull();
     expect(
       screen.getByRole('button', { name: 'terms.back' }),
     ).toBeInTheDocument();
@@ -222,7 +203,7 @@ describe('the Plus terms', () => {
       ...TERMS_SECTIONS.flatMap((section) => section.lines),
       ...TERMS_SENT_ROWS.flatMap((row) => [row.what, row.when, row.who]),
     ];
-    const values = termsValues('$5 / month');
+    const values = termsValues();
     const unfilled = LOCALES.flatMap(({ code }) =>
       said
         .map((key) => `${code} ${key}: ${translate(code, key, values)}`)
@@ -257,14 +238,13 @@ describe('the Plus terms', () => {
   });
 
   /**
-   * The User guide's two videos, the first steps and the Plus tour, are the
-   * app's one connection to fluideq.com. The terms name each by the title its
-   * card wears and the button that opens it in a browser, so a reader can find
-   * them; a card renamed in one place and not the other points them at
-   * something that is not there, and a film the line does not name is a
-   * connection the terms do not mention.
+   * The User guide's video, the first steps, is the app's one connection to
+   * fluideq.com from Help (the Plus tour left with Plus's sale). The terms
+   * name it by the title its card wears and the button that opens it in a
+   * browser, so a reader can find it; a card renamed in one place and not
+   * the other points them at something that is not there.
    */
-  it('name both Help videos and their button as the guide shows them, in every language', () => {
+  it('name the Help video and its button as the guide shows them, in every language', () => {
     expect(TERMS_SECTIONS.flatMap((section) => section.lines)).toContain(
       'terms.elsewhere.p10',
     );
@@ -273,7 +253,6 @@ describe('the Plus terms', () => {
       key: 'terms.elsewhere.p10' | 'terms.elsewhere.p2',
     ) =>
       translate(code, key).includes(translate(code, 'help.start.videoTitle')) &&
-      translate(code, key).includes(translate(code, 'help.plus.videoTitle')) &&
       translate(code, key).includes(translate(code, 'help.video.open'));
     const unnamed = LOCALES.filter(
       ({ code }) => !namesTheVideo(code, 'terms.elsewhere.p10'),
@@ -330,26 +309,12 @@ describe('the Plus terms', () => {
     expect(PLUS_MINIMUM_AGE).toBeGreaterThanOrEqual(18);
   });
 
-  it('ask for an account before any agreement, and show a member only the text', () => {
+  it('ask for an account before showing the terms page', () => {
     mockAccountState = { status: 'signed-out' };
-    const { unmount } = render(
-      <AccountDialog onClose={jest.fn()} initialPage="subscribe" />,
-    );
-    expect(screen.queryByLabelText('terms.agree.check')).toBeNull();
+    render(<AccountDialog onClose={jest.fn()} />);
     expect(
       screen.getByRole('heading', { name: 'account.title' }),
     ).toBeInTheDocument();
-    unmount();
-
-    mockAccountState = {
-      status: 'signed-in',
-      identity: { id: 'u-1', name: 'Ada' },
-    };
-    mockEntitlement = { state: 'active' };
-    render(<AccountDialog onClose={jest.fn()} initialPage="subscribe" />);
-    expect(
-      screen.getByRole('heading', { name: 'terms.title' }),
-    ).toBeInTheDocument();
-    expect(screen.queryByLabelText('terms.agree.check')).toBeNull();
+    expect(screen.queryByRole('checkbox')).toBeNull();
   });
 });

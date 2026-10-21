@@ -59,7 +59,7 @@ const review = {
     'Genehmigt, aber die Dateien haben die Galerie nicht erreicht. Klicken Sie noch einmal auf „Genehmigen und veröffentlichen“, um es abzuschließen.',
   'review.forbidden': 'Nur der FluidEQ-Admin kann Szenen genehmigen.',
   'review.fine.new':
-    'Genehmigen stellt sie als Version {version} in die Galerie: Alle Angemeldeten sehen sie, und Plus-Mitglieder können sie hinzufügen.',
+    'Mit der Freigabe kommt sie in Version {version} in die Galerie: Alle Angemeldeten sehen sie und können sie mit einem Credit holen, und für ihren Macher läuft sie kostenlos.',
   'review.fine.update':
     'Genehmigen ersetzt Version {version} für alle, die die Szene haben. Ohne Genehmigung bleibt Version {version}, wie sie ist.',
   'review.state.pending': 'In Prüfung',
@@ -79,7 +79,7 @@ const review = {
   'review.notice.review': 'Jetzt prüfen',
   'review.notice.approved': '{name} ist in der Galerie',
   'review.notice.approvedBody':
-    'Sie wurde genehmigt. Plus-Mitglieder können sie jetzt hinzufügen.',
+    'Sie wurde freigegeben. Sie läuft jetzt überall kostenlos für Sie, und jeder kann sie holen.',
   'review.notice.approvedUpdate':
     'Version {version} von {name} ist in der Galerie',
   'review.notice.approvedUpdateBody':

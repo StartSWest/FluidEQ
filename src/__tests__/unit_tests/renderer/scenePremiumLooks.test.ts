@@ -18,10 +18,13 @@ const AURORA = {
   swatch: ['#00e5cf', '#ff3cac'],
 };
 
+// Main lists a scene the account owns as a pack and every other one as
+// locked; while Plus lasts the account owns them all.
 const listing = (
-  entitled: boolean,
+  owned: boolean,
   packs: IScenePacksListing['packs'] = [AURORA],
-): IScenePacksListing => ({ entitled, packs, locked: [] });
+): IScenePacksListing =>
+  owned ? { packs, locked: [] } : { packs: [], locked: packs };
 
 /**
  * The look store is module state, so each case gets a fresh module registry
@@ -77,7 +80,6 @@ describe('premium looks in the look store', () => {
   it('shows the catalogue as locked rows without a subscription, and never as selectable looks', () => {
     const { graphStyle, scenePacks } = load();
     scenePacks.adoptScenePackListingForTesting({
-      entitled: false,
       packs: [],
       locked: [AURORA],
     });
@@ -95,7 +97,6 @@ describe('premium looks in the look store', () => {
   it('drops the locked rows once the subscription is on, and never shows them without a GPU', () => {
     const entitled = load();
     entitled.scenePacks.adoptScenePackListingForTesting({
-      entitled: true,
       packs: [AURORA],
       locked: [],
     });
@@ -105,7 +106,6 @@ describe('premium looks in the look store', () => {
     const noGpu = load();
     noGpu.health.setSceneRenderingAvailableForTesting(false);
     noGpu.scenePacks.adoptScenePackListingForTesting({
-      entitled: false,
       packs: [],
       locked: [AURORA],
     });

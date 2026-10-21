@@ -23,25 +23,6 @@ const studio = {
   'studio.description': 'AI でシーンを作り、ライブで確かめる',
   'studio.rail.blurb': '自分だけのシーンを作る',
 
-  'studio.plus.locked': 'Plus のみ',
-  'studio.locked.title': 'スタジオは Plus の一部です',
-  'studio.locked.body':
-    'FluidEQ のシーンが生まれる場所です。あなたのシーンもここから。',
-  'studio.locked.write': '保存するたびに組み上がるステージの横でシーンを書く',
-  'studio.locked.test': '音楽に合わせて再生し、描画のコストを確かめる',
-  'studio.locked.publish': 'ギャラリーに公開して、すべてのメンバーへ',
-  'studio.locked.keptOne': 'あなたのプロジェクトはそのまま、ここにあります:',
-  'studio.locked.keptMany':
-    '{count} 件のプロジェクトはそのまま、ここにあります:',
-  'studio.locked.earn':
-    '公開したシーンが承認されると、Plus が 1 か月分もらえます。',
-  'studio.plus.oneFolder':
-    'Plus なしでは最初の1つが開きます。残りはロック付きで一覧に残り、Plus で開けます。',
-  'studio.plus.lockedProject':
-    'Plus ならこのプロジェクトも開けます。Plus なしではスタジオは1つを保持します。',
-  'studio.plus.oneProject':
-    'Plus がないとスタジオはプロジェクトを 1 つだけ保持します。シーンを公開して承認されれば次の 1 か月が無料になり、Plus なら数に制限はありません。',
-
   'studio.maker.title': 'AI と作る',
   'studio.maker.describe': 'シーンを説明する',
   'studio.maker.placeholder':
@@ -145,10 +126,10 @@ const studio = {
   'studio.publish.needNote': '先にこのバージョンの新しい点を書いてください',
   'studio.publish.noteNeeded': '必須',
   'studio.publish.point1':
-    'サインインしている人は誰でもビジュアライザーで見られます。Plus メンバーは再生、マイ表示への追加、いいねができます。',
+    'サインインしている人なら誰でもビジュアライザーで見て、数秒間再生し、1クレジットで入手できます。あなたには無料で再生されます。',
   'studio.publish.point2': 'いいねのたびにランキングのポイントが入ります。',
   'studio.publish.point3':
-    '非公開にすると新しいダウンロードを停止できます。ダウンロード済みのコピーは引き続きPlusで利用できます。',
+    '公開を取り下げると、新しく入手できる人はいなくなります。すでに持っている人はそのまま持ち続けます。',
   'studio.publish.point3Update':
     '追加済みのメンバーには「更新」が表示され、押すまでは以前のバージョンのままです。',
   'studio.publish.read': '利用規約を読む',
@@ -176,7 +157,7 @@ const studio = {
   'studio.publish.officialCopy':
     'このシーンの大部分は FluidEQ のシーンのひとつと同じです。アイデアは自由に取り入れて、自分のシーンにしてから公開してください。',
   'studio.publish.outdated':
-    'Plus の利用規約に新しいバージョンがあります。FluidEQ を更新して内容を確認し、公開してください。',
+    '規約の新しいバージョンがあります。FluidEQ を更新して読んでから公開してください。',
   'studio.publish.versionTaken':
     'このシーンは少し前に再公開されました。もう一度お試しください。次のバージョンとして公開されます。',
   'studio.publish.takenDown':
@@ -217,13 +198,13 @@ const studio = {
     'このバージョンは再生できるようになれば追加できます。',
 
   'studio.notice.exported':
-    '{file} の準備ができました。Plus メンバーなら誰でもスタジオで開けます。',
+    '{file} の準備ができました。受け取った人は FluidEQ で開けます。',
 
   'studio.share.title': '作成したシーンを共有する',
   'studio.share.lead':
-    'シーンはあなたのものです。エクスポートすると他の Plus メンバーが再生できるようになります。これも Plus の一部です。',
+    'シーンはあなたのものです。エクスポートすると他のメンバーが開けるようになり、自分のものになれば再生できます。',
   'studio.share.point1':
-    'ファイルを受け取った人は、Plus を利用している間は再生できます。販売はできません。',
+    'ファイルを受け取った人は、そのシーンが自分のものになったとき（公開後に1クレジットで入手）にだけ再生できます。販売はできません。',
   'studio.share.point2':
     '他のメンバーからのいいねごとに、ランキングのポイントが入ります。',
   'studio.share.point3':
@@ -252,7 +233,7 @@ const studio = {
     '中を見るために開いた FluidEQ のシーンです。マイ表示への追加、公開、エクスポートはできません。',
   'studio.export.banned': 'このアカウントではシーンを共有できなくなりました。',
   'studio.export.outdated':
-    'Plus の利用規約に新しいバージョンがあります。FluidEQ を更新して内容を確認し、エクスポートしてください。',
+    '規約の新しいバージョンがあります。FluidEQ を更新して読んでからエクスポートしてください。',
 
   'studio.import.done': '{author} さんの {name} を表示に追加しました。',
   'studio.import.doneAnonymous': '{name} を表示に追加しました。',
@@ -260,6 +241,12 @@ const studio = {
   'studio.import.ownRestored':
     '{name} はあなたのシーンです。表示に戻し、続きを作れるようにここで開きました。',
   'studio.import.unreadable': 'このファイルは FluidEQ のシーンではありません。',
+  'studio.import.signedOut': 'シーンファイルを開くにはサインインしてください。',
+  'studio.draft.badge': '下書き',
+  'studio.draft.line': '公開すると全体を表示できます',
+  'studio.new.signedOut': 'プロジェクトを始めるにはサインインしてください。',
+  'studio.notice.unpublished':
+    '先に公開してください。自分のシーンはギャラリーに載るとルックに追加されます。',
   'studio.import.changed':
     'このファイルはエクスポート後に変更されているため、FluidEQ では再生しません。',
   'studio.import.blocked': 'このシーンは公開停止になっています。',
@@ -365,7 +352,6 @@ const studio = {
   'studio.work.pictures': '画像',
   'studio.work.tune': '調整',
   'studio.ship.more': 'その他',
-  'studio.ship.makerTitle': 'シーンの公開は引き続きできます',
   'studio.signals.title': 'プレビューの音声',
   'studio.signals.hint':
     'シーンは各ユーザー自身の音楽に反応します。テスト信号はこのプレビュー専用で、保存・公開されず、再生中の音声も変えません。',

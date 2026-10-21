@@ -117,6 +117,19 @@
  * as a slide opens (`FeatureFilm`), said under Where else FluidEQ connects
  * and in this revision's notice.
  */
+/**
+ * 11: credits (premium 0055-0062). A scene is bought once for one credit, from
+ * packs paid on Stripe, and kept for good; every scene can be watched for a
+ * few seconds first; FluidEQ's maker can make some of FluidEQ's own scenes
+ * free for everyone, and paid again; the Studio and publishing are every
+ * account's, and a member's own scene plays outside the Studio only once it
+ * is published — a draft plays on the Studio's stage, marked. Plus is
+ * described as what it is until FluidEQ ends it. Edition 5: what a scene
+ * costs and who may play it changed. Buying credits records an agreement to
+ * this version (create-credit-checkout refuses an older one), and the
+ * server's `plus_terms_version()` moves to 11 in premium migration 0062,
+ * deployed with the release that carries this.
+ */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
  *
@@ -125,14 +138,14 @@
  * tells every eligible new account to update FluidEQ, on the newest build
  * there is. Raise both in the same release.
  */
-export const PLUS_TERMS_VERSION = 10;
+export const PLUS_TERMS_VERSION = 11;
 
 /** Published editions. Pre-release acceptance revisions are not editions. */
-export const PLUS_TERMS_EDITION = 4;
+export const PLUS_TERMS_EDITION = 5;
 export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-10-13';
+export const PLUS_TERMS_EFFECTIVE = '2026-10-21';
 
 /**
  * Days Plus keeps working without the server confirming the membership: a
@@ -160,9 +173,9 @@ export const PLUS_MINIMUM_AGE = 18;
 export const PLUS_MAX_COMPUTERS = 5;
 
 /**
- * How long an account without Plus watches one of FluidEQ's free sample
- * scenes play, counted in frames actually drawn. A member's scene does not
- * play at all without Plus: the server refuses its file.
+ * How long any signed-in account watches a scene it does not own play on its
+ * page, counted in frames actually drawn (premium 0056 serves every scene's
+ * file for it).
  */
 export const PLUS_TASTE_SECONDS = 10;
 

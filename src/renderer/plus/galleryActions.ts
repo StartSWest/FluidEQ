@@ -2,7 +2,6 @@ import { useSyncExternalStore } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IGalleryScene, TReportReason } from 'common/plusGallery';
 import type { TGalleryAddOutcome } from 'main/ipc/plusGallery';
-import { requestAccountPanel } from '../account/accountPanel';
 import {
   likeMemberSceneLook,
   refreshMemberScenes,
@@ -67,6 +66,9 @@ const ADD_FAILURES: Record<string, TranslationKey> = {
   blocked: 'plus.add.blocked',
   changed: 'plus.add.changed',
   refused: 'plus.add.failed',
+  // The page offers Get before Add, so this is a scene bought on another
+  // computer a moment ago, or a balance taken back: said where it happened.
+  'not-entitled': 'plus.add.notOwned',
 };
 
 /**
@@ -115,11 +117,6 @@ export const addGalleryScene = async (
     });
     setGalleryNotice({ ok: true, key: 'plus.add.done', vars: { name } });
     return true;
-  }
-  if (outcome.reason === 'not-entitled') {
-    notify();
-    requestAccountPanel('subscribe');
-    return false;
   }
   setGalleryNotice({
     ok: false,

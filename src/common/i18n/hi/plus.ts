@@ -4,19 +4,14 @@ const plus = {
   'plus.remove.done': '{name} को आपके रूपों से हटा दिया गया।',
   'plus.card.remove': 'हटाएँ',
   'plus.official.author': 'FluidEQ · आधिकारिक',
-  'plus.official.included': 'Plus में शामिल',
-  'plus.official.sample': '{seconds} सेकंड की झलक',
+  'plus.official.included': 'हर सीन एक क्रेडिट, हमेशा के लिए आपका',
   'plus.official.badge': 'आधिकारिक',
-  'plus.official.fine':
-    'FluidEQ संग्रह का हिस्सा: जब तक आपके पास Plus है, यह आपके रूपों से चलता है।',
   'plus.visualizers.title': 'विज़ुअलाइज़र',
   'plus.visualizers.description':
     'FluidEQ और Plus समुदाय के सीन, आपके संगीत के लिए तैयार',
   'plus.visualizers.blurb': 'सदस्यों के सीन',
   'plus.rail.pin': 'साइडबार पिन करें',
   'plus.rail.collapse': 'साइडबार छोटा करें',
-
-  'plus.gate.cta': 'Plus देखें',
 
   'plus.gallery.search': 'सीन या बनाने वाले खोजें',
   'plus.gallery.sort': 'क्रम',
@@ -67,11 +62,17 @@ const plus = {
   'plus.version.earlier': 'पुराने संस्करण ({count})',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'कोई नोट नहीं',
+  'plus.version.play': 'चलाएँ',
+  'plus.version.playLabel': 'संस्करण {version} चलाएँ',
+  'plus.version.playing': 'चल रहा है',
+  'plus.version.playingLine':
+    'आप संस्करण {version} चला रहे हैं, जो इस कंप्यूटर पर रखा है।',
+  'plus.version.backToNewest': 'सबसे नए पर लौटें',
+  'plus.version.keptHere': 'इस कंप्यूटर पर रखा है',
   'plus.card.open': '{name} खोलें',
 
   'plus.like.label': '{name} को पसंद करें ({count} पसंद)',
   'plus.like.own': 'आपके सीन को {count} पसंद मिली हैं',
-  'plus.like.plusOnly': '{count} पसंद। सीन पसंद करना Plus का हिस्सा है।',
   'plus.like.offline':
     'पसंद करने के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
 
@@ -87,10 +88,7 @@ const plus = {
   'plus.scene.next': 'अगला सीन: {name}',
   'plus.scene.loading': 'सीन लोड हो रहा है…',
   'plus.scene.playing': 'आपके संगीत पर लाइव',
-  'plus.scene.plusPlays': 'Plus के साथ यह सीन यहीं आपके संगीत पर चलता है',
   'plus.scene.taste': 'प्रीव्यू · {seconds} सेकंड',
-  'plus.scene.keepWatching':
-    'Plus के साथ इसे अपने संगीत पर देखते रहें, और अपने रूपों में जोड़ें।',
   'plus.scene.unavailable': 'यह सीन अभी डाउनलोड नहीं हो सकता।',
   'plus.scene.blocked': 'यह सीन हटा दिया गया है।',
   'plus.scene.changed':
@@ -103,7 +101,6 @@ const plus = {
   'plus.scene.adds': 'जोड़े गए',
   'plus.scene.add': 'मेरे रूपों में जोड़ें',
   'plus.scene.update': 'मेरी कॉपी अपडेट करें',
-  'plus.scene.getPlus': 'जोड़ने के लिए Plus लें',
   'plus.inspect.open': 'स्टूडियो में खोलें',
   'plus.inspect.hint':
     'देखें कि यह कैसे बना है और अपने सीन के लिए आइडिया लें। यह प्रकाशित करने के लिए नहीं, अंदर देखने के प्रोजेक्ट के रूप में खुलता है।',
@@ -114,8 +111,6 @@ const plus = {
   'plus.scene.inLooks': 'आपके रूपों में, “सदस्यों के बनाए” के अंदर',
   'plus.scene.inLooksOwn': 'आपके रूपों में, “आपके बनाए” के अंदर',
   'plus.scene.inLooksPlus': 'आपके रूपों में, “FluidEQ Plus” के अंदर',
-  'plus.scene.fine':
-    'जोड़े गए सीन आपके रूपों से तब तक चलते हैं जब तक आपके पास Plus है। कोई उन्हें बेच नहीं सकता।',
   'plus.scene.report': 'इस सीन की रिपोर्ट करें',
   'plus.scene.reported': 'रिपोर्ट हो गई। धन्यवाद।',
   'plus.scene.moreBy': '{name} के और सीन',
@@ -361,6 +356,8 @@ const plus = {
     'हमेशा के लिए मिटाएँ? यह गैलरी से और हर सदस्य के रूपों से हट जाता है, इसकी फ़ाइलें मिटा दी जाती हैं, और इसे फिर कभी प्रकाशित नहीं किया जा सकता।',
   'plus.moderation.deleteForGood': 'हमेशा के लिए मिटाएँ',
   'plus.moderation.done.deleted': '{name} मिटा दिया गया।',
+  'plus.add.notOwned':
+    'पहले {name} लें: इसमें एक क्रेडिट लगता है, फिर यह आपके रूपों में आ जाता है।',
 } as const;
 
 export default plus;

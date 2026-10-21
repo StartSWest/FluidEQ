@@ -18,7 +18,10 @@ import { headers, type IAuthorised } from './galleryApi';
 export type TPublishFailure =
   | 'offline'
   | 'signed-out'
+  /** A server before the free Studio: only Plus members could publish. */
   | 'not-entitled'
+  /** The address is not confirmed yet, which publishing needs. */
+  | 'unconfirmed'
   | 'banned'
   | 'terms'
   | 'rate-limited'
@@ -99,7 +102,10 @@ const publishFailure = async (response: Response): Promise<TPublishFailure> => {
     return 'deleted';
   }
   if (response.status === 403) {
-    return word === 'banned' ? 'banned' : 'not-entitled';
+    if (word === 'banned' || word === 'unconfirmed') {
+      return word;
+    }
+    return 'not-entitled';
   }
   if (response.status === 429) {
     return word === 'too_many_this_month'

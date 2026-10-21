@@ -139,6 +139,12 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
     'karaoke.maker.memoryPolicy.*',
   ],
   'src/renderer/plus/GalleryParts.tsx': ['plus.category.*'],
+  // A count of credits in each language's own plural forms, picked at run
+  // time through Intl.PluralRules.
+  'src/renderer/plus/credits.ts': [
+    ['store.credit.{one,few,many,other}', 'store.credit.*'],
+    ['store.credits.unit.{one,few,many,other}', 'store.credits.unit.*'],
+  ],
   'src/renderer/plus/lighting/LightingDevices.tsx': [
     'lighting.effect.*',
     'lighting.form.*',

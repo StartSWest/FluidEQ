@@ -1,0 +1,76 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+// A draft on the Studio's stage (`StudioDraftMark`): a proof's hatching over
+// the whole picture, and a tag in the corner the plate and the view reset
+// leave free. Under the plate (z-index 3) so its buttons stay on top, over
+// the scene and its pointer layer; it takes no pointer itself.
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.studio-draft {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  // Fine diagonal rules, thin enough to judge the scene through and there in
+  // every frame: a draft is something to work on, not to keep watching.
+  background: repeating-linear-gradient(
+    135deg,
+    rgba($white, 0.075) 0 1px,
+    transparent 1px 14px
+  );
+}
+
+.studio-draft__tag {
+  position: absolute;
+  bottom: $spacing-s;
+  left: $spacing-s;
+  display: flex;
+  max-width: calc(100% - 6rem);
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
+  color: $text-primary;
+  font-size: $text-small;
+  border: 1px solid color-mix(in srgb, $amber 45%, transparent);
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $surface-base 78%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.studio-draft__badge {
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  color: $surface-base;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  @include tracking(0.08em);
+  text-transform: uppercase;
+  border-radius: $radius-pill;
+  background: $amber;
+}
+
+.studio-draft__line {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  svg {
+    flex: 0 0 auto;
+    width: 13px;
+    height: 13px;
+    color: $amber;
+  }
+}

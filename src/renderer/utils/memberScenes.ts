@@ -54,7 +54,7 @@ export interface ILockedMemberScene {
   authorName?: string | null;
 }
 
-const EMPTY: IMemberScenesListing = { entitled: false, scenes: [], locked: [] };
+const EMPTY: IMemberScenesListing = { scenes: [], locked: [] };
 
 let listing: IMemberScenesListing = EMPTY;
 let loaded = false;
@@ -68,41 +68,39 @@ const bridge = () => window.electron?.ipcRenderer;
 
 const recompute = () => {
   const canDraw = isSceneRenderingAvailable();
-  usable =
-    listing.entitled && canDraw
-      ? listing.scenes
-          .filter((scene) => !blocked.has(scene.lookId))
-          .map((scene) => ({
-            kind: 'member' as const,
-            lookId: scene.lookId,
-            authorId: scene.authorId,
-            packId: scene.packId,
-            version: scene.version,
-            revision: scene.revision,
-            names: scene.names,
-            fallbackStyle: scene.fallbackStyle,
-            swatch: scene.swatch,
-            own: scene.own,
-            ...(scene.own ? {} : { authorName: scene.authorName ?? null }),
-            ...(scene.spectrumRange
-              ? { spectrumRange: scene.spectrumRange }
-              : {}),
-            ...(scene.wave ? { wave: scene.wave } : {}),
-          }))
-      : [];
-  locked =
-    !listing.entitled && canDraw
-      ? listing.locked.map((scene) => ({
-          // The Plus looks' locked prefix, so the picker treats both the same:
-          // choosing one opens the Plus card and no selection lands on it.
-          lookId: lockedLookId(scene.lookId),
+  usable = canDraw
+    ? listing.scenes
+        .filter((scene) => !blocked.has(scene.lookId))
+        .map((scene) => ({
+          kind: 'member' as const,
+          lookId: scene.lookId,
+          authorId: scene.authorId,
+          packId: scene.packId,
+          version: scene.version,
+          revision: scene.revision,
           names: scene.names,
           fallbackStyle: scene.fallbackStyle,
           swatch: scene.swatch,
           own: scene.own,
           ...(scene.own ? {} : { authorName: scene.authorName ?? null }),
+          ...(scene.spectrumRange
+            ? { spectrumRange: scene.spectrumRange }
+            : {}),
+          ...(scene.wave ? { wave: scene.wave } : {}),
         }))
-      : [];
+    : [];
+  locked = canDraw
+    ? listing.locked.map((scene) => ({
+        // The Plus looks' locked prefix, so the picker treats both the same:
+        // choosing one opens the Plus card and no selection lands on it.
+        lookId: lockedLookId(scene.lookId),
+        names: scene.names,
+        fallbackStyle: scene.fallbackStyle,
+        swatch: scene.swatch,
+        own: scene.own,
+        ...(scene.own ? {} : { authorName: scene.authorName ?? null }),
+      }))
+    : [];
 };
 
 const publish = () => {
@@ -172,9 +170,7 @@ export const getLockedMemberScenes = (): readonly ILockedMemberScene[] =>
 export const getEntitledMemberScene = (
   lookId: string,
 ): IMemberSceneSummary | undefined =>
-  listing.entitled
-    ? listing.scenes.find((scene) => scene.lookId === lookId)
-    : undefined;
+  listing.scenes.find((scene) => scene.lookId === lookId);
 
 export const useUsableMemberScenes = (): readonly IUsableMemberScene[] =>
   useSyncExternalStore(

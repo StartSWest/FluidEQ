@@ -1,5 +1,5 @@
 /**
- * The Studio: where Plus members make scenes with their own AI and watch them
+ * The Studio: where members make scenes with their own AI and watch them
  * live. The AI prompt itself is English in every language (see
  * `renderer/studio/aiPrompt.ts`); everything a member reads is here.
  *
@@ -30,25 +30,6 @@ const studio = {
   'studio.title': 'Studio',
   'studio.description': 'Make scenes with your AI and watch them live',
   'studio.rail.blurb': 'Build your own scenes',
-
-  'studio.plus.locked': 'Only with Plus',
-  'studio.locked.title': 'The Studio is part of Plus',
-  'studio.locked.body':
-    'This is where FluidEQ’s scenes are made — and where yours can be.',
-  'studio.locked.write':
-    'Write the scene beside a stage that rebuilds as you save',
-  'studio.locked.test': 'Play it against music and see what it costs to draw',
-  'studio.locked.publish': 'Publish it to the gallery for every member',
-  'studio.locked.keptOne': 'Your project is where you left it, in',
-  'studio.locked.keptMany': 'Your {count} projects are where you left them, in',
-  'studio.locked.earn':
-    'A scene you publish earns a month of Plus once it is approved.',
-  'studio.plus.oneFolder':
-    'Without Plus, the first of these opens; the rest are listed with a lock, for Plus.',
-  'studio.plus.lockedProject':
-    'With Plus this project opens too; without Plus the Studio keeps one.',
-  'studio.plus.oneProject':
-    'Without Plus the Studio keeps one project. Publish a scene and the next month is free once it is approved, or take Plus for as many as you like.',
 
   'studio.maker.title': 'Make it with your AI',
   'studio.maker.describe': 'Describe your scene',
@@ -152,10 +133,10 @@ const studio = {
   'studio.publish.needNote': 'Say what is new in this version first',
   'studio.publish.noteNeeded': 'Needed',
   'studio.publish.point1':
-    'Anyone signed in can see it in Visualizers. Plus members can play it, add it to their looks and like it.',
+    'Anyone signed in can see it in Visualizers, watch it for a few seconds and get it with a credit. It plays free for you.',
   'studio.publish.point2': 'Each like earns you points on the leaderboard.',
   'studio.publish.point3':
-    'You can unpublish it to stop new downloads. Copies already downloaded remain available with Plus.',
+    'You can unpublish it so nobody new can get it. Whoever already has it keeps it.',
   'studio.publish.point3Update':
     'Members who added it see Update, and keep the old version until they press it.',
   'studio.publish.read': 'Read the terms',
@@ -180,7 +161,7 @@ const studio = {
   'studio.publish.officialCopy':
     'Most of this scene is one of FluidEQ’s own. Take ideas from them, but make the scene your own before you publish it.',
   'studio.publish.outdated':
-    'The Plus terms have a newer version. Update FluidEQ to read it and publish.',
+    'The terms have a newer version. Update FluidEQ to read it and publish.',
   'studio.publish.versionTaken':
     'This scene was published again a moment ago. Try once more and it will go out as the next version.',
   'studio.publish.takenDown':
@@ -221,15 +202,15 @@ const studio = {
     '{name} is updated in your looks, under Made by you.',
   'studio.notice.addFailed': 'This version can be added once it plays.',
   'studio.notice.exported':
-    '{file} is ready. Any Plus member can open it in their Studio.',
+    '{file} is ready. Whoever you send it to can open it in FluidEQ.',
 
   // Asked once, before the first export: the scene is the member's, and
   // sending it lets other members play it. The full text is in the Plus terms.
   'studio.share.title': 'Share scenes you make',
   'studio.share.lead':
-    'Your scenes stay yours. Exporting one lets other Plus members play it, and that is part of what Plus is.',
+    'Your scenes stay yours. Exporting one lets other members open it, and they play it once they own it.',
   'studio.share.point1':
-    'Anyone you give the file to can play it while they have Plus. They cannot sell it.',
+    'Anyone you give the file to plays it only once they own the scene, with a credit after it is published. They cannot sell it.',
   'studio.share.point2':
     'Every like from another member earns you points on the leaderboard.',
   'studio.share.point3':
@@ -255,7 +236,7 @@ const studio = {
     'This is a FluidEQ scene, opened to look inside. It can’t be added to your looks, published or exported.',
   'studio.export.banned': 'This account can no longer share scenes.',
   'studio.export.outdated':
-    'The Plus terms have a newer version. Update FluidEQ to read it and export.',
+    'The terms have a newer version. Update FluidEQ to read it and export.',
 
   'studio.import.done': '{name} by {author} is in your looks.',
   'studio.import.doneAnonymous': '{name} is in your looks.',
@@ -263,6 +244,12 @@ const studio = {
   'studio.import.ownRestored':
     '{name} is yours. It is back in your looks, and open here to keep working on.',
   'studio.import.unreadable': 'That file is not a FluidEQ scene.',
+  'studio.import.signedOut': 'Sign in to open a scene file.',
+  'studio.draft.badge': 'Draft',
+  'studio.draft.line': 'Publish to see it full',
+  'studio.new.signedOut': 'Sign in to start a project.',
+  'studio.notice.unpublished':
+    'Publish it first: your own scene goes into your looks once it is in the gallery.',
   'studio.import.changed':
     'That file was changed after it was exported, so FluidEQ will not play it.',
   'studio.import.blocked': 'That scene has been taken down.',
@@ -370,7 +357,6 @@ const studio = {
   'studio.work.pictures': 'Pictures',
   'studio.work.tune': 'Tune',
   'studio.ship.more': 'More',
-  'studio.ship.makerTitle': 'Publishing stays open to you',
   'studio.signals.title': 'Preview audio',
   'studio.signals.hint':
     'Listeners always see the scene react to their own music. Test signals only drive this preview: they are not saved or published and never change your audio.',
