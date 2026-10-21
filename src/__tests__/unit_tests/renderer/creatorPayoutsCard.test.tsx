@@ -34,6 +34,7 @@ const TERMS = {
   holdDays: 30,
   minimumCents: 1000,
   agreementVersion: 1,
+  payoutDays: 15,
 };
 const base: ICreatorStatus = {
   terms: TERMS,

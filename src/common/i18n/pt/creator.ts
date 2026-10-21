@@ -27,7 +27,7 @@ const creator: Partial<Dictionary> = {
   'creator.held': 'Retido',
   'creator.paid': 'Pago até agora',
   'creator.paidHint':
-    'Cada venda fica retida {days} dias caso haja reembolso, e é paga ao seu banco quando houver {amount} prontos.',
+    'Cada venda fica retida {days} dias caso haja reembolso. Os criadores recebem a cada {every} dias, quando houver {amount} prontos.',
   'creator.opened':
     'A página da Stripe está aberta no seu navegador. Conclua lá; este cartão se atualiza quando você voltar.',
   'creator.setUp': 'Configurar pagamentos',
@@ -57,7 +57,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.hold':
     'Cada ganho fica retido {days} dias, para que um reembolso ou uma contestação ainda possam desfazê-lo. Um ganho desfeito depois de pago é descontado do seu próximo pagamento.',
   'creator.terms.minimum':
-    'O FluidEQ paga quando houver {amount} ou mais prontos. Depois a Stripe envia ao seu banco no seu próprio calendário.',
+    'O FluidEQ paga os criadores a cada {every} dias, quando houver {amount} ou mais prontos. Depois a Stripe envia ao seu banco no seu próprio calendário.',
   'creator.terms.stripe':
     'A Stripe pede seus dados de identidade, bancários e fiscais e mostra os próprios termos. Os pagamentos param se a Stripe não puder mais pagar você.',
   'creator.terms.rights':
@@ -104,6 +104,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.ran': 'Pagos: {paid}. Não pagos: {failed}.',
   'creator.admin.rules':
     'Cada pagamento é enviado uma única vez: uma execução interrompida é concluída pela próxima, nunca enviada de novo. Os criadores escolhem quando a Stripe passa para o banco, no próprio painel da Stripe.',
+  'creator.admin.lastPaid': 'Último pagamento: {date}',
+  'creator.admin.neverPaid': 'Nenhum pagamento ainda',
+  'creator.admin.nextDue': 'próximo: {date}',
+  'creator.admin.dueNow': 'há um pagamento a fazer agora',
+  'creator.notice.title': 'Os criadores esperam o pagamento',
+  'creator.notice.body':
+    'Há {amount} prontos para pagar. Criadores a pagar: {count}. Os pagamentos saem a cada {every} dias.',
+  'creator.notice.later': 'Depois',
+  'creator.notice.open': 'Abrir Pagamentos',
 };
 
 export default creator;

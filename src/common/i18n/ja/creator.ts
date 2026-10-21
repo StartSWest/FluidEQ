@@ -27,7 +27,7 @@ const creator: Partial<Dictionary> = {
   'creator.held': '保留中',
   'creator.paid': '支払い済み',
   'creator.paidHint':
-    '各販売は返金に備えて {days} 日間保留され、{amount} に達すると銀行口座へ支払われます。',
+    '各販売は返金に備えて {days} 日間保留されます。クリエイターへの支払いは {every} 日ごとで、{amount} に達すると支払われます。',
   'creator.opened':
     'Stripe のページがブラウザで開いています。そちらで完了してください。戻るとこのカードが更新されます。',
   'creator.setUp': '支払いを設定',
@@ -57,7 +57,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.hold':
     '各収益は {days} 日間保留され、その間は返金や異議申し立てで取り消されることがあります。支払い後に取り消された分は、次回の支払いから差し引かれます。',
   'creator.terms.minimum':
-    'FluidEQ は {amount} 以上が支払い可能になると支払います。その後 Stripe が、あなたの設定したスケジュールで銀行口座へ送金します。',
+    'FluidEQ は {every} 日ごとに、{amount} 以上が支払い可能になったクリエイターに支払います。その後 Stripe が、あなたの設定したスケジュールで銀行口座へ送金します。',
   'creator.terms.stripe':
     'Stripe は本人確認・銀行・税金の情報を求め、独自の規約を表示します。Stripe があなたに支払えなくなった場合、支払いは停止します。',
   'creator.terms.rights':
@@ -104,6 +104,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.ran': '支払い済み：{paid}　未払い：{failed}',
   'creator.admin.rules':
     '各支払いは一度だけ送られます。途中で止まった実行は次の実行が完了させ、二重に送られることはありません。銀行への振込時期は、各クリエイターが自分の Stripe ダッシュボードで決めます。',
+  'creator.admin.lastPaid': '前回の支払い：{date}',
+  'creator.admin.neverPaid': 'まだ支払いはありません',
+  'creator.admin.nextDue': '次回：{date}',
+  'creator.admin.dueNow': '今が支払い時期です',
+  'creator.notice.title': 'クリエイターへの支払い時期です',
+  'creator.notice.body':
+    '{amount} が支払い可能です。支払い先のクリエイター：{count}。支払いは {every} 日ごとです。',
+  'creator.notice.later': '後で',
+  'creator.notice.open': '支払いを開く',
 };
 
 export default creator;

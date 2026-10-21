@@ -24,7 +24,7 @@ const creator: Partial<Dictionary> = {
   'creator.held': '暂扣中',
   'creator.paid': '已支付',
   'creator.paidHint':
-    '每笔销售会暂扣 {days} 天以防退款，累计满 {amount} 后支付到你的银行账户。',
+    '每笔销售会暂扣 {days} 天以防退款。创作者每 {every} 天收款一次，累计满 {amount} 即付款。',
   'creator.opened':
     'Stripe 页面已在浏览器中打开。请在那里完成；回来后此卡片会自动更新。',
   'creator.setUp': '设置收款',
@@ -54,7 +54,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.hold':
     '每笔收益会暂扣 {days} 天，期间退款或争议仍可将其撤销。付款后被撤销的部分会从你的下一次付款中扣除。',
   'creator.terms.minimum':
-    '可支付金额达到 {amount} 或以上时，FluidEQ 才会付款。之后 Stripe 会按你自己设定的周期转入你的银行账户。',
+    'FluidEQ 每 {every} 天向可支付金额达到 {amount} 或以上的创作者付款。之后 Stripe 会按你自己设定的周期转入你的银行账户。',
   'creator.terms.stripe':
     'Stripe 会要求你提供身份、银行和税务信息，并向你展示其自身的条款。如果 Stripe 无法再向你付款，付款将停止。',
   'creator.terms.rights':
@@ -93,6 +93,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.ran': '已付款：{paid}。未付款：{failed}。',
   'creator.admin.rules':
     '每笔付款只发送一次：中途停止的执行会由下一次完成，绝不会重复发送。何时转入银行，由创作者在自己的 Stripe 控制台中决定。',
+  'creator.admin.lastPaid': '上次付款：{date}',
+  'creator.admin.neverPaid': '尚未付款',
+  'creator.admin.nextDue': '下次：{date}',
+  'creator.admin.dueNow': '现在该付款了',
+  'creator.notice.title': '该向创作者付款了',
+  'creator.notice.body':
+    '有 {amount} 可以支付。待付款创作者：{count}。每 {every} 天付款一次。',
+  'creator.notice.later': '稍后',
+  'creator.notice.open': '打开付款',
 };
 
 export default creator;

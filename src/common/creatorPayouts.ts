@@ -66,6 +66,8 @@ export interface ICreatorTerms {
   holdDays: number;
   minimumCents: number;
   agreementVersion: number;
+  /** How often the admin pays creators (Ivan, 2026-10-21: every 15 days). */
+  payoutDays: number;
 }
 
 export interface ICreatorAccount {
@@ -114,12 +116,15 @@ const termsOf = (value: unknown): ICreatorTerms | undefined =>
   isWholeNumber(value.minimumCents) &&
   value.minimumCents >= 0 &&
   isWholeNumber(value.agreementVersion) &&
-  value.agreementVersion > 0
+  value.agreementVersion > 0 &&
+  isWholeNumber(value.payoutDays) &&
+  value.payoutDays > 0
     ? {
         sharePercent: value.sharePercent,
         holdDays: value.holdDays,
         minimumCents: value.minimumCents,
         agreementVersion: value.agreementVersion,
+        payoutDays: value.payoutDays,
       }
     : undefined;
 
@@ -197,6 +202,10 @@ export interface ICreatorPayoutPreview {
   availableCents?: number;
   /** Payouts a run left unfinished, finished first by the next. */
   pending: number;
+  /** When creators were last paid; absent before the first payout. */
+  lastPaidAt?: number;
+  /** How often payouts are due, from the creator terms. */
+  payoutDays?: number;
 }
 
 /** How a payout run ended: what was sent, and why the rest was not. */
@@ -230,6 +239,10 @@ export const parsePayoutPreview = (
     return undefined;
   }
   const due = value.due.map(dueOf);
+  const lastPaidAt =
+    typeof value.lastPaidAt === 'string'
+      ? Date.parse(value.lastPaidAt)
+      : Number.NaN;
   if (due.some((row) => row === undefined)) {
     return undefined;
   }
@@ -240,8 +253,33 @@ export const parsePayoutPreview = (
       ? { availableCents: value.availableCents }
       : {}),
     pending: value.pending,
+    ...(Number.isFinite(lastPaidAt) ? { lastPaidAt } : {}),
+    ...(isWholeNumber(value.payoutDays) && value.payoutDays > 0
+      ? { payoutDays: value.payoutDays }
+      : {}),
   };
 };
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Whether the admin owes creators a payout run now: somebody is due, and
+ * the last run is the payout interval behind (or there has never been one).
+ */
+export const payoutRunDue = (
+  preview: ICreatorPayoutPreview,
+  now: number,
+): boolean =>
+  preview.due.length > 0 &&
+  (preview.lastPaidAt === undefined ||
+    preview.payoutDays === undefined ||
+    now - preview.lastPaidAt >= preview.payoutDays * DAY_MS);
+
+/** When the next run is due, once there has been one. */
+export const nextPayoutAt = (preview: ICreatorPayoutPreview) =>
+  preview.lastPaidAt !== undefined && preview.payoutDays !== undefined
+    ? preview.lastPaidAt + preview.payoutDays * DAY_MS
+    : undefined;
 
 /** `run-creator-payouts`' run: each payout sent, or the reason it was not. */
 export const parsePayoutRun = (

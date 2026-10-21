@@ -100,3 +100,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
   height: 15px;
   color: $amber;
 }
+
+// A payout owed: the schedule line in amber, like everything true but not
+// what you want yet.
+.admin-server__measured.admin-payouts__due {
+  color: $amber;
+  font-weight: $weight-semibold;
+}

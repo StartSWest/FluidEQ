@@ -41,6 +41,7 @@ import ProcessesDialog from '../components/ProcessesDialog';
 import RestartAudioDialog from '../components/RestartAudioDialog';
 import SceneReviewNotice from '../components/SceneReviewNotice';
 import ServerLimitNotice from '../components/ServerLimitNotice';
+import PayoutDueNotice from '../components/PayoutDueNotice';
 import SongEqNotice from '../components/SongEqNotice';
 import SongSoundNotice from '../components/SongSoundNotice';
 import SongSoundSaveNotice from '../components/SongSoundSaveNotice';
@@ -255,6 +256,8 @@ const ShellDialogs = ({
       {/* The admin's alone: the server nearing a limit of its plan, which
           has to be paid for before it fills, on whichever tab is open. */}
       <ServerLimitNotice />
+      {/* The admin's too: creators owed their payout, every 15 days. */}
+      <PayoutDueNotice />
       {/* Why a free trial ended without Plus, asked once and here: a member
           whose trial is over may never open the Plus tab again. */}
       <TrialExitNotice />

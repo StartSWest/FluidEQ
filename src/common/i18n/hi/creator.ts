@@ -27,7 +27,7 @@ const creator: Partial<Dictionary> = {
   'creator.held': 'रोकी गई राशि',
   'creator.paid': 'अब तक भुगतान',
   'creator.paidHint':
-    'रिफ़ंड की स्थिति के लिए हर बिक्री {days} दिन रोकी जाती है, फिर {amount} तैयार होने पर आपके बैंक में भेजी जाती है।',
+    'रिफ़ंड की स्थिति के लिए हर बिक्री {days} दिन रोकी जाती है। क्रिएटर को हर {every} दिन भुगतान होता है, जब {amount} तैयार हो।',
   'creator.opened':
     'Stripe का पेज आपके ब्राउज़र में खुला है। वहाँ पूरा करें; लौटने पर यह कार्ड अपडेट हो जाएगा।',
   'creator.setUp': 'भुगतान सेट करें',
@@ -57,7 +57,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.hold':
     'हर कमाई {days} दिन रोकी जाती है, ताकि रिफ़ंड या विवाद उसे अब भी रद्द कर सके। भुगतान के बाद रद्द हुई कमाई आपके अगले भुगतान से घटा दी जाती है।',
   'creator.terms.minimum':
-    '{amount} या उससे अधिक तैयार होने पर FluidEQ भुगतान करता है। फिर Stripe उसे आपके अपने शेड्यूल पर आपके बैंक में भेजता है।',
+    'FluidEQ हर {every} दिन क्रिएटर को भुगतान करता है, जब {amount} या उससे अधिक तैयार हो। फिर Stripe उसे आपके अपने शेड्यूल पर आपके बैंक में भेजता है।',
   'creator.terms.stripe':
     'Stripe आपकी पहचान, बैंक और टैक्स की जानकारी माँगता है और अपनी शर्तें दिखाता है। यदि Stripe आपको भुगतान नहीं कर सकता, तो भुगतान रुक जाते हैं।',
   'creator.terms.rights':
@@ -105,6 +105,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.ran': 'भुगतान हुआ: {paid}। भुगतान नहीं हुआ: {failed}।',
   'creator.admin.rules':
     'हर भुगतान केवल एक बार भेजा जाता है: बीच में रुका रन अगला रन पूरा करता है, दोबारा कभी नहीं भेजा जाता। बैंक में पैसा कब जाए, यह क्रिएटर अपने Stripe डैशबोर्ड में खुद चुनते हैं।',
+  'creator.admin.lastPaid': 'पिछला भुगतान: {date}',
+  'creator.admin.neverPaid': 'अभी तक कोई भुगतान नहीं',
+  'creator.admin.nextDue': 'अगला: {date}',
+  'creator.admin.dueNow': 'अभी भुगतान करना है',
+  'creator.notice.title': 'क्रिएटर को भुगतान का समय',
+  'creator.notice.body':
+    '{amount} भुगतान के लिए तैयार है। भुगतान पाने वाले क्रिएटर: {count}। भुगतान हर {every} दिन होता है।',
+  'creator.notice.later': 'बाद में',
+  'creator.notice.open': 'भुगतान खोलें',
 };
 
 export default creator;

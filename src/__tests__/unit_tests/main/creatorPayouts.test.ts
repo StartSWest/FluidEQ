@@ -34,9 +34,11 @@ import type { IAccountConfig } from '../../../common/accountConfig';
 import {
   CREATOR_AGREEMENT_VERSION,
   isPayableCountry,
+  nextPayoutAt,
   parseCreatorStatus,
   parsePayoutPreview,
   parsePayoutRun,
+  payoutRunDue,
 } from '../../../common/creatorPayouts';
 import { appLinkOf, deliverAppLink } from '../../../main/appLinks';
 import { registerCreatorIpc } from '../../../main/ipc/creator';
@@ -56,6 +58,7 @@ const STATUS = {
     holdDays: 30,
     minimumCents: 1000,
     agreementVersion: 1,
+    payoutDays: 15,
   },
   account: {
     country: 'DE',
@@ -136,6 +139,31 @@ describe('what the server says, read', () => {
         pending: 0,
       }),
     ).not.toHaveProperty('availableCents');
+  });
+
+  it('reads when creators were last paid, and says when the next run is owed', () => {
+    const preview = parsePayoutPreview({
+      due: [{ creatorId: 'c1', readyCents: 2480 }],
+      totalCents: 2480,
+      pending: 0,
+      lastPaidAt: '2026-10-01T12:00:00Z',
+      payoutDays: 15,
+    });
+    expect(preview?.lastPaidAt).toBe(Date.parse('2026-10-01T12:00:00Z'));
+    if (!preview) {
+      throw new Error('the preview did not read');
+    }
+    const day = 24 * 60 * 60 * 1000;
+    const last = Date.parse('2026-10-01T12:00:00Z');
+    expect(payoutRunDue(preview, last + 14 * day)).toBe(false);
+    expect(payoutRunDue(preview, last + 15 * day)).toBe(true);
+    expect(nextPayoutAt(preview)).toBe(last + 15 * day);
+    // Nobody due: nothing owed, however long ago the last run was.
+    expect(payoutRunDue({ ...preview, due: [] }, last + 99 * day)).toBe(false);
+    // Never paid: owed as soon as somebody is due.
+    expect(payoutRunDue({ ...preview, lastPaidAt: undefined }, last)).toBe(
+      true,
+    );
   });
 
   it('counts a run: what was sent, and why the rest was not', () => {

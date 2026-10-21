@@ -29,7 +29,7 @@ const creator = {
   'creator.held': 'On hold',
   'creator.paid': 'Paid so far',
   'creator.paidHint':
-    'Each sale is held {days} days in case of a refund, then paid to your bank once {amount} is ready.',
+    'Each sale is held {days} days in case of a refund. Creators are paid every {every} days, once {amount} is ready.',
   'creator.opened':
     "Stripe's page is open in your browser. Finish there; this card updates when you come back.",
   'creator.setUp': 'Set up payouts',
@@ -59,7 +59,7 @@ const creator = {
   'creator.terms.hold':
     'Each earning is held {days} days, so a refund or a dispute can still undo it. One undone after you were paid comes off your next payout.',
   'creator.terms.minimum':
-    'FluidEQ pays out once {amount} or more is ready. Stripe then sends it to your bank on your own schedule.',
+    'FluidEQ pays creators every {every} days, once {amount} or more is ready. Stripe then sends it to your bank on your own schedule.',
   'creator.terms.stripe':
     'Stripe asks for your identity, bank and tax details and shows you its own terms. Payouts stop if Stripe can no longer pay you.',
   'creator.terms.rights':
@@ -105,6 +105,15 @@ const creator = {
   'creator.admin.ran': 'Paid: {paid}. Not paid: {failed}.',
   'creator.admin.rules':
     'Each payout is sent once: a run that stopped halfway is finished by the next, never sent again. Creators choose when Stripe moves it to their bank, in their own Stripe dashboard.',
+  'creator.admin.lastPaid': 'Last paid {date}',
+  'creator.admin.neverPaid': 'No payout yet',
+  'creator.admin.nextDue': 'next due {date}',
+  'creator.admin.dueNow': 'a payout is due now',
+  'creator.notice.title': 'Creators are due their payout',
+  'creator.notice.body':
+    '{amount} is ready to pay. Creators to pay: {count}. Payouts go out every {every} days.',
+  'creator.notice.later': 'Later',
+  'creator.notice.open': 'Open Payouts',
 };
 
 export default creator;

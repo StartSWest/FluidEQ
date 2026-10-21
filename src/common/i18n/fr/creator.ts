@@ -27,7 +27,7 @@ const creator: Partial<Dictionary> = {
   'creator.held': 'En attente',
   'creator.paid': 'Versé jusqu’ici',
   'creator.paidHint':
-    'Chaque vente est retenue {days} jours en cas de remboursement, puis versée sur votre compte dès que {amount} sont prêts.',
+    'Chaque vente est retenue {days} jours en cas de remboursement. Les créateurs sont payés tous les {every} jours, dès que {amount} sont prêts.',
   'creator.opened':
     'La page de Stripe est ouverte dans votre navigateur. Terminez là-bas ; cette carte se met à jour à votre retour.',
   'creator.setUp': 'Configurer les paiements',
@@ -59,7 +59,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.hold':
     'Chaque gain est retenu {days} jours, pour qu’un remboursement ou une contestation puisse encore l’annuler. Un gain annulé après versement est déduit de votre prochain paiement.',
   'creator.terms.minimum':
-    'FluidEQ verse dès que {amount} ou plus sont prêts. Stripe l’envoie ensuite sur votre compte selon votre propre calendrier.',
+    'FluidEQ paie les créateurs tous les {every} jours, dès que {amount} ou plus sont prêts. Stripe les envoie ensuite sur votre compte selon votre propre calendrier.',
   'creator.terms.stripe':
     'Stripe vous demande vos informations d’identité, bancaires et fiscales et vous présente ses propres conditions. Les paiements s’arrêtent si Stripe ne peut plus vous payer.',
   'creator.terms.rights':
@@ -106,6 +106,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.ran': 'Payés : {paid}. Non payés : {failed}.',
   'creator.admin.rules':
     'Chaque paiement n’est envoyé qu’une fois : une exécution interrompue est terminée par la suivante, jamais renvoyée. Les créateurs choisissent quand Stripe le vire sur leur compte, dans leur propre tableau de bord Stripe.',
+  'creator.admin.lastPaid': 'Dernier paiement : {date}',
+  'creator.admin.neverPaid': 'Aucun paiement pour l’instant',
+  'creator.admin.nextDue': 'prochain : {date}',
+  'creator.admin.dueNow': 'un paiement est dû maintenant',
+  'creator.notice.title': 'Les créateurs attendent leur paiement',
+  'creator.notice.body':
+    '{amount} sont prêts à verser. Créateurs à payer : {count}. Les paiements partent tous les {every} jours.',
+  'creator.notice.later': 'Plus tard',
+  'creator.notice.open': 'Ouvrir Paiements',
 };
 
 export default creator;

@@ -27,7 +27,7 @@ const creator: Partial<Dictionary> = {
   'creator.held': 'Zurückgehalten',
   'creator.paid': 'Bisher ausgezahlt',
   'creator.paidHint':
-    'Jeder Verkauf wird für den Fall einer Erstattung {days} Tage zurückgehalten und ausgezahlt, sobald {amount} bereitstehen.',
+    'Jeder Verkauf wird für den Fall einer Erstattung {days} Tage zurückgehalten. Creator werden alle {every} Tage bezahlt, sobald {amount} bereitstehen.',
   'creator.opened':
     'Die Seite von Stripe ist in Ihrem Browser geöffnet. Schließen Sie dort ab; diese Karte aktualisiert sich, wenn Sie zurückkommen.',
   'creator.setUp': 'Auszahlungen einrichten',
@@ -60,7 +60,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.hold':
     'Jeder Verdienst wird {days} Tage zurückgehalten, damit eine Erstattung oder ein Einspruch ihn noch rückgängig machen kann. Wird er nach der Auszahlung rückgängig gemacht, wird er von Ihrer nächsten Auszahlung abgezogen.',
   'creator.terms.minimum':
-    'FluidEQ zahlt aus, sobald {amount} oder mehr bereitstehen. Stripe überweist es dann nach Ihrem eigenen Zeitplan auf Ihr Bankkonto.',
+    'FluidEQ bezahlt Creator alle {every} Tage, sobald {amount} oder mehr bereitstehen. Stripe überweist es dann nach Ihrem eigenen Zeitplan auf Ihr Bankkonto.',
   'creator.terms.stripe':
     'Stripe fragt nach Ihren Identitäts-, Bank- und Steuerdaten und zeigt Ihnen seine eigenen Bedingungen. Auszahlungen enden, wenn Stripe Sie nicht mehr bezahlen kann.',
   'creator.terms.rights':
@@ -108,6 +108,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.ran': 'Bezahlt: {paid}. Nicht bezahlt: {failed}.',
   'creator.admin.rules':
     'Jede Auszahlung wird nur einmal gesendet: Ein abgebrochener Lauf wird vom nächsten abgeschlossen, nie erneut gesendet. Creator legen in ihrem eigenen Stripe-Dashboard fest, wann Stripe sie aufs Bankkonto überweist.',
+  'creator.admin.lastPaid': 'Zuletzt ausgezahlt: {date}',
+  'creator.admin.neverPaid': 'Noch keine Auszahlung',
+  'creator.admin.nextDue': 'nächste: {date}',
+  'creator.admin.dueNow': 'eine Auszahlung ist jetzt fällig',
+  'creator.notice.title': 'Creator warten auf ihre Auszahlung',
+  'creator.notice.body':
+    '{amount} stehen zur Auszahlung bereit. Zu bezahlende Creator: {count}. Auszahlungen gehen alle {every} Tage raus.',
+  'creator.notice.later': 'Später',
+  'creator.notice.open': 'Auszahlungen öffnen',
 };
 
 export default creator;

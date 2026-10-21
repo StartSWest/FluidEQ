@@ -27,7 +27,7 @@ const creator: Partial<Dictionary> = {
   'creator.held': 'Retenido',
   'creator.paid': 'Pagado hasta ahora',
   'creator.paidHint':
-    'Cada venta se retiene {days} días por si hay un reembolso, y se paga a tu banco cuando hay {amount} listos.',
+    'Cada venta se retiene {days} días por si hay un reembolso. Los creadores cobran cada {every} días, cuando hay {amount} listos.',
   'creator.opened':
     'La página de Stripe está abierta en tu navegador. Termina allí; esta tarjeta se actualiza cuando vuelvas.',
   'creator.setUp': 'Configurar pagos',
@@ -57,7 +57,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.hold':
     'Cada ganancia se retiene {days} días, para que un reembolso o una disputa aún puedan anularla. Si se anula después de pagarte, se descuenta de tu próximo pago.',
   'creator.terms.minimum':
-    'FluidEQ paga cuando hay {amount} o más listos. Después Stripe lo envía a tu banco según tu propio calendario.',
+    'FluidEQ paga a los creadores cada {every} días, cuando hay {amount} o más listos. Después Stripe lo envía a tu banco según tu propio calendario.',
   'creator.terms.stripe':
     'Stripe te pide tus datos de identidad, bancarios y fiscales y te muestra sus propios términos. Los pagos se detienen si Stripe ya no puede pagarte.',
   'creator.terms.rights':
@@ -104,6 +104,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.ran': 'Pagados: {paid}. Sin pagar: {failed}.',
   'creator.admin.rules':
     'Cada pago se envía una sola vez: una ejecución que se detuvo a medias la termina la siguiente, nunca se envía de nuevo. Los creadores eligen cuándo Stripe lo pasa a su banco, en su propio panel de Stripe.',
+  'creator.admin.lastPaid': 'Último pago: {date}',
+  'creator.admin.neverPaid': 'Aún no hay pagos',
+  'creator.admin.nextDue': 'próximo: {date}',
+  'creator.admin.dueNow': 'toca pagar ahora',
+  'creator.notice.title': 'Toca pagar a los creadores',
+  'creator.notice.body':
+    'Hay {amount} listos para pagar. Creadores a pagar: {count}. Los pagos salen cada {every} días.',
+  'creator.notice.later': 'Más tarde',
+  'creator.notice.open': 'Abrir Pagos',
 };
 
 export default creator;

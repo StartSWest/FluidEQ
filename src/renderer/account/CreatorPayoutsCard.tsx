@@ -217,6 +217,7 @@ export default function CreatorPayoutsCard({
           {t('creator.paidHint', {
             days: String(status.terms.holdDays),
             amount: money(status.terms.minimumCents),
+            every: String(status.terms.payoutDays),
           })}
         </p>
       )}

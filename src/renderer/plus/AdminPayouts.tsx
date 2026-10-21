@@ -8,12 +8,15 @@ import { useCallback, useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   formatDollars,
+  nextPayoutAt,
+  payoutRunDue,
   type ICreatorPayoutPreview,
   type ICreatorPayoutRun,
 } from 'common/creatorPayouts';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import GalleryListNotice from './GalleryListNotice';
+import { adoptPayoutPreview, putAwayPayoutDue } from './payoutDue';
 import { INSIGHT_ERRORS } from './insightsFormat';
 import '../styles/AdminServer.scss';
 import '../styles/AdminPayouts.scss';
@@ -72,6 +75,15 @@ export default function AdminPayouts() {
     };
   }, [attempt]);
 
+  // What this page read is the newest word on what is owed, and the admin
+  // looking at it is the reminder heard: the corner notice goes.
+  useEffect(() => {
+    if (shown.state === 'ready') {
+      adoptPayoutPreview(shown.preview);
+      putAwayPayoutDue();
+    }
+  }, [shown]);
+
   const pay = async () => {
     setPaying(true);
     setRunFailed(undefined);
@@ -95,6 +107,25 @@ export default function AdminPayouts() {
     preview.availableCents < preview.totalCents;
   const count = preview?.due.length ?? 0;
   const numbers = new Intl.NumberFormat(locale);
+  const dates = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
+  const dueNow = preview ? payoutRunDue(preview, Date.now()) : false;
+  const nextAt = preview ? nextPayoutAt(preview) : undefined;
+  let schedule: string | undefined;
+  if (preview) {
+    const last =
+      preview.lastPaidAt === undefined
+        ? t('creator.admin.neverPaid')
+        : t('creator.admin.lastPaid', {
+            date: dates.format(preview.lastPaidAt),
+          });
+    let next = '';
+    if (dueNow) {
+      next = t('creator.admin.dueNow');
+    } else if (nextAt !== undefined) {
+      next = t('creator.admin.nextDue', { date: dates.format(nextAt) });
+    }
+    schedule = next ? `${last} · ${next}` : last;
+  }
   let payLabel: TranslationKey = 'creator.admin.pay';
   if (paying) {
     payLabel = 'creator.admin.paying';
@@ -109,6 +140,15 @@ export default function AdminPayouts() {
           <Glyph name="payout" />
           {t('creator.admin.plan')}
         </span>
+        {/* Every 15 days (Ivan, 2026-10-21): when the last run was, and when
+            the next is owed, amber once it is. */}
+        {schedule && (
+          <span
+            className={`admin-server__measured${dueNow ? ' admin-payouts__due' : ''}`}
+          >
+            {schedule}
+          </span>
+        )}
         <button
           type="button"
           className={`button small subtle admin-accounts__refresh${shown.state === 'asking' ? ' is-running' : ''}`}

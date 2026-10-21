@@ -27,7 +27,7 @@ const creator: Partial<Dictionary> = {
   'creator.held': 'In attesa',
   'creator.paid': 'Pagato finora',
   'creator.paidHint':
-    'Ogni vendita resta in attesa {days} giorni in caso di rimborso, poi viene pagata sul tuo conto quando sono pronti {amount}.',
+    'Ogni vendita resta in attesa {days} giorni in caso di rimborso. I creatori vengono pagati ogni {every} giorni, quando sono pronti {amount}.',
   'creator.opened':
     'La pagina di Stripe è aperta nel browser. Completa lì; questa scheda si aggiorna quando torni.',
   'creator.setUp': 'Configura i pagamenti',
@@ -57,7 +57,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.hold':
     'Ogni guadagno resta in attesa {days} giorni, così un rimborso o una contestazione possono ancora annullarlo. Uno annullato dopo il pagamento viene detratto dal pagamento successivo.',
   'creator.terms.minimum':
-    'FluidEQ paga quando sono pronti {amount} o più. Stripe poi li invia sul tuo conto secondo il tuo calendario.',
+    'FluidEQ paga i creatori ogni {every} giorni, quando sono pronti {amount} o più. Stripe poi li invia sul tuo conto secondo il tuo calendario.',
   'creator.terms.stripe':
     'Stripe ti chiede i dati di identità, bancari e fiscali e ti mostra i propri termini. I pagamenti si fermano se Stripe non può più pagarti.',
   'creator.terms.rights':
@@ -104,6 +104,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.ran': 'Pagati: {paid}. Non pagati: {failed}.',
   'creator.admin.rules':
     'Ogni pagamento viene inviato una sola volta: un’esecuzione interrotta viene completata dalla successiva, mai inviata di nuovo. I creatori scelgono quando Stripe lo trasferisce in banca, nella propria dashboard di Stripe.',
+  'creator.admin.lastPaid': 'Ultimo pagamento: {date}',
+  'creator.admin.neverPaid': 'Ancora nessun pagamento',
+  'creator.admin.nextDue': 'prossimo: {date}',
+  'creator.admin.dueNow': 'un pagamento è dovuto ora',
+  'creator.notice.title': 'I creatori aspettano il pagamento',
+  'creator.notice.body':
+    'Ci sono {amount} pronti da pagare. Creatori da pagare: {count}. I pagamenti partono ogni {every} giorni.',
+  'creator.notice.later': 'Più tardi',
+  'creator.notice.open': 'Apri Pagamenti',
 };
 
 export default creator;

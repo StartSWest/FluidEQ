@@ -200,6 +200,7 @@ export default function CreatorSignUpDialog({
               <li>
                 {t('creator.terms.minimum', {
                   amount: money(terms.minimumCents),
+                  every: String(terms.payoutDays),
                 })}
               </li>
               <li>{t('creator.terms.stripe')}</li>
