@@ -99,7 +99,7 @@ const creator: Partial<Dictionary> = {
   'creator.admin.none':
     'Noch ist niemand fällig. Creator erscheinen hier, sobald Stripe sie bezahlen kann und genug ihrer Einnahmen die Haltefrist hinter sich hat.',
   'creator.admin.payLead':
-    'Alle in der Liste bezahlen: insgesamt {amount}, über Stripe.',
+    'Alle in der Liste jetzt bezahlen statt zu warten: insgesamt {amount}, über Stripe.',
   'creator.admin.confirm':
     '{amount} jetzt senden? Das bewegt echtes Geld aus dem Stripe-Guthaben von FluidEQ und lässt sich nicht rückgängig machen.',
   'creator.admin.pay': 'Creator bezahlen',
@@ -107,16 +107,19 @@ const creator: Partial<Dictionary> = {
   'creator.admin.paying': 'Wird bezahlt…',
   'creator.admin.ran': 'Bezahlt: {paid}. Nicht bezahlt: {failed}.',
   'creator.admin.rules':
-    'Jede Auszahlung wird nur einmal gesendet: Ein abgebrochener Lauf wird vom nächsten abgeschlossen, nie erneut gesendet. Creator legen in ihrem eigenen Stripe-Dashboard fest, wann Stripe sie aufs Bankkonto überweist.',
+    'Auszahlungen gehen am 1. und 16. von selbst raus; Creator bezahlen sendet sie sofort. Jede Auszahlung wird nur einmal gesendet: Ein abgebrochener Lauf wird vom nächsten abgeschlossen, nie erneut gesendet.',
   'creator.admin.lastPaid': 'Zuletzt ausgezahlt: {date}',
   'creator.admin.neverPaid': 'Noch keine Auszahlung',
-  'creator.admin.nextDue': 'nächste: {date}',
-  'creator.admin.dueNow': 'eine Auszahlung ist jetzt fällig',
-  'creator.notice.title': 'Creator warten auf ihre Auszahlung',
+  'creator.admin.nextDue': 'nächste automatische Auszahlung: {date}',
+  'creator.notice.title': 'Creator-Auszahlung am {date}',
   'creator.notice.body':
-    '{amount} stehen zur Auszahlung bereit. Zu bezahlende Creator: {count}. Auszahlungen gehen alle {every} Tage raus.',
+    '{amount} gehen automatisch raus. Zu bezahlende Creator: {count}.',
   'creator.notice.later': 'Später',
   'creator.notice.open': 'Auszahlungen öffnen',
+  'creator.notice.shortTitle':
+    'Zu wenig Guthaben bei Stripe für die Auszahlung am {date}',
+  'creator.notice.shortBody':
+    'Fällig: {amount}. Zu bezahlende Creator: {count}. Stripe hält {available}; Überweisungen darüber hinaus scheitern und warten auf die nächste Auszahlung.',
 };
 
 export default creator;

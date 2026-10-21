@@ -46,8 +46,10 @@ const preview = (over: Partial<ICreatorPayoutPreview> = {}) => ({
   ],
   totalCents: 3695,
   pending: 0,
+  availableCents: 48210,
   payoutDays: 15,
-  lastPaidAt: Date.now() - 16 * DAY,
+  lastPaidAt: Date.now() - 14 * DAY,
+  nextRunAt: Date.now() + DAY,
   ...over,
 });
 
@@ -63,23 +65,23 @@ beforeEach(() => {
   });
 });
 
-it('tells the admin creators are owed, and leads to the Payouts page', async () => {
+it('tells the admin what the next automatic payout sends, and leads to Payouts', async () => {
   mockPreview.mockResolvedValue({ ok: true, value: preview() });
   render(<PayoutDueNotice />);
   expect(
-    await screen.findByText('creator.notice.body:$36.95,2,15'),
+    await screen.findByText('creator.notice.body:$36.95,2,$482.10'),
   ).toBeInTheDocument();
   await userEvent.click(
     screen.getByRole('button', { name: 'creator.notice.open' }),
   );
   expect(mockOpenSection).toHaveBeenCalledWith('payouts');
-  expect(screen.queryByText('creator.notice.title')).toBeNull();
+  expect(screen.queryByRole('dialog')).toBeNull();
 });
 
-it('says nothing before the 15 days are up', async () => {
+it('says nothing while the next payout is more than three days off', async () => {
   mockPreview.mockResolvedValue({
     ok: true,
-    value: preview({ lastPaidAt: Date.now() - 3 * DAY }),
+    value: preview({ nextRunAt: Date.now() + 9 * DAY }),
   });
   render(<PayoutDueNotice />);
   await waitFor(() => expect(mockPreview).toHaveBeenCalledTimes(1));
@@ -104,4 +106,15 @@ it('never asks for a member', async () => {
   mockReview = { accountId: 'admin-1', notice: null, waiting: 0 };
   render(<PayoutDueNotice />);
   await waitFor(() => expect(mockPreview).toHaveBeenCalledTimes(1));
+});
+
+it('warns when Stripe holds less than the payout will send', async () => {
+  mockPreview.mockResolvedValue({
+    ok: true,
+    value: preview({ availableCents: 1000 }),
+  });
+  render(<PayoutDueNotice />);
+  expect(
+    await screen.findByText('creator.notice.shortBody:$36.95,2,$10.00'),
+  ).toBeInTheDocument();
 });

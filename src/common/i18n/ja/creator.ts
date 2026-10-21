@@ -95,7 +95,8 @@ const creator: Partial<Dictionary> = {
   'creator.admin.list': '支払い先',
   'creator.admin.none':
     'まだ支払い対象者はいません。Stripe が支払える状態になり、保留期間を過ぎた収益が十分に貯まったクリエイターがここに表示されます。',
-  'creator.admin.payLead': '一覧の全員に支払う：合計 {amount}、Stripe 経由。',
+  'creator.admin.payLead':
+    '待たずに一覧の全員に今すぐ支払う：合計 {amount}、Stripe 経由。',
   'creator.admin.confirm':
     '{amount} を今すぐ送金しますか？ FluidEQ の Stripe 残高から実際のお金が動き、取り消せません。',
   'creator.admin.pay': 'クリエイターに支払う',
@@ -103,16 +104,18 @@ const creator: Partial<Dictionary> = {
   'creator.admin.paying': '支払い中…',
   'creator.admin.ran': '支払い済み：{paid}　未払い：{failed}',
   'creator.admin.rules':
-    '各支払いは一度だけ送られます。途中で止まった実行は次の実行が完了させ、二重に送られることはありません。銀行への振込時期は、各クリエイターが自分の Stripe ダッシュボードで決めます。',
+    '支払いは毎月 1 日と 16 日に自動で行われます。「クリエイターに支払う」を押すと今すぐ送ります。各支払いは一度だけ送られます。途中で止まった実行は次の実行が完了させ、二重に送られることはありません。',
   'creator.admin.lastPaid': '前回の支払い：{date}',
   'creator.admin.neverPaid': 'まだ支払いはありません',
-  'creator.admin.nextDue': '次回：{date}',
-  'creator.admin.dueNow': '今が支払い時期です',
-  'creator.notice.title': 'クリエイターへの支払い時期です',
+  'creator.admin.nextDue': '次回の自動支払い：{date}',
+  'creator.notice.title': '{date} のクリエイター支払い',
   'creator.notice.body':
-    '{amount} が支払い可能です。支払い先のクリエイター：{count}。支払いは {every} 日ごとです。',
+    '{amount} が自動で送られます。支払い先のクリエイター：{count}。',
   'creator.notice.later': '後で',
   'creator.notice.open': '支払いを開く',
+  'creator.notice.shortTitle': '{date} の支払いに Stripe の残高が足りません',
+  'creator.notice.shortBody':
+    '支払額：{amount}。支払い先のクリエイター：{count}。Stripe の残高は {available} です。超える分の送金は失敗し、次回の支払いを待ちます。',
 };
 
 export default creator;

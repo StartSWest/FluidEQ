@@ -95,7 +95,7 @@ const creator: Partial<Dictionary> = {
   'creator.admin.none':
     'Ninguém tem nada a receber ainda. Os criadores aparecem aqui quando a Stripe pode pagá-los e ganhos suficientes já passaram da retenção.',
   'creator.admin.payLead':
-    'Pagar todos da lista: {amount} no total, pela Stripe.',
+    'Pagar agora todos da lista em vez de esperar: {amount} no total, pela Stripe.',
   'creator.admin.confirm':
     'Enviar {amount} agora? Isso movimenta dinheiro real do saldo do FluidEQ na Stripe e não pode ser desfeito.',
   'creator.admin.pay': 'Pagar criadores',
@@ -103,16 +103,19 @@ const creator: Partial<Dictionary> = {
   'creator.admin.paying': 'Pagando…',
   'creator.admin.ran': 'Pagos: {paid}. Não pagos: {failed}.',
   'creator.admin.rules':
-    'Cada pagamento é enviado uma única vez: uma execução interrompida é concluída pela próxima, nunca enviada de novo. Os criadores escolhem quando a Stripe passa para o banco, no próprio painel da Stripe.',
+    'Os pagamentos saem sozinhos nos dias 1 e 16; Pagar criadores envia agora. Cada pagamento é enviado uma única vez: uma execução interrompida é concluída pela próxima, nunca enviada de novo.',
   'creator.admin.lastPaid': 'Último pagamento: {date}',
   'creator.admin.neverPaid': 'Nenhum pagamento ainda',
-  'creator.admin.nextDue': 'próximo: {date}',
-  'creator.admin.dueNow': 'há um pagamento a fazer agora',
-  'creator.notice.title': 'Os criadores esperam o pagamento',
+  'creator.admin.nextDue': 'próximo pagamento automático: {date}',
+  'creator.notice.title': 'Pagamento aos criadores em {date}',
   'creator.notice.body':
-    'Há {amount} prontos para pagar. Criadores a pagar: {count}. Os pagamentos saem a cada {every} dias.',
+    '{amount} serão enviados automaticamente. Criadores a pagar: {count}.',
   'creator.notice.later': 'Depois',
   'creator.notice.open': 'Abrir Pagamentos',
+  'creator.notice.shortTitle':
+    'Saldo insuficiente na Stripe para o pagamento de {date}',
+  'creator.notice.shortBody':
+    'A pagar: {amount}. Criadores a pagar: {count}. A Stripe tem {available}; transferências além disso falham e esperam o próximo pagamento.',
 };
 
 export default creator;

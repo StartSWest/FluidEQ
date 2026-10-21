@@ -96,7 +96,7 @@ const creator = {
   'creator.admin.none':
     'Nobody is due yet. Creators appear here once Stripe can pay them and enough of their earnings is past its hold.',
   'creator.admin.payLead':
-    'Pay everyone listed: {amount} in total, through Stripe.',
+    'Pay everyone listed now instead of waiting: {amount} in total, through Stripe.',
   'creator.admin.confirm':
     "Send {amount} now? This moves real money out of FluidEQ's Stripe balance and can't be undone.",
   'creator.admin.pay': 'Pay creators',
@@ -104,16 +104,18 @@ const creator = {
   'creator.admin.paying': 'Paying…',
   'creator.admin.ran': 'Paid: {paid}. Not paid: {failed}.',
   'creator.admin.rules':
-    'Each payout is sent once: a run that stopped halfway is finished by the next, never sent again. Creators choose when Stripe moves it to their bank, in their own Stripe dashboard.',
+    'Payouts go out by themselves on the 1st and the 16th; Pay creators sends them now. Each payout is sent once: a run that stopped halfway is finished by the next, never sent again.',
   'creator.admin.lastPaid': 'Last paid {date}',
   'creator.admin.neverPaid': 'No payout yet',
-  'creator.admin.nextDue': 'next due {date}',
-  'creator.admin.dueNow': 'a payout is due now',
-  'creator.notice.title': 'Creators are due their payout',
+  'creator.admin.nextDue': 'next automatic payout {date}',
+  'creator.notice.title': 'Creator payout on {date}',
   'creator.notice.body':
-    '{amount} is ready to pay. Creators to pay: {count}. Payouts go out every {every} days.',
+    '{amount} goes out automatically. Creators to pay: {count}.',
   'creator.notice.later': 'Later',
   'creator.notice.open': 'Open Payouts',
+  'creator.notice.shortTitle': 'Stripe is short for the {date} payout',
+  'creator.notice.shortBody':
+    'Due: {amount}. Creators to pay: {count}. Stripe holds {available}; transfers past it will fail and wait for the next payout.',
 };
 
 export default creator;

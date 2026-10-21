@@ -97,7 +97,7 @@ const creator: Partial<Dictionary> = {
   'creator.admin.none':
     'Personne n’est encore dû. Les créateurs apparaissent ici quand Stripe peut les payer et qu’assez de leurs gains ont passé la période de retenue.',
   'creator.admin.payLead':
-    'Payer tous ceux de la liste : {amount} au total, via Stripe.',
+    'Payer tout de suite tous ceux de la liste au lieu d’attendre : {amount} au total, via Stripe.',
   'creator.admin.confirm':
     'Envoyer {amount} maintenant ? Cela déplace de l’argent réel depuis le solde Stripe de FluidEQ et ne peut pas être annulé.',
   'creator.admin.pay': 'Payer les créateurs',
@@ -105,16 +105,19 @@ const creator: Partial<Dictionary> = {
   'creator.admin.paying': 'Paiement…',
   'creator.admin.ran': 'Payés : {paid}. Non payés : {failed}.',
   'creator.admin.rules':
-    'Chaque paiement n’est envoyé qu’une fois : une exécution interrompue est terminée par la suivante, jamais renvoyée. Les créateurs choisissent quand Stripe le vire sur leur compte, dans leur propre tableau de bord Stripe.',
+    'Les paiements partent d’eux-mêmes le 1er et le 16 ; Payer les créateurs les envoie tout de suite. Chaque paiement n’est envoyé qu’une fois : une exécution interrompue est terminée par la suivante, jamais renvoyée.',
   'creator.admin.lastPaid': 'Dernier paiement : {date}',
   'creator.admin.neverPaid': 'Aucun paiement pour l’instant',
-  'creator.admin.nextDue': 'prochain : {date}',
-  'creator.admin.dueNow': 'un paiement est dû maintenant',
-  'creator.notice.title': 'Les créateurs attendent leur paiement',
+  'creator.admin.nextDue': 'prochain paiement automatique : {date}',
+  'creator.notice.title': 'Paiement des créateurs le {date}',
   'creator.notice.body':
-    '{amount} sont prêts à verser. Créateurs à payer : {count}. Les paiements partent tous les {every} jours.',
+    '{amount} partiront automatiquement. Créateurs à payer : {count}.',
   'creator.notice.later': 'Plus tard',
   'creator.notice.open': 'Ouvrir Paiements',
+  'creator.notice.shortTitle':
+    'Solde Stripe insuffisant pour le paiement du {date}',
+  'creator.notice.shortBody':
+    'Dû : {amount}. Créateurs à payer : {count}. Stripe détient {available} ; les virements au-delà échoueront et attendront le prochain paiement.',
 };
 
 export default creator;

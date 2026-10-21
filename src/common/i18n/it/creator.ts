@@ -95,7 +95,7 @@ const creator: Partial<Dictionary> = {
   'creator.admin.none':
     'Ancora nessuno è dovuto. I creatori compaiono qui quando Stripe può pagarli e abbastanza guadagni hanno superato il periodo di attesa.',
   'creator.admin.payLead':
-    'Paga tutti quelli in elenco: {amount} in totale, tramite Stripe.',
+    'Paga subito tutti quelli in elenco invece di aspettare: {amount} in totale, tramite Stripe.',
   'creator.admin.confirm':
     'Inviare {amount} ora? Così si spostano soldi veri dal saldo Stripe di FluidEQ e non si può annullare.',
   'creator.admin.pay': 'Paga i creatori',
@@ -103,16 +103,19 @@ const creator: Partial<Dictionary> = {
   'creator.admin.paying': 'Pagamento…',
   'creator.admin.ran': 'Pagati: {paid}. Non pagati: {failed}.',
   'creator.admin.rules':
-    'Ogni pagamento viene inviato una sola volta: un’esecuzione interrotta viene completata dalla successiva, mai inviata di nuovo. I creatori scelgono quando Stripe lo trasferisce in banca, nella propria dashboard di Stripe.',
+    'I pagamenti partono da soli il 1° e il 16; Paga i creatori li invia subito. Ogni pagamento viene inviato una sola volta: un’esecuzione interrotta viene completata dalla successiva, mai inviata di nuovo.',
   'creator.admin.lastPaid': 'Ultimo pagamento: {date}',
   'creator.admin.neverPaid': 'Ancora nessun pagamento',
-  'creator.admin.nextDue': 'prossimo: {date}',
-  'creator.admin.dueNow': 'un pagamento è dovuto ora',
-  'creator.notice.title': 'I creatori aspettano il pagamento',
+  'creator.admin.nextDue': 'prossimo pagamento automatico: {date}',
+  'creator.notice.title': 'Pagamento ai creatori il {date}',
   'creator.notice.body':
-    'Ci sono {amount} pronti da pagare. Creatori da pagare: {count}. I pagamenti partono ogni {every} giorni.',
+    'Partiranno {amount} automaticamente. Creatori da pagare: {count}.',
   'creator.notice.later': 'Più tardi',
   'creator.notice.open': 'Apri Pagamenti',
+  'creator.notice.shortTitle':
+    'Saldo Stripe insufficiente per il pagamento del {date}',
+  'creator.notice.shortBody':
+    'Dovuto: {amount}. Creatori da pagare: {count}. Stripe ha {available}; i trasferimenti oltre il saldo falliranno e aspetteranno il prossimo pagamento.',
 };
 
 export default creator;

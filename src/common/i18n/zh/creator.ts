@@ -84,7 +84,8 @@ const creator: Partial<Dictionary> = {
   'creator.admin.list': '收款人',
   'creator.admin.none':
     '目前还没有应付的人。当 Stripe 可以向创作者付款且足够的收益已过暂扣期时，他们会出现在这里。',
-  'creator.admin.payLead': '向列表中的所有人付款：共 {amount}，通过 Stripe。',
+  'creator.admin.payLead':
+    '不必等待，立即向列表中的所有人付款：共 {amount}，通过 Stripe。',
   'creator.admin.confirm':
     '现在发送 {amount}？这会从 FluidEQ 的 Stripe 余额中转出真实资金，且无法撤销。',
   'creator.admin.pay': '向创作者付款',
@@ -92,16 +93,17 @@ const creator: Partial<Dictionary> = {
   'creator.admin.paying': '正在付款…',
   'creator.admin.ran': '已付款：{paid}。未付款：{failed}。',
   'creator.admin.rules':
-    '每笔付款只发送一次：中途停止的执行会由下一次完成，绝不会重复发送。何时转入银行，由创作者在自己的 Stripe 控制台中决定。',
+    '每月 1 日和 16 日自动付款；点击“向创作者付款”可立即发送。每笔付款只发送一次：中途停止的执行会由下一次完成，绝不会重复发送。',
   'creator.admin.lastPaid': '上次付款：{date}',
   'creator.admin.neverPaid': '尚未付款',
-  'creator.admin.nextDue': '下次：{date}',
-  'creator.admin.dueNow': '现在该付款了',
-  'creator.notice.title': '该向创作者付款了',
-  'creator.notice.body':
-    '有 {amount} 可以支付。待付款创作者：{count}。每 {every} 天付款一次。',
+  'creator.admin.nextDue': '下次自动付款：{date}',
+  'creator.notice.title': '{date} 的创作者付款',
+  'creator.notice.body': '将自动发出 {amount}。待付款创作者：{count}。',
   'creator.notice.later': '稍后',
   'creator.notice.open': '打开付款',
+  'creator.notice.shortTitle': 'Stripe 余额不足以支付 {date} 的款项',
+  'creator.notice.shortBody':
+    '应付：{amount}。待付款创作者：{count}。Stripe 余额为 {available}；超出部分的转账会失败，并等待下一次付款。',
 };
 
 export default creator;

@@ -34,11 +34,11 @@ import type { IAccountConfig } from '../../../common/accountConfig';
 import {
   CREATOR_AGREEMENT_VERSION,
   isPayableCountry,
-  nextPayoutAt,
   parseCreatorStatus,
   parsePayoutPreview,
   parsePayoutRun,
-  payoutRunDue,
+  payoutShort,
+  payoutSoon,
 } from '../../../common/creatorPayouts';
 import { appLinkOf, deliverAppLink } from '../../../main/appLinks';
 import { registerCreatorIpc } from '../../../main/ipc/creator';
@@ -141,29 +141,32 @@ describe('what the server says, read', () => {
     ).not.toHaveProperty('availableCents');
   });
 
-  it('reads when creators were last paid, and says when the next run is owed', () => {
+  it('reads when creators were last paid and when the next automatic run goes', () => {
     const preview = parsePayoutPreview({
       due: [{ creatorId: 'c1', readyCents: 2480 }],
       totalCents: 2480,
+      availableCents: 1000,
       pending: 0,
-      lastPaidAt: '2026-10-01T12:00:00Z',
+      lastPaidAt: '2026-10-01T15:00:00Z',
+      nextRunAt: '2026-11-01T15:00:00Z',
       payoutDays: 15,
     });
-    expect(preview?.lastPaidAt).toBe(Date.parse('2026-10-01T12:00:00Z'));
     if (!preview) {
       throw new Error('the preview did not read');
     }
+    const next = Date.parse('2026-11-01T15:00:00Z');
+    expect(preview.lastPaidAt).toBe(Date.parse('2026-10-01T15:00:00Z'));
+    expect(preview.nextRunAt).toBe(next);
     const day = 24 * 60 * 60 * 1000;
-    const last = Date.parse('2026-10-01T12:00:00Z');
-    expect(payoutRunDue(preview, last + 14 * day)).toBe(false);
-    expect(payoutRunDue(preview, last + 15 * day)).toBe(true);
-    expect(nextPayoutAt(preview)).toBe(last + 15 * day);
-    // Nobody due: nothing owed, however long ago the last run was.
-    expect(payoutRunDue({ ...preview, due: [] }, last + 99 * day)).toBe(false);
-    // Never paid: owed as soon as somebody is due.
-    expect(payoutRunDue({ ...preview, lastPaidAt: undefined }, last)).toBe(
-      true,
-    );
+    // Told in the three days before a run, not sooner.
+    expect(payoutSoon(preview, next - 4 * day)).toBe(false);
+    expect(payoutSoon(preview, next - 3 * day)).toBe(true);
+    // Nobody due: nothing to tell.
+    expect(payoutSoon({ ...preview, due: [] }, next - day)).toBe(false);
+    // Stripe holding less than is due, said; not knowing, not said.
+    expect(payoutShort(preview)).toBe(true);
+    expect(payoutShort({ ...preview, availableCents: undefined })).toBe(false);
+    expect(payoutShort({ ...preview, availableCents: 2480 })).toBe(false);
   });
 
   it('counts a run: what was sent, and why the rest was not', () => {

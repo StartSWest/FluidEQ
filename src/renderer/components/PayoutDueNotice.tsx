@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect } from 'react';
-import { formatDollars, payoutRunDue } from 'common/creatorPayouts';
+import { formatDollars, payoutShort, payoutSoon } from 'common/creatorPayouts';
 import MenuIcon from '../icons/MenuIcon';
 import {
   checkPayoutDue,
@@ -21,10 +21,11 @@ import CompactFrame from './CompactFrame';
 import '../styles/SceneReviewNotice.scss';
 
 /**
- * The admin told, in the corner, that creators are owed their payout run:
- * somebody is due and the last run is 15 days behind, or there has never
- * been one. The way to the Payouts page is the loud press; the run itself is
- * still made there, asked twice.
+ * The admin told, in the corner, what the next automatic payout will send:
+ * in the three days before it, how much to how many creators and on what
+ * day, and in amber when FluidEQ's Stripe balance is short of it. Payouts run
+ * by themselves on the 1st and the 16th (Ivan, 2026-10-21: "payout should
+ * happen auto"); the Payouts page is one press away.
  *
  * Only the admin is asked: the review notice's state carries the admin's
  * queue length and nobody else's, which is what says whom this is for before
@@ -46,12 +47,17 @@ export default function PayoutDueNotice() {
   const preview =
     isAdmin && due.accountId === review.accountId ? due.preview : undefined;
   const wanted =
-    preview !== undefined && !due.putAway && payoutRunDue(preview, Date.now());
+    preview !== undefined && !due.putAway && payoutSoon(preview, Date.now());
   const isShown = useNoticeTurn('payoutDue', wanted);
 
   if (!wanted || !isShown || !preview) {
     return null;
   }
+
+  const short = payoutShort(preview);
+  const day = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(
+    preview.nextRunAt ?? Date.now(),
+  );
 
   const open = () => {
     putAwayPayoutDue();
@@ -62,9 +68,11 @@ export default function PayoutDueNotice() {
   return (
     <CompactFrame
       className="scene-review-notice payout-due-notice"
-      tone="accent"
-      icon={<MenuIcon name="credit" />}
-      title={t('creator.notice.title')}
+      tone={short ? 'warn' : 'accent'}
+      icon={<MenuIcon name={short ? 'alert' : 'credit'} />}
+      title={t(short ? 'creator.notice.shortTitle' : 'creator.notice.title', {
+        date: day,
+      })}
       titleId="payout-due-notice-title"
       role="dialog"
       aria-modal="false"
@@ -86,11 +94,10 @@ export default function PayoutDueNotice() {
       }
     >
       <p className="scene-review-notice__line">
-        {t('creator.notice.body', {
+        {t(short ? 'creator.notice.shortBody' : 'creator.notice.body', {
           amount: formatDollars(preview.totalCents, locale),
           count: new Intl.NumberFormat(locale).format(preview.due.length),
-          // A server from before the interval names none; it promised 15.
-          every: String(preview.payoutDays ?? 15),
+          available: formatDollars(preview.availableCents ?? 0, locale),
         })}
       </p>
     </CompactFrame>

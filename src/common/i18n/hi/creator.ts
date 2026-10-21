@@ -96,7 +96,7 @@ const creator: Partial<Dictionary> = {
   'creator.admin.none':
     'अभी किसी को कुछ देय नहीं है। क्रिएटर यहाँ तब दिखते हैं जब Stripe उन्हें भुगतान कर सके और उनकी पर्याप्त कमाई होल्ड अवधि पार कर चुकी हो।',
   'creator.admin.payLead':
-    'सूची में सभी को भुगतान करें: कुल {amount}, Stripe के ज़रिए।',
+    'इंतज़ार किए बिना सूची में सभी को अभी भुगतान करें: कुल {amount}, Stripe के ज़रिए।',
   'creator.admin.confirm':
     'अभी {amount} भेजें? इससे FluidEQ के Stripe बैलेंस से असली पैसा जाएगा और इसे वापस नहीं किया जा सकता।',
   'creator.admin.pay': 'क्रिएटर को भुगतान करें',
@@ -104,16 +104,18 @@ const creator: Partial<Dictionary> = {
   'creator.admin.paying': 'भुगतान हो रहा है…',
   'creator.admin.ran': 'भुगतान हुआ: {paid}। भुगतान नहीं हुआ: {failed}।',
   'creator.admin.rules':
-    'हर भुगतान केवल एक बार भेजा जाता है: बीच में रुका रन अगला रन पूरा करता है, दोबारा कभी नहीं भेजा जाता। बैंक में पैसा कब जाए, यह क्रिएटर अपने Stripe डैशबोर्ड में खुद चुनते हैं।',
+    'भुगतान हर महीने 1 और 16 तारीख को अपने आप जाते हैं; क्रिएटर को भुगतान करें उन्हें अभी भेजता है। हर भुगतान केवल एक बार भेजा जाता है: बीच में रुका रन अगला रन पूरा करता है, दोबारा कभी नहीं भेजा जाता।',
   'creator.admin.lastPaid': 'पिछला भुगतान: {date}',
   'creator.admin.neverPaid': 'अभी तक कोई भुगतान नहीं',
-  'creator.admin.nextDue': 'अगला: {date}',
-  'creator.admin.dueNow': 'अभी भुगतान करना है',
-  'creator.notice.title': 'क्रिएटर को भुगतान का समय',
+  'creator.admin.nextDue': 'अगला स्वचालित भुगतान: {date}',
+  'creator.notice.title': '{date} को क्रिएटर भुगतान',
   'creator.notice.body':
-    '{amount} भुगतान के लिए तैयार है। भुगतान पाने वाले क्रिएटर: {count}। भुगतान हर {every} दिन होता है।',
+    '{amount} अपने आप भेजा जाएगा। भुगतान पाने वाले क्रिएटर: {count}।',
   'creator.notice.later': 'बाद में',
   'creator.notice.open': 'भुगतान खोलें',
+  'creator.notice.shortTitle': '{date} के भुगतान के लिए Stripe में राशि कम है',
+  'creator.notice.shortBody':
+    'देय: {amount}। भुगतान पाने वाले क्रिएटर: {count}। Stripe में {available} है; उससे आगे के ट्रांसफ़र विफल होंगे और अगले भुगतान का इंतज़ार करेंगे।',
 };
 
 export default creator;

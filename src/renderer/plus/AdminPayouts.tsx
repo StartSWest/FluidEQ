@@ -8,8 +8,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   formatDollars,
-  nextPayoutAt,
-  payoutRunDue,
+  payoutSoon,
   type ICreatorPayoutPreview,
   type ICreatorPayoutRun,
 } from 'common/creatorPayouts';
@@ -108,8 +107,8 @@ export default function AdminPayouts() {
   const count = preview?.due.length ?? 0;
   const numbers = new Intl.NumberFormat(locale);
   const dates = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
-  const dueNow = preview ? payoutRunDue(preview, Date.now()) : false;
-  const nextAt = preview ? nextPayoutAt(preview) : undefined;
+  // Close enough to tell: the line turns amber, as the corner notice shows.
+  const soon = preview ? payoutSoon(preview, Date.now()) : false;
   let schedule: string | undefined;
   if (preview) {
     const last =
@@ -118,12 +117,10 @@ export default function AdminPayouts() {
         : t('creator.admin.lastPaid', {
             date: dates.format(preview.lastPaidAt),
           });
-    let next = '';
-    if (dueNow) {
-      next = t('creator.admin.dueNow');
-    } else if (nextAt !== undefined) {
-      next = t('creator.admin.nextDue', { date: dates.format(nextAt) });
-    }
+    const next =
+      preview.nextRunAt === undefined
+        ? ''
+        : t('creator.admin.nextDue', { date: dates.format(preview.nextRunAt) });
     schedule = next ? `${last} · ${next}` : last;
   }
   let payLabel: TranslationKey = 'creator.admin.pay';
@@ -140,11 +137,11 @@ export default function AdminPayouts() {
           <Glyph name="payout" />
           {t('creator.admin.plan')}
         </span>
-        {/* Every 15 days (Ivan, 2026-10-21): when the last run was, and when
-            the next is owed, amber once it is. */}
+        {/* Paid by themselves on the 1st and the 16th (Ivan, 2026-10-21):
+            when the last payout went, and when the next one goes. */}
         {schedule && (
           <span
-            className={`admin-server__measured${dueNow ? ' admin-payouts__due' : ''}`}
+            className={`admin-server__measured${soon ? ' admin-payouts__due' : ''}`}
           >
             {schedule}
           </span>

@@ -206,6 +206,8 @@ export interface ICreatorPayoutPreview {
   lastPaidAt?: number;
   /** How often payouts are due, from the creator terms. */
   payoutDays?: number;
+  /** When the next automatic run goes (0066: the 1st and the 16th). */
+  nextRunAt?: number;
 }
 
 /** How a payout run ended: what was sent, and why the rest was not. */
@@ -239,10 +241,10 @@ export const parsePayoutPreview = (
     return undefined;
   }
   const due = value.due.map(dueOf);
-  const lastPaidAt =
-    typeof value.lastPaidAt === 'string'
-      ? Date.parse(value.lastPaidAt)
-      : Number.NaN;
+  const timeOf = (field: unknown) =>
+    typeof field === 'string' ? Date.parse(field) : Number.NaN;
+  const lastPaidAt = timeOf(value.lastPaidAt);
+  const nextRunAt = timeOf(value.nextRunAt);
   if (due.some((row) => row === undefined)) {
     return undefined;
   }
@@ -254,6 +256,7 @@ export const parsePayoutPreview = (
       : {}),
     pending: value.pending,
     ...(Number.isFinite(lastPaidAt) ? { lastPaidAt } : {}),
+    ...(Number.isFinite(nextRunAt) ? { nextRunAt } : {}),
     ...(isWholeNumber(value.payoutDays) && value.payoutDays > 0
       ? { payoutDays: value.payoutDays }
       : {}),
@@ -262,24 +265,27 @@ export const parsePayoutPreview = (
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** How long before an automatic payout the admin is told what it will send. */
+export const PAYOUT_NOTICE_DAYS = 3;
+
 /**
- * Whether the admin owes creators a payout run now: somebody is due, and
- * the last run is the payout interval behind (or there has never been one).
+ * Whether the next automatic payout is close enough to tell the admin about:
+ * somebody is due, and the run is no more than three days off. Payouts run by
+ * themselves (Ivan, 2026-10-21: "payout should happen auto"); the admin is
+ * told the amount, and whether Stripe holds enough for it.
  */
-export const payoutRunDue = (
+export const payoutSoon = (
   preview: ICreatorPayoutPreview,
   now: number,
 ): boolean =>
   preview.due.length > 0 &&
-  (preview.lastPaidAt === undefined ||
-    preview.payoutDays === undefined ||
-    now - preview.lastPaidAt >= preview.payoutDays * DAY_MS);
+  preview.nextRunAt !== undefined &&
+  preview.nextRunAt - now <= PAYOUT_NOTICE_DAYS * DAY_MS;
 
-/** When the next run is due, once there has been one. */
-export const nextPayoutAt = (preview: ICreatorPayoutPreview) =>
-  preview.lastPaidAt !== undefined && preview.payoutDays !== undefined
-    ? preview.lastPaidAt + preview.payoutDays * DAY_MS
-    : undefined;
+/** Whether FluidEQ's Stripe balance is short of what is due. */
+export const payoutShort = (preview: ICreatorPayoutPreview): boolean =>
+  preview.availableCents !== undefined &&
+  preview.availableCents < preview.totalCents;
 
 /** `run-creator-payouts`' run: each payout sent, or the reason it was not. */
 export const parsePayoutRun = (

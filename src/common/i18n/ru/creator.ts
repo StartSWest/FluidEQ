@@ -95,7 +95,7 @@ const creator: Partial<Dictionary> = {
   'creator.admin.none':
     'Пока никому не причитается. Автор появится здесь, когда Stripe сможет ему платить и достаточно его заработка пройдёт удержание.',
   'creator.admin.payLead':
-    'Заплатить всем в списке: всего {amount}, через Stripe.',
+    'Заплатить всем в списке сейчас, не дожидаясь: всего {amount}, через Stripe.',
   'creator.admin.confirm':
     'Отправить {amount} сейчас? Это реальные деньги с баланса FluidEQ в Stripe, и отменить это нельзя.',
   'creator.admin.pay': 'Заплатить авторам',
@@ -103,16 +103,18 @@ const creator: Partial<Dictionary> = {
   'creator.admin.paying': 'Платим…',
   'creator.admin.ran': 'Оплачено: {paid}. Не оплачено: {failed}.',
   'creator.admin.rules':
-    'Каждая выплата отправляется один раз: запуск, прерванный на полпути, завершает следующий, повторно ничего не отправляется. Когда Stripe переводит деньги в банк, авторы решают сами в своей панели Stripe.',
+    'Выплаты уходят сами 1-го и 16-го числа; «Заплатить авторам» отправляет их сразу. Каждая выплата отправляется один раз: запуск, прерванный на полпути, завершает следующий, повторно ничего не отправляется.',
   'creator.admin.lastPaid': 'Последняя выплата: {date}',
   'creator.admin.neverPaid': 'Выплат ещё не было',
-  'creator.admin.nextDue': 'следующая: {date}',
-  'creator.admin.dueNow': 'пора делать выплату',
-  'creator.notice.title': 'Авторам пора заплатить',
+  'creator.admin.nextDue': 'следующая автоматическая выплата: {date}',
+  'creator.notice.title': 'Выплата авторам {date}',
   'creator.notice.body':
-    'К выплате готово {amount}. Авторов к выплате: {count}. Выплаты раз в {every} дней.',
+    '{amount} уйдёт автоматически. Авторов к выплате: {count}.',
   'creator.notice.later': 'Позже',
   'creator.notice.open': 'Открыть выплаты',
+  'creator.notice.shortTitle': 'В Stripe не хватает денег на выплату {date}',
+  'creator.notice.shortBody':
+    'К выплате: {amount}. Авторов к выплате: {count}. В Stripe {available}; переводы сверх этого не пройдут и дождутся следующей выплаты.',
 };
 
 export default creator;

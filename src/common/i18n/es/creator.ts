@@ -95,7 +95,7 @@ const creator: Partial<Dictionary> = {
   'creator.admin.none':
     'Todavía no se debe nada a nadie. Los creadores aparecen aquí cuando Stripe puede pagarles y suficientes ganancias han pasado su retención.',
   'creator.admin.payLead':
-    'Pagar a todos los de la lista: {amount} en total, con Stripe.',
+    'Paga ahora a todos los de la lista en vez de esperar: {amount} en total, con Stripe.',
   'creator.admin.confirm':
     '¿Enviar {amount} ahora? Esto mueve dinero real del saldo de FluidEQ en Stripe y no se puede deshacer.',
   'creator.admin.pay': 'Pagar a creadores',
@@ -103,16 +103,19 @@ const creator: Partial<Dictionary> = {
   'creator.admin.paying': 'Pagando…',
   'creator.admin.ran': 'Pagados: {paid}. Sin pagar: {failed}.',
   'creator.admin.rules':
-    'Cada pago se envía una sola vez: una ejecución que se detuvo a medias la termina la siguiente, nunca se envía de nuevo. Los creadores eligen cuándo Stripe lo pasa a su banco, en su propio panel de Stripe.',
+    'Los pagos salen solos el día 1 y el 16; Pagar a creadores los envía ahora. Cada pago se envía una sola vez: una ejecución que se detuvo a medias la termina la siguiente, nunca se envía de nuevo.',
   'creator.admin.lastPaid': 'Último pago: {date}',
   'creator.admin.neverPaid': 'Aún no hay pagos',
-  'creator.admin.nextDue': 'próximo: {date}',
-  'creator.admin.dueNow': 'toca pagar ahora',
-  'creator.notice.title': 'Toca pagar a los creadores',
+  'creator.admin.nextDue': 'próximo pago automático: {date}',
+  'creator.notice.title': 'Pago a creadores el {date}',
   'creator.notice.body':
-    'Hay {amount} listos para pagar. Creadores a pagar: {count}. Los pagos salen cada {every} días.',
+    'Saldrán {amount} automáticamente. Creadores a pagar: {count}.',
   'creator.notice.later': 'Más tarde',
   'creator.notice.open': 'Abrir Pagos',
+  'creator.notice.shortTitle':
+    'No hay saldo suficiente en Stripe para el pago del {date}',
+  'creator.notice.shortBody':
+    'A pagar: {amount}. Creadores a pagar: {count}. Stripe tiene {available}; las transferencias que lo superen fallarán y esperarán al próximo pago.',
 };
 
 export default creator;
