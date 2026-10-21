@@ -26,6 +26,7 @@ import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
 import { registerAccountDeletionIpc } from './ipc/accountDeletion';
 import { registerAdminInsightsIpc } from './ipc/adminInsights';
+import { registerCreatorIpc } from './ipc/creator';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
 import { registerMakerMonthIpc } from './ipc/makerMonth';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
@@ -153,6 +154,14 @@ const registerMemberServices = ({
     getMainWindow,
     config: ACCOUNT_CONFIG,
     ownership: sceneOwnership,
+    openExternal: openExternalIfSafe,
+  });
+  // Creators paid for their scenes: their figures, and signing up on Stripe's
+  // own pages (premium 0064).
+  const creatorIpc = registerCreatorIpc({
+    getMainWindow,
+    config: ACCOUNT_CONFIG,
+    session: accountIpc.session,
     openExternal: openExternalIfSafe,
   });
 
@@ -409,6 +418,7 @@ const registerMemberServices = ({
     plusWelcomeIpc.dispose();
     plusTrialIpc.dispose();
     sceneStoreIpc.dispose();
+    creatorIpc.dispose();
     sceneOwnership.dispose();
     scenePacksIpc.dispose();
     plusModerationIpc.dispose();

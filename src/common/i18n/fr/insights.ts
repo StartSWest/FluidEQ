@@ -82,6 +82,16 @@ const insights = {
   'insights.server.egressBody':
     'La formule gratuite inclut {limit} par mois, et c’est en général la première limite atteinte : chaque scène et chaque image qu’un membre télécharge compte. Aucune API ne la donne ; Supabase l’affiche sur la page Usage du projet.',
   'insights.server.openSupabase': 'Ouvrir Supabase',
+  'insights.server.limit.warn': 'Le serveur se remplit',
+  'insights.server.limit.full': 'Le serveur est presque plein',
+  'insights.server.limit.body':
+    '{what} est à {share} de l’offre gratuite de Supabase. Passez le projet à une offre payante avant qu’il soit plein, sinon les fonctions en ligne de FluidEQ commenceront à échouer.',
+  'insights.server.limit.database': 'La base de données',
+  'insights.server.limit.files': 'Le stockage des fichiers',
+  'insights.server.limit.accounts': 'Les comptes actifs',
+  'insights.server.limit.later': 'Plus tard',
+  'insights.server.limit.open': 'Ouvrir la page du serveur',
+  'insights.server.limit.badge': '{share} de l’offre gratuite utilisés',
   'insights.server.rules':
     'La formule gratuite n’a pas de date de fin. Dépasser une limite entraîne un e-mail et un délai de grâce ; si cela continue, Supabase répond aux requêtes par « payment required » jusqu’au mois suivant ou à un changement de formule. Un projet sans aucune requête pendant {days} jours est mis en pause, ce que le trafic de FluidEQ lui-même empêche.',
 } as const;

@@ -82,6 +82,16 @@ const insights = {
   'insights.server.egressBody':
     '無料プランには月 {limit} が含まれ、たいていこれが最初に達する上限です。メンバーがダウンロードするシーンと画像がすべて数えられます。API では取得できず、Supabase がプロジェクトの Usage ページに表示します。',
   'insights.server.openSupabase': 'Supabase を開く',
+  'insights.server.limit.warn': 'サーバーの容量が増えています',
+  'insights.server.limit.full': 'サーバーがほぼ満杯です',
+  'insights.server.limit.body':
+    '{what}は Supabase 無料プランの {share} に達しています。満杯になる前にプロジェクトを有料プランに切り替えてください。そうしないと FluidEQ のオンライン機能が動かなくなります。',
+  'insights.server.limit.database': 'データベース',
+  'insights.server.limit.files': 'ファイル保存領域',
+  'insights.server.limit.accounts': 'アクティブなアカウント',
+  'insights.server.limit.later': '後で',
+  'insights.server.limit.open': 'サーバーのページを開く',
+  'insights.server.limit.badge': '無料プランの {share} を使用',
   'insights.server.rules':
     '無料プランに期限はありません。上限を超えるとメールが届いて猶予期間に入り、超過が続くと、翌月かアップグレードまで Supabase はリクエストに「payment required」と応答します。{days} 日間リクエストのないプロジェクトは一時停止されますが、FluidEQ 自体の通信がそれを防ぎます。',
 } as const;

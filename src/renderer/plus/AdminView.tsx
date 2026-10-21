@@ -11,6 +11,7 @@ import { useTranslation } from '../utils/I18nContext';
 import AdminAccounts from './AdminAccounts';
 import AdminAnnouncements from './AdminAnnouncements';
 import AdminFavourites from './AdminFavourites';
+import AdminPayouts from './AdminPayouts';
 import AdminServer from './AdminServer';
 import { useGalleryNotice, type IGalleryNotice } from './galleryActions';
 import { useModeration } from './moderationStore';
@@ -24,6 +25,7 @@ import PlusGifts from './PlusGifts';
 import PlusToastStack from './PlusToastStack';
 import ReportedScenes from './ReportedScenes';
 import ReviewQueue from './ReviewQueue';
+import { shownLevel, useServerLimit } from './serverLimit';
 import '../styles/Gallery.scss';
 import '../styles/Admin.scss';
 
@@ -37,14 +39,15 @@ const SECTIONS: Record<
   review: { glyph: 'check', name: 'review.tab' },
   favourites: { glyph: 'heart', name: 'insights.tab' },
   announcements: { glyph: 'send', name: 'announce.tab' },
+  payouts: { glyph: 'payout', name: 'creator.admin.tab' },
   server: { glyph: 'server', name: 'insights.server.tab' },
 };
 
 /**
  * The admin's own place in the Plus tab: the scenes waiting to be approved,
  * the scenes members reported, every account, the Plus given away, which
- * scenes members come back to, the announcements of new ones and how full
- * the server is, one page at a time under a row of tabs.
+ * scenes members come back to, the announcements of new ones, paying the
+ * creators and how full the server is, one page at a time under a row of tabs.
  *
  * These pages lived behind three buttons on the gallery's toolbar, where they
  * crowded a member's page with things no member could use. Only the account
@@ -57,6 +60,8 @@ export default function AdminView() {
   const account = useAccount();
   const moderation = useModeration();
   const notice = useGalleryNotice();
+  const limit = useServerLimit();
+  const limitLevel = shownLevel(limit);
 
   return (
     <>
@@ -103,6 +108,22 @@ export default function AdminView() {
                   {new Intl.NumberFormat(locale).format(moderation.open)}
                 </span>
               )}
+              {/* How full the plan's nearest limit is, once it is worth a
+                  look: amber from 60%, red from 85%. */}
+              {entry === 'server' && limitLevel !== 'ok' && limit.nearest && (
+                <span
+                  className={`gallery-toolbar__badge admin-sections__limit is-${limitLevel}`}
+                  aria-label={t('insights.server.limit.badge', {
+                    share: new Intl.NumberFormat(locale, {
+                      style: 'percent',
+                    }).format(limit.nearest.share),
+                  })}
+                >
+                  {new Intl.NumberFormat(locale, { style: 'percent' }).format(
+                    limit.nearest.share,
+                  )}
+                </span>
+              )}
               {entry === 'review' && moderation.review > 0 && (
                 <span
                   className="gallery-toolbar__badge"
@@ -125,6 +146,7 @@ export default function AdminView() {
         {section === 'review' && <ReviewQueue me={account.identity?.id} />}
         {section === 'favourites' && <AdminFavourites />}
         {section === 'announcements' && <AdminAnnouncements />}
+        {section === 'payouts' && <AdminPayouts />}
         {section === 'server' && <AdminServer />}
       </div>
     </>

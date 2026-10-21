@@ -346,3 +346,56 @@ SPDX-License-Identifier: GPL-3.0-or-later
     animation: none;
   }
 }
+
+// Time to pay: the plan's nearest limit, past 60%, over the gauges. Amber
+// while it fills, red once it is nearly full, with Supabase one press away.
+.admin-server__limit {
+  --limit-tone: #{$amber};
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s $spacing-m;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--limit-tone) 45%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, var(--limit-tone) 8%, $block-lift);
+
+  &.is-full {
+    --limit-tone: #{$red};
+  }
+
+  > svg {
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    color: var(--limit-tone);
+  }
+
+  > .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-inline-start: auto;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+}
+
+.admin-server__limit-text {
+  display: grid;
+  flex: 1 1 260px;
+  gap: 2px;
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-body;
+  line-height: 1.5;
+
+  strong {
+    color: var(--limit-tone);
+    font-weight: $weight-semibold;
+  }
+}

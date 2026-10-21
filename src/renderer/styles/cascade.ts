@@ -91,6 +91,7 @@ import './Admin.scss';
 import './AdminInsights.scss';
 import './AdminAnnouncements.scss';
 import './AdminServer.scss';
+import './AdminPayouts.scss';
 import './PlusGifts.scss';
 import './PlusToastStack.scss';
 import './GalleryModeration.scss';

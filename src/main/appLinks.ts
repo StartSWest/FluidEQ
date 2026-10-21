@@ -16,18 +16,25 @@ import { app } from 'electron';
  * one of these, which brings the window up and asks the server for the store
  * at once (Ivan, 2026-10-21: "make sure the app captures the payment").
  *
- * Only the credits' two returns are understood, and all either can do is ask
- * the server again and bring the window forward: a page that opens one on its
- * own costs a request, nothing more.
+ * A creator signing up to be paid comes back the same way from Stripe's
+ * sign-up (`ipc/creator.ts`): `creators/ready` when Stripe sent them back
+ * finished or not, `creators/continue` when Stripe's link had expired.
+ *
+ * Only these four are understood, and all any of them can do is ask the
+ * server again and bring the window forward: a page that opens one on its own
+ * costs a request, nothing more.
  */
 
 export const APP_LINK_SCHEME = 'fluideq';
 
-export type TAppLink = 'credits-paid' | 'credits-cancelled';
+export type TAppLink =
+  'credits-paid' | 'credits-cancelled' | 'creators-ready' | 'creators-continue';
 
 const LINKS: ReadonlyMap<string, TAppLink> = new Map<string, TAppLink>([
   ['credits/paid', 'credits-paid'],
   ['credits/cancelled', 'credits-cancelled'],
+  ['creators/ready', 'creators-ready'],
+  ['creators/continue', 'creators-continue'],
 ]);
 
 /** What a `fluideq://` address asks for; anything else is not a link. */

@@ -43,6 +43,7 @@ import plus from './plus';
 import plusWelcome from './plusWelcome';
 import trial from './trial';
 import store from './store';
+import creator from './creator';
 import termsNotice from './termsNotice';
 import engineHealth from './engineHealth';
 import dspOff from './dspOff';
@@ -93,6 +94,7 @@ const de: Partial<Dictionary> = {
   ...plusWelcome,
   ...trial,
   ...store,
+  ...creator,
   ...termsNotice,
   ...engineHealth,
   ...dspOff,

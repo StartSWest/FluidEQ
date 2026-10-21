@@ -206,3 +206,47 @@ export const requestTotal = (
 /** How full a limit is, from 0 to 1 (and past 1 once it is exceeded). */
 export const shareOf = (used: number, limit: number): number =>
   limit > 0 ? used / limit : 0;
+
+/** How near a limit is: fine, amber from 60%, red from 85%. */
+export type TLimitLevel = 'ok' | 'warn' | 'full';
+
+export const limitLevelOf = (share: number): TLimitLevel => {
+  if (share >= 0.85) {
+    return 'full';
+  }
+  return share >= 0.6 ? 'warn' : 'ok';
+};
+
+/** The free plan's limits the database can measure (data sent it cannot). */
+export type TServerLimit = 'database' | 'files' | 'accounts';
+
+export interface IServerLimitShare {
+  limit: TServerLimit;
+  share: number;
+}
+
+/**
+ * The free plan's limit nearest to full: the one that decides when the
+ * project has to move to a paid plan (Ivan, 2026-10-21: "we need to know when
+ * we are on the supabase limit so we pay it").
+ */
+export const nearestLimit = (usage: IServerUsage): IServerLimitShare => {
+  const shares: IServerLimitShare[] = [
+    {
+      limit: 'database',
+      share: shareOf(usage.databaseBytes, FREE_PLAN.databaseBytes),
+    },
+    {
+      limit: 'files',
+      share: shareOf(
+        usage.buckets.reduce((sum, bucket) => sum + bucket.bytes, 0),
+        FREE_PLAN.storageBytes,
+      ),
+    },
+    {
+      limit: 'accounts',
+      share: shareOf(usage.activeAccounts, FREE_PLAN.activeAccounts),
+    },
+  ];
+  return shares.reduce((most, each) => (each.share > most.share ? each : most));
+};

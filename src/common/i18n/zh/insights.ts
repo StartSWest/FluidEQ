@@ -77,6 +77,16 @@ const insights = {
   'insights.server.egressBody':
     '免费计划每月包含 {limit}，通常这是最先用完的额度：成员下载的每个场景和每张图片都会计入。没有 API 提供这个数字；Supabase 在项目的 Usage 页面中显示。',
   'insights.server.openSupabase': '打开 Supabase',
+  'insights.server.limit.warn': '服务器容量正在增加',
+  'insights.server.limit.full': '服务器即将用满',
+  'insights.server.limit.body':
+    '{what}已用到 Supabase 免费套餐的 {share}。请在用满之前把项目升级到付费套餐，否则 FluidEQ 的在线功能会开始出错。',
+  'insights.server.limit.database': '数据库',
+  'insights.server.limit.files': '文件存储',
+  'insights.server.limit.accounts': '活跃账户',
+  'insights.server.limit.later': '稍后',
+  'insights.server.limit.open': '打开服务器页面',
+  'insights.server.limit.badge': '已用免费套餐的 {share}',
   'insights.server.rules':
     '免费计划没有截止日期。超出某项额度会收到一封邮件并进入宽限期；如果持续超出，Supabase 会对请求返回“payment required”，直到下个月或升级计划。连续 {days} 天没有任何请求的项目会被暂停，而 FluidEQ 自身的流量可以防止这种情况。',
 } as const;

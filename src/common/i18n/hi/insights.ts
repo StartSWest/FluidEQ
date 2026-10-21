@@ -79,6 +79,16 @@ const insights = {
   'insights.server.egressBody':
     'मुफ़्त प्लान में हर महीने {limit} शामिल है, और आमतौर पर यही सीमा सबसे पहले पूरी होती है: सदस्य जो भी सीन और तस्वीर डाउनलोड करते हैं, सब गिना जाता है। कोई API इसे नहीं बताता; Supabase इसे प्रोजेक्ट के Usage पेज पर दिखाता है।',
   'insights.server.openSupabase': 'Supabase खोलें',
+  'insights.server.limit.warn': 'सर्वर भर रहा है',
+  'insights.server.limit.full': 'सर्वर लगभग भर गया है',
+  'insights.server.limit.body':
+    '{what} Supabase के मुफ़्त प्लान का {share} उपयोग कर चुका है। भरने से पहले प्रोजेक्ट को भुगतान वाले प्लान पर ले जाएँ, नहीं तो FluidEQ की ऑनलाइन सुविधाएँ काम करना बंद कर देंगी।',
+  'insights.server.limit.database': 'डेटाबेस',
+  'insights.server.limit.files': 'फ़ाइल स्टोरेज',
+  'insights.server.limit.accounts': 'सक्रिय खाते',
+  'insights.server.limit.later': 'बाद में',
+  'insights.server.limit.open': 'सर्वर पेज खोलें',
+  'insights.server.limit.badge': 'मुफ़्त प्लान का {share} उपयोग हुआ',
   'insights.server.rules':
     'मुफ़्त प्लान की कोई अंतिम तिथि नहीं है। किसी सीमा से आगे जाने पर एक ईमेल आता है और एक रियायती अवधि शुरू होती है; अगर ऐसा जारी रहे, तो अगले महीने या अपग्रेड तक Supabase अनुरोधों का जवाब “payment required” से देता है। {days} दिन तक बिना किसी अनुरोध वाला प्रोजेक्ट रोक दिया जाता है, जिसे FluidEQ का अपना ट्रैफ़िक होने नहीं देता।',
 } as const;

@@ -31,6 +31,8 @@ import PlusTermsDocument from './PlusTermsDocument';
 import LeaderboardCard from './LeaderboardCard';
 import MakerMonthCard from './MakerMonthCard';
 import { forgetMakerMonth } from '../plus/makerMonthStore';
+import CreatorPayoutsCard from './CreatorPayoutsCard';
+import { forgetCreator } from './creatorStore';
 import SignInForms from './SignInForms';
 import SignOutConfirm from './SignOutConfirm';
 import AccountPitch from './AccountPitch';
@@ -156,6 +158,7 @@ export default function AccountDialog({
     } else {
       forgetProfile();
       forgetMakerMonth();
+      forgetCreator();
     }
   }, [accountId]);
 
@@ -433,6 +436,8 @@ export default function AccountDialog({
                   comes from for a maker: the month their last approved scene
                   earned, and when it runs out. */}
               {accountId && <MakerMonthCard accountId={accountId} />}
+              {/* Getting paid for the scenes that earn the month above. */}
+              {accountId && <CreatorPayoutsCard accountId={accountId} />}
               <LeaderboardCard />
 
               {errorLine}

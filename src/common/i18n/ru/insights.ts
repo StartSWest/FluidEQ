@@ -80,6 +80,16 @@ const insights = {
   'insights.server.egressBody':
     'Бесплатный план включает {limit} в месяц, и обычно этот лимит заканчивается первым: считается каждая сцена и картинка, которую скачивает участник. Ни один API его не сообщает; Supabase показывает его на странице Usage проекта.',
   'insights.server.openSupabase': 'Открыть Supabase',
+  'insights.server.limit.warn': 'Сервер заполняется',
+  'insights.server.limit.full': 'Сервер почти заполнен',
+  'insights.server.limit.body':
+    '{what}: занято {share} бесплатного тарифа Supabase. Переведите проект на платный тариф, пока место не кончилось, иначе онлайн-функции FluidEQ начнут отказывать.',
+  'insights.server.limit.database': 'База данных',
+  'insights.server.limit.files': 'Хранилище файлов',
+  'insights.server.limit.accounts': 'Активные аккаунты',
+  'insights.server.limit.later': 'Позже',
+  'insights.server.limit.open': 'Открыть страницу сервера',
+  'insights.server.limit.badge': 'Использовано {share} бесплатного тарифа',
   'insights.server.rules':
     'У бесплатного плана нет даты окончания. При превышении лимита приходит письмо и начинается льготный период; если превышение продолжается, Supabase отвечает на запросы «payment required» до следующего месяца или перехода на платный план. Проект без единого запроса в течение {days} дней приостанавливается — этого не даёт случиться собственный трафик FluidEQ.',
 } as const;

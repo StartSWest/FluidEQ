@@ -8,6 +8,8 @@ import { useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   FREE_PLAN,
+  limitLevelOf,
+  nearestLimit,
   REQUEST_KINDS,
   requestTotal,
   shareOf,
@@ -18,8 +20,15 @@ import {
 } from 'common/serverUsage';
 import type { TAdminOutcome } from 'main/plus/adminInsightsApi';
 import Glyph from '../community/Glyph';
+import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import GalleryListNotice from './GalleryListNotice';
+import {
+  adoptServerLimit,
+  LIMIT_NAMES,
+  LIMIT_TITLES,
+  putAwayServerLimit,
+} from './serverLimit';
 import { INSIGHT_ERRORS } from './insightsFormat';
 import '../styles/AdminServer.scss';
 
@@ -27,14 +36,6 @@ type TAsked<T> =
   | { state: 'asking' }
   | { state: 'failed'; key: TranslationKey }
   | { state: 'ready'; value: T };
-
-/** How full a limit reads: the accent, amber from 60%, red from 85%. */
-const levelOf = (share: number): 'ok' | 'warn' | 'full' => {
-  if (share >= 0.85) {
-    return 'full';
-  }
-  return share >= 0.6 ? 'warn' : 'ok';
-};
 
 const KB = 1024;
 const MB = KB * 1024;
@@ -136,6 +137,16 @@ export default function AdminServer() {
   const requests = useAsked(bridge?.adminRequestUsage, attempt);
   const time = new Intl.DateTimeFormat(locale, { timeStyle: 'short' });
 
+  // What this page measured is the newest word on the limit: the tab's badge
+  // follows it, and the corner notice, saying what the banner here says, is
+  // told and goes until the limit gets worse.
+  useEffect(() => {
+    if (usage.state === 'ready') {
+      adoptServerLimit(nearestLimit(usage.value));
+      putAwayServerLimit();
+    }
+  }, [usage]);
+
   return (
     <div className="gallery-page admin-server">
       <div className="admin-server__bar">
@@ -183,6 +194,7 @@ export default function AdminServer() {
 
       {usage.state === 'ready' && (
         <>
+          <LimitBanner usage={usage.value} />
           <div className="admin-server__gauges">
             <Gauge
               label="insights.server.database"
@@ -248,6 +260,45 @@ export default function AdminServer() {
   );
 }
 
+/**
+ * Time to pay, said at the top of the page: the free plan's limit nearest to
+ * full, once it is past 60%, and the way to Supabase where the plan changes.
+ */
+function LimitBanner({ usage }: { usage: IServerUsage }) {
+  const { t, locale } = useTranslation();
+  const nearest = nearestLimit(usage);
+  const level = limitLevelOf(nearest.share);
+  if (level === 'ok') {
+    return null;
+  }
+  return (
+    <section className={`admin-server__limit is-${level}`} role="status">
+      <MenuIcon name="alert" />
+      <span className="admin-server__limit-text">
+        <strong>{t(LIMIT_TITLES[level])}</strong>
+        <span>
+          {t('insights.server.limit.body', {
+            what: t(LIMIT_NAMES[nearest.limit]),
+            share: new Intl.NumberFormat(locale, { style: 'percent' }).format(
+              nearest.share,
+            ),
+          })}
+        </span>
+      </span>
+      {usage.dashboardUrl && (
+        <button
+          type="button"
+          className="button small"
+          onClick={() => window.open(usage.dashboardUrl, '_blank', 'noopener')}
+        >
+          <Glyph name="link" />
+          {t('insights.server.openSupabase')}
+        </button>
+      )}
+    </section>
+  );
+}
+
 interface IGaugeProps {
   label: TranslationKey;
   value: string;
@@ -259,7 +310,7 @@ interface IGaugeProps {
 /** One limit: what is used, of how much, and the share as a bar. */
 function Gauge({ label, value, limit, share, note }: IGaugeProps) {
   const { t, locale } = useTranslation();
-  const level = levelOf(share);
+  const level = limitLevelOf(share);
   const percent = new Intl.NumberFormat(locale, {
     style: 'percent',
     maximumFractionDigits: share < 0.1 ? 1 : 0,

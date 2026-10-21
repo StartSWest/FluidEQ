@@ -53,6 +53,7 @@ export const ADMIN_SECTIONS = [
   'gifts',
   'favourites',
   'announcements',
+  'payouts',
   'server',
 ] as const;
 export type TAdminSection = (typeof ADMIN_SECTIONS)[number];

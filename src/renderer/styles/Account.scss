@@ -170,6 +170,185 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 8px;
 }
 
+// Getting paid for scenes (`CreatorPayoutsCard`): a section like the others,
+// led once the creator can be paid by three figures, the first of them the
+// one a creator looks for.
+.creator-card {
+  @include account-section;
+}
+
+.creator-card__figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: $spacing-s;
+  margin: 0;
+}
+
+.creator-card__figure {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: $spacing-xs $spacing-s;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+
+  dt {
+    color: $text-faint;
+    font-size: $text-small;
+  }
+
+  dd {
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-lead;
+    font-weight: $weight-semibold;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+
+  // What can be paid now: the accent, like the balance on the credits.
+  &.is-ready {
+    border-color: color-mix(in srgb, $secondary-default 40%, transparent);
+    background: color-mix(in srgb, $secondary-default 8%, transparent);
+
+    dd {
+      color: $secondary-light;
+      font-size: $text-title * 1.25;
+      font-weight: $weight-bold;
+      line-height: 1.1;
+    }
+  }
+}
+
+// The card's buttons carry a mark beside their words, never against them.
+.creator-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// Stripe open in the browser: what to do there, and that this card follows.
+.creator-card__opened {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  color: $secondary-light;
+  font-size: $text-small;
+  line-height: 1.5;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    margin-top: 1px;
+  }
+}
+
+// The way through signing up, on the dialog's rail: three numbered steps,
+// each number in a ring of the accent, joined by a thread down the side.
+.creator-dialog__steps {
+  position: relative;
+  display: grid;
+  gap: $spacing-s;
+  margin: $spacing-s 0 0;
+  padding: 0;
+  counter-reset: creator-step;
+  list-style: none;
+
+  &::before {
+    position: absolute;
+    inset: 12px auto 12px 11px;
+    width: 1px;
+    background: color-mix(in srgb, $secondary-default 35%, transparent);
+    content: '';
+  }
+
+  li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 24px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.5;
+    counter-increment: creator-step;
+
+    &::before {
+      display: grid;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+      color: $secondary-light;
+      border: 1px solid color-mix(in srgb, $secondary-default 55%, transparent);
+      border-radius: 50%;
+      background: $surface-base;
+      font-size: $text-small;
+      font-weight: $weight-bold;
+      font-variant-numeric: tabular-nums;
+      content: counter(creator-step);
+    }
+  }
+}
+
+// The sign-up dialog: the country, then the terms with the server's numbers.
+.creator-dialog__body {
+  display: grid;
+  gap: $spacing-m;
+}
+
+.creator-dialog__country {
+  display: grid;
+  gap: 6px;
+}
+
+.creator-dialog__label {
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+.creator-dialog__hint {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.55;
+}
+
+.creator-dialog__terms {
+  display: grid;
+  gap: $spacing-xs;
+  padding: $spacing-s $spacing-m;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+
+  h3 {
+    margin: 0;
+  }
+
+  ol {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding-left: 1.3em;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.55;
+  }
+
+  li::marker {
+    color: $text-faint;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
 // What publishing earned: a section under the membership, in the same shape
 // (`_accountSection.scss`), because for a maker it is where the membership
 // comes from.

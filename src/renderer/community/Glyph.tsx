@@ -28,6 +28,7 @@ export type TCommunityGlyph =
   | 'heart'
   | 'plus'
   | 'credit'
+  | 'payout'
   | 'folder'
   | 'copy'
   | 'check'
@@ -262,6 +263,16 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <ellipse cx="10" cy="10" rx="6.8" ry="7.2" />
             <ellipse cx="10" cy="10" rx="3.6" ry="4" opacity="0.7" />
             <path d="M10 8.2v3.6" />
+          </>
+        );
+      case 'payout':
+        // A creator paid: a banknote, and the arrow it leaves by.
+        return (
+          <>
+            <rect x="2.5" y="3.5" width="15" height="9.5" rx="1.6" />
+            <circle cx="10" cy="8.25" r="2.1" opacity="0.7" />
+            <path d="M5.4 8.25h.01M14.6 8.25h.01" />
+            <path d="M5 16.5h9.5M12.3 14.4l2.2 2.1-2.2 2.1" />
           </>
         );
       case 'folder':

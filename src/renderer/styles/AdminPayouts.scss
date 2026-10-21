@@ -1,0 +1,102 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Paying creators (`AdminPayouts`): the Server page's cards for the figures,
+// its list card for who is due, and one panel at the foot that asks twice.
+
+// Two columns: who, and how much. Compound, to beat the Server list's three.
+.admin-server__list.admin-payouts__list li {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+// What the last run did: a line, the reasons for anything not sent under it.
+.admin-payouts__result {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-body;
+
+  svg {
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    color: $secondary-light;
+  }
+
+  span {
+    display: grid;
+    gap: 2px;
+  }
+
+  small {
+    color: $amber;
+    font-size: $text-small;
+    overflow-wrap: anywhere;
+  }
+}
+
+// The press that pays. Quiet until asked; asked, it says what is about to
+// happen in amber, because it moves real money and cannot be taken back.
+.admin-payouts__pay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s $spacing-m;
+  padding: 14px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-m;
+  background: $block-lift;
+
+  p {
+    flex: 1 1 260px;
+    min-width: 0;
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.55;
+  }
+
+  &.is-confirming {
+    border-color: color-mix(in srgb, $amber 45%, transparent);
+    background: color-mix(in srgb, $amber 7%, $block-lift);
+
+    p {
+      color: $text-primary;
+    }
+  }
+}
+
+// The pay button carries the payout mark: beside its words, never against them.
+.admin-payouts__pay .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// Three figures, always side by side until they cannot be: the Server page's
+// 210px minimum broke them two and one on a narrow window, the last alone.
+.admin-payouts .admin-server__gauges {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr));
+}
+
+.admin-payouts .admin-server__quiet.is-alert svg {
+  width: 15px;
+  height: 15px;
+  color: $amber;
+}

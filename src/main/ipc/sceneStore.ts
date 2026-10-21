@@ -63,6 +63,10 @@ export const registerSceneStoreIpc = ({
   // balance as it was; the checkout stays owed and the next come-back asks
   // again, as without the link.
   const offLinks = onAppLink((link) => {
+    // A creator's return from Stripe is `ipc/creator.ts`'s, never a payment.
+    if (link !== 'credits-paid' && link !== 'credits-cancelled') {
+      return;
+    }
     if (isAccountConfigured(config)) {
       ownership.refreshNow().catch(() => undefined);
     }

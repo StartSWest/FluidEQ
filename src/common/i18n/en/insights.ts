@@ -85,6 +85,16 @@ const insights = {
   'insights.server.egressBody':
     'The free plan includes {limit} a month, and it is usually the first limit reached: every scene and picture a member downloads counts. No API reports it; Supabase shows it on the project’s Usage page.',
   'insights.server.openSupabase': 'Open Supabase',
+  'insights.server.limit.warn': 'The server is filling up',
+  'insights.server.limit.full': 'The server is nearly full',
+  'insights.server.limit.body':
+    "{what} is at {share} of Supabase's free plan. Move the project to a paid plan before it fills, or FluidEQ's online features start failing.",
+  'insights.server.limit.database': 'The database',
+  'insights.server.limit.files': 'File storage',
+  'insights.server.limit.accounts': 'Active accounts',
+  'insights.server.limit.later': 'Later',
+  'insights.server.limit.open': 'Open the Server page',
+  'insights.server.limit.badge': '{share} of the free plan used',
   'insights.server.rules':
     'The free plan has no end date. Going past a limit brings an email and a grace period; if it goes on, Supabase answers requests with “payment required” until the next month or an upgrade. A project with no requests for {days} days is paused, which FluidEQ’s own traffic prevents.',
 } as const;

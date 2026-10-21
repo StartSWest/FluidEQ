@@ -40,6 +40,7 @@ import SceneAnnouncementDialog from '../components/SceneAnnouncementDialog';
 import ProcessesDialog from '../components/ProcessesDialog';
 import RestartAudioDialog from '../components/RestartAudioDialog';
 import SceneReviewNotice from '../components/SceneReviewNotice';
+import ServerLimitNotice from '../components/ServerLimitNotice';
 import SongEqNotice from '../components/SongEqNotice';
 import SongSoundNotice from '../components/SongSoundNotice';
 import SongSoundSaveNotice from '../components/SongSoundSaveNotice';
@@ -251,6 +252,9 @@ const ShellDialogs = ({
           the review news, because it is the same kind of thing: something
           about their scenes that can land on any tab. */}
       <MakerMonthNotice />
+      {/* The admin's alone: the server nearing a limit of its plan, which
+          has to be paid for before it fills, on whichever tab is open. */}
+      <ServerLimitNotice />
       {/* Why a free trial ended without Plus, asked once and here: a member
           whose trial is over may never open the Plus tab again. */}
       <TrialExitNotice />

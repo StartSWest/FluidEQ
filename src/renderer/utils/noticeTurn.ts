@@ -58,6 +58,8 @@ export type TNoticeClaim =
   | 'plusTerms'
   | 'sceneReview'
   | 'makerMonth'
+  /** The admin told the server nears a free-plan limit (`ServerLimitNotice`). */
+  | 'serverLimit'
   /** Why a free trial ended without Plus, asked once (`TrialExitNotice`). */
   | 'trialExit'
   /** New scenes announced, big (`SceneAnnouncementDialog`). */
@@ -101,8 +103,16 @@ export const NOTICE_WAITS_FOR: Readonly<
   plusTerms: CORNER_WAITS_FOR,
   sceneReview: [...CORNER_WAITS_FOR, 'plusTerms'],
   makerMonth: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview'],
+  // The admin's alone, after the news about scenes: a limit fills over days.
+  serverLimit: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview', 'makerMonth'],
   // A question, so after everything that tells the member something.
-  trialExit: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview', 'makerMonth'],
+  trialExit: [
+    ...CORNER_WAITS_FOR,
+    'plusTerms',
+    'sceneReview',
+    'makerMonth',
+    'serverLimit',
+  ],
   // Waits for every notice that carries something to do or to know first:
   // an announcement is news, never urgent.
   sceneAnnouncement: [
@@ -110,6 +120,7 @@ export const NOTICE_WAITS_FOR: Readonly<
     'plusTerms',
     'sceneReview',
     'makerMonth',
+    'serverLimit',
     'trialExit',
   ],
   appFull: [],

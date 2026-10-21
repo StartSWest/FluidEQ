@@ -82,6 +82,16 @@ const insights = {
   'insights.server.egressBody':
     'Il piano gratuito include {limit} al mese, e di solito è il primo limite che si raggiunge: conta ogni scena e immagine scaricata da un membro. Nessuna API lo riporta; Supabase lo mostra nella pagina Usage del progetto.',
   'insights.server.openSupabase': 'Apri Supabase',
+  'insights.server.limit.warn': 'Il server si sta riempiendo',
+  'insights.server.limit.full': 'Il server è quasi pieno',
+  'insights.server.limit.body':
+    '{what} è al {share} del piano gratuito di Supabase. Passa il progetto a un piano a pagamento prima che si riempia, o le funzioni online di FluidEQ smetteranno di funzionare.',
+  'insights.server.limit.database': 'Il database',
+  'insights.server.limit.files': 'Lo spazio per i file',
+  'insights.server.limit.accounts': 'Gli account attivi',
+  'insights.server.limit.later': 'Più tardi',
+  'insights.server.limit.open': 'Apri la pagina del server',
+  'insights.server.limit.badge': '{share} del piano gratuito usato',
   'insights.server.rules':
     'Il piano gratuito non ha una data di fine. Superare un limite porta un’email e un periodo di tolleranza; se continua, Supabase risponde alle richieste con “payment required” fino al mese successivo o a un upgrade. Un progetto senza richieste per {days} giorni viene messo in pausa, cosa che il traffico di FluidEQ stesso impedisce.',
 } as const;
