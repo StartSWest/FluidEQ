@@ -26,7 +26,6 @@ import {
   subscribeAccountPanelRequests,
   type TAccountPanelPage,
 } from '../account/accountPanel';
-import { usePlusWelcome } from '../account/plusWelcomeStore';
 import { subscribePlusTabRequests } from '../plus/plusTabRequest';
 import type { TWorkspaceTab } from '../workspaceTabs';
 
@@ -77,17 +76,6 @@ const useShellDialogs = (
       }),
     [selectTopWorkspaceTab],
   );
-  // The welcome takes the Account panel's place the moment a membership
-  // lands: it is the panel's own "you are Plus now", said larger, and the
-  // panel underneath it was what the person had left to go and pay from.
-  // Closing the welcome returns to the app, with nothing in front of it; the
-  // panel, opened again, is the member's profile with the scene in it.
-  const plusWelcome = usePlusWelcome();
-  useEffect(() => {
-    if (plusWelcome) {
-      setAccountDialogPage(undefined);
-    }
-  }, [plusWelcome]);
   const [showProcessesDialog, setShowProcessesDialog] = useState(false);
   // What the last import did (`ImportNotice`).
   const [importNotice, setImportNotice] = useState('');

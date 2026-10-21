@@ -20,7 +20,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import type { IAccountState } from './account/session';
 import type { IEntitlementStatus } from './account/entitlement';
-import type { TBillingOutcome } from './ipc/account';
 
 /**
  * The FluidEQ account and what it is entitled to: signing up and in, codes
@@ -101,20 +100,6 @@ const getEntitlementStatus = () =>
 const refreshEntitlement = () =>
   ipcRenderer.invoke('entitlement-refresh') as Promise<IEntitlementStatus>;
 
-const openSubscriptionPortal = () =>
-  ipcRenderer.invoke('entitlement-open-portal') as Promise<TBillingOutcome>;
-
-/** Development only: whether the pretend-membership buttons may be shown. */
-const isMembershipSimulatorAvailable = () =>
-  ipcRenderer.invoke('dev-membership-available') as Promise<boolean>;
-
-/** Development only: send the merchant's own event to the real server. */
-const simulateMembership = (simulation: 'started' | 'cancelled') =>
-  ipcRenderer.invoke(
-    'dev-membership-simulate',
-    simulation,
-  ) as Promise<TBillingOutcome>;
-
 const onEntitlementChanged = (
   listener: (status: IEntitlementStatus) => void,
 ) => {
@@ -142,9 +127,6 @@ const accountBridge = {
   onAccountState,
   getEntitlementStatus,
   refreshEntitlement,
-  openSubscriptionPortal,
-  isMembershipSimulatorAvailable,
-  simulateMembership,
   onEntitlementChanged,
 };
 

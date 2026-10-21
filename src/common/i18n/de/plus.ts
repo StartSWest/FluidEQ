@@ -318,10 +318,6 @@ const plus = {
   'plus.accounts.giveYes': 'Plus schenken',
   'plus.accounts.giveNo': 'Jetzt nicht',
   'plus.accounts.takeBack': 'Plus zurücknehmen',
-  'plus.accounts.takeBackTrial':
-    'Das geschenkte Plus von {name} zurücknehmen? Es endet sofort, und stattdessen wird die Gratis-Testphase angeboten, sofern sie noch nicht genutzt wurde.',
-  'plus.accounts.takeBackNoTrial':
-    'Das geschenkte Plus von {name} zurücknehmen? Es endet sofort, und dieses Konto kann die Gratis-Testphase nicht bekommen, also bleibt kein Plus.',
   'plus.accounts.takeBackPaid':
     'Das geschenkte Plus von {name} zurücknehmen? Das bezahlte Plus läuft weiter.',
   'plus.accounts.takeBackPlain':

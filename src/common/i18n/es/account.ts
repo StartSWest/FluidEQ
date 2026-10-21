@@ -20,7 +20,6 @@ const account = {
   'account.signUpHint':
     'Enviaremos un código de seis dígitos a esa dirección. Escríbelo aquí para terminar.',
   'account.working': 'Un momento…',
-  'account.standing.free': 'Cuenta gratuita',
   'account.signOut': 'Cerrar sesión',
   'account.signOut.confirm': '¿Cerrar la sesión de esta cuenta?',
   'account.signOut.detail': 'Puedes volver a iniciar sesión cuando quieras.',
@@ -87,71 +86,13 @@ const account = {
     'Ya existe una cuenta con esa dirección. Inicia sesión en su lugar.',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.opening': 'Abriendo…',
   'account.plus.active': 'Activa',
-  'account.plus.ending': 'No se renueva',
-  'account.plus.renews': 'Se renueva el {date}',
-  'account.plus.sorry': 'Nos da pena que te vayas.',
-  'account.plus.until':
-    'Plus sigue activo hasta el {date}, y no se cobra nada más.',
-  'account.plus.gift': 'Un regalo de FluidEQ',
-  'account.plus.giftUntil': 'Un regalo de FluidEQ, hasta el {date}',
-  'account.plus.computers':
-    'Con sesión iniciada en hasta {count} ordenadores a la vez.',
-  'account.plus.manage': 'Gestionar suscripción',
-  'account.plus.grace':
-    'No se pudo confirmar tu suscripción. Sigue activa hasta el {date}; conéctate a internet antes para conservarla.',
-  'account.plus.checkAgain': 'Comprobar de nuevo',
-  'account.plus.error.rejected':
-    'No se pudo abrir la página de pago. Inténtalo de nuevo en un momento.',
-
-  'account.dev.label': 'Desarrollo',
-  'account.dev.start': 'Simular un pago',
-  'account.dev.cancel': 'Simular una cancelación',
-  'account.dev.working': 'Enviando…',
 
   'account.perk.looks':
     'Escenas que son tuyas para siempre, un crédito cada una.',
   'account.perk.visualizers':
     'Visualizadores: las escenas que crean los miembros, abiertas a todas las cuentas.',
   'account.perk.board': 'Una clasificación de quién escucha más.',
-  // What publishing earns: one approved scene a month keeps Plus free
-  // (server migration 0041). Months earned while a paid membership runs
-  // wait for it to end; nothing here changes what anybody pays.
-  'account.maker.title': 'Mes de creador',
-  'account.maker.badge': 'Gratis',
-  'account.maker.until': 'Plus es gratis hasta el {date}.',
-  'account.maker.endsDays':
-    'Termina en {days} días: publica una escena antes para mantenerlo.',
-  'account.maker.endsToday':
-    'Termina hoy: publica una escena para conservarlo.',
-  'account.maker.endsTomorrow':
-    'Termina mañana: publica una escena antes para mantenerlo.',
-  'account.maker.keep': 'Publica una escena este mes y el siguiente es gratis.',
-  'account.maker.kept':
-    'La escena de este mes ya está. Publica otra el mes que viene para seguir.',
-  'account.maker.again': 'Publica una escena y vuelves a tener un mes gratis.',
-  'account.maker.againWaiting':
-    'Publica una escena y otro mes gratis se suma a los que esperan.',
-  'account.maker.invite':
-    'Haz una escena en el Estudio: una escena aprobada al mes mantiene Plus gratis.',
-  'account.maker.waitingOne':
-    'Tienes un mes ganado esperando. Empieza cuando termine tu suscripción; esto no cambia lo que pagas.',
-  'account.maker.waitingMany':
-    'Tienes {count} meses ganados esperando. Empiezan cuando termine tu suscripción; esto no cambia lo que pagas.',
-  // The week before an earned month runs out, and the day it does: an
-  // earned month renews itself no more than a gift does, so it has to be
-  // said out loud rather than simply stop.
-  'account.maker.notice.endingTitle': 'Tu Plus gratis termina en {days} días',
-  'account.maker.notice.endingToday': 'Tu Plus gratis termina hoy',
-  'account.maker.notice.endingTomorrow': 'Tu Plus gratis termina mañana',
-  'account.maker.notice.endingBody':
-    'Publica una escena antes y el mes siguiente también es gratis. No se cobra nada en ningún caso.',
-  'account.maker.notice.endedTitle': 'Tu Plus gratis ha terminado',
-  'account.maker.notice.endedBody':
-    'Publica una escena y vuelve a empezar. Todo lo que compraste sigue siendo tuyo.',
-  'account.maker.notice.open': 'Abrir el Estudio',
-  'account.maker.notice.later': 'Ahora no',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continuar con Google',
   'account.or': 'o',

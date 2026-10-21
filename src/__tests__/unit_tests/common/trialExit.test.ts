@@ -1,6 +1,6 @@
 /**
- * Why a free trial ended without Plus (premium 0054), as the app reads and
- * sends it, and the admin's joined window: the shapes on their way between
+ * Why a free trial ended without Plus (premium 0054), as the admin reads it,
+ * and the admin's joined window: the shapes on their way between
  * the server and the page, which refuse anything they do not recognise.
  */
 
@@ -10,12 +10,7 @@ import {
   parseAccountListPage,
   readAccountListRequest,
 } from '../../../common/adminAccounts';
-import {
-  MAX_TRIAL_EXIT_NOTE,
-  parseTrialExitCounts,
-  parseTrialExitStatus,
-  readTrialExitAnswer,
-} from '../../../common/trialExit';
+import { parseTrialExitCounts } from '../../../common/trialExit';
 
 const ROW = {
   user_id: '3f1c2a4e-5b6d-4e7f-8a9b-0c1d2e3f4a5b',
@@ -34,44 +29,7 @@ const ROW = {
   listed_count: 1,
 };
 
-describe('what a member is asked', () => {
-  it('reads asked and an answer, and refuses a reason the app does not know', () => {
-    expect(parseTrialExitStatus([{ asked: true, reason: null }])).toEqual({
-      asked: true,
-    });
-    expect(parseTrialExitStatus([{ asked: false, reason: 'price' }])).toEqual({
-      asked: false,
-      reason: 'price',
-    });
-    expect(
-      parseTrialExitStatus([{ asked: true, reason: 'because' }]),
-    ).toBeUndefined();
-    expect(parseTrialExitStatus([{ reason: null }])).toBeUndefined();
-    expect(parseTrialExitStatus([])).toBeUndefined();
-  });
-
-  it('sends a known reason with its note trimmed, and an empty note as none', () => {
-    expect(readTrialExitAnswer('price', '  Too much  ')).toEqual({
-      reason: 'price',
-      note: 'Too much',
-    });
-    expect(readTrialExitAnswer('other', '   ')).toEqual({ reason: 'other' });
-    expect(readTrialExitAnswer('other', undefined)).toEqual({
-      reason: 'other',
-    });
-  });
-
-  it('refuses an unknown reason, a note that is not text, and one too long', () => {
-    expect(readTrialExitAnswer('because', undefined)).toBeUndefined();
-    expect(readTrialExitAnswer('price', 42)).toBeUndefined();
-    expect(
-      readTrialExitAnswer('price', 'x'.repeat(MAX_TRIAL_EXIT_NOTE + 1)),
-    ).toBeUndefined();
-    expect(
-      readTrialExitAnswer('price', 'x'.repeat(MAX_TRIAL_EXIT_NOTE)),
-    ).toEqual({ reason: 'price', note: 'x'.repeat(MAX_TRIAL_EXIT_NOTE) });
-  });
-
+describe('what the admin is shown', () => {
   it('reads the breakdown whole or not at all', () => {
     expect(
       parseTrialExitCounts([

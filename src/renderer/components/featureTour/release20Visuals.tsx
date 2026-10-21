@@ -131,7 +131,7 @@ export function GraphViewsVisual() {
 const STUDIO_PHOTO = { width: 1400, height: 869 };
 const METERS_PHOTO = { width: 260, height: 572 };
 
-/** The Studio making Alpine, and the trial and the month a scene earns. */
+/** The Studio making Alpine, and what making and publishing a scene give. */
 export function StudioVisual() {
   const { t } = useTranslation();
   return (

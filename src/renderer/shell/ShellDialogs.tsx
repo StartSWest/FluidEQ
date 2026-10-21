@@ -31,11 +31,8 @@ import EngineTroubleNotice from '../components/EngineTroubleNotice';
 import EngineUpdateNotice from '../components/EngineUpdateNotice';
 import FeatureTour from '../components/featureTour/FeatureTour';
 import { featureTourFor } from '../components/featureTour/slides';
-import MakerMonthNotice from '../components/MakerMonthNotice';
-import TrialExitNotice from '../components/TrialExitNotice';
 import MandatoryUpdateModal from '../components/MandatoryUpdateModal';
 import PlusTermsNotice from '../components/PlusTermsNotice';
-import PlusWelcomeDialog from '../components/PlusWelcomeDialog';
 import SceneAnnouncementDialog from '../components/SceneAnnouncementDialog';
 import ProcessesDialog from '../components/ProcessesDialog';
 import RestartAudioDialog from '../components/RestartAudioDialog';
@@ -249,25 +246,14 @@ const ShellDialogs = ({
       {/* Here for the same reason: a scene waiting for the admin, or a
           maker's scene approved or not, is news on whichever tab is open. */}
       <SceneReviewNotice />
-      {/* The week's warning before a maker's earned Plus runs out. Beside
-          the review news, because it is the same kind of thing: something
-          about their scenes that can land on any tab. */}
-      <MakerMonthNotice />
       {/* The admin's alone: the server nearing a limit of its plan, which
           has to be paid for before it fills, on whichever tab is open. */}
       <ServerLimitNotice />
       {/* The admin's too: creators owed their payout, every 15 days. */}
       <PayoutDueNotice />
-      {/* Why a free trial ended without Plus, asked once and here: a member
-          whose trial is over may never open the Plus tab again. */}
-      <TrialExitNotice />
       {/* A scene reported from the looks: the menu it was asked from
           closes under the dialog, so the dialog lives here. */}
       <SceneReportHost />
-      {/* The one moment a membership turning on is marked. Here rather than
-          in the Plus tab, because paying is done from the account panel and
-          the answer can land with any tab open. */}
-      <PlusWelcomeDialog />
       {/* New scenes announced, once, on whichever tab is open: the set's
           first scene plays on the graph from its button. */}
       <SceneAnnouncementDialog />

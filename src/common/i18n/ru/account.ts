@@ -20,7 +20,6 @@ const account = {
   'account.signUpHint':
     'На этот адрес придёт шестизначный код. Введите его здесь, чтобы завершить.',
   'account.working': 'Секунду…',
-  'account.standing.free': 'Бесплатный аккаунт',
   'account.signOut': 'Выйти',
   'account.signOut.confirm': 'Выйти из этого аккаунта?',
   'account.signOut.detail': 'Войти снова можно в любой момент.',
@@ -85,74 +84,12 @@ const account = {
     'Аккаунт с этим адресом уже существует. Просто войдите.',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.opening': 'Открываем…',
   'account.plus.active': 'Активна',
-  'account.plus.ending': 'Без продления',
-  'account.plus.renews': 'Продлится {date}',
-  'account.plus.sorry': 'Жаль, что вы уходите.',
-  'account.plus.until': 'Plus работает до {date}, и больше ничего не спишется.',
-  'account.plus.gift': 'Подарок от FluidEQ',
-  'account.plus.giftUntil': 'Подарок от FluidEQ, до {date}',
-  'account.plus.computers':
-    'Вход выполнен не более чем на {count} компьютерах одновременно.',
-  'account.plus.manage': 'Управлять подпиской',
-  'account.plus.grace':
-    'Не удалось подтвердить подписку. Она действует до {date} — подключитесь к интернету до этого, чтобы её сохранить.',
-  'account.plus.checkAgain': 'Проверить ещё раз',
-  'account.plus.error.rejected':
-    'Не удалось открыть страницу оплаты. Попробуйте ещё раз через минуту.',
-
-  'account.dev.label': 'Разработка',
-  'account.dev.start': 'Имитировать оплату',
-  'account.dev.cancel': 'Имитировать отмену',
-  'account.dev.working': 'Отправка…',
 
   'account.perk.looks': 'Сцены, которые ваши навсегда, по кредиту за каждую.',
   'account.perk.visualizers':
     '«Визуализаторы»: сцены, которые создают участники, открыты для любого аккаунта.',
   'account.perk.board': 'Таблица лидеров: кто слушает больше всех.',
-  // What publishing earns: one approved scene a month keeps Plus free
-  // (server migration 0041). Months earned while a paid membership runs
-  // wait for it to end; nothing here changes what anybody pays.
-  'account.maker.title': 'Месяц автора',
-  'account.maker.badge': 'Бесплатно',
-  'account.maker.until': 'Plus бесплатен до {date}.',
-  'account.maker.endsDays':
-    'Заканчивается через {days} дн. — опубликуйте сцену до этого, чтобы сохранить.',
-  'account.maker.endsToday':
-    'Заканчивается сегодня — опубликуйте сцену, чтобы сохранить его.',
-  'account.maker.endsTomorrow':
-    'Заканчивается завтра — опубликуйте сцену до этого, чтобы сохранить.',
-  'account.maker.keep':
-    'Опубликуйте сцену в этом месяце, и следующий будет бесплатным.',
-  'account.maker.kept':
-    'Сцена этого месяца есть. Опубликуйте ещё одну в следующем, чтобы продолжить.',
-  'account.maker.again':
-    'Опубликуйте сцену — и снова получите месяц Plus бесплатно.',
-  'account.maker.againWaiting':
-    'Опубликуйте сцену — и ещё один бесплатный месяц встанет в очередь.',
-  'account.maker.invite':
-    'Сделайте сцену в Студии: одна одобренная сцена в месяц оставляет Plus бесплатным.',
-  'account.maker.waitingOne':
-    'Один заработанный месяц ждёт. Он начнётся, когда закончится подписка, — на оплату это не влияет.',
-  'account.maker.waitingMany':
-    'Заработанных месяцев ждёт: {count}. Они начнутся, когда закончится подписка, — на оплату это не влияет.',
-  // The week before an earned month runs out, and the day it does: an
-  // earned month renews itself no more than a gift does, so it has to be
-  // said out loud rather than simply stop.
-  'account.maker.notice.endingTitle':
-    'Ваш бесплатный Plus заканчивается через {days} дн.',
-  'account.maker.notice.endingToday':
-    'Ваш бесплатный Plus заканчивается сегодня',
-  'account.maker.notice.endingTomorrow':
-    'Ваш бесплатный Plus заканчивается завтра',
-  'account.maker.notice.endingBody':
-    'Опубликуйте сцену до этого, и следующий месяц тоже будет бесплатным. Ничего не списывается ни в том, ни в другом случае.',
-  'account.maker.notice.endedTitle': 'Ваш бесплатный Plus закончился',
-  'account.maker.notice.endedBody':
-    'Опубликуйте сцену — и он начнётся снова. Всё купленное остаётся вашим.',
-  'account.maker.notice.open': 'Открыть Студию',
-  'account.maker.notice.later': 'Не сейчас',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Продолжить с Google',
   'account.or': 'или',

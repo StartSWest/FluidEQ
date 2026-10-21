@@ -69,10 +69,7 @@ jest.mock('../../../renderer/account/entitlementStore', () => ({
   useEntitlement: () => mockEntitlement,
   getEntitlementSnapshot: () => mockEntitlement,
   subscribeEntitlement: () => () => undefined,
-  openSubscriptionPortal: () => Promise.resolve({ ok: true }),
   refreshEntitlement: () => Promise.resolve(),
-  isMembershipSimulatorAvailable: () => Promise.resolve(false),
-  simulateMembership: () => Promise.resolve({ ok: false }),
 }));
 
 jest.mock('../../../renderer/usage/leaderboardStore', () => ({

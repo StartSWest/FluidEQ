@@ -19,7 +19,6 @@ const account = {
     '你的密码直接发送到账户服务，不会保存在应用的任何地方。',
   'account.signUpHint': '一个六位数验证码将发送到该地址。在此输入即可完成。',
   'account.working': '请稍候…',
-  'account.standing.free': '免费账户',
   'account.signOut': '退出登录',
   'account.signOut.confirm': '要退出这个账户吗？',
   'account.signOut.detail': '你可以随时重新登录。',
@@ -75,62 +74,11 @@ const account = {
   'account.error.alreadyRegistered': '该地址已有账户。请直接登录。',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.opening': '正在打开…',
   'account.plus.active': '已激活',
-  'account.plus.ending': '不再续订',
-  'account.plus.renews': '{date} 续订',
-  'account.plus.sorry': '很遗憾你要离开。',
-  'account.plus.until': 'Plus 会用到 {date}，之后不再扣费。',
-  'account.plus.gift': '来自 FluidEQ 的赠礼',
-  'account.plus.giftUntil': '来自 FluidEQ 的赠礼，至 {date}',
-  'account.plus.computers': '最多可同时在 {count} 台电脑上登录。',
-  'account.plus.manage': '管理订阅',
-  'account.plus.grace':
-    '无法确认你的订阅。它将保持有效至 {date}——请在此之前连接网络以保留。',
-  'account.plus.checkAgain': '再次检查',
-  'account.plus.error.rejected': '无法打开付款页面。请稍后重试。',
-
-  'account.dev.label': '开发',
-  'account.dev.start': '模拟一次付款',
-  'account.dev.cancel': '模拟一次取消',
-  'account.dev.working': '发送中…',
 
   'account.perk.looks': '永久归你的场景，每个一点。',
   'account.perk.visualizers': '“可视化”：会员创作的场景，向所有账户开放。',
   'account.perk.board': '谁听得最多的排行榜。',
-  // What publishing earns: one approved scene a month keeps Plus free
-  // (server migration 0041). Months earned while a paid membership runs
-  // wait for it to end; nothing here changes what anybody pays.
-  'account.maker.title': '创作者月份',
-  'account.maker.badge': '免费',
-  'account.maker.until': 'Plus 免费至 {date}。',
-  'account.maker.endsDays':
-    '还有 {days} 天结束：在此之前发布一个场景即可继续。',
-  'account.maker.endsToday': '今天结束 — 发布一个场景即可继续。',
-  'account.maker.endsTomorrow': '明天结束：在此之前发布一个场景即可继续。',
-  'account.maker.keep': '本月发布一个场景，下个月就免费。',
-  'account.maker.kept': '本月的场景已经收到。下个月再发布一个就能继续。',
-  'account.maker.again': '发布一个场景，就又有一个月的 Plus 免费。',
-  'account.maker.againWaiting': '发布一个场景，就会再多一个免费月份排队等候。',
-  'account.maker.invite':
-    '在工作室做一个场景：每月有一个通过审核，Plus 就一直免费。',
-  'account.maker.waitingOne':
-    '你有 1 个已获得的月份在等待，会在订阅结束后开始；这不会改变你的付款。',
-  'account.maker.waitingMany':
-    '你有 {count} 个已获得的月份在等待，会在订阅结束后开始；这不会改变你的付款。',
-  // The week before an earned month runs out, and the day it does: an
-  // earned month renews itself no more than a gift does, so it has to be
-  // said out loud rather than simply stop.
-  'account.maker.notice.endingTitle': '你的免费 Plus 将在 {days} 天后结束',
-  'account.maker.notice.endingToday': '你的免费 Plus 今天结束',
-  'account.maker.notice.endingTomorrow': '你的免费 Plus 明天结束',
-  'account.maker.notice.endingBody':
-    '在此之前发布一个场景，下个月也免费。两种情况都不会收费。',
-  'account.maker.notice.endedTitle': '你的免费 Plus 已结束',
-  'account.maker.notice.endedBody':
-    '发布一个场景就会重新开始。你买过的东西依然是你的。',
-  'account.maker.notice.open': '打开工作室',
-  'account.maker.notice.later': '暂不',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': '使用 Google 继续',
   'account.or': '或',

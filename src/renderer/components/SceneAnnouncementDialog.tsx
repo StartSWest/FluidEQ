@@ -31,8 +31,7 @@ import '../styles/SceneAnnouncement.scss';
 /**
  * New scenes, announced big, once (premium migration 0050): the set's
  * pictures in frames like the Plus page before signing in, what it is, and a
- * way to play the first one now. A member whose trial ends within two days
- * is also told so, with the way to keep Plus beside it.
+ * way to play the first one now.
  *
  * It waits its turn like the corner notices — never over another dialog, the
  * terms notice or full screen — and once up it stays until it is put away,

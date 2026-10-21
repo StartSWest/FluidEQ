@@ -9,68 +9,6 @@ const trial = {
   'trial.extras.board': '希望者のみランキングに参加',
   'trial.browse':
     '無料アカウントでギャラリーの閲覧やフォーラムへの参加ができます。',
-  'trial.active.title': 'Plus の無料体験が有効です',
-  'trial.active.until': 'Plus は {date} まで無料です。',
-  'trial.active.body':
-    '解約の手続きは不要です。この日付を過ぎても FluidEQ の無料機能は引き続き使えます。',
-  'trial.active.badge': '無料体験',
-  'trial.ended.title': 'Plus の無料体験が終了しました。',
-  'trial.ended.body':
-    'FluidEQ は引き続き通常どおり動作します。イコライザー、音楽再生、無料のプリセットとビジュアライザーは無料のままです。スタジオのプロジェクトも保持されます。',
-  'trial.ended.paid':
-    '残したいシーンは1クレジットで、確認済みのアカウントには最初に無料のクレジットが付きます。',
-  'trial.ended.free': '無料で使い続ける',
-  'trial.error.offline':
-    'サービスに接続できませんでした。接続を確認して、もう一度お試しください。',
-  'trial.error.signedOut':
-    'もう一度サインインして、無料体験の対象か確認してください。',
-  'trial.error.server':
-    '無料体験の対象か確認できませんでした。もう一度お試しください。',
-  'trial.error.forbidden': 'この特典を変更できるのは管理者のみです。',
-  'trial.error.ineligible':
-    'この無料体験は、条件を満たす新規アカウントで1回だけ利用できます。FluidEQ は引き続き無料で使えます。',
-  'trial.error.unavailable':
-    '無料体験は現在利用できません。FluidEQ の無料機能はいつでも利用できます。',
-  'trial.error.terms':
-    '条件が変更されました。無料体験を始める前に FluidEQ を更新してください。',
-  'trial.error.consent':
-    '開始する前に、Plus の利用規約と無料体験の条件に同意してください。',
-  'trial.retry': 'もう一度試す',
-  'trial.settings.title': '新規アカウント向け無料体験',
-  'trial.settings.label': 'Plus を15日間提供する',
-  'trial.settings.body':
-    '新規アカウントは、規約に同意したうえで無料体験を選べます。オフにすると新たな利用開始はできなくなりますが、開始済みの無料体験はそのまま続きます。',
-  'trial.settings.since': '対象アカウント：{date} 以降に作成されたアカウント。',
-  'trial.settings.off':
-    'オンにすると、その時点から作成される新規アカウントが対象になります。自動で参加することはありません。',
-  'trial.settings.save': '特典の設定を保存',
-  'trial.settings.saving': '保存しています…',
-  'trial.settings.saved': '特典の設定を保存しました。',
-  'trial.settings.on': 'オン — 対象の新規アカウントが利用可能',
-  'trial.settings.disabled': 'オフ — 新たな無料体験の開始は不可',
-  'trialExit.notice.title': '無料体験が終了しました',
-  'trialExit.notice.body':
-    'Plus にしなかった理由を教えてください。数秒で終わり、読むのは FluidEQ の制作者だけです。',
-  'trialExit.notice.open': '答える',
-  'trialExit.later': '今はしない',
-  'trialExit.title': 'Plus にしなかった理由は?',
-  'trialExit.lead':
-    'いちばん近いものを選んでください。読むのは FluidEQ の制作者だけで、次に作るものの参考になります。',
-  'trialExit.reason.price': '払いたい額より高い',
-  'trialExit.reason.not-enough': '自分には内容が物足りなかった',
-  'trialExit.reason.free-is-enough': '無料の FluidEQ で必要なことは足りている',
-  'trialExit.reason.no-time': '試す時間がなかった',
-  'trialExit.reason.problems': '自分のパソコンでうまく動かなかった',
-  'trialExit.reason.payment': '希望の方法で支払えなかった',
-  'trialExit.reason.other': 'その他',
-  'trialExit.note': 'ほかに何かあれば (任意)',
-  'trialExit.notePlaceholder': 'どうなっていれば Plus にしましたか?',
-  'trialExit.send': '送信',
-  'trialExit.sending': '送信中…',
-  'trialExit.failed':
-    '送信できませんでした。接続を確認して、もう一度お試しください。',
-  'trialExit.thanks.title': 'ありがとうございます',
-  'trialExit.thanks.body': '回答は FluidEQ の制作者に届きました。',
 };
 
 export default trial;

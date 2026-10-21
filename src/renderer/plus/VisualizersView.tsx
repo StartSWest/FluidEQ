@@ -9,7 +9,7 @@ import { refreshGalleryOnShow } from './galleryStore';
 import GalleryView from './GalleryView';
 import MakerPage from './MakerPage';
 import PlusToastStack from './PlusToastStack';
-import PlusTrialBanner from './PlusTrialBanner';
+import GalleryIntro from './GalleryIntro';
 import {
   galleryPageKey,
   galleryScrollOf,
@@ -141,7 +141,7 @@ export default function VisualizersView({
         }
       >
         {page.kind !== 'browse' && <PageBar page={page} />}
-        {page.kind === 'browse' && <PlusTrialBanner onKeepFree={onShowGraph} />}
+        {page.kind === 'browse' && <GalleryIntro />}
         {content}
       </div>
     </>

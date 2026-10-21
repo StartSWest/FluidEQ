@@ -35,9 +35,8 @@ import { useLayoutEffect, useReducer, useSyncExternalStore } from 'react';
  *   toasts that share the corner (the Smart EQ one before the song's own
  *   sound, one card at a time), and full screen, which takes away the
  *   titlebar the corner is placed under. Then the Plus terms notice, then
- *   news of a scene reviewed, then the maker's month running out — the
- *   newest news about a maker's scenes goes before a week's warning — then
- *   the one question asked when a free trial ended without Plus.
+ *   news of a scene reviewed, then the admin's own two — the server nearing
+ *   a limit, then creators owed their payout — then new scenes announced.
  *
  * Everything not named as waiting for something above never waits.
  */
@@ -57,13 +56,10 @@ export type TNoticeClaim =
   | 'songSound'
   | 'plusTerms'
   | 'sceneReview'
-  | 'makerMonth'
   /** The admin told the server nears a free-plan limit (`ServerLimitNotice`). */
   | 'serverLimit'
   /** The admin told creators are owed their payout (`PayoutDueNotice`). */
   | 'payoutDue'
-  /** Why a free trial ended without Plus, asked once (`TrialExitNotice`). */
-  | 'trialExit'
   /** New scenes announced, big (`SceneAnnouncementDialog`). */
   | 'sceneAnnouncement'
   /** The window is full screen: graph or media (`useAppFullMark`). */
@@ -104,36 +100,18 @@ export const NOTICE_WAITS_FOR: Readonly<
   songSound: ['songEq'],
   plusTerms: CORNER_WAITS_FOR,
   sceneReview: [...CORNER_WAITS_FOR, 'plusTerms'],
-  makerMonth: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview'],
   // The admin's alone, after the news about scenes: a limit fills over days.
-  serverLimit: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview', 'makerMonth'],
+  serverLimit: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview'],
   // Money owed to people goes after the server's own room, never on top.
-  payoutDue: [
-    ...CORNER_WAITS_FOR,
-    'plusTerms',
-    'sceneReview',
-    'makerMonth',
-    'serverLimit',
-  ],
-  // A question, so after everything that tells the member something.
-  trialExit: [
-    ...CORNER_WAITS_FOR,
-    'plusTerms',
-    'sceneReview',
-    'makerMonth',
-    'serverLimit',
-    'payoutDue',
-  ],
+  payoutDue: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview', 'serverLimit'],
   // Waits for every notice that carries something to do or to know first:
   // an announcement is news, never urgent.
   sceneAnnouncement: [
     ...CORNER_WAITS_FOR,
     'plusTerms',
     'sceneReview',
-    'makerMonth',
     'serverLimit',
     'payoutDue',
-    'trialExit',
   ],
   appFull: [],
   modal: [],

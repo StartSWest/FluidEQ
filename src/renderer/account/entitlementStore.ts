@@ -1,6 +1,5 @@
 import { useSyncExternalStore } from 'react';
 import type { IEntitlementStatus } from 'main/account/entitlement';
-import type { TBillingOutcome } from 'main/ipc/account';
 
 /**
  * Whether this account is paying for Plus, as the renderer sees it.
@@ -87,26 +86,6 @@ export const refreshEntitlement = async () => {
     publish(next);
   }
 };
-
-const NOTHING_TO_OPEN: TBillingOutcome = { ok: false, failure: 'rejected' };
-
-export const openSubscriptionPortal = async (): Promise<TBillingOutcome> =>
-  (await bridge()?.openSubscriptionPortal?.()) ?? NOTHING_TO_OPEN;
-
-/**
- * Development only. The merchant has no test mode, so the main process can
- * send the merchant's own signed events to the real server instead; these
- * are the switches. Answers "not available" in every packaged build.
- */
-export type TMembershipSimulation = 'started' | 'cancelled';
-
-export const isMembershipSimulatorAvailable = async (): Promise<boolean> =>
-  (await bridge()?.isMembershipSimulatorAvailable?.()) ?? false;
-
-export const simulateMembership = async (
-  simulation: TMembershipSimulation,
-): Promise<TBillingOutcome> =>
-  (await bridge()?.simulateMembership?.(simulation)) ?? NOTHING_TO_OPEN;
 
 /** Releases the IPC listener. For a test that wants a clean module between runs. */
 export const resetEntitlementStore = () => {

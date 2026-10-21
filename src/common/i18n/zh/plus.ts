@@ -285,10 +285,6 @@ const plus = {
   'plus.accounts.giveYes': '赠送 Plus',
   'plus.accounts.giveNo': '暂不',
   'plus.accounts.takeBack': '收回 Plus',
-  'plus.accounts.takeBackTrial':
-    '收回赠给 {name} 的 Plus？它会立即结束，并改为向对方提供免费体验，除非对方已经用过。',
-  'plus.accounts.takeBackNoTrial':
-    '收回赠给 {name} 的 Plus？它会立即结束，而且这个账户无法获得免费体验，因此将不再有 Plus。',
   'plus.accounts.takeBackPaid':
     '收回赠给 {name} 的 Plus？对方付费的 Plus 会继续有效。',
   'plus.accounts.takeBackPlain': '收回赠给 {name} 的 Plus？它会立即结束。',

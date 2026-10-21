@@ -8,7 +8,7 @@ import { useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IAccountToDelete } from 'common/accountDeletion';
 import { GIFT_FOREVER_AFTER, GIFT_PLAN } from 'common/plusGifts';
-import { PLUS_TRIAL_PLAN } from 'common/plusTrial';
+import { PLUS_TRIAL_PLAN } from 'common/pastPlans';
 import type { TDeleteAccountFailure } from 'main/plus/accountDeletionApi';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';

@@ -28,7 +28,6 @@ import { registerAccountDeletionIpc } from './ipc/accountDeletion';
 import { registerAdminInsightsIpc } from './ipc/adminInsights';
 import { registerCreatorIpc } from './ipc/creator';
 import { registerLeaderboardIpc } from './ipc/leaderboard';
-import { registerMakerMonthIpc } from './ipc/makerMonth';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
@@ -38,8 +37,6 @@ import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { registerPlusReviewIpc } from './ipc/plusReview';
 import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
-import { registerPlusTrialIpc } from './ipc/plusTrial';
-import { registerPlusWelcomeIpc } from './ipc/plusWelcome';
 import { registerSceneAnnouncementsIpc } from './ipc/sceneAnnouncements';
 import { registerSceneStoreIpc } from './ipc/sceneStore';
 import { registerSceneTasteIpc } from './ipc/sceneTaste';
@@ -93,12 +90,6 @@ const registerMemberServices = ({
     !app.isPackaged && process.env.FLUIDEQ_DEV_ENTITLED === '1'
       ? { state: 'active' as const, plan: 'plus (development)', renewing: true }
       : undefined;
-  // The merchant has no test mode, so in development the Account panel can
-  // ask the server to send the merchant's own signed events for this account
-  // and watch the subscription switch on and off. Nothing to configure: the
-  // server holds the secret and admits admins only. See
-  // `membershipSimulator.ts`.
-  const developmentSimulator = !app.isPackaged;
   // The leaderboard had a cast of twelve sample people ranked into it in
   // development, for a board with nobody in it. There are real people on it
   // now, and a made-up cast over them hides what is actually happening (Ivan,
@@ -109,7 +100,6 @@ const registerMemberServices = ({
     userDataDir,
     logger: log,
     developmentEntitlement,
-    developmentSimulator,
   });
 
   // The Plus terms promise that a member is told when they change. Asks the
@@ -119,16 +109,6 @@ const registerMemberServices = ({
     getMainWindow,
     userDataDir,
     config: ACCOUNT_CONFIG,
-    session: accountIpc.session,
-    entitlement: accountIpc.entitlement,
-    logger: log,
-  });
-
-  // Paying happens in a browser, so the membership turning on is the only
-  // news the app gets of it. This marks that moment once per account.
-  const plusWelcomeIpc = registerPlusWelcomeIpc({
-    getMainWindow,
-    userDataDir,
     session: accountIpc.session,
     entitlement: accountIpc.entitlement,
     logger: log,
@@ -163,13 +143,6 @@ const registerMemberServices = ({
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
     openExternal: openExternalIfSafe,
-  });
-
-  // A free trial already taken, read; and the admin's offer switch. No trial
-  // is started any more: Plus is not sold, and starter credits are the way in.
-  const plusTrialIpc = registerPlusTrialIpc({
-    config: ACCOUNT_CONFIG,
-    session: accountIpc.session,
   });
 
   // The premium looks ride on the account: they are listed only while the
@@ -279,10 +252,6 @@ const registerMemberServices = ({
     },
     logger: log,
   });
-  // What a maker earned by publishing, for the account panel to count down —
-  // and, when the server says this account is one, the note that keeps their
-  // single Studio project open after the earned month runs out.
-  const makerMonthIpc = registerMakerMonthIpc({ access: galleryAccess });
   // The member's own AI looking at the scene it is writing, over MCP on this
   // computer only — shut until the member opens it on the Studio's card.
   const studioAgentDoor = createStudioAgentDoor({
@@ -415,8 +384,6 @@ const registerMemberServices = ({
     // the old listener is still holding a port nobody is going to answer on.
     accountIpc.dispose();
     plusTermsNoticeIpc.dispose();
-    plusWelcomeIpc.dispose();
-    plusTrialIpc.dispose();
     sceneStoreIpc.dispose();
     creatorIpc.dispose();
     sceneOwnership.dispose();
@@ -431,7 +398,6 @@ const registerMemberServices = ({
     plusGalleryIpc.dispose();
     memberSharingIpc.dispose();
     memberScenesIpc.dispose();
-    makerMonthIpc.dispose();
     // Its listening socket, like the forum's, must not outlive the app.
     studioAgentDoor.dispose().catch(() => undefined);
     // Claude Code ends with the app: nothing works in the member's project

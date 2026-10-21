@@ -501,7 +501,7 @@ const help: Record<keyof typeof en, string> = {
   'help.plus.steps':
     'Öffnen Sie Konto im Aktionsmenü. Melden Sie sich an, oder erstellen Sie ein Konto und geben Sie den sechsstelligen Code ein, der an Ihre E-Mail-Adresse geschickt wurde.\nÖffnen Sie den Plus-Tab und wählen Sie „Visualizer“. Öffnen Sie eine Szene, sehen Sie sie an, und drücken Sie Holen, um einen Credit dafür einzusetzen.\nFür weitere Credits öffnen Sie Konto und wählen ein Paket. Es wird einmalig über Stripe in Ihrem Browser bezahlt.',
   'help.plus.tip':
-    'Die App sieht Ihre Karte nie, und nichts verlängert sich. Eine Plus-Mitgliedschaft, die Sie bereits haben, funktioniert weiter, bis FluidEQ seine Mitglieder auf Credits umstellt, und Abo verwalten kündigt sie. Ein Konto bleibt auf bis zu fünf Computern angemeldet.',
+    'Die App sieht Ihre Karte nie, und nichts verlängert sich. Ein Konto bleibt auf bis zu fünf Computern angemeldet.',
   'help.plus.keywords':
     'Konto, anmelden, Anmeldung, Login, registrieren, Credits, Credit, Paket, kaufen, Preis, Preise, Kosten, Zahlung, bezahlen, Premium, kostenpflichtig, Szene, Abo, Abonnement, kündigen, Mitgliedschaft, Mitglied, E-Mail-Code',
   'help.plus.leaderboard':

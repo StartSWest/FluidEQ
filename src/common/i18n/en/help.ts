@@ -487,7 +487,7 @@ const help = {
   'help.plus.steps':
     'Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.\nOpen the Plus tab and choose Visualizers. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open Account and choose a pack. It is paid once on Stripe, in your browser.',
   'help.plus.tip':
-    'The app never sees your card, and nothing renews. A Plus membership you already have keeps working until FluidEQ moves its members to credits, and Manage subscription cancels it. An account stays signed in on up to five computers.',
+    'The app never sees your card, and nothing renews. An account stays signed in on up to five computers.',
   'help.plus.keywords':
     'account, sign in, login, log in, sign up, register, credits, credit, pack, buy, price, pricing, cost, payment, pay, premium, paid, scene, subscription, cancel, membership, member, email code',
   'help.plus.leaderboard': 'Who listens most, among Plus members who join.',

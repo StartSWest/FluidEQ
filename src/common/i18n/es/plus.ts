@@ -310,10 +310,6 @@ const plus = {
   'plus.accounts.giveYes': 'Dar Plus',
   'plus.accounts.giveNo': 'Ahora no',
   'plus.accounts.takeBack': 'Quitar Plus',
-  'plus.accounts.takeBackTrial':
-    '¿Quitarle a {name} el Plus que le diste? Termina ahora y se le ofrece la prueba gratis en su lugar, salvo que ya la haya tenido.',
-  'plus.accounts.takeBackNoTrial':
-    '¿Quitarle a {name} el Plus que le diste? Termina ahora y esta cuenta no puede tener la prueba gratis, así que se queda sin Plus.',
   'plus.accounts.takeBackPaid':
     '¿Quitarle a {name} el Plus que le diste? El Plus que paga sigue igual.',
   'plus.accounts.takeBackPlain':

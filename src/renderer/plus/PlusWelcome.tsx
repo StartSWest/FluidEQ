@@ -8,7 +8,7 @@ import prismBloom from '../../../assets/plus/prism-bloom.jpg';
 import reefLight from '../../../assets/plus/reef-light.jpg';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import { PlusFreeIntro } from './PlusTrialCard';
+import { PlusFreeIntro } from './GalleryIntro';
 import '../styles/PlusWelcome.scss';
 
 /**

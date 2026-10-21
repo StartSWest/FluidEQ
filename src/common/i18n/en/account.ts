@@ -29,7 +29,6 @@ const account = {
   'account.signUpHint':
     'A six-digit code goes to that address. Type it here to finish.',
   'account.working': 'One moment…',
-  'account.standing.free': 'Free account',
   'account.signOut': 'Sign out',
   'account.signOut.confirm': 'Sign out of this account?',
   'account.signOut.detail': 'You can sign back in whenever you like.',
@@ -99,70 +98,12 @@ const account = {
     'There is already an account with that address. Sign in instead.',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.opening': 'Opening…',
   'account.plus.active': 'Active',
-  'account.plus.ending': 'Not renewing',
-  'account.plus.renews': 'Renews {date}',
-  'account.plus.sorry': 'Sorry to see you go.',
-  'account.plus.until':
-    'Plus stays on until {date}, and nothing more is charged.',
-  'account.plus.gift': 'A gift from FluidEQ',
-  'account.plus.giftUntil': 'A gift from FluidEQ, until {date}',
-  'account.plus.computers': 'Signed in on up to {count} computers at a time.',
-  'account.plus.manage': 'Manage subscription',
-  'account.plus.grace':
-    'Your subscription could not be confirmed. It stays on until {date} — connect to the internet before then to keep it.',
-  'account.plus.checkAgain': 'Check again',
-  'account.plus.error.rejected':
-    'The billing page could not be opened. Try again in a moment.',
-
-  // Development only: the pretend membership under the Plus card. Shown in
-  // no packaged build.
-  'account.dev.label': 'Development',
-  'account.dev.start': 'Pretend a payment',
-  'account.dev.cancel': 'Pretend a cancellation',
-  'account.dev.working': 'Sending…',
 
   'account.perk.looks': 'Scenes that are yours for good, one credit each.',
   'account.perk.visualizers':
     'Visualizers: the scenes members make, open to every account.',
   'account.perk.board': 'A leaderboard of who listens most.',
-  // What publishing earns: one approved scene a month keeps Plus free
-  // (server migration 0041). Months earned while a paid membership runs
-  // wait for it to end; nothing here changes what anybody pays.
-  'account.maker.title': 'Maker month',
-  'account.maker.badge': 'Free',
-  'account.maker.until': 'Plus is free until {date}.',
-  'account.maker.endsDays':
-    'Ends in {days} days — publish a scene before then to keep it.',
-  'account.maker.endsToday': 'Ends today — publish a scene to keep it.',
-  'account.maker.endsTomorrow':
-    'Ends tomorrow — publish a scene before then to keep it.',
-  'account.maker.keep': 'Publish a scene this month and the next one is free.',
-  'account.maker.kept':
-    'This month’s scene is in. Publish again next month to keep going.',
-  'account.maker.again': 'Publish a scene and a month of Plus is free again.',
-  'account.maker.againWaiting':
-    'Publish a scene and another free month waits with them.',
-  'account.maker.invite':
-    'Make a scene in the Studio: one approved scene a month keeps Plus free.',
-  'account.maker.waitingOne':
-    'One earned month is waiting. It starts when your membership ends — nothing here changes what you pay.',
-  'account.maker.waitingMany':
-    '{count} earned months are waiting. They start when your membership ends — nothing here changes what you pay.',
-  // The week before an earned month runs out, and the day it does: an
-  // earned month renews itself no more than a gift does, so it has to be
-  // said out loud rather than simply stop.
-  'account.maker.notice.endingTitle': 'Your free Plus ends in {days} days',
-  'account.maker.notice.endingToday': 'Your free Plus ends today',
-  'account.maker.notice.endingTomorrow': 'Your free Plus ends tomorrow',
-  'account.maker.notice.endingBody':
-    'Publish a scene before then and the next month is free too. Nothing is charged either way.',
-  'account.maker.notice.endedTitle': 'Your free Plus has ended',
-  'account.maker.notice.endedBody':
-    'Publish a scene and it starts again. Everything you bought stays yours.',
-  'account.maker.notice.open': 'Open the Studio',
-  'account.maker.notice.later': 'Not now',
   // Signing in with Google, in the browser (main/account/googleSignIn.ts).
   'account.google': 'Continue with Google',
   'account.or': 'or',

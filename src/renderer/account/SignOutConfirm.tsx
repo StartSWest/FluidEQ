@@ -6,8 +6,8 @@ import { signOutAccount } from './accountStore';
 import '../styles/SignOutConfirm.scss';
 
 interface ISignOutConfirmProps {
-  /** A membership is what signing out locks, so the question says so. */
-  member: boolean;
+  /** Scenes of their own are what signing out locks, so the question says so. */
+  ownsScenes: boolean;
   onCancel: () => void;
 }
 
@@ -25,7 +25,7 @@ interface ISignOutConfirmProps {
  * the account.
  */
 export default function SignOutConfirm({
-  member,
+  ownsScenes,
   onCancel,
 }: ISignOutConfirmProps) {
   const { t } = useTranslation();
@@ -102,7 +102,11 @@ export default function SignOutConfirm({
           its width ran out — English between "sign back" and "in". */}
       <p id="sign-out-confirm-detail" className="sign-out-confirm__detail">
         <span>
-          {t(member ? 'account.signOut.detailPlus' : 'account.signOut.detail')}
+          {t(
+            ownsScenes
+              ? 'account.signOut.detailPlus'
+              : 'account.signOut.detail',
+          )}
         </span>
         <span>{t('account.signOut.kept')}</span>
       </p>

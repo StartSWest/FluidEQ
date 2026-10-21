@@ -27,6 +27,11 @@ jest.mock('../../../renderer/account/CreditsCard', () => ({
   __esModule: true,
   default: () => null,
 }));
+// The panel reads the same store for whether the account owns scenes; held
+// unanswered here, as an account with none.
+jest.mock('../../../renderer/plus/sceneStore', () => ({
+  useSceneStore: () => ({ owner: '', loading: true }),
+}));
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
     locale: 'en',

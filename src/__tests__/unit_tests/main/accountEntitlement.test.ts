@@ -286,32 +286,6 @@ describe('the entitlement controller', () => {
     jest.restoreAllMocks();
   });
 
-  /**
-   * A window started with the development pin used to keep Plus on over the
-   * pretend cancellation, so the button looked broken while the server had
-   * cancelled. Releasing the pin hands the window back to the record, and
-   * says so even when nothing was fetched.
-   */
-  it('lets the pretend membership release the development pin, once', () => {
-    const entitlement = createEntitlement({
-      config: CONFIG,
-      session: session(),
-      store: store(),
-      onChange: (status) => changes.push(status),
-      now: () => clock,
-      fetchImpl,
-      developmentOverride: { state: 'active', plan: 'plus (development)' },
-    });
-    expect(entitlement.status().state).toBe('active');
-
-    entitlement.releaseDevelopmentOverride();
-    expect(entitlement.status()).toEqual({ state: 'none' });
-    expect(changes).toEqual([{ state: 'none' }]);
-
-    entitlement.releaseDevelopmentOverride();
-    expect(changes).toHaveLength(1);
-  });
-
   it('asks only for the caller’s own row, with both keys, and stores the answer', async () => {
     fetchImpl.mockResolvedValue(jsonResponse(row()));
     const entitlement = build();

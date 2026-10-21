@@ -51,12 +51,9 @@ import { lightingBridge } from './lightingBridge';
 import { outputMirrorBridge } from './outputMirrorBridge';
 import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
 import { sceneInsightsBridge } from './sceneInsightsBridge';
-import { plusWelcomeBridge } from './plusWelcomeBridge';
-import { plusTrialBridge } from './plusTrialBridge';
 import { sceneStoreBridge } from './sceneStoreBridge';
 import { creatorBridge } from './creatorBridge';
 import { plusReviewBridge } from './plusReviewBridge';
-import { makerMonthBridge } from './makerMonthBridge';
 import { studioAgentBridge } from './studioAgentBridge';
 import studioChatBridge from './studioChatBridge';
 
@@ -406,12 +403,9 @@ export default {
     ...outputMirrorBridge,
     ...plusTermsNoticeBridge,
     ...sceneInsightsBridge,
-    ...plusWelcomeBridge,
-    ...plusTrialBridge,
     ...sceneStoreBridge,
     ...creatorBridge,
     ...plusReviewBridge,
-    ...makerMonthBridge,
     ...studioAgentBridge,
     ...studioChatBridge,
     ...engineHealthBridge,

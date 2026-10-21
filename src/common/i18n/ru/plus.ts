@@ -311,10 +311,6 @@ const plus = {
   'plus.accounts.giveYes': 'Подарить Plus',
   'plus.accounts.giveNo': 'Не сейчас',
   'plus.accounts.takeBack': 'Отозвать Plus',
-  'plus.accounts.takeBackTrial':
-    'Отозвать Plus, подаренный пользователю {name}? Он закончится сейчас, а взамен будет предложен бесплатный период, если его ещё не было.',
-  'plus.accounts.takeBackNoTrial':
-    'Отозвать Plus, подаренный пользователю {name}? Он закончится сейчас, а этому аккаунту бесплатный период недоступен, так что Plus не останется.',
   'plus.accounts.takeBackPaid':
     'Отозвать Plus, подаренный пользователю {name}? Оплаченный Plus продолжит действовать.',
   'plus.accounts.takeBackPlain':

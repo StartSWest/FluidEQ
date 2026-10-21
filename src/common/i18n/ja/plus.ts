@@ -311,10 +311,6 @@ const plus = {
   'plus.accounts.giveYes': 'Plus を贈る',
   'plus.accounts.giveNo': '今はしない',
   'plus.accounts.takeBack': 'Plus を取り消す',
-  'plus.accounts.takeBackTrial':
-    '{name} に贈った Plus を取り消しますか? 今すぐ終了し、代わりに無料体験が案内されます (すでに体験済みの場合を除く)。',
-  'plus.accounts.takeBackNoTrial':
-    '{name} に贈った Plus を取り消しますか? 今すぐ終了します。このアカウントは無料体験を受けられないため、Plus はなくなります。',
   'plus.accounts.takeBackPaid':
     '{name} に贈った Plus を取り消しますか? 支払い中の Plus はそのまま続きます。',
   'plus.accounts.takeBackPlain':

@@ -497,7 +497,7 @@ const help: Record<keyof typeof en, string> = {
   'help.plus.steps':
     'Apri Account nel menu delle azioni. Accedi, oppure crea un account e inserisci il codice di sei cifre inviato alla tua email.\nApri la scheda Plus e scegli Visualizzatori. Apri una scena, guardala e premi Ottieni per spenderci un credito.\nPer avere altri crediti, apri Account e scegli un pacchetto. Si paga una sola volta su Stripe, nel browser.',
   'help.plus.tip':
-    'L’app non vede mai la tua carta, e nulla si rinnova. Un abbonamento Plus che hai già continua a funzionare finché FluidEQ non passa i suoi membri ai crediti, e Gestisci abbonamento lo disdice. Un account resta connesso su un massimo di cinque computer.',
+    'L’app non vede mai la tua carta, e nulla si rinnova. Un account resta connesso su un massimo di cinque computer.',
   'help.plus.keywords':
     'account, accedi, accesso, login, registrati, registrazione, crediti, credito, pacchetto, comprare, prezzo, prezzi, costo, pagamento, pagare, premium, a pagamento, scena, abbonamento, disdire, membro, codice email',
   'help.plus.leaderboard':

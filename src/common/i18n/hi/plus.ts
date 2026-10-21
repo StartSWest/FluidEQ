@@ -302,10 +302,6 @@ const plus = {
   'plus.accounts.giveYes': 'Plus दें',
   'plus.accounts.giveNo': 'अभी नहीं',
   'plus.accounts.takeBack': 'Plus वापस लें',
-  'plus.accounts.takeBackTrial':
-    '{name} को दिया Plus वापस लें? यह अभी खत्म होगा, और इसकी जगह उन्हें मुफ़्त ट्रायल दिया जाएगा, अगर वे इसे पहले नहीं ले चुके हैं।',
-  'plus.accounts.takeBackNoTrial':
-    '{name} को दिया Plus वापस लें? यह अभी खत्म होगा, और इस खाते को मुफ़्त ट्रायल नहीं मिल सकता, इसलिए उनके पास Plus नहीं रहेगा।',
   'plus.accounts.takeBackPaid':
     '{name} को दिया Plus वापस लें? जिस Plus का वे भुगतान करते हैं, वह चलता रहेगा।',
   'plus.accounts.takeBackPlain':

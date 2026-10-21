@@ -1,15 +1,12 @@
 import type { IAccountConfig } from 'common/accountConfig';
 
 /**
- * What the app asks the billing server for about a Plus membership: the page
- * where one already running is managed or cancelled, and a look-up at the
- * merchant. Plus is not sold any more (credits replaced it, `sceneStore.ts`),
- * so there is no checkout here: a member who still pays can always reach the
- * page that stops it.
- *
- * The page comes from the server, on request, for the signed-in account — the
- * app sends its token and gets back a URL to open, so no merchant address is
- * configured into the build.
+ * What the app asks the billing server about a Plus membership: a look-up at
+ * the merchant, so one still being paid for is read right. Plus is not sold
+ * any more (credits replaced it, `sceneStore.ts`), and nothing about a
+ * subscription is shown in the app (Ivan, 2026-10-21: "no more subs") — a
+ * member who still pays manages it on Buy Me a Coffee, where it was bought,
+ * which is all the old "Manage subscription" page ever opened.
  */
 export type TBillingFailure = 'network' | 'signed_out' | 'rejected';
 
@@ -25,65 +22,6 @@ export class BillingError extends Error {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
-
-/**
- * Only an https URL is opened.
- *
- * The server is ours, but the URL it returns came from the merchant's API and
- * is about to be handed to the operating system's browser. Refusing anything
- * that is not https costs nothing and closes the one door a compromised
- * server-side dependency would have into somebody's browser.
- */
-export const readBillingUrl = (value: unknown): string | undefined => {
-  if (!isRecord(value) || typeof value.url !== 'string') {
-    return undefined;
-  }
-  try {
-    const url = new URL(value.url);
-    return url.protocol === 'https:' ? url.toString() : undefined;
-  } catch {
-    return undefined;
-  }
-};
-
-const call = async (
-  config: IAccountConfig,
-  name: 'create-portal',
-  accessToken: string,
-  fetchImpl: typeof fetch,
-): Promise<string> => {
-  let response: Response;
-  try {
-    response = await fetchImpl(`${config.apiUrl}/${name}`, {
-      method: 'POST',
-      headers: {
-        apikey: config.supabaseAnonKey,
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: '{}',
-    });
-  } catch (error) {
-    throw new BillingError('network', `${name} is unreachable: ${error}`);
-  }
-  if (response.status === 401) {
-    throw new BillingError('signed_out', `${name} refused the token.`);
-  }
-  if (!response.ok) {
-    throw new BillingError('rejected', `${name} answered ${response.status}.`);
-  }
-  let body: unknown;
-  try {
-    body = await response.json();
-  } catch {
-    throw new BillingError('rejected', `${name} sent no JSON.`);
-  }
-  const url = readBillingUrl(body);
-  if (!url) {
-    throw new BillingError('rejected', `${name} sent no usable URL.`);
-  }
-  return url;
-};
 
 /**
  * Ask the server to look this account up at the merchant.
@@ -135,8 +73,6 @@ const sync = async (
 };
 
 export interface IBillingClient {
-  /** Where this account's subscription is managed. */
-  portalUrl(accessToken: string): Promise<string>;
   /** Have the server match this account against the merchant's records. */
   syncMembership(accessToken: string): Promise<boolean>;
 }
@@ -145,7 +81,5 @@ export const createBillingClient = (
   config: IAccountConfig,
   fetchImpl: typeof fetch = fetch,
 ): IBillingClient => ({
-  portalUrl: (accessToken) =>
-    call(config, 'create-portal', accessToken, fetchImpl),
   syncMembership: (accessToken) => sync(config, accessToken, fetchImpl),
 });

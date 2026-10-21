@@ -23,14 +23,11 @@ import {
 } from '../plus/profileStore';
 import type { TAccountPanelPage } from './accountPanel';
 import { useAccount } from './accountStore';
-import { useEntitlement } from './entitlementStore';
 import SceneBand from '../plus/SceneBand';
-import PlusCard from './PlusCard';
 import CreditsCard from './CreditsCard';
 import PlusTermsDocument from './PlusTermsDocument';
 import LeaderboardCard from './LeaderboardCard';
-import MakerMonthCard from './MakerMonthCard';
-import { forgetMakerMonth } from '../plus/makerMonthStore';
+import { useSceneStore } from '../plus/sceneStore';
 import CreatorPayoutsCard from './CreatorPayoutsCard';
 import { forgetCreator } from './creatorStore';
 import SignInForms from './SignInForms';
@@ -95,7 +92,7 @@ const ERROR_KEYS: Record<TAuthFailure, TranslationKey> = {
  * On the dialog frame (`DialogFrame`), every page of it. Signed in, the rail
  * is the person: their initials in their own colour in the tile, what they
  * are here over their name, the two things they can do to the account under
- * it, and — for a member — the scene they pay for, playing. Signed out, the
+ * it, and — for somebody with scenes — a scene of theirs, playing. Signed out, the
  * pitch is the rail and the form is the page, so the reason to sign in and
  * the way to do it are on screen together. The sentence that says signing in
  * is optional is on both: this app has promised since its first release that
@@ -115,7 +112,7 @@ export default function AccountDialog({
   const closeRef = useRef<HTMLButtonElement>(null);
   const termsRef = useRef<HTMLDivElement>(null);
   const account = useAccount();
-  const entitlement = useEntitlement();
+  const { store } = useSceneStore();
   const [page, setPage] = useState<TAccountPanelPage>(initialPage);
 
   // A request for another page while the panel is already open — the
@@ -137,7 +134,12 @@ export default function AccountDialog({
   const { identity, status } = account;
   const signedIn = status === 'signed-in' && identity !== undefined;
   const termsOffered = isAccountConfigured();
-  const member = entitlement.state !== 'none';
+  // Somebody with scenes of their own: signing out locks them, and their
+  // picture in the rail is the scene playing. Plus is not sold any more
+  // (Ivan, 2026-10-21: "no more subs"); owning scenes is what is left of it.
+  const ownsScenes = Boolean(
+    store && (store.everything || store.owned.length > 0),
+  );
 
   // The name the board and the gallery show, when one has been chosen: it is
   // what the panel leads with, and what "Change name" edits. The provider's
@@ -157,7 +159,6 @@ export default function AccountDialog({
       loadProfile(accountId).catch(() => undefined);
     } else {
       forgetProfile();
-      forgetMakerMonth();
       forgetCreator();
     }
   }, [accountId]);
@@ -271,10 +272,7 @@ export default function AccountDialog({
         ) : (
           <MenuIcon name="artist" />
         ),
-        // What the account is, over whose it is.
-        eyebrow: member
-          ? t('account.plus.eyebrow')
-          : t('account.standing.free'),
+        eyebrow: t('account.eyebrow'),
         title: displayName,
         description:
           profile || email ? (
@@ -328,11 +326,13 @@ export default function AccountDialog({
                 </button>
               </p>
             )}
-            {/* A member's picture is the scene, playing (Ivan, 2026-09-15):
-                a scene is what Plus is. Without it there is nothing to show,
-                and a band drawing on the graphics card would be a cost for
+            {/* The picture of somebody with scenes is the scene, playing
+                (Ivan, 2026-09-15). Without one there is nothing to show, and
+                a band drawing on the graphics card would be a cost for
                 decoration. */}
-            {member && <SceneBand playsScene className="dialog-frame__scene" />}
+            {ownsScenes && (
+              <SceneBand playsScene className="dialog-frame__scene" />
+            )}
           </>
         ),
       };
@@ -419,7 +419,7 @@ export default function AccountDialog({
               )}
               {signingOut && (
                 <SignOutConfirm
-                  member={member}
+                  ownsScenes={ownsScenes}
                   onCancel={() => {
                     returnToSignOut.current = true;
                     setSigningOut(false);
@@ -427,16 +427,10 @@ export default function AccountDialog({
                 />
               )}
 
-              {/* A membership still running, for as long as there are any:
-                  Plus is not sold any more, so the card is absent without
-                  one. The credits are under it, which is what gets scenes. */}
-              <PlusCard entitlement={entitlement} />
+              {/* What gets scenes: credits. Plus is not sold any more, and
+                  nothing about a subscription is shown (Ivan, 2026-10-21). */}
               <CreditsCard />
-              {/* Under the membership, because it is where the membership
-                  comes from for a maker: the month their last approved scene
-                  earned, and when it runs out. */}
-              {accountId && <MakerMonthCard accountId={accountId} />}
-              {/* Getting paid for the scenes that earn the month above. */}
+              {/* Getting paid for the scenes members keep. */}
               {accountId && <CreatorPayoutsCard accountId={accountId} />}
               <LeaderboardCard />
 

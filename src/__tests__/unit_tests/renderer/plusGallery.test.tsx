@@ -11,7 +11,6 @@ import type { IGalleryScene } from '../../../common/plusGallery';
 import { resetGalleryActions } from '../../../renderer/plus/galleryActions';
 import { resetGalleryStore } from '../../../renderer/plus/galleryStore';
 import { resetPlusNavigation } from '../../../renderer/plus/plusNavigation';
-import { resetPlusTrialStore } from '../../../renderer/plus/trialStore';
 import { resetScenePictures } from '../../../renderer/plus/scenePictures';
 import VisualizersView from '../../../renderer/plus/VisualizersView';
 import GalleryCard from '../../../renderer/plus/GalleryCard';
@@ -125,13 +124,11 @@ const bridge = {
   listScenePacks: jest.fn(),
   onMemberScenesChanged: jest.fn(() => () => undefined),
   leaderboardBoard: jest.fn(),
-  getPlusTrialOffer: jest.fn(),
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
   mockEntitled = true;
-  resetPlusTrialStore();
   resetPlusNavigation();
   resetGalleryStore();
   resetGalleryActions();
@@ -158,16 +155,6 @@ beforeEach(() => {
   });
   bridge.galleryPicture.mockResolvedValue(undefined);
   bridge.leaderboardBoard.mockResolvedValue({ ok: false, failure: 'network' });
-  bridge.getPlusTrialOffer.mockResolvedValue({
-    ok: true,
-    offer: {
-      enabled: false,
-      days: 30,
-      state: 'unavailable',
-      termsVersion: 8,
-      trialTermsVersion: 1,
-    },
-  });
   bridge.listMemberScenes.mockResolvedValue({
     scenes: [],
     locked: [],

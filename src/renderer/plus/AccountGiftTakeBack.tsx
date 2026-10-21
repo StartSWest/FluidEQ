@@ -4,11 +4,10 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import type { IAccountToDelete } from 'common/accountDeletion';
 import { GIFT_PLAN } from 'common/plusGifts';
-import type { IPlusTrialSettings } from 'common/plusTrial';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { GIFT_ERRORS } from './AccountGiftButton';
@@ -18,30 +17,13 @@ const bridge = () => window.electron?.ipcRenderer;
 
 /**
  * What taking the gift back leaves the account with, as the question says it
- * before the press. The free trial is why this is here at all (Ivan,
- * 2026-10-06: "so they accept the plus trial"): the server refuses the trial
- * to an account while a gift is on it, and once the gift is gone offers it
- * only to an account made after the offer opened — so an older account is
- * left with no Plus, which the admin is told rather than finding out.
+ * before the press: the Plus they pay for, or nothing. It used to name the
+ * free trial as well; none is offered any more (Ivan, 2026-10-21).
  */
-const questionFor = (
-  account: IAccountToDelete,
-  trial: IPlusTrialSettings | undefined,
-): TranslationKey => {
-  if (account.plusUntil !== undefined && account.plan !== GIFT_PLAN) {
-    return 'plus.accounts.takeBackPaid';
-  }
-  if (!trial) {
-    return 'plus.accounts.takeBackPlain';
-  }
-  // The server's own test: made strictly after the cohort's start.
-  return trial.enabled &&
-    trial.eligibleSince !== undefined &&
-    account.createdAt !== undefined &&
-    account.createdAt > trial.eligibleSince
-    ? 'plus.accounts.takeBackTrial'
-    : 'plus.accounts.takeBackNoTrial';
-};
+const questionFor = (account: IAccountToDelete): TranslationKey =>
+  account.plusUntil !== undefined && account.plan !== GIFT_PLAN
+    ? 'plus.accounts.takeBackPaid'
+    : 'plus.accounts.takeBackPlain';
 
 interface IAccountGiftTakeBackProps {
   account: IAccountToDelete;
@@ -68,25 +50,6 @@ export default function AccountGiftTakeBack({
   const { t } = useTranslation();
   const [working, setWorking] = useState(false);
   const [failure, setFailure] = useState<TranslationKey>();
-  const [trial, setTrial] = useState<IPlusTrialSettings>();
-
-  // Read once the row is open, so the question is ready before it is asked;
-  // without an answer it simply says less.
-  useEffect(() => {
-    let current = true;
-    bridge()
-      ?.getPlusTrialSettings?.()
-      .then((outcome) => {
-        if (current && outcome.ok) {
-          setTrial(outcome.settings);
-        }
-        return undefined;
-      })
-      .catch(() => undefined);
-    return () => {
-      current = false;
-    };
-  }, []);
 
   const takeBack = () => {
     if (working) {
@@ -126,10 +89,9 @@ export default function AccountGiftTakeBack({
     return (
       <>
         <span className="account-deletion__confirm">
-          {t(
-            working ? 'plus.accounts.takingBack' : questionFor(account, trial),
-            { name },
-          )}
+          {t(working ? 'plus.accounts.takingBack' : questionFor(account), {
+            name,
+          })}
         </span>
         {/* Keep first and quiet, the answer that takes the gift away last and
             red, as on the gifts page; one group, so a narrow card wraps both

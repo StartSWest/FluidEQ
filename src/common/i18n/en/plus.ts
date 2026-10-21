@@ -305,10 +305,6 @@ const plus = {
   'plus.accounts.giveYes': 'Give Plus',
   'plus.accounts.giveNo': 'Not now',
   'plus.accounts.takeBack': 'Take back Plus',
-  'plus.accounts.takeBackTrial':
-    'Take back the Plus you gave {name}? It ends now, and they are offered the free trial instead, unless they have had it before.',
-  'plus.accounts.takeBackNoTrial':
-    'Take back the Plus you gave {name}? It ends now, and this account cannot have the free trial, so they will have no Plus.',
   'plus.accounts.takeBackPaid':
     'Take back the Plus you gave {name}? The Plus they pay for carries on.',
   'plus.accounts.takeBackPlain':

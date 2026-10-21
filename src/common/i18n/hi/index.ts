@@ -40,7 +40,6 @@ import terms from './terms';
 import studio from './studio';
 import studioChat from './studioChat';
 import plus from './plus';
-import plusWelcome from './plusWelcome';
 import trial from './trial';
 import store from './store';
 import creator from './creator';
@@ -91,7 +90,6 @@ const hi: Partial<Dictionary> = {
   ...studio,
   ...studioChat,
   ...plus,
-  ...plusWelcome,
   ...trial,
   ...store,
   ...creator,

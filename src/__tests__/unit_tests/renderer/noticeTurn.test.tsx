@@ -40,7 +40,7 @@ const NOTICES: readonly TNotice[] = [
   'songEq',
   'plusTerms',
   'sceneReview',
-  'makerMonth',
+  'serverLimit',
 ];
 
 /** Everything that can hold a notice back: the notices, a dialog, full screen. */
@@ -49,7 +49,8 @@ const HOLDERS: readonly TNoticeClaim[] = [...NOTICES, 'modal', 'appFull'];
 /**
  * `[loser, winner]`: the loser is not on screen while the winner wants it.
  *
- * `.scene-review-notice` is on both the review news and the maker's month,
+ * `.scene-review-notice` is on the review news, and the server limit notice
+ * waits the same way and for the review news too (it was the maker's month);
  * `.device-apo-notice` on the output notice, the Room's offer and both engine
  * notices; `[aria-modal='true']` is `modal`, `.app-workspace.is-app-full`
  * is `appFull`.
@@ -68,13 +69,13 @@ const CORNER_GIVES_WAY_TO: readonly TNoticeClaim[] = [
 const CSS_ENCODED: readonly (readonly [TNotice, TNoticeClaim])[] = [
   // SceneReviewNotice.scss, first rule: `.plus-terms-notice` and everything
   // the terms notice steps aside for hide `.scene-review-notice`.
-  ...(['sceneReview', 'makerMonth'] as const).flatMap((loser) =>
+  ...(['sceneReview', 'serverLimit'] as const).flatMap((loser) =>
     [...CORNER_GIVES_WAY_TO, 'plusTerms' as const].map(
       (winner) => [loser, winner] as const,
     ),
   ),
   // SceneReviewNotice.scss, second rule.
-  ['makerMonth', 'sceneReview'],
+  ['serverLimit', 'sceneReview'],
   // PlusTermsNotice.scss.
   ...CORNER_GIVES_WAY_TO.map((winner) => ['plusTerms', winner] as const),
   // EngineUpdateNotice.scss: `.device-apo-notice:not(.engine-update-notice)`.
@@ -187,7 +188,7 @@ describe('the order the stylesheets encoded', () => {
       <>
         <Probe notice="plusTerms" />
         <Probe notice="sceneReview" />
-        <Probe notice="makerMonth" />
+        <Probe notice="serverLimit" />
       </>,
     );
     expect(screen.queryByTestId('plusTerms')).toBeNull();
@@ -196,7 +197,7 @@ describe('the order the stylesheets encoded', () => {
     act(releaseOutput);
     expect(screen.getByTestId('plusTerms')).toBeInTheDocument();
     expect(screen.queryByTestId('sceneReview')).toBeNull();
-    expect(screen.queryByTestId('makerMonth')).toBeNull();
+    expect(screen.queryByTestId('serverLimit')).toBeNull();
   });
 
   it('gives the corner back the moment the notice in front is put away', () => {
@@ -255,12 +256,12 @@ describe('dialogs', () => {
   });
 
   it('pays no attention to anything else coming and going', async () => {
-    render(<Probe notice="makerMonth" />);
+    render(<Probe notice="serverLimit" />);
     const row = document.createElement('div');
     row.innerHTML = '<span role="row"><button type="button">x</button></span>';
     document.body.appendChild(row);
     await settle();
-    expect(screen.getByTestId('makerMonth')).toBeInTheDocument();
+    expect(screen.getByTestId('serverLimit')).toBeInTheDocument();
     row.remove();
   });
 

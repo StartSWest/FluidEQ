@@ -349,13 +349,8 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// What publishing earned: a section under the membership, in the same shape
-// (`_accountSection.scss`), because for a maker it is where the membership
-// comes from.
-.maker-card {
-  @include account-section;
-}
-
+// A section's head, label at one end and the state at the other
+// (`CreatorPayoutsCard`).
 .maker-card__head {
   display: flex;
   flex-wrap: wrap;
@@ -364,25 +359,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
   .plus-card__badge {
     margin-left: auto;
-  }
-}
-
-// Months earned while a paid membership is still running. Amber like
-// everything else in this app that is true but not what you want yet.
-.maker-card__waiting {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin: 0;
-  color: $amber;
-  font-size: $text-small;
-  line-height: 1.5;
-
-  svg {
-    flex: 0 0 auto;
-    width: 15px;
-    height: 15px;
-    margin-top: 1px;
   }
 }
 
@@ -480,23 +456,6 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.55;
 }
 
-// The membership: the first section of the profile (`_accountSection.scss`).
-.plus-card {
-  @include account-section;
-}
-
-// The label at one end of the row, the state at the other.
-.plus-card__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-
-  .plus-card__badge {
-    margin-left: auto;
-  }
-}
-
 // A section's label, on the board's section too: quiet, because the
 // person's name over both is the only thing in the panel meant to be loud.
 .plus-card__eyebrow {
@@ -527,36 +486,11 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.plus-card__pitch {
-  margin: 0;
-  color: $text-primary;
-  font-size: $text-body;
-  line-height: 1.6;
-}
-
-.plus-card__price {
-  margin: 0;
-  color: $text-muted;
-  font-size: $text-lead;
-  font-weight: $weight-semibold;
-  font-variant-numeric: tabular-nums;
-}
-
 .plus-card__line {
   margin: 0;
   color: $text-muted;
   font-size: $text-body;
   line-height: 1.55;
-
-  &--grace {
-    color: $amber;
-  }
-}
-
-.plus-card__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-s;
 }
 
 .plus-card__hint {
@@ -564,27 +498,6 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-faint;
   font-size: $text-small;
   line-height: 1.55;
-}
-
-// The development strip: a rule above it and a small label, so it reads as a
-// tool bolted under the card rather than as part of the offer. Exists in no
-// packaged build.
-.plus-card__dev {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: $spacing-s $spacing-m;
-  margin-top: $spacing-xs;
-  padding-top: $spacing-s;
-  border-top: 1px dashed $border-subtle;
-}
-
-.plus-card__dev-label {
-  color: $text-faint;
-  font-size: $text-eyebrow;
-  font-weight: $weight-bold;
-  @include tracking(0.08em);
-  text-transform: uppercase;
 }
 
 // The leaderboard card lives in Leaderboard.scss, beside the board it puts
@@ -602,14 +515,4 @@ it under the terms of the GNU General Public License version 3 or later.
 .account-link.account__terms-link {
   justify-self: start;
   font-size: $text-small;
-}
-
-// The line a cancellation opens with. Warmer than the rest of the card and
-// not an alarm: the membership has not ended, and nothing here is a problem
-// to be fixed.
-.plus-card__sorry {
-  margin: 0;
-  color: $text-primary;
-  font-size: $text-body;
-  font-weight: $weight-semibold;
 }

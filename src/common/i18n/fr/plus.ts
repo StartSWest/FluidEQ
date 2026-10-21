@@ -312,10 +312,6 @@ const plus = {
   'plus.accounts.giveYes': 'Offrir Plus',
   'plus.accounts.giveNo': 'Pas maintenant',
   'plus.accounts.takeBack': 'Reprendre Plus',
-  'plus.accounts.takeBackTrial':
-    'Reprendre le Plus offert à {name} ? Il prend fin maintenant, et l’essai gratuit lui est proposé à la place, sauf s’il l’a déjà eu.',
-  'plus.accounts.takeBackNoTrial':
-    'Reprendre le Plus offert à {name} ? Il prend fin maintenant, et ce compte ne peut pas avoir l’essai gratuit : il n’aura plus Plus.',
   'plus.accounts.takeBackPaid':
     'Reprendre le Plus offert à {name} ? Le Plus qu’il paie continue.',
   'plus.accounts.takeBackPlain':
