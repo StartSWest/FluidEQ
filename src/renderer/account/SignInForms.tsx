@@ -4,6 +4,7 @@ import { CODE_LENGTH, MIN_PASSWORD_LENGTH } from 'common/accountRules';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/AccountForms.scss';
 import useAccountValidation from './useAccountValidation';
+import GoogleSignIn from './GoogleSignIn';
 import {
   abandonAccountPending,
   confirmAccountCode,
@@ -358,6 +359,7 @@ export default function SignInForms({
           </p>
         )}
         {tabs}
+        <GoogleSignIn account={account} busy={busy} />
         <label className="account-field" htmlFor={`${ids}-name`}>
           <span className="account-field__label" id={`${ids}-name-label`}>
             {t('account.field.name')}
@@ -407,6 +409,7 @@ export default function SignInForms({
         </p>
       )}
       {tabs}
+      <GoogleSignIn account={account} busy={busy} />
       {emailField()}
       {passwordField('current-password')}
       <div className="account__actions">

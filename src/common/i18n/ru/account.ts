@@ -163,6 +163,18 @@ const account = {
     'Опубликуйте сцену — и он начнётся снова. Всё купленное остаётся вашим.',
   'account.maker.notice.open': 'Открыть Студию',
   'account.maker.notice.later': 'Не сейчас',
+  // Signing in with Google, in the browser (main/account/googleSignIn.ts).
+  'account.google': 'Продолжить с Google',
+  'account.or': 'или',
+  'account.google.waiting': 'Завершите вход через Google в браузере.',
+  'account.google.cancel': 'Отмена',
+  'account.error.googleUnfinished':
+    'Вход через Google не завершён. Попробуйте ещё раз или войдите по электронной почте.',
+  'account.google.doneTitle': 'Вы вошли',
+  'account.google.doneBody': 'Эту вкладку можно закрыть и вернуться в FluidEQ.',
+  'account.google.failedTitle': 'Вход не завершён',
+  'account.google.failedBody':
+    'Вернитесь в FluidEQ, чтобы попробовать снова, или войдите по электронной почте.',
 } as const;
 
 export default account;

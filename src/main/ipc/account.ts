@@ -1,4 +1,10 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import {
+  loadLocale,
+  resolveLocale,
+  translate,
+  type LocaleCode,
+} from '../../common/i18n';
 import {
   ACCOUNT_CONFIG,
   isAccountConfigured,
@@ -15,6 +21,7 @@ import {
   type IAccountSession,
   type IAccountState,
 } from '../account/session';
+import { oauthPage, type IOAuthPages } from '../account/oauthLoopback';
 import {
   createEntitlement,
   isEntitlementRecord,
@@ -95,6 +102,9 @@ const CHANNELS = [
   'account-forgot-password',
   'account-reset-password',
   'account-abandon-pending',
+  'account-google-available',
+  'account-sign-in-google',
+  'account-cancel',
   'account-sign-out',
   'entitlement-status',
   'entitlement-refresh',
@@ -162,6 +172,9 @@ export const registerAccountIpc = ({
   const session = createAccountSession({
     config: ACCOUNT_CONFIG,
     store: createAccountCredentialStore(userDataDir),
+    // Google's own page, in the person's own browser: never a web view of
+    // ours, where a password typed into Google would pass through FluidEQ.
+    openExternal: (url) => shell.openExternal(url),
     onState: (state: IAccountState) => {
       send('account-state-changed', state);
       if (state.status === 'signed-out' || state.status === 'unavailable') {
@@ -285,6 +298,40 @@ export const registerAccountIpc = ({
   });
 
   ipcMain.handle('account-abandon-pending', () => session.abandonPending());
+
+  ipcMain.handle('account-google-available', () =>
+    configured() ? session.googleAvailable() : false,
+  );
+
+  // The browser tab's last page, in the window's language.
+  const googlePages = async (tag: unknown): Promise<IOAuthPages> => {
+    const locale: LocaleCode = resolveLocale(
+      typeof tag === 'string' ? tag : undefined,
+    );
+    await loadLocale(locale).catch(() => undefined);
+    const say = (key: Parameters<typeof translate>[1]) =>
+      translate(locale, key);
+    return {
+      done: oauthPage(
+        locale,
+        say('account.google.doneTitle'),
+        say('account.google.doneBody'),
+      ),
+      failed: oauthPage(
+        locale,
+        say('account.google.failedTitle'),
+        say('account.google.failedBody'),
+      ),
+    };
+  };
+
+  ipcMain.handle('account-sign-in-google', async (_event, locale: unknown) =>
+    configured()
+      ? session.signInWithGoogle(await googlePages(locale))
+      : refused(),
+  );
+
+  ipcMain.handle('account-cancel', () => session.cancel());
 
   ipcMain.handle('account-sign-out', () => session.signOut());
 

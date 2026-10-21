@@ -170,6 +170,14 @@ and the De-esser is not heard, and everything else plays as before.
   Brightness**, so a scene can be checked at night and in daylight before it
   is published.
 
+### Account
+
+- **Sign in with Google.** Continue with Google opens Google in your own
+  browser, where you are usually signed in already, and FluidEQ finishes the
+  sign-in when Google sends you back; the panel says it is waiting and keeps
+  a Cancel beside it. Your Google password never passes through FluidEQ.
+  Offered once Google is switched on for FluidEQ's accounts.
+
 ### What's New and Help
 
 - **Films of the real app.** Fourteen of What's New's slides, and the Help

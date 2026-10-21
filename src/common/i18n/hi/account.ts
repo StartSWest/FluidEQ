@@ -160,6 +160,18 @@ const account = {
     'एक सीन प्रकाशित करें और यह फिर से शुरू हो जाएगा। आपने जो खरीदा है वह आपका ही रहता है।',
   'account.maker.notice.open': 'स्टूडियो खोलें',
   'account.maker.notice.later': 'अभी नहीं',
+  // Signing in with Google, in the browser (main/account/googleSignIn.ts).
+  'account.google': 'Google के साथ जारी रखें',
+  'account.or': 'या',
+  'account.google.waiting': 'अपने ब्राउज़र में Google से साइन इन पूरा करें।',
+  'account.google.cancel': 'रद्द करें',
+  'account.error.googleUnfinished':
+    'Google से साइन इन पूरा नहीं हुआ। फिर से कोशिश करें या अपने ईमेल से साइन इन करें।',
+  'account.google.doneTitle': 'आप साइन इन हो गए हैं',
+  'account.google.doneBody': 'आप यह टैब बंद करके FluidEQ पर लौट सकते हैं।',
+  'account.google.failedTitle': 'साइन इन पूरा नहीं हुआ',
+  'account.google.failedBody':
+    'फिर से कोशिश करने के लिए FluidEQ पर लौटें, या अपने ईमेल से साइन इन करें।',
 } as const;
 
 export default account;

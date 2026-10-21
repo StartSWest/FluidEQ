@@ -160,6 +160,18 @@ const account = {
     'シーンを公開すれば、また始まります。購入したものはそのままです。',
   'account.maker.notice.open': 'スタジオを開く',
   'account.maker.notice.later': '今はしない',
+  // Signing in with Google, in the browser (main/account/googleSignIn.ts).
+  'account.google': 'Googleで続行',
+  'account.or': 'または',
+  'account.google.waiting': 'ブラウザでGoogleのサインインを完了してください。',
+  'account.google.cancel': 'キャンセル',
+  'account.error.googleUnfinished':
+    'Googleでのサインインが完了しませんでした。もう一度試すか、メールアドレスでサインインしてください。',
+  'account.google.doneTitle': 'サインインしました',
+  'account.google.doneBody': 'このタブを閉じてFluidEQに戻れます。',
+  'account.google.failedTitle': 'サインインが完了しませんでした',
+  'account.google.failedBody':
+    'FluidEQに戻ってもう一度試すか、メールアドレスでサインインしてください。',
 } as const;
 
 export default account;

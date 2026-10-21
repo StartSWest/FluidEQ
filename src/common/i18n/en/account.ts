@@ -175,6 +175,18 @@ const account = {
     'Publish a scene and it starts again. Everything you bought stays yours.',
   'account.maker.notice.open': 'Open the Studio',
   'account.maker.notice.later': 'Not now',
+  // Signing in with Google, in the browser (main/account/googleSignIn.ts).
+  'account.google': 'Continue with Google',
+  'account.or': 'or',
+  'account.google.waiting': 'Finish signing in with Google in your browser.',
+  'account.google.cancel': 'Cancel',
+  'account.error.googleUnfinished':
+    'Signing in with Google did not finish. Try again, or use your email.',
+  'account.google.doneTitle': 'You are signed in',
+  'account.google.doneBody': 'You can close this tab and go back to FluidEQ.',
+  'account.google.failedTitle': 'Signing in did not finish',
+  'account.google.failedBody':
+    'Go back to FluidEQ to try again, or sign in with your email.',
 } as const;
 
 export default account;

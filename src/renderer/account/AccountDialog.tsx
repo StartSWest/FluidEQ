@@ -85,6 +85,7 @@ const ERROR_KEYS: Record<TAuthFailure, TranslationKey> = {
   invalid_email: 'account.error.invalidEmail',
   already_registered: 'account.error.alreadyRegistered',
   signed_out_elsewhere: 'account.error.signedOutElsewhere',
+  google_unfinished: 'account.error.googleUnfinished',
 };
 
 /**

@@ -98,6 +98,7 @@ describe('the account session', () => {
       config: CONFIG,
       store,
       now,
+      openExternal: async () => undefined,
       onState: (state) => states.push(state),
     });
 

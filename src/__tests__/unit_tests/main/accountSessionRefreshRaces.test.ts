@@ -40,6 +40,7 @@ const build = () =>
   createAccountSession({
     config: CONFIG,
     now: () => 1_000_000,
+    openExternal: async () => undefined,
     store: {
       available: () => true,
       read: () => stored,

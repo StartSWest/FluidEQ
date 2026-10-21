@@ -141,6 +141,17 @@ const account = {
     '发布一个场景就会重新开始。你买过的东西依然是你的。',
   'account.maker.notice.open': '打开工作室',
   'account.maker.notice.later': '暂不',
+  // Signing in with Google, in the browser (main/account/googleSignIn.ts).
+  'account.google': '使用 Google 继续',
+  'account.or': '或',
+  'account.google.waiting': '请在浏览器中完成 Google 登录。',
+  'account.google.cancel': '取消',
+  'account.error.googleUnfinished':
+    'Google 登录未完成。请重试，或使用电子邮件登录。',
+  'account.google.doneTitle': '你已登录',
+  'account.google.doneBody': '可以关闭此标签页并返回 FluidEQ。',
+  'account.google.failedTitle': '登录未完成',
+  'account.google.failedBody': '请返回 FluidEQ 重试，或使用电子邮件登录。',
 } as const;
 
 export default account;

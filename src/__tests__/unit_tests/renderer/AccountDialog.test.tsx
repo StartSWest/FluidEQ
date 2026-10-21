@@ -39,6 +39,14 @@ jest.mock('../../../renderer/account/accountStore', () => ({
   resetAccountPassword: (details: unknown) => mockReset(details),
   abandonAccountPending: () => mockAbandon(),
   signOutAccount: () => mockSignOut(),
+  // The service's answer about Google never comes here: these cases are the
+  // email forms, and `googleSignIn.test.tsx` holds the Google button.
+  isGoogleSignInAvailable: () =>
+    new Promise<boolean>(() => {
+      // Never answered.
+    }),
+  signInWithGoogle: jest.fn(),
+  cancelAccountAttempt: jest.fn(),
 }));
 
 const renderDialog = (state: IAccountState, onClose = jest.fn()) => {

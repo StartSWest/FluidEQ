@@ -161,6 +161,19 @@ const account = {
     'Publica una escena y vuelve a empezar. Todo lo que compraste sigue siendo tuyo.',
   'account.maker.notice.open': 'Abrir el Estudio',
   'account.maker.notice.later': 'Ahora no',
+  // Signing in with Google, in the browser (main/account/googleSignIn.ts).
+  'account.google': 'Continuar con Google',
+  'account.or': 'o',
+  'account.google.waiting':
+    'Termina de iniciar sesión con Google en tu navegador.',
+  'account.google.cancel': 'Cancelar',
+  'account.error.googleUnfinished':
+    'El inicio de sesión con Google no terminó. Inténtalo de nuevo o usa tu correo.',
+  'account.google.doneTitle': 'Has iniciado sesión',
+  'account.google.doneBody': 'Puedes cerrar esta pestaña y volver a FluidEQ.',
+  'account.google.failedTitle': 'El inicio de sesión no terminó',
+  'account.google.failedBody':
+    'Vuelve a FluidEQ para intentarlo de nuevo o inicia sesión con tu correo.',
 } as const;
 
 export default account;

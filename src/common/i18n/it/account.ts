@@ -162,6 +162,18 @@ const account = {
     'Pubblica una scena e riparte. Tutto ciò che hai comprato resta tuo.',
   'account.maker.notice.open': 'Apri lo Studio',
   'account.maker.notice.later': 'Non ora',
+  // Signing in with Google, in the browser (main/account/googleSignIn.ts).
+  'account.google': 'Continua con Google',
+  'account.or': 'oppure',
+  'account.google.waiting': 'Completa l’accesso con Google nel browser.',
+  'account.google.cancel': 'Annulla',
+  'account.error.googleUnfinished':
+    'L’accesso con Google non è stato completato. Riprova o usa la tua email.',
+  'account.google.doneTitle': 'Hai effettuato l’accesso',
+  'account.google.doneBody': 'Puoi chiudere questa scheda e tornare a FluidEQ.',
+  'account.google.failedTitle': 'L’accesso non è stato completato',
+  'account.google.failedBody':
+    'Torna a FluidEQ per riprovare o accedi con la tua email.',
 } as const;
 
 export default account;

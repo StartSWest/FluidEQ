@@ -61,6 +61,25 @@ const resetAccountPassword = (details: { code: string; password: string }) =>
     details,
   ) as Promise<IAccountState>;
 
+/** Whether Google sign-in is switched on at the sign-in service. */
+const isGoogleSignInAvailable = () =>
+  ipcRenderer.invoke('account-google-available') as Promise<boolean>;
+
+/**
+ * Sign in with Google in the browser. Resolves when the attempt ends: signed
+ * in, refused, or cancelled. `locale` is the language of the browser tab's
+ * last page.
+ */
+const signInWithGoogle = (locale: string) =>
+  ipcRenderer.invoke(
+    'account-sign-in-google',
+    locale,
+  ) as Promise<IAccountState>;
+
+/** Stop the attempt in flight. */
+const cancelAccountAttempt = () =>
+  ipcRenderer.invoke('account-cancel') as Promise<IAccountState>;
+
 const abandonAccountPending = () =>
   ipcRenderer.invoke('account-abandon-pending') as Promise<IAccountState>;
 
@@ -126,6 +145,9 @@ const accountBridge = {
   forgotAccountPassword,
   resetAccountPassword,
   abandonAccountPending,
+  isGoogleSignInAvailable,
+  signInWithGoogle,
+  cancelAccountAttempt,
   signOutAccount,
   onAccountState,
   getEntitlementStatus,
