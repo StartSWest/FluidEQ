@@ -837,7 +837,9 @@ const eq: Partial<Dictionary> = {
   'myCurves.copyText': 'Копировать как текст',
   'myCurves.copied': 'Скопировано',
   'myCurves.delete': 'Удалить',
-  'myCurves.deleteConfirm': 'Нажмите ещё раз, чтобы удалить',
+  'myCurves.deleteAsk': 'Удалить «{name}»?',
+  'myCurves.deleteBody':
+    'Кривая навсегда исчезнет из «Мои кривые». В экспортированном списке она останется.',
   'myCurves.cancel': 'Отмена',
   'myCurves.addTitle': 'Добавить кривую',
   'myCurves.addIntro':

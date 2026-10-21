@@ -290,8 +290,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   background: $surface-panel;
   box-shadow: 0 12px 30px rgba($black, 0.4);
 
-  button {
-    padding: 7px 10px;
+  // Each entry is its glyph and its words, the glyph in the accent's quiet
+  // tone so a column of them reads as one list.
+  [role='menuitem'] {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px 7px 9px;
     border: 0;
     border-radius: $radius-s;
     background: none;
@@ -299,17 +304,97 @@ SPDX-License-Identifier: GPL-3.0-or-later
     font: inherit;
     font-size: $text-small;
     text-align: left;
+    white-space: nowrap;
     cursor: pointer;
+
+    .my-curve__menu-icon {
+      color: color-mix(in srgb, $secondary-light 70%, $text-muted);
+    }
 
     &:hover,
     &:focus-visible {
       background: color-mix(in srgb, $secondary-default 12%, transparent);
+
+      .my-curve__menu-icon {
+        color: $secondary-light;
+      }
     }
   }
 
-  .my-curve__delete {
+  .my-curve__delete,
+  .my-curve__delete .my-curve__menu-icon {
     color: $red;
   }
+
+  .my-curve__delete:hover,
+  .my-curve__delete:focus-visible {
+    background: color-mix(in srgb, $red 12%, transparent);
+
+    .my-curve__menu-icon {
+      color: $red;
+    }
+  }
+}
+
+.my-curve__menu-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.my-curve__menu-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: $border-subtle;
+}
+
+// Delete's question, in the menu's place: the curve named, what deleting
+// means, and the two answers — the safe one quiet, the one that deletes red.
+.my-curve__confirm {
+  gap: 8px;
+  width: 260px;
+  padding: 12px;
+  border-color: color-mix(in srgb, $red 35%, $card-edge);
+}
+
+.my-curve__confirm-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  strong {
+    min-width: 0;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+}
+
+.my-curve__confirm-glyph {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $red 14%, transparent);
+  color: $red;
+}
+
+.my-curve__confirm-body {
+  padding-left: 38px;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+.my-curve__confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 // Where Save to My curves stood once the curve is in the list

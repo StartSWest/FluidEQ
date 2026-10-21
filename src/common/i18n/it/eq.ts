@@ -842,7 +842,9 @@ const eq: Partial<Dictionary> = {
   'myCurves.copyText': 'Copia come testo',
   'myCurves.copied': 'Copiata',
   'myCurves.delete': 'Elimina',
-  'myCurves.deleteConfirm': 'Premi di nuovo per eliminare',
+  'myCurves.deleteAsk': 'Eliminare «{name}»?',
+  'myCurves.deleteBody':
+    'Esce da Le mie curve per sempre. Una lista che hai esportato la conserva.',
   'myCurves.cancel': 'Annulla',
   'myCurves.addTitle': 'Aggiungi una curva',
   'myCurves.addIntro':

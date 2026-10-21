@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -64,6 +65,7 @@ export default function MyCurveRow({
   // loud style. Every row loud at once read as a column of buttons with
   // nothing standing out.
   const [isHot, setHot] = useState(false);
+  const askId = useId();
   const added = useMemo(
     () =>
       new Date(curve.addedAt).toLocaleDateString(locale, {
@@ -193,7 +195,7 @@ export default function MyCurveRow({
           >
             <MenuIcon name="menu" />
           </button>
-          {isMenuOpen && (
+          {isMenuOpen && armed !== 'delete' && (
             <span
               className="my-curve__menu"
               role="menu"
@@ -209,6 +211,7 @@ export default function MyCurveRow({
                   setRenaming(true);
                 }}
               >
+                <MenuIcon name="pencil" className="my-curve__menu-icon" />
                 {t('myCurves.rename')}
               </button>
               <button
@@ -219,6 +222,7 @@ export default function MyCurveRow({
                   onEdit(curve);
                 }}
               >
+                <MenuIcon name="eqBars" className="my-curve__menu-icon" />
                 {t('myCurves.editBands')}
               </button>
               <button
@@ -229,6 +233,7 @@ export default function MyCurveRow({
                   onDuplicate(curve);
                 }}
               >
+                <MenuIcon name="duplicate" className="my-curve__menu-icon" />
                 {t('myCurves.duplicate')}
               </button>
               <button
@@ -241,26 +246,70 @@ export default function MyCurveRow({
                     .catch(() => setCopied(false));
                 }}
               >
+                <MenuIcon
+                  name={copied ? 'check' : 'copyText'}
+                  className="my-curve__menu-icon"
+                />
                 {copied ? t('myCurves.copied') : t('myCurves.copyText')}
               </button>
+              <span className="my-curve__menu-divider" role="separator" />
               <button
                 type="button"
                 role="menuitem"
                 className="my-curve__delete"
-                onClick={() => {
-                  if (armed === 'delete') {
+                onClick={() => setArmed('delete')}
+              >
+                <MenuIcon name="trash" className="my-curve__menu-icon" />
+                {t('myCurves.delete')}
+              </button>
+            </span>
+          )}
+          {/* Deleting has no undo, so it asks in words, naming the curve:
+              the red answer deletes, the quiet one goes back to the menu. */}
+          {isMenuOpen && armed === 'delete' && (
+            <span
+              className="my-curve__menu my-curve__confirm"
+              role="alertdialog"
+              aria-labelledby={askId}
+              aria-describedby={`${askId}-body`}
+            >
+              <span className="my-curve__confirm-head">
+                <span className="my-curve__confirm-glyph">
+                  <MenuIcon name="trash" className="my-curve__menu-icon" />
+                </span>
+                <strong id={askId}>
+                  {t('myCurves.deleteAsk', { name: curve.name })}
+                </strong>
+              </span>
+              <span id={`${askId}-body`} className="my-curve__confirm-body">
+                {t('myCurves.deleteBody')}
+              </span>
+              <span className="my-curve__confirm-actions">
+                <button
+                  type="button"
+                  className="button small subtle"
+                  // The safe answer takes the focus, as every question
+                  // that deletes does in this app.
+                  // eslint-disable-next-line jsx-a11y/no-autofocus
+                  autoFocus
+                  onKeyDown={escapeLetsGo}
+                  onClick={() => setArmed(undefined)}
+                >
+                  {t('config.cancel')}
+                </button>
+                <button
+                  type="button"
+                  className="button small danger"
+                  onKeyDown={escapeLetsGo}
+                  onClick={() => {
                     setMenuOpen(false);
                     setArmed(undefined);
                     onDelete(curve);
-                  } else {
-                    setArmed('delete');
-                  }
-                }}
-              >
-                {armed === 'delete'
-                  ? t('myCurves.deleteConfirm')
-                  : t('myCurves.delete')}
-              </button>
+                  }}
+                >
+                  {t('myCurves.delete')}
+                </button>
+              </span>
             </span>
           )}
         </span>

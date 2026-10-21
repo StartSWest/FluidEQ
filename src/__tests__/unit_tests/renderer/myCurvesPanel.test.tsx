@@ -245,7 +245,7 @@ it('marks the curve the correction layer is playing, by its text', async () => {
   ).toBeEnabled();
 });
 
-it('renames in place, duplicates, and deletes only on a second press', async () => {
+it('renames in place, duplicates, and deletes only once asked and answered', async () => {
   seed();
   await show();
   fireEvent.click(screen.getByRole('button', { name: 'More for Zeta warm' }));
@@ -267,8 +267,25 @@ it('renames in place, duplicates, and deletes only on a second press', async () 
     screen.getByRole('button', { name: 'More for Warm for nights (2)' }),
   );
   fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
+  // It asks first, naming the curve, with the safe answer focused.
+  const ask = screen.getByRole('alertdialog', {
+    name: 'Delete “Warm for nights (2)”?',
+  });
+  expect(ask).toHaveAccessibleDescription(
+    'It leaves My curves for good. A list you exported still has it.',
+  );
+  expect(within(ask).getByRole('button', { name: 'Cancel' })).toHaveFocus();
   expect(getMyCurves()).toHaveLength(3);
-  await press(screen.getByRole('menuitem', { name: 'Press again to delete' }));
+  // Cancel goes back to the menu and deletes nothing.
+  fireEvent.click(within(ask).getByRole('button', { name: 'Cancel' }));
+  expect(screen.getByRole('menuitem', { name: 'Delete' })).toBeInTheDocument();
+  expect(getMyCurves()).toHaveLength(3);
+  fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
+  await press(
+    within(screen.getByRole('alertdialog')).getByRole('button', {
+      name: 'Delete',
+    }),
+  );
   expect(screen.queryByText('Warm for nights (2)')).not.toBeInTheDocument();
   expect(mainList).toHaveLength(2);
 });
@@ -280,7 +297,11 @@ it('puts a deleted curve back, and says why, when main cannot keep the change', 
   mockWrite.mockRejectedValueOnce(new Error('disk full'));
   fireEvent.click(screen.getByRole('button', { name: 'More for Zeta warm' }));
   fireEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
-  await press(screen.getByRole('menuitem', { name: 'Press again to delete' }));
+  await press(
+    within(screen.getByRole('alertdialog')).getByRole('button', {
+      name: 'Delete',
+    }),
+  );
   expect(setGlobalError).toHaveBeenCalledWith(new Error('disk full'));
   expect(screen.getByText('Zeta warm')).toBeInTheDocument();
 });

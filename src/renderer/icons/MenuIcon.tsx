@@ -216,6 +216,11 @@ const PATHS: Record<string, string> = {
   lock: 'M6.5 10.5h11v9h-11zM8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5',
   // A pencil: change what this is called.
   pencil: 'M15.5 5l3.5 3.5L9 18.5l-4 1 1-4L15.5 5zM13.5 7l3.5 3.5',
+  // Two sheets, one over the other: a second copy of this thing.
+  duplicate: 'M9 9h10.5v10.5H9zM15 9V4.5H4.5V15H9',
+  // A clipboard with lines on it: the text, ready to paste elsewhere.
+  copyText:
+    'M8.5 5H6.5a1 1 0 0 0-1 1v13.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2M9 3.5h6V7H9zM9 11.5h6M9 15h4',
   // A pushpin: kept on screen, beside what it is about.
   pin: 'M8 3.5h8M9.5 3.5V10L6 13.5h12L14.5 10V3.5M12 13.5V21',
   // A bell: a count that asks for attention.

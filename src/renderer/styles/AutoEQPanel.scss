@@ -265,13 +265,30 @@ it under the terms of the GNU General Public License version 3 or later.
   min-width: 0;
 }
 
+// How many curves are on the list: a pill with room round its digits, quiet
+// beside a tab that is not open and lit beside the one that is.
 .autoeq-panel__tab-count {
-  min-width: 20px;
-  padding: 0 6px;
-  border-radius: $radius-2xs;
-  background: color-mix(in srgb, $secondary-default 14%, transparent);
+  display: inline-grid;
+  min-width: 22px;
+  height: 18px;
+  padding: 0 7px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, $secondary-default 28%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
   color: $text-muted;
   font-size: $text-micro;
+  font-weight: $weight-semibold;
   font-variant-numeric: tabular-nums;
-  text-align: center;
+  line-height: 1;
+  transition:
+    background $motion-fast $ease-out,
+    border-color $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+
+  [aria-selected='true'] > & {
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 22%, transparent);
+    color: $secondary-light;
+  }
 }

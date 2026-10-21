@@ -832,7 +832,9 @@ const eq: Partial<Dictionary> = {
   'myCurves.copyText': 'टेक्स्ट के रूप में कॉपी करें',
   'myCurves.copied': 'कॉपी हो गया',
   'myCurves.delete': 'हटाएँ',
-  'myCurves.deleteConfirm': 'हटाने के लिए फिर से दबाएँ',
+  'myCurves.deleteAsk': '“{name}” मिटाएँ?',
+  'myCurves.deleteBody':
+    'यह मेरे कर्व से हमेशा के लिए हट जाएगा। आपकी एक्सपोर्ट की गई सूची में यह बना रहेगा।',
   'myCurves.cancel': 'रद्द करें',
   'myCurves.addTitle': 'कर्व जोड़ें',
   'myCurves.addIntro':

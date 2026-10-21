@@ -833,7 +833,9 @@ const eq: Partial<Dictionary> = {
   'myCurves.copyText': 'テキストとしてコピー',
   'myCurves.copied': 'コピーしました',
   'myCurves.delete': '削除',
-  'myCurves.deleteConfirm': 'もう一度押すと削除',
+  'myCurves.deleteAsk': '「{name}」を削除しますか？',
+  'myCurves.deleteBody':
+    'マイカーブから完全に消えます。書き出したリストには残ります。',
   'myCurves.cancel': 'キャンセル',
   'myCurves.addTitle': 'カーブを追加',
   'myCurves.addIntro': 'マイカーブに入ります。適用するまで何も鳴りません。',

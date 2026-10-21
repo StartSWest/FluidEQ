@@ -855,7 +855,9 @@ const eq = {
   'myCurves.copyText': 'Copy as text',
   'myCurves.copied': 'Copied',
   'myCurves.delete': 'Delete',
-  'myCurves.deleteConfirm': 'Press again to delete',
+  'myCurves.deleteAsk': 'Delete “{name}”?',
+  'myCurves.deleteBody':
+    'It leaves My curves for good. A list you exported still has it.',
   'myCurves.cancel': 'Cancel',
   'myCurves.addTitle': 'Add a curve',
   'myCurves.addIntro':

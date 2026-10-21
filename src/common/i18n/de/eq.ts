@@ -846,7 +846,9 @@ const eq: Partial<Dictionary> = {
   'myCurves.copyText': 'Als Text kopieren',
   'myCurves.copied': 'Kopiert',
   'myCurves.delete': 'Löschen',
-  'myCurves.deleteConfirm': 'Zum Löschen erneut drücken',
+  'myCurves.deleteAsk': '„{name}“ löschen?',
+  'myCurves.deleteBody':
+    'Sie verschwindet endgültig aus Meine Kurven. Eine exportierte Liste enthält sie weiterhin.',
   'myCurves.cancel': 'Abbrechen',
   'myCurves.addTitle': 'Kurve hinzufügen',
   'myCurves.addIntro':
