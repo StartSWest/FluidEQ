@@ -88,20 +88,12 @@ const creator: Partial<Dictionary> = {
   'creator.admin.available': 'Stripe पर उपलब्ध',
   'creator.admin.availableNote': 'जहाँ से ट्रांसफ़र होते हैं',
   'creator.admin.short':
-    'Stripe पर FluidEQ का उपलब्ध बैलेंस देय राशि से कम है। उससे आगे के ट्रांसफ़र विफल होंगे और अगले रन का इंतज़ार करेंगे; बैलेंस सेटल होने के बाद भुगतान करें।',
+    'Stripe पर FluidEQ का उपलब्ध बैलेंस देय राशि से कम है। उससे आगे के ट्रांसफ़र विफल होते हैं और अगले भुगतान में फिर भेजे जाते हैं।',
   'creator.admin.list': 'किसे भुगतान होगा',
   'creator.admin.none':
     'अभी किसी को कुछ देय नहीं है। क्रिएटर यहाँ तब दिखते हैं जब Stripe उन्हें भुगतान कर सके और उनकी पर्याप्त कमाई होल्ड अवधि पार कर चुकी हो।',
-  'creator.admin.payLead':
-    'इंतज़ार किए बिना सूची में सभी को अभी भुगतान करें: कुल {amount}, Stripe के ज़रिए।',
-  'creator.admin.confirm':
-    'अभी {amount} भेजें? इससे FluidEQ के Stripe बैलेंस से असली पैसा जाएगा और इसे वापस नहीं किया जा सकता।',
-  'creator.admin.pay': 'क्रिएटर को भुगतान करें',
-  'creator.admin.payNow': 'हाँ, अभी भुगतान करें',
-  'creator.admin.paying': 'भुगतान हो रहा है…',
-  'creator.admin.ran': 'भुगतान हुआ: {paid}। भुगतान नहीं हुआ: {failed}।',
   'creator.admin.rules':
-    'भुगतान हर महीने 1 और 16 तारीख को अपने आप जाते हैं; क्रिएटर को भुगतान करें उन्हें अभी भेजता है। हर भुगतान केवल एक बार भेजा जाता है: बीच में रुका रन अगला रन पूरा करता है, दोबारा कभी नहीं भेजा जाता।',
+    'भुगतान हर महीने 1 और 16 तारीख को अपने-आप जाते हैं: पहले क्रिएटर को, फिर आपका हिस्सा आपके बैंक में। हर भुगतान एक बार भेजा जाता है: बीच में रुका भुगतान अगला पूरा करता है, दोबारा कभी नहीं भेजा जाता।',
   'creator.admin.lastPaid': 'पिछला भुगतान: {date}',
   'creator.admin.neverPaid': 'अभी तक कोई भुगतान नहीं',
   'creator.admin.nextDue': 'अगला स्वचालित भुगतान: {date}',
@@ -117,13 +109,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.owedNote': 'रोकी गई {held} · तैयार {ready}',
   'creator.admin.sending': 'भेजा जा रहा {amount}',
   'creator.admin.onItsWay': '+ {amount} आ रहा है',
-  'creator.admin.yours': 'आपका, निकाल सकते हैं',
-  'creator.admin.yoursNote': 'बैलेंस में से क्रिएटर का बकाया घटाकर',
+  'creator.admin.yours': 'आपका',
+  'creator.admin.yoursNote':
+    'हर भुगतान के बाद अपने-आप आपके बैंक में जाता है; {reserve} रिफ़ंड के लिए रुकते हैं',
+  'creator.admin.lastToYou': 'पिछली बार आपके बैंक में: {amount}, {date}',
   'creator.admin.yoursShort':
     'क्रिएटर का बकाया Stripe बैलेंस से {amount} अधिक है',
   'creator.admin.next': 'अगला भुगतान',
   'creator.admin.manual':
-    'Stripe के आपके बैंक में अपने आप होने वाले पेआउट क्रिएटर का पैसा भी ले जाएँगे। Stripe में उन्हें मैनुअल पर रखें, और केवल अपना हिस्सा निकालें।',
+    'Stripe अभी भी आपका पूरा बैलेंस अपने-आप आपके बैंक में भेजता है, क्रिएटर का पैसा भी, इसलिए FluidEQ आपका हिस्सा रोक कर रखता है। Stripe में Settings → Payouts में एक बार शेड्यूल Manual करें: फिर FluidEQ हर भुगतान के बाद अपने-आप सिर्फ़ आपका हिस्सा भेजेगा।',
   'creator.admin.pendingLine':
     'पिछले रन के अधूरे छोड़े भुगतान: {count}। अगला रन पहले इन्हें पूरा करेगा।',
 };

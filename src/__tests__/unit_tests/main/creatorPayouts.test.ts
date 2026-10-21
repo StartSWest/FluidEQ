@@ -34,10 +34,10 @@ import type { IAccountConfig } from '../../../common/accountConfig';
 import {
   CREATOR_AGREEMENT_VERSION,
   isPayableCountry,
+  owedShortCents,
   owedTotal,
   parseCreatorStatus,
   parsePayoutPreview,
-  parsePayoutRun,
   payoutShort,
   payoutSoon,
   yoursCents,
@@ -171,7 +171,7 @@ describe('what the server says, read', () => {
     expect(payoutShort({ ...preview, availableCents: 2480 })).toBe(false);
   });
 
-  it('says what of the Stripe balance is FluidEQ’s, after everything owed to creators', () => {
+  it('says what of the Stripe balance is FluidEQ’s, after creators and what is held back', () => {
     const preview = parsePayoutPreview({
       due: [],
       totalCents: 0,
@@ -180,16 +180,38 @@ describe('what the server says, read', () => {
       pending: 0,
       owed: { heldCents: 9000, readyCents: 4000, sendingCents: 1000 },
       ownPayouts: 'daily',
+      reserveCents: 2500,
+      lastOwnerPayout: { amountCents: 12345, at: '2026-10-16T15:00:10Z' },
     });
     if (!preview) {
       throw new Error('the preview did not read');
     }
     expect(preview.pendingCents).toBe(900);
     expect(preview.ownPayouts).toBe('daily');
+    expect(preview.lastOwnerPayout).toEqual({
+      amountCents: 12345,
+      at: Date.parse('2026-10-16T15:00:10Z'),
+    });
     expect(owedTotal(preview)).toBe(14000);
-    expect(yoursCents(preview)).toBe(16000);
-    // Less at Stripe than is owed: what is missing, said as a negative.
-    expect(yoursCents({ ...preview, availableCents: 10000 })).toBe(-4000);
+    // The balance less what creators are owed and the refund reserve: what
+    // the next run sends to the bank.
+    expect(yoursCents(preview)).toBe(30000 - 14000 - 2500);
+    expect(owedShortCents(preview)).toBe(0);
+    // A server before 0069 holds nothing back.
+    expect(yoursCents({ ...preview, reserveCents: undefined })).toBe(16000);
+    // Less at Stripe than is owed: nothing is FluidEQ's, and what is missing
+    // is said apart.
+    expect(yoursCents({ ...preview, availableCents: 10000 })).toBe(0);
+    expect(owedShortCents({ ...preview, availableCents: 10000 })).toBe(4000);
+    // A last payout that does not read is left out, not invented.
+    expect(
+      parsePayoutPreview({
+        due: [],
+        totalCents: 0,
+        pending: 0,
+        lastOwnerPayout: { amountCents: 'x', at: 'never' },
+      }),
+    ).not.toHaveProperty('lastOwnerPayout');
     // Not knowing either side is not a number.
     expect(yoursCents({ ...preview, owed: undefined })).toBeUndefined();
     expect(
@@ -204,18 +226,6 @@ describe('what the server says, read', () => {
         owed: { heldCents: '9000' },
       }),
     ).not.toHaveProperty('owed');
-  });
-
-  it('counts a run: what was sent, and why the rest was not', () => {
-    expect(
-      parsePayoutRun({
-        results: [
-          { payout: 7, ok: true, transfer: 'tr_1' },
-          { creator: 'c2', ok: false, error: 'payouts_disabled' },
-          { payout: 8, ok: false },
-        ],
-      }),
-    ).toEqual({ paid: 1, failed: ['payouts_disabled', 'unknown'] });
   });
 
   it('offers only the countries Stripe can pay from a US account', () => {
@@ -476,12 +486,10 @@ describe('the creator channels', () => {
     });
   });
 
-  it('runs payouts only as the admin the server says it is', async () => {
-    answers.set('run-creator-payouts', json(403, { error: 'not_admin' }));
-    await expect(call('creator-payouts-run')).resolves.toEqual({
-      ok: false,
-      reason: 'forbidden',
-    });
-    expect(calls[0].body).toEqual({ mode: 'run' });
+  // Payouts are the server's schedule alone (Ivan, 2026-10-21): the window
+  // has no way to ask for a run.
+  it('offers the window no way to pay', () => {
+    expect(() => call('creator-payouts-run')).toThrow('not registered');
+    expect(calls).toEqual([]);
   });
 });

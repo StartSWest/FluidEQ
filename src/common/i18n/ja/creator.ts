@@ -88,20 +88,12 @@ const creator: Partial<Dictionary> = {
   'creator.admin.available': 'Stripe の利用可能残高',
   'creator.admin.availableNote': '送金の原資',
   'creator.admin.short':
-    'Stripe にある FluidEQ の利用可能残高が支払額を下回っています。残高を超える送金は失敗し、次回の実行を待ちます。残高が確定してから支払ってください。',
+    'Stripe にある FluidEQ の利用可能残高が支払額を下回っています。残高を超える送金は失敗し、次回の支払いでもう一度送られます。',
   'creator.admin.list': '支払い先',
   'creator.admin.none':
     'まだ支払い対象者はいません。Stripe が支払える状態になり、保留期間を過ぎた収益が十分に貯まったクリエイターがここに表示されます。',
-  'creator.admin.payLead':
-    '待たずに一覧の全員に今すぐ支払う：合計 {amount}、Stripe 経由。',
-  'creator.admin.confirm':
-    '{amount} を今すぐ送金しますか？ FluidEQ の Stripe 残高から実際のお金が動き、取り消せません。',
-  'creator.admin.pay': 'クリエイターに支払う',
-  'creator.admin.payNow': 'はい、今すぐ支払う',
-  'creator.admin.paying': '支払い中…',
-  'creator.admin.ran': '支払い済み：{paid}　未払い：{failed}',
   'creator.admin.rules':
-    '支払いは毎月 1 日と 16 日に自動で行われます。「クリエイターに支払う」を押すと今すぐ送ります。各支払いは一度だけ送られます。途中で止まった実行は次の実行が完了させ、二重に送られることはありません。',
+    '支払いは毎月1日と16日に自動で行われます。まずクリエイターへ、次にあなたの分をあなたの銀行へ。各支払いは一度だけ送られ、途中で止まった支払いは次回が完了させ、二重には送られません。',
   'creator.admin.lastPaid': '前回の支払い：{date}',
   'creator.admin.neverPaid': 'まだ支払いはありません',
   'creator.admin.nextDue': '次回の自動支払い：{date}',
@@ -117,13 +109,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.owedNote': '保留 {held} ・支払い可能 {ready}',
   'creator.admin.sending': '送金中 {amount}',
   'creator.admin.onItsWay': '+ {amount} 入金予定',
-  'creator.admin.yours': 'あなたが引き出せる額',
-  'creator.admin.yoursNote': '残高からクリエイターへの未払いを引いた額',
+  'creator.admin.yours': 'あなたの分',
+  'creator.admin.yoursNote':
+    '毎回の支払いのあと自動であなたの銀行へ。{reserve} は返金用に残します',
+  'creator.admin.lastToYou': '前回の銀行への送金：{amount}、{date}',
   'creator.admin.yoursShort':
     'Stripe の残高よりクリエイターへの未払いが {amount} 多い状態です',
   'creator.admin.next': '次回の支払い',
   'creator.admin.manual':
-    'Stripe から銀行口座への自動入金は、クリエイターのお金まで引き出してしまいます。Stripe で入金を手動に設定し、自分の分だけを引き出してください。',
+    'Stripe がまだ残高をすべて自動であなたの銀行へ送っており、クリエイターの分も含まれるため、FluidEQ はあなたの分を保留しています。Stripe の Settings → Payouts でスケジュールを一度 Manual にしてください。以後は FluidEQ が支払いのたびに自動であなたの分だけを送ります。',
   'creator.admin.pendingLine':
     '前回の実行で未完了の支払い：{count}。次回の実行で最初に完了します。',
 };

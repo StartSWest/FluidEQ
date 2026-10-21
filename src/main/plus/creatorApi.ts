@@ -9,9 +9,7 @@ import {
   isPayableCountry,
   parseCreatorStatus,
   parsePayoutPreview,
-  parsePayoutRun,
   type ICreatorPayoutPreview,
-  type ICreatorPayoutRun,
   type TCreatorFailure,
   type TCreatorOutcome,
 } from '../../common/creatorPayouts';
@@ -161,9 +159,9 @@ export const refreshCreatorAccount = async (
     : { ok: false, reason: await failureOf(response) };
 };
 
+// The admin only ever looks: the server pays on its own schedule alone.
 const callPayouts = async (
   auth: IGalleryAuth,
-  mode: 'preview' | 'run',
 ): Promise<Response | undefined> => {
   try {
     return await (auth.fetchImpl ?? fetch)(
@@ -171,7 +169,7 @@ const callPayouts = async (
       {
         method: 'POST',
         headers: headers(auth),
-        body: JSON.stringify({ mode }),
+        body: JSON.stringify({ mode: 'preview' }),
       },
     );
   } catch {
@@ -210,10 +208,4 @@ const payoutsAnswer = async <T>(
 export const previewCreatorPayouts = async (
   auth: IGalleryAuth,
 ): Promise<TAdminOutcome<ICreatorPayoutPreview>> =>
-  payoutsAnswer(await callPayouts(auth, 'preview'), parsePayoutPreview);
-
-/** The admin's: pays every creator due, through Stripe. Never twice. */
-export const runCreatorPayouts = async (
-  auth: IGalleryAuth,
-): Promise<TAdminOutcome<ICreatorPayoutRun>> =>
-  payoutsAnswer(await callPayouts(auth, 'run'), parsePayoutRun);
+  payoutsAnswer(await callPayouts(auth), parsePayoutPreview);

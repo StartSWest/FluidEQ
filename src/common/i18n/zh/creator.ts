@@ -77,20 +77,12 @@ const creator: Partial<Dictionary> = {
   'creator.admin.available': 'Stripe 可用余额',
   'creator.admin.availableNote': '转账的资金来源',
   'creator.admin.short':
-    'FluidEQ 在 Stripe 的可用余额低于应付金额。超出余额的转账会失败，并等待下一次执行；请在余额结算后再付款。',
+    'FluidEQ 在 Stripe 的可用余额低于应付金额。超出余额的转账会失败，并在下一次付款时重新发送。',
   'creator.admin.list': '收款人',
   'creator.admin.none':
     '目前还没有应付的人。当 Stripe 可以向创作者付款且足够的收益已过暂扣期时，他们会出现在这里。',
-  'creator.admin.payLead':
-    '不必等待，立即向列表中的所有人付款：共 {amount}，通过 Stripe。',
-  'creator.admin.confirm':
-    '现在发送 {amount}？这会从 FluidEQ 的 Stripe 余额中转出真实资金，且无法撤销。',
-  'creator.admin.pay': '向创作者付款',
-  'creator.admin.payNow': '是，立即付款',
-  'creator.admin.paying': '正在付款…',
-  'creator.admin.ran': '已付款：{paid}。未付款：{failed}。',
   'creator.admin.rules':
-    '每月 1 日和 16 日自动付款；点击“向创作者付款”可立即发送。每笔付款只发送一次：中途停止的执行会由下一次完成，绝不会重复发送。',
+    '每月 1 日和 16 日自动付款：先付给创作者，再把你的部分转到你的银行。每笔付款只发送一次：中途停止的付款由下一次完成，绝不重复发送。',
   'creator.admin.lastPaid': '上次付款：{date}',
   'creator.admin.neverPaid': '尚未付款',
   'creator.admin.nextDue': '下次自动付款：{date}',
@@ -105,12 +97,13 @@ const creator: Partial<Dictionary> = {
   'creator.admin.owedNote': '暂扣 {held} · 可支付 {ready}',
   'creator.admin.sending': '发送中 {amount}',
   'creator.admin.onItsWay': '+ {amount} 正在到账',
-  'creator.admin.yours': '你可提取的金额',
-  'creator.admin.yoursNote': '余额减去欠创作者的款项',
+  'creator.admin.yours': '你的部分',
+  'creator.admin.yoursNote': '每次付款后自动转到你的银行；{reserve} 留作退款',
+  'creator.admin.lastToYou': '上次转到你的银行：{amount}，{date}',
   'creator.admin.yoursShort': '欠创作者的款项比 Stripe 余额多 {amount}',
   'creator.admin.next': '下次付款',
   'creator.admin.manual':
-    'Stripe 自动提现到你的银行账户时，会把创作者的钱也一起转走。请在 Stripe 中将提现设为手动，只提取属于你的部分。',
+    'Stripe 仍会自动把你的全部余额转到你的银行，包括创作者的钱，所以 FluidEQ 暂不转你的部分。请在 Stripe 的 Settings → Payouts 中把计划改为 Manual 一次：之后 FluidEQ 会在每次付款后自动只转你的部分。',
   'creator.admin.pendingLine':
     '上次执行未完成的付款：{count}。下一次执行会先完成它们。',
 };

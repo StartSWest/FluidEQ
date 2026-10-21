@@ -11,7 +11,6 @@ import {
 } from '../../common/accountConfig';
 import type {
   ICreatorPayoutPreview,
-  ICreatorPayoutRun,
   TCreatorFailure,
   TCreatorOutcome,
 } from '../../common/creatorPayouts';
@@ -24,7 +23,6 @@ import {
   openCreatorDashboard,
   previewCreatorPayouts,
   refreshCreatorAccount,
-  runCreatorPayouts,
   startCreatorSignUp,
 } from '../plus/creatorApi';
 import type { IGalleryAuth } from '../plus/galleryAccess';
@@ -45,7 +43,6 @@ const CHANNELS = [
   'creator-dashboard',
   'creator-refresh',
   'creator-payouts-preview',
-  'creator-payouts-run',
 ] as const;
 
 export type TCreatorOpened =
@@ -199,11 +196,6 @@ export const registerCreatorIpc = ({
     'creator-payouts-preview',
     (): Promise<TAdminOutcome<ICreatorPayoutPreview>> =>
       asAdmin(previewCreatorPayouts),
-  );
-
-  ipcMain.handle(
-    'creator-payouts-run',
-    (): Promise<TAdminOutcome<ICreatorPayoutRun>> => asAdmin(runCreatorPayouts),
   );
 
   return {

@@ -214,6 +214,13 @@ export interface ICreatorPayoutPreview {
   owed?: ICreatorLiability;
   /** How Stripe sends FluidEQ's own balance to its bank: 'manual' or a schedule. */
   ownPayouts?: string;
+  /**
+   * Held back from FluidEQ's share (premium 0069): purchases members can
+   * still have refunded, and a floor kept for disputes.
+   */
+  reserveCents?: number;
+  /** The last share the server sent to FluidEQ's bank by itself. */
+  lastOwnerPayout?: { amountCents: number; at: number };
 }
 
 /** What FluidEQ owes its creators right now. */
@@ -224,12 +231,6 @@ export interface ICreatorLiability {
   readyCents: number;
   /** Begun by a payout and not yet confirmed by Stripe. */
   sendingCents: number;
-}
-
-/** How a payout run ended: what was sent, and why the rest was not. */
-export interface ICreatorPayoutRun {
-  paid: number;
-  failed: string[];
 }
 
 const liabilityOf = (value: unknown): ICreatorLiability | undefined =>
@@ -274,6 +275,12 @@ export const parsePayoutPreview = (
   const lastPaidAt = timeOf(value.lastPaidAt);
   const nextRunAt = timeOf(value.nextRunAt);
   const owed = liabilityOf(value.owed);
+  const lastOwner = isRecord(value.lastOwnerPayout)
+    ? {
+        amountCents: value.lastOwnerPayout.amountCents,
+        at: timeOf(value.lastOwnerPayout.at),
+      }
+    : undefined;
   if (due.some((row) => row === undefined)) {
     return undefined;
   }
@@ -295,6 +302,19 @@ export const parsePayoutPreview = (
       : {}),
     ...(isWholeNumber(value.payoutDays) && value.payoutDays > 0
       ? { payoutDays: value.payoutDays }
+      : {}),
+    ...(isWholeNumber(value.reserveCents)
+      ? { reserveCents: value.reserveCents }
+      : {}),
+    ...(lastOwner &&
+    isWholeNumber(lastOwner.amountCents) &&
+    Number.isFinite(lastOwner.at)
+      ? {
+          lastOwnerPayout: {
+            amountCents: lastOwner.amountCents,
+            at: lastOwner.at,
+          },
+        }
       : {}),
   };
 };
@@ -329,9 +349,10 @@ export const owedTotal = (
     : undefined;
 
 /**
- * What of FluidEQ's available Stripe balance is FluidEQ's own to take out:
- * the balance less everything owed to creators. Below zero, creators' money
- * has already been taken out and the next payouts would come up short.
+ * What of FluidEQ's available Stripe balance is FluidEQ's own: the balance
+ * less everything owed to creators and what is held back for refunds and
+ * disputes — what the next run sends to the bank by itself. Never below
+ * zero; `owedShortCents` says when the balance does not cover creators.
  */
 export const yoursCents = (
   preview: ICreatorPayoutPreview,
@@ -339,28 +360,23 @@ export const yoursCents = (
   const owed = owedTotal(preview);
   return owed === undefined || preview.availableCents === undefined
     ? undefined
-    : preview.availableCents - owed;
+    : Math.max(0, preview.availableCents - owed - (preview.reserveCents ?? 0));
+};
+
+/**
+ * How far FluidEQ's Stripe balance falls short of what creators are owed:
+ * money of theirs that has already left Stripe. Zero when it covers them.
+ */
+export const owedShortCents = (
+  preview: ICreatorPayoutPreview,
+): number | undefined => {
+  const owed = owedTotal(preview);
+  return owed === undefined || preview.availableCents === undefined
+    ? undefined
+    : Math.max(0, owed - preview.availableCents);
 };
 
 /** Whether FluidEQ's Stripe balance is short of what is due. */
 export const payoutShort = (preview: ICreatorPayoutPreview): boolean =>
   preview.availableCents !== undefined &&
   preview.availableCents < preview.totalCents;
-
-/** `run-creator-payouts`' run: each payout sent, or the reason it was not. */
-export const parsePayoutRun = (
-  value: unknown,
-): ICreatorPayoutRun | undefined => {
-  if (!isRecord(value) || !Array.isArray(value.results)) {
-    return undefined;
-  }
-  const results = value.results.filter(isRecord);
-  return {
-    paid: results.filter((result) => result.ok === true).length,
-    failed: results
-      .filter((result) => result.ok !== true)
-      .map((result) =>
-        typeof result.error === 'string' ? result.error : 'unknown',
-      ),
-  };
-};

@@ -91,20 +91,12 @@ const creator: Partial<Dictionary> = {
   'creator.admin.available': 'Verfügbar bei Stripe',
   'creator.admin.availableNote': 'woraus die Überweisungen kommen',
   'creator.admin.short':
-    'Das verfügbare Guthaben von FluidEQ bei Stripe liegt unter dem fälligen Betrag. Überweisungen darüber hinaus scheitern und warten auf den nächsten Lauf; zahlen Sie, sobald sich das Guthaben gesetzt hat.',
+    'Das verfügbare Guthaben von FluidEQ bei Stripe liegt unter dem fälligen Betrag. Überweisungen darüber hinaus scheitern und werden beim nächsten Lauf erneut gesendet.',
   'creator.admin.list': 'Wer bezahlt wird',
   'creator.admin.none':
     'Noch ist niemand fällig. Creator erscheinen hier, sobald Stripe sie bezahlen kann und genug ihrer Einnahmen die Haltefrist hinter sich hat.',
-  'creator.admin.payLead':
-    'Alle in der Liste jetzt bezahlen statt zu warten: insgesamt {amount}, über Stripe.',
-  'creator.admin.confirm':
-    '{amount} jetzt senden? Das bewegt echtes Geld aus dem Stripe-Guthaben von FluidEQ und lässt sich nicht rückgängig machen.',
-  'creator.admin.pay': 'Creator bezahlen',
-  'creator.admin.payNow': 'Ja, jetzt zahlen',
-  'creator.admin.paying': 'Wird bezahlt…',
-  'creator.admin.ran': 'Bezahlt: {paid}. Nicht bezahlt: {failed}.',
   'creator.admin.rules':
-    'Auszahlungen gehen am 1. und 16. von selbst raus; Creator bezahlen sendet sie sofort. Jede Auszahlung wird nur einmal gesendet: Ein abgebrochener Lauf wird vom nächsten abgeschlossen, nie erneut gesendet.',
+    'Auszahlungen gehen am 1. und 16. von selbst raus: zuerst an Creator, dann Ihr Anteil auf Ihr Konto. Jede Auszahlung wird einmal gesendet: Ein Lauf, der mittendrin stoppte, wird vom nächsten beendet, nie doppelt gesendet.',
   'creator.admin.lastPaid': 'Zuletzt ausgezahlt: {date}',
   'creator.admin.neverPaid': 'Noch keine Auszahlung',
   'creator.admin.nextDue': 'nächste automatische Auszahlung: {date}',
@@ -121,14 +113,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.owedNote': 'zurückgehalten {held} · bereit {ready}',
   'creator.admin.sending': 'wird gesendet {amount}',
   'creator.admin.onItsWay': '+ {amount} unterwegs',
-  'creator.admin.yours': 'Ihr Anteil zum Abheben',
+  'creator.admin.yours': 'Ihr Anteil',
   'creator.admin.yoursNote':
-    'das Guthaben abzüglich dessen, was Creatorn zusteht',
+    'geht nach jedem Lauf von selbst auf Ihr Konto; {reserve} bleiben für Erstattungen',
+  'creator.admin.lastToYou': 'zuletzt auf Ihr Konto: {amount}, {date}',
   'creator.admin.yoursShort':
     'Creatorn stehen {amount} mehr zu, als Stripe hält',
   'creator.admin.next': 'Nächste Auszahlung',
   'creator.admin.manual':
-    'Die automatischen Stripe-Auszahlungen auf Ihr Bankkonto würden auch das Geld der Creator mitnehmen. Stellen Sie sie in Stripe auf manuell und heben Sie nur ab, was Ihnen gehört.',
+    'Stripe überweist noch Ihr ganzes Guthaben von selbst auf Ihr Konto, das Geld der Creator inklusive, deshalb hält FluidEQ Ihren Anteil zurück. Stellen Sie in Stripe unter Settings → Payouts den Zeitplan einmal auf Manual: Dann sendet FluidEQ nach jedem Lauf von selbst nur Ihren Anteil.',
   'creator.admin.pendingLine':
     'Von einem früheren Lauf unvollendete Auszahlungen: {count}. Der nächste Lauf schließt sie zuerst ab.',
 };

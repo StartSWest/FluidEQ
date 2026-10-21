@@ -87,20 +87,12 @@ const creator: Partial<Dictionary> = {
   'creator.admin.available': 'Disponibile su Stripe',
   'creator.admin.availableNote': 'da dove escono i trasferimenti',
   'creator.admin.short':
-    'Il saldo disponibile di FluidEQ su Stripe è inferiore al dovuto. I trasferimenti oltre il saldo falliscono e aspettano la prossima esecuzione; paga quando il saldo si è assestato.',
+    'Il saldo disponibile di FluidEQ su Stripe è inferiore al dovuto. I trasferimenti oltre il saldo falliscono e vengono rinviati al pagamento successivo.',
   'creator.admin.list': 'Chi viene pagato',
   'creator.admin.none':
     'Ancora nessuno è dovuto. I creatori compaiono qui quando Stripe può pagarli e abbastanza guadagni hanno superato il periodo di attesa.',
-  'creator.admin.payLead':
-    'Paga subito tutti quelli in elenco invece di aspettare: {amount} in totale, tramite Stripe.',
-  'creator.admin.confirm':
-    'Inviare {amount} ora? Così si spostano soldi veri dal saldo Stripe di FluidEQ e non si può annullare.',
-  'creator.admin.pay': 'Paga i creatori',
-  'creator.admin.payNow': 'Sì, paga ora',
-  'creator.admin.paying': 'Pagamento…',
-  'creator.admin.ran': 'Pagati: {paid}. Non pagati: {failed}.',
   'creator.admin.rules':
-    'I pagamenti partono da soli il 1° e il 16; Paga i creatori li invia subito. Ogni pagamento viene inviato una sola volta: un’esecuzione interrotta viene completata dalla successiva, mai inviata di nuovo.',
+    'I pagamenti partono da soli il 1° e il 16: prima ai creatori, poi la tua parte in banca. Ogni pagamento viene inviato una volta: un’esecuzione interrotta la completa la successiva, mai inviata due volte.',
   'creator.admin.lastPaid': 'Ultimo pagamento: {date}',
   'creator.admin.neverPaid': 'Ancora nessun pagamento',
   'creator.admin.nextDue': 'prossimo pagamento automatico: {date}',
@@ -117,13 +109,15 @@ const creator: Partial<Dictionary> = {
   'creator.admin.owedNote': 'in attesa {held} · pronto {ready}',
   'creator.admin.sending': 'in invio {amount}',
   'creator.admin.onItsWay': '+ {amount} in arrivo',
-  'creator.admin.yours': 'Tuo da prelevare',
-  'creator.admin.yoursNote': 'il saldo meno quanto è dovuto ai creatori',
+  'creator.admin.yours': 'Tuo',
+  'creator.admin.yoursNote':
+    'va in banca da solo dopo ogni pagamento; {reserve} restano per i rimborsi',
+  'creator.admin.lastToYou': 'ultimo invio in banca: {amount}, {date}',
   'creator.admin.yoursShort':
     'ai creatori sono dovuti {amount} in più di quanto ha Stripe',
   'creator.admin.next': 'Prossimo pagamento',
   'creator.admin.manual':
-    'I bonifici automatici di Stripe verso la tua banca porterebbero via anche i soldi dei creatori. Impostali su manuale in Stripe e preleva solo ciò che è tuo.',
+    'Stripe manda ancora tutto il saldo in banca da solo, compresi i soldi dei creatori, quindi FluidEQ trattiene la tua parte. In Stripe, Settings → Payouts, imposta una volta la pianificazione su Manual: FluidEQ invierà solo la tua parte, da solo, dopo ogni pagamento.',
   'creator.admin.pendingLine':
     'Pagamenti lasciati incompleti da un’esecuzione precedente: {count}. La prossima esecuzione li completa per primi.',
 };

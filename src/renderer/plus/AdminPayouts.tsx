@@ -8,11 +8,11 @@ import { useCallback, useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   formatDollars,
+  owedShortCents,
   owedTotal,
   payoutSoon,
   yoursCents,
   type ICreatorPayoutPreview,
-  type ICreatorPayoutRun,
 } from 'common/creatorPayouts';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
@@ -28,22 +28,18 @@ type TShown =
   | { state: 'ready'; preview: ICreatorPayoutPreview };
 
 /**
- * Paying creators (premium 0064, `run-creator-payouts`): who a run would pay
- * now and how much, FluidEQ's balance at Stripe the transfers come out of,
- * and the press that pays them — asked twice, because it moves real money.
+ * Paying creators (premium 0064, `run-creator-payouts`): what is at Stripe,
+ * what is owed to creators, what is FluidEQ's, and who the next run pays.
  *
- * A press, never a clock (Ivan, 2026-10-21). The server finishes a run that
- * died before starting another and never pays the same cent twice; the page
- * only shows and asks.
+ * Only shown, never pressed (Ivan, 2026-10-21: "I wont do a manual" anything,
+ * "I do want the money shown there"). The server pays creators on the 1st and
+ * the 16th, then sends FluidEQ's share to its bank (0069), and never pays the
+ * same cent twice.
  */
 export default function AdminPayouts() {
   const { t, locale } = useTranslation();
   const [attempt, setAttempt] = useState(0);
   const [shown, setShown] = useState<TShown>({ state: 'asking' });
-  const [confirming, setConfirming] = useState(false);
-  const [paying, setPaying] = useState(false);
-  const [ran, setRan] = useState<ICreatorPayoutRun>();
-  const [runFailed, setRunFailed] = useState<TranslationKey>();
   const money = (cents: number) => formatDollars(cents, locale);
   const again = useCallback(() => setAttempt((count) => count + 1), []);
 
@@ -85,23 +81,6 @@ export default function AdminPayouts() {
     }
   }, [shown]);
 
-  const pay = async () => {
-    setPaying(true);
-    setRunFailed(undefined);
-    const outcome = await window.electron?.ipcRenderer
-      ?.runCreatorPayouts?.()
-      .catch(() => undefined);
-    setPaying(false);
-    setConfirming(false);
-    if (outcome?.ok) {
-      setRan(outcome.value);
-    } else {
-      setRunFailed(INSIGHT_ERRORS[outcome ? outcome.reason : 'offline']);
-    }
-    // What is due now, after the run: never the list as it was before it.
-    again();
-  };
-
   const preview = shown.state === 'ready' ? shown.preview : undefined;
   const short =
     preview?.availableCents !== undefined &&
@@ -113,6 +92,7 @@ export default function AdminPayouts() {
   const soon = preview ? payoutSoon(preview, Date.now()) : false;
   const owed = preview ? owedTotal(preview) : undefined;
   const yours = preview ? yoursCents(preview) : undefined;
+  const owedShort = preview ? owedShortCents(preview) : undefined;
   let schedule: string | undefined;
   if (preview) {
     const last =
@@ -126,12 +106,6 @@ export default function AdminPayouts() {
         ? ''
         : t('creator.admin.nextDue', { date: dates.format(preview.nextRunAt) });
     schedule = next ? `${last} · ${next}` : last;
-  }
-  let payLabel: TranslationKey = 'creator.admin.pay';
-  if (paying) {
-    payLabel = 'creator.admin.paying';
-  } else if (confirming) {
-    payLabel = 'creator.admin.payNow';
   }
 
   return (
@@ -154,7 +128,6 @@ export default function AdminPayouts() {
           type="button"
           className={`button small subtle admin-accounts__refresh${shown.state === 'asking' ? ' is-running' : ''}`}
           aria-busy={shown.state === 'asking'}
-          disabled={paying}
           onClick={again}
         >
           <Glyph name="refresh" />
@@ -164,26 +137,6 @@ export default function AdminPayouts() {
 
       {shown.state === 'failed' && (
         <GalleryListNotice text={t(shown.key)} onRetry={again} />
-      )}
-
-      {ran && (
-        <p className="admin-payouts__result" role="status">
-          <Glyph name={ran.failed.length > 0 ? 'alert' : 'check'} />
-          <span>
-            {t('creator.admin.ran', {
-              paid: numbers.format(ran.paid),
-              failed: numbers.format(ran.failed.length),
-            })}
-            {ran.failed.length > 0 && (
-              <small>{[...new Set(ran.failed)].join(' · ')}</small>
-            )}
-          </span>
-        </p>
-      )}
-      {runFailed && (
-        <p className="account__error" role="alert">
-          {t(runFailed)}
-        </p>
       )}
 
       {shown.state === 'asking' && (
@@ -244,21 +197,29 @@ export default function AdminPayouts() {
               </span>
             </section>
             <section
-              className={`admin-server__gauge${yours !== undefined && yours < 0 ? ' is-full' : ''}`}
+              className={`admin-server__gauge${owedShort ? ' is-full' : ''}`}
             >
               <h3 className="account-deletion__eyebrow">
                 {t('creator.admin.yours')}
               </h3>
               <p className="admin-server__value">
-                <strong>
-                  {yours === undefined ? '—' : money(Math.max(0, yours))}
-                </strong>
+                <strong>{yours === undefined ? '—' : money(yours)}</strong>
               </p>
               <span className="admin-server__share">
-                {yours !== undefined && yours < 0
-                  ? t('creator.admin.yoursShort', { amount: money(-yours) })
-                  : t('creator.admin.yoursNote')}
+                {owedShort
+                  ? t('creator.admin.yoursShort', { amount: money(owedShort) })
+                  : t('creator.admin.yoursNote', {
+                      reserve: money(preview.reserveCents ?? 0),
+                    })}
               </span>
+              {preview.lastOwnerPayout && (
+                <span className="admin-server__share">
+                  {t('creator.admin.lastToYou', {
+                    amount: money(preview.lastOwnerPayout.amountCents),
+                    date: dates.format(preview.lastOwnerPayout.at),
+                  })}
+                </span>
+              )}
             </section>
             <section
               className={`admin-server__gauge${short ? ' is-warn' : ''}`}
@@ -283,8 +244,8 @@ export default function AdminPayouts() {
           </div>
 
           {/* Stripe sweeping the balance to the bank on a schedule takes the
-              creators' money with FluidEQ's: the one way a payout comes up
-              short. Said only while it is so. */}
+              creators' money with FluidEQ's, and holds back the server's own
+              transfer of FluidEQ's share (0069). Said only while it is so. */}
           {preview.ownPayouts !== undefined &&
             preview.ownPayouts !== 'manual' && (
               <p className="admin-server__quiet is-alert">
@@ -332,54 +293,6 @@ export default function AdminPayouts() {
               </ul>
             )}
           </section>
-
-          {(count > 0 || preview.pending > 0) && (
-            <section
-              className={`admin-payouts__pay${confirming ? ' is-confirming' : ''}`}
-              aria-live="polite"
-            >
-              <p>
-                {t(
-                  confirming
-                    ? 'creator.admin.confirm'
-                    : 'creator.admin.payLead',
-                  {
-                    amount: money(preview.totalCents),
-                    count: numbers.format(count),
-                  },
-                )}
-              </p>
-              <div className="dialog-frame__actions">
-                {confirming && (
-                  <button
-                    type="button"
-                    className="button small subtle"
-                    disabled={paying}
-                    onClick={() => setConfirming(false)}
-                  >
-                    {t('creator.dialog.cancel')}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  className="button small"
-                  disabled={paying}
-                  aria-busy={paying}
-                  onClick={() => {
-                    if (confirming) {
-                      pay().catch(() => undefined);
-                    } else {
-                      setRan(undefined);
-                      setConfirming(true);
-                    }
-                  }}
-                >
-                  <Glyph name="payout" />
-                  {t(payLabel)}
-                </button>
-              </div>
-            </section>
-          )}
         </>
       )}
 

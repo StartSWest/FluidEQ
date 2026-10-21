@@ -88,20 +88,12 @@ const creator = {
   'creator.admin.available': 'Available at Stripe',
   'creator.admin.availableNote': 'what the transfers come out of',
   'creator.admin.short':
-    "FluidEQ's available balance at Stripe is below what is due. Transfers past it fail and wait for the next run; pay once the balance has settled.",
+    "FluidEQ's available balance at Stripe is below what is due. Transfers past it fail and are sent again at the next run.",
   'creator.admin.list': 'Who gets paid',
   'creator.admin.none':
     'Nobody is due yet. Creators appear here once Stripe can pay them and enough of their earnings is past its hold.',
-  'creator.admin.payLead':
-    'Pay everyone listed now instead of waiting: {amount} in total, through Stripe.',
-  'creator.admin.confirm':
-    "Send {amount} now? This moves real money out of FluidEQ's Stripe balance and can't be undone.",
-  'creator.admin.pay': 'Pay creators',
-  'creator.admin.payNow': 'Yes, pay now',
-  'creator.admin.paying': 'Paying…',
-  'creator.admin.ran': 'Paid: {paid}. Not paid: {failed}.',
   'creator.admin.rules':
-    'Payouts go out by themselves on the 1st and the 16th; Pay creators sends them now. Each payout is sent once: a run that stopped halfway is finished by the next, never sent again.',
+    'Payouts go out by themselves on the 1st and the 16th: creators first, then your share to your bank. Each payout is sent once: a run that stopped halfway is finished by the next, never sent again.',
   'creator.admin.lastPaid': 'Last paid {date}',
   'creator.admin.neverPaid': 'No payout yet',
   'creator.admin.nextDue': 'next automatic payout {date}',
@@ -117,13 +109,15 @@ const creator = {
   'creator.admin.owedNote': 'held {held} · ready {ready}',
   'creator.admin.sending': 'sending {amount}',
   'creator.admin.onItsWay': '+ {amount} on its way',
-  'creator.admin.yours': 'Yours to take out',
-  'creator.admin.yoursNote': 'the balance less what creators are owed',
+  'creator.admin.yours': 'Yours',
+  'creator.admin.yoursNote':
+    'goes to your bank by itself after each run; {reserve} stays for refunds',
+  'creator.admin.lastToYou': 'last sent to your bank: {amount}, {date}',
   'creator.admin.yoursShort':
     'creators are owed {amount} more than Stripe holds',
   'creator.admin.next': 'Next payout',
   'creator.admin.manual':
-    "Stripe's automatic payouts to your bank would take creators' money too. Set them to manual in Stripe, and take out only what is yours.",
+    "Stripe still sends your whole balance to your bank by itself, creators' money included, so FluidEQ holds your share back. In Stripe, Settings → Payouts, set the schedule to Manual once: FluidEQ then sends only your share, by itself, after each run.",
   'creator.admin.pendingLine':
     'Payouts an earlier run left unfinished: {count}. The next run finishes them first.',
 };
