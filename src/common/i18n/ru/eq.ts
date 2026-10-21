@@ -887,7 +887,6 @@ const eq: Partial<Dictionary> = {
   'myCurves.importSkipped': 'Пропущены, так как в них нет кривой: {names}',
   'myCurves.importNote':
     'Импортированные кривые никогда не включаются сами; та, что звучит сейчас, продолжает звучать.',
-  'squigImport.saveMine': 'Сохранить в «Мои кривые»',
   'myCurves.from': 'Откуда она',
   'myCurves.from.paste': 'Вставить',
   'myCurves.from.pasteHint': 'Текст ParametricEQ из Squiglink или AutoEQ',
@@ -924,6 +923,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.quick.next': 'Следующая коррекция',
   'myCurves.quick.none': 'Ничего не звучит',
   'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': 'В «Моих кривых» как «{name}»',
 };
 
 export default eq;

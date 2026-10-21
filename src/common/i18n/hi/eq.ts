@@ -881,7 +881,6 @@ const eq: Partial<Dictionary> = {
   'myCurves.importSkipped': 'कर्व न होने के कारण छोड़ी गईं: {names}',
   'myCurves.importNote':
     'आयात किए गए कर्व अपने आप कभी नहीं बजते; जो अभी बज रहा है वह बजता रहता है।',
-  'squigImport.saveMine': 'मेरे कर्व में सेव करें',
   'myCurves.from': 'यह कहाँ से आता है',
   'myCurves.from.paste': 'पेस्ट करें',
   'myCurves.from.pasteHint': 'Squiglink का ParametricEQ टेक्स्ट, या AutoEQ का',
@@ -918,6 +917,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.quick.next': 'अगला सुधार',
   'myCurves.quick.none': 'कोई नहीं चल रहा',
   'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': 'मेरे कर्व में “{name}” नाम से',
 };
 
 export default eq;

@@ -896,7 +896,6 @@ const eq: Partial<Dictionary> = {
   'myCurves.importSkipped': 'Laissées de côté faute de courbe : {names}',
   'myCurves.importNote':
     'Les courbes importées ne jouent jamais d’elles-mêmes ; celle qui joue maintenant continue.',
-  'squigImport.saveMine': 'Enregistrer dans Mes courbes',
   'myCurves.from': 'D’où elle vient',
   'myCurves.from.paste': 'Coller',
   'myCurves.from.pasteHint':
@@ -935,6 +934,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.quick.next': 'Correction suivante',
   'myCurves.quick.none': 'Aucune en cours',
   'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': 'Dans Mes courbes sous « {name} »',
 };
 
 export default eq;

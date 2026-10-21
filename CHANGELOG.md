@@ -47,8 +47,10 @@ and the De-esser is not heard, and everything else plays as before.
 - **My curves: your own list beside OPRA's.** EQ Presets has a **My curves**
   tab next to the OPRA library. Keep any curve there under a name of your
   choosing: pasted from Squiglink or AutoEQ, read from a .txt file, taken from
-  your EQ as it plays, or copied from the OPRA correction playing (the OPRA
-  tab and the Squiglink panel each have **Save to My curves** too). A line
+  your EQ as it plays, or copied from the OPRA correction playing. The OPRA
+  tab and the Squiglink import keep their curve with one press of **Save to
+  My curves**, under the name it already has, and then say it is in the list.
+  The Squiglink import now lives under the My curves tab. A line
   that cannot be read is named, never dropped without a word. Each curve shows
   its shape, where it came from and which ears it is for, and plays with one
   press as the headphone correction or goes into your EQ bands (that one asks

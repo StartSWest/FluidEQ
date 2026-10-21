@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IOpraCurve, IOpraProduct, OPRA_SOURCE_ID } from 'common/constants';
 import { headphonePageUrl } from 'common/headphonePage';
+import { curveTextOf } from 'common/curveText';
 import { useFluidEqLayers } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import {
@@ -35,7 +36,7 @@ import {
   opraProductLabel as productLabel,
   subscribeOpraProducts,
 } from './opraProducts';
-import SaveOpraToMyCurves from './eq/SaveOpraToMyCurves';
+import SaveToMyCurves from './eq/SaveToMyCurves';
 
 const OPRA_URL = 'https://github.com/opra-project/OPRA';
 
@@ -331,7 +332,20 @@ const OpraPicker = () => {
               {applyLabel}
             </Button>
             {isApplied && headphone && !headphone.eqImport && appliedLabel && (
-              <SaveOpraToMyCurves headphone={headphone} name={appliedLabel} />
+              // A copy of the pick playing, at full strength, under the
+              // library's name: the library itself is never changed.
+              <SaveToMyCurves
+                curve={{
+                  text: curveTextOf({
+                    preAmp: 0,
+                    filters: headphone.filters,
+                    graphicEq: headphone.graphicEq,
+                  }),
+                  name: appliedLabel,
+                  source: 'opra',
+                  ears: 'both',
+                }}
+              />
             )}
           </div>
           {selectedCurve && (

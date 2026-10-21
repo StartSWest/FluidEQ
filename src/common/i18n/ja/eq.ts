@@ -881,7 +881,6 @@ const eq: Partial<Dictionary> = {
   'myCurves.importSkipped': 'カーブがないため除外：{names}',
   'myCurves.importNote':
     '読み込んだカーブが勝手に鳴ることはありません。今鳴っているカーブはそのままです。',
-  'squigImport.saveMine': 'マイカーブに保存',
   'myCurves.from': '取り込み元',
   'myCurves.from.paste': '貼り付け',
   'myCurves.from.pasteHint': 'SquiglinkまたはAutoEQのParametricEQテキスト',
@@ -916,6 +915,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.quick.next': '次の補正',
   'myCurves.quick.none': '再生中なし',
   'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': 'マイカーブに「{name}」として保存済み',
 };
 
 export default eq;

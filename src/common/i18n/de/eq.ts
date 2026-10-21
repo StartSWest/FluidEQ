@@ -895,7 +895,6 @@ const eq: Partial<Dictionary> = {
   'myCurves.importSkipped': 'Ausgelassen, weil ohne Kurve: {names}',
   'myCurves.importNote':
     'Importierte Kurven spielen nie von selbst; die gerade laufende läuft weiter.',
-  'squigImport.saveMine': 'In Meine Kurven speichern',
   'myCurves.from': 'Woher sie kommt',
   'myCurves.from.paste': 'Einfügen',
   'myCurves.from.pasteHint': 'ParametricEQ-Text von Squiglink oder AutoEQ',
@@ -933,6 +932,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.quick.next': 'Nächste Korrektur',
   'myCurves.quick.none': 'Keine aktiv',
   'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': 'In Meine Kurven als „{name}“',
 };
 
 export default eq;

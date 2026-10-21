@@ -834,7 +834,6 @@ const eq: Partial<Dictionary> = {
   'myCurves.importSkipped': '因没有曲线而略过：{names}',
   'myCurves.importNote':
     '导入的曲线永远不会自行播放；当前正在播放的曲线继续播放。',
-  'squigImport.saveMine': '保存到“我的曲线”',
   'myCurves.from': '来源',
   'myCurves.from.paste': '粘贴',
   'myCurves.from.pasteHint': 'Squiglink 或 AutoEQ 的 ParametricEQ 文本',
@@ -868,6 +867,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.quick.next': '下一个校正',
   'myCurves.quick.none': '无正在播放',
   'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': '已在“我的曲线”中，名为“{name}”',
 };
 
 export default eq;

@@ -196,24 +196,34 @@ SPDX-License-Identifier: GPL-3.0-or-later
   font-weight: $weight-semibold;
 }
 
+// A small screen set into the row (`MyCurveSpark.tsx`): the same well the
+// preset arrows are cut into, so the curve reads as a display, not a doodle.
 .my-curve__spark {
   display: block;
-  width: 120px;
-  height: 34px;
+  width: 132px;
+  height: 40px;
   flex: 0 0 auto;
+  border: 1px solid rgba($white, 0.06);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-base 55%, transparent);
+  color: $secondary-default;
 }
 
 .my-curve__zero {
   stroke: $border-subtle;
+  stroke-dasharray: 2 3;
   stroke-width: 1;
 }
 
 .my-curve__line {
   fill: none;
-  stroke: $secondary-default;
+  stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.6;
+  stroke-width: 1.7;
+  filter: drop-shadow(
+    0 0 2px color-mix(in srgb, currentColor 55%, transparent)
+  );
 }
 
 .my-curve__ears {
@@ -299,6 +309,26 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
   .my-curve__delete {
     color: $red;
+  }
+}
+
+// Where Save to My curves stood once the curve is in the list
+// (`SaveToMyCurves.tsx`): as tall as the buttons beside it, so the row does
+// not jump when the press is answered.
+.my-curve-kept {
+  display: inline-flex;
+  min-width: 0;
+  min-height: $control-height-sm;
+  align-items: center;
+  gap: 6px;
+  color: $text-muted;
+  font-size: $text-small;
+
+  .menu-icon {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    color: $active;
   }
 }
 

@@ -18,7 +18,7 @@ import type { TranslationKey } from 'common/i18n';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import MyCurveDialogShell from './MyCurveDialogShell';
-import { CurveSpark } from './MyCurveRow';
+import MyCurveSpark from './MyCurveSpark';
 import { getMyCurves, importMyCurves } from './myCurvesStore';
 
 const CHOICES: readonly TCurveImportChoice[] = ['keep-both', 'replace', 'skip'];
@@ -261,7 +261,7 @@ export default function MyCurvesImportDialog({
                     </span>
                   )}
                 </span>
-                <CurveSpark text={row.text} />
+                <MyCurveSpark text={row.text} />
                 {row.clashesWith && (
                   <span
                     className="segmented my-curve-import__choice"

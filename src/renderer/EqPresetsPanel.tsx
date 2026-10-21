@@ -26,11 +26,12 @@ type TLibrary = 'opra' | 'mine';
  * it paid for the height.
  *
  * The curves come from two libraries, one tab each: OPRA's, bundled, and the
- * listener's own (My curves, Ivan 2026-10-20). A Squiglink export somebody
- * pasted in sits below both, because it can go either way — played at once,
- * or kept in My curves. Each card is controls on the left and the curve they
- * produce on the right, and each control carries its own sentence of help
- * underneath it.
+ * listener's own (My curves, Ivan 2026-10-20). The Squiglink import sits
+ * under My curves alone, where what it brings in is kept (Ivan, 2026-10-20:
+ * "remove the Squiglink on the first tab and keep it only on my preset"):
+ * under OPRA it was a second, unrelated way in below the library. Each card
+ * is controls on the left and the curve they produce on the right, and each
+ * control carries its own sentence of help underneath it.
  */
 const EqPresetsPanel = () => {
   const { t } = useTranslation();
@@ -85,7 +86,7 @@ const EqPresetsPanel = () => {
         {library === 'opra' ? <OpraPicker /> : <MyCurvesPanel />}
       </div>
 
-      <SquiglinkImport />
+      {library === 'mine' && <SquiglinkImport />}
     </section>
   );
 };

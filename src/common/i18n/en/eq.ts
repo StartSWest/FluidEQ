@@ -902,7 +902,6 @@ const eq = {
   'myCurves.importSkipped': 'Left out, holding no curve: {names}',
   'myCurves.importNote':
     'Imported curves never play by themselves; the one playing now keeps playing.',
-  'squigImport.saveMine': 'Save to My curves',
   'myCurves.from': 'Where it comes from',
   'myCurves.from.paste': 'Paste',
   'myCurves.from.pasteHint': 'Squiglink’s ParametricEQ text, or AutoEQ’s',
@@ -939,6 +938,7 @@ const eq = {
   'myCurves.quick.next': 'Next correction',
   'myCurves.quick.none': 'None playing',
   'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': 'In My curves as “{name}”',
 } as const;
 
 export default eq;

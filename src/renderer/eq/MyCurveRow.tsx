@@ -8,12 +8,12 @@ import {
   type KeyboardEvent,
 } from 'react';
 import type { IMyCurve, TCurveSource } from 'common/myCurves';
-import { CURVE_NAME_MAX, readCurveText } from 'common/myCurves';
+import { CURVE_NAME_MAX } from 'common/myCurves';
 import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { useClickOutside } from '../utils/utils';
 import MenuIcon from '../icons/MenuIcon';
-import { getCurvePoints, makePath } from '../graph/curvePreview';
+import MyCurveSpark from './MyCurveSpark';
 import { IMPORT_EAR_NAMES } from './ImportEarsPick';
 
 export const SOURCE_NAMES: Record<TCurveSource, TranslationKey> = {
@@ -21,49 +21,6 @@ export const SOURCE_NAMES: Record<TCurveSource, TranslationKey> = {
   file: 'myCurves.source.file',
   eq: 'myCurves.source.eq',
   opra: 'myCurves.source.opra',
-};
-
-/** The row's drawing of the curve: its shape at a glance, not a reading. */
-const SPARK_BOX = {
-  width: 120,
-  height: 34,
-  padding: { top: 3, right: 2, bottom: 3, left: 2 },
-};
-
-export const CurveSpark = ({ text }: { text: string }) => {
-  const path = useMemo(() => {
-    const parsed = readCurveText(text);
-    if (!parsed) {
-      return '';
-    }
-    return makePath(
-      getCurvePoints(
-        parsed.preAmp,
-        parsed.eqFormat,
-        parsed.graphicEq,
-        parsed.filters,
-      ),
-      SPARK_BOX,
-      { min: -12, max: 12 },
-    ).path;
-  }, [text]);
-  return (
-    <svg
-      className="my-curve__spark"
-      viewBox={`0 0 ${SPARK_BOX.width} ${SPARK_BOX.height}`}
-      aria-hidden="true"
-      focusable="false"
-    >
-      <line
-        className="my-curve__zero"
-        x1="0"
-        x2={SPARK_BOX.width}
-        y1={SPARK_BOX.height / 2}
-        y2={SPARK_BOX.height / 2}
-      />
-      <path className="my-curve__line" d={path} />
-    </svg>
-  );
 };
 
 interface IMyCurveRowProps {
@@ -103,6 +60,10 @@ export default function MyCurveRow({
   const [draft, setDraft] = useState(curve.name);
   const [armed, setArmed] = useState<'delete' | 'eq' | undefined>();
   const [copied, setCopied] = useState(false);
+  // The row the pointer or the keyboard is on: the one whose Apply wears the
+  // loud style. Every row loud at once read as a column of buttons with
+  // nothing standing out.
+  const [isHot, setHot] = useState(false);
   const added = useMemo(
     () =>
       new Date(curve.addedAt).toLocaleDateString(locale, {
@@ -141,7 +102,18 @@ export default function MyCurveRow({
   };
 
   return (
-    <li ref={rowRef} className={`my-curve${isPlaying ? ' is-playing' : ''}`}>
+    <li
+      ref={rowRef}
+      className={`my-curve${isPlaying ? ' is-playing' : ''}`}
+      onPointerEnter={() => setHot(true)}
+      onPointerLeave={() => setHot(false)}
+      onFocus={() => setHot(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setHot(false);
+        }
+      }}
+    >
       <span className="my-curve__name">
         {isRenaming ? (
           <input
@@ -179,12 +151,12 @@ export default function MyCurveRow({
           <span>{t('myCurves.added', { date: added })}</span>
         </span>
       </span>
-      <CurveSpark text={curve.text} />
+      <MyCurveSpark text={curve.text} />
       <span className="my-curve__ears">{t(IMPORT_EAR_NAMES[curve.ears])}</span>
       <span className="my-curve__actions">
         <button
           type="button"
-          className={`button small${isPlaying ? ' subtle' : ''}`}
+          className={`button small${isHot && !isPlaying ? '' : ' subtle'}`}
           disabled={isDisabled || isPlaying}
           onClick={() => onApplyCurve(curve)}
         >

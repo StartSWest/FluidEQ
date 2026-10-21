@@ -28,7 +28,7 @@ import ImportEarsPick from './eq/ImportEarsPick';
 import type { TImportEars } from '../common/bandEars';
 import EqCurveChart from './graph/EqCurveChart';
 import SquiglinkImportConfirm from './components/SquiglinkImportConfirm';
-import MyCurveAddDialog from './eq/MyCurveAddDialog';
+import SaveToMyCurves from './eq/SaveToMyCurves';
 import { PREVIEW_BOX, makeCurve, makePath } from './graph/curvePreview';
 import { hasCustomFxCurve } from '../common/customFx';
 import {
@@ -45,7 +45,7 @@ import './styles/SquiglinkImport.scss';
 const SQUIGLINK_URL = 'https://squig.link/';
 
 const SquiglinkImport = () => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const {
     eqImport: bandImport,
     activeDeviceId,
@@ -67,7 +67,6 @@ const SquiglinkImport = () => {
   );
   const [fileName, setFileName] = useState('');
   // The pasted curve, handed to My curves' own dialog to be named and kept.
-  const [isSaving, setSaving] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [confirmDeviceId, setConfirmDeviceId] = useState<string>();
   const cancelImport = useCallback(() => setConfirmDeviceId(undefined), []);
@@ -401,29 +400,29 @@ const SquiglinkImport = () => {
                 ? t('squigImport.importing')
                 : t('squigImport.applyCurve')}
             </Button>
-            <Button
-              className="small subtle squig-import__save"
-              ariaLabel={t('squigImport.saveMine')}
-              isDisabled={isImporting || !parsedText || parsedText.isEmpty}
-              handleChange={() => setSaving(true)}
-            >
-              <MenuIcon name="save" />
-              {t('squigImport.saveMine')}
-            </Button>
-          </div>
-          {isSaving && (
-            <MyCurveAddDialog
-              initial={{
-                text,
-                // The file's name when there is one; otherwise the
-                // dialog's own "Squiglink curve, <date>".
-                name: fileName ? fileName.replace(/\.[^.]+$/, '') : undefined,
-                source: fileName ? 'file' : 'squiglink',
-                ears,
-              }}
-              onClose={() => setSaving(false)}
+            <SaveToMyCurves
+              isDisabled={isImporting}
+              curve={
+                livePreview
+                  ? {
+                      text,
+                      // The file's name when there is one, which Squiglink
+                      // writes after the headphone; a paste has none.
+                      name: fileName
+                        ? fileName.replace(/\.[^.]+$/, '')
+                        : t('myCurves.defaultName', {
+                            date: new Date().toLocaleDateString(locale, {
+                              day: 'numeric',
+                              month: 'short',
+                            }),
+                          }),
+                      source: fileName ? 'file' : 'squiglink',
+                      ears,
+                    }
+                  : undefined
+              }
             />
-          )}
+          </div>
         </div>
 
         <div className="squig-import__preview">

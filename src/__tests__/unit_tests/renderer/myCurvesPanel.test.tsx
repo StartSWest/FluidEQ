@@ -198,6 +198,29 @@ it('forgets a first press once the person clicks elsewhere, or presses Escape', 
   expect(screen.queryByRole('menu')).not.toBeInTheDocument();
 });
 
+it('gives the loud Apply to the row the pointer or the keyboard is on, never to every row', async () => {
+  seed();
+  await show();
+  const loud = () =>
+    screen
+      .getAllByRole('button', { name: 'Apply as curve' })
+      .filter((button) => !button.classList.contains('subtle'));
+  expect(loud()).toHaveLength(0);
+  const zeta = screen.getByText('Zeta warm').closest('li') as HTMLElement;
+  fireEvent.pointerEnter(zeta);
+  expect(loud()).toEqual([
+    rowOf('Zeta warm').getByRole('button', { name: 'Apply as curve' }),
+  ]);
+  fireEvent.pointerLeave(zeta);
+  expect(loud()).toHaveLength(0);
+  fireEvent.focus(
+    rowOf('Alpha left').getByRole('button', { name: 'Apply as EQ' }),
+  );
+  expect(loud()).toEqual([
+    rowOf('Alpha left').getByRole('button', { name: 'Apply as curve' }),
+  ]);
+});
+
 it('marks the curve the correction layer is playing, by its text', async () => {
   seed();
   await show({

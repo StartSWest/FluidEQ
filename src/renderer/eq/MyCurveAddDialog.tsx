@@ -29,14 +29,6 @@ import {
   useMyCurves,
 } from './myCurvesStore';
 
-export interface IMyCurveDraft {
-  text: string;
-  /** Absent, the dialog names it after where it came from and the date. */
-  name?: string;
-  source: TCurveSource;
-  ears: TImportEars;
-}
-
 const ORIGIN_OF: Record<TCurveSource, TCurveOrigin> = {
   squiglink: 'paste',
   file: 'file',
@@ -54,18 +46,17 @@ const SOURCE_OF: Record<TCurveOrigin, TCurveSource> = {
 /**
  * Add a curve to My curves, or edit one already there (`editing`): pasted,
  * read from a .txt file, taken from the EQ as it plays, or copied from the
- * OPRA correction playing now — or handed over already filled (`initial`) by
- * the Squiglink panel or the OPRA library. The curve is drawn as it will play
- * before it is kept, every line it could not read is named, and it is named
- * on the spot, from where it came: a list of "Squiglink export" ten times over
- * is not a list anybody can pick from.
+ * OPRA correction playing now. The curve is drawn as it will play before it
+ * is kept, every line it could not read is named, and it is named on the
+ * spot, from where it came: a list of "Squiglink export" ten times over is
+ * not a list anybody can pick from. The Squiglink panel and the OPRA library
+ * keep their curve in one press instead (`SaveToMyCurves`): theirs is already
+ * on screen, named.
  */
 export default function MyCurveAddDialog({
-  initial,
   editing,
   onClose,
 }: {
-  initial?: IMyCurveDraft;
   editing?: IMyCurve;
   onClose: () => void;
 }) {
@@ -88,16 +79,15 @@ export default function MyCurveAddDialog({
       new Date().toLocaleDateString(locale, { day: 'numeric', month: 'short' }),
     [locale],
   );
-  const start = editing ?? initial;
-  const [text, setText] = useState(start?.text ?? '');
+  const [text, setText] = useState(editing?.text ?? '');
   const [origin, setOrigin] = useState<TCurveOrigin>(
-    ORIGIN_OF[start?.source ?? 'squiglink'],
+    ORIGIN_OF[editing?.source ?? 'squiglink'],
   );
   const [name, setName] = useState(
-    start?.name ?? t('myCurves.defaultName', { date: today }),
+    editing?.name ?? t('myCurves.defaultName', { date: today }),
   );
-  const [isNameTyped, setNameTyped] = useState(Boolean(start?.name));
-  const [ears, setEars] = useState<TImportEars>(start?.ears ?? 'both');
+  const [isNameTyped, setNameTyped] = useState(Boolean(editing));
+  const [ears, setEars] = useState<TImportEars>(editing?.ears ?? 'both');
   const [busy, setBusy] = useState(false);
   const [fileFailed, setFileFailed] = useState(false);
 
