@@ -828,6 +828,7 @@ const eq = {
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
   'myCurves.tab.opra': 'OPRA library',
   'myCurves.tab.mine': 'My curves',
+  'myCurves.tab.squiglink': 'Squiglink',
   'myCurves.search': 'Search your curves',
   'myCurves.sort': 'Sort',
   'myCurves.sort.recent': 'Recent',
@@ -837,7 +838,7 @@ const eq = {
   'myCurves.export': 'Export list',
   'myCurves.empty.title': 'No curves of your own yet',
   'myCurves.empty.body':
-    'Add one from a Squiglink export or a .txt file, or save one from the Squiglink panel below. Your curves stay on this computer until you export them.',
+    'Add one from a Squiglink export or a .txt file, or save one from the Squiglink tab. Your curves stay on this computer until you export them.',
   'myCurves.noMatch': 'No curve has that in its name.',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'File',

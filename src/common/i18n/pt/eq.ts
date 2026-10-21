@@ -813,6 +813,7 @@ const eq: Partial<Dictionary> = {
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
   'myCurves.tab.opra': 'Biblioteca OPRA',
   'myCurves.tab.mine': 'Minhas curvas',
+  'myCurves.tab.squiglink': 'Squiglink',
   'myCurves.search': 'Pesquise nas suas curvas',
   'myCurves.sort': 'Ordenar',
   'myCurves.sort.recent': 'Recentes',
@@ -822,7 +823,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'Exportar lista',
   'myCurves.empty.title': 'Ainda não há curvas suas',
   'myCurves.empty.body':
-    'Adicione uma a partir de uma exportação do Squiglink ou de um arquivo .txt, ou salve uma no painel do Squiglink abaixo. Suas curvas ficam neste computador até você exportá-las.',
+    'Adicione uma a partir de uma exportação do Squiglink ou de um arquivo .txt, ou salve uma na aba Squiglink. Suas curvas ficam neste computador até você exportá-las.',
   'myCurves.noMatch': 'Nenhuma curva tem isso no nome.',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'Arquivo',

@@ -26,14 +26,31 @@ jest.mock('renderer/eq/myCurvesStore', () => ({
   useMyCurves: () => [],
 }));
 
-it('keeps the Squiglink import under My curves alone, not under OPRA', async () => {
+it('gives Squiglink a tab of its own, right after OPRA, never under a list that grows', async () => {
   render(<EqPresetsPanel />);
   await act(async () => undefined);
+  expect(
+    screen
+      .getAllByRole('tab')
+      .map((tab) => tab.textContent?.replace(/\d+$/, '')),
+  ).toEqual(['OPRA library', 'Squiglink', 'My curves']);
+  // OPRA's library opens, and nothing else is on the page with it.
   expect(screen.getByTestId('opra')).toBeInTheDocument();
   expect(screen.queryByTestId('squiglink')).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole('tab', { name: 'Squiglink' }));
+  expect(screen.getByRole('tab', { name: 'Squiglink' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  expect(screen.getByTestId('squiglink')).toBeInTheDocument();
+  expect(screen.getByRole('tabpanel')).toHaveAttribute(
+    'aria-labelledby',
+    'autoeq-tab-squiglink',
+  );
+  expect(screen.queryByTestId('opra')).not.toBeInTheDocument();
+  expect(screen.queryByTestId('mine')).not.toBeInTheDocument();
+  // My curves is the list alone.
   fireEvent.click(screen.getByRole('tab', { name: /My curves/ }));
   expect(screen.getByTestId('mine')).toBeInTheDocument();
-  expect(screen.getByTestId('squiglink')).toBeInTheDocument();
-  fireEvent.click(screen.getByRole('tab', { name: /OPRA library/ }));
   expect(screen.queryByTestId('squiglink')).not.toBeInTheDocument();
 });

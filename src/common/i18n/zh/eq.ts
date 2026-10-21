@@ -763,6 +763,7 @@ const eq: Partial<Dictionary> = {
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
   'myCurves.tab.opra': 'OPRA 曲线库',
   'myCurves.tab.mine': '我的曲线',
+  'myCurves.tab.squiglink': 'Squiglink',
   'myCurves.search': '搜索你的曲线',
   'myCurves.sort': '排序',
   'myCurves.sort.recent': '最近',
@@ -772,7 +773,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': '导出列表',
   'myCurves.empty.title': '还没有你自己的曲线',
   'myCurves.empty.body':
-    '从 Squiglink 导出内容或 .txt 文件添加，或在下方的 Squiglink 面板中保存。你的曲线保存在这台电脑上，直到你导出它们。',
+    '从 Squiglink 导出内容或 .txt 文件添加，或在 Squiglink 标签页中保存。你的曲线保存在这台电脑上，直到你导出它们。',
   'myCurves.noMatch': '没有名称包含此内容的曲线。',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': '文件',

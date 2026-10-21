@@ -806,6 +806,7 @@ const eq: Partial<Dictionary> = {
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
   'myCurves.tab.opra': 'OPRAライブラリ',
   'myCurves.tab.mine': 'マイカーブ',
+  'myCurves.tab.squiglink': 'Squiglink',
   'myCurves.search': 'カーブを検索',
   'myCurves.sort': '並べ替え',
   'myCurves.sort.recent': '新しい順',
@@ -815,7 +816,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'リストを書き出す',
   'myCurves.empty.title': 'まだ自分のカーブがありません',
   'myCurves.empty.body':
-    'SquiglinkのエクスポートやTXTファイルから追加するか、下のSquiglinkパネルから保存してください。カーブは書き出すまでこのパソコンに保存されます。',
+    'SquiglinkのエクスポートやTXTファイルから追加するか、Squiglinkタブから保存してください。カーブは書き出すまでこのパソコンに保存されます。',
   'myCurves.noMatch': 'その名前を含むカーブはありません。',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'ファイル',

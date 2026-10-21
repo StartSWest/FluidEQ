@@ -805,6 +805,7 @@ const eq: Partial<Dictionary> = {
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
   'myCurves.tab.opra': 'OPRA लाइब्रेरी',
   'myCurves.tab.mine': 'मेरे कर्व',
+  'myCurves.tab.squiglink': 'Squiglink',
   'myCurves.search': 'अपने कर्व खोजें',
   'myCurves.sort': 'क्रम',
   'myCurves.sort.recent': 'हाल के',
@@ -814,7 +815,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'सूची निर्यात करें',
   'myCurves.empty.title': 'अभी तक आपका कोई कर्व नहीं',
   'myCurves.empty.body':
-    'Squiglink एक्सपोर्ट या .txt फ़ाइल से एक जोड़ें, या नीचे Squiglink पैनल से सेव करें। आपके कर्व इस कंप्यूटर पर रहते हैं, जब तक आप उन्हें निर्यात न करें।',
+    'Squiglink एक्सपोर्ट या .txt फ़ाइल से एक जोड़ें, या Squiglink टैब से सेव करें। आपके कर्व इस कंप्यूटर पर रहते हैं, जब तक आप उन्हें निर्यात न करें।',
   'myCurves.noMatch': 'किसी कर्व के नाम में यह नहीं है।',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'फ़ाइल',

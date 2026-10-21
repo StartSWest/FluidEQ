@@ -214,9 +214,10 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The two libraries, one tab each (`EqPresetsPanel.tsx`): OPRA's and the
-// listener's own. The EQ mode card's underline tabs, kept to their words'
-// width at the card's left edge rather than stretched across the page.
+// The three ways to a curve, one tab each (`EqPresetsPanel.tsx`): OPRA's
+// library, Squiglink, and the listener's own. The EQ mode card's underline
+// tabs, kept to their words' width at the card's left edge rather than
+// stretched across the page.
 .autoeq-panel__libraries {
   display: flex;
   flex: 0 0 auto;
@@ -253,6 +254,15 @@ it under the terms of the GNU General Public License version 3 or later.
     outline: 2px solid $secondary-default;
     outline-offset: -2px;
   }
+}
+
+// Squiglink's tab holds its import card as it is, a surface of its own, kept
+// at its content's height like the libraries' well.
+.autoeq-panel__squiglink {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .autoeq-panel__tab-count {
