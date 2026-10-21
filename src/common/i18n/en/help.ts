@@ -285,11 +285,11 @@ const help = {
   'help.headphones.intro':
     'A headphone correction compensates for a measured model. It is a starting point you can combine with your own bands and presets. Check the exact model and the measurement author before applying a result.',
   'help.headphones.steps':
-    'Open EQ → EQ presets and search for your headphone model. Review the available measurements and choose the matching entry.\nFor EQ text from another tool, use Import EQ settings in the actions menu. Review the parsed bands and curve before applying.\nFor Squiglink, paste its export into the import panel. Apply as EQ replaces your bands; Apply as curve adds it as a headphone correction with its own strength.\nImport into, beside Apply as EQ, picks Both ears, Left ear or Right ear: one ear replaces only that ear’s bands and leaves the other ear as it was.',
+    'Open EQ → EQ presets and search for your headphone model. Review the available measurements and choose the matching entry.\nFor EQ text from another tool, use Import EQ settings in the actions menu. Review the parsed bands and curve before applying.\nFor Squiglink, open the Squiglink tab and paste its export. Apply as EQ replaces your bands; Apply as curve adds it as a headphone correction with its own strength; Save to My curves keeps it with one press.\nMy curves is your own list beside the OPRA library: Add curve takes a Squiglink export, a .txt file, your EQ as it is now or an OPRA pick. Each curve has Apply as curve and Apply as EQ, and its menu renames it, edits its bands, duplicates it, copies it as text or deletes it. Export list and Import list carry the whole list to another computer.\nImport into, beside Apply as EQ, picks Both ears, Left ear or Right ear: one ear replaces only that ear’s bands and leaves the other ear as it was.',
   'help.headphones.tip':
     'A preview marked not applied is not changing your sound. Avoid stacking two full corrections for the same headphones unless that is deliberate; compare with the headphone layer switched off.',
   'help.headphones.keywords':
-    'autoeq, headphone eq, headphone correction, headphone profile, harman, target curve, iem, iems, earphones, earbuds, in-ear, squiglink, crinacle, oratory1990, import eq, measurements, frequency response, left ear, right ear, one ear',
+    'autoeq, headphone eq, headphone correction, headphone profile, harman, target curve, iem, iems, earphones, earbuds, in-ear, squiglink, crinacle, oratory1990, import eq, measurements, frequency response, left ear, right ear, one ear, my curves, saved curves, curve list, export list, import list',
 
   'help.convolution.title': 'Use an impulse response',
   'help.convolution.intro':

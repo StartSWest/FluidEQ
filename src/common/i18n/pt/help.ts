@@ -287,11 +287,11 @@ const help: Record<keyof typeof en, string> = {
   'help.headphones.intro':
     'A correção compensa um modelo medido e pode ser combinada com suas bandas e seus presets. Confira modelo exato e autor da medição.',
   'help.headphones.steps':
-    'Abra EQ → Presets EQ, procure o modelo dos seus fones, revise as medições disponíveis e escolha a correspondente.\nPara texto de EQ de outra ferramenta, use Importar configurações de EQ no menu de ações. Confira as bandas e a curva interpretadas antes de aplicar.\nPara o Squiglink, cole a exportação dele no painel de importação. Aplicar como EQ substitui suas bandas; Aplicar como curva a adiciona como uma correção de fones com intensidade própria.\nImportar em, ao lado de Aplicar como EQ, escolhe Ambos os ouvidos, Ouvido esquerdo ou Ouvido direito: um ouvido só substitui apenas as bandas desse ouvido e deixa o outro como estava.',
+    'Abra EQ → Presets EQ, procure o modelo dos seus fones, revise as medições disponíveis e escolha a correspondente.\nPara texto de EQ de outra ferramenta, use Importar configurações de EQ no menu de ações. Confira as bandas e a curva interpretadas antes de aplicar.\nPara o Squiglink, abra a aba Squiglink e cole a exportação dele. Aplicar como EQ substitui suas bandas; Aplicar como curva a adiciona como uma correção de fones com intensidade própria; Salvar em Minhas curvas a guarda com um só clique.\nMinhas curvas é a sua própria lista ao lado da Biblioteca OPRA: Adicionar curva aceita uma exportação do Squiglink, um arquivo .txt, o seu EQ como está ou uma escolha do OPRA. Cada curva tem Aplicar como curva e Aplicar como EQ, e o menu dela renomeia, edita as bandas, duplica, copia como texto ou exclui. Exportar lista e Importar lista levam a lista inteira para outro computador.\nImportar em, ao lado de Aplicar como EQ, escolhe Ambos os ouvidos, Ouvido esquerdo ou Ouvido direito: um ouvido só substitui apenas as bandas desse ouvido e deixa o outro como estava.',
   'help.headphones.tip':
     'Uma prévia marcada como Não aplicada não muda o som. Evite duas correções completas para o mesmo fone por acidente; compare desligando a camada de fones.',
   'help.headphones.keywords':
-    'AutoEq, Harman, curva alvo, fones de ouvido, headphone, headset, IEM, in-ear, earbuds, TWS, Crinacle, oratory1990, resposta de frequência, calibração, ouvido esquerdo, ouvido direito, um ouvido',
+    'AutoEq, Harman, curva alvo, fones de ouvido, headphone, headset, IEM, in-ear, earbuds, TWS, Crinacle, oratory1990, resposta de frequência, calibração, ouvido esquerdo, ouvido direito, um ouvido, minhas curvas, curvas salvas, lista de curvas, exportar lista, importar lista',
 
   'help.convolution.title': 'Use uma resposta ao impulso',
   'help.convolution.intro':
