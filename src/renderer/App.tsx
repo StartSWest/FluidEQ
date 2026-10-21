@@ -303,8 +303,26 @@ const AppContent = () => {
    * rest always opens at the bottom"): there the graph is a monitor of what
    * the page is doing, not the instrument the page is edited on.
    */
+  /**
+   * Expanded, on a page with no picture of its own, is the same column with
+   * the page folded away: the head stays, the graph keeps its card — rounded,
+   * and floating under the Backdrop — and takes the height the page gave up
+   * (Ivan, 2026-10-18: "they need to be just expanding the graph and hiding
+   * the eq ... on backdrop mode ... keeping the floating look"). It used to be
+   * the overlay everywhere: a square sheet lifted over the whole column, head
+   * included. The overlay stays for full screen and for the picture-led pages
+   * — Media, Library, Karaoke — where the graph is drawn over the video, the
+   * record or the lyrics, and seeing them through it is the point.
+   */
+  const isGraphGrown =
+    graphView === 'expanded' &&
+    showsGraph &&
+    activeWorkspaceTab !== 'video' &&
+    activeWorkspaceTab !== 'library' &&
+    activeWorkspaceTab !== 'karaoke';
+  const isGraphOverlay = isGraphFullScreen && !isGraphGrown;
   const isGraphFirst =
-    activeWorkspaceTab === 'eq' && showsGraph && !isGraphFullScreen;
+    activeWorkspaceTab === 'eq' && showsGraph && !isGraphOverlay;
   const [eqTitleSlot, setEqTitleSlot] = useState<HTMLElement | null>(null);
   const eqGroupPills = (
     <EqGroupPills
@@ -340,7 +358,7 @@ const AppContent = () => {
   // under the graph while EQ is open. `system` never claims this store, so an
   // external browser, Spotify or another application deliberately gets the
   // quiet graph-only surface.
-  const isGraphBackdropMode = isGraphFullScreen && showsGraph;
+  const isGraphBackdropMode = isGraphOverlay && showsGraph;
   const mounts = usePlayerMounts({
     activeWorkspaceTab,
     isGraphBackdropMode,
@@ -630,12 +648,12 @@ const AppContent = () => {
         <div
           ref={setCenterColumn}
           className={`center-workspace${
-            isGraphFullScreen && showsGraph && !isMediaFullScreen
+            isGraphOverlay && showsGraph && !isMediaFullScreen
               ? ' is-graph-full'
               : ''
-          }${resize.isResizingPanes ? ' is-resizing' : ''}${
-            isGraphFirst ? ' is-graph-first' : ''
-          }`}
+          }${isGraphGrown && !isMediaFullScreen ? ' is-graph-grown' : ''}${
+            resize.isResizingPanes ? ' is-resizing' : ''
+          }${isGraphFirst ? ' is-graph-first' : ''}`}
           onDoubleClickCapture={(event) => {
             if (!isGraphAppFullScreen) {
               return;
@@ -763,6 +781,7 @@ const AppContent = () => {
               <FrequencyResponseChart
                 isVisible
                 hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
+                isGrown={isGraphGrown}
               />
             ) : null}
             {/* The graph's Plus visualizer, beside the graph and not in it:

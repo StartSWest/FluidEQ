@@ -415,6 +415,9 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'आपका चुना हुआ',
   'games.front.playing': '{name} सामने है, और उसकी आवाज़ चालू है।',
   'games.front.sounding': '{name} चल रहा है, और उसकी आवाज़ चालू है।',
+  'games.front.off': 'गेम प्रीसेट बंद हैं। आपके गेम आपकी अपनी आवाज़ रखते हैं।',
+  'games.switch.hint':
+    'बंद: कोई गेम आपकी आवाज़ नहीं बदलता, और FluidEQ यह देखना बंद कर देता है कि सामने कौन-सा प्रोग्राम है। आपकी सूची जैसी है वैसी रहती है।',
   'games.toast.loaded': '{preset} लोड किया',
   'games.toast.forGame': '{game} के लिए',
   'games.toast.restored': '{preset} पर वापस',

@@ -423,6 +423,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': '自分で選択',
   'games.front.playing': '{name} が手前にあり、その音が有効です。',
   'games.front.sounding': '{name} は実行中で、その音が有効です。',
+  'games.front.off':
+    'ゲームプリセットはオフです。ゲームでもあなた自身の音のままです。',
+  'games.switch.hint':
+    'オフ：どのゲームも音を切り替えず、FluidEQ は前面のプログラムを見なくなります。リストはそのまま残ります。',
   'games.toast.loaded': '{preset} を読み込みました',
   'games.toast.forGame': '{game} 用',
   'games.toast.restored': '{preset} に戻しました',

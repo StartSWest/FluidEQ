@@ -411,6 +411,9 @@ const app = {
   'games.source.file': 'Chosen by you',
   'games.front.playing': '{name} is in front, and its sound is on.',
   'games.front.sounding': '{name} is running, and its sound is on.',
+  'games.front.off': 'Game presets are off. Your games keep your own sound.',
+  'games.switch.hint':
+    'Off: no game changes your sound, and FluidEQ stops watching which program is in front. Your list stays as it is.',
   'games.toast.loaded': 'Loaded {preset}',
   'games.toast.forGame': 'for {game}',
   'games.toast.restored': 'Back to {preset}',

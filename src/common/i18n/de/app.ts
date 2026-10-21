@@ -425,6 +425,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Von Ihnen gewählt',
   'games.front.playing': '{name} ist im Vordergrund, und sein Klang läuft.',
   'games.front.sounding': '{name} läuft, und sein Klang läuft mit.',
+  'games.front.off':
+    'Spiel-Presets sind aus. Ihre Spiele behalten Ihren eigenen Klang.',
+  'games.switch.hint':
+    'Aus: Kein Spiel ändert Ihren Klang, und FluidEQ achtet nicht mehr darauf, welches Programm im Vordergrund ist. Ihre Liste bleibt, wie sie ist.',
   'games.toast.loaded': '{preset} geladen',
   'games.toast.forGame': 'für {game}',
   'games.toast.restored': 'Zurück zu {preset}',

@@ -529,6 +529,13 @@ interface IFrequencyResponseChartProps {
    * stays in the View menu.
    */
   hasLayersInHead?: boolean;
+  /**
+   * Expanded on a page with no picture of its own: the graph keeps its card
+   * in the column and only grows (`isGraphGrown` in `App.tsx`), so it is
+   * still one part of the window — a Backdrop scene stays behind the window
+   * and the plain plot stays a measurement, as at the normal size.
+   */
+  isGrown?: boolean;
 }
 
 /**
@@ -544,6 +551,7 @@ const escapeInFront = new WeakMap<KeyboardEvent, 'menu' | 'dialog'>();
 const FrequencyResponseChart = ({
   isVisible,
   hasLayersInHead = false,
+  isGrown = false,
 }: IFrequencyResponseChartProps) => {
   const { t } = useTranslation();
   // The selection, not the resolved look: while the designer is open the chart
@@ -629,11 +637,13 @@ const FrequencyResponseChart = ({
   // Whether a Plus visualizer may be drawn on a layer of the window with this
   // plot as its frame — the window's back in the Backdrop (`SceneCover.tsx`),
   // the EQ column's otherwise (`SceneColumnLayer`) — which is where the plot
-  // is one part of the window: expanded or full screen the graph is the
-  // window already, and the player's window shows its own deck, not this
+  // is one part of the window: as an overlay (full screen, or expanded over
+  // a picture) the graph is the window already, and the player's window
+  // shows its own deck, not this
   // graph. Where it goes is `graphScenePlace.ts`; only a scene draws on
   // either, and the 2D looks stay on their plot.
-  const isPlotPartOfWindow = graphView === 'normal' && windowMode !== 'player';
+  const isCardInColumn = graphView === 'normal' || isGrown;
+  const isPlotPartOfWindow = isCardInColumn && windowMode !== 'player';
   const isCoverageHidden = useGraphCoverageHidden();
   const isMeterHidden = useGraphMeterHidden();
   const isTitlebarWaveHidden = useTitlebarWaveHidden();
@@ -682,7 +692,7 @@ const FrequencyResponseChart = ({
   // two rows there only while a visualizer is on the graph. The rule is here
   // rather than in the store because this is where both facts are: which view
   // this is, and whether a scene is being drawn.
-  const isPlainPane = graphView === 'normal' && !drawnScene;
+  const isPlainPane = isCardInColumn && !drawnScene;
   const wave = authoredWave
     ? (listenerWave ?? authoredWave)
     : {

@@ -4,21 +4,24 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { IGameProfile, IGameProgram, TGameSource } from '../../common/games';
 import { TranslationKey } from '../../common/i18n/en';
 import { useDspPresetCatalog } from '../dsp/dspPresetCatalog';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick from '../widgets/RichPick';
+import Switch from '../widgets/Switch';
 import GameIcon from './GameIcon';
 import GameRow from './GameRow';
 import {
   addGameProfile,
   fillGameProfileIcons,
   removeGameProfile,
+  setGamesEnabled,
 } from './gameProfiles';
 import { useGameSound } from './useGameSound';
+import '../styles/GameModeSwitch.scss';
 import '../styles/Games.scss';
 
 interface IGamesBridge {
@@ -49,7 +52,10 @@ const GamesPanel = () => {
   const { t } = useTranslation();
   // Watching while the page is open as well, so the line at the top can say
   // what is in front while a profile is being made for it.
-  const { profiles, playing, sounding } = useGameSound({ always: true });
+  const { profiles, enabled, playing, sounding } = useGameSound({
+    always: true,
+  });
+  const switchId = useId();
   const { catalog, favorites } = useDspPresetCatalog(t);
   const [known, setKnown] = useState<IGameProgram[]>([]);
   const [asked, setAsked] = useState(false);
@@ -143,8 +149,12 @@ const GamesPanel = () => {
         {/* A game's sound outlasts its window being in front, and this page
             is what somebody alt-tabbed to — so while the sound is a game's it
             says so, whether or not the game is the window in front. */}
-        <p className="games-front is-on" aria-live="polite">
-          {playing || sounding ? (
+        <p
+          className={`games-front${enabled ? ' is-on' : ''}`}
+          aria-live="polite"
+        >
+          {!enabled && t('games.front.off')}
+          {enabled && (playing || sounding) ? (
             <>
               <span className="games-front__pip" aria-hidden="true" />
               {playing
@@ -153,39 +163,62 @@ const GamesPanel = () => {
             </>
           ) : null}
         </p>
-        <RichPick
-          className="games-add"
-          entries={entries}
-          groupLabel={(group) =>
-            group === 'running'
-              ? t('games.group.running')
-              : t('games.group.installed')
-          }
-          activeId=""
-          onPick={(id) => {
-            const program = known.find((one) => one.path === id);
-            if (program) {
-              add(program);
+        <div className="games-head__actions">
+          {/* The whole feature, in the look Game mode's own switch wears
+              beside the EQ: a word, a glyph and the switch, lit while on. */}
+          <div
+            className={`game-mode-switch${enabled ? ' is-on' : ''}`}
+            title={t('games.switch.hint')}
+          >
+            <label htmlFor={switchId} className="game-mode-switch__label">
+              <VoicingIcon
+                profileId="games"
+                className="game-mode-switch__icon"
+              />
+              <span className="game-mode-switch__word">{t('tabs.games')}</span>
+            </label>
+            <Switch
+              id={switchId}
+              isOn={enabled}
+              isDisabled={false}
+              handleToggle={() => setGamesEnabled(!enabled)}
+              ariaLabel={t('tabs.games')}
+            />
+          </div>
+          <RichPick
+            className="games-add"
+            entries={entries}
+            groupLabel={(group) =>
+              group === 'running'
+                ? t('games.group.running')
+                : t('games.group.installed')
             }
-          }}
-          placeholder={t('games.add')}
-          placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
-          triggerAriaLabel={t('games.add')}
-          triggerTitle={t('games.addHint')}
-          disabled={!asked}
-          renderFooter={(close) => (
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={() => {
-                close();
-                choose().catch(() => undefined);
-              }}
-            >
-              {t('games.choose')}
-            </button>
-          )}
-        />
+            activeId=""
+            onPick={(id) => {
+              const program = known.find((one) => one.path === id);
+              if (program) {
+                add(program);
+              }
+            }}
+            placeholder={t('games.add')}
+            placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
+            triggerAriaLabel={t('games.add')}
+            triggerTitle={t('games.addHint')}
+            disabled={!asked}
+            renderFooter={(close) => (
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={() => {
+                  close();
+                  choose().catch(() => undefined);
+                }}
+              >
+                {t('games.choose')}
+              </button>
+            )}
+          />
+        </div>
       </div>
 
       {profiles.length === 0 ? (
@@ -230,7 +263,7 @@ const GamesPanel = () => {
           <p className="games-empty__more">{t('games.empty.more')}</p>
         </div>
       ) : (
-        <ul className="games-list">
+        <ul className={`games-list${enabled ? '' : ' is-off'}`}>
           {profiles.map((profile: IGameProfile) => (
             <GameRow
               key={profile.id}

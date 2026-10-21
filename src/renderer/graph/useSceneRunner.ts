@@ -594,6 +594,7 @@ export default function useSceneRunner({
             costMs: result.cost.costMs,
             postMs: result.cost.postMs,
             intervalMs: drawnIntervalMs,
+            shown: result.shown,
             drawnWidth: drawn.width,
             drawnHeight: drawn.height,
             outputWidth: output.width,

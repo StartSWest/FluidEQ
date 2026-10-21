@@ -424,6 +424,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Elegido por ti',
   'games.front.playing': '{name} está al frente, y su sonido está puesto.',
   'games.front.sounding': '{name} está abierto, y su sonido está puesto.',
+  'games.front.off':
+    'Los presets de juegos están apagados. Tus juegos usan tu propio sonido.',
+  'games.switch.hint':
+    'Apagado: ningún juego cambia tu sonido y FluidEQ deja de mirar qué programa está al frente. Tu lista se queda como está.',
   'games.toast.loaded': '{preset} cargado',
   'games.toast.forGame': 'para {game}',
   'games.toast.restored': '{preset} de nuevo',

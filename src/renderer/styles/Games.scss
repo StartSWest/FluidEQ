@@ -37,6 +37,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
   min-width: 0;
 }
 
+// The feature's switch and the button that adds to it, kept together at the
+// line's end and wrapping under each other only when the page is too narrow
+// for both.
+.games-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+  margin-left: auto;
+}
+
 .games-front {
   display: flex;
   align-items: center;
@@ -72,6 +85,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
   margin: 0;
   padding: 0;
   list-style: none;
+  transition: opacity $motion-base $ease-out;
+
+  // Switched off, the list is still the listener's to edit, but it reads as
+  // standing by rather than as live.
+  &.is-off {
+    opacity: 0.55;
+  }
 }
 
 // The game on the left, its sound on the right, and the two meeting in the

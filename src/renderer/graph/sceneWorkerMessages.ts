@@ -3,6 +3,16 @@ import type { IWorldReport } from 'common/worldNotes';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneCostReading } from './sceneHealth';
 
+/**
+ * The frames the worker has put on the canvas: a running count and the
+ * newest one's time, both on the worker's own clock, so a rate is only ever
+ * taken between two of these and never against the page's clock.
+ */
+export interface ISceneShownFrames {
+  frames: number;
+  atMs: number;
+}
+
 export interface ISceneDrawSize {
   width: number;
   height: number;
@@ -88,6 +98,8 @@ export type TSceneWorkerReply =
        * Absent until two frames have been drawn.
        */
       intervalMs?: number;
+      /** Frames put on the canvas so far, and the newest's time (`shownFrames`). */
+      shown?: ISceneShownFrames;
     }
   | {
       kind: 'lost';

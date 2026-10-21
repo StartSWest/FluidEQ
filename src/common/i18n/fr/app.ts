@@ -427,6 +427,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Choisi par vous',
   'games.front.playing': '{name} est au premier plan, et son son est activé.',
   'games.front.sounding': '{name} est lancé, et son son est activé.',
+  'games.front.off':
+    'Les presets de jeu sont désactivés. Vos jeux gardent votre propre son.',
+  'games.switch.hint':
+    'Désactivé : aucun jeu ne change votre son, et FluidEQ ne regarde plus quel programme est au premier plan. Votre liste reste telle quelle.',
   'games.toast.loaded': '{preset} chargé',
   'games.toast.forGame': 'pour {game}',
   'games.toast.restored': 'Retour à {preset}',

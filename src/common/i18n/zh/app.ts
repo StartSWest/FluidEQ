@@ -398,6 +398,9 @@ const app: Partial<Dictionary> = {
   'games.source.file': '你选择的',
   'games.front.playing': '{name} 在最前面，它的音效已开启。',
   'games.front.sounding': '{name} 正在运行，它的音效已开启。',
+  'games.front.off': '游戏预设已关闭。游戏中保持你自己的音效。',
+  'games.switch.hint':
+    '关闭：任何游戏都不会改变你的音效，FluidEQ 也不再关注哪个程序在前台。你的列表保持不变。',
   'games.toast.loaded': '已加载 {preset}',
   'games.toast.forGame': '用于 {game}',
   'games.toast.restored': '已切回 {preset}',

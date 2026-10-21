@@ -6,6 +6,7 @@ import type { TSceneFailure } from 'main/scenePackStore';
 import type { ISceneFrame } from './sceneGl';
 import type { ISceneInteraction } from './sceneInteraction';
 import type { ISceneTuning } from './sceneTuner';
+import type { ISceneShownFrames } from './sceneWorkerMessages';
 import type { TSceneView } from './sceneView';
 
 /**
@@ -21,6 +22,12 @@ export interface ISceneDrawReport {
   postMs?: number;
   /** The interval frames are being drawn at. */
   intervalMs: number;
+  /**
+   * The frames the worker has put on the canvas so far, on its own clock —
+   * what a readout of the frame rate counts, since the page's frames are
+   * only how often it hands the music over (`ISceneShownFrames`).
+   */
+  shown?: ISceneShownFrames;
   /** The pixels the scene was drawn at, and the panel's own. */
   drawnWidth: number;
   drawnHeight: number;

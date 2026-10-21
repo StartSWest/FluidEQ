@@ -2931,6 +2931,13 @@ $graph-card-pages: list.join(
     border-top-right-radius: 0;
   }
 
+  // Grown with the page folded away (`is-graph-grown`), there is no divider
+  // strip under the foot to part it from the column's edge, so it stands off
+  // that edge by the page card's own 10px.
+  &.is-graph-grown > .graph-wrapper {
+    margin-bottom: 10px;
+  }
+
   // A Plus visualizer, behind the head and the graph (the column's layer) or
   // behind the whole window (the Backdrop), stands in the same card as every
   // other look's drawing does, the picture its face (Ivan, 2026-09-27: "make

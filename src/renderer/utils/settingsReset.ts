@@ -135,11 +135,13 @@ export const SETTING_STEMS: readonly string[] = [
  * earlier version kept, read when the mode is empty, beside the sky colours
  * measured for each visualizer (`.skies`), a cache that stays; and whether Help's
  * button hides the Forum's count (`forumNewsPref.ts`), beside what has been
- * read, which stays.
+ * read, which stays; and the Games page's own switch (`gameProfiles.ts`),
+ * beside the game presets somebody made, which stay.
  */
 export const SETTING_KEYS: readonly string[] = [
   'fluideq.sceneTint',
   'fluideq.forum.newsHidden.v1',
+  'fluideq.games.enabled.v1',
 ];
 
 export const isSettingKey = (key: string) =>

@@ -117,6 +117,15 @@ let pacingFrame: number | undefined;
 /** The last two of the worker's own animation frames: the display's beat. */
 let lastTickAt: number | undefined;
 let tickMs = 1000 / 60;
+/**
+ * Every frame this worker has put on the canvas, and when the newest was, on
+ * its own clock: the rate the picture really changes at. The page's frames
+ * are only how often it hands the music over, one message in flight — a
+ * Studio window busy for three refreshes read 80 a second on a 240 Hz panel
+ * while the picture was drawn on every refresh (Ivan, 2026-10-18).
+ */
+let shownFrames = 0;
+let shownAt = 0;
 
 const load = async (
   next: IScenePack,
@@ -395,8 +404,16 @@ const render = (request: TDrawRequest, now: number): TSceneWorkerReply => {
     });
   }
   clock.end();
+  shownFrames += 1;
+  shownAt = now;
   // No hand-off: the frame is committed when this task returns.
-  return { kind: 'drawn', accent: program.musicAccent(), cost, skipped: false };
+  return {
+    kind: 'drawn',
+    accent: program.musicAccent(),
+    cost,
+    skipped: false,
+    shown: { frames: shownFrames, atMs: shownAt },
+  };
 };
 
 /**
@@ -444,6 +461,7 @@ const draw = (request: TDrawRequest): TSceneWorkerReply => {
     cost: lastReading,
     skipped: false,
     intervalMs: sceneClock.intervalMs(),
+    shown: { frames: shownFrames, atMs: shownAt },
   };
 };
 

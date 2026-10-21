@@ -80,6 +80,44 @@ const write = (profiles: readonly IGameProfile[]): void => {
   window.dispatchEvent(new Event(GAME_PROFILES_CHANGED));
 };
 
+const ENABLED_KEY = 'fluideq.games.enabled.v1';
+
+/**
+ * Whether game presets run at all — the page's own switch.
+ *
+ * On unless it was switched off: every list saved before the switch existed
+ * was a list somebody wanted running. Off is the whole feature, not a pause
+ * of one game: no watching what is in front, no switching, no cards.
+ */
+let enabledNow: boolean | undefined;
+
+export const readGamesEnabled = (): boolean => {
+  if (enabledNow !== undefined) {
+    return enabledNow;
+  }
+  try {
+    return window.localStorage.getItem(ENABLED_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+};
+
+/** For a test that starts from nothing, as a fresh window would. */
+export const resetGamesEnabled = (): void => {
+  enabledNow = undefined;
+};
+
+export const setGamesEnabled = (enabled: boolean): void => {
+  enabledNow = enabled;
+  try {
+    window.localStorage.setItem(ENABLED_KEY, enabled ? 'on' : 'off');
+  } catch {
+    // A full or disabled store costs the choice surviving a restart, not
+    // the choice itself, which is held above for this window's life.
+  }
+  window.dispatchEvent(new Event(GAME_PROFILES_CHANGED));
+};
+
 const newId = (): string =>
   `game-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 

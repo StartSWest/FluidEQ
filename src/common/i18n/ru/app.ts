@@ -420,6 +420,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Выбрано вами',
   'games.front.playing': '{name} на переднем плане, её звук включён.',
   'games.front.sounding': '{name} запущена, её звук включён.',
+  'games.front.off':
+    'Игровые пресеты выключены. В играх остаётся ваш собственный звук.',
+  'games.switch.hint':
+    'Выключено: ни одна игра не меняет звук, и FluidEQ больше не следит, какая программа на переднем плане. Список остаётся как есть.',
   'games.toast.loaded': 'Загружено: {preset}',
   'games.toast.forGame': 'для {game}',
   'games.toast.restored': 'Снова: {preset}',
