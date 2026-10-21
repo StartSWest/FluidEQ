@@ -205,8 +205,10 @@ it under the terms of the GNU General Public License version 3 or later.
 //
 // No line under an open header, as before: the title and what it opens onto
 // are one card. Elsewhere (the headphone picker on the EQ Presets page) a
-// section keeps the base block above.
-.right-content .sidebar-section {
+// section keeps the base block above. A picture of the panel's cards in
+// What's New (`pane-picture`) is drawn as the panel draws them.
+.right-content .sidebar-section,
+.pane-picture .sidebar-section {
   @include section-card;
 
   .sidebar-section__header {

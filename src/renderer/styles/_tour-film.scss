@@ -12,24 +12,25 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'theme' as *;
 @use 'tour-miniature' as *;
 
-// A slide's film (`FeatureFilm.tsx`): the drawing and the film share one
-// place, the film coming in over the drawing once it plays; and under it
-// the line its voice is saying, in the reader's language.
-
+// A slide's picture and the key that plays its film (`FeatureFilm.tsx`):
+// the picture whole, the key under it; the film itself opens large.
 .feature-film {
-  display: grid;
+  display: flex;
   width: 100%;
-  place-items: center;
-
-  > * {
-    grid-area: 1 / 1;
-  }
+  flex-direction: column;
+  align-items: center;
+  gap: calc(#{$u} * 0.9);
 }
 
-.feature-film__drawing {
-  display: grid;
-  width: 100%;
-  place-items: center;
+.feature-film__watch {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(#{$u} * 0.45);
+
+  svg {
+    width: calc(#{$u} * 0.9);
+    height: calc(#{$u} * 0.9);
+  }
 }
 
 // The subtitle's room: three lines at its size, so the longest line the
@@ -57,12 +58,6 @@ $film-subtitle-room: calc(
   max-width: calc(#{$u} * 34);
   border-radius: $radius-l;
   background: $surface-well;
-  opacity: 0;
-  transition: opacity $motion-slow $ease-out;
-
-  &.is-shown {
-    opacity: 1;
-  }
 }
 
 .feature-film__screen {

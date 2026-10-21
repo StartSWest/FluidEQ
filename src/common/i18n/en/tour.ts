@@ -594,7 +594,7 @@ const tour = {
   // End of film voice.
   'tour.film.soundOn': 'Turn the sound on',
   'tour.film.soundOff': 'Turn the sound off',
-  'tour.film.enlarge': 'Watch it larger',
+  'tour.film.watch': 'Watch the video',
   'tour.film.close': 'Close the video',
 
   'tour.deesser.kicker': 'A SOFTER S',

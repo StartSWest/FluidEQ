@@ -6,313 +6,82 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-@use 'color' as *;
+@use 'constant' as *;
 @use 'motion' as *;
-@use 'theme' as *;
-@use 'tour-miniature' as *;
 
-// Every output keeping its own sound (`OutputsVisual.tsx`): the Output card
-// with two outputs, each under its own preset, curve and stages, the one
-// playing lit in turn, and the Second output beside them with its own sound.
+// Every output keeping its own sound (`OutputsVisual.tsx`): the side panel's
+// Output and Second output cards, built from the panel's own parts, at the
+// docked panel's width. The output that is on crosses over to the other in
+// turn, and its profiles with it.
 
 // One turn of the switch from the headset to the speakers and back. Each
-// output lights for half of it, the second a half-turn after the first.
+// output is on for half of it.
 $switch-turn: 9s;
 
 .outputs-visual {
   display: grid;
-  width: 100%;
-  max-width: calc(#{$u} * 30);
-  gap: calc(#{$u} * 0.9);
+  width: min(100%, #{$sound-panel-width});
+  gap: 10px;
+  text-align: left;
   @include animate(rise-in, $motion-slow);
 }
 
-.outputs-visual__panel {
-  @include panel;
-
-  display: grid;
-  padding: calc(#{$u} * 0.9);
-  gap: calc(#{$u} * 0.6);
-}
-
-.outputs-visual__head {
-  color: $text-primary;
-  font-size: calc(#{$u} * 1.05);
-  font-weight: $weight-bold;
-}
-
-.outputs-visual__outputs {
-  display: grid;
-  margin: 0;
-  padding: 0;
-  gap: calc(#{$u} * 0.5);
-  list-style: none;
-}
-
-// How the card lights the output that is playing.
-@mixin playing {
-  border-color: color-mix(in srgb, $secondary-light 45%, transparent);
-  background: color-mix(in srgb, $secondary-default 10%, $surface-field);
-  box-shadow: 0 0 calc(#{$u} * 1.2)
-    color-mix(in srgb, $secondary-default 18%, transparent);
-}
-
-// An output as the card lists one. The lit one is the one playing; its
-// curve brightens with it, as the graph draws the output that is on.
-.outputs-visual__output {
-  display: grid;
-  min-width: 0;
-  padding: calc(#{$u} * 0.6) calc(#{$u} * 0.7);
-  border: 1px solid rgba($edge-tint, 0.08);
-  border-radius: $radius-m;
-  background: $surface-field;
-  gap: calc(#{$u} * 0.45);
-  animation: outputs-visual-playing $switch-turn ease-in-out infinite;
-  animation-delay: calc(var(--turn, 0) * #{$switch-turn} / 2);
-
-  &.is-second {
-    padding: 0;
-    border: 0;
-    background: none;
-    animation: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-
-    &:first-child {
-      @include playing;
-    }
+// The cards at the panel's own size where the stage has the room, and drawn
+// smaller where it has not, so "How to start" beside them stays on screen.
+@media (max-height: $bp-full-hd-height) {
+  .outputs-visual {
+    zoom: 0.8;
   }
 }
 
-// The first half-turn lit, the second at rest: with the speakers' delay set
-// half a turn on, the two take turns and one is always playing.
-@keyframes outputs-visual-playing {
+@media (max-height: $bp-laptop-height) {
+  .outputs-visual {
+    zoom: 0.72;
+  }
+}
+
+// The outputs' parts, stacked in one place: only one is on at a time.
+.outputs-visual__turns {
+  display: grid;
+
+  > * {
+    grid-area: 1 / 1;
+  }
+}
+
+.outputs-visual__turn {
+  animation: outputs-visual-turn $switch-turn ease-in-out infinite;
+}
+
+.outputs-visual__turn--1 {
+  animation-delay: calc(#{$switch-turn} / -2);
+}
+
+@keyframes outputs-visual-turn {
   0%,
-  46% {
-    @include playing;
-  }
-
-  54%,
-  100% {
-    border-color: rgba($edge-tint, 0.08);
-    background: $surface-field;
-    box-shadow: none;
-  }
-}
-
-.outputs-visual__name {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  gap: calc(#{$u} * 0.45);
-
-  strong {
-    overflow: hidden;
-    flex: 1 1 auto;
-    color: $text-primary;
-    font-size: calc(#{$u} * 0.84);
-    font-weight: $weight-semibold;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.outputs-visual__glyph {
-  width: calc(#{$u} * 0.95);
-  height: calc(#{$u} * 0.95);
-  flex: 0 0 auto;
-  fill: none;
-  stroke: $secondary-light;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.7;
-}
-
-// The card's own pill, there only while its output plays.
-.outputs-visual__active {
-  @include pill;
-
-  color: $surface-base;
-  border-color: transparent;
-  background: $secondary-light;
-  font-size: calc(#{$u} * 0.56);
-  font-weight: $weight-bold;
-  @include tracking(0.06em);
-  opacity: 0;
-  animation: outputs-visual-pill $switch-turn ease-in-out infinite;
-  animation-delay: calc(var(--turn, 0) * #{$switch-turn} / 2);
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-    opacity: 0;
-
-    .outputs-visual__output:first-child & {
-      opacity: 1;
-    }
-  }
-}
-
-@keyframes outputs-visual-pill {
-  0%,
-  46% {
+  44% {
     opacity: 1;
+    visibility: visible;
   }
 
-  54%,
-  100% {
+  50%,
+  94% {
     opacity: 0;
+    visibility: hidden;
+  }
+
+  100% {
+    opacity: 1;
+    visibility: visible;
   }
 }
 
-// The preset beside the curve it plays.
-.outputs-visual__sound {
-  display: grid;
-  align-items: center;
-  gap: calc(#{$u} * 0.6);
-  grid-template-columns: auto minmax(0, 1fr);
-}
-
-.outputs-visual__preset {
-  @include pill;
-
-  color: $text-primary;
-  background: $surface-control;
-  font-size: calc(#{$u} * 0.72);
-}
-
-.outputs-visual__curve {
-  display: block;
-  width: 100%;
-  height: calc(#{$u} * 3);
-  overflow: visible;
-}
-
-.outputs-visual__zero {
-  stroke: rgba($edge-tint, 0.18);
-  stroke-dasharray: 2 3;
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-}
-
-.outputs-visual__area {
-  fill: color-mix(in srgb, $secondary-default 14%, transparent);
-  stroke: none;
-}
-
-.outputs-visual__line {
-  fill: none;
-  stroke: $secondary-light;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2;
-  vector-effect: non-scaling-stroke;
-}
-
-.outputs-visual__stages {
-  display: flex;
-  flex-wrap: wrap;
-  gap: calc(#{$u} * 0.3);
-
-  span {
-    @include pill;
-
-    color: $text-muted;
-    font-size: calc(#{$u} * 0.64);
+@media (prefers-reduced-motion: reduce) {
+  .outputs-visual__turn {
+    animation: none;
   }
-}
 
-// The second output: switched on, with its own sound, and what it says
-// under its name — how far behind it plays, and the button that edits it.
-.outputs-visual__panel--second {
-  border-color: color-mix(in srgb, $secondary-light 28%, transparent);
-}
-
-.outputs-visual__switch {
-  position: relative;
-  flex: 0 0 auto;
-  width: calc(#{$u} * 1.5);
-  height: calc(#{$u} * 0.8);
-  border-radius: $radius-pill;
-  background: $secondary-default var(--accent-fill);
-
-  &::after {
-    position: absolute;
-    top: 50%;
-    right: calc(#{$u} * 0.1);
-    width: calc(#{$u} * 0.58);
-    height: calc(#{$u} * 0.58);
-    border-radius: 50%;
-    background: $white;
-    content: '';
-    transform: translateY(-50%);
+  .outputs-visual__turn--1 {
+    visibility: hidden;
   }
-}
-
-// A battery drawn to its level, as the panel draws it.
-.outputs-visual__battery {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  color: $text-muted;
-  font-size: calc(#{$u} * 0.64);
-  font-variant-numeric: tabular-nums;
-  gap: calc(#{$u} * 0.25);
-
-  span {
-    position: relative;
-    width: calc(#{$u} * 1.05);
-    height: calc(#{$u} * 0.52);
-    border: 1px solid rgba($edge-tint, 0.45);
-    border-radius: 2px;
-
-    &::before {
-      position: absolute;
-      top: 1px;
-      bottom: 1px;
-      left: 1px;
-      width: calc(82% - 2px);
-      border-radius: 1px;
-      background: $active;
-      content: '';
-    }
-
-    &::after {
-      position: absolute;
-      top: 50%;
-      right: -3px;
-      width: 2px;
-      height: 40%;
-      border-radius: 0 1px 1px 0;
-      background: rgba($edge-tint, 0.45);
-      content: '';
-      transform: translateY(-50%);
-    }
-  }
-}
-
-.outputs-visual__foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: calc(#{$u} * 0.4);
-}
-
-.outputs-visual__delay {
-  color: $text-muted;
-  font-family: $font-mono;
-  font-size: calc(#{$u} * 0.62);
-  font-variant-numeric: tabular-nums;
-}
-
-// The quiet button, as the panel draws Edit sound.
-.outputs-visual__edit {
-  @include pill;
-
-  color: $secondary-light;
-  border-color: $border-control;
-  background: $surface-control;
-  font-size: calc(#{$u} * 0.68);
 }

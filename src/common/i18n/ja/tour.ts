@@ -574,7 +574,7 @@ const tour: Partial<Dictionary> = {
   // End of film voice.
   'tour.film.soundOn': '音声をオンにする',
   'tour.film.soundOff': '音声をオフにする',
-  'tour.film.enlarge': '大きく見る',
+  'tour.film.watch': '動画を見る',
   'tour.film.close': '動画を閉じる',
 
   'tour.songs.kicker': '曲ごとにサウンドを',

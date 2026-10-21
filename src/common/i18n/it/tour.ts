@@ -583,7 +583,7 @@ const tour: Partial<Dictionary> = {
   // End of film voice.
   'tour.film.soundOn': 'Attiva l’audio',
   'tour.film.soundOff': 'Disattiva l’audio',
-  'tour.film.enlarge': 'Guardalo più grande',
+  'tour.film.watch': 'Guarda il video',
   'tour.film.close': 'Chiudi il video',
 
   'tour.songs.kicker': 'UN SUONO PER OGNI BRANO',

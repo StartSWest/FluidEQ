@@ -7,7 +7,7 @@ import HelpFigure from './HelpFigure';
 import { Marked } from './HelpMarks';
 import { helpAnchor, type IHelpHit } from './helpSearch';
 import HelpFilm from './HelpFilm';
-import { HELP_FILMS } from './helpFilms';
+import HELP_FILMS from './helpFilms';
 import HelpVideo from './HelpVideo';
 import helpScreenshot from './screenshots';
 
@@ -86,9 +86,6 @@ function HelpChapter({ chapter, groupLabel, onEnlarge }: IHelpChapterProps) {
         />
       </p>
       {chapter.video && <HelpVideo video={chapter.video} />}
-      {(HELP_FILMS[chapter.id] ?? []).map((film) => (
-        <HelpFilm key={film.id} id={film.id} poster={film.poster} />
-      ))}
       {chapter.figures.map((figure, figureIndex) => {
         const title = figure.caption ? t(figure.caption) : chapter.title;
         const src = helpScreenshot(figure.image);
@@ -103,6 +100,9 @@ function HelpChapter({ chapter, groupLabel, onEnlarge }: IHelpChapterProps) {
           />
         );
       })}
+      {(HELP_FILMS[chapter.id] ?? []).map((id) => (
+        <HelpFilm key={id} id={id} />
+      ))}
       <h3>{t('help.steps')}</h3>
       <ol>
         {chapter.steps.map((step, stepIndex) => (

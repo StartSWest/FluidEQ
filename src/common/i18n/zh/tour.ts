@@ -532,7 +532,7 @@ const tour: Partial<Dictionary> = {
   // End of film voice.
   'tour.film.soundOn': '打开声音',
   'tour.film.soundOff': '关闭声音',
-  'tour.film.enlarge': '放大观看',
+  'tour.film.watch': '观看视频',
   'tour.film.close': '关闭视频',
 
   'tour.songs.kicker': '每首歌都有自己的声音',

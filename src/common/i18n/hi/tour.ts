@@ -577,7 +577,7 @@ const tour: Partial<Dictionary> = {
   // End of film voice.
   'tour.film.soundOn': 'आवाज़ चालू करें',
   'tour.film.soundOff': 'आवाज़ बंद करें',
-  'tour.film.enlarge': 'बड़ा करके देखें',
+  'tour.film.watch': 'वीडियो देखें',
   'tour.film.close': 'वीडियो बंद करें',
 
   'tour.songs.kicker': 'हर गाने की अपनी आवाज़',

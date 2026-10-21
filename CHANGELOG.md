@@ -96,10 +96,13 @@ and the De-esser is not heard, and everything else plays as before.
   it on. Switching it on or off never moves the sound in time. Beside the
   strip, the treble as it is now shows how far the S stands over the voice,
   and how much more a cymbal would need before it is touched.
-- **Exciter oversampling: Off, Standard or High.** Standard is how the Exciter
-  has always run; High uses a much sharper filter so nothing folds back off
-  the top, for a little more work; Off is the lightest. A profile you pick
-  leaves your choice as it is.
+- **Exciter oversampling: Off, Standard or High, and Off to start.** Off is
+  the lightest; Standard and High run the Exciter faster so nothing folds back
+  off the top, High with the sharpest filter. Picking any factory preset turns
+  oversampling off, in the Exciter and in the EQ alike; turning it on stays
+  your choice. Oversampling now takes far less work than before, which is what
+  made the sound cut out on some computers with High on.
+- The pop-style genre chains add their brightness with the Exciter.
 - **Save on every filter.** Denoise, De-esser, Exciter, Bass Forge, Bass
   Punch, Dimension, Maximizer and Master each keep profiles of your own,
   listed first under Yours, saved and deleted the way the EQ's are.
@@ -118,6 +121,10 @@ and the De-esser is not heard, and everything else plays as before.
 
 ### Visualizers
 
+- **Tune the wave where you put a visualizer on the desktop.** The Desktop
+  background dialog has Wave height and Wave position, drawn at once on the
+  monitor that will play it, and opens on the wave a monitor already plays it
+  with.
 - **Standard looks have their own graphics settings**, apart from Plus
   visualizers: full resolution and plain scaling to start with.
 - **Tap a 3D world's birds or fish and they fly off the way they face**,
@@ -166,13 +173,16 @@ and the De-esser is not heard, and everything else plays as before.
 ### What's New and Help
 
 - **Films of the real app.** Fourteen of What's New's slides, and the Help
-  topics they belong to, now show a short film of the feature being used,
+  topics they belong to, now have a short film of the feature being used,
   with a voice saying what it is and how to use it, in your language, and the
-  line being said written under the picture. The films in What's New start
-  by themselves without sound, the speaker key turns the voice on for every
-  film after it, and the enlarge key opens a film as large as the window.
-  In Help nothing is fetched until you press play. The films come from
-  fluideq.com.
+  line being said written under the picture. Watch the video, under a slide's
+  picture, opens its film as large as the window; in Help the film stands
+  after the topic's pictures. Nothing is fetched until you press play, and a
+  film that cannot be loaded leaves the slide and the topic as they were. The
+  films come from fluideq.com.
+- **What's New shows the real Output panel** for "Every output keeps its own
+  sound", in your window's colours and language, switching from headphones to
+  speakers with each one's profile.
 
 ### Forum
 
@@ -200,6 +210,11 @@ and the De-esser is not heard, and everything else plays as before.
   trailed the hand by seconds.
 - Curve smoothing starts Off: a headphone correction plays exactly as it was
   measured until you choose 1/12 or 1/3 octave in EQ mode.
+- The play triangle on What's New's Watch the video key shows in the key's
+  own colour; it was drawn in the dark of a filled key and could not be seen.
+- A bug report says how hard the FluidEQ Engine works on each output, as an
+  Engine load line, so a sound that cuts out on a busy computer can be told
+  from one that never ran.
 - Switching to an output no longer brings back a preset curve that does not
   match the preset shown on its picker, which outputs set up before 2.1
   could carry.

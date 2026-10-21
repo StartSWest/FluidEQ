@@ -11,6 +11,7 @@ import {
   FEATURE_FILMS,
   featureFilmUrl,
 } from '../components/featureTour/featureFilms';
+import FILM_POSTERS from '../components/featureTour/filmPosters';
 import useFilmLine from '../components/featureTour/useFilmLine';
 
 type TFilmState = 'idle' | 'loading' | 'playing' | 'failed';
@@ -24,12 +25,9 @@ type TFilmState = 'idle' | 'loading' | 'playing' | 'failed';
  */
 export default function HelpFilm({
   id,
-  poster,
 }: {
   /** The film's id in `FEATURE_FILMS`. */
   id: string;
-  /** A frame of it, bundled, shown until it is pressed. */
-  poster: string;
 }) {
   const { t, locale } = useTranslation();
   const [state, setState] = useState<TFilmState>('idle');
@@ -38,8 +36,10 @@ export default function HelpFilm({
   const [attempt, setAttempt] = useState(0);
   const video = useRef<HTMLVideoElement>(null);
   const film = FEATURE_FILMS[id];
+  // A frame of it, bundled, shown until it is pressed.
+  const poster = FILM_POSTERS[id];
   const cue = useFilmLine(video, film?.cues ?? [], state === 'playing');
-  if (!film) {
+  if (!film || !poster) {
     return null;
   }
   // Its first line says what the feature is: the card's name.

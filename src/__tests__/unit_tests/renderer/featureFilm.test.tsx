@@ -14,16 +14,8 @@ import {
   featureFilmUrl,
   filmCueAt,
 } from 'renderer/components/featureTour/featureFilms';
+import FILM_POSTERS from 'renderer/components/featureTour/filmPosters';
 import en from 'common/i18n/en';
-import { prefersReducedMotion } from 'renderer/utils/bandReveal';
-
-jest.mock('renderer/utils/bandReveal', () => ({
-  prefersReducedMotion: jest.fn(() => false),
-}));
-
-const reduced = prefersReducedMotion as jest.MockedFunction<
-  typeof prefersReducedMotion
->;
 
 /** The video's clock, which jsdom does not run. */
 const playTo = (video: HTMLVideoElement, seconds: number) => {
@@ -34,30 +26,23 @@ const playTo = (video: HTMLVideoElement, seconds: number) => {
 };
 
 let frames: FrameRequestCallback[] = [];
-let paused: HTMLMediaElement[] = [];
 beforeEach(() => {
   frames = [];
-  paused = [];
   jest
     .spyOn(window, 'requestAnimationFrame')
     .mockImplementation((callback) => frames.push(callback));
   jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
-  // jsdom has no media pipeline: a pause is recorded, a play resolves.
+  // jsdom has no media pipeline: a play resolves, a pause does nothing.
   jest
     .spyOn(HTMLMediaElement.prototype, 'pause')
-    .mockImplementation(function pause(this: HTMLMediaElement) {
-      paused.push(this);
-    });
+    .mockImplementation(() => undefined);
   jest
     .spyOn(HTMLMediaElement.prototype, 'play')
     .mockImplementation(() => Promise.resolve());
-  reduced.mockReturnValue(false);
-  window.localStorage.removeItem('fluideq.tour.filmSound');
 });
 afterEach(() => {
   cleanup();
   jest.restoreAllMocks();
-  window.localStorage.removeItem('fluideq.tour.filmSound');
 });
 
 /** One painted frame: every callback waiting on it runs once. */
@@ -69,167 +54,120 @@ const paint = () =>
   });
 
 const drawing = <span data-testid="drawing">the slide drawing</span>;
-const subtitle = (container: HTMLElement) =>
-  container.querySelector('.feature-film__subtitle');
+const watchKey = () =>
+  screen.getByRole('button', { name: en['tour.film.watch'] });
+const openFilm = () => {
+  fireEvent.click(watchKey());
+  const dialog = screen.getByRole('dialog');
+  return {
+    dialog,
+    video: dialog.querySelector('video') as HTMLVideoElement,
+  };
+};
 
-it('keeps the drawing and fetches nothing for a slide with no film', () => {
-  const { container } = render(
-    <FeatureFilm id="song-sound">{drawing}</FeatureFilm>,
-  );
+it('keeps the drawing alone and offers nothing for a slide with no film', () => {
+  render(<FeatureFilm id="song-sound">{drawing}</FeatureFilm>);
   expect(screen.getByTestId('drawing')).toBeInTheDocument();
-  expect(container.querySelector('video')).toBeNull();
+  expect(
+    screen.queryByRole('button', { name: en['tour.film.watch'] }),
+  ).toBeNull();
 });
 
-it("plays the film in the reader's language from the site, the drawing standing in until it plays", () => {
+it('shows the drawing whole with a key under it, and fetches nothing until the key is pressed', () => {
   const { container } = render(
     <FeatureFilm id="each-ear">{drawing}</FeatureFilm>,
   );
-  const video = container.querySelector('video');
-  expect(video).toHaveAttribute('src', featureFilmUrl('each-ear', 'en'));
-  expect(video?.getAttribute('src')).toBe(
+  expect(screen.getByTestId('drawing')).toBeInTheDocument();
+  // No film is drawn in the slide: it was a cropped strip under the picture.
+  expect(container.querySelector('video')).toBeNull();
+  expect(
+    screen.getByTestId('drawing').compareDocumentPosition(watchKey()),
+  ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+});
+
+it("opens the film large, from its start, in the reader's language, with its sound and a frame of it until it plays", () => {
+  render(<FeatureFilm id="each-ear">{drawing}</FeatureFilm>);
+  const { dialog, video } = openFilm();
+  expect(dialog).toHaveAccessibleName(
+    en[FEATURE_FILMS['each-ear'].cues[0].key],
+  );
+  expect(video.getAttribute('src')).toBe(
     'https://fluideq.com/video/whatsnew/each-ear.en.mp4',
   );
-  expect(video?.muted).toBe(true);
+  expect(video).toHaveAttribute('src', featureFilmUrl('each-ear', 'en'));
+  expect(video).toHaveAttribute('poster', FILM_POSTERS['each-ear']);
+  // A press is the reader asking to watch it: heard.
+  expect(video.muted).toBe(false);
+  // The slide's picture stays where it was, under the larger film.
   expect(screen.getByTestId('drawing')).toBeInTheDocument();
-  expect(container.querySelector('.feature-film__frame')).not.toHaveClass(
-    'is-shown',
-  );
-
-  fireEvent.playing(video as HTMLVideoElement);
-  expect(screen.queryByTestId('drawing')).toBeNull();
-  expect(container.querySelector('.feature-film__frame')).toHaveClass(
-    'is-shown',
-  );
 });
 
-it('shows the line being said under the picture, and none before the first', () => {
-  const { container } = render(
-    <FeatureFilm id="each-ear">{drawing}</FeatureFilm>,
-  );
-  const video = container.querySelector('video') as HTMLVideoElement;
+it('shows the line being said under the film, and none before the first', () => {
+  render(<FeatureFilm id="each-ear">{drawing}</FeatureFilm>);
+  const { dialog, video } = openFilm();
   fireEvent.playing(video);
+  const subtitle = () => dialog.querySelector('.feature-film__subtitle');
   const [intro, menu] = FEATURE_FILMS['each-ear'].cues;
 
   playTo(video, intro.from / 2);
   paint();
-  expect(subtitle(container)).toBeEmptyDOMElement();
+  expect(subtitle()).toBeEmptyDOMElement();
 
   playTo(video, (intro.from + intro.to) / 2);
   paint();
-  expect(subtitle(container)).toHaveTextContent(en[intro.key]);
+  expect(subtitle()).toHaveTextContent(en[intro.key]);
 
   playTo(video, menu.from + 0.1);
   paint();
-  expect(subtitle(container)).toHaveTextContent(en[menu.key]);
-  expect(subtitle(container)).not.toHaveTextContent(en[intro.key]);
+  expect(subtitle()).toHaveTextContent(en[menu.key]);
+  expect(subtitle()).not.toHaveTextContent(en[intro.key]);
 });
 
-it('starts silent, and a press turns the sound on for this film and the next', () => {
-  const first = render(<FeatureFilm id="each-ear">{drawing}</FeatureFilm>);
-  const video = first.container.querySelector('video') as HTMLVideoElement;
-  expect(video.muted).toBe(true);
+it('turns the sound off and on again from its own key', () => {
+  render(<FeatureFilm id="each-ear">{drawing}</FeatureFilm>);
+  const { video } = openFilm();
   fireEvent.playing(video);
-  const sound = screen.getByRole('button', { name: en['tour.film.soundOn'] });
-  expect(sound).toHaveAttribute('aria-pressed', 'false');
-
-  fireEvent.click(sound);
-  expect(video.muted).toBe(false);
-  expect(
-    screen.getByRole('button', { name: en['tour.film.soundOff'] }),
-  ).toHaveAttribute('aria-pressed', 'true');
-  first.unmount();
-
-  // The next slide's film comes in with the sound the reader chose.
-  const next = render(<FeatureFilm id="each-ear">{drawing}</FeatureFilm>);
-  expect(
-    (next.container.querySelector('video') as HTMLVideoElement).muted,
-  ).toBe(false);
-});
-
-it('opens larger from where it was, with its sound, and the slide waits paused', () => {
-  const { container } = render(
-    <FeatureFilm id="custom-looks">{drawing}</FeatureFilm>,
-  );
-  const small = container.querySelector('video') as HTMLVideoElement;
-  fireEvent.playing(small);
-  playTo(small, 7.5);
-
   fireEvent.click(
-    screen.getByRole('button', { name: en['tour.film.enlarge'] }),
+    screen.getByRole('button', { name: en['tour.film.soundOff'] }),
   );
-  const large = screen.getByRole('dialog', {
-    name: en[FEATURE_FILMS['custom-looks'].cues[0].key],
-  });
-  const video = large.querySelector('video') as HTMLVideoElement;
-  expect(video.getAttribute('src')).toBe(featureFilmUrl('custom-looks', 'en'));
-  // A press is the reader asking to watch it: heard, though the slide's
-  // copy was silent.
+  expect(video.muted).toBe(true);
+  fireEvent.click(
+    screen.getByRole('button', { name: en['tour.film.soundOn'] }),
+  );
   expect(video.muted).toBe(false);
-  expect(paused).toContain(small);
-
-  let resumedAt: number | undefined;
-  Object.defineProperty(video, 'currentTime', {
-    configurable: true,
-    get: () => resumedAt ?? 0,
-    set: (seconds: number) => {
-      resumedAt = seconds;
-    },
-  });
-  fireEvent.loadedMetadata(video);
-  expect(resumedAt).toBe(7.5);
 });
 
-it('closes the larger film alone on Escape, and the slide plays on', () => {
+it('closes alone on Escape and gives the focus back to the key', () => {
   const tourEscape = jest.fn();
   document.addEventListener('keydown', tourEscape);
-  const { container } = render(
-    <FeatureFilm id="custom-looks">{drawing}</FeatureFilm>,
-  );
-  const small = container.querySelector('video') as HTMLVideoElement;
-  fireEvent.playing(small);
-  fireEvent.click(
-    screen.getByRole('button', { name: en['tour.film.enlarge'] }),
-  );
-  const large = screen.getByRole('dialog');
-  fireEvent.playing(large.querySelector('video') as HTMLVideoElement);
+  render(<FeatureFilm id="custom-looks">{drawing}</FeatureFilm>);
+  const { video } = openFilm();
+  fireEvent.playing(video);
   const close = screen.getByRole('button', { name: en['tour.film.close'] });
   expect(close).toHaveFocus();
 
-  const play = jest.mocked(HTMLMediaElement.prototype.play);
-  play.mockClear();
   fireEvent.keyDown(close, { key: 'Escape' });
   expect(screen.queryByRole('dialog')).toBeNull();
   // Only the film: the What's New dialog's own Escape never heard it.
   expect(tourEscape).not.toHaveBeenCalled();
-  expect(play.mock.contexts).toContain(small);
-  expect(
-    screen.getByRole('button', { name: en['tour.film.enlarge'] }),
-  ).toHaveFocus();
+  expect(watchKey()).toHaveFocus();
   document.removeEventListener('keydown', tourEscape);
 });
 
-it('goes back to the drawing for good when the film cannot be had', () => {
-  const { container } = render(
-    <FeatureFilm id="each-ear">{drawing}</FeatureFilm>,
-  );
-  fireEvent.error(container.querySelector('video') as HTMLVideoElement);
+it('closes when the site cannot send the film, and the slide is as it was', () => {
+  render(<FeatureFilm id="each-ear">{drawing}</FeatureFilm>);
+  const { video } = openFilm();
+  fireEvent.error(video);
+  expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.getByTestId('drawing')).toBeInTheDocument();
-  expect(container.querySelector('video')).toBeNull();
-});
-
-it('keeps the drawing, which holds still, when motion is reduced', () => {
-  reduced.mockReturnValue(true);
-  const { container } = render(
-    <FeatureFilm id="each-ear">{drawing}</FeatureFilm>,
-  );
-  expect(screen.getByTestId('drawing')).toBeInTheDocument();
-  expect(container.querySelector('video')).toBeNull();
+  expect(watchKey()).toBeInTheDocument();
 });
 
 describe('every film in the catalogue', () => {
   it.each(Object.entries(FEATURE_FILMS))(
-    '%s opens on what it is, then says only what the dictionary has, in order',
-    (_id, film) => {
+    '%s has a bundled frame, opens on what it is, then says only what the dictionary has, in order',
+    (id, film) => {
+      expect(FILM_POSTERS[id]).toBeTruthy();
       expect(film.width).toBeGreaterThan(0);
       expect(film.height).toBeGreaterThan(0);
       expect(film.cues[0].key.endsWith('.intro')).toBe(true);

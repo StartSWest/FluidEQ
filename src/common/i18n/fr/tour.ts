@@ -589,7 +589,7 @@ const tour: Partial<Dictionary> = {
   // End of film voice.
   'tour.film.soundOn': 'Activer le son',
   'tour.film.soundOff': 'Couper le son',
-  'tour.film.enlarge': 'Regarder en plus grand',
+  'tour.film.watch': 'Regarder la vidéo',
   'tour.film.close': 'Fermer la vidéo',
 
   'tour.songs.kicker': 'UN SON POUR CHAQUE CHANSON',

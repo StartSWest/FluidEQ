@@ -14,30 +14,8 @@ import {
 import PlayerIcon from '../../player/PlayerIcon';
 import { useTranslation } from '../../utils/I18nContext';
 import { featureFilmUrl, type IFeatureFilm } from './featureFilms';
+import FILM_POSTERS from './filmPosters';
 import useFilmLine from './useFilmLine';
-
-/**
- * Whether the reader turned the films' sound on. Kept between slides and
- * launches, so a reader who wants to hear them presses once; a film never
- * starts loud on its own (Ivan, 2026-10-14).
- */
-const FILM_SOUND_KEY = 'fluideq.tour.filmSound';
-
-export const readFilmSound = (): boolean => {
-  try {
-    return window.localStorage.getItem(FILM_SOUND_KEY) === 'on';
-  } catch {
-    return false;
-  }
-};
-
-const keepFilmSound = (isOn: boolean) => {
-  try {
-    window.localStorage.setItem(FILM_SOUND_KEY, isOn ? 'on' : 'off');
-  } catch {
-    // A storage that refuses writes leaves the choice to this film alone.
-  }
-};
 
 /**
  * A film's picture and the line its voice is saying, in the reader's
@@ -62,6 +40,7 @@ export default function FilmPicture({
   video: RefObject<HTMLVideoElement | null>;
   /** The frame's own class: the slide's or the larger view's. */
   className: string;
+  /** Playing: its keys are drawn and its lines said under it. */
   isShown: boolean;
   isSoundOnAtStart: boolean;
   /** Seconds into the film to begin at. */
@@ -96,6 +75,8 @@ export default function FilmPicture({
         <video
           ref={video}
           src={featureFilmUrl(id, locale)}
+          // A frame of the film, bundled, until the site's first picture.
+          poster={FILM_POSTERS[id]}
           muted={!isSoundOn}
           autoPlay
           loop
@@ -124,9 +105,7 @@ export default function FilmPicture({
               )}
               title={t(isSoundOn ? 'tour.film.soundOff' : 'tour.film.soundOn')}
               onClick={() => {
-                const next = !isSoundOn;
-                setSoundOn(next);
-                keepFilmSound(next);
+                setSoundOn(!isSoundOn);
               }}
             >
               <PlayerIcon name={isSoundOn ? 'speaker' : 'mute'} />
