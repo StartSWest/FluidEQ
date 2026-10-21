@@ -1,4 +1,4 @@
-# FluidEQ 2.0
+# FluidEQ 2.1
 
 > Your sound, finally worth watching.
 
@@ -29,10 +29,34 @@ Innerfidelity, Super Review and others, and collected by
 [Find yours, and who made it](https://fluideq.com/headphones): every model has a
 page with its corrections drawn and given as Equalizer APO settings.
 
-## New in 2.0
+## New in 2.1
 
-The biggest release FluidEQ has had. The whole list is in the
+Every output gets a sound of its own. The whole list is in the
 [release notes](CHANGELOG.md); these are the headlines.
+
+- **Every output keeps its own sound.** The EQ, the preset, the Tone, the
+  DSP rack, the Room and the leveling come back with each output the moment
+  you switch to it, and a second output plays straight from the FluidEQ
+  Engine with a sound of its own.
+- **Tune each ear on its own.** Any band can become one band per ear, in the
+  EQ and in the DSP rack.
+- **My curves.** Your own list of curves beside OPRA's library: from
+  Squiglink, a .txt file, your EQ or an OPRA pick, each named, drawn and one
+  press from playing, and the whole list exported or imported as one file.
+  Squiglink has a tab of its own, and the EQ mode card switches corrections in
+  one press.
+- **Songs that remember how you like them**: tune a song once and it plays
+  that way every time, on the output you tuned it on.
+- **A De-esser in the DSP rack** that turns down only a voice's sharp S.
+- **Share Audio works both ways** between two computers, each direction with
+  its own switch, pause and volume.
+- **Every band's numbers on the graph**, with EQ mode as a card beside it.
+- **Ask the Studio for a change and watch it on the stage**: a chat beside the
+  Studio's stage, running on your own Claude Code.
+
+### New in 2.0
+
+The biggest release FluidEQ has had; these were its headlines.
 
 - **A new window, in new colours.** One slider, Brightness, takes the whole
   window from near-black to a light ocean blue. With a Plus visualizer on the
@@ -749,6 +773,15 @@ Copy `.env.example` to `.env` to set the contribution links. Every value in it
 is inlined into the renderer bundle and is therefore public by construction —
 the file says so at the top, at length, because that is exactly the kind of
 thing people get wrong once.
+
+**No payment key is in the app or in this repository, and none may be.**
+Payments are made on the payment provider's own page in the browser. The
+checkout is created by FluidEQ's server for the signed-in account, which holds
+the provider's secret key and webhook signing secret as server-side secrets;
+the app only opens the page the server hands back and reads the result from
+the server afterwards. The server's address and its public (anon) key are the
+only service values a build carries, and both are meant to be public: what an
+account may read or change is enforced by the server, never by the app.
 
 ## Where this came from
 

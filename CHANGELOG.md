@@ -50,13 +50,15 @@ and the De-esser is not heard, and everything else plays as before.
   your EQ as it plays, or copied from the OPRA correction playing. The OPRA
   tab and the Squiglink import keep their curve with one press of **Save to
   My curves**, under the name it already has, and then say it is in the list.
-  The Squiglink import now lives under the My curves tab. A line
+  Squiglink has a tab of its own, right after the OPRA library, so a growing
+  list never pushes it down. A line
   that cannot be read is named, never dropped without a word. Each curve shows
   its shape, where it came from and which ears it is for, and plays with one
   press as the headphone correction or goes into your EQ bands (that one asks
   for a second press, because it replaces them). The curve playing now is
   marked. Search, sort by name or by date, rename, edit its bands, duplicate,
-  copy as text, delete. **Export list** writes them all to one file that
+  copy as text, delete — each from a menu with its own icon, and deleting
+  asks first, naming the curve. **Export list** writes them all to one file that
   another FluidEQ imports whole, or to a folder of .txt files for Equalizer
   APO and AutoEQ tools. **Import list** shows every curve before adding any,
   names whatever it leaves out, and never overwrites a name you already have
@@ -104,6 +106,14 @@ and the De-esser is not heard, and everything else plays as before.
   there. Your bands' Band Q no longer reshapes a preset or a correction.
 - The Smart EQ toolbar was tidied, and the Applied headphone button stays
   readable under the mouse.
+- **Expanded grows the graph in its own card.** On the Bands page the page
+  folds away under it and the head stays where it was, rounded and floating
+  on the Backdrop as at the normal size. Full screen, and Expanded over
+  Media, the Library and Karaoke, still lay the graph over the whole column.
+- **Game presets have a switch of their own** at the head of their page. Off,
+  no game changes your sound and FluidEQ stops watching which program is in
+  front; a game playing when you switch it off gives your sound back at once.
+  Your list stays, and Reset settings turns it on again.
 
 ### The DSP rack
 
@@ -191,6 +201,9 @@ and the De-esser is not heard, and everything else plays as before.
 - **While the Studio is open, the scenes' time of day follows its
   Brightness**, so a scene can be checked at night and in daylight before it
   is published.
+- **The Studio's frame rate is the picture's.** It counts the frames the
+  scene actually puts on screen, so a busy Studio on a 240 Hz display no
+  longer reads 80 a second while the scene fills every refresh.
 
 ### Account
 
@@ -213,6 +226,9 @@ and the De-esser is not heard, and everything else plays as before.
 - **What's New shows the real Output panel** for "Every output keeps its own
   sound", in your window's colours and language, switching from headphones to
   speakers with each one's profile.
+- **What's New has a slide for My curves**, drawn with the page's own list:
+  a curve saved from Squiglink lands at the top and plays. Help's headphone
+  topic covers the Squiglink tab and My curves.
 
 ### Forum
 
