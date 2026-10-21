@@ -13,6 +13,8 @@ export default {
   'genre.pop.pin.5000': 'Präsenz und Glanz',
   'genre.pop.pin.5000.why':
     'Der Schliff auf der Stimme, knapp vor dem Scharfen gehalten.',
+  'genre.pop.stage.exciter':
+    'Körper um 1 kHz, Glanz auf der Stimme und Wärme unter beidem.',
   'genre.pop.stage.bassPunch':
     'Strafft, statt zu schlagen: ein kürzerer Kick-Ausklang unter der Basslinie, der Anschlag nur leicht angehoben.',
   'genre.pop.stage.dimension':
@@ -20,7 +22,7 @@ export default {
   'genre.pop.stage.maximizer':
     'Eine leichte Obergrenze, die kaum antreibt: Der Master ist schon limitiert.',
   'genre.pop.off':
-    'Exciter und Bass-Schmiede werden unter dem Namen Pop angeboten und bleiben aus: Die Stimme ist schon hell, und der Sub steckt im Master.',
+    'Die Bass-Schmiede wird unter dem Namen Pop angeboten und bleibt aus: Der Sub steckt im Master.',
 
   'genre.indiePop.hook': 'Leichter und wärmer als die Charts',
   'genre.indiePop.story':
@@ -37,6 +39,8 @@ export default {
   'genre.indiePop.pin.12500': 'Ein wenig Luft',
   'genre.indiePop.pin.12500.why':
     'Sanft, über Höhen, die von Anfang an weich waren.',
+  'genre.indiePop.stage.exciter':
+    'Nur Wärme, in den unteren Mitten: nie heller.',
   'genre.indiePop.stage.dimension':
     'Unten schmaler und die Luft einen Hauch breiter: Die Harmonien öffnen sich, ohne die Stimme zu verschieben.',
   'genre.indiePop.stage.maximizer':
@@ -96,12 +100,14 @@ export default {
   'genre.kPop.pin.12500': 'Keine zusätzliche Luft',
   'genre.kPop.pin.12500.why':
     'Die Stimme bringt ihre eigene bei 12 kHz schon mit.',
+  'genre.kPop.stage.exciter':
+    'Körper und Präsenz unterhalb der Anhebungen der Stimme selbst, nichts in den Höhen.',
   'genre.kPop.stage.dimension':
     'Unten schmaler, Doppelungen und Flächen etwas breiter, als sie gemischt wurden.',
   'genre.kPop.stage.maximizer':
     'Eine Obergrenze, die kaum antreibt: Diese Master sind so laut, wie Master nur werden.',
   'genre.kPop.off':
-    'Kein Exciter, kein Bass-Punch und keine Bass-Schmiede: Alles, was eine Stufe hinzufügen könnte, ist schon in der Platte.',
+    'Kein Bass-Punch und keine Bass-Schmiede: Der Punch der Kick und der Sub sind schon in der Platte.',
 
   'genre.jPop.hook': 'Eine dichte, helle Wand bei jedem Tempo',
   'genre.jPop.story':
@@ -112,11 +118,13 @@ export default {
   'genre.jPop.pin.500.why': 'Ein wenig raus aus der vollen Mitte.',
   'genre.jPop.pin.3150': 'Obere Mitten in Ruhe gelassen',
   'genre.jPop.pin.3150.why': 'Schon hell und nach vorn; nie weiter geschoben.',
+  'genre.jPop.stage.exciter':
+    'Nur Wärme, in den unteren Mitten: nichts auf so hellen Höhen.',
   'genre.jPop.stage.dimension': 'Nichts verbreitert: Die Wand ist breit genug.',
   'genre.jPop.stage.maximizer':
     'Eine Obergrenze, die kaum antreibt, auf Mastern, die schon geclippt sind.',
   'genre.jPop.off':
-    'Sein Exciter wird angeboten und bleibt aus: Die Toningenieure des Genres wollen auf einem so hellen Master keinen.',
+    'Kein Bass-Punch und keine Bass-Schmiede: Die Wand kommt dicht und laut an.',
 
   'genre.cPop.hook': 'Balladen, die Stimme vorn in der Mitte',
   'genre.cPop.story':

@@ -62,7 +62,7 @@ export const stagePresetSettings = <S extends TPresetStage>(
  * A saved profile put on the stage: switched on, named by its id, and with
  * what is the listener's rather than the sound's kept from the stage as it
  * was — the Master's level-matched comparison, as its factory destinations
- * keep it, and the Exciter's oversampling, as its factory profiles do.
+ * keep it. The Exciter's oversampling is the profile's, as it was saved.
  */
 export const applyStagePreset = <S extends TPresetStage>(
   stage: S,
@@ -73,9 +73,6 @@ export const applyStagePreset = <S extends TPresetStage>(
   const listener: Record<string, unknown> = {
     ...('matchedBypass' in current
       ? { matchedBypass: current.matchedBypass }
-      : {}),
-    ...('oversampling' in current
-      ? { oversampling: current.oversampling }
       : {}),
   };
   return clampDspSettings({

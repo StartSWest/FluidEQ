@@ -138,13 +138,14 @@ const genreWorld = {
   'genre.arabicPop.pin.1250.why': 'The ornaments clear.',
   'genre.arabicPop.pin.5000': 'Strings not brightened',
   'genre.arabicPop.pin.5000.why': 'Bright already.',
+  'genre.arabicPop.stage.exciter':
+    'Warmth under the voice; the strings and the tek left as bright as they are.',
   'genre.arabicPop.stage.bassPunch': 'The low end tightened.',
   'genre.arabicPop.stage.dimension':
     'The strings left as wide as recorded; only the bass narrowed.',
   'genre.arabicPop.stage.maximizer':
     'A light ceiling that keeps the darbuka’s attack.',
-  'genre.arabicPop.off':
-    'No Exciter or Bass Forge: the strings and the tek are bright already.',
+  'genre.arabicPop.off': 'No Bass Forge: nothing generated under the doum.',
 
   'genre.turkishPop.hook': 'Polished pop with Turkish colour',
   'genre.turkishPop.story':
@@ -157,10 +158,12 @@ const genreWorld = {
   'genre.turkishPop.pin.1250.why': 'In front.',
   'genre.turkishPop.pin.8000': 'No shine added',
   'genre.turkishPop.pin.8000.why': 'Polished already.',
+  'genre.turkishPop.stage.exciter':
+    'Warmth under the voice, nothing on the darbuka.',
   'genre.turkishPop.stage.bassPunch': 'A tight bottom.',
   'genre.turkishPop.stage.dimension': 'As mixed, only the bass narrowed.',
   'genre.turkishPop.stage.maximizer': 'A ceiling that barely pushes.',
-  'genre.turkishPop.off': 'No Exciter or Bass Forge on a record this polished.',
+  'genre.turkishPop.off': 'No Bass Forge on a record this polished.',
 
   'genre.gospel.hook': 'A choir, and vamps that build for minutes',
   'genre.gospel.story':

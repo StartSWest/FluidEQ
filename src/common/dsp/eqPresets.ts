@@ -52,7 +52,6 @@ export interface IEqPresetSetup {
   modelAmount?: number;
   engine?: TEqEngine;
   phase?: TEqPhase;
-  oversample?: number;
   stereo?: TEqStereo;
   subsonicHz?: number;
   fuzzAmount?: number;

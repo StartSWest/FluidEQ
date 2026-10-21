@@ -135,12 +135,13 @@ export default {
   'genre.arabicPop.pin.1250.why': '装飾をはっきりと。',
   'genre.arabicPop.pin.5000': 'ストリングスは明るくしない',
   'genre.arabicPop.pin.5000.why': 'すでに明るい音です。',
+  'genre.arabicPop.stage.exciter':
+    '声の下にあたたかさ。ストリングスとテクは明るいままです。',
   'genre.arabicPop.stage.bassPunch': '低域を引き締めます。',
   'genre.arabicPop.stage.dimension':
     'ストリングスは録った広さのまま、低域だけ狭めます。',
   'genre.arabicPop.stage.maximizer': 'ダルブッカのアタックを残す軽い天井。',
-  'genre.arabicPop.off':
-    'エキサイターもベースフォージもなし。ストリングスとテクはすでに明るい音です。',
+  'genre.arabicPop.off': 'ベースフォージはなし。ドゥムの下に何も生成しません。',
 
   'genre.turkishPop.hook': 'トルコの色をまとった磨かれたポップ',
   'genre.turkishPop.story':
@@ -153,11 +154,13 @@ export default {
   'genre.turkishPop.pin.1250.why': '前に。',
   'genre.turkishPop.pin.8000': '艶は足さない',
   'genre.turkishPop.pin.8000.why': 'すでに磨かれています。',
+  'genre.turkishPop.stage.exciter':
+    '声の下にあたたかさ。ダルブッカには何も足しません。',
   'genre.turkishPop.stage.bassPunch': 'タイトな低域。',
   'genre.turkishPop.stage.dimension': 'ミックスのまま、低域だけ狭めます。',
   'genre.turkishPop.stage.maximizer': 'ほとんど押さない天井。',
   'genre.turkishPop.off':
-    'これほど磨かれたレコードに、エキサイターもベースフォージも使いません。',
+    'これほど磨かれたレコードに、ベースフォージは使いません。',
 
   'genre.gospel.hook': 'クワイアと、何分もかけて高まるヴァンプ',
   'genre.gospel.story':

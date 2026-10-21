@@ -13,6 +13,8 @@ export default {
   'genre.pop.pin.5000': '存在感と艶',
   'genre.pop.pin.5000.why':
     'ボーカルの磨き。耳に痛くなる一歩手前で止めています。',
+  'genre.pop.stage.exciter':
+    '1 kHz付近に厚み、ボーカルに艶、その両方の下にあたたかさ。',
   'genre.pop.stage.bassPunch':
     '叩くより引き締める。ベースラインの下でキックの余韻を短くし、アタックはほんの少し持ち上げるだけです。',
   'genre.pop.stage.dimension':
@@ -20,7 +22,7 @@ export default {
   'genre.pop.stage.maximizer':
     'ほとんど押し込まない軽い天井。マスターはすでにリミッティング済みです。',
   'genre.pop.off':
-    'エキサイターとベースフォージはポップの名で用意されていますがオフです。ボーカルはすでに明るく、サブはマスターに入っています。',
+    'ベースフォージはポップの名で用意されていますがオフです。サブはマスターに入っています。',
 
   'genre.indiePop.hook': 'チャートより軽く、あたたかい',
   'genre.indiePop.story':
@@ -34,6 +36,7 @@ export default {
   'genre.indiePop.pin.1250.why': 'ギターが鳴り、コーラスが重なる帯域です。',
   'genre.indiePop.pin.12500': '少しの空気感',
   'genre.indiePop.pin.12500.why': 'もともと柔らかい高域の上に、控えめに。',
+  'genre.indiePop.stage.exciter': '中低域にあたたかさだけ。明るくはしません。',
   'genre.indiePop.stage.dimension':
     '低域を狭め、空気感をわずかに広げます。声を動かさずにハーモニーが開きます。',
   'genre.indiePop.stage.maximizer': '柔らかさを残す、軽い天井。',
@@ -91,12 +94,14 @@ export default {
   'genre.kPop.pin.12500': '空気感は足さない',
   'genre.kPop.pin.12500.why':
     'ボーカルが12 kHzに自前の空気感をすでに持っています。',
+  'genre.kPop.stage.exciter':
+    'ボーカル自身の持ち上げより下に厚みと存在感。高域には何も足しません。',
   'genre.kPop.stage.dimension':
     '低域は狭め、ダブルやパッドはミックスより少し広く。',
   'genre.kPop.stage.maximizer':
     'ほとんど押し込まない天井。これらのマスターは、マスターとして出せる限界の大きさです。',
   'genre.kPop.off':
-    'エキサイター、ベースパンチ、ベースフォージはなし。再生側の処理で足せるものは、すでにレコードに入っています。',
+    'ベースパンチもベースフォージもなし。キックのパンチとサブは、すでにレコードに入っています。',
 
   'genre.jPop.hook': 'どんなテンポでも、密度の高い明るい音の壁',
   'genre.jPop.story':
@@ -108,11 +113,13 @@ export default {
   'genre.jPop.pin.500.why': '混み合った中域から少しだけ引きます。',
   'genre.jPop.pin.3150': '中高域はそのまま',
   'genre.jPop.pin.3150.why': 'すでに明るく前に出ているので、決して押しません。',
+  'genre.jPop.stage.exciter':
+    '中低域にあたたかさだけ。これほど明るい高域には何も足しません。',
   'genre.jPop.stage.dimension': '何も広げません。壁はもう十分に広いからです。',
   'genre.jPop.stage.maximizer':
     'すでにクリップしたマスターを、ほとんど押し込まない天井。',
   'genre.jPop.off':
-    'エキサイターは用意されていますがオフです。これほど明るいマスターには、エンジニアたちも使いません。',
+    'ベースパンチもベースフォージもなし。音の壁は密度と音量を備えて届きます。',
 
   'genre.cPop.hook': 'バラード、声が前の中央に',
   'genre.cPop.story':

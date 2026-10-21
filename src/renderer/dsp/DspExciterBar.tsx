@@ -122,8 +122,9 @@ const DspExciterBar = ({
     if (next === undefined) {
       return;
     }
-    // A profile is which harmonics; how they are made stays the listener's.
-    onChange({ ...next, oversampling: exciter.oversampling });
+    // A factory profile's oversampling is off, like every preset's: the
+    // listener switches it on (Ivan, 2026-10-17).
+    onChange(next);
     onCommit();
   };
 

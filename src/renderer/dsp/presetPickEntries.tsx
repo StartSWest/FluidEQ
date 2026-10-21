@@ -33,7 +33,7 @@ export const SAVED_GROUP = 'saved';
  * And it is what actually distinguishes these entries. Fifteen of them are a
  * genre name over a curve, and the curve is already drawn on the graph the
  * moment one is chosen; what is NOT visible anywhere else is that this one
- * wants oversampling and mid-only and a de-esser on two bands. That is the
+ * wants mid-only and a de-esser on two bands. That is the
  * part somebody comparing two presets cannot otherwise see.
  *
  * Only what differs from the rack's own defaults is listed, so a plain tone
@@ -51,9 +51,6 @@ export const presetHint = (preset: IEqPreset, t: Translate): string => {
   }
   if (setup.stereo !== 'stereo') {
     parts.push(t(`dsp.eqStereo.${setup.stereo}` as TranslationKey));
-  }
-  if (setup.oversample > 1) {
-    parts.push(t('dsp.eqOversample.on'));
   }
   const reacting = preset.dynamic?.filter((one) => one !== null).length ?? 0;
   if (reacting > 0) {

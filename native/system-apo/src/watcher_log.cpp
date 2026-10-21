@@ -114,6 +114,24 @@ void Watcher::log_chain(const Chain& chain, const Graph& graph,
   }
 }
 
+void Watcher::log_timing() noexcept {
+  try {
+    const auto timing = output_block_timing(endpoint_.guid);
+    if (!timing) {
+      return;
+    }
+    const BlockTiming::Reading reading = timing->read();
+    const uint32_t step = timing_step(reading.slowest_permille);
+    if (reading.blocks == 0 || step <= timing_step_logged_) {
+      return;
+    }
+    timing_step_logged_ = step;
+    log_.write(describe_timing(reading));
+  } catch (...) {
+    // A line the log never gets costs the report, not the audio.
+  }
+}
+
 void Watcher::report_status(bool locked) noexcept {
   try {
     bool written = true;
@@ -155,6 +173,13 @@ void Watcher::report_status(bool locked) noexcept {
       // ever sets it.
       if (const auto carried = output_carried_flag(endpoint_.guid)) {
         status.carried = carried->load(std::memory_order_relaxed);
+      }
+      // The output's too, for the same reason.
+      if (const auto timing = output_block_timing(endpoint_.guid)) {
+        const BlockTiming::Reading reading = timing->read();
+        if (reading.blocks > 0) {
+          status.load = reading;
+        }
       }
       if (reload_failed_) {
         status.problems.push_back("reload-failed");

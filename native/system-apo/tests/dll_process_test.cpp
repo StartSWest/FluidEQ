@@ -49,6 +49,7 @@ using fluideq_engine_test::kEngineClsid;
 using fluideq_engine_test::kFrames;
 using fluideq_engine_test::kRate;
 using fluideq_engine_test::load_engine;
+using fluideq_engine_test::read_text_file;
 using fluideq_engine_test::g_owner_pipe;
 using fluideq_engine_test::run_dll_test;
 using fluideq_engine_test::ScopeGuard;
@@ -371,6 +372,12 @@ void run(const wchar_t* dll_path, const std::wstring& root) {
     CHECK(size.QuadPart > 0);
     CloseHandle(log_file);
   }
+  // And what each stream cost, from the instance that carried it, so a
+  // report can say whether the engine kept up (GitHub issue 30). Written at
+  // the unlock, by blocks this test pushed through the real callback.
+  const std::string text = read_text_file(log);
+  CHECK(text.find("this stream: slowest block ") != std::string::npos);
+  CHECK(text.find(" ms of its 10.00 ms (") != std::string::npos);
 }
 
 }  // namespace

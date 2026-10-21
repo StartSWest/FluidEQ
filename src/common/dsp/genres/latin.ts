@@ -49,8 +49,18 @@ const LATIN_RACKS: readonly IGenreRack[] = [
   {
     // Dembow and tresillo at 85-105 BPM, a programmed kick locked to a mono
     // sub, mastered at -8 LUFS peaking over full scale. The sub tightened a
-    // little, the rest left as polished as it arrived.
+    // little, and since 2026-10-15 the Exciter Ivan asked for in the pop
+    // styles: warmth and body under the vocal from a band that stops by
+    // 2.5 kHz, mostly even orders, and nothing on a polished top.
     id: 'latinPop',
+    exciter: exciterProfile(
+      [
+        { enabled: false },
+        { freqHz: 1_100, range: 0.2, mix: 0.15, texture: 0.22 },
+        { enabled: false },
+      ],
+      { enabled: true, amount: 0.1, focusHz: 450, range: 0.3 },
+    ),
     bassPunch: punch(100, 0.1, -0.3, 0, 60, 0),
     dimension: width(0.55, 1, 1, 150, 3_200, 0.05),
     maximizer: ceiling(0.5, -1, 3, sixteenthMs(96)),

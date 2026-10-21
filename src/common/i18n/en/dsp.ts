@@ -390,7 +390,6 @@ const dsp = {
   'dsp.eqStereo.side': 'Sides only',
   'dsp.eqOversample.label': 'Oversampling',
   'dsp.eqOversample.off': 'Off',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'Precise: every band of this EQ plays exactly as drawn, up to 20\u00a0kHz.',
   'dsp.eqImport.title': 'Import an EQ curve',

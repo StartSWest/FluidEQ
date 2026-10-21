@@ -143,13 +143,14 @@ export default {
   'genre.arabicPop.pin.1250.why': 'Los ornamentos, claros.',
   'genre.arabicPop.pin.5000': 'Cuerdas sin abrillantar',
   'genre.arabicPop.pin.5000.why': 'Ya son brillantes.',
+  'genre.arabicPop.stage.exciter':
+    'Calidez bajo la voz; las cuerdas y el tek, tan brillantes como son.',
   'genre.arabicPop.stage.bassPunch': 'Los graves, ajustados.',
   'genre.arabicPop.stage.dimension':
     'Las cuerdas tan amplias como se grabaron; solo se estrechan los graves.',
   'genre.arabicPop.stage.maximizer':
     'Un techo ligero que conserva el ataque de la darbuka.',
-  'genre.arabicPop.off':
-    'Sin Excitador ni Forja de graves: las cuerdas y el tek ya son brillantes.',
+  'genre.arabicPop.off': 'Sin Forja de graves: nada generado bajo el doum.',
 
   'genre.turkishPop.hook': 'Pop pulido con color turco',
   'genre.turkishPop.story':
@@ -162,12 +163,13 @@ export default {
   'genre.turkishPop.pin.1250.why': 'Delante.',
   'genre.turkishPop.pin.8000': 'Sin brillo añadido',
   'genre.turkishPop.pin.8000.why': 'Ya es pulido.',
+  'genre.turkishPop.stage.exciter':
+    'Calidez bajo la voz, nada sobre la darbuka.',
   'genre.turkishPop.stage.bassPunch': 'Unos graves ajustados.',
   'genre.turkishPop.stage.dimension':
     'Como se mezcló; solo se estrechan los graves.',
   'genre.turkishPop.stage.maximizer': 'Un techo que apenas empuja.',
-  'genre.turkishPop.off':
-    'Sin Excitador ni Forja de graves en un disco tan pulido.',
+  'genre.turkishPop.off': 'Sin Forja de graves en un disco tan pulido.',
 
   'genre.gospel.hook': 'Un coro, y vamps que crecen durante minutos',
   'genre.gospel.story':

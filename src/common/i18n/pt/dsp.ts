@@ -382,7 +382,6 @@ const dsp = {
   'dsp.eqStereo.side': 'Só lados',
   'dsp.eqOversample.label': 'Sobreamostragem',
   'dsp.eqOversample.off': 'Não',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'Preciso: cada banda deste EQ soa exatamente como está desenhada, até 20\u00a0kHz.',
   'dsp.eqImport.title': 'Importar uma curva de EQ',

@@ -380,7 +380,6 @@ const dsp = {
   'dsp.eqStereo.side': 'Только бока',
   'dsp.eqOversample.label': 'Передискр.',
   'dsp.eqOversample.off': 'Выкл',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'Точный: каждая полоса этого эквалайзера звучит ровно так, как нарисована, вплоть до 20\u00a0кГц.',
   'dsp.eqImport.title': 'Импорт кривой эквалайзера',

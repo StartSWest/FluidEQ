@@ -28,11 +28,13 @@ export default {
   'genre.latinPop.pin.200.why': 'Platz zwischen Sub und Stimme.',
   'genre.latinPop.pin.3150': 'Artikulation der Stimme',
   'genre.latinPop.pin.3150.why': 'Wo die Worte sind.',
+  'genre.latinPop.stage.exciter':
+    'Wärme und Körper unter der Stimme, nichts in den Höhen.',
   'genre.latinPop.stage.bassPunch': 'Der Sub etwas gestrafft.',
   'genre.latinPop.stage.dimension': 'Mono unter 150 Hz.',
   'genre.latinPop.stage.maximizer': 'Eine Obergrenze, die kaum antreibt.',
   'genre.latinPop.off':
-    'Kein Exciter und keine Bass-Schmiede: Es bleibt so poliert, wie es ankam.',
+    'Keine Bass-Schmiede: Der Sub ist schon an die Kick gebunden.',
 
   'genre.reggaeton.hook': 'Ein Kick auf jedem Schlag über einer gestimmten 808',
   'genre.reggaeton.story':

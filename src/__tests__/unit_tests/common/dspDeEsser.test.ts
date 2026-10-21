@@ -224,8 +224,19 @@ describe('the De-esser on the rack’s line', () => {
     expect(words[1]).toBe(1);
     expect(words[1 + CHAIN_DEESSER_FIELDS]).toBe(CHAIN_DEESSER_SIGNATURE);
     expect(words[2 + CHAIN_DEESSER_FIELDS]).toBe(CHAIN_DEESSER_FIELDS);
-    // Standard is the first choice on the wire, as every line before it.
-    expect(words.slice(3 + CHAIN_DEESSER_FIELDS)).toEqual([0, 0, 0]);
+    // The Exciter's oversampling, Off by default, then two free words.
+    expect(words.slice(3 + CHAIN_DEESSER_FIELDS)).toEqual([1, 0, 0]);
+  });
+
+  it('runs the Exciter without oversampling unless a listener chose it', () => {
+    expect(DSP_DEFAULTS.exciter.oversampling).toBe('off');
+    // A rack stored before the choice existed takes the default.
+    expect(clampDspSettings({ exciter: {} }).exciter.oversampling).toBe('off');
+    // A choice made is kept.
+    expect(
+      clampDspSettings({ exciter: { oversampling: 'standard' } }).exciter
+        .oversampling,
+    ).toBe('standard');
   });
 
   it('carries the Exciter’s oversampling in the first word after the pair', () => {

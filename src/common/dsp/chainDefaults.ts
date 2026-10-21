@@ -467,7 +467,14 @@ export const DSP_DEFAULTS: IDspSettings = {
       range: 0.3,
     },
     align: { enabled: false, amount: 0.45 },
-    oversampling: 'standard',
+    // Off, here and in every factory profile and chain: oversampling costs
+    // processor time, so it is the listener's to switch on and never a
+    // preset's to switch on unseen (Ivan, 2026-10-17: "we dont want settings
+    // that can make things slower to be hidden"). Off folds the brightest
+    // harmonics back 19 dB down; Standard puts them 57 dB down and High 125,
+    // for about 1.1 ms of a 10 ms block on a performance core of Ivan's i9
+    // with every band and Organic on.
+    oversampling: 'off',
     isolate: false,
   },
   bassForge: {

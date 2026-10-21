@@ -234,6 +234,14 @@ class Watcher {
   void say_it_carried() noexcept;
 
   /**
+   * The audio thread saying a block took a larger share of its time than any
+   * before, by a step of `timing_step` — so the status and the log can say
+   * so (`block_timing.h`). The same one `SetEvent`, a handful of times in a
+   * stream at most.
+   */
+  void say_it_was_slow() noexcept;
+
+  /**
    * The audio thread saying the second output it plays needs this thread:
    * a kernel for a main output's new rate, or a status that changed —
    * started, stopped, fell behind. The same one `SetEvent` as
@@ -300,6 +308,12 @@ class Watcher {
    * is logged once and otherwise changes nothing about the audio.
    */
   void report_status(bool locked) noexcept;
+  /**
+   * One log line when the output's slowest block has climbed a step of
+   * `timing_step` since the last — the moment a report needs, written as it
+   * happens rather than only when the stream ends.
+   */
+  void log_timing() noexcept;
   /**
    * Tell the output's leveling which song is playing — `programme.h`. True
    * when that finished a named song, which the status file then carries for
@@ -412,13 +426,16 @@ class Watcher {
   // This instance's place among the output's in the status file.
   StatusShare status_;
   bool status_failure_logged_ = false;
+  // The step of the slowest block the log last said — `log_timing`.
+  uint32_t timing_step_logged_ = 0;
 
   HANDLE stop_event_ = nullptr;
   // Auto-reset: one wake per request, and a request that arrives while a
   // rebuild is already running is served by the next wait rather than lost.
   HANDLE reset_event_ = nullptr;
-  // Auto-reset, set once per lock by the audio thread — `say_it_carried`.
-  HANDLE carried_event_ = nullptr;
+  // Auto-reset: the audio thread asking for the status to be written again
+  // — `say_it_carried`, `say_it_was_slow`, `graph_adopted`.
+  HANDLE status_event_ = nullptr;
   // Auto-reset, set by the audio thread when the second output it plays
   // changes state — `split_wake`. Null where there is no split part.
   HANDLE split_event_ = nullptr;

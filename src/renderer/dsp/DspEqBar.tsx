@@ -529,144 +529,159 @@ const DspEqBar = ({ eq, sampleRate, onChange, onCommit }: IDspEqBarProps) => {
           wrapper makes the alignment explicit and prevents one setting from
           becoming a third header line when the toolbar gets tight. */}
       <div className="dsp-eq-settings">
-        {/* The same curve through different machinery. First of the settings row
+        {/* Two groups of three that never break apart: side by side where the
+            card has the room (the side pane closed), one above the other
+            where it has not — two balanced lines, never four settings and
+            then two (Ivan, 2026-10-15). */}
+        <div className="dsp-eq-settings-group">
+          {/* The same curve through different machinery. First of the settings row
           because the character decides how every dial below is rendered rather
           than what it is set to. */}
-        <div className="dsp-eq-preset">
-          <span className="dsp-eq-preset-label">{t('dsp.eqModel.label')}</span>
-          <SegmentedControl
-            name={t('dsp.eqModel.label')}
-            value={eq.model}
-            options={EQ_MODELS.map((model) => ({
-              value: model,
-              label: t(`dsp.eqModel.${model}` as TranslationKey),
-            }))}
-            onChange={(next: string) => {
-              onChange(eqEdited(eq, { model: next as TEqModel }));
-              onCommit();
-            }}
-          />
-        </div>
+          <div className="dsp-eq-preset">
+            <span className="dsp-eq-preset-label">
+              {t('dsp.eqModel.label')}
+            </span>
+            <SegmentedControl
+              name={t('dsp.eqModel.label')}
+              value={eq.model}
+              options={EQ_MODELS.map((model) => ({
+                value: model,
+                label: t(`dsp.eqModel.${model}` as TranslationKey),
+              }))}
+              onChange={(next: string) => {
+                onChange(eqEdited(eq, { model: next as TEqModel }));
+                onCommit();
+              }}
+            />
+          </div>
 
-        {/* Orthogonal to both of the others, which is why it is its own control
+          {/* Orthogonal to both of the others, which is why it is its own control
           rather than a third engine: it is the same topology given room. */}
-        <div className="dsp-eq-preset">
-          <span className="dsp-eq-preset-label">
-            {t('dsp.eqOversample.label')}
-          </span>
-          <SegmentedControl
-            name={t('dsp.eqOversample.label')}
-            value={String(eq.oversample)}
-            // Nothing to offer linear phase, and saying so is better than leaving
-            // a live control that does nothing: oversampling exists to move a
-            // band away from where the bilinear transform squeezes it, and an FIR
-            // built from an impulse response has no bilinear transform in it.
-            isDisabled={eq.phase === 'linear'}
-            options={OVERSAMPLE_FACTORS.map((factor) => ({
-              value: String(factor),
-              label: factor === 1 ? t('dsp.eqOversample.off') : `${factor}x`,
-            }))}
-            onChange={(next: string) => {
-              onChange(eqEdited(eq, { oversample: Number(next) }));
-              onCommit();
-            }}
-          />
-        </div>
+          <div className="dsp-eq-preset">
+            <span className="dsp-eq-preset-label">
+              {t('dsp.eqOversample.label')}
+            </span>
+            <SegmentedControl
+              name={t('dsp.eqOversample.label')}
+              value={String(eq.oversample)}
+              // Nothing to offer linear phase, and saying so is better than leaving
+              // a live control that does nothing: oversampling exists to move a
+              // band away from where the bilinear transform squeezes it, and an FIR
+              // built from an impulse response has no bilinear transform in it.
+              isDisabled={eq.phase === 'linear'}
+              options={OVERSAMPLE_FACTORS.map((factor) => ({
+                value: String(factor),
+                label: factor === 1 ? t('dsp.eqOversample.off') : `${factor}x`,
+              }))}
+              onChange={(next: string) => {
+                onChange(eqEdited(eq, { oversample: Number(next) }));
+                onCommit();
+              }}
+            />
+          </div>
 
-        {/* Beside oversampling, which answers the same squeeze near Nyquist by
+          {/* Beside oversampling, which answers the same squeeze near Nyquist by
           running faster; this answers it with a band designed to meet the
           drawn shape, at no cost. The listener's rather than the curve's, as
           the main EQ's Treble row is, so it leaves the preset's name alone
           and no preset changes it. Live in linear phase too: the kernel is
           built from these bands. */}
-        <div className="dsp-eq-preset">
-          <span className="dsp-eq-preset-label">{t('eq.mode.treble')}</span>
-          <SegmentedControl
-            name={t('eq.mode.treble')}
-            value={eq.treble}
-            isDisabled={trebleNeedsEngine}
-            options={TREBLE_DESIGNS.map((design) => ({
-              value: design,
-              label: t(
-                design === 'precise' ? 'eq.mode.precise' : 'eq.mode.classic',
-              ),
-              title: t(
-                (trebleNeedsEngine && 'eq.mode.trebleUpdate') ||
-                  (design === 'precise'
-                    ? 'dsp.eqTreble.preciseHint'
-                    : 'eq.mode.trebleEqClassic'),
-              ),
-            }))}
-            onChange={(next: string) => {
-              onChange({ ...eq, treble: next as TTrebleDesign });
-              onCommit();
-            }}
-          />
+          <div className="dsp-eq-preset">
+            <span className="dsp-eq-preset-label">{t('eq.mode.treble')}</span>
+            <SegmentedControl
+              name={t('eq.mode.treble')}
+              value={eq.treble}
+              isDisabled={trebleNeedsEngine}
+              options={TREBLE_DESIGNS.map((design) => ({
+                value: design,
+                label: t(
+                  design === 'precise' ? 'eq.mode.precise' : 'eq.mode.classic',
+                ),
+                title: t(
+                  (trebleNeedsEngine && 'eq.mode.trebleUpdate') ||
+                    (design === 'precise'
+                      ? 'dsp.eqTreble.preciseHint'
+                      : 'eq.mode.trebleEqClassic'),
+                ),
+              }))}
+              onChange={(next: string) => {
+                onChange({ ...eq, treble: next as TTrebleDesign });
+                onCommit();
+              }}
+            />
+          </div>
         </div>
-
-        {/* Which part of the image the bands act on. Mid and side are the one
+        <div className="dsp-eq-settings-group">
+          {/* Which part of the image the bands act on. Mid and side are the one
           thing a stereo equaliser cannot do at all. */}
-        <div className="dsp-eq-preset">
-          <span className="dsp-eq-preset-label">{t('dsp.eqStereo.label')}</span>
-          <SegmentedControl
-            name={t('dsp.eqStereo.label')}
-            value={eq.stereo}
-            options={EQ_STEREO_MODES.map((mode) => ({
-              value: mode,
-              label: t(`dsp.eqStereo.${mode}` as TranslationKey),
-            }))}
-            onChange={(next: string) => {
-              onChange(eqEdited(eq, { stereo: next as TEqStereo }));
-              onCommit();
-            }}
-          />
-        </div>
+          <div className="dsp-eq-preset">
+            <span className="dsp-eq-preset-label">
+              {t('dsp.eqStereo.label')}
+            </span>
+            <SegmentedControl
+              name={t('dsp.eqStereo.label')}
+              value={eq.stereo}
+              options={EQ_STEREO_MODES.map((mode) => ({
+                value: mode,
+                label: t(`dsp.eqStereo.${mode}` as TranslationKey),
+              }))}
+              onChange={(next: string) => {
+                onChange(eqEdited(eq, { stereo: next as TEqStereo }));
+                onCommit();
+              }}
+            />
+          </div>
 
-        {/* A different question from the character: not what shape each band is,
+          {/* A different question from the character: not what shape each band is,
           but how the bands are put against the audio. */}
-        <div className="dsp-eq-preset">
-          <span className="dsp-eq-preset-label">{t('dsp.eqEngine.label')}</span>
-          <SegmentedControl
-            name={t('dsp.eqEngine.label')}
-            value={eq.engine}
-            options={EQ_ENGINES.map((engine) => ({
-              value: engine,
-              label: t(`dsp.eqEngine.${engine}` as TranslationKey),
-            }))}
-            onChange={(next: string) => {
-              onChange(eqEdited(eq, { engine: next as TEqEngine }));
-              onCommit();
-            }}
-          />
-        </div>
+          <div className="dsp-eq-preset">
+            <span className="dsp-eq-preset-label">
+              {t('dsp.eqEngine.label')}
+            </span>
+            <SegmentedControl
+              name={t('dsp.eqEngine.label')}
+              value={eq.engine}
+              options={EQ_ENGINES.map((engine) => ({
+                value: engine,
+                label: t(`dsp.eqEngine.${engine}` as TranslationKey),
+              }))}
+              onChange={(next: string) => {
+                onChange(eqEdited(eq, { engine: next as TEqEngine }));
+                onCommit();
+              }}
+            />
+          </div>
 
-        {/* Beside the engine, because the two answer the same question at
+          {/* Beside the engine, because the two answer the same question at
           different depths: one is how the bands are put against the audio, this
           is whether they are allowed to shift its phase at all. */}
-        <div className="dsp-eq-preset">
-          <span className="dsp-eq-preset-label">{t('dsp.eqPhase.label')}</span>
-          <SegmentedControl
-            name={t('dsp.eqPhase.label')}
-            value={eq.phase}
-            options={EQ_PHASE_MODES.map((phase) => ({
-              value: phase,
-              label: t(`dsp.eqPhase.${phase}` as TranslationKey),
-              // The latency moved into the tooltip when this stopped being a
-              // dropdown: "Lineal (+181 ms)" is twice the width of every other
-              // segment on the row, and a row of segments that are not the same
-              // size stops reading as one control.
-              title:
-                phase === 'linear'
-                  ? t('dsp.eqPhase.linearLatency', {
-                      ms: linearPhaseLatencyMs(sampleRate),
-                    })
-                  : undefined,
-            }))}
-            onChange={(next: string) => {
-              onChange(eqEdited(eq, { phase: next as TEqPhase }));
-              onCommit();
-            }}
-          />
+          <div className="dsp-eq-preset">
+            <span className="dsp-eq-preset-label">
+              {t('dsp.eqPhase.label')}
+            </span>
+            <SegmentedControl
+              name={t('dsp.eqPhase.label')}
+              value={eq.phase}
+              options={EQ_PHASE_MODES.map((phase) => ({
+                value: phase,
+                label: t(`dsp.eqPhase.${phase}` as TranslationKey),
+                // The latency moved into the tooltip when this stopped being a
+                // dropdown: "Lineal (+181 ms)" is twice the width of every other
+                // segment on the row, and a row of segments that are not the same
+                // size stops reading as one control.
+                title:
+                  phase === 'linear'
+                    ? t('dsp.eqPhase.linearLatency', {
+                        ms: linearPhaseLatencyMs(sampleRate),
+                      })
+                    : undefined,
+              }))}
+              onChange={(next: string) => {
+                onChange(eqEdited(eq, { phase: next as TEqPhase }));
+                onCommit();
+              }}
+            />
+          </div>
         </div>
       </div>
 

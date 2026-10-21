@@ -14,6 +14,8 @@ const genrePop = {
   'genre.pop.pin.5000': 'Presence and sheen',
   'genre.pop.pin.5000.why':
     'The polish on the vocal, kept just short of harsh.',
+  'genre.pop.stage.exciter':
+    'Body around 1 kHz, a sheen on the vocal and warmth under both.',
   'genre.pop.stage.bassPunch':
     'Tightens rather than hits: a shorter kick tail under the bass line, the attack only just lifted.',
   'genre.pop.stage.dimension':
@@ -21,7 +23,7 @@ const genrePop = {
   'genre.pop.stage.maximizer':
     'A light ceiling that barely drives: the master is limited already.',
   'genre.pop.off':
-    'The Exciter and Bass Forge are offered under Pop’s name and left off: the vocal is bright already, and the sub is in the master.',
+    'Bass Forge is offered under Pop’s name and left off: the sub is in the master.',
 
   'genre.indiePop.hook': 'Lighter and warmer than the charts',
   'genre.indiePop.story':
@@ -36,6 +38,8 @@ const genrePop = {
   'genre.indiePop.pin.12500': 'A little air',
   'genre.indiePop.pin.12500.why':
     'Gentle, over a top that was soft to begin with.',
+  'genre.indiePop.stage.exciter':
+    'Warmth only, in the low mids: never brighter.',
   'genre.indiePop.stage.dimension':
     'The bottom narrowed and the air a shade wider: the harmonies open without moving the voice.',
   'genre.indiePop.stage.maximizer': 'A light ceiling that keeps the softness.',
@@ -90,12 +94,14 @@ const genrePop = {
   'genre.kPop.pin.315.why': 'Low-mids cleared so the layers do not blur.',
   'genre.kPop.pin.12500': 'No extra air',
   'genre.kPop.pin.12500.why': 'The vocal already carries its own at 12 kHz.',
+  'genre.kPop.stage.exciter':
+    'Body and presence under the vocal’s own lifts, and nothing on the top.',
   'genre.kPop.stage.dimension':
     'The bass narrowed, and the doubles and pads a little wider than they were mixed.',
   'genre.kPop.stage.maximizer':
     'A ceiling that barely drives: these masters are as loud as masters get.',
   'genre.kPop.off':
-    'No Exciter, Bass Punch or Bass Forge: everything a stage could add is in the record already.',
+    'No Bass Punch or Bass Forge: the kick’s punch and the sub are in the record already.',
 
   'genre.jPop.hook': 'A dense, bright wall at any tempo',
   'genre.jPop.story':
@@ -106,11 +112,13 @@ const genrePop = {
   'genre.jPop.pin.500.why': 'A little out of the crowded middle.',
   'genre.jPop.pin.3150': 'Upper mids left alone',
   'genre.jPop.pin.3150.why': 'Bright and forward already; never pushed.',
+  'genre.jPop.stage.exciter':
+    'Warmth only, in the low mids: nothing on a top this bright.',
   'genre.jPop.stage.dimension': 'Nothing widened: the wall is wide enough.',
   'genre.jPop.stage.maximizer':
     'A ceiling that barely drives on masters that are clipped already.',
   'genre.jPop.off':
-    'Its Exciter is offered and left off: its engineers ask for none on a master this bright.',
+    'No Bass Punch or Bass Forge: the wall arrives dense and loud.',
 
   'genre.cPop.hook': 'Ballads, the voice front and centre',
   'genre.cPop.story':

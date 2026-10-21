@@ -13,6 +13,8 @@ export default {
   'genre.pop.pin.5000': 'Presencia y brillo',
   'genre.pop.pin.5000.why':
     'El pulido de la voz, justo antes de volverse áspero.',
+  'genre.pop.stage.exciter':
+    'Cuerpo en torno a 1 kHz, brillo en la voz y calidez bajo ambos.',
   'genre.pop.stage.bassPunch':
     'Tensa en lugar de golpear: una cola de bombo más corta bajo la línea de bajo y el ataque apenas levantado.',
   'genre.pop.stage.dimension':
@@ -20,7 +22,7 @@ export default {
   'genre.pop.stage.maximizer':
     'Un techo ligero que apenas empuja: el máster ya viene limitado.',
   'genre.pop.off':
-    'El Excitador y la Forja de graves se ofrecen con el nombre de Pop y quedan apagados: la voz ya es brillante y el sub está en el máster.',
+    'La Forja de graves se ofrece con el nombre de Pop y queda apagada: el sub está en el máster.',
 
   'genre.indiePop.hook': 'Más ligero y cálido que las listas de éxitos',
   'genre.indiePop.story':
@@ -37,6 +39,8 @@ export default {
   'genre.indiePop.pin.12500': 'Un poco de aire',
   'genre.indiePop.pin.12500.why':
     'Suave, sobre unos agudos que ya eran suaves de origen.',
+  'genre.indiePop.stage.exciter':
+    'Solo calidez, en los medios graves: nunca más brillante.',
   'genre.indiePop.stage.dimension':
     'Los graves más estrechos y el aire un pelín más abierto: las armonías se abren sin mover la voz.',
   'genre.indiePop.stage.maximizer': 'Un techo ligero que conserva la suavidad.',
@@ -94,12 +98,14 @@ export default {
     'Medios graves despejados para que las capas no se emborronen.',
   'genre.kPop.pin.12500': 'Sin aire extra',
   'genre.kPop.pin.12500.why': 'La voz ya trae el suyo en 12 kHz.',
+  'genre.kPop.stage.exciter':
+    'Cuerpo y presencia por debajo de los realces de la propia voz, y nada en los agudos.',
   'genre.kPop.stage.dimension':
     'Los graves más estrechos, y los dobles y los pads un poco más abiertos de lo que se mezclaron.',
   'genre.kPop.stage.maximizer':
     'Un techo que apenas empuja: estos másters son tan fuertes como puede serlo un máster.',
   'genre.kPop.off':
-    'Sin Excitador, Pegada de graves ni Forja de graves: todo lo que una etapa podría añadir ya está en el disco.',
+    'Sin Pegada de graves ni Forja de graves: la pegada del bombo y el sub ya están en el disco.',
 
   'genre.jPop.hook': 'Un muro denso y brillante a cualquier tempo',
   'genre.jPop.story':
@@ -112,12 +118,14 @@ export default {
   'genre.jPop.pin.3150': 'Medios agudos sin tocar',
   'genre.jPop.pin.3150.why':
     'Ya son brillantes y adelantados; nunca se empujan.',
+  'genre.jPop.stage.exciter':
+    'Solo calidez, en los medios graves: nada sobre unos agudos tan brillantes.',
   'genre.jPop.stage.dimension':
     'Nada se ensancha: el muro ya es bastante ancho.',
   'genre.jPop.stage.maximizer':
     'Un techo que apenas empuja sobre másters que ya vienen saturados.',
   'genre.jPop.off':
-    'Su Excitador se ofrece y queda apagado: sus ingenieros no piden ninguno en un máster tan brillante.',
+    'Sin Pegada de graves ni Forja de graves: el muro llega denso y fuerte.',
 
   'genre.cPop.hook': 'Baladas, con la voz delante y en el centro',
   'genre.cPop.story':

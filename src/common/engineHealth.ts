@@ -114,6 +114,13 @@ export interface IEngineOutputHealth {
    * Absent on every other output and from older engines.
    */
   split?: IEngineSplit;
+  /**
+   * How long the engine's blocks take here, as of its last status write —
+   * from an engine that times them (1.23), once a block has been timed.
+   * Reported, never acted on: whether a machine keeps up is the report's
+   * question, not the window's.
+   */
+  load?: IEngineLoad;
 }
 
 export interface IEngineSplit {
@@ -129,6 +136,23 @@ export interface IEngineSplit {
   outputEqMs?: number;
   /** Times the main output's sound was not there in time, since it began. */
   underruns: number;
+}
+
+/**
+ * How long the engine takes over Windows' audio blocks on one output, against
+ * the time each block lasts (`native/system-apo/src/block_timing.h`). A call
+ * that takes longer than its block is heard as gaps; GitHub issue 30's sound
+ * cut in and out as Exciter bands were added, and no report could say
+ * whether the engine had been too slow for that machine.
+ */
+export interface IEngineLoad {
+  /** Blocks timed since Windows built the output's chain. */
+  blocks: number;
+  /** Of those, the ones that took more than half their own time. */
+  overHalf: number;
+  /** The slowest block's call, and how long that block lasts. */
+  slowestMs: number;
+  periodMs: number;
 }
 
 /**

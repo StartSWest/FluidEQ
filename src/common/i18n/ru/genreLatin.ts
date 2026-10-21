@@ -27,11 +27,12 @@ export default {
   'genre.latinPop.pin.200.why': 'Место между сабом и голосом.',
   'genre.latinPop.pin.3150': 'Артикуляция голоса',
   'genre.latinPop.pin.3150.why': 'Где слова.',
+  'genre.latinPop.stage.exciter':
+    'Теплота и плотность под вокалом, ничего на верху.',
   'genre.latinPop.stage.bassPunch': 'Саб чуть подтянут.',
   'genre.latinPop.stage.dimension': 'Моно ниже 150 Гц.',
   'genre.latinPop.stage.maximizer': 'Потолок, который почти не давит.',
-  'genre.latinPop.off':
-    'Ни Эксайтера, ни Кузницы баса: остаётся таким же отполированным, каким пришёл.',
+  'genre.latinPop.off': 'Без Кузницы баса: саб уже привязан к бочке.',
 
   'genre.reggaeton.hook': 'Бочка на каждую долю над настроенной 808',
   'genre.reggaeton.story':

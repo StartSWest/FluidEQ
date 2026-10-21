@@ -377,7 +377,6 @@ const dsp = {
   'dsp.eqStereo.side': 'サイドのみ',
   'dsp.eqOversample.label': 'オーバーサンプリング',
   'dsp.eqOversample.off': 'オフ',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     '精密：この EQ のすべてのバンドを描いたとおりに、20\u00a0kHz まで鳴らします。',
   'dsp.eqImport.title': 'EQ カーブを読み込む',

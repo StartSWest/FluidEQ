@@ -27,11 +27,12 @@ export default {
   'genre.latinPop.pin.200.why': 'सब और आवाज़ के बीच जगह।',
   'genre.latinPop.pin.3150': 'आवाज़ का उच्चारण',
   'genre.latinPop.pin.3150.why': 'जहाँ शब्द हैं।',
+  'genre.latinPop.stage.exciter':
+    'आवाज़ के नीचे गर्माहट और भराव, ऊपरी हिस्से पर कुछ नहीं।',
   'genre.latinPop.stage.bassPunch': 'सब थोड़ा कसा।',
   'genre.latinPop.stage.dimension': '150 Hz से नीचे मोनो।',
   'genre.latinPop.stage.maximizer': 'एक छत जो मुश्किल से धकेलती है।',
-  'genre.latinPop.off':
-    'न एक्साइटर, न बास फ़ोर्ज: जितना निखरा आया था, उतना ही रहता है।',
+  'genre.latinPop.off': 'बास फ़ोर्ज नहीं: सब पहले से किक से बंधा है।',
 
   'genre.reggaeton.hook': 'ट्यून किए 808 पर हर ताल पर किक',
   'genre.reggaeton.story':

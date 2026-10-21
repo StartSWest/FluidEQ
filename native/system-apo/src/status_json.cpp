@@ -109,6 +109,14 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
             ",\"outputEqMs\":" + decimal(status.split->output_eq_ms) +
             ",\"underruns\":" + std::to_string(status.split->underruns) + "}";
   }
+  // Only once a block has been timed, like `lastSong`.
+  std::string load;
+  if (status.load) {
+    load = ",\"load\":{\"blocks\":" + std::to_string(status.load->blocks) +
+           ",\"overHalf\":" + std::to_string(status.load->over_half) +
+           ",\"slowestMs\":" + decimal(status.load->slowest_ms) +
+           ",\"periodMs\":" + decimal(status.load->period_ms) + "}";
+  }
   std::string source_analysis;
   if (status.source_analysis) {
     const auto& source = *status.source_analysis;
@@ -135,7 +143,8 @@ std::string status_json(const EngineStatus& status, unsigned long pid,
          ",\"latency\":" + std::to_string(status.latency) +
          ",\"latencyParts\":" + parts +
          ",\"latencyActive\":" + active +
-         ",\"gameMode\":" + (status.game_mode ? "true" : "false") + split + source_analysis +
+         ",\"gameMode\":" + (status.game_mode ? "true" : "false") + load + split +
+         source_analysis +
          ",\"at\":" + quoted(at) + "}\r\n";
 }
 

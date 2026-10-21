@@ -474,6 +474,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
 }
 
+// The Exciter's Preset, Applies to, Oversampling and Save on one line beside
+// Isolate and On, down to a laptop's 1700px window: there the line needed
+// 788px of the 737 it had, and Oversampling fell under the rest by itself
+// (Ivan, 2026-10-15: "we need both on top"). The picker gives up 50px — a
+// preset's name truncates in it, the list shows it whole — and the groups
+// stand 12px apart instead of 16. Above the shared sizes' own picker floor and
+// bar gap (`_dspEqSizes.scss`), which come later in the sheet.
+.dsp-eq-bar.dsp-exciter-bar {
+  column-gap: 12px;
+
+  .dsp-eq-preset-first .rich-pick__trigger {
+    width: 140px;
+    min-width: 140px;
+  }
+}
+
 // The glyph on a preset-row button. Sized to the text beside it rather than to
 // a grid, so the pair reads as one word with a picture in front of it.
 .dsp-bar-icon {
@@ -507,6 +523,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+// Three settings that stay on one line together (`DspEqBar`): the row breaks
+// between the groups, never inside one, until a group alone is wider than the
+// card.
+.dsp-eq-settings-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .dsp-eq-preset {

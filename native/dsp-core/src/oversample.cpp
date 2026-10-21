@@ -61,35 +61,49 @@ std::array<double, kTaps> design_half_band() {
 const std::array<double, kTaps> kHalfBand = design_half_band();
 
 /**
- * One sample through the FIR without shifting sixty-three values per sample.
- *
- * The walk order is the reference's: backwards from the newest slot to zero,
- * then wrapped to the end and onwards down. That is not interchangeable with
- * any other traversal — the sum is accumulated in this sequence and a
- * different one moves the last bits.
+ * One sample into a history kept twice over, side by side, without shifting
+ * sixty-three values per sample: the last `kTaps` samples always lie in one
+ * unbroken run ending at the returned newest, so a sum walks straight down
+ * an array with no wrap to test at every tap. The decimation's discarded
+ * sample goes in through here alone, with no sum taken.
  */
-double push(double* history, int* positions, int stage, double sample) {
+const double* store(double* history, int* positions, int stage, double sample) {
   const int newest = positions[stage];
   history[newest] = sample;
-  double sum = 0.0;
-  int tap = 0;
-  for (int read = newest; read >= 0; read -= 1) {
-    sum += history[read] * kHalfBand[static_cast<size_t>(tap)];
-    tap += 1;
-  }
-  for (int read = kTaps - 1; tap < kTaps; read -= 1) {
-    sum += history[read] * kHalfBand[static_cast<size_t>(tap)];
-    tap += 1;
-  }
+  history[newest + kTaps] = sample;
   positions[stage] = newest + 1 == kTaps ? 0 : newest + 1;
+  return history + newest + kTaps;
+}
+
+/**
+ * The sum over every `step`-th tap from `first`, newest sample first.
+ *
+ * The walk order is the reference's, newest to oldest: the sum is
+ * accumulated in this sequence and a different one moves the last bits. With
+ * a step of two, after a stuffed zero or a sample, the taps left out are the
+ * ones meeting stuffed zeros: their products are exact zeros, and adding an
+ * exact zero leaves a sum as it was, so the sum is the full one to the last
+ * bit for half the work.
+ */
+double sum_taps(const double* newest, int first, int step) {
+  double sum = 0.0;
+  for (int tap = first; tap < kTaps; tap += step) {
+    sum += newest[-tap] * kHalfBand[static_cast<size_t>(tap)];
+  }
   return sum;
+}
+
+double push(double* history, int* positions, int stage, double sample) {
+  return sum_taps(store(history, positions, stage, sample), 0, 1);
 }
 
 /**
  * One halving, doubled: N samples in, 2N out.
  *
  * Zero-stuffing then filtering, which is what interpolation is. The x2
- * restores the level the inserted zeros halve.
+ * restores the level the inserted zeros halve. Each output sums only the
+ * taps that meet a real sample: the even ones after a sample, the odd ones
+ * after a stuffed zero (`sum_taps`).
  */
 void up_once(double* history,
              int* positions,
@@ -98,10 +112,11 @@ void up_once(double* history,
              float* output,
              uint32_t frames) {
   for (uint32_t at = 0; at < frames; ++at) {
-    output[at * 2] = static_cast<float>(
-        push(history, positions, stage, static_cast<double>(input[at])) * 2.0);
-    output[at * 2 + 1] =
-        static_cast<float>(push(history, positions, stage, 0.0) * 2.0);
+    const double* sample = store(history, positions, stage,
+                                 static_cast<double>(input[at]));
+    output[at * 2] = static_cast<float>(sum_taps(sample, 0, 2) * 2.0);
+    const double* zero = store(history, positions, stage, 0.0);
+    output[at * 2 + 1] = static_cast<float>(sum_taps(zero, 1, 2) * 2.0);
   }
 }
 
@@ -110,8 +125,9 @@ void up_once(double* history,
  *
  * Filtered before decimating, never after: dropping every other sample of an
  * unfiltered signal is exactly the aliasing this exists to prevent. The
- * discarded sample is still pushed, because the history has to advance at the
- * doubled rate or the filter is running at half the rate it was designed for.
+ * discarded sample is still stored, because the history has to advance at
+ * the doubled rate or the filter is running at half the rate it was designed
+ * for; its sum is not taken, since nothing reads it.
  */
 void down_once(double* history,
                int* positions,
@@ -122,7 +138,7 @@ void down_once(double* history,
   for (uint32_t at = 0; at < frames; ++at) {
     const double kept =
         push(history, positions, stage, static_cast<double>(input[at * 2]));
-    push(history, positions, stage, static_cast<double>(input[at * 2 + 1]));
+    store(history, positions, stage, static_cast<double>(input[at * 2 + 1]));
     output[at] = static_cast<float>(kept);
   }
 }
@@ -136,7 +152,7 @@ void feq_oversampler_reset(FeqOversampler* state) {
     return;
   }
   for (int stage = 0; stage < FEQ_OVERSAMPLE_STAGES; ++stage) {
-    for (int tap = 0; tap < kTaps; ++tap) {
+    for (int tap = 0; tap < kTaps * 2; ++tap) {
       state->up[stage][tap] = 0.0;
       state->down[stage][tap] = 0.0;
     }
@@ -222,29 +238,14 @@ void feq_oversample_down(FeqOversampler* state,
   down_once(state->down[0], state->down_position, 0, middle, output, frames);
 }
 
-void feq_oversample_stage_up(FeqOversampler* state,
-                             int stage,
-                             const float* input,
-                             float* output,
-                             uint32_t frames) {
-  if (state == nullptr || input == nullptr || output == nullptr ||
-      stage < 0 || stage >= FEQ_OVERSAMPLE_STAGES || frames == 0) {
+void feq_oversample_half_band_design(double* taps) {
+  if (taps == nullptr) {
     return;
   }
-  up_once(state->up[stage], state->up_position, stage, input, output, frames);
-}
-
-void feq_oversample_stage_down(FeqOversampler* state,
-                               int stage,
-                               const float* input,
-                               float* output,
-                               uint32_t frames) {
-  if (state == nullptr || input == nullptr || output == nullptr ||
-      stage < 0 || stage >= FEQ_OVERSAMPLE_STAGES || frames == 0) {
-    return;
+  const std::array<double, kTaps> designed = design_half_band();
+  for (int at = 0; at < kTaps; ++at) {
+    taps[at] = designed[static_cast<size_t>(at)];
   }
-  down_once(state->down[stage], state->down_position, stage, input, output,
-            frames);
 }
 
 }  // extern "C"

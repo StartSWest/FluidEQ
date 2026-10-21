@@ -25,7 +25,6 @@ export const DEFAULT_SETUP: Required<IEqPresetSetup> = {
   modelAmount: DSP_DEFAULTS.eq.modelAmount,
   engine: DSP_DEFAULTS.eq.engine,
   phase: DSP_DEFAULTS.eq.phase,
-  oversample: DSP_DEFAULTS.eq.oversample,
   stereo: DSP_DEFAULTS.eq.stereo,
   subsonicHz: DSP_DEFAULTS.eq.subsonicHz,
   fuzzAmount: DSP_DEFAULTS.eq.fuzzAmount,

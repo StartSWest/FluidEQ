@@ -34,9 +34,12 @@ extern "C" {
 #define FEQ_OVERSAMPLE_STAGES 2
 
 typedef struct FeqOversampler {
-  /** One circular FIR history per halving, per direction. */
-  double up[FEQ_OVERSAMPLE_STAGES][FEQ_OVERSAMPLE_TAPS];
-  double down[FEQ_OVERSAMPLE_STAGES][FEQ_OVERSAMPLE_TAPS];
+  /**
+   * One circular FIR history per halving, per direction, each kept twice
+   * side by side so its last taps always lie in one unbroken run.
+   */
+  double up[FEQ_OVERSAMPLE_STAGES][FEQ_OVERSAMPLE_TAPS * 2];
+  double down[FEQ_OVERSAMPLE_STAGES][FEQ_OVERSAMPLE_TAPS * 2];
   /** Next write slot in each history. */
   int up_position[FEQ_OVERSAMPLE_STAGES];
   int down_position[FEQ_OVERSAMPLE_STAGES];
@@ -90,22 +93,12 @@ void feq_oversample_down(FeqOversampler* state,
                          float* middle);
 
 /**
- * One doubling through `stage`'s own history: `frames` in, `frames * 2`
- * out. For a caller that builds its own first stage (`exciter_oversample.h`)
- * and keeps this one for the second.
+ * The half-band's `FEQ_OVERSAMPLE_TAPS` taps, designed into `taps`, for a
+ * stage that runs the same filter its own way (`exciter_oversample.cpp`).
+ * Designed afresh rather than read from this file's table, which another
+ * file's statics cannot rely on being built before them.
  */
-void feq_oversample_stage_up(FeqOversampler* state,
-                             int stage,
-                             const float* input,
-                             float* output,
-                             uint32_t frames);
-
-/** One halving through `stage`'s history: `frames * 2` in, `frames` out. */
-void feq_oversample_stage_down(FeqOversampler* state,
-                               int stage,
-                               const float* input,
-                               float* output,
-                               uint32_t frames);
+void feq_oversample_half_band_design(double* taps);
 
 #ifdef __cplusplus
 }

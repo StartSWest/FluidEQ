@@ -29,6 +29,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <string>
 #include <vector>
 
+#include "block_timing.h"
+
 namespace fluideq_engine {
 
 struct EngineStatus {
@@ -95,6 +97,13 @@ struct EngineStatus {
   std::vector<std::string> latency_active;
   /** Game mode: the Gaming preset on the rack, or the Games voicing. */
   bool game_mode = false;
+  /**
+   * How long the engine takes over this output's blocks against the time
+   * each lasts (`block_timing.h`): the slowest so far and how many took more
+   * than half. Only once a block has been timed, since Windows built the
+   * output's chain.
+   */
+  std::optional<BlockTiming::Reading> load;
   struct SourceAnalysis {
     unsigned version = 1;
     std::string kind = "live";
@@ -176,6 +185,15 @@ bool write_status(const EngineStatus& status,
  */
 std::shared_ptr<std::atomic<bool>> output_carried_flag(
     const std::wstring& endpoint);
+
+/**
+ * The timing of every instance on this output in this process
+ * (`block_timing.h`), on the same terms as `output_carried_flag`: handed out
+ * at lock, recorded into from the audio threads, and gone with the last
+ * instance on the output. Null when there was nowhere to keep it, which
+ * leaves the output untimed rather than refused.
+ */
+std::shared_ptr<BlockTiming> output_block_timing(const std::wstring& endpoint);
 
 /**
  * One engine instance's say in its output's status file.

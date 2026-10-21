@@ -14,6 +14,8 @@ export default {
   'genre.pop.pin.5000': 'Présence et éclat',
   'genre.pop.pin.5000.why':
     'Le poli de la voix, gardé juste en deçà de l’agressif.',
+  'genre.pop.stage.exciter':
+    'Du corps autour de 1 kHz, un éclat sur la voix et de la chaleur sous les deux.',
   'genre.pop.stage.bassPunch':
     'Resserre plutôt que frapper : une queue de grosse caisse plus courte sous la ligne de basse, l’attaque à peine relevée.',
   'genre.pop.stage.dimension':
@@ -21,7 +23,7 @@ export default {
   'genre.pop.stage.maximizer':
     'Un plafond léger qui pousse à peine : le master est déjà limité.',
   'genre.pop.off':
-    'L’Exciteur et la Forge de basses sont proposés sous le nom de Pop et restent désactivés : la voix est déjà brillante, et le sub est dans le master.',
+    'La Forge de basses est proposée sous le nom de Pop et reste désactivée : le sub est dans le master.',
 
   'genre.indiePop.hook': 'Plus léger et plus chaud que les hit-parades',
   'genre.indiePop.story':
@@ -38,6 +40,8 @@ export default {
   'genre.indiePop.pin.12500': 'Un peu d’air',
   'genre.indiePop.pin.12500.why':
     'Doucement, sur un haut du spectre qui était doux dès le départ.',
+  'genre.indiePop.stage.exciter':
+    'De la chaleur seulement, dans les bas-médiums : jamais plus brillant.',
   'genre.indiePop.stage.dimension':
     'Le bas resserré et l’air un soupçon plus large : les harmonies s’ouvrent sans déplacer la voix.',
   'genre.indiePop.stage.maximizer': 'Un plafond léger qui garde la douceur.',
@@ -97,12 +101,14 @@ export default {
     'Les bas-médiums dégagés pour que les couches ne se brouillent pas.',
   'genre.kPop.pin.12500': 'Pas d’air en plus',
   'genre.kPop.pin.12500.why': 'La voix apporte déjà le sien à 12 kHz.',
+  'genre.kPop.stage.exciter':
+    'Du corps et de la présence sous les accentuations de la voix elle-même, et rien dans les aigus.',
   'genre.kPop.stage.dimension':
     'Le bas resserré, et les doublages et les nappes un peu plus larges qu’au mixage.',
   'genre.kPop.stage.maximizer':
     'Un plafond qui pousse à peine : ces masters sont aussi forts qu’un master peut l’être.',
   'genre.kPop.off':
-    'Ni Exciteur, ni Punch des basses, ni Forge de basses : tout ce qu’un étage pourrait ajouter est déjà dans le disque.',
+    'Ni Punch des basses ni Forge de basses : le punch du kick et le sub sont déjà dans le disque.',
 
   'genre.jPop.hook': 'Un mur dense et brillant à tous les tempos',
   'genre.jPop.story':
@@ -113,11 +119,13 @@ export default {
   'genre.jPop.pin.500.why': 'Un peu retiré du milieu encombré.',
   'genre.jPop.pin.3150': 'Haut-médiums laissés tels quels',
   'genre.jPop.pin.3150.why': 'Déjà brillants et en avant ; jamais poussés.',
+  'genre.jPop.stage.exciter':
+    'De la chaleur seulement, dans les bas-médiums : rien sur des aigus aussi brillants.',
   'genre.jPop.stage.dimension': 'Rien n’est élargi : le mur est assez large.',
   'genre.jPop.stage.maximizer':
     'Un plafond qui pousse à peine sur des masters déjà écrêtés.',
   'genre.jPop.off':
-    'Son Exciteur est proposé et reste désactivé : ses ingénieurs n’en veulent pas sur un master aussi brillant.',
+    'Ni Punch des basses ni Forge de basses : le mur arrive dense et fort.',
 
   'genre.cPop.hook': 'Des ballades, la voix au premier plan',
   'genre.cPop.story':

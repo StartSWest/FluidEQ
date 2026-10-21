@@ -22,6 +22,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <cmath>
 #include <cstdio>
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -299,6 +300,143 @@ void the_rack_folds_least_on_high() {
         "and makes the same harmonic, within 0.5 dB");
 }
 
+/** High's sharp stage as `exciter_oversample.cpp` designs it. */
+std::vector<double> steep_taps() {
+  constexpr int kTaps = FEQ_EXCITER_STEEP_TAPS;
+  constexpr double kCutoff = 0.23;
+  const double beta = 0.1102 * (90.0 - 8.7);
+  const auto i0 = [](double x) {
+    double sum = 1.0;
+    double term = 1.0;
+    for (int k = 1; k < 64; ++k) {
+      term *= (x * x / 4.0) / (static_cast<double>(k) * static_cast<double>(k));
+      sum += term;
+      if (term < sum * 1e-17) break;
+    }
+    return sum;
+  };
+  std::vector<double> taps(kTaps);
+  const double middle = (kTaps - 1) / 2.0;
+  double sum = 0.0;
+  for (int at = 0; at < kTaps; ++at) {
+    const double n = at - middle;
+    const double ideal =
+        n == 0.0 ? 2.0 * kCutoff : std::sin(2.0 * kPi * kCutoff * n) / (kPi * n);
+    const double r = n / middle;
+    taps[static_cast<size_t>(at)] =
+        ideal * i0(beta * std::sqrt(1.0 - r * r)) / i0(beta);
+    sum += taps[static_cast<size_t>(at)];
+  }
+  for (double& tap : taps) tap /= sum;
+  return taps;
+}
+
+/**
+ * A filter the plain way: one history, the stuffed zeros and the thrown-away
+ * samples in it, every tap summed. `late` reads every sum a sample further
+ * back, which is what a phase or a tap taken wrongly looks like.
+ */
+struct Plain {
+  std::vector<double> taps;
+  std::vector<double> history;
+  size_t position = 0;
+  bool late = false;
+  explicit Plain(std::vector<double> designed, bool is_late)
+      : taps(std::move(designed)), history(taps.size(), 0.0), late(is_late) {}
+  double push(double sample) {
+    const size_t length = taps.size();
+    history[position] = sample;
+    double sum = 0.0;
+    for (size_t tap = 0; tap < length; ++tap) {
+      const size_t back = tap + (late ? 1 : 0);
+      sum += history[(position + length * 2 - back) % length] * taps[tap];
+    }
+    position = (position + 1) % length;
+    return sum;
+  }
+  void up(const float* in, float* out, size_t frames) {
+    for (size_t at = 0; at < frames; ++at) {
+      out[at * 2] = static_cast<float>(push(in[at]) * 2.0);
+      out[at * 2 + 1] = static_cast<float>(push(0.0) * 2.0);
+    }
+  }
+  void down(const float* in, float* out, size_t frames) {
+    for (size_t at = 0; at < frames; ++at) {
+      const double kept = push(in[at * 2]);
+      push(in[at * 2 + 1]);
+      out[at] = static_cast<float>(kept);
+    }
+  }
+};
+
+/**
+ * The largest difference, up and down over a run of noise, between the
+ * Exciter's filters and the plain ones at 4x.
+ */
+double largest_difference(int quality, bool late) {
+  std::vector<double> half(FEQ_OVERSAMPLE_TAPS);
+  feq_oversample_half_band_design(half.data());
+  const std::vector<double> first =
+      quality == FEQ_EXCITER_OVERSAMPLING_HIGH ? steep_taps() : half;
+  Plain up_first(first, late), up_second(half, late);
+  Plain down_second(half, late), down_first(first, late);
+  FeqExciterOversampler state{};
+  feq_exciter_oversampler_reset(&state);
+  std::vector<float> in(kBlock), wide_in(kBlock * 4), wide(kBlock * 4),
+      back(kBlock), middle(kBlock * 2);
+  std::vector<float> plain_middle(kBlock * 2), plain_wide(kBlock * 4),
+      plain_back(kBlock);
+  unsigned long long seed = 11;
+  const auto noise = [&seed]() {
+    seed = seed * 6364136223846793005ULL + 1442695040888963407ULL;
+    return static_cast<float>(static_cast<double>(seed >> 33) / 4294967296.0 -
+                              1.0);
+  };
+  double largest = 0.0;
+  for (uint32_t block = 0; block < kBlocks; ++block) {
+    for (float& value : in) value = noise();
+    // Down gets noise of its own, so it is checked on more than up made.
+    for (float& value : wide_in) value = noise();
+    feq_exciter_oversample_up(&state, in.data(), wide.data(), kBlock, 4,
+                              quality, middle.data());
+    feq_exciter_oversample_down(&state, wide_in.data(), back.data(), kBlock, 4,
+                                quality, middle.data());
+    up_first.up(in.data(), plain_middle.data(), kBlock);
+    up_second.up(plain_middle.data(), plain_wide.data(), kBlock * 2);
+    down_second.down(wide_in.data(), plain_middle.data(), kBlock * 2);
+    down_first.down(plain_middle.data(), plain_back.data(), kBlock);
+    for (size_t at = 0; at < wide.size(); ++at) {
+      largest = std::max(largest,
+                         std::fabs(static_cast<double>(wide[at] - plain_wide[at])));
+    }
+    for (size_t at = 0; at < back.size(); ++at) {
+      largest = std::max(largest,
+                         std::fabs(static_cast<double>(back[at] - plain_back[at])));
+    }
+  }
+  return largest;
+}
+
+/**
+ * The filters run as two phases, folded, in eight partial sums (GitHub issue
+ * 30: the single running sum was most of the stage's cost). That reorders
+ * the additions, so it is held to the plain filter to the float's own
+ * rounding rather than to the bit.
+ */
+void the_filters_are_the_plain_filters() {
+  std::printf("the filters give the plain filters' samples\n");
+  for (const int quality :
+       {FEQ_EXCITER_OVERSAMPLING_STANDARD, FEQ_EXCITER_OVERSAMPLING_HIGH}) {
+    const double in_step = largest_difference(quality, false);
+    const double out_of_step = largest_difference(quality, true);
+    std::printf("  %s: largest difference %.3g; a sample out of step, %.3g\n",
+                quality == FEQ_EXCITER_OVERSAMPLING_HIGH ? "High" : "Standard",
+                in_step, out_of_step);
+    check(in_step < 5e-7, "every sample within the float's rounding");
+    check(out_of_step > 0.01, "control: a filter a sample out of step differs");
+  }
+}
+
 void the_factor_follows_the_rate() {
   std::printf("the factor each choice runs at\n");
   check(feq_exciter_oversample_factor(48000.0, FEQ_EXCITER_OVERSAMPLING_STANDARD) == 4,
@@ -318,5 +456,6 @@ int main() {
   the_harmonics_arrive_as_documented();
   the_warm_up_covers_the_fill();
   the_factor_follows_the_rate();
+  the_filters_are_the_plain_filters();
   return feq_test::finish();
 }

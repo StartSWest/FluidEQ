@@ -127,10 +127,12 @@ export default {
   'genre.arabicPop.pin.1250.why': '装饰音清楚。',
   'genre.arabicPop.pin.5000': '弦乐不提亮',
   'genre.arabicPop.pin.5000.why': '本来就很亮。',
+  'genre.arabicPop.stage.exciter':
+    '人声之下加温暖；弦乐和 tek 保持原本的明亮。',
   'genre.arabicPop.stage.bassPunch': '收紧低频。',
   'genre.arabicPop.stage.dimension': '弦乐保持录音时的宽度；只收窄低频。',
   'genre.arabicPop.stage.maximizer': '一个保留达布卡鼓起音的轻上限。',
-  'genre.arabicPop.off': '不用激励器，也不用低音熔炉：弦乐和 tek 本来就很亮。',
+  'genre.arabicPop.off': '不用低音熔炉：doum 之下不生成任何东西。',
 
   'genre.turkishPop.hook': '带土耳其色彩的精致流行',
   'genre.turkishPop.story':
@@ -143,10 +145,11 @@ export default {
   'genre.turkishPop.pin.1250.why': '在前面。',
   'genre.turkishPop.pin.8000': '不额外加光泽',
   'genre.turkishPop.pin.8000.why': '本来就很精致。',
+  'genre.turkishPop.stage.exciter': '人声之下加温暖，达布卡鼓上什么都不加。',
   'genre.turkishPop.stage.bassPunch': '紧实的低频。',
   'genre.turkishPop.stage.dimension': '保持混音原样，只收窄低频。',
   'genre.turkishPop.stage.maximizer': '一个几乎不推的上限。',
-  'genre.turkishPop.off': '这么精致的唱片上，不用激励器，也不用低音熔炉。',
+  'genre.turkishPop.off': '这么精致的唱片上，不用低音熔炉。',
 
   'genre.gospel.hook': '一个合唱团，和持续好几分钟推高的 vamp',
   'genre.gospel.story':

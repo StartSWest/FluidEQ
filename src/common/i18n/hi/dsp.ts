@@ -379,7 +379,6 @@ const dsp = {
   'dsp.eqStereo.side': 'केवल किनारे',
   'dsp.eqOversample.label': 'ओवरसैंपलिंग',
   'dsp.eqOversample.off': 'बंद',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'सटीक: इस EQ का हर बैंड ठीक वैसे ही बजता है जैसा बनाया गया है, 20\u00a0kHz तक।',
   'dsp.eqImport.title': 'EQ कर्व आयात करें',

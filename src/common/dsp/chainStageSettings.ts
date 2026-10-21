@@ -223,8 +223,9 @@ export interface IPhaseAlignSettings {
  *
  * Standard is what the stage always did. High trades the stage next to the
  * output's rate for a sharp filter: a pushed top band that folded back 57 dB
- * under its tone folds back 125 dB under it. Off runs the generator at the
- * output's rate, for the lightest load, and folds back 19 dB under it.
+ * under its tone folds back 125 dB under it, and it is the default
+ * (`DSP_DEFAULTS`). Off runs the generator at the output's rate, for the
+ * lightest load, and folds back 19 dB under it.
  */
 export const EXCITER_OVERSAMPLING = ['standard', 'off', 'high'] as const;
 

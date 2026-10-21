@@ -173,10 +173,7 @@ export const resolveDspPreset = (
         crossfade: current.crossfade,
         surround: current.surround,
         eq: { ...saved.settings.eq, treble: current.eq.treble },
-        exciter: {
-          ...saved.settings.exciter,
-          oversampling: current.exciter.oversampling,
-        },
+        // Its oversampling as it was saved: the listener chose it.
         room: chainRoom(current.room, saved.settings.room),
       })
     : dspPresetSettings(id, current);

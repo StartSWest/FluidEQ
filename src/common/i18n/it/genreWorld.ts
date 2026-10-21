@@ -140,13 +140,15 @@ export default {
   'genre.arabicPop.pin.1250.why': 'Gli ornamenti, chiari.',
   'genre.arabicPop.pin.5000': 'Archi non schiariti',
   'genre.arabicPop.pin.5000.why': 'Già brillanti.',
+  'genre.arabicPop.stage.exciter':
+    'Calore sotto la voce; gli archi e il tek restano brillanti come sono.',
   'genre.arabicPop.stage.bassPunch': 'Il basso stretto.',
   'genre.arabicPop.stage.dimension':
     'Gli archi ampi come registrati; solo il basso più stretto.',
   'genre.arabicPop.stage.maximizer':
     'Un tetto leggero che conserva l’attacco della darbuka.',
   'genre.arabicPop.off':
-    'Niente Exciter né Fucina dei bassi: gli archi e il tek sono già brillanti.',
+    'Niente Fucina dei bassi: nulla di generato sotto il doum.',
 
   'genre.turkishPop.hook': 'Pop levigato con colore turco',
   'genre.turkishPop.story':
@@ -159,11 +161,12 @@ export default {
   'genre.turkishPop.pin.1250.why': 'Davanti.',
   'genre.turkishPop.pin.8000': 'Nessuna lucentezza aggiunta',
   'genre.turkishPop.pin.8000.why': 'Già levigato.',
+  'genre.turkishPop.stage.exciter':
+    'Calore sotto la voce, niente sulla darbuka.',
   'genre.turkishPop.stage.bassPunch': 'Un basso stretto.',
   'genre.turkishPop.stage.dimension': 'Come mixato, solo il basso più stretto.',
   'genre.turkishPop.stage.maximizer': 'Un tetto che spinge appena.',
-  'genre.turkishPop.off':
-    'Niente Exciter né Fucina dei bassi su un disco così levigato.',
+  'genre.turkishPop.off': 'Niente Fucina dei bassi su un disco così levigato.',
 
   'genre.gospel.hook': 'Un coro, e vamp che crescono per minuti',
   'genre.gospel.story':

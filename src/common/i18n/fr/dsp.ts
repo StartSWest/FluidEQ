@@ -383,7 +383,6 @@ const dsp = {
   'dsp.eqStereo.side': 'Côtés seuls',
   'dsp.eqOversample.label': 'Suréchantillonnage',
   'dsp.eqOversample.off': 'Non',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'Précis : chaque bande de cet égaliseur sonne exactement comme elle est tracée, jusqu’à 20\u00a0kHz.',
   'dsp.eqImport.title': 'Importer une courbe d’égalisation',

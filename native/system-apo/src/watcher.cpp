@@ -131,13 +131,14 @@ bool Watcher::start() {
                "filter state across a pipeline flush");
     return false;
   }
-  carried_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
-  if (carried_event_ == nullptr) {
+  status_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+  if (status_event_ == nullptr) {
     // Not worth refusing the watcher over: everything else goes on, and the
     // status simply keeps saying nothing has reached the engine until the
     // next time anything else has it rewritten.
-    log_.write("could not create the carried event; the status will not say "
-               "when sound first reaches this output");
+    log_.write("could not create the status event; the status will not say "
+               "when sound first reaches this output or how long its blocks "
+               "take");
   }
   if (split_slot_ != nullptr && default_mode_) {
     split_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
@@ -175,9 +176,9 @@ bool Watcher::start() {
     stop_event_ = nullptr;
     CloseHandle(reset_event_);
     reset_event_ = nullptr;
-    if (carried_event_ != nullptr) {
-      CloseHandle(carried_event_);
-      carried_event_ = nullptr;
+    if (status_event_ != nullptr) {
+      CloseHandle(status_event_);
+      status_event_ = nullptr;
     }
     if (split_event_ != nullptr) {
       CloseHandle(split_event_);
@@ -219,9 +220,9 @@ void Watcher::stop() noexcept {
   }
   // The audio thread is stopped before `stop()` is reached — Windows does not
   // call `APOProcess` outside a lock — so nothing can be setting this now.
-  if (carried_event_ != nullptr) {
-    CloseHandle(carried_event_);
-    carried_event_ = nullptr;
+  if (status_event_ != nullptr) {
+    CloseHandle(status_event_);
+    status_event_ = nullptr;
   }
   if (split_event_ != nullptr) {
     CloseHandle(split_event_);
@@ -340,7 +341,7 @@ void Watcher::run() {
       handles[count] = handle;
       return count++;
     };
-    const DWORD carried_at = append(carried_event_);
+    const DWORD status_at = append(status_event_);
     const DWORD owner_at = append(owner_event_);
     const DWORD split_at = append(split_event_);
     const DWORD base_count = count;
@@ -393,10 +394,13 @@ void Watcher::run() {
         reload();
         continue;
       }
-      if (carried_at != kAbsent && woke == WAIT_OBJECT_0 + carried_at) {
+      if (status_at != kAbsent && woke == WAIT_OBJECT_0 + status_at) {
         // Sound has reached this output's engine for the first time since
-        // Windows built its chain — `say_it_carried`. Nothing about the
-        // audio changes; the app is told, and that is the whole point.
+        // Windows built its chain — `say_it_carried` — or a block took a
+        // larger share of its time than any before — `say_it_was_slow`.
+        // Nothing about the audio changes; the app is told, and that is the
+        // whole point.
+        log_timing();
         report_status(true);
         continue;
       }
@@ -454,15 +458,16 @@ void Watcher::run() {
   // — the graph keeps what is in flight — on an endpoint whose configuration
   // directory has gone. There is no rack and no room to keep there, so this
   // is about the two paths agreeing rather than about the sound.
-  // The carried event is waited on here as well: an output with no
+  // The status event is waited on here as well: an output with no
   // configuration directory still has an app asking whether its sound is
   // going through the engine at all.
-  HANDLE idle_handles[3] = {stop_event_, reset_event_, carried_event_};
-  const DWORD idle_count = carried_event_ != nullptr ? 3 : 2;
+  HANDLE idle_handles[3] = {stop_event_, reset_event_, status_event_};
+  const DWORD idle_count = status_event_ != nullptr ? 3 : 2;
   for (;;) {
     const DWORD woke =
         WaitForMultipleObjects(idle_count, idle_handles, FALSE, INFINITE);
     if (idle_count == 3 && woke == WAIT_OBJECT_0 + 2) {
+      log_timing();
       report_status(true);
       continue;
     }
@@ -489,8 +494,16 @@ void Watcher::say_it_carried() noexcept {
   // Null before `start()` and after `stop()`, and the audio thread runs
   // between the two — see the header for why one `SetEvent` on that thread
   // is worth it, and why it happens at most once for each lock.
-  if (carried_event_ != nullptr) {
-    SetEvent(carried_event_);
+  if (status_event_ != nullptr) {
+    SetEvent(status_event_);
+  }
+}
+
+void Watcher::say_it_was_slow() noexcept {
+  // As `say_it_carried`: null outside `start()`..`stop()`, and set at most
+  // once per step of `timing_step` in a lock.
+  if (status_event_ != nullptr) {
+    SetEvent(status_event_);
   }
 }
 

@@ -160,7 +160,7 @@ SourceAnalysis Watcher::read_source(bool owner) {
 void Watcher::graph_adopted() noexcept {
   // One notification per published graph actually adopted, at callback end.
   // This is the existing coalesced status wake; no file write on that thread.
-  if (carried_event_ != nullptr) SetEvent(carried_event_);
+  if (status_event_ != nullptr) SetEvent(status_event_);
 }
 
 }  // namespace fluideq_engine

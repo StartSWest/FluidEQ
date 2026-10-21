@@ -364,7 +364,6 @@ const dsp = {
   'dsp.eqStereo.side': '仅两侧',
   'dsp.eqOversample.label': '过采样',
   'dsp.eqOversample.off': '关',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     '精确：此均衡器的每个频段都完全按绘制的样子发声，直到 20\u00a0kHz。',
   'dsp.eqImport.title': '导入均衡曲线',

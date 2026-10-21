@@ -97,6 +97,44 @@ describe('describeAudioEngine', () => {
     expect(text).toContain('passing through: FluidEQ is not running');
   });
 
+  it('says how long the engine’s blocks take, in the engine log’s words', () => {
+    // GitHub issue 30: sound cutting in and out as Exciter bands were added,
+    // and no report that could say whether the engine had been too slow.
+    const playing = {
+      endpoint: output.guid,
+      locked: true,
+      processing: true,
+      owner: true,
+      problems: [],
+    };
+    const text = describeAudioEngine({
+      engine: 'fluid',
+      devices: [output],
+      fluid: installed,
+      health: health([
+        {
+          ...playing,
+          load: { blocks: 102, overHalf: 1, slowestMs: 6.05, periodMs: 11 },
+        },
+      ]),
+    });
+    // `describe_timing` in block_timing.cpp writes the same words to the
+    // engine's log (`how_long_blocks_take` in status_test.cpp).
+    expect(text).toContain(
+      '  Engine load: slowest block 6.05 ms of its 11.00 ms (55%), ' +
+        '1 of 102 over half',
+    );
+    // Positive control: an engine that times nothing gets no line.
+    expect(
+      describeAudioEngine({
+        engine: 'fluid',
+        devices: [output],
+        fluid: installed,
+        health: health([playing]),
+      }),
+    ).not.toContain('Engine load');
+  });
+
   it('says what stops Windows loading the engine at all', () => {
     // The state a user's machine was in: installed, attached, enhancements
     // on, and never once created — where the answer is machine-wide, not

@@ -139,6 +139,13 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
     // before any audio, which is the only thing that ever sets it.
     carried_ = output_carried_flag(endpoint_.guid);
     carried_told_ = false;
+    timing_ = output_block_timing(endpoint_.guid);
+    LARGE_INTEGER frequency{};
+    ticks_per_second_ = QueryPerformanceFrequency(&frequency) != 0
+                            ? static_cast<uint64_t>(frequency.QuadPart)
+                            : 0;
+    timing_step_told_ = 0;
+    blocks_timed_ = 0;
     log_ = std::make_unique<Log>(endpoint_.guid);
     watcher_ = std::make_unique<Watcher>(
         slot_, *log_, endpoint_, config_dir(),
@@ -205,6 +212,16 @@ void Apo::release_locked_state() noexcept {
   slot_.clear();
   slot_.set_latency(0);
   split_.store(nullptr, std::memory_order_relaxed);
+  // What the stream cost, once, from the instance that carried it: the line
+  // a report needs to say whether the engine was too slow for the machine.
+  if (log_ && timing_ && blocks_timed_ > 0) {
+    try {
+      log_->write("this stream: " + describe_timing(timing_->read()));
+    } catch (...) {
+      // A line the log never gets costs the report, not the audio.
+    }
+  }
+  timing_.reset();
   log_.reset();
   // Swapped with an empty vector rather than cleared and shrunk: this
   // function is `noexcept` and runs inside audiodg.exe, where an exception
@@ -235,6 +252,14 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
   // Without it, the silence a paused player keeps sending costs the EQ 13x
   // its work (fluideq/denormals.h), on a thread every other effect shares.
   const FeqScopedDenormalsOff denormals;
+
+  // The whole call, from here to the last sample written: how long Windows
+  // waited on this effect, which is what a missed period is made of
+  // (`block_timing.h`). The counter the Share Audio tap below reads too.
+  LARGE_INTEGER started{};
+  if (timing_ != nullptr) {
+    QueryPerformanceCounter(&started);
+  }
 
   // The swap, at the block boundary and nowhere else: a graph exchanged
   // mid-block would filter the first half of a buffer with one set of
@@ -380,6 +405,27 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
     }
     out.u32ValidFrameCount = frames;
     out.u32BufferFlags = BUFFER_VALID;
+
+    // Timed only here, where there was audio to do: a silent block costs
+    // nothing and would only water the count down.
+    if (timing_ != nullptr && frames > 0) {
+      LARGE_INTEGER finished{};
+      QueryPerformanceCounter(&finished);
+      const uint32_t slowest = timing_->record(
+          static_cast<uint64_t>(finished.QuadPart - started.QuadPart),
+          ticks_per_second_, frames,
+          sample_rate_.load(std::memory_order_relaxed));
+      ++blocks_timed_;
+      // A step at a time, a quarter of the period each: a handful of status
+      // writes in a stream, never one per block.
+      const uint32_t step = timing_step(slowest);
+      if (step > timing_step_told_) {
+        timing_step_told_ = step;
+        if (watcher_) {
+          watcher_->say_it_was_slow();
+        }
+      }
+    }
   }
 
   // Always, on every path that reached the swap: this counter is the only

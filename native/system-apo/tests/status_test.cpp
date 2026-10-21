@@ -143,6 +143,77 @@ void a_second_output() {
 }
 
 /**
+ * How long the engine takes over each block, in the exact shape the app
+ * parses (`engineHealth.test.ts` holds the same text), and the arithmetic
+ * behind it. GitHub issue 30: a reporter's sound cut in and out as Exciter
+ * bands were added, and nothing the engine wrote could say whether it had
+ * been too slow for that machine.
+ */
+void how_long_blocks_take() {
+  std::printf("how long the engine takes over its blocks\n");
+  using fluideq_engine::BlockTiming;
+  using fluideq_engine::describe_timing;
+  using fluideq_engine::timing_step;
+  constexpr uint64_t kTicks = 10000000;  // QueryPerformanceFrequency's usual
+  constexpr uint32_t kFrames = 528;      // 11 ms at 48 kHz
+  constexpr uint64_t kBlockTicks = 110000;
+
+  BlockTiming timing;
+  CHECK(timing.read().blocks == 0);
+  CHECK(describe_timing(timing.read()) == "no block timed yet");
+  // An engine well inside its time: a tenth of each block.
+  for (int block = 0; block < 100; ++block) {
+    CHECK(timing.record(kBlockTicks / 10, kTicks, kFrames, 48000) == 100);
+  }
+  BlockTiming::Reading quick = timing.read();
+  CHECK(quick.blocks == 100 && quick.over_half == 0);
+  CHECK(quick.slowest_permille == 100 && timing_step(100) == 0);
+  // Positive control: one block deliberately slow, at 55% of its time, is the
+  // one the reading names, and the only one counted over half.
+  CHECK(timing.record(kBlockTicks * 55 / 100, kTicks, kFrames, 48000) == 550);
+  CHECK(timing.record(kBlockTicks / 10, kTicks, kFrames, 48000) == 550);
+  const BlockTiming::Reading slow = timing.read();
+  CHECK(slow.blocks == 102 && slow.over_half == 1);
+  CHECK(slow.slowest_permille == 550 && timing_step(550) == 2);
+  CHECK(describe_timing(slow) ==
+        "slowest block 6.05 ms of its 11.00 ms (55%), 1 of 102 over half");
+  // Slowest is a share, not a duration: a short block that took half its
+  // time is slower than a long one that took a third, though fewer ms.
+  BlockTiming mixed;
+  mixed.record(36667, kTicks, 1100, 48000);  // 3.67 of 22.92 ms, 16%
+  mixed.record(55000, kTicks, kFrames, 48000);  // 5.50 of 11.00 ms, 50%
+  const BlockTiming::Reading share = mixed.read();
+  CHECK(share.slowest_permille == 500);
+  CHECK(share.period_ms == 11.0 && share.over_half == 0);
+  // A call a debugger held for minutes is a block past its time, not an
+  // overflow; and steps stop at twice the period.
+  BlockTiming held;
+  held.record(kTicks * 600, kTicks, kFrames, 48000);
+  CHECK(held.read().slowest_permille > 50000);
+  CHECK(timing_step(held.read().slowest_permille) == 8);
+  // Nothing to divide by is no block at all.
+  CHECK(held.record(1, 0, kFrames, 48000) == held.read().slowest_permille);
+  CHECK(held.read().blocks == 1);
+
+  EngineStatus status;
+  status.endpoint = L"{CCCC}";
+  status.locked = true;
+  status.processing = true;
+  status.load = slow;
+  CHECK(status_json(status, 7, "t") ==
+        "{\"version\":1,\"endpoint\":\"{CCCC}\",\"pid\":7,\"locked\":true,"
+        "\"processing\":true,\"carried\":false,\"owner\":true,"
+        "\"reason\":\"\",\"problems\":[],\"channels\":0,\"room\":\"off\","
+        "\"rate\":0,\"latency\":0,\"latencyParts\":{},\"latencyActive\":[],"
+        "\"gameMode\":false,\"load\":{\"blocks\":102,\"overHalf\":1,"
+        "\"slowestMs\":6.05,\"periodMs\":11.00},\"at\":\"t\"}\r\n");
+  // Positive control for the field being optional: an output with no block
+  // timed says nothing about it, as every earlier engine did.
+  status.load.reset();
+  CHECK(status_json(status, 7, "t").find("load") == std::string::npos);
+}
+
+/**
  * The delay, stage by stage, in the exact shape the app parses — and game
  * mode. What the DSP page shows a listener as their lag; `engineHealth.test`
  * holds the app to the same text.
@@ -314,6 +385,7 @@ int main() {
   a_pass_through_with_problems();
   a_finished_song();
   a_second_output();
+  how_long_blocks_take();
   the_delay_and_game_mode();
   text_is_escaped();
   linear_phase_fallback_is_reported();

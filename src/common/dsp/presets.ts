@@ -353,13 +353,9 @@ export const dspPresetSettings = (
       ...preset.settings.eq,
       treble: current?.eq.treble ?? preset.settings.eq.treble,
     },
-    // And the Exciter's oversampling: how the harmonics are made, never
-    // which ones.
-    exciter: {
-      ...preset.settings.exciter,
-      oversampling:
-        current?.exciter.oversampling ?? preset.settings.exciter.oversampling,
-    },
+    // The Exciter's oversampling is the chain's like the rest of it: off in
+    // every factory chain, so a pick never leaves processor time spent that
+    // the listener did not choose (Ivan, 2026-10-17).
     // The Room's switch and shape are the chain's, the head and the rest of
     // the listener's own are not: see `chainRoom`. (For a day the whole Room
     // was carried over instead, after presets built from the defaults were

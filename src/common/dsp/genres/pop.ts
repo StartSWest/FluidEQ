@@ -28,10 +28,13 @@ import {
  */
 const POP_RACKS: readonly IGenreRack[] = [
   {
-    // 100-130 BPM, or half time around 90. Its Exciter and Forge are offered
-    // under Pop's name for a listener who wants the sheen or more bottom,
-    // and left off here: the vocal is bright already, harmonics land on its
-    // sibilants, and the sub is in the master.
+    // 100-130 BPM, or half time around 90. Its Exciter plays: body around
+    // 1 kHz, sheen on the vocal and Organic's warmth under both. It was
+    // offered and left off until 2026-10-15 for fear of grit on a vocal this
+    // bright; the Exciter's High oversampling keeps what its harmonics fold
+    // back from the top 125 dB down, and Ivan, listening, asked for it in
+    // pop. Like every chain this leaves oversampling off — the listener's
+    // to switch on. Forge stays offered: the sub is in the master.
     id: 'pop',
     exciter: exciterProfile(
       [
@@ -49,12 +52,18 @@ const POP_RACKS: readonly IGenreRack[] = [
     // the air a little wider than the record.
     dimension: width(0.6, 1, 1.15, 140, 3_200, 0.15),
     maximizer: ceiling(0.75, -1, 3, sixteenthMs(116)),
-    offered: ['exciter', 'bassForge'],
+    offered: ['bassForge'],
   },
   {
     // Lighter and warmer than chart pop, often deliberately lo-fi, and about
-    // a decibel quieter: the warmth is the look, so nothing here brightens it.
+    // a decibel quieter: the warmth is the look, so nothing here brightens
+    // it. The Exciter adds to the warmth alone — Organic's body in the low
+    // mids, no band and nothing on the top.
     id: 'indiePop',
+    exciter: exciterProfile(
+      [{ enabled: false }, { enabled: false }, { enabled: false }],
+      { enabled: true, amount: 0.1, focusHz: 320, range: 0.3 },
+    ),
     dimension: width(0.75, 1, 1.1, 160, 3_400, 0.12),
     maximizer: ceiling(1, -1, 5, sixteenthMs(110)),
   },
@@ -92,9 +101,20 @@ const POP_RACKS: readonly IGenreRack[] = [
   {
     // Among the loudest masters made (-10 to -6 LUFS, true peaks over full
     // scale), a vocal already lifted at 3-5 kHz and 12 kHz, and a kick with
-    // its sub punch built in. Everything a stage could add is already there,
-    // so the row is a narrowed bottom and a ceiling that barely drives.
+    // its sub punch built in. A narrowed bottom, a ceiling that barely
+    // drives, and since 2026-10-15 the Exciter Ivan asked for, kept under
+    // the vocal's own lifts: body and presence from a band that stops by
+    // 2.5 kHz (its harmonics an octave over it at most), mostly even orders,
+    // and Organic's warmth — nothing on the top that is lifted already.
     id: 'kPop',
+    exciter: exciterProfile(
+      [
+        { enabled: false },
+        { freqHz: 1_100, range: 0.2, mix: 0.16, texture: 0.22 },
+        { enabled: false },
+      ],
+      { enabled: true, amount: 0.1, focusHz: 400, range: 0.3 },
+    ),
     dimension: width(0.55, 1, 1.1, 150, 3_000, 0.1),
     maximizer: ceiling(0.5, -1, 3, sixteenthMs(122)),
   },
@@ -103,15 +123,15 @@ const POP_RACKS: readonly IGenreRack[] = [
     // and distorted guitars in it. No width, no air: a touch of low-mid body
     // is the one direction these mixes take well.
     id: 'jPop',
-    // Offered under its name and not played: its engineers ask for no exciter
-    // on a master that is bright and clipped already.
+    // Warmth alone, in the low mids, and nothing on a top that is bright and
+    // clipped already: offered and left off until Ivan asked for the Exciter
+    // in pop on 2026-10-15, and this profile adds no treble to object to.
     exciter: exciterProfile(
       [{ enabled: false }, { enabled: false }, { enabled: false }],
       { enabled: true, amount: 0.1, focusHz: 300, range: 0.3 },
     ),
     dimension: width(0.65, 1, 1, 160, 3_000, 0.05),
     maximizer: ceiling(0.5, -1, 3, sixteenthMs(160)),
-    offered: ['exciter'],
   },
   {
     // Ballad-led, the vocal front and centre and warm, with consonants that

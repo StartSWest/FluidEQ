@@ -23,6 +23,7 @@ import { parseEngineSourceAnalysis } from '../common/dsp/sourceAnalysis';
 import {
   IEngineHealth,
   IEngineLatency,
+  IEngineLoad,
   IEngineOutputHealth,
   IEngineSplit,
   IFinishedSong,
@@ -125,6 +126,32 @@ const parseSplit = (value: unknown): IEngineSplit | undefined => {
   };
 };
 
+const isCount = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value >= 0;
+
+/**
+ * How long the engine's blocks take on this output, or undefined — dropped on
+ * its own when malformed, like the song.
+ */
+const parseLoad = (value: unknown): IEngineLoad | undefined => {
+  if (!isObject(value)) {
+    return undefined;
+  }
+  const { blocks, overHalf, slowestMs, periodMs } = value;
+  if (
+    !isCount(blocks) ||
+    !isCount(overHalf) ||
+    overHalf > blocks ||
+    !isFiniteNumber(slowestMs) ||
+    slowestMs < 0 ||
+    !isFiniteNumber(periodMs) ||
+    periodMs <= 0
+  ) {
+    return undefined;
+  }
+  return { blocks, overHalf, slowestMs, periodMs };
+};
+
 /**
  * A status file's text, or undefined for anything that is not a version-1
  * status with every field of the right type. Unknown extra fields are
@@ -160,6 +187,7 @@ export const parseEngineStatus = (
   }
   const lastSong = parseFinishedSong(value.lastSong);
   const split = parseSplit(value.split);
+  const load = parseLoad(value.load);
   const sourceAnalysis = parseEngineSourceAnalysis(value.sourceAnalysis);
   const latency = parseLatency(
     value.rate,
@@ -199,6 +227,7 @@ export const parseEngineStatus = (
       ? { gameMode: value.gameMode }
       : {}),
     ...(split ? { split } : {}),
+    ...(load ? { load } : {}),
     ...(sourceAnalysis ? { sourceAnalysis } : {}),
   };
 };

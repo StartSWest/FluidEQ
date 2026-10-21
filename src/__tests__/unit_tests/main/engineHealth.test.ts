@@ -200,6 +200,48 @@ describe('parseEngineStatus', () => {
     expect(parsed).not.toHaveProperty('split');
   });
 
+  /**
+   * How long the engine's blocks take, as `how_long_blocks_take` in
+   * status_test.cpp writes it — the reading a bug report needs to say whether
+   * the engine was too slow for the machine (GitHub issue 30).
+   */
+  it('reads how long the engine’s blocks take', () => {
+    const text =
+      '{"version":1,"endpoint":"{CCCC}","pid":7,"locked":true,' +
+      '"processing":true,"carried":false,"owner":true,' +
+      '"reason":"","problems":[],"channels":0,"room":"off",' +
+      '"rate":0,"latency":0,"latencyParts":{},"latencyActive":[],' +
+      '"gameMode":false,"load":{"blocks":102,"overHalf":1,' +
+      '"slowestMs":6.05,"periodMs":11.00},"at":"t"}\r\n';
+    expect(parseEngineStatus(text)?.load).toEqual({
+      blocks: 102,
+      overHalf: 1,
+      slowestMs: 6.05,
+      periodMs: 11,
+    });
+    // Positive control for the field being optional.
+    expect(parseEngineStatus(ENGINE_TEXT)).not.toHaveProperty('load');
+  });
+
+  it.each([
+    ['a fractional block count', { blocks: 1.5 }],
+    ['more blocks over half than blocks', { overHalf: 103 }],
+    ['a negative slowest block', { slowestMs: -1 }],
+    ['a block that lasts no time', { periodMs: 0 }],
+    ['a period that is not a number', { periodMs: '11' }],
+  ])('drops a load with %s, and keeps the status', (_label, bad) => {
+    const load = {
+      blocks: 102,
+      overHalf: 1,
+      slowestMs: 6.05,
+      periodMs: 11,
+      ...bad,
+    };
+    const parsed = parseEngineStatus(status({ load }));
+    expect(parsed?.locked).toBe(true);
+    expect(parsed).not.toHaveProperty('load');
+  });
+
   /** The source analysis block as `status_json.cpp` writes it. */
   it('reads the source analysis the engine reports', () => {
     const sourceAnalysis = {
