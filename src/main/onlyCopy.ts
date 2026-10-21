@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import { sweepAbandonedWrites } from './asyncWriter';
+import { appLinkInArgs, deliverAppLink } from './appLinks';
 import { karaokeMakerDraftDir } from './karaokeMakerStorage';
 import { karaokeStemsDir } from './karaokeSeparation';
 import {
@@ -125,16 +126,21 @@ const claimTheOnlyCopy = ({
 
   const isTheOnlyCopy = becomesTheOnlyCopy();
 
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, argv) => {
     const mainWindow = getMainWindow();
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      return;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.show();
+      mainWindow.focus();
     }
-    if (mainWindow.isMinimized()) {
-      mainWindow.restore();
+    // A `fluideq://` link a page opened arrives as the second launch's
+    // argument (`appLinks.ts`): handed on whether or not a window exists.
+    const link = appLinkInArgs(argv);
+    if (link) {
+      deliverAppLink(link);
     }
-    mainWindow.show();
-    mainWindow.focus();
   });
 
   app.on('will-quit', () => {

@@ -54,6 +54,30 @@ export const CREDIT_PACK_ID = /^pack-[0-9]{1,4}$/;
 export const SCENE_PRICE_CREDITS = 1;
 
 /**
+ * The languages a pack's checkout can be in: the app's ten. The server turns
+ * one into Stripe's own language for its page and into the fluideq.com page
+ * it returns to (`create-credit-checkout`).
+ */
+export const CHECKOUT_LOCALES = [
+  'en',
+  'zh',
+  'hi',
+  'es',
+  'fr',
+  'pt',
+  'ru',
+  'ja',
+  'de',
+  'it',
+] as const;
+
+export type TCheckoutLocale = (typeof CHECKOUT_LOCALES)[number];
+
+export const isCheckoutLocale = (value: unknown): value is TCheckoutLocale =>
+  typeof value === 'string' &&
+  (CHECKOUT_LOCALES as readonly string[]).includes(value);
+
+/**
  * The free credits every confirmed account gets once (premium 0055's
  * `claim_starter_credits`); the terms quote it, so keep the two in step.
  */

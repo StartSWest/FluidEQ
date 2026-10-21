@@ -198,6 +198,12 @@
   "build": {
     "productName": "FluidEQ",
     "appId": "com.gigabytz.fluideq",
+    "protocols": [
+      {
+        "name": "FluidEQ",
+        "schemes": ["fluideq"]
+      }
+    ],
     "asar": true,
     "electronFuses": {
       "runAsNode": false,

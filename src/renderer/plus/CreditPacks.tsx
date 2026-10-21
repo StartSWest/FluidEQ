@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   formatPackPrice,
@@ -16,7 +16,7 @@ import {
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import { creditsText } from './credits';
-import { checkoutCreditPack } from './sceneStore';
+import { checkoutCreditPack, onCheckoutReturned } from './sceneStore';
 
 /** The pack the store suggests: twelve credits, or the middle of what is sold. */
 export const suggestedPack = (
@@ -57,19 +57,33 @@ export const storeFailureKey = (
  * and `arrived` is how many came, once they have.
  */
 export const usePackCheckout = (balance: number) => {
+  const { locale } = useTranslation();
   const [opening, setOpening] = useState(false);
   const [paidFrom, setPaidFrom] = useState<number>();
   const [failure, setFailure] = useState<TranslationKey>();
   const arrived =
     paidFrom !== undefined && balance > paidFrom ? balance - paidFrom : 0;
   const waiting = paidFrom !== undefined && arrived === 0;
+  // Cancelled on Stripe's page and back through its return page: nothing is
+  // on its way, so the window stops saying it is waiting for it.
+  useEffect(
+    () =>
+      onCheckoutReturned((ended) => {
+        if (ended === 'cancelled') {
+          setPaidFrom((from) =>
+            from !== undefined && balance <= from ? undefined : from,
+          );
+        }
+      }),
+    [balance],
+  );
   const pay = (packId: string) => {
     if (opening) {
       return;
     }
     setOpening(true);
     setFailure(undefined);
-    checkoutCreditPack(packId)
+    checkoutCreditPack(packId, locale)
       .then((outcome) => {
         setOpening(false);
         if (outcome.ok) {

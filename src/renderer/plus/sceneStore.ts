@@ -155,13 +155,23 @@ export const setOfficialSceneFree = async (
   return outcome;
 };
 
-/** Opens Stripe's page in the browser; the credits arrive with the window's next focus. */
+/**
+ * Opens Stripe's page in the browser, in the window's language. The credits
+ * arrive when the return page's "Back to FluidEQ" opens the app, or with the
+ * window's next focus.
+ */
 export const checkoutCreditPack = async (
   packId: string,
+  locale: string,
 ): Promise<TCheckoutOutcome> =>
   (await bridge()
-    ?.checkoutCreditPack?.(packId)
+    ?.checkoutCreditPack?.(packId, locale)
     .catch(() => undefined)) ?? { ok: false, reason: 'offline' };
+
+/** How a pack's payment ended, once its return page has opened FluidEQ. */
+export const onCheckoutReturned = (
+  listener: (ended: 'paid' | 'cancelled') => void,
+): (() => void) => bridge()?.onCheckoutReturned?.(listener) ?? (() => {});
 
 let stop = () => {};
 const subscribe = (listener: () => void) => {

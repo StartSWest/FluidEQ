@@ -16,6 +16,8 @@ import type {
   TStarterOutcome,
 } from '../../common/sceneStore';
 import { PACK_ID } from '../../common/scenePackFields';
+import { isCheckoutLocale } from '../../common/sceneStore';
+import { onAppLink } from '../appLinks';
 import { sceneRefOf } from '../plus/galleryAccess';
 import type { ISceneOwnership } from '../plus/sceneOwnership';
 
@@ -55,6 +57,21 @@ export const registerSceneStoreIpc = ({
     getMainWindow()?.webContents.send('scene-store-changed', store ?? null);
   });
 
+  // Back from Stripe's page through fluideq.com's "Back to FluidEQ"
+  // (`appLinks.ts`): the server is asked at once, focus or not, and the
+  // window told how the payment ended. A webhook still on its way leaves the
+  // balance as it was; the checkout stays owed and the next come-back asks
+  // again, as without the link.
+  const offLinks = onAppLink((link) => {
+    if (isAccountConfigured(config)) {
+      ownership.refreshNow().catch(() => undefined);
+    }
+    getMainWindow()?.webContents.send(
+      'scene-store-checkout-returned',
+      link === 'credits-paid' ? 'paid' : 'cancelled',
+    );
+  });
+
   ipcMain.handle('scene-store-get', (): Promise<TSceneStoreOutcome> =>
     isAccountConfigured(config)
       ? ownership.refreshNow()
@@ -82,14 +99,23 @@ export const registerSceneStoreIpc = ({
 
   ipcMain.handle(
     'scene-store-checkout',
-    async (_event, packId: unknown): Promise<TCheckoutOutcome> => {
+    async (
+      _event,
+      packId: unknown,
+      locale: unknown,
+    ): Promise<TCheckoutOutcome> => {
       if (typeof packId !== 'string') {
         return { ok: false, reason: 'not-on-sale' };
       }
       if (!isAccountConfigured(config)) {
         return unavailable;
       }
-      const page = await ownership.checkout(packId);
+      // The window's language, for Stripe's page and the page it returns
+      // to; anything else is English rather than a refusal.
+      const page = await ownership.checkout(
+        packId,
+        isCheckoutLocale(locale) ? locale : 'en',
+      );
       if (!page.ok) {
         return page;
       }
@@ -115,6 +141,7 @@ export const registerSceneStoreIpc = ({
   return {
     dispose: () => {
       offChanges();
+      offLinks();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
     },
   };

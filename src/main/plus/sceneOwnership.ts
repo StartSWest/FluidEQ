@@ -12,6 +12,7 @@ import {
   type ISceneStore,
   type TBuyOutcome,
   type TCheckoutFailure,
+  type TCheckoutLocale,
   type TSceneStoreOutcome,
   type TStarterOutcome,
 } from '../../common/sceneStore';
@@ -80,9 +81,10 @@ export interface ISceneOwnership {
    * is read again so every gate follows at once.
    */
   setFree(sceneId: string, free: boolean): Promise<TSceneStoreOutcome>;
-  /** A Stripe page to pay for the pack; the caller opens it. */
+  /** A Stripe page to pay for the pack, in this language; the caller opens it. */
   checkout(
     packId: string,
+    locale: TCheckoutLocale,
   ): Promise<
     { ok: true; url: string } | { ok: false; reason: TCheckoutFailure }
   >;
@@ -326,13 +328,13 @@ export const createSceneOwnership = ({
       const set = await setOfficialSceneFree(auth, sceneId, free);
       return set.ok ? refreshNow() : set;
     },
-    checkout: async (packId) => {
+    checkout: async (packId, locale) => {
       const userId = accountId();
       const auth = userId ? await authFor(userId) : undefined;
       if (!userId || !auth) {
         return { ok: false, reason: 'signed-out' };
       }
-      const page = await startCreditCheckout(auth, packId);
+      const page = await startCreditCheckout(auth, packId, locale);
       if (page.ok && accountId() === userId) {
         awaiting = { userId, balance: known()?.balance ?? 0 };
       }

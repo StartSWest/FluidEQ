@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   buyFailureOf,
   CREDIT_PACK_ID,
+  type TCheckoutLocale,
   parseSceneStore,
   type ISceneStore,
   type TBuyFailure,
@@ -134,6 +135,7 @@ const isCheckoutPage = (url: unknown): url is string => {
 export const startCreditCheckout = async (
   auth: IGalleryAuth,
   packId: string,
+  locale: TCheckoutLocale,
 ): Promise<
   { ok: true; url: string } | { ok: false; reason: TCheckoutFailure }
 > => {
@@ -148,8 +150,14 @@ export const startCreditCheckout = async (
         method: 'POST',
         headers: headers(auth),
         // The terms this app shows; the server records the agreement and
-        // refuses one older than the terms credits are sold under.
-        body: JSON.stringify({ packId, termsVersion: PLUS_TERMS_VERSION }),
+        // refuses one older than the terms credits are sold under. The
+        // language picks Stripe's and the page the payment returns to; a
+        // server from before it ignores the field.
+        body: JSON.stringify({
+          packId,
+          termsVersion: PLUS_TERMS_VERSION,
+          locale,
+        }),
       },
     );
   } catch {

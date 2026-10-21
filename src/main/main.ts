@@ -153,6 +153,7 @@ import registerSystemMediaIpc from './ipc/systemMedia';
 import registerMemberServices from './memberServices';
 import { applyLaunchSwitches, isDebug } from './launchSwitches';
 import claimTheOnlyCopy from './onlyCopy';
+import { registerAppLinks } from './appLinks';
 import { chooseLaunchEngine, registerEngineServices } from './engineServices';
 
 /**
@@ -997,6 +998,8 @@ app.on('before-quit', (event) => {
 });
 
 const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });
+// `fluideq://` links, before `ready`: macOS delivers one at launch as an event.
+registerAppLinks();
 
 /**
  * Everything that runs once Electron is ready, as a function of its own.

@@ -17,8 +17,24 @@ export const sceneStoreBridge = {
     ipcRenderer.invoke('scene-store-claim'),
   buyScene: (authorId: string, sceneId: string): Promise<TBuyOutcome> =>
     ipcRenderer.invoke('scene-store-buy', authorId, sceneId),
-  checkoutCreditPack: (packId: string): Promise<TCheckoutOutcome> =>
-    ipcRenderer.invoke('scene-store-checkout', packId),
+  checkoutCreditPack: (
+    packId: string,
+    locale: string,
+  ): Promise<TCheckoutOutcome> =>
+    ipcRenderer.invoke('scene-store-checkout', packId, locale),
+  // How a pack's payment ended, told when its return page opens FluidEQ
+  // (`appLinks.ts`).
+  onCheckoutReturned: (listener: (ended: 'paid' | 'cancelled') => void) => {
+    const handler = (_event: IpcRendererEvent, ended: unknown) => {
+      if (ended === 'paid' || ended === 'cancelled') {
+        listener(ended);
+      }
+    };
+    ipcRenderer.on('scene-store-checkout-returned', handler);
+    return () => {
+      ipcRenderer.removeListener('scene-store-checkout-returned', handler);
+    };
+  },
   // The admin's: one of FluidEQ's scenes free for every account, or paid.
   setOfficialSceneFree: (
     sceneId: string,
