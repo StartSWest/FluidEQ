@@ -84,12 +84,9 @@ const creator: Partial<Dictionary> = {
   'creator.admin.tab': 'भुगतान',
   'creator.admin.plan': 'Stripe से भुगतान पाने वाले क्रिएटर',
   'creator.admin.loading': 'क्रिएटर को देय राशि पढ़ी जा रही है',
-  'creator.admin.due': 'अभी देय',
   'creator.admin.creators': 'क्रिएटर: {count}',
   'creator.admin.available': 'Stripe पर उपलब्ध',
   'creator.admin.availableNote': 'जहाँ से ट्रांसफ़र होते हैं',
-  'creator.admin.pending': 'अधूरे',
-  'creator.admin.pendingNote': 'अगला रन इन्हें पहले पूरा करेगा',
   'creator.admin.short':
     'Stripe पर FluidEQ का उपलब्ध बैलेंस देय राशि से कम है। उससे आगे के ट्रांसफ़र विफल होंगे और अगले रन का इंतज़ार करेंगे; बैलेंस सेटल होने के बाद भुगतान करें।',
   'creator.admin.list': 'किसे भुगतान होगा',
@@ -116,6 +113,19 @@ const creator: Partial<Dictionary> = {
   'creator.notice.shortTitle': '{date} के भुगतान के लिए Stripe में राशि कम है',
   'creator.notice.shortBody':
     'देय: {amount}। भुगतान पाने वाले क्रिएटर: {count}। Stripe में {available} है; उससे आगे के ट्रांसफ़र विफल होंगे और अगले भुगतान का इंतज़ार करेंगे।',
+  'creator.admin.owed': 'क्रिएटर का बकाया',
+  'creator.admin.owedNote': 'रोकी गई {held} · तैयार {ready}',
+  'creator.admin.sending': 'भेजा जा रहा {amount}',
+  'creator.admin.onItsWay': '+ {amount} आ रहा है',
+  'creator.admin.yours': 'आपका, निकाल सकते हैं',
+  'creator.admin.yoursNote': 'बैलेंस में से क्रिएटर का बकाया घटाकर',
+  'creator.admin.yoursShort':
+    'क्रिएटर का बकाया Stripe बैलेंस से {amount} अधिक है',
+  'creator.admin.next': 'अगला भुगतान',
+  'creator.admin.manual':
+    'Stripe के आपके बैंक में अपने आप होने वाले पेआउट क्रिएटर का पैसा भी ले जाएँगे। Stripe में उन्हें मैनुअल पर रखें, और केवल अपना हिस्सा निकालें।',
+  'creator.admin.pendingLine':
+    'पिछले रन के अधूरे छोड़े भुगतान: {count}। अगला रन पहले इन्हें पूरा करेगा।',
 };
 
 export default creator;

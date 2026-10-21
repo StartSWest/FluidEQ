@@ -84,12 +84,9 @@ const creator = {
   'creator.admin.tab': 'Payouts',
   'creator.admin.plan': 'Creators paid through Stripe',
   'creator.admin.loading': 'Reading what creators are owed',
-  'creator.admin.due': 'Due now',
   'creator.admin.creators': 'Creators: {count}',
   'creator.admin.available': 'Available at Stripe',
   'creator.admin.availableNote': 'what the transfers come out of',
-  'creator.admin.pending': 'Unfinished',
-  'creator.admin.pendingNote': 'finished first by the next run',
   'creator.admin.short':
     "FluidEQ's available balance at Stripe is below what is due. Transfers past it fail and wait for the next run; pay once the balance has settled.",
   'creator.admin.list': 'Who gets paid',
@@ -116,6 +113,19 @@ const creator = {
   'creator.notice.shortTitle': 'Stripe is short for the {date} payout',
   'creator.notice.shortBody':
     'Due: {amount}. Creators to pay: {count}. Stripe holds {available}; transfers past it will fail and wait for the next payout.',
+  'creator.admin.owed': 'Owed to creators',
+  'creator.admin.owedNote': 'held {held} · ready {ready}',
+  'creator.admin.sending': 'sending {amount}',
+  'creator.admin.onItsWay': '+ {amount} on its way',
+  'creator.admin.yours': 'Yours to take out',
+  'creator.admin.yoursNote': 'the balance less what creators are owed',
+  'creator.admin.yoursShort':
+    'creators are owed {amount} more than Stripe holds',
+  'creator.admin.next': 'Next payout',
+  'creator.admin.manual':
+    "Stripe's automatic payouts to your bank would take creators' money too. Set them to manual in Stripe, and take out only what is yours.",
+  'creator.admin.pendingLine':
+    'Payouts an earlier run left unfinished: {count}. The next run finishes them first.',
 };
 
 export default creator;

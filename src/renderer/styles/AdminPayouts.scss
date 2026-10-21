@@ -89,10 +89,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
   }
 }
 
-// Three figures, always side by side until they cannot be: the Server page's
-// 210px minimum broke them two and one on a narrow window, the last alone.
+// Four figures: four across where the page has room, two by two where it has
+// not, never three and one alone (auto-fit broke them so at middle widths).
+// Measured against the page, not the window, which also holds the rail.
+.admin-payouts {
+  container: admin-payouts / inline-size;
+}
+
 .admin-payouts .admin-server__gauges {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 128px), 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@container admin-payouts (min-width: 860px) {
+  .admin-payouts .admin-server__gauges {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .admin-payouts .admin-server__quiet.is-alert svg {

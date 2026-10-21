@@ -84,12 +84,9 @@ const creator: Partial<Dictionary> = {
   'creator.admin.tab': '支払い',
   'creator.admin.plan': 'Stripe で支払うクリエイター',
   'creator.admin.loading': 'クリエイターへの未払い額を確認中',
-  'creator.admin.due': '現在の支払額',
   'creator.admin.creators': 'クリエイター：{count}',
   'creator.admin.available': 'Stripe の利用可能残高',
   'creator.admin.availableNote': '送金の原資',
-  'creator.admin.pending': '未完了',
-  'creator.admin.pendingNote': '次回の実行で最初に完了',
   'creator.admin.short':
     'Stripe にある FluidEQ の利用可能残高が支払額を下回っています。残高を超える送金は失敗し、次回の実行を待ちます。残高が確定してから支払ってください。',
   'creator.admin.list': '支払い先',
@@ -116,6 +113,19 @@ const creator: Partial<Dictionary> = {
   'creator.notice.shortTitle': '{date} の支払いに Stripe の残高が足りません',
   'creator.notice.shortBody':
     '支払額：{amount}。支払い先のクリエイター：{count}。Stripe の残高は {available} です。超える分の送金は失敗し、次回の支払いを待ちます。',
+  'creator.admin.owed': 'クリエイターへの未払い',
+  'creator.admin.owedNote': '保留 {held} ・支払い可能 {ready}',
+  'creator.admin.sending': '送金中 {amount}',
+  'creator.admin.onItsWay': '+ {amount} 入金予定',
+  'creator.admin.yours': 'あなたが引き出せる額',
+  'creator.admin.yoursNote': '残高からクリエイターへの未払いを引いた額',
+  'creator.admin.yoursShort':
+    'Stripe の残高よりクリエイターへの未払いが {amount} 多い状態です',
+  'creator.admin.next': '次回の支払い',
+  'creator.admin.manual':
+    'Stripe から銀行口座への自動入金は、クリエイターのお金まで引き出してしまいます。Stripe で入金を手動に設定し、自分の分だけを引き出してください。',
+  'creator.admin.pendingLine':
+    '前回の実行で未完了の支払い：{count}。次回の実行で最初に完了します。',
 };
 
 export default creator;

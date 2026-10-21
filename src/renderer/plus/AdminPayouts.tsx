@@ -8,7 +8,9 @@ import { useCallback, useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   formatDollars,
+  owedTotal,
   payoutSoon,
+  yoursCents,
   type ICreatorPayoutPreview,
   type ICreatorPayoutRun,
 } from 'common/creatorPayouts';
@@ -109,6 +111,8 @@ export default function AdminPayouts() {
   const dates = new Intl.DateTimeFormat(locale, { dateStyle: 'medium' });
   // Close enough to tell: the line turns amber, as the corner notice shows.
   const soon = preview ? payoutSoon(preview, Date.now()) : false;
+  const owed = preview ? owedTotal(preview) : undefined;
+  const yours = preview ? yoursCents(preview) : undefined;
   let schedule: string | undefined;
   if (preview) {
     const last =
@@ -188,7 +192,7 @@ export default function AdminPayouts() {
           role="status"
           aria-label={t('creator.admin.loading')}
         >
-          {[0, 1, 2].map((index) => (
+          {[0, 1, 2, 3].map((index) => (
             <span key={index} className="admin-server__skeleton" />
           ))}
         </div>
@@ -196,23 +200,31 @@ export default function AdminPayouts() {
 
       {preview && (
         <>
-          <div className="admin-server__gauges">
+          {/* What of the balance is FluidEQ's (Ivan, 2026-10-21: "we need to be
+              able to tell before expending stripe money how much I owe to
+              creators"): owed, at Stripe, yours, and the next payout. */}
+          <div className="admin-server__gauges admin-payouts__gauges">
             <section className="admin-server__gauge">
               <h3 className="account-deletion__eyebrow">
-                {t('creator.admin.due')}
+                {t('creator.admin.owed')}
               </h3>
               <p className="admin-server__value">
-                <strong>{money(preview.totalCents)}</strong>
-                <span>
-                  {t('creator.admin.creators', {
-                    count: numbers.format(count),
-                  })}
-                </span>
+                <strong>{owed === undefined ? '—' : money(owed)}</strong>
               </p>
+              {preview.owed && (
+                <span className="admin-server__share">
+                  {t('creator.admin.owedNote', {
+                    held: money(preview.owed.heldCents),
+                    ready: money(preview.owed.readyCents),
+                  })}
+                  {preview.owed.sendingCents > 0 &&
+                    ` · ${t('creator.admin.sending', {
+                      amount: money(preview.owed.sendingCents),
+                    })}`}
+                </span>
+              )}
             </section>
-            <section
-              className={`admin-server__gauge${short ? ' is-warn' : ''}`}
-            >
+            <section className="admin-server__gauge">
               <h3 className="account-deletion__eyebrow">
                 {t('creator.admin.available')}
               </h3>
@@ -222,21 +234,75 @@ export default function AdminPayouts() {
                     ? '—'
                     : money(preview.availableCents)}
                 </strong>
-                <span>{t('creator.admin.availableNote')}</span>
               </p>
+              <span className="admin-server__share">
+                {preview.pendingCents
+                  ? t('creator.admin.onItsWay', {
+                      amount: money(preview.pendingCents),
+                    })
+                  : t('creator.admin.availableNote')}
+              </span>
             </section>
             <section
-              className={`admin-server__gauge${preview.pending > 0 ? ' is-warn' : ''}`}
+              className={`admin-server__gauge${yours !== undefined && yours < 0 ? ' is-full' : ''}`}
             >
               <h3 className="account-deletion__eyebrow">
-                {t('creator.admin.pending')}
+                {t('creator.admin.yours')}
               </h3>
               <p className="admin-server__value">
-                <strong>{numbers.format(preview.pending)}</strong>
-                <span>{t('creator.admin.pendingNote')}</span>
+                <strong>
+                  {yours === undefined ? '—' : money(Math.max(0, yours))}
+                </strong>
               </p>
+              <span className="admin-server__share">
+                {yours !== undefined && yours < 0
+                  ? t('creator.admin.yoursShort', { amount: money(-yours) })
+                  : t('creator.admin.yoursNote')}
+              </span>
+            </section>
+            <section
+              className={`admin-server__gauge${short ? ' is-warn' : ''}`}
+            >
+              <h3 className="account-deletion__eyebrow">
+                {t('creator.admin.next')}
+              </h3>
+              <p className="admin-server__value">
+                <strong>{money(preview.totalCents)}</strong>
+                <span>
+                  {t('creator.admin.creators', {
+                    count: numbers.format(count),
+                  })}
+                </span>
+              </p>
+              {preview.nextRunAt !== undefined && (
+                <span className="admin-server__share">
+                  {dates.format(preview.nextRunAt)}
+                </span>
+              )}
             </section>
           </div>
+
+          {/* Stripe sweeping the balance to the bank on a schedule takes the
+              creators' money with FluidEQ's: the one way a payout comes up
+              short. Said only while it is so. */}
+          {preview.ownPayouts !== undefined &&
+            preview.ownPayouts !== 'manual' && (
+              <p className="admin-server__quiet is-alert">
+                <Glyph name="alert" />
+                <span>{t('creator.admin.manual')}</span>
+              </p>
+            )}
+
+          {preview.pending > 0 && (
+            <p className="admin-server__quiet is-alert">
+              <Glyph name="alert" />
+              <span>
+                {t('creator.admin.pendingLine', {
+                  count: numbers.format(preview.pending),
+                })}
+              </span>
+            </p>
+          )}
 
           {short && (
             <p className="admin-server__quiet is-alert">

@@ -83,12 +83,9 @@ const creator: Partial<Dictionary> = {
   'creator.admin.tab': 'Выплаты',
   'creator.admin.plan': 'Авторы, которым платит Stripe',
   'creator.admin.loading': 'Считаем, сколько должны авторам',
-  'creator.admin.due': 'К выплате сейчас',
   'creator.admin.creators': 'Авторов: {count}',
   'creator.admin.available': 'Доступно в Stripe',
   'creator.admin.availableNote': 'откуда идут переводы',
-  'creator.admin.pending': 'Незавершённые',
-  'creator.admin.pendingNote': 'следующий запуск завершит их первыми',
   'creator.admin.short':
     'Доступный баланс FluidEQ в Stripe меньше суммы к выплате. Переводы сверх него не пройдут и дождутся следующего запуска; платите, когда баланс зачислится.',
   'creator.admin.list': 'Кому платим',
@@ -115,6 +112,19 @@ const creator: Partial<Dictionary> = {
   'creator.notice.shortTitle': 'В Stripe не хватает денег на выплату {date}',
   'creator.notice.shortBody':
     'К выплате: {amount}. Авторов к выплате: {count}. В Stripe {available}; переводы сверх этого не пройдут и дождутся следующей выплаты.',
+  'creator.admin.owed': 'Долг авторам',
+  'creator.admin.owedNote': 'удерживается {held} · к выплате {ready}',
+  'creator.admin.sending': 'отправляется {amount}',
+  'creator.admin.onItsWay': '+ {amount} в пути',
+  'creator.admin.yours': 'Ваше, можно вывести',
+  'creator.admin.yoursNote': 'баланс минус долг авторам',
+  'creator.admin.yoursShort':
+    'авторам должно {amount} больше, чем есть в Stripe',
+  'creator.admin.next': 'Следующая выплата',
+  'creator.admin.manual':
+    'Автоматические выплаты Stripe на ваш банковский счёт заберут и деньги авторов. Переведите их в Stripe на ручной режим и выводите только своё.',
+  'creator.admin.pendingLine':
+    'Выплат, не завершённых прошлым запуском: {count}. Следующий запуск завершит их первыми.',
 };
 
 export default creator;

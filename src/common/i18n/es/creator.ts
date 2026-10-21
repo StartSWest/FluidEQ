@@ -83,12 +83,9 @@ const creator: Partial<Dictionary> = {
   'creator.admin.tab': 'Pagos',
   'creator.admin.plan': 'Creadores pagados con Stripe',
   'creator.admin.loading': 'Leyendo lo que se debe a los creadores',
-  'creator.admin.due': 'A pagar ahora',
   'creator.admin.creators': 'Creadores: {count}',
   'creator.admin.available': 'Disponible en Stripe',
   'creator.admin.availableNote': 'de donde salen las transferencias',
-  'creator.admin.pending': 'Sin terminar',
-  'creator.admin.pendingNote': 'los termina primero la próxima ejecución',
   'creator.admin.short':
     'El saldo disponible de FluidEQ en Stripe es menor que lo que se debe. Las transferencias que lo superen fallan y esperan a la próxima ejecución; paga cuando el saldo se haya asentado.',
   'creator.admin.list': 'Quién cobra',
@@ -116,6 +113,19 @@ const creator: Partial<Dictionary> = {
     'No hay saldo suficiente en Stripe para el pago del {date}',
   'creator.notice.shortBody':
     'A pagar: {amount}. Creadores a pagar: {count}. Stripe tiene {available}; las transferencias que lo superen fallarán y esperarán al próximo pago.',
+  'creator.admin.owed': 'Se debe a creadores',
+  'creator.admin.owedNote': 'retenido {held} · listo {ready}',
+  'creator.admin.sending': 'enviándose {amount}',
+  'creator.admin.onItsWay': '+ {amount} en camino',
+  'creator.admin.yours': 'Tuyo para retirar',
+  'creator.admin.yoursNote': 'el saldo menos lo que se debe a los creadores',
+  'creator.admin.yoursShort':
+    'se debe a los creadores {amount} más de lo que hay en Stripe',
+  'creator.admin.next': 'Próximo pago',
+  'creator.admin.manual':
+    'Los pagos automáticos de Stripe a tu banco se llevarían también el dinero de los creadores. Ponlos en manual en Stripe y retira solo lo que es tuyo.',
+  'creator.admin.pendingLine':
+    'Pagos que una ejecución anterior dejó sin terminar: {count}. La próxima ejecución los termina primero.',
 };
 
 export default creator;

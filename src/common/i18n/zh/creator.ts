@@ -73,12 +73,9 @@ const creator: Partial<Dictionary> = {
   'creator.admin.tab': '付款',
   'creator.admin.plan': '通过 Stripe 付款的创作者',
   'creator.admin.loading': '正在读取应付给创作者的金额',
-  'creator.admin.due': '当前应付',
   'creator.admin.creators': '创作者：{count}',
   'creator.admin.available': 'Stripe 可用余额',
   'creator.admin.availableNote': '转账的资金来源',
-  'creator.admin.pending': '未完成',
-  'creator.admin.pendingNote': '下一次执行会先完成它们',
   'creator.admin.short':
     'FluidEQ 在 Stripe 的可用余额低于应付金额。超出余额的转账会失败，并等待下一次执行；请在余额结算后再付款。',
   'creator.admin.list': '收款人',
@@ -104,6 +101,18 @@ const creator: Partial<Dictionary> = {
   'creator.notice.shortTitle': 'Stripe 余额不足以支付 {date} 的款项',
   'creator.notice.shortBody':
     '应付：{amount}。待付款创作者：{count}。Stripe 余额为 {available}；超出部分的转账会失败，并等待下一次付款。',
+  'creator.admin.owed': '欠创作者的款项',
+  'creator.admin.owedNote': '暂扣 {held} · 可支付 {ready}',
+  'creator.admin.sending': '发送中 {amount}',
+  'creator.admin.onItsWay': '+ {amount} 正在到账',
+  'creator.admin.yours': '你可提取的金额',
+  'creator.admin.yoursNote': '余额减去欠创作者的款项',
+  'creator.admin.yoursShort': '欠创作者的款项比 Stripe 余额多 {amount}',
+  'creator.admin.next': '下次付款',
+  'creator.admin.manual':
+    'Stripe 自动提现到你的银行账户时，会把创作者的钱也一起转走。请在 Stripe 中将提现设为手动，只提取属于你的部分。',
+  'creator.admin.pendingLine':
+    '上次执行未完成的付款：{count}。下一次执行会先完成它们。',
 };
 
 export default creator;

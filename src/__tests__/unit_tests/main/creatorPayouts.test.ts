@@ -34,11 +34,13 @@ import type { IAccountConfig } from '../../../common/accountConfig';
 import {
   CREATOR_AGREEMENT_VERSION,
   isPayableCountry,
+  owedTotal,
   parseCreatorStatus,
   parsePayoutPreview,
   parsePayoutRun,
   payoutShort,
   payoutSoon,
+  yoursCents,
 } from '../../../common/creatorPayouts';
 import { appLinkOf, deliverAppLink } from '../../../main/appLinks';
 import { registerCreatorIpc } from '../../../main/ipc/creator';
@@ -167,6 +169,41 @@ describe('what the server says, read', () => {
     expect(payoutShort(preview)).toBe(true);
     expect(payoutShort({ ...preview, availableCents: undefined })).toBe(false);
     expect(payoutShort({ ...preview, availableCents: 2480 })).toBe(false);
+  });
+
+  it('says what of the Stripe balance is FluidEQ’s, after everything owed to creators', () => {
+    const preview = parsePayoutPreview({
+      due: [],
+      totalCents: 0,
+      availableCents: 30000,
+      pendingCents: 900,
+      pending: 0,
+      owed: { heldCents: 9000, readyCents: 4000, sendingCents: 1000 },
+      ownPayouts: 'daily',
+    });
+    if (!preview) {
+      throw new Error('the preview did not read');
+    }
+    expect(preview.pendingCents).toBe(900);
+    expect(preview.ownPayouts).toBe('daily');
+    expect(owedTotal(preview)).toBe(14000);
+    expect(yoursCents(preview)).toBe(16000);
+    // Less at Stripe than is owed: what is missing, said as a negative.
+    expect(yoursCents({ ...preview, availableCents: 10000 })).toBe(-4000);
+    // Not knowing either side is not a number.
+    expect(yoursCents({ ...preview, owed: undefined })).toBeUndefined();
+    expect(
+      yoursCents({ ...preview, availableCents: undefined }),
+    ).toBeUndefined();
+    // A malformed liability is not read as owing nothing.
+    expect(
+      parsePayoutPreview({
+        due: [],
+        totalCents: 0,
+        pending: 0,
+        owed: { heldCents: '9000' },
+      }),
+    ).not.toHaveProperty('owed');
   });
 
   it('counts a run: what was sent, and why the rest was not', () => {

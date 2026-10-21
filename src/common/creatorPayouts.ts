@@ -208,6 +208,22 @@ export interface ICreatorPayoutPreview {
   payoutDays?: number;
   /** When the next automatic run goes (0066: the 1st and the 16th). */
   nextRunAt?: number;
+  /** Paid by buyers and not yet settled at Stripe. */
+  pendingCents?: number;
+  /** Everything owed to creators (0067), whatever its hold or minimum. */
+  owed?: ICreatorLiability;
+  /** How Stripe sends FluidEQ's own balance to its bank: 'manual' or a schedule. */
+  ownPayouts?: string;
+}
+
+/** What FluidEQ owes its creators right now. */
+export interface ICreatorLiability {
+  /** Earnings still inside their hold. */
+  heldCents: number;
+  /** Earnings past it, paid at the next payout once a creator has the minimum. */
+  readyCents: number;
+  /** Begun by a payout and not yet confirmed by Stripe. */
+  sendingCents: number;
 }
 
 /** How a payout run ended: what was sent, and why the rest was not. */
@@ -215,6 +231,18 @@ export interface ICreatorPayoutRun {
   paid: number;
   failed: string[];
 }
+
+const liabilityOf = (value: unknown): ICreatorLiability | undefined =>
+  isRecord(value) &&
+  isWholeNumber(value.heldCents) &&
+  isWholeNumber(value.readyCents) &&
+  isWholeNumber(value.sendingCents)
+    ? {
+        heldCents: value.heldCents,
+        readyCents: value.readyCents,
+        sendingCents: value.sendingCents,
+      }
+    : undefined;
 
 const dueOf = (value: unknown): ICreatorPayoutDue | undefined =>
   isRecord(value) &&
@@ -245,6 +273,7 @@ export const parsePayoutPreview = (
     typeof field === 'string' ? Date.parse(field) : Number.NaN;
   const lastPaidAt = timeOf(value.lastPaidAt);
   const nextRunAt = timeOf(value.nextRunAt);
+  const owed = liabilityOf(value.owed);
   if (due.some((row) => row === undefined)) {
     return undefined;
   }
@@ -257,6 +286,13 @@ export const parsePayoutPreview = (
     pending: value.pending,
     ...(Number.isFinite(lastPaidAt) ? { lastPaidAt } : {}),
     ...(Number.isFinite(nextRunAt) ? { nextRunAt } : {}),
+    ...(isWholeNumber(value.pendingCents)
+      ? { pendingCents: value.pendingCents }
+      : {}),
+    ...(owed ? { owed } : {}),
+    ...(typeof value.ownPayouts === 'string'
+      ? { ownPayouts: value.ownPayouts }
+      : {}),
     ...(isWholeNumber(value.payoutDays) && value.payoutDays > 0
       ? { payoutDays: value.payoutDays }
       : {}),
@@ -281,6 +317,30 @@ export const payoutSoon = (
   preview.due.length > 0 &&
   preview.nextRunAt !== undefined &&
   preview.nextRunAt - now <= PAYOUT_NOTICE_DAYS * DAY_MS;
+
+/** Everything owed to creators, in cents, when the server said. */
+export const owedTotal = (
+  preview: ICreatorPayoutPreview,
+): number | undefined =>
+  preview.owed
+    ? preview.owed.heldCents +
+      preview.owed.readyCents +
+      preview.owed.sendingCents
+    : undefined;
+
+/**
+ * What of FluidEQ's available Stripe balance is FluidEQ's own to take out:
+ * the balance less everything owed to creators. Below zero, creators' money
+ * has already been taken out and the next payouts would come up short.
+ */
+export const yoursCents = (
+  preview: ICreatorPayoutPreview,
+): number | undefined => {
+  const owed = owedTotal(preview);
+  return owed === undefined || preview.availableCents === undefined
+    ? undefined
+    : preview.availableCents - owed;
+};
 
 /** Whether FluidEQ's Stripe balance is short of what is due. */
 export const payoutShort = (preview: ICreatorPayoutPreview): boolean =>

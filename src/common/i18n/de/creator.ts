@@ -87,12 +87,9 @@ const creator: Partial<Dictionary> = {
   'creator.admin.tab': 'Auszahlungen',
   'creator.admin.plan': 'Über Stripe bezahlte Creator',
   'creator.admin.loading': 'Ermittle, was Creatorn zusteht',
-  'creator.admin.due': 'Jetzt fällig',
   'creator.admin.creators': 'Creator: {count}',
   'creator.admin.available': 'Verfügbar bei Stripe',
   'creator.admin.availableNote': 'woraus die Überweisungen kommen',
-  'creator.admin.pending': 'Unvollendet',
-  'creator.admin.pendingNote': 'vom nächsten Lauf zuerst abgeschlossen',
   'creator.admin.short':
     'Das verfügbare Guthaben von FluidEQ bei Stripe liegt unter dem fälligen Betrag. Überweisungen darüber hinaus scheitern und warten auf den nächsten Lauf; zahlen Sie, sobald sich das Guthaben gesetzt hat.',
   'creator.admin.list': 'Wer bezahlt wird',
@@ -120,6 +117,20 @@ const creator: Partial<Dictionary> = {
     'Zu wenig Guthaben bei Stripe für die Auszahlung am {date}',
   'creator.notice.shortBody':
     'Fällig: {amount}. Zu bezahlende Creator: {count}. Stripe hält {available}; Überweisungen darüber hinaus scheitern und warten auf die nächste Auszahlung.',
+  'creator.admin.owed': 'Creatorn geschuldet',
+  'creator.admin.owedNote': 'zurückgehalten {held} · bereit {ready}',
+  'creator.admin.sending': 'wird gesendet {amount}',
+  'creator.admin.onItsWay': '+ {amount} unterwegs',
+  'creator.admin.yours': 'Ihr Anteil zum Abheben',
+  'creator.admin.yoursNote':
+    'das Guthaben abzüglich dessen, was Creatorn zusteht',
+  'creator.admin.yoursShort':
+    'Creatorn stehen {amount} mehr zu, als Stripe hält',
+  'creator.admin.next': 'Nächste Auszahlung',
+  'creator.admin.manual':
+    'Die automatischen Stripe-Auszahlungen auf Ihr Bankkonto würden auch das Geld der Creator mitnehmen. Stellen Sie sie in Stripe auf manuell und heben Sie nur ab, was Ihnen gehört.',
+  'creator.admin.pendingLine':
+    'Von einem früheren Lauf unvollendete Auszahlungen: {count}. Der nächste Lauf schließt sie zuerst ab.',
 };
 
 export default creator;
