@@ -535,6 +535,23 @@ const tour: Partial<Dictionary> = {
   'tour.film.watch': '观看视频',
   'tour.film.close': '关闭视频',
 
+  'tour.myCurves.kicker': '你自己的曲线',
+  'tour.myCurves.title': '你自己的曲线列表，就在 OPRA 旁边',
+  'tour.myCurves.subtitle': '保存、命名并重复使用你的曲线',
+  'tour.myCurves.lead':
+    '{eqPresets} 现在在 OPRA 库旁边有了 {myCurves}：每一条你想再用的曲线，都带着你起的名字和它的形状图。可以从 Squiglink 导出、.txt 文件、当前的 EQ 或 OPRA 选择中添加。',
+  'tour.myCurves.point1':
+    '{applyCurve} 把曲线作为耳机校正播放，有自己的强度和开关；{applyEq} 则把它的频段放进你的 EQ。',
+  'tour.myCurves.point2':
+    '{squiglink} 有了自己的标签页，{save} 一键保存你带来的曲线。',
+  'tour.myCurves.point3':
+    '{exportList} 把整个列表写进一个文件，用来备份或带到另一台电脑；{importList} 再读回来，并告诉你哪些没有导入。',
+  'tour.myCurves.how':
+    '在 EQ 中打开 {eqPresets}，选择 {myCurves}，然后按 {add}。',
+  'tour.myCurves.open': '打开 EQ 预设',
+  'tour.myCurves.imageAlt':
+    '“我的曲线”中的 EQ 预设页面：四条耳机曲线的列表，每条都有名称、来源、添加日期和形状图。刚从 Squiglink 保存的曲线出现在最上面，并作为耳机校正播放。',
+
   'tour.songs.kicker': '每首歌都有自己的声音',
   'tour.songs.title': '记得你喜好的歌曲',
   'tour.songs.subtitle': '调一次，每次都这样听',

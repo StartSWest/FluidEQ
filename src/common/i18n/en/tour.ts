@@ -634,6 +634,23 @@ const tour = {
   'tour.chat.reply':
     'Done: both spotlights flash white on every snare and fade back to pink.',
 
+  'tour.myCurves.kicker': 'CURVES OF YOUR OWN',
+  'tour.myCurves.title': 'Your own list of curves, beside OPRA’s',
+  'tour.myCurves.subtitle': 'Keep, name and reuse your own curves',
+  'tour.myCurves.lead':
+    '{eqPresets} now has {myCurves} beside the OPRA library: every curve you want to come back to, with the name you give it and a drawing of its shape. Add one from a Squiglink export, a .txt file, your EQ as it is now, or an OPRA pick.',
+  'tour.myCurves.point1':
+    '{applyCurve} plays a curve as the headphone correction, with its own strength and switch; {applyEq} puts its bands in your EQ instead.',
+  'tour.myCurves.point2':
+    '{squiglink} has a tab of its own, and {save} keeps what you bring in with one press.',
+  'tour.myCurves.point3':
+    '{exportList} writes the whole list to one file, to back it up or take it to another computer; {importList} reads it back and says what it leaves out.',
+  'tour.myCurves.how':
+    'Open {eqPresets} under EQ, choose {myCurves} and press {add}.',
+  'tour.myCurves.open': 'Open EQ Presets',
+  'tour.myCurves.imageAlt':
+    'The EQ Presets page on My curves: a list of four headphone curves, each with its name, where it came from, the day it was added and a drawing of its shape. A curve just saved from Squiglink arrives at the top and plays as the headphone correction.',
+
   'tour.songs.kicker': 'A SOUND FOR EVERY SONG',
   'tour.songs.title': 'Songs that remember how you like them',
   'tour.songs.subtitle': 'Tune a song once, hear it that way every time',

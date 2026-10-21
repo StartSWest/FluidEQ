@@ -589,6 +589,23 @@ const tour: Partial<Dictionary> = {
   'tour.film.watch': 'Assistir ao vídeo',
   'tour.film.close': 'Fechar o vídeo',
 
+  'tour.myCurves.kicker': 'CURVAS SUAS',
+  'tour.myCurves.title': 'Sua própria lista de curvas, ao lado da do OPRA',
+  'tour.myCurves.subtitle': 'Guarde, nomeie e reutilize suas curvas',
+  'tour.myCurves.lead':
+    '{eqPresets} agora tem {myCurves} ao lado da biblioteca OPRA: toda curva a que você quer voltar, com o nome que você der e um desenho do formato dela. Adicione uma a partir de uma exportação do Squiglink, de um arquivo .txt, do seu EQ como está ou de uma escolha do OPRA.',
+  'tour.myCurves.point1':
+    '{applyCurve} toca uma curva como correção do fone, com intensidade e chave próprias; {applyEq} coloca as bandas dela no seu EQ.',
+  'tour.myCurves.point2':
+    '{squiglink} tem uma aba própria, e {save} guarda o que você traz com um só clique.',
+  'tour.myCurves.point3':
+    '{exportList} grava a lista inteira em um arquivo, como cópia ou para levar a outro computador; {importList} lê de volta e diz o que ficou de fora.',
+  'tour.myCurves.how':
+    'Abra {eqPresets} no EQ, escolha {myCurves} e pressione {add}.',
+  'tour.myCurves.open': 'Abrir Presets EQ',
+  'tour.myCurves.imageAlt':
+    'A página Presets EQ em Minhas curvas: uma lista de quatro curvas de fone, cada uma com nome, origem, dia em que foi adicionada e um desenho do formato. Uma curva recém-salva do Squiglink chega no topo e toca como correção do fone.',
+
   'tour.songs.kicker': 'UM SOM PARA CADA MÚSICA',
   'tour.songs.title': 'Músicas que lembram como você gosta delas',
   'tour.songs.subtitle': 'Ajuste uma vez e ouça assim sempre',

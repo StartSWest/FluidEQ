@@ -577,6 +577,23 @@ const tour: Partial<Dictionary> = {
   'tour.film.watch': '動画を見る',
   'tour.film.close': '動画を閉じる',
 
+  'tour.myCurves.kicker': '自分だけのカーブ',
+  'tour.myCurves.title': 'OPRA の隣に、自分のカーブのリストを',
+  'tour.myCurves.subtitle': '自分のカーブを保存し、名前を付けて使い回す',
+  'tour.myCurves.lead':
+    '{eqPresets} に、OPRA ライブラリと並んで {myCurves} ができました。また使いたいカーブを、付けた名前と形の図と一緒に保存できます。Squiglink のエクスポート、.txt ファイル、今の EQ、OPRA で選んだものから追加できます。',
+  'tour.myCurves.point1':
+    '{applyCurve} はカーブをヘッドホン補正として再生し、強さとスイッチも独立しています。{applyEq} はそのバンドを EQ に入れます。',
+  'tour.myCurves.point2':
+    '{squiglink} は専用のタブになり、{save} で取り込んだものをワンクリックで保存できます。',
+  'tour.myCurves.point3':
+    '{exportList} はリスト全体を 1 つのファイルに書き出し、バックアップや別のパソコンへの移動に使えます。{importList} で読み込むと、取り込まなかったものも教えてくれます。',
+  'tour.myCurves.how':
+    'EQ の {eqPresets} を開き、{myCurves} を選んで {add} を押します。',
+  'tour.myCurves.open': 'EQ プリセットを開く',
+  'tour.myCurves.imageAlt':
+    'マイカーブを開いた EQ プリセットページ。4 つのヘッドホンカーブが、名前、入手元、追加日、形の図とともに並んでいます。Squiglink から保存したばかりのカーブが一番上に入り、ヘッドホン補正として再生されます。',
+
   'tour.songs.kicker': '曲ごとにサウンドを',
   'tour.songs.title': '好みのサウンドを覚えている曲',
   'tour.songs.subtitle': '一度調整すれば、毎回そのサウンドで',

@@ -587,6 +587,23 @@ const tour: Partial<Dictionary> = {
   'tour.film.watch': 'Ver el video',
   'tour.film.close': 'Cerrar el video',
 
+  'tour.myCurves.kicker': 'CURVAS PROPIAS',
+  'tour.myCurves.title': 'Tu propia lista de curvas, junto a la de OPRA',
+  'tour.myCurves.subtitle': 'Guarda, nombra y reutiliza tus curvas',
+  'tour.myCurves.lead':
+    '{eqPresets} tiene ahora {myCurves} junto a la biblioteca OPRA: cada curva a la que quieras volver, con el nombre que le pongas y un dibujo de su forma. Añade una desde una exportación de Squiglink, un archivo .txt, tu EQ tal como está o una elección de OPRA.',
+  'tour.myCurves.point1':
+    '{applyCurve} reproduce una curva como corrección de auriculares, con su propia intensidad y su interruptor; {applyEq} pone sus bandas en tu EQ.',
+  'tour.myCurves.point2':
+    '{squiglink} tiene su propia pestaña, y {save} guarda lo que traes con una sola pulsación.',
+  'tour.myCurves.point3':
+    '{exportList} escribe toda la lista en un archivo, como copia o para llevarla a otro equipo; {importList} la vuelve a leer y dice lo que deja fuera.',
+  'tour.myCurves.how':
+    'Abre {eqPresets} en EQ, elige {myCurves} y pulsa {add}.',
+  'tour.myCurves.open': 'Abrir Presets EQ',
+  'tour.myCurves.imageAlt':
+    'La página Presets EQ en Mis curvas: una lista de cuatro curvas de auriculares, cada una con su nombre, su origen, el día en que se añadió y un dibujo de su forma. Una curva recién guardada desde Squiglink llega arriba y suena como corrección de auriculares.',
+
   'tour.songs.kicker': 'UN SONIDO PARA CADA CANCIÓN',
   'tour.songs.title': 'Canciones que recuerdan cómo te gustan',
   'tour.songs.subtitle': 'Ajústala una vez y suena así siempre',

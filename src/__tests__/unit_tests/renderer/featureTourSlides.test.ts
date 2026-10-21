@@ -14,6 +14,7 @@ describe("What's new in 2.1", () => {
       'each-ear',
       'share-audio',
       'band-labels',
+      'my-curves',
       'song-sound',
       'de-esser',
       'studio-chat',

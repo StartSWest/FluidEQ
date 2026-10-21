@@ -117,6 +117,51 @@ it('sends the reader to each ear’s split by the band menu’s own words', () =
   expect(onOpenTab).toHaveBeenCalledWith('eq');
 });
 
+it('shows My curves with the page’s own parts and lands on EQ Presets', () => {
+  const { onOpenTab } = showTour('2.1.0');
+  goTo('Your own list of curves, beside OPRA’s');
+  expect(
+    screen.getByText(
+      'Open EQ Presets under EQ, choose My curves and press Add curve.',
+    ),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      'Apply as curve plays a curve as the headphone correction, with its own strength and switch; Apply as EQ puts its bands in your EQ instead.',
+    ),
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      'Squiglink has a tab of its own, and Save to My curves keeps what you bring in with one press.',
+    ),
+  ).toBeInTheDocument();
+  // The picture is the page's own rows, each drawing its own curve: the
+  // list before and the list after a curve is saved from Squiglink.
+  const picture = screen.getByRole('img', {
+    name: /The EQ Presets page on My curves/,
+  });
+  expect(picture).toHaveAttribute('inert');
+  const turns = Array.from(picture.querySelectorAll('.my-curves-visual__turn'));
+  // Each row draws its own curve, and one of them is playing.
+  expect(
+    turns.map((turn) => [
+      turn.querySelectorAll('.my-curve').length,
+      turn.querySelectorAll('.my-curve__line').length,
+      turn.querySelectorAll('.my-curve.is-playing').length,
+      turn.querySelector('.autoeq-panel__tab-count')?.textContent,
+    ]),
+  ).toEqual([
+    [4, 4, 1, '4'],
+    [5, 5, 1, '5'],
+  ]);
+  // After: the curve just saved is at the head of the list, and playing.
+  const after = turns[1].querySelector('.my-curve');
+  expect(after).toHaveClass('is-playing');
+  expect(after).toHaveTextContent(/^Squiglink curve, /);
+  fireEvent.click(screen.getByRole('button', { name: 'Open EQ Presets' }));
+  expect(onOpenTab).toHaveBeenCalledWith('presets');
+});
+
 it('names the De-esser and the chains that switch it on as the rack does', () => {
   const { onOpenTab } = showTour('2.1.0');
   goTo('A De-esser in the DSP rack');

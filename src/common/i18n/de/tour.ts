@@ -594,6 +594,23 @@ const tour: Partial<Dictionary> = {
   'tour.film.watch': 'Video ansehen',
   'tour.film.close': 'Video schließen',
 
+  'tour.myCurves.kicker': 'EIGENE KURVEN',
+  'tour.myCurves.title': 'Ihre eigene Kurvenliste, neben der von OPRA',
+  'tour.myCurves.subtitle': 'Eigene Kurven behalten, benennen, wiederverwenden',
+  'tour.myCurves.lead':
+    '{eqPresets} hat jetzt {myCurves} neben der OPRA-Bibliothek: jede Kurve, zu der Sie zurückkehren möchten, mit dem Namen, den Sie ihr geben, und einer Zeichnung ihrer Form. Fügen Sie eine aus einem Squiglink-Export, einer .txt-Datei, Ihrem aktuellen EQ oder einer OPRA-Auswahl hinzu.',
+  'tour.myCurves.point1':
+    '{applyCurve} spielt eine Kurve als Kopfhörerkorrektur, mit eigener Stärke und eigenem Schalter; {applyEq} legt ihre Bänder stattdessen in Ihren EQ.',
+  'tour.myCurves.point2':
+    '{squiglink} hat einen eigenen Tab, und {save} behält, was Sie mitbringen, mit einem Klick.',
+  'tour.myCurves.point3':
+    '{exportList} schreibt die ganze Liste in eine Datei, als Sicherung oder für einen anderen Computer; {importList} liest sie wieder ein und sagt, was ausgelassen wird.',
+  'tour.myCurves.how':
+    'Öffnen Sie {eqPresets} unter EQ, wählen Sie {myCurves} und drücken Sie {add}.',
+  'tour.myCurves.open': 'EQ-Presets öffnen',
+  'tour.myCurves.imageAlt':
+    'Die Seite EQ-Presets unter Meine Kurven: eine Liste von vier Kopfhörerkurven, jede mit Namen, Herkunft, dem Tag, an dem sie hinzukam, und einer Zeichnung ihrer Form. Eine gerade aus Squiglink gespeicherte Kurve kommt oben an und spielt als Kopfhörerkorrektur.',
+
   'tour.songs.kicker': 'EIN KLANG FÜR JEDEN SONG',
   'tour.songs.title': 'Songs, die sich merken, wie Sie sie mögen',
   'tour.songs.subtitle': 'Einmal abstimmen, jedes Mal so hören',

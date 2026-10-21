@@ -592,6 +592,24 @@ const tour: Partial<Dictionary> = {
   'tour.film.watch': 'Regarder la vidéo',
   'tour.film.close': 'Fermer la vidéo',
 
+  'tour.myCurves.kicker': 'VOS PROPRES COURBES',
+  'tour.myCurves.title':
+    'Votre propre liste de courbes, à côté de celle d’OPRA',
+  'tour.myCurves.subtitle': 'Gardez, nommez et réutilisez vos courbes',
+  'tour.myCurves.lead':
+    '{eqPresets} a maintenant {myCurves} à côté de la bibliothèque OPRA : chaque courbe à laquelle vous voulez revenir, avec le nom que vous lui donnez et un dessin de sa forme. Ajoutez-en une depuis un export Squiglink, un fichier .txt, votre EQ tel qu’il est ou un choix OPRA.',
+  'tour.myCurves.point1':
+    '{applyCurve} joue une courbe comme correction du casque, avec sa propre intensité et son interrupteur ; {applyEq} met plutôt ses bandes dans votre EQ.',
+  'tour.myCurves.point2':
+    '{squiglink} a son propre onglet, et {save} garde ce que vous apportez en un seul clic.',
+  'tour.myCurves.point3':
+    '{exportList} écrit toute la liste dans un fichier, pour la sauvegarder ou l’emporter sur un autre ordinateur ; {importList} la relit et indique ce qui est laissé de côté.',
+  'tour.myCurves.how':
+    'Ouvrez {eqPresets} sous EQ, choisissez {myCurves} et appuyez sur {add}.',
+  'tour.myCurves.open': 'Ouvrir les Préréglages EQ',
+  'tour.myCurves.imageAlt':
+    'La page Préréglages EQ sur Mes courbes : une liste de quatre courbes de casque, chacune avec son nom, sa provenance, le jour de son ajout et un dessin de sa forme. Une courbe tout juste enregistrée depuis Squiglink arrive en haut et joue comme correction du casque.',
+
   'tour.songs.kicker': 'UN SON POUR CHAQUE CHANSON',
   'tour.songs.title': 'Des chansons qui se souviennent de vos goûts',
   'tour.songs.subtitle':

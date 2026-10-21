@@ -580,6 +580,23 @@ const tour: Partial<Dictionary> = {
   'tour.film.watch': 'वीडियो देखें',
   'tour.film.close': 'वीडियो बंद करें',
 
+  'tour.myCurves.kicker': 'आपके अपने कर्व',
+  'tour.myCurves.title': 'आपके अपने कर्व की सूची, OPRA के पास',
+  'tour.myCurves.subtitle': 'अपने कर्व रखें, नाम दें और फिर से इस्तेमाल करें',
+  'tour.myCurves.lead':
+    '{eqPresets} में अब OPRA लाइब्रेरी के पास {myCurves} है: हर वह कर्व जिस पर आप लौटना चाहें, आपके दिए नाम और उसके आकार की तस्वीर के साथ। Squiglink एक्सपोर्ट, .txt फ़ाइल, अपने मौजूदा EQ या OPRA के चुनाव से एक जोड़ें।',
+  'tour.myCurves.point1':
+    '{applyCurve} किसी कर्व को हेडफ़ोन करेक्शन की तरह चलाता है, उसकी अपनी ताकत और स्विच के साथ; {applyEq} उसके बैंड आपके EQ में डाल देता है।',
+  'tour.myCurves.point2':
+    '{squiglink} का अपना टैब है, और {save} आपका लाया कर्व एक क्लिक में रख लेता है।',
+  'tour.myCurves.point3':
+    '{exportList} पूरी सूची एक फ़ाइल में लिखता है, बैकअप के लिए या दूसरे कंप्यूटर पर ले जाने के लिए; {importList} उसे फिर से पढ़ता है और बताता है कि क्या छूट गया।',
+  'tour.myCurves.how':
+    'EQ में {eqPresets} खोलें, {myCurves} चुनें और {add} दबाएँ।',
+  'tour.myCurves.open': 'EQ प्रीसेट खोलें',
+  'tour.myCurves.imageAlt':
+    'मेरे कर्व पर EQ प्रीसेट पेज: हेडफ़ोन के चार कर्व की सूची, हर एक के नाम, स्रोत, जोड़े जाने के दिन और आकार की तस्वीर के साथ। Squiglink से अभी सेव किया कर्व सबसे ऊपर आता है और हेडफ़ोन करेक्शन की तरह चलता है।',
+
   'tour.songs.kicker': 'हर गाने की अपनी आवाज़',
   'tour.songs.title': 'गाने जो याद रखते हैं कि आपको वे कैसे पसंद हैं',
   'tour.songs.subtitle': 'एक बार ट्यून करें, हर बार वैसा ही सुनें',

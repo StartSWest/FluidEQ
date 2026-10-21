@@ -46,6 +46,7 @@ import {
   BandsSlide,
   DeEsserSlide,
   EarsSlide,
+  MyCurvesSlide,
   OutputsSlide,
   SongsSlide,
   StudioChatSlide,
@@ -53,10 +54,11 @@ import {
 
 /**
  * The workspace tabs a slide can send the user to. `community` is Plus;
- * `games` is the Game presets page behind EQ.
+ * `games` is the Game presets page behind EQ, and `presets` its EQ Presets.
  */
 export type TTourTab =
   | 'eq'
+  | 'presets'
   | 'games'
   | 'share'
   | 'library'
@@ -236,8 +238,8 @@ const RELEASE_20: TSlideEntry[] = [
  * 2.1, in the order of what a listener meets first: every output keeping its
  * own sound, a band tuned for each ear, Share Audio both ways (its slide says
  * so now; it was a standing one), the bands read out on the graph with EQ
- * mode beside it, songs that remember their sound, the DSP rack's
- * De-esser, and the Studio's chat.
+ * mode beside it, the listener's own list of curves beside OPRA's, songs
+ * that remember their sound, the DSP rack's De-esser, and the Studio's chat.
  */
 const RELEASE_21: TSlideEntry[] = [
   {
@@ -258,6 +260,12 @@ const RELEASE_21: TSlideEntry[] = [
     titleKey: 'tour.bands.title',
     subtitleKey: 'tour.bands.subtitle',
     Body: BandsSlide,
+  },
+  {
+    id: 'my-curves',
+    titleKey: 'tour.myCurves.title',
+    subtitleKey: 'tour.myCurves.subtitle',
+    Body: MyCurvesSlide,
   },
   {
     id: 'song-sound',

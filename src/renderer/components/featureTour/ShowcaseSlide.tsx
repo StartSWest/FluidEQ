@@ -39,6 +39,7 @@ interface IShowcaseSlideProps {
     | 'tour.outputs'
     | 'tour.bands'
     | 'tour.ears'
+    | 'tour.myCurves'
     | 'tour.songs'
     | 'tour.deesser'
     | 'tour.chat';
