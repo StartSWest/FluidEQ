@@ -7,8 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The leaderboard's files are deleted at launch: the listening tally and the
- * computer id, and nothing else in the folder.
+ * The leaderboard's tally is deleted at launch, and nothing else in the
+ * folder: the computer id and the statistics' own tally stay.
  */
 
 import fs from 'fs';
@@ -30,16 +30,21 @@ const write = (name: string) =>
   fs.writeFileSync(path.join(dir, name), '{"optedIn":true,"days":{}}');
 
 describe('what the leaderboard left behind', () => {
-  it('deletes the listening tally and the computer id, and nothing beside them', () => {
+  it('deletes the board tally, and nothing beside it', () => {
     write('usage-ledger.json');
+    // The id the statistics use too, their own tally, and the scene plays.
     write('computer-id.json');
-    // The scene plays sit beside them and are a different thing entirely.
+    write('listening-ledger.json');
     write('scene-plays.json');
     const warn = jest.fn();
 
     forgetListening(dir, { warn });
 
-    expect(fs.readdirSync(dir)).toEqual(['scene-plays.json']);
+    expect(fs.readdirSync(dir).sort()).toEqual([
+      'computer-id.json',
+      'listening-ledger.json',
+      'scene-plays.json',
+    ]);
     expect(warn).not.toHaveBeenCalled();
   });
 
@@ -50,15 +55,13 @@ describe('what the leaderboard left behind', () => {
     expect(warn).not.toHaveBeenCalled();
   });
 
-  it('logs a file it could not remove, and carries on with the other', () => {
+  it('logs a file it could not remove', () => {
     // A folder by that name cannot be unlinked.
     fs.mkdirSync(path.join(dir, 'usage-ledger.json'));
-    write('computer-id.json');
     const warn = jest.fn();
 
     forgetListening(dir, { warn });
 
-    expect(fs.existsSync(path.join(dir, 'computer-id.json'))).toBe(false);
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn.mock.calls[0][0]).toContain('usage-ledger.json');
   });

@@ -150,7 +150,7 @@ const terms = {
   'terms.protect.p3':
     'Visualiseurs affiche des identifiants et des noms d’affichage, jamais d’adresses e-mail. Les identifiants de compte ne sont jamais affichés, mais ils figurent dans les fichiers de scène et dans ce que Visualiseurs envoie à l’application.',
   'terms.protect.p4':
-    'Le créateur administre le service et peut voir ce qu’il conserve, pour le faire fonctionner, relier les paiements aux comptes et modérer ce que publient les membres. Rien n’est vendu ni utilisé pour la publicité, et il n’y a ni pistage ni statistiques d’usage.',
+    'Le créateur administre le service et peut voir ce qu’il conserve, pour le faire fonctionner, relier les paiements aux comptes et modérer ce que publient les membres. Rien n’est vendu ni utilisé pour la publicité. Les seules statistiques sont celles que cette page énumère — combien de temps les gens écoutent, quelles scènes les membres regardent et quel moteur ils utilisent — et seul le créateur les lit.',
   'terms.protect.p5':
     'Le service fonctionne sur Supabase (connexion, base de données et fichiers) et envoie les e-mails via Resend ; les crédits sont payés via Stripe, qui paie aussi les créateurs, Plus via Buy Me a Coffee, et le Forum passe par GitHub. Chacun ne reçoit que ce dont sa partie a besoin.',
   'terms.protect.p6':
@@ -292,6 +292,14 @@ const terms = {
     'Vous et le créateur de FluidEQ seulement. Vous voyez ce qui est retenu, prêt à être payé et payé, jamais qui a acheté ; le créateur voit ce qui est dû à chaque créateur, pour le payer. Vos informations d’identité, bancaires et fiscales ne vont qu’à Stripe.',
   'terms.keep.p8':
     'Paiements : l’identifiant de votre compte Stripe, votre pays, la version des conditions des créateurs que vous avez acceptée, chaque vente qu’ont rapportée vos scènes et chaque paiement sont gardés pour vous payer et rendre compte des paiements, et sont supprimés avec votre compte. Quand le compte d’un acheteur est supprimé, ses achats restent dans les gains du créateur, sans l’acheteur. Ce que Stripe garde relève de ses propres conditions.',
+  'terms.sent.listening.what':
+    'Combien de temps la musique a joué sur chacun de vos ordinateurs : un nombre de minutes par ordinateur et par jour, jamais plus de {listeningHours} heures, avec la date et un nombre aléatoire qui distingue vos ordinateurs. Ni ce qui a joué, ni d’où',
+  'terms.sent.listening.when':
+    'Tant que vous êtes connecté, une fois que FluidEQ vous l’a dit et sauf si vous l’avez désactivé : au démarrage de FluidEQ, quand vous revenez à l’ordinateur, et au plus tous les quarts d’heure pendant que de la musique joue',
+  'terms.sent.listening.who':
+    'Seulement le créateur de FluidEQ, et seulement additionné à celui de tous les autres : combien de personnes ont écouté chaque jour et combien de temps, jamais qui. Votre ordinateur garde les {listeningDays} derniers jours.',
+  'terms.keep.p9':
+    'Temps d’écoute : chaque jour envoyé par vos ordinateurs est conservé avec votre compte pour compter combien de temps FluidEQ est utilisé. Le désactiver dans le panneau du compte supprime aussitôt tous les jours que vous avez envoyés, et le reste disparaît avec votre compte.',
 } as const;
 
 export default terms;

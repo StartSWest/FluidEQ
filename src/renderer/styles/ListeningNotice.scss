@@ -1,0 +1,97 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// The same corner and layer as the terms notice (`PlusTermsNotice.scss`,
+// which says why the corner and why the lowest layer), and the same
+// `CompactFrame`. The two never stand there together: this one waits for the
+// terms (`noticeTurn.ts`).
+//
+// Against the frame's own class as well, so the corner wins over the frame's
+// `position: relative` whichever of the two sheets the cascade reads last.
+.compact-frame.listening-notice {
+  --surface-motion: slide-in-right #{$motion-base} #{$ease-out} 0ms backwards;
+  position: fixed;
+  z-index: 990;
+  top: calc($title-bar-height + 16px);
+  right: 18px;
+  width: min(420px, calc(100vw - 36px));
+  max-height: calc(
+    100vh - $title-bar-height - 16px - var(--now-playing-bar-height, 0px) - 12px
+  );
+  grid-template-rows: minmax(0, 1fr);
+  // Solid, for the reason the terms notice gives: over a panel, a 97% card
+  // let the buttons behind it show through.
+  background: linear-gradient(dialog.$sheet, dialog.$sheet), $surface-base;
+
+  .compact-frame__main {
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .compact-frame__message {
+    min-height: 0;
+    overflow-y: auto;
+    @include slim-scrollbar;
+  }
+}
+
+// What the body says, drawn: a fortnight of days, one bar each, the last one
+// lit as today's. Bars of uneven height, because a day's number is minutes and
+// no two days are the same; fixed heights, because this is a picture and not a
+// reading.
+.listening-notice__days {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 22px;
+
+  i {
+    display: block;
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 14px;
+    border-radius: 2px 2px 1px 1px;
+    background: color-mix(in srgb, $secondary-light 22%, transparent);
+  }
+
+  i:nth-child(3n + 1) {
+    height: 45%;
+  }
+
+  i:nth-child(3n + 2) {
+    height: 80%;
+  }
+
+  i:nth-child(3n) {
+    height: 30%;
+  }
+
+  i:nth-child(5n) {
+    height: 62%;
+  }
+
+  i:last-child {
+    height: 100%;
+    background: linear-gradient(180deg, $secondary-light, $secondary-default);
+    box-shadow: 0 0 8px color-mix(in srgb, $secondary-default 45%, transparent);
+  }
+}
+
+.listening-notice__body {
+  margin: 0;
+}
+
+.listening-notice__note {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+}

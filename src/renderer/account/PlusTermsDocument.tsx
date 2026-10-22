@@ -22,6 +22,10 @@ import {
 } from 'common/plusTerms';
 import { PLUS_MOVE_CREDITS, STARTER_CREDITS } from 'common/sceneStore';
 import { SCENE_PLAY_WINDOW_DAYS } from 'common/sceneTaste';
+import {
+  LISTENING_DAY_CAP_HOURS,
+  LISTENING_WINDOW_DAYS,
+} from 'common/listening';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -53,6 +57,9 @@ export const termsValues = (
   takedownDays: PLUS_TAKEDOWN_PAUSE_DAYS,
   // How long a computer keeps scene plays the server has not been sent.
   windowDays: SCENE_PLAY_WINDOW_DAYS,
+  // The listening statistics' window and daily cap (premium 0068).
+  listeningDays: LISTENING_WINDOW_DAYS,
+  listeningHours: LISTENING_DAY_CAP_HOURS,
   contact: REPORT_EMAIL || new URL(OFFICIAL_SITE_URL).host,
   refundDays: CREDIT_REFUND_DAYS,
   share: CREATOR_SHARE_PERCENT,

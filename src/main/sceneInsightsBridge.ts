@@ -1,9 +1,11 @@
 import { ipcRenderer, type IpcRendererEvent } from 'electron';
 import type { IAnnouncementDraft } from '../common/sceneAnnouncements';
+import type { IListeningStatus, TListeningOutcome } from '../common/listening';
 import type { TFavouritePeriod } from '../common/sceneTaste';
 import type {
   TAccountScenesOutcome,
   TAdminAnnouncementsOutcome,
+  TAdminListeningOutcome,
   TAdminOutcome,
   TFavouriteScenesOutcome,
   TRequestUsageOutcome,
@@ -20,6 +22,23 @@ export const sceneInsightsBridge = {
   /** Seconds a look was drawn; main keeps them only once the member was told. */
   scenePlayAccrue: (lookId: string, seconds: number): Promise<void> =>
     ipcRenderer.invoke('scene-play-accrue', lookId, seconds),
+
+  /** Seconds of music; main keeps them only for an account that said yes. */
+  listeningAccrue: (seconds: number): Promise<void> =>
+    ipcRenderer.invoke('listening-accrue', seconds),
+  listeningStatus: (): Promise<IListeningStatus> =>
+    ipcRenderer.invoke('listening-status'),
+  /** The account's answer; no also deletes what it sent. */
+  setListeningSharing: (sharing: boolean): Promise<TListeningOutcome> =>
+    ipcRenderer.invoke('listening-set-sharing', sharing),
+  onListeningStatus: (listener: (status: IListeningStatus) => void) => {
+    const receive = (_event: IpcRendererEvent, status: IListeningStatus) =>
+      listener(status);
+    ipcRenderer.on('listening-status-changed', receive);
+    return () => {
+      ipcRenderer.removeListener('listening-status-changed', receive);
+    };
+  },
 
   getSceneAnnouncement: (): Promise<TSceneAnnouncementState> =>
     ipcRenderer.invoke('scene-announcement'),
@@ -45,6 +64,8 @@ export const sceneInsightsBridge = {
     days: TFavouritePeriod,
   ): Promise<TFavouriteScenesOutcome> =>
     ipcRenderer.invoke('admin-scene-favourites', days),
+  adminListening: (days: TFavouritePeriod): Promise<TAdminListeningOutcome> =>
+    ipcRenderer.invoke('admin-listening', days),
   adminAnnouncements: (): Promise<TAdminAnnouncementsOutcome> =>
     ipcRenderer.invoke('admin-announcements'),
   adminSaveAnnouncement: (

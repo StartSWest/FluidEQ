@@ -878,6 +878,7 @@ const comeBack = createComeBackWatch({
     sceneReviews: members.plusReviewIpc,
     plusTermsNotice: members.plusTermsNoticeIpc,
     sceneTaste: members.sceneTasteIpc,
+    listening: members.listeningIpc,
     sceneAnnouncements: members.sceneAnnouncementsIpc,
   }),
   getActiveAutoUpdater: updates.getActiveAutoUpdater,

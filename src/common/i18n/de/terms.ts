@@ -146,7 +146,7 @@ const terms = {
   'terms.protect.p3':
     '„Visualizer“ zeigt Kürzel und Anzeigenamen, niemals E-Mail-Adressen. Konto-IDs werden nie angezeigt, stehen aber in Szenendateien und in dem, was „Visualizer“ an die App sendet.',
   'terms.protect.p4':
-    'Der Macher betreibt den Dienst und kann sehen, was er speichert, um ihn am Laufen zu halten, Zahlungen zuzuordnen und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft oder für Werbung genutzt, und es gibt kein Tracking und keine Analysen.',
+    'Der Macher betreibt den Dienst und kann sehen, was er speichert, um ihn am Laufen zu halten, Zahlungen zuzuordnen und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft oder für Werbung genutzt. Die einzigen Statistiken sind die, die diese Seite aufführt – wie lange Menschen hören, welche Szenen Mitglieder ansehen und welche Engine sie nutzen –, und nur der Macher liest sie.',
   'terms.protect.p5':
     'Der Dienst läuft auf Supabase (Anmeldung, Datenbank und Dateien) und versendet E-Mails über Resend; Credits werden über Stripe bezahlt, das auch die Ersteller auszahlt, Plus über Buy Me a Coffee, und das Forum läuft über GitHub. Jeder erhält nur, was sein Teil braucht.',
   'terms.protect.p6':
@@ -288,6 +288,14 @@ const terms = {
     'Nur Sie und der Macher von FluidEQ. Sie sehen, was zurückgehalten, auszahlbereit und ausgezahlt ist, nie, wer gekauft hat; der Macher sieht, was jedem Ersteller zusteht, um es auszuzahlen. Ihre Angaben zu Identität, Bank und Steuern gehen nur an Stripe.',
   'terms.keep.p8':
     'Auszahlungen: Die ID Ihres Stripe-Kontos, Ihr Land, die Version der Bedingungen für Ersteller, die Sie angenommen haben, jeder Verkauf, den Ihre Szenen eingebracht haben, und jede Auszahlung werden gespeichert, um Sie zu bezahlen und über die Zahlungen Rechenschaft abzulegen, und mit Ihrem Konto gelöscht. Wird das Konto eines Käufers gelöscht, bleiben seine Käufe in den Einnahmen des Erstellers, ohne den Käufer. Was Stripe speichert, richtet sich nach den Bedingungen von Stripe.',
+  'terms.sent.listening.what':
+    'Wie lange auf jedem Ihrer Computer Musik lief: eine Zahl von Minuten pro Computer und Tag, nie mehr als {listeningHours} Stunden, mit dem Datum und einer Zufallszahl, die Ihre Computer unterscheidet. Nicht, was lief, und nicht, woher',
+  'terms.sent.listening.when':
+    'Solange Sie angemeldet sind, sobald FluidEQ es Ihnen gesagt hat und sofern Sie es nicht ausgeschaltet haben: wenn FluidEQ startet, wenn Sie an den Computer zurückkehren, und höchstens alle Viertelstunde, während Musik läuft',
+  'terms.sent.listening.who':
+    'Nur der Macher von FluidEQ, und nur zusammengezählt mit allen anderen: wie viele Menschen an jedem Tag gehört haben und wie lange, nie wer. Ihr Computer behält die letzten {listeningDays} Tage.',
+  'terms.keep.p9':
+    'Hörzeit: Jeder Tag, den Ihre Computer gesendet haben, wird mit Ihrem Konto gespeichert, um zu zählen, wie lange FluidEQ genutzt wird. Ausschalten im Kontobereich löscht sofort jeden Tag, den Sie gesendet haben, und der Rest geht mit Ihrem Konto.',
 } as const;
 
 export default terms;

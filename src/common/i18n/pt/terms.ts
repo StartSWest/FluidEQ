@@ -146,7 +146,7 @@ const terms = {
   'terms.protect.p3':
     'Visualizadores mostra nomes de usuário e nomes visíveis, nunca endereços de email. Os ids de conta nunca são mostrados, mas estão dentro dos arquivos de cenas e no que Visualizadores envia ao app.',
   'terms.protect.p4':
-    'O criador administra o serviço e pode ver o que ele armazena, para mantê-lo funcionando, associar pagamentos e moderar o que os membros publicam. Nada é vendido ou usado para publicidade, e não há rastreamento nem análises.',
+    'O criador administra o serviço e pode ver o que ele armazena, para mantê-lo funcionando, associar pagamentos e moderar o que os membros publicam. Nada é vendido ou usado para publicidade. As únicas estatísticas são as que esta página lista — quanto tempo as pessoas ouvem, quais cenas os membros assistem e qual motor usam — e só o criador as lê.',
   'terms.protect.p5':
     'O serviço roda no Supabase (login, banco de dados e arquivos) e envia e-mails pelo Resend; os créditos são pagos pela Stripe, que também paga os criadores, o Plus pelo Buy Me a Coffee, e o Fórum passa pelo GitHub. Cada um recebe apenas o que a sua parte precisa.',
   'terms.protect.p6':
@@ -288,6 +288,14 @@ const terms = {
     'Só você e o criador do FluidEQ. Você vê o que está retido, pronto para pagar e pago, nunca quem comprou; o criador vê quanto se deve a cada criador, para pagar. Seus dados de identidade, banco e impostos vão só para a Stripe.',
   'terms.keep.p8':
     'Pagamentos: o id da sua conta Stripe, seu país, a versão dos termos para criadores que você aceitou, cada venda que suas cenas renderam e cada pagamento ficam guardados para pagar você e prestar contas dos pagamentos, e são apagados com sua conta. Quando a conta de um comprador é apagada, as vendas que ele fez continuam nos ganhos do criador, sem o comprador. O que a Stripe guarda segue os termos dela.',
+  'terms.sent.listening.what':
+    'Quanto tempo a música tocou em cada um dos seus computadores: um número de minutos por computador por dia, nunca mais de {listeningHours} horas, com a data e um número aleatório que distingue os seus computadores. Nem o que tocou, nem de onde',
+  'terms.sent.listening.when':
+    'Enquanto você estiver conectado, depois que o FluidEQ avisar você e a menos que você desative: quando o FluidEQ abre, quando você volta ao computador e, no máximo, a cada quinze minutos enquanto toca música',
+  'terms.sent.listening.who':
+    'Só o criador do FluidEQ, e só somado ao de todo mundo: quantas pessoas ouviram em cada dia e por quanto tempo, nunca quem. O seu computador guarda os últimos {listeningDays} dias.',
+  'terms.keep.p9':
+    'Tempo de escuta: cada dia que os seus computadores enviaram fica guardado com a sua conta para saber quanto o FluidEQ é usado. Desativar no painel da conta apaga na hora todos os dias que você enviou, e o resto é apagado com a sua conta.',
 } as const;
 
 export default terms;

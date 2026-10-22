@@ -11,6 +11,7 @@ import { useTranslation } from '../utils/I18nContext';
 import AdminAccounts from './AdminAccounts';
 import AdminAnnouncements from './AdminAnnouncements';
 import AdminFavourites from './AdminFavourites';
+import AdminListening from './AdminListening';
 import AdminPayouts from './AdminPayouts';
 import AdminServer from './AdminServer';
 import { useGalleryNotice, type IGalleryNotice } from './galleryActions';
@@ -38,6 +39,7 @@ const SECTIONS: Record<
   reported: { glyph: 'report', name: 'plus.gallery.reported' },
   review: { glyph: 'check', name: 'review.tab' },
   favourites: { glyph: 'heart', name: 'insights.tab' },
+  listening: { glyph: 'headphones', name: 'listening.admin.tab' },
   announcements: { glyph: 'send', name: 'announce.tab' },
   payouts: { glyph: 'payout', name: 'creator.admin.tab' },
   server: { glyph: 'server', name: 'insights.server.tab' },
@@ -46,7 +48,7 @@ const SECTIONS: Record<
 /**
  * The admin's own place in the Plus tab: the scenes waiting to be approved,
  * the scenes members reported, every account, the Plus given away, which
- * scenes members come back to, the announcements of new ones, paying the
+ * scenes members come back to, how long people listen, the announcements of new ones, paying the
  * creators and how full the server is, one page at a time under a row of tabs.
  *
  * These pages lived behind three buttons on the gallery's toolbar, where they
@@ -145,6 +147,7 @@ export default function AdminView() {
         {section === 'reported' && <ReportedScenes me={account.identity?.id} />}
         {section === 'review' && <ReviewQueue me={account.identity?.id} />}
         {section === 'favourites' && <AdminFavourites />}
+        {section === 'listening' && <AdminListening />}
         {section === 'announcements' && <AdminAnnouncements />}
         {section === 'payouts' && <AdminPayouts />}
         {section === 'server' && <AdminServer />}

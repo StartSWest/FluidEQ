@@ -1,4 +1,8 @@
 import {
+  parseAdminListening,
+  type IAdminListening,
+} from '../../common/listening';
+import {
   parseAdminAnnouncements,
   type IAdminAnnouncement,
   type IAnnouncementDraft,
@@ -72,6 +76,13 @@ export const favouriteScenes = (
   days: TFavouritePeriod,
 ): Promise<TAdminOutcome<IFavouriteScene[]>> =>
   ask(auth, 'admin_scene_favourites', { p_days: days }, parseFavouriteScenes);
+
+/** How long people listened in the period (0068): totals per day, nobody named. */
+export const adminListening = (
+  auth: IGalleryAuth,
+  days: TFavouritePeriod,
+): Promise<TAdminOutcome<IAdminListening>> =>
+  ask(auth, 'admin_listening', { p_days: days }, parseAdminListening);
 
 export const adminAnnouncements = (
   auth: IGalleryAuth,

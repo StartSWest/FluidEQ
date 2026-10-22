@@ -165,6 +165,15 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     who: 'terms.sent.engine.who',
   },
   {
+    // Every signed-in account's, member or not, once told and not switched
+    // off (premium 0068).
+    id: 'listening',
+    glyph: 'headphones',
+    what: 'terms.sent.listening.what',
+    when: 'terms.sent.listening.when',
+    who: 'terms.sent.listening.who',
+  },
+  {
     id: 'announcements',
     glyph: 'mail',
     what: 'terms.sent.announcements.what',
@@ -315,6 +324,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.keep.p5',
       'terms.keep.p7',
       'terms.keep.p8',
+      'terms.keep.p9',
       'terms.keep.p6',
     ],
   },

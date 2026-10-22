@@ -39,6 +39,7 @@ import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
 import { registerSceneAnnouncementsIpc } from './ipc/sceneAnnouncements';
 import { registerSceneStoreIpc } from './ipc/sceneStore';
 import { registerSceneTasteIpc } from './ipc/sceneTaste';
+import { registerListeningIpc } from './ipc/listening';
 import forgetListening from './usage/forgetListening';
 import { registerSceneVersionsIpc } from './ipc/sceneVersions';
 import { createVersionPins } from './keptVersions';
@@ -98,7 +99,7 @@ const registerMemberServices = ({
     developmentEntitlement,
   });
 
-  // The leaderboard's listening tally and computer id, gone with the board.
+  // The leaderboard's listening tally, gone with the board.
   forgetListening(userDataDir, log);
 
   // The Plus terms promise that a member is told when they change. Asks the
@@ -333,6 +334,16 @@ const registerMemberServices = ({
     logger: log,
   });
 
+  // How long people listen, for the admin's statistics (premium 0068):
+  // counted only once the account has been told and has not switched it off.
+  const listeningIpc = registerListeningIpc({
+    getMainWindow,
+    userDataDir,
+    access: galleryAccess,
+    entitlement: accountIpc.entitlement,
+    logger: log,
+  });
+
   // The big card announcing new scenes, and the admin's readings and
   // composer behind it (premium migrations 0047, 0049, 0050).
   const sceneAnnouncementsIpc = registerSceneAnnouncementsIpc({
@@ -393,6 +404,7 @@ const registerMemberServices = ({
     studioChat.dispose();
     plusProfileIpc.dispose();
     sceneTasteIpc.dispose();
+    listeningIpc.dispose();
     sceneAnnouncementsIpc.dispose();
     adminInsightsIpc.dispose();
   };
@@ -406,6 +418,7 @@ const registerMemberServices = ({
     plusGalleryIpc,
     plusReviewIpc,
     sceneTasteIpc,
+    listeningIpc,
     sceneAnnouncementsIpc,
     wallpaperIpc,
     dispose,

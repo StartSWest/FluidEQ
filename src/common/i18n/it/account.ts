@@ -11,7 +11,7 @@ const account = {
   'account.close': 'Chiudi',
 
   'account.optional':
-    'Accedere è facoltativo. FluidEQ funziona esattamente come sempre senza account: tutto gira su questa macchina e nulla viene tracciato. Un account serve solo per le parti che ne hanno davvero bisogno.',
+    'Accedere è facoltativo. Senza account FluidEQ funziona esattamente come sempre: tutto gira su questa macchina e nulla viene tracciato. Con un account, il tempo che ascolti viene contato per le statistiche di FluidEQ, a meno che tu non lo disattivi. Un account serve solo per le parti che ne hanno davvero bisogno.',
 
   'account.signIn': 'Accedi',
   'account.signUp': 'Crea account',

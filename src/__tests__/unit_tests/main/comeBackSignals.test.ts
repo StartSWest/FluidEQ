@@ -206,6 +206,7 @@ describe('accountComeBackSteps', () => {
       sceneReviews: { refreshIfDue: jest.fn(record('scene reviews')) },
       plusTermsNotice: { checkIfDue: jest.fn(record('Plus terms notice')) },
       sceneTaste: { uploadIfDue: jest.fn(record('scene plays and engine')) },
+      listening: { refreshIfDue: jest.fn(record('listening')) },
       sceneAnnouncements: {
         refreshIfDue: jest.fn(async () => {
           calls.push('scene announcements');
@@ -249,6 +250,7 @@ describe('accountComeBackSteps', () => {
       'scene reviews',
       'Plus terms notice',
       'scene plays and engine',
+      'listening',
       'scene announcements',
     ]);
     expect(refreshers.entitlement.checkIfDue).toHaveBeenCalledWith(
@@ -268,6 +270,9 @@ describe('accountComeBackSteps', () => {
       'wake from sleep',
     );
     expect(refreshers.sceneTaste.uploadIfDue).toHaveBeenCalledWith(
+      'wake from sleep',
+    );
+    expect(refreshers.listening.refreshIfDue).toHaveBeenCalledWith(
       'wake from sleep',
     );
     expect(refreshers.sceneAnnouncements.refreshIfDue).toHaveBeenCalledWith(
@@ -300,6 +305,7 @@ describe('accountComeBackSteps', () => {
       'scene reviews',
       'Plus terms notice',
       'scene plays and engine',
+      'listening',
       'scene announcements',
     ]);
     expect(harness.logger.warn.mock.calls).toEqual([

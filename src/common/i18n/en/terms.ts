@@ -156,7 +156,7 @@ const terms = {
   'terms.protect.p3':
     'Visualizers shows handles and display names, never email addresses. Account ids are never shown, but they are inside scene files and in what Visualizers sends to the app.',
   'terms.protect.p4':
-    'The maker runs the service and can see what it stores, to keep it working, to match payments and to moderate what members publish. Nothing is sold or used for advertising, and there is no tracking or analytics.',
+    'The maker runs the service and can see what it stores, to keep it working, to match payments and to moderate what members publish. Nothing is sold or used for advertising. The only statistics are the ones this page lists — how long people listen, which scenes members watch and which engine they use — and only the maker reads them.',
   'terms.protect.p5':
     'The service runs on Supabase (sign-in, database and files) and sends email through Resend; credits are paid through Stripe, which also pays creators, Plus through Buy Me a Coffee, and the Forum goes through GitHub. Each receives only what its part needs.',
   'terms.protect.p6':
@@ -298,6 +298,14 @@ const terms = {
     'Only you and the maker. You see what is held, ready to pay and paid, never who bought; the maker sees what each creator is owed, to pay it. Your identity, bank and tax details go only to Stripe.',
   'terms.keep.p8':
     'Payouts: your Stripe account’s id, your country, the version of the creator terms you accepted, each sale your scenes earned and each payout are kept to pay you and to account for the payments, and are deleted with your account. When a buyer’s account is deleted, the sales it made stay in the creator’s earnings, without the buyer. What Stripe keeps is under its own terms.',
+  'terms.sent.listening.what':
+    'How long music played on each of your computers: one number of minutes per computer per day, never more than {listeningHours} hours, with the date and a random number that tells your computers apart. Not what played, nor from where',
+  'terms.sent.listening.when':
+    'While you are signed in, once FluidEQ has told you and unless you switched it off: when FluidEQ starts, when you come back to the computer, and at most every quarter of an hour while music plays',
+  'terms.sent.listening.who':
+    'Only FluidEQ’s maker, and only added up with everyone else’s: how many people listened each day and for how long, never who. Your computer keeps the last {listeningDays} days.',
+  'terms.keep.p9':
+    'Listening time: each day your computers sent is kept with your account to count how long people use FluidEQ. Switching it off in the Account panel deletes every day you sent at once, and the rest goes with your account.',
 } as const;
 
 export default terms;
