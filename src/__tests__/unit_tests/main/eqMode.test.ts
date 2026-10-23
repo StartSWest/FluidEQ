@@ -26,6 +26,10 @@ const band = (type = FilterTypeEnum.PK, gain = 12): IFilter => ({
 const stateFor = (eqMode: TEqMode): IState => ({
   ...getDefaultState(),
   eqMode,
+  // Strength and Q only: a correction or a custom curve is written
+  // unsmoothed here, so each line is a filter or a pass. The 1/12 octave
+  // they get with nothing chosen is held in eqShape.test.ts.
+  curveSmoothing: 'off',
   filters: { band: band() },
 });
 const lines = (state: IState) =>

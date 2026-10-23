@@ -42,6 +42,8 @@ struct Holder {
   // still has somewhere safe to write.
   std::shared_ptr<std::atomic<bool>> carried =
       std::make_shared<std::atomic<bool>>(false);
+  // The same, for how long each block takes (`block_timing.h`).
+  std::shared_ptr<BlockTiming> timing = std::make_shared<BlockTiming>();
 };
 
 struct Board {
@@ -158,6 +160,16 @@ std::shared_ptr<std::atomic<bool>> output_carried_flag(
     // Nowhere to record it is not a reason to refuse the endpoint: the
     // status then says nothing has reached the engine, which is what it
     // said before this field existed.
+    return nullptr;
+  }
+}
+
+std::shared_ptr<BlockTiming> output_block_timing(const std::wstring& endpoint) {
+  try {
+    Board& shared = board();
+    const std::lock_guard<std::mutex> hold(shared.mutex);
+    return shared.holders[endpoint].timing;
+  } catch (...) {
     return nullptr;
   }
 }

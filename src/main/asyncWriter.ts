@@ -140,14 +140,16 @@ const overwriteInPlace = async (
  */
 const viaTemporary = async (
   filePath: string,
-  contents: string,
+  contents: string | Uint8Array,
   publish: (temporary: string) => Promise<void>,
 ): Promise<void> => {
   const temporary = `${filePath}.${process.pid}-${randomUUID()}.tmp`;
   const handle = await fs.promises.open(temporary, 'wx');
   try {
     try {
-      await fs.promises.writeFile(handle, contents, 'utf8');
+      await (typeof contents === 'string'
+        ? fs.promises.writeFile(handle, contents, 'utf8')
+        : fs.promises.writeFile(handle, contents));
     } finally {
       await handle.close();
     }
@@ -291,11 +293,16 @@ export const writeFileNow = async (
  * megabytes, and a crash in the middle of writing it in place would leave half
  * a file that the next launch reads as corrupt and resets — every folder
  * somebody added, gone. A refused rename waits for the next change instead.
+ * Bytes as well, for a model the engine loads; and nothing into a sealed
+ * directory, which resolves at once as a refused `scheduleWrite` does.
  */
 export const replaceFileNow = async (
   filePath: string,
-  contents: string,
+  contents: string | Uint8Array,
 ): Promise<void> => {
+  if (isSealed(filePath)) {
+    return;
+  }
   await settlePath(filePath).catch(() => undefined);
   await viaTemporary(filePath, contents, (temporary) =>
     fs.promises.rename(temporary, filePath),

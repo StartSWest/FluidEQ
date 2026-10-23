@@ -19,7 +19,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/analog_diode.h"
 #include "fluideq/harmonics.h"
-#include "fluideq/oversample.h"
+#include "fluideq/exciter_oversample.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +28,15 @@ extern "C" {
 #define FEQ_ORGANIC_MAX_OVERSAMPLE 4
 
 typedef struct FeqOrganic {
-  FeqOversampler oversampler;
+  FeqExciterOversampler oversampler;
+  /**
+   * `FeqExciterOversampling`, and the block's ramp the harmonics go through
+   * (from `switch_from` to `switch_to`), set by the caller to what the
+   * Exciter's bands run at, so the two change together inside the same fade.
+   */
+  int quality;
+  double switch_from;
+  double switch_to;
   /** Scratch at `frames * FEQ_ORGANIC_MAX_OVERSAMPLE`, caller-owned. */
   float* wide;
   float* wide_dry;

@@ -18,7 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import type { TAudioEngine } from '../common/audioEngine';
-import type { IAudioDevice } from '../common/constants';
+import type { IAudioDevice, IState } from '../common/constants';
+import type { IDspSettings } from '../common/dsp/chain';
+import type { IOutputEditor } from '../common/outputSettings';
 
 /**
  * What the process currently has open, in one place a module can be handed.
@@ -50,6 +52,19 @@ export interface IMainSession {
   configPath: string;
   activeAudioDeviceId: string;
   activeAudioDevice: IAudioDevice | undefined;
+  /** Playback follows Windows; opening an editor never changes this endpoint. */
+  playbackAudioDevice?: IAudioDevice;
+  audioDevices?: IAudioDevice[];
+  /** Omitted while the editor follows the main output. */
+  editingAudioDeviceId?: string;
+  outputEditGeneration?: number;
+  /** Audible transient rack, kept separate from the listener's saved profile. */
+  outputDspOverrides?: Map<string, IDspSettings>;
+  /** Live song loans and unsaved sound stay on their own output when editing another. */
+  outputStateOverrides?: Map<string, IState>;
+  systemRackEnabled?: (deviceId: string) => boolean;
+  /** Routed native receivers, including outputs without saved profiles. */
+  secondOutputDevices?: IAudioDevice[];
   /** The user opened a device explicitly, so its profile wins over the default. */
   hasActiveSessionOverride: boolean;
   /**
@@ -74,6 +89,17 @@ export interface IMainSession {
    */
   engineSwitching: boolean;
 }
+
+/** The output being edited and its edit's generation, as the window reads it. */
+export const outputEditorOf = (
+  session: Pick<IMainSession, 'activeAudioDevice' | 'outputEditGeneration'>,
+): IOutputEditor | undefined =>
+  session.activeAudioDevice
+    ? {
+        device: session.activeAudioDevice,
+        generation: session.outputEditGeneration ?? 0,
+      }
+    : undefined;
 
 /** The session a launch starts with: no output, no engine, no folder. */
 const createMainSession = (): IMainSession => ({

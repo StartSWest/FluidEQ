@@ -20,7 +20,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import type { IAccountState } from './account/session';
 import type { IEntitlementStatus } from './account/entitlement';
-import type { TBillingOutcome } from './ipc/account';
 
 /**
  * The FluidEQ account and what it is entitled to: signing up and in, codes
@@ -61,6 +60,25 @@ const resetAccountPassword = (details: { code: string; password: string }) =>
     details,
   ) as Promise<IAccountState>;
 
+/** Whether Google sign-in is switched on at the sign-in service. */
+const isGoogleSignInAvailable = () =>
+  ipcRenderer.invoke('account-google-available') as Promise<boolean>;
+
+/**
+ * Sign in with Google in the browser. Resolves when the attempt ends: signed
+ * in, refused, or cancelled. `locale` is the language of the browser tab's
+ * last page.
+ */
+const signInWithGoogle = (locale: string) =>
+  ipcRenderer.invoke(
+    'account-sign-in-google',
+    locale,
+  ) as Promise<IAccountState>;
+
+/** Stop the attempt in flight. */
+const cancelAccountAttempt = () =>
+  ipcRenderer.invoke('account-cancel') as Promise<IAccountState>;
+
 const abandonAccountPending = () =>
   ipcRenderer.invoke('account-abandon-pending') as Promise<IAccountState>;
 
@@ -82,30 +100,6 @@ const getEntitlementStatus = () =>
 const refreshEntitlement = () =>
   ipcRenderer.invoke('entitlement-refresh') as Promise<IEntitlementStatus>;
 
-/**
- * The server mints the page for this account; the renderer never sees the
- * URL. It names the Plus terms version the person just agreed to.
- */
-const openCheckout = (termsVersion: number) =>
-  ipcRenderer.invoke(
-    'entitlement-open-checkout',
-    termsVersion,
-  ) as Promise<TBillingOutcome>;
-
-const openSubscriptionPortal = () =>
-  ipcRenderer.invoke('entitlement-open-portal') as Promise<TBillingOutcome>;
-
-/** Development only: whether the pretend-membership buttons may be shown. */
-const isMembershipSimulatorAvailable = () =>
-  ipcRenderer.invoke('dev-membership-available') as Promise<boolean>;
-
-/** Development only: send the merchant's own event to the real server. */
-const simulateMembership = (simulation: 'started' | 'cancelled') =>
-  ipcRenderer.invoke(
-    'dev-membership-simulate',
-    simulation,
-  ) as Promise<TBillingOutcome>;
-
 const onEntitlementChanged = (
   listener: (status: IEntitlementStatus) => void,
 ) => {
@@ -126,14 +120,13 @@ const accountBridge = {
   forgotAccountPassword,
   resetAccountPassword,
   abandonAccountPending,
+  isGoogleSignInAvailable,
+  signInWithGoogle,
+  cancelAccountAttempt,
   signOutAccount,
   onAccountState,
   getEntitlementStatus,
   refreshEntitlement,
-  openCheckout,
-  openSubscriptionPortal,
-  isMembershipSimulatorAvailable,
-  simulateMembership,
   onEntitlementChanged,
 };
 

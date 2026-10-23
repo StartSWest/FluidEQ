@@ -40,6 +40,10 @@ const files = {
   'files.squiglink.empty':
     '読み込む前に、Squiglink の EQ の書き出しを貼り付けてください。',
   'files.squiglink.tooLarge': 'その EQ の書き出しは大きすぎて読み込めません。',
+  'files.squiglink.earsNeedBands':
+    'このエクスポートは両耳に同時にかかるサンプリング曲線です。両耳に適用するか、パラメトリックフィルターとしてエクスポートしてください。',
+  'files.squiglink.tooManyBands':
+    'バンドが {max} 個を超えます。先にバンドをいくつか削除するか、両耳に適用してください。',
   'files.squiglink.noFilters':
     'Equalizer APO のフィルターが見つかりませんでした。Squiglink から書き出した ParametricEQ または GraphicEQ のテキストをコピーしてください。',
   'files.eq.tooLarge': 'そのファイルは EQ 設定としては大きすぎます。',
@@ -70,6 +74,10 @@ const files = {
   'files.apo.editorMissing': 'Equalizer APO の設定が見つかりません。',
   'files.wav.tooLong':
     'そのインパルス応答は長すぎて、安全にノーマライズするための解析ができません。',
+  // My curves out through Save As (main/ipc/curveExport.ts).
+  'files.title.exportCurves': 'マイカーブを書き出す',
+  'files.type.curveList': 'FluidEQカーブリスト',
+  'files.title.exportCurveFolder': 'カーブの保存先フォルダーを選択',
 } as const;
 
 export default files;

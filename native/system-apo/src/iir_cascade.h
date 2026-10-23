@@ -47,6 +47,12 @@ struct IirBand {
   double frequency;
   double quality;
   FeqBiquadCoefficients coefficients;
+  /**
+   * The stream's channels it runs on, one bit each (`selected_channels`):
+   * every one unless a `Channel:` line kept it to some. A channel it skips
+   * passes through it untouched, and its history there stays at rest.
+   */
+  uint32_t channels = ~0u;
 };
 
 /** `band` at `sample_rate`, from the cookbook or matched as the band asks. */
@@ -102,6 +108,8 @@ class IirCascade {
   std::vector<FeqBiquadState> states_;
   /** The cascade being faded out, `outgoing_count_` of `kMaxFadeBands`. */
   std::vector<FeqBiquadCoefficients> outgoing_;
+  /** Each outgoing band's channels, as `IirBand::channels`. */
+  std::vector<uint32_t> outgoing_channels_;
   /** `channels_ * kMaxFadeBands`, channel-major. */
   std::vector<FeqBiquadState> outgoing_states_;
   size_t outgoing_count_ = 0;

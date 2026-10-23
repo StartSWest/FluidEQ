@@ -77,21 +77,36 @@ interface IGenrePinsProps {
  * included, rather than on the curve as written, so a pin never floats beside
  * the line it names.
  */
-const GenrePins = ({ data, xScale, yScale, isHidden }: IGenrePinsProps) => {
-  const { t } = useTranslation();
+/**
+ * A genre's pins as the graph shows them now, or nothing: the one answer
+ * both the pins and the band labels that keep clear of them read.
+ */
+export const useGenrePinSpots = (
+  data: readonly IChartCurveData[],
+  isHidden: boolean,
+) => {
   const { voicing } = useFluidEqContext();
-  const [tip, setTip] = useState<ITip>();
   const presetId = dspVoicingPresetId(voicing);
   const notes = genreNotesFor(presetId);
   const line = data.find((curve) => curve.id === VOICING_CURVE_ID);
   if (isHidden || !presetId || !notes || !line) {
-    return null;
+    return undefined;
   }
-
   const pins = notes.note.pins.flatMap((hz, index) => {
     const db = valueAt(line.line.points, hz);
     return db === undefined ? [] : [{ hz, index, db }];
   });
+  return { presetId, notes, pins };
+};
+
+const GenrePins = ({ data, xScale, yScale, isHidden }: IGenrePinsProps) => {
+  const { t } = useTranslation();
+  const [tip, setTip] = useState<ITip>();
+  const spots = useGenrePinSpots(data, isHidden);
+  if (!spots) {
+    return null;
+  }
+  const { presetId, notes, pins } = spots;
   const shown = tip ? pins.find((pin) => pin.index === tip.index) : undefined;
 
   const show = (index: number) => (event: SyntheticEvent<SVGGElement>) => {

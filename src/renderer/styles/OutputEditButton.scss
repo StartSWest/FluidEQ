@@ -1,0 +1,85 @@
+/* FluidEQ - GPL-3.0-or-later */
+@use 'color' as *;
+@use 'theme' as *;
+
+// The default link has full-size button padding. These actions share a line
+// with small profile text, so size the label and glyph together explicitly.
+.link-button.output-edit-button {
+  display: inline-flex;
+  width: max-content;
+  max-width: 100%;
+  min-height: 22px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-self: start;
+  gap: 4px;
+  padding: 2px 0;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  line-height: 1.35;
+  white-space: nowrap;
+
+  .menu-icon {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+  }
+
+  > span {
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+    text-underline-offset: 3px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: transparent;
+
+    > span {
+      text-decoration-color: currentColor;
+    }
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &.is-editing {
+    cursor: pointer;
+
+    .output-edit-button__state {
+      display: grid;
+    }
+
+    .output-edit-button__state > span {
+      grid-area: 1 / 1;
+    }
+
+    .output-edit-button__done {
+      visibility: hidden;
+    }
+
+    &:hover,
+    &:focus-visible {
+      .output-edit-button__editing {
+        visibility: hidden;
+      }
+
+      .output-edit-button__done {
+        visibility: visible;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+    }
+  }
+
+  &[aria-pressed='true'] {
+    color: $neon-yellow;
+    cursor: pointer;
+    opacity: 1;
+
+    > span {
+      text-decoration: none;
+    }
+  }
+}

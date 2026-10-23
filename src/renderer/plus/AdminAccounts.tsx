@@ -12,10 +12,12 @@ import {
   type IAccountToDelete,
 } from 'common/accountDeletion';
 import {
-  ACCOUNT_PLAN_FILTERS,
+  ACCOUNT_JOINED_WINDOWS,
+  joinedSince,
   MAX_ACCOUNT_QUERY,
   type IAccountListPage,
   type IAccountListRequest,
+  type TAccountJoinedWindow,
   type TAccountPlanFilter,
 } from 'common/adminAccounts';
 import type {
@@ -26,6 +28,8 @@ import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import AccountDeletionCard from './AccountDeletionCard';
 import AdminAccountRow from './AdminAccountRow';
+import AdminAccountStats from './AdminAccountStats';
+import AdminTrialExitReasons from './AdminTrialExitReasons';
 import GalleryListNotice from './GalleryListNotice';
 import '../styles/Admin.scss';
 
@@ -39,21 +43,25 @@ const LIST_ERRORS: Record<TAccountListFailure, TranslationKey> = {
   'not-deployed': 'plus.accounts.error.notDeployed',
 };
 
-const FILTER_LABELS: Record<TAccountPlanFilter, TranslationKey> = {
-  all: 'plus.accounts.filter.all',
-  plus: 'plus.accounts.filter.plus',
-  free: 'plus.accounts.filter.free',
-};
-
 const EMPTY: Record<TAccountPlanFilter, TranslationKey> = {
   all: 'plus.accounts.empty.none',
   plus: 'plus.accounts.empty.plus',
   free: 'plus.accounts.empty.free',
+  trial: 'plus.accounts.empty.trial',
+  lapsed: 'plus.accounts.empty.lapsed',
+};
+
+const JOINED_LABELS: Record<TAccountJoinedWindow, TranslationKey> = {
+  ever: 'plus.accounts.joined.ever',
+  today: 'plus.accounts.joined.today',
+  week: 'plus.accounts.joined.week',
+  month: 'plus.accounts.joined.month',
 };
 
 interface IAsk {
   query: string;
   plan: TAccountPlanFilter;
+  joined: TAccountJoinedWindow;
 }
 
 /** The accounts on screen, and the question they answer. */
@@ -71,8 +79,18 @@ const bridge = () => window.electron?.ipcRenderer;
 
 /** One page, with a bridge that is missing or throws read as being offline. */
 const requestPage = async (
-  request: IAccountListRequest,
+  ask: IAsk,
+  offset: number,
 ): Promise<TAccountListOutcome> => {
+  // The window's start on this computer's calendar, worked out when it is
+  // asked: "today" asked after midnight is the new day.
+  const since = joinedSince(ask.joined, new Date());
+  const request: IAccountListRequest = {
+    query: ask.query,
+    plan: ask.plan,
+    offset,
+    ...(since === undefined ? {} : { since }),
+  };
   try {
     return (
       (await bridge()?.listAccounts?.(request)) ?? {
@@ -115,7 +133,11 @@ const findLeftovers = async (address: string): Promise<IAccountToDelete[]> => {
 export default function AdminAccounts() {
   const { t, locale } = useTranslation();
   const [text, setText] = useState('');
-  const [ask, setAsk] = useState<IAsk>({ query: '', plan: 'all' });
+  const [ask, setAsk] = useState<IAsk>({
+    query: '',
+    plan: 'all',
+    joined: 'ever',
+  });
   const [attempt, setAttempt] = useState(0);
   const [shown, setShown] = useState<IShown>();
   const [asking, setAsking] = useState(true);
@@ -134,7 +156,7 @@ export default function AdminAccounts() {
     setAsking(true);
     setFailure(undefined);
     setDeleted(undefined);
-    requestPage({ ...ask, offset: 0 })
+    requestPage(ask, 0)
       .then((outcome) => {
         if (mine !== generation.current) {
           return undefined;
@@ -186,13 +208,20 @@ export default function AdminAccounts() {
     );
   };
 
+  const chooseJoined = (joined: TAccountJoinedWindow) => {
+    setOpenId(undefined);
+    setAsk((current) =>
+      current.joined === joined ? current : { ...current, joined },
+    );
+  };
+
   const loadMore = () => {
     if (!shown || more === 'asking') {
       return;
     }
     const mine = generation.current;
     setMore('asking');
-    requestPage({ ...shown.ask, offset: shown.accounts.length })
+    requestPage(shown.ask, shown.accounts.length)
       .then((outcome) => {
         if (mine !== generation.current) {
           return undefined;
@@ -252,20 +281,13 @@ export default function AdminAccounts() {
   };
 
   const numbers = new Intl.NumberFormat(locale);
-  const share = new Intl.NumberFormat(locale, {
-    style: 'percent',
-    maximumFractionDigits: 1,
-  });
-  const counts: Record<TAccountPlanFilter, number> | undefined = shown && {
-    all: shown.matched,
-    plus: shown.paying,
-    free: shown.matched - shown.paying,
-  };
   const dimmed = asking && shown !== undefined;
 
   let empty = t('plus.accounts.empty.none');
   if (shown?.ask.query) {
     empty = t('plus.accounts.empty.search', { query: shown.ask.query });
+  } else if (shown && shown.ask.joined !== 'ever' && shown.ask.plan === 'all') {
+    empty = t('plus.accounts.empty.joined');
   } else if (shown) {
     empty = t(EMPTY[shown.ask.plan]);
   }
@@ -289,6 +311,25 @@ export default function AdminAccounts() {
             onChange={(event) => setText(event.target.value)}
           />
         </div>
+        {/* When they joined, by the admin's own calendar. Beside the search,
+            because it narrows the same list and every count under it. */}
+        <div
+          className="segmented admin-accounts__joined"
+          role="group"
+          aria-label={t('plus.accounts.joined.label')}
+        >
+          {ACCOUNT_JOINED_WINDOWS.map((window) => (
+            <button
+              key={window}
+              type="button"
+              className={`segmented__option${ask.joined === window ? ' is-selected' : ''}`}
+              aria-pressed={ask.joined === window}
+              onClick={() => chooseJoined(window)}
+            >
+              {t(JOINED_LABELS[window])}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           className={`button small subtle admin-accounts__refresh${asking ? ' is-running' : ''}`}
@@ -300,53 +341,15 @@ export default function AdminAccounts() {
         </button>
       </div>
 
-      <div
-        className="admin-accounts__stats"
-        role="group"
-        aria-label={t('plus.accounts.filter')}
-      >
-        {ACCOUNT_PLAN_FILTERS.map((filter) => {
-          const value = counts?.[filter];
-          const part =
-            filter !== 'all' &&
-            shown &&
-            shown.matched > 0 &&
-            value !== undefined
-              ? share.format(value / shown.matched)
-              : undefined;
-          return (
-            <button
-              key={filter}
-              type="button"
-              className={`admin-accounts__stat is-${filter}`}
-              aria-pressed={ask.plan === filter}
-              onClick={() => choosePlan(filter)}
-            >
-              <span className="admin-accounts__stat-label">
-                {t(FILTER_LABELS[filter])}
-              </span>
-              <span className="admin-accounts__stat-figures">
-                {value === undefined && asking && (
-                  <span className="admin-accounts__stat-value is-waiting" />
-                )}
-                {value === undefined && !asking && (
-                  <span className="admin-accounts__stat-value is-unknown">
-                    –
-                  </span>
-                )}
-                {value !== undefined && (
-                  <span className="admin-accounts__stat-value">
-                    {numbers.format(value)}
-                  </span>
-                )}
-                {part && (
-                  <span className="admin-accounts__stat-share">{part}</span>
-                )}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <AdminAccountStats
+        page={shown}
+        asking={asking}
+        plan={ask.plan}
+        onChoose={choosePlan}
+      />
+      {shown?.ask.plan === 'lapsed' && shown.exitReasons && (
+        <AdminTrialExitReasons counts={shown.exitReasons} />
+      )}
       <p className="gallery-fine">{t('plus.accounts.listHint')}</p>
 
       {deleted && (

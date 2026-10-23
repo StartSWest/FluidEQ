@@ -167,40 +167,14 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-.output-art__mode-title {
+// How far behind it plays, as the panel says it: the figures in the
+// monospace face, quieter than the name.
+.output-art__delay {
+  display: flex;
+  flex-wrap: wrap;
   color: $text-muted;
-  font-size: calc(#{$u} * 0.58);
-  font-weight: $weight-bold;
-  text-transform: uppercase;
-  @include tracking(0.12em);
-}
-
-.output-art__modes {
-  display: grid;
-  gap: calc(#{$u} * 0.4);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-
-  > span {
-    display: grid;
-    padding: calc(#{$u} * 0.45) calc(#{$u} * 0.55);
-    border: 1px solid rgba($edge-tint, 0.1);
-    border-radius: $radius-m;
-    background: $surface-field;
-    gap: calc(#{$u} * 0.15);
-  }
-
-  strong {
-    color: $text-primary;
-    font-size: calc(#{$u} * 0.66);
-  }
-
-  small {
-    color: $text-faint;
-    font-size: calc(#{$u} * 0.56);
-  }
-
-  .is-chosen {
-    border-color: color-mix(in srgb, $secondary-light 45%, transparent);
-    background: color-mix(in srgb, $secondary-default 12%, $surface-field);
-  }
+  font-family: $font-mono;
+  font-size: calc(#{$u} * 0.54);
+  gap: calc(#{$u} * 0.1) calc(#{$u} * 0.5);
+  font-variant-numeric: tabular-nums;
 }

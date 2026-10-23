@@ -5,11 +5,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The sender's half of "what is playing over there".
+ * This computer's half of "what is playing over there", told to every
+ * computer linked with it — both ways, each plays the other's sound.
  *
- * The listener plays sound it did not start, so its bar said "Nothing
- * playing" through a whole album. This tells it what the sender's own bar is
- * showing — the same description `pickTransportOwner` hands the bar here,
+ * A computer playing sound it did not start had a bar that said "Nothing
+ * playing" through a whole album. This tells it what this computer's own bar
+ * is showing — the same description `pickTransportOwner` hands the bar here,
  * whether that is a library track, a karaoke session, a Media page or a
  * browser tab Windows reported — and carries the listener's play/pause press
  * back to the same source.
@@ -41,7 +42,7 @@ import {
   useTransportSources,
 } from '../audio/transportSource';
 import type { ITransportSource } from '../audio/transportSource';
-import type { TRemoteAudioPhase, TRemoteAudioRole } from './remoteAudioState';
+import { onSinglePlayerChange } from '../utils/singlePlayer';
 
 /** A player's clock, made safe for the wire: whole, finite, not negative. */
 const wireMs = (value: number): number =>
@@ -90,10 +91,28 @@ export const pickSourceForRemote = (
   playingOwner: TPlaybackOwner | undefined,
   lastOwner: TPlaybackOwner | undefined,
 ): ITransportSource | undefined => {
+  // Never the other computer's own song. Both ways, this computer's bar also
+  // shows what a linked computer is playing here (`remote`), and described
+  // back over the wire it came home as that computer's "From" lane naming its
+  // own song (Ivan's two PCs, 2026-10-02) — and as a player there that never
+  // stops, for the one-player rule to pause. What goes out is this computer's
+  // own sound, which never carries the other's (`lanAudioHelper.ts`), so its
+  // description cannot either.
+  const own: Partial<Record<TPlaybackOwner, ITransportSource>> = {
+    ...sources,
+  };
+  delete own.remote;
+  const local = (owner: TPlaybackOwner | undefined) =>
+    owner === 'remote' ? undefined : owner;
   // No tab: the sender's bar on a page that is not a player, which is the
   // one that falls through to whatever is actually making the sound.
-  const owner = pickTransportOwner(undefined, sources, playingOwner, lastOwner);
-  return owner === undefined ? sources.system : sources[owner];
+  const owner = pickTransportOwner(
+    undefined,
+    own,
+    local(playingOwner),
+    local(lastOwner),
+  );
+  return owner === undefined ? own.system : own[owner];
 };
 
 /**
@@ -155,9 +174,7 @@ const wireKey = (playing: IRemoteNowPlaying | undefined): string =>
     : '';
 
 const useRemoteNowPlayingBroadcast = (
-  role: TRemoteAudioRole | undefined,
-  phase: TRemoteAudioPhase,
-  senderPeerIdRef: { current: string | undefined },
+  peerIds: readonly string[],
 ): ((command: TRemoteTransportCommand) => void) => {
   const sources = useTransportSources();
   const playingOwner = usePlaybackOwner();
@@ -183,31 +200,71 @@ const useRemoteNowPlayingBroadcast = (
   const startedRef = useRef(false);
   startedRef.current = startedHere(seenRef.current, source);
 
-  const connected =
-    role === 'sender' && (phase === 'connecting' || phase === 'connected');
+  // Peer ids never contain a newline: they are the transport's own tokens.
+  const peerKey = [...peerIds].sort().join('\n');
+  /** The computers that have heard the description as it stands. */
+  const toldRef = useRef(new Set<string>());
+  const lastKeyRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    const peerId = senderPeerIdRef.current;
-    if (!connected || !peerId) {
-      return;
-    }
-    window.electron.ipcRenderer
-      .sendRemoteAudioLanSignal({
-        peerId,
-        signal: {
-          kind: 'now-playing',
-          playing: playingRef.current,
-          // Absent unless it is true: a listener two versions older reads a
-          // message it does not understand the same way it always has, and a
-          // message that says nothing about a press is the safe one.
-          ...(startedRef.current ? { started: true } : {}),
-        },
-      })
-      .catch(() => undefined);
-    // `key` is the message; `connected` is the listener arriving. Both are
-    // reasons to send, and nothing else is. A reconnection therefore
-    // re-announces the description and never the press — `startedHere` has
-    // seen this player playing since, so it answers no.
-  }, [connected, key, senderPeerIdRef]);
+    const ids = peerKey === '' ? [] : peerKey.split('\n');
+    const told = toldRef.current;
+    [...told].forEach((id) => {
+      if (!ids.includes(id)) {
+        told.delete(id);
+      }
+    });
+    // A new description goes to every computer, and only a new description
+    // can carry a press. A computer that arrives — a reconnection under a new
+    // peer id among them — hears the description as it stands and never the
+    // press: `startedHere` has seen this player playing since, and the
+    // computer already linked heard it the first time.
+    const changed = lastKeyRef.current !== key;
+    lastKeyRef.current = key;
+    (changed ? ids : ids.filter((id) => !told.has(id))).forEach((peerId) => {
+      told.add(peerId);
+      window.electron.ipcRenderer
+        .sendRemoteAudioLanSignal({
+          peerId,
+          signal: {
+            kind: 'now-playing',
+            playing: playingRef.current,
+            // Absent unless it is true: a computer two versions older reads a
+            // message it does not understand the same way it always has, and
+            // a message that says nothing about a press is the safe one.
+            ...(changed && startedRef.current ? { started: true } : {}),
+          },
+        })
+        .catch(() => undefined);
+    });
+  }, [key, peerKey]);
+
+  // The one-player switch follows across the links: changed here, it goes to
+  // every linked computer; changed on one, it goes on to the others and never
+  // back where it came from (`singlePlayer.ts`). With the description as it
+  // stands, because a now-playing message without one says this computer's
+  // bar is empty.
+  const peerIdsRef = useRef<readonly string[]>([]);
+  peerIdsRef.current = peerKey === '' ? [] : peerKey.split('\n');
+  useEffect(
+    () =>
+      onSinglePlayerChange((singlePlayer, fromLink) => {
+        peerIdsRef.current
+          .filter((peerId) => peerId !== fromLink)
+          .forEach((peerId) => {
+            window.electron.ipcRenderer
+              .sendRemoteAudioLanSignal({
+                peerId,
+                signal: {
+                  kind: 'now-playing',
+                  playing: playingRef.current,
+                  singlePlayer,
+                },
+              })
+              .catch(() => undefined);
+          });
+      }),
+    [],
+  );
 
   // After the send, and on every render rather than on a change: a player
   // that starts while another holds the bar sends no message, and it is
@@ -279,8 +336,9 @@ const useRemoteNowPlayingBroadcast = (
       return;
     }
     // Never the wire: a pause that arrived over the link must not leave by
-    // it. This end registers no `remote` player today, and that is exactly
-    // the kind of fact that stops being true one feature later.
+    // it. Both ways, this computer registers a `remote` player of its own
+    // while another computer plays here (`useRemoteNowPlayingSource`), and its
+    // stopper is a pause sent back out to every computer playing.
     stopAllPlayback('remote');
   };
   // Stable, so the signal handler that calls it need not re-subscribe.

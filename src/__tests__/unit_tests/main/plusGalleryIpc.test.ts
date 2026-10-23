@@ -90,17 +90,22 @@ let signedIn: boolean;
 let store: IMemberSceneStore;
 let announced: number;
 let refreshed: number;
-let calls: Array<{ url: string; body?: unknown }>;
+/** Each request: its address without the query, and the query apart. */
+let calls: Array<{ url: string; search: string; body?: unknown }>;
 /** What the bucket holds, by object path. */
 let bucket: Map<string, unknown>;
 let rows: unknown[];
 
 const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
-  const url = String(input);
+  const parsed = new URL(String(input));
+  const url = `${parsed.origin}${parsed.pathname}`;
   calls.push({
     url,
+    search: parsed.search,
     body: init?.body ? JSON.parse(String(init.body)) : undefined,
   });
+  // The object is named by the path alone: `?version=` only keys the CDN's
+  // cache (`fetchEnvelope`), as on the real storage server.
   const object = url.match(/member-scenes\/(.+)$/)?.[1];
   if (object) {
     return bucket.has(object)
@@ -125,6 +130,8 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
 const access = (): IGalleryAccess => ({
   accountId: () => (signedIn ? ME : undefined),
   entitled: () => entitled,
+  // Plus owns every scene while it lasts (`sceneOwnership.ts`).
+  owns: () => entitled,
   auth: async () => ({ config, accessToken: 'token', fetchImpl }),
 });
 
@@ -141,7 +148,6 @@ const setup = () => {
     announce: () => {
       announced += 1;
     },
-    onEntitlementChange: () => () => undefined,
   });
 };
 
@@ -430,9 +436,11 @@ describe('adding', () => {
     publishScene(SOMEONE);
     await invoke('plus-gallery-preview', SOMEONE, 'neon-city', 1);
     await invoke('plus-gallery-add', SOMEONE, 'neon-city', 1);
-    expect(
-      calls.filter((call) => call.url.endsWith('scene.json')),
-    ).toHaveLength(1);
+    const fetched = calls.filter((call) => call.url.endsWith('scene.json'));
+    expect(fetched).toHaveLength(1);
+    // Asked for by the version the gallery row names, so the storage CDN
+    // cannot hand back the copy a republication just replaced.
+    expect(fetched[0].search).toMatch(/[?&]version=/);
   });
 
   it('brings the member’s own scene back as their own', async () => {
@@ -454,7 +462,6 @@ describe('adding', () => {
         store.setBlocked([memberSceneFingerprint(SOMEONE, 'neon-city')]);
       },
       announce: () => undefined,
-      onEntitlementChange: () => () => undefined,
     });
     expect(await invoke('plus-gallery-add', SOMEONE, 'neon-city', 1)).toEqual({
       ok: false,
@@ -496,7 +503,7 @@ describe('pictures', () => {
     ).toBeUndefined();
   });
 
-  it('shows a member scene’s picture without Plus, and neither plays nor keeps the scene', async () => {
+  it('lets a member scene be tasted without owning it, and never keeps it', async () => {
     setup();
     entitled = false;
     bucket.set(`${SOMEONE}/neon-city/picture.webp`, webpBytes());
@@ -509,8 +516,8 @@ describe('pictures', () => {
         1,
       ),
     ).toMatch(/^data:image\/webp;base64,/);
-    // The scene file is Plus's (server migration 0023): its page offers Plus
-    // and never asks for the file.
+    // Every scene's page plays it for its taste (server 0056 hands every
+    // signed-in account the file); the page stops it after ten seconds.
     expect(
       await invoke<Promise<TGalleryPreviewOutcome>>(
         'plus-gallery-preview',
@@ -518,9 +525,8 @@ describe('pictures', () => {
         'neon-city',
         1,
       ),
-    ).toEqual({ ok: false, reason: 'not-entitled' });
-    expect(calls.some((call) => call.url.endsWith('scene.json'))).toBe(false);
-    // Keeping it is Plus.
+    ).toMatchObject({ ok: true, own: false, pack: { id: 'neon-city' } });
+    // Keeping it is for an account that owns it.
     expect(
       await invoke<Promise<TGalleryAddOutcome>>(
         'plus-gallery-add',
@@ -533,9 +539,10 @@ describe('pictures', () => {
     expect(announced).toBe(0);
   });
 
-  it('offers Plus on an official scene the server keeps for Plus, and lists the free samples', async () => {
+  it('asks the server for an official scene’s taste, owned or not, and tells a refusal from no answer', async () => {
     setup();
     entitled = false;
+    // A server from before 0056 keeps FluidEQ's own files for Plus.
     expect(
       await invoke<Promise<TGalleryPreviewOutcome>>(
         'plus-gallery-preview',
@@ -544,7 +551,7 @@ describe('pictures', () => {
         47,
       ),
     ).toEqual({ ok: false, reason: 'not-entitled' });
-    // With Plus, a server that cannot answer is unavailable, not an offer.
+    // A server that cannot answer is unavailable, never a refusal.
     entitled = true;
     expect(
       await invoke<Promise<TGalleryPreviewOutcome>>(
@@ -554,9 +561,6 @@ describe('pictures', () => {
         47,
       ),
     ).toEqual({ ok: false, reason: 'unavailable' });
-    expect(await invoke<Promise<string[]>>('plus-gallery-samples')).toEqual([
-      'neon-city',
-    ]);
   });
 
   it('plays nothing to somebody signed out', async () => {
@@ -584,6 +588,7 @@ describe('reporting', () => {
     ).toEqual([
       {
         url: 'https://project.supabase.co/rest/v1/rpc/report_scene',
+        search: '',
         body: { p_author: SOMEONE, p_scene: 'neon-city', p_reason: 'rights' },
       },
     ]);
@@ -635,7 +640,6 @@ describe('asking the server as little as a page needs', () => {
         refreshed += 1;
       },
       announce: () => undefined,
-      onEntitlementChange: () => () => undefined,
       now: () => clock,
     });
     await invoke('plus-gallery-list', { sort: 'new' });
@@ -662,7 +666,6 @@ describe('pictures kept between sessions', () => {
       store,
       refreshBlocked: async () => undefined,
       announce: () => undefined,
-      onEntitlementChange: () => () => undefined,
       pictureDir: path.join(root, 'userData', 'gallery-pictures'),
     });
   };

@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { parseMemberLookId } from '../../common/memberScenes';
+import { memberLookId, parseMemberLookId } from '../../common/memberScenes';
 import type { IScenePack } from '../../common/scenePacks';
 import type { IMemberSceneStore, IMemberSceneSummary } from './store';
 
@@ -18,20 +18,17 @@ import type { IMemberSceneStore, IMemberSceneSummary } from './store';
  */
 
 export interface IMemberScenesListing {
-  entitled: boolean;
-  /**
-   * The member's own scenes and the ones other members sent them, when they
-   * may be drawn.
-   */
+  /** The scenes this account holds and may draw: the ones it owns. */
   scenes: IMemberSceneSummary[];
-  /** The same scenes while Plus is off: shown locked, never deleted. */
+  /** The rest of what it holds: shown locked, never deleted. */
   locked: IMemberSceneSummary[];
 }
 
 /** Who is asking, read fresh on every call rather than once at startup. */
 export interface ISceneViewer {
   accountId(): string | undefined;
-  entitled(): boolean;
+  /** Bought, or every scene while Plus lasts (`plus/sceneOwnership.ts`). */
+  owns(lookId: string): boolean;
 }
 
 /**
@@ -52,10 +49,12 @@ export const sceneListing = (
   store: IMemberSceneStore,
   viewer: ISceneViewer,
 ): IMemberScenesListing => {
-  const scenes = visibleScenes(store, viewer);
-  return viewer.entitled()
-    ? { entitled: true, scenes, locked: [] }
-    : { entitled: false, scenes: [], locked: scenes };
+  const scenes: IMemberSceneSummary[] = [];
+  const locked: IMemberSceneSummary[] = [];
+  visibleScenes(store, viewer).forEach((scene) =>
+    (viewer.owns(scene.lookId) ? scenes : locked).push(scene),
+  );
+  return { scenes, locked };
 };
 
 /** A scene this account may draw, and whether this account made it. */
@@ -69,9 +68,9 @@ export interface IVisibleScene {
  * and whether this account made it — which decides how it is run wherever
  * it plays, the desktop included (`sceneRules.ts`).
  *
- * The entitlement is checked here and not only where the list is built: a
- * page that kept an id from before a membership ended would otherwise be able
- * to ask for the scene itself.
+ * Ownership is checked here and not only where the list is built: a page
+ * that kept an id from before a membership ended would otherwise be able to
+ * ask for the scene itself.
  */
 export const loadVisibleScene = (
   store: IMemberSceneStore,
@@ -80,7 +79,7 @@ export const loadVisibleScene = (
 ): IVisibleScene | undefined => {
   const ref =
     typeof lookId === 'string' ? parseMemberLookId(lookId) : undefined;
-  if (!ref || !viewer.entitled()) {
+  if (!ref || !viewer.owns(memberLookId(ref.authorId, ref.packId))) {
     return undefined;
   }
   const seen = visibleScenes(store, viewer).find(

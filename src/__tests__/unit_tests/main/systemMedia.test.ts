@@ -445,6 +445,114 @@ describe('watching across a reload', () => {
   });
 });
 
+/**
+ * THE WATCHER IS ASKED FOR ONCE AND KEPT FOR THE WINDOW'S LIFE.
+ *
+ * Reported as Spotify's play and pause going quiet on the bar, and a song
+ * started in the Library no longer pausing Spotify: the installed app had run
+ * for hours and its helper was gone, with nothing to start another.
+ */
+describe('a watcher that ends by itself', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    stopWatchingSystemMedia();
+  });
+
+  afterEach(() => stopWatchingSystemMedia());
+
+  it('is put back, and the window is not told "nothing" in between', () => {
+    const first = fakeChild();
+    const listener = jest.fn();
+    watchSystemMedia(listener, found);
+    first.stdout.arrive(`${PLAYING_LINE}\n`);
+    listener.mockClear();
+
+    const second = fakeChild();
+    first.child.emit('exit', 0, null);
+
+    expect(spawn).toHaveBeenCalledTimes(2);
+    // "Nothing" and then the same song again would read in the window as
+    // somebody pressing play out there, and stop the app's own player.
+    expect(listener).not.toHaveBeenCalled();
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.stringMatching(/exit code 0.*starting another/),
+    );
+    second.stdout.arrive(`${NATIVE_READING}\n`);
+    expect(listener).toHaveBeenCalledWith(
+      expect.objectContaining({ app: 'Spotify.exe' }),
+    );
+  });
+
+  it('is not started again when it ended before it reported anything', () => {
+    const { child } = fakeChild();
+    const listener = jest.fn();
+    watchSystemMedia(listener, found);
+    listener.mockClear();
+
+    fakeChild();
+    child.emit('exit', 1, null);
+
+    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(listener).toHaveBeenCalledWith(undefined);
+    expect(log.warn).toHaveBeenCalledWith(
+      expect.stringMatching(/exit code 1.*not starting another/),
+    );
+  });
+
+  it('is not started again once the app stopped it', () => {
+    const { child, stdout } = fakeChild();
+    watchSystemMedia(jest.fn(), found);
+    stdout.arrive(`${PLAYING_LINE}\n`);
+    stopWatchingSystemMedia();
+
+    fakeChild();
+    child.emit('exit', 0, null);
+
+    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(log.warn).not.toHaveBeenCalled();
+  });
+
+  it('gives up after three in a row that each ended before following a change', () => {
+    let current = fakeChild();
+    const listener = jest.fn();
+    watchSystemMedia(listener, found);
+    for (let ended = 0; ended < 3; ended += 1) {
+      current.stdout.arrive(`${PLAYING_LINE}\n`);
+      const next = fakeChild();
+      current.child.emit('exit', 0, null);
+      current = next;
+    }
+    expect(spawn).toHaveBeenCalledTimes(4);
+    listener.mockClear();
+
+    current.stdout.arrive(`${PLAYING_LINE}\n`);
+    fakeChild();
+    current.child.emit('exit', 0, null);
+
+    expect(spawn).toHaveBeenCalledTimes(4);
+    expect(listener).toHaveBeenCalledWith(undefined);
+  });
+
+  it('counts again from a helper that followed a change', () => {
+    let current = fakeChild();
+    watchSystemMedia(jest.fn(), found);
+    for (let ended = 0; ended < 3; ended += 1) {
+      current.stdout.arrive(`${PLAYING_LINE}\n`);
+      const next = fakeChild();
+      current.child.emit('exit', 0, null);
+      current = next;
+    }
+
+    // Two different readings: it followed Windows through a change.
+    current.stdout.arrive(`${PLAYING_LINE}\n`);
+    current.stdout.arrive(`${NATIVE_READING}\n`);
+    fakeChild();
+    current.child.emit('exit', 0, null);
+
+    expect(spawn).toHaveBeenCalledTimes(5);
+  });
+});
+
 describe('who else is playing', () => {
   it('reads the list the watcher prints', () => {
     expect(

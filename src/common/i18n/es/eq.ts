@@ -20,14 +20,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'Editar principal',
+  'extraOutput.edit': 'Editar sonido',
+  'extraOutput.done': 'Listo',
+  'extraOutput.editing': 'Editando',
+  'extraOutput.editHint': 'Editar {device} sin cambiar la salida principal',
+  'extraOutput.editingOutput': 'Editando: {device}',
+  'eq.layouts.empty':
+    'Los diseños guardan las frecuencias, el Q de cada banda y su comportamiento. La ganancia y la intensidad se guardan por separado.',
+  'eq.layouts.qHint':
+    'Los diseños nuevos empiezan con el mismo Q en todas las bandas. Más bandas usan anchos menores.',
+  'eq.layouts.resetQ': 'Restablecer Q de bandas',
+  'eq.layouts.resetQHint':
+    'Aplicar un Q recomendado a todas las bandas de campana. Conservar frecuencias, ganancias y comportamiento del Q.',
+  'eq.mode.mainQHint':
+    'Solo las bandas del EQ principal. Constante mantiene el Q al mover la ganancia. Proporcional y Asimétrico lo ajustan según la ganancia.',
+  'graph.item.eqLabels': 'etiquetas del EQ',
+  'graph.contents.unlabelled': 'Sin etiquetas del EQ',
   'eq.mode.linearDelayInactive': '≈ +{ms} ms con EQ activo',
   'eq.mode.linearDelay': '≈ +{ms} ms de retardo',
   'eq.mode.linearDelayShared': '≈ {ms} ms, compartido',
   'eq.mode.gameMinimum': 'Modo juego: mínima',
   'eq.layouts.builtIn': 'Diseños incluidos',
   'eq.layouts.saved': 'Mis diseños',
-  'eq.layouts.empty':
-    'Guarda aquí las frecuencias y Q de las bandas, no las ganancias ni el modo EQ.',
   'eq.layouts.loading': 'Cargando diseños…',
   'eq.layouts.name': 'Nombre del diseño',
   'eq.layouts.duplicate': 'Ese nombre ya está en uso. Elige otro.',
@@ -67,6 +82,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.trebleUpdate':
     'Actualiza el Motor FluidEQ para elegir cómo suenan los agudos.',
   'eq.mode.reset': 'Restablecer',
+  'eq.mode.pin': 'Fijar junto a la gráfica',
+  'eq.mode.unpin': 'Devolver al menú',
+  'eq.mode.showPinned': 'Mostrar el modo EQ junto a la gráfica',
   'eq.mode.customized': 'Personalizado',
   'eq.mode.strength': 'Intensidad',
   'eq.mode.q': 'Q de bandas',
@@ -166,6 +184,8 @@ const eq: Partial<Dictionary> = {
     'Activado, el visualizador es de noche por la noche y de día durante el día, según el reloj de este equipo. Desactivado, conserva la luz del día que elijas arriba.',
   'graph.sceneTint.daylightFollowingClockHint':
     'Sigue al reloj. Desactiva «La luz sigue al reloj» para darle al visualizador su propia hora del día',
+  'graph.sceneTint.daylightStudioHint':
+    'Con el Estudio abierto, el Brillo fija la hora del día del visualizador, para probar una escena de noche a día. Esta elección vuelve al salir del Estudio',
   'graph.sceneTint.brightnessHint':
     'Qué tan clara u oscura queda la ventana, con tu tema o con los colores del visualizador',
   'graph.member.mine': 'Hechos por ti',
@@ -292,6 +312,15 @@ const eq: Partial<Dictionary> = {
   'graph.curve.driver': 'Transductor',
   'graph.curve.headphone': 'Auriculares',
   'graph.curve.eq': 'Respuesta del EQ',
+  'graph.curve.leftEar': 'Oído izquierdo',
+  'graph.curve.rightEar': 'Oído derecho',
+  'eq.channels.update':
+    'El FluidEQ Engine de este equipo toca esta banda en ambos oídos hasta que se instale su actualización.',
+  'eq.channels.both': 'Ambos oídos',
+  'eq.channels.split': 'Izquierdo + derecho',
+  'eq.channels.importInto': 'Importar en',
+  'eq.channels.letter.left': 'I',
+  'eq.channels.letter.right': 'D',
   'graph.curve.voicing': 'Preset',
   'graph.curve.smart': 'EQ inteligente',
   'graph.curve.custom': 'FX personalizados',
@@ -431,7 +460,7 @@ const eq: Partial<Dictionary> = {
   'output.undoSevenOne': 'Deshacer',
   'output.sevenOneFailed': 'Windows no aceptó el formato 7.1 en esta salida.',
   'output.none': 'No se han encontrado salidas activas',
-  'output.mapping': 'Asignación automática',
+  'output.battery': 'Batería {percent}%',
   'output.mapping.neutral': 'Salida neutra',
   'output.mapping.live': 'Ajuste en directo asociado',
   'output.hint':
@@ -443,19 +472,12 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'No se encontraron otras salidas',
   'extraOutput.statusOff': 'Apagada',
   'extraOutput.volume': 'Volumen',
-  'extraOutput.mode.title': 'Cómo sigue el ritmo',
-  'extraOutput.mode.video.title': 'Juego/Vídeo',
-  'extraOutput.mode.video.body':
-    'Se mantiene a unas centésimas de segundo de la imagen y se vuelve a sincronizar solo tras un tropiezo.',
-  'extraOutput.mode.video.buffer': 'Inicio ~30 ms',
-  'extraOutput.mode.music.title': 'Música',
-  'extraOutput.mode.music.body':
-    'Guarda una décima de segundo de reserva para no entrecortarse nunca.',
-  'extraOutput.mode.music.buffer': 'Inicio ~100 ms',
-  'extraOutput.latency.video':
-    'El sonido duplicado queda lo bastante cerca de una pantalla para que los labios cuadren. Si oyes las dos salidas desde el mismo sitio puedes notar un ligero doblado.',
-  'extraOutput.latency.music':
-    'El sonido duplicado llega con una décima de segundo de retraso y nunca se entrecorta. Bien para otra habitación; para una pantalla cambia a Juego/Vídeo.',
+  'extraOutput.latency':
+    'La salida principal no espera a las secundarias. Estas cifras estiman el audio almacenado por el software, no el retraso que oyes. Los controladores, dispositivos y conexiones inalámbricas pueden añadir más retraso.',
+  'extraOutput.delayUnavailable': 'Retraso no disponible',
+  'extraOutput.delay': 'Búfer de software: {milliseconds} ms',
+  'extraOutput.delayFrom':
+    'Desde {name}: {milliseconds} ms de búfer de software',
   'extraOutput.virtual':
     'Hay un controlador de enrutamiento instalado. Apunta tus aplicaciones a él y ambas salidas quedan sincronizadas; luego da a cada una su propio perfil arriba.',
   'extraOutput.ambiguous':
@@ -552,6 +574,7 @@ const eq: Partial<Dictionary> = {
   'opra.createdBy': 'Preset creado por {author}',
   'opra.distributedBy': 'Distribuido por OPRA by Roon',
   'opra.source': 'Fuente',
+  'opra.onSite': 'Todas sus correcciones en fluideq.com',
   'autoeq.curveTitle': 'Corrección aplicada',
   'autoeq.curveEmptyHint':
     'Elige unos auriculares y un objetivo, y aplica su EQ: la corrección que produce se dibuja aquí.',
@@ -597,8 +620,8 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'EQ paramétrico',
   'eq.smart': 'EQ inteligente',
   'eq.smart.cancel': 'Cancelar',
+  'eq.smart.stopAria': 'Detener el EQ inteligente',
   'eq.smart.aria': 'EQ inteligente a partir de la fuente',
-  'eq.smart.cancelAria': 'Cancelar la medición del EQ inteligente',
   'eq.smart.continuousAria':
     'Mantener el EQ inteligente midiendo y ajustando mientras suena la música',
   'eq.smart.modeAria': 'Elegir cómo mide el EQ inteligente',
@@ -677,6 +700,8 @@ const eq: Partial<Dictionary> = {
   'eq.menu.enable': 'Activar banda',
   'eq.menu.disableSelection': 'Desactivar {count} bandas',
   'eq.menu.enableSelection': 'Activar {count} bandas',
+  'eq.menu.deleteSelection': 'Eliminar {count} bandas',
+  'eq.menu.deleteConfirm': 'Pulsa otra vez para eliminar',
   'eq.menu.addLeft': 'Añadir banda a la izquierda',
   'eq.menu.addRight': 'Añadir banda a la derecha',
   'eq.menu.selection': '{count} bandas seleccionadas',
@@ -770,6 +795,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Dispositivo de audio',
   'autoeq.targetAria': 'Respuesta de frecuencia objetivo',
   'eq.band.edit': 'Editar la banda de {frequency} Hz',
+  'eq.band.gainSlider': 'Ganancia de {frequency}',
+  'graph.handle.label':
+    '{band}, {frequency}. Arrastra para cambiar su frecuencia y su ganancia; Ctrl+rueda cambia su Q.',
+  'graph.handle.off': 'apagada',
+  'graph.handle.select': 'Haz clic para seleccionarla',
+  'graph.handle.quality': 'Ctrl+rueda cambia la Q',
   'eq.layers.apoEdit': 'Edición en Equalizer APO',
   'convolution.entryDetail': '{provider} · fase mínima · WAV a {rate} kHz',
   'eq.refused.bandLimit':
@@ -784,6 +815,126 @@ const eq: Partial<Dictionary> = {
   'eq.refused.preampRange.action': 'La preamplificación se quedó como estaba.',
   'eq.refused.externalEq':
     'El EQ externo contiene etapas que FluidEQ no puede adoptar con seguridad. Sus archivos no se modificaron.',
+  // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.tab.opra': 'Biblioteca OPRA',
+  'myCurves.tab.mine': 'Mis curvas',
+  'myCurves.tab.squiglink': 'Squiglink',
+  'myCurves.search': 'Busca en tus curvas',
+  'myCurves.sort': 'Ordenar',
+  'myCurves.sort.recent': 'Recientes',
+  'myCurves.sort.name': 'A–Z',
+  'myCurves.add': 'Añadir curva',
+  'myCurves.import': 'Importar lista',
+  'myCurves.export': 'Exportar lista',
+  'myCurves.empty.title': 'Todavía no tienes curvas propias',
+  'myCurves.empty.body':
+    'Añade una desde una exportación de Squiglink o un archivo .txt, o guárdala desde la pestaña Squiglink. Tus curvas se quedan en este equipo hasta que las exportes.',
+  'myCurves.noMatch': 'Ninguna curva tiene eso en su nombre.',
+  'myCurves.source.squiglink': 'Squiglink',
+  'myCurves.source.file': 'Archivo',
+  'myCurves.source.eq': 'Mi EQ',
+  'myCurves.source.opra': 'De OPRA',
+  'myCurves.added': 'Añadida el {date}',
+  'myCurves.playing': 'Sonando',
+  'myCurves.applyEqHint':
+    'Reemplaza tus bandas editables por las de esta curva. Pulsa otra vez para confirmar.',
+  'myCurves.replaceBands': '¿Reemplazar tus bandas?',
+  'myCurves.more': 'Más para {name}',
+  'myCurves.rename': 'Renombrar',
+  'myCurves.duplicate': 'Duplicar',
+  'myCurves.copyText': 'Copiar como texto',
+  'myCurves.copied': 'Copiada',
+  'myCurves.delete': 'Eliminar',
+  'myCurves.deleteAsk': '¿Eliminar «{name}»?',
+  'myCurves.deleteBody':
+    'Sale de Mis curvas para siempre. Una lista que hayas exportado la conserva.',
+  'myCurves.cancel': 'Cancelar',
+  'myCurves.addTitle': 'Añadir una curva',
+  'myCurves.addIntro':
+    'Se guarda en Mis curvas. No suena nada hasta que la apliques.',
+  'myCurves.textLabel': 'Texto ParametricEQ',
+  'myCurves.textPlaceholder':
+    'Pega aquí una exportación ParametricEQ o GraphicEQ',
+  'myCurves.read': 'Leído: {count} bandas, preamplificación {preamp} dB',
+  'myCurves.readNothing':
+    'Este texto aún no tiene ninguna curva. Pega una exportación ParametricEQ o GraphicEQ.',
+  'myCurves.fileFailed': 'Ese archivo no se pudo leer como una curva.',
+  'myCurves.name': 'Nombre',
+  'myCurves.ears': 'Oídos',
+  'myCurves.defaultName': 'Curva de Squiglink, {date}',
+  'myCurves.chartAria': 'La curva {name}, de 20 Hz a 20 kHz',
+  'myCurves.save': 'Guardar en Mis curvas',
+  'myCurves.saveApply': 'Guardar y aplicar como curva',
+  'myCurves.exportTitle': 'Exportar Mis curvas',
+  'myCurves.exportIntro':
+    'Curvas en la lista: {count}. En el archivo no va nada de tus salidas ni de tu cuenta.',
+  'myCurves.format': 'Formato',
+  'myCurves.format.list': 'Una lista de curvas de FluidEQ (.fqcurves)',
+  'myCurves.format.listHint':
+    'Se importa entera en cualquier FluidEQ: cada nombre, curva, preamplificación y oído.',
+  'myCurves.format.folder': 'Una carpeta de archivos .txt',
+  'myCurves.format.folderHint':
+    'Un archivo ParametricEQ por curva, con su nombre, para Equalizer APO, Squiglink y las herramientas de AutoEQ.',
+  'myCurves.exportRun': 'Exportar',
+  'myCurves.exportFailed':
+    'Las curvas no se pudieron escribir ahí. Elige otro lugar y vuelve a intentarlo.',
+  'myCurves.fileName': 'Mis curvas',
+  'myCurves.importTitle': 'Importar curvas',
+  'myCurves.importIntro':
+    'Elige una lista de curvas de FluidEQ, o uno o varios archivos .txt ParametricEQ.',
+  'myCurves.importFrom': 'De {files}',
+  'myCurves.chooseFiles': 'Elegir archivos',
+  'myCurves.importHint': 'Verás cada curva antes de que se añada nada.',
+  'myCurves.importNothing':
+    'Esos archivos no tienen ninguna curva que FluidEQ pueda leer.',
+  'myCurves.clash': 'Ya tienes una curva con este nombre',
+  'myCurves.clashChoice': 'Qué hacer con {name}',
+  'myCurves.new': 'Nueva',
+  'myCurves.choice.keepBoth': 'Conservar ambas',
+  'myCurves.choice.replace': 'Reemplazar',
+  'myCurves.choice.skip': 'Omitir',
+  'myCurves.importRun': 'Importar ({count})',
+  'myCurves.importSkipped': 'Omitidas por no tener curva: {names}',
+  'myCurves.importNote':
+    'Las curvas importadas nunca suenan solas; la que suena ahora sigue sonando.',
+  'myCurves.from': 'De dónde viene',
+  'myCurves.from.paste': 'Pegar',
+  'myCurves.from.pasteHint':
+    'El texto ParametricEQ de Squiglink, o el de AutoEQ',
+  'myCurves.from.file': 'Un archivo .txt',
+  'myCurves.from.fileHint': 'Formato de Equalizer APO o AutoEQ',
+  'myCurves.from.eq': 'Mi EQ ahora',
+  'myCurves.from.eqHint': 'Las bandas que tienes, tal como suenan',
+  'myCurves.from.opra': 'De OPRA',
+  'myCurves.from.opraHint':
+    'Una copia de la corrección que suena, para renombrarla y editarla',
+  'myCurves.from.opraNone': 'Primero pon una corrección de la biblioteca OPRA',
+  'myCurves.defaultNameEq': 'Mi EQ, {date}',
+  'myCurves.defaultNameOpra': 'Curva de OPRA, {date}',
+  'myCurves.unread': 'Líneas no leídas, que no están en la curva: {lines}',
+  'myCurves.eqLeftOut':
+    'Las bandas de un solo oído quedan fuera: {count}. Elige Oído izquierdo u Oído derecho para conservarlas.',
+  'myCurves.full':
+    'Mis curvas guarda hasta {count} curvas y está lleno. Borra algunas para hacer sitio.',
+  'myCurves.editTitle': 'Editar curva',
+  'myCurves.editIntro':
+    'Cambia su nombre, sus oídos o sus bandas. Si está sonando, vuelve a aplicarla para oír el cambio.',
+  'myCurves.saveChanges': 'Guardar cambios',
+  'myCurves.editBands': 'Editar bandas',
+  'myCurves.readFailed': 'No se pudieron leer tus curvas',
+  'myCurves.readFailedBody':
+    'Siguen en este ordenador y no se cambió nada. Inténtalo de nuevo en un momento.',
+  'myCurves.retry': 'Reintentar',
+  'myCurves.importSkippedMore':
+    'Omitidas por no tener curva: {names} y {count} más',
+  'myCurves.importRoom':
+    'Mis curvas guarda {max}. Hay sitio para {room} de estas; las otras {count} se quedan fuera.',
+  'myCurves.quick.label': 'Corrección',
+  'myCurves.quick.previous': 'Corrección anterior',
+  'myCurves.quick.next': 'Corrección siguiente',
+  'myCurves.quick.none': 'Ninguna sonando',
+  'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': 'En Mis curvas como “{name}”',
 };
 
 export default eq;

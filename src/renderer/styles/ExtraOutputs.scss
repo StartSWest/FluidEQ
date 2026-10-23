@@ -141,6 +141,27 @@ it under the terms of the GNU General Public License version 3 or later.
   font-variant-numeric: tabular-nums;
 }
 
+// How far behind this output plays, measured: under its level, in the
+// monospace face every readout of this kind uses. With another computer's
+// sound playing here, its own figure follows on the same line or wraps.
+.extra-outputs__delay {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  margin: 3px 0 0;
+  gap: 2px 10px;
+  color: $text-muted;
+  font-family: $font-mono;
+  font-size: $text-micro;
+  line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+
+  span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
 // Under the name, not beside it, and quieter than it: this is what the output
 // already plays, not something to act on.
 .extra-outputs__profile {
@@ -154,6 +175,89 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Which input of a routing driver this is. Voicemeeter's three differ by a
 // single word, so the distinction has to be visible at a glance.
+// The outputs that are on, while the card is folded: one row apiece, each its
+// light, its name and its battery, so two outputs read as two and the level
+// is never cut off — the name gives way first.
+.extra-outputs__onList {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  gap: 6px;
+  list-style: none;
+}
+
+// The light against the first line, the name's, wherever the profile under
+// it wraps to.
+.extra-outputs__on {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 8px;
+
+  > .device-dot {
+    flex: 0 0 auto;
+    margin-top: 5px;
+  }
+}
+
+.extra-outputs__onText {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 2px;
+}
+
+.extra-outputs__onLine {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.extra-outputs__onName {
+  @include truncate;
+  min-width: 0;
+  flex: 0 1 auto;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  line-height: 1.35;
+}
+
+.extra-outputs__onProfile {
+  @include truncate;
+  min-width: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.35;
+}
+
+// The action belongs to the profile line. A separate column beside the
+// endpoint name squeezed both the name and "Edit sound" into fragments.
+.extra-outputs__profileActions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+
+  > .output-profile-select {
+    flex: 1 1 auto;
+  }
+}
+
+.extra-outputs__separator {
+  flex: 0 0 auto;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+// The device's battery, where it reports one, after the name the way the tag
+// is: on the name's last line, never breaking inside itself.
+.extra-outputs__name .battery-level {
+  margin-left: 6px;
+}
+
 .extra-outputs__tag {
   display: inline-block;
   margin-left: 6px;
@@ -171,79 +275,6 @@ it under the terms of the GNU General Public License version 3 or later.
 .extra-outputs__obstacle {
   margin: 4px 0 0;
   color: $red;
-  font-size: $text-small;
-  line-height: 1.35;
-}
-
-// The buffering choice as a two-way pick: two halves of one row, the chosen
-// half lit, and one sentence under the row for whichever is chosen. The LAN
-// panel's two cards — a title, a sentence and a figure each — stacked here
-// took a quarter of the sidebar to say what this says in three lines.
-.extra-outputs__mode {
-  display: grid;
-  min-width: 0;
-  margin-top: 8px;
-  gap: 6px;
-}
-
-.extra-outputs__modes {
-  display: grid;
-  min-width: 0;
-  gap: 6px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.extra-outputs__modeOption {
-  @include field-interactive;
-  display: grid;
-  min-width: 0;
-  min-height: 44px;
-  align-items: center;
-  padding: 6px 10px;
-  gap: 2px 8px;
-  grid-template-columns: auto minmax(0, 1fr);
-  color: $text-muted;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-
-  svg {
-    width: 15px;
-    height: 15px;
-    flex: 0 0 auto;
-    grid-row: 1 / span 2;
-  }
-
-  strong {
-    @include truncate;
-    color: $text-primary;
-    font-size: $text-body;
-  }
-
-  // The figure in the monospace face every readout of this kind uses.
-  em {
-    @include truncate;
-    color: $text-faint;
-    font-family: $font-mono;
-    font-size: $text-micro;
-    font-style: normal;
-  }
-
-  &.is-selected {
-    color: $secondary-light;
-    border-color: color-mix(in srgb, $secondary-light 42%, transparent);
-    background: color-mix(in srgb, $secondary-default 14%, transparent);
-
-    strong,
-    svg {
-      color: $secondary-light;
-    }
-  }
-}
-
-.extra-outputs__modeHint {
-  margin: 0;
-  color: $text-muted;
   font-size: $text-small;
   line-height: 1.35;
 }

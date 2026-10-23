@@ -6,6 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "room_head.h"
 
+#include "fluideq/room.h"
+
 #include <sstream>
 
 namespace fluideq_engine {
@@ -18,17 +20,14 @@ namespace {
 constexpr unsigned kMaxDirections = 72;
 constexpr unsigned kMaxTaps = 4096;
 
+// The room's own table (`feq_room_head_rate`), so the block read here is
+// the one the room renders at: a second copy of it once kept every output
+// faster than 192 kHz without a head while the room could play there.
 double block_rate_for(double stream_rate, bool* doubling) {
-  *doubling = false;
-  if (stream_rate == 44100.0 || stream_rate == 48000.0 ||
-      stream_rate == 96000.0) {
-    return stream_rate;
-  }
-  if (stream_rate == 192000.0) {
-    *doubling = true;
-    return 96000.0;
-  }
-  return 0.0;
+  int doubled = 0;
+  const double rate = feq_room_head_rate(stream_rate, &doubled);
+  *doubling = doubled != 0;
+  return rate;
 }
 
 }  // namespace
@@ -42,7 +41,17 @@ std::optional<RoomHead> parse_room_head(const std::string& text,
   }
   std::istringstream lines(text);
   std::string line;
+  int head_size = -1;
   while (std::getline(lines, line)) {
+    constexpr const char* kHeader = "# FluidEQ room head v1 ";
+    if (line.rfind(kHeader, 0) == 0) {
+      const size_t size_from = std::char_traits<char>::length(kHeader);
+      const size_t size_to = line.find_first_of(" \t\r", size_from);
+      const std::string size = line.substr(size_from, size_to - size_from);
+      head_size = size == "small" ? 0 : size == "medium" ? 1
+                                      : size == "large" ? 2 : -1;
+      continue;
+    }
     if (line.rfind("rate ", 0) != 0) {
       continue;
     }
@@ -60,6 +69,7 @@ std::optional<RoomHead> parse_room_head(const std::string& text,
       return std::nullopt;
     }
     RoomHead head;
+    head.size = head_size;
     head.directions = directions;
     head.taps = taps;
     head.sample_rate = rate;

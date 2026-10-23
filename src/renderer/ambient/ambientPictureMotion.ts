@@ -30,43 +30,56 @@ const smoothstep = (edge0: number, edge1: number, value: number) => {
 };
 
 /**
- * A picture's poses this frame, with their shares. Its frames play through
- * once per turn of the particle's phase — one wingbeat for a flier — each
- * dissolving into the next over the middle of its turn, the way Alpine's own
- * shader blends its bird sprites. One with a resting pose settles into it
- * every few seconds and glides, on the same slow wave that holds an outline
- * bird's wings out.
+ * The poses of `count` frames at `phase`, with their shares, `glide` of the
+ * whole given to the resting pose `rest`. The frames play through once per
+ * turn of the phase — one wingbeat for a flier — each dissolving into the
+ * next over the middle of its turn, the way Alpine's own shader blends its
+ * bird sprites.
  */
-export const picturePoses = (
-  element: IAmbientElement,
-  particle: IAmbientParticle,
-  time: number,
+export const wingbeatPoses = (
+  count: number,
+  phase: number,
+  rest?: number,
+  glide = 0,
 ): (readonly [number, number])[] => {
-  const count = element.frames?.length ?? 0;
   if (count === 0) {
     return [];
   }
-  const turn = particle.phase / TAU;
+  const turn = phase / TAU;
   const cycle = (turn - Math.floor(turn)) * count;
   const at = Math.floor(cycle) % count;
   const blend = smoothstep(0.15, 0.85, cycle - Math.floor(cycle));
-  const glide =
-    element.rest === undefined
-      ? 0
-      : smoothstep(-0.1, 0.35, Math.sin(time * 0.45 + particle.seed * 9));
+  const held = rest === undefined ? 0 : glide;
   const shares = new Map<number, number>();
   const add = (index: number, share: number) => {
     if (share > 0.01) {
       shares.set(index, (shares.get(index) ?? 0) + share);
     }
   };
-  add(at, (1 - blend) * (1 - glide));
-  add((at + 1) % count, blend * (1 - glide));
-  if (element.rest !== undefined) {
-    add(element.rest, glide);
+  add(at, (1 - blend) * (1 - held));
+  add((at + 1) % count, blend * (1 - held));
+  if (rest !== undefined) {
+    add(rest, held);
   }
   return [...shares];
 };
+
+/**
+ * A picture's poses this frame, with their shares: its wingbeat, and, for
+ * one with a resting pose, a settle into it every few seconds to glide, on
+ * the same slow wave that holds an outline bird's wings out.
+ */
+export const picturePoses = (
+  element: IAmbientElement,
+  particle: Pick<IAmbientParticle, 'phase' | 'seed'>,
+  time: number,
+): (readonly [number, number])[] =>
+  wingbeatPoses(
+    element.frames?.length ?? 0,
+    particle.phase,
+    element.rest,
+    smoothstep(-0.1, 0.35, Math.sin(time * 0.45 + particle.seed * 9)),
+  );
 
 /**
  * Which way a picture faces and leans. One that looks one way turns to face
@@ -76,7 +89,7 @@ export const picturePoses = (
  */
 export const pictureBearing = (
   element: IAmbientElement,
-  particle: IAmbientParticle,
+  particle: Pick<IAmbientParticle, 'heading' | 'spin'>,
   wave: number,
 ): { scaleX: number; rotation: number; shimmer: number } => {
   const travels = HEADED_MOTIONS.has(element.motion);

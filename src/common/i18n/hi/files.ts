@@ -40,6 +40,10 @@ const files = {
     'इंपोर्ट करने से पहले Squiglink का EQ एक्सपोर्ट पेस्ट करें।',
   'files.squiglink.tooLarge':
     'वह EQ एक्सपोर्ट इंपोर्ट करने के लिए बहुत बड़ा है।',
+  'files.squiglink.earsNeedBands':
+    'यह निर्यात एक सैंपल किया गया कर्व है, जो दोनों कानों पर एक साथ लागू होता है। इसे दोनों कानों पर लागू कीजिए, या पैरामीट्रिक फ़िल्टर के रूप में निर्यात कीजिए।',
+  'files.squiglink.tooManyBands':
+    'इससे {max} से ज़्यादा बैंड हो जाएँगे। पहले कुछ बैंड हटाइए, या इसे दोनों कानों पर लागू कीजिए।',
   'files.squiglink.noFilters':
     'कोई Equalizer APO फ़िल्टर नहीं मिला। Squiglink से एक्सपोर्ट किया गया ParametricEQ या GraphicEQ टेक्स्ट कॉपी करें।',
   'files.eq.tooLarge': 'वह फ़ाइल EQ सेटिंग होने के लिए बहुत बड़ी है।',
@@ -69,6 +73,10 @@ const files = {
   'files.apo.editorMissing': 'Equalizer APO की सेटिंग्स नहीं मिलीं।',
   'files.wav.tooLong':
     'वह इम्पल्स रिस्पॉन्स सुरक्षित नॉर्मलाइज़ेशन के लिए विश्लेषण करने को बहुत लंबा है।',
+  // My curves out through Save As (main/ipc/curveExport.ts).
+  'files.title.exportCurves': 'मेरे कर्व निर्यात करें',
+  'files.type.curveList': 'FluidEQ कर्व सूची',
+  'files.title.exportCurveFolder': 'कर्व के लिए एक फ़ोल्डर चुनें',
 } as const;
 
 export default files;

@@ -3,9 +3,9 @@
 #include <cmath>
 #include <sstream>
 
-MirrorControl::MirrorControl(std::uint32_t rate, std::uint16_t channels,
-                             Reply reply)
-    : rate_(rate), channels_(channels), reply_(reply) {
+MirrorControl::MirrorControl(HANDLE input, std::uint32_t rate,
+                             std::uint16_t channels, Reply reply)
+    : input_(input), rate_(rate), channels_(channels), reply_(reply) {
   event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
   if (event_ != nullptr) {
     thread_ = CreateThread(nullptr, 0, read_commands, this, 0, nullptr);
@@ -25,7 +25,7 @@ MirrorControl::~MirrorControl() {
 DWORD WINAPI MirrorControl::read_commands(void* context) {
   auto& self = *static_cast<MirrorControl*>(context);
   std::string line;
-  const HANDLE input = GetStdHandle(STD_INPUT_HANDLE);
+  const HANDLE input = self.input_;
   while (!self.stopping_) {
     char value = 0;
     DWORD read = 0;
@@ -60,20 +60,34 @@ bool MirrorControl::commands() {
     input >> command >> request >> id;
     HRESULT result = E_INVALIDARG;
     if (input && id != 0 && request != 0) {
-      if (command == "start" && outputs_.size() < 16 && !outputs_.contains(id)) {
+      if (command == "start" && outputs_.size() < 16 &&
+          !outputs_.contains(id) && !holds_.contains(id)) {
         std::string guid;
-        std::string mode;
         float volume = 1;
-        input >> guid >> mode >> volume;
+        input >> guid >> volume;
         if (input && guid.size() == 38 && guid.front() == '{' &&
-            guid.back() == '}' && (mode == "video" || mode == "music") &&
-            std::isfinite(volume) && volume >= 0 && volume <= 1) {
+            guid.back() == '}' && std::isfinite(volume) && volume >= 0 &&
+            volume <= 1) {
           auto output = std::make_unique<MirrorOutput>();
-          result = output->open(guid, rate_, channels_, mode == "video", volume);
+          result = output->open(guid, rate_, channels_, volume);
           if (SUCCEEDED(result)) { outputs_.emplace(id, std::move(output)); }
+        }
+      } else if (command == "hold" && holds_.size() < 16 &&
+                 !holds_.contains(id) && !outputs_.contains(id)) {
+        std::string guid;
+        input >> guid;
+        if (input && guid.size() == 38 && guid.front() == '{' &&
+            guid.back() == '}') {
+          auto hold = std::make_unique<HoldOutput>();
+          result = hold->open(guid);
+          if (SUCCEEDED(result)) {
+            holds_.emplace(id, std::move(hold));
+          }
         }
       } else if (command == "stop") {
         outputs_.erase(id);
+        holds_.erase(id);
+        renders_.erase(id);
         result = S_OK;
       } else if (command == "volume" && outputs_.contains(id)) {
         float volume = 1;
@@ -91,6 +105,8 @@ bool MirrorControl::commands() {
 
 void MirrorControl::fail(std::uint32_t id, HRESULT result) {
   outputs_.erase(id);
+  holds_.erase(id);
+  renders_.erase(id);
   if (!reply_(4, id, result)) { stopping_ = true; }
 }
 
@@ -105,14 +121,30 @@ void MirrorControl::push(const float* samples, std::uint32_t frames, bool silent
 
 void MirrorControl::append_events(std::vector<HANDLE>& events) const {
   for (const auto& entry : outputs_) { events.push_back(entry.second->event()); }
+  for (const auto& entry : holds_) { events.push_back(entry.second->event()); }
 }
 
 void MirrorControl::render(HANDLE event) {
-  for (const auto& entry : outputs_) {
+  for (const auto& entry : holds_) {
     if (entry.second->event() == event) {
       const auto id = entry.first;
       const HRESULT result = entry.second->render();
       if (FAILED(result)) { fail(id, result); }
+      return;
+    }
+  }
+  for (const auto& entry : outputs_) {
+    if (entry.second->event() == event) {
+      const auto id = entry.first;
+      const HRESULT result = entry.second->render();
+      if (FAILED(result)) {
+        fail(id, result);
+      } else if (++renders_[id] % kDelayEveryRenders == 0) {
+        // The delay rides the result field: microseconds fit in it.
+        if (!reply_(5, id, static_cast<HRESULT>(entry.second->delay_us()))) {
+          stopping_ = true;
+        }
+      }
       return;
     }
   }

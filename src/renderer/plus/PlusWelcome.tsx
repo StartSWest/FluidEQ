@@ -1,4 +1,5 @@
 import type { TranslationKey } from 'common/i18n/en';
+import { STARTER_CREDITS } from 'common/sceneStore';
 import { requestAccountPanel } from '../account/accountPanel';
 import hyperdrive from '../../../assets/plus/hyperdrive.jpg';
 import lanternLake from '../../../assets/plus/lantern-lake.jpg';
@@ -8,7 +9,6 @@ import prismBloom from '../../../assets/plus/prism-bloom.jpg';
 import reefLight from '../../../assets/plus/reef-light.jpg';
 import Glyph, { type TCommunityGlyph } from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import PlusTrialOffer, { PlusFreeIntro } from './PlusTrialCard';
 import '../styles/PlusWelcome.scss';
 
 /**
@@ -37,7 +37,6 @@ const PERKS: readonly {
   { glyph: 'looks', key: 'trial.extras.scenes' },
   { glyph: 'studio', key: 'trial.extras.studio' },
   { glyph: 'lighting', key: 'trial.extras.desktop' },
-  { glyph: 'board', key: 'trial.extras.board' },
 ];
 
 /**
@@ -49,7 +48,14 @@ export default function PlusWelcome({ onSignIn }: { onSignIn: () => void }) {
   return (
     <div className="plus-welcome">
       <div className="plus-welcome__inner">
-        <PlusFreeIntro />
+        {/* What the free app is and how scenes are got. Said here, before
+            signing in, and no longer over the gallery (Ivan, 2026-10-21). */}
+        <header className="plus-free-intro">
+          <h2>{t('trial.free.title')}</h2>
+          <p>
+            {t('trial.free.body', { starterCredits: String(STARTER_CREDITS) })}
+          </p>
+        </header>
         <div className="plus-welcome__scenes" aria-hidden="true">
           {/* The scenes' own light on the wall behind them: the lead
               picture again, blown up and blurred to a glow. */}
@@ -66,7 +72,7 @@ export default function PlusWelcome({ onSignIn }: { onSignIn: () => void }) {
             <span className="plus-welcome__brand-mark" aria-hidden="true">
               <Glyph name="plus" />
             </span>
-            {t('account.plus.eyebrow')}
+            {t('terms.eyebrow')}
           </span>
           <h3 className="plus-welcome__title">{t('trial.extras.title')}</h3>
           <ul className="plus-welcome__perks">
@@ -79,7 +85,6 @@ export default function PlusWelcome({ onSignIn }: { onSignIn: () => void }) {
               </li>
             ))}
           </ul>
-          <PlusTrialOffer />
           <p className="gallery-fine">{t('trial.browse')}</p>
           <button
             type="button"

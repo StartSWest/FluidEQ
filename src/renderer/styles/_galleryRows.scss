@@ -50,32 +50,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .gallery-maker__figures {
   flex: 1 1 280px;
-  // Three figures, or four with a place on the leaderboard: as many columns
-  // as there are, each at least wide enough for its number.
+  // As many columns as there are figures, each at least wide enough for its
+  // number.
   grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
   max-width: 480px;
 
   div {
     background: color-mix(in srgb, $black 22%, transparent);
-  }
-}
-
-// The maker's place on the leaderboard, in the trophy's gold: the one
-// figure here that is a standing rather than a count.
-.gallery-maker__figures .gallery-maker__rank {
-  border-color: color-mix(in srgb, $amber 42%, transparent);
-  background: color-mix(in srgb, $amber 10%, rgba($black, 0.22));
-
-  dd {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    color: color-mix(in srgb, $amber 70%, $white);
-  }
-
-  svg {
-    width: 15px;
-    height: 15px;
   }
 }
 
@@ -548,10 +529,56 @@ it under the terms of the GNU General Public License version 3 or later.
 
   li {
     display: grid;
-    grid-template-columns: 3.2em minmax(0, 1fr);
+    // The third column is the version's Play, or its Playing tag: only an
+    // owner's kept versions have one, and an empty column takes no room.
+    grid-template-columns: 3.2em minmax(0, 1fr) auto;
+    align-items: start;
     gap: 8px;
     font-size: $text-small;
   }
+
+  li.is-playing .gallery-versions__number {
+    color: $text-accent;
+  }
+}
+
+// An earlier version playing: said above the list, where the way back is.
+.gallery-versions__pinned {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, $secondary-default 30%, transparent);
+  border-radius: $radius-m;
+  background: $hover-accent;
+
+  p {
+    flex: 1 1 16em;
+    min-width: 0;
+    margin: 0;
+    color: $text-primary;
+    font-size: $text-small;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+}
+
+.gallery-versions__playing {
+  align-self: center;
+  padding: 1px 8px;
+  border: 1px solid color-mix(in srgb, $secondary-default 55%, transparent);
+  border-radius: $radius-2xs;
+  color: $text-accent;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+}
+
+.gallery-versions__play {
+  align-self: center;
+  white-space: nowrap;
 }
 
 .gallery-versions__number {

@@ -1,4 +1,4 @@
-# FluidEQ 2.0
+# FluidEQ 2.1
 
 > Your sound, finally worth watching.
 
@@ -13,10 +13,50 @@ touching anything again.
 
 ![FluidEQ 2.0 on the Backdrop: the Aurora visualizer, snowy pines under the northern lights over a still lake, fills the whole window, and the equaliser stands on it as panes of glass: the graph with its curves at the top, the band sliders and the Tone knobs under it, the side column with the engine switch, the preamp and the level meter down the left, and the output and its profiles down the right.](assets/tour/look-backdrop.jpg)
 
-## New in 2.0
+## Coming from another equalizer?
 
-The biggest release FluidEQ has had. The whole list is in the
+| You use now   | Read                                                                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Equalizer APO | [FluidEQ vs Equalizer APO](https://fluideq.com/compare/equalizer-apo) — FluidEQ runs on it, or on an engine of its own             |
+| Peace         | [FluidEQ vs Peace Equalizer](https://fluideq.com/compare/peace-equalizer) — Peace needs Equalizer APO underneath; FluidEQ does not |
+| FxSound       | [FluidEQ vs FxSound](https://fluideq.com/compare/fxsound) — no virtual audio device                                                |
+| Boom 3D       | [FluidEQ vs Boom 3D](https://fluideq.com/compare/boom-3d) — free, with surround on headphones in the Room                          |
+
+**Headphone corrections.** 6,229 headphones and 12,594 corrections are built
+in, made by AutoEq, oratory1990 and Rtings from measurements by crinacle,
+Innerfidelity, Super Review and others, and collected by
+[OPRA](https://github.com/opra-project/OPRA).
+[Find yours, and who made it](https://fluideq.com/headphones): every model has a
+page with its corrections drawn and given as Equalizer APO settings.
+
+## New in 2.1
+
+Every output gets a sound of its own. The whole list is in the
 [release notes](CHANGELOG.md); these are the headlines.
+
+- **Every output keeps its own sound.** The EQ, the preset, the Tone, the
+  DSP rack, the Room and the leveling come back with each output the moment
+  you switch to it, and a second output plays straight from the FluidEQ
+  Engine with a sound of its own.
+- **Tune each ear on its own.** Any band can become one band per ear, in the
+  EQ and in the DSP rack.
+- **My curves.** Your own list of curves beside OPRA's library: from
+  Squiglink, a .txt file, your EQ or an OPRA pick, each named, drawn and one
+  press from playing, and the whole list exported or imported as one file.
+  Squiglink has a tab of its own, and the EQ mode card switches corrections in
+  one press.
+- **Songs that remember how you like them**: tune a song once and it plays
+  that way every time, on the output you tuned it on.
+- **A De-esser in the DSP rack** that turns down only a voice's sharp S.
+- **Share Audio works both ways** between two computers, each direction with
+  its own switch, pause and volume.
+- **Every band's numbers on the graph**, with EQ mode as a card beside it.
+- **Ask the Studio for a change and watch it on the stage**: a chat beside the
+  Studio's stage, running on your own Claude Code.
+
+### New in 2.0
+
+The biggest release FluidEQ has had; these were its headlines.
 
 - **A new window, in new colours.** One slider, Brightness, takes the whole
   window from near-black to a light ocean blue. With a Plus visualizer on the
@@ -395,9 +435,12 @@ part of Plus.
 **Local, and account-free by default.** No cloud, no telemetry, no analytics, no
 proprietary driver, no virtual audio device. Your audio never leaves the
 machine, except to another computer of yours when you share it with Share
-Audio, over your own network and encrypted. Signing in is optional and changes
-none of that — the equaliser, the rack, the library and the players neither
-know nor care whether you have. Four downloads are worth naming, because being
+Audio, over your own network and encrypted. Signing in is optional — the
+equaliser, the rack, the library and the players neither know nor care whether
+you have. A signed-in account is asked once whether FluidEQ may count how long
+music plays, one number of minutes a day that only the maker sees, added up
+with everyone else's; it can be switched off at any time in the Account panel,
+which deletes what was sent. Four downloads are worth naming, because being
 caught out by one of them later is worse than the download itself: asking the
 Karaoke Maker to transcribe lyrics fetches a speech-recognition model (about
 570 MB where your graphics card can run it, about 1.1 GB where it cannot),
@@ -411,33 +454,34 @@ melody analysis and the voice cleaning all run on your machine. Pasting the
 words in skips the first, bringing your own instrumental skips the third, and a
 song you time by ear fetches nothing at all.
 
-## FluidEQ Plus
+## FluidEQ Plus: scenes that are yours for good
 
-An optional membership that keeps FluidEQ growing, with a tab of its own. The
-equaliser, the DSP rack, the Room, the Library, Karaoke and the players stay
-free, as they always have been; Plus is the visualizers and what is built on
-them.
+A tab of its own that keeps FluidEQ growing. The equaliser, the DSP rack, the
+Room, the Library, Karaoke and the players stay free, as they always have been;
+Plus is the visualizers and what is built on them. There is no subscription: a
+scene costs one credit and stays yours, on every computer you sign in to, with
+every new version its maker publishes. Credits come in packs paid once, nothing
+renews, and a confirmed account gets three to start.
 
 - **Plus visualizers.** Living scenes — mountains under the stars, curtains of
   aurora, a neon city, real 3D worlds — drawn on your graphics card under your
   EQ curves, where the bass, the beat and the treble each move something
   different. A gallery holds FluidEQ's own and the ones members publish, and
-  anyone signed in can try FluidEQ's samples for ten seconds.
+  anyone signed in can watch any of them for ten seconds before getting it.
 - **The Studio.** Describe a scene, open its folder in your own AI assistant,
   and every file it saves plays on the Studio's stage at once, beside meters of
-  what the scene hears of your song. A scene you publish is reviewed before it
-  reaches the gallery, and one that is approved earns your next month of Plus.
-  A new account can try the Studio free for fifteen days, with no card and
-  nothing charged when the trial ends.
-- **Your desktop and your desk.** A Plus visualizer can play behind your
+  what the scene hears of your song. It is free for every account. A scene you
+  publish is reviewed before it reaches the gallery, and once it is approved it
+  plays free for you everywhere.
+- **Your desktop and your desk.** A scene of yours can play behind your
   desktop icons, a different one on every monitor, pausing while windows cover
   it, while the computer is locked and on battery; and your RGB keyboard,
   mouse, headset and stand can take its colours and rhythm through Windows
   Dynamic Lighting and Razer Chroma (in beta).
 - **A leaderboard** of the members who listen most, if you want to be on it.
 
-Paying happens in your browser and the app never sees a card. The terms, under
-Account in the app, say in plain words what your account and Plus send to
+Paying happens in your browser, on Stripe, and the app never sees a card. The
+terms, under Account in the app, say in plain words what your account sends to
 FluidEQ's server and what is kept — never your audio, what you play, your EQ or
 your devices.
 
@@ -625,9 +669,10 @@ with the pencil on its row.
 
 ## Supporting the work
 
-Nothing here is tracked. No telemetry, no analytics, and no account is
-required — signing in is optional, and nothing that shapes the sound is gated
-behind it.
+Without an account nothing here is tracked: no telemetry, no analytics.
+Signing in is optional, and nothing that shapes the sound is gated behind it;
+a signed-in account's daily listening minutes are counted only after it is
+told, and only until it switches that off.
 
 **This is one person's work — mine, Ivan Carmenates Garcia — built with a lot of love
 and an unreasonable amount of attention to detail.** Every panel was drawn by
@@ -733,6 +778,15 @@ Copy `.env.example` to `.env` to set the contribution links. Every value in it
 is inlined into the renderer bundle and is therefore public by construction —
 the file says so at the top, at length, because that is exactly the kind of
 thing people get wrong once.
+
+**No payment key is in the app or in this repository, and none may be.**
+Payments are made on the payment provider's own page in the browser. The
+checkout is created by FluidEQ's server for the signed-in account, which holds
+the provider's secret key and webhook signing secret as server-side secrets;
+the app only opens the page the server hands back and reads the result from
+the server afterwards. The server's address and its public (anon) key are the
+only service values a build carries, and both are meant to be public: what an
+account may read or change is enforced by the server, never by the app.
 
 ## Where this came from
 

@@ -18,14 +18,10 @@ export interface IShipMoreItem {
   disabled?: boolean;
   /** Running now: pressed once already and still going. */
   busy?: boolean;
-  /** Plus's, shown locked where it would be pressed; it offers Plus instead. */
-  locked?: boolean;
 }
 
 interface IStudioShipMoreProps {
   items: readonly IShipMoreItem[];
-  /** A line above the rows, saying why they are what they are. */
-  lead?: string;
 }
 
 /**
@@ -35,7 +31,7 @@ interface IStudioShipMoreProps {
  * card was what the side column ended on; in the bar the one most members
  * press stands alone.
  */
-export default function StudioShipMore({ items, lead }: IStudioShipMoreProps) {
+export default function StudioShipMore({ items }: IStudioShipMoreProps) {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const holder = useRef<HTMLSpanElement>(null);
@@ -84,7 +80,6 @@ export default function StudioShipMore({ items, lead }: IStudioShipMoreProps) {
         className="studio-ship-more__menu"
         ariaLabel={t('studio.ship.more')}
       >
-        {lead && <p className="studio-ship-more__lead">{lead}</p>}
         {items.map((item) => (
           <button
             key={item.key}
@@ -92,7 +87,6 @@ export default function StudioShipMore({ items, lead }: IStudioShipMoreProps) {
             role="menuitem"
             className={`studio-ship-more__item${item.busy ? ' is-running' : ''}`}
             aria-busy={item.busy}
-            title={item.locked ? t('studio.plus.locked') : undefined}
             disabled={item.disabled}
             onClick={() => {
               setIsOpen(false);
@@ -101,9 +95,6 @@ export default function StudioShipMore({ items, lead }: IStudioShipMoreProps) {
           >
             <Glyph name={item.glyph} />
             <span className="studio-ship-more__label">{item.label}</span>
-            {item.locked && (
-              <Glyph name="lock" className="studio-ship-more__lock" />
-            )}
           </button>
         ))}
       </AnchoredMenu>

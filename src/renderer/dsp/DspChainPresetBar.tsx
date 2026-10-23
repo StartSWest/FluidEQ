@@ -36,6 +36,7 @@ import {
   DEFAULT_CHAIN_ID,
   NONE_CHAIN_ID,
   QUICK_DSP_PRESETS,
+  inListOrder,
   dspPresetHint as chainHint,
   dspPresetName,
   dspPresetRowHint,
@@ -116,7 +117,7 @@ const DspChainPresetBar = ({
       })),
     ),
   ];
-  // The starred ones first, in the order they were starred, then the usual
+  // The starred ones first, in the list's own order (`inListOrder`), then the usual
   // ones in the order the equaliser's quick pick gives them, each under a
   // heading of its own — once each: a preset listed twice is two rows lit at
   // once and an arrow that visits it twice. `ordered` follows, so the arrows
@@ -129,7 +130,11 @@ const DspChainPresetBar = ({
   // None above all of them, the starred ones included, with no heading and no
   // star, as on the equaliser's picker: it is the absence of a choice, and
   // a star it was given before it stood here is not a second place for it.
-  const starred = favourites.filter((id) => id !== NONE_CHAIN_ID);
+  const starred = inListOrder(filed)
+    .filter(
+      (entry) => entry.id !== NONE_CHAIN_ID && favourites.includes(entry.id),
+    )
+    .map((entry) => entry.id);
   const usual = QUICK_DSP_PRESETS.filter((id) => !starred.includes(id));
   const entries: IRichPickEntry[] = [
     ...lifted([NONE_CHAIN_ID], NONE_GROUP),

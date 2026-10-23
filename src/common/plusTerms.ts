@@ -4,8 +4,8 @@
  *
  * The words live in the `terms.*` dictionaries, all ten languages. The
  * numbers live here, next to the version, because each one is also enforced
- * somewhere — the offline grace by the entitlement check, the listening
- * window and the daily cap by the leaderboard's server — and a promise in the
+ * somewhere — the offline grace by the entitlement check, the scene-play
+ * window and the daily cap by the server — and a promise in the
  * terms that disagreed with the code keeping it would be the worst kind of
  * bug: one a person reads, relies on, and finds false.
  *
@@ -103,6 +103,42 @@
  * no record of the request, which is only true while the site's /video/
  * location has its access log off, as /fonts/ and /img/ already do.
  */
+/**
+ * 10: the app sends how long each Plus scene is on a member's screen, one
+ * number per scene per day, and which audio engine they chose, both only to
+ * FluidEQ's maker (premium migrations 0047 and 0049); it asks whether new
+ * scenes were announced; and adding one of FluidEQ's own scenes is kept like
+ * any other add. Revision 9 promised "Nothing else about what is on screen is
+ * kept", so this is a raise and edition 4: the app sends none of it until the
+ * member has been shown this text (`toldOf` in `ipc/plusTermsNotice.ts`).
+ * The server's `plus_terms_version()` moves to 10 in premium migration 0051,
+ * deployed with the release that carries this. Amended before that release,
+ * still revision 10: What's New plays short films from fluideq.com by itself
+ * as a slide opens (`FeatureFilm`), said under Where else FluidEQ connects
+ * and in this revision's notice.
+ */
+/**
+ * 11: credits (premium 0055-0062). A scene is bought once for one credit, from
+ * packs paid on Stripe, and kept for good; every scene can be watched for a
+ * few seconds first; FluidEQ's maker can make some of FluidEQ's own scenes
+ * free for everyone, and paid again; the Studio and publishing are every
+ * account's, and a member's own scene plays outside the Studio only once it
+ * is published — a draft plays on the Studio's stage, marked. Plus is
+ * described as what it is until FluidEQ ends it. Edition 5: what a scene
+ * costs and who may play it changed. Buying credits records an agreement to
+ * this version (create-credit-checkout refuses an older one), and the
+ * server's `plus_terms_version()` moves to 11 in premium migration 0062,
+ * deployed with the release that carries this.
+ *
+ * Amended, not raised, before its first release (2026-10-21): the only
+ * agreements to 11 on the server are FluidEQ's own test purchases. Credits
+ * not spent are refunded within `CREDIT_REFUND_DAYS` of buying their pack, and
+ * only those credits go back (Ivan, 2026-10-21; premium 0065 takes back the
+ * share a partial refund pays for, where every refund used to take the whole
+ * pack). And creators are paid for their scenes through Stripe (premium 0064):
+ * a section quoting the creator terms the sign-up shows, word for word, with
+ * the numbers below; what payouts send and keep; Stripe named as paying them.
+ */
 /** Internal acceptance revision used by checkout, publishing and saved agreements.
  * Do not reset it: pre-release revisions may already be recorded by the server.
  *
@@ -111,14 +147,14 @@
  * tells every eligible new account to update FluidEQ, on the newest build
  * there is. Raise both in the same release.
  */
-export const PLUS_TERMS_VERSION = 9;
+export const PLUS_TERMS_VERSION = 11;
 
 /** Published editions. Pre-release acceptance revisions are not editions. */
-export const PLUS_TERMS_EDITION = 3;
+export const PLUS_TERMS_EDITION = 5;
 export const PLUS_TERMS_FIRST_PUBLIC_REVISION = 7;
 
 /** The day this version took effect, as a calendar date. */
-export const PLUS_TERMS_EFFECTIVE = '2026-09-20';
+export const PLUS_TERMS_EFFECTIVE = '2026-10-21';
 
 /**
  * Days Plus keeps working without the server confirming the membership: a
@@ -146,9 +182,9 @@ export const PLUS_MINIMUM_AGE = 18;
 export const PLUS_MAX_COMPUTERS = 5;
 
 /**
- * How long an account without Plus watches one of FluidEQ's free sample
- * scenes play, counted in frames actually drawn. A member's scene does not
- * play at all without Plus: the server refuses its file.
+ * How long any signed-in account watches a scene it does not own play on its
+ * page, counted in frames actually drawn (premium 0056 serves every scene's
+ * file for it).
  */
 export const PLUS_TASTE_SECONDS = 10;
 
@@ -166,6 +202,24 @@ export const PLUS_MAX_PUBLISHED_SCENES = 200;
  * down, enforced by the server's `member_share_refusal`.
  */
 export const PLUS_TAKEDOWN_PAUSE_DAYS = 30;
+
+/**
+ * Days after buying a pack in which its unspent credits are refunded on
+ * request. Refunds are made by hand in Stripe; the server takes back only
+ * the credits a partial refund pays for (premium 0065).
+ */
+export const CREDIT_REFUND_DAYS = 14;
+
+/**
+ * The creator terms as the terms page quotes them. What pays is the server's
+ * `creator_terms()` (premium 0064), which the sign-up dialog reads live; keep
+ * these in step with it, or the page promises a share nobody is paid.
+ */
+export const CREATOR_SHARE_PERCENT = 50;
+export const CREATOR_HOLD_DAYS = 30;
+export const CREATOR_MINIMUM_CENTS = 1000;
+/** Days between payout runs (Ivan, 2026-10-21: "cada 15"). */
+export const CREATOR_PAYOUT_EVERY_DAYS = 15;
 
 /** A calendar date (`YYYY-MM-DD`) as a Date at noon UTC, so no zone moves it a day. */
 export const termsEffectiveDate = (): Date =>

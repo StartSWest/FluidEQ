@@ -27,6 +27,7 @@ import StudioGraphPaper from './StudioGraphPaper';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import StudioStageLoading from './StudioStageLoading';
+import StudioDraftMark from './StudioDraftMark';
 import { studioPaper } from './studioPaper';
 import { studioSpectrumRect, type IStudioWave } from './studioWave';
 import {
@@ -123,6 +124,8 @@ interface IStudioStageProps {
   percent?: number;
   /** Written to from the frame callback (`StudioBench.tsx`), never by React. */
   readingRef: RefObject<HTMLSpanElement | null>;
+  /** Not published yet: the stage wears the draft's mark (`StudioDraftMark`). */
+  draft: boolean;
   onTrouble: (trouble: TStageTrouble) => void;
   /** What the meters show, as soon as each frame is made. */
   onHeard?: TStageHeard;
@@ -161,6 +164,7 @@ export default function StudioStage({
   cost,
   percent,
   readingRef,
+  draft,
   onTrouble,
   onHeard,
   onDrawn,
@@ -513,6 +517,7 @@ export default function StudioStage({
               : undefined
           }
         />
+        {draft && <StudioDraftMark />}
         {waiting && <StudioStageLoading name={pack.names.en} />}
       </div>
     </div>

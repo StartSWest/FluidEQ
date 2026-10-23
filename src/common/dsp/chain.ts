@@ -16,9 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import clampDeEsserSettings from './deEsserClamp';
 import { clampCrossfadeShape } from './crossfadeShape';
 
 import { isTrebleDesign } from '../filterDesign';
+import { isBandChannel } from '../constants';
 
 import {
   CROSSFADE_CURVES,
@@ -26,11 +28,13 @@ import {
   DENOISE_PROFILE_SOURCES,
   EXCITER_MIN_OCTAVES,
   EXCITER_OCTAVE_SPAN,
+  EXCITER_OVERSAMPLING,
   IExciterBandSettings,
   NORMALIZER_MODES,
   TCrossfadeCurve,
   TDenoiseHumMode,
   TDenoiseProfileSource,
+  TExciterOversampling,
   TNormalizerMode,
   constrainExciterBandPosition,
 } from './chainStageSettings';
@@ -62,6 +66,8 @@ import {
 // The rack's settings, stage by stage, and its defaults live in the modules
 // beside this one; this module stays the one name the app reads them from.
 export { DSP_DEFAULTS, EQ_RACK_SIZES, buildEqRack } from './chainDefaults';
+export { DE_ESSER_MODES } from './deEsser';
+export type { IDeEsserSettings, TDeEsserMode } from './deEsser';
 export {
   EQ_BAND_COUNT,
   EQ_ENGINES,
@@ -95,6 +101,7 @@ export {
   CROSSFADE_CURVES,
   DENOISE_HUM_MODES,
   DENOISE_PROFILE_SOURCES,
+  EXCITER_OVERSAMPLING,
   DENOISE_VOICE_MODES,
   EXCITER_BAND_LIMITS,
   EXCITER_MIN_OCTAVES,
@@ -131,6 +138,7 @@ export type {
   TDenoiseHumMode,
   TDenoiseProfileSource,
   TDenoiseVoiceMode,
+  TExciterOversampling,
   TNormalizerMode,
 } from './chainStageSettings';
 
@@ -238,6 +246,8 @@ const clampEqBand = (
       RANGES.eqThresholdDb,
       fallback.thresholdDb,
     ),
+    // Kept only as one of the two ears; anything else is both, and absent.
+    ...(isBandChannel(value.ear) ? { ear: value.ear } : {}),
   };
 };
 
@@ -596,6 +606,12 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
           DSP_DEFAULTS.exciter.align.amount,
         ),
       },
+      // A rack stored before the choice existed runs as the stage always did.
+      oversampling: EXCITER_OVERSAMPLING.includes(
+        exciter.oversampling as TExciterOversampling,
+      )
+        ? (exciter.oversampling as TExciterOversampling)
+        : DSP_DEFAULTS.exciter.oversampling,
       // Clamped like any other flag, and NOT forced false here.
       //
       // Forcing it here is what stopped isolate working at all. This function
@@ -643,6 +659,7 @@ export const clampDspSettings = (value: unknown): IDspSettings => {
         DSP_DEFAULTS.bassForge.mix,
       ),
     },
+    deEsser: clampDeEsserSettings(value.deEsser),
     bassPunch: {
       enabled: clampBoolean(bassPunch.enabled, DSP_DEFAULTS.bassPunch.enabled),
       isolate: clampBoolean(bassPunch.isolate, DSP_DEFAULTS.bassPunch.isolate),

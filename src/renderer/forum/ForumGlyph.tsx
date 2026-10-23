@@ -1,13 +1,18 @@
+import { FORUM_ISSUES_BOARD } from 'common/forum/forumTypes';
 import Glyph from '../community/Glyph';
+import { NEW_BOARD } from './forumState';
 
 export type TForumGlyph =
   | 'threads'
+  | 'inbox'
   | 'megaphone'
   | 'general'
   | 'ideas'
   | 'poll'
   | 'question'
   | 'showcase'
+  | 'issue'
+  | 'issueClosed'
   | 'vote'
   | 'reply'
   | 'edit'
@@ -61,6 +66,16 @@ export default function ForumGlyph({ name, className }: IForumGlyphProps) {
             <path d="M5 13h12M5 16.5h8" opacity="0.65" />
           </>
         );
+      case 'inbox':
+        // A tray with something just landed in it: what has come in since
+        // the reader last looked.
+        return (
+          <>
+            <path d="M3 11.5 5.2 5.5a1 1 0 0 1 .94-.65h7.72a1 1 0 0 1 .94.65L17 11.5v3.5a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" />
+            <path d="M3 11.5h3.8l1 1.8h4.4l1-1.8H17" />
+            <path d="M10 2v5.2M7.9 5.2 10 7.3l2.1-2.1" opacity="0.7" />
+          </>
+        );
       case 'megaphone':
         return (
           <>
@@ -91,6 +106,22 @@ export default function ForumGlyph({ name, className }: IForumGlyphProps) {
             <rect x="2.5" y="5" width="11" height="10" rx="1.6" />
             <path d="m4.8 12.6 2.6-2.8 2 2 1.3-1.3 1.8 2.1" opacity="0.7" />
             <path d="M16.5 2.5v4M14.5 4.5h4M16.8 10.5v2.6M15.5 11.8h2.6" />
+          </>
+        );
+      case 'issue':
+        // GitHub's own sign for an open issue: a ring with its dot.
+        return (
+          <>
+            <circle cx="10" cy="10" r="7.5" />
+            <circle cx="10" cy="10" r="1.6" fill="currentColor" />
+          </>
+        );
+      case 'issueClosed':
+        // And a closed one: the ring with a tick, its dot gone.
+        return (
+          <>
+            <circle cx="10" cy="10" r="7.5" />
+            <path d="m6.8 10.3 2.2 2.2 4.2-4.5" />
           </>
         );
       case 'vote':
@@ -209,6 +240,8 @@ export function GithubMark({ className }: { className?: string }) {
 /** Which picture a board gets, by the slug GitHub gives its categories. */
 export const boardGlyph = (slug: string): TForumGlyph => {
   switch (slug) {
+    case NEW_BOARD:
+      return 'inbox';
     case 'announcements':
       return 'megaphone';
     case 'general':
@@ -221,6 +254,8 @@ export const boardGlyph = (slug: string): TForumGlyph => {
       return 'question';
     case 'show-and-tell':
       return 'showcase';
+    case FORUM_ISSUES_BOARD:
+      return 'issue';
     default:
       return 'threads';
   }

@@ -25,7 +25,6 @@ import picker from '../../../docs/24-look-picker.png';
 import visualizers from '../../../docs/25-plus-visualizers.png';
 import scene from '../../../docs/26-plus-scene.png';
 import desktop from '../../../docs/27-desktop-dialog.png';
-import leaderboard from '../../../docs/28-plus-leaderboard.png';
 import lighting from '../../../docs/29-plus-lighting.png';
 import forum from '../../../docs/30-forum.png';
 import studio from '../../../docs/31-plus-studio.png';
@@ -77,7 +76,6 @@ const SHOTS: Record<THelpImage, string> = {
   '25-plus-visualizers.png': visualizers,
   '26-plus-scene.png': scene,
   '27-desktop-dialog.png': desktop,
-  '28-plus-leaderboard.png': leaderboard,
   '29-plus-lighting.png': lighting,
   '30-forum.png': forum,
   '31-plus-studio.png': studio,

@@ -388,7 +388,6 @@ const dsp = {
   'dsp.eqStereo.side': 'Nur Seiten',
   'dsp.eqOversample.label': 'Oversampling',
   'dsp.eqOversample.off': 'Aus',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'Präzise: Jedes Band dieses EQ klingt genau so, wie es gezeichnet ist, bis 20\u00a0kHz.',
   'dsp.eqImport.title': 'EQ-Kurve importieren',
@@ -398,6 +397,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'Datei wählen',
   'dsp.eqImport.apply': 'Importieren',
   'dsp.eqImport.cancel': 'Abbrechen',
+  'dsp.eqImport.tooMany':
+    'Das ergäbe mehr als {max} Bänder. Löschen Sie zuerst einige Bänder oder importieren Sie für beide Ohren.',
 
   'dsp.eq.title': 'Equalizer',
   'dsp.eq.band': 'Band',
@@ -450,6 +451,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Mitten',
   'dsp.exciter.band.high': 'Höhen',
   'dsp.exciter.texture': 'Textur',
+  'dsp.exciter.oversampling': 'Oversampling',
+  'dsp.exciter.oversampling.off': 'Aus',
+  'dsp.exciter.oversampling.standard': 'Standard',
+  'dsp.exciter.oversampling.high': 'Hoch',
+  'dsp.exciter.oversampling.offHint':
+    'Obertöne mit der eigenen Rate des Ausgangs erzeugt: die geringste Last, mit etwas Körnigkeit durch das, was von oben zurückgespiegelt wird.',
+  'dsp.exciter.oversampling.standardHint':
+    'Obertöne mit bis zum Vierfachen der Rate des Ausgangs erzeugt, so wie der Exciter schon immer lief.',
+  'dsp.exciter.oversampling.highHint':
+    'Dieselbe Rate mit einem viel steileren Filter, sodass nichts von oben zurückgespiegelt wird. Etwas mehr Arbeit für den Prozessor.',
   'dsp.exciter.organic': 'Organisch',
   'dsp.exciter.organicHint':
     'Fügt im gewählten Bereich weiche Fülle aus geraden Obertönen hinzu. Ideal, um eine saubere, metallische Wiedergabe oder Titantreiber wärmer und organischer wirken zu lassen, ohne Details zu verlieren.',

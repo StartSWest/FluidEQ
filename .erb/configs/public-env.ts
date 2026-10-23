@@ -49,16 +49,10 @@ const PUBLIC_ENV_DEFAULTS = {
   // pasted here would ship to every user and bypass every database policy.
   FLUIDEQ_SUPABASE_URL: '',
   FLUIDEQ_SUPABASE_ANON_KEY: '',
-  // Where the checkout and billing-portal functions answer; empty means the
+  // Where the server's functions answer; empty means the
   // Supabase project's own gateway. The one line that changes when they move
   // under the product's domain.
   FLUIDEQ_API_URL: '',
-  // The price as text, and the switch for the upgrade offer: empty means
-  // signing in works but there is nothing to buy, which is every build until
-  // a merchant account exists.
-  FLUIDEQ_PLUS_PRICE: '',
-  // The yearly price beside it, as text; empty means monthly only.
-  FLUIDEQ_PLUS_PRICE_YEARLY: '',
 };
 
 export default PUBLIC_ENV_DEFAULTS;

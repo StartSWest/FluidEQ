@@ -14,6 +14,7 @@ import {
   SCENE_TAP_AGE_LIMIT_S,
 } from 'common/sceneUniformContract';
 import { RUN_MAX_TURNS } from 'common/spectrumEnergy';
+import { LIGHT_FRAME_MS } from 'common/studioAgent';
 import { MAX_VERSION_NOTE } from 'common/sceneVersionNote';
 import type { TranslationKey } from 'common/i18n';
 import { AMBIENT_SECTION } from './aiPromptAmbient';
@@ -21,7 +22,7 @@ import { ARTWORK_SECTION, ART_SECTION } from './aiPromptArt';
 import { connectSection, type IPromptConnection } from './aiPromptConnect';
 import { AIM_HIGH, HELPERS, QUICK_TO_BUILD } from './aiPromptCraft';
 import { HEAR_SECTION } from './aiPromptHear';
-import { lookSection } from './aiPromptLook';
+import { lookSection, type TPromptReach } from './aiPromptLook';
 import { MOTION_SECTIONS } from './aiPromptMotion';
 import { POINTER_SECTION } from './aiPromptPointer';
 import { WORLD_SECTION } from './aiPromptWorld';
@@ -93,8 +94,9 @@ export const SCENE_FALLBACK_STYLES: readonly GraphStyle[] =
   SELECTABLE_GRAPH_STYLES.filter((style) => !MEASURING_VIEWS.has(style));
 
 const promptFor = (
-  folder?: string,
-  connection?: IPromptConnection,
+  folder: string | undefined,
+  connection: IPromptConnection | undefined,
+  reach: TPromptReach,
 ) => `You are a senior real-time graphics artist, writing a visualizer for FluidEQ
 Plus, a music app. The visualizer is a GLSL ES 3.00 fragment-shader body that
 FluidEQ runs on the listener's GPU while music plays.
@@ -132,8 +134,8 @@ problem. There is nothing to run or test outside FluidEQ; its stage is the
 test.
 
 ${connection ? connectSection(connection, folder) : ''}${AIM_HIGH}${lookSection(
-  connection !== undefined,
-)}${connection ? HEAR_SECTION : ''}
+  reach,
+)}${reach === 'none' ? '' : HEAR_SECTION}
 If FluidEQ shows me a problem I will paste it to you; fix exactly that. If you
 cannot edit files, reply with the complete contents of each file and nothing
 else: first pack.json, then scene.frag. If my idea is about photos of mine,
@@ -441,7 +443,13 @@ ${MOTION_SECTIONS}${POINTER_SECTION}RULES (FluidEQ refuses the scene otherwise)
   does, which freezes and smears it on screen. Let a beat move something or
   light a small part; let big areas follow uSpectrumSlow.
 - It runs for every pixel, every frame, on ordinary laptops, and FluidEQ
-  lowers its resolution when it is slow, which blurs it. It may also fill a
+  lowers its resolution when it is slow, which blurs it. AIM FOR A FEW
+  MILLISECONDS A FRAME: under ${LIGHT_FRAME_MS} ms in look_at_scene's reading is a scene
+  that plays well on a laptop's integrated graphics, which is several and
+  up to fifteen times slower than a gaming card; at 16 ms it plays smoothly
+  only on a machine like the one it was made on. This is a picture that
+  plays for hours beside the music, often on a laptop on battery, so a
+  lighter scene is a better scene. It may also fill a
   whole monitor as my desktop background, so it has to stay cheap at 4K. Keep
   loops short, never nest loops that sample textures or noise, skip work
   early for pixels it cannot touch, and prefer smooth maths to many layers.
@@ -481,6 +489,16 @@ export const promptWithIdea = (
   folder?: string,
   connection?: IPromptConnection,
 ): string => {
-  const prompt = promptFor(folder, connection);
+  const prompt = promptFor(folder, connection, connection ? 'copied' : 'none');
   return idea.trim() ? `${prompt} ${idea.trim()}\n` : `${prompt}\n`;
 };
+
+/**
+ * The brief for Claude in the Studio's own chat (`chat/chatBrief.ts`): the
+ * same brief, with the tools FluidEQ hands that chat named as its own, and
+ * no idea after it - the member's messages are the idea.
+ */
+export const chatPrompt = (folder: string): string =>
+  promptFor(folder, undefined, 'chat')
+    .replace(/MY IDEA:\s*$/, '')
+    .trimEnd();

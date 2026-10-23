@@ -7,7 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { THIRTY_A_SECOND_MS } from './smoothing';
 
 /**
- * How hard a Plus visualizer is allowed to drive the GPU, and how its picture
+ * How hard a visualizer is allowed to drive the GPU, and how its picture
  * is finished, as the listener chose it: on the graph, in the Studio and on
  * the desktop alike.
  *
@@ -57,6 +57,8 @@ export interface IScenePerformance {
   smoothing: TSceneSmoothing;
 }
 
+export type TScenePerformanceGroup = 'standard' | 'plus';
+
 export const SCENE_FRAME_RATES: readonly TSceneFrameRate[] = [
   'display',
   'sixty',
@@ -82,16 +84,23 @@ export const SCENE_SMOOTHINGS: readonly TSceneSmoothing[] = [
 /**
  * What a listener gets before touching the View menu: every frame the
  * display offers, the controller choosing the size, AMD's FSR bringing a
- * smaller picture up, and FXAA over it — the fast smoothing, a millisecond at
- * 1440p on a laptop's discrete chip and two on its integrated one, which is
- * what Ivan chose as the default on 2026-09-16.
+ * smaller picture up, and the best edge smoothing. Reset all settings uses
+ * this same Plus default; Standard has its own defaults below.
  */
 export const DEFAULT_SCENE_PERFORMANCE: IScenePerformance = {
   frameRate: 'display',
   resolution: 'auto',
   autoFloor: 0.35,
   upscaler: 'fsr',
-  smoothing: 'fast',
+  smoothing: 'best',
+};
+
+/** Standard looks keep their crisp, full-size drawing without a finishing pass. */
+export const DEFAULT_STANDARD_PERFORMANCE: IScenePerformance = {
+  ...DEFAULT_SCENE_PERFORMANCE,
+  resolution: 'native',
+  upscaler: 'simple',
+  smoothing: 'off',
 };
 
 /**
@@ -170,26 +179,29 @@ export const isScenePerformance = (raw: unknown): raw is IScenePerformance =>
   oneOf(SCENE_SMOOTHINGS, raw.smoothing);
 
 /** A stored or received value, repaired field by field to something usable. */
-export const normalizeScenePerformance = (raw: unknown): IScenePerformance => {
+export const normalizeScenePerformance = (
+  raw: unknown,
+  defaults: IScenePerformance = DEFAULT_SCENE_PERFORMANCE,
+): IScenePerformance => {
   if (!isRecord(raw)) {
-    return DEFAULT_SCENE_PERFORMANCE;
+    return defaults;
   }
   return {
     frameRate: oneOf(SCENE_FRAME_RATES, raw.frameRate)
       ? raw.frameRate
-      : DEFAULT_SCENE_PERFORMANCE.frameRate,
+      : defaults.frameRate,
     resolution: oneOf(SCENE_RESOLUTIONS, raw.resolution)
       ? raw.resolution
-      : DEFAULT_SCENE_PERFORMANCE.resolution,
+      : defaults.resolution,
     autoFloor: oneOf(SCENE_AUTO_FLOORS, raw.autoFloor)
       ? raw.autoFloor
-      : DEFAULT_SCENE_PERFORMANCE.autoFloor,
+      : defaults.autoFloor,
     upscaler: oneOf(SCENE_UPSCALERS, raw.upscaler)
       ? raw.upscaler
-      : DEFAULT_SCENE_PERFORMANCE.upscaler,
+      : defaults.upscaler,
     smoothing: oneOf(SCENE_SMOOTHINGS, raw.smoothing)
       ? raw.smoothing
-      : DEFAULT_SCENE_PERFORMANCE.smoothing,
+      : defaults.smoothing,
   };
 };
 

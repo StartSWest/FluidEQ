@@ -12,8 +12,9 @@ import { accrueFromFrame, FLUSH_AFTER_SECONDS } from './usageAccrual';
  * again whenever the window is hidden or this unmounts, so a session that ends
  * mid-minute loses at most the minute.
  *
- * Whether any of it leaves the machine is decided elsewhere, by the person, in
- * the Account panel. This only counts.
+ * Whether any of it is kept is main's to decide, from the account's own
+ * answer (`ipc/listening.ts`): for an account never asked, or one that
+ * switched it off, main drops every report. This only counts.
  */
 export default function UsageMeter() {
   const { points } = useLiveAudioFrame();
@@ -29,7 +30,7 @@ export default function UsageMeter() {
       const seconds = pendingRef.current;
       pendingRef.current = 0;
       window.electron?.ipcRenderer
-        ?.usageAccrue?.(seconds)
+        ?.listeningAccrue?.(seconds)
         .catch(() => undefined);
     }
   }, [points, playing]);
@@ -42,7 +43,7 @@ export default function UsageMeter() {
       const seconds = pendingRef.current;
       pendingRef.current = 0;
       window.electron?.ipcRenderer
-        ?.usageAccrue?.(seconds)
+        ?.listeningAccrue?.(seconds)
         .catch(() => undefined);
     };
     const onVisibility = () => {

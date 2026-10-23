@@ -1,6 +1,6 @@
 {
   "name": "fluideq",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "type": "commonjs",
   "description": "Open-source system-wide parametric EQ with automatic per-device profiles",
   "keywords": [
@@ -28,13 +28,11 @@
     "name": "Ivan Carmenates Garcia",
     "url": "https://github.com/StartSWest"
   },
-  "contributors": [
-    "AQUA Dev Team",
-    "Ivan Carmenates Garcia"
-  ],
+  "contributors": ["AQUA Dev Team", "Ivan Carmenates Garcia"],
   "main": "./src/main/main.ts",
   "scripts": {
     "docs:guide": "ts-node ./.erb/scripts/export-user-guide.ts",
+    "docs:captures": "cross-env TS_NODE_TRANSPILE_ONLY=true ts-node ./scripts/help-captures/capture.ts",
     "dev": "node ./.erb/scripts/dev.cjs",
     "build": "pnpm build:native-dsp && concurrently \"pnpm build:main\" \"pnpm build:renderer\"",
     "build:native-dsp": "ts-node ./.erb/scripts/build-native-dsp.ts",
@@ -77,9 +75,7 @@
     "package:signed": "ts-node ./.erb/scripts/package-signed.ts"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "cross-env NODE_ENV=development eslint --cache"
-    ],
+    "*.{js,jsx,ts,tsx}": ["cross-env NODE_ENV=development eslint --cache"],
     "{*.json,.eslintrc,.prettierrc}": [
       "prettier --ignore-path .eslintignore --parser json --write"
     ],
@@ -95,10 +91,7 @@
     "singleQuote": true,
     "overrides": [
       {
-        "files": [
-          ".prettierrc",
-          ".eslintrc"
-        ],
+        "files": [".prettierrc", ".eslintrc"],
         "options": {
           "parser": "json"
         }
@@ -206,6 +199,12 @@
   "build": {
     "productName": "FluidEQ",
     "appId": "com.gigabytz.fluideq",
+    "protocols": [
+      {
+        "name": "FluidEQ",
+        "schemes": ["fluideq"]
+      }
+    ],
     "asar": true,
     "electronFuses": {
       "runAsNode": false,
@@ -213,29 +212,31 @@
       "enableNodeCliInspectArguments": false,
       "onlyLoadAppFromAsar": true
     },
-    "asarUnpack": [
-      "**/*.{node,dll,dylib}",
-      "**/*.so*"
-    ],
-    "files": [
-      "dist",
-      "node_modules",
-      "package.json"
-    ],
+    "asarUnpack": ["**/*.{node,dll,dylib}", "**/*.so*"],
+    "files": ["dist", "node_modules", "package.json"],
     "afterSign": ".erb/scripts/after-sign.cjs",
     "mac": {
       "target": {
         "target": "default",
-        "arch": [
-          "arm64",
-          "x64"
-        ]
+        "arch": ["arm64"]
       },
+      "minimumSystemVersion": "14.4",
       "type": "distribution",
       "hardenedRuntime": true,
       "entitlements": "assets/entitlements.mac.plist",
       "entitlementsInherit": "assets/entitlements.mac.plist",
-      "gatekeeperAssess": false
+      "gatekeeperAssess": false,
+      "extendInfo": {
+        "NSAudioCaptureUsageDescription": "FluidEQ equalizes the sound your Mac plays. It listens only to process that sound, and records nothing.",
+        "NSMicrophoneUsageDescription": "FluidEQ uses the microphone in Karaoke to hear and score your singing."
+      },
+      "extraResources": [
+        {
+          "from": "assets/mac/locales",
+          "to": ".",
+          "filter": ["**/*"]
+        }
+      ]
     },
     "dmg": {
       "contents": [
@@ -255,9 +256,7 @@
       "target": [
         {
           "target": "nsis",
-          "arch": [
-            "x64"
-          ]
+          "arch": ["x64"]
         }
       ],
       "icon": "assets/icon.ico"
@@ -283,9 +282,7 @@
       "include": "assets/nsis/installer.nsh"
     },
     "linux": {
-      "target": [
-        "AppImage"
-      ],
+      "target": ["AppImage"],
       "category": "AudioVideo"
     },
     "directories": {
@@ -313,24 +310,19 @@
           "FluidEQ-Media.exe",
           "msvcp140.dll",
           "vcruntime140.dll",
-          "vcruntime140_1.dll"
+          "vcruntime140_1.dll",
+          "onnxruntime.dll"
         ]
       },
       {
         "from": "assets/icons",
         "to": "native/lighting-assets",
-        "filter": [
-          "48x48.png",
-          "64x64.png",
-          "256x256.png"
-        ]
+        "filter": ["48x48.png", "64x64.png", "256x256.png"]
       },
       {
         "from": "node_modules/regedit/vbs",
         "to": "vbs",
-        "filter": [
-          "**/*"
-        ]
+        "filter": ["**/*"]
       },
       "./opra/**",
       "./CHANGELOG.md",
@@ -339,10 +331,7 @@
       {
         "from": "vendor/equalizer-apo",
         "to": "equalizer-apo",
-        "filter": [
-          "equalizer-apo-setup.exe",
-          "version.txt"
-        ]
+        "filter": ["equalizer-apo-setup.exe", "version.txt"]
       }
     ]
   },
@@ -351,11 +340,7 @@
     "npm": ">=7.x"
   },
   "electronmon": {
-    "patterns": [
-      "!**/**",
-      "src/main/**",
-      "src/common/**"
-    ],
+    "patterns": ["!**/**", "src/main/**", "src/common/**"],
     "logLevel": "quiet"
   }
 }

@@ -31,6 +31,13 @@ export interface ISceneDaylightSetting {
   source: TDaylightSource;
   /** 0 night to 100 full day; what the scene plays at on its `own`. */
   daylight: number;
+  /**
+   * The Studio is open and holds the time of day to its Brightness
+   * (`holdDaylightToBrightness`): `source` then says Brightness whatever the
+   * listener chose, and the choice itself waits, untouched, for the Studio
+   * to close.
+   */
+  heldByStudio?: boolean;
 }
 
 export type TSceneDaylightScope = 'app' | 'player';
@@ -127,8 +134,58 @@ export const applySceneDaylightScope = (next: TSceneDaylightScope) => {
   notify();
 };
 
-export const getSceneDaylightSetting = (): ISceneDaylightSetting =>
-  chosen[scope];
+/**
+ * THE STUDIO TRIES A SCENE FROM NIGHT TO DAY WITH ITS BRIGHTNESS, WHATEVER
+ * THE LISTENER CHOSE (Ivan, 2026-10-05: "fix studio brightness not
+ * controlling the scene daytime it need to always do"). The Studio's
+ * Brightness row is the window's Brightness (`StudioBrightness.tsx`), and a
+ * scene follows it only while its time of day is set to follow Brightness:
+ * set to the clock or to a time of its own - his was its own, at night - the
+ * row moved the window and left every scene where it was. While the Studio
+ * is on screen the app's scenes follow Brightness; the choice stored for
+ * the app stays as it was and applies again the moment the Studio closes.
+ * Counted, so a Studio mounted twice over (React's checks in development)
+ * lets go only when the last one does. The amp keeps its own choice: the
+ * Studio is not on screen there.
+ */
+let studioHolds = 0;
+let heldView:
+  { from: ISceneDaylightSetting; view: ISceneDaylightSetting } | undefined;
+
+export const getSceneDaylightSetting = (): ISceneDaylightSetting => {
+  const stored = chosen[scope];
+  if (studioHolds === 0 || scope !== 'app') {
+    return stored;
+  }
+  // One object for as long as the stored choice is the same one, or
+  // `useSyncExternalStore` reads every render as a change.
+  if (heldView?.from !== stored) {
+    heldView = {
+      from: stored,
+      view: { ...stored, source: 'brightness', heldByStudio: true },
+    };
+  }
+  return heldView.view;
+};
+
+/** Holds the app's scenes to Brightness until the returned release is called. */
+export const holdDaylightToBrightness = (): (() => void) => {
+  studioHolds += 1;
+  if (studioHolds === 1) {
+    notify();
+  }
+  let released = false;
+  return () => {
+    if (released) {
+      return;
+    }
+    released = true;
+    studioHolds -= 1;
+    if (studioHolds === 0) {
+      notify();
+    }
+  };
+};
 
 /**
  * Where the time of day comes from. Set on its `own`, the scene stays at the

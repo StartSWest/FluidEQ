@@ -20,11 +20,11 @@ import type { IDspSettings } from '../../common/dsp/chain';
  *
  * So under the FluidEQ Engine exactly one of them runs it at a time:
  *
- * - **The player, while the Library is playing.** Its track-level stages —
- *   the loudness normalizer, Denoise's measured floor, the LUFS makeup — need
- *   the track's own analysis, which only the player has; it is also the one
- *   that feeds this page's live meters. Starting Library playback pauses the
- *   rest of the machine, so while it plays it is the sound.
+ * - **The player for legacy Library playback.** An installed engine without
+ *   source-analysis readiness keeps the same player processing. An engine
+ *   that explicitly acknowledges the prepared source can own Library DSP on
+ *   each output instead. That choice is made with the transport stopped;
+ *   a status arriving during a song cannot move its rack mid-passage.
  * - **The engine, the rest of the time**, on every output.
  * - **Nowhere, while the engine is off** — FluidEQ switched off, or the
  *   engine not running on the output that is playing. Under the FluidEQ
@@ -54,6 +54,15 @@ export interface IRackGate {
   engineOff: boolean;
   /** The Library player is playing through its own engine right now. */
   libraryAudible: boolean;
+  /** Latched only at a stopped transport boundary after native capability. */
+  librarySourceReady?: boolean;
+  /**
+   * This computer's sound is going to another computer (Share Audio). Main
+   * then holds the Library player untouched, because the capture for the
+   * network hears the player's output and the other computer applies its own
+   * rack; the FluidEQ Engine's copy is never in that capture — Windows hands a
+   * process loopback the mix before the endpoint's effects.
+   */
   sendingRawAudio?: boolean;
 }
 
@@ -68,14 +77,20 @@ export const OPEN_GATE: IRackGate = {
 /** Why the rack is off everywhere, or undefined when it is not. */
 export type TRackSuspension = 'switched-off' | 'engine-off' | 'sharing-raw';
 
+/**
+ * Sending no longer switches the rack off under the FluidEQ Engine. It used
+ * to, everywhere, so a computer sharing its sound could not hear its own DSP
+ * at all — "when sending DSP can't be enabled and that's wrong" (Ivan,
+ * 2026-10-02). Only the Library player has to be untouched while this
+ * computer sends, and under the FluidEQ Engine the engine takes the rack over
+ * for it (`engineRunsRack`). Under Equalizer APO the player is the only place
+ * a rack runs, so there sending still suspends it.
+ */
 export const rackSuspension = (
   gate: IRackGate,
 ): TRackSuspension | undefined => {
-  if (gate.sendingRawAudio) {
-    return 'sharing-raw';
-  }
   if (gate.engine !== 'fluid') {
-    return undefined;
+    return gate.sendingRawAudio ? 'sharing-raw' : undefined;
   }
   if (!gate.eqEnabled) {
     return 'switched-off';
@@ -97,12 +112,25 @@ export const engineRunsRack = (gate: IRackGate): boolean =>
   gate.eqLoaded &&
   gate.eqEnabled &&
   !gate.engineOff &&
-  !gate.libraryAudible &&
-  !gate.sendingRawAudio;
+  // While this computer sends, the Library player plays untouched and the
+  // engine runs the rack over it too: still exactly one place.
+  (!gate.libraryAudible ||
+    gate.sendingRawAudio === true ||
+    gate.librarySourceReady === true);
 
 /** Whether the Library player's copy of the rack should run. */
 export const playerRunsRack = (gate: IRackGate): boolean =>
-  rackSuspension(gate) === undefined;
+  rackSuspension(gate) === undefined &&
+  gate.sendingRawAudio !== true &&
+  !(gate.engine === 'fluid' && gate.librarySourceReady === true);
+
+/** Whether the FluidEQ Engine's copy is the one playing, so its meters are
+ * the page's. */
+export const engineOwnsRack = (gate: IRackGate): boolean =>
+  gate.engine === 'fluid' &&
+  (!gate.libraryAudible ||
+    gate.sendingRawAudio === true ||
+    gate.librarySourceReady === true);
 
 /**
  * The settings as one place should run them: as they are where the rack
@@ -127,6 +155,7 @@ export const updateRackGate = (patch: Partial<IRackGate>): boolean => {
     next.eqLoaded === gate.eqLoaded &&
     next.engineOff === gate.engineOff &&
     next.libraryAudible === gate.libraryAudible &&
+    next.librarySourceReady === gate.librarySourceReady &&
     next.sendingRawAudio === gate.sendingRawAudio
   ) {
     return false;

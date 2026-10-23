@@ -18,6 +18,7 @@ class WasapiOutput {
   HRESULT start();
   void close();
   HRESULT failure() const { return failure_.load(); }
+  bool is_open() const { return client_ != nullptr; }
   std::uint32_t rate() const { return rate_; }
   std::uint16_t channels() const { return channels_; }
   std::uint32_t mask() const { return mask_; }

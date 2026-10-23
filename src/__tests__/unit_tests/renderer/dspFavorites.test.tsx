@@ -278,3 +278,36 @@ it('stars a preset into the list the DSP page shares, and never None', () => {
   expect(rows[0]).toMatch(/^None/);
   expect(rows[1]).toMatch(/^Rock/);
 });
+
+/** The names of the menu's rows, None aside, as they read top to bottom. */
+const rowNames = () =>
+  screen
+    .getAllByRole('menuitemradio')
+    .slice(1)
+    .map((row) => row.querySelector('strong')?.textContent ?? '');
+
+it('lists the starred presets in the order the list itself gives them', () => {
+  localStorage.setItem('fluideq.dsp.favouritePresets.v1', '[]');
+  const first = show();
+  fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
+  const listed = rowNames();
+  first.unmount();
+  // Starred out of the list's order, a Room copy among them.
+  const stars = [
+    'rock',
+    'gaming-competitive',
+    'movie-room',
+    'gaming-room',
+    'gaming',
+  ];
+  localStorage.setItem(
+    'fluideq.dsp.favouritePresets.v1',
+    JSON.stringify(stars),
+  );
+  show();
+  fireEvent.click(screen.getByRole('button', { name: 'Presets' }));
+  const starred = rowNames().slice(0, stars.length);
+  // Each starred name stands where the unstarred list put it.
+  expect(starred).toEqual(listed.filter((name) => starred.includes(name)));
+  expect(starred.indexOf('Gaming · Room')).toBe(starred.indexOf('Gaming') + 1);
+});

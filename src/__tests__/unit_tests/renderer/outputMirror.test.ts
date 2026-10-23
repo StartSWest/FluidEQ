@@ -4,7 +4,7 @@ import {
   IMirrorOutputOptions,
   IMirrorTapOptions,
   MIRROR_BLOCK_FRAMES,
-  MIRROR_PLAYBACK_PROFILES,
+  MIRROR_PLAYBACK_PROFILE,
   startOutputMirror,
 } from '../../../renderer/audio/outputMirror';
 
@@ -64,15 +64,10 @@ const createFakes = () => {
   return { calls, capture, engine, output, outputOptions, tap, tapOptions };
 };
 
-const start = (
-  fakes: ReturnType<typeof createFakes>,
-  sinkId = 'sink-1',
-  mode: 'video' | 'music' = 'music',
-) =>
+const start = (fakes: ReturnType<typeof createFakes>, sinkId = 'sink-1') =>
   startOutputMirror({
     capture: fakes.capture,
     sinkId,
-    mode,
     engine: fakes.engine,
   });
 
@@ -89,7 +84,6 @@ describe('mirroring the capture to a second output', () => {
     // receive blocks for a source it was never configured for.
     expect(fakes.tapOptions[0].peerId).toBe(fakes.outputOptions[0].peerId);
     expect(mirror.sinkId).toBe('sink-1');
-    expect(mirror.mode).toBe('music');
   });
 
   it('opens the output before touching the capture graph', async () => {
@@ -114,28 +108,36 @@ describe('mirroring the capture to a second output', () => {
     );
   });
 
-  it('buffers each mode by its own profile', async () => {
-    const video = createFakes();
-    await start(video, 'sink-1', 'video');
-    expect(video.outputOptions[0].profile).toBe(MIRROR_PLAYBACK_PROFILES.video);
-
-    const music = createFakes();
-    await start(music, 'sink-1', 'music');
-    expect(music.outputOptions[0].profile).toBe(MIRROR_PLAYBACK_PROFILES.music);
+  it('buffers by its one automatic profile', async () => {
+    const fakes = createFakes();
+    await start(fakes);
+    expect(fakes.outputOptions[0].profile).toBe(MIRROR_PLAYBACK_PROFILE);
   });
 
-  it('keeps lip-sync tighter than a listening room, and both tighter than the LAN', () => {
-    const { video, music } = MIRROR_PLAYBACK_PROFILES;
-    expect(video.startBufferSeconds).toBeLessThan(music.startBufferSeconds);
-    expect(video.maximumBufferSeconds).toBeLessThan(music.maximumBufferSeconds);
-    // Video can throw away a stale prefix to get back in sync; music must
-    // keep every sample, so it has no catch-up at all.
-    expect(video.catchupThresholdSeconds).toBeGreaterThan(0);
-    expect(music.catchupThresholdSeconds).toBeUndefined();
-    // A tenth of a second is where the LAN listener's video mode starts. A
-    // local mirror has no link to protect against and must sit well under it.
-    expect(video.startBufferSeconds).toBeLessThan(0.1);
-    expect(music.startBufferSeconds).toBeLessThanOrEqual(0.1);
+  it('keeps itself in time the way the Windows helper does, never skipping', () => {
+    const profile = MIRROR_PLAYBACK_PROFILE;
+    // Starts about 30 ms behind, as `mirror_output.h`'s engine does, well
+    // under where the LAN's playback starts: no link to protect against.
+    expect(profile.startBufferSeconds).toBe(0.03);
+    // A dropout adds 10 ms, up to 160 ms, and a step comes back only after a
+    // quiet minute.
+    expect(profile.recoveryStepSeconds).toBe(0.01);
+    expect(profile.maximumBufferSeconds).toBe(0.16);
+    expect(profile.recoveryDecaySeconds).toBe(60);
+    // Every sample is kept: there is no catch-up that throws a prefix away.
+    expect(profile.catchupThresholdSeconds).toBeUndefined();
+  });
+
+  it('passes on how far behind it plays', async () => {
+    const fakes = createFakes();
+    const onDelay = jest.fn();
+    await startOutputMirror({
+      capture: fakes.capture,
+      sinkId: 'sink-1',
+      engine: fakes.engine,
+      onDelay,
+    });
+    expect(fakes.outputOptions[0].onDelay).toBe(onDelay);
   });
 
   it('refuses an empty sink id rather than falling back to the default', async () => {
@@ -188,7 +190,6 @@ describe('mirroring the capture to a second output', () => {
     await startOutputMirror({
       capture: fakes.capture,
       sinkId: 'sink-1',
-      mode: 'music',
       volume: 0.4,
       engine: fakes.engine,
     });

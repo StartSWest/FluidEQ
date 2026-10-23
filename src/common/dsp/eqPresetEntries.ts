@@ -246,9 +246,7 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
     labelKey: 'dsp.eqPreset.trebleBoost',
     group: 'character',
     gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5, 1.5, 2.5, 3.5, 4, 4],
-    // Doubled rate: this is the one curve whose work is all in the octave
-    // where the cookbook squeezes a band against Nyquist.
-    setup: { ...PROTECTED, model: 'proportional', oversample: 2 },
+    setup: { ...PROTECTED, model: 'proportional' },
   },
   {
     // Both ends lifted because the ear loses them at low volume — the
@@ -441,7 +439,7 @@ const EQ_PRESET_ENTRIES: readonly IEqPreset[] = [
       -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, -0.3, 0.2, 1.2, 2.7,
       3.7, 4.2,
     ],
-    setup: { ...PROTECTED, model: 'proportional', oversample: 2 },
+    setup: { ...PROTECTED, model: 'proportional' },
   },
   {
     // The tool this whole capability was built for, and the clearest thing to

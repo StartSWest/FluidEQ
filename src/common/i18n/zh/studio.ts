@@ -22,22 +22,6 @@ const studio = {
   'studio.description': '用你的 AI 创作场景，并实时观看',
   'studio.rail.blurb': '创作你自己的场景',
 
-  'studio.plus.locked': '仅限 Plus',
-  'studio.locked.title': '工作室属于 Plus',
-  'studio.locked.body': 'FluidEQ 的场景在这里诞生，你的场景也可以。',
-  'studio.locked.write': '在随保存即时重建的舞台旁编写场景',
-  'studio.locked.test': '配上音乐播放，看清绘制的开销',
-  'studio.locked.publish': '发布到图库，让所有会员都能安装',
-  'studio.locked.keptOne': '你的项目还在原处:',
-  'studio.locked.keptMany': '你的 {count} 个项目还在原处:',
-  'studio.locked.earn': '你发布的场景通过审核后，可换来一个月的 Plus。',
-  'studio.plus.oneFolder':
-    '没有 Plus 时只打开第一个；其余的带锁留在列表中，有 Plus 即可打开。',
-  'studio.plus.lockedProject':
-    '有 Plus 也能打开这个项目；没有 Plus 时工作室保留一个。',
-  'studio.plus.oneProject':
-    '没有 Plus，工作室只保留一个项目。发布一个场景，通过审核后可免费获得下个月，或开通 Plus 不限数量。',
-
   'studio.maker.title': '用你的 AI 来做',
   'studio.maker.describe': '描述你的场景',
   'studio.maker.placeholder':
@@ -132,10 +116,9 @@ const studio = {
   'studio.publish.needNote': '请先写下这一版有什么新变化',
   'studio.publish.noteNeeded': '必填',
   'studio.publish.point1':
-    '所有已登录的人都能在“可视化”里看到它。Plus 会员可以播放它、把它添加到外观并点赞。',
-  'studio.publish.point2': '每个赞都会为你在排行榜上加分。',
+    '任何已登录的人都能在“可视化”中看到它，观看几秒，并用一点获取它。对你来说它免费播放。',
   'studio.publish.point3':
-    '你可以下架场景以停止新下载。已下载的副本仍可通过 Plus 使用。',
+    '你可以取消发布，这样就没有新的人能获取它。已经拥有的人会保留它。',
   'studio.publish.point3Update':
     '已添加的会员会看到“更新”，在点击之前保留旧版本。',
   'studio.publish.read': '阅读条款',
@@ -157,7 +140,7 @@ const studio = {
   'studio.publish.failed': '无法发布场景。请重试。',
   'studio.publish.officialCopy':
     '这个场景的大部分内容与 FluidEQ 的某个场景相同。可以从中汲取灵感，但请先把它变成你自己的场景再发布。',
-  'studio.publish.outdated': 'Plus 条款有新版本。请更新 FluidEQ 阅读后再发布。',
+  'studio.publish.outdated': '条款有更新的版本。请更新 FluidEQ 阅读后再发布。',
   'studio.publish.versionTaken':
     '这个场景刚刚又发布了一次。请再试一次，它会以下一个版本发布。',
   'studio.publish.takenDown':
@@ -191,13 +174,13 @@ const studio = {
   'studio.notice.addFailed': '这个版本能播放之后才能添加。',
 
   'studio.notice.exported':
-    '{file} 已就绪。任何 Plus 会员都能在工作室中打开它。',
+    '{file} 已准备好。收到它的人可以在 FluidEQ 中打开。',
 
   'studio.share.title': '分享你创作的场景',
   'studio.share.lead':
-    '你的场景始终属于你。导出后，其他 Plus 会员就能播放它，这正是 Plus 的一部分。',
-  'studio.share.point1': '收到文件的人在拥有 Plus 期间可以播放它，但不能出售。',
-  'studio.share.point2': '其他会员的每一个赞，都会为你在排行榜上赢得积分。',
+    '你的场景始终属于你。导出后其他会员可以打开它，在拥有它之后即可播放。',
+  'studio.share.point1':
+    '收到文件的人只有在拥有该场景后才能播放——在它发布后用一点获取。他们不能出售它。',
   'studio.share.point3': '着色器中的注释会被移除，你的显示名会随场景一起发送。',
   'studio.share.read': '阅读条款',
   'studio.share.cancel': '以后再说',
@@ -217,8 +200,7 @@ const studio = {
   'studio.inspect.locked':
     '这是为查看内部而打开的 FluidEQ 场景，不能添加到你的外观、发布或导出。',
   'studio.export.banned': '此账户已无法分享场景。',
-  'studio.export.outdated':
-    'Plus 条款有了新版本。请更新 FluidEQ 以阅读并导出。',
+  'studio.export.outdated': '条款有更新的版本。请更新 FluidEQ 阅读后再导出。',
 
   'studio.import.done': '{author} 创作的 {name} 已加入你的外观。',
   'studio.import.doneAnonymous': '{name} 已加入你的外观。',
@@ -226,6 +208,12 @@ const studio = {
   'studio.import.ownRestored':
     '{name} 是你的作品，已回到你的外观中，并在这里打开，方便你继续创作。',
   'studio.import.unreadable': '这个文件不是 FluidEQ 场景。',
+  'studio.import.signedOut': '请登录后打开场景文件。',
+  'studio.draft.badge': '草稿',
+  'studio.draft.line': '发布后即可完整查看',
+  'studio.new.signedOut': '登录以开始一个项目。',
+  'studio.notice.unpublished':
+    '请先发布：你自己的场景进入画廊后才会加入你的外观。',
   'studio.import.changed': '这个文件在导出后被修改过，FluidEQ 不会播放它。',
   'studio.import.blocked': '这个场景已被下架。',
 
@@ -276,6 +264,12 @@ const studio = {
   'studio.status.problem': '上一个可用版本仍在播放',
   'studio.status.waiting': '正在等待一个能播放的版本',
 
+  'studio.version.group': '版本',
+  'studio.version.looks': '我的外观 v{version}',
+  'studio.version.looksCurrent': '你的外观中正是这个场景。',
+  'studio.version.looksBehind':
+    '你的外观中是版本 {version} 较早的保存。“添加到我的外观”可将其更新。',
+  'studio.version.gallery': '图库 v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished': '这个场景的第 {version} 版，尚未发布。',
   'studio.version.live': '这个场景的第 {version} 版，也是大家拿到的那一版。',
@@ -319,7 +313,6 @@ const studio = {
   'studio.work.pictures': '图片',
   'studio.work.tune': '调整',
   'studio.ship.more': '更多',
-  'studio.ship.makerTitle': '你仍然可以发布场景',
   'studio.signals.title': '预览音频',
   'studio.signals.hint':
     '场景始终随每位用户自己的音乐变化。测试信号仅用于当前预览，不会保存或发布，也不会改变你的音频。',

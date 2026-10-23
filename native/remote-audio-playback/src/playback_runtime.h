@@ -12,6 +12,9 @@ class PlaybackRuntime {
   explicit PlaybackRuntime(HANDLE parent);
   ~PlaybackRuntime();
   HRESULT open(const std::wstring& guid);
+  /** Gives the device back and stays ready to open one again. */
+  void close();
+  bool is_open() const { return output_.is_open(); }
   bool push(unsigned id, std::uint32_t rate, std::uint16_t channels,
             std::uint32_t frames, std::uint32_t sequence, const float* pcm);
   void remove(unsigned id);

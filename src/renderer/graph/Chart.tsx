@@ -46,7 +46,10 @@ import { toggleChromeNow } from '../utils/idleChrome';
 import CoverageOverlay from './CoverageOverlay';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
-import GenrePins from './GenrePins';
+import BandLabels from './BandLabels';
+import type { ILabelBox } from './bandLabelLayout';
+import GenrePins, { useGenrePinSpots } from './GenrePins';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import LiveTraceCanvas from './LiveTraceCanvas';
 import ScenePlot from './ScenePlot';
 import {
@@ -141,6 +144,13 @@ const Chart = ({
   // bottom for the frequency marks, all empty, all taken out of the drawing.
   // The wave runs edge to edge instead.
   const isGridHidden = useGraphGridHidden();
+  // The genre pins as drawn, and where a measuring view's key stands, for
+  // the band labels to keep clear of.
+  const genrePins = useGenrePinSpots(data, isLiveOutputForeground);
+  const [legendPlace, setLegendPlace] = useState<ILabelBox | undefined>(
+    undefined,
+  );
+  const { bandSetReplacement } = useFluidEqContext();
 
   const hasHandles = editablePoints.length > 0;
   const padding = getAxisPadding(isGridHidden, hasHandles);
@@ -390,6 +400,7 @@ const Chart = ({
             eqResponse={
               data.find((curve) => curve.id === OUTPUT_CURVE_ID)?.line.points
             }
+            onLegendPlace={setLegendPlace}
           />
         ))}
       <svg
@@ -585,6 +596,20 @@ const Chart = ({
           xScale={xScaleFreq}
           yScale={yScaleEq}
           isHidden={isLiveOutputForeground}
+        />
+        <BandLabels
+          points={editablePoints}
+          pins={genrePins?.pins}
+          legend={legendPlace}
+          bandSetReplacement={bandSetReplacement}
+          xScale={xScaleFreq}
+          yScale={yScaleEq}
+          bounds={{
+            left: padding.left + 2,
+            right: svgWidth - padding.right - 2,
+            top: 4,
+            bottom: plotHeight - 4,
+          }}
         />
         {editablePoints.map((point) => (
           <EditablePoint

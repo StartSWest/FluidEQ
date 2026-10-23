@@ -30,7 +30,6 @@ import {
   resetPlusNavigation,
 } from '../../../renderer/plus/plusNavigation';
 import VisualizersView from '../../../renderer/plus/VisualizersView';
-import { resetPlusTrialStore } from '../../../renderer/plus/trialStore';
 import { resetMemberSceneStore } from '../../../renderer/utils/memberScenes';
 import { resetScenePackStore } from '../../../renderer/utils/scenePacks';
 
@@ -45,6 +44,7 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 }));
 jest.mock('../../../renderer/account/entitlementStore', () => ({
   useEntitlement: () => ({ state: 'active' }),
+  getEntitlementSnapshot: () => ({ state: 'active' }),
   subscribeEntitlement: () => () => undefined,
 }));
 jest.mock('../../../renderer/account/accountStore', () => ({
@@ -143,14 +143,11 @@ const bridge = {
   listScenePacks: jest.fn(),
   refreshScenePacks: jest.fn(),
   onScenePacksChanged: jest.fn(),
-  leaderboardBoard: jest.fn(),
-  getPlusTrialOffer: jest.fn(),
 };
 
 beforeEach(() => {
   jest.resetAllMocks();
   mockDrawn = undefined;
-  resetPlusTrialStore();
   resetPlusNavigation();
   resetGalleryStore();
   resetGalleryActions();
@@ -163,26 +160,14 @@ beforeEach(() => {
   });
   bridge.previewGalleryScene.mockResolvedValue({ ok: true, own: false, pack });
   bridge.listMemberScenes.mockResolvedValue({
-    entitled: true,
     scenes: [],
     locked: [],
   });
-  const listing = { entitled: true, packs: [pack], locked: [] };
+  const listing = { packs: [pack], locked: [] };
   bridge.listScenePacks.mockResolvedValue(listing);
   bridge.refreshScenePacks.mockResolvedValue(listing);
   bridge.onMemberScenesChanged.mockReturnValue(() => undefined);
   bridge.onScenePacksChanged.mockReturnValue(() => undefined);
-  bridge.leaderboardBoard.mockResolvedValue({ ok: false, failure: 'network' });
-  bridge.getPlusTrialOffer.mockResolvedValue({
-    ok: true,
-    offer: {
-      enabled: false,
-      days: 30,
-      state: 'unavailable',
-      termsVersion: 8,
-      trialTermsVersion: 1,
-    },
-  });
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: { ipcRenderer: bridge },
@@ -211,10 +196,10 @@ describe('the panel beside the stage', () => {
       'community__role',
     );
     // A fact said as a line with its mark, not a stretched pill.
-    expect(panel.getByText('plus.official.included')).toHaveClass(
+    expect(panel.getByText('store.scene.yours')).toHaveClass(
       'gallery-included',
     );
-    expect(panel.getByText('plus.official.fine')).toBeInTheDocument();
+    expect(panel.getByText('store.official.fine')).toBeInTheDocument();
     // FluidEQ's own scenes are Plus looks, not member scenes.
     expect(
       await panel.findByText('plus.scene.inLooksPlus'),
@@ -228,7 +213,7 @@ describe('the panel beside the stage', () => {
     expect(panelElement.querySelector('.gallery-scene__brand')).toBeNull();
     expect(panelElement.querySelector('.community__avatar')).not.toBeNull();
     expect(panel.queryByText('plus.official.badge')).toBeNull();
-    expect(panel.getByText('plus.scene.fine')).toBeInTheDocument();
+    expect(panel.getByText('store.scene.fine')).toBeInTheDocument();
     expect(
       panel.getByRole('button', { name: 'plus.scene.report' }),
     ).toBeEnabled();

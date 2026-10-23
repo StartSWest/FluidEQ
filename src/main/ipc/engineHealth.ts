@@ -14,6 +14,10 @@ import {
   type IEngineHealth,
 } from '../../common/engineHealth';
 import {
+  capabilitiesFor,
+  isFluidEngineBuiltIn,
+} from '../../common/platformCapabilities';
+import {
   createEngineHealthMonitor,
   type IEngineHealthMonitor,
 } from '../engineHealth';
@@ -96,7 +100,12 @@ export const registerEngineHealthIpc = ({
   };
 
   const read = async (): Promise<IEngineHealth> => {
-    if (process.platform !== 'win32') {
+    // Windows' effect writes statuses, and so does the Mac's engine, in the
+    // same text and the same layout beside its configuration folder.
+    if (
+      process.platform !== 'win32' &&
+      !isFluidEngineBuiltIn(capabilitiesFor(process.platform))
+    ) {
       return NO_ENGINE_HEALTH;
     }
     monitor ??= createEngineHealthMonitor(root, push);

@@ -5,7 +5,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-type THostEvent = 'ready' | 'active' | 'paused' | 'error';
+type THostEvent = 'ready' | 'active' | 'paused' | 'paused-owner' | 'error';
 
 const mockWindow = {
   destroyed: false,
@@ -85,7 +85,12 @@ const create = (
       madeBy: 'fluideq',
     },
     executable: 'FluidEQ-Wallpaper.exe',
-    pauseReason: (covered) => (covered ? 'covered' : pause.reason),
+    pauseReason: (cover) => {
+      if (cover === 'window') {
+        return 'window';
+      }
+      return cover === 'others' ? 'covered' : pause.reason;
+    },
     onReady,
     onChange,
     onFail,

@@ -45,29 +45,29 @@ const lighting = {
   'lighting.rail.blurb': '桌面灯光跟随场景',
   'lighting.description': '键盘、鼠标、鼠标垫、耳机和支架随场景亮起',
 
-  'lighting.gate.title': '让键盘、鼠标和耳机随每个 Plus 场景亮起',
+  'lighting.gate.title': '用你的场景点亮键盘、鼠标和耳机',
   'lighting.gate.body':
-    '动态灯效是 FluidEQ Plus 的一部分。你的设备会采用图表上场景的颜色，并随节拍律动。',
-  'lighting.gate.cta': '了解 Plus',
+    '在“可视化”中获取任意一个场景，动态灯光就归你了：你的设备会采用图表上场景的颜色，并随节拍跳动。',
+  'lighting.gate.cta': '找一个场景',
 
   'lighting.preview.status': '预览：打开此页面期间，你的设备会亮起',
   'lighting.preview.lit': '正在用场景点亮你的设备',
   'lighting.preview.oneScene': '用一个场景展示它的效果',
-  'lighting.preview.noScene': '桌面上的 Plus 场景',
-  'lighting.preview.moreScenes': '所有场景都在 Plus 中',
-  'lighting.preview.held': '有了 Plus，任何场景都能让你的设备一直这样亮着。',
-  'lighting.preview.locked': '亮度、风格和对齐随 Plus 提供。',
+  'lighting.preview.noScene': '桌面上的一个场景',
+  'lighting.preview.moreScenes': '浏览场景',
+  'lighting.preview.held': '有了自己的场景，你的设备会一直这样亮着。',
+  'lighting.preview.locked': '亮度、样式和对齐在拥有自己的场景后开启。',
 
   'lighting.unsupported.title': '动态灯效仅适用于 Windows',
   'lighting.unsupported.body':
     '它通过 Windows Dynamic Lighting 和 Razer Chroma 点亮设备，而两者都只在 Windows 上提供。',
 
-  'lighting.switch': '播放 Plus 场景时点亮我的设备',
+  'lighting.switch': '播放场景时点亮我的设备',
   'lighting.status.live': '正在跟随 {scene}',
   'lighting.status.waiting': '等待音乐',
   'lighting.status.nothingLit': '场景正在播放，但没有设备亮起',
   'lighting.status.off': '已关闭：你的设备保持自己的灯效',
-  'lighting.status.noScene': '选择一个 Plus 场景，你的设备就会跟随它',
+  'lighting.status.noScene': '选一个场景，你的设备就会跟随它',
   'lighting.pickScene': '浏览可视化',
   'lighting.showGraph': '显示图表',
 
@@ -169,6 +169,7 @@ const lighting = {
 
   'lighting.graph.on': '停止点亮我的设备',
   'lighting.graph.off': '用这个场景点亮我的设备',
+  'lighting.gate.eyebrow': '一个场景即可开启',
 } as const;
 
 export default lighting;

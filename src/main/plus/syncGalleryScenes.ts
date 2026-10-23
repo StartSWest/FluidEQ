@@ -33,7 +33,12 @@ export const createGallerySceneSync = ({
   let queue = Promise.resolve();
   const syncOne = async (scene: IGalleryScene) => {
     const me = access.accountId();
-    if (!me || !access.entitled()) {
+    // The maker's own, or a scene this account owns: nothing else is kept up
+    // to date, as nothing else plays.
+    const mayKeep = () =>
+      access.accountId() === me &&
+      (scene.authorId === me || access.owns(scene.lookId));
+    if (!me || !mayKeep()) {
       return;
     }
     // Settled already for this revision, this session. Asked before the scene
@@ -45,10 +50,13 @@ export const createGallerySceneSync = ({
       return;
     }
     const official = scene.authorId === FLUIDEQ_CREATOR_ID;
+    // The newest held, never the version a pin plays: measured against a
+    // pinned one, every session would download the newest again to find it
+    // already here.
     const load = () =>
       official
-        ? officialStore?.load(scene.sceneId)
-        : store.load(scene.authorId, scene.sceneId);
+        ? officialStore?.newest(scene.sceneId)
+        : store.newest(scene.authorId, scene.sceneId);
     const current = load();
     if (!current || store.isBlocked(scene.authorId, scene.sceneId)) {
       return;
@@ -83,10 +91,7 @@ export const createGallerySceneSync = ({
       return;
     }
     const stillEligible = () =>
-      access.accountId() === me &&
-      access.entitled() &&
-      !!load() &&
-      !store.isBlocked(scene.authorId, scene.sceneId);
+      mayKeep() && !!load() && !store.isBlocked(scene.authorId, scene.sceneId);
     // The listing is the server's word for what the file holds; the file is
     // what gets adopted. Both are held to the rule, against the copy on disk
     // read again rather than the one read before the download — publishing
@@ -113,7 +118,12 @@ export const createGallerySceneSync = ({
         announceOfficial?.();
       }
     } else {
-      const envelope = await fetchEnvelope(auth, scene.authorId, scene.sceneId);
+      const envelope = await fetchEnvelope(
+        auth,
+        scene.authorId,
+        scene.sceneId,
+        scene.version,
+      );
       const next = envelope ? openMemberEnvelope(envelope) : undefined;
       if (
         !next ||

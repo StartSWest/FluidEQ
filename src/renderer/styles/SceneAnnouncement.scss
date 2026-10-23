@@ -1,0 +1,152 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// New scenes, announced (`SceneAnnouncementDialog`): on the dialog frame, the
+// set's lead scene filling the rail behind its title, and the set framed in
+// the body like the Plus page before signing in — pictures with an edge and
+// a shadow, the lead's light blurred on the wall behind them.
+
+// Over the account panel and the welcome, like them: news, but news that
+// asks for the whole window.
+.scene-announcement-backdrop {
+  @include dialog.backdrop(1500);
+}
+
+.dialog-frame.scene-announcement {
+  @include dialog.size(960px, 720px);
+}
+
+// The rail's scene is a picture here, not a running scene: the gallery's
+// picture sits in the flow at 16:9, so it is told to fill the rail instead.
+.scene-announcement .dialog-frame__scene.gallery-picture {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+}
+
+// The set: the lead two frames tall and two wide, the rest around it, three
+// to a row. A set of one is the lead alone, as wide as the body.
+.scene-announcement__frames {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 6px 4px 10px;
+
+  &.is-1 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  &.is-2 {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+
+// The lead's light on the wall behind the frames. Behind everything, and
+// larger than the body, so its edge never shows.
+.scene-announcement__glow.gallery-picture {
+  position: absolute;
+  z-index: -1;
+  inset: -18% -12%;
+  aspect-ratio: auto;
+  background: transparent;
+  filter: blur(64px) saturate(1.4);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.scene-announcement__frame {
+  @include animate(rise-in, $motion-base, $ease-out);
+  position: relative;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, $white 16%, transparent);
+  border-radius: $radius-m;
+  background: $primary-dark;
+  box-shadow:
+    0 12px 28px -12px rgba($black, 0.7),
+    0 0 0 1px rgba($black, 0.25);
+
+  &.is-lead {
+    grid-row: span 2;
+    grid-column: span 2;
+
+    .gallery-picture {
+      height: 100%;
+      aspect-ratio: auto;
+      min-height: 100%;
+    }
+  }
+
+  .is-1 &.is-lead,
+  .is-2 &.is-lead {
+    grid-column: auto;
+  }
+
+  .is-1 &.is-lead .gallery-picture {
+    aspect-ratio: 16 / 9;
+  }
+
+  figcaption {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    padding: 14px 9px 6px;
+    color: $text-primary;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, $primary-dark 82%, transparent)
+    );
+    font-size: $text-small;
+    font-weight: $weight-semibold;
+    @include truncate;
+  }
+
+  &.is-lead figcaption {
+    font-size: $text-body;
+  }
+
+  // The lead picture drifts, slowly enough to read as a scene breathing, as
+  // the Plus page's lead does.
+  &.is-lead .gallery-picture__image {
+    animation: scene-announcement-drift 28s ease-in-out infinite alternate;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+@keyframes scene-announcement-drift {
+  from {
+    transform: scale(1.04) translate3d(-1%, 0, 0);
+  }
+
+  to {
+    transform: scale(1.1) translate3d(1.5%, -1%, 0);
+  }
+}
+
+// Each frame after the lead arrives a beat after the one before.
+@for $index from 2 through 6 {
+  .scene-announcement__frame:nth-of-type(#{$index}) {
+    animation-delay: #{$index * 45}ms;
+  }
+}
+
+.scene-announcement__preview {
+  margin-top: 4px;
+  text-align: center;
+}

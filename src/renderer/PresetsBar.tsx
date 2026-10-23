@@ -17,7 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import './styles/PresetsBar.scss';
 import { ErrorDescription } from 'common/errors';
 import {
@@ -26,14 +33,16 @@ import {
 } from 'common/constants';
 import { isRestrictedPresetName } from 'common/utils';
 import type { TranslationKey } from 'common/i18n/en';
+import { keepSongSound, yieldSongSound } from './audio/songSoundSession';
 import { useFluidEqShell } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
+import { readOutputEditor } from './utils/outputEditor';
+import useMainOutputEditor from './utils/useMainOutputEditor';
 import Button from './widgets/Button';
 import List, { IOptionEntry } from './widgets/List';
 import PresetListItem from './components/PresetListItem';
 import ProfileActionIcon from './icons/ProfileActionIcon';
 import {
-  readKnownAudioDevices,
   getDeviceProfileSettings,
   getPresetBaselineNames,
   restorePresetBaseline,
@@ -90,15 +99,22 @@ const presetReducer: IPresetReducer = (
 };
 
 interface IPresetsBarProps {
-  fetchPresets: () => Promise<string[]>;
-  loadPreset: (presetName: string) => Promise<void>;
+  fetchPresets: (deviceId?: string) => Promise<string[]>;
+  loadPreset: (presetName: string, deviceId?: string) => Promise<void>;
   /** Overwrites the named profile. Never creates a second one beside it. */
-  savePreset: (presetName: string) => Promise<void>;
+  savePreset: (presetName: string, deviceId?: string) => Promise<void>;
   /** Resolves with the name actually used, which is numbered when taken. */
-  createPreset: (requestedName: string) => Promise<string>;
-  renamePreset: (oldName: string, newName: string) => Promise<void>;
-  deletePreset: (presetName: string) => Promise<void>;
+  createPreset: (requestedName: string, deviceId?: string) => Promise<string>;
+  renamePreset: (
+    oldName: string,
+    newName: string,
+    deviceId?: string,
+  ) => Promise<void>;
+  deletePreset: (presetName: string, deviceId?: string) => Promise<void>;
 }
+
+// This list lives under the MAIN selector even when another output is being tuned.
+const profileOutputKey = () => readOutputEditor().main?.id ?? '';
 
 const PresetsBar = ({
   fetchPresets,
@@ -122,10 +138,13 @@ const PresetsBar = ({
   const { isBlockingError, isCaseSensitiveFs, refreshState, setGlobalError } =
     useFluidEqShell();
   const { t } = useTranslation();
+  const enterMainEditor = useMainOutputEditor();
 
   const [presetName, setPresetName] = useState<string>('');
   const [presetNames, dispatchPresetNames] = useReducer(presetReducer, []);
   const [activeDeviceId, setActiveDeviceId] = useState('');
+  const resolvedOutput = useRef<string | undefined>(undefined);
+  const catalogueRequest = useRef(0);
   // Until the endpoint query has come back at least once we do not know which
   // profiles belong here, and showing the wrong ones for a frame is worse than
   // showing none.
@@ -137,49 +156,73 @@ const PresetsBar = ({
   const [baselineNames, setBaselineNames] = useState<string[]>([]);
   const [isRestoring, setIsRestoring] = useState(false);
 
-  const fetchPresetNames = useCallback(async () => {
-    try {
-      const result = await fetchPresets();
-      dispatchPresetNames({
-        type: PresetActionEnum.INIT,
-        presetNames: result,
-      });
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    }
-  }, [fetchPresets, setGlobalError]);
-
   const refreshOutputProfiles = useCallback(async () => {
+    const { main } = readOutputEditor();
+    catalogueRequest.current += 1;
+    const request = catalogueRequest.current;
+    if (!main) {
+      return;
+    }
+    const outputKey = main.id;
+    if (resolvedOutput.current !== outputKey) {
+      setHasResolvedOutput(false);
+      setPresetName('');
+      setActiveDeviceId('');
+      setDeviceAssignments({});
+      setBaselineNames([]);
+      dispatchPresetNames({ type: PresetActionEnum.INIT, presetNames: [] });
+    }
+    const isCurrent = () =>
+      catalogueRequest.current === request && profileOutputKey() === outputKey;
     try {
-      const [devices, settings, baselines] = await Promise.all([
-        readKnownAudioDevices(),
+      // Publish one output's catalogue and assignment together. Independent
+      // replies briefly put the old output's names under the new main selector.
+      const [names, settings, baselines] = await Promise.all([
+        fetchPresets(outputKey),
         getDeviceProfileSettings(),
-        getPresetBaselineNames(),
+        getPresetBaselineNames(outputKey),
       ]);
-      setActiveDeviceId(devices.find((device) => device.isDefault)?.id || '');
+      if (!isCurrent()) {
+        return;
+      }
+      dispatchPresetNames({ type: PresetActionEnum.INIT, presetNames: names });
+      setActiveDeviceId(outputKey);
       setDeviceAssignments(settings.assignments);
       setBaselineNames(baselines);
     } catch (e) {
-      setGlobalError(e as ErrorDescription);
+      if (isCurrent()) {
+        setGlobalError(e as ErrorDescription);
+      }
     } finally {
-      // Even a failed lookup counts as resolved: the list must not sit on a
-      // spinner forever because the endpoint query broke.
-      setHasResolvedOutput(true);
+      // A failed current lookup reports its error rather than leaving a spinner.
+      if (isCurrent()) {
+        resolvedOutput.current = outputKey;
+        setHasResolvedOutput(true);
+      }
     }
-  }, [setGlobalError]);
+  }, [fetchPresets, setGlobalError]);
 
   useEffect(() => {
     refreshOutputProfiles();
-    const handleOutputChanged = () => {
-      refreshOutputProfiles();
-      // The initial IPC request can race the main-process startup. Retry the
-      // preset catalogue after the active endpoint has been discovered.
-      fetchPresetNames();
+    window.addEventListener('fluideq-output-changed', refreshOutputProfiles);
+    window.addEventListener('fluideq-editor-changed', refreshOutputProfiles);
+    window.addEventListener('fluideq-presets-changed', refreshOutputProfiles);
+    return () => {
+      catalogueRequest.current += 1;
+      window.removeEventListener(
+        'fluideq-output-changed',
+        refreshOutputProfiles,
+      );
+      window.removeEventListener(
+        'fluideq-editor-changed',
+        refreshOutputProfiles,
+      );
+      window.removeEventListener(
+        'fluideq-presets-changed',
+        refreshOutputProfiles,
+      );
     };
-    window.addEventListener('fluideq-output-changed', handleOutputChanged);
-    return () =>
-      window.removeEventListener('fluideq-output-changed', handleOutputChanged);
-  }, [fetchPresetNames, refreshOutputProfiles]);
+  }, [refreshOutputProfiles]);
 
   const assignedPresetForOutput = activeDeviceId
     ? deviceAssignments[activeDeviceId]?.presetName || ''
@@ -223,7 +266,7 @@ const PresetsBar = ({
     ) {
       setPresetName(assignedPresetForOutput);
     }
-  }, [assignedPresetForOutput]);
+  }, [activeDeviceId, assignedPresetForOutput]);
 
   const isExistingPresetSelected = useMemo(
     () =>
@@ -231,14 +274,6 @@ const PresetsBar = ({
       assignedPresetForOutput === presetName,
     [assignedPresetForOutput, presetName, presetNames],
   );
-
-  // Fetch default presets and custom presets from storage
-  useEffect(() => {
-    fetchPresetNames();
-    window.addEventListener('fluideq-presets-changed', fetchPresetNames);
-    return () =>
-      window.removeEventListener('fluideq-presets-changed', fetchPresetNames);
-  }, [fetchPresetNames]);
 
   /**
    * Clear the name so the next save creates rather than overwrites.
@@ -267,16 +302,30 @@ const PresetsBar = ({
       // profile" that only clears a text field leaves you unsure whether you
       // have one until you press something else.
       // Main has the last word on the name: it numbers it against the folder on
-      // disk, so what comes back may differ from what was asked for.
-      const saved = (await createPreset(name)) || name;
+      // disk, so what comes back may differ from what was asked for. What
+      // plays is what the profile is made of, a song's own sound included,
+      // so that sound stays rather than being handed back at the song's end.
+      await enterMainEditor(activeDeviceId);
+      await keepSongSound();
+      const saved = (await createPreset(name, activeDeviceId)) || name;
+      // The write can finish after Windows selects another main. Its result
+      // must never become that new output's selected profile.
+      if (profileOutputKey() !== activeDeviceId) {
+        return;
+      }
       dispatchPresetNames({ type: PresetActionEnum.CREATE, presetName: saved });
       await refreshOutputProfiles();
+      if (profileOutputKey() !== activeDeviceId) {
+        return;
+      }
       setPresetName(saved);
       await refreshState();
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
   }, [
+    activeDeviceId,
+    enterMainEditor,
     presetNames,
     createPreset,
     refreshOutputProfiles,
@@ -299,7 +348,13 @@ const PresetsBar = ({
     }
 
     try {
-      await savePreset(presetName);
+      // Saved as heard, a song's own sound included, which then stays.
+      await enterMainEditor(activeDeviceId);
+      await keepSongSound();
+      await savePreset(presetName, activeDeviceId);
+      if (profileOutputKey() !== activeDeviceId) {
+        return;
+      }
 
       // The catalogue can be a moment behind the folder — a profile created on
       // another surface is still one of this output's, and Update is where the
@@ -315,6 +370,8 @@ const PresetsBar = ({
       setGlobalError(e as ErrorDescription);
     }
   }, [
+    activeDeviceId,
+    enterMainEditor,
     isExistingPresetSelected,
     presetName,
     refreshOutputProfiles,
@@ -331,7 +388,11 @@ const PresetsBar = ({
     async (presetToLoad = presetName) => {
       if (presetToLoad && visiblePresetNames.includes(presetToLoad)) {
         try {
-          await loadPreset(presetToLoad);
+          // A song's own sound comes off first, so the profile lands on the
+          // listener's and nothing hands the song's back over it later.
+          await enterMainEditor(activeDeviceId);
+          await yieldSongSound();
+          await loadPreset(presetToLoad, activeDeviceId);
           await refreshOutputProfiles();
           await refreshState();
         } catch (e) {
@@ -340,6 +401,8 @@ const PresetsBar = ({
       }
     },
     [
+      activeDeviceId,
+      enterMainEditor,
       presetName,
       visiblePresetNames,
       loadPreset,
@@ -406,7 +469,9 @@ const PresetsBar = ({
     }
     setIsRestoring(true);
     try {
-      await restorePresetBaseline(restoreTarget);
+      await enterMainEditor(activeDeviceId);
+      await yieldSongSound();
+      await restorePresetBaseline(restoreTarget, activeDeviceId);
       await refreshOutputProfiles();
       await refreshState();
     } catch (e) {
@@ -417,6 +482,9 @@ const PresetsBar = ({
   };
 
   const handleChangeSelectedPreset = (newValue: string) => {
+    if (profileOutputKey() !== activeDeviceId) {
+      return;
+    }
     setPresetName(newValue);
     // Selecting a named profile also attaches it to the active output.
     handleLoadPreset(newValue);
@@ -437,12 +505,19 @@ const PresetsBar = ({
       const successor = remaining[deletedAt] ?? remaining[deletedAt - 1];
 
       try {
-        await deletePreset(deletedValue);
+        await enterMainEditor(activeDeviceId);
+        await deletePreset(deletedValue, activeDeviceId);
+        if (profileOutputKey() !== activeDeviceId) {
+          return;
+        }
         dispatchPresetNames({
           type: PresetActionEnum.DELETE,
           presetName: deletedValue,
         });
         await refreshOutputProfiles();
+        if (profileOutputKey() !== activeDeviceId) {
+          return;
+        }
 
         // Only the selection that just stopped existing is disturbed. Clearing
         // it unconditionally meant deleting any other row dropped the profile
@@ -466,6 +541,8 @@ const PresetsBar = ({
       }
     },
     [
+      activeDeviceId,
+      enterMainEditor,
       deletePreset,
       refreshOutputProfiles,
       presetName,
@@ -479,8 +556,15 @@ const PresetsBar = ({
   const handleRenameExistingPresetName = useCallback(
     (oldName: string) => async (newName: string) => {
       try {
-        await renamePreset(oldName, newName);
+        await enterMainEditor(activeDeviceId);
+        await renamePreset(oldName, newName, activeDeviceId);
+        if (profileOutputKey() !== activeDeviceId) {
+          return;
+        }
         await refreshOutputProfiles();
+        if (profileOutputKey() !== activeDeviceId) {
+          return;
+        }
         dispatchPresetNames({
           type: PresetActionEnum.RENAME,
           oldName,
@@ -493,7 +577,13 @@ const PresetsBar = ({
         setGlobalError(e as ErrorDescription);
       }
     },
-    [refreshOutputProfiles, renamePreset, setGlobalError],
+    [
+      activeDeviceId,
+      enterMainEditor,
+      refreshOutputProfiles,
+      renamePreset,
+      setGlobalError,
+    ],
   );
 
   const options: IOptionEntry[] = useMemo(() => {
@@ -527,7 +617,14 @@ const PresetsBar = ({
   // small caps label and the count stand over the list, where the card's
   // title used to.
   return (
-    <div className="presets-bar">
+    <div
+      className="presets-bar"
+      onClickCapture={() => {
+        enterMainEditor(activeDeviceId).catch((error) =>
+          setGlobalError(error as ErrorDescription),
+        );
+      }}
+    >
       <div className="presets-bar__head">
         <span className="eyebrow">{t('profiles.title')}</span>
         {hasResolvedOutput && (

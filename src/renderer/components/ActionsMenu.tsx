@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
+  Fragment,
   KeyboardEvent,
   useEffect,
   useId,
@@ -13,12 +14,20 @@ import {
   type ReactNode,
 } from 'react';
 import { LATEST_RELEASE_URL, PRODUCT_NAME } from 'common/branding';
+import { isFluidEngineBuiltIn } from 'common/platformCapabilities';
 import type { TranslationKey } from 'common/i18n/en';
 import Chevron from '../icons/Chevron';
 import MenuIcon, { type MenuIconName } from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
+import windowCapabilities from '../utils/windowCapabilities';
 import useExitAnimation from '../utils/useExitAnimation';
 import { useTitlebarToolsShed } from '../utils/useTitlebarRoom';
+import ForumNewsBadge, {
+  forumNewsText,
+  useForumNewsCount,
+} from '../forum/ForumNewsBadge';
+import ForumNewsMenuItems from '../forum/ForumNewsMenuItems';
+import { useForumNewsHidden } from '../forum/forumNewsPref';
 import { requestHelpGuide } from '../help/helpGuideRequests';
 import helpMenuActions, { type IHelpHandlers } from '../help/helpMenuActions';
 import PlayerIcon from '../player/PlayerIcon';
@@ -147,8 +156,13 @@ const ActionsMenu = ({
   onAccount,
   help,
 }: IActionsMenuProps) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const isToolsShed = useTitlebarToolsShed();
+  // Help's count of what is new in the Forum comes here with Help's entries
+  // while Help's own button is away.
+  const forumNewsAll = useForumNewsCount();
+  const forumNewsHidden = useForumNewsHidden();
+  const forumNews = forumNewsHidden ? 0 : forumNewsAll;
   const [open, setOpen] = useState(false);
   // Held here rather than in the menu's panel, which is gone the moment the
   // row is pressed.
@@ -263,7 +277,13 @@ const ActionsMenu = ({
         ref={trigger}
         type="button"
         className="workspace-header__tools-trigger"
-        aria-label={t('app.actions')}
+        aria-label={
+          isToolsShed && help && forumNews > 0
+            ? `${t('app.actions')} · ${t('forum.new.countLabel', {
+                count: forumNewsText(forumNews, locale),
+              })}`
+            : t('app.actions')
+        }
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={exit.present ? panelId : undefined}
@@ -282,6 +302,9 @@ const ActionsMenu = ({
         <span
           className={`status-dot${engineState === 'failing' ? ' error' : ''}`}
         />
+        {isToolsShed && help && (
+          <ForumNewsBadge count={forumNews} placement="corner" />
+        )}
       </button>
       {exit.present && (
         <div
@@ -342,13 +365,20 @@ const ActionsMenu = ({
               red. Nothing here needs a working engine. The troubleshooter
               comes first: it is the one to open without knowing which repair
               is needed, which is everybody whose sound just stopped. */}
-          <Item icon="wrench" onSelect={run(onTroubleshoot)}>
-            {t('app.menu.fixAudio')}
-          </Item>
-          <Item icon="restart" onSelect={run(onRestartAudio)}>
-            {t('app.menu.restartAudio')}
-          </Item>
-          <hr className="actions-menu__rule" />
+          {/* Not where the engine is part of the app (macOS): there is no
+              audio service to restart, and every step the troubleshooter
+              offers is a repair of Windows' engine. */}
+          {!isFluidEngineBuiltIn(windowCapabilities()) && (
+            <>
+              <Item icon="wrench" onSelect={run(onTroubleshoot)}>
+                {t('app.menu.fixAudio')}
+              </Item>
+              <Item icon="restart" onSelect={run(onRestartAudio)}>
+                {t('app.menu.restartAudio')}
+              </Item>
+              <hr className="actions-menu__rule" />
+            </>
+          )}
           <Item icon="import" onSelect={run(onImportEq)}>
             {t('app.menu.importEq')}
           </Item>
@@ -395,13 +425,25 @@ const ActionsMenu = ({
               {helpMenuActions(t, help, requestHelpGuide)
                 .filter((action) => action.id !== 'fixAudio')
                 .map((action) => (
-                  <Item
-                    key={action.id}
-                    icon={action.icon}
-                    onSelect={run(action.run)}
-                  >
-                    {action.label}
-                  </Item>
+                  <Fragment key={action.id}>
+                    <Item icon={action.icon} onSelect={run(action.run)}>
+                      {action.id === 'forum' ? (
+                        <span className="help-menu__label">
+                          {action.label}
+                          <ForumNewsBadge count={forumNews} placement="row" />
+                        </span>
+                      ) : (
+                        action.label
+                      )}
+                    </Item>
+                    {action.id === 'forum' && (
+                      <ForumNewsMenuItems
+                        news={forumNewsAll}
+                        hidden={forumNewsHidden}
+                        run={run}
+                      />
+                    )}
+                  </Fragment>
                 ))}
               <button
                 type="button"

@@ -73,7 +73,7 @@ describe('reading back what each monitor was set to show', () => {
         resolution: 'auto',
         autoFloor: 0.35,
         upscaler: 'fsr',
-        smoothing: 'fast',
+        smoothing: 'best',
       },
       tuning: {},
       screens: [
@@ -175,7 +175,7 @@ describe('the file on disk', () => {
         resolution: 'auto',
         autoFloor: 0.35,
         upscaler: 'fsr',
-        smoothing: 'fast',
+        smoothing: 'best',
       },
       tuning: {},
       screens: [],

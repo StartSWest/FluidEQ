@@ -6,6 +6,7 @@ import ForumRail from './ForumRail';
 import {
   clearForumError,
   closeForum,
+  newTopics,
   openForum,
   refreshForum,
   selectBoard,
@@ -65,6 +66,8 @@ export default function ForumPanel() {
         loadingBoards={
           forum.boardsStatus === 'loading' || forum.boardsStatus === 'idle'
         }
+        fresh={newTopics(forum)}
+        issueCount={forum.issueCount}
         onSelect={selectBoard}
       />
       <section className="community__main forum__main">

@@ -1,5 +1,11 @@
 import { useState } from 'react';
-import type { IForumBoard, IForumTopicSummary } from 'common/forum/forumTypes';
+import { REPOSITORY_URL } from 'common/branding';
+import {
+  FORUM_ISSUES_BOARD,
+  type IForumBoard,
+  type IForumTopicSummary,
+  type TForumFilter,
+} from 'common/forum/forumTypes';
 import type { Translate } from 'common/i18n';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
@@ -9,8 +15,12 @@ import ForumGlyph, { boardGlyph } from './ForumGlyph';
 import { ForumLoadingLayer, TopicListLoading } from './ForumLoading';
 import {
   type IForumState,
+  isListedTopicNew,
   listKey,
   loadMoreTopics,
+  markAllForumRead,
+  NEW_BOARD,
+  newTopics,
   openTopic,
   refreshForum,
   searchForum,
@@ -19,6 +29,7 @@ import {
   startCompose,
 } from './forumStore';
 import { absoluteTime, relativeTime } from './forumTime';
+import { IssueState } from './IssueParts';
 
 interface ITopicListProps {
   forum: IForumState;
@@ -34,6 +45,20 @@ const FILTER_KEYS = {
   unanswered: 'forum.filter.unanswered',
 } as const;
 
+/** On the issues' row the same three read as GitHub reads them: open first. */
+const ISSUE_FILTER_KEYS = {
+  all: 'forum.filter.all',
+  unanswered: 'forum.issue.open',
+  answered: 'forum.issue.closed',
+} as const;
+
+const FILTERS: readonly TForumFilter[] = ['all', 'answered', 'unanswered'];
+const ISSUE_FILTERS: readonly TForumFilter[] = [
+  'all',
+  'unanswered',
+  'answered',
+];
+
 /** What the header says: the search, the board, or every board. */
 const headingOf = (forum: IForumState, t: Translate) => {
   if (forum.search) {
@@ -41,6 +66,13 @@ const headingOf = (forum: IForumState, t: Translate) => {
       title: t('forum.search.heading', { query: forum.search }),
       description: '',
       glyph: 'search' as const,
+    };
+  }
+  if (forum.board === NEW_BOARD) {
+    return {
+      title: t('forum.new'),
+      description: t('forum.new.blurb'),
+      glyph: 'inbox' as const,
     };
   }
   if (forum.board) {
@@ -60,6 +92,8 @@ const headingOf = (forum: IForumState, t: Translate) => {
 export default function TopicList({ forum }: ITopicListProps) {
   const { t, locale } = useTranslation();
   const searching = forum.search !== '';
+  const isNewList = !searching && forum.board === NEW_BOARD;
+  const isIssues = !searching && forum.board === FORUM_ISSUES_BOARD;
   const current = forum.boards.find((board) => board.slug === forum.board);
   const signedIn = forum.auth.status === 'signed-in';
   const canWrite = forum.auth.status !== 'unconfigured';
@@ -69,6 +103,20 @@ export default function TopicList({ forum }: ITopicListProps) {
   // loaded, or topics from another board, filter or search. A reload of the
   // list already on screen keeps its rows — the turning refresh button is
   // the whole signal, or coming back to the window would flash the page.
+  const empty = (() => {
+    if (searching) {
+      return {
+        title: 'forum.empty.search',
+        hint: 'forum.empty.searchHint',
+      } as const;
+    }
+    return isNewList
+      ? ({ title: 'forum.new.empty', hint: 'forum.new.emptyHint' } as const)
+      : ({
+          title: 'forum.empty.board',
+          hint: 'forum.empty.boardHint',
+        } as const);
+  })();
   const placeholder =
     (loading || forum.listStatus === 'idle') &&
     (forum.topics.length === 0 || forum.listedFor !== listKey(forum));
@@ -88,6 +136,18 @@ export default function TopicList({ forum }: ITopicListProps) {
           )}
         </span>
         <span className="forum__head-actions">
+          {/* On every list while anything is new, not only on the new
+              ones' own: it is how the count on Help's button is cleared
+              (Ivan, 2026-10-16). */}
+          {newTopics(forum).length > 0 && (
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={markAllForumRead}
+            >
+              {t('forum.new.markAllRead')}
+            </button>
+          )}
           <button
             type="button"
             className={`forum__icon-button${loading ? ' is-busy' : ''}`}
@@ -99,7 +159,18 @@ export default function TopicList({ forum }: ITopicListProps) {
           >
             <ForumGlyph name="refresh" />
           </button>
-          {canWrite && (
+          {isIssues && (
+            <a
+              className="button small forum__new forum__github-button"
+              href={`${REPOSITORY_URL}/issues/new/choose`}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <ForumGlyph name="plus" />
+              {t('forum.issue.newOnGithub')}
+            </a>
+          )}
+          {canWrite && !isIssues && (
             <button
               type="button"
               className="button small forum__new"
@@ -123,13 +194,13 @@ export default function TopicList({ forum }: ITopicListProps) {
         {/* Keyed by the search it shows, so picking a board in the rail —
             which clears the search — also clears the box. */}
         <SearchBox key={forum.search} committed={forum.search} />
-        {!searching && current?.isAnswerable && (
+        {!searching && (current?.isAnswerable || isIssues) && (
           <div
             className="segmented forum__filters"
             role="radiogroup"
             aria-label={t('forum.filter.label')}
           >
-            {(['all', 'answered', 'unanswered'] as const).map((filter) => (
+            {(isIssues ? ISSUE_FILTERS : FILTERS).map((filter) => (
               <button
                 key={filter}
                 type="button"
@@ -138,7 +209,7 @@ export default function TopicList({ forum }: ITopicListProps) {
                 className={`segmented__option${forum.filter === filter ? ' is-selected' : ''}`}
                 onClick={() => setFilter(filter)}
               >
-                {t(FILTER_KEYS[filter])}
+                {t((isIssues ? ISSUE_FILTER_KEYS : FILTER_KEYS)[filter])}
               </button>
             ))}
           </div>
@@ -158,7 +229,8 @@ export default function TopicList({ forum }: ITopicListProps) {
                   <TopicRow
                     topic={topic}
                     boards={forum.boards}
-                    showBoard={searching || !forum.board}
+                    showBoard={searching || !forum.board || isNewList}
+                    isNew={isListedTopicNew(forum, topic)}
                     locale={locale}
                   />
                 </li>
@@ -169,16 +241,10 @@ export default function TopicList({ forum }: ITopicListProps) {
           {forum.listStatus === 'ready' && forum.topics.length === 0 && (
             <div className="community__empty">
               <span className="community__empty-mark" aria-hidden="true">
-                <ForumGlyph name={searching ? 'search' : 'threads'} />
+                <ForumGlyph name={heading.glyph} />
               </span>
-              <p className="community__empty-title">
-                {searching ? t('forum.empty.search') : t('forum.empty.board')}
-              </p>
-              <p className="community__empty-hint">
-                {searching
-                  ? t('forum.empty.searchHint')
-                  : t('forum.empty.boardHint')}
-              </p>
+              <p className="community__empty-title">{t(empty.title)}</p>
+              <p className="community__empty-hint">{t(empty.hint)}</p>
             </div>
           )}
 
@@ -253,16 +319,18 @@ interface ITopicRowProps {
   topic: IForumTopicSummary;
   boards: readonly IForumBoard[];
   showBoard: boolean;
+  /** Something in it this reader has not read. */
+  isNew: boolean;
   locale: string;
 }
 
-function TopicRow({ topic, boards, showBoard, locale }: ITopicRowProps) {
+function TopicRow({ topic, boards, showBoard, isNew, locale }: ITopicRowProps) {
   const { t } = useTranslation();
   const count = new Intl.NumberFormat(locale);
   return (
     <button
       type="button"
-      className={`forum__topic${topic.answered ? ' is-answered' : ''}`}
+      className={`forum__topic${topic.answered ? ' is-answered' : ''}${isNew ? ' is-new' : ''}`}
       onClick={() => openTopic(topic.number)}
     >
       <ForumAvatar person={topic.author} className="forum__topic-avatar" />
@@ -272,12 +340,18 @@ function TopicRow({ topic, boards, showBoard, locale }: ITopicRowProps) {
           <span className="forum__topic-excerpt">{topic.excerpt}</span>
         )}
         <span className="forum__topic-meta">
+          {isNew && (
+            <span className="forum__chip forum__chip--new">
+              {t('forum.topic.new')}
+            </span>
+          )}
           {showBoard && (
             <span className="forum__chip">
               <ForumGlyph name={boardGlyph(topic.board)} />
               {boardName(topic.board, boards, t)}
             </span>
           )}
+          {topic.issue && <IssueState issue={topic.issue} />}
           {topic.answered && (
             <span className="forum__chip forum__chip--answer">
               <ForumGlyph name="answer" />

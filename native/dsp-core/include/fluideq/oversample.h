@@ -34,9 +34,12 @@ extern "C" {
 #define FEQ_OVERSAMPLE_STAGES 2
 
 typedef struct FeqOversampler {
-  /** One circular FIR history per halving, per direction. */
-  double up[FEQ_OVERSAMPLE_STAGES][FEQ_OVERSAMPLE_TAPS];
-  double down[FEQ_OVERSAMPLE_STAGES][FEQ_OVERSAMPLE_TAPS];
+  /**
+   * One circular FIR history per halving, per direction, each kept twice
+   * side by side so its last taps always lie in one unbroken run.
+   */
+  double up[FEQ_OVERSAMPLE_STAGES][FEQ_OVERSAMPLE_TAPS * 2];
+  double down[FEQ_OVERSAMPLE_STAGES][FEQ_OVERSAMPLE_TAPS * 2];
   /** Next write slot in each history. */
   int up_position[FEQ_OVERSAMPLE_STAGES];
   int down_position[FEQ_OVERSAMPLE_STAGES];
@@ -53,6 +56,15 @@ void feq_oversampler_reset(FeqOversampler* state);
  * rate cannot fall through a gap into the wrong factor.
  */
 uint32_t feq_oversample_factor_for_sample_rate(double sample_rate);
+
+/**
+ * How late a sound comes back from going up by `factor` and down again, in
+ * frames at the base rate: each halving's filter is half its taps late at
+ * its own rate, both ways — 31 at 2x, 46.5 at 4x, none otherwise. Whatever
+ * runs the whole sound through the round trip owes this to the delay the
+ * rack reports.
+ */
+double feq_oversample_round_trip_frames(uint32_t factor);
 
 /**
  * `input` at `frames` becomes `output` at `frames * factor`.
@@ -79,6 +91,14 @@ void feq_oversample_down(FeqOversampler* state,
                          uint32_t frames,
                          uint32_t factor,
                          float* middle);
+
+/**
+ * The half-band's `FEQ_OVERSAMPLE_TAPS` taps, designed into `taps`, for a
+ * stage that runs the same filter its own way (`exciter_oversample.cpp`).
+ * Designed afresh rather than read from this file's table, which another
+ * file's statics cannot rely on being built before them.
+ */
+void feq_oversample_half_band_design(double* taps);
 
 #ifdef __cplusplus
 }

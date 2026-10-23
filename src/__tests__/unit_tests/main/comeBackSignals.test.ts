@@ -188,8 +188,8 @@ describe('createComeBackWatch', () => {
 
 describe('accountComeBackSteps', () => {
   /**
-   * Every refresher, recording the order it was called in. The leaderboard
-   * upload is the last step, and says so on `done`.
+   * Every refresher, recording the order it was called in. The scene
+   * announcements are the last step, and say so on `done`.
    */
   const makeRefreshers = () => {
     const calls: string[] = [];
@@ -199,14 +199,17 @@ describe('accountComeBackSteps', () => {
     };
     const refreshers = {
       entitlement: { checkIfDue: jest.fn(record('membership')) },
+      sceneStore: { refreshIfDue: jest.fn(record('owned scenes')) },
       scenePacks: { refreshIfDue: jest.fn(record('FluidEQ scenes')) },
       memberSharing: { refreshIfDue: jest.fn(record('block list')) },
       plusGallery: { refreshIfDue: jest.fn(record('gallery scenes')) },
       sceneReviews: { refreshIfDue: jest.fn(record('scene reviews')) },
       plusTermsNotice: { checkIfDue: jest.fn(record('Plus terms notice')) },
-      leaderboard: {
-        uploadIfDue: jest.fn(async () => {
-          calls.push('leaderboard upload');
+      sceneTaste: { uploadIfDue: jest.fn(record('scene plays and engine')) },
+      listening: { refreshIfDue: jest.fn(record('listening')) },
+      sceneAnnouncements: {
+        refreshIfDue: jest.fn(async () => {
+          calls.push('scene announcements');
           done.emit('done');
         }),
       },
@@ -240,12 +243,15 @@ describe('accountComeBackSteps', () => {
 
     expect(calls).toEqual([
       'membership',
+      'owned scenes',
       'FluidEQ scenes',
       'block list',
       'gallery scenes',
       'scene reviews',
       'Plus terms notice',
-      'leaderboard upload',
+      'scene plays and engine',
+      'listening',
+      'scene announcements',
     ]);
     expect(refreshers.entitlement.checkIfDue).toHaveBeenCalledWith(
       'wake from sleep',
@@ -263,7 +269,13 @@ describe('accountComeBackSteps', () => {
     expect(refreshers.plusTermsNotice.checkIfDue).toHaveBeenCalledWith(
       'wake from sleep',
     );
-    expect(refreshers.leaderboard.uploadIfDue).toHaveBeenCalledWith(
+    expect(refreshers.sceneTaste.uploadIfDue).toHaveBeenCalledWith(
+      'wake from sleep',
+    );
+    expect(refreshers.listening.refreshIfDue).toHaveBeenCalledWith(
+      'wake from sleep',
+    );
+    expect(refreshers.sceneAnnouncements.refreshIfDue).toHaveBeenCalledWith(
       'wake from sleep',
     );
     expect(harness.logger.warn).not.toHaveBeenCalled();
@@ -288,10 +300,13 @@ describe('accountComeBackSteps', () => {
 
     expect(calls).toEqual([
       'membership',
+      'owned scenes',
       'block list',
       'scene reviews',
       'Plus terms notice',
-      'leaderboard upload',
+      'scene plays and engine',
+      'listening',
+      'scene announcements',
     ]);
     expect(harness.logger.warn.mock.calls).toEqual([
       ['Refreshing the FluidEQ scenes after screen unlock failed.', rejected],

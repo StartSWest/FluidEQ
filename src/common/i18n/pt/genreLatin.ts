@@ -27,11 +27,11 @@ export default {
   'genre.latinPop.pin.200.why': 'Espaço entre o sub e a voz.',
   'genre.latinPop.pin.3150': 'A articulação da voz',
   'genre.latinPop.pin.3150.why': 'Onde estão as palavras.',
+  'genre.latinPop.stage.exciter': 'Calor e corpo sob a voz, nada nos agudos.',
   'genre.latinPop.stage.bassPunch': 'O sub um pouco mais firme.',
   'genre.latinPop.stage.dimension': 'Mono abaixo de 150 Hz.',
   'genre.latinPop.stage.maximizer': 'Um teto que mal empurra.',
-  'genre.latinPop.off':
-    'Sem Excitador nem Forja de graves: fica tão polido quanto chegou.',
+  'genre.latinPop.off': 'Sem Forja de graves: o sub já está preso ao bumbo.',
 
   'genre.reggaeton.hook': 'Um bumbo em cada tempo sobre uma 808 afinada',
   'genre.reggaeton.story':

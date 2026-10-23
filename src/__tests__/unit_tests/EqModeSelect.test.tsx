@@ -299,7 +299,7 @@ it('keeps only the latest queued choice per row without losing another group', a
   expect(mockRefresh).toHaveBeenCalledTimes(3);
   expect(screen.getByRole('dialog')).toBeVisible();
 });
-it('offers Constant instead of Off in both Q groups without removing smoothing Off', () => {
+it('offers Constant instead of Off in both Q groups, and smoothing Off with 1/12 octave offered', () => {
   render(<EqModeSelect />);
   fireEvent.click(menu());
   ['Your EQ', 'Corrections'].forEach((scope) => {
@@ -317,11 +317,18 @@ it('offers Constant instead of Off in both Q groups without removing smoothing O
     expect(group.getByRole('button', { name: 'Proportional' })).toBeVisible();
     expect(group.getByRole('button', { name: 'Asymmetric' })).toBeVisible();
   });
+  // Nothing chosen is Off (Ivan, 2026-10-15: "remove curve smoothing as
+  // default ... put it as off"), and 1/12 octave is there to choose.
+  const smoothing = within(
+    screen.getByRole('group', { name: 'Corrections · Curve smoothing' }),
+  );
+  expect(smoothing.getByRole('button', { name: 'Off' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
   expect(
-    within(
-      screen.getByRole('group', { name: 'Corrections · Curve smoothing' }),
-    ).getByRole('button', { name: 'Off' }),
-  ).toHaveAttribute('aria-pressed', 'true');
+    smoothing.getByRole('button', { name: '1/12 octave' }),
+  ).toHaveAttribute('aria-pressed', 'false');
   expect(menu()).toHaveTextContent('Normal');
 });
 
@@ -331,6 +338,8 @@ it.each([
   { eqBandQ: 'proportional' as const },
   { curveBandQ: 'asymmetric' as const },
   { curveSmoothing: 'third' as const },
+  // 1/12 octave is a choice of its own now that curves start unsmoothed.
+  { curveSmoothing: 'twelfth' as const },
 ])('shows a compact Custom summary for %j', (settings) => {
   Object.assign(mockWorld, settings);
   const { rerender } = render(<EqModeSelect />);

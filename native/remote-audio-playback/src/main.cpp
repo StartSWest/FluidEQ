@@ -1,4 +1,5 @@
 /* FluidEQ — GPL-3.0-or-later */
+#include "capture_children.h"
 #include "playback_runtime.h"
 #include "replies.h"
 #include <array>
@@ -9,6 +10,20 @@
 #include <thread>
 #include <vector>
 
+/*
+ * The app's LAN audio helper: it plays what other computers share with this
+ * one, and it is the parent of every capture helper, so that the capture
+ * sent to the network can leave this whole tree out (`capture_children.h`).
+ * It outlives its output device for the same reason: a device unplugged
+ * mid-song is reported (reply 4) and given back, and the captures under this
+ * process — the second output's mirrors among them — carry on.
+ *
+ * Commands: 1 open output <guid>, 2 audio, 3 remove peer, 4 volume, 5 reset,
+ * 6 quit, 7 close output, 8 start a capture "<pipe> <token> local|lan".
+ * Replies: 1 ready, 3 result of 1/7/8 by id, 4 output failed (id 0) or a bad
+ * command (then it ends), 5 meter, 6 output format, 9 a capture started
+ * under that id has ended (its exit code in the rate field).
+ */
 int main(int argc, char** argv) {
   DWORD pid = 0;
   if (argc != 3 || std::string_view(argv[1]) != "--parent-pid") return 2;
@@ -27,6 +42,9 @@ int main(int argc, char** argv) {
   });
   int exit_code = 0;
   {
+    CaptureChildren captures(pid, [](std::uint32_t id, DWORD code) {
+      playback_reply(9, id, static_cast<std::uint32_t>(code));
+    });
     PlaybackRuntime runtime(parent);
     std::vector<float> payload(feq::remote::kMaxPacketFrames * feq::remote::kMaxChannels + 1);
     std::array<std::uint32_t, feq::remote::kMaxPeers> meter_frames{};
@@ -36,9 +54,10 @@ int main(int argc, char** argv) {
       if (!playback_read(&header, sizeof(header))) break;
       if (header.magic != 0x31504c46 || header.bytes > payload.size() * sizeof(float) ||
           !playback_read(payload.data(), header.bytes)) { exit_code = 1; break; }
-      if (FAILED(runtime.output().failure()) && header.kind != 1) {
-        playback_reply(4, 0, static_cast<std::uint32_t>(runtime.output().failure()));
-        exit_code = 1; break;
+      if (runtime.is_open() && FAILED(runtime.output().failure())) {
+        live = playback_reply(4, 0, static_cast<std::uint32_t>(runtime.output().failure()));
+        runtime.close();
+        if (!live) break;
       }
       switch (header.kind) {
         case 1: {
@@ -63,6 +82,10 @@ int main(int argc, char** argv) {
         }
         case 2: {
           if (header.id == 0 || header.id > feq::remote::kMaxPeers || header.bytes != 4u + static_cast<std::uint32_t>(header.frames) * header.channels * 4u) { live = false; break; }
+          // Sound that arrives with no device open — between a close and the
+          // next open — is dropped, never a reason to end the helper and the
+          // captures it is the parent of.
+          if (!runtime.is_open()) break;
           std::uint32_t sequence = 0;
           std::memcpy(&sequence, payload.data(), 4);
           live = runtime.push(header.id, header.rate, header.channels, header.frames, sequence, payload.data() + 1);
@@ -82,6 +105,18 @@ int main(int argc, char** argv) {
           break;
         case 5: if (header.bytes != 0) live = false; else runtime.reset(); break;
         case 6: live = false; break;
+        case 7:
+          if (header.bytes != 0) { live = false; break; }
+          runtime.close();
+          live = playback_reply(3, header.id, static_cast<std::uint32_t>(S_OK));
+          break;
+        case 8: {
+          const std::string_view request(reinterpret_cast<const char*>(payload.data()), header.bytes);
+          // A malformed request is a broken app, like any other bad command.
+          if (!capture_request_valid(request)) { live = false; break; }
+          live = playback_reply(3, header.id, static_cast<std::uint32_t>(captures.spawn(request, header.id)));
+          break;
+        }
         default: live = false; break;
       }
       if (!live && header.kind != 6) { playback_reply(4, header.id, static_cast<std::uint32_t>(E_INVALIDARG)); exit_code = 1; }

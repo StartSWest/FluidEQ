@@ -31,6 +31,11 @@ const engineHealth = {
   'engineHealth.rackNeedsEngine':
     'DSP प्रभाव इंजन के भीतर ही चलते हैं, इसलिए Windows ऑडियो दोबारा शुरू करने से वही इंजन फिर चालू हो जाता है। इसे ठीक करता है FluidEQ का अपना इंजन लगाना — एक Windows अनुमति और एक पल की ख़ामोशी।',
   'engineHealth.useApo': 'Equalizer APO इस्तेमाल करें…',
+  'engineHealth.macPermissionTitle':
+    'FluidEQ आपके Mac की आवाज़ नहीं सुन पा रहा',
+  'engineHealth.macPermissionBody':
+    'macOS ने FluidEQ को आपके Mac में चल रही आवाज़ रिकॉर्ड करने की अनुमति नहीं दी है, इसलिए आपका EQ उस तक नहीं पहुँच रहा। तब तक आवाज़ हमेशा की तरह चलती रहेगी। गोपनीयता और सुरक्षा › स्क्रीन और सिस्टम ऑडियो रिकॉर्डिंग में FluidEQ को चालू करें।',
+  'engineHealth.openMacPrivacy': 'सिस्टम सेटिंग्स खोलें',
 } as const;
 
 export default engineHealth;

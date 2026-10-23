@@ -141,13 +141,15 @@ export default {
   'genre.arabicPop.pin.1250.why': 'Die Verzierungen klar.',
   'genre.arabicPop.pin.5000': 'Streicher nicht aufgehellt',
   'genre.arabicPop.pin.5000.why': 'Schon hell.',
+  'genre.arabicPop.stage.exciter':
+    'Wärme unter der Stimme; Streicher und Tek bleiben so hell, wie sie sind.',
   'genre.arabicPop.stage.bassPunch': 'Das Fundament gestrafft.',
   'genre.arabicPop.stage.dimension':
     'Die Streicher so breit wie aufgenommen; nur unten schmaler.',
   'genre.arabicPop.stage.maximizer':
     'Eine leichte Obergrenze, die den Anschlag der Darbuka bewahrt.',
   'genre.arabicPop.off':
-    'Kein Exciter und keine Bass-Schmiede: Streicher und Tek sind schon hell.',
+    'Keine Bass-Schmiede: Unter dem Doum wird nichts erzeugt.',
 
   'genre.turkishPop.hook': 'Polierter Pop mit türkischer Farbe',
   'genre.turkishPop.story':
@@ -160,11 +162,12 @@ export default {
   'genre.turkishPop.pin.1250.why': 'Vorn.',
   'genre.turkishPop.pin.8000': 'Kein zusätzlicher Glanz',
   'genre.turkishPop.pin.8000.why': 'Schon poliert.',
+  'genre.turkishPop.stage.exciter':
+    'Wärme unter der Stimme, nichts auf der Darbuka.',
   'genre.turkishPop.stage.bassPunch': 'Ein straffes Fundament.',
   'genre.turkishPop.stage.dimension': 'Wie gemischt, nur unten schmaler.',
   'genre.turkishPop.stage.maximizer': 'Eine Obergrenze, die kaum anschiebt.',
-  'genre.turkishPop.off':
-    'Kein Exciter und keine Bass-Schmiede auf einer so polierten Platte.',
+  'genre.turkishPop.off': 'Keine Bass-Schmiede auf einer so polierten Platte.',
 
   'genre.gospel.hook': 'Ein Chor und Vamps, die sich minutenlang steigern',
   'genre.gospel.story':

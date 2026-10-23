@@ -383,7 +383,6 @@ const dsp = {
   'dsp.eqStereo.side': 'Côtés seuls',
   'dsp.eqOversample.label': 'Suréchantillonnage',
   'dsp.eqOversample.off': 'Non',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'Précis : chaque bande de cet égaliseur sonne exactement comme elle est tracée, jusqu’à 20\u00a0kHz.',
   'dsp.eqImport.title': 'Importer une courbe d’égalisation',
@@ -393,6 +392,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'Choisir un fichier',
   'dsp.eqImport.apply': 'Importer',
   'dsp.eqImport.cancel': 'Annuler',
+  'dsp.eqImport.tooMany':
+    'Cela ferait plus de {max} bandes. Supprimez d’abord quelques bandes, ou importez pour les deux oreilles.',
 
   'dsp.eq.title': 'Égaliseur',
   'dsp.eq.band': 'Bande',
@@ -445,6 +446,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Médiums',
   'dsp.exciter.band.high': 'Aigus',
   'dsp.exciter.texture': 'Texture',
+  'dsp.exciter.oversampling': 'Suréchantillonnage',
+  'dsp.exciter.oversampling.off': 'Désactivé',
+  'dsp.exciter.oversampling.standard': 'Standard',
+  'dsp.exciter.oversampling.high': 'Élevé',
+  'dsp.exciter.oversampling.offHint':
+    'Harmoniques produites à la fréquence propre de la sortie : la charge la plus légère, avec un peu de grain dû à ce qui se replie depuis le haut.',
+  'dsp.exciter.oversampling.standardHint':
+    'Harmoniques produites jusqu’à quatre fois la fréquence de la sortie, comme l’Exciter l’a toujours fait.',
+  'dsp.exciter.oversampling.highHint':
+    'La même fréquence avec un filtre bien plus raide, pour que rien ne se replie depuis le haut. Un peu plus de travail pour le processeur.',
   'dsp.exciter.organic': 'Organique',
   'dsp.exciter.organicHint':
     'Ajoute un corps doux d’harmoniques paires autour de la zone choisie. Idéal pour rendre une restitution propre et métallique, notamment avec des transducteurs en titane, plus chaleureuse et organique sans perdre de détails.',

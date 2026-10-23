@@ -66,8 +66,6 @@ const view = (): IStudioView => ({
   serial: 1,
   pack,
   state: {
-    entitled: true,
-    maker: false,
     mayAddProject: true,
     activeId: 'city',
     projectsRoot: '',
@@ -177,7 +175,7 @@ it('refreshes the gallery after a successful publication even if Studio was unmo
   expect(markGalleryStale).toHaveBeenCalledTimes(1);
 });
 
-it('opens the Plus account panel on entitlement refusal without reporting success', async () => {
+it('opens the account panel on an old server’s entitlement refusal without reporting success', async () => {
   bridge.publishStudioScene.mockResolvedValueOnce({
     ok: false,
     reason: 'not-entitled',
@@ -189,7 +187,7 @@ it('opens the Plus account panel on entitlement refusal without reporting succes
   await act(async () => {
     result.current.publish('space');
   });
-  expect(requestAccountPanel).toHaveBeenCalledWith('subscribe');
+  expect(requestAccountPanel).toHaveBeenCalledWith('home');
   expect(result.current.draft).toBeUndefined();
   expect(result.current.publishing).toBe(false);
   expect(markGalleryStale).not.toHaveBeenCalled();
@@ -265,7 +263,7 @@ it('publishes under both categories the member chose', async () => {
   );
 });
 
-it.each(['project', 'build', 'invalid build', 'entitlement'])(
+it.each(['project', 'build', 'invalid build'])(
   'discards preparation after a change of %s',
   async (change) => {
     const pending = deferred<Blob | undefined>();
@@ -284,9 +282,6 @@ it.each(['project', 'build', 'invalid build', 'entitlement'])(
     }
     if (change === 'invalid build') {
       next.problems = [{ code: 'missing-file', file: 'source' }];
-    }
-    if (change === 'entitlement') {
-      next.state.entitled = false;
     }
     rerender(next);
     await act(async () => {

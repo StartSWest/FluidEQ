@@ -29,6 +29,7 @@ import { getResolvedPreAmp, save, savePreset } from './flush';
 import type { TReflushResult } from './ipc/audioEngine';
 import type { IMainSession } from './mainSession';
 import { getAutomaticPresetName } from './profileStore';
+import { ownPreset } from './songSoundLoan';
 import { getConfigPath, isEngineInstalled } from './registry';
 
 /**
@@ -95,7 +96,6 @@ export interface IUpdatePathDeps {
   getCurrentPreset: () => IPresetV2;
   sessionHeadroom: () => ISessionHeadroom;
   attachPresetToActiveDevice: (presetName: string) => boolean;
-  captureCurrentLayout: () => void;
 }
 
 /**
@@ -112,8 +112,10 @@ export const createUpdatePath = ({
   getCurrentPreset,
   sessionHeadroom,
   attachPresetToActiveDevice,
-  captureCurrentLayout,
 }: IUpdatePathDeps) => {
+  /** The newest flush asked for: what a caller that must see it land waits on. */
+  let lastFlush: Promise<void> = Promise.resolve();
+
   const updateConfigPath = async (
     event: TReplySink,
     channel: ChannelEnum | string,
@@ -174,6 +176,7 @@ export const createUpdatePath = ({
     syncActiveProfile = false,
     useActiveSessionOverride = false,
   ) => {
+    const editorGeneration = session.outputEditGeneration;
     // Whether the chosen engine is there is asked on every change, because it
     // can be uninstalled while the app is running. Under 'fluid' this is a
     // file check plus the helper's last word on the registration, and no
@@ -202,6 +205,11 @@ export const createUpdatePath = ({
       }
       diskSync.startApoConfigWatcher();
       await diskSync.configInclude.ensure(session.configPath);
+      // A newly opened editor owns state now; never save it as the old edit.
+      if (session.outputEditGeneration !== editorGeneration) {
+        event.reply(channel, { result: response });
+        return;
+      }
       // Keep the root state, the disabled slider and the generated APO line on
       // the same automatic value. The writer derives this independently as its
       // final safety check; synchronizing here prevents the stored manual
@@ -229,7 +237,9 @@ export const createUpdatePath = ({
         // keep.
         savePreset(
           assignment.presetName,
-          getCurrentPreset(),
+          // The listener's own bands, Tone and preset while a song's are lent:
+          // the profile is theirs (`songSoundLoan.ts`).
+          ownPreset(getCurrentPreset(), state),
           presetDirForDevice(assignment.deviceId),
           String(channel),
         );
@@ -253,6 +263,11 @@ export const createUpdatePath = ({
           session.hasActiveSessionOverride = false;
         }
       }
+      if (state.songSoundLoan) {
+        // A song's lent sound plays from the live state, because the profile
+        // it would otherwise be rendered from holds the listener's own.
+        session.hasActiveSessionOverride = true;
+      }
       const activeDevicePattern =
         session.activeAudioDevice?.guid ||
         session.activeAudioDevice?.name ||
@@ -266,6 +281,17 @@ export const createUpdatePath = ({
               state,
             }
           : undefined;
+      if (session.activeAudioDeviceId) {
+        if (activeOverride) {
+          session.outputStateOverrides ??= new Map();
+          session.outputStateOverrides.set(
+            session.activeAudioDeviceId,
+            structuredClone(state),
+          );
+        } else {
+          session.outputStateOverrides?.delete(session.activeAudioDeviceId);
+        }
+      }
       // Flush changes to the engine's config. Once: overlapping requests are
       // the writer's to coalesce, not a race to retry (see
       // `followOutputs.ts`).
@@ -277,26 +303,43 @@ export const createUpdatePath = ({
       // the reply is a success — because the state is real; only its
       // destination is in doubt, and the reflush that ends the switch settles
       // that.
+      //
+      // Not waited on before the reply. The window sends a band's next
+      // position only once this one is answered, and the flush resolves only
+      // when every output's files have landed: 60 to 400 ms on Ivan's 24
+      // outputs, paid twice per drag step (frequency, then gain), so the
+      // sound trailed the hand by whole seconds (2026-10-15: "the EQ changes
+      // needs to be instant"). The writer already keeps only the newest
+      // snapshot and serializes them, so answering at once loses nothing;
+      // a write that fails is logged here, and the reflush that ends an
+      // engine switch, which has to know, waits on `lastFlush` itself.
       if (!session.engineSwitching) {
-        await flushDeviceProfiles(
+        lastFlush = flushDeviceProfiles(
           deviceProfileSettings,
           presetDirForDevice,
           session.configPath,
           activeOverride,
           state.isEnabled,
           sessionHeadroom(),
-          state.eqCuts,
+          session.audioDevices ?? session.secondOutputDevices,
+          {
+            writeDsp: session.audioEngine === 'fluid',
+            dspOverrides: session.outputDspOverrides,
+            stateOverrides: session.outputStateOverrides,
+            systemRackEnabled: session.systemRackEnabled,
+          },
         );
+        lastFlush.catch((error: unknown) => {
+          log.error(
+            `The engine's files did not all land after ${channel}`,
+            error,
+          );
+        });
       }
     } catch (e) {
       handleError(event, channel, ErrorCode.FAILURE);
       return;
     }
-
-    // Keep a device-scoped snapshot for every fixed layout. This runs after
-    // every successful edit, so moving a frequency slider is preserved when
-    // the user temporarily switches to another band count.
-    captureCurrentLayout();
 
     // Return a success message of undefined
     const reply: TSuccess<T> = { result: response };
@@ -377,6 +420,15 @@ export const createUpdatePath = ({
     const channel = 'engineReflush';
     if (await updateConfigPath(sink, channel)) {
       await handleUpdate(sink, channel);
+      // The update path answers before the files land; a switch has to know
+      // they did, or a chain that never reached the new engine reads as
+      // the switch working.
+      try {
+        await lastFlush;
+      } catch (error) {
+        log.error('Reflush could not write the engine files', error);
+        failure = failure ?? { errorCode: ErrorCode.FAILURE };
+      }
     }
     return failure ? { ok: false, error: failure } : { ok: true };
   };

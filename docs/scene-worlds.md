@@ -27,6 +27,7 @@ with nothing left to draw is reported as a problem.
   "exposure": "1 + kick * 0.1",
   "bloom": { "strength": "0.4 + kick * 0.4", "radius": 0.7, "threshold": 1.2 },
   "vignette": 0.4,
+  "multisample": false,                     // a world of glows: see How it is drawn
   "materials": { "floor": { ... } },
   "models": { "ship": { "data": "<base64 .glb>" } },
   "nodes": [ ... ]
@@ -297,6 +298,14 @@ half-float light — then the glow, then one pass that tone maps it and lays it
 over the shader's sky into whatever the app bound: so the brightness limiter,
 FSR, supersampling and FXAA treat a world exactly as they treat a shader.
 The engine is its own file, loaded only when a world is shown.
+
+The multisampling is for the edges of solid things. A world made only of
+glows and soft sprites - a galaxy of stars, a nebula, an explosion - has no
+hard edge to smooth, and multisampling still writes every sample of every
+glow: on an Intel UHD at 1080p Galaxy's world took 16 ms with it and 1.1
+without, for the same picture to within a few levels at the rim of a star.
+Such a world says `"multisample": false`. A FluidEQ older than the field
+multisamples it as before.
 
 A world that cannot be built plays its shader, and the Studio says why under
 the stage — and tells the Studio's AI the same through `look_at_scene`; a

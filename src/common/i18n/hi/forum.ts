@@ -4,6 +4,17 @@ const forum = {
   'forum.source': 'GitHub Discussions',
   'forum.allTopics': 'सभी विषय',
   'forum.allTopics.blurb': 'हर बोर्ड, नई गतिविधि पहले',
+  'forum.new': 'आपके लिए नया',
+  'forum.new.blurb': 'पिछली बार के बाद से जो आया',
+  'forum.new.countLabel': 'नए: {count}',
+  'forum.new.markAllRead': 'सब पढ़ा हुआ मानें',
+  'forum.news.hide': 'फ़ोरम सूचनाएँ बंद करें',
+  'forum.news.show': 'फ़ोरम सूचनाएँ चालू करें',
+  'forum.new.empty': 'आप सब पढ़ चुके हैं',
+  'forum.new.emptyHint':
+    'नए विषय और जवाब यहाँ तब तक दिखते हैं जब तक आप उन्हें खोलते नहीं।',
+  'forum.topic.new': 'नया',
+  'forum.thread.newReplies': 'नए: {count}',
 
   'forum.board.announcements': 'घोषणाएँ',
   'forum.board.general': 'सामान्य',
@@ -17,6 +28,14 @@ const forum = {
   'forum.boardDescription.polls': 'आगे क्या आए, इस पर वोट करें',
   'forum.boardDescription.qa': 'पूछें, और काम आए जवाब को चिह्नित करें',
   'forum.boardDescription.showAndTell': 'ऐसी ट्यूनिंग जिस पर आपको गर्व है',
+  'forum.board.issues': 'इश्यू',
+  'forum.boardDescription.issues':
+    'GitHub पर बताई गई समस्याएँ, और हर एक की स्थिति',
+  'forum.issue.open': 'खुला',
+  'forum.issue.closed': 'बंद',
+  'forum.issue.newOnGithub': 'GitHub पर नया इश्यू',
+  'forum.issue.commentHint': 'किसी इश्यू पर टिप्पणी GitHub पर लिखी जाती है।',
+  'forum.issue.commentOnGithub': 'GitHub पर टिप्पणी करें',
   'forum.board.countLabel': 'विषय: {count}',
 
   'forum.me.signedOutTitle': 'बातचीत में शामिल हों',

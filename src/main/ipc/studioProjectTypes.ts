@@ -35,31 +35,12 @@ export interface IStudioProject {
    * to looks, exported or published.
    */
   official?: true;
-  /**
-   * Listed, and Plus's to open. Without Plus the Studio keeps one project on
-   * the bench; the rest of a folder of several, the others of a Plus that
-   * lapsed and FluidEQ's scenes opened to look inside wait here, in the
-   * menu, with a lock.
-   */
-  locked?: true;
 }
 
 export interface IStudioState {
-  entitled: boolean;
   /**
-   * Whether a scene of theirs has ever been approved. The Studio itself is
-   * Plus's; a maker keeps one project of their own without it, because the
-   * month they earn is earned by publishing and being shut out would make
-   * the rule a trap. Told to the page so it can show the Studio to somebody
-   * who may use it and the offer to somebody who may not, rather than a
-   * bench where every press is refused.
-   */
-  maker: boolean;
-  /**
-   * Whether another project may be started or opened. Plus has no limit;
-   * without it the Studio keeps one project (`TRIAL_PROJECTS`), so the page
-   * shows the ways to a second one locked rather than refusing on the press.
-   * Decided here: the page is told, never asked.
+   * Whether another project may be started or opened: always, for an
+   * account that is signed in. Decided here: the page is told, never asked.
    */
   mayAddProject: boolean;
   /** Where "New project" makes its folders, for display only. */
@@ -70,6 +51,17 @@ export interface IStudioState {
   activeId?: string;
   /** The latest build of the open project, while the Studio is open. */
   build?: TProjectBuild;
+  /** The open project's copy in the member's looks, once they kept one. */
+  look?: IStudioLookCopy;
+}
+
+/**
+ * A scene's copy in the member's looks, beside the same scene on the bench:
+ * its version number, and whether it is exactly what the bench plays.
+ */
+export interface IStudioLookCopy {
+  version: number;
+  current: boolean;
 }
 
 export type TNewProjectResult =
@@ -79,18 +71,13 @@ export type TNewProjectResult =
   /** Nothing of the name is usable as a folder name. */
   | 'invalid'
   | 'failed'
-  /** The one project the Studio keeps without Plus is already there. */
-  | 'plus-only';
+  /** Nobody is signed in to keep a project under. */
+  | 'signed-out';
 
-/**
- * What "Open a folder…" did. `one-opened`: the folder held several projects
- * and, without Plus, the first is on the bench and the rest are listed
- * locked. `plus-only`: without Plus the Studio keeps one project, and the
- * member has it.
- */
+/** What "Open a folder…" did. */
 export interface ILinkFolderResult {
   state: IStudioState;
-  outcome: 'linked' | 'one-opened' | 'cancelled' | 'plus-only';
+  outcome: 'linked' | 'cancelled' | 'signed-out';
 }
 
 export type TAddOutcome =
@@ -102,7 +89,16 @@ export type TAddOutcome =
     }
   | {
       ok: false;
-      reason: 'not-entitled' | 'no-build' | 'refused' | 'inspect-only';
+      reason:
+        | 'signed-out'
+        /**
+         * The member's own scene goes into the looks once it is in the
+         * gallery: until then it is a draft, played on the Studio's stage.
+         */
+        | 'unpublished'
+        | 'no-build'
+        | 'refused'
+        | 'inspect-only';
     };
 
 export type TRenameProjectResult =
@@ -122,9 +118,8 @@ export type TProjectRestore = 'restored' | 'present' | 'invalid' | 'taken';
 export type TInspection = 'opened' | 'present' | 'invalid' | 'taken';
 
 /**
- * The Studio as the page draws it: every project, the ones the member may not
- * use marked locked — they are in the menu to be seen, and Plus's to open.
- * The bench never holds one.
+ * The Studio as the page draws it: every project, and the open one when the
+ * member may use it — the bench never holds one they may not.
  *
  * Pure, so what the page is told can be read without the watcher, the dialogs
  * and the eleven handlers around it.
@@ -132,8 +127,6 @@ export type TInspection = 'opened' | 'present' | 'invalid' | 'taken';
 export const studioStateOf = (
   list: IProjectList,
   seen: {
-    entitled: boolean;
-    maker: boolean;
     mayAddProject: boolean;
     projectsRoot: string;
     /** Each project's scene name, read from its `pack.json`, by project id. */
@@ -143,8 +136,6 @@ export const studioStateOf = (
     build?: TProjectBuild;
   },
 ): IStudioState => ({
-  entitled: seen.entitled,
-  maker: seen.maker,
   mayAddProject: seen.mayAddProject,
   projectsRoot: seen.projectsRoot,
   projects: byRecent(list).map((project) => {
@@ -155,7 +146,6 @@ export const studioStateOf = (
       path: project.folder,
       ...(names ? { names } : {}),
       ...(project.official ? { official: true as const } : {}),
-      ...(seen.usable(project) ? {} : { locked: true as const }),
     };
   }),
   ...(list.active &&

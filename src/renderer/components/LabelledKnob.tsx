@@ -4,6 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import useEngagement from '../utils/useEngagement';
 import Knob from '../widgets/Knob';
 import '../styles/LabelledKnob.scss';
 
@@ -36,6 +37,12 @@ export interface ILabelledKnobProps {
    * with nothing to save can leave it out.
    */
   onCommit?: () => void;
+  /**
+   * Fires when the dial starts and stops being worked — hovered, dragged or
+   * focused from the keyboard — for a page that shows what the dial does
+   * while it is in hand (`useEngagement`).
+   */
+  onEngage?: (engaged: boolean) => void;
 }
 
 /**
@@ -59,25 +66,37 @@ const LabelledKnob = ({
   isDisabled = false,
   onChange,
   onCommit,
-}: ILabelledKnobProps) => (
-  // Not interactive itself — a layout box that happens to be where two events
-  // surface — so no role and no tab stop. The knob inside is the control and
-  // already has both.
-  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-  <div className="labelled-knob" onPointerUp={onCommit} onKeyUp={onCommit}>
-    <Knob
-      name={label}
-      value={value}
-      min={min}
-      max={max}
-      step={step}
-      unit={unit}
-      defaultValue={defaultValue}
-      isDisabled={isDisabled}
-      handleChange={async (next: number) => onChange(next)}
-    />
-    <span className="labelled-knob__label">{label}</span>
-  </div>
-);
+  onEngage,
+}: ILabelledKnobProps) => {
+  const engagement = useEngagement(isDisabled ? undefined : onEngage);
+  return (
+    // Not interactive itself — a layout box that happens to be where the
+    // events surface — so no role and no tab stop. The knob inside is the
+    // control and already has both.
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+    <div
+      className="labelled-knob"
+      onPointerUp={onCommit}
+      onKeyUp={onCommit}
+      onPointerEnter={engagement.onPointerEnter}
+      onPointerLeave={engagement.onPointerLeave}
+      onFocus={engagement.onFocus}
+      onBlur={engagement.onBlur}
+    >
+      <Knob
+        name={label}
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        unit={unit}
+        defaultValue={defaultValue}
+        isDisabled={isDisabled}
+        handleChange={async (next: number) => onChange(next)}
+      />
+      <span className="labelled-knob__label">{label}</span>
+    </div>
+  );
+};
 
 export default LabelledKnob;

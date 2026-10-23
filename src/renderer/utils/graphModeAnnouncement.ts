@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
+import type { TranslationKey } from 'common/i18n/en';
 
 // The line the graph shows as it changes mode - expanded, full screen, a
 // look - and how long it stays.
@@ -44,8 +45,12 @@ import { useSyncExternalStore } from 'react';
  * minimised window the timer ran and the caption was gone before anyone saw it.
  */
 export interface IGraphModeAnnouncement {
-  /** What is said; empty when nothing is. */
-  label: string;
+  /**
+   * What is said, as the key of its words, so the caption is in the language
+   * on screen; empty when nothing is. It was the English words themselves,
+   * and every caption but one stayed English in every other language.
+   */
+  label: TranslationKey | '';
   /** Bumped per announcement, so the same mode twice still reads as twice. */
   id: number;
 }
@@ -64,7 +69,7 @@ const emitAnnouncement = () => {
   announcementListeners.forEach((listener) => listener());
 };
 
-export const announceGraphMode = (label: string) => {
+export const announceGraphMode = (label: TranslationKey) => {
   // No chart mounted, nobody to say it to — and said anyway, it would wait
   // for the next chart to mount and name a key pressed long before.
   if (announcementListeners.size === 0) {

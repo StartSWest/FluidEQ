@@ -1,0 +1,5 @@
+/* What macOS shows when FluidEQ asks to hear the sound the Mac plays. */
+"NSAudioCaptureUsageDescription" = "FluidEQ entzerrt den Ton, den Ihr Mac abspielt. Es hört nur zu, um diesen Ton zu bearbeiten, und nimmt nichts auf.";
+
+/* What macOS shows when Karaoke asks for the microphone. */
+"NSMicrophoneUsageDescription" = "FluidEQ nutzt das Mikrofon beim Karaoke, um Ihren Gesang zu hören und zu bewerten.";

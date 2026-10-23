@@ -145,10 +145,6 @@ export default function StudioShareDialog({
           </li>
           <li>
             <MenuIcon name="check" />
-            <span>{t('studio.share.point2')}</span>
-          </li>
-          <li>
-            <MenuIcon name="check" />
             <span>{t('studio.share.point3')}</span>
           </li>
         </ul>

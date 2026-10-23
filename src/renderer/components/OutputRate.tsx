@@ -13,7 +13,7 @@ import TitleRate from './TitleRate';
  * around it is not redrawn when the output changes rate.
  */
 const OutputRate = () => {
-  const rate = useOutputRate();
+  const rate = useOutputRate('editor');
   return rate === undefined ? null : <TitleRate rate={rate} />;
 };
 

@@ -182,7 +182,7 @@ describe('sharing from the Studio', () => {
     expect(result.current.askTerms).toBe(false);
   });
 
-  it('opens the Plus card when the account has no Plus', async () => {
+  it('opens the account, where the credits are, when an old server wants Plus', async () => {
     const requests = jest.fn();
     const unsubscribe = subscribeAccountPanelRequests(requests);
     bridge.studioTermsAgreed.mockResolvedValue(PLUS_TERMS_VERSION);
@@ -192,7 +192,7 @@ describe('sharing from the Studio', () => {
     });
     const { result } = renderHook(() => useStudioSharing());
     await act(async () => result.current.startExport());
-    await waitFor(() => expect(requests).toHaveBeenCalledWith('subscribe'));
+    await waitFor(() => expect(requests).toHaveBeenCalledWith('home'));
     unsubscribe();
   });
 

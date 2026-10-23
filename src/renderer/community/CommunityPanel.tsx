@@ -10,7 +10,6 @@ import { useTranslation } from '../utils/I18nContext';
 import Avatar from './Avatar';
 import Glyph, { type TCommunityGlyph } from './Glyph';
 import { identityStyle } from './identity';
-import LeaderboardView from './LeaderboardView';
 import AdminView from '../plus/AdminView';
 import { setGalleryNotice } from '../plus/galleryActions';
 import { refreshModeration, useModeration } from '../plus/moderationStore';
@@ -29,7 +28,6 @@ import '../styles/CommunityRail.scss';
 import '../styles/Community.scss';
 // The ring the scene page turns while a scene downloads, used here too.
 import '../styles/Gallery.scss';
-import '../styles/Leaderboard.scss';
 import '../styles/PlusRail.scss';
 
 interface ICommunityPanelProps {
@@ -47,17 +45,10 @@ interface IPlace {
 }
 
 /**
- * The rail, top to bottom: leaderboard, visualizers, Studio, then dynamic
- * lighting — the places that make scenes before the one that takes them off
+ * The rail, top to bottom: visualizers, Studio, then dynamic lighting — the places that make scenes before the one that takes them off
  * the screen. The admin's place follows, under a rule, for the admin alone.
  */
 const PLACES: readonly IPlace[] = [
-  {
-    place: 'board',
-    glyph: 'board',
-    name: 'leaderboard.title',
-    blurb: 'leaderboard.rail.blurb',
-  },
   {
     place: 'visualizers',
     glyph: 'looks',
@@ -80,14 +71,13 @@ const PLACES: readonly IPlace[] = [
 
 /**
  * The Plus tab: the Visualizers gallery of scenes members publish, the
- * leaderboard and the Studio. It was called Community while it also held
+ * Studio and the lighting. It was called Community while it also held
  * chat channels; those went when the Forum tab arrived, because two places
  * to talk were two things to keep.
  *
  * A place you go and stay, which is why it is a tab and the Account is a
  * dialog. The places down the left with a picture each, the one open beside
- * them, and at the foot of the rail the member as the board and the gallery
- * show them — or, until they have chosen one, the way to choose a name.
+ * them, and at the foot of the rail the member as the gallery shows them — or, until they have chosen one, the way to choose a name.
  */
 export default function CommunityPanel({
   onSignIn,
@@ -253,8 +243,7 @@ export default function CommunityPanel({
           </div>
 
           <div className="community__foot">
-            {/* The member as the board and the gallery show them, in their own
-                colour; the whole card is the way to their account. */}
+            {/* The member as the gallery shows them, in their own colour; the whole card is the way to their account. */}
             <button
               type="button"
               className="community__account"
@@ -275,7 +264,7 @@ export default function CommunityPanel({
                   </span>
                   {profile?.role === 'admin' && (
                     <span className="community__role community__role--admin">
-                      {t('leaderboard.role.admin')}
+                      {t('profile.role.admin')}
                     </span>
                   )}
                   {profile?.role !== 'admin' && entitled && (
@@ -287,16 +276,16 @@ export default function CommunityPanel({
               </span>
               <span className="community__account-chevron" aria-hidden="true" />
             </button>
-            {/* The name the board ranks is chosen on the board; this is the
-                way there from anywhere in the tab. */}
-            {!profile && loaded && entitled && (
+            {/* The name the gallery credits published scenes with is chosen
+                in the account panel; this is the way there from the tab. */}
+            {!profile && loaded && (
               <button
                 type="button"
                 className="community__link community__choose"
-                onClick={() => openPlace('board')}
+                onClick={() => requestAccountPanel()}
               >
                 <Glyph name="mention" />
-                {t('leaderboard.name.choose')}
+                {t('profile.name.choose')}
               </button>
             )}
           </div>
@@ -321,26 +310,6 @@ export default function CommunityPanel({
               <span className="gallery-preview__spinner" aria-hidden="true" />
             </div>
           ))}
-        {shown === 'board' && (
-          <>
-            {/* The same head the Visualizers place has: the name, and a
-                line saying what the place is. */}
-            <header className="community__head">
-              <span className="community__head-mark" aria-hidden="true">
-                <Glyph name="board" />
-              </span>
-              <span className="community__head-text">
-                <span className="community__head-name">
-                  {t('leaderboard.title')}
-                </span>
-                <span className="community__head-description">
-                  {t('leaderboard.description')}
-                </span>
-              </span>
-            </header>
-            <LeaderboardView />
-          </>
-        )}
       </section>
     </div>
   );

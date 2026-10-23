@@ -50,6 +50,7 @@ jest.mock('../../../renderer/graph/lookThumbnails', () => ({
 }));
 jest.mock('../../../renderer/utils/graphOverlaySettings', () => ({
   getWatchedGraphWave: () => ({ height: 0.75, position: 0.1 }),
+  MIN_GRAPH_WAVE_HEIGHT: 0.05,
 }));
 jest.mock('../../../renderer/utils/graphStyle', () => ({
   useSceneLook: () => null,
@@ -126,10 +127,19 @@ it('plays the visualizer in the first chosen monitor on the desk, and only there
   const playing = await within(tile(/Y27qf-30/)).findByTestId('playing');
   expect(playing).toHaveAttribute('data-identity', 'premium:aurora@3');
   expect(playing).toHaveAttribute('data-maker', 'fluideq');
-  // The graph's wave, as the monitor will be set with it.
+  // The wave these monitors already play it with, which the dialog's own
+  // sliders open on and the monitor will be set with.
   expect(playing).toHaveAttribute(
     'data-wave',
-    JSON.stringify({ height: 0.75, position: 0.1 }),
+    JSON.stringify({ height: 0.4, position: 0.65 }),
+  );
+  // Moved there, it is drawn there at once.
+  fireEvent.change(screen.getByRole('slider', { name: 'Wave height' }), {
+    target: { value: '90' },
+  });
+  expect(within(tile(/Y27qf-30/)).getByTestId('playing')).toHaveAttribute(
+    'data-wave',
+    JSON.stringify({ height: 0.9, position: 0.65 }),
   );
   expect(screen.getAllByTestId('playing')).toHaveLength(1);
   expect(tile(/Odyssey G5/)).toHaveAttribute('aria-checked', 'true');

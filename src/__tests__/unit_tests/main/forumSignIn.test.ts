@@ -178,6 +178,7 @@ describe('the forum session', () => {
     owner: 'o',
     name: 'r',
     feedUrl: 'https://example.test/feed.json',
+    issuesUrl: 'https://example.test/issues.json',
     clientId: 'Iv23liEXAMPLE',
     tokenUrl: 'https://project.supabase.co/functions/v1/github-token',
   };

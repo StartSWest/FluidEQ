@@ -30,7 +30,11 @@ export const sameFolder = (
   platform: NodeJS.Platform = process.platform,
 ) => {
   const real = (folder: string) => {
-    const resolved = path.resolve(folder);
+    // The injected platform owns the path syntax as well as its case rule.
+    // A Mac's path.resolve treats a Windows backslash as a filename byte.
+    const resolved = (platform === 'win32' ? path.win32 : path.posix).resolve(
+      folder,
+    );
     try {
       return fs.realpathSync.native(resolved);
     } catch {

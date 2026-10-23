@@ -49,9 +49,10 @@ const CAT = {
 } as IMemberScenesListing['scenes'][number];
 
 const packs = (
-  entitled: boolean,
+  owned: boolean,
   list: IScenePacksListing['packs'] = [AURORA],
-): IScenePacksListing => ({ entitled, packs: list, locked: [] });
+): IScenePacksListing =>
+  owned ? { packs: list, locked: [] } : { packs: [], locked: list };
 
 let seen: (ILampScene | null)[] = [];
 function Probe() {
@@ -108,7 +109,6 @@ it('draws a member scene through the limiter', () => {
   render(<Probe />);
   act(() =>
     adoptMemberSceneListingForTesting({
-      entitled: true,
       scenes: [CAT],
       locked: [],
     }),

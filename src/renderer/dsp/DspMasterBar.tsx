@@ -16,6 +16,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import useStagePresets from './useStagePresets';
 
 interface IDspMasterBarProps {
   master: IMasterSettings;
@@ -46,16 +47,22 @@ const destinationHint = (preset: IMasterPreset): string =>
  */
 const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
   const { t } = useTranslation();
-  const entries: IRichPickEntry[] = MASTER_PRESETS.map((preset) => ({
+  const saved = useStagePresets('master', master, onChange, onCommit);
+  const factoryEntries: IRichPickEntry[] = MASTER_PRESETS.map((preset) => ({
     id: preset.id,
     name: t(preset.labelKey as TranslationKey),
     hint: destinationHint(preset),
     group: preset.group,
     icon: <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />,
   }));
+  // Saved profiles first, as the EQ lists its own.
+  const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string, enable = true) => {
+    if (saved.apply(id)) {
+      return;
+    }
     if (!isMasterPresetId(id)) {
       return;
     }
@@ -90,7 +97,10 @@ const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
           <RichPick
             entries={entries}
             groupLabel={(group) =>
-              group ? t(`dsp.masterPresetGroup.${group}` as TranslationKey) : ''
+              saved.savedGroupLabel(group) ??
+              (group
+                ? t(`dsp.masterPresetGroup.${group}` as TranslationKey)
+                : '')
             }
             activeId={master.presetId}
             onPick={applyPreset}
@@ -139,10 +149,15 @@ const DspMasterBar = ({ master, onChange, onCommit }: IDspMasterBarProps) => {
             <DspBarIcon name="reset" />
             {t('dsp.eqPreset.reset')}
           </button>
+          {saved.buttons}
         </div>
       </div>
 
       <p className="dsp-maximizer-note">{t('dsp.master.description')}</p>
+
+      {saved.notice}
+
+      {saved.dialog}
     </>
   );
 };

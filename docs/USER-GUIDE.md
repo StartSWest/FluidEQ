@@ -4,7 +4,7 @@
 
 A practical guide to FluidEQ, illustrated with real app captures. Start with your first listening session, then explore each part of the app at your own pace.
 
-Real FluidEQ captures from versions 1.6 and 1.7. Colours, labels and control positions may differ in your version. Example settings are illustrations, not recommended presets.
+Real captures of the FluidEQ window. Colours, labels and control positions may differ in your version. Example settings are illustrations, not recommended presets.
 
 **In FluidEQ: Help → User guide, or press F1.**
 
@@ -38,26 +38,25 @@ Real FluidEQ captures from versions 1.6 and 1.7. Colours, labels and control pos
 
 **FluidEQ Plus**
 
-18. [FluidEQ Plus and your account](#plus)
+18. [Your account, credits and the Plus tab](#plus)
 19. [The Visualizers gallery](#gallery)
-20. [The Leaderboard](#leaderboard)
-21. [Make scenes in the Studio](#studio)
-22. [The desktop visualizer](#desktop)
-23. [Dynamic lighting (beta)](#lighting)
+20. [Make scenes in the Studio](#studio)
+21. [The desktop visualizer](#desktop)
+22. [Dynamic lighting (beta)](#lighting)
 
 **Listen, sing and share**
 
-24. [Listen with Online Media](#online)
-25. [Build your local library](#library)
-26. [Albums & your play queue](#queue)
-27. [Sing with Karaoke](#karaoke)
-28. [Create in Karaoke Maker](#maker)
-29. [Share audio between computers](#share)
+23. [Listen with Online Media](#online)
+24. [Build your local library](#library)
+25. [Albums & your play queue](#queue)
+26. [Sing with Karaoke](#karaoke)
+27. [Create in Karaoke Maker](#maker)
+28. [Share audio between computers](#share)
 
 **When you need help**
 
-30. [When something sounds wrong](#trouble)
-31. [Ask in the Forum](#forum)
+29. [When something sounds wrong](#trouble)
+30. [Ask in the Forum](#forum)
 
 <a id="start"></a>
 
@@ -97,7 +96,7 @@ The header takes you between FluidEQ’s pages and shows the sound as it plays. 
 1. **DSP** — The effects rack: presets, the Room and every stage of the chain.
 2. **Library** — Your music files, albums and play queue.
 3. **Karaoke** — Sing along, and make karaoke out of your own songs.
-4. **Plus** — Visualizers, the gallery, the leaderboard and the Studio.
+4. **Plus** — Visualizers, the gallery, the Studio and Dynamic lighting.
 5. **Support the work** — Ways to support the work on FluidEQ.
 6. **FluidEQ actions** — The engine, your account, importing EQ settings, restarting Windows audio and Processes; Brightness and Transparency, animations, Start with Windows and the language.
 7. **Help** — This guide, What’s new, the audio troubleshooter and Report a problem.
@@ -154,8 +153,8 @@ One switch turns FluidEQ’s window into the Compact player: a narrow column wit
 5. **Preamp** — Lowers the level before the EQ so boosts have room. Auto normalize sets it for you.
 6. **Bands** — Drag a band up or down to boost or cut it. Its frequency is written under it.
 7. **Tone** — Bands shows every band; Tone swaps them for the Bass, Mid and Treble dials.
-8. **Quick layouts** — Band counts, and the band designs you saved.
-9. **EQ mode** — How strongly your EQ and curves apply, band Q and phase.
+8. **Quick layouts** — Band counts, each starting every band at one Q, and the band designs you saved.
+9. **EQ mode** — Brings the EQ mode card into view: how strongly your EQ and curves apply, band Q, phase and treble.
 10. **Clear EQ** — Sets every gain to 0 dB and keeps your bands. Asks first.
 
 ### Up Next
@@ -242,15 +241,16 @@ Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its 
 
 1. **Presets** — A ready-made chain for the sound, such as Music or a genre. None leaves only your own bands.
 2. **Smart EQ** — Listens to what plays and corrects it: Detail, Balance or Target.
-3. **EQ mode** — How strongly your EQ and curves apply, band Q and phase.
-4. **Quick layouts** — Band counts, and the band designs you saved.
-5. **Add band** — Adds a band beside the selected one.
+3. **EQ mode** — Brings the EQ mode card into view: how strongly your EQ and curves apply, band Q, phase and treble.
+4. **Quick layouts** — Band counts, each starting every band at one Q, and the band designs you saved.
+5. **Add band** — Adds a band beside the selected one, at the Q of the bands already there.
 6. **Curves** — What else shapes this output — a headphone correction, Smart EQ, a convolution — each with its strength, its switch and ×.
 7. **Clear EQ** — Sets every gain to 0 dB and keeps your bands. Asks first.
-8. **A band** — Drag its point to boost or cut. Click its frequency to select it.
-9. **Bass** — Raises or lowers the low end of the whole curve.
-10. **Mid** — Raises or lowers the middle, where voices sit.
-11. **Treble** — Raises or lowers the top, the air and the detail.
+8. **Band label** — Its frequency, Q and gain, above or below its point. View → Show EQ labels, or Ctrl+W.
+9. **A band** — Drag its point to boost or cut, or step it with the arrow keys. Click its frequency to select it.
+10. **Bass** — Raises or lowers the low end of the whole curve.
+11. **Mid** — Raises or lowers the middle, where voices sit.
+12. **Treble** — Raises or lowers the top, the air and the detail.
 
 ### A band selected
 
@@ -277,27 +277,32 @@ Frequency chooses where a band acts, Gain sets the boost or cut, and Q sets its 
 ### Try it
 
 1. Open EQ → Bands. With nothing selected, turn Bass, Mid or Treble for a quick change of tone, and Low cut or High cut to trim the extremes. They draw their own Tone line on the graph.
-2. Click a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active.
-3. Right-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain, and Bass, Mid and Treble, to 0 dB while keeping your bands. It asks first.
+2. Click a band’s frequency, or its point on the graph, to select it. Turn its Frequency, Gain and Quality (Q) dials, pick a Filter, or switch it off with Active. The curve follows a slider as you move it.
+3. Everything works from the keyboard too: Tab to a fader, a dial or a point on the graph, and the arrow keys step it; Page Up and Page Down take bigger steps.
+4. To see each band’s frequency, Q and gain on the graph, open View above it and press Show EQ labels, or press Ctrl+W until it shows Everything. A label sits above or below its point, never beside it, and goes back to its place once there is room.
+5. Right-click a band to reset it, switch it off, or add a band beside it. Press Clear EQ to set every gain, and Bass, Mid and Treble, to 0 dB while keeping your bands. It asks first.
+6. The same menu has Delete band, which asks for a second press before it deletes. Left + right turns a band into one band for each ear, at the same frequency, so you can move each by itself: the left ear’s curve is drawn solid and the right’s dashed. Both ears joins the two again in their middle, and so do Reset band and Clear EQ.
 
-> **Good to know:** Curves lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on.
+> **Good to know:** Curves lists what shapes this output besides your bands, each with its own strength and ×. Game mode cuts the delay FluidEQ adds, for games and calls; Gaming presets turn it on. While the EQ is switched off its bands are dimmed and cannot be changed by accident; the Tone dials still work.
 
 <a id="eqmode"></a>
 
 ## EQ mode and band designs
 
-EQ mode changes how your sound is shaped, without editing anything. Your EQ covers your bands, the Tone, presets, Driver type and Smart EQ; Corrections covers headphone corrections and imported or custom curves. Band designs keep the frequencies and Q of a layout you like, ready for any output.
+EQ mode changes how your sound is shaped, without editing anything. Its settings are the first card of the side panel on the EQ page, beside the curves they change, in two tabs: Your EQ covers your bands, the Tone, presets, Driver type and Smart EQ; Corrections covers headphone corrections and imported or custom curves. Band designs keep the frequencies and Q of a layout you like, ready for any output.
 
-### EQ mode
+### The EQ mode card
 
-![EQ mode](18-eq-mode.png)
+![The EQ mode card](18-eq-mode.png)
 
-1. **Reset** — Everything back to Normal.
-2. **Strength** — Normal, Studio ×1.5 or ×2, for Your EQ and your Corrections separately.
-3. **Band Q** — Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow.
-4. **Phase** — Minimum or Linear. With the FluidEQ Engine only.
-5. **Treble** — Precise plays treble as drawn; Classic as Equalizer APO does. With the FluidEQ Engine only.
-6. **Curve smoothing** — Softens sampled correction curves.
+1. **Put back in the menu** — Puts these settings back in a menu over the graph. The menu’s pin brings the card back.
+2. **Your EQ and Corrections** — Two tabs, each with its own settings.
+3. **Strength** — Normal, Studio ×1.5 or ×2. Each tab keeps its own.
+4. **Band Q** — Constant keeps each Q; Proportional and Asymmetric narrow bands as they grow. On Your EQ it shapes your own bands alone, never a preset or a correction.
+5. **Phase** — Minimum or Linear, for each tab. With the FluidEQ Engine only.
+6. **Treble** — Precise plays treble as drawn; Classic as Equalizer APO does. With the FluidEQ Engine only.
+7. **Curve smoothing** — Softens sampled correction curves at 1/12 or 1/3 octave. Off until you choose.
+8. **Reset** — Everything back to Normal, and Curve smoothing back to Off.
 
 ### Band designs
 
@@ -308,11 +313,13 @@ EQ mode changes how your sound is shaped, without editing anything. Your EQ cove
 
 ### Try it
 
-1. Open EQ mode on the Bands toolbar. Try a Strength, Band Q or Curve smoothing choice while music plays; the panel stays open.
-2. Under the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble. Press Reset to return everything to Normal.
-3. Open the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.
+1. Press EQ mode above the graph. The card comes into view, and the side panel opens if it was closed.
+2. Pick the Your EQ or Corrections tab, then try a Strength or Band Q choice while music plays. Under the FluidEQ Engine, choose Minimum or Linear phase, and Precise or Classic treble, for each tab.
+3. On Corrections, Curve smoothing can soften sampled curves at 1/12 or 1/3 octave; it is Off until you choose. Reset puts everything back to Normal, and smoothing back to Off.
+4. Would you rather have a menu? Press the pin on the card: EQ mode then opens as a menu over the graph, and the pin in that menu brings the card back.
+5. Open the layouts button beside Add band. Pick 6, 10, 15, 20 or 31 bands, or press Save design… to name the current layout.
 
-> **Good to know:** A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits.
+> **Good to know:** A new layout starts every band at one Q, and a band you add takes the Q of the others. A design stores only frequencies and Q: loading one starts every band at 0 dB. Linear phase adds delay and can ring before sharp hits. Picking a built-in layout starts it fresh: its own frequencies and Q, every band at 0 dB and on both ears.
 
 <a id="games"></a>
 
@@ -348,7 +355,9 @@ A headphone correction compensates for a measured model. It is a starting point 
 
 1. Open EQ → EQ presets and search for your headphone model. Review the available measurements and choose the matching entry.
 2. For EQ text from another tool, use Import EQ settings in the actions menu. Review the parsed bands and curve before applying.
-3. For Squiglink, paste its export into the import panel. Apply as EQ replaces your bands; Apply as curve adds it as a headphone correction with its own strength.
+3. For Squiglink, open the Squiglink tab and paste its export. Apply as EQ replaces your bands; Apply as curve adds it as a headphone correction with its own strength; Save to My curves keeps it with one press.
+4. My curves is your own list beside the OPRA library: Add curve takes a Squiglink export, a .txt file, your EQ as it is now or an OPRA pick. Each curve has Apply as curve and Apply as EQ, and its menu renames it, edits its bands, duplicates it, copies it as text or deletes it. Export list and Import list carry the whole list to another computer.
+5. Import into, beside Apply as EQ, picks Both ears, Left ear or Right ear: one ear replaces only that ear’s bands and leaves the other ear as it was.
 
 > **Good to know:** A preview marked not applied is not changing your sound. Avoid stacking two full corrections for the same headphones unless that is deliberate; compare with the headphone layer switched off.
 
@@ -372,26 +381,29 @@ Convolution applies a WAV impulse response as another correction layer. FluidEQ 
 
 ## Devices, profiles & second output
 
-Your EQ follows the output device. Edits save to the profile playing on the current output, and Profiles lets you keep alternative sounds. Second output mirrors playback to other devices with a separate level for each.
+Every output keeps its own sound: the EQ, the preset, the Tone, the cuts, the DSP rack, the Room and the leveling are saved with it and come back the moment you switch to it. Profiles keep other sounds for the same output. Second output plays on another device at the same time, with a sound and a level of its own.
 
 ![Devices, profiles & second output](40-rail-right.png)
 
-1. **Output device** — The output you are listening on. OFF means your EQ does not reach it; ACTIVE, that Windows is playing through it.
-2. **Profiles** — Sounds you saved. ON marks the one this output uses; press another to switch.
-3. **New profile** — Starts a new profile from the EQ you have now.
-4. **Update** — Saves your changes into the profile you are on. Restore, beside it, brings the profile back as you last saved it.
-5. **Automatic mapping** — The profile this output follows. Any change you make is saved to it by itself.
-6. **One player at a time** — Starting something in FluidEQ pauses what plays elsewhere on the PC, and the other way round.
-7. **Second output** — Your other outputs. Switch one on to play there too, with its own profile.
-8. **Driver type** — A gentle starting point for what you listen on — headphones, earphones, a driver size or material. Leave it at No compensation if the sound is already right.
+1. **EQ mode** — EQ mode’s settings, first on the EQ page. Fold the card to keep it out of the way.
+2. **Output device** — The output you are listening on, with its battery for Bluetooth headphones. OFF means your EQ does not reach it; ACTIVE, that Windows is playing through it.
+3. **Profiles** — Sounds you saved. ON marks the one this output uses; press another to switch.
+4. **New profile** — Starts a new profile from the EQ you have now.
+5. **Update** — Saves your changes into the profile you are on. Restore, beside it, brings the profile back as you last saved it.
+6. **Remember each song’s sound** — Brings back a song’s preset, Tone and EQ whenever it plays here. Off until you switch it on.
+7. **One player at a time** — Starting something in FluidEQ pauses what plays elsewhere on the PC, and the other way round.
+8. **Second output** — Your other outputs. Switch one on to play there too, with its own sound, level and delay in milliseconds.
+9. **Edit sound** — Edits that output’s sound on the EQ page without switching the main output.
+10. **Driver type** — A gentle starting point for what you listen on — headphones, earphones, a driver size or material. Leave it at No compensation if the sound is already right.
 
 ### Try it
 
-1. Check the output at the top of the Output card before editing. Use New profile for a sound you want to keep; Update saves changes to that profile, and Restore brings its saved settings back.
-2. Open Second output, switch on a reachable device, and set its level. Choose that device’s saved EQ profile directly beneath it.
-3. Use Game/Video for a smaller starting buffer or Music for more reserve. Compare synchronization on your devices.
+1. Check the output at the top of the Output card before editing; Bluetooth headphones show their battery beside it. Use New profile for a sound you want to keep; Update saves changes to that profile, and Restore brings its saved settings back.
+2. Switch on Remember each song’s sound, and the preset, Tone and EQ you set during a song come back whenever that song plays here. A notice says so, with Undo and Forget this song.
+3. Open Second output, switch on a device and set its level. Choose its profile beneath it, or press Edit sound to change its sound on the EQ page without switching the main output; Done or Edit main takes you back.
+4. Each second output keeps itself in time and shows its delay in milliseconds; with Share Audio, another computer’s sound shows its own delay, the network included.
 
-> **Good to know:** Each mirrored output uses its own profile under either engine. Mirroring runs while FluidEQ is open; switching the main output stops the old mirrors. Device latency still affects synchronization.
+> **Good to know:** Under the FluidEQ Engine a second output plays straight from the engine, and the main output never waits for it. Remember each song’s sound starts switched off, and remembers per output. On the EQ page the panel starts with the EQ mode card; fold it to reach your outputs sooner.
 
 <a id="config"></a>
 
@@ -436,6 +448,7 @@ The DSP rack is a chain of studio stages. Under the FluidEQ Engine it processes 
 1. Open DSP. Pick a chain under Presets, or select a stage in the rail and switch it On.
 2. Change one control at a time and compare with the stage bypassed at a similar volume. Isolate lets you hear only what a stage adds.
 3. Save a rack you like, and use Export and Import to share it.
+4. The De-esser turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals alone; Speech, Podcast and Audiobook switch it on. Every stage can keep profiles of your own: set it, then press Save.
 
 > **Good to know:** Louder often sounds better simply because it is louder, so compare at matched levels. Ctrl-click a dial to return it to its default.
 
@@ -517,28 +530,26 @@ The response graph draws your EQ curves over the live sound. The strip above it 
 
 1. **Expand view** (`Ctrl+S`) — The graph grows over the editor.
 2. **Full screen** (`Ctrl+F`) — The graph fills the screen.
-3. **Set as desktop background** — Puts this visualizer behind your desktop icons.
-4. **Showing** (`Ctrl+W`) — Steps through what the graph shows.
+3. **Showing** (`Ctrl+W`) — Steps through what the graph shows, band labels included.
+4. **EQ labels** — Each band’s frequency, Q and gain over its point.
 5. **The wave** — The live spectrum drawing.
 6. **Top wave** — The small wave in the title bar.
 7. **Grid** (`Ctrl+G`) — Shows or hides the grid and scales.
 8. **Listening bands** — The same shading; greyed over a Plus visualizer, which never draws it.
 9. **Level meter** — The output meter in the left rail.
-10. **Wave height** — How tall the wave is drawn.
-11. **Wave position** — From the bottom edge up to the middle.
-12. **Next style** (`Space`) — Steps forward to the next look.
-13. **Previous style** (`Ctrl+Space`) — Steps back to the previous look.
-14. **Attack** — How fast a Plus visualizer rises to the music.
-15. **Release** — How slowly it falls back after each hit.
-16. **Use its own timing** — Back to the timing the visualizer came with.
+10. **How it is drawn** — Frame rate, resolution and smoothing, kept apart for standard styles and Plus visualizers.
+11. **Wave height** — How tall the wave is drawn.
+12. **Wave position** — From the bottom edge up to the middle.
+13. **Next style** (`Space`) — Steps forward to the next look.
+14. **Previous style** (`Ctrl+Space`) — Steps back to the previous look.
 
 ### Try it
 
 1. Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.
-2. Open View for the graph’s size, what it shows, and the wave’s height and position. Frame rate is there too: every frame your display offers, or 60 or 30, held at 60 on battery.
+2. Open View for the graph’s size, what it shows, and the wave’s height and position. Show EQ labels writes each band’s frequency, Q and gain over its point. How it is drawn sets the frame rate — every frame your display offers, or 60 or 30, held at 60 on battery — and the resolution and smoothing; standard styles keep their own choices, apart from Plus visualizers.
 3. A Plus visualizer adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.
 4. Double-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.
-5. Keys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it and right-click for its menu; Ctrl+scroll changes the Q of a selected point.
+5. Keys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, band labels included, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.
 
 > **Good to know:** Everything here changes only the drawing, never your sound.
 
@@ -562,35 +573,34 @@ Standard styles are free drawings of the live sound that you can colour and desi
 2. Choose a Plus visualizer on the right. Without Plus it is locked, and choosing it explains how to get it.
 3. On a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.
 
-> **Good to know:** A Plus visualizer brings its own colours: set its attack and release in View. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.
+> **Good to know:** A Plus visualizer brings its own colours: set its attack and release in View. Standard styles have graphics settings of their own in View, apart from Plus visualizers: full resolution and plain scaling to start with. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.
 
 <a id="plus"></a>
 
-## FluidEQ Plus and your account
+## Your account, credits and the Plus tab
 
-An account is optional: everything that was free runs on this computer without one. FluidEQ Plus, monthly or yearly, adds Visualizers, the Leaderboard, the Studio, Dynamic lighting and the desktop visualizer. A new account can try Plus free for fifteen days, and a scene you publish that is approved earns you a month.
+An account is optional: everything that was free runs on this computer without one. Signed in, the Plus tab holds Visualizers, the Studio, Dynamic lighting and the desktop visualizer. A scene from Visualizers costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.
 
-![FluidEQ Plus and your account](25-plus-visualizers.png)
+![Your account, credits and the Plus tab](25-plus-visualizers.png)
 
 1. **Collapse the sidebar** — Folds the rail to its pictures; it opens again on hover.
-2. **Leaderboard** — Who listens most, among Plus members who join.
-3. **Visualizers** — Scenes by FluidEQ and members, ready for your music.
-4. **Studio** — Make your own scenes with your AI.
-5. **Dynamic lighting** — Your RGB devices follow the scene.
+2. **Visualizers** — Scenes by FluidEQ and members, ready for your music.
+3. **Studio** — Make your own scenes with your AI.
+4. **Dynamic lighting** — Your RGB devices follow the scene.
 
 ### Try it
 
 1. Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.
-2. Press Upgrade to Plus, read the terms, tick that you agree, and pay on Buy Me a Coffee in your browser with the same email.
-3. Open the Plus tab. Its rail leads to the Leaderboard, Visualizers, the Studio and Dynamic lighting.
+2. Open the Plus tab and choose Visualizers. Open a scene, watch it, and press Get to spend a credit on it.
+3. For more credits, open Account and choose a pack. It is paid once on Stripe, in your browser.
 
-> **Good to know:** The app never sees your card; Manage subscription changes or cancels it. The free trial asks for no card and charges nothing when it ends. An account stays signed in on up to five computers, and Plus keeps working offline for a while.
+> **Good to know:** The app never sees your card, and nothing renews. An account stays signed in on up to five computers.
 
 <a id="gallery"></a>
 
 ## The Visualizers gallery
 
-Visualizers holds FluidEQ’s own scenes and the ones members publish. Any account can browse and try FluidEQ’s free samples for ten seconds; Plus plays every scene on your music and adds it to your looks.
+Visualizers holds FluidEQ’s own scenes and the ones members publish. Any account can browse them and watch any scene for ten seconds; a scene you get with a credit plays on your music and stays in your looks, for good.
 
 ![The Visualizers gallery](25-plus-visualizers.png)
 
@@ -614,36 +624,16 @@ Visualizers holds FluidEQ’s own scenes and the ones members publish. Any accou
 ### Try it
 
 1. Open Plus → Visualizers. Search, sort by Most liked, This week or Newest, or pick a category.
-2. Open a scene, press Add to my looks, then Play on the graph. The arrows, or ← and →, step between scenes.
-3. Like members’ scenes with the heart, and report one that should not be there.
+2. Open a scene and press Get to keep it with a credit, then Play on the graph. The arrows, or ← and →, step between scenes.
+3. Like the scenes you have with the heart, and report one that should not be there.
 
 > **Good to know:** Scenes in your looks update themselves, and a scene’s page says what changed in each version. A scene you publish appears once FluidEQ’s maker has approved it. Open in Studio shows how FluidEQ’s own scenes are made.
-
-<a id="leaderboard"></a>
-
-## The Leaderboard
-
-The Leaderboard ranks the Plus members who join it, by how much they listen and by the likes their scenes earn. It is off unless you join.
-
-![The Leaderboard](28-plus-leaderboard.png)
-
-1. **All time or This month** — The whole history, or this month only.
-2. **How to earn points** — 10 points an hour, 20 for each day of 30 minutes or more, 5 for each like.
-3. **Your standing** — Your rank and points, and how far the next place is.
-
-### Try it
-
-1. Open Account and press Join the leaderboard.
-2. Open Plus → Leaderboard. Choose the handle and name the board shows, then switch between All time and This month.
-3. To stop, press Leave the leaderboard. Remove all my data deletes everything you sent.
-
-> **Good to know:** One number a day leaves your computer — the minutes of music that played — and never what you play. Every number is checked on the server. Your handle and name can be changed later from Account → Change name; the board and your published scenes follow.
 
 <a id="studio"></a>
 
 ## Make scenes in the Studio
 
-The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved. The Studio is part of Plus; a new account can open it on the free trial.
+The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved. The Studio is free for every account.
 
 ![Make scenes in the Studio](31-plus-studio.png)
 
@@ -659,9 +649,10 @@ The Studio turns a description into a visualizer. Your own AI assistant writes t
 
 1. Open Plus → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.
 2. Describe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.
-3. Watch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….
+3. Or type what should change in the chat beside the stage: Claude Code on this computer, signed in with your own plan, edits the scene and plays each version. Every reply keeps its version, with Bring back.
+4. Watch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….
 
-> **Good to know:** Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and one that is approved earns you a month of Plus.
+> **Good to know:** Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and once it is approved it plays free for you everywhere.
 
 <a id="desktop"></a>
 
@@ -694,7 +685,7 @@ Dynamic lighting lights your keyboard, mouse, mousepad, headset and stand with t
 
 ![Dynamic lighting (beta)](29-plus-lighting.png)
 
-1. **Light my devices while a Plus scene plays** — Lights your devices while a Plus visualizer plays.
+1. **Light my devices while a scene plays** — Lights your devices while a Plus visualizer plays.
 2. **Browse visualizers** — Opens the gallery to choose a visualizer.
 3. **Live desk preview** — Your own desk, lit with the colours sent to it.
 4. **All devices** — Back to tuning every device at once.
@@ -828,17 +819,18 @@ Maker turns your audio into an editable karaoke project. Its timeline brings tog
 
 ## Share audio between computers
 
-Share Audio sends system audio between computers on the same private network. The receiver is the computer connected to your headphones or speakers; other computers are senders. This is separate from mirroring to a second device on one computer.
+Share Audio links two computers on the same private network, and each plays the other’s sound: whichever one you sit at, you hear both. Each computer sends its sound untouched and never sends back what it receives, so there is no echo; the computer you listen on applies its own EQ, curves and DSP. This is separate from mirroring to a second device on one computer.
 
 ![Share audio between computers](14-share-audio-roles.png)
 
 ### Try it
 
-1. On the listening computer, open Share Audio, choose Play audio on this computer and press Create connection code. Start at a low volume.
-2. On each source computer, choose Send audio from this computer, paste the code for your network and press Connect and send.
-3. Watch the connection monitor. Press Stop sending or Stop listening when finished; Create new code disconnects every saved pairing.
+1. On one computer, open Share Audio and press Copy code. Start at a low volume.
+2. On the other computer, open Share Audio, paste the code under The other computer’s code and press Link. Both computers play each other right away.
+3. Each linked computer has two switches: Play it here and Send my sound. Turn one off to share one way only. The slider beside Play it here sets how loud that computer plays here.
+4. Pause stops both directions until you press Resume; Unlink ends the link for good.
 
-> **Good to know:** Keep the connection code private: it authorizes pairing. Several senders mix together and raise the level, which the receiving computer’s volume sets. Under the FluidEQ Engine, received audio also goes through the DSP rack.
+> **Good to know:** Keep the connection code private: it authorizes linking. Under the FluidEQ Engine this computer keeps its DSP on while it shares, and the computer playing its sound applies its own. Playing and sending at once needs Windows on that computer; elsewhere a link runs one way.
 
 <a id="trouble"></a>
 

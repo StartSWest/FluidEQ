@@ -10,7 +10,6 @@ import type {
   IWallpaperStart,
   IWallpaperTuning,
 } from '../../common/wallpaper';
-import type { IEntitlement } from '../../main/account/entitlement';
 import type {
   IArrangementStore,
   IWallpaperArrangement,
@@ -255,13 +254,16 @@ export const setup = (stored?: IWallpaperArrangement) => {
   const deps: IWallpaperDeps = {
     getMainWindow: () =>
       ({ isDestroyed: () => false, webContents: owner }) as never,
-    entitlement: {
-      status: () => ({ state: entitled ? 'active' : 'none' }),
+    // Every scene this account's or none, as Plus on or off does today.
+    ownership: {
+      owns: () => entitled,
       subscribe: (listener: () => void) => {
         entitlementListeners.add(listener);
-        return () => entitlementListeners.delete(listener);
+        return () => {
+          entitlementListeners.delete(listener);
+        };
       },
-    } as unknown as IEntitlement,
+    },
     arrangement,
     ...scenes,
   };

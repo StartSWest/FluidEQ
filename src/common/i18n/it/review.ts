@@ -59,7 +59,7 @@ const review = {
   'review.forbidden':
     'Solo l’amministratore di FluidEQ può approvare le scene.',
   'review.fine.new':
-    'Approvarla la mette nella galleria alla versione {version}: chiunque abbia effettuato l’accesso la vede, e i membri Plus possono aggiungerla.',
+    'Approvarla la mette nella galleria alla versione {version}: tutti quelli con l’accesso la vedono e possono ottenerla con un credito, e per chi l’ha creata suona gratis.',
   'review.fine.update':
     'Approvarla sostituisce la versione {version} per tutti quelli che hanno la scena. Non approvarla lascia la versione {version} com’è.',
   'review.state.pending': 'In revisione',
@@ -79,7 +79,7 @@ const review = {
   'review.notice.review': 'Esamina ora',
   'review.notice.approved': '{name} è nella galleria',
   'review.notice.approvedBody':
-    'È stata approvata. I membri Plus possono già aggiungerla.',
+    'È stata approvata. Ora suona gratis per te ovunque, e chiunque può ottenerla.',
   'review.notice.approvedUpdate':
     'La versione {version} di {name} è nella galleria',
   'review.notice.approvedUpdateBody':

@@ -31,6 +31,10 @@ const engineHealth = {
   'engineHealth.rackNeedsEngine':
     'Los efectos DSP se ejecutan dentro del propio motor, así que reiniciar el audio de Windows vuelve a arrancar el mismo. Lo que lo arregla es poner el motor propio de FluidEQ: un permiso de Windows y un segundo de silencio.',
   'engineHealth.useApo': 'Usar Equalizer APO…',
+  'engineHealth.macPermissionTitle': 'FluidEQ no puede oír el sonido de tu Mac',
+  'engineHealth.macPermissionBody':
+    'macOS no ha permitido que FluidEQ grabe el sonido que reproduce tu Mac, así que tu EQ no le llega. Mientras tanto, el sonido se reproduce como siempre. Activa FluidEQ en Privacidad y seguridad › Grabación de pantalla y audio del sistema.',
+  'engineHealth.openMacPrivacy': 'Abrir Ajustes del Sistema',
 } as const;
 
 export default engineHealth;

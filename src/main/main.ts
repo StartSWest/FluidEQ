@@ -35,8 +35,21 @@ import path from 'path';
 import fs from 'fs';
 import { fetchSettings } from './flush';
 import { flushPendingWrites, scheduleWrite } from './asyncWriter';
-import { getConfigPath, isEngineInstalled } from './registry';
-import { FLUID_ENGINE_PROGRAMME_FILENAME } from '../common/audioEngine';
+import {
+  getConfigPath,
+  getFluidEngineConfigDir,
+  isEngineInstalled,
+} from './registry';
+import {
+  FLUID_ENGINE_PROGRAMME_FILENAME,
+  FLUID_ENGINE_SPLIT_FILENAME,
+} from '../common/audioEngine';
+import { readAudioEngineStatus } from './engineStatus';
+import { createSecondOutputs } from './secondOutputRoute';
+import {
+  startNativeOutputHold,
+  startNativeOutputMirror,
+} from './remoteAudioCapture';
 import { createSongLevelStore } from './songLevels';
 import { createSongProgramme } from './songProgramme';
 import { resetEngineAtSessionEnd, resetEngineForQuit } from './engineQuitReset';
@@ -71,6 +84,7 @@ import { registerFiltersIpc } from './ipc/filters';
 import registerBandDesignsIpc from './ipc/bandDesigns';
 import { registerLayersIpc } from './ipc/layers';
 import registerSongEqHandlers from './ipc/songEq';
+import registerSongSoundIpc from './ipc/songSound';
 import { registerPreampIpc } from './ipc/preamp';
 import registerVideoIpc from './ipc/video';
 import { registerKaraokeSeparation } from './karaokeSeparation';
@@ -84,6 +98,7 @@ import {
   dspHostStats,
   registerDspHostIpc,
   shutdownDspHost,
+  setDspHostRawLibrary,
 } from './ipc/dspHost';
 import { registerProcessIpc } from './ipc/processes';
 import { registerLibraryPlaylistsIpc } from './ipc/libraryPlaylists';
@@ -112,13 +127,26 @@ import {
 import { PRODUCT_NAME } from '../common/branding';
 import { APP_USER_MODEL_ID } from './appIdentity';
 import { appVersion } from './appVersion';
-import { loadDeviceProfileSettings } from './deviceProfileSettings';
+import {
+  loadDeviceProfileSettings,
+  saveDeviceProfileSettings,
+} from './deviceProfileSettings';
+import { createMacEngine } from './macEngine/macEngine';
+import registerMacPermissionIpc from './macEngine/macPermissionIpc';
+import { adoptMacOutputGuids } from './macEngine/macOutputs';
+import {
+  capabilitiesFor,
+  isFluidEngineBuiltIn,
+} from '../common/platformCapabilities';
 import onWindowMessage from './ipc/windowMessages';
 import { declineDefaultMenu } from './menu';
 import registerDevMemoryTrace from './devMemoryTrace';
 import createAppUpdates from './appUpdates';
 import { createWindowPlacement, firstRunPlacement } from './windowPlacement';
-import createMainSession from './mainSession';
+import createMainSession, { outputEditorOf } from './mainSession';
+import { getStateForAudioDevice } from './deviceProfiles';
+import { createSourceAnalysisPublisher } from './sourceAnalysis';
+import { registerSourceAnalysisIpc } from './ipc/sourceAnalysis';
 import {
   createProfileStore,
   isAutomaticPresetName,
@@ -135,6 +163,7 @@ import registerSystemMediaIpc from './ipc/systemMedia';
 import registerMemberServices from './memberServices';
 import { applyLaunchSwitches, isDebug } from './launchSwitches';
 import claimTheOnlyCopy from './onlyCopy';
+import { registerAppLinks } from './appLinks';
 import { chooseLaunchEngine, registerEngineServices } from './engineServices';
 
 /**
@@ -233,6 +262,17 @@ const placement = createWindowPlacement({
 
 const state: IState = fetchSettings(userDataDir);
 const deviceProfileSettings = loadDeviceProfileSettings(userDataDir);
+// Profiles a Mac attached before its outputs had a `{GUID}` — see
+// `adoptMacOutputGuids`. Once, before anything writes a `Device:` line.
+if (
+  process.platform === 'darwin' &&
+  adoptMacOutputGuids(deviceProfileSettings)
+) {
+  saveDeviceProfileSettings(deviceProfileSettings, userDataDir).catch(
+    (error: unknown) =>
+      log.error('Could not save the Mac outputs moved onto their GUIDs', error),
+  );
+}
 const session = createMainSession();
 
 const DATABASES_SYNCED_EVENT = 'databases-synced';
@@ -337,7 +377,6 @@ const {
   getCurrentPreset: profiles.getCurrentPreset,
   sessionHeadroom: profiles.sessionHeadroom,
   attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
-  captureCurrentLayout: profiles.captureCurrentLayout,
 });
 
 registerDiagnosticsIpc({
@@ -348,6 +387,41 @@ registerDiagnosticsIpc({
 
 registerEngineStateIpc({
   state,
+  snapshot: () => {
+    const main = session.playbackAudioDevice;
+    let playbackState: IState | undefined;
+    if (main) {
+      playbackState =
+        main.id === session.activeAudioDeviceId
+          ? { ...state }
+          : structuredClone(
+              session.outputStateOverrides?.get(main.id) ??
+                getStateForAudioDevice(
+                  deviceProfileSettings,
+                  main.id,
+                  profiles.presetDirForDevice,
+                ),
+            );
+      playbackState.isEnabled = state.isEnabled;
+      playbackState.dsp =
+        session.outputDspOverrides?.get(main.id) ?? playbackState.dsp;
+    }
+    const audibleDsp = session.outputDspOverrides?.get(
+      session.activeAudioDeviceId,
+    );
+    const ownsTemporaryRack =
+      audibleDsp !== undefined &&
+      (state.songSoundLoan !== undefined ||
+        JSON.stringify(audibleDsp) !== JSON.stringify(state.dsp));
+    return {
+      ...state,
+      dsp: audibleDsp ?? state.dsp,
+      ownedDsp: ownsTemporaryRack ? state.dsp : undefined,
+      outputEditor: outputEditorOf(session),
+      playbackOutput: main,
+      playbackState,
+    };
+  },
   userDataDir,
   updateConfigPath,
   handleUpdate,
@@ -364,6 +438,19 @@ const { apoGuard } = registerEngineServices({
   deviceProfileSettings,
   presetDirForDevice: profiles.presetDirForDevice,
   reflush: reflushCurrentState,
+  onEngineSwitched: () => {
+    Promise.all([
+      secondOutputs.reroute(),
+      songProgramme.reflush(),
+      sourceAnalysis.reflush(),
+    ]).catch((error: unknown) =>
+      log.error('Could not move output processing to the new engine', error),
+    );
+    // The admin's engine count follows a switch now, not at the next event.
+    members.sceneTasteIpc
+      .uploadIfDue('an engine switch')
+      .catch(() => undefined);
+  },
 });
 
 // Two dozen dependencies, and the list is worth reading rather than skipping:
@@ -382,7 +469,6 @@ const profilesIpc = registerProfilesIpc({
   handleError,
   runProfileMutation: profiles.runProfileMutation,
   attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
-  clearCurrentLayoutSettings: profiles.clearCurrentLayoutSettings,
   createEmptyProfileForActiveDevice: profiles.createEmptyProfileForActiveDevice,
   getCurrentPreset: profiles.getCurrentPreset,
   hydrateActiveConvolution: profiles.hydrateActiveConvolution,
@@ -394,9 +480,9 @@ const profilesIpc = registerProfilesIpc({
   resetStateToDefaults: profiles.resetStateToDefaults,
   adoptExistingApoConfig,
   applyDeviceState: profiles.applyDeviceState,
-  captureCurrentLayout: profiles.captureCurrentLayout,
   notifyOutputStateChanged,
   guardAgainstApo: apoGuard.check,
+  onPlaybackOutputChanged: () => sourceAnalysis.reflush(),
 });
 
 registerApoConfigIpc({
@@ -418,13 +504,13 @@ registerReferencesIpc({
 });
 
 registerTransferIpc({
+  userDataDir,
   activePresetDir: profiles.activePresetDir,
   applyingLayer: profiles.applyingLayer,
   attachPresetToActiveDevice: profiles.attachPresetToActiveDevice,
   availableProfileNameForActiveDevice:
     profiles.availableProfileNameForActiveDevice,
   activeBaselineDir: profiles.activeBaselineDir,
-  clearCurrentLayoutSettings: profiles.clearCurrentLayoutSettings,
   resetEqToDefaults: profiles.resetEqToDefaults,
   deviceProfileSettings,
   getMainWindow,
@@ -440,7 +526,9 @@ registerTransferIpc({
 registerPreampIpc({
   state,
   canMeasureHeadroom: () =>
-    session.audioEngine === 'apo' && !session.engineSwitching,
+    session.audioEngine === 'apo' &&
+    !session.engineSwitching &&
+    session.activeAudioDeviceId === session.playbackAudioDevice?.id,
   usesNativeHeadroom: () => session.audioEngine === 'fluid',
   handleUpdate,
   handleUpdateHelper,
@@ -462,7 +550,6 @@ registerBandDesignsIpc({
   handleUpdateHelper,
   handleError,
   switchToParametricEditing: profiles.switchToParametricEditing,
-  captureCurrentLayout: profiles.captureCurrentLayout,
 });
 
 registerFiltersIpc({
@@ -471,8 +558,6 @@ registerFiltersIpc({
   handleUpdateHelper,
   handleError,
   doesFilterIdExist,
-  captureCurrentLayout: profiles.captureCurrentLayout,
-  getStoredLayout: profiles.getStoredLayout,
   switchToParametricEditing: profiles.switchToParametricEditing,
   applyingLayer: profiles.applyingLayer,
 });
@@ -485,6 +570,12 @@ registerLayersIpc({
 });
 
 registerSongEqHandlers(userDataDir);
+registerSongSoundIpc({
+  state,
+  userDataDir,
+  handleUpdateHelper,
+  getOutputEditor: () => outputEditorOf(session),
+});
 
 onWindowMessage(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   const channel = ChannelEnum.SET_WINDOW_SIZE;
@@ -516,6 +607,7 @@ registerWindowsAudioIpc();
  */
 const songProgramme = createSongProgramme({
   store: createSongLevelStore(userDataDir),
+  mainEndpoint: () => session.playbackAudioDevice?.guid,
   fileName: FLUID_ENGINE_PROGRAMME_FILENAME,
   write: scheduleWrite,
   // The rack write's refusals (`ipc/audioEngine.ts`): not this engine, or
@@ -531,6 +623,14 @@ const songProgramme = createSongProgramme({
 });
 
 registerSystemMediaIpc({ onMedia: songProgramme.onMedia });
+
+// The FluidEQ Engine on a Mac (`macEngine.ts`): quitting FluidEQ turns it
+// off, as it does the engine on Windows, and the sound goes straight to the
+// speakers again. Created on every platform and started only where the
+// engine is part of the app, so this stop is a no-op everywhere else.
+const macEngine = createMacEngine();
+app.on('will-quit', () => macEngine.stop());
+registerMacPermissionIpc();
 
 // Every switch between the app and the player is written down at once — a
 // window closed straight after one must open in the mode it was left in — and
@@ -558,7 +658,42 @@ const stopRemoteAudioLan = registerRemoteAudioIpc({
   userDataDir,
 });
 
-const stopOutputMirrors = registerOutputMirrorIpc(getMainWindow);
+// Second outputs, played straight from the FluidEQ Engine where it can and
+// as the helper's copy everywhere else — `secondOutputRoute.ts`.
+const secondOutputs = createSecondOutputs({
+  getEngine: () => session.audioEngine,
+  readStatus: () => readAudioEngineStatus(userDataDir, session.audioEngine),
+  readHealth: () => engineHealth.read(),
+  writeSplit: (text) =>
+    scheduleWrite(
+      path.join(getFluidEngineConfigDir(), FLUID_ENGINE_SPLIT_FILENAME),
+      text,
+    ),
+  startMirror: startNativeOutputMirror,
+  startHold: startNativeOutputHold,
+  syncProfiles: async (outputs) => {
+    const previous = session.secondOutputDevices;
+    session.secondOutputDevices = outputs;
+    try {
+      // The helper can still play when the chosen engine is absent. Keep
+      // the endpoints for a later installation, with no EQ files to prepare.
+      if (
+        !session.audioEngine ||
+        !(await isEngineInstalled(session.audioEngine))
+      ) {
+        return;
+      }
+      const result = await reflushCurrentState();
+      if (!result.ok) {
+        throw new Error('Could not prepare second output profiles.');
+      }
+    } catch (error) {
+      session.secondOutputDevices = previous;
+      throw error;
+    }
+  },
+});
+const stopOutputMirrors = registerOutputMirrorIpc(getMainWindow, secondOutputs);
 
 // Game profiles: what the launchers have installed, and which program
 // Windows has put in front. The watcher behind it runs only while the window
@@ -576,7 +711,11 @@ registerGamesIpc({
 // that slider — see `systemVolume.ts`.
 registerSystemVolumeIpc(getMainWindow);
 
-const members = registerMemberServices({ getMainWindow, userDataDir });
+const members = registerMemberServices({
+  getMainWindow,
+  userDataDir,
+  getEngine: () => session.audioEngine,
+});
 
 // The tools menu's animations row: the saved choice, and the one this launch
 // was started with, so the row can say when a restart is still owed.
@@ -618,7 +757,52 @@ registerKaraokeIpc({
 // waits until the renderer asks, which it does when something is about to be
 // heard. A checkout that has never built the native target simply reports the
 // engine unavailable and the TypeScript one carries on.
-registerDspHostIpc({ getMainWindow });
+const sourceAnalysis = createSourceAnalysisPublisher({
+  resolveConfigDir: async () => {
+    if (
+      session.audioEngine !== 'fluid' ||
+      session.engineSwitching ||
+      !(await isEngineInstalled('fluid'))
+    ) {
+      return undefined;
+    }
+    return getConfigPath('fluid');
+  },
+  resolveSourceEndpoint: async () => session.playbackAudioDevice?.guid,
+  write: scheduleWrite,
+  readHealth: () => engineHealth.read(),
+  setRawLibrary: setDspHostRawLibrary,
+  prepareEngine: async () => {
+    const result = await reflushCurrentState();
+    if (!result.ok) {
+      throw new Error('Could not prepare the output processing.');
+    }
+  },
+});
+session.systemRackEnabled = (deviceId) => {
+  const device = session.secondOutputDevices?.find(
+    (one) => one.id === deviceId,
+  );
+  const guid =
+    device?.guid ??
+    (session.playbackAudioDevice?.id === deviceId
+      ? session.playbackAudioDevice.guid
+      : undefined) ??
+    session.audioDevices?.find((one) => one.id === deviceId)?.guid ??
+    deviceProfileSettings.assignments[deviceId]?.deviceGuid;
+  return (
+    !guid ||
+    sourceAnalysis.rackEnabledFor(
+      guid,
+      device ? session.playbackAudioDevice?.guid : undefined,
+    )
+  );
+};
+registerSourceAnalysisIpc(getMainWindow, sourceAnalysis);
+registerDspHostIpc({
+  getMainWindow,
+  onVoiceModelChanged: () => sourceAnalysis.refreshVoice(),
+});
 // Dynamic lighting (Plus): keyboards, mice and headsets in the colours of the
 // scene on the graph. Starts nothing until the window sends a frame or opens
 // the page — the helper, Razer's service and the identity registration all
@@ -627,7 +811,7 @@ const lighting = registerLightingIpc({
   userDataDir,
   appVersion: appVersion(),
   getMainWindow,
-  entitled: () => members.accountIpc.entitlement.status().state !== 'none',
+  entitled: () => members.sceneOwnership.ownsAnything(),
 });
 // The helper's exit hands every Windows lamp back; Razer's session is ended
 // rather than left to lapse.
@@ -676,7 +860,11 @@ registerLibraryPlaylistsIpc({
 // until the window first asks or a song is announced to the engine.
 const engineHealth = registerEngineHealthIpc({
   getMainWindow,
-  onHealth: songProgramme.onHealth,
+  onHealth: (health) => {
+    songProgramme.onHealth(health);
+    secondOutputs.onHealth(health);
+    sourceAnalysis.onHealth(health);
+  },
 });
 
 applyLaunchSwitches();
@@ -691,6 +879,9 @@ applyLaunchSwitches();
  */
 const resetActiveEngineForQuit = async (): Promise<void> => {
   if (session.configPath) {
+    await sourceAnalysis.release().catch((error) => {
+      log.error('Clearing the Library source failed', error);
+    });
     await resetEngineForQuit(session.configPath);
   }
 };
@@ -709,12 +900,15 @@ const comeBack = createComeBackWatch({
   powerMonitor,
   accountSteps: accountComeBackSteps({
     entitlement: members.accountIpc.entitlement,
+    sceneStore: members.sceneOwnership,
     scenePacks: members.scenePacksIpc,
     memberSharing: members.memberSharingIpc,
     plusGallery: members.plusGalleryIpc,
     sceneReviews: members.plusReviewIpc,
     plusTermsNotice: members.plusTermsNoticeIpc,
-    leaderboard: members.leaderboardIpc,
+    sceneTaste: members.sceneTasteIpc,
+    listening: members.listeningIpc,
+    sceneAnnouncements: members.sceneAnnouncementsIpc,
   }),
   getActiveAutoUpdater: updates.getActiveAutoUpdater,
   applyUpdateIfUnattended: updates.applyUpdateIfUnattended,
@@ -833,6 +1027,8 @@ app.on('before-quit', (event) => {
 });
 
 const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });
+// `fluideq://` links, before `ready`: macOS delivers one at launch as an event.
+registerAppLinks();
 
 /**
  * Everything that runs once Electron is ready, as a function of its own.
@@ -844,6 +1040,24 @@ const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });
 const onAppReady = async () => {
   // Which engine, before anything can ask for a config directory.
   session.audioEngine = await chooseLaunchEngine(userDataDir);
+  await sourceAnalysis.release().catch((error) => {
+    log.error('Clearing the previous Library source failed', error);
+  });
+
+  // Where the FluidEQ Engine is part of the app (macOS) it is a process of
+  // FluidEQ's own, and it runs for as long as FluidEQ does — see
+  // `macEngine.ts`. It reads the folder every EQ change is written to, and
+  // takes the system's sound only while there is an EQ in it to run.
+  if (
+    session.audioEngine === 'fluid' &&
+    isFluidEngineBuiltIn(capabilitiesFor(process.platform))
+  ) {
+    try {
+      macEngine.start(await getConfigPath('fluid'));
+    } catch (error) {
+      log.error('The macOS engine could not be started', error);
+    }
+  }
 
   // Identity, set here rather than at module scope on purpose.
   //

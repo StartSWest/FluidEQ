@@ -30,7 +30,11 @@ import {
 } from '../common/constants';
 import { adoptBlock, hasChainDrifted } from '../common/apoSync';
 import { parseEqText } from '../common/apoText';
-import { canAdoptEqModeChange, getCurveEqMode } from '../common/eqMode';
+import {
+  canAdoptEqModeChange,
+  getBandQ,
+  getCurveEqMode,
+} from '../common/eqMode';
 import {
   describeApoFeatureText,
   parseApoEqForAdoption,
@@ -350,9 +354,11 @@ export const createApoAdoption = ({
         state.eqFormat = adopted.eqFormat;
         state.graphicEq = adopted.graphicEq;
         state.curveEqMode = getCurveEqMode(state);
+        // Keep preset-layer Q while adopting only the editable main bands.
+        state.eqBandQ = state.eqBandQ ?? getBandQ(state, 'eq');
         state.isEqDoubleOn = false;
         state.eqMode = 'normal';
-        state.eqBandQ = 'constant';
+        state.mainBandQ = 'off';
       }
       // Bands exist, so the chain is not flat whatever the stored flag said.
       if (eqChanged) {

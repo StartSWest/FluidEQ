@@ -1,5 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 #pragma once
+#include "hold_output.h"
 #include "mirror_output.h"
 #include <atomic>
 #include <deque>
@@ -8,10 +9,17 @@
 #include <mutex>
 #include <string>
 
+// Reply kinds on the frames pipe: 3 a command's answer (under its request
+// id), 4 a mirror or hold that failed, 5 a mirror's delay in microseconds —
+// sent every `kDelayEveryRenders` of its device's periods, about twice a
+// second. `hold <request> <id> <guid>` keeps a second output running in
+// silence for the FluidEQ Engine to play into (`hold_output.h`); `stop`
+// ends either kind.
 class MirrorControl final {
  public:
+  static constexpr std::uint32_t kDelayEveryRenders = 50;
   using Reply = bool (*)(std::uint32_t kind, std::uint32_t id, HRESULT result);
-  MirrorControl(std::uint32_t rate, std::uint16_t channels, Reply reply);
+  MirrorControl(HANDLE input, std::uint32_t rate, std::uint16_t channels, Reply reply);
   ~MirrorControl();
   bool valid() const { return thread_ != nullptr && event_ != nullptr; }
   HANDLE event() const { return event_; }
@@ -22,6 +30,7 @@ class MirrorControl final {
  private:
   static DWORD WINAPI read_commands(void* context);
   void fail(std::uint32_t id, HRESULT result);
+  HANDLE input_;
   std::uint32_t rate_;
   std::uint16_t channels_;
   Reply reply_;
@@ -31,4 +40,6 @@ class MirrorControl final {
   std::mutex mutex_;
   std::deque<std::string> commands_;
   std::map<std::uint32_t, std::unique_ptr<MirrorOutput>> outputs_;
+  std::map<std::uint32_t, std::unique_ptr<HoldOutput>> holds_;
+  std::map<std::uint32_t, std::uint32_t> renders_;
 };

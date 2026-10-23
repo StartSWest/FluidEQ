@@ -7,10 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useId } from 'react';
 import type { ILightingState } from 'common/lighting/lightingModel';
 import { resolveSceneName } from 'common/scenePacks';
-import { requestAccountPanel } from '../../account/accountPanel';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import Switch from '../../widgets/Switch';
+import { openPlusPlace } from '../plusNavigation';
 import type { IDeskColourFeed } from './deskColours';
 import LightingDevices from './LightingDevices';
 import LightingNotices from './LightingNotices';
@@ -26,7 +26,7 @@ interface ILightingPreviewProps {
 }
 
 /**
- * Dynamic lighting as an account without Plus sees it: the whole page, with
+ * Dynamic lighting as an account with no scene sees it: the whole page, with
  * the member's own devices on the drawn desk and one scene lighting them —
  * the real devices too, ten seconds at a time — and every control there to
  * be looked at rather than used.
@@ -34,8 +34,9 @@ interface ILightingPreviewProps {
  * It is the page and not a poster because the page is the argument: a desk
  * with their own keyboard and headset on it, taking a scene's colours, and
  * the keyboard itself lighting up under their hands, say what dynamic
- * lighting is in a way a paragraph cannot. What Plus adds is what is locked
- * here — every other scene, the tuning, and the devices staying lit.
+ * lighting is in a way a paragraph cannot. What one scene of their own opens
+ * is what is locked here — the tuning, and the devices staying lit — so every
+ * lock leads to Visualizers, where scenes are got.
  */
 export default function LightingPlusPreview({
   state,
@@ -44,7 +45,7 @@ export default function LightingPlusPreview({
   const { t, locale } = useTranslation();
   const switchId = useId();
   const demo = useLightingDemo();
-  const unlock = () => requestAccountPanel('subscribe');
+  const unlock = () => openPlusPlace('visualizers');
   const sceneName =
     demo.state === 'dark' ? undefined : resolveSceneName(demo.pack, locale);
 
@@ -62,7 +63,7 @@ export default function LightingPlusPreview({
         </span>
         <span className="lighting-unlock__text">
           <span className="studio-card__eyebrow">
-            {t('account.plus.eyebrow')}
+            {t('lighting.gate.eyebrow')}
           </span>
           <strong>{t('lighting.gate.title')}</strong>
           <small>{t('lighting.gate.body')}</small>
@@ -75,8 +76,8 @@ export default function LightingPlusPreview({
       <section className="lighting-hero">
         <div className="lighting-hero__bar">
           {/* Not disabled: a switch that does nothing when pressed reads as
-              broken ("it won't let me turn it on"). Like every lock in the
-              Studio, pressing it opens the way to Plus, and it stays off. */}
+              broken ("it won't let me turn it on"). Pressing it opens the
+              way to a scene, and it stays off. */}
           <div className="lighting-switch is-locked">
             <Switch
               id={switchId}

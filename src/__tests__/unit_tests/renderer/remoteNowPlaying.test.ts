@@ -20,14 +20,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * What the listener draws for a sender, and which sender it draws.
  *
  * The pure halves of the two hooks: what a sender's bar becomes on the wire,
- * how the listener's state carries it per sender, which sender gets the one
- * bar, and what counts as somebody pressing play on the sending machine —
- * the one thing the one-player rule acts on across the wire.
+ * which sender gets the one bar, and what counts as somebody pressing play on
+ * the sending machine — the one thing the one-player rule acts on across the
+ * wire. How each link carries its description is `linkRecords.test.ts`.
  */
 
 import type { IRemoteNowPlaying } from 'common/remoteAudio';
 import type { ITransportSource } from 'renderer/audio/transportSource';
-import listenerState from 'renderer/remoteAudio/listenerState';
 import type { TPlaybackOwner } from 'renderer/audio/playbackOwner';
 import {
   describeForRemote,
@@ -124,32 +123,41 @@ describe('pickSourceForRemote', () => {
     );
   });
 
+  it('never describes back the song another computer is playing here', () => {
+    // Both ways, the bar here also shows the linked computer's song. Sent
+    // back, it named that computer's own song on its "From" lane.
+    const received: ITransportSource = {
+      ...paused,
+      owner: 'remote',
+      title: 'Their song',
+      isPlaying: true,
+    };
+    expect(
+      pickSourceForRemote({ remote: received }, undefined, 'remote'),
+    ).toBeUndefined();
+    expect(
+      pickSourceForRemote(
+        { remote: received, system: paused },
+        undefined,
+        'remote',
+      ),
+    ).toBe(paused);
+    const library: ITransportSource = {
+      ...paused,
+      owner: 'library',
+      isPlaying: true,
+    };
+    expect(
+      pickSourceForRemote({ remote: received, library }, 'library', 'remote'),
+    ).toBe(library);
+  });
+
   it('still prefers the bar\x27s own answer while there is one', () => {
     const library: ITransportSource = { ...paused, owner: 'library' };
     expect(
       pickSourceForRemote({ library, system: paused }, undefined, 'library'),
     ).toBe(library);
     expect(pickSourceForRemote({}, undefined, undefined)).toBeUndefined();
-  });
-});
-
-describe('listenerState', () => {
-  it('carries what each sender said its bar is showing', () => {
-    const state = listenerState(
-      new Set(['a', 'b']),
-      new Map([
-        ['a', 'A'],
-        ['b', 'B'],
-      ]),
-      new Map(),
-      new Set(['a']),
-      false,
-      new Map([['a', playing(true)]]),
-    );
-    expect(state.computers.map((entry) => entry.nowPlaying)).toEqual([
-      playing(true),
-      undefined,
-    ]);
   });
 });
 

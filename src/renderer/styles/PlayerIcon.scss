@@ -40,6 +40,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
   stroke: none;
 }
 
+// The same, for a filled glyph on a quiet key: `.button` inks it in the
+// filled key's dark (above), which on an outline key sits on a dark face and
+// left What's New's "Watch the video" with an invisible play triangle
+// (Ivan, 2026-10-20). Here it is the label's colour, as the label is.
+.button.subtle svg.player-icon path.player-icon__fill {
+  fill: currentColor;
+}
+
 .player-icon__digit {
   fill: currentColor;
   font-family: $font-mono;

@@ -26,11 +26,11 @@ export default {
   'genre.latinPop.pin.200.why': '超低音和人声之间的空间。',
   'genre.latinPop.pin.3150': '人声的咬字',
   'genre.latinPop.pin.3150.why': '歌词所在的地方。',
+  'genre.latinPop.stage.exciter': '人声之下加温暖和厚度，高频什么都不加。',
   'genre.latinPop.stage.bassPunch': '超低音稍微收紧。',
   'genre.latinPop.stage.dimension': '150 Hz 以下单声道。',
   'genre.latinPop.stage.maximizer': '一个几乎不推的上限。',
-  'genre.latinPop.off':
-    '不用激励器，也不用低音熔炉：送来时多精致，就保持多精致。',
+  'genre.latinPop.off': '不用低音熔炉：超低音已经和底鼓锁在一起。',
 
   'genre.reggaeton.hook': '调好音的 808 上每拍一下的底鼓',
   'genre.reggaeton.story':

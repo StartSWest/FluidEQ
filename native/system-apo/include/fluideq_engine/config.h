@@ -25,6 +25,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef FLUIDEQ_ENGINE_CONFIG_H
 #define FLUIDEQ_ENGINE_CONFIG_H
 
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
@@ -37,6 +38,30 @@ namespace fluideq_engine {
 // folding its type aliases (PEQ/MODAL -> PK, LS/LSQ -> LSC, and so on) the
 // way `apoText.ts`'s TYPE_ALIASES table does.
 enum class FilterType { PK, NO, LSC, HSC, LPQ, HPQ, BP };
+
+/**
+ * The channels a `Channel:` line chose for the filters after it.
+ *
+ * Equalizer APO's grammar: `all`, or a list of speaker names and 1-based
+ * channel numbers in any mix. FluidEQ writes `L` and `R` for a band kept to
+ * one ear (Ivan, 2026-10-13, "EQ per channel") and `all` after them. Names
+ * are kept by speaker, never by place in the stream, because the same `L`
+ * is channel 1 of a stereo stream and of a 7.1 one only by luck of the mask:
+ * `selected_channels` reads them against the stream's own layout.
+ */
+struct ChannelSelection {
+  bool all = true;
+  /**
+   * Speakers in `speaker_of_channel`'s numbering — 0 FL, 1 FR, 2 C, 3 SL,
+   * 4 SR, 5 RL, 6 RR — and `kLowFrequencySpeaker` for the subwoofer feed.
+   */
+  uint32_t speakers = 0;
+  /** Channels by their place in the stream: bit 0 is `1`. */
+  uint32_t indices = 0;
+};
+
+/** The subwoofer feed's bit in `ChannelSelection::speakers`. */
+constexpr uint32_t kLowFrequencySpeaker = 7;
 
 struct Band {
   FilterType type;
@@ -54,6 +79,8 @@ struct Band {
    * BlackShark correction, against 0.89 dB matched).
    */
   bool matched = false;
+  /** The channels it plays on: the `Channel:` line in force above it. */
+  ChannelSelection channels{};
 };
 
 struct GraphicPoint {
@@ -102,8 +129,8 @@ struct Chain {
    * The treble choice beside the phase ones: Classic keeps that group's
    * bands on the cookbook even where their layer asks for the matched design
    * — the way Equalizer APO plays them, narrower near the top. Read from
-   * `fluideq-eq-treble.txt` and `fluideq-curve-treble.txt`; absent means
-   * Precise.
+   * `fluideq-eq-treble-<guid>.txt` and `fluideq-curve-treble-<guid>.txt`;
+   * absent means Precise, independently for each endpoint.
    */
   bool classic_eq_treble = false;
   bool classic_curve_treble = false;
@@ -133,7 +160,7 @@ struct Chain {
   /**
    * The DSP rack, exactly as `encodeChainSettings` wrote it.
    *
-   * Read from `<config_dir>\fluideq-dsp.txt`, which is not part of the
+   * Read from `<config_dir>\fluideq-dsp-<guid>.txt`, which is not part of the
    * Equalizer APO include tree above and is never named by an `Include:`
    * line: it is one flat array of doubles the app rewrites on every rack
    * change, and `feq_chain_settings_decode` on the other side is the only
@@ -141,9 +168,9 @@ struct Chain {
    * absent, empty, or carries a token that is not a plain decimal — all of
    * which mean the rack is bypassed and the EQ below still runs.
    *
-   * Deliberately NOT reflected in `matched`: the rack is system-wide and has
-   * no `Device:` guard, so it applies to an endpoint the EQ configuration
-   * never names.
+   * Deliberately NOT reflected in `matched`: its filename selects this
+   * endpoint even when the EQ include tree has no `Device:` block for it.
+   * A missing endpoint file never falls back to the old global rack.
    */
   std::vector<double> dsp_values;
   // The first token of every line whose command this resolver does not
@@ -166,6 +193,14 @@ struct Endpoint {
   std::wstring guid;
   std::wstring friendly_name;
 };
+
+/**
+ * `<stem>-<lowercase bare GUID>.txt`, or nothing for an invalid endpoint id.
+ * Accepts a canonical bare or braced GUID only. The caller supplies `stem`;
+ * an endpoint can never supply a directory or a partial filename.
+ */
+std::optional<std::wstring> endpoint_config_name(
+    std::wstring_view stem, const Endpoint& endpoint);
 
 /** Returns the file's bytes, or nullopt when unreadable. Paths are absolute. */
 using FileProvider =
@@ -227,12 +262,20 @@ std::optional<Band> parse_filter(std::string_view body);
 std::vector<GraphicPoint> parse_graphic(std::string_view body);
 
 /**
- * Parse `fluideq-dsp.txt`: a `#` header line, then one line of doubles.
+ * Parse a `Channel:` body. A word or number it does not know is skipped, as
+ * Equalizer APO skips it; a body that names nothing it knows is every
+ * channel, because a line that selected nothing would silence the filters
+ * after it on every output — the one wrong answer that is not a no-op.
+ */
+ChannelSelection parse_channels(std::string_view body);
+
+/**
+ * Parse a DSP file: a `#` header line, then one line of doubles.
  *
  * All-or-nothing, for the same reason `parse_graphic` is: half a rack is a
  * chain of stages the user never asked for, and a file this resolver could
  * not read whole is one the app is in the middle of rewriting. Every token
- * goes through `std::from_chars`, which is locale-free by construction —
+ * goes through the locale-independent number parser —
  * `strtod` on a machine whose locale uses a comma decimal separator reads
  * `0.45` as `0`, silently, and the rack would simply sound wrong.
  */

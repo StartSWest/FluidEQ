@@ -539,6 +539,136 @@
   }
 }
 
+// A What's New film in its Help topic (`HelpFilm`): framed like the captures,
+// no taller than most of the window however the film was shot (one is
+// portrait, around a band and its slider), with the line its voice is saying
+// in a strip under the picture rather than over it.
+$help-film-line-room: calc(13px * 1.4 * 3 + 20px);
+
+.help-film {
+  display: grid;
+  width: min(
+    100%,
+    calc((62vh - #{$help-film-line-room}) * var(--film-aspect, 1.6))
+  );
+  margin: 24px auto 28px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba($white, 0.09);
+  border-radius: $radius-m;
+  background: $surface-base;
+  color: $text-primary;
+  font: inherit;
+  text-align: left;
+}
+
+.help-film__screen {
+  position: relative;
+  display: block;
+  aspect-ratio: var(--film-aspect, 1.6);
+
+  > img,
+  > video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.help-film--poster {
+  cursor: pointer;
+
+  .help-film__screen > img {
+    filter: brightness(0.55) saturate(0.9);
+    transition: filter $motion-fast ease;
+  }
+
+  &:hover .help-film__screen > img,
+  &:focus-visible .help-film__screen > img {
+    filter: brightness(0.7) saturate(1);
+  }
+
+  &:hover .help-video__play,
+  &:focus-visible .help-video__play {
+    transform: translate(-50%, -50%) scale(1.06);
+    box-shadow:
+      0 0 0 8px color-mix(in srgb, $secondary-default 22%, transparent),
+      0 10px 40px color-mix(in srgb, $secondary-default 55%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-light;
+    outline-offset: 2px;
+  }
+}
+
+.help-film__line {
+  display: grid;
+  min-height: $help-film-line-room;
+  margin: 0;
+  padding: 10px 16px;
+  border-top: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
+  place-items: center;
+  font-size: 13px;
+  font-weight: $weight-semibold;
+  line-height: 1.4;
+  text-align: center;
+  text-wrap: balance;
+
+  span {
+    @include animate(rise-in, $motion-base);
+  }
+}
+
+// Pressed, the card becomes a figure, and a chapter styles its figures and
+// their captions as captures' (`.help-guide__chapter figure`): left-aligned,
+// a small muted caption. As strong as that rule and after it, so the film
+// stays centred and its line stays the voice's.
+figure.help-film {
+  margin: 24px auto 28px;
+}
+
+figcaption.help-film__line {
+  margin-top: 0;
+  color: $text-primary;
+  font-size: 13px;
+}
+
+// As Help's own films fail: the poster stays, dimmed, under the reason.
+.help-film__failed {
+  position: absolute;
+  display: grid;
+  padding: 24px;
+  inset: 0;
+  place-content: center;
+  gap: 14px;
+  text-align: center;
+
+  > img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    inset: 0;
+    object-fit: cover;
+    filter: brightness(0.3) blur(2px);
+  }
+
+  p,
+  button {
+    position: relative;
+  }
+
+  p {
+    max-width: 44ch;
+    margin: 0;
+  }
+
+  button {
+    justify-self: center;
+  }
+}
+
 .help-figure {
   margin: 24px 0 28px;
   // A search that lands on a control brings its capture to the top; the

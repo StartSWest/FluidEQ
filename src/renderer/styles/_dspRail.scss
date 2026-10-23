@@ -301,6 +301,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-dimension-controls,
 .dsp-room-controls,
 .dsp-maximizer-controls,
+.dsp-de-esser-controls,
 .dsp-crossfade-layout,
 .dsp-crossovers {
   > * {
@@ -324,6 +325,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-dimension-controls > *,
 .dsp-room-controls > *,
 .dsp-maximizer-controls > *,
+.dsp-de-esser-controls > *,
 .dsp-crossfade-layout > *,
 .dsp-crossovers > * {
   @include animate(rise-in);
@@ -345,6 +347,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     .dsp-dimension-controls,
     .dsp-room-controls,
     .dsp-maximizer-controls,
+    .dsp-de-esser-controls,
     .dsp-crossfade-layout,
     .dsp-crossovers
   ),

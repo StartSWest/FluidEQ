@@ -20,9 +20,9 @@ export interface ITermsHighlight {
 /** The four facts that matter most, on top, before a word of the rest. */
 export const TERMS_HIGHLIGHTS: readonly ITermsHighlight[] = [
   {
-    glyph: 'card',
-    title: 'terms.short.price.title',
-    body: 'terms.short.price.body',
+    glyph: 'credit',
+    title: 'terms.short.credits.title',
+    body: 'terms.short.credits.body',
   },
   {
     glyph: 'monitor',
@@ -73,6 +73,40 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     who: 'terms.sent.payment.who',
   },
   {
+    // Credits and the scenes owned, read on the same events as the
+    // membership (`plus/sceneOwnership.ts`).
+    id: 'store',
+    glyph: 'credit',
+    what: 'terms.sent.store.what',
+    when: 'terms.sent.store.when',
+    who: 'terms.sent.store.who',
+  },
+  {
+    // A pack paid for on Stripe: the checkout the app asks for, and the
+    // signed events Stripe sends the server (premium 0057).
+    id: 'credits',
+    glyph: 'card',
+    what: 'terms.sent.credits.what',
+    when: 'terms.sent.credits.when',
+    who: 'terms.sent.credits.who',
+  },
+  {
+    // Creator payouts (premium 0064): the card's status read, the sign-up,
+    // and what Stripe reports back about the creator's account.
+    id: 'payouts',
+    glyph: 'card',
+    what: 'terms.sent.payouts.what',
+    when: 'terms.sent.payouts.when',
+    who: 'terms.sent.payouts.who',
+  },
+  {
+    id: 'scene-get',
+    glyph: 'check',
+    what: 'terms.sent.sceneGet.what',
+    when: 'terms.sent.sceneGet.when',
+    who: 'terms.sent.sceneGet.who',
+  },
+  {
     // Recorded by the checkout, the export and the publish alike, and kept
     // whether or not a payment follows.
     id: 'agreement',
@@ -103,13 +137,6 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     who: 'terms.sent.profile.who',
   },
   {
-    id: 'board',
-    glyph: 'board',
-    what: 'terms.sent.board.what',
-    when: 'terms.sent.board.when',
-    who: 'terms.sent.board.who',
-  },
-  {
     id: 'scene-export',
     glyph: 'studio',
     what: 'terms.sent.sceneExport.what',
@@ -122,6 +149,36 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     what: 'terms.sent.sceneLike.what',
     when: 'terms.sent.sceneLike.when',
     who: 'terms.sent.sceneLike.who',
+  },
+  {
+    id: 'scene-time',
+    glyph: 'looks',
+    what: 'terms.sent.sceneTime.what',
+    when: 'terms.sent.sceneTime.when',
+    who: 'terms.sent.sceneTime.who',
+  },
+  {
+    id: 'engine',
+    glyph: 'music',
+    what: 'terms.sent.engine.what',
+    when: 'terms.sent.engine.when',
+    who: 'terms.sent.engine.who',
+  },
+  {
+    // Every signed-in account's, member or not, once told and not switched
+    // off (premium 0068).
+    id: 'listening',
+    glyph: 'headphones',
+    what: 'terms.sent.listening.what',
+    when: 'terms.sent.listening.when',
+    who: 'terms.sent.listening.who',
+  },
+  {
+    id: 'announcements',
+    glyph: 'mail',
+    what: 'terms.sent.announcements.what',
+    when: 'terms.sent.announcements.when',
+    who: 'terms.sent.announcements.who',
   },
   {
     id: 'scene-publish',
@@ -162,6 +219,23 @@ export interface ITermsSection {
 }
 
 export const TERMS_SECTIONS: readonly ITermsSection[] = [
+  {
+    // First: how a scene becomes the reader's, which is now how most of
+    // what follows is reached (revision 11).
+    id: 'credits',
+    glyph: 'credit',
+    title: 'terms.credits.title',
+    body: 'paragraphs',
+    lines: [
+      'terms.credits.p1',
+      'terms.credits.p2',
+      'terms.credits.p3',
+      'terms.credits.p4',
+      'terms.credits.p5',
+      'terms.credits.p6',
+      'terms.credits.p7',
+    ],
+  },
   {
     id: 'membership',
     glyph: 'card',
@@ -225,13 +299,6 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     ],
   },
   {
-    id: 'fair',
-    glyph: 'shield',
-    title: 'terms.fair.title',
-    body: 'paragraphs',
-    lines: ['terms.fair.p1', 'terms.fair.p2', 'terms.fair.p3', 'terms.fair.p4'],
-  },
-  {
     // What may be published, now that a scene is the only thing a member
     // puts in front of the others: the forum is GitHub's, under its rules.
     id: 'rules',
@@ -251,11 +318,13 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     title: 'terms.keep.title',
     body: 'points',
     lines: [
-      'terms.keep.p1',
       'terms.keep.p2',
       'terms.keep.p3',
       'terms.keep.p4',
       'terms.keep.p5',
+      'terms.keep.p7',
+      'terms.keep.p8',
+      'terms.keep.p9',
       'terms.keep.p6',
     ],
   },
@@ -279,12 +348,31 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.scenes.p2',
       'terms.scenes.p3',
       'terms.scenes.p4',
-      'terms.scenes.p5',
       'terms.scenes.p6',
       'terms.scenes.p7',
       'terms.scenes.p8',
       'terms.scenes.p9',
       'terms.scenes.p10',
+      'terms.scenes.p11',
+    ],
+  },
+  {
+    // Getting paid: the creator terms the sign-up dialog shows, quoted from
+    // its own keys so the two can never say different things.
+    id: 'payouts',
+    glyph: 'credit',
+    title: 'terms.payouts.title',
+    body: 'points',
+    lines: [
+      'terms.payouts.p1',
+      'creator.terms.share',
+      'creator.terms.paidCredits',
+      'creator.terms.hold',
+      'creator.terms.minimum',
+      'creator.terms.stripe',
+      'creator.terms.rights',
+      'creator.terms.taxes',
+      'creator.terms.changes',
     ],
   },
   {

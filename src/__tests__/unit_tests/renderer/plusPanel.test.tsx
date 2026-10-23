@@ -16,7 +16,6 @@ import {
   usePlusNavigation,
 } from '../../../renderer/plus/plusNavigation';
 import { resetProfileStore } from '../../../renderer/plus/profileStore';
-import { resetLeaderboardStore } from '../../../renderer/usage/leaderboardStore';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -34,10 +33,6 @@ jest.mock('../../../renderer/plus/VisualizersView', () => ({
 jest.mock('../../../renderer/studio/StudioPanel', () => ({
   __esModule: true,
   default: () => <div>studio view</div>,
-}));
-jest.mock('../../../renderer/community/LeaderboardView', () => ({
-  __esModule: true,
-  default: () => <div>board view</div>,
 }));
 
 const bridge = {
@@ -62,7 +57,6 @@ beforeEach(() => {
   resetAccountStore();
   resetEntitlementStore();
   resetProfileStore();
-  resetLeaderboardStore();
   resetPlusNavigation();
   bridge.getAccountState.mockResolvedValue(signedIn);
   bridge.getEntitlementStatus.mockResolvedValue({ state: 'active' });
@@ -88,16 +82,15 @@ describe('the Plus tab', () => {
    * The channels went to the Forum tab; three places stayed, and Dynamic
    * lighting came in under the Studio.
    */
-  it('holds Visualizers, the leaderboard, the Studio and Dynamic lighting, and opens on Visualizers', async () => {
+  it('holds Visualizers, the Studio and Dynamic lighting, and opens on Visualizers', async () => {
     await renderPanel();
     const rail = screen.getByRole('navigation', { name: 'tabs.plus' });
     const places = within(rail)
       .getAllByRole('button')
       .filter((button) => button.classList.contains('community__channel'));
-    // Top to bottom as the rail lists them since cc071bfae; it still opens on
-    // Visualizers, the middle one.
+    // Top to bottom as the rail lists them; the leaderboard that stood first
+    // is gone (2026-10-21).
     expect(places.map((button) => button.textContent)).toEqual([
-      'leaderboard.titleleaderboard.rail.blurb',
       'plus.visualizers.titleplus.visualizers.blurb',
       'studio.titlestudio.rail.blurb',
       'lighting.titlelighting.rail.blurb',
@@ -111,14 +104,17 @@ describe('the Plus tab', () => {
     expect(bridge.plusProfile).toHaveBeenCalledTimes(1);
   });
 
-  /** Choosing a name is the board's; the foot of the rail is the way there. */
-  it('leads a Plus member without a name to the board to choose one', async () => {
+  /** The name is chosen in the account panel; the foot of the rail leads there. */
+  it('leads a member without a name to the account panel to choose one', async () => {
+    const requests = jest.fn();
+    const unsubscribe = subscribeAccountPanelRequests(requests);
     await renderPanel();
     await userEvent.click(
-      screen.getByRole('button', { name: 'leaderboard.name.choose' }),
+      screen.getByRole('button', { name: 'profile.name.choose' }),
     );
-    expect(screen.getByRole('status')).toHaveTextContent('board');
-    expect(screen.getByText('board view')).toBeInTheDocument();
+    expect(requests).toHaveBeenCalledWith('home');
+    expect(screen.getByRole('status')).toHaveTextContent('visualizers');
+    unsubscribe();
   });
 
   it('shows the chosen name and handle at the foot of the rail, and no way to choose again', async () => {
@@ -134,9 +130,9 @@ describe('the Plus tab', () => {
     await renderPanel();
     expect(screen.getByText('Ivan C')).toBeInTheDocument();
     expect(screen.getByText('@ivan_c')).toBeInTheDocument();
-    expect(screen.getByText('leaderboard.role.admin')).toBeInTheDocument();
+    expect(screen.getByText('profile.role.admin')).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: 'leaderboard.name.choose' }),
+      screen.queryByRole('button', { name: 'profile.name.choose' }),
     ).toBeNull();
   });
 
@@ -150,12 +146,13 @@ describe('the Plus tab', () => {
     unsubscribe();
   });
 
-  it('offers no name to an account without Plus, which the board does not rank', async () => {
+  /** Anyone may publish to the gallery, so anyone may need a name for it. */
+  it('offers a name to an account without Plus too', async () => {
     bridge.getEntitlementStatus.mockResolvedValue({ state: 'none' });
     await renderPanel();
     expect(
-      screen.queryByRole('button', { name: 'leaderboard.name.choose' }),
-    ).toBeNull();
+      screen.getByRole('button', { name: 'profile.name.choose' }),
+    ).toBeInTheDocument();
   });
 
   /**
@@ -214,7 +211,6 @@ describe('the Plus tab', () => {
       'trial.extras.scenes',
       'trial.extras.studio',
       'trial.extras.desktop',
-      'trial.extras.board',
     ]);
     expect(bridge.plusProfile).not.toHaveBeenCalled();
   });

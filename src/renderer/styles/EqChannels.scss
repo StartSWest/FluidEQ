@@ -1,0 +1,68 @@
+@use 'constant' as *;
+@use 'theme' as *;
+@use 'color' as *;
+
+// EQ per ear (Ivan, 2026-10-13, "EQ per channel"): the letter on a one-eared
+// band's handle and slider. The two ears are told apart by line, never by hue — the
+// left ear's curve solid, the right's dashed, both in the EQ's own colour —
+// because every hue the plot has left belongs to another layer.
+
+// ------------------------------------------------------------ the graph
+
+// Beside the dot, up and to the right, where a band's label never stands:
+// labels sit straight above or below (`bandLabelLayout.ts`). The strip's own
+// tag, filled; a bare letter over the curve and the analyser was lost.
+.graph-edit-point__ear {
+  pointer-events: none;
+  user-select: none;
+}
+
+.graph-edit-point__ear-tag {
+  x: 7px;
+  y: -23px;
+  width: 15px;
+  height: 15px;
+  rx: 4px;
+  fill: $secondary-light;
+}
+
+.graph-edit-point__ear-letter {
+  transform: translate(14.5px, -11.5px);
+  fill: $surface-base;
+  font-size: 10px;
+  font-weight: $weight-bold;
+  text-anchor: middle;
+}
+
+// The left ear's tag up and to the left: a band and its twin on the other ear
+// stand on one spot until one is moved, and a tag on the same side covered
+// the other's letter.
+.graph-edit-point__ear--left {
+  .graph-edit-point__ear-tag {
+    x: -22px;
+  }
+
+  .graph-edit-point__ear-letter {
+    transform: translate(-14.5px, -11.5px);
+  }
+}
+
+// ------------------------------------------------------------ the bands
+
+// A one-eared band's letter in the corner of its strip, the same letter its
+// handle carries on the graph.
+.band-ear {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 15px;
+  padding: 0 3px;
+  border-radius: $radius-2xs;
+  background: $secondary-light;
+  color: $surface-base;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  line-height: 15px;
+  text-align: center;
+  pointer-events: none;
+}

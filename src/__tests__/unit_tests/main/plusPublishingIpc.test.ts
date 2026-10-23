@@ -63,11 +63,6 @@ const invoke = <T>(channel: string, ...args: unknown[]) => {
 let root: string;
 let folder: string | undefined;
 let entitled: boolean;
-/**
- * The account has had a scene approved, and the open project is the one the
- * Studio keeps for it without Plus (`projectAccess.ts`).
- */
-let maker: boolean;
 let signedIn: boolean;
 /** Who is signed in: a computer can be shared. */
 let signedInAs: string;
@@ -99,6 +94,8 @@ const fetchImpl = (async (input: string | URL, init?: RequestInit) => {
 const access = (): IGalleryAccess => ({
   accountId: () => (signedIn ? signedInAs : undefined),
   entitled: () => entitled && signedIn,
+  // Plus owns every scene while it lasts (`sceneOwnership.ts`).
+  owns: () => entitled && signedIn,
   auth: async () => {
     duringAuth?.();
     if (switchDuringAuth) {
@@ -143,7 +140,8 @@ const setup = (onTermsAgreed?: (version: number) => void) =>
     userDataDir: userDataDir(),
     activeFolder: () => folder,
     activeIsInspection: () => inspecting,
-    mayPublishActive: () => signedIn && (entitled || maker),
+    // The Studio is any signed-in account's (`projectAccess.ts`).
+    mayPublishActive: () => signedIn,
     onTermsAgreed,
   });
 
@@ -157,7 +155,6 @@ beforeEach(async () => {
     id: 'my-first-scene',
   });
   entitled = true;
-  maker = false;
   signedIn = true;
   signedInAs = ME;
   switchDuringAuth = false;
@@ -331,24 +328,17 @@ describe('publishing from the Studio', () => {
     expect(calls).toEqual([]);
   });
 
-  it.each(['project', 'entitlement'])(
-    'rechecks %s after acquiring the token',
-    async (change) => {
-      setup();
-      duringAuth = () => {
-        if (change === 'project') {
-          folder = path.join(root, 'other');
-        } else {
-          entitled = false;
-        }
-      };
-      expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
-        ok: false,
-        reason: change === 'project' ? 'no-build' : 'not-entitled',
-      });
-      expect(calls).toEqual([]);
-    },
-  );
+  it('rechecks the project after acquiring the token', async () => {
+    setup();
+    duringAuth = () => {
+      folder = path.join(root, 'other');
+    };
+    expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
+      ok: false,
+      reason: 'no-build',
+    });
+    expect(calls).toEqual([]);
+  });
 
   it('records a completed publication for its author without updating the new account', async () => {
     const onTermsAgreed = jest.fn();
@@ -463,14 +453,8 @@ describe('publishing from the Studio', () => {
     expect(calls).toEqual([]);
   });
 
-  it('sends nothing without Plus, without a project, or with a category not on the list', async () => {
+  it('sends nothing without a project, or with a category not on the list', async () => {
     setup();
-    entitled = false;
-    expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
-      ok: false,
-      reason: 'not-entitled',
-    });
-    entitled = true;
     expect(await invoke('studio-publish', 4, 'weapons', webpBytes())).toEqual({
       ok: false,
       reason: 'no-build',
@@ -483,13 +467,11 @@ describe('publishing from the Studio', () => {
     expect(calls).toEqual([]);
   });
 
-  it('publishes for a maker without Plus, from the project the Studio keeps', async () => {
-    // Publishing is how a maker earns their next month. Refused here for want
-    // of Plus, the approval that would have earned it could never happen,
-    // while the server takes it (`is_scene_maker`, migration 0041).
+  it('publishes for a signed-in account without Plus', async () => {
+    // The Studio and publishing are free (Ivan, 2026-10-18); what is sold
+    // is a scene, and its maker sees it once it is published.
     setup();
     entitled = false;
-    maker = true;
     expect(await invoke('studio-publish', 4, 'space', webpBytes())).toEqual({
       ok: true,
     });

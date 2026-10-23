@@ -45,7 +45,9 @@ describe('Main EQ x2 IPC', () => {
       curveEqMode: 'normal',
       isEqDoubleOn: false,
       eqBandQ: 'off',
+      mainBandQ: 'off',
       curveBandQ: 'off',
+      // Reset is where a new install starts: 1/12 octave, not Off.
       curveSmoothing: 'off',
     };
     const update = jest.fn().mockResolvedValue(undefined);
@@ -161,6 +163,7 @@ describe('Main EQ x2 IPC', () => {
       eqMode: 'double',
       curveEqMode: 'normal',
       eqBandQ: 'off',
+      mainBandQ: 'off',
       curveBandQ: 'off',
     });
     await fire(ChannelEnum.SET_EQ_DOUBLE, [false]);
@@ -170,6 +173,7 @@ describe('Main EQ x2 IPC', () => {
       eqMode: 'normal',
       curveEqMode: 'normal',
       eqBandQ: 'off',
+      mainBandQ: 'off',
       curveBandQ: 'off',
     });
     expect(error).not.toHaveBeenCalled();
@@ -215,6 +219,7 @@ describe('Main EQ x2 import and export IPC', () => {
       path.join(os.tmpdir(), 'fluideq-eq-double-ipc-'),
     );
     deps = {
+      userDataDir: directory,
       state: getDefaultState(),
       deviceProfileSettings: {
         version: 1,
@@ -240,7 +245,6 @@ describe('Main EQ x2 import and export IPC', () => {
       activePresetDir: () => directory,
       availableProfileNameForActiveDevice: (name) => name,
       attachPresetToActiveDevice: jest.fn(),
-      clearCurrentLayoutSettings: jest.fn(),
       resetEqToDefaults: jest.fn(),
       hydrateActiveConvolution: jest.fn(),
       shieldReferenceBands: (filters) => filters,
@@ -374,7 +378,11 @@ describe('Main EQ x2 import and export IPC', () => {
   });
 });
 it('validates and persists shape choices without crossing groups or changing strength', async () => {
-  const state = { ...getDefaultState(), eqMode: 'studio' as TEqMode };
+  const state = {
+    ...getDefaultState(),
+    eqMode: 'studio' as TEqMode,
+    eqBandQ: 'proportional' as const,
+  };
   const update = jest.fn();
   const error = jest.fn();
   registerLayersIpc({
@@ -388,7 +396,8 @@ it('validates and persists shape choices without crossing groups or changing str
   await fire(ChannelEnum.SET_EQ_SHAPE, ['curves', 'smoothing', 'third']);
   expect(state).toMatchObject({
     eqMode: 'studio',
-    eqBandQ: 'asymmetric',
+    mainBandQ: 'asymmetric',
+    eqBandQ: 'proportional',
     curveBandQ: 'off',
     curveSmoothing: 'third',
   });

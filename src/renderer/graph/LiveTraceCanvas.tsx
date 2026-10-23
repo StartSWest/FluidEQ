@@ -85,7 +85,12 @@ import { useEngineLookUsable } from './engineLooks/engineLookHealth';
 import useLeavingEngineLook from './engineLooks/useLeavingEngineLook';
 import { engineLookPack, isEngineLookStyle } from './engineLooks/engineLooks';
 import useAnalysisChannels from './analysis/useAnalysisChannels';
-import { GRAPH_SILENT_POINTS } from './liveGraphBand';
+import {
+  ILegendPlace,
+  isSameLegendPlace,
+  takeLegendFrame,
+} from './analysis/legendPlace';
+import { useSilentFloor } from './silentFloor';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData, ILiveCurveData } from './ChartController';
 import { resolvePresentedStrokeWidth } from './liveTracePaint';
@@ -132,6 +137,11 @@ interface ILiveTraceCanvasProps {
    * the picture, no where it plays behind another drawing (`EqScreen`).
    */
   hasKey?: boolean;
+  /**
+   * Where that key stands now, in the chart's coordinates, whenever it moves
+   * or goes — for what the chart draws over the canvas to keep off it.
+   */
+  onLegendPlace?: (place: ILegendPlace | undefined) => void;
 }
 
 /** A look being left says nothing more about where the engine is. */
@@ -148,7 +158,12 @@ const LiveTraceCanvas = ({
   isForeground,
   eqResponse,
   hasKey = true,
+  onLegendPlace,
 }: ILiveTraceCanvasProps) => {
+  // Through refs, so a new callback never rebuilds the frame loop.
+  const onLegendPlaceRef = useRef(onLegendPlace);
+  onLegendPlaceRef.current = onLegendPlace;
+  const legendPlaceRef = useRef<ILegendPlace | undefined>(undefined);
   // The measurement, straight from the analyser. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
   // The graph's own points, the plot's whole width with its bottom octaves
@@ -334,7 +349,10 @@ const LiveTraceCanvas = ({
   // source because it is a property of the drawing, not of the measurement:
   // nothing else reading the analyser — the meter, the Smart EQ solver, the
   // rhythm game — should ever see an invented frame.
-  const previewPoints = useLookPreviewPoints(livePoints, look.id);
+  // Silence on the frequencies the music was last measured at, so the trace
+  // falls where it was heard (`silentFloor.ts`).
+  const silentFloor = useSilentFloor(livePoints);
+  const previewPoints = useLookPreviewPoints(livePoints, look.id, silentFloor);
   // What the frame loop reports as painted: the preview's own identity, which
   // is what lets it go, even where the drawing shows the floor in its place.
   const previewPointsRef = useRef(previewPoints);
@@ -354,8 +372,8 @@ const LiveTraceCanvas = ({
     if (previewPoints.length > 0) {
       return previewPoints.map(({ x }) => ({ x, y: MIN_GAIN }));
     }
-    return GRAPH_SILENT_POINTS;
-  }, [ambient, isPaused, previewPoints]);
+    return silentFloor;
+  }, [ambient, isPaused, previewPoints, silentFloor]);
   const displayedWaveform = useMemo(
     () => resolveLookWaveform(points, livePoints, waveform),
     [points, livePoints, waveform],
@@ -401,8 +419,8 @@ const LiveTraceCanvas = ({
   );
 
   const drawFrame = useCallback(
-    (deltaMs: number) =>
-      drawLiveTraceFrame(
+    (deltaMs: number) => {
+      const moved = drawLiveTraceFrame(
         {
           canvasRef,
           contextRef,
@@ -493,7 +511,16 @@ const LiveTraceCanvas = ({
           haloCanvasRef,
         },
         deltaMs,
-      ),
+      );
+      // The key's place after this frame, told only when it changed.
+      const canvas = canvasRef.current;
+      const frame = canvas ? takeLegendFrame(canvas) : undefined;
+      if (frame && !isSameLegendPlace(frame.place, legendPlaceRef.current)) {
+        legendPlaceRef.current = frame.place;
+        onLegendPlaceRef.current?.(frame.place);
+      }
+      return moved;
+    },
     // `channels` is the per-channel reader, whose identity never changes —
     // named here because the loop reads it and a dependency list that lies
     // about what a callback reads is worse than one that is slightly long.
@@ -696,8 +723,9 @@ const LiveTraceCanvas = ({
   // No early return on an empty frame any more. Leaving the document was what
   // made the drawing disappear the instant the music stopped — the pixels go
   // with the element, so a pause, a track change or a quiet passage blanked the
-  // plot. Silence is now drawn rather than unmounted: `SILENT_POINTS` puts every
-  // band on the floor and the form keeps its shape, which is also how the
+  // plot. Silence is now drawn rather than unmounted: the silent floor puts
+  // every band on the floor, at the frequency it was last heard at
+  // (`silentFloor.ts`), and the form keeps its shape, which is also how the
   // scenery styles have always behaved.
   return (
     <>

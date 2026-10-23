@@ -6,6 +6,18 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 cmake_minimum_required(VERSION 3.21)
 
+# Set before project() initialises Apple Clang and before any target exists:
+# otherwise helpers silently require the developer's macOS (26 here), even
+# though the app bundle advertises 14.4. Process taps require 14.4.
+if(CMAKE_HOST_APPLE)
+  if(NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "14.4" CACHE STRING "Minimum supported macOS" FORCE)
+  endif()
+  if(NOT CMAKE_OSX_ARCHITECTURES)
+    set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "macOS native architectures")
+  endif()
+endif()
+
 project(fluideq_native LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -90,6 +102,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/exciter_guard.cpp
   dsp-core/src/organic.cpp
   dsp-core/src/organic_stage.cpp
+  dsp-core/src/exciter_oversample.cpp
   dsp-core/src/exciter.cpp
   dsp-core/src/fft.cpp
   dsp-core/src/convolver.cpp
@@ -104,6 +117,7 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/room_interpolation.cpp
   dsp-core/src/room_ambience.cpp
   dsp-core/src/room_comparison.cpp
+  dsp-core/src/room_rate.cpp
   dsp-core/src/bass_forge.cpp
   dsp-core/src/bass_forge_meters.cpp
   dsp-core/src/bass_punch.cpp
@@ -116,10 +130,17 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/denoise_live_hum.cpp
   dsp-core/src/denoise_click.cpp
   dsp-core/src/denoise_voice.cpp
+  dsp-core/src/deesser.cpp
+  dsp-core/src/deesser_process.cpp
+  dsp-core/src/deesser_decide.cpp
   dsp-core/src/meters.cpp
+  dsp-core/src/meters_deesser.cpp
+  dsp-core/src/meters_eq_live.cpp
+  dsp-core/src/meters_transform.cpp
   dsp-core/src/chain.cpp
   dsp-core/src/chain_process.cpp
   dsp-core/src/chain_eq.cpp
+  dsp-core/src/chain_eq_delay.cpp
   dsp-core/src/chain_eq_fade.cpp
   dsp-core/src/chain_mono_maker.cpp
   dsp-core/src/chain_eq_linear.cpp
@@ -127,8 +148,10 @@ add_library(fluideq-dsp-core STATIC
   dsp-core/src/chain_stages.cpp
   dsp-core/src/chain_linear.cpp
   dsp-core/src/chain_transfer.cpp
+  dsp-core/src/chain_source.cpp
   dsp-core/src/chain_tone.cpp
   dsp-core/src/chain_decode.cpp
+  dsp-core/src/chain_deesser.cpp
   dsp-core/src/resampler.cpp
   dsp-core/src/player.cpp
   dsp-core/src/player_roles.cpp
@@ -173,6 +196,17 @@ add_test(NAME exciter COMMAND fluideq-exciter-test)
 add_executable(fluideq-dimension-test dsp-core/tests/dimension_test.cpp)
 target_link_libraries(fluideq-dimension-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME dimension COMMAND fluideq-dimension-test)
+
+# The De-esser on a mix: the S down, the panned hi-hat kept, the same quiet
+# or loud, a ride learned as the bed, and its delay alone at rest.
+add_executable(fluideq-deesser-test dsp-core/tests/deesser_test.cpp)
+target_link_libraries(fluideq-deesser-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME deesser COMMAND fluideq-deesser-test)
+# Its three cuts, Isolate, the depth dial, surround, a handover and an edit
+# mid-S, each beside the control that would fail it.
+add_executable(fluideq-deesser-modes-test dsp-core/tests/deesser_modes_test.cpp)
+target_link_libraries(fluideq-deesser-modes-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME deesser-modes COMMAND fluideq-deesser-modes-test)
 
 # The three-band split every multiband stage shares, held to the response of
 # the bands put back together rather than to any one of them.
@@ -223,6 +257,9 @@ add_test(NAME denoise-live COMMAND fluideq-denoise-live-test)
 add_executable(fluideq-meters-test dsp-core/tests/meters_test.cpp)
 target_link_libraries(fluideq-meters-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME meters COMMAND fluideq-meters-test)
+add_executable(fluideq-meters-eq-live-test dsp-core/tests/meters_eq_live_test.cpp)
+target_link_libraries(fluideq-meters-eq-live-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME meters-eq-live COMMAND fluideq-meters-eq-live-test)
 
 # Separate from `meters` because it asks a different question: not whether the
 # meters measure, but where in the chain each one is tapped. A tap taken at the
@@ -238,6 +275,15 @@ add_test(NAME chain-transfer COMMAND fluideq-chain-transfer-test)
 add_executable(fluideq-chain-switch-test dsp-core/tests/chain_switch_test.cpp)
 target_link_libraries(fluideq-chain-switch-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME chain-switch COMMAND fluideq-chain-switch-test)
+add_executable(fluideq-exciter-stereo-test dsp-core/tests/exciter_stereo_test.cpp)
+target_link_libraries(fluideq-exciter-stereo-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME exciter-stereo COMMAND fluideq-exciter-stereo-test)
+add_executable(fluideq-oversample-test dsp-core/tests/oversample_test.cpp)
+target_link_libraries(fluideq-oversample-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME oversample COMMAND fluideq-oversample-test)
+add_executable(fluideq-exciter-oversample-test dsp-core/tests/exciter_oversample_test.cpp)
+target_link_libraries(fluideq-exciter-oversample-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME exciter-oversample COMMAND fluideq-exciter-oversample-test)
 
 # The Master's loudness target with no track analysis behind it, which is
 # every stream the system engine plays: measured as the loudness of what
@@ -279,6 +325,18 @@ add_executable(fluideq-room-test dsp-core/tests/room_test.cpp)
 target_link_libraries(fluideq-room-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME room COMMAND fluideq-room-test)
 
+# The converter a room uses on an output faster than its heads: its delay
+# exactly, its level, and blocks that are not a multiple of its factor.
+add_executable(fluideq-room-rate-test dsp-core/tests/room_rate_test.cpp)
+target_link_libraries(fluideq-room-rate-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME room-rate COMMAND fluideq-room-rate-test)
+
+# The room through that converter, sample for sample the room at its head's
+# rate: both renderers, game mode, a handover, switched off and on.
+add_executable(fluideq-room-converted-test dsp-core/tests/room_converted_test.cpp)
+target_link_libraries(fluideq-room-converted-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME room-converted COMMAND fluideq-room-converted-test)
+
 add_executable(fluideq-room-contract-test dsp-core/tests/room_contract_test.cpp)
 target_link_libraries(fluideq-room-contract-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME room-contract COMMAND fluideq-room-contract-test)
@@ -298,6 +356,9 @@ add_test(NAME bass-limiter COMMAND fluideq-bass-limiter-test)
 add_executable(fluideq-eq-fade-test dsp-core/tests/eq_fade_test.cpp)
 target_link_libraries(fluideq-eq-fade-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME eq-fade COMMAND fluideq-eq-fade-test)
+add_executable(fluideq-chain-ears-test dsp-core/tests/chain_ears_test.cpp)
+target_link_libraries(fluideq-chain-ears-test PRIVATE fluideq-dsp-core feq_strict)
+add_test(NAME chain-ears COMMAND fluideq-chain-ears-test)
 
 add_executable(fluideq-room-interpolation-test
   dsp-core/tests/room_interpolation_test.cpp system-apo/src/room_head.cpp)
@@ -368,11 +429,18 @@ target_link_libraries(fluideq-dsp-parity-test
 add_test(NAME dsp-parity
   COMMAND fluideq-dsp-parity-test "${CMAKE_BINARY_DIR}/fixtures")
 
-# The system-wide engine's config resolver: Windows-only, and its own
-# subtree because everything past this task loads inside audiodg.exe rather
-# than the DSP host process below.
-if(WIN32)
+# The system-wide engine, in its own subtree because the Windows effect loads
+# inside audiodg.exe rather than the DSP host process below. Its DSP core —
+# the configuration it reads and the graph it runs — builds on macOS too,
+# where the Mac engine runs the same graph on the same files.
+if(WIN32 OR APPLE)
   add_subdirectory(system-apo)
+endif()
+# The FluidEQ Engine on macOS: the same graph, run on every app's sound
+# through a Core Audio process tap. macOS only, as the effect it mirrors is
+# Windows only.
+if(APPLE)
+  add_subdirectory(mac-engine)
 endif()
 
 # The desktop visualizer's helper, which puts a monitor's background window
@@ -454,10 +522,7 @@ if(WIN32)
     ole32 avrt mfplat mfreadwrite mfuuid propsys psapi advapi32)
 
 elseif(APPLE)
-  # Apple Silicon only. Universal is a flag rather than a port, but a second
-  # architecture doubles what the frozen parity corpus has to be checked
-  # against, and that is a cost to pay when somebody needs it.
-  set(CMAKE_OSX_ARCHITECTURES "arm64" CACHE STRING "" FORCE)
+  # Apple Silicon is the default set before project(), for every target.
   target_sources(fluideq-dsp-host PRIVATE
     dsp-host/src/platform/macos/coreaudio_backend.cpp
     # The two stubs, for now: this branch REPLACES the else() that used to
@@ -511,10 +576,17 @@ set_target_properties(fluideq-dsp-host PROPERTIES
 if(WIN32)
   add_executable(fluideq-remote-audio-capture
     remote-audio-capture/src/main.cpp
+    remote-audio-capture/src/capture_args.cpp
     remote-audio-capture/src/capture_queue.cpp
     remote-audio-capture/src/capture_writer.cpp
     remote-audio-capture/src/mirror_output.cpp
-    remote-audio-capture/src/mirror_control.cpp)
+    remote-audio-capture/src/mirror_control.cpp
+    remote-audio-capture/src/hold_output.cpp
+    # The second output plays through Share Audio's own playback engine.
+    remote-audio-playback/src/playback_core.cpp
+    remote-audio-playback/src/sinc_kernel.cpp)
+  target_include_directories(fluideq-remote-audio-capture PRIVATE
+    remote-audio-playback/src)
   target_link_libraries(fluideq-remote-audio-capture PRIVATE
     feq_strict ole32 avrt mmdevapi)
   set_target_properties(fluideq-remote-audio-capture PROPERTIES
@@ -532,6 +604,14 @@ add_executable(fluideq-capture-queue-test
 target_link_libraries(fluideq-capture-queue-test PRIVATE feq_strict)
 target_include_directories(fluideq-capture-queue-test PRIVATE remote-audio-capture/src)
 add_test(NAME capture-queue COMMAND fluideq-capture-queue-test)
+if(WIN32)
+  add_executable(fluideq-capture-args-test
+    remote-audio-capture/tests/capture_args_test.cpp
+    remote-audio-capture/src/capture_args.cpp)
+  target_link_libraries(fluideq-capture-args-test PRIVATE feq_strict)
+  target_include_directories(fluideq-capture-args-test PRIVATE remote-audio-capture/src)
+  add_test(NAME capture-args COMMAND fluideq-capture-args-test)
+endif()
 
 # The Processes list's meter: private working set and CPU time for each of the
 # app's processes, which Node cannot read (process-meter/src/main.cpp). Runs

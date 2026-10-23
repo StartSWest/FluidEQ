@@ -83,6 +83,7 @@ export function CompactPlayerSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.player"
+      film="compact-player"
       onOpen={actions.openPlayer}
       visual={<CompactPlayerVisual />}
       values={{ backdrop: t('graph.sceneTint.short.cover') }}
@@ -94,6 +95,7 @@ export function GamePresetsSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.games"
+      film="game-presets"
       onOpen={() => actions.openTab('games')}
       visual={<GameStoryVisual />}
     />

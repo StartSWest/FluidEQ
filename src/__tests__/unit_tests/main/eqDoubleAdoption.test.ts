@@ -79,6 +79,16 @@ describe('two-pass external EQ adoption', () => {
       expect(getEqMode(state)).toBe('normal');
       expect(getCurveEqMode(state)).toBe(eqMode);
       state.curveEqMode = 'normal';
+      // A correction smoothed at 1/12 octave is written smoothed, which no
+      // edit to its file can be read back through.
+      state.curveSmoothing = 'twelfth';
+      const smoothed = JSON.stringify(state);
+      expect(
+        adoptApoFeatureText(state, 'headphone', external).unsupported,
+      ).toBeGreaterThan(0);
+      expect(JSON.stringify(state)).toBe(smoothed);
+      // CONTROL: written as it is, it is taken.
+      state.curveSmoothing = 'off';
       expect(adoptApoFeatureText(state, 'headphone', external).changed).toBe(
         true,
       );
@@ -281,6 +291,47 @@ describe('startup adoption of x2 output', () => {
     expect(state.isEqDoubleOn).toBe(false);
     expect(gains(state)).toEqual([4, 7]);
   });
+
+  it.each(['proportional', 'asymmetric'] as const)(
+    'preserves %s Q on preset curves when adopting a split main-EQ file',
+    (eqBandQ) => {
+      const state = shaped();
+      state.eqMode = 'normal';
+      state.isEqDoubleOn = false;
+      state.mainBandQ = 'off';
+      state.eqBandQ = eqBandQ;
+      state.tone = { bass: 6, mid: -3, treble: 4 };
+      const files = deviceProfilesToFiles(
+        getDefaultDeviceProfileSettings(),
+        () => directory,
+        undefined,
+        { deviceId: 'output', devicePattern: '{OUTPUT}', state },
+      );
+      files.forEach((contents, name) => {
+        fs.writeFileSync(path.join(directory, name), contents);
+      });
+      const eqFile = [...files.keys()].find((name) => name.endsWith('-eq.txt'));
+      if (!eqFile) {
+        throw new Error('No main EQ file generated');
+      }
+      fs.writeFileSync(
+        path.join(directory, eqFile),
+        'Filter 1: ON PK Fc 1000 Hz Gain 7 dB Q 1.44',
+      );
+      const before = stateToApoFiles(state)?.features.filter(
+        (feature) => feature.feature !== 'eq',
+      );
+      expect(before?.some((feature) => feature.feature === 'tone')).toBe(true);
+      expect(adopt(state)).toBe(true);
+      expect(gains(state)).toEqual([7]);
+      expect(state.eqBandQ).toBe(eqBandQ);
+      expect(
+        stateToApoFiles(state)?.features.filter(
+          (feature) => feature.feature !== 'eq',
+        ),
+      ).toEqual(before);
+    },
+  );
 
   it('refuses partial adoption and signals callers not to overwrite unrepresentable stages', () => {
     const state = shaped();

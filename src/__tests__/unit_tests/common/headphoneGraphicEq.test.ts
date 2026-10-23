@@ -73,6 +73,9 @@ const CURVE: IGraphicEqPoint[] = [
 const stateWith = (headphone: IState['headphone']): IState => ({
   ...getDefaultState(),
   isEnabled: true,
+  // Written as published: these cases read the curve's own numbers back. The
+  // 1/12 octave a correction gets with nothing chosen is eqShape.test.ts's.
+  curveSmoothing: 'off',
   headphone,
 });
 

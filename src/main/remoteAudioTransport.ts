@@ -1,5 +1,6 @@
 /* FluidEQ — GPL-3.0-or-later */
 
+import type { Socket } from 'net';
 import type WebSocket from 'ws';
 import type { RawData } from 'ws';
 import type {
@@ -28,13 +29,36 @@ interface IRemoteAudioTransportOptions {
 }
 
 const WEB_SOCKET_OPEN = 1;
+/** How long a link carries nothing before the operating system asks whether
+ * the other end is still there. Node has the system send ten probes a second
+ * apart after that, so a link to nobody fails about fifteen seconds in. */
+const LINK_QUIET_BEFORE_PROBE_MS = 5_000;
+
+/**
+ * Lets the operating system notice a computer that left without a word.
+ *
+ * A computer that sleeps, loses its Wi-Fi or loses power closes nothing, so
+ * no event ever came: the other side kept showing it linked for good. A link
+ * that carries audio found out when its sends piled up, but a paused link, or
+ * a quiet one, carries nothing. TCP's keep-alive is the network's own probe.
+ * Nothing in FluidEQ waits on it: the system probes a link that has gone
+ * quiet, and a link nobody answers fails with an error. That error closes
+ * the link like any other close, so the computer that joined goes looking
+ * for the other one again and finds it as soon as it is back.
+ */
+export const probeWhileQuiet = (socket: Socket) => {
+  socket.setKeepAlive(true, LINK_QUIET_BEFORE_PROBE_MS);
+};
 
 const createRemoteAudioTransport = ({
   emitAudio,
   emitNetwork,
   emitSignal,
 }: IRemoteAudioTransportOptions) => {
-  const sockets = new Map<string, { key: Buffer; socket: WebSocket }>();
+  const sockets = new Map<
+    string,
+    { key: Buffer; socket: WebSocket; computer?: string }
+  >();
   const decodeQueues = new Map<string, Promise<void>>();
   const pendingDecodeBytes = new Map<string, number>();
   const networkMeter = createRemoteAudioNetworkMeter(emitNetwork);
@@ -43,8 +67,30 @@ const createRemoteAudioTransport = ({
   const MAX_PENDING_DECODE_BYTES = 8 * 1024 * 1024;
   const MAX_SOCKET_BUFFER_BYTES = 256 * 1024;
 
-  const attach = (peerId: string, socket: WebSocket, socketKey: Buffer) => {
-    sockets.set(peerId, { key: socketKey, socket });
+  /**
+   * `computer` names the machine at the other end, as the address it arrived
+   * from and the name it gave. A computer coming back while its old link
+   * still looks open replaces that link. Without the replacement it stood
+   * beside the new one as a second card until the old one was found dead.
+   * Only one copy of FluidEQ runs on a machine, and a machine holds one link
+   * to this one, so an older link from the same machine is always the dead
+   * one.
+   */
+  const attach = (
+    peerId: string,
+    socket: WebSocket,
+    socketKey: Buffer,
+    computer?: string,
+  ) => {
+    if (computer !== undefined) {
+      sockets.forEach((other, otherId) => {
+        if (other.computer === computer && otherId !== peerId) {
+          // Its own close announces it gone (`closed` below).
+          other.socket.terminate();
+        }
+      });
+    }
+    sockets.set(peerId, { key: socketKey, socket, computer });
     socket.on('message', (data: RawData) => {
       try {
         const receivedBytes = Array.isArray(data)
@@ -56,6 +102,12 @@ const createRemoteAudioTransport = ({
           const message = openSignal(packet.clear);
           if (message.peerId !== peerId) {
             throw new Error('Peer identity changed.');
+          }
+          // A link is announced by the LAN layer on this computer when it
+          // authenticates. One arriving from the other end would be that
+          // computer naming itself again, under any name it liked.
+          if (message.signal.kind === 'peer-ready') {
+            return;
           }
           emitSignal(message);
           return;

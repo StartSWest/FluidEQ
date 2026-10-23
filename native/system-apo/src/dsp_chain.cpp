@@ -8,7 +8,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "channel_layout.h"
 #include "fluideq/convolver.h"
+#include "source_analysis.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <string>
@@ -30,11 +32,6 @@ bool decode_dsp_chain(const std::vector<double>& values,
   }
   // Into a local first, so a refusal above leaves the caller's struct alone —
   // the same contract `feq_chain_settings_decode` keeps for its own `out`.
-  // Only the neural runtime is unavailable in audiodg. Disabling the whole
-  // restoration stage also discarded the self-contained hiss/hum/click DSP.
-  // External streams have no Library scan; learn their floor from live audio.
-  decoded.denoise.voice.enabled = 0;
-  decoded.denoise.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
   *out = decoded;
   return true;
 }
@@ -43,22 +40,59 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                      uint32_t channels, uint32_t max_frames,
                      std::vector<std::string>& warnings,
                      FeqLevelingMemory* leveling, unsigned long channel_mask,
-                     const RoomHead* room_head, bool low_latency) {
+                     const RoomHead* room_head, bool low_latency,
+                     const SourceAnalysis* source_analysis) {
   RackBuild built;
   // The EQ side's game mode holds even with no rack to run: the graph reads
   // it back for its own stages.
   built.low_latency = low_latency;
   if (values.empty()) {
+    if (source_analysis != nullptr && source_analysis->library && source_analysis->engine_owner) {
+      built.source_ready = false;
+      warnings.push_back("This output's DSP file is not ready for Library ownership.");
+    }
     return built;  // No rack file, which is the ordinary state under APO.
   }
 
   FeqChainSettings settings = {};
   if (!decode_dsp_chain(values, &settings)) {
     built.failed = true;
+    built.source_ready = source_analysis == nullptr ||
+        (source_analysis->library && !source_analysis->engine_owner);
     warnings.push_back("DSP rack file could not be read (" +
                        std::to_string(values.size()) +
                        " values); the rack is bypassed.");
     return built;
+  }
+  if (source_analysis == nullptr) {
+    // Legacy hosts have no source/model delivery contract. The system APO
+    // always supplies its own snapshot, including a live-source snapshot.
+    settings.denoise.voice.enabled = 0;
+    settings.denoise.profile_source = FEQ_DENOISE_PROFILE_ADAPTIVE;
+  }
+  // A live output (anything but the Library's own source) whose Voice cannot
+  // run — no trusted runtime beside this DLL, or no verified model — plays the
+  // rest of its rack with Voice off, and says so. It used to fail the whole
+  // build, and the watcher then kept the graph before it: every EQ and preset
+  // edit on that output went unheard until the model or runtime came back.
+  // The Library still refuses (below), because its host keeps the sound until
+  // every feature it asked for is ready here.
+  if (source_analysis != nullptr && !source_analysis->library &&
+      settings.denoise.enabled != 0 && settings.denoise.voice.enabled != 0 &&
+      source_analysis->voice_available &&
+      (source_analysis->voice_runtime.empty() ||
+       !source_analysis->voice_model_guard)) {
+    settings.denoise.voice.enabled = 0;
+    warnings.push_back(
+        "Voice restoration is off on this output: it needs the installed "
+        "trusted runtime and the verified model. The rest of the rack plays.");
+  }
+  if (source_analysis != nullptr && source_analysis->library &&
+      !source_analysis->engine_owner) {
+    // An explicit host handback is acknowledged by an adopted bypass rack.
+    // A profile edit cannot re-enable endpoint DSP over Library's already
+    // processed feed while native preparation is unavailable.
+    settings.enabled = 0;
   }
   // The shared Game mode switch is independent of the rack's power. Keep
   // its preference for the EQ even while the rack belongs to the Library or
@@ -91,6 +125,7 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
       feq_chain_create(static_cast<double>(sample_rate), wanted, max_frames));
   if (!built.chain) {
     built.failed = true;
+    built.source_ready = source_analysis == nullptr;
     warnings.push_back("DSP rack could not be prepared; the rack is bypassed.");
     return built;
   }
@@ -141,7 +176,20 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
           " channel(s), none with a speaker on the ring";
     }
   }
-  if (feq_chain_enable_live_normalizer(built.chain.get()) == 0) {
+  if (settings.room.enabled != 0 && source_analysis != nullptr &&
+      source_analysis->library && source_analysis->engine_owner &&
+      feq_chain_room_active(built.chain.get()) == 0) {
+    // Library ownership may only move from the host once every requested
+    // feature is prepared. A missing, unusable or unbuildable head must not
+    // turn a working Room into bypass and still acknowledge the raw feed.
+    built.failed = true;
+    built.source_ready = false;
+    built.chain.reset();
+    warnings.push_back("Library playback needs its requested Room to be prepared before native ownership.");
+    return built;
+  }
+  if (source_analysis == nullptr &&
+      feq_chain_enable_live_normalizer(built.chain.get()) == 0) {
     built.failed = true;
     built.chain.reset();
     warnings.push_back("Live input normalization could not be prepared.");
@@ -171,9 +219,56 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
   }
   feq_chain_process(built.chain.get(), planes.data(), max_frames);
   feq_chain_reset(built.chain.get(), FEQ_CHAIN_RESET_STREAM_START);
+  if (source_analysis != nullptr) {
+    const auto source = source_analysis->view();
+    FeqChainSourceStatus status{};
+    // A downloaded model needs the hash-verified runtime beside our DLL.
+    // Missing runtime is a visible refusal, not a silent voice bypass.
+    const bool voice_unavailable = settings.denoise.enabled != 0 &&
+        settings.denoise.voice.enabled != 0 &&
+        source_analysis->voice_available &&
+        (source_analysis->voice_runtime.empty() || !source_analysis->voice_model_guard);
+    bool prepared = !voice_unavailable &&
+        feq_chain_prepare_source_analysis(built.chain.get(), &source, leveling,
+                                          &status) != 0;
+    if (!prepared && !voice_unavailable && !source_analysis->library &&
+        settings.denoise.enabled != 0 && settings.denoise.voice.enabled != 0) {
+      // A live output's Voice that would not prepare (its model would not
+      // load) goes the same way as one with nothing to run: off, with the
+      // rest of the rack playing.
+      settings.denoise.voice.enabled = 0;
+      feq_chain_configure(built.chain.get(), &settings);
+      // Primed again, as above: the chain's delay is read below and is only
+      // known once it has processed a block in the shape it now has.
+      std::fill(silence.begin(), silence.end(), 0.0f);
+      feq_chain_process(built.chain.get(), planes.data(), max_frames);
+      feq_chain_reset(built.chain.get(), FEQ_CHAIN_RESET_STREAM_START);
+      warnings.push_back(
+          "Voice restoration could not be prepared on this output and is "
+          "off; the rest of the rack plays.");
+      prepared = feq_chain_prepare_source_analysis(built.chain.get(), &source,
+                                                   leveling, &status) != 0;
+    }
+    if (!prepared) {
+      built.failed = true;
+      built.source_ready = false;
+      built.chain.reset();
+      warnings.push_back(voice_unavailable
+          ? "Voice restoration needs the installed trusted runtime and verified model."
+          : "This output's source analysis or voice model could not be prepared.");
+      return built;
+    }
+    built.source_ready = status.ready != 0;
+    built.voice_ready = status.voice_ready != 0;
+    // These restoration states cannot be swapped by denoise_transfer. Keep
+    // the old graph playing while the replacement fills instead of dropping
+    // the new empty state into the stream on an otherwise equal-delay edit.
+    built.warm_handover = settings.denoise.enabled != 0 &&
+        (built.voice_ready || (source_analysis->library && source_analysis->noise));
+  }
   built.latency = feq_chain_latency_frames(built.chain.get());
   feq_chain_latency_parts(built.chain.get(), &built.parts);
-  feq_chain_attach_leveling_memory(built.chain.get(), leveling);
+  if (source_analysis == nullptr) feq_chain_attach_leveling_memory(built.chain.get(), leveling);
 
   if (channels > wanted) {
     warnings.push_back(

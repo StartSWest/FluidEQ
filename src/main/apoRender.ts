@@ -1,5 +1,6 @@
 import { getResponseGainAtFrequencies } from '../common/response';
 import {
+  curveSmoothingOf,
   shapeEqFilters,
   smoothEqCurve,
   filterSmoothingCorrection,
@@ -39,6 +40,7 @@ import {
   MAX_GAIN,
   TApoFeature,
   TApoLayer,
+  TBandChannel,
 } from '../common/constants';
 import { getVoicingFilters, getVoicingGraphicEq } from '../common/voicing';
 import { getDriverFilters, getDriverGraphicEq } from '../common/driver';
@@ -57,11 +59,14 @@ import {
   eqModeGainScale,
   convolutionCorrection,
   getBandQ,
+  getMainBandQ,
   getAppliedEqFilters,
   getEqModeCompensation,
   getStudioEqFilters,
   getStudioEqGraphic,
 } from '../common/eqMode';
+import { ownState } from './songSoundLoan';
+import type { TGlobalPreset } from '../common/dsp/presetVoicing';
 
 /**
  * Turning the live state into the text Equalizer APO reads.
@@ -176,9 +181,16 @@ const resolvePreAmp = (
     ]);
   }
 
-  const response = {
+  const response = (ear?: TBandChannel) => ({
     filters: [
-      ...writtenFilters,
+      // One ear's chain at a time when a band is kept to one ear: the two
+      // ears never hear each other's bands, so summing them would reserve
+      // room for a boost neither ear gets.
+      ...(ear
+        ? writtenFilters.filter(
+            (filter) => filter.channel === undefined || filter.channel === ear,
+          )
+        : writtenFilters),
       ...convolutionFilters,
       ...(getCurveEqMode(state) === 'double' ? convolutionFilters : []),
       ...customFilters,
@@ -232,7 +244,7 @@ const resolvePreAmp = (
         : []),
     ],
     constantGain: customFx?.preAmp ?? 0,
-  };
+  });
 
   /*
    * ONE SWITCH, AND ON MEANS BOTH HALVES OF IT.
@@ -256,15 +268,27 @@ const resolvePreAmp = (
    * opens all behave precisely like the auto-normalize that shipped, by
    * construction rather than by a special case written here.
    */
-  return getSmartPreAmpGain(
-    response,
-    state.smartHeadroomProgramme ?? [],
-    state.smartHeadroomTrimDb ?? 0,
-  );
+  const preAmpFor = (ear?: TBandChannel) =>
+    getSmartPreAmpGain(
+      response(ear),
+      state.smartHeadroomProgramme ?? [],
+      state.smartHeadroomTrimDb ?? 0,
+    );
+  // One preamp for both ears, so it is the louder ear's: the other ear is
+  // turned down by the same amount and keeps its balance against it.
+  return writtenFilters.some((filter) => filter.channel !== undefined)
+    ? Math.min(preAmpFor('left'), preAmpFor('right'))
+    : preAmpFor();
 };
 
-/** A filter stripped to the four things a config line is made of. */
-type TChainFilter = Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>;
+/**
+ * A filter stripped to what a config line is made of: its four numbers, and
+ * the one ear it is kept to when its output has left and right apart.
+ */
+type TChainFilter = Pick<
+  IFilter,
+  'type' | 'frequency' | 'gain' | 'quality' | 'channel'
+>;
 
 /** What one feature contributes to a device's chain. */
 interface IApoLayer {
@@ -295,11 +319,12 @@ interface IApoLayer {
 const layerFilters = (filters: TChainFilter[]): TChainFilter[] =>
   filters
     .filter(isRenderableFilter)
-    .map(({ type, frequency, gain, quality }) => ({
+    .map(({ type, frequency, gain, quality, channel }) => ({
       type,
       frequency,
       gain,
       quality,
+      ...(channel ? { channel } : {}),
     }));
 
 /**
@@ -319,6 +344,7 @@ const layerFilters = (filters: TChainFilter[]): TChainFilter[] =>
  */
 const buildLayers = (state: IState): IApoLayer[] => {
   const layers: IApoLayer[] = [];
+  const { voicing } = state;
   const isBypassed = (layer: TApoLayer) =>
     (state.bypassed ?? []).includes(layer);
   const addLayer = (feature: TApoFeature, filters: TChainFilter[]) => {
@@ -436,16 +462,16 @@ const buildLayers = (state: IState): IApoLayer[] => {
   // Deliberately outside the isFlat check: clearing the EQ resets the bands the
   // user tuned, not the target curve they chose, and switching the voicing off
   // restores their tuning untouched.
-  const voicingCurve = graphicEqCommand(getVoicingGraphicEq(state.voicing));
+  const voicingCurve = graphicEqCommand(getVoicingGraphicEq(voicing));
   if (voicingCurve && !isBypassed('voicing')) {
     layers.push({
       feature: 'voicing',
       filters: [],
       graphicEq: voicingCurve,
-      graphicPoints: getVoicingGraphicEq(state.voicing),
+      graphicPoints: getVoicingGraphicEq(voicing),
     });
   } else {
-    addLayer('voicing', layerFilters(getVoicingFilters(state.voicing)));
+    addLayer('voicing', layerFilters(getVoicingFilters(voicing)));
   }
 
   // Outside the isFlat check for the same reason as the other two layers —
@@ -466,7 +492,8 @@ const buildLayers = (state: IState): IApoLayer[] => {
   return layers.map((layer) => {
     const scope = layerGroupOf(layer.feature);
     const mode = scope === 'eq' ? getEqMode(state) : getCurveEqMode(state);
-    const shape = getBandQ(state, scope);
+    const shape =
+      layer.feature === 'eq' ? getMainBandQ(state) : getBandQ(state, scope);
     // A slider's range, or a correction's for the headphone layer: what the
     // correction publishes is what gets written (`correctionRange.ts`).
     const limit = layerGainLimit(layer.feature);
@@ -527,7 +554,7 @@ const customEqCompensation = (state: IState): string[] => {
   if (
     (mode === 'normal' &&
       getBandQ(state, 'curves') === 'off' &&
-      (!state.curveSmoothing || state.curveSmoothing === 'off')) ||
+      curveSmoothingOf(state.curveSmoothing) === 'off') ||
     !state.customFx ||
     state.bypassed?.includes('custom')
   ) {
@@ -575,6 +602,13 @@ const customEqCompensation = (state: IState): string[] => {
   return lines;
 };
 
+/** Equalizer APO's own names for the front pair, and for every channel. */
+const CHANNEL_LINE = {
+  both: 'Channel: all',
+  left: 'Channel: L',
+  right: 'Channel: R',
+} as const;
+
 const renderFilter = (
   filter: TChainFilter,
   index: number,
@@ -608,17 +642,33 @@ const renderFilter = (
  * Written into a file per feature each starts at 1, which is what makes a
  * feature file independent of every other feature — the point of splitting them.
  */
-const renderLayer = (layer: IApoLayer, startIndex = 0): string[] =>
-  Array.from({ length: layer.passes ?? 1 }, (_unused, pass) => [
-    ...layer.filters.map((filter, offset) =>
-      renderFilter(
-        filter,
-        startIndex + pass * layer.filters.length + offset + 1,
-        layer.gainLimit,
+const renderLayer = (layer: IApoLayer, startIndex = 0): string[] => {
+  // Both ears' bands first, then each ear's own under its `Channel:` line,
+  // then every channel again so nothing after this layer — in this file or
+  // the next one included — inherits an ear. Biquads in a cascade commute,
+  // so grouping by ear changes no sound, only the order the lines read in.
+  const groups = (['both', 'left', 'right'] as const)
+    .map((side) => ({
+      side,
+      filters: layer.filters.filter(
+        (filter) => (filter.channel ?? 'both') === side,
       ),
-    ),
+    }))
+    .filter((group) => group.filters.length > 0);
+  const isOneEared = groups.some((group) => group.side !== 'both');
+  let index = startIndex;
+  return Array.from({ length: layer.passes ?? 1 }, () => [
+    ...groups.flatMap((group) => [
+      ...(isOneEared ? [CHANNEL_LINE[group.side]] : []),
+      ...group.filters.map((filter) => {
+        index += 1;
+        return renderFilter(filter, index, layer.gainLimit);
+      }),
+    ]),
+    ...(isOneEared ? [CHANNEL_LINE.both] : []),
     ...(layer.graphicEq ? [layer.graphicEq] : []),
   ]).flat();
+};
 
 /**
  * The one `Preamp:` line for a chain.
@@ -780,6 +830,7 @@ export interface IApoChainFiles {
 export const stateToApoFiles = (
   state: IState,
   convolutionFileName?: string,
+  _playing?: TGlobalPreset,
 ): IApoChainFiles | undefined => {
   if (!state.isEnabled) {
     return undefined;
@@ -833,9 +884,14 @@ export const stateToApoFiles = (
  * at full confidence, before a single frame had been heard. Every launch starts
  * with no opinion, which is the worst case, and listens its way down from
  * there.
+ *
+ * Nor a song's lent sound: the listener's own stands in for it
+ * (`songSoundLoan.ts`), so an app that ends while a remembered song plays
+ * starts again with theirs.
  */
 export const serializeState = (state: IState) => {
-  const { smartHeadroomProgramme, smartHeadroomTrimDb, ...persisted } = state;
+  const { smartHeadroomProgramme, smartHeadroomTrimDb, ...persisted } =
+    ownState(state);
   return JSON.stringify(persisted);
 };
 

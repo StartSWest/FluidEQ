@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { IEnginePreamp } from '../../common/enginePreamp';
 import { readKnownAudioDevices } from './equalizerApi';
+import { readOutputEditor } from './outputEditor';
 import { reportError } from './logger';
 
 /**
@@ -126,7 +127,9 @@ const startReader = (read: TReadEnginePreamp): (() => void) => {
       if (disposed || current !== generation) {
         return;
       }
-      endpoint = devices.find((device) => device.isDefault)?.guid;
+      endpoint =
+        readOutputEditor().editor?.device.guid ??
+        devices.find((device) => device.isDefault)?.guid;
       if (endpoint) {
         animation = requestAnimationFrame(paint);
       }
@@ -136,6 +139,7 @@ const startReader = (read: TReadEnginePreamp): (() => void) => {
   };
   start();
   window.addEventListener('fluideq-output-changed', start);
+  window.addEventListener('fluideq-editor-changed', start);
   document.addEventListener('visibilitychange', start);
   return () => {
     disposed = true;
@@ -143,6 +147,7 @@ const startReader = (read: TReadEnginePreamp): (() => void) => {
     cancelAnimationFrame(animation);
     publish();
     window.removeEventListener('fluideq-output-changed', start);
+    window.removeEventListener('fluideq-editor-changed', start);
     document.removeEventListener('visibilitychange', start);
   };
 };

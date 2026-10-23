@@ -12,15 +12,28 @@ import {
   type IScenePointer,
   type IScenePointerEmitter,
 } from 'common/scenePointer';
+import { pictureBearing, wingbeatPoses } from '../ambient/ambientPictureMotion';
 import { ambientSprite } from '../ambient/ambientSprites';
 import useAmbientPictures from '../ambient/useAmbientPictures';
 import { prefersReducedMotion } from '../utils/bandReveal';
+import {
+  flierAngle,
+  flierDepth,
+  flierDwindle,
+  flierPhase,
+  flierStep,
+  isFlier,
+} from './pointerFliers';
 import type { TGestureSource, TSceneGesture } from './sceneInteraction';
 import '../styles/ScenePointerLayer.scss';
 
 interface IPiece {
   emitter: IScenePointerEmitter;
   element?: IAmbientElement;
+  /** A creature that flies off rather than a thing thrown (`pointerFliers`). */
+  flier: boolean;
+  /** How near it was thrown, for a flier's size and pace; 1 for the rest. */
+  depth: number;
   colour: string;
   x: number;
   y: number;
@@ -144,42 +157,91 @@ export default function ScenePointerLayer({
         ? undefined
         : ambient?.elements.find((element) => element.id === emitter.element);
 
+    // `depth` is how near the place it is thrown from is, as a share of the
+    // emitter's size and speed; only a flier keeps to it.
     const throwOne = (
       emitter: IScenePointerEmitter,
       x: number,
       y: number,
       heading: number,
+      depth: number,
     ) => {
       if (pieces.length >= MAX_POINTER_PIECES) {
         pieces.shift();
       }
       const element = elementOf(emitter);
-      const angle =
-        heading + (Math.random() - 0.5) * 2 * Math.PI * emitter.spread;
+      const flier = isFlier(element);
+      const near = flier ? depth : 1;
+      const angle = flier
+        ? flierAngle(heading, emitter.spread, Math.random)
+        : heading + (Math.random() - 0.5) * 2 * Math.PI * emitter.spread;
       const speed =
         (SLOWEST + (FASTEST - SLOWEST) * emitter.speed) *
-        (0.6 + Math.random() * 0.8);
+        (0.6 + Math.random() * 0.8) *
+        near;
       const [small, large] = emitter.size;
+      const size = (small + (large - small) * Math.random()) * near;
+      // A flock takes off from round the tap, not out of one point: a burst
+      // thrown from one point stacked every bird on the first.
+      const scatter = flier ? size * 0.5 : 0;
       pieces.push({
         emitter,
         ...(element ? { element } : {}),
+        flier,
+        depth: near,
         colour: pick(
           emitter.colours.length > 0
             ? emitter.colours
             : (element?.colours ?? []),
           '#ffffff',
         ),
-        x,
-        y,
+        x: x + (Math.random() - 0.5) * scatter,
+        y: y + (Math.random() - 0.5) * scatter * 0.5,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        size: small + (large - small) * Math.random(),
-        angle: Math.random() * Math.PI * 2,
-        turn: (Math.random() - 0.5) * 2 * emitter.spin * 6,
+        size,
+        angle: flier ? 0 : Math.random() * Math.PI * 2,
+        turn: flier ? 0 : (Math.random() - 0.5) * 2 * emitter.spin * 6,
         age: 0,
         life: emitter.life * (0.75 + Math.random() * 0.5),
         phase: Math.random() * Math.PI * 2,
       });
+    };
+
+    // Facing where it flies and leaning into its climb, its wings beating
+    // through its poses (each dissolving into the next, as the window's own
+    // fliers do), smaller the further it has flown. Drawn at its first
+    // pose's proportions, as the window layer draws every pose.
+    const drawFlier = (
+      piece: IPiece,
+      element: IAmbientElement,
+      alpha: number,
+    ) => {
+      const poses = pictures.get(element.id);
+      const cut = element.frames?.[0];
+      if (!poses || !cut) {
+        return;
+      }
+      const { scaleX, rotation } = pictureBearing(
+        element,
+        { heading: Math.atan2(piece.vy, piece.vx), spin: 0 },
+        0,
+      );
+      context.rotate(rotation);
+      context.scale(scaleX, 1);
+      const size = piece.size * flierDwindle(piece.age, piece.life);
+      const longer = Math.max(cut[2], cut[3]);
+      const across = (size * cut[2]) / longer;
+      const down = (size * cut[3]) / longer;
+      wingbeatPoses(poses.length, flierPhase(piece.age, piece.phase)).forEach(
+        ([index, share]) => {
+          const pose = poses[index];
+          if (pose) {
+            context.globalAlpha = alpha * share;
+            context.drawImage(pose, -across / 2, -down / 2, across, down);
+          }
+        },
+      );
     };
 
     const draw = () => {
@@ -218,6 +280,10 @@ export default function ScenePointerLayer({
           : 'source-over';
         context.setTransform(ratio, 0, 0, ratio, 0, 0);
         context.translate(piece.x, piece.y);
+        if (piece.flier && piece.element) {
+          drawFlier(piece, piece.element, alpha);
+          return;
+        }
         context.rotate(piece.angle);
         if (FLAT.has(shape)) {
           // A flat thing in the air shows its edge as it turns over.
@@ -267,6 +333,18 @@ export default function ScenePointerLayer({
         piece.age += dt;
         if (piece.age >= piece.life) {
           pieces.splice(index, 1);
+        } else if (piece.flier) {
+          const flight = flierStep(
+            piece.vx,
+            piece.vy,
+            piece.emitter.gravity * GRAVITY,
+            piece.depth,
+            dt,
+          );
+          piece.vx = flight.vx;
+          piece.vy = flight.vy;
+          piece.x += piece.vx * dt;
+          piece.y += piece.vy * dt;
         } else {
           piece.vx *= slow;
           piece.vy = piece.vy * slow + piece.emitter.gravity * GRAVITY * dt;
@@ -295,11 +373,13 @@ export default function ScenePointerLayer({
       ) {
         return;
       }
+      // Lower on the scene is nearer: a flier thrown there starts bigger.
+      const depth = flierDepth(y, box.height);
       pointer.emitters.forEach((emitter) => {
         if (gesture.kind === 'tap' && emitter.on === 'tap') {
           // A burst, thrown upward and out as far round as the spread says.
           for (let count = 0; count < Math.round(emitter.amount); count += 1) {
-            throwOne(emitter, x, y, -Math.PI / 2);
+            throwOne(emitter, x, y, -Math.PI / 2, depth);
           }
         }
         if (gesture.kind === 'move' && emitter.on === 'move') {
@@ -310,7 +390,7 @@ export default function ScenePointerLayer({
           const heading = Math.atan2(-gesture.dy, -gesture.dx);
           while (owed >= 1) {
             owed -= 1;
-            throwOne(emitter, x, y, heading);
+            throwOne(emitter, x, y, heading, depth);
           }
           carried.set(emitter, owed);
         }

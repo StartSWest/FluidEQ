@@ -32,7 +32,10 @@ void feq_organic_init(FeqOrganic* state, float* wide, float* wide_dry) {
   if (state == nullptr) {
     return;
   }
-  feq_oversampler_reset(&state->oversampler);
+  feq_exciter_oversampler_reset(&state->oversampler);
+  state->quality = FEQ_EXCITER_OVERSAMPLING_STANDARD;
+  state->switch_from = 1.0;
+  state->switch_to = 1.0;
   state->wide = wide;
   state->wide_dry = wide_dry;
   state->depth = 0.0;
@@ -86,11 +89,11 @@ double feq_organic_block(FeqOrganic* state,
     return 0.0;
   }
   const uint32_t oversample =
-      feq_oversample_factor_for_sample_rate(sample_rate);
+      feq_exciter_oversample_factor(sample_rate, state->quality);
   const uint32_t wide_frames = frames * oversample;
 
-  feq_oversample_up(&state->oversampler, target, state->wide_dry, frames,
-                    oversample, middle);
+  feq_exciter_oversample_up(&state->oversampler, target, state->wide_dry,
+                            frames, oversample, state->quality, middle);
 
   // Smoothed at the OVERSAMPLED rate. At 4x that is four times as many steps
   // per block, so a port that used the session rate would glide four times too
@@ -122,8 +125,10 @@ double feq_organic_block(FeqOrganic* state,
         state->even_weight, wide_rate));
   }
 
-  feq_oversample_down(&state->oversampler, state->wide, target, frames,
-                      oversample, middle);
+  feq_exciter_oversample_down(&state->oversampler, state->wide, target,
+                              frames, oversample, state->quality, middle);
+  feq_exciter_oversample_ramp(target, frames, state->switch_from,
+                              state->switch_to);
   return state->depth;
 }
 

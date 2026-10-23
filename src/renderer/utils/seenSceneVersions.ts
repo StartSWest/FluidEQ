@@ -69,7 +69,10 @@ export const markSceneVersionSeen = (
   version: number,
 ): number | undefined => {
   const before = seen[lookId];
-  if (before === version) {
+  // The highest version played is what is remembered: an owner playing an
+  // earlier version they kept, and then the newest again, has seen nothing
+  // new and is told nothing.
+  if (before !== undefined && version <= before) {
     return undefined;
   }
   const { [lookId]: _previous, ...rest } = seen;

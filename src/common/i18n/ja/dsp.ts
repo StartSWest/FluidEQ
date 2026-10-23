@@ -377,7 +377,6 @@ const dsp = {
   'dsp.eqStereo.side': 'サイドのみ',
   'dsp.eqOversample.label': 'オーバーサンプリング',
   'dsp.eqOversample.off': 'オフ',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     '精密：この EQ のすべてのバンドを描いたとおりに、20\u00a0kHz まで鳴らします。',
   'dsp.eqImport.title': 'EQ カーブを読み込む',
@@ -387,6 +386,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'ファイルを選ぶ',
   'dsp.eqImport.apply': '読み込む',
   'dsp.eqImport.cancel': 'キャンセル',
+  'dsp.eqImport.tooMany':
+    'バンドが {max} 個を超えます。先にバンドをいくつか削除するか、両耳に読み込んでください。',
 
   'dsp.eq.title': 'イコライザー',
   'dsp.eq.band': 'バンド',
@@ -439,6 +440,16 @@ const dsp = {
   'dsp.exciter.band.mid': '中域',
   'dsp.exciter.band.high': '高域',
   'dsp.exciter.texture': '質感',
+  'dsp.exciter.oversampling': 'オーバーサンプリング',
+  'dsp.exciter.oversampling.off': 'オフ',
+  'dsp.exciter.oversampling.standard': '標準',
+  'dsp.exciter.oversampling.high': '高',
+  'dsp.exciter.oversampling.offHint':
+    '倍音を出力そのもののレートで生成します。負荷は最も軽いものの、上端から折り返す成分で少しざらつきます。',
+  'dsp.exciter.oversampling.standardHint':
+    '倍音を出力レートの最大4倍で生成します。エキサイターの従来どおりの動作です。',
+  'dsp.exciter.oversampling.highHint':
+    '同じレートで、はるかに急峻なフィルターを使い、上端からの折り返しをなくします。プロセッサーの負荷が少し増えます。',
   'dsp.exciter.organic': 'オーガニック',
   'dsp.exciter.organicHint':
     '選んだ帯域に滑らかな偶数次倍音の厚みを加えます。クリーンで金属的な音やチタン製ドライバーを、細部を失わず暖かく有機的に聴かせるのに最適です。',

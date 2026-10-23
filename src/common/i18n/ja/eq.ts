@@ -20,14 +20,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'メイン出力を編集',
+  'extraOutput.edit': 'サウンドを編集',
+  'extraOutput.done': '完了',
+  'extraOutput.editing': '編集中',
+  'extraOutput.editHint': 'メイン出力を切り替えずに {device} を編集',
+  'extraOutput.editingOutput': '編集中: {device}',
+  'eq.layouts.empty':
+    'デザインには各バンドの周波数、Q値、Qの動作を保存します。ゲインと強度は別に設定します。',
+  'eq.layouts.qHint':
+    '新しいレイアウトでは全バンドが同じQで始まります。バンド数が多いほど帯域幅が狭くなります。',
+  'eq.layouts.resetQ': 'バンドQをリセット',
+  'eq.layouts.resetQHint':
+    'すべてのベル型バンドを推奨Qに戻します。周波数、ゲイン、Qの動作は維持します。',
+  'eq.mode.mainQHint':
+    'メインEQのバンドのみ。一定ではゲインを変えてもQは変わりません。比例と非対称ではゲインに応じてQが変わります。',
+  'graph.item.eqLabels': 'EQラベル',
+  'graph.contents.unlabelled': 'EQラベルなし',
   'eq.mode.linearDelayInactive': 'EQ有効時 約+{ms} ms',
   'eq.mode.linearDelay': '遅延 約+{ms} ms',
   'eq.mode.linearDelayShared': '約{ms} ms（共有）',
   'eq.mode.gameMinimum': 'ゲームモード：最小位相',
   'eq.layouts.builtIn': '標準レイアウト',
   'eq.layouts.saved': 'マイレイアウト',
-  'eq.layouts.empty':
-    'バンドの周波数とQのみ保存します。ゲインとEQモードは保存しません。',
   'eq.layouts.loading': 'レイアウトを読み込み中…',
   'eq.layouts.name': 'レイアウト名',
   'eq.layouts.duplicate':
@@ -69,6 +84,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.trebleUpdate':
     '高音の鳴らし方を選ぶにはFluidEQエンジンを更新してください。',
   'eq.mode.reset': 'リセット',
+  'eq.mode.pin': 'グラフの横に固定',
+  'eq.mode.unpin': 'メニューに戻す',
+  'eq.mode.showPinned': 'グラフの横にEQモードを表示',
   'eq.mode.customized': 'カスタム',
   'eq.mode.strength': '強度',
   'eq.mode.q': 'バンドQ',
@@ -164,6 +182,8 @@ const eq: Partial<Dictionary> = {
     'オンにすると、このコンピューターの時計に合わせて、ビジュアライザーは夜は夜に、昼は昼になります。オフにすると上で設定した時間帯を保ちます。',
   'graph.sceneTint.daylightFollowingClockHint':
     '時計に連動しています。「時間帯を時計に連動」をオフにすると、ビジュアライザーの時間帯を個別に設定できます',
+  'graph.sceneTint.daylightStudioHint':
+    'スタジオを開いている間は、明るさがビジュアライザーの時間帯を決めるので、シーンを夜から昼まで試せます。スタジオを離れると、ここでの選択に戻ります',
   'graph.sceneTint.brightnessHint':
     'テーマやビジュアライザーの色で表示されるウィンドウの明るさ',
   'graph.member.mine': 'あなたが作成',
@@ -288,6 +308,15 @@ const eq: Partial<Dictionary> = {
   'graph.curve.driver': 'ドライバー',
   'graph.curve.headphone': 'ヘッドホン',
   'graph.curve.eq': 'EQ 応答',
+  'graph.curve.leftEar': '左耳',
+  'graph.curve.rightEar': '右耳',
+  'eq.channels.update':
+    'このコンピューターの FluidEQ Engine は、更新がインストールされるまでこのバンドを両耳で鳴らします。',
+  'eq.channels.both': '両耳',
+  'eq.channels.split': '左 + 右',
+  'eq.channels.importInto': '読み込み先',
+  'eq.channels.letter.left': '左',
+  'eq.channels.letter.right': '右',
   'graph.curve.voicing': 'プリセット',
   'graph.curve.smart': 'スマート EQ',
   'graph.curve.custom': 'カスタム FX',
@@ -426,7 +455,7 @@ const eq: Partial<Dictionary> = {
   'output.sevenOneFailed':
     'Windows はこの出力で 7.1 フォーマットを受け付けませんでした。',
   'output.none': '有効な出力が見つかりません',
-  'output.mapping': '自動割り当て',
+  'output.battery': 'バッテリー {percent}%',
   'output.mapping.neutral': '無処理の出力',
   'output.mapping.live': '現在の調整を割り当て済み',
   'output.hint':
@@ -438,19 +467,12 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'ほかの出力が見つかりません',
   'extraOutput.statusOff': 'オフ',
   'extraOutput.volume': '音量',
-  'extraOutput.mode.title': '追従のしかた',
-  'extraOutput.mode.video.title': 'ゲーム/動画',
-  'extraOutput.mode.video.body':
-    '映像から数百分の一秒以内に収まり、途切れたあとは自動で同期し直します。',
-  'extraOutput.mode.video.buffer': '開始時 約30 ms',
-  'extraOutput.mode.music.title': '音楽',
-  'extraOutput.mode.music.body':
-    '10 分の 1 秒を余裕として確保し、途切れません。',
-  'extraOutput.mode.music.buffer': '開始時 約100 ms',
-  'extraOutput.latency.video':
-    'ミラーした音は口の動きと合う程度に画面に追従します。同じ場所で両方の出力が聞こえると、わずかに二重に聞こえることがあります。',
-  'extraOutput.latency.music':
-    'ミラーした音は約 10 分の 1 秒遅れて届き、途切れません。別の部屋なら十分です。画面と合わせるならゲーム/動画に切り替えてください。',
+  'extraOutput.latency':
+    'メイン出力はセカンド出力を待ちません。この数値はソフトウェアのバッファ時間の推定値で、実際に聞こえる遅延ではありません。オーディオドライバー、機器、無線接続により、さらに遅延が加わる場合があります。',
+  'extraOutput.delayUnavailable': '遅延情報なし',
+  'extraOutput.delay': 'ソフトウェアバッファ：{milliseconds} ms',
+  'extraOutput.delayFrom':
+    '{name} から：ソフトウェアバッファ {milliseconds} ms',
   'extraOutput.virtual':
     'ルーティング用ドライバーが入っています。アプリの出力先をそちらに向ければ両方の出力がずれません。その上で、上の設定で各出力に個別のプロファイルを割り当ててください。',
   'extraOutput.ambiguous':
@@ -546,6 +568,7 @@ const eq: Partial<Dictionary> = {
   'opra.createdBy': 'プリセット作成: {author}',
   'opra.distributedBy': '配信: OPRA by Roon',
   'opra.source': 'ソース',
+  'opra.onSite': 'この機種の補正をすべて fluideq.com で見る',
   'autoeq.curveTitle': '適用中の補正',
   'autoeq.curveEmptyHint':
     'ヘッドホンとターゲットを選んで適用すると、その補正がここに描かれます。',
@@ -590,8 +613,8 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'パラメトリック EQ',
   'eq.smart': 'スマート EQ',
   'eq.smart.cancel': 'キャンセル',
+  'eq.smart.stopAria': 'スマート EQ を停止',
   'eq.smart.aria': 'ソースからスマート EQ を作成',
-  'eq.smart.cancelAria': 'スマート EQ の測定をキャンセル',
   'eq.smart.continuousAria': '再生中もスマート EQ の測定と調整を続ける',
   'eq.smart.modeAria': 'スマート EQ の測定方法を選ぶ',
   'eq.smart.mode.once.note': '1 回の測定を一度に適用',
@@ -667,6 +690,8 @@ const eq: Partial<Dictionary> = {
   'eq.menu.enable': 'バンドを有効化',
   'eq.menu.disableSelection': '{count} 個のバンドを無効化',
   'eq.menu.enableSelection': '{count} 個のバンドを有効化',
+  'eq.menu.deleteSelection': '{count} 個のバンドを削除',
+  'eq.menu.deleteConfirm': 'もう一度押すと削除します',
   'eq.menu.addLeft': '左にバンドを追加',
   'eq.menu.addRight': '右にバンドを追加',
   'eq.menu.selection': '{count} バンドを選択中',
@@ -758,6 +783,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'オーディオデバイス',
   'autoeq.targetAria': '目標周波数応答',
   'eq.band.edit': '{frequency} Hz のバンドを編集',
+  'eq.band.gainSlider': '{frequency} のゲイン',
+  'graph.handle.label':
+    '{band}、{frequency}。ドラッグで周波数とゲインを変更、Ctrl+ホイールで Q を変更します。',
+  'graph.handle.off': 'オフ',
+  'graph.handle.select': 'クリックで選択',
+  'graph.handle.quality': 'Ctrl+ホイールで Q を変更',
   'eq.layers.apoEdit': 'Equalizer APO での編集',
   'convolution.entryDetail': '{provider} · 最小位相 · {rate} kHz WAV',
   'eq.refused.bandLimit':
@@ -772,6 +803,122 @@ const eq: Partial<Dictionary> = {
   'eq.refused.preampRange.action': 'プリアンプは元のままです。',
   'eq.refused.externalEq':
     '外部の EQ に、FluidEQ が安全に引き継げない処理が含まれています。そのファイルは変更していません。',
+  // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.tab.opra': 'OPRAライブラリ',
+  'myCurves.tab.mine': 'マイカーブ',
+  'myCurves.tab.squiglink': 'Squiglink',
+  'myCurves.search': 'カーブを検索',
+  'myCurves.sort': '並べ替え',
+  'myCurves.sort.recent': '新しい順',
+  'myCurves.sort.name': 'A–Z',
+  'myCurves.add': 'カーブを追加',
+  'myCurves.import': 'リストを読み込む',
+  'myCurves.export': 'リストを書き出す',
+  'myCurves.empty.title': 'まだ自分のカーブがありません',
+  'myCurves.empty.body':
+    'SquiglinkのエクスポートやTXTファイルから追加するか、Squiglinkタブから保存してください。カーブは書き出すまでこのパソコンに保存されます。',
+  'myCurves.noMatch': 'その名前を含むカーブはありません。',
+  'myCurves.source.squiglink': 'Squiglink',
+  'myCurves.source.file': 'ファイル',
+  'myCurves.source.eq': 'マイEQ',
+  'myCurves.source.opra': 'OPRAから',
+  'myCurves.added': '{date}に追加',
+  'myCurves.playing': '再生中',
+  'myCurves.applyEqHint':
+    '編集できるバンドをこのカーブのバンドで置き換えます。もう一度押すと確定します。',
+  'myCurves.replaceBands': 'バンドを置き換えますか？',
+  'myCurves.more': '{name}のその他',
+  'myCurves.rename': '名前を変更',
+  'myCurves.duplicate': '複製',
+  'myCurves.copyText': 'テキストとしてコピー',
+  'myCurves.copied': 'コピーしました',
+  'myCurves.delete': '削除',
+  'myCurves.deleteAsk': '「{name}」を削除しますか？',
+  'myCurves.deleteBody':
+    'マイカーブから完全に消えます。書き出したリストには残ります。',
+  'myCurves.cancel': 'キャンセル',
+  'myCurves.addTitle': 'カーブを追加',
+  'myCurves.addIntro': 'マイカーブに入ります。適用するまで何も鳴りません。',
+  'myCurves.textLabel': 'ParametricEQテキスト',
+  'myCurves.textPlaceholder':
+    'ParametricEQまたはGraphicEQのエクスポートをここに貼り付けます',
+  'myCurves.read': '読み込み：{count}バンド、プリアンプ{preamp} dB',
+  'myCurves.readNothing':
+    'このテキストにはまだカーブがありません。ParametricEQまたはGraphicEQのエクスポートを貼り付けてください。',
+  'myCurves.fileFailed': 'そのファイルはカーブとして読み込めませんでした。',
+  'myCurves.name': '名前',
+  'myCurves.ears': '耳',
+  'myCurves.defaultName': 'Squiglinkカーブ、{date}',
+  'myCurves.chartAria': 'カーブ{name}、20 Hzから20 kHzまで',
+  'myCurves.save': 'マイカーブに保存',
+  'myCurves.saveApply': '保存してカーブとして適用',
+  'myCurves.exportTitle': 'マイカーブを書き出す',
+  'myCurves.exportIntro':
+    'リストのカーブ：{count}。出力やアカウントの情報はファイルに入りません。',
+  'myCurves.format': '形式',
+  'myCurves.format.list': 'FluidEQカーブリスト1つ（.fqcurves）',
+  'myCurves.format.listHint':
+    'どのFluidEQにもそのまま読み込めます：名前、カーブ、プリアンプ、耳のすべて。',
+  'myCurves.format.folder': '.txtファイルのフォルダー',
+  'myCurves.format.folderHint':
+    'カーブごとに名前の付いたParametricEQファイル1つ。Equalizer APO、Squiglink、AutoEQツール用です。',
+  'myCurves.exportRun': '書き出す',
+  'myCurves.exportFailed':
+    'そこにカーブを書き込めませんでした。別の場所を選んでもう一度お試しください。',
+  'myCurves.fileName': 'マイカーブ',
+  'myCurves.importTitle': 'カーブを読み込む',
+  'myCurves.importIntro':
+    'FluidEQのカーブリスト、または1つ以上のParametricEQ .txtファイルを選んでください。',
+  'myCurves.importFrom': '{files}から',
+  'myCurves.chooseFiles': 'ファイルを選ぶ',
+  'myCurves.importHint': '追加する前にすべてのカーブを確認できます。',
+  'myCurves.importNothing':
+    'これらのファイルにはFluidEQが読めるカーブがありません。',
+  'myCurves.clash': '同じ名前のカーブがすでにあります',
+  'myCurves.clashChoice': '{name}をどうするか',
+  'myCurves.new': '新規',
+  'myCurves.choice.keepBoth': '両方残す',
+  'myCurves.choice.replace': '置き換える',
+  'myCurves.choice.skip': 'スキップ',
+  'myCurves.importRun': '読み込む（{count}）',
+  'myCurves.importSkipped': 'カーブがないため除外：{names}',
+  'myCurves.importNote':
+    '読み込んだカーブが勝手に鳴ることはありません。今鳴っているカーブはそのままです。',
+  'myCurves.from': '取り込み元',
+  'myCurves.from.paste': '貼り付け',
+  'myCurves.from.pasteHint': 'SquiglinkまたはAutoEQのParametricEQテキスト',
+  'myCurves.from.file': '.txtファイル',
+  'myCurves.from.fileHint': 'Equalizer APOまたはAutoEQ形式',
+  'myCurves.from.eq': '今のマイEQ',
+  'myCurves.from.eqHint': '設定中のバンドを、鳴っているとおりに',
+  'myCurves.from.opra': 'OPRAから',
+  'myCurves.from.opraHint': '再生中の補正のコピー。名前の変更や編集ができます',
+  'myCurves.from.opraNone': '先にOPRAライブラリから補正を再生してください',
+  'myCurves.defaultNameEq': 'マイEQ、{date}',
+  'myCurves.defaultNameOpra': 'OPRAカーブ、{date}',
+  'myCurves.unread': '読み取れずカーブに含まれない行：{lines}',
+  'myCurves.eqLeftOut':
+    '片耳だけのバンドは除外されます：{count}。残すには左耳か右耳を選んでください。',
+  'myCurves.full':
+    'マイカーブには最大{count}本まで保存でき、いっぱいです。空きを作るにはいくつか削除してください。',
+  'myCurves.editTitle': 'カーブを編集',
+  'myCurves.editIntro':
+    '名前、耳、バンドを変更します。再生中の場合は、変更を聞くためにもう一度適用してください。',
+  'myCurves.saveChanges': '変更を保存',
+  'myCurves.editBands': 'バンドを編集',
+  'myCurves.readFailed': 'カーブを読み込めませんでした',
+  'myCurves.readFailedBody':
+    'カーブはこのコンピューターに残っており、何も変更されていません。少ししてからもう一度お試しください。',
+  'myCurves.retry': '再試行',
+  'myCurves.importSkippedMore': 'カーブがないため除外：{names} ほか{count}件',
+  'myCurves.importRoom':
+    'マイカーブには{max}本まで入ります。このうち{room}本分の空きがあり、残りの{count}本は入りません。',
+  'myCurves.quick.label': '補正',
+  'myCurves.quick.previous': '前の補正',
+  'myCurves.quick.next': '次の補正',
+  'myCurves.quick.none': '再生中なし',
+  'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': 'マイカーブに「{name}」として保存済み',
 };
 
 export default eq;

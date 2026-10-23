@@ -353,6 +353,10 @@ FeqRoom* feq_room_create(double sample_rate, uint32_t channels,
   if (room == nullptr) {
     return nullptr;
   }
+  // An output faster than its heads renders at the head's rate, between a
+  // converter's two halves (`room_rate.h`): from here on the rate and the
+  // block are the room's own. Nothing changes at a rate that has a head.
+  room_prepare_rate(room, channels, &sample_rate, &max_frames);
   room->sample_rate = sample_rate;
   room->channels = channels;
   room->max_frames = max_frames;
@@ -483,19 +487,22 @@ void feq_room_configure(FeqRoom* room, const FeqRoomSettings* settings) {
   publish(room);
 }
 
-void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames) {
-  if (room == nullptr || channels == nullptr || frames == 0 ||
-      frames > room->max_frames) {
-    return;
-  }
+}  // extern "C"
+
+bool room_ready(FeqRoom* room) {
   adopt(room);
   FeqRoomKernels* live = room->live;
   if (live == nullptr || !live->active || room->channels < 2) {
     room->comparison.reset();
     if (live && live->source_already_spatial)
       room->comparison.report.flags |= FEQ_ROOM_REPORT_SOURCE_BYPASS;
-    return;
+    return false;
   }
+  return true;
+}
+
+void room_render(FeqRoom* room, float* const* channels, uint32_t frames) {
+  FeqRoomKernels* live = room->live;
   FeqRoomKernels* next = room->next;
   const FeqRoomKernels* comparison_set = next ? next : live;
   room->comparison.capture(room, comparison_set, channels, frames);
@@ -679,6 +686,22 @@ void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames) {
   }
 }
 
+extern "C" {
+
+void feq_room_process(FeqRoom* room, float* const* channels, uint32_t frames) {
+  if (room == nullptr || channels == nullptr || frames == 0) {
+    return;
+  }
+  if (room->rate.factor() != 0u) {
+    room_process_resampled(room, channels, frames);
+    return;
+  }
+  if (frames > room->max_frames || !room_ready(room)) {
+    return;
+  }
+  room_render(room, channels, frames);
+}
+
 void feq_room_report(const FeqRoom* room, FeqRoomReport* out) {
   if (out)
     *out =
@@ -693,11 +716,17 @@ int feq_room_active(const FeqRoom* room) {
 }
 
 uint32_t feq_room_latency_frames(const FeqRoom* room) {
+  if (feq_room_active(room) == 0) {
+    return 0u;
+  }
   // Game mode's heads put the kernel's first partition out on time, so the
   // room adds nothing of its own: see `feq_convolver_head_run`.
-  return feq_room_active(room) != 0 && !room->low_latency
-             ? feq_convolver_latency()
-             : 0u;
+  const uint32_t own = room->low_latency ? 0u : feq_convolver_latency();
+  // Rendered at the head's rate, a partition is the factor's worth of the
+  // output's frames, and the converter adds its filter's length.
+  return room->rate.factor() == 0u
+             ? own
+             : own * room->rate.factor() + room->rate.latency();
 }
 
 void feq_room_set_low_latency(FeqRoom* room, int on) {
@@ -714,7 +743,9 @@ void feq_room_transfer(FeqRoom* prepared, FeqRoom* previous) {
   if (prepared == nullptr || previous == nullptr || prepared == previous) return;
   if (prepared->sample_rate != previous->sample_rate ||
       prepared->channels != previous->channels ||
-      prepared->max_frames != previous->max_frames) {
+      prepared->max_frames != previous->max_frames ||
+      prepared->stream_rate != previous->stream_rate ||
+      prepared->stream_max_frames != previous->stream_max_frames) {
     // Different formats cannot share delay histories. The fresh graph fades
     // in; the old graph remains wholly owned by its control-thread destroyer.
     prepared->handover_gain = 0;
@@ -776,6 +807,10 @@ void feq_room_transfer(FeqRoom* prepared, FeqRoom* previous) {
   prepared->sub_line_buffer.swap(previous->sub_line_buffer);
   // The delay-line pointers move with their corresponding vector storage.
   swap(prepared->sub_line, previous->sub_line);
+  // Faster than its head, the room's input and its ears are in flight in the
+  // converter too: a fresh one would put its own length of silence into both.
+  prepared->rate.swap_state(previous->rate);
+  swap(prepared->rate_running, previous->rate_running);
 
 }
 
@@ -818,6 +853,8 @@ void feq_room_reset(FeqRoom* room) {
   std::fill(room->mix_right.begin(), room->mix_right.end(), 0.0f);
   std::fill(room->head_history.begin(), room->head_history.end(), 0.0f);
   std::fill(room->sub_line_buffer.begin(), room->sub_line_buffer.end(), 0.0f);
+  room->rate.reset();
+  room->rate_running = false;
 }
 
 }  // extern "C"

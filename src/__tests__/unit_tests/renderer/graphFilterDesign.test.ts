@@ -165,6 +165,9 @@ describe('the chart built for the engine and rate playing', () => {
       isEqQuiet: false,
       matchedDesign: { eq: false, curves: false },
       preAmp: 0,
+      // Every case reads a band's own design back to six decimals, a
+      // correction's too: unsmoothed. Smoothing has eqShape.test.ts.
+      curveSmoothing: 'off',
       t: ((key: string) => key) as unknown as IBuildChartDataParams['t'],
       ...refs,
       ...overrides,

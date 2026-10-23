@@ -2,6 +2,7 @@ import type { IAccountConfig } from 'common/accountConfig';
 import type { IAccountCredentialStore } from '../accountCredentials';
 import {
   AuthError,
+  googleSignInAvailable,
   refreshSession,
   requestRecovery,
   resendSignUpCode,
@@ -15,6 +16,8 @@ import {
   type TAuthFailure,
   type TCodePurpose,
 } from './authClient';
+import { runGoogleSignIn } from './googleSignIn';
+import { startOAuthLoopback, type IOAuthPages } from './oauthLoopback';
 
 /**
  * The signed-in account, and the one place that knows whether there is one.
@@ -67,6 +70,11 @@ export interface IAccountState {
   pending?: IPendingCode;
   /** Set only when the last attempt failed, and cleared by the next one. */
   error?: TAuthFailure;
+  /**
+   * While busy, what the attempt is waiting on outside the app: Google's page
+   * in the browser, which takes as long as the person takes there.
+   */
+  waiting?: 'google';
 }
 
 export interface IAccountSession {
@@ -90,6 +98,15 @@ export interface IAccountSession {
   resetPassword(code: string, password: string): Promise<IAccountState>;
   /** Leave the code step without finishing it. */
   abandonPending(): IAccountState;
+  /**
+   * Sign in with Google in the browser: the answer comes back to this
+   * computer, and `pages` is what the browser tab shows once it has.
+   */
+  signInWithGoogle(pages: IOAuthPages): Promise<IAccountState>;
+  /** Whether the sign-in service has Google switched on. */
+  googleAvailable(): Promise<boolean>;
+  /** Stop the attempt in flight, a sign-in with Google left open above all. */
+  cancel(): IAccountState;
   signOut(): Promise<void>;
   /** A usable access token, refreshed if the stored one has aged out. */
   accessToken(): Promise<string>;
@@ -100,7 +117,11 @@ export interface IAccountSessionOptions {
   config: IAccountConfig;
   store: IAccountCredentialStore;
   onState: (state: IAccountState) => void;
+  /** Opens a page in the person's own browser. */
+  openExternal: (url: string) => Promise<void>;
   now?: () => number;
+  /** Where Google's answer is waited for; a test hands in its own. */
+  startLoopback?: typeof startOAuthLoopback;
 }
 
 /**
@@ -117,8 +138,9 @@ const normaliseEmail = (email: string) => email.trim().toLowerCase();
 export const createAccountSession = (
   options: IAccountSessionOptions,
 ): IAccountSession => {
-  const { config, store, onState } = options;
+  const { config, store, onState, openExternal } = options;
   const now = options.now ?? Date.now;
+  const startLoopback = options.startLoopback ?? startOAuthLoopback;
 
   let session: IAuthSession | undefined;
   let identity: IAccountIdentity | undefined;
@@ -129,6 +151,7 @@ export const createAccountSession = (
   let pending: IPendingCode | undefined;
   let lastError: TAuthFailure | undefined;
   let inFlight: AbortController | undefined;
+  let waiting: IAccountState['waiting'];
   // One refresh in flight at a time. Two callers asking at once would otherwise
   // both redeem the refresh token, and a backend that rotates it on use invalidates
   // whichever reply lands second — signing the person out for being asked twice.
@@ -161,6 +184,7 @@ export const createAccountSession = (
       identity: current === 'signed-in' ? identity : undefined,
       pending,
       error: lastError,
+      waiting: current === 'busy' ? waiting : undefined,
     };
   };
 
@@ -371,6 +395,36 @@ export const createAccountSession = (
         await updatePassword(config, next.accessToken, password, signal);
         adopt(next);
       }),
+
+    signInWithGoogle: (pages) =>
+      attempt(async (signal) => {
+        try {
+          adopt(
+            await runGoogleSignIn({
+              config,
+              signal,
+              pages,
+              openExternal,
+              startLoopback,
+              now,
+              onWaiting: (isWaiting) => {
+                waiting = isWaiting ? 'google' : undefined;
+                publish();
+              },
+            }),
+          );
+        } finally {
+          waiting = undefined;
+        }
+      }),
+
+    googleAvailable: () =>
+      googleSignInAvailable(config, new AbortController().signal),
+
+    cancel: () => {
+      inFlight?.abort();
+      return state();
+    },
 
     abandonPending: () => {
       pending = undefined;

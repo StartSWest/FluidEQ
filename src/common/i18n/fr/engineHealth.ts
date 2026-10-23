@@ -32,6 +32,10 @@ const engineHealth = {
   'engineHealth.rackNeedsEngine':
     'Les effets DSP tournent dans le moteur lui-même : redémarrer l’audio de Windows relance donc le même moteur. Ce qui répare, c’est de mettre en place le moteur propre à FluidEQ — une autorisation Windows et une seconde de silence.',
   'engineHealth.useApo': 'Utiliser Equalizer APO…',
+  'engineHealth.macPermissionTitle': 'FluidEQ n’entend pas le son de votre Mac',
+  'engineHealth.macPermissionBody':
+    'macOS n’a pas autorisé FluidEQ à enregistrer le son que joue votre Mac : votre EQ ne l’atteint donc pas. En attendant, le son est lu normalement. Activez FluidEQ dans Confidentialité et sécurité › Enregistrement de l’écran et de l’audio du système.',
+  'engineHealth.openMacPrivacy': 'Ouvrir Réglages Système',
 } as const;
 
 export default engineHealth;

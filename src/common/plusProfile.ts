@@ -1,6 +1,6 @@
 /**
- * The member's name — the @handle and display name the leaderboard ranks and
- * the Visualizers gallery credits — as both processes know it.
+ * The member's name — the @handle and display name the Visualizers gallery
+ * credits — as both processes know it.
  *
  * The rules are the server's (a unique handle, a check on its shape, a name of
  * at most forty characters); they are repeated here so the form can say what

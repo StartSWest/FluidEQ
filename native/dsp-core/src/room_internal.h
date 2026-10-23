@@ -17,6 +17,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/room.h"
 #include "room_ambience.h"
 #include "room_comparison.h"
+#include "room_rate.h"
 
 /**
  * One set of kernels and the convolvers that run them: what the control
@@ -66,7 +67,20 @@ struct FeqRoomKernels {
 };
 
 struct FeqRoom {
+  /*
+   * The rate and block the room renders at. On an output faster than its
+   * heads (`feq_room_head_rate`) that is the head's, and `rate` converts the
+   * output's — `stream_rate`, `stream_max_frames` — down and back up.
+   */
   double sample_rate = 48000.0;
+  double stream_rate = 48000.0;
+  uint32_t stream_max_frames = 0;
+  RoomRate rate;
+  /* Whether the converter's histories belong to the sound now playing. */
+  bool rate_running = false;
+  /* Every channel at the room's own rate, between the converter's halves. */
+  std::vector<float> rate_buffers;
+  std::vector<float*> rate_planes;
   uint32_t channels = 0;
   uint32_t max_frames = 0;
   FeqRoomSettings settings{};
@@ -172,5 +186,28 @@ constexpr double kRoomUpmixMaxDelaySeconds = 0.03;
 /** Build a set from the room's head, layout and settings. Allocates. */
 FeqRoomKernels* room_build_kernels(const FeqRoom* room);
 void room_destroy_kernels(FeqRoomKernels* kernels);
+
+/**
+ * AUDIO: adopts what the control thread published and says whether the room
+ * renders this block; when it does not, its report already says why.
+ */
+bool room_ready(FeqRoom* room);
+/** AUDIO: one block at the room's own rate, in place, after `room_ready`. */
+void room_render(FeqRoom* room, float* const* channels, uint32_t frames);
+
+/**
+ * CONTROL, from `feq_room_create`: on an output faster than its heads, the
+ * converter and its planes, and `sample_rate` and `max_frames` turned into
+ * the room's own; untouched at a rate that has a head (`room_rate.cpp`).
+ */
+void room_prepare_rate(FeqRoom* room, uint32_t channels, double* sample_rate,
+                       uint32_t* max_frames);
+
+/**
+ * AUDIO: one block of an output faster than the head — taken down,
+ * `room_render`, the two ears brought back up (`room_rate.cpp`).
+ */
+void room_process_resampled(FeqRoom* room, float* const* channels,
+                            uint32_t frames);
 
 #endif  // FLUIDEQ_ROOM_INTERNAL_H

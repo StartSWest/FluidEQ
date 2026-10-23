@@ -40,6 +40,14 @@ import type { IAudioDevice } from 'common/constants';
 // eslint-disable-next-line import/first
 import { createAutomaticSetup } from 'main/automaticSetup';
 
+const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+beforeAll(() => Object.defineProperty(process, 'platform', { value: 'win32' }));
+afterAll(() => {
+  if (hostPlatform) {
+    Object.defineProperty(process, 'platform', hostPlatform);
+  }
+});
+
 const device = (fields: Record<string, unknown>) => ({
   id: 'x',
   name: 'Speakers',

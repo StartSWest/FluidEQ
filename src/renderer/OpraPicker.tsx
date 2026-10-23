@@ -11,6 +11,8 @@ the Free Software Foundation, either version 3 of the License, or
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IOpraCurve, IOpraProduct, OPRA_SOURCE_ID } from 'common/constants';
+import { headphonePageUrl } from 'common/headphonePage';
+import { curveTextOf } from 'common/curveText';
 import { useFluidEqLayers } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import {
@@ -28,16 +30,17 @@ import opraLogo from '../../assets/opra-logo.png';
 import './styles/AutoEQ.scss';
 import { loadOpraPreset, clearHeadset } from './utils/equalizerApi';
 import {
+  appliedOpraName,
   knownOpraProducts,
   loadOpraProducts,
+  opraProductLabel as productLabel,
   subscribeOpraProducts,
 } from './opraProducts';
+import SaveToMyCurves from './eq/SaveToMyCurves';
 
 const OPRA_URL = 'https://github.com/opra-project/OPRA';
 
 /** `Sennheiser HD 650`, which is what the old library called a model. */
-const productLabel = (product: IOpraProduct) =>
-  `${product.vendor} ${product.name}`;
 
 /**
  * The rows that light up for whatever is applied, if it came from this
@@ -258,24 +261,10 @@ const OpraPicker = () => {
   );
 
   /** What is applied, in words, whichever library it came from. */
-  const appliedLabel = useMemo(() => {
-    if (!headset) {
-      return undefined;
-    }
-    if (headsetSource !== OPRA_SOURCE_ID) {
-      // Saved before the switch. The id is not ours to resolve, and it was a
-      // readable model name back when it was written, so show it as it stands.
-      return headsetTarget ? `${headset} · ${headsetTarget}` : headset;
-    }
-    const product = products.find((entry) => entry.id === headset);
-    if (!product) {
-      return headset;
-    }
-    const curve = product.curves.find((entry) => entry.id === headsetTarget);
-    return curve
-      ? `${productLabel(product)} · ${curve.details}`
-      : productLabel(product);
-  }, [headset, headsetSource, headsetTarget, products]);
+  const appliedLabel = useMemo(
+    () => appliedOpraName(products, headset, headsetSource, headsetTarget),
+    [headset, headsetSource, headsetTarget, products],
+  );
 
   let applyLabel = t('autoeq.apply');
   if (isApplying) {
@@ -333,7 +322,7 @@ const OpraPicker = () => {
               <p className="autoeq-field__hint">{t('autoeq.target.hint')}</p>
             </div>
             <Button
-              className={isApplied ? 'small is-applied' : 'small'}
+              className={isApplied ? 'small subtle is-applied' : 'small'}
               ariaLabel={t('autoeq.applyAria')}
               isDisabled={
                 isBlockingError || currentProduct === '' || currentCurve === ''
@@ -342,6 +331,22 @@ const OpraPicker = () => {
             >
               {applyLabel}
             </Button>
+            {isApplied && headphone && !headphone.eqImport && appliedLabel && (
+              // A copy of the pick playing, at full strength, under the
+              // library's name: the library itself is never changed.
+              <SaveToMyCurves
+                curve={{
+                  text: curveTextOf({
+                    preAmp: 0,
+                    filters: headphone.filters,
+                    graphicEq: headphone.graphicEq,
+                  }),
+                  name: appliedLabel,
+                  source: 'opra',
+                  ears: 'both',
+                }}
+              />
+            )}
           </div>
           {selectedCurve && (
             <p className="opra-curve-credit">
@@ -353,6 +358,26 @@ const OpraPicker = () => {
                   {' · '}
                   <a href={selectedCurve.link} target="_blank" rel="noreferrer">
                     {t('opra.source')}
+                  </a>
+                </>
+              )}
+              {/*
+                The headphone's page on fluideq.com: every correction for it
+                drawn and credited, and each as Equalizer APO text to share.
+                Opened in the browser like every external link here.
+              */}
+              {selectedProduct && (
+                <>
+                  {' · '}
+                  <a
+                    href={headphonePageUrl(
+                      selectedProduct.vendor,
+                      selectedProduct.name,
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {t('opra.onSite')}
                   </a>
                 </>
               )}

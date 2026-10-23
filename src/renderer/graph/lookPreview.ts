@@ -141,27 +141,25 @@ const isSilent = (points: IChartPointData[]): boolean => {
 };
 
 /**
- * One frame of preview, on the axis the capture is already using.
+ * One frame of preview, on the axis the capture is already using, or in
+ * silence on the one the trace rests on (`useSilentFloor`).
  *
- * The live points are borrowed for their `x` values rather than having a second
- * axis built here: they are log-spaced by the analyser and a preview drawn on a
- * subtly different spacing would sit slightly off from the trace that replaces
- * it. Only when there is no capture at all — nothing to borrow — is one made.
+ * Points are borrowed for their `x` values rather than having a second axis
+ * built here: they are log-spaced by the analyser, and a preview drawn on a
+ * subtly different spacing sat off from the trace before it and after it,
+ * every point of its fall redrawn a few pixels along. Before anything has been
+ * measured the resting axis is the graphs' own, the plot's whole width — a
+ * 20 Hz to 20 kHz one here drew the preview short of both ends.
  */
-const buildPreviewFrame = (live: IChartPointData[]): IChartPointData[] => {
+const buildPreviewFrame = (
+  live: readonly IChartPointData[],
+  rest: readonly IChartPointData[],
+): IChartPointData[] => {
   const depth = MAX_GAIN - MIN_GAIN;
-  if (live.length > 0) {
-    return live.map((point, index) => ({
-      x: point.x,
-      y: MIN_GAIN + previewLevel(index / (live.length - 1 || 1)) * depth,
-    }));
-  }
-  // No capture to borrow from: the graphs' own axis, the plot's whole
-  // width. A 20 Hz to 20 kHz one here drew the preview short of both ends.
-  return GRAPH_SILENT_POINTS.map(({ x }, index) => ({
-    x,
-    y:
-      MIN_GAIN + previewLevel(index / (GRAPH_SILENT_POINTS.length - 1)) * depth,
+  const axis = live.length > 0 ? live : rest;
+  return axis.map((point, index) => ({
+    x: point.x,
+    y: MIN_GAIN + previewLevel(index / (axis.length - 1 || 1)) * depth,
   }));
 };
 
@@ -170,10 +168,12 @@ const buildPreviewFrame = (live: IChartPointData[]): IChartPointData[] => {
  *
  * @param live the analyser's current frame
  * @param lookId what is selected; a change is what triggers a preview
+ * @param rest the floor the trace rests on in silence (`useSilentFloor`)
  */
 export const useLookPreviewPoints = (
   live: IChartPointData[],
   lookId: string,
+  rest: readonly IChartPointData[] = GRAPH_SILENT_POINTS,
 ): IChartPointData[] => {
   const [preview, setPreview] = useState<IChartPointData[] | undefined>();
   /*
@@ -186,6 +186,10 @@ export const useLookPreviewPoints = (
    */
   const liveRef = useRef(live);
   liveRef.current = live;
+  // On a ref for the same reason: the axis it carries is for the next look
+  // picked, not a reason to preview again.
+  const restRef = useRef(rest);
+  restRef.current = rest;
   /** Skips the preview that would otherwise fire on the first render. */
   const hasMountedRef = useRef(false);
 
@@ -195,7 +199,7 @@ export const useLookPreviewPoints = (
       return;
     }
     if (isSilent(liveRef.current)) {
-      setPreview(buildPreviewFrame(liveRef.current));
+      setPreview(buildPreviewFrame(liveRef.current, restRef.current));
     }
   }, [lookId]);
 

@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react';
 import NumberInput from '../widgets/NumberInput';
 import RangeInput from '../widgets/RangeInput';
 import { useFluidEqShell } from '../utils/FluidEqContext';
@@ -24,19 +24,24 @@ import '../styles/Slider.scss';
 
 interface ISliderProps {
   name: string;
+  /** What assistive tech calls the slider; its form `name` when omitted. */
+  ariaLabel?: string;
   min: number;
   max: number;
   value: number;
   isDisabled?: boolean;
+  isReadOnly?: boolean;
   sliderHeight?: string;
   label?: string;
   showNumberInput?: boolean;
   colorProgress?: number;
+  onKeyboardSelect?: (event: KeyboardEvent<HTMLInputElement>) => void;
   setValue: (newValue: number) => Promise<void>;
 }
 
 const Slider = ({
   name,
+  ariaLabel,
   min,
   max,
   value,
@@ -44,7 +49,9 @@ const Slider = ({
   label,
   showNumberInput = true,
   isDisabled = false,
+  isReadOnly = false,
   colorProgress = 0,
+  onKeyboardSelect,
   setValue,
 }: ISliderProps) => {
   const { isBlockingError } = useFluidEqShell();
@@ -94,6 +101,7 @@ const Slider = ({
     <div className="col center slider">
       <RangeInput
         name={`${name}-range`}
+        ariaLabel={ariaLabel}
         value={sliderValue}
         min={min}
         max={max}
@@ -101,7 +109,9 @@ const Slider = ({
         handleChange={handleInput}
         handleMouseUp={handleDragEnd}
         handleDragStart={handleDragStart}
+        onKeyboardSelect={onKeyboardSelect}
         isDisabled={isDisabled || isBlockingError}
+        isReadOnly={isReadOnly}
         colorProgress={colorProgress}
         incrementPrecision={0}
         displayPrecision={2}
@@ -114,7 +124,7 @@ const Slider = ({
           min={min}
           max={max}
           handleSubmit={handleInput}
-          isDisabled={isDisabled || isBlockingError}
+          isDisabled={isDisabled || isReadOnly || isBlockingError}
           floatPrecision={2}
           showArrows
         />

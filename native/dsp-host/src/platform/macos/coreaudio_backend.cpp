@@ -76,6 +76,12 @@ uint32_t device_buffer_frames(AudioDeviceID device) {
   return static_cast<uint32_t>(frames);
 }
 
+/** The default moving, and the set of devices changing. */
+constexpr AudioObjectPropertySelector kSystemSelectors[] = {
+    kAudioHardwarePropertyDefaultOutputDevice,
+    kAudioHardwarePropertyDevices,
+};
+
 /**
  * AUHAL, which is a pull model with a render callback — the shape
  * `FeqRenderFn` already has.
@@ -87,10 +93,29 @@ uint32_t device_buffer_frames(AudioDeviceID device) {
  */
 class CoreAudioBackend final : public IAudioOutputBackend {
  public:
-  CoreAudioBackend(FeqRenderFn render, void* context)
-      : render_(render), context_(context) {}
+  /**
+   * The system's outputs are listened to for the backend's whole life, not
+   * per open. A failed open used to take its listeners down with it, which
+   * was harmless while the host retried on a 25 ms tick and is silence for
+   * good now that a retry waits for a reason (`await_endpoint`).
+   */
+  explicit CoreAudioBackend(const FeqBackendHooks& hooks) : hooks_(hooks) {
+    for (const AudioObjectPropertySelector what : kSystemSelectors) {
+      AudioObjectPropertyAddress address = global_address(what);
+      AudioObjectAddPropertyListener(kAudioObjectSystemObject, &address,
+                                     &CoreAudioBackend::system_changed, this);
+    }
+  }
 
-  ~CoreAudioBackend() override { close(); }
+  ~CoreAudioBackend() override {
+    close();
+    for (const AudioObjectPropertySelector what : kSystemSelectors) {
+      AudioObjectPropertyAddress address = global_address(what);
+      AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &address,
+                                        &CoreAudioBackend::system_changed,
+                                        this);
+    }
+  }
 
   /**
    * `FLUIDEQ_DSP_NO_ENDPOINT=1` makes this build take the silent-machine
@@ -106,7 +131,9 @@ class CoreAudioBackend final : public IAudioOutputBackend {
   }
 
   bool open(FeqBackendFormat& negotiated, std::string& error) override {
-    close();
+    // `teardown` and not `close` on every path here: a failed open must leave
+    // a reopen that is waiting for a device still waiting for one.
+    teardown();
     const AudioDeviceID device =
         forced_absent() ? kAudioObjectUnknown : default_output_device();
     if (device == kAudioObjectUnknown) {
@@ -144,7 +171,7 @@ class CoreAudioBackend final : public IAudioOutputBackend {
                              kAudioUnitScope_Global, 0, &device,
                              sizeof(device)) != noErr) {
       error = "the audio unit refused the default output device";
-      close();
+      teardown();
       return false;
     }
 
@@ -154,7 +181,7 @@ class CoreAudioBackend final : public IAudioOutputBackend {
                              kAudioUnitScope_Global, 0, &slice,
                              sizeof(slice)) != noErr) {
       error = "the audio unit refused the maximum block size";
-      close();
+      teardown();
       return false;
     }
 
@@ -177,7 +204,7 @@ class CoreAudioBackend final : public IAudioOutputBackend {
                              kAudioUnitScope_Input, 0, &format,
                              sizeof(format)) != noErr) {
       error = "the device refused non-interleaved 32-bit float stereo";
-      close();
+      teardown();
       return false;
     }
 
@@ -188,13 +215,13 @@ class CoreAudioBackend final : public IAudioOutputBackend {
                              kAudioUnitScope_Input, 0, &callback,
                              sizeof(callback)) != noErr) {
       error = "the audio unit refused the render callback";
-      close();
+      teardown();
       return false;
     }
 
     if (AudioUnitInitialize(unit_) != noErr) {
       error = "the audio unit failed to initialise";
-      close();
+      teardown();
       return false;
     }
 
@@ -207,12 +234,13 @@ class CoreAudioBackend final : public IAudioOutputBackend {
     buffer_frames_ = slice;
     underruns_.store(0, std::memory_order_relaxed);
     periods_.store(0, std::memory_order_relaxed);
-    add_listeners();
+    add_device_listener();
 
     negotiated.sample_rate = static_cast<uint32_t>(rate);
     negotiated.channels = kEngineChannels;
     negotiated.max_block_frames = slice;
     open_ = true;
+    mode_.store(kOpen, std::memory_order_release);
     return true;
   }
 
@@ -232,19 +260,9 @@ class CoreAudioBackend final : public IAudioOutputBackend {
   }
 
   void close() override {
-    remove_listeners();
-    if (unit_ != nullptr) {
-      if (running_) {
-        AudioOutputUnitStop(unit_);
-      }
-      AudioUnitUninitialize(unit_);
-      AudioComponentInstanceDispose(unit_);
-      unit_ = nullptr;
-    }
-    running_ = false;
-    open_ = false;
-    device_ = kAudioObjectUnknown;
-    buffer_frames_ = 0;
+    // Nobody wants a device, or a reopen is about to say so itself.
+    mode_.store(kClosed, std::memory_order_release);
+    teardown();
   }
 
   bool is_open() const override { return open_; }
@@ -260,20 +278,52 @@ class CoreAudioBackend final : public IAudioOutputBackend {
   }
 
   bool needs_reopen() const override {
-    return reopen_.load(std::memory_order_relaxed);
+    return reopen_.load(std::memory_order_acquire);
   }
 
   void clear_reopen() override {
-    reopen_.store(false, std::memory_order_relaxed);
+    reopen_.store(false, std::memory_order_release);
   }
 
-  void request_reopen() override {
-    reopen_.store(true, std::memory_order_relaxed);
+  void await_endpoint() override {
+    mode_.store(kAwaiting, std::memory_order_release);
   }
 
   const char* name() const override { return "coreaudio"; }
 
  private:
+  // What counts as a reason to reopen, as on Windows (`device_watch.h`):
+  // nothing while nothing is open or wanted, the default moving while a
+  // stream is open, and any change to the devices while a reopen waits.
+  static constexpr int kClosed = 0;
+  static constexpr int kOpen = 1;
+  static constexpr int kAwaiting = 2;
+
+  /** The unit and the device's own listener, released; the mode untouched. */
+  void teardown() {
+    remove_device_listener();
+    if (unit_ != nullptr) {
+      if (running_) {
+        AudioOutputUnitStop(unit_);
+      }
+      AudioUnitUninitialize(unit_);
+      AudioComponentInstanceDispose(unit_);
+      unit_ = nullptr;
+    }
+    running_ = false;
+    open_ = false;
+    device_ = kAudioObjectUnknown;
+    buffer_frames_ = 0;
+  }
+
+  /** Raise `needs_reopen` and wake whoever acts on it. Any thread. */
+  void want_reopen() {
+    reopen_.store(true, std::memory_order_release);
+    if (hooks_.reopen_wanted != nullptr) {
+      hooks_.reopen_wanted(hooks_.context);
+    }
+  }
+
   static OSStatus render_trampoline(void* refcon,
                                     AudioUnitRenderActionFlags* flags,
                                     const AudioTimeStamp* timestamp,
@@ -285,7 +335,7 @@ class CoreAudioBackend final : public IAudioOutputBackend {
     return static_cast<CoreAudioBackend*>(refcon)->render_period(frames, data);
   }
 
-  /** The real-time thread. No allocation, no lock, no logging, no syscall. */
+  /** The real-time thread. No allocation, no lock, no logging, no blocking. */
   OSStatus render_period(UInt32 frames, AudioBufferList* data) {
     const uint32_t supplied = data->mNumberBuffers;
     for (uint32_t buffer = 0; buffer < supplied; buffer += 1) {
@@ -299,29 +349,62 @@ class CoreAudioBackend final : public IAudioOutputBackend {
               ? static_cast<float*>(data->mBuffers[channel].mData)
               : silence_.data();
     }
-    render_(context_, planar_pointers_.data(), frames);
+    hooks_.render(hooks_.context, planar_pointers_.data(), frames);
     periods_.fetch_add(1, std::memory_order_relaxed);
+    /**
+     * What the block armed is rung here, at the end of the IO proc.
+     *
+     * Windows rings after `ReleaseBuffer`, on its own device thread and
+     * outside any callback. AUHAL has no such point: the buffers are the
+     * device's the moment this returns, and nothing of ours runs on this
+     * thread until the next period. The ring is `std::atomic::notify_one`, a
+     * `__ulock_wake` that never blocks or takes a lock — the same kind of
+     * wake Core Audio code makes with `semaphore_signal` from this thread.
+     * Without it the decoder, the voice worker and telemetry sleep forever:
+     * they no longer poll.
+     */
+    if (hooks_.period_done != nullptr) {
+      hooks_.period_done(hooks_.context);
+    }
     return noErr;
   }
 
   /**
-   * The default output changed, or this device overloaded.
+   * The default output moved, or the set of devices changed.
    *
-   * Both are answered rather than defaulted, because macOS has the
-   * notification `audio_backend.h` says a platform should not pretend to
-   * lack: a stream whose device is no longer the default stays technically
-   * healthy and completely inaudible.
+   * Answered rather than defaulted, because macOS has the notification
+   * `audio_backend.h` says a platform should not pretend to lack: a stream
+   * whose device is no longer the default stays technically healthy and
+   * completely inaudible. And while a reopen waits, a device arriving is the
+   * only thing that ends the wait.
    */
-  static OSStatus property_changed(AudioObjectID object, UInt32 count,
-                                   const AudioObjectPropertyAddress* addresses,
-                                   void* context) {
+  static OSStatus system_changed(AudioObjectID object, UInt32 count,
+                                 const AudioObjectPropertyAddress* addresses,
+                                 void* context) {
+    (void)object;
+    auto* self = static_cast<CoreAudioBackend*>(context);
+    const int mode = self->mode_.load(std::memory_order_acquire);
+    for (UInt32 index = 0; index < count; index += 1) {
+      const AudioObjectPropertySelector what = addresses[index].mSelector;
+      const bool is_reason =
+          (what == kAudioHardwarePropertyDefaultOutputDevice &&
+           mode != kClosed) ||
+          (what == kAudioHardwarePropertyDevices && mode == kAwaiting);
+      if (is_reason) {
+        self->want_reopen();
+        return noErr;
+      }
+    }
+    return noErr;
+  }
+
+  /** The open device overloaded: a period it could not finish in time. */
+  static OSStatus device_overloaded(AudioObjectID object, UInt32 count,
+                                    const AudioObjectPropertyAddress* addresses,
+                                    void* context) {
     (void)object;
     auto* self = static_cast<CoreAudioBackend*>(context);
     for (UInt32 index = 0; index < count; index += 1) {
-      if (addresses[index].mSelector ==
-          kAudioHardwarePropertyDefaultOutputDevice) {
-        self->reopen_.store(true, std::memory_order_relaxed);
-      }
       if (addresses[index].mSelector == kAudioDeviceProcessorOverload) {
         self->underruns_.fetch_add(1, std::memory_order_relaxed);
       }
@@ -329,37 +412,27 @@ class CoreAudioBackend final : public IAudioOutputBackend {
     return noErr;
   }
 
-  void add_listeners() {
-    AudioObjectPropertyAddress def =
-        global_address(kAudioHardwarePropertyDefaultOutputDevice);
-    AudioObjectAddPropertyListener(kAudioObjectSystemObject, &def,
-                                   &CoreAudioBackend::property_changed, this);
+  void add_device_listener() {
     AudioObjectPropertyAddress overload =
         global_address(kAudioDeviceProcessorOverload);
     AudioObjectAddPropertyListener(device_, &overload,
-                                   &CoreAudioBackend::property_changed, this);
+                                   &CoreAudioBackend::device_overloaded, this);
     listening_ = true;
   }
 
-  void remove_listeners() {
+  void remove_device_listener() {
     if (!listening_) {
       return;
     }
-    AudioObjectPropertyAddress def =
-        global_address(kAudioHardwarePropertyDefaultOutputDevice);
-    AudioObjectRemovePropertyListener(kAudioObjectSystemObject, &def,
-                                      &CoreAudioBackend::property_changed,
-                                      this);
     AudioObjectPropertyAddress overload =
         global_address(kAudioDeviceProcessorOverload);
     AudioObjectRemovePropertyListener(device_, &overload,
-                                      &CoreAudioBackend::property_changed,
+                                      &CoreAudioBackend::device_overloaded,
                                       this);
     listening_ = false;
   }
 
-  FeqRenderFn render_ = nullptr;
-  void* context_ = nullptr;
+  FeqBackendHooks hooks_;
   AudioUnit unit_ = nullptr;
   AudioDeviceID device_ = kAudioObjectUnknown;
   bool open_ = false;
@@ -370,13 +443,14 @@ class CoreAudioBackend final : public IAudioOutputBackend {
   std::atomic<uint64_t> underruns_{0};
   std::atomic<uint64_t> periods_{0};
   std::atomic<bool> reopen_{false};
+  std::atomic<int> mode_{kClosed};
   std::vector<float*> planar_pointers_;
   std::vector<float> silence_;
 };
 
 }  // namespace
 
-std::unique_ptr<IAudioOutputBackend> create_audio_backend(FeqRenderFn render,
-                                                          void* context) {
-  return std::make_unique<CoreAudioBackend>(render, context);
+std::unique_ptr<IAudioOutputBackend> create_audio_backend(
+    const FeqBackendHooks& hooks) {
+  return std::make_unique<CoreAudioBackend>(hooks);
 }

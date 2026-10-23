@@ -15,6 +15,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import useStagePresets from './useStagePresets';
 
 interface IDspMaximizerBarProps {
   maximizer: IMaximizerSettings;
@@ -53,22 +54,29 @@ const DspMaximizerBar = ({
   onCommit,
 }: IDspMaximizerBarProps) => {
   const { t } = useTranslation();
-  const entries: IRichPickEntry[] = MAXIMIZER_PRESET_GROUPS.flatMap((group) =>
-    MAXIMIZER_CATALOGUE.profiles
-      .filter((preset) => preset.group === group)
-      .map((preset) => ({
-        id: preset.id,
-        name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset),
-        group,
-        icon: (
-          <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
-        ),
-      })),
+  const saved = useStagePresets('maximizer', maximizer, onChange, onCommit);
+  const factoryEntries: IRichPickEntry[] = MAXIMIZER_PRESET_GROUPS.flatMap(
+    (group) =>
+      MAXIMIZER_CATALOGUE.profiles
+        .filter((preset) => preset.group === group)
+        .map((preset) => ({
+          id: preset.id,
+          name: t(preset.labelKey as TranslationKey),
+          hint: profileHint(preset),
+          group,
+          icon: (
+            <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
+          ),
+        })),
   );
+  // Saved profiles first, as the EQ lists its own.
+  const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string, enable = true) => {
+    if (saved.apply(id)) {
+      return;
+    }
     const next = MAXIMIZER_CATALOGUE.settings(
       id,
       enable ? true : maximizer.enabled,
@@ -102,7 +110,8 @@ const DspMaximizerBar = ({
           <RichPick
             entries={entries}
             groupLabel={(group) =>
-              group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
+              saved.savedGroupLabel(group) ??
+              (group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : '')
             }
             activeId={maximizer.presetId}
             onPick={applyPreset}
@@ -147,6 +156,7 @@ const DspMaximizerBar = ({
             <DspBarIcon name="reset" />
             {t('dsp.eqPreset.reset')}
           </button>
+          {saved.buttons}
         </div>
       </div>
 
@@ -154,6 +164,8 @@ const DspMaximizerBar = ({
           as the card's description — the same arrangement the Exciter's bar
           uses, so the two headers read alike. */}
       <p className="dsp-maximizer-note">{t('dsp.maximizer.description')}</p>
+      {saved.notice}
+      {saved.dialog}
     </>
   );
 };

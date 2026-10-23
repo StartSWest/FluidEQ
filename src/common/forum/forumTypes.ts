@@ -44,6 +44,8 @@ export interface IForumBoards {
    * is signed in — and polls never.
    */
   canStartIn: string[];
+  /** How many issues the repository has, open and closed, when known. */
+  issueCount?: number;
 }
 
 /** What the signed-in reader may do to one post. Absent when read signed out. */
@@ -102,6 +104,25 @@ export interface IForumComment extends IForumPost {
   replyTotal: number;
 }
 
+/**
+ * The Forum's row for the repository's GitHub Issues (Ivan, 2026-10-16:
+ * "include github issues in the forums so all can see them there"). Not a
+ * discussion category: no category GitHub creates is spelled this way, and
+ * the slug passes the same check a category's does on its way to main.
+ */
+export const FORUM_ISSUES_BOARD = 'github-issues';
+
+/**
+ * What only an issue has. GitHub numbers issues, pull requests and
+ * discussions from one sequence, so an issue's number never collides with a
+ * topic's, and what the reader has read is kept by number for both.
+ */
+export interface IForumIssue {
+  closed: boolean;
+  /** The labels' names, as the repository's owner wrote them. */
+  labels: string[];
+}
+
 export interface IForumTopicSummary {
   id: string;
   number: number;
@@ -119,6 +140,8 @@ export interface IForumTopicSummary {
   /** The topic's own votes; see `IForumPost.votes`. */
   votes: number;
   author: IForumPerson;
+  /** Present on an issue, which is read and never written here. */
+  issue?: IForumIssue;
 }
 
 /**
@@ -146,7 +169,10 @@ export interface IForumTopicPage {
   cursor?: string;
 }
 
-/** Answered or not — meaningful only on a board where answers are marked. */
+/**
+ * Answered or not — meaningful only on a board where answers are marked. On
+ * the issues' row the same two read as closed and open.
+ */
 export type TForumFilter = 'all' | 'answered' | 'unanswered';
 
 export interface IForumTopicQuery {

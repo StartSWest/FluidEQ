@@ -379,7 +379,6 @@ const dsp = {
   'dsp.eqStereo.side': 'केवल किनारे',
   'dsp.eqOversample.label': 'ओवरसैंपलिंग',
   'dsp.eqOversample.off': 'बंद',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'सटीक: इस EQ का हर बैंड ठीक वैसे ही बजता है जैसा बनाया गया है, 20\u00a0kHz तक।',
   'dsp.eqImport.title': 'EQ कर्व आयात करें',
@@ -389,6 +388,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'फ़ाइल चुनें',
   'dsp.eqImport.apply': 'आयात करें',
   'dsp.eqImport.cancel': 'रद्द करें',
+  'dsp.eqImport.tooMany':
+    'इससे {max} से ज़्यादा बैंड हो जाएँगे। पहले कुछ बैंड हटाइए, या दोनों कानों में आयात कीजिए।',
 
   'dsp.eq.title': 'इक्वलाइज़र',
   'dsp.eq.band': 'बैंड',
@@ -441,6 +442,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'मिड',
   'dsp.exciter.band.high': 'हाई',
   'dsp.exciter.texture': 'बनावट',
+  'dsp.exciter.oversampling': 'ओवरसैंपलिंग',
+  'dsp.exciter.oversampling.off': 'बंद',
+  'dsp.exciter.oversampling.standard': 'सामान्य',
+  'dsp.exciter.oversampling.high': 'उच्च',
+  'dsp.exciter.oversampling.offHint':
+    'हार्मोनिक्स आउटपुट की अपनी दर पर बनते हैं: सबसे हल्का भार, पर ऊपर से वापस मुड़ने वाले हिस्से से थोड़ी खुरदराहट।',
+  'dsp.exciter.oversampling.standardHint':
+    'हार्मोनिक्स आउटपुट की दर से चार गुना तक की दर पर बनते हैं, जैसे एक्साइटर हमेशा से चलता आया है।',
+  'dsp.exciter.oversampling.highHint':
+    'वही दर, कहीं ज़्यादा तीखे फ़िल्टर के साथ, ताकि ऊपर से कुछ भी वापस न मुड़े। प्रोसेसर के लिए थोड़ा ज़्यादा काम।',
   'dsp.exciter.organic': 'ऑर्गेनिक',
   'dsp.exciter.organicHint':
     'चुनी हुई रेंज में सम हार्मोनिक्स वाली मुलायम बॉडी जोड़ता है। साफ़, मेटैलिक या टाइटेनियम-ड्राइवर प्रस्तुति को बिना डिटेल खोए अधिक गर्म और ऑर्गेनिक बनाने के लिए आदर्श है।',

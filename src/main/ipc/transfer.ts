@@ -29,8 +29,10 @@ import {
   IFiltersMap,
   IEqImportReference,
   IState,
+  MAX_NUM_FILTERS,
   TApoLayer,
 } from '../../common/constants';
+import { isImportEars, withImportedEars } from '../../common/bandEars';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
 import {
@@ -59,6 +61,8 @@ import {
 import type { TranslationKey } from '../../common/i18n';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import onWindowMessage from './windowMessages';
+import { registerCurveExportIpc } from './curveExport';
+import { registerMyCurvesIpc } from './myCurves';
 import mainText from '../mainText';
 import { Refusal, userMessageOf } from '../refusal';
 
@@ -76,6 +80,8 @@ import { Refusal, userMessageOf } from '../refusal';
  * import and is told what was applied.
  */
 export interface ITransferIpcDeps {
+  /** The app's data folder: where My curves are kept (`myCurves.ts`). */
+  userDataDir: string;
   state: IState;
   deviceProfileSettings: IDeviceProfileSettings;
   session: {
@@ -100,7 +106,6 @@ export interface ITransferIpcDeps {
   activePresetDir: () => string;
   availableProfileNameForActiveDevice: (presetName: string) => string;
   attachPresetToActiveDevice: (presetName: string) => void;
-  clearCurrentLayoutSettings: () => void;
   resetEqToDefaults: () => void;
   hydrateActiveConvolution: () => void;
   /**
@@ -139,7 +144,6 @@ export const registerTransferIpc = ({
   attachPresetToActiveDevice,
   availableProfileNameForActiveDevice,
   activeBaselineDir,
-  clearCurrentLayoutSettings,
   deviceProfileSettings,
   getMainWindow,
   handleError,
@@ -150,6 +154,7 @@ export const registerTransferIpc = ({
   session,
   shieldReferenceBands,
   state,
+  userDataDir,
 }: ITransferIpcDeps) => {
   /**
    * Pick a file the user already has and apply it.
@@ -303,13 +308,13 @@ export const registerTransferIpc = ({
       }
 
       const imported = importEqFile(sourcePath);
-      clearCurrentLayoutSettings();
       state.preAmp = imported.preAmp;
       state.filters = shieldReferenceBands(imported.filters);
       state.eqFormat = imported.eqFormat;
       state.graphicEq = imported.graphicEq;
       state.eqMode = getEqMode(imported);
       state.curveEqMode = getCurveEqMode(imported);
+      state.mainBandQ = imported.mainBandQ;
       state.eqBandQ = imported.eqBandQ;
       state.curveBandQ = imported.curveBandQ;
       state.curveSmoothing = imported.curveSmoothing;
@@ -354,10 +359,16 @@ export const registerTransferIpc = ({
       const label =
         typeof arg?.[1] === 'string' ? arg[1].trim().slice(0, 240) : '';
       const destination = arg?.[2] ?? 'eq';
-      if (destination !== 'eq' && destination !== 'curve') {
+      // Which ears the EQ fills (Ivan, 2026-10-13); a curve is always both.
+      const ears = arg?.[3] ?? 'both';
+      if (
+        (destination !== 'eq' && destination !== 'curve') ||
+        !isImportEars(ears)
+      ) {
         handleError(event, channel, ErrorCode.INVALID_PARAMETER);
         return;
       }
+      const oneEar = destination === 'eq' && ears !== 'both';
       if (typeof text !== 'string' || !text.trim()) {
         throw new Refusal('files.squiglink.empty');
       }
@@ -374,6 +385,26 @@ export const registerTransferIpc = ({
       if (parsed.isEmpty) {
         throw new Refusal('files.squiglink.noFilters');
       }
+      // A sampled curve is one curve for the whole output: it has no bands to
+      // keep to an ear.
+      if (oneEar && parsed.graphicEq?.length) {
+        throw new Refusal('files.squiglink.earsNeedBands');
+      }
+      // One ear: that ear's bands replaced, the other ear kept as it was.
+      const earBands = oneEar
+        ? withImportedEars(
+            Object.values(state.filters),
+            Object.values(shieldReferenceBands(parsed.filters)),
+            ears,
+            (filter) => filter.channel,
+            (filter, ear) => ({ ...filter, channel: ear }),
+          )
+        : [];
+      if (earBands.length > MAX_NUM_FILTERS) {
+        throw new Refusal('files.squiglink.tooManyBands', {
+          max: MAX_NUM_FILTERS,
+        });
+      }
 
       // Provenance identifies the counterpart to remove when switching modes;
       // moving to curve must not clear a separately tuned user EQ.
@@ -383,7 +414,11 @@ export const registerTransferIpc = ({
         state.headphone = undefined;
         applyingLayer('headphone');
       }
-      state.preAmp = parsed.preAmp;
+      // One ear's file says nothing about the other ear's level: the
+      // preamp stays as it is, and auto normalize keeps both in range.
+      if (!oneEar) {
+        state.preAmp = parsed.preAmp;
+      }
       // A preamp in the file is a decision, and automatic normalization would
       // quietly overrule it: the value lands in `preAmp`, the flush recomputes
       // from the chain, and what plays is FluidEQ's number rather than the one in
@@ -391,7 +426,7 @@ export const registerTransferIpc = ({
       // `Preamp: -19 dB` asked for -19, so automatic mode steps aside and the
       // import result says it did. Turning it back on is one click and now keeps
       // its value on the way out.
-      if (parsed.hasPreAmp) {
+      if (parsed.hasPreAmp && !oneEar) {
         state.isAutoPreAmpOn = false;
       }
       const reference: IEqImportReference = {
@@ -415,14 +450,23 @@ export const registerTransferIpc = ({
         state.headsetTarget = undefined;
         state.headsetSource = undefined;
         applyingLayer('headphone');
+      } else if (oneEar) {
+        state.filters = Object.fromEntries(
+          earBands.map((filter) => [filter.id, filter]),
+        );
+        state.eqFormat = parsed.eqFormat;
+        state.graphicEq = undefined;
+        state.isFlat = false;
+        state.eqImport = reference;
+        applyingLayer('eq');
       } else {
-        clearCurrentLayoutSettings();
         state.filters = shieldReferenceBands(parsed.filters);
         state.eqFormat = parsed.eqFormat;
         state.graphicEq = parsed.graphicEq;
         state.isEqDoubleOn = false;
         state.eqMode = 'normal';
         state.curveEqMode = 'normal';
+        state.mainBandQ = undefined;
         state.eqBandQ = undefined;
         state.curveBandQ = undefined;
         state.curveSmoothing = undefined;
@@ -446,7 +490,7 @@ export const registerTransferIpc = ({
             : '',
           // Said out loud, because a switch changing itself is worse than a
           // switch that did not, unless it tells you.
-          parsed.hasPreAmp
+          parsed.hasPreAmp && !oneEar
             ? mainText('files.imported.preampKept', { gain: parsed.preAmp })
             : '',
         ]
@@ -650,7 +694,7 @@ export const registerTransferIpc = ({
         session.activeAudioDevice?.name || session.activeAudioDeviceId,
       );
       savePreset(name, bundle.preset, activePresetDir(), 'chain-import');
-      savePresetBaseline(name, bundle.preset, activeBaselineDir());
+      await savePresetBaseline(name, bundle.preset, activeBaselineDir());
       attachPresetToActiveDevice(name);
 
       // The one part of a bundle that is not a tuning but a program. Everything
@@ -691,7 +735,6 @@ export const registerTransferIpc = ({
 
       // Field by field, like loading a profile, because `state` is the live one
       // rather than a value to swap: every reader here holds the same object.
-      clearCurrentLayoutSettings();
       state.preAmp = bundle.preset.preAmp;
       state.filters = bundle.preset.filters;
       state.eqFormat = bundle.preset.eqFormat;
@@ -701,6 +744,7 @@ export const registerTransferIpc = ({
       state.isFlat = bundle.preset.isFlat;
       state.eqMode = getEqMode(bundle.preset);
       state.curveEqMode = getCurveEqMode(bundle.preset);
+      state.mainBandQ = bundle.preset.mainBandQ;
       state.eqBandQ = bundle.preset.eqBandQ;
       state.curveBandQ = bundle.preset.curveBandQ;
       state.curveSmoothing = bundle.preset.curveSmoothing;
@@ -754,4 +798,7 @@ export const registerTransferIpc = ({
       handleError(event, channel, ErrorCode.IMPORT_ERROR, userMessageOf(e));
     }
   });
+
+  registerCurveExportIpc({ getMainWindow, handleError });
+  registerMyCurvesIpc({ userDataDir, handleError, logger: log });
 };

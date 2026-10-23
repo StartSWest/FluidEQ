@@ -67,6 +67,7 @@ const defaultFluidEqContext: IFluidEqContext = {
   setHoveredFilterId: (_newValue: string) => {},
   dispatchFilter: (_action: FilterAction) => {},
   getBandSetGeneration: () => 0,
+  bandSetReplacement: 0,
 };
 
 export default defaultFluidEqContext;

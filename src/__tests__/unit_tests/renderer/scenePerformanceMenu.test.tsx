@@ -42,6 +42,7 @@ const settle = () => act(async () => undefined);
 
 beforeEach(() => {
   window.localStorage.removeItem('fluideq.scenePerformance');
+  window.localStorage.removeItem('fluideq.standardPerformance');
   resetScenePerformanceForTesting();
   resetGraphicsPreferenceForTesting();
   setOnBatteryForTesting(false);
@@ -49,7 +50,46 @@ beforeEach(() => {
 });
 
 describe('the View menu’s performance rows for Plus visualizers', () => {
-  it('shows the display rate, automatic resolution down to a third, AMD FSR and fast smoothing to start with', () => {
+  it('keeps every drawing choice with its group when switching between Standard and Plus', () => {
+    const { rerender } = render(<ScenePerformanceMenu group="standard" />);
+    expect(
+      screen.getByText('graph.scene.resolution.native'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('graph.scene.scaler.simple')).toBeInTheDocument();
+    expect(screen.getByText('graph.scene.smoothing.off')).toBeInTheDocument();
+    ['frameRate', 'resolution', 'floor', 'scaler', 'smoothing'].forEach(
+      (setting) => {
+        fireEvent.click(screen.getByTitle(`graph.scene.${setting}Hint`));
+      },
+    );
+    expect(readScenePerformance('standard')).toEqual({
+      frameRate: 'sixty',
+      resolution: 'quality',
+      autoFloor: 0.5,
+      upscaler: 'fsr',
+      smoothing: 'fast',
+    });
+
+    rerender(<ScenePerformanceMenu group="plus" />);
+    expect(
+      screen.getByText('graph.scene.frameRate.display'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('graph.scene.resolution.auto')).toBeInTheDocument();
+    expect(screen.getByText('graph.scene.floor.35')).toBeInTheDocument();
+    fireEvent.click(screen.getByTitle('graph.scene.smoothingHint'));
+    expect(readScenePerformance('plus').smoothing).toBe('off');
+
+    rerender(<ScenePerformanceMenu group="standard" />);
+    expect(screen.getByText('graph.scene.frameRate.sixty')).toBeInTheDocument();
+    expect(
+      screen.getByText('graph.scene.resolution.quality'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('graph.scene.floor.50')).toBeInTheDocument();
+    expect(screen.getByText('graph.scene.scaler.fsr')).toBeInTheDocument();
+    expect(screen.getByText('graph.scene.smoothing.fast')).toBeInTheDocument();
+  });
+
+  it('shows the display rate, automatic resolution down to a third, AMD FSR and best smoothing to start with', () => {
     render(<ScenePerformanceMenu />);
     expect(
       screen.getByText('graph.scene.frameRate.display'),
@@ -57,7 +97,7 @@ describe('the View menu’s performance rows for Plus visualizers', () => {
     expect(screen.getByText('graph.scene.resolution.auto')).toBeInTheDocument();
     expect(screen.getByText('graph.scene.floor.35')).toBeInTheDocument();
     expect(screen.getByText('graph.scene.scaler.fsr')).toBeInTheDocument();
-    expect(screen.getByText('graph.scene.smoothing.fast')).toBeInTheDocument();
+    expect(screen.getByText('graph.scene.smoothing.best')).toBeInTheDocument();
   });
 
   it('walks the smallest size through the four floors, and says when it counts under a fixed size', () => {
@@ -132,11 +172,11 @@ describe('the View menu’s performance rows for Plus visualizers', () => {
     expect(screen.getByText('graph.scene.scaler.simple')).toBeInTheDocument();
     const smoothing = screen.getByTitle('graph.scene.smoothingHint');
     fireEvent.click(smoothing);
-    expect(readScenePerformance().smoothing).toBe('best');
-    expect(screen.getByText('graph.scene.smoothing.best')).toBeInTheDocument();
-    fireEvent.click(smoothing);
     expect(readScenePerformance().smoothing).toBe('off');
     expect(screen.getByText('graph.scene.smoothing.off')).toBeInTheDocument();
+    fireEvent.click(smoothing);
+    expect(readScenePerformance().smoothing).toBe('fast');
+    expect(screen.getByText('graph.scene.smoothing.fast')).toBeInTheDocument();
   });
 
   it('offers no graphics card row where the choice means nothing', async () => {

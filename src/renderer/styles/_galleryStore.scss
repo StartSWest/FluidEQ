@@ -1,0 +1,347 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+// The scene store's dialogs (`BuySceneDialog`, the account panel's credits):
+// a scene kept for one credit, and the packs that buy credits. On the report
+// dialog's frame and rows, so a choice in a dialog looks the same everywhere.
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// "Get · 1 credit" (`SceneGet`): the coin, then the words, on one line.
+.store-get {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.gallery-card__get {
+  flex: 0 0 auto;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+}
+
+.dialog-frame.gallery-report-dialog.store-dialog {
+  @include dialog.size(640px, 640px);
+}
+
+// What is being bought, as a receipt line: the scene's own picture, its name
+// and what owning it means, and the price at the end.
+.dialog-frame__group.store-receipt {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+}
+
+.store-receipt__top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  min-width: 0;
+}
+
+.store-receipt__picture {
+  width: 112px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: $radius-s;
+  box-shadow: 0 0 0 1px $card-edge;
+}
+
+.store-receipt__what {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.store-receipt__name {
+  flex: 1 1 8em;
+  min-width: 0;
+  overflow: hidden;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-receipt__keep {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// The price, and every credit count beside it: the coin, then the figure.
+.store-receipt__price,
+.store-pack__credits {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-primary;
+  font-weight: $weight-semibold;
+  white-space: nowrap;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    color: $secondary-light;
+  }
+}
+
+.store-receipt__price {
+  padding: 3px 9px;
+  font-size: $text-small;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  border-radius: $radius-pill;
+}
+
+.store-balance {
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-body;
+}
+
+// That the credit is spent for good: said once, in the warning colour, never
+// as an error — nothing has gone wrong.
+.store-final {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  color: $amber;
+  font-size: $text-small;
+  line-height: 1.5;
+
+  svg {
+    flex: 0 0 auto;
+    width: 14px;
+    height: 14px;
+    margin-top: 1px;
+  }
+}
+
+// One pack per row: the report dialog's row, with the price at its far end.
+.gallery-report-dialog__reason.store-pack {
+  padding-block: 13px;
+}
+
+.store-pack__what {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 2px;
+  min-width: 0;
+}
+
+.store-pack__credits {
+  font-size: $text-body;
+}
+
+.store-pack__each {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.store-pack__best {
+  padding: 1px 7px;
+  color: $secondary-light;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  @include tracking(0.04em);
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
+  border-radius: $radius-pill;
+}
+
+.store-pack__price {
+  flex: 0 0 auto;
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+// The pay button under the packs, and what happens while its page is open.
+.store-pay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px 14px;
+
+  .store-status {
+    flex: 1 1 240px;
+  }
+}
+
+.store-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+  line-height: 1.5;
+}
+
+// The credits are here: the active colour, as an installed scene says it.
+.store-status--arrived {
+  color: $active;
+
+  svg {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+  }
+}
+
+.store-status__spinner {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, $secondary-light 22%, transparent);
+  border-top-color: $secondary-light;
+  border-radius: 50%;
+  animation: store-spin 0.9s linear infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 3s;
+  }
+}
+
+@keyframes store-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// The free credits, above the packs while they are there: the coin in a lit
+// tile, what they are, and the button that takes them.
+.dialog-frame__group.store-starter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 14px;
+  background: color-mix(in srgb, $secondary-default 9%, transparent);
+  border-color: color-mix(in srgb, $secondary-light 28%, transparent);
+}
+
+.store-starter__coin {
+  display: grid;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  color: $secondary-light;
+  background: color-mix(in srgb, $secondary-default 16%, transparent);
+  border-radius: 50%;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.store-starter__text {
+  display: grid;
+  flex: 1 1 220px;
+  gap: 2px;
+  min-width: 0;
+}
+
+.store-starter__title {
+  color: $text-primary;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+}
+
+.store-starter__body {
+  color: $text-faint;
+  font-size: $text-small;
+  line-height: 1.45;
+}
+
+// The admin's "free for everyone" switch on one of FluidEQ's scenes
+// (`SceneFreeSwitch`), under the scene's actions in the inspect block's
+// shape: what it does on the left, the switch on the right.
+.gallery-scene__free-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.gallery-scene__free-text {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.gallery-scene__free-title {
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+
+// The terms over the packs (`StoreTermsDialog`): one layer above the store's
+// own dialog, and as wide as a page of text reads well.
+.gallery-dialog-backdrop.store-terms-backdrop {
+  z-index: 4200;
+}
+
+.dialog-frame.store-terms-dialog {
+  @include dialog.size(960px, 860px);
+}
+
+// "Terms and privacy", beside the fine print it belongs to.
+.store-fine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  margin: 0;
+
+  .gallery-fine {
+    margin: 0;
+  }
+}
+
+.store-fine__terms {
+  padding: 0;
+  color: $secondary-light;
+  font: inherit;
+  font-size: $text-small;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}

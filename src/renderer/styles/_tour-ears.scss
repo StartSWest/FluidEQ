@@ -1,0 +1,363 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// One band, two ears (`EarsVisual.tsx`): the graph with the left ear's curve
+// solid and the right's dashed, both in the EQ's own colour as the graph
+// draws them (the ears are told apart by line, never by hue), and the band's
+// menu beside it with Both ears and Left + right.
+
+.ears-visual {
+  display: grid;
+  width: 100%;
+  max-width: calc(#{$u} * 31);
+  gap: calc(#{$u} * 0.9);
+  @include animate(rise-in, $motion-slow);
+}
+
+// The graph, with the band's menu hanging over its top right corner.
+.ears-visual__stage {
+  position: relative;
+}
+
+.ears-visual__graph {
+  @include panel;
+
+  display: grid;
+  padding: calc(#{$u} * 0.7) calc(#{$u} * 0.8) calc(#{$u} * 0.8);
+  background: $surface-well;
+  gap: calc(#{$u} * 0.5);
+}
+
+// Room above for a raised half's numbers, below for a cut's and the axis.
+.ears-visual__plot {
+  position: relative;
+  display: block;
+  margin: calc(#{$u} * 3.2) 0 calc(#{$u} * 3);
+  aspect-ratio: 2.2;
+
+  svg {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    inset: 0;
+    overflow: visible;
+  }
+}
+
+// The frequencies along the plot's foot, under the curve's grid.
+.ears-visual__axis {
+  position: absolute;
+  right: 0;
+  bottom: calc(#{$u} * -1.1);
+  left: 0;
+  height: calc(#{$u} * 0.8);
+
+  span {
+    position: absolute;
+    left: var(--x);
+    color: $text-faint;
+    font-size: calc(#{$u} * 0.56);
+    font-variant-numeric: tabular-nums;
+    transform: translateX(-50%);
+
+    &:first-child {
+      transform: none;
+    }
+
+    &:last-child {
+      transform: translateX(-100%);
+    }
+  }
+}
+
+.ears-visual__grid {
+  stroke: rgba($edge-tint, 0.1);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.ears-visual__zero {
+  stroke: rgba($edge-tint, 0.22);
+  stroke-dasharray: 3 3;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.ears-visual__area {
+  fill: color-mix(in srgb, $secondary-default 14%, transparent);
+}
+
+.ears-visual__line {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+  filter: drop-shadow(
+    0 0 3px color-mix(in srgb, $secondary-default 70%, transparent)
+  );
+  vector-effect: non-scaling-stroke;
+}
+
+// The right ear over the left, dashed, so where the two agree the dashes lie
+// on the solid line and where they part both can be followed.
+.ears-visual__line--right {
+  stroke-dasharray: 6 5;
+  stroke-width: 2;
+}
+
+.ears-visual__band {
+  position: absolute;
+  top: var(--y);
+  left: var(--x);
+  width: 0;
+  height: 0;
+}
+
+.ears-visual__dot {
+  position: absolute;
+  width: calc(#{$u} * 0.75);
+  height: calc(#{$u} * 0.75);
+  border: 2px solid $secondary-light;
+  border-radius: 50%;
+  background: $secondary-light;
+  box-shadow:
+    0 0 0 calc(#{$u} * 0.3)
+      color-mix(in srgb, $secondary-default 26%, transparent),
+    0 0 calc(#{$u} * 0.9) $secondary-default;
+  transform: translate(-50%, -50%);
+
+  .ears-visual__band--right & {
+    background: $surface-well;
+  }
+}
+
+// The ear's letter beside the dot, up and to the outside, as the graph tags a
+// one-eared band: the left's to the left and the right's to the right, so a
+// pair standing on one spot never covers each other's letter.
+.ears-visual__tag {
+  position: absolute;
+  bottom: calc(#{$u} * 0.35);
+  display: grid;
+  min-width: calc(#{$u} * 0.95);
+  height: calc(#{$u} * 0.95);
+  place-items: center;
+  border-radius: $radius-2xs;
+  background: $secondary-light;
+  color: $surface-base;
+  font-size: calc(#{$u} * 0.58);
+  font-weight: $weight-bold;
+  line-height: 1;
+
+  .ears-visual__band--left & {
+    right: calc(#{$u} * 0.35);
+  }
+
+  .ears-visual__band--right & {
+    left: calc(#{$u} * 0.35);
+  }
+}
+
+// Its frequency and gain straight above its point, or below for a cut, as
+// the graph lays labels out.
+.ears-visual__label {
+  position: absolute;
+  bottom: calc(#{$u} * 1.5);
+  left: 0;
+  display: grid;
+  padding: calc(#{$u} * 0.16) calc(#{$u} * 0.35);
+  border: 1px solid color-mix(in srgb, $secondary-light 40%, transparent);
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $surface-panel 86%, transparent);
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.6);
+  line-height: 1.25;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  transform: translateX(-50%);
+  white-space: nowrap;
+
+  span:first-child {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  span:last-child {
+    color: $secondary-light;
+    font-weight: $weight-bold;
+  }
+
+  .is-below & {
+    top: calc(#{$u} * 0.7);
+    bottom: auto;
+  }
+}
+
+// Which line is which ear, under the plot.
+.ears-visual__key {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  color: $text-muted;
+  font-size: calc(#{$u} * 0.62);
+  gap: calc(#{$u} * 0.3) calc(#{$u} * 1.1);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(#{$u} * 0.4);
+  }
+}
+
+.ears-visual__swatch {
+  width: calc(#{$u} * 1.5);
+  height: 0;
+  border-top: 2px solid $secondary-light;
+}
+
+.ears-visual__swatch--right {
+  border-top-style: dashed;
+}
+
+// The band's own menu, its lines in the app's words, the tick on the one in
+// use moving as the band parts and joins.
+.ears-visual__menu {
+  @include panel;
+
+  position: absolute;
+  top: calc(#{$u} * 1.1);
+  right: calc(#{$u} * -1.2);
+  display: grid;
+  min-width: calc(#{$u} * 9.5);
+  padding: calc(#{$u} * 0.45);
+  border-radius: $radius-m;
+  box-shadow:
+    0 18px 44px rgba($black, 0.5),
+    0 0 32px color-mix(in srgb, $secondary-default 12%, transparent);
+  gap: calc(#{$u} * 0.1);
+}
+
+.ears-visual__subject {
+  padding: calc(#{$u} * 0.2) calc(#{$u} * 0.5) calc(#{$u} * 0.3);
+  color: $text-faint;
+  font-size: calc(#{$u} * 0.58);
+  font-weight: $weight-bold;
+  @include tracking(0.06em);
+  font-variant-numeric: tabular-nums;
+}
+
+.ears-visual__item {
+  display: flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.3) calc(#{$u} * 0.5);
+  border-radius: $radius-xs;
+  color: $text-primary;
+  font-size: calc(#{$u} * 0.68);
+  gap: calc(#{$u} * 0.45);
+  transition:
+    background-color $motion-base $ease-out,
+    color $motion-base $ease-out;
+  white-space: nowrap;
+
+  &.is-on {
+    background: color-mix(in srgb, $secondary-default 18%, transparent);
+  }
+}
+
+.ears-visual__icon {
+  width: calc(#{$u} * 0.75);
+  height: calc(#{$u} * 0.75);
+  flex: 0 0 auto;
+  color: $text-muted;
+}
+
+.ears-visual__tick {
+  color: $secondary-light;
+  opacity: 0;
+  transition: opacity $motion-base $ease-out;
+
+  .is-on & {
+    opacity: 1;
+  }
+}
+
+.ears-visual__rule {
+  height: 1px;
+  margin: calc(#{$u} * 0.25) calc(#{$u} * 0.3);
+  background: $border-subtle;
+}
+
+// Squiglink's row: Import into, the three ears with the left chosen, and
+// Apply as EQ in the filled accent. It wraps rather than clips.
+.ears-visual__import {
+  @include panel;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  padding: calc(#{$u} * 0.6) calc(#{$u} * 0.75);
+  gap: calc(#{$u} * 0.5) calc(#{$u} * 0.6);
+
+  small {
+    margin-right: auto;
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.52);
+    font-weight: $weight-bold;
+    @include tracking(0.08em);
+    text-transform: uppercase;
+  }
+}
+
+.ears-visual__ears {
+  display: inline-grid;
+  padding: 2px;
+  border: 1px solid $border-control;
+  border-radius: $radius-xs;
+  background: $surface-control;
+  grid-auto-columns: auto;
+  grid-auto-flow: column;
+
+  span {
+    padding: calc(#{$u} * 0.22) calc(#{$u} * 0.55);
+    border-radius: calc(#{$radius-xs} - 2px);
+    color: $text-muted;
+    font-size: calc(#{$u} * 0.6);
+    font-weight: $weight-semibold;
+    white-space: nowrap;
+
+    &.is-selected {
+      background: color-mix(in srgb, $secondary-default 24%, transparent);
+      box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, $secondary-default 55%, transparent);
+      color: $text-primary;
+    }
+  }
+}
+
+.ears-visual__apply {
+  display: inline-flex;
+  align-items: center;
+  padding: calc(#{$u} * 0.3) calc(#{$u} * 0.65);
+  border-radius: $radius-xs;
+  background: $secondary-default;
+  color: $surface-base;
+  font-size: calc(#{$u} * 0.62);
+  font-weight: $weight-bold;
+  gap: calc(#{$u} * 0.35);
+  white-space: nowrap;
+
+  .ears-visual__icon {
+    color: currentcolor;
+  }
+}

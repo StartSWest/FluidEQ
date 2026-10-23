@@ -1,0 +1,5 @@
+/* What macOS shows when FluidEQ asks to hear the sound the Mac plays. */
+"NSAudioCaptureUsageDescription" = "FluidEQ は Mac で再生されるサウンドにイコライザーをかけます。サウンドを処理するためだけに受け取り、何も録音しません。";
+
+/* What macOS shows when Karaoke asks for the microphone. */
+"NSMicrophoneUsageDescription" = "FluidEQ はカラオケで歌声を聴いて採点するためにマイクを使います。";

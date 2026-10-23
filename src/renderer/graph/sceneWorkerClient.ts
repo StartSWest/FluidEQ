@@ -7,6 +7,7 @@ import { reportError } from '../utils/logger';
 import type {
   ISceneDrawSize,
   ISceneFinish,
+  ISceneShownFrames,
   TSceneBuildResult,
   TSceneWorkerReply,
   TSceneWorkerRequest,
@@ -34,6 +35,8 @@ export interface ISceneDrawn {
    * it has drawn two.
    */
   intervalMs?: number;
+  /** What the worker has put on the canvas (`ISceneShownFrames`). */
+  shown?: ISceneShownFrames;
 }
 
 export interface ISceneWorkerClient {
@@ -414,6 +417,7 @@ export const createSceneWorkerClient = (
         cost: data.cost,
         skipped: data.skipped,
         intervalMs: data.intervalMs,
+        shown: data.shown,
       });
     } else if (data.kind === 'lost') {
       lost = true;

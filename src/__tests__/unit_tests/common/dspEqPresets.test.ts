@@ -105,7 +105,8 @@ describe('complete EQ factory presets', () => {
           phase: expected.phase,
           stereo: expected.stereo,
           monoBelowHz: expected.monoBelowHz,
-          oversample: expected.oversample,
+          // Off after every pick: oversampling is the listener's to switch on.
+          oversample: DSP_DEFAULTS.eq.oversample,
           subsonicHz: expected.subsonicHz,
           fuzzAmount: expected.fuzzAmount,
         },

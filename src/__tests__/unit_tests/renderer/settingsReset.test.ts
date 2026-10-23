@@ -35,7 +35,6 @@ const KEPT = [
   'fluideq.apoRestartRecommended',
   'fluideq.dsp.rackHeldForApo.v1',
   'fluideq.engineNeverRanRepairs',
-  'fluideq-mirror-mode',
   'fluideq-mirror-target-guids',
   'fluideq-mirror-volumes',
   'fluideq.karaoke.microphoneId',
@@ -45,6 +44,8 @@ const KEPT = [
   'fluideq.dsp.crossfadeCurves.v1',
   'fluideq.dsp.favouritePresets.v1',
   'fluideq.dsp.savedRooms.v1',
+  'fluideq.myCurves.v1',
+  'fluideq.dsp.stagePresets.v1',
   'fluideq.dsp.userChainPresets.v1',
   'fluideq.dsp.userPresets.v1',
   'fluideq.games.profiles.v1',
@@ -55,6 +56,9 @@ const KEPT = [
   'fluideq-rhythm-high-score',
   // Where they were.
   'fluideq.workspaceTab',
+  // Which forum topics have been read: a reset is not a reason to call
+  // every topic new again.
+  'fluideq.forum.read.v1',
   'fluideq.plusPlace',
   'fluideq.dsp.openSection',
   'fluideq.studio.workTab',
@@ -100,6 +104,8 @@ const NOT_STORED = [
   'fluideq-band-menu',
   'fluideq-clear-autoeq-selection',
   'fluideq-dsp-presets-changed',
+  'fluideq-editor-changed',
+  'fluideq-engine-update-request',
   'fluideq-game-profiles-changed',
   'fluideq-game-sounding-changed',
   'fluideq-opra-updated',
@@ -125,7 +131,11 @@ const NOT_STORED = [
   'fluideq-eq-phase.txt',
   'fluideq-eq-treble.txt',
   'fluideq-programme.txt',
+  'fluideq-room-head.txt',
+  'fluideq-source-analysis.txt',
+  'fluideq-split.txt',
   'fluideq-karaoke.json',
+  'fluideq-curves',
   'fluideq-dsp-chain',
   'fluideq-preset',
   'fluideq-maker',
@@ -221,6 +231,10 @@ describe('Reset all settings', () => {
       'fluideq.theme.player',
       'fluideq.studioGroupFold.song',
       'fluideq.sceneTint',
+      'fluideq.scenePerformance',
+      'fluideq.standardPerformance',
+      'fluideq.songSound',
+      'fluideq.singlePlayer',
       'fluideq-rainbow',
     ];
     const kept = [

@@ -23,6 +23,7 @@ import { uid } from 'uid';
 import type { IBandDesign } from './bandDesigns';
 import { DEFAULT_BAND_QUALITY, qualitiesForRack } from './bandQuality';
 import type { ITone } from './tone';
+import type { IOutputSound } from './outputSettings';
 import {
   IConvolutionProfile,
   IHeadphoneSettings,
@@ -62,9 +63,9 @@ export const MIN_GAIN = -20;
 // fifteen-band layout this app opens with.
 //
 // It is the FALLBACK now rather than the answer: a band's width belongs to
-// its rack's spacing, so the layouts and Add band take theirs from
-// `qualityForRack` and only a band with no rack to measure — or a value that
-// failed to parse — lands here. See `bandQuality.ts`.
+// its rack, so the layouts take theirs from `qualityForMainRack`, Add band
+// the rack's median, and only a band with no rack to measure — or a value
+// that failed to parse — lands here. See `bandQuality.ts`.
 export const DEFAULT_QUALITY = DEFAULT_BAND_QUALITY;
 
 export const clampGain = (gain: number) =>
@@ -356,7 +357,36 @@ export interface IFilter {
    * answer available.
    */
   isEnabled?: boolean;
+  /**
+   * The one ear this band plays on, picked in the band's menu. Absent means
+   * both, which is every band written before the choice existed. There is no
+   * output-wide switch: a band with an ear is the whole of the feature (Ivan,
+   * 2026-10-13: "something really nice and simple and not really messing
+   * with ui"). Ask through `bandChannelOf`.
+   */
+  channel?: TBandChannel;
 }
+
+/** One ear: what a band can be kept to (Ivan, 2026-10-13, "EQ per channel"). */
+export type TBandChannel = 'left' | 'right';
+
+/** Where a band plays, the absent side spelled out. */
+export type TBandSide = TBandChannel | 'both';
+
+export const BAND_CHANNELS: readonly TBandChannel[] = ['left', 'right'];
+
+export const isBandChannel = (value: unknown): value is TBandChannel =>
+  value === 'left' || value === 'right';
+
+/** Which ear `filter` plays on: one, or both. */
+export const bandChannelOf = (filter: Pick<IFilter, 'channel'>): TBandSide =>
+  filter.channel ?? 'both';
+
+/** Whether `filter` is heard on `ear`: a band on both ears is heard on each. */
+export const isBandOnChannel = (
+  filter: Pick<IFilter, 'channel'>,
+  ear: TBandChannel,
+): boolean => filter.channel === undefined || filter.channel === ear;
 
 /**
  * Whether a band contributes to what is heard.
@@ -384,6 +414,8 @@ export interface IFilterEdit {
   quality?: number;
   type?: FilterTypeEnum;
   isEnabled?: boolean;
+  /** `both` takes a band's side away, which no other value can say. */
+  channel?: TBandSide;
 }
 
 /** Provenance shown when an EQ export was imported from an external tool. */
@@ -408,7 +440,7 @@ export interface IEqCuts {
   high: number;
 }
 
-export interface IState {
+export interface IState extends IOutputSound {
   eqBandDesign?: IBandDesign;
   isEnabled: boolean;
   isAutoPreAmpOn: boolean;
@@ -416,14 +448,10 @@ export interface IState {
   eqMode?: 'normal' | 'double' | 'studio';
   curveEqMode?: 'normal' | 'double' | 'studio';
   eqBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
+  /** Main editable bands only; absent preserves the legacy shared Q setting. */
+  mainBandQ?: 'off' | 'proportional' | 'asymmetric';
   curveBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
   curveSmoothing?: 'off' | 'twelfth' | 'third';
-  /**
-   * The cuts, for every output at once. FluidEQ's own setting, like
-   * `isEnabled`: never saved into a profile, and kept when the output
-   * changes (`applyDeviceState`). Absent means both off.
-   */
-  eqCuts?: IEqCuts;
   /**
    * What the music itself measures, per frequency region. SESSION ONLY.
    *
@@ -435,6 +463,14 @@ export interface IState {
   smartHeadroomProgramme?: Array<{ frequency: number; gain: number }>;
   /** The sample peak supervisor's standing correction, in dB. Session only. */
   smartHeadroomTrimDb?: number;
+  /**
+   * The listener's own bands, Tone and preset while a song's own sound is
+   * lent to it (`main/songSoundLoan.ts`). SESSION ONLY: the state file and the
+   * output's profile are written with these in place of the song's, so a
+   * song's sound never outlives its song — not through a profile, and not
+   * through an app that ends while it plays.
+   */
+  songSoundLoan?: TSongSoundLoan;
   isGraphViewOn: boolean;
   isCaseSensitiveFs: boolean;
   /** True after Reset gains until the user edits an EQ band again. */
@@ -510,6 +546,21 @@ export interface IState {
    */
   bypassed?: TApoLayer[];
 }
+
+/**
+ * What a song's own sound replaces while it is lent: the bands and what
+ * putting bands on changes beside them, the Tone, and the preset's curve.
+ */
+export type TSongSoundLoan = Pick<
+  IState,
+  | 'filters'
+  | 'isFlat'
+  | 'eqFormat'
+  | 'graphicEq'
+  | 'eqImport'
+  | 'tone'
+  | 'voicing'
+>;
 
 /**
  * The features a chain is built from, in the order Equalizer APO applies them.
@@ -758,7 +809,10 @@ const DEFAULT_FILTER_TEMPLATE = {
 
 export const getDefaultFilterWithId = (): IFilter => {
   return {
-    id: uid(8),
+    // Never all digits: uid's hex is decimal one time in forty, and an
+    // integer-like key is listed first by every Object.values, which read a
+    // curve file's bands back out of order (CI, 2026-10-21).
+    id: `b${uid(8)}`,
     ...DEFAULT_FILTER_TEMPLATE,
   };
 };
@@ -780,11 +834,11 @@ export const getDefaultFilters = (
   size: FixedBandSizeEnum = FixedBandSizeEnum.FIFTEEN,
 ): IFiltersMap => {
   const filters: IFiltersMap = {};
-  // Each band its own width, from the distance to the bands either side of
-  // it: a thirty-one-band layout at the fifteen-band's Q is three bands
-  // playing every note, a six-band at it leaves holes nothing can reach, and
-  // the twenty-band is close-spaced at both ends and wide through the middle,
-  // so one number cannot serve it. See `bandQuality.ts`.
+  // One Q for the whole layout, from its span and its count: a
+  // thirty-one-band layout at the fifteen-band's Q is three bands playing
+  // every note, and a six-band at it leaves holes nothing can reach. One
+  // number across a layout rather than a width per band, so every band of it
+  // moves the same way (`bandQuality.ts`).
   const widths = qualitiesForRack(FIXED_BAND_FREQUENCIES[size]);
   FIXED_BAND_FREQUENCIES[size].forEach((f, at) => {
     const filter: IFilter = {

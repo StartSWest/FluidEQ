@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { type IBandDesign } from './bandDesigns';
 import { type ITone } from './tone';
+import type { IOutputSound } from './outputSettings';
 import type {
   AutoEqFormat,
   IApoLayerOverride,
@@ -128,7 +129,7 @@ export interface IPresetV1 {
   filters: IFilter[];
 }
 
-export interface IPresetV2 {
+export interface IPresetV2 extends IOutputSound {
   eqBandDesign?: IBandDesign;
   preAmp: number;
   filters: IFiltersMap;
@@ -136,6 +137,7 @@ export interface IPresetV2 {
   eqMode?: 'normal' | 'double' | 'studio';
   curveEqMode?: 'normal' | 'double' | 'studio';
   eqBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
+  mainBandQ?: 'off' | 'proportional' | 'asymmetric';
   curveBandQ?: 'off' | 'fixed' | 'constant' | 'proportional' | 'asymmetric';
   curveSmoothing?: 'off' | 'twelfth' | 'third';
   eqFormat?: AutoEqFormat;
@@ -267,6 +269,14 @@ export interface IAudioDevice {
    * Windows did not say.
    */
   channels?: number;
+  /**
+   * The battery left in the device this output belongs to, 0–100, as it
+   * reported it to Windows: a Bluetooth headset, speaker or earbuds that
+   * sends one — the number on Windows' own Bluetooth page. Missing or `null`
+   * for everything else, a 2.4 GHz dongle included: its battery stays
+   * between the headset and its maker's software, and Windows never sees it.
+   */
+  batteryPercent?: number | null;
 }
 
 export interface IDeviceProfileAssignment {

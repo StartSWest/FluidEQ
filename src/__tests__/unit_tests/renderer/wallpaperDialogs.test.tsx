@@ -45,6 +45,7 @@ jest.mock('../../../renderer/graph/lookThumbnails', () => ({
 }));
 jest.mock('../../../renderer/utils/graphOverlaySettings', () => ({
   getWatchedGraphWave: () => ({ height: 0.75, position: 0.1 }),
+  MIN_GRAPH_WAVE_HEIGHT: 0.05,
 }));
 // The Plus visualizer the graph shows, or none while it shows a free look.
 let mockGraphLookId: string | undefined = 'premium:alpine';
@@ -145,6 +146,52 @@ describe('choosing how a background moves', () => {
         wave: { height: 0.2, position: 0.9 },
         motion: 'music',
       }),
+    );
+  });
+
+  it('tunes the wave right there: its height and position are what the background is set with', () => {
+    withScreens([]);
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    const height = screen.getByRole('slider', { name: 'Wave height' });
+    const position = screen.getByRole('slider', { name: 'Wave position' });
+    // Opening on the graph's wave, as before there were sliders here.
+    expect(height).toHaveValue('75');
+    expect(position).toHaveValue('10');
+
+    fireEvent.change(height, { target: { value: '40' } });
+    fireEvent.change(position, { target: { value: '30' } });
+    expect(screen.getByText('40%')).toBeInTheDocument();
+    expect(screen.getByText('30%')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(startWallpaper).toHaveBeenCalledWith(
+      expect.objectContaining({ wave: { height: 0.4, position: 0.3 } }),
+    );
+  });
+
+  it('lands the height on a quarter, a half or three quarters when the hand passes close', () => {
+    withScreens([]);
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    fireEvent.change(screen.getByRole('slider', { name: 'Wave height' }), {
+      target: { value: '52' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(startWallpaper).toHaveBeenCalledWith(
+      expect.objectContaining({ wave: { height: 0.5, position: 0.1 } }),
+    );
+  });
+
+  it('opens on the wave a monitor already plays this visualizer with', () => {
+    withScreens([showing(3)]);
+    render(<WallpaperDialog lookId="premium:aurora" onClose={jest.fn()} />);
+    expect(screen.getByRole('slider', { name: 'Wave height' })).toHaveValue(
+      '40',
+    );
+    expect(screen.getByRole('slider', { name: 'Wave position' })).toHaveValue(
+      '65',
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Set background' }));
+    expect(startWallpaper).toHaveBeenCalledWith(
+      expect.objectContaining({ wave: { height: 0.4, position: 0.65 } }),
     );
   });
 

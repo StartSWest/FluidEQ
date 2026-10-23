@@ -5,9 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The two decisions the desktop helper takes on its own: whether the window in
+ * The decisions the desktop helper takes on its own: whether the window in
  * front covers a monitor (the background then pauses for a full-screen app),
- * and whether a background already sits between the icons and the backdrop.
+ * whether FluidEQ's own window is what covers it, and whether a background
+ * already sits between the icons and the backdrop.
  *
  * The second one had a bug worth pinning. Each monitor has its own background
  * window between the same two shell windows, and a helper that demanded the
@@ -84,6 +85,46 @@ void nothing_of_the_desktop_in_sight() {
   CHECK(!hidden_by(RECT{0, 0, 0, 0}, {RECT{0, 0, 2560, 1392}}));
 }
 
+/**
+ * `cover_of` over two lists: every covering window, and the same with the
+ * owner's own left out, as the helper's walk splits them.
+ */
+wallpaper::Cover cover_by(const RECT& work, std::initializer_list<RECT> owner,
+                          std::initializer_list<RECT> others) {
+  RECT all[16]{};
+  RECT rest[16]{};
+  int count = 0;
+  int rest_count = 0;
+  for (const RECT& window : owner) all[count++] = window;
+  for (const RECT& window : others) {
+    all[count++] = window;
+    rest[rest_count++] = window;
+  }
+  return wallpaper::cover_of(work, all, count, rest, rest_count);
+}
+
+void what_keeps_the_desktop_out_of_sight() {
+  std::printf("whether the owner's own window is what covers a monitor\n");
+  using wallpaper::Cover;
+  const RECT work{0, 0, 2560, 1392};
+  const RECT maximised{-8, -8, 2568, 1400};
+  // FluidEQ maximised over a desk of smaller windows: minimising it brings
+  // the desktop back, so the app keeps listening through this pause.
+  CHECK(cover_by(work, {maximised}, {RECT{100, 100, 900, 700}}) ==
+        Cover::owner);
+  // Another program maximised behind it: minimising FluidEQ shows that
+  // program, not the desktop.
+  CHECK(cover_by(work, {maximised}, {maximised}) == Cover::others);
+  // Another program alone.
+  CHECK(cover_by(work, {}, {maximised}) == Cover::others);
+  // Half each: the owner's half is what the desktop would come back through.
+  CHECK(cover_by(work, {RECT{0, 0, 1280, 1392}}, {RECT{1280, 0, 2560, 1392}}) ==
+        Cover::owner);
+  // Nothing covers it, whoever owns the windows on it.
+  CHECK(cover_by(work, {RECT{0, 0, 1280, 1392}}, {}) == Cover::none);
+  CHECK(cover_by(work, {}, {}) == Cover::none);
+}
+
 HWND child(HWND parent) {
   return CreateWindowExW(0, kClass, L"", WS_CHILD, 0, 0, 10, 10, parent,
                          nullptr, GetModuleHandleW(nullptr), nullptr);
@@ -146,6 +187,7 @@ void between_the_icons_and_the_backdrop() {
 int main() {
   covering_a_monitor();
   nothing_of_the_desktop_in_sight();
+  what_keeps_the_desktop_out_of_sight();
   between_the_icons_and_the_backdrop();
   if (g_failures != 0) {
     std::printf("%d check(s) failed\n", g_failures);

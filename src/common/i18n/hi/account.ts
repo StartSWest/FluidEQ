@@ -11,7 +11,7 @@ const account = {
   'account.close': 'बंद करें',
 
   'account.optional':
-    'साइन इन करना वैकल्पिक है। बिना खाते के भी FluidEQ हमेशा की तरह ही काम करता है — सब कुछ इसी मशीन पर चलता है और कुछ भी ट्रैक नहीं होता। खाता केवल उन हिस्सों के लिए है जिन्हें सच में इसकी ज़रूरत है।',
+    'साइन इन करना वैकल्पिक है। बिना खाते के FluidEQ हमेशा की तरह ही काम करता है — सब कुछ इसी मशीन पर चलता है और कुछ भी ट्रैक नहीं होता। खाते के साथ, जब तक आप इसे बंद न करें, आप कितनी देर सुनते हैं यह FluidEQ के आँकड़ों के लिए गिना जाता है। खाता केवल उन हिस्सों के लिए है जिन्हें सच में इसकी ज़रूरत है।',
 
   'account.signIn': 'साइन इन',
   'account.signUp': 'खाता बनाएँ',
@@ -20,16 +20,16 @@ const account = {
   'account.signUpHint':
     'उस पते पर छह अंकों का कोड जाएगा। पूरा करने के लिए उसे यहाँ लिखें।',
   'account.working': 'एक क्षण…',
-  'account.standing.free': 'मुफ़्त खाता',
   'account.signOut': 'साइन आउट',
   'account.signOut.confirm': 'इस खाते से साइन आउट करें?',
   'account.signOut.detail': 'आप कभी भी फिर से साइन इन कर सकते हैं।',
-  'account.signOut.detailPlus': 'फिर से साइन इन करने तक Plus यहाँ लॉक रहेगा।',
+  'account.signOut.detailPlus':
+    'जब तक आप फिर से साइन इन नहीं करते, आपके सीन यहाँ लॉक रहते हैं।',
   'account.signOut.kept': 'इस कंप्यूटर से कुछ भी नहीं हटाया जाता।',
   'account.name.change': 'नाम बदलें',
   'account.name.changeTitle': 'बदलें कि आप कैसे दिखते हैं',
   'account.name.changeBody':
-    'लीडरबोर्ड और आपकी प्रकाशित सीन पर आपका हैंडल और नाम। वे हर जगह एक साथ बदलते हैं; आपका ईमेल निजी रहता है।',
+    'आपकी प्रकाशित सीन पर आपका हैंडल और नाम। वे हर जगह एक साथ बदलते हैं; आपका ईमेल निजी रहता है।',
   'account.name.cancel': 'रद्द करें',
   'account.backToSignIn': 'साइन इन पर वापस',
 
@@ -69,7 +69,7 @@ const account = {
   'account.error.expired':
     'यह साइन इन अब मान्य नहीं है। कृपया फिर साइन इन करें।',
   'account.error.signedOutElsewhere':
-    'इस कंप्यूटर से साइन आउट हो गया, क्योंकि आपके खाते ने किसी दूसरे कंप्यूटर पर साइन इन किया। Plus एक साथ ज़्यादा से ज़्यादा 5 कंप्यूटरों पर चलता है: यहाँ इस्तेमाल करने के लिए फिर से साइन इन करें, तब सबसे लंबे समय से इस्तेमाल न हुए कंप्यूटर से साइन आउट हो जाएगा।',
+    'इस कंप्यूटर से साइन आउट हो गया क्योंकि आपका खाता दूसरे कंप्यूटर पर साइन इन हुआ। एक खाता एक साथ अधिकतम 5 कंप्यूटरों पर साइन इन रहता है: यहाँ इस्तेमाल करने के लिए फिर से साइन इन करें, और उसकी जगह सबसे पहले इस्तेमाल हुआ कंप्यूटर साइन आउट हो जाएगा।',
   'account.error.malformed':
     'खाता सेवा ने ऐसा कुछ भेजा जिसे FluidEQ पढ़ नहीं सका।',
   'account.error.wrongCredentials': 'ईमेल या पासवर्ड गलत है।',
@@ -86,80 +86,22 @@ const account = {
     'इस पते से पहले से एक खाता है। इसके बजाय साइन इन करें।',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.pitch':
-    'ऐसे प्रीमियम विज़ुअलाइज़र जो और कहीं नहीं, अपने सीन बनाने के लिए स्टूडियो, लीडरबोर्ड — और अब से हर नई सुविधा, पहले सदस्यों के लिए। इक्वलाइज़र, रैक और प्लेयर हमेशा की तरह मुफ़्त ही रहेंगे।',
-  'account.plus.upgrade': 'Plus में अपग्रेड करें',
-  'account.plus.opening': 'खोल रहे हैं…',
-  'account.plus.checkoutHint':
-    'आपके ब्राउज़र में Buy Me a Coffee खुलेगा। इसी खाते वाले ईमेल से भुगतान करें ताकि FluidEQ उसे पहचान सके; ऐप कभी आपका कार्ड नहीं देखता।',
-  'account.plus.active': 'सक्रिय',
-  'account.plus.ending': 'नवीनीकरण नहीं',
-  'account.plus.renews': '{date} को नवीनीकरण',
-  'account.plus.sorry': 'आपका जाना अच्छा नहीं लगा।',
-  'account.plus.until':
-    '{date} तक Plus चालू रहेगा, और इसके बाद कोई शुल्क नहीं।',
-  'account.plus.gift': 'FluidEQ की ओर से उपहार',
-  'account.plus.giftUntil': 'FluidEQ की ओर से उपहार, {date} तक',
-  'account.plus.computers': 'एक साथ अधिकतम {count} कंप्यूटरों पर साइन इन।',
-  'account.plus.manage': 'सदस्यता प्रबंधित करें',
-  'account.plus.grace':
-    'आपकी सदस्यता की पुष्टि नहीं हो सकी। यह {date} तक चालू रहेगी — इसे बनाए रखने के लिए उससे पहले इंटरनेट से जुड़ें।',
-  'account.plus.checkAgain': 'फिर जाँचें',
-  'account.plus.perMonth': '{price} / माह',
-  'account.plus.perYear': '{price} / वर्ष',
-  'account.plus.priceChoice': '{monthly} या {yearly}',
-  'account.plus.checkoutOpened':
-    'Buy Me a Coffee आपके ब्राउज़र में खुला है। भुगतान के बाद यहाँ लौटें, और Plus चालू हो जाएगा।',
-  'account.plus.error.rejected':
-    'भुगतान पेज नहीं खुल सका। थोड़ी देर में फिर कोशिश करें।',
 
-  'account.dev.label': 'डेवलपमेंट',
-  'account.dev.start': 'भुगतान का अनुकरण करें',
-  'account.dev.cancel': 'रद्द करने का अनुकरण करें',
-  'account.dev.working': 'भेजा जा रहा है…',
-
-  'account.perk.looks': 'ग्राफ़िक्स कार्ड पर बनने वाले Plus रूप।',
+  'account.perk.looks': 'हमेशा के लिए आपके सीन, हर एक एक क्रेडिट का।',
   'account.perk.visualizers':
     'विज़ुअलाइज़र: सदस्यों के बनाए सीन, हर खाते के लिए खुले।',
-  'account.perk.board': 'सबसे ज़्यादा सुनने वालों का लीडरबोर्ड।',
-  // What publishing earns: one approved scene a month keeps Plus free
-  // (server migration 0041). Months earned while a paid membership runs
-  // wait for it to end; nothing here changes what anybody pays.
-  'account.maker.title': 'मेकर का महीना',
-  'account.maker.badge': 'मुफ़्त',
-  'account.maker.until': '{date} तक Plus मुफ़्त है।',
-  'account.maker.endsDays':
-    '{days} दिनों में खत्म — उससे पहले एक सीन प्रकाशित करें और यह चलता रहेगा।',
-  'account.maker.endsToday':
-    'आज खत्म हो रहा है — इसे बनाए रखने के लिए एक सीन प्रकाशित करें।',
-  'account.maker.endsTomorrow':
-    'कल खत्म — उससे पहले एक सीन प्रकाशित करें और यह चलता रहेगा।',
-  'account.maker.keep': 'इस महीने एक सीन प्रकाशित करें, अगला महीना मुफ़्त है।',
-  'account.maker.kept':
-    'इस महीने का सीन आ गया। अगले महीने फिर से प्रकाशित करें और चलता रहेगा।',
-  'account.maker.again': 'एक सीन प्रकाशित करें और फिर से एक महीना Plus मुफ़्त।',
-  'account.maker.againWaiting':
-    'एक सीन प्रकाशित करें और एक और मुफ़्त महीना कतार में जुड़ जाएगा।',
-  'account.maker.invite':
-    'स्टूडियो में एक सीन बनाएँ: महीने में एक मंज़ूर सीन Plus को मुफ़्त रखता है।',
-  'account.maker.waitingOne':
-    'कमाया हुआ एक महीना इंतज़ार में है। यह आपकी सदस्यता खत्म होने पर शुरू होगा — इससे आपका भुगतान नहीं बदलता।',
-  'account.maker.waitingMany':
-    'कमाए हुए {count} महीने इंतज़ार में हैं। ये आपकी सदस्यता खत्म होने पर शुरू होंगे — इससे आपका भुगतान नहीं बदलता।',
-  // The week before an earned month runs out, and the day it does: an
-  // earned month renews itself no more than a gift does, so it has to be
-  // said out loud rather than simply stop.
-  'account.maker.notice.endingTitle':
-    'आपका मुफ़्त Plus {days} दिनों में खत्म हो रहा है',
-  'account.maker.notice.endingToday': 'आपका मुफ़्त Plus आज खत्म हो रहा है',
-  'account.maker.notice.endingTomorrow': 'आपका मुफ़्त Plus कल खत्म हो रहा है',
-  'account.maker.notice.endingBody':
-    'उससे पहले एक सीन प्रकाशित करें और अगला महीना भी मुफ़्त है। किसी भी हाल में कोई शुल्क नहीं लगता।',
-  'account.maker.notice.endedTitle': 'आपका मुफ़्त Plus खत्म हो गया',
-  'account.maker.notice.endedBody':
-    'एक सीन प्रकाशित करें और यह फिर से शुरू हो जाएगा। आपने जो खरीदा है वह आपका ही रहता है।',
-  'account.maker.notice.open': 'स्टूडियो खोलें',
-  'account.maker.notice.later': 'अभी नहीं',
+  // Signing in with Google, in the browser (main/account/googleSignIn.ts).
+  'account.google': 'Google के साथ जारी रखें',
+  'account.or': 'या',
+  'account.google.waiting': 'अपने ब्राउज़र में Google से साइन इन पूरा करें।',
+  'account.google.cancel': 'रद्द करें',
+  'account.error.googleUnfinished':
+    'Google से साइन इन पूरा नहीं हुआ। फिर से कोशिश करें या अपने ईमेल से साइन इन करें।',
+  'account.google.doneTitle': 'आप साइन इन हो गए हैं',
+  'account.google.doneBody': 'आप यह टैब बंद करके FluidEQ पर लौट सकते हैं।',
+  'account.google.failedTitle': 'साइन इन पूरा नहीं हुआ',
+  'account.google.failedBody':
+    'फिर से कोशिश करने के लिए FluidEQ पर लौटें, या अपने ईमेल से साइन इन करें।',
 } as const;
 
 export default account;

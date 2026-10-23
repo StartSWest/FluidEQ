@@ -1,13 +1,16 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import {
+  loadLocale,
+  resolveLocale,
+  translate,
+  type LocaleCode,
+} from '../../common/i18n';
 import {
   ACCOUNT_CONFIG,
   isAccountConfigured,
-  isCheckoutConfigured,
 } from '../../common/accountConfig';
-import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
 import { createAccountCredentialStore } from '../accountCredentials';
 import { createEncryptedJsonStore } from '../encryptedJsonStore';
-import openExternalIfSafe from '../safeExternal';
 import { setClientAgent } from '../account/clientAgent';
 import { appVersion } from '../appVersion';
 import {
@@ -15,17 +18,14 @@ import {
   type IAccountSession,
   type IAccountState,
 } from '../account/session';
+import { oauthPage, type IOAuthPages } from '../account/oauthLoopback';
 import {
   createEntitlement,
   isEntitlementRecord,
   type IEntitlement,
   type IEntitlementStatus,
 } from '../account/entitlement';
-import {
-  BillingError,
-  createBillingClient,
-  type TBillingFailure,
-} from '../account/billingClient';
+import { createBillingClient } from '../account/billingClient';
 import {
   CODE_LENGTH,
   EMAIL_SHAPE,
@@ -35,10 +35,6 @@ import {
   MAX_PASSWORD_LENGTH,
   MAX_NAME_LENGTH,
 } from '../../common/accountRules';
-import {
-  createMembershipSimulator,
-  type IMembershipSimulator,
-} from '../account/membershipSimulator';
 
 /**
  * The account and its subscription, as the renderer sees them.
@@ -62,12 +58,6 @@ export interface IAccountIpcDeps {
   logger?: { info(message: string): void; warn(message: string): void };
   /** Development only; see `IEntitlementOptions.developmentOverride`. */
   developmentEntitlement?: IEntitlementStatus;
-  /**
-   * Development only: lets the Account panel ask the server to send the
-   * merchant's own events for this account. See `membershipSimulator.ts`.
-   * Never true in a packaged build.
-   */
-  developmentSimulator?: boolean;
 }
 
 export interface IAccountIpcRegistration {
@@ -82,10 +72,6 @@ export interface IAccountIpcRegistration {
   dispose: () => void;
 }
 
-/** What opening a billing page came to. `false` is "nothing to open". */
-export type TBillingOutcome =
-  { ok: true } | { ok: false; failure: TBillingFailure };
-
 const CHANNELS = [
   'account-state',
   'account-sign-up',
@@ -95,13 +81,12 @@ const CHANNELS = [
   'account-forgot-password',
   'account-reset-password',
   'account-abandon-pending',
+  'account-google-available',
+  'account-sign-in-google',
+  'account-cancel',
   'account-sign-out',
   'entitlement-status',
   'entitlement-refresh',
-  'entitlement-open-checkout',
-  'entitlement-open-portal',
-  'dev-membership-available',
-  'dev-membership-simulate',
 ] as const;
 
 const ENTITLEMENT_FILE = 'entitlement.json';
@@ -140,7 +125,6 @@ export const registerAccountIpc = ({
   userDataDir,
   logger,
   developmentEntitlement,
-  developmentSimulator = false,
 }: IAccountIpcDeps): IAccountIpcRegistration => {
   const send = (channel: string, payload: unknown) => {
     getMainWindow()?.webContents.send(channel, payload);
@@ -162,6 +146,9 @@ export const registerAccountIpc = ({
   const session = createAccountSession({
     config: ACCOUNT_CONFIG,
     store: createAccountCredentialStore(userDataDir),
+    // Google's own page, in the person's own browser: never a web view of
+    // ours, where a password typed into Google would pass through FluidEQ.
+    openExternal: (url) => shell.openExternal(url),
     onState: (state: IAccountState) => {
       send('account-state-changed', state);
       if (state.status === 'signed-out' || state.status === 'unavailable') {
@@ -286,126 +273,45 @@ export const registerAccountIpc = ({
 
   ipcMain.handle('account-abandon-pending', () => session.abandonPending());
 
+  ipcMain.handle('account-google-available', () =>
+    configured() ? session.googleAvailable() : false,
+  );
+
+  // The browser tab's last page, in the window's language.
+  const googlePages = async (tag: unknown): Promise<IOAuthPages> => {
+    const locale: LocaleCode = resolveLocale(
+      typeof tag === 'string' ? tag : undefined,
+    );
+    await loadLocale(locale).catch(() => undefined);
+    const say = (key: Parameters<typeof translate>[1]) =>
+      translate(locale, key);
+    return {
+      done: oauthPage(
+        locale,
+        say('account.google.doneTitle'),
+        say('account.google.doneBody'),
+      ),
+      failed: oauthPage(
+        locale,
+        say('account.google.failedTitle'),
+        say('account.google.failedBody'),
+      ),
+    };
+  };
+
+  ipcMain.handle('account-sign-in-google', async (_event, locale: unknown) =>
+    configured()
+      ? session.signInWithGoogle(await googlePages(locale))
+      : refused(),
+  );
+
+  ipcMain.handle('account-cancel', () => session.cancel());
+
   ipcMain.handle('account-sign-out', () => session.signOut());
 
   ipcMain.handle('entitlement-status', () => entitled.status());
 
   ipcMain.handle('entitlement-refresh', () => entitled.checkNow());
-
-  /**
-   * Both billing pages are minted by the server for this account and opened
-   * in the system browser. The renderer never sees the URL — there is money
-   * on the other end of it.
-   */
-  const openBillingPage = async (
-    mint: (accessToken: string) => Promise<string>,
-  ): Promise<TBillingOutcome> => {
-    let token: string;
-    try {
-      token = await session.accessToken();
-    } catch {
-      return { ok: false, failure: 'signed_out' };
-    }
-    try {
-      const url = await mint(token);
-      if (!openExternalIfSafe(url)) {
-        return { ok: false, failure: 'rejected' };
-      }
-      // They are at the merchant now. Whatever they do there — pay, or stop
-      // paying — reaches the server and never this machine, so the window
-      // coming back is the only news the app will get, and it must be
-      // believed rather than judged recent enough to skip.
-      entitled.expectChange();
-      return { ok: true };
-    } catch (error) {
-      logger?.warn(`Billing page could not be opened: ${error}`);
-      return {
-        ok: false,
-        failure: error instanceof BillingError ? error.failure : 'network',
-      };
-    }
-  };
-
-  // The renderer names the terms version it showed and the person agreed to.
-  // Anything but the current one is refused here, before the server is asked:
-  // a checkout is never opened on an agreement to text this build does not
-  // carry.
-  ipcMain.handle(
-    'entitlement-open-checkout',
-    (_event, termsVersion: unknown): Promise<TBillingOutcome> => {
-      if (!isCheckoutConfigured() || session.state().status !== 'signed-in') {
-        return Promise.resolve({ ok: false, failure: 'signed_out' });
-      }
-      if (termsVersion !== PLUS_TERMS_VERSION) {
-        return Promise.resolve({ ok: false, failure: 'terms_outdated' });
-      }
-      return openBillingPage((token) =>
-        billing.checkoutUrl(token, PLUS_TERMS_VERSION),
-      );
-    },
-  );
-
-  ipcMain.handle('entitlement-open-portal', (): Promise<TBillingOutcome> => {
-    if (session.state().status !== 'signed-in') {
-      return Promise.resolve({ ok: false, failure: 'signed_out' });
-    }
-    return openBillingPage((token) => billing.portalUrl(token));
-  });
-
-  /**
-   * The pretend membership, development only. Exists as a handler in every
-   * build so the renderer can ask; answers "not available" in every packaged
-   * build and in every checkout without a backend.
-   */
-  const simulator: IMembershipSimulator | undefined =
-    developmentSimulator && isAccountConfigured()
-      ? createMembershipSimulator({ config: ACCOUNT_CONFIG, logger })
-      : undefined;
-
-  ipcMain.handle('dev-membership-available', () => simulator !== undefined);
-
-  ipcMain.handle(
-    'dev-membership-simulate',
-    async (_event, simulation: unknown): Promise<TBillingOutcome> => {
-      if (
-        !simulator ||
-        (simulation !== 'started' && simulation !== 'cancelled') ||
-        session.state().status !== 'signed-in'
-      ) {
-        return { ok: false, failure: 'signed_out' };
-      }
-      let token: string;
-      try {
-        token = await session.accessToken();
-      } catch {
-        return { ok: false, failure: 'signed_out' };
-      }
-      try {
-        await simulator.send(token, simulation);
-      } catch (error) {
-        logger?.warn(`Pretend membership failed: ${error}`);
-        return {
-          ok: false,
-          failure: error instanceof BillingError ? error.failure : 'network',
-        };
-      }
-      // The webhook has written the row; read it back exactly the way a real
-      // payment is read back. A window started with FLUIDEQ_DEV_ENTITLED=1
-      // stops pinning Plus on first, or the server's answer would never
-      // reach the screen.
-      entitled.releaseDevelopmentOverride();
-      // The same sentence the merchant's own page gets (`openBillingPage`):
-      // the answer is about to change, so nothing may decide a check is too
-      // recent to bother with. Without it, a read that began before the
-      // webhook landed — one already in flight — answered this one with the
-      // old row, and the membership then sat unnoticed until the four-hour
-      // staleness gate opened. Pretending a payment has to walk the path a
-      // real one walks, or it tests something nobody ships.
-      entitled.expectChange();
-      await entitled.checkNow();
-      return { ok: true };
-    },
-  );
 
   // Launch counts as an event: a session restored from disk is a person who
   // will open the app and expect the answer to already be there. "Launch" is

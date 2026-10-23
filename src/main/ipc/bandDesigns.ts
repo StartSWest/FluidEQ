@@ -2,6 +2,7 @@ import log from 'electron-log';
 import { uid } from 'uid';
 import ChannelEnum from '../../common/channels';
 import { ErrorCode } from '../../common/errors';
+import { getMainBandQ } from '../../common/eqMode';
 import {
   cloneBandDesign,
   filtersFromBandDesign,
@@ -18,11 +19,7 @@ import onWindowMessage from './windowMessages';
 
 interface IBandDesignDeps extends Pick<
   IFiltersIpcDeps,
-  | 'state'
-  | 'handleUpdateHelper'
-  | 'handleError'
-  | 'switchToParametricEditing'
-  | 'captureCurrentLayout'
+  'state' | 'handleUpdateHelper' | 'handleError' | 'switchToParametricEditing'
 > {
   userDataDir: string;
 }
@@ -33,7 +30,6 @@ const registerBandDesignsIpc = ({
   handleUpdateHelper,
   handleError,
   switchToParametricEditing,
-  captureCurrentLayout,
 }: IBandDesignDeps) => {
   onWindowMessage(ChannelEnum.GET_BAND_DESIGNS, (event) => {
     try {
@@ -70,6 +66,7 @@ const registerBandDesignsIpc = ({
           id: id ?? uid(),
           name: name.trim(),
           bands: snapshotBandDesign(state.filters),
+          bandQ: getMainBandQ(state),
         };
         writeBandDesign(userDataDir, design);
         state.eqBandDesign = cloneBandDesign(design);
@@ -115,11 +112,13 @@ const registerBandDesignsIpc = ({
           handleError(event, channel, ErrorCode.INVALID_PARAMETER);
           return;
         }
-        captureCurrentLayout();
         switchToParametricEditing();
         state.filters = filtersFromBandDesign(design);
         state.eqBandDesign = cloneBandDesign(design);
         state.eqImport = undefined;
+        if (design.bandQ !== undefined) {
+          state.mainBandQ = design.bandQ;
+        }
         state.isFlat = false;
         await handleUpdateHelper(event, channel, design, false, true);
       } catch (error) {

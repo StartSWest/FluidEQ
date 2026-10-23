@@ -4,6 +4,17 @@ const forum = {
   'forum.source': 'GitHub Discussions',
   'forum.allTopics': 'Todos los temas',
   'forum.allTopics.blurb': 'Todas las categorías, lo más reciente primero',
+  'forum.new': 'Nuevo para ti',
+  'forum.new.blurb': 'Lo que llegó desde la última vez',
+  'forum.new.countLabel': 'Nuevos: {count}',
+  'forum.new.markAllRead': 'Marcar todo como leído',
+  'forum.news.hide': 'Desactivar los avisos del Foro',
+  'forum.news.show': 'Activar los avisos del Foro',
+  'forum.new.empty': 'Estás al día',
+  'forum.new.emptyHint':
+    'Los temas y respuestas nuevos aparecen aquí hasta que los abres.',
+  'forum.topic.new': 'Nuevo',
+  'forum.thread.newReplies': 'Nuevas: {count}',
 
   'forum.board.announcements': 'Anuncios',
   'forum.board.general': 'General',
@@ -17,6 +28,15 @@ const forum = {
   'forum.boardDescription.polls': 'Vota qué viene después',
   'forum.boardDescription.qa': 'Pregunta y marca la respuesta que funcionó',
   'forum.boardDescription.showAndTell': 'Un ajuste del que estés orgulloso',
+  'forum.board.issues': 'Incidencias',
+  'forum.boardDescription.issues':
+    'Problemas reportados en GitHub y en qué punto está cada uno',
+  'forum.issue.open': 'Abierta',
+  'forum.issue.closed': 'Cerrada',
+  'forum.issue.newOnGithub': 'Nueva incidencia en GitHub',
+  'forum.issue.commentHint':
+    'Los comentarios de una incidencia se escriben en GitHub.',
+  'forum.issue.commentOnGithub': 'Comentar en GitHub',
   'forum.board.countLabel': 'Temas: {count}',
 
   'forum.me.signedOutTitle': 'Únete a la conversación',

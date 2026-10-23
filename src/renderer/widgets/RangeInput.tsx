@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   ChangeEvent,
+  KeyboardEvent,
+  PointerEvent,
   WheelEvent,
   CSSProperties,
   useEffect,
@@ -30,37 +32,45 @@ import '../styles/RangeInput.scss';
 import { clamp } from '../utils/utils';
 import { getBandColor } from '../utils/bandColors';
 import { useRainbowStops } from '../utils/rainbowPalette';
+import rangeKeyValue from './rangeKeyValue';
 
 /** How close to 0 a drag has to come, in pixels of the track, to land on it. */
 const ZERO_DETENT_PX = 4;
 
 interface IRangeInputProps {
   name: string;
+  /** What assistive tech calls it, and its arrows; `name` when omitted. */
+  ariaLabel?: string;
   value: number;
   min: number;
   max: number;
   isDisabled: boolean;
+  isReadOnly?: boolean;
   incrementPrecision?: number;
   displayPrecision?: number;
   height: string;
   handleChange: (newValue: number) => Promise<void>;
   handleMouseUp: (newValue: number) => Promise<void>;
   handleDragStart?: () => void;
+  onKeyboardSelect?: (event: KeyboardEvent<HTMLInputElement>) => void;
   colorProgress?: number;
 }
 
 const RangeInput = ({
   name,
+  ariaLabel = name,
   value,
   min,
   max,
   isDisabled,
+  isReadOnly = false,
   incrementPrecision = 0,
   displayPrecision = 1,
   height,
   handleChange,
   handleMouseUp,
   handleDragStart,
+  onKeyboardSelect,
   colorProgress = 0,
 }: IRangeInputProps) => {
   // Store a copy of the last value so it isn't lost to the throttle
@@ -71,16 +81,14 @@ const RangeInput = ({
 
   // The thumb follows the pointer, not the store.
   //
-  // `value` is the band's gain in the app state, and the state is fed by a
-  // throttled dispatch — the parent sends at most one update per hundred
-  // milliseconds so that thirty-one bands and the response graph are not
-  // re-rendered on every pointer event. Rendering the thumb from `value`
-  // alone therefore moved it in ten-per-second steps while the pointer moved
-  // smoothly, which is the whole of what a drag felt like. So during a
-  // gesture the input renders its own last position and the store catches up
-  // underneath; the draft is dropped the moment the store agrees with it, or
-  // once the gesture has ended and the store has moved at all (which is how a
-  // rejected write's rollback still reaches the thumb).
+  // `value` is the band's gain in the app state, and not every parent puts
+  // each step there: some move the store only as fast as the engine takes a
+  // write. Rendering the thumb from `value` alone moved it at that pace while
+  // the pointer moved smoothly, which is the whole of what a drag felt like.
+  // So during a gesture the input renders its own last position and the
+  // store catches up underneath; the draft is dropped the moment the store
+  // agrees with it, or once the gesture has ended and the store has moved at
+  // all (which is how a rejected write's rollback still reaches the thumb).
   const [draft, setDraft] = useState<number | undefined>(undefined);
   const clearDraftOnNextValue = useRef(false);
   useEffect(() => {
@@ -132,6 +140,9 @@ const RangeInput = ({
   };
 
   const onRangeInput = (e: ChangeEvent<HTMLInputElement>) => {
+    if (isDisabled || isReadOnly) {
+      return;
+    }
     const newValue: number = snapToZero(
       Math.round(clamp(parseFloat(e.target.value), min, max) * factor) / factor,
     );
@@ -141,13 +152,21 @@ const RangeInput = ({
   };
 
   const onArrowInput = (isIncrement: boolean) => {
+    if (isDisabled || isReadOnly) {
+      return;
+    }
     const offset = isIncrement ? increment : -increment;
     const newValue =
       Math.round(clamp(offset + value, min, max) * factor) / factor;
     handleChange(newValue);
   };
 
-  const beginGesture = () => {
+  const beginGesture = (event: PointerEvent<HTMLInputElement>) => {
+    if (isReadOnly) {
+      event.preventDefault();
+      inputRef.current?.focus({ preventScroll: true });
+      return;
+    }
     isGestureActive.current = true;
     handleDragStart?.();
   };
@@ -180,8 +199,41 @@ const RangeInput = ({
     handleMouseUp(finalValue);
   };
 
-  const onWheel = (e: WheelEvent) => {
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (isDisabled) {
+      return;
+    }
+    if (onKeyboardSelect && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      event.stopPropagation();
+      onKeyboardSelect(event);
+      return;
+    }
+    const candidate = rangeKeyValue(
+      event.key,
+      lastValue.current ?? draft ?? value,
+      increment,
+      min,
+      max,
+    );
+    if (candidate === undefined) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    if (isReadOnly) {
+      return;
+    }
+    // The native 0.01 step is for dragging. Keys use the visible arrows'
+    // step, from the latest draft so a held key cannot outrun the store.
+    const next = Math.round(clamp(candidate, min, max) * factor) / factor;
+    lastValue.current = next;
+    setDraft(next);
+    handleChange(next);
+  };
+
+  const onWheel = (e: WheelEvent) => {
+    if (isDisabled || isReadOnly) {
       return;
     }
 
@@ -196,7 +248,7 @@ const RangeInput = ({
 
   return (
     <div
-      className={`col center range${isDisabled ? ' is-disabled' : ''}`}
+      className={`col center range${isDisabled || isReadOnly ? ' is-disabled' : ''}`}
       style={
         {
           '--slider-color': rangeColor.color,
@@ -210,10 +262,11 @@ const RangeInput = ({
       }
     >
       <ArrowButton
-        name={name}
+        name={ariaLabel}
         type="up"
+        tabIndex={-1}
         handleChange={() => onArrowInput(true)}
-        isDisabled={isDisabled}
+        isDisabled={isDisabled || isReadOnly}
       />
       {/* The groove and its lit core are drawn behind the input rather than
           as its track: the core brightens with the band's own level
@@ -232,12 +285,14 @@ const RangeInput = ({
           value={rangeValue}
           step={0.01}
           name={name}
-          aria-label={name}
+          aria-label={ariaLabel}
+          aria-readonly={isReadOnly || undefined}
           onChange={onRangeInput}
           onMouseUp={endGesture}
           onPointerDown={beginGesture}
           onPointerUp={endGesture}
           onPointerCancel={endGesture}
+          onKeyDown={onKeyDown}
           onKeyUp={commitPendingValue}
           onBlur={commitPendingValue}
           onWheel={onWheel}
@@ -253,10 +308,11 @@ const RangeInput = ({
         />
       </span>
       <ArrowButton
-        name={name}
+        name={ariaLabel}
         type="down"
+        tabIndex={-1}
         handleChange={() => onArrowInput(false)}
-        isDisabled={isDisabled}
+        isDisabled={isDisabled || isReadOnly}
       />
     </div>
   );

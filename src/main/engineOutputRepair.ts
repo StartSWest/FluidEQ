@@ -26,7 +26,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * driver's installer undid is repaired by a re-install, which is what the
  * status read already does (`engineLoadRepair.ts`); this asks the same
  * question first so a move is never tried on a machine that cannot load the
- * engine anywhere.
+ * engine anywhere. Then the slot the engine is in: one with no processing
+ * mode beside it is never reached, so it gets that mode where it is before
+ * any rung below is spent (`modeMissing`).
  *
  * Bounded twice over. Each move goes to a rung this output has not been put
  * in before — the helper remembers every one it was asked for by name — so
@@ -57,8 +59,13 @@ export type TEngineSlot = NonNullable<IFluidEngineEndpoint['slot']>;
  * one class id each are the generation below them; GFX and LFX are the two
  * values everything before Windows 8.1 read, and that some drivers still do.
  * Everything below the lists is only ever taken where nothing is registered
- * or where Windows' own effect is — the helper refuses otherwise, and that
- * refusal ends the ladder.
+ * or where Windows' own effect is — the helper refuses otherwise. It names
+ * such rungs in its status (`slotsHeld`, from its own planner) and `nextSlot`
+ * steps past them, so a held rung costs no Windows prompt; a refusal is left
+ * only for an output that changed between that status and the attach, and it
+ * still ends the ladder. Asking for a held rung used to end it every time: a
+ * 2.0.0 report's output stopped at a vendor's SFX value with GFX — what
+ * played on the same user's RME — never offered.
  *
  * The three `-single` rungs were missing until a Bluetooth headset found
  * them: Windows' own two effects sat in pids 5 and 6 with no list anywhere
@@ -117,17 +124,18 @@ const historyBehind = (current: TEngineSlot): readonly TEngineSlot[] => {
 };
 
 /**
- * The next rung nobody has tried on this output, or undefined once there is
- * none left.
+ * The next rung nobody has tried on this output and nobody else holds, or
+ * undefined once there is none left.
  *
  * `tried` is what the helper remembers for this output, oldest first.
  * Without it — a memory an older helper wrote, or an output whose slot was
  * never asked for by name — the history is taken from where the engine is
- * now.
+ * now. `held` is what the helper's planner would refuse there now.
  */
 export const nextSlot = (
   current: TEngineSlot,
   tried: readonly TEngineSlot[] = [],
+  held: readonly TEngineSlot[] = [],
 ): TEngineSlot | undefined => {
   // What the helper remembers is only what was asked for BY NAME, so the
   // rung every output starts in — chosen by the attach itself — is never in
@@ -140,7 +148,8 @@ export const nextSlot = (
       ? [...new Set([...historyBehind(tried[0]), ...tried])]
       : historyBehind(current);
   return SLOT_LADDER.find(
-    (rung) => rung !== current && !history.includes(rung),
+    (rung) =>
+      rung !== current && !history.includes(rung) && !held.includes(rung),
   );
 };
 
@@ -166,6 +175,7 @@ export interface IEngineOutputRepair {
 
 type TStep =
   | { kind: 'install'; because: string }
+  | { kind: 'mode'; slot: TEngineSlot }
   | { kind: 'move'; from: TEngineSlot; to: TEngineSlot }
   | { kind: 'nothing'; because: string };
 
@@ -193,14 +203,46 @@ export const whatToTry = (status: IAudioEngineStatus, guid: string): TStep => {
       because: 'the setup helper does not report which slot the engine is in',
     };
   }
-  const to = nextSlot(endpoint.slot, endpoint.slotsTried);
+  if (endpoint.modeMissing) {
+    // Where it is, before anywhere else: the slot has no processing mode
+    // beside it, so Windows never reaches it whatever the driver builds, and
+    // an attach into the same slot writes the one it lacks. Every helper
+    // before 2.0.1 left the single values that way — a Sound BlasterX G6
+    // sat in its EFX value, never created, while the ladder below it was
+    // all Creative's.
+    return { kind: 'mode', slot: endpoint.slot };
+  }
+  const to = nextSlot(endpoint.slot, endpoint.slotsTried, endpoint.slotsHeld);
   if (!to) {
+    const held = endpoint.slotsHeld ?? [];
+    const heldNote =
+      held.length > 0
+        ? `; held by other programs' effects: ${held.join(', ')}`
+        : '';
     return {
       kind: 'nothing',
-      because: `every slot has been tried on this output (last: ${endpoint.slot})`,
+      because: `every slot has been tried on this output (last: ${endpoint.slot})${heldNote}`,
     };
   }
   return { kind: 'move', from: endpoint.slot, to };
+};
+
+/** What a step does, as the log says it. */
+const describeStep = (
+  step: Exclude<TStep, { kind: 'nothing' }>,
+  guid: string,
+): string => {
+  switch (step.kind) {
+    case 'install':
+      return `re-installing the engine: ${step.because}`;
+    case 'mode':
+      return (
+        `giving the engine on ${guid} the processing mode its slot ` +
+        `(${step.slot}) lacks`
+      );
+    default:
+      return `moving the engine on ${guid} from ${step.from} to ${step.to}`;
+  }
 };
 
 export const createEngineOutputRepair = ({
@@ -229,10 +271,7 @@ export const createEngineOutputRepair = ({
       return { ok: false, declined: false, detail: step.because };
     }
     const kind = step.kind === 'install' ? 'install' : 'move-slot';
-    const describe =
-      step.kind === 'install'
-        ? `re-installing the engine: ${step.because}`
-        : `moving the engine on ${guid} from ${step.from} to ${step.to}`;
+    const describe = describeStep(step, guid);
     log.info(
       `Sound went past the engine on ${guid} and it wrote nothing; ${describe}`,
     );
@@ -244,7 +283,7 @@ export const createEngineOutputRepair = ({
         : runEngineSetup('attach', [
             guid,
             '--slot',
-            step.to,
+            step.kind === 'mode' ? step.slot : step.to,
             '--restart-audio',
           ]),
     );

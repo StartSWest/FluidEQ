@@ -97,7 +97,14 @@ describe('DSP processor headers', () => {
         header.querySelector(':scope > .dsp-eq-bar')?.children ?? [],
       );
       expect(groups.length).toBeGreaterThan(0);
-      groups.forEach((group) => {
+      // A unit is two groups kept on one line when the bar wraps
+      // (`.dsp-eq-bar-unit`); what it holds answers to the same rule.
+      const flat = groups.flatMap((group) =>
+        group.classList.contains('dsp-eq-bar-unit')
+          ? Array.from(group.children)
+          : [group],
+      );
+      flat.forEach((group) => {
         expect(
           ['dsp-eq-preset', 'dsp-eq-transfer', 'dsp-eq-rack'].some((kind) =>
             group.classList.contains(kind),

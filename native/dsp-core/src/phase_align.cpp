@@ -25,8 +25,11 @@ constexpr double kIdentityDelay = 1e-4;
  * Its delay at the bottom of the range is (1 - c) / (1 + c) samples, so the
  * coefficient follows from the delay asked for, and the delay falls away above
  * fs / (pi * delay) — 159 Hz for the low section's two milliseconds, 637 Hz
- * for the mid section's half, at any rate. The level is one at every
- * frequency whatever c is, which is the point of building Timing this way.
+ * for the mid section's half, at any rate. A first-order section cannot keep
+ * its corner while its delay changes: Amount scales both delays, so it moves
+ * both corners up by the same ratio — 354 Hz and 1.4 kHz at the default 0.45,
+ * 1.06 and 4.2 kHz at Movie's 0.15. The level is one at every frequency
+ * whatever c is, which is the point of building Timing this way.
  */
 double all_pass(FeqAllPassSection* section, double x) {
   if (section->delay < kIdentityDelay) {

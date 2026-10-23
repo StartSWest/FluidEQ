@@ -42,6 +42,7 @@ let choices = 0;
 let generation = 0;
 const listeners = new Set<() => void>();
 let stopListeningForChanges: (() => void) | undefined;
+let stopListeningForEditor: (() => void) | undefined;
 
 const publish = (next: ITrebleDesigns): void => {
   if (known?.eq === next.eq && known.curves === next.curves) {
@@ -99,11 +100,14 @@ export const selectTrebleDesign = async (
   choice: TTrebleDesign,
   scope: TTrebleScope,
 ): Promise<void> => {
+  const selectedIn = generation;
   choices += 1;
   try {
     const applied = await setTrebleDesign(choice, scope);
     choices += 1;
-    publish(applied);
+    if (selectedIn === generation) {
+      publish(applied);
+    }
   } catch (error) {
     choices += 1;
     await refreshTrebleDesigns();
@@ -118,11 +122,27 @@ const subscribe = (listener: () => void): (() => void) => {
   stopListeningForChanges ??= subscribeAudioEngineChanged(() => {
     refreshTrebleDesigns();
   });
+  if (!stopListeningForEditor) {
+    const changed = () => {
+      generation += 1;
+      choices += 1;
+      known = undefined;
+      asking = undefined;
+      askAgain = false;
+      listeners.forEach((one) => one());
+      refreshTrebleDesigns();
+    };
+    window.addEventListener('fluideq-editor-changed', changed);
+    stopListeningForEditor = () =>
+      window.removeEventListener('fluideq-editor-changed', changed);
+  }
   return () => {
     listeners.delete(listener);
     if (listeners.size === 0 && stopListeningForChanges) {
       stopListeningForChanges();
       stopListeningForChanges = undefined;
+      stopListeningForEditor?.();
+      stopListeningForEditor = undefined;
     }
   };
 };

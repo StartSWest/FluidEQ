@@ -5,9 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef, useState } from 'react';
+import { isFluidEngineBuiltIn } from 'common/platformCapabilities';
 import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useKnownAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { useTranslation } from '../utils/I18nContext';
+import windowCapabilities from '../utils/windowCapabilities';
 
 interface IFluidEngineLabelProps {
   /**
@@ -71,8 +73,19 @@ export default function FluidEngineLabel({
   const { t } = useTranslation();
   const isApo =
     status?.engine === 'apo' && status.apo.installed && isEngineUsable;
+  // Part of the app on macOS, where the engine follows whichever output is
+  // playing and names none it is attached to — so nothing ever says which
+  // state this is. Drawn plainly, as Equalizer APO's name is, rather than as
+  // "Checking…" for good.
+  const isBuiltIn =
+    status?.engine === 'fluid' &&
+    isFluidEngineBuiltIn(windowCapabilities()) &&
+    isEngineUsable;
   const isFluid =
-    status?.engine === 'fluid' && status.fluid.installed && isEngineUsable;
+    status?.engine === 'fluid' &&
+    status.fluid.installed &&
+    !isBuiltIn &&
+    isEngineUsable;
   const name = t(isApo ? 'eq.apoEngine' : 'eq.fluidEngine');
 
   let state: TEngineLabelState = 'checking';
@@ -97,7 +110,7 @@ export default function FluidEngineLabel({
     wasWorking.current = isWorking;
   }, [isWorking]);
 
-  if (!isApo && !isFluid) {
+  if (!isApo && !isFluid && !isBuiltIn) {
     return null;
   }
 
@@ -127,9 +140,9 @@ export default function FluidEngineLabel({
         />
       )}
       <p
-        className={`eq-engine-label${isApo ? ' eq-engine-label--apo' : ''}${
-          isRiding ? ' is-riding' : ''
-        }`}
+        className={`eq-engine-label${
+          isApo || isBuiltIn ? ' eq-engine-label--apo' : ''
+        }${isRiding ? ' is-riding' : ''}`}
       >
         {name}
       </p>

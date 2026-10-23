@@ -36,9 +36,10 @@ jest.mock('renderer/utils/useListenedOutput', () => ({
   useListenedOutput: () => ({ output: undefined }),
 }));
 jest.mock('renderer/utils/FluidEqContext', () => ({
+  // No smoothing chosen: the 1/12 octave default. Anything else is Custom by
+  // itself, and the summary checks below would prove nothing about Treble.
   ...jest.requireActual('__tests__/utils/fluidEqHookMocks').eqHooksFrom(() => ({
     isBlockingError: false,
-    curveSmoothing: 'off',
     refreshState: mockRefresh,
     setGlobalError: mockError,
   })),

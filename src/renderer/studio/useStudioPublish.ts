@@ -34,6 +34,7 @@ const PUBLISH_FAILURES: Record<string, TranslationKey> = {
   'too-many-scenes': 'studio.publish.tooManyScenes',
   refused: 'studio.export.refused',
   'signed-out': 'studio.publish.signedOut',
+  unconfirmed: 'store.error.unconfirmed',
   'no-build': 'studio.export.refused',
   'no-picture': 'studio.publish.noPicture',
   'official-copy': 'studio.publish.officialCopy',
@@ -150,11 +151,6 @@ export default function useStudioPublish(
   const lastChoice = useRef(0);
   const accountId = useAccount().identity?.id;
   const { pack } = view;
-  // With Plus, or as a maker on the one project the Studio keeps for them:
-  // publishing is how a maker earns their next month, so a page that asked
-  // for Plus alone shut the one way back to it. The bench only ever holds a
-  // project the member may use, and the main process asks the same of it.
-  const mayPublish = view.state.entitled || view.state.maker;
 
   // Event handlers can run twice before React commits; refs also keep pending
   // captures and the bytes being published in the same synchronous draft.
@@ -186,7 +182,6 @@ export default function useStudioPublish(
     pack,
     view.serial,
     view.state.activeId,
-    mayPublish,
     view.problems,
     accountId,
   ]);
@@ -205,7 +200,6 @@ export default function useStudioPublish(
       currentDraft.current ||
       !playing ||
       !pack ||
-      !mayPublish ||
       view.problems
     ) {
       return;
@@ -283,15 +277,7 @@ export default function useStudioPublish(
         setPreparing(false);
         setNotice({ ok: false, key: 'studio.publish.noPicture' });
       });
-  }, [
-    playing,
-    pack,
-    view.state.activeId,
-    mayPublish,
-    view.problems,
-    isCurrent,
-    setDraft,
-  ]);
+  }, [playing, pack, view.state.activeId, view.problems, isCurrent, setDraft]);
 
   /**
    * A cover from the moment on the dialog's stage: `frames` are what the
@@ -387,13 +373,7 @@ export default function useStudioPublish(
     (category: TPlusCategory, category2?: TPlusCategory, note?: string) => {
       const mine = currentDraft.current;
       const cover = mine?.shots.find((shot) => shot.id === mine.chosen);
-      if (
-        !mine ||
-        !cover?.picture ||
-        publishingRef.current ||
-        !mayPublish ||
-        view.problems
-      ) {
+      if (!mine || !cover?.picture || publishingRef.current || view.problems) {
         return;
       }
       const started = generation.current;
@@ -449,9 +429,10 @@ export default function useStudioPublish(
             setNotice({ ok: true, key, vars: { name } });
             return undefined;
           }
+          // Only a server from before the free Studio still says this.
           if (outcome.reason === 'not-entitled') {
             setDraft(undefined);
-            requestAccountPanel('subscribe');
+            requestAccountPanel('home');
             return undefined;
           }
           failed(
@@ -466,7 +447,7 @@ export default function useStudioPublish(
           }
         });
     },
-    [name, mayPublish, view.problems, isCurrent, setDraft, onPublished],
+    [name, view.problems, isCurrent, setDraft, onPublished],
   );
 
   return {

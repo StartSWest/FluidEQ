@@ -45,6 +45,8 @@ import {
   normalizerGainDb,
 } from '../../dsp/inputNormalizer';
 import { IDspInputAnalysisState, setDspInputAnalysis } from '../../dsp/store';
+import { readRackGate } from '../../dsp/rackPlacement';
+import { markDspSourceBoundary } from '../../dsp/sourceAnalysis';
 import {
   setDspNoiseProfile,
   setDspTrackLevelGains,
@@ -257,13 +259,16 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
     };
     const cachedAnalysis = track.normalization;
     const shouldAnalyze =
-      dspSettingsRef.current.enabled &&
-      (dspSettingsRef.current.normalizer.mode !== 'off' ||
-        // The crossfade needs the same decode pass: it cannot know when this
-        // song stops without measuring where its last audible sample is.
-        transition.enabled ||
-        (dspSettingsRef.current.master.enabled &&
-          dspSettingsRef.current.master.loudnessMaximize));
+      // Source measurements serve every output. A secondary's normalizer must
+      // not depend on the main output having its own normalizer switched on.
+      readRackGate().engine === 'fluid' ||
+      (dspSettingsRef.current.enabled &&
+        (dspSettingsRef.current.normalizer.mode !== 'off' ||
+          // The crossfade needs the same decode pass: it cannot know when this
+          // song stops without measuring where its last audible sample is.
+          transition.enabled ||
+          (dspSettingsRef.current.master.enabled &&
+            dspSettingsRef.current.master.loudnessMaximize)));
     /**
      * Skip the incoming track's leading silence, but only on a handoff.
      *
@@ -290,12 +295,22 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
      */
     let deferredNoiseProfile: INoiseProfile | undefined;
     let hasDeferredNoiseProfile = false;
+    let sourceAnnounced = false;
+    const commitAnalysis = (next: IDspInputAnalysisState) => {
+      if (!sourceAnnounced) {
+        // A repeated/reloaded file is a new passage too. During a crossfade
+        // this is called only at the same handoff as its gains and floor.
+        markDspSourceBoundary(next.trackId);
+        sourceAnnounced = true;
+      }
+      setDspInputAnalysis(next);
+    };
     const publishAnalysis = (next: IDspInputAnalysisState) => {
       if (isCrossfading && !handoffComplete) {
         deferredAnalysis = next;
         return;
       }
-      setDspInputAnalysis(next);
+      commitAnalysis(next);
     };
     const publishTrackGains = (analysis: ILibraryTrack['normalization']) => {
       if (isCrossfading && !handoffComplete && !analysis) {
@@ -334,7 +349,7 @@ export const useTrackLoader = (deps: ITrackLoaderDeps): void => {
         return;
       }
       if (deferredAnalysis) {
-        setDspInputAnalysis(deferredAnalysis);
+        commitAnalysis(deferredAnalysis);
         deferredAnalysis = undefined;
       }
       if (deferredTrackGains) {

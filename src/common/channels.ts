@@ -114,6 +114,12 @@ enum ChannelEnum {
   // owns both the chosen destination and the write.
   EXPORT_EQ_PRESET = 'exportEqPreset',
   EXPORT_DSP_PRESET = 'exportDspPreset',
+  // My curves out: the whole list through Save As, or one .txt a curve
+  // into a folder (`main/ipc/curveExport.ts`).
+  EXPORT_CURVE_LIST = 'exportCurveList',
+  EXPORT_CURVE_FOLDER = 'exportCurveFolder',
+  GET_MY_CURVES = 'getMyCurves',
+  SET_MY_CURVES = 'setMyCurves',
   IMPORT_CONVOLUTION_FILE = 'importConvolutionFile',
   CHECK_OPRA_UPDATE = 'checkOpraUpdate',
   UPDATE_OPRA_DATABASE = 'updateOpraDatabase',
@@ -134,6 +140,20 @@ enum ChannelEnum {
   // Written when the song ends. Counts the play.
   COMMIT_SONG_EQ = 'commitSongEq',
   FORGET_SONG_EQ = 'forgetSongEq',
+  // The sound each song was played with — its preset, Tone and bands — per
+  // output (`songSound.ts`). Looked up on every settled track.
+  LOOKUP_SONG_SOUND = 'lookupSongSound',
+  // Filed when a song the listener changed ends. Counts the play.
+  SAVE_SONG_SOUND = 'saveSongSound',
+  FORGET_SONG_SOUND = 'forgetSongSound',
+  // Put a song's sound on: lent for the song, or the listener's own handed
+  // back (`songSoundLoan.ts`).
+  APPLY_SONG_SOUND = 'applySongSound',
+  // End a loan with what plays: it is the listener's own from here.
+  KEEP_SONG_SOUND = 'keepSongSound',
+  // A window that starts lending nothing: put back what a loan took, if one
+  // is held from before it reloaded.
+  RETURN_SONG_SOUND = 'returnSongSound',
   // Switch a layer out of the config without disturbing a single one of its
   // settings — the A/B switch on each chip. Takes a feature name and whether it
   // should be off, and moves nothing else.

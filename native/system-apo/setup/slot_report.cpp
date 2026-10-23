@@ -74,4 +74,17 @@ std::wstring describe_slots(const FxValues& values, const NameLookup& name) {
   return out;
 }
 
+std::vector<Slot> held_slots(const FxValues& values, const FxValues& backup,
+                             std::wstring_view clsid) {
+  std::vector<Slot> held;
+  for (const Slot slot :
+       {Slot::Efx, Slot::Mfx, Slot::Sfx, Slot::EfxSingle, Slot::MfxSingle,
+        Slot::SfxSingle, Slot::Gfx, Slot::Lfx}) {
+    if (!plan_move(values, backup, clsid, slot).refused.empty()) {
+      held.push_back(slot);
+    }
+  }
+  return held;
+}
+
 }  // namespace fluideq_engine::setup

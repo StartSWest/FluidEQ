@@ -70,6 +70,12 @@ export interface IAudioEngineFacts {
   apoInstalled: boolean;
   /** The FluidEQ Engine's DLL is where setup installs it. */
   fluidInstalled: boolean;
+  /**
+   * The FluidEQ Engine is part of the app and the only engine there is —
+   * `isFluidEngineBuiltIn` in `common/platformCapabilities`. macOS. Absent is
+   * no, which is every platform that answered before macOS had an engine.
+   */
+  fluidBuiltIn?: boolean;
 }
 
 /** The engine this launch uses, and whether the answer is worth recording. */
@@ -96,13 +102,23 @@ export interface IAudioEngineMigration {
  *   answer is written down so the question is settled once.
  * - No file, no Equalizer APO, on Windows: `null` — the state the first-run
  *   dialog exists to answer, and nothing is written until it is answered.
- * - Off Windows neither engine is really installable and both resolve to the
- *   same sandbox directory, so `'apo'` is the honest answer there too.
+ * - Where the FluidEQ Engine is built in (macOS), it is the engine, and a
+ *   file that says otherwise is corrected and rewritten. Checked before the
+ *   file is obeyed, because the file can only be wrong there: every Mac that
+ *   ran an earlier build had `'apo'` written into it by the rule below, and
+ *   Equalizer APO cannot exist on a Mac — so the engine picker came up with
+ *   APO chosen and the FluidEQ Engine greyed out.
+ * - Anywhere else off Windows neither engine is really installable and both
+ *   resolve to the same sandbox directory, so `'apo'` is the honest answer
+ *   there too.
  */
 export const migrateAudioEnginePreference = (
   preference: IAudioEnginePreference,
   facts: IAudioEngineFacts,
 ): IAudioEngineMigration => {
+  if (facts.fluidBuiltIn === true) {
+    return { engine: 'fluid', persist: preference.engine !== 'fluid' };
+  }
   if (preference.engine !== null) {
     return { engine: preference.engine, persist: false };
   }

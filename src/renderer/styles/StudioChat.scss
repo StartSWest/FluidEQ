@@ -1,0 +1,462 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The Studio's chat with Claude (`studio/chat/`): a card the bench's whole
+// height beside the stage, its head and message box fixed and the
+// conversation scrolling between them — or the first tab under the stage in
+// a narrow window, where it keeps a height of its own to work in.
+
+.studio-chat {
+  @include section-card;
+  container: studio-chat / inline-size;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  // As the tab under the stage: the panel's height, the message box at its
+  // foot and the conversation scrolling above it, as in the pane.
+  .studio-work__panel & {
+    height: 100%;
+    min-height: 320px;
+  }
+}
+
+// ---------------------------------------------------------------- head
+
+.studio-chat__head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 8px 9px 14px;
+  border-bottom: 1px solid $menu-rule;
+}
+
+.studio-chat__lamp {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-right: 2px;
+  border-radius: 50%;
+  background: $text-dim;
+
+  &.is-ready {
+    background: $active;
+    box-shadow: 0 0 0 3px color-mix(in srgb, $active 18%, transparent);
+  }
+
+  &.is-checking {
+    animation: studio-chat-pulse 1.2s $ease-out infinite;
+  }
+}
+
+.studio-chat__who {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.studio-chat__name {
+  color: $text-primary;
+  font-size: $text-lead;
+  font-weight: $weight-semibold;
+}
+
+// Wraps rather than cuts: in the longer languages the switch beside it
+// leaves the narrowest pane too little room for the plan's name on one line.
+// A button too: it opens the accounts the chat runs on.
+.studio-chat__where {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: start;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: $text-small;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+
+  svg {
+    flex: none;
+    width: 11px;
+    height: 11px;
+    opacity: 0.7;
+  }
+
+  &:hover,
+  &[aria-pressed='true'] {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.studio-chat__icon {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  cursor: pointer;
+  transition:
+    color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  &:hover:not(:disabled) {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 6%, transparent);
+  }
+
+  // A view it opened is showing (the past chats): lit until pressed again.
+  &[aria-pressed='true'] {
+    color: $text-accent;
+    background: color-mix(in srgb, $text-accent 12%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+}
+
+.studio-chat__switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  padding: 5px 8px;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  font: inherit;
+  font-size: $text-small;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  &:hover,
+  &[aria-pressed='true'] {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 6%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.studio-chat__switch svg {
+  flex: none;
+  width: 13px;
+  height: 13px;
+}
+
+// A pane too narrow for the head's words beside its buttons: "Use another
+// AI" says it with its glyph alone, and the plan keeps one line.
+@container studio-chat (width < 380px) {
+  .studio-chat__switch span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+// The member's chosen size for what they read (`StudioChatZoom.tsx`): the
+// conversation, a card waiting on them and the earlier chats, laid out
+// again at that size rather than blown up, so it stays sharp and wraps.
+.studio-chat__thread,
+.studio-chat__ask,
+.studio-chat-past {
+  zoom: var(--chat-zoom, 1);
+}
+
+// ---------------------------------------------------------------- thread
+
+.studio-chat__thread {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  padding: 16px 14px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  @include slim-scrollbar;
+
+  &.is-empty {
+    justify-content: center;
+  }
+}
+
+.studio-chat__welcome,
+.studio-chat__setup {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  max-width: 340px;
+  margin: 0 auto;
+  text-align: center;
+
+  h3 {
+    margin: 4px 0 0;
+    color: $text-primary;
+    font-size: $text-lead;
+    font-weight: $weight-semibold;
+    text-wrap: balance;
+  }
+
+  p {
+    margin: 0;
+    color: $text-muted;
+    font-size: $text-body;
+    line-height: 1.5;
+  }
+}
+
+.studio-chat__setup {
+  flex: 1 1 auto;
+  align-content: center;
+  padding: 24px 20px;
+}
+
+.studio-chat__welcome-mark,
+.studio-chat__setup-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  color: $text-accent;
+  border: 1px solid color-mix(in srgb, $text-accent 30%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, $text-accent 10%, transparent);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.studio-chat__ideas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.studio-chat__setup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+// What the member said: theirs, so on their side, in the accent's tint.
+.studio-chat__me {
+  max-width: 88%;
+  padding: 8px 12px;
+  color: $text-primary;
+  border: 1px solid color-mix(in srgb, $text-accent 22%, transparent);
+  border-radius: 12px 12px 4px 12px;
+  background: color-mix(in srgb, $text-accent 10%, transparent);
+  font-size: $text-body;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+
+  p {
+    margin: 0;
+  }
+
+  p + p {
+    margin-top: 6px;
+  }
+}
+
+// The stage as the member sent it, in their own bubble.
+// The stage as the member attached it: pressed, it opens in the viewer
+// (`StudioChatPictureViewer.tsx`) with every other picture in the chat.
+.studio-chat__attached {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  margin-top: 8px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  cursor: zoom-in;
+
+  img {
+    display: block;
+    width: 100%;
+    object-fit: cover;
+    transition: transform 160ms $ease-out;
+  }
+
+  &:hover img {
+    transform: scale(1.02);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// A thumbnail in the viewer's strip: the picture whole, inside the tile.
+.studio-chat-viewer__thumb {
+  // Sized by the tile itself (a size container): a percentage of a grid
+  // cell's auto height drew wide pictures past the tile's edges.
+  display: block;
+  width: 100cqw;
+  height: 100cqh;
+  object-fit: contain;
+}
+
+.studio-chat__note {
+  margin: auto 0;
+  padding: 24px 20px;
+  color: $text-muted;
+  font-size: $text-body;
+  text-align: center;
+}
+
+// "Use another AI": the Studio's prompt for any assistant, in the pane.
+.studio-chat__other {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px;
+  overflow-y: auto;
+  @include slim-scrollbar;
+}
+
+.studio-chat__spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid $text-accent;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: studio-chat-spin 0.9s linear infinite;
+}
+
+// ---------------------------------------------------------------- folded
+
+.studio-chat__rail {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  color: $text-faint;
+  border: 1px solid $card-edge;
+  border-radius: $card-radius;
+  background: $surface-section;
+  font: inherit;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+  transition: color $motion-fast $ease-out;
+
+  span {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+    color: $text-accent;
+  }
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// The bar's lamp while Claude works on the scene (`StudioBench`).
+.studio-bench__status.is-working .studio-bench__lamp {
+  background: $text-accent;
+  animation: studio-chat-pulse 1.2s $ease-out infinite;
+}
+
+@keyframes studio-chat-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes studio-chat-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes studio-chat-sweep {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+// The line alone, never what hangs from it: an opacity pulse dimmed the
+// steps and the pictures with it.
+@keyframes studio-chat-rail {
+  50% {
+    border-left-color: color-mix(in srgb, $text-accent 25%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-chat__lamp,
+  .studio-chat__step-mark,
+  .studio-chat__reply.is-working .studio-chat__steps,
+  .studio-chat__dots i,
+  .studio-chat__spinner,
+  .studio-chat__seen.is-drawing,
+  .studio-bench__status.is-working .studio-bench__lamp {
+    animation: none;
+  }
+}

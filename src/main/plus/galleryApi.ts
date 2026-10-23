@@ -270,16 +270,32 @@ export const publishedPath = (
   file: 'scene.json' | 'picture.webp',
 ) => `${authorId}/${sceneId}/${file}`;
 
+/**
+ * A published file, read whole.
+ *
+ * `version` names the copy expected. A publication overwrites a scene's files
+ * at the same paths, and the storage CDN goes on answering a path with the
+ * copy it replaced for up to a minute (supabase.com/docs/guides/storage/cdn/
+ * smart-cdn): the Studio, asking for the published scene the moment a
+ * publication finished, was handed the version before it and said v11 under
+ * a gallery that said v12. The CDN keys on the query string, so a named
+ * version is fetched from the origin the first time it is asked for.
+ */
 export const download = async (
   auth: IAuthorised,
   path: string,
   maxBytes: number,
+  version?: string,
 ): Promise<Uint8Array | undefined> => {
   try {
-    const response = await (auth.fetchImpl ?? fetch)(
-      objectUrl(auth.config, path),
-      { headers: headers(auth), cache: 'no-store' },
-    );
+    const url = new URL(objectUrl(auth.config, path));
+    if (version !== undefined) {
+      url.searchParams.set('version', version);
+    }
+    const response = await (auth.fetchImpl ?? fetch)(url.toString(), {
+      headers: headers(auth),
+      cache: 'no-store',
+    });
     if (!response.ok) {
       return undefined;
     }
@@ -318,11 +334,14 @@ export const fetchPicture = async (
   auth: IAuthorised,
   authorId: string,
   sceneId: string,
+  /** The copy the gallery row names (`download`). */
+  version?: string,
 ): Promise<Uint8Array | undefined> => {
   const bytes = await download(
     auth,
     publishedPath(authorId, sceneId, 'picture.webp'),
     MAX_PICTURE_BYTES,
+    version,
   );
   return bytes && isCardPicture(bytes) ? bytes : undefined;
 };
@@ -332,11 +351,14 @@ export const fetchEnvelope = async (
   auth: IAuthorised,
   authorId: string,
   sceneId: string,
+  /** The version the gallery row names (`download`). */
+  version?: number,
 ): Promise<IScenePackEnvelope | undefined> => {
   const bytes = await download(
     auth,
     publishedPath(authorId, sceneId, 'scene.json'),
     MAX_MEMBER_SCENE_FILE_BYTES,
+    version === undefined ? undefined : String(version),
   );
   if (!bytes) {
     return undefined;
@@ -358,6 +380,24 @@ export const recordAdd = async (
   try {
     const response = await rpc(auth, 'record_scene_add', {
       p_author: authorId,
+      p_scene: sceneId,
+    });
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * An add of one of FluidEQ's own scenes (premium migration 0047), which
+ * `record_scene_add` cannot hold: those have no author account.
+ */
+export const recordOfficialAdd = async (
+  auth: IAuthorised,
+  sceneId: string,
+): Promise<boolean> => {
+  try {
+    const response = await rpc(auth, 'record_official_scene_add', {
       p_scene: sceneId,
     });
     return response.ok;

@@ -8,8 +8,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The Plus gallery's stylesheet, in the order it cascades: browsing (the
 // page, toolbar and cards), a scene's page and preview, and the rows, bars
-// and dialogs. What they share is in _galleryTokens.scss. One file of 2,090
-// lines until 2026-09-28, split with the compiled CSS held identical.
+// and dialogs, and the store's dialogs on top of those. What they share is in
+// _galleryTokens.scss. One file of 2,090 lines until 2026-09-28, split with
+// the compiled CSS held identical.
 @use 'galleryBrowse';
 @use 'galleryScene';
 @use 'galleryRows';
+@use 'galleryStore';

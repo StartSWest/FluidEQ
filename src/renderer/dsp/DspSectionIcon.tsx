@@ -34,6 +34,14 @@ const GLYPHS: Record<TDspSection, { frame: string; accent: string }> = {
     frame: 'M2 15 L4 12.5 L6 15 L8 11.5 L10 15 L12 12 L14 15 L16 12.5 L18 15',
     accent: 'M10 15 V4 M7.5 6.5 L10 4 L12.5 6.5',
   },
+  // An S, and the treble beside it turned down: the stage names itself by
+  // the sound it is for, which no other icon on the rail does.
+  deEsser: {
+    frame: 'M16 4.5 V12.5 M13.8 10.3 L16 12.5 L18.2 10.3',
+    accent:
+      'M11.6 5.6 C10.6 4 8.2 3.7 6.6 4.5 C4.6 5.5 4.8 8.2 7 9.1 L9.4 10.2 ' +
+      'C11.8 11.3 11.8 14.6 9.6 15.5 C7.8 16.2 5.4 15.8 4.4 14.4',
+  },
   crossfade: {
     frame: 'M2 6 H6 C9 6 11 14 14 14 H18 M2 14 H6 C9 14 11 6 14 6 H18',
     accent: 'M8 10 H12',

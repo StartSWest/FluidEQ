@@ -18,38 +18,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ISmartEqSettings } from './constants';
 import { ISongIdentity } from './songIdentity';
+import {
+  ISongMemoryEntryBase,
+  ISongMemoryOutput,
+  ISongMemorySettings,
+  emptySongMemory,
+  forgetSongMemory,
+  lookupSongMemory,
+  putSongMemory,
+} from './songMemory';
 
 /**
- * What the app remembers about a song, per output.
+ * What the app remembers about a song's Smart EQ correction, per output.
  *
  * Pure on purpose: every function here takes the whole settings object and
  * returns a new one. The eviction and the alias bookkeeping are where the bugs
- * in this feature will be, and they should be reachable from a unit test with
- * no filesystem in the way — `main/songEqStore.ts` is the half that touches
- * disk and it holds no rules.
+ * in this feature will be, and they live in `songMemory.ts`, reachable from a
+ * unit test with no filesystem in the way — `main/songEqStore.ts` is the half
+ * that touches disk and it holds no rules.
  */
-export interface ISongEqEntry {
+export interface ISongEqEntry extends ISongMemoryEntryBase {
   /** The saved layer. Never carries `apoOverride` — see `stripSongEqLayer`. */
   settings: ISmartEqSettings;
-  title: string;
-  artist?: string;
-  alias?: string;
-  /** Completed recordings of this song. Provenance, and all of it. */
-  plays: number;
-  /** Epoch ms of the last save. Also the eviction order. */
-  updatedAt: number;
 }
 
-export interface ISongEqOutput {
-  entries: Record<string, ISongEqEntry>;
-  /** alias → entry key. One key per alias; the most recent save wins. */
-  aliases: Record<string, string>;
-}
+export type ISongEqOutput = ISongMemoryOutput<ISongEqEntry>;
 
-export interface ISongEqSettings {
-  version: 1;
-  outputs: Record<string, ISongEqOutput>;
-}
+export type ISongEqSettings = ISongMemorySettings<ISongEqEntry>;
 
 /**
  * The ceiling, per output, and the reason there is one.
@@ -60,10 +55,8 @@ export interface ISongEqSettings {
  */
 export const SONG_EQ_MAX_ENTRIES = 2000;
 
-export const getDefaultSongEqSettings = (): ISongEqSettings => ({
-  version: 1,
-  outputs: {},
-});
+export const getDefaultSongEqSettings = (): ISongEqSettings =>
+  emptySongMemory<ISongEqEntry>();
 
 /**
  * The layer as it may be stored.
@@ -78,76 +71,11 @@ export const stripSongEqLayer = (layer: ISmartEqSettings): ISmartEqSettings => {
   return rest;
 };
 
-const outputOf = (settings: ISongEqSettings, deviceId: string): ISongEqOutput =>
-  settings.outputs[deviceId] ?? { entries: {}, aliases: {} };
-
-/**
- * Which key this output actually holds this song under, if any.
- *
- * The one resolution rule, so lookup and forget cannot disagree about it.
- * They did: a curve learned from a library file was matched from Spotify
- * through the alias index, and Forget then deleted `system:...` — a key that
- * was never there. Nothing threw, the reply was a success, the notice
- * cleared, and the entry stayed on disk to come back on the next play. With
- * the recording tick off, which §9 explicitly supports, that song could never
- * be forgotten at all.
- *
- * Exact first and always: your own file beats an alias that has drifted to a
- * rip of the same song.
- */
-const resolveSongEqKey = (
-  output: ISongEqOutput | undefined,
-  identity: ISongIdentity,
-): string | undefined => {
-  if (!output) {
-    return undefined;
-  }
-  if (output.entries[identity.key]) {
-    return identity.key;
-  }
-  if (!identity.alias) {
-    return undefined;
-  }
-  const aliased = output.aliases[identity.alias];
-  return aliased !== undefined && output.entries[aliased] ? aliased : undefined;
-};
-
 export const lookupSongEq = (
   settings: ISongEqSettings,
   deviceId: string,
   identity: ISongIdentity,
-): ISongEqEntry | undefined => {
-  const output = settings.outputs[deviceId];
-  const key = resolveSongEqKey(output, identity);
-  return output && key !== undefined ? output.entries[key] : undefined;
-};
-
-/** Drop the lowest `updatedAt` entries until the output is inside the cap,
- * taking each one's alias with it. */
-const evict = (output: ISongEqOutput): ISongEqOutput => {
-  const keys = Object.keys(output.entries);
-  if (keys.length <= SONG_EQ_MAX_ENTRIES) {
-    return output;
-  }
-  const doomed = new Set(
-    keys
-      .sort((a, b) => output.entries[a].updatedAt - output.entries[b].updatedAt)
-      .slice(0, keys.length - SONG_EQ_MAX_ENTRIES),
-  );
-  const entries: Record<string, ISongEqEntry> = {};
-  keys.forEach((key) => {
-    if (!doomed.has(key)) {
-      entries[key] = output.entries[key];
-    }
-  });
-  const aliases: Record<string, string> = {};
-  Object.entries(output.aliases).forEach(([alias, key]) => {
-    if (!doomed.has(key)) {
-      aliases[alias] = key;
-    }
-  });
-  return { entries, aliases };
-};
+): ISongEqEntry | undefined => lookupSongMemory(settings, deviceId, identity);
 
 const put = (
   settings: ISongEqSettings,
@@ -156,28 +84,21 @@ const put = (
   layer: ISmartEqSettings,
   now: number,
   playsDelta: number,
-): ISongEqSettings => {
-  const output = outputOf(settings, deviceId);
-  const existing = output.entries[identity.key];
-  const entry: ISongEqEntry = {
-    settings: stripSongEqLayer(layer),
-    title: identity.title,
-    artist: identity.artist,
-    alias: identity.alias,
-    plays: (existing?.plays ?? 0) + playsDelta,
-    updatedAt: now,
-  };
-  const next: ISongEqOutput = {
-    entries: { ...output.entries, [identity.key]: entry },
-    aliases: identity.alias
-      ? { ...output.aliases, [identity.alias]: identity.key }
-      : { ...output.aliases },
-  };
-  return {
-    ...settings,
-    outputs: { ...settings.outputs, [deviceId]: evict(next) },
-  };
-};
+): ISongEqSettings =>
+  putSongMemory(
+    settings,
+    deviceId,
+    identity,
+    (existing) => ({
+      settings: stripSongEqLayer(layer),
+      title: identity.title,
+      artist: identity.artist,
+      alias: identity.alias,
+      plays: (existing?.plays ?? 0) + playsDelta,
+      updatedAt: now,
+    }),
+    SONG_EQ_MAX_ENTRIES,
+  );
 
 /**
  * Write what has been learned so far without counting it as a play.
@@ -204,36 +125,11 @@ export const commitSongEq = (
 ): ISongEqSettings => put(settings, deviceId, identity, layer, now, 1);
 
 /**
- * Forget one song on one output.
- *
- * Takes the identity rather than a key, because the key the caller is holding
- * is the key of whatever is *playing* and the entry may well be filed under
- * another one — that is what the alias index is for. Resolved through
- * `resolveSongEqKey`, so this deletes exactly the entry `lookupSongEq` would
- * have handed back.
+ * Forget one song on one output — exactly the entry `lookupSongEq` would have
+ * handed back, alias and all (`songMemory.ts`).
  */
 export const forgetSongEq = (
   settings: ISongEqSettings,
   deviceId: string,
   identity: ISongIdentity,
-): ISongEqSettings => {
-  const output = settings.outputs[deviceId];
-  const key = resolveSongEqKey(output, identity);
-  if (!output || key === undefined) {
-    return settings;
-  }
-  const entries = { ...output.entries };
-  delete entries[key];
-  const aliases: Record<string, string> = {};
-  Object.entries(output.aliases).forEach(([alias, target]) => {
-    // Only where it still points here. The alias moves to whichever key saved
-    // last, and taking it from the live entry would be forgetting two songs.
-    if (target !== key) {
-      aliases[alias] = target;
-    }
-  });
-  return {
-    ...settings,
-    outputs: { ...settings.outputs, [deviceId]: { entries, aliases } },
-  };
-};
+): ISongEqSettings => forgetSongMemory(settings, deviceId, identity);

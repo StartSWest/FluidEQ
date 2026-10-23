@@ -43,7 +43,7 @@ const box = (left: number, top: number, height: number) =>
 const loadSlot = (platform: string): ComponentType => {
   window.electron = {
     platform,
-    ipcRenderer: { sendMessage },
+    ipcRenderer: { sendMessage, on: jest.fn(() => () => undefined) },
   } as unknown as typeof window.electron;
   return TrafficLightSlot;
 };

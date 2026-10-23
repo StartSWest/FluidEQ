@@ -16,19 +16,21 @@ const filmOf = (chapter: string) => {
 
 afterEach(cleanup);
 
-describe("Help's films", () => {
-  it('are the first steps in the first chapter and the Plus tour in the Plus chapter', () => {
+describe("Help's film", () => {
+  // The Plus tour walked through upgrading and paying monthly, and Plus is
+  // not sold any more: the first steps are Help's one film.
+  it('is the first steps, in the first chapter, alone', () => {
     expect(
       HELP_CHAPTERS.filter((chapter) => chapter.video).map(({ id }) => id),
-    ).toEqual(['start', 'plus']);
+    ).toEqual(['start']);
   });
 
   /**
-   * The site serves each film and its captions from /video/ and shows it in a
+   * The site serves the film and its captions from /video/ and shows it in a
    * section of its home page; Help asks for exactly these addresses, so none
    * of them may move on either side.
    */
-  it("stream from the site's /video/ beside English captions, and open the site's own section", () => {
+  it("streams from the site's /video/ beside English captions, and opens the site's own section", () => {
     expect(filmOf('start')).toMatchObject({
       src: `${OFFICIAL_SITE_URL}/video/first-steps.mp4`,
       captions: {
@@ -37,32 +39,9 @@ describe("Help's films", () => {
       },
       page: `${OFFICIAL_SITE_URL}/#first-steps`,
     });
-    expect(filmOf('plus')).toMatchObject({
-      src: `${OFFICIAL_SITE_URL}/video/plus-tour.mp4`,
-      captions: {
-        src: `${OFFICIAL_SITE_URL}/video/plus-tour.en.vtt`,
-        lang: 'en',
-      },
-      page: `${OFFICIAL_SITE_URL}/#plus-tour`,
-    });
   });
 
-  /**
-   * The note under the title used to be one line for every film, which said
-   * "about four minutes" of a tour that runs four and a half.
-   */
-  it('each say their own length on their card', () => {
-    render(<HelpVideo video={filmOf('plus')} />);
-    expect(
-      screen.getByRole('button', {
-        name: 'Play the video: A tour of FluidEQ Plus',
-      }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/^About four and a half minutes\./),
-    ).toBeInTheDocument();
-    cleanup();
-
+  it('says its own length on its card', () => {
     render(<HelpVideo video={filmOf('start')} />);
     expect(
       screen.getByRole('button', {
@@ -70,18 +49,17 @@ describe("Help's films", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByText(/^About four minutes\./)).toBeInTheDocument();
-    expect(screen.queryByText(/four and a half/)).not.toBeInTheDocument();
   });
 
-  it('ask the site for nothing until play is pressed, then for the film and its captions', () => {
-    const film = filmOf('plus');
+  it('asks the site for nothing until play is pressed, then for the film and its captions', () => {
+    const film = filmOf('start');
     const { container } = render(<HelpVideo video={film} />);
     expect(container.querySelector('video')).toBeNull();
     expect(container.querySelector('track')).toBeNull();
 
     fireEvent.click(
       screen.getByRole('button', {
-        name: 'Play the video: A tour of FluidEQ Plus',
+        name: 'Play the video: First steps with FluidEQ',
       }),
     );
     expect(container.querySelector('video')).toHaveAttribute('src', film.src);

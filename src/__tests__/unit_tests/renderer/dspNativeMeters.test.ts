@@ -27,6 +27,8 @@ import {
 } from '../../../renderer/dsp/nativeMeters';
 import {
   ANALYSIS_BINS,
+  ANALYSIS_EQ_DETAIL_BINS,
+  ANALYSIS_EQ_DETAIL_WINDOW,
   IHostAnalysis,
   TAnalysisStage,
 } from '../../../common/dsp/analysisWire';
@@ -584,4 +586,60 @@ it('clears Room reports on native owner changes, legacy frames and releases', ()
   second.release();
   expect(readDspRoomReport()).toBeUndefined();
   stop();
+});
+
+/**
+ * The EQ tap's live reading (`meters_eq_live.h`): the page eases between
+ * measurements by telling new from again, and the long window arrives only
+ * every other frame or so, so the last one has to stand until the next.
+ */
+describe("the EQ tap's live reading", () => {
+  beforeEach(() => {
+    STAGES.forEach((stage) => setDspAnalyser(stage, undefined));
+  });
+
+  afterEach(() => {
+    STAGES.forEach((stage) => setDspAnalyser(stage, undefined));
+  });
+
+  const liveFrame = (detail?: Float32Array): IHostAnalysis => ({
+    ...analysisFrame(['eq', 'master']),
+    eqLive: { detailWindow: ANALYSIS_EQ_DETAIL_WINDOW, detail },
+  });
+
+  it('counts every measurement and keeps the long window between them', () => {
+    const { bridge, send } = fakeBridge();
+    createNativeMeters(bridge, ANALYSIS_BINS);
+    const detail = new Float32Array(ANALYSIS_EQ_DETAIL_BINS).fill(-21);
+
+    send(liveFrame(detail));
+    expect(readDspAnalyser('eq')?.live).toEqual({
+      generation: 1,
+      detailWindow: ANALYSIS_EQ_DETAIL_WINDOW,
+      detail,
+    });
+
+    send(liveFrame());
+    expect(readDspAnalyser('eq')?.live?.generation).toBe(2);
+    expect(readDspAnalyser('eq')?.live?.detail).toBe(detail);
+
+    const next = new Float32Array(ANALYSIS_EQ_DETAIL_BINS).fill(-9);
+    send(liveFrame(next));
+    expect(readDspAnalyser('eq')?.live?.detail).toBe(next);
+  });
+
+  it('is the EQ tap’s alone', () => {
+    const { bridge, send } = fakeBridge();
+    createNativeMeters(bridge, ANALYSIS_BINS);
+    send(liveFrame(new Float32Array(ANALYSIS_EQ_DETAIL_BINS)));
+    expect(readDspAnalyser('master')?.live).toBeUndefined();
+  });
+
+  it('is absent from an engine before it', () => {
+    const { bridge, send } = fakeBridge();
+    createNativeMeters(bridge, ANALYSIS_BINS);
+    send(analysisFrame(['eq']));
+    expect(readDspAnalyser('eq')).toBeDefined();
+    expect(readDspAnalyser('eq')?.live).toBeUndefined();
+  });
 });

@@ -1,4 +1,6 @@
 import {
+  curveSmoothingOf,
+  DEFAULT_CURVE_SMOOTHING,
   shapeEqFilters,
   smoothEqCurve,
   filterSmoothingCorrection,
@@ -166,7 +168,76 @@ describe('independent EQ shaping', () => {
     const output = stateToApoFiles(state, 'impulse.wav')?.convolution;
     expect(output).toContain('Convolution: impulse.wav');
     expect(output).toContain('GraphicEQ:');
+    // Off corrects nothing, and Off is what nothing chosen is.
+    expect(convolutionCorrection(profile, 'normal', 'off', 'off')).toEqual([]);
     expect(convolutionCorrection(profile, 'normal')).toEqual([]);
+    // CONTROL: smoothed, the same audio does get a correction.
+    expect(
+      convolutionCorrection(profile, 'normal', 'off', 'twelfth'),
+    ).not.toEqual([]);
+  });
+});
+
+// Ivan, 2026-10-15: "remove curve smoothing as default for normal EQ put
+// it as off" (it had been 1/12 octave since 10-06). A choice never made is
+// Off everywhere it is read — the written curves, the graph, the headroom —
+// and 1/12 and 1/3 octave are choices like any other.
+describe('curve smoothing with nothing chosen', () => {
+  const sharp = { ...band, quality: 7 };
+
+  it('reads a missing or unknown choice as Off, and a real one as itself', () => {
+    expect(DEFAULT_CURVE_SMOOTHING).toBe('off');
+    [undefined, null, '', 'sixth', 3].forEach((saved) =>
+      expect(curveSmoothingOf(saved)).toBe('off'),
+    );
+    (['off', 'twelfth', 'third'] as const).forEach((saved) =>
+      expect(curveSmoothingOf(saved)).toBe(saved),
+    );
+  });
+
+  it('leaves a curve and a correction as they are, as Off does', () => {
+    expect(smoothEqCurve(curve)).toEqual(curve);
+    expect(smoothEqCurve(curve, 'off')).toBe(curve);
+    // The control: 1/12 octave does change this curve, or the lines above
+    // would hold for a curve no smoothing could touch.
+    expect(smoothEqCurve(curve, 'twelfth')).not.toEqual(curve);
+    expect(filterSmoothingCorrection([sharp])).toEqual([]);
+    expect(filterSmoothingCorrection([sharp], 'twelfth')).not.toEqual([]);
+  });
+
+  it('writes a headphone correction with nothing chosen unsmoothed', () => {
+    const state: IState = {
+      ...getDefaultState(),
+      headphone: { filters: { test: sharp }, intensity: 1 },
+    };
+    expect(state.curveSmoothing).toBeUndefined();
+    const correction = (smoothing?: IState['curveSmoothing']) =>
+      stateToApoFiles({ ...state, curveSmoothing: smoothing })?.features.find(
+        (feature) => feature.feature === 'headphone',
+      )?.lines;
+    expect(correction()).toEqual(correction('off'));
+    // Unsmoothed it is its own bands; smoothed it becomes a sampled curve.
+    expect(correction()?.some((line) => line.startsWith('Filter'))).toBe(true);
+    expect(correction('twelfth')?.[1]).toMatch(/^GraphicEQ:/);
+  });
+
+  it('plays the custom file as written with nothing chosen', () => {
+    const state: IState = {
+      ...getDefaultState(),
+      customFx: {
+        fileName: 'custom.txt',
+        filters: {},
+        preAmp: 0,
+        graphicEq: curve,
+      },
+    };
+    const compensation = (smoothing?: IState['curveSmoothing']) =>
+      stateToApoFiles({ ...state, curveSmoothing: smoothing })
+        ?.customEqCompensation;
+    expect(compensation()).toEqual([]);
+    expect(compensation('off')).toEqual([]);
+    // CONTROL: smoothed, a compensation is added.
+    expect(compensation('twelfth')?.[0]).toMatch(/^GraphicEQ:/);
   });
 });
 it('smooths parametric curve audio while preserving every source Q when off', () => {

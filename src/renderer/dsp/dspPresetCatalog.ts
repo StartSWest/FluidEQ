@@ -49,6 +49,21 @@ export const QUICK_DSP_PRESETS: readonly string[] = [
 ];
 
 /**
+ * A picker's whole list in the order it is read: the usual chains first, as
+ * `QUICK_DSP_PRESETS` gives them, then everything else in the order it came.
+ * The starred ones are this list with the unstarred taken out, never an order
+ * of their own (Ivan, 2026-10-12: "same order we use on the other lists") —
+ * so Gaming · Room sits after Gaming in Favourites as it does under them, and
+ * a new star lands where its preset stands rather than at the foot.
+ */
+export const inListOrder = <T extends { id: string }>(
+  list: readonly T[],
+): T[] => [
+  ...QUICK_DSP_PRESETS.flatMap((id) => list.filter((one) => one.id === id)),
+  ...list.filter((one) => !QUICK_DSP_PRESETS.includes(one.id)),
+];
+
+/**
  * The None chain: every stage off, the Normalizer included, and no curve
  * (`presetRecipes.ts`). It stands first in both pickers, above the starred
  * ones, and takes no star, being the absence of a choice (Ivan, 2026-09-22:
@@ -106,6 +121,7 @@ export const dspPresetHint = (
   [
     settings.normalizer.mode !== 'off' ? t('dsp.normalizer.title') : '',
     settings.denoise.enabled ? t('dsp.denoise.title') : '',
+    settings.deEsser.enabled ? t('dsp.deEsser.title') : '',
     settings.exciter.enabled ? t('dsp.exciter.title') : '',
     settings.bassForge.enabled ? t('dsp.bassForge.title') : '',
     settings.eq.enabled || curve ? t('dsp.eq.title') : '',
@@ -157,6 +173,7 @@ export const resolveDspPreset = (
         crossfade: current.crossfade,
         surround: current.surround,
         eq: { ...saved.settings.eq, treble: current.eq.treble },
+        // Its oversampling as it was saved: the listener chose it.
         room: chainRoom(current.room, saved.settings.room),
       })
     : dspPresetSettings(id, current);
@@ -243,10 +260,10 @@ export const useDspPresetCatalog = (t: Translate) => {
     const catalog = catalogOf(t, saved.chains);
     // None stands above the starred ones already; a star it was given before
     // it did is not a second place for it.
-    const favorites = saved.starred.flatMap((id) => {
-      const preset = catalog.find((one) => one.id === id);
-      return preset && id !== NONE_CHAIN_ID ? [preset] : [];
-    });
+    const favorites = inListOrder(catalog).filter(
+      (preset) =>
+        preset.id !== NONE_CHAIN_ID && saved.starred.includes(preset.id),
+    );
     return { catalog, favorites };
   }, [t, saved]);
 };

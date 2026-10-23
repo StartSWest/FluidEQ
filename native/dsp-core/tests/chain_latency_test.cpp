@@ -209,6 +209,23 @@ void reported_latency_is_the_measured_delay() {
     one.normalizer.mode = 1;
     cases.push_back({"game leveler, peak", one, false, true});
   }
+  // The EQ's own round trips, its oversampling and its Colour stage, which
+  // went uncounted until 2026-10-14: 31 and 46 frames, and 46 more.
+  {
+    FeqChainSettings one = bare();
+    one.eq.enabled = 1;
+    one.eq.oversample = 2;
+    cases.push_back({"eq 2x", one, false});
+    one.eq.oversample = 4;
+    cases.push_back({"eq 4x", one, false});
+    one.eq.oversample = 1;
+    one.eq.fuzz_amount = 0.3;
+    cases.push_back({"eq colour", one, false});
+    one.eq.oversample = 4;
+    cases.push_back({"eq 4x + colour", one, false});
+    one.eq.phase = FEQ_PHASE_LINEAR;
+    cases.push_back({"eq linear + colour", one, false});
+  }
   for (const Case& one : cases) {
     Chain chain = make_chain(one.settings, one.with_head, one.with_leveler);
     check(chain != nullptr, "chain built");
@@ -227,10 +244,10 @@ void reported_latency_is_the_measured_delay() {
 /**
  * GAME MODE TAKES AWAY THE DELAY THE RACK CARRIES FOR COMFORT, AND NO MORE.
  *
- * Four stages hold the audio back while they have nothing to do, so that
+ * Five stages hold the audio back while they have nothing to do, so that
  * switching them on never moves it: Bass Punch's FIR alignment, the
- * Maximizer's look-ahead, the Master's auto headroom and, in the engine, the
- * Normalizer's peak guard. In game mode each of
+ * De-esser's and the Maximizer's look-aheads, the Master's auto headroom and,
+ * in the engine, the Normalizer's peak guard. In game mode each of
  * them, while off, costs nothing — and each, while on, still costs what it
  * costs, because then the delay is the effect and not a courtesy.
  */
@@ -260,6 +277,10 @@ void game_mode_drops_the_standby_delay() {
         "the Maximizer's standby look-ahead goes");
   check(idle.headroom > 0u && dropped.headroom == 0u,
         "the auto headroom's standby look-ahead goes");
+  std::printf("  de-esser:   standby %u, game mode %u\n", idle.deesser,
+              dropped.deesser);
+  check(idle.deesser > 0u && dropped.deesser == 0u,
+        "the De-esser's standby look-ahead goes");
   // The engine's live leveler: its peak guard holds its look-ahead with the
   // Normalizer off, so that switching it on never shifts the audio. Game
   // mode takes that away — and leaves a guard that is working alone.
@@ -287,11 +308,13 @@ void game_mode_drops_the_standby_delay() {
             "a Normalizer that is on keeps its look-ahead in game mode");
     }
   }
-  // POSITIVE CONTROL: with all three running, game mode leaves them alone.
+  // POSITIVE CONTROL: with all four running, game mode leaves them alone.
+  normal.deesser.enabled = 1;
   normal.bass_punch.enabled = 1;
   normal.maximizer.enabled = 1;
   normal.master.enabled = 1;
   normal.master.loudness_maximize = 1;
+  game.deesser.enabled = 1;
   game.bass_punch.enabled = 1;
   game.maximizer.enabled = 1;
   game.master.enabled = 1;
@@ -410,9 +433,10 @@ void game_mode_room_is_the_room_on_time() {
   check(on_time_parts.room == 0u, "game mode's room adds nothing");
   const uint32_t partition = feq_chain_latency_frames(late.get()) -
                              feq_chain_latency_frames(on_time.get());
-  // The Master is off here, so game mode also drops the auto headroom's
-  // standby look-ahead: the room's partition and that, and nothing else.
-  check(partition == feq_convolver_latency() + late_parts.headroom,
+  // The Master and the De-esser are off here, so game mode also drops their
+  // standby look-aheads: the room's partition and those, and nothing else.
+  check(partition == feq_convolver_latency() + late_parts.headroom +
+                         late_parts.deesser,
         "game mode gives up the partition and the idle headroom, no more");
   std::vector<std::vector<float>> a(2), b(2);
   Pink source;
@@ -530,12 +554,146 @@ void the_head_and_the_tail_are_the_whole_convolution() {
   feq_convolver_kernel_destroy(tail_kernel);
 }
 
+/** The left channel of an impulse put in on the left alone, from it on. */
+std::vector<float> left_alone(const FeqChainSettings& settings) {
+  Chain chain = make_chain(settings, false);
+  std::vector<std::vector<float>> audio(
+      2, std::vector<float>(kBlocks * kFrames, 0.0f));
+  const size_t at = kFrames * 4 + 11;
+  audio[0][at] = 0.5f;
+  run(chain.get(), audio);
+  return {audio[0].begin() + static_cast<long>(at), audio[0].end()};
+}
+
+/**
+ * Where a second arrival is, more than two frames from the first and over a
+ * quarter of its height; -1 for none.
+ */
+long second_arrival(const std::vector<float>& out) {
+  size_t loudest = 0;
+  for (size_t frame = 0; frame < out.size(); ++frame) {
+    if (std::fabs(out[frame]) > std::fabs(out[loudest])) loudest = frame;
+  }
+  for (size_t frame = 0; frame < out.size(); ++frame) {
+    const size_t apart = frame > loudest ? frame - loudest : loudest - frame;
+    if (apart > 2 && std::fabs(out[frame]) > 0.25f * std::fabs(out[loudest])) {
+      return static_cast<long>(frame);
+    }
+  }
+  return -1;
+}
+
+/**
+ * MID ONLY AND SIDES ONLY COME BACK IN ONE PIECE.
+ *
+ * The half the EQ leaves alone is held back by the same round trips as the
+ * half it works on. It was not, until 2026-10-14: with the EQ's oversampling
+ * or its Colour stage on, the two halves decoded 31 to 93 frames apart and a
+ * sound on one side came out twice. With no band and no Colour, Mid only is
+ * then Stereo, sample for sample; with Colour, which bends what it works on,
+ * the sound still arrives once.
+ */
+void mid_or_sides_only_comes_back_in_one_piece() {
+  std::printf("mid only and sides only come back in one piece\n");
+  // CONTROL: the measure finds a second arrival where there is one.
+  std::vector<float> twice(400, 0.0f);
+  twice[10] = 0.5f;
+  twice[56] = 0.3f;
+  check(second_arrival(twice) == 56, "control: two arrivals are seen as two");
+  for (const FeqStereoMode mode : {FEQ_STEREO_MID, FEQ_STEREO_SIDE}) {
+    for (const uint32_t factor : {2u, 4u}) {
+      FeqChainSettings stereo = bare();
+      stereo.eq.enabled = 1;
+      stereo.eq.oversample = factor;
+      FeqChainSettings half = stereo;
+      half.eq.stereo = mode;
+      const std::vector<float> one = left_alone(half);
+      const std::vector<float> both = left_alone(stereo);
+      double worst = 0.0;
+      for (size_t frame = 0; frame < one.size(); ++frame) {
+        worst = std::fmax(worst, std::fabs(static_cast<double>(one[frame]) -
+                                           static_cast<double>(both[frame])));
+      }
+      std::printf("  %s, %ux: largest difference from Stereo %.2e\n",
+                  mode == FEQ_STEREO_MID ? "mid only" : "sides only", factor,
+                  worst);
+      check(worst < 1e-6, "with nothing in it, it is Stereo exactly");
+    }
+    FeqChainSettings coloured = bare();
+    coloured.eq.enabled = 1;
+    coloured.eq.stereo = mode;
+    coloured.eq.fuzz_amount = 0.3;
+    for (const uint32_t factor : {1u, 4u}) {
+      coloured.eq.oversample = factor;
+      const long again = second_arrival(left_alone(coloured));
+      std::printf("  %s, colour, %ux: second arrival %ld\n",
+                  mode == FEQ_STEREO_MID ? "mid only" : "sides only", factor,
+                  again);
+      check(again < 0, "with Colour, it arrives once");
+    }
+  }
+}
+
+/**
+ * THE EQ'S ISOLATE MONITOR MATCHES COLOUR AT EVERY RATE.
+ *
+ * Isolate plays the sound less a dry reference sent through the round trips
+ * the sound went through. Colour runs at 4x up to 48 kHz and 2x at 88.2 and
+ * 96, and the reference always went through 4x: at 96 kHz it came out 15
+ * frames late and the monitor played a comb of the music instead of what
+ * the EQ took. With a flat EQ and Colour alone, the tone itself must cancel
+ * and only Colour's harmonics remain.
+ */
+void the_eq_monitor_matches_colour_at_every_rate() {
+  std::printf("the EQ's Isolate matches Colour's round trip at every rate\n");
+  for (const double rate : {48000.0, 96000.0}) {
+    FeqChainSettings settings = bare();
+    settings.eq.enabled = 1;
+    settings.eq.isolate = 1;
+    settings.eq.fuzz_amount = 0.6;
+    Chain chain(feq_chain_create(rate, 2, kFrames));
+    feq_chain_configure(chain.get(), &settings);
+    const size_t length = static_cast<size_t>(rate);  // one second
+    std::vector<std::vector<float>> audio(2, std::vector<float>(length));
+    for (size_t frame = 0; frame < length; ++frame) {
+      const double t = static_cast<double>(frame) / rate;
+      audio[0][frame] = audio[1][frame] =
+          static_cast<float>(0.5 * std::sin(2.0 * 3.14159265358979323846 * 1000.0 * t));
+    }
+    run(chain.get(), audio);
+    // The last half second, past every fade: the tone's bin and its second
+    // harmonic's, as a fraction of the tone put in.
+    const size_t from = length / 2;
+    const auto bin = [&](double hz) {
+      double re = 0.0;
+      double im = 0.0;
+      for (size_t frame = from; frame < length; ++frame) {
+        const double angle = 2.0 * 3.14159265358979323846 * hz *
+                             static_cast<double>(frame) / rate;
+        re += audio[0][frame] * std::cos(angle);
+        im += audio[0][frame] * std::sin(angle);
+      }
+      return 2.0 * std::sqrt(re * re + im * im) /
+             static_cast<double>(length - from) / 0.5;
+    };
+    const double tone = bin(1000.0);
+    const double colour = bin(3000.0) + bin(2000.0);
+    std::printf("  %.0f kHz: the tone left %.1f dB, Colour's harmonics %.1f dB\n",
+                rate / 1000.0, 20.0 * std::log10(std::fmax(tone, 1e-12)),
+                20.0 * std::log10(std::fmax(colour, 1e-12)));
+    check(tone < 0.01, "the tone cancels: the reference is as late as the sound");
+    check(colour > 0.001, "control: what Colour adds is what the monitor plays");
+  }
+}
+
 }  // namespace
 
 int main() {
   std::printf("chain latency\n\n");
   the_head_and_the_tail_are_the_whole_convolution();
   reported_latency_is_the_measured_delay();
+  mid_or_sides_only_comes_back_in_one_piece();
+  the_eq_monitor_matches_colour_at_every_rate();
   game_mode_drops_the_standby_delay();
   a_handover_keeps_the_new_chains_delay();
   game_mode_room_is_the_room_on_time();

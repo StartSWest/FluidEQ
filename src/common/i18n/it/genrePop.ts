@@ -13,6 +13,8 @@ export default {
   'genre.pop.pin.5000': 'Presenza e lucentezza',
   'genre.pop.pin.5000.why':
     'La rifinitura sulla voce, tenuta a un passo dall’aspro.',
+  'genre.pop.stage.exciter':
+    'Corpo intorno a 1 kHz, lucentezza sulla voce e calore sotto entrambi.',
   'genre.pop.stage.bassPunch':
     'Stringe invece di colpire: una coda della cassa più corta sotto la linea di basso, l’attacco appena sollevato.',
   'genre.pop.stage.dimension':
@@ -20,7 +22,7 @@ export default {
   'genre.pop.stage.maximizer':
     'Un tetto leggero che spinge appena: il master è già limitato.',
   'genre.pop.off':
-    'L’Exciter e la Fucina dei bassi sono offerti con il nome di Pop e restano spenti: la voce è già brillante e il sub è nel master.',
+    'La Fucina dei bassi è offerta con il nome di Pop e resta spenta: il sub è nel master.',
 
   'genre.indiePop.hook': 'Più leggero e più caldo delle classifiche',
   'genre.indiePop.story':
@@ -37,6 +39,8 @@ export default {
   'genre.indiePop.pin.12500': 'Un po’ d’aria',
   'genre.indiePop.pin.12500.why':
     'Delicata, sopra acuti già morbidi in partenza.',
+  'genre.indiePop.stage.exciter':
+    'Solo calore, nei medio-bassi: mai più brillante.',
   'genre.indiePop.stage.dimension':
     'Il basso più stretto e l’aria un filo più ampia: le armonie si aprono senza spostare la voce.',
   'genre.indiePop.stage.maximizer':
@@ -96,12 +100,14 @@ export default {
     'Medio-bassi liberati perché gli strati non si impastino.',
   'genre.kPop.pin.12500': 'Nessuna aria in più',
   'genre.kPop.pin.12500.why': 'La voce porta già la sua a 12 kHz.',
+  'genre.kPop.stage.exciter':
+    'Corpo e presenza sotto le enfasi della voce stessa, e niente sugli acuti.',
   'genre.kPop.stage.dimension':
     'Il basso più stretto, e raddoppi e pad un po’ più ampi di come sono stati mixati.',
   'genre.kPop.stage.maximizer':
     'Un tetto che spinge appena: questi master sono forti quanto un master può esserlo.',
   'genre.kPop.off':
-    'Niente Exciter, Punch dei bassi o Fucina dei bassi: tutto ciò che uno stadio potrebbe aggiungere è già nel disco.',
+    'Niente Punch dei bassi né Fucina dei bassi: il punch della cassa e il sub sono già nel disco.',
 
   'genre.jPop.hook': 'Un muro denso e brillante a qualsiasi tempo',
   'genre.jPop.story':
@@ -112,11 +118,13 @@ export default {
   'genre.jPop.pin.500.why': 'Un po’ tolto dal centro affollato.',
   'genre.jPop.pin.3150': 'Medio-alti lasciati stare',
   'genre.jPop.pin.3150.why': 'Già brillanti e in avanti; mai spinti.',
+  'genre.jPop.stage.exciter':
+    'Solo calore, nei medio-bassi: niente su acuti così brillanti.',
   'genre.jPop.stage.dimension': 'Niente viene allargato: il muro è già ampio.',
   'genre.jPop.stage.maximizer':
     'Un tetto che spinge appena su master già in clipping.',
   'genre.jPop.off':
-    'Il suo Exciter è offerto e resta spento: i suoi tecnici non ne vogliono su un master così brillante.',
+    'Niente Punch dei bassi né Fucina dei bassi: il muro arriva denso e forte.',
 
   'genre.cPop.hook': 'Ballate, con la voce davanti e al centro',
   'genre.cPop.story':

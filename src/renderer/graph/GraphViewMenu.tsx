@@ -23,7 +23,10 @@ import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
 import { WallpaperMenuAction } from '../wallpaper/WallpaperControls';
 import {
+  GRAPH_CONTENTS_LABEL,
   MIN_GRAPH_WAVE_HEIGHT,
+  toggleGraphBandLabels,
+  useGraphBandLabelsHidden,
   TGraphContents,
   TGraphCurve,
   TGraphView,
@@ -136,14 +139,6 @@ const VIEW_LABEL: Record<TGraphView, TranslationKey> = {
   fullscreen: 'graph.view.fullscreen',
 };
 
-const CONTENT_LABEL: Record<TGraphContents, TranslationKey> = {
-  everything: 'graph.contents.everything',
-  layers: 'graph.contents.layers',
-  curves: 'graph.contents.curves',
-  clean: 'graph.contents.clean',
-  wave: 'graph.contents.wave',
-};
-
 const GraphViewMenu = ({
   view,
   onChangeView,
@@ -182,6 +177,7 @@ const GraphViewMenu = ({
   sceneLookId,
 }: IGraphViewMenuProps) => {
   const { t } = useTranslation();
+  const bandLabelsHidden = useGraphBandLabelsHidden();
   // A Plus visualizer ignores the orientation, so a centred wave locks
   // nothing there.
   const isWavePositionLocked =
@@ -446,7 +442,9 @@ const GraphViewMenu = ({
                 <path d="M13.8 2.6v4h-4" />
               </Icon>
               <span>
-                {t('graph.showing', { content: t(CONTENT_LABEL[contents]) })}
+                {t('graph.showing', {
+                  content: t(GRAPH_CONTENTS_LABEL[contents]),
+                })}
               </span>
               <kbd>Ctrl+W</kbd>
             </button>
@@ -488,6 +486,22 @@ const GraphViewMenu = ({
               away, and as a switch of its own it was the odd one out: the other
               two say which single drawing they take away, where solo took away
               five of them and was named for the one it kept. */}
+            <button
+              type="button"
+              role="menuitemcheckbox"
+              aria-checked={bandLabelsHidden}
+              disabled={!isResponseAvailable}
+              onClick={choose(toggleGraphBandLabels)}
+            >
+              <Icon>
+                <path d="M2 2.5h12v7H9l-3 3v-3H2zM5 5h6M5 7h4" />
+              </Icon>
+              <span>
+                {t(bandLabelsHidden ? 'graph.show' : 'graph.hide', {
+                  item: t('graph.item.eqLabels'),
+                })}
+              </span>
+            </button>
             <button
               type="button"
               role="menuitemcheckbox"
@@ -797,24 +811,19 @@ const GraphViewMenu = ({
               being looked at rather than to the graph: in every view mode,
               and kept for that visualizer. */}
             {sceneLookId && <SceneResponseMenu lookId={sceneLookId} />}
-
-            {/* And how hard it may drive the GPU: one choice for every
-              visualizer, so it sits with the rows for this one.
-
-              Heading and divider with it, not around it: a heading over an
-              empty stretch of menu is worse than no heading, and there is
-              nothing to draw here while the plot carries no visualizer. */}
           </Group>
 
-          {sceneLookId && (
-            <Group
-              title={t(SETTINGS_GROUP_TITLE.drawing)}
-              // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
-              {...groupProps('drawing')}
-            >
-              <ScenePerformanceMenu />
-            </Group>
-          )}
+          {/* Standard looks use the same GPU engine, with their own saved
+              drawing choices. Gating this on a Plus id hid their controls. */}
+          <Group
+            title={`${t(SETTINGS_GROUP_TITLE.drawing)} · ${t(
+              sceneLookId ? 'graph.scene.badge' : 'graph.picker.styles',
+            )}`}
+            // eslint-disable-next-line react/jsx-props-no-spreading -- three props of one group, named together
+            {...groupProps('drawing')}
+          >
+            <ScenePerformanceMenu group={sceneLookId ? 'plus' : 'standard'} />
+          </Group>
 
           {/* Two sliders, in the menu rather than in the strip beside it.
 

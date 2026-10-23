@@ -95,7 +95,7 @@ const app: Partial<Dictionary> = {
     'यह PC जो बजाता है उसे इक्वलाइज़र से पहले कैप्चर करता है — “ऑडियो साझा करें” टैब, दूसरे आउटपुट और स्मार्ट EQ के लिए। सिर्फ़ तभी चलता है जब इनमें से कोई इस्तेमाल में हो।',
   'app.processes.name.sharePlayback': 'साझा ऑडियो का प्लेबैक',
   'app.processes.what.sharePlayback':
-    'कोई दूसरा FluidEQ इस PC के साथ जो आवाज़ साझा करता है, उसे बजाता है। सिर्फ़ तभी चलता है जब आप उसे सुन रहे हों।',
+    'कोई दूसरा FluidEQ इस PC के साथ जो आवाज़ साझा करता है, उसे बजाता है, और ऑडियो कैप्चर शुरू करता है, ताकि यह PC जो भेजता है उसमें वह आवाज़ कभी वापस न जाए। सिर्फ़ तभी चलता है जब इनमें से कोई इस्तेमाल में हो।',
   'app.processes.name.volume': 'सिस्टम वॉल्यूम',
   'app.processes.what.volume':
     'FluidEQ के वॉल्यूम स्लाइडरों के लिए Windows का वॉल्यूम और म्यूट देखता रहता है, और जब आप कोई स्लाइडर हिलाते हैं तो उसे सेट करता है। सिर्फ़ तभी चलता है जब कोई स्लाइडर स्क्रीन पर हो।',
@@ -169,6 +169,10 @@ const app: Partial<Dictionary> = {
   'engine.detachFailed':
     'इस आउटपुट से FluidEQ इंजन नहीं हटाया जा सका। कुछ नहीं बदला।',
   'engine.unsupported': 'Windows 10 संस्करण 1803 या नया चाहिए।',
+  'engine.subtitle.builtIn':
+    'यह इंजन FluidEQ के साथ आता है और जब तक FluidEQ चलता है, तब तक चलता है।',
+  'engine.fluid.builtIn.l1':
+    'FluidEQ के साथ आता है — कुछ इंस्टॉल या चालू नहीं करना',
   'prereq.title.apo': 'Equalizer APO पर ध्यान देना ज़रूरी है',
   'prereq.title.fluid': 'FluidEQ इंजन पर ध्यान देना ज़रूरी है',
   'prereq.install.apo': 'APO स्थापित करें',
@@ -262,6 +266,8 @@ const app: Partial<Dictionary> = {
   'notice.captureFailed': 'लाइव आउटपुट शुरू नहीं हो सका',
   'notice.captureFailedBody':
     'लेवल मीटर और ग्राफ़ पर लाइव कर्व अभी बंद हैं। बाकी सब सामान्य रूप से काम करता है।',
+  'notice.captureNeedsMacPermission':
+    'Mac पर लेवल मीटर और ग्राफ़ पर लाइव कर्व के लिए FluidEQ को गोपनीयता और सुरक्षा › स्क्रीन और सिस्टम ऑडियो रिकॉर्डिंग की ऊपर वाली सूची में अनुमति चाहिए। सिर्फ़ ऑडियो वाली सूची आपके EQ के लिए काफ़ी है, पर इनके लिए नहीं। बाकी सब सामान्य रूप से काम करता है।',
   'notice.tryAgain': 'फिर से कोशिश करें',
   'notice.restartConfirm':
     'कुछ सेकंड के लिए आवाज़ रुकेगी और Windows एडमिन अनुमति माँगेगा। जारी रखें?',
@@ -415,6 +421,9 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'आपका चुना हुआ',
   'games.front.playing': '{name} सामने है, और उसकी आवाज़ चालू है।',
   'games.front.sounding': '{name} चल रहा है, और उसकी आवाज़ चालू है।',
+  'games.front.off': 'गेम प्रीसेट बंद हैं। आपके गेम आपकी अपनी आवाज़ रखते हैं।',
+  'games.switch.hint':
+    'बंद: कोई गेम आपकी आवाज़ नहीं बदलता, और FluidEQ यह देखना बंद कर देता है कि सामने कौन-सा प्रोग्राम है। आपकी सूची जैसी है वैसी रहती है।',
   'games.toast.loaded': '{preset} लोड किया',
   'games.toast.forGame': '{game} के लिए',
   'games.toast.restored': '{preset} पर वापस',

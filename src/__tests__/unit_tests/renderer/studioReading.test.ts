@@ -203,3 +203,89 @@ it('leaves out the GPU time where the card cannot measure it', () => {
   expect(reading.costMs).toBeUndefined();
   expect(reading.fps).toBe(60);
 });
+
+/**
+ * The page hands the worker a frame only when the last one is answered, so a
+ * Studio window busy for three refreshes sends 80 a second while the worker
+ * fills a 240 Hz panel. The rate on the card is the worker's own count.
+ */
+const runShown = (
+  settler: TSettler,
+  {
+    answers,
+    pageGapMs,
+    framesPerAnswer,
+    start,
+  }: {
+    answers: number;
+    pageGapMs: number;
+    framesPerAnswer: number;
+    start: { frames: number; atMs: number };
+  },
+) => {
+  let last = { fps: 0 };
+  const shown = { ...start };
+  const readings: number[] = [];
+  for (let answer = 0; answer < answers; answer += 1) {
+    shown.frames += framesPerAnswer;
+    shown.atMs += pageGapMs;
+    last = settler.frame({
+      intervalMs: pageGapMs,
+      scale: 1,
+      atMs: shown.atMs,
+      shown: { ...shown },
+    });
+    readings.push(last.fps);
+  }
+  return { last, shown, readings };
+};
+
+it('counts the frames the worker put on the canvas, not how often the page handed it the music', () => {
+  const settler = createStudioReadingSettler();
+  const { last } = runShown(settler, {
+    answers: 200,
+    pageGapMs: 12.5,
+    framesPerAnswer: 3,
+    start: { frames: 0, atMs: 0 },
+  });
+  expect(last.fps).toBe(240);
+});
+
+it('keeps the figure through an answer with no new frame in it', () => {
+  const settler = createStudioReadingSettler();
+  const { shown } = runShown(settler, {
+    answers: 200,
+    pageGapMs: 12.5,
+    framesPerAnswer: 3,
+    start: { frames: 0, atMs: 0 },
+  });
+  // The same count again: nothing was drawn between the two answers.
+  expect(
+    settler.frame({
+      intervalMs: 12.5,
+      scale: 1,
+      atMs: shown.atMs + 12.5,
+      shown: { ...shown },
+    }).fps,
+  ).toBe(240);
+});
+
+it('starts the count over for a worker built again, never reading it backwards', () => {
+  const settler = createStudioReadingSettler();
+  runShown(settler, {
+    answers: 200,
+    pageGapMs: 12.5,
+    framesPerAnswer: 3,
+    start: { frames: 0, atMs: 0 },
+  });
+  // A new worker counts from nothing on a clock of its own.
+  const { readings, last } = runShown(settler, {
+    answers: 240,
+    pageGapMs: 1000 / 60,
+    framesPerAnswer: 1,
+    start: { frames: 0, atMs: 0 },
+  });
+  expect(Math.min(...readings)).toBeGreaterThanOrEqual(60);
+  expect(Math.max(...readings)).toBeLessThanOrEqual(240);
+  expect(last.fps).toBe(60);
+});

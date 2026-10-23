@@ -26,20 +26,19 @@ import {
 } from 'common/audioDeviceBridge';
 import { IAudioDevice, IDeviceProfileSettings } from 'common/constants';
 import { hasVirtualRouting } from 'common/virtualAudioDevices';
+import type { TOutputDelayKind } from '../../common/outputDelay';
 import {
+  getAudioDevices,
   readKnownAudioDevices,
   getDeviceProfileSettings,
+  subscribeAudioDevices,
 } from '../utils/equalizerApi';
 import { reportInfo, reportError } from '../utils/logger';
+import withoutBatteryLevels from '../utils/withoutBatteryLevels';
 import { useTranslation } from '../utils/I18nContext';
 import { useMirrorPlayback, type IDesiredMirror } from './useMirrorPlayback';
 import { useLiveAudioCapture, useLiveAudioControl } from './LiveAudioContext';
-import {
-  clampMirrorVolume,
-  isMirrorMode,
-  MAX_MIRROR_VOLUME,
-  TMirrorMode,
-} from './outputMirror';
+import { clampMirrorVolume, MAX_MIRROR_VOLUME } from './outputMirror';
 
 /**
  * Where the chosen mirrors live between runs.
@@ -51,12 +50,6 @@ import {
 const MIRROR_TARGETS_KEY = 'fluideq-mirror-target-guids';
 /** Levels, keyed by the same GUIDs and for the same reason. */
 const MIRROR_VOLUMES_KEY = 'fluideq-mirror-volumes';
-/**
- * Which way every mirror buffers. One setting rather than one per speaker:
- * it says what is being watched or listened to, and that is true of the
- * whole room at once.
- */
-const MIRROR_MODE_KEY = 'fluideq-mirror-mode';
 
 const loadSelection = (): string[] => {
   try {
@@ -85,16 +78,6 @@ const loadVolumes = (): Record<string, number> => {
   }
 };
 
-/**
- * Music unless asked otherwise. A mirror nobody has configured is most often
- * a speaker in another room, where a tenth of a second is invisible and a
- * stutter is not; a screen is the case someone notices and switches for.
- */
-const loadMode = (): TMirrorMode => {
-  const stored = localStorage.getItem(MIRROR_MODE_KEY);
-  return isMirrorMode(stored) ? stored : 'music';
-};
-
 /** One endpoint, and whether it can currently be mirrored to. */
 export interface IMirrorTarget {
   device: IAudioDevice;
@@ -109,6 +92,10 @@ export interface IMirrorTarget {
   isRunning: boolean;
   /** How loud this mirror plays, 0 to 1. Full unless turned down. */
   volume: number;
+  /** Reported software buffering in milliseconds while running; does not
+   * measure the device or wireless transport's audible delay. */
+  delayMs?: number;
+  delayKind?: TOutputDelayKind;
   /**
    * The profile attached to this endpoint, exactly as the output picker means
    * it — raw, so the caller can tell an automatic one from a named one and
@@ -186,25 +173,50 @@ const useOutputMirror = () => {
   >(undefined);
   const [selectedGuids, setSelectedGuids] = useState<string[]>(loadSelection);
   const [volumes, setVolumes] = useState<Record<string, number>>(loadVolumes);
-  const [mode, setModeState] = useState<TMirrorMode>(loadMode);
 
   const [error, setError] = useState('');
 
-  const refresh = useCallback(async () => {
-    try {
-      const [nextDevices, nextOutputs, nextSettings] = await Promise.all([
-        readKnownAudioDevices(),
-        native ? Promise.resolve([]) : listMediaOutputs(),
-        getDeviceProfileSettings(),
-      ]);
-      setDevices(nextDevices);
-      setOutputs(nextOutputs);
-      setAssignments(nextSettings);
-    } catch {
-      // A failed enumeration is not worth an error banner: the list simply
-      // stays as it was, and the next device change refreshes it again.
-    }
-  }, [native]);
+  const load = useCallback(
+    async (readDevices: () => Promise<IAudioDevice[]>) => {
+      try {
+        const [nextDevices, nextOutputs, nextSettings] = await Promise.all([
+          readDevices(),
+          native ? Promise.resolve([]) : listMediaOutputs(),
+          getDeviceProfileSettings(),
+        ]);
+        setDevices(nextDevices);
+        setOutputs(nextOutputs);
+        setAssignments(nextSettings);
+      } catch {
+        // A failed enumeration is not worth an error banner: the list simply
+        // stays as it was, and the next device change refreshes it again —
+        // without the battery levels it carried, which only a reading that
+        // succeeded may show (`withoutBatteryLevels`).
+        setDevices(withoutBatteryLevels);
+      }
+    },
+    [native],
+  );
+  const refresh = useCallback(() => load(readKnownAudioDevices), [load]);
+  /**
+   * A fresh reading rather than the window's kept list, for the card being
+   * opened: a battery level moves without anything announcing it to the
+   * window.
+   */
+  const reread = useCallback(() => load(getAudioDevices), [load]);
+
+  // Main's own readings as well, pushed when Windows says something the list
+  // holds moved — a device's battery among them (`outputWatch.ts`).
+  useEffect(
+    () =>
+      subscribeAudioDevices((reading) => {
+        reading.then(setDevices).catch(() => {
+          // Only a reading that succeeded may show a level.
+          setDevices(withoutBatteryLevels);
+        });
+      }),
+    [],
+  );
 
   useEffect(() => {
     refresh();
@@ -231,14 +243,10 @@ const useOutputMirror = () => {
     () => devices.find((device) => device.isDefault)?.guid,
     [devices],
   );
-
-  // Switching the output you listen on switches every mirror off.
-  //
-  // What a mirror means is "send what I am hearing there as well", and moving
-  // the primary changes what that sentence refers to entirely — the room the
-  // sound was going to may now be the room you are in, and the device you were
-  // mirroring may be the one you just moved to. Rather than guess which of
-  // those the user meant, the mirrors stop and wait to be switched on again.
+  // Picking an enabled secondary in the main output selector trades those
+  // two outputs, keeping every other selected secondary and its native
+  // token. Main retargets those running routes before releasing the obsolete
+  // hold. An unrelated main output still clears the old routing.
   //
   // Only on a genuine change between two known endpoints. The first reading
   // arrives as undefined and then as a GUID, which is discovery rather than a
@@ -248,15 +256,32 @@ const useOutputMirror = () => {
   useEffect(() => {
     const previous = lastCaptureSourceRef.current;
     lastCaptureSourceRef.current = captureSourceGuid;
-    if (!previous || !captureSourceGuid || previous === captureSourceGuid) {
+    if (
+      !previous ||
+      !captureSourceGuid ||
+      previous.toLowerCase() === captureSourceGuid.toLowerCase()
+    ) {
       return;
     }
     setSelectedGuids((current) => {
       if (current.length === 0) {
         return current;
       }
-      localStorage.setItem(MIRROR_TARGETS_KEY, JSON.stringify([]));
-      return [];
+      const next = current.some(
+        (guid) => guid.toLowerCase() === captureSourceGuid.toLowerCase(),
+      )
+        ? [
+            ...new Set(
+              current.map((guid) =>
+                guid.toLowerCase() === captureSourceGuid.toLowerCase()
+                  ? previous
+                  : guid,
+              ),
+            ),
+          ]
+        : [];
+      localStorage.setItem(MIRROR_TARGETS_KEY, JSON.stringify(next));
+      return next;
     });
   }, [captureSourceGuid]);
 
@@ -269,10 +294,10 @@ const useOutputMirror = () => {
       return selectedGuids.includes(device.guid) &&
         isEligibleMirrorTarget(device, captureSourceGuid) &&
         sinkId
-        ? [{ guid: device.guid, sinkId, mode }]
+        ? [{ guid: device.guid, sinkId }]
         : [];
     });
-  }, [native, devices, outputs, selectedGuids, captureSourceGuid, mode]);
+  }, [native, devices, outputs, selectedGuids, captureSourceGuid]);
   const onMirrorError = useCallback(
     (mirrorError: unknown) => {
       reportError('Second output failed', mirrorError);
@@ -280,7 +305,7 @@ const useOutputMirror = () => {
     },
     [t],
   );
-  const runningGuids = useMirrorPlayback(
+  const { runningGuids, delays, delayKinds } = useMirrorPlayback(
     desired,
     volumes,
     native ? undefined : capture,
@@ -311,12 +336,20 @@ const useOutputMirror = () => {
         isRunning: runningGuids.includes(device.guid),
         presetName: assignments?.assignments[device.id]?.presetName ?? '',
         volume: volumes[device.guid] ?? MAX_MIRROR_VOLUME,
+        delayMs: runningGuids.includes(device.guid)
+          ? delays[device.guid]
+          : undefined,
+        delayKind: runningGuids.includes(device.guid)
+          ? delayKinds[device.guid]
+          : undefined,
       };
     });
   }, [
     assignments,
     native,
     captureSourceGuid,
+    delays,
+    delayKinds,
     devices,
     outputs,
     runningGuids,
@@ -353,23 +386,15 @@ const useOutputMirror = () => {
     });
   }, []);
 
-  const setMode = useCallback((next: TMirrorMode) => {
-    setError('');
-    localStorage.setItem(MIRROR_MODE_KEY, next);
-    setModeState(next);
-  }, []);
-
   return {
     error,
     isVirtualRoutingAvailable,
-    /** Game/Video keeps the sound close to the picture; Music never stutters. */
-    mode,
-    setMode,
     setTargetVolume,
     /** True while audio is genuinely going somewhere extra. */
     isMirroring: runningGuids.length > 0,
     mirroringCount: runningGuids.length,
     refresh,
+    reread,
     selectedTargets,
     targets,
     toggleTarget,

@@ -1,0 +1,222 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// How long people listen (`AdminListening`): the Server page's bar, cards and
+// meter (`AdminServer.scss`), then a card of its own for the days — columns
+// of listening time in the accent, the listeners as a pale line across them.
+
+// Four figures: four across where the page has room, two by two where it has
+// not, never three and one alone. Measured against the page, as the payouts
+// page does, not the window, which also holds the rail.
+.admin-listening {
+  container: admin-listening / inline-size;
+}
+
+.admin-listening .admin-server__gauges {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@container admin-listening (min-width: 860px) {
+  .admin-listening .admin-server__gauges {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+// One column of figures on a page too narrow for two to keep their numbers.
+@container admin-listening (max-width: 440px) {
+  .admin-listening .admin-server__gauges {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.admin-listening__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px $spacing-m;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+// What each mark is, in its own colour: a block for the columns, a stroke
+// for the line.
+.admin-listening__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  color: $text-muted;
+  font-size: $text-micro;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    &::before {
+      content: '';
+    }
+  }
+
+  .is-time::before {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, $secondary-light, $secondary-default);
+  }
+
+  .is-listeners::before {
+    width: 14px;
+    height: 2px;
+    border-radius: 1px;
+    background: $primary-lighter;
+  }
+}
+
+// The day pointed at, or the busiest at rest: one line above the plot, so
+// nothing floats over the columns it describes.
+.admin-listening__readout {
+  min-height: 1.45em;
+  margin: 0;
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-medium;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.45;
+}
+
+// The axis on the left, the plot beside it, the dates under the plot.
+.admin-listening__chart {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 180px auto;
+  column-gap: 10px;
+  row-gap: 6px;
+}
+
+.admin-listening__axis {
+  position: relative;
+  min-width: 44px;
+
+  span {
+    position: absolute;
+    right: 0;
+    transform: translateY(50%);
+    color: $text-faint;
+    font-size: $text-micro;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    white-space: nowrap;
+  }
+}
+
+.admin-listening__plot {
+  position: relative;
+  min-width: 0;
+  border-bottom: 1px solid color-mix(in srgb, $white 14%, transparent);
+}
+
+.admin-listening__grid {
+  position: absolute;
+  inset-inline: 0;
+  height: 0;
+  border-top: 1px dashed color-mix(in srgb, $white 8%, transparent);
+  pointer-events: none;
+}
+
+.admin-listening__bars {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  gap: clamp(1px, 0.6%, 5px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// The whole height of the plot is the column's, so a quiet day can be
+// pointed at too; the bar is what is drawn in it.
+.admin-listening__bar {
+  display: flex;
+  flex: 1 1 0;
+  align-items: flex-end;
+  min-width: 0;
+  border-radius: 3px 3px 0 0;
+  cursor: default;
+  transition: background-color $motion-fast $ease-out;
+
+  i {
+    display: block;
+    width: 100%;
+    // A day with any listening is never thinner than a line.
+    min-height: 2px;
+    border-radius: 3px 3px 1px 1px;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, $secondary-light 80%, transparent),
+      color-mix(in srgb, $secondary-default 70%, transparent)
+    );
+    transition:
+      height $motion-base $ease-out,
+      background $motion-fast $ease-out;
+  }
+
+  &.is-quiet i {
+    min-height: 0;
+  }
+
+  &:hover {
+    background: color-mix(in srgb, $white 4%, transparent);
+  }
+
+  &.is-shown i {
+    background: linear-gradient(180deg, $secondary-light, $secondary-default);
+    box-shadow: 0 0 10px color-mix(in srgb, $secondary-default 40%, transparent);
+  }
+}
+
+.admin-listening__line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+
+  path {
+    fill: none;
+    stroke: $primary-lighter;
+    stroke-width: 1.75px;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    opacity: 0.9;
+  }
+}
+
+// The dates, placed by the component (`datePlace`).
+.admin-listening__dates {
+  position: relative;
+  grid-column: 2;
+  height: 1.2em;
+
+  span {
+    position: absolute;
+    top: 0;
+    color: $text-faint;
+    font-size: $text-micro;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+}

@@ -30,6 +30,12 @@ import {
   MIN_NUM_FILTERS,
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
+import {
+  planEarChange,
+  twinsLeftAlone,
+  type IEarPlan,
+  type TEarChoice,
+} from 'common/bandEars';
 import { ErrorDescription } from 'common/errors';
 import {
   addEqualizerSlider,
@@ -271,6 +277,127 @@ const useEqPageActions = (bands: TEqPageBands) => {
     }
   };
 
+  /** The bands as the ear rule reads them (`planEarChange`). */
+  const earBands = () =>
+    frequencySortedFilters.map((filter) => ({
+      key: filter.id,
+      frequency: filter.frequency,
+      gain: filter.gain,
+      quality: filter.quality,
+      type: filter.type,
+      ear: filter.channel,
+    }));
+
+  /**
+   * Carries out an ear plan: each band's new ear (a joined pair taking its
+   * middle), the halves joined into it removed, the new halves added. Throws
+   * what the config writes throw.
+   */
+  const applyEarPlan = async (plan: IEarPlan) => {
+    const edits: IFilterEdit[] = plan.ears.map(({ key, ear, middle }) => ({
+      id: key,
+      channel: ear,
+      ...(middle ?? {}),
+    }));
+    if (edits.length > 0) {
+      dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+      await setFilterValues(edits);
+    }
+    // One at a time, as a deletion is: main rewrites the config on each.
+    // eslint-disable-next-line no-restricted-syntax -- sequential: each step rewrites the config
+    for (const id of plan.removed) {
+      // eslint-disable-next-line no-await-in-loop -- one band at a time, as a deletion is
+      await removeEqualizerSlider(id);
+      dispatchFilter({ type: FilterActionEnum.REMOVE, id });
+    }
+    // eslint-disable-next-line no-restricted-syntax -- sequential: each step rewrites the config
+    for (const { from, ear } of plan.copies) {
+      const source = filters[from];
+      if (source === undefined) {
+        // eslint-disable-next-line no-continue -- a band gone since the menu opened has no twin to make
+        continue;
+      }
+      // eslint-disable-next-line no-await-in-loop -- one band at a time, as a deletion is
+      const id = await addEqualizerSlider(source.frequency);
+      dispatchFilter({
+        type: FilterActionEnum.ADD,
+        id,
+        frequency: source.frequency,
+      });
+      // The same band in every respect but its ear.
+      const twin: IFilterEdit[] = [
+        {
+          id,
+          gain: source.gain,
+          quality: source.quality,
+          type: source.type,
+          isEnabled: isBandEnabled(source),
+          channel: ear,
+        },
+      ];
+      dispatchFilter({ type: FilterActionEnum.EDITS, edits: twin });
+      // eslint-disable-next-line no-await-in-loop -- one band at a time, as a deletion is
+      await setFilterValues(twin);
+    }
+  };
+
+  /** Whether the band menu may take bands out: not at the fewest the EQ keeps. */
+  const canDeleteFilters = frequencySortedFilters.length > MIN_NUM_FILTERS;
+
+  /**
+   * The band menu's Delete: the bands asked, down to the fewest the EQ keeps,
+   * the other half of a left + right pair put back on both ears so that
+   * frequency never plays on one ear alone (`twinsLeftAlone`).
+   */
+  const deleteFilters = async (targets: readonly IFilter[]) => {
+    const doomed = targets
+      .slice(0, Math.max(0, frequencySortedFilters.length - MIN_NUM_FILTERS))
+      .map((filter) => filter.id);
+    const alone: IFilterEdit[] = twinsLeftAlone(earBands(), doomed).map(
+      (id) => ({ id, channel: 'both' }),
+    );
+    try {
+      // eslint-disable-next-line no-restricted-syntax -- sequential: each step rewrites the config
+      for (const id of doomed) {
+        // eslint-disable-next-line no-await-in-loop -- one band at a time, as a deletion is
+        await removeEqualizerSlider(id);
+        dispatchFilter({ type: FilterActionEnum.REMOVE, id });
+      }
+      if (alone.length > 0) {
+        dispatchFilter({ type: FilterActionEnum.EDITS, edits: alone });
+        await setFilterValues(alone);
+      }
+      setSelectedFilterIds(
+        selectedFilterIds.filter((id) => !doomed.includes(id)),
+      );
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
+  /**
+   * Both ears, or left + right: a band split into a pair the two ears move
+   * apart, or a pair joined back in its middle (`planEarChange`). Absolute
+   * across a selection, like the on and off switch above.
+   */
+  const setFiltersChannel = async (
+    ids: readonly string[],
+    choice: TEarChoice,
+  ) => {
+    try {
+      await applyEarPlan(
+        planEarChange(
+          earBands(),
+          ids,
+          choice,
+          MAX_NUM_FILTERS - frequencySortedFilters.length,
+        ),
+      );
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
   const addFilter = async () => {
     if (frequencySortedFilters.length >= MAX_NUM_FILTERS) {
       return;
@@ -411,14 +538,33 @@ const useEqPageActions = (bands: TEqPageBands) => {
   };
 
   /** Gain back to nothing and Q back to the default: the bands as they were born. */
+  /**
+   * Back to neutral, a left + right pair joined back into one band first
+   * (Ivan, 2026-10-13: "reset band does too").
+   */
   const resetFilters = async (targets: readonly IFilter[]) => {
-    const edits: IFilterEdit[] = targets.map((filter) => {
-      const edit: IFilterEdit = { id: filter.id, quality: DEFAULT_QUALITY };
-      if (!NO_GAIN_FILTER_TYPES.includes(filter.type)) {
-        edit.gain = 0;
-      }
-      return edit;
-    });
+    const joined = planEarChange(
+      earBands(),
+      targets.filter((one) => one.channel !== undefined).map((one) => one.id),
+      'both',
+      0,
+    );
+    try {
+      await applyEarPlan(joined);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+      return;
+    }
+    const gone = new Set(joined.removed);
+    const edits: IFilterEdit[] = targets
+      .filter((filter) => !gone.has(filter.id))
+      .map((filter) => {
+        const edit: IFilterEdit = { id: filter.id, quality: DEFAULT_QUALITY };
+        if (!NO_GAIN_FILTER_TYPES.includes(filter.type)) {
+          edit.gain = 0;
+        }
+        return edit;
+      });
     if (edits.length === 0) {
       return;
     }
@@ -510,6 +656,9 @@ const useEqPageActions = (bands: TEqPageBands) => {
     addFilter,
     addFilterBeside,
     setFiltersEnabled,
+    setFiltersChannel,
+    deleteFilters,
+    canDeleteFilters,
     resetFilters,
     bandMenu,
     setBandMenu,

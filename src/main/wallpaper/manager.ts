@@ -22,7 +22,7 @@ import {
   sameScenePerformance,
   type IScenePerformance,
 } from '../../common/scenePerformance';
-import type { IEntitlement } from '../account/entitlement';
+import type { ISceneOwnership } from '../plus/sceneOwnership';
 import { isSceneFailure } from '../scenePackStore';
 import {
   EMPTY_ARRANGEMENT,
@@ -41,7 +41,8 @@ import type { IDesktopSurface } from './surface';
 
 export interface IWallpaperDeps extends IWallpaperScenes {
   getMainWindow(): BrowserWindow | null;
-  entitlement: IEntitlement;
+  /** Which looks this account may play (`plus/sceneOwnership.ts`). */
+  ownership: Pick<ISceneOwnership, 'owns' | 'subscribe'>;
   /** Where each monitor's background is remembered between launches. */
   arrangement: IArrangementStore;
 }
@@ -100,7 +101,9 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   const cleanups: (() => void)[] = [];
   const hookedOwners = new WeakSet<WebContents>();
   const supported = () => process.platform === 'win32';
-  const entitled = () => deps.entitlement.status().state !== 'none';
+  const owns = (lookId: string) => deps.ownership.owns(lookId);
+  /** Whether what this monitor plays is still this account's to play. */
+  const surfaceOwned = (surface: IDesktopSurface) => owns(surface.lookId);
   const ownerContents = () => {
     const window = deps.getMainWindow();
     return window && !window.isDestroyed() ? window.webContents : undefined;
@@ -118,12 +121,12 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
 
   const backgrounds = createMonitorBackgrounds({
     executable: wallpaperHostPath,
-    pauseReason: (covered) =>
+    pauseReason: (cover) =>
       wallpaperPauseReason({
         ...conditions,
         pauseOnBattery,
         game: gameInFront,
-        covered,
+        cover,
       }),
     performance: () => performance,
     tuning: (lookId) => tuning[lookId],
@@ -223,6 +226,19 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     }
   };
 
+  /** Every monitor playing a look this account no longer owns stops. */
+  const failUnowned = () => {
+    const unowned = backgrounds
+      .surfaces()
+      .filter((surface) => !surfaceOwned(surface));
+    unowned.forEach((surface) =>
+      backgrounds.fail(surface.displayId, surface.choice(), 'not-entitled'),
+    );
+    if (unowned.length > 0) {
+      publish();
+    }
+  };
+
   const watchOwner = (owner: WebContents) => {
     if (hookedOwners.has(owner)) {
       return;
@@ -241,14 +257,16 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
 
   /** Starts what a monitor was set to show, or says why it cannot. */
   const restore = (display: Display, choice: IWallpaperChoice) => {
-    const scene = entitled() ? deps.loadScene(choice.lookId) : undefined;
+    const scene = owns(choice.lookId)
+      ? deps.loadScene(choice.lookId)
+      : undefined;
     if (scene) {
       backgrounds.place(display, choice, scene);
     } else {
       backgrounds.fail(
         display.id,
         choice,
-        entitled() ? 'missing-scene' : 'not-entitled',
+        owns(choice.lookId) ? 'missing-scene' : 'not-entitled',
       );
     }
   };
@@ -282,7 +300,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
    * crossfades (`backgrounds.change`).
    */
   const followGraph = (): boolean => {
-    if (disposed || !graphLook || !app.isReady() || !entitled()) {
+    if (disposed || !graphLook || !app.isReady() || !owns(graphLook)) {
       return false;
     }
     const lookId = graphLook;
@@ -364,8 +382,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       disposed ||
       !supported() ||
       !app.isReady() ||
-      !owner ||
-      !entitled()
+      !owner
     ) {
       return;
     }
@@ -385,7 +402,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
 
   /** Remembered monitors that could not start for one of `errors`, again. */
   const retryWaiting = (errors: readonly TWallpaperError[]): boolean => {
-    if (disposed || !app.isReady() || !entitled()) {
+    if (disposed || !app.isReady()) {
       return false;
     }
     const connected = screen.getAllDisplays();
@@ -393,7 +410,10 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     backgrounds.failures().forEach(([displayId, failure]) => {
       const display = connected.find((entry) => entry.id === displayId);
       const scene =
-        display && saved.has(displayId) && errors.includes(failure.error)
+        display &&
+        saved.has(displayId) &&
+        errors.includes(failure.error) &&
+        owns(failure.choice.lookId)
           ? deps.loadScene(failure.choice.lookId)
           : undefined;
       if (display && scene) {
@@ -427,12 +447,12 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     };
     pauseOnBattery = request.pauseOnBattery;
     const owner = ownerContents();
-    const scene = entitled() ? deps.loadScene(lookId) : undefined;
-    if (!supported() || !entitled() || !owner || !scene) {
+    const scene = owns(lookId) ? deps.loadScene(lookId) : undefined;
+    if (!supported() || !owns(lookId) || !owner || !scene) {
       let reason: TWallpaperError;
       if (!supported()) {
         reason = 'unsupported';
-      } else if (!entitled()) {
+      } else if (!owns(lookId)) {
         reason = 'not-entitled';
       } else if (!owner) {
         reason = 'audio';
@@ -575,7 +595,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
           failure.error === 'missing-display' && saved.has(displayId),
       )
       .flatMap(([displayId]) => saved.get(displayId) ?? []);
-    if (waiting.length > 0 && entitled()) {
+    if (waiting.length > 0) {
       // Never onto a monitor that has a background of its own already.
       const waitingIds = new Set(waiting.map((entry) => entry.displayId));
       const taken = new Set([
@@ -623,13 +643,11 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   };
 
   cleanups.push(
-    deps.entitlement.subscribe(() => {
-      if (!entitled()) {
-        failEverywhere('not-entitled');
-        return;
-      }
+    deps.ownership.subscribe(() => {
+      failUnowned();
       restoreSaved();
-      // A membership back after lapsing brings back what it had stopped.
+      // A scene bought, or a membership back after lapsing, brings back what
+      // had stopped for it.
       if (retryWaiting(['not-entitled', 'missing-scene'])) {
         publish();
       }
@@ -684,8 +702,9 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
     setGraphDaylight,
     restoreSaved,
     failEverywhere,
+    failUnowned,
     surfaceFailed,
-    entitled,
+    surfaceOwned,
     ownerContents,
     surfaceFor: backgrounds.surfaceFor,
     /**

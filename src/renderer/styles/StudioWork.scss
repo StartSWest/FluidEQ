@@ -332,14 +332,6 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 6px;
 }
 
-// Why the rows are what they are, for a maker: what publishing earns.
-.studio-ship-more__lead {
-  margin: 2px 6px 6px;
-  color: $text-faint;
-  font-size: $text-small;
-  line-height: 1.45;
-}
-
 .studio-ship-more__item {
   display: flex;
   align-items: center;
@@ -377,8 +369,4 @@ it under the terms of the GNU General Public License version 3 or later.
 .studio-ship-more__label {
   flex: 1 1 auto;
   min-width: 0;
-}
-
-.studio-ship-more__lock {
-  color: $text-dim;
 }

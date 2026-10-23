@@ -170,3 +170,73 @@ it under the terms of the GNU General Public License version 3 or later.
     text-decoration: none;
   }
 }
+
+// Sign in with Google (`GoogleSignIn.tsx`): the button across the form and a
+// rule with "or" under it, above the email fields; while Google is open in
+// the browser, a line saying so with Cancel beside it.
+.account-google {
+  display: grid;
+  gap: 12px;
+}
+
+.account-google__button {
+  width: 100%;
+  justify-content: center;
+  gap: 9px;
+}
+
+.account-google__mark {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+// Google's own four colours, never the theme's: the mark is theirs. Above
+// `.button`'s rule that inks every filled glyph in a key's dark.
+.account-google svg.account-google__mark {
+  .account-google__red {
+    fill: #ea4335;
+  }
+
+  .account-google__blue {
+    fill: #4285f4;
+  }
+
+  .account-google__yellow {
+    fill: #fbbc05;
+  }
+
+  .account-google__green {
+    fill: #34a853;
+  }
+}
+
+.account-google__or {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: $text-faint;
+  font-size: $text-small;
+
+  &::before,
+  &::after {
+    height: 1px;
+    flex: 1 1 auto;
+    background: $border-subtle;
+    content: '';
+  }
+}
+
+.account-google--waiting {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid $border-subtle;
+  border-radius: $radius-s;
+}
+
+.account-google__waiting {
+  color: $text-primary;
+  font-size: $text-body;
+  line-height: 1.4;
+}

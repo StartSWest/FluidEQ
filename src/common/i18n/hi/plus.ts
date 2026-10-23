@@ -4,19 +4,14 @@ const plus = {
   'plus.remove.done': '{name} को आपके रूपों से हटा दिया गया।',
   'plus.card.remove': 'हटाएँ',
   'plus.official.author': 'FluidEQ · आधिकारिक',
-  'plus.official.included': 'Plus में शामिल',
-  'plus.official.sample': '{seconds} सेकंड की झलक',
+  'plus.official.included': 'हर सीन एक क्रेडिट, हमेशा के लिए आपका',
   'plus.official.badge': 'आधिकारिक',
-  'plus.official.fine':
-    'FluidEQ संग्रह का हिस्सा: जब तक आपके पास Plus है, यह आपके रूपों से चलता है।',
   'plus.visualizers.title': 'विज़ुअलाइज़र',
   'plus.visualizers.description':
     'FluidEQ और Plus समुदाय के सीन, आपके संगीत के लिए तैयार',
   'plus.visualizers.blurb': 'सदस्यों के सीन',
   'plus.rail.pin': 'साइडबार पिन करें',
   'plus.rail.collapse': 'साइडबार छोटा करें',
-
-  'plus.gate.cta': 'Plus देखें',
 
   'plus.gallery.search': 'सीन या बनाने वाले खोजें',
   'plus.gallery.sort': 'क्रम',
@@ -67,11 +62,17 @@ const plus = {
   'plus.version.earlier': 'पुराने संस्करण ({count})',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'कोई नोट नहीं',
+  'plus.version.play': 'चलाएँ',
+  'plus.version.playLabel': 'संस्करण {version} चलाएँ',
+  'plus.version.playing': 'चल रहा है',
+  'plus.version.playingLine':
+    'आप संस्करण {version} चला रहे हैं, जो इस कंप्यूटर पर रखा है।',
+  'plus.version.backToNewest': 'सबसे नए पर लौटें',
+  'plus.version.keptHere': 'इस कंप्यूटर पर रखा है',
   'plus.card.open': '{name} खोलें',
 
   'plus.like.label': '{name} को पसंद करें ({count} पसंद)',
   'plus.like.own': 'आपके सीन को {count} पसंद मिली हैं',
-  'plus.like.plusOnly': '{count} पसंद। सीन पसंद करना Plus का हिस्सा है।',
   'plus.like.offline':
     'पसंद करने के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
 
@@ -87,10 +88,7 @@ const plus = {
   'plus.scene.next': 'अगला सीन: {name}',
   'plus.scene.loading': 'सीन लोड हो रहा है…',
   'plus.scene.playing': 'आपके संगीत पर लाइव',
-  'plus.scene.plusPlays': 'Plus के साथ यह सीन यहीं आपके संगीत पर चलता है',
   'plus.scene.taste': 'प्रीव्यू · {seconds} सेकंड',
-  'plus.scene.keepWatching':
-    'Plus के साथ इसे अपने संगीत पर देखते रहें, और अपने रूपों में जोड़ें।',
   'plus.scene.unavailable': 'यह सीन अभी डाउनलोड नहीं हो सकता।',
   'plus.scene.blocked': 'यह सीन हटा दिया गया है।',
   'plus.scene.changed':
@@ -103,7 +101,6 @@ const plus = {
   'plus.scene.adds': 'जोड़े गए',
   'plus.scene.add': 'मेरे रूपों में जोड़ें',
   'plus.scene.update': 'मेरी कॉपी अपडेट करें',
-  'plus.scene.getPlus': 'जोड़ने के लिए Plus लें',
   'plus.inspect.open': 'स्टूडियो में खोलें',
   'plus.inspect.hint':
     'देखें कि यह कैसे बना है और अपने सीन के लिए आइडिया लें। यह प्रकाशित करने के लिए नहीं, अंदर देखने के प्रोजेक्ट के रूप में खुलता है।',
@@ -114,15 +111,12 @@ const plus = {
   'plus.scene.inLooks': 'आपके रूपों में, “सदस्यों के बनाए” के अंदर',
   'plus.scene.inLooksOwn': 'आपके रूपों में, “आपके बनाए” के अंदर',
   'plus.scene.inLooksPlus': 'आपके रूपों में, “FluidEQ Plus” के अंदर',
-  'plus.scene.fine':
-    'जोड़े गए सीन आपके रूपों से तब तक चलते हैं जब तक आपके पास Plus है। कोई उन्हें बेच नहीं सकता।',
   'plus.scene.report': 'इस सीन की रिपोर्ट करें',
   'plus.scene.reported': 'रिपोर्ट हो गई। धन्यवाद।',
   'plus.scene.moreBy': '{name} के और सीन',
   'plus.scene.moreByYou': 'आपके और सीन',
 
   'plus.maker.you': 'आप',
-  'plus.maker.rank': 'रैंक',
   'plus.maker.scenes': 'सीन',
   'plus.maker.empty': 'अभी कुछ प्रकाशित नहीं है।',
 
@@ -221,6 +215,7 @@ const plus = {
   'plus.accounts.filter.all': 'सभी खाते',
   'plus.accounts.filter.plus': 'Plus वाले',
   'plus.accounts.filter.free': 'बिना Plus',
+  'plus.accounts.filter.trial': 'मुफ़्त ट्रायल पर',
   'plus.accounts.admin': 'एडमिन',
   'plus.accounts.loading': 'खाते लोड हो रहे हैं…',
   'plus.accounts.shown': '{total} में से {shown} दिखाए गए',
@@ -228,6 +223,44 @@ const plus = {
   'plus.accounts.empty.search': '{query} से कोई खाता मेल नहीं खाता',
   'plus.accounts.empty.plus': 'इनमें से किसी खाते में Plus नहीं है',
   'plus.accounts.empty.free': 'इन सभी खातों में Plus है',
+  'plus.accounts.empty.trial': 'इनमें से कोई खाता मुफ़्त ट्रायल पर नहीं है',
+  'plus.accounts.trial.thisWeek': '{count} इस हफ़्ते ख़त्म',
+  'plus.accounts.trial.today': 'ट्रायल आज ख़त्म होगा',
+  'plus.accounts.trial.tomorrow': 'ट्रायल कल ख़त्म होगा',
+  'plus.accounts.trial.inDays': 'ट्रायल {days} दिन में ख़त्म होगा',
+  'plus.accounts.trial.ends': 'मुफ़्त ट्रायल {date} को ख़त्म होगा।',
+  'plus.accounts.filter.lapsed': 'ट्रायल खत्म, Plus नहीं',
+  'plus.accounts.empty.lapsed':
+    'कोई भी मुफ़्त ट्रायल बिना Plus के खत्म नहीं हुआ।',
+  'plus.accounts.empty.joined': 'उस समय में कोई खाता नहीं बना।',
+  'plus.accounts.joined.label': 'जुड़े',
+  'plus.accounts.joined.ever': 'अब तक',
+  'plus.accounts.joined.today': 'आज',
+  'plus.accounts.joined.week': 'इस हफ़्ते',
+  'plus.accounts.joined.month': 'इस महीने',
+  'plus.accounts.trial.ended': 'ट्रायल खत्म {when}',
+  'plus.accounts.trial.endedOn':
+    'मुफ़्त ट्रायल {date} को बिना Plus के खत्म हुआ।',
+  'plus.accounts.exit.title': 'उन्होंने Plus क्यों नहीं लिया',
+  'plus.accounts.exit.summary': '{total} में से {said} ने वजह बताई',
+  'plus.accounts.exit.empty':
+    'इस सूची का कोई मुफ़्त ट्रायल बिना Plus के खत्म नहीं हुआ।',
+  'plus.accounts.exit.said': 'वजह: {reason}',
+  'plus.accounts.exit.notSaid': 'अभी तक वजह नहीं बताई।',
+  'plus.accounts.exit.price': 'कीमत',
+  'plus.accounts.exit.not-enough': 'इसमें काफ़ी नहीं',
+  'plus.accounts.exit.free-is-enough': 'मुफ़्त काफ़ी है',
+  'plus.accounts.exit.no-time': 'आज़माने का समय नहीं',
+  'plus.accounts.exit.problems': 'ठीक से नहीं चला',
+  'plus.accounts.exit.payment': 'मनचाहे तरीके से भुगतान नहीं हो पाया',
+  'plus.accounts.exit.other': 'कुछ और',
+  'plus.accounts.exit.none': 'नहीं बताया',
+  'plus.accounts.engine.title': 'इंजन',
+  'plus.accounts.engine.fluid': 'FluidEQ इंजन',
+  'plus.accounts.engine.apo': 'Equalizer APO',
+  'plus.accounts.engine.unknown': 'रिपोर्ट नहीं हुआ {count}',
+  'plus.accounts.engine.summary':
+    'FluidEQ इंजन {fluid}, Equalizer APO {apo}, रिपोर्ट नहीं हुआ {unknown}',
   'plus.accounts.moreError': 'और खाते लोड नहीं हो सके। फिर कोशिश करें।',
   'plus.accounts.error.offline':
     'खातों की सूची के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',
@@ -244,11 +277,11 @@ const plus = {
   'plus.accounts.appVersion': 'FluidEQ {version}',
   'plus.accounts.plan.none': 'Plus नहीं',
   'plus.accounts.plan.paid': '{date} तक Plus',
+  'plus.accounts.plan.trial': 'मुफ़्त ट्रायल',
   'plus.accounts.plan.gift': 'उपहार में Plus',
   'plus.accounts.plan.giftUntil': '{date} तक उपहार',
   'plus.accounts.goes': 'इसके साथ हटेगा',
   'plus.accounts.fact.published': 'प्रकाशित सीन',
-  'plus.accounts.fact.boardDays': 'लीडरबोर्ड के दिन',
   'plus.accounts.fact.likes': 'दी गई पसंद',
   'plus.accounts.fact.adds': 'जोड़े गए सीन',
   'plus.accounts.fact.reports': 'भेजी गई रिपोर्टें',
@@ -259,13 +292,19 @@ const plus = {
   'plus.accounts.note.deleting':
     'इस खाते को हटाने की पिछली कोशिश बीच में रुक गई थी। “हटाना पूरा करें” उसे पूरा करता है।',
   'plus.accounts.note.gift':
-    'शर्तों के अनुसार, इस पते को उपहार में मिला Plus बना रहता है। अगर यह भी माँगा गया हो, तो “उपहार में Plus” पेज पर उसे वापस लें।',
+    'शर्तों के अनुसार, इस पते को उपहार में मिला Plus बना रहता है। अगर यह भी माँगा गया हो, तो उसे यहीं या “उपहार में Plus” पेज पर वापस लें।',
   'plus.accounts.give': 'Plus दें',
   'plus.accounts.giveConfirm':
     '{name} को Plus दें? जब तक आप वापस न लें, यह चलता रहेगा।',
   'plus.accounts.giving': '{name} को Plus दिया जा रहा है…',
   'plus.accounts.giveYes': 'Plus दें',
   'plus.accounts.giveNo': 'अभी नहीं',
+  'plus.accounts.takeBack': 'Plus वापस लें',
+  'plus.accounts.takeBackPaid':
+    '{name} को दिया Plus वापस लें? जिस Plus का वे भुगतान करते हैं, वह चलता रहेगा।',
+  'plus.accounts.takeBackPlain':
+    '{name} को दिया Plus वापस लें? यह अभी खत्म होगा।',
+  'plus.accounts.takingBack': '{name} से Plus वापस लिया जा रहा है…',
   'plus.accounts.delete': 'खाता हटाएँ',
   'plus.accounts.finish': 'हटाना पूरा करें',
   'plus.accounts.confirm':
@@ -311,6 +350,8 @@ const plus = {
     'हमेशा के लिए मिटाएँ? यह गैलरी से और हर सदस्य के रूपों से हट जाता है, इसकी फ़ाइलें मिटा दी जाती हैं, और इसे फिर कभी प्रकाशित नहीं किया जा सकता।',
   'plus.moderation.deleteForGood': 'हमेशा के लिए मिटाएँ',
   'plus.moderation.done.deleted': '{name} मिटा दिया गया।',
+  'plus.add.notOwned':
+    'पहले {name} लें: इसमें एक क्रेडिट लगता है, फिर यह आपके रूपों में आ जाता है।',
 } as const;
 
 export default plus;

@@ -23,8 +23,14 @@ it under the terms of the GNU General Public License version 3 or later.
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { IAudioEngineStatus, TAudioEngine } from 'common/audioEngine';
+import { isFluidEngineBuiltIn } from 'common/platformCapabilities';
 import { engineDisplayName } from '../utils/audioEngineApi';
 import { useTranslation } from '../utils/I18nContext';
+import windowCapabilities from '../utils/windowCapabilities';
+import {
+  builtInEngineChoices,
+  type IEngineChoice,
+} from './builtInEngineChoices';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from './DialogFrame';
 import holdFocusReturn from '../utils/focusReturn';
@@ -238,7 +244,7 @@ const AudioEngineDialog = ({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isApplying, onCancel]);
 
-  const options = useMemo(
+  const allOptions = useMemo(
     () =>
       [
         {
@@ -276,6 +282,12 @@ const AudioEngineDialog = ({
       ] as const,
     [status.apo.installed, status.fluidSupported, t],
   );
+  // Where the engine ships inside the app there is one engine and nothing to
+  // install — see `builtInEngineChoices.ts`.
+  const isBuiltIn = isFluidEngineBuiltIn(windowCapabilities());
+  const options: readonly IEngineChoice[] = isBuiltIn
+    ? builtInEngineChoices(t, status.fluidSupported)
+    : allOptions;
 
   const moveSelection = (event: KeyboardEvent<HTMLDivElement>) => {
     let step = 0;
@@ -366,7 +378,9 @@ const AudioEngineDialog = ({
         title={t('engine.title')}
         titleId="engine-dialog-title"
         description={
-          <span id="engine-dialog-subtitle">{t('engine.subtitle')}</span>
+          <span id="engine-dialog-subtitle">
+            {t(isBuiltIn ? 'engine.subtitle.builtIn' : 'engine.subtitle')}
+          </span>
         }
         // No way out on the blocking first run, and none while a switch is
         // under way: Cancel, Escape and the backdrop all refuse then too.

@@ -142,13 +142,15 @@ export default {
   'genre.arabicPop.pin.1250.why': 'Les ornements, nets.',
   'genre.arabicPop.pin.5000': 'Les cordes pas éclaircies',
   'genre.arabicPop.pin.5000.why': 'Déjà brillantes.',
+  'genre.arabicPop.stage.exciter':
+    'De la chaleur sous la voix ; les cordes et le tek restent aussi brillants qu’ils sont.',
   'genre.arabicPop.stage.bassPunch': 'Le bas resserré.',
   'genre.arabicPop.stage.dimension':
     'Les cordes aussi larges qu’enregistrées ; seul le bas est resserré.',
   'genre.arabicPop.stage.maximizer':
     'Un plafond léger qui garde l’attaque de la darbouka.',
   'genre.arabicPop.off':
-    'Ni Exciteur ni Forge de basses : les cordes et le tek sont déjà brillants.',
+    'Pas de Forge de basses : rien de généré sous le doum.',
 
   'genre.turkishPop.hook': 'Une pop polie aux couleurs turques',
   'genre.turkishPop.story':
@@ -161,11 +163,12 @@ export default {
   'genre.turkishPop.pin.1250.why': 'Devant.',
   'genre.turkishPop.pin.8000': 'Pas d’éclat ajouté',
   'genre.turkishPop.pin.8000.why': 'Déjà poli.',
+  'genre.turkishPop.stage.exciter':
+    'De la chaleur sous la voix, rien sur la darbouka.',
   'genre.turkishPop.stage.bassPunch': 'Un bas serré.',
   'genre.turkishPop.stage.dimension': 'Tel que mixé, seul le bas est resserré.',
   'genre.turkishPop.stage.maximizer': 'Un plafond qui pousse à peine.',
-  'genre.turkishPop.off':
-    'Ni Exciteur ni Forge de basses sur un disque aussi poli.',
+  'genre.turkishPop.off': 'Pas de Forge de basses sur un disque aussi poli.',
 
   'genre.gospel.hook': 'Un chœur, et des vamps qui montent pendant des minutes',
   'genre.gospel.story':

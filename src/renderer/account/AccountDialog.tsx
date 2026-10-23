@@ -7,13 +7,11 @@ import {
 } from 'react';
 import type { TAuthFailure } from 'main/account/authClient';
 import type { TranslationKey } from 'common/i18n/en';
-import { isCheckoutConfigured } from 'common/accountConfig';
+import { isAccountConfigured } from 'common/accountConfig';
 import { PLUS_TERMS_EDITION } from 'common/plusTerms';
-import { PLUS_TRIAL_PLAN } from 'common/plusTrial';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from '../components/DialogFrame';
-import LeaderboardName from '../community/LeaderboardName';
 import { identityStyle } from '../community/identity';
 import {
   createProfile,
@@ -24,17 +22,16 @@ import {
 } from '../plus/profileStore';
 import type { TAccountPanelPage } from './accountPanel';
 import { useAccount } from './accountStore';
-import { useEntitlement } from './entitlementStore';
 import SceneBand from '../plus/SceneBand';
-import PlusCard from './PlusCard';
+import CreditsCard from './CreditsCard';
+import ProfileNameForm from './ProfileNameForm';
 import PlusTermsDocument from './PlusTermsDocument';
-import LeaderboardCard from './LeaderboardCard';
-import MakerMonthCard from './MakerMonthCard';
-import { forgetMakerMonth } from '../plus/makerMonthStore';
+import { useSceneStore } from '../plus/sceneStore';
+import CreatorPayoutsCard from './CreatorPayoutsCard';
+import ListeningCard from './ListeningCard';
+import { forgetCreator } from './creatorStore';
 import SignInForms from './SignInForms';
 import SignOutConfirm from './SignOutConfirm';
-import SubscribeAgreement from './SubscribeAgreement';
-import PlusTrialAgreement, { PlusTrialConsent } from './PlusTrialAgreement';
 import AccountPitch from './AccountPitch';
 import initialsOf from './initials';
 // The panel sits on the About panel's backdrop, so it asks for the sheet that
@@ -56,11 +53,7 @@ interface IAccountFramePage {
 
 interface IAccountDialogProps {
   onClose: () => void;
-  /**
-   * The page to open on. The leaderboard's guide opens straight on the terms,
-   * and every way into paying opens on the terms with the agreement under
-   * them.
-   */
+  /** The page to open on: the terms, from a link that asks for them. */
   initialPage?: TAccountPanelPage;
 }
 
@@ -85,6 +78,7 @@ const ERROR_KEYS: Record<TAuthFailure, TranslationKey> = {
   invalid_email: 'account.error.invalidEmail',
   already_registered: 'account.error.alreadyRegistered',
   signed_out_elsewhere: 'account.error.signedOutElsewhere',
+  google_unfinished: 'account.error.googleUnfinished',
 };
 
 /**
@@ -98,16 +92,16 @@ const ERROR_KEYS: Record<TAuthFailure, TranslationKey> = {
  * On the dialog frame (`DialogFrame`), every page of it. Signed in, the rail
  * is the person: their initials in their own colour in the tile, what they
  * are here over their name, the two things they can do to the account under
- * it, and — for a member — the scene they pay for, playing. Signed out, the
+ * it, and — for somebody with scenes — a scene of theirs, playing. Signed out, the
  * pitch is the rail and the form is the page, so the reason to sign in and
  * the way to do it are on screen together. The sentence that says signing in
  * is optional is on both: this app has promised since its first release that
  * it is local and account-free, and that is still true for anybody who closes
  * this without typing anything.
  *
- * The Plus terms are a page of the same panel rather than a dialog of their
- * own: reached from a link on either side, from the leaderboard, and — with
- * the agreement in the foot — from every button that leads to paying.
+ * The terms are a page of the same panel rather than a dialog of their own:
+ * reached from a link on either side. Paying for
+ * credits has its own agreement, beside the packs (`PackPurchase`).
  */
 export default function AccountDialog({
   onClose,
@@ -118,9 +112,8 @@ export default function AccountDialog({
   const closeRef = useRef<HTMLButtonElement>(null);
   const termsRef = useRef<HTMLDivElement>(null);
   const account = useAccount();
-  const entitlement = useEntitlement();
+  const { store } = useSceneStore();
   const [page, setPage] = useState<TAccountPanelPage>(initialPage);
-  const [checkoutOpened, setCheckoutOpened] = useState(false);
 
   // A request for another page while the panel is already open — the
   // composer's upgrade with the panel on screen — moves it there.
@@ -140,10 +133,15 @@ export default function AccountDialog({
 
   const { identity, status } = account;
   const signedIn = status === 'signed-in' && identity !== undefined;
-  const termsOffered = isCheckoutConfigured();
-  const member = entitlement.state !== 'none';
+  const termsOffered = isAccountConfigured();
+  // Somebody with scenes of their own: signing out locks them, and their
+  // picture in the rail is the scene playing. Plus is not sold any more
+  // (Ivan, 2026-10-21: "no more subs"); owning scenes is what is left of it.
+  const ownsScenes = Boolean(
+    store && (store.everything || store.owned.length > 0),
+  );
 
-  // The name the board and the gallery show, when one has been chosen: it is
+  // The name the gallery shows, when one has been chosen: it is
   // what the panel leads with, and what "Change name" edits. The provider's
   // name stands in until then.
   const { profile, loaded: profileLoaded } = useProfile();
@@ -161,7 +159,7 @@ export default function AccountDialog({
       loadProfile(accountId).catch(() => undefined);
     } else {
       forgetProfile();
-      forgetMakerMonth();
+      forgetCreator();
     }
   }, [accountId]);
 
@@ -178,31 +176,11 @@ export default function AccountDialog({
   const displayName =
     profile?.displayName ?? identity?.name ?? identity?.email ?? '';
 
-  // Paying needs an account with nothing to pay for yet: signed out, the
-  // panel asks for the account first; already a member, there is nothing to
-  // agree to and the terms are simply shown. Without a price configured there
-  // is no Plus to describe at all.
-  const shown: TAccountPanelPage = (() => {
-    if (page === 'trial') {
-      return signedIn ? 'trial' : 'home';
-    }
-    if (!termsOffered) {
-      return 'home';
-    }
-    if (page === 'subscribe') {
-      if (!signedIn) {
-        return 'home';
-      }
-      return entitlement.state === 'none' ||
-        entitlement.plan === PLUS_TRIAL_PLAN
-        ? 'subscribe'
-        : 'terms';
-    }
-    return page;
-  })();
-  const onTerms = shown === 'terms' || shown === 'subscribe';
-  const onTrial = shown === 'trial';
-  const onDocument = onTerms || onTrial;
+  // Without an account backend there are no terms to read.
+  const shown: TAccountPanelPage =
+    page === 'terms' && !termsOffered ? 'home' : page;
+  const onTerms = shown === 'terms';
+  const onDocument = onTerms;
   // The front page with somebody signed in: the person, as a profile.
   const onProfile = signedIn && !onDocument;
 
@@ -248,9 +226,9 @@ export default function AccountDialog({
     </p>
   );
 
-  // What the rail says the panel is, page by page: the terms and the trial
-  // are documents about Plus; signed in, it is the person; otherwise it is
-  // the account the menu row named.
+  // What the rail says the panel is, page by page: the terms are a
+  // document; signed in, it is the person; otherwise it is the account the
+  // menu row named.
   const frame = ((): IAccountFramePage => {
     if (onTerms) {
       return {
@@ -260,39 +238,22 @@ export default function AccountDialog({
         badge: (
           <span className="dialog-frame__badge">v{PLUS_TERMS_EDITION}</span>
         ),
-        footer:
-          shown === 'subscribe' ? (
-            <SubscribeAgreement
-              onBack={() => setPage('home')}
-              onOpened={() => {
-                setCheckoutOpened(true);
-                setPage('home');
-              }}
-            />
-          ) : (
-            <div className="dialog-frame__actions">
-              <button
-                type="button"
-                className="button small subtle"
-                onClick={() => setPage('home')}
-              >
-                {t('terms.back')}
-              </button>
-            </div>
-          ),
-      };
-    }
-    if (onTrial) {
-      return {
-        icon: <MenuIcon name="plusTab" />,
-        eyebrow: t('account.eyebrow'),
-        title: t('trial.consent.title'),
-        footer: <PlusTrialConsent key={accountId} onClose={onClose} />,
+        footer: (
+          <div className="dialog-frame__actions">
+            <button
+              type="button"
+              className="button small subtle"
+              onClick={() => setPage('home')}
+            >
+              {t('terms.back')}
+            </button>
+          </div>
+        ),
       };
     }
     if (onProfile) {
       // The initials of the name shown beside them, not of the one the
-      // sign-in provider holds: a board name of "Ivan" over an account
+      // sign-in provider holds: a chosen name of "Ivan" over an account
       // registered as something else drew that something else's letter, and
       // the avatar and the name disagreed.
       const initials = initialsOf(displayName, identity.email);
@@ -311,10 +272,7 @@ export default function AccountDialog({
         ) : (
           <MenuIcon name="artist" />
         ),
-        // What the account is, over whose it is.
-        eyebrow: member
-          ? t('account.plus.eyebrow')
-          : t('account.standing.free'),
+        eyebrow: t('account.eyebrow'),
         title: displayName,
         description:
           profile || email ? (
@@ -351,11 +309,7 @@ export default function AccountDialog({
                     className="account-link"
                     onClick={() => setEditingName(true)}
                   >
-                    {t(
-                      profile
-                        ? 'account.name.change'
-                        : 'leaderboard.name.choose',
-                    )}
+                    {t(profile ? 'account.name.change' : 'profile.name.choose')}
                   </button>
                 )}
                 <button
@@ -368,11 +322,13 @@ export default function AccountDialog({
                 </button>
               </p>
             )}
-            {/* A member's picture is the scene, playing (Ivan, 2026-09-15):
-                a scene is what Plus is. Without it there is nothing to show,
-                and a band drawing on the graphics card would be a cost for
+            {/* The picture of somebody with scenes is the scene, playing
+                (Ivan, 2026-09-15). Without one there is nothing to show, and
+                a band drawing on the graphics card would be a cost for
                 decoration. */}
-            {member && <SceneBand playsScene className="dialog-frame__scene" />}
+            {ownsScenes && (
+              <SceneBand playsScene className="dialog-frame__scene" />
+            )}
           </>
         ),
       };
@@ -380,12 +336,12 @@ export default function AccountDialog({
     return {
       icon: <MenuIcon name="artist" />,
       eyebrow: t('account.eyebrow'),
-      title: page === 'trial' ? t('trial.consent.title') : t('account.title'),
+      title: t('account.title'),
       rail:
         status === 'unavailable' ? (
           <p className="dialog-frame__rail-text">{t('account.optional')}</p>
         ) : (
-          <AccountPitch trial={page === 'trial'} termsLink={termsLink} />
+          <AccountPitch termsLink={termsLink} />
         ),
     };
   })();
@@ -417,7 +373,6 @@ export default function AccountDialog({
         onClose={onClose}
         closeRef={closeRef}
       >
-        {onTrial && <PlusTrialAgreement key={accountId} onClose={onClose} />}
         {/* Keyed on the page so switching between reading and agreeing
             starts the document from its top. */}
         {onTerms && (
@@ -443,7 +398,7 @@ export default function AccountDialog({
                   nothing (Ivan, 2026-09-16). */}
               {editingName && (
                 <div className="account__name-form">
-                  <LeaderboardName
+                  <ProfileNameForm
                     initial={
                       profile
                         ? {
@@ -460,7 +415,7 @@ export default function AccountDialog({
               )}
               {signingOut && (
                 <SignOutConfirm
-                  member={member}
+                  ownsScenes={ownsScenes}
                   onCancel={() => {
                     returnToSignOut.current = true;
                     setSigningOut(false);
@@ -468,16 +423,13 @@ export default function AccountDialog({
                 />
               )}
 
-              <PlusCard
-                entitlement={entitlement}
-                onUpgrade={() => setPage('subscribe')}
-                checkoutOpened={checkoutOpened}
-              />
-              {/* Under the membership, because it is where the membership
-                  comes from for a maker: the month their last approved scene
-                  earned, and when it runs out. */}
-              {accountId && <MakerMonthCard accountId={accountId} />}
-              <LeaderboardCard />
+              {/* What gets scenes: credits. Plus is not sold any more, and
+                  nothing about a subscription is shown (Ivan, 2026-10-21). */}
+              <CreditsCard />
+              {/* Getting paid for the scenes members keep. */}
+              {accountId && <CreatorPayoutsCard accountId={accountId} />}
+              {/* Whether this account's listening time is counted. */}
+              <ListeningCard />
 
               {errorLine}
 
@@ -501,9 +453,7 @@ export default function AccountDialog({
             <div className="account__form-column">
               <SignInForms
                 account={account}
-                initialMode={
-                  page === 'signUp' || page === 'trial' ? 'signUp' : 'signIn'
-                }
+                initialMode={page === 'signUp' ? 'signUp' : 'signIn'}
               />
               {errorLine}
             </div>

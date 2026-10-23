@@ -39,10 +39,9 @@ import type { IAuthorizedAutoUpdater } from './signedAutoUpdates';
  * THEY USED TO BE WIRED TOGETHER, by the updater's setup and only once it had
  * a controller. Development, an unpackaged run, macOS and Linux, and every
  * packaged build whose updater failed its signature or feed check therefore
- * never refreshed the membership, the installed scenes, the block list, the
- * terms notice or the leaderboard again after launch — while the Plus terms
- * tell a member that both the membership check and the leaderboard upload
- * happen "when you come back to the computer".
+ * never refreshed the membership, the installed scenes, the block list or
+ * the terms notice again after launch — while the Plus terms tell a member
+ * that the membership check happens "when you come back to the computer".
  */
 
 type TPowerEvent = 'resume' | 'unlock-screen' | 'lock-screen';
@@ -61,12 +60,15 @@ export interface IComeBackStep {
 
 export interface IAccountRefreshers {
   entitlement: { checkIfDue(reason: string): Promise<void> };
+  sceneStore: { refreshIfDue(reason: string): Promise<void> };
   scenePacks: { refreshIfDue(reason: string): Promise<void> };
   memberSharing: { refreshIfDue(reason: string): Promise<void> };
   plusGallery: { refreshIfDue(): Promise<void> };
   sceneReviews: { refreshIfDue(reason: string): Promise<void> };
   plusTermsNotice: { checkIfDue(reason: string): Promise<void> };
-  leaderboard: { uploadIfDue(reason: string): Promise<void> };
+  sceneTaste: { uploadIfDue(reason: string): Promise<void> };
+  listening: { refreshIfDue(reason: string): Promise<void> };
+  sceneAnnouncements: { refreshIfDue(reason: string): Promise<void> };
 }
 
 /**
@@ -75,19 +77,24 @@ export interface IAccountRefreshers {
  * The membership first, because every step after it reads the answer: the
  * installed FluidEQ scenes are asked about only while it is live, the gallery
  * scenes are kept against the block list fetched just before them, and the
- * terms notice and the leaderboard upload are for members. Each step keeps its
+ * terms notice is for members. Each step keeps its
  * own staleness test, so running the list on every event costs nothing.
  */
 export const accountComeBackSteps = ({
   entitlement,
-  leaderboard,
+  sceneStore,
   memberSharing,
   plusGallery,
   plusTermsNotice,
+  sceneAnnouncements,
   sceneReviews,
   scenePacks,
+  sceneTaste,
+  listening,
 }: IAccountRefreshers): IComeBackStep[] => [
   { name: 'membership', run: (reason) => entitlement.checkIfDue(reason) },
+  // Right after: every scene step below plays or keeps only what is owned.
+  { name: 'owned scenes', run: (reason) => sceneStore.refreshIfDue(reason) },
   {
     name: 'FluidEQ scenes',
     run: (reason) => scenePacks.refreshIfDue(reason),
@@ -100,9 +107,20 @@ export const accountComeBackSteps = ({
     name: 'Plus terms notice',
     run: (reason) => plusTermsNotice.checkIfDue(reason),
   },
+  // After the terms notice: what it sends waits on the member having been
+  // shown terms 10, which that step is what finds out.
   {
-    name: 'leaderboard upload',
-    run: (reason) => leaderboard.uploadIfDue(reason),
+    name: 'scene plays and engine',
+    run: (reason) => sceneTaste.uploadIfDue(reason),
+  },
+  // Every signed-in account's, member or not: its own answer decides.
+  {
+    name: 'listening',
+    run: (reason) => listening.refreshIfDue(reason),
+  },
+  {
+    name: 'scene announcements',
+    run: (reason) => sceneAnnouncements.refreshIfDue(reason),
   },
 ];
 

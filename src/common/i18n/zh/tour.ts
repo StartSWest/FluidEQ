@@ -171,21 +171,20 @@ const tour: Partial<Dictionary> = {
     '均衡器曲线的低音、中音和高音三段，移动它们的三个旋钮，以及从六段到三十一段的快速布局。',
   'tour.studio.kicker': 'FluidEQ Plus',
   'tour.studio.title': '打造你自己的可视化效果',
-  'tour.studio.subtitle': '免费体验 15 天，或换来一个月',
+  'tour.studio.subtitle': '所有账户免费',
   'tour.studio.lead':
-    '工作室能把一个想法变成随你的音乐而动的场景。它现在属于 Plus，新账户可以免费体验十五天，无需银行卡，体验结束时也不会扣费。',
+    '工作室把一个想法变成随音乐律动的场景。它对所有账户免费：想创作、导出和发布多少场景都可以。',
   'tour.studio.point1':
-    '每个场景在进入图库前都会经过审核，通过审核的场景会让你下个月的 Plus 免费。',
+    '每个场景在进入画廊前都会经过审核，获批后它会在任何地方为你免费播放。',
   'tour.studio.point2':
     '场景可以是真正的 3D 世界，踩着底鼓的节拍，在 drop 时一跃而起。',
   'tour.studio.point3':
     '复制 AI 提示词，你的 AI 助手就能看到你的场景，并听出歌曲如何起伏。',
-  'tour.studio.how':
-    '打开 Plus，在侧栏中选择“工作室”。没有 Plus 时，那里的页面会提供免费体验。',
+  'tour.studio.how': '打开 Plus，在侧栏中选择“工作室”。',
   'tour.studio.open': '打开 Plus',
   'tour.studio.imageAlt':
-    '舞台上正在播放 Alpine 的工作室：雪峰下的湖泊与极光，下方是用你的 AI 制作场景的三个步骤，然后是十五天免费体验，以及通过审核的场景换来的一个月。',
-  'tour.studio.earned': '审核通过：下个月免费',
+    '工作室的舞台上正播放 Alpine：雪峰下的湖泊和极光，下方是用你的 AI 创作场景的三个步骤，以及两条说明：所有账户免费，发布的场景对其作者免费播放。',
+  'tour.studio.earned': '已发布：为你免费播放',
   'tour.help.kicker': '帮助',
   'tour.help.title': '用你自己的话问指南',
   'tour.help.subtitle': '不怕错字和单复数，支持十种语言',
@@ -246,20 +245,21 @@ const tour: Partial<Dictionary> = {
     '俯视的房间：七只音箱和一只低音炮围绕中央的头部，每只都有通往双耳的路径。',
 
   'tour.plus.kicker': 'FluidEQ Plus',
-  'tour.plus.title': '欢迎来到 FluidEQ Plus',
+  'tour.plus.title': '永久归你的场景',
   'tour.plus.subtitle': '可视化、工作室、灯效，还有更多',
   'tour.plus.lead':
-    '这是一项可选的会员服务，支持 FluidEQ 持续成长，并拥有一个全新的专属标签页：由显卡绘制的场景、用来创作自己场景的工作室、排行榜、桌面背景和动态灯效。均衡器、机架和播放器一如既往，依然免费。',
+    '一整个让 FluidEQ 不断成长的扩展标签页：在显卡上绘制的场景、创作自己场景的工作室、桌面背景和动态灯光。每个场景一点并永久归你，而均衡器、效果架和播放器一如既往保持免费。',
   'tour.plus.point1':
-    '在操作菜单的“账户”中登录；付款在浏览器中完成，之后 Plus 会自动开启。',
+    '从操作菜单中的“账户”登录：已确认的账户可免费获得起步点数。',
   'tour.plus.point2':
-    '按月或按年订阅，付款前就能读到通俗易懂的条款。应用永远不会看到你的银行卡。',
-  'tour.plus.point3': '最多可在五台电脑上登录，新的可视化效果也会陆续加入。',
+    '点数包只需付款一次，付款前有用平实语言写成的条款。不会自动续费，应用也从不接触你的银行卡。',
+  'tour.plus.point3':
+    '每个场景都可以先观看，你获取的场景会在你登录的每台电脑上播放。',
   'tour.plus.how':
-    '打开 Plus 标签页：“排行榜”“可视化”“工作室”和“动态灯效”都在它的左侧。',
+    '打开 Plus 标签页：“可视化”“工作室”和“动态灯效”都在它的左侧。',
   'tour.plus.open': '打开 Plus',
   'tour.plus.imageAlt':
-    'Plus 标签页：侧边是排行榜、可视化、工作室和动态灯效，另有展示铬光、绽放、极光、阿尔卑斯和霓虹之城的“可视化”图库。',
+    'Plus 标签页：侧边是可视化、工作室和动态灯效，另有展示铬光、绽放、极光、阿尔卑斯和霓虹之城的“可视化”图库。',
   'tour.scene.alpine': '阿尔卑斯',
   'tour.scene.aurora': '极光',
   'tour.scene.bloom': '绽放',
@@ -314,35 +314,33 @@ const tour: Partial<Dictionary> = {
   'tour.lighting.imageAlt':
     '键盘、鼠标和鼠标垫亮起霓虹之城的粉色、紫色和青色。',
 
-  'tour.share.kicker': '聆听每一台电脑',
+  'tour.share.kicker': '每台电脑，双向互通',
   'tour.share.title': '在你的电脑之间共享音频',
-  'tour.share.subtitle': '一副耳机，桌上的每一台机器',
+  'tour.share.subtitle': '无论坐在哪台电脑前，都能听到两台的声音',
   'tour.share.lead':
-    '游戏主机、工作笔记本和媒体盒子，全都播进你正戴着的这副耳机：通过你自己的网络，无损、加密，并经过你已经调好的 EQ。',
-  'tour.share.receiverLabel': '接收端',
-  'tour.share.receiverName': '接耳机的那台电脑',
-  'tour.share.senderLabel': '发送端',
-  'tour.share.senderName': '其他所有电脑',
+    '你的游戏电脑和笔记本互相播放：无论你坐在哪台前，都能听到两台的声音——通过你自己的网络，无损、加密，并经过你在那台电脑上调好的 EQ。',
+  'tour.share.pairLabel': '双向',
+  'tour.share.pairName': '每台电脑播放对方的声音',
   'tour.share.wireLabel': '无损 · 加密 · 私有局域网',
   'tour.share.stepsTitle': '三步完成设置',
-  'tour.share.step1Title': '在耳机电脑上创建连接码',
-  'tour.share.step1':
-    '打开“共享音频”标签页，选择“在此电脑上播放音频”，按下“创建连接码”。复制对应你网络的那条连接码。',
-  'tour.share.step2Title': '在其他每台电脑上粘贴',
+  'tour.share.step1Title': '在一台电脑上复制连接码',
+  'tour.share.step1': '打开“共享音频”标签页，按“复制代码”。连接码每次都一样。',
+  'tour.share.step2Title': '在另一台上粘贴并链接',
   'tour.share.step2':
-    '在那台电脑上打开 FluidEQ，进入“共享音频”，选择“发送此电脑的音频”，粘贴连接码并按“连接并发送”。它的系统音频随即原样传输：效果会在你聆听的那台电脑上应用。',
-  'tour.share.step3Title': '开始聆听，调好音量',
+    '在另一台电脑上打开“共享音频”，把连接码粘贴到“另一台电脑的连接码”下，然后按“链接”。两台会立即原样互相播放：每台都对自己听到的声音套用自己的 EQ。',
+  'tour.share.step3Title': '选择声音的去向',
   'tour.share.step3':
-    '每个发送端都以较短的缓冲播放，偶有卡顿后会自行追上。每个发送端都会混入接收端的输出，并由接收端的 EQ 塑形。接收端的播放栏会显示最近一个发送端的歌曲，其按钮可通过网络远程操作。',
+    '每台已链接的电脑都有两个开关：“在此播放”和“发送我的声音”。关闭其中一个即可只单向共享。播放栏会显示另一台电脑的歌曲，其按钮可跨链接使用。“在此播放”旁的滑块可调节音量，“暂停”会停止两个方向，直到你按下“继续”。',
   'tour.share.fact1Title': '无损',
   'tour.share.fact1': '端到端 Float32 PCM。没有媒体编解码器，没有转码损失。',
   'tour.share.fact2Title': '加密',
   'tour.share.fact2':
     '每个数据包都经 AES-256-GCM 加密。连接码就是密钥，没有它谁也听不到。',
-  'tour.share.fact3Title': '保持配对',
+  'tour.share.fact3Title': '保持链接',
   'tour.share.fact3':
-    '配对在关闭应用和重启后依然保留。只有创建新连接码才会断开。',
-  'tour.share.tip': '先小声：多台电脑叠加得很快。首次连接前先调低耳机音量。',
+    '关闭应用或重启后，链接依然保留，哪一边都一样。只有“取消链接”才会结束它。',
+  'tour.share.tip':
+    '从小音量开始：两台电脑同时播放会叠加音量。首次链接前请先调低音量。',
   'tour.share.open': '打开共享音频',
 
   'tour.library.kicker': '你的音乐，你的播放器',
@@ -386,16 +384,226 @@ const tour: Partial<Dictionary> = {
     '耳机和音箱可以同时播放，并使用各自的均衡器。第二路输出接收主输出均衡器处理前的声音，再应用自己的已保存配置，无需安装路由驱动。',
   'tour.output.point1': '在第二路输出中开启另一个设备，并设置它自己的音量。',
   'tour.output.point2':
-    '使用该设备下方的均衡器配置选择器，选择为它保存的配置。主输出的调音保持不变。',
+    '在设备下方选择它的一个已保存配置，或点击旁边的“{editSound}”，无需切换主输出就能修改它的声音。主输出的调音保持不变。',
   'tour.output.point3':
     '同时只播放一处：在 FluidEQ 里开始播放会暂停机器上的其他播放，反之亦然。',
   'tour.output.point4':
-    '游戏/视频以约 30 ms 的缓冲开始，在中断后追上进度；音乐以约 100 ms 的缓冲开始，让播放更平稳。设备自身的缓冲还会增加延迟。',
+    '每路输出都会自行保持同步：开始时约落后 30 ms，只有中断后才稍微增加，并以毫秒显示延迟——“共享音频”在此播放另一台电脑的声音时也会一并计入。',
   'tour.output.how':
-    '打开均衡器标签页，展开右侧的第二路输出。开启一个设备，在名称下方选择均衡器配置，然后设置音量并选择游戏/视频或音乐。',
+    '打开均衡器标签页，展开右侧的第二路输出。开启一个设备，在名称下方选择均衡器配置，然后设置音量；其延迟显示在下方。',
   'tour.output.open': '打开均衡器',
   'tour.output.imageAlt':
-    '第二路输出面板，已开启 BlackShark V2 Pro，显示均衡器配置选择器、音量滑块以及游戏/视频和音乐模式。',
+    '第二路输出面板，已开启 BlackShark V2 Pro，显示均衡器配置选择器、音量滑块和延迟。',
+
+  'tour.outputs.kicker': '每路输出都记得',
+  'tour.outputs.title': '每路输出都有自己的声音',
+  'tour.outputs.subtitle': '耳机和音箱，各调各的',
+  'tour.outputs.lead':
+    '从耳机切换到音箱，每路输出都会带回自己的声音：均衡器、预设、音色、低切与高切、DSP 机架、房间和响度调节都随每路输出保存。',
+  'tour.outputs.point1':
+    '选一路输出，你为它做的设置会立刻回来。耳机和音箱不再共用同一个预设或同一条曲线。',
+  'tour.outputs.point2':
+    '第二路输出直接从 FluidEQ 引擎播放，拥有自己的声音，主输出从不等它。旁边的“{editSound}”可以修改这份声音，而无需切换主输出。',
+  'tour.outputs.point3':
+    '蓝牙耳机会在输出旁显示电量，第二路输出会以毫秒显示它落后多少。',
+  'tour.outputs.how':
+    '打开均衡器，在右侧“{output}”中选择一路输出：之后的所有设置都会留在它那里。第二路输出在“{secondOutput}”中打开，再点击“{editSound}”。',
+  'tour.outputs.open': '打开均衡器',
+  'tour.outputs.imageAlt':
+    '“输出”卡片上有一副耳机和一对音箱，各有自己的预设、曲线和 DSP 环节，轮流播放；旁边的第二路输出同时播放，带着自己的声音、电量和“编辑声音”。',
+
+  'tour.bands.kicker': '均衡器，一目了然',
+  'tour.bands.title': '每个频段的数值，直接显示在图上',
+  'tour.bands.subtitle': '曲线上有标签，旁边是 EQ 模式',
+  'tour.bands.lead':
+    '每个频段都可以在自己的点上显示频率、Q 值和增益，标签互不遮挡。EQ 模式现在位于图表旁边而不是盖在上面，你调整曲线的播放方式时，曲线始终可见。',
+  'tour.bands.point1':
+    '标签总在点的正上方或正下方，从不压住别的标签；拖动频段时它保持不动，一有空间就回到原位。',
+  'tour.bands.point2':
+    '“{eqMode}”是侧边面板的第一张卡片，“{yourEq}”和“{corrections}”各占一个标签页。图表上方的按钮会把这张卡片带到眼前。',
+  'tour.bands.point3':
+    '每个控制点、滑块和旋钮都能用键盘操作，移动滑块时曲线会在同一帧重绘。',
+  'tour.bands.how':
+    '打开均衡器，在图表上方选择“{view}”→“{everything}”（或按 {shortcut}），然后移动一个频段：数值会跟着它走。“{eqMode}”就在右侧面板的最上方。',
+  'tour.bands.open': '打开均衡器',
+  'tour.bands.imageAlt':
+    '均衡器图表上每个频段的点上方显示着频率、Q 值和增益，一个频段正随方向键移动，曲线下方是带有“自定义 EQ”和“校正”标签页的“EQ 模式”卡片。',
+  'tour.bands.shortcut': 'Ctrl+W',
+
+  'tour.ears.kicker': '一个频段，两只耳朵',
+  'tour.ears.title': '左右耳分别调',
+  'tour.ears.subtitle': '在频段自己的菜单里选左 + 右',
+  'tour.ears.lead':
+    '右键点击一个频段，选择“{split}”：它会在同一频率上变成左右耳各一个频段，你可以分别移动。左耳的曲线画成实线，右耳画成虚线。',
+  'tour.ears.point1':
+    '“{both}”会把两者在中间重新合并，频率和增益都取一半。“{reset}”和“{clear}”也会合并它们。',
+  'tour.ears.point2':
+    '“{delete}”就在同一个菜单里，主均衡器和 DSP 机架都有，删除前会请你再按一次确认。',
+  'tour.ears.point3':
+    'Squiglink 曲线可以只导入一只耳朵：“{importInto}”只填充左耳或右耳，另一只保持原样。',
+  'tour.ears.how':
+    '打开均衡器，在图上右键点击一个频段，选择“{split}”。DSP 机架的均衡器作用于立体声时，也有同样的菜单。',
+  'tour.ears.open': '打开均衡器',
+  'tour.ears.imageAlt':
+    '均衡器图：一个频段分成左耳和右耳两个频段，分开后又在中间合并，左耳曲线为实线、右耳为虚线，旁边是带有“双耳”和“左 + 右”的频段菜单。',
+  // Film voice: generated from .claude/video-kit/films/narration/lines.cjs — edit there.
+  'tour.film.eachEar.intro': '现在，FluidEQ 的每个频段都可以在左右耳各自发声。',
+  'tour.film.eachEar.menu': '右键点击一个频段，打开它的菜单。',
+  'tour.film.eachEar.split': '选择“左 + 右”，频段会一分为二，左右耳各一半。',
+  'tour.film.eachEar.lines': '分别拖动每一半。实线是你的左耳，虚线是你的右耳。',
+  'tour.film.eachEar.sliders': '每只耳朵也有自己的滑块，标着 L 或 R。',
+  'tour.film.eachEar.join': '要重新合并，选择“双耳”，两半会在中间汇合。',
+  'tour.film.sound.intro':
+    '你在 FluidEQ 里的每一处改动，都会立刻、平滑地听到。',
+  'tour.film.sound.glide':
+    '在音乐播放时移动一个频段，每次变化都平滑过渡，听不到咔哒声。',
+  'tour.film.sound.precise':
+    '在 EQ 模式菜单里，高音设为“精确”。每个频段都按画出的样子发声，一直到两万赫兹。',
+  'tour.film.sound.classic': '选择“经典”，频段会按 Equalizer APO 的方式构建。',
+  'tour.film.games.intro': 'FluidEQ 可以为你的每个游戏设置专属的声音。',
+  'tour.film.games.add': '点击“添加游戏”，从启动器已安装的游戏中选择它。',
+  'tour.film.games.sound': '然后选择它应有的声音。',
+  'tour.film.games.front': '游戏切到前台时，它的声音会自动载入。',
+  'tour.film.games.closed': '关闭游戏，你自己的声音就会回来。',
+  'tour.film.compact.intro': '只需要控制按钮时，FluidEQ 可以收成一个小播放器。',
+  'tour.film.compact.go': '点击顶部的播放器按钮，窗口就变成迷你播放器。',
+  'tour.film.compact.eq': '你的 EQ 也一起带过来。转动旋钮，立刻就能听到。',
+  'tour.film.compact.back': '一键即可回到完整窗口。',
+  'tour.film.deleteImport.intro': '两个小改动，让你的 EQ 更安全。',
+  'tour.film.deleteImport.asks':
+    '“删除频段”现在会先确认。再点一次才会真正删除。',
+  'tour.film.deleteImport.oneEar':
+    '导入也可以只填一只耳朵。选择“导入到”，再选“左耳”。',
+  'tour.film.deleteImport.otherEar': '只替换左耳，右耳保持原样。',
+  'tour.film.outputs.intro': '电脑上的每路输出都保留各自的声音。',
+  'tour.film.outputs.each': '从音箱切换到耳机，EQ 就换成耳机自己的。',
+  'tour.film.outputs.back': '切回去，音箱的声音和你离开时一模一样。',
+  'tour.film.outputs.second': '你也可以同时用第二路输出播放，它有自己的声音。',
+  'tour.film.outputs.edit':
+    '点击“编辑声音”，就能在这里调整它，主输出照常播放。',
+  'tour.film.dsp.intro': 'DSP 机架在 EQ 之后，塑造你听到的一切。',
+  'tour.film.dsp.preset': '选一个预设，就能一次设好整个机架。',
+  'tour.film.dsp.stages': '每个环节都有自己的页面，所有控件一目了然。',
+  'tour.film.dsp.meters': '它的表头随音乐跳动，让你看到它在做什么。',
+  'tour.film.deesser.intro': 'DSP 机架新增了齿音消除，专治刺耳的 S 音。',
+  'tour.film.deesser.cuts':
+    '选一个预设，比如“播客与语音”。每个尖锐的 S 都会被压低并以琥珀色标出，镲片则不受影响。',
+  'tour.film.deesser.isolate': '点击“独听”，只听它去掉的部分。',
+  'tour.film.headphones.intro': 'FluidEQ 可以用别人做的测量来校正你的耳机。',
+  'tour.film.headphones.search':
+    '打开“EQ 预设”，在 OPRA 资料库里搜索你的耳机。',
+  'tour.film.headphones.measure': '选一个测量，每个都写明了是谁做的。',
+  'tour.film.headphones.applied':
+    '点击“应用该型号的均衡”，校正会放在单独的一层，你自己的频段保持不变。',
+  'tour.film.headphones.paste': '你也可以粘贴从 Squiglink 导出的内容。',
+  'tour.film.headphones.ears': '把它作为你的 EQ 应用，双耳或只用一只耳朵都行。',
+  'tour.film.headphones.curve': '或者把它作为一条独立的曲线应用。',
+  'tour.film.karaoke.intro': '卡拉OK 让 FluidEQ 变成你自己歌曲的舞台。',
+  'tour.film.karaoke.open': '点击“打开歌曲”，把歌曲和它的歌词文件一起选中。',
+  'tour.film.karaoke.words': '点击播放，每个词会在唱到时亮起。',
+  'tour.film.karaoke.pitch':
+    '下方的音高引导会显示每个要唱的音。打开麦克风，就能在上面看到自己的声音。',
+  'tour.film.maker.intro': '卡拉OK 制作器能把一首歌做成卡拉OK 文件。',
+  'tour.film.maker.timeline':
+    '载入一首歌，点击“制作”，歌里的每个词和每个音都排在时间线上。',
+  'tour.film.maker.play':
+    '播放时，播放头会经过每个词和每个音。拖动任何一个，就能修正它的时间或音高。',
+  'tour.film.maker.use':
+    '制作器也能根据歌手的声音自动做好一首歌。听着没问题，就点“在播放器中使用”。',
+  'tour.film.looks.intro': 'EQ 下方的频谱，可以画成你喜欢的任何样子。',
+  'tour.film.looks.open': '在图表的工具栏里点击“新建外观”。',
+  'tour.film.looks.forms':
+    '用箭头切换各种形状：LED 柱、霓虹柱、城市天际线、玻璃塔，还有更多。',
+  'tour.film.looks.shape':
+    '然后调整它的样子。“分段”决定有多少根柱子，颜色、间隙和动态也都由你决定。',
+  'tour.film.looks.save':
+    '点击“保存”，把它留作你自己的外观，也可以存成文件分享。',
+  'tour.film.engine.intro':
+    'FluidEQ 有自己的音频引擎，它把你的 EQ 和 DSP 机架用到电脑播放的一切声音上。',
+  'tour.film.engine.choose':
+    '打开右上角的操作菜单，点击引擎卡片，选择“FluidEQ 引擎”。',
+  'tour.film.engine.rack':
+    '然后打开 DSP，选一个预设。游戏、浏览器和音乐应用，都会经过它播放。',
+  'tour.film.library.intro': '媒体库用你的 EQ 播放你自己的音乐。',
+  'tour.film.library.albums': '你的专辑以封面显示，用箭头翻看。',
+  'tour.film.library.album': '点击一张专辑，打开它和里面的所有歌曲。',
+  'tour.film.library.play':
+    '点击播放，它会经过和其他声音相同的 EQ 与 DSP 机架。',
+  // End of film voice.
+  'tour.film.soundOn': '打开声音',
+  'tour.film.soundOff': '关闭声音',
+  'tour.film.watch': '观看视频',
+  'tour.film.close': '关闭视频',
+
+  'tour.myCurves.kicker': '你自己的曲线',
+  'tour.myCurves.title': '你自己的曲线列表，就在 OPRA 旁边',
+  'tour.myCurves.subtitle': '保存、命名并重复使用你的曲线',
+  'tour.myCurves.lead':
+    '{eqPresets} 现在在 OPRA 库旁边有了 {myCurves}：每一条你想再用的曲线，都带着你起的名字和它的形状图。可以从 Squiglink 导出、.txt 文件、当前的 EQ 或 OPRA 选择中添加。',
+  'tour.myCurves.point1':
+    '{applyCurve} 把曲线作为耳机校正播放，有自己的强度和开关；{applyEq} 则把它的频段放进你的 EQ。',
+  'tour.myCurves.point2':
+    '{squiglink} 有了自己的标签页，{save} 一键保存你带来的曲线。',
+  'tour.myCurves.point3':
+    '{exportList} 把整个列表写进一个文件，用来备份或带到另一台电脑；{importList} 再读回来，并告诉你哪些没有导入。',
+  'tour.myCurves.how':
+    '在 EQ 中打开 {eqPresets}，选择 {myCurves}，然后按 {add}。',
+  'tour.myCurves.open': '打开 EQ 预设',
+  'tour.myCurves.imageAlt':
+    '“我的曲线”中的 EQ 预设页面：四条耳机曲线的列表，每条都有名称、来源、添加日期和形状图。刚从 Squiglink 保存的曲线出现在最上面，并作为耳机校正播放。',
+
+  'tour.songs.kicker': '每首歌都有自己的声音',
+  'tour.songs.title': '记得你喜好的歌曲',
+  'tour.songs.subtitle': '调一次，每次都这样听',
+  'tour.songs.lead':
+    '打开“{songSound}”后，一首歌结束时的预设、音色和均衡器会在它下次播放时回来，就在你调它的那路输出上。',
+  'tour.songs.point1':
+    '在歌曲播放时改变预设、音色或某个频段，它就会记住这些。你从没动过的歌什么也不会记。',
+  'tour.songs.point2':
+    '回来时会出现一条通知，写明歌名和带回的内容，旁边就是“{undo}”和“{forget}”。',
+  'tour.songs.point3':
+    '歌曲结束后，之前的声音会回来；每路输出各记各的：同一首歌在耳机上和音箱上可以听起来不一样。',
+  'tour.songs.how':
+    '打开均衡器，在右侧“{output}”中打开“{songSound}”。播放一首歌，选一个预设或转动音色，然后让它播完或跳过。',
+  'tour.songs.open': '打开均衡器',
+  'tour.songs.imageAlt':
+    '一个轮流播放的四首歌队列：三首带着各自留下的预设和曲线，一首从未调整过；上方是被记住的歌曲弹出的通知，带有“撤销”和“忘记这首歌”。',
+
+  'tour.deesser.kicker': '更柔和的 S',
+  'tour.deesser.title': 'DSP 机架里的齿音消除器',
+  'tour.deesser.subtitle': '压低尖锐的 S，镲片不受影响',
+  'tour.deesser.lead':
+    '“{deEsser}”只在人声尖锐的 S、T、SH 发出时把它们压低，镲片、踩镲和其余高频保持原样。',
+  'tour.deesser.point1':
+    '它按歌曲自身的电平来找每个 S，所以安静和响亮的曲目一视同仁；你能看到它抓到的每个 S 和压了多少。',
+  'tour.deesser.point2':
+    '它可以只压低构成 S 的频率、S 以上的全部，或整个人声；“{isolate}”只播放它去掉的部分。',
+  'tour.deesser.point3':
+    '“{speech}”“{podcast}”和“{audiobook}”会开启它。机架里的每个滤波器现在都能保存你自己的配置。',
+  'tour.deesser.how':
+    '打开 DSP，在左侧列表中选择“{deEsser}”，或选择“{podcast}”预设。从一个配置开始，再调高“{sensitivity}”，直到每个 S 都被抓到。',
+  'tour.deesser.open': '打开 DSP',
+  'tour.deesser.imageAlt':
+    '齿音消除器的条带滚动而过：人声的每个 S 高出该级开始起作用的线，下方以琥珀色挂着它的削减量，踩镲为灰色、不受影响；上方是选中“频谱”的该级，下方是“语音”“播客”和“有声书”。',
+
+  'tour.chat.kicker': '说一句，场景就变',
+  'tour.chat.title': '提出修改，在舞台上看效果',
+  'tour.chat.subtitle': '工作室舞台旁的聊天',
+  'tour.chat.lead':
+    '“{studio}”的舞台旁现在有了聊天。说出要改什么——场景的样子、随音乐的动态、颜色或光线——你自己的 AI 就会编辑场景，并边改边在舞台上播放每个版本。',
+  'tour.chat.point1':
+    '每条回复都保留它做出的版本，“{bringBack}”可以换回之前的版本。每个场景都保留它的历史聊天。',
+  'tour.chat.point2':
+    '“{attach}”会把场景的画面随消息一起发送，你还可以在上面画出你的意思。它工作时发送的消息会排队，之后一起发出。',
+  'tour.chat.point3':
+    '它运行在这台电脑上安装的 Claude Code 上，用你自己的方案，并显示你的额度还剩多少。连接 ChatGPT 后，它可以为场景绘制图片，每张之前都会先问你。',
+  'tour.chat.how':
+    '打开“{plus}”，在侧栏选择“{studio}”，选择一个场景或新建一个，然后在舞台旁的输入框里输入。',
+  'tour.chat.open': '打开 Plus',
+  'tour.chat.imageAlt':
+    '工作室的舞台和旁边的聊天：一条让舞台灯随军鼓闪烁的请求，回复的步骤逐一打勾，带“恢复”的版本 2 被保留，版本 2 播放时舞台灯开始闪烁。',
+  'tour.chat.ask': '让舞台灯随军鼓闪烁。',
+  'tour.chat.reply': '完成：两盏聚光灯在每一下军鼓时闪白光，再渐渐回到粉色。',
 
   'tour.looks.kicker': '你自己的可视化效果',
   'tour.looks.title': '自定义图表外观',
@@ -464,6 +672,7 @@ const tour: Partial<Dictionary> = {
   'tour.media.how':
     '打开“在线媒体”标签页，在顶部一行选一个网站，在搜索框输入并按搜索。后退、前进和刷新与浏览器一样。',
   'tour.media.open': '打开在线媒体',
+  'tour.studio.free': '所有账户免费',
 };
 
 export default tour;

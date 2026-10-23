@@ -23,11 +23,12 @@ import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
 import type { IFinishedSong } from '../common/engineHealth';
+import { outputConfigGuid } from '../common/outputConfigFiles';
 import writeFileAtomically from './atomicWrite';
 
 export const SONG_LEVELS_FILENAME = 'song-levels.json';
 
-/** More songs than this and the least recently heard are forgotten. */
+/** Per output: one device cannot evict another device's learned songs. */
 export const SONG_LEVELS_LIMIT = 2000;
 
 /**
@@ -46,10 +47,28 @@ export interface ISongLevel {
 }
 
 export interface ISongLevelStore {
-  lookup: (id: string) => ISongLevel | undefined;
+  lookup: (id: string, endpoint?: string) => ISongLevel | undefined;
   /** False when the report was too short to learn from. */
-  record: (song: IFinishedSong) => boolean;
+  record: (song: IFinishedSong, endpoint?: string) => boolean;
 }
+
+const levelKey = (id: string, endpoint?: string): string | undefined => {
+  if (!/^[0-9a-f]{16}$/.test(id)) {
+    return undefined;
+  }
+  if (endpoint === undefined) {
+    return id;
+  }
+  const guid = outputConfigGuid(endpoint);
+  return guid ? `${guid}:${id}` : undefined;
+};
+
+const isLevelKey = (key: string): boolean => {
+  const parts = key.split(':');
+  return parts.length === 1
+    ? levelKey(key) === key
+    : parts.length === 2 && levelKey(parts[1], parts[0]) === key;
+};
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -61,12 +80,16 @@ const readLevels = (filePath: string): Map<string, ISongLevel> => {
   const songs = new Map<string, ISongLevel>();
   try {
     const input: unknown = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-    if (!isObject(input) || input.version !== 1 || !isObject(input.songs)) {
+    if (
+      !isObject(input) ||
+      (input.version !== 1 && input.version !== 2) ||
+      !isObject(input.songs)
+    ) {
       return songs;
     }
     Object.entries(input.songs).forEach(([id, entry]) => {
       if (
-        /^[0-9a-f]{16}$/.test(id) &&
+        isLevelKey(id) &&
         isObject(entry) &&
         isFiniteNumber(entry.levelLufs) &&
         isFiniteNumber(entry.peakDb) &&
@@ -100,9 +123,15 @@ export const createSongLevelStore = (
   };
 
   const save = (all: Map<string, ISongLevel>) => {
+    const counts = new Map<string, number>();
     const kept = [...all.entries()]
       .sort(([, a], [, b]) => b.heardAt - a.heardAt)
-      .slice(0, SONG_LEVELS_LIMIT);
+      .filter(([key]) => {
+        const endpoint = key.includes(':') ? key.split(':')[0] : 'legacy';
+        const count = counts.get(endpoint) ?? 0;
+        counts.set(endpoint, count + 1);
+        return count < SONG_LEVELS_LIMIT;
+      });
     if (kept.length < all.size) {
       all.clear();
       kept.forEach(([id, level]) => all.set(id, level));
@@ -110,7 +139,7 @@ export const createSongLevelStore = (
     try {
       writeFileAtomically(
         filePath,
-        JSON.stringify({ version: 1, songs: Object.fromEntries(kept) }),
+        JSON.stringify({ version: 2, songs: Object.fromEntries(kept) }),
       );
     } catch (error) {
       log.error('Could not save the song levels', error);
@@ -118,18 +147,22 @@ export const createSongLevelStore = (
   };
 
   return {
-    lookup: (id) => loaded().get(id),
-    record: (song) => {
-      if (song.seconds < MIN_LEARNED_SECONDS) {
+    lookup: (id, endpoint) => {
+      const key = levelKey(id, endpoint);
+      return key ? loaded().get(key) : undefined;
+    },
+    record: (song, endpoint) => {
+      const key = levelKey(song.id, endpoint);
+      if (!key || song.seconds < MIN_LEARNED_SECONDS) {
         return false;
       }
       const all = loaded();
-      const known = all.get(song.id);
+      const known = all.get(key);
       // The loudest either play heard. A later play that was skipped before
       // its chorus measured less of the song, not a quieter song, and the
       // engine starts a remembered song from this level and only ever raises
       // it — so a level once learned is never talked down again.
-      all.set(song.id, {
+      all.set(key, {
         levelLufs: Math.max(known?.levelLufs ?? -Infinity, song.levelLufs),
         peakDb: Math.max(known?.peakDb ?? -Infinity, song.peakDb),
         seconds: Math.max(known?.seconds ?? 0, song.seconds),

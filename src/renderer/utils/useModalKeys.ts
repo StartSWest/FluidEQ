@@ -44,9 +44,17 @@ export function moveTabStop(surface: HTMLElement | null, event: KeyboardEvent) {
 }
 
 /**
+ * The modals open now, oldest first. Only the last one answers the keyboard:
+ * the store's terms open over its packs, and with every open modal listening
+ * one Escape closed both, and two focus traps passed Tab between them.
+ */
+const openModals: object[] = [];
+
+/**
  * What a small modal needs from the keyboard: Escape cancels it unless it is
  * busy, Tab stays inside it, and focus goes to `initial` on the way in and
- * back to wherever it was on the way out.
+ * back to wherever it was on the way out. A modal opened over it takes the
+ * keys until it closes.
  *
  * The Studio's share dialog, its publish dialog and the gallery's report
  * dialog all had to behave this way, and three copies of a focus trap drift.
@@ -81,8 +89,17 @@ export default function useModalKeys(
   });
 
   useEffect(() => {
-    const listener = (event: KeyboardEvent) => onKeyDown(event);
+    const self = {};
+    openModals.push(self);
+    const listener = (event: KeyboardEvent) => {
+      if (openModals[openModals.length - 1] === self) {
+        onKeyDown(event);
+      }
+    };
     document.addEventListener('keydown', listener);
-    return () => document.removeEventListener('keydown', listener);
+    return () => {
+      document.removeEventListener('keydown', listener);
+      openModals.splice(openModals.indexOf(self), 1);
+    };
   }, []);
 }

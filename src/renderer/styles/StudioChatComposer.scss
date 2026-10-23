@@ -1,0 +1,390 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// ---------------------------------------------------------------- composer
+
+.studio-chat__composer {
+  display: grid;
+  container: studio-chat-composer / inline-size;
+  flex: none;
+  gap: 8px;
+  // No rule over it (Ivan, 2026-10-09: "remove the divider line"): the box's
+  // own edge parts it from the conversation.
+  padding: 10px 12px 12px;
+}
+
+.studio-chat__box {
+  display: grid;
+  gap: 6px;
+  padding: 8px 8px 8px 11px;
+  border: 1px solid $border-field;
+  border-radius: $radius-s;
+  background: $surface-well;
+  transition: border-color $motion-fast $ease-out;
+
+  &:focus-within {
+    border-color: color-mix(in srgb, $text-accent 55%, transparent);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 42px;
+    max-height: 168px;
+    padding: 0;
+    color: $text-primary;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    // The chat's chosen size (`StudioChatZoom.tsx`): the words being
+    // written are as large as the conversation's. The bar under them keeps
+    // its size, so its controls still fit the pane's narrowest width.
+    font-size: calc(#{$text-body} * var(--chat-zoom, 1));
+    line-height: 1.45;
+    resize: none;
+    field-sizing: content;
+
+    &:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    &::placeholder {
+      color: $text-dim;
+    }
+  }
+}
+
+// The stage's picture going with the message, at the top of the box: press
+// it to draw on it, the cross to take it off.
+.studio-chat__attachment {
+  position: relative;
+  justify-self: start;
+  margin-bottom: 2px;
+}
+
+.studio-chat__attachment-picture {
+  position: relative;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid $card-edge;
+  border-radius: $radius-xs;
+  background: $surface-well;
+  cursor: pointer;
+
+  img {
+    display: block;
+    width: auto;
+    height: 64px;
+    max-width: 180px;
+    object-fit: cover;
+  }
+
+  &:hover .studio-chat__attachment-draw,
+  &:focus-visible .studio-chat__attachment-draw {
+    opacity: 1;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// A pencil over the picture: what pressing it does.
+.studio-chat__attachment-draw {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: $white;
+  background: rgba($black, 0.35);
+  opacity: 0;
+  transition: opacity $motion-fast $ease-out;
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.studio-chat__attachment-remove {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  place-items: center;
+  color: $text-primary;
+  border: 1px solid $card-edge;
+  border-radius: 50%;
+  background: $surface-well;
+  cursor: pointer;
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  &:hover {
+    color: $white;
+    background: color-mix(in srgb, $text-accent 30%, $surface-well);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Everything but the words, on one bar inside the box (design C): the
+// camera, the model, the effort dots, and a round Send at the end. Quiet
+// until touched, so the words stay what the box is for.
+.studio-chat__bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+// Shared by the camera and the model's trigger: a word or a glyph on no
+// face of its own, lit on hover.
+@mixin studio-chat-bar-control {
+  color: $text-faint;
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: none;
+  transition:
+    color $motion-fast $ease-out,
+    background $motion-fast $ease-out;
+
+  &:hover:not(:disabled, [aria-disabled='true']) {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 6%, transparent);
+  }
+}
+
+.studio-chat__attach {
+  display: inline-grid;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  place-items: center;
+  font: inherit;
+  cursor: pointer;
+  @include studio-chat-bar-control;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  &[aria-pressed='true'] {
+    color: $text-accent;
+    border-color: color-mix(in srgb, $text-accent 40%, transparent);
+    background: color-mix(in srgb, $text-accent 10%, transparent);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+}
+
+// The app's dropdown, worn as a word: no field around it, as wide as its
+// name, the chevron beside it.
+.studio-chat__model.dropdown {
+  flex: 0 1 auto;
+  min-width: 0;
+
+  > [role='menu'] {
+    gap: 4px;
+    min-height: 28px;
+    padding: 4px 4px 4px 6px;
+    font-size: $text-small;
+    white-space: nowrap;
+    @include studio-chat-bar-control;
+  }
+}
+
+// The list is portalled out of the bar (`Dropdown`'s `menuClassName`) and
+// is the trigger's width unless told otherwise (`--dropdown-trigger-width`,
+// as AutoEQ's menus are): wider than the word that opens it, so each model's
+// line reads on one or two lines, not five.
+.studio-chat__model-menu .list-wrapper {
+  width: max(var(--dropdown-trigger-width), 250px);
+}
+
+// Each model in the list: its name over what it is for. The closed trigger
+// shows the name alone.
+.studio-chat__model-row {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  padding-block: 2px;
+  white-space: normal;
+
+  small {
+    color: $text-faint;
+    font-size: $text-micro;
+    line-height: 1.35;
+  }
+}
+
+.studio-chat__model.dropdown > [role='menu'] .studio-chat__model-row {
+  display: contents;
+
+  small {
+    display: none;
+  }
+}
+
+// How hard Claude thinks: five dots lit up to the pick, its name beside
+// them. Pushed to the bar's end, next to Send.
+.studio-chat__effort {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-left: auto;
+  padding: 0 4px 0 2px;
+  color: $text-faint;
+  font-size: $text-small;
+  transition: opacity $motion-fast $ease-out;
+
+  // Held while Claude works, as the model is: a pick lands on the next
+  // message, never on one being answered.
+  &:has(button:disabled) {
+    opacity: 0.5;
+  }
+}
+
+.studio-chat__effort-dots {
+  display: flex;
+  flex: none;
+
+  button {
+    display: grid;
+    width: 12px;
+    height: 24px;
+    padding: 0;
+    place-items: center;
+    color: inherit;
+    border: 0;
+    border-radius: $radius-xs;
+    background: none;
+    cursor: pointer;
+
+    &::before {
+      width: 8px;
+      height: 8px;
+      box-sizing: border-box;
+      border: 1.5px solid currentColor;
+      border-radius: 50%;
+      opacity: 0.55;
+      transition:
+        background $motion-fast $ease-out,
+        border-color $motion-fast $ease-out,
+        opacity $motion-fast $ease-out;
+      content: '';
+    }
+
+    &:hover:not(:disabled)::before {
+      opacity: 1;
+    }
+
+    &.is-lit::before {
+      border-color: $text-accent;
+      background: $text-accent;
+      opacity: 1;
+    }
+
+    // Past Medium: the app's "mind this" amber, as the line under the box.
+    &.is-heavy::before {
+      border-color: $amber;
+      background: $amber;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+  }
+}
+
+.studio-chat__effort-name {
+  min-width: 0;
+  overflow: hidden;
+  color: $text-muted;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Send and Stop: the app's own buttons (the loud one to send, the quiet one
+// to stop), made round and glyph-only as a chat's send is.
+.studio-chat__send.button.small {
+  display: inline-grid;
+  flex: none;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  place-items: center;
+  border-radius: 50%;
+
+  svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
+// Stop and Send both on the bar, while a message is typed during a reply:
+// the name gives way, the dots still say it.
+.studio-chat__bar.is-crowded .studio-chat__effort-name {
+  display: none;
+}
+
+// The effort's name gives way first when the bar runs short: a long one
+// ends in an ellipsis, and a box narrower than the chat's least width (the
+// container is the composer's inside, 294px in a 320px chat) drops it — the
+// dots still say it, and its hint and each dot's name carry it.
+@container studio-chat-composer (width < 280px) {
+  .studio-chat__effort-name {
+    display: none;
+  }
+}
+
+// With the context ring beside Send the bar holds one more thing, and the
+// name gives way sooner: a 320px chat cut it to "Me…" otherwise.
+@container studio-chat-composer (width < 360px) {
+  .studio-chat__bar:has(.studio-chat__context) .studio-chat__effort-name {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-chat__effort,
+  .studio-chat__effort-dots button::before {
+    transition: none;
+  }
+}

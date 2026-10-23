@@ -38,10 +38,12 @@ import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
 import { IChainImport } from 'common/chainBundle';
 import type { ISongEqEntry } from 'common/songEq';
+import type { ISongSoundEntry, TSongSoundLanded } from 'common/songSound';
 import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
 import type { ICurveComparisonStatus } from 'common/curveComparison';
 import type { ITrebleDesigns } from 'common/filterDesign';
 import type { IBandDesign } from 'common/bandDesigns';
+import type { IMyCurve } from 'common/myCurves';
 import type {
   IAudioEngineStatus,
   IAudioRestartOutcome,
@@ -232,13 +234,16 @@ export const buildResponseHandler = <
     | IApoConfigTree
     | IChainImport
     | ISongEqEntry
+    | ISongSoundEntry
+    | TSongSoundLanded
     | IAudioEngineStatus
     | ICurveComparisonStatus
     | ITrebleDesigns
     | IBandDesign
     | IBandDesign[]
     | IAudioRestartOutcome
-    | IEngineSetupResult,
+    | IEngineSetupResult
+    | IMyCurve[],
 >(
   resultEvaluator: (
     result: Type,
@@ -294,10 +299,13 @@ export const simpleResponseHandler = <
     | IApoConfigTree
     | IChainImport
     | ISongEqEntry
+    | ISongSoundEntry
+    | TSongSoundLanded
     | IAudioEngineStatus
     | ICurveComparisonStatus
     | IAudioRestartOutcome
-    | IEngineSetupResult,
+    | IEngineSetupResult
+    | IMyCurve[],
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);

@@ -55,7 +55,8 @@ import ChannelEnum from '../../common/channels';
 
 import { SelectionMode, nextBandSelection } from '../../common/bandSelection';
 import { getEqualizerState } from './equalizerApi';
-import { setDspRackGate } from '../dsp/store';
+import { adoptOutputDsp, setDspRackGate } from '../dsp/store';
+import { updateOutputEditor } from './outputEditor';
 import { IBandRevealBand, planBandReveal, revealBands } from './bandReveal';
 import {
   FilterAction,
@@ -146,6 +147,7 @@ export const FluidEqProviderWrapper = ({
     eqMode,
     eqBandDesign,
     curveEqMode,
+    mainBandQ,
     eqBandQ,
     curveBandQ,
     curveSmoothing,
@@ -237,6 +239,7 @@ export const FluidEqProviderWrapper = ({
       eqMode,
       eqBandDesign,
       curveEqMode,
+      mainBandQ,
       eqBandQ,
       curveBandQ,
       curveSmoothing,
@@ -264,6 +267,7 @@ export const FluidEqProviderWrapper = ({
       eqMode,
       eqBandDesign,
       curveEqMode,
+      mainBandQ,
       eqBandQ,
       curveBandQ,
       curveSmoothing,
@@ -316,6 +320,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [eqMode, setEqMode] = useState<IState['eqMode']>();
   const [eqBandDesign, setEqBandDesign] = useState<IState['eqBandDesign']>();
   const [curveEqMode, setCurveEqMode] = useState<IState['curveEqMode']>();
+  const [mainBandQ, setMainBandQ] = useState<IState['mainBandQ']>();
   const [eqBandQ, setEqBandQ] = useState<IState['eqBandQ']>();
   const [curveBandQ, setCurveBandQ] = useState<IState['curveBandQ']>();
   const [curveSmoothing, setCurveSmoothing] =
@@ -396,6 +401,8 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   // over it, while added or deleted means this tuning is still the one on
   // screen and the bands the animation never reached are still at 0 dB.
   const bandSetReplacementRef = useRef(0);
+  // The same count, for what draws from it (`IFluidEqContext`).
+  const [bandSetReplacement, setBandSetReplacement] = useState(0);
 
   // Set only while a reveal is drawing. Anything that reaches the context
   // through dispatchFilter while it is — the reveal's own frames go straight
@@ -425,6 +432,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     }
     if (action.type === FilterActionEnum.INIT) {
       bandSetReplacementRef.current += 1;
+      setBandSetReplacement(bandSetReplacementRef.current);
     }
     // Only the gain: a band whose frequency or Q was nudged mid-reveal still
     // wants the reference's gain, and skipping it would strand that one band
@@ -496,6 +504,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     async (options?: IRefreshStateOptions) => {
       try {
         const state = await getEqualizerState();
+        updateOutputEditor(state);
+        setActiveDeviceId(state.outputEditor?.device.id ?? '');
+        adoptOutputDsp(state);
         setIsEnabled(state.isEnabled);
         // The rack's gate hears the saved switch here, with the news that it
         // is the saved one, in one step. The shell follows every later change
@@ -510,6 +521,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setEqMode(state.eqMode);
         setEqBandDesign(state.eqBandDesign);
         setCurveEqMode(state.curveEqMode);
+        setMainBandQ(state.mainBandQ);
         setEqBandQ(state.eqBandQ);
         setCurveBandQ(state.curveBandQ);
         setCurveSmoothing(state.curveSmoothing);
@@ -712,6 +724,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       eqMode,
       eqBandDesign,
       curveEqMode,
+      mainBandQ,
       eqBandQ,
       curveBandQ,
       curveSmoothing,
@@ -729,6 +742,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       setHoveredFilterId,
       dispatchFilter,
       getBandSetGeneration,
+      bandSetReplacement,
     }),
     [
       activeDeviceId,
@@ -764,6 +778,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       eqMode,
       eqBandDesign,
       curveEqMode,
+      mainBandQ,
       eqBandQ,
       curveBandQ,
       curveSmoothing,
@@ -777,6 +792,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       hoveredFilterId,
       dispatchFilter,
       getBandSetGeneration,
+      bandSetReplacement,
     ],
   );
 

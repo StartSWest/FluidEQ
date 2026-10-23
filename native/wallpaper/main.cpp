@@ -27,7 +27,7 @@ struct State {
   HMONITOR monitor = nullptr;
   bool attached = false;
   bool finished = false;
-  bool paused = false;
+  wallpaper::Cover cover = wallpaper::Cover::none;
   bool reported_visibility = false;
   bool requested_visible = false;
   int exit_code = 0;
@@ -102,6 +102,10 @@ struct Covering {
   RECT work{};
   RECT windows[64]{};
   int count = 0;
+  // The same windows less the owner's, for `wallpaper::cover_of`: never more
+  // of them than of `windows`, so the bound on that list holds for this one.
+  RECT others[64]{};
+  int other_count = 0;
   bool overflowed = false;
 };
 
@@ -135,6 +139,9 @@ BOOL CALLBACK collect_covering(HWND window, LPARAM parameter) {
     return FALSE;
   }
   covering.windows[covering.count++] = overlap;
+  if (!wallpaper::owned_by(window, state.owner_pid)) {
+    covering.others[covering.other_count++] = overlap;
+  }
   return TRUE;
 }
 
@@ -146,13 +153,25 @@ BOOL CALLBACK collect_covering(HWND window, LPARAM parameter) {
  * A full-screen game is one such window. So are two ordinary windows side by
  * side, which is what a desk looks like most of the day, and drawing a
  * visualizer nobody can see is the GPU time this is here to give back.
+ *
+ * And whether the owner's own windows are what hides it (`cover_of`).
  */
-bool hidden() {
+wallpaper::Cover cover() {
   Covering covering;
   covering.work = state.work_rect;
   EnumWindows(collect_covering, reinterpret_cast<LPARAM>(&covering));
-  if (covering.overflowed) return false;
-  return wallpaper::covered(covering.work, covering.windows, covering.count);
+  if (covering.overflowed) return wallpaper::Cover::none;
+  return wallpaper::cover_of(covering.work, covering.windows, covering.count,
+                             covering.others, covering.other_count);
+}
+
+const char* cover_line(wallpaper::Cover cover) {
+  switch (cover) {
+    case wallpaper::Cover::owner: return "paused-owner\n";
+    case wallpaper::Cover::others: return "paused\n";
+    case wallpaper::Cover::none: break;
+  }
+  return "active\n";
 }
 
 void verify_attachment();
@@ -177,13 +196,13 @@ void apply_visibility() {
 
 void visibility() {
   if (!state.attached || state.finished) return;
-  const bool paused = hidden();
-  if (!state.reported_visibility || state.paused != paused) {
-    state.paused = paused;
+  const wallpaper::Cover now = cover();
+  if (!state.reported_visibility || state.cover != now) {
+    state.cover = now;
     state.reported_visibility = true;
     apply_visibility();
     if (state.finished) return;
-    if (!line(paused ? "paused\n" : "active\n")) {
+    if (!line(cover_line(now))) {
       state.finished = true;
       hide_owned();
     }

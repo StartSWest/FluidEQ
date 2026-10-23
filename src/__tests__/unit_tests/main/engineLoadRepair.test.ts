@@ -18,6 +18,14 @@ import {
 import type { IAudioEngineStatus } from 'common/audioEngine';
 import { createAutomaticSetup } from 'main/automaticSetup';
 
+const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+beforeAll(() => Object.defineProperty(process, 'platform', { value: 'win32' }));
+afterAll(() => {
+  if (hostPlatform) {
+    Object.defineProperty(process, 'platform', hostPlatform);
+  }
+});
+
 const status = (
   fluid: Partial<IAudioEngineStatus['fluid']> = {},
 ): IAudioEngineStatus => ({

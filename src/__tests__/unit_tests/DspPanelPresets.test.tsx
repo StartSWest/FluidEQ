@@ -16,10 +16,6 @@ import {
   claimPlayback,
   stopAllPlayback,
 } from '../../renderer/audio/playbackOwner';
-import RemoteAudioContext, {
-  RemoteAudioRoleContext,
-} from '../../renderer/remoteAudio/remoteAudioValueContext';
-import type { IRemoteAudioValue } from '../../renderer/remoteAudio/remoteAudioState';
 import type { IAudioEngineStatus } from '../../common/audioEngine';
 import { getAudioEngineStatus } from '../../renderer/utils/audioEngineApi';
 import {
@@ -68,27 +64,20 @@ const APO_STATUS: IAudioEngineStatus = {
 const renderPanel = (
   settings: IDspSettings = DSP_DEFAULTS,
   engineState: TDspEngineState = 'running',
-  remoteAudio: IRemoteAudioValue | undefined = undefined,
 ) => {
   const onChange = jest.fn();
   const onCommit = jest.fn();
-  // Both contexts, as `RemoteAudioProvider` supplies them: the page reads the
-  // role alone, from its own context.
   const view = render(
-    <RemoteAudioContext.Provider value={remoteAudio}>
-      <RemoteAudioRoleContext.Provider value={remoteAudio?.role}>
-        <FluidEqProviderWrapper
-          value={{ ...defaultFluidEqContext, isEnabled: true }}
-        >
-          <DspPanel
-            settings={settings}
-            onChange={onChange}
-            onCommit={onCommit}
-            engineState={engineState}
-          />
-        </FluidEqProviderWrapper>
-      </RemoteAudioRoleContext.Provider>
-    </RemoteAudioContext.Provider>,
+    <FluidEqProviderWrapper
+      value={{ ...defaultFluidEqContext, isEnabled: true }}
+    >
+      <DspPanel
+        settings={settings}
+        onChange={onChange}
+        onCommit={onCommit}
+        engineState={engineState}
+      />
+    </FluidEqProviderWrapper>,
   );
   return { ...view, onChange, onCommit };
 };
@@ -333,9 +322,14 @@ describe('DspPanel presets, isolates and monitors', () => {
       .getAllByRole('menuitemradio')
       .map((row) => row.textContent ?? '');
     expect(rows[0]).toMatch(/^None/);
-    // POSITIVE CONTROL: the starred ones are there, straight under it.
+    // POSITIVE CONTROL: the starred ones are there, straight under it, in
+    // the list's own order — the usual chains first, so Movie leads the
+    // default stars and Default follows Gaming (Ivan, 2026-10-12: "same
+    // order we use on the other lists").
     expect(screen.getByText('Favourites')).toBeInTheDocument();
-    expect(rows[1]).toMatch(/^Default/);
+    expect(rows[1]).toMatch(/^Movie/);
+    expect(rows[2]).toMatch(/^Gaming/);
+    expect(rows[3]).toMatch(/^Default/);
     expect(
       screen.queryByRole('button', { name: /Favourites: None$/ }),
     ).not.toBeInTheDocument();

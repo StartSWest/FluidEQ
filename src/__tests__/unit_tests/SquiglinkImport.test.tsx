@@ -11,20 +11,33 @@ import {
   IFluidEqContext,
 } from 'renderer/utils/FluidEqContext';
 import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
+import type { IMyCurve } from 'common/myCurves';
+import { forgetMyCurvesCache, retryMyCurves } from 'renderer/eq/myCurvesStore';
 
 const mockImportEqText = jest.fn();
 const mockClearGains = jest.fn();
 const mockSetHeadphone = jest.fn();
 const SQUIGLINK_TEXT_STORAGE_KEY = 'fluideq.squiglink-import.text';
+let mainCurves: IMyCurve[] = [];
 
 jest.mock('renderer/utils/equalizerApi', () => ({
   clearGains: (...args: unknown[]) => mockClearGains(...args),
   importEqText: (...args: unknown[]) => mockImportEqText(...args),
   setHeadphone: (...args: unknown[]) => mockSetHeadphone(...args),
+  readMyCurves: async () => mainCurves,
+  writeMyCurves: async (list: IMyCurve[]) => {
+    mainCurves = list;
+    return true;
+  },
 }));
 
 describe('Squiglink import preview', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    // My curves read before any case renders, so no first mount updates
+    // outside act when main's answer lands.
+    mainCurves = [];
+    forgetMyCurvesCache();
+    await retryMyCurves();
     jest.clearAllMocks();
     window.localStorage.removeItem(SQUIGLINK_TEXT_STORAGE_KEY);
     mockImportEqText.mockResolvedValue('Imported');
@@ -107,6 +120,8 @@ describe('Squiglink import preview', () => {
       exportText,
       'Squiglink export',
       'eq',
+      // Into both ears unless another is chosen beside Apply as EQ.
+      'both',
     );
     expect(textarea).toHaveValue(exportText);
   });
@@ -143,6 +158,7 @@ describe('Squiglink import preview', () => {
         text,
         'Squiglink export',
         destination,
+        'both',
       );
       expect(refreshState).toHaveBeenCalledWith({
         revealBands: destination === 'eq',
@@ -251,6 +267,34 @@ describe('Squiglink import preview', () => {
       container.querySelector('.squig-import__curve--custom'),
     ).not.toBeInTheDocument();
     expect(screen.getByRole('textbox')).toHaveValue('');
+  });
+
+  it('keeps the pasted curve in My curves in one press, with no dialog, and says so', async () => {
+    render(
+      <FluidEqProviderWrapper value={{ ...defaultFluidEqContext }}>
+        <SquiglinkImport />
+      </FluidEqProviderWrapper>,
+    );
+    const text = 'Preamp: -2 dB\nFilter 1: ON PK Fc 1000 Hz Gain 4 dB Q 1';
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: text } });
+    fireEvent.click(screen.getByRole('button', { name: 'Right ear' }));
+    await act(async () => {
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Save to My curves' }),
+      );
+    });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(mainCurves).toHaveLength(1);
+    expect(mainCurves[0]).toMatchObject({
+      text,
+      source: 'squiglink',
+      ears: 'right',
+    });
+    expect(mainCurves[0].name).toMatch(/^Squiglink curve, /);
+    expect(screen.getByRole('status')).toHaveTextContent(
+      `In My curves as “${mainCurves[0].name}”`,
+    );
+    expect(mockImportEqText).not.toHaveBeenCalled();
   });
 
   it('restores a pasted draft from the previous session', () => {

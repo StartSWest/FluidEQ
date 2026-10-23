@@ -43,6 +43,9 @@ import { isAppQuitting } from './tray';
 import { applyWindowBackdrop, windowFloorColour } from './windowBackdrop';
 import { installWindowRecovery } from './crashRecovery';
 import { macWindowOptions } from './macWindowChrome';
+import showOwnIconInDevDock from './devDockIcon';
+import macLoopbackStreams from './macDisplayMedia';
+import { withRestorableAppSize } from './macWindowRestore';
 import { shutdownDspHost } from './ipc/dspHost';
 import { shutdownNativeInference } from './nativeInference';
 import installTaskbarTransport from './taskbarTransport';
@@ -195,10 +198,24 @@ export const createMainWindowFactory = ({
     const getAssetPath = (...paths: string[]): string => {
       return path.join(RESOURCES_PATH, ...paths);
     };
+    showOwnIconInDevDock(getAssetPath('icon.png'));
 
-    const restored = loadWindowState();
-    const isFirstRun = restored.width === undefined;
+    const saved = loadWindowState();
+    const isFirstRun = saved.width === undefined;
     const firstRun = firstRunPlacement();
+    // A Mac restores a maximised window only to a frame it has seen, so the
+    // app is never rebuilt there at the size of the screen
+    // (`macWindowRestore.ts`).
+    const restored =
+      process.platform === 'darwin'
+        ? withRestorableAppSize(
+            saved,
+            isUsableRect(saved)
+              ? screen.getDisplayMatching(saved).workArea
+              : screen.getPrimaryDisplay().workArea,
+            firstRun,
+          )
+        : saved;
     // Closed as the player, it opens as the player — where it was, pulled
     // back onto a screen if that one has gone. With nowhere remembered, or a
     // player remembered as the whole screen, which nobody sized
@@ -471,6 +488,14 @@ export const createMainWindowFactory = ({
         !request.audioRequested
       ) {
         callback({});
+        return;
+      }
+
+      // A Mac names its own window rather than listing them all
+      // (`macDisplayMedia.ts`): the list can refuse, and its refusal escapes.
+      const onMac = macLoopbackStreams(process.platform, created);
+      if (onMac) {
+        callback(onMac);
         return;
       }
 

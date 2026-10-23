@@ -26,7 +26,6 @@ jest.mock('electron', () => ({
 
 /* eslint-disable import/first -- the electron mock must be installed first */
 import type { IAccountConfig } from '../../../common/accountConfig';
-import type { IEntitlementStatus } from '../../../main/account/entitlement';
 import {
   BLOCK_LIST_STALE_AFTER_MS,
   registerMemberSharingIpc,
@@ -55,8 +54,6 @@ const config: IAccountConfig = {
   supabaseUrl: 'https://project.supabase.co',
   supabaseAnonKey: 'sb_publishable_test',
   apiUrl: 'https://project.supabase.co/functions/v1',
-  plusPrice: '$5',
-  plusYearlyPrice: '',
 };
 
 const invoke = <T>(channel: string, ...args: unknown[]) => {
@@ -70,7 +67,8 @@ const invoke = <T>(channel: string, ...args: unknown[]) => {
 const json = (body: unknown, status = 200) => fakeResponse(status, body);
 
 let root: string;
-let status: IEntitlementStatus;
+/** Whether every scene is this account's to play. */
+let owned: boolean;
 let saveTarget: string | undefined;
 let openTarget: string | undefined;
 let blockList: string[];
@@ -79,7 +77,7 @@ let store: IMemberSceneStore;
 let announced: number;
 let folder: string | undefined;
 /** Who is signed in: a computer can be shared. */
-let signedInAs: string;
+let signedInAs: string | undefined;
 /** Somebody else signs in while the token is being fetched. */
 let switchDuringToken: boolean;
 type TRestoreOwnProject = IMemberSharingIpcDeps['restoreOwnProject'];
@@ -124,7 +122,10 @@ const setup = (extra: Partial<IMemberSharingIpcDeps> = {}) => {
     userDataDir: path.join(root, 'userData'),
     config,
     session: {
-      state: () => ({ status: 'signed-in', identity: { id: signedInAs } }),
+      state: () =>
+        signedInAs
+          ? { status: 'signed-in', identity: { id: signedInAs } }
+          : { status: 'signed-out' },
       accessToken: async () => {
         if (switchDuringToken) {
           signedInAs = SOMEONE;
@@ -132,10 +133,10 @@ const setup = (extra: Partial<IMemberSharingIpcDeps> = {}) => {
         return 'token';
       },
     } as never,
-    entitlement: {
-      status: () => status,
+    ownership: {
+      owns: () => owned,
       subscribe: () => () => undefined,
-    } as never,
+    },
     store,
     activeFolder: () => folder,
     activeIsInspection: () => inspecting,
@@ -168,7 +169,7 @@ const setup = (extra: Partial<IMemberSharingIpcDeps> = {}) => {
 beforeEach(async () => {
   handlers.clear();
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-sharing-ipc-'));
-  status = { state: 'active' };
+  owned = true;
   saveTarget = undefined;
   openTarget = undefined;
   blockList = [];
@@ -264,15 +265,15 @@ describe('exporting a scene', () => {
     registration.dispose();
   });
 
-  it('refuses without Plus, and without a scene that builds', async () => {
+  it('refuses while signed out, and without a scene that builds', async () => {
     const registration = setup();
     saveTarget = path.join(root, 'x.json');
-    status = { state: 'none' };
+    signedInAs = undefined;
     expect(await invoke('studio-export', 3)).toEqual({
       ok: false,
-      reason: 'not-entitled',
+      reason: 'signed-out',
     });
-    status = { state: 'active' };
+    signedInAs = ME;
     folder = undefined;
     expect(await invoke('studio-export', 3)).toEqual({
       ok: false,
@@ -478,13 +479,13 @@ describe('opening a scene file', () => {
     registration.dispose();
   });
 
-  it('refuses without Plus and before the dialog opens', async () => {
+  it('refuses while signed out, before the dialog opens', async () => {
     const registration = setup();
-    status = { state: 'none' };
+    signedInAs = undefined;
     openTarget = sent(SOMEONE);
     expect(await invoke('member-scenes-import')).toEqual({
       ok: false,
-      reason: 'not-entitled',
+      reason: 'signed-out',
     });
     expect(store.list()).toEqual([]);
     registration.dispose();

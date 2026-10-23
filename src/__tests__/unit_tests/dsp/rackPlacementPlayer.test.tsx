@@ -11,6 +11,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 import { act, renderHook, waitFor } from '@testing-library/react';
+import { createSourceAnalysisBridge } from '__tests__/utils/sourceAnalysisBridge';
 import { DSP_DEFAULTS, type IDspSettings } from 'common/dsp/chain';
 import { encodeChainSettings } from 'common/dsp/chainWire';
 import type {
@@ -59,7 +60,7 @@ const installHost = () => {
     setDspHostNoiseProfile: yes,
   };
   (window as unknown as { electron?: { ipcRenderer?: unknown } }).electron = {
-    ipcRenderer: bridge,
+    ipcRenderer: { ...bridge, ...createSourceAnalysisBridge() },
   };
 };
 

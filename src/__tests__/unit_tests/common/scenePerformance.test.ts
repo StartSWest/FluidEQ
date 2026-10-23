@@ -24,13 +24,13 @@ const whole = {
 } as const;
 
 describe('the visualizer performance choice', () => {
-  it('draws every frame the display offers by default, sized by the controller down to a third, FSR up, FXAA over it', () => {
+  it('draws Plus at the display rate by default, with automatic sizing, FSR and best smoothing', () => {
     expect(DEFAULT_SCENE_PERFORMANCE).toEqual({
       frameRate: 'display',
       resolution: 'auto',
       autoFloor: 0.35,
       upscaler: 'fsr',
-      smoothing: 'fast',
+      smoothing: 'best',
     });
     expect(scenePaceMs('display')).toBe(0);
   });

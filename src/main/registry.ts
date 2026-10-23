@@ -21,6 +21,10 @@ import fs from 'fs';
 import { app } from 'electron';
 import { promisified as regedit, setExternalVBSLocation } from 'regedit';
 import { TAudioEngine } from '../common/audioEngine';
+import {
+  capabilitiesFor,
+  isFluidEngineBuiltIn,
+} from '../common/platformCapabilities';
 
 // app will only be defined in the electron main process environment.
 // in the test environment, we expect it to be undefined.
@@ -181,13 +185,28 @@ export const isEqualizerAPOInstalled = async (): Promise<boolean> =>
  * installs it into the registry, so this is a plain, computed path rather
  * than a lookup.
  */
-export const getFluidEngineConfigDir = (): string =>
+const windowsFluidEngineConfigDir = (): string =>
   path.join(
     process.env.ProgramData ?? 'C:\\ProgramData',
     'FluidEQ',
     'engine',
     'config',
   );
+
+/**
+ * `<userData>/engine/config` on macOS, where the engine is FluidEQ's own
+ * process and reads a folder of the user who runs it. Laid out as Windows'
+ * is — `engine/config` for what the app writes, `engine/` for the statuses
+ * the engine writes back — so everything that finds the engine's root by
+ * `path.dirname` of this finds it on both.
+ */
+const macFluidEngineConfigDir = (): string =>
+  path.join(app.getPath('userData'), 'engine', 'config');
+
+export const getFluidEngineConfigDir = (): string =>
+  process.platform === 'darwin'
+    ? macFluidEngineConfigDir()
+    : windowsFluidEngineConfigDir();
 
 export const getFluidEngineDllPath = (): string =>
   path.join(
@@ -213,13 +232,24 @@ export const noteFluidEngineRegistered = (registered: boolean): void => {
   fluidEngineRegistered = registered;
 };
 
-export const isEngineInstalled = (engine: TAudioEngine): Promise<boolean> =>
-  engine === 'apo'
+export const isEngineInstalled = (engine: TAudioEngine): Promise<boolean> => {
+  // Where the FluidEQ Engine is built into the app (macOS) it is installed
+  // wherever the app is. The Windows answer below looks for the engine's DLL
+  // under Program Files, which a Mac never has — so choosing the only engine
+  // a Mac can run raised the blocking "needs attention, install it" screen.
+  if (
+    engine === 'fluid' &&
+    isFluidEngineBuiltIn(capabilitiesFor(process.platform))
+  ) {
+    return Promise.resolve(true);
+  }
+  return engine === 'apo'
     ? isEqualizerAPOInstalled()
     : Promise.resolve(
         fs.existsSync(getFluidEngineDllPath()) &&
           fluidEngineRegistered !== false,
       );
+};
 
 /**
  * A config directory is unusable to Equalizer APO's own reader unless
@@ -240,7 +270,16 @@ const ensureConfigDirWithEmptyConfigFile = (configDir: string): string => {
 
 export const getConfigPath = async (engine: TAudioEngine): Promise<string> => {
   if (process.platform !== 'win32') {
-    // Neither engine is really installable off Windows: both resolve to the
+    // Where the FluidEQ Engine is part of the app (macOS) it reads its own
+    // folder, beside which it reports what it is doing — see
+    // `getFluidEngineConfigDir`.
+    if (
+      engine === 'fluid' &&
+      isFluidEngineBuiltIn(capabilitiesFor(process.platform))
+    ) {
+      return ensureConfigDirWithEmptyConfigFile(getFluidEngineConfigDir());
+    }
+    // Anywhere else neither engine is really installable: both resolve to the
     // same sandbox directory this always used, regardless of which engine was
     // chosen.
     return ensureConfigDirWithEmptyConfigFile(

@@ -1,9 +1,16 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import useExitAnimation from '../utils/useExitAnimation';
 import MenuIcon from '../icons/MenuIcon';
+import ForumNewsBadge, {
+  forumNewsText,
+  useForumNewsCount,
+} from '../forum/ForumNewsBadge';
+import ForumNewsMenuItems from '../forum/ForumNewsMenuItems';
+import { useForumNewsHidden } from '../forum/forumNewsPref';
+import { watchForumNews } from '../forum/forumStore';
 import HelpGuide from './HelpGuide';
 import { onHelpGuideRequest } from './helpGuideRequests';
 import helpMenuActions, { type IHelpHandlers } from './helpMenuActions';
@@ -25,7 +32,11 @@ export default function HelpMenu({
   onAbout,
   forumOpen,
 }: IHelpMenuProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const news = useForumNewsCount();
+  // Switched off, the count leaves this button and its menu.
+  const newsHidden = useForumNewsHidden();
+  const shown = newsHidden ? 0 : news;
   const [open, setOpen] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const root = useRef<HTMLDivElement>(null);
@@ -51,6 +62,12 @@ export default function HelpMenu({
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, []);
+
+  // The Forum's count of what is new, kept fresh from here: this menu is
+  // mounted for as long as the titlebar is, including while its button has
+  // given way to the actions menu, which shows the count instead. Nothing
+  // reads the Forum in the background while the count is switched off.
+  useEffect(() => (newsHidden ? undefined : watchForumNews()), [newsHidden]);
 
   // Asked for from elsewhere: What's New's "Open Help".
   useEffect(
@@ -84,6 +101,19 @@ export default function HelpMenu({
     { onTour, onTroubleshoot, onReport, onForum, onAbout },
     () => setShowGuide(true),
   );
+  // "Help · New: 12" — two names the app already has in every language,
+  // joined by a mark that reads as a separator in all ten.
+  const name =
+    shown > 0
+      ? `${t('help.menu')} · ${t('forum.new.countLabel', {
+          count: forumNewsText(shown, locale),
+        })}`
+      : t('help.menu');
+  const runRow = (action: () => void) => () => {
+    setOpen(false);
+    trigger.current?.focus();
+    action();
+  };
 
   return (
     <div className="workspace-header__tools help-menu" ref={root}>
@@ -94,8 +124,8 @@ export default function HelpMenu({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? 'help-menu' : undefined}
-        aria-label={t('help.menu')}
-        title={t('help.menu')}
+        aria-label={name}
+        title={name}
         onClick={() => setOpen((current) => !current)}
         onKeyDown={(event) => {
           if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
@@ -110,6 +140,7 @@ export default function HelpMenu({
             menu icon inside the pill"). Its name is on the label and the
             tooltip, as every other glyph in this strip's is. */}
         <MenuIcon name="guide" />
+        <ForumNewsBadge count={shown} placement="corner" />
       </button>
       {exit.present && (
         <div
@@ -160,24 +191,31 @@ export default function HelpMenu({
           }}
         >
           {actions.map((action, index) => (
-            <button
-              key={action.label}
-              type="button"
-              role="menuitem"
-              className="workspace-header__menu-item"
-              aria-keyshortcuts={index === 0 ? 'F1' : undefined}
-              onClick={() => {
-                setOpen(false);
-                trigger.current?.focus();
-                action.run();
-              }}
-            >
-              <MenuIcon name={action.icon} />
-              <span className="help-menu__label">
-                {action.label}
-                {index === 0 && <kbd>F1</kbd>}
-              </span>
-            </button>
+            <Fragment key={action.label}>
+              <button
+                type="button"
+                role="menuitem"
+                className="workspace-header__menu-item"
+                aria-keyshortcuts={index === 0 ? 'F1' : undefined}
+                onClick={runRow(action.run)}
+              >
+                <MenuIcon name={action.icon} />
+                <span className="help-menu__label">
+                  {action.label}
+                  {index === 0 && <kbd>F1</kbd>}
+                  {action.id === 'forum' && (
+                    <ForumNewsBadge count={shown} placement="row" />
+                  )}
+                </span>
+              </button>
+              {action.id === 'forum' && (
+                <ForumNewsMenuItems
+                  news={news}
+                  hidden={newsHidden}
+                  run={runRow}
+                />
+              )}
+            </Fragment>
           ))}
         </div>
       )}

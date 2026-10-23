@@ -28,6 +28,7 @@ const CONFIG = {
   owner: 'StartSWest',
   name: 'FluidEQ',
   feedUrl: 'https://example.test/feed.json',
+  issuesUrl: 'https://example.test/issues.json',
   clientId: 'Iv23liEXAMPLE000000',
   tokenUrl: 'https://example.test/functions/v1/github-token',
 };

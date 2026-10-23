@@ -17,6 +17,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 $u: var(--tour-unit);
 
+// What that unit is: set on the tour, and again on anything of the tour's
+// drawn outside it (the larger film, on the page itself).
+$tour-unit-size: clamp(11px, 0.78vw, 17px);
+
 // A capture's frame: the edge and the shadow the tour's real screenshots wear.
 @mixin framed {
   border: 1px solid rgba($edge-tint, 0.14);

@@ -138,18 +138,41 @@ it.each(['apo', 'missing', 'old', 'switching', 'unselected'])(
   },
 );
 
-it('rechecks the engine after resolving the destination to avoid touching APO', async () => {
-  jest.mocked(deps.getConfigPath).mockImplementation(async () => {
-    if (jest.mocked(deps.getConfigPath).mock.calls.length === 3) {
-      status.engine = 'apo';
+it.each(['legacy', 'output'] as const)(
+  'rechecks the engine after resolving the %s destination to avoid touching APO',
+  async (target) => {
+    let destinationRequested: () => void = () => {
+      throw new Error('Destination request signal not initialized');
+    };
+    const requested = new Promise<void>((resolve) => {
+      destinationRequested = resolve;
+    });
+    let resolveDestination: (directory: string) => void = () => {
+      throw new Error('Destination resolution not initialized');
+    };
+    const destination = new Promise<string>((resolve) => {
+      resolveDestination = resolve;
+    });
+    if (target === 'output') {
+      deps.getOutputGuid = () => '01234567-89ab-cdef-0123-456789abcdef';
+    } else {
+      // Legacy status first reads its saved phase from the config directory.
+      jest.mocked(deps.getConfigPath).mockResolvedValueOnce(config);
     }
-    return config;
-  });
-  expect(
-    (await fire(ChannelEnum.SET_CURVE_COMPARISON, ['A', 'eq'])).result.active,
-  ).toBe(false);
-  expect(scheduleWrite).not.toHaveBeenCalled();
-});
+    jest.mocked(deps.getConfigPath).mockImplementationOnce(() => {
+      destinationRequested();
+      return destination;
+    });
+    registerCurveComparisonIpc(deps);
+    const pending = fire(ChannelEnum.SET_CURVE_COMPARISON, ['A', 'eq']);
+    await requested;
+    expect(scheduleWrite).not.toHaveBeenCalled();
+    status.engine = 'apo';
+    resolveDestination(config);
+    expect((await pending).result.active).toBe(false);
+    expect(scheduleWrite).not.toHaveBeenCalled();
+  },
+);
 
 it.each([undefined, null, {}, [], ['C'], ['A', 'dsp'], ['B', 5]])(
   'rejects invalid phase payload %p',

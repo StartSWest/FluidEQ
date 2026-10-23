@@ -24,6 +24,7 @@ import {
   listGallery,
   listVersions,
   recordAdd,
+  recordOfficialAdd,
   reportScene,
   type TGalleryFailure,
 } from '../plus/galleryApi';
@@ -34,7 +35,6 @@ import {
   type IPictureDiskCache,
 } from '../plus/pictureDiskCache';
 import { fetchOfficialScene } from '../plus/officialGallery';
-import { fetchTasteSamples } from '../plus/tasteSamples';
 import type { IScenePackStore } from '../scenePackStore';
 import { createGallerySceneSync } from '../plus/syncGalleryScenes';
 import { createGalleryRefresh } from '../plus/galleryRefresh';
@@ -89,8 +89,6 @@ export interface IPlusGalleryIpcDeps {
   refreshBlocked: () => Promise<void>;
   /** Tell the renderer the list of member scenes changed. */
   announce: () => void;
-  /** Subscribe to Plus switching on or off; answers the unsubscribe. */
-  onEntitlementChange: (listener: () => void) => () => void;
   officialStore?: IScenePackStore;
   announceOfficial?: () => void;
   logger?: { warn(message: string): void };
@@ -125,7 +123,6 @@ const CHANNELS = [
   'plus-gallery-preview',
   'plus-gallery-add',
   'plus-gallery-report',
-  'plus-gallery-samples',
   'plus-gallery-versions',
 ] as const;
 
@@ -201,7 +198,6 @@ export const registerPlusGalleryIpc = ({
   store,
   refreshBlocked,
   announce,
-  onEntitlementChange,
   officialStore,
   announceOfficial,
   logger,
@@ -247,7 +243,9 @@ export const registerPlusGalleryIpc = ({
     const auth = fromDisk ? undefined : await access.auth();
     const bytes =
       fromDisk ??
-      (auth ? await fetchPicture(auth, authorId, sceneId) : undefined);
+      (auth
+        ? await fetchPicture(auth, authorId, sceneId, `${version}-${revision}`)
+        : undefined);
     if (!bytes) {
       // A failure is not remembered: the next time the card is on screen is
       // the next chance.
@@ -294,7 +292,7 @@ export const registerPlusGalleryIpc = ({
     }
     const auth = await access.auth();
     const envelope = auth
-      ? await fetchEnvelope(auth, authorId, sceneId)
+      ? await fetchEnvelope(auth, authorId, sceneId, version)
       : undefined;
     if (!envelope) {
       return 'unavailable';
@@ -371,13 +369,6 @@ export const registerPlusGalleryIpc = ({
     };
   };
 
-  // The official scenes a free account can taste live; empty when the list
-  // could not be asked.
-  ipcMain.handle('plus-gallery-samples', async (): Promise<string[]> => {
-    const auth = await access.auth();
-    return (auth && (await fetchTasteSamples(auth))) || [];
-  });
-
   ipcMain.handle(
     'plus-gallery-list',
     (_event, rawQuery: unknown): Promise<TGalleryListOutcome> => {
@@ -442,11 +433,11 @@ export const registerPlusGalleryIpc = ({
       version: unknown,
       rawRevision: unknown,
     ): Promise<TGalleryPreviewOutcome> => {
-      // Anyone signed in may open a scene's page. With Plus it plays for as
-      // long as they like; without, only the scenes chosen as free samples
-      // play, for the taste the page gives, and the rest show their picture.
-      // The server decides which (0023): the whole scene reaches the machine
-      // that plays it, and a rebuilt app keeps whatever it is given.
+      // Anyone signed in may open a scene's page and play it: for as long as
+      // they like once it is theirs, for the page's taste until then. The
+      // server hands every signed-in account the file (0056) — the whole
+      // scene reaches the machine that plays it, and a rebuilt app keeps
+      // whatever it is given.
       const ref = sceneRefOf(authorId, sceneId);
       const previewAccount = access.accountId();
       if (!ref || !signedIn()) {
@@ -466,11 +457,6 @@ export const registerPlusGalleryIpc = ({
           return { ok: false, reason: 'unavailable' };
         }
         return { ok: true, pack, own: false };
-      }
-      // A member's scene file is Plus's and its author's (server migration
-      // 0023); asking for it without either is a refusal already known.
-      if (!access.entitled() && ref.authorId !== previewAccount) {
-        return { ok: false, reason: 'not-entitled' };
       }
       if (store.isBlocked(ref.authorId, ref.packId)) {
         return { ok: false, reason: 'blocked' };
@@ -506,7 +492,19 @@ export const registerPlusGalleryIpc = ({
     ): Promise<TGalleryAddOutcome> => {
       const ref = sceneRefOf(authorId, sceneId);
       const me = access.accountId();
-      if (!ref || !access.entitled() || !me) {
+      // Bought, or its maker's own: "quien la hace la ve, quien no la hace la
+      // paga" (Ivan, 2026-10-18). Asked again after every await below.
+      const mayKeep = () =>
+        ref !== undefined &&
+        me !== undefined &&
+        access.accountId() === me &&
+        (ref.authorId === me ||
+          access.owns(
+            ref.authorId === FLUIDEQ_CREATOR_ID
+              ? premiumLookId(ref.packId)
+              : memberLookId(ref.authorId, ref.packId),
+          ));
+      if (!ref || !me || !mayKeep()) {
         return { ok: false, reason: 'not-entitled' };
       }
       if (ref.authorId === FLUIDEQ_CREATOR_ID) {
@@ -514,7 +512,7 @@ export const registerPlusGalleryIpc = ({
         const fetched = auth
           ? await fetchOfficialScene(auth, ref.packId)
           : undefined;
-        if (!access.entitled() || access.accountId() !== me) {
+        if (!mayKeep()) {
           return { ok: false, reason: 'not-entitled' };
         }
         if (typeof fetched !== 'object' || !officialStore) {
@@ -535,6 +533,11 @@ export const registerPlusGalleryIpc = ({
             return { ok: false, reason: 'refused' };
           }
           announceOfficial?.();
+          // Kept for the admin's reading of what members add (premium 0047);
+          // the scene is in the member's looks whether or not this lands.
+          if (auth) {
+            await recordOfficialAdd(auth, ref.packId);
+          }
           return { ok: true, lookId: premiumLookId(ref.packId) };
         } catch (error) {
           logger?.warn(
@@ -557,7 +560,7 @@ export const registerPlusGalleryIpc = ({
       if (typeof fetched === 'string') {
         return { ok: false, reason: fetched };
       }
-      if (!access.entitled() || access.accountId() !== me) {
+      if (!mayKeep()) {
         return { ok: false, reason: 'not-entitled' };
       }
       if (store.isBlocked(ref.authorId, ref.packId)) {
@@ -627,22 +630,24 @@ export const registerPlusGalleryIpc = ({
     },
   );
 
-  // Losing Plus drops the scene files kept for Add; the pictures are what
-  // anyone signed in may see, and stay.
-  const unsubscribe = onEntitlementChange(() => {
-    if (!access.entitled()) {
-      previews.clear();
-    }
-  });
-
   return {
-    refreshIfDue: createGalleryRefresh(access, syncInstalled, () =>
-      store.list().map((scene) => scene.authorId),
-    ),
+    refreshIfDue: createGalleryRefresh(access, syncInstalled, () => {
+      const me = access.accountId();
+      return [
+        ...store
+          .list()
+          .filter((scene) => scene.authorId === me || access.owns(scene.lookId))
+          .map((scene) => scene.authorId),
+        ...((officialStore?.list() ?? []).some((pack) =>
+          access.owns(premiumLookId(pack.id)),
+        )
+          ? [FLUIDEQ_CREATOR_ID]
+          : []),
+      ];
+    }),
     // Nothing added to the queue: settles after everything already in it.
     whenSynced: () => syncInstalled([]),
     dispose: () => {
-      unsubscribe();
       forgetEverything();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
     },

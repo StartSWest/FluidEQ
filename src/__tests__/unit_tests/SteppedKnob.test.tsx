@@ -16,6 +16,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  */
 import '@testing-library/jest-dom';
 import { fireEvent, render } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import Knob from 'renderer/widgets/Knob';
 import SteppedKnob from 'renderer/widgets/SteppedKnob';
 
@@ -41,6 +42,15 @@ const mount = (value = 0) => {
   const asked = () => handleChange.mock.calls.map(([value]) => value);
   return { ...result, knob, handleChange, asked };
 };
+
+it('tabs to the dial and uses arrow keys to choose adjacent settings', async () => {
+  const user = userEvent.setup();
+  const { getByRole, asked } = mount(24);
+  await user.tab();
+  expect(getByRole('slider')).toHaveFocus();
+  await user.keyboard('{ArrowUp}{ArrowDown}{Home}{End}');
+  expect(asked()).toEqual([36, 24, 0, 48]);
+});
 
 const pointer = (
   knob: Element,

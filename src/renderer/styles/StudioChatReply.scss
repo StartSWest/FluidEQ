@@ -1,0 +1,365 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// ---------------------------------------------------------------- replies
+
+// Claude's: on the card itself, its steps first, as a quiet list.
+.studio-chat__reply {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  color: $text-primary;
+  font-size: $text-body;
+  line-height: 1.5;
+}
+
+.studio-chat__steps {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0 0 0 10px;
+  border-left: 2px solid $menu-rule;
+  list-style: none;
+}
+
+.studio-chat__step {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+
+  &.is-running {
+    color: $text-primary;
+  }
+}
+
+// What a look saw, under its line, the full width of the conversation: the
+// picture Claude judges the scene by, so the member sees what it sees. A
+// press shows it whole; the frame keeps a tall or a strip-shaped look (the
+// door's shapes) inside the pane rather than stretched across it.
+.studio-chat__seen {
+  display: block;
+  flex: 1 0 100%;
+  margin: 2px 0 6px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: $surface-well;
+  cursor: zoom-in;
+
+  img {
+    display: block;
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  // While the look draws: the frame it will fill, breathing.
+  &.is-drawing {
+    aspect-ratio: 16 / 9;
+    max-height: 200px;
+    cursor: default;
+    background: linear-gradient(
+      100deg,
+      $surface-well 30%,
+      color-mix(in srgb, $text-accent 12%, $surface-well) 50%,
+      $surface-well 70%
+    );
+    background-size: 200% 100%;
+    animation: studio-chat-sweep 1.4s linear infinite;
+  }
+}
+
+// A picture ChatGPT made: on the checks an image editor shows behind a
+// transparent picture, so a cut-out reads as one and not as a black box.
+.studio-chat__seen.is-made {
+  --check: color-mix(in srgb, $white 11%, transparent);
+  background:
+    conic-gradient(
+        var(--check) 25%,
+        transparent 0 50%,
+        var(--check) 0 75%,
+        transparent 0
+      )
+      0 0 / 16px 16px,
+    $surface-well;
+}
+
+// A step's measure beside its words: a compaction's size before and after.
+.studio-chat__step-note {
+  color: $text-dim;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-chat__step-mark {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+
+  svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .is-done > & {
+    color: $active;
+  }
+
+  .is-failed > & {
+    color: $amber;
+  }
+
+  .is-running > & {
+    border: 1.5px solid $text-accent;
+    border-right-color: transparent;
+    animation: studio-chat-spin 0.9s linear infinite;
+  }
+}
+
+.studio-chat__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+
+  p,
+  ul {
+    margin: 0;
+  }
+
+  p + p,
+  p + ul,
+  ul + p {
+    margin-top: 8px;
+  }
+
+  ul {
+    padding-left: 18px;
+  }
+
+  li + li {
+    margin-top: 2px;
+  }
+
+  strong {
+    font-weight: $weight-semibold;
+  }
+
+  code {
+    padding: 1px 5px;
+    border-radius: $radius-2xs;
+    background: $surface-well;
+    font-family: $font-mono;
+    font-size: 0.92em;
+  }
+}
+
+// The reply still working: the line its steps hang from lit in the accent
+// and breathing, so a glance at the pane says Claude has not finished.
+.studio-chat__reply.is-working .studio-chat__steps {
+  border-left-color: $text-accent;
+  animation: studio-chat-rail 1.6s $ease-out infinite;
+}
+
+.studio-chat__thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.studio-chat__dots {
+  display: inline-flex;
+  gap: 3px;
+
+  i {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: $text-accent;
+    animation: studio-chat-pulse 1.2s $ease-out infinite;
+
+    &:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  }
+}
+
+// A version a reply made: its number, whether it plays, and the way back to
+// it. The picture is the look's, above it.
+.studio-chat__version {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 7px 8px 7px 10px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: $surface-well;
+}
+
+.studio-chat__version-mark {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: $active;
+  border-radius: 50%;
+  background: color-mix(in srgb, $active 14%, transparent);
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+.studio-chat__version-words {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: $text-small;
+
+  strong {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  span {
+    color: $text-faint;
+  }
+
+  [role='alert'] {
+    color: $amber;
+  }
+}
+
+.studio-chat__carry {
+  display: flex;
+}
+
+.studio-chat__ended {
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+}
+
+.studio-chat__failure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  color: $text-primary;
+  border: 1px solid color-mix(in srgb, $amber 35%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $amber 8%, transparent);
+  font-size: $text-small;
+
+  > svg {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    color: $amber;
+  }
+
+  > span {
+    flex: 1 1 160px;
+    min-width: 0;
+  }
+}
+
+// The reply's copy button, at its foot.
+.studio-chat__turn-actions {
+  display: flex;
+  margin-top: -2px;
+}
+
+// The member's message, with its copy button beside it while it is pointed
+// at or focused.
+.studio-chat__mine {
+  display: flex;
+  align-self: flex-end;
+  align-items: flex-end;
+  gap: 4px;
+  max-width: 100%;
+
+  > .studio-chat__copy {
+    opacity: 0;
+    transition: opacity $motion-fast $ease-out;
+  }
+
+  &:hover > .studio-chat__copy,
+  &:focus-within > .studio-chat__copy {
+    opacity: 1;
+  }
+}
+
+// Words in the conversation can be selected and copied, though the app
+// keeps selection off everywhere else (Ivan, 2026-10-09: "I want to be able
+// to select and copy agent message in the chat").
+.studio-chat__me,
+.studio-chat__text {
+  cursor: text;
+  user-select: text;
+}
+
+.studio-chat__copy {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  cursor: pointer;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover {
+    color: $text-primary;
+    background: color-mix(in srgb, $white 6%, transparent);
+  }
+
+  &.is-copied {
+    color: $active;
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    @include focus-ring;
+  }
+}

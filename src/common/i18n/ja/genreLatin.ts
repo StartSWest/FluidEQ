@@ -26,11 +26,13 @@ export default {
   'genre.latinPop.pin.200.why': 'サブと声のあいだの余白。',
   'genre.latinPop.pin.3150': '声の明瞭さ',
   'genre.latinPop.pin.3150.why': '言葉がある帯域。',
+  'genre.latinPop.stage.exciter':
+    'ボーカルの下にあたたかさと厚み。高域には何も足しません。',
   'genre.latinPop.stage.bassPunch': 'サブを少し引き締めます。',
   'genre.latinPop.stage.dimension': '150 Hz以下はモノラル。',
   'genre.latinPop.stage.maximizer': 'ほとんど押し込まない天井。',
   'genre.latinPop.off':
-    'エキサイターもベースフォージもなし。届いたときと同じ磨かれた音のままです。',
+    'ベースフォージはなし。サブはすでにキックと噛み合っています。',
 
   'genre.reggaeton.hook': 'チューニングした808の上で毎拍のキック',
   'genre.reggaeton.story':

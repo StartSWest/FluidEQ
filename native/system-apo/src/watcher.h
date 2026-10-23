@@ -31,11 +31,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <memory>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "fluideq_engine/config.h"
 #include "fluideq_engine/graph.h"
 #include "graph_reclaim.h"
+#include "graph_slot.h"
 #include "log.h"
 #include "owner_link.h"
 #include "status_file.h"
@@ -45,106 +47,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "level_prediction.h"
 #include "leveling_board.h"
 #include "room_head.h"
+#include "split_tap.h"
+#include "source_analysis.h"
 
 namespace fluideq_engine {
-
-/**
- * The two-pointer handover between the watcher thread and the audio thread.
- *
- * Owns nothing: every graph it points at belongs to the `Watcher`, which is
- * the only thread allowed to destroy one.
- */
-class GraphSlot {
- public:
-  /**
-   * Audio thread, at the start of a block. Copies biquad histories into
-   * preallocated storage here, when the previous graph is no longer being
-   * processed. No allocation, destruction, lock or operating system call.
-   *
-   * THE INVARIANT: a graph is taken OUT of `pending_` by the exchange before
-   * it is published into `active_`, so exactly one thread ever holds a graph
-   * that came out of the slot. That is what makes `publish`'s reasoning true
-   * — a non-null result there is proof this thread never got it.
-   *
-   * Reading `pending_` first and clearing it afterwards is the shape that
-   * looks safer and is not: the watcher's own exchange could take the same
-   * graph back out in between and destroy it as unadopted, while this thread
-   * was already about to run it.
-   */
-  Graph* adopt() noexcept {
-    Graph* next = pending_.exchange(nullptr, std::memory_order_acq_rel);
-    if (next != nullptr) {
-      next->adopt_state(active_.load(std::memory_order_relaxed));
-      active_.store(next, std::memory_order_release);
-    }
-    return active_.load(std::memory_order_relaxed);
-  }
-
-  /**
-   * Audio thread, at the end of a block. This counter is the grace period:
-   * it is the only evidence the watcher has that a block which could have
-   * been holding an old graph has finished.
-   */
-  void finish_block() noexcept {
-    blocks_.fetch_add(1, std::memory_order_release);
-  }
-
-  /**
-   * Watcher thread: what the audio thread is running now, for state
-   * carry-over.
-   *
-   * It cannot return a destroyed graph. A graph is only ever destroyed once
-   * two blocks have completed after the publish that superseded it, and the
-   * second of those two started after that publish — so its `adopt` stored
-   * the newer graph into `active_` before its `finish_block`. The watcher
-   * reads that counter with acquire, so observing the count that permits the
-   * free also makes the newer `active_` visible, and read-read coherence
-   * stops any later load here from seeing the older pointer again.
-   */
-  Graph* active() const noexcept {
-    return active_.load(std::memory_order_acquire);
-  }
-
-  /**
-   * The latest published graph's added delay, cached here rather than read
-   * back off the graph.
-   *
-   * `GetLatency` is called from whichever thread Windows feels like, and the
-   * graph it would have to ask belongs to the watcher, which may destroy it
-   * at any moment. A number copied out at publish time cannot dangle.
-   */
-  void set_latency(uint32_t frames) noexcept {
-    latency_.store(frames, std::memory_order_relaxed);
-  }
-  uint32_t latency() const noexcept {
-    return latency_.load(std::memory_order_relaxed);
-  }
-
-  uint64_t blocks() const noexcept {
-    return blocks_.load(std::memory_order_acquire);
-  }
-
-  /**
-   * Watcher thread. Returns the graph this one replaced in `pending` — a
-   * non-null result is proof, from the atomic exchange itself, that the audio
-   * thread never took it and it can be destroyed at once.
-   */
-  Graph* publish(Graph* graph) noexcept {
-    return pending_.exchange(graph, std::memory_order_acq_rel);
-  }
-
-  /** After the watcher has stopped and the audio thread is gone. */
-  void clear() noexcept {
-    pending_.store(nullptr, std::memory_order_relaxed);
-    active_.store(nullptr, std::memory_order_relaxed);
-  }
-
- private:
-  std::atomic<Graph*> pending_{nullptr};
-  std::atomic<Graph*> active_{nullptr};
-  std::atomic<uint64_t> blocks_{0};
-  std::atomic<uint32_t> latency_{0};
-};
 
 /**
  * The thread that reads the configuration directory and builds graphs.
@@ -156,9 +62,14 @@ class GraphSlot {
  */
 class Watcher {
  public:
+  /**
+   * `split` receives optional sharing built on this watcher's thread, never
+   * during main's initial graph setup. Null disables sharing for this host.
+   */
   Watcher(GraphSlot& slot, Log& log, Endpoint endpoint, std::wstring config_dir,
           uint32_t sample_rate, uint32_t channels, uint32_t max_frames,
-          unsigned long channel_mask = 0);
+          unsigned long channel_mask = 0,
+          std::atomic<SplitTap*>* split = nullptr, bool default_mode = true);
   ~Watcher();
 
   Watcher(const Watcher&) = delete;
@@ -215,14 +126,34 @@ class Watcher {
    *
    * Called at most once per lock, from `APOProcess`, and guarded there by a
    * flag so nothing happens on any block after the first with sound in it.
-   * It is the one call on that thread that reaches the operating system, and
-   * it earns the exception: without it the app can never learn that audio
+   * This bounded status wake reaches the operating system: without it the
+   * app can never learn that audio
    * has come — the status file is rewritten only when the engine is asked to
    * do something different, and a machine playing music while its engine is
    * passed over is asked for nothing at all. One `SetEvent` on an auto-reset
-   * event, once, against a block of ten milliseconds.
+   * event, once, against a block of ten milliseconds. Split changes, graph
+   * adoption and armed voice workers have their own bounded wake contracts.
    */
   void say_it_carried() noexcept;
+
+  /**
+   * The audio thread saying a block took a larger share of its time than any
+   * before, by a step of `timing_step` — so the status and the log can say
+   * so (`block_timing.h`). The same one `SetEvent`, a handful of times in a
+   * stream at most.
+   */
+  void say_it_was_slow() noexcept;
+
+  /**
+   * The audio thread saying the second output it plays needs this thread:
+   * a kernel for a main output's new rate, or a status that changed —
+   * started, stopped, fell behind. The same one `SetEvent` as
+   * `say_it_carried`, on the same terms: only when something changed, which
+   * is a handful of times in a song, never once a block.
+   */
+  void split_wake() noexcept;
+  /** Callback tail: a prepared source snapshot actually became active. */
+  void graph_adopted() noexcept;
 
  private:
   static unsigned __stdcall thread_entry(void* self);
@@ -281,11 +212,23 @@ class Watcher {
    */
   void report_status(bool locked) noexcept;
   /**
+   * One log line when the output's slowest block has climbed a step of
+   * `timing_step` since the last — the moment a report needs, written as it
+   * happens rather than only when the stream ends.
+   */
+  void log_timing() noexcept;
+  /**
    * Tell the output's leveling which song is playing — `programme.h`. True
    * when that finished a named song, which the status file then carries for
    * the app to remember. Never throws.
    */
   bool follow_programme() noexcept;
+  /**
+   * Tell this instance which second output it plays or feeds — `split_file.h`.
+   * True when the status should say so. Never throws.
+   */
+  bool follow_split(bool owner) noexcept;
+  SourceAnalysis read_source(bool owner);
 
   GraphSlot& slot_;
   Log& log_;
@@ -300,7 +243,18 @@ class Watcher {
    * from it.
    */
   const unsigned long channel_mask_;
+  std::atomic<SplitTap*>* const split_slot_;
+  const bool default_mode_;
+  std::unique_ptr<SplitTap> split_;
   std::unique_ptr<AnalysisLink> analysis_;
+  // The voice model, hashed once and then held open (`read_source`): every
+  // reload of every output re-read and re-hashed its ten megabytes before
+  // the "nothing changed" check, so each drag step paid for it. Held without
+  // write or delete sharing, the file cannot change while it is held. Null
+  // until a model passes; `voice_refused_` is the size and write time of
+  // one that did not, so the same file is not hashed again.
+  std::shared_ptr<void> voice_guard_;
+  std::optional<std::pair<uint64_t, uint64_t>> voice_refused_;
   // The output's, shared with every instance locked on it and kept across
   // locks (`leveling_board.h`). Null only if it could not be allocated, and
   // then leveling forgets with each chain, as it always used to.
@@ -308,7 +262,7 @@ class Watcher {
   // The music as it reaches the EQ, and what replays it through each new EQ
   // as that EQ starts to play. Null if either could not be allocated: every
   // edit's level is then found the old way.
-  std::unique_ptr<InputHistory> history_;
+  std::shared_ptr<InputHistory> history_;
   std::unique_ptr<LevelPredictor> predictor_;
   // Where each published graph's level is sent, and the number the last one
   // was published under (0 is never one).
@@ -332,7 +286,7 @@ class Watcher {
   // The room's head as last read and parsed. A head is 600 kB of text and
   // took 8.5 ms to parse, on every edit, for a file that changes only with
   // the head size.
-  std::string room_head_text_;
+  std::optional<std::string> room_head_text_;
   std::optional<RoomHead> room_head_;
   // Counts every change of `room_head_`, which is re-parsed in place, so its
   // address cannot say whether it is the head a rack was built through.
@@ -365,6 +319,9 @@ class Watcher {
   std::vector<std::pair<std::string, unsigned>> latency_parts_;
   std::vector<std::string> latency_active_;
   bool game_mode_ = false;
+  Graph::SourceReport source_report_;
+  bool source_invalid_ = false;
+  bool source_prepare_failed_ = false;
   // The watcher's own problems: a reload that threw (the previous graph
   // keeps running) until one works again, and a directory it cannot watch.
   bool reload_failed_ = false;
@@ -372,13 +329,19 @@ class Watcher {
   // This instance's place among the output's in the status file.
   StatusShare status_;
   bool status_failure_logged_ = false;
+  // The step of the slowest block the log last said — `log_timing`.
+  uint32_t timing_step_logged_ = 0;
 
   HANDLE stop_event_ = nullptr;
   // Auto-reset: one wake per request, and a request that arrives while a
   // rebuild is already running is served by the next wait rather than lost.
   HANDLE reset_event_ = nullptr;
-  // Auto-reset, set once per lock by the audio thread — `say_it_carried`.
-  HANDLE carried_event_ = nullptr;
+  // Auto-reset: the audio thread asking for the status to be written again
+  // — `say_it_carried`, `say_it_was_slow`, `graph_adopted`.
+  HANDLE status_event_ = nullptr;
+  // Auto-reset, set by the audio thread when the second output it plays
+  // changes state — `split_wake`. Null where there is no split part.
+  HANDLE split_event_ = nullptr;
   HANDLE thread_ = nullptr;
 
   // Whether FluidEQ is running — see `owner_link.h`. Without it the engine

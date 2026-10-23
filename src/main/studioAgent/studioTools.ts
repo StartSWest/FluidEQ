@@ -5,6 +5,7 @@ import { SCENE_DAYLIGHT_PARAM } from '../../common/sceneDaylight';
 import type { IScenePack } from '../../common/scenePacks';
 import { describeSongMap, songClock } from '../../common/songMap';
 import {
+  LIGHT_FRAME_MS,
   STUDIO_AGENT_SILENCE_S,
   type IStudioAgentMoment,
   type TStudioAgentDrawAnswer,
@@ -133,8 +134,14 @@ const slidersLine = (
 const costLine = (drawMs: number, width: number, height: number) => {
   const ms = Math.max(0.1, Math.round(drawMs * 10) / 10);
   const cost = `Cost: about ${ms} ms of this computer's GPU for one ${width}x${height} frame (the fastest of five draws; the GPU is shared, so readings a few ms apart are the same)`;
+  if (ms <= LIGHT_FRAME_MS) {
+    return `${cost} - light: it plays well on a laptop's integrated graphics too.`;
+  }
+  // Smooth here is not smooth for most listeners: a laptop's integrated
+  // graphics is several and up to fifteen times slower than the card most
+  // scenes are made on (`LIGHT_FRAME_MS`).
   if (ms <= SMOOTH_MS) {
-    return `${cost} - smooth.`;
+    return `${cost} - smooth on this computer, but a laptop's integrated graphics is several times slower and would draw it smaller and blurrier. Make it lighter, toward ${LIGHT_FRAME_MS} ms, where it costs the picture nothing.`;
   }
   if (ms <= HEAVY_MS) {
     return `${cost} - slower than 60 frames a second, so FluidEQ will draw it smaller and blurrier. Look again before changing anything for it; if it stays there, make it cheaper.`;

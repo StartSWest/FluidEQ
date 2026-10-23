@@ -47,6 +47,15 @@ import {
 } from 'main/registry';
 
 describe('the engine-aware config directory', () => {
+  const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+  beforeAll(() =>
+    Object.defineProperty(process, 'platform', { value: 'win32' }),
+  );
+  afterAll(() => {
+    if (hostPlatform) {
+      Object.defineProperty(process, 'platform', hostPlatform);
+    }
+  });
   let programData: string;
   let programFiles: string;
   const originalProgramData = process.env.ProgramData;

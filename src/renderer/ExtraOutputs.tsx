@@ -13,34 +13,48 @@ import type { TAudioEngine } from 'common/audioEngine';
 import { identifyVirtualDevice } from 'common/virtualAudioDevices';
 import SidebarSection from './components/SidebarSection';
 import Switch from './widgets/Switch';
-import MenuIcon from './icons/MenuIcon';
-import { MIRROR_MODES } from './audio/outputMirror';
+import BatteryLevel from './widgets/BatteryLevel';
+import MirrorDelay from './MirrorDelay';
+import useReadWhenShown from './utils/useReadWhenShown';
 import useOutputMirror, { IMirrorTarget } from './audio/useOutputMirror';
+import { useIncomingSound } from './remoteAudio/remoteAudioValueContext';
 import { useTranslation } from './utils/I18nContext';
 import { setSinglePlayer, useSinglePlayer } from './utils/singlePlayer';
 import './styles/ExtraOutputs.scss';
 import SecondOutputProfilePicker from './SecondOutputProfilePicker';
+import OutputEditButton from './OutputEditButton';
 
 interface IExtraOutputsProps {
   /** Passed straight down to the per-output badge. See the picker. */
   engine: TAudioEngine | null;
+  /**
+   * Whether the pane holding this card is on screen: coming into view, it
+   * reads again. On screen unless a pane says otherwise.
+   */
+  isPaneShown?: boolean;
 }
 
-const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
+const ExtraOutputs = ({ engine, isPaneShown = true }: IExtraOutputsProps) => {
   const { t } = useTranslation();
   const isSinglePlayer = useSinglePlayer();
   const {
     error,
     isMirroring,
     isVirtualRoutingAvailable,
-    mode,
     refresh,
+    reread,
     selectedTargets,
-    setMode,
     setTargetVolume,
     targets,
     toggleTarget,
   } = useOutputMirror();
+  // Read afresh when the pane comes into view or the card is opened, for the
+  // battery levels on it (`useReadWhenShown`).
+  useReadWhenShown(isPaneShown, reread);
+
+  // Another computer's sound playing here plays on the second output too,
+  // later by its own delay: each running output says both.
+  const incoming = useIncomingSound();
 
   // Everything the list could offer: the captured endpoint and anything
   // inactive are not merely unusable, they are not choices at all.
@@ -66,16 +80,11 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
     return t('extraOutput.unmatched');
   };
 
-  // The profile an output carries, when saying so tells you anything.
-  //
-  // An automatic profile is named after the endpoint that owns it, so printing
-  // it beside that endpoint's own name says the same thing twice — and it is
-  // what nearly every output has, so the column filled up with one repeated
-  // phrase. A named profile is worth showing; "no profile" is worth showing,
-  // because it means that speaker gets no correction at all.
+  // Named profiles and neutral outputs add useful detail. Automatic profiles
+  // already have the endpoint's name, so showing both would repeat it.
   const describeProfile = (target: IMirrorTarget): string => {
-    // The native Windows path feeds pre-APO audio, so the profile on B is now
-    // exactly what B plays. Other platforms still use endpoint loopback.
+    // The native path shares audio before the endpoint's corrections.
+    // Other platforms still use endpoint loopback.
     if (target.isRunning && window.electron?.platform !== 'win32') {
       return '';
     }
@@ -100,6 +109,7 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
     <SidebarSection
       className="extra-outputs"
       defaultOpen={false}
+      onOpen={reread}
       glyph={
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <rect x="3" y="4" width="7" height="16" rx="2" />
@@ -109,14 +119,72 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
         </svg>
       }
       title={t('extraOutput.title')}
-      // Folded, the header says which outputs are on — or that none is. It
-      // was a list of the enabled outputs under the header, a second row of
-      // names for something the header has room to say.
-      status={
-        enabled.length > 0
-          ? enabled.map((target) => target.device.name).join(' · ')
-          : t('extraOutput.statusOff')
+      // Folded, the outputs that are on each get a row under the header —
+      // the light that says it is playing, its name and its battery where its
+      // device reports one, and under them the profile it plays — and the
+      // header says only that none is. One line of names in the header read
+      // for one output and not for two (Ivan, 2026-10-02: "if we have more
+      // than one selected it doesn't make sense").
+      status={enabled.length > 0 ? undefined : t('extraOutput.statusOff')}
+      summary={
+        enabled.length > 0 && (
+          <ul className="extra-outputs__onList">
+            {enabled.map((target) => {
+              const profile = describeProfile(target);
+              return (
+                <li className="extra-outputs__on" key={target.device.guid}>
+                  <span
+                    className={
+                      target.isRunning ? 'device-dot active' : 'device-dot'
+                    }
+                  />
+                  <span className="extra-outputs__onText">
+                    <span className="extra-outputs__onLine">
+                      <span
+                        className="extra-outputs__onName"
+                        title={target.device.name}
+                      >
+                        {target.device.name}
+                      </span>
+                      {typeof target.device.batteryPercent === 'number' && (
+                        <BatteryLevel percent={target.device.batteryPercent} />
+                      )}
+                    </span>
+                    <span className="extra-outputs__profileActions">
+                      {profile && (
+                        <>
+                          <span
+                            className="extra-outputs__onProfile"
+                            title={profile}
+                          >
+                            {profile}
+                          </span>
+                          <span
+                            className="extra-outputs__separator"
+                            aria-hidden="true"
+                          >
+                            ·
+                          </span>
+                        </>
+                      )}
+                      <OutputEditButton device={target.device} />
+                    </span>
+                    {(target.delayMs !== undefined ||
+                      target.delayKind === 'unavailable') && (
+                      <MirrorDelay
+                        delayMs={target.delayMs}
+                        kind={target.delayKind}
+                        incoming={incoming}
+                      />
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )
       }
+      summaryWhenCollapsedOnly
       // Never folded away with the rest. It is a rule about the sound, not a
       // detail of the list, and the card is closed by default — folded with
       // the endpoints it would be a setting nobody ever meets.
@@ -178,6 +246,9 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
                         {virtual.inputLabel}
                       </span>
                     )}
+                    {typeof target.device.batteryPercent === 'number' && (
+                      <BatteryLevel percent={target.device.batteryPercent} />
+                    )}
                   </span>
                   {/* The profile this output already carries — the same one it
                       plays when it is the device you are listening on. Nothing
@@ -222,6 +293,21 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
                       </span>
                     </div>
                   )}
+                  {target.isSelected &&
+                    window.electron?.platform !== 'win32' && (
+                      <OutputEditButton device={target.device} />
+                    )}
+                  {/* Reported software buffering, not acoustic delay;
+                      include incoming buffering only while it has sound. */}
+                  {target.isSelected &&
+                    (target.delayMs !== undefined ||
+                      target.delayKind === 'unavailable') && (
+                      <MirrorDelay
+                        delayMs={target.delayMs}
+                        kind={target.delayKind}
+                        incoming={incoming}
+                      />
+                    )}
                 </div>
               </li>
             );
@@ -236,52 +322,13 @@ const ExtraOutputs = ({ engine }: IExtraOutputsProps) => {
       ))}
       {error && <p className="extra-outputs__obstacle">{error}</p>}
 
-      {/* Only once something is switched on. It decides how much sound is held
-          back before it plays, and a choice under a list with nothing on it
-          adjusts nothing. The same choice as the LAN panel — keep up with a
-          picture, or never stutter — but as a two-way pick with one line of
-          explanation under it for the chosen side: the LAN panel's two cards
-          stacked here were a quarter of the sidebar, each repeating a
-          sentence the other did not need. */}
-      {enabled.length > 0 && (
-        <div className="extra-outputs__mode">
-          <span className="eyebrow">{t('extraOutput.mode.title')}</span>
-          <div
-            className="extra-outputs__modes"
-            role="radiogroup"
-            aria-label={t('extraOutput.mode.title')}
-          >
-            {MIRROR_MODES.map((candidate) => (
-              <button
-                key={candidate}
-                type="button"
-                role="radio"
-                aria-checked={mode === candidate}
-                className={`extra-outputs__modeOption${
-                  mode === candidate ? ' is-selected' : ''
-                }`}
-                onClick={() => setMode(candidate)}
-              >
-                <MenuIcon name={candidate === 'video' ? 'video' : 'song'} />
-                <strong>{t(`extraOutput.mode.${candidate}.title`)}</strong>
-                <em>{t(`extraOutput.mode.${candidate}.buffer`)}</em>
-              </button>
-            ))}
-          </div>
-          <p className="extra-outputs__modeHint">
-            {t(`extraOutput.mode.${mode}.body`)}
-          </p>
-        </div>
-      )}
-
       {/* Shown only while a mirror is what is actually running. With a routing
           driver in use there is no added delay, and warning about one anyway
           is how a user learns to stop reading warnings. */}
-      {isMirroring && (
-        <p className="extra-outputs__latency">
-          {t(`extraOutput.latency.${mode}`)}
-        </p>
-      )}
+      {isMirroring &&
+        enabled.some((target) => target.delayKind === 'buffer') && (
+          <p className="extra-outputs__latency">{t('extraOutput.latency')}</p>
+        )}
       {isVirtualRoutingAvailable && (
         <p className="extra-outputs__virtual">{t('extraOutput.virtual')}</p>
       )}

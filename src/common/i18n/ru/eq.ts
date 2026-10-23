@@ -20,14 +20,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'Настроить основной выход',
+  'extraOutput.edit': 'Настроить звук',
+  'extraOutput.done': 'Готово',
+  'extraOutput.editing': 'Редактирование',
+  'extraOutput.editHint': 'Настроить {device}, не меняя основной выход',
+  'extraOutput.editingOutput': 'Редактирование: {device}',
+  'eq.layouts.empty':
+    'Схемы сохраняют частоты, Q каждой полосы и режим Q. Усиление и интенсивность задаются отдельно.',
+  'eq.layouts.qHint':
+    'В новых схемах начальный Q одинаков для всех полос. Чем больше полос, тем они уже.',
+  'eq.layouts.resetQ': 'Сбросить Q полос',
+  'eq.layouts.resetQHint':
+    'Установить рекомендованный Q для всех колоколообразных полос. Сохранить частоты, усиление и режим Q.',
+  'eq.mode.mainQHint':
+    'Только полосы основного EQ. Постоянный Q не меняется при изменении усиления. Пропорциональный и асимметричный режимы меняют Q в зависимости от усиления.',
+  'graph.item.eqLabels': 'подписи EQ',
+  'graph.contents.unlabelled': 'Без подписей EQ',
   'eq.mode.linearDelayInactive': '≈ +{ms} мс с активным EQ',
   'eq.mode.linearDelay': '≈ +{ms} мс задержки',
   'eq.mode.linearDelayShared': '≈ {ms} мс, общая',
   'eq.mode.gameMinimum': 'Игровой режим: минимальная',
   'eq.layouts.builtIn': 'Стандартные схемы',
   'eq.layouts.saved': 'Мои схемы',
-  'eq.layouts.empty':
-    'Сохраняются только частоты и Q полос, без усиления и режима EQ.',
   'eq.layouts.loading': 'Загрузка схем…',
   'eq.layouts.name': 'Название схемы',
   'eq.layouts.duplicate': 'Это название уже используется. Выберите другое.',
@@ -66,6 +81,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.trebleUpdate':
     'Обновите движок FluidEQ, чтобы выбрать, как звучат высокие.',
   'eq.mode.reset': 'Сбросить',
+  'eq.mode.pin': 'Закрепить рядом с графиком',
+  'eq.mode.unpin': 'Вернуть в меню',
+  'eq.mode.showPinned': 'Показать режим EQ рядом с графиком',
   'eq.mode.customized': 'Свой',
   'eq.mode.strength': 'Интенсивность',
   'eq.mode.q': 'Добротность полос',
@@ -165,6 +183,8 @@ const eq: Partial<Dictionary> = {
     'Включено — у визуализатора ночью ночь, а днём день, по часам этого компьютера. Выключено — он сохраняет время суток, заданное выше.',
   'graph.sceneTint.daylightFollowingClockHint':
     'Следует за часами. Выключите «Время суток по часам», чтобы задать время суток визуализатора отдельно',
+  'graph.sceneTint.daylightStudioHint':
+    'Пока открыта Студия, время суток визуализатора задаёт Яркость, чтобы проверить сцену от ночи до дня. Этот выбор вернётся, когда вы выйдете из Студии',
   'graph.sceneTint.brightnessHint':
     'Насколько светлым или тёмным будет окно — в вашей теме или в цветах визуализатора',
   'graph.member.mine': 'Созданы вами',
@@ -288,6 +308,15 @@ const eq: Partial<Dictionary> = {
   'graph.curve.driver': 'Излучатель',
   'graph.curve.headphone': 'Наушники',
   'graph.curve.eq': 'АЧХ эквалайзера',
+  'graph.curve.leftEar': 'Левое ухо',
+  'graph.curve.rightEar': 'Правое ухо',
+  'eq.channels.update':
+    'Движок FluidEQ на этом компьютере играет эту полосу в обоих ушах, пока не установлено его обновление.',
+  'eq.channels.both': 'Оба уха',
+  'eq.channels.split': 'Левое + правое',
+  'eq.channels.importInto': 'Импортировать в',
+  'eq.channels.letter.left': 'Л',
+  'eq.channels.letter.right': 'П',
   'graph.curve.voicing': 'Пресет',
   'graph.curve.smart': 'Умный EQ',
   'graph.curve.custom': 'Пользовательский FX',
@@ -426,7 +455,7 @@ const eq: Partial<Dictionary> = {
   'output.undoSevenOne': 'Отменить',
   'output.sevenOneFailed': 'Windows не принял формат 7.1 на этом выходе.',
   'output.none': 'Активные выходы не найдены',
-  'output.mapping': 'Автоматическая привязка',
+  'output.battery': 'Заряд {percent}%',
   'output.mapping.neutral': 'Нейтральный выход',
   'output.mapping.live': 'Привязана текущая настройка',
   'output.hint':
@@ -438,19 +467,12 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'Других выходов не найдено',
   'extraOutput.statusOff': 'Выключен',
   'extraOutput.volume': 'Громкость',
-  'extraOutput.mode.title': 'Как он успевает',
-  'extraOutput.mode.video.title': 'Игра/Видео',
-  'extraOutput.mode.video.body':
-    'Держится в нескольких сотых секунды от картинки и сам заново подстраивается после сбоя.',
-  'extraOutput.mode.video.buffer': 'Старт ~30 мс',
-  'extraOutput.mode.music.title': 'Музыка',
-  'extraOutput.mode.music.body':
-    'Держит десятую долю секунды в запасе, чтобы никогда не заикаться.',
-  'extraOutput.mode.music.buffer': 'Старт ~100 мс',
-  'extraOutput.latency.video':
-    'Продублированный звук держится достаточно близко к экрану, чтобы губы совпадали. Если оба выхода слышны с одного места, можно заметить лёгкое двоение.',
-  'extraOutput.latency.music':
-    'Продублированный звук приходит примерно на десятую долю секунды позже и никогда не заикается. Для другой комнаты нормально; для экрана переключитесь на Игра/Видео.',
+  'extraOutput.latency':
+    'Основной выход не ждёт вторичные. Эти значения оценивают программную буферизацию, а не слышимую задержку. Аудиодрайверы, устройства и беспроводные соединения могут добавлять задержку.',
+  'extraOutput.delayUnavailable': 'Задержка недоступна',
+  'extraOutput.delay': 'Программный буфер: {milliseconds} мс',
+  'extraOutput.delayFrom':
+    'От {name}: {milliseconds} мс программной буферизации',
   'extraOutput.virtual':
     'Установлен драйвер маршрутизации. Направьте приложения на него, и оба выхода останутся синхронными, а затем задайте каждому свой профиль выше.',
   'extraOutput.ambiguous':
@@ -547,6 +569,7 @@ const eq: Partial<Dictionary> = {
   'opra.createdBy': 'Пресет создан: {author}',
   'opra.distributedBy': 'Распространяется OPRA by Roon',
   'opra.source': 'Источник',
+  'opra.onSite': 'Все коррекции для них на fluideq.com',
   'autoeq.curveTitle': 'Применённая коррекция',
   'autoeq.curveEmptyHint':
     'Выберите модель наушников и целевую кривую, затем примените — здесь будет показана получившаяся коррекция.',
@@ -592,8 +615,8 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'Параметрический эквалайзер',
   'eq.smart': 'Умный EQ',
   'eq.smart.cancel': 'Отмена',
+  'eq.smart.stopAria': 'Остановить умный EQ',
   'eq.smart.aria': 'Умный EQ по исходному сигналу',
-  'eq.smart.cancelAria': 'Отменить измерение умного EQ',
   'eq.smart.continuousAria':
     'Продолжать измерять и подстраивать эквалайзер во время музыки',
   'eq.smart.modeAria': 'Выбрать способ измерения',
@@ -672,6 +695,8 @@ const eq: Partial<Dictionary> = {
   'eq.menu.enable': 'Включить полосу',
   'eq.menu.disableSelection': 'Отключить полосы ({count})',
   'eq.menu.enableSelection': 'Включить полосы ({count})',
+  'eq.menu.deleteSelection': 'Удалить полосы: {count}',
+  'eq.menu.deleteConfirm': 'Нажмите ещё раз, чтобы удалить',
   'eq.menu.addLeft': 'Добавить полосу слева',
   'eq.menu.addRight': 'Добавить полосу справа',
   'eq.menu.selection': 'Выбрано полос: {count}',
@@ -762,6 +787,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'Аудиоустройство',
   'autoeq.targetAria': 'Целевая АЧХ',
   'eq.band.edit': 'Изменить полосу {frequency} Гц',
+  'eq.band.gainSlider': 'Усиление {frequency}',
+  'graph.handle.label':
+    '{band}, {frequency}. Перетаскивайте, чтобы менять частоту и усиление; Ctrl+колесо меняет добротность (Q).',
+  'graph.handle.off': 'выключена',
+  'graph.handle.select': 'Щёлкните, чтобы выбрать',
+  'graph.handle.quality': 'Ctrl+колесо меняет Q',
   'eq.layers.apoEdit': 'Правка в Equalizer APO',
   'convolution.entryDetail': '{provider} · минимальная фаза · WAV {rate} кГц',
   'eq.refused.bandLimit':
@@ -776,6 +807,126 @@ const eq: Partial<Dictionary> = {
   'eq.refused.preampRange.action': 'Предусиление осталось прежним.',
   'eq.refused.externalEq':
     'Во внешнем эквалайзере есть ступени, которые FluidEQ не может безопасно перенять. Его файлы не изменены.',
+  // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.tab.opra': 'Библиотека OPRA',
+  'myCurves.tab.mine': 'Мои кривые',
+  'myCurves.tab.squiglink': 'Squiglink',
+  'myCurves.search': 'Поиск по вашим кривым',
+  'myCurves.sort': 'Сортировка',
+  'myCurves.sort.recent': 'Недавние',
+  'myCurves.sort.name': 'А–Я',
+  'myCurves.add': 'Добавить кривую',
+  'myCurves.import': 'Импорт списка',
+  'myCurves.export': 'Экспорт списка',
+  'myCurves.empty.title': 'Своих кривых пока нет',
+  'myCurves.empty.body':
+    'Добавьте кривую из экспорта Squiglink или файла .txt либо сохраните её на вкладке Squiglink. Ваши кривые хранятся на этом компьютере, пока вы их не экспортируете.',
+  'myCurves.noMatch': 'Ни в одном названии кривой этого нет.',
+  'myCurves.source.squiglink': 'Squiglink',
+  'myCurves.source.file': 'Файл',
+  'myCurves.source.eq': 'Мой EQ',
+  'myCurves.source.opra': 'Из OPRA',
+  'myCurves.added': 'Добавлена {date}',
+  'myCurves.playing': 'Звучит',
+  'myCurves.applyEqHint':
+    'Заменяет ваши редактируемые полосы полосами этой кривой. Нажмите ещё раз для подтверждения.',
+  'myCurves.replaceBands': 'Заменить ваши полосы?',
+  'myCurves.more': 'Ещё для {name}',
+  'myCurves.rename': 'Переименовать',
+  'myCurves.duplicate': 'Дублировать',
+  'myCurves.copyText': 'Копировать как текст',
+  'myCurves.copied': 'Скопировано',
+  'myCurves.delete': 'Удалить',
+  'myCurves.deleteAsk': 'Удалить «{name}»?',
+  'myCurves.deleteBody':
+    'Кривая навсегда исчезнет из «Мои кривые». В экспортированном списке она останется.',
+  'myCurves.cancel': 'Отмена',
+  'myCurves.addTitle': 'Добавить кривую',
+  'myCurves.addIntro':
+    'Она попадёт в «Мои кривые». Ничего не зазвучит, пока вы её не примените.',
+  'myCurves.textLabel': 'Текст ParametricEQ',
+  'myCurves.textPlaceholder':
+    'Вставьте сюда экспорт ParametricEQ или GraphicEQ',
+  'myCurves.read': 'Прочитано: полос {count}, предусиление {preamp} дБ',
+  'myCurves.readNothing':
+    'В этом тексте пока нет кривой. Вставьте экспорт ParametricEQ или GraphicEQ.',
+  'myCurves.fileFailed': 'Этот файл не удалось прочитать как кривую.',
+  'myCurves.name': 'Название',
+  'myCurves.ears': 'Уши',
+  'myCurves.defaultName': 'Кривая Squiglink, {date}',
+  'myCurves.chartAria': 'Кривая {name}, от 20 Гц до 20 кГц',
+  'myCurves.save': 'Сохранить в «Мои кривые»',
+  'myCurves.saveApply': 'Сохранить и применить как кривую',
+  'myCurves.exportTitle': 'Экспорт «Моих кривых»',
+  'myCurves.exportIntro':
+    'Кривых в списке: {count}. Ничего о ваших выходах или аккаунте в файл не попадает.',
+  'myCurves.format': 'Формат',
+  'myCurves.format.list': 'Один список кривых FluidEQ (.fqcurves)',
+  'myCurves.format.listHint':
+    'Импортируется целиком в любой FluidEQ: каждое название, кривая, предусиление и ухо.',
+  'myCurves.format.folder': 'Папка файлов .txt',
+  'myCurves.format.folderHint':
+    'По одному файлу ParametricEQ на кривую, с её названием, для Equalizer APO, Squiglink и инструментов AutoEQ.',
+  'myCurves.exportRun': 'Экспортировать',
+  'myCurves.exportFailed':
+    'Не удалось записать кривые туда. Выберите другое место и попробуйте ещё раз.',
+  'myCurves.fileName': 'Мои кривые',
+  'myCurves.importTitle': 'Импорт кривых',
+  'myCurves.importIntro':
+    'Выберите список кривых FluidEQ или один либо несколько файлов .txt ParametricEQ.',
+  'myCurves.importFrom': 'Из {files}',
+  'myCurves.chooseFiles': 'Выбрать файлы',
+  'myCurves.importHint':
+    'Вы увидите каждую кривую, прежде чем что-либо будет добавлено.',
+  'myCurves.importNothing':
+    'В этих файлах нет кривых, которые FluidEQ может прочитать.',
+  'myCurves.clash': 'У вас уже есть кривая с таким названием',
+  'myCurves.clashChoice': 'Что сделать с {name}',
+  'myCurves.new': 'Новая',
+  'myCurves.choice.keepBoth': 'Оставить обе',
+  'myCurves.choice.replace': 'Заменить',
+  'myCurves.choice.skip': 'Пропустить',
+  'myCurves.importRun': 'Импортировать ({count})',
+  'myCurves.importSkipped': 'Пропущены, так как в них нет кривой: {names}',
+  'myCurves.importNote':
+    'Импортированные кривые никогда не включаются сами; та, что звучит сейчас, продолжает звучать.',
+  'myCurves.from': 'Откуда она',
+  'myCurves.from.paste': 'Вставить',
+  'myCurves.from.pasteHint': 'Текст ParametricEQ из Squiglink или AutoEQ',
+  'myCurves.from.file': 'Файл .txt',
+  'myCurves.from.fileHint': 'Формат Equalizer APO или AutoEQ',
+  'myCurves.from.eq': 'Мой EQ сейчас',
+  'myCurves.from.eqHint': 'Ваши полосы такими, как они звучат',
+  'myCurves.from.opra': 'Из OPRA',
+  'myCurves.from.opraHint':
+    'Копия звучащей коррекции, чтобы переименовать и изменить',
+  'myCurves.from.opraNone': 'Сначала включите коррекцию из библиотеки OPRA',
+  'myCurves.defaultNameEq': 'Мой EQ, {date}',
+  'myCurves.defaultNameOpra': 'Кривая OPRA, {date}',
+  'myCurves.unread': 'Непрочитанные строки, не вошедшие в кривую: {lines}',
+  'myCurves.eqLeftOut':
+    'Полосы только для одного уха не вошли: {count}. Чтобы сохранить их, выберите «Левое ухо» или «Правое ухо».',
+  'myCurves.full':
+    'В «Мои кривые» помещается до {count} кривых, и там нет места. Удалите несколько, чтобы освободить его.',
+  'myCurves.editTitle': 'Изменить кривую',
+  'myCurves.editIntro':
+    'Измените название, уши или полосы. Если она звучит, примените её снова, чтобы услышать изменения.',
+  'myCurves.saveChanges': 'Сохранить изменения',
+  'myCurves.editBands': 'Изменить полосы',
+  'myCurves.readFailed': 'Не удалось прочитать ваши кривые',
+  'myCurves.readFailedBody':
+    'Они по-прежнему на этом компьютере, и ничего не изменилось. Повторите попытку чуть позже.',
+  'myCurves.retry': 'Повторить',
+  'myCurves.importSkippedMore':
+    'Пропущены, так как в них нет кривой: {names} и ещё {count}',
+  'myCurves.importRoom':
+    'В «Мои кривые» помещается {max}. Места хватит для {room} из них; остальные {count} не войдут.',
+  'myCurves.quick.label': 'Коррекция',
+  'myCurves.quick.previous': 'Предыдущая коррекция',
+  'myCurves.quick.next': 'Следующая коррекция',
+  'myCurves.quick.none': 'Ничего не звучит',
+  'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': 'В «Моих кривых» как «{name}»',
 };
 
 export default eq;

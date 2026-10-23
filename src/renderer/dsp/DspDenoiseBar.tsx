@@ -18,6 +18,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import useStagePresets from './useStagePresets';
 
 interface IDspDenoiseBarProps {
   denoise: IDenoiseSettings;
@@ -46,22 +47,29 @@ const DspDenoiseBar = ({
   onCommit,
 }: IDspDenoiseBarProps) => {
   const { t } = useTranslation();
-  const entries: IRichPickEntry[] = DENOISE_PRESET_GROUPS.flatMap((group) =>
-    DENOISE_PRESETS.filter((preset) => preset.group === group).map(
-      (preset) => ({
-        id: preset.id,
-        name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset, t),
-        group,
-        icon: (
-          <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
-        ),
-      }),
-    ),
+  const saved = useStagePresets('denoise', denoise, onChange, onCommit);
+  const factoryEntries: IRichPickEntry[] = DENOISE_PRESET_GROUPS.flatMap(
+    (group) =>
+      DENOISE_PRESETS.filter((preset) => preset.group === group).map(
+        (preset) => ({
+          id: preset.id,
+          name: t(preset.labelKey as TranslationKey),
+          hint: profileHint(preset, t),
+          group,
+          icon: (
+            <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
+          ),
+        }),
+      ),
   );
+  // Saved profiles first, as the EQ lists its own.
+  const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string, enable = true) => {
+    if (saved.apply(id)) {
+      return;
+    }
     if (!isDenoisePresetId(id)) {
       return;
     }
@@ -81,55 +89,61 @@ const DspDenoiseBar = ({
   };
 
   return (
-    <div className="dsp-eq-bar dsp-denoise-bar">
-      <div className="dsp-eq-preset dsp-eq-preset-first">
-        <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
-        <RichPick
-          entries={entries}
-          groupLabel={(group) =>
-            group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
-          }
-          activeId={denoise.presetId}
-          onPick={applyPreset}
-          placeholder={t('dsp.eqPreset.custom')}
-          placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
-          triggerAriaLabel={t('dsp.eqPreset.label')}
-          triggerTitle={t('dsp.eqPreset.label')}
-        />
-        <button
-          type="button"
-          className="dsp-eq-step"
-          aria-label={t('dsp.eqPreset.previous')}
-          title={t('dsp.eqPreset.previous')}
-          onClick={() => step(-1)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="M10 3 5 8l5 5" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="dsp-eq-step"
-          aria-label={t('dsp.eqPreset.next')}
-          title={t('dsp.eqPreset.next')}
-          onClick={() => step(1)}
-        >
-          <svg viewBox="0 0 16 16" aria-hidden="true">
-            <path d="m6 3 5 5-5 5" />
-          </svg>
-        </button>
+    <>
+      <div className="dsp-eq-bar dsp-denoise-bar">
+        <div className="dsp-eq-preset dsp-eq-preset-first">
+          <span className="dsp-eq-preset-label">{t('dsp.eqPreset.label')}</span>
+          <RichPick
+            entries={entries}
+            groupLabel={(group) =>
+              saved.savedGroupLabel(group) ??
+              (group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : '')
+            }
+            activeId={denoise.presetId}
+            onPick={applyPreset}
+            placeholder={t('dsp.eqPreset.custom')}
+            placeholderIcon={<VoicingIcon className="rich-pick__glyph" />}
+            triggerAriaLabel={t('dsp.eqPreset.label')}
+            triggerTitle={t('dsp.eqPreset.label')}
+          />
+          <button
+            type="button"
+            className="dsp-eq-step"
+            aria-label={t('dsp.eqPreset.previous')}
+            title={t('dsp.eqPreset.previous')}
+            onClick={() => step(-1)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M10 3 5 8l5 5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="dsp-eq-step"
+            aria-label={t('dsp.eqPreset.next')}
+            title={t('dsp.eqPreset.next')}
+            onClick={() => step(1)}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="m6 3 5 5-5 5" />
+            </svg>
+          </button>
+        </div>
+        <div className="dsp-eq-transfer">
+          <button
+            type="button"
+            className="button small subtle"
+            onClick={() => applyPreset('default', false)}
+          >
+            <DspBarIcon name="reset" />
+            {t('dsp.eqPreset.reset')}
+          </button>
+          {saved.buttons}
+        </div>
       </div>
-      <div className="dsp-eq-transfer">
-        <button
-          type="button"
-          className="button small subtle"
-          onClick={() => applyPreset('default', false)}
-        >
-          <DspBarIcon name="reset" />
-          {t('dsp.eqPreset.reset')}
-        </button>
-      </div>
-    </div>
+      {saved.notice}
+      {saved.dialog}
+    </>
   );
 };
 

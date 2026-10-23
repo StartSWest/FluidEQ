@@ -2,10 +2,13 @@ import { BrowserWindow, ipcMain } from 'electron';
 import type { IAccountConfig } from '../../common/accountConfig';
 import {
   isScenePackEnvelope,
+  premiumLookId,
   type IScenePackCatalogueEntry,
 } from '../../common/scenePacks';
 import type { IEntitlement } from '../account/entitlement';
 import type { IAccountSession } from '../account/session';
+import type { IVersionPins } from '../keptVersions';
+import type { ISceneOwnership } from '../plus/sceneOwnership';
 import { createScenePackCatalogue } from '../scenePackCatalogue';
 import {
   createScenePackPublications,
@@ -39,9 +42,13 @@ import {
 export interface IScenePacksIpcDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
+  /** Which earlier version each look plays (`keptVersions.ts`). */
+  pins?: IVersionPins;
   config: IAccountConfig;
   session: IAccountSession;
   entitlement: IEntitlement;
+  /** Which scenes this account may play (`plus/sceneOwnership.ts`). */
+  ownership: Pick<ISceneOwnership, 'owns' | 'subscribe'>;
   logger?: { info(message: string): void; warn(message: string): void };
   /**
    * The scenes added from the gallery, asked about when the looks are opened
@@ -54,13 +61,12 @@ export interface IScenePacksIpcDeps {
 }
 
 export interface IScenePacksListing {
-  /** Whether the account may draw these right now. */
-  entitled: boolean;
+  /** The installed scenes this account may draw: the ones it owns. */
   packs: IScenePackSummary[];
   /**
-   * The Plus looks this account cannot draw — every one the server lists,
-   * whenever the account is not entitled, and none at all when it is. The
-   * picker shows them locked, and choosing one opens the upgrade card.
+   * FluidEQ's scenes this account does not own, from the server's public
+   * list — none at all while Plus lasts. The picker shows them locked, and
+   * choosing one opens its page to buy it.
    */
   locked: IScenePackCatalogueEntry[];
 }
@@ -123,15 +129,17 @@ const readListings = (body: unknown): IScenePackListing[] => {
 export const registerScenePacksIpc = ({
   getMainWindow,
   userDataDir,
+  pins,
   config,
   session,
   entitlement,
+  ownership,
   logger,
   refreshGalleryScenes,
   now = Date.now,
   fetchImpl = fetch,
 }: IScenePacksIpcDeps): IScenePacksIpcRegistration => {
-  const store = createScenePackStore({ userDataDir, logger });
+  const store = createScenePackStore({ userDataDir, pins, logger });
   const catalogue = createScenePackCatalogue({
     userDataDir,
     config,
@@ -146,14 +154,12 @@ export const registerScenePacksIpc = ({
 
   const entitled = () => entitlement.status().state !== 'none';
 
-  const listing = (): IScenePacksListing => {
-    const isEntitled = entitled();
-    return {
-      entitled: isEntitled,
-      packs: store.list(),
-      locked: isEntitled ? [] : catalogue.list(),
-    };
-  };
+  const owns = (id: string) => ownership.owns(premiumLookId(id));
+
+  const listing = (): IScenePacksListing => ({
+    packs: store.list().filter((pack) => owns(pack.id)),
+    locked: catalogue.list().filter((entry) => !owns(entry.id)),
+  });
 
   const sceneListeners = new Set<() => void>();
   const announce = () => {
@@ -237,7 +243,14 @@ export const registerScenePacksIpc = ({
     }
     const changed = publications.changed(
       server,
-      new Map(store.list().map((pack) => [pack.id, pack.version])),
+      // The newest each holds, not the version a pin plays: a pinned scene
+      // would read as behind and be downloaded again at every check.
+      new Map(
+        store.list().flatMap((pack) => {
+          const version = store.newestVersion(pack.id);
+          return version === undefined ? [] : [[pack.id, version] as const];
+        }),
+      ),
     );
     if (changed.length === 0) {
       return;
@@ -293,11 +306,13 @@ export const registerScenePacksIpc = ({
   // the picker may offer — the looks turn into locked rows — and the renderer
   // has to hear that too, with a catalogue to paint them from if it has none.
   const unsubscribe = entitlement.subscribe((status) => {
-    announce();
     if (status.state !== 'none' || isDue()) {
       refreshNow().catch(() => undefined);
     }
   });
+  // A buy, an account changing, Plus: which looks play changed. Plus reaches
+  // the list through here too, so the picker is told once.
+  const unsubscribeOwnership = ownership.subscribe(announce);
 
   ipcMain.handle('scene-packs-list', () => {
     // The renderer asking is an event like any other: the picker is about to
@@ -310,7 +325,7 @@ export const registerScenePacksIpc = ({
   });
 
   ipcMain.handle('scene-packs-load', (_event, id: unknown) => {
-    if (typeof id !== 'string' || !entitled()) {
+    if (typeof id !== 'string' || !owns(id)) {
       return undefined;
     }
     return store.load(id);
@@ -377,6 +392,7 @@ export const registerScenePacksIpc = ({
     },
     dispose: () => {
       unsubscribe();
+      unsubscribeOwnership();
       CHANNELS.forEach((channel) => ipcMain.removeHandler(channel));
     },
   };

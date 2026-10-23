@@ -24,6 +24,12 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
       ++present;
     }
   }
+  // The EQ tap's long window travels only beside a fresh short one, as the
+  // Library host sends it (`host_telemetry.cpp`).
+  std::array<float, FEQ_METER_DETAIL_BINS> detail{};
+  const bool eq_fresh = (frame.stage_mask & (1u << FEQ_METER_STAGE_EQ)) != 0;
+  const uint32_t detail_bins = eq_fresh && feq_meters_read_eq_detail(meters_,
+      detail.data(), FEQ_METER_DETAIL_BINS) != 0 ? FEQ_METER_DETAIL_BINS : 0;
   double correlation = 1;
   float peaks[2]{};
   const bool has_scope = feq_meters_read_scope(meters_, scope.data(),
@@ -51,12 +57,12 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
   frame.auto_headroom_reduction_db = static_cast<float>(master.auto_headroom_reduction_db);
   frame.auto_headroom_true_peak_db = static_cast<float>(master.auto_headroom_true_peak_db);
   // The final guard's six words, zero since the guard was removed on
-  // 2026-09-22 (`wire.h`).
+  // 2026-09-22 but for the two that carry the EQ tap's long window (`wire.h`).
   frame.safety_reduction_db = 0.0f;
   frame.safety_true_peak_db = 0.0f;
   frame.dc_correction_db = 0.0f;
-  frame.repaired_samples = 0u;
-  frame.true_peak_factor = 0u;
+  frame.eq_detail_window = FEQ_METER_DETAIL_WINDOW;
+  frame.eq_detail_bins = detail_bins;
   frame.safety_enabled = 0u;
   feq_meters_read_normalizer(meters_, frame.normalizer_input_peaks,
       frame.normalizer_output_peaks, &frame.normalizer_applied_gain_db);
@@ -82,11 +88,17 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
                             frame.bass_forge_output_db);
   feq_meters_read_bass_punch(meters_, &frame.bass_punch_transient_db,
       &frame.bass_punch_sustain_db, &frame.bass_punch_duck_db);
+  {
+    FeqDeEsserReport deesser{};
+    feq_meters_read_deesser(meters_, &deesser);
+    feq_wire_deesser_report(frame, deesser);
+  }
   const size_t spectrum_bytes = sizeof(float) * present * FEQ_METER_BINS;
   const size_t scope_bytes = sizeof(float) * frame.pairs * 2;
   const size_t band_bytes = sizeof(float) * frame.bands;
+  const size_t detail_bytes = sizeof(float) * detail_bins;
   std::vector<unsigned char> packet(sizeof(frame) + spectrum_bytes +
-                                    scope_bytes + band_bytes * 2 + sizeof(float) * 4);
+      scope_bytes + band_bytes * 2 + detail_bytes + sizeof(float) * 4);
   size_t offset = 0;
   const auto append = [&](const void* source, size_t size) {
     std::memcpy(packet.data() + offset, source, size);
@@ -97,6 +109,7 @@ std::vector<unsigned char> AnalysisLink::snapshot() {
   append(scope.data(), scope_bytes);
   append(amounts.data(), band_bytes);
   append(levels.data(), band_bytes);
+  append(detail.data(), detail_bytes);
   float live_input[4] = {-120, -120, -120, 0};
   feq_meters_read_live_input(meters_, live_input);
   append(live_input, sizeof(live_input));

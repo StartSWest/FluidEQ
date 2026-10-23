@@ -30,8 +30,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq/biquad.h"
 #include "fluideq/crossfade.h"
+#include "fluideq/deesser.h"
 #include "fluideq/denoise.h"
 #include "fluideq/eq.h"
+#include "fluideq/exciter_oversample.h"
 #include "fluideq/meters.h"
 #include "fluideq/live_normalizer.h"
 #include "fluideq/room.h"
@@ -84,6 +86,16 @@ typedef struct FeqChainEqBand {
   double gain_db;
   double quality;
   double threshold_db;
+  /**
+   * The one ear the band plays on: 0 both, 1 left, 2 right (Ivan,
+   * 2026-10-13, "EQ per ear"). Carried in the band's switch word on the
+   * wire — 1 both, 2 left, 3 right — so an engine before it reads any of
+   * them as on and plays the band on both ears. Heard only on a stereo
+   * arrangement of two channels or more, where the left is the first
+   * channel and the right the second; in Mid or Sides, and on a mono
+   * stream, every band is on both (`chain_band_ear`).
+   */
+  int ear;
 } FeqChainEqBand;
 
 typedef struct FeqChainExciterBand {
@@ -106,6 +118,11 @@ typedef struct FeqChainExciterSettings {
   double organic_focus_hz;
   double organic_range;
   FeqChainExciterBand bands[FEQ_CHAIN_EXCITER_BANDS];
+  /**
+   * `FeqExciterOversampling`, the listener's: Standard (0) unless a signed
+   * line says otherwise, in the word after the De-esser's signature pair.
+   */
+  int oversampling;
 } FeqChainExciterSettings;
 
 /**
@@ -187,6 +204,17 @@ typedef struct FeqChainSettings {
    * signal that no longer exists and the ceiling stops holding silently.
    */
   FeqDenoiseSettings denoise;
+  /**
+   * The De-esser, after the restoration and before the Exciter (`deesser.h`).
+   *
+   * On the wire in the multiband compressor's retired words, after their
+   * first: every engine since the compressor went reads those words and
+   * nothing from them, so an older engine plays a rack that asks for the
+   * De-esser exactly as it played it before — without it, and without
+   * refusing the line. The first word stays the compressor's switch, written
+   * 0, so the engines from before it went keep their compressor off too.
+   */
+  FeqDeEsserSettings deesser;
   FeqChainExciterSettings exciter;
   FeqChainEqSettings eq;
   /**
@@ -368,8 +396,8 @@ typedef struct FeqChainSettings {
  * Punch added seven each, then 114 before the surround switch added one, then
  * 115 before the room added twenty-three, then 138 before the room's bass
  * management added two, then 140 before the music upmix added two, then
- * 142 before each speaker's distance and the eight mutes added fifteen. All
- * of them are appended immediately before the
+ * 142 before each speaker's distance and the eight mutes added fifteen, then
+ * 157 before the Master's limiting allowance added one. All sit just before the
  * band count — which has to stay last, because both `isChainWirePayload`
  * and the decoder read the tail's length from `FEQ_CHAIN_PARAM_LEAD - 1`.
  */
@@ -386,6 +414,17 @@ typedef struct FeqChainSettings {
  */
 #define FEQ_MASTER_LOUDNESS_MIN_DB (-48.0)
 #define FEQ_MASTER_LOUDNESS_MAX_DB 12.0
+/**
+ * The pair that follows the De-esser's twelve words in the compressor's
+ * retired eighteen, and says they are the De-esser's. An app from before
+ * 2026-09-22 wrote the compressor there — its corners where the De-esser's
+ * switch now is — and a line without the pair is read with the De-esser off,
+ * never as one. Where the pair stands, that compressor wrote its third band's
+ * switch (0 or 1) and threshold (never positive), so neither value can be
+ * one of those.
+ */
+#define FEQ_CHAIN_DEESSER_SIGNATURE 4207
+#define FEQ_CHAIN_DEESSER_FIELDS 12
 /** ROOM tag, schema version, payload size, then eight Room values. */
 #define FEQ_CHAIN_ROOM_TAG 1380929357
 #define FEQ_CHAIN_ROOM_SCHEMA 1
@@ -524,8 +563,11 @@ int feq_chain_load_voice_model(FeqChain* chain,
  * `feq_chain_process` stays free of system calls, so a stage whose work
  * happens on a worker only ARMS it; the owner of the callback rings it here
  * once the block has been handed on (the device thread after the period, an
- * offline loop after each block). A chain with no voice model has nothing to
- * ring and this costs one atomic load. Never from inside the callback.
+ * offline loop after each block, or an APO callback tail after its output is
+ * filled). Windows rings a kernel event without waiting for the worker; it
+ * never runs inference or acquires the worker's locks. A chain with no voice
+ * model has nothing to ring and this costs one atomic load. Never from inside
+ * feq_chain_process or between its stages.
  */
 void feq_chain_wake_workers(FeqChain* chain);
 
@@ -568,10 +610,17 @@ uint32_t feq_chain_latency_frames(const FeqChain* chain);
 
 /** What each stage adds to that delay, in samples. */
 typedef struct FeqChainLatencyParts {
-  /** The EQ under linear phase: its kernel's half length and a partition. */
-  uint32_t linear_eq;
+  /**
+   * The rack's EQ: under linear phase its kernel's half length and a
+   * partition, otherwise its oversampler's round trip; and its Colour
+   * stage's round trip, in either. Carried to the app as `linearEq`, the
+   * name it had when the kernel was all of it.
+   */
+  uint32_t eq;
   /** The restoration's modules that are on. */
   uint32_t restoration;
+  /** The De-esser's look-ahead, on or off; nothing in game mode when off. */
+  uint32_t deesser;
   /** Live leveling's look-ahead. */
   uint32_t leveler;
   /** The room's convolution partition; nothing in game mode. */
@@ -588,7 +637,8 @@ void feq_chain_latency_parts(const FeqChain* chain, FeqChainLatencyParts* out);
 
 /** Active processors, including those with no fixed buffering. Bit order is
  * leveler, restoration, exciter, bass forge, EQ, bass punch, room, dimension,
- * maximizer, headroom, master. CONTROL planning snapshot,
+ * maximizer, headroom, master, de-esser — the last appended, so every bit an
+ * older reader knows keeps its place. CONTROL planning snapshot,
  * read before publishing a prepared chain. Room protection reflects the planned
  * configuration, not an audio-owned Room report during a handover. */
 uint32_t feq_chain_active_stages(const FeqChain* chain);

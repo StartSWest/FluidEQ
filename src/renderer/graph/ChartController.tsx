@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useMemo } from 'react';
 import * as d3 from 'd3';
-import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { MAX_GAIN, MIN_GAIN, type TBandChannel } from 'common/constants';
 import { SelectionMode } from 'common/bandSelection';
 import { Color } from 'renderer/styles/color';
 
@@ -106,6 +106,8 @@ export interface IChartCurveData {
      * so they are drawn back rather than competing with it.
      */
     opacity?: number;
+    /** Drawn in dashes: the right ear's EQ curve beside the left's solid one. */
+    dashed?: boolean;
   };
   controlPoint?: IChartPointData;
 }
@@ -196,6 +198,17 @@ export interface IEditableChartPoint {
    * so the handle has to say so or the graph looks like it lost a band.
    */
   isEnabled: boolean;
+  /**
+   * The EQ layer is switched off. The handle is still drawn, dimmed, and
+   * edits nothing: not by pointer (the stylesheet), not by key, and it is no
+   * tab stop. Shaping bands that reach no sound is a minute spent on nothing,
+   * and the way back is one press on the EQ's chip.
+   */
+  isLocked: boolean;
+  /** The one ear the band plays on, shown as its letter; absent for both. */
+  ear?: TBandChannel;
+  /** Editable main-band values, independent of the summed response at its dot. */
+  parameters?: { frequency: number; gain: number; quality: number };
   /**  is where the press landed, in chart units — see the drag state. */
   onSelect: (mode: SelectionMode, grab: IChartPointData) => void;
   /**
@@ -206,6 +219,7 @@ export interface IEditableChartPoint {
   onChange: (data: IChartPointData, isBell: boolean) => void;
   onCommit: () => void;
   onQualityWheel: (direction: number) => void;
+  onGainStep: (direction: number) => void;
   onHover: (isHovered: boolean) => void;
 }
 

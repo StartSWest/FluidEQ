@@ -132,12 +132,14 @@ export default {
   'genre.arabicPop.pin.1250.why': 'अलंकार साफ़।',
   'genre.arabicPop.pin.5000': 'स्ट्रिंग्स चमकीली नहीं कीं',
   'genre.arabicPop.pin.5000.why': 'पहले से चमकीली।',
+  'genre.arabicPop.stage.exciter':
+    'आवाज़ के नीचे गर्माहट; स्ट्रिंग्स और तक उतने ही चमकीले जितने हैं।',
   'genre.arabicPop.stage.bassPunch': 'निचला हिस्सा कसा।',
   'genre.arabicPop.stage.dimension':
     'स्ट्रिंग्स उतनी ही चौड़ी जितनी रिकॉर्ड हुईं; सिर्फ़ निचला हिस्सा सँकरा।',
   'genre.arabicPop.stage.maximizer': 'हल्की छत जो दरबुका का अटैक बचाती है।',
   'genre.arabicPop.off':
-    'न एक्साइटर, न बास फ़ोर्ज: स्ट्रिंग्स और तक पहले से चमकीले हैं।',
+    'बास फ़ोर्ज नहीं: डुम के नीचे कुछ पैदा नहीं किया जाता।',
 
   'genre.turkishPop.hook': 'तुर्की रंग वाला निखरा पॉप',
   'genre.turkishPop.story':
@@ -150,11 +152,13 @@ export default {
   'genre.turkishPop.pin.1250.why': 'सामने।',
   'genre.turkishPop.pin.8000': 'कोई अतिरिक्त चमक नहीं',
   'genre.turkishPop.pin.8000.why': 'पहले से निखरा।',
+  'genre.turkishPop.stage.exciter':
+    'आवाज़ के नीचे गर्माहट, डरबुका पर कुछ नहीं।',
   'genre.turkishPop.stage.bassPunch': 'कसा हुआ निचला हिस्सा।',
   'genre.turkishPop.stage.dimension':
     'जैसा मिक्स हुआ, सिर्फ़ निचला हिस्सा सँकरा।',
   'genre.turkishPop.stage.maximizer': 'एक छत जो मुश्किल से धकेलती है।',
-  'genre.turkishPop.off': 'इतने निखरे रिकॉर्ड पर न एक्साइटर, न बास फ़ोर्ज।',
+  'genre.turkishPop.off': 'इतने निखरे रिकॉर्ड पर बास फ़ोर्ज नहीं।',
 
   'genre.gospel.hook': 'एक गायक-मंडली, और मिनटों तक चढ़ते वैम्प',
   'genre.gospel.story':

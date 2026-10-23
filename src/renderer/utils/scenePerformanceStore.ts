@@ -4,25 +4,36 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useSyncExternalStore } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import {
   DEFAULT_SCENE_PERFORMANCE,
+  DEFAULT_STANDARD_PERFORMANCE,
   normalizeScenePerformance,
   sameScenePerformance,
   type IScenePerformance,
+  type TScenePerformanceGroup,
 } from 'common/scenePerformance';
 import { readStored, writeStored } from './graphStorage';
 
 /**
- * The listener's frame rate and resolution choice for Plus visualizers
- * (`common/scenePerformance.ts`), kept on this computer, one for every scene.
+ * Two independent drawing preferences: one for Standard looks and one for
+ * Plus scenes. Moving Standard looks onto the scene engine must not make
+ * them inherit Plus's lower resolution or its edge smoothing.
  *
- * Told to main as well, because the desktop background is another window
+ * Plus is told to main as well, because the desktop background is another window
  * with a storage of its own and follows the same choice: main keeps it beside
  * the backgrounds' own settings and hands it to each monitor's page.
  */
 
-const STORAGE_KEY = 'fluideq.scenePerformance';
+const STORAGE_KEYS: Record<TScenePerformanceGroup, string> = {
+  // Keep the existing key so every saved Plus choice survives the split.
+  plus: 'fluideq.scenePerformance',
+  standard: 'fluideq.standardPerformance',
+};
+const DEFAULTS = {
+  plus: DEFAULT_SCENE_PERFORMANCE,
+  standard: DEFAULT_STANDARD_PERFORMANCE,
+};
 
 interface IPerformanceBridge {
   setScenePerformance?: (value: IScenePerformance) => void;
@@ -31,45 +42,56 @@ interface IPerformanceBridge {
 const bridge = (): IPerformanceBridge | undefined =>
   window.electron?.ipcRenderer as IPerformanceBridge | undefined;
 
-const read = (): IScenePerformance => {
-  const stored = readStored(STORAGE_KEY);
+const read = (group: TScenePerformanceGroup): IScenePerformance => {
+  const defaults = DEFAULTS[group];
+  const stored = readStored(STORAGE_KEYS[group]);
   if (stored === null) {
-    return DEFAULT_SCENE_PERFORMANCE;
+    return defaults;
   }
   try {
-    return normalizeScenePerformance(JSON.parse(stored));
+    return normalizeScenePerformance(JSON.parse(stored), defaults);
   } catch {
     // A damaged entry means the defaults, which is what it stood for.
-    return DEFAULT_SCENE_PERFORMANCE;
+    return defaults;
   }
 };
 
-let value = read();
+let values = { plus: read('plus'), standard: read('standard') };
 const listeners = new Set<() => void>();
 let told = false;
 
 const tellMain = () => {
   told = true;
-  bridge()?.setScenePerformance?.(value);
+  bridge()?.setScenePerformance?.(values.plus);
 };
 
-export const readScenePerformance = (): IScenePerformance => {
+export const readScenePerformance = (
+  group: TScenePerformanceGroup = 'plus',
+): IScenePerformance => {
   // Main learns the choice the first time anything reads it, so a desktop
   // background set before the graph's menu was ever opened draws by it too.
-  if (!told) {
+  if (group === 'plus' && !told) {
     tellMain();
   }
-  return value;
+  return values[group];
 };
 
-export const setScenePerformance = (next: Partial<IScenePerformance>) => {
-  const merged = normalizeScenePerformance({ ...value, ...next });
-  if (sameScenePerformance(merged, value)) {
+export const setScenePerformance = (
+  next: Partial<IScenePerformance>,
+  group: TScenePerformanceGroup = 'plus',
+) => {
+  const merged = normalizeScenePerformance(
+    { ...values[group], ...next },
+    DEFAULTS[group],
+  );
+  if (sameScenePerformance(merged, values[group])) {
     return;
   }
-  value = merged;
-  writeStored(STORAGE_KEY, JSON.stringify(value));
-  tellMain();
+  values[group] = merged;
+  writeStored(STORAGE_KEYS[group], JSON.stringify(merged));
+  if (group === 'plus') {
+    tellMain();
+  }
   listeners.forEach((listener) => listener());
 };
 
@@ -80,12 +102,17 @@ export const subscribeScenePerformance = (listener: () => void) => {
   };
 };
 
-export const useScenePerformance = (): IScenePerformance =>
-  useSyncExternalStore(subscribeScenePerformance, readScenePerformance);
+export const useScenePerformance = (
+  group: TScenePerformanceGroup = 'plus',
+): IScenePerformance =>
+  useSyncExternalStore(
+    subscribeScenePerformance,
+    useCallback(() => readScenePerformance(group), [group]),
+  );
 
 /** For a test: back to what a fresh install has, without touching storage. */
 export const resetScenePerformanceForTesting = () => {
-  value = read();
+  values = { plus: read('plus'), standard: read('standard') };
   told = false;
   listeners.forEach((listener) => listener());
 };

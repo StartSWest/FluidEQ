@@ -8,7 +8,11 @@ import {
 import Glyph from '../community/Glyph';
 import DialogFrame from '../components/DialogFrame';
 import MenuIcon from '../icons/MenuIcon';
-import { getWatchedGraphWave } from '../utils/graphOverlaySettings';
+import {
+  getWatchedGraphWave,
+  MIN_GRAPH_WAVE_HEIGHT,
+} from '../utils/graphOverlaySettings';
+import { snapPercent } from '../utils/percentSnaps';
 import { useSceneLook } from '../utils/graphStyle';
 import { useTranslation } from '../utils/I18nContext';
 import useModalKeys from '../utils/useModalKeys';
@@ -66,6 +70,8 @@ export default function WallpaperDialog({
   const batteryId = useId();
   const followId = useId();
   const motionName = useId();
+  const waveHeightId = useId();
+  const wavePositionId = useId();
   const look = lookOf(lookId);
   const primary = displays.find((display) => display.primary) ?? displays[0];
   const showing = screens.filter((screen) => screen.lookId === lookId);
@@ -113,6 +119,14 @@ export default function WallpaperDialog({
     selected.has(placement.display.id),
   )?.display.id;
   const preview = useMonitorScene(look);
+  // The wave it is set with, tuned here and seen at once on the monitor that
+  // plays it (Ivan, 2026-10-20: "right there at desktop set ui we can tune
+  // how the viz will look on the desktop, the wave height and position").
+  // Until it is touched: the one given, else the one this visualizer already
+  // plays with on a monitor, else the graph's as set for watching.
+  const [waveChoice, setWaveChoice] = useState<IWallpaperWave>();
+  const shownWave: IWallpaperWave =
+    waveChoice ?? wave ?? showing[0]?.wave ?? getWatchedGraphWave();
   const [focusId] = useState(() => [...selected][0] ?? primary?.id);
   const [batteryChoice, setBatteryChoice] = useState<boolean>();
   const pauseOnBattery = batteryChoice ?? savedBattery;
@@ -152,9 +166,9 @@ export default function WallpaperDialog({
       lookId,
       displayIds: chosen,
       pauseOnBattery,
-      // The wave as given, or as set in the graph now. Setting a visualizer
-      // again on a monitor already showing it moves its band without a restart.
-      wave: wave ?? getWatchedGraphWave(),
+      // As tuned above. Setting a visualizer again on a monitor already
+      // showing it moves its band without a restart.
+      wave: shownWave,
       motion,
       followsGraph: follows,
     });
@@ -347,10 +361,7 @@ export default function WallpaperDialog({
                     follows={tileFollows}
                     scene={
                       preview && isChosen && display.id === previewId ? (
-                        <MonitorScenePreview
-                          scene={preview}
-                          wave={wave ?? getWatchedGraphWave()}
-                        />
+                        <MonitorScenePreview scene={preview} wave={shownWave} />
                       ) : undefined
                     }
                   />
@@ -397,6 +408,56 @@ export default function WallpaperDialog({
         </fieldset>
 
         <div className="wallpaper-dialog__settings">
+          <div className="wallpaper-dialog__setting wallpaper-wave">
+            <label htmlFor={waveHeightId} title={t('graph.waveHeightHint')}>
+              {t('graph.waveHeight')}
+            </label>
+            <input
+              id={waveHeightId}
+              type="range"
+              min={MIN_GRAPH_WAVE_HEIGHT * 100}
+              max={100}
+              step={1}
+              value={Math.round(shownWave.height * 100)}
+              disabled={operation.pending}
+              onChange={(event) =>
+                setWaveChoice({
+                  ...shownWave,
+                  height: snapPercent(Number(event.target.value)) / 100,
+                })
+              }
+            />
+            <span className="wallpaper-wave__value">
+              {t('graph.scene.percent', {
+                percent: String(Math.round(shownWave.height * 100)),
+              })}
+            </span>
+          </div>
+          <div className="wallpaper-dialog__setting wallpaper-wave">
+            <label htmlFor={wavePositionId} title={t('graph.wavePositionHint')}>
+              {t('graph.wavePosition')}
+            </label>
+            <input
+              id={wavePositionId}
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={Math.round(shownWave.position * 100)}
+              disabled={operation.pending}
+              onChange={(event) =>
+                setWaveChoice({
+                  ...shownWave,
+                  position: Number(event.target.value) / 100,
+                })
+              }
+            />
+            <span className="wallpaper-wave__value">
+              {t('graph.scene.percent', {
+                percent: String(Math.round(shownWave.position * 100)),
+              })}
+            </span>
+          </div>
           <div className="wallpaper-dialog__setting">
             <span className="wallpaper-dialog__setting-copy">
               <label htmlFor={followId}>{t('wallpaper.follow')}</label>

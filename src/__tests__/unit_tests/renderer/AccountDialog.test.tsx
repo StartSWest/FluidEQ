@@ -21,6 +21,17 @@ const mockReset = jest.fn((_details: unknown) => Promise.resolve());
 const mockAbandon = jest.fn(() => Promise.resolve());
 const mockSignOut = jest.fn(() => Promise.resolve());
 
+// The credits card loads the account's store on its own (`plus/sceneStore.ts`)
+// and has its own tests; what is held here is the panel around it.
+jest.mock('../../../renderer/account/CreditsCard', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+// The panel reads the same store for whether the account owns scenes; held
+// unanswered here, as an account with none.
+jest.mock('../../../renderer/plus/sceneStore', () => ({
+  useSceneStore: () => ({ owner: '', loading: true }),
+}));
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
     locale: 'en',
@@ -31,6 +42,8 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 
 jest.mock('../../../renderer/account/accountStore', () => ({
   useAccount: () => mockAccountState,
+  getAccountSnapshot: () => mockAccountState,
+  subscribeAccount: () => () => undefined,
   signUpAccount: (details: unknown) => mockSignUp(details),
   signInAccount: (credentials: unknown) => mockSignIn(credentials),
   confirmAccountCode: (code: string) => mockConfirm(code),
@@ -39,6 +52,14 @@ jest.mock('../../../renderer/account/accountStore', () => ({
   resetAccountPassword: (details: unknown) => mockReset(details),
   abandonAccountPending: () => mockAbandon(),
   signOutAccount: () => mockSignOut(),
+  // The service's answer about Google never comes here: these cases are the
+  // email forms, and `googleSignIn.test.tsx` holds the Google button.
+  isGoogleSignInAvailable: () =>
+    new Promise<boolean>(() => {
+      // Never answered.
+    }),
+  signInWithGoogle: jest.fn(),
+  cancelAccountAttempt: jest.fn(),
 }));
 
 const renderDialog = (state: IAccountState, onClose = jest.fn()) => {
@@ -400,9 +421,9 @@ describe('the name on the board, from the account panel', () => {
     expect(screen.queryByText('Ada Lovelace')).toBeNull();
 
     await userEvent.click(button('account.name.change'));
-    const handle = screen.getByLabelText(/leaderboard\.name\.handle/);
-    const name = screen.getByLabelText('leaderboard.name.name');
-    const save = button('leaderboard.name.save');
+    const handle = screen.getByLabelText(/profile\.name\.handle/);
+    const name = screen.getByLabelText('profile.name.name');
+    const save = button('profile.name.save');
     expect(handle).toHaveValue('ivan_c');
     expect(name).toHaveValue('Ivan C');
     expect(screen.getByText('account.name.changeTitle')).toBeInTheDocument();
@@ -416,7 +437,7 @@ describe('the name on the board, from the account panel', () => {
 
     expect(bridge.plusUpdateProfile).toHaveBeenCalledWith('ivan_c', 'Ivan');
     expect(bridge.plusCreateProfile).not.toHaveBeenCalled();
-    expect(screen.queryByLabelText('leaderboard.name.name')).toBeNull();
+    expect(screen.queryByLabelText('profile.name.name')).toBeNull();
     expect(screen.getByText('Ivan')).toHaveClass('dialog-frame__title');
   });
 
@@ -446,24 +467,21 @@ describe('the name on the board, from the account panel', () => {
     expect(screen.getByText('Ada Lovelace')).toHaveClass('dialog-frame__title');
     await userEvent.click(
       await screen.findByRole('button', {
-        name: 'leaderboard.name.choose',
+        name: 'profile.name.choose',
       }),
     );
-    expect(screen.getByText('leaderboard.name.title')).toBeInTheDocument();
+    expect(screen.getByText('profile.name.title')).toBeInTheDocument();
     await userEvent.click(button('account.name.cancel'));
-    expect(screen.queryByLabelText('leaderboard.name.name')).toBeNull();
+    expect(screen.queryByLabelText('profile.name.name')).toBeNull();
     expect(bridge.plusCreateProfile).not.toHaveBeenCalled();
 
-    await userEvent.click(button('leaderboard.name.choose'));
+    await userEvent.click(button('profile.name.choose'));
     await userEvent.type(
-      screen.getByLabelText(/leaderboard\.name\.handle/),
+      screen.getByLabelText(/profile\.name\.handle/),
       'ivan_c',
     );
-    await userEvent.type(
-      screen.getByLabelText('leaderboard.name.name'),
-      'Ivan C',
-    );
-    await userEvent.click(button('leaderboard.name.save'));
+    await userEvent.type(screen.getByLabelText('profile.name.name'), 'Ivan C');
+    await userEvent.click(button('profile.name.save'));
     expect(bridge.plusCreateProfile).toHaveBeenCalledWith('ivan_c', 'Ivan C');
     expect(await screen.findByText('@ivan_c')).toBeInTheDocument();
   });
@@ -475,7 +493,7 @@ describe('the name on the board, from the account panel', () => {
       screen.queryByRole('button', { name: 'account.name.change' }),
     ).toBeNull();
     expect(
-      screen.queryByRole('button', { name: 'leaderboard.name.choose' }),
+      screen.queryByRole('button', { name: 'profile.name.choose' }),
     ).toBeNull();
   });
 });

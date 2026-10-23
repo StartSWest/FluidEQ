@@ -13,12 +13,14 @@ import {
   EQ_STEREO_MODES,
   IExciterSettings,
   TEqStereo,
+  TExciterOversampling,
 } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import SegmentedControl from '../widgets/SegmentedControl';
+import useStagePresets from './useStagePresets';
 
 interface IDspExciterBarProps {
   exciter: IExciterSettings;
@@ -30,6 +32,29 @@ const BAND_LABELS: readonly TranslationKey[] = [
   'dsp.exciter.band.low',
   'dsp.exciter.band.mid',
   'dsp.exciter.band.high',
+];
+
+/** Lightest to cleanest, which is not the wire's order. */
+const OVERSAMPLING_OPTIONS: readonly {
+  value: TExciterOversampling;
+  label: TranslationKey;
+  title: TranslationKey;
+}[] = [
+  {
+    value: 'off',
+    label: 'dsp.exciter.oversampling.off',
+    title: 'dsp.exciter.oversampling.offHint',
+  },
+  {
+    value: 'standard',
+    label: 'dsp.exciter.oversampling.standard',
+    title: 'dsp.exciter.oversampling.standardHint',
+  },
+  {
+    value: 'high',
+    label: 'dsp.exciter.oversampling.high',
+    title: 'dsp.exciter.oversampling.highHint',
+  },
 ];
 
 /** A preset's audible sections, derived from the settings that are applied. */
@@ -70,26 +95,35 @@ const DspExciterBar = ({
   onCommit,
 }: IDspExciterBarProps) => {
   const { t } = useTranslation();
-  const entries: IRichPickEntry[] = EXCITER_PRESET_GROUPS.flatMap((group) =>
-    EXCITER_CATALOGUE.profiles
-      .filter((preset) => preset.group === group)
-      .map((preset) => ({
-        id: preset.id,
-        name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset, t),
-        group,
-        icon: (
-          <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
-        ),
-      })),
+  const saved = useStagePresets('exciter', exciter, onChange, onCommit);
+  const factoryEntries: IRichPickEntry[] = EXCITER_PRESET_GROUPS.flatMap(
+    (group) =>
+      EXCITER_CATALOGUE.profiles
+        .filter((preset) => preset.group === group)
+        .map((preset) => ({
+          id: preset.id,
+          name: t(preset.labelKey as TranslationKey),
+          hint: profileHint(preset, t),
+          group,
+          icon: (
+            <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
+          ),
+        })),
   );
+  // Saved profiles first, as the EQ lists its own.
+  const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string) => {
+    if (saved.apply(id)) {
+      return;
+    }
     const next = EXCITER_CATALOGUE.settings(id, true);
     if (next === undefined) {
       return;
     }
+    // A factory profile's oversampling is off, like every preset's: the
+    // listener switches it on (Ivan, 2026-10-17).
     onChange(next);
     onCommit();
   };
@@ -116,7 +150,8 @@ const DspExciterBar = ({
           <RichPick
             entries={entries}
             groupLabel={(group) =>
-              group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
+              saved.savedGroupLabel(group) ??
+              (group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : '')
             }
             activeId={exciter.presetId}
             onPick={applyPreset}
@@ -168,6 +203,32 @@ const DspExciterBar = ({
             }}
           />
         </div>
+        <div className="dsp-eq-bar-unit">
+          <div className="dsp-eq-preset">
+            <span className="dsp-eq-preset-label">
+              {t('dsp.exciter.oversampling')}
+            </span>
+            {/* The profile's name stays: how the harmonics are made is not
+                which ones a profile asks for. */}
+            <SegmentedControl
+              name={t('dsp.exciter.oversampling')}
+              value={exciter.oversampling}
+              options={OVERSAMPLING_OPTIONS.map((option) => ({
+                value: option.value,
+                label: t(option.label),
+                title: t(option.title),
+              }))}
+              onChange={(next: string) => {
+                onChange({
+                  ...exciter,
+                  oversampling: next as TExciterOversampling,
+                });
+                onCommit();
+              }}
+            />
+          </div>
+          <div className="dsp-eq-transfer">{saved.buttons}</div>
+        </div>
       </div>
 
       {/* What the processor is, on a full line of the header under the
@@ -177,6 +238,8 @@ const DspExciterBar = ({
           row in the space that was left. A sibling of the bar, not its last
           child, so the line spans the space under the bypass cluster too. */}
       <p className="dsp-exciter-note">{t('dsp.exciter.description')}</p>
+      {saved.notice}
+      {saved.dialog}
     </>
   );
 };

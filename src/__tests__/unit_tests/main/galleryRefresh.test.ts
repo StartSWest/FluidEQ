@@ -20,14 +20,18 @@ const scene = (authorId: string, sceneId: string) =>
 
 describe('bringing the scenes added from the gallery up to date', () => {
   let entitled: boolean;
+  let me: string | undefined;
   const access: IGalleryAccess = {
-    accountId: () => 'me',
+    accountId: () => me,
     entitled: () => entitled,
+    // Plus owns every scene while it lasts (`sceneOwnership.ts`).
+    owns: () => entitled,
     auth: async () => ({}) as Awaited<ReturnType<IGalleryAccess['auth']>>,
   };
 
   beforeEach(() => {
     entitled = true;
+    me = 'me';
     listGallery.mockReset();
   });
 
@@ -72,14 +76,26 @@ describe('bringing the scenes added from the gallery up to date', () => {
     expect(listGallery).toHaveBeenCalledTimes(2);
   });
 
-  it('asks nothing with nothing installed, or without Plus', async () => {
+  it('asks nothing with nothing installed, or signed out, and FluidEQ only without Plus', async () => {
     const sync = jest.fn(async () => {});
     await createGalleryRefresh(access, sync, () => [])();
+    // With Plus the pack listing asks for FluidEQ's own (`ipc/scenePacks.ts`).
     await createGalleryRefresh(access, sync, () => [FLUIDEQ_CREATOR_ID])();
-    entitled = false;
+    me = undefined;
     await createGalleryRefresh(access, sync, () => [ADA])();
     expect(listGallery).not.toHaveBeenCalled();
     expect(sync).not.toHaveBeenCalled();
+
+    // Without Plus that listing is not theirs, so FluidEQ is asked here.
+    me = 'me';
+    entitled = false;
+    listGallery.mockResolvedValue({ ok: true, scenes: [], more: false });
+    await createGalleryRefresh(access, sync, () => [FLUIDEQ_CREATOR_ID])();
+    expect(
+      listGallery.mock.calls.map(
+        ([, query]) => (query as IGalleryQuery).authorId,
+      ),
+    ).toEqual([FLUIDEQ_CREATOR_ID]);
   });
 
   it('runs once more after a check under way when forced, and joins it when not', async () => {

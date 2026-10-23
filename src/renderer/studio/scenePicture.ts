@@ -48,7 +48,7 @@ const encode = (canvas: HTMLCanvasElement, quality: number) =>
   });
 
 /** The first quality whose WebP is within `limit`, each tried only if the last was too big. */
-const encodeWithin = async (
+export const encodeWithin = async (
   canvas: HTMLCanvasElement,
   limit: number,
   qualities: readonly number[] = QUALITIES,

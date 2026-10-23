@@ -128,16 +128,24 @@ namespace {
  * `impulse_response` decides which to bake from those same two flags. Filtering
  * here instead would put a band at a different index than the flags describing
  * it, which is the wrong filter rather than a missing one.
+ *
+ * A band kept to one ear goes in as dynamic: the kernel is one filter for
+ * every channel, so it is left out and run after it on its ear alone, as a
+ * dynamic band is run, with a detector that never closes. `ears` takes each
+ * band's ear, for `chain_refresh_eq_kernel` to see a move between the two.
  */
-uint32_t kernel_bands_of(const FeqChainEqSettings& eq,
-                         FeqLinearPhaseBand* out) {
+uint32_t kernel_bands_of(const FeqChain* chain,
+                         FeqLinearPhaseBand* out,
+                         int* ears) {
+  const FeqChainEqSettings& eq = chain->settings.eq;
   const uint32_t count = eq.band_count > FEQ_CHAIN_MAX_EQ_BANDS
                              ? FEQ_CHAIN_MAX_EQ_BANDS
                              : eq.band_count;
   for (uint32_t index = 0; index < count; ++index) {
     const FeqChainEqBand& band = eq.bands[index];
+    ears[index] = chain_band_ear(chain, band);
     out[index].enabled = band.enabled;
-    out[index].dynamic = band.dynamic;
+    out[index].dynamic = band.dynamic != 0 || ears[index] != 0 ? 1 : 0;
     out[index].type = band.type;
     out[index].frequency = band.frequency;
     out[index].gain_db = band.gain_db;
@@ -166,15 +174,16 @@ int kernel_wanted_by(const FeqChainEqSettings& eq) {
  * subtracts the dry signal, and there that phase is everything between the
  * band and the rest of the record.
  */
-int kernel_changes_wanted_by(const FeqChainEqSettings& eq) {
+int kernel_changes_wanted_by(const FeqChainEqSettings& eq,
+                             const FeqLinearPhaseBand* bands,
+                             uint32_t count) {
   if (kernel_wanted_by(eq) == 0 || eq.isolate == 0) {
     return 0;
   }
-  const uint32_t count = eq.band_count > FEQ_CHAIN_MAX_EQ_BANDS
-                             ? FEQ_CHAIN_MAX_EQ_BANDS
-                             : eq.band_count;
+  // The kernel's own flags, so a band kept to one ear counts: it is left
+  // out like a dynamic band and monitored through a change of its own.
   for (uint32_t index = 0; index < count; ++index) {
-    if (eq.bands[index].enabled != 0 && eq.bands[index].dynamic != 0) {
+    if (bands[index].enabled != 0 && bands[index].dynamic != 0) {
       return 1;
     }
   }
@@ -236,11 +245,13 @@ void describe_dynamic_bands(const FeqChain* chain, ChainEqKernel* kernel) {
                              : eq.band_count;
   for (uint32_t index = 0; index < count; ++index) {
     const FeqChainEqBand& band = eq.bands[index];
-    if (band.enabled == 0 || band.dynamic == 0) {
+    const int ear = chain_band_ear(chain, band);
+    if (band.enabled == 0 || (band.dynamic == 0 && ear == 0)) {
       continue;
     }
     ChainKernelBand& entry = kernel->dynamic[kernel->dynamic_count];
     entry.band = index;
+    entry.ear = ear;
     entry.filter = feq_biquad_coefficients_designed(
         band.type, band.frequency, band.gain_db, band.quality,
         chain->sample_rate, eq.model, eq.model_amount, eq.matched);
@@ -353,9 +364,10 @@ void chain_adopt_kernel_handoff(FeqChain* chain) {
 void chain_refresh_eq_kernel(FeqChain* chain) {
   const FeqChainEqSettings& eq = chain->settings.eq;
   FeqLinearPhaseBand bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
-  const uint32_t count = kernel_bands_of(eq, bands);
+  int ears[FEQ_CHAIN_MAX_EQ_BANDS] = {};
+  const uint32_t count = kernel_bands_of(chain, bands, ears);
   const int wanted = kernel_wanted_by(eq);
-  const int with_changes = kernel_changes_wanted_by(eq);
+  const int with_changes = kernel_changes_wanted_by(eq, bands, count);
 
   bool moved = wanted != chain->kernel_wanted ||
                with_changes != chain->kernel_changes ||
@@ -366,7 +378,8 @@ void chain_refresh_eq_kernel(FeqChain* chain) {
                eq.matched != chain->kernel_matched ||
                eq.subsonic_hz != chain->kernel_subsonic_hz;
   for (uint32_t index = 0; index < count && !moved; ++index) {
-    moved = !same_band(bands[index], chain->kernel_bands[index]);
+    moved = !same_band(bands[index], chain->kernel_bands[index]) ||
+            ears[index] != chain->kernel_ears[index];
   }
   if (!moved) {
     return;
@@ -382,6 +395,7 @@ void chain_refresh_eq_kernel(FeqChain* chain) {
   chain->kernel_subsonic_hz = eq.subsonic_hz;
   for (uint32_t index = 0; index < count; ++index) {
     chain->kernel_bands[index] = bands[index];
+    chain->kernel_ears[index] = ears[index];
   }
 
   if (wanted == 0) {

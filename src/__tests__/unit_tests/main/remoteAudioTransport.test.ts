@@ -3,8 +3,11 @@
 /** @jest-environment node */
 
 import { EventEmitter } from 'events';
+import type { Socket } from 'net';
 import type { WebSocket } from 'ws';
-import createRemoteAudioTransport from '../../../main/remoteAudioTransport';
+import createRemoteAudioTransport, {
+  probeWhileQuiet,
+} from '../../../main/remoteAudioTransport';
 import {
   PACKET_AUDIO,
   decodeAudioAsync,
@@ -168,3 +171,48 @@ it.each(['music', 'video'] as const)(
     transport.closeAll();
   },
 );
+
+describe('a computer that comes back', () => {
+  it('replaces its own old link, and only its own', () => {
+    const { emitSignal, transport } = createTransport();
+    const key = keyFromSecret('session');
+    const stale = new FakeSocket();
+    const other = new FakeSocket();
+    const fresh = new FakeSocket();
+    const terminate = (socket: FakeSocket) =>
+      Object.assign(socket, {
+        terminate: jest.fn(() => {
+          socket.readyState = 3;
+          socket.emit('close');
+        }),
+      });
+    [stale, other, fresh].forEach(terminate);
+    const yoga = '192.168.1.24\nSWEST-YOGA';
+    transport.attach('old', stale as unknown as WebSocket, key, yoga);
+    transport.attach(
+      'studio',
+      other as unknown as WebSocket,
+      key,
+      '192.168.1.30\nSTUDIO',
+    );
+    transport.attach('new', fresh as unknown as WebSocket, key, yoga);
+
+    expect(transport.has('old')).toBe(false);
+    expect(transport.has('studio')).toBe(true);
+    expect(transport.has('new')).toBe(true);
+    expect(emitSignal).toHaveBeenCalledTimes(1);
+    expect(emitSignal).toHaveBeenCalledWith({
+      peerId: 'old',
+      signal: { kind: 'stop' },
+    });
+    transport.closeAll();
+  });
+});
+
+describe('a link that goes quiet', () => {
+  it('has the system probe it, so a computer that left is found gone', () => {
+    const socket = { setKeepAlive: jest.fn() };
+    probeWhileQuiet(socket as unknown as Socket);
+    expect(socket.setKeepAlive).toHaveBeenCalledWith(true, 5_000);
+  });
+});

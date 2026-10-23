@@ -65,7 +65,8 @@ void log_owner(std::string_view message) noexcept {
 Watcher::Watcher(GraphSlot& slot, Log& log, Endpoint endpoint,
                  std::wstring config_dir, uint32_t sample_rate,
                  uint32_t channels, uint32_t max_frames,
-                 unsigned long channel_mask)
+                 unsigned long channel_mask, std::atomic<SplitTap*>* split,
+                 bool default_mode)
     : slot_(slot),
       log_(log),
       endpoint_(std::move(endpoint)),
@@ -73,7 +74,9 @@ Watcher::Watcher(GraphSlot& slot, Log& log, Endpoint endpoint,
       sample_rate_(sample_rate),
       channels_(channels),
       max_frames_(max_frames),
-      channel_mask_(channel_mask) {}
+      channel_mask_(channel_mask),
+      split_slot_(split),
+      default_mode_(default_mode) {}
 
 Watcher::~Watcher() { stop(); }
 
@@ -128,13 +131,23 @@ bool Watcher::start() {
                "filter state across a pipeline flush");
     return false;
   }
-  carried_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
-  if (carried_event_ == nullptr) {
+  status_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+  if (status_event_ == nullptr) {
     // Not worth refusing the watcher over: everything else goes on, and the
     // status simply keeps saying nothing has reached the engine until the
     // next time anything else has it rewritten.
-    log_.write("could not create the carried event; the status will not say "
-               "when sound first reaches this output");
+    log_.write("could not create the status event; the status will not say "
+               "when sound first reaches this output or how long its blocks "
+               "take");
+  }
+  if (split_slot_ != nullptr && default_mode_) {
+    split_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
+    if (split_event_ == nullptr) {
+      // A second output from a main output at a rate first met after this
+      // lock then plays nothing until the configuration next changes.
+      log_.write("could not create the second output event; its status will "
+                 "not follow it");
+    }
   }
   if (owner_ != nullptr) {
     owner_event_ = CreateEventW(nullptr, FALSE, FALSE, nullptr);
@@ -163,9 +176,13 @@ bool Watcher::start() {
     stop_event_ = nullptr;
     CloseHandle(reset_event_);
     reset_event_ = nullptr;
-    if (carried_event_ != nullptr) {
-      CloseHandle(carried_event_);
-      carried_event_ = nullptr;
+    if (status_event_ != nullptr) {
+      CloseHandle(status_event_);
+      status_event_ = nullptr;
+    }
+    if (split_event_ != nullptr) {
+      CloseHandle(split_event_);
+      split_event_ = nullptr;
     }
     if (owner_event_ != nullptr) {
       owner_->unsubscribe(owner_event_);
@@ -203,9 +220,13 @@ void Watcher::stop() noexcept {
   }
   // The audio thread is stopped before `stop()` is reached — Windows does not
   // call `APOProcess` outside a lock — so nothing can be setting this now.
-  if (carried_event_ != nullptr) {
-    CloseHandle(carried_event_);
-    carried_event_ = nullptr;
+  if (status_event_ != nullptr) {
+    CloseHandle(status_event_);
+    status_event_ = nullptr;
+  }
+  if (split_event_ != nullptr) {
+    CloseHandle(split_event_);
+    split_event_ = nullptr;
   }
   // Unsubscribed before it is closed: the link may be setting it from its own
   // thread right up until `unsubscribe` returns.
@@ -219,6 +240,10 @@ void Watcher::stop() noexcept {
   // Windows has let this output go: say so, or the app goes on reading a
   // "locked" left by an engine that is no longer running it.
   report_status(false);
+  if (split_slot_ != nullptr) {
+    split_slot_->store(nullptr, std::memory_order_release);
+  }
+  split_.reset();
   // Only now: until the thread has joined it is still the owner of these.
   slot_.clear();
   rack_source_ = nullptr;
@@ -244,6 +269,26 @@ unsigned __stdcall Watcher::thread_entry(void* self) {
 }
 
 void Watcher::run() {
+  // Main's initial graph is already ready. Sharing cannot hold up its lock,
+  // fail its setup, or take its graph down if optional allocation fails.
+  // Set priority here as well as in start(): the child may run before the
+  // parent gets its thread handle back.
+  SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_BELOW_NORMAL);
+  if (split_slot_ != nullptr && default_mode_) {
+    try {
+      LARGE_INTEGER frequency{};
+      if (QueryPerformanceFrequency(&frequency) && frequency.QuadPart > 0) {
+        split_ = std::make_unique<SplitTap>(
+            endpoint_.guid, sample_rate_, channels_, channel_mask_, true,
+            frequency.QuadPart, config_dir_);
+        split_slot_->store(split_.get(), std::memory_order_release);
+      } else {
+        log_.write("second outputs unavailable: no clock; main processing continues");
+      }
+    } catch (...) {
+      log_.write("second outputs unavailable: setup failed; main processing continues");
+    }
+  }
   // FILE_NAME covers a create, a rename and a delete; LAST_WRITE and SIZE
   // cover external editors rewriting in place. The app publishes complete
   // profiles by rename, so FILE_NAME is required even for an existing file.
@@ -284,21 +329,42 @@ void Watcher::run() {
 
     bool rearm = false;
     // A null handle anywhere in the array fails the whole wait, so each one
-    // that may be absent is appended rather than left as a hole.
-    HANDLE handles[5] = {stop_event_, reset_event_, change.get(),
-                         carried_event_, owner_event_};
-    DWORD count = carried_event_ != nullptr ? 4 : 3;
-    if (owner_event_ != nullptr) {
-      handles[count] = owner_event_;
-      count += 1;
-    }
-    const DWORD carried_at = carried_event_ != nullptr ? 3u : count;
-    const DWORD owner_at = count - 1;
+    // that may be absent is appended rather than left as a hole, and its
+    // place is one no wake can name when it is.
+    constexpr DWORD kAbsent = MAXIMUM_WAIT_OBJECTS;
+    HANDLE handles[9] = {stop_event_, reset_event_, change.get()};
+    DWORD count = 3;
+    const auto append = [&](HANDLE handle) {
+      if (handle == nullptr) {
+        return kAbsent;
+      }
+      handles[count] = handle;
+      return count++;
+    };
+    const DWORD status_at = append(status_event_);
+    const DWORD owner_at = append(owner_event_);
+    const DWORD split_at = append(split_event_);
+    const DWORD base_count = count;
     while (!rearm) {
+      // Optional transport ownership uses the same event loop. A dead
+      // writer or graceful release wakes control; there is no retry timer.
+      count = base_count;
+      const DWORD writer_at = append(split_ ? split_->writer_process() : nullptr);
+      const DWORD release_at = append(split_ ? split_->writer_released() : nullptr);
+      const DWORD init_at = append(split_ ? split_->initializing() : nullptr);
       const DWORD woke =
           WaitForMultipleObjects(count, handles, FALSE, INFINITE);
       if (woke == WAIT_OBJECT_0) {
         return;
+      }
+      if (init_at != kAbsent && (woke == WAIT_OBJECT_0 + init_at ||
+                                 woke == WAIT_ABANDONED_0 + init_at)) {
+        // Waiting on a mutex grants ownership, including abandonment. Pass
+        // that ownership through exactly once; prepare releases it. stop is
+        // always the first wait handle even while another process is stuck.
+        split_->prepare(handles[init_at]);
+        report_status(true);
+        continue;
       }
       if (woke == WAIT_OBJECT_0 + 1) {
         // `Reset` asked for it, and it is answered with a graph that KEEPS
@@ -328,17 +394,29 @@ void Watcher::run() {
         reload();
         continue;
       }
-      if (carried_event_ != nullptr && woke == WAIT_OBJECT_0 + carried_at) {
+      if (status_at != kAbsent && woke == WAIT_OBJECT_0 + status_at) {
         // Sound has reached this output's engine for the first time since
-        // Windows built its chain — `say_it_carried`. Nothing about the
-        // audio changes; the app is told, and that is the whole point.
+        // Windows built its chain — `say_it_carried` — or a block took a
+        // larger share of its time than any before — `say_it_was_slow`.
+        // Nothing about the audio changes; the app is told, and that is the
+        // whole point.
+        log_timing();
         report_status(true);
         continue;
       }
-      if (owner_event_ != nullptr && woke == WAIT_OBJECT_0 + owner_at) {
+      if (owner_at != kAbsent && woke == WAIT_OBJECT_0 + owner_at) {
         // FluidEQ came or went. The reload reads which, and either builds the
         // configuration's graph or a pass-through one.
         reload();
+        continue;
+      }
+      if ((split_at != kAbsent && woke == WAIT_OBJECT_0 + split_at) ||
+          (writer_at != kAbsent && woke == WAIT_OBJECT_0 + writer_at) ||
+          (release_at != kAbsent && woke == WAIT_OBJECT_0 + release_at)) {
+        // The second output this instance plays changed, or met a main
+        // output at a rate it has no kernel for — `split_wake`.
+        if (split_) split_->prepare();
+        report_status(true);
         continue;
       }
       if (woke != WAIT_OBJECT_0 + 2) {
@@ -380,15 +458,16 @@ void Watcher::run() {
   // — the graph keeps what is in flight — on an endpoint whose configuration
   // directory has gone. There is no rack and no room to keep there, so this
   // is about the two paths agreeing rather than about the sound.
-  // The carried event is waited on here as well: an output with no
+  // The status event is waited on here as well: an output with no
   // configuration directory still has an app asking whether its sound is
   // going through the engine at all.
-  HANDLE idle_handles[3] = {stop_event_, reset_event_, carried_event_};
-  const DWORD idle_count = carried_event_ != nullptr ? 3 : 2;
+  HANDLE idle_handles[3] = {stop_event_, reset_event_, status_event_};
+  const DWORD idle_count = status_event_ != nullptr ? 3 : 2;
   for (;;) {
     const DWORD woke =
         WaitForMultipleObjects(idle_count, idle_handles, FALSE, INFINITE);
     if (idle_count == 3 && woke == WAIT_OBJECT_0 + 2) {
+      log_timing();
       report_status(true);
       continue;
     }
@@ -415,8 +494,24 @@ void Watcher::say_it_carried() noexcept {
   // Null before `start()` and after `stop()`, and the audio thread runs
   // between the two — see the header for why one `SetEvent` on that thread
   // is worth it, and why it happens at most once for each lock.
-  if (carried_event_ != nullptr) {
-    SetEvent(carried_event_);
+  if (status_event_ != nullptr) {
+    SetEvent(status_event_);
+  }
+}
+
+void Watcher::say_it_was_slow() noexcept {
+  // As `say_it_carried`: null outside `start()`..`stop()`, and set at most
+  // once per step of `timing_step` in a lock.
+  if (status_event_ != nullptr) {
+    SetEvent(status_event_);
+  }
+}
+
+void Watcher::split_wake() noexcept {
+  // As `say_it_carried`: null outside `start()`..`stop()`, which is outside
+  // the only time the audio thread runs.
+  if (split_event_ != nullptr) {
+    SetEvent(split_event_);
   }
 }
 

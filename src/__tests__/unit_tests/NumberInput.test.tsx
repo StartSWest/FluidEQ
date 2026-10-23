@@ -29,6 +29,24 @@ describe('NumberInput', () => {
     handleSubmit.mockClear();
   });
 
+  it('selects the value on Tab so typing replaces it', async () => {
+    const { user } = setup(
+      <NumberInput
+        name={id}
+        min={-20}
+        max={20}
+        value={12.5}
+        floatPrecision={2}
+        isDisabled={false}
+        handleSubmit={handleSubmit}
+      />,
+    );
+    await user.tab();
+    expect(screen.getByLabelText(id)).toHaveFocus();
+    await user.keyboard('-3.25{Enter}');
+    expect(handleSubmit).toHaveBeenLastCalledWith(-3.25);
+  });
+
   it('should render with name', () => {
     const testValue = 1;
     setup(

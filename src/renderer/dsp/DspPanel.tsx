@@ -9,6 +9,7 @@ import { IDspSettings, clampDspSettings } from '../../common/dsp/chain';
 import { TranslationKey } from '../../common/i18n/en';
 import DspBassForgeCard from './DspBassForgeCard';
 import DspBassPunchCard from './DspBassPunchCard';
+import DspDeEsserCard from './DspDeEsserCard';
 import { ProcessorCard } from './DspControls';
 import DspEqBar from './DspEqBar';
 import DspEqCard from './DspEqCard';
@@ -28,9 +29,11 @@ import GameModeSwitch from '../components/GameModeSwitch';
 import LatencyReadout from '../components/LatencyReadout';
 import TitleRate from '../components/TitleRate';
 import DspSideTabs from './DspSideTabs';
+import OutputEditingNotice from '../OutputEditingNotice';
 import { rackSuspension, useRackGate } from './rackPlacement';
 import { TDspSection } from './sections';
 import { useTranslation } from '../utils/I18nContext';
+import { useOutputEditor } from '../utils/outputEditor';
 import {
   refreshAudioEngineStatus,
   useKnownAudioEngineStatus,
@@ -51,10 +54,10 @@ import {
 import '../styles/Dsp.scss';
 import { masterLoudnessBreakdown } from './inputNormalizer';
 import { readOpenDspSection, writeOpenDspSection } from './openSection';
-import { useNativeMeters } from './useNativeBackend';
+import useNativeMeters from './useNativeMeters';
 import { usePlaybackOwner } from '../audio/playbackOwner';
 import { useTransportIdentitySources } from '../audio/transportSource';
-import { useRemoteAudioRole } from '../remoteAudio/remoteAudioValueContext';
+import { useRemoteAudioReceiving } from '../remoteAudio/remoteAudioValueContext';
 
 interface IDspPanelProps {
   settings: IDspSettings;
@@ -81,7 +84,7 @@ interface IDspPanelProps {
 }
 
 /**
- * The five sections that own an isolate switch. Each id IS its settings key.
+ * The six sections that own an isolate switch. Each id IS its settings key.
  *
  * One list rather than a branch per stage, because a branch per stage is what
  * shipped broken: the two clearing paths below named denoise, EQ and the
@@ -90,11 +93,12 @@ interface IDspPanelProps {
  * the whole rack playing that stage's contribution and nothing else, with the
  * switch that did it out of sight.
  *
- * `readStored` in `store.ts` already drops all five on load, which is the
+ * `readStored` in `store.ts` already drops all six on load, which is the
  * evidence this list is the one that fell behind rather than the other.
  */
 const ISOLATING_SECTIONS = [
   'denoise',
+  'deEsser',
   'eq',
   'exciter',
   'bassForge',
@@ -112,6 +116,7 @@ const isSoloing = (of: IDspSettings) =>
 const withoutIsolate = (from: IDspSettings): IDspSettings => ({
   ...from,
   denoise: { ...from.denoise, isolate: false },
+  deEsser: { ...from.deEsser, isolate: false },
   eq: { ...from.eq, isolate: false },
   exciter: { ...from.exciter, isolate: false },
   bassForge: { ...from.bassForge, isolate: false },
@@ -178,6 +183,7 @@ const DspPanel = ({
   const {
     normalizer,
     denoise,
+    deEsser,
     crossfade,
     eq,
     exciter,
@@ -204,7 +210,7 @@ const DspPanel = ({
     }
     return allChannels ? 'dsp.surround.onHint' : 'dsp.surround.offHint';
   };
-  const listened = useListenedOutput(isSystemWide);
+  const listened = useListenedOutput(isSystemWide, 'editor');
   const roomLive = useDspPageRoomLive(listened, settings);
   const delay = useListenedDelay(listened);
   /**
@@ -219,13 +225,13 @@ const DspPanel = ({
   const nativeState = useDspNativeState();
   const playingOwner = usePlaybackOwner();
   const sources = useTransportIdentitySources();
-  // The role and not the whole Share Audio value, which changes with every
+  // One flag and not the whole Share Audio value, which changes with every
   // network sample and redrew this entire page four times a second while a
   // connection was up.
-  const remoteAudioRole = useRemoteAudioRole();
+  const remoteAudioReceiving = useRemoteAudioReceiving();
   /**
-   * Library playback wins even while Share Audio is listening: the receiver
-   * role describes a connection, not the source feeding the native rack.
+   * Library playback wins even while another computer's sound plays here:
+   * a link describes a connection, not the source feeding the native rack.
    * Requiring an ownership claim also locked out a paused/cued Library deck
    * and the gap before native playback publishes its claim. Keep that deck
    * editable unless another source has actually taken over. The Library's
@@ -238,7 +244,7 @@ const DspPanel = ({
       (sources.library?.isPlaying === true ||
         (sources.library !== undefined &&
           sources.system?.isPlaying !== true &&
-          remoteAudioRole !== 'listener')));
+          !remoteAudioReceiving)));
   /**
    * Whether the rack a listener can actually turn on and off right now.
    *
@@ -255,7 +261,18 @@ const DspPanel = ({
   // And under the FluidEQ Engine, not while it is off: FluidEQ switched off
   // or the engine not running leaves the rack running nowhere, and a page
   // whose every control still answered would say otherwise.
-  const suspension = rackSuspension(useRackGate());
+  const gate = useRackGate();
+  const { editor, main } = useOutputEditor();
+  const editingAnotherOutput = isSystemWide && editor?.device.id !== main?.id;
+  // The main output's engine warning must not lock a healthy secondary rack.
+  const suspension = rackSuspension(
+    editingAnotherOutput
+      ? {
+          ...gate,
+          engineOff: listened.known && !listened.output?.processing,
+        }
+      : gate,
+  );
   const isRackEngaged =
     suspension === undefined &&
     (isSystemWide || (hasLibraryPlayback && nativeState === 'engaged'));
@@ -425,6 +442,7 @@ const DspPanel = ({
   return (
     <div className="dsp-panel">
       <header className="dsp-header">
+        <OutputEditingNotice />
         <div className="dsp-header-line">
           <h2 className="dsp-title">
             {t('dsp.title')}
@@ -571,6 +589,7 @@ const DspPanel = ({
           enabled={{
             normalizer: normalizer.mode !== 'off',
             denoise: denoise.enabled,
+            deEsser: deEsser.enabled,
             crossfade: crossfade.enabled,
             eq: eq.enabled,
             exciter: exciter.enabled,
@@ -607,6 +626,14 @@ const DspPanel = ({
               onCancelModel={cancelVoiceModel}
               onRescan={() => requestDspNoiseRescan(inputAnalysis.trackId)}
               onPatch={(next) => patch({ denoise: next })}
+              onCommit={onCommit}
+            />
+          )}
+
+          {section === 'deEsser' && (
+            <DspDeEsserCard
+              deEsser={deEsser}
+              onPatch={(next) => patch({ deEsser: next })}
               onCommit={onCommit}
             />
           )}

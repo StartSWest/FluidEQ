@@ -26,6 +26,7 @@ import {
   SYSTEM_VOLUME_CHANNEL,
   systemVolumeCommand,
 } from '../common/systemVolume';
+import { createHelperReplacement } from './helperReplacement';
 import onWindowMessage from './ipc/windowMessages';
 
 export const SYSTEM_VOLUME_EXECUTABLE =
@@ -64,8 +65,13 @@ export interface ISystemVolumeWatch {
 /**
  * `onChange` hears the level and mute, or `null` when there is no output to
  * control — no helper on this platform, no default output, or a helper that
- * ended. Asked to start while already running, it repeats the last answer:
- * a window that reloaded is asking again and has heard nothing yet.
+ * ended and was not started again. Asked to start while already running, it
+ * repeats the last answer: a window that reloaded is asking again and has
+ * heard nothing yet.
+ *
+ * A helper that ends by itself while the slider shows is put back, as the
+ * media helper is (`helperReplacement.ts`): with nothing to start another,
+ * the slider went for as long as the window stayed up.
  */
 export const createSystemVolumeWatch = (
   onChange: (volume: ISystemVolume | null) => void,
@@ -74,6 +80,7 @@ export const createSystemVolumeWatch = (
   let child: ChildProcessWithoutNullStreams | undefined;
   let buffered = '';
   let last: ISystemVolume | null | undefined;
+  const replacement = createHelperReplacement('system volume helper');
 
   const stop = () => {
     const running = child;
@@ -88,7 +95,58 @@ export const createSystemVolumeWatch = (
     }
   };
 
+  const run = (executable: string) => {
+    const started = spawn(executable, [], { windowsHide: true });
+    const helper = replacement.run();
+    started.stdout.setEncoding('utf8');
+    started.stdout.on('data', (chunk: string) => {
+      if (started !== child) {
+        return;
+      }
+      buffered += chunk;
+      let end = buffered.indexOf('\n');
+      while (end >= 0) {
+        const line = buffered.slice(0, end);
+        const said = parseSystemVolumeLine(line);
+        buffered = buffered.slice(end + 1);
+        if (said !== undefined) {
+          helper.heard(line);
+          last = said;
+          onChange(said);
+        }
+        end = buffered.indexOf('\n');
+      }
+    });
+    started.stdin.on('error', () => undefined);
+    const ended = (how: string) => {
+      // A stop lets go of the child first, so this is a helper that went by
+      // itself, and only the current one's end means anything.
+      if (started !== child) {
+        return;
+      }
+      child = undefined;
+      buffered = '';
+      if (helper.ended(how)) {
+        // The slider keeps the level it shows until the new helper's first
+        // line, which comes as soon as it has read the output.
+        run(executable);
+        return;
+      }
+      last = null;
+      onChange(null);
+    };
+    started.on('error', (error) => {
+      log.info('The system volume helper could not start', error);
+      ended(`could not start: ${error.message}`);
+    });
+    started.on('exit', (code, signal) => {
+      ended(`exit code ${code ?? 'none'}, signal ${signal ?? 'none'}`);
+    });
+    child = started;
+  };
+
   const start = () => {
+    replacement.asked();
     if (child) {
       if (last !== undefined) {
         onChange(last);
@@ -101,39 +159,7 @@ export const createSystemVolumeWatch = (
       onChange(null);
       return;
     }
-    const started = spawn(executable, [], { windowsHide: true });
-    started.stdout.setEncoding('utf8');
-    started.stdout.on('data', (chunk: string) => {
-      if (started !== child) {
-        return;
-      }
-      buffered += chunk;
-      let end = buffered.indexOf('\n');
-      while (end >= 0) {
-        const said = parseSystemVolumeLine(buffered.slice(0, end));
-        buffered = buffered.slice(end + 1);
-        if (said !== undefined) {
-          last = said;
-          onChange(said);
-        }
-        end = buffered.indexOf('\n');
-      }
-    });
-    started.stdin.on('error', () => undefined);
-    const ended = () => {
-      if (started === child) {
-        child = undefined;
-        buffered = '';
-        last = null;
-        onChange(null);
-      }
-    };
-    started.on('error', (error) => {
-      log.info('The system volume helper could not start', error);
-      ended();
-    });
-    started.on('exit', ended);
-    child = started;
+    run(executable);
   };
 
   return {

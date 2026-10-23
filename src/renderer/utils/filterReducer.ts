@@ -21,6 +21,7 @@ import {
   FilterTypeEnum,
   IFiltersMap,
   getDefaultFilterWithId,
+  bandChannelOf,
   isBandEnabled,
 } from '../../common/constants';
 import { FilterAction, FilterActionEnum } from './fluidEqContextTypes';
@@ -112,7 +113,9 @@ const filterReducer: IFilterReducer = (
             // `false !== undefined` would report a change on every batch that
             // merely restates "on".
             (edit.isEnabled !== undefined &&
-              edit.isEnabled !== isBandEnabled(filter)))
+              edit.isEnabled !== isBandEnabled(filter)) ||
+            (edit.channel !== undefined &&
+              edit.channel !== bandChannelOf(filter)))
         );
       });
       if (landing.length === 0) {
@@ -139,6 +142,11 @@ const filterReducer: IFilterReducer = (
         }
         if (edit.isEnabled !== undefined) {
           filter.isEnabled = edit.isEnabled;
+        }
+        if (edit.channel === 'both') {
+          delete filter.channel;
+        } else if (edit.channel !== undefined) {
+          filter.channel = edit.channel;
         }
       });
       return filtersCloned;

@@ -95,7 +95,7 @@ const app: Partial<Dictionary> = {
     '在均衡器之前采集这台电脑播放的声音，供“共享音频”标签页、第二路输出和智能均衡使用。只在其中之一使用时运行。',
   'app.processes.name.sharePlayback': '共享音频播放',
   'app.processes.what.sharePlayback':
-    '播放另一个 FluidEQ 共享给这台电脑的声音。只在你收听时运行。',
+    '播放另一个 FluidEQ 共享给这台电脑的声音，并启动音频采集，确保这台电脑发出的声音中绝不会带回那个声音。只在其中之一使用时运行。',
   'app.processes.name.volume': '系统音量',
   'app.processes.what.volume':
     '为 FluidEQ 的音量滑块跟随 Windows 的音量和静音，并在你拖动滑块时设置音量。只在屏幕上有音量滑块时运行。',
@@ -164,6 +164,9 @@ const app: Partial<Dictionary> = {
   'engine.failed': '无法切换引擎，没有任何更改。',
   'engine.detachFailed': '无法从此输出移除 FluidEQ 引擎，没有任何更改。',
   'engine.unsupported': '需要 Windows 10 版本 1803 或更高。',
+  'engine.subtitle.builtIn':
+    '引擎随 FluidEQ 一起提供，在 FluidEQ 运行期间一直工作。',
+  'engine.fluid.builtIn.l1': '随 FluidEQ 内置，无需安装或开启',
   'prereq.title.apo': 'Equalizer APO 需要处理',
   'prereq.title.fluid': 'FluidEQ 引擎需要处理',
   'prereq.install.apo': '安装 APO',
@@ -256,6 +259,8 @@ const app: Partial<Dictionary> = {
   'notice.captureFailed': '实时输出无法启动',
   'notice.captureFailedBody':
     '电平表和图表上的实时曲线暂时关闭。其他功能均正常工作。',
+  'notice.captureNeedsMacPermission':
+    '在 Mac 上，电平表和图表上的实时曲线需要在“隐私与安全性” › “录屏与系统录音”的上方列表中允许 FluidEQ。仅系统录音的列表足以让 EQ 工作，但不够它们使用。其他功能均正常工作。',
   'notice.tryAgain': '重试',
   'notice.restartConfirm':
     '声音会中断几秒，Windows 会请求管理员权限。要继续吗？',
@@ -398,6 +403,9 @@ const app: Partial<Dictionary> = {
   'games.source.file': '你选择的',
   'games.front.playing': '{name} 在最前面，它的音效已开启。',
   'games.front.sounding': '{name} 正在运行，它的音效已开启。',
+  'games.front.off': '游戏预设已关闭。游戏中保持你自己的音效。',
+  'games.switch.hint':
+    '关闭：任何游戏都不会改变你的音效，FluidEQ 也不再关注哪个程序在前台。你的列表保持不变。',
   'games.toast.loaded': '已加载 {preset}',
   'games.toast.forGame': '用于 {game}',
   'games.toast.restored': '已切回 {preset}',

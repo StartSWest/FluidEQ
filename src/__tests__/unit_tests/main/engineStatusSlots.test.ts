@@ -59,6 +59,15 @@ describe('the slot names main will admit', () => {
     ).toEqual(['lfx', 'efx-single']);
   });
 
+  it('carries the rungs another program holds, dropping names it does not know', () => {
+    expect(
+      statusWith({
+        slot: 'mfx-single',
+        slotsHeld: ['sfx-single', 'from-the-future'],
+      }).slotsHeld,
+    ).toEqual(['sfx-single']);
+  });
+
   it('keeps the readable half of a history it cannot read whole', () => {
     // One rung this app has no name for is one rung it cannot reason about,
     // not a reason to lose the walk and offer the top of the ladder again.
@@ -70,5 +79,20 @@ describe('the slot names main will admit', () => {
 
   it('says nothing about a history an older helper does not report', () => {
     expect(statusWith({ slot: 'efx' }).slotsTried).toBeUndefined();
+  });
+
+  it('carries a slot with no processing mode, and only a plain true', () => {
+    expect(
+      statusWith({ slot: 'efx-single', modeMissing: true }).modeMissing,
+    ).toBe(true);
+    // Absent — an older helper, or a slot that has its mode — and anything
+    // that is not the boolean the helper writes, read alike.
+    expect(
+      statusWith({ slot: 'efx-single', modeMissing: false }).modeMissing,
+    ).toBeUndefined();
+    expect(
+      statusWith({ slot: 'efx-single', modeMissing: 'true' }).modeMissing,
+    ).toBeUndefined();
+    expect(statusWith({ slot: 'efx-single' }).modeMissing).toBeUndefined();
   });
 });

@@ -48,20 +48,15 @@ type TBuilt = string | readonly [keys: string, template: string];
  */
 const BUILDERS: Record<string, readonly TBuilt[]> = {
   'src/common/dsp/presetOrder.ts': ['dsp.eqPreset.*'],
-  'src/renderer/ExtraOutputs.tsx': [
-    'extraOutput.latency.*',
-    'extraOutput.mode.*.title',
-    'extraOutput.mode.*.body',
-    'extraOutput.mode.*.buffer',
-  ],
   'src/renderer/components/BugReportDialog.tsx': [
     [
       'bugReport.{copied,issuePaste,emailOpening,emailOpened,emailOpenedPartial,emailNotOpened}',
       'bugReport.*',
     ],
   ],
-  'src/renderer/components/EqModeSelect.tsx': [
-    // The menu's rows, its band shapes and its smoothing steps.
+  'src/renderer/components/eqMode/EqModeRows.tsx': [
+    // The EQ mode rows, in the menu and in the card it pins as: the rows,
+    // their band shapes and the smoothing steps.
     [
       'eq.mode.{phase,q,strength,smoothing,treble,constant,proportional,asymmetric,off,twelfth,third}',
       'eq.mode.*',
@@ -99,7 +94,7 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
   ],
   'src/renderer/components/featureTour/ShowcaseSlide.tsx': [
     [
-      'tour.{engine,room,plus,visualizers,desktop,lighting,look,gpu,sparks,sound,graph,player,games,presets,tone,studio,help}.{kicker,title,lead,how,open,point1,point2,point3}',
+      'tour.{engine,room,plus,visualizers,desktop,lighting,look,gpu,sparks,sound,graph,player,games,presets,tone,studio,help,outputs,bands,ears,myCurves,songs,deesser,chat}.{kicker,title,lead,how,open,point1,point2,point3}',
       '*.*',
     ],
   ],
@@ -143,7 +138,17 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
   'src/renderer/karaoke/KaraokeMakerSpeechMemoryPanel.tsx': [
     'karaoke.maker.memoryPolicy.*',
   ],
+  // A creator's sales, in the language's own plural forms.
+  'src/renderer/account/CreatorPayoutsCard.tsx': [
+    ['creator.sales.{one,few,many,other}', 'creator.sales.*'],
+  ],
   'src/renderer/plus/GalleryParts.tsx': ['plus.category.*'],
+  // A count of credits in each language's own plural forms, picked at run
+  // time through Intl.PluralRules.
+  'src/renderer/plus/credits.ts': [
+    ['store.credit.{one,few,many,other}', 'store.credit.*'],
+    ['store.credits.unit.{one,few,many,other}', 'store.credits.unit.*'],
+  ],
   'src/renderer/plus/lighting/LightingDevices.tsx': [
     'lighting.effect.*',
     'lighting.form.*',
@@ -152,9 +157,6 @@ const BUILDERS: Record<string, readonly TBuilt[]> = {
   'src/renderer/plus/lighting/LightingProfileTuning.tsx': [
     'lighting.focus.*',
     'lighting.idle.*',
-  ],
-  'src/renderer/remoteAudio/RemoteAudioMonitor.tsx': [
-    ['remoteAudio.{listen,send}.kicker', 'remoteAudio.*.kicker'],
   ],
   'src/renderer/remoteAudio/RemoteAudioPanel.tsx': ['remoteAudio.error.*'],
   'src/renderer/studio/StudioListen.tsx': [

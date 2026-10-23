@@ -9,9 +9,8 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'color' as *;
 @use 'motion' as *;
 @use 'theme' as *;
-@use 'RemoteAudioControls';
-@use 'RemoteAudioMonitor';
-@use 'RemoteAudioPairing';
+@use 'RemoteAudioLink';
+@use 'RemoteAudioLane';
 
 .remote-audio {
   display: flex;
@@ -21,7 +20,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: $text-primary;
 
   > * {
-    @include stagger-in($count: 5, $step: 35ms);
+    @include stagger-in($count: 6, $step: 35ms);
   }
 }
 
@@ -103,233 +102,129 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The chosen tab and the controls under it are one surface, so the shell alone
-// owns the outer border and the corner radius and clips the square tabs to it.
-// Every earlier seam here came from a tab carrying its own radius and its own
-// 1px ring: that ring landed on top of the shell's border as a doubled outline,
-// and its bottom corners curled away from the panel leaving a notch.
-.remote-audio__role-shell {
-  @include card-surface;
-  display: flex;
-  min-width: 0;
-  flex: 0 0 auto;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.remote-audio__role-cards {
+// The three promises under the link form: what both ways does, said once,
+// where somebody about to link two computers reads before pressing Link.
+.remote-audio__rules {
   display: grid;
-  flex: 0 0 auto;
-  align-items: stretch;
-  gap: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
+  margin: 0;
+  padding: 0;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
 
-.remote-audio__role-card {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  overflow: visible;
-  border: 0;
-  border-radius: 0;
-  box-shadow: inset 0 1px 0 rgba($white, 0.025);
-  transition:
-    background $motion-fast $ease-out,
-    box-shadow $motion-fast $ease-out;
+  > li {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    padding: 13px 15px;
+    gap: 12px;
+    border: 1px solid $card-edge;
+    border-radius: $radius-m;
+    background: $surface-plot;
 
-  // The seam between the two tabs belongs to the second one, so it is drawn
-  // once whichever role is chosen.
-  + .remote-audio__role-card::before {
-    position: absolute;
-    z-index: 1;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 1px;
-    background: color-mix(in srgb, $secondary-light 28%, transparent);
-    content: '';
-  }
+    > span:last-child {
+      display: flex;
+      min-width: 0;
+      flex-direction: column;
+      gap: 3px;
+    }
 
-  &.is-selected {
-    z-index: 2;
-    // No fill: the open panel below it has none either, so a fill here was a
-    // step between the tab and what it opens (2026-09-26).
-    // A horizontal tab strip marks its choice on the edge it hangs from, the
-    // same way the DSP rail marks its own on the edge facing its page.
-    box-shadow: inset 0 2px 0 $secondary-default;
+    strong {
+      font-size: $text-body;
+      font-weight: $weight-bold;
+    }
+
+    span span {
+      color: $text-muted;
+      font-size: $text-small;
+      line-height: 1.45;
+    }
   }
 }
 
-// The unchosen tab sits behind the open panel, so the line closing it is the
-// panel's own top edge. The chosen tab has no such line, and that missing pixel
-// is the whole reason the panel reads as belonging to it.
-.remote-audio__role-shell:has(.remote-audio__role-workspace)
-  .remote-audio__role-card:not(.is-selected)::after {
-  position: absolute;
-  z-index: 1;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 1px;
-  background: color-mix(in srgb, $secondary-light 32%, transparent);
-  content: '';
-}
-
-.remote-audio__role-choice {
-  position: relative;
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  min-height: 108px;
-  flex-direction: column;
-  padding: 18px 20px 18px 72px;
-  gap: 4px;
-  color: $text-primary;
-  border: 0;
-  border-radius: inherit;
-  background: transparent;
-  cursor: pointer;
-  text-align: left;
-  transition: background $motion-fast $ease-out;
-  overflow: hidden;
-
-  &:hover {
-    background: color-mix(in srgb, $secondary-default 6%, transparent);
-  }
-
-  // Inside the ring, not around it: this fills its half of the pair, so a
-  // halo drawn outside would be cut by the shell that clips them both.
-  &:focus-visible {
-    @include focus-ring;
-  }
-
-  > .control-kicker {
-    padding-right: 34px;
-    margin-bottom: 2px;
-    font-size: $text-micro;
-  }
-
-  > strong {
-    color: rgba($white, 0.94);
-    font-size: $text-title;
-    font-weight: $weight-bold;
-  }
-
-  > span:last-child {
-    max-width: 620px;
-    color: $text-muted;
-    font-size: $text-body;
-    line-height: 1.45;
-  }
-}
-
-// The chosen role holds the selection's step (`$selected-accent`), the one
-// every chosen row wears; its accent is the line along its top.
-.remote-audio__role-card.is-selected .remote-audio__role-choice {
-  background: $selected-accent;
-
-  &:hover {
-    background: $selected-accent;
-  }
-}
-
-@keyframes remote-audio-drawer-in {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-    clip-path: inset(0 0 100% 0);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
-    clip-path: inset(0);
-  }
-}
-
-// No surface of its own: the panel is the shell showing through below the
-// chosen tab, which is what makes the two read as one card.
-.remote-audio__role-workspace {
-  position: relative;
-  display: flex;
-  min-width: 0;
-  flex: 0 0 auto;
-  flex-direction: column;
-  padding: 14px 16px 16px;
-  gap: 13px;
-  transform-origin: top center;
-  // No fill mode and no `will-change`: this is the panel whose text was
-  // reported soft, and it was the worst case in the app — the filled end frame
-  // left `translate3d(0, 0, 0)` applied for the life of the panel, which is a
-  // compositor layer that never goes away. Ending on the element's own styles
-  // instead means the layer lasts exactly as long as the reveal does. There is
-  // no delay here, so nothing needs a backwards fill either.
-  animation: remote-audio-drawer-in $motion-base $ease-out;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-}
-
-.remote-audio__role-icon {
-  position: absolute;
-  top: 18px;
-  left: 20px;
+.remote-audio__rule-icon {
   display: grid;
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
   place-items: center;
-  border: 1px solid $card-edge;
   border-radius: $radius-xs;
-  // A step down from the card it stands on, the same relationship every
-  // other tile in the app has with its card.
-  background: $surface-plot;
-  color: $text-muted;
-
-  .menu-icon {
-    width: 22px;
-    height: 22px;
-  }
-}
-
-.remote-audio__role-card.is-selected .remote-audio__role-icon {
-  border-color: color-mix(in srgb, $secondary-light 36%, transparent);
   background: color-mix(in srgb, $secondary-default 10%, transparent);
   color: $secondary-light;
-  box-shadow: 0 0 12px color-mix(in srgb, $secondary-default 10%, transparent);
-}
 
-.remote-audio__role-radio {
-  position: absolute;
-  top: 17px;
-  right: 18px;
-  display: grid;
-  width: 18px;
-  height: 18px;
-  place-items: center;
-  border: 1px solid rgba($edge-tint, 0.3);
-  border-radius: 50%;
-  // The empty-track colour, like an unlit switch or meter: this is a control
-  // waiting to be filled, and the app has one colour for that.
-  background: $track-well;
-  box-shadow: inset 0 1px 2px rgba($black, 0.24);
-
-  &::after {
-    width: 8px;
-    height: 8px;
-    transform: scale(0);
-    border-radius: 50%;
-    background: $secondary-light;
-    box-shadow: 0 0 7px color-mix(in srgb, $secondary-light 60%, transparent);
-    content: '';
-    transition: transform $motion-fast $ease-out;
+  .menu-icon {
+    width: 17px;
+    height: 17px;
   }
 }
 
-.remote-audio__role-card.is-selected .remote-audio__role-radio {
-  border-color: $secondary-light;
+.remote-audio__note {
+  display: flex;
+  align-items: baseline;
+  margin: 2px 0 0;
+  padding-top: 10px;
+  gap: 8px;
+  color: $text-faint;
+  border-top: 1px solid rgba($edge-tint, 0.09);
+  font-size: $text-small;
+  line-height: 1.45;
 
-  &::after {
-    transform: scale(1);
+  strong {
+    flex: 0 0 auto;
+    color: $text-muted;
+    font-weight: $weight-semibold;
+  }
+}
+
+// Something the user has to act on — playback the window may not start, a
+// link that could not be made — on the page, beside what it is about.
+.remote-audio__notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 10px 14px;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, $secondary-light 30%, transparent);
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 7%, transparent);
+  font-size: $text-body;
+
+  &.is-error {
+    border-color: rgba($red, 0.32);
+    background: rgba($red, 0.07);
+    color: #ffc1cb;
+  }
+}
+
+@container eq-panel (max-width: 700px) {
+  .remote-audio__header {
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .remote-audio__facts {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .remote-audio__rules {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container eq-panel (max-width: 460px) {
+  .remote-audio__note {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .remote-audio__facts {
+    padding-inline: 8px;
+
+    li {
+      padding-inline: 7px;
+    }
   }
 }

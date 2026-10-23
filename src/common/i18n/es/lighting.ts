@@ -47,34 +47,33 @@ const lighting = {
     'Tu teclado, ratón, alfombrilla, auriculares y soporte se iluminan con la escena',
 
   'lighting.gate.title':
-    'Ilumina tu teclado, ratón y auriculares con cada escena Plus',
+    'Ilumina tu teclado, ratón y auriculares con tus escenas',
   'lighting.gate.body':
-    'La iluminación dinámica es parte de FluidEQ Plus. Tus dispositivos toman los colores de la escena de la gráfica y laten con su ritmo.',
-  'lighting.gate.cta': 'Ver Plus',
+    'Consigue cualquier escena en Visualizadores y la iluminación dinámica es tuya: tus dispositivos toman los colores de la escena de la gráfica y laten con su ritmo.',
+  'lighting.gate.cta': 'Buscar una escena',
 
   'lighting.preview.status':
     'Vista previa: tus dispositivos se iluminan mientras esta página está abierta',
   'lighting.preview.lit': 'Iluminando tus dispositivos con la escena',
   'lighting.preview.oneScene': 'Una escena para ver lo que hace',
-  'lighting.preview.noScene': 'Una escena Plus en tu escritorio',
-  'lighting.preview.moreScenes': 'Todas las escenas con Plus',
+  'lighting.preview.noScene': 'Una escena en tu escritorio',
+  'lighting.preview.moreScenes': 'Ver las escenas',
   'lighting.preview.held':
-    'Con Plus tus dispositivos siguen iluminados así, con cualquier escena.',
+    'Con una escena tuya, tus dispositivos se quedan encendidos así.',
   'lighting.preview.locked':
-    'El brillo, el estilo y la alineación vienen con Plus.',
+    'El brillo, el estilo y la alineación se abren con una escena tuya.',
 
   'lighting.unsupported.title': 'La iluminación dinámica funciona en Windows',
   'lighting.unsupported.body':
     'Ilumina los dispositivos mediante Windows Dynamic Lighting y Razer Chroma, y ambos existen solo en Windows.',
 
-  'lighting.switch': 'Iluminar mis dispositivos mientras suena una escena Plus',
+  'lighting.switch': 'Iluminar mis dispositivos mientras suena una escena',
   'lighting.status.live': 'Siguiendo {scene}',
   'lighting.status.waiting': 'Esperando música',
   'lighting.status.nothingLit':
     'La escena está sonando, pero ningún dispositivo se ilumina',
   'lighting.status.off': 'Apagada: tus dispositivos mantienen su propia luz',
-  'lighting.status.noScene':
-    'Elige una escena Plus y tus dispositivos la seguirán',
+  'lighting.status.noScene': 'Elige una escena y tus dispositivos la seguirán',
   'lighting.pickScene': 'Ver visualizadores',
   'lighting.showGraph': 'Mostrar la gráfica',
 
@@ -190,6 +189,7 @@ const lighting = {
 
   'lighting.graph.on': 'Dejar de iluminar mis dispositivos',
   'lighting.graph.off': 'Iluminar mis dispositivos con esta escena',
+  'lighting.gate.eyebrow': 'Una escena lo abre',
 } as const;
 
 export default lighting;

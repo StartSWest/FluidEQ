@@ -12,6 +12,10 @@ const stateFor = (eqMode: TEqMode, curveEqMode: TEqMode): IState => ({
   ...getDefaultState(),
   eqMode,
   curveEqMode,
+  // These cases are about strength. The correction is written unsmoothed, so
+  // each line here is a filter or a pass; the 1/12 octave a correction gets
+  // with nothing chosen is held in eqShape.test.ts.
+  curveSmoothing: 'off',
   isAutoPreAmpOn: false,
   filters: {
     own: {

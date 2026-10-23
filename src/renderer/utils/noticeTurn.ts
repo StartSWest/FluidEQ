@@ -24,22 +24,26 @@ import { useLayoutEffect, useReducer, useSyncExternalStore } from 'react';
  * The order is the one the stylesheets encoded, unchanged:
  *
  * - **The engine's spot**, centred under the titlebar, holds one card at a
- *   time. The output notice and the Room's 7.1 offer come first; the engine
- *   trouble notice waits for both; the engine update notice waits for all
- *   three. (The output notice over the Room's offer is the output panel's
+ *   time. A Mac's missing sound permission comes before everything there —
+ *   while the engine hears nothing, nothing else it says is true. Then the
+ *   output notice and the Room's 7.1 offer; the engine trouble notice waits
+ *   for both; the engine update notice waits for all three. (The output notice over the Room's offer is the output panel's
  *   own decision, made where both are rendered.)
  * - **The corner** holds one card at a time, and gives way to everything
  *   that opens in the strip under the titlebar and reaches it below about
  *   1500px of width: anything modal, any card in the engine's spot, the
- *   restart and capture notices, the missing-engine banner, the song EQ
- *   toast that shares the corner, and full screen, which takes away the
+ *   restart and capture notices, the missing-engine banner, the two song
+ *   toasts that share the corner (the Smart EQ one before the song's own
+ *   sound, one card at a time), and full screen, which takes away the
  *   titlebar the corner is placed under. Then the Plus terms notice, then
- *   news of a scene reviewed, then the maker's month running out — the
- *   newest news about a maker's scenes goes before a week's warning.
+ *   the listening notice, then news of a scene reviewed, then the admin's own two — the server nearing
+ *   a limit, then creators owed their payout — then new scenes announced.
  *
  * Everything not named as waiting for something above never waits.
  */
 export type TNoticeClaim =
+  /** macOS has not let the engine hear the Mac (`MacAudioPermissionNotice`). */
+  | 'macPermission'
   /** The output panel's notice: this output is not being processed. */
   | 'output'
   /** The Room's offer to set the output to 7.1 (`RoomOutputNotice`). */
@@ -51,9 +55,18 @@ export type TNoticeClaim =
   /** The missing-engine banner (`PrereqMissingModal`). */
   | 'prereq'
   | 'songEq'
+  /** A song's own sound put back on (`SongSoundNotice`). */
+  | 'songSound'
   | 'plusTerms'
+  /** A signed-in account told its listening time is counted (`ListeningNotice`). */
+  | 'listening'
   | 'sceneReview'
-  | 'makerMonth'
+  /** The admin told the server nears a free-plan limit (`ServerLimitNotice`). */
+  | 'serverLimit'
+  /** The admin told creators are owed their payout (`PayoutDueNotice`). */
+  | 'payoutDue'
+  /** New scenes announced, big (`SceneAnnouncementDialog`). */
+  | 'sceneAnnouncement'
   /** The window is full screen: graph or media (`useAppFullMark`). */
   | 'appFull'
   /**
@@ -67,6 +80,7 @@ export type TNoticeClaim =
 /** Everything the corner waits for, before the corner's own order. */
 const CORNER_WAITS_FOR: readonly TNoticeClaim[] = [
   'modal',
+  'macPermission',
   'output',
   'room',
   'engineTrouble',
@@ -74,6 +88,7 @@ const CORNER_WAITS_FOR: readonly TNoticeClaim[] = [
   'audioRestart',
   'prereq',
   'songEq',
+  'songSound',
   'appFull',
 ];
 
@@ -81,16 +96,39 @@ const CORNER_WAITS_FOR: readonly TNoticeClaim[] = [
 export const NOTICE_WAITS_FOR: Readonly<
   Record<TNoticeClaim, readonly TNoticeClaim[]>
 > = {
-  output: [],
-  room: [],
-  engineTrouble: ['output', 'room'],
-  engineUpdate: ['output', 'room', 'engineTrouble'],
+  macPermission: [],
+  output: ['macPermission'],
+  room: ['macPermission'],
+  engineTrouble: ['macPermission', 'output', 'room'],
+  engineUpdate: ['macPermission', 'output', 'room', 'engineTrouble'],
   audioRestart: [],
   prereq: [],
   songEq: [],
+  songSound: ['songEq'],
   plusTerms: CORNER_WAITS_FOR,
-  sceneReview: [...CORNER_WAITS_FOR, 'plusTerms'],
-  makerMonth: [...CORNER_WAITS_FOR, 'plusTerms', 'sceneReview'],
+  // An answer the account owes, after the terms it would read it beside.
+  listening: [...CORNER_WAITS_FOR, 'plusTerms'],
+  sceneReview: [...CORNER_WAITS_FOR, 'plusTerms', 'listening'],
+  // The admin's alone, after the news about scenes: a limit fills over days.
+  serverLimit: [...CORNER_WAITS_FOR, 'plusTerms', 'listening', 'sceneReview'],
+  // Money owed to people goes after the server's own room, never on top.
+  payoutDue: [
+    ...CORNER_WAITS_FOR,
+    'plusTerms',
+    'listening',
+    'sceneReview',
+    'serverLimit',
+  ],
+  // Waits for every notice that carries something to do or to know first:
+  // an announcement is news, never urgent.
+  sceneAnnouncement: [
+    ...CORNER_WAITS_FOR,
+    'plusTerms',
+    'listening',
+    'sceneReview',
+    'serverLimit',
+    'payoutDue',
+  ],
   appFull: [],
   modal: [],
 };

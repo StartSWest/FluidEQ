@@ -19,8 +19,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // The gallery is pictures first. A card is its picture — 16:9, the shape the
 // graph is — with the name, the maker and the numbers under it in one tight
 // block, so a page of them reads as a wall of scenes rather than a table of
-// rows. The pink is the heart's, the same one the graph's option bar and the
-// leaderboard use for a like.
+// rows. The pink is the heart's, the same one the graph's option bar uses for
+// a like.
 
 // ---------------------------------------------------------------- pages
 
@@ -348,9 +348,13 @@ it under the terms of the GNU General Public License version 3 or later.
   backdrop-filter: blur(6px);
 }
 
+// A column, never wider than the card, with the foot on the card's floor. As
+// a grid its one auto track grew to the foot's unbroken length, past the
+// card's edge, which cut what stood there; and a foot of two lines beside one
+// of one put the hearts of one row at two heights.
 .gallery-card__body {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 3px;
   min-width: 0;
   padding: 9px 10px 10px;
@@ -453,11 +457,25 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The count on one side, the heart and Add on the other — and when the card
+// leaves no room for both, the pair goes under the count together. On one
+// line that could not wrap, a four-column grid pushed Add past the card's
+// edge, which cut German's to "Hinzufü" (measured at 1280 px).
 .gallery-card__foot {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin-top: 6px;
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.gallery-card__controls {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
 }
 
 .gallery-card__adds {
@@ -502,7 +520,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // The name's stretched target covers gaps; these controls retain their actions.
 .gallery-card__by:not(.gallery-card__by--plain),
 .gallery-card .gallery-like,
-.gallery-card__add {
+.gallery-card__add,
+.gallery-card__get {
   position: relative;
   z-index: 2;
 }

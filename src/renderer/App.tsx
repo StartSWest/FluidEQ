@@ -17,17 +17,26 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Activity, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  Activity,
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { isAccountConfigured } from 'common/accountConfig';
 import useMediaQuery from './utils/useMediaQuery';
 import {
   setSoundPaneFolded,
+  subscribeSoundPaneRequests,
   useSoundPaneFolded,
   useSoundPaneSlide,
 } from './utils/soundPane';
 import GameSound from './games/GameSound';
 import RackFollowsEngine from './dsp/RackFollowsEngine';
+import useMainEditorWhile from './utils/useMainEditorWhile';
 import PresetToneFeed from './dsp/PresetToneFeed';
 import './styles/App.scss';
 // After App.scss: these are the accents in their rainbow form, and they have to
@@ -36,6 +45,7 @@ import './styles/Rainbow.scss';
 import SmartEqEngine from './SmartEqEngine';
 import SmartHeadroomEngine from './SmartHeadroomEngine';
 import showGalleryGraph from './plus/showGalleryGraph';
+import { subscribeGraphShowRequests } from './plus/graphShowRequest';
 import useStudioAgent from './studio/useStudioAgent';
 import UsageMeter from './usage/UsageMeter';
 import DynamicLightingLoop from './lighting/DynamicLightingLoop';
@@ -120,10 +130,8 @@ import SoundPanel from './shell/SoundPanel';
 import WorkspacePages, { EqGroupPills } from './shell/WorkspacePages';
 import WorkspacePlayers from './shell/WorkspacePlayers';
 import ShellDialogs from './shell/ShellDialogs';
-import {
-  CaptureFailedNotice,
-  RestartRecommendedNotice,
-} from './shell/ShellNotices';
+import LiveCaptureFailedNotice from './shell/LiveCaptureFailedNotice';
+import { RestartRecommendedNotice } from './shell/ShellNotices';
 
 const AppContent = () => {
   const {
@@ -246,6 +254,10 @@ const AppContent = () => {
    */
   const isAmp = windowMode === 'player';
   const behindAmp = isAmp ? 'hidden' : 'visible';
+  // The amp's faders, game mode and preset pick edit whatever output is
+  // being edited, and the notice that says which sleeps behind it: entering
+  // the amp ends a second output's edit (`useMainEditorWhile`).
+  useMainEditorWhile(isAmp);
   // Entering the amp and leaving it move the live capture's owners in one
   // commit: the sleeping pages let go and the amp takes hold, or the other
   // way round. Without a bridge the capture closed and reopened in between.
@@ -263,6 +275,19 @@ const AppContent = () => {
     isGraphViewOn,
   });
 
+  // The announcement of new scenes plays its first one on the EQ page's
+  // graph (`SceneAnnouncementDialog`), as the gallery's own button does.
+  useEffect(
+    () =>
+      subscribeGraphShowRequests(() =>
+        showGalleryGraph(() => {
+          showGraphOn('eq');
+          selectTopWorkspaceTab('eq');
+        }),
+      ),
+    [showGraphOn, selectTopWorkspaceTab],
+  );
+
   /**
    * The EQ page puts its graph ABOVE the page (layout A, the open floor,
    * Ivan 2026-09-25): the section pills and the Bands title row on top, the
@@ -276,8 +301,26 @@ const AppContent = () => {
    * rest always opens at the bottom"): there the graph is a monitor of what
    * the page is doing, not the instrument the page is edited on.
    */
+  /**
+   * Expanded, on a page with no picture of its own, is the same column with
+   * the page folded away: the head stays, the graph keeps its card — rounded,
+   * and floating under the Backdrop — and takes the height the page gave up
+   * (Ivan, 2026-10-18: "they need to be just expanding the graph and hiding
+   * the eq ... on backdrop mode ... keeping the floating look"). It used to be
+   * the overlay everywhere: a square sheet lifted over the whole column, head
+   * included. The overlay stays for full screen and for the picture-led pages
+   * — Media, Library, Karaoke — where the graph is drawn over the video, the
+   * record or the lyrics, and seeing them through it is the point.
+   */
+  const isGraphGrown =
+    graphView === 'expanded' &&
+    showsGraph &&
+    activeWorkspaceTab !== 'video' &&
+    activeWorkspaceTab !== 'library' &&
+    activeWorkspaceTab !== 'karaoke';
+  const isGraphOverlay = isGraphFullScreen && !isGraphGrown;
   const isGraphFirst =
-    activeWorkspaceTab === 'eq' && showsGraph && !isGraphFullScreen;
+    activeWorkspaceTab === 'eq' && showsGraph && !isGraphOverlay;
   const [eqTitleSlot, setEqTitleSlot] = useState<HTMLElement | null>(null);
   const eqGroupPills = (
     <EqGroupPills
@@ -313,7 +356,7 @@ const AppContent = () => {
   // under the graph while EQ is open. `system` never claims this store, so an
   // external browser, Spotify or another application deliberately gets the
   // quiet graph-only surface.
-  const isGraphBackdropMode = isGraphFullScreen && showsGraph;
+  const isGraphBackdropMode = isGraphOverlay && showsGraph;
   const mounts = usePlayerMounts({
     activeWorkspaceTab,
     isGraphBackdropMode,
@@ -392,6 +435,16 @@ const AppContent = () => {
   const isSoundPaneShown = isSoundPaneOverPage
     ? rightPaneOpen
     : !isSoundPaneFolded;
+  // Put on screen for what stands in it (`requestSoundPane`): the EQ mode
+  // card pinned into it, revealed with the panel folded or shut.
+  const showSoundPane = useEffectEvent(() => {
+    if (isSoundPaneOverPage) {
+      setRightPaneOpen(true);
+    } else {
+      setSoundPaneFolded(false);
+    }
+  });
+  useEffect(() => subscribeSoundPaneRequests(() => showSoundPane()), []);
   // The panel slides on the compositor; the page is laid out once per fold
   // (`useSoundPaneSlide`). Beside the page the column is its rail from the
   // start of a fold, and until an unfold's slide has finished — the panel
@@ -559,7 +612,7 @@ const AppContent = () => {
         {captureError &&
           !isCaptureNoticeHidden &&
           !engine.suppressAudioNotices && (
-            <CaptureFailedNotice
+            <LiveCaptureFailedNotice
               onHide={() => setIsCaptureNoticeHidden(true)}
               onRetry={retryCapture}
             />
@@ -593,12 +646,12 @@ const AppContent = () => {
         <div
           ref={setCenterColumn}
           className={`center-workspace${
-            isGraphFullScreen && showsGraph && !isMediaFullScreen
+            isGraphOverlay && showsGraph && !isMediaFullScreen
               ? ' is-graph-full'
               : ''
-          }${resize.isResizingPanes ? ' is-resizing' : ''}${
-            isGraphFirst ? ' is-graph-first' : ''
-          }`}
+          }${isGraphGrown && !isMediaFullScreen ? ' is-graph-grown' : ''}${
+            resize.isResizingPanes ? ' is-resizing' : ''
+          }${isGraphFirst ? ' is-graph-first' : ''}`}
           onDoubleClickCapture={(event) => {
             if (!isGraphAppFullScreen) {
               return;
@@ -726,6 +779,7 @@ const AppContent = () => {
               <FrequencyResponseChart
                 isVisible
                 hasLayersInHead={isGraphFirst && activeWorkspaceTab === 'eq'}
+                isGrown={isGraphGrown}
               />
             ) : null}
             {/* The graph's Plus visualizer, beside the graph and not in it:
@@ -809,8 +863,8 @@ export default function App() {
             {/* That visualizer's own elements — birds, petals, stars — faintly
                 over the window in the same mode; nothing in the page otherwise. */}
             <SceneAmbient />
-            {/* Counts listening while music plays. Renders nothing, sends
-                nothing anywhere unless the person joined the leaderboard. */}
+            {/* Counts listening while music plays. Renders nothing; main keeps
+                it only for an account that was told and kept it on. */}
             <UsageMeter />
             {/* Dynamic lighting's loop: renders nothing, and lights nothing
                 unless a Plus member switched it on. */}

@@ -10,13 +10,13 @@ export default {
   'genre.pop.pin.315.why': '削掉它，让主唱清楚地站在混音之上。',
   'genre.pop.pin.5000': '临场感与光泽',
   'genre.pop.pin.5000.why': '人声上的打磨，停在刺耳之前。',
+  'genre.pop.stage.exciter': '1 kHz 附近加厚度，人声加光泽，两者之下加温暖。',
   'genre.pop.stage.bassPunch':
     '收紧而不是猛击：贝斯线下的底鼓尾音更短，起音只略微抬起。',
   'genre.pop.stage.dimension':
     '140 Hz 以下的低音为单声道，和流行乐母带的做法一样；空气感比唱片略宽一点。',
   'genre.pop.stage.maximizer': '一个几乎不推的轻上限：母带本来就已经被限制过。',
-  'genre.pop.off':
-    '激励器和低音熔炉以“流行”的名义提供，但保持关闭：人声已经够亮，超低音也已在母带里。',
+  'genre.pop.off': '低音熔炉以“流行”的名义提供，但保持关闭：超低音已在母带里。',
 
   'genre.indiePop.hook': '比排行榜更轻、更暖',
   'genre.indiePop.story':
@@ -29,6 +29,7 @@ export default {
   'genre.indiePop.pin.1250.why': '吉他鸣响、和声层叠的地方。',
   'genre.indiePop.pin.12500': '一点空气感',
   'genre.indiePop.pin.12500.why': '轻轻地，加在原本就柔和的高频上。',
+  'genre.indiePop.stage.exciter': '只在中低频加温暖：绝不变亮。',
   'genre.indiePop.stage.dimension':
     '低频收窄，空气感稍微放宽：和声打开，人声的位置不动。',
   'genre.indiePop.stage.maximizer': '一个轻柔的上限，保留那份柔软。',
@@ -75,11 +76,13 @@ export default {
   'genre.kPop.pin.315.why': '清理中低频，让各层不糊在一起。',
   'genre.kPop.pin.12500': '不额外加空气感',
   'genre.kPop.pin.12500.why': '人声在 12 kHz 已经自带空气感。',
+  'genre.kPop.stage.exciter':
+    '在人声自身的提升之下加厚度和临场感，高频什么都不加。',
   'genre.kPop.stage.dimension': '低频收窄，叠唱和铺底比混音时稍宽一点。',
   'genre.kPop.stage.maximizer':
     '一个几乎不推的上限：这些母带已经响到了母带的极限。',
   'genre.kPop.off':
-    '不用激励器、低音冲击或低音熔炉：处理环节能加的东西，唱片里都已经有了。',
+    '不用低音冲击，也不用低音熔炉：底鼓的冲击和超低音，唱片里都已经有了。',
 
   'genre.jPop.hook': '任何速度下都密实明亮的声墙',
   'genre.jPop.story':
@@ -90,10 +93,10 @@ export default {
   'genre.jPop.pin.500.why': '从拥挤的中频里稍微拿掉一点。',
   'genre.jPop.pin.3150': '中高频保持不动',
   'genre.jPop.pin.3150.why': '已经又亮又靠前，从不再推。',
+  'genre.jPop.stage.exciter': '只在中低频加温暖：这么亮的高频上什么都不加。',
   'genre.jPop.stage.dimension': '什么都不加宽：这堵墙已经够宽。',
   'genre.jPop.stage.maximizer': '一个几乎不推的上限，面对的是已经削波的母带。',
-  'genre.jPop.off':
-    '它的激励器有提供但保持关闭：这么亮的母带，它的工程师们一个都不要。',
+  'genre.jPop.off': '不用低音冲击，也不用低音熔炉：这堵墙送来时就又密又响。',
 
   'genre.cPop.hook': '抒情歌，人声在前方正中',
   'genre.cPop.story':

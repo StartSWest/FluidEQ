@@ -96,6 +96,8 @@ const IStateSchema = {
         isEnabled: {
           type: 'boolean',
         },
+        // Not required either, for the same reason: absent is both ears.
+        channel: { enum: ['left', 'right'], type: 'string' },
         quality: {
           type: 'number',
         },
@@ -120,6 +122,7 @@ const IStateSchema = {
     eqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
     eqBandDesign: BAND_DESIGN_SCHEMA,
     curveEqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
+    mainBandQ: { type: 'string', enum: ['off', 'proportional', 'asymmetric'] },
     eqBandQ: {
       enum: ['off', 'fixed', 'constant', 'proportional', 'asymmetric'],
       type: 'string',
@@ -202,6 +205,8 @@ export const IPresetSchemaV1 = {
         isEnabled: {
           type: 'boolean',
         },
+        // Not required either, for the same reason: absent is both ears.
+        channel: { enum: ['left', 'right'], type: 'string' },
         quality: {
           type: 'number',
         },
@@ -282,6 +287,8 @@ const IPresetSchemaV2 = {
         isEnabled: {
           type: 'boolean',
         },
+        // Not required either, for the same reason: absent is both ears.
+        channel: { enum: ['left', 'right'], type: 'string' },
         quality: {
           type: 'number',
         },
@@ -303,6 +310,7 @@ const IPresetSchemaV2 = {
     eqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
     eqBandDesign: BAND_DESIGN_SCHEMA,
     curveEqMode: { enum: ['normal', 'double', 'studio'], type: 'string' },
+    mainBandQ: { type: 'string', enum: ['off', 'proportional', 'asymmetric'] },
     eqBandQ: {
       enum: ['off', 'fixed', 'constant', 'proportional', 'asymmetric'],
       type: 'string',

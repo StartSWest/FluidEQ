@@ -96,7 +96,7 @@ const app: Partial<Dictionary> = {
     'Nimmt auf, was dieser PC abspielt, vor dem Equalizer – für den Tab „Audio teilen“, eine zweite Ausgabe und Smart-EQ. Läuft nur, solange eines davon genutzt wird.',
   'app.processes.name.sharePlayback': 'Wiedergabe des geteilten Audios',
   'app.processes.what.sharePlayback':
-    'Spielt den Klang ab, den ein anderes FluidEQ mit diesem PC teilt. Läuft nur, solange Sie ihn hören.',
+    'Spielt den Klang ab, den ein anderes FluidEQ mit diesem PC teilt, und startet die Audioaufnahmen, damit das, was dieser PC sendet, diesen Klang nie zurückträgt. Läuft nur, solange eines davon genutzt wird.',
   'app.processes.name.volume': 'Systemlautstärke',
   'app.processes.what.volume':
     'Folgt der Lautstärke und Stummschaltung von Windows für die Lautstärkeregler von FluidEQ und stellt sie ein, wenn Sie einen bewegen. Läuft nur, solange ein Regler zu sehen ist.',
@@ -172,6 +172,10 @@ const app: Partial<Dictionary> = {
   'engine.detachFailed':
     'Die FluidEQ-Engine konnte nicht von diesem Ausgang entfernt werden. Es hat sich nichts geändert.',
   'engine.unsupported': 'Erfordert Windows 10 Version 1803 oder neuer.',
+  'engine.subtitle.builtIn':
+    'Die Engine gehört zu FluidEQ und läuft, solange FluidEQ läuft.',
+  'engine.fluid.builtIn.l1':
+    'Gehört zu FluidEQ – nichts zu installieren oder einzuschalten',
   'prereq.title.apo': 'Equalizer APO braucht Aufmerksamkeit',
   'prereq.title.fluid': 'Die FluidEQ-Engine braucht Aufmerksamkeit',
   'prereq.install.apo': 'APO installieren',
@@ -267,6 +271,8 @@ const app: Partial<Dictionary> = {
   'notice.captureFailed': 'Die Live-Ausgabe konnte nicht starten',
   'notice.captureFailedBody':
     'Pegelanzeige und Live-Kurve im Diagramm sind vorerst aus. Alles andere funktioniert normal.',
+  'notice.captureNeedsMacPermission':
+    'Auf einem Mac brauchen Pegelanzeige und Live-Kurve im Diagramm FluidEQ in der oberen Liste unter Datenschutz & Sicherheit › Bildschirm- & Systemaudioaufnahme. Die Liste nur für Ton genügt Ihrem EQ, ihnen aber nicht. Alles andere funktioniert normal.',
   'notice.tryAgain': 'Erneut versuchen',
   'notice.restartConfirm':
     'Der Ton setzt für ein paar Sekunden aus und Windows fragt nach Administratorrechten. Fortfahren?',
@@ -425,6 +431,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Von Ihnen gewählt',
   'games.front.playing': '{name} ist im Vordergrund, und sein Klang läuft.',
   'games.front.sounding': '{name} läuft, und sein Klang läuft mit.',
+  'games.front.off':
+    'Spiel-Presets sind aus. Ihre Spiele behalten Ihren eigenen Klang.',
+  'games.switch.hint':
+    'Aus: Kein Spiel ändert Ihren Klang, und FluidEQ achtet nicht mehr darauf, welches Programm im Vordergrund ist. Ihre Liste bleibt, wie sie ist.',
   'games.toast.loaded': '{preset} geladen',
   'games.toast.forGame': 'für {game}',
   'games.toast.restored': 'Zurück zu {preset}',

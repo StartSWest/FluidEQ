@@ -10,7 +10,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The table is the app's own (`roomPresets.ts`), written into
  * `room_profiles_fixture.h` by `generate-room-profiles-fixture.ts` and held
  * to it by `dspRoomProfiles.test.ts`, so what is measured here is what the
- * card applies. Every room runs at the four stream rates, on a stereo, a 5.1
+ * card applies. Every room runs at the eight stream rates, on a stereo, a 5.1
  * and a 7.1 stream, buffered and in game mode, and is held to what a listener
  * would notice: every sample a number, a film-loud programme under full
  * scale, the sub on time with the ears, the walls still there at 192 kHz,
@@ -42,6 +42,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "../../system-apo/src/room_head.h"
+#include "../src/room_rate.h"
 #include "dsp_test_support.h"
 #include "room_profiles_fixture.h"
 
@@ -60,7 +61,36 @@ void check(bool condition, const char* what) {
 using feq_test::Pink;
 
 constexpr uint32_t kBlock = 512;
-constexpr double kRates[] = {44100.0, 48000.0, 96000.0, 192000.0};
+// Every rate a room plays at: the three its heads were measured at, 192 kHz
+// doubling the 96 kHz head, and the four that render at a head's rate
+// between a converter's two halves (`room_rate.h`).
+constexpr double kRates[] = {44100.0,  48000.0,  88200.0,  96000.0,
+                             176400.0, 192000.0, 352800.0, 384000.0};
+
+/** Whether a room at `rate` renders at its head's rate through a converter. */
+bool converted(double rate) {
+  int doubling = 0;
+  const double head = feq_room_head_rate(rate, &doubling);
+  return head > 0.0 && doubling == 0 && head != rate;
+}
+
+/**
+ * The delay a room reports at `rate`: one partition at its head's rate (none
+ * in game mode), and on an output faster than its heads the converter's on
+ * top.
+ */
+uint32_t latency_at(double rate, bool low) {
+  const uint32_t own = low ? 0u : feq_convolver_latency();
+  if (!converted(rate)) {
+    return own;
+  }
+  int doubling = 0;
+  const double head = feq_room_head_rate(rate, &doubling);
+  const auto factor = static_cast<uint32_t>(std::lround(rate / head));
+  RoomRate converter;
+  converter.prepare(head, factor, 2u, kBlock);
+  return own * factor + converter.latency();
+}
 
 struct Layout {
   const char* name;
@@ -272,8 +302,9 @@ void every_room_everywhere() {
           Rendering r(s, rate, layout, low);
           check(feq_room_active(r.room) == 1, "the room is active");
           const uint32_t latency = feq_room_latency_frames(r.room);
-          check(latency == (low ? 0u : feq_convolver_latency()),
-                "one partition buffered, none in game mode");
+          check(latency == latency_at(rate, low),
+                "one partition buffered, none in game mode, and the "
+                "converter's where there is one");
           // A different pink noise a channel, each peaking at -20 dBFS: where
           // a loud film moment sits per channel (`room_presets_test.cpp`).
           auto b = silence(layout, static_cast<size_t>(0.75 * rate));
@@ -292,7 +323,11 @@ void every_room_everywhere() {
           check(out < 1.0, "a loud programme at -20 dBFS a channel fits");
           check(out > 0.01, "the room passes the programme (control)");
           size_t sub_at = latency;
-          if (layout.lfe >= 0) {
+          // Through a converter the first sound is its filter's leading edge,
+          // ahead of the delay by design; that the sub keeps time with the
+          // ears there is `room_rate_test.cpp`'s, which holds such a room to
+          // the room at its head's rate sample for sample.
+          if (layout.lfe >= 0 && !converted(rate)) {
             const auto sub = impulse(s, rate, layout, low,
                                      static_cast<uint32_t>(layout.lfe), 0.05);
             sub_at = first_sound(sub[0]);
@@ -807,10 +842,11 @@ void what_a_block_costs() {
 }
 
 /**
- * A room is as loud at 96 and 192 kHz as at 48 kHz, on both renderers. It was
- * not: the heads had been resampled as sounds rather than as filters, and a
- * 1 kHz tone left the room 6 dB louder on a 96 kHz output and 12 dB louder on
- * a 192 kHz one. Measured on the head alone — no walls, no crossover.
+ * A room is as loud at every rate it plays as at 48 kHz, on both renderers.
+ * It was not: the heads had been resampled as sounds rather than as filters,
+ * and a 1 kHz tone left the room 6 dB louder on a 96 kHz output and 12 dB
+ * louder on a 192 kHz one. Measured on the head alone — no walls, no
+ * crossover — and through the converter where there is one.
  */
 void a_room_is_as_loud_at_every_rate() {
   std::printf("a 1 kHz tone at 0.1 on the front left, left ear\n");

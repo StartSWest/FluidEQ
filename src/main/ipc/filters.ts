@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   FilterTypeEnum,
+  isBandChannel,
   FixedBandSizeEnum,
   IFilter,
   IFilterEdit,
@@ -35,14 +36,10 @@ import {
   getDefaultFilterWithId,
   getDefaultFilters,
 } from '../../common/constants';
-import { qualitiesForRack } from '../../common/bandQuality';
+import { planEarChange } from '../../common/bandEars';
+import { qualityForAddedBand } from '../../common/bandQuality';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
-import {
-  ILayoutSnapshot,
-  adaptLayoutToFixedFrequencies,
-  snapshotFilters,
-} from '../../common/layouts';
 import { isFixedBandSizeEnumValue } from '../../common/utils';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 import onWindowMessage from './windowMessages';
@@ -88,9 +85,6 @@ export interface IFiltersIpcDeps {
     channel: ChannelEnum,
     filterId: string,
   ) => boolean;
-  /** Remember where the current bands sit, before the count changes. */
-  captureCurrentLayout: () => void;
-  getStoredLayout: (size: FixedBandSizeEnum) => ILayoutSnapshot | undefined;
   switchToParametricEditing: () => void;
   /** Take a layer off the bypass list, because it is being cleared. */
   applyingLayer: (layer: TApoLayer) => void;
@@ -108,8 +102,6 @@ export const registerFiltersIpc = ({
   handleUpdateHelper,
   handleError,
   doesFilterIdExist,
-  captureCurrentLayout,
-  getStoredLayout,
   switchToParametricEditing,
   applyingLayer,
 }: IFiltersIpcDeps) => {
@@ -293,7 +285,10 @@ export const registerFiltersIpc = ({
         isInRange(edit.quality, MIN_QUALITY, MAX_QUALITY) &&
         (edit.type === undefined ||
           Object.values(FilterTypeEnum).includes(edit.type)) &&
-        (edit.isEnabled === undefined || typeof edit.isEnabled === 'boolean'),
+        (edit.isEnabled === undefined || typeof edit.isEnabled === 'boolean') &&
+        (edit.channel === undefined ||
+          edit.channel === 'both' ||
+          isBandChannel(edit.channel)),
     );
 
     if (!isValid) {
@@ -318,6 +313,11 @@ export const registerFiltersIpc = ({
       }
       if (edit.isEnabled !== undefined) {
         filter.isEnabled = edit.isEnabled;
+      }
+      if (edit.channel === 'both') {
+        delete filter.channel;
+      } else if (edit.channel !== undefined) {
+        filter.channel = edit.channel;
       }
     });
     state.isFlat = false;
@@ -364,20 +364,15 @@ export const registerFiltersIpc = ({
     }
 
     switchToParametricEditing();
-    // The width the rack it is joining uses, not the app's fallback: a band
-    // added to a thirty-one-band rack at Q 2 is three times wider than every
-    // band either side of it, and reads as a fault rather than as a band.
+    // Inherit the main rack's Q without giving close neighbours narrower bands.
     const newFilter: IFilter = {
       ...getDefaultFilterWithId(),
       frequency,
-      // Measured with the new band already among them, so the answer is the
-      // distance to the bands it is actually landing between rather than the
-      // rack's average — which on a layout whose spacing changes along it is
-      // a width no part of the rack uses.
-      quality: qualitiesForRack([
-        ...Object.values(state.filters).map((filter) => filter.frequency),
-        frequency,
-      ]).slice(-1)[0],
+      quality: qualityForAddedBand(
+        Object.values(state.filters)
+          .filter((filter) => filter.type === FilterTypeEnum.PK)
+          .map((filter) => filter.quality),
+      ),
     };
     state.filters[newFilter.id] = newFilter;
     state.isFlat = false;
@@ -416,6 +411,40 @@ export const registerFiltersIpc = ({
 
   onWindowMessage(ChannelEnum.CLEAR_GAINS, async (event) => {
     const channel = ChannelEnum.CLEAR_GAINS;
+
+    // Every left + right pair is joined back into one band on both ears, in
+    // its middle (Ivan, 2026-10-13: "reset EQ resets those bands to
+    // joined"), before the gains go flat.
+    const filters = Object.values(state.filters);
+    const joined = planEarChange(
+      filters.map((filter) => ({
+        key: filter.id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+        ear: filter.channel,
+      })),
+      filters
+        .filter((filter) => filter.channel !== undefined)
+        .map((filter) => filter.id),
+      'both',
+      0,
+    );
+    joined.removed.forEach((id) => {
+      delete state.filters[id];
+    });
+    joined.ears.forEach(({ key, middle }) => {
+      const filter = state.filters[key];
+      if (filter === undefined) {
+        return;
+      }
+      delete filter.channel;
+      if (middle) {
+        filter.frequency = middle.frequency;
+        filter.quality = middle.quality;
+      }
+    });
 
     Object.values(state.filters).forEach((filter) => {
       filter.gain = 0;
@@ -457,29 +486,16 @@ export const registerFiltersIpc = ({
       return;
     }
 
-    // Capture the high-resolution layout before replacing it. The snapshot is
-    // device-scoped and survives app restarts, so returning to a previous band
-    // count restores its original frequencies and tuning.
-    captureCurrentLayout();
-    const sourceSnapshot = snapshotFilters(state.filters);
+    // A built-in layout starts fresh: its own frequencies, every band at the
+    // layout's Q, flat, on both ears, and the Band Q behaviour back to its
+    // default (Ivan, 2026-10-13: "switching built in layout needs to reset
+    // all bands and their freq", "the q too needs to reset"). It used to
+    // bring back a snapshot of the last time that count was used, or fit the
+    // current curve onto it, and the 15 Band button then showed some other
+    // layout's frequencies.
     switchToParametricEditing();
-    const storedSnapshot = getStoredLayout(size);
-    const targetSnapshot =
-      storedSnapshot || adaptLayoutToFixedFrequencies(sourceSnapshot, size);
-    const nextFilters = getDefaultFilters(size);
-    Object.values(nextFilters)
-      .sort((left, right) => left.frequency - right.frequency)
-      .forEach((filter, index) => {
-        const savedBand = targetSnapshot[index];
-        if (!savedBand) {
-          return;
-        }
-        filter.frequency = savedBand.frequency;
-        filter.gain = savedBand.gain;
-        filter.quality = savedBand.quality;
-        filter.type = savedBand.type;
-      });
-    state.filters = nextFilters;
+    state.filters = getDefaultFilters(size);
+    state.mainBandQ = undefined;
     state.eqBandDesign = undefined;
     state.isFlat = false;
 

@@ -96,7 +96,7 @@ const app: Partial<Dictionary> = {
     'この PC で鳴っている音をイコライザーの前でキャプチャし、「音声を共有」タブ、2 つめの出力、スマート EQ に渡します。これらのどれかを使っている間だけ動作します。',
   'app.processes.name.sharePlayback': '共有された音声の再生',
   'app.processes.what.sharePlayback':
-    '別の FluidEQ がこの PC に共有している音を再生します。聴いている間だけ動作します。',
+    '別の FluidEQ がこの PC に共有している音を再生し、音声キャプチャを起動します。これにより、この PC が送る音にその音が戻って混ざることはありません。これらのどれかを使っている間だけ動作します。',
   'app.processes.name.volume': 'システムの音量',
   'app.processes.what.volume':
     'FluidEQ の音量スライダーのために Windows の音量とミュートを追い、スライダーを動かすと音量を設定します。スライダーが画面にある間だけ動作します。',
@@ -171,6 +171,10 @@ const app: Partial<Dictionary> = {
   'engine.detachFailed':
     'この出力から FluidEQ エンジンを取り外せませんでした。何も変更されていません。',
   'engine.unsupported': 'Windows 10 バージョン 1803 以降が必要です。',
+  'engine.subtitle.builtIn':
+    'エンジンは FluidEQ に含まれており、FluidEQ の実行中は動作し続けます。',
+  'engine.fluid.builtIn.l1':
+    'FluidEQ に内蔵されており、インストールや有効化は不要です',
   'prereq.title.apo': 'Equalizer APO の対応が必要です',
   'prereq.title.fluid': 'FluidEQ エンジンの対応が必要です',
   'prereq.install.apo': 'APO をインストール',
@@ -267,6 +271,8 @@ const app: Partial<Dictionary> = {
   'notice.captureFailed': 'ライブ出力を開始できませんでした',
   'notice.captureFailedBody':
     'レベルメーターとグラフのライブカーブは現在オフです。それ以外は通常どおり動作します。',
+  'notice.captureNeedsMacPermission':
+    'Mac では、レベルメーターとグラフのライブカーブには、「プライバシーとセキュリティ」›「画面とシステムオーディオの収録」の上側のリストで FluidEQ を許可する必要があります。オーディオのみのリストは EQ には十分ですが、これらには足りません。それ以外は通常どおり動作します。',
   'notice.tryAgain': '再試行',
   'notice.restartConfirm':
     '音が数秒とまり、Windows が管理者権限を求めます。続けますか？',
@@ -423,6 +429,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': '自分で選択',
   'games.front.playing': '{name} が手前にあり、その音が有効です。',
   'games.front.sounding': '{name} は実行中で、その音が有効です。',
+  'games.front.off':
+    'ゲームプリセットはオフです。ゲームでもあなた自身の音のままです。',
+  'games.switch.hint':
+    'オフ：どのゲームも音を切り替えず、FluidEQ は前面のプログラムを見なくなります。リストはそのまま残ります。',
   'games.toast.loaded': '{preset} を読み込みました',
   'games.toast.forGame': '{game} 用',
   'games.toast.restored': '{preset} に戻しました',

@@ -97,6 +97,44 @@ describe('describeAudioEngine', () => {
     expect(text).toContain('passing through: FluidEQ is not running');
   });
 
+  it('says how long the engine’s blocks take, in the engine log’s words', () => {
+    // GitHub issue 30: sound cutting in and out as Exciter bands were added,
+    // and no report that could say whether the engine had been too slow.
+    const playing = {
+      endpoint: output.guid,
+      locked: true,
+      processing: true,
+      owner: true,
+      problems: [],
+    };
+    const text = describeAudioEngine({
+      engine: 'fluid',
+      devices: [output],
+      fluid: installed,
+      health: health([
+        {
+          ...playing,
+          load: { blocks: 102, overHalf: 1, slowestMs: 6.05, periodMs: 11 },
+        },
+      ]),
+    });
+    // `describe_timing` in block_timing.cpp writes the same words to the
+    // engine's log (`how_long_blocks_take` in status_test.cpp).
+    expect(text).toContain(
+      '  Engine load: slowest block 6.05 ms of its 11.00 ms (55%), ' +
+        '1 of 102 over half',
+    );
+    // Positive control: an engine that times nothing gets no line.
+    expect(
+      describeAudioEngine({
+        engine: 'fluid',
+        devices: [output],
+        fluid: installed,
+        health: health([playing]),
+      }),
+    ).not.toContain('Engine load');
+  });
+
   it('says what stops Windows loading the engine at all', () => {
     // The state a user's machine was in: installed, attached, enhancements
     // on, and never once created — where the answer is machine-wide, not
@@ -162,6 +200,43 @@ describe('describeAudioEngine', () => {
     );
     expect(text).toContain(
       'old single values: SFX: Equalizer APO, EFX: {APO2}',
+    );
+    // The control for the line below: a slot with its mode says nothing.
+    expect(text).not.toContain('processing mode');
+  });
+
+  it('says when the engine sits in a slot Windows never reaches', () => {
+    // A Sound BlasterX G6: Creative's effects in the single values, the
+    // engine in the EFX one, and no processing mode beside it.
+    const text = describeAudioEngine({
+      engine: 'fluid',
+      devices: [output],
+      fluid: {
+        ...installed,
+        endpoints: [
+          {
+            guid: output.guid,
+            attached: true,
+            backupExists: true,
+            slot: 'efx-single',
+            modeMissing: true,
+            effects: [
+              {
+                slot: 'efx',
+                from: 'single',
+                clsid: '{OURS}',
+                name: 'FluidEQ Engine',
+              },
+            ],
+            emptySlots: 2,
+          },
+        ],
+      },
+      health: health(),
+    });
+    expect(text).toContain(
+      "the engine's slot (efx-single) has no processing mode, so Windows " +
+        'never reaches it',
     );
   });
 

@@ -38,25 +38,27 @@ const cancel = () =>
 const signOut = () => screen.getByRole('button', { name: /account\.signOut/ });
 
 test('the caret starts on the answer that keeps the account', async () => {
-  render(<SignOutConfirm member onCancel={jest.fn()} />);
+  render(<SignOutConfirm ownsScenes onCancel={jest.fn()} />);
 
   await waitFor(() => expect(cancel()).toHaveFocus());
   expect(mockSignOut).not.toHaveBeenCalled();
 });
 
 test('a member is told what signing out locks, and a free account is not', () => {
-  const { unmount } = render(<SignOutConfirm member onCancel={jest.fn()} />);
+  const { unmount } = render(
+    <SignOutConfirm ownsScenes onCancel={jest.fn()} />,
+  );
   expect(screen.getByText('account.signOut.detailPlus')).toBeInTheDocument();
   expect(screen.getByText('account.signOut.kept')).toBeInTheDocument();
   unmount();
 
-  render(<SignOutConfirm member={false} onCancel={jest.fn()} />);
+  render(<SignOutConfirm ownsScenes={false} onCancel={jest.fn()} />);
   expect(screen.getByText('account.signOut.detail')).toBeInTheDocument();
 });
 
 test('cancelling gives the question back and signs nobody out', async () => {
   const onCancel = jest.fn();
-  render(<SignOutConfirm member onCancel={onCancel} />);
+  render(<SignOutConfirm ownsScenes onCancel={onCancel} />);
 
   await userEvent.click(cancel());
   expect(onCancel).toHaveBeenCalledTimes(1);
@@ -69,7 +71,7 @@ test('Escape takes the question back before the panel hears it', async () => {
   const onCancel = jest.fn();
   const heard = jest.fn();
   document.addEventListener('keydown', heard);
-  render(<SignOutConfirm member onCancel={onCancel} />);
+  render(<SignOutConfirm ownsScenes onCancel={onCancel} />);
 
   await userEvent.keyboard('{Escape}');
   expect(onCancel).toHaveBeenCalledTimes(1);
@@ -78,7 +80,7 @@ test('Escape takes the question back before the panel hears it', async () => {
 });
 
 test('pressed twice, it signs out once', async () => {
-  render(<SignOutConfirm member onCancel={jest.fn()} />);
+  render(<SignOutConfirm ownsScenes onCancel={jest.fn()} />);
 
   await userEvent.click(signOut());
   await userEvent.click(signOut());
@@ -89,7 +91,7 @@ test('pressed twice, it signs out once', async () => {
 
 test('a sign-out that failed leaves the question answerable again', async () => {
   mockSignOut.mockRejectedValue(new Error('offline'));
-  render(<SignOutConfirm member onCancel={jest.fn()} />);
+  render(<SignOutConfirm ownsScenes onCancel={jest.fn()} />);
 
   await userEvent.click(signOut());
   await waitFor(() => expect(cancel()).not.toBeDisabled());

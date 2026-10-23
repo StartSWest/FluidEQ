@@ -17,14 +17,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Activity, type ComponentProps, type RefObject } from 'react';
+import { Activity, type ComponentProps, type RefObject, useRef } from 'react';
 import type { TAudioEngine } from 'common/audioEngine';
 import { OFFICIAL_SITE_URL } from 'common/branding';
 import DriverPicker from '../components/DriverPicker';
+import EqModeCard from '../components/eqMode/EqModeCard';
 import DeviceProfiles from '../DeviceProfiles';
 import ExtraOutputs from '../ExtraOutputs';
 import MenuIcon from '../icons/MenuIcon';
 import PresetsBar from '../PresetsBar';
+import SongSoundSwitch from '../components/SongSoundSwitch';
 import {
   createPreset,
   deletePreset,
@@ -71,6 +73,7 @@ const SoundPanel = ({
   onAttachFluidEngine,
 }: ISoundPanelProps) => {
   const { t } = useTranslation();
+  const scrollRef = useRef<HTMLDivElement>(null);
   return (
     <div
       className={`right-content${isDrawerOpen ? ' is-open' : ''}${
@@ -103,7 +106,13 @@ const SoundPanel = ({
             </svg>
           </button>
         </div>
-        <div className="right-content__scroll" inert={!isShown}>
+        <div ref={scrollRef} className="right-content__scroll" inert={!isShown}>
+          {/* The EQ mode menu, pinned beside the graph it changes: first,
+              because it is the one card here that belongs to the page beside
+              it. Only on the EQ page (`eqModePin.ts`). */}
+          <Activity mode={behindAmp}>
+            <EqModeCard isPaneShown={isShown} scrollRef={scrollRef} />
+          </Activity>
           {/* One card: the output you listen on, and under it the profiles
               that play through it. They were two cards, and the ON pill on
               a profile sat a card away from the output it was on. */}
@@ -113,6 +122,7 @@ const SoundPanel = ({
             <DeviceProfiles
               engine={engine}
               isNoticeHidden={isNoticeHidden}
+              isPaneShown={isShown}
               onConfigureApo={onConfigureApo}
               onAttachFluidEngine={onAttachFluidEngine}
             >
@@ -124,6 +134,7 @@ const SoundPanel = ({
                 renamePreset={renamePreset}
                 deletePreset={deletePreset}
               />
+              <SongSoundSwitch />
             </DeviceProfiles>
           </Activity>
           {/* Directly under the output picker: it is the same question asked
@@ -132,7 +143,7 @@ const SoundPanel = ({
           {/* Awake behind the amp: it plays the mirror to the second output
               (`useOutputMirror`), and asleep it would silence that output
               the moment the window became the amp. */}
-          <ExtraOutputs engine={engine} />
+          <ExtraOutputs engine={engine} isPaneShown={isShown} />
           {/* Sits with the output device because it answers the same question:
               what is this sound coming out of. */}
           <Activity mode={behindAmp}>

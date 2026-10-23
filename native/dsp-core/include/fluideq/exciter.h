@@ -31,6 +31,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq/analog_diode.h"
 #include "fluideq/biquad.h"
 #include "fluideq/exciter_guard.h"
+#include "fluideq/exciter_oversample.h"
 #include "fluideq/harmonics.h"
 #include "fluideq/oversample.h"
 
@@ -54,6 +55,8 @@ typedef struct FeqExciterSettings {
   int enabled;
   int isolate;
   FeqExciterBandSetup bands[FEQ_EXCITER_BANDS];
+  /** `FeqExciterOversampling`: how the harmonics are oversampled. */
+  int oversampling;
 } FeqExciterSettings;
 
 typedef struct FeqExciterDc {
@@ -77,7 +80,7 @@ typedef struct FeqExciterChannel {
   FeqExciterBandCache band_cache[FEQ_EXCITER_BANDS];
   float* bands[FEQ_EXCITER_BANDS];
   float* wet_return;
-  FeqOversampler oversamplers[FEQ_EXCITER_BANDS];
+  FeqExciterOversampler oversamplers[FEQ_EXCITER_BANDS];
   FeqExciterGuard high_guard;
   float* wide;
   float* wide_dry;
@@ -92,6 +95,21 @@ typedef struct FeqExciterChannel {
   double dry_mix;
   FeqExciterDc dc[FEQ_EXCITER_BANDS];
   float* dry;
+  /**
+   * The oversampling the bands run at, and the fade that changes it: the
+   * harmonics go down to nothing over 20 ms, the oversamplers start clean
+   * in the new way and stay silent until they are full (`switch_hold`,
+   * output-rate frames left), and the harmonics come back over 20 ms. The
+   * clean part of each return never fades: it does not go through the
+   * oversamplers. Switched in place, a filter of another length would hand
+   * the harmonics over mid-waveform. `switch_from` and `switch_to` are the
+   * block's ramp, which Organic follows too (`chain_exciter.cpp`).
+   */
+  int quality;
+  double switch_gain;
+  double switch_from;
+  double switch_to;
+  uint32_t switch_hold;
 } FeqExciterChannel;
 
 /**

@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   ReactElement,
-  startTransition,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -61,10 +60,9 @@ import {
   getPlotGeometry,
   IBandPlacement,
   isSamePlacement,
-  placeBandsEvenly,
   subscribePlotGeometry,
 } from '../graph/plotGeometry';
-import { applyBandPlacement } from './bandsRail';
+import { applyBandPlacement, measureBandPlacement } from './bandsRail';
 import {
   bandGainEdits,
   bandGainWrite,
@@ -118,6 +116,31 @@ const useEqPageBands = () => {
   const smartEqMode = useSmartEqMode();
   const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
   const modeMenuHolder = useRef<HTMLSpanElement>(null);
+  const modeMenuTrigger = useRef<HTMLButtonElement>(null);
+  const modeMenuEntry = useRef<HTMLButtonElement | null>(null);
+  const closeModeMenu = useCallback(() => {
+    setIsModeMenuOpen(false);
+    modeMenuTrigger.current?.focus({ preventScroll: true });
+  }, []);
+  // AnchoredMenu mounts its portal after measuring the anchor. A callback ref
+  // focuses the remembered choice when it exists, without guessing a delay.
+  const attachModeMenuEntry = useCallback(
+    (button: HTMLButtonElement | null) => {
+      modeMenuEntry.current = button;
+      if (button && isModeMenuOpen && !isBalancing && !isContinuousOn) {
+        button.focus({ preventScroll: true });
+        button.scrollIntoView?.({ block: 'nearest' });
+      }
+    },
+    [isModeMenuOpen, isBalancing, isContinuousOn],
+  );
+  // A run can start from another surface while this chooser is open. It
+  // must close with that transition and stay closed when the run finishes.
+  useEffect(() => {
+    if (isBalancing || isContinuousOn) {
+      setIsModeMenuOpen(false);
+    }
+  }, [isBalancing, isContinuousOn]);
   /**
    * On, chosen, and not held up by a switch on the other side of the screen.
    *
@@ -131,10 +154,6 @@ const useEqPageBands = () => {
    * over a stopped loop.
    */
   const isContinuousRunning = useIsAutoEqRunning();
-  const smartLabel = isBalancing
-    ? t('eq.smart.cancelAria')
-    : t('eq.smart.aria');
-  const continuousLabel = t('eq.smart.continuousAria');
   /**
    * A correction landing, for as long as the bubble's text holds the applied
    * colour — its own animation, whose end is what clears the flash.
@@ -188,8 +207,35 @@ const useEqPageBands = () => {
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsModeMenuOpen(false);
+        event.preventDefault();
+        closeModeMenu();
+        return;
       }
+      const menu = modeMenuEntry.current?.closest('[data-anchored-menu]');
+      if (!menu?.contains(document.activeElement)) {
+        return;
+      }
+      const items = Array.from(
+        menu.querySelectorAll<HTMLButtonElement>('[role="menuitemradio"]'),
+      );
+      const current = items.findIndex(
+        (item) => item === document.activeElement,
+      );
+      let next: number;
+      if (event.key === 'ArrowDown') {
+        next = (current + 1) % items.length;
+      } else if (event.key === 'ArrowUp') {
+        next = (current - 1 + items.length) % items.length;
+      } else if (event.key === 'Home') {
+        next = 0;
+      } else if (event.key === 'End') {
+        next = items.length - 1;
+      } else {
+        return;
+      }
+      event.preventDefault();
+      items[next]?.focus({ preventScroll: true });
+      items[next]?.scrollIntoView?.({ block: 'nearest' });
     };
     window.addEventListener('mousedown', onPointerDown);
     window.addEventListener('keydown', onKeyDown);
@@ -197,7 +243,7 @@ const useEqPageBands = () => {
       window.removeEventListener('mousedown', onPointerDown);
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [isModeMenuOpen]);
+  }, [isModeMenuOpen, closeModeMenu]);
 
   const frequencySortedFilters = useMemo(
     () => Object.values(filters).sort(sortHelper),
@@ -406,17 +452,10 @@ const useEqPageBands = () => {
       }
       setIsPlaced(next !== undefined);
     };
-    // Measured, not derived: the row sits inside the page's padding and the
-    // plot does not, and the row's own left edge moves when it goes from even
-    // to placed. Its size changes with it, which is what calls this again.
-    // What the page shows of the row: the inside of the scroller it stands
-    // in, between that box's scrollbar gutters, which is where the bands are
-    // clipped.
-    // And never outside the row's own box: the dB scale stands in the column
-    // before it (`.eq-scale`) and the card's padding after it, where the
-    // first and last bands used to hang into the page's padding to meet the
-    // plot's ends (Ivan, 2026-09-27: "less padding to the left", "add some
-    // padding to the right of all").
+    // The rail's width is independent of overflowing bands and scroll arrows.
+    // Watching the row instead fed our own layout change back into the fit
+    // decision and could alternate placed/scrolling forever at a fixed width.
+    const rail = bands.closest('.bands-rail');
     const scroller = bands.closest('.workspace-tab-panel__scroll');
     const place = () => {
       const plot = getPlotGeometry();
@@ -424,20 +463,7 @@ const useEqPageBands = () => {
         settle(undefined);
         return;
       }
-      const row = bands.getBoundingClientRect();
-      const offset = plot.element.getBoundingClientRect().left - row.left;
-      let visible = { left: 0, right: row.width };
-      if (scroller instanceof HTMLElement) {
-        const left =
-          scroller.getBoundingClientRect().left +
-          scroller.clientLeft -
-          row.left;
-        visible = {
-          left: Math.max(0, left),
-          right: Math.min(row.width, left + scroller.clientWidth),
-        };
-      }
-      settle(placeBandsEvenly(bandCount, plot, offset, visible));
+      settle(measureBandPlacement(bands, plot, bandCount));
     };
     place();
     const stopHearing = subscribePlotGeometry(place);
@@ -445,7 +471,12 @@ const useEqPageBands = () => {
       return stopHearing;
     }
     const observer = new ResizeObserver(place);
-    observer.observe(bands);
+    if (rail) {
+      observer.observe(rail);
+    }
+    if (scroller) {
+      observer.observe(scroller);
+    }
     return () => {
       stopHearing();
       observer.disconnect();
@@ -505,20 +536,19 @@ const useEqPageBands = () => {
     [],
   );
 
-  // THE STORE IN A TRANSITION, THE ENGINE AFTER IT (Ivan, 2026-09-26: "so
-  // the user feels it is really fast … and the settings come after, non
-  // blocking UI"). A dragged slider's thumb is already under the pointer
-  // (RangeInput's draft); what a step set off behind it — every band and the
-  // whole graph rendered again, then a layout of the page — was about 9 ms of
-  // React and 7 of layout per step at 1440x900, measured, run inside the
-  // input event, so the next step waited on it. As a transition React renders
-  // it between pointer events and drops a render the next step has already
-  // made stale.
+  // THE STORE AT ONCE, THE ENGINE AFTER IT (Ivan, 2026-09-26: "so the user
+  // feels it is really fast … and the settings come after, non blocking UI").
+  // Every step renders the bands and the graph in the same frame as the
+  // thumb, the way a drag on the graph always has. It was a transition, which
+  // React throws away whenever a newer update arrives: while the hand kept
+  // moving, each step's render was dropped for the next one's and the curve
+  // only caught up when the hand slowed — the slider moved and the curve
+  // trailed it, where dragging the dot moved both together (Ivan,
+  // 2026-10-03: "if I move the slider the curve movement has a lag"). The
+  // engine still hears it one write at a time (`groupFlush`).
   const showGroupEdits = useCallback(
     (edits: IFilterEdit[]) =>
-      startTransition(() => {
-        dispatchFilter({ type: FilterActionEnum.EDITS, edits });
-      }),
+      dispatchFilter({ type: FilterActionEnum.EDITS, edits }),
     [dispatchFilter],
   );
 
@@ -632,9 +662,10 @@ const useEqPageBands = () => {
     isModeMenuOpen,
     setIsModeMenuOpen,
     modeMenuHolder,
+    modeMenuTrigger,
+    attachModeMenuEntry,
+    closeModeMenu,
     isContinuousRunning,
-    smartLabel,
-    continuousLabel,
     correctionFlash,
     bubbleText,
     bubbleRef,

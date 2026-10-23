@@ -26,6 +26,7 @@ import { save } from '../flush';
 import mainText from '../mainText';
 import type { TReplySink } from '../updatePath';
 import onWindowMessage from './windowMessages';
+import type { IEqualizerSnapshot } from '../../common/outputSettings';
 
 export interface IEngineStateIpcDeps {
   state: IState;
@@ -49,6 +50,7 @@ export interface IEngineStateIpcDeps {
   adoptExistingApoConfig: () => boolean;
   hydrateActiveConvolution: () => boolean;
   syncCustomFxFromConfig: () => boolean;
+  snapshot?: () => IEqualizerSnapshot;
 }
 
 /**
@@ -64,6 +66,7 @@ const registerEngineStateIpc = ({
   adoptExistingApoConfig,
   hydrateActiveConvolution,
   syncCustomFxFromConfig,
+  snapshot,
 }: IEngineStateIpcDeps) => {
   onWindowMessage(ChannelEnum.HEALTH_CHECK, async (event) => {
     const channel = ChannelEnum.HEALTH_CHECK;
@@ -109,7 +112,9 @@ const registerEngineStateIpc = ({
       // generated profile. Re-read it whenever the renderer asks for state so
       // a Config inspector edit is reflected in the graph without a restart.
       syncCustomFxFromConfig();
-      const reply: TSuccess<IState> = { result: state };
+      const reply: TSuccess<IEqualizerSnapshot> = {
+        result: snapshot?.() ?? state,
+      };
       event.reply(channel, reply);
     } catch (error) {
       log.error('Reading the state failed', error);

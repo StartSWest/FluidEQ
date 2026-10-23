@@ -90,6 +90,13 @@ export interface IStudioFrameCost {
   scale: number;
   /** When this frame was drawn, for the rate it is really arriving at. */
   atMs?: number;
+  /**
+   * The frames the scene's worker has put on the canvas, on its own clock.
+   * Where it is there the rate is counted from it: the page's frames are
+   * only how often the window hands the music over, and a busy Studio read
+   * 80 a second on a 240 Hz panel the picture was filling (Ivan, 2026-10-18).
+   */
+  shown?: { frames: number; atMs: number };
 }
 
 export interface IStudioReadingSettler {
@@ -144,8 +151,28 @@ export const createStudioReadingSettler = (): IStudioReadingSettler => {
   const rate = ease();
   const showRate = hold(fpsStep);
   let lastAt: number | undefined;
+  let lastShown: { frames: number; atMs: number } | undefined;
   return {
-    frame({ costMs, intervalMs, scale, atMs }) {
+    frame({ costMs, intervalMs, scale, atMs, shown }) {
+      // The worker's count first: frames on the canvas between two answers
+      // over the time between them. An answer with no new frame in it says
+      // nothing about the rate, so the count waits for one that has.
+      let shownInterval: number | undefined;
+      let shownSpanMs = 0;
+      if (shown !== undefined) {
+        const frames =
+          lastShown === undefined ? 0 : shown.frames - lastShown.frames;
+        const spanMs =
+          lastShown === undefined ? 0 : shown.atMs - lastShown.atMs;
+        if (lastShown === undefined || frames < 0 || spanMs > STALL_MS) {
+          // The first answer, a worker built again, or a stall: start over.
+          lastShown = shown;
+        } else if (frames > 0 && spanMs > 0) {
+          shownInterval = spanMs / frames;
+          shownSpanMs = spanMs;
+          lastShown = shown;
+        }
+      }
       // The gap since the frame before this one, which is the rate the scene
       // is really being drawn at. The runner's own interval is the low
       // quartile of the recent gaps — the display's beat, which is what a
@@ -176,10 +203,19 @@ export const createStudioReadingSettler = (): IStudioReadingSettler => {
       // mean of 1/interval is exactly the frames drawn over the time they
       // took; the same mean of the interval itself over-weights the slow
       // frames — a run alternating 8 ms and 24 ms reads as 50 a second when
-      // 62 of them arrive.
+      // 62 of them arrive. Counted from the worker, each sample stands for
+      // the span it was counted over; between counts the figure is kept.
+      let fps: number;
+      if (shownInterval !== undefined) {
+        fps = showRate.of(rate.of(1000 / shownInterval, shownSpanMs));
+      } else if (shown !== undefined && showRate.last() !== undefined) {
+        fps = showRate.last() ?? 0;
+      } else {
+        fps = showRate.of(rate.of(1000 / interval, interval));
+      }
       return {
         ...(settled === undefined ? {} : { costMs: settled }),
-        fps: showRate.of(rate.of(1000 / interval, interval)),
+        fps,
         // The resolution in the words the rows above it use: 100% is the
         // panel's own pixels, and the steps below it are the ladder's.
         // Anything above 1 is `best` smoothing drawing larger to average

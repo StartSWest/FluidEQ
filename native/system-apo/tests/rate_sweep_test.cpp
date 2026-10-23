@@ -12,10 +12,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * this engine builds its graph at 48 kHz — so a coefficient, a filter length
  * or a rack stage that quietly assumed one rate would have passed all of them
  * and changed nothing on his machine. Each case here plays a real tone
- * through a real graph at four rates and reads what came out: 44.1 and 48 for
- * ordinary outputs, 96 for a DAC like his, and 192 because it is the highest
- * a shared-mode endpoint is offered and the first place a fixed-length filter
- * runs out of room.
+ * through a real graph at every rate Windows offers a shared-mode output and
+ * reads what came out: 44.1 and 48 for ordinary outputs, their doubles for a
+ * DAC like his, and up to 384 kHz — not 192, which this test once took for
+ * the ceiling, until a 2.0.0 report's TOPPING DAC ran the engine at 384 kHz
+ * in shared mode. The highest rates are the first place a fixed-length
+ * filter runs out of room.
  *
  * Every measurement is in decibels of change against the same tone that went
  * in, at the same frequency, so the numbers mean the same thing at every rate
@@ -49,8 +51,9 @@ using fluideq_engine_test::run_blocks;
 
 namespace {
 
-/** The four rates a Windows output is actually run at in shared mode. */
-constexpr uint32_t kRates[] = {44100, 48000, 96000, 192000};
+/** The eight rates Windows offers a shared-mode output. */
+constexpr uint32_t kRates[] = {44100,  48000,  88200,  96000,
+                               176400, 192000, 352800, 384000};
 
 /** One second of a steady tone at `rate`, rather than at the fixture's 48k. */
 std::vector<float> tone_at(double hz, double amplitude, uint32_t rate) {

@@ -66,8 +66,14 @@ const storeOf = (scenes: IMemberSceneSummary[]): IFakeStore => {
   return { store, loads };
 };
 
-const viewerOf = (accountId: string | undefined, entitled: boolean) =>
-  ({ accountId: () => accountId, entitled: () => entitled }) as ISceneViewer;
+// Owning every scene, or none: while Plus lasts an account owns them all.
+const viewerOf = (
+  accountId: string | undefined,
+  owned: boolean,
+): ISceneViewer => ({
+  accountId: () => accountId,
+  owns: () => owned,
+});
 
 describe('which member scenes an account may see', () => {
   it('lists the account its own scenes', () => {
@@ -100,7 +106,6 @@ describe('the listing the page is drawn from', () => {
   it('carries the scenes while the membership is live', () => {
     const { store } = storeOf([scene({})]);
     const listing = sceneListing(store, viewerOf(ME, true));
-    expect(listing.entitled).toBe(true);
     expect(listing.scenes).toHaveLength(1);
     expect(listing.locked).toEqual([]);
   });
@@ -108,7 +113,6 @@ describe('the listing the page is drawn from', () => {
   it('locks the same scenes rather than losing them when Plus is off', () => {
     const { store } = storeOf([scene({}), scene({ packId: 'two' })]);
     const listing = sceneListing(store, viewerOf(ME, false));
-    expect(listing.entitled).toBe(false);
     expect(listing.scenes).toEqual([]);
     expect(listing.locked.map((one) => one.packId)).toEqual(['one', 'two']);
   });
@@ -116,13 +120,21 @@ describe('the listing the page is drawn from', () => {
   it('answers afresh when the membership changes under it', () => {
     const { store } = storeOf([scene({})]);
     let live = false;
-    const viewer = {
-      accountId: () => ME,
-      entitled: () => live,
-    } as ISceneViewer;
-    expect(sceneListing(store, viewer).entitled).toBe(false);
+    const viewer: ISceneViewer = { accountId: () => ME, owns: () => live };
+    expect(sceneListing(store, viewer).scenes).toEqual([]);
     live = true;
-    expect(sceneListing(store, viewer).entitled).toBe(true);
+    expect(sceneListing(store, viewer).scenes).toHaveLength(1);
+  });
+
+  it('plays the scenes this account owns and locks the rest, scene by scene', () => {
+    const { store } = storeOf([scene({}), scene({ packId: 'two' })]);
+    const viewer: ISceneViewer = {
+      accountId: () => ME,
+      owns: (lookId) => lookId === ME_LOOK,
+    };
+    const listing = sceneListing(store, viewer);
+    expect(listing.scenes.map((one) => one.packId)).toEqual(['one']);
+    expect(listing.locked.map((one) => one.packId)).toEqual(['two']);
   });
 });
 

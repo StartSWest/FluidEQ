@@ -51,6 +51,7 @@ const on = (platform: string) => {
   window.electron = {
     platform,
     ipcRenderer: {
+      on: jest.fn(() => () => undefined),
       sendMessage: jest.fn(),
       minimizeWindow: jest.fn(() => Promise.resolve()),
       closeWindow: jest.fn(() => Promise.resolve()),

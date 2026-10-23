@@ -133,6 +133,9 @@ export const macSnapshotOf = (
     playing: heard
       .filter(([, other]) => other.isPlaying)
       .map(([otherApp]) => otherApp),
+    // Neither broadcast carries a picture, and asking a player for its artwork
+    // is an Apple event — the consent sheet this file refuses to raise unasked.
+    coverId: '',
   };
 };
 
@@ -267,4 +270,6 @@ export const macSystemMediaSource = {
   sendCommand,
   pauseOthers,
   sendTransportKey,
+  // No broadcast has ever carried a cover id here, so none is ever current.
+  cover: (): string | undefined => undefined,
 };

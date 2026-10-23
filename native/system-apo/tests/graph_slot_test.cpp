@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-#include "../src/watcher.h"
+#include "../src/graph_slot.h"
 #include "graph_test_support.h"
 
 #include <cmath>

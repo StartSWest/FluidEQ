@@ -23,7 +23,6 @@ import { resetAccountStore } from '../../../renderer/account/accountStore';
 import { resetEntitlementStore } from '../../../renderer/account/entitlementStore';
 import { resetPlusNavigation } from '../../../renderer/plus/plusNavigation';
 import { resetProfileStore } from '../../../renderer/plus/profileStore';
-import { resetLeaderboardStore } from '../../../renderer/usage/leaderboardStore';
 import { compileStylesheet, styleRules } from '../../utils/stylesheetRules';
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -40,10 +39,6 @@ jest.mock('../../../renderer/plus/VisualizersView', () => ({
 jest.mock('../../../renderer/studio/StudioPanel', () => ({
   __esModule: true,
   default: () => <div>studio view</div>,
-}));
-jest.mock('../../../renderer/community/LeaderboardView', () => ({
-  __esModule: true,
-  default: () => <div>board view</div>,
 }));
 
 const PINNED_KEY = 'fluideq.plusRailPinned';
@@ -62,7 +57,6 @@ beforeEach(() => {
   resetAccountStore();
   resetEntitlementStore();
   resetProfileStore();
-  resetLeaderboardStore();
   resetPlusNavigation();
   bridge.getAccountState.mockResolvedValue({
     status: 'signed-in',
@@ -168,7 +162,8 @@ describe('the Plus rail', () => {
     // Folded is still the whole rail: every place and the account are there
     // to open it over the place.
     expect(screen.getByTitle('account.menu')).toBeInTheDocument();
-    expect(container.querySelectorAll('.community__channel')).toHaveLength(4);
+    // Visualizers, the Studio and Dynamic lighting.
+    expect(container.querySelectorAll('.community__channel')).toHaveLength(3);
   });
 });
 

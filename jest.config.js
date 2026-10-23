@@ -69,12 +69,22 @@ module.exports = {
   testEnvironmentOptions: {
     url: 'http://localhost/',
   },
+  // The pnpm store that installs made inside the checkout is no source either:
+  // an install's unpacking folders there (`v11/tmp/_tmp_*`) are outside any
+  // node_modules, so their package.json files joined the module map, and two
+  // copies of `electron` left by one evening's reinstalls failed every suite
+  // that mocks it (2026-10-06).
   testPathIgnorePatterns: [
     'release/app/dist',
     '<rootDir>/.claude/',
     '<rootDir>/.gigaide/',
+    '<rootDir>/.pnpm-store/',
   ],
-  modulePathIgnorePatterns: ['<rootDir>/.claude/', '<rootDir>/.gigaide/'],
+  modulePathIgnorePatterns: [
+    '<rootDir>/.claude/',
+    '<rootDir>/.gigaide/',
+    '<rootDir>/.pnpm-store/',
+  ],
   transform: {
     '\\.(ts|tsx|js|jsx)$': 'ts-jest',
   },

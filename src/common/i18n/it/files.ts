@@ -40,6 +40,10 @@ const files = {
     'Incolla un’esportazione EQ di Squiglink prima di importarla.',
   'files.squiglink.tooLarge':
     'Quell’esportazione EQ è troppo grande da importare.',
+  'files.squiglink.earsNeedBands':
+    'Questa esportazione è una curva campionata, che vale per entrambe le orecchie. Applicala a entrambe le orecchie, oppure esportala come filtri parametrici.',
+  'files.squiglink.tooManyBands':
+    'Si supererebbero le {max} bande. Elimina prima qualche banda, oppure applicalo a entrambe le orecchie.',
   'files.squiglink.noFilters':
     'Non sono stati trovati filtri di Equalizer APO. Copia il testo ParametricEQ o GraphicEQ esportato da Squiglink.',
   'files.eq.tooLarge':
@@ -73,6 +77,10 @@ const files = {
     'Le impostazioni di Equalizer APO non sono state trovate.',
   'files.wav.tooLong':
     'Quella risposta all’impulso è troppo lunga da analizzare per una normalizzazione sicura.',
+  // My curves out through Save As (main/ipc/curveExport.ts).
+  'files.title.exportCurves': 'Esporta Le mie curve',
+  'files.type.curveList': 'Elenco di curve FluidEQ',
+  'files.title.exportCurveFolder': 'Scegli una cartella per le curve',
 } as const;
 
 export default files;

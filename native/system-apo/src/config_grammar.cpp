@@ -57,18 +57,6 @@ std::vector<std::string_view> split_ws(std::string_view s) {
   return tokens;
 }
 
-bool parse_double(std::string_view token, double& out) {
-  const auto result =
-      std::from_chars(token.data(), token.data() + token.size(), out);
-  // Finite only. `from_chars` reads "nan" and "inf" as numbers, and one of
-  // them in a preamp, a gain or a Q turned every sample on the output into
-  // NaN — which Windows plays as silence, or as a full-scale burst — and then
-  // stayed latched in the filter history across every reload after it. No
-  // number FluidEQ writes is anything but finite.
-  return result.ec == std::errc() &&
-         result.ptr == token.data() + token.size() && std::isfinite(out);
-}
-
 }  // namespace detail
 
 namespace {
@@ -224,6 +212,46 @@ std::vector<Line> tokenize(std::string_view text) {
     }
   }
   return lines;
+}
+
+ChannelSelection parse_channels(std::string_view body) {
+  // Equalizer APO's speaker names, mapped to `speaker_of_channel`'s order.
+  struct Name {
+    std::string_view word;
+    uint32_t speaker;
+  };
+  static constexpr Name kNames[] = {
+      {"L", 0},  {"R", 1},  {"C", 2},  {"SL", 3},
+      {"SR", 4}, {"RL", 5}, {"RR", 6}, {"SUB", kLowFrequencySpeaker}};
+  ChannelSelection selection;
+  selection.all = false;
+  for (const std::string_view token : detail::split_ws(body)) {
+    if (detail::iequals(token, "all")) {
+      return ChannelSelection{};
+    }
+    bool named = false;
+    for (const Name& name : kNames) {
+      if (detail::iequals(token, name.word)) {
+        selection.speakers |= 1u << name.speaker;
+        named = true;
+        break;
+      }
+    }
+    if (named) {
+      continue;
+    }
+    unsigned number = 0;
+    const auto result =
+        std::from_chars(token.data(), token.data() + token.size(), number);
+    if (result.ec == std::errc() && result.ptr == token.data() + token.size() &&
+        number >= 1 && number <= 32) {
+      selection.indices |= 1u << (number - 1);
+    }
+  }
+  if (selection.speakers == 0 && selection.indices == 0) {
+    return ChannelSelection{};
+  }
+  return selection;
 }
 
 std::optional<Band> parse_filter(std::string_view body) {

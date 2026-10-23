@@ -23,7 +23,9 @@ import {
   MAX_GAIN,
   MIN_GAIN,
   NO_GAIN_FILTER_TYPES,
+  type TBandChannel,
 } from 'common/constants';
+import { EAR_LETTER_KEYS, EAR_NAME_KEYS } from 'renderer/eq/earNames';
 import IconButton, { IconName } from 'renderer/widgets/IconButton';
 import {
   ForwardedRef,
@@ -35,12 +37,14 @@ import {
   useState,
 } from 'react';
 import { useLatestCall } from 'renderer/utils/utils';
+import frequencyText from 'renderer/utils/frequencyText';
 import { useTranslation } from 'renderer/utils/I18nContext';
 import { removeEqualizerSlider, setGain } from '../utils/equalizerApi';
 import { requestBandMenu } from './BandMenu';
 import { FilterActionEnum, useFluidEqShell } from '../utils/FluidEqContext';
 import Slider from './Slider';
 import '../styles/FrequencyBand.scss';
+import '../styles/EqChannels.scss';
 
 type TGainAction = { kind: 'set'; value: number } | { kind: 'reset' };
 
@@ -54,6 +58,8 @@ interface IFrequencyBandProps {
   flatLayout?: boolean;
   isSelected?: boolean;
   isHovered?: boolean;
+  /** The one ear it plays on; absent for both. */
+  ear?: TBandChannel;
   // Both told the band's id, so the row can hand every band the same two
   // callbacks and a band whose props have not changed does not draw again.
   onSelect?: (
@@ -80,6 +86,7 @@ const FrequencyBand = forwardRef(
       flatLayout = false,
       isSelected = false,
       isHovered = false,
+      ear,
       onSelect,
       onHover,
       colorProgress = 0,
@@ -163,7 +170,7 @@ const FrequencyBand = forwardRef(
     // *** Define handlers for handling changes in gain, frequency, quality and filter type ***
     //
     // Every step of a drag reaches the store at once where the row takes
-    // previews — `onGainPreview`, the store in a transition, nothing written —
+    // previews — `onGainPreview`, the store and the graph, nothing written —
     // and the engine through `throttleSetGain`. Through the queue alone the
     // store moved at the engine's pace rather than the hand's.
     const handleGainSubmit = useCallback(
@@ -228,7 +235,8 @@ const FrequencyBand = forwardRef(
             (!event.ctrlKey && !event.metaKey) ||
             !(target instanceof HTMLInputElement) ||
             target.type !== 'range' ||
-            target.disabled
+            target.disabled ||
+            isGainDisabled
           ) {
             return;
           }
@@ -253,6 +261,11 @@ const FrequencyBand = forwardRef(
           setIsDeleteArmed(false);
         }}
       >
+        {ear && (
+          <span className="band-ear" title={t(EAR_NAME_KEYS[ear])}>
+            {t(EAR_LETTER_KEYS[ear])}
+          </span>
+        )}
         {!flatLayout && (
           <div className={`removeFilterRow${isDeleteArmed ? ' is-armed' : ''}`}>
             <IconButton
@@ -261,6 +274,7 @@ const FrequencyBand = forwardRef(
               // armed state is carried by the button filling in solid rather
               // than by a colour alone.
               icon={IconName.TRASH}
+              tabIndex={-1}
               className={`removeFilter${isDeleteArmed ? ' is-armed' : ''}`}
               ariaLabel={isDeleteArmed ? 'eq.delete.armedAria' : undefined}
               // Arms rather than deletes. This bin sits a few pixels above the
@@ -284,6 +298,7 @@ const FrequencyBand = forwardRef(
             {isDeleteArmed && (
               <IconButton
                 icon={IconName.CANCEL}
+                tabIndex={-1}
                 className="removeFilterKeep"
                 ariaLabel="eq.delete.keepAria"
                 handleClick={() => setIsDeleteArmed(false)}
@@ -315,6 +330,7 @@ const FrequencyBand = forwardRef(
           <button
             type="button"
             className="band-frequency-caption"
+            tabIndex={-1}
             aria-label={t('eq.band.edit', { frequency: filter.frequency })}
             // Only a keyboard activation: a pointer press already reached the
             // wrapper above, and answering the click as well toggled a
@@ -334,12 +350,16 @@ const FrequencyBand = forwardRef(
           <div className="col center slider">
             <Slider
               name={`${filter.frequency}-gain`}
+              ariaLabel={t('eq.band.gainSlider', {
+                frequency: frequencyText(filter.frequency),
+              })}
               min={MIN_GAIN}
               max={MAX_GAIN}
               value={filter.gain}
               sliderHeight={sliderHeight}
               setValue={handleGainSubmit}
-              isDisabled={isGainDisabled}
+              onKeyboardSelect={(event) => onSelect?.(filter.id, event)}
+              isReadOnly={isGainDisabled}
               colorProgress={colorProgress}
               showNumberInput={false}
             />

@@ -1,0 +1,218 @@
+const studioChat = {
+  'studioChat.label': 'Chatta con Claude',
+  'studioChat.title': 'Claude',
+  'studioChat.where': 'Claude Code su questo computer',
+  'studioChat.wherePlan': 'Claude Code · piano {plan}',
+  'studioChat.new': 'Nuova chat',
+  'studioChat.otherAi': 'Usa un’altra IA',
+  'studioChat.menu': 'Opzioni della chat',
+  'studioChat.backToChat': 'Torna alla chat',
+  'studioChat.fold': 'Chiudi la chat a lato',
+  'studioChat.unfold': 'Chatta con Claude',
+  'studioChat.inspect':
+    'Questa è una scena di FluidEQ, aperta per guardarci dentro. Inizia un tuo progetto per crearne una con Claude.',
+  'studioChat.noProject':
+    'Inizia un progetto e Claude creerà qui la sua scena con te.',
+  'studioChat.checking': 'Ricerca di Claude Code su questo computer…',
+  'studioChat.missingTitle': 'Crea scene chattando con Claude',
+  'studioChat.missingBody':
+    'Lo Studio chatta tramite il Claude Code di questo computer, con il tuo piano Claude. Non è ancora installato.',
+  'studioChat.signInTitle': 'Accedi a Claude',
+  'studioChat.signInBody':
+    'Claude Code è installato ma non hai effettuato l’accesso. Accedi dalla pagina di Anthropic nel tuo browser; FluidEQ non la vede mai.',
+  'studioChat.install': 'Installa Claude Code',
+  'studioChat.signIn': 'Accedi',
+  'studioChat.signingIn': 'In attesa dell’accesso…',
+  'studioChat.checkAgain': 'Controlla di nuovo',
+  'studioChat.plans':
+    'Claude Code richiede un piano Claude Pro, Max, Team o Enterprise.',
+  'studioChat.otherAiNote':
+    'Usa un’altra IA copia invece un prompt per ChatGPT, Codex o qualsiasi altro assistente.',
+  'studioChat.welcomeTitle': 'Che cosa deve essere questa scena?',
+  'studioChat.welcomeBody':
+    'Descrivila in una frase. Claude la scrive, la guarda, ascolta la tua musica con lei e riproduce ogni versione sul palco.',
+  'studioChat.you': 'Tu',
+  'studioChat.claude': 'Claude',
+  'studioChat.attachedNote': 'Con un’immagine del palco',
+  'studioChat.seenLarger': 'Mostra questa immagine più grande',
+  'studioChat.thinking': 'Sta pensando…',
+  'studioChat.step.theScene': 'la scena',
+  'studioChat.step.look': 'Ha guardato la scena',
+  'studioChat.step.lookNow': 'Guarda la scena…',
+  'studioChat.step.hear': 'Ha ascoltato la musica',
+  'studioChat.step.hearNow': 'Ascolta la musica…',
+  'studioChat.step.read': 'Ha letto {file}',
+  'studioChat.step.readNow': 'Legge {file}…',
+  'studioChat.step.write': 'Ha modificato {file}',
+  'studioChat.step.writeNow': 'Modifica {file}…',
+  'studioChat.step.search': 'Ha esaminato il progetto',
+  'studioChat.step.searchNow': 'Esamina il progetto…',
+  'studioChat.step.other': 'Ha lavorato sulla scena',
+  'studioChat.step.otherNow': 'Lavora sulla scena…',
+  'studioChat.version': 'Versione {version}',
+  'studioChat.playing': 'In riproduzione sul palco',
+  'studioChat.bringBack': 'Ripristina',
+  'studioChat.broughtBack': 'Di nuovo sul palco',
+  'studioChat.bringBackFailed':
+    'Non è stato possibile ripristinare questa versione.',
+  'studioChat.stopped': 'Interrotto.',
+  'studioChat.failed.missing': 'Claude Code non è più su questo computer.',
+  'studioChat.failed.signedOut':
+    'Claude Code è disconnesso. Accedi, poi invia di nuovo il messaggio.',
+  'studioChat.failed.limit':
+    'Hai raggiunto il limite di utilizzo del tuo piano Claude. Si azzera dopo un po’; invia di nuovo il messaggio allora.',
+  'studioChat.failed.crashed':
+    'Claude Code si è fermato prima di finire. Invia di nuovo il messaggio per continuare.',
+  'studioChat.placeholderFirst': 'Descrivi la tua scena…',
+  'studioChat.placeholder':
+    'Chiedi una modifica, come «fai lampeggiare le luci sul rullante»',
+  'studioChat.attach': 'Allega il palco',
+  'studioChat.attached': 'Palco allegato',
+  'studioChat.attachHint':
+    'Invia con il messaggio un’immagine della scena com’è adesso',
+  'studioChat.send': 'Invia',
+  'studioChat.stop': 'Interrompi',
+  'studioChat.fine':
+    'Usa il tuo Claude Code con il tuo piano Claude. Può modificare i file di questo progetto e vedere e sentire la scena. FluidEQ non vede mai il tuo accesso.',
+  'studioChat.status.working': 'Claude sta lavorando alla scena',
+  'studioChat.model': 'Modello',
+  'studioChat.effort': 'Impegno',
+  'studioChat.modelDefault': 'Predefinito',
+  'studioChat.effortDefault': 'Predefinito',
+  'studioChat.effortLow': 'Basso',
+  'studioChat.effortMedium': 'Medio',
+  'studioChat.effortHigh': 'Alto',
+  'studioChat.effortXhigh': 'Molto alto',
+  'studioChat.effortMax': 'Massimo',
+  'studioChat.carryOn': 'Continua',
+  'studioChat.carryOnMessage': 'Per favore, continua da dove ti eri fermato.',
+  'studioChat.resize': 'Trascina per ridimensionare la chat',
+  'studioChat.effortHint':
+    'Quanto riflette Claude. Medio va bene per la maggior parte delle modifiche.',
+  'studioChat.modelHintDefault': 'Quello impostato in Claude Code',
+  'studioChat.modelHintFable': 'Il più capace, per le scene più difficili',
+  'studioChat.modelHintOpus': 'Profondo e accurato, per grandi modifiche',
+  'studioChat.modelHintSonnet':
+    'Veloce e capace, per la maggior parte delle modifiche',
+  'studioChat.modelHintHaiku': 'Il più rapido, per piccoli ritocchi',
+  'studioChat.effortWarning':
+    'Un impegno più alto fa riflettere Claude più a lungo: le risposte richiedono più tempo e consumano prima i limiti del tuo piano Claude.',
+  'studioChat.step.picture': 'Immagine {file} creata',
+  'studioChat.step.pictureNow': 'Creazione dell’immagine {file} con ChatGPT…',
+  'studioChat.step.pack': 'Immagini inserite nella scena',
+  'studioChat.step.packNow': 'Inserimento delle immagini nella scena…',
+  'studioChat.ask.connectTitle': 'Creare immagini con ChatGPT?',
+  'studioChat.ask.connectBody':
+    'Claude vorrebbe che ChatGPT dipingesse immagini per questa scena, come texture e scontornati, con il tuo piano ChatGPT tramite l’app Codex. Ti viene chiesto prima di ogni immagine.',
+  'studioChat.ask.needsCodex':
+    'Serve l’app Codex di OpenAI, con l’accesso fatto con il tuo account ChatGPT. Installala, poi torna qui.',
+  'studioChat.ask.codexSignedOut':
+    'Codex è installato ma non ha l’accesso con ChatGPT.',
+  'studioChat.ask.connect': 'Collega ChatGPT',
+  'studioChat.ask.getCodex': 'Scarica Codex',
+  'studioChat.ask.signIn': 'Accedi con ChatGPT',
+  'studioChat.ask.notNow': 'Non ora',
+  'studioChat.ask.pictureTitle': 'Creare questa immagine con ChatGPT?',
+  'studioChat.ask.pictureSize': '{width} × {height}',
+  'studioChat.ask.transparent': 'Scontornata su sfondo trasparente',
+  'studioChat.ask.makeIt': 'Creala',
+  'studioChat.ask.allowChat': 'Consenti per questa chat',
+  'studioChat.ask.cost': 'Usa il tuo piano ChatGPT; circa un minuto.',
+  'studioChat.chatgptOn': 'Le immagini di ChatGPT sono attive.',
+  'studioChat.chatgptTurnOff': 'Disattiva',
+  'studioChat.past.title': 'Chat precedenti',
+  'studioChat.past.empty':
+    'Ancora nessuna chat precedente. Quando inizi una nuova chat, questa viene conservata qui.',
+  'studioChat.past.loading': 'Ricerca delle chat precedenti…',
+  'studioChat.past.fromClaude': 'Conservata da Claude Code',
+  'studioChat.past.fromClaudeHint':
+    'Trovata nella copia di Claude Code: tornano i messaggi, non le versioni da ripristinare.',
+  'studioChat.past.delete': 'Elimina questa chat',
+  'studioChat.past.busy':
+    'Aspetta che Claude finisca prima di aprire un’altra chat.',
+  'studioChat.zoom.label': 'Dimensione del testo della chat',
+  'studioChat.zoom.in': 'Testo più grande',
+  'studioChat.zoom.out': 'Testo più piccolo',
+  'studioChat.zoom.reset': 'Torna alla dimensione normale',
+  'studioChat.copy': 'Copia',
+  'studioChat.copied': 'Copiato',
+  'studioChat.sketch.title': 'Disegna sull’immagine',
+  'studioChat.sketch.lead':
+    'Cerchia le cose, indicale con le frecce o scrivi accanto. Claude vede i tuoi segni insieme all’immagine.',
+  'studioChat.sketch.done': 'Usa questa immagine',
+  'studioChat.sketch.cancel': 'Annulla',
+  'studioChat.sketch.undo': 'Annulla tratto',
+  'studioChat.sketch.clear': 'Cancella tutto',
+  'studioChat.sketch.ink': 'Colore',
+  'studioChat.sketch.red': 'Rosso',
+  'studioChat.sketch.yellow': 'Giallo',
+  'studioChat.sketch.cyan': 'Ciano',
+  'studioChat.sketch.white': 'Bianco',
+  'studioChat.sketch.width': 'Penna',
+  'studioChat.sketch.thin': 'Penna sottile',
+  'studioChat.sketch.thick': 'Penna spessa',
+  'studioChat.sketch.canvas': 'L’immagine della scena, su cui disegnare',
+  'studioChat.sketch.open': 'Disegna sull’immagine',
+  'studioChat.sketch.remove': 'Rimuovi l’immagine',
+  'studioChat.sketch.tool': 'Strumento',
+  'studioChat.sketch.pen': 'Penna',
+  'studioChat.sketch.arrow': 'Freccia',
+  'studioChat.sketch.text': 'Testo',
+  'studioChat.sketch.textHint': 'Scrivi, poi Invio',
+  'studioChat.accounts.title': 'Account',
+  'studioChat.accounts.open': 'Vedi quali account Claude e ChatGPT usa la chat',
+  'studioChat.accounts.claude': 'Claude',
+  'studioChat.accounts.chatgpt': 'ChatGPT',
+  'studioChat.accounts.unknown': 'Accesso eseguito',
+  'studioChat.accounts.switch': 'Usa un altro account',
+  'studioChat.accounts.claudeMissing':
+    'Claude Code non è installato su questo computer.',
+  'studioChat.accounts.claudeOut': 'Claude Code non ha eseguito l’accesso.',
+  'studioChat.accounts.codexMissing':
+    'L’app Codex non è installata, quindi ChatGPT non può creare immagini.',
+  'studioChat.accounts.codexOut':
+    'Codex non ha eseguito l’accesso con ChatGPT.',
+  'studioChat.accounts.picturesOn':
+    'Crea immagini in questa chat quando dici sì a ciascuna.',
+  'studioChat.accounts.picturesOff':
+    'Nessuna immagine per ora: la prima volta che Claude ne vorrà una, te lo chiederà.',
+  'studioChat.accounts.picturesOffButton': 'Disattiva le immagini',
+  'studioChat.accounts.codexPlan': 'Piano ChatGPT {plan} · tramite Codex',
+  'studioChat.accounts.fine':
+    'FluidEQ mostra quali account sono e non vede mai i loro accessi.',
+  'studioChat.welcomeSceneTitle': 'Cosa vuoi cambiare in {name}?',
+  'studioChat.welcomeSceneBody':
+    'Di’ a Claude cosa cambiare: l’aspetto, come si muove con la musica, i colori o la luce. Claude modifica questa scena e riproduce ogni versione sul palco.',
+  'studioChat.queue.title':
+    'In coda · Claude li legge insieme al prossimo passo',
+  'studioChat.queue.send': 'Metti in coda: Claude lo legge al prossimo passo',
+  'studioChat.queue.remove': 'Ritira',
+  'studioChat.queue.sent':
+    'Consegnato a Claude: lo legge appena finisce il passo in corso',
+  'studioChat.queue.picture': 'Con un’immagine della scena',
+  'studioChat.step.compact': 'Conversazione compattata',
+  'studioChat.step.compactNow': 'Compattazione della conversazione…',
+  'studioChat.step.compactTokens': '{before} → {after} token',
+  'studioChat.compact.label': 'Compatta',
+  'studioChat.context.share': '{percent}% del contesto',
+  'studioChat.context.detail':
+    '{used} di {window} token nella finestra di contesto di Claude. Compattare fa spazio.',
+  'studioChat.context.tokens': '{used} token di contesto',
+  'studioChat.limits.fiveHour': 'Sessione attuale (5 ore)',
+  'studioChat.limits.week': 'Questa settimana',
+  'studioChat.limits.used': '{percent}% usato',
+  'studioChat.limits.resets': 'Si azzera {time}',
+  'studioChat.limits.asOf':
+    'Alle {time} · aggiornato a ogni risposta di Claude',
+  'studioChat.limits.none':
+    'I limiti di 5 ore e settimanali compaiono qui quando Claude ha risposto a un messaggio.',
+  'studioChat.context.tokensOf': '{used} di {window} token',
+  'studioChat.context.explain':
+    'Ogni messaggio porta con sé tutta la conversazione. Compattare la riassume fin qui, così i messaggi successivi portano meno.',
+  'studioChat.queue.sendNow': 'Invia ora',
+  'studioChat.queue.sendNowHint':
+    'Ferma il passo in corso di Claude e li legge ora, come un solo messaggio',
+  'studioChat.step.times': '×{count}',
+} as const;
+
+export default studioChat;

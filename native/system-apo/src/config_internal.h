@@ -30,9 +30,10 @@ bool iequals(std::string_view a, std::string_view b);
 // that away as part of the line-ending handling in `tokenize`.
 std::vector<std::string_view> split_ws(std::string_view s);
 
-// `std::from_chars` only. `strtod` reads the locale too, and turns "1.41"
-// into 1 on a machine set to a comma-decimal locale. False for a value that
-// is not finite: see the definition.
+// Locale-independent, with from_chars' decimal grammar on every platform.
+// Bare strtod turns "1.41" into 1 in a comma-decimal locale. Apple's floating
+// from_chars requires macOS 26, so macOS pins strtod_l to a private C locale.
+// False for non-finite values, partial tokens and values outside double.
 bool parse_double(std::string_view token, double& out);
 
 }  // namespace fluideq_engine::detail

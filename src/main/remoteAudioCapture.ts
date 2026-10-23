@@ -4,6 +4,7 @@ import type { ILanRemoteAudioChunk } from '../common/remoteAudio';
 import {
   startNativeCaptureProcess,
   type INativeCaptureProcess,
+  type TCaptureMode,
 } from './nativeCaptureProcess';
 
 export interface IRemoteAudioCapture {
@@ -13,14 +14,21 @@ interface IClient {
   audio?: (chunk: ILanRemoteAudioChunk) => void;
   failure(): void;
 }
+/** What a running mirror is told by its helper, besides answers. */
+interface IMirrorListener {
+  failed(): void;
+  /** How far behind it plays, in milliseconds. */
+  delay(milliseconds: number): void;
+}
 interface ISession {
+  mode: TCaptureMode;
   clients: Set<IClient>;
-  mirrors: Map<number, () => void>;
+  mirrors: Map<number, IMirrorListener>;
   requests: Map<number, { resolve(): void; reject(error: Error): void }>;
   opening?: Promise<INativeCaptureProcess>;
   process?: INativeCaptureProcess;
 }
-let session: ISession | undefined;
+const sessions = new Map<TCaptureMode, ISession>();
 let nextId = 0;
 const allocateId = () => {
   nextId = nextId === 0xffff_ffff ? 1 : nextId + 1;
@@ -28,8 +36,8 @@ const allocateId = () => {
 };
 
 const failSession = (current: ISession) => {
-  if (session === current) {
-    session = undefined;
+  if (sessions.get(current.mode) === current) {
+    sessions.delete(current.mode);
   }
   current.process?.close();
   const error = new Error('The system audio capture stopped.');
@@ -41,19 +49,28 @@ const failSession = (current: ISession) => {
   clients.forEach((client) => client.failure());
 };
 
-const acquire = (client: IClient) => {
-  session ??= { clients: new Set(), mirrors: new Map(), requests: new Map() };
-  const current = session;
+const acquire = (mode: TCaptureMode, client: IClient) => {
+  const current: ISession = sessions.get(mode) ?? {
+    mode,
+    clients: new Set(),
+    mirrors: new Map(),
+    requests: new Map(),
+  };
+  sessions.set(mode, current);
   current.clients.add(client);
   current.opening ??= startNativeCaptureProcess(
-    'system',
+    mode,
     (chunk) =>
       current.clients.forEach((subscriber) => subscriber.audio?.(chunk)),
     () => failSession(current),
     (kind, id, result) => {
       if (kind === 4) {
-        current.mirrors.get(id)?.();
+        current.mirrors.get(id)?.failed();
         current.mirrors.delete(id);
+        return;
+      }
+      if (kind === 5) {
+        current.mirrors.get(id)?.delay(result / 1000);
         return;
       }
       const request = current.requests.get(id);
@@ -79,25 +96,26 @@ const acquire = (client: IClient) => {
     current.clients.delete(client);
     if (current.clients.size === 0) {
       current.process?.close();
-      if (session === current) {
-        session = undefined;
+      if (sessions.get(mode) === current) {
+        sessions.delete(mode);
       }
     }
   };
   return { current, ready: current.opening, close };
 };
 
-/** LAN and every mirror share one excluded process, or LAN would recapture
- * the mirrors. Closing either feature releases only its own lease. */
-export const startRemoteAudioCapture = async (
-  peerId: string,
+/**
+ * This computer's sound for the network: everything it plays, and none of
+ * what other computers send it or the second output mirrors — that is the
+ * `lan` capture, which leaves the LAN audio helper's whole tree out. Shared
+ * by every computer this one sends to; chunks carry no peer, the link
+ * addresses each copy.
+ */
+export const startNetworkCapture = async (
   onAudio: (chunk: ILanRemoteAudioChunk) => void,
   onFailure: () => void,
 ): Promise<IRemoteAudioCapture> => {
-  const lease = acquire({
-    audio: (chunk) => onAudio({ ...chunk, peerId }),
-    failure: onFailure,
-  });
+  const lease = acquire('lan', { audio: onAudio, failure: onFailure });
   try {
     await lease.ready;
     return { close: lease.close };
@@ -110,28 +128,30 @@ export const startRemoteAudioCapture = async (
 /**
  * The sound before FluidEQ touches it, for Smart EQ to measure.
  *
- * The same process loopback the LAN sender uses, and for the same reason it
- * exists there: Windows hands a process loopback the mix BEFORE the endpoint's
- * effects, so neither Equalizer APO nor the FluidEQ Engine is in it. Measured
- * on 2026-09-22 against the ordinary endpoint loopback taken at the same
- * moment, with the engine's whole rack running: the two differed by the
- * rack's own colouring, three to five decibels across the band, and the
- * endpoint peaked two decibels hotter — the process loopback carried none of
- * it. That is what makes a Smart EQ correction a statement about the record
- * rather than about whatever was already applied to it.
+ * The same kind of process loopback the network's capture uses, and for the
+ * same reason it exists there: Windows hands a process loopback the mix
+ * BEFORE the endpoint's effects, so neither Equalizer APO nor the FluidEQ
+ * Engine is in it. Measured on 2026-09-22 against the ordinary endpoint
+ * loopback taken at the same moment, with the engine's whole rack running:
+ * the two differed by the rack's own colouring, three to five decibels across
+ * the band, and the endpoint peaked two decibels hotter — the process
+ * loopback carried none of it. That is what makes a Smart EQ correction a
+ * statement about the record rather than about whatever was already applied
+ * to it.
  *
- * A lease on the shared session, like the sender's, with no peer: chunks go
- * to the window's `source` port and nowhere else. The Library keeps its rack
- * — `setDspHostRawSharing` is deliberately NOT asked for, because putting the
- * Library into pass-through to measure it would change what the listener
- * hears for as long as the measurement ran; the Library's own input tap is
- * how the measurement hears that source instead (`rawSource.ts`).
+ * A lease on the `local` capture, the second output's, so it hears what other
+ * computers share with this one too: that is part of what is playing here.
+ * Chunks go to the window's `source` port and nowhere else. The Library keeps
+ * its rack — `setDspHostRawSharing` is deliberately NOT asked for, because
+ * putting the Library into pass-through to measure it would change what is
+ * heard here for as long as the measurement ran; the Library's own input tap
+ * is how the measurement hears that source instead (`rawSource.ts`).
  */
 export const startRawSourceCapture = async (
   onAudio: (chunk: ILanRemoteAudioChunk) => void,
   onFailure: () => void,
 ): Promise<IRemoteAudioCapture> => {
-  const lease = acquire({ audio: onAudio, failure: onFailure });
+  const lease = acquire('local', { audio: onAudio, failure: onFailure });
   try {
     await lease.ready;
     return { close: lease.close };
@@ -141,29 +161,36 @@ export const startRawSourceCapture = async (
   }
 };
 
-export interface INativeOutputMirror extends IRemoteAudioCapture {
+export interface INativeOutputHold {
   close(): Promise<void>;
+}
+
+export interface INativeOutputMirror extends INativeOutputHold {
   setVolume(volume: number): Promise<void>;
 }
 
-export const startNativeOutputMirror = async (
-  guid: string,
-  mode: 'music' | 'video',
-  volume: number,
-  onFailure: () => void,
-): Promise<INativeOutputMirror> => {
-  const lease = acquire({ failure: onFailure });
+/**
+ * One second output on a capture helper: started with `kind` and `args`,
+ * commanded under its own id, and stopped with `stop`.
+ */
+const startOnHelper = async (
+  mode: TCaptureMode,
+  kind: string,
+  args: string,
+  listener: IMirrorListener,
+) => {
+  const lease = acquire(mode, { failure: listener.failed });
   const id = allocateId();
   const { current } = lease;
   let closed = false;
   let closing: Promise<void> | undefined;
-  const command = async (kind: string, args = '') => {
+  const command = async (verb: string, rest = '') => {
     const process = await lease.ready;
     return new Promise<void>((resolve, reject) => {
       const requestId = allocateId();
       current.requests.set(requestId, { resolve, reject });
       try {
-        process.command(`${kind} ${requestId} ${id}${args ? ` ${args}` : ''}`);
+        process.command(`${verb} ${requestId} ${id}${rest ? ` ${rest}` : ''}`);
       } catch (error) {
         current.requests.delete(requestId);
         reject(error);
@@ -171,11 +198,11 @@ export const startNativeOutputMirror = async (
     });
   };
   try {
-    current.mirrors.set(id, onFailure);
-    await command('start', `${guid} ${mode} ${volume}`);
+    current.mirrors.set(id, listener);
+    await command(kind, args);
     return {
-      setVolume: (value) =>
-        closed ? Promise.resolve() : command('volume', String(value)),
+      command: (verb: string, rest: string) =>
+        closed ? Promise.resolve() : command(verb, rest),
       close: () => {
         if (closing) {
           return closing;
@@ -197,4 +224,48 @@ export const startNativeOutputMirror = async (
     lease.close();
     throw error;
   }
+};
+
+/**
+ * The second output: this computer's sound, the sound other computers share
+ * with it included, played on another device. Rendered by the `local`
+ * capture itself, which leaves itself out, so a mirror is never heard twice;
+ * the network's capture leaves this one's tree out with it.
+ *
+ * It keeps time by itself, the way Share Audio's playback does; there is no
+ * mode to choose (`mirror_output.h`). `onDelay` hears how far behind it plays,
+ * about twice a second.
+ */
+export const startNativeOutputMirror = async (
+  guid: string,
+  volume: number,
+  onFailure: () => void,
+  onDelay: (milliseconds: number) => void,
+): Promise<INativeOutputMirror> => {
+  const mirror = await startOnHelper('local', 'start', `${guid} ${volume}`, {
+    failed: onFailure,
+    delay: onDelay,
+  });
+  return {
+    setVolume: (value) => mirror.command('volume', String(value)),
+    close: mirror.close,
+  };
+};
+
+/**
+ * A second output held open in silence, so the FluidEQ Engine on it runs and
+ * plays the main output's sound straight from the main output's engine
+ * (`hold_output.h`, `secondOutputRoute.ts`). On the `hold` helper, which
+ * captures nothing: its volume is the engine's, in the split file.
+ */
+export const startNativeOutputHold = async (
+  guid: string,
+  onFailure: () => void,
+): Promise<INativeOutputHold> => {
+  const hold = await startOnHelper('hold', 'hold', guid, {
+    failed: onFailure,
+    // Its processing delay comes from the engine's status, not this helper.
+    delay: () => undefined,
+  });
+  return { close: hold.close };
 };

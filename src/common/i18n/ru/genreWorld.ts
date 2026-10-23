@@ -135,13 +135,14 @@ export default {
   'genre.arabicPop.pin.1250.why': 'Мелизмы разборчиво.',
   'genre.arabicPop.pin.5000': 'Струнные не осветлены',
   'genre.arabicPop.pin.5000.why': 'И так яркие.',
+  'genre.arabicPop.stage.exciter':
+    'Теплота под голосом; струнные и тек остаются такими же яркими.',
   'genre.arabicPop.stage.bassPunch': 'Низ подтянут.',
   'genre.arabicPop.stage.dimension':
     'Струнные такой ширины, как записано; сужен только низ.',
   'genre.arabicPop.stage.maximizer':
     'Лёгкий потолок, который сохраняет атаку дарбуки.',
-  'genre.arabicPop.off':
-    'Ни Эксайтера, ни Кузницы баса: струнные и тек и так яркие.',
+  'genre.arabicPop.off': 'Без Кузницы баса: под думом ничего не создаётся.',
 
   'genre.turkishPop.hook': 'Отполированный поп с турецким колоритом',
   'genre.turkishPop.story':
@@ -154,11 +155,11 @@ export default {
   'genre.turkishPop.pin.1250.why': 'Впереди.',
   'genre.turkishPop.pin.8000': 'Блеск не добавляется',
   'genre.turkishPop.pin.8000.why': 'И так отполировано.',
+  'genre.turkishPop.stage.exciter': 'Теплота под голосом, ничего на дарбуке.',
   'genre.turkishPop.stage.bassPunch': 'Плотный низ.',
   'genre.turkishPop.stage.dimension': 'Как в миксе, сужен только низ.',
   'genre.turkishPop.stage.maximizer': 'Потолок, который почти не подталкивает.',
-  'genre.turkishPop.off':
-    'Ни Эксайтера, ни Кузницы баса на такой отполированной записи.',
+  'genre.turkishPop.off': 'Без Кузницы баса на такой отполированной записи.',
 
   'genre.gospel.hook': 'Хор и вампы, нарастающие минутами',
   'genre.gospel.story':

@@ -364,7 +364,6 @@ const dsp = {
   'dsp.eqStereo.side': '仅两侧',
   'dsp.eqOversample.label': '过采样',
   'dsp.eqOversample.off': '关',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     '精确：此均衡器的每个频段都完全按绘制的样子发声，直到 20\u00a0kHz。',
   'dsp.eqImport.title': '导入均衡曲线',
@@ -374,6 +373,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': '选择文件',
   'dsp.eqImport.apply': '导入',
   'dsp.eqImport.cancel': '取消',
+  'dsp.eqImport.tooMany':
+    '这样会超过 {max} 个频段。请先删除一些频段，或导入到双耳。',
 
   'dsp.eq.title': '均衡器',
   'dsp.eq.band': '频段',
@@ -425,6 +426,16 @@ const dsp = {
   'dsp.exciter.band.mid': '中频',
   'dsp.exciter.band.high': '高频',
   'dsp.exciter.texture': '质感',
+  'dsp.exciter.oversampling': '过采样',
+  'dsp.exciter.oversampling.off': '关',
+  'dsp.exciter.oversampling.standard': '标准',
+  'dsp.exciter.oversampling.high': '高',
+  'dsp.exciter.oversampling.offHint':
+    '以输出本身的采样率生成谐波：负载最轻，但从顶端折返的成分会带来一些颗粒感。',
+  'dsp.exciter.oversampling.standardHint':
+    '以最高为输出采样率四倍的速率生成谐波，激励器一直以来都是这样运行的。',
+  'dsp.exciter.oversampling.highHint':
+    '同样的速率，配合陡峭得多的滤波器，顶端不再有任何折返。处理器的工作量略有增加。',
   'dsp.exciter.organic': '有机',
   'dsp.exciter.organicHint':
     '在所选范围加入柔和的偶次谐波厚度。非常适合让干净、偏金属的声音或钛振膜单元在不损失细节的前提下更温暖、更自然。',

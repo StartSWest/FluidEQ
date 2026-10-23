@@ -6,12 +6,18 @@ import {
   type ReactNode,
 } from 'react';
 import type { TranslationKey } from 'common/i18n';
+import { memberLookId } from 'common/memberScenes';
 import { resolveSceneName } from 'common/scenePacks';
+import { useAccount } from '../account/accountStore';
 import { useLiveAudioCapture } from '../audio/LiveAudioContext';
 import PlusToastStack from '../plus/PlusToastStack';
+import { useOwnsLook } from '../plus/sceneStore';
 import { useTranslation } from '../utils/I18nContext';
+import StudioChat from './chat/StudioChat';
+import StudioChatColumn from './chat/StudioChatColumn';
+import useStageCapture from './chat/useStageCapture';
+import { useStudioChat } from './chat/studioChatStore';
 import StudioCode, { problemLinesOf } from './StudioCode';
-import StudioMaker from './StudioMaker';
 import StudioMeters from './StudioMeters';
 import StudioNewProjectDialog from './StudioNewProjectDialog';
 import StudioProblems from './StudioProblems';
@@ -20,7 +26,6 @@ import StudioPublishDialog from './StudioPublishDialog';
 import StudioShareDialog from './StudioShareDialog';
 import StudioShipCard from './StudioShipCard';
 import StudioShipInspect from './StudioShipInspect';
-import StudioShipMaker from './StudioShipMaker';
 import StudioDrawing from './StudioDrawing';
 import StudioFramingDialog from './StudioFramingDialog';
 import StudioListen from './StudioListen';
@@ -59,11 +64,13 @@ interface IStudioBenchProps {
 }
 
 /**
- * The Studio: the scene live on the stage, what it hears and what to test it
- * with beside it, and how to make it under it — one surface whether a project
- * is open or not, so nothing a member saw on the first visit is gone once
- * they have a project. With none, the stage is where the first one starts
- * and everything that needs a scene waits, unlit, where it will be.
+ * The Studio: the scene live on the stage, the work on it in tabs under it,
+ * and the chat with Claude that makes it in a pane the bench's whole height
+ * beside it (Ivan, 2026-10-09, the redesign around the chat) — one surface
+ * whether a project is open or not, so nothing a member saw on the first
+ * visit is gone once they have a project. With none, the stage is where the
+ * first one starts and everything that needs a scene waits, unlit, where it
+ * will be.
  */
 export default function StudioBench({ view }: IStudioBenchProps) {
   const { t, locale } = useTranslation();
@@ -119,6 +126,14 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   const folderName = project?.folderName;
   const name = pack ? resolveSceneName(pack, locale) : (folderName ?? '');
   const playing = Boolean(pack) && trouble?.kind !== 'heavy';
+  // Published is what lets the member's own scene play outside the Studio
+  // (`mayPlayLook`); until then the stage marks it a draft. FluidEQ's own,
+  // opened to look inside, is nobody's draft.
+  const accountId = useAccount().identity?.id;
+  const published = useOwnsLook(
+    pack && accountId ? memberLookId(accountId, pack.id) : '',
+  );
+  const draft = Boolean(pack) && !project?.official && !published;
   const onPublished = useCallback(
     () => setPublications((count) => count + 1),
     [],
@@ -144,8 +159,13 @@ export default function StudioBench({ view }: IStudioBenchProps) {
     playing && !pausedForPublish,
   );
 
+  const chatBusy = useStudioChat().chat?.busy === true;
+  const captureStage = useStageCapture(playing ? pack : undefined, tuner.wave);
+
   let status: TranslationKey = 'studio.status.waiting';
-  if (
+  if (chatBusy) {
+    status = 'studioChat.status.working';
+  } else if (
     pack &&
     (problems ||
       trouble?.kind === 'compile' ||
@@ -172,47 +192,29 @@ export default function StudioBench({ view }: IStudioBenchProps) {
 
   const keeping = useStudioKeep(name, tuner.wave, setNotice);
 
-  // "Open a folder…" from the bar and from the empty stage: without Plus a
-  // folder of several scenes puts the first on the bench and lists the rest
-  // locked, and the member is told so.
+  // "Open a folder…" from the bar and from the empty stage.
   const linkFolder = () => {
-    linkStudioFolder()
-      .then((outcome) => {
-        if (outcome === 'one-opened') {
-          setNotice({ ok: true, key: 'studio.plus.oneFolder' });
-        }
-        return undefined;
-      })
-      .catch(() => undefined);
+    linkStudioFolder().catch(() => undefined);
   };
 
   // Where keeping, publishing and sending go: a FluidEQ scene opened to look
-  // inside says what it is for instead; without Plus — which on the bench
-  // means a maker — Publish stays open and the rest are shown locked. Three
-  // of them, chosen here, rather than one with two flags; each stands at the
-  // end of the bar.
+  // inside says what it is for instead. Two of them, chosen here, rather
+  // than one with a flag; each stands at the end of the bar.
   let shipCard = (
-    <StudioShipMaker
+    <StudioShipCard
+      published={published}
       unfit={unfit}
+      onAdd={keeping.add}
       publishing={publishing.preparing}
       onPublish={publishing.begin}
+      exporting={sharing.exporting}
+      onExport={sharing.startExport}
+      onSetDesktop={keeping.setDesktop}
+      settingDesktop={keeping.settingDesktop}
     />
   );
   if (project?.official) {
     shipCard = <StudioShipInspect />;
-  } else if (state.entitled) {
-    shipCard = (
-      <StudioShipCard
-        unfit={unfit}
-        onAdd={keeping.add}
-        publishing={publishing.preparing}
-        onPublish={publishing.begin}
-        exporting={sharing.exporting}
-        onExport={sharing.startExport}
-        onSetDesktop={keeping.setDesktop}
-        settingDesktop={keeping.settingDesktop}
-      />
-    );
   }
 
   let stage = (
@@ -246,6 +248,7 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         key={`stage:${state.activeId}`}
         identity={state.activeId ?? ''}
         pack={pack}
+        draft={draft}
         serial={serial}
         signal={signal}
         size={size}
@@ -274,16 +277,32 @@ export default function StudioBench({ view }: IStudioBenchProps) {
   }
 
   const idle = !(pack && playing);
-  // "What it hears" beside the stage, or a tab under it when the bench is too
-  // narrow for the column: one live copy of the meters either way.
-  const listening = (
-    <>
-      <StudioListen signal={signal} onSignal={setSignal} idle={idle} />
-      <StudioMeters feed={feed} response={tuner.response} />
-    </>
-  );
+  // The chat beside the stage, or the first tab under it when the bench is
+  // too narrow for the column: one live copy of it either way.
   const panels: Partial<Record<TStudioWorkTab, ReactNode>> = {
-    make: <StudioMaker key={project?.id ?? 'draft'} project={project} />,
+    ...(isWide
+      ? {}
+      : {
+          chat: (
+            <StudioChat
+              project={project}
+              version={version}
+              captureStage={captureStage}
+            />
+          ),
+        }),
+    // What the scene hears and what to test it with: a tab of its own since
+    // the chat took the column beside the stage.
+    hears: (
+      <div
+        className="studio-work__hears"
+        role="group"
+        aria-label={t('studio.test.title')}
+      >
+        <StudioListen signal={signal} onSignal={setSignal} idle={idle} />
+        <StudioMeters feed={feed} response={tuner.response} />
+      </div>
+    ),
     tune: (
       <StudioTune
         wave={tuner.wave}
@@ -345,9 +364,6 @@ export default function StudioBench({ view }: IStudioBenchProps) {
       />
     );
   }
-  if (!isWide) {
-    panels.hears = <div className="studio-work__hears">{listening}</div>;
-  }
   const problemCount =
     (problems?.length ?? 0) + (trouble?.kind === 'compile' ? 1 : 0);
 
@@ -364,7 +380,11 @@ export default function StudioBench({ view }: IStudioBenchProps) {
             the number is a property of the scene, and after a sentence it
             read as a trailing afterthought. */}
         {project && version !== undefined && (
-          <StudioVersion version={version} published={tuner.publishedVersion} />
+          <StudioVersion
+            version={version}
+            published={tuner.publishedVersion}
+            look={state.look}
+          />
         )}
         {project && (
           <span
@@ -416,12 +436,11 @@ export default function StudioBench({ view }: IStudioBenchProps) {
         </div>
 
         {isWide && (
-          <aside
-            className="studio-bench__side"
-            aria-label={t('studio.test.title')}
-          >
-            {listening}
-          </aside>
+          <StudioChatColumn
+            project={project}
+            version={version}
+            captureStage={captureStage}
+          />
         )}
       </div>
 

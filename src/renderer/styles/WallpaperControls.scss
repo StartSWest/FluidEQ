@@ -333,6 +333,35 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// The wave's height and where it stands, in the same rows as the switches:
+// the name, the slider across the room left, and the reading at the end.
+.wallpaper-wave {
+  > label {
+    flex: 0 0 auto;
+    min-width: 110px;
+    color: $text-primary;
+    font-size: $text-body;
+    font-weight: $weight-semibold;
+  }
+
+  input[type='range'] {
+    min-width: 0;
+    flex: 1 1 auto;
+    height: 3px;
+    accent-color: $secondary-default;
+    cursor: pointer;
+  }
+}
+
+.wallpaper-wave__value {
+  flex: 0 0 auto;
+  min-width: 40px;
+  color: $text-muted;
+  font-size: $text-small;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .wallpaper-dialog__setting-copy {
   display: grid;
   flex: 1 1 auto;
@@ -402,17 +431,6 @@ it under the terms of the GNU General Public License version 3 or later.
     flex: 0 0 auto;
     width: 15px;
     height: 15px;
-  }
-
-  // Without Plus the button is live and leads to Plus, so it says so before
-  // the press: smaller than the monitor at the other end, and in the accent
-  // rather than the label's own colour. Nested, or the rule above it — one
-  // class and an element — would win and paint it at the monitor's size.
-  .wallpaper-scene-action__lock {
-    width: 13px;
-    height: 13px;
-    margin-left: 2px;
-    color: $secondary-light;
   }
 }
 

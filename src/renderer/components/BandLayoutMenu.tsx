@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { FIXED_BAND_SIZES } from '../../common/constants';
+import { FilterTypeEnum, FIXED_BAND_SIZES } from '../../common/constants';
+import { qualityForMainRack } from '../../common/bandQuality';
 import {
   IBandDesign,
   MAX_BAND_DESIGN_NAME,
@@ -14,7 +15,7 @@ import {
   getBandDesigns,
   saveBandDesign,
 } from '../utils/bandDesignApi';
-import { setFixedBand } from '../utils/equalizerApi';
+import { setFixedBand, setFilterValues } from '../utils/equalizerApi';
 import { reportError } from '../utils/logger';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import Chevron from '../icons/Chevron';
@@ -45,6 +46,15 @@ export default function BandLayoutMenu() {
   const [name, setName] = useState('');
   const [failed, setFailed] = useState(false);
   const count = Object.keys(filters).length;
+  const recommendedQ = qualityForMainRack(
+    Object.values(filters).map((filter) => filter.frequency),
+  );
+  const qReset = Object.values(filters)
+    .filter(
+      (filter) =>
+        filter.type === FilterTypeEnum.PK && filter.quality !== recommendedQ,
+    )
+    .map((filter) => ({ id: filter.id, quality: recommendedQ }));
   const duplicate = designs.some(
     (design) =>
       design.name.toLocaleLowerCase() === name.trim().toLocaleLowerCase(),
@@ -208,10 +218,19 @@ export default function BandLayoutMenu() {
               );
             })}
           </div>
+          <p className="band-designs__hint">{t('eq.layouts.qHint')}</p>
+          <button
+            type="button"
+            className="button small subtle"
+            title={t('eq.layouts.resetQHint')}
+            disabled={busy || qReset.length === 0}
+            onClick={() => perform(() => setFilterValues(qReset), true)}
+          >
+            <MenuIcon name="reset" className="eq-toolbar__icon" />
+            {t('eq.layouts.resetQ')}
+          </button>
           <h3>{t('eq.layouts.saved')}</h3>
-          {loaded && designs.length === 0 && (
-            <p className="band-designs__hint">{t('eq.layouts.empty')}</p>
-          )}
+          <p className="band-designs__hint">{t('eq.layouts.empty')}</p>
           {!loaded && !failed && (
             <p className="band-designs__hint" role="status">
               {t('eq.layouts.loading')}

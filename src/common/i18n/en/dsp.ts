@@ -390,7 +390,6 @@ const dsp = {
   'dsp.eqStereo.side': 'Sides only',
   'dsp.eqOversample.label': 'Oversampling',
   'dsp.eqOversample.off': 'Off',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'Precise: every band of this EQ plays exactly as drawn, up to 20\u00a0kHz.',
   'dsp.eqImport.title': 'Import an EQ curve',
@@ -400,6 +399,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'Choose file',
   'dsp.eqImport.apply': 'Import',
   'dsp.eqImport.cancel': 'Cancel',
+  'dsp.eqImport.tooMany':
+    'That would make more than {max} bands. Delete some bands first, or import into both ears.',
 
   'dsp.eq.title': 'Equaliser',
   'dsp.eq.band': 'Band',
@@ -452,6 +453,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Mid',
   'dsp.exciter.band.high': 'High',
   'dsp.exciter.texture': 'Texture',
+  'dsp.exciter.oversampling': 'Oversampling',
+  'dsp.exciter.oversampling.off': 'Off',
+  'dsp.exciter.oversampling.standard': 'Standard',
+  'dsp.exciter.oversampling.high': 'High',
+  'dsp.exciter.oversampling.offHint':
+    'Harmonics made at the output’s own rate: the lightest load, with some grit from what folds back off the top.',
+  'dsp.exciter.oversampling.standardHint':
+    'Harmonics made at up to four times the output’s rate, as the Exciter has always run.',
+  'dsp.exciter.oversampling.highHint':
+    'The same rate with a much sharper filter, so nothing folds back off the top. A little more work for the processor.',
   'dsp.exciter.organic': 'Organic',
   'dsp.exciter.organicHint':
     'Adds smooth, even-harmonic body around the chosen range. Ideal for making a clean, metallic or titanium-driver presentation feel warmer and more organic without losing detail.',

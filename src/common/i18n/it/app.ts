@@ -96,7 +96,7 @@ const app: Partial<Dictionary> = {
     "Acquisisce ciò che suona su questo PC, prima dell'equalizzatore, per la scheda Condividi audio, una seconda uscita ed EQ intelligente. È attivo solo mentre uno di questi è in uso.",
   'app.processes.name.sharePlayback': 'Riproduzione dell’audio condiviso',
   'app.processes.what.sharePlayback':
-    'Riproduce il suono che un altro FluidEQ condivide con questo PC. È attivo solo mentre lo ascolti.',
+    'Riproduce il suono che un altro FluidEQ condivide con questo PC e avvia le acquisizioni audio, così ciò che questo PC invia non riporta mai indietro quel suono. È attivo solo mentre uno di questi è in uso.',
   'app.processes.name.volume': 'Volume di sistema',
   'app.processes.what.volume':
     'Segue il volume e il muto di Windows per i cursori del volume di FluidEQ, e lo imposta quando ne sposti uno. È attivo solo mentre un cursore è sullo schermo.',
@@ -173,6 +173,10 @@ const app: Partial<Dictionary> = {
   'engine.detachFailed':
     'Non è stato possibile rimuovere il motore FluidEQ da questa uscita. Non è cambiato nulla.',
   'engine.unsupported': 'Richiede Windows 10 versione 1803 o successiva.',
+  'engine.subtitle.builtIn':
+    'Il motore è incluso in FluidEQ e funziona finché FluidEQ è in esecuzione.',
+  'engine.fluid.builtIn.l1':
+    'Incluso in FluidEQ: niente da installare o attivare',
   'prereq.title.apo': 'Equalizer APO richiede attenzione',
   'prereq.title.fluid': 'Il motore FluidEQ richiede attenzione',
   'prereq.install.apo': 'Installa APO',
@@ -270,6 +274,8 @@ const app: Partial<Dictionary> = {
   'notice.captureFailed': 'L’uscita in tempo reale non è partita',
   'notice.captureFailedBody':
     'Il misuratore di livello e la curva in tempo reale del grafico sono spenti per ora. Tutto il resto funziona normalmente.',
+  'notice.captureNeedsMacPermission':
+    'Su un Mac, il misuratore di livello e la curva in tempo reale del grafico richiedono FluidEQ consentito nell’elenco in alto di Privacy e sicurezza › Registrazione schermo e audio di sistema. L’elenco solo per l’audio basta al tuo EQ, ma non a loro. Tutto il resto funziona normalmente.',
   'notice.tryAgain': 'Riprova',
   'notice.restartConfirm':
     'L’audio si interromperà per qualche secondo e Windows chiederà i permessi di amministratore. Continuare?',
@@ -425,6 +431,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Scelto da te',
   'games.front.playing': '{name} è in primo piano, e il suo suono è attivo.',
   'games.front.sounding': '{name} è in esecuzione, e il suo suono è attivo.',
+  'games.front.off':
+    'I preset dei giochi sono disattivati. I tuoi giochi tengono il tuo suono.',
+  'games.switch.hint':
+    'Disattivato: nessun gioco cambia il tuo suono e FluidEQ smette di guardare quale programma è in primo piano. La tua lista resta com’è.',
   'games.toast.loaded': '{preset} caricato',
   'games.toast.forGame': 'per {game}',
   'games.toast.restored': 'Di nuovo {preset}',

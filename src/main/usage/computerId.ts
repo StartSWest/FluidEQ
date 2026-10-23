@@ -7,9 +7,10 @@ import writeFileAtomically from '../atomicWrite';
  * A random number that tells this installation's listening apart from the
  * account's other computers.
  *
- * The board adds up what an account's computers played and holds the sum to
- * the clock, so a day at the office and an evening at home count in full
- * while two computers playing at once count once. For that the server has to
+ * The listening statistics (premium 0068) add up what an account's computers
+ * played and hold the sum to the clock, so a day at the office and an evening
+ * at home count in full while two computers playing at once count once. For
+ * that the server has to
  * know which computer each day came from — and nothing more: this is made on
  * first use and kept, and says nothing about the machine, its name, its
  * hardware or where it is. Deleting the file only makes the next report look

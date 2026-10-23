@@ -128,7 +128,8 @@ const isRawSetupEndpoint = (
 
 /**
  * The helper's endpoint list carries `guid`/`attached`, and `error` only on
- * the endpoints `--attach-all` could not attach — `backupExists` belongs to
+ * the endpoints `--attach-all` could not attach or an install could not give
+ * their processing mode (`complete_modes`) — `backupExists` belongs to
  * the `status` command's document, not this one (see `commands.cpp`'s
  * `result_json`) — so it is always `false` here rather than left `undefined`
  * and silently disagreeing with `IFluidEngineEndpoint`. `error`'s type is
@@ -325,13 +326,15 @@ export const runEngineSetup = (
           `${result.endpoints.length ? ` outputs=${result.endpoints.length}` : ''}`,
       );
       // A partial `--attach-all` reports `ok: true` — one usable engine is
-      // enough — so a failed endpoint's guid and reason would otherwise never
-      // reach anywhere a user or a bug report could find them.
+      // enough — and so does an install that could not give one output its
+      // processing mode, so a failed endpoint's guid and reason would
+      // otherwise never reach anywhere a user or a bug report could find
+      // them. The helper's reason says which of the two it was.
       result.endpoints
         .filter((endpoint) => endpoint.error)
         .forEach((endpoint) => {
           log.warn(
-            `FluidEQ Engine Setup (${command}) could not attach ${endpoint.guid}: ${endpoint.error}`,
+            `FluidEQ Engine Setup (${command}) failed on ${endpoint.guid}: ${endpoint.error}`,
           );
         });
       resolve(result);

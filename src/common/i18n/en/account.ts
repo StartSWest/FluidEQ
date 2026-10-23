@@ -20,7 +20,7 @@ const account = {
   'account.close': 'Close',
 
   'account.optional':
-    'Signing in is optional. FluidEQ works exactly as it always has without an account — everything runs on this machine, and nothing is tracked. An account is only there for the parts that genuinely need one.',
+    'Signing in is optional. Without an account FluidEQ works exactly as it always has: everything runs on this machine, and nothing is tracked. With one, how long you listen is counted for FluidEQ’s statistics unless you switch it off. An account is only there for the parts that genuinely need one.',
 
   'account.signIn': 'Sign in',
   'account.signUp': 'Create account',
@@ -29,19 +29,18 @@ const account = {
   'account.signUpHint':
     'A six-digit code goes to that address. Type it here to finish.',
   'account.working': 'One moment…',
-  'account.standing.free': 'Free account',
   'account.signOut': 'Sign out',
   'account.signOut.confirm': 'Sign out of this account?',
   'account.signOut.detail': 'You can sign back in whenever you like.',
   'account.signOut.detailPlus':
-    'Plus stays locked here until you sign back in.',
+    'Your scenes stay locked here until you sign back in.',
   'account.signOut.kept': 'Nothing on this computer is deleted.',
-  // The name on the board and on published scenes, changed from here. The
-  // fields and their refusals are the board's own (leaderboard.name.*).
+  // The name on published scenes, changed from here. The fields and their
+  // refusals are the name form's own (profile.name.*).
   'account.name.change': 'Change name',
   'account.name.changeTitle': 'Change how you appear',
   'account.name.changeBody':
-    'Your handle and name on the board and on the scenes you have published. They change everywhere at once; your email stays private.',
+    'Your handle and name on the scenes you have published. They change everywhere at once; your email stays private.',
   'account.name.cancel': 'Cancel',
   'account.backToSignIn': 'Back to sign in',
 
@@ -82,7 +81,7 @@ const account = {
     'That sign-in is no longer valid. Please sign in again.',
   // Signing in on a sixth computer signs out the least recently used one.
   'account.error.signedOutElsewhere':
-    'This computer was signed out because your account signed in on another one. Plus runs on up to 5 computers at a time: sign in again to use it here, and the one used least recently is signed out instead.',
+    'This computer was signed out because your account signed in on another one. An account stays signed in on up to 5 computers at a time: sign in again to use it here, and the one used least recently is signed out instead.',
   'account.error.malformed':
     'The account service sent something FluidEQ could not read.',
   'account.error.wrongCredentials': 'Wrong email or password.',
@@ -99,82 +98,22 @@ const account = {
     'There is already an account with that address. Sign in instead.',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.pitch':
-    'Premium visualizers that exist nowhere else, the Studio for making your own, the leaderboard — and every new feature from here on, for members first. The equaliser, the rack and the players stay free, as they always have been.',
-  'account.plus.upgrade': 'Upgrade to Plus',
-  'account.plus.opening': 'Opening…',
-  'account.plus.checkoutHint':
-    'Opens Buy Me a Coffee in your browser. Pay with the same email as this account so FluidEQ can recognise it; the app never sees your card.',
-  'account.plus.active': 'Active',
-  'account.plus.ending': 'Not renewing',
-  'account.plus.renews': 'Renews {date}',
-  'account.plus.sorry': 'Sorry to see you go.',
-  'account.plus.until':
-    'Plus stays on until {date}, and nothing more is charged.',
-  'account.plus.gift': 'A gift from FluidEQ',
-  'account.plus.giftUntil': 'A gift from FluidEQ, until {date}',
-  'account.plus.computers': 'Signed in on up to {count} computers at a time.',
-  'account.plus.manage': 'Manage subscription',
-  'account.plus.grace':
-    'Your subscription could not be confirmed. It stays on until {date} — connect to the internet before then to keep it.',
-  'account.plus.checkAgain': 'Check again',
-  // The configured amount, as the checkout shows it ("$5"), per month.
-  'account.plus.perMonth': '{price} / month',
-  // The yearly amount ("$40"), per year, and the two offered together.
-  'account.plus.perYear': '{price} / year',
-  'account.plus.priceChoice': '{monthly} or {yearly}',
-  'account.plus.checkoutOpened':
-    'Buy Me a Coffee is open in your browser. Come back here once you have paid, and Plus turns on.',
-  'account.plus.error.rejected':
-    'The billing page could not be opened. Try again in a moment.',
 
-  // Development only: the pretend membership under the Plus card. Shown in
-  // no packaged build.
-  'account.dev.label': 'Development',
-  'account.dev.start': 'Pretend a payment',
-  'account.dev.cancel': 'Pretend a cancellation',
-  'account.dev.working': 'Sending…',
-
-  'account.perk.looks': 'Plus looks, drawn on the graphics card.',
+  'account.perk.looks': 'Scenes that are yours for good, one credit each.',
   'account.perk.visualizers':
     'Visualizers: the scenes members make, open to every account.',
-  'account.perk.board': 'A leaderboard of who listens most.',
-  // What publishing earns: one approved scene a month keeps Plus free
-  // (server migration 0041). Months earned while a paid membership runs
-  // wait for it to end; nothing here changes what anybody pays.
-  'account.maker.title': 'Maker month',
-  'account.maker.badge': 'Free',
-  'account.maker.until': 'Plus is free until {date}.',
-  'account.maker.endsDays':
-    'Ends in {days} days — publish a scene before then to keep it.',
-  'account.maker.endsToday': 'Ends today — publish a scene to keep it.',
-  'account.maker.endsTomorrow':
-    'Ends tomorrow — publish a scene before then to keep it.',
-  'account.maker.keep': 'Publish a scene this month and the next one is free.',
-  'account.maker.kept':
-    'This month’s scene is in. Publish again next month to keep going.',
-  'account.maker.again': 'Publish a scene and a month of Plus is free again.',
-  'account.maker.againWaiting':
-    'Publish a scene and another free month waits with them.',
-  'account.maker.invite':
-    'Make a scene in the Studio: one approved scene a month keeps Plus free.',
-  'account.maker.waitingOne':
-    'One earned month is waiting. It starts when your membership ends — nothing here changes what you pay.',
-  'account.maker.waitingMany':
-    '{count} earned months are waiting. They start when your membership ends — nothing here changes what you pay.',
-  // The week before an earned month runs out, and the day it does: an
-  // earned month renews itself no more than a gift does, so it has to be
-  // said out loud rather than simply stop.
-  'account.maker.notice.endingTitle': 'Your free Plus ends in {days} days',
-  'account.maker.notice.endingToday': 'Your free Plus ends today',
-  'account.maker.notice.endingTomorrow': 'Your free Plus ends tomorrow',
-  'account.maker.notice.endingBody':
-    'Publish a scene before then and the next month is free too. Nothing is charged either way.',
-  'account.maker.notice.endedTitle': 'Your free Plus has ended',
-  'account.maker.notice.endedBody':
-    'Publish a scene and it starts again. Everything you bought stays yours.',
-  'account.maker.notice.open': 'Open the Studio',
-  'account.maker.notice.later': 'Not now',
+  // Signing in with Google, in the browser (main/account/googleSignIn.ts).
+  'account.google': 'Continue with Google',
+  'account.or': 'or',
+  'account.google.waiting': 'Finish signing in with Google in your browser.',
+  'account.google.cancel': 'Cancel',
+  'account.error.googleUnfinished':
+    'Signing in with Google did not finish. Try again, or use your email.',
+  'account.google.doneTitle': 'You are signed in',
+  'account.google.doneBody': 'You can close this tab and go back to FluidEQ.',
+  'account.google.failedTitle': 'Signing in did not finish',
+  'account.google.failedBody':
+    'Go back to FluidEQ to try again, or sign in with your email.',
 } as const;
 
 export default account;

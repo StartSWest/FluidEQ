@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { TAudioEngine } from 'common/audioEngine';
 import type { IAudioDevice } from 'common/constants';
+import { isFluidEngineBuiltIn } from 'common/platformCapabilities';
 import type { IOutputFormat } from 'main/outputFormat';
 import { useRoomLive } from '../dsp/useRoomLive';
 import MenuIcon from '../icons/MenuIcon';
@@ -17,6 +18,7 @@ import {
   setOutputSevenOne,
 } from '../utils/equalizerApi';
 import { useTranslation } from '../utils/I18nContext';
+import windowCapabilities from '../utils/windowCapabilities';
 import { reportError, reportInfo } from '../utils/logger';
 import { useNoticeClaim } from '../utils/noticeTurn';
 import Button from '../widgets/Button';
@@ -59,7 +61,11 @@ const RoomOutputNotice = ({
   const [phase, setPhase] = useState<TPhase>('idle');
   const [dismissedId, setDismissedId] = useState('');
   const deviceId = device?.id;
+  // Never where the engine is part of the app (macOS): its tap hands it a
+  // stereo mix whatever the output is set to, so 7.1 there would give the Room
+  // nothing, and an output's format is Windows' to set from here.
   const isStereoRoom =
+    !isFluidEngineBuiltIn(windowCapabilities()) &&
     engine === 'fluid' &&
     (live.state === 'front-stage' || live.state === 'music') &&
     device?.isDefault === true;

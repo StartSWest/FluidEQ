@@ -68,13 +68,6 @@ export interface IEntitlement {
   expectChange(): void;
   /** The account is gone; there is nothing to be entitled through. */
   forget(): void;
-  /**
-   * DEVELOPMENT ONLY: drop the fixed answer and follow the server from here
-   * on. The pretend membership calls this — pressing it is asking to see the
-   * real path, and a pin that kept Plus on over it made "pretend a
-   * cancellation" look broken while the server had in fact cancelled.
-   */
-  releaseDevelopmentOverride(): void;
 }
 
 export interface IEntitlementOptions {
@@ -164,8 +157,8 @@ export const createEntitlement = (
       : undefined;
   };
 
-  // The development pin holds until the pretend membership releases it.
-  let override = options.developmentOverride;
+  // The development pin (`FLUIDEQ_DEV_ENTITLED=1`) holds for the whole run.
+  const override = options.developmentOverride;
 
   let lastAnnounced: string | undefined;
   /**
@@ -383,15 +376,6 @@ export const createEntitlement = (
       lastCheckedAccountId = undefined;
       awaiting = undefined;
       remember(undefined);
-    },
-    releaseDevelopmentOverride: () => {
-      if (!override) {
-        return;
-      }
-      override = undefined;
-      // Said out loud even when the stored answer happens to match: the
-      // window was showing the pin, not the record.
-      announce(status());
     },
   };
 };

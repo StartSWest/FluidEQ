@@ -44,12 +44,17 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * the same 0.8 smoothing applied between frames. A spectrum that is correct but
  * differently scaled would land as every graph in the app changing shape on the
  * day the engine changed, which is indistinguishable from a bug.
+ *
+ * The EQ tap keeps the scale and drops the rest: its graph is drawn like the
+ * main graph's analyser now, so it is sent the window ending now, unsmoothed,
+ * and a long one for the bass (`meters_eq_live.h`).
  */
 #ifndef FLUIDEQ_METERS_H
 #define FLUIDEQ_METERS_H
 
 #include <stdint.h>
 
+#include "fluideq/deesser.h"
 #include "fluideq/denoise.h"
 #include "fluideq/loudness_meter.h"
 #include "fluideq/room.h"
@@ -62,6 +67,19 @@ extern "C" {
 #define FEQ_METER_WINDOW 2048
 /** Half of it, matching `analyser.frequencyBinCount`. */
 #define FEQ_METER_BINS 1024
+/**
+ * The EQ tap's long window, for the bottom octaves' detail: 2.9 Hz bins at
+ * 48 kHz where the short window's are 23 Hz. The main graph reads its own
+ * bass from a window this size (`lowBandFftSize` in `liveGraphBand.ts`).
+ */
+#define FEQ_METER_DETAIL_WINDOW 16384
+/**
+ * How many of the long window's bins the panel is sent: the bottom eighth of
+ * the band, to 6 kHz at 48 kHz. The graph reads the long window up to an
+ * octave past where the short one takes over, which is 4.9 kHz at its
+ * twenty-fourth of an octave; above that the long window is never asked.
+ */
+#define FEQ_METER_DETAIL_BINS 2048
 /**
  * Sample pairs kept for the goniometer.
  *
@@ -164,11 +182,28 @@ void feq_meters_capture(FeqMeters* meters,
  * Returns 0 when no new window has been published since the last read, so the
  * host can skip sending a frame that would repaint the same picture. `bins`
  * must be `FEQ_METER_BINS`.
+ *
+ * The EQ tap answers differently from the others: the window ending NOW,
+ * unsmoothed, whenever audio has arrived since the last read
+ * (`meters_eq_live.h`). Its graph
+ * draws its own ballistics; the other taps keep one smoothed window in every
+ * `FEQ_METER_WINDOW` samples.
  */
 int feq_meters_read_spectrum(FeqMeters* meters,
                              uint32_t stage,
                              float* out_db,
                              uint32_t bins);
+
+/**
+ * The EQ tap's long window, its lowest `FEQ_METER_DETAIL_BINS` bins in dB on
+ * the same scale as the spectra, unsmoothed. **Control thread.**
+ *
+ * Returns 0 when less than a fortieth of a second has arrived since the
+ * last read. `bins` must be `FEQ_METER_DETAIL_BINS`.
+ */
+int feq_meters_read_eq_detail(FeqMeters* meters,
+                              float* out_db,
+                              uint32_t bins);
 
 /**
  * The goniometer's pairs, the correlation and the peaks. **Control thread.**
@@ -373,6 +408,17 @@ void feq_meters_read_bass_punch(FeqMeters* meters,
                                 float* out_transient_db,
                                 float* out_sustain_db,
                                 float* out_duck_db);
+
+/**
+ * What the De-esser cut, where, and how sure it was that it was a voice.
+ * **Audio thread.** Folded over the window: the deepest cut and the band
+ * levels at their extremes, the thresholds as last measured.
+ */
+void feq_meters_publish_deesser(FeqMeters* meters,
+                                const FeqDeEsserReport* report);
+
+/** The folded window, cleared as it is taken. **Control thread.** */
+void feq_meters_read_deesser(FeqMeters* meters, FeqDeEsserReport* out);
 
 /** The published exciter activity. **Control thread.** */
 void feq_meters_read_exciter(FeqMeters* meters,

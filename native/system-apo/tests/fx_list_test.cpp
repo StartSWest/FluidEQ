@@ -376,11 +376,13 @@ void windows_defaults_in_the_singles_are_the_ladder() {
   CHECK(default_slot_for(backup, false) == Slot::EfxSingle);
   CHECK(default_slot_for(backup, true) == Slot::EfxSingle);
 
-  // Straight in: one value written, and no list created — a list is the
-  // newer generation, and creating one is what stops the endpoint being read
-  // from the values being written.
+  // Straight in: one value written, with the processing mode its slot lacks
+  // (`fx_list_mode_test.cpp`), and no list created — a list is the newer
+  // generation, and creating one is what stops the endpoint being read from
+  // the values being written.
   FxValues expected = backup;
   expected.single[kEfx] = kOurs;
+  expected.modes[kEfx] = list({kDefaultProcessingMode});
   const FxPlan plan = plan_attach(backup, kOurs, Slot::EfxSingle);
   CHECK(plan.refused.empty());
   CHECK(plan.changed);
@@ -415,6 +417,7 @@ void move_from_a_list_into_the_efx_single() {
 
   FxValues expected = backup;
   expected.single[kEfx] = kOurs;
+  expected.modes[kEfx] = list({kDefaultProcessingMode});
   const FxPlan plan = plan_move(attached, backup, kOurs, Slot::EfxSingle);
   CHECK(plan.refused.empty());
   CHECK(plan.changed);
@@ -489,11 +492,13 @@ void windows_second_pair_of_defaults_is_also_windows() {
   }
 
   // The step the machine could not take: off pid 7, where the ladder had
-  // put it, onto pid 6, over the second pair's GFX.
+  // put it, onto pid 6, over the second pair's GFX. Pid 7's processing mode
+  // goes with it, and pid 6 gets the one it lacks.
   const FxValues attached = plan_attach(backup, kOurs, Slot::EfxSingle).after;
   CHECK(slot_of(attached, kOurs) == Slot::EfxSingle);
   FxValues expected = backup;
   expected.single[kMfx] = kOurs;
+  expected.modes[kMfx] = list({kDefaultProcessingMode});
   const FxPlan moved = plan_move(attached, backup, kOurs, Slot::MfxSingle);
   CHECK(moved.refused.empty());
   expect_values(moved.after, expected,

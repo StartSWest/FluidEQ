@@ -41,6 +41,8 @@ export const PAUSE_KEYS: Record<TWallpaperPause, TranslationKey> = {
   battery: 'wallpaper.pause.battery',
   game: 'wallpaper.pause.game',
   covered: 'wallpaper.pause.covered',
+  // FluidEQ's own window covering it is windows covering it, to the listener.
+  window: 'wallpaper.pause.covered',
 };
 
 /** One monitor's status as a sentence, where nothing else says what it is. */

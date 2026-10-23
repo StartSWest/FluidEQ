@@ -25,7 +25,10 @@ import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 export type TExportFailure =
   | 'offline'
   | 'signed-out'
+  /** A server before the free Studio: only Plus members could export. */
   | 'not-entitled'
+  /** The address is not confirmed yet, which sharing needs. */
+  | 'unconfirmed'
   | 'banned'
   | 'terms'
   | 'rate-limited'
@@ -87,6 +90,9 @@ export const signMemberScene = async ({
     }
     if (response.status === 403 && word === 'banned') {
       return { ok: false, reason: 'banned' };
+    }
+    if (response.status === 403 && word === 'unconfirmed') {
+      return { ok: false, reason: 'unconfirmed' };
     }
     if (response.status === 403) {
       return { ok: false, reason: 'not-entitled' };

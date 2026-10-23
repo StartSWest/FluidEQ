@@ -67,7 +67,12 @@ struct WavData {
  */
 std::optional<WavData> parse_wav(const uint8_t* bytes, size_t size);
 
-/** Reads the whole file via `CreateFileW`/`ReadFile`, then `parse_wav`. */
+/**
+ * Reads the whole file, then `parse_wav`. One per platform, and the only
+ * thing here that asks the operating system for anything:
+ * `platform/windows/wav_file.cpp` (`CreateFileW`/`ReadFile`) and
+ * `platform/posix/wav_file.cpp` (`open`/`read`).
+ */
 std::optional<WavData> read_wav(const std::wstring& path);
 
 }  // namespace fluideq_engine

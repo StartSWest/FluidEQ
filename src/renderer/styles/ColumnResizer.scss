@@ -1,0 +1,60 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The divider between two columns (`ColumnResizer.tsx`): `PaneResizer.scss`
+// on its side, with no hairline: the columns it parts meet across a gap, not
+// on a line. The whole strip is the target and the grip a short bar in its
+// middle, because a gap is a thing you hunt for.
+.column-resizer {
+  position: relative;
+  display: flex;
+  width: 12px;
+  align-items: center;
+  justify-content: center;
+  cursor: ew-resize;
+  // Without this a drag on a touchscreen scrolls the page instead.
+  touch-action: none;
+
+  span {
+    width: 3px;
+    height: 44px;
+    border-radius: $radius-pill;
+    background: rgba($edge-tint, 0.18);
+    transition:
+      background 140ms ease,
+      height 140ms ease;
+  }
+
+  &:hover span {
+    height: 60px;
+    background: color-mix(in srgb, $secondary-light 60%, transparent);
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    span {
+      height: 60px;
+      background: $secondary-light;
+      box-shadow: 0 0 0 3px
+        color-mix(in srgb, $secondary-light 25%, transparent);
+    }
+  }
+
+  &.is-dragging span {
+    height: 60px;
+    background: $secondary-light;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .column-resizer span {
+    transition: none;
+  }
+}

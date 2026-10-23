@@ -306,7 +306,16 @@ export const createWindowPlacement = ({
   const windowStateOf = (window: BrowserWindow | null): IWindowStatePush => {
     const modes = windowModes.memory();
     const isLive = window !== null && !window.isDestroyed();
-    const [contentWidth, contentHeight] = isLive ? window.getContentSize() : [];
+    // None while DevTools are open. Docked, they take part of the window, so
+    // the page's viewport never comes to the window's size, and a switch
+    // waiting for it (`untilViewportIsWindow`) waited for ever with the page
+    // faded out: in development, every switch between the app and the player
+    // left the window blank (2026-10-01, the player's page 164 px wide beside
+    // DevTools). No size is nothing to wait on.
+    const [contentWidth, contentHeight] =
+      isLive && !window.webContents.isDevToolsOpened()
+        ? window.getContentSize()
+        : [];
     return {
       isMaximized: isLive ? window.isMaximized() : false,
       isFullScreen: isLive ? window.isFullScreen() : false,

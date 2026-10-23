@@ -1,0 +1,50 @@
+name: macOS
+
+on:
+  push:
+    branches: [macos, macos-support, main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apple-silicon:
+    runs-on: macos-15
+    timeout-minutes: 90
+    env:
+      CTEST_PARALLEL_LEVEL: '3'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.7.0
+          run_install: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Verify Apple Silicon toolchain
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = arm64
+          cmake --version
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check TypeScript and platform isolation
+        run: |
+          set -euo pipefail
+          pnpm typecheck
+          pnpm typecheck:scripts
+          pnpm typecheck:platform
+          pnpm typecheck:styles
+          pnpm typecheck:encoding
+      - name: Build native engine and production bundles
+        run: pnpm build
+      - name: Test native processing without opening the app
+        run: pnpm exec ts-node .erb/scripts/build-native-dsp.ts --test
+      - name: Test app logic
+        run: pnpm test:jest --runInBand

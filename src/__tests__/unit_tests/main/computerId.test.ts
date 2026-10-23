@@ -11,7 +11,7 @@ import readComputerId from '../../../main/usage/computerId';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-describe('this computer’s id for the board', () => {
+describe('this computer’s id for the listening statistics', () => {
   let dir: string;
 
   beforeEach(() => {

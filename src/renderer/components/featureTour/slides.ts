@@ -9,6 +9,8 @@ it under the terms of the GNU General Public License version 3 or later.
 import type { ComponentType } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
 import { featureTourKey } from '../../../common/featureTour';
+import { isFluidEngineBuiltIn } from '../../../common/platformCapabilities';
+import windowCapabilities from '../../utils/windowCapabilities';
 import ShareAudioSlide from './ShareAudioSlide';
 import {
   CustomLooksSlide,
@@ -42,13 +44,23 @@ import {
   SparksSlide,
   VisualizerEngineSlide,
 } from './release20';
+import {
+  BandsSlide,
+  DeEsserSlide,
+  EarsSlide,
+  MyCurvesSlide,
+  OutputsSlide,
+  SongsSlide,
+  StudioChatSlide,
+} from './release21';
 
 /**
  * The workspace tabs a slide can send the user to. `community` is Plus;
- * `games` is the Game presets page behind EQ.
+ * `games` is the Game presets page behind EQ, and `presets` its EQ Presets.
  */
 export type TTourTab =
   | 'eq'
+  | 'presets'
   | 'games'
   | 'share'
   | 'library'
@@ -224,6 +236,59 @@ const RELEASE_20: TSlideEntry[] = [
   },
 ];
 
+/**
+ * 2.1, in the order of what a listener meets first: every output keeping its
+ * own sound, a band tuned for each ear, Share Audio both ways (its slide says
+ * so now; it was a standing one), the bands read out on the graph with EQ
+ * mode beside it, the listener's own list of curves beside OPRA's, songs
+ * that remember their sound, the DSP rack's De-esser, and the Studio's chat.
+ */
+const RELEASE_21: TSlideEntry[] = [
+  {
+    id: 'every-output',
+    titleKey: 'tour.outputs.title',
+    subtitleKey: 'tour.outputs.subtitle',
+    Body: OutputsSlide,
+  },
+  {
+    id: 'each-ear',
+    titleKey: 'tour.ears.title',
+    subtitleKey: 'tour.ears.subtitle',
+    Body: EarsSlide,
+  },
+  SHARE_AUDIO,
+  {
+    id: 'band-labels',
+    titleKey: 'tour.bands.title',
+    subtitleKey: 'tour.bands.subtitle',
+    Body: BandsSlide,
+  },
+  {
+    id: 'my-curves',
+    titleKey: 'tour.myCurves.title',
+    subtitleKey: 'tour.myCurves.subtitle',
+    Body: MyCurvesSlide,
+  },
+  {
+    id: 'song-sound',
+    titleKey: 'tour.songs.title',
+    subtitleKey: 'tour.songs.subtitle',
+    Body: SongsSlide,
+  },
+  {
+    id: 'de-esser',
+    titleKey: 'tour.deesser.title',
+    subtitleKey: 'tour.deesser.subtitle',
+    Body: DeEsserSlide,
+  },
+  {
+    id: 'studio-chat',
+    titleKey: 'tour.chat.title',
+    subtitleKey: 'tour.chat.subtitle',
+    Body: StudioChatSlide,
+  },
+];
+
 const announced = (release: string, entries: TSlideEntry[]): ITourSlide[] =>
   entries.map((entry) => ({ ...entry, release }));
 
@@ -249,7 +314,17 @@ const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
       RELEASE_17.filter((entry) => !RELEASE_20.includes(entry)),
     ),
   ],
+  '2.1': [...announced('2.1', RELEASE_21), ...announced('2.0', RELEASE_20)],
 };
+
+/**
+ * 1.7's slides, standing from 2.1 on: two releases back, they are no longer
+ * new to anyone coming from the one before, and nothing announced once leaves
+ * the tour. The Room stays with 2.0, which announced most of it.
+ */
+const STANDING_17: TSlideEntry[] = RELEASE_17.filter(
+  (entry) => !RELEASE_20.includes(entry),
+);
 
 /**
  * The standing slides: everything that has been here a while, for whoever has
@@ -260,6 +335,7 @@ const NEW_BY_RELEASE: Record<string, ITourSlide[]> = {
  * the thing most people came for.
  */
 const ALWAYS: TSlideEntry[] = [
+  ...STANDING_17,
   SECOND_OUTPUT,
   SHARE_AUDIO,
   {
@@ -300,8 +376,18 @@ const ALWAYS: TSlideEntry[] = [
   },
 ];
 
+/**
+ * Slides about Windows' engine: it runs inside Windows' audio service and is
+ * chosen at setup. Where the engine is part of the app (macOS) none of that
+ * is true, and the slide would teach a Mac user a choice they never have.
+ */
+const WINDOWS_ENGINE_SLIDES: ReadonlySet<string> = new Set(['fluideq-engine']);
+
 export const featureTourFor = (version: string): ITourSlide[] => {
-  const featured = NEW_BY_RELEASE[featureTourKey(version)] ?? [];
+  const isBuiltIn = isFluidEngineBuiltIn(windowCapabilities());
+  const featured = (NEW_BY_RELEASE[featureTourKey(version)] ?? []).filter(
+    (entry) => !isBuiltIn || !WINDOWS_ENGINE_SLIDES.has(entry.id),
+  );
   const featuredIds = new Set(featured.map((entry) => entry.id));
   return [...featured, ...ALWAYS.filter((entry) => !featuredIds.has(entry.id))];
 };

@@ -189,21 +189,20 @@ const tour = {
 
   'tour.studio.kicker': 'FLUIDEQ PLUS',
   'tour.studio.title': 'Make your own visualizer',
-  'tour.studio.subtitle': 'Free for 15 days, or earn a month',
+  'tour.studio.subtitle': 'Free for every account',
   'tour.studio.lead':
-    'The Studio turns an idea into a scene that moves with your music. It is part of Plus now, and a new account can try it free for fifteen days, with no card and nothing charged when the trial ends.',
+    'The Studio turns an idea into a scene that moves with your music. It is free for every account: make, export and publish as many scenes as you like.',
   'tour.studio.point1':
-    'Every scene is reviewed before it reaches the gallery, and one that is approved earns your next month of Plus.',
+    'Every scene is reviewed before it reaches the gallery, and once it is approved it plays everywhere for you, free.',
   'tour.studio.point2':
     'Scenes can be real 3D worlds that step on the kick and leap at the drop.',
   'tour.studio.point3':
     'Copy the AI prompt and your AI assistant can see your scene and hear how the song moves.',
-  'tour.studio.how':
-    'Open Plus and choose Studio in its rail. Without Plus, the page there offers the free trial.',
+  'tour.studio.how': 'Open Plus and choose Studio in its rail.',
   'tour.studio.open': 'Open Plus',
   'tour.studio.imageAlt':
-    'The Studio playing Alpine on its stage, a lake under snowy peaks and an aurora, with the three steps to make a scene with your AI under it, then the fifteen-day trial and the month an approved scene earns.',
-  'tour.studio.earned': 'Approved: next month free',
+    'The Studio playing Alpine on its stage, a lake under snowy peaks and an aurora, with the three steps to make a scene with your AI under it, and two notes: free for every account, and a published scene plays free for its maker.',
+  'tour.studio.earned': 'Published: plays free for you',
 
   'tour.help.kicker': 'HELP',
   'tour.help.title': 'Ask the guide in your own words',
@@ -267,21 +266,21 @@ const tour = {
     'A room seen from above: seven speakers and a sub standing around a head in the middle, each with its path to the ears.',
 
   'tour.plus.kicker': 'FLUIDEQ PLUS',
-  'tour.plus.title': 'Welcome to FluidEQ Plus',
+  'tour.plus.title': 'Scenes that are yours for good',
   'tour.plus.subtitle': 'Visualizers, Studio, lighting and more',
   'tour.plus.lead':
-    'An optional membership that keeps FluidEQ growing, with a whole new tab for it: scenes drawn on your graphics card, a Studio to make your own, the leaderboard, desktop backgrounds and Dynamic lighting. The equaliser, the rack and the players stay free, as they always have been.',
+    'A whole tab of extras that keeps FluidEQ growing: scenes drawn on your graphics card, a Studio to make your own, desktop backgrounds and Dynamic lighting. A scene costs one credit and stays yours, and the equaliser, the rack and the players stay free, as they always have been.',
   'tour.plus.point1':
-    'Sign in from Account in the actions menu; paying happens in your browser, and Plus switches on by itself.',
+    'Sign in from Account in the actions menu: a confirmed account gets free credits to start.',
   'tour.plus.point2':
-    'Monthly or yearly, with terms in plain words before you pay. The app never sees your card.',
+    'Packs of credits are paid once, with terms in plain words before you pay. Nothing renews, and the app never sees your card.',
   'tour.plus.point3':
-    'Signed in on up to five computers, with new visualizers added over time.',
+    'Every scene can be watched first, and the ones you get play on every computer you sign in to.',
   'tour.plus.how':
-    'Open the Plus tab: the Leaderboard, Visualizers, the Studio and Dynamic lighting are down its left side.',
+    'Open the Plus tab: Visualizers, the Studio and Dynamic lighting are down its left side.',
   'tour.plus.open': 'Open Plus',
   'tour.plus.imageAlt':
-    'The Plus tab: Leaderboard, Visualizers, Studio and Dynamic lighting down the side, and the Visualizers gallery with Chrome, Bloom, Aurora, Alpine and Neon City.',
+    'The Plus tab: Visualizers, Studio and Dynamic lighting down the side, and the Visualizers gallery with Chrome, Bloom, Aurora, Alpine and Neon City.',
   // The scenes the tour's pictures show, by the names they are published
   // under in each language.
   'tour.scene.alpine': 'Alpine',
@@ -341,37 +340,35 @@ const tour = {
   'tour.lighting.imageAlt':
     'A keyboard, mouse and mousepad lit in the pink, violet and cyan of Neon City.',
 
-  'tour.share.kicker': 'LISTEN TO EVERY PC',
+  'tour.share.kicker': 'EVERY PC, BOTH WAYS',
   'tour.share.title': 'Share audio between your computers',
-  'tour.share.subtitle': 'One headset, every machine on your desk',
+  'tour.share.subtitle': 'Hear both computers, whichever one you sit at',
   'tour.share.lead':
-    'Your gaming PC, your work laptop and the media box all play into the one headset you are wearing: over your own network, losslessly, encrypted, and through the EQ you already tuned.',
-  'tour.share.receiverLabel': 'RECEIVER',
-  'tour.share.receiverName': 'The PC with your headset',
-  'tour.share.senderLabel': 'SENDERS',
-  'tour.share.senderName': 'Every other computer',
+    'Your gaming PC and your laptop play into each other: whichever one you sit at, you hear both — over your own network, losslessly, encrypted, and through the EQ you tuned on that computer.',
+  'tour.share.pairLabel': 'BOTH WAYS',
+  'tour.share.pairName': 'Each computer plays the other’s sound',
   'tour.share.wireLabel': 'Lossless · Encrypted · Private LAN',
   'tour.share.stepsTitle': 'Set it up in three steps',
-  'tour.share.step1Title': 'On the headset PC, create a code',
+  'tour.share.step1Title': 'On one computer, copy its code',
   'tour.share.step1':
-    'Open the Share Audio tab, choose "Play audio on this computer" and press "Create connection code". Copy the code shown for your network.',
-  'tour.share.step2Title': 'On every other PC, paste it',
+    'Open the Share Audio tab and press “Copy code”. The code stays the same every time.',
+  'tour.share.step2Title': 'On the other, paste it and link',
   'tour.share.step2':
-    'Open FluidEQ there, go to Share Audio, choose “Send audio from this computer”, paste the code and press “Connect and send”. Its system audio starts flowing, untouched: the effects are applied on the computer you listen on.',
-  'tour.share.step3Title': 'Listen, and set the level',
+    'Open Share Audio there, paste the code under “The other computer’s code” and press “Link”. Both start playing each other right away, untouched: each one applies its own EQ to what it hears.',
+  'tour.share.step3Title': 'Choose what goes where',
   'tour.share.step3':
-    'Each sender plays with a short buffer that catches up by itself after a hiccup. Every sender is mixed into the receiver’s output and shaped by its EQ. The receiver’s playback bar shows the latest sender’s song, and its buttons work across the wire.',
+    'Each linked computer has two switches, “Play it here” and “Send my sound”: turn one off for one way only. The bar shows the other computer’s song, and its buttons work across the wire. A slider beside “Play it here” sets how loud it plays, and “Pause” stops both ways until “Resume”.',
   'tour.share.fact1Title': 'Lossless',
   'tour.share.fact1':
     'Float32 PCM end to end. No media codec, no generation loss.',
   'tour.share.fact2Title': 'Encrypted',
   'tour.share.fact2':
     'AES-256-GCM on every packet. The code is the key; nobody without it can listen in.',
-  'tour.share.fact3Title': 'Stays paired',
+  'tour.share.fact3Title': 'Stays linked',
   'tour.share.fact3':
-    'The pairing survives app closes and reboots. Only creating a new code disconnects it.',
+    'The link survives app closes and reboots, from either side. Only “Unlink” ends it.',
   'tour.share.tip':
-    'Start quietly: several computers add up fast. Lower the headset volume before the first connection.',
+    'Start quietly: two computers playing at once add up. Lower your volume before the first link.',
   'tour.share.open': 'Open Share Audio',
 
   'tour.library.kicker': 'YOUR MUSIC, YOUR PLAYER',
@@ -417,16 +414,258 @@ const tour = {
   'tour.output.point1':
     'Switch on another device in Second output and set its own volume.',
   'tour.output.point2':
-    'Use the EQ profile picker below that device to choose one of its saved profiles. The main output keeps its tuning.',
+    'Choose one of its saved profiles under the device, or press {editSound} beside it to change its sound without switching the main output. The main output keeps its tuning.',
   'tour.output.point3':
     'One player at a time: starting something in FluidEQ pauses the rest of the machine, and the other way round.',
   'tour.output.point4':
-    'Game/Video starts with about 30 ms in reserve and catches up after a stall; Music starts with about 100 ms for smoother listening. Device buffering adds to the delay.',
+    'Each output keeps itself in time: about 30 ms behind to start, a little more only after a dropout, and its delay shown in milliseconds — another computer’s sound included when Share Audio plays it here.',
   'tour.output.how':
-    'Open the EQ tab and expand Second output on the right. Switch on a device, choose its EQ profile below its name, then set the volume and choose Game/Video or Music.',
+    'Open the EQ tab and expand Second output on the right. Switch on a device, choose its EQ profile below its name, then set the volume; its delay shows beneath.',
   'tour.output.open': 'Open EQ',
   'tour.output.imageAlt':
-    'The Second output panel with a BlackShark V2 Pro headset enabled, its EQ profile picker and volume slider, and Game/Video and Music mode cards.',
+    'The Second output panel with a BlackShark V2 Pro headset enabled, its EQ profile picker, volume slider and delay.',
+
+  'tour.outputs.kicker': 'EACH OUTPUT REMEMBERS',
+  'tour.outputs.title': 'Every output keeps its own sound',
+  'tour.outputs.subtitle': 'Headphones and speakers, each tuned its own way',
+  'tour.outputs.lead':
+    'Switch from your headphones to your speakers and each one brings its sound back with it: the EQ, the preset, the Tone, the cuts, the DSP rack, the Room and the leveling are kept with every output.',
+  'tour.outputs.point1':
+    'Pick an output and everything you set for it is back at once. Headphones and speakers no longer share one preset or one curve.',
+  'tour.outputs.point2':
+    'A second output plays straight from the FluidEQ Engine with a sound of its own, and the main output never waits for it. {editSound} beside it changes that sound without switching the main output.',
+  'tour.outputs.point3':
+    'Bluetooth headphones show their battery beside the output, and a second output shows how far behind it plays, in milliseconds.',
+  'tour.outputs.how':
+    'Open EQ and pick an output under {output} on the right: whatever you set from then on stays with it. For a second one, switch it on under {secondOutput} and press {editSound}.',
+  'tour.outputs.open': 'Open EQ',
+  'tour.outputs.imageAlt':
+    'The Output card with a headset and speakers, each under its own preset, curve and DSP stages, taking turns to play, and a second output playing beside them with its own sound, its battery and Edit sound.',
+
+  'tour.bands.kicker': 'THE EQ, IN NUMBERS',
+  'tour.bands.title': 'Every band’s numbers, right on the graph',
+  'tour.bands.subtitle': 'Labels on the curve, EQ mode beside it',
+  'tour.bands.lead':
+    'Each band can show its frequency, Q and gain over its own point, and the labels keep out of each other’s way. EQ mode now stands beside the graph instead of over it, so the curves stay in sight while you change how they play.',
+  'tour.bands.point1':
+    'A label sits straight above or below its point, never over another, stays put while you drag its band and goes back to its place once there is room.',
+  'tour.bands.point2':
+    '{eqMode} is the first card of the side panel, with {yourEq} and {corrections} a tab each. Its button above the graph brings the card into view.',
+  'tour.bands.point3':
+    'Every handle, slider and knob works from the keyboard, and moving a slider redraws the curve in the same frame.',
+  'tour.bands.how':
+    'Open EQ, choose {view} → {everything} above the graph (or press {shortcut}) and move a band: its numbers follow it. {eqMode} waits at the top of the panel on the right.',
+  'tour.bands.open': 'Open EQ',
+  'tour.bands.imageAlt':
+    'The EQ graph with each band’s frequency, Q and gain stacked over its point, one band moving under the arrow keys, and the EQ mode card under the curves with Your EQ and Corrections.',
+  'tour.bands.shortcut': 'Ctrl+W',
+
+  'tour.ears.kicker': 'ONE BAND, TWO EARS',
+  'tour.ears.title': 'Tune each ear on its own',
+  'tour.ears.subtitle': 'Left + right in the band’s own menu',
+  'tour.ears.lead':
+    'Right-click a band and choose {split}: it becomes one band for each ear, at the same frequency, and you move each one by itself. The left ear’s curve is drawn solid and the right ear’s dashed.',
+  'tour.ears.point1':
+    '{both} joins the two again in their middle, halfway in frequency and gain. {reset} and {clear} join them too.',
+  'tour.ears.point2':
+    '{delete} is in the same menu, in the main EQ and in the DSP rack, and asks for a second press before it deletes.',
+  'tour.ears.point3':
+    'A Squiglink curve can be imported into one ear: {importInto} fills only the left or the right and leaves the other ear as it was.',
+  'tour.ears.how':
+    'Open EQ, right-click a band on the graph and choose {split}. The DSP rack’s EQ has the same menu while it applies to Stereo.',
+  'tour.ears.open': 'Open EQ',
+  'tour.ears.imageAlt':
+    'The EQ graph with one band split into a left-ear and a right-ear band that move apart and join again in their middle, the left ear’s curve solid and the right’s dashed, beside the band menu with Both ears and Left + right.',
+  // Film voice: generated from .claude/video-kit/films/narration/lines.cjs — edit there.
+  'tour.film.eachEar.intro':
+    'Every band in FluidEQ can now play differently in each ear.',
+  'tour.film.eachEar.menu': 'Right-click a band to open its menu.',
+  'tour.film.eachEar.split':
+    'Choose Left + right. The band splits in two, one half for each ear.',
+  'tour.film.eachEar.lines':
+    'Drag each half on its own. The solid line is your left ear, the dashed line is your right.',
+  'tour.film.eachEar.sliders':
+    'Each ear has its own slider too, marked L or R.',
+  'tour.film.eachEar.join':
+    'To join them again, choose Both ears. The two halves meet in the middle.',
+  'tour.film.sound.intro':
+    'Every change you make in FluidEQ is heard right away, and smoothly.',
+  'tour.film.sound.glide':
+    'Move a band while the music plays. Each change glides in, so you never hear a click.',
+  'tour.film.sound.precise':
+    'In the EQ mode menu, Treble is set to Precise. Every band plays exactly as drawn, all the way up to twenty kilohertz.',
+  'tour.film.sound.classic':
+    'Choose Classic to build the bands the way Equalizer APO builds them.',
+  'tour.film.games.intro':
+    'FluidEQ can give each of your games a sound of its own.',
+  'tour.film.games.add':
+    'Press Add a game, and pick it from the games your launchers have installed.',
+  'tour.film.games.sound': 'Then choose the sound it should have.',
+  'tour.film.games.front':
+    'When the game comes to the front, its sound loads by itself.',
+  'tour.film.games.closed': 'Close the game, and your own sound comes back.',
+  'tour.film.compact.intro':
+    'When you only need the controls, FluidEQ folds into a small player.',
+  'tour.film.compact.go':
+    'Press the player button at the top, and the window becomes a compact player.',
+  'tour.film.compact.eq':
+    'Your EQ comes with it. Turn a knob, and you hear it straight away.',
+  'tour.film.compact.back': 'One press takes you back to the full window.',
+  'tour.film.deleteImport.intro': 'Two small changes that keep your EQ safe.',
+  'tour.film.deleteImport.asks':
+    'Delete band now asks first. Press it again to really delete the band.',
+  'tour.film.deleteImport.oneEar':
+    'An import can also fill just one ear. Choose Import into, then Left ear.',
+  'tour.film.deleteImport.otherEar':
+    'Only the left ear is replaced. The right ear stays exactly as it was.',
+  'tour.film.outputs.intro':
+    'Every output on your computer keeps its own sound.',
+  'tour.film.outputs.each':
+    'Switch from your speakers to your headphones, and the EQ changes to the headphones’ own.',
+  'tour.film.outputs.back':
+    'Switch back, and the speakers sound exactly as you left them.',
+  'tour.film.outputs.second':
+    'You can also play through a second output at the same time, with a sound of its own.',
+  'tour.film.outputs.edit':
+    'Press Edit sound to tune it right here, while the main output keeps playing.',
+  'tour.film.dsp.intro':
+    'The DSP rack shapes everything you hear, after your EQ.',
+  'tour.film.dsp.preset':
+    'Pick one preset, and it sets up the whole rack at once.',
+  'tour.film.dsp.stages':
+    'Each stage has a page of its own, with every control in view.',
+  'tour.film.dsp.meters':
+    'Its meters move with the music, so you can see what it does.',
+  'tour.film.deesser.intro':
+    'The DSP rack now has a De-esser, for voices with harsh S sounds.',
+  'tour.film.deesser.cuts':
+    'Pick a preset like Podcast & speech. Each sharp S is turned down and shown in amber, while cymbals are left alone.',
+  'tour.film.deesser.isolate': 'Press Isolate to hear only what it takes away.',
+  'tour.film.headphones.intro':
+    'FluidEQ can correct your headphones with measurements made by others.',
+  'tour.film.headphones.search':
+    'Open EQ Presets, and search the OPRA library for your headphones.',
+  'tour.film.headphones.measure':
+    'Pick a measurement. Each one says who made it.',
+  'tour.film.headphones.applied':
+    'Press Apply headset EQ. The correction goes on a layer of its own, and your own bands stay as they are.',
+  'tour.film.headphones.paste': 'You can also paste an export from Squiglink.',
+  'tour.film.headphones.ears': 'Apply it as your EQ, to both ears or just one.',
+  'tour.film.headphones.curve': 'Or apply it as a curve of its own.',
+  'tour.film.karaoke.intro':
+    'Karaoke turns FluidEQ into a stage for your own songs.',
+  'tour.film.karaoke.open':
+    'Press Open song, and pick the song together with its lyrics file.',
+  'tour.film.karaoke.words': 'Press Play. Each word lights up as it is sung.',
+  'tour.film.karaoke.pitch':
+    'Below, the pitch guide shows every note to sing. Turn on your microphone to see your own voice on it.',
+  'tour.film.maker.intro':
+    'The Karaoke Maker turns a song into a karaoke file.',
+  'tour.film.maker.timeline':
+    'Load a song and press Make. Every word and note of the song sits on a timeline.',
+  'tour.film.maker.play':
+    'Play it, and the playhead runs over each word and note. Drag any of them to fix its timing or its pitch.',
+  'tour.film.maker.use':
+    'The Maker can also set a song up by itself, from the singer’s voice. When it sounds right, press Use in player.',
+  'tour.film.looks.intro':
+    'The spectrum under your EQ can be drawn any way you like.',
+  'tour.film.looks.open': 'Press New look in the graph’s toolbar.',
+  'tour.film.looks.forms':
+    'Step through the forms with the arrow: LED bars, neon bars, skylines, glass towers and more.',
+  'tour.film.looks.shape':
+    'Then shape it. Pieces sets how many bars there are, and the colours, the gaps and the motion are yours too.',
+  'tour.film.looks.save':
+    'Press Save to keep it as a look of your own, or share it as a file.',
+  'tour.film.engine.intro':
+    'FluidEQ has an audio engine of its own. It brings your EQ and the DSP rack to everything the computer plays.',
+  'tour.film.engine.choose':
+    'Open the actions menu at the top right and press the engine card. The FluidEQ Engine is the one to choose.',
+  'tour.film.engine.rack':
+    'Then open DSP and pick a preset. Games, browsers and music apps all play through it.',
+  'tour.film.library.intro':
+    'The Library plays the music you own, through your EQ.',
+  'tour.film.library.albums':
+    'Your albums appear as covers. Flip through them with the arrows.',
+  'tour.film.library.album':
+    'Click an album to open it, with all of its songs.',
+  'tour.film.library.play':
+    'Press Play, and it plays through the same EQ and DSP rack as everything else.',
+  // End of film voice.
+  'tour.film.soundOn': 'Turn the sound on',
+  'tour.film.soundOff': 'Turn the sound off',
+  'tour.film.watch': 'Watch the video',
+  'tour.film.close': 'Close the video',
+
+  'tour.deesser.kicker': 'A SOFTER S',
+  'tour.deesser.title': 'A De-esser in the DSP rack',
+  'tour.deesser.subtitle': 'Sharp S sounds down, cymbals left alone',
+  'tour.deesser.lead':
+    '{deEsser} turns down the sharp S, T and SH of a voice only while they sound, and leaves cymbals, hi-hats and the rest of the treble as they were.',
+  'tour.deesser.point1':
+    'It finds each S against the song’s own level, so a quiet track and a loud one are treated alike, and you watch every one it caught and how much it took.',
+  'tour.deesser.point2':
+    'It turns down only the frequencies the S is made of, everything above it, or the whole voice, and {isolate} plays only what it takes away.',
+  'tour.deesser.point3':
+    '{speech}, {podcast} and {audiobook} switch it on. Every filter of the rack can now save profiles of your own.',
+  'tour.deesser.how':
+    'Open DSP and choose {deEsser} in the list on the left, or pick {podcast}. Start from a profile, then raise {sensitivity} until each S is caught.',
+  'tour.deesser.open': 'Open DSP',
+  'tour.deesser.imageAlt':
+    'The De-esser’s strip scrolling by: each S of a voice standing over the line where the stage starts with its cut hanging under it in amber, and the hi-hats in grey, left alone; above it the stage with Spectral chosen, and under it Speech, Podcast and Audiobook.',
+
+  'tour.chat.kicker': 'MAKE A SCENE BY ASKING',
+  'tour.chat.title': 'Ask for a change, watch it on the stage',
+  'tour.chat.subtitle': 'A chat beside the Studio’s stage',
+  'tour.chat.lead':
+    'The {studio} now has a chat beside its stage. Say what should change — how a scene looks, how it moves with the music, its colours or its light — and your own AI edits the scene and plays each version on the stage as it goes.',
+  'tour.chat.point1':
+    'Every reply keeps the version it made, and {bringBack} puts an earlier one back. Each scene keeps its past chats.',
+  'tour.chat.point2':
+    '{attach} sends a picture of the scene with your message, and you can draw on it to show what you mean. Messages sent while it works wait in a queue and go together.',
+  'tour.chat.point3':
+    'It runs on Claude Code installed on this computer, on your own plan, and shows how much of your limits is left. With ChatGPT connected it can paint pictures for the scene, asking you before each one.',
+  'tour.chat.how':
+    'Open {plus}, choose {studio} in its rail, pick a scene or start one, and type in the box beside the stage.',
+  'tour.chat.open': 'Open Plus',
+  'tour.chat.imageAlt':
+    'The Studio’s stage beside its chat: a request to make the stage lights flash on the snare, the steps of the reply ticking in, version 2 kept with Bring back, and the stage’s lights starting to flash as version 2 plays.',
+  'tour.chat.ask': 'Make the stage lights flash on the snare.',
+  'tour.chat.reply':
+    'Done: both spotlights flash white on every snare and fade back to pink.',
+
+  'tour.myCurves.kicker': 'CURVES OF YOUR OWN',
+  'tour.myCurves.title': 'Your own list of curves, beside OPRA’s',
+  'tour.myCurves.subtitle': 'Keep, name and reuse your own curves',
+  'tour.myCurves.lead':
+    '{eqPresets} now has {myCurves} beside the OPRA library: every curve you want to come back to, with the name you give it and a drawing of its shape. Add one from a Squiglink export, a .txt file, your EQ as it is now, or an OPRA pick.',
+  'tour.myCurves.point1':
+    '{applyCurve} plays a curve as the headphone correction, with its own strength and switch; {applyEq} puts its bands in your EQ instead.',
+  'tour.myCurves.point2':
+    '{squiglink} has a tab of its own, and {save} keeps what you bring in with one press.',
+  'tour.myCurves.point3':
+    '{exportList} writes the whole list to one file, to back it up or take it to another computer; {importList} reads it back and says what it leaves out.',
+  'tour.myCurves.how':
+    'Open {eqPresets} under EQ, choose {myCurves} and press {add}.',
+  'tour.myCurves.open': 'Open EQ Presets',
+  'tour.myCurves.imageAlt':
+    'The EQ Presets page on My curves: a list of four headphone curves, each with its name, where it came from, the day it was added and a drawing of its shape. A curve just saved from Squiglink arrives at the top and plays as the headphone correction.',
+
+  'tour.songs.kicker': 'A SOUND FOR EVERY SONG',
+  'tour.songs.title': 'Songs that remember how you like them',
+  'tour.songs.subtitle': 'Tune a song once, hear it that way every time',
+  'tour.songs.lead':
+    'Switch on {songSound} and the preset, Tone and EQ a song ends with come back the next time it plays, on the output you tuned it on.',
+  'tour.songs.point1':
+    'Change the preset, the Tone or a band while a song plays and that is what it keeps. A song you never touch keeps nothing.',
+  'tour.songs.point2':
+    'It comes back with a notice that names the song and what it brought, with {undo} and {forget} right there.',
+  'tour.songs.point3':
+    'When the song ends, the sound you had before it returns, and each output remembers its own: one song can sound one way on headphones and another on speakers.',
+  'tour.songs.how':
+    'Open EQ and switch on {songSound} in {output} on the right. Play a song, pick a preset or turn the Tone, then let it finish or skip it.',
+  'tour.songs.open': 'Open EQ',
+  'tour.songs.imageAlt':
+    'A queue of four songs played in turn, three with the preset and curve each was left with and one never tuned, and above it the notice a remembered song brings up, with Undo and Forget this song.',
 
   'tour.looks.kicker': 'YOUR OWN VISUALIZER',
   'tour.looks.title': 'Custom looks for the graph',
@@ -495,6 +734,7 @@ const tour = {
   'tour.media.how':
     'Open the Online Media tab, pick a site from the row at the top, type in the search field and press Search. Back, Forward and Reload work as in a browser.',
   'tour.media.open': 'Open Online Media',
+  'tour.studio.free': 'Free for every account',
 } as const;
 
 export default tour;

@@ -246,4 +246,60 @@ describe('RangeInput', () => {
     fireEvent.wheel(slider, { deltaY: -100 });
     expect(handleChange).not.toHaveBeenCalled();
   });
+
+  it('tabs straight to the handle and repeats whole steps before the store replies', async () => {
+    const { user } = setup(
+      <RangeInput
+        name={name}
+        min={-5}
+        max={5}
+        value={0.3}
+        height="150px"
+        isDisabled={false}
+        displayPrecision={2}
+        handleChange={handleChange}
+        handleMouseUp={handleMouseUp}
+      />,
+    );
+    await user.tab();
+    const slider = screen.getByRole('slider');
+    expect(slider).toHaveFocus();
+    expect(fireEvent.keyDown(slider, { key: 'ArrowUp' })).toBe(false);
+    fireEvent.keyDown(slider, { key: 'ArrowUp', repeat: true });
+    fireEvent.keyDown(slider, { key: 'ArrowDown' });
+    expect(handleChange.mock.calls.map(([value]) => value)).toEqual([
+      1.3, 2.3, 1.3,
+    ]);
+    fireEvent.keyUp(slider, { key: 'ArrowDown' });
+    expect(handleMouseUp).toHaveBeenLastCalledWith(1.3);
+    expect(slider).toHaveValue('1.3');
+    await user.tab();
+    expect(screen.getByLabelText(`Decrease ${name}`)).not.toHaveFocus();
+  });
+
+  it('clamps keyboard changes and commits the last step on blur', () => {
+    setup(
+      <RangeInput
+        name={name}
+        min={-1}
+        max={1}
+        value={0.3}
+        height="150px"
+        isDisabled={false}
+        handleChange={handleChange}
+        handleMouseUp={handleMouseUp}
+      />,
+    );
+    const slider = screen.getByRole('slider');
+    fireEvent.keyDown(slider, { key: 'ArrowUp' });
+    expect(handleChange).toHaveBeenLastCalledWith(1);
+    fireEvent.keyDown(slider, { key: 'ArrowDown' });
+    fireEvent.keyDown(slider, { key: 'ArrowDown' });
+    fireEvent.keyDown(slider, { key: 'ArrowDown' });
+    fireEvent.blur(slider);
+    expect(handleMouseUp).toHaveBeenLastCalledWith(-1);
+    handleChange.mockClear();
+    fireEvent.keyDown(slider, { key: 'Tab' });
+    expect(handleChange).not.toHaveBeenCalled();
+  });
 });

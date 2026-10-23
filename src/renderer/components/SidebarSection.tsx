@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ReactNode, useId, useState } from 'react';
+import { ReactNode, Ref, useId, useState } from 'react';
 import Chevron from '../icons/Chevron';
 import '../styles/SidebarSection.scss';
 
@@ -68,6 +68,10 @@ interface ISidebarSectionProps {
    * reclaims space, it is not a setting to go looking for.
    */
   defaultOpen?: boolean;
+  /** Told when somebody opens it, for a card that reads what it shows then. */
+  onOpen?: () => void;
+  /** The section itself, for a card that scrolls itself into view. */
+  ref?: Ref<HTMLElement>;
   children: ReactNode;
 }
 
@@ -93,13 +97,22 @@ export default function SidebarSection({
   aside,
   className,
   defaultOpen = true,
+  onOpen,
+  ref,
   children,
 }: ISidebarSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const contentId = useId();
+  const toggle = () => {
+    setIsOpen(!isOpen);
+    if (!isOpen) {
+      onOpen?.();
+    }
+  };
 
   return (
     <section
+      ref={ref}
       className={`sidebar-section${eyebrow ? '' : ' sidebar-section--row'}${
         isOpen ? ' is-open' : ''
       }${className ? ` ${className}` : ''}`}
@@ -109,7 +122,7 @@ export default function SidebarSection({
         className="sidebar-section__header"
         aria-expanded={isOpen}
         aria-controls={contentId}
-        onClick={() => setIsOpen((current) => !current)}
+        onClick={toggle}
       >
         {glyph && (
           <span className="sidebar-section__glyph" aria-hidden="true">

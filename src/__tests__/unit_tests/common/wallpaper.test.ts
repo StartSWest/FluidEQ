@@ -204,12 +204,12 @@ describe('the music main hands a desktop page', () => {
 });
 
 describe('why a monitor pauses', () => {
-  const quiet = {
+  const quiet: Parameters<typeof wallpaperPauseReason>[0] = {
     locked: false,
     suspended: false,
     battery: false,
     game: false,
-    covered: false,
+    cover: 'none',
     pauseOnBattery: true,
   };
 
@@ -218,13 +218,13 @@ describe('why a monitor pauses', () => {
   });
 
   it('names the strongest reason when several hold at once', () => {
-    const everything = {
+    const everything: typeof quiet = {
       ...quiet,
       locked: true,
       suspended: true,
       battery: true,
       game: true,
-      covered: true,
+      cover: 'others',
     };
     expect(wallpaperPauseReason(everything)).toBe('locked');
     expect(wallpaperPauseReason({ ...everything, locked: false })).toBe(
@@ -245,14 +245,14 @@ describe('why a monitor pauses', () => {
 
   /**
    * A game takes the whole machine's frames, so every screen holds still —
-   * not only the one the game covers, which is what `covered` answers.
+   * not only the one the game covers, which is what `cover` answers.
    */
   it('holds every screen still while a game is in front', () => {
     expect(wallpaperPauseReason({ ...quiet, game: true })).toBe('game');
-    expect(wallpaperPauseReason({ ...quiet, game: true, covered: true })).toBe(
-      'game',
-    );
-    expect(wallpaperPauseReason({ ...quiet, covered: true })).toBe('covered');
+    expect(
+      wallpaperPauseReason({ ...quiet, game: true, cover: 'others' }),
+    ).toBe('game');
+    expect(wallpaperPauseReason({ ...quiet, cover: 'others' })).toBe('covered');
   });
 
   it('pauses on battery only when that was chosen', () => {
@@ -265,7 +265,7 @@ describe('why a monitor pauses', () => {
         ...quiet,
         battery: true,
         pauseOnBattery: false,
-        covered: true,
+        cover: 'others',
       }),
     ).toBe('covered');
   });

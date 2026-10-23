@@ -382,7 +382,6 @@ const dsp = {
   'dsp.eqStereo.side': 'Solo lati',
   'dsp.eqOversample.label': 'Sovracampionamento',
   'dsp.eqOversample.off': 'No',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'Preciso: ogni banda di questo EQ suona esattamente come è disegnata, fino a 20\u00a0kHz.',
   'dsp.eqImport.title': 'Importa una curva EQ',
@@ -392,6 +391,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'Scegli file',
   'dsp.eqImport.apply': 'Importa',
   'dsp.eqImport.cancel': 'Annulla',
+  'dsp.eqImport.tooMany':
+    'Si supererebbero le {max} bande. Elimina prima qualche banda, oppure importa per entrambe le orecchie.',
 
   'dsp.eq.title': 'Equalizzatore',
   'dsp.eq.band': 'Banda',
@@ -443,6 +444,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Medi',
   'dsp.exciter.band.high': 'Alti',
   'dsp.exciter.texture': 'Trama',
+  'dsp.exciter.oversampling': 'Sovracampionamento',
+  'dsp.exciter.oversampling.off': 'Spento',
+  'dsp.exciter.oversampling.standard': 'Standard',
+  'dsp.exciter.oversampling.high': 'Alto',
+  'dsp.exciter.oversampling.offHint':
+    'Armoniche create alla frequenza propria dell’uscita: il carico più leggero, con un po’ di grana per ciò che si ripiega dall’alto.',
+  'dsp.exciter.oversampling.standardHint':
+    'Armoniche create fino a quattro volte la frequenza dell’uscita, come l’Exciter ha sempre funzionato.',
+  'dsp.exciter.oversampling.highHint':
+    'La stessa frequenza con un filtro molto più ripido, così nulla si ripiega dall’alto. Un po’ più di lavoro per il processore.',
   'dsp.exciter.organic': 'Organico',
   'dsp.exciter.organicHint':
     'Aggiunge un corpo morbido di armoniche pari nella zona scelta. Ideale per rendere una resa pulita e metallica, anche con driver in titanio, più calda e organica senza perdere dettaglio.',

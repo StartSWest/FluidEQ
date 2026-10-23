@@ -11,7 +11,7 @@ const account = {
   'account.close': 'Chiudi',
 
   'account.optional':
-    'Accedere è facoltativo. FluidEQ funziona esattamente come sempre senza account: tutto gira su questa macchina e nulla viene tracciato. Un account serve solo per le parti che ne hanno davvero bisogno.',
+    'Accedere è facoltativo. Senza account FluidEQ funziona esattamente come sempre: tutto gira su questa macchina e nulla viene tracciato. Con un account, il tempo che ascolti viene contato per le statistiche di FluidEQ, a meno che tu non lo disattivi. Un account serve solo per le parti che ne hanno davvero bisogno.',
 
   'account.signIn': 'Accedi',
   'account.signUp': 'Crea account',
@@ -20,17 +20,16 @@ const account = {
   'account.signUpHint':
     'A quell’indirizzo arriva un codice di sei cifre. Inseriscilo qui per completare.',
   'account.working': 'Un momento…',
-  'account.standing.free': 'Account gratuito',
   'account.signOut': 'Esci',
   'account.signOut.confirm': 'Uscire da questo account?',
   'account.signOut.detail': 'Puoi accedere di nuovo quando vuoi.',
   'account.signOut.detailPlus':
-    'Plus resta bloccato qui finché non accedi di nuovo.',
+    'Le tue scene restano bloccate qui finché non accedi di nuovo.',
   'account.signOut.kept': 'Su questo computer non viene eliminato nulla.',
   'account.name.change': 'Cambia nome',
   'account.name.changeTitle': 'Cambia come appari',
   'account.name.changeBody':
-    'Il tuo nickname e il tuo nome in classifica e sulle scene che hai pubblicato. Cambiano ovunque nello stesso momento; la tua email resta privata.',
+    'Il tuo nickname e il tuo nome sulle scene che hai pubblicato. Cambiano ovunque nello stesso momento; la tua email resta privata.',
   'account.name.cancel': 'Annulla',
   'account.backToSignIn': 'Torna all’accesso',
 
@@ -69,7 +68,7 @@ const account = {
     'Il servizio account ha rifiutato. Riprova tra un momento.',
   'account.error.expired': 'Questo accesso non è più valido. Accedi di nuovo.',
   'account.error.signedOutElsewhere':
-    'Questo computer è stato disconnesso perché il tuo account ha effettuato l’accesso su un altro. Plus funziona su un massimo di 5 computer alla volta: accedi di nuovo per usarlo qui e verrà disconnesso quello usato meno di recente.',
+    'Questo computer è stato disconnesso perché il tuo account ha effettuato l’accesso su un altro. Un account resta connesso su un massimo di 5 computer alla volta: accedi di nuovo per usarlo qui, e verrà disconnesso quello usato meno di recente.',
   'account.error.malformed':
     'Il servizio account ha inviato qualcosa che FluidEQ non è riuscito a leggere.',
   'account.error.wrongCredentials': 'Email o password errati.',
@@ -86,82 +85,22 @@ const account = {
     'Esiste già un account con questo indirizzo. Accedi invece.',
 
   'account.plus.eyebrow': 'FluidEQ Plus',
-  'account.plus.pitch':
-    'Visualizzatori che non esistono da nessun’altra parte, lo Studio per creare i tuoi, la classifica — e ogni novità da qui in avanti, prima per i membri. L’equalizzatore, il rack e i player restano gratuiti, come sono sempre stati.',
-  'account.plus.upgrade': 'Passa a Plus',
-  'account.plus.opening': 'Apertura…',
-  'account.plus.checkoutHint':
-    'Apre Buy Me a Coffee nel browser. Paga con la stessa email di questo account così FluidEQ la riconosce; l’app non vede mai la tua carta.',
-  'account.plus.active': 'Attivo',
-  'account.plus.ending': 'Non si rinnova',
-  'account.plus.renews': 'Si rinnova il {date}',
-  'account.plus.sorry': 'Ci dispiace vederti andare via.',
-  'account.plus.until':
-    'Plus resta attivo fino al {date}, e non viene addebitato altro.',
-  'account.plus.gift': 'Un regalo di FluidEQ',
-  'account.plus.giftUntil': 'Un regalo di FluidEQ, fino al {date}',
-  'account.plus.computers':
-    'Con l’accesso eseguito su un massimo di {count} computer alla volta.',
-  'account.plus.manage': 'Gestisci abbonamento',
-  'account.plus.grace':
-    'Non è stato possibile confermare l’abbonamento. Resta attivo fino al {date}: connettiti a internet prima di allora per conservarlo.',
-  'account.plus.checkAgain': 'Controlla di nuovo',
-  'account.plus.perMonth': '{price} / mese',
-  'account.plus.perYear': '{price} / anno',
-  'account.plus.priceChoice': '{monthly} o {yearly}',
-  'account.plus.checkoutOpened':
-    'Buy Me a Coffee è aperto nel browser. Torna qui dopo aver pagato e Plus si attiva.',
-  'account.plus.error.rejected':
-    'Impossibile aprire la pagina di pagamento. Riprova tra un momento.',
 
-  'account.dev.label': 'Sviluppo',
-  'account.dev.start': 'Simula un pagamento',
-  'account.dev.cancel': 'Simula una disdetta',
-  'account.dev.working': 'Invio…',
-
-  'account.perk.looks': 'Aspetti Plus, disegnati dalla scheda grafica.',
+  'account.perk.looks': 'Scene che sono tue per sempre, un credito ciascuna.',
   'account.perk.visualizers':
     'Visualizzatori: le scene create dai membri, aperte a ogni account.',
-  'account.perk.board': 'Una classifica di chi ascolta di più.',
-  // What publishing earns: one approved scene a month keeps Plus free
-  // (server migration 0041). Months earned while a paid membership runs
-  // wait for it to end; nothing here changes what anybody pays.
-  'account.maker.title': 'Mese da creatore',
-  'account.maker.badge': 'Gratis',
-  'account.maker.until': 'Plus è gratis fino al {date}.',
-  'account.maker.endsDays':
-    'Finisce tra {days} giorni: pubblica una scena prima per mantenerlo.',
-  'account.maker.endsToday': 'Finisce oggi: pubblica una scena per tenerlo.',
-  'account.maker.endsTomorrow':
-    'Finisce domani: pubblica una scena prima per mantenerlo.',
-  'account.maker.keep':
-    'Pubblica una scena questo mese e il prossimo è gratis.',
-  'account.maker.kept':
-    'La scena di questo mese c’è. Pubblicane un’altra il mese prossimo per continuare.',
-  'account.maker.again':
-    'Pubblica una scena e hai di nuovo un mese di Plus gratis.',
-  'account.maker.againWaiting':
-    'Pubblica una scena e un altro mese gratis si mette in coda.',
-  'account.maker.invite':
-    'Crea una scena nello Studio: una scena approvata al mese tiene Plus gratis.',
-  'account.maker.waitingOne':
-    'Un mese guadagnato è in attesa. Parte quando finisce il tuo abbonamento: non cambia nulla di ciò che paghi.',
-  'account.maker.waitingMany':
-    '{count} mesi guadagnati sono in attesa. Partono quando finisce il tuo abbonamento: non cambia nulla di ciò che paghi.',
-  // The week before an earned month runs out, and the day it does: an
-  // earned month renews itself no more than a gift does, so it has to be
-  // said out loud rather than simply stop.
-  'account.maker.notice.endingTitle':
-    'Il tuo Plus gratuito finisce tra {days} giorni',
-  'account.maker.notice.endingToday': 'Il tuo Plus gratuito finisce oggi',
-  'account.maker.notice.endingTomorrow': 'Il tuo Plus gratuito finisce domani',
-  'account.maker.notice.endingBody':
-    'Pubblica una scena prima e anche il mese successivo è gratis. In nessun caso viene addebitato nulla.',
-  'account.maker.notice.endedTitle': 'Il tuo Plus gratuito è finito',
-  'account.maker.notice.endedBody':
-    'Pubblica una scena e riparte. Tutto ciò che hai comprato resta tuo.',
-  'account.maker.notice.open': 'Apri lo Studio',
-  'account.maker.notice.later': 'Non ora',
+  // Signing in with Google, in the browser (main/account/googleSignIn.ts).
+  'account.google': 'Continua con Google',
+  'account.or': 'oppure',
+  'account.google.waiting': 'Completa l’accesso con Google nel browser.',
+  'account.google.cancel': 'Annulla',
+  'account.error.googleUnfinished':
+    'L’accesso con Google non è stato completato. Riprova o usa la tua email.',
+  'account.google.doneTitle': 'Hai effettuato l’accesso',
+  'account.google.doneBody': 'Puoi chiudere questa scheda e tornare a FluidEQ.',
+  'account.google.failedTitle': 'L’accesso non è stato completato',
+  'account.google.failedBody':
+    'Torna a FluidEQ per riprovare o accedi con la tua email.',
 } as const;
 
 export default account;

@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { PRODUCT_VERSION } from 'common/branding';
 import { errorText } from 'common/errors';
+import { isFluidEngineBuiltIn } from 'common/platformCapabilities';
 import { featureTourDismissal } from 'common/featureTour';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import AccountDialog from '../account/AccountDialog';
@@ -28,17 +29,23 @@ import AudioTroubleshooter from '../components/AudioTroubleshooter';
 import BugReportDialog from '../components/BugReportDialog';
 import DisclaimerGate from '../components/DisclaimerGate';
 import EngineTroubleNotice from '../components/EngineTroubleNotice';
+import MacAudioPermissionNotice from '../components/MacAudioPermissionNotice';
 import EngineUpdateNotice from '../components/EngineUpdateNotice';
 import FeatureTour from '../components/featureTour/FeatureTour';
 import { featureTourFor } from '../components/featureTour/slides';
-import MakerMonthNotice from '../components/MakerMonthNotice';
 import MandatoryUpdateModal from '../components/MandatoryUpdateModal';
 import PlusTermsNotice from '../components/PlusTermsNotice';
-import PlusWelcomeDialog from '../components/PlusWelcomeDialog';
+import ListeningNotice from '../components/ListeningNotice';
+import SceneAnnouncementDialog from '../components/SceneAnnouncementDialog';
 import ProcessesDialog from '../components/ProcessesDialog';
 import RestartAudioDialog from '../components/RestartAudioDialog';
 import SceneReviewNotice from '../components/SceneReviewNotice';
+import ServerLimitNotice from '../components/ServerLimitNotice';
+import PayoutDueNotice from '../components/PayoutDueNotice';
 import SongEqNotice from '../components/SongEqNotice';
+import SongSoundNotice from '../components/SongSoundNotice';
+import SongSoundSaveNotice from '../components/SongSoundSaveNotice';
+import SongSoundHost from '../audio/SongSoundHost';
 import SpeechMemoryNotice from '../components/SpeechMemoryNotice';
 import UpdateNotice from '../components/UpdateNotice';
 import WhatsNewDialog from '../components/WhatsNewDialog';
@@ -49,6 +56,7 @@ import { prereqBannerEngine } from '../utils/audioEngineApi';
 import { resetEuphoriaMode } from '../utils/euphoriaMode';
 import { useFluidEqShell } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
+import windowCapabilities from '../utils/windowCapabilities';
 import { resetRhythmRun } from '../utils/rhythmRun';
 import type { TWorkspaceTab } from '../workspaceTabs';
 import { ImportNotice, RecoverableErrorNotice } from './ShellNotices';
@@ -143,7 +151,13 @@ const ShellDialogs = ({
           isBlockingError && (
             <PrereqMissingModal
               key={dialogs.prereqNonce}
-              engine={prereqBannerEngine(globalError.code, engineStatus)}
+              // Where the engine is part of the app (macOS) there is no
+              // engine to install, so the banner names none and offers none.
+              engine={
+                isFluidEngineBuiltIn(windowCapabilities())
+                  ? null
+                  : prereqBannerEngine(globalError.code, engineStatus)
+              }
               isLoading={isLoading}
               onRetry={engine.handlePrereqRetry}
               onInstallFluid={engine.handleInstallFluidEngine}
@@ -170,6 +184,16 @@ const ShellDialogs = ({
           onClose={engine.audioRestart.close}
         />
       )}
+      {/* A Mac's own reason for the engine doing nothing, before the
+          engine's other cards (`noticeTurn.ts`). Waits for the dialogs that
+          take the whole window, as they do. */}
+      <MacAudioPermissionNotice
+        isHidden={
+          engine.showEngineDialog ||
+          isEngineUnchosen ||
+          Boolean(globalError && isBlockingError)
+        }
+      />
       {/* Steps aside for the two dialogs its own buttons open, and for
           the ones that take the whole window: whatever it says can wait
           until they are answered, and it is still true afterwards. */}
@@ -230,23 +254,32 @@ const ShellDialogs = ({
           playing while the user is on any tab, and the loaned curve is
           already audible before this ever draws. */}
       <SongEqNotice />
+      {/* And the song's own sound: put on by whichever song settles, on
+          whatever tab is open. Its host beside it, because it reads every
+          band and every position a player reports, and redraws only itself. */}
+      <SongSoundHost />
+      <SongSoundNotice />
+      <SongSoundSaveNotice />
       {/* Here too: the terms promise that the app tells a member when they
           change, and a member need never open the Plus tab to use Plus. */}
       <PlusTermsNotice />
+      {/* And every signed-in account's, member or not: whether its
+          listening time is counted is asked once, on whichever tab is open. */}
+      <ListeningNotice />
       {/* Here for the same reason: a scene waiting for the admin, or a
           maker's scene approved or not, is news on whichever tab is open. */}
       <SceneReviewNotice />
-      {/* The week's warning before a maker's earned Plus runs out. Beside
-          the review news, because it is the same kind of thing: something
-          about their scenes that can land on any tab. */}
-      <MakerMonthNotice />
+      {/* The admin's alone: the server nearing a limit of its plan, which
+          has to be paid for before it fills, on whichever tab is open. */}
+      <ServerLimitNotice />
+      {/* The admin's too: creators owed their payout, every 15 days. */}
+      <PayoutDueNotice />
       {/* A scene reported from the looks: the menu it was asked from
           closes under the dialog, so the dialog lives here. */}
       <SceneReportHost />
-      {/* The one moment a membership turning on is marked. Here rather than
-          in the Plus tab, because paying is done from the account panel and
-          the answer can land with any tab open. */}
-      <PlusWelcomeDialog />
+      {/* New scenes announced, once, on whichever tab is open: the set's
+          first scene plays on the graph from its button. */}
+      <SceneAnnouncementDialog />
       {showFeatureTour && (
         <FeatureTour
           version={PRODUCT_VERSION}

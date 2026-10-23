@@ -5,10 +5,21 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useMemo } from 'react';
-import { HELP_CHAPTERS } from '../../../common/helpGuide';
+import { helpChaptersFor, helpTextKey } from '../../../common/helpPlatformText';
+import type { LocaleCode } from '../../../common/i18n';
+import { isFluidEngineBuiltIn } from '../../../common/platformCapabilities';
 import { MarkedText } from '../../help/HelpMarks';
 import { buildHelpIndex, searchHelp } from '../../help/helpSearch';
 import { useTranslation } from '../../utils/I18nContext';
+import windowCapabilities from '../../utils/windowCapabilities';
+
+/** The guide as this platform shows it (`helpPlatformText.ts`). */
+const guideIndex = (locale: LocaleCode) => {
+  const isEngineBuiltIn = isFluidEngineBuiltIn(windowCapabilities());
+  return buildHelpIndex(helpChaptersFor(isEngineBuiltIn), locale, (key) =>
+    helpTextKey(key, isEngineBuiltIn),
+  );
+};
 
 /** How many answers the picture lists: the rail's first screenful. */
 const SHOWN = 3;
@@ -25,11 +36,7 @@ export default function GuideVisual() {
   const { t, locale } = useTranslation();
   const query = t('tour.help.query');
   const hits = useMemo(
-    () =>
-      searchHelp(buildHelpIndex(HELP_CHAPTERS, locale), query)?.hits.slice(
-        0,
-        SHOWN,
-      ) ?? [],
+    () => searchHelp(guideIndex(locale), query)?.hits.slice(0, SHOWN) ?? [],
     [locale, query],
   );
   const [first] = hits;

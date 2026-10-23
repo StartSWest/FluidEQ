@@ -116,7 +116,9 @@ export interface IWindowState {
    * The window's content in its own pixels, before the zoom: what the page's
    * viewport becomes once a change of size has reached it. The switch between
    * the app and the player waits for the two to agree before the page comes
-   * back up (`setWindowMode`). Absent from a main started before it was said.
+   * back up (`setWindowMode`). Absent from a main started before it was said,
+   * and while DevTools are open: docked, they take part of the window and
+   * the two never agree.
    */
   contentSize?: { width: number; height: number };
 }

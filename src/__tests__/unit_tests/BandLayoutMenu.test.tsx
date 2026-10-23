@@ -5,6 +5,11 @@ import ClearEqButton from 'renderer/components/ClearEqButton';
 import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
 import defaultContext from '__tests__/utils/mockFluidEqProvider';
 import {
+  FilterTypeEnum,
+  getDefaultFilters,
+  FixedBandSizeEnum,
+} from 'common/constants';
+import {
   applyBandDesign,
   deleteBandDesign,
   getBandDesigns,
@@ -14,6 +19,7 @@ import {
   clearGains,
   setEqCut,
   setFixedBand,
+  setFilterValues,
   setTone,
 } from 'renderer/utils/equalizerApi';
 
@@ -27,6 +33,7 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   clearGains: jest.fn(),
   setEqCut: jest.fn(),
   setFixedBand: jest.fn(),
+  setFilterValues: jest.fn(),
   setTone: jest.fn(),
 }));
 jest.mock('renderer/utils/logger', () => ({ reportError: jest.fn() }));
@@ -71,6 +78,28 @@ beforeEach(() => {
 });
 
 describe('band layout menu', () => {
+  it('resets only bell Q with one batch and keeps frequencies, gains and mode out of the edit', async () => {
+    const filters = getDefaultFilters(FixedBandSizeEnum.SIX);
+    const bands = Object.values(filters);
+    bands[0].type = FilterTypeEnum.LSC;
+    bands.forEach((band) => {
+      band.quality = 4;
+      band.gain = 3;
+    });
+    mount({ ...context, filters });
+    await openMenu();
+    await act(async () =>
+      fireEvent.click(screen.getByRole('button', { name: 'Reset band Q' })),
+    );
+    expect(setFilterValues).toHaveBeenCalledTimes(1);
+    expect(setFilterValues).toHaveBeenCalledWith(
+      bands.slice(1).map((band) => ({ id: band.id, quality: 0.35 })),
+    );
+    expect(bands.every((band) => band.gain === 3 && band.quality === 4)).toBe(
+      true,
+    );
+  });
+
   it('keeps cached rows without a temporary loading row when reopened, then receives fresh data', async () => {
     let finishRead: (entries: (typeof design)[]) => void = () => {};
     jest.mocked(getBandDesigns).mockImplementationOnce(

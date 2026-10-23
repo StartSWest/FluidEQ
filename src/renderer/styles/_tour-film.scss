@@ -1,0 +1,153 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'motion' as *;
+@use 'theme' as *;
+@use 'tour-miniature' as *;
+
+// A slide's picture and the key that plays its film (`FeatureFilm.tsx`):
+// the picture whole, the key under it; the film itself opens large.
+.feature-film {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(#{$u} * 0.9);
+}
+
+.feature-film__watch {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(#{$u} * 0.45);
+
+  svg {
+    width: calc(#{$u} * 0.9);
+    height: calc(#{$u} * 0.9);
+  }
+}
+
+// The subtitle's room: three lines at its size, so the longest line the
+// voice says in any language never moves the picture above it.
+$film-subtitle-lines: 3;
+$film-subtitle-size: calc(#{$u} * 0.78);
+$film-subtitle-room: calc(
+  #{$film-subtitle-size} * 1.35 * #{$film-subtitle-lines} + #{$u} * 1.2
+);
+
+.feature-film__frame {
+  @include framed;
+
+  display: grid;
+  overflow: hidden;
+  // As wide as the slide's picture allows, and no taller than the picture
+  // box is with the subtitle under it: a film shot tall around its action
+  // (a band and its slider) is held by its height, measured at 58-59vh of
+  // the window at 1280x800 and 1920x1080, where the width alone made it
+  // overflow the slide.
+  width: min(
+    100%,
+    calc((55vh - #{$film-subtitle-room}) * var(--film-aspect, 1.5))
+  );
+  max-width: calc(#{$u} * 34);
+  border-radius: $radius-l;
+  background: $surface-well;
+}
+
+.feature-film__screen {
+  position: relative;
+  width: 100%;
+
+  video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+// What the voice is saying, in the reader's language, under the picture
+// rather than over it: a line is a sentence or two, and over the film it
+// covered what the film was showing.
+.feature-film__subtitle {
+  display: grid;
+  min-height: $film-subtitle-room;
+  margin: 0;
+  padding: calc(#{$u} * 0.6) calc(#{$u} * 0.9);
+  border-top: 1px solid color-mix(in srgb, $secondary-light 22%, transparent);
+  place-items: center;
+  color: $text-primary;
+  font-size: $film-subtitle-size;
+  font-weight: $weight-semibold;
+  line-height: 1.35;
+  text-align: center;
+  text-wrap: balance;
+
+  span {
+    @include animate(rise-in, $motion-base);
+  }
+}
+
+// The film's keys — larger, and its sound, off until pressed — in the
+// frame's lower corner over a dimmed backing, so they read on any picture.
+.feature-film__controls {
+  position: absolute;
+  right: calc(#{$u} * 0.6);
+  bottom: calc(#{$u} * 0.6);
+  display: flex;
+  gap: calc(#{$u} * 0.4);
+}
+
+.feature-film__key {
+  display: grid;
+  width: calc(#{$u} * 2.2);
+  height: calc(#{$u} * 2.2);
+  padding: 0;
+  place-items: center;
+  background: color-mix(in srgb, $surface-panel 80%, transparent);
+  backdrop-filter: blur(6px);
+
+  svg {
+    width: calc(#{$u} * 1.1);
+    height: calc(#{$u} * 1.1);
+  }
+
+  &[aria-pressed='true'] {
+    color: $secondary-light;
+  }
+}
+
+// The film opened larger (`FeatureFilmLarge.tsx`): over the What's New
+// dialog (1425) and under About (1450), as large as the window allows with
+// its subtitle, on the dialogs' own scrim.
+.feature-film-large {
+  @include dialog.backdrop(1440);
+
+  // Outside the tour, so its unit is set here as the tour sets it.
+  --tour-unit: #{$tour-unit-size};
+}
+
+.feature-film-large__backdrop {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-out;
+}
+
+.feature-film__frame.feature-film-large__frame {
+  position: relative;
+  width: min(
+    100%,
+    calc((92vh - #{$film-subtitle-room}) * var(--film-aspect, 1.5))
+  );
+  max-width: none;
+  box-shadow: 0 30px 80px rgba($black, 0.6);
+}

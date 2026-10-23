@@ -21,6 +21,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <chrono>
 #include <cstdio>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "fluideq_engine/config.h"
 #include "fluideq_engine/graph.h"
 #include "../src/room_head.h"
+#include "../src/source_analysis.h"
 #include "dsp_chain_fixture.h"
 #include "graph_test_support.h"
 
@@ -141,6 +143,83 @@ void the_encoder_s_own_line_decodes() {
   CHECK(settings.eq.band_count == 15);
 }
 
+/**
+ * THE DE-ESSER IS READ ONLY FROM A LINE THAT SIGNS ITS WORDS.
+ *
+ * Its twelve words sit in the multiband compressor's retired eighteen, and
+ * the reference line was frozen while the compressor was still in them: its
+ * corners, 200 and 3000, stand where the De-esser's switch and Isolate now
+ * are. Read as the De-esser, that line would switch it on and monitor it.
+ */
+void the_de_esser_reads_only_from_a_signed_line() {
+  std::printf("the De-esser is read only from a line that signs its words\n");
+  // After the master switch, the retired guard, the Exciter, the EQ and the
+  // compressor's own switch (`kDeEsserSlot` in `chain_decode.cpp`).
+  constexpr size_t kDeEsser = 2 + 9 + 18 + 11 + 1;
+  const std::vector<double> frozen = reference_values();
+  FeqChainSettings settings = {};
+  CHECK(frozen[kDeEsser] == 200.0 && frozen[kDeEsser + 1] == 3000.0);
+  CHECK(decode_dsp_chain(frozen, &settings));
+  CHECK(settings.deesser.enabled == 0 && settings.deesser.isolate == 0);
+  // The rest of the old line is read as before.
+  CHECK(settings.exciter.enabled == 1 && settings.eq.band_count == 15);
+
+  // The same line with the De-esser's words as the app writes them now.
+  std::vector<double> signed_line = frozen;
+  const double words[17] = {1,   0,  0.4, 5000, 10000, 8, 0.5, 2, 1.5,
+                            120, 1,  0.3, FEQ_CHAIN_DEESSER_SIGNATURE,
+                            FEQ_CHAIN_DEESSER_FIELDS, 0, 0, 0};
+  for (size_t at = 0; at < 17; ++at) signed_line[kDeEsser + at] = words[at];
+  CHECK(decode_dsp_chain(signed_line, &settings));
+  CHECK(settings.deesser.enabled == 1 && settings.deesser.isolate == 0);
+  CHECK(settings.deesser.sensitivity == 0.4);
+  CHECK(settings.deesser.low_hz == 5000 && settings.deesser.high_hz == 10000);
+  CHECK(settings.deesser.range_db == 8 && settings.deesser.width_oct == 0.5);
+  CHECK(settings.deesser.mode == FEQ_DEESSER_WHOLE);
+  CHECK(settings.deesser.attack_ms == 1.5 &&
+        settings.deesser.release_ms == 120);
+  CHECK(settings.deesser.centre_only == 1 &&
+        settings.deesser.keep_cymbals == 0.3);
+  // Nothing after the eighteen moved.
+  CHECK(settings.eq.band_count == 15 && settings.normalizer.mode == 1);
+
+  // A signed line naming a fourth mode is one this engine does not know.
+  std::vector<double> unknown = signed_line;
+  unknown[kDeEsser + 7] = 3;
+  CHECK(!decode_dsp_chain(unknown, &settings));
+  // The same unknown mode in an unsigned line is the compressor's band, read
+  // as nothing: the control that the refusal above is the signature's.
+  std::vector<double> unsigned_line = unknown;
+  unsigned_line[kDeEsser + FEQ_CHAIN_DEESSER_FIELDS] = 0;
+  CHECK(decode_dsp_chain(unsigned_line, &settings));
+  CHECK(settings.deesser.enabled == 0);
+
+  // The Exciter's oversampling is the first word after the signature pair:
+  // Standard on the line as it was, High and Off as named, and a value no
+  // choice has refused. Unsigned, the word is the compressor's and the
+  // Exciter runs as it always did.
+  constexpr size_t kOversampling = kDeEsser + FEQ_CHAIN_DEESSER_FIELDS + 2;
+  CHECK(decode_dsp_chain(signed_line, &settings));
+  CHECK(settings.exciter.oversampling == FEQ_EXCITER_OVERSAMPLING_STANDARD);
+  std::vector<double> high = signed_line;
+  high[kOversampling] = FEQ_EXCITER_OVERSAMPLING_HIGH;
+  CHECK(decode_dsp_chain(high, &settings));
+  CHECK(settings.exciter.oversampling == FEQ_EXCITER_OVERSAMPLING_HIGH);
+  // Nothing around it moved.
+  CHECK(settings.deesser.keep_cymbals == 0.3 && settings.eq.band_count == 15);
+  std::vector<double> off = signed_line;
+  off[kOversampling] = FEQ_EXCITER_OVERSAMPLING_OFF;
+  CHECK(decode_dsp_chain(off, &settings));
+  CHECK(settings.exciter.oversampling == FEQ_EXCITER_OVERSAMPLING_OFF);
+  std::vector<double> unknown_choice = signed_line;
+  unknown_choice[kOversampling] = 3;
+  CHECK(!decode_dsp_chain(unknown_choice, &settings));
+  std::vector<double> unsigned_choice = high;
+  unsigned_choice[kDeEsser + FEQ_CHAIN_DEESSER_FIELDS] = 0;
+  CHECK(decode_dsp_chain(unsigned_choice, &settings));
+  CHECK(settings.exciter.oversampling == FEQ_EXCITER_OVERSAMPLING_STANDARD);
+}
+
 void room_payload_bound_is_shared_with_the_file_parser() {
   std::string text;
   for (size_t index = 0; index < FEQ_CHAIN_MAX_PARAMS; ++index) text += "0 ";
@@ -158,7 +237,7 @@ void a_header_only_or_broken_file_is_no_rack() {
 }
 
 void denoise_runs_without_the_neural_runtime() {
-  std::printf("live restoration stays enabled; only neural Voice is unavailable\n");
+  std::printf("wire decoding retains Voice; a legacy rack keeps local restoration\n");
   std::vector<double> values = reference_values();
   values[kDenoiseEnabled] = 1.0;
   values[kDenoiseEnabled + 16] = 1.0;
@@ -166,13 +245,74 @@ void denoise_runs_without_the_neural_runtime() {
   FeqChainSettings settings = {};
   CHECK(decode_dsp_chain(values, &settings));
   CHECK(settings.denoise.enabled == 1);
-  CHECK(settings.denoise.voice.enabled == 0);
-  CHECK(settings.denoise.profile_source == FEQ_DENOISE_PROFILE_ADAPTIVE);
-  // The Library decoder retains the user's scanned-profile and Voice settings.
+  CHECK(settings.denoise.voice.enabled == 1);
+  CHECK(settings.denoise.profile_source == FEQ_DENOISE_PROFILE_SCANNED);
+  // Decoding is shared. Source ownership decides availability during rack
+  // preparation, so a modern engine can prepare its own Voice worker.
   CHECK(feq_chain_settings_decode(values.data(), static_cast<uint32_t>(values.size()), &settings));
   CHECK(settings.denoise.voice.enabled == 1);
   CHECK(settings.denoise.profile_source == FEQ_DENOISE_PROFILE_SCANNED);
   CHECK(settings.exciter.enabled == 1);
+  std::vector<std::string> warnings;
+  const auto legacy = fluideq_engine::build_rack(values, kRate, 2, 480, warnings);
+  CHECK(legacy.chain != nullptr && !legacy.failed && !legacy.voice_ready);
+  CHECK((feq_chain_active_stages(legacy.chain.get()) & (1u << 1)) != 0);
+}
+
+/**
+ * A live output whose Voice cannot run — the sidecar says a model was
+ * downloaded, but there is no trusted runtime beside the DLL and no verified
+ * model — plays the rest of its rack with Voice off. It used to fail the whole
+ * build, and the graph before it went on playing with every edit unheard.
+ */
+void a_live_output_without_voice_plays_its_rack() {
+  std::printf("a live output without the voice runtime plays its rack with voice off\n");
+  std::vector<double> values = reference_values();
+  values[kDenoiseEnabled] = 1.0;
+  values[kDenoiseEnabled + 16] = 1.0;
+  fluideq_engine::SourceAnalysis live;
+  live.library = false;
+  live.voice_available = true;
+  std::vector<std::string> warnings;
+  const auto played = fluideq_engine::build_rack(
+      values, kRate, 2, 480, warnings, nullptr, 0, nullptr, false, &live);
+  CHECK(played.chain != nullptr && !played.failed && !played.voice_ready);
+  CHECK(!warnings.empty());
+  // The rack is there: the stages that need no Voice still run.
+  CHECK((feq_chain_active_stages(played.chain.get()) & (1u << 1)) != 0);
+
+  // Positive control: the Library's own source with the same facts still
+  // refuses, because its host keeps the sound until all it asked for is ready.
+  fluideq_engine::SourceAnalysis library = live;
+  library.library = true;
+  library.engine_owner = true;
+  warnings.clear();
+  const auto refused = fluideq_engine::build_rack(
+      values, kRate, 2, 480, warnings, nullptr, 0, nullptr, false, &library);
+  CHECK(refused.failed && refused.chain == nullptr);
+
+  // A runtime and a model that are there by every check but will not load
+  // (here, paths to nothing) take the second way to the same place: the
+  // prepare fails, Voice goes off, and the rack is prepared again without it.
+  fluideq_engine::SourceAnalysis unloadable = live;
+  unloadable.voice_model = "C:\\FluidEQ-test\\absent\\fluideq-voice.onnx";
+  unloadable.voice_runtime = "C:\\FluidEQ-test\\absent\\onnxruntime.dll";
+  unloadable.voice_model_guard = std::make_shared<int>(0);
+  warnings.clear();
+  const auto retried = fluideq_engine::build_rack(
+      values, kRate, 2, 480, warnings, nullptr, 0, nullptr, false, &unloadable);
+  CHECK(retried.chain != nullptr && !retried.failed && !retried.voice_ready);
+  CHECK(mentions(warnings, "could not be prepared"));
+  CHECK((feq_chain_active_stages(retried.chain.get()) & (1u << 1)) != 0);
+  // And the Library's source, a real one this time, still refuses on it.
+  fluideq_engine::SourceAnalysis library_unloadable = unloadable;
+  library_unloadable.library = true;
+  library_unloadable.engine_owner = true;
+  library_unloadable.source = 7;
+  warnings.clear();
+  const auto held = fluideq_engine::build_rack(values, kRate, 2, 480, warnings,
+      nullptr, 0, nullptr, false, &library_unloadable);
+  CHECK(held.failed && held.chain == nullptr);
 }
 
 void a_wrong_band_count_is_refused_and_the_eq_still_runs() {
@@ -391,9 +531,8 @@ void a_rack_alone_is_not_a_pass_through() {
   std::printf("a rack with no EQ configuration still processes\n");
   Files files;
   files[kDspPath] = dsp_file(kReferenceLine);
-  // No config.txt at all: `matched` stays false, and the rack is system-wide
-  // so it applies anyway. This is the endpoint a user has never opened the EQ
-  // page for.
+  // No config.txt at all: `matched` stays false, and this endpoint's rack
+  // still applies before its first curve creates a Device block.
   const Chain chain = resolve_chain(kConfigDir, endpoint(), provider(files));
   CHECK(!chain.matched);
   CHECK(!chain.dsp_values.empty());
@@ -433,7 +572,7 @@ void an_eq_only_edit_keeps_the_rack_running() {
   // What the build reported comes with the chain.
   CHECK(inheriting.latency_frames() == fresh.latency_frames());
   CHECK(inheriting.active_stages() == fresh.active_stages());
-  CHECK(inheriting.latency_parts().rack.linear_eq == fresh.latency_parts().rack.linear_eq);
+  CHECK(inheriting.latency_parts().rack.eq == fresh.latency_parts().rack.eq);
 
   std::vector<std::vector<float>> through_inherited(
       2, tone(1000.0, 0.5, 480, 0));
@@ -534,8 +673,8 @@ void the_whole_path_reports_its_delay_and_game_mode_shortens_it() {
   values[kRoomEnabled] = 1.0;
   const auto sum_of = [](const Graph::LatencyParts& parts) {
     const FeqChainLatencyParts& rack = parts.rack;
-    return rack.linear_eq + rack.restoration + rack.leveler + rack.room +
-           rack.bass_punch + rack.maximizer + rack.headroom +
+    return rack.eq + rack.restoration + rack.deesser + rack.leveler +
+           rack.room + rack.bass_punch + rack.maximizer + rack.headroom +
            parts.curves + parts.eq_phase + parts.curve_phase +
            parts.convolution + parts.guard;
   };
@@ -752,9 +891,11 @@ void a_changed_rack_is_never_shared() {
 int main() {
   std::printf("fluideq engine system-wide DSP rack\n");
   the_encoder_s_own_line_decodes();
+  the_de_esser_reads_only_from_a_signed_line();
   a_header_only_or_broken_file_is_no_rack();
   room_payload_bound_is_shared_with_the_file_parser();
   denoise_runs_without_the_neural_runtime();
+  a_live_output_without_voice_plays_its_rack();
   a_wrong_band_count_is_refused_and_the_eq_still_runs();
   switching_the_rack_off_is_not_a_failure();
   the_maximizer_holds_its_ceiling();

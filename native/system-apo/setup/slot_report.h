@@ -27,6 +27,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <functional>
 #include <string>
+#include <string_view>
+#include <vector>
 
 #include "fx_list.h"
 
@@ -51,6 +53,19 @@ using NameLookup = std::function<std::wstring(const std::wstring& clsid)>;
  * seeing at a glance.
  */
 std::wstring describe_slots(const FxValues& values, const NameLookup& name);
+
+/**
+ * The rungs of the slot ladder this output would refuse now, in ladder
+ * order: a single or legacy value that somebody else's effect holds —
+ * neither ours nor Windows' own default — exactly as `plan_move` refuses it.
+ *
+ * The app steps past these rather than asking for them. Asked for, a held
+ * rung cost a Windows prompt for nothing and ended the ladder: a 2.0.0
+ * report's output had a vendor's effect in its SFX value, the walk stopped
+ * there, and GFX — what played on the same user's RME — was never offered.
+ */
+std::vector<Slot> held_slots(const FxValues& values, const FxValues& backup,
+                             std::wstring_view clsid);
 
 }  // namespace fluideq_engine::setup
 

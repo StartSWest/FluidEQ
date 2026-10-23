@@ -47,34 +47,34 @@ const lighting = {
     'Seu teclado, mouse, mousepad, headset e suporte acendem com a cena',
 
   'lighting.gate.title':
-    'Acenda seu teclado, mouse e headset com cada cena Plus',
+    'Ilumine seu teclado, mouse e headset com as suas cenas',
   'lighting.gate.body':
-    'A iluminação dinâmica faz parte do FluidEQ Plus. Seus dispositivos ganham as cores da cena no gráfico e pulsam com a batida.',
-  'lighting.gate.cta': 'Ver o Plus',
+    'Obtenha qualquer cena em Visualizadores e a iluminação dinâmica é sua: seus dispositivos assumem as cores da cena no gráfico e pulsam com a batida.',
+  'lighting.gate.cta': 'Encontrar uma cena',
 
   'lighting.preview.status':
     'Prévia — seus dispositivos acendem enquanto esta página estiver aberta',
   'lighting.preview.lit': 'Iluminando seus dispositivos com a cena',
   'lighting.preview.oneScene': 'Uma cena para mostrar o que ela faz',
-  'lighting.preview.noScene': 'Uma cena Plus na sua mesa',
-  'lighting.preview.moreScenes': 'Todas as cenas com o Plus',
+  'lighting.preview.noScene': 'Uma cena na sua mesa',
+  'lighting.preview.moreScenes': 'Ver as cenas',
   'lighting.preview.held':
-    'Com o Plus seus dispositivos ficam acesos assim, em qualquer cena.',
-  'lighting.preview.locked': 'Brilho, estilo e alinhamento vêm com o Plus.',
+    'Com uma cena sua, seus dispositivos ficam acesos assim.',
+  'lighting.preview.locked':
+    'Brilho, estilo e alinhamento são liberados com uma cena sua.',
 
   'lighting.unsupported.title': 'A iluminação dinâmica funciona no Windows',
   'lighting.unsupported.body':
     'Ela ilumina os dispositivos pelo Windows Dynamic Lighting e pelo Razer Chroma, e ambos só existem no Windows.',
 
-  'lighting.switch': 'Iluminar meus dispositivos enquanto toca uma cena Plus',
+  'lighting.switch': 'Iluminar meus dispositivos enquanto uma cena toca',
   'lighting.status.live': 'Seguindo {scene}',
   'lighting.status.waiting': 'Esperando música',
   'lighting.status.nothingLit':
     'A cena está tocando, mas nenhum dispositivo está aceso',
   'lighting.status.off':
     'Desligada: seus dispositivos mantêm a própria iluminação',
-  'lighting.status.noScene':
-    'Escolha uma cena Plus e seus dispositivos a seguirão',
+  'lighting.status.noScene': 'Escolha uma cena e seus dispositivos a seguem',
   'lighting.pickScene': 'Ver visualizadores',
   'lighting.showGraph': 'Mostrar o gráfico',
 
@@ -186,6 +186,7 @@ const lighting = {
 
   'lighting.graph.on': 'Parar de iluminar meus dispositivos',
   'lighting.graph.off': 'Iluminar meus dispositivos com esta cena',
+  'lighting.gate.eyebrow': 'Uma cena libera',
 } as const;
 
 export default lighting;

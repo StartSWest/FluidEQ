@@ -20,19 +20,10 @@ import { useSyncExternalStore } from 'react';
 import { setContinuousEq } from './continuousEq';
 
 /**
- * Which way of measuring the toolbar is offering — one button, not two.
- *
- * They were side by side and that was a worse thing to look at than it sounds:
- * the two do the same job by different means, only one of them can be running,
- * and a row that offers both at once invites pressing both. So the button is
- * whichever one is chosen, and the caret beside it is where the other one
- * lives.
- *
- * Choosing is not running. Picking Continuous makes the button say Continuous;
- * a press then starts it. That keeps the button's meaning constant — it does
- * what it says — where a menu that also started things would make the same
- * gesture mean two different amounts of commitment depending on which control
- * it landed on.
+ * The remembered measurement mode, shared by the toolbar and compact player.
+ * Choosing a different mode starts it; stopping retains the choice and the
+ * correction. The toolbar offers all modes while idle so the same one can
+ * be started again, and becomes Stop while a measurement is active.
  *
  * Remembered, because it is a way of working rather than a moment's choice.
  */

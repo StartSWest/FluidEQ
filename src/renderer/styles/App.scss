@@ -2931,6 +2931,13 @@ $graph-card-pages: list.join(
     border-top-right-radius: 0;
   }
 
+  // Grown with the page folded away (`is-graph-grown`), there is no divider
+  // strip under the foot to part it from the column's edge, so it stands off
+  // that edge by the page card's own 10px.
+  &.is-graph-grown > .graph-wrapper {
+    margin-bottom: 10px;
+  }
+
   // A Plus visualizer, behind the head and the graph (the column's layer) or
   // behind the whole window (the Backdrop), stands in the same card as every
   // other look's drawing does, the picture its face (Ivan, 2026-09-27: "make
@@ -3251,14 +3258,16 @@ $graph-card-pages: list.join(
 }
 
 // On the section card, a page's own well keeps its edge and gives up its
-// face: the headphone picker, Share Audio's two roles and the panel under
-// them, the processor on the DSP page. Each was filled because it stood on
+// face: the headphone picker, Share Audio's link form and each linked
+// computer's card, the processor on the DSP page. Each was filled because it stood on
 // the bare floor (`card-surface`); on the section it was a second fill, a
 // lighter slab with its own lit corner, and the card inside a card that the
 // section cards were not to become. What stands in the wells — a module's
 // boxes, a chosen role — keeps its own surface.
 .workspace-tab-panel--presets .autoeq-panel__picker,
-.workspace-tab-panel--share .remote-audio__role-shell,
+.workspace-tab-panel--share .remote-audio__link-form,
+.workspace-tab-panel--share .remote-audio__link,
+.workspace-tab-panel--share .remote-audio__another,
 .workspace-tab-panel--dsp .dsp-card {
   background: transparent;
 }
@@ -4389,8 +4398,8 @@ button.graph-legend {
       filter 120ms ease;
   }
 
-  // Hovering is a promise, not a state: the handle half-fills, so it is
-  // obvious which one a click would take without it claiming to be selected.
+  // A translucent accent fill merged the centre into bright traces on hover.
+  // Keep an opaque dark well so the ring and lit core remain distinct.
   &:hover,
   &--hovered {
     .graph-edit-point__halo {
@@ -4398,7 +4407,8 @@ button.graph-legend {
     }
 
     .graph-edit-point__dot {
-      fill: var(--point-muted-color);
+      fill: $surface-well;
+      stroke: color-mix(in srgb, var(--point-color) 80%, $white);
       filter: drop-shadow(0 0 6px var(--point-muted-color));
     }
   }

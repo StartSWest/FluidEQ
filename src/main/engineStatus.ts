@@ -38,9 +38,15 @@ import {
   IFluidEngineEndpoint,
   IFluidEngineStatus,
   TAudioEngine,
+  TEngineSlotName,
 } from '../common/audioEngine';
+import {
+  capabilitiesFor,
+  isFluidEngineBuiltIn,
+} from '../common/platformCapabilities';
 import { isEqualizerAPOInstalled, noteFluidEngineRegistered } from './registry';
 import { getEngineSetupPath } from './engineSetup';
+import { readMacEngineStatus } from './macEngine/macEngineStatus';
 import { planEngineUpdate } from './engineUpdate';
 
 /**
@@ -59,7 +65,10 @@ export const isFluidEngineSupported = (
   release: string = os.release(),
 ): boolean => {
   if (process.platform !== 'win32') {
-    return false;
+    // Off Windows there is no Windows build to check. Where the FluidEQ
+    // Engine is built into the app (macOS) it is supported by definition —
+    // answering no there is what greyed out the only engine a Mac has.
+    return isFluidEngineBuiltIn(capabilitiesFor(process.platform));
   }
   const match = /^(\d+)\.(\d+)\.(\d+)/.exec(release.trim());
   if (!match) {
@@ -89,7 +98,9 @@ interface IGuardedStatusEndpoint {
   effects?: unknown;
   emptySlots?: unknown;
   slot?: unknown;
+  modeMissing?: unknown;
   slotsTried?: unknown;
+  slotsHeld?: unknown;
 }
 
 /**
@@ -103,7 +114,7 @@ interface IGuardedStatusEndpoint {
  * stopped one rung in with the card saying nothing more could be tried.
  * `engineStatusSlots.test.ts` holds it against the wire's own names.
  */
-const SLOT_NAMES: readonly NonNullable<IFluidEngineEndpoint['slot']>[] = [
+const SLOT_NAMES: readonly TEngineSlotName[] = [
   'efx',
   'mfx',
   'sfx',
@@ -114,26 +125,25 @@ const SLOT_NAMES: readonly NonNullable<IFluidEngineEndpoint['slot']>[] = [
   'lfx',
 ];
 
-const parseSlot = (value: unknown): IFluidEngineEndpoint['slot'] | undefined =>
+const parseSlot = (value: unknown): TEngineSlotName | undefined =>
   SLOT_NAMES.find((name) => name === value);
 
 /**
- * Every slot this output has already been put in, as the helper remembers
- * it. Anything unreadable is dropped entry by entry rather than losing the
- * whole history: a name this app does not know is one rung it cannot reason
- * about, not a reason to walk the ladder from the top again.
+ * A list of slot names as the helper wrote it — the rungs this output has
+ * already been put in, or the ones another program holds. Anything
+ * unreadable is dropped entry by entry rather than losing the whole list: a
+ * name this app does not know is one rung it cannot reason about, not a
+ * reason to walk the ladder from the top again.
  */
-const parseSlotsTried = (
-  value: unknown,
-): NonNullable<IFluidEngineEndpoint['slotsTried']> | undefined => {
+const parseSlotList = (value: unknown): TEngineSlotName[] | undefined => {
   if (!Array.isArray(value)) {
     return undefined;
   }
-  const tried = value.flatMap((entry) => {
+  const slots = value.flatMap((entry) => {
     const slot = parseSlot(entry);
     return slot ? [slot] : [];
   });
-  return tried.length > 0 ? tried : undefined;
+  return slots.length > 0 ? slots : undefined;
 };
 
 const isRawStatusEndpoint = (value: unknown): value is IGuardedStatusEndpoint =>
@@ -197,13 +207,16 @@ const parseStatusEndpoints = (value: unknown): IFluidEngineEndpoint[] =>
         const effects = parseEffects(endpoint.effects);
         const { emptySlots } = endpoint;
         const slot = parseSlot(endpoint.slot);
-        const slotsTried = parseSlotsTried(endpoint.slotsTried);
+        const slotsTried = parseSlotList(endpoint.slotsTried);
+        const slotsHeld = parseSlotList(endpoint.slotsHeld);
         return {
           guid: endpoint.guid,
           attached: endpoint.attached,
           backupExists: endpoint.backupExists === true,
           ...(slot ? { slot } : {}),
+          ...(endpoint.modeMissing === true ? { modeMissing: true } : {}),
           ...(slotsTried ? { slotsTried } : {}),
+          ...(slotsHeld ? { slotsHeld } : {}),
           ...(effects ? { effects } : {}),
           ...(typeof emptySlots === 'number' && Number.isInteger(emptySlots)
             ? { emptySlots }
@@ -389,8 +402,20 @@ const logEngineStatusChange = (status: IFluidEngineStatus): void => {
         endpoint.emptySlots === undefined
           ? ''
           : `, ${endpoint.emptySlots} free`;
-      return others.length
-        ? `${endpoint.guid} [${others.join(', ')}${free}]`
+      // And where the engine itself sits, and whether Windows can reach it
+      // there: an output read only from its single values has no list to
+      // show, and a 2.0.0 report's sound card logged nothing but its guid.
+      const parts = [
+        ...(others.length ? [`${others.join(', ')}${free}`] : []),
+        ...(endpoint.slot
+          ? [
+              `engine in ${endpoint.slot}` +
+                `${endpoint.modeMissing ? ', no processing mode' : ''}`,
+            ]
+          : []),
+      ];
+      return parts.length
+        ? `${endpoint.guid} [${parts.join('; ')}]`
         : endpoint.guid;
     })
     .join('; ');
@@ -409,13 +434,17 @@ const logEngineStatusChange = (status: IFluidEngineStatus): void => {
 export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
   new Promise((resolve) => {
     // The engine is an effect inside Windows' own audio service, and the
-    // helper that reports on it is a Windows program. Anywhere else there is
-    // neither, and asking anyway wrote "status probe could not run … ENOENT"
-    // to the log as an error on every macOS launch — and so into every bug
-    // report gathered there. Answered without asking, with what the failed
-    // spawn already answered.
+    // helper that reports on it is a Windows program. Asking it anywhere else
+    // wrote "status probe could not run … ENOENT" to the log as an error on
+    // every macOS launch — and so into every bug report gathered there. A Mac
+    // answers for its own engine, which ships inside the app
+    // (`macEngine/macEngineStatus.ts`); anywhere else there is none.
     if (process.platform !== 'win32') {
-      resolve({ installed: false, endpoints: [] });
+      resolve(
+        process.platform === 'darwin'
+          ? readMacEngineStatus()
+          : { installed: false, endpoints: [] },
+      );
       return;
     }
     let stdout = '';

@@ -52,7 +52,7 @@ const review = {
     '已通过，但文件未能进入图库。请再次点击“通过并发布”完成。',
   'review.forbidden': '只有 FluidEQ 管理员可以审核场景。',
   'review.fine.new':
-    '通过后，它会以版本 {version} 进入图库：所有登录用户都能看到，Plus 会员可以添加。',
+    '批准后它会以版本 {version} 进入画廊：所有已登录的人都能看到，并可用一点获取，对其作者则免费播放。',
   'review.fine.update':
     '通过后，所有拥有这个场景的人都会从版本 {version} 更新。不通过则版本 {version} 保持不变。',
   'review.state.pending': '审核中',
@@ -71,7 +71,8 @@ const review = {
   'review.notice.later': '稍后',
   'review.notice.review': '立即审核',
   'review.notice.approved': '{name} 已进入图库',
-  'review.notice.approvedBody': '已审核通过。Plus 会员现在可以添加它。',
+  'review.notice.approvedBody':
+    '它已获批准。现在它在任何地方为你免费播放，任何人都可以获取它。',
   'review.notice.approvedUpdate': '{name} 的版本 {version} 已进入图库',
   'review.notice.approvedUpdateBody':
     '已审核通过。拥有这个场景的人都会获得新版本。',

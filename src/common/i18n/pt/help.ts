@@ -21,7 +21,7 @@ const help: Record<keyof typeof en, string> = {
   'help.closeImage': 'Fechar captura',
   'help.controlsOf': 'O que cada controle faz: {title}',
   'help.captureNote':
-    'Capturas reais do FluidEQ nas versões 1.6 e 1.7. Cores, nomes e posições dos controles podem variar na sua versão. Os ajustes de exemplo são ilustrações, não presets recomendados.',
+    'Capturas reais da janela do FluidEQ. Cores, nomes e posições dos controles podem variar na sua versão. Os ajustes de exemplo são ilustrações, não presets recomendados.',
   'help.steps': 'Experimente',
   'help.tip': 'Vale saber',
   'help.back': 'Voltar ao início',
@@ -79,7 +79,8 @@ const help: Record<keyof typeof en, string> = {
     'Seus arquivos de música, álbuns e a fila de reprodução.',
   'help.window.karaoke':
     'Cante junto e transforme suas próprias músicas em karaokê.',
-  'help.window.plus': 'Visualizadores, a galeria, a Classificação e o Estúdio.',
+  'help.window.plus':
+    'Visualizadores, a galeria, o Estúdio e a Iluminação dinâmica.',
   'help.window.support': 'Formas de apoiar o desenvolvimento do FluidEQ.',
   'help.window.help':
     'Este guia, Novidades, a solução de problemas de áudio e Relatar um problema.',
@@ -184,11 +185,11 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.intro':
     'Frequência define onde a banda atua; Ganho, o reforço ou corte; Q, a largura: Q maior é mais estreito. Sem nenhuma banda selecionada, os controles de Tom — Graves, Médios e Agudos, com Corte graves e Corte agudos nas laterais — moldam o som como uma curva própria e deixam suas bandas como estão. Comece com mudanças pequenas e amplas e compare sempre.',
   'help.eq.steps':
-    'Abra EQ → Bandas. Sem nada selecionado, gire Graves, Médios ou Agudos para uma mudança rápida de tom, e Corte graves ou Corte agudos para aparar os extremos. Eles desenham a própria linha de Tom no gráfico.\nClique na frequência de uma banda, ou no ponto dela no gráfico, para selecioná-la. Gire os controles Frequência, Ganho e Fator Q, escolha um Filtro ou desligue-a com Ativa.\nClique com o botão direito em uma banda para redefini-la, desativá-la ou adicionar uma banda ao lado. Pressione Limpar EQ para definir todos os ganhos, e também Graves, Médios e Agudos, em 0 dB mantendo suas bandas. Ele pergunta antes.',
+    'Abra EQ → Bandas. Sem nada selecionado, gire Graves, Médios ou Agudos para uma mudança rápida de tom, e Corte graves ou Corte agudos para aparar os extremos. Eles desenham a própria linha de Tom no gráfico.\nClique na frequência de uma banda, ou no ponto dela no gráfico, para selecioná-la. Gire os controles Frequência, Ganho e Fator Q, escolha um Filtro ou desligue-a com Ativa. A curva acompanha o controle deslizante enquanto você o move.\nTudo funciona pelo teclado também: vá com Tab até um fader, um controle giratório ou um ponto do gráfico, e as setas o ajustam passo a passo; Page Up e Page Down dão passos maiores.\nPara ver a frequência, o Q e o ganho de cada banda no gráfico, abra Visualização acima dele e pressione Mostrar etiquetas do EQ, ou pressione Ctrl+W até ele mostrar Tudo. A etiqueta fica acima ou abaixo do ponto, nunca ao lado, e volta ao seu lugar assim que há espaço.\nClique com o botão direito em uma banda para redefini-la, desativá-la ou adicionar uma banda ao lado. Pressione Limpar EQ para definir todos os ganhos, e também Graves, Médios e Agudos, em 0 dB mantendo suas bandas. Ele pergunta antes.\nO mesmo menu tem Excluir banda, que pede um segundo clique antes de apagar. Esquerdo + direito transforma uma banda em uma para cada ouvido, na mesma frequência, para você mover cada uma sozinha: a curva do ouvido esquerdo é contínua e a do direito, tracejada. Ambos os ouvidos junta as duas de novo no meio, assim como Redefinir banda e Limpar EQ.',
   'help.eq.tip':
-    'Em Curvas aparece o que molda esta saída além das suas bandas, cada camada com sua própria intensidade e o ×. O Modo jogo reduz o atraso que o FluidEQ acrescenta, para jogos e chamadas; os presets de jogo o ativam.',
+    'Em Curvas aparece o que molda esta saída além das suas bandas, cada camada com sua própria intensidade e o ×. O Modo jogo reduz o atraso que o FluidEQ acrescenta, para jogos e chamadas; os presets de jogo o ativam. Com o EQ desligado, as bandas ficam esmaecidas e não podem ser alteradas sem querer; os controles de Tom continuam funcionando.',
   'help.eq.keywords':
-    'equalizador, equalização, paramétrico, predefinição, predefinições, bass boost, peaking, low cut, high cut, HPF, LPF, zerar, resetar, timbre, som abafado, estridente',
+    'equalizador, equalização, paramétrico, predefinição, predefinições, bass boost, peaking, low cut, high cut, HPF, LPF, zerar, resetar, timbre, som abafado, estridente, graves, médios, agudos, tom, reforçar, cortar, latência, etiquetas, rótulos, etiquetas do EQ, rótulos das bandas, labels, teclado, setas, teclas de seta, acessibilidade, leitor de tela, ouvido esquerdo, ouvido direito, cada ouvido, por ouvido, esquerdo e direito, eq estéreo, excluir banda, remover banda',
   'help.eq.bandsCaption': 'A página Bandas, sem nada selecionado',
   'help.eq.bandCaption': 'Uma banda selecionada',
   'help.eq.gameMode':
@@ -197,7 +198,10 @@ const help: Record<keyof typeof en, string> = {
     'As outras camadas que moldam esta saída (uma correção de fones, o EQ inteligente, uma convolução), cada uma com sua intensidade, seu interruptor e o ×.',
   'help.eq.bandName': 'Uma banda',
   'help.eq.band':
-    'Arraste o ponto dela para reforçar ou cortar. Clique na frequência dela para selecioná-la.',
+    'Arraste o ponto dela para reforçar ou cortar, ou ajuste-a passo a passo com as setas. Clique na frequência dela para selecioná-la.',
+  'help.eq.labelName': 'Etiqueta da banda',
+  'help.eq.label':
+    'A frequência, o Q e o ganho dela, acima ou abaixo do ponto. Visualização → Mostrar etiquetas do EQ, ou Ctrl+W.',
   'help.eq.bass': 'Aumenta ou reduz a região grave de toda a curva.',
   'help.eq.mid': 'Aumenta ou reduz a região média, onde ficam as vozes.',
   'help.eq.treble':
@@ -213,10 +217,11 @@ const help: Record<keyof typeof en, string> = {
   'help.eq.clear':
     'Define todos os ganhos em 0 dB e mantém suas bandas. Pergunta antes.',
   'help.eq.mode':
-    'A força com que seu EQ e as curvas se aplicam, o Q das bandas e a fase.',
-  'help.eq.add': 'Adiciona uma banda ao lado da selecionada.',
+    'Mostra o cartão Modo EQ: a força com que seu EQ e as curvas se aplicam, o Q das bandas, a fase e os agudos.',
+  'help.eq.add':
+    'Adiciona uma banda ao lado da selecionada, com o Q das bandas que já estão lá.',
   'help.eq.layouts':
-    'Quantidades de bandas e os designs de bandas que você salvou.',
+    'Quantidades de bandas, cada uma começando todas as bandas em um mesmo Q, e os designs de bandas que você salvou.',
   'help.eq.frequency': 'Onde a banda selecionada atua, de 1 Hz a 20 kHz.',
   'help.eq.gain': 'Quanto ela reforça ou corta. Ctrl+clique volta a 0 dB.',
   'help.eq.q': 'A largura dela: quanto maior, mais estreita.',
@@ -231,23 +236,29 @@ const help: Record<keyof typeof en, string> = {
 
   'help.eqmode.title': 'Modo EQ e designs de bandas',
   'help.eqmode.intro':
-    'O Modo EQ muda como o seu som é moldado, sem editar nada. Seu EQ reúne suas bandas, o Tom, os presets, o Tipo de driver e o EQ inteligente; Correções reúne as correções de fones e as curvas importadas ou personalizadas. Os designs de bandas armazenam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
+    'O Modo EQ muda como o seu som é moldado, sem editar nada. Os ajustes dele são o primeiro cartão do painel lateral na página EQ, ao lado das curvas que eles mudam, em duas abas: Seu EQ reúne suas bandas, o Tom, os presets, o Tipo de driver e o EQ inteligente; Correções reúne as correções de fones e as curvas importadas ou personalizadas. Os designs de bandas armazenam as frequências e o Q de um layout de que você gosta, prontos para qualquer saída.',
   'help.eqmode.steps':
-    'Abra Modo EQ na barra de ferramentas de Bandas. Experimente uma opção de Intensidade, Q das bandas ou Suavização das curvas com a música tocando; o painel continua aberto.\nCom o Motor FluidEQ, escolha a fase Mínima ou Linear, e Preciso ou Clássico nos agudos. Pressione Redefinir para voltar tudo ao Normal.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
+    'Pressione Modo EQ acima do gráfico. O cartão aparece, e o painel lateral se abre se estiver fechado.\nEscolha a aba Seu EQ ou Correções e experimente uma opção de Intensidade ou Q das bandas com a música tocando. Com o Motor FluidEQ, escolha a fase Mínima ou Linear, e Preciso ou Clássico nos agudos, para cada aba.\nEm Correções, Suavização das curvas pode suavizar as curvas amostradas em 1/12 ou 1/3 de oitava; fica em Desativada até você escolher. Redefinir volta tudo ao Normal, e a suavização a Desativada.\nPrefere um menu? Pressione o alfinete do cartão: o Modo EQ passa a abrir como um menu sobre o gráfico, e o alfinete desse menu traz o cartão de volta.\nAbra o botão de layouts ao lado de Adicionar banda. Escolha 6, 10, 15, 20 ou 31 bandas, ou pressione Salvar design… para dar nome ao layout atual.',
   'help.eqmode.tip':
-    'Um design armazena só frequências e Q: ao carregar um, todas as bandas começam em 0 dB. A fase linear acrescenta atraso e pode ressoar antes de ataques rápidos.',
+    'Um layout novo começa todas as bandas em um mesmo Q, e uma banda que você adiciona recebe o Q das outras. Um design armazena só frequências e Q: ao carregar um, todas as bandas começam em 0 dB. A fase linear acrescenta atraso e pode ressoar antes de ataques rápidos. Escolher um layout embutido o faz começar do zero: suas próprias frequências e Q, cada banda em 0 dB e nos dois ouvidos.',
   'help.eqmode.keywords':
-    'número de bandas, quantas bandas, equalizador gráfico, força, pre-ringing, terço de oitava, agudos, preciso, clássico',
-  'help.eqmode.modeCaption': 'Modo EQ',
-  'help.eqmode.strength':
-    'Normal, Estúdio ×1.5 ou ×2, para Seu EQ e suas Correções separadamente.',
+    'número de bandas, quantas bandas, equalizador gráfico, força, pre-ringing, terço de oitava, agudos, preciso, clássico, layout de bandas, 10 bandas, 31 bandas, design de bandas, intensidade, fase linear, fase mínima, suavização, Q constante, Q proporcional, alfinete, fixar, desafixar, pin, cartão, painel lateral, menu, abas, seu eq, correções, 1/12 de oitava',
+  'help.eqmode.modeCaption': 'O cartão Modo EQ',
+  'help.eqmode.tabsName': 'Seu EQ e Correções',
+  'help.eqmode.tabs': 'Duas abas, cada uma com os próprios ajustes.',
+  'help.eqmode.pin':
+    'Devolve estes ajustes a um menu sobre o gráfico. O alfinete do menu traz o cartão de volta.',
+  'help.eqmode.strength': 'Normal, Estúdio ×1.5 ou ×2. Cada aba guarda a sua.',
   'help.eqmode.q':
-    'Constante mantém cada Q; Proporcional e Assimétrico estreitam as bandas conforme elas crescem.',
-  'help.eqmode.smoothing': 'Suaviza curvas de correção amostradas.',
-  'help.eqmode.phase': 'Mínima ou Linear. Só com o Motor FluidEQ.',
+    'Constante mantém cada Q; Proporcional e Assimétrico estreitam as bandas conforme elas crescem. Em Seu EQ, ele molda só as suas bandas, nunca um preset ou uma correção.',
+  'help.eqmode.smoothing':
+    'Suaviza curvas de correção amostradas em 1/12 ou 1/3 de oitava. Desativada até você escolher.',
+  'help.eqmode.phase':
+    'Mínima ou Linear, para cada aba. Só com o Motor FluidEQ.',
   'help.eqmode.treble':
     'Preciso soa como desenhado; Clássico, como no Equalizer APO. Só com o Motor FluidEQ.',
-  'help.eqmode.reset': 'Tudo de volta ao Normal.',
+  'help.eqmode.reset':
+    'Tudo de volta ao Normal, e Suavização das curvas de volta a Desativada.',
   'help.eqmode.designsCaption': 'Designs de bandas',
   'help.eqmode.builtIn': 'Layouts padrão de 6, 10, 15, 20 ou 31 bandas.',
   'help.eqmode.save':
@@ -277,11 +288,11 @@ const help: Record<keyof typeof en, string> = {
   'help.headphones.intro':
     'A correção compensa um modelo medido e pode ser combinada com suas bandas e seus presets. Confira modelo exato e autor da medição.',
   'help.headphones.steps':
-    'Abra EQ → Presets EQ, procure o modelo dos seus fones, revise as medições disponíveis e escolha a correspondente.\nPara texto de EQ de outra ferramenta, use Importar configurações de EQ no menu de ações. Confira as bandas e a curva interpretadas antes de aplicar.\nPara o Squiglink, cole a exportação dele no painel de importação. Aplicar como EQ substitui suas bandas; Aplicar como curva a adiciona como uma correção de fones com intensidade própria.',
+    'Abra EQ → Presets EQ, procure o modelo dos seus fones, revise as medições disponíveis e escolha a correspondente.\nPara texto de EQ de outra ferramenta, use Importar configurações de EQ no menu de ações. Confira as bandas e a curva interpretadas antes de aplicar.\nPara o Squiglink, abra a aba Squiglink e cole a exportação dele. Aplicar como EQ substitui suas bandas; Aplicar como curva a adiciona como uma correção de fones com intensidade própria; Salvar em Minhas curvas a guarda com um só clique.\nMinhas curvas é a sua própria lista ao lado da Biblioteca OPRA: Adicionar curva aceita uma exportação do Squiglink, um arquivo .txt, o seu EQ como está ou uma escolha do OPRA. Cada curva tem Aplicar como curva e Aplicar como EQ, e o menu dela renomeia, edita as bandas, duplica, copia como texto ou exclui. Exportar lista e Importar lista levam a lista inteira para outro computador.\nImportar em, ao lado de Aplicar como EQ, escolhe Ambos os ouvidos, Ouvido esquerdo ou Ouvido direito: um ouvido só substitui apenas as bandas desse ouvido e deixa o outro como estava.',
   'help.headphones.tip':
     'Uma prévia marcada como Não aplicada não muda o som. Evite duas correções completas para o mesmo fone por acidente; compare desligando a camada de fones.',
   'help.headphones.keywords':
-    'AutoEq, Harman, curva alvo, fones de ouvido, headphone, headset, IEM, in-ear, earbuds, TWS, Crinacle, oratory1990, resposta de frequência, calibração',
+    'AutoEq, Harman, curva alvo, fones de ouvido, headphone, headset, IEM, in-ear, earbuds, TWS, Crinacle, oratory1990, resposta de frequência, calibração, ouvido esquerdo, ouvido direito, um ouvido, minhas curvas, curvas salvas, lista de curvas, exportar lista, importar lista',
 
   'help.convolution.title': 'Use uma resposta ao impulso',
   'help.convolution.intro':
@@ -295,26 +306,30 @@ const help: Record<keyof typeof en, string> = {
 
   'help.profiles.title': 'Dispositivos, perfis e segunda saída',
   'help.profiles.intro':
-    'Seu EQ acompanha o dispositivo de saída. As edições são salvas no perfil ativo da saída atual, e Perfis permite manter sons alternativos. Segunda saída espelha a reprodução em outros dispositivos, com um nível separado para cada um.',
+    'Cada saída guarda o seu próprio som: o EQ, o preset, o Tom, os cortes, o rack DSP, a Sala e o nivelamento são salvos com ela e voltam no momento em que você muda para ela. Perfis guardam outros sons para a mesma saída. Segunda saída toca em outro dispositivo ao mesmo tempo, com som e nível próprios.',
   'help.profiles.steps':
-    'Confira a saída no topo do cartão Saída antes de editar. Use Novo perfil para um som que quer manter; Atualizar salva as mudanças nesse perfil e Restaurar traz de volta os ajustes salvos dele.\nAbra Segunda saída, ative um dispositivo acessível e ajuste o nível. Escolha o perfil de EQ salvo desse dispositivo logo abaixo dele.\nUse Jogo/Vídeo para um buffer inicial menor ou Música para mais reserva. Compare a sincronização nos seus dispositivos.',
+    'Confira a saída no topo do cartão Saída antes de editar; fones Bluetooth mostram a bateria ao lado dela. Use Novo perfil para um som que quer manter; Atualizar salva as mudanças nesse perfil e Restaurar traz de volta os ajustes salvos dele.\nAtive Lembrar o som de cada música, e o preset, o Tom e o EQ que você ajustar durante uma música voltam sempre que ela tocar aqui. Um aviso informa isso, com Desfazer e Esquecer esta música.\nAbra Segunda saída, ative um dispositivo e ajuste o nível. Escolha o perfil dele logo abaixo, ou pressione Editar som para mudar o som dele na página EQ sem trocar a saída principal; Concluído ou Editar saída principal leva você de volta.\nCada segunda saída acompanha o ritmo sozinha e mostra o atraso em milissegundos; com Compartilhar áudio, o som de outro computador mostra o próprio atraso, rede incluída.',
   'help.profiles.tip':
-    'Cada saída espelhada usa seu próprio perfil, com qualquer um dos motores. O espelhamento funciona enquanto o FluidEQ está aberto; trocar a saída principal encerra os espelhamentos antigos. A latência do dispositivo ainda afeta a sincronização.',
+    'Com o Motor FluidEQ, uma segunda saída toca direto do motor, e a saída principal nunca espera por ela. Lembrar o som de cada música começa desligado e guarda a memória por saída. Na página EQ, o painel começa com o cartão Modo EQ; recolha-o para chegar mais rápido às suas saídas.',
   'help.profiles.keywords':
-    'caixas de som, alternar saída, salvar configurações, saída secundária, múltiplas saídas, dois fones, Bluetooth, delay, atraso, DAC',
+    'caixas de som, alternar saída, salvar configurações, saída secundária, múltiplas saídas, dois fones, Bluetooth, delay, atraso, DAC, saída, dispositivo de saída, dispositivo, troca automática, perfil, perfis, segunda saída, espelhar, duas saídas, sincronia, latência, por dispositivo, por saída, cada saída, som próprio, bateria, editar som, editar saída principal, música, por música, lembrar música, som da música, esquecer música',
   'help.profiles.list':
     'Os sons que você salvou. ATV indica o perfil que esta saída usa; pressione outro para trocar.',
   'help.profiles.update':
     'Salva suas mudanças no perfil em que você está. Restaurar, ao lado, traz o perfil de volta como você o salvou pela última vez.',
   'help.profiles.new': 'Cria um perfil novo a partir do EQ que você tem agora.',
+  'help.profiles.eqMode':
+    'Os ajustes do Modo EQ, primeiro na página EQ. Recolha o cartão para tirá-lo do caminho.',
+  'help.profiles.songSound':
+    'Traz de volta o preset, o Tom e o EQ de uma música sempre que ela tocar aqui. Desligado até você ativar.',
+  'help.profiles.editSound':
+    'Edita o som dessa saída na página EQ sem trocar a saída principal.',
   'help.profiles.output':
-    'A saída pela qual você está ouvindo. DESLIG. significa que seu EQ não chega a ela; ATIVO, que o Windows está tocando por ela.',
-  'help.profiles.mapping':
-    'O perfil que esta saída segue. Qualquer mudança que você fizer é salva nele automaticamente.',
+    'A saída pela qual você está ouvindo, com a bateria em fones Bluetooth. DESLIG. significa que seu EQ não chega a ela; ATIVO, que o Windows está tocando por ela.',
   'help.profiles.onePlayer':
     'Começar algo no FluidEQ pausa o que toca em outro lugar do PC, e vice-versa.',
   'help.profiles.outputs':
-    'Suas outras saídas. Ative uma para tocar nela também, com um perfil próprio.',
+    'Suas outras saídas. Ative uma para tocar nela também, com som, nível e atraso em milissegundos próprios.',
   'help.profiles.driver':
     'Um ponto de partida suave para o que você usa para ouvir: fones de ouvido, fones intra-auriculares, um tamanho ou um material de driver. Deixe em Sem compensação se o som já estiver certo.',
 
@@ -332,11 +347,11 @@ const help: Record<keyof typeof en, string> = {
   'help.dsp.intro':
     'O rack DSP é uma cadeia de estágios de estúdio. Com o Motor FluidEQ, ele processa tudo o que o PC toca; com o Equalizer APO, processa as faixas de áudio da Biblioteca. Ele fica desligado enquanto o FluidEQ está desligado.',
   'help.dsp.steps':
-    'Abra a aba DSP. Escolha uma cadeia em Presets, ou selecione um estágio na barra lateral e ligue-o.\nMude um controle por vez e compare desativando o estágio, em um volume parecido. Isolar permite ouvir só o que um estágio acrescenta.\nSalve um rack de que você gosta e use Exportar e Importar para compartilhá-lo.',
+    'Abra a aba DSP. Escolha uma cadeia em Presets, ou selecione um estágio na barra lateral e ligue-o.\nMude um controle por vez e compare desativando o estágio, em um volume parecido. Isolar permite ouvir só o que um estágio acrescenta.\nSalve um rack de que você gosta e use Exportar e Importar para compartilhá-lo.\nO De-esser abaixa os S, T e CH agudos de uma voz só enquanto soam e deixa os pratos intactos; Voz, Podcast e Audiolivro o ativam. Cada estágio pode guardar perfis seus: ajuste-o e clique em Salvar.',
   'help.dsp.tip':
     'Mais alto costuma soar melhor só por ser mais alto, então compare em níveis equivalentes. Ctrl+clique em um controle giratório para voltar ao valor padrão.',
   'help.dsp.keywords':
-    'efeitos, FX, plugins, limiter, limitador, loudness, LUFS, normalização de volume, nivelamento, exciter, abertura estéreo, subgrave, subharmônico, transientes, masterização, crossfade, gapless',
+    'efeitos, FX, plugins, limiter, limitador, loudness, LUFS, normalização de volume, nivelamento, exciter, abertura estéreo, subgrave, subharmônico, transientes, masterização, crossfade, gapless, de-esser, sibilância, s agudo, chiado, voz, podcast, perfis, salvar perfil',
   'help.dsp.normalizer':
     'Uniformiza a sonoridade. No áudio ao vivo, nivela música por música.',
   'help.dsp.denoise':
@@ -399,10 +414,10 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.intro':
     'O gráfico de resposta desenha as curvas do seu EQ sobre o som ao vivo. A barra acima dele escolhe o que é desenhado e como, e muda conforme o visual: um estilo padrão ou um visualizador Plus.',
   'help.graph.steps':
-    'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Espaço e Ctrl+Espaço percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. Quadros também está lá: todos os quadros que a sua tela oferecer, ou 60 ou 30, e 60 na bateria.\nUm visualizador Plus acrescenta os seus próprios controles a Visualização — o que o autor deixou você ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela cheia, ou Ctrl+clique duplo para expandi-lo na janela; outro clique duplo o traz de volta. Um clique simples oculta ou mostra a barra.\nTeclas: Ctrl+F tela cheia, Ctrl+S visualização expandida, Esc volta à visualização normal, Ctrl+G a grade, Ctrl+W o que o gráfico mostra, Ctrl+I o sentido da onda, Ctrl+A todas as bandas. No ponto de uma banda, arraste para movê-la e o clique direito abre o menu dela; Ctrl+roda muda o Q de um ponto selecionado.',
+    'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Espaço e Ctrl+Espaço percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. Mostrar etiquetas do EQ escreve a frequência, o Q e o ganho de cada banda sobre o ponto dela. Como é desenhado define a taxa de quadros — todos os quadros que a sua tela oferecer, ou 60 ou 30, e 60 na bateria — além da resolução e da suavização; os estilos padrão guardam as próprias escolhas, separadas das dos visualizadores Plus.\nUm visualizador Plus acrescenta os seus próprios controles a Visualização — o que o autor deixou você ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela cheia, ou Ctrl+clique duplo para expandi-lo na janela; outro clique duplo o traz de volta. Um clique simples oculta ou mostra a barra.\nTeclas: Ctrl+F tela cheia, Ctrl+S visualização expandida, Esc volta à visualização normal, Ctrl+G a grade, Ctrl+W o que o gráfico mostra, etiquetas das bandas incluídas, Ctrl+I o sentido da onda, Ctrl+A todas as bandas. No ponto de uma banda, arraste para movê-la, use as setas para ajustá-la passo a passo, e o clique direito abre o menu dela; Ctrl+roda muda o Q de um ponto selecionado.',
   'help.graph.tip': 'Tudo aqui muda só o desenho, nunca o seu som.',
   'help.graph.keywords':
-    'analisador de espectro, forma de onda, waveform, FPS, frame rate, fullscreen, esconder, atalhos, atalhos de teclado, clique duplo, expandida',
+    'analisador de espectro, forma de onda, waveform, FPS, frame rate, fullscreen, esconder, atalhos, atalhos de teclado, clique duplo, expandida, gráfico, espectro, analisador, resposta de frequência, curva, tela cheia, taxa de quadros, quadros, onda, grade, visualização, expandir, etiquetas, rótulos, etiquetas do EQ, rótulos das bandas, labels, teclado, setas, teclas de seta, gráficos, desempenho gráfico, resolução, suavização',
   'help.graph.stripCaption': 'Com um estilo padrão',
   'help.graph.live': 'Mostra ou oculta a onda ao vivo.',
   'help.graph.previous': 'Volta ao visual anterior.',
@@ -435,29 +450,29 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.expand': 'O gráfico cresce por cima do editor.',
   'help.graph.fullscreen': 'O gráfico ocupa a tela toda.',
   'help.graph.showingName': 'Mostrando',
-  'help.graph.showing': 'Percorre o que o gráfico mostra.',
+  'help.graph.showing':
+    'Percorre o que o gráfico mostra, etiquetas das bandas incluídas.',
+  'help.graph.labels':
+    'A frequência, o Q e o ganho de cada banda sobre o ponto dela.',
   'help.graph.waveName': 'A onda',
   'help.graph.wave': 'O desenho do espectro ao vivo.',
   'help.graph.topWaveName': 'Onda superior',
   'help.graph.topWave': 'A pequena onda na barra de título.',
   'help.graph.meterName': 'Medidor de nível',
   'help.graph.meter': 'O medidor de saída no painel da esquerda.',
+  'help.graph.drawing':
+    'Taxa de quadros, resolução e suavização, guardadas separadamente para os estilos padrão e os visualizadores Plus.',
   'help.graph.waveHeight': 'A altura com que a onda é desenhada.',
   'help.graph.wavePosition': 'Da borda inferior até o meio.',
-  'help.graph.attack':
-    'Com que rapidez um visualizador Plus sobe com a música.',
-  'help.graph.release':
-    'Com que lentidão ele volta a cair depois de cada batida.',
-  'help.graph.ownTiming': 'Volta ao ritmo original do visualizador.',
   'help.looks.title': 'Estilos e visualizadores Plus',
   'help.looks.intro':
     'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Linha e Área para um traço limpo, Blocos LED e Picos para impacto, Treliça, Horizonte e Chamas dançantes para cenas inteiras. Os visualizadores Plus são cenas desenhadas na placa de vídeo, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',
   'help.looks.steps':
     'Clique no nome do visual no gráfico. Pesquise ou filtre os estilos por Linhas, Preenchimentos, Barras, Pontos ou Cenas.\nEscolha um visualizador Plus à direita. Sem o Plus ele fica bloqueado, e escolhê-lo explica como obtê-lo.\nEm um estilo padrão, pressione Novo visual para mudar as cores, o movimento e os picos, e depois salve; ele aparece em Seus.',
   'help.looks.tip':
-    'Um visualizador Plus traz as próprias cores: ajuste o ataque e a liberação dele em Visualização. Se uma cena não puder rodar neste computador, o gráfico desenha um estilo gratuito em vez de ficar em branco.',
+    'Um visualizador Plus traz as próprias cores: ajuste o ataque e a liberação dele em Visualização. Os estilos padrão têm ajustes gráficos próprios em Visualização, separados dos visualizadores Plus: resolução total e escala simples para começar. Se uma cena não puder rodar neste computador, o gráfico desenha um estilo gratuito em vez de ficar em branco.',
   'help.looks.keywords':
-    'skin, aparência, temas, animação, animações, customizar, visualizer',
+    'skin, aparência, temas, animação, animações, customizar, visualizer, estilos, estilo, visualizador, visualização, cores, visual, personalizar, gráficos, ajustes gráficos, configurações gráficas, resolução, qualidade',
   'help.looks.searchName': 'Pesquisar',
   'help.looks.search':
     'Encontra estilos e visualizadores por nome, criador ou categoria.',
@@ -471,20 +486,15 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.categoriesName': 'Categorias',
   'help.looks.categories': 'Natureza, Cidades, Abstrato e mais.',
 
-  'help.plus.videoTitle': 'Um tour pelo FluidEQ Plus',
-  'help.plus.videoNote':
-    'Cerca de quatro minutos e meio, narrado em inglês. É reproduzido a partir de fluideq.com quando você aperta play.',
-  'help.plus.title': 'O FluidEQ Plus e sua conta',
+  'help.plus.title': 'Sua conta, os créditos e a aba Plus',
   'help.plus.intro':
-    'Uma conta é opcional: tudo o que era grátis funciona neste computador sem ela. O FluidEQ Plus, mensal ou anual, acrescenta Visualizadores, a Classificação, o Estúdio, a Iluminação dinâmica e o visualizador da área de trabalho. Uma conta nova pode experimentar o Plus grátis por quinze dias, e uma cena que você publicar e que for aprovada lhe dá um mês.',
+    'A conta é opcional: tudo o que era gratuito funciona neste computador sem ela. Conectado, a aba Plus reúne Visualizadores, o Estúdio, a Iluminação dinâmica e o visualizador de área de trabalho. Uma cena de Visualizadores custa um crédito e é sua para sempre; uma conta confirmada recebe alguns créditos grátis, e os pacotes de créditos são pagos uma única vez.',
   'help.plus.steps':
-    'Abra Conta no menu de ações. Entre, ou crie uma conta e digite o código de seis dígitos enviado para seu email.\nPressione Passar ao Plus, leia os termos, marque que concorda e pague no Buy Me a Coffee, no seu navegador, com o mesmo email.\nAbra a aba Plus. A barra lateral dela leva à Classificação, aos Visualizadores, ao Estúdio e à Iluminação dinâmica.',
+    'Abra Conta no menu de ações. Entre, ou crie uma conta e digite o código de seis dígitos enviado para seu email.\nAbra a aba Plus e escolha Visualizadores. Abra uma cena, assista e pressione Obter para gastar um crédito nela.\nPara ter mais créditos, abra Conta e escolha um pacote. Ele é pago uma única vez na Stripe, no seu navegador.',
   'help.plus.tip':
-    'O app nunca vê seu cartão; Gerenciar assinatura permite alterá-la ou cancelá-la. O teste gratuito não pede cartão e não cobra nada ao terminar. Uma conta fica conectada em até cinco computadores, e o Plus continua funcionando offline por um tempo.',
+    'O app nunca vê seu cartão, e nada é renovado. Uma conta fica conectada em até cinco computadores.',
   'help.plus.keywords':
-    'login, cadastro, cadastrar, registrar, premium, assinar, planos, preço, custo, comprar, pagamento, cartão de crédito, mensalidade, trial, cancelar, upgrade, código de verificação',
-  'help.plus.leaderboard':
-    'Quem ouve mais, entre os membros Plus que participam.',
+    'conta, entrar, login, cadastrar, registrar, créditos, crédito, pacote, comprar, preço, preços, custo, pagamento, pagar, premium, pago, cena, assinatura, cancelar, membro, código por email',
   'help.plus.visualizers':
     'Cenas do FluidEQ e dos membros, prontas para sua música.',
   'help.plus.studio': 'Crie suas próprias cenas com sua IA.',
@@ -494,9 +504,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.gallery.title': 'A galeria de Visualizadores',
   'help.gallery.intro':
-    'Visualizadores reúne as cenas do próprio FluidEQ e as que os membros publicam. Qualquer conta pode explorar e experimentar por dez segundos as amostras grátis do FluidEQ; o Plus toca todas as cenas com sua música e as adiciona aos seus visuais.',
+    'Visualizadores reúne as cenas do próprio FluidEQ e as que os membros publicam. Qualquer conta pode explorá-las e assistir a qualquer cena por dez segundos; uma cena que você obtém com um crédito toca com a sua música e fica nos seus visuais, para sempre.',
   'help.gallery.steps':
-    'Abra Plus → Visualizadores. Pesquise, ordene por Mais curtidas, Nesta semana ou Mais novas, ou escolha uma categoria.\nAbra uma cena, pressione Adicionar aos meus visuais e depois Reproduzir no gráfico. As setas, ou ← e →, passam de uma cena para outra.\nCurta as cenas dos membros com o coração e denuncie uma que não deveria estar lá.',
+    'Abra Plus → Visualizadores. Pesquise, ordene por Mais curtidas, Nesta semana ou Mais novas, ou escolha uma categoria.\nAbra uma cena e pressione Obter para ficar com ela usando um crédito, depois Reproduzir no gráfico. As setas, ou ← e →, passam de uma cena para outra.\nCurta com o coração as cenas que você tem, e denuncie uma que não deveria estar ali.',
   'help.gallery.tip':
     'As cenas nos seus visuais se atualizam sozinhas, e a página de uma cena diz o que mudou em cada versão. Uma cena que você publica aparece assim que o criador do FluidEQ a aprova. Abrir no Estúdio mostra como as cenas do próprio FluidEQ são feitas.',
   'help.gallery.keywords':
@@ -521,31 +531,15 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.inspect':
     'Abre a cena do FluidEQ no Estúdio para ver como ela é feita.',
 
-  'help.leaderboard.title': 'A Classificação',
-  'help.leaderboard.intro':
-    'A Classificação ordena os membros Plus que participam dela pelo quanto ouvem e pelas curtidas que suas cenas recebem. Ela fica desligada a menos que você entre.',
-  'help.leaderboard.steps':
-    'Abra Conta e pressione Entrar na classificação.\nAbra Plus → Classificação. Escolha o nome de usuário e o nome visível que a classificação mostra, e depois alterne entre Desde sempre e Este mês.\nPara parar, pressione Sair da classificação. Remover todos os meus dados apaga tudo o que você enviou.',
-  'help.leaderboard.tip':
-    'Um número por dia sai do seu computador (os minutos de música que tocaram), e nunca o que você toca. Cada número é verificado no servidor. Seu nome de usuário e seu nome visível podem ser mudados depois em Conta → Mudar nome; a Classificação e suas cenas publicadas acompanham.',
-  'help.leaderboard.keywords':
-    'ranking, leaderboard, pontuação, estatísticas, tempo de escuta, top ouvintes, competição, apelido, privacidade',
-  'help.leaderboard.periodName': 'Desde sempre ou Este mês',
-  'help.leaderboard.period': 'Todo o histórico, ou só este mês.',
-  'help.leaderboard.standing':
-    'Sua posição e seus pontos, e quanto falta para o próximo lugar.',
-  'help.leaderboard.earn':
-    '10 pontos por hora, 20 por dia com 30 minutos ou mais, 5 por curtida.',
-
   'help.studio.title': 'Crie cenas no Estúdio',
   'help.studio.intro':
-    'O Estúdio transforma uma descrição em um visualizador. Seu próprio assistente de IA escreve a cena em uma pasta de projeto, e o FluidEQ toca cada versão com sua música no momento em que ela é salva. O Estúdio faz parte do Plus; uma conta nova pode abri-lo com o teste gratuito.',
+    'O Estúdio transforma uma descrição em um visualizador. Seu próprio assistente de IA escreve a cena em uma pasta de projeto, e o FluidEQ toca cada versão com sua música no momento em que ela é salva. O Estúdio é grátis para todas as contas.',
   'help.studio.steps':
-    'Abra Plus → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, Adicionar aos meus visuais, Publicar… ou Exportar….',
+    'Abra Plus → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nOu escreva o que deve mudar no chat ao lado do palco: o Claude Code neste computador, com o seu próprio plano, edita a cena e toca cada versão. Cada resposta guarda a sua versão, com Trazer de volta.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, Adicionar aos meus visuais, Publicar… ou Exportar….',
   'help.studio.tip':
-    'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena do FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes pelo criador do FluidEQ, e uma que for aprovada lhe dá um mês de Plus.',
+    'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena do FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes pelo criador do FluidEQ, e, depois de aprovada, toca de graça para você em todo lugar.',
   'help.studio.keywords':
-    'criar visualizador, editor de cenas, shader, GLSL, WebGL, programação, ChatGPT, Claude, Gemini',
+    'criar visualizador, editor de cenas, shader, GLSL, WebGL, programação, ChatGPT, Claude, Gemini, chat, chat do estúdio, pedir uma mudança, claude code, trazer de volta, versões',
   'help.studio.project':
     'Seus projetos e as cenas do FluidEQ para ver por dentro.',
   'help.studio.stageName': 'Palco',
@@ -700,13 +694,13 @@ const help: Record<keyof typeof en, string> = {
 
   'help.share.title': 'Compartilhe áudio entre computadores',
   'help.share.intro':
-    'Compartilhar áudio envia som do sistema entre computadores da mesma rede privada. O receptor tem os fones ou alto-falantes; os outros enviam. É diferente de espelhar para outro dispositivo no mesmo computador.',
+    'Compartilhar áudio vincula dois computadores da mesma rede privada, e cada um toca o som do outro: seja qual for o que você está usando, você ouve os dois. Cada computador envia o próprio som intacto e nunca devolve o que recebe, então não há eco; o computador em que você ouve aplica o próprio EQ, as curvas e o DSP. Isso é diferente de espelhar para um segundo dispositivo no mesmo computador.',
   'help.share.steps':
-    'No computador de escuta, abra Compartilhar áudio, escolha Reproduzir áudio neste computador e pressione Criar código de conexão. Comece com volume baixo.\nEm cada computador de origem, escolha Enviar o áudio deste computador, cole o código da sua rede e pressione Conectar e enviar.\nAcompanhe o monitor de conexão. Pressione Parar de enviar ou Parar de ouvir ao terminar; Criar novo código desconecta todos os pareamentos salvos.',
+    'Em um computador, abra Compartilhar áudio e pressione Copiar código. Comece com volume baixo.\nNo outro computador, abra Compartilhar áudio, cole o código em Código do outro computador e pressione Vincular. Os dois computadores tocam um ao outro na hora.\nCada computador vinculado tem duas chaves: Tocar aqui e Enviar meu som. Desligue uma para compartilhar em um sentido só. O controle deslizante ao lado de Tocar aqui define o volume com que esse computador toca aqui.\nPausar interrompe os dois sentidos até você pressionar Retomar; Desvincular encerra o vínculo de vez.',
   'help.share.tip':
-    'Mantenha o código de conexão privado: ele autoriza o pareamento. Vários emissores se misturam e elevam o nível, que o volume do computador receptor ajusta. Com o Motor FluidEQ, o áudio recebido também passa pelo rack DSP.',
+    'Mantenha o código de conexão privado: ele autoriza o vínculo. Com o Motor FluidEQ, este computador mantém o DSP enquanto compartilha, e o computador que toca o som dele aplica o próprio. Tocar e enviar ao mesmo tempo exige Windows nesse computador; em outros, um vínculo funciona em um sentido só.',
   'help.share.keywords':
-    'rede local, LAN, wifi, outro PC, transmitir, receber áudio, remoto',
+    'rede local, LAN, wifi, outro PC, transmitir, receber áudio, remoto, dois sentidos, bidirecional, vincular, desvincular, rede, enviar áudio, outro computador, segundo computador, receptor, transmissor, código de conexão, parear, conexão, pausar, retomar, volume',
 
   'help.trouble.title': 'Quando o som está errado',
   'help.trouble.intro':
@@ -727,6 +721,18 @@ const help: Record<keyof typeof en, string> = {
     'Tudo o que é publicado fica público no GitHub, com seu nome do GitHub. Em Q&A, marque a resposta que funcionou para que a próxima pessoa a encontre.',
   'help.forum.keywords':
     'comunidade, dúvidas, suporte, sugestão, sugestões, feedback, pedido de recurso, contato, desenvolvedor, discussões, enquete',
+  // A Mac's own wording for the lines above that describe Windows' engine
+  // (`helpPlatformText.ts`): the same number of lines, so search pairs them.
+  'help.start.steps.mac':
+    'Instale o FluidEQ e abra-o. Na primeira vez que ele chegar ao seu som, o macOS pergunta se o FluidEQ pode gravar o que o seu Mac reproduz: permita.\nEscolha seu dispositivo de escuta em Dispositivo de saída. Ative EQ do sistema e deixe Normalizar automaticamente ligado.\nReproduza uma música, abra EQ → Bandas, faça uma pequena mudança e compare com o EQ do sistema desligado e ligado.',
+  'help.start.tip.mac':
+    'No Mac, o Motor FluidEQ vem com o app e funciona enquanto o FluidEQ está aberto: feche-o e o som vai direto para os alto-falantes. Ele precisa do macOS 14.2 ou posterior e do FluidEQ permitido em Privacidade e Segurança › Gravação de Tela e Áudio do Sistema.',
+  'help.window.tip.mac':
+    'O menu Ajuda abre este guia, Novidades e Relatar um problema. O botão de pulso ao lado dele reúne o cartão do motor, sua conta, a importação de configurações de EQ ou de uma resposta ao impulso e Processos, que mostra o que cada parte do FluidEQ está usando; na parte de baixo dele ficam Brilho e Transparência, as animações e o idioma. O botão depois deles transforma a janela no Player compacto.',
+  'help.window.actions.mac':
+    'O motor, sua conta, a importação de configurações de EQ e Processos; Brilho e Transparência, as animações e o idioma.',
+  'help.trouble.steps.mac':
+    'Sem som: confirme que a reprodução está rodando, que a saída esperada está selecionada, que o volume está alto e que o dispositivo está conectado. Veja se Um reprodutor de cada vez pausou outra fonte.\nSem efeito do EQ: confirme que o EQ do sistema está ligado. Se um aviso disser que o FluidEQ não consegue ouvir o som do seu Mac, pressione Abrir Ajustes do Sistema e permita o FluidEQ em Gravação de Tela e Áudio do Sistema.\nAinda sem efeito: feche o FluidEQ e abra-o de novo. Enquanto ele está fechado, o som vai direto para os alto-falantes, e o motor recomeça com ele.\nDistorção ou graves demais: deixe Normalizar automaticamente ligado, reduza os reforços e desative as camadas uma por vez. Se continuar, use Relatar um problema e revise o relatório antes de enviar.',
 };
 
 export default help;

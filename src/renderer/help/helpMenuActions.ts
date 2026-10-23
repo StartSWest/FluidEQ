@@ -2,7 +2,9 @@
 
 import { PRODUCT_NAME } from 'common/branding';
 import type { Translate } from 'common/i18n';
+import { isFluidEngineBuiltIn } from 'common/platformCapabilities';
 import type { MenuIconName } from '../icons/MenuIcon';
+import windowCapabilities from '../utils/windowCapabilities';
 
 /** What each of Help's entries opens; the app shell owns every one of them. */
 export interface IHelpHandlers {
@@ -40,12 +42,18 @@ const helpMenuActions = (
 ): IHelpAction[] => [
   { id: 'guide', label: t('help.title'), run: onGuide, icon: 'guide' },
   { id: 'whatsNew', label: t('app.menu.whatsNew'), run: onTour, icon: 'gift' },
-  {
-    id: 'fixAudio',
-    label: t('app.menu.fixAudio'),
-    run: onTroubleshoot,
-    icon: 'wrench',
-  },
+  // Not where the engine is part of the app (macOS): every step the
+  // troubleshooter offers is a repair of Windows' engine.
+  ...(isFluidEngineBuiltIn(windowCapabilities())
+    ? []
+    : [
+        {
+          id: 'fixAudio',
+          label: t('app.menu.fixAudio'),
+          run: onTroubleshoot,
+          icon: 'wrench',
+        } as const,
+      ]),
   {
     id: 'report',
     label: t('app.menu.reportProblem'),

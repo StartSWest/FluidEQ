@@ -47,34 +47,34 @@ const lighting = {
     'キーボード、マウス、マウスパッド、ヘッドセット、スタンドがシーンに合わせて光ります',
 
   'lighting.gate.title':
-    'Plus のシーンでキーボード、マウス、ヘッドセットを光らせましょう',
+    'あなたのシーンでキーボード、マウス、ヘッドセットを照らす',
   'lighting.gate.body':
-    'ダイナミック ライティングは FluidEQ Plus の機能です。デバイスがグラフ上のシーンの色をまとい、ビートに合わせて脈打ちます。',
-  'lighting.gate.cta': 'Plus を見る',
+    'ビジュアライザーでシーンをひとつ手に入れれば、ダイナミックライティングはあなたのものです。デバイスがグラフ上のシーンの色をまとい、ビートに合わせて脈打ちます。',
+  'lighting.gate.cta': 'シーンを探す',
 
   'lighting.preview.status':
     'プレビュー：このページを開いている間、デバイスが光ります',
   'lighting.preview.lit': 'シーンでデバイスを光らせています',
   'lighting.preview.oneScene': '何ができるかを見せる 1 つのシーン',
-  'lighting.preview.noScene': 'デスクに映る Plus のシーン',
-  'lighting.preview.moreScenes': 'すべてのシーンは Plus で',
+  'lighting.preview.noScene': 'デスクの上のシーン',
+  'lighting.preview.moreScenes': 'シーンを見る',
   'lighting.preview.held':
-    'Plus なら、どのシーンでもデバイスがこのまま光り続けます。',
-  'lighting.preview.locked': '明るさ、スタイル、位置合わせは Plus で使えます。',
+    '自分のシーンがあれば、デバイスはこのまま光り続けます。',
+  'lighting.preview.locked':
+    '明るさ、スタイル、位置合わせは自分のシーンで使えるようになります。',
 
   'lighting.unsupported.title':
     'ダイナミック ライティングは Windows で使えます',
   'lighting.unsupported.body':
     'Windows Dynamic Lighting と Razer Chroma を通してデバイスを光らせます。どちらも Windows 専用です。',
 
-  'lighting.switch': 'Plus のシーンの再生中にデバイスを光らせる',
+  'lighting.switch': 'シーンの再生中にデバイスを光らせる',
   'lighting.status.live': '{scene} に連動中',
   'lighting.status.waiting': '音楽を待っています',
   'lighting.status.nothingLit':
     'シーンは再生中ですが、光っているデバイスはありません',
   'lighting.status.off': 'オフ：デバイスは自分のライティングのままです',
-  'lighting.status.noScene':
-    'Plus のシーンを選ぶと、デバイスがそれに合わせて光ります',
+  'lighting.status.noScene': 'シーンを選ぶとデバイスが追従します',
   'lighting.pickScene': 'ビジュアライザーを見る',
   'lighting.showGraph': 'グラフを表示',
 
@@ -185,6 +185,7 @@ const lighting = {
 
   'lighting.graph.on': 'デバイスを光らせるのをやめる',
   'lighting.graph.off': 'このシーンでデバイスを光らせる',
+  'lighting.gate.eyebrow': 'シーンひとつで開きます',
 } as const;
 
 export default lighting;

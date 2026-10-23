@@ -440,7 +440,10 @@ Everything worth knowing about them is available through commands:
   through the rack twice, and FluidEQ's switch left the rack playing on
   everything. The DSP store is the only sender of the engine's copy and
   switches it off at the root when it belongs elsewhere; anything else that
-  sends a rack to the engine brings the doubling back.
+  sends a rack to the engine brings the doubling back. With a rack per output
+  the rule is per output: while the Library plays, only the output it plays
+  on hands its rack to the host, and a second output keeps running its own in
+  the engine (`session.systemRackEnabled`, asked by `flushOutputDsp`).
 - **A DSP preset's tone is a curve in the main EQ, never a stage of its
   rack.** Each factory preset carries `curve` beside `settings`, and a pick
   sends the curve as the Preset layer (a `dsp:<id>` voicing, written as
@@ -455,16 +458,44 @@ Everything worth knowing about them is available through commands:
   tone back into its rack; the DSP EQ is the listener's own. Under APO an
   EQ-page pick holds the rack off (`rackHeldForApo.ts`) and
   `RackFollowsEngine` puts it back at the switch to the FluidEQ Engine.
-- **A preset's curve is the machine's, like its rack, never the output's.**
-  Switching output while the app runs keeps the Preset layer that is
-  playing (`voicingForDevice` in `deviceProfiles.ts`, given `playing` by
-  both switch paths in `ipc/profiles.ts`): it used to come back as whatever
-  preset the new output's profile was saved with, so the picker named one
-  preset and the chip beside it another (Ivan, 2026-09-24: "we dont save
-  presets on the output switch we replay current preset always"). A preset
-  cleared by its chip stays cleared; somebody's own voicing is still the
-  output's; the launch, with nothing playing yet, restores the profile's.
-  `presetFollowsMachine.test.ts` holds all three.
+- **Every output keeps its own sound: EQ, preset curve, Tone, cuts, rack,
+  Room and leveling** (Ivan, 2026-10-03: "I want everything on each output
+  even the DSP and Preset curves"). From engine 1.19
+  (`ENGINE_OUTPUT_CONFIG_SINCE`) each output's engine reads its own files,
+  named by its endpoint GUID (`outputConfigFiles.ts`: `fluideq-dsp-<guid>.txt`
+  and the programme, room head, phase and Treble files beside it), and main
+  rebuilds every output from its own profile at launch, at an engine switch
+  and on every flush (`flushOutputDsp`). An output with no rack saved is
+  bypassed, never handed the old shared one; an engine older than 1.19 still
+  plays the single root `fluideq-dsp.txt` (`writeLegacySystemDspChain`) until
+  it is updated. Switching output restores that output's saved preset, an
+  explicit "no preset" included. This replaced the 09-24 rule that the
+  playing preset followed the machine across a switch;
+  `presetFollowsMachine.test.ts` (the name is history) holds the new one.
+- **The second output plays from the main output's engine, never through a
+  wait** (engine 1.20, `ENGINE_SPLIT_SINCE`). The main output's engine writes
+  its input, before any processing, into a shared ring
+  (`split_transport.cpp`, `Local\FluidEQ-RawSplit-v1-<hash>` in session zero)
+  and the second output's engine reads it on its own clock and runs its own
+  rack on it (`split_tap.cpp`, `split_reader.cpp`). The main callback takes
+  one try at the ring and never waits for a reader; a stalled, killed or
+  absent receiver changes nothing for main. `fluideq-split.txt` is written
+  only under the FluidEQ Engine and is removed with the rest when the engine
+  is neutralised. The app checks first (`splitRefusal` in `outputSplit.ts`:
+  engine, version, enhancements, slot, ever ran) and plays the helper's copy
+  for anything it cannot be sure of; a transport the engine refuses at run
+  time (`split-transport` in the status) stops that second output. The
+  engine refuses any of the ring's named objects that already existed under
+  another account (`split_object_owned_by`), and builds a resampling kernel
+  only for a rate an output runs at — the rate is read from memory another
+  process writes, and a new table per block grew audiodg without end.
+- **Your bands have their own Band Q, apart from the layers' group**
+  (`mainBandQ`, `getMainBandQ` in `eqMode.ts`): changing how your bands widen
+  with gain reshapes neither a preset nor a correction. Absent, it falls back
+  to the group's `eqBandQ`, which is what every state saved before it holds.
+  A new layout's bands all start at one Q from its span and count
+  (`qualityForMainRack`), and an added band takes the median of the bands
+  already there (`qualityForAddedBand`).
 - **A preset's curve rides the rack's line, so the rack limits through it.**
   The rack's line (`fluideq-dsp.txt`, and the Library host's) ends with a TONE
   trailer — the Preset layer's bands exactly as the writer builds them
@@ -587,9 +618,10 @@ Everything worth knowing about them is available through commands:
 - **The Tone panel's two cuts are a file of their own, and 24 dB/oct is the
   steepest.** Low cut at 20 Hz, high cut at 20 kHz, each a Butterworth of 0,
   12 or 24 dB/oct (`eqCuts.ts`); 36 and 48 were offered and Ivan found them
-  "too aggressive" (a Q 2.56 section ringing at the corner). They are
-  `fluideq-cuts.txt`, included by every device file after the preamp and its
-  directives: no layer, no MATCHED directive, so both engines build them on the
+  "too aggressive" (a Q 2.56 section ringing at the corner). Each output has
+  its own, `fluideq-<slug>-cuts.txt`, included by that output's device file
+  alone after the preamp and its directives (the old shared `fluideq-cuts.txt`
+  is swept as generated): no layer, no MATCHED directive, so both engines build them on the
   cookbook, and they are in neither the preamp nor Auto normalize's input.
   `toEqCuts` reads a stored slope the dials no longer offer as the steepest
   left, and the saved-state schema takes any `eqCuts` object — a state file
@@ -642,6 +674,25 @@ Everything worth knowing about them is available through commands:
   reads as one turned up. A ±20 band's travel is the even one it always was.
   The player's printed scale stands beside the bands it describes rather than
   at the head of the row, where it read as the preamp's as well.
+- **A band's label stays where it was put, above or below its dot, never
+  beside it** (`bandLabelLayout.ts`). Each label remembers its home (where
+  the first layout put it) and its last place; a label moved off its home is
+  placed first, the dragged one before all, and the rest go back home the
+  moment there is room (Ivan, 2026-10-03: "they need to return to original
+  places if they can", "never do the side move always top or bottom"). The
+  dragged label ignores the dots and pins it passes and is pressed against the
+  plot's edge rather than flipped: on the 31-band layout it used to jump from
+  top to bottom at every neighbour. Labels keep off the genre pins and the
+  analyser's key (`legendPlace.ts`, noted by the frame that paints it), and a
+  reset of the EQ lays them out fresh (`bandSetReplacement`, counted on INIT)
+  instead of remembering the bands it replaced.
+- **A slider's edit is drawn in the same frame as the slider** (Ivan,
+  2026-10-03: "if I move the slider the curve movement has a lag"). The band
+  sliders used to send their edits inside `startTransition`, and React throws
+  a transition away whenever a newer update arrives: while the hand kept
+  moving, the curve caught up only when it stopped, while a drag on the curve
+  moved the slider at once. `showGroupEdits` dispatches directly; keep it out
+  of a transition (`bandSliderStepsShowAtOnce.test.tsx`).
 - **The graphs have two fixed scales and their own analyser.** The EQ's ±20 dB
   on the left never stretches, and never cuts either (Ivan, 2026-09-25: "it
   needs to draw completely"): `eqGainScale` gives ±20 the middle eight tenths
@@ -853,7 +904,14 @@ Everything worth knowing about them is available through commands:
   copies of the tree then came out identical. Nothing that varies per build —
   `__DATE__`, `__TIME__`, a git revision, an absolute path — may reach the
   engine or the DSP core it links; `FEQ_BUILD_REVISION` goes into the host
-  alone. `engineUpdate.test.ts` holds both.
+  alone. `engineUpdate.test.ts` holds both. A path also gets in by name: MSVC
+  names an anonymous namespace `?A0x<hash>` from the source file's path, and
+  that name lands in the binary wherever a type inside one is kept by its
+  type descriptor — a lambda given to `shared_ptr` as its deleter did, and
+  the same tree built in two folders differed (2026-10-03). Give such a
+  deleter a function pointer or a named type outside the anonymous
+  namespace; `repro_test.cpp` (ctest `engine-repro`) fails on any `?A0x`
+  name in the built DLL.
 - **The setup helper installs only the DLLs it was built beside.** `install`
   copies them from the app's folder, which a per-user install leaves
   writable by anything the user runs, into Program Files for audiodg — so
@@ -1027,9 +1085,31 @@ Out-String` (or any other capture) is what actually waits for it and shows
   Windows' own default effect, never over a vendor's, and creating no list
   on the way, because a list is the newer generation and its existence is
   what stops an endpoint being read from its singles. `write_fx_values`
-  admits them for our own class id on the same terms. And because the ladder
-  only ever walked downwards, an output that had already reached the bottom
-  would never have been offered a rung added to the middle: the helper's
+  admits them for our own class id on the same terms. Each also gets a
+  processing modes value beside it where its slot has none, as a list always
+  did (`fx_modes.cpp`): the single and the list of a slot share that one
+  value (`{d3993a3f-…},5/6/7`), and an effect without it is registered for
+  discovery only — Windows lists it and never streams through it, per
+  Microsoft's own INF guidance. A vendor's value is never rewritten. The
+  endpoint effect gets DEFAULT alone, the one mode Windows takes after the
+  mix; a stream or mode effect gets DEFAULT plus every mode the driver
+  already lists in its other per-stream slot, RAW aside, because a driver
+  with modes of its own sends media and film streams through those modes and
+  never through DEFAULT. Every helper before 2.0.1 wrote pids 5 to 7 without
+  it, and a Sound BlasterX G6 — Creative's effects in pids 5 and 6 and the
+  legacy pair, nothing in 7, no list — had the engine in pid 7, attached and
+  never once created (2026-10-01); Equalizer APO's installer writes DEFAULT
+  beside every single it takes. Three paths put such an output right: every
+  `install` gives every output the engine is already on the value it lacks
+  and changes nothing else (`complete_modes`), so the engine update reaches
+  them all at once; an attach into the slot the engine is in does it (an
+  Enable, `--attach-all`); and the repair asks for exactly that before any
+  rung below (`whatToTry`, on the status's `modeMissing`), the window keying
+  that slot apart while it lacks the mode (`repairSlotKey`) so a mode that
+  was not enough still lets the ladder go on. And because the ladder only
+  ever walked downwards, an output that
+  had already reached the bottom would never have been offered a rung added
+  to the middle: the helper's
   per-output memory now holds every slot it was asked for by name, one per
   line, oldest last (`remembered_slots`), the status reports it as
   `slotsTried`, and `nextSlot` picks the first rung nobody has tried — with
@@ -1091,6 +1171,12 @@ Out-String` (or any other capture) is what actually waits for it and shows
   state stays away (`isTryingSlots`) until an ask has come back with nothing
   done, or a change was followed by the same slot heard failing again; only
   then does the card say what is left. The first rung that is heard stays.
+  A rung another program's effect holds is skipped, not asked for: the
+  helper's `status` names them per output (`slotsHeld`, from `plan_move`
+  itself, `held_slots` in `slot_report.cpp`) and `nextSlot` steps past them.
+  A 2.0.0 report's ladder had stopped at a vendor's SFX value — a Windows
+  prompt spent on a refusal — with GFX, which played on the same user's RME,
+  never offered.
 - **The Room is a stage of the rack that folds every channel onto the
   front pair, and it needs a head file to do anything.** `FeqRoom`
   (`room.h`, `room.cpp`, `room_kernels.cpp`) runs after Bass Punch and
@@ -1122,7 +1208,7 @@ Out-String` (or any other capture) is what actually waits for it and shows
   (`uniqueRoomName`). Bass management
   (`bass_management`, `crossover_hz`, the twenty-fourth and twenty-fifth of
   the room's forty-two wire scalars; `FEQ_CHAIN_PARAM_LEAD` was 140 when
-  they landed and is 157 now) is a Linkwitz-Riley 4th-order
+  they landed and is 158 now) is a Linkwitz-Riley 4th-order
   high-pass on every speaker channel and the same low-pass on their sum
   into the sub's path, both ears alike at unity; its coefficients ride the
   kernel set (so a crossover change lands with the set), its histories live
@@ -1192,7 +1278,38 @@ Out-String` (or any other capture) is what actually waits for it and shows
   ratio (the rate's and the head size's), anchored so the medium head's
   48 kHz block is the numbers it shipped as; the doubling halves
   (`head_response`, `RoomInterpolation`). `room_profiles_test.cpp` holds the
-  same tone within 0.3 dB across the four rates on both renderers.
+  same tone within 0.3 dB across the eight rates on both renderers.
+- **Faster than its heads, the Room renders at a head's rate between a
+  converter's two halves.** A 2.0.0 report came from a DAC at 384 kHz, where
+  the card blamed a missing head and the room passed everything through:
+  the heads ship at 44.1, 48 and 96 kHz and only 192 had a way to one. Now
+  88.2, 176.4 and 352.8 kHz render at 44.1 and 384 kHz at 96
+  (`feq_room_head_rate`, the one table the engine's head reader, the
+  Library host's and the room all go by; 192 still doubles the 96 block).
+  `RoomRate` (`room_rate.h`) takes the room's input down by the integer
+  factor and its two ears back up: one linear-phase Kaiser sinc, 100 dB
+  down, flat to 20 kHz and stopped from the room's rate less 20 kHz, so
+  nothing heard aliases or images — 139 to 553 taps at a 44.1 kHz room, 45
+  at 96. Its delay is the filter's length less one exactly, so the room
+  reports its partition times the factor plus that. A handover swaps the
+  converter's histories with the rest (`feq_room_transfer`), and a room that
+  stops rendering starts it clean when it renders again. Interpolating the
+  head four or eight times is not the way: the classic renderer's 2048 taps
+  would be 5.3 ms at 384 kHz, too short for its walls, and either renderer
+  would do four to sixty-four times the work for an octave no measurement
+  carries. Neither converter the core had serves
+  (`resampler.h` is not for the audio thread and has no fixed delay;
+  `oversample.h` stops at 4x and needs whole multiples of its factor). A
+  stereo 10 ms block costs 0.05 ms at 88.2 kHz, 0.10 at 176.4 and 384, 0.18
+  at 352.8 on a performance core — eight partial sums and the folded
+  symmetric filter, because MSVC under `/fp:precise` vectorises neither.
+  `room_rate_test.cpp` holds the converter alone (its delay at 1 and 19.5
+  kHz, any block length, a tone that would fold under 20 kHz 90 dB down,
+  a handover), and `room_converted_test.cpp` the room through it sample for
+  sample against the room at its head's rate behind a converter of its own:
+  both renderers, game mode, a handover, switched off and on. At the rates
+  with a head the room runs the same code as before, and rendered byte for
+  byte what the version before it did.
 - **The featured rooms are measured through the shipped head, from the
   app's own table.** `room_profiles_test.cpp` reads
   `room_profiles_fixture.h`, which `generate-room-profiles-fixture.ts` writes
@@ -1381,12 +1498,18 @@ Out-String` (or any other capture) is what actually waits for it and shows
   mirror each once more. Change what three's loader does — a new plugin, a
   new three — and this check changes with it, or the check approves files
   the engine reads differently.
-- **The EQ and the rack are measured at 44.1, 48, 96 and 192 kHz**
-  (`rate_sweep_test.cpp`). Every other measured engine test builds its graph
-  at 48 kHz, so a coefficient or a stage that assumed one rate would pass all
-  of them and be heard only on somebody's 96 kHz DAC. Measured: the same
+- **The EQ and the rack are measured at all eight shared-mode rates** — 44.1,
+  48, 88.2, 96, 176.4, 192, 352.8 and 384 kHz (`rate_sweep_test.cpp`). Every
+  other measured engine test builds its graph at 48 kHz, so a coefficient or a
+  stage that assumed one rate would pass all of them and be heard only on
+  somebody's 96 kHz DAC; and 192 kHz is not the ceiling — a 2.0.0 report's
+  TOPPING DAC ran the engine at 384 kHz in shared mode. Measured: the same
   −20 dB peak, the same shelf and preamp, and the rack within 0.2 dB across
-  all four.
+  all eight. The work grows with the rate: a Bass Punch and Maximizer rack
+  took 0.65 ms of each 10 ms block at 48 kHz and 2.9 ms at 384 kHz on a
+  performance core of Ivan's i9-14900HX, 5.3 ms at most on an efficiency
+  core — the installed DLL on his own config, counted in thread cycles,
+  because a normal-priority bench's wall clock reads preemption as work.
 - **Windows' "Audio enhancements" switch beats everything either engine does.**
   Off (per output, `PKEY_AudioEndpoint_Disable_SysFx`), Windows loads no
   system effect there at all: the registry still says attached, the engine is

@@ -78,10 +78,6 @@ const galleryPicture = (
     revision,
   ) as Promise<string | undefined>;
 
-/** The official scenes an account without Plus can taste live. */
-const listGalleryTasteSamples = () =>
-  ipcRenderer.invoke('plus-gallery-samples') as Promise<string[]>;
-
 const previewGalleryScene = (
   authorId: string,
   sceneId: string,
@@ -218,7 +214,6 @@ const plusUpdateProfile = (handle: string, displayName: string) =>
 const plusBridge = {
   listGallery,
   galleryPicture,
-  listGalleryTasteSamples,
   previewGalleryScene,
   addGalleryScene,
   reportGalleryScene,

@@ -430,10 +430,18 @@ export const setUpTray = (deps: ITrayDeps) => {
   // Windows asks the notification area for a 16px icon at 100% and a 20 or 24
   // at the scalings most laptops actually run at, and picking those out of a
   // multi-resolution icon is the difference between a crisp mark and a
-  // resampled smudge. macOS and Linux have no .ico, so they take the png.
+  // resampled smudge. Linux has no .ico, so it takes the png. A Mac takes
+  // neither: its menu bar draws the image at its own size in points, so the
+  // 512px png stood there at full size, and its items are template images
+  // that AppKit tints for a light or a dark bar
+  // (`.erb/scripts/make-mac-tray-icon.ts`).
+  const trayIconFile: Partial<Record<NodeJS.Platform, string>> = {
+    win32: 'icon.ico',
+    darwin: 'trayTemplate.png',
+  };
   const iconPath = path.join(
     assetsPath,
-    process.platform === 'win32' ? 'icon.ico' : 'icon.png',
+    trayIconFile[process.platform] ?? 'icon.png',
   );
 
   // The same mark with the update dot on it, built by

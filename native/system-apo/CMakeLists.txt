@@ -5,19 +5,33 @@ SPDX-License-Identifier: GPL-3.0-or-later
 ]]
 
 # The system-wide engine: an audio effect Windows loads into audiodg.exe for
-# every output it is attached to, plus the helper that attaches it. Windows
-# only, and deliberately split from the DSP host: the host is a process FluidEQ
-# owns, the effect is code running inside somebody else's.
+# every output it is attached to, plus the helper that attaches it —
+# deliberately split from the DSP host: the host is a process FluidEQ owns,
+# the effect is code running inside somebody else's.
+#
+# Its DSP core — reading the configuration the app writes and running the
+# graph it describes — is free of any operating system, and builds wherever
+# FluidEQ has an engine: Windows' effect below, and the macOS engine
+# (`native/mac-engine`), which runs the same graph on the same files. Only the
+# effect itself, its helper and their tests are Windows only.
 
 add_library(fluideq-engine-config STATIC src/config.cpp src/config_grammar.cpp
-  src/programme.cpp)
+  src/programme.cpp src/endpoint_config.cpp)
 target_include_directories(fluideq-engine-config PUBLIC include
   PRIVATE ../dsp-core/include) # Shared chain wire bounds used by the parser.
 target_link_libraries(fluideq-engine-config PRIVATE feq_strict)
+if(WIN32)
+  target_sources(fluideq-engine-config PRIVATE src/platform/windows/number_parse.cpp)
+elseif(APPLE)
+  target_sources(fluideq-engine-config PRIVATE src/platform/macos/number_parse.cpp)
+endif()
 
 add_executable(fluideq-engine-config-test tests/config_test.cpp)
 target_link_libraries(fluideq-engine-config-test PRIVATE fluideq-engine-config feq_strict)
 add_test(NAME engine-config COMMAND fluideq-engine-config-test)
+add_executable(fluideq-engine-number-test tests/number_test.cpp)
+target_link_libraries(fluideq-engine-number-test PRIVATE fluideq-engine-config feq_strict)
+add_test(NAME engine-number COMMAND fluideq-engine-number-test)
 
 # The DSP side of the engine: reading an impulse response off disk, designing
 # a graphic-EQ FIR from a resolved `Chain`, and the per-output processing
@@ -27,7 +41,8 @@ add_library(fluideq-engine-dsp STATIC
   src/graph_handover.cpp src/graph_reclaim.cpp src/iir_cascade.cpp src/curve_stage.cpp
   src/graph_stages.cpp src/eq_phase.cpp src/linear_bands.cpp src/output_guard.cpp
   src/leveling_board.cpp src/channel_layout.cpp src/room_head.cpp
-  src/input_history.cpp)
+  src/input_history.cpp
+  src/source_analysis.cpp)
 # PUBLIC on both: `graphic_eq.h`'s `design_graphic_kernel` takes a
 # `GraphicPoint` and `graph.h` takes a `Chain` — both defined in
 # fluideq-engine-config's public header, so anything that links this library
@@ -37,6 +52,54 @@ add_library(fluideq-engine-dsp STATIC
 target_link_libraries(fluideq-engine-dsp
   PUBLIC fluideq-dsp-core fluideq-engine-config)
 target_link_libraries(fluideq-engine-dsp PRIVATE feq_strict)
+# File access belongs to each platform; the graph and its configuration stay
+# shared. The split transport uses Windows named objects and is Windows only.
+if(WIN32)
+  target_sources(fluideq-engine-dsp PRIVATE
+    src/platform/windows/wav_file.cpp
+    src/split_board.cpp src/split_transport.cpp src/split_file.cpp
+    src/split_reader.cpp src/split_tap.cpp
+    ../remote-audio-playback/src/sinc_kernel.cpp)
+  target_include_directories(fluideq-engine-dsp PRIVATE ../remote-audio-playback/src)
+# advapi32: the split transport reads who owns the named objects it opens.
+target_link_libraries(fluideq-engine-dsp PRIVATE bcrypt advapi32)
+
+# The second output played straight from the main output's engine: the file
+# the app writes, the ring between the two, and the reader keeping time with a
+# writer on another clock.
+add_executable(fluideq-engine-split-test tests/split_test.cpp)
+target_link_libraries(fluideq-engine-split-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-split COMMAND fluideq-engine-split-test)
+
+add_executable(fluideq-engine-split-lifecycle-test tests/split_lifecycle_test.cpp)
+target_link_libraries(fluideq-engine-split-lifecycle-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-split-lifecycle COMMAND fluideq-engine-split-lifecycle-test)
+
+add_executable(fluideq-engine-split-graph-test tests/split_graph_test.cpp)
+target_link_libraries(fluideq-engine-split-graph-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-split-graph COMMAND fluideq-engine-split-graph-test)
+
+add_executable(fluideq-engine-split-process-test tests/split_process_test.cpp)
+target_link_libraries(fluideq-engine-split-process-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-split-process COMMAND fluideq-engine-split-process-test)
+
+add_executable(fluideq-engine-split-lease-test tests/split_lease_test.cpp)
+target_link_libraries(fluideq-engine-split-lease-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-split-lease COMMAND fluideq-engine-split-lease-test)
+set_tests_properties(engine-split-lease engine-split-process PROPERTIES TIMEOUT 30)
+
+add_executable(fluideq-engine-output-contract-test tests/output_contract_test.cpp)
+target_link_libraries(fluideq-engine-output-contract-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-output-contract COMMAND fluideq-engine-output-contract-test)
+else()
+  target_sources(fluideq-engine-dsp PRIVATE src/platform/posix/wav_file.cpp)
+endif()
 
 add_executable(fluideq-engine-wav-test tests/wav_test.cpp)
 target_link_libraries(fluideq-engine-wav-test PRIVATE fluideq-engine-dsp feq_strict)
@@ -47,14 +110,24 @@ target_link_libraries(fluideq-engine-graphic-eq-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-graphic-eq COMMAND fluideq-engine-graphic-eq-test)
 
-add_executable(fluideq-engine-phase-test tests/phase_test.cpp src/chain_signature.cpp src/paths.cpp src/log.cpp)
-target_link_libraries(fluideq-engine-phase-test PRIVATE fluideq-engine-dsp feq_strict)
-add_test(NAME engine-phase COMMAND fluideq-engine-phase-test)
+# Windows only: it compiles the effect's own signature, paths and log in.
+if(WIN32)
+  add_executable(fluideq-engine-phase-test tests/phase_test.cpp src/chain_signature.cpp src/paths.cpp src/log.cpp)
+  target_link_libraries(fluideq-engine-phase-test PRIVATE fluideq-engine-dsp feq_strict)
+  add_test(NAME engine-phase COMMAND fluideq-engine-phase-test)
+endif()
 
 # The graph's biquads, preamp and state carry-over. Split from the
 # convolution checks below: one file holding both was past the 500-line limit,
 # and the two halves ask different questions — this one measures level in
 # decibels, the other measures where in time a tap lands.
+# A band kept to one ear: the `Channel:` lines read, the ear found in the
+# stream's layout, and the band run on that channel alone.
+add_executable(fluideq-engine-channels-test tests/config_channels_test.cpp)
+target_link_libraries(fluideq-engine-channels-test
+  PRIVATE fluideq-engine-dsp feq_strict)
+add_test(NAME engine-channels COMMAND fluideq-engine-channels-test)
+
 add_executable(fluideq-engine-graph-test tests/graph_test.cpp)
 target_link_libraries(fluideq-engine-graph-test
   PRIVATE fluideq-engine-dsp feq_strict)
@@ -74,13 +147,17 @@ add_test(NAME engine-output-guard COMMAND fluideq-engine-output-guard-test)
 
 # Auto normalize's level for an edit, worked out before the edit is heard: the
 # history the audio thread keeps, the two replays, and the handover taking it.
-add_executable(fluideq-engine-level-prediction-test
-  tests/level_prediction_test.cpp src/level_prediction.cpp
-  src/chain_signature.cpp src/paths.cpp src/log.cpp)
-target_link_libraries(fluideq-engine-level-prediction-test
-  PRIVATE fluideq-engine-dsp feq_strict)
-add_test(NAME engine-level-prediction
-  COMMAND fluideq-engine-level-prediction-test)
+# Windows only, like the phase test: it compiles the effect's own signature,
+# paths and log in.
+if(WIN32)
+  add_executable(fluideq-engine-level-prediction-test
+    tests/level_prediction_test.cpp src/level_prediction.cpp
+    src/chain_signature.cpp src/paths.cpp src/log.cpp)
+  target_link_libraries(fluideq-engine-level-prediction-test
+    PRIVATE fluideq-engine-dsp feq_strict)
+  add_test(NAME engine-level-prediction
+    COMMAND fluideq-engine-level-prediction-test)
+endif()
 
 add_executable(fluideq-engine-graph-slot-test tests/graph_slot_test.cpp)
 target_link_libraries(fluideq-engine-graph-slot-test
@@ -122,6 +199,9 @@ target_link_libraries(fluideq-engine-leveling-test
   PRIVATE fluideq-engine-dsp feq_strict)
 add_test(NAME engine-leveling COMMAND fluideq-engine-leveling-test)
 
+# Everything from here down is the Windows effect, its helper and their tests.
+if(WIN32)
+
 # The effect itself: the DLL Windows loads into audiodg.exe once per output it
 # is attached to. `FluidEQ-Engine` rather than the target's name because this
 # file's name is what someone debugging a broken audio stack reads out of the
@@ -130,8 +210,10 @@ add_library(fluideq-engine SHARED
   src/apo.cpp src/apo_identity.cpp src/apo_endpoint.cpp
   src/apo_format.cpp src/apo_process.cpp
   src/watcher.cpp src/watcher_load.cpp src/watcher_log.cpp src/watcher_level.cpp
+  src/watcher_source.cpp
   src/level_prediction.cpp src/owner_link.cpp src/config_file.cpp
-  src/status_file.cpp src/status_json.cpp src/analysis_link.cpp src/analysis_snapshot.cpp
+  src/status_file.cpp src/status_json.cpp src/block_timing.cpp
+  src/analysis_link.cpp src/analysis_snapshot.cpp
   src/chain_signature.cpp src/paths.cpp src/log.cpp src/dll.cpp
   # Exports by name, and a version resource so the module list can say whose
   # this is.
@@ -140,7 +222,7 @@ target_link_libraries(fluideq-engine PRIVATE
   fluideq-engine-config fluideq-engine-dsp feq_strict
   # `audiomediatypecrt` is the static library that carries
   # `CreateAudioMediaType`; there is no DLL to import it from.
-  ole32 propsys mmdevapi shell32 audiomediatypecrt)
+  ole32 propsys mmdevapi shell32 bcrypt audiomediatypecrt)
 set_target_properties(fluideq-engine PROPERTIES
   OUTPUT_NAME "FluidEQ-Engine"
   RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
@@ -162,7 +244,8 @@ add_test(NAME engine-owner-link COMMAND fluideq-engine-owner-link-test)
 # lets several instances on one output share it. paths.cpp for the root the
 # file goes in; shell32 and ole32 are what that root is looked up with.
 add_executable(fluideq-engine-status-test
-  tests/status_test.cpp src/status_json.cpp src/status_file.cpp src/paths.cpp)
+  tests/status_test.cpp src/status_json.cpp src/status_file.cpp
+  src/block_timing.cpp src/paths.cpp)
 target_link_libraries(fluideq-engine-status-test
   PRIVATE feq_strict shell32 ole32)
 add_test(NAME engine-status COMMAND fluideq-engine-status-test)
@@ -171,7 +254,10 @@ add_test(NAME engine-status COMMAND fluideq-engine-status-test)
 # leaves that one alone, and a rule off by one buzzes a subwoofer.
 add_executable(fluideq-engine-channel-layout-test
   tests/channel_layout_test.cpp src/channel_layout.cpp)
-target_link_libraries(fluideq-engine-channel-layout-test PRIVATE feq_strict)
+# The config library for `ChannelSelection`, which `selected_channels` reads
+# a band's `Channel:` line from.
+target_link_libraries(fluideq-engine-channel-layout-test
+  PRIVATE fluideq-engine-config feq_strict)
 add_test(NAME engine-channel-layout
   COMMAND fluideq-engine-channel-layout-test)
 
@@ -179,7 +265,9 @@ add_test(NAME engine-channel-layout
 # must read as "no head", never as a head of zeros.
 add_executable(fluideq-engine-room-head-test
   tests/room_head_test.cpp src/room_head.cpp)
-target_link_libraries(fluideq-engine-room-head-test PRIVATE feq_strict)
+# The room's own rate table (`feq_room_head_rate`) decides which block is read.
+target_link_libraries(fluideq-engine-room-head-test
+  PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME engine-room-head COMMAND fluideq-engine-room-head-test)
 
 # The DLL tests load the built module directly, so they take the path
@@ -205,12 +293,25 @@ target_link_libraries(fluideq-engine-dll-aggregation-test
 add_test(NAME engine-dll-aggregation
   COMMAND fluideq-engine-dll-aggregation-test $<TARGET_FILE:fluideq-engine>)
 
+add_executable(fluideq-engine-dll-split-test tests/dll_split_test.cpp)
+target_link_libraries(fluideq-engine-dll-split-test
+  PRIVATE fluideq-engine-dsp feq_strict ole32 propsys audiomediatypecrt)
+add_test(NAME engine-dll-split
+  COMMAND fluideq-engine-dll-split-test $<TARGET_FILE:fluideq-engine>)
+
+# The engine carries nothing that depends on the folder it was built in, or
+# every release offers an engine update for an engine that did not change.
+add_executable(fluideq-engine-repro-test tests/repro_test.cpp)
+target_link_libraries(fluideq-engine-repro-test PRIVATE feq_strict)
+add_test(NAME engine-repro
+  COMMAND fluideq-engine-repro-test $<TARGET_FILE:fluideq-engine>)
+
 # The decision the setup helper makes about an endpoint, with no Windows API
 # anywhere near it. Split out from the helper's executable so the rules that
 # decide what happens to somebody else's audio driver can be exercised on
 # fixtures instead of on their speakers.
 add_library(fluideq-engine-setup-core STATIC
-  setup/fx_list.cpp setup/json.cpp setup/multi_sz.cpp
+  setup/fx_list.cpp setup/fx_modes.cpp setup/json.cpp setup/multi_sz.cpp
   setup/attach_outcome.cpp setup/com_paths.cpp setup/service_restart.cpp
   setup/retry.cpp setup/slot_report.cpp)
 target_link_libraries(fluideq-engine-setup-core PRIVATE feq_strict)
@@ -245,6 +346,12 @@ add_executable(fluideq-engine-fx-list-test tests/fx_list_test.cpp)
 target_link_libraries(fluideq-engine-fx-list-test
   PRIVATE fluideq-engine-setup-core feq_strict)
 add_test(NAME engine-fx-list COMMAND fluideq-engine-fx-list-test)
+
+# The processing modes beside an effect value, without which Windows lists
+# the effect for discovery and never streams through it.
+add_executable(fluideq-engine-fx-list-mode-test tests/fx_list_mode_test.cpp)
+target_link_libraries(fluideq-engine-fx-list-mode-test PRIVATE fluideq-engine-setup-core feq_strict)
+add_test(NAME engine-fx-list-mode COMMAND fluideq-engine-fx-list-mode-test)
 
 add_executable(fluideq-engine-fx-list-apo-test tests/fx_list_apo_test.cpp)
 target_link_libraries(fluideq-engine-fx-list-apo-test PRIVATE fluideq-engine-setup-core feq_strict)
@@ -347,3 +454,5 @@ target_link_options(fluideq-engine-setup PRIVATE
   # routine goes with which entry point: the wide one is what keeps endpoint
   # names and paths out of the ANSI code page.
   "/ENTRY:wWinMainCRTStartup")
+
+endif()

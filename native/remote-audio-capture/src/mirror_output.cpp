@@ -2,8 +2,6 @@
 #include "mirror_output.h"
 #include <mmdeviceapi.h>
 #include <algorithm>
-#include <cmath>
-#include <cstring>
 
 using Microsoft::WRL::ComPtr;
 
@@ -15,7 +13,10 @@ MirrorOutput::~MirrorOutput() {
 }
 
 HRESULT MirrorOutput::open(const std::string& guid, std::uint32_t rate,
-                           std::uint16_t channels, bool video, float volume) {
+                           std::uint16_t channels, float volume) {
+  if (rate == 0 || channels == 0 || channels > feq::remote::kMaxChannels) {
+    return E_INVALIDARG;
+  }
   // Only endpoint GUIDs are accepted; never resolve a name or fall back to the
   // default. The latter would duplicate the primary instead of opening B.
   const std::wstring id = L"{0.0.0.00000000}." +
@@ -48,37 +49,43 @@ HRESULT MirrorOutput::open(const std::string& guid, std::uint32_t rate,
   if (FAILED(hr)) { return hr; }
   hr = client_->GetBufferSize(&device_frames_);
   if (FAILED(hr)) { return hr; }
+  REFERENCE_TIME latency = 0;
+  if (SUCCEEDED(client_->GetStreamLatency(&latency))) {
+    stream_latency_ms_ = static_cast<double>(latency) / 10000.0;
+  }
   hr = client_->GetService(IID_PPV_ARGS(&renderer_));
   if (FAILED(hr)) { return hr; }
   rate_ = rate;
   channels_ = channels;
-  capacity_ = rate * 2;
-  ring_.resize(static_cast<std::size_t>(capacity_) * channels);
-  video_ = video;
   volume_ = volume;
-  base_target_ = std::max(rate * (video ? 0.03 : 0.1),
-                          static_cast<double>(device_frames_) * 2);
-  target_ = base_target_;
+  // The device was opened at the capture's own rate and layout, so the
+  // engine plays one into the other unchanged but for its clock trim.
+  playback_ = std::make_unique<feq::remote::PeerPlayback>(rate, channels);
+  if (!playback_->output_format(rate, channels, 0)) { return E_INVALIDARG; }
   hr = render();
   return FAILED(hr) ? hr : client_->Start();
 }
 
 HRESULT MirrorOutput::push(const float* samples, std::uint32_t frames,
                            bool silent) {
-  // Bounded even if a device stops requesting samples. Fail visibly instead
-  // of quietly dropping music or accumulating an unbounded queue.
-  if (written_ - read_ + frames > capacity_) { return E_OUTOFMEMORY; }
-  for (std::uint32_t frame = 0; frame < frames; ++frame) {
-    float* destination = ring_.data() +
-        ((written_ + frame) % capacity_) * channels_;
+  // In pieces the engine takes: one capture block never comes near it, but a
+  // long silence reported at once could.
+  while (frames != 0) {
+    const std::uint32_t piece = std::min(frames, feq::remote::kMaxPacketFrames);
+    const float* data = samples;
     if (silent || samples == nullptr) {
-      std::fill_n(destination, channels_, 0.0F);
-    } else {
-      std::memcpy(destination, samples + frame * channels_,
-                  channels_ * sizeof(float));
+      const std::size_t needed = static_cast<std::size_t>(piece) * channels_;
+      if (silence_.size() < needed) { silence_.assign(needed, 0.0F); }
+      data = silence_.data();
+    }
+    // A full buffer is the engine's to handle — a device that stopped asking
+    // for sound — and it starts again from the newest instead of growing.
+    playback_->push(data, piece, ++sequence_);
+    frames -= piece;
+    if (samples != nullptr && !silent) {
+      samples += static_cast<std::size_t>(piece) * channels_;
     }
   }
-  written_ += frames;
   return S_OK;
 }
 
@@ -86,58 +93,24 @@ HRESULT MirrorOutput::render() {
   UINT32 padding = 0;
   HRESULT hr = client_->GetCurrentPadding(&padding);
   if (FAILED(hr)) { return hr; }
+  padding_ = padding;
   if (padding >= device_frames_) { return S_OK; }
   const UINT32 frames = device_frames_ - padding;
   BYTE* bytes = nullptr;
   hr = renderer_->GetBuffer(frames, &bytes);
   if (FAILED(hr)) { return hr; }
   auto* output = reinterpret_cast<float*>(bytes);
-  std::fill_n(output, static_cast<std::size_t>(frames) * channels_, 0.0F);
-  double queued = static_cast<double>(written_ - read_) - phase_;
-  if (!primed_ && queued >= target_ + frames) { primed_ = true; }
-  if (primed_) {
-    std::uint64_t skip = 0;
-    if (video_ && queued > target_ + frames + rate_ * 0.03) {
-      skip = static_cast<std::uint64_t>(queued - target_ - frames);
-    }
-    // Compensate independent device clocks gently. Large video backlog uses
-    // a short crossfade, while music never discards a prefix to catch up.
-    const double error = queued - target_ - frames;
-    const double deadband = rate_ * (video_ ? 0.005 : 0.02);
-    const double step = std::abs(error) <= deadband ? 1.0 :
-        1.0 + std::clamp(error / (rate_ * 10.0), -0.003, 0.003);
-    for (UINT32 frame = 0; frame < frames; ++frame) {
-      if (read_ + skip + 1 >= written_) {
-        primed_ = false;
-        stable_frames_ = 0;
-        target_ = std::min(target_ + rate_ * (video_ ? 0.01 : 0.05),
-                          std::max(base_target_, rate_ * (video_ ? 0.12 : 0.5)));
-        break;
-      }
-      for (std::uint16_t channel = 0; channel < channels_; ++channel) {
-        const auto sample_at = [&](std::uint64_t position) {
-          const float a = ring_[(position % capacity_) * channels_ + channel];
-          const float b = ring_[((position + 1) % capacity_) * channels_ + channel];
-          return a + static_cast<float>(phase_) * (b - a);
-        };
-        float sample = sample_at(read_ + skip);
-        if (skip > 0 && frame < 128) {
-          const float blend = static_cast<float>(frame) / 128.0F;
-          sample = sample_at(read_) * (1 - blend) + sample * blend;
-        }
-        output[frame * channels_ + channel] = sample * volume_;
-      }
-      phase_ += step;
-      const auto consumed = static_cast<std::uint64_t>(phase_);
-      read_ += consumed;
-      phase_ -= static_cast<double>(consumed);
-    }
-    read_ += skip;
-    stable_frames_ += frames;
-    if (video_ && stable_frames_ >= rate_ * 2.0) {
-      target_ = std::max(base_target_, target_ - rate_ * 0.01);
-      stable_frames_ = 0;
-    }
-  }
+  const std::size_t samples = static_cast<std::size_t>(frames) * channels_;
+  std::fill_n(output, samples, 0.0F);
+  playback_->mix(output, frames);
+  for (std::size_t sample = 0; sample < samples; ++sample) { output[sample] *= volume_; }
   return renderer_->ReleaseBuffer(frames, 0);
+}
+
+std::uint32_t MirrorOutput::delay_us() const {
+  if (!playback_ || rate_ == 0) { return 0; }
+  const double held_ms = static_cast<double>(padding_) * 1000.0 / rate_;
+  const double total_ms =
+      playback_->stats().buffered_ms + held_ms + stream_latency_ms_;
+  return static_cast<std::uint32_t>(std::clamp(total_ms * 1000.0, 0.0, 4.0e9));
 }

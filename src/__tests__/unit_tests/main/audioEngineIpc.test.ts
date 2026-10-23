@@ -81,6 +81,17 @@ const DECLINED: IEngineSetupResult = {
 const GUID = '{a1b2c3d4-e5f6-4708-9a0b-1c2d3e4f5061}';
 
 describe('the audio engine channels', () => {
+  const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+  // These cases exercise Windows' APO switching and administrator prompts,
+  // including when the suite is run on a Mac build agent.
+  beforeAll(() =>
+    Object.defineProperty(process, 'platform', { value: 'win32' }),
+  );
+  afterAll(() => {
+    if (hostPlatform) {
+      Object.defineProperty(process, 'platform', hostPlatform);
+    }
+  });
   let userDataDir: string;
   let engine: TAudioEngine | null;
   let order: string[];
@@ -805,6 +816,7 @@ describe('the audio engine channels', () => {
       expect(writeSystemDspChain).toHaveBeenCalledWith(
         path.join(userDataDir, 'config'),
         values,
+        undefined,
       );
     },
   );
@@ -878,6 +890,7 @@ describe('the audio engine channels', () => {
     expect(writeSystemDspChain).toHaveBeenCalledWith(
       path.join(userDataDir, 'config'),
       values,
+      undefined,
     );
     expect(replied(reply)).toEqual({ result: 'written' });
   });

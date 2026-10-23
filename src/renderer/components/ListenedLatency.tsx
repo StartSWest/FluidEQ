@@ -29,7 +29,7 @@ const ListenedLatency = () => {
   const status = useKnownAudioEngineStatus();
   const { isEnabled } = useFluidEqShell();
   const isFluid = status?.engine === 'fluid';
-  const listened = useListenedOutput(isFluid && isEnabled);
+  const listened = useListenedOutput(isFluid && isEnabled, 'editor');
   const delay = useListenedDelay(listened);
   return isFluid ? (
     // One capsule, because the switch is what moves the figure beside it —

@@ -15,6 +15,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef FLUIDEQ_ENGINE_CHANNEL_LAYOUT_H
 #define FLUIDEQ_ENGINE_CHANNEL_LAYOUT_H
 
+#include <cstdint>
+
+#include "fluideq_engine/config.h"
+
 namespace fluideq_engine {
 
 /**
@@ -44,6 +48,16 @@ constexpr unsigned kRoomSpeakers = 7;
  */
 int speaker_of_channel(unsigned long mask, unsigned short channels,
                        unsigned channel);
+
+/**
+ * Which of a stream's channels `selection` names, one bit per channel in the
+ * stream's order: every one for `all`; otherwise each channel whose speaker
+ * or whose number the selection lists. A name the stream has no channel for
+ * names nothing, so a band kept to the left ear of a mono stream plays
+ * nowhere, as it does under Equalizer APO.
+ */
+uint32_t selected_channels(const ChannelSelection& selection,
+                           unsigned long mask, unsigned short channels);
 
 }  // namespace fluideq_engine
 

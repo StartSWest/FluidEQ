@@ -1,13 +1,11 @@
 /* Copyright (C) 2026 Ivan Carmenates Garcia. SPDX-License-Identifier: GPL-3.0-or-later */
 
-import { OFFICIAL_SITE_URL } from '../branding';
 import { type IHelpChapter } from './model';
 
-/** FluidEQ Plus: the account, the gallery, the board, the Studio, the desktop and lighting. */
+/** FluidEQ Plus: the account, the gallery, the Studio, the desktop and lighting. */
 // The Plus pictures come from the running window at 2560 x 1392 on
 // 2026-09-29, signed in as FluidEQ's maker. The Admin channel only an
-// administrator sees is hidden for them, and on the leaderboard every member
-// but the one signed in is blurred: they are real people.
+// administrator sees is hidden for them.
 const PLUS_CHAPTERS = [
   {
     id: 'plus',
@@ -18,11 +16,6 @@ const PLUS_CHAPTERS = [
         width: 2078,
         height: 406,
         controls: [
-          {
-            box: [5, 47, 218, 42],
-            name: 'leaderboard.title',
-            text: 'help.plus.leaderboard',
-          },
           {
             box: [5, 91, 218, 42],
             name: 'plus.visualizers.title',
@@ -46,20 +39,8 @@ const PLUS_CHAPTERS = [
         ],
       },
     ],
-    // The Plus tour, where the site shows it, played like the first-steps
-    // film (Ivan, 2026-09-30: approved for 2.0). Its poster is the Studio's
-    // capture, the part of Plus the tour spends longest on.
-    video: {
-      src: `${OFFICIAL_SITE_URL}/video/plus-tour.mp4`,
-      captions: {
-        src: `${OFFICIAL_SITE_URL}/video/plus-tour.en.vtt`,
-        lang: 'en',
-      },
-      page: `${OFFICIAL_SITE_URL}/#plus-tour`,
-      title: 'help.plus.videoTitle',
-      note: 'help.plus.videoNote',
-      poster: '31-plus-studio.png',
-    },
+    // The Plus tour film (approved for 2.0) is not played here any more: it
+    // walks through upgrading and paying monthly, and Plus is not sold now.
   },
   {
     id: 'gallery',
@@ -136,34 +117,6 @@ const PLUS_CHAPTERS = [
             box: [253, 71, 58, 24],
             name: 'plus.scene.back',
             text: 'help.gallery.back',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'leaderboard',
-    group: 'plus',
-    figures: [
-      {
-        image: '28-plus-leaderboard.png',
-        width: 2078,
-        height: 834,
-        controls: [
-          {
-            box: [253, 73, 142, 27],
-            name: 'help.leaderboard.periodName',
-            text: 'help.leaderboard.period',
-          },
-          {
-            box: [253, 119, 1492, 115],
-            name: 'leaderboard.hero.title',
-            text: 'help.leaderboard.standing',
-          },
-          {
-            box: [1776, 134, 270, 32],
-            name: 'leaderboard.guide.title',
-            text: 'help.leaderboard.earn',
           },
         ],
       },

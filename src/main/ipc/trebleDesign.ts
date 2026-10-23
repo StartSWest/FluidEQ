@@ -33,10 +33,19 @@ import {
 import { ErrorCode } from '../../common/errors';
 import { scheduleWrite } from '../asyncWriter';
 import onWindowMessage from './windowMessages';
+import type { IState } from '../../common/constants';
+import type { IOutputSound } from '../../common/outputSettings';
+import { outputConfigFileName } from '../../common/outputConfigFiles';
+import { outputDesignsOf } from '../outputDesigns';
 
 export interface ITrebleDesignDeps {
   getConfigPath: () => Promise<string>;
   getEngine: () => TAudioEngine | null;
+  state?: IState;
+  getOutputGuid?: () => string | undefined;
+  persist?: (sound: IOutputSound) => Promise<void>;
+  getEditGeneration?: () => number;
+  flush?: () => Promise<void>;
 }
 
 /** The engine's own rule: only the exact word is Classic. */
@@ -55,11 +64,19 @@ const readChoice = async (filePath: string): Promise<TTrebleDesign> => {
 export const registerTrebleDesignIpc = ({
   getConfigPath,
   getEngine,
+  state,
+  getOutputGuid,
+  persist,
+  getEditGeneration,
+  flush,
 }: ITrebleDesignDeps) => {
   // Asking for the engine's folder creates it, so it is asked for only while
   // the FluidEQ Engine is the one chosen: under Equalizer APO the answer is
   // the default, and no folder is made for an engine that is not there.
   const readChoices = async (): Promise<ITrebleDesigns> => {
+    if (state) {
+      return outputDesignsOf(state).trebleDesigns;
+    }
     if (getEngine() !== 'fluid') {
       return { ...DEFAULT_TREBLE_DESIGNS };
     }
@@ -93,9 +110,39 @@ export const registerTrebleDesignIpc = ({
       return;
     }
     try {
+      const target = getOutputGuid?.();
+      const generation = getEditGeneration?.();
+      const filename = target
+        ? outputConfigFileName(
+            scope === 'eq' ? 'eqTreble' : 'curveTreble',
+            target,
+          )
+        : undefined;
+      const next = { ...(await readChoices()), [scope]: choice };
+      if (
+        getOutputGuid?.() !== target ||
+        getEditGeneration?.() !== generation
+      ) {
+        event.reply(channel, { result: await readChoices() });
+        return;
+      }
+      if (persist) {
+        await persist({ trebleDesigns: next });
+      }
+      if (flush) {
+        await flush();
+        event.reply(channel, { result: await readChoices() });
+        return;
+      }
       if (getEngine() === 'fluid') {
+        if (getOutputGuid && !filename) {
+          throw new Error('No output selected.');
+        }
         await scheduleWrite(
-          path.join(await getConfigPath(), TREBLE_DESIGN_FILENAMES[scope]),
+          path.join(
+            await getConfigPath(),
+            filename ?? TREBLE_DESIGN_FILENAMES[scope],
+          ),
           `${choice}\r\n`,
         );
       }

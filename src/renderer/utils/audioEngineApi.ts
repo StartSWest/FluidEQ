@@ -190,11 +190,12 @@ export const isAwaitingApoInstall = (
  */
 export const setSystemDspChain = (
   values: number[],
+  edit?: import('../../common/outputSettings').IOutputDspEdit,
 ): Promise<TSystemDspChainResult> => {
   const channel = ChannelEnum.SET_SYSTEM_DSP_CHAIN;
   return sendRequest<TSystemDspChainResult>(
     channel,
-    [values],
+    [values, edit],
     simpleResponseHandler<TSystemDspChainResult>(),
   );
 };

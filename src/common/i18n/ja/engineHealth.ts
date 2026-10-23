@@ -31,6 +31,11 @@ const engineHealth = {
   'engineHealth.rackNeedsEngine':
     'DSP エフェクトはエンジンの中で動くので、Windows のオーディオを再起動しても同じエンジンが立ち上がるだけです。直せるのは FluidEQ 自身のエンジンを入れること — Windows の許可が一度と、一瞬の無音です。',
   'engineHealth.useApo': 'Equalizer APO を使う…',
+  'engineHealth.macPermissionTitle':
+    'FluidEQ が Mac のサウンドを受け取れません',
+  'engineHealth.macPermissionBody':
+    'macOS が、Mac で再生されるサウンドの収録を FluidEQ に許可していないため、EQ が届いていません。その間もサウンドは通常どおり再生されます。「プライバシーとセキュリティ」›「画面とシステムオーディオの収録」で FluidEQ をオンにしてください。',
+  'engineHealth.openMacPrivacy': 'システム設定を開く',
 } as const;
 
 export default engineHealth;

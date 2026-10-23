@@ -89,6 +89,12 @@ std::string signature_of(const Chain& chain) {
     out += band.user_eq ? ",eq" : ",other";
     out += band.curve_layer ? ",curve" : ",untagged";
     out += band.matched ? ",matched" : ",cookbook";
+    // Which channels it plays on: moving a band to the other ear changes the
+    // sound and nothing else about the band.
+    if (!band.channels.all) {
+      out += ",ch" + std::to_string(band.channels.speakers) + '.' +
+             std::to_string(band.channels.indices);
+    }
     out += ';';
   }
   out += "|g=";
@@ -108,7 +114,7 @@ std::string signature_of(const Chain& chain) {
   for (const std::string& command : chain.ignored) {
     out += command + ';';
   }
-  // The rack, by value rather than by file stamp. `fluideq-dsp.txt` is
+  // The endpoint's rack, by value rather than by file stamp. Its file is
   // deliberately absent from `files_read`, so nothing else here would notice
   // it changing — and it is rewritten on every slider release, which is the
   // one file in this directory that changes while music is playing.

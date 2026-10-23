@@ -40,6 +40,10 @@ const files = {
   'files.squiglink.empty':
     'Fügen Sie einen EQ-Export von Squiglink ein, bevor Sie ihn importieren.',
   'files.squiglink.tooLarge': 'Dieser EQ-Export ist zu groß zum Importieren.',
+  'files.squiglink.earsNeedBands':
+    'Dieser Export ist eine abgetastete Kurve, die beide Ohren zugleich betrifft. Wenden Sie ihn auf beide Ohren an oder exportieren Sie ihn als parametrische Filter.',
+  'files.squiglink.tooManyBands':
+    'Das ergäbe mehr als {max} Bänder. Löschen Sie zuerst einige Bänder oder wenden Sie es auf beide Ohren an.',
   'files.squiglink.noFilters':
     'Es wurden keine Equalizer-APO-Filter gefunden. Kopieren Sie den exportierten ParametricEQ- oder GraphicEQ-Text aus Squiglink.',
   'files.eq.tooLarge': 'Diese Datei ist zu groß für eine EQ-Einstellung.',
@@ -70,6 +74,10 @@ const files = {
     'Die Einstellungen von Equalizer APO wurden nicht gefunden.',
   'files.wav.tooLong':
     'Diese Impulsantwort ist zu lang, um sie für eine sichere Normalisierung zu analysieren.',
+  // My curves out through Save As (main/ipc/curveExport.ts).
+  'files.title.exportCurves': 'Meine Kurven exportieren',
+  'files.type.curveList': 'FluidEQ-Kurvenliste',
+  'files.title.exportCurveFolder': 'Ordner für die Kurven auswählen',
 } as const;
 
 export default files;

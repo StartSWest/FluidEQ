@@ -42,6 +42,7 @@ import {
 import type { IHostStats } from '../dspHost/wire';
 import type { IEngineProcessStats } from '../engineAnalysisPipe';
 import type { IProcessMeter } from '../processMeter';
+import { lanAudioHelperPid } from '../lanAudioHelper';
 import {
   IAppProcess,
   applyReadings,
@@ -196,7 +197,15 @@ export const registerProcessIpc = (deps: IProcessIpcDeps): void => {
     });
 
     watchWindow(window);
-    const readings = await deps.meter?.read([...listed], process.pid);
+    // The LAN audio helper starts the capture helpers itself, as its own
+    // children — that is how the capture sent to another computer leaves
+    // its sound out (`lanAudioHelper.ts`) — so its children are asked for
+    // too, or the captures would be missing from the list and its total.
+    const helperPid = lanAudioHelperPid();
+    const readings = await deps.meter?.read(
+      [...listed],
+      [process.pid, ...(helperPid === undefined ? [] : [helperPid])],
+    );
     if (!readings) {
       return unique.sort(byRole);
     }

@@ -18,6 +18,9 @@ import { ErrorCode } from '../../common/errors';
 import { bandPhaseScopes, hasSampledCurveLayers } from '../apoRender';
 import { scheduleWrite } from '../asyncWriter';
 import onWindowMessage from './windowMessages';
+import type { IOutputSound } from '../../common/outputSettings';
+import { outputConfigFileName } from '../../common/outputConfigFiles';
+import { outputDesignsOf } from '../outputDesigns';
 
 export interface ICurveComparisonDeps {
   state: IState;
@@ -25,6 +28,10 @@ export interface ICurveComparisonDeps {
   getConfigPath: () => Promise<string>;
   getEngine: () => TAudioEngine | null;
   isSwitching: () => boolean;
+  getOutputGuid?: () => string | undefined;
+  persist?: (sound: IOutputSound) => Promise<void>;
+  getEditGeneration?: () => number;
+  flush?: () => Promise<void>;
 }
 
 const readVariant = async (
@@ -48,6 +55,10 @@ export const registerCurveComparisonIpc = ({
   getConfigPath,
   getEngine,
   isSwitching,
+  getOutputGuid,
+  persist,
+  getEditGeneration,
+  flush,
 }: ICurveComparisonDeps) => {
   const readStatus = async (): Promise<ICurveComparisonStatus> => {
     const status = await getStatus();
@@ -56,21 +67,27 @@ export const registerCurveComparisonIpc = ({
       getEngine() === 'fluid' &&
       status.fluid.installed &&
       !isSwitching();
+    let variant = DEFAULT_CURVE_COMPARISON;
+    let eqVariant: TCurveComparison = 'B';
+    if (getOutputGuid) {
+      const designs = outputDesignsOf(state);
+      variant = designs.curvePhase;
+      eqVariant = designs.eqPhase;
+    } else if (active) {
+      const directory = await getConfigPath();
+      [variant, eqVariant] = await Promise.all([
+        readVariant(
+          path.join(directory, CURVE_COMPARISON_FILENAME),
+          DEFAULT_CURVE_COMPARISON,
+        ),
+        readVariant(path.join(directory, EQ_PHASE_FILENAME), 'B'),
+      ]);
+    }
     return {
-      variant: active
-        ? await readVariant(
-            path.join(await getConfigPath(), CURVE_COMPARISON_FILENAME),
-            DEFAULT_CURVE_COMPARISON,
-          )
-        : DEFAULT_CURVE_COMPARISON,
+      variant,
+      eqVariant,
       hasSampledCurves: hasSampledCurveLayers(state),
       bandPhaseScopes: bandPhaseScopes(state),
-      eqVariant: active
-        ? await readVariant(
-            path.join(await getConfigPath(), EQ_PHASE_FILENAME),
-            'B',
-          )
-        : 'B',
       eqSupported: active && supportsEqPhase(status.fluid.dllVersion),
       supported: active && supportsCurveComparison(status.fluid.dllVersion),
       active,
@@ -99,6 +116,14 @@ export const registerCurveComparisonIpc = ({
       return;
     }
     try {
+      const target = getOutputGuid?.();
+      const generation = getEditGeneration?.();
+      const filename = target
+        ? outputConfigFileName(
+            scope === 'eq' ? 'eqPhase' : 'curvePhase',
+            target,
+          )
+        : undefined;
       const current = await readStatus();
       const supported =
         scope === 'eq' ? current.eqSupported : current.supported;
@@ -106,13 +131,37 @@ export const registerCurveComparisonIpc = ({
         event.reply(channel, { result: current });
         return;
       }
+      if (
+        getOutputGuid?.() !== target ||
+        getEditGeneration?.() !== generation
+      ) {
+        event.reply(channel, { result: await readStatus() });
+        return;
+      }
+      if (persist && flush) {
+        await persist(
+          scope === 'eq' ? { eqPhase: variant } : { curvePhase: variant },
+        );
+        await flush();
+        event.reply(channel, { result: await readStatus() });
+        return;
+      }
       const filePath = path.join(
         await getConfigPath(),
-        scope === 'eq' ? EQ_PHASE_FILENAME : CURVE_COMPARISON_FILENAME,
+        filename ??
+          (scope === 'eq' ? EQ_PHASE_FILENAME : CURVE_COMPARISON_FILENAME),
       );
+      if (getOutputGuid && !filename) {
+        throw new Error('No output selected.');
+      }
       if (isSwitching() || getEngine() !== 'fluid') {
         event.reply(channel, { result: await readStatus() });
         return;
+      }
+      if (persist) {
+        await persist(
+          scope === 'eq' ? { eqPhase: variant } : { curvePhase: variant },
+        );
       }
       await scheduleWrite(filePath, `${variant}\r\n`);
       event.reply(channel, {

@@ -2,14 +2,13 @@ import { useMemo } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { OFFICIAL_SITE_URL } from 'common/branding';
 import { REPORT_EMAIL } from 'common/bugReport';
+import { formatDollars } from 'common/creatorPayouts';
 import {
-  ACTIVE_DAY_MINUTES,
-  DAILY_LISTENING_CAP_HOURS,
-  LISTENING_UPLOAD_INTERVAL_HOURS,
-  LISTENING_WINDOW_DAYS,
-  PART_POINTS,
-} from 'common/leaderboardScore';
-import {
+  CREATOR_HOLD_DAYS,
+  CREATOR_MINIMUM_CENTS,
+  CREATOR_PAYOUT_EVERY_DAYS,
+  CREATOR_SHARE_PERCENT,
+  CREDIT_REFUND_DAYS,
   PLUS_ACCOUNT_DELETION_DAYS,
   PLUS_MAX_COMPUTERS,
   PLUS_MAX_PUBLISHED_SCENES,
@@ -21,10 +20,14 @@ import {
   PLUS_TERMS_EDITION,
   termsEffectiveDate,
 } from 'common/plusTerms';
-import { PLUS_TRIAL_DAYS } from 'common/plusTrial';
+import { PLUS_MOVE_CREDITS, STARTER_CREDITS } from 'common/sceneStore';
+import { SCENE_PLAY_WINDOW_DAYS } from 'common/sceneTaste';
+import {
+  LISTENING_DAY_CAP_HOURS,
+  LISTENING_WINDOW_DAYS,
+} from 'common/listening';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
-import plusPriceText from './plusPrice';
 import {
   TERMS_HIGHLIGHTS,
   TERMS_SECTIONS,
@@ -34,36 +37,35 @@ import '../styles/PlusTerms.scss';
 
 /**
  * Every number the terms quote, from the constant the code keeps it with.
- *
- * The price is the configured amount with the period in the reader's own
- * language ("$5 / Monat", and the yearly one beside it when the build offers
- * one): the amount is what the checkout charges, the period is ours to say.
  * The contact is the support address the build was made with; a build
  * without one points at the site instead, so the sentence never ends in a
- * blank.
+ * blank. The creator terms' names (share, days, amount) are the sign-up
+ * dialog's own, because the section quotes its sentences.
  */
 export const termsValues = (
-  price: string,
+  locale = 'en',
 ): Record<string, string | number> => ({
-  price,
   graceDays: PLUS_OFFLINE_GRACE_DAYS,
   deletionDays: PLUS_ACCOUNT_DELETION_DAYS,
   age: PLUS_MINIMUM_AGE,
   computers: PLUS_MAX_COMPUTERS,
   tasteSeconds: PLUS_TASTE_SECONDS,
-  trialDays: PLUS_TRIAL_DAYS,
+  starterCredits: STARTER_CREDITS,
+  moveCredits: PLUS_MOVE_CREDITS,
   sharesPerHour: PLUS_SHARES_PER_HOUR,
   maxPublished: PLUS_MAX_PUBLISHED_SCENES,
   takedownDays: PLUS_TAKEDOWN_PAUSE_DAYS,
-  capHours: DAILY_LISTENING_CAP_HOURS,
-  windowDays: LISTENING_WINDOW_DAYS,
-  uploadHours: LISTENING_UPLOAD_INTERVAL_HOURS,
-  activeMinutes: ACTIVE_DAY_MINUTES,
-  // Per hour, as the server scores it (minutes / 6).
-  hourPoints: PART_POINTS.hours,
-  dayPoints: PART_POINTS.days,
-  likePoints: PART_POINTS.likes,
+  // How long a computer keeps scene plays the server has not been sent.
+  windowDays: SCENE_PLAY_WINDOW_DAYS,
+  // The listening statistics' window and daily cap (premium 0068).
+  listeningDays: LISTENING_WINDOW_DAYS,
+  listeningHours: LISTENING_DAY_CAP_HOURS,
   contact: REPORT_EMAIL || new URL(OFFICIAL_SITE_URL).host,
+  refundDays: CREDIT_REFUND_DAYS,
+  share: CREATOR_SHARE_PERCENT,
+  days: CREATOR_HOLD_DAYS,
+  amount: formatDollars(CREATOR_MINIMUM_CENTS, locale),
+  every: CREATOR_PAYOUT_EVERY_DAYS,
 });
 
 /**
@@ -80,7 +82,7 @@ export const termsValues = (
  */
 export default function PlusTermsDocument() {
   const { t, locale } = useTranslation();
-  const values = useMemo(() => termsValues(plusPriceText(t)), [t]);
+  const values = useMemo(() => termsValues(locale), [locale]);
   const effective = useMemo(
     () =>
       new Intl.DateTimeFormat(locale, {

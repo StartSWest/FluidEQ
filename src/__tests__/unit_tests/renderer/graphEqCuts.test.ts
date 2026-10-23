@@ -158,14 +158,17 @@ describe('a headphone correction past a slider’s range', () => {
     filters: { deep: band({ id: 'deep', frequency: 3000, gain: -22 }) },
     intensity: 1,
   };
+  // Unsmoothed, so the bell's own depth is read back; the 1/12 octave a
+  // correction gets with nothing chosen is eqShape.test.ts's.
+  const unsmoothed = { headphone: correction, curveSmoothing: 'off' as const };
 
   it('is drawn as it plays', () => {
-    const chartData = build({ headphone: correction });
+    const chartData = build(unsmoothed);
     expect(at(curve(chartData, HEADPHONE_CURVE_ID), 3000)).toBeCloseTo(-22, 1);
   });
 
   it('is drawn at Studio mode’s half as much again, not from ±20 dB', () => {
-    const chartData = build({ headphone: correction, curveEqMode: 'studio' });
+    const chartData = build({ ...unsmoothed, curveEqMode: 'studio' });
     // Studio narrows a bell as it deepens it, so only the centre is exact.
     expect(at(curve(chartData, HEADPHONE_CURVE_ID), 3000)).toBeCloseTo(-33, 0);
   });

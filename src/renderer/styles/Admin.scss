@@ -471,3 +471,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 .admin-account__body {
   padding: 2px 14px 14px;
 }
+
+// How full the server's plan is, on the Server tab: amber while it is only
+// getting there; the badge's own red once it is nearly full.
+.gallery-toolbar__badge.admin-sections__limit.is-warn {
+  color: $surface-base;
+  background: $amber;
+}

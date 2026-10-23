@@ -75,8 +75,9 @@ export const ART_SECTION = `YOUR OWN ART: MADE IMAGES, LIBRARY TEXTURES AND MODE
 Photo-real pictures lift a scene from drawn to real: FluidEQ's own aquarium
 swims photo-real fish over sand, its concert crowd is eight real-looking
 people, its hanami a garden of cherry trees. So:
-- IF YOU CAN MAKE IMAGES (a tool of your own, or one I connected you to),
-  USE IT for the scene's subjects and materials. A subject - a fish, a tree,
+- IF YOU CAN MAKE IMAGES (a tool of your own - ChatGPT's or Codex's image
+  generation, Gemini's, any other - or one I connected you to), USE IT for
+  the scene's subjects and materials. A subject - a fish, a tree,
   a person, a ship: alone, seen from the angle the camera sees it, lit as the
   scene is, on a transparent background. A cut-out keyed from a flat colour
   keeps that colour on its soft edges: pull those pixels back to their

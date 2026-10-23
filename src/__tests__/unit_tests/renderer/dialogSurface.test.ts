@@ -195,8 +195,8 @@ describe('what stands on the floor', () => {
   it.each([
     ['Dsp.scss', '.dsp-card'],
     ['Library.scss', '.library-empty__card'],
-    ['RemoteAudio.scss', '.remote-audio__role-shell'],
-    ['RemoteAudio.scss', '.remote-audio__role-card'],
+    ['RemoteAudio.scss', '.remote-audio__link-form'],
+    ['RemoteAudio.scss', '.remote-audio__link'],
     ['Karaoke.scss', '.karaoke-pitch'],
     ['Karaoke.scss', '.karaoke-playlist'],
     ['Karaoke.scss', '.karaoke-maker__header'],
@@ -222,7 +222,8 @@ describe('what stands on the floor', () => {
     ['Games.scss', '.games-row'],
     ['ConfigInspector.scss', '.config-card'],
     ['StudioMaker.scss', '.studio-maker'],
-    ['RemoteAudio.scss', '.remote-audio__role-shell'],
+    ['RemoteAudio.scss', '.remote-audio__link-form'],
+    ['RemoteAudio.scss', '.remote-audio__link'],
     ['Karaoke.scss', '.karaoke-playlist'],
   ])('%s fills %s with the card', (sheet, selector) => {
     const card = declarationsOf(compiledCss(sheet), selector);
@@ -251,11 +252,12 @@ describe('what stands on the floor', () => {
     expect(track).toContain('background: var(--surface-control)');
     expect(track).not.toContain(BLOCK);
     expect(track).not.toContain('var(--accent)');
-    // The EQ mode menu's rows are the same track, with no fill of their own.
+    // The EQ mode rows are the same track, with no fill of their own, in the
+    // menu and in the card it pins as.
     expect(
       declarationsOf(
         compiledCss('EqModeSelect.scss'),
-        '.eq-mode-menu .segmented.eq-mode-menu__choices',
+        '.eq-mode-choices .segmented.eq-mode-choices__track',
       ),
     ).not.toContain('background');
     const chosen = declarationsOf(

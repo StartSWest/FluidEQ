@@ -380,7 +380,6 @@ const dsp = {
   'dsp.eqStereo.side': 'Только бока',
   'dsp.eqOversample.label': 'Передискр.',
   'dsp.eqOversample.off': 'Выкл',
-  'dsp.eqOversample.on': '2x',
   'dsp.eqTreble.preciseHint':
     'Точный: каждая полоса этого эквалайзера звучит ровно так, как нарисована, вплоть до 20\u00a0кГц.',
   'dsp.eqImport.title': 'Импорт кривой эквалайзера',
@@ -390,6 +389,8 @@ const dsp = {
   'dsp.eqImport.chooseFile': 'Выбрать файл',
   'dsp.eqImport.apply': 'Импортировать',
   'dsp.eqImport.cancel': 'Отмена',
+  'dsp.eqImport.tooMany':
+    'Получится больше {max} полос. Сначала удалите часть полос или импортируйте для обоих ушей.',
 
   'dsp.eq.title': 'Эквалайзер',
   'dsp.eq.band': 'Полоса',
@@ -442,6 +443,16 @@ const dsp = {
   'dsp.exciter.band.mid': 'Средние',
   'dsp.exciter.band.high': 'Высокие',
   'dsp.exciter.texture': 'Текстура',
+  'dsp.exciter.oversampling': 'Передискр.',
+  'dsp.exciter.oversampling.off': 'Выкл',
+  'dsp.exciter.oversampling.standard': 'Обычная',
+  'dsp.exciter.oversampling.high': 'Высокая',
+  'dsp.exciter.oversampling.offHint':
+    'Гармоники создаются на собственной частоте выхода: самая лёгкая нагрузка, но с шероховатостью от того, что отражается сверху.',
+  'dsp.exciter.oversampling.standardHint':
+    'Гармоники создаются на частоте до четырёх раз выше частоты выхода, как Эксайтер работал всегда.',
+  'dsp.exciter.oversampling.highHint':
+    'Та же частота с гораздо более крутым фильтром, поэтому сверху ничего не отражается. Немного больше работы для процессора.',
   'dsp.exciter.organic': 'Органика',
   'dsp.exciter.organicHint':
     'Добавляет мягкую плотность чётных гармоник в выбранной области. Идеально, чтобы сделать чистую металлическую подачу или титановые драйверы теплее и органичнее без потери деталей.',

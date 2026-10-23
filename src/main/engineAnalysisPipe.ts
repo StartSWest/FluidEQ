@@ -13,6 +13,11 @@ import {
 } from '../common/dsp/engineAnalysis';
 import decodeEngineAnalysis from './dspHost/engineAnalysis';
 import { ENGINE_PREAMP_CHANNEL, IEnginePreamp } from '../common/enginePreamp';
+import {
+  capabilitiesFor,
+  isFluidEngineBuiltIn,
+} from '../common/platformCapabilities';
+import { macAnalysisListenOptions } from './macEngine/analysisSocket';
 
 const PIPE = '\\\\.\\pipe\\FluidEQ-Engine-Analysis';
 const MAX_FRAME = 32_768;
@@ -111,7 +116,12 @@ export const readEngineProcesses = (): IEngineProcessStats[] => {
 const startEngineAnalysisPipe = (
   getWindow: () => { webContents: WebContents } | null,
 ): Promise<void> => {
-  if (process.platform !== 'win32') {
+  // Windows' effect connects to the pipe below; the Mac's engine, part of the
+  // app, to a socket with the same protocol (`macEngine/analysisSocket.ts`).
+  if (
+    process.platform !== 'win32' &&
+    !isFluidEngineBuiltIn(capabilitiesFor(process.platform))
+  ) {
     return Promise.resolve();
   }
   ipcMain.handle(ENGINE_PREAMP_CHANNEL, (event, endpoint: unknown) => {
@@ -338,7 +348,9 @@ const startEngineAnalysisPipe = (
     // to write measurements; the default Windows pipe ACL grants only reads.
     // This pipe accepts bounded analysis records and sends only demand bytes.
     server.listen(
-      { path: PIPE, readableAll: true, writableAll: true },
+      process.platform === 'win32'
+        ? { path: PIPE, readableAll: true, writableAll: true }
+        : macAnalysisListenOptions(),
       resolve,
     );
   });

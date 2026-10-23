@@ -20,6 +20,8 @@ import {
 import { getAudioDevices } from '../utils/equalizerApi';
 import { refreshAudioEngineStatus } from '../utils/useAudioEngineStatus';
 import { reportError } from '../utils/logger';
+import windowCapabilities from '../utils/windowCapabilities';
+import builtInEngineTrouble from './builtInEngineTrouble';
 import {
   engineOnOutput,
   engineTrouble,
@@ -262,7 +264,10 @@ const useEngineTrouble = (
       reportsCarried,
       engineUpdateReady,
     };
-    const trouble = engineTrouble(facts);
+    const trouble = builtInEngineTrouble(
+      engineTrouble(facts),
+      windowCapabilities(),
+    );
     return { trouble, isOnOutput: engineOnOutput(facts, trouble) };
   }, [
     engine,

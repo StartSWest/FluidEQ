@@ -20,7 +20,20 @@ import {
   type IScenePacksIpcDeps,
 } from '../../../main/ipc/scenePacks';
 import { fakeResponse } from '../../utils/memberSceneFixtures';
+import type { IScenePackStore } from '../../../main/scenePackStore';
 /* eslint-enable import/first */
+
+/**
+ * The store's newest held version follows the listing these tests mock: what
+ * an update is measured against is the newest held (`newestVersion`), which
+ * a pinned earlier version never stands in for.
+ */
+const newestFromList = (store: IScenePackStore) =>
+  jest
+    .spyOn(store, 'newestVersion')
+    .mockImplementation(
+      (id) => store.list().find((pack) => pack.id === id)?.version,
+    );
 
 describe('bringing installed scenes up to date', () => {
   const envelope = {
@@ -82,6 +95,8 @@ describe('bringing installed scenes up to date', () => {
         status: () => ({ state: 'active' }),
         subscribe: () => () => {},
       } as unknown as IScenePacksIpcDeps['entitlement'],
+      // Every scene this account's, as while Plus lasts.
+      ownership: { owns: () => true, subscribe: () => () => undefined },
       fetchImpl,
     });
 
@@ -106,6 +121,7 @@ describe('bringing installed scenes up to date', () => {
     const registration = register(root, server.fetchImpl);
     const adopt = jest.spyOn(registration.store, 'adopt').mockReturnValue(0);
     const held = jest.spyOn(registration.store, 'list').mockReturnValue([]);
+    newestFromList(registration.store);
     try {
       await handlers.get('scene-packs-refresh')?.({});
       expect(server.urls).toHaveLength(1);
@@ -135,6 +151,7 @@ describe('bringing installed scenes up to date', () => {
     const first = register(root, server.fetchImpl);
     jest.spyOn(first.store, 'adopt').mockReturnValue(1);
     jest.spyOn(first.store, 'list').mockReturnValue([installed(1)]);
+    newestFromList(first.store);
     try {
       await handlers.get('scene-packs-refresh')?.({});
       await first.refreshIfDue('window focused');
@@ -149,6 +166,7 @@ describe('bringing installed scenes up to date', () => {
     const held = jest
       .spyOn(second.store, 'list')
       .mockReturnValue([installed(1)]);
+    newestFromList(second.store);
     try {
       await handlers.get('scene-packs-refresh')?.({});
       expect(envelopeRequests(server.urls)).toHaveLength(1);
@@ -196,6 +214,8 @@ describe('bringing installed scenes up to date', () => {
         status: () => ({ state: 'active' }),
         subscribe: () => () => {},
       } as unknown as IScenePacksIpcDeps['entitlement'],
+      // Every scene this account's, as while Plus lasts.
+      ownership: { owns: () => true, subscribe: () => () => undefined },
       fetchImpl: server.fetchImpl,
       refreshGalleryScenes,
     });
@@ -226,6 +246,7 @@ const withAuroraHeld = () => {
       status: () => ({ state: 'active' }),
       subscribe: () => () => {},
     } as unknown as IScenePacksIpcDeps['entitlement'],
+    ownership: { owns: () => true, subscribe: () => () => undefined },
     logger: { info: jest.fn(), warn },
   });
   const source = 'vec4 sceneColour(vec2 uv) { return vec4(1.0); }';

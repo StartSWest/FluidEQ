@@ -213,3 +213,82 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 4px 10px 10px;
   }
 }
+
+// The three ways to a curve, one tab each (`EqPresetsPanel.tsx`): OPRA's
+// library, Squiglink, and the listener's own. The EQ mode card's underline
+// tabs, kept to their words' width at the card's left edge rather than
+// stretched across the page.
+.autoeq-panel__libraries {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  margin-bottom: -8px;
+  border-bottom: 1px solid $border-subtle;
+}
+
+.autoeq-panel__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: -1px;
+  padding: 8px 14px 9px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: $text-faint;
+  font-size: $text-body;
+  font-weight: $weight-semibold;
+  cursor: pointer;
+  transition: color $motion-fast $ease-out;
+
+  &:hover {
+    color: $text-primary;
+  }
+
+  &[aria-selected='true'] {
+    border-bottom-color: $secondary-default;
+    color: $text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $secondary-default;
+    outline-offset: -2px;
+  }
+}
+
+// Squiglink's tab holds its import card as it is, a surface of its own, kept
+// at its content's height like the libraries' well.
+.autoeq-panel__squiglink {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  min-width: 0;
+}
+
+// How many curves are on the list: a pill with room round its digits, quiet
+// beside a tab that is not open and lit beside the one that is.
+.autoeq-panel__tab-count {
+  display: inline-grid;
+  min-width: 22px;
+  height: 18px;
+  padding: 0 7px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, $secondary-default 28%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, $secondary-default 10%, transparent);
+  color: $text-muted;
+  font-size: $text-micro;
+  font-weight: $weight-semibold;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition:
+    background $motion-fast $ease-out,
+    border-color $motion-fast $ease-out,
+    color $motion-fast $ease-out;
+
+  [aria-selected='true'] > & {
+    border-color: color-mix(in srgb, $secondary-default 55%, transparent);
+    background: color-mix(in srgb, $secondary-default 22%, transparent);
+    color: $secondary-light;
+  }
+}

@@ -66,6 +66,8 @@ beforeEach(() => {
     access: {
       accountId: () => account,
       entitled: () => paid,
+      // Plus owns every scene while it lasts (`sceneOwnership.ts`).
+      owns: () => paid,
       auth: async () => ({ config, accessToken: 'token', fetchImpl }),
     },
     store: createMemberSceneStore({ userDataDir: root }),
@@ -73,7 +75,6 @@ beforeEach(() => {
     announceOfficial: announce,
     announce: jest.fn(),
     refreshBlocked: async () => undefined,
-    onEntitlementChange: () => () => undefined,
   });
 });
 afterEach(() => fs.rmSync(root, { recursive: true, force: true }));

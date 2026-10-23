@@ -34,6 +34,7 @@ import type { ISceneFrame } from './sceneGl';
 import type { ISceneDrawReport } from './sceneRunnerTypes';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import { reportScenePlayed } from './sceneUpdateStore';
+import useScenePlayMeter from './useScenePlayMeter';
 import useSceneRunner, { type ISceneSource } from './useSceneRunner';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { useHoldGraphAutoCycle } from '../utils/graphAutoCycle';
@@ -170,6 +171,8 @@ export default function SceneCanvas({
   const panel = plot?.panel;
   const panelRef = useRef(panel);
   panelRef.current = panel;
+  // How long this scene is on screen, for the admin's favourites.
+  const countPlay = useScenePlayMeter(scene.lookId);
   const onDrawn = useCallback(
     (
       frame: ISceneFrame,
@@ -182,13 +185,16 @@ export default function SceneCanvas({
         drawnRef.current = key;
         setDrawnIdentity(key);
       }
+      if (frame.fade > 0) {
+        countPlay();
+      }
       // The window beats on the beats this scene is drawing, when the
       // graph's mode asks it to (`ScenePulse.tsx`).
       reportSceneBeat('graph', frame, panelRef.current);
       // And the Processes dialog says what it is costing.
       reportSceneDraw('graph', name, report);
     },
-    [key, name],
+    [key, name, countPlay],
   );
   // The window's light goes with the graph's scene when it stops being drawn
   // anywhere. Not when the look changes: the next scene is drawn in this same

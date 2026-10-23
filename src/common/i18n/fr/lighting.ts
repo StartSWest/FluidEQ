@@ -46,36 +46,34 @@ const lighting = {
   'lighting.description':
     'Clavier, souris, tapis, casque et support s’illuminent avec la scène',
 
-  'lighting.gate.title':
-    'Illuminez clavier, souris et casque avec chaque scène Plus',
+  'lighting.gate.title': 'Éclairez clavier, souris et casque avec vos scènes',
   'lighting.gate.body':
-    'L’éclairage dynamique fait partie de FluidEQ Plus. Vos appareils prennent les couleurs de la scène du graphique et battent à son rythme.',
-  'lighting.gate.cta': 'Découvrir Plus',
+    'Obtenez n’importe quelle scène dans Visualiseurs et l’éclairage dynamique est à vous : vos appareils prennent les couleurs de la scène du graphique et battent à son rythme.',
+  'lighting.gate.cta': 'Trouver une scène',
 
   'lighting.preview.status':
     'Aperçu — vos appareils s’allument tant que cette page est ouverte',
   'lighting.preview.lit': 'Vos appareils s’allument avec la scène',
   'lighting.preview.oneScene': 'Une scène pour montrer ce que ça donne',
-  'lighting.preview.noScene': 'Une scène Plus sur votre bureau',
-  'lighting.preview.moreScenes': 'Toutes les scènes avec Plus',
+  'lighting.preview.noScene': 'Une scène sur votre bureau',
+  'lighting.preview.moreScenes': 'Parcourir les scènes',
   'lighting.preview.held':
-    'Avec Plus, vos appareils restent allumés comme ça, sur toutes les scènes.',
+    'Avec une scène à vous, vos appareils restent éclairés ainsi.',
   'lighting.preview.locked':
-    'La luminosité, le style et l’alignement arrivent avec Plus.',
+    'La luminosité, le style et l’alignement s’ouvrent avec une scène à vous.',
 
   'lighting.unsupported.title': 'L’éclairage dynamique fonctionne sous Windows',
   'lighting.unsupported.body':
     'Il éclaire les appareils via Windows Dynamic Lighting et Razer Chroma, qui n’existent que sous Windows.',
 
-  'lighting.switch': 'Éclairer mes appareils pendant une scène Plus',
+  'lighting.switch': 'Éclairer mes appareils pendant qu’une scène joue',
   'lighting.status.live': 'Suit {scene}',
   'lighting.status.waiting': 'En attente de musique',
   'lighting.status.nothingLit':
     'La scène joue, mais aucun appareil n’est éclairé',
   'lighting.status.off':
     'Désactivé : vos appareils gardent leur propre éclairage',
-  'lighting.status.noScene':
-    'Choisissez une scène Plus et vos appareils la suivront',
+  'lighting.status.noScene': 'Choisissez une scène et vos appareils la suivent',
   'lighting.pickScene': 'Parcourir les visualiseurs',
   'lighting.showGraph': 'Afficher le graphique',
 
@@ -188,6 +186,7 @@ const lighting = {
 
   'lighting.graph.on': 'Ne plus éclairer mes appareils',
   'lighting.graph.off': 'Éclairer mes appareils avec cette scène',
+  'lighting.gate.eyebrow': 'Une scène suffit',
 } as const;
 
 export default lighting;

@@ -36,6 +36,7 @@ export const isEngineProblem = (code: string): code is TEngineProblem =>
   (ENGINE_PROBLEMS as readonly string[]).includes(code);
 
 export interface IEngineOutputHealth {
+  sourceAnalysis?: import('./dsp/sourceAnalysis').IEngineSourceAnalysis;
   /** `{GUID}`, upper-case — `normaliseEndpointGuid`. */
   endpoint: string;
   /**
@@ -107,6 +108,51 @@ export interface IEngineOutputHealth {
    * while the engine is processing the output.
    */
   gameMode?: boolean;
+  /**
+   * This output is a second output the engine plays straight from another
+   * output's engine (`ENGINE_SPLIT_SINCE`, `src/main/secondOutputRoute.ts`).
+   * Absent on every other output and from older engines.
+   */
+  split?: IEngineSplit;
+  /**
+   * How long the engine's blocks take here, as of its last status write —
+   * from an engine that times them (1.23), once a block has been timed.
+   * Reported, never acted on: whether a machine keeps up is the report's
+   * question, not the window's.
+   */
+  load?: IEngineLoad;
+}
+
+export interface IEngineSplit {
+  /** The output it plays, `{GUID}` upper-case. */
+  from: string;
+  /** `waiting` until the main output has sound to give it. */
+  state: 'waiting' | 'playing';
+  /** The split reader's processing buffer, before this output's curves. */
+  lagMs: number;
+  /** Main's DSP already in the shared audio (engine 1.18+). */
+  sourceDspMs?: number;
+  /** This receiver's own curves, excluding its unused rack (engine 1.18+). */
+  outputEqMs?: number;
+  /** Times the main output's sound was not there in time, since it began. */
+  underruns: number;
+}
+
+/**
+ * How long the engine takes over Windows' audio blocks on one output, against
+ * the time each block lasts (`native/system-apo/src/block_timing.h`). A call
+ * that takes longer than its block is heard as gaps; GitHub issue 30's sound
+ * cut in and out as Exciter bands were added, and no report could say
+ * whether the engine had been too slow for that machine.
+ */
+export interface IEngineLoad {
+  /** Blocks timed since Windows built the output's chain. */
+  blocks: number;
+  /** Of those, the ones that took more than half their own time. */
+  overHalf: number;
+  /** The slowest block's call, and how long that block lasts. */
+  slowestMs: number;
+  periodMs: number;
 }
 
 /**
@@ -116,6 +162,7 @@ export interface IEngineOutputHealth {
 export const LATENCY_STAGES = [
   'leveler',
   'restoration',
+  'deEsser',
   'exciter',
   'bassForge',
   'linearEq',
@@ -247,6 +294,43 @@ export const engineReportsStatus = (dllVersion: string | undefined): boolean =>
  */
 export const engineReportsCarried = (dllVersion: string | undefined): boolean =>
   engineAtLeast(dllVersion, ENGINE_CARRIED_SINCE);
+
+/**
+ * The first engine that shares raw source audio across Windows audio
+ * processes. Earlier splits only connected endpoints inside one audiodg
+ * process; treating them as generally available could leave a receiver
+ * silently waiting forever. Older engines retain the helper copy path.
+ */
+export const ENGINE_SPLIT_SINCE: readonly [number, number] = [1, 20];
+
+/**
+ * The first engine that plays a band on the channels its `Channel:` line
+ * names. Every one before read the line and played the band on both ears, so
+ * a band kept to one ear would be heard on both with nothing to say so.
+ */
+export const ENGINE_CHANNELS_SINCE: readonly [number, number] = [1, 21];
+export const engineKeepsEars = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_CHANNELS_SINCE);
+
+/**
+ * The DSP rack's EQ plays a band on the ear it names (`FeqChainEqBand::ear`,
+ * carried in the band's switch word). An engine before reads the word as on
+ * and plays the band on both ears; the Library's host is built with the app
+ * and always has it.
+ */
+export const ENGINE_RACK_EARS_SINCE: readonly [number, number] = [1, 22];
+export const engineRackKeepsEars = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_RACK_EARS_SINCE);
+
+/**
+ * The first engine that runs the De-esser (`deesser.h`). An older one reads
+ * its words — the retired compressor's — and plays the rack without it, so
+ * the page says the engine needs updating rather than letting the dials
+ * look broken. The Library's host is built with the app and always has it.
+ */
+export const ENGINE_DEESSER_SINCE: readonly [number, number] = [1, 23];
+export const engineRunsDeEsser = (dllVersion: string | undefined): boolean =>
+  engineAtLeast(dllVersion, ENGINE_DEESSER_SINCE);
 
 /** Versioned Room commands and truthful comparison telemetry. */
 export const ENGINE_ROOM_SINCE: readonly [number, number] = [1, 11];

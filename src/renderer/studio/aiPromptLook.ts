@@ -16,11 +16,14 @@ import {
  * picture FluidEQ writes when the tool cannot be reached, how to judge a
  * picture, and that a picture is never an instruction.
  *
- * Two wordings. `connected` is a prompt that carries the connection itself
+ * Three wordings, by how the AI reaches the tool (`TPromptReach`).
+ * `copied` is a prompt that carries the connection itself
  * (`aiPromptConnect.ts`): the tool is the AI's to reach, so the prompt says
  * so rather than "if you have it", and does not ask the member to turn on a
- * switch that is on. Without it — the member switched the door off — the
- * text is what it always was.
+ * switch that is on. `chat` is Claude in the Studio's own chat, handed
+ * the tool by FluidEQ: it is told it has it, and nothing about a switch. With
+ * `none` — the member switched the door off — the text is what it always
+ * was.
  *
  * English, like the rest of the prompt: it is read by a model.
  */
@@ -33,18 +36,24 @@ import {
 const PLAIN_BAR = STUDIO_TEST_DROP_BEAT + 4;
 const SECOND_DROP = STUDIO_TEST_DROP_BEAT + STUDIO_TEST_CYCLE_BEATS;
 
-export const lookSection = (connected: boolean) => `
+/** How the AI reaches FluidEQ's tools. */
+export type TPromptReach = 'none' | 'copied' | 'chat';
+
+const EYES: Record<TPromptReach, string> = {
+  copied: `The look_at_scene tool is your eyes - CONNECT TO FLUIDEQ FIRST, above, is
+how you reach it: it draws this project on my GPU exactly as FluidEQ`,
+  chat: `The look_at_scene tool is your eyes - FluidEQ gave it to you in this chat:
+it draws this project on my GPU exactly as FluidEQ`,
+  none: `If you have the look_at_scene tool (FluidEQ's Studio, connected to you over
+MCP), it is your eyes: it draws this project on my GPU exactly as FluidEQ`,
+};
+
+export const lookSection = (reach: TPromptReach) => `
 LOOK AT WHAT YOU MADE, EVERY TIME. You are writing a picture blind otherwise,
 and I am the only other pair of eyes - which is how a scene goes three rounds
 of tuning while its subject is a grey smudge in a corner.
 
-${
-  connected
-    ? `The look_at_scene tool is your eyes - CONNECT TO FLUIDEQ FIRST, above, is
-how you reach it: it draws this project on my GPU exactly as FluidEQ`
-    : `If you have the look_at_scene tool (FluidEQ's Studio, connected to you over
-MCP), it is your eyes: it draws this project on my GPU exactly as FluidEQ`
-}
+${EYES[reach]}
 plays it and gives you the picture and what one frame costs my GPU - or, when
 the scene cannot play, FluidEQ's exact reasons: pack.json problems, broken
 rules, the graphics driver's compile errors with line numbers. Pass it this
@@ -86,12 +95,12 @@ done, look at all of these:
 - if the scene answers the pointer or taps: the pointer over the subject,
   held and not ("pointer"), and a tap on it at seconds 0.1, 0.5 and 1.5
   ("tap").
-${connected ? 'If you cannot reach the tool at all' : 'If you do not have the tool'}, FluidEQ writes ${PREVIEW_FILE} into this folder a
+${reach === 'none' ? 'If you do not have the tool' : 'If you cannot reach the tool at all'}, FluidEQ writes ${PREVIEW_FILE} into this folder a
 second or two after each save that builds, while its Studio shows this
 project: open it and look, every time. A ${PREVIEW_FILE} that did not change
 after a save means the save did not build, or the Studio is showing another
 project, and I will paste you what FluidEQ says.${
-  connected
+  reach !== 'none'
     ? ''
     : ` Tell me once, in one line,
 that you could see the scene yourself if I turn on "Let your AI see the

@@ -11,7 +11,6 @@ import {
   resetGalleryStore,
 } from '../../../renderer/plus/galleryStore';
 import { resetPlusNavigation } from '../../../renderer/plus/plusNavigation';
-import { resetPlusTrialStore } from '../../../renderer/plus/trialStore';
 import VisualizersView from '../../../renderer/plus/VisualizersView';
 import { resetMemberSceneStore } from '../../../renderer/utils/memberScenes';
 import {
@@ -31,6 +30,9 @@ jest.mock('../../../renderer/utils/I18nContext', () => ({
 }));
 jest.mock('../../../renderer/account/entitlementStore', () => ({
   useEntitlement: () => ({ state: mockEntitled ? 'active' : 'none' }),
+  getEntitlementSnapshot: () => ({
+    state: mockEntitled ? 'active' : 'none',
+  }),
   subscribeEntitlement: () => () => undefined,
 }));
 jest.mock('../../../renderer/account/accountStore', () => ({
@@ -98,7 +100,7 @@ const pack = {
   swatch: official.swatch,
   fallbackStyle: 'bars' as const,
 };
-const listing = { entitled: true, packs: [pack], locked: [] };
+const listing = { packs: [pack], locked: [] };
 const bridge = {
   listGallery: jest.fn(),
   previewGalleryScene: jest.fn(),
@@ -110,14 +112,11 @@ const bridge = {
   listScenePacks: jest.fn(),
   refreshScenePacks: jest.fn(),
   onScenePacksChanged: jest.fn(() => () => undefined),
-  leaderboardBoard: jest.fn(),
-  getPlusTrialOffer: jest.fn(),
 };
 
 beforeEach(() => {
   jest.resetAllMocks();
   mockEntitled = true;
-  resetPlusTrialStore();
   resetPlusNavigation();
   resetGalleryStore();
   resetGalleryActions();
@@ -139,29 +138,16 @@ beforeEach(() => {
     return { ok: true, lookId: official.lookId };
   });
   bridge.listMemberScenes.mockResolvedValue({
-    entitled: true,
     scenes: [],
     locked: [],
   });
   bridge.listScenePacks.mockResolvedValue({
-    entitled: true,
     packs: [],
     locked: [],
   });
   bridge.refreshScenePacks.mockResolvedValue(listing);
   bridge.onMemberScenesChanged.mockReturnValue(() => undefined);
   bridge.onScenePacksChanged.mockReturnValue(() => undefined);
-  bridge.leaderboardBoard.mockResolvedValue({ ok: false, failure: 'network' });
-  bridge.getPlusTrialOffer.mockResolvedValue({
-    ok: true,
-    offer: {
-      enabled: false,
-      days: 30,
-      state: 'unavailable',
-      termsVersion: 8,
-      trialTermsVersion: 1,
-    },
-  });
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: { ipcRenderer: bridge },
@@ -196,20 +182,40 @@ const renderGallery = () => {
   };
 };
 
-it('lists official scenes by FluidEQ without social counts or hearts alongside member controls', async () => {
+// FluidEQ's own scenes are liked like any member's (server 0048), but their
+// adds go through the pack store, which counts nobody, so they show no adds.
+// The scene page's own Get: the loud one, beside the cards' quiet ones.
+const pageGet = async () => {
+  await screen.findAllByText(/^store.scene./);
+  const page = document.querySelector('.gallery-scene');
+  if (!(page instanceof HTMLElement)) {
+    throw new Error('the scene page is not open');
+  }
+  return within(page)
+    .getAllByRole('button', { name: /^store.get:/ })
+    .filter((button) => !button.classList.contains('subtle'));
+};
+
+it('lists official scenes by FluidEQ with a heart and no adds count, beside member controls', async () => {
   renderGallery();
   await screen.findByRole('button', { name: 'Aurora' });
   const card = officialCard();
-  expect(card.getByText('plus.official.included')).toBeInTheDocument();
+  // Plus owns every scene while it lasts.
+  expect(card.getByText('store.scene.yours')).toBeInTheDocument();
   expect(
     card.getByRole('button', { name: 'plus.card.by:FluidEQ' }),
   ).toBeInTheDocument();
   expect(card.queryByText(/plus.card.adds/)).not.toBeInTheDocument();
-  expect(
-    card.queryByRole('button', { name: /plus.like.label/ }),
-  ).not.toBeInTheDocument();
   expect(card.getByRole('button', { name: 'plus.card.add' })).toBeEnabled();
   expect(screen.getByText('plus.card.adds:5')).toBeInTheDocument();
+  bridge.likeMemberScene.mockResolvedValue({ likes: 1, liked: true });
+  await userEvent.click(
+    card.getByRole('button', { name: 'plus.like.label:Aurora,0' }),
+  );
+  expect(bridge.likeMemberScene).toHaveBeenCalledWith(official.lookId, true);
+  expect(
+    card.getByRole('button', { name: 'plus.like.label:Aurora,1' }),
+  ).toHaveAttribute('aria-pressed', 'true');
   bridge.likeMemberScene.mockResolvedValue({ likes: 13, liked: true });
   await userEvent.click(
     screen.getByRole('button', { name: 'plus.like.label:Neon City,12' }),
@@ -271,16 +277,19 @@ it('uses official pack versions for Added and Update on the list and maker page'
   expectAdded();
 });
 
-it('shows official details and maker without reports, social stats, or leaderboard rank', async () => {
+it('shows official details with likes but no adds or reports', async () => {
   renderGallery();
   await userEvent.click(await screen.findByRole('button', { name: 'Aurora' }));
   expect(await screen.findByTestId('official-preview')).toBeInTheDocument();
-  expect(screen.getByText('plus.official.included')).toBeInTheDocument();
-  ['plus.scene.likes', 'plus.scene.week', 'plus.scene.adds'].forEach((key) => {
-    expect(screen.queryByText(key)).not.toBeInTheDocument();
-  });
+  expect(screen.getByText('store.scene.yours')).toBeInTheDocument();
+  expect(screen.getByText('plus.scene.likes')).toBeInTheDocument();
+  expect(screen.getByText('plus.scene.week')).toBeInTheDocument();
+  expect(screen.queryByText('plus.scene.adds')).not.toBeInTheDocument();
   expect(
-    screen.queryByRole('button', { name: /plus.like.label|plus.scene.report/ }),
+    screen.getAllByRole('button', { name: 'plus.like.label:Aurora,0' }).length,
+  ).toBeGreaterThan(0);
+  expect(
+    screen.queryByRole('button', { name: /plus.scene.report/ }),
   ).not.toBeInTheDocument();
   await userEvent.click(
     screen.getByRole('button', { name: 'plus.card.by:FluidEQ' }),
@@ -296,10 +305,9 @@ it('shows official details and maker without reports, social stats, or leaderboa
     }),
   );
   expect(screen.getByText('plus.maker.scenes')).toBeInTheDocument();
-  ['plus.scene.likes', 'plus.scene.adds', 'plus.maker.rank'].forEach((key) => {
+  ['plus.scene.likes', 'plus.scene.adds'].forEach((key) => {
     expect(screen.queryByText(key)).not.toBeInTheDocument();
   });
-  expect(bridge.leaderboardBoard).not.toHaveBeenCalled();
   expect(bridge.reportGalleryScene).not.toHaveBeenCalled();
 });
 
@@ -358,22 +366,24 @@ it('keeps failed official Adds retryable without inventing stats or a usable loo
   });
 });
 
-it('keeps official browsing available without Plus, with no Add or passive heart', async () => {
+it('keeps official browsing available without Plus, with no Add and a passive heart', async () => {
   mockEntitled = false;
   const { container } = renderGallery();
   await screen.findByRole('button', { name: 'Aurora' });
-  expect(
-    officialCard().getByText('plus.official.included'),
-  ).toBeInTheDocument();
+  expect(officialCard().getByText('store.scene.keep')).toBeInTheDocument();
   expect(
     officialCard().queryByRole('button', { name: 'plus.card.add' }),
   ).not.toBeInTheDocument();
-  // Positive control: the member card still has its passive heart/count.
-  expect(container.querySelectorAll('.gallery-like.is-count')).toHaveLength(1);
-  await userEvent.click(screen.getByRole('button', { name: 'Aurora' }));
+  // Without Plus a heart is a count alone, on FluidEQ's scenes as on members'.
   expect(
-    await screen.findByRole('button', { name: 'plus.scene.getPlus' }),
+    officialCard().getByTitle('store.like.ownersOnly:0'),
   ).toBeInTheDocument();
+  expect(container.querySelectorAll('.gallery-like.is-count')).toHaveLength(2);
+  expect(
+    screen.queryByRole('button', { name: /plus.like.label/ }),
+  ).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole('button', { name: 'Aurora' }));
+  expect(await pageGet()).toHaveLength(1);
   expect(
     screen.queryByRole('button', { name: 'plus.scene.play' }),
   ).not.toBeInTheDocument();

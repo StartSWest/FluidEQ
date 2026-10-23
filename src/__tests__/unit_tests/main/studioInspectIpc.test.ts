@@ -96,6 +96,8 @@ beforeEach(() => {
     access: {
       accountId: () => account,
       entitled: () => paid,
+      // Plus owns every scene while it lasts (`sceneOwnership.ts`).
+      owns: () => paid,
       auth: async () => ({ config, accessToken: 'token', fetchImpl }),
     },
     officialStore: store,

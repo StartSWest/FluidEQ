@@ -21,6 +21,10 @@ import {
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { selectionModeFromEvent } from 'common/bandSelection';
 import { requestBandMenu } from '../components/BandMenu';
+import { useTranslation } from '../utils/I18nContext';
+import frequencyText from '../utils/frequencyText';
+import { EAR_LETTER_KEYS, EAR_NAME_KEYS } from '../eq/earNames';
+import { handleXInPlot } from './bandHandlePosition';
 import {
   GRAPH_END,
   GRAPH_START,
@@ -28,26 +32,7 @@ import {
   IChartPointData,
 } from './ChartController';
 
-/** How far in from the plot's edge a handle is held: its largest halo. */
-const HANDLE_EDGE_INSET = 12;
-
-/**
- * A band past the plot's edge keeps its handle at the edge, whole and in
- * reach: the 16.3 kHz band of a 15-band layout lies past the plot trimmed to
- * 16 kHz with the grid off (`graphFrequencyRange`), and a band may sit below
- * the 10 Hz edge. A drag moves a band by how far the pointer travels, so it
- * works from there. Widening the trimmed range to hold the band instead
- * would move the scale under a band being dragged outward, and the drag
- * would chase it.
- */
-export const handleXInPlot = (
-  x: number,
-  [start, end]: readonly number[],
-): number => {
-  const left = Math.min(start, end) + HANDLE_EDGE_INSET;
-  const right = Math.max(start, end) - HANDLE_EDGE_INSET;
-  return left < right ? Math.min(right, Math.max(left, x)) : x;
-};
+export { handleXInPlot } from './bandHandlePosition';
 
 /**
  * What a handle has to say about itself to something outside React.
@@ -118,9 +103,15 @@ const EditablePoint = ({
   xScale,
   yScale,
 }: IEditablePointProps) => {
+  const { t } = useTranslation();
   const dragging = useRef(false);
   const groupRef = useRef<SVGGElement>(null);
   const { data, selected, hovered } = point;
+  // The band's own values, which the keys move, rather than the summed curve
+  // its dot stands on.
+  const frequency = frequencyText(point.parameters?.frequency ?? data.x);
+  const gain = point.parameters?.gain ?? data.y;
+  const gainText = `${gain > 0 ? '+' : ''}${Math.round(gain * 100) / 100} dB`;
 
   // One record per handle, created once and then kept current in place.
   //
@@ -197,6 +188,7 @@ const EditablePoint = ({
   const handlePointerDown = (event: PointerEvent<SVGCircleElement>) => {
     event.preventDefault();
     event.stopPropagation();
+    groupRef.current?.focus({ preventScroll: true });
     dragging.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
     /*
@@ -256,19 +248,32 @@ const EditablePoint = ({
       className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}${point.isEnabled ? '' : ' graph-edit-point--off'}`}
       transform={`translate(${scaledX}, ${scaledY})`}
       role="slider"
-      aria-label={`${point.name}. Drag to change frequency and gain. Ctrl-scroll to change Q.`}
-      aria-valuetext={`${data.x} Hz, ${data.y.toFixed(2)} dB`}
+      tabIndex={point.isLocked ? -1 : 0}
+      aria-disabled={point.isLocked || undefined}
+      aria-label={t('graph.handle.label', { band: point.name, frequency })}
+      // What the arrow keys move.
+      aria-valuenow={gain}
+      aria-valuemin={MIN_GAIN}
+      aria-valuemax={MAX_GAIN}
+      aria-valuetext={`${frequency}, ${gainText}`}
       // The app's tooltip, where an SVG <title> was the system's
       // (`utils/tooltipLayer.ts`).
-      data-tooltip={`${point.name}: ${data.x} Hz · ${data.y.toFixed(2)} dB${
-        point.isEnabled ? '' : ' · off'
-      }${selected ? ' · Ctrl+scroll changes Q' : ' · Click to select'}`}
+      data-tooltip={[
+        point.name,
+        frequency,
+        gainText,
+        ...(point.isEnabled ? [] : [t('graph.handle.off')]),
+        ...(point.ear ? [t(EAR_NAME_KEYS[point.ear])] : []),
+        t(selected ? 'graph.handle.quality' : 'graph.handle.select'),
+      ].join(' · ')}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       onPointerEnter={() => point.onHover(true)}
       onPointerLeave={() => point.onHover(false)}
+      onFocus={() => point.onHover(true)}
+      onBlur={() => point.onHover(false)}
       // The band's menu: reset it, or grow a neighbour on either side.
       onContextMenu={(event) => {
         event.preventDefault();
@@ -276,6 +281,25 @@ const EditablePoint = ({
         requestBandMenu(point.id, event.clientX, event.clientY);
       }}
       onWheel={handleWheel}
+      onKeyDown={(event) => {
+        // Focus can still be here from before the layer was switched off.
+        if (point.isLocked) {
+          return;
+        }
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.stopPropagation();
+          point.onSelect(selectionModeFromEvent(event), data);
+          point.onCommit();
+          return;
+        }
+        if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+          return;
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        point.onGainStep(event.key === 'ArrowUp' ? 1 : -1);
+      }}
       style={
         {
           touchAction: 'none',
@@ -291,6 +315,19 @@ const EditablePoint = ({
       <rect className="graph-edit-point__halo" />
       <rect className="graph-edit-point__dot" />
       <rect className="graph-edit-point__core" />
+      {/* Which ear, as the band's strip tags it, beside the dot rather than
+          in it: inside, a letter at a handle's size is a smudge on its core. */}
+      {point.ear && (
+        <g
+          className={`graph-edit-point__ear graph-edit-point__ear--${point.ear}`}
+          aria-hidden="true"
+        >
+          <rect className="graph-edit-point__ear-tag" />
+          <text className="graph-edit-point__ear-letter">
+            {t(EAR_LETTER_KEYS[point.ear])}
+          </text>
+        </g>
+      )}
     </g>
   );
 };

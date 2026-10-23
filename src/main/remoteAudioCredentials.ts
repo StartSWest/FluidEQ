@@ -39,6 +39,8 @@ interface IStoredCredentials {
 export interface IRemoteAudioCredentialStore {
   activate(role: TLanSavedRole): boolean;
   clear(): void;
+  /** Forgets the code this computer pasted; its own code stays. */
+  forgetSender(): void;
   pause(): void;
   read(): TLanCredentials | undefined;
   readListener(): TLanListenerCredentials | undefined;
@@ -196,6 +198,17 @@ export const createRemoteAudioCredentialStore = (
           // A missing or locked preferences file is equivalent to clear.
         }
       });
+    },
+    forgetSender: () => {
+      const state = readState();
+      if (state) {
+        persist({
+          ...state,
+          sender: undefined,
+          activeRole:
+            state.activeRole === 'sender' ? undefined : state.activeRole,
+        });
+      }
     },
     pause: () => {
       const state = readState();

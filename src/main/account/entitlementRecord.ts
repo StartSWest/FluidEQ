@@ -5,8 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { PLUS_OFFLINE_GRACE_DAYS } from '../../common/plusTerms';
-import { PLUS_TRIAL_PLAN } from '../../common/plusTrial';
-import { MAKER_PLAN } from '../../common/makerMonth';
+import { MAKER_PLAN, PLUS_TRIAL_PLAN } from '../../common/pastPlans';
 import { GIFT_PLAN } from '../../common/plusGifts';
 
 /**

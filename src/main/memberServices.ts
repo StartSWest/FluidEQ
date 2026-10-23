@@ -21,12 +21,12 @@ import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import path from 'path';
 import { ACCOUNT_CONFIG } from '../common/accountConfig';
-import { setKnownMaker } from './account/knownMakers';
+import type { TAudioEngine } from '../common/audioEngine';
 import { appVersion } from './appVersion';
 import { registerAccountIpc } from './ipc/account';
 import { registerAccountDeletionIpc } from './ipc/accountDeletion';
-import { registerLeaderboardIpc } from './ipc/leaderboard';
-import { registerMakerMonthIpc } from './ipc/makerMonth';
+import { registerAdminInsightsIpc } from './ipc/adminInsights';
+import { registerCreatorIpc } from './ipc/creator';
 import { registerMemberScenesIpc } from './ipc/memberScenes';
 import { registerMemberSharingIpc } from './ipc/memberSharing';
 import { registerPlusGalleryIpc } from './ipc/plusGallery';
@@ -36,12 +36,24 @@ import { registerPlusProfileIpc } from './ipc/plusProfile';
 import { registerPlusPublishingIpc } from './ipc/plusPublishing';
 import { registerPlusReviewIpc } from './ipc/plusReview';
 import { registerPlusTermsNoticeIpc } from './ipc/plusTermsNotice';
-import { registerPlusTrialIpc } from './ipc/plusTrial';
-import { registerPlusWelcomeIpc } from './ipc/plusWelcome';
+import { registerSceneAnnouncementsIpc } from './ipc/sceneAnnouncements';
+import { registerSceneStoreIpc } from './ipc/sceneStore';
+import { registerSceneTasteIpc } from './ipc/sceneTaste';
+import { registerListeningIpc } from './ipc/listening';
+import forgetListening from './usage/forgetListening';
+import { registerSceneVersionsIpc } from './ipc/sceneVersions';
+import { createVersionPins } from './keptVersions';
 import { registerScenePacksIpc } from './ipc/scenePacks';
 import { registerStudioInspectIpc } from './ipc/studioInspect';
+import { createEncryptedJsonStore } from './encryptedJsonStore';
 import { createGalleryAccess } from './plus/galleryAccess';
+import {
+  createSceneOwnership,
+  isSceneStoreRecord,
+} from './plus/sceneOwnership';
+import openExternalIfSafe from './safeExternal';
 import { createStudioAgentDoor } from './studioAgent/studioAgentDoor';
+import { createStudioChat } from './studioChat/studioChat';
 import { createArrangementStore } from './wallpaper/arrangement';
 import registerWallpaperIpc from './wallpaper/register';
 import { createWallpaperScenes } from './wallpaper/scenes';
@@ -49,12 +61,14 @@ import { createWallpaperScenes } from './wallpaper/scenes';
 export interface IMemberServicesDeps {
   getMainWindow: () => BrowserWindow | null;
   userDataDir: string;
+  /** The engine this computer runs, reported with the scenes (premium 0049). */
+  getEngine: () => TAudioEngine | null;
 }
 
 /**
  * The account and everything that rides on it: the Plus membership, its
  * terms, the looks, the members' scenes and the Studio, the gallery and its
- * review, the desktop backgrounds and the leaderboard.
+ * review and the desktop backgrounds.
  *
  * Registers the channels and reads whatever session is already on disk; it
  * contacts nothing. A build with no backend configured resolves to a store
@@ -64,6 +78,7 @@ export interface IMemberServicesDeps {
 const registerMemberServices = ({
   getMainWindow,
   userDataDir,
+  getEngine,
 }: IMemberServicesDeps) => {
   // DEVELOPMENT ONLY, and compiled to nothing in a packaged build:
   // `isPackaged` is decided by the binary's name, which nothing here can
@@ -76,24 +91,16 @@ const registerMemberServices = ({
     !app.isPackaged && process.env.FLUIDEQ_DEV_ENTITLED === '1'
       ? { state: 'active' as const, plan: 'plus (development)', renewing: true }
       : undefined;
-  // The merchant has no test mode, so in development the Account panel can
-  // ask the server to send the merchant's own signed events for this account
-  // and watch the subscription switch on and off. Nothing to configure: the
-  // server holds the secret and admits admins only. See
-  // `membershipSimulator.ts`.
-  const developmentSimulator = !app.isPackaged;
-  // The leaderboard had a cast of twelve sample people ranked into it in
-  // development, for a board with nobody in it. There are real people on it
-  // now, and a made-up cast over them hides what is actually happening (Ivan,
-  // 2026-09-20): the board is the server's answer, in every build.
 
   const accountIpc = registerAccountIpc({
     getMainWindow,
     userDataDir,
     logger: log,
     developmentEntitlement,
-    developmentSimulator,
   });
+
+  // The leaderboard's listening tally, gone with the board.
+  forgetListening(userDataDir, log);
 
   // The Plus terms promise that a member is told when they change. Asks the
   // server which version this account agreed to on the same events as the
@@ -107,32 +114,51 @@ const registerMemberServices = ({
     logger: log,
   });
 
-  // Paying happens in a browser, so the membership turning on is the only
-  // news the app gets of it. This marks that moment once per account.
-  const plusWelcomeIpc = registerPlusWelcomeIpc({
-    getMainWindow,
-    userDataDir,
-    session: accountIpc.session,
-    entitlement: accountIpc.entitlement,
-    logger: log,
-  });
-
-  const plusTrialIpc = registerPlusTrialIpc({
+  // Which scenes this account may play: the ones it bought, and every one
+  // while Plus lasts. Every gate below asks it, so a scene is one answer on
+  // the graph, the desktop and the lamps (premium 0055).
+  const sceneOwnership = createSceneOwnership({
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
     entitlement: accountIpc.entitlement,
-    onTermsAgreed: plusTermsNoticeIpc.agreed,
+    onIdentityChange: accountIpc.onIdentityChange,
+    store: createEncryptedJsonStore(
+      userDataDir,
+      'scene-store.json',
+      isSceneStoreRecord,
+    ),
+    logger: log,
+  });
+  // Credits, a buy and a pack paid for in the browser, for the window.
+  const sceneStoreIpc = registerSceneStoreIpc({
+    getMainWindow,
+    config: ACCOUNT_CONFIG,
+    ownership: sceneOwnership,
+    openExternal: openExternalIfSafe,
+  });
+  // Creators paid for their scenes: their figures, and signing up on Stripe's
+  // own pages (premium 0064).
+  const creatorIpc = registerCreatorIpc({
+    getMainWindow,
+    config: ACCOUNT_CONFIG,
+    session: accountIpc.session,
+    openExternal: openExternalIfSafe,
   });
 
   // The premium looks ride on the account: they are listed only while the
   // subscription is live, and fetched on the same "somebody is back at the
   // machine" events. Registering reads the cache; it contacts nothing.
+  // Which earlier version of a scene plays, for both kinds of scene: the
+  // versions themselves are kept by the stores (`keptVersions.ts`).
+  const versionPins = createVersionPins(userDataDir);
   const scenePacksIpc = registerScenePacksIpc({
     getMainWindow,
     userDataDir,
+    pins: versionPins,
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
     entitlement: accountIpc.entitlement,
+    ownership: sceneOwnership,
     logger: log,
     // Late-bound: the gallery is registered further down, and this is only
     // called once the looks are opened.
@@ -146,13 +172,22 @@ const registerMemberServices = ({
     userDataDir,
     documentsDir: app.getPath('documents'),
     session: accountIpc.session,
-    entitlement: accountIpc.entitlement,
+    ownership: sceneOwnership,
+    pins: versionPins,
     logger: log,
+  });
+  const disposeSceneVersions = registerSceneVersionsIpc({
+    pins: versionPins,
+    officialStore: scenePacksIpc.store,
+    memberStore: memberScenesIpc.store,
+    ownership: sceneOwnership,
+    announceOfficial: scenePacksIpc.announce,
+    announceMember: memberScenesIpc.announce,
   });
 
   const wallpaperIpc = registerWallpaperIpc({
     getMainWindow,
-    entitlement: accountIpc.entitlement,
+    ownership: sceneOwnership,
     arrangement: createArrangementStore(userDataDir, log),
     ...createWallpaperScenes(scenePacksIpc, memberScenesIpc),
   });
@@ -164,7 +199,7 @@ const registerMemberServices = ({
     userDataDir,
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
-    entitlement: accountIpc.entitlement,
+    ownership: sceneOwnership,
     store: memberScenesIpc.store,
     activeFolder: memberScenesIpc.activeFolder,
     activeIsInspection: memberScenesIpc.activeIsInspection,
@@ -181,14 +216,13 @@ const registerMemberServices = ({
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
     entitlement: accountIpc.entitlement,
+    ownership: sceneOwnership,
   });
   const plusGalleryIpc = registerPlusGalleryIpc({
     access: galleryAccess,
     store: memberScenesIpc.store,
     refreshBlocked: memberSharingIpc.refreshBlocked,
     announce: memberScenesIpc.announce,
-    onEntitlementChange: (listener) =>
-      accountIpc.entitlement.subscribe(listener),
     officialStore: scenePacksIpc.store,
     announceOfficial: scenePacksIpc.announce,
     logger: log,
@@ -218,20 +252,6 @@ const registerMemberServices = ({
     },
     logger: log,
   });
-  // What a maker earned by publishing, for the account panel to count down —
-  // and, when the server says this account is one, the note that keeps their
-  // single Studio project open after the earned month runs out.
-  const makerMonthIpc = registerMakerMonthIpc({
-    access: galleryAccess,
-    onMaker: (id, maker) => {
-      if (setKnownMaker(userDataDir, id, maker)) {
-        // The Studio is drawn from what it was last told; an answer that
-        // changed has to reach it, or a first approval leaves the page locked
-        // until the window is opened again.
-        memberScenesIpc.makerChanged();
-      }
-    },
-  });
   // The member's own AI looking at the scene it is writing, over MCP on this
   // computer only — shut until the member opens it on the Studio's card.
   const studioAgentDoor = createStudioAgentDoor({
@@ -239,6 +259,17 @@ const registerMemberServices = ({
     getMainWindow,
     agentProject: memberScenesIpc.agentProject,
     appVersion: appVersion(),
+    logger: log,
+  });
+  // The Studio's chat: the member's own Claude Code, working in the open
+  // project, looking and hearing as the door above does, and making
+  // pictures with the member's ChatGPT when they say so.
+  const studioChat = createStudioChat({
+    userDataDir,
+    getMainWindow,
+    agentProject: () => memberScenesIpc.agentProject(),
+    door: { look: studioAgentDoor.look, hear: studioAgentDoor.hear },
+    version: appVersion(),
     logger: log,
   });
   const plusPublishingIpc = registerPlusPublishingIpc({
@@ -293,22 +324,56 @@ const registerMemberServices = ({
     access: galleryAccess,
   });
 
-  // The member's name on the board and in the gallery. Registering contacts
+  // What the admin reads of how members watch: each scene's time on screen
+  // and the engine, sent only once the member has been shown terms 10.
+  const sceneTasteIpc = registerSceneTasteIpc({
+    userDataDir,
+    access: galleryAccess,
+    toldOf: plusTermsNoticeIpc.toldOf,
+    getEngine,
+    logger: log,
+  });
+
+  // How long people listen, for the admin's statistics (premium 0068):
+  // counted only once the account has been told and has not switched it off.
+  const listeningIpc = registerListeningIpc({
+    getMainWindow,
+    userDataDir,
+    access: galleryAccess,
+    entitlement: accountIpc.entitlement,
+    logger: log,
+  });
+
+  // The big card announcing new scenes, and the admin's readings and
+  // composer behind it (premium migrations 0047, 0049, 0050).
+  const sceneAnnouncementsIpc = registerSceneAnnouncementsIpc({
+    getMainWindow,
+    userDataDir,
+    access: galleryAccess,
+    onAccountChange: (listener) => {
+      const offMembership = accountIpc.entitlement.subscribe(listener);
+      const offIdentity = accountIpc.onIdentityChange(listener);
+      return () => {
+        offMembership();
+        offIdentity();
+      };
+    },
+    logger: log,
+  });
+  const adminInsightsIpc = registerAdminInsightsIpc({
+    access: galleryAccess,
+    onAnnouncementsChanged: () => {
+      sceneAnnouncementsIpc
+        .refreshIfDue('an announcement changed')
+        .catch(() => undefined);
+    },
+  });
+
+  // The member's name in the gallery. Registering contacts
   // nothing; the Plus tab asks for it when it opens.
   const plusProfileIpc = registerPlusProfileIpc({
     config: ACCOUNT_CONFIG,
     session: accountIpc.session,
-  });
-
-  // Listening minutes. Counted always, kept on this machine, and uploaded only
-  // for an account that opted in — on the same events as everything else.
-  const leaderboardIpc = registerLeaderboardIpc({
-    getMainWindow,
-    userDataDir,
-    config: ACCOUNT_CONFIG,
-    session: accountIpc.session,
-    entitlement: accountIpc.entitlement,
-    logger: log,
   });
 
   /** Everything above let go of, at quit. */
@@ -318,33 +383,43 @@ const registerMemberServices = ({
     // the old listener is still holding a port nobody is going to answer on.
     accountIpc.dispose();
     plusTermsNoticeIpc.dispose();
-    plusWelcomeIpc.dispose();
-    plusTrialIpc.dispose();
+    sceneStoreIpc.dispose();
+    creatorIpc.dispose();
+    sceneOwnership.dispose();
     scenePacksIpc.dispose();
     plusModerationIpc.dispose();
     plusReviewIpc.dispose();
     plusGiftsIpc.dispose();
     accountDeletionIpc.dispose();
     disposeStudioInspect();
+    disposeSceneVersions();
     plusPublishingIpc.dispose();
     plusGalleryIpc.dispose();
     memberSharingIpc.dispose();
     memberScenesIpc.dispose();
-    makerMonthIpc.dispose();
     // Its listening socket, like the forum's, must not outlive the app.
     studioAgentDoor.dispose().catch(() => undefined);
+    // Claude Code ends with the app: nothing works in the member's project
+    // once FluidEQ is gone.
+    studioChat.dispose();
     plusProfileIpc.dispose();
-    leaderboardIpc.dispose();
+    sceneTasteIpc.dispose();
+    listeningIpc.dispose();
+    sceneAnnouncementsIpc.dispose();
+    adminInsightsIpc.dispose();
   };
 
   return {
     accountIpc,
+    sceneOwnership,
     plusTermsNoticeIpc,
     scenePacksIpc,
     memberSharingIpc,
     plusGalleryIpc,
     plusReviewIpc,
-    leaderboardIpc,
+    sceneTasteIpc,
+    listeningIpc,
+    sceneAnnouncementsIpc,
     wallpaperIpc,
     dispose,
   };

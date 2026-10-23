@@ -20,6 +20,9 @@ import decodeRoomReport from '../../common/dsp/roomReport';
 import {
   ANALYSIS_BASS_FORGE_BANDS,
   ANALYSIS_BINS,
+  ANALYSIS_DEESSER_BANDS,
+  ANALYSIS_EQ_DETAIL_BINS,
+  ANALYSIS_EQ_DETAIL_WINDOW,
   ANALYSIS_HEADER_BYTES,
   ANALYSIS_MAX_BANDS,
   ANALYSIS_SCOPE_PAIRS,
@@ -27,6 +30,7 @@ import {
 } from '../../common/dsp/analysisWire';
 import type {
   IHostAnalysis,
+  IHostAnalysisDeEsser,
   TAnalysisStage,
 } from '../../common/dsp/analysisWire';
 import { CHAIN_PARAM_LEAD } from '../../common/dsp/chainWire';
@@ -433,9 +437,9 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
   if (rate < 8000 || rate > 384000 || frames === 0xffffffff) {
     return undefined;
   }
-  // Seven delaying stages in the host's order; the eighth word, at 144, was
-  // the final guard's look-ahead until the guard was removed on 2026-09-22.
-  // The host writes a zero there and the mask stays at 148.
+  // Eight delaying stages in the host's order. The eighth word, at 144, was
+  // the final guard's look-ahead until the guard was removed on 2026-09-22,
+  // and carries the De-esser's look-ahead since; the mask stays at 148.
   const delayed: TLatencyStage[] = [
     'linearEq',
     'restoration',
@@ -444,7 +448,9 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
     'bassPunch',
     'maximizer',
     'headroom',
+    'deEsser',
   ];
+  // The bits of `feq_chain_active_stages`, the De-esser's appended last.
   const active: TLatencyStage[] = [
     'leveler',
     'restoration',
@@ -457,6 +463,7 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
     'maximizer',
     'headroom',
     'master',
+    'deEsser',
   ];
   const mask = view.getUint32(148, true);
   const counts = delayed.map((stage, index) => ({
@@ -475,6 +482,28 @@ const processingLatencyOf = (view: DataView): IEngineLatency | undefined => {
       : [];
   });
   return { rate, frames, parts };
+};
+
+/** The De-esser's window, offsets 560 to 783 (`feq_wire_deesser_report`). */
+const decodeDeEsser = (view: DataView): IHostAnalysisDeEsser => {
+  const count = Math.min(view.getUint32(588, true), ANALYSIS_DEESSER_BANDS);
+  const run = (from: number) =>
+    Array.from({ length: count }, (_unused, band) =>
+      view.getFloat32(from + band * 4, true),
+    );
+  return {
+    reductionDb: view.getFloat32(560, true),
+    frequencyHz: view.getFloat32(564, true),
+    confidence: view.getFloat32(568, true),
+    centre: view.getFloat32(572, true),
+    shape: view.getFloat32(576, true),
+    onset: view.getFloat32(580, true),
+    sibilanceDb: view.getFloat32(584, true),
+    bandHz: run(592),
+    bandLevelDb: run(592 + ANALYSIS_DEESSER_BANDS * 4),
+    bandThresholdDb: run(592 + ANALYSIS_DEESSER_BANDS * 8),
+    bandCutDb: run(592 + ANALYSIS_DEESSER_BANDS * 12),
+  };
 };
 
 export const decodeTelemetry = (frame: Buffer): IHostTelemetry | undefined => {
@@ -550,8 +579,11 @@ export const frameLengthFor = (magic: number): number => {
  * a header that cannot be trusted has already lost the stream. Guessing would
  * turn one bad frame into every later frame being misread as audio.
  */
-export const analysisFrameLength = (header: Buffer): number => {
-  if (header.length < ANALYSIS_HEADER_BYTES) {
+export const analysisFrameLength = (
+  header: Buffer,
+  headerBytes: number = ANALYSIS_HEADER_BYTES,
+): number => {
+  if (header.length < headerBytes) {
     return 0;
   }
   const stageMask = header.readUInt32LE(8);
@@ -573,6 +605,19 @@ export const analysisFrameLength = (header: Buffer): number => {
   if (bands > ANALYSIS_MAX_BANDS) {
     return 0;
   }
+  // The EQ tap's long window: zero from every writer before it, and only
+  // ever the one size and count from a writer that has it.
+  const detailWindow = header.readUInt32LE(84);
+  const detailBins = header.readUInt32LE(88);
+  if (detailWindow !== 0 && detailWindow !== ANALYSIS_EQ_DETAIL_WINDOW) {
+    return 0;
+  }
+  if (
+    detailBins !== 0 &&
+    (detailWindow === 0 || detailBins !== ANALYSIS_EQ_DETAIL_BINS)
+  ) {
+    return 0;
+  }
   let present = 0;
   for (let stage = 0; stage < ANALYSIS_STAGES.length; stage += 1) {
     // stage_mask IS a bit field on the wire; spelling a mask test as
@@ -583,15 +628,25 @@ export const analysisFrameLength = (header: Buffer): number => {
     }
   }
   return (
-    ANALYSIS_HEADER_BYTES +
+    headerBytes +
     present * bins * Float32Array.BYTES_PER_ELEMENT +
     pairs * 2 * Float32Array.BYTES_PER_ELEMENT +
-    bands * 2 * Float32Array.BYTES_PER_ELEMENT
+    bands * 2 * Float32Array.BYTES_PER_ELEMENT +
+    detailBins * Float32Array.BYTES_PER_ELEMENT
   );
 };
 
-export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
-  if (frame.length < ANALYSIS_HEADER_BYTES) {
+/**
+ * One analysis frame. `headerBytes` is the header the writer was built with:
+ * the Library host's is always this build's, and an engine before the
+ * De-esser (`ENGINE_DEESSER_SINCE`) writes the 560 bytes before it, which
+ * `engineAnalysis.ts` tries when this build's does not fit.
+ */
+export const decodeAnalysis = (
+  frame: Buffer,
+  headerBytes: number = ANALYSIS_HEADER_BYTES,
+): IHostAnalysis | undefined => {
+  if (frame.length < headerBytes) {
     return undefined;
   }
   const view = new DataView(frame.buffer, frame.byteOffset, frame.byteLength);
@@ -602,12 +657,12 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
   const bins = view.getUint32(12, true);
   const pairs = view.getUint32(16, true);
   const bands = view.getUint32(20, true);
-  if (frame.length !== analysisFrameLength(frame)) {
+  if (frame.length !== analysisFrameLength(frame, headerBytes)) {
     return undefined;
   }
 
   const spectra: Partial<Record<TAnalysisStage, Float32Array>> = {};
-  let at = ANALYSIS_HEADER_BYTES;
+  let at = headerBytes;
   ANALYSIS_STAGES.forEach((stage, index) => {
     // stage_mask IS a bit field on the wire; spelling a mask test as
     // arithmetic hides what it is.
@@ -670,6 +725,19 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
   for (let band = 0; band < bands; band += 1) {
     bandLevels.push(view.getFloat32(at + band * 4, true));
   }
+  at += bands * 4;
+
+  // The EQ tap's long window, copied out for the reason the spectra are.
+  const detailWindow = view.getUint32(84, true);
+  const detailBins = view.getUint32(88, true);
+  let detail: Float32Array | undefined;
+  if (detailBins > 0) {
+    const bytes = detailBins * Float32Array.BYTES_PER_ELEMENT;
+    detail = new Float32Array(detailBins);
+    Buffer.from(frame.subarray(at, at + bytes)).copy(
+      Buffer.from(detail.buffer, detail.byteOffset, bytes),
+    );
+  }
 
   return {
     room: decodeRoomReport(
@@ -696,8 +764,9 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
       autoHeadroomTruePeakDb: view.getFloat32(68, true),
     },
     // Offsets 72 through 92 were the final guard's six readings until the
-    // guard was removed on 2026-09-22; the engine writes zeros there and
-    // nothing reads them, but the offsets after them stay where they were.
+    // guard was removed on 2026-09-22; the offsets after them stay where they
+    // were. 84 and 88 carry the EQ tap's long window now (read above); the
+    // other four are zeros nothing reads.
     normalizer: {
       inputPeaks: [view.getFloat32(96, true), view.getFloat32(100, true)],
       outputPeaks: [view.getFloat32(104, true), view.getFloat32(108, true)],
@@ -747,6 +816,15 @@ export const decodeAnalysis = (frame: Buffer): IHostAnalysis | undefined => {
       sustainGainDb: view.getFloat32(388, true),
       duckGainDb: view.getFloat32(392, true),
     },
+    // Appended after the complete 560-byte header, and only in a frame that
+    // has it: an engine before the De-esser has nothing to say about it.
+    ...(headerBytes >= ANALYSIS_HEADER_BYTES
+      ? { deEsser: decodeDeEsser(view) }
+      : {}),
+    // From a writer whose EQ spectrum is the live one; offsets 84 and 88 were
+    // two of the retired guard's zeros, which is what every writer before
+    // still sends.
+    ...(detailWindow > 0 ? { eqLive: { detailWindow, detail } } : {}),
     bandAmounts,
     bandLevels,
   };

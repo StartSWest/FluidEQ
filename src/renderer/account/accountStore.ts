@@ -136,6 +136,26 @@ export const resetAccountPassword = async (details: {
   password: string;
 }) => request(() => bridge()?.resetAccountPassword?.(details));
 
+/**
+ * Sign in with Google in the browser. `locale` is the language of the page
+ * the browser tab ends on.
+ */
+export const signInWithGoogle = async (locale: string) =>
+  request(() => bridge()?.signInWithGoogle?.(locale));
+
+/** Stop the attempt in flight: Google left open in the browser, above all. */
+export const cancelAccountAttempt = async () =>
+  adopt(await bridge()?.cancelAccountAttempt?.());
+
+/** Whether the sign-in service has Google switched on; no answer is no. */
+export const isGoogleSignInAvailable = async (): Promise<boolean> => {
+  try {
+    return (await bridge()?.isGoogleSignInAvailable?.()) === true;
+  } catch {
+    return false;
+  }
+};
+
 export const abandonAccountPending = async () =>
   adopt(await bridge()?.abandonAccountPending?.());
 

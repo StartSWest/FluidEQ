@@ -1,5 +1,4 @@
-import { requestAccountPanel } from '../account/accountPanel';
-import { useEntitlement } from '../account/entitlementStore';
+import { useOwnsLook } from '../plus/sceneStore';
 import Glyph from '../community/Glyph';
 import { useTranslation } from '../utils/I18nContext';
 import WallpaperDialog from './WallpaperDialog';
@@ -94,50 +93,20 @@ function SetDesktopButton({ lookId }: { lookId: string }) {
 }
 
 /**
- * The same button on an account without Plus, which the desktop would refuse.
- *
- * Pressable, not disabled: a control that does nothing when pressed reads as
- * broken rather than locked, so this one leads to Plus like every other lock.
- * The scene is named nowhere in it — what needs Plus is the desktop itself,
- * whichever visualizer was going on it.
- */
-function DesktopNeedsPlusButton() {
-  const { t } = useTranslation();
-  return (
-    <button
-      type="button"
-      className="button small subtle wallpaper-scene-action"
-      title={t('wallpaper.actionPlus')}
-      onClick={() => requestAccountPanel('subscribe')}
-    >
-      <Glyph name="monitor" />
-      {t('wallpaper.action')}
-      <Glyph name="lock" className="wallpaper-scene-action__lock" />
-    </button>
-  );
-}
-
-/**
  * Put this scene behind the desktop icons, from its page in the gallery.
  *
  * A scene's file stays on disk after Plus lapses, and this page offers the
  * button from what is installed, so it reached accounts the desktop manager
  * then refused with `not-entitled` — the press opened the monitors dialog and
- * the failure only arrived at the end of it. The two entry points on the
- * graph need no such check: neither exists unless a scene is drawn there, and
- * without Plus no scene is usable, so nothing is ever drawn.
+ * the failure only arrived at the end of it. Shown for a scene this account
+ * owns only; the page's own "Get" is the way to the rest. The two entry
+ * points on the graph need no such check: neither exists unless a scene is
+ * drawn there, and only an owned scene is ever drawn.
  */
 export function WallpaperSceneAction({ lookId }: { lookId: string }) {
   const canSet = useCanSetDesktop();
-  const entitled = useEntitlement().state !== 'none';
-  if (!canSet) {
-    return null;
-  }
-  return entitled ? (
-    <SetDesktopButton lookId={lookId} />
-  ) : (
-    <DesktopNeedsPlusButton />
-  );
+  const owned = useOwnsLook(lookId);
+  return canSet && owned ? <SetDesktopButton lookId={lookId} /> : null;
 }
 
 /** One line for every monitor's background, beside the Visualizers title. */
@@ -173,8 +142,10 @@ export function WallpaperStatus() {
         : t('wallpaper.status.failedMany', { count: failed.length });
   } else if (paused.length === present.length) {
     tone = 'paused';
+    // By what the reason says, not its name: behind FluidEQ's own window and
+    // behind other windows both read as covered.
     const oneReason = paused.every(
-      (screen) => screen.pauseReason === paused[0].pauseReason,
+      (screen) => screenStatusKey(screen) === screenStatusKey(paused[0]),
     );
     status = oneReason
       ? t(screenStatusKey(paused[0]))

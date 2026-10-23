@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { TranslationKey } from '../../common/i18n/en';
 import { useTranslation } from '../utils/I18nContext';
@@ -21,6 +21,8 @@ interface IDspPresetImportDialogProps {
   /** Called with the visible text. The owner decides which format it accepts. */
   onImport: (text: string) => void;
   onClose: () => void;
+  /** A choice the owner puts over the text, such as which ears it fills. */
+  aboveText?: ReactNode;
 }
 
 /** One visible, inspectable door for pasted presets and preset files. */
@@ -32,6 +34,7 @@ const DspPresetImportDialog = ({
   error = '',
   onImport,
   onClose,
+  aboveText,
 }: IDspPresetImportDialogProps) => {
   const { t } = useTranslation();
   const [text, setText] = useState('');
@@ -117,6 +120,7 @@ const DspPresetImportDialog = ({
           </>
         }
       >
+        {aboveText}
         <textarea
           ref={textRef}
           className="dsp-import__body"

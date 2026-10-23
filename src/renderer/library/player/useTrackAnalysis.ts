@@ -51,6 +51,7 @@ import {
   setDspNoiseProfile,
   setDspTrackLevelGains,
 } from '../../dsp/useDspEngine';
+import { useRackGate } from '../../dsp/rackPlacement';
 
 export interface ITrackAnalysisDeps {
   track: ILibraryTrack | undefined;
@@ -86,6 +87,7 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
     analysisJobRef,
   } = deps;
   const noiseRescanRequest = useDspNoiseRescanRequest();
+  const outputAnalysis = useRackGate().engine === 'fluid';
   const handledNoiseRescanRef = useRef(0);
 
   /**
@@ -109,9 +111,15 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
    */
   useEffect(() => {
     const wantsLoudness =
+      outputAnalysis ||
       dspSettings.normalizer.mode !== 'off' ||
       (dspSettings.master.enabled && dspSettings.master.loudnessMaximize);
-    if (!dspSettings.enabled || !wantsLoudness || !queue || !track) {
+    if (
+      (!dspSettings.enabled && !outputAnalysis) ||
+      !wantsLoudness ||
+      !queue ||
+      !track
+    ) {
       return undefined;
     }
     // The queue's own rules decide what comes next — shuffle order, repeat,
@@ -167,7 +175,7 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
       cancelled = true;
       controller.abort();
     };
-  }, [dspSettings, queue, track, trackById, analysisJobRef]);
+  }, [dspSettings, outputAnalysis, queue, track, trackById, analysisJobRef]);
 
   /**
    * Enabling normalization or the crossfade while an already-playing uncached
@@ -180,7 +188,8 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
    */
   useEffect(() => {
     const wantsLoudness =
-      (dspSettings.normalizer.mode !== 'off' ||
+      (outputAnalysis ||
+        dspSettings.normalizer.mode !== 'off' ||
         (dspSettings.master.enabled && dspSettings.master.loudnessMaximize)) &&
       !track?.normalization;
     // A track already measured for loudness can still be missing its edges,
@@ -189,7 +198,7 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
     const wantsEdges =
       dspSettings.crossfade.enabled && !track?.normalization?.edges;
     if (
-      !dspSettings.enabled ||
+      (!dspSettings.enabled && !outputAnalysis) ||
       (!wantsLoudness && !wantsEdges) ||
       !track ||
       track.kind !== 'audio' ||
@@ -309,6 +318,7 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
       }
     };
   }, [
+    outputAnalysis,
     dspSettings.crossfade.enabled,
     dspSettings.enabled,
     dspSettings.master.enabled,
@@ -345,7 +355,11 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
       handledNoiseRescanRef.current = noiseRescanRequest.id;
       return undefined;
     }
-    if (!dspSettings.enabled || !track || track.kind !== 'audio') {
+    if (
+      (!dspSettings.enabled && !outputAnalysis) ||
+      !track ||
+      track.kind !== 'audio'
+    ) {
       return undefined;
     }
 
@@ -474,6 +488,7 @@ export const useTrackAnalysis = (deps: ITrackAnalysisDeps): void => {
   }, [
     noiseRescanRequest.id,
     noiseRescanRequest.trackId,
+    outputAnalysis,
     track,
     dspSettings.enabled,
     analysisJobRef,

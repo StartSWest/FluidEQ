@@ -380,6 +380,38 @@ describe('put away until the pointer moves on', () => {
     expect(seen()).toBe('Lyrics');
   });
 
+  // The EQ graph's points take focus in code as they are pressed, and after
+  // the keyboard was last used Chromium counts that focus as the keyboard's:
+  // a right-click on a band hid "Click to select" and its own focus put it
+  // straight back, over the band's menu.
+  it('by a press that moves focus itself, until a key moves it', () => {
+    build(
+      '<p class="gap">…</p>' +
+        '<div class="point" tabindex="0" data-tooltip="Peak · 1 kHz · Click to select">•</div>',
+    );
+    const point = find('.point');
+    point.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      point.focus();
+    });
+    pressKey('Shift');
+    moveTo(point);
+    wait(SHOWN_MS);
+    expect(seen()).toBe('Peak · 1 kHz · Click to select');
+
+    atPointer(pointerEvent('pointerdown'));
+    atPointer(pointerEvent('pointerup'));
+    wait(SHOWN_MS);
+    expect(seen()).toBeUndefined();
+
+    // The control: the same focus moved by Tab is the keyboard's, and shows.
+    point.blur();
+    moveTo(find('.gap'));
+    tabTo(point);
+    wait(SHOWN_MS);
+    expect(seen()).toBe('Peak · 1 kHz · Click to select');
+  });
+
   it('by scrolling what it describes, and not by scrolling anything else', () => {
     build(
       '<div class="list"><button type="button" title="Play next">Next</button></div>' +

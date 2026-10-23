@@ -39,6 +39,7 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq-meter-style',
   'fluideq-waveform-style',
   'fluideq.graphClean',
+  'fluideq.graphBandLabelsHidden',
   'fluideq.graphCoverageHidden',
   'fluideq.graphGridHidden',
   'fluideq.graphHiddenCurves',
@@ -59,6 +60,7 @@ export const SETTING_STEMS: readonly string[] = [
   // hard the graphics card works.
   'fluideq.sceneParams',
   'fluideq.scenePerformance',
+  'fluideq.standardPerformance',
   'fluideq.sceneResponse',
   'fluideq.sceneWaves',
   // The window: colours, Rainbow, Brightness, Transparency, a scene's own
@@ -74,7 +76,9 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.plusRailPinned',
   'fluideq.editorShareByTab',
   'fluideq.soundPaneFolded',
+  'fluideq.eqModePinned',
   'fluideq.singlePlayer',
+  'fluideq.songSound',
   'fluideq.dsp.phaseView',
   // The amp.
   'fluideq.player.decks',
@@ -88,6 +92,12 @@ export const SETTING_STEMS: readonly string[] = [
   'fluideq.studioGrid',
   'fluideq.studioGroupFold',
   'fluideq.studio.stageRatio',
+  // Its chat: folded or not, its width and zoom, the model and effort asked.
+  'fluideq.studio.chatFolded',
+  'fluideq.studio.chatWidth',
+  'fluideq.studio.chatZoom',
+  'fluideq.studio.chatModel',
+  'fluideq.studio.chatEffort',
   // Video.
   'fluideq.video.matchColours',
   'fluideq.videoAdBlock',
@@ -123,9 +133,16 @@ export const SETTING_STEMS: readonly string[] = [
 /**
  * Forgotten as named and nothing under it: the Window colours switch an
  * earlier version kept, read when the mode is empty, beside the sky colours
- * measured for each visualizer (`.skies`), a cache that stays.
+ * measured for each visualizer (`.skies`), a cache that stays; and whether Help's
+ * button hides the Forum's count (`forumNewsPref.ts`), beside what has been
+ * read, which stays; and the Games page's own switch (`gameProfiles.ts`),
+ * beside the game presets somebody made, which stay.
  */
-export const SETTING_KEYS: readonly string[] = ['fluideq.sceneTint'];
+export const SETTING_KEYS: readonly string[] = [
+  'fluideq.sceneTint',
+  'fluideq.forum.newsHidden.v1',
+  'fluideq.games.enabled.v1',
+];
 
 export const isSettingKey = (key: string) =>
   SETTING_KEYS.includes(key) ||

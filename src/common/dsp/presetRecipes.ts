@@ -14,6 +14,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { TNormalizerMode } from './chain';
 import { TBassForgePresetId } from './bassForgePresets';
 import { TBassPunchPresetId } from './bassPunchPresets';
+import { TDeEsserPresetId } from './deEsserPresets';
 import { TDenoisePresetId } from './denoisePresets';
 import { TDimensionPresetId } from './dimensionPresets';
 import { TExciterPresetId } from './exciterPresets';
@@ -29,6 +30,11 @@ export interface IDspPresetRecipe {
   labelKey: string;
   group: TDspPresetGroup;
   denoise?: TDenoisePresetId;
+  /**
+   * The De-esser's profile. A chain that sets one drops any dynamic band its
+   * EQ de-essed with (`withoutDeEssBands`).
+   */
+  deEsser?: TDeEsserPresetId;
   eq?: string;
   /** A former Voicing curve, now processed inside this DSP preset only. */
   voicing?: string;
@@ -136,6 +142,9 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.preset.speech',
     group: 'scene',
     voicing: 'speech',
+    // Every voice's S's, wherever it sits: speech is all voice. Only the S
+    // comes down; a dip of the whole sound pumped (see the profile).
+    deEsser: 'podcast',
     // Speech is listened to in the places music is not — a train, a kitchen,
     // a car — where what costs a sentence is the level, not the tone. This
     // puts whatever is playing at the level everything else plays at, which
@@ -408,6 +417,9 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.podcast',
     group: 'repair',
     denoise: 'podcast',
+    // Was two dynamic bells in its EQ, which cut whatever crossed their level;
+    // the De-esser cuts only what it takes for a voice.
+    deEsser: 'podcast',
     eq: 'podcast',
     /**
      * A target rather than a limiter, because every show arrives at a
@@ -427,6 +439,7 @@ export const DSP_PRESET_RECIPES: readonly IDspPresetRecipe[] = [
     labelKey: 'dsp.eqPreset.audiobook',
     group: 'repair',
     denoise: 'audiobook',
+    deEsser: 'audiobook',
     eq: 'audiobook',
     // The same, at the quieter target and the -3 dBTP ceiling a submitted
     // audiobook is held to: hours of listening, so the level that matters is

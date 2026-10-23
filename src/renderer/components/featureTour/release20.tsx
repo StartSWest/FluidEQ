@@ -61,6 +61,7 @@ export function EngineSoundSlide({ actions }: ISlideProps) {
   return (
     <ShowcaseSlide
       prefix="tour.sound"
+      film="engine-sound"
       onOpen={() => actions.openTab('eq')}
       visual={<EngineSoundVisual />}
       values={{

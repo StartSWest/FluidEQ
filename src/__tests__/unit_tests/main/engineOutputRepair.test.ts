@@ -121,6 +121,24 @@ describe('the slot ladder', () => {
     expect(nextSlot('mfx', ['efx', 'mfx'])).toBe('sfx');
     expect(nextSlot('efx-single', ['efx', 'efx-single'])).toBe('mfx');
   });
+
+  it('steps past a rung another program holds', () => {
+    // A 2.0.0 report: a vendor's effect in the SFX value, where the walk
+    // used to stop with GFX — what played on the same user's RME — untried.
+    expect(
+      nextSlot('mfx-single', ['efx-single', 'mfx-single'], ['sfx-single']),
+    ).toBe('gfx');
+  });
+
+  it('ends when every rung left is held', () => {
+    expect(
+      nextSlot(
+        'mfx-single',
+        ['efx-single', 'mfx-single'],
+        ['sfx-single', 'gfx', 'lfx'],
+      ),
+    ).toBeUndefined();
+  });
 });
 
 describe('whatToTry', () => {
@@ -156,6 +174,63 @@ describe('whatToTry', () => {
         RME,
       ),
     ).toEqual({ kind: 'move', from: 'gfx', to: 'efx-single' });
+  });
+
+  it('moves past a held rung, and says so when nothing is left', () => {
+    const walked = {
+      guid: RME,
+      attached: true,
+      backupExists: true,
+      slot: 'mfx-single' as const,
+      slotsTried: ['efx-single', 'mfx-single'] as TEngineSlot[],
+    };
+    expect(
+      whatToTry(
+        status({ endpoints: [{ ...walked, slotsHeld: ['sfx-single'] }] }),
+        RME,
+      ),
+    ).toEqual({ kind: 'move', from: 'mfx-single', to: 'gfx' });
+    expect(
+      whatToTry(
+        status({
+          endpoints: [{ ...walked, slotsHeld: ['sfx-single', 'gfx', 'lfx'] }],
+        }),
+        RME,
+      ),
+    ).toMatchObject({
+      kind: 'nothing',
+      because: expect.stringContaining('held by other programs'),
+    });
+  });
+
+  it('gives a slot with no processing mode its mode where it is, before any rung below', () => {
+    // A Sound BlasterX G6 as a 2.0.0 report read it: the engine in the EFX
+    // value with no mode beside it, and every rung below it Creative's.
+    const g6 = {
+      guid: RME,
+      attached: true,
+      backupExists: true,
+      slot: 'efx-single' as const,
+      slotsHeld: ['mfx-single', 'sfx-single', 'gfx', 'lfx'] as TEngineSlot[],
+    };
+    expect(
+      whatToTry(status({ endpoints: [{ ...g6, modeMissing: true }] }), RME),
+    ).toEqual({ kind: 'mode', slot: 'efx-single' });
+    // With its mode and still never created, the ladder takes over — and on
+    // this output it has nothing left to offer.
+    expect(whatToTry(status({ endpoints: [g6] }), RME)).toMatchObject({
+      kind: 'nothing',
+    });
+    // A machine that cannot load the engine anywhere still comes first.
+    expect(
+      whatToTry(
+        status({
+          unsignedAllowed: false,
+          endpoints: [{ ...g6, modeMissing: true }],
+        }),
+        RME,
+      ),
+    ).toMatchObject({ kind: 'install' });
   });
 
   it('re-installs first where a machine-wide switch was undone', () => {
@@ -254,6 +329,32 @@ describe('createEngineOutputRepair', () => {
       RME,
       '--slot',
       'mfx',
+      '--restart-audio',
+    ]);
+  });
+
+  it('writes a missing processing mode in place: an attach into the same slot', async () => {
+    const { repair, runEngineSetup } = repairFor(() =>
+      status({
+        endpoints: [
+          {
+            guid: RME,
+            attached: true,
+            backupExists: true,
+            slot: 'efx-single',
+            modeMissing: true,
+          },
+        ],
+      }),
+    );
+    await expect(repair.repair(RME)).resolves.toEqual({
+      ok: true,
+      declined: false,
+    });
+    expect(runEngineSetup).toHaveBeenCalledWith('attach', [
+      RME,
+      '--slot',
+      'efx-single',
       '--restart-audio',
     ]);
   });

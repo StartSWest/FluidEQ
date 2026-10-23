@@ -468,6 +468,12 @@ at any time from the button inside the app."
   ${IfNot} ${isUpdated}
     !insertmacro NeutraliseEngineConfigs
 
+    ; The fluideq:// links the app registered for this Windows account
+    ; (`appLinks.ts`). Left behind, the credits' return page would offer
+    ; "Back to FluidEQ" to a FluidEQ.exe that is about to be deleted. Not on
+    ; an update: the new version keeps the same registration.
+    DeleteRegKey HKCU "Software\Classes\fluideq"
+
     ; Dynamic Lighting's package identity, which the app registered for this
     ; Windows account the first time lighting was switched on. It names the
     ; helper in this install folder, so left behind it would keep FluidEQ

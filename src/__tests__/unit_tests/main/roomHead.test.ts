@@ -20,6 +20,11 @@ import {
 } from '../../../main/roomHead';
 import { writeSystemDspChain } from '../../../main/systemDspChain';
 
+const ENDPOINT = '{AAAAAAAA-1111-2222-3333-444455556666}';
+const HEAD_FILENAME =
+  'fluideq-room-head-aaaaaaaa-1111-2222-3333-444455556666.txt';
+const DSP_FILENAME = 'fluideq-dsp-aaaaaaaa-1111-2222-3333-444455556666.txt';
+
 /**
  * The shipped heads in the shape the engine's `parse_room_head` reads: a
  * name line, then for each of three rates a `rate` line and one line of
@@ -62,8 +67,8 @@ describe('the room head file', () => {
 
   afterEach(async () => {
     await flushPendingWrites().catch(() => undefined);
-    forgetPath(path.join(configDir, ROOM_HEAD_FILENAME));
-    forgetPath(path.join(configDir, 'fluideq-dsp.txt'));
+    forgetPath(path.join(configDir, HEAD_FILENAME));
+    forgetPath(path.join(configDir, DSP_FILENAME));
     fs.rmSync(configDir, { recursive: true, force: true });
   });
 
@@ -84,9 +89,9 @@ describe('the room head file', () => {
   );
 
   it('writes the chosen head beside the rack, once, and again when it changes', async () => {
-    await writeRoomHead(configDir, 'large');
+    await writeRoomHead(configDir, 'large', ENDPOINT);
     await flushPendingWrites();
-    const file = path.join(configDir, ROOM_HEAD_FILENAME);
+    const file = path.join(configDir, HEAD_FILENAME);
     expect(fs.readFileSync(file, 'utf8').split('\n')[0]).toBe(
       '# FluidEQ room head v1 large',
     );
@@ -95,11 +100,11 @@ describe('the room head file', () => {
     // output on any write in this folder.
     const backdated = Math.floor(before / 1000) * 1000 - 5000;
     fs.utimesSync(file, new Date(backdated), new Date(backdated));
-    await writeRoomHead(configDir, 'large');
+    await writeRoomHead(configDir, 'large', ENDPOINT);
     await flushPendingWrites();
     expect(fs.statSync(file).mtimeMs).toBe(backdated);
 
-    await writeRoomHead(configDir, 'small');
+    await writeRoomHead(configDir, 'small', ENDPOINT);
     await flushPendingWrites();
     expect(fs.readFileSync(file, 'utf8').split('\n')[0]).toBe(
       '# FluidEQ room head v1 small',
@@ -112,14 +117,16 @@ describe('the room head file', () => {
       room: { ...DSP_DEFAULTS.room, head: 'small' },
     });
     expect(roomHeadOnWire(values)).toBe('small');
-    await writeSystemDspChain(configDir, values);
+    await writeSystemDspChain(configDir, values, ENDPOINT);
     await flushPendingWrites();
     expect(
       fs
-        .readFileSync(path.join(configDir, ROOM_HEAD_FILENAME), 'utf8')
+        .readFileSync(path.join(configDir, HEAD_FILENAME), 'utf8')
         .split('\n')[0],
     ).toBe('# FluidEQ room head v1 small');
-    expect(fs.existsSync(path.join(configDir, 'fluideq-dsp.txt'))).toBe(true);
+    expect(fs.existsSync(path.join(configDir, DSP_FILENAME))).toBe(true);
+    expect(fs.existsSync(path.join(configDir, ROOM_HEAD_FILENAME))).toBe(false);
+    expect(fs.existsSync(path.join(configDir, 'fluideq-dsp.txt'))).toBe(false);
   });
 
   it('reads a rack from before the room as the medium head', () => {

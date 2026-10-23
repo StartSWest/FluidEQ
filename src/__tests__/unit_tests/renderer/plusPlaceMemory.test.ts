@@ -6,8 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The Plus tab reopens on the place it was left on — the Visualizers, the
- * leaderboard, the Studio or the lighting — after the window reloads, instead
- * of always on the Visualizers.
+ * Studio or the lighting — after the window reloads, instead of always on the
+ * Visualizers.
  */
 
 import type * as TestingLibrary from '@testing-library/react';
@@ -48,7 +48,7 @@ describe('the place the Plus tab reopens on', () => {
     expect(reload().place()).toBe('visualizers');
   });
 
-  it.each(['board', 'studio', 'lighting', 'visualizers'] as const)(
+  it.each(['studio', 'lighting', 'visualizers'] as const)(
     'is %s after it was the last one opened',
     (place) => {
       const first = reload();
@@ -67,6 +67,13 @@ describe('the place the Plus tab reopens on', () => {
     first.act(() => first.navigation.openGalleryPage({ kind: 'mine' }));
     library?.cleanup();
 
+    expect(reload().place()).toBe('visualizers');
+  });
+
+  // The leaderboard was a place until 2026-10-21; a window left on it opens
+  // the gallery rather than an empty page.
+  it('opens the Visualizers when the leaderboard was the last place', () => {
+    window.localStorage.setItem('fluideq.plusPlace', 'board');
     expect(reload().place()).toBe('visualizers');
   });
 

@@ -15,11 +15,14 @@ import {
   editTitle,
   type IForumState,
   loadMoreComments,
+  NEW_BOARD,
   openTopic,
   refreshForum,
   reply,
   signIn,
 } from './forumStore';
+import { isPostNew } from './forumUnread';
+import { IssueFoot, IssueLabels, IssueState } from './IssueParts';
 import PostComposer from './PostComposer';
 
 interface ITopicViewProps {
@@ -49,6 +52,9 @@ export default function TopicView({ forum }: ITopicViewProps) {
   const listLabel = (() => {
     if (forum.search) {
       return `“${forum.search}”`;
+    }
+    if (forum.board === NEW_BOARD) {
+      return t('forum.new');
     }
     return forum.board
       ? boardName(forum.board, forum.boards, t)
@@ -134,7 +140,23 @@ export default function TopicView({ forum }: ITopicViewProps) {
     );
   }
 
-  const canReply = signedIn && !topic.locked;
+  // An issue is answered on GitHub (`IssueFoot`), never from here.
+  const canReply = signedIn && !topic.locked && !topic.issue;
+  // What came after the reader last looked, their own words aside: those
+  // they have read by writing them.
+  const viewer =
+    forum.auth.status === 'signed-in' ? forum.auth.viewer.login : undefined;
+  const isNew = (post: { createdAt: string; author: { login: string } }) =>
+    post.author.login !== viewer &&
+    isPostNew(post.createdAt, forum.openedReadAt);
+  const newComments = topic.comments.filter(
+    (comment) => isNew(comment) || comment.replies.some(isNew),
+  );
+  const newCount = topic.comments.reduce(
+    (sum, comment) =>
+      sum + (isNew(comment) ? 1 : 0) + comment.replies.filter(isNew).length,
+    0,
+  );
   const answer = topic.comments.find((comment) => comment.isAnswer);
   const replyTo = (target: IReplyTarget) => () => setReplyingTo(target);
 
@@ -149,6 +171,12 @@ export default function TopicView({ forum }: ITopicViewProps) {
                 <ForumGlyph name={boardGlyph(topic.board)} />
                 {boardName(topic.board, forum.boards, t)}
               </span>
+              {topic.issue && (
+                <>
+                  <IssueState issue={topic.issue} />
+                  <IssueLabels issue={topic.issue} />
+                </>
+              )}
               {answer && (
                 <button
                   type="button"
@@ -161,6 +189,19 @@ export default function TopicView({ forum }: ITopicViewProps) {
                 >
                   <ForumGlyph name="answer" />
                   {t('forum.topic.answered')}
+                </button>
+              )}
+              {newComments.length > 0 && (
+                <button
+                  type="button"
+                  className="forum__chip forum__chip--new"
+                  onClick={() =>
+                    document
+                      .getElementById(`forum-comment-${newComments[0].id}`)
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                >
+                  {t('forum.thread.newReplies', { count: newCount })}
                 </button>
               )}
               {topic.locked && (
@@ -198,6 +239,7 @@ export default function TopicView({ forum }: ITopicViewProps) {
             kind={topic.postKind}
             topicAuthor={topic.author.login}
             className="forum-post--opening"
+            isNew={isNew(topic.post)}
             onReply={
               canReply
                 ? () => {
@@ -234,6 +276,7 @@ export default function TopicView({ forum }: ITopicViewProps) {
                   key={comment.id}
                   topic={topic}
                   comment={comment}
+                  isNew={isNew}
                   replyingTo={
                     replyingTo?.row === comment.id ? replyingTo : undefined
                   }
@@ -284,8 +327,10 @@ export default function TopicView({ forum }: ITopicViewProps) {
                 onSubmit={(body) => reply(topic.id, body)}
               />
             )}
+            {topic.issue && <IssueFoot url={topic.url} />}
             {!signedIn &&
               !topic.locked &&
+              !topic.issue &&
               forum.auth.status !== 'unconfigured' && (
                 <div className="forum__sign-in-prompt">
                   <span>{t('forum.thread.signInToReply')}</span>
@@ -312,6 +357,7 @@ export default function TopicView({ forum }: ITopicViewProps) {
 interface ICommentItemProps {
   topic: IForumTopic;
   comment: IForumComment;
+  isNew: (post: IForumComment['replies'][number]) => boolean;
   replyingTo?: IReplyTarget;
   onReply?: (target: IReplyTarget) => () => void;
   onCloseReply: () => void;
@@ -320,6 +366,7 @@ interface ICommentItemProps {
 function CommentItem({
   topic,
   comment,
+  isNew,
   replyingTo,
   onReply,
   onCloseReply,
@@ -332,6 +379,7 @@ function CommentItem({
         kind="comment"
         topicAuthor={topic.author.login}
         isAnswer={comment.isAnswer}
+        isNew={isNew(comment)}
         onReply={onReply?.({ row: comment.id, threadId: comment.threadId })}
       />
       {comment.replies.length > 0 && (
@@ -343,6 +391,7 @@ function CommentItem({
                 kind="comment"
                 topicAuthor={topic.author.login}
                 className="forum-post--reply"
+                isNew={isNew(nested)}
                 // GitHub nests one level: answering a reply is answering the
                 // comment it hangs from, addressed to its author by name.
                 onReply={onReply?.({

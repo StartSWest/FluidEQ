@@ -47,6 +47,7 @@ import {
   trackDrawnTargets,
   waitForPrograms,
 } from './worldRenderer';
+import worldSamples from './worldSamples';
 
 /**
  * A 3D world as a scene program: the same `draw`, on the same context, into
@@ -65,14 +66,12 @@ import {
  * What the world adds before handing over is what a shader cannot do for
  * itself: geometry edges are multisampled four times (the anti-aliasing FSR
  * asks its input to have, and that no edge filter matches on a thin
- * silhouette), light is kept in half floats so a lamp can outshine a wall,
+ * silhouette; a world of glows says it has no edge to smooth,
+ * `worldSamples.ts`), light is kept in half floats so a lamp can outshine a wall,
  * and the glow reads that light (`worldBloom.ts`).
  */
 
 const abortError = () => new DOMException('World load abandoned', 'AbortError');
-
-/** Pixels past which the world skips multisampling: it is supersampled. */
-const MULTISAMPLE_LIMIT = 3840 * 2160;
 
 const compileWorld = async (
   gl: WebGL2RenderingContext,
@@ -100,6 +99,13 @@ const compileWorld = async (
     depth: false,
     stencil: false,
   });
+  // Glass (a material with transmission) has three draw every solid thing a
+  // second time into a picture of its own, at the frame's size and four
+  // times multisampled: Prism Bloom's crystal heart cost 6.8 ms of a 20.6 ms
+  // frame that way on Intel UHD graphics at 1080p. At half the size each
+  // way the refraction, which three blurs by the glass's roughness anyway,
+  // reads the same, and that frame took 16.1 ms.
+  renderer.transmissionResolutionScale = 0.5;
   // A lost context takes every object with it, and the worker lets the
   // program go without disposing it (`sceneRenderer.worker.ts`). Three's
   // listeners on the canvas would outlive it and bring this renderer back to
@@ -252,9 +258,11 @@ const compileWorld = async (
     // largest single step of Dunes' frame, for a picture nothing looked at.
     // Nor is the multisampled depth kept past the resolve: every frame, and
     // every strip of a still, clears the rows it draws before drawing them.
+    const samplesAt = (width: number, height: number) =>
+      worldSamples(world, width, height, maxSamples);
     const drawn = new WebGLRenderTarget(1, 1, {
       type: floatTargets ? HalfFloatType : UnsignedByteType,
-      samples: Math.min(4, maxSamples),
+      samples: samplesAt(1, 1),
       minFilter: LinearFilter,
       magFilter: LinearFilter,
       depthBuffer: true,
@@ -286,8 +294,7 @@ const compileWorld = async (
     disposables.push(composite);
     /** The world's targets at this size, and the reflection it shows. */
     const prepare = (width: number, height: number) => {
-      const multisample = width * height <= MULTISAMPLE_LIMIT;
-      const samples = multisample ? Math.min(4, maxSamples) : 0;
+      const samples = samplesAt(width, height);
       if (drawn.samples !== samples) {
         drawn.samples = samples;
         drawn.dispose();

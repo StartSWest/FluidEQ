@@ -69,8 +69,7 @@ let library: typeof TestingLibrary | undefined;
 const THEME = `:root { --surface-base: #0d2030; --surface-panel: #1a3a4e; --accent: #00e5cf; --active: #54ff8a; }`;
 
 beforeEach(() => {
-  // At Black, night (`@0`, below): the step a sky is measured at is the
-  // Brightness's, and a window with no choice stored opens half way
+  // At Black: a window with no choice stored opens half way
   // (`theme.ts`). The tests that want Ocean store it over this.
   window.localStorage.setItem('fluideq.theme', 'black');
   mockLookId = 'premium:bloom';
@@ -119,12 +118,14 @@ const mount = () => {
   return { store, fresh: library };
 };
 
-// A scene's colour is measured, and remembered, at the step of the day the
-// Brightness stands at (`SceneTint.tsx`): Black, where these run, is night —
-// `@0`.
+// A scene's colour is measured, and remembered, once per version, at the
+// time of day its author set it at (`sampleSceneInWorker`): the Brightness
+// tones the colour found and never chooses it (Ivan, 2026-10-14: "each scene
+// has their colors cant be like that due to day or night just darker or
+// lighter").
 describe('the graph’s visualizer', () => {
   it('opens the window in the colour it was last measured, before anything is drawn', () => {
-    remember([['premium:bloom', '3@0', sky(300)]]);
+    remember([['premium:bloom', '3', sky(300)]]);
     mount();
     expect(root).toHaveAttribute('data-scene-tint');
     expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
@@ -139,31 +140,42 @@ describe('the graph’s visualizer', () => {
     mount();
     expect(root).toHaveAttribute('data-scene-tint');
     expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
-    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3@0');
+    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3');
   });
 
   // The control: with no swatch there is nothing to lend before measuring.
   it('lends nothing before measuring a scene with no swatch', () => {
     mount();
     expect(root).not.toHaveAttribute('data-scene-tint');
-    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3@0');
+    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3');
   });
 
   it('measures a version it has not seen, keeping the colour it had meanwhile', () => {
-    remember([['premium:bloom', '2@0', sky(300)]]);
+    remember([['premium:bloom', '2', sky(300)]]);
     mount();
-    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3@0');
+    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3');
+  });
+
+  // Brightness tones the colour; it is not a new measurement. Under the old
+  // rule each step of the day was measured apart, so Bloom's window turned
+  // from green to purple as it was dimmed.
+  it('keeps the colour measured for a version at any Brightness', () => {
+    window.localStorage.setItem('fluideq.theme', 'ocean');
+    remember([['premium:bloom', '3', sky(300)]]);
+    mount();
+    expect(root).toHaveAttribute('data-scene-tint');
+    expect(mockMeasureScene).not.toHaveBeenCalled();
   });
 
   it('forgets every sky measured the way it used to be measured', () => {
-    remember([['premium:bloom', '3@0', sky(300)]], MEASUREMENT - 1);
+    remember([['premium:bloom', '3', sky(300)]], MEASUREMENT - 1);
     const { store } = mount();
     expect(store.recallSceneSky('premium:bloom')).toBeUndefined();
-    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3@0');
+    expect(mockMeasureScene).toHaveBeenCalledWith('premium:bloom', '3');
   });
 
   it('puts the theme back when its mode is the theme', () => {
-    remember([['premium:bloom', '3@0', sky(300)]]);
+    remember([['premium:bloom', '3', sky(300)]]);
     const { store, fresh } = mount();
     expect(root).toHaveAttribute('data-scene-tint');
     fresh.act(() => store.setSceneTintMode('off'));
@@ -218,7 +230,7 @@ describe('the graph’s visualizer', () => {
   // A visualizer chosen in Theme mode keeps the theme, Rainbow or not: the
   // mode's own colours are the rainbow's, and the window's are the menu's.
   it('keeps the theme for a visualizer in Theme mode, even in Rainbow mode', () => {
-    remember([['premium:bloom', '3@0', sky(300)]]);
+    remember([['premium:bloom', '3', sky(300)]]);
     window.localStorage.setItem('fluideq.sceneTintMode', 'off');
     root.classList.add('is-euphoric');
     try {
@@ -243,7 +255,7 @@ describe('the graph’s visualizer', () => {
 
     // POSITIVE CONTROL: a visualizer at the same Black keeps its colour.
     mockLookId = 'premium:bloom';
-    remember([['premium:bloom', '3@0', sky(300)]]);
+    remember([['premium:bloom', '3', sky(300)]]);
     mount();
     expect(root).toHaveAttribute('data-scene-tint');
     expect(root.style.getPropertyValue('--surface-base')).toMatch(/^#/);
@@ -255,7 +267,7 @@ describe('the graph’s visualizer', () => {
   // paints them as the Backdrop, which follows the Brightness all the way,
   // paints them at 30.
   it('holds a visualizer’s colours at Black in Colours and Ambient', () => {
-    remember([['premium:bloom', '3@0', sky(300)]]);
+    remember([['premium:bloom', '3', sky(300)]]);
     const floorIn = (mode: string, shade: string) => {
       window.localStorage.setItem('fluideq.sceneTintMode', mode);
       window.localStorage.setItem('fluideq.theme', shade);
@@ -275,7 +287,7 @@ describe('the graph’s visualizer', () => {
   });
 
   it('gives a look that is not a scene Lagoon, not a remembered scene’s colour', () => {
-    remember([['premium:bloom', '3@0', sky(300)]]);
+    remember([['premium:bloom', '3', sky(300)]]);
     window.localStorage.setItem('fluideq.theme', 'ocean');
     const scene = mount();
     const bloomFloor = root.style.getPropertyValue('--surface-base');
@@ -295,7 +307,7 @@ describe('the graph’s visualizer', () => {
 describe('the Studio’s project', () => {
   it('wins over the graph while it is on the bench, and waits on the theme until it is measured', () => {
     remember([
-      ['premium:bloom', '3@0', sky(300)],
+      ['premium:bloom', '3', sky(300)],
       ['studio:mine', 'build-1', sky(40)],
     ]);
     const { store, fresh } = mount();

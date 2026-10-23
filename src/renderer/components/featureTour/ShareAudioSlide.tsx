@@ -9,15 +9,68 @@ it under the terms of the GNU General Public License version 3 or later.
 import { useTranslation } from '../../utils/I18nContext';
 import type { ISlideActions } from './slides';
 
+/** One computer of the pair: a screen with its sound on it, a headset on top,
+ * because whichever of the two you sit at, you hear both. */
+function LinkedComputer({ x, wave }: { x: number; wave: string }) {
+  return (
+    <g transform={`translate(${x} 58)`}>
+      <rect
+        className="tour-share__device"
+        x="0"
+        y="24"
+        width="150"
+        height="104"
+        rx="10"
+      />
+      <rect
+        className="tour-share__screen"
+        x="13"
+        y="37"
+        width="124"
+        height="62"
+        rx="5"
+      />
+      <polyline
+        className="tour-share__wave tour-share__wave--big"
+        points={wave}
+      />
+      <rect
+        className="tour-share__foot"
+        x="51"
+        y="108"
+        width="48"
+        height="6"
+        rx="3"
+      />
+      <path className="tour-share__headset" d="M45 22 a30 30 0 0 1 60 0" />
+      <rect
+        className="tour-share__ear"
+        x="37"
+        y="16"
+        width="14"
+        height="20"
+        rx="5"
+      />
+      <rect
+        className="tour-share__ear"
+        x="99"
+        y="16"
+        width="14"
+        height="20"
+        rx="5"
+      />
+    </g>
+  );
+}
+
 /**
  * A drawn diagram rather than a capture of the tab: the real screen carries
  * a pairing code, which is a secret, and the names of whoever's machines were
- * on the network when the picture was taken. Three senders on the left, the
- * headset computer on the right, one encrypted wire between them.
+ * on the network when the picture was taken. Two computers, one link, the
+ * sound running both ways along it — each computer's own, never sent back.
  */
 function ShareAudioDiagram() {
   const { t } = useTranslation();
-  const senders = [30, 110, 190];
   return (
     <svg
       className="tour-share__diagram"
@@ -26,58 +79,46 @@ function ShareAudioDiagram() {
       aria-label={t('tour.share.title')}
     >
       <defs>
-        <linearGradient id="tour-wire" x1="0" x2="1" y1="0" y2="0">
+        <linearGradient id="tour-wire-out" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stopColor="var(--accent)" stopOpacity="0.25" />
+          <stop offset="1" stopColor="var(--accent-light)" stopOpacity="1" />
+        </linearGradient>
+        <linearGradient id="tour-wire-back" x1="1" x2="0" y1="0" y2="0">
           <stop offset="0" stopColor="var(--accent)" stopOpacity="0.25" />
           <stop offset="1" stopColor="var(--accent-light)" stopOpacity="1" />
         </linearGradient>
       </defs>
 
-      {/* Senders: three laptops, each with a small waveform on screen. */}
-      {senders.map((y) => (
-        <g key={y} transform={`translate(24 ${y})`}>
-          <rect
-            className="tour-share__device"
-            x="0"
-            y="0"
-            width="118"
-            height="60"
-            rx="8"
-          />
-          <rect
-            className="tour-share__screen"
-            x="10"
-            y="9"
-            width="98"
-            height="34"
-            rx="4"
-          />
-          <polyline
-            className="tour-share__wave"
-            points="18,26 26,18 32,34 40,20 48,32 56,22 64,30 72,19 80,33 88,24 96,28"
-          />
-          <rect
-            className="tour-share__foot"
-            x="30"
-            y="50"
-            width="58"
-            height="4"
-            rx="2"
-          />
-          {/* The wire out of this sender into the shared trunk. */}
-          <path
-            className="tour-share__link"
-            d={`M118 30 C 170 30, 170 ${110 - y + 30}, 222 ${110 - y + 30}`}
-          />
-        </g>
-      ))}
+      <LinkedComputer
+        x={30}
+        wave="22,68 32,52 42,82 52,58 62,78 72,50 82,84 92,60 102,76 112,56 122,72 128,66"
+      />
+      <LinkedComputer
+        x={440}
+        wave="22,66 32,58 42,76 52,48 62,84 72,60 82,74 92,52 102,80 112,62 122,70 128,64"
+      />
 
-      {/* The trunk: one line, one lock. */}
+      {/* Each computer's sound to the other, on a wire of its own: the
+          upper one left to right, the lower one back. */}
       <path
         className="tour-share__trunk"
-        d="M246 140 L406 140"
-        stroke="url(#tour-wire)"
+        d="M196 120 L428 120"
+        stroke="url(#tour-wire-out)"
       />
-      <g transform="translate(307 124)">
+      <path className="tour-share__flow" d="M196 120 L428 120" />
+      <polygon className="tour-share__arrow" points="436,120 424,113 424,127" />
+      <path
+        className="tour-share__trunk"
+        d="M424 160 L192 160"
+        stroke="url(#tour-wire-back)"
+      />
+      <path
+        className="tour-share__flow tour-share__flow--back"
+        d="M424 160 L192 160"
+      />
+      <polygon className="tour-share__arrow" points="184,160 196,153 196,167" />
+
+      <g transform="translate(298 123)">
         <rect
           className="tour-share__lock"
           x="0"
@@ -93,76 +134,19 @@ function ShareAudioDiagram() {
       </g>
       <text
         className="tour-share__wire-label"
-        x="319"
-        y="176"
+        x="310"
+        y="200"
         textAnchor="middle"
       >
         {t('tour.share.wireLabel')}
       </text>
 
-      {/* The receiver: a desktop with a headset on top. */}
-      <g transform="translate(410 70)">
-        <rect
-          className="tour-share__device"
-          x="0"
-          y="24"
-          width="160"
-          height="108"
-          rx="10"
-        />
-        <rect
-          className="tour-share__screen"
-          x="14"
-          y="38"
-          width="132"
-          height="64"
-          rx="5"
-        />
-        <polyline
-          className="tour-share__wave tour-share__wave--big"
-          points="24,70 34,54 44,84 54,60 64,80 74,52 84,86 94,62 104,78 114,58 124,74 134,66"
-        />
-        <rect
-          className="tour-share__foot"
-          x="56"
-          y="112"
-          width="48"
-          height="6"
-          rx="3"
-        />
-        {/* Headset. */}
-        <path className="tour-share__headset" d="M50 22 a30 30 0 0 1 60 0" />
-        <rect
-          className="tour-share__ear"
-          x="42"
-          y="16"
-          width="14"
-          height="20"
-          rx="5"
-        />
-        <rect
-          className="tour-share__ear"
-          x="104"
-          y="16"
-          width="14"
-          height="20"
-          rx="5"
-        />
-      </g>
-
-      <text className="tour-share__caption" x="24" y="288" textAnchor="start">
+      <text className="tour-share__caption" x="310" y="286" textAnchor="middle">
         <tspan className="tour-share__caption-label">
-          {t('tour.share.senderLabel')}
+          {t('tour.share.pairLabel')}
         </tspan>
         <tspan>{' · '}</tspan>
-        <tspan>{t('tour.share.senderName')}</tspan>
-      </text>
-      <text className="tour-share__caption" x="596" y="288" textAnchor="end">
-        <tspan className="tour-share__caption-label">
-          {t('tour.share.receiverLabel')}
-        </tspan>
-        <tspan>{' · '}</tspan>
-        <tspan>{t('tour.share.receiverName')}</tspan>
+        <tspan>{t('tour.share.pairName')}</tspan>
       </text>
     </svg>
   );

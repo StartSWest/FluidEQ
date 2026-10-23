@@ -34,6 +34,12 @@ import {
   bassPunchSettingsOf,
 } from './bassPunchPresets';
 import {
+  DE_ESSER_PRESETS,
+  IDeEsserPreset,
+  deEsserSettingsOf,
+} from './deEsserPresets';
+import type { IDeEsserSettings } from './deEsser';
+import {
   DIMENSION_PRESETS,
   IDimensionPreset,
   dimensionSettingsOf,
@@ -126,3 +132,9 @@ export const MAXIMIZER_CATALOGUE: IStageCatalogue<
   genreStageProfiles('maximizer'),
   maximizerSettingsOf,
 );
+
+/** The De-esser has no genre profiles: no genre rack sets the stage. */
+export const DE_ESSER_CATALOGUE: IStageCatalogue<
+  IDeEsserPreset,
+  IDeEsserSettings
+> = catalogue(DE_ESSER_PRESETS, [], deEsserSettingsOf);

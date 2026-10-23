@@ -1,0 +1,87 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'constant' as *;
+@use 'motion' as *;
+
+// Every output keeping its own sound (`OutputsVisual.tsx`): the side panel's
+// Output and Second output cards, built from the panel's own parts, at the
+// docked panel's width. The output that is on crosses over to the other in
+// turn, and its profiles with it.
+
+// One turn of the switch from the headset to the speakers and back. Each
+// output is on for half of it.
+$switch-turn: 9s;
+
+.outputs-visual {
+  display: grid;
+  width: min(100%, #{$sound-panel-width});
+  gap: 10px;
+  text-align: left;
+  @include animate(rise-in, $motion-slow);
+}
+
+// The cards at the panel's own size where the stage has the room, and drawn
+// smaller where it has not, so "How to start" beside them stays on screen.
+@media (max-height: $bp-full-hd-height) {
+  .outputs-visual {
+    zoom: 0.8;
+  }
+}
+
+@media (max-height: $bp-laptop-height) {
+  .outputs-visual {
+    zoom: 0.72;
+  }
+}
+
+// The outputs' parts, stacked in one place: only one is on at a time.
+.outputs-visual__turns {
+  display: grid;
+
+  > * {
+    grid-area: 1 / 1;
+  }
+}
+
+.outputs-visual__turn {
+  animation: outputs-visual-turn $switch-turn ease-in-out infinite;
+}
+
+.outputs-visual__turn--1 {
+  animation-delay: calc(#{$switch-turn} / -2);
+}
+
+@keyframes outputs-visual-turn {
+  0%,
+  44% {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  50%,
+  94% {
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  100% {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .outputs-visual__turn {
+    animation: none;
+  }
+
+  .outputs-visual__turn--1 {
+    visibility: hidden;
+  }
+}

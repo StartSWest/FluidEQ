@@ -5,7 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useRef } from 'react';
+import { getEaseFactor } from '../../common/smoothing';
 import { useTranslation } from '../utils/I18nContext';
+import halfLifeOfFrameStep from '../utils/frameStep';
+import { createCanvasLayer, layCanvasLayer } from './canvasLayer';
 import DspPhaseModes from './DspPhaseModes';
 import { startGraphLoop } from './graphLoop';
 import {
@@ -45,25 +48,25 @@ interface IBox {
   height: number;
 }
 
-/**
- * The needle dial: scale, reading and pointer.
- *
- * Drawn by the live view and by the switched-off one alike — off is this at
- * rest behind a lowered alpha, not a different picture, so switching the block
- * back on does not look like a different instrument arriving.
- */
-const drawDial = (
-  context: CanvasRenderingContext2D,
-  box: IBox,
-  value: number,
-): void => {
-  const textInk = readTextInk();
+/** Where the dial stands in its box. */
+const dialGeometry = (box: IBox) => {
   // As large as the box allows once the tick labels are accounted for, rather
   // than a dial floating inside a margin of it.
   const radius = Math.min(box.width / 2 - 6, box.height - 20);
-  const pivotX = box.width / 2;
-  const pivotY = (box.height + radius) / 2;
-  const warm = value < 0;
+  return { radius, pivotX: box.width / 2, pivotY: (box.height + radius) / 2 };
+};
+
+/**
+ * The needle dial's scale: the arc and its marks, which hold still.
+ *
+ * Drawn once onto a layer and laid down each frame (`DspPhaseMeter`): the
+ * marks' labels set a font, and a font set on a canvas in the page makes the
+ * browser work out the page's styles on the spot — redrawn every frame, this
+ * scale was most of the meter's cost.
+ */
+const drawDialScale = (context: CanvasRenderingContext2D, box: IBox): void => {
+  const textInk = readTextInk();
+  const { radius, pivotX, pivotY } = dialGeometry(box);
 
   // The arc, in two halves. The left one is what this meter exists to warn
   // about, so it is warm before anything is drawn over it.
@@ -105,14 +108,45 @@ const drawDial = (
       );
     }
   });
+};
 
-  // The reading, inside the arc above the pivot, where a meter's own label has
-  // always gone.
+/**
+ * The needle dial's reading, inside the arc above the pivot, where a meter's
+ * own label has always gone.
+ *
+ * Drawn onto a layer of its own when the figure changes (`DspPhaseMeter`):
+ * text on a canvas in the page makes the browser work out the page's styles
+ * before it draws, every time, which cost more than the rest of the meter.
+ */
+const drawDialFigure = (
+  context: CanvasRenderingContext2D,
+  box: IBox,
+  value: number,
+): void => {
+  const { pivotX, pivotY } = dialGeometry(box);
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
   context.font = `600 19px ${FONT}`;
-  context.fillStyle = warm ? 'rgba(255,140,158,0.95)' : 'rgba(255,255,255,0.9)';
+  context.fillStyle =
+    value < 0 ? 'rgba(255,140,158,0.95)' : 'rgba(255,255,255,0.9)';
   context.fillText(value.toFixed(2), pivotX, pivotY - 15);
+};
 
-  // The needle last, over everything, with a hub to sit on.
+/**
+ * The needle, over everything, with a hub to sit on.
+ *
+ * The scale, the figure and this are drawn by the live view and by the
+ * switched-off one alike — off is the dial at rest behind a lowered alpha,
+ * not a different picture, so switching the block back on does not look like
+ * a different instrument arriving.
+ */
+const drawDialNeedle = (
+  context: CanvasRenderingContext2D,
+  box: IBox,
+  value: number,
+): void => {
+  const { radius, pivotX, pivotY } = dialGeometry(box);
+  const warm = value < 0;
   const angle = angleOf(Math.max(-1, Math.min(1, value)));
   context.beginPath();
   context.moveTo(pivotX, pivotY);
@@ -140,6 +174,12 @@ const drawDial = (
  * goniometer draws shapes rather than confetti.
  */
 const SCOPE_FADE = 0.16;
+
+/**
+ * The needle's swing as a half-life: the 0.09 a frame it was tuned at on a
+ * 60 Hz screen, held to that speed on a screen of any rate.
+ */
+const NEEDLE_HALF_LIFE_MS = halfLifeOfFrameStep(0.09);
 
 /**
  * The goniometer: every recent pair plotted, rotated a quarter turn.
@@ -251,6 +291,29 @@ const DspPhaseMeter = () => {
     const size: IBox = { width: 0, height: 0 };
 
     /**
+     * The dial's scale, redrawn only for a new size or theme, and its figure,
+     * redrawn only when the number shown changes. Off the page, so neither
+     * asks the browser for the page's styles (`drawDialScale`).
+     */
+    const scale = createCanvasLayer();
+    const figure = createCanvasLayer();
+    const drawDial = (box: IBox, value: number) => {
+      const ratio = window.devicePixelRatio || 1;
+      const key = `${canvas.width}x${canvas.height}@${ratio}|${readTextInk()}|${readAccent(1, '')}`;
+      layCanvasLayer(context, scale, key, ratio, (pen) =>
+        drawDialScale(pen, box),
+      );
+      layCanvasLayer(
+        context,
+        figure,
+        `${key}|${value.toFixed(2)}|${value < 0}`,
+        ratio,
+        (pen) => drawDialFigure(pen, box, value),
+      );
+      drawDialNeedle(context, box, value);
+    };
+
+    /**
      * Sized from the element, which is the only place the box is decided.
      *
      * `keep` leaves the previous frame in place for the scope to fade over.
@@ -290,13 +353,15 @@ const DspPhaseMeter = () => {
         const box = measure();
         if (box) {
           context.globalAlpha = 0.28;
-          drawDial(context, box, 0);
+          drawDial(box, 0);
           context.globalAlpha = 1;
         }
       };
     } else {
       /** Eased toward the reading, so the needle swings rather than jumping. */
       let shown = 1;
+      /** When the needle last moved, for a swing timed by the clock. */
+      let swungAt = Number.NEGATIVE_INFINITY;
       // The scope's first frame starts from nothing: whatever the view before
       // it drew — the dial — is not a trail of this one, and faded instead of
       // cleared it stood behind the trace for as long as it took to go.
@@ -328,8 +393,12 @@ const DspPhaseMeter = () => {
           // Slow enough to be read at a glance. The figure it is drawing moves
           // twenty-three times a second and a needle that followed it exactly
           // would be a blur — an analogue meter has mass for the same reason.
-          shown += (readDspCorrelation() - shown) * 0.09;
-          drawDial(context, box, shown);
+          const now = performance.now();
+          shown +=
+            (readDspCorrelation() - shown) *
+            getEaseFactor(now - swungAt, NEEDLE_HALF_LIFE_MS);
+          swungAt = now;
+          drawDial(box, shown);
         }
       });
       redraw = loop.schedule;

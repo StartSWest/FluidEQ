@@ -13,6 +13,7 @@ import {
 } from 'react';
 import { GRAPH_STYLE_LABELS, type GraphStyle } from 'common/graphStyles';
 import type { IScenePack } from 'common/scenePacks';
+import { useScenePerformance } from '../../utils/scenePerformanceStore';
 import type { ISceneFrame } from '../sceneGl';
 import type { ISceneSource } from '../sceneRunnerTypes';
 import useSceneRunner from '../useSceneRunner';
@@ -78,6 +79,7 @@ export default function EngineLookLayer({
   height,
 }: IEngineLookLayerProps) {
   const name = GRAPH_STYLE_LABELS[style];
+  const performance = useScenePerformance('standard');
   const source = useMemo<ISceneSource>(() => {
     const fail = () => markEngineLookFailed(style);
     return {
@@ -136,6 +138,7 @@ export default function EngineLookLayer({
   );
   const hostRef = useSceneRunner({
     source,
+    performance,
     width,
     height,
     spectrumRect: WHOLE_PANEL,

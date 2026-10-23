@@ -10,6 +10,14 @@ jest.mock('electron', () => ({ ipcMain: { handle: jest.fn() } }));
 jest.mock('net', () => ({ createServer: jest.fn() }));
 jest.mock('electron-log', () => ({ warn: jest.fn() }));
 
+const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+beforeAll(() => Object.defineProperty(process, 'platform', { value: 'win32' }));
+afterAll(() => {
+  if (hostPlatform) {
+    Object.defineProperty(process, 'platform', hostPlatform);
+  }
+});
+
 const endpoint = '{12345678-1234-1234-1234-123456789abc}';
 const sender = new EventEmitter();
 const sockets: EventEmitter[] = [];

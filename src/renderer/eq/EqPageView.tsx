@@ -34,6 +34,7 @@ import { CSSProperties } from 'react';
 import Spinner from '../icons/Spinner';
 import BandMenu from '../components/BandMenu';
 import OutputRate from '../components/OutputRate';
+import OutputEditingNotice from '../OutputEditingNotice';
 import VoicingQuickPick from '../components/VoicingQuickPick';
 import Button from '../widgets/Button';
 import {
@@ -41,19 +42,20 @@ import {
   setSmartEqMode,
   SMART_EQ_MODES,
 } from '../utils/smartEqMode';
-import { toggleContinuousEq } from '../utils/continuousEq';
+import { setContinuousEq } from '../utils/continuousEq';
 import {
   cancelSmartEq,
   endSmartEqStatus,
   runSmartEq,
 } from '../utils/smartEqRun';
 import MenuIcon from '../icons/MenuIcon';
+import Chevron from '../icons/Chevron';
 import AnchoredMenu from '../widgets/AnchoredMenu';
 import { PetArt } from '../SupportPet';
 import isOwnAnimationEnd from '../utils/ownAnimationEnd';
 import { endCorrectionFlash } from '../utils/correctionFlash';
 import SongEqSaveSwitch from '../components/SongEqSaveSwitch';
-import EqModeSelect from '../components/EqModeSelect';
+import EqPageModeSelect from '../components/eqMode/EqPageModeSelect';
 import BandLayoutMenu from '../components/BandLayoutMenu';
 import CurvesPicker from '../components/CurvesPicker';
 import ClearEqButton from '../components/ClearEqButton';
@@ -103,9 +105,10 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
     isModeMenuOpen,
     setIsModeMenuOpen,
     modeMenuHolder,
+    modeMenuTrigger,
+    attachModeMenuEntry,
+    closeModeMenu,
     isContinuousRunning,
-    smartLabel,
-    continuousLabel,
     correctionFlash,
     bubbleText,
     bubbleRef,
@@ -150,11 +153,21 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
     addFilter,
     addFilterBeside,
     setFiltersEnabled,
+    setFiltersChannel,
+    deleteFilters,
+    canDeleteFilters,
     resetFilters,
     bandMenu,
     setBandMenu,
   } = actions;
   const bandMenuFilter = bandMenu ? filters[bandMenu.filterId] : undefined;
+  // The EQ layer switched off from its chip: the bands stay where they are
+  // and edit nothing until it is back on.
+  const isEqOff = bypassed.includes('eq');
+  // An enabled continuous mode still needs a Stop while its layer is
+  // bypassed, or restoring the layer could silently resume a forgotten run.
+  const isSmartEqActive =
+    isBalancing || (isContinuousMode(smartEqMode) && isContinuousOn);
   // The bands the menu acts on: the whole selection when the clicked band is
   // in it, otherwise just the clicked band.
   let bandMenuFilters: IFilter[] = [];
@@ -183,6 +196,19 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
           onReset={resetFilters}
           onSetEnabled={setFiltersEnabled}
           onAddBeside={addFilterBeside}
+          onDelete={
+            canDeleteFilters
+              ? (targets) => {
+                  deleteFilters(targets).catch(() => undefined);
+                }
+              : undefined
+          }
+          onSetChannel={(targets, side) => {
+            setFiltersChannel(
+              targets.map((one) => one.id),
+              side,
+            ).catch(() => undefined);
+          }}
           onClose={() => setBandMenu(undefined)}
         />
       )}
@@ -206,14 +232,12 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
                 <OutputRate />
               </h2>
             </div>
+            <OutputEditingNotice />
           </div>
           <div className="eq-toolbar">
             <VoicingQuickPick />
-            {/* One button, and it is whichever way of measuring is chosen.
-              The two do the same job by different means and only one can be
-              running, so a row offering both at once invited pressing both. The
-              caret is where the other one lives; picking it changes what this
-              button is, and a press then does it. */}
+            {/* One action at a time: choose a mode while idle, Stop while
+              measuring. Stopping keeps the correction already applied. */}
             {/* The quiet face, like every other tool in the row (Ivan,
               2026-09-27: "make smart eq button same as the others, no
               fill"); running, it keeps its breathing outline. */}
@@ -221,94 +245,103 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
               className={`eq-mode is-subtle${isModeMenuOpen ? ' is-open' : ''}`}
               ref={modeMenuHolder}
             >
-              <Button
-                ariaLabel={
-                  isContinuousMode(smartEqMode) ? continuousLabel : smartLabel
+              <button
+                type="button"
+                ref={modeMenuTrigger}
+                aria-label={
+                  isSmartEqActive
+                    ? t('eq.smart.stopAria')
+                    : t('eq.smart.modeAria')
                 }
+                aria-expanded={isSmartEqActive ? undefined : isModeMenuOpen}
+                aria-haspopup={isSmartEqActive ? undefined : 'menu'}
                 // Never greyed out: the measurement opens its own tap on the
                 // source and says in the bubble if it cannot. It used to wait
                 // on the graph's loopback, which is not what it listens to.
-                isDisabled={false}
                 // Running gets the breathing outline and nothing else. It keeps
                 // the Smart EQ button's own look, because it is that button.
-                className={`small subtle eq-mode__main${isContinuousRunning ? ' is-running' : ''}`}
-                isPressed={
-                  isContinuousMode(smartEqMode) ? isContinuousOn : undefined
-                }
+                className={`button small subtle eq-mode__main${isBalancing || isContinuousRunning ? ' is-running' : ''}`}
                 // Nothing here runs the measurement — it asks the host that owns
                 // it to. That indirection is what lets a run outlive this panel:
                 // the button is a way of reaching the measurement, not the place
                 // it lives.
-                handleChange={() => {
-                  if (isContinuousMode(smartEqMode)) {
-                    toggleContinuousEq();
+                onKeyDown={(event) => {
+                  if (
+                    !isSmartEqActive &&
+                    (event.key === 'ArrowDown' || event.key === 'ArrowUp')
+                  ) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setIsModeMenuOpen(true);
+                  }
+                }}
+                onClick={() => {
+                  if (!isSmartEqActive) {
+                    setIsModeMenuOpen((wasOpen) => !wasOpen);
                     return;
                   }
+                  setIsModeMenuOpen(false);
+                  setContinuousEq(false);
                   if (isBalancing) {
-                    // The button is a Cancel while a measurement is running.
                     cancelSmartEq();
-                    return;
                   }
-                  runSmartEq();
                 }}
               >
-                {/* The pause mark while it runs, because that is what pressing
-                  it does next: the menu icons' own, stroked in the label's
-                  ink like the Smart EQ mark it replaces. It was two filled
-                  bars drawn here, which took the dark ink the filled buttons
-                  give their glyphs and read as a smudge on the quiet face
-                  (Ivan, 2026-09-27: "fix this crap"). */}
                 <MenuIcon
-                  name={isContinuousRunning ? 'pause' : 'smart'}
+                  name={isSmartEqActive ? 'stop' : 'smart'}
                   className="eq-toolbar__icon"
                 />
-                {isContinuousMode(smartEqMode)
-                  ? modeLabel(smartEqMode)
-                  : (isBalancing && t('eq.smart.cancel')) || t('eq.smart')}
-              </Button>
-              <button
-                type="button"
-                className="eq-mode__caret"
-                aria-label={t('eq.smart.modeAria')}
-                aria-expanded={isModeMenuOpen}
-                onClick={() => setIsModeMenuOpen((wasOpen) => !wasOpen)}
-              >
-                <svg viewBox="0 0 16 16" aria-hidden>
-                  <path d="M4 6.5l4 4 4-4" />
-                </svg>
+                {isSmartEqActive ? modeLabel(smartEqMode) : t('eq.smart')}
+                {!isSmartEqActive && <Chevron />}
               </button>
-              {/* Rendered outside the panel, because the panel clips. Only the
-                modes this button is not: a menu listing what you are already
-                looking at is a row that does nothing. */}
+              {/* Include the remembered mode: selecting it is how a stopped
+                run starts again. The menu is outside the panel that clips. */}
               <AnchoredMenu
                 anchor={modeMenuHolder.current}
-                isOpen={isModeMenuOpen}
+                isOpen={isModeMenuOpen && !isSmartEqActive}
                 className="eq-mode__menu"
+                ariaLabel={t('eq.smart.modeAria')}
               >
-                {SMART_EQ_MODES.filter((entry) => entry !== smartEqMode).map(
-                  (entry) => (
-                    <button
-                      key={entry}
-                      type="button"
-                      onClick={() => {
-                        setSmartEqMode(entry);
-                        setIsModeMenuOpen(false);
-                      }}
-                    >
-                      <MenuIcon name="smart" className="eq-toolbar__icon" />
-                      <span className="eq-mode__menu-name">
-                        {modeLabel(entry)}
-                      </span>
-                      {/* Each says what it overrides, because the names alone
-                        cannot: three of them do the same job to three different
-                        depths, and which depth is the whole choice being made
-                        here. */}
-                      <span className="eq-mode__menu-note">
-                        {modeNote(entry)}
-                      </span>
-                    </button>
-                  ),
-                )}
+                {SMART_EQ_MODES.map((entry) => (
+                  <button
+                    key={entry}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={entry === smartEqMode}
+                    ref={
+                      entry === smartEqMode ? attachModeMenuEntry : undefined
+                    }
+                    // The menu opens only while nothing runs
+                    // (\`isSmartEqActive\`), so nothing here is running yet.
+                    onClick={() => {
+                      closeModeMenu();
+                      if (entry === smartEqMode) {
+                        if (isContinuousMode(entry)) {
+                          setContinuousEq(true);
+                        } else {
+                          runSmartEq();
+                        }
+                        return;
+                      }
+                      // A different mode starts through the engine's own
+                      // mode transition; asking it to run again would toggle
+                      // the freshly started one-shot back off.
+                      setSmartEqMode(entry);
+                    }}
+                  >
+                    <MenuIcon name="smart" className="eq-toolbar__icon" />
+                    <span className="eq-mode__menu-name">
+                      {modeLabel(entry)}
+                    </span>
+                    {/* Each says what it overrides, because the names alone
+                      cannot: three of them do the same job to three different
+                      depths, and which depth is the whole choice being made
+                      here. */}
+                    <span className="eq-mode__menu-note">
+                      {modeNote(entry)}
+                    </span>
+                  </button>
+                ))}
               </AnchoredMenu>
               {/* What it is doing, said by the pet, from the button itself.
                 It was a bare run of text sitting in the row, which put a
@@ -392,7 +425,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
               ticked on, it counted out the two minutes, and it committed
               nothing at the end of them. */}
             {isContinuousRunning && <SongEqSaveSwitch id="songEqSave" />}
-            <EqModeSelect />
+            <EqPageModeSelect />
             {/* The band count and its plus, as one "15 bands, +". Its word
               stays under the page's own title and goes above the graph,
               where the glyph beside the count says it (`MainContent.scss`). */}
@@ -418,7 +451,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
       )}
       <div
         className={`main-content main-content--${density}${
-          bypassed.includes('eq') ? ' is-eq-bypassed' : ''
+          isEqOff ? ' is-eq-bypassed' : ''
         }${isPlaced ? ' is-placed' : ''}`}
       >
         {/* The rail scrolls when the bands stop fitting, with an arrow at
@@ -428,7 +461,14 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
             could aim at. Each band keeps a floor of its own instead and the
             row runs past the edge, which is a thing you can scroll. */}
         <BandLevels row={bandsElement} />
-        <div className="bands-rail" ref={attachRail}>
+        {/* With the EQ layer off its bands edit nothing, by pointer or by
+            key: `inert`, where the stylesheet alone left every slider a
+            tab stop that still moved its band. */}
+        <div
+          className="bands-rail"
+          ref={attachRail}
+          inert={isEqOff || undefined}
+        >
           {/* No arrows while the bands are placed across the plot: every one
               of them is inside its width by construction, and the few pixels
               the outermost may hang into the page's padding are not a row to
@@ -486,6 +526,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
                   density={density}
                   flatLayout
                   isSelected={selectedFilterIds.includes(filter.id)}
+                  ear={filter.channel}
                   onSelect={handleBandSelect}
                   isHovered={hoveredFilterId === filter.id}
                   onHover={handleBandHover}
@@ -527,7 +568,7 @@ const EqPageView = ({ bands, actions }: TEqPageViewProps) => {
           ))}
         </div>
         {selectedFilter && (
-          <div className="eq-flat-editor">
+          <div className="eq-flat-editor" inert={isEqOff || undefined}>
             {/* Which band, or how many. A group edit moves everything
                 selected, so naming one frequency would be a lie about what
                 the controls beside it are about to do. */}

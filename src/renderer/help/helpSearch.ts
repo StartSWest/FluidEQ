@@ -368,6 +368,7 @@ const indexChapter = (
   number: number,
   locale: LocaleCode,
   add: (passage: IPassage) => void,
+  keyFor: (key: TranslationKey) => TranslationKey,
 ) => {
   const { id } = chapter;
   const inEnglish = locale !== 'en';
@@ -389,13 +390,14 @@ const indexChapter = (
     piece(kind, anchor, translate(locale, key), translate('en', key));
 
   both('title', helpAnchor.title(id), `help.${id}.title`);
-  both('intro', helpAnchor.intro(id), `help.${id}.intro`);
-  const steps = translate(locale, `help.${id}.steps`).split('\n');
-  const englishSteps = translate('en', `help.${id}.steps`).split('\n');
+  both('intro', helpAnchor.intro(id), keyFor(`help.${id}.intro`));
+  const stepsKey = keyFor(`help.${id}.steps`);
+  const steps = translate(locale, stepsKey).split('\n');
+  const englishSteps = translate('en', stepsKey).split('\n');
   steps.forEach((step, index) =>
     piece('step', helpAnchor.step(id, index), step, englishSteps[index] ?? ''),
   );
-  both('tip', helpAnchor.tip(id), `help.${id}.tip`);
+  both('tip', helpAnchor.tip(id), keyFor(`help.${id}.tip`));
   // Where each control is, by its name, for the labels that belong to one.
   const controls = new Map<TranslationKey, string>();
   chapter.figures.forEach((figure, figureIndex) => {
@@ -439,10 +441,15 @@ const indexChapter = (
   }
 };
 
-/** Reads the whole guide in one language, once. */
+/**
+ * Reads the whole guide in one language, once. `keyFor` gives the line a key
+ * stands for on this platform (`helpPlatformText.ts`), so a Mac searches the
+ * words its guide shows.
+ */
 export const buildHelpIndex = (
   chapters: readonly IHelpChapter<HelpChapterId, string>[],
   locale: LocaleCode,
+  keyFor: (key: TranslationKey) => TranslationKey = (key) => key,
 ): IHelpIndex => {
   const passages: IPassage[] = [];
   const byChapter: number[][] = chapters.map(() => []);
@@ -456,17 +463,23 @@ export const buildHelpIndex = (
     }
   };
   chapters.forEach((chapter, number) =>
-    indexChapter(chapter, number, locale, (passage) => {
-      const at = passages.length;
-      passages.push(passage);
-      byChapter[number].push(at);
-      passage.words.forEach((word) =>
-        note(word.key, { passage: at, english: false }),
-      );
-      passage.english.forEach((word) =>
-        note(word.key, { passage: at, english: true }),
-      );
-    }),
+    indexChapter(
+      chapter,
+      number,
+      locale,
+      (passage) => {
+        const at = passages.length;
+        passages.push(passage);
+        byChapter[number].push(at);
+        passage.words.forEach((word) =>
+          note(word.key, { passage: at, english: false }),
+        );
+        passage.english.forEach((word) =>
+          note(word.key, { passage: at, english: true }),
+        );
+      },
+      keyFor,
+    ),
   );
   return {
     locale,

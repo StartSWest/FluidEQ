@@ -203,6 +203,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// A band kept to one ear: the ear's letter beside its number, the tag its
+// handle carries on the graph and a main EQ band's slider. Beside rather than
+// over it: at 26px a corner tag covered the digit, and the dynamic dot keeps
+// the top-right corner. The button grows to hold both.
+.dsp-eq-pick:has(.dsp-eq-pick__ear) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: auto;
+  min-width: 26px;
+  padding: 0 4px;
+}
+
+.dsp-eq-pick__ear {
+  min-width: 13px;
+  padding: 0 2px;
+  border-radius: 3px;
+  background: $secondary-light;
+  color: $surface-base;
+  font-size: $text-micro;
+  font-weight: $weight-bold;
+  line-height: 13px;
+  text-align: center;
+  pointer-events: none;
+}
+
 .dsp-eq-pick.is-active {
   border-color: color-mix(in srgb, $secondary-default 65%, transparent);
   background: color-mix(in srgb, $secondary-default 22%, transparent);
@@ -436,6 +463,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
 }
 
+// Two groups of a bar that wrap as one, so the last of them is never left on
+// a line by itself: the Exciter's Save stood alone under its Oversampling in
+// French at a 1080p window. Spaced and ruled as the bar's own groups are.
+.dsp-eq-bar-unit {
+  display: flex;
+  align-items: center;
+  gap: inherit;
+  column-rule: inherit;
+  min-width: 0;
+}
+
+// The Exciter's Preset, Applies to, Oversampling and Save on one line beside
+// Isolate and On, down to a laptop's 1700px window: there the line needed
+// 788px of the 737 it had, and Oversampling fell under the rest by itself
+// (Ivan, 2026-10-15: "we need both on top"). The picker gives up 50px — a
+// preset's name truncates in it, the list shows it whole — and the groups
+// stand 12px apart instead of 16. Above the shared sizes' own picker floor and
+// bar gap (`_dspEqSizes.scss`), which come later in the sheet.
+.dsp-eq-bar.dsp-exciter-bar {
+  column-gap: 12px;
+
+  .dsp-eq-preset-first .rich-pick__trigger {
+    width: 140px;
+    min-width: 140px;
+  }
+}
+
 // The glyph on a preset-row button. Sized to the text beside it rather than to
 // a grid, so the pair reads as one word with a picture in front of it.
 .dsp-bar-icon {
@@ -471,6 +525,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-wrap: wrap;
 }
 
+// Three settings that stay on one line together (`DspEqBar`): the row breaks
+// between the groups, never inside one, until a group alone is wider than the
+// card.
+.dsp-eq-settings-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: inherit;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
 .dsp-eq-preset {
   display: flex;
   align-items: center;
@@ -494,7 +560,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .dsp-exciter-note,
 .dsp-maximizer-note,
 .dsp-bass-forge-note,
-.dsp-bass-punch-note {
+.dsp-bass-punch-note,
+.dsp-de-esser-note {
   margin: 0;
   color: $text-faint;
   font-size: $text-body;
@@ -515,6 +582,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     .dsp-maximizer-note,
     .dsp-bass-forge-note,
     .dsp-bass-punch-note,
+    .dsp-de-esser-note,
     .dsp-dimension-note,
     .dsp-eq-settings,
     .dsp-eq-notice
@@ -529,6 +597,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     .dsp-maximizer-note,
     .dsp-bass-forge-note,
     .dsp-bass-punch-note,
+    .dsp-de-esser-note,
     .dsp-dimension-note
   ) {
   padding-right: max(0px, calc(100% - 620px));

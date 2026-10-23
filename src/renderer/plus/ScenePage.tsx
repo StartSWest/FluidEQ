@@ -12,7 +12,6 @@ import type { IReportedScene } from 'common/plusModeration';
 import { sceneMakerOf } from 'common/sceneMaker';
 import { resolveSceneName, type IScenePack } from 'common/scenePacks';
 import type { TGallerySceneFailure } from 'main/ipc/plusGallery';
-import { requestAccountPanel } from '../account/accountPanel';
 import Avatar from '../community/Avatar';
 import Glyph from '../community/Glyph';
 import type { ISceneFrame } from '../graph/sceneGl';
@@ -31,7 +30,6 @@ import {
   OfficialBadge,
   SceneHeart,
   ScenePicture,
-  usePlusEntitled,
 } from './GalleryParts';
 import {
   useGalleryList,
@@ -41,12 +39,15 @@ import {
 import { useModeration } from './moderationStore';
 import { openGalleryPage, type IMakerRef } from './plusNavigation';
 import ReportDialog from './ReportDialog';
+import SceneFreeSwitch from './SceneFreeSwitch';
+import SceneGet, { officialLine, SceneLockedVeil } from './SceneGet';
 import SceneInspectButton from './SceneInspectButton';
 import SceneModerationCard from './SceneModerationCard';
 import ScenePreview, { type TPreviewTrouble } from './ScenePreview';
 import SceneSteps from './SceneSteps';
 import SceneTaste from './SceneTaste';
 import SceneVersions from './SceneVersions';
+import { useOwnsLook, useSceneStore } from './sceneStore';
 
 /** Cards under "More by": one row on a wide pane, two on a narrow one. */
 const MORE_BY = 4;
@@ -65,14 +66,14 @@ const PREVIEW_FAILURES: Record<
 type TPreview =
   | { state: 'loading' }
   | { state: 'ready'; pack: IScenePack }
-  /** No Plus: the scene plays for a taste of it. */
+  /** Not this account's yet: the scene plays for a taste of it. */
   | { state: 'taste'; pack: IScenePack }
   | { state: 'failed'; key: TranslationKey }
   /**
-   * No Plus: the picture, and what Plus would do with it — once the taste
+   * Not this account's: the picture, and the way to get it — once the taste
    * is over, or when there was none to give.
    */
-  | { state: 'plus'; tasted: boolean };
+  | { state: 'locked'; tasted: boolean };
 
 interface IScenePageProps {
   scene: IGalleryScene;
@@ -92,9 +93,9 @@ interface IScenePageProps {
  * of it reaches here, exactly as Add would verify it; the page then plays the
  * pack it was handed and nothing else. Add reuses that same download.
  *
- * Without Plus the scene plays for ten seconds (see `SceneTaste`) so the
- * member sees what it does, then its picture stays with the way into Plus
- * beside it; the one loud button on the page is that way in.
+ * A scene this account does not own plays for ten seconds (see
+ * `SceneTaste`) so the member sees what it does, then its picture stays with
+ * "Get · 1 credit" beside it; the one loud button on the page is that one.
  */
 export default function ScenePage({
   scene: opened,
@@ -105,8 +106,9 @@ export default function ScenePage({
 }: IScenePageProps) {
   const { t, locale } = useTranslation();
   const moderation = useModeration();
-  const entitled = usePlusEntitled();
   const scene = useGalleryScene(opened);
+  const owned = useOwnsLook(scene.lookId);
+  const free = useSceneStore().store?.free?.includes(scene.sceneId) ?? false;
   const adding = useAddingScenes().has(scene.lookId);
   const localById = useGalleryLocalScenes();
   const local = localById.get(scene.lookId);
@@ -140,9 +142,9 @@ export default function ScenePage({
     setPreview({ state: 'loading' });
     if (!isSceneRenderingAvailable()) {
       setPreview(
-        entitled
+        owned
           ? { state: 'failed', key: 'plus.scene.cannotDraw' }
-          : { state: 'plus', tasted: false },
+          : { state: 'locked', tasted: false },
       );
       return undefined;
     }
@@ -159,11 +161,11 @@ export default function ScenePage({
         }
         if (outcome.ok) {
           setPreview({
-            state: entitled ? 'ready' : 'taste',
+            state: owned ? 'ready' : 'taste',
             pack: outcome.pack,
           });
         } else if (outcome.reason === 'not-entitled') {
-          setPreview({ state: 'plus', tasted: false });
+          setPreview({ state: 'locked', tasted: false });
         } else {
           setPreview({
             state: 'failed',
@@ -185,7 +187,7 @@ export default function ScenePage({
     opened.sceneId,
     opened.version,
     opened.updatedAt,
-    entitled,
+    owned,
   ]);
 
   // The scene playing on the stage, by version, and whether it has drawn a
@@ -249,17 +251,8 @@ export default function ScenePage({
       {local ? t('plus.scene.update') : t('plus.scene.add')}
     </button>
   );
-  if (!entitled) {
-    primary = (
-      <button
-        type="button"
-        className="button small"
-        onClick={() => requestAccountPanel('subscribe')}
-      >
-        <Glyph name="plus" />
-        {t('plus.scene.getPlus')}
-      </button>
-    );
+  if (!owned) {
+    primary = <SceneGet scene={scene} name={name} className="button small" />;
   } else if (current) {
     primary = (
       <button
@@ -335,7 +328,7 @@ export default function ScenePage({
                 setPreview({ state: 'failed', key: PREVIEW_FAILURES[trouble] })
               }
               onDrawn={markLive}
-              onOver={() => setPreview({ state: 'plus', tasted: true })}
+              onOver={() => setPreview({ state: 'locked', tasted: true })}
             />
           )}
           {/* ONE wait, from the first byte to the first frame.
@@ -383,28 +376,12 @@ export default function ScenePage({
             </span>
           )}
           <SceneSteps scene={scene} from={from} paused={reporting} />
-          {preview.state === 'plus' && (
-            <span
-              className={`gallery-preview__plus${preview.tasted ? ' is-tasted' : ''}`}
-            >
-              <Glyph name="plus" />
-              <span className="gallery-preview__plus-text">
-                {t(
-                  preview.tasted
-                    ? 'plus.scene.keepWatching'
-                    : 'plus.scene.plusPlays',
-                )}
-              </span>
-              {preview.tasted && (
-                <button
-                  type="button"
-                  className="button small"
-                  onClick={() => requestAccountPanel('subscribe')}
-                >
-                  {t('plus.gate.cta')}
-                </button>
-              )}
-            </span>
+          {preview.state === 'locked' && (
+            <SceneLockedVeil
+              scene={scene}
+              name={name}
+              tasted={preview.tasted}
+            />
           )}
         </div>
       </div>
@@ -441,26 +418,33 @@ export default function ScenePage({
 
         <SceneVersions scene={scene} />
 
-        {scene.official ? (
-          <p className="gallery-included">
-            <Glyph name="plus" />
-            {t('plus.official.included')}
-          </p>
-        ) : (
-          <dl className="gallery-figures">
-            <div>
-              <dt>{t('plus.scene.likes')}</dt>
-              <dd>{numbers.format(scene.likes)}</dd>
-            </div>
-            <div>
-              <dt>{t('plus.scene.week')}</dt>
-              <dd>{numbers.format(scene.likesWeek)}</dd>
-            </div>
+        {/* FluidEQ's own scenes are liked like any other (server 0048), but
+            what adds them is the pack store, which counts nobody: their adds
+            would only ever read 0, so the line saying what one costs stands
+            in that figure's place. */}
+        <dl
+          className={`gallery-figures${scene.official ? ' gallery-figures--two' : ''}`}
+        >
+          <div>
+            <dt>{t('plus.scene.likes')}</dt>
+            <dd>{numbers.format(scene.likes)}</dd>
+          </div>
+          <div>
+            <dt>{t('plus.scene.week')}</dt>
+            <dd>{numbers.format(scene.likesWeek)}</dd>
+          </div>
+          {!scene.official && (
             <div>
               <dt>{t('plus.scene.adds')}</dt>
               <dd>{numbers.format(scene.adds)}</dd>
             </div>
-          </dl>
+          )}
+        </dl>
+        {scene.official && (
+          <p className="gallery-included">
+            <Glyph name={owned ? 'check' : 'credit'} />
+            {officialLine(t, owned, free)}
+          </p>
         )}
 
         <div className="gallery-scene__actions">
@@ -479,12 +463,15 @@ export default function ScenePage({
           </p>
         )}
         {current && local && <WallpaperSceneAction lookId={local.lookId} />}
-        {scene.official && entitled && (
+        {scene.official && owned && (
           <SceneInspectButton sceneId={scene.sceneId} />
+        )}
+        {scene.official && moderation.admin && (
+          <SceneFreeSwitch sceneId={scene.sceneId} />
         )}
         <footer className="gallery-scene__foot">
           <p className="gallery-fine">
-            {t(scene.official ? 'plus.official.fine' : 'plus.scene.fine')}
+            {t(scene.official ? 'store.official.fine' : 'store.scene.fine')}
           </p>
           {/* Not for the admin reviewing it: the reports are already theirs. */}
           {!own && !scene.official && !(report && moderation.admin) && (

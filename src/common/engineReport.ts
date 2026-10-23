@@ -37,7 +37,11 @@ import type {
   IFluidEngineStatus,
   TAudioEngine,
 } from './audioEngine';
-import { normaliseEndpointGuid, type IEngineHealth } from './engineHealth';
+import {
+  normaliseEndpointGuid,
+  type IEngineHealth,
+  type IEngineLoad,
+} from './engineHealth';
 
 export interface IEngineReportFacts {
   engine: TAudioEngine | null;
@@ -55,6 +59,18 @@ const yesNo = (value: boolean | null | undefined): string => {
   }
   return value === false ? 'no' : 'unknown';
 };
+
+/**
+ * "slowest block 6.05 ms of its 11.00 ms (55%), 1 of 102 over half" — the
+ * engine log's own words (`describe_timing` in `block_timing.cpp`), so the
+ * two halves of a report read alike. A block that takes longer than its own
+ * time is a gap the listener hears.
+ */
+const describeLoad = (load: IEngineLoad): string =>
+  `slowest block ${load.slowestMs.toFixed(2)} ms of its ` +
+  `${load.periodMs.toFixed(2)} ms ` +
+  `(${Math.round((load.slowestMs / load.periodMs) * 100)}%), ` +
+  `${load.overHalf} of ${load.blocks} over half`;
 
 /**
  * One output, in four lines: who it is, what Windows allows on it, whether
@@ -93,6 +109,7 @@ const describeOutput = (
     )}, Equalizer APO=${yesNo(device.isEqualizerApoAttached)}`,
     ...(attached?.effects ? [describeSlots(attached)] : []),
     `  Engine says: ${engineLine}`,
+    ...(status?.load ? [`  Engine load: ${describeLoad(status.load)}`] : []),
   ];
 };
 
@@ -121,9 +138,15 @@ const describeSlots = (endpoint: IFluidEngineEndpoint): string => {
     endpoint.emptySlots === undefined
       ? ''
       : ` — ${endpoint.emptySlots} of 3 slots free`;
+  // The one fact about the engine's own slot that decides whether Windows
+  // reaches it at all, and that no list of who sits where can show.
+  const mode = endpoint.modeMissing
+    ? `; the engine's slot (${endpoint.slot ?? 'unknown'}) has no processing ` +
+      'mode, so Windows never reaches it'
+    : '';
   return (
     `  Slots: ${inLists.join(' · ')}${free}` +
-    `${elsewhere.length ? `; old single values: ${elsewhere.join(', ')}` : ''}`
+    `${elsewhere.length ? `; old single values: ${elsewhere.join(', ')}` : ''}${mode}`
   );
 };
 

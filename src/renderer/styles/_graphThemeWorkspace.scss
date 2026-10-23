@@ -875,6 +875,24 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Expanded on a page with no picture: the page folds away and the graph takes
+// its height (`isGraphGrown` in `App.tsx`).
+//
+// Not `is-graph-full`, so none of the overlay above applies: the graph keeps
+// the card it has at the normal size — rounded, in from the column's sides,
+// floating on the window's picture under the Backdrop — and the EQ page's head
+// keeps its place over it (Ivan, 2026-10-18: "it cannot do that sharp corner
+// they need to be just expanding the graph and hiding the eq"). The page is
+// collapsed rather than taken out with `display`: the bands panel scrolls,
+// and a scroll container taken out of the layout comes back at its top.
+.center-workspace.is-graph-grown > .middle-content {
+  height: 0;
+  min-height: 0;
+  flex: 0 0 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
 // Fullscreen graph over Karaoke: join the pet to the lower overlay dock rather
 // than covering the song title at the top-left. It remains a separate hit
 // target, but shares the dock's baseline and auto-hide timing.

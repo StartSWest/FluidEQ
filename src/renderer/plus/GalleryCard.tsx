@@ -1,5 +1,4 @@
 import type { IGalleryScene } from 'common/plusGallery';
-import { PLUS_TASTE_SECONDS } from 'common/plusTerms';
 import { resolveSceneName } from 'common/scenePacks';
 import { isNewSceneVersion } from 'common/sceneVersionNote';
 import { absoluteTime, relativeTime } from '../forum/forumTime';
@@ -15,10 +14,10 @@ import {
   OfficialBadge,
   SceneHeart,
   ScenePicture,
-  usePlusEntitled,
 } from './GalleryParts';
 import type { IMakerRef } from './plusNavigation';
-import { useTasteSamples } from './tasteSamples';
+import SceneGet, { officialLine } from './SceneGet';
+import { useOwnsLook, useSceneStore } from './sceneStore';
 
 interface IGalleryCardProps {
   scene: IGalleryScene;
@@ -37,10 +36,9 @@ interface IGalleryCardProps {
  *
  * The picture and the name both open the scene's page, where it plays; the
  * card itself plays nothing, so browsing downloads pictures and nothing else.
- * Add is the quiet style here — a grid of sixty loud buttons says nothing —
- * and the loud one on the scene's page. Without Plus the card is the picture,
- * the name and the counts: the way in is on the scene's page, once, rather
- * than sixty times down the grid.
+ * Add — or Get, for a scene this account does not own yet — is the quiet
+ * style here, since a grid of sixty loud buttons says nothing, and the loud
+ * one on the scene's page.
  */
 export default function GalleryCard({
   scene,
@@ -50,16 +48,11 @@ export default function GalleryCard({
   onMaker,
 }: IGalleryCardProps) {
   const { t, locale } = useTranslation();
-  const entitled = usePlusEntitled();
-  const samples = useTasteSamples();
-  // A sample is a taste, not a gift: the card promises the ten seconds its
-  // page plays and nothing more, or "Free to try" reads as a scene given
-  // away (Ivan, 2026-09-15). The number is the taste's own, so the promise
-  // cannot drift from the page.
-  const taste = !entitled && scene.official && samples.has(scene.sceneId);
-  const officialLabel = taste
-    ? t('plus.official.sample', { seconds: PLUS_TASTE_SECONDS })
-    : t('plus.official.included');
+  const owned = useOwnsLook(scene.lookId);
+  // FluidEQ's own count no adds (`ScenePage`), so their line says whether
+  // the scene is this account's or what getting it does.
+  const free = useSceneStore().store?.free?.includes(scene.sceneId) ?? false;
+  const officialLabel = officialLine(t, owned, free);
   const adding = useAddingScenes().has(scene.lookId);
   const name = resolveSceneName(scene, locale);
   const own = scene.authorId === me;
@@ -154,28 +147,42 @@ export default function GalleryCard({
               ? officialLabel
               : t('plus.card.adds', { count: adds })}
           </span>
-          <SceneHeart scene={scene} name={name} own={own} />
-          {entitled && (
-            <button
-              type="button"
-              className={`button small subtle gallery-card__add${addState}${adding ? ' is-running' : ''}`}
-              aria-busy={adding}
-              disabled={adding}
-              aria-label={addState ? t('plus.card.remove') : undefined}
-              title={addState ? t('plus.card.remove') : undefined}
-              onClick={() => {
-                const action = addState ? removeGalleryScene : addGalleryScene;
-                action(scene, name).catch(() => undefined);
-              }}
-            >
-              <span className="gallery-card__add-label">{addLabel}</span>
-              {addState && (
-                <span className="gallery-card__remove-label" aria-hidden="true">
-                  {t('plus.card.remove')}
-                </span>
-              )}
-            </button>
-          )}
+          <span className="gallery-card__controls">
+            <SceneHeart scene={scene} name={name} own={own} />
+            {!owned && (
+              <SceneGet
+                scene={scene}
+                name={name}
+                className="button small subtle gallery-card__get"
+              />
+            )}
+            {owned && (
+              <button
+                type="button"
+                className={`button small subtle gallery-card__add${addState}${adding ? ' is-running' : ''}`}
+                aria-busy={adding}
+                disabled={adding}
+                aria-label={addState ? t('plus.card.remove') : undefined}
+                title={addState ? t('plus.card.remove') : undefined}
+                onClick={() => {
+                  const action = addState
+                    ? removeGalleryScene
+                    : addGalleryScene;
+                  action(scene, name).catch(() => undefined);
+                }}
+              >
+                <span className="gallery-card__add-label">{addLabel}</span>
+                {addState && (
+                  <span
+                    className="gallery-card__remove-label"
+                    aria-hidden="true"
+                  >
+                    {t('plus.card.remove')}
+                  </span>
+                )}
+              </button>
+            )}
+          </span>
         </div>
       </div>
     </article>

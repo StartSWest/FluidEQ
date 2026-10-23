@@ -14,6 +14,7 @@ import {
   LibraryArt,
   OnlineMediaArt,
 } from './artwork';
+import { useTranslation } from '../../utils/I18nContext';
 import FeatureSlide from './FeatureSlide';
 import SecondOutputArt from './SecondOutputArt';
 import { DRAWN_FORM_COUNT } from './lookCounts';
@@ -31,6 +32,7 @@ export function LibrarySlide({ actions }: ISlideProps) {
   return (
     <FeatureSlide
       prefix="tour.library"
+      film="library"
       tab="library"
       art={<LibraryArt />}
       actions={actions}
@@ -42,6 +44,7 @@ export function DspSlide({ actions }: ISlideProps) {
   return (
     <FeatureSlide
       prefix="tour.dsp"
+      film="dsp"
       tab="dsp"
       art={<DspArt />}
       actions={actions}
@@ -54,12 +57,14 @@ export function DspSlide({ actions }: ISlideProps) {
  * what the feature is faster than any diagram of it.
  */
 export function SecondOutputSlide({ actions }: ISlideProps) {
+  const { t } = useTranslation();
   return (
     <FeatureSlide
       prefix="tour.output"
       tab="eq"
       art={<SecondOutputArt />}
       actions={actions}
+      values={{ editSound: t('extraOutput.edit') }}
     />
   );
 }
@@ -68,6 +73,7 @@ export function CustomLooksSlide({ actions }: ISlideProps) {
   return (
     <FeatureSlide
       prefix="tour.looks"
+      film="custom-looks"
       tab="eq"
       art={<CustomLooksArt />}
       actions={actions}
@@ -80,6 +86,7 @@ export function KaraokeSlide({ actions }: ISlideProps) {
   return (
     <FeatureSlide
       prefix="tour.karaoke"
+      film="karaoke"
       tab="karaoke"
       art={<KaraokeArt />}
       actions={actions}
@@ -91,6 +98,7 @@ export function KaraokeMakerSlide({ actions }: ISlideProps) {
   return (
     <FeatureSlide
       prefix="tour.maker"
+      film="karaoke-maker"
       tab="karaoke"
       art={<KaraokeMakerArt />}
       actions={actions}

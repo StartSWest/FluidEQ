@@ -105,6 +105,18 @@ const useTransportStrip = (
       return undefined;
     }
     const applyHeight = () => {
+      // NOTHING IS MEASURED OFF A BAR THAT IS NOT DRAWN. Behind the amp the
+      // bar is `display: none` (`_miniPlayerShell.scss`) and measures 0, and
+      // that 0 was kept: the full window came back from the amp with no room
+      // for the bar and laid its first frame out to the window's foot, and in
+      // Ivan's window the glass side panes were still drawn there, under the
+      // bar, after the room came back (2026-10-01: "happens when coming from
+      // the amp view to the full"). The room the bar last took is the room it
+      // takes when it is drawn again; if it comes back another height, the
+      // observer reports that like any other change.
+      if (element.getClientRects().length === 0) {
+        return;
+      }
       // The card's own height plus the inset it sits on, and NOT the distance
       // from the foot of the window to its top edge.
       //

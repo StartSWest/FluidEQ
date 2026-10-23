@@ -15,9 +15,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *
  * `APOProcess` runs on a thread audiodg.exe has raised above almost
  * everything else on the machine and given a few milliseconds to answer. It
- * does not allocate, free, lock, log, call into the operating system or
- * throw. Every one of those would be heard: not as a message, as a gap in the
- * user's music.
+ * does not allocate, free, lock, log or throw. Its bounded OS calls are the
+ * sharing clock read and kernel-event notifications after rendering; it
+ * never waits for a receiver, watcher or inference worker.
  */
 
 #include "apo.h"
@@ -139,11 +139,18 @@ STDMETHODIMP Apo::LockForProcess(UINT32 input_count,
     // before any audio, which is the only thing that ever sets it.
     carried_ = output_carried_flag(endpoint_.guid);
     carried_told_ = false;
+    timing_ = output_block_timing(endpoint_.guid);
+    LARGE_INTEGER frequency{};
+    ticks_per_second_ = QueryPerformanceFrequency(&frequency) != 0
+                            ? static_cast<uint64_t>(frequency.QuadPart)
+                            : 0;
+    timing_step_told_ = 0;
+    blocks_timed_ = 0;
     log_ = std::make_unique<Log>(endpoint_.guid);
     watcher_ = std::make_unique<Watcher>(
         slot_, *log_, endpoint_, config_dir(),
         sample_rate_.load(std::memory_order_relaxed), channels_, max_frames_,
-        input_format.mask);
+        input_format.mask, &split_, is_default_processing_mode());
   } catch (const std::bad_alloc&) {
     release_locked_state();
     return E_OUTOFMEMORY;
@@ -204,6 +211,17 @@ void Apo::release_locked_state() noexcept {
   }
   slot_.clear();
   slot_.set_latency(0);
+  split_.store(nullptr, std::memory_order_relaxed);
+  // What the stream cost, once, from the instance that carried it: the line
+  // a report needs to say whether the engine was too slow for the machine.
+  if (log_ && timing_ && blocks_timed_ > 0) {
+    try {
+      log_->write("this stream: " + describe_timing(timing_->read()));
+    } catch (...) {
+      // A line the log never gets costs the report, not the audio.
+    }
+  }
+  timing_.reset();
   log_.reset();
   // Swapped with an empty vector rather than cleared and shrunk: this
   // function is `noexcept` and runs inside audiodg.exe, where an exception
@@ -213,6 +231,7 @@ void Apo::release_locked_state() noexcept {
   std::vector<float>().swap(scratch_);
   carried_.reset();
   carried_told_ = false;
+  reported_graph_ = nullptr;
   channels_ = 0;
   sample_rate_.store(0, std::memory_order_relaxed);
   max_frames_ = 0;
@@ -234,26 +253,53 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
   // its work (fluideq/denormals.h), on a thread every other effect shares.
   const FeqScopedDenormalsOff denormals;
 
+  // The whole call, from here to the last sample written: how long Windows
+  // waited on this effect, which is what a missed period is made of
+  // (`block_timing.h`). The counter the Share Audio tap below reads too.
+  LARGE_INTEGER started{};
+  if (timing_ != nullptr) {
+    QueryPerformanceCounter(&started);
+  }
+
   // The swap, at the block boundary and nowhere else: a graph exchanged
   // mid-block would filter the first half of a buffer with one set of
   // coefficients and the second half with another, which is a click.
   Graph* const graph = slot_.adopt();
 
   const uint32_t frames = in.u32ValidFrameCount;
+  const bool usable =
+      frames <= max_frames_ && in.pBuffer != 0 && out.pBuffer != 0;
+  const bool valid = in.u32BufferFlags == BUFFER_VALID;
+
+  // One role and one raw publication per block, before any graph runs. Each
+  // receiver owns its complete processing path, so neither main's preset nor
+  // its graph crossover can change the sound another output receives.
+  LARGE_INTEGER now{};
+  bool mixing = false;
+  SplitTap* const split = split_.load(std::memory_order_acquire);
+  if (split != nullptr && split->active() && usable && frames > 0) {
+    QueryPerformanceCounter(&now);
+    split->begin();
+    mixing = split->reading();
+    // Bounded to this block, independent of every receiver's progress. Null
+    // publishes silence without reading bytes Windows marked as invalid.
+    if (split->write(valid ? reinterpret_cast<const float*>(in.pBuffer) : nullptr,
+                      frames, now.QuadPart) && watcher_) watcher_->split_wake();
+  }
+
   // Silence flags bypass the graph. Report that boundary as well, otherwise
   // the DSP page freezes on the last music window when Windows sends silence.
   if (graph != nullptr) {
-    graph->report_meter_activity(in.u32BufferFlags == BUFFER_VALID &&
-        frames > 0 && frames <= max_frames_ && in.pBuffer != 0 &&
-        out.pBuffer != 0 && !graph->is_passthrough());
+    graph->report_meter_activity((valid || mixing) && frames > 0 && usable &&
+                                 !graph->is_passthrough());
   }
-  if (frames > max_frames_ || in.pBuffer == 0 || out.pBuffer == 0) {
+  if (!usable) {
     // Refused rather than clamped. A short block is a gap the user hears
     // once; a block written past the end of somebody else's buffer is a
     // crash in the process that owns every speaker on the machine.
     out.u32ValidFrameCount = 0;
     out.u32BufferFlags = BUFFER_SILENT;
-  } else if (in.u32BufferFlags != BUFFER_VALID) {
+  } else if (!valid && !mixing) {
     if (graph != nullptr && in.u32BufferFlags == BUFFER_SILENT) {
       graph->report_input_silence(frames);
     }
@@ -262,7 +308,9 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
     out.u32ValidFrameCount = frames;
     out.u32BufferFlags = in.u32BufferFlags;
   } else {
-    const auto* input = reinterpret_cast<const float*>(in.pBuffer);
+    // Null when the block is silence another output's sound is added to.
+    const auto* input =
+        valid ? reinterpret_cast<const float*>(in.pBuffer) : nullptr;
     auto* output = reinterpret_cast<float*>(out.pBuffer);
     const bool bypass = graph == nullptr || graph->is_passthrough();
 
@@ -280,7 +328,7 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
     //
     // Once per lock, and the scan stops at the first sample that settles it,
     // so the cost falls away as soon as music starts.
-    if (!carried_told_) {
+    if (!carried_told_ && input != nullptr) {
       const size_t samples = static_cast<size_t>(channels_) * frames;
       for (size_t at = 0; at < samples; ++at) {
         const float sample = input[at];
@@ -297,7 +345,7 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
       }
     }
 
-    if (bypass) {
+    if (bypass && !mixing) {
       // The pointers this block was actually handed, not what the connection
       // descriptor said at lock time: an in-place APO is normally given one
       // buffer, but a host that hands it two on some block and one on the
@@ -311,12 +359,42 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
       float* const* planes = planes_.data();
       for (uint32_t channel = 0; channel < channels; ++channel) {
         float* plane = planes[channel];
+        if (input == nullptr) {
+          std::memset(plane, 0, sizeof(float) * frames);
+          continue;
+        }
         const float* from = input + channel;
         for (uint32_t frame = 0; frame < frames; ++frame) {
           plane[frame] = from[static_cast<size_t>(frame) * channels];
         }
       }
-      graph->process(planes, frames);
+      if (mixing) {
+        if (split->mix(planes, frames, now.QuadPart) && watcher_) {
+          watcher_->split_wake();
+        }
+        // The receiver's keep-alive stream is silent; audible raw input
+        // arriving through the ring still means this engine carried sound.
+        if (!carried_told_) {
+          for (uint32_t channel = 0; channel < channels && !carried_told_; ++channel) {
+            for (uint32_t frame = 0; frame < frames; ++frame) {
+              const float sample = planes[channel][frame];
+              if (sample > kSilenceFloor || sample < -kSilenceFloor) {
+                carried_told_ = true;
+                if (carried_) carried_->store(true, std::memory_order_relaxed);
+                if (watcher_) watcher_->say_it_carried();
+                break;
+              }
+            }
+          }
+        }
+      }
+      if (!bypass) {
+        // Local and shared raw sound take this endpoint's full graph once.
+        // Its existing handover owns any crossover; no receiver can make
+        // main run another rack or wait for the receiver's graph to settle.
+        graph->process(planes, frames);
+      }
+      if (mixing) split->trim_output(planes, frames);
       for (uint32_t channel = 0; channel < channels; ++channel) {
         const float* plane = planes[channel];
         float* to = output + channel;
@@ -327,6 +405,27 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
     }
     out.u32ValidFrameCount = frames;
     out.u32BufferFlags = BUFFER_VALID;
+
+    // Timed only here, where there was audio to do: a silent block costs
+    // nothing and would only water the count down.
+    if (timing_ != nullptr && frames > 0) {
+      LARGE_INTEGER finished{};
+      QueryPerformanceCounter(&finished);
+      const uint32_t slowest = timing_->record(
+          static_cast<uint64_t>(finished.QuadPart - started.QuadPart),
+          ticks_per_second_, frames,
+          sample_rate_.load(std::memory_order_relaxed));
+      ++blocks_timed_;
+      // A step at a time, a quarter of the period each: a handful of status
+      // writes in a stream, never one per block.
+      const uint32_t step = timing_step(slowest);
+      if (step > timing_step_told_) {
+        timing_step_told_ = step;
+        if (watcher_) {
+          watcher_->say_it_was_slow();
+        }
+      }
+    }
   }
 
   // Always, on every path that reached the swap: this counter is the only
@@ -334,6 +433,15 @@ Apo::APOProcess(UINT32 input_count, APO_CONNECTION_PROPERTY** inputs,
   // older graph has finished with it, and a path that skipped it would stall
   // reclamation for as long as that path kept being taken.
   slot_.finish_block();
+  // APOs have no caller-owned post-period hook. After all output samples are
+  // written, ring only this endpoint's armed inference workers. The wake is
+  // an atomic exchange and SetEvent: no wait, lock, allocation or inference,
+  // and no second output's worker is reachable from the main graph.
+  if (graph != nullptr) graph->wake_workers();
+  if (graph != reported_graph_ && watcher_) {
+    reported_graph_ = graph;
+    watcher_->graph_adopted();
+  }
 }
 
 }  // namespace fluideq_engine

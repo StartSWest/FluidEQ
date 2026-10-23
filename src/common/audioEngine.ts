@@ -42,6 +42,9 @@ export const FLUID_ENGINE_DSP_FILENAME = 'fluideq-dsp.txt';
 /** Which song is playing, for the engine's live leveling — `songProgramme.ts`. */
 export const FLUID_ENGINE_PROGRAMME_FILENAME = 'fluideq-programme.txt';
 
+/** Which second outputs the engine plays from which output — `outputSplit.ts`. */
+export const FLUID_ENGINE_SPLIT_FILENAME = 'fluideq-split.txt';
+
 /**
  * What a run that ends in restarting Windows audio came back with — "Restart
  * Windows audio" itself, and the engine update, which restarts audio onto the
@@ -86,6 +89,20 @@ export interface IEndpointEffect {
   name: string;
 }
 
+/**
+ * A place the engine can be registered on an output, newest to oldest: the
+ * three lists, the same three as one class id each, then the pre-8.1 pair.
+ */
+export type TEngineSlotName =
+  | 'efx'
+  | 'mfx'
+  | 'sfx'
+  | 'efx-single'
+  | 'mfx-single'
+  | 'sfx-single'
+  | 'gfx'
+  | 'lfx';
+
 export interface IFluidEngineEndpoint {
   guid: string;
   attached: boolean;
@@ -108,36 +125,37 @@ export interface IFluidEngineEndpoint {
    * creates it — which slot a driver builds is not written down anywhere,
    * so the app tries them newest to oldest (`engineOutputRepair.ts`).
    */
-  slot?:
-    | 'efx'
-    | 'mfx'
-    | 'sfx'
-    | 'efx-single'
-    | 'mfx-single'
-    | 'sfx-single'
-    | 'gfx'
-    | 'lfx';
+  slot?: TEngineSlotName;
+  /**
+   * True when that slot has no processing modes value beside it, so Windows
+   * never reaches the engine there — and attaching into the same slot again
+   * writes it (`engineOutputRepair.ts`). Every helper before 2.0.1 attached
+   * to the single values without one: a Sound BlasterX G6 had the engine in
+   * its EFX value, attached on every reading and never once created. Absent
+   * from an older helper.
+   */
+  modeMissing?: boolean;
   /**
    * Every slot this output has already been put in, oldest first, as the
    * helper remembers it. Absent from an older helper. Where the engine is
    * now says only how far down the ladder it got; which rungs were tried is
    * a different question the moment a rung is added to the middle of it.
    */
-  slotsTried?: (
-    | 'efx'
-    | 'mfx'
-    | 'sfx'
-    | 'efx-single'
-    | 'mfx-single'
-    | 'sfx-single'
-    | 'gfx'
-    | 'lfx'
-  )[];
+  slotsTried?: TEngineSlotName[];
   /**
-   * Set only by `--attach-all`, on the endpoints it could not attach — an
-   * explicit `attach <guid>` reports its one failure as the command's own
-   * `error` instead. Kept per endpoint so a partial install still names which
-   * outputs need a retry rather than folding into one opaque failure.
+   * The rungs another program's effect holds on this output, which the
+   * helper's own planner would refuse — the slot ladder steps past them
+   * (`nextSlot`) instead of spending a Windows prompt on a refusal. Absent
+   * from an older helper.
+   */
+  slotsHeld?: TEngineSlotName[];
+  /**
+   * Set only by an install: on the endpoints `--attach-all` could not attach,
+   * and on the outputs the engine was already on that it could not give
+   * their processing mode — an explicit `attach <guid>` reports its one
+   * failure as the command's own `error` instead. Kept per endpoint so a
+   * partial install still names which outputs need a retry rather than
+   * folding into one opaque failure.
    */
   error?: string;
 }

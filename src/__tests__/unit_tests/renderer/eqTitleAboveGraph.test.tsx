@@ -142,6 +142,15 @@ type TListener = (...args: unknown[]) => void;
  */
 const installMain = () => {
   const listeners = new Map<string, TListener[]>();
+  const subscribe = (channel: string, listener: TListener) => {
+    listeners.set(channel, [...(listeners.get(channel) ?? []), listener]);
+    return () => {
+      listeners.set(
+        channel,
+        (listeners.get(channel) ?? []).filter((each) => each !== listener),
+      );
+    };
+  };
   Object.defineProperty(window, 'electron', {
     configurable: true,
     get: () => ({
@@ -157,17 +166,9 @@ const installMain = () => {
             ),
           );
         },
-        on: (channel: string, listener: TListener) => {
-          listeners.set(channel, [...(listeners.get(channel) ?? []), listener]);
-          return () => {
-            listeners.set(
-              channel,
-              (listeners.get(channel) ?? []).filter(
-                (each) => each !== listener,
-              ),
-            );
-          };
-        },
+        on: subscribe,
+        onOutputMirrorsReset: (listener: () => void) =>
+          subscribe('output-mirrors-reset', listener),
         removeListener: () => {},
         getWindowState: async () => ({
           mode: 'app',
@@ -413,16 +414,41 @@ describe('where the graph is not above the page', () => {
     ).toEqual(['main-content-title', 'main-content']);
   });
 
-  it('keeps them in the page while the graph fills the column', async () => {
+  // Expanded on a page with no picture of its own, the graph grows in its own
+  // card and the page folds away under it; the head stays where it was (Ivan,
+  // 2026-10-18: "just expanding the graph and hiding the eq ... keeping the
+  // floating look"). It used to be the overlay, a square sheet over the whole
+  // column, head included.
+  it('grows the graph in its card when expanded, with the head kept over it', async () => {
     const { container, column } = await renderShell();
-    expect(column).toHaveClass('is-graph-first');
+    expect(column).not.toHaveClass('is-graph-grown');
 
     await act(async () => {
       setGraphView('expanded');
     });
 
     expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
+    expect(column).toHaveClass('is-graph-grown');
+    expect(column).not.toHaveClass('is-graph-full');
+    expect(column).toHaveClass('is-graph-first');
+    expect(container.querySelector('.center-head__title')).toContainElement(
+      bandsTitle(),
+    );
+  });
+
+  it('keeps full screen the sheet over the whole column, never the grown card', async () => {
+    const { container, column } = await renderShell();
+    await act(async () => {
+      setGraphView('fullscreen');
+    });
+
+    // POSITIVE CONTROL: the graph is there, so the classes below are the
+    // view's and not a graph that went missing.
+    expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
+    expect(column).toHaveClass('is-graph-full');
+    expect(column).not.toHaveClass('is-graph-grown');
     expect(column).not.toHaveClass('is-graph-first');
+    // The sheet covers the head, so the title goes back into the page.
     expect(container.querySelector('.center-head')).toBeNull();
     expect(
       container.querySelector('.workspace-tab-panel--eq'),

@@ -38,6 +38,9 @@ jest.mock('../../../main/engineHealth', () => ({
   readEngineHealth: jest.fn(async () => ({ outputs: [] })),
 }));
 
+const ENDPOINT = '{AAAAAAAA-1111-2222-3333-444455556666}';
+const DSP_FILENAME = 'fluideq-dsp-aaaaaaaa-1111-2222-3333-444455556666.txt';
+
 describe('the system-wide DSP chain file', () => {
   it('keeps Gaming readable by older engines and carries its mode in a comment', () => {
     const normal = encodeChainSettings(DSP_DEFAULTS);
@@ -63,28 +66,28 @@ describe('the system-wide DSP chain file', () => {
 
   afterEach(async () => {
     await flushPendingWrites().catch(() => undefined);
-    forgetPath(path.join(configDir, FLUID_ENGINE_DSP_FILENAME));
+    forgetPath(path.join(configDir, DSP_FILENAME));
     fs.rmSync(configDir, { recursive: true, force: true });
   });
 
   it('is a header line and one line of space-separated numbers, CRLF', async () => {
     const values = encodeChainSettings(DSP_DEFAULTS);
-    await writeSystemDspChain(configDir, values);
+    await writeSystemDspChain(configDir, values, ENDPOINT);
     await flushPendingWrites();
 
-    const written = fs.readFileSync(
-      path.join(configDir, FLUID_ENGINE_DSP_FILENAME),
-      'utf8',
-    );
+    const written = fs.readFileSync(path.join(configDir, DSP_FILENAME), 'utf8');
     const body = values.map((value) => String(value)).join(' ');
     expect(written).toBe(`${SYSTEM_DSP_CHAIN_HEADER}\r\n${body}\r\n`);
+    expect(fs.existsSync(path.join(configDir, FLUID_ENGINE_DSP_FILENAME))).toBe(
+      false,
+    );
   });
 
   it('writes the format a running development engine reports it supports', async () => {
     jest.mocked(readEngineHealth).mockResolvedValue({
       outputs: [
         {
-          endpoint: '{LIVE}',
+          endpoint: ENDPOINT.toLowerCase(),
           locked: true,
           processing: true,
           owner: true,
@@ -94,12 +97,9 @@ describe('the system-wide DSP chain file', () => {
       ],
     });
     const values = encodeChainSettings({ ...DSP_DEFAULTS, gameMode: true });
-    await writeSystemDspChain(configDir, values);
+    await writeSystemDspChain(configDir, values, ENDPOINT);
     await flushPendingWrites();
-    const written = fs.readFileSync(
-      path.join(configDir, FLUID_ENGINE_DSP_FILENAME),
-      'utf8',
-    );
+    const written = fs.readFileSync(path.join(configDir, DSP_FILENAME), 'utf8');
     const body = written
       .split('\r\n')
       .filter((line) => line && !line.startsWith('#'));
@@ -115,16 +115,14 @@ describe('the system-wide DSP chain file', () => {
     const gaming = writeSystemDspChain(
       configDir,
       encodeChainSettings({ ...DSP_DEFAULTS, gameMode: true }),
+      ENDPOINT,
     );
     const normal = encodeChainSettings(DSP_DEFAULTS);
-    await writeSystemDspChain(configDir, normal);
+    await writeSystemDspChain(configDir, normal, ENDPOINT);
     finish();
     await gaming;
     await flushPendingWrites();
-    const written = fs.readFileSync(
-      path.join(configDir, FLUID_ENGINE_DSP_FILENAME),
-      'utf8',
-    );
+    const written = fs.readFileSync(path.join(configDir, DSP_FILENAME), 'utf8');
     expect(written).toBe(formatSystemDspChain(normal));
   });
 
@@ -152,10 +150,10 @@ describe('the system-wide DSP chain file', () => {
         },
       });
       expect(gameModeOnWire(values)).toBe(true);
-      await writeSystemDspChain(configDir, values);
+      await writeSystemDspChain(configDir, values, ENDPOINT);
       await flushPendingWrites();
       const written = fs.readFileSync(
-        path.join(configDir, FLUID_ENGINE_DSP_FILENAME),
+        path.join(configDir, DSP_FILENAME),
         'utf8',
       );
       expect(written).toContain('# FluidEQLowLatency: ON');

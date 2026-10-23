@@ -20,6 +20,9 @@ const STAGE_NAMES: Record<TLatencyStage, TranslationKey> = {
   // guard's, which it keeps in every mode, leveling or not.
   leveler: 'dsp.normalizer.title',
   restoration: 'dsp.denoise.title',
+  // Its look-ahead, which it keeps while switched off so switching it on
+  // never moves the sound in time.
+  deEsser: 'dsp.deEsser.title',
   exciter: 'dsp.exciter.title',
   bassForge: 'dsp.bassForge.title',
   linearEq: 'dsp.eq.title',

@@ -2,8 +2,12 @@ export type TCommunityGlyph =
   | 'general'
   | 'looks'
   | 'feature-requests'
-  | 'board'
   | 'send'
+  | 'arrow-up'
+  | 'history'
+  | 'arrow-mark'
+  | 'text-mark'
+  | 'stop'
   | 'report'
   | 'delete'
   | 'lock'
@@ -16,11 +20,14 @@ export type TCommunityGlyph =
   | 'person'
   | 'upload'
   | 'monitor'
+  | 'server'
   | 'mail'
   | 'refresh'
   | 'studio'
   | 'heart'
   | 'plus'
+  | 'credit'
+  | 'payout'
   | 'folder'
   | 'copy'
   | 'check'
@@ -34,6 +41,8 @@ export type TCommunityGlyph =
   | 'next'
   | 'zoom-in'
   | 'zoom-out'
+  | 'compact'
+  | 'more'
   | 'fit'
   | 'pin'
   | 'rail-collapse'
@@ -93,17 +102,38 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <path d="M10 2v1.4M4.2 5.5l1 .8M15.8 5.5l-1 .8" opacity="0.6" />
           </>
         );
-      case 'board':
-        // A trophy.
-        return (
-          <>
-            <path d="M6 3h8v4.5a4 4 0 0 1-8 0V3Z" />
-            <path d="M6 5H3.5a2.5 2.5 0 0 0 2.6 3.2M14 5h2.5a2.5 2.5 0 0 1-2.6 3.2" />
-            <path d="M10 11.5v2.5M7 17h6M8.5 14h3v3h-3z" />
-          </>
-        );
       case 'send':
         return <path d="M3 10 17 3l-3.5 14-4-5.5L3 10Zm6.5 1.5L17 3" />;
+      case 'arrow-up':
+        // Up and away: a message leaving, as chat apps draw Send.
+        return <path d="M10 16V4.5M5 9.5l5-5 5 5" />;
+      case 'history':
+        // A clock turned back: what was before.
+        return (
+          <>
+            <path d="M3.8 10a6.2 6.2 0 1 0 1.9-4.5" />
+            <path d="M3.5 3.6v3h3" />
+            <path d="M10 6.6V10l2.4 1.6" />
+          </>
+        );
+      case 'arrow-mark':
+        // An arrow drawn on a picture, pointing up and to the right.
+        return <path d="M4.5 15.5 15 5M8.5 5H15v6.5" />;
+      case 'text-mark':
+        // A letter T: words written on a picture.
+        return <path d="M4.5 5h11M10 5v11" />;
+      case 'stop':
+        // A filled square: what is running ends here.
+        return (
+          <rect
+            x="5.5"
+            y="5.5"
+            width="9"
+            height="9"
+            rx="1.8"
+            fill="currentColor"
+          />
+        );
       case 'report':
         // A flag.
         return <path d="M5 17V3.5h9l-2 3.5 2 3.5H5" />;
@@ -187,6 +217,15 @@ export default function Glyph({ name, className }: IGlyphProps) {
             <path d="M7 17h6M10 13.5V17" />
           </>
         );
+      case 'server':
+        // The database: a stack of discs, the middle seam lighter.
+        return (
+          <>
+            <ellipse cx="10" cy="4.8" rx="6" ry="2.3" />
+            <path d="M4 4.8v10.4c0 1.3 2.7 2.3 6 2.3s6-1 6-2.3V4.8" />
+            <path d="M4 10c0 1.3 2.7 2.3 6 2.3s6-1 6-2.3" opacity="0.6" />
+          </>
+        );
       case 'mail':
         return (
           <>
@@ -205,6 +244,25 @@ export default function Glyph({ name, className }: IGlyphProps) {
           <>
             <path d="M9 2.5Q9.8 7.7 15 8.5 9.8 9.3 9 14.5 8.2 9.3 3 8.5 8.2 7.7 9 2.5Z" />
             <path d="M15.5 13v4.5M13.25 15.25h4.5" opacity="0.7" />
+          </>
+        );
+      case 'credit':
+        // A credit: a coin seen a little from the side, its rim and its face.
+        return (
+          <>
+            <ellipse cx="10" cy="10" rx="6.8" ry="7.2" />
+            <ellipse cx="10" cy="10" rx="3.6" ry="4" opacity="0.7" />
+            <path d="M10 8.2v3.6" />
+          </>
+        );
+      case 'payout':
+        // A creator paid: a banknote, and the arrow it leaves by.
+        return (
+          <>
+            <rect x="2.5" y="3.5" width="15" height="9.5" rx="1.6" />
+            <circle cx="10" cy="8.25" r="2.1" opacity="0.7" />
+            <path d="M5.4 8.25h.01M14.6 8.25h.01" />
+            <path d="M5 16.5h9.5M12.3 14.4l2.2 2.1-2.2 2.1" />
           </>
         );
       case 'folder':
@@ -268,6 +326,20 @@ export default function Glyph({ name, className }: IGlyphProps) {
         return <path d="M12.5 4.5 7 10l5.5 5.5" />;
       case 'next':
         return <path d="M7.5 4.5 13 10l-5.5 5.5" />;
+      case 'more':
+        // Three dots in a row: more of what is here, behind a press.
+        return (
+          <g fill="currentColor" stroke="none">
+            <circle cx="4.5" cy="10" r="1.5" />
+            <circle cx="10" cy="10" r="1.5" />
+            <circle cx="15.5" cy="10" r="1.5" />
+          </g>
+        );
+      case 'compact':
+        // Two arrows pressing onto one line: the same, in less room.
+        return (
+          <path d="M3 10h14M10 2.5v5M7.5 5 10 7.5 12.5 5M10 17.5v-5M7.5 15l2.5-2.5 2.5 2.5" />
+        );
       case 'zoom-in':
         // A lens with a plus: closer.
         return (

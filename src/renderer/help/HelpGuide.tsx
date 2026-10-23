@@ -10,9 +10,12 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { HELP_CHAPTERS } from 'common/helpGuide';
+import { helpChaptersFor, helpTextKey } from 'common/helpPlatformText';
+import { isFluidEngineBuiltIn } from 'common/platformCapabilities';
+import type { TranslationKey } from 'common/i18n';
 import { PRODUCT_NAME } from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
+import windowCapabilities from '../utils/windowCapabilities';
 import DialogClose from '../components/DialogClose';
 import MenuIcon from '../icons/MenuIcon';
 import DialogIdentity from '../components/DialogIdentity';
@@ -116,23 +119,35 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
    */
   const searched = useDeferredValue(query);
   // Read once per language: `t` changes exactly when the text can.
-  const chapters = useMemo<IHelpShownChapter[]>(
-    () =>
-      HELP_CHAPTERS.map(({ id, group, figures, video }, index) => ({
-        id,
-        group,
-        figures,
-        video,
-        number: index + 1,
-        title: t(`help.${id}.title`),
-        intro: t(`help.${id}.intro`),
-        steps: t(`help.${id}.steps`).split('\n'),
-        tip: t(`help.${id}.tip`),
-      })),
-    [t],
+  // This platform's guide: a Mac's leaves out Windows' engine and says its
+  // own lines where the Windows ones would be (`helpPlatformText.ts`).
+  const isEngineBuiltIn = isFluidEngineBuiltIn(windowCapabilities());
+  const guideChapters = useMemo(
+    () => helpChaptersFor(isEngineBuiltIn),
+    [isEngineBuiltIn],
   );
+  const chapters = useMemo<IHelpShownChapter[]>(() => {
+    const line = (key: TranslationKey) => t(helpTextKey(key, isEngineBuiltIn));
+    return guideChapters.map(({ id, group, figures, video }, index) => ({
+      id,
+      group,
+      figures,
+      video,
+      number: index + 1,
+      title: line(`help.${id}.title`),
+      intro: line(`help.${id}.intro`),
+      steps: line(`help.${id}.steps`).split('\n'),
+      tip: line(`help.${id}.tip`),
+    }));
+  }, [t, guideChapters, isEngineBuiltIn]);
   // The whole guide is read once per language and searched on every key.
-  const guide = useMemo(() => buildHelpIndex(HELP_CHAPTERS, locale), [locale]);
+  const guide = useMemo(
+    () =>
+      buildHelpIndex(guideChapters, locale, (key) =>
+        helpTextKey(key, isEngineBuiltIn),
+      ),
+    [guideChapters, locale, isEngineBuiltIn],
+  );
   const found = useMemo(() => searchHelp(guide, searched), [guide, searched]);
   const searching = found !== undefined;
   const matches = useMemo<IHelpShownChapter[]>(

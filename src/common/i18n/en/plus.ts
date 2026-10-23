@@ -9,19 +9,14 @@ const plus = {
   'plus.remove.done': '{name} removed from your looks.',
   'plus.card.remove': 'Remove',
   'plus.official.author': 'FluidEQ · Official',
-  'plus.official.included': 'Included with Plus',
-  'plus.official.sample': '{seconds}-second preview',
+  'plus.official.included': 'One credit a scene, yours for good',
   'plus.official.badge': 'Official',
-  'plus.official.fine':
-    'Part of the FluidEQ collection: it plays from your looks for as long as you have Plus.',
   'plus.visualizers.title': 'Visualizers',
   'plus.visualizers.description':
     'Scenes by FluidEQ and the Plus community, ready for your music',
   'plus.visualizers.blurb': 'Scenes members made',
   'plus.rail.pin': 'Pin the sidebar',
   'plus.rail.collapse': 'Collapse the sidebar',
-
-  'plus.gate.cta': 'See Plus',
 
   'plus.gallery.search': 'Search scenes or makers',
   'plus.gallery.sort': 'Sort',
@@ -72,11 +67,17 @@ const plus = {
   'plus.version.earlier': 'Earlier versions ({count})',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'No note',
+  'plus.version.play': 'Play',
+  'plus.version.playLabel': 'Play version {version}',
+  'plus.version.playing': 'Playing',
+  'plus.version.playingLine':
+    'You are playing version {version}, kept on this computer.',
+  'plus.version.backToNewest': 'Back to the newest',
+  'plus.version.keptHere': 'Kept on this computer',
   'plus.card.open': 'Open {name}',
 
   'plus.like.label': 'Like {name} ({count} likes)',
   'plus.like.own': 'Your scene has {count} likes',
-  'plus.like.plusOnly': '{count} likes. Liking scenes is part of Plus.',
   'plus.like.offline': 'Liking needs a connection. Try again online.',
 
   'plus.add.done': '{name} is in your looks.',
@@ -92,10 +93,7 @@ const plus = {
   'plus.scene.next': 'Next scene: {name}',
   'plus.scene.loading': 'Loading the scene…',
   'plus.scene.playing': 'Playing on your music',
-  'plus.scene.plusPlays': 'With Plus, this scene plays here on your music',
   'plus.scene.taste': 'Preview · {seconds} s',
-  'plus.scene.keepWatching':
-    'Keep watching it on your music, and add it to your looks, with Plus.',
   'plus.scene.unavailable': 'This scene cannot be downloaded right now.',
   'plus.scene.blocked': 'This scene has been taken down.',
   'plus.scene.changed':
@@ -108,7 +106,6 @@ const plus = {
   'plus.scene.adds': 'Added',
   'plus.scene.add': 'Add to my looks',
   'plus.scene.update': 'Update my copy',
-  'plus.scene.getPlus': 'Get Plus to add it',
   'plus.inspect.open': 'Open in Studio',
   'plus.inspect.hint':
     'See how it is made and take ideas for your own scenes. It opens as a project to look inside, not one to publish.',
@@ -119,15 +116,12 @@ const plus = {
   'plus.scene.inLooks': 'In your looks, under Made by members',
   'plus.scene.inLooksOwn': 'In your looks, under Made by you',
   'plus.scene.inLooksPlus': 'In your looks, under FluidEQ Plus',
-  'plus.scene.fine':
-    'Added scenes play from your looks while you have Plus. Nobody can sell them.',
   'plus.scene.report': 'Report this scene',
   'plus.scene.reported': 'Reported. Thank you.',
   'plus.scene.moreBy': 'More by {name}',
   'plus.scene.moreByYou': 'More by you',
 
   'plus.maker.you': 'You',
-  'plus.maker.rank': 'Rank',
   'plus.maker.scenes': 'Scenes',
   'plus.maker.empty': 'Nothing published right now.',
 
@@ -226,6 +220,7 @@ const plus = {
   'plus.accounts.filter.all': 'All accounts',
   'plus.accounts.filter.plus': 'With Plus',
   'plus.accounts.filter.free': 'Without Plus',
+  'plus.accounts.filter.trial': 'On a free trial',
   'plus.accounts.admin': 'Admin',
   'plus.accounts.loading': 'Loading accounts…',
   'plus.accounts.shown': 'Showing {shown} of {total}',
@@ -233,6 +228,42 @@ const plus = {
   'plus.accounts.empty.search': 'No account matches {query}',
   'plus.accounts.empty.plus': 'None of these accounts has Plus',
   'plus.accounts.empty.free': 'Every one of these accounts has Plus',
+  'plus.accounts.empty.trial': 'None of these accounts is on a free trial',
+  'plus.accounts.trial.thisWeek': '{count} end this week',
+  'plus.accounts.trial.today': 'Trial ends today',
+  'plus.accounts.trial.tomorrow': 'Trial ends tomorrow',
+  'plus.accounts.trial.inDays': 'Trial ends in {days} days',
+  'plus.accounts.trial.ends': 'Free trial ends {date}.',
+  'plus.accounts.filter.lapsed': 'Trial ended, no Plus',
+  'plus.accounts.empty.lapsed': 'No free trial has ended without Plus.',
+  'plus.accounts.empty.joined': 'No account joined in that time.',
+  'plus.accounts.joined.label': 'Joined',
+  'plus.accounts.joined.ever': 'All time',
+  'plus.accounts.joined.today': 'Today',
+  'plus.accounts.joined.week': 'This week',
+  'plus.accounts.joined.month': 'This month',
+  'plus.accounts.trial.ended': 'Trial ended {when}',
+  'plus.accounts.trial.endedOn':
+    'The free trial ended on {date}, without Plus.',
+  'plus.accounts.exit.title': 'Why they did not take Plus',
+  'plus.accounts.exit.summary': '{said} of {total} said why',
+  'plus.accounts.exit.empty': 'No free trial in this list ended without Plus.',
+  'plus.accounts.exit.said': 'Said why: {reason}',
+  'plus.accounts.exit.notSaid': 'Has not said why yet.',
+  'plus.accounts.exit.price': 'The price',
+  'plus.accounts.exit.not-enough': 'Not enough in it',
+  'plus.accounts.exit.free-is-enough': 'Free is enough',
+  'plus.accounts.exit.no-time': 'No time to try it',
+  'plus.accounts.exit.problems': 'Ran badly for them',
+  'plus.accounts.exit.payment': 'Could not pay their way',
+  'plus.accounts.exit.other': 'Something else',
+  'plus.accounts.exit.none': 'Has not said',
+  'plus.accounts.engine.title': 'Engine',
+  'plus.accounts.engine.fluid': 'FluidEQ Engine',
+  'plus.accounts.engine.apo': 'Equalizer APO',
+  'plus.accounts.engine.unknown': 'Not reported {count}',
+  'plus.accounts.engine.summary':
+    'FluidEQ Engine {fluid}, Equalizer APO {apo}, not reported {unknown}',
   'plus.accounts.moreError': 'Couldn’t load more accounts. Try again.',
   'plus.accounts.error.offline':
     'The account list needs a connection. Try again online.',
@@ -249,11 +280,11 @@ const plus = {
   'plus.accounts.appVersion': 'FluidEQ {version}',
   'plus.accounts.plan.none': 'No Plus',
   'plus.accounts.plan.paid': 'Plus until {date}',
+  'plus.accounts.plan.trial': 'Free trial',
   'plus.accounts.plan.gift': 'Plus as a gift',
   'plus.accounts.plan.giftUntil': 'Gift until {date}',
   'plus.accounts.goes': 'Deleted with it',
   'plus.accounts.fact.published': 'Published scenes',
-  'plus.accounts.fact.boardDays': 'Days on the board',
   'plus.accounts.fact.likes': 'Likes given',
   'plus.accounts.fact.adds': 'Scenes added',
   'plus.accounts.fact.reports': 'Reports sent',
@@ -264,13 +295,19 @@ const plus = {
   'plus.accounts.note.deleting':
     'An earlier deletion of this account stopped part way. Finish deleting completes it.',
   'plus.accounts.note.gift':
-    'A gift of Plus to this address stays, as the terms say. Take it back on Plus gifts if they asked for that too.',
+    'A gift of Plus to this address stays, as the terms say. Take it back here or on Plus gifts if they asked for that too.',
   'plus.accounts.give': 'Give Plus',
   'plus.accounts.giveConfirm':
     'Give Plus to {name}? It lasts until you take it back.',
   'plus.accounts.giving': 'Giving Plus to {name}…',
   'plus.accounts.giveYes': 'Give Plus',
   'plus.accounts.giveNo': 'Not now',
+  'plus.accounts.takeBack': 'Take back Plus',
+  'plus.accounts.takeBackPaid':
+    'Take back the Plus you gave {name}? The Plus they pay for carries on.',
+  'plus.accounts.takeBackPlain':
+    'Take back the Plus you gave {name}? It ends now.',
+  'plus.accounts.takingBack': 'Taking back Plus from {name}…',
   'plus.accounts.delete': 'Delete account',
   'plus.accounts.finish': 'Finish deleting',
   'plus.accounts.confirm':
@@ -319,6 +356,8 @@ const plus = {
     "Delete it for good? It leaves the gallery and every member's looks, its files are erased, and it can never be published again.",
   'plus.moderation.deleteForGood': 'Delete for good',
   'plus.moderation.done.deleted': '{name} was deleted.',
+  'plus.add.notOwned':
+    'Get {name} first: it takes one credit, and then it goes in your looks.',
 } as const;
 
 export default plus;

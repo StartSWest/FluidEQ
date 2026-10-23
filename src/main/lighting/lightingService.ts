@@ -51,10 +51,12 @@ import {
  * Dynamic lighting in the main process: the settings, the devices, and every
  * frame mapped onto every lamp and sent.
  *
- * The window decides WHEN — it sends frames only while a Plus scene is on the
- * graph, including its idle movement, and releases when that producer stops.
- * This decides WHERE and WHETHER: the member's entitlement is asked again on
- * every frame, so a lapsed membership or a modified window lights nothing.
+ * The window decides WHEN — it sends frames only while a scene the account
+ * owns is on the graph, including its idle movement, and releases when that
+ * producer stops. This decides WHERE and WHETHER: ownership is asked again on
+ * every frame, so a lapsed membership or a window that owns nothing lights
+ * nothing. Which owned scene it is the window's to say: the frame is drawn
+ * there, from a scene the window holds whole either way.
  *
  * Giving the lamps back is concrete on both routes. Razer's session is ended.
  * The lighting helper is ended — Windows returns a device to the next app in
@@ -67,6 +69,7 @@ export interface ILightingServiceDeps {
   userDataDir: string;
   appVersion: string;
   supported: boolean;
+  /** Whether this account owns any scene (`plus/sceneOwnership.ts`). */
   entitled: () => boolean;
   push: (state: ILightingState) => void;
   onHelperPid?: (pid: number | undefined) => void;
@@ -451,7 +454,8 @@ export const createLightingService = (
     },
     demoFrame: (raw) => {
       const frame = readLightingFrame(raw);
-      // With Plus the switch decides, and a page with Plus sends no demo.
+      // With a scene of its own the switch decides, and such a page sends no
+      // demo.
       if (!frame || !deps.supported || deps.entitled()) {
         return;
       }

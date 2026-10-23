@@ -29,11 +29,12 @@ const genreLatin = {
   'genre.latinPop.pin.200.why': 'Space between the sub and the voice.',
   'genre.latinPop.pin.3150': 'Vocal articulation',
   'genre.latinPop.pin.3150.why': 'Where the words are.',
+  'genre.latinPop.stage.exciter':
+    'Warmth and body under the vocal, nothing on the top.',
   'genre.latinPop.stage.bassPunch': 'The sub tightened a little.',
   'genre.latinPop.stage.dimension': 'Mono under 150 Hz.',
   'genre.latinPop.stage.maximizer': 'A ceiling that barely drives.',
-  'genre.latinPop.off':
-    'No Exciter or Bass Forge: it stays as polished as it arrived.',
+  'genre.latinPop.off': 'No Bass Forge: the sub is locked to the kick already.',
 
   'genre.reggaeton.hook': 'A kick every beat over a tuned 808',
   'genre.reggaeton.story':

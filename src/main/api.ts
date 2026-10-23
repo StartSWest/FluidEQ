@@ -50,11 +50,13 @@ import { engineHealthBridge } from './engineHealthBridge';
 import { lightingBridge } from './lightingBridge';
 import { outputMirrorBridge } from './outputMirrorBridge';
 import { plusTermsNoticeBridge } from './plusTermsNoticeBridge';
-import { plusWelcomeBridge } from './plusWelcomeBridge';
-import { plusTrialBridge } from './plusTrialBridge';
+import { sceneInsightsBridge } from './sceneInsightsBridge';
+import { sceneStoreBridge } from './sceneStoreBridge';
+import { creatorBridge } from './creatorBridge';
+import { macPermissionBridge } from './macPermissionBridge';
 import { plusReviewBridge } from './plusReviewBridge';
-import { makerMonthBridge } from './makerMonthBridge';
 import { studioAgentBridge } from './studioAgentBridge';
+import studioChatBridge from './studioChatBridge';
 
 export type Channels = string;
 
@@ -401,11 +403,13 @@ export default {
     ...communityBridge,
     ...outputMirrorBridge,
     ...plusTermsNoticeBridge,
-    ...plusWelcomeBridge,
-    ...plusTrialBridge,
+    ...sceneInsightsBridge,
+    ...sceneStoreBridge,
+    ...creatorBridge,
+    ...macPermissionBridge,
     ...plusReviewBridge,
-    ...makerMonthBridge,
     ...studioAgentBridge,
+    ...studioChatBridge,
     ...engineHealthBridge,
     ...lightingBridge,
     ...wallpaperBridge,

@@ -335,7 +335,14 @@ export const createWindowModes = (
       isSwitching = false;
       onChange();
     };
-    if (!win.isMaximized()) {
+    // A Mac has nothing to wait for: `setBounds` takes a zoomed window
+    // straight to the player's size. And there `unmaximize` may never answer:
+    // Electron refuses it, without an event, for a window whose own frame is
+    // the screen's — every window on a screen shorter than the app's floor
+    // (a 1440×900 MacBook: work area 795 tall, floor 800). The switch waited
+    // for that event with the page faded out, and the window stayed blank
+    // with no player in it (2026-10-01).
+    if (!win.isMaximized() || platform === 'darwin') {
       settle();
       return Promise.resolve();
     }
@@ -396,7 +403,10 @@ export const createWindowModes = (
     // the edge of the screen when it stands near one.
     win.setBounds(target);
     applyLimits(win);
-    if (!saved.isMaximized) {
+    // A Mac window the line above put at the screen's own frame is maximised
+    // already, and Electron's `maximize` then does nothing and sends nothing —
+    // the same silence as `unmaximize` on the way in.
+    if (!saved.isMaximized || (platform === 'darwin' && win.isMaximized())) {
       isSwitching = false;
       onChange();
       return Promise.resolve();

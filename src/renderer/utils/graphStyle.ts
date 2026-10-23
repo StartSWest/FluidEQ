@@ -52,7 +52,7 @@ import {
   type IUsableMemberScene,
 } from './memberScenes';
 import {
-  getScenePackSummary,
+  getScenePackFallbackStyle,
   getUsableScene,
   getUsableScenes,
   isSceneBlocked,
@@ -144,12 +144,12 @@ const canonicalLookId = (id: string) => {
  * run — or, before its list has arrived, the default.
  */
 const fallbackLookFor = (sceneId: string): IResolvedLook => {
-  const summary = isMemberLookId(sceneId)
-    ? getMemberSceneSummary(sceneId)
-    : getScenePackSummary(packIdOfLook(sceneId));
+  const fallbackStyle = isMemberLookId(sceneId)
+    ? getMemberSceneSummary(sceneId)?.fallbackStyle
+    : getScenePackFallbackStyle(packIdOfLook(sceneId));
   return resolveBuiltInLook(
-    summary
-      ? getGraphLook(graphLookId(summary.fallbackStyle, 'auto'))
+    fallbackStyle
+      ? getGraphLook(graphLookId(fallbackStyle, 'auto'))
       : DEFAULT_GRAPH_LOOK,
   );
 };

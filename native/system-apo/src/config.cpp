@@ -206,6 +206,9 @@ struct Frame {
   // file this one includes, are built analog-matched rather than from the
   // cookbook (`Band::matched`).
   bool matched_design = false;
+  // The `Channel:` line in force: the filters after it, here and in any file
+  // this one includes, play on those channels alone.
+  ChannelSelection channels{};
 };
 
 }  // namespace
@@ -225,7 +228,14 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
                     const FileProvider& read) {
   Chain chain;
   constexpr size_t kMaxDepth = 8;
-  if (const auto comparison = read(config_dir + L"\\fluideq-curve-phase.txt")) {
+  // The profile's side files are endpoint-owned just like its Device: block.
+  // Falling back to a global file would let an edit on another output change
+  // this one whenever its own file was missing or still being created.
+  const auto read_endpoint = [&](const wchar_t* stem) {
+    const auto name = endpoint_config_name(stem, endpoint);
+    return name ? read(config_dir + L"\\" + *name) : std::nullopt;
+  };
+  if (const auto comparison = read_endpoint(L"fluideq-curve-phase")) {
     const size_t first = comparison->find_first_not_of(" \t\r\n");
     if (first != std::string::npos &&
         ((*comparison)[first] == 'A' || (*comparison)[first] == 'B') &&
@@ -234,7 +244,7 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
     }
   }
 
-  if (const auto phase = read(config_dir + L"\\fluideq-eq-phase.txt")) {
+  if (const auto phase = read_endpoint(L"fluideq-eq-phase")) {
     const size_t first = phase->find_first_not_of(" \t\r\n");
     chain.minimum_eq_phase = !(first != std::string::npos &&
         (*phase)[first] == 'A' &&
@@ -243,29 +253,26 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
 
   // Only the exact word turns Classic on: a file that is missing, empty or
   // unreadable leaves the matched design the app asked for.
-  const auto says_classic = [&](const wchar_t* name) {
-    const auto text = read(config_dir + L"\\" + name);
+  const auto says_classic = [&](const wchar_t* stem) {
+    const auto text = read_endpoint(stem);
     if (!text) return false;
     const size_t first = text->find_first_not_of(" \t\r\n");
     const size_t last = text->find_last_not_of(" \t\r\n");
     return first != std::string::npos &&
            text->compare(first, last - first + 1, "classic") == 0;
   };
-  chain.classic_eq_treble = says_classic(L"fluideq-eq-treble.txt");
-  chain.classic_curve_treble = says_classic(L"fluideq-curve-treble.txt");
+  chain.classic_eq_treble = says_classic(L"fluideq-eq-treble");
+  chain.classic_curve_treble = says_classic(L"fluideq-curve-treble");
 
-  // Before the config tree, and outside it. `SET_SYSTEM_DSP_CHAIN` writes
-  // this file whether or not the user has ever configured the EQ, and the
-  // rack has no `Device:` guard to be excluded by — so an endpoint with no
-  // config.txt at all still gets it, which is why this sits above the early
-  // return below rather than inside the walk.
+  // Before the config tree, and outside it: this endpoint's rack can run
+  // before its first EQ curve creates a Device: block.
   //
   // Not added to `files_read`: that list is the Equalizer APO include tree,
   // and the watcher reads its emptiness as "there is no config.txt". A rack
   // file counted there would report a machine with no EQ configuration as
   // having one. `signature_of` covers this file's contents instead.
   if (const std::optional<std::string> dsp_text =
-          read(config_dir + L"\\fluideq-dsp.txt")) {
+          read_endpoint(L"fluideq-dsp")) {
     chain.dsp_values = parse_dsp_values(*dsp_text);
     // The mode is metadata so older engines still decode the unchanged rack.
     // It also applies before config.txt exists and with rack power switched off.
@@ -305,7 +312,8 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
       continue;
     }
     if (detail::iequals(line.command, "Channel")) {
-      continue;  // Recognised, never fatal, never part of this resolver's job.
+      stack.back().channels = parse_channels(line.body);
+      continue;
     }
     if (!matching) {
       continue;  // Nothing else applies to an endpoint this block does not name.
@@ -330,8 +338,9 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
       const bool curve_layer = stack.back().curve_layer;
       const bool eq_layer = stack.back().eq_layer;
       const bool matched_design = stack.back().matched_design;
+      const ChannelSelection channels = stack.back().channels;
       stack.push_back(Frame{*resolved, tokenize(*contents), 0, matching,
-                            curve_layer, eq_layer, matched_design});
+                            curve_layer, eq_layer, matched_design, channels});
       continue;
     }
 
@@ -412,6 +421,7 @@ Chain resolve_chain(const std::wstring& config_dir, const Endpoint& endpoint,
         chain.bands.push_back(*band);
         chain.bands.back().user_eq = stack.back().eq_layer;
         chain.bands.back().curve_layer = stack.back().curve_layer;
+        chain.bands.back().channels = stack.back().channels;
         chain.bands.back().matched =
             stack.back().matched_design &&
             !(stack.back().eq_layer ? chain.classic_eq_treble

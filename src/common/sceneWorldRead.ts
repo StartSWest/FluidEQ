@@ -428,6 +428,7 @@ const normalizeSceneWorld = (
     toneMapping: readChoice(raw.toneMapping, TONE_MAPPINGS, 'aces'),
     ...(bloom ? { bloom } : {}),
     vignette: readNumber(raw.vignette, 0.25, 0, 1),
+    multisample: raw.multisample !== false,
     materials,
     models,
     nodes,

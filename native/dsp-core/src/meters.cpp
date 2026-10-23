@@ -12,7 +12,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include <vector>
 
 #include "fluideq/bass_forge.h"
-#include "fluideq/convolver.h"
+#include "meters_deesser.h"
+#include "meters_eq_live.h"
+#include "meters_transform.h"
 
 /*
  * `meters.h` mirrors this count rather than including the header, so that
@@ -60,9 +62,6 @@ double smoothing_for(double sample_rate) {
   }
   return std::pow(kReferenceSmoothing, kReferenceRate / windows_per_second);
 }
-
-/** Below this the display is at its floor anyway, and log10(0) is not. */
-constexpr double kMagnitudeFloor = 1e-10;
 
 /**
  * One stage's window, published by the audio thread and read by the host.
@@ -200,21 +199,6 @@ void fold_released_peak(std::atomic<float>& slot,
              std::memory_order_relaxed);
 }
 
-/** Blackman, which is the window `AnalyserNode` applies before its transform. */
-std::vector<double> blackman_window() {
-  std::vector<double> window(FEQ_METER_WINDOW);
-  constexpr double kAlpha = 0.16;
-  const double a0 = (1.0 - kAlpha) / 2.0;
-  const double a1 = 0.5;
-  const double a2 = kAlpha / 2.0;
-  for (uint32_t at = 0; at < FEQ_METER_WINDOW; at += 1) {
-    const double phase =
-        (2.0 * 3.14159265358979323846 * at) / (FEQ_METER_WINDOW - 1);
-    window[at] = a0 - a1 * std::cos(phase) + a2 * std::cos(2.0 * phase);
-  }
-  return window;
-}
-
 }  // namespace
 
 struct FeqMeters {
@@ -282,6 +266,13 @@ struct FeqMeters {
   std::atomic<float> bass_punch_transient_db{0.0f};
   std::atomic<float> bass_punch_sustain_db{0.0f};
   std::atomic<float> bass_punch_duck_db{0.0f};
+  /** The De-esser's window (`meters_deesser.h`). */
+  DeEsserMeterWindow deesser;
+  /**
+   * The EQ tap (`meters_eq_live.h`). Its slot in `stages` is never filled:
+   * the EQ graph reads the newest audio, not windows in a row.
+   */
+  EqLiveWindow eq_live;
   std::vector<double> window;
   /** Reader-side scratch, so the transform allocates nothing per frame. */
   std::vector<double> real;
@@ -289,8 +280,11 @@ struct FeqMeters {
   /** Where the two channels' magnitudes are summed before smoothing. */
   std::vector<double> magnitudes;
   std::vector<float> snapshot;
-  /** Reader-side only, recomputed when the device rate changes. */
-  double smoothing = smoothing_for(48000.0);
+  /**
+   * The device rate. Atomic, because it is set from the device's thread while
+   * the reader works out its smoothing and the EQ tap's pace from it.
+   */
+  std::atomic<double> sample_rate{48000.0};
 };
 
 extern "C" {
@@ -301,11 +295,10 @@ FeqMeters* feq_meters_create(uint32_t channels) {
     return nullptr;
   }
   meters->channels = channels == 0 ? 1 : channels;
-  meters->window = blackman_window();
+  meters->window = meter_blackman(FEQ_METER_WINDOW);
   meters->real.assign(FEQ_METER_WINDOW, 0.0);
   meters->imaginary.assign(FEQ_METER_WINDOW, 0.0);
   meters->magnitudes.assign(FEQ_METER_BINS, 0.0);
-  meters->smoothing = smoothing_for(48000.0);
   meters->snapshot.assign(static_cast<size_t>(FEQ_METER_WINDOW) * 2, 0.0f);
   for (auto& stage : meters->stages) {
     stage.filling.assign(static_cast<size_t>(FEQ_METER_WINDOW) * 2, 0.0f);
@@ -344,14 +337,21 @@ void feq_meters_destroy(FeqMeters* meters) { delete meters; }
 
 void feq_meters_set_sample_rate(FeqMeters* meters, double sample_rate) {
   if (meters != nullptr && sample_rate > 0.0) {
-    meters->smoothing = smoothing_for(sample_rate);
+    meters->sample_rate.store(sample_rate, std::memory_order_relaxed);
   }
 }
 
 void feq_meters_set_enabled(FeqMeters* meters, int enabled) {
-  if (meters != nullptr) {
-    meters->enabled.store(enabled != 0 ? 1 : 0, std::memory_order_release);
+  if (meters == nullptr) {
+    return;
   }
+  // The EQ tap's ring still holds whatever played when the panel last
+  // closed; a fresh listening starts from silence instead. Only on the
+  // switch: the engine's link says "on" with every frame it asks for.
+  if (enabled != 0 && meters->enabled.load(std::memory_order_acquire) == 0) {
+    eq_live_restart(meters->eq_live);
+  }
+  meters->enabled.store(enabled != 0 ? 1 : 0, std::memory_order_release);
 }
 
 int feq_meters_enabled(const FeqMeters* meters) {
@@ -372,6 +372,10 @@ void feq_meters_capture(FeqMeters* meters,
   const float* left = channels[0];
   const float* right = meters->channels > 1 ? channels[1] : channels[0];
   if (left == nullptr || right == nullptr) {
+    return;
+  }
+  if (stage == FEQ_METER_STAGE_EQ) {
+    eq_live_capture(meters->eq_live, left, right, frames);
     return;
   }
 
@@ -463,6 +467,10 @@ int feq_meters_read_spectrum(FeqMeters* meters,
       stage >= FEQ_METER_STAGE_COUNT || bins != FEQ_METER_BINS) {
     return 0;
   }
+  const double sample_rate = meters->sample_rate.load(std::memory_order_relaxed);
+  if (stage == FEQ_METER_STAGE_EQ) {
+    return eq_live_read_short(meters->eq_live, sample_rate, out_db);
+  }
   StageWindow& target = meters->stages[stage];
   const uint64_t generation = target.generation.load(std::memory_order_acquire);
   if (generation == target.drawn) {
@@ -485,7 +493,7 @@ int feq_meters_read_spectrum(FeqMeters* meters,
     }
 
     /**
-     * Each channel transformed, then their MAGNITUDES averaged.
+     * Both channels' MAGNITUDES averaged, from one transform.
      *
      * Averaging the spectra rather than the signals is the whole point. For
      * ordinary correlated material the two are the same to within a fraction of
@@ -493,47 +501,42 @@ int feq_meters_read_spectrum(FeqMeters* meters,
      * material the signal sum is zero and the magnitude average is the true
      * level — which is the difference between a graph that works on every track
      * and one that goes blank on some of them.
-     *
-     * Two transforms per stage instead of one. At roughly twenty-three windows
-     * a second on the control thread that is a fraction of a percent of one
-     * core, and it buys a display that is correct rather than merely faithful.
      */
-    for (uint32_t bin = 0; bin < FEQ_METER_BINS; bin += 1) {
-      meters->magnitudes[bin] = 0.0;
+    const float* left = meters->snapshot.data();
+    const float* right = left + FEQ_METER_WINDOW;
+    for (uint32_t at = 0; at < FEQ_METER_WINDOW; at += 1) {
+      meters->real[at] = left[at] * meters->window[at];
+      meters->imaginary[at] = right[at] * meters->window[at];
     }
-    for (uint32_t channel = 0; channel < 2; channel += 1) {
-      const float* samples =
-          meters->snapshot.data() + static_cast<size_t>(channel) *
-                                        FEQ_METER_WINDOW;
-      for (uint32_t at = 0; at < FEQ_METER_WINDOW; at += 1) {
-        meters->real[at] = samples[at] * meters->window[at];
-        meters->imaginary[at] = 0.0;
-      }
-      feq_fft_in_place(meters->real.data(), meters->imaginary.data(),
-                       FEQ_METER_WINDOW, 0);
-      for (uint32_t bin = 0; bin < FEQ_METER_BINS; bin += 1) {
-        const double re = meters->real[bin];
-        const double im = meters->imaginary[bin];
-        // Divided by the transform size, which is what `AnalyserNode` reports
-        // and therefore what every graph in the panel was scaled against.
-        meters->magnitudes[bin] +=
-            0.5 * std::sqrt(re * re + im * im) /
-            static_cast<double>(FEQ_METER_WINDOW);
-      }
-    }
+    meter_two_channel_magnitudes(meters->real.data(), meters->imaginary.data(),
+                                 FEQ_METER_WINDOW, FEQ_METER_BINS,
+                                 meters->magnitudes.data());
 
+    const double smoothing = smoothing_for(sample_rate);
     for (uint32_t bin = 0; bin < FEQ_METER_BINS; bin += 1) {
       const double previous = meters->stages[stage].smoothed[bin];
-      const double blended = meters->smoothing * previous +
-                             (1.0 - meters->smoothing) * meters->magnitudes[bin];
+      const double blended =
+          smoothing * previous + (1.0 - smoothing) * meters->magnitudes[bin];
       meters->stages[stage].smoothed[bin] = blended;
       out_db[bin] = static_cast<float>(
-          20.0 * std::log10(std::fmax(blended, kMagnitudeFloor)));
+          20.0 * std::log10(std::fmax(blended, kMeterMagnitudeFloor)));
     }
     target.drawn = generation;
     return 1;
   }
   return 0;
+}
+
+int feq_meters_read_eq_detail(FeqMeters* meters,
+                              float* out_db,
+                              uint32_t bins) {
+  if (meters == nullptr || out_db == nullptr ||
+      bins != FEQ_METER_DETAIL_BINS) {
+    return 0;
+  }
+  return eq_live_read_long(meters->eq_live,
+                           meters->sample_rate.load(std::memory_order_relaxed),
+                           out_db);
 }
 
 void feq_meters_publish_bands(FeqMeters* meters,
@@ -734,6 +737,22 @@ void feq_meters_read_bass_punch(FeqMeters* meters, float* out_transient_db,
   *out_sustain_db =
       meters->bass_punch_sustain_db.load(std::memory_order_relaxed);
   *out_duck_db = meters->bass_punch_duck_db.load(std::memory_order_relaxed);
+}
+
+void feq_meters_publish_deesser(FeqMeters* meters,
+                                const FeqDeEsserReport* report) {
+  if (meters == nullptr || report == nullptr ||
+      meters->enabled.load(std::memory_order_acquire) == 0) {
+    return;
+  }
+  deesser_window_fold(meters->deesser, *report);
+}
+
+void feq_meters_read_deesser(FeqMeters* meters, FeqDeEsserReport* out) {
+  if (meters == nullptr || out == nullptr) {
+    return;
+  }
+  deesser_window_take(meters->deesser, out);
 }
 
 void feq_meters_publish_master(FeqMeters* meters,

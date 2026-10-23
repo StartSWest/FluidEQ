@@ -97,7 +97,7 @@ const app: Partial<Dictionary> = {
     'Captura o que este PC toca, antes do equalizador, para a aba Compartilhar áudio, uma segunda saída e o EQ inteligente. Só roda enquanto um deles está em uso.',
   'app.processes.name.sharePlayback': 'Reprodução do áudio compartilhado',
   'app.processes.what.sharePlayback':
-    'Toca o som que outro FluidEQ compartilha com este PC. Só roda enquanto você está ouvindo.',
+    'Toca o som que outro FluidEQ compartilha com este PC e inicia as capturas de áudio, para que o que este PC envia nunca leve esse som de volta. Só roda enquanto um deles está em uso.',
   'app.processes.name.volume': 'Volume do sistema',
   'app.processes.what.volume':
     'Acompanha o volume e o mudo do Windows para os controles de volume do FluidEQ, e muda o volume quando você move um deles. Só roda enquanto um deles está na tela.',
@@ -173,6 +173,9 @@ const app: Partial<Dictionary> = {
   'engine.detachFailed':
     'Não foi possível remover o Motor FluidEQ desta saída. Nada mudou.',
   'engine.unsupported': 'Requer o Windows 10 versão 1803 ou posterior.',
+  'engine.subtitle.builtIn':
+    'O motor vem com o FluidEQ e funciona enquanto o FluidEQ estiver a correr.',
+  'engine.fluid.builtIn.l1': 'Vem com o FluidEQ: nada para instalar nem ativar',
   'prereq.title.apo': 'O Equalizer APO precisa de atenção',
   'prereq.title.fluid': 'O Motor FluidEQ precisa de atenção',
   'prereq.install.apo': 'Instalar o APO',
@@ -271,6 +274,8 @@ const app: Partial<Dictionary> = {
   'notice.captureFailed': 'A saída ao vivo não pôde iniciar',
   'notice.captureFailedBody':
     'O medidor de nível e a curva ao vivo do gráfico estão desligados por enquanto. Todo o resto funciona normalmente.',
+  'notice.captureNeedsMacPermission':
+    'No Mac, o medidor de nível e a curva ao vivo do gráfico precisam do FluidEQ permitido na lista de cima de Privacidade e Segurança › Gravação de Tela e Áudio do Sistema. A lista só de áudio basta para o seu EQ, mas não para eles. Todo o resto funciona normalmente.',
   'notice.tryAgain': 'Tentar de novo',
   'notice.restartConfirm':
     'O áudio vai parar por alguns segundos e o Windows vai pedir permissão de administrador. Continuar?',
@@ -424,6 +429,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Escolhido por você',
   'games.front.playing': '{name} está à frente, e o som dele está ligado.',
   'games.front.sounding': '{name} está aberto, e o som dele está ligado.',
+  'games.front.off':
+    'Os presets de jogos estão desligados. Seus jogos mantêm o seu próprio som.',
+  'games.switch.hint':
+    'Desligado: nenhum jogo muda o seu som, e o FluidEQ deixa de observar qual programa está na frente. Sua lista fica como está.',
   'games.toast.loaded': '{preset} carregado',
   'games.toast.forGame': 'para {game}',
   'games.toast.restored': 'De volta a {preset}',

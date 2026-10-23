@@ -4,19 +4,14 @@ const plus = {
   'plus.remove.done': '{name} удалено из ваших оформлений.',
   'plus.card.remove': 'Убрать',
   'plus.official.author': 'FluidEQ · Официально',
-  'plus.official.included': 'Входит в Plus',
-  'plus.official.sample': 'Предпросмотр {seconds} с',
+  'plus.official.included': 'Один кредит за сцену, ваша навсегда',
   'plus.official.badge': 'Официально',
-  'plus.official.fine':
-    'Часть коллекции FluidEQ: запускается из ваших оформлений, пока у вас есть Plus.',
   'plus.visualizers.title': 'Визуализаторы',
   'plus.visualizers.description':
     'Сцены от FluidEQ и сообщества Plus для вашей музыки',
   'plus.visualizers.blurb': 'Сцены участников',
   'plus.rail.pin': 'Закрепить боковую панель',
   'plus.rail.collapse': 'Свернуть боковую панель',
-
-  'plus.gate.cta': 'Узнать о Plus',
 
   'plus.gallery.search': 'Поиск сцен или авторов',
   'plus.gallery.sort': 'Сортировка',
@@ -69,11 +64,17 @@ const plus = {
   'plus.version.earlier': 'Предыдущие версии ({count})',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'Без заметки',
+  'plus.version.play': 'Включить',
+  'plus.version.playLabel': 'Включить версию {version}',
+  'plus.version.playing': 'Включена',
+  'plus.version.playingLine':
+    'У вас включена версия {version}, сохранённая на этом компьютере.',
+  'plus.version.backToNewest': 'Вернуться к новейшей',
+  'plus.version.keptHere': 'Сохранена на этом компьютере',
   'plus.card.open': 'Открыть «{name}»',
 
   'plus.like.label': 'Лайкнуть «{name}» (лайков: {count})',
   'plus.like.own': 'У вашей сцены лайков: {count}',
-  'plus.like.plusOnly': 'Лайков: {count}. Ставить лайки можно с Plus.',
   'plus.like.offline':
     'Для лайков нужно подключение. Попробуйте снова, когда будете онлайн.',
 
@@ -89,10 +90,7 @@ const plus = {
   'plus.scene.next': 'Следующая сцена: {name}',
   'plus.scene.loading': 'Сцена загружается…',
   'plus.scene.playing': 'Вживую под вашу музыку',
-  'plus.scene.plusPlays': 'С Plus эта сцена оживает здесь под вашу музыку',
   'plus.scene.taste': 'Превью · {seconds} с',
-  'plus.scene.keepWatching':
-    'Смотрите дальше под свою музыку и добавляйте в оформления — с Plus.',
   'plus.scene.unavailable': 'Эту сцену сейчас нельзя скачать.',
   'plus.scene.blocked': 'Эта сцена удалена.',
   'plus.scene.changed':
@@ -105,7 +103,6 @@ const plus = {
   'plus.scene.adds': 'Добавили',
   'plus.scene.add': 'Добавить в мои оформления',
   'plus.scene.update': 'Обновить мою копию',
-  'plus.scene.getPlus': 'Оформите Plus, чтобы добавить',
   'plus.inspect.open': 'Открыть в Студии',
   'plus.inspect.hint':
     'Посмотрите, как она сделана, и возьмите идеи для своих сцен. Она откроется как проект, чтобы заглянуть внутрь, а не чтобы публиковать.',
@@ -116,15 +113,12 @@ const plus = {
   'plus.scene.inLooks': 'В ваших оформлениях, в разделе «Созданы участниками»',
   'plus.scene.inLooksOwn': 'В ваших оформлениях, в разделе «Созданы вами»',
   'plus.scene.inLooksPlus': 'В ваших оформлениях, в разделе «FluidEQ Plus»',
-  'plus.scene.fine':
-    'Добавленные сцены запускаются из ваших оформлений, пока у вас есть Plus. Продавать их никто не может.',
   'plus.scene.report': 'Пожаловаться на сцену',
   'plus.scene.reported': 'Жалоба отправлена. Спасибо.',
   'plus.scene.moreBy': 'Ещё от {name}',
   'plus.scene.moreByYou': 'Ещё ваши',
 
   'plus.maker.you': 'Вы',
-  'plus.maker.rank': 'Место',
   'plus.maker.scenes': 'Сцены',
   'plus.maker.empty': 'Сейчас ничего не опубликовано.',
 
@@ -225,6 +219,7 @@ const plus = {
   'plus.accounts.filter.all': 'Все аккаунты',
   'plus.accounts.filter.plus': 'С Plus',
   'plus.accounts.filter.free': 'Без Plus',
+  'plus.accounts.filter.trial': 'В бесплатном периоде',
   'plus.accounts.admin': 'Админ',
   'plus.accounts.loading': 'Загрузка аккаунтов…',
   'plus.accounts.shown': 'Показано {shown} из {total}',
@@ -232,6 +227,46 @@ const plus = {
   'plus.accounts.empty.search': 'Нет аккаунтов по запросу {query}',
   'plus.accounts.empty.plus': 'Ни у одного из этих аккаунтов нет Plus',
   'plus.accounts.empty.free': 'У всех этих аккаунтов есть Plus',
+  'plus.accounts.empty.trial':
+    'Ни один из этих аккаунтов не в бесплатном периоде',
+  'plus.accounts.trial.thisWeek': 'Заканчиваются на этой неделе: {count}',
+  'plus.accounts.trial.today': 'Бесплатный период заканчивается сегодня',
+  'plus.accounts.trial.tomorrow': 'Бесплатный период заканчивается завтра',
+  'plus.accounts.trial.inDays':
+    'Бесплатный период заканчивается через {days} дн.',
+  'plus.accounts.trial.ends': 'Бесплатный период заканчивается {date}.',
+  'plus.accounts.filter.lapsed': 'Пробный без Plus',
+  'plus.accounts.empty.lapsed':
+    'Ни один бесплатный период не закончился без Plus.',
+  'plus.accounts.empty.joined': 'За это время не создано ни одного аккаунта.',
+  'plus.accounts.joined.label': 'Регистрация',
+  'plus.accounts.joined.ever': 'За всё время',
+  'plus.accounts.joined.today': 'Сегодня',
+  'plus.accounts.joined.week': 'На этой неделе',
+  'plus.accounts.joined.month': 'В этом месяце',
+  'plus.accounts.trial.ended': 'Период закончился {when}',
+  'plus.accounts.trial.endedOn':
+    'Бесплатный период закончился {date}, без Plus.',
+  'plus.accounts.exit.title': 'Почему не взяли Plus',
+  'plus.accounts.exit.summary': 'Ответили {said} из {total}',
+  'plus.accounts.exit.empty':
+    'В этом списке ни один бесплатный период не закончился без Plus.',
+  'plus.accounts.exit.said': 'Причина: {reason}',
+  'plus.accounts.exit.notSaid': 'Пока не назвал причину.',
+  'plus.accounts.exit.price': 'Цена',
+  'plus.accounts.exit.not-enough': 'Мало полезного',
+  'plus.accounts.exit.free-is-enough': 'Хватает бесплатного',
+  'plus.accounts.exit.no-time': 'Не успел попробовать',
+  'plus.accounts.exit.problems': 'Плохо работало',
+  'plus.accounts.exit.payment': 'Не смог оплатить как хотел',
+  'plus.accounts.exit.other': 'Другое',
+  'plus.accounts.exit.none': 'Не ответил',
+  'plus.accounts.engine.title': 'Движок',
+  'plus.accounts.engine.fluid': 'Движок FluidEQ',
+  'plus.accounts.engine.apo': 'Equalizer APO',
+  'plus.accounts.engine.unknown': 'Не сообщили {count}',
+  'plus.accounts.engine.summary':
+    'Движок FluidEQ {fluid}, Equalizer APO {apo}, не сообщили {unknown}',
   'plus.accounts.moreError':
     'Не удалось загрузить больше аккаунтов. Попробуйте ещё раз.',
   'plus.accounts.error.offline':
@@ -251,11 +286,11 @@ const plus = {
   'plus.accounts.appVersion': 'FluidEQ {version}',
   'plus.accounts.plan.none': 'Без Plus',
   'plus.accounts.plan.paid': 'Plus до {date}',
+  'plus.accounts.plan.trial': 'Бесплатный период',
   'plus.accounts.plan.gift': 'Plus в подарок',
   'plus.accounts.plan.giftUntil': 'Подарок до {date}',
   'plus.accounts.goes': 'Удаляется вместе с ним',
   'plus.accounts.fact.published': 'Опубликованные сцены',
-  'plus.accounts.fact.boardDays': 'Дни в таблице лидеров',
   'plus.accounts.fact.likes': 'Поставленные лайки',
   'plus.accounts.fact.adds': 'Добавленные сцены',
   'plus.accounts.fact.reports': 'Отправленные жалобы',
@@ -266,13 +301,19 @@ const plus = {
   'plus.accounts.note.deleting':
     'Прежнее удаление этого аккаунта остановилось на полпути. «Завершить удаление» доведёт его до конца.',
   'plus.accounts.note.gift':
-    'Plus, подаренный на этот адрес, остаётся, как сказано в условиях. Отзовите подарок в разделе «Plus в подарок», если об этом тоже просили.',
+    'Plus, подаренный на этот адрес, остаётся, как сказано в условиях. Отзовите подарок здесь или в разделе «Plus в подарок», если об этом тоже просили.',
   'plus.accounts.give': 'Подарить Plus',
   'plus.accounts.giveConfirm':
     'Подарить Plus пользователю {name}? Он будет действовать, пока вы его не заберёте.',
   'plus.accounts.giving': 'Дарим Plus пользователю {name}…',
   'plus.accounts.giveYes': 'Подарить Plus',
   'plus.accounts.giveNo': 'Не сейчас',
+  'plus.accounts.takeBack': 'Отозвать Plus',
+  'plus.accounts.takeBackPaid':
+    'Отозвать Plus, подаренный пользователю {name}? Оплаченный Plus продолжит действовать.',
+  'plus.accounts.takeBackPlain':
+    'Отозвать Plus, подаренный пользователю {name}? Он закончится сейчас.',
+  'plus.accounts.takingBack': 'Отзываем Plus у пользователя {name}…',
   'plus.accounts.delete': 'Удалить аккаунт',
   'plus.accounts.finish': 'Завершить удаление',
   'plus.accounts.confirm':
@@ -319,6 +360,8 @@ const plus = {
     'Удалить насовсем? Сцена исчезнет из галереи и из оформлений всех участников, её файлы будут стёрты, и опубликовать её снова будет нельзя.',
   'plus.moderation.deleteForGood': 'Удалить насовсем',
   'plus.moderation.done.deleted': '{name} удалена.',
+  'plus.add.notOwned':
+    'Сначала получите «{name}»: это стоит один кредит, и после этого она попадёт в ваши оформления.',
 } as const;
 
 export default plus;

@@ -81,6 +81,26 @@ export const releaseSoundPaneFromStudio = () => {
 export const useSoundPaneFolded = (): boolean =>
   useSyncExternalStore(subscribe, () => folded);
 
+/**
+ * Asks for the panel on screen, for something that stands in it: the EQ mode
+ * card pinned into it is revealed with the panel folded or shut (Ivan,
+ * 2026-10-06: "it needs to open the side menu if closed"). The shell answers
+ * (`subscribeSoundPaneRequests`), because only the shell knows whether the
+ * panel unfolds beside the page or opens over it.
+ */
+const paneRequests = new Set<() => void>();
+
+export const requestSoundPane = () => {
+  paneRequests.forEach((show) => show());
+};
+
+export const subscribeSoundPaneRequests = (show: () => void) => {
+  paneRequests.add(show);
+  return () => {
+    paneRequests.delete(show);
+  };
+};
+
 /** The panel's own slide, as the browser runs it: its transform's transition. */
 const slidesOf = (panel: HTMLElement | null): Animation[] =>
   panel

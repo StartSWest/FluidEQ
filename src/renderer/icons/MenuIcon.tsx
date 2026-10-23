@@ -145,6 +145,7 @@ const PATHS: Record<string, string> = {
   forward: 'M9.5 6l6 6-6 6',
   play: 'M9 6l8 6-8 6V6z',
   pause: 'M9 6v12M15 6v12',
+  stop: 'M6 6h12v12H6V6z',
   volume: 'M5 10v4h3l4 3V7l-4 3H5M15 9a4 4 0 0 1 0 6',
   // The library's shelves, each drawn as the thing it lists rather than as a
   // generic list glyph: a record, a person, a note, a screen. Folders and
@@ -153,7 +154,7 @@ const PATHS: Record<string, string> = {
     'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 10.4a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2z',
   artist: 'M12 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM5.5 19.5a6.5 6.5 0 0 1 13 0',
   // A spark with a small plus beside it: the Plus tab, where the members'
-  // visualizers, the leaderboard and the Studio live. The same spark the Plus
+  // visualizers and the Studio live. The same spark the Plus
   // card inside it wears. It was a speech bubble while the tab was only the
   // community's chat, which has since given way to the Forum tab.
   plusTab:
@@ -187,6 +188,16 @@ const PATHS: Record<string, string> = {
   save: 'M5 4.5h11l3 3V19a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 19V4.5zM8 4.5v4.5h7V4.5M8 19.5v-6h8v6',
   // A screen on its stand: the desktop.
   monitor: 'M3.5 5h17v11h-17zM9 20h6M12 16v4',
+  // An arrow coming in from the right: sound arriving from another computer.
+  arrowIn: 'M19 12H5M11 6l-6 6 6 6',
+  // An arrow leaving to the right: this computer's sound going out.
+  arrowOut: 'M5 12h14M13 6l6 6-6 6',
+  // Two arrows passing each other: both ways, and nothing sent back.
+  bothWays: 'M7 8h11l-3-3M17 16H6l3 3',
+  // Four bars of different heights: an equalizer, the sound being shaped.
+  eqBars: 'M5 18V9M10 18v-7M15 18V5M20 18v-9',
+  // A clock face: held steady in time.
+  steady: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8v4l3 2',
   // A camera body with its lens: frame a photo.
   camera:
     'M4 8h3.5l1.5-2.5h6L16.5 8H20v10.5H4zM12 10.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
@@ -205,6 +216,23 @@ const PATHS: Record<string, string> = {
   lock: 'M6.5 10.5h11v9h-11zM8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5',
   // A pencil: change what this is called.
   pencil: 'M15.5 5l3.5 3.5L9 18.5l-4 1 1-4L15.5 5zM13.5 7l3.5 3.5',
+  // Two sheets, one over the other: a second copy of this thing.
+  duplicate: 'M9 9h10.5v10.5H9zM15 9V4.5H4.5V15H9',
+  // A clipboard with lines on it: the text, ready to paste elsewhere.
+  copyText:
+    'M8.5 5H6.5a1 1 0 0 0-1 1v13.5a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2M9 3.5h6V7H9zM9 11.5h6M9 15h4',
+  // A pushpin: kept on screen, beside what it is about.
+  pin: 'M8 3.5h8M9.5 3.5V10L6 13.5h12L14.5 10V3.5M12 13.5V21',
+  // A bell: a count that asks for attention.
+  bell: 'M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5l1.5-1.5zM10 20.5h4',
+  // The bell struck through: that count switched off.
+  bellOff:
+    'M6.5 16.5V11a5.5 5.5 0 0 1 11 0v5.5l1.5 1.5H5l1.5-1.5zM10 20.5h4M4 4l16 16',
+  // A credit, the scene store's coin: the Glyph's, on this grid.
+  credit:
+    'M12 3.5a8 8.5 0 1 0 0 17 8 8.5 0 0 0 0-17zM12 7.5a4.2 4.6 0 1 0 0 9.2 4.2 4.6 0 0 0 0-9.2zM12 10v4.2',
+  // Two ticks: everything read.
+  checkAll: 'M2.5 12.5l4.5 4.5 9.5-9.5M11 17l9.5-9.5',
 };
 
 export type MenuIconName = keyof typeof PATHS;

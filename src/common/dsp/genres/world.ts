@@ -120,16 +120,27 @@ const WORLD_RACKS: readonly IGenreRack[] = [
   {
     // A reverberant, ornamented voice over the maqsum's doum and tek. The
     // low end tightened, the strings' brightness and the darbuka's attack
-    // left as they are.
+    // left as they are; since 2026-10-15, when Ivan asked for the Exciter in
+    // the pop styles, Organic's warmth under the voice, and nothing on the
+    // strings or the tek.
     id: 'arabicPop',
+    exciter: exciterProfile(
+      [{ enabled: false }, { enabled: false }, { enabled: false }],
+      { enabled: true, amount: 0.1, focusHz: 400, range: 0.3 },
+    ),
     bassPunch: punch(100, 0.1, -0.3, 0, 60, 0),
     dimension: width(0.6, 1, 1, 150, 3_200, 0),
     maximizer: ceiling(0.75, -1, 4, sixteenthMs(100)),
   },
   {
     // Polished pop with Turkish colour, the modern albums at DR 5-6. A tight
-    // bottom, the darbuka crisp, and the ceiling barely pushing.
+    // bottom, the darbuka crisp, the ceiling barely pushing, and since
+    // 2026-10-15 Organic's warmth under the voice, as Arabic pop's.
     id: 'turkishPop',
+    exciter: exciterProfile(
+      [{ enabled: false }, { enabled: false }, { enabled: false }],
+      { enabled: true, amount: 0.1, focusHz: 400, range: 0.3 },
+    ),
     bassPunch: punch(100, 0.1, -0.3, 0, 60, 0),
     dimension: width(0.6, 1, 1, 150, 3_200, 0),
     maximizer: ceiling(0.5, -1, 3, sixteenthMs(110)),

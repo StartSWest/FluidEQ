@@ -33,6 +33,7 @@ import { qualityForRack } from '../bandQuality';
 import { defaultCrossfadeShape } from './crossfadeShape';
 import { DEFAULT_TREBLE_DESIGN } from '../filterDesign';
 import { BASS_PUNCH_PRESET_BY_ID } from './bassPunchPresets';
+import { DE_ESSER_DEFAULTS } from './deEsser';
 
 // The rack as it starts - DSP_DEFAULTS and the EQ rack it is built on - and
 // the ranges every setting is held to when it is read (clampDspSettings, in
@@ -466,6 +467,14 @@ export const DSP_DEFAULTS: IDspSettings = {
       range: 0.3,
     },
     align: { enabled: false, amount: 0.45 },
+    // Off, here and in every factory profile and chain: oversampling costs
+    // processor time, so it is the listener's to switch on and never a
+    // preset's to switch on unseen (Ivan, 2026-10-17: "we dont want settings
+    // that can make things slower to be hidden"). Off folds the brightest
+    // harmonics back 19 dB down; Standard puts them 57 dB down and High 125,
+    // for about 1.1 ms of a 10 ms block on a performance core of Ivan's i9
+    // with every band and Organic on.
+    oversampling: 'off',
     isolate: false,
   },
   bassForge: {
@@ -479,6 +488,7 @@ export const DSP_DEFAULTS: IDspSettings = {
     texture: 0.8,
     mix: 0,
   },
+  deEsser: DE_ESSER_DEFAULTS,
   bassPunch: {
     enabled: false,
     isolate: false,

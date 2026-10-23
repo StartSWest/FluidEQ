@@ -16,6 +16,10 @@ import log from 'electron-log';
 import { IAudioDevice } from '../common/constants';
 import coalesceRequests from '../common/coalescedRequest';
 import { POWERSHELL_PATH } from './powershell';
+import {
+  discoverMacOutputs,
+  setMacDefaultOutput,
+} from './macEngine/macOutputs';
 
 const execFileAsync = promisify(execFile);
 
@@ -189,6 +193,11 @@ export const filterVisibleAudioDevices = (
  */
 export const discoverAudioDevices = coalesceRequests(
   async (): Promise<IAudioDevice[]> => {
+    // A Mac's real outputs, from the engine that plays to them: a profile has
+    // to be attached to the output the engine matches, or it is never heard.
+    if (process.platform === 'darwin') {
+      return discoverMacOutputs();
+    }
     if (process.platform !== 'win32') {
       return [
         {
@@ -240,6 +249,12 @@ export const discoverAudioDevices = coalesceRequests(
 );
 
 export const setDefaultAudioDevice = async (deviceId: string) => {
+  // A Mac's output is chosen through its engine, which knows the outputs by
+  // the same identifier the list gave them.
+  if (process.platform === 'darwin') {
+    await setMacDefaultOutput(deviceId);
+    return;
+  }
   if (process.platform !== 'win32') {
     return;
   }

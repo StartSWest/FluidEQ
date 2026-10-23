@@ -6,6 +6,301 @@ link brings you here. **Help → What's new** opens the tour again any time.
 
 ---
 
+## 2.1.0
+
+FluidEQ 2.1 gives every output a sound of its own. Put your headphones on and
+they sound the way you tuned them; switch to the speakers and their preset,
+DSP rack and Room come back with them. Any band can now be tuned for each ear
+on its own, the DSP rack gains a De-esser that turns down only a voice's
+sharp S, a second output plays straight from the FluidEQ Engine, Share Audio
+works both ways between two computers, songs can remember how you like them,
+and the graph shows every band's numbers right on the curve.
+
+This release brings FluidEQ Engine 1.23. FluidEQ offers the update after it
+starts, with one Windows prompt; until then each ear plays both ears' bands
+and the De-esser is not heard, and everything else plays as before.
+
+### Outputs
+
+- **Every output keeps its own sound.** The EQ, the preset, the Tone, the
+  cuts, the DSP rack, the Room and the leveling are saved with each output and
+  come back the moment you switch to it — headphones and speakers no longer
+  share one preset.
+- **A second output plays from the FluidEQ Engine itself**, with its own
+  sound, and the main output never waits for it. **Edit sound** beside the
+  second output edits it without switching the main output; **Done** or
+  **Edit main** takes you back.
+- **The second output keeps time by itself**, and every delay is shown in
+  milliseconds, the network's included when the sound comes from another
+  computer.
+- **Share Audio works both ways.** Link two computers once, from either side,
+  and each can send its sound and play the other's, each direction on its own
+  switch. Each link can be paused and resumed and has a volume of its own,
+  and a link no longer stays stuck after either computer restarts. The sound
+  arriving shows the rate it comes in at, the incoming line no longer goes
+  blank after a pause, and a new connection always starts playing.
+- **Bluetooth headphones show their battery** beside the output, and beside
+  the second output.
+
+### The equaliser
+
+- **My curves: your own list beside OPRA's.** EQ Presets has a **My curves**
+  tab next to the OPRA library. Keep any curve there under a name of your
+  choosing: pasted from Squiglink or AutoEQ, read from a .txt file, taken from
+  your EQ as it plays, or copied from the OPRA correction playing. The OPRA
+  tab and the Squiglink import keep their curve with one press of **Save to
+  My curves**, under the name it already has, and then say it is in the list.
+  Squiglink has a tab of its own, right after the OPRA library, so a growing
+  list never pushes it down. A line
+  that cannot be read is named, never dropped without a word. Each curve shows
+  its shape, where it came from and which ears it is for, and plays with one
+  press as the headphone correction or goes into your EQ bands (that one asks
+  for a second press, because it replaces them). The curve playing now is
+  marked. Search, sort by name or by date, rename, edit its bands, duplicate,
+  copy as text, delete — each from a menu with its own icon, and deleting
+  asks first, naming the curve. **Export list** writes them all to one file that
+  another FluidEQ imports whole, or to a folder of .txt files for Equalizer
+  APO and AutoEQ tools. **Import list** shows every curve before adding any,
+  names whatever it leaves out, and never overwrites a name you already have
+  without asking: keep both, replace or skip. Your curves are kept in a file
+  of their own in FluidEQ's data folder.
+- **Switch corrections in one press.** The EQ mode card's Corrections tab has
+  a **Correction** picker: your curves first, then the OPRA curves for the
+  headphone playing, with arrows either side to step through them, so
+  comparing two corrections is one press. Each output keeps the one it plays.
+- **Tune each ear on its own.** Right-click a band and choose **Left + right**:
+  it becomes two bands at the same frequency, one for each ear, that you move
+  separately. **Both ears** joins them again in their middle, and Reset band
+  and Clear EQ join them too. The graph draws the left ear solid and the right
+  dashed. The same menu does it in the DSP rack's EQ while it applies to
+  Stereo.
+- **Delete band** is in the band menu, in the main EQ and the DSP rack, for
+  one band or a selection. It asks for a second press before it deletes.
+  Deleting one ear's half of a pair puts the other half back on both ears.
+- **Import into one ear.** Squiglink's Apply as EQ, and the DSP EQ's Import,
+  can fill Both ears, the Left ear or the Right ear. One ear replaces only
+  that ear's bands and leaves the other ear sounding as it did.
+- **Picking a built-in layout starts it fresh**: 10, 15 or 31 bands at that
+  layout's own frequencies and Q, flat and on both ears. It used to bring back
+  what you last had on that layout.
+- **Band labels on the graph.** Each band can show its frequency, Q and gain
+  over its point (View → Everything, or Ctrl+W). A label sits above or below
+  its point, never beside it, keeps clear of the style dots and the
+  analyser's key, stays put while you drag its band, and goes back to its own
+  place once there is room. Resetting the EQ lays them out fresh.
+- **EQ mode sits beside the graph.** Its settings are the first card of the
+  side panel on the EQ page, Your EQ and Corrections one at a time, so they
+  no longer cover the curves they change. The EQ mode button brings the card
+  into view, opening the panel if it was closed; the pin on the card puts the
+  settings back in a menu.
+- **Corrections are smoothed at 1/12 octave until you choose otherwise**, and
+  Reset in EQ mode goes back there. Off is still one press away.
+- **The curve follows a slider at once.** Moving a band's slider redraws the
+  curve in the same frame, as dragging the curve already moved the slider.
+- **The handles and knobs work from the keyboard**: the arrow keys step a
+  fader, a knob or a point's gain, and a screen reader names each point by its
+  band and frequency. While the EQ is switched off its controls are dimmed and
+  cannot be changed by accident.
+- **A new layout starts every band at the same Q**, from how many bands it has
+  and how wide it spans, and a band you add takes the Q of the ones already
+  there. Your bands' Band Q no longer reshapes a preset or a correction.
+- The Smart EQ toolbar was tidied, and the Applied headphone button stays
+  readable under the mouse.
+- **Expanded grows the graph in its own card.** On the Bands page the page
+  folds away under it and the head stays where it was, rounded and floating
+  on the Backdrop as at the normal size. Full screen, and Expanded over
+  Media, the Library and Karaoke, still lay the graph over the whole column.
+- **Game presets have a switch of their own** at the head of their page. Off,
+  no game changes your sound and FluidEQ stops watching which program is in
+  front; a game playing when you switch it off gives your sound back at once.
+  Your list stays, and Reset settings turns it on again.
+
+### The DSP rack
+
+- **De-esser.** A new stage, after the restorations and before the Exciter,
+  that turns down the sharp S, T and SH of a voice only while they sound and
+  leaves cymbals and hi-hats alone. It reduces the S's own frequencies
+  (Spectral), everything above it (Treble) or the whole voice; it listens in
+  the centre of the stereo picture or to all of it; and Isolate plays only
+  what it takes away. A four-second strip beside the treble shows each S and
+  the cut over it, with the cymbals it let through in grey. Seven profiles to
+  start from, for music and for speech; Speech, Podcast and Audiobook switch
+  it on. Switching it on or off never moves the sound in time. Beside the
+  strip, the treble as it is now shows how far the S stands over the voice,
+  and how much more a cymbal would need before it is touched.
+- **Exciter oversampling: Off, Standard or High, and Off to start.** Off is
+  the lightest; Standard and High run the Exciter faster so nothing folds back
+  off the top, High with the sharpest filter. Picking any factory preset turns
+  oversampling off, in the Exciter and in the EQ alike; turning it on stays
+  your choice. Oversampling now takes far less work than before, which is what
+  made the sound cut out on some computers with High on.
+- The pop-style genre chains add their brightness with the Exciter.
+- **Save on every filter.** Denoise, De-esser, Exciter, Bass Forge, Bass
+  Punch, Dimension, Maximizer and Master each keep profiles of your own,
+  listed first under Yours, saved and deleted the way the EQ's are.
+- The Exciter's bars no longer go dark on Mid only and Sides only, and its
+  Timing no longer moves part of a sound from one side to the other; switching
+  between its modes no longer jumps in level.
+- The starred presets are listed in the same order as the full list, with each
+  Room copy right after its chain.
+
+### Songs
+
+- **Remember each song's sound.** Switched on, a preset, Tone or EQ you set
+  during a song comes back whenever that song plays here, with a notice that
+  says so and an Undo. It starts switched off. **One player at a time** starts
+  switched on.
+
+### Visualizers
+
+- **Tune the wave where you put a visualizer on the desktop.** The Desktop
+  background dialog has Wave height and Wave position, drawn at once on the
+  monitor that will play it, and opens on the wave a monitor already plays it
+  with.
+- **Standard looks have their own graphics settings**, apart from Plus
+  visualizers: full resolution and plain scaling to start with.
+- **Tap a 3D world's birds or fish and they fly off the way they face**,
+  larger near the bottom of the screen and smaller towards the top, as they
+  would be nearer or farther away. They used to spin like petals and fly on
+  their backs.
+- **Galaxy, Nebula Heart and Nebula draw many times faster on integrated
+  graphics** (Galaxy from 16 ms to about 1 ms a frame on Intel UHD), and
+  Supernova no longer loses its picture there. Glass in the 3D worlds costs
+  less too (Prism Bloom from 20.6 to 16.1 ms a frame on Intel UHD at 1080p).
+- **New sets of scenes are announced in the app**, once each, with the set's
+  scenes framed and Try them now to play the first on the graph.
+- **Hearts on members' scenes.** Like a scene in the gallery and its maker
+  sees it; FluidEQ's own scenes carry no counts.
+- **Your account shows how long each scene has played**, your own scenes
+  included, down to the second under a minute. Counting starts only once you
+  have seen the revised Plus terms, which say what is kept: how long each
+  scene is on screen, per scene and day, and which audio engine you use.
+
+### The Studio
+
+- **Ask for a change and watch it on the stage.** The Studio has a chat beside
+  its stage: say what should change — how a scene looks, how it moves with the
+  music, its colours or its light — and your own AI edits the scene and plays
+  each version as it goes. It runs on Claude Code installed on your computer,
+  signed in with your own plan; FluidEQ never sees the sign-in.
+  - Every reply keeps the version it made, with **Bring back**; each scene
+    keeps its past chats, and chats Claude Code kept for the project's folder
+    can be opened too.
+  - **Attach the stage** sends a picture of the scene with your message, and
+    you can draw on it — arrows, words, marks — to show what you mean.
+  - Messages you send while it works are read at its next step, not after
+    the reply, and **Stop** keeps them going. Signing in from a failed reply
+    sends it again, and every picture in the chat opens full size.
+  - Pick the model and how hard it thinks; a ring shows how much of the
+    conversation's room is used, **Compact** makes more, and the accounts
+    card shows how much of your 5-hour and weekly limits is left.
+  - With ChatGPT connected through Codex, it can paint pictures for the scene,
+    asking you before each one.
+- **The Studio says which versions you have**: the bench's, the copy in your
+  looks (and whether it is behind), and the gallery's.
+- **While the Studio is open, the scenes' time of day follows its
+  Brightness**, so a scene can be checked at night and in daylight before it
+  is published.
+- **The Studio's frame rate is the picture's.** It counts the frames the
+  scene actually puts on screen, so a busy Studio on a 240 Hz display no
+  longer reads 80 a second while the scene fills every refresh.
+
+### Account
+
+- **Sign in with Google.** Continue with Google opens Google in your own
+  browser, where you are usually signed in already, and FluidEQ finishes the
+  sign-in when Google sends you back; the panel says it is waiting and keeps
+  a Cancel beside it. Your Google password never passes through FluidEQ.
+  Offered once Google is switched on for FluidEQ's accounts.
+
+### What's New and Help
+
+- **Films of the real app.** Fourteen of What's New's slides, and the Help
+  topics they belong to, now have a short film of the feature being used,
+  with a voice saying what it is and how to use it, in your language, and the
+  line being said written under the picture. Watch the video, under a slide's
+  picture, opens its film as large as the window; in Help the film stands
+  after the topic's pictures. Nothing is fetched until you press play, and a
+  film that cannot be loaded leaves the slide and the topic as they were. The
+  films come from fluideq.com.
+- **What's New shows the real Output panel** for "Every output keeps its own
+  sound", in your window's colours and language, switching from headphones to
+  speakers with each one's profile.
+- **What's New has a slide for My curves**, drawn with the page's own list:
+  a curve saved from Squiglink lands at the top and plays. Help's headphone
+  topic covers the Squiglink tab and My curves.
+
+### Forum
+
+- **Help's button counts what is new in the Forum**, in yellow (99+ past
+  99), and so does the Forum entry in its menu, so new topics and replies
+  are never missed.
+- **GitHub Issues in the Forum.** A row of their own lists every reported
+  problem, open and closed, with its labels; open one to read the whole
+  thread, and **Comment on GitHub** answers it there. New activity on an
+  issue counts in Help's yellow number too. Everyone can read them, signed
+  in or not.
+- **Clear or switch off the count.** Under **Forum** in the Help menu,
+  **Mark all as read** clears it, and **Turn off Forum notifications**
+  takes the number off Help's button for good, until you turn it on again.
+- **New for you.** The forum's first row lists only what is new to you —
+  topics you have not opened and replies since you last looked — from every
+  board, latest first. Boards with something new carry a dot, new topics and
+  replies are marked, a chip in a thread jumps to the first new reply, and
+  **Mark all as read** clears them.
+
+### Fixes
+
+- Dragging a band is heard as it moves again. Each step used to wait until
+  every output's settings had been written, so with many outputs the sound
+  trailed the hand by seconds.
+- Curve smoothing starts Off: a headphone correction plays exactly as it was
+  measured until you choose 1/12 or 1/3 octave in EQ mode.
+- The play triangle on What's New's Watch the video key shows in the key's
+  own colour; it was drawn in the dark of a filled key and could not be seen.
+- A bug report says how hard the FluidEQ Engine works on each output, as an
+  Engine load line, so a sound that cuts out on a busy computer can be told
+  from one that never ran.
+- Switching to an output no longer brings back a preset curve that does not
+  match the preset shown on its picker, which outputs set up before 2.1
+  could carry.
+- Stopping the music no longer slides the live graph to the right: what is
+  left of the sound falls where each frequency was heard.
+- The stars, glints and out-of-focus lights of the 3D worlds are soft dots
+  again; each was drawn as a glowing ring round a dark centre.
+- Aurora's snowfall, and the rain, snow and crowds of other 3D worlds, no
+  longer vanish on the compact player when the camera turns away from the
+  middle. Scenes the Studio's AI writes lay theirs out so they show on 2.0
+  too.
+- The Room plays on outputs running at 88.2, 176.4, 352.8 and 384 kHz; it
+  used to say a head file was missing and pass the sound through.
+- The FluidEQ Engine plays on outputs whose driver lists its effects only one
+  at a time, such as Creative's Sound BlasterX G6.
+- Finding the slot an output's driver reads now steps past the slots another
+  program's effect holds, instead of stopping at the first one.
+- On an output where Voice restoration cannot run, the rest of the DSP rack
+  plays and every edit is heard; it used to keep playing the sound from
+  before the edit.
+- Renaming a profile no longer loads it under the old name, and opening the
+  window no longer reports an error for an output with no profiles yet.
+- Play and pause on the bar, and the Library pausing other players, keep
+  working when FluidEQ's media helper stops by itself: it is started again,
+  and so is the volume slider's.
+- The Media page keeps playing a site's next video after a long gap between
+  two, such as an ad being skipped; it used to close in the gap and the next
+  video never started.
+- The desktop visualizer keeps following the music when FluidEQ's window is
+  minimised.
+- The band menu offers **Update engine** where it says a band needs a newer
+  FluidEQ Engine.
+- The window's colours under a scene stay that scene's own at any
+  Brightness, only lighter or darker; dimming used to swap them for the
+  scene's night palette (Bloom turned from green to purple).
+- A scene republished a moment ago opens as the new version in the Studio and
+  the gallery; it could come back as the version before it for a minute.
+
+---
+
 ## 2.0.0
 
 FluidEQ 2.0 is a new window around a rebuilt sound.

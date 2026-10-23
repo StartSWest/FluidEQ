@@ -177,6 +177,18 @@ struct ChainBandIdentity {
 };
 
 /**
+ * The coefficient arrays of a rack with a band kept to one ear: the left
+ * channel's, the right's, and every other channel's, in that order. On each,
+ * a band that is not heard there is the identity filter.
+ */
+constexpr uint32_t kEarArrays = 3;
+
+/** Which of the `kEarArrays` a channel plays: the left, the right, the rest. */
+constexpr uint32_t ear_array_of(uint32_t channel) {
+  return channel < 2 ? channel : 2u;
+}
+
+/**
  * The EQ as the cascade played it last, copied by the audio thread when it
  * took the set up (`chain_eq_fade.cpp`).
  *
@@ -199,6 +211,9 @@ struct ChainEqPlaying {
   uint32_t count = 0;
   FeqBiquadCoefficients bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
   ChainBandIdentity identity[FEQ_CHAIN_MAX_EQ_BANDS] = {};
+  /** A band kept to one ear: each channel's own filters (`kEarArrays`). */
+  int has_ears = 0;
+  FeqBiquadCoefficients ear_bands[kEarArrays][FEQ_CHAIN_MAX_EQ_BANDS] = {};
 };
 
 /**
@@ -218,6 +233,9 @@ struct ChainEqFade {
   FeqBiquadCoefficients subsonic{};
   uint32_t count = 0;
   FeqBiquadCoefficients bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
+  /** As `ChainEqPlaying::ear_bands`, in `bands` order. */
+  int has_ears = 0;
+  FeqBiquadCoefficients ear_bands[kEarArrays][FEQ_CHAIN_MAX_EQ_BANDS] = {};
   /** `[slot * kBandStride + band]`, like the live histories. */
   std::vector<FeqBiquadState> states;
   FeqBiquadState subsonic_states[FEQ_CHAIN_MAX_CHANNELS] = {};
@@ -255,6 +273,12 @@ struct ChainKernelBand {
   FeqBandDynamics detector{};
   /** Its change on the convolution, or -1: a kernel for listening has none. */
   int change = -1;
+  /**
+   * The ear it was kept to when the kernel was made (`chain_band_ear`), or 0
+   * for both: a band kept to one ear is left out of the kernel, which is one
+   * filter for every channel, and run after it on its ear alone.
+   */
+  int ear = 0;
 };
 
 /**
@@ -304,6 +328,8 @@ struct FeqChain {
    * not allocate is worse than a rack missing one processor.
    */
   FeqDenoise* denoise = nullptr;
+  /** The De-esser, owned and made with the chain; null leaves it out. */
+  FeqDeEsser* deesser = nullptr;
 
   ChainEqSlot slots[FEQ_CHAIN_MAX_CHANNELS];
   ChainExciterPath paths[kExciterPaths];
@@ -349,6 +375,14 @@ struct FeqChain {
    */
   struct ChainCoefficients {
     std::vector<FeqBiquadCoefficients> bands;
+    /**
+     * A band kept to one ear on a stereo arrangement (`chain_band_ear`):
+     * the stereo cascade then plays `ear_bands[ear_array_of(channel)]` on
+     * each channel, `bands` with the identity where the band is not heard.
+     * Empty and unread while every band is on both.
+     */
+    int has_ears = 0;
+    std::vector<FeqBiquadCoefficients> ear_bands[kEarArrays];
     /** The dynamic bands' filters at the base rate, in settings order. */
     std::vector<FeqBiquadCoefficients> dynamic;
     /**
@@ -621,6 +655,9 @@ struct FeqChain {
   int kernel_matched = 0;
   double kernel_subsonic_hz = 0.0;
   FeqLinearPhaseBand kernel_bands[FEQ_CHAIN_MAX_EQ_BANDS] = {};
+  /** Each band's ear when the kernel was made: a move from one ear to the
+      other leaves the kernel's bands alike and still has to cross. */
+  int kernel_ears[FEQ_CHAIN_MAX_EQ_BANDS] = {};
 
   /* --------------------------------------------------------- maximizer -- */
   FeqLinkedLimiter maximizer{};
@@ -758,6 +795,14 @@ struct FeqChain {
   /** The Library measured the track, so the chain must not measure it again. */
   int host_track_gains = 0;
 
+  // Immutable source identity on a prepared rack. A settings edit may carry
+  // histories; a new song/seek may not inherit delayed audio from its past.
+  uint32_t source_analysis_version = 0;
+  bool source_library = false;
+  uint64_t source_id = 0;
+  uint64_t source_epoch = 0;
+  uint64_t source_revision = 0;
+
   /** Scratch for the block's pointer arrays, so the loop allocates none. */
   float* pointers_a[FEQ_CHAIN_MAX_CHANNELS] = {};
   float* pointers_b[FEQ_CHAIN_MAX_CHANNELS] = {};
@@ -805,6 +850,16 @@ void chain_process_punch_align(FeqChain* chain, float* const* channels,
 /** Point the alignment lines at the restoration's current latency. CONTROL
     thread, after `feq_denoise_configure`; the lines themselves never move. */
 void chain_apply_denoise_alignment(FeqChain* chain);
+
+/* --- the De-esser, from `chain_deesser.cpp` ------------------------------ */
+
+/** Hand it the dials and the preset's curve. CONTROL thread. */
+void chain_configure_deesser(FeqChain* chain);
+/** Tell it which channels are the LFE and the centre. CONTROL thread. */
+void chain_apply_deesser_layout(FeqChain* chain);
+/** Run it on the block and report what it did. AUDIO thread. */
+void chain_process_deesser(FeqChain* chain, float* const* channels,
+                           uint32_t frames);
 
 /** The mono maker after the EQ, and its return to a stream's start. */
 void chain_process_mono_maker(FeqChain* chain, float* const* channels,
@@ -857,6 +912,19 @@ void chain_kernel_destroy(ChainEqKernel* kernel);
 
 int chain_linear_running(const FeqChain* chain);
 
+/**
+ * The ear a band is heard on, as the rack plays it: 0 for both, 1 left, 2
+ * right. Its own ear on a stereo arrangement of two channels or more, and 0
+ * otherwise — Mid and Sides have no left or right to keep it to, and a mono
+ * stream has one channel.
+ */
+int chain_band_ear(const FeqChain* chain, const FeqChainEqBand& band);
+
+/** Whether a band kept to `ear` is heard on `channel`. */
+constexpr bool chain_ear_on_channel(int ear, uint32_t channel) {
+  return ear == 0 || (ear == 1 && channel == 0) || (ear == 2 && channel == 1);
+}
+
 /** Rebuild the EQ's coefficients and dynamics from the current settings. */
 void chain_refresh_eq(FeqChain* chain);
 
@@ -896,6 +964,27 @@ void chain_eq_fade_transfer(FeqChain& prepared, FeqChain& previous);
 /** The EQ stage, mid/side wrapping included. */
 void chain_process_eq(FeqChain* chain, float* const* channels,
                       uint32_t frames);
+
+/** How late the EQ stage brings the sound back (`FeqChainLatencyParts::eq`). */
+uint32_t chain_eq_latency_frames(const FeqChain* chain);
+
+/** The factor the EQ's Colour stage runs at on this rate. */
+uint32_t chain_eq_colour_factor(const FeqChain* chain);
+
+/**
+ * `target` up by `factor` and back through `state`, in place: the delay and
+ * the skirts of a round trip with nothing done in it (`chain_eq_delay.cpp`).
+ */
+void chain_eq_round_trip(FeqChain* chain, float* target, uint32_t frames,
+                         FeqOversampler* state, uint32_t factor, float* work);
+
+/**
+ * The half Mid only or Sides only leaves alone, in place: made as late as
+ * the half the EQ works on — the linear kernel's delay, the oversampler's
+ * and Colour's round trips — and faded out under Isolate.
+ */
+void chain_eq_pass_untouched(FeqChain* chain, ChainEqSlot& slot,
+                             float* target, uint32_t frames);
 
 /**
  * The EQ through its linear-phase kernel, dynamic bands included, over
@@ -949,6 +1038,15 @@ inline uint32_t chain_headroom_look_ahead(const FeqChain* chain) {
 inline bool chain_leveler_idle(const FeqChain* chain) {
   return chain->settings.low_latency != 0 &&
          chain->settings.normalizer.mode == 0;
+}
+
+/**
+ * Game mode with the De-esser off: its look-ahead goes, as Bass Punch's FIR
+ * does. Read by the stage and by the latency, so the two always agree.
+ */
+inline bool chain_deesser_idle(const FeqChain* chain) {
+  return chain->settings.low_latency != 0 &&
+         chain->settings.deesser.enabled == 0;
 }
 
 #endif /* FLUIDEQ_CHAIN_INTERNAL_H */

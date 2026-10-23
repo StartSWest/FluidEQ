@@ -160,6 +160,29 @@ const lastImage = (): unknown => {
 };
 
 describe('the tray icon and what it advertises', () => {
+  const hostPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+  beforeAll(() =>
+    Object.defineProperty(process, 'platform', { value: 'win32' }),
+  );
+  afterAll(() => {
+    if (hostPlatform) {
+      Object.defineProperty(process, 'platform', hostPlatform);
+    }
+  });
+
+  it('keeps the Mac template icon when an update becomes available', () => {
+    Object.defineProperty(process, 'platform', { value: 'darwin' });
+    try {
+      const tray = loadTray();
+      setUpWorkingTray(tray);
+      expect(pathEndsWith(lastImage(), 'trayTemplate.png')).toBe(true);
+      tray.setTrayUpdateReady(true, deps);
+      expect(pathEndsWith(lastImage(), 'trayTemplate.png')).toBe(true);
+      expect(labels()).toContain('Install update and restart');
+    } finally {
+      Object.defineProperty(process, 'platform', { value: 'win32' });
+    }
+  });
   it('starts on the plain mark with no update item', () => {
     const tray = loadTray();
     setUpWorkingTray(tray);

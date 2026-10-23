@@ -30,6 +30,10 @@ const engineHealth = {
   'engineHealth.rackNeedsEngine':
     'Эффекты DSP работают внутри самого движка, поэтому перезапуск звука Windows заново запускает тот же движок. Помогает установка собственного движка FluidEQ — одно разрешение Windows и секунда тишины.',
   'engineHealth.useApo': 'Использовать Equalizer APO…',
+  'engineHealth.macPermissionTitle': 'FluidEQ не слышит звук вашего Mac',
+  'engineHealth.macPermissionBody':
+    'macOS не разрешила FluidEQ записывать звук, который воспроизводит ваш Mac, поэтому эквалайзер до него не доходит. Пока звук играет как обычно. Включите FluidEQ в разделе «Конфиденциальность и безопасность» › «Запись экрана и системного аудио».',
+  'engineHealth.openMacPrivacy': 'Открыть Системные настройки',
 } as const;
 
 export default engineHealth;

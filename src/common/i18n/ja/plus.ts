@@ -5,19 +5,14 @@ const plus = {
   'plus.remove.done': '表示から「{name}」を削除しました。',
   'plus.card.remove': '削除',
   'plus.official.author': 'FluidEQ · 公式',
-  'plus.official.included': 'Plus に含まれます',
-  'plus.official.sample': '{seconds} 秒のプレビュー',
+  'plus.official.included': '1シーン1クレジット、ずっとあなたのもの',
   'plus.official.badge': '公式',
-  'plus.official.fine':
-    'FluidEQ コレクションの一部です。Plus の間、マイ表示から再生できます。',
   'plus.visualizers.title': 'ビジュアライザー',
   'plus.visualizers.description':
     'FluidEQ と Plus コミュニティのシーンを、あなたの音楽とともに',
   'plus.visualizers.blurb': 'メンバーのシーン',
   'plus.rail.pin': 'サイドバーを固定',
   'plus.rail.collapse': 'サイドバーを折りたたむ',
-
-  'plus.gate.cta': 'Plus を見る',
 
   'plus.gallery.search': 'シーンや作者を検索',
   'plus.gallery.sort': '並べ替え',
@@ -71,11 +66,17 @@ const plus = {
   'plus.version.earlier': '以前のバージョン（{count}）',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'メモなし',
+  'plus.version.play': '使う',
+  'plus.version.playLabel': 'バージョン {version} を使う',
+  'plus.version.playing': '使用中',
+  'plus.version.playingLine':
+    'このコンピューターに保存されたバージョン {version} を使っています。',
+  'plus.version.backToNewest': '最新版に戻す',
+  'plus.version.keptHere': 'このコンピューターに保存',
   'plus.card.open': '{name} を開く',
 
   'plus.like.label': '{name} にいいね（{count} 件）',
   'plus.like.own': 'あなたのシーンへのいいね：{count} 件',
-  'plus.like.plusOnly': 'いいね：{count} 件。いいねは Plus の機能です。',
   'plus.like.offline':
     'いいねには接続が必要です。オンラインでもう一度お試しください。',
 
@@ -92,11 +93,7 @@ const plus = {
   'plus.scene.next': '次のシーン：{name}',
   'plus.scene.loading': 'シーンを読み込み中…',
   'plus.scene.playing': 'あなたの音楽でライブ再生中',
-  'plus.scene.plusPlays':
-    'Plus なら、このシーンがここであなたの音楽に合わせて動きます',
   'plus.scene.taste': 'プレビュー · {seconds} 秒',
-  'plus.scene.keepWatching':
-    'Plus なら、あなたの音楽で見続けて、マイ表示に追加できます。',
   'plus.scene.unavailable': 'このシーンは今はダウンロードできません。',
   'plus.scene.blocked': 'このシーンは削除されました。',
   'plus.scene.changed':
@@ -109,7 +106,6 @@ const plus = {
   'plus.scene.adds': '追加',
   'plus.scene.add': 'マイ表示に追加',
   'plus.scene.update': '自分のコピーを更新',
-  'plus.scene.getPlus': 'Plus で追加する',
   'plus.inspect.open': 'スタジオで開く',
   'plus.inspect.hint':
     'どう作られているかを見て、自分のシーンのアイデアにしてください。公開用ではなく、中を見るためのプロジェクトとして開きます。',
@@ -120,15 +116,12 @@ const plus = {
   'plus.scene.inLooks': 'マイ表示の「メンバーが作成」にあります',
   'plus.scene.inLooksOwn': 'マイ表示の「あなたが作成」にあります',
   'plus.scene.inLooksPlus': 'マイ表示の「FluidEQ Plus」にあります',
-  'plus.scene.fine':
-    '追加したシーンは Plus の間、マイ表示から再生できます。誰も販売することはできません。',
   'plus.scene.report': 'このシーンを報告',
   'plus.scene.reported': '報告しました。ありがとうございます。',
   'plus.scene.moreBy': '{name} のほかのシーン',
   'plus.scene.moreByYou': 'あなたのほかのシーン',
 
   'plus.maker.you': 'あなた',
-  'plus.maker.rank': '順位',
   'plus.maker.scenes': 'シーン',
   'plus.maker.empty': '現在公開されているものはありません。',
 
@@ -227,6 +220,7 @@ const plus = {
   'plus.accounts.filter.all': 'すべてのアカウント',
   'plus.accounts.filter.plus': 'Plus あり',
   'plus.accounts.filter.free': 'Plus なし',
+  'plus.accounts.filter.trial': '無料体験中',
   'plus.accounts.admin': '管理者',
   'plus.accounts.loading': 'アカウントを読み込み中…',
   'plus.accounts.shown': '{total} 件中 {shown} 件を表示',
@@ -234,6 +228,44 @@ const plus = {
   'plus.accounts.empty.search': '{query} に一致するアカウントはありません',
   'plus.accounts.empty.plus': 'これらのアカウントに Plus はありません',
   'plus.accounts.empty.free': 'これらのアカウントはすべて Plus です',
+  'plus.accounts.empty.trial':
+    'これらのアカウントに無料体験中のものはありません',
+  'plus.accounts.trial.thisWeek': '今週終了 {count} 件',
+  'plus.accounts.trial.today': '無料体験は今日終了',
+  'plus.accounts.trial.tomorrow': '無料体験は明日終了',
+  'plus.accounts.trial.inDays': '無料体験はあと {days} 日で終了',
+  'plus.accounts.trial.ends': '無料体験は {date} に終了します。',
+  'plus.accounts.filter.lapsed': '体験終了・Plus なし',
+  'plus.accounts.empty.lapsed': 'Plus にならずに終わった無料体験はありません。',
+  'plus.accounts.empty.joined': 'その期間に作成されたアカウントはありません。',
+  'plus.accounts.joined.label': '登録',
+  'plus.accounts.joined.ever': 'すべて',
+  'plus.accounts.joined.today': '今日',
+  'plus.accounts.joined.week': '今週',
+  'plus.accounts.joined.month': '今月',
+  'plus.accounts.trial.ended': '体験終了 {when}',
+  'plus.accounts.trial.endedOn':
+    '無料体験は {date} に Plus にならずに終わりました。',
+  'plus.accounts.exit.title': 'Plus にしなかった理由',
+  'plus.accounts.exit.summary': '{total} 人中 {said} 人が理由を回答',
+  'plus.accounts.exit.empty':
+    'この一覧に Plus にならずに終わった無料体験はありません。',
+  'plus.accounts.exit.said': '理由: {reason}',
+  'plus.accounts.exit.notSaid': 'まだ理由を答えていません。',
+  'plus.accounts.exit.price': '価格',
+  'plus.accounts.exit.not-enough': '内容が物足りない',
+  'plus.accounts.exit.free-is-enough': '無料で十分',
+  'plus.accounts.exit.no-time': '試す時間がなかった',
+  'plus.accounts.exit.problems': '動作が悪かった',
+  'plus.accounts.exit.payment': '希望の方法で払えなかった',
+  'plus.accounts.exit.other': 'その他',
+  'plus.accounts.exit.none': '未回答',
+  'plus.accounts.engine.title': 'エンジン',
+  'plus.accounts.engine.fluid': 'FluidEQ エンジン',
+  'plus.accounts.engine.apo': 'Equalizer APO',
+  'plus.accounts.engine.unknown': '未報告 {count}',
+  'plus.accounts.engine.summary':
+    'FluidEQ エンジン {fluid}、Equalizer APO {apo}、未報告 {unknown}',
   'plus.accounts.moreError':
     'これ以上のアカウントを読み込めませんでした。もう一度お試しください。',
   'plus.accounts.error.offline':
@@ -254,11 +286,11 @@ const plus = {
   'plus.accounts.appVersion': 'FluidEQ {version}',
   'plus.accounts.plan.none': 'Plus なし',
   'plus.accounts.plan.paid': '{date} まで Plus',
+  'plus.accounts.plan.trial': '無料体験',
   'plus.accounts.plan.gift': 'ギフトの Plus',
   'plus.accounts.plan.giftUntil': '{date} までギフト',
   'plus.accounts.goes': '一緒に削除されるもの',
   'plus.accounts.fact.published': '公開したシーン',
-  'plus.accounts.fact.boardDays': 'ランキングの日数',
   'plus.accounts.fact.likes': '付けたいいね',
   'plus.accounts.fact.adds': '追加したシーン',
   'plus.accounts.fact.reports': '送った報告',
@@ -269,13 +301,19 @@ const plus = {
   'plus.accounts.note.deleting':
     'このアカウントの以前の削除が途中で止まりました。「削除を完了」で最後まで行います。',
   'plus.accounts.note.gift':
-    '規約のとおり、このアドレスへの Plus のギフトは残ります。それも依頼されている場合は「Plus のギフト」で取り消してください。',
+    '規約のとおり、このアドレスへの Plus のギフトは残ります。それも依頼されている場合は、ここか「Plus のギフト」で取り消してください。',
   'plus.accounts.give': 'Plus を贈る',
   'plus.accounts.giveConfirm':
     '{name} に Plus を贈りますか? 取り消すまで続きます。',
   'plus.accounts.giving': '{name} に Plus を贈っています…',
   'plus.accounts.giveYes': 'Plus を贈る',
   'plus.accounts.giveNo': '今はしない',
+  'plus.accounts.takeBack': 'Plus を取り消す',
+  'plus.accounts.takeBackPaid':
+    '{name} に贈った Plus を取り消しますか? 支払い中の Plus はそのまま続きます。',
+  'plus.accounts.takeBackPlain':
+    '{name} に贈った Plus を取り消しますか? 今すぐ終了します。',
+  'plus.accounts.takingBack': '{name} の Plus を取り消しています…',
   'plus.accounts.delete': 'アカウントを削除',
   'plus.accounts.finish': '削除を完了',
   'plus.accounts.confirm':
@@ -322,6 +360,8 @@ const plus = {
     '完全に削除しますか？ギャラリーとすべてのメンバーの表示から消え、ファイルも消去され、二度と公開できなくなります。',
   'plus.moderation.deleteForGood': '完全に削除',
   'plus.moderation.done.deleted': '{name} を削除しました。',
+  'plus.add.notOwned':
+    'まず「{name}」を入手してください。1クレジットで入手でき、その後マイ表示に入ります。',
 } as const;
 
 export default plus;

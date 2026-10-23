@@ -23,6 +23,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "endpoints.h"
 #include "fs.h"
 #include "fx_list.h"
+#include "fx_modes.h"
 #include "json.h"
 #include "registry.h"
 #include "services.h"
@@ -391,6 +392,45 @@ void detach_each(const std::vector<std::wstring>& guids,
   }
 }
 
+/**
+ * Every output the engine is already on, given the processing modes value its
+ * slot lacks (`plan_mode_in_place`). Which outputs it is on, and in which
+ * slot, stay exactly as they are; an output it is not on is not touched.
+ *
+ * Every helper before 2.0.1 wrote pids 5 to 7 without that value, which
+ * leaves the engine registered for discovery only — a Sound BlasterX G6 had
+ * it that way, attached on every reading and never once created. An install
+ * is what an engine update runs, and what the machine-wide repair runs, so
+ * this is how every such output on a machine is put right at once, rather
+ * than one at a time as each is heard silent. The outputs looked at are the
+ * ones with a backup: every output the engine was ever attached to.
+ *
+ * Each output it writes is listed, so the log says what the install touched;
+ * one that cannot be written fails nothing else, as `--attach-all` treats an
+ * output it could not attach, and is listed with its reason.
+ */
+void complete_modes(CommandResult& result) {
+  for (const std::wstring& guid : endpoints_with_backups()) {
+    FxValues before;
+    std::wstring error;
+    if (!read_fx_values(guid, before, error)) {
+      // Not knowing what is there, nothing is written there.
+      result.endpoints.push_back(
+          {guid, false, L"could not read the output's effects: " + error});
+      continue;
+    }
+    const FxPlan plan = plan_mode_in_place(before, kEngineClsid);
+    if (!plan.changed) {
+      continue;
+    }
+    EndpointResult one{guid, true, std::wstring()};
+    if (!write_fx_values(guid, before, plan.after, error)) {
+      one.error = L"could not give the engine its processing mode: " + error;
+    }
+    result.endpoints.push_back(one);
+  }
+}
+
 void run_install(const Options& options, CommandResult& result) {
   const std::wstring source = module_dir();
   const std::wstring target = install_dir();
@@ -461,6 +501,9 @@ void run_install(const Options& options, CommandResult& result) {
       return;
     }
   }
+  // After `--attach-all`, which gives every output it attaches its mode
+  // itself; what is left is the outputs an older helper attached.
+  complete_modes(result);
   if (options.restart_audio && !restart_audio(result.error)) {
     result.ok = false;
   }

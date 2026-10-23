@@ -5,19 +5,14 @@ const plus = {
   'plus.remove.done': '{name} wurde aus Ihren Darstellungen entfernt.',
   'plus.card.remove': 'Entfernen',
   'plus.official.author': 'FluidEQ · Offiziell',
-  'plus.official.included': 'In Plus enthalten',
-  'plus.official.sample': '{seconds}-Sekunden-Vorschau',
+  'plus.official.included': 'Ein Credit pro Szene, für immer Ihre',
   'plus.official.badge': 'Offiziell',
-  'plus.official.fine':
-    'Teil der FluidEQ-Sammlung: läuft aus Ihren Darstellungen, solange Sie Plus haben.',
   'plus.visualizers.title': 'Visualizer',
   'plus.visualizers.description':
     'Szenen von FluidEQ und der Plus-Community, bereit für Ihre Musik',
   'plus.visualizers.blurb': 'Szenen von Mitgliedern',
   'plus.rail.pin': 'Seitenleiste anheften',
   'plus.rail.collapse': 'Seitenleiste einklappen',
-
-  'plus.gate.cta': 'Plus ansehen',
 
   'plus.gallery.search': 'Szenen oder Ersteller suchen',
   'plus.gallery.sort': 'Sortieren',
@@ -72,12 +67,17 @@ const plus = {
   'plus.version.earlier': 'Frühere Versionen ({count})',
   'plus.version.short': 'v{version}',
   'plus.version.noNote': 'Keine Notiz',
+  'plus.version.play': 'Verwenden',
+  'plus.version.playLabel': 'Version {version} verwenden',
+  'plus.version.playing': 'Aktiv',
+  'plus.version.playingLine':
+    'Sie verwenden Version {version}, auf diesem Computer aufbewahrt.',
+  'plus.version.backToNewest': 'Zur neuesten zurück',
+  'plus.version.keptHere': 'Auf diesem Computer aufbewahrt',
   'plus.card.open': '{name} öffnen',
 
   'plus.like.label': '„Gefällt mir“ für {name} ({count} „Gefällt mir“)',
   'plus.like.own': 'Ihre Szene hat {count} „Gefällt mir“',
-  'plus.like.plusOnly':
-    '{count} „Gefällt mir“. Szenen mit „Gefällt mir“ markieren gehört zu Plus.',
   'plus.like.offline':
     'Für „Gefällt mir“ ist eine Verbindung nötig. Versuchen Sie es online erneut.',
 
@@ -95,10 +95,7 @@ const plus = {
   'plus.scene.next': 'Nächste Szene: {name}',
   'plus.scene.loading': 'Szene wird geladen…',
   'plus.scene.playing': 'Live zu Ihrer Musik',
-  'plus.scene.plusPlays': 'Mit Plus läuft diese Szene hier zu Ihrer Musik',
   'plus.scene.taste': 'Vorschau · {seconds} s',
-  'plus.scene.keepWatching':
-    'Mit Plus sehen Sie sie weiter zu Ihrer Musik und fügen sie Ihren Darstellungen hinzu.',
   'plus.scene.unavailable':
     'Diese Szene kann gerade nicht heruntergeladen werden.',
   'plus.scene.blocked': 'Diese Szene wurde entfernt.',
@@ -112,7 +109,6 @@ const plus = {
   'plus.scene.adds': 'Hinzugefügt',
   'plus.scene.add': 'Zu meinen Darstellungen',
   'plus.scene.update': 'Meine Kopie aktualisieren',
-  'plus.scene.getPlus': 'Mit Plus hinzufügen',
   'plus.inspect.open': 'Im Studio öffnen',
   'plus.inspect.hint':
     'Sehen Sie, wie sie gemacht ist, und holen Sie sich Ideen für Ihre eigenen Szenen. Sie öffnet sich als Projekt zum Hineinschauen, nicht zum Veröffentlichen.',
@@ -125,15 +121,12 @@ const plus = {
     'In Ihren Darstellungen, unter „Von Mitgliedern erstellt“',
   'plus.scene.inLooksOwn': 'In Ihren Darstellungen, unter „Von Ihnen erstellt“',
   'plus.scene.inLooksPlus': 'In Ihren Darstellungen, unter „FluidEQ Plus“',
-  'plus.scene.fine':
-    'Hinzugefügte Szenen laufen aus Ihren Darstellungen, solange Sie Plus haben. Niemand darf sie verkaufen.',
   'plus.scene.report': 'Diese Szene melden',
   'plus.scene.reported': 'Gemeldet. Danke.',
   'plus.scene.moreBy': 'Mehr von {name}',
   'plus.scene.moreByYou': 'Mehr von Ihnen',
 
   'plus.maker.you': 'Sie',
-  'plus.maker.rank': 'Platz',
   'plus.maker.scenes': 'Szenen',
   'plus.maker.empty': 'Derzeit nichts veröffentlicht.',
 
@@ -234,6 +227,7 @@ const plus = {
   'plus.accounts.filter.all': 'Alle Konten',
   'plus.accounts.filter.plus': 'Mit Plus',
   'plus.accounts.filter.free': 'Ohne Plus',
+  'plus.accounts.filter.trial': 'In der Gratis-Testphase',
   'plus.accounts.admin': 'Admin',
   'plus.accounts.loading': 'Konten werden geladen …',
   'plus.accounts.shown': '{shown} von {total} angezeigt',
@@ -241,6 +235,45 @@ const plus = {
   'plus.accounts.empty.search': 'Kein Konto passt zu {query}',
   'plus.accounts.empty.plus': 'Keines dieser Konten hat Plus',
   'plus.accounts.empty.free': 'Alle diese Konten haben Plus',
+  'plus.accounts.empty.trial':
+    'Keines dieser Konten ist in der Gratis-Testphase',
+  'plus.accounts.trial.thisWeek': '{count} enden diese Woche',
+  'plus.accounts.trial.today': 'Testphase endet heute',
+  'plus.accounts.trial.tomorrow': 'Testphase endet morgen',
+  'plus.accounts.trial.inDays': 'Testphase endet in {days} Tagen',
+  'plus.accounts.trial.ends': 'Die Gratis-Testphase endet am {date}.',
+  'plus.accounts.filter.lapsed': 'Testphase ohne Plus',
+  'plus.accounts.empty.lapsed':
+    'Keine Gratis-Testphase ist ohne Plus abgelaufen.',
+  'plus.accounts.empty.joined': 'In diesem Zeitraum wurde kein Konto erstellt.',
+  'plus.accounts.joined.label': 'Beigetreten',
+  'plus.accounts.joined.ever': 'Gesamt',
+  'plus.accounts.joined.today': 'Heute',
+  'plus.accounts.joined.week': 'Diese Woche',
+  'plus.accounts.joined.month': 'Diesen Monat',
+  'plus.accounts.trial.ended': 'Testphase vorbei {when}',
+  'plus.accounts.trial.endedOn':
+    'Die Gratis-Testphase endete am {date}, ohne Plus.',
+  'plus.accounts.exit.title': 'Warum sie Plus nicht genommen haben',
+  'plus.accounts.exit.summary': '{said} von {total} haben den Grund genannt',
+  'plus.accounts.exit.empty':
+    'Keine Gratis-Testphase in dieser Liste ist ohne Plus abgelaufen.',
+  'plus.accounts.exit.said': 'Grund: {reason}',
+  'plus.accounts.exit.notSaid': 'Hat noch keinen Grund genannt.',
+  'plus.accounts.exit.price': 'Der Preis',
+  'plus.accounts.exit.not-enough': 'Zu wenig dabei',
+  'plus.accounts.exit.free-is-enough': 'Kostenlos reicht',
+  'plus.accounts.exit.no-time': 'Keine Zeit zum Ausprobieren',
+  'plus.accounts.exit.problems': 'Lief schlecht',
+  'plus.accounts.exit.payment': 'Konnte nicht wie gewünscht zahlen',
+  'plus.accounts.exit.other': 'Etwas anderes',
+  'plus.accounts.exit.none': 'Keine Angabe',
+  'plus.accounts.engine.title': 'Engine',
+  'plus.accounts.engine.fluid': 'FluidEQ-Engine',
+  'plus.accounts.engine.apo': 'Equalizer APO',
+  'plus.accounts.engine.unknown': 'Nicht gemeldet {count}',
+  'plus.accounts.engine.summary':
+    'FluidEQ-Engine {fluid}, Equalizer APO {apo}, nicht gemeldet {unknown}',
   'plus.accounts.moreError':
     'Weitere Konten konnten nicht geladen werden. Versuchen Sie es erneut.',
   'plus.accounts.error.offline':
@@ -260,11 +293,11 @@ const plus = {
   'plus.accounts.appVersion': 'FluidEQ {version}',
   'plus.accounts.plan.none': 'Kein Plus',
   'plus.accounts.plan.paid': 'Plus bis {date}',
+  'plus.accounts.plan.trial': 'Gratis-Testphase',
   'plus.accounts.plan.gift': 'Plus als Geschenk',
   'plus.accounts.plan.giftUntil': 'Geschenk bis {date}',
   'plus.accounts.goes': 'Wird mitgelöscht',
   'plus.accounts.fact.published': 'Veröffentlichte Szenen',
-  'plus.accounts.fact.boardDays': 'Ranglistentage',
   'plus.accounts.fact.likes': 'Vergebene „Gefällt mir“',
   'plus.accounts.fact.adds': 'Hinzugefügte Szenen',
   'plus.accounts.fact.reports': 'Gesendete Meldungen',
@@ -275,13 +308,19 @@ const plus = {
   'plus.accounts.note.deleting':
     'Eine frühere Löschung dieses Kontos ist mittendrin stehen geblieben. „Löschung abschließen“ bringt sie zu Ende.',
   'plus.accounts.note.gift':
-    'Ein Plus-Geschenk an diese Adresse bleibt bestehen, wie es die Bedingungen sagen. Nehmen Sie es unter Plus-Geschenke zurück, falls auch das gewünscht wurde.',
+    'Ein Plus-Geschenk an diese Adresse bleibt bestehen, wie es die Bedingungen sagen. Nehmen Sie es hier oder unter Plus-Geschenke zurück, falls auch das gewünscht wurde.',
   'plus.accounts.give': 'Plus schenken',
   'plus.accounts.giveConfirm':
     '{name} Plus schenken? Es gilt, bis Sie es zurücknehmen.',
   'plus.accounts.giving': '{name} wird Plus geschenkt …',
   'plus.accounts.giveYes': 'Plus schenken',
   'plus.accounts.giveNo': 'Jetzt nicht',
+  'plus.accounts.takeBack': 'Plus zurücknehmen',
+  'plus.accounts.takeBackPaid':
+    'Das geschenkte Plus von {name} zurücknehmen? Das bezahlte Plus läuft weiter.',
+  'plus.accounts.takeBackPlain':
+    'Das geschenkte Plus von {name} zurücknehmen? Es endet sofort.',
+  'plus.accounts.takingBack': 'Plus von {name} wird zurückgenommen …',
   'plus.accounts.delete': 'Konto löschen',
   'plus.accounts.finish': 'Löschung abschließen',
   'plus.accounts.confirm':
@@ -329,6 +368,8 @@ const plus = {
     'Endgültig löschen? Sie verschwindet aus der Galerie und aus den Darstellungen aller Mitglieder, ihre Dateien werden gelöscht, und sie kann nie wieder veröffentlicht werden.',
   'plus.moderation.deleteForGood': 'Endgültig löschen',
   'plus.moderation.done.deleted': '{name} wurde gelöscht.',
+  'plus.add.notOwned':
+    'Holen Sie sich {name} zuerst: Das kostet einen Credit, danach kommt sie zu Ihren Darstellungen.',
 } as const;
 
 export default plus;

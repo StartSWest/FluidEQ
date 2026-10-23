@@ -27,6 +27,8 @@ export interface IForumConfig {
   name: string;
   /** The JSON the repository's workflow publishes on every discussion event. */
   feedUrl: string;
+  /** Its neighbour on the same branch: the repository's issues. */
+  issuesUrl: string;
   /** Empty in a build that cannot sign in. */
   clientId: string;
   /** The server function that makes the token requests; empty with `clientId`. */
@@ -64,6 +66,7 @@ export const buildForumConfig = (
     owner,
     name,
     feedUrl: `https://raw.githubusercontent.com/${owner}/${name}/discussions-data/discussions.json`,
+    issuesUrl: `https://raw.githubusercontent.com/${owner}/${name}/discussions-data/issues.json`,
     clientId: signs ? clientId : '',
     tokenUrl: signs ? `${apiUrl}/github-token` : '',
   };

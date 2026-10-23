@@ -19,7 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import heightProperty from '../utils/heightProperty';
 import { watchBandsPaneNeed } from '../utils/bandsPaneNeed';
-import { IBandPlacement } from '../graph/plotGeometry';
+import {
+  IBandPlacement,
+  IPlotGeometry,
+  placeBandsEvenly,
+} from '../graph/plotGeometry';
 
 // The EQ page's band rail: its measured height, what the pane under the
 // graph needs for a full track, and the bands' places written onto the row.
@@ -37,6 +41,33 @@ export const attachRail = (rail: HTMLDivElement | null) => {
     stopMeasuring?.();
     stopWatching?.();
   };
+};
+
+/** Measure the available rail, never the row whose placement we are changing.
+ * An overflowing row is wider than its viewport: measuring it made the bands
+ * appear to fit, then stop fitting once placed, repeating on every resize. */
+export const measureBandPlacement = (
+  bands: HTMLElement,
+  plot: IPlotGeometry,
+  count: number,
+): IBandPlacement | undefined => {
+  const rail = bands.closest('.bands-rail');
+  if (!(rail instanceof HTMLElement)) {
+    return undefined;
+  }
+  const box = rail.getBoundingClientRect();
+  const offset = plot.element.getBoundingClientRect().left - box.left;
+  let visible = { left: 0, right: box.width };
+  const scroller = bands.closest('.workspace-tab-panel__scroll');
+  if (scroller instanceof HTMLElement) {
+    const left =
+      scroller.getBoundingClientRect().left + scroller.clientLeft - box.left;
+    visible = {
+      left: Math.max(0, left),
+      right: Math.min(box.width, left + scroller.clientWidth),
+    };
+  }
+  return placeBandsEvenly(count, plot, offset, visible);
 };
 
 /**

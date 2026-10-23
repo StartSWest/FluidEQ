@@ -20,14 +20,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { Dictionary } from '../en';
 
 const eq: Partial<Dictionary> = {
+  'extraOutput.editMain': 'मुख्य आउटपुट संपादित करें',
+  'extraOutput.edit': 'ध्वनि संपादित करें',
+  'extraOutput.done': 'हो गया',
+  'extraOutput.editing': 'संपादन',
+  'extraOutput.editHint': 'मुख्य आउटपुट बदले बिना {device} संपादित करें',
+  'extraOutput.editingOutput': 'संपादन: {device}',
+  'eq.layouts.empty':
+    'डिज़ाइन में बैंड की फ़्रीक्वेंसी, हर Q मान और Q का व्यवहार सहेजा जाता है। गेन और तीव्रता अलग रहते हैं।',
+  'eq.layouts.qHint':
+    'नए लेआउट में सभी बैंड एक ही Q से शुरू होते हैं। अधिक बैंड होने पर उनकी चौड़ाई कम होती है।',
+  'eq.layouts.resetQ': 'बैंड Q रीसेट करें',
+  'eq.layouts.resetQHint':
+    'सभी बेल बैंड के लिए अनुशंसित Q बहाल करें। फ़्रीक्वेंसी, गेन और Q का व्यवहार बनाए रखें।',
+  'eq.mode.mainQHint':
+    'केवल मुख्य EQ बैंड। स्थिर मोड में गेन बदलने पर Q नहीं बदलता। आनुपातिक और असममित मोड में Q गेन के अनुसार बदलता है।',
+  'graph.item.eqLabels': 'EQ लेबल',
+  'graph.contents.unlabelled': 'बिना EQ लेबल',
   'eq.mode.linearDelayInactive': 'सक्रिय EQ पर ≈ +{ms} ms',
   'eq.mode.linearDelay': '≈ +{ms} ms देरी',
   'eq.mode.linearDelayShared': '≈ {ms} ms, साझा',
   'eq.mode.gameMinimum': 'गेम मोड: मिनिमम',
   'eq.layouts.builtIn': 'पहले से मौजूद लेआउट',
   'eq.layouts.saved': 'मेरे डिज़ाइन',
-  'eq.layouts.empty':
-    'केवल बैंड की फ़्रीक्वेंसी और Q सहेजें, गेन या EQ मोड नहीं।',
   'eq.layouts.loading': 'डिज़ाइन लोड हो रहे हैं…',
   'eq.layouts.name': 'डिज़ाइन का नाम',
   'eq.layouts.duplicate':
@@ -67,6 +82,9 @@ const eq: Partial<Dictionary> = {
   'eq.mode.trebleUpdate':
     'ट्रेबल कैसे बजे, यह चुनने के लिए FluidEQ इंजन अपडेट करें।',
   'eq.mode.reset': 'रीसेट',
+  'eq.mode.pin': 'ग्राफ़ के पास पिन करें',
+  'eq.mode.unpin': 'वापस मेनू में रखें',
+  'eq.mode.showPinned': 'ग्राफ़ के पास EQ मोड दिखाएँ',
   'eq.mode.customized': 'कस्टम',
   'eq.mode.strength': 'तीव्रता',
   'eq.mode.q': 'बैंड Q',
@@ -162,6 +180,8 @@ const eq: Partial<Dictionary> = {
     'चालू होने पर इस कंप्यूटर की घड़ी के अनुसार विज़ुअलाइज़र में रात को रात और दिन को दिन होता है। बंद होने पर वह ऊपर चुना गया उजाला रखता है।',
   'graph.sceneTint.daylightFollowingClockHint':
     'घड़ी के साथ चल रहा है। विज़ुअलाइज़र का समय अलग से चुनने के लिए “उजाला घड़ी के साथ” बंद करें',
+  'graph.sceneTint.daylightStudioHint':
+    'स्टूडियो खुला होने पर चमक ही विज़ुअलाइज़र का समय तय करती है, ताकि सीन को रात से दिन तक परखा जा सके। स्टूडियो से निकलते ही यह चुनाव फिर लागू होता है',
   'graph.sceneTint.brightnessHint':
     'आपकी थीम में या विज़ुअलाइज़र के रंगों में विंडो कितनी हल्की या गहरी दिखे',
   'graph.member.mine': 'आपके बनाए',
@@ -285,6 +305,15 @@ const eq: Partial<Dictionary> = {
   'graph.curve.driver': 'ड्राइवर',
   'graph.curve.headphone': 'हेडफ़ोन',
   'graph.curve.eq': 'EQ प्रतिक्रिया',
+  'graph.curve.leftEar': 'बायाँ कान',
+  'graph.curve.rightEar': 'दायाँ कान',
+  'eq.channels.update':
+    'इस कंप्यूटर का FluidEQ Engine अपना अपडेट इंस्टॉल होने तक इस बैंड को दोनों कानों में बजाता है।',
+  'eq.channels.both': 'दोनों कान',
+  'eq.channels.split': 'बायाँ + दायाँ',
+  'eq.channels.importInto': 'इसमें आयात करें',
+  'eq.channels.letter.left': 'बा',
+  'eq.channels.letter.right': 'दा',
   'graph.curve.voicing': 'प्रीसेट',
   'graph.curve.smart': 'स्मार्ट EQ',
   'graph.curve.custom': 'कस्टम FX',
@@ -424,7 +453,7 @@ const eq: Partial<Dictionary> = {
   'output.sevenOneFailed':
     'Windows ने इस आउटपुट पर 7.1 फ़ॉर्मैट स्वीकार नहीं किया।',
   'output.none': 'कोई चालू आउटपुट नहीं मिला',
-  'output.mapping': 'स्वचालित जोड़',
+  'output.battery': 'बैटरी {percent}%',
   'output.mapping.neutral': 'बिना बदलाव वाला आउटपुट',
   'output.mapping.live': 'चालू ट्यूनिंग जुड़ी है',
   'output.hint':
@@ -436,19 +465,11 @@ const eq: Partial<Dictionary> = {
   'extraOutput.none': 'कोई दूसरा आउटपुट नहीं मिला',
   'extraOutput.statusOff': 'बंद',
   'extraOutput.volume': 'आवाज़',
-  'extraOutput.mode.title': 'यह कैसे साथ चलता है',
-  'extraOutput.mode.video.title': 'गेम/वीडियो',
-  'extraOutput.mode.video.body':
-    'तस्वीर से सेकंड के कुछ सौवें हिस्से के भीतर रहता है और अटकने के बाद खुद फिर से मिल जाता है।',
-  'extraOutput.mode.video.buffer': 'शुरुआत ~30 ms',
-  'extraOutput.mode.music.title': 'संगीत',
-  'extraOutput.mode.music.body':
-    'सेकंड का दसवाँ हिस्सा रिज़र्व में रखता है ताकि कभी न अटके।',
-  'extraOutput.mode.music.buffer': 'शुरुआत ~100 ms',
-  'extraOutput.latency.video':
-    'मिरर की गई आवाज़ स्क्रीन के इतने पास रहती है कि होंठ मिलते हैं। एक ही जगह से दोनों आउटपुट सुनाई दें तो हल्की दोहरी आवाज़ महसूस हो सकती है।',
-  'extraOutput.latency.music':
-    'मिरर की गई आवाज़ लगभग सेकंड के दसवें हिस्से देर से पहुँचती है और कभी नहीं अटकती। दूसरे कमरे के लिए ठीक है; स्क्रीन के लिए गेम/वीडियो चुनें।',
+  'extraOutput.latency':
+    'मुख्य आउटपुट दूसरे आउटपुट का इंतज़ार नहीं करता। ये आँकड़े सॉफ़्टवेयर बफ़रिंग का अनुमान हैं, सुनाई देने वाली देरी का नहीं। ऑडियो ड्राइवर, डिवाइस और वायरलेस कनेक्शन अतिरिक्त देरी जोड़ सकते हैं।',
+  'extraOutput.delayUnavailable': 'विलंब उपलब्ध नहीं',
+  'extraOutput.delay': 'सॉफ़्टवेयर बफ़र: {milliseconds} ms',
+  'extraOutput.delayFrom': '{name} से: {milliseconds} ms सॉफ़्टवेयर बफ़रिंग',
   'extraOutput.virtual':
     'एक रूटिंग ड्राइवर पहले से इंस्टॉल है। अपने ऐप्लिकेशन उसी पर भेजें, तो दोनों आउटपुट एक साथ चलेंगे; फिर ऊपर हर एक को अपनी अलग प्रोफ़ाइल दें।',
   'extraOutput.ambiguous':
@@ -545,6 +566,7 @@ const eq: Partial<Dictionary> = {
   'opra.createdBy': '{author} द्वारा बनाया गया प्रीसेट',
   'opra.distributedBy': 'OPRA by Roon द्वारा वितरित',
   'opra.source': 'स्रोत',
+  'opra.onSite': 'fluideq.com पर इसके सारे करेक्शन',
   'autoeq.curveTitle': 'लागू सुधार',
   'autoeq.curveEmptyHint':
     'कोई हेडफ़ोन और लक्ष्य चुनें, फिर लागू करें — उससे होने वाला सुधार यहाँ दिखेगा।',
@@ -590,8 +612,8 @@ const eq: Partial<Dictionary> = {
   'eq.title': 'पैरामीट्रिक EQ',
   'eq.smart': 'स्मार्ट EQ',
   'eq.smart.cancel': 'रद्द करें',
+  'eq.smart.stopAria': 'स्मार्ट EQ रोकें',
   'eq.smart.aria': 'स्रोत से स्मार्ट EQ बनाएँ',
-  'eq.smart.cancelAria': 'स्मार्ट EQ माप रद्द करें',
   'eq.smart.continuousAria':
     'संगीत चलते समय स्मार्ट EQ मापता और समायोजित करता रहे',
   'eq.smart.modeAria': 'चुनें कि स्मार्ट EQ कैसे मापे',
@@ -668,6 +690,8 @@ const eq: Partial<Dictionary> = {
   'eq.menu.enable': 'बैंड चालू करें',
   'eq.menu.disableSelection': '{count} बैंड बंद करें',
   'eq.menu.enableSelection': '{count} बैंड चालू करें',
+  'eq.menu.deleteSelection': '{count} बैंड हटाएँ',
+  'eq.menu.deleteConfirm': 'हटाने के लिए फिर से दबाएँ',
   'eq.menu.addLeft': 'बाईं ओर बैंड जोड़ें',
   'eq.menu.addRight': 'दाईं ओर बैंड जोड़ें',
   'eq.menu.selection': '{count} बैंड चुने गए',
@@ -759,6 +783,12 @@ const eq: Partial<Dictionary> = {
   'autoeq.deviceAria': 'ऑडियो डिवाइस',
   'autoeq.targetAria': 'लक्ष्य आवृत्ति प्रतिक्रिया',
   'eq.band.edit': '{frequency} Hz बैंड संपादित करें',
+  'eq.band.gainSlider': '{frequency} गेन',
+  'graph.handle.label':
+    '{band}, {frequency}. इसकी फ़्रीक्वेंसी और गेन बदलने के लिए खींचें; Ctrl+स्क्रॉल इसका Q बदलता है।',
+  'graph.handle.off': 'बंद',
+  'graph.handle.select': 'चुनने के लिए क्लिक करें',
+  'graph.handle.quality': 'Ctrl+स्क्रॉल Q बदलता है',
   'eq.layers.apoEdit': 'Equalizer APO में बदलाव',
   'convolution.entryDetail': '{provider} · मिनिमम फ़ेज़ · {rate} kHz WAV',
   'eq.refused.bandLimit':
@@ -772,6 +802,125 @@ const eq: Partial<Dictionary> = {
   'eq.refused.preampRange.action': 'प्रीऐम्प जहाँ था, वहीं छोड़ दिया गया।',
   'eq.refused.externalEq':
     'बाहरी EQ में ऐसे चरण हैं जिन्हें FluidEQ सुरक्षित रूप से नहीं अपना सकता। उसकी फ़ाइलें नहीं बदली गईं।',
+  // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.tab.opra': 'OPRA लाइब्रेरी',
+  'myCurves.tab.mine': 'मेरे कर्व',
+  'myCurves.tab.squiglink': 'Squiglink',
+  'myCurves.search': 'अपने कर्व खोजें',
+  'myCurves.sort': 'क्रम',
+  'myCurves.sort.recent': 'हाल के',
+  'myCurves.sort.name': 'A–Z',
+  'myCurves.add': 'कर्व जोड़ें',
+  'myCurves.import': 'सूची आयात करें',
+  'myCurves.export': 'सूची निर्यात करें',
+  'myCurves.empty.title': 'अभी तक आपका कोई कर्व नहीं',
+  'myCurves.empty.body':
+    'Squiglink एक्सपोर्ट या .txt फ़ाइल से एक जोड़ें, या Squiglink टैब से सेव करें। आपके कर्व इस कंप्यूटर पर रहते हैं, जब तक आप उन्हें निर्यात न करें।',
+  'myCurves.noMatch': 'किसी कर्व के नाम में यह नहीं है।',
+  'myCurves.source.squiglink': 'Squiglink',
+  'myCurves.source.file': 'फ़ाइल',
+  'myCurves.source.eq': 'मेरा EQ',
+  'myCurves.source.opra': 'OPRA से',
+  'myCurves.added': '{date} को जोड़ा गया',
+  'myCurves.playing': 'चल रहा है',
+  'myCurves.applyEqHint':
+    'आपके बदले जा सकने वाले बैंड इस कर्व के बैंड से बदल देता है। पक्का करने के लिए फिर से दबाएँ।',
+  'myCurves.replaceBands': 'अपने बैंड बदलें?',
+  'myCurves.more': '{name} के लिए और',
+  'myCurves.rename': 'नाम बदलें',
+  'myCurves.duplicate': 'डुप्लिकेट करें',
+  'myCurves.copyText': 'टेक्स्ट के रूप में कॉपी करें',
+  'myCurves.copied': 'कॉपी हो गया',
+  'myCurves.delete': 'हटाएँ',
+  'myCurves.deleteAsk': '“{name}” मिटाएँ?',
+  'myCurves.deleteBody':
+    'यह मेरे कर्व से हमेशा के लिए हट जाएगा। आपकी एक्सपोर्ट की गई सूची में यह बना रहेगा।',
+  'myCurves.cancel': 'रद्द करें',
+  'myCurves.addTitle': 'कर्व जोड़ें',
+  'myCurves.addIntro':
+    'यह मेरे कर्व में जाता है। जब तक आप इसे लागू न करें, कुछ नहीं बजता।',
+  'myCurves.textLabel': 'ParametricEQ टेक्स्ट',
+  'myCurves.textPlaceholder':
+    'यहाँ ParametricEQ या GraphicEQ एक्सपोर्ट पेस्ट करें',
+  'myCurves.read': 'पढ़ा गया: {count} बैंड, प्रीऐम्प {preamp} dB',
+  'myCurves.readNothing':
+    'इस टेक्स्ट में अभी कोई कर्व नहीं है। ParametricEQ या GraphicEQ एक्सपोर्ट पेस्ट करें।',
+  'myCurves.fileFailed': 'उस फ़ाइल को कर्व के रूप में नहीं पढ़ा जा सका।',
+  'myCurves.name': 'नाम',
+  'myCurves.ears': 'कान',
+  'myCurves.defaultName': 'Squiglink कर्व, {date}',
+  'myCurves.chartAria': 'कर्व {name}, 20 Hz से 20 kHz तक',
+  'myCurves.save': 'मेरे कर्व में सेव करें',
+  'myCurves.saveApply': 'सेव करें और कर्व के रूप में लागू करें',
+  'myCurves.exportTitle': 'मेरे कर्व निर्यात करें',
+  'myCurves.exportIntro':
+    'सूची में कर्व: {count}। आपके आउटपुट या खाते के बारे में कुछ भी फ़ाइल में नहीं जाता।',
+  'myCurves.format': 'फ़ॉर्मैट',
+  'myCurves.format.list': 'एक FluidEQ कर्व सूची (.fqcurves)',
+  'myCurves.format.listHint':
+    'किसी भी FluidEQ में पूरी आयात होती है: हर नाम, कर्व, प्रीऐम्प और कान।',
+  'myCurves.format.folder': '.txt फ़ाइलों का एक फ़ोल्डर',
+  'myCurves.format.folderHint':
+    'हर कर्व के लिए उसके नाम वाली एक ParametricEQ फ़ाइल, Equalizer APO, Squiglink और AutoEQ टूल के लिए।',
+  'myCurves.exportRun': 'निर्यात करें',
+  'myCurves.exportFailed':
+    'कर्व वहाँ नहीं लिखे जा सके। कोई दूसरी जगह चुनें और फिर से कोशिश करें।',
+  'myCurves.fileName': 'मेरे कर्व',
+  'myCurves.importTitle': 'कर्व आयात करें',
+  'myCurves.importIntro':
+    'एक FluidEQ कर्व सूची, या एक या अधिक ParametricEQ .txt फ़ाइलें चुनें।',
+  'myCurves.importFrom': '{files} से',
+  'myCurves.chooseFiles': 'फ़ाइलें चुनें',
+  'myCurves.importHint': 'कुछ भी जोड़ने से पहले आप हर कर्व देखते हैं।',
+  'myCurves.importNothing':
+    'इन फ़ाइलों में ऐसा कोई कर्व नहीं है जिसे FluidEQ पढ़ सके।',
+  'myCurves.clash': 'इस नाम का कर्व आपके पास पहले से है',
+  'myCurves.clashChoice': '{name} के साथ क्या करें',
+  'myCurves.new': 'नया',
+  'myCurves.choice.keepBoth': 'दोनों रखें',
+  'myCurves.choice.replace': 'बदलें',
+  'myCurves.choice.skip': 'छोड़ें',
+  'myCurves.importRun': 'आयात करें ({count})',
+  'myCurves.importSkipped': 'कर्व न होने के कारण छोड़ी गईं: {names}',
+  'myCurves.importNote':
+    'आयात किए गए कर्व अपने आप कभी नहीं बजते; जो अभी बज रहा है वह बजता रहता है।',
+  'myCurves.from': 'यह कहाँ से आता है',
+  'myCurves.from.paste': 'पेस्ट करें',
+  'myCurves.from.pasteHint': 'Squiglink का ParametricEQ टेक्स्ट, या AutoEQ का',
+  'myCurves.from.file': 'एक .txt फ़ाइल',
+  'myCurves.from.fileHint': 'Equalizer APO या AutoEQ फ़ॉर्मैट',
+  'myCurves.from.eq': 'मेरा EQ अभी',
+  'myCurves.from.eqHint': 'आपके सेट किए बैंड, जैसे वे बजते हैं',
+  'myCurves.from.opra': 'OPRA से',
+  'myCurves.from.opraHint':
+    'चल रहे सुधार की एक कॉपी, नाम बदलने और एडिट करने के लिए',
+  'myCurves.from.opraNone': 'पहले OPRA लाइब्रेरी से कोई सुधार चलाएँ',
+  'myCurves.defaultNameEq': 'मेरा EQ, {date}',
+  'myCurves.defaultNameOpra': 'OPRA कर्व, {date}',
+  'myCurves.unread': 'जो लाइनें पढ़ी नहीं गईं, वे कर्व में नहीं हैं: {lines}',
+  'myCurves.eqLeftOut':
+    'एक ही कान वाले बैंड छोड़ दिए गए: {count}। उन्हें रखने के लिए बायाँ कान या दायाँ कान चुनें।',
+  'myCurves.full':
+    'मेरे कर्व में अधिकतम {count} कर्व आते हैं और यह भर गया है। जगह बनाने के लिए कुछ हटाएँ।',
+  'myCurves.editTitle': 'कर्व एडिट करें',
+  'myCurves.editIntro':
+    'इसका नाम, कान या बैंड बदलें। अगर यह चल रहा है, तो बदलाव सुनने के लिए इसे फिर से लागू करें।',
+  'myCurves.saveChanges': 'बदलाव सेव करें',
+  'myCurves.editBands': 'बैंड एडिट करें',
+  'myCurves.readFailed': 'आपके कर्व पढ़े नहीं जा सके',
+  'myCurves.readFailedBody':
+    'वे अब भी इस कंप्यूटर पर हैं और कुछ नहीं बदला गया। थोड़ी देर में फिर कोशिश करें।',
+  'myCurves.retry': 'फिर कोशिश करें',
+  'myCurves.importSkippedMore':
+    'कर्व न होने के कारण छोड़ी गईं: {names} और {count} अन्य',
+  'myCurves.importRoom':
+    'मेरे कर्व में {max} आते हैं। इनमें से {room} के लिए जगह है; बाकी {count} बाहर रहेंगे।',
+  'myCurves.quick.label': 'सुधार',
+  'myCurves.quick.previous': 'पिछला सुधार',
+  'myCurves.quick.next': 'अगला सुधार',
+  'myCurves.quick.none': 'कोई नहीं चल रहा',
+  'myCurves.quick.opra': 'OPRA · {name}',
+  'myCurves.inList': 'मेरे कर्व में “{name}” नाम से',
 };
 
 export default eq;

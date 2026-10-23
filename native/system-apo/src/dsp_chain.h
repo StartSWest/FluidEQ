@@ -34,17 +34,9 @@ namespace fluideq_engine {
  * `feq_chain_settings_decode`'s own contract: a caller that ignored the result
  * would otherwise configure a chain from a half-filled struct.
  *
- * What this removes from what the app sent, and why:
- *
- * - **Neural Voice only.** It loads an ONNX runtime from disk, and
- *   audiodg.exe is a protected process that will not have it: the load fails
- *   silently inside somebody else's process with nowhere to report it. The
- *   other restoration modules run locally with adaptive live analysis.
- *
- * Nothing else is stripped. Crossfade, the track-level gains, the noise
- * profile and the voice model are all set through their own calls, never
- * through a snapshot, so the system-wide rack simply never makes them — see
- * `chain.h`, which says why each of them is its own call.
+ * Source measurements and the trusted voice model are applied separately
+ * by `build_rack`, on the same control thread before publication. Decoding
+ * never removes a feature from this output's selected settings.
  */
 bool decode_dsp_chain(const std::vector<double>& values,
                       FeqChainSettings* out);
@@ -53,6 +45,9 @@ bool decode_dsp_chain(const std::vector<double>& values,
 struct RackBuild {
   std::unique_ptr<FeqChain, detail::ChainDeleter> chain;
   bool failed = false;
+  bool source_ready = true;
+  bool voice_ready = false;
+  bool warm_handover = false;
   uint32_t channels = 0;
   uint32_t latency = 0;
   /** The rack asks for the room and no head file was there to build it. */
@@ -99,7 +94,8 @@ RackBuild build_rack(const std::vector<double>& values, uint32_t sample_rate,
                      FeqLevelingMemory* leveling = nullptr,
                      unsigned long channel_mask = 0,
                      const RoomHead* room_head = nullptr,
-                     bool low_latency = false);
+                     bool low_latency = false,
+                     const SourceAnalysis* source_analysis = nullptr);
 
 }  // namespace fluideq_engine
 

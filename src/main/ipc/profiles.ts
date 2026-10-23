@@ -42,6 +42,7 @@ import {
   renamePreset,
   renamePresetBaseline,
   savePreset,
+  save,
   savePresetBaseline,
 } from '../flush';
 import {
@@ -60,12 +61,20 @@ import {
 } from '../deviceProfileSettings';
 import { TAudioEngine } from '../../common/audioEngine';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
-import { withOutputMirrorsStopped } from './outputMirror';
+import {
+  withOutputMirrorsStopped,
+  withOutputMirrorsRetargeted,
+} from './outputMirror';
 import onWindowMessage from './windowMessages';
 import { createOutputFollower } from './followOutputs';
 import { IOutputFormatChange, createOutputFormats } from '../outputFormat';
 import { readRoomHeadText } from '../roomHead';
+import type { IMainSession } from '../mainSession';
 import { ROOM_HEADS } from '../../common/dsp/chain';
+import {
+  createProfileMutationListener,
+  profileRequestDeviceId,
+} from './profileRequests';
 
 /**
  * Everything the profile handlers may touch, stated rather than implied.
@@ -109,7 +118,7 @@ export interface IProfilesIpcDeps {
    * up: the copies used to sit in one flat directory keyed by name, so five
    * outputs attached to "Untitled profile 1" shared a single undo point.
    */
-  activeBaselineDir: () => string;
+  activeBaselineDir: (deviceId?: string) => string;
   deviceProfileSettings: IDeviceProfileSettings;
   /**
    * What the process currently has open, passed whole and mutated in place.
@@ -125,6 +134,14 @@ export interface IProfilesIpcDeps {
     configPath: string;
     activeAudioDeviceId: string;
     activeAudioDevice: IAudioDevice | undefined;
+    playbackAudioDevice?: IMainSession['playbackAudioDevice'];
+    audioDevices?: IAudioDevice[];
+    editingAudioDeviceId?: string;
+    outputEditGeneration?: number;
+    outputDspOverrides?: IMainSession['outputDspOverrides'];
+    outputStateOverrides?: IMainSession['outputStateOverrides'];
+    systemRackEnabled?: IMainSession['systemRackEnabled'];
+    secondOutputDevices?: IAudioDevice[];
     hasActiveSessionOverride: boolean;
     audioEngine: TAudioEngine | null;
   };
@@ -155,7 +172,6 @@ export interface IProfilesIpcDeps {
   /** Serialises profile writes, because deleting several quickly is normal. */
   runProfileMutation: (work: () => Promise<void>) => Promise<void>;
   attachPresetToActiveDevice: (presetName: string) => void;
-  clearCurrentLayoutSettings: () => void;
   createEmptyProfileForActiveDevice: () => void;
   getCurrentPreset: () => IPresetV2;
   hydrateActiveConvolution: () => void;
@@ -166,9 +182,9 @@ export interface IProfilesIpcDeps {
   adoptExistingApoConfig: () => boolean | void;
   /** Adopt a device's stored chain into the live state, minus app-wide flags. */
   applyDeviceState: (next: IState) => void;
-  captureCurrentLayout: () => void;
   /** Tell the renderer which output is live now. */
   notifyOutputStateChanged: () => void;
+  onPlaybackOutputChanged?: () => Promise<void>;
   /**
    * Given the outputs just read, keeps one engine in Windows' effect lists —
    * `createApoGuard`. Here because this is the one place in the app that
@@ -219,7 +235,6 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
     handleError,
     runProfileMutation,
     attachPresetToActiveDevice,
-    clearCurrentLayoutSettings,
     createEmptyProfileForActiveDevice,
     getCurrentPreset,
     hydrateActiveConvolution,
@@ -230,8 +245,9 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
     notifyOutputStateChanged,
   } = deps;
   const followOutputs = createOutputFollower(deps);
+  const onProfileMutation = createProfileMutationListener(deps);
 
-  onWindowMessage(ChannelEnum.LOAD_PRESET, async (event, arg) => {
+  onProfileMutation(ChannelEnum.LOAD_PRESET, 1, async (event, arg, owner) => {
     const channel = ChannelEnum.LOAD_PRESET;
     const presetName = arg[0];
     log.info(`Loading preset: ${presetName}`);
@@ -239,9 +255,18 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
     try {
       const presetSettings: IPresetV2 = fetchPreset(
         presetName,
-        activePresetDir(),
+        owner.presetDir,
       );
-      clearCurrentLayoutSettings();
+      state.dsp = presetSettings.dsp;
+      session.outputDspOverrides?.delete(session.activeAudioDeviceId);
+      session.outputStateOverrides?.delete(session.activeAudioDeviceId);
+      state.eqCuts = presetSettings.eqCuts;
+      state.trebleDesigns = presetSettings.trebleDesigns;
+      state.eqPhase = presetSettings.eqPhase;
+      state.curvePhase = presetSettings.curvePhase;
+      state.isAutoPreAmpOn = presetSettings.isAutoPreAmpOn ?? true;
+      session.outputEditGeneration = (session.outputEditGeneration ?? 0) + 1;
+      owner.generation = session.outputEditGeneration;
       state.preAmp = presetSettings.preAmp;
       state.filters = presetSettings.filters;
       state.eqFormat = presetSettings.eqFormat;
@@ -250,6 +275,7 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
       state.isFlat = presetSettings.isFlat;
       state.eqMode = getEqMode(presetSettings);
       state.curveEqMode = getCurveEqMode(presetSettings);
+      state.mainBandQ = presetSettings.mainBandQ;
       state.eqBandQ = presetSettings.eqBandQ;
       state.curveBandQ = presetSettings.curveBandQ;
       state.curveSmoothing = presetSettings.curveSmoothing;
@@ -268,6 +294,9 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
       // themselves. Keeping the previous profile's list would silence a layer this
       // one never switched off.
       state.bypassed = presetSettings.bypassed;
+      // A profile loaded is the listener's own sound; a song's lent one ends
+      // here (the window hands it back first, `songSoundSession.ts`).
+      state.songSoundLoan = undefined;
       hydrateActiveConvolution();
       attachPresetToActiveDevice(presetName);
       await handleUpdate(event, channel, true);
@@ -286,56 +315,75 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
    * That is what the baseline is: an explicit save is the only thing that writes
    * it, so it always represents a state the user deliberately chose to keep.
    */
-  onWindowMessage(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
-    const channel = ChannelEnum.RESTORE_PRESET_BASELINE;
-    const presetName = arg[0] as string;
-    try {
-      const baseline = fetchPresetBaseline(presetName, activeBaselineDir());
-      if (!baseline) {
+  onProfileMutation(
+    ChannelEnum.RESTORE_PRESET_BASELINE,
+    1,
+    async (event, arg, owner) => {
+      const channel = ChannelEnum.RESTORE_PRESET_BASELINE;
+      const presetName = arg[0] as string;
+      try {
+        const baseline = fetchPresetBaseline(presetName, owner.baselineDir);
+        if (!baseline) {
+          handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+          return;
+        }
+        state.dsp = baseline.dsp;
+        session.outputDspOverrides?.delete(session.activeAudioDeviceId);
+        session.outputStateOverrides?.delete(session.activeAudioDeviceId);
+        state.eqCuts = baseline.eqCuts;
+        state.trebleDesigns = baseline.trebleDesigns;
+        state.eqPhase = baseline.eqPhase;
+        state.curvePhase = baseline.curvePhase;
+        state.isAutoPreAmpOn = baseline.isAutoPreAmpOn ?? true;
+        session.outputEditGeneration = (session.outputEditGeneration ?? 0) + 1;
+        owner.generation = session.outputEditGeneration;
+        state.preAmp = baseline.preAmp;
+        state.filters = baseline.filters;
+        state.eqFormat = baseline.eqFormat;
+        state.graphicEq = baseline.graphicEq;
+        state.convolution = baseline.convolution;
+        state.isFlat = baseline.isFlat;
+        state.eqMode = getEqMode(baseline);
+        state.curveEqMode = getCurveEqMode(baseline);
+        state.mainBandQ = baseline.mainBandQ;
+        state.eqBandQ = baseline.eqBandQ;
+        state.curveBandQ = baseline.curveBandQ;
+        state.curveSmoothing = baseline.curveSmoothing;
+        state.eqBandDesign = normalizeBandDesign(baseline.eqBandDesign);
+        state.isEqDoubleOn = state.eqMode === 'double';
+        state.tone = toTone(baseline.tone);
+        state.voicing = baseline.voicing;
+        state.driver = baseline.driver;
+        state.smartEq = baseline.smartEq;
+        state.headphone = baseline.headphone;
+        state.headset = baseline.headset;
+        state.headsetTarget = baseline.headsetTarget;
+        state.headsetSource = baseline.headsetSource;
+        state.eqImport = baseline.eqImport;
+        state.bypassed = baseline.bypassed;
+        // The listener's own saved copy, as a load is: no song's sound is lent.
+        state.songSoundLoan = undefined;
+        hydrateActiveConvolution();
+        // Restoring writes the profile back to the baseline, but deliberately does
+        // NOT rewrite the baseline itself — restoring twice in a row is a no-op
+        // rather than a way to lose the copy.
+        await savePreset(
+          presetName,
+          getCurrentPreset(),
+          owner.presetDir,
+          'restore-saved-profile',
+        );
+        if (!owner.checkCurrent()) {
+          return;
+        }
+        attachPresetToActiveDevice(presetName);
+        await handleUpdate(event, channel, true);
+      } catch (e) {
+        log.info('Failed to restore the saved copy of: ', presetName);
         handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
-        return;
       }
-      clearCurrentLayoutSettings();
-      state.preAmp = baseline.preAmp;
-      state.filters = baseline.filters;
-      state.eqFormat = baseline.eqFormat;
-      state.graphicEq = baseline.graphicEq;
-      state.convolution = baseline.convolution;
-      state.isFlat = baseline.isFlat;
-      state.eqMode = getEqMode(baseline);
-      state.curveEqMode = getCurveEqMode(baseline);
-      state.eqBandQ = baseline.eqBandQ;
-      state.curveBandQ = baseline.curveBandQ;
-      state.curveSmoothing = baseline.curveSmoothing;
-      state.eqBandDesign = normalizeBandDesign(baseline.eqBandDesign);
-      state.isEqDoubleOn = state.eqMode === 'double';
-      state.tone = toTone(baseline.tone);
-      state.voicing = baseline.voicing;
-      state.driver = baseline.driver;
-      state.smartEq = baseline.smartEq;
-      state.headphone = baseline.headphone;
-      state.headset = baseline.headset;
-      state.headsetTarget = baseline.headsetTarget;
-      state.headsetSource = baseline.headsetSource;
-      state.eqImport = baseline.eqImport;
-      state.bypassed = baseline.bypassed;
-      hydrateActiveConvolution();
-      // Restoring writes the profile back to the baseline, but deliberately does
-      // NOT rewrite the baseline itself — restoring twice in a row is a no-op
-      // rather than a way to lose the copy.
-      await savePreset(
-        presetName,
-        getCurrentPreset(),
-        activePresetDir(),
-        'restore-saved-profile',
-      );
-      attachPresetToActiveDevice(presetName);
-      await handleUpdate(event, channel, true);
-    } catch (e) {
-      log.info('Failed to restore the saved copy of: ', presetName);
-      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
-    }
-  });
+    },
+  );
 
   /**
    * Which of this output's profiles have a manually saved copy to go back to.
@@ -351,10 +399,10 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
    * A folder that is not there is an output nobody has pressed Save on, which
    * is an empty list rather than an error.
    */
-  onWindowMessage(ChannelEnum.GET_PRESET_BASELINE_NAMES, async (event) => {
+  onWindowMessage(ChannelEnum.GET_PRESET_BASELINE_NAMES, async (event, arg) => {
     const channel = ChannelEnum.GET_PRESET_BASELINE_NAMES;
     try {
-      const dir = activeBaselineDir();
+      const dir = activeBaselineDir(profileRequestDeviceId(arg?.[0]));
       const names = fs.existsSync(dir)
         ? fs.readdirSync(dir).filter((name) => !isAutomaticPresetName(name))
         : [];
@@ -379,29 +427,30 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
    *
    * Queued with the other profile mutations — see `runProfileMutation`.
    */
-  onWindowMessage(ChannelEnum.SAVE_PRESET, async (event, arg) => {
+  onProfileMutation(ChannelEnum.SAVE_PRESET, 1, async (event, arg, owner) => {
     const channel = ChannelEnum.SAVE_PRESET;
     const presetName = arg[0];
 
-    await runProfileMutation(async () => {
-      try {
-        // Validate that the preset name is not restricted
-        if (isRestrictedPresetName(presetName)) {
-          handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
-          return;
-        }
-
-        const preset = getCurrentPreset();
-        await savePreset(presetName, preset, activePresetDir(), 'manual-save');
-        // This is the copy the user chose to keep. Later edits auto-save over the
-        // profile itself, so this is the only thing left to restore from.
-        savePresetBaseline(presetName, preset, activeBaselineDir());
-        attachPresetToActiveDevice(presetName);
-        await handleUpdateHelper<string>(event, channel, presetName, true);
-      } catch (e) {
-        handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+    try {
+      // Validate that the preset name is not restricted
+      if (isRestrictedPresetName(presetName)) {
+        handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
+        return;
       }
-    });
+
+      const preset = structuredClone(getCurrentPreset());
+      await savePreset(presetName, preset, owner.presetDir, 'manual-save');
+      // This is the copy the user chose to keep. Later edits auto-save over the
+      // profile itself, so this is the only thing left to restore from.
+      await savePresetBaseline(presetName, preset, owner.baselineDir);
+      if (!owner.checkCurrent()) {
+        return;
+      }
+      attachPresetToActiveDevice(presetName);
+      await handleUpdateHelper<string>(event, channel, presetName, true);
+    } catch (e) {
+      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+    }
   });
 
   /**
@@ -412,80 +461,89 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
    * can be a moment behind and a create that lands on an existing profile
    * destroys tuning the user never offered up.
    */
-  onWindowMessage(ChannelEnum.CREATE_PRESET, async (event, arg) => {
+  onProfileMutation(ChannelEnum.CREATE_PRESET, 1, async (event, arg, owner) => {
     const channel = ChannelEnum.CREATE_PRESET;
     const requestedName = arg[0];
 
-    await runProfileMutation(async () => {
-      try {
-        if (isRestrictedPresetName(requestedName)) {
-          handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
-          return;
-        }
-
-        const targetName = availableProfileNameForActiveDevice(requestedName);
-        const preset = getCurrentPreset();
-        await savePreset(
-          targetName,
-          preset,
-          activePresetDir(),
-          'profile-created',
-        );
-        savePresetBaseline(targetName, preset, activeBaselineDir());
-        attachPresetToActiveDevice(targetName);
-        await handleUpdateHelper<string>(event, channel, targetName, true);
-      } catch (e) {
-        handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+    try {
+      if (isRestrictedPresetName(requestedName)) {
+        handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
+        return;
       }
-    });
+
+      const targetName = availableProfileNameForActiveDevice(requestedName);
+      const preset = structuredClone(getCurrentPreset());
+      await savePreset(targetName, preset, owner.presetDir, 'profile-created');
+      await savePresetBaseline(targetName, preset, owner.baselineDir);
+      if (!owner.checkCurrent()) {
+        return;
+      }
+      attachPresetToActiveDevice(targetName);
+      await handleUpdateHelper<string>(event, channel, targetName, true);
+    } catch (e) {
+      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+    }
   });
 
   // Queued, because deleting several quickly is exactly what people do and this
   // is the longest of the profile mutations. See `runProfileMutation`.
-  onWindowMessage(ChannelEnum.DELETE_PRESET, async (event, arg) => {
+  onProfileMutation(ChannelEnum.DELETE_PRESET, 1, async (event, arg, owner) => {
     const channel = ChannelEnum.DELETE_PRESET;
     const presetName = arg[0];
-    await runProfileMutation(async () => {
-      // The name only. This used to log `path.join(presetPath, presetName)`,
-      // which was an unvalidated join built purely to be printed — it looked
-      // like the file being deleted and was not. The real path is resolved
-      // inside `deletePreset`, which refuses anything that leaves the
-      // directory; printing a second, unguarded one here invited a reader to
-      // believe the check happened at the call site.
-      log.info(`Deleting preset: ${presetName}`);
-      try {
-        const wasAttachedHere =
-          deviceProfileSettings.assignments[session.activeAudioDeviceId]
-            ?.presetName === presetName;
-
-        await deletePreset(presetName, activePresetDir());
-        deletePresetBaseline(presetName, activeBaselineDir());
-        removeAssignmentForPreset(
-          deviceProfileSettings,
-          session.activeAudioDeviceId,
-          presetName,
-        );
-        await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
-
-        // Deleting what this output was playing through leaves it with nothing.
-        // Reset to neutral and hand it a fresh empty profile rather than leaving
-        // the user on a nameless tuning they cannot save to or get back from.
-        if (wasAttachedHere) {
-          resetStateToDefaults();
-          createEmptyProfileForActiveDevice();
-        }
-
-        await handleUpdate(event, channel);
-      } catch (e) {
-        handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+    const { deviceId, presetDir, baselineDir } = owner;
+    // The name only. This used to log `path.join(presetPath, presetName)`,
+    // which was an unvalidated join built purely to be printed — it looked
+    // like the file being deleted and was not. The real path is resolved
+    // inside `deletePreset`, which refuses anything that leaves the
+    // directory; printing a second, unguarded one here invited a reader to
+    // believe the check happened at the call site.
+    log.info(`Deleting preset: ${presetName}`);
+    let editorInvalidated = false;
+    try {
+      if (
+        session.activeAudioDeviceId === deviceId &&
+        deviceProfileSettings.assignments[deviceId]?.presetName === presetName
+      ) {
+        // A queued old rack edit must not write the profile back while its
+        // deletion is waiting for the filesystem.
+        session.outputEditGeneration = (session.outputEditGeneration ?? 0) + 1;
+        owner.generation = session.outputEditGeneration;
+        editorInvalidated = true;
       }
-    });
+      await deletePreset(presetName, presetDir);
+      await deletePresetBaseline(presetName, baselineDir);
+      // The editor or assignment can change while the files settle. Only
+      // the output still attached to this deleted profile loses its sound.
+      const wasAttachedHere =
+        deviceProfileSettings.assignments[deviceId]?.presetName === presetName;
+      removeAssignmentForPreset(deviceProfileSettings, deviceId, presetName);
+      if (wasAttachedHere) {
+        session.outputDspOverrides?.delete(deviceId);
+        session.outputStateOverrides?.delete(deviceId);
+        if (owner.isCurrent()) {
+          editorInvalidated = true;
+          createEmptyProfileForActiveDevice();
+          owner.generation = session.outputEditGeneration ?? 0;
+        }
+      }
+      await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+
+      if (owner.checkCurrent()) {
+        await handleUpdate(event, channel);
+      }
+    } catch (e) {
+      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+    } finally {
+      if (editorInvalidated) {
+        notifyOutputStateChanged();
+      }
+    }
   });
 
   // Queued with the others: it decides a name from what exists on disk and then
   // rewrites the assignments, so a save or a delete landing between those two
   // steps is a rename applied to a catalogue that has since moved.
-  onWindowMessage(ChannelEnum.RENAME_PRESET, async (event, arg) => {
+  onProfileMutation(ChannelEnum.RENAME_PRESET, 2, async (event, arg, owner) => {
     const channel = ChannelEnum.RENAME_PRESET;
     const [oldName, newName]: string[] = arg;
 
@@ -500,53 +558,68 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
       return;
     }
 
-    await runProfileMutation(async () => {
-      try {
-        /**
-         * Validate the provided name acording to the following rules:
-         * - Disallow renaming to a restricted name
-         * - Disallow renaming to an existing preset name
-         *
-         * Note: the function doesPresetExist performs comparisons based on the file system, meaning it whether the comparison
-         * is case sensitive depends on the file system settings. For case sensitive systems, the existence of a preset that
-         * matches the new name exactly is guaranteed to be an invalid operation (since we already handled the case where the
-         * old and new names are exactly equal). For case insensitive systems, there is an edge case where we want to allow
-         * the new name to be a duplicate of an existing preset. This is the case where we are renaming a preset to change the
-         * casing of the characters.
-         */
-        if (
-          isRestrictedPresetName(newName) ||
-          (doesPresetExist(newName, activePresetDir()) &&
-            (state.isCaseSensitiveFs ||
-              oldName.toLocaleLowerCase() !== newName.toLocaleLowerCase()))
-        ) {
-          handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
-          return;
-        }
-
-        await renamePreset(oldName, newName, activePresetDir());
-        renamePresetBaseline(oldName, newName, activeBaselineDir());
-        renameAssignedPreset(
-          deviceProfileSettings,
-          session.activeAudioDeviceId,
-          oldName,
-          newName,
-        );
-        await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
-        await handleUpdate(event, channel);
-      } catch (e) {
-        handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+    try {
+      /**
+       * Validate the provided name acording to the following rules:
+       * - Disallow renaming to a restricted name
+       * - Disallow renaming to an existing preset name
+       *
+       * Note: the function doesPresetExist performs comparisons based on the file system, meaning it whether the comparison
+       * is case sensitive depends on the file system settings. For case sensitive systems, the existence of a preset that
+       * matches the new name exactly is guaranteed to be an invalid operation (since we already handled the case where the
+       * old and new names are exactly equal). For case insensitive systems, there is an edge case where we want to allow
+       * the new name to be a duplicate of an existing preset. This is the case where we are renaming a preset to change the
+       * casing of the characters.
+       */
+      if (
+        isRestrictedPresetName(newName) ||
+        (doesPresetExist(newName, owner.presetDir) &&
+          (state.isCaseSensitiveFs ||
+            oldName.toLocaleLowerCase() !== newName.toLocaleLowerCase()))
+      ) {
+        handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
+        return;
       }
-    });
+
+      await renamePreset(oldName, newName, owner.presetDir);
+      await renamePresetBaseline(oldName, newName, owner.baselineDir);
+      renameAssignedPreset(
+        deviceProfileSettings,
+        owner.deviceId,
+        oldName,
+        newName,
+      );
+      await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+      if (owner.checkCurrent()) {
+        await handleUpdate(event, channel);
+      }
+    } catch (e) {
+      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+    }
   });
 
-  onWindowMessage(ChannelEnum.GET_PRESET_FILE_LIST, async (event) => {
+  onWindowMessage(ChannelEnum.GET_PRESET_FILE_LIST, async (event, arg) => {
     const channel = ChannelEnum.GET_PRESET_FILE_LIST;
 
     try {
-      const fileNames: string[] = fs
-        .readdirSync(activePresetDir())
-        .filter((fileName) => !isAutomaticPresetName(fileName));
+      // The Output card belongs to the main output even while the EQ editor
+      // is open on another device. An omitted target keeps the legacy editor list.
+      const deviceId = profileRequestDeviceId(arg?.[0]);
+      const dir =
+        deviceId === undefined
+          ? activePresetDir()
+          : presetDirForDevice(deviceId);
+      // A folder that is not there holds no profiles. The window asks as it
+      // mounts, before any output is known, and `presetDirForDevice` names a
+      // folder for the empty id without making it; `readdirSync` throws ENOENT
+      // on a missing folder rather than returning nothing, so every launch
+      // logged "Request failed on getPresetFileList" and put the profiles
+      // bar's error in front of the user (a 2.0.0 report).
+      const fileNames: string[] = fs.existsSync(dir)
+        ? fs
+            .readdirSync(dir)
+            .filter((fileName) => !isAutomaticPresetName(fileName))
+        : [];
       log.info(`Fetched ${fileNames.length} files`);
       const reply: TSuccess<string[]> = { result: fileNames };
       event.reply(channel, reply);
@@ -572,10 +645,21 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
   onWindowMessage(ChannelEnum.SET_DEFAULT_AUDIO_DEVICE, async (event, arg) => {
     const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
     try {
-      // Finish teardown before B becomes primary; a queued start from the old
-      // selection must not briefly play a duplicate on the newly selected B.
-      await withOutputMirrorsStopped(() =>
-        setDefaultAudioDevice(arg[0] as string),
+      const targetId = arg[0] as string;
+      await withOutputMirrorsRetargeted(
+        targetId,
+        () => setDefaultAudioDevice(targetId),
+        async () => {
+          session.editingAudioDeviceId = undefined;
+          await followOutputs(
+            await discoverAudioDevices(),
+            {
+              reply: (replyChannel, payload) =>
+                event.sender.send(replyChannel, payload),
+            },
+            ChannelEnum.AUDIO_DEVICES_CHANGED,
+          );
+        },
       );
       const reply: TSuccess<void> = { result: undefined };
       event.reply(channel, reply);
@@ -653,23 +737,60 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
     ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE,
     async (event, arg) => {
       const channel = ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE;
-      const nextState = getStateForAudioDevice(
-        deviceProfileSettings,
-        arg[0] as string,
-        presetDirForDevice,
-        // The preset keeps playing across the switch: it is the machine's
-        // choice, like the rack it comes with. See `voicingForDevice`.
-        { voicing: state.voicing },
-      );
-      session.activeAudioDeviceId = arg[0] as string;
-      clearCurrentLayoutSettings();
-      session.hasActiveSessionOverride = false;
-      applyDeviceState(nextState);
-      if (!deviceProfileSettings.assignments[session.activeAudioDeviceId]) {
-        createEmptyProfileForActiveDevice();
-      }
-      await handleUpdate(event, channel);
-      notifyOutputStateChanged();
+      const deviceId = arg[0] as string;
+      await runProfileMutation(async () => {
+        try {
+          const previousDeviceId = session.activeAudioDeviceId;
+          const previousGeneration = session.outputEditGeneration ?? 0;
+          const devices = await discoverAudioDevices();
+          if (
+            session.activeAudioDeviceId !== previousDeviceId ||
+            (session.outputEditGeneration ?? 0) !== previousGeneration
+          ) {
+            handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+            return;
+          }
+          const device = devices.find((candidate) => candidate.id === deviceId);
+          if (!device?.isActive) {
+            handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+            return;
+          }
+          // This selects an editor only. Windows' main output and every running
+          // receiver keep their streams and their own settings.
+          session.editingAudioDeviceId = device.isDefault
+            ? undefined
+            : device.id;
+          session.playbackAudioDevice = devices.find((one) => one.isDefault);
+          session.activeAudioDeviceId = device.id;
+          session.activeAudioDevice = device;
+          session.outputEditGeneration =
+            (session.outputEditGeneration ?? 0) + 1;
+          applyDeviceState(
+            getStateForAudioDevice(
+              deviceProfileSettings,
+              device.id,
+              presetDirForDevice,
+            ),
+          );
+          if (!deviceProfileSettings.assignments[device.id]) {
+            createEmptyProfileForActiveDevice();
+          }
+          const generation = session.outputEditGeneration;
+          await save(state, userDataDir);
+          if (
+            session.activeAudioDeviceId !== device.id ||
+            session.outputEditGeneration !== generation
+          ) {
+            handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+            return;
+          }
+          event.reply(channel, { result: undefined });
+          notifyOutputStateChanged();
+        } catch (error) {
+          log.error('Could not open the output for editing', error);
+          handleError(event, channel, ErrorCode.FAILURE);
+        }
+      });
     },
   );
 
@@ -706,29 +827,61 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
 
   onWindowMessage(ChannelEnum.ASSIGN_DEVICE_PROFILE, async (event, arg) => {
     const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
-    const assignment = arg[0] as IDeviceProfileAssignment;
+    // The two things the window names, read and checked. The record saved is
+    // built from them and the device found, never the window's object spread
+    // into the settings file, where any extra key it carried was kept.
+    const asked: unknown = Array.isArray(arg) ? arg[0] : undefined;
+    const deviceId =
+      typeof asked === 'object' && asked !== null && 'deviceId' in asked
+        ? asked.deviceId
+        : undefined;
+    const presetName =
+      typeof asked === 'object' && asked !== null && 'presetName' in asked
+        ? asked.presetName
+        : undefined;
+    if (
+      typeof deviceId !== 'string' ||
+      !deviceId ||
+      typeof presetName !== 'string' ||
+      !presetName
+    ) {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
     await runProfileMutation(async () => {
       try {
         const devices = await discoverAudioDevices();
-        const device = devices.find(
-          (candidate) => candidate.id === assignment.deviceId,
-        );
+        const device = devices.find((candidate) => candidate.id === deviceId);
         if (!device?.isActive || (arg[1] === true && device.isDefault)) {
           throw new Error(
             'The second output is unavailable or is now the main output.',
           );
         }
-        fetchPreset(
-          assignment.presetName,
-          presetDirForDevice(assignment.deviceId),
-        );
-        assignDeviceProfile(deviceProfileSettings, {
-          ...assignment,
+        fetchPreset(presetName, presetDirForDevice(deviceId));
+        const assignment: IDeviceProfileAssignment = {
+          deviceId,
+          presetName,
           deviceGuid: device.guid,
           deviceName: device.name,
-        });
+        };
+        assignDeviceProfile(deviceProfileSettings, assignment);
+        session.outputDspOverrides?.delete(device.id);
+        session.outputStateOverrides?.delete(device.id);
+        if (session.activeAudioDeviceId === device.id) {
+          session.outputEditGeneration =
+            (session.outputEditGeneration ?? 0) + 1;
+          session.hasActiveSessionOverride = false;
+          applyDeviceState(
+            getStateForAudioDevice(
+              deviceProfileSettings,
+              device.id,
+              presetDirForDevice,
+            ),
+          );
+        }
         await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
         await handleUpdate(event, channel);
+        notifyOutputStateChanged();
       } catch (e) {
         log.error('Failed to assign device profile', e);
         handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
@@ -752,6 +905,12 @@ export const registerProfilesIpc = (deps: IProfilesIpcDeps): IProfilesIpc => {
     const channel = ChannelEnum.REMOVE_DEVICE_PROFILE;
     const deviceId = arg[0] as string;
     removeDeviceProfile(deviceProfileSettings, deviceId);
+    session.outputDspOverrides?.delete(deviceId);
+    session.outputStateOverrides?.delete(deviceId);
+    if (session.activeAudioDeviceId === deviceId) {
+      resetStateToDefaults();
+      state.customFx = undefined;
+    }
     await saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
     if (session.configPath) {
       const customFilePath = path.join(

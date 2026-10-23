@@ -1,6 +1,6 @@
 import { app, ipcMain, type BrowserWindow } from 'electron';
 import {
-  isCheckoutConfigured,
+  isAccountConfigured,
   type IAccountConfig,
 } from '../../common/accountConfig';
 import { PLUS_TERMS_VERSION } from '../../common/plusTerms';
@@ -51,6 +51,11 @@ export interface IPlusTermsNoticeRegistration {
   checkIfDue(reason: string): Promise<void>;
   /** The signed-in account just agreed to `version`, on the server's record. */
   agreed(version: number): void;
+  /**
+   * The signed-in account has been shown terms `version` or agreed to it:
+   * what the app may send under that version waits on this.
+   */
+  toldOf(version: number): boolean;
   dispose(): void;
 }
 
@@ -85,7 +90,7 @@ export const registerPlusTermsNoticeIpc = ({
   const facts = (): IPlusTermsNoticeFacts => {
     const id = accountId();
     return {
-      termsOffered: isCheckoutConfigured(config),
+      termsOffered: isAccountConfigured(config),
       accountId: id,
       member: entitlement.status().state !== 'none',
       agreed: id === undefined ? undefined : agreedBy(id),
@@ -194,6 +199,10 @@ export const registerPlusTermsNoticeIpc = ({
 
   return {
     checkIfDue,
+    toldOf: (version) => {
+      const { accountId: id, agreed, seen } = facts();
+      return id !== undefined && Math.max(agreed ?? 0, seen) >= version;
+    },
     agreed: (version) => {
       const id = accountId();
       if (!id || !Number.isInteger(version) || version <= 0) {

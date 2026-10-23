@@ -22,7 +22,7 @@ import { useTranslation } from '../../utils/I18nContext';
 import { useSceneLook } from '../../utils/graphStyle';
 import SegmentedControl from '../../widgets/SegmentedControl';
 import Switch from '../../widgets/Switch';
-import { usePlusEntitled } from '../GalleryParts';
+import { useOwnsAnything } from '../sceneStore';
 import { openPlusPlace } from '../plusNavigation';
 import { createDeskColourFeed, type IDeskColourFeed } from './deskColours';
 import LightingDevices from './LightingDevices';
@@ -53,7 +53,8 @@ interface ILightingPanelProps {
 export default function LightingPanel({ onShowGraph }: ILightingPanelProps) {
   const { t, locale } = useTranslation();
   const { state, loaded } = useLighting();
-  const entitled = usePlusEntitled();
+  // Plus, or one scene bought: the lamps light only what is the account's.
+  const entitled = useOwnsAnything();
   const scene = useSceneLook();
   const switchId = useId();
   const [feed, setFeed] = useState<IDeskColourFeed | undefined>();

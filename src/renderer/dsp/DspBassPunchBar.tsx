@@ -15,6 +15,7 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useTranslation } from '../utils/I18nContext';
 import RichPick, { IRichPickEntry } from '../widgets/RichPick';
 import DspBarIcon from './DspBarIcon';
+import useStagePresets from './useStagePresets';
 
 interface IDspBassPunchBarProps {
   bassPunch: IBassPunchSettings;
@@ -74,22 +75,29 @@ const DspBassPunchBar = ({
   onCommit,
 }: IDspBassPunchBarProps) => {
   const { t } = useTranslation();
-  const entries: IRichPickEntry[] = BASS_PUNCH_PRESET_GROUPS.flatMap((group) =>
-    BASS_PUNCH_CATALOGUE.profiles
-      .filter((preset) => preset.group === group)
-      .map((preset) => ({
-        id: preset.id,
-        name: t(preset.labelKey as TranslationKey),
-        hint: profileHint(preset),
-        group,
-        icon: (
-          <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
-        ),
-      })),
+  const saved = useStagePresets('bassPunch', bassPunch, onChange, onCommit);
+  const factoryEntries: IRichPickEntry[] = BASS_PUNCH_PRESET_GROUPS.flatMap(
+    (group) =>
+      BASS_PUNCH_CATALOGUE.profiles
+        .filter((preset) => preset.group === group)
+        .map((preset) => ({
+          id: preset.id,
+          name: t(preset.labelKey as TranslationKey),
+          hint: profileHint(preset),
+          group,
+          icon: (
+            <VoicingIcon profileId={preset.id} className="rich-pick__glyph" />
+          ),
+        })),
   );
+  // Saved profiles first, as the EQ lists its own.
+  const entries: IRichPickEntry[] = [...saved.entries, ...factoryEntries];
   const ordered = entries.map((entry) => entry.id);
 
   const applyPreset = (id: string, enable = true) => {
+    if (saved.apply(id)) {
+      return;
+    }
     const next = BASS_PUNCH_CATALOGUE.settings(
       id,
       enable ? true : bassPunch.enabled,
@@ -123,7 +131,8 @@ const DspBassPunchBar = ({
           <RichPick
             entries={entries}
             groupLabel={(group) =>
-              group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : ''
+              saved.savedGroupLabel(group) ??
+              (group ? t(`dsp.eqPresetGroup.${group}` as TranslationKey) : '')
             }
             activeId={bassPunch.presetId}
             onPick={applyPreset}
@@ -173,6 +182,7 @@ const DspBassPunchBar = ({
             <DspBarIcon name="reset" />
             {t('dsp.eqPreset.reset')}
           </button>
+          {saved.buttons}
         </div>
       </div>
 
@@ -181,6 +191,8 @@ const DspBassPunchBar = ({
           Maximizer's, Dimension's and Forge's bars use, so the headers read
           alike. */}
       <p className="dsp-bass-punch-note">{t('dsp.bassPunch.description')}</p>
+      {saved.notice}
+      {saved.dialog}
     </>
   );
 };

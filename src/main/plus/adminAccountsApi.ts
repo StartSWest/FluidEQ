@@ -4,6 +4,7 @@ import {
   type IAccountListPage,
   type IAccountListRequest,
 } from '../../common/adminAccounts';
+import { parseTrialExitCounts } from '../../common/trialExit';
 import type { IGalleryAuth } from './galleryAccess';
 import { rpc, type TGalleryFailure } from './galleryApi';
 
@@ -27,7 +28,13 @@ export type TAccountListOutcome =
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const failureOf = async (response: Response): Promise<TAccountListFailure> => {
+/**
+ * What an admin call's refusal means, for every admin page: the account list,
+ * the scenes and the announcements all answer the same way.
+ */
+export const adminFailureOf = async (
+  response: Response,
+): Promise<TAccountListFailure> => {
   if (response.status === 401) {
     return 'signed-out';
   }
@@ -55,30 +62,55 @@ export const listAccounts = async (
   request: IAccountListRequest,
 ): Promise<TAccountListOutcome> => {
   const query = request.query || null;
+  // Sent only when there is a window, so a server before 0054 — which has no
+  // such argument — still answers every list that does not ask for one.
+  const window =
+    request.since === undefined
+      ? {}
+      : { p_joined_since: new Date(request.since).toISOString() };
+  // The reasons are the lapsed list's own: no other filter shows them.
+  const wantsReasons = request.plan === 'lapsed' && request.offset === 0;
   let list: Response;
   let totals: Response;
+  let reasons: Response | undefined;
   try {
-    [list, totals] = await Promise.all([
+    [list, totals, reasons] = await Promise.all([
       rpc(auth, 'admin_list_accounts', {
         p_query: query,
         p_plan: request.plan,
         p_limit: ACCOUNT_LIST_PAGE,
         p_offset: request.offset,
+        ...window,
       }),
-      rpc(auth, 'admin_account_totals', { p_query: query }),
+      rpc(auth, 'admin_account_totals', { p_query: query, ...window }),
+      wantsReasons
+        ? rpc(auth, 'admin_trial_exit_reasons', { p_query: query, ...window })
+        : Promise.resolve(undefined),
     ]);
   } catch {
     return { ok: false, reason: 'offline' };
   }
   if (!list.ok) {
-    return { ok: false, reason: await failureOf(list) };
+    return { ok: false, reason: await adminFailureOf(list) };
   }
   if (!totals.ok) {
-    return { ok: false, reason: await failureOf(totals) };
+    return { ok: false, reason: await adminFailureOf(totals) };
+  }
+  if (reasons && !reasons.ok) {
+    return { ok: false, reason: await adminFailureOf(reasons) };
   }
   try {
     const page = parseAccountListPage(await list.json(), await totals.json());
-    return page ? { ok: true, page } : { ok: false, reason: 'server' };
+    if (!page) {
+      return { ok: false, reason: 'server' };
+    }
+    if (!reasons) {
+      return { ok: true, page };
+    }
+    const exitReasons = parseTrialExitCounts(await reasons.json());
+    return exitReasons
+      ? { ok: true, page: { ...page, exitReasons } }
+      : { ok: false, reason: 'server' };
   } catch {
     return { ok: false, reason: 'server' };
   }

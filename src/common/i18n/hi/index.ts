@@ -25,19 +25,25 @@ import look from './look';
 import video from './video';
 import library from './library';
 import songEq from './songEq';
+import songSound from './songSound';
 import dsp from './dsp';
+import dspDeEsser from './dspDeEsser';
+import dspStageSave from './dspStageSave';
 import remoteAudio from './remoteAudio';
 import tour from './tour';
 import help from './help';
 import about from './about';
 import account from './account';
 import forum from './forum';
-import leaderboard from './leaderboard';
+import profile from './profile';
+import listening from './listening';
 import terms from './terms';
 import studio from './studio';
+import studioChat from './studioChat';
 import plus from './plus';
-import plusWelcome from './plusWelcome';
 import trial from './trial';
+import store from './store';
+import creator from './creator';
 import termsNotice from './termsNotice';
 import engineHealth from './engineHealth';
 import dspOff from './dspOff';
@@ -46,6 +52,8 @@ import lighting from './lighting';
 import wallpaper from './wallpaper';
 import bugReport from './bugReport';
 import review from './review';
+import insights from './insights';
+import announce from './announce';
 import player from './player';
 import genre from './genre';
 import genrePop from './genrePop';
@@ -68,19 +76,25 @@ const hi: Partial<Dictionary> = {
   ...video,
   ...library,
   ...songEq,
+  ...songSound,
   ...dsp,
+  ...dspDeEsser,
+  ...dspStageSave,
   ...remoteAudio,
   ...tour,
   ...help,
   ...about,
   ...account,
   ...forum,
-  ...leaderboard,
+  ...profile,
+  ...listening,
   ...terms,
   ...studio,
+  ...studioChat,
   ...plus,
-  ...plusWelcome,
   ...trial,
+  ...store,
+  ...creator,
   ...termsNotice,
   ...engineHealth,
   ...dspOff,
@@ -89,6 +103,8 @@ const hi: Partial<Dictionary> = {
   ...wallpaper,
   ...bugReport,
   ...review,
+  ...insights,
+  ...announce,
   ...player,
   ...genre,
   ...genrePop,

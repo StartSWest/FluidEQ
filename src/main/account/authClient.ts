@@ -63,6 +63,8 @@ export type TAuthFailure =
   | 'rate_limited'
   | 'invalid_email'
   | 'already_registered'
+  /** Google's sign-in came back without an account: refused or abandoned. */
+  | 'google_unfinished'
   /**
    * This computer's sign-in was ended from elsewhere: nearly always the
    * account signing in on a sixth computer, which signs out the one used
@@ -358,6 +360,71 @@ export const refreshSession = async (
  * network down or the token already dead — leaving somebody signed in because
  * the sign-out request failed is the one outcome that is clearly wrong.
  */
+/**
+ * Whether the sign-in service has Google switched on. Public, so it is asked
+ * with the app's key alone; anything but a clear yes reads as no, and the
+ * panel then offers email only rather than a button that leads to an error
+ * page in the browser.
+ */
+export const googleSignInAvailable = async (
+  config: IAccountConfig,
+  signal: AbortSignal,
+): Promise<boolean> => {
+  try {
+    const response = await fetch(`${config.supabaseUrl}/auth/v1/settings`, {
+      headers: {
+        apikey: config.supabaseAnonKey,
+        'User-Agent': clientAgent(),
+      },
+      signal,
+    });
+    if (!response.ok) {
+      return false;
+    }
+    const body: unknown = await response.json();
+    return (
+      isRecord(body) && isRecord(body.external) && body.external.google === true
+    );
+  } catch {
+    // Offline or refused: no Google button this time, email as always.
+    return false;
+  }
+};
+
+/**
+ * Where the browser goes to sign in with Google. The service sends it back to
+ * `redirectTo` with a code, which only the holder of the verifier behind
+ * `codeChallenge` can trade (`exchangeAuthCode`).
+ */
+export const googleAuthorizeUrl = (
+  config: IAccountConfig,
+  redirectTo: string,
+  codeChallenge: string,
+): string =>
+  `${config.supabaseUrl}/auth/v1/authorize?${new URLSearchParams({
+    provider: 'google',
+    redirect_to: redirectTo,
+    code_challenge: codeChallenge,
+    code_challenge_method: 's256',
+  }).toString()}`;
+
+/** Trade the code the browser brought back for a session. */
+export const exchangeAuthCode = async (
+  config: IAccountConfig,
+  details: { authCode: string; codeVerifier: string },
+  signal: AbortSignal,
+  now: number = Date.now(),
+): Promise<IAuthSession> =>
+  readSession(
+    await request(
+      config,
+      '/auth/v1/token?grant_type=pkce',
+      { auth_code: details.authCode, code_verifier: details.codeVerifier },
+      signal,
+    ),
+    now,
+  );
+
 export const revokeSession = async (
   config: IAccountConfig,
   accessToken: string,

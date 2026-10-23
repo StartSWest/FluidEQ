@@ -23,26 +23,6 @@ const studio = {
   'studio.description': 'Crie cenas com sua IA e veja-as ao vivo',
   'studio.rail.blurb': 'Crie suas próprias cenas',
 
-  'studio.plus.locked': 'Só com o Plus',
-  'studio.locked.title': 'O Estúdio faz parte do Plus',
-  'studio.locked.body':
-    'É aqui que nascem as cenas do FluidEQ — e a sua também pode nascer.',
-  'studio.locked.write':
-    'Escreva a cena ao lado de um palco que se reconstrói a cada vez que você salva',
-  'studio.locked.test': 'Toque com música e veja quanto custa desenhá-la',
-  'studio.locked.publish': 'Publique na galeria para todos os membros',
-  'studio.locked.keptOne': 'Seu projeto está onde você o deixou, em',
-  'studio.locked.keptMany':
-    'Seus {count} projetos estão onde você os deixou, em',
-  'studio.locked.earn':
-    'Uma cena que você publique dá um mês de Plus assim que for aprovada.',
-  'studio.plus.oneFolder':
-    'Sem o Plus a primeira abre; as outras ficam na lista com um cadeado, para o Plus.',
-  'studio.plus.lockedProject':
-    'Com o Plus este projeto também abre; sem o Plus o Estúdio mantém um.',
-  'studio.plus.oneProject':
-    'Sem Plus o Estúdio mantém um projeto. Publique uma cena e, assim que for aprovada, o próximo mês é grátis, ou assine o Plus para ter quantos quiser.',
-
   'studio.maker.title': 'Faça com sua IA',
   'studio.maker.describe': 'Descreva sua cena',
   'studio.maker.placeholder':
@@ -144,10 +124,9 @@ const studio = {
   'studio.publish.needNote': 'Diga primeiro o que há de novo nesta versão',
   'studio.publish.noteNeeded': 'Obrigatório',
   'studio.publish.point1':
-    'Qualquer pessoa conectada poderá vê-la em Visualizadores. Membros Plus poderão reproduzi-la, adicioná-la aos visuais e curtir.',
-  'studio.publish.point2': 'Cada curtida vale pontos na classificação.',
+    'Qualquer pessoa conectada pode vê-la em Visualizadores, assistir por alguns segundos e obtê-la com um crédito. Para você ela toca de graça.',
   'studio.publish.point3':
-    'Você pode retirar a cena para impedir novos downloads. As cópias já baixadas continuam disponíveis com Plus.',
+    'Você pode despublicá-la para que ninguém novo possa obtê-la. Quem já a tem fica com ela.',
   'studio.publish.point3Update':
     'Quem adicionou verá Atualizar e mantém a versão antiga até clicar.',
   'studio.publish.read': 'Ler os termos',
@@ -173,7 +152,7 @@ const studio = {
   'studio.publish.officialCopy':
     'Quase toda esta cena é uma das cenas do FluidEQ. Tire ideias delas, mas faça a cena ser sua antes de publicá-la.',
   'studio.publish.outdated':
-    'Os termos do Plus têm uma versão mais nova. Atualize o FluidEQ para ler e publicar.',
+    'Os termos têm uma versão mais nova. Atualize o FluidEQ para lê-la e publicar.',
   'studio.publish.versionTaken':
     'Esta cena foi publicada de novo há pouco. Tente outra vez e ela sairá como a versão seguinte.',
   'studio.publish.takenDown':
@@ -214,15 +193,13 @@ const studio = {
   'studio.notice.addFailed': 'Esta versão poderá ser adicionada quando tocar.',
 
   'studio.notice.exported':
-    '{file} está pronto. Qualquer membro Plus pode abri-lo no Estúdio.',
+    '{file} está pronto. Quem o receber pode abri-lo no FluidEQ.',
 
   'studio.share.title': 'Compartilhe as cenas que você cria',
   'studio.share.lead':
-    'Suas cenas continuam sendo suas. Exportar uma permite que outros membros Plus a reproduzam, e isso faz parte do Plus.',
+    'Suas cenas continuam suas. Exportar uma permite que outros membros a abram, e eles a reproduzem quando a tiverem.',
   'studio.share.point1':
-    'Quem receber o arquivo pode reproduzi-lo enquanto tiver o Plus. Não pode vendê-lo.',
-  'studio.share.point2':
-    'Cada curtida de outro membro rende pontos para você na classificação.',
+    'Quem receber o arquivo só a reproduz quando tiver a cena, com um crédito depois que ela for publicada. Não pode vendê-la.',
   'studio.share.point3':
     'Os comentários do shader são removidos, e seu nome visível vai junto com a cena.',
   'studio.share.read': 'Ler os termos',
@@ -247,7 +224,7 @@ const studio = {
     'Esta é uma cena do FluidEQ, aberta para ver por dentro. Ela não pode ser adicionada aos seus visuais, publicada nem exportada.',
   'studio.export.banned': 'Esta conta não pode mais compartilhar cenas.',
   'studio.export.outdated':
-    'Os termos do Plus têm uma versão nova. Atualize o FluidEQ para lê-la e exportar.',
+    'Os termos têm uma versão mais nova. Atualize o FluidEQ para lê-la e exportar.',
 
   'studio.import.done': '{name}, de {author}, está nos seus visuais.',
   'studio.import.doneAnonymous': '{name} está nos seus visuais.',
@@ -255,6 +232,12 @@ const studio = {
   'studio.import.ownRestored':
     '{name} é sua. Voltou para os seus visuais e está aberta aqui para você continuar trabalhando nela.',
   'studio.import.unreadable': 'Esse arquivo não é uma cena do FluidEQ.',
+  'studio.import.signedOut': 'Entre para abrir um arquivo de cena.',
+  'studio.draft.badge': 'Rascunho',
+  'studio.draft.line': 'Publique para vê-la inteira',
+  'studio.new.signedOut': 'Entre para começar um projeto.',
+  'studio.notice.unpublished':
+    'Publique primeiro: sua própria cena vai para seus looks quando estiver na galeria.',
   'studio.import.changed':
     'Esse arquivo foi alterado depois de exportado, então o FluidEQ não vai reproduzi-lo.',
   'studio.import.blocked': 'Essa cena foi retirada.',
@@ -308,6 +291,12 @@ const studio = {
   'studio.status.problem': 'A última versão que funciona continua tocando',
   'studio.status.waiting': 'Aguardando uma versão que toque',
 
+  'studio.version.group': 'Versões',
+  'studio.version.looks': 'Meus visuais v{version}',
+  'studio.version.looksCurrent': 'Seus visuais têm exatamente esta cena.',
+  'studio.version.looksBehind':
+    'Seus visuais têm um salvamento anterior da versão {version}. “Adicionar aos meus visuais” os atualiza.',
+  'studio.version.gallery': 'Galeria v{version}',
   'studio.version.label': 'v{version}',
   'studio.version.unpublished':
     'Versão {version} desta cena. Ainda não foi publicada.',
@@ -352,7 +341,6 @@ const studio = {
   'studio.work.pictures': 'Imagens',
   'studio.work.tune': 'Ajustar',
   'studio.ship.more': 'Mais',
-  'studio.ship.makerTitle': 'Você pode continuar publicando',
   'studio.signals.title': 'Áudio da prévia',
   'studio.signals.hint':
     'Os usuários sempre veem a cena reagir à própria música. Os sinais de teste só movem esta prévia: não são salvos nem publicados e nunca alteram seu áudio.',

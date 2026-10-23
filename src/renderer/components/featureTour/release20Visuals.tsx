@@ -131,7 +131,7 @@ export function GraphViewsVisual() {
 const STUDIO_PHOTO = { width: 1400, height: 869 };
 const METERS_PHOTO = { width: 260, height: 572 };
 
-/** The Studio making Alpine, and the trial and the month a scene earns. */
+/** The Studio making Alpine, and what making and publishing a scene give. */
 export function StudioVisual() {
   const { t } = useTranslation();
   return (
@@ -156,7 +156,7 @@ export function StudioVisual() {
           height={METERS_PHOTO.height}
         />
         <span className="tour-photo__offers">
-          <span className="tour-photo__offer">{t('trial.offer.title')}</span>
+          <span className="tour-photo__offer">{t('tour.studio.free')}</span>
           <span className="tour-photo__offer is-earned">
             {t('tour.studio.earned')}
           </span>

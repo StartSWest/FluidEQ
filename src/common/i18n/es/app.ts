@@ -96,7 +96,7 @@ const app: Partial<Dictionary> = {
     'Captura lo que suena en este PC, antes del ecualizador, para la pestaña Compartir audio, una segunda salida y EQ inteligente. Solo funciona mientras alguno de ellos está en uso.',
   'app.processes.name.sharePlayback': 'Reproducción del audio compartido',
   'app.processes.what.sharePlayback':
-    'Reproduce el sonido que otro FluidEQ comparte con este PC. Solo funciona mientras lo escuchas.',
+    'Reproduce el sonido que otro FluidEQ comparte con este PC y arranca las capturas de audio, para que lo que envía este PC nunca devuelva ese sonido. Solo funciona mientras alguno de ellos está en uso.',
   'app.processes.name.volume': 'Volumen del sistema',
   'app.processes.what.volume':
     'Sigue el volumen y el silencio de Windows para los controles de volumen de FluidEQ, y lo cambia cuando mueves uno. Solo funciona mientras hay uno en pantalla.',
@@ -172,6 +172,9 @@ const app: Partial<Dictionary> = {
   'engine.detachFailed':
     'No se pudo quitar el Motor FluidEQ de esta salida. No ha cambiado nada.',
   'engine.unsupported': 'Requiere Windows 10 versión 1803 o posterior.',
+  'engine.subtitle.builtIn':
+    'El motor viene con FluidEQ y funciona mientras FluidEQ esté en marcha.',
+  'engine.fluid.builtIn.l1': 'Viene con FluidEQ: nada que instalar ni activar',
   'prereq.title.apo': 'Equalizer APO necesita atención',
   'prereq.title.fluid': 'El Motor FluidEQ necesita atención',
   'prereq.install.apo': 'Instalar APO',
@@ -268,6 +271,8 @@ const app: Partial<Dictionary> = {
   'notice.captureFailed': 'La salida en directo no pudo iniciarse',
   'notice.captureFailedBody':
     'El medidor de nivel y la curva en directo del gráfico están desactivados por ahora. Todo lo demás funciona con normalidad.',
+  'notice.captureNeedsMacPermission':
+    'En un Mac, el medidor de nivel y la curva en directo del gráfico necesitan FluidEQ permitido en la lista superior de Privacidad y seguridad › Grabación de pantalla y audio del sistema. La lista solo de audio basta para tu EQ, pero no para ellos. Todo lo demás funciona con normalidad.',
   'notice.tryAgain': 'Reintentar',
   'notice.restartConfirm':
     'El audio se detendrá unos segundos y Windows pedirá permisos de administrador. ¿Continuar?',
@@ -424,6 +429,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Elegido por ti',
   'games.front.playing': '{name} está al frente, y su sonido está puesto.',
   'games.front.sounding': '{name} está abierto, y su sonido está puesto.',
+  'games.front.off':
+    'Los presets de juegos están apagados. Tus juegos usan tu propio sonido.',
+  'games.switch.hint':
+    'Apagado: ningún juego cambia tu sonido y FluidEQ deja de mirar qué programa está al frente. Tu lista se queda como está.',
   'games.toast.loaded': '{preset} cargado',
   'games.toast.forGame': 'para {game}',
   'games.toast.restored': '{preset} de nuevo',

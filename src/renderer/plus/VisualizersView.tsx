@@ -9,7 +9,6 @@ import { refreshGalleryOnShow } from './galleryStore';
 import GalleryView from './GalleryView';
 import MakerPage from './MakerPage';
 import PlusToastStack from './PlusToastStack';
-import PlusTrialBanner from './PlusTrialBanner';
 import {
   galleryPageKey,
   galleryScrollOf,
@@ -55,8 +54,7 @@ function PageBar({
 
 /**
  * Visualizers: the gallery of scenes Plus members publish, found by category,
- * by maker or by name, added to one's looks, and liked — each like points on
- * the leaderboard for whoever made it.
+ * by maker or by name, added to one's looks, and liked.
  *
  * Only one scene plays here at a time, on its own page; the cards are
  * pictures, so browsing costs pictures and nothing else. Any member can
@@ -141,7 +139,6 @@ export default function VisualizersView({
         }
       >
         {page.kind !== 'browse' && <PageBar page={page} />}
-        {page.kind === 'browse' && <PlusTrialBanner onKeepFree={onShowGraph} />}
         {content}
       </div>
     </>

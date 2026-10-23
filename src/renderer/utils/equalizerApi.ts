@@ -17,11 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import type { TImportEars } from 'common/bandEars';
+import type { IMyCurve } from 'common/myCurves';
 import ChannelEnum from 'common/channels';
 import { IGatheredFacts } from 'common/bugReport';
 import {
   IFiltersMap,
-  IState,
   IAudioDevice,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
@@ -38,8 +39,9 @@ import { IChainImport } from 'common/chainBundle';
 // pure implementation by accident.
 
 import type { IOutputFormat, IOutputFormatChange } from 'main/outputFormat';
-
 import coalesceRequests from 'common/coalescedRequest';
+import type { IEqualizerSnapshot } from '../../common/outputSettings';
+
 import {
   buildResponseHandler,
   sendRequest,
@@ -164,14 +166,24 @@ export const openSupportEmail = (url: string): Promise<boolean> => {
   );
 };
 
+const presetRequestArgs = (names: string[], deviceId?: string) =>
+  deviceId ? [...names, { deviceId }] : names;
+
 /**
  * Load preset into backend state
  * @param {string} presetName - name of preset to load
  * @returns { Promise<void> } exception if failed
  */
-export const loadPreset = (presetName: string): Promise<void> => {
+export const loadPreset = (
+  presetName: string,
+  deviceId?: string,
+): Promise<void> => {
   const channel = ChannelEnum.LOAD_PRESET;
-  return sendRequest(channel, [presetName], setterResponseHandler);
+  return sendRequest(
+    channel,
+    presetRequestArgs([presetName], deviceId),
+    setterResponseHandler,
+  );
 };
 
 /**
@@ -181,9 +193,16 @@ export const loadPreset = (presetName: string): Promise<void> => {
  * the sound. Making a new one is `createPreset`, which is the only call that
  * may invent a name.
  */
-export const savePreset = (presetName: string): Promise<void> => {
+export const savePreset = (
+  presetName: string,
+  deviceId?: string,
+): Promise<void> => {
   const channel = ChannelEnum.SAVE_PRESET;
-  return sendRequest(channel, [presetName], setterResponseHandler);
+  return sendRequest(
+    channel,
+    presetRequestArgs([presetName], deviceId),
+    setterResponseHandler,
+  );
 };
 
 /**
@@ -192,9 +211,16 @@ export const savePreset = (presetName: string): Promise<void> => {
  * Resolves with the name it was actually given, which is numbered when this
  * output already has a profile called that.
  */
-export const createPreset = (requestedName: string): Promise<string> => {
+export const createPreset = (
+  requestedName: string,
+  deviceId?: string,
+): Promise<string> => {
   const channel = ChannelEnum.CREATE_PRESET;
-  return sendRequest(channel, [requestedName], simpleResponseHandler<string>());
+  return sendRequest(
+    channel,
+    presetRequestArgs([requestedName], deviceId),
+    simpleResponseHandler<string>(),
+  );
 };
 
 /**
@@ -202,9 +228,16 @@ export const createPreset = (requestedName: string): Promise<string> => {
  * @param {string} presetName - preset to delete
  * @returns { Promise<void> } if delete was successful
  */
-export const deletePreset = (presetName: string): Promise<void> => {
+export const deletePreset = (
+  presetName: string,
+  deviceId?: string,
+): Promise<void> => {
   const channel = ChannelEnum.DELETE_PRESET;
-  return sendRequest(channel, [presetName], setterResponseHandler);
+  return sendRequest(
+    channel,
+    presetRequestArgs([presetName], deviceId),
+    setterResponseHandler,
+  );
 };
 
 /**
@@ -216,18 +249,29 @@ export const deletePreset = (presetName: string): Promise<void> => {
 export const renamePreset = (
   oldName: string,
   newName: string,
+  deviceId?: string,
 ): Promise<void> => {
   const channel = ChannelEnum.RENAME_PRESET;
-  return sendRequest(channel, [oldName, newName], setterResponseHandler);
+  return sendRequest(
+    channel,
+    presetRequestArgs([oldName, newName], deviceId),
+    setterResponseHandler,
+  );
 };
 
 /**
  * Get a list of preset file names in preset folder
  * @returns { Promise<string[]> } exception if failed.
  */
-export const getPresetListFromFiles = (): Promise<string[]> => {
+export const getPresetListFromFiles = (
+  deviceId?: string,
+): Promise<string[]> => {
   const channel = ChannelEnum.GET_PRESET_FILE_LIST;
-  return sendRequest(channel, [], simpleResponseHandler<string[]>());
+  return sendRequest(
+    channel,
+    deviceId ? [{ deviceId }] : [],
+    simpleResponseHandler<string[]>(),
+  );
 };
 
 /**
@@ -236,18 +280,31 @@ export const getPresetListFromFiles = (): Promise<string[]> => {
  * @param {string} presetName - profile to roll back
  * @returns { Promise<void> } exception if there is no saved copy.
  */
-export const restorePresetBaseline = (presetName: string): Promise<void> => {
+export const restorePresetBaseline = (
+  presetName: string,
+  deviceId?: string,
+): Promise<void> => {
   const channel = ChannelEnum.RESTORE_PRESET_BASELINE;
-  return sendRequest(channel, [presetName], setterResponseHandler);
+  return sendRequest(
+    channel,
+    presetRequestArgs([presetName], deviceId),
+    setterResponseHandler,
+  );
 };
 
 /**
  * Which profiles have a manually saved copy behind them.
  * @returns { Promise<string[]> } exception if failed.
  */
-export const getPresetBaselineNames = (): Promise<string[]> => {
+export const getPresetBaselineNames = (
+  deviceId?: string,
+): Promise<string[]> => {
   const channel = ChannelEnum.GET_PRESET_BASELINE_NAMES;
-  return sendRequest(channel, [], simpleResponseHandler<string[]>());
+  return sendRequest(
+    channel,
+    deviceId ? [{ deviceId }] : [],
+    simpleResponseHandler<string[]>(),
+  );
 };
 
 /**
@@ -295,6 +352,51 @@ export const exportEqPreset = (
     [suggestedName, contents],
     simpleResponseHandler<boolean>(),
   );
+};
+
+/**
+ * My curves as one list file, through the desktop Save As dialog. False when
+ * the dialog was cancelled; main checks the list reads back whole first.
+ */
+export const exportCurveList = (
+  suggestedName: string,
+  contents: string,
+): Promise<boolean> => {
+  const channel = ChannelEnum.EXPORT_CURVE_LIST;
+  return sendRequest(
+    channel,
+    [suggestedName, contents],
+    simpleResponseHandler<boolean>(),
+  );
+};
+
+/**
+ * My curves as one ParametricEQ .txt each, into a folder the person picks.
+ * False when the picker was cancelled; a file already there is never written
+ * over.
+ */
+export const exportCurveFolder = (
+  files: ReadonlyArray<{ name: string; text: string }>,
+): Promise<boolean> => {
+  const channel = ChannelEnum.EXPORT_CURVE_FOLDER;
+  return sendRequest(channel, [files], simpleResponseHandler<boolean>());
+};
+
+/** My curves as main keeps them (`main/ipc/myCurves.ts`). */
+export const readMyCurves = (): Promise<IMyCurve[]> => {
+  const channel = ChannelEnum.GET_MY_CURVES;
+  return sendRequest(channel, [], simpleResponseHandler<IMyCurve[]>());
+};
+
+/**
+ * Keep `curves` as the whole of My curves. Rejects, and nothing is written,
+ * when main cannot keep it.
+ */
+export const writeMyCurves = (
+  curves: readonly IMyCurve[],
+): Promise<boolean> => {
+  const channel = ChannelEnum.SET_MY_CURVES;
+  return sendRequest(channel, [curves], simpleResponseHandler<boolean>());
 };
 
 /** Show the desktop Save As dialog for a complete DSP filter chain. */
@@ -621,11 +723,12 @@ export const importEqText = (
   text: string,
   label = 'Squiglink export',
   destination: 'eq' | 'curve' = 'eq',
+  ears: TImportEars = 'both',
 ): Promise<string> => {
   const channel = ChannelEnum.IMPORT_EQ_TEXT;
   return sendRequest(
     channel,
-    [text, label, destination],
+    [text, label, destination, ears],
     simpleResponseHandler<string>(),
   );
 };
@@ -650,10 +753,10 @@ export const updateOpraDatabase = (): Promise<IOpraUpdateStatus> => {
  * Get the full equalizer state
  * @returns { Promise<IState> } return the state, exception if failed.
  */
-export const getEqualizerState = (): Promise<IState> => {
+export const getEqualizerState = (): Promise<IEqualizerSnapshot> => {
   const channel = ChannelEnum.GET_STATE;
 
-  return sendRequest(channel, [], simpleResponseHandler<IState>());
+  return sendRequest(channel, [], simpleResponseHandler<IEqualizerSnapshot>());
 };
 
 /**

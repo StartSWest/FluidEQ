@@ -74,26 +74,26 @@ describe('a correction landing', () => {
 describe('the graph caption', () => {
   it('stays until its own animation ends, and only its own', () => {
     const { result } = renderHook(() => useGraphModeAnnouncement());
-    act(() => announceGraphMode('Bands only'));
+    act(() => announceGraphMode('graph.contents.layers'));
     const { id } = result.current;
-    expect(result.current.label).toBe('Bands only');
+    expect(result.current.label).toBe('graph.contents.layers');
     act(() => jest.advanceTimersByTime(60_000));
-    expect(result.current.label).toBe('Bands only');
+    expect(result.current.label).toBe('graph.contents.layers');
 
     act(() => endGraphModeAnnouncement(id - 1));
-    expect(result.current.label).toBe('Bands only');
+    expect(result.current.label).toBe('graph.contents.layers');
     act(() => endGraphModeAnnouncement(id));
     // A render sees the end: the snapshot changes, not only the words.
     expect(result.current).toEqual({ label: '', id });
   });
 
   it('is said to nobody when no chart is mounted, and over when it goes', () => {
-    act(() => announceGraphMode('Curves only'));
+    act(() => announceGraphMode('graph.contents.curves'));
     const first = renderHook(() => useGraphModeAnnouncement());
     expect(first.result.current.label).toBe('');
 
-    act(() => announceGraphMode('Curves only'));
-    expect(first.result.current.label).toBe('Curves only');
+    act(() => announceGraphMode('graph.contents.curves'));
+    expect(first.result.current.label).toBe('graph.contents.curves');
     first.unmount();
     const second = renderHook(() => useGraphModeAnnouncement());
     expect(second.result.current.label).toBe('');

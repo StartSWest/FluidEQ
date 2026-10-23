@@ -1,4 +1,6 @@
 import {
+  curveSmoothingOf,
+  DEFAULT_CURVE_SMOOTHING,
   shapeEqFilters,
   smoothEqCurve,
   TBandQ,
@@ -56,6 +58,19 @@ export const getBandQ = (
 
 const twoPlaces = (value: number) => Math.round(value * 100) / 100;
 
+/** Keep main-band edits independent of the existing preset/curve shaping. */
+export const getMainBandQ = (
+  state: Pick<
+    IState,
+    | 'mainBandQ'
+    | 'eqBandQ'
+    | 'curveBandQ'
+    | 'eqMode'
+    | 'curveEqMode'
+    | 'isEqDoubleOn'
+  >,
+): TBandQ => state.mainBandQ ?? getBandQ(state, 'eq');
+
 export const getCurveEqMode = (
   state: Pick<IState, 'eqMode' | 'isEqDoubleOn' | 'curveEqMode'>,
 ): TEqMode => state.curveEqMode ?? getEqMode(state);
@@ -84,12 +99,13 @@ export const canAdoptEqModeChange = (
   if (layerGroupOf(feature) === 'curves') {
     return (
       getBandQ(state, 'curves') === 'off' &&
-      (!state.curveSmoothing || state.curveSmoothing === 'off') &&
+      curveSmoothingOf(state.curveSmoothing) === 'off' &&
       getCurveEqMode(state) === 'normal'
     );
   }
   const writesAsIs =
-    getEqMode(state) === 'normal' && getBandQ(state, 'eq') === 'off';
+    getEqMode(state) === 'normal' &&
+    (feature === 'eq' ? getMainBandQ(state) : getBandQ(state, 'eq')) === 'off';
   if (feature !== 'eq') {
     return writesAsIs;
   }
@@ -224,7 +240,7 @@ export const convolutionCorrection = (
   profile: IConvolutionProfile | undefined,
   mode: TEqMode,
   shape: TBandQ = 'off',
-  smoothing: TCurveSmoothing = 'off',
+  smoothing: TCurveSmoothing = DEFAULT_CURVE_SMOOTHING,
 ): IGraphicEqPoint[] => {
   if (mode !== 'studio' && shape === 'off' && smoothing === 'off') {
     return [];

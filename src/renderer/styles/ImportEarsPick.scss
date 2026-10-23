@@ -1,0 +1,25 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+@use 'theme' as *;
+
+// Which ears an import fills (`ImportEarsPick`): the app's segmented track
+// at the small buttons' height, so it lines up with Choose file and Apply
+// beside it (Ivan, 2026-10-13: "this needs to be same height as the
+// buttons"). Its options stretch to fill the track's height. In the DSP EQ's
+// import window the dialog body's grid sets it over the text at the text's
+// width, spaced by the grid's own gap.
+.segmented.import-ears {
+  box-sizing: border-box;
+  min-height: $control-height-sm;
+  align-items: stretch;
+
+  .segmented__option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

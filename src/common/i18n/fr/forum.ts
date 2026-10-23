@@ -4,6 +4,17 @@ const forum = {
   'forum.source': 'GitHub Discussions',
   'forum.allTopics': 'Tous les sujets',
   'forum.allTopics.blurb': 'Toutes les catégories, activité récente d’abord',
+  'forum.new': 'Nouveau pour vous',
+  'forum.new.blurb': 'Ce qui est arrivé depuis votre dernière visite',
+  'forum.new.countLabel': 'Nouveaux : {count}',
+  'forum.new.markAllRead': 'Tout marquer comme lu',
+  'forum.news.hide': 'Désactiver les notifications du forum',
+  'forum.news.show': 'Activer les notifications du forum',
+  'forum.new.empty': 'Vous êtes à jour',
+  'forum.new.emptyHint':
+    'Les nouveaux sujets et réponses s’affichent ici jusqu’à ce que vous les ouvriez.',
+  'forum.topic.new': 'Nouveau',
+  'forum.thread.newReplies': 'Nouvelles : {count}',
 
   'forum.board.announcements': 'Annonces',
   'forum.board.general': 'Général',
@@ -17,6 +28,15 @@ const forum = {
   'forum.boardDescription.polls': 'Votez pour la suite',
   'forum.boardDescription.qa': 'Demandez, et marquez la réponse qui a marché',
   'forum.boardDescription.showAndTell': 'Un réglage dont vous êtes fier',
+  'forum.board.issues': 'Tickets',
+  'forum.boardDescription.issues':
+    'Problèmes signalés sur GitHub, et où en est chacun',
+  'forum.issue.open': 'Ouvert',
+  'forum.issue.closed': 'Fermé',
+  'forum.issue.newOnGithub': 'Nouveau ticket sur GitHub',
+  'forum.issue.commentHint':
+    'Les commentaires sur un ticket s’écrivent sur GitHub.',
+  'forum.issue.commentOnGithub': 'Commenter sur GitHub',
   'forum.board.countLabel': 'Sujets : {count}',
 
   'forum.me.signedOutTitle': 'Rejoignez la conversation',

@@ -207,13 +207,29 @@ export const organicBandEdges = (
  * No harmonics and no generated signal — it delays the lower bands against
  * the higher ones, following the timing half of the classic three-way enhancer
  * topology. Because it is a time relationship rather than a tone control, the
- * UI exposes one depth control and keeps the hardware-style split points fixed.
+ * UI exposes one depth control. Its corners are not fixed: two first-order
+ * all-passes cannot hold a corner while their delay changes, so the depth
+ * moves them too (`phase_align.cpp`).
  */
 export interface IPhaseAlignSettings {
   enabled: boolean;
   /** 0 is off exactly, 1 is 2.5 ms on the low band. */
   amount: number;
 }
+
+/**
+ * How the Exciter's harmonics are oversampled, in the wire's order
+ * (`FeqExciterOversampling` in `exciter_oversample.h`).
+ *
+ * Standard is what the stage always did. High trades the stage next to the
+ * output's rate for a sharp filter: a pushed top band that folded back 57 dB
+ * under its tone folds back 125 dB under it, and it is the default
+ * (`DSP_DEFAULTS`). Off runs the generator at the output's rate, for the
+ * lightest load, and folds back 19 dB under it.
+ */
+export const EXCITER_OVERSAMPLING = ['standard', 'off', 'high'] as const;
+
+export type TExciterOversampling = (typeof EXCITER_OVERSAMPLING)[number];
 
 export interface IExciterSettings {
   enabled: boolean;
@@ -229,6 +245,12 @@ export interface IExciterSettings {
   organic: IOrganicSettings;
   /** @see IPhaseAlignSettings */
   align: IPhaseAlignSettings;
+  /**
+   * The listener's, like the EQ's Treble choice: how the harmonics are
+   * made, which no profile, chain or saved setting takes away. @see
+   * EXCITER_OVERSAMPLING
+   */
+  oversampling: TExciterOversampling;
   /**
    * Hear ONLY what this stage made, with the dry signal dropped.
    *

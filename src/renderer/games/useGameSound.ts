@@ -43,8 +43,16 @@ import {
 } from '../dsp/store';
 import { activeDspPresetId } from '../dsp/dspPresetCatalog';
 import { useDspPresetSelection } from '../dsp/useDspPresetSelection';
+import { ownPresetId, yieldSongSound } from '../audio/songSoundSession';
 import { useFluidEqLayers } from '../utils/FluidEqContext';
-import { GAME_PROFILES_CHANGED, readGameProfiles } from './gameProfiles';
+import { reportError } from '../utils/logger';
+import useMainOutputEditor from '../utils/useMainOutputEditor';
+import { useIsMainEdited } from '../utils/useMainEditorWhile';
+import {
+  GAME_PROFILES_CHANGED,
+  readGameProfiles,
+  readGamesEnabled,
+} from './gameProfiles';
 import { requestGameWatch } from './gameWatchRequest';
 
 export const GAME_FOREGROUND_CHANNEL = 'game-foreground';
@@ -100,6 +108,18 @@ const isProgram = (value: unknown): value is IGameProgram =>
   value !== null &&
   typeof (value as IGameProgram).path === 'string' &&
   (value as IGameProgram).path !== '';
+
+/** The page's switch for the whole feature, kept in step the same way. */
+export const useGamesEnabled = (): boolean => {
+  const [enabled, setEnabled] = useState(readGamesEnabled);
+  useEffect(() => {
+    const changed = () => setEnabled(readGamesEnabled());
+    window.addEventListener(GAME_PROFILES_CHANGED, changed);
+    changed();
+    return () => window.removeEventListener(GAME_PROFILES_CHANGED, changed);
+  }, []);
+  return enabled;
+};
 
 /** The list, kept in step with every page that edits it. */
 export const useGameProfiles = (): IGameProfile[] => {
@@ -170,6 +190,8 @@ export interface IGameSound {
    * theirs, and a page saying the game's sound is on would be wrong about it.
    */
   sounding?: IGameProfile;
+  /** Whether the page's switch has game presets running at all. */
+  enabled: boolean;
   /** The program in front, whether or not it has a profile. */
   front?: IGameProgram;
 }
@@ -199,6 +221,26 @@ export const useGameSound = ({
     persistDspSettings,
     true,
   );
+  // A game's sound is the machine's, so it goes on the output that plays.
+  // With a second output left in "Edit sound" the editor goes back to the
+  // main output first, and what the game did is taken once the window has
+  // it — the preset to put back is then the main output's own. Through a
+  // ref: the handlers below are made once.
+  const isMainEdited = useIsMainEdited();
+  const isMainEditedRef = useRef(isMainEdited);
+  isMainEditedRef.current = isMainEdited;
+  const enterMainEditor = useMainOutputEditor();
+  const owed = useRef<Array<() => void>>([]);
+  const owe = useCallback(
+    (step: () => void) => {
+      owed.current.push(step);
+      enterMainEditor().catch((error: unknown) => {
+        owed.current = [];
+        reportError('Could not put a game’s sound on the main output', error);
+      });
+    },
+    [enterMainEditor],
+  );
   const [front, setFront] = useState<IGameProgram | undefined>(undefined);
   const [switched, setSwitched] = useState<IGameSwitch | undefined>(undefined);
   const soundNow = useSounding();
@@ -210,14 +252,18 @@ export const useGameSound = ({
   // listener changes chains and profiles while a game runs, and a handler
   // holding a copy from when it subscribed would put back a chain from an
   // hour ago.
-  const latest = useRef({ profiles, presetId: '', apply });
+  const enabled = useGamesEnabled();
+  const latest = useRef({ profiles, presetId: '', apply, enabled });
   latest.current = {
     profiles,
     presetId: presetNow,
     apply,
+    enabled,
   };
 
-  const wanted = always || profiles.length > 0;
+  // Switched off, nothing watches: main stops asking Windows what is in
+  // front, so no game can reach the sound whatever the list says.
+  const wanted = enabled && (always || profiles.length > 0);
   useEffect(() => (wanted ? requestGameWatch() : undefined), [wanted]);
 
   /** Remember the step, and put on what it chose. An empty chain is none. */
@@ -227,21 +273,39 @@ export const useGameSound = ({
       return;
     }
     // Nothing here waits on the switch: the chain it selects is the app's
-    // own, and a failure has already told the window in its own words.
-    latest.current
-      .apply(step.select === '' ? 'none' : step.select)
+    // own, and a failure has already told the window in its own words. A
+    // song's own sound comes off first (`songSoundSession.ts`), so the game's
+    // lands on the listener's and nothing hands the song's back over it.
+    const id = step.select === '' ? 'none' : step.select;
+    yieldSongSound()
+      .then(() => latest.current.apply(id))
       .catch(() => undefined);
   }, []);
 
   const heard = useCallback(
     (program: IGameProgram) => {
+      // A front reported just before the watcher stopped is still news
+      // from a feature that is now off.
+      if (!latest.current.enabled) {
+        return;
+      }
       setFront(program);
       if (!applies) {
         return;
       }
+      if (!isMainEditedRef.current) {
+        owe(() => heard(program));
+        return;
+      }
       const { profiles: known, presetId } = latest.current;
       const profile = gameProfileFor(known, program.path);
-      const step = gameSoundStep(memory.current, profile?.presetId, presetId);
+      // The listener's own preset is what goes back at the game's end, never
+      // a song's that is only lent to it.
+      const step = gameSoundStep(
+        memory.current,
+        profile?.presetId,
+        ownPresetId(presetId),
+      );
       // Ask to be told when this game ends, because that — and not losing
       // the front — is what puts the sound back. Asked every time it comes
       // forward, not only when the chain changes: after a reload the watcher
@@ -275,13 +339,17 @@ export const useGameSound = ({
       }
       take(step);
     },
-    [applies, take],
+    [applies, take, owe],
   );
 
   /** The game whose sound is on has ended, so the sound before it goes back. */
   const ended = useCallback(
     (pid: number) => {
       if (!applies || pid !== held.current) {
+        return;
+      }
+      if (!isMainEditedRef.current) {
+        owe(() => ended(pid));
         return;
       }
       held.current = 0;
@@ -305,8 +373,47 @@ export const useGameSound = ({
       }
       take(step);
     },
-    [applies, take],
+    [applies, take, owe],
   );
+
+  /**
+   * The switch went off while a game's sound was on: the sound from before
+   * goes back now, as it would have when the game closed. Left on, it would
+   * stay a game's with nothing left to ever take it back. No card: the
+   * listener is in this window, pressing the switch that did it.
+   */
+  const letGo = useCallback(() => {
+    if (!applies || held.current === 0 || latest.current.enabled) {
+      return;
+    }
+    if (!isMainEditedRef.current) {
+      owe(() => letGo());
+      return;
+    }
+    held.current = 0;
+    const bridge = window.electron?.ipcRenderer as IGameHoldBridge | undefined;
+    bridge?.holdGameProcess?.(0);
+    saySounding(undefined);
+    take(gameSoundEndStep(memory.current, latest.current.presetId));
+  }, [applies, take, owe]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setFront(undefined);
+      letGo();
+    }
+  }, [enabled, letGo]);
+
+  // What a game did while the editor was on another output, taken now that
+  // the main output is the one being edited.
+  useEffect(() => {
+    if (!isMainEdited || owed.current.length === 0) {
+      return;
+    }
+    const steps = owed.current;
+    owed.current = [];
+    steps.forEach((step) => step());
+  }, [isMainEdited, presetNow]);
 
   useEffect(() => {
     const listen = window.electron?.ipcRenderer?.on;
@@ -340,6 +447,7 @@ export const useGameSound = ({
 
   return {
     profiles,
+    enabled,
     front,
     switched,
     forgetSwitch,

@@ -36,6 +36,10 @@ const files = {
   'files.chain.notChain': '该文件不是 FluidEQ 链。',
   'files.squiglink.empty': '请先粘贴 Squiglink 的 EQ 导出内容再导入。',
   'files.squiglink.tooLarge': '该 EQ 导出内容太大，无法导入。',
+  'files.squiglink.earsNeedBands':
+    '这个导出是一条采样曲线，会同时作用于双耳。请应用到双耳，或改为导出参数滤波器。',
+  'files.squiglink.tooManyBands':
+    '这样会超过 {max} 个频段。请先删除一些频段，或应用到双耳。',
   'files.squiglink.noFilters':
     '未找到 Equalizer APO 滤波器。请复制从 Squiglink 导出的 ParametricEQ 或 GraphicEQ 文本。',
   'files.eq.tooLarge': '该文件太大，不可能是 EQ 设置。',
@@ -58,6 +62,10 @@ const files = {
   'files.apo.selectorMissing': '找不到 Equalizer APO 的设备配置程序。',
   'files.apo.editorMissing': '找不到 Equalizer APO 的设置。',
   'files.wav.tooLong': '该脉冲响应太长，无法为安全归一化进行分析。',
+  // My curves out through Save As (main/ipc/curveExport.ts).
+  'files.title.exportCurves': '导出“我的曲线”',
+  'files.type.curveList': 'FluidEQ 曲线列表',
+  'files.title.exportCurveFolder': '为曲线选择一个文件夹',
 } as const;
 
 export default files;

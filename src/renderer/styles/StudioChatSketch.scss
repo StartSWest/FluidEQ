@@ -1,0 +1,191 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'dialog' as dialog;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Drawing on the stage's picture before it goes with a message
+// (`StudioChatSketch.tsx`): the tools in a row, the picture as large as the
+// dialog lets it be, the marks drawn at its own size.
+
+.dialog-frame.studio-chat-sketch {
+  @include dialog.size(1100px, 900px);
+}
+
+.studio-chat-sketch__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-bottom: 10px;
+}
+
+.studio-chat-sketch__gap {
+  flex: 1 1 auto;
+}
+
+// Pen, arrow, text: the app's quiet icon buttons, the chosen one lit.
+.studio-chat-sketch__kinds {
+  display: flex;
+  gap: 4px;
+  padding-right: 8px;
+  border-right: 1px solid $card-edge;
+
+  button {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    place-items: center;
+    color: $text-faint;
+    border: 1px solid transparent;
+    border-radius: $radius-xs;
+    background: none;
+    cursor: pointer;
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &:hover {
+      color: $text-primary;
+    }
+
+    &[aria-checked='true'] {
+      color: $text-accent;
+      border-color: color-mix(in srgb, $text-accent 40%, transparent);
+      background: color-mix(in srgb, $text-accent 12%, transparent);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+// The inks: each swatch its own colour (set on the button), the chosen one
+// ringed.
+.studio-chat-sketch__inks {
+  display: flex;
+  gap: 6px;
+
+  button {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: inset 0 0 0 2px rgba($black, 0.35);
+    cursor: pointer;
+
+    &[aria-checked='true'] {
+      border-color: $text-primary;
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+// The pen widths, each a dot of its width.
+.studio-chat-sketch__widths {
+  display: flex;
+  gap: 4px;
+
+  button {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    place-items: center;
+    color: $text-faint;
+    border: 1px solid transparent;
+    border-radius: $radius-xs;
+    background: none;
+    cursor: pointer;
+
+    span {
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    &.is-thin span {
+      width: 5px;
+      height: 5px;
+    }
+
+    &.is-thick span {
+      width: 12px;
+      height: 12px;
+    }
+
+    &[aria-checked='true'] {
+      color: $text-primary;
+      border-color: $card-edge;
+      background: color-mix(in srgb, $white 6%, transparent);
+    }
+
+    &:focus-visible {
+      @include focus-ring;
+    }
+  }
+}
+
+.studio-chat-sketch__stage {
+  display: grid;
+  min-height: 0;
+  place-items: center;
+
+  canvas {
+    display: block;
+    max-width: 100%;
+    max-height: min(62vh, 640px);
+    border-radius: $radius-s;
+    cursor: crosshair;
+    touch-action: none;
+
+    &.is-text {
+      cursor: text;
+    }
+  }
+}
+
+// The picture and, over it, the word being typed where it will stand.
+.studio-chat-sketch__frame {
+  position: relative;
+  max-width: 100%;
+}
+
+// Typed over the picture in the ink it will be set in, its middle on the
+// point pressed, as the canvas sets it down.
+.studio-chat-sketch__word {
+  position: absolute;
+  min-width: 140px;
+  padding: 3px 6px;
+  border: 1px dashed currentColor;
+  border-radius: $radius-xs;
+  background: rgba($black, 0.45);
+  font: inherit;
+  font-size: $text-body;
+  font-weight: $weight-bold;
+  transform: translateY(-50%);
+
+  &::placeholder {
+    color: rgba($white, 0.6);
+    font-weight: $weight-regular;
+  }
+
+  &:focus {
+    outline: none;
+  }
+}

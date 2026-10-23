@@ -97,7 +97,7 @@ const app: Partial<Dictionary> = {
     "Capture ce que joue ce PC, avant l'égaliseur, pour l'onglet Partager l’audio, une deuxième sortie et l'Égalisation auto. Ne tourne que pendant que l'un d'eux est utilisé.",
   'app.processes.name.sharePlayback': 'Lecture de l’audio partagé',
   'app.processes.what.sharePlayback':
-    'Joue le son qu’un autre FluidEQ partage avec ce PC. Ne tourne que pendant que vous l’écoutez.',
+    'Joue le son qu’un autre FluidEQ partage avec ce PC, et lance les captures audio, pour que ce qu’envoie ce PC ne renvoie jamais ce son. Ne tourne que pendant que l’un d’eux est utilisé.',
   'app.processes.name.volume': 'Volume du système',
   'app.processes.what.volume':
     'Suit le volume et la sourdine de Windows pour les curseurs de volume de FluidEQ, et le règle quand vous en déplacez un. Ne tourne que lorsqu’un curseur est à l’écran.',
@@ -173,6 +173,10 @@ const app: Partial<Dictionary> = {
   'engine.detachFailed':
     'Le moteur FluidEQ n’a pas pu être retiré de cette sortie. Rien n’a changé.',
   'engine.unsupported': 'Nécessite Windows 10 version 1803 ou plus récent.',
+  'engine.subtitle.builtIn':
+    'Le moteur est fourni avec FluidEQ et tourne tant que FluidEQ tourne.',
+  'engine.fluid.builtIn.l1':
+    'Fourni avec FluidEQ : rien à installer ni à activer',
   'prereq.title.apo': 'Equalizer APO demande votre attention',
   'prereq.title.fluid': 'Le moteur FluidEQ demande votre attention',
   'prereq.install.apo': 'Installer APO',
@@ -271,6 +275,8 @@ const app: Partial<Dictionary> = {
   'notice.captureFailed': 'La sortie en direct n’a pas pu démarrer',
   'notice.captureFailedBody':
     'Le vumètre et la courbe en direct du graphique sont coupés pour l’instant. Tout le reste fonctionne normalement.',
+  'notice.captureNeedsMacPermission':
+    'Sur un Mac, le vumètre et la courbe en direct du graphique ont besoin que FluidEQ soit autorisé dans la liste du haut de Confidentialité et sécurité › Enregistrement de l’écran et de l’audio du système. La liste réservée au son suffit à votre EQ, mais pas à eux. Tout le reste fonctionne normalement.',
   'notice.tryAgain': 'Réessayer',
   'notice.restartConfirm':
     'Le son va s’interrompre quelques secondes et Windows demandera une autorisation d’administrateur. Continuer ?',
@@ -427,6 +433,10 @@ const app: Partial<Dictionary> = {
   'games.source.file': 'Choisi par vous',
   'games.front.playing': '{name} est au premier plan, et son son est activé.',
   'games.front.sounding': '{name} est lancé, et son son est activé.',
+  'games.front.off':
+    'Les presets de jeu sont désactivés. Vos jeux gardent votre propre son.',
+  'games.switch.hint':
+    'Désactivé : aucun jeu ne change votre son, et FluidEQ ne regarde plus quel programme est au premier plan. Votre liste reste telle quelle.',
   'games.toast.loaded': '{preset} chargé',
   'games.toast.forGame': 'pour {game}',
   'games.toast.restored': 'Retour à {preset}',

@@ -25,6 +25,8 @@ const card = (
   overrides: Partial<Parameters<typeof StudioShipCard>[0]> = {},
 ) => {
   const props = {
+    // In the gallery already, unless a case says it is a draft.
+    published: true,
     unfit: false,
     onAdd: jest.fn(),
     publishing: false,
@@ -37,6 +39,7 @@ const card = (
   };
   render(
     <StudioShipCard
+      published={props.published}
       unfit={props.unfit}
       onAdd={props.onAdd}
       publishing={props.publishing}
@@ -82,6 +85,17 @@ it('keeps the scene with the loud button, publishes with a quiet one, and sends 
   await userEvent.click(add);
   expect(props.onAdd).toHaveBeenCalledTimes(1);
   expect(props.onSetDesktop).toHaveBeenCalledTimes(1);
+});
+
+it('makes Publish the loud way out while the scene is a draft, and Add to looks the quiet one', () => {
+  card({ published: false });
+  const bar = screen.getByRole('group', { name: 'studio.ship.title' });
+  expect(
+    within(bar).getByRole('button', { name: 'studio.action.publish' }),
+  ).not.toHaveClass('subtle');
+  expect(
+    within(bar).getByRole('button', { name: 'studio.action.addToLooks' }),
+  ).toHaveClass('subtle');
 });
 
 it('offers no desktop on a computer that cannot put a visualizer there', async () => {

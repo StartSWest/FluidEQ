@@ -57,7 +57,7 @@ const review = {
     '承認されましたが、ファイルがギャラリーに届きませんでした。もう一度「承認して公開」を押して完了してください。',
   'review.forbidden': 'シーンを承認できるのは FluidEQ の管理者だけです。',
   'review.fine.new':
-    '承認するとバージョン {version} としてギャラリーに公開され、サインインしている全員が見られ、Plus メンバーが追加できます。',
+    '承認するとバージョン {version} でギャラリーに載ります。サインインしている全員に表示され、1クレジットで入手でき、制作者には無料で再生されます。',
   'review.fine.update':
     '承認すると、このシーンを持つ全員のバージョン {version} が置き換わります。承認しなければバージョン {version} のままです。',
   'review.state.pending': '審査中',
@@ -77,7 +77,7 @@ const review = {
   'review.notice.review': '今すぐ確認',
   'review.notice.approved': '{name} がギャラリーに公開されました',
   'review.notice.approvedBody':
-    '承認されました。Plus メンバーが追加できるようになりました。',
+    '承認されました。これからはどこでも無料であなたのために再生され、誰でも入手できます。',
   'review.notice.approvedUpdate':
     '{name} のバージョン {version} がギャラリーに公開されました',
   'review.notice.approvedUpdateBody':

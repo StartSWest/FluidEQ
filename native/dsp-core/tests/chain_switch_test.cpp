@@ -240,6 +240,75 @@ void dimension_arrives_with_its_network_filled() {
   switched("switched off", on, off);
 }
 
+/**
+ * The Exciter's stereo selector, and Isolate under it, cross.
+ *
+ * The paths a selector left stopped being called in one sample, their
+ * returns at full mix with them, and the half Isolate leaves out was zeroed
+ * at once while the selected half's dry faded over 18 ms. Now a domain the
+ * selector leaves runs out its returns, and the half left out fades the way
+ * the selected half's dry does (`PathRole` in `chain_exciter.cpp`). Timing
+ * is on throughout: it is the whole programme's in every mode, so a switch
+ * moves nothing of it.
+ */
+void the_exciter_s_stereo_selector_crosses() {
+  std::printf("the Exciter's stereo selector, and Isolate under it\n");
+  FeqChainSettings stereo = quiet();
+  stereo.exciter.enabled = 1;
+  stereo.exciter.align_enabled = 1;
+  stereo.exciter.align_amount = 0.45;
+  for (auto& band : stereo.exciter.bands) {
+    band.enabled = 1;
+    band.mix = 1.0;
+  }
+  FeqChainSettings mid = stereo;
+  mid.exciter.stereo = FEQ_STEREO_MID;
+  FeqChainSettings sides = stereo;
+  sides.exciter.stereo = FEQ_STEREO_SIDE;
+  FeqChainSettings mid_isolated = mid;
+  mid_isolated.exciter.isolate = 1;
+  switched("Stereo to Mid only", stereo, mid);
+  switched("Mid only to Sides only", mid, sides);
+  switched("Sides only to Stereo", sides, stereo);
+  switched("Isolate on in Mid only", mid, mid_isolated);
+}
+
+/**
+ * The Exciter's oversampling choice crosses.
+ *
+ * Each choice delays the harmonics by its own filters — none, about 1 ms
+ * and about 1.8 ms at 48 kHz — so handed over in place, every return would
+ * jump by the difference mid-waveform. The returns go down over 20 ms, the
+ * oversamplers start clean in the new way, and the returns come back;
+ * Organic, which runs on the same oversampling, follows the same ramp.
+ *
+ * The low band and Organic alone, both focused low, so their returns stay
+ * under 5 kHz and a jump is what reaches up there: with the top band on,
+ * its harmonics fill the octaves the measurement listens in, and an
+ * unsmoothed splice of the steady racks read only 4 to 14 dB over them.
+ */
+void the_exciter_s_oversampling_crosses() {
+  std::printf("the Exciter's oversampling choice\n");
+  FeqChainSettings standard = quiet();
+  standard.exciter.enabled = 1;
+  standard.exciter.organic_enabled = 1;
+  standard.exciter.organic_amount = 0.5;
+  standard.exciter.organic_focus_hz = 300.0;
+  FeqChainExciterBand& low = standard.exciter.bands[0];
+  low.enabled = 1;
+  low.freq_hz = 200.0;
+  low.range = 0.3;
+  low.drive = 3.5;
+  low.mix = 1.0;
+  FeqChainSettings high = standard;
+  high.exciter.oversampling = FEQ_EXCITER_OVERSAMPLING_HIGH;
+  FeqChainSettings off = standard;
+  off.exciter.oversampling = FEQ_EXCITER_OVERSAMPLING_OFF;
+  switched("Standard to High", standard, high);
+  switched("High to Off", high, off);
+  switched("Off to Standard", off, standard);
+}
+
 }  // namespace
 
 int main() {
@@ -247,5 +316,7 @@ int main() {
   the_maximizer_glides_and_lets_go();
   bass_forge_fades_both_ways();
   dimension_arrives_with_its_network_filled();
+  the_exciter_s_stereo_selector_crosses();
+  the_exciter_s_oversampling_crosses();
   return feq_test::finish();
 }

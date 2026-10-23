@@ -33,8 +33,6 @@ const config: IAccountConfig = {
   supabaseUrl: 'https://project.supabase.co',
   supabaseAnonKey: 'sb_publishable_test',
   apiUrl: 'https://project.supabase.co/functions/v1',
-  plusPrice: '$5',
-  plusYearlyPrice: '',
 };
 
 const answer = (status: number, body: unknown) =>

@@ -24,8 +24,11 @@ import { useTranslation } from './utils/I18nContext';
 import Button from './widgets/Button';
 import MenuIcon from './icons/MenuIcon';
 import { clearGains, importEqText, setHeadphone } from './utils/equalizerApi';
+import ImportEarsPick from './eq/ImportEarsPick';
+import type { TImportEars } from '../common/bandEars';
 import EqCurveChart from './graph/EqCurveChart';
 import SquiglinkImportConfirm from './components/SquiglinkImportConfirm';
+import SaveToMyCurves from './eq/SaveToMyCurves';
 import { PREVIEW_BOX, makeCurve, makePath } from './graph/curvePreview';
 import { hasCustomFxCurve } from '../common/customFx';
 import {
@@ -42,7 +45,7 @@ import './styles/SquiglinkImport.scss';
 const SQUIGLINK_URL = 'https://squig.link/';
 
 const SquiglinkImport = () => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const {
     eqImport: bandImport,
     activeDeviceId,
@@ -63,6 +66,7 @@ const SquiglinkImport = () => {
     () => storedEqTextRef.current ?? eqImport?.text ?? '',
   );
   const [fileName, setFileName] = useState('');
+  // The pasted curve, handed to My curves' own dialog to be named and kept.
   const [isImporting, setIsImporting] = useState(false);
   const [confirmDeviceId, setConfirmDeviceId] = useState<string>();
   const cancelImport = useCallback(() => setConfirmDeviceId(undefined), []);
@@ -237,13 +241,20 @@ const SquiglinkImport = () => {
     }
   };
 
+  const [ears, setEars] = useState<TImportEars>('both');
+
   const handleImport = async (destination: 'eq' | 'curve') => {
     if (!text.trim()) {
       return;
     }
     setIsImporting(true);
     try {
-      await importEqText(text, fileName || 'Squiglink export', destination);
+      await importEqText(
+        text,
+        fileName || 'Squiglink export',
+        destination,
+        destination === 'eq' ? ears : 'both',
+      );
       await refreshState({ revealBands: destination === 'eq' });
     } catch (error) {
       setGlobalError(error as ErrorDescription);
@@ -363,6 +374,12 @@ const SquiglinkImport = () => {
               <MenuIcon name="import" />
               {fileName || t('squigImport.chooseFile')}
             </Button>
+            {/* Which ears Apply as EQ fills; a curve is always both. */}
+            <ImportEarsPick
+              value={ears}
+              onChange={setEars}
+              disabled={isBlockingError || isImporting}
+            />
             <Button
               className="small squig-import__apply"
               ariaLabel={t('squigImport.applyAria')}
@@ -383,6 +400,28 @@ const SquiglinkImport = () => {
                 ? t('squigImport.importing')
                 : t('squigImport.applyCurve')}
             </Button>
+            <SaveToMyCurves
+              isDisabled={isImporting}
+              curve={
+                livePreview
+                  ? {
+                      text,
+                      // The file's name when there is one, which Squiglink
+                      // writes after the headphone; a paste has none.
+                      name: fileName
+                        ? fileName.replace(/\.[^.]+$/, '')
+                        : t('myCurves.defaultName', {
+                            date: new Date().toLocaleDateString(locale, {
+                              day: 'numeric',
+                              month: 'short',
+                            }),
+                          }),
+                      source: fileName ? 'file' : 'squiglink',
+                      ears,
+                    }
+                  : undefined
+              }
+            />
           </div>
         </div>
 

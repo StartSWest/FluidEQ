@@ -15,15 +15,11 @@ it under the terms of the GNU General Public License version 3 or later.
 // (`EqScreen`). The row of chips that stood above the bands is gone; they
 // live in a menu now and nowhere else.
 
-// One control with the Smart EQ button's and the layout picker's shape.
+// One menu trigger with the toolbar's standard shape.
 .active-layers__picker {
   display: inline-flex;
   min-width: 0;
   flex: 0 0 auto;
-  // NOT `center`. `.eq-mode` stretches its two halves to a common height and
-  // that is the only thing making them one control; centring them here left
-  // the caret at its own content height, a short box against a taller button
-  // with the seam between them visible.
   align-items: stretch;
 }
 

@@ -276,6 +276,34 @@ describe('what the AI is told', () => {
     return look.call(args);
   };
 
+  // Smooth on the maker's card is not smooth for a laptop's integrated
+  // graphics (Ivan, 2026-10-16: "always as performant as possible"): only a
+  // light frame is called fine, and a smooth one is asked to get lighter.
+  test.each([
+    [3, /3 ms .* - light: it plays well on a laptop/],
+    [12, /12 ms .* - smooth on this computer, but .* toward 5 ms/],
+  ])('a %d ms frame is told so', async (drawMs, said) => {
+    const result = await call({
+      ok: true,
+      pack,
+      wave: { height: 1, position: 0 },
+      camera: { yaw: 0, pitch: 0, zoom: 1 },
+      answer: {
+        ok: true,
+        image: JPEG,
+        width: 1280,
+        height: 720,
+        drawMs,
+        renderWidth: 1920,
+        renderHeight: 1080,
+        spectrumRect: [0, 1, 0, 1],
+        moment: MOMENT,
+      },
+    });
+    const [words] = result.content;
+    expect(words.type === 'text' && words.text).toMatch(said);
+  });
+
   test('the picture comes with what it is of and what it cost', async () => {
     const result = await call({
       ok: true,

@@ -55,6 +55,7 @@ import { existsSync } from 'fs';
 import path from 'path';
 import log from 'electron-log';
 import { APP_USER_MODEL_ID } from './appIdentity';
+import { createHelperReplacement } from './helperReplacement';
 import { POWERSHELL_PATH } from './powershell';
 import isBase64 from '../common/base64';
 
@@ -258,6 +259,12 @@ let lastSnapshot: ISystemMediaSnapshot | undefined;
  */
 let lastCover: ISystemMediaCover | undefined;
 
+/**
+ * A watcher that ends by itself is put back, while a window is listening
+ * (`helperReplacement.ts`, which says when it is not).
+ */
+const replacement = createHelperReplacement('media helper');
+
 /** The playing list: a list from the helper, a bare string where the
  * PowerShell watcher's JSON collapsed a list of one, or missing from an
  * older watcher. */
@@ -371,47 +378,8 @@ export const parseSystemMediaCover = (
   }
 };
 
-/**
- * Start reporting what the machine is playing.
- *
- * One child, however many times this is asked for: the window asks whenever
- * its own players fall silent, which can happen twice in a row for one pause,
- * and a second child would be a second helper told about the same sessions.
- *
- * But the LISTENER is replaced every time, and the caller is answered with
- * what is playing right now before this returns. See `notify` for the reload
- * this is the whole point of.
- *
- * `locate` is the tests' way in; the app always looks where the build puts
- * the helper.
- */
-export const watchSystemMedia = (
-  onSnapshot: (snapshot: ISystemMediaSnapshot | undefined) => void,
-  locate: () => string | undefined = findSystemMediaExecutable,
-): void => {
-  notify = onSnapshot;
-  if (child) {
-    // Already watching, for somebody else. Hand the new subscriber the state
-    // rather than making it wait for the next change.
-    onSnapshot(lastSnapshot);
-    return;
-  }
-
-  const executable = locate();
-  if (!executable) {
-    // No fallback poll. The PowerShell loop this replaced is exactly what the
-    // helper exists not to be, and a second way of reading the same thing is
-    // a second thing to keep in step; the bar shows the app's own players,
-    // as it would on a machine with nothing else playing.
-    if (!missingHelperLogged) {
-      missingHelperLogged = true;
-      log.warn(
-        'Other apps’ media is not reported: FluidEQ-Media.exe was not found (it is built with the native helpers).',
-      );
-    }
-    return;
-  }
-
+/** One helper, its readings handed to whoever is listening now. */
+const startWatcher = (executable: string): void => {
   // The app's own id is the helper's one argument, so the rule that looks
   // past this app's sessions (`SELF_SKIP`) reads the same id on both sides.
   // Nobody reads its stderr, so it is not a pipe that could fill.
@@ -420,6 +388,7 @@ export const watchSystemMedia = (
     windowsHide: true,
   });
   child = started;
+  const run = replacement.run();
 
   let pending = '';
   // Decoded by the stream, never chunk by chunk. The helper writes UTF-8, and
@@ -448,6 +417,7 @@ export const watchSystemMedia = (
         lastCover = parseSystemMediaCover(line) ?? lastCover;
         return;
       }
+      run.heard(line);
       lastSnapshot = parseSystemMediaLine(line);
       // `notify` rather than `onSnapshot`: this child outlives the window that
       // started it, and the reading must go to whoever is listening NOW.
@@ -459,7 +429,7 @@ export const watchSystemMedia = (
   // already gone makes the close fail, and its exit already said so.
   started.stdin?.on('error', () => undefined);
 
-  const ended = () => {
+  const ended = (how: string) => {
     // Only the CURRENT watcher's death means anything. A window reload stops
     // this child and starts the next one at once, and this exit is delivered
     // only once the old helper has actually gone — after the new one is
@@ -472,15 +442,71 @@ export const watchSystemMedia = (
       return;
     }
     child = undefined;
+    // A stop the app asked for never reaches here: it lets go of the child
+    // first, so this is a helper that went by itself.
+    if (run.ended(how)) {
+      // The window keeps what it was last told until the new helper's first
+      // reading, which comes as soon as it has looked. Told "nothing" in
+      // between, it would read the same song arriving again as somebody
+      // pressing play out there and stop the app's own player for it.
+      startWatcher(executable);
+      return;
+    }
     lastSnapshot = undefined;
     lastCover = undefined;
     notify?.(undefined);
   };
   started.on('error', (error) => {
     log.info('The media helper could not start', error);
-    ended();
+    ended(`could not start: ${error.message}`);
   });
-  started.on('exit', ended);
+  started.on('exit', (code, signal) => {
+    ended(`exit code ${code ?? 'none'}, signal ${signal ?? 'none'}`);
+  });
+};
+
+/**
+ * Start reporting what the machine is playing.
+ *
+ * One child, however many times this is asked for: a window asks when it
+ * opens and again when it is reloaded, and a second child would be a second
+ * helper told about the same sessions.
+ *
+ * But the LISTENER is replaced every time, and the caller is answered with
+ * what is playing right now before this returns. See `notify` for the reload
+ * this is the whole point of.
+ *
+ * `locate` is the tests' way in; the app always looks where the build puts
+ * the helper.
+ */
+export const watchSystemMedia = (
+  onSnapshot: (snapshot: ISystemMediaSnapshot | undefined) => void,
+  locate: () => string | undefined = findSystemMediaExecutable,
+): void => {
+  notify = onSnapshot;
+  replacement.asked();
+  if (child) {
+    // Already watching, for somebody else. Hand the new subscriber the state
+    // rather than making it wait for the next change.
+    onSnapshot(lastSnapshot);
+    return;
+  }
+
+  const executable = locate();
+  if (!executable) {
+    // No fallback poll. The PowerShell loop this replaced is exactly what the
+    // helper exists not to be, and a second way of reading the same thing is
+    // a second thing to keep in step; the bar shows the app's own players,
+    // as it would on a machine with nothing else playing.
+    if (!missingHelperLogged) {
+      missingHelperLogged = true;
+      log.warn(
+        'Other apps’ media is not reported: FluidEQ-Media.exe was not found (it is built with the native helpers).',
+      );
+    }
+    return;
+  }
+  startWatcher(executable);
 };
 
 /**

@@ -24,6 +24,11 @@ bool same_kernel(const FeqChain& prepared, const FeqChain& previous) noexcept {
         wanted.gain_db != playing.gain_db || wanted.quality != playing.quality) {
       return false;
     }
+    // A band moved between the ears leaves the kernel's bands alike: both
+    // kernels leave it out, and run it after them on another channel.
+    if (prepared.kernel_ears[index] != previous.kernel_ears[index]) {
+      return false;
+    }
   }
   return true;
 }
@@ -106,6 +111,9 @@ void transfer_histories(FeqChain& prepared, FeqChain& previous) noexcept {
   swap(prepared.bass_forge_low, previous.bass_forge_low);
   swap(prepared.bass_forge_scratch, previous.bass_forge_scratch);
   swap(prepared.bass_punch, previous.bass_punch);
+  // What the De-esser is hearing, holding and cutting; the prepared chain
+  // keeps the layout it was configured with (`feq_deesser_transfer`).
+  feq_deesser_transfer(prepared.deesser, previous.deesser);
   swap(prepared.bass_punch_low, previous.bass_punch_low);
   swap(prepared.bass_punch_bloom, previous.bass_punch_bloom);
   swap(prepared.bass_punch_bloom_pointers, previous.bass_punch_bloom_pointers);
@@ -189,6 +197,11 @@ extern "C" int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous) 
       prepared->sample_rate != previous->sample_rate ||
       prepared->channels != previous->channels ||
       prepared->max_frames != previous->max_frames ||
+      prepared->source_analysis_version != previous->source_analysis_version ||
+      prepared->source_library != previous->source_library ||
+      (prepared->source_library &&
+       (prepared->source_id != previous->source_id ||
+        prepared->source_epoch != previous->source_epoch)) ||
       (prepared->live_normalizer == nullptr) != (previous->live_normalizer == nullptr) ||
       prepared->kernel_handoff.load(std::memory_order_relaxed) != nullptr ||
       previous->kernel_handoff.load(std::memory_order_relaxed) != nullptr ||
@@ -200,7 +213,15 @@ extern "C" int feq_chain_transfer_state(FeqChain* prepared, FeqChain* previous) 
     // discard the level learned by the input Normalizer or unrelated delays.
     feq_denoise_transfer_state(prepared->denoise, previous->denoise);
   }
+  // Histories belong to this passage. Its NEW gains belong to the new
+  // settings/analysis: blindly swapping their targets loses a completed scan
+  // or makes this output keep the old normalizer dial indefinitely.
+  const double input_target = prepared->input_gain_target_db;
+  const double master_target = prepared->master_loudness_target_db;
   transfer_histories(*prepared, *previous);
+  if (prepared->source_library) {
+    feq_chain_set_track_level_gains(prepared, input_target, master_target, 0);
+  }
   transfer_convolvers(*prepared, *previous);
   return 1;
 }

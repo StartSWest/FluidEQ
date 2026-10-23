@@ -93,7 +93,7 @@ const app = {
     'Captures what this PC plays, before the equalizer, for the Share Audio tab, a second output and Smart EQ. Runs only while one of them is in use.',
   'app.processes.name.sharePlayback': 'Shared audio playback',
   'app.processes.what.sharePlayback':
-    'Plays the sound another FluidEQ shares with this PC. Runs only while you are listening to it.',
+    'Plays the sound another FluidEQ shares with this PC, and starts the audio captures, so what this PC sends never carries that sound back. Runs only while one of them is in use.',
   'app.processes.name.volume': 'System volume',
   'app.processes.what.volume':
     'Follows Windows’ volume and mute for FluidEQ’s volume sliders, and sets it when you move one. Runs only while a slider is on screen.',
@@ -166,6 +166,10 @@ const app = {
   'engine.detachFailed':
     'FluidEQ Engine could not be removed from this output. Nothing changed.',
   'engine.unsupported': 'Needs Windows 10 version 1803 or later.',
+  'engine.subtitle.builtIn':
+    'The engine comes with FluidEQ and runs for as long as FluidEQ does.',
+  'engine.fluid.builtIn.l1':
+    'Comes with FluidEQ — nothing to install or switch on',
   'prereq.title.apo': 'Equalizer APO needs attention',
   'prereq.title.fluid': 'The FluidEQ Engine needs attention',
   'prereq.install.apo': 'Install APO',
@@ -262,6 +266,8 @@ const app = {
   'notice.captureFailed': 'Live output could not start',
   'notice.captureFailedBody':
     'The level meter and the live curve on the graph are off for now. Everything else works normally.',
+  'notice.captureNeedsMacPermission':
+    'On a Mac, the level meter and the live curve on the graph need FluidEQ allowed in the upper list of Privacy & Security › Screen & System Audio Recording. The list for sound alone is enough for your EQ, but not for them. Everything else works normally.',
   'notice.tryAgain': 'Try again',
   'notice.restartConfirm':
     'Audio will stop for a few seconds and Windows will request administrator permission. Continue?',
@@ -411,6 +417,9 @@ const app = {
   'games.source.file': 'Chosen by you',
   'games.front.playing': '{name} is in front, and its sound is on.',
   'games.front.sounding': '{name} is running, and its sound is on.',
+  'games.front.off': 'Game presets are off. Your games keep your own sound.',
+  'games.switch.hint':
+    'Off: no game changes your sound, and FluidEQ stops watching which program is in front. Your list stays as it is.',
   'games.toast.loaded': 'Loaded {preset}',
   'games.toast.forGame': 'for {game}',
   'games.toast.restored': 'Back to {preset}',

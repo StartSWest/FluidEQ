@@ -12,10 +12,9 @@ import {
 } from '../graph/liveSpectrumFrames';
 import {
   createGraphSliceReader,
-  followGraphReference,
   type IGraphSliceReader,
-  writeGraphPoints,
-} from '../graph/liveGraphBand';
+} from '../graph/graphSlices';
+import { followGraphReference, writeGraphPoints } from '../graph/liveGraphBand';
 import {
   advanceLevel,
   amplitudeToDb,

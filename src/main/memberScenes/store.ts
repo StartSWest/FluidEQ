@@ -18,6 +18,13 @@ import {
 import type { ISceneWave } from '../../common/sceneWave';
 import { verifyMemberSceneEnvelope } from '../scenePackVerify';
 import { readSceneCache, writeSceneCache } from '../sceneCacheFile';
+import {
+  forgetKeptVersions,
+  keptVersionFile,
+  keptVersionsOf,
+  replaceKeepingVersion,
+  type IVersionPins,
+} from '../keptVersions';
 import { createSceneSummaryCache } from '../sceneSummaryCache';
 
 /**
@@ -66,8 +73,13 @@ export interface IMemberSceneSummary {
 
 export interface IMemberSceneStore {
   list(): IMemberSceneSummary[];
-  /** The whole pack, checked afresh, or nothing if it is not fit to run. */
+  /**
+   * The whole pack, checked afresh, or nothing if it is not fit to run: the
+   * version the look plays, which is an earlier one while it is pinned.
+   */
   load(authorId: string, packId: string): IScenePack | undefined;
+  /** The newest version held, whatever plays: what an update is measured against. */
+  newest(authorId: string, packId: string): IScenePack | undefined;
   /** Keeps a scene the member made. Throws if it breaks any rule. */
   save(authorId: string, pack: IScenePack): IMemberSceneSummary;
   /**
@@ -76,6 +88,12 @@ export interface IMemberSceneStore {
    */
   saveImported(envelope: IScenePackEnvelope): IMemberSceneSummary;
   remove(authorId: string, packId: string): boolean;
+  /**
+   * The earlier versions this computer kept of a scene another member made,
+   * newest first (`keptVersions.ts`). The member's own are their Studio
+   * projects, and keep none here.
+   */
+  keptVersions(authorId: string, packId: string): number[];
   /** The maker's block list, as fingerprints; replaces the one held. */
   setBlocked(fingerprints: readonly string[]): void;
   isBlocked(authorId: string, packId: string): boolean;
@@ -83,6 +101,8 @@ export interface IMemberSceneStore {
 
 export interface IMemberSceneStoreOptions {
   userDataDir: string;
+  /** Which earlier version a look plays (`keptVersions.ts`); none, the newest. */
+  pins?: IVersionPins;
   logger?: { warn(message: string): void };
 }
 
@@ -94,6 +114,25 @@ export const memberSceneFingerprint = (authorId: string, packId: string) =>
   createHash('sha256')
     .update(`${authorId.toLowerCase()}:${packId}`, 'utf8')
     .digest('hex');
+
+/** What tells two copies of one version apart: the pack as the looks hold it. */
+const revisionOf = (pack: IScenePack) =>
+  createHash('sha256').update(JSON.stringify(pack)).digest('hex');
+
+/**
+ * The revision a pack would have once kept in the looks, without keeping it:
+ * checked as `save` checks it, written and read back as the looks read it,
+ * so a pack equal to the kept one gives the kept one's revision exactly.
+ * Nothing for a pack the looks would refuse.
+ */
+export const keptRevisionOf = (pack: IScenePack): string | undefined => {
+  const checked = checkMemberScene(pack);
+  if (!checked.ok) {
+    return undefined;
+  }
+  const kept = readMemberScene(JSON.parse(JSON.stringify(checked.pack)));
+  return kept ? revisionOf(kept) : undefined;
+};
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -112,6 +151,7 @@ const listDirectory = (directory: string): string[] => {
 
 export const createMemberSceneStore = ({
   userDataDir,
+  pins,
   logger,
 }: IMemberSceneStoreOptions): IMemberSceneStore => {
   const root = path.join(userDataDir, DIRECTORY);
@@ -160,9 +200,14 @@ export const createMemberSceneStore = ({
   const readImported = (
     authorId: string,
     packId: string,
+    version?: number,
   ): { pack: IScenePack; authorName: string | null } | undefined => {
+    const source =
+      version === undefined
+        ? importedFile(authorId, packId)
+        : keptVersionFile(importedFile(authorId, packId), version);
     return readSceneCache(
-      importedFile(authorId, packId),
+      source,
       `imported/${authorId}/${packId}`,
       (envelope) => {
         if (!isScenePackEnvelope(envelope)) {
@@ -173,7 +218,8 @@ export const createMemberSceneStore = ({
         if (
           !parsed ||
           parsed.author.id !== authorId ||
-          parsed.pack.id !== packId
+          parsed.pack.id !== packId ||
+          (version !== undefined && parsed.pack.version !== version)
         ) {
           logger?.warn(
             `Imported scene ${packId} no longer verifies and is not offered.`,
@@ -183,6 +229,15 @@ export const createMemberSceneStore = ({
         return { pack: parsed.pack, authorName: parsed.author.name };
       },
     );
+  };
+
+  /** The version a look is pinned to, while this computer still has it. */
+  const pinnedOf = (authorId: string, packId: string): number | undefined => {
+    const version = pins?.pinned(memberLookId(authorId, packId));
+    return version !== undefined &&
+      keptVersionsOf(importedFile(authorId, packId)).includes(version)
+      ? version
+      : undefined;
   };
 
   const summarise = (
@@ -196,7 +251,7 @@ export const createMemberSceneStore = ({
       authorId,
       packId: pack.id,
       version: pack.version,
-      revision: createHash('sha256').update(JSON.stringify(pack)).digest('hex'),
+      revision: revisionOf(pack),
       names: pack.names,
       fallbackStyle: pack.fallbackStyle,
       swatch: pack.swatch,
@@ -228,8 +283,13 @@ export const createMemberSceneStore = ({
         return summary && !isBlocked(authorId, packId) ? [summary] : [];
       });
       const imported = held(importedRoot).flatMap(({ authorId, packId }) => {
-        const summary = summaries.get(importedFile(authorId, packId), () => {
-          const found = readImported(authorId, packId);
+        const pinned = pinnedOf(authorId, packId);
+        const source =
+          pinned === undefined
+            ? importedFile(authorId, packId)
+            : keptVersionFile(importedFile(authorId, packId), pinned);
+        const summary = summaries.get(source, () => {
+          const found = readImported(authorId, packId, pinned);
           return (
             found &&
             summarise(authorId, found.pack, { authorName: found.authorName })
@@ -243,8 +303,15 @@ export const createMemberSceneStore = ({
       if (!validRef(authorId, packId) || isBlocked(authorId, packId)) {
         return undefined;
       }
-      return readOwn(authorId, packId) ?? readImported(authorId, packId)?.pack;
+      return (
+        readOwn(authorId, packId) ??
+        readImported(authorId, packId, pinnedOf(authorId, packId))?.pack
+      );
     },
+    newest: (authorId, packId) =>
+      validRef(authorId, packId) && !isBlocked(authorId, packId)
+        ? (readOwn(authorId, packId) ?? readImported(authorId, packId)?.pack)
+        : undefined,
     save: (authorId, pack) => {
       if (!validRef(authorId, pack.id)) {
         throw new Error('Not a member scene id.');
@@ -281,10 +348,17 @@ export const createMemberSceneStore = ({
         throw new Error('Not a member scene id.');
       }
       summaries.forget(importedFile(author.id, pack.id));
-      writeSceneCache(
+      // The version being replaced stays playable on this computer.
+      const current = readImported(author.id, pack.id)?.pack;
+      replaceKeepingVersion(
         importedFile(author.id, pack.id),
-        `imported/${author.id}/${pack.id}`,
-        envelope,
+        current && current.version < pack.version ? current.version : undefined,
+        () =>
+          writeSceneCache(
+            importedFile(author.id, pack.id),
+            `imported/${author.id}/${pack.id}`,
+            envelope,
+          ),
       );
       return summarise(author.id, pack, { authorName: author.name });
     },
@@ -299,8 +373,13 @@ export const createMemberSceneStore = ({
       targets.forEach((target) => summaries.forget(target));
       const existing = targets.filter((target) => fs.existsSync(target));
       existing.forEach((target) => fs.rmSync(target));
+      forgetKeptVersions(importedFile(authorId, packId));
       return existing.length > 0;
     },
+    keptVersions: (authorId, packId) =>
+      validRef(authorId, packId)
+        ? keptVersionsOf(importedFile(authorId, packId))
+        : [],
     setBlocked: (fingerprints) => {
       blocked = new Set(
         fingerprints.filter((print) => /^[0-9a-f]{64}$/.test(print)),

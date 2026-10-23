@@ -3,6 +3,7 @@
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
+import { setDspDeEsserReport } from './deEsserTelemetry';
 import { setDspRoomReport } from './roomTelemetry';
 
 /**
@@ -34,11 +35,16 @@ import { setDspRoomReport } from './roomTelemetry';
  * `DspEqGraph`, `DspExciterGraph`, `DspMasterGraph` and `DspPhaseMeter` cannot
  * tell the difference. Not one of them is touched by this file.
  */
-import { IHostAnalysis, TAnalysisStage } from '../../common/dsp/analysisWire';
+import {
+  IHostAnalysis,
+  IHostAnalysisEqLive,
+  TAnalysisStage,
+} from '../../common/dsp/analysisWire';
 import claimHostAnalysis from './hostAnalysisClaim';
 import {
   clearDspMeterTelemetry,
   IDspAnalyser,
+  IDspLiveSpectrum,
   readDspAnalyser,
   setDspAnalyser,
   setDspBandAmounts,
@@ -77,6 +83,9 @@ class HostAnalyser implements IDspAnalyser {
 
   active = true;
 
+  /** Only the EQ tap's, and only from an engine that sends it live. */
+  live?: IDspLiveSpectrum;
+
   private bins: Float32Array;
 
   constructor(binCount: number) {
@@ -91,6 +100,19 @@ class HostAnalyser implements IDspAnalyser {
     if (bins.length === this.frequencyBinCount) {
       this.bins = bins;
     }
+  }
+
+  /**
+   * The live reading that came with these bins. The long window arrives in
+   * about one frame in two, so the last one stands until the next. Handed
+   * over by reference: each frame's array is its own and nothing writes it.
+   */
+  acceptLive(live: IHostAnalysisEqLive): void {
+    this.live = {
+      generation: (this.live?.generation ?? 0) + 1,
+      detailWindow: live.detailWindow,
+      detail: live.detail ?? this.live?.detail,
+    };
   }
 
   getFloatFrequencyData(target: Float32Array): void {
@@ -154,6 +176,9 @@ export const createNativeMeters = (
         analysers[stage] = analyser;
       }
       analyser.accept(bins);
+      if (stage === 'eq' && frame.eqLive) {
+        analyser.acceptLive(frame.eqLive);
+      }
 
       /**
        * Claimed on every frame, not once, because the slot is taken away.
@@ -222,6 +247,9 @@ export const createNativeMeters = (
       frame.bassPunch.sustainGainDb,
       frame.bassPunch.duckGainDb,
     );
+    // Absent from an engine before the stage; the page says so rather than
+    // drawing a De-esser that is cutting nothing.
+    setDspDeEsserReport(frame.deEsser);
     // The one reading the Master page never had. Its target was a number the
     // user set beside a spectrum, with nothing anywhere in the app that could
     // say what the output measured — which is how a makeup applying exactly

@@ -18,7 +18,11 @@ The executable uses the Windows GUI subsystem (no console flash), but writes
 newline-delimited UTF-8/ASCII records to inherited stdout:
 
 - `ready`: the hidden window was attached and positioned. It stays hidden until `show\n`.
-- `active` / `paused`: initial fullscreen policy after ready, then changes only.
+- `active` / `paused` / `paused-owner`: initial fullscreen policy after ready,
+  then changes only. `paused-owner` is a pause whose cover rests on the owner
+  PID's own windows: without them, some of the desktop would be in sight.
+  FluidEQ keeps listening to the music through that pause, because minimising
+  its window is what ends it.
 - `error:<reason>`: fatal failure; close/destroy the Electron window and offer retry.
 
 Exit code zero means ordinary lifetime termination. Nonzero means failure.

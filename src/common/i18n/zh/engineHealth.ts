@@ -25,6 +25,10 @@ const engineHealth = {
   'engineHealth.rackNeedsEngine':
     'DSP 效果运行在引擎内部，重启 Windows 音频只会再启动同一个引擎。能修好的是装上 FluidEQ 自带的引擎——一次 Windows 授权，一秒钟的静音。',
   'engineHealth.useApo': '使用 Equalizer APO…',
+  'engineHealth.macPermissionTitle': 'FluidEQ 无法接收 Mac 的声音',
+  'engineHealth.macPermissionBody':
+    'macOS 尚未允许 FluidEQ 录制 Mac 播放的声音，因此 EQ 无法作用于它。在此期间，声音照常播放。请在“隐私与安全性” › “录屏与系统录音”中打开 FluidEQ。',
+  'engineHealth.openMacPrivacy': '打开系统设置',
 } as const;
 
 export default engineHealth;

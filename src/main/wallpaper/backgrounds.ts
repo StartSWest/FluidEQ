@@ -5,6 +5,7 @@ import type {
   IWallpaperChoice,
   IWallpaperScreen,
   IWallpaperTuning,
+  TWallpaperCover,
   TWallpaperDaylight,
   TWallpaperError,
   TWallpaperPause,
@@ -24,10 +25,10 @@ interface IMonitorBackgroundsOptions {
   /** The desktop helper, when this build has one. */
   executable(): string | undefined;
   /**
-   * Why a monitor should not play now, given whether anything of its
-   * desktop can still be seen.
+   * Why a monitor should not play now, given what keeps its desktop out of
+   * sight, if anything does.
    */
-  pauseReason(covered: boolean): TWallpaperPause | undefined;
+  pauseReason(cover: TWallpaperCover): TWallpaperPause | undefined;
   /** The window's frame rate and resolution choice, as it is now. */
   performance(): IScenePerformance;
   /** What the listener set for one visualizer, as it is now. */

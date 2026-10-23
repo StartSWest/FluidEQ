@@ -75,7 +75,9 @@ export const parseGameWatchLine = (
   return {
     kind,
     program: {
-      name: name.trim() || path.basename(file).replace(/\.exe$/i, ''),
+      // This line is the Windows watcher's protocol even when inspected by
+      // a Mac test runner; POSIX basename does not recognise its separators.
+      name: name.trim() || path.win32.basename(file).replace(/\.exe$/i, ''),
       path: file,
       source: 'running',
       pid: Number(pid),

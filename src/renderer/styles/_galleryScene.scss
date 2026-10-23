@@ -647,6 +647,11 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// FluidEQ's own scenes carry two of the three: nobody counts their adds.
+.gallery-figures--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .gallery-scene__actions {
   display: flex;
   flex-wrap: wrap;

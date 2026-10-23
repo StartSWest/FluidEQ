@@ -23,10 +23,13 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #define FLUIDEQ_ENGINE_STATUS_FILE_H
 
 #include <atomic>
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
+
+#include "block_timing.h"
 
 namespace fluideq_engine {
 
@@ -95,6 +98,24 @@ struct EngineStatus {
   /** Game mode: the Gaming preset on the rack, or the Games voicing. */
   bool game_mode = false;
   /**
+   * How long the engine takes over this output's blocks against the time
+   * each lasts (`block_timing.h`): the slowest so far and how many took more
+   * than half. Only once a block has been timed, since Windows built the
+   * output's chain.
+   */
+  std::optional<BlockTiming::Reading> load;
+  struct SourceAnalysis {
+    unsigned version = 1;
+    std::string kind = "live";
+    std::string owner = "engine";
+    std::string source = "0000000000000000";
+    uint64_t epoch = 0;
+    uint64_t revision = 0;
+    bool ready = false;
+    bool voice_ready = false;
+  };
+  std::optional<SourceAnalysis> source_analysis;
+  /**
    * The last named song live leveling finished on this output: sixteen hex
    * digits of the app's own hash, the loudest settled level and peak it
    * heard, and how many seconds of music that was learned from. A string id
@@ -109,6 +130,24 @@ struct EngineStatus {
     double seconds = 0;
   };
   std::optional<FinishedSong> last_song;
+  /**
+   * The second output this one plays straight from another output's engine
+   * (`split_tap.h`), when it plays one: that output's id, `waiting` or
+   * `playing`, how far behind it in milliseconds, and how often its sound
+   * was not there in time since it started. The app shows the delay beside
+   * the second output (`src/main/outputSplit.ts`).
+   */
+  struct Split {
+    std::wstring from;
+    std::string state;
+    double lag_ms = 0;
+    unsigned underruns = 0;
+    /** Compatibility field: raw fan-out has no source DSP delay. */
+    double source_dsp_ms = 0;
+    /** Whole receiver graph, rack and curves; JSON name kept for older apps. */
+    double output_eq_ms = 0;
+  };
+  std::optional<Split> split;
 };
 
 /**
@@ -146,6 +185,15 @@ bool write_status(const EngineStatus& status,
  */
 std::shared_ptr<std::atomic<bool>> output_carried_flag(
     const std::wstring& endpoint);
+
+/**
+ * The timing of every instance on this output in this process
+ * (`block_timing.h`), on the same terms as `output_carried_flag`: handed out
+ * at lock, recorded into from the audio threads, and gone with the last
+ * instance on the output. Null when there was nowhere to keep it, which
+ * leaves the output untimed rather than refused.
+ */
+std::shared_ptr<BlockTiming> output_block_timing(const std::wstring& endpoint);
 
 /**
  * One engine instance's say in its output's status file.

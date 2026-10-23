@@ -27,10 +27,11 @@ import {
   MIN_FREQUENCY,
   MIN_GAIN,
   MIN_QUALITY,
+  NO_GAIN_FILTER_TYPES,
   TApoLayer,
 } from 'common/constants';
 import { SelectionMode } from 'common/bandSelection';
-import { getEqMode, getBandQ } from 'common/eqMode';
+import { getEqMode, getMainBandQ } from 'common/eqMode';
 import { ErrorDescription } from 'common/errors';
 import { GRAPH_PALETTES, GraphPalette } from 'common/graphStyles';
 import { TranslationKey } from 'common/i18n';
@@ -144,6 +145,7 @@ import {
   useListenerWave,
 } from '../utils/sceneWaveStore';
 import { useTranslation } from '../utils/I18nContext';
+import FILTER_TYPE_NAME_KEYS from '../utils/filterTypeNames';
 import LookDesigner from '../components/LookDesigner';
 import { ROW_ORDER } from '../components/activeLayerList';
 import GraphAutoCycle from './GraphAutoCycle';
@@ -170,8 +172,10 @@ import {
   IGraphData,
   SUPPORTING_CURVE_OPACITY,
 } from './buildChartData';
+import { RIGHT_EAR_CURVE_ID } from './chartCurves';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
+import '../styles/EqChannels.scss';
 
 type PendingPointEdit = Partial<
   Pick<IFilter, 'frequency' | 'gain' | 'quality'>
@@ -307,6 +311,8 @@ const LookAnnouncement = () => {
 const CURVE_BY_CHART_ID: Record<string, TGraphCurve> = {
   'Headphone Convolution': 'convolution',
   'EQ Response': 'eq',
+  // The two ears are one layer, shown and hidden together.
+  [RIGHT_EAR_CURVE_ID]: 'eq',
   Voicing: 'voicing',
   Driver: 'driver',
   // Spelled out rather than left as `Headphone`, which would sit one line under
@@ -523,6 +529,13 @@ interface IFrequencyResponseChartProps {
    * stays in the View menu.
    */
   hasLayersInHead?: boolean;
+  /**
+   * Expanded on a page with no picture of its own: the graph keeps its card
+   * in the column and only grows (`isGraphGrown` in `App.tsx`), so it is
+   * still one part of the window — a Backdrop scene stays behind the window
+   * and the plain plot stays a measurement, as at the normal size.
+   */
+  isGrown?: boolean;
 }
 
 /**
@@ -538,6 +551,7 @@ const escapeInFront = new WeakMap<KeyboardEvent, 'menu' | 'dialog'>();
 const FrequencyResponseChart = ({
   isVisible,
   hasLayersInHead = false,
+  isGrown = false,
 }: IFrequencyResponseChartProps) => {
   const { t } = useTranslation();
   // The selection, not the resolved look: while the designer is open the chart
@@ -623,11 +637,13 @@ const FrequencyResponseChart = ({
   // Whether a Plus visualizer may be drawn on a layer of the window with this
   // plot as its frame — the window's back in the Backdrop (`SceneCover.tsx`),
   // the EQ column's otherwise (`SceneColumnLayer`) — which is where the plot
-  // is one part of the window: expanded or full screen the graph is the
-  // window already, and the player's window shows its own deck, not this
+  // is one part of the window: as an overlay (full screen, or expanded over
+  // a picture) the graph is the window already, and the player's window
+  // shows its own deck, not this
   // graph. Where it goes is `graphScenePlace.ts`; only a scene draws on
   // either, and the 2D looks stay on their plot.
-  const isPlotPartOfWindow = graphView === 'normal' && windowMode !== 'player';
+  const isCardInColumn = graphView === 'normal' || isGrown;
+  const isPlotPartOfWindow = isCardInColumn && windowMode !== 'player';
   const isCoverageHidden = useGraphCoverageHidden();
   const isMeterHidden = useGraphMeterHidden();
   const isTitlebarWaveHidden = useTitlebarWaveHidden();
@@ -676,7 +692,7 @@ const FrequencyResponseChart = ({
   // two rows there only while a visualizer is on the graph. The rule is here
   // rather than in the store because this is where both facts are: which view
   // this is, and whether a scene is being drawn.
-  const isPlainPane = graphView === 'normal' && !drawnScene;
+  const isPlainPane = isCardInColumn && !drawnScene;
   const wave = authoredWave
     ? (listenerWave ?? authoredWave)
     : {
@@ -738,6 +754,7 @@ const FrequencyResponseChart = ({
     isEqDoubleOn,
     eqMode,
     curveEqMode,
+    mainBandQ,
     eqBandQ,
     curveBandQ,
     curveSmoothing,
@@ -765,7 +782,7 @@ const FrequencyResponseChart = ({
   } = useFluidEqContext();
   const currentEngine = useCurrentEngine();
   const matchedDesign = useMatchedDesign();
-  const outputRate = useOutputRate();
+  const outputRate = useOutputRate('editor');
   // Under the FluidEQ Engine's automatic preamp the gain is live and moves at
   // display rate on loud passages, so it never enters this component's state:
   // the curves are built without it and `Chart` moves the output curve by it
@@ -867,10 +884,14 @@ const FrequencyResponseChart = ({
     // plot with nothing naming it.
     if (
       ((getEqMode({ eqMode, isEqDoubleOn }) !== 'normal' ||
-        getBandQ(
-          { eqMode, curveEqMode, isEqDoubleOn, eqBandQ, curveBandQ },
-          'eq',
-        ) !== 'off') &&
+        getMainBandQ({
+          eqMode,
+          curveEqMode,
+          isEqDoubleOn,
+          mainBandQ,
+          eqBandQ,
+          curveBandQ,
+        }) !== 'off') &&
         !isEqQuiet) ||
       convolution ||
       hasPreAmp ||
@@ -1197,6 +1218,33 @@ const FrequencyResponseChart = ({
     [dispatchFilter, filters, queuePointEdit, selectedFilterIds],
   );
 
+  const handlePointGainStep = useCallback(
+    (filterId: string, direction: number) => {
+      const ids = selectedFilterIds.includes(filterId)
+        ? selectedFilterIds
+        : [filterId];
+      ids.forEach((id) => {
+        const filter = filtersRef.current[id];
+        if (!filter || NO_GAIN_FILTER_TYPES.includes(filter.type)) {
+          return;
+        }
+        // A point sits on the combined response; keyboard gain changes must
+        // start from its band's own gain, leaving frequency and Q untouched.
+        const gain =
+          Math.round(
+            Math.max(MIN_GAIN, Math.min(MAX_GAIN, filter.gain + direction)) *
+              100,
+          ) / 100;
+        if (gain === filter.gain) {
+          return;
+        }
+        dispatchFilter({ type: FilterActionEnum.GAIN, id, newValue: gain });
+        queuePointEdit(id, { gain });
+      });
+    },
+    [dispatchFilter, queuePointEdit, selectedFilterIds],
+  );
+
   // Rainbow mode's palette: the points and the curve's halo are drawn in it.
   const rainbow = useRainbowStops();
   const { chartData, autoPreAmpValue }: IGraphData = useMemo(
@@ -1215,6 +1263,7 @@ const FrequencyResponseChart = ({
         isEqDoubleOn,
         eqMode,
         curveEqMode,
+        mainBandQ,
         eqBandQ,
         curveBandQ,
         curveSmoothing,
@@ -1248,6 +1297,7 @@ const FrequencyResponseChart = ({
       isEqDoubleOn,
       eqMode,
       curveEqMode,
+      mainBandQ,
       eqBandQ,
       curveBandQ,
       curveSmoothing,
@@ -1673,6 +1723,11 @@ const FrequencyResponseChart = ({
     );
     const eqCurve = chartData.find((curve) => curve.id === 'EQ Response')?.line
       .points;
+    // A band kept to the right ear stands on the right ear's curve; every
+    // other band on the left's, which is also the both-ears curve.
+    const rightCurve = chartData.find(
+      (curve) => curve.id === RIGHT_EAR_CURVE_ID,
+    )?.line.points;
 
     return Object.values(filters).map((filter) => {
       const bandColor = colorsById.get(filter.id) || getBandColor(0, rainbow);
@@ -1681,12 +1736,19 @@ const FrequencyResponseChart = ({
       // than gain plus preamp, matching the curve now that the curve is drawn
       // from zero; the old fallback jumped every handle by the headroom on any
       // frame the curve was missing.
-      const curveGain = eqCurve
-        ? getLineGainAtFrequency(eqCurve, filter.frequency)
+      const ear = filter.channel;
+      const handleCurve = ear === 'right' && rightCurve ? rightCurve : eqCurve;
+      const curveGain = handleCurve
+        ? getLineGainAtFrequency(handleCurve, filter.frequency)
         : filter.gain;
       return {
         id: filter.id,
-        name: `${filter.type} band`,
+        name: t(FILTER_TYPE_NAME_KEYS[filter.type]),
+        parameters: {
+          frequency: filter.frequency,
+          gain: filter.gain,
+          quality: filter.quality,
+        },
         color: bandColor.color,
         mutedColor: bandColor.muted,
         // Place each dot on the rendered EQ response at its frequency. This
@@ -1695,6 +1757,8 @@ const FrequencyResponseChart = ({
         selected: selectedFilterIds.includes(filter.id),
         hovered: hoveredFilterId === filter.id,
         isEnabled: isBandEnabled(filter),
+        isLocked: bypassed.includes('eq'),
+        ...(ear ? { ear } : {}),
         onSelect: (mode: SelectionMode, grab: IChartPointData) =>
           handlePointSelect(filter.id, mode, grab),
         onHover: (isHovered: boolean) =>
@@ -1715,15 +1779,20 @@ const FrequencyResponseChart = ({
         },
         onQualityWheel: (direction: number) =>
           handlePointQualityWheel(filter.id, direction),
+        onGainStep: (direction: number) =>
+          handlePointGainStep(filter.id, direction),
       };
     });
   }, [
     filters,
     chartData,
     rainbow,
+    t,
+    bypassed,
     flushPointEdit,
     handlePointMove,
     handlePointQualityWheel,
+    handlePointGainStep,
     handlePointSelect,
     hoveredFilterId,
     nextFilterSelection,
@@ -2170,7 +2239,7 @@ const FrequencyResponseChart = ({
             }
           }}
         >
-          {modeAnnouncement.label}
+          {t(modeAnnouncement.label)}
         </div>
       )}
       <div

@@ -34,6 +34,13 @@ export const ANALYSIS_BINS = 1024;
 export const ANALYSIS_SCOPE_PAIRS = 256;
 
 /**
+ * The EQ tap's long window, and how many of its lowest bins a frame carries
+ * when it carries one: `FEQ_METER_DETAIL_WINDOW` and `FEQ_METER_DETAIL_BINS`.
+ */
+export const ANALYSIS_EQ_DETAIL_WINDOW = 16384;
+export const ANALYSIS_EQ_DETAIL_BINS = 2048;
+
+/**
  * Bass Forge's band count, matching `FEQ_BASS_FORGE_BANDS`.
  *
  * Eight log-spaced band-pass followers between 20 Hz and 1 kHz, which is the
@@ -52,7 +59,8 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * sixteen floats for Forge's eight bands in and out and three for Punch's
  * gains, which is 76 bytes onto 320 and lands on 396 — rounded to 400 by one
  * explicit pad float, for the same alignment reason. The forty actual hiss
- * gain bands append 160 bytes after that complete layout, taking it to 560.
+ * gain bands append 160 bytes after that complete layout, taking it to 560,
+ * and the De-esser's fifty-six words 224 more, to 784.
  * Every pre-existing offset is untouched on purpose: this constant, the
  * publisher in `meters.cpp` and the reader in `dspHost/wire.ts` all have to
  * move in one commit, and new fields go after everything already decoded,
@@ -66,7 +74,19 @@ export const ANALYSIS_BASS_FORGE_BANDS = 8;
  * believed: three separate readers of it set out to add a check that has been
  * there since the graphs were first fed from the engine.
  */
-export const ANALYSIS_HEADER_BYTES = 560;
+export const ANALYSIS_HEADER_BYTES = 784;
+
+/**
+ * The header every engine before the De-esser writes (`ENGINE_DEESSER_SINCE`):
+ * everything above, without the De-esser's 224 bytes. An engine is installed
+ * apart from the app and may be older, so its frames are read at this length
+ * too (`engineAnalysis.ts`); the Library host is built with the app and only
+ * ever writes the full one.
+ */
+export const ANALYSIS_LEGACY_HEADER_BYTES = 560;
+
+/** The De-esser's bands, matching `FEQ_DEESSER_MAX_BANDS`. */
+export const ANALYSIS_DEESSER_BANDS = 12;
 
 /** The rack ceiling, matching FEQ_METER_MAX_BANDS. */
 export const ANALYSIS_MAX_BANDS = 64;
@@ -148,6 +168,47 @@ export interface IHostAnalysis {
   denoise: IHostAnalysisDenoise;
   bassForge: IHostAnalysisBassForge;
   bassPunch: IHostAnalysisBassPunch;
+  /** Absent from an engine before the De-esser. */
+  deEsser?: IHostAnalysisDeEsser;
+  /**
+   * Said by an engine whose EQ spectrum is the live one: the window ending
+   * now, unsmoothed, with a long window for the bass beside it every few
+   * frames (`meters_eq_live.h`). Absent from every engine before, whose EQ
+   * spectrum is one smoothed window in every 2048 samples.
+   */
+  eqLive?: IHostAnalysisEqLive;
+}
+
+export interface IHostAnalysisEqLive {
+  /** The long window's size, `ANALYSIS_EQ_DETAIL_WINDOW`. */
+  detailWindow: number;
+  /** Its lowest `ANALYSIS_EQ_DETAIL_BINS` bins in dB, in a frame with one. */
+  detail?: Float32Array;
+}
+
+/**
+ * What the De-esser cut since the last frame, and why.
+ *
+ * Measured, never derived from the dials: whether a band is cut depends on
+ * the song, and whether a sound was taken for a voice depends on where it
+ * sits, what air it has and how it began — the three tells, each 0 to 1.
+ */
+export interface IHostAnalysisDeEsser {
+  /** The deepest cut, dB, never positive. */
+  reductionDb: number;
+  /** Where the S was at that cut, Hz; 0 with no cut. */
+  frequencyHz: number;
+  /** How sure it was the sound was a voice, 0 to 1. */
+  confidence: number;
+  centre: number;
+  shape: number;
+  onset: number;
+  /** The loudest band against the voice's body, dB. */
+  sibilanceDb: number;
+  bandHz: readonly number[];
+  bandLevelDb: readonly number[];
+  bandThresholdDb: readonly number[];
+  bandCutDb: readonly number[];
 }
 
 /**
