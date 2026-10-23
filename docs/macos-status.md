@@ -10,7 +10,7 @@ taps. This page records the current implementation and its remaining limits.
   the native port is validated only on arm64.
 - The native helpers and the Electron bundle both target macOS 14.4. A build
   made on macOS 26 must not silently produce helpers that require macOS 26.
-- `macos` and `macos-support` are to carry the same reviewed source, including
+- `macos` and `macos-support` carry the same reviewed source, including
   the latest `origin/main`. The older branch's history is retained.
 
 ## Implemented
@@ -84,8 +84,30 @@ taps. This page records the current implementation and its remaining limits.
 
 ## Verification
 
-Production build, unsigned arm64 app-bundle packaging, TypeScript, styles,
-encoding and platform isolation have passed. The full app and native suites
-are being completed before the branch sync is pushed. Tests needing loopback
-sockets or macOS file-change notifications run outside the filesystem/network
-sandbox; their sandbox failures are not replaced with weaker assertions.
+- Production build and unsigned arm64 app-bundle packaging passed. The bundle
+  and both packaged native helpers declare macOS 14.4; their architecture is
+  arm64. Nothing was published or launched as an application.
+- App, scripting and end-to-end TypeScript checks, stylesheet compilation,
+  UTF-8/encoding checks and platform isolation passed. Lint finished with no
+  errors and 62 warnings.
+- The full app suite was examined: 1,064 suites executed and one skipped.
+  Windows-specific assumptions were corrected, and all affected suites passed
+  on re-run. The additional Mac configuration-directory regression suite also
+  passed. Tests requiring loopback sockets, process locks or macOS file-change
+  notifications were re-run outside the sandbox; their assertions were kept.
+- All 80 native CTest checks passed across two batches: the initial 46 checks
+  and the remaining 34 in parallel. Once the final unique partition passed,
+  the first runner's duplicate continuation was stopped. This is not a claim
+  that the interrupted `test:native-dsp` shell command exited successfully.
+- Native helper smoke checks passed for the protocol, malformed wire lengths,
+  supervisor/restart behavior, orphan cleanup, PCM playback, malformed decoder
+  headers, preset shapes and the real Core Audio device. The device hold
+  rendered 5.9 seconds with zero reported dropouts and a 32 µs callback p99.
+- Coverage limits: the six optional codec fixtures were absent. The analysis
+  and crossfade smokes needed an unavailable ffmpeg and were skipped. The
+  shared-audio and game-watch smokes are Windows-only. These skips do not
+  establish native AAC support or a functioning Mac implementation of those
+  Windows features.
+- No running app window was available for the visual checks or permission
+  flows, and no listening verdict has been made. The real-device smoke is an
+  automated playback/lifecycle check, not a listening session.
