@@ -69,11 +69,55 @@ const exePath = path.join(distDir, 'electron.exe');
 /** Written whole, then moved over the original, so a crash cannot truncate it. */
 const stagingPath = path.join(distDir, 'electron.exe.fluideq-tmp');
 
+/**
+ * Linux names a window's application from the launcher the window says it
+ * belongs to, so the development window gets a launcher of its own with
+ * FluidEQ's name and icon (`linuxIdentity.ts` names it); GNOME's top bar,
+ * dock and switcher read it instead of calling the window Electron. The
+ * launcher is hidden from the menus: it describes a window, it is not a way
+ * to start one.
+ */
+const runLinux = () => {
+  const home = process.env.HOME;
+  if (!home) {
+    return;
+  }
+  const applications = path.join(
+    process.env.XDG_DATA_HOME ?? path.join(home, '.local', 'share'),
+    'applications',
+  );
+  const root = path.join(__dirname, '../..');
+  const entry = [
+    '[Desktop Entry]',
+    'Type=Application',
+    `Name=${PRODUCT_NAME}`,
+    `Comment=${PRODUCT_NAME} (development)`,
+    `Icon=${path.join(root, 'assets', 'icon.png')}`,
+    `Exec=sh -c "cd '${root}' && pnpm dev"`,
+    'StartupWMClass=fluideq-dev',
+    'NoDisplay=true',
+    '',
+  ].join('\n');
+  const file = path.join(applications, 'fluideq-dev.desktop');
+  if (fs.existsSync(file) && fs.readFileSync(file, 'utf8') === entry) {
+    return;
+  }
+  fs.mkdirSync(applications, { recursive: true });
+  const staging = `${file}.fluideq-tmp`;
+  fs.writeFileSync(staging, entry, 'utf8');
+  fs.renameSync(staging, file);
+  console.log('Development Electron now shows itself as FluidEQ on Linux');
+};
+
 const run = () => {
+  if (process.platform === 'linux') {
+    runLinux();
+    return;
+  }
   if (process.platform !== 'win32') {
-    // The version resource is a Windows PE structure, and on other platforms
-    // the process is named from the file itself, which already reads
-    // "electron" and is not worth breaking `isPackaged` over.
+    // The version resource is a Windows PE structure; elsewhere the process
+    // is named from the file itself, which is not worth breaking
+    // `isPackaged` over.
     return;
   }
   if (!fs.existsSync(exePath)) {

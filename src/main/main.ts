@@ -154,6 +154,7 @@ import registerWindowsAudioIpc from './ipc/windowsAudio';
 import registerSystemMediaIpc from './ipc/systemMedia';
 import registerMemberServices from './memberServices';
 import { applyLaunchSwitches, isDebug } from './launchSwitches';
+import applyLinuxIdentity from './linuxIdentity';
 import claimTheOnlyCopy from './onlyCopy';
 import { registerAppLinks } from './appLinks';
 import { chooseLaunchEngine, registerEngineServices } from './engineServices';
@@ -847,6 +848,7 @@ const engineHealth = registerEngineHealthIpc({
 });
 
 applyLaunchSwitches();
+applyLinuxIdentity();
 
 /**
  * Take the EQ off every output as FluidEQ goes — see `engineQuitReset.ts`.

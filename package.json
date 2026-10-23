@@ -272,6 +272,8 @@
     "linux": {
       "target": ["deb", "AppImage"],
       "category": "AudioVideo",
+      "executableName": "FluidEQ",
+      "syncDesktopName": true,
       "maintainer": "Ivan Carmenates Garcia <StartSWest@users.noreply.github.com>",
       "synopsis": "System-wide parametric EQ with per-output profiles",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
