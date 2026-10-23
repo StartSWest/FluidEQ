@@ -7,6 +7,7 @@
     "name": "Ivan Carmenates Garcia"
   },
   "main": "./dist/main/main.js",
+  "desktopName": "fluideq-app.desktop",
   "scripts": {
     "electron-rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
     "postinstall": "pnpm electron-rebuild && pnpm link-modules",
