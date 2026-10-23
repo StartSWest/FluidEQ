@@ -736,6 +736,8 @@ const eq: Partial<Dictionary> = {
     'FluidEQ が処理する前の音声にアクセスできませんでした。',
   'eq.smart.error.noLoopback':
     'この環境ではシステム出力のキャプチャができません。',
+  'eq.smart.error.noMonitor':
+    'FluidEQ エンジンが動いていないため、まだ表示できる音がありません。',
   'eq.smart.error.noAudioTrack':
     'Windows がシステム音声のストリームを返しませんでした。',
   'eq.smart.error.formatChanged':

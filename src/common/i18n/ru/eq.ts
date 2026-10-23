@@ -741,6 +741,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.error.noSource': 'Не удалось получить звук до обработки в FluidEQ.',
   'eq.smart.error.noLoopback':
     'Захват системного вывода в этой среде недоступен.',
+  'eq.smart.error.noMonitor':
+    'Движок FluidEQ не запущен, поэтому пока нечего показывать.',
   'eq.smart.error.noAudioTrack': 'Windows не дала системный аудиопоток.',
   'eq.smart.error.formatChanged':
     'Формат вывода изменился во время измерения. Попробуйте ещё раз.',

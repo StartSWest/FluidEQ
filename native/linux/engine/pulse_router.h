@@ -78,6 +78,8 @@ class PulseRouter final : public SoundRouter {
   static void on_sink_info(pa::context* context, const pa::sink_info* info,
                            int eol, void* data);
   static void on_module_loaded(pa::context* context, uint32_t index, void* data);
+  static void on_monitor_loaded(pa::context* context, uint32_t index,
+                                void* data);
   static void on_record_state(pa::stream* stream, void* data);
   static void on_playback_state(pa::stream* stream, void* data);
   static void on_read(pa::stream* stream, size_t bytes, void* data);
@@ -92,6 +94,9 @@ class PulseRouter final : public SoundRouter {
   bool open_playback(const Sink& sink);
   void close_streams() noexcept;
   void unload_sink() noexcept;
+  /** "FluidEQ Monitor" over the chosen output (`pulse_monitor.cpp`). */
+  void follow_monitor();
+  void unload_monitor() noexcept;
   void claim_default();
   void move_inputs(uint32_t from_sink, const std::string& to);
   void ensure_engine();
@@ -124,6 +129,10 @@ class PulseRouter final : public SoundRouter {
   uint32_t module_rate_ = 0;
   ChannelLayout module_layout_{};
   bool loading_ = false;
+  // The "FluidEQ Monitor" module, and the output it was loaded over.
+  uint32_t monitor_module_ = UINT32_MAX;
+  std::string monitor_master_;
+  bool monitor_loading_ = false;
   pa::stream* record_ = nullptr;
   pa::stream* playback_ = nullptr;
   uint32_t rate_ = 0;

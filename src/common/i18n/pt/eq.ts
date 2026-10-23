@@ -744,6 +744,8 @@ const eq: Partial<Dictionary> = {
     'Não foi possível acessar o som antes de o FluidEQ processá-lo.',
   'eq.smart.error.noLoopback':
     'A captura da saída do sistema não está disponível neste ambiente.',
+  'eq.smart.error.noMonitor':
+    'O motor FluidEQ não está em execução, por isso ainda não há som para mostrar.',
   'eq.smart.error.noAudioTrack':
     'O Windows não forneceu um sinal de áudio do sistema.',
   'eq.smart.error.formatChanged':

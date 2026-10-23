@@ -25,6 +25,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "../../dsp-core/tests/dsp_test_support.h"
 #include "../compat/wide_path.h"
+#include "../engine/monitor_ring.h"
 #include "../engine/outputs_file.h"
 #include "chain_signature.h"
 #include "config_file.h"
@@ -179,6 +180,39 @@ void the_status_is_written_whole(const std::string& dir) {
   check(::stat(aside.c_str(), &info) != 0, "and nothing left aside");
 }
 
+// The "FluidEQ Monitor" hand-off: what the playback wrote is what the source
+// reads, a reader that fell behind gets the newest audio rather than a
+// backlog, and one that ran dry gets silence, never what it read before.
+void monitor_ring_hands_over_the_newest() {
+  fluideq_linux::MonitorRing ring(2, 1024);
+  std::vector<float> left(4096), right(4096);
+  for (size_t at = 0; at < left.size(); ++at) {
+    left[at] = static_cast<float>(at + 1);
+    right[at] = -static_cast<float>(at + 1);
+  }
+  float* written[2] = {left.data(), right.data()};
+  std::vector<float> out_left(64, 99.0f), out_right(64, 99.0f), extra(64, 99.0f);
+  float* read[3] = {out_left.data(), out_right.data(), extra.data()};
+
+  ring.write(written, 2, 64);
+  ring.read(read, 3, 64);
+  check(out_left[0] == 1.0f && out_left[63] == 64.0f && out_right[63] == -64.0f,
+        "a block written is the block read");
+  check(extra[0] == 0.0f && extra[63] == 0.0f,
+        "a channel the ring does not carry reads as silence");
+
+  ring.read(read, 2, 64);
+  check(out_left[0] == 0.0f && out_left[63] == 0.0f && out_right[10] == 0.0f,
+        "nothing written since is silence, not the last block again");
+
+  // 4096 frames behind, four times what the ring holds: only the newest 64.
+  float* everything[2] = {left.data(), right.data()};
+  ring.write(everything, 2, 4096);
+  ring.read(read, 2, 64);
+  check(out_left[0] == 4033.0f && out_left[63] == 4096.0f,
+        "a reader behind skips ahead to the newest audio");
+}
+
 }  // namespace
 
 int main() {
@@ -189,6 +223,7 @@ int main() {
   output_ids_are_stable_and_valid();
   shared_engine_files_read_through_the_shim(dir);
   the_status_is_written_whole(dir);
+  monitor_ring_hands_over_the_newest();
   std::filesystem::remove_all(dir);
   if (feq_test::g_failures > 0) {
     std::printf("%d failure(s)\n", feq_test::g_failures);

@@ -703,6 +703,8 @@ const eq: Partial<Dictionary> = {
   'eq.smart.error.noCapture': '此环境不支持音频采集。',
   'eq.smart.error.noSource': '无法获取 FluidEQ 处理前的声音。',
   'eq.smart.error.noLoopback': '此环境不支持采集系统输出。',
+  'eq.smart.error.noMonitor':
+    'FluidEQ 引擎没有运行，所以还没有可以显示的声音。',
   'eq.smart.error.noAudioTrack': 'Windows 没有提供系统音频流。',
   'eq.smart.error.formatChanged': '测量过程中输出格式变了。请重试。',
   'eq.smart.error.captureFailed': '无法采集处理后的系统输出。',

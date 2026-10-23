@@ -406,6 +406,7 @@ void PipeWireRouter::shutdown() noexcept {
     roundtrip();
   }
   close_stream(playback_, true);
+  close_monitor();
   close_stream(capture_, false);
   swap_engine(nullptr);
   // After the engine: its watcher thread is joined, so nothing signals it.

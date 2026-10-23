@@ -737,6 +737,8 @@ const eq: Partial<Dictionary> = {
     'FluidEQ द्वारा प्रोसेस होने से पहले की आवाज़ तक पहुँच नहीं हो सकी।',
   'eq.smart.error.noLoopback':
     'इस माहौल में सिस्टम आउटपुट का कैप्चर उपलब्ध नहीं है।',
+  'eq.smart.error.noMonitor':
+    'FluidEQ इंजन नहीं चल रहा है, इसलिए अभी दिखाने को कोई ध्वनि नहीं है।',
   'eq.smart.error.noAudioTrack': 'Windows ने सिस्टम ऑडियो स्ट्रीम नहीं दी।',
   'eq.smart.error.formatChanged':
     'माप के दौरान आउटपुट फ़ॉर्मैट बदल गया। फिर से कोशिश करें।',

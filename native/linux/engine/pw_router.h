@@ -42,6 +42,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "../pipewire/pw_api.h"
 #include "output_engine.h"
+#include "monitor_ring.h"
 #include "outputs_file.h"
 #include "router.h"
 
@@ -114,6 +115,11 @@ class PipeWireRouter final : public SoundRouter {
   bool open_capture(const ChannelLayout& layout);
   bool open_playback(const Sink& sink, const ChannelLayout& layout);
   void close_stream(Stream& stream, bool playback) noexcept;
+  // "FluidEQ Monitor": the engine's output as an input the window can
+  // capture (`pw_monitor.cpp`).
+  bool open_monitor(const ChannelLayout& layout);
+  void close_monitor() noexcept;
+  static void on_monitor_process(void* data);
   void ensure_engine();
   void swap_engine(std::unique_ptr<OutputEngine> next) noexcept;
   void run_on_data_thread(void (*fn)(PipeWireRouter*, void*), void* arg) noexcept;
@@ -156,11 +162,15 @@ class PipeWireRouter final : public SoundRouter {
 
   Stream capture_;
   Stream playback_;
+  Stream monitor_;
+  std::unique_ptr<MonitorRing> monitor_ring_;
   uint32_t capture_rate_ = 0;
   uint32_t capture_channels_ = 0;
   // Read on the data thread; changed only through `run_on_data_thread`.
   pw_stream* rt_playback_ = nullptr;
   pw_stream* rt_capture_ = nullptr;
+  pw_stream* rt_monitor_ = nullptr;
+  MonitorRing* rt_monitor_ring_ = nullptr;
   OutputEngine* rt_engine_ = nullptr;
   uint32_t rt_channels_ = 0;
   std::unique_ptr<OutputEngine> engine_;

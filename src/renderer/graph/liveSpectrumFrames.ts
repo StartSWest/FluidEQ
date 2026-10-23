@@ -24,6 +24,7 @@ import { Translate } from 'common/i18n';
 import { AUDIO_CLOCK_TICKS_PER_SECOND } from '../audio/audioClockNames';
 import { IChartPointData } from './ChartController';
 import { IOutputLevel, LEVEL_FLOOR_DB } from './outputLevel';
+import captureLinuxOutput from './linuxOutputCapture';
 
 /**
  * One frame of the live spectrum: what it is measured with, and how it is read.
@@ -395,6 +396,9 @@ export const captureSystemOutput = async (
 ): Promise<MediaStream> => {
   if (!navigator.mediaDevices) {
     throw new Error(t('eq.smart.error.noCapture'));
+  }
+  if (window.electron?.platform === 'linux') {
+    return captureLinuxOutput(t);
   }
 
   let displayCaptureError: unknown;

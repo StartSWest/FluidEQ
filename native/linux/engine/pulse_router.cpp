@@ -308,6 +308,7 @@ void PulseRouter::choose_target() {
       log_->write("no output to play to; waiting for one");
       close_streams();
       target_name_.clear();
+      follow_monitor();
     }
     return;
   }
@@ -328,6 +329,7 @@ void PulseRouter::retarget(const Sink& sink) {
   close_streams();
   target_name_ = sink.name;
   target_index_ = sink.index;
+  follow_monitor();
   layout_ = sink.layout;
   rate_ = sink.rate;
   const bool reuse = module_index_ != kInvalidIndex &&
@@ -740,6 +742,7 @@ void PulseRouter::shutdown() noexcept {
       }
     }
     close_streams();
+    unload_monitor();
     if (module_index_ != kInvalidIndex) {
       wait(api_.context_unload_module(context_, module_index_,
                                       &PulseRouter::on_done, this));

@@ -22,6 +22,7 @@ import {
   loadAudioClock,
   startAudioClock,
 } from '../audio/audioClock';
+import { subscribeAudioDevices } from '../utils/equalizerApi';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData } from './ChartController';
 import readDefaultOutputKey from './defaultOutputKey';
@@ -733,6 +734,25 @@ const useLiveOutputSpectrum = () => {
       window.removeEventListener('fluideq-output-changed', rebind);
     };
   }, [retryStart, stop]);
+
+  /**
+   * On Linux the capture is the engine's "FluidEQ Monitor" input
+   * (`linuxOutputCapture.ts`), and Chromium there raises no `devicechange`
+   * when an input appears — measured: a source added to the sound server
+   * raised none until something enumerated the devices. A start that found
+   * no monitor (the window up before the engine) would then wait for a focus
+   * or an output switch. The engine rewrites its list of outputs once it
+   * plays, which reaches the window as the device list being pushed: the
+   * event to try again on.
+   */
+  useEffect(() => {
+    if (window.electron?.platform !== 'linux') {
+      return undefined;
+    }
+    return subscribeAudioDevices((reading) => {
+      reading.then(retryStart, retryStart);
+    });
+  }, [retryStart]);
 
   /**
    * A device came or went, which is the event three things here wait on.

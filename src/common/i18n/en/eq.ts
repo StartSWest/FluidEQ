@@ -756,6 +756,8 @@ const eq = {
     'Could not reach the sound before FluidEQ processes it.',
   'eq.smart.error.noLoopback':
     'Desktop loopback capture is not available in this environment.',
+  'eq.smart.error.noMonitor':
+    'The FluidEQ Engine is not running, so there is no sound to show yet.',
   'eq.smart.error.noAudioTrack':
     'Windows did not provide a system-audio stream.',
   'eq.smart.error.formatChanged':

@@ -118,7 +118,8 @@ void PipeWireRouter::run_on_data_thread(void (*fn)(PipeWireRouter*, void*),
                                         void* arg) noexcept {
   // With no stream of ours on it, the data thread runs none of our code,
   // and may not be running at all (a blocking invoke would never return).
-  if (capture_.stream == nullptr && playback_.stream == nullptr) {
+  if (capture_.stream == nullptr && playback_.stream == nullptr &&
+      monitor_.stream == nullptr) {
     fn(this, arg);
     return;
   }
@@ -135,6 +136,7 @@ void PipeWireRouter::retarget(const Sink& sink) {
   target_name_ = sink.name;
   layout_ = layout;
   if (relayout) {
+    close_monitor();
     close_stream(capture_, false);
     swap_engine(nullptr);
     capture_rate_ = 0;
@@ -142,7 +144,10 @@ void PipeWireRouter::retarget(const Sink& sink) {
   // The playback first, as `module-loopback` does: the sink's first cycle
   // triggers it, and it has to be active by then.
   if (!open_playback(sink, layout)) return;
-  if (relayout && !open_capture(layout)) return;
+  if (relayout) {
+    if (!open_capture(layout)) return;
+    open_monitor(layout);  // The window's live displays; the audio needs none of it.
+  }
   ensure_engine();
 }
 
@@ -449,6 +454,10 @@ void PipeWireRouter::playback_cycle() noexcept {
   if (engine != nullptr && mapped && frames > 0 &&
       engine->format().channels == channels) {
     engine->process(planes, frames);
+  }
+  // What the output is about to play, for the window's live displays.
+  if (MonitorRing* const ring = rt_monitor_ring_; ring != nullptr && mapped) {
+    ring->write(planes, channels, frames);
   }
   for (uint32_t c = 0; c < channels; ++c) {
     spa_chunk* chunk = target->datas[c].chunk;

@@ -749,6 +749,8 @@ const eq: Partial<Dictionary> = {
     'Der Ton vor der Verarbeitung durch FluidEQ ist nicht erreichbar.',
   'eq.smart.error.noLoopback':
     'Die Aufnahme der Systemausgabe ist in dieser Umgebung nicht verfügbar.',
+  'eq.smart.error.noMonitor':
+    'Die FluidEQ-Engine läuft nicht, daher gibt es noch keinen Klang anzuzeigen.',
   'eq.smart.error.noAudioTrack':
     'Windows hat keinen System-Audiostream geliefert.',
   'eq.smart.error.formatChanged':
