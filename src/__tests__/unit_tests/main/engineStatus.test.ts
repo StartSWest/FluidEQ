@@ -69,6 +69,21 @@ import {
 
 const ENGINE_DLL = 'FluidEQ-Engine.dll';
 
+// Everything here is the Windows engine's: its setup helper and its Windows
+// build check. Pinned, as `outputWatch.test.ts` does, so a run on Linux tests
+// the same thing — Linux reads its own engine's files instead.
+const platform = Object.getOwnPropertyDescriptor(process, 'platform');
+
+beforeAll(() => {
+  Object.defineProperty(process, 'platform', { value: 'win32' });
+});
+
+afterAll(() => {
+  if (platform) {
+    Object.defineProperty(process, 'platform', platform);
+  }
+});
+
 beforeEach(() => {
   isEqualizerAPOInstalledSpy.mockClear();
   planEngineUpdateSpy.mockReset();

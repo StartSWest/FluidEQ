@@ -96,7 +96,8 @@ export const registerEngineHealthIpc = ({
   };
 
   const read = async (): Promise<IEngineHealth> => {
-    if (process.platform !== 'win32') {
+    // Linux's engine writes the same statuses into its own folder.
+    if (process.platform !== 'win32' && process.platform !== 'linux') {
       return NO_ENGINE_HEALTH;
     }
     monitor ??= createEngineHealthMonitor(root, push);

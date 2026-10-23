@@ -120,10 +120,46 @@ bool parse(int argc, char** argv, Arguments& out) {
     } else if (arg == "--exit-with-parent") {
       out.exit_with_parent = true;
     } else if (arg == "--version") {
-      std::printf("FluidEQ-Engine %s\n", FEQ_CORE_VERSION);
+      std::printf("FluidEQ-Engine %s\n", FEQ_ENGINE_FILE_VERSION);
       std::exit(0);
     } else {
       return false;
+    }
+  }
+  return true;
+}
+
+/**
+ * Reads what FluidEQ wrote on its link and acts on each whole line. False
+ * once the link has ended, which is the engine's cue to stop.
+ *
+ *   output <name>   play to that output (the desktop's default moves there,
+ *                   then back to "FluidEQ", as when the listener picks one
+ *                   in the system's sound settings)
+ */
+bool follow_owner(int fd, std::string& pending,
+                  fluideq_linux::SoundRouter& router,
+                  fluideq_engine::Log& log) {
+  char buffer[4096];
+  const ssize_t got = ::read(fd, buffer, sizeof(buffer));
+  if (got < 0) return errno == EINTR || errno == EAGAIN;
+  if (got == 0) return false;
+  pending.append(buffer, static_cast<size_t>(got));
+  // A line is a command; a stream of text that never ends one is not, and
+  // is not kept growing.
+  if (pending.size() > 64 * 1024) pending.clear();
+  for (size_t end = pending.find('\n'); end != std::string::npos;
+       end = pending.find('\n')) {
+    std::string line = pending.substr(0, end);
+    pending.erase(0, end + 1);
+    if (!line.empty() && line.back() == '\r') line.pop_back();
+    constexpr const char* kOutput = "output ";
+    if (line.rfind(kOutput, 0) == 0 && line.size() > std::strlen(kOutput)) {
+      const std::string name = line.substr(std::strlen(kOutput));
+      log.write("FluidEQ asked for output " + name);
+      router.select_output(name);
+    } else if (!line.empty()) {
+      log.write("FluidEQ sent a command this engine does not know: " + line);
     }
   }
   return true;
@@ -200,6 +236,7 @@ int main(int argc, char** argv) {
                      {router->lost_fd(), POLLIN, 0},
                      {args.owner_fd, POLLIN, 0}};
   const nfds_t count = args.owner_fd >= 0 ? 3 : 2;
+  std::string owner_text;
   const char* why = "stopped";
   for (;;) {
     if (::poll(waits, count, -1) < 0) {
@@ -215,14 +252,17 @@ int main(int argc, char** argv) {
       break;
     }
     if (waits[1].revents != 0) {
-      why = "PipeWire went away";
+      why = "the sound server went away";
       break;
     }
     if (count == 3 && waits[2].revents != 0) {
-      // FluidEQ holds the other end; any data, EOF or hang-up means it is
-      // gone or wants the engine gone.
-      why = "FluidEQ closed its link";
-      break;
+      // FluidEQ holds the other end. What it writes are commands, a line
+      // each; the end of the stream — FluidEQ quitting, crashing or killed —
+      // is the engine's cue to stop.
+      if (!follow_owner(args.owner_fd, owner_text, *router, log)) {
+        why = "FluidEQ closed its link";
+        break;
+      }
     }
   }
   log.write(std::string("engine stopping: ") + why);

@@ -105,7 +105,9 @@ add_library(fluideq-linux-engine-runtime STATIC
   engine/output_engine.cpp
   engine/output_watcher.cpp
   engine/output_watcher_report.cpp
-  engine/outputs_file.cpp)
+  engine/outputs_file.cpp
+  engine/analysis_link_linux.cpp
+  ${FEQ_APO_SRC}/analysis_snapshot.cpp)
 target_link_libraries(fluideq-linux-engine-runtime
   PUBLIC fluideq-linux-engine-core Threads::Threads PRIVATE feq_strict)
 
@@ -179,3 +181,14 @@ target_link_libraries(fluideq-linux-output-engine-test PRIVATE
   fluideq-linux-engine-runtime feq_strict)
 add_test(NAME linux-output-engine COMMAND fluideq-linux-output-engine-test)
 set_tests_properties(linux-output-engine PROPERTIES TIMEOUT 60)
+
+# The engine's version is the Windows engine's — the same processing, built
+# for Linux — read from its version resource at configure time, so a merge
+# from main that raises it raises the Linux one with it. The app gates its
+# features on this number (`src/common/engineHealth.ts`), through outputs.json.
+file(STRINGS ${FEQ_APO_SRC}/engine.rc feq_engine_rc_version
+  REGEX "^FILEVERSION[ \t]+[0-9]+")
+string(REGEX MATCHALL "[0-9]+" feq_engine_version_parts "${feq_engine_rc_version}")
+string(JOIN "." FEQ_LINUX_ENGINE_VERSION ${feq_engine_version_parts})
+target_compile_definitions(fluideq-linux-engine-runtime
+  PUBLIC FEQ_ENGINE_FILE_VERSION="${FEQ_LINUX_ENGINE_VERSION}")

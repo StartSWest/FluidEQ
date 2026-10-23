@@ -149,6 +149,18 @@ describe('planEngineUpdate', () => {
 });
 
 describe('readFluidEngineUpdateReady', () => {
+  // The Windows engine's update, which Linux never offers (its engine runs
+  // from where the app is). Pinned so a run on Linux tests the same thing.
+  const platform = Object.getOwnPropertyDescriptor(process, 'platform');
+  beforeAll(() => {
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+  });
+  afterAll(() => {
+    if (platform) {
+      Object.defineProperty(process, 'platform', platform);
+    }
+  });
+
   const status = (
     overrides: Partial<IFluidEngineStatus> = {},
   ): IFluidEngineStatus => ({

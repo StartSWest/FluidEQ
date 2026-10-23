@@ -428,3 +428,19 @@ void PipeWireRouter::shutdown() noexcept {
 }
 
 }  // namespace fluideq_linux
+
+namespace fluideq_linux {
+
+void PipeWireRouter::select_output(const std::string& name) noexcept {
+  if (!options_.target.empty() || loop_ == nullptr) return;
+  api_.thread_loop_lock(loop_);
+  // The listener's pick, as the desktop's sound settings would make it: the
+  // metadata comes back, `choose_target` follows it and `claim_default`
+  // makes FluidEQ the default again.
+  if (!shut_ && !lost_ && sink_named(name) != nullptr) {
+    set_configured_default(name);
+  }
+  api_.thread_loop_unlock(loop_);
+}
+
+}  // namespace fluideq_linux

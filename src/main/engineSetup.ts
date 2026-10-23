@@ -33,6 +33,7 @@ import { existsSync } from 'fs';
 import path from 'path';
 import log from 'electron-log';
 import { IFluidEngineEndpoint } from '../common/audioEngine';
+import { runLinuxEngineSetup } from './linux/linuxEngineStatus';
 
 /**
  * `settle` is the one that never elevates: it waits until Windows audio has
@@ -235,10 +236,10 @@ const MAX_OUTPUT_BYTES = 1024 * 1024;
  * below, which is what lets an `ENOENT` resolve as `ok: false` instead of
  * throwing out of an `await`.
  */
-export const runEngineSetup = (
+const runHelper = (
   command: TEngineSetupCommand,
   args: string[],
-  exePath: string = getEngineSetupPath(),
+  exePath: string,
 ): Promise<IEngineSetupResult> =>
   new Promise((resolve) => {
     let stdout = '';
@@ -340,3 +341,15 @@ export const runEngineSetup = (
       resolve(result);
     });
   });
+
+export const runEngineSetup = (
+  command: TEngineSetupCommand,
+  args: string[],
+  exePath?: string,
+): Promise<IEngineSetupResult> =>
+  // Linux has no setup helper: nothing to install or attach, and "restart
+  // Windows audio" restarts the engine (`linux/linuxEngineStatus.ts`). A
+  // helper the caller names is always the one run.
+  process.platform === 'linux' && exePath === undefined
+    ? runLinuxEngineSetup(command)
+    : runHelper(command, args, exePath ?? getEngineSetupPath());

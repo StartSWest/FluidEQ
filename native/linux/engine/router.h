@@ -39,6 +39,15 @@ class SoundRouter {
 
   /** Readable once the connection to the server is gone. */
   virtual int lost_fd() const noexcept = 0;
+
+  /**
+   * Play to the output named `name` (PipeWire's `node.name`, PulseAudio's
+   * sink name). Done as the desktop does it — the output becomes the
+   * configured default, the router follows it there and makes "FluidEQ"
+   * the default again — so a pick in FluidEQ and one in the system's sound
+   * settings are the same event. Any thread; ignored under `--target`.
+   */
+  virtual void select_output(const std::string& name) noexcept = 0;
 };
 
 }  // namespace fluideq_linux

@@ -16,6 +16,8 @@ import log from 'electron-log';
 import { IAudioDevice } from '../common/constants';
 import coalesceRequests from '../common/coalescedRequest';
 import { POWERSHELL_PATH } from './powershell';
+import { linuxEngine } from './linux/linuxEngineProcess';
+import { readLinuxOutputs, toAudioDevices } from './linux/linuxOutputs';
 
 const execFileAsync = promisify(execFile);
 
@@ -189,6 +191,10 @@ export const filterVisibleAudioDevices = (
  */
 export const discoverAudioDevices = coalesceRequests(
   async (): Promise<IAudioDevice[]> => {
+    if (process.platform === 'linux') {
+      // The engine's own list of what it can play to (`linux/linuxOutputs.ts`).
+      return toAudioDevices(await readLinuxOutputs());
+    }
     if (process.platform !== 'win32') {
       return [
         {
@@ -240,6 +246,18 @@ export const discoverAudioDevices = coalesceRequests(
 );
 
 export const setDefaultAudioDevice = async (deviceId: string) => {
+  if (process.platform === 'linux') {
+    // The engine moves to it and keeps FluidEQ the system's default, as a
+    // pick in the desktop's own sound settings does.
+    const devices = await discoverAudioDevices();
+    if (!devices.some((device) => device.id === deviceId)) {
+      throw new Error('The selected audio output is no longer available.');
+    }
+    if (!linuxEngine().selectOutput(deviceId)) {
+      throw new Error('The FluidEQ Engine is not running.');
+    }
+    return;
+  }
   if (process.platform !== 'win32') {
     return;
   }

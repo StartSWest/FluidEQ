@@ -29,6 +29,16 @@ const registerWindowsAudioIpc = () => {
   ipcMain.handle(
     'restart-windows-audio',
     async (): Promise<IAudioRestartOutcome> => {
+      // Linux: the engine is FluidEQ's own process; restarting it is the
+      // whole of "restart audio" (`linux/linuxEngineStatus.ts`).
+      if (process.platform === 'linux') {
+        const result = await runEngineSetup('restart-audio', []);
+        return {
+          ok: result.ok,
+          declined: false,
+          ...(!result.ok && result.error ? { detail: result.error } : {}),
+        };
+      }
       if (process.platform !== 'win32') {
         return { ok: false, declined: false };
       }

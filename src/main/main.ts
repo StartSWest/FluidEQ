@@ -91,6 +91,8 @@ import { registerKaraokeSeparation } from './karaokeSeparation';
 import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { IOutputWatch, startOutputWatch } from './outputWatch';
+import { linuxEngine } from './linux/linuxEngineProcess';
+import startLinuxOutputWatch from './linux/linuxOutputWatch';
 import { registerUpdatesIpc } from './ipc/updates';
 import { registerLibraryIpc } from './ipc/library';
 import {
@@ -197,7 +199,13 @@ const windowModes = createWindowModes();
 // copied over from it: no macOS or Linux build has been published (releases
 // carry only the Windows installer), and this is the folder development
 // writes to, which a copy would pour into an installed app.
-if (process.platform !== 'win32' && !app.isPackaged) {
+// Linux has its own engine now (`linux/`), so a checkout there keeps its
+// settings where an installed Linux build does, like Windows.
+if (
+  process.platform !== 'win32' &&
+  process.platform !== 'linux' &&
+  !app.isPackaged
+) {
   app.setPath('userData', path.join(app.getPath('temp'), 'fluideq-dev'));
   fs.mkdirSync(app.getPath('userData'), { recursive: true });
 }
@@ -1052,6 +1060,11 @@ const onAppReady = async () => {
   // See `engineOwnerPipe.ts`. Never rejects.
   await startEngineAnalysisPipe(getMainWindow);
   await startEngineOwnerPipe();
+  if (process.platform === 'linux') {
+    // Linux's engine is this app's child, started before the window as the
+    // Windows engine's pipe is served before it (`linux/linuxEngineProcess`).
+    linuxEngine().start();
+  }
   try {
     await createMainWindow();
     // AFTER THE WINDOW, NOT BEFORE IT.
@@ -1131,6 +1144,17 @@ const onAppReady = async () => {
     });
     // Stopped at the first quit pass, before the engine is reset: the
     // helper's last report would otherwise rewrite a config being neutralised.
+    app.on('before-quit', () => outputWatch?.stop());
+  } else if (process.platform === 'linux') {
+    // The engine's own list of outputs, followed as Windows' is above.
+    outputWatch = startLinuxOutputWatch({
+      onOutputs: (devices) =>
+        profilesIpc.followOutputs(devices, (channel, payload) => {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send(channel, payload);
+          }
+        }),
+    });
     app.on('before-quit', () => outputWatch?.stop());
   }
   app.on('activate', () => {

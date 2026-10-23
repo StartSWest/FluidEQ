@@ -165,7 +165,9 @@ bool write_outputs_file(const std::string& backend, const std::string& sink,
   try {
     const std::wstring root = fluideq_engine::engine_root();
     if (root.empty()) return fail("no engine root", 0);
-    std::string text = "{\n  \"version\": 1,\n  \"backend\": " +
+    std::string text = "{\n  \"version\": 1,\n  \"engineVersion\": " +
+                       json_string(FEQ_ENGINE_FILE_VERSION) +
+                       ",\n  \"backend\": " +
                        json_string(backend) + ",\n  \"sink\": " +
                        json_string(sink) + ",\n  \"pid\": " +
                        std::to_string(getpid()) + ",\n  \"outputs\": [";

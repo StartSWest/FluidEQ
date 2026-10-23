@@ -36,6 +36,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include "fluideq_engine/config.h"
 #include "fluideq_engine/graph.h"
+#include "analysis_link.h"
 #include "graph_reclaim.h"
 #include "graph_slot.h"
 #include "input_history.h"
@@ -131,6 +132,9 @@ class OutputWatcher {
   const std::function<void()> latency_changed_;
   uint32_t latency_reported_ = UINT32_MAX;
 
+  // The DSP page's meters (`analysis_link_linux.cpp`). Outlives every graph
+  // that points at them: freed after them in `release_graphs`.
+  std::unique_ptr<fluideq_engine::AnalysisLink> analysis_;
   std::shared_ptr<fluideq_engine::Leveling> leveling_;
   std::shared_ptr<fluideq_engine::InputHistory> history_;
   std::unique_ptr<fluideq_engine::LevelPredictor> predictor_;

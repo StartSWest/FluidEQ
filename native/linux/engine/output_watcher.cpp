@@ -127,6 +127,12 @@ void OutputWatcher::load_initial() {
   } catch (...) {
     log_.write("song leveling memory unavailable; leveling relearns per stream");
   }
+  try {
+    analysis_ = std::make_unique<fluideq_engine::AnalysisLink>(
+        endpoint_.guid, sample_rate_, channels_);
+  } catch (...) {
+    log_.write("DSP displays unavailable; audio processing continues");
+  }
   open_level_prediction();
   if (!fluideq_engine::is_directory(config_dir_)) {
     log_.write("configuration directory " + fluideq_engine::to_utf8(config_dir_) +
@@ -180,6 +186,7 @@ void OutputWatcher::release_graphs() noexcept {
   rack_source_ = nullptr;
   for (const OwnedGraph& retired : owned_) delete retired.graph;
   owned_.clear();
+  analysis_.reset();
 }
 
 void OutputWatcher::say_it_carried() noexcept { signal(status_fd_); }
@@ -299,6 +306,8 @@ void OutputWatcher::reload() {
 }
 
 void OutputWatcher::load_chain() {
+  // Every reload is a moment the app may have started serving its socket.
+  if (analysis_) analysis_->retry();
   try {
     const FileProvider provider = [](const std::wstring& path) {
       return fluideq_engine::read_config_file(path);
@@ -393,6 +402,12 @@ void OutputWatcher::load_chain() {
 }
 
 void OutputWatcher::publish(std::unique_ptr<Graph> graph) {
+  if (analysis_) {
+    graph->set_meters(analysis_->meters(), analysis_->activity());
+    graph->set_output_meters(&analysis_->output_gain,
+                             &analysis_->output_enabled,
+                             &analysis_->output_active);
+  }
   graph->own_history(history_);
   owned_.push_back(OwnedGraph{graph.get(), 0});
   Graph* const raw = graph.release();

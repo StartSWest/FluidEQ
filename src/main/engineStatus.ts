@@ -43,6 +43,7 @@ import {
 import { isEqualizerAPOInstalled, noteFluidEngineRegistered } from './registry';
 import { getEngineSetupPath } from './engineSetup';
 import { planEngineUpdate } from './engineUpdate';
+import { readLinuxEngineStatus } from './linux/linuxEngineStatus';
 
 /**
  * Windows 10 build 17134 (version 1803, "April 2018 Update") is the first to
@@ -59,6 +60,10 @@ import { planEngineUpdate } from './engineUpdate';
 export const isFluidEngineSupported = (
   release: string = os.release(),
 ): boolean => {
+  // Every Linux the engine starts on (`native/linux/build-portable.sh`).
+  if (process.platform === 'linux') {
+    return true;
+  }
   if (process.platform !== 'win32') {
     return false;
   }
@@ -423,7 +428,7 @@ const logEngineStatusChange = (status: IFluidEngineStatus): void => {
   log.info(summary);
 };
 
-export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
+const readHelperStatus = (): Promise<IFluidEngineStatus> =>
   new Promise((resolve) => {
     let stdout = '';
     let stdoutBytes = 0;
@@ -505,6 +510,10 @@ export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
     });
   });
 
+export const readFluidEngineStatus = (): Promise<IFluidEngineStatus> =>
+  // Linux: no setup helper; the engine's own files answer.
+  process.platform === 'linux' ? readLinuxEngineStatus() : readHelperStatus();
+
 /**
  * `isEqualizerAPOInstalled` goes through `regedit`, a real process spawn that
  * can reject (a locked hive, a missing `reg.exe`) rather than only ever
@@ -543,7 +552,8 @@ export const readFluidEngineUpdateReady = async (
   fluid: IFluidEngineStatus,
   bundleDir: string = path.dirname(getEngineSetupPath()),
 ): Promise<boolean> => {
-  if (!fluid.installed || !fluid.dllPath) {
+  // Linux runs the engine from where the app is: there is no other copy.
+  if (process.platform === 'linux' || !fluid.installed || !fluid.dllPath) {
     return false;
   }
   try {

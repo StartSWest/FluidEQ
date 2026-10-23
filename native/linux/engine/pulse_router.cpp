@@ -751,3 +751,19 @@ void PulseRouter::shutdown() noexcept {
 }
 
 }  // namespace fluideq_linux
+
+namespace fluideq_linux {
+
+void PulseRouter::select_output(const std::string& name) noexcept {
+  if (!options_.target.empty() || loop_ == nullptr) return;
+  api_.mainloop_lock(loop_);
+  // As the desktop would: the server's default moves, its event comes back,
+  // `choose_target` follows and `claim_default` takes the default again.
+  if (!shut_ && ready_ && sink_named(name) != nullptr) {
+    release(api_.context_set_default_sink(context_, name.c_str(), nullptr,
+                                          nullptr));
+  }
+  api_.mainloop_unlock(loop_);
+}
+
+}  // namespace fluideq_linux

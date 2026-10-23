@@ -7,7 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * The file-reading slice of `<windows.h>`, over POSIX, for exactly three
  * shared engine sources: `config_file.cpp`, `wav.cpp` and
- * `chain_signature.cpp`.
+ * `chain_signature.cpp` — plus the handle type and calling convention
+ * `analysis_link.h` declares its members with, so its portable half
+ * (`analysis_snapshot.cpp`) builds beside a Linux connection
+ * (`engine/analysis_link_linux.cpp`).
  *
  * Each of those keeps a portable parser and a Windows file read in one
  * translation unit, and the Linux branch carries no edits to Windows code
@@ -41,6 +44,10 @@ using DWORD = uint32_t;
 using LONGLONG = int64_t;
 using BOOL = int;
 using HANDLE = void*;
+
+// `analysis_link.h` declares its thread entry with the Windows calling
+// convention; x86-64 Linux has one convention and no such keyword.
+#define __stdcall
 
 union LARGE_INTEGER {
   LONGLONG QuadPart;

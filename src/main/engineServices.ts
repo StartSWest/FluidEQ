@@ -74,6 +74,18 @@ export const chooseLaunchEngine = async (
   userDataDir: string,
 ): Promise<TAudioEngine | null> => {
   const enginePreference = loadAudioEnginePreference(userDataDir);
+  // Linux has one engine, its own, whatever an earlier build recorded (the
+  // Linux build used to record Equalizer APO, which does not exist there).
+  if (process.platform === 'linux') {
+    if (enginePreference.engine !== 'fluid') {
+      try {
+        saveAudioEnginePreference(userDataDir, 'fluid');
+      } catch (error) {
+        log.error('Could not record the Linux engine preference', error);
+      }
+    }
+    return 'fluid';
+  }
   const isWindows = process.platform === 'win32';
   const unanswered = enginePreference.engine === null && isWindows;
   const migration = migrateAudioEnginePreference(enginePreference, {

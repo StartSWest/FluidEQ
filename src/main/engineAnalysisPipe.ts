@@ -3,7 +3,9 @@
 Copyright (C) <2026> <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
+import fs from 'fs';
 import net from 'net';
+import path from 'path';
 import { ipcMain, WebContents } from 'electron';
 import log from 'electron-log';
 import { normaliseEndpointGuid } from '../common/engineHealth';
@@ -13,8 +15,18 @@ import {
 } from '../common/dsp/engineAnalysis';
 import decodeEngineAnalysis from './dspHost/engineAnalysis';
 import { ENGINE_PREAMP_CHANNEL, IEnginePreamp } from '../common/enginePreamp';
+import { linuxEngineRoot } from './linux/linuxEngineFiles';
 
 const PIPE = '\\\\.\\pipe\\FluidEQ-Engine-Analysis';
+/**
+ * Linux: in the user's runtime folder, else the engine's — the engine's own
+ * rule (`analysis_link_linux.cpp`). A socket path is limited to 107 bytes,
+ * which the runtime folder never comes near.
+ */
+const linuxAnalysisSocketPath = () =>
+  process.env.XDG_RUNTIME_DIR?.startsWith('/')
+    ? path.join(process.env.XDG_RUNTIME_DIR, 'fluideq-analysis.sock')
+    : path.join(linuxEngineRoot(), 'analysis.sock');
 const MAX_FRAME = 32_768;
 const GUID = /^\{?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}\}?$/i;
 /** "FEQS", the process-stats reply's magic in `analysis_link.cpp`. */
@@ -111,7 +123,8 @@ export const readEngineProcesses = (): IEngineProcessStats[] => {
 const startEngineAnalysisPipe = (
   getWindow: () => { webContents: WebContents } | null,
 ): Promise<void> => {
-  if (process.platform !== 'win32') {
+  // Linux's engine speaks the same protocol over a local socket.
+  if (process.platform !== 'win32' && process.platform !== 'linux') {
     return Promise.resolve();
   }
   ipcMain.handle(ENGINE_PREAMP_CHANNEL, (event, endpoint: unknown) => {
@@ -337,6 +350,16 @@ const startEngineAnalysisPipe = (
     // audiodg.exe runs as LOCAL SERVICE. Its display connection must be able
     // to write measurements; the default Windows pipe ACL grants only reads.
     // This pipe accepts bounded analysis records and sends only demand bytes.
+    if (process.platform === 'linux') {
+      // Linux: the engine is this user's own process, so the socket stays
+      // private to the user. One left by an earlier run that ended without
+      // closing it would refuse the bind, and nothing else serves this name.
+      const socketPath = linuxAnalysisSocketPath();
+      fs.mkdirSync(path.dirname(socketPath), { recursive: true });
+      fs.rmSync(socketPath, { force: true });
+      server.listen({ path: socketPath }, resolve);
+      return;
+    }
     server.listen(
       { path: PIPE, readableAll: true, writableAll: true },
       resolve,

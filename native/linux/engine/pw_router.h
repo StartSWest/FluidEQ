@@ -59,6 +59,7 @@ class PipeWireRouter final : public SoundRouter {
 
   void shutdown() noexcept override;
   int lost_fd() const noexcept override { return lost_fd_; }
+  void select_output(const std::string& name) noexcept override;
 
  private:
   struct Sink {

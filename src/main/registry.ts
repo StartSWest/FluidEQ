@@ -21,6 +21,10 @@ import fs from 'fs';
 import { app } from 'electron';
 import { promisified as regedit, setExternalVBSLocation } from 'regedit';
 import { TAudioEngine } from '../common/audioEngine';
+import {
+  findLinuxEngineExecutable,
+  linuxEngineConfigDir,
+} from './linux/linuxEngineFiles';
 
 // app will only be defined in the electron main process environment.
 // in the test environment, we expect it to be undefined.
@@ -173,7 +177,10 @@ export const forgetApoInstall = (): void => {
 };
 
 export const isEqualizerAPOInstalled = async (): Promise<boolean> =>
-  process.platform === 'win32' ? (await resolveApoInstall()).installed : true;
+  process.platform === 'win32'
+    ? (await resolveApoInstall()).installed
+    : // Linux has its own engine and no Equalizer APO to offer.
+      process.platform !== 'linux';
 
 /**
  * `%ProgramData%\FluidEQ\engine\config` — the FluidEQ Engine DLL watches this
@@ -182,12 +189,15 @@ export const isEqualizerAPOInstalled = async (): Promise<boolean> =>
  * than a lookup.
  */
 export const getFluidEngineConfigDir = (): string =>
-  path.join(
-    process.env.ProgramData ?? 'C:\\ProgramData',
-    'FluidEQ',
-    'engine',
-    'config',
-  );
+  // Linux: the user's own engine folder (`linux/linuxEngineFiles.ts`).
+  process.platform === 'linux'
+    ? linuxEngineConfigDir()
+    : path.join(
+        process.env.ProgramData ?? 'C:\\ProgramData',
+        'FluidEQ',
+        'engine',
+        'config',
+      );
 
 export const getFluidEngineDllPath = (): string =>
   path.join(
@@ -213,13 +223,20 @@ export const noteFluidEngineRegistered = (registered: boolean): void => {
   fluidEngineRegistered = registered;
 };
 
-export const isEngineInstalled = (engine: TAudioEngine): Promise<boolean> =>
-  engine === 'apo'
+export const isEngineInstalled = (engine: TAudioEngine): Promise<boolean> => {
+  // Linux: the engine ships with the app; there is nothing to register.
+  if (process.platform === 'linux') {
+    return Promise.resolve(
+      engine === 'fluid' && findLinuxEngineExecutable() !== undefined,
+    );
+  }
+  return engine === 'apo'
     ? isEqualizerAPOInstalled()
     : Promise.resolve(
         fs.existsSync(getFluidEngineDllPath()) &&
           fluidEngineRegistered !== false,
       );
+};
 
 /**
  * A config directory is unusable to Equalizer APO's own reader unless
@@ -239,6 +256,10 @@ const ensureConfigDirWithEmptyConfigFile = (configDir: string): string => {
 };
 
 export const getConfigPath = async (engine: TAudioEngine): Promise<string> => {
+  if (process.platform === 'linux') {
+    // Whichever engine was recorded: Linux has only its own.
+    return ensureConfigDirWithEmptyConfigFile(linuxEngineConfigDir());
+  }
   if (process.platform !== 'win32') {
     // Neither engine is really installable off Windows: both resolve to the
     // same sandbox directory this always used, regardless of which engine was
