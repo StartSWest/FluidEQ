@@ -20,15 +20,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ipcRenderer, IpcRendererEvent } from 'electron';
 import type {
   ILanHostDetails,
-  ILanRemoteComputer,
   ILanRemoteAudioChunk,
   ILanRemoteAudioNetworkStats,
   ILanRemoteAudioSignal,
+  ILanSavedJoin,
   ILinkSwitches,
-  TLanRestoreResult,
-  TLanSavedRole,
-  TRemoteAudioStopMode,
-  TRemoteAudioStreamMode,
 } from '../common/remoteAudio';
 
 /**
@@ -62,45 +58,55 @@ const onRemoteAudioPlayback = (
   };
 };
 
-const startRemoteAudioLanHost = (replaceCode = false) =>
-  ipcRenderer.invoke(
-    'remote-audio-lan-host',
-    replaceCode,
-  ) as Promise<ILanHostDetails>;
+/** Whether this computer has a Share Audio code from an earlier launch. */
+const hasSavedRemoteAudioLan = () =>
+  ipcRenderer.invoke('remote-audio-lan-saved') as Promise<boolean>;
 
-const getSavedRemoteAudioLanRole = () =>
-  ipcRenderer.invoke('remote-audio-lan-saved-role') as Promise<
-    TLanSavedRole | undefined
-  >;
+/**
+ * Listens on this computer's code and goes back to every pasted one.
+ * `replay`: this window is new, so every open link is told to it again.
+ */
+const startRemoteAudioLan = (replay = false) =>
+  ipcRenderer.invoke('remote-audio-lan-start', replay) as Promise<{
+    details: ILanHostDetails;
+    joins: ILanSavedJoin[];
+    links: ILanRemoteAudioSignal[];
+  }>;
 
-const getSavedRemoteAudioLanSenderCode = () =>
-  ipcRenderer.invoke('remote-audio-lan-saved-sender-code') as Promise<
-    string | undefined
-  >;
+/** Links with the computer whose code this is, beside every other. */
+const joinRemoteAudioLan = (code: string) =>
+  ipcRenderer.invoke('remote-audio-lan-join', code) as Promise<ILanSavedJoin>;
 
-const restoreRemoteAudioLan = (streamMode: TRemoteAudioStreamMode = 'music') =>
-  ipcRenderer.invoke('remote-audio-lan-restore', streamMode) as Promise<
-    TLanRestoreResult | undefined
-  >;
+/** Ends the link with one computer: by its open link, or by its id. */
+const unlinkRemoteAudioLan = (target: {
+  peerId?: string;
+  computerId?: string;
+}) => ipcRenderer.invoke('remote-audio-lan-unlink', target) as Promise<void>;
 
-const joinRemoteAudioLan = (
-  code: string,
-  streamMode: TRemoteAudioStreamMode = 'music',
-) =>
-  ipcRenderer.invoke(
-    'remote-audio-lan-join',
-    code,
-    streamMode,
-  ) as Promise<ILanRemoteComputer>;
+/** Linux: whether the engine's "FluidEQ Send" and "FluidEQ Share In" are
+ * there, so a link can run both ways. */
+const setRemoteAudioBothWays = (bothWays: boolean) =>
+  ipcRenderer.invoke('remote-audio-lan-both-ways', bothWays) as Promise<void>;
+
+/** The network is back: look for every computer still away, now. */
+const retryRemoteAudioLan = () =>
+  ipcRenderer.invoke('remote-audio-lan-retry') as Promise<void>;
+
+/** The codes pasted here, whenever that list changes. */
+const onRemoteAudioLanJoins = (listener: (joins: ILanSavedJoin[]) => void) => {
+  const wrapped = (_event: IpcRendererEvent, joins: ILanSavedJoin[]) =>
+    listener(joins);
+  ipcRenderer.on('remote-audio-lan-joins', wrapped);
+  return () => {
+    ipcRenderer.removeListener('remote-audio-lan-joins', wrapped);
+  };
+};
 
 const sendRemoteAudioLanSignal = (message: ILanRemoteAudioSignal) =>
   ipcRenderer.invoke('remote-audio-lan-send', message) as Promise<void>;
 
 const sendRemoteAudioLanAudio = (chunk: ILanRemoteAudioChunk) =>
   ipcRenderer.send('remote-audio-lan-audio-send', chunk);
-
-const stopRemoteAudioLan = (mode: TRemoteAudioStopMode = 'keep-active') =>
-  ipcRenderer.invoke('remote-audio-lan-stop', mode) as Promise<void>;
 
 /** "Send my sound", "Play it here" and Pause for the computer called `name`. */
 const setRemoteAudioLinkSwitches = (name: string, switches: ILinkSwitches) =>
@@ -189,14 +195,15 @@ const remoteAudioBridge = {
   startRemoteAudioPlayback,
   remoteAudioPlaybackCommand,
   onRemoteAudioPlayback,
-  startRemoteAudioLanHost,
-  getSavedRemoteAudioLanRole,
-  getSavedRemoteAudioLanSenderCode,
-  restoreRemoteAudioLan,
+  hasSavedRemoteAudioLan,
+  startRemoteAudioLan,
   joinRemoteAudioLan,
+  unlinkRemoteAudioLan,
+  retryRemoteAudioLan,
+  setRemoteAudioBothWays,
+  onRemoteAudioLanJoins,
   sendRemoteAudioLanSignal,
   sendRemoteAudioLanAudio,
-  stopRemoteAudioLan,
   setRemoteAudioLinkSwitches,
   getRemoteAudioLinkSwitches,
   onRemoteAudioLanSendingFailed,

@@ -27,11 +27,13 @@ jest.mock('electron', () => ({
 }));
 
 const lan = {
-  restoreJoin: jest.fn(),
+  start: jest.fn(),
+  join: jest.fn(),
+  unlink: jest.fn(),
+  retry: jest.fn(),
   sendAudio: jest.fn(),
   sendSignal: jest.fn(),
   setStreamMode: jest.fn(),
-  startHost: jest.fn(),
   stop: jest.fn(),
 };
 
@@ -41,14 +43,13 @@ jest.mock('../../../main/remoteAudioLan', () => ({
 }));
 jest.mock('../../../main/remoteAudioCredentials', () => ({
   createRemoteAudioCredentialStore: jest.fn(() => ({
-    activate: jest.fn(),
+    read: jest.fn(() => ({ joins: [], revoked: [] })),
+    writeIdentity: jest.fn(),
+    addJoin: jest.fn(),
+    removeJoin: jest.fn(),
+    revoke: jest.fn(),
+    unrevoke: jest.fn(),
     clear: jest.fn(),
-    pause: jest.fn(),
-    read: jest.fn(),
-    readListener: jest.fn(),
-    readSender: jest.fn(),
-    role: jest.fn(),
-    write: jest.fn(),
   })),
 }));
 jest.mock('../../../main/ipc/dspHost', () => ({
@@ -83,16 +84,16 @@ it('builds it once, for the first thing that needs it, and keeps it', async () =
     getMainWindow: () => null,
     userDataDir: 'C:\\FluidEQ-test',
   });
-  lan.startHost.mockResolvedValue({
+  lan.start.mockResolvedValue({
     credentials: { port: 49_100, secret: 'secret' },
-    details: { deviceName: 'HEADSET-PC', options: [] },
+    details: { deviceName: 'HEADSET-PC', computerId: 'x'.repeat(32) },
   });
 
-  await handlers.get('remote-audio-lan-host')?.({}, false);
-  await handlers.get('remote-audio-lan-stop')?.({}, 'pause');
+  await handlers.get('remote-audio-lan-start')?.({}, true);
+  // The page opened again: the running session answers, nothing restarts.
+  await handlers.get('remote-audio-lan-start')?.({}, false);
   stopAll();
 
   expect(mockCreateLan).toHaveBeenCalledTimes(1);
-  expect(lan.startHost).toHaveBeenCalledTimes(1);
-  expect(lan.stop).toHaveBeenCalledTimes(2);
+  expect(lan.stop).toHaveBeenCalledTimes(1);
 });

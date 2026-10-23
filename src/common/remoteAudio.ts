@@ -129,12 +129,15 @@ export type TRemoteAudioSignal =
    * Raised on this computer by the LAN layer when a link authenticates, never
    * accepted from the wire (`remoteAudioTransport.ts`). `deviceName` is the
    * OTHER computer's; `joined` says this computer pasted its code.
+   * `computerId` is the other computer's lasting id, absent for a FluidEQ
+   * from before all to all that joined this one.
    */
   | {
       kind: 'peer-ready';
       deviceName: string;
       address?: string;
       joined?: boolean;
+      computerId?: string;
     }
   /**
    * `duplex` rides here, on a message every version already accepts, because
@@ -177,23 +180,27 @@ export type TRemoteAudioSignal =
     }
   /** Listener → sender: a press on the listener's bar, carried out there. */
   | ({ kind: 'transport' } & TRemoteTransportCommand)
-  | { kind: 'stop' };
+  /**
+   * The link is over. `forget`: it was unlinked over there, so the computer
+   * that pasted the code forgets it rather than coming back. An older
+   * FluidEQ reads the kind and ignores the field.
+   */
+  | { kind: 'stop'; forget?: boolean };
 
-export interface ILanPairingOption {
-  address: string;
-  code: string;
-  deviceName: string;
-}
-
+/**
+ * This computer on the network: its name and its one code, the same for
+ * every computer that links with it. No code while it is on no network.
+ */
 export interface ILanHostDetails {
   deviceName: string;
-  options: ILanPairingOption[];
+  code?: string;
+  computerId: string;
 }
 
-export interface ILanRemoteComputer {
-  address: string;
+/** A computer whose code was pasted here: this one keeps going back to it. */
+export interface ILanSavedJoin {
+  computerId: string;
   deviceName: string;
-  peerId: string;
 }
 
 export interface ILanRemoteAudioNetworkStats {
@@ -204,18 +211,7 @@ export interface ILanRemoteAudioNetworkStats {
   queuedMilliseconds: number;
 }
 
-export type TLanSavedRole = 'listener' | 'sender';
-/**
- * How a Share Audio session ends. `unlink` forgets the code this computer
- * pasted and keeps its own, so its code stays the same for the next link.
- */
-export type TRemoteAudioStopMode =
-  'keep-active' | 'pause' | 'forget' | 'unlink';
 export type TRemoteAudioStreamMode = 'music' | 'video';
-
-export type TLanRestoreResult =
-  | { role: 'listener'; details: ILanHostDetails }
-  | { role: 'sender'; listener: ILanRemoteComputer };
 
 /** One sender's control message, routed by the listening computer. */
 export interface ILanRemoteAudioSignal {
@@ -306,7 +302,8 @@ export const isRemoteAudioSignal = (
   value: unknown,
 ): value is TRemoteAudioSignal =>
   isRecord(value) &&
-  (value.kind === 'stop' ||
+  ((value.kind === 'stop' &&
+    (value.forget === undefined || typeof value.forget === 'boolean')) ||
     (value.kind === 'now-playing' &&
       (value.playing === undefined || isRemoteNowPlaying(value.playing)) &&
       (value.started === undefined || typeof value.started === 'boolean') &&
@@ -317,6 +314,9 @@ export const isRemoteAudioSignal = (
       (value.mode === 'music' || value.mode === 'video') &&
       (value.duplex === undefined || isRemoteDuplex(value.duplex))) ||
     (value.kind === 'peer-ready' &&
+      (value.computerId === undefined ||
+        (typeof value.computerId === 'string' &&
+          value.computerId.length <= 64)) &&
       typeof value.deviceName === 'string' &&
       value.deviceName.trim().length > 0 &&
       value.deviceName.length <= 128 &&

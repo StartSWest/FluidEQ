@@ -5,8 +5,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import type {
-  ILanPairingOption,
   ILanRemoteAudioNetworkStats,
+  ILanSavedJoin,
   ILinkSwitches,
   IRemoteDuplex,
   IRemoteNowPlaying,
@@ -28,6 +28,8 @@ export interface IRemoteAudioComputer {
 export interface IRemoteAudioLink extends IRemoteAudioComputer {
   /** This computer pasted its code: it is the one this computer joined. */
   joined: boolean;
+  /** Its lasting id; absent for a FluidEQ from before all to all. */
+  computerId?: string;
   /** What it said it does with the link; absent until it says. A FluidEQ
    * from before both ways never says, and never sends back. */
   theirs?: IRemoteDuplex;
@@ -37,41 +39,41 @@ export interface IRemoteAudioLink extends IRemoteAudioComputer {
 }
 
 /**
- * `listener` and `sender` survive as the two ways into a link, not as what a
- * computer does on it: `listener` shows this computer's code and waits,
- * `sender` pasted another's. Either way, once linked, both directions run.
+ * The page's one word for Share Audio. `ready`: this computer's code is on
+ * the network, linked to nobody or to anybody — every computer listens and
+ * joins at once, so there is no side to wait on.
  */
-export type TRemoteAudioRole = 'listener' | 'sender';
 export type TRemoteAudioPhase =
-  | 'idle'
-  | 'preparing'
-  | 'waiting'
-  | 'connecting'
-  | 'connected'
-  | 'disconnected'
-  | 'playback-blocked'
-  | 'error';
-export type TRemoteAudioError = 'lan' | 'capture' | 'playback' | 'connection';
+  'idle' | 'preparing' | 'ready' | 'playback-blocked' | 'error';
+export type TRemoteAudioError =
+  'lan' | 'capture' | 'playback' | 'connection' | 'code';
 
 export interface IRemoteAudioValue {
-  /** Whether this computer can play another's sound while it sends its own
-   * (Windows); elsewhere a link runs one way. */
+  /** Whether this computer can play another's sound while it sends its own;
+   * where it cannot, a link runs one way. */
   bothWays: boolean;
-  /** This computer's name while its code is shown; the other's once joined. */
+  /** This computer's name on the network. */
   deviceName?: string;
+  /** This computer's one code, the same for every computer it links with;
+   * absent while it is on no network. */
+  code?: string;
   error?: TRemoteAudioError;
-  lanOptions: ILanPairingOption[];
   links: IRemoteAudioLink[];
+  /** Computers whose code was pasted here that are not linked right now:
+   * this one keeps looking for them. */
+  looking: ILanSavedJoin[];
   networkStats: ILanRemoteAudioNetworkStats[];
   phase: TRemoteAudioPhase;
-  role?: TRemoteAudioRole;
   /** This computer's sound is going to at least one computer. */
   sending: boolean;
   /** This computer's sound could not be captured for the network. */
   sendingFailed: boolean;
-  showCode(replaceCode?: boolean): Promise<void>;
-  link(code: string): Promise<void>;
-  unlink(): Promise<void>;
+  start(): Promise<void>;
+  /** True once the code is saved and being linked. */
+  link(code: string): Promise<boolean>;
+  /** Ends one link — by its open connection, or a computer still looked for —
+   * and leaves every other alone. */
+  unlink(target: { peerId?: string; computerId?: string }): Promise<void>;
   setSwitches(name: string, switches: ILinkSwitches): Promise<void>;
   resumePlayback(): Promise<void>;
   subscribeMeter(listener: TRemoteAudioMeterListener): () => void;

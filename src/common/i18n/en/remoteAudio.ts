@@ -29,6 +29,8 @@ const remoteAudio = {
     'Both computers play each other right away. Switch either direction off later if you only want one.',
   'remoteAudio.link.once':
     'Do it once. Linked computers find each other again after a restart, from either side.',
+  'remoteAudio.link.many':
+    'The same code links any number of computers, and unlinking one leaves the rest linked.',
   'remoteAudio.rule.echoTitle': 'Both ways, no echo',
   'remoteAudio.rule.echo':
     'Each computer sends only what it plays itself — never the sound it is receiving — so nothing comes back around.',
@@ -77,28 +79,26 @@ const remoteAudio = {
   'remoteAudio.lane.inOld':
     '{name} needs the latest FluidEQ to send its sound here.',
   'remoteAudio.lane.inOneWay':
-    'Playing both ways needs Windows on this computer.',
+    'Playing both ways needs Windows, or the FluidEQ Engine on Linux.',
   'remoteAudio.lane.outQuiet': 'Nothing playing on this computer',
   'remoteAudio.lane.outOff': 'Not sending. {name} doesn’t hear this computer.',
   'remoteAudio.lane.outNotPlayed': '{name} has “Play it here” off.',
   'remoteAudio.lane.outOld':
     '{name} needs the latest FluidEQ to play this computer’s sound.',
   'remoteAudio.lane.outOneWay':
-    'Sending both ways needs Windows on this computer.',
+    'Sending both ways needs Windows, or the FluidEQ Engine on Linux.',
   'remoteAudio.lane.outFailed':
     'This computer’s sound could not be captured. Switch “Send my sound” off and on to try again.',
   'remoteAudio.another.section': 'Link another computer',
-  'remoteAudio.another.hub':
-    'Paste this computer’s code on another computer. Each computer linked gets its own row above.',
-  'remoteAudio.another.spoke':
-    'To link a third computer, paste {name}’s code on it: a computer links with the one whose code it uses.',
   'remoteAudio.singlePlayer.title': 'One player at a time',
   'remoteAudio.singlePlayer.body':
     'covers linked computers too: starting something on either one pauses what was playing on the other.',
   'remoteAudio.code.copy': 'Copy code',
   'remoteAudio.code.copied': 'Copied',
-  'remoteAudio.code.forAddress': 'Pairing code for {address}',
+  'remoteAudio.code.label': 'This computer’s code',
   'remoteAudio.status.preparing': 'Preparing…',
+  'remoteAudio.status.noNetwork':
+    'Connect this computer to a network to get its code.',
   'remoteAudio.status.playbackBlocked': 'Press Resume to hear audio',
   'remoteAudio.resume': 'Resume audio',
   'remoteAudio.retry': 'Try again',
@@ -109,6 +109,8 @@ const remoteAudio = {
     'Two computers playing at once add up. Lower your volume before the first link.',
   'remoteAudio.error.lan':
     'FluidEQ could not open that local connection. Make sure both computers are on the same private network and FluidEQ is allowed through the firewall.',
+  'remoteAudio.error.code':
+    'That isn’t a FluidEQ code, or it is this computer’s own. Copy the code from the other computer’s Share Audio page.',
   'remoteAudio.error.capture':
     'FluidEQ could not capture this computer’s system audio. Check the current output device, then try again.',
   'remoteAudio.error.playback':

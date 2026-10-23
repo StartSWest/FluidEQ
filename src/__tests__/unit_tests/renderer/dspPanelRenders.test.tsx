@@ -100,7 +100,7 @@ const APO_STATUS: IAudioEngineStatus = {
 };
 
 const LINKED: IRemoteAudioValue = remoteAudioValue({
-  phase: 'connected',
+  phase: 'ready',
   links: [remoteAudioLink({ receiving: true })],
   sending: true,
 });

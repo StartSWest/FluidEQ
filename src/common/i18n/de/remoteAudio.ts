@@ -24,6 +24,8 @@ const remoteAudio: Partial<Dictionary> = {
     'Beide Computer spielen sich sofort gegenseitig. Schalten Sie später eine Richtung aus, wenn Sie nur eine möchten.',
   'remoteAudio.link.once':
     'Nur einmal nötig. Verbundene Computer finden sich nach einem Neustart von selbst wieder, von beiden Seiten.',
+  'remoteAudio.link.many':
+    'Derselbe Code verbindet beliebig viele Computer, und das Trennen eines Computers lässt die anderen verbunden.',
   'remoteAudio.rule.echoTitle': 'In beide Richtungen, ohne Echo',
   'remoteAudio.rule.echo':
     'Jeder Computer sendet nur, was er selbst abspielt — nie den Ton, den er empfängt —, sodass nichts zurückkommt.',
@@ -74,28 +76,26 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOld':
     '{name} braucht das neueste FluidEQ, um seinen Ton hierher zu senden.',
   'remoteAudio.lane.inOneWay':
-    'Wiedergabe in beide Richtungen erfordert Windows auf diesem Computer.',
+    'Wiedergabe in beide Richtungen braucht Windows oder die FluidEQ Engine unter Linux.',
   'remoteAudio.lane.outQuiet': 'Auf diesem Computer läuft nichts',
   'remoteAudio.lane.outOff': 'Senden aus. {name} hört diesen Computer nicht.',
   'remoteAudio.lane.outNotPlayed': 'Bei {name} ist „Hier abspielen“ aus.',
   'remoteAudio.lane.outOld':
     '{name} braucht das neueste FluidEQ, um den Ton dieses Computers abzuspielen.',
   'remoteAudio.lane.outOneWay':
-    'Senden in beide Richtungen erfordert Windows auf diesem Computer.',
+    'Senden in beide Richtungen braucht Windows oder die FluidEQ Engine unter Linux.',
   'remoteAudio.lane.outFailed':
     'Der Ton dieses Computers konnte nicht aufgenommen werden. Schalten Sie „Meinen Ton senden“ aus und wieder ein, um es erneut zu versuchen.',
   'remoteAudio.another.section': 'Weiteren Computer verbinden',
-  'remoteAudio.another.hub':
-    'Fügen Sie den Code dieses Computers auf einem anderen Computer ein. Jeder verbundene Computer bekommt oben seine eigene Zeile.',
-  'remoteAudio.another.spoke':
-    'Um einen dritten Computer zu verbinden, fügen Sie dort den Code von {name} ein: Ein Computer verbindet sich mit dem, dessen Code er verwendet.',
   'remoteAudio.singlePlayer.title': 'Nur ein Player',
   'remoteAudio.singlePlayer.body':
     'gilt auch für verbundene Computer: Wird auf einem etwas gestartet, pausiert, was auf dem anderen lief.',
   'remoteAudio.code.copy': 'Code kopieren',
   'remoteAudio.code.copied': 'Kopiert',
-  'remoteAudio.code.forAddress': 'Kopplungscode für {address}',
+  'remoteAudio.code.label': 'Code dieses Computers',
   'remoteAudio.status.preparing': 'Wird vorbereitet…',
+  'remoteAudio.status.noNetwork':
+    'Verbinden Sie diesen Computer mit einem Netzwerk, um seinen Code zu erhalten.',
   'remoteAudio.status.playbackBlocked': 'Zum Hören Fortsetzen drücken',
   'remoteAudio.resume': 'Audio fortsetzen',
   'remoteAudio.retry': 'Erneut versuchen',
@@ -106,6 +106,8 @@ const remoteAudio: Partial<Dictionary> = {
     'Zwei gleichzeitig spielende Computer addieren sich. Drehen Sie die Lautstärke vor der ersten Verbindung herunter.',
   'remoteAudio.error.lan':
     'FluidEQ konnte die lokale Verbindung nicht öffnen. Prüfen Sie, ob beide Computer im selben privaten Netzwerk sind und die Firewall FluidEQ zulässt.',
+  'remoteAudio.error.code':
+    'Das ist kein FluidEQ-Code, oder es ist der Code dieses Computers. Kopieren Sie den Code von der Audio-teilen-Seite des anderen Computers.',
   'remoteAudio.error.capture':
     'FluidEQ konnte den Systemton dieses Computers nicht aufnehmen. Prüfen Sie das aktuelle Ausgabegerät und versuchen Sie es erneut.',
   'remoteAudio.error.playback':

@@ -7,7 +7,6 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import crypto from 'crypto';
-import os from 'os';
 import { constants, zstdCompress, zstdDecompress } from 'zlib';
 import type { RawData } from 'ws';
 import {
@@ -15,6 +14,11 @@ import {
   ILanRemoteAudioSignal,
   isLanRemoteAudioSignal,
 } from '../common/remoteAudio';
+import {
+  MAX_CODE_ADDRESSES,
+  isPrivateIpv4,
+  lanAddresses,
+} from './remoteAudioLanAddresses';
 
 const PAIRING_PREFIX = 'FLUIDEQ-LAN-2.';
 const PACKET_AAD = Buffer.from('FluidEQ encrypted LAN audio v2', 'utf8');
@@ -30,7 +34,10 @@ const AUDIO_ZSTD = 1;
 export const MAX_PACKET_BYTES = 512 * 1024;
 
 export interface ILanPairingPayload {
+  /** The first of `addresses`. */
   address: string;
+  /** Every address the code names, best first; tried all at once. */
+  addresses: string[];
   deviceName: string;
   port: number;
   secret: string;
@@ -57,70 +64,70 @@ export interface ILanAuthChallenge {
 export interface ILanAuthReady extends ILanAuthChallenge {
   deviceName: string;
   peerId: string;
+  /**
+   * The joining computer's own id (`computerIdOf`). Absent from a FluidEQ
+   * from before all to all, which is linked as it always was.
+   */
+  computerId?: string;
+  /** The first connection after somebody pasted the code by hand: a
+   * computer unlinked earlier is let back in only on this. */
+  fresh?: boolean;
 }
 
 export interface ILanAuthAccepted extends ILanAuthChallenge {
   peerId: string;
 }
 
-const CANONICAL_IPV4 = /^(?:0|[1-9]\d{0,2})(?:\.(?:0|[1-9]\d{0,2})){3}$/;
+export { isPrivateIpv4, lanAddresses };
 
-export const isPrivateIpv4 = (address: string): boolean => {
-  if (!CANONICAL_IPV4.test(address)) {
-    return false;
-  }
-  const octets = address.split('.').map(Number);
-  if (
-    octets.length !== 4 ||
-    octets.some((octet) => !Number.isInteger(octet) || octet < 0 || octet > 255)
-  ) {
-    return false;
-  }
-  return (
-    octets[0] === 10 ||
-    (octets[0] === 172 && octets[1] >= 16 && octets[1] <= 31) ||
-    (octets[0] === 192 && octets[1] === 168) ||
-    (octets[0] === 169 && octets[1] === 254)
-  );
-};
+/**
+ * A computer's identity on the network, from its own pairing secret.
+ *
+ * Every computer keeps one secret for good and the code that carries it, and
+ * any number of computers link with it by pasting that one code (all to all:
+ * each computer listens, and each joins the ones whose codes it was given).
+ * The id lets two computers that each pasted the other's code tell that they
+ * are one pair, and lets an unlinked computer be refused by name. It is a
+ * hash: knowing it does not let anybody into a link.
+ */
+export const computerIdOf = (secret: string): string =>
+  crypto
+    .createHash('sha256')
+    .update(`FluidEQ LAN computer\0${secret}`, 'utf8')
+    .digest('base64url')
+    .slice(0, 32);
 
-export const lanAddresses = (): string[] => {
-  const addresses = Object.values(os.networkInterfaces())
-    .flatMap((entries) => entries ?? [])
-    .filter(
-      (entry) =>
-        entry.family === 'IPv4' &&
-        !entry.internal &&
-        isPrivateIpv4(entry.address),
-    )
-    .map((entry) => entry.address);
-  return [...new Set(addresses)].sort((left, right) => {
-    const rank = (address: string) => {
-      if (address.startsWith('192.168.')) {
-        return 0;
-      }
-      if (address.startsWith('10.')) {
-        return 1;
-      }
-      if (address.startsWith('172.')) {
-        return 2;
-      }
-      return 3;
-    };
-    return rank(left) - rank(right) || left.localeCompare(right);
-  });
-};
+const COMPUTER_ID = /^[A-Za-z0-9_-]{32}$/;
 
+export const isComputerId = (value: unknown): value is string =>
+  typeof value === 'string' && COMPUTER_ID.test(value);
+
+/**
+ * `address` stays the first of `addresses` so a FluidEQ from before one code
+ * per computer still reads the code: it ignores the list and dials the first.
+ */
 export const encodePairingCode = (
-  address: string,
+  addresses: readonly string[] | string,
   port: number,
   secret: string,
   deviceName: string,
-): string =>
-  `${PAIRING_PREFIX}${Buffer.from(
-    JSON.stringify({ address, deviceName, port, secret }),
+): string => {
+  const list = (typeof addresses === 'string' ? [addresses] : [...addresses])
+    .filter(isPrivateIpv4)
+    .slice(0, MAX_CODE_ADDRESSES);
+  return `${PAIRING_PREFIX}${Buffer.from(
+    JSON.stringify({
+      address: list[0] ?? '0.0.0.0',
+      addresses: list,
+      deviceName,
+      port,
+      secret,
+    }),
     'utf8',
   ).toString('base64url')}`;
+};
+
+const invalidCode = () => new Error('Invalid FluidEQ LAN pairing code.');
 
 export const decodePairingCode = (code: unknown): ILanPairingPayload => {
   if (
@@ -128,7 +135,7 @@ export const decodePairingCode = (code: unknown): ILanPairingPayload => {
     code.length > 1_024 ||
     !code.startsWith(PAIRING_PREFIX)
   ) {
-    throw new Error('Invalid FluidEQ LAN pairing code.');
+    throw invalidCode();
   }
   let value: unknown;
   try {
@@ -138,33 +145,46 @@ export const decodePairingCode = (code: unknown): ILanPairingPayload => {
       ),
     );
   } catch {
-    throw new Error('Invalid FluidEQ LAN pairing code.');
+    throw invalidCode();
   }
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw invalidCode();
+  }
+  const payload = value as Record<string, unknown>;
+  const listed = Array.isArray(payload.addresses) ? payload.addresses : [];
+  const addresses = [
+    ...new Set(
+      [payload.address, ...listed].filter(
+        (address): address is string =>
+          typeof address === 'string' && isPrivateIpv4(address),
+      ),
+    ),
+  ].slice(0, MAX_CODE_ADDRESSES);
+  const { deviceName, port, secret } = payload;
   if (
-    typeof value !== 'object' ||
-    value === null ||
-    typeof (value as ILanPairingPayload).address !== 'string' ||
-    !isPrivateIpv4((value as ILanPairingPayload).address) ||
-    !Number.isInteger((value as ILanPairingPayload).port) ||
-    (value as ILanPairingPayload).port < 1 ||
-    (value as ILanPairingPayload).port > 65_535 ||
-    typeof (value as ILanPairingPayload).secret !== 'string' ||
-    (value as ILanPairingPayload).secret.length < 40 ||
-    (value as ILanPairingPayload).secret.length > 64 ||
-    ((value as Partial<ILanPairingPayload>).deviceName !== undefined &&
-      (typeof (value as ILanPairingPayload).deviceName !== 'string' ||
-        (value as ILanPairingPayload).deviceName.trim().length === 0 ||
-        (value as ILanPairingPayload).deviceName.length > 128))
+    addresses.length === 0 ||
+    listed.length > MAX_CODE_ADDRESSES ||
+    typeof port !== 'number' ||
+    !Number.isInteger(port) ||
+    port < 1 ||
+    port > 65_535 ||
+    typeof secret !== 'string' ||
+    secret.length < 40 ||
+    secret.length > 64 ||
+    (deviceName !== undefined &&
+      (typeof deviceName !== 'string' ||
+        deviceName.trim().length === 0 ||
+        deviceName.length > 128))
   ) {
-    throw new Error('Invalid FluidEQ LAN pairing code.');
+    throw invalidCode();
   }
-  const payload = value as Partial<ILanPairingPayload> &
-    Pick<ILanPairingPayload, 'address' | 'port' | 'secret'>;
   return {
-    address: payload.address,
-    deviceName: payload.deviceName?.trim() || payload.address,
-    port: payload.port,
-    secret: payload.secret,
+    address: addresses[0],
+    addresses,
+    deviceName:
+      (typeof deviceName === 'string' && deviceName.trim()) || addresses[0],
+    port,
+    secret,
   };
 };
 
@@ -302,7 +322,9 @@ export const openAuthReady = (clear: Buffer): ILanAuthReady => {
     value.peerId.length > 128 ||
     typeof value.deviceName !== 'string' ||
     value.deviceName.trim().length === 0 ||
-    value.deviceName.length > 128
+    value.deviceName.length > 128 ||
+    (value.computerId !== undefined && !isComputerId(value.computerId)) ||
+    (value.fresh !== undefined && typeof value.fresh !== 'boolean')
   ) {
     throw new Error('Invalid LAN authentication response.');
   }
@@ -310,6 +332,8 @@ export const openAuthReady = (clear: Buffer): ILanAuthReady => {
     challenge: value.challenge,
     deviceName: value.deviceName.trim(),
     peerId: value.peerId,
+    ...(isComputerId(value.computerId) ? { computerId: value.computerId } : {}),
+    ...(value.fresh === true ? { fresh: true } : {}),
   };
 };
 

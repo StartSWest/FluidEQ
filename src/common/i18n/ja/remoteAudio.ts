@@ -24,6 +24,8 @@ const remoteAudio: Partial<Dictionary> = {
     '2 台はすぐに互いの音を再生します。片方向だけにしたい場合は、あとで一方をオフにしてください。',
   'remoteAudio.link.once':
     '一度だけで済みます。リンクしたコンピューターは、どちらが再起動しても自動でまたつながります。',
+  'remoteAudio.link.many':
+    '同じコードで何台のコンピューターでもリンクでき、1台のリンクを解除しても他はリンクされたままです。',
   'remoteAudio.rule.echoTitle': '双方向、エコーなし',
   'remoteAudio.rule.echo':
     '各コンピューターは自分で再生している音だけを送り、受け取っている音は送らないので、何も戻ってきません。',
@@ -73,7 +75,7 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOld':
     '{name} がここへ音を送るには、最新の FluidEQ が必要です。',
   'remoteAudio.lane.inOneWay':
-    '双方向で再生するには、このコンピューターに Windows が必要です。',
+    '双方向の再生には Windows、または Linux の FluidEQ Engine が必要です。',
   'remoteAudio.lane.outQuiet': 'このコンピューターでは何も再生されていません',
   'remoteAudio.lane.outOff':
     '送信していません。{name} にはこのコンピューターの音は聞こえません。',
@@ -81,21 +83,19 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.outOld':
     '{name} がこのコンピューターの音を再生するには、最新の FluidEQ が必要です。',
   'remoteAudio.lane.outOneWay':
-    '双方向で送信するには、このコンピューターに Windows が必要です。',
+    '双方向の送信には Windows、または Linux の FluidEQ Engine が必要です。',
   'remoteAudio.lane.outFailed':
     'このコンピューターの音をキャプチャできませんでした。「自分の音を送る」をオフにしてからオンにし直してください。',
   'remoteAudio.another.section': 'ほかのコンピューターをリンク',
-  'remoteAudio.another.hub':
-    'このコンピューターのコードを別のコンピューターに貼り付けます。リンクしたコンピューターごとに、上に行が追加されます。',
-  'remoteAudio.another.spoke':
-    '3 台目をリンクするには、そのコンピューターに {name} のコードを貼り付けます。コンピューターは、使ったコードの相手とリンクします。',
   'remoteAudio.singlePlayer.title': '再生はひとつだけ',
   'remoteAudio.singlePlayer.body':
     'はリンクしたコンピューターにも及びます。片方で再生を始めると、もう片方で再生中のものが一時停止します。',
   'remoteAudio.code.copy': 'コードをコピー',
   'remoteAudio.code.copied': 'コピー済み',
-  'remoteAudio.code.forAddress': '{address} のペアリングコード',
+  'remoteAudio.code.label': 'このコンピューターのコード',
   'remoteAudio.status.preparing': '準備中…',
+  'remoteAudio.status.noNetwork':
+    'コードを表示するには、このコンピューターをネットワークに接続してください。',
   'remoteAudio.status.playbackBlocked':
     '音声を聴くには「音声を再開」を押してください',
   'remoteAudio.resume': '音声を再開',
@@ -107,6 +107,8 @@ const remoteAudio: Partial<Dictionary> = {
     '2 台が同時に鳴ると音量が重なります。最初のリンクの前に音量を下げてください。',
   'remoteAudio.error.lan':
     'ローカル接続を開始できませんでした。両方のコンピューターが同じプライベートネットワークにあり、ファイアウォールで FluidEQ が許可されていることを確認してください。',
+  'remoteAudio.error.code':
+    'FluidEQ のコードではないか、このコンピューター自身のコードです。もう一方のコンピューターの「音声を共有」ページからコードをコピーしてください。',
   'remoteAudio.error.capture':
     'このコンピューターのシステム音声をキャプチャできませんでした。現在の出力デバイスを確認して、もう一度お試しください。',
   'remoteAudio.error.playback':

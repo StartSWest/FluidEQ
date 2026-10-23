@@ -12,11 +12,7 @@
  */
 
 import { act, render } from '@testing-library/react';
-import { useEffect } from 'react';
-import type {
-  ILanPairingOption,
-  ILanRemoteAudioSignal,
-} from 'common/remoteAudio';
+import type { ILanRemoteAudioSignal } from 'common/remoteAudio';
 import { readRackGate, resetRackGate } from 'renderer/dsp/rackPlacement';
 import RemoteAudioProvider from 'renderer/remoteAudio/RemoteAudioContext';
 import type { IRemoteAudioValue } from 'renderer/remoteAudio/remoteAudioState';
@@ -72,18 +68,19 @@ const subscribe =
     return () => set.delete(listener);
   };
 
-const OPTION: ILanPairingOption = {
-  address: '192.168.1.20',
-  code: 'FLUIDEQ-LAN-2.saved',
-  deviceName: 'GAMING',
+const CODE = 'FLUIDEQ-LAN-2.saved';
+const STARTED = {
+  details: { deviceName: 'GAMING', code: CODE, computerId: 'g'.repeat(32) },
+  joins: [] as { computerId: string; deviceName: string }[],
+  links: [] as ILanRemoteAudioSignal[],
 };
 
 const bridge = {
-  getSavedRemoteAudioLanRole: jest.fn(),
-  restoreRemoteAudioLan: jest.fn(),
-  startRemoteAudioLanHost: jest.fn(),
+  hasSavedRemoteAudioLan: jest.fn(),
+  startRemoteAudioLan: jest.fn(),
   joinRemoteAudioLan: jest.fn(),
-  stopRemoteAudioLan: jest.fn(),
+  unlinkRemoteAudioLan: jest.fn(),
+  retryRemoteAudioLan: jest.fn(),
   sendRemoteAudioLanSignal: jest.fn(),
   setRemoteAudioLinkSwitches: jest.fn(),
   getRemoteAudioLinkSwitches: jest.fn(),
@@ -135,12 +132,10 @@ beforeEach(() => {
       entry.mockReset();
     }
   });
-  bridge.getSavedRemoteAudioLanRole.mockResolvedValue(undefined);
-  bridge.startRemoteAudioLanHost.mockResolvedValue({
-    deviceName: 'GAMING',
-    options: [OPTION],
-  });
-  bridge.stopRemoteAudioLan.mockResolvedValue(undefined);
+  bridge.hasSavedRemoteAudioLan.mockResolvedValue(false);
+  bridge.startRemoteAudioLan.mockResolvedValue(STARTED);
+  bridge.unlinkRemoteAudioLan.mockResolvedValue(undefined);
+  bridge.retryRemoteAudioLan.mockResolvedValue(undefined);
   bridge.sendRemoteAudioLanSignal.mockResolvedValue(undefined);
   bridge.setRemoteAudioLinkSwitches.mockResolvedValue(undefined);
   bridge.getRemoteAudioLinkSwitches.mockResolvedValue(undefined);
@@ -155,106 +150,107 @@ afterEach(() => {
 });
 
 describe('a link kept through restarts', () => {
-  it('shows its code again after a restart, the same code, never a new one', async () => {
-    bridge.getSavedRemoteAudioLanRole.mockResolvedValue('listener');
-    bridge.restoreRemoteAudioLan.mockResolvedValue({
-      role: 'listener',
-      details: { deviceName: 'GAMING', options: [OPTION] },
+  it('comes back at launch under the same code, and hears the links already up', async () => {
+    bridge.hasSavedRemoteAudioLan.mockResolvedValue(true);
+    bridge.startRemoteAudioLan.mockResolvedValue({
+      ...STARTED,
+      links: [
+        {
+          peerId: 'peer',
+          signal: { kind: 'peer-ready', deviceName: 'YOGA', computerId: 'y' },
+        },
+      ],
     });
     await renderProvider();
-    expect(value().role).toBe('listener');
-    expect(value().phase).toBe('waiting');
-    expect(value().lanOptions).toEqual([OPTION]);
-    expect(bridge.startRemoteAudioLanHost).not.toHaveBeenCalled();
+    expect(bridge.startRemoteAudioLan).toHaveBeenCalledWith(true);
+    expect(value().phase).toBe('ready');
+    expect(value().code).toBe(CODE);
+    expect(value().links.map((link) => link.name)).toEqual(['YOGA']);
   });
 
-  it('goes back to the computer it joined after a restart', async () => {
-    bridge.getSavedRemoteAudioLanRole.mockResolvedValue('sender');
-    bridge.restoreRemoteAudioLan.mockResolvedValue({
-      role: 'sender',
-      listener: { deviceName: 'YOGA', peerId: 'peer' },
-    });
+  it('starts nothing at launch for a computer that never shared', async () => {
     await renderProvider();
-    expect(value().role).toBe('sender');
-    expect(value().deviceName).toBe('YOGA');
+    expect(bridge.startRemoteAudioLan).not.toHaveBeenCalled();
+    expect(value().phase).toBe('idle');
   });
 
-  it('keeps the computer it joined when the app opens on Share Audio', async () => {
-    let answer: (role: string) => void = () => undefined;
-    bridge.getSavedRemoteAudioLanRole.mockReturnValue(
-      new Promise((resolve) => {
-        answer = resolve;
-      }),
-    );
-    bridge.restoreRemoteAudioLan.mockResolvedValue({
-      role: 'sender',
-      listener: { deviceName: 'YOGA', peerId: 'peer' },
-    });
-    // The page asks for this computer's code as it opens, and its effect
-    // runs before the provider's own.
-    const Page = () => {
-      const remote = useRemoteAudio();
-      useEffect(() => {
-        if (remote.role === undefined && remote.phase === 'idle') {
-          remote.showCode().catch(() => undefined);
-        }
-      }, [remote]);
-      return null;
-    };
-    render(
-      <RemoteAudioProvider>
-        <Page />
-        <Probe />
-      </RemoteAudioProvider>,
-    );
-    await settle();
-    answer('sender');
-    await settle();
-    expect(bridge.startRemoteAudioLanHost).not.toHaveBeenCalled();
-    expect(value().role).toBe('sender');
-    expect(value().deviceName).toBe('YOGA');
-  });
-
-  it('tries again when the network comes back', async () => {
-    bridge.getSavedRemoteAudioLanRole.mockResolvedValue('listener');
-    bridge.restoreRemoteAudioLan.mockRejectedValueOnce(new Error('offline'));
+  it('asks the network again, without restarting, when it comes back', async () => {
+    bridge.hasSavedRemoteAudioLan.mockResolvedValue(true);
     await renderProvider();
-    expect(value().phase).toBe('disconnected');
-    expect(value().error).toBe('connection');
-
-    bridge.restoreRemoteAudioLan.mockResolvedValue({
-      role: 'listener',
-      details: { deviceName: 'GAMING', options: [OPTION] },
-    });
     act(() => {
       window.dispatchEvent(new Event('online'));
     });
     await settle();
-    expect(value().phase).toBe('waiting');
+    expect(bridge.retryRemoteAudioLan).toHaveBeenCalledTimes(1);
+    expect(bridge.startRemoteAudioLan).toHaveBeenCalledTimes(1);
+  });
+
+  it('starts again when the network comes back after it failed', async () => {
+    bridge.hasSavedRemoteAudioLan.mockResolvedValue(true);
+    bridge.startRemoteAudioLan.mockRejectedValueOnce(new Error('offline'));
+    await renderProvider();
+    expect(value().phase).toBe('error');
+
+    act(() => {
+      window.dispatchEvent(new Event('online'));
+    });
+    await settle();
+    expect(value().phase).toBe('ready');
     expect(value().error).toBeUndefined();
   });
 
-  it('publishes nothing from a restore that finishes after Unlink', async () => {
-    let finish: (result: unknown) => void = () => undefined;
-    bridge.getSavedRemoteAudioLanRole.mockResolvedValue('listener');
-    bridge.restoreRemoteAudioLan.mockImplementation(
-      () =>
-        new Promise((resolve) => {
-          finish = resolve;
-        }),
-    );
+  it('keeps a pasted computer it cannot reach as one it is looking for', async () => {
     await renderProvider();
-    await act(() => value().unlink());
-    await settle();
-    expect(bridge.startRemoteAudioLanHost).toHaveBeenCalledWith(true);
-
-    finish({
-      role: 'listener',
-      details: { deviceName: 'OLD-NAME', options: [] },
+    await act(() => value().start());
+    bridge.joinRemoteAudioLan.mockResolvedValue({
+      computerId: 'd',
+      deviceName: 'DESK',
     });
-    await settle();
-    expect(value().deviceName).toBe('GAMING');
-    expect(value().lanOptions).toEqual([OPTION]);
+    await act(async () => {
+      await expect(value().link('FLUIDEQ-LAN-2.desk')).resolves.toBe(true);
+    });
+    expect(value().looking).toEqual([{ computerId: 'd', deviceName: 'DESK' }]);
+
+    emit({
+      peerId: 'peer-d',
+      signal: {
+        kind: 'peer-ready',
+        deviceName: 'DESK',
+        computerId: 'd',
+        joined: true,
+      },
+    });
+    expect(value().looking).toEqual([]);
+    expect(value().links.map((link) => link.name)).toEqual(['DESK']);
+  });
+
+  it('says so when a pasted code is not one, and links nothing', async () => {
+    await renderProvider();
+    await act(() => value().start());
+    bridge.joinRemoteAudioLan.mockRejectedValue(new Error('Invalid'));
+    await act(async () => {
+      await expect(value().link('nonsense')).resolves.toBe(false);
+    });
+    expect(value().error).toBe('code');
+    expect(value().looking).toEqual([]);
+  });
+
+  it('unlinks one computer and keeps every other', async () => {
+    await renderProvider();
+    await act(() => value().start());
+    emit({
+      peerId: 'peer-a',
+      signal: { kind: 'peer-ready', deviceName: 'A', computerId: 'a' },
+    });
+    emit({
+      peerId: 'peer-b',
+      signal: { kind: 'peer-ready', deviceName: 'B', computerId: 'b' },
+    });
+    await act(() => value().unlink({ peerId: 'peer-a' }));
+    expect(bridge.unlinkRemoteAudioLan).toHaveBeenCalledWith({
+      peerId: 'peer-a',
+    });
+    expect(value().links.map((link) => link.name)).toEqual(['B']);
   });
 });
 
@@ -262,8 +258,8 @@ describe('the picture of a link', () => {
   const linked = async () => {
     await renderProvider();
     // The page asks for this computer's code as it opens.
-    await act(() => value().showCode());
-    expect(value().role).toBe('listener');
+    await act(() => value().start());
+    expect(value().phase).toBe('ready');
     emit({
       peerId: 'peer',
       signal: { kind: 'peer-ready', deviceName: 'YOGA', joined: false },
@@ -273,7 +269,7 @@ describe('the picture of a link', () => {
   it('shows a computer that links, what it says it does, and forgets it when it goes', async () => {
     await linked();
     expect(value().links.map((link) => link.name)).toEqual(['YOGA']);
-    expect(value().phase).toBe('connected');
+    expect(value().phase).toBe('ready');
     emit({
       peerId: 'peer',
       signal: {
@@ -285,7 +281,7 @@ describe('the picture of a link', () => {
     expect(value().links[0].theirs).toEqual({ sends: true, plays: false });
     emit({ peerId: 'peer', signal: { kind: 'stop' } });
     expect(value().links).toEqual([]);
-    expect(value().phase).toBe('waiting');
+    expect(value().phase).toBe('ready');
   });
 
   it('says another computer is playing here once its sound arrives', async () => {
@@ -307,6 +303,7 @@ describe('the picture of a link', () => {
 
   it('takes nothing from a computer it is not linked with', async () => {
     await renderProvider();
+    await act(() => value().start());
     emit({
       peerId: 'stranger',
       signal: { kind: 'now-playing', singlePlayer: false },

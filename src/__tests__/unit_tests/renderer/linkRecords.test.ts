@@ -104,18 +104,17 @@ describe('sendsThere', () => {
 });
 
 describe('linkPhase', () => {
-  it('is idle without a role, and waiting or connecting without a link', () => {
-    expect(linkPhase(undefined, new Map(), false)).toBe('idle');
-    expect(linkPhase('listener', new Map(), false)).toBe('waiting');
-    expect(linkPhase('sender', new Map(), false)).toBe('connecting');
+  it('is ready with or without a link: every computer listens and joins', () => {
+    expect(linkPhase(new Map(), false)).toBe('ready');
+    expect(linkPhase(new Map([['a', record()]]), false)).toBe('ready');
   });
 
   it('is blocked playback only while something is arriving to be blocked', () => {
     const quiet = new Map([['a', record()]]);
     const arriving = new Map([['a', record({ receiving: true })]]);
-    expect(linkPhase('listener', quiet, true)).toBe('connected');
-    expect(linkPhase('listener', arriving, true)).toBe('playback-blocked');
-    expect(linkPhase('sender', arriving, false)).toBe('connected');
+    expect(linkPhase(quiet, true)).toBe('ready');
+    expect(linkPhase(arriving, true)).toBe('playback-blocked');
+    expect(linkPhase(arriving, false)).toBe('ready');
   });
 });
 

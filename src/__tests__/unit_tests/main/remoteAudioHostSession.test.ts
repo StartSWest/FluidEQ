@@ -2,8 +2,8 @@
 
 import startRemoteAudioHostSession from '../../../main/remoteAudioHostSession';
 import type {
+  ILanIdentity,
   IRemoteAudioCredentialStore,
-  TLanListenerCredentials,
 } from '../../../main/remoteAudioCredentials';
 import type {
   ILanHostSession,
@@ -12,118 +12,82 @@ import type {
 
 const session = (port: number, secret: string): ILanHostSession => ({
   credentials: { port, secret },
-  details: { deviceName: 'HEADSET-PC', options: [] },
+  details: { deviceName: 'HEADSET-PC', computerId: 'x'.repeat(32) },
 });
 
-const lanWithHost = (startHost: jest.Mock): IRemoteAudioLan => ({
-  restoreJoin: jest.fn(),
+const lanWithStart = (start: jest.Mock): IRemoteAudioLan => ({
+  start,
+  join: jest.fn(),
+  unlink: jest.fn(),
+  retry: jest.fn(),
   sendAudio: jest.fn(),
   sendSignal: jest.fn(),
   setStreamMode: jest.fn(),
-  startHost,
   stop: jest.fn(),
 });
 
-const storeWith = (
-  listener: TLanListenerCredentials,
-): IRemoteAudioCredentialStore => ({
-  activate: jest.fn(),
+const storeWith = (identity?: ILanIdentity): IRemoteAudioCredentialStore => ({
+  read: jest.fn(() => ({
+    ...(identity ? { identity } : {}),
+    joins: [],
+    revoked: [],
+  })),
+  writeIdentity: jest.fn(),
+  addJoin: jest.fn(),
+  removeJoin: jest.fn(),
+  revoke: jest.fn(),
+  unrevoke: jest.fn(),
   clear: jest.fn(),
-  forgetSender: jest.fn(),
-  pause: jest.fn(),
-  read: jest.fn(() => listener),
-  readListener: jest.fn(() => listener),
-  readSender: jest.fn(),
-  role: jest.fn(),
-  write: jest.fn(),
 });
 
-describe('durable LAN audio listener identity', () => {
+const saved = { port: 49_100, secret: 's'.repeat(43) };
+
+describe('durable LAN audio identity', () => {
   it('reuses the saved pairing secret after an app or PC restart', async () => {
-    const saved = {
-      port: 49_100,
-      role: 'listener' as const,
-      secret: 's'.repeat(43),
-    };
-    const startHost = jest
+    const start = jest
       .fn()
       .mockResolvedValue(session(saved.port, saved.secret));
 
-    await startRemoteAudioHostSession(
-      lanWithHost(startHost),
-      storeWith(saved),
-      false,
-    );
+    await startRemoteAudioHostSession(lanWithStart(start), storeWith(saved));
 
-    expect(startHost).toHaveBeenCalledWith(saved);
+    expect(start).toHaveBeenCalledWith(saved);
+  });
+
+  it('makes a code for a computer that has none yet', async () => {
+    const fresh = session(49_400, 'n'.repeat(43));
+    const start = jest.fn().mockResolvedValue(fresh);
+
+    await expect(
+      startRemoteAudioHostSession(lanWithStart(start), storeWith()),
+    ).resolves.toBe(fresh);
+    expect(start).toHaveBeenCalledWith();
   });
 
   it('keeps the saved identity when its old port is no longer available', async () => {
-    const saved = {
-      port: 49_100,
-      role: 'listener' as const,
-      secret: 's'.repeat(43),
-    };
     const recovered = session(49_300, saved.secret);
     const addressInUse = Object.assign(new Error('port in use'), {
       code: 'EADDRINUSE',
     });
-    const startHost = jest
+    const start = jest
       .fn()
       .mockRejectedValueOnce(addressInUse)
       .mockResolvedValueOnce(recovered);
 
     await expect(
-      startRemoteAudioHostSession(
-        lanWithHost(startHost),
-        storeWith(saved),
-        false,
-      ),
+      startRemoteAudioHostSession(lanWithStart(start), storeWith(saved)),
     ).resolves.toBe(recovered);
-    expect(startHost).toHaveBeenLastCalledWith({
-      port: 0,
-      secret: saved.secret,
-    });
+    expect(start).toHaveBeenLastCalledWith({ port: 0, secret: saved.secret });
   });
 
   it('does not restart a listener after its pending start was stopped', async () => {
-    const saved = {
-      port: 49_100,
-      role: 'listener' as const,
-      secret: 's'.repeat(43),
-    };
     const stopped = Object.assign(new Error('listener stopped'), {
       code: 'ERR_SERVER_NOT_RUNNING',
     });
-    const startHost = jest.fn().mockRejectedValue(stopped);
+    const start = jest.fn().mockRejectedValue(stopped);
 
     await expect(
-      startRemoteAudioHostSession(
-        lanWithHost(startHost),
-        storeWith(saved),
-        false,
-      ),
+      startRemoteAudioHostSession(lanWithStart(start), storeWith(saved)),
     ).rejects.toBe(stopped);
-
-    expect(startHost).toHaveBeenCalledTimes(1);
-  });
-
-  it('creates a new identity only when the user requests a new code', async () => {
-    const saved = {
-      port: 49_100,
-      role: 'listener' as const,
-      secret: 's'.repeat(43),
-    };
-    const replacement = session(49_400, 'n'.repeat(43));
-    const startHost = jest.fn().mockResolvedValue(replacement);
-
-    await expect(
-      startRemoteAudioHostSession(
-        lanWithHost(startHost),
-        storeWith(saved),
-        true,
-      ),
-    ).resolves.toBe(replacement);
-    expect(startHost).toHaveBeenCalledWith();
+    expect(start).toHaveBeenCalledTimes(1);
   });
 });
