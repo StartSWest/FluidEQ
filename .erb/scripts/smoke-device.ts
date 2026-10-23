@@ -102,7 +102,8 @@ const main = async (): Promise<void> => {
   check(await host.start(), 'the host starts');
 
   const backend = host.getHandshake()?.backend ?? '';
-  if (backend !== 'wasapi-shared') {
+  // Linux: PipeWire, or ALSA where PipeWire does not run (native/linux/).
+  if (!['wasapi-shared', 'pipewire', 'alsa'].includes(backend)) {
     // Not a failure. A platform with no device backend compiled in has nothing
     // to measure here, and saying so beats a red check nobody can act on.
     console.log(`       no device backend on this platform (${backend}),`);

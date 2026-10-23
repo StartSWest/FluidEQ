@@ -756,3 +756,10 @@ add_test(NAME room-ambience COMMAND fluideq-room-ambience-test)
 add_executable(fluideq-room-comparison-test dsp-core/tests/room_comparison_test.cpp)
 target_link_libraries(fluideq-room-comparison-test PRIVATE fluideq-dsp-core feq_strict)
 add_test(NAME room-comparison COMMAND fluideq-room-comparison-test)
+
+# Linux only: the FluidEQ Engine for Linux and the DSP host's Linux device
+# backend, all of it under `linux/` (see linux/CMakeLists.txt). Last, because
+# it adds the Linux backend to the host target defined above.
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_subdirectory(linux)
+endif()

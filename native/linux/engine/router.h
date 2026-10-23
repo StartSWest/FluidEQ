@@ -1,0 +1,46 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+SPDX-License-Identifier: GPL-3.0-or-later
+*/
+
+/**
+ * The engine's place in the sound server, whichever server the desktop runs:
+ * a "FluidEQ" output every application plays into, the engine over what
+ * arrives there, and the result on the real output the listener chose
+ * (`pw_router.h` for PipeWire, `pulse_router.h` for PulseAudio).
+ */
+#ifndef FLUIDEQ_LINUX_ROUTER_H
+#define FLUIDEQ_LINUX_ROUTER_H
+
+#include <string>
+
+namespace fluideq_linux {
+
+struct RouterOptions {
+  /** A real output's name to play to, always; empty follows the default. */
+  std::string target;
+  /** Make "FluidEQ" the default output while running (and give it back on exit). */
+  bool take_default = true;
+  /** The sink's name in the sound server: one per user session. */
+  std::string sink_name = "fluideq_sink";
+  std::string sink_description = "FluidEQ";
+};
+
+class SoundRouter {
+ public:
+  virtual ~SoundRouter() = default;
+
+  /**
+   * Gives the default output back, closes the streams and retires the
+   * engine, waiting for the server to have the default first. Idempotent.
+   */
+  virtual void shutdown() noexcept = 0;
+
+  /** Readable once the connection to the server is gone. */
+  virtual int lost_fd() const noexcept = 0;
+};
+
+}  // namespace fluideq_linux
+
+#endif  // FLUIDEQ_LINUX_ROUTER_H

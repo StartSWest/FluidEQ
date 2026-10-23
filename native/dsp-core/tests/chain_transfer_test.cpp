@@ -27,19 +27,22 @@ void* operator new(std::size_t size) {
 
 void* operator new[](std::size_t size) { return ::operator new(size); }
 
-void operator delete(void* memory) noexcept {
+// Every delete frees here directly. Forwarding the sized and array forms to
+// `::operator delete` made GCC 15 inline the malloc above into a vector and
+// then reject `operator delete` on that pointer (-Wmismatched-new-delete),
+// which stopped the tree building on Linux.
+static void release(void* memory) noexcept {
   if (track_heap && memory != nullptr) {
     ++releases;
   }
   std::free(memory);
 }
 
-void operator delete[](void* memory) noexcept { ::operator delete(memory); }
-void operator delete(void* memory, std::size_t) noexcept {
-  ::operator delete(memory);
-}
+void operator delete(void* memory) noexcept { release(memory); }
+void operator delete[](void* memory) noexcept { release(memory); }
+void operator delete(void* memory, std::size_t) noexcept { release(memory); }
 void operator delete[](void* memory, std::size_t) noexcept {
-  ::operator delete(memory);
+  release(memory);
 }
 
 namespace {

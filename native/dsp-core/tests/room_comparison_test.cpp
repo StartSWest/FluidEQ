@@ -31,15 +31,20 @@ void* operator new(size_t n) {
   }
   throw std::bad_alloc();
 }
-void operator delete(void* p) noexcept {
+// Every delete frees here directly. Forwarding the sized and array forms to
+// `::operator delete` made GCC 15 inline the malloc above into a vector and
+// then reject `operator delete` on that pointer (-Wmismatched-new-delete),
+// which stopped the tree building on Linux.
+static void release(void* p) noexcept {
   if (audio && p) ++releases;
   if (p) --balance;
   std::free(p);
 }
+void operator delete(void* p) noexcept { release(p); }
 void* operator new[](size_t n) { return ::operator new(n); }
-void operator delete[](void* p) noexcept { ::operator delete(p); }
-void operator delete(void* p, size_t) noexcept { ::operator delete(p); }
-void operator delete[](void* p, size_t) noexcept { ::operator delete(p); }
+void operator delete[](void* p) noexcept { release(p); }
+void operator delete(void* p, size_t) noexcept { release(p); }
+void operator delete[](void* p, size_t) noexcept { release(p); }
 
 void process_tracked(FeqRoom* room, float* const* channels, uint32_t frames) {
   audio = true;
