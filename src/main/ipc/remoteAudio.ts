@@ -9,9 +9,10 @@ it under the terms of the GNU General Public License version 3 or later.
 import { BrowserWindow, ipcMain } from 'electron';
 import {
   isLanRemoteAudioSignal,
+  type ILanHostDetails,
   type ILanRemoteAudioChunk,
-  type TLanRestoreResult,
-  type TRemoteAudioStopMode,
+  type ILanRemoteAudioSignal,
+  type ILanSavedJoin,
 } from '../../common/remoteAudio';
 import {
   IRemoteAudioCapture,
@@ -20,8 +21,8 @@ import {
 } from '../remoteAudioCapture';
 import { createRemoteAudioCredentialStore } from '../remoteAudioCredentials';
 import startRemoteAudioHostSession from '../remoteAudioHostSession';
-import type { IRemoteAudioLan } from '../remoteAudioLanTypes';
-import { decodePairingCode } from '../remoteAudioLanProtocol';
+import type { ILanLinkBook, IRemoteAudioLan } from '../remoteAudioLanTypes';
+import { computerIdOf, decodePairingCode } from '../remoteAudioLanProtocol';
 import createRemoteAudioLevels from '../remoteAudioLevels';
 import { createRemoteAudioLinks } from '../remoteAudioLinks';
 import createRemoteAudioPorts from '../remoteAudioPorts';
@@ -37,6 +38,9 @@ const LAN_ERROR_CHANNEL = 'remote-audio-lan-error';
 const LAN_SENDING_FAILED_CHANNEL = 'remote-audio-lan-sending-failed';
 /** Whether this computer's sound is going out to anyone, as it changes. */
 const LAN_SENDING_CHANNEL = 'remote-audio-lan-sending';
+/** The codes pasted here, as they change: the computers this one goes back
+ * to, linked now or not. */
+const LAN_JOINS_CHANNEL = 'remote-audio-lan-joins';
 /** The raw-source capture stopped on its own — see `startRawSourceCapture`. */
 const RAW_SOURCE_LOST_CHANNEL = 'raw-source-lost';
 
@@ -51,19 +55,6 @@ const RAW_SOURCE_LOST_CHANNEL = 'raw-source-lost';
  * does with a link, because two versions of the app have to agree on it.
  */
 const STREAM_MODE = 'video';
-
-const asStopMode = (value: unknown): TRemoteAudioStopMode => {
-  if (value === 'pause' || value === false) {
-    return 'pause';
-  }
-  if (value === 'forget' || value === true) {
-    return 'forget';
-  }
-  if (value === 'unlink') {
-    return 'unlink';
-  }
-  return 'keep-active';
-};
 
 export interface IRemoteAudioIpcDeps {
   getMainWindow: () => BrowserWindow | null;
@@ -99,6 +90,37 @@ export const registerRemoteAudioIpc = ({
     streaming.delete(peerId);
     ports.forget(peerId);
   };
+  /**
+   * What the window has been told about each open link, for a window that
+   * comes after it. The links outlive the window — a reload, a main restart
+   * of the renderer — and a new window asking for the running session used
+   * to see no card for a computer whose sound was playing. Kept: the link
+   * itself, what the other computer last said it does with it, and what its
+   * bar last showed — never a press (`started`) or a switch's change
+   * (`singlePlayer`), which happened once and are not to happen again.
+   */
+  const told = new Map<string, Map<string, ILanRemoteAudioSignal>>();
+  const remember = (message: ILanRemoteAudioSignal) => {
+    const { peerId, signal } = message;
+    if (signal.kind === 'stop') {
+      told.delete(peerId);
+      return;
+    }
+    if (signal.kind === 'peer-ready') {
+      told.set(peerId, new Map([['peer-ready', message]]));
+      return;
+    }
+    const kept = told.get(peerId);
+    if (!kept) {
+      return;
+    }
+    if (signal.kind === 'stream-mode' && signal.duplex) {
+      kept.set('stream-mode', message);
+    } else if (signal.kind === 'now-playing') {
+      const { started: _started, singlePlayer: _switch, ...described } = signal;
+      kept.set('now-playing', { peerId, signal: described });
+    }
+  };
   let link: IRemoteAudioLan | undefined;
   /**
    * The LAN link, built the first time anything asks for it.
@@ -116,6 +138,7 @@ export const registerRemoteAudioIpc = ({
       link = createRemoteAudioLan(
         (signal) => {
           const { peerId } = signal;
+          remember(signal);
           if (signal.signal.kind === 'peer-ready') {
             links.connected(
               peerId,
@@ -160,21 +183,58 @@ export const registerRemoteAudioIpc = ({
             sendToWindow('remote-audio-lan-streaming', chunk.peerId);
           }
         },
-        () => sendToWindow(LAN_ERROR_CHANNEL, undefined),
+        () => {
+          started = undefined;
+          sendToWindow(LAN_ERROR_CHANNEL, undefined);
+        },
         (stats) => sendToWindow(LAN_NETWORK_CHANNEL, stats),
+        book,
       );
     }
     return link;
   };
   const lan: IRemoteAudioLan = {
-    startHost: (hostCredentials) => lanLink().startHost(hostCredentials),
-    restoreJoin: (code) => lanLink().restoreJoin(code),
+    start: (identity) => lanLink().start(identity),
+    join: (code, fresh) => lanLink().join(code, fresh),
+    unlink: (target) => lanLink().unlink(target),
+    retry: () => lanLink().retry(),
     sendSignal: (message) => lanLink().sendSignal(message),
     sendAudio: (chunk) => lanLink().sendAudio(chunk),
     setStreamMode: (peerId, mode) => lanLink().setStreamMode(peerId, mode),
     stop: () => lanLink().stop(),
   };
   const credentials = createRemoteAudioCredentialStore(userDataDir);
+  const computerOfCode = (code: string): string | undefined => {
+    try {
+      return computerIdOf(decodePairingCode(code).secret);
+    } catch {
+      return undefined;
+    }
+  };
+  const savedJoins = (): ILanSavedJoin[] =>
+    credentials.read().joins.flatMap((code) => {
+      try {
+        const pairing = decodePairingCode(code);
+        return [
+          {
+            computerId: computerIdOf(pairing.secret),
+            deviceName: pairing.deviceName,
+          },
+        ];
+      } catch {
+        return [];
+      }
+    });
+  const publishJoins = () => sendToWindow(LAN_JOINS_CHANNEL, savedJoins());
+  const book: ILanLinkBook = {
+    isRevoked: (computerId) => credentials.read().revoked.includes(computerId),
+    revoke: (computerId) => credentials.revoke(computerId),
+    unrevoke: (computerId) => credentials.unrevoke(computerId),
+    forgetJoin: (computerId) => {
+      credentials.removeJoin((code) => computerOfCode(code) === computerId);
+      publishJoins();
+    },
+  };
 
   /*
    * This computer's sound for the network: one capture, shared by every
@@ -278,100 +338,104 @@ export const registerRemoteAudioIpc = ({
     userDataDir,
   });
 
-  let sessionGeneration = 0;
-  const beginSessionOperation = () => {
-    sessionGeneration += 1;
+  /**
+   * Share Audio's network, started once and kept: this computer listening on
+   * its own code, and joined to every computer whose code was pasted here.
+   * Asking again while it runs answers from the running session, so opening
+   * the page never drops a link.
+   */
+  let started: Promise<ILanHostDetails> | undefined;
+  const resetSession = () => {
+    told.clear();
     ports.reset();
     streaming.clear();
     playback.reset();
     links.reset();
-    return sessionGeneration;
   };
-  const sessionIsCurrent = (generation: number) =>
-    sessionGeneration === generation;
-
-  const joinSaved = async (code: string, generation: number) => {
-    const listener = await lan.restoreJoin(code);
-    if (!sessionIsCurrent(generation)) {
-      return undefined;
+  const start = (): Promise<ILanHostDetails> => {
+    if (!started) {
+      resetSession();
+      const starting = (async () => {
+        const session = await startRemoteAudioHostSession(lan, credentials);
+        credentials.writeIdentity(session.credentials);
+        credentials.read().joins.forEach((code) => {
+          try {
+            lan.join(code, false);
+          } catch {
+            // A code that no longer reads is skipped, not fatal.
+          }
+        });
+        return session.details;
+      })();
+      started = starting;
+      starting.catch(() => {
+        if (started === starting) {
+          started = undefined;
+        }
+      });
     }
-    // Joining connects the link (`peer-ready`), which tells the other
-    // computer what this one does and starts the sound it is to get.
-    credentials.activate('sender');
-    return listener;
+    // Asked again while running, the code is made from today's addresses:
+    // `lan.start` on the running secret describes the session, nothing more.
+    const running = started;
+    return (async () => {
+      await running;
+      return (await startRemoteAudioHostSession(lan, credentials)).details;
+    })();
   };
 
-  ipcMain.handle('remote-audio-lan-saved-role', () => credentials.role());
   ipcMain.handle(
-    'remote-audio-lan-saved-sender-code',
-    () => credentials.readSender()?.code,
+    'remote-audio-lan-saved',
+    () => credentials.read().identity !== undefined,
   );
-  ipcMain.handle('remote-audio-lan-restore', async () => {
-    const generation = beginSessionOperation();
-    const saved = credentials.read();
-    if (!saved) {
-      return undefined;
+  ipcMain.handle('remote-audio-lan-start', async (_event, replay: unknown) => {
+    const details = await start();
+    if (replay !== true) {
+      return { details, joins: savedJoins(), links: [] };
     }
-    if (saved.role === 'listener') {
-      const session = await startRemoteAudioHostSession(
-        lan,
-        credentials,
-        false,
-      );
-      if (!sessionIsCurrent(generation)) {
-        return undefined;
-      }
-      credentials.write({ role: 'listener', ...session.credentials });
-      return {
-        role: 'listener',
-        details: session.details,
-      } satisfies TLanRestoreResult;
-    }
-    const listener = await joinSaved(saved.code, generation);
-    if (!listener) {
-      return undefined;
-    }
-    return { role: 'sender', listener } satisfies TLanRestoreResult;
-  });
-  ipcMain.handle('remote-audio-lan-host', async (_event, replaceCode) => {
-    const generation = beginSessionOperation();
-    const session = await startRemoteAudioHostSession(
-      lan,
-      credentials,
-      replaceCode === true,
-    );
-    try {
-      if (!sessionIsCurrent(generation)) {
-        throw new Error('LAN audio session was replaced.');
-      }
-      credentials.write({ role: 'listener', ...session.credentials });
-      return session.details;
-    } catch (error) {
-      if (sessionIsCurrent(generation)) {
-        lan.stop();
-      }
-      throw error;
-    }
+    // A new window: every link is told again, and sound already arriving is
+    // announced again with the next chunk, through a port of its own.
+    [...streaming].forEach(forgetArriving);
+    return {
+      details,
+      joins: savedJoins(),
+      links: [...told.values()].flatMap((kept) => [...kept.values()]),
+    };
   });
   ipcMain.handle('remote-audio-lan-join', async (_event, code: unknown) => {
-    const generation = beginSessionOperation();
     // A deliberate Link makes this pairing durable immediately, so it waits
     // through boot, sleep, Wi-Fi and the other computer's restarts until the
     // user explicitly unlinks.
     const normalizedCode = typeof code === 'string' ? code.trim() : '';
-    decodePairingCode(normalizedCode);
-    credentials.write({ role: 'sender', code: normalizedCode });
-    try {
-      const listener = await joinSaved(normalizedCode, generation);
-      if (!listener) {
-        throw new Error('LAN audio session was replaced.');
-      }
-      return listener;
-    } catch (error) {
-      if (sessionIsCurrent(generation)) {
-        lan.stop();
-      }
-      throw error;
+    await start();
+    const joined = lan.join(normalizedCode, true);
+    credentials.addJoin(
+      normalizedCode,
+      (saved) => computerOfCode(saved) === joined.computerId,
+    );
+    publishJoins();
+    return joined;
+  });
+  ipcMain.handle('remote-audio-lan-unlink', (_event, target: unknown) => {
+    if (typeof target !== 'object' || target === null) {
+      throw new Error('Invalid Share Audio unlink.');
+    }
+    const { peerId, computerId } = target as Record<string, unknown>;
+    lan.unlink({
+      ...(typeof peerId === 'string' ? { peerId } : {}),
+      ...(typeof computerId === 'string' ? { computerId } : {}),
+    });
+    publishJoins();
+  });
+  ipcMain.handle('remote-audio-lan-both-ways', (_event, value: unknown) => {
+    // Windows always plays both ways; Linux only once the window has found
+    // the engine's own Share Audio endpoints.
+    if (process.platform === 'linux') {
+      links.setBothWays(value === true);
+    }
+  });
+  ipcMain.handle('remote-audio-lan-retry', () => {
+    if (started) {
+      lan.retry();
     }
   });
   ipcMain.handle('remote-audio-lan-send', (_event, signal: unknown) => {
@@ -408,19 +472,6 @@ export const registerRemoteAudioIpc = ({
       sendToWindow(LAN_ERROR_CHANNEL, undefined);
     }
   });
-  ipcMain.handle('remote-audio-lan-stop', (_event, requestedMode: unknown) => {
-    beginSessionOperation();
-    lan.stop();
-    const mode = asStopMode(requestedMode);
-    if (mode === 'forget') {
-      credentials.clear();
-    } else if (mode === 'unlink') {
-      credentials.forgetSender();
-    } else if (mode === 'pause') {
-      credentials.pause();
-    }
-  });
-
   /*
    * Smart EQ's capture of the sound before FluidEQ processes it.
    *
@@ -475,7 +526,9 @@ export const registerRemoteAudioIpc = ({
   });
 
   return () => {
-    beginSessionOperation();
+    started = undefined;
+    told.clear();
+    resetSession();
     closeRawSource();
     // A link never built has nothing to stop, and quitting is no reason to
     // load it.

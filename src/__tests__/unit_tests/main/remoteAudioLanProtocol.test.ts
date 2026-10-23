@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   decodeAudioAsync,
+  computerIdOf,
   decodePairingCode,
   deriveSessionKey,
   encodeAudioAsync,
@@ -159,10 +160,62 @@ describe('encrypted LAN audio protocol', () => {
 
     expect(decodePairingCode(code)).toEqual({
       address: '192.168.1.24',
+      addresses: ['192.168.1.24'],
       deviceName: 'STUDIO-PC',
       port: 48_351,
       secret,
     });
+  });
+
+  it('carries every address in one code, the first where an older FluidEQ reads it', () => {
+    const secret = 'b'.repeat(43);
+    const code = encodePairingCode(
+      ['192.168.1.30', '10.0.0.4', '8.8.8.8'],
+      48_351,
+      secret,
+      'SERVER',
+    );
+    const raw = JSON.parse(
+      Buffer.from(code.slice('FLUIDEQ-LAN-2.'.length), 'base64url').toString(
+        'utf8',
+      ),
+    ) as { address: string };
+
+    expect(raw.address).toBe('192.168.1.30');
+    expect(decodePairingCode(code).addresses).toEqual([
+      '192.168.1.30',
+      '10.0.0.4',
+    ]);
+  });
+
+  it('still reads a code made before one code per computer', () => {
+    const secret = 'c'.repeat(43);
+    const old = `FLUIDEQ-LAN-2.${Buffer.from(
+      JSON.stringify({
+        address: '10.1.2.3',
+        deviceName: 'OLD',
+        port: 4_000,
+        secret,
+      }),
+      'utf8',
+    ).toString('base64url')}`;
+
+    expect(decodePairingCode(old)).toEqual({
+      address: '10.1.2.3',
+      addresses: ['10.1.2.3'],
+      deviceName: 'OLD',
+      port: 4_000,
+      secret,
+    });
+  });
+
+  it('names a computer by a hash of its secret, never the secret', () => {
+    const secret = 'd'.repeat(43);
+
+    expect(computerIdOf(secret)).toBe(computerIdOf(secret));
+    expect(computerIdOf(secret)).not.toBe(computerIdOf('e'.repeat(43)));
+    expect(computerIdOf(secret)).toMatch(/^[A-Za-z0-9_-]{32}$/);
+    expect(computerIdOf(secret)).not.toContain('ddd');
   });
 
   it('refuses a pairing code that points outside the local network', () => {

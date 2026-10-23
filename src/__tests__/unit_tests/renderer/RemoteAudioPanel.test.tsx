@@ -1,8 +1,10 @@
 /* FluidEQ — GPL-3.0-or-later */
 
 /**
- * The Share Audio page: the link form until a computer is linked, then a
- * card per linked computer with its two directions, each on its own switch.
+ * The Share Audio page: a card per linked computer with its two directions,
+ * each on its own switch, a card per pasted computer still being looked for,
+ * and the link form under them — this computer's one code and room to paste
+ * another's.
  *
  * What each card says is worked out from both ends of the link, so the cases
  * here are the ones where the two ends disagree or cannot do everything: a
@@ -11,7 +13,7 @@
  */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import RemoteAudioPanel from '../../../renderer/remoteAudio/RemoteAudioPanel';
 import type { IRemoteAudioValue } from '../../../renderer/remoteAudio/remoteAudioState';
 import RemoteAudioContext from '../../../renderer/remoteAudio/remoteAudioValueContext';
@@ -38,80 +40,91 @@ const card = () =>
 
 describe('the Share Audio page before a link', () => {
   it("opens on this computer's code, and asks for it only once", () => {
-    const idle = remoteAudioValue({ role: undefined, phase: 'idle' });
+    const idle = remoteAudioValue({ phase: 'idle', code: undefined });
     const { rerender } = renderPanel(idle);
-    expect(idle.showCode).toHaveBeenCalledTimes(1);
+    expect(idle.start).toHaveBeenCalledTimes(1);
     // Already showing its code: the page asks for nothing.
-    const waiting = remoteAudioValue();
+    const ready = remoteAudioValue();
     rerender(
-      <RemoteAudioContext.Provider value={waiting}>
+      <RemoteAudioContext.Provider value={ready}>
         <RemoteAudioPanel />
       </RemoteAudioContext.Provider>,
     );
-    expect(waiting.showCode).not.toHaveBeenCalled();
+    expect(ready.start).not.toHaveBeenCalled();
   });
 
-  it("links with the other computer's code, trimmed, and not without one", () => {
-    const remote = remoteAudioValue({
-      lanOptions: [
-        {
-          address: '192.168.1.20',
-          code: 'FLUIDEQ-LAN-2.mine',
-          deviceName: 'X',
-        },
-      ],
-    });
+  it('shows one code, however many networks this computer is on', () => {
+    renderPanel(remoteAudioValue());
+    expect(screen.getAllByText('FLUIDEQ-LAN-2.mine')).toHaveLength(1);
+    expect(
+      screen.getAllByRole('button', { name: 'remoteAudio.code.copy' }),
+    ).toHaveLength(1);
+  });
+
+  it("links with the other computer's code, trimmed, and not without one", async () => {
+    const remote = remoteAudioValue();
     renderPanel(remote);
-    expect(screen.getByText('FLUIDEQ-LAN-2.mine')).toBeInTheDocument();
     const start = screen.getByRole('button', {
       name: 'remoteAudio.link.start',
     });
     expect(start).toBeDisabled();
-    fireEvent.change(
-      screen.getByRole('textbox', { name: 'remoteAudio.link.codeLabel' }),
-      { target: { value: '  FLUIDEQ-LAN-2.theirs  ' } },
-    );
-    fireEvent.click(start);
+    const paste = screen.getByRole('textbox', {
+      name: 'remoteAudio.link.codeLabel',
+    });
+    fireEvent.change(paste, { target: { value: '  FLUIDEQ-LAN-2.theirs  ' } });
+    await act(async () => {
+      fireEvent.click(start);
+    });
     expect(remote.link).toHaveBeenCalledWith('FLUIDEQ-LAN-2.theirs');
+    // Linked: the field is ready for the next computer's code.
+    expect(paste).toHaveValue('');
+  });
+
+  it('says why a pasted code did not link, beside the paste', () => {
+    renderPanel(remoteAudioValue({ error: 'code' }));
+    expect(screen.getByText('remoteAudio.error.code')).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('says why it could not show a code, and tries again on request', () => {
     const remote = remoteAudioValue({
-      role: undefined,
       phase: 'error',
       error: 'lan',
+      code: undefined,
     });
     renderPanel(remote);
     const alert = screen.getByRole('alert');
     expect(alert).toHaveTextContent('remoteAudio.error.lan');
-    jest.mocked(remote.showCode).mockClear();
+    jest.mocked(remote.start).mockClear();
     fireEvent.click(
       within(alert).getByRole('button', { name: 'remoteAudio.retry' }),
     );
-    expect(remote.showCode).toHaveBeenCalledTimes(1);
+    expect(remote.start).toHaveBeenCalledTimes(1);
   });
 
-  it('looks for the computer whose code was pasted, and can give up on it', () => {
+  it('looks for a pasted computer that is away, and can give up on it alone', () => {
     const remote = remoteAudioValue({
-      role: 'sender',
-      phase: 'connecting',
-      deviceName: 'SWEST-YOGA',
+      links: [remoteAudioLink({ computerId: 'here' })],
+      looking: [{ computerId: 'away', deviceName: 'SWEST-DESK' }],
     });
     renderPanel(remote);
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'remoteAudio.linked.looking',
-    );
+    const away = screen
+      .getByText('remoteAudio.linked.looking')
+      .closest('article');
+    if (!away) {
+      throw new Error('No card for the computer being looked for.');
+    }
     fireEvent.click(
-      screen.getByRole('button', { name: 'remoteAudio.linked.unlink' }),
+      within(away).getByRole('button', { name: 'remoteAudio.linked.unlink' }),
     );
-    expect(remote.unlink).toHaveBeenCalledTimes(1);
+    expect(remote.unlink).toHaveBeenCalledWith({ computerId: 'away' });
   });
 });
 
 describe('a linked computer', () => {
   it('runs both ways with both switches on, each switching its own direction', () => {
     const remote = remoteAudioValue({
-      phase: 'connected',
+      phase: 'ready',
       links: [remoteAudioLink({ receiving: true })],
       sending: true,
     });
@@ -147,7 +160,7 @@ describe('a linked computer', () => {
       queuedMilliseconds: 0,
     });
     const remote = remoteAudioValue({
-      phase: 'connected',
+      phase: 'ready',
       links: [remoteAudioLink({ receiving: true })],
       sending: true,
       networkStats: [stats('receive'), stats('send')],
@@ -174,7 +187,7 @@ describe('a linked computer', () => {
   it('runs one way when the other computer switched a direction off', () => {
     renderPanel(
       remoteAudioValue({
-        phase: 'connected',
+        phase: 'ready',
         links: [remoteAudioLink({ theirs: { sends: true, plays: false } })],
       }),
     );
@@ -189,8 +202,7 @@ describe('a linked computer', () => {
   it('keeps sending to an older FluidEQ it joined, which sends nothing back', () => {
     renderPanel(
       remoteAudioValue({
-        role: 'sender',
-        phase: 'connected',
+        phase: 'ready',
         links: [remoteAudioLink({ joined: true, theirs: undefined })],
         sending: true,
       }),
@@ -205,8 +217,7 @@ describe('a linked computer', () => {
     renderPanel(
       remoteAudioValue({
         bothWays: false,
-        role: 'sender',
-        phase: 'connected',
+        phase: 'ready',
         links: [remoteAudioLink({ joined: true })],
       }),
     );
@@ -222,7 +233,7 @@ describe('a linked computer', () => {
   it('says so when this computer could not capture its sound', () => {
     renderPanel(
       remoteAudioValue({
-        phase: 'connected',
+        phase: 'ready',
         links: [remoteAudioLink()],
         sendingFailed: true,
       }),
@@ -242,29 +253,21 @@ describe('a linked computer', () => {
 
   it('ends the link from its card', () => {
     const remote = remoteAudioValue({
-      phase: 'connected',
+      phase: 'ready',
       links: [remoteAudioLink()],
     });
     renderPanel(remote);
     fireEvent.click(
       card().getByRole('button', { name: 'remoteAudio.linked.unlink' }),
     );
-    expect(remote.unlink).toHaveBeenCalledTimes(1);
+    expect(remote.unlink).toHaveBeenCalledWith({ peerId: 'peer-1' });
   });
 
-  it("offers this computer's code for another computer only where it was used", () => {
-    const { unmount } = renderPanel(
-      remoteAudioValue({ phase: 'connected', links: [remoteAudioLink()] }),
-    );
-    expect(screen.getByText('remoteAudio.another.hub')).toBeInTheDocument();
-    unmount();
+  it("offers this computer's code for another computer, whichever side pasted", () => {
     renderPanel(
-      remoteAudioValue({
-        role: 'sender',
-        phase: 'connected',
-        links: [remoteAudioLink({ joined: true })],
-      }),
+      remoteAudioValue({ links: [remoteAudioLink({ joined: true })] }),
     );
-    expect(screen.getByText('remoteAudio.another.spoke')).toBeInTheDocument();
+    expect(screen.getByText('remoteAudio.another.section')).toBeInTheDocument();
+    expect(screen.getByText('FLUIDEQ-LAN-2.mine')).toBeInTheDocument();
   });
 });

@@ -214,8 +214,14 @@ const createRemoteAudioTransport = ({
     stopping = false;
   };
 
+  /** Ends one link; its close announces it gone like any other. */
+  const close = (peerId: string) => {
+    sockets.get(peerId)?.socket.close(1000, 'Unlinked');
+  };
+
   return {
     attach,
+    close,
     closeAll,
     has: (peerId: string) => sockets.has(peerId),
     sendAudio,

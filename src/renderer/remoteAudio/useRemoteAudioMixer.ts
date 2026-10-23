@@ -42,8 +42,9 @@ const useRemoteAudioMixer = ({
     let cancelled = false;
     let opened: IPcmMixer | undefined;
     const open = async () => {
+      const openedOn = outputSinkIdRef.current;
       const mixer = await createPcmMixer(
-        outputSinkIdRef.current,
+        openedOn,
         (blocked) => callbacksRef.current.onBlocked(blocked),
         (meter) => callbacksRef.current.onMeter(meter),
         1,
@@ -54,6 +55,14 @@ const useRemoteAudioMixer = ({
       }
       opened = mixer;
       mixerRef.current = mixer;
+      // An output chosen while it was opening found no mixer to switch and
+      // only wrote the ref (`useSelectedRemoteAudioOutput`); on Linux that
+      // left other computers' sound in "FluidEQ" itself rather than in
+      // "FluidEQ Share In", where this computer's Send would have carried it
+      // straight back.
+      if (outputSinkIdRef.current !== openedOn) {
+        await mixer.setOutput(outputSinkIdRef.current);
+      }
     };
     open().catch(() => {
       if (!cancelled) {

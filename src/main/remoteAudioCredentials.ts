@@ -9,91 +9,119 @@ it under the terms of the GNU General Public License version 3 or later.
 import fs from 'fs';
 import path from 'path';
 import { safeStorage } from 'electron';
-import type { TLanSavedRole } from '../common/remoteAudio';
 
 const FILE_NAME = 'remote-audio-lan.json';
+const CODE_PREFIX = 'FLUIDEQ-LAN-2.';
+/** As many computers as anybody links; the list is bounded all the same. */
+const MAX_JOINS = 32;
+const MAX_REVOKED = 64;
 
-export type TLanCredentials =
-  | { role: 'listener'; port: number; secret: string }
-  | { role: 'sender'; code: string };
-export type TLanListenerCredentials = Extract<
-  TLanCredentials,
-  { role: 'listener' }
->;
-export type TLanSenderCredentials = Extract<
-  TLanCredentials,
-  { role: 'sender' }
->;
+export interface ILanIdentity {
+  port: number;
+  secret: string;
+}
 
-interface ICredentialState {
-  activeRole?: TLanSavedRole;
-  listener?: TLanListenerCredentials;
-  sender?: TLanSenderCredentials;
+/**
+ * What Share Audio keeps between launches: this computer's own code (its
+ * identity, the same for every computer it links with), the codes pasted
+ * here (each one a computer this one goes back to), and the computers
+ * unlinked here, which are refused if they come back on their own.
+ */
+export interface ILanState {
+  identity?: ILanIdentity;
+  joins: string[];
+  revoked: string[];
 }
 
 interface IStoredCredentials {
   encrypted: string;
-  version: 1 | 2 | 3;
+  version: 1 | 2 | 3 | 4;
 }
 
 export interface IRemoteAudioCredentialStore {
-  activate(role: TLanSavedRole): boolean;
+  read(): ILanState;
+  writeIdentity(identity: ILanIdentity): void;
+  /** Adds a pasted code, replacing one for the same computer. */
+  addJoin(code: string, sameComputer: (saved: string) => boolean): void;
+  removeJoin(matches: (saved: string) => boolean): void;
+  revoke(computerId: string): void;
+  unrevoke(computerId: string): void;
   clear(): void;
-  /** Forgets the code this computer pasted; its own code stays. */
-  forgetSender(): void;
-  pause(): void;
-  read(): TLanCredentials | undefined;
-  readListener(): TLanListenerCredentials | undefined;
-  readSender(): TLanSenderCredentials | undefined;
-  role(): TLanSavedRole | undefined;
-  write(credentials: TLanCredentials): void;
 }
 
-const isCredentials = (value: unknown): value is TLanCredentials => {
+const isCode = (value: unknown): value is string =>
+  typeof value === 'string' &&
+  value.startsWith(CODE_PREFIX) &&
+  value.length <= 1_024;
+
+const isIdentity = (value: unknown): value is ILanIdentity => {
   if (typeof value !== 'object' || value === null) {
     return false;
   }
-  const candidate = value as Partial<TLanCredentials> & {
-    code?: unknown;
-    port?: unknown;
-    secret?: unknown;
-  };
-  if (candidate.role === 'sender') {
-    return (
-      typeof candidate.code === 'string' &&
-      candidate.code.startsWith('FLUIDEQ-LAN-2.') &&
-      candidate.code.length <= 1_024
-    );
-  }
+  const { port, secret } = value as Partial<ILanIdentity>;
   return (
-    candidate.role === 'listener' &&
-    Number.isInteger(candidate.port) &&
-    (candidate.port as number) >= 1 &&
-    (candidate.port as number) <= 65_535 &&
-    typeof candidate.secret === 'string' &&
-    candidate.secret.length >= 40 &&
-    candidate.secret.length <= 64
+    typeof port === 'number' &&
+    Number.isInteger(port) &&
+    port >= 1 &&
+    port <= 65_535 &&
+    typeof secret === 'string' &&
+    secret.length >= 40 &&
+    secret.length <= 64
   );
 };
 
-const isCredentialState = (value: unknown): value is ICredentialState => {
-  if (typeof value !== 'object' || value === null) {
-    return false;
+const record = (value: unknown): Record<string, unknown> | undefined =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : undefined;
+
+/**
+ * Every version this file has had, read into today's shape. Before all to
+ * all a computer held one listener identity and at most one code it had
+ * pasted; both carry over, so an upgrade keeps every link it had.
+ */
+export const readStoredState = (
+  version: number,
+  decrypted: unknown,
+): ILanState | undefined => {
+  const value = record(decrypted);
+  if (!value) {
+    return undefined;
   }
-  const candidate = value as Partial<ICredentialState>;
-  const listenerValid =
-    candidate.listener === undefined ||
-    (candidate.listener.role === 'listener' &&
-      isCredentials(candidate.listener));
-  const senderValid =
-    candidate.sender === undefined ||
-    (candidate.sender.role === 'sender' && isCredentials(candidate.sender));
-  const activeValid =
-    candidate.activeRole === undefined ||
-    (candidate.activeRole === 'listener' &&
-      candidate.listener?.role === 'listener') ||
-    (candidate.activeRole === 'sender' && candidate.sender?.role === 'sender');
-  return listenerValid && senderValid && activeValid;
+  if (version === 4) {
+    const joins = Array.isArray(value.joins) ? value.joins.filter(isCode) : [];
+    const revoked = Array.isArray(value.revoked)
+      ? value.revoked.filter(
+          (id): id is string => typeof id === 'string' && id.length <= 64,
+        )
+      : [];
+    return {
+      ...(isIdentity(value.identity) ? { identity: value.identity } : {}),
+      joins: joins.slice(0, MAX_JOINS),
+      revoked: revoked.slice(0, MAX_REVOKED),
+    };
+  }
+  if (version === 1) {
+    if (value.role === 'listener' && isIdentity(value)) {
+      return {
+        identity: { port: value.port, secret: value.secret },
+        joins: [],
+        revoked: [],
+      };
+    }
+    return value.role === 'sender' && isCode(value.code)
+      ? { joins: [value.code], revoked: [] }
+      : undefined;
+  }
+  const listener = record(value.listener);
+  const sender = record(value.sender);
+  return {
+    ...(listener && isIdentity(listener)
+      ? { identity: { port: listener.port, secret: listener.secret } }
+      : {}),
+    joins: sender && isCode(sender.code) ? [sender.code] : [],
+    revoked: [],
+  };
 };
 
 const secureEncryptionAvailable = (): boolean =>
@@ -104,57 +132,49 @@ const secureEncryptionAvailable = (): boolean =>
 /**
  * Store LAN pairing material with the operating system's credential cipher.
  *
- * The JSON file contains one opaque base64 ciphertext. The pairing secret and
- * code never reach disk in plaintext; on Windows Electron delegates this to
- * DPAPI, while macOS uses Keychain and Linux uses the configured secret store.
+ * The JSON file contains one opaque base64 ciphertext. The pairing secrets
+ * and codes never reach disk in plaintext; on Windows Electron delegates this
+ * to DPAPI, while macOS uses Keychain and Linux uses the configured secret
+ * store.
  */
 export const createRemoteAudioCredentialStore = (
   userDataDir: string,
 ): IRemoteAudioCredentialStore => {
   const filePath = path.join(userDataDir, FILE_NAME);
 
-  const readState = (): ICredentialState | undefined => {
+  const read = (): ILanState => {
+    const empty: ILanState = { joins: [], revoked: [] };
     try {
       if (!secureEncryptionAvailable()) {
-        return undefined;
+        return empty;
       }
       const stored = JSON.parse(
         fs.readFileSync(filePath, 'utf8'),
       ) as Partial<IStoredCredentials>;
       if (
-        (stored.version !== 1 &&
-          stored.version !== 2 &&
-          stored.version !== 3) ||
+        typeof stored.version !== 'number' ||
+        ![1, 2, 3, 4].includes(stored.version) ||
         typeof stored.encrypted !== 'string'
       ) {
-        return undefined;
+        return empty;
       }
       const clear = safeStorage.decryptString(
         Buffer.from(stored.encrypted, 'base64'),
       );
-      const decrypted: unknown = JSON.parse(clear);
-      if (stored.version === 2 || stored.version === 3) {
-        return isCredentialState(decrypted) ? decrypted : undefined;
-      }
-      if (!isCredentials(decrypted)) {
-        return undefined;
-      }
-      return decrypted.role === 'listener'
-        ? { activeRole: 'listener', listener: decrypted }
-        : { activeRole: 'sender', sender: decrypted };
+      return readStoredState(stored.version, JSON.parse(clear)) ?? empty;
     } catch {
-      return undefined;
+      return empty;
     }
   };
 
-  const persist = (state: ICredentialState) => {
+  const persist = (state: ILanState) => {
     if (!secureEncryptionAvailable()) {
       throw new Error('Secure credential storage is unavailable.');
     }
     const encrypted = safeStorage
       .encryptString(JSON.stringify(state))
       .toString('base64');
-    const stored: IStoredCredentials = { encrypted, version: 3 };
+    const stored: IStoredCredentials = { encrypted, version: 4 };
     const temporaryPath = `${filePath}.tmp`;
     fs.mkdirSync(userDataDir, { recursive: true });
     try {
@@ -173,22 +193,41 @@ export const createRemoteAudioCredentialStore = (
     }
   };
 
-  const read = (): TLanCredentials | undefined => {
-    const state = readState();
-    if (state?.activeRole === 'listener') {
-      return state.listener;
-    }
-    return state?.activeRole === 'sender' ? state.sender : undefined;
-  };
+  const update = (change: (state: ILanState) => ILanState) =>
+    persist(change(read()));
 
   return {
-    activate: (role) => {
-      const state = readState();
-      if (!state || !state[role]) {
-        return false;
+    read,
+    writeIdentity: (identity) => update((state) => ({ ...state, identity })),
+    addJoin: (code, sameComputer) =>
+      update((state) => ({
+        ...state,
+        joins: [
+          ...state.joins.filter((saved) => !sameComputer(saved)),
+          code,
+        ].slice(-MAX_JOINS),
+      })),
+    removeJoin: (matches) =>
+      update((state) => ({
+        ...state,
+        joins: state.joins.filter((saved) => !matches(saved)),
+      })),
+    revoke: (computerId) =>
+      update((state) => ({
+        ...state,
+        revoked: [
+          ...state.revoked.filter((id) => id !== computerId),
+          computerId,
+        ].slice(-MAX_REVOKED),
+      })),
+    unrevoke: (computerId) => {
+      const state = read();
+      if (state.revoked.includes(computerId)) {
+        persist({
+          ...state,
+          revoked: state.revoked.filter((id) => id !== computerId),
+        });
       }
-      persist({ ...state, activeRole: role });
-      return true;
     },
     clear: () => {
       [filePath, `${filePath}.tmp`].forEach((target) => {
@@ -198,35 +237,6 @@ export const createRemoteAudioCredentialStore = (
           // A missing or locked preferences file is equivalent to clear.
         }
       });
-    },
-    forgetSender: () => {
-      const state = readState();
-      if (state) {
-        persist({
-          ...state,
-          sender: undefined,
-          activeRole:
-            state.activeRole === 'sender' ? undefined : state.activeRole,
-        });
-      }
-    },
-    pause: () => {
-      const state = readState();
-      if (state) {
-        persist({ ...state, activeRole: undefined });
-      }
-    },
-    read,
-    readListener: () => readState()?.listener,
-    readSender: () => readState()?.sender,
-    role: () => read()?.role,
-    write: (credentials) => {
-      const state = readState();
-      persist(
-        credentials.role === 'listener'
-          ? { ...state, activeRole: 'listener', listener: credentials }
-          : { ...state, activeRole: 'sender', sender: credentials },
-      );
     },
   };
 };

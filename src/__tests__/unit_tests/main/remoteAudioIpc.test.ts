@@ -20,23 +20,27 @@ jest.mock('electron', () => ({
 }));
 
 const lan = {
-  restoreJoin: jest.fn(),
+  start: jest.fn(),
+  join: jest.fn(),
+  unlink: jest.fn(),
+  retry: jest.fn(),
   sendAudio: jest.fn(),
   sendSignal: jest.fn(),
   setStreamMode: jest.fn(),
-  startHost: jest.fn(),
   stop: jest.fn(),
 };
 const credentials = {
-  activate: jest.fn(),
-  clear: jest.fn(),
-  forgetSender: jest.fn(),
-  pause: jest.fn(),
   read: jest.fn(),
-  readListener: jest.fn(),
-  readSender: jest.fn(),
-  role: jest.fn(),
-  write: jest.fn(),
+  writeIdentity: jest.fn(),
+  addJoin: jest.fn(),
+  removeJoin: jest.fn(),
+  revoke: jest.fn(),
+  unrevoke: jest.fn(),
+  clear: jest.fn(),
+};
+const hostSession = {
+  credentials: { port: 49_100, secret: 's'.repeat(43) },
+  details: { deviceName: 'HEADSET-PC', computerId: 'h'.repeat(32) },
 };
 
 jest.mock('../../../main/remoteAudioLan', () => ({
@@ -74,8 +78,18 @@ import createRemoteAudioLan from '../../../main/remoteAudioLan';
 // eslint-disable-next-line import/first
 import { encodePairingCode } from '../../../main/remoteAudioLanProtocol';
 
-describe('remote audio IPC session persistence', () => {
+describe('Share Audio all to all: one code, every link kept', () => {
   const originalPlatform = process.platform;
+  const sent: [string, unknown][] = [];
+  const window = {
+    isDestroyed: () => false,
+    webContents: {
+      send: (channel: string, value: unknown) => sent.push([channel, value]),
+    },
+  };
+  const codeOf = (secret: string, name: string) =>
+    encodePairingCode(['192.168.1.20'], 49_100, secret, name);
+
   beforeAll(() =>
     Object.defineProperty(process, 'platform', { value: 'win32' }),
   );
@@ -85,176 +99,133 @@ describe('remote audio IPC session persistence', () => {
   beforeEach(() => {
     handlers.clear();
     jest.clearAllMocks();
+    sent.length = 0;
+    credentials.read.mockReturnValue({ joins: [], revoked: [] });
+    mockStartRemoteAudioHostSession.mockResolvedValue(hostSession);
     mockRawSharing.mockReset().mockResolvedValue(undefined);
     mockCapture.mockReset().mockResolvedValue({ close: jest.fn() });
     registerRemoteAudioIpc({
-      getMainWindow: () => null,
+      getMainWindow: () => window as unknown as BrowserWindow,
       userDataDir: 'C:\\FluidEQ-test',
     });
   });
 
-  it('pauses automatic restore without deleting credentials on manual stop', async () => {
-    const stop = handlers.get('remote-audio-lan-stop');
-
-    await stop?.({}, 'pause');
-
-    expect(lan.stop).toHaveBeenCalledTimes(1);
-    expect(credentials.pause).toHaveBeenCalledTimes(1);
-    expect(credentials.clear).not.toHaveBeenCalled();
-  });
-
-  it('treats the previous renderer stop value as a manual pause', async () => {
-    const stop = handlers.get('remote-audio-lan-stop');
-
-    await stop?.({}, false);
-
-    expect(credentials.pause).toHaveBeenCalledTimes(1);
-    expect(credentials.clear).not.toHaveBeenCalled();
-  });
-
-  it('keeps automatic restore active for lifecycle teardown', async () => {
-    const stop = handlers.get('remote-audio-lan-stop');
-
-    await stop?.({}, 'keep-active');
-
-    expect(credentials.pause).not.toHaveBeenCalled();
-    expect(credentials.clear).not.toHaveBeenCalled();
-  });
-
-  it('deletes pairing material only for an explicit forget action', async () => {
-    const stop = handlers.get('remote-audio-lan-stop');
-
-    await stop?.({}, 'forget');
-
-    expect(credentials.clear).toHaveBeenCalledTimes(1);
-    expect(credentials.pause).not.toHaveBeenCalled();
-  });
-
-  it('does not reactivate a listener restore after a manual stop', async () => {
+  it('listens on its code and goes back to every computer pasted here', async () => {
+    const first = codeOf('a'.repeat(43), 'DESK');
+    const second = codeOf('b'.repeat(43), 'LAPTOP');
     credentials.read.mockReturnValue({
-      port: 49_100,
-      role: 'listener',
-      secret: 'saved-secret',
+      joins: [first, second],
+      revoked: [],
     });
-    let finishHost: ((value: unknown) => void) | undefined;
-    mockStartRemoteAudioHostSession.mockReturnValue(
-      new Promise((resolve) => {
-        finishHost = resolve;
-      }),
+
+    await handlers.get('remote-audio-lan-start')?.({}, true);
+
+    expect(credentials.writeIdentity).toHaveBeenCalledWith(
+      hostSession.credentials,
     );
-    const restore = handlers.get('remote-audio-lan-restore');
-    const stop = handlers.get('remote-audio-lan-stop');
-
-    const restoring = restore?.({}, 'video');
-    await stop?.({}, 'pause');
-    finishHost?.({
-      credentials: { port: 49_100, secret: 'saved-secret' },
-      details: { deviceName: 'HEADSET-PC', options: [] },
-    });
-    await restoring;
-
-    expect(credentials.pause).toHaveBeenCalledTimes(1);
-    expect(credentials.write).not.toHaveBeenCalled();
+    expect(lan.join).toHaveBeenCalledWith(first, false);
+    expect(lan.join).toHaveBeenCalledWith(second, false);
   });
 
-  it('does not reactivate a sender restore after a manual stop', async () => {
-    credentials.read.mockReturnValue({ role: 'sender' });
-    credentials.readSender.mockReturnValue({ code: 'saved-code' });
-    let finishJoin: ((value: unknown) => void) | undefined;
-    lan.restoreJoin.mockReturnValue(
-      new Promise((resolve) => {
-        finishJoin = resolve;
-      }),
-    );
-    const restore = handlers.get('remote-audio-lan-restore');
-    const stop = handlers.get('remote-audio-lan-stop');
+  it('opening the page again keeps every link up', async () => {
+    credentials.read.mockReturnValue({
+      joins: [codeOf('a'.repeat(43), 'DESK')],
+      revoked: [],
+    });
+    await handlers.get('remote-audio-lan-start')?.({}, true);
+    await handlers.get('remote-audio-lan-start')?.({}, false);
 
-    const restoring = restore?.({}, 'video');
-    await stop?.({}, 'pause');
-    finishJoin?.({
+    expect(createRemoteAudioLan).toHaveBeenCalledTimes(1);
+    expect(lan.stop).not.toHaveBeenCalled();
+  });
+
+  it('saves a pasted code beside the others and links it as a paste', async () => {
+    const code = codeOf('c'.repeat(43), 'HEADSET-PC');
+    lan.join.mockReturnValue({
+      computerId: 'c-id',
       deviceName: 'HEADSET-PC',
-      peerId: 'peer-after-stop',
     });
-    await restoring;
 
-    expect(credentials.pause).toHaveBeenCalledTimes(1);
-    expect(credentials.activate).not.toHaveBeenCalled();
-  });
+    await expect(
+      handlers.get('remote-audio-lan-join')?.({}, ` ${code} `),
+    ).resolves.toEqual({ computerId: 'c-id', deviceName: 'HEADSET-PC' });
 
-  it('keeps a validated sender pairing active while its receiver is offline', async () => {
-    const code = encodePairingCode(
-      '192.168.1.20',
-      49_100,
-      'c'.repeat(43),
-      'HEADSET-PC',
-    );
-    let finishJoin: ((value: unknown) => void) | undefined;
-    lan.restoreJoin.mockReturnValue(
-      new Promise((resolve) => {
-        finishJoin = resolve;
-      }),
-    );
-    const join = handlers.get('remote-audio-lan-join');
-
-    const connecting = join?.({}, code, 'video');
-    await Promise.resolve();
-
-    expect(credentials.write).toHaveBeenCalledWith({
-      role: 'sender',
+    expect(lan.join).toHaveBeenCalledWith(code, true);
+    expect(credentials.addJoin).toHaveBeenCalledWith(
       code,
-    });
-    expect(lan.restoreJoin).toHaveBeenCalledWith(code);
-    finishJoin?.({ deviceName: 'HEADSET-PC', peerId: 'peer-1' });
-    await connecting;
+      expect.any(Function),
+    );
+    expect(sent.map(([channel]) => channel)).toContain(
+      'remote-audio-lan-joins',
+    );
   });
 
-  it('cancels that pending sender retry only after an explicit stop', async () => {
-    const code = encodePairingCode(
-      '192.168.1.20',
-      49_100,
-      'c'.repeat(43),
-      'HEADSET-PC',
-    );
-    let rejectJoin: ((error: Error) => void) | undefined;
-    lan.restoreJoin.mockReturnValue(
-      new Promise((_resolve, reject) => {
-        rejectJoin = reject;
-      }),
-    );
-    const join = handlers.get('remote-audio-lan-join');
-    const stop = handlers.get('remote-audio-lan-stop');
-
-    const connecting = join?.({}, code, 'video') as Promise<unknown>;
-    const connectingResult = connecting.catch((error: unknown) => error);
-    await Promise.resolve();
-    await stop?.({}, 'pause');
-    rejectJoin?.(new Error('stopped'));
-    await expect(connectingResult).resolves.toThrow('stopped');
-
-    expect(lan.stop).toHaveBeenCalledTimes(1);
-    expect(credentials.pause).toHaveBeenCalledTimes(1);
-    expect(credentials.activate).not.toHaveBeenCalled();
-  });
-
-  it('does not let a replaced listener start stop the newer session', async () => {
-    let finishHost: ((value: unknown) => void) | undefined;
-    mockStartRemoteAudioHostSession.mockReturnValue(
-      new Promise((resolve) => {
-        finishHost = resolve;
-      }),
-    );
-    const host = handlers.get('remote-audio-lan-host');
-    const stop = handlers.get('remote-audio-lan-stop');
-
-    const starting = host?.({}, false);
-    await stop?.({}, 'pause');
-    finishHost?.({
-      credentials: { port: 49_100, secret: 'saved-secret' },
-      details: { deviceName: 'HEADSET-PC', options: [] },
+  it('saves nothing for a code that is not one', async () => {
+    lan.join.mockImplementation(() => {
+      throw new Error('Invalid FluidEQ LAN pairing code.');
     });
 
-    await expect(starting).rejects.toThrow('LAN audio session was replaced.');
-    expect(lan.stop).toHaveBeenCalledTimes(1);
+    await expect(
+      handlers.get('remote-audio-lan-join')?.({}, 'not a code'),
+    ).rejects.toThrow('Invalid FluidEQ LAN pairing code.');
+    expect(credentials.addJoin).not.toHaveBeenCalled();
+  });
+
+  it('unlinks one computer and nothing else', async () => {
+    await handlers.get('remote-audio-lan-unlink')?.({}, { peerId: 'peer-2' });
+
+    expect(lan.unlink).toHaveBeenCalledWith({ peerId: 'peer-2' });
+    expect(lan.stop).not.toHaveBeenCalled();
+  });
+
+  it('tells a new window about the links already up, but never a past press', async () => {
+    credentials.read.mockReturnValue({
+      joins: [codeOf('d'.repeat(43), 'DESK')],
+      revoked: [],
+    });
+    await handlers.get('remote-audio-lan-start')?.({}, true);
+    const [onSignal] = jest.mocked(createRemoteAudioLan).mock.calls[0];
+    onSignal({
+      peerId: 'peer',
+      signal: { kind: 'peer-ready', deviceName: 'DESK', computerId: 'd-id' },
+    });
+    onSignal({
+      peerId: 'peer',
+      signal: {
+        kind: 'now-playing',
+        started: true,
+        singlePlayer: true,
+        playing: {
+          title: 'Song',
+          isPlaying: true,
+          positionMs: 0,
+          durationMs: 1_000,
+          canNext: false,
+          canPrevious: false,
+          canStep: false,
+          canStop: false,
+        },
+      },
+    });
+
+    const again = (await handlers.get('remote-audio-lan-start')?.(
+      {},
+      true,
+    )) as { links: { signal: Record<string, unknown> }[] };
+
+    expect(again.links.map(({ signal }) => signal.kind)).toEqual([
+      'peer-ready',
+      'now-playing',
+    ]);
+    expect(again.links[1].signal.started).toBeUndefined();
+    expect(again.links[1].signal.singlePlayer).toBeUndefined();
+
+    onSignal({ peerId: 'peer', signal: { kind: 'stop' } });
+    const after = (await handlers.get('remote-audio-lan-start')?.(
+      {},
+      true,
+    )) as { links: unknown[] };
+    expect(after.links).toEqual([]);
   });
 });
 
@@ -292,10 +263,9 @@ describe('the network capture a link starts', () => {
     });
     mockRawSharing.mockReset().mockResolvedValue(undefined);
     mockCapture.mockReset().mockResolvedValue({ close: jest.fn() });
-    lan.restoreJoin.mockResolvedValue({
-      peerId: 'peer',
-      deviceName: 'Receiver',
-    });
+    credentials.read.mockReturnValue({ joins: [], revoked: [] });
+    mockStartRemoteAudioHostSession.mockResolvedValue(hostSession);
+    lan.join.mockReturnValue({ computerId: 'r-id', deviceName: 'Receiver' });
     registerRemoteAudioIpc({
       getMainWindow: () => window as unknown as BrowserWindow,
       userDataDir,

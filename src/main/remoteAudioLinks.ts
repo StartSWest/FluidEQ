@@ -70,10 +70,11 @@ export interface IRemoteAudioLinkDeps {
   /** The computers this one's sound goes to changed. */
   targetsChanged(targets: readonly string[]): void;
   /**
-   * Whether this computer can play another's sound while it sends its own.
-   * Only on Windows: elsewhere the capture hears everything this computer
-   * plays, the other computer's sound with it, and would send it straight
-   * back. There a link runs one way, as it always did.
+   * Whether this computer can play another's sound while it sends its own:
+   * on Windows, and on Linux once the engine offers "FluidEQ Send" and
+   * "FluidEQ Share In" (`setBothWays`). Elsewhere the capture hears
+   * everything this computer plays, the other computer's sound with it, and
+   * would send it straight back, so a link runs one way, as it always did.
    */
   bothWays: boolean;
   userDataDir: string;
@@ -82,9 +83,10 @@ export interface IRemoteAudioLinkDeps {
 export const createRemoteAudioLinks = ({
   announce,
   targetsChanged,
-  bothWays,
+  bothWays: bothWaysAtStart,
   userDataDir,
 }: IRemoteAudioLinkDeps) => {
+  let bothWays = bothWaysAtStart;
   const filePath = path.join(userDataDir, FILE_NAME);
   const peers = new Map<string, IPeer>();
   let remembered = new Map<string, ILinkSwitches>();
@@ -238,6 +240,16 @@ export const createRemoteAudioLinks = ({
     volume(peerId: string): number {
       const peer = peers.get(peerId);
       return peer ? (remembered.get(peer.name)?.volume ?? 1) : 1;
+    },
+    /** The window found the Linux engine's two Share Audio endpoints come or
+     * go; every link is told what this computer now does with it. */
+    setBothWays(next: boolean) {
+      if (next === bothWays) {
+        return;
+      }
+      bothWays = next;
+      peers.forEach((peer, peerId) => tell(peerId, peer));
+      refresh();
     },
     switchesFor(name: string): ILinkSwitches {
       return remembered.get(name) ?? LINK_SWITCHES_ON;

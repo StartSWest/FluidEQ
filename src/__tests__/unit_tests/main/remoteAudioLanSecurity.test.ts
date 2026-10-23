@@ -34,6 +34,7 @@ const mockNetworkInterfaces = jest.fn(() => ({
   Ethernet: [
     {
       address: '192.168.1.20',
+      netmask: '255.255.255.0',
       family: 'IPv4',
       internal: false,
     },
@@ -102,6 +103,13 @@ import {
   sealAuthReady,
 } from '../../../main/remoteAudioLanProtocol';
 
+const book = (revoked: string[] = []) => ({
+  isRevoked: jest.fn((id: string) => revoked.includes(id)),
+  revoke: jest.fn(),
+  unrevoke: jest.fn(),
+  forgetJoin: jest.fn(),
+});
+
 const fakeSocket = (): IFakeSocket => {
   const socket = new EventEmitter() as IFakeSocket;
   socket.deferSendCallbacks = false;
@@ -131,6 +139,7 @@ describe('LAN listener authentication limits', () => {
       Ethernet: [
         {
           address: '192.168.1.20',
+          netmask: '255.255.255.0',
           family: 'IPv4',
           internal: false,
         },
@@ -152,8 +161,9 @@ describe('LAN listener authentication limits', () => {
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      book(),
     );
-    await lan.startHost();
+    await lan.start();
     const server = mockServers[0];
     const candidates = Array.from({ length: 9 }, () => fakeSocket());
 
@@ -180,8 +190,9 @@ describe('LAN listener authentication limits', () => {
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      book(),
     );
-    await lan.startHost();
+    await lan.start();
     const server = mockServers[0];
     // Sixty-four fill the room, eight from each of eight addresses; the
     // sixty-fifth comes from a ninth, which holds nothing to give up.
@@ -213,9 +224,10 @@ describe('LAN listener authentication limits', () => {
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      book(),
     );
 
-    const starting = lan.startHost();
+    const starting = lan.start();
     lan.stop();
 
     await expect(starting).rejects.toThrow('LAN listener stopped.');
@@ -228,8 +240,9 @@ describe('LAN listener authentication limits', () => {
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      book(),
     );
-    const session = await lan.startHost();
+    const session = await lan.start();
     const server = mockServers[0];
     const key = keyFromSecret(session.credentials.secret);
     const first = fakeSocket();
@@ -282,8 +295,9 @@ describe('LAN listener authentication limits', () => {
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      book(),
     );
-    const session = await lan.startHost();
+    const session = await lan.start();
     const server = mockServers[0];
     const key = keyFromSecret(session.credentials.secret);
     const candidates = Array.from({ length: 33 }, () => fakeSocket());
@@ -325,8 +339,9 @@ describe('LAN listener authentication limits', () => {
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      book(),
     );
-    const session = await lan.startHost();
+    const session = await lan.start();
     const server = mockServers[0];
     const key = keyFromSecret(session.credentials.secret);
     const candidate = fakeSocket();
@@ -363,8 +378,9 @@ describe('LAN listener authentication limits', () => {
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      book(),
     );
-    const session = await lan.startHost();
+    const session = await lan.start();
     const server = mockServers[0];
     const key = keyFromSecret(session.credentials.secret);
     const candidate = fakeSocket();
@@ -414,17 +430,18 @@ describe('LAN listener authentication limits', () => {
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      book(),
     );
 
-    const session = await lan.startHost();
+    const session = await lan.start();
 
     expect(session.details.deviceName).toBe('LISTENER-PC');
-    expect(session.details.options).toEqual([]);
+    expect(session.details.code).toBeUndefined();
     expect(mockServers).toHaveLength(1);
     lan.stop();
   });
 
-  it('can abort a connecting client without an uncaught WebSocket error', async () => {
+  it('can abort a connecting join without an uncaught WebSocket error', async () => {
     const socket = fakeSocket();
     socket.readyState = 0;
     socket.close.mockImplementation((code?: number, reason?: string) => {
@@ -434,51 +451,121 @@ describe('LAN listener authentication limits', () => {
       );
       socket.emit('close', code, reason);
     });
-    mockWebSocket.mockImplementationOnce(() => socket);
+    mockWebSocket.mockImplementation(() => socket);
     const lan = createRemoteAudioLan(
       jest.fn(),
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      book(),
     );
+    await lan.start();
     const pairingCode = encodePairingCode(
-      '192.168.1.20',
+      '192.168.1.21',
       49_100,
       'c'.repeat(43),
-      'LISTENER-PC',
+      'OTHER-PC',
     );
 
     // A join has no deadline: it ends on the socket's own close or error, or
-    // on stop, which is what cancelling the pairing calls.
-    const joining = lan.restoreJoin(pairingCode);
+    // on stop, which is what unlinking and quitting call.
+    lan.join(pairingCode, true);
     await Promise.resolve();
-    lan.stop();
-
-    await expect(joining).rejects.toThrow();
+    expect(() => lan.stop()).not.toThrow();
     expect(socket.close).toHaveBeenCalled();
   });
 
-  it('does not start discovery after a pending restore was manually stopped', async () => {
-    const socket = fakeSocket();
-    socket.readyState = 0;
-    mockWebSocket.mockImplementationOnce(() => socket);
+  it('refuses this computer’s own code', async () => {
     const lan = createRemoteAudioLan(
       jest.fn(),
       jest.fn(),
       jest.fn(),
       jest.fn(),
+      book(),
     );
-    const pairingCode = encodePairingCode(
-      '192.168.1.20',
-      49_100,
-      'c'.repeat(43),
-      'LISTENER-PC',
-    );
+    const session = await lan.start();
 
-    const restoring = lan.restoreJoin(pairingCode);
+    expect(() => lan.join(session.details.code, true)).toThrow('own code');
     lan.stop();
+  });
 
-    await expect(restoring).rejects.toThrow('LAN connection closed.');
-    expect(mockCreateDgramSocket).not.toHaveBeenCalled();
+  /** Answers a fresh connection's challenge as the computer `computerId`. */
+  const joinAs = async (
+    revoked: string[],
+    computerId: string,
+    fresh: boolean,
+  ) => {
+    const links = book(revoked);
+    const emitSignal = jest.fn();
+    const lan = createRemoteAudioLan(
+      emitSignal,
+      jest.fn(),
+      jest.fn(),
+      jest.fn(),
+      links,
+    );
+    const session = await lan.start();
+    const key = keyFromSecret(session.credentials.secret);
+    const candidate = fakeSocket();
+    mockServers[0].clients.add(candidate);
+    mockServers[0].emit('connection', candidate, {
+      socket: { remoteAddress: '192.168.1.101', setKeepAlive: jest.fn() },
+    });
+    const { challenge } = openAuthChallenge(
+      openPacket(candidate.sent[0], key).clear,
+    );
+    candidate.emit(
+      'message',
+      sealAuthReady(
+        {
+          challenge,
+          deviceName: 'COMEBACK-PC',
+          peerId: 'peer-x',
+          computerId,
+          ...(fresh ? { fresh } : {}),
+        },
+        key,
+      ),
+    );
+    return { lan, links, candidate, emitSignal };
+  };
+
+  it('turns an unlinked computer away, telling it to forget this code', async () => {
+    const id = 'u'.repeat(32);
+    const { lan, links, candidate, emitSignal } = await joinAs([id], id, false);
+
+    expect(candidate.close).toHaveBeenCalledWith(4001, 'Not linked');
+    expect(links.unrevoke).not.toHaveBeenCalled();
+    expect(emitSignal).not.toHaveBeenCalled();
+    lan.stop();
+  });
+
+  it('lets an unlinked computer back in when somebody pasted the code there', async () => {
+    const id = 'u'.repeat(32);
+    const { lan, links, candidate, emitSignal } = await joinAs([id], id, true);
+
+    expect(candidate.close).not.toHaveBeenCalled();
+    expect(links.unrevoke).toHaveBeenCalledWith(id);
+    expect(emitSignal).toHaveBeenCalledWith({
+      peerId: 'peer-x',
+      signal: {
+        kind: 'peer-ready',
+        address: '192.168.1.101',
+        deviceName: 'COMEBACK-PC',
+        computerId: id,
+      },
+    });
+    lan.stop();
+  });
+
+  it('unlinks one computer: it is told to forget, and refused if it comes back', async () => {
+    const id = 'k'.repeat(32);
+    const { lan, links, candidate } = await joinAs([], id, true);
+
+    lan.unlink({ peerId: 'peer-x' });
+
+    expect(links.revoke).toHaveBeenCalledWith(id);
+    expect(candidate.close).toHaveBeenCalledWith(1000, 'Unlinked');
+    lan.stop();
   });
 });
