@@ -27,6 +27,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "../compat/wide_path.h"
 #include "../engine/monitor_ring.h"
 #include "../engine/outputs_file.h"
+#include "../engine/share_ring.h"
 #include "chain_signature.h"
 #include "config_file.h"
 #include "fluideq_engine/config.h"
@@ -213,6 +214,71 @@ void monitor_ring_hands_over_the_newest() {
         "a reader behind skips ahead to the newest audio");
 }
 
+// Another computer's sound arrives on "FluidEQ Share In" in whichever order
+// the graph runs that sink and the playback within a cycle. Taken straight
+// from the sink, every cycle the playback ran first lost its quantum, and the
+// sound came through in pieces. Through the ring nothing is lost either way.
+void share_ring_loses_nothing_whatever_the_order() {
+  fluideq_linux::ShareRing ring(2);
+  constexpr uint32_t kQuantum = 256;
+  std::vector<float> in_left(kQuantum), in_right(kQuantum);
+  std::vector<float> out_left(kQuantum), out_right(kQuantum);
+  const float* written[2] = {in_left.data(), in_right.data()};
+  float* added[2] = {out_left.data(), out_right.data()};
+  float next_in = 1.0f;
+  float next_out = 1.0f;
+  bool in_order = true;
+  uint32_t missing = 0;
+  const auto produce = [&] {
+    for (uint32_t f = 0; f < kQuantum; ++f) {
+      in_left[f] = next_in;
+      in_right[f] = -next_in;
+      next_in += 1.0f;
+    }
+    ring.write(written, 2, kQuantum);
+  };
+  const auto consume = [&](bool counts) {
+    std::fill(out_left.begin(), out_left.end(), 0.0f);
+    std::fill(out_right.begin(), out_right.end(), 0.0f);
+    ring.add_into(added, 2, kQuantum);
+    for (uint32_t f = 0; f < kQuantum && counts; ++f) {
+      if (out_left[f] == 0.0f) {
+        ++missing;
+        continue;
+      }
+      in_order = in_order && out_left[f] == next_out && out_right[f] == -next_out;
+      next_out += 1.0f;
+    }
+  };
+  // The first cycle the playback runs first and finds nothing: one quantum
+  // of delay, taken once at the start. Then the order changes from cycle to
+  // cycle, and nothing more is missing.
+  consume(false);
+  produce();
+  for (int cycle = 0; cycle < 400; ++cycle) {
+    if (cycle % 3 == 0) {
+      consume(true);
+      produce();
+    } else {
+      produce();
+      consume(true);
+    }
+  }
+  check(missing == 0, "no quantum of the other computer's sound is dropped");
+  check(in_order, "every sample arrives once and in order");
+
+  // A stall the sink catches up from is cut back to one quantum of delay.
+  for (int burst = 0; burst < 8; ++burst) produce();
+  consume(false);
+  check(ring.available() == 0, "a backlog is let go rather than kept for good");
+  // The control: added straight from the sink, a playback that ran first
+  // finds nothing, which is the gap that was heard.
+  fluideq_linux::ShareRing empty(2);
+  std::fill(out_left.begin(), out_left.end(), 0.0f);
+  empty.add_into(added, 2, kQuantum);
+  check(out_left[0] == 0.0f, "nothing written is nothing added");
+}
+
 }  // namespace
 
 int main() {
@@ -224,6 +290,7 @@ int main() {
   shared_engine_files_read_through_the_shim(dir);
   the_status_is_written_whole(dir);
   monitor_ring_hands_over_the_newest();
+  share_ring_loses_nothing_whatever_the_order();
   std::filesystem::remove_all(dir);
   if (feq_test::g_failures > 0) {
     std::printf("%d failure(s)\n", feq_test::g_failures);

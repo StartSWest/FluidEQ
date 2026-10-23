@@ -112,7 +112,7 @@ target_link_libraries(fluideq-linux-engine-runtime
   PUBLIC fluideq-linux-engine-core Threads::Threads PRIVATE feq_strict)
 
 add_executable(fluideq-linux-engine engine/main.cpp engine/pulse_router.cpp
-  engine/pulse_monitor.cpp)
+  engine/pulse_monitor.cpp engine/pulse_share.cpp)
 target_link_libraries(fluideq-linux-engine PRIVATE
   fluideq-linux-engine-runtime fluideq-linux-pulse feq_strict)
 target_link_options(fluideq-linux-engine PRIVATE ${FEQ_LINUX_PORTABLE_LINK})
@@ -131,7 +131,8 @@ if(FEQ_PIPEWIRE_FOUND)
   target_link_libraries(fluideq-linux-pipewire PUBLIC ${CMAKE_DL_LIBS}
     PRIVATE feq_strict)
   target_sources(fluideq-linux-engine PRIVATE
-    engine/pw_router.cpp engine/pw_streams.cpp engine/pw_monitor.cpp)
+    engine/pw_router.cpp engine/pw_streams.cpp engine/pw_monitor.cpp
+    engine/pw_share.cpp)
   target_link_libraries(fluideq-linux-engine PRIVATE fluideq-linux-pipewire)
   target_compile_definitions(fluideq-linux-engine PRIVATE FEQ_LINUX_HAS_PIPEWIRE=1)
 else()

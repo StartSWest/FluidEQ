@@ -17,6 +17,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 namespace fluideq_linux {
 
+/**
+ * Share Audio's two endpoints of the engine's own: the sink the window plays
+ * other computers' sound into, and the input it sends this computer's from
+ * (`pw_share.cpp`, `pulse_share.cpp`). Neither is ever an output to choose.
+ */
+inline constexpr const char* kShareSinkName = "fluideq_share";
+inline constexpr const char* kShareSinkDescription = "FluidEQ Share In";
+inline constexpr const char* kSendSourceDescription = "FluidEQ Send";
+
 struct RouterOptions {
   /** A real output's name to play to, always; empty follows the default. */
   std::string target;

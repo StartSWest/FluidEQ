@@ -33,7 +33,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 #include <pipewire/extensions/metadata.h>
 #include <pipewire/pipewire.h>
+#include <spa/pod/builder.h>
 
+#include <atomic>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -45,8 +47,14 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #include "monitor_ring.h"
 #include "outputs_file.h"
 #include "router.h"
+#include "share_ring.h"
 
 namespace fluideq_linux {
+
+/** Planar float at whatever rate the graph runs, with the layout's speakers:
+ * the format of the sinks and the playback (`pw_streams.cpp`). */
+const spa_pod* pw_format_of(spa_pod_builder* builder,
+                            const ChannelLayout& layout);
 
 class PipeWireRouter final : public SoundRouter {
  public:
@@ -79,6 +87,16 @@ class PipeWireRouter final : public SoundRouter {
   struct Stream {
     pw_stream* stream = nullptr;
     spa_hook listener{};
+  };
+
+  /** A source fed from the playback's cycle (`pw_monitor.cpp`). */
+  struct Tap {
+    Stream stream;
+    std::unique_ptr<MonitorRing> ring;
+    PipeWireRouter* router = nullptr;
+    // Read on the data thread; changed only through `run_on_data_thread`.
+    pw_stream* rt_stream = nullptr;
+    MonitorRing* rt_ring = nullptr;
   };
 
   explicit PipeWireRouter(const PwApi& api, RouterOptions options);
@@ -115,11 +133,21 @@ class PipeWireRouter final : public SoundRouter {
   bool open_capture(const ChannelLayout& layout);
   bool open_playback(const Sink& sink, const ChannelLayout& layout);
   void close_stream(Stream& stream, bool playback) noexcept;
-  // "FluidEQ Monitor": the engine's output as an input the window can
-  // capture (`pw_monitor.cpp`).
-  bool open_monitor(const ChannelLayout& layout);
-  void close_monitor() noexcept;
-  static void on_monitor_process(void* data);
+  // "FluidEQ Monitor" and "FluidEQ Send": the engine's output, and what
+  // this computer plays before it, as inputs the window can capture
+  // (`pw_monitor.cpp`).
+  bool open_tap(Tap& tap, const ChannelLayout& layout, const char* node_name,
+                const char* description);
+  void close_tap(Tap& tap) noexcept;
+  static void on_tap_process(void* data);
+  // "FluidEQ Share In": where the window plays other computers' sound for
+  // the engine to mix in after the Send tap (`pw_share.cpp`).
+  bool open_share(const ChannelLayout& layout);
+  void close_share() noexcept;
+  static void on_share_process(void* data);
+  static void on_capture_state(void* data, pw_stream_state old,
+                               pw_stream_state state, const char* error);
+
   void ensure_engine();
   void swap_engine(std::unique_ptr<OutputEngine> next) noexcept;
   void run_on_data_thread(void (*fn)(PipeWireRouter*, void*), void* arg) noexcept;
@@ -162,15 +190,24 @@ class PipeWireRouter final : public SoundRouter {
 
   Stream capture_;
   Stream playback_;
-  Stream monitor_;
-  std::unique_ptr<MonitorRing> monitor_ring_;
+  Tap monitor_;
+  Tap send_;
+  Stream share_;
+  std::unique_ptr<ShareRing> share_ring_;
   uint32_t capture_rate_ = 0;
   uint32_t capture_channels_ = 0;
   // Read on the data thread; changed only through `run_on_data_thread`.
   pw_stream* rt_playback_ = nullptr;
   pw_stream* rt_capture_ = nullptr;
-  pw_stream* rt_monitor_ = nullptr;
-  MonitorRing* rt_monitor_ring_ = nullptr;
+  pw_stream* rt_share_ = nullptr;
+  ShareRing* rt_share_ring_ = nullptr;
+  /**
+   * Whether "FluidEQ" itself is running. Its cycle triggers the playback's;
+   * while nothing plays into it, "FluidEQ Share In" does instead, so other
+   * computers' sound is heard when this one plays nothing. Written by the
+   * capture's state on the loop thread, read on the data thread.
+   */
+  std::atomic<bool> capture_streaming_{false};
   OutputEngine* rt_engine_ = nullptr;
   uint32_t rt_channels_ = 0;
   std::unique_ptr<OutputEngine> engine_;

@@ -91,6 +91,19 @@ class PulseRouter final : public SoundRouter {
   void retarget(const Sink& sink);
   void load_sink(const Sink& sink);
   void open_record();
+  std::string null_sink_args(const std::string& name,
+                             const std::string& properties,
+                             uint32_t rate) const;
+  pa::stream* record_monitor(const std::string& monitor, const char* name,
+                             pa::stream_request_cb on_read);
+  // Share Audio's "FluidEQ Share In" and "FluidEQ Send" (`pulse_share.cpp`).
+  void load_share();
+  void unload_share() noexcept;
+  static void on_share_loaded(pa::context* context, uint32_t index,
+                              void* data);
+  static void on_send_loaded(pa::context* context, uint32_t index, void* data);
+  static void on_share_read(pa::stream* stream, size_t bytes, void* data);
+  void mix_share(float* const* planes, uint32_t channels, uint32_t frames);
   bool open_playback(const Sink& sink);
   void close_streams() noexcept;
   void unload_sink() noexcept;
@@ -134,6 +147,18 @@ class PulseRouter final : public SoundRouter {
   std::string monitor_master_;
   bool monitor_loading_ = false;
   pa::stream* record_ = nullptr;
+  // Share Audio: the null sink other computers' sound plays into, the remap
+  // of "FluidEQ"'s monitor this computer's sound is sent from, the record of
+  // the first, and what it delivered that the next block has not taken yet.
+  uint32_t share_module_ = UINT32_MAX;
+  uint32_t send_module_ = UINT32_MAX;
+  bool share_loading_ = false;
+  pa::stream* share_record_ = nullptr;
+  std::vector<float> share_fifo_;
+  /** "FluidEQ"'s monitor delivered since "FluidEQ Share In"'s last read:
+   * while it does, its reads drive the blocks; while it is idle, the share's
+   * do, or other computers' sound would play only beside this one's. */
+  bool main_read_ = false;
   pa::stream* playback_ = nullptr;
   uint32_t rate_ = 0;
   ChannelLayout layout_{};

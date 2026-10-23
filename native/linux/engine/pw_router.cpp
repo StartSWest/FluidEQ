@@ -202,6 +202,7 @@ void PipeWireRouter::on_global(void* data, uint32_t id, uint32_t permissions,
     self->claim_default();
     return;
   }
+  if (std::strcmp(name, kShareSinkName) == 0) return;
   auto sink = std::make_unique<Sink>();
   sink->id = id;
   sink->name = name;
@@ -406,7 +407,9 @@ void PipeWireRouter::shutdown() noexcept {
     roundtrip();
   }
   close_stream(playback_, true);
-  close_monitor();
+  close_tap(monitor_);
+  close_tap(send_);
+  close_share();
   close_stream(capture_, false);
   swap_engine(nullptr);
   // After the engine: its watcher thread is joined, so nothing signals it.

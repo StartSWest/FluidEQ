@@ -257,6 +257,7 @@ void PulseRouter::on_sink_info(pa::context* context, const pa::sink_info* info,
       self->own_seen_ = true;
       return;
     }
+    if (std::string(info->name) == kShareSinkName) return;
     Sink sink;
     sink.index = info->index;
     sink.name = info->name;
@@ -340,24 +341,32 @@ void PulseRouter::retarget(const Sink& sink) {
     return;
   }
   open_record();
+  load_share();
   open_playback(sink);
   ensure_engine();
   claim_default();
 }
 
-void PulseRouter::load_sink(const Sink& sink) {
+std::string PulseRouter::null_sink_args(const std::string& name,
+                                        const std::string& properties,
+                                        uint32_t rate) const {
   std::string map;
   for (uint32_t at = 0; at < layout_.channels; ++at) {
     if (at > 0) map += ',';
     map += position_name(layout_, at);
   }
-  // The null sink at the real output's own rate and layout, so the server
-  // converts nothing between them.
+  // At the real output's own rate and layout, so the server converts
+  // nothing between them.
+  return "sink_name=" + name + " sink_properties=" + properties +
+         " format=float32le rate=" + std::to_string(rate) +
+         " channels=" + std::to_string(layout_.channels) + " channel_map=" + map;
+}
+
+void PulseRouter::load_sink(const Sink& sink) {
   const std::string args =
-      "sink_name=" + options_.sink_name + " sink_properties=device.description=" +
-      options_.sink_description + " format=float32le rate=" +
-      std::to_string(sink.rate) + " channels=" +
-      std::to_string(layout_.channels) + " channel_map=" + map;
+      null_sink_args(options_.sink_name,
+                     "device.description=" + options_.sink_description,
+                     sink.rate);
   loading_ = true;
   release(api_.context_load_module(context_, "module-null-sink", args.c_str(),
                                    &PulseRouter::on_module_loaded, this));
@@ -380,6 +389,7 @@ void PulseRouter::on_module_loaded(pa::context* context, uint32_t index,
   // Its sink index arrives with the refresh its creation triggers; the
   // claim of the default waits for that.
   self->open_record();
+  self->load_share();
   if (const Sink* sink = self->sink_named(self->target_name_)) {
     self->open_playback(*sink);
   }
@@ -388,32 +398,40 @@ void PulseRouter::on_module_loaded(pa::context* context, uint32_t index,
 }
 
 void PulseRouter::unload_sink() noexcept {
+  unload_share();
   if (module_index_ == kInvalidIndex) return;
   release(api_.context_unload_module(context_, module_index_, nullptr, nullptr));
   module_index_ = kInvalidIndex;
   own_sink_index_ = kInvalidIndex;
 }
 
-void PulseRouter::open_record() {
+pa::stream* PulseRouter::record_monitor(const std::string& monitor,
+                                        const char* name,
+                                        pa::stream_request_cb on_read) {
   pa::sample_spec spec{pa::kSampleFloat32Le, rate_,
                        static_cast<uint8_t>(layout_.channels)};
   const pa::channel_map map = map_of(layout_);
-  record_ = api_.stream_new(context_, "FluidEQ capture", &spec, &map);
-  if (record_ == nullptr) {
-    log_->write("could not create the FluidEQ capture");
-    return;
+  pa::stream* stream = api_.stream_new(context_, name, &spec, &map);
+  if (stream == nullptr) {
+    log_->write(std::string("could not create ") + name);
+    return nullptr;
   }
-  api_.stream_set_read_callback(record_, &PulseRouter::on_read, this);
-  api_.stream_set_state_callback(record_, &PulseRouter::on_record_state, this);
+  api_.stream_set_read_callback(stream, on_read, this);
+  api_.stream_set_state_callback(stream, &PulseRouter::on_record_state, this);
   pa::buffer_attr attr{UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX,
                        bytes_for(rate_, layout_.channels, kFragmentMs)};
-  const std::string monitor = options_.sink_name + ".monitor";
-  if (api_.stream_connect_record(record_, monitor.c_str(), &attr,
+  if (api_.stream_connect_record(stream, monitor.c_str(), &attr,
                                  pa::kStreamAdjustLatency) < 0) {
-    log_->write("could not record the FluidEQ output");
-    api_.stream_unref(record_);
-    record_ = nullptr;
+    log_->write(std::string("could not record for ") + name);
+    api_.stream_unref(stream);
+    return nullptr;
   }
+  return stream;
+}
+
+void PulseRouter::open_record() {
+  record_ = record_monitor(options_.sink_name + ".monitor", "FluidEQ capture",
+                           &PulseRouter::on_read);
 }
 
 bool PulseRouter::open_playback(const Sink& sink) {
@@ -473,7 +491,8 @@ void PulseRouter::close_streams() noexcept {
   underflows_ = 0;
   pending_frames_ = 0;
   hole_frames_ = 0;
-  for (pa::stream** stream : {&record_, &playback_}) {
+  share_fifo_.clear();
+  for (pa::stream** stream : {&record_, &share_record_, &playback_}) {
     if (*stream == nullptr) continue;
     api_.stream_set_state_callback(*stream, nullptr, nullptr);
     api_.stream_set_underflow_callback(*stream, nullptr, nullptr);
@@ -550,6 +569,7 @@ void PulseRouter::on_read(pa::stream* stream, size_t bytes, void* data) {
     // A hole (no data where data was expected) is played as silence.
     const auto frames = static_cast<uint32_t>(size / frame_bytes);
     if (chunk == nullptr) self->hole_frames_ += frames;
+    self->main_read_ = true;
     self->process(static_cast<const float*>(chunk), frames);
     self->api_.stream_drop(stream);
   }
@@ -587,6 +607,9 @@ void PulseRouter::process(const float* interleaved, uint32_t frames) {
     pending_frames_ += take;
     done += take;
     if (pending_frames_ < block) continue;
+    // "FluidEQ" as applications played it is what "FluidEQ Send" carries
+    // (a remap of its monitor); other computers' sound joins it here.
+    mix_share(planes, channels, block);
     if (engine_) engine_->process(planes, block);
     for (uint32_t f = 0; f < block; ++f) {
       for (uint32_t c = 0; c < channels; ++c) {
@@ -743,6 +766,7 @@ void PulseRouter::shutdown() noexcept {
     }
     close_streams();
     unload_monitor();
+    unload_share();
     if (module_index_ != kInvalidIndex) {
       wait(api_.context_unload_module(context_, module_index_,
                                       &PulseRouter::on_done, this));

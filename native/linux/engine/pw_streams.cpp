@@ -68,8 +68,10 @@ uint32_t spa_channel_of(Speaker speaker, uint32_t index) {
   }
 }
 
-/** Planar float at whatever rate the graph runs, with the layout's speakers. */
-const spa_pod* format_of(spa_pod_builder* builder, const ChannelLayout& layout) {
+}  // namespace
+
+const spa_pod* pw_format_of(spa_pod_builder* builder,
+                            const ChannelLayout& layout) {
   spa_audio_info_raw info{};
   info.format = SPA_AUDIO_FORMAT_F32P;
   info.channels = layout.channels;
@@ -81,6 +83,8 @@ const spa_pod* format_of(spa_pod_builder* builder, const ChannelLayout& layout) 
   }
   return spa_format_audio_raw_build(builder, SPA_PARAM_EnumFormat, &info);
 }
+
+namespace {
 
 struct DataCall {
   void (*fn)(PipeWireRouter*, void*);
@@ -119,7 +123,8 @@ void PipeWireRouter::run_on_data_thread(void (*fn)(PipeWireRouter*, void*),
   // With no stream of ours on it, the data thread runs none of our code,
   // and may not be running at all (a blocking invoke would never return).
   if (capture_.stream == nullptr && playback_.stream == nullptr &&
-      monitor_.stream == nullptr) {
+      monitor_.stream.stream == nullptr && send_.stream.stream == nullptr &&
+      share_.stream == nullptr) {
     fn(this, arg);
     return;
   }
@@ -136,7 +141,9 @@ void PipeWireRouter::retarget(const Sink& sink) {
   target_name_ = sink.name;
   layout_ = layout;
   if (relayout) {
-    close_monitor();
+    close_tap(monitor_);
+    close_tap(send_);
+    close_share();
     close_stream(capture_, false);
     swap_engine(nullptr);
     capture_rate_ = 0;
@@ -146,7 +153,10 @@ void PipeWireRouter::retarget(const Sink& sink) {
   if (!open_playback(sink, layout)) return;
   if (relayout) {
     if (!open_capture(layout)) return;
-    open_monitor(layout);  // The window's live displays; the audio needs none of it.
+    // The window's live displays and Share Audio; the audio needs none of it.
+    open_tap(monitor_, layout, "fluideq_monitor", "FluidEQ Monitor");
+    open_tap(send_, layout, "fluideq_send", kSendSourceDescription);
+    open_share(layout);
   }
   ensure_engine();
 }
@@ -171,7 +181,7 @@ bool PipeWireRouter::open_capture(const ChannelLayout& layout) {
     e.version = PW_VERSION_STREAM_EVENTS;
     e.process = &PipeWireRouter::on_capture_process;
     e.param_changed = &PipeWireRouter::on_capture_param;
-    e.state_changed = &PipeWireRouter::on_stream_state;
+    e.state_changed = &PipeWireRouter::on_capture_state;
     return e;
   }();
   api_.stream_add_listener(capture_.stream, &capture_.listener, &events, this);
@@ -183,7 +193,7 @@ bool PipeWireRouter::open_capture(const ChannelLayout& layout) {
       capture_.stream);
   uint8_t buffer[1024];
   spa_pod_builder builder = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
-  const spa_pod* params[1] = {format_of(&builder, layout)};
+  const spa_pod* params[1] = {pw_format_of(&builder, layout)};
   const int connected = api_.stream_connect(
       capture_.stream, PW_DIRECTION_INPUT, PW_ID_ANY,
       static_cast<pw_stream_flags>(PW_STREAM_FLAG_AUTOCONNECT |
@@ -234,7 +244,7 @@ bool PipeWireRouter::open_playback(const Sink& sink,
                            this);
   uint8_t buffer[1024];
   spa_pod_builder builder = SPA_POD_BUILDER_INIT(buffer, sizeof(buffer));
-  const spa_pod* params[1] = {format_of(&builder, layout)};
+  const spa_pod* params[1] = {pw_format_of(&builder, layout)};
   const int connected = api_.stream_connect(
       playback_.stream, PW_DIRECTION_OUTPUT, PW_ID_ANY,
       static_cast<pw_stream_flags>(
@@ -394,6 +404,7 @@ void PipeWireRouter::playback_cycle() noexcept {
       in = next;
     }
   }
+  ShareRing* const shared = rt_share_ring_;
   pw_buffer* out = api_.stream_dequeue_buffer(playback);
   if (out == nullptr) {
     if (in != nullptr) api_.stream_queue_buffer(capture, in);
@@ -421,7 +432,9 @@ void PipeWireRouter::playback_cycle() noexcept {
     }
   }
   if (in == nullptr || available == UINT32_MAX) available = 0;
-  uint32_t frames = available;
+  // Only other computers' sound playing: the cycle is as long as theirs.
+  uint32_t frames =
+      in == nullptr && shared != nullptr ? shared->available() : available;
   if (api_.has_requested && out->requested > 0) {
     frames = static_cast<uint32_t>(out->requested);
   }
@@ -450,13 +463,20 @@ void PipeWireRouter::playback_cycle() noexcept {
       std::memset(planes[c] + copied, 0, (frames - copied) * sizeof(float));
     }
   }
+  // What this computer played, untouched, for Share Audio; then the sound
+  // other computers send here joins it, so it is EQ'd here and never sent
+  // back to them.
+  if (MonitorRing* const ring = send_.rt_ring; ring != nullptr && mapped) {
+    ring->write(planes, channels, frames);
+  }
+  if (shared != nullptr && mapped) shared->add_into(planes, channels, frames);
   OutputEngine* const engine = rt_engine_;
   if (engine != nullptr && mapped && frames > 0 &&
       engine->format().channels == channels) {
     engine->process(planes, frames);
   }
   // What the output is about to play, for the window's live displays.
-  if (MonitorRing* const ring = rt_monitor_ring_; ring != nullptr && mapped) {
+  if (MonitorRing* const ring = monitor_.rt_ring; ring != nullptr && mapped) {
     ring->write(planes, channels, frames);
   }
   for (uint32_t c = 0; c < channels; ++c) {
