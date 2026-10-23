@@ -12,13 +12,20 @@ const useSelectedRemoteAudioOutput = (
   activeDeviceId: string,
   mixerRef: RefObject<IPcmMixer | undefined>,
   outputSinkIdRef: RefObject<string>,
+  /**
+   * Linux, linked both ways: the engine's "FluidEQ Share In", whatever
+   * output is chosen. The engine plays it on that output with this
+   * computer's EQ, and leaves it out of what this computer sends.
+   */
+  forcedSinkId?: string,
 ) => {
   useEffect(() => {
     let cancelled = false;
     const followSelectedOutput = async () => {
       let sinkId = 'default';
       try {
-        sinkId = await resolveSelectedOutputSinkId(activeDeviceId);
+        sinkId =
+          forcedSinkId ?? (await resolveSelectedOutputSinkId(activeDeviceId));
       } catch {
         // The default alias is the only safe fallback when labels are hidden.
       }
@@ -53,7 +60,7 @@ const useSelectedRemoteAudioOutput = (
     return () => {
       cancelled = true;
     };
-  }, [activeDeviceId, mixerRef, outputSinkIdRef]);
+  }, [activeDeviceId, forcedSinkId, mixerRef, outputSinkIdRef]);
 };
 
 export default useSelectedRemoteAudioOutput;

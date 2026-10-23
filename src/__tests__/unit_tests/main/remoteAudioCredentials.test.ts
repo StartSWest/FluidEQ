@@ -28,8 +28,23 @@ jest.mock('electron', () => ({
 // eslint-disable-next-line import/first
 import { createRemoteAudioCredentialStore } from '../../../main/remoteAudioCredentials';
 
+const writeStored = (directory: string, version: number, state: unknown) => {
+  const encrypted = Buffer.from(
+    Buffer.from(JSON.stringify(state), 'utf8').map(
+      (byte) => (byte + 165) % 256,
+    ),
+  ).toString('base64');
+  fs.writeFileSync(
+    path.join(directory, 'remote-audio-lan.json'),
+    JSON.stringify({ encrypted, version }),
+  );
+};
+
 describe('secure LAN audio reconnect credentials', () => {
   let directory: string;
+  const identity = { port: 49_100, secret: 's'.repeat(43) };
+  const codeA = `FLUIDEQ-LAN-2.${'a'.repeat(80)}`;
+  const codeB = `FLUIDEQ-LAN-2.${'b'.repeat(80)}`;
 
   beforeEach(() => {
     mockEncryptionAvailable = true;
@@ -40,88 +55,80 @@ describe('secure LAN audio reconnect credentials', () => {
     fs.rmSync(directory, { force: true, recursive: true });
   });
 
-  it('restores both roles without writing their secret in plaintext', () => {
+  it('keeps this computer’s code and every pasted one, none in plaintext', () => {
     const store = createRemoteAudioCredentialStore(directory);
-    const secret = 'private-pairing-secret'.repeat(2);
-    store.write({ port: 49_100, role: 'listener', secret });
+    store.writeIdentity(identity);
+    store.addJoin(codeA, () => false);
+    store.addJoin(codeB, () => false);
 
     const stored = fs.readFileSync(
       path.join(directory, 'remote-audio-lan.json'),
       'utf8',
     );
-    expect(stored).not.toContain(secret);
-    expect(store.role()).toBe('listener');
-    expect(store.read()).toEqual({ port: 49_100, role: 'listener', secret });
-
-    const code = `FLUIDEQ-LAN-2.${'a'.repeat(80)}`;
-    store.write({ code, role: 'sender' });
-    expect(store.role()).toBe('sender');
-    expect(store.read()).toEqual({ code, role: 'sender' });
-    expect(store.readListener()).toEqual({
-      port: 49_100,
-      role: 'listener',
-      secret,
+    expect(stored).not.toContain(identity.secret);
+    expect(stored).not.toContain(codeA);
+    expect(createRemoteAudioCredentialStore(directory).read()).toEqual({
+      identity,
+      joins: [codeA, codeB],
+      revoked: [],
     });
-    expect(store.readSender()).toEqual({ code, role: 'sender' });
-
-    expect(store.activate('listener')).toBe(true);
-    expect(store.role()).toBe('listener');
-    expect(store.readSender()).toEqual({ code, role: 'sender' });
     expect(
       fs.existsSync(path.join(directory, 'remote-audio-lan.json.tmp')),
     ).toBe(false);
   });
 
-  it('pauses automatic restore without deleting either role', () => {
+  it('replaces a code for the same computer and forgets one without the rest', () => {
     const store = createRemoteAudioCredentialStore(directory);
-    const code = `FLUIDEQ-LAN-2.${'p'.repeat(80)}`;
-    const listener = {
-      port: 49_100,
-      role: 'listener' as const,
-      secret: 's'.repeat(43),
-    };
-    store.write(listener);
-    store.write({ code, role: 'sender' });
+    store.addJoin(codeA, () => false);
+    store.addJoin(codeB, () => false);
+    const newerA = `${codeA}x`;
+    store.addJoin(newerA, (saved) => saved === codeA);
+    expect(store.read().joins).toEqual([codeB, newerA]);
 
-    store.pause();
-    const reopened = createRemoteAudioCredentialStore(directory);
+    store.removeJoin((saved) => saved === codeB);
+    expect(store.read().joins).toEqual([newerA]);
+  });
 
-    expect(reopened.role()).toBeUndefined();
-    expect(reopened.read()).toBeUndefined();
-    expect(reopened.readListener()).toEqual(listener);
-    expect(reopened.readSender()).toEqual({ code, role: 'sender' });
-    expect(reopened.activate('sender')).toBe(true);
-    expect(reopened.read()).toEqual({ code, role: 'sender' });
+  it('remembers an unlinked computer until it is let back in', () => {
+    const store = createRemoteAudioCredentialStore(directory);
+    store.revoke('computer-1');
+    store.revoke('computer-2');
+    expect(store.read().revoked).toEqual(['computer-1', 'computer-2']);
+
+    store.unrevoke('computer-1');
+    expect(store.read().revoked).toEqual(['computer-2']);
+  });
+
+  it('carries a 2.x listener and its pasted code over, so an upgrade keeps both links', () => {
+    writeStored(directory, 3, {
+      activeRole: 'sender',
+      listener: { role: 'listener', ...identity },
+      sender: { role: 'sender', code: codeA },
+    });
+
+    expect(createRemoteAudioCredentialStore(directory).read()).toEqual({
+      identity,
+      joins: [codeA],
+      revoked: [],
+    });
   });
 
   it('migrates a version-one sender without losing it', () => {
-    const code = `FLUIDEQ-LAN-2.${'m'.repeat(80)}`;
-    const encrypted = Buffer.from(
-      Buffer.from(JSON.stringify({ code, role: 'sender' }), 'utf8').map(
-        (byte) => (byte + 165) % 256,
-      ),
-    ).toString('base64');
-    fs.writeFileSync(
-      path.join(directory, 'remote-audio-lan.json'),
-      JSON.stringify({ encrypted, version: 1 }),
-    );
+    writeStored(directory, 1, { code: codeA, role: 'sender' });
     const store = createRemoteAudioCredentialStore(directory);
 
-    expect(store.readSender()).toEqual({ code, role: 'sender' });
-    store.write({ port: 49_100, role: 'listener', secret: 's'.repeat(43) });
-    expect(store.readSender()).toEqual({ code, role: 'sender' });
+    expect(store.read().joins).toEqual([codeA]);
+    store.writeIdentity(identity);
+    expect(store.read()).toEqual({ identity, joins: [codeA], revoked: [] });
   });
 
-  it('forgets a saved session only when explicitly cleared', () => {
+  it('forgets everything only when explicitly cleared', () => {
     const store = createRemoteAudioCredentialStore(directory);
-    store.write({
-      code: `FLUIDEQ-LAN-2.${'b'.repeat(80)}`,
-      role: 'sender',
-    });
+    store.addJoin(codeA, () => false);
     fs.writeFileSync(path.join(directory, 'remote-audio-lan.json.tmp'), 'old');
     store.clear();
 
-    expect(store.read()).toBeUndefined();
+    expect(store.read()).toEqual({ joins: [], revoked: [] });
     expect(fs.existsSync(path.join(directory, 'remote-audio-lan.json'))).toBe(
       false,
     );
@@ -134,9 +141,9 @@ describe('secure LAN audio reconnect credentials', () => {
     mockEncryptionAvailable = false;
     const store = createRemoteAudioCredentialStore(directory);
 
-    expect(store.read()).toBeUndefined();
-    expect(() =>
-      store.write({ port: 49_100, role: 'listener', secret: 'x'.repeat(43) }),
-    ).toThrow('Secure credential storage is unavailable.');
+    expect(store.read()).toEqual({ joins: [], revoked: [] });
+    expect(() => store.writeIdentity(identity)).toThrow(
+      'Secure credential storage is unavailable.',
+    );
   });
 });

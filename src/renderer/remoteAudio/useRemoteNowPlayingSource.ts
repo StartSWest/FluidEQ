@@ -121,16 +121,18 @@ const sendTransport = (peerId: string, command: TRemoteTransportCommand) => {
 
 /**
  * `computers` are the linked computers whose sound plays here.
- * `pauseNewcomers` is the computer whose code was used: of two linked
- * computers that were both already playing, exactly one may pause the other
- * on sight, or each would pause the other and both would fall silent. The
- * press, which only ever comes from one of them, needs no such tie-break.
+ * `pausesOnSight` are the computers that joined this one (pasted its code):
+ * of two linked computers that were both already playing, exactly one may
+ * pause the other on sight, or each would pause the other and both would
+ * fall silent — and of each pair, the one whose code was used is that one.
+ * The press, which only ever comes from one of them, needs no such
+ * tie-break.
  * `delays` is how far behind each one's sound plays here, by peer id, for
  * the bar to say beside its name.
  */
 const useRemoteNowPlayingSource = (
   computers: IRemoteAudioComputer[],
-  pauseNewcomers: boolean,
+  pausesOnSight: readonly string[],
   delays: Readonly<Record<string, number>>,
 ): ((peerId: string) => void) => {
   const singlePlayer = useSinglePlayer();
@@ -192,8 +194,8 @@ const useRemoteNowPlayingSource = (
     });
   }, [computer, delayMs, peerId, playing]);
 
-  const pauseNewcomersRef = useRef(pauseNewcomers);
-  pauseNewcomersRef.current = pauseNewcomers;
+  const pausesOnSightRef = useRef(pausesOnSight);
+  pausesOnSightRef.current = pausesOnSight;
   const knownPlayingRef = useRef<ReadonlySet<string>>(new Set());
   /** The computer whose user pressed play last. Written as that message
    * arrives rather than derived from state, because the round of pauses
@@ -216,12 +218,14 @@ const useRemoteNowPlayingSource = (
     // the press answered with a pause, which is the circle this whole file
     // is about.
     const pressed = pressedPeerRef.current;
-    const toPause = appeared.filter((id) => id !== pressed);
+    const toPause = appeared.filter(
+      (id) => id !== pressed && pausesOnSightRef.current.includes(id),
+    );
     const soundHere =
       getPlaybackOwner() !== undefined ||
       isTransportPlaying('system') ||
       now.some((id) => !appeared.includes(id));
-    if (singlePlayer && soundHere && pauseNewcomersRef.current) {
+    if (singlePlayer && soundHere) {
       toPause.forEach((id) => sendTransport(id, { command: 'pause' }));
     }
     // The exemption lasts as long as that computer is playing and no longer,

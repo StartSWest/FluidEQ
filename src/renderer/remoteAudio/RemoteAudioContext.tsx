@@ -1,10 +1,17 @@
 /* FluidEQ — GPL-3.0-or-later */
 
-import { ReactNode, useCallback, useMemo, useRef, useState } from 'react';
+import {
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import type {
-  ILanPairingOption,
   ILanRemoteAudioChunk,
   ILanRemoteAudioSignal,
+  ILanSavedJoin,
 } from '../../common/remoteAudio';
 import { useFluidEqShell } from '../utils/FluidEqContext';
 import { setSinglePlayerFromLink } from '../utils/singlePlayer';
@@ -24,44 +31,53 @@ import type {
   IRemoteAudioLink,
   TRemoteAudioError,
   TRemoteAudioPhase,
-  TRemoteAudioRole,
 } from './remoteAudioState';
 import RemoteAudioContext, {
   IncomingSoundContext,
   RemoteAudioReceivingContext,
 } from './remoteAudioValueContext';
 import useArrivingSound from './useArrivingSound';
+import useLinuxShareDevices from './useLinuxShareDevices';
 import useSelectedRemoteAudioOutput from './useSelectedRemoteAudioOutput';
 import useRemoteAudioMeterBus from './useRemoteAudioMeterBus';
 import useRemoteAudioNetworkStats from './useRemoteAudioNetworkStats';
 import useRemoteAudioBridgeSubscriptions from './useRemoteAudioBridgeSubscriptions';
 import useRemoteAudioMixer from './useRemoteAudioMixer';
 import useRemoteAudioPcmSender from './useRemoteAudioPcmSender';
-import useRemoteAudioRestore from './useRemoteAudioRestore';
 import useRemoteAudioSending from './useRemoteAudioSending';
 import useRemoteNowPlayingBroadcast from './useRemoteNowPlayingBroadcast';
 import useRemoteNowPlayingSource from './useRemoteNowPlayingSource';
 
 /**
- * Share Audio: the computers linked with this one, both ways.
+ * Share Audio: the computers linked with this one, both ways, all to all.
  *
- * A link is made once — one computer shows its code, the other pastes it —
- * and from then on each computer sends its own sound and plays the other's,
- * each direction on its own switch. Main does the sending and the playing
- * (`ipc/remoteAudio.ts`, `remoteAudioLinks.ts`); the window keeps the picture
- * of every link, opens the output the other computers' sound plays through,
- * and runs the one-player rule across the wire in both directions.
+ * Every computer has one code and keeps it. A link is made once — either
+ * computer pastes the other's code — and from then on each sends its own
+ * sound and plays the other's, each direction on its own switch; any number
+ * of computers link the same way, and unlinking one leaves the rest. Main
+ * does the listening, the joining, the sending and the playing
+ * (`ipc/remoteAudio.ts`, `remoteAudioLan.ts`, `remoteAudioLinks.ts`); the
+ * window keeps the picture of every link, opens the output the other
+ * computers' sound plays through, and runs the one-player rule across the
+ * wire in both directions.
  */
 const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const { activeDeviceId } = useFluidEqShell();
-  const bothWays = window.electron?.platform === 'win32';
+  const platform = window.electron?.platform;
   const bridge = window.electron?.ipcRenderer;
-  const [role, setRoleState] = useState<TRemoteAudioRole | undefined>();
-  const roleRef = useRef<TRemoteAudioRole | undefined>(undefined);
-  const setRole = useCallback((next: TRemoteAudioRole | undefined) => {
-    roleRef.current = next;
-    setRoleState(next);
-  }, []);
+  const linuxShare = useLinuxShareDevices();
+  // Both ways where nothing received can go back out: Windows' process
+  // loopback, or the Linux engine's own Send and Share In.
+  const bothWays =
+    platform === 'win32' ||
+    (platform === 'linux' &&
+      linuxShare.shareOutputId !== undefined &&
+      linuxShare.sendInputId !== undefined);
+  useEffect(() => {
+    if (platform === 'linux') {
+      bridge?.setRemoteAudioBothWays?.(bothWays).catch(() => undefined);
+    }
+  }, [bothWays, bridge, platform]);
   const [phase, setPhaseState] = useState<TRemoteAudioPhase>('idle');
   const phaseRef = useRef<TRemoteAudioPhase>('idle');
   const setPhase = useCallback((next: TRemoteAudioPhase) => {
@@ -69,32 +85,25 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     setPhaseState(next);
   }, []);
   const [error, setError] = useState<TRemoteAudioError | undefined>();
-  const [lanOptions, setLanOptions] = useState<ILanPairingOption[]>([]);
+  const [code, setCode] = useState<string | undefined>();
   const [deviceName, setDeviceName] = useState<string | undefined>();
+  const [joins, setJoins] = useState<ILanSavedJoin[]>([]);
   const recordsRef = useRef(new Map<string, ILinkRecord>());
   const [links, setLinks] = useState<IRemoteAudioLink[]>([]);
   const playbackBlockedRef = useRef(false);
-  const stoppingRef = useRef(false);
   const generationRef = useRef(0);
   const outputSinkIdRef = useRef('default');
   const { publishMeter, subscribeMeter } = useRemoteAudioMeterBus();
   const { clearNetworkStats, networkStats, removeNetworkPeer } =
-    useRemoteAudioNetworkStats(role !== undefined);
+    useRemoteAudioNetworkStats(phase !== 'idle');
 
   /** The picture of every link, and the page's one word for it, redrawn. */
   const publish = useCallback(() => {
     const records = recordsRef.current;
     setLinks(linkViews(records));
     const settled = phaseRef.current;
-    if (
-      roleRef.current &&
-      !stoppingRef.current &&
-      (records.size > 0 ||
-        (settled !== 'preparing' &&
-          settled !== 'error' &&
-          settled !== 'disconnected'))
-    ) {
-      setPhase(linkPhase(roleRef.current, records, playbackBlockedRef.current));
+    if (settled === 'ready' || settled === 'playback-blocked') {
+      setPhase(linkPhase(records, playbackBlockedRef.current));
     }
   }, [setPhase]);
 
@@ -106,7 +115,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
 
   const playedHere = links.some((link) => playsHere(link, bothWays));
   const { mixerRef, removePeer, resume } = useRemoteAudioMixer({
-    wanted: role !== undefined && playedHere,
+    wanted: phase !== 'idle' && playedHere,
     outputSinkIdRef,
     onBlocked: (blocked) => {
       playbackBlockedRef.current = blocked;
@@ -119,7 +128,12 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       publish();
     },
   });
-  useSelectedRemoteAudioOutput(activeDeviceId, mixerRef, outputSinkIdRef);
+  useSelectedRemoteAudioOutput(
+    activeDeviceId,
+    mixerRef,
+    outputSinkIdRef,
+    bothWays && platform === 'linux' ? linuxShare.shareOutputId : undefined,
+  );
 
   const { receiving, delays, incoming } = useArrivingSound(
     links,
@@ -130,13 +144,18 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     bothWays,
     receiving,
   });
-  // Off Windows the window sends, to the computer this one joined.
-  const joinedLink = links.find((link) => link.joined);
+  // Off Windows the window sends, to every computer that is to hear it.
+  const sendTo = links
+    .filter((link) => sendsThere(link, bothWays))
+    .map((link) => link.id);
+  const sendToKey = sendTo.join('\n');
+  const sendToIds = useMemo(
+    () => (sendToKey ? sendToKey.split('\n') : []),
+    [sendToKey],
+  );
   useRemoteAudioPcmSender({
-    peerId:
-      joinedLink && sendsThere(joinedLink, bothWays)
-        ? joinedLink.id
-        : undefined,
+    peerIds: sendToIds,
+    sendInputId: bothWays ? linuxShare.sendInputId : undefined,
     publishMeter,
     onFailure: markSendingFailed,
   });
@@ -148,26 +167,88 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   );
   const acceptRemoteStart = useRemoteNowPlayingSource(
     links.filter((link) => playsHere(link, bothWays)),
-    role === 'listener',
+    links.filter((link) => !link.joined).map((link) => link.id),
     delays,
   );
 
-  const { rejoin, rehost, lookedUp } = useRemoteAudioRestore({
-    phase,
-    roleRef,
-    stoppingRef,
-    generationRef,
-    setRole,
-    setPhase,
-    setError,
-    setDeviceName,
-    setLanOptions,
-    publish,
-  });
+  /**
+   * This computer's code on the network, and every pasted computer looked
+   * for. Asked again while running, main answers from the running session,
+   * so this never drops a link — it is how the page opens.
+   */
+  // The links outlive this window; the first start in it hears them again.
+  const replayRef = useRef<(message: ILanRemoteAudioSignal) => void>(
+    () => undefined,
+  );
+  const heardLinksRef = useRef(false);
+  const start = useCallback(async () => {
+    generationRef.current += 1;
+    const attempt = generationRef.current;
+    if (phaseRef.current === 'idle' || phaseRef.current === 'error') {
+      setPhase('preparing');
+    }
+    try {
+      const replay = !heardLinksRef.current;
+      const started = await bridge.startRemoteAudioLan(replay);
+      if (generationRef.current !== attempt) {
+        return;
+      }
+      heardLinksRef.current = true;
+      setDeviceName(started.details.deviceName);
+      setCode(started.details.code);
+      setJoins(started.joins);
+      setError(undefined);
+      if (phaseRef.current === 'preparing') {
+        setPhase('ready');
+      }
+      started.links.forEach((message) => replayRef.current(message));
+      publish();
+    } catch {
+      if (generationRef.current === attempt) {
+        setError('lan');
+        setPhase('error');
+      }
+    }
+  }, [bridge, publish, setPhase]);
+
+  // Whatever was linked last time is linked again at launch, under the same
+  // code, from either side.
+  const restoreAttemptedRef = useRef(false);
+  useEffect(() => {
+    if (restoreAttemptedRef.current || !bridge?.hasSavedRemoteAudioLan) {
+      return;
+    }
+    restoreAttemptedRef.current = true;
+    bridge
+      .hasSavedRemoteAudioLan()
+      .then((saved) => (saved ? start() : undefined))
+      .catch(() => undefined);
+  }, [bridge, start]);
+
+  // A network that comes back is the moment to look again, not a clock.
+  useEffect(() => {
+    if (phase === 'idle') {
+      return undefined;
+    }
+    const retry = () => {
+      if (phaseRef.current === 'error') {
+        start().catch(() => undefined);
+      } else {
+        bridge?.retryRemoteAudioLan?.().catch(() => undefined);
+      }
+    };
+    window.addEventListener('online', retry);
+    return () => window.removeEventListener('online', retry);
+  }, [bridge, phase, start]);
+
+  useEffect(
+    () => bridge?.onRemoteAudioLanJoins?.((next) => setJoins(next)),
+    [bridge],
+  );
 
   const acceptSignal = useCallback(
     ({ peerId, signal }: ILanRemoteAudioSignal) => {
-      if (!roleRef.current || stoppingRef.current) {
+      if (phaseRef.current === 'idle') {
         return;
       }
       const records = recordsRef.current;
@@ -176,14 +257,12 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
           name: signal.deviceName,
           address: signal.address,
           joined: signal.joined === true,
+          computerId: signal.computerId,
           switches: ALL_ON,
           receiving: false,
         };
         records.set(peerId, record);
         setError(undefined);
-        if (record.joined) {
-          setDeviceName(record.name);
-        }
         // The switches are main's, remembered by name; it is already acting
         // on them, and the page shows what it acts on.
         bridge
@@ -249,13 +328,12 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       if (signal.kind === 'stop') {
+        // Main goes looking for a computer this one joined by itself; the
+        // card waits under "looking" until it is back.
         records.delete(peerId);
         removePeer(peerId);
         removeNetworkPeer(peerId);
         publish();
-        if (record.joined) {
-          rejoin().catch(() => undefined);
-        }
       }
     },
     [
@@ -264,13 +342,13 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       bridge,
       performRemoteTransport,
       publish,
-      rejoin,
       removeNetworkPeer,
       removePeer,
     ],
   );
   const acceptSignalRef = useRef(acceptSignal);
   acceptSignalRef.current = acceptSignal;
+  replayRef.current = acceptSignal;
 
   // What arrives on this channel is this computer's own sound on its way out,
   // decimated for the meter: the other computers' sound never comes back up.
@@ -280,23 +358,22 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const acceptStreamingRef = useRef<(peerId: string) => void>(() => undefined);
   acceptStreamingRef.current = (peerId) => {
     const record = recordsRef.current.get(peerId);
-    if (record && !record.receiving && !stoppingRef.current) {
+    if (record && !record.receiving) {
       record.receiving = true;
       publish();
     }
   };
   const handleLanError = useCallback(() => {
-    if (!roleRef.current || stoppingRef.current) {
+    if (phaseRef.current === 'idle') {
       return;
     }
     recordsRef.current.forEach((_record, peerId) => removePeer(peerId));
     clearLinks();
-    if (roleRef.current === 'sender') {
-      rejoin().catch(() => undefined);
-    } else {
-      rehost().catch(() => undefined);
-    }
-  }, [clearLinks, rehost, rejoin, removePeer]);
+    setError('connection');
+    setPhase('error');
+    // Straight back on the network; failing that, when it comes back.
+    start().catch(() => undefined);
+  }, [clearLinks, removePeer, setPhase, start]);
   useRemoteAudioBridgeSubscriptions({
     acceptAudioRef,
     acceptSignalRef,
@@ -304,104 +381,63 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     handleError: handleLanError,
   });
 
-  const showCode = useCallback(
-    async (replaceCode = false) => {
-      // After the saved link, never ahead of it: a computer that joined
-      // another keeps that link until Unlink ends it.
-      await lookedUp;
-      const { current } = roleRef;
-      const settled = phaseRef.current;
-      if (
-        current === 'sender' ||
-        (current === 'listener' &&
-          !replaceCode &&
-          settled !== 'error' &&
-          settled !== 'disconnected')
-      ) {
-        return;
-      }
-      generationRef.current += 1;
-      const attempt = generationRef.current;
-      clearLinks();
-      setRole('listener');
-      setError(undefined);
-      setPhase('preparing');
-      try {
-        const details = await bridge.startRemoteAudioLanHost(replaceCode);
-        if (generationRef.current !== attempt) {
-          return;
-        }
-        setDeviceName(details.deviceName);
-        setLanOptions(details.options);
-        setPhase('waiting');
-      } catch {
-        if (generationRef.current === attempt) {
-          setRole(undefined);
-          setError('lan');
-          setPhase('error');
-        }
-      }
-    },
-    [bridge, clearLinks, lookedUp, setPhase, setRole],
-  );
-
   const link = useCallback(
-    async (code: string) => {
-      generationRef.current += 1;
-      const attempt = generationRef.current;
-      clearLinks();
-      setLanOptions([]);
-      setRole('sender');
+    async (pasted: string) => {
       setError(undefined);
-      setPhase('connecting');
+      if (phaseRef.current === 'idle' || phaseRef.current === 'error') {
+        await start();
+      }
       try {
-        const joined = await bridge.joinRemoteAudioLan(code.trim());
-        if (generationRef.current !== attempt) {
-          return;
+        const joined = await bridge.joinRemoteAudioLan(pasted.trim());
+        setJoins((current) => [
+          ...current.filter((entry) => entry.computerId !== joined.computerId),
+          joined,
+        ]);
+        if (phaseRef.current !== 'playback-blocked') {
+          setPhase('ready');
         }
-        setDeviceName(joined.deviceName);
-        publish();
+        return true;
       } catch {
-        if (generationRef.current === attempt) {
-          setRole(undefined);
-          setError('lan');
-          setPhase('error');
-        }
+        setError('code');
+        return false;
       }
     },
-    [bridge, clearLinks, publish, setPhase, setRole],
+    [bridge, setPhase, start],
   );
 
   /**
-   * Ends every link of this computer's, for good.
-   *
-   * A computer that joined forgets the code it pasted and shows its own
-   * again. A computer whose code was used gets a new one: anybody holding the
-   * old code could otherwise come straight back, because a code is the whole
-   * of what a link needs.
+   * Ends the link with one computer, for good, and only that one. The other
+   * computer is told to forget this computer's code, and is refused if it
+   * comes back with it unless somebody pastes it there again.
    */
-  const unlink = useCallback(async () => {
-    if (stoppingRef.current) {
-      return;
-    }
-    const wasJoined = roleRef.current === 'sender';
-    stoppingRef.current = true;
-    generationRef.current += 1;
-    await Promise.allSettled(
-      [...recordsRef.current.keys()].map((peerId) =>
-        bridge.sendRemoteAudioLanSignal({ peerId, signal: { kind: 'stop' } }),
-      ),
-    );
-    clearLinks();
-    if (wasJoined) {
-      await bridge.stopRemoteAudioLan('unlink').catch(() => undefined);
-    }
-    setRole(undefined);
-    setDeviceName(undefined);
-    setPhase('idle');
-    stoppingRef.current = false;
-    await showCode(!wasJoined);
-  }, [bridge, clearLinks, setPhase, setRole, showCode]);
+  const unlink = useCallback(
+    async (target: { peerId?: string; computerId?: string }) => {
+      await bridge.unlinkRemoteAudioLan(target);
+      const records = recordsRef.current;
+      const named =
+        target.computerId ??
+        (target.peerId === undefined
+          ? undefined
+          : records.get(target.peerId)?.computerId);
+      [...records.entries()].forEach(([peerId, record]) => {
+        if (
+          peerId === target.peerId ||
+          (named !== undefined && record.computerId === named)
+        ) {
+          records.delete(peerId);
+          removePeer(peerId);
+          removeNetworkPeer(peerId);
+        }
+      });
+      if (named !== undefined) {
+        setJoins((current) =>
+          current.filter((entry) => entry.computerId !== named),
+        );
+      }
+      publish();
+    },
+    [bridge, publish, removeNetworkPeer, removePeer],
+  );
 
   const setSwitches = useCallback(
     async (name: string, switches: ILinkSwitches) => {
@@ -425,19 +461,27 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [publish, resume]);
 
+  const looking = useMemo(
+    () =>
+      joins.filter(
+        (entry) => !links.some((link) => link.computerId === entry.computerId),
+      ),
+    [joins, links],
+  );
+
   const value = useMemo(
     () => ({
       bothWays,
+      code,
       deviceName,
       error,
-      lanOptions,
       links,
+      looking,
       networkStats,
       phase,
-      role,
       sending,
       sendingFailed,
-      showCode,
+      start,
       link,
       unlink,
       setSwitches,
@@ -446,19 +490,19 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     }),
     [
       bothWays,
+      code,
       deviceName,
       error,
-      lanOptions,
       link,
       links,
+      looking,
       networkStats,
       phase,
       resumePlayback,
-      role,
       sending,
       sendingFailed,
       setSwitches,
-      showCode,
+      start,
       subscribeMeter,
       unlink,
     ],

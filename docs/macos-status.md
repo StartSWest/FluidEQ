@@ -10,8 +10,9 @@ taps. This page records the current implementation and its remaining limits.
   the native port is validated only on arm64.
 - The native helpers and the Electron bundle both target macOS 14.4. A build
   made on macOS 26 must not silently produce helpers that require macOS 26.
-- `macos` and `macos-support` carry the same reviewed source, including
-  the latest `origin/main`. The older branch's history is retained.
+- `macos` is the sole Mac branch and includes the latest `origin/main`.
+  The redundant `macos-support` branch is retired; its history remains
+  in `macos`. This sync does not merge Mac work into `main`.
 
 ## Implemented
 
@@ -111,3 +112,7 @@ taps. This page records the current implementation and its remaining limits.
 - No running app window was available for the visual checks or permission
   flows, and no listening verdict has been made. The real-device smoke is an
   automated playback/lifecycle check, not a listening session.
+- The final sync also includes main's updated Share Audio interface and
+  multi-computer links. All 25 affected app suites passed (187 tests), as did
+  the app and script TypeScript checks and platform isolation. The native
+  sources are unchanged from the 80-check review above.

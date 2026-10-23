@@ -219,11 +219,16 @@ describe('a computer told of a press', () => {
     });
   });
 
-  /** `hub`: this computer's code was used, the one that pauses on sight. */
+  /** `hub`: this computer's code was used by every one of them, so it is
+   * the one that pauses them on sight. */
   const renderListener = (computers: IRemoteAudioComputer[], hub = true) =>
     renderHook(
       ({ list }: { list: IRemoteAudioComputer[] }) =>
-        useRemoteNowPlayingSource(list, hub, {}),
+        useRemoteNowPlayingSource(
+          list,
+          hub ? list.map((entry) => entry.id) : [],
+          {},
+        ),
       { initialProps: { list: computers } },
     );
 

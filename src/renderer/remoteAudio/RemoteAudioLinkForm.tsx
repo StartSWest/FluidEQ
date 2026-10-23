@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useState } from 'react';
-import type { ILanPairingOption } from '../../common/remoteAudio';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import TextInput from '../widgets/TextInput';
@@ -13,27 +12,40 @@ import RemoteAudioCodeList from './RemoteAudioCodeList';
 
 interface IRemoteAudioLinkFormProps {
   deviceName?: string;
-  lanOptions: ILanPairingOption[];
+  /** This computer's one code. */
+  code?: string;
   status: string;
-  onLink(code: string): void;
+  /** Why the last paste did not link, if it did not. */
+  pasteError?: string;
+  /** Resolves true once the code is saved and being linked. */
+  onLink(code: string): Promise<boolean>;
 }
 
 /**
- * Linking two computers, from either one: this computer's code to copy, and
- * room to paste the other's. Whichever side pastes, the link that comes of it
- * runs both ways.
+ * Linking computers, from any of them: this computer's code to copy, and
+ * room to paste another's. Whichever side pastes, the link that comes of it
+ * runs both ways, and the same code links any number of computers.
  */
 const RemoteAudioLinkForm = ({
   deviceName,
-  lanOptions,
+  code,
   status,
+  pasteError,
   onLink,
 }: IRemoteAudioLinkFormProps) => {
   const { t } = useTranslation();
-  const [code, setCode] = useState('');
+  const [pasted, setPasted] = useState('');
   const submit = () => {
-    if (code.trim()) {
-      onLink(code.trim());
+    const value = pasted.trim();
+    if (value) {
+      onLink(value)
+        .then((linked) => {
+          if (linked) {
+            setPasted('');
+          }
+          return undefined;
+        })
+        .catch(() => undefined);
     }
   };
   return (
@@ -47,7 +59,7 @@ const RemoteAudioLinkForm = ({
             <MenuIcon name="monitor" />
             {deviceName ?? '—'}
           </strong>
-          <RemoteAudioCodeList lanOptions={lanOptions} status={status} />
+          <RemoteAudioCodeList code={code} status={status} />
           <p className="remote-audio__link-hint">
             {t('remoteAudio.link.thisHint')}
           </p>
@@ -67,17 +79,17 @@ const RemoteAudioLinkForm = ({
           <div className="remote-audio__link-paste">
             <TextInput
               ariaLabel={t('remoteAudio.link.codeLabel')}
-              value={code}
+              value={pasted}
               isDisabled={false}
-              errorMessage=""
+              errorMessage={pasteError ?? ''}
               placeholder={t('remoteAudio.link.placeholder')}
-              handleChange={setCode}
+              handleChange={setPasted}
               handleSubmit={submit}
             />
             <button
               type="button"
               className="button small"
-              disabled={!code.trim()}
+              disabled={!pasted.trim()}
               onClick={submit}
             >
               {t('remoteAudio.link.start')}
@@ -90,7 +102,7 @@ const RemoteAudioLinkForm = ({
       </div>
       <p className="remote-audio__link-once">
         <MenuIcon name="restart" />
-        {t('remoteAudio.link.once')}
+        {t('remoteAudio.link.once')} {t('remoteAudio.link.many')}
       </p>
     </div>
   );

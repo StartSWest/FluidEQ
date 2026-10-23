@@ -24,6 +24,8 @@ const remoteAudio: Partial<Dictionary> = {
     '两台电脑会立即互相播放。如果只想要一个方向，之后关闭另一个方向即可。',
   'remoteAudio.link.once':
     '只需一次。链接后的电脑重启后会自动重新找到彼此，哪一边重启都一样。',
+  'remoteAudio.link.many':
+    '同一个连接码可以链接任意数量的电脑，取消其中一台的链接不会影响其他电脑。',
   'remoteAudio.rule.echoTitle': '双向，无回声',
   'remoteAudio.rule.echo':
     '每台电脑只发送自己播放的声音，绝不发送正在接收的声音，所以不会有声音绕回来。',
@@ -68,27 +70,26 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOff': '已关闭：{name} 的声音不会在这台电脑上播放。',
   'remoteAudio.lane.inNotSent': '{name} 关闭了“发送我的声音”。',
   'remoteAudio.lane.inOld': '{name} 需要最新版 FluidEQ 才能把声音发送到这里。',
-  'remoteAudio.lane.inOneWay': '要双向播放，这台电脑需要 Windows。',
+  'remoteAudio.lane.inOneWay':
+    '双向播放需要 Windows，或 Linux 上的 FluidEQ Engine。',
   'remoteAudio.lane.outQuiet': '这台电脑上没有在播放',
   'remoteAudio.lane.outOff': '未发送。{name} 听不到这台电脑。',
   'remoteAudio.lane.outNotPlayed': '{name} 关闭了“在此播放”。',
   'remoteAudio.lane.outOld':
     '{name} 需要最新版 FluidEQ 才能播放这台电脑的声音。',
-  'remoteAudio.lane.outOneWay': '要双向发送，这台电脑需要 Windows。',
+  'remoteAudio.lane.outOneWay':
+    '双向发送需要 Windows，或 Linux 上的 FluidEQ Engine。',
   'remoteAudio.lane.outFailed':
     '无法捕获这台电脑的声音。关闭再打开“发送我的声音”即可重试。',
   'remoteAudio.another.section': '链接另一台电脑',
-  'remoteAudio.another.hub':
-    '把这台电脑的连接码粘贴到另一台电脑上。每台已链接的电脑都会在上方有自己的一行。',
-  'remoteAudio.another.spoke':
-    '要链接第三台电脑，请在那台电脑上粘贴 {name} 的连接码：电脑会与它所用连接码的那台电脑链接。',
   'remoteAudio.singlePlayer.title': '同时只播放一处',
   'remoteAudio.singlePlayer.body':
     '同样适用于已链接的电脑：在其中一台开始播放，会暂停另一台正在播放的内容。',
   'remoteAudio.code.copy': '复制代码',
   'remoteAudio.code.copied': '已复制',
-  'remoteAudio.code.forAddress': '{address} 的配对码',
+  'remoteAudio.code.label': '这台电脑的连接码',
   'remoteAudio.status.preparing': '正在准备…',
+  'remoteAudio.status.noNetwork': '请将这台电脑连接到网络以获取连接码。',
   'remoteAudio.status.playbackBlocked': '按“恢复”即可听到音频',
   'remoteAudio.resume': '恢复音频',
   'remoteAudio.retry': '重试',
@@ -99,6 +100,8 @@ const remoteAudio: Partial<Dictionary> = {
     '两台电脑同时播放会叠加音量。首次链接前请先调低音量。',
   'remoteAudio.error.lan':
     'FluidEQ 无法打开本地连接。请确认两台电脑位于同一专用网络，并且防火墙允许 FluidEQ。',
+  'remoteAudio.error.code':
+    '这不是 FluidEQ 连接码，或者是这台电脑自己的连接码。请从另一台电脑的“共享音频”页面复制连接码。',
   'remoteAudio.error.capture':
     'FluidEQ 无法捕获这台电脑的系统音频。请检查当前输出设备，然后重试。',
   'remoteAudio.error.playback':

@@ -24,6 +24,8 @@ const remoteAudio: Partial<Dictionary> = {
     'Os dois computadores tocam um ao outro na hora. Desligue uma direção depois se quiser só uma.',
   'remoteAudio.link.once':
     'Só uma vez. Computadores vinculados se encontram de novo depois de reiniciar, de qualquer um dos lados.',
+  'remoteAudio.link.many':
+    'O mesmo código vincula qualquer número de computadores, e desvincular um mantém os outros vinculados.',
   'remoteAudio.rule.echoTitle': 'Nos dois sentidos, sem eco',
   'remoteAudio.rule.echo':
     'Cada computador envia só o que ele mesmo toca — nunca o som que está recebendo —, então nada volta.',
@@ -71,28 +73,26 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOld':
     '{name} precisa da versão mais recente do FluidEQ para enviar o som para cá.',
   'remoteAudio.lane.inOneWay':
-    'Tocar nos dois sentidos exige Windows neste computador.',
+    'Tocar nos dois sentidos exige Windows, ou o FluidEQ Engine no Linux.',
   'remoteAudio.lane.outQuiet': 'Nada tocando neste computador',
   'remoteAudio.lane.outOff': 'Sem enviar. {name} não ouve este computador.',
   'remoteAudio.lane.outNotPlayed': '{name} está com “Tocar aqui” desligado.',
   'remoteAudio.lane.outOld':
     '{name} precisa da versão mais recente do FluidEQ para tocar o som deste computador.',
   'remoteAudio.lane.outOneWay':
-    'Enviar nos dois sentidos exige Windows neste computador.',
+    'Enviar nos dois sentidos exige Windows, ou o FluidEQ Engine no Linux.',
   'remoteAudio.lane.outFailed':
     'Não foi possível capturar o som deste computador. Desligue e ligue “Enviar meu som” para tentar de novo.',
   'remoteAudio.another.section': 'Vincular outro computador',
-  'remoteAudio.another.hub':
-    'Cole o código deste computador em outro computador. Cada computador vinculado ganha a própria linha acima.',
-  'remoteAudio.another.spoke':
-    'Para vincular um terceiro computador, cole nele o código de {name}: um computador se vincula àquele cujo código ele usa.',
   'remoteAudio.singlePlayer.title': 'Um reprodutor de cada vez',
   'remoteAudio.singlePlayer.body':
     'vale também para computadores vinculados: começar algo em um pausa o que tocava no outro.',
   'remoteAudio.code.copy': 'Copiar código',
   'remoteAudio.code.copied': 'Copiado',
-  'remoteAudio.code.forAddress': 'Código de pareamento para {address}',
+  'remoteAudio.code.label': 'Código deste computador',
   'remoteAudio.status.preparing': 'Preparando…',
+  'remoteAudio.status.noNetwork':
+    'Conecte este computador a uma rede para obter o código dele.',
   'remoteAudio.status.playbackBlocked': 'Pressione Retomar para ouvir',
   'remoteAudio.resume': 'Retomar áudio',
   'remoteAudio.retry': 'Tentar de novo',
@@ -103,6 +103,8 @@ const remoteAudio: Partial<Dictionary> = {
     'Dois computadores tocando ao mesmo tempo se somam. Abaixe o volume antes do primeiro vínculo.',
   'remoteAudio.error.lan':
     'O FluidEQ não conseguiu abrir essa conexão local. Verifique se os dois computadores estão na mesma rede privada e se o firewall permite o FluidEQ.',
+  'remoteAudio.error.code':
+    'Isso não é um código do FluidEQ, ou é o deste próprio computador. Copie o código da página Compartilhar áudio do outro computador.',
   'remoteAudio.error.capture':
     'O FluidEQ não conseguiu capturar o áudio do sistema deste computador. Verifique o dispositivo de saída atual e tente de novo.',
   'remoteAudio.error.playback':

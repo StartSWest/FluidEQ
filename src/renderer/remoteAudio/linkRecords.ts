@@ -14,7 +14,6 @@ import type {
   ILinkSwitches,
   IRemoteAudioLink,
   TRemoteAudioPhase,
-  TRemoteAudioRole,
 } from './remoteAudioState';
 
 /** What the window keeps about one linked computer, by peer id. */
@@ -22,6 +21,7 @@ export interface ILinkRecord {
   name: string;
   address?: string;
   joined: boolean;
+  computerId?: string;
   theirs?: IRemoteDuplex;
   switches: ILinkSwitches;
   receiving: boolean;
@@ -78,18 +78,11 @@ export const sendsThere = (link: ILinkRecord, bothWays: boolean): boolean =>
   (bothWays || link.joined) &&
   (link.joined ? link.theirs?.plays !== false : link.theirs?.plays === true);
 
-/** The page's one-word state, from who is linked and how. */
+/** The page's one-word state once the code is on the network. */
 export const linkPhase = (
-  role: TRemoteAudioRole | undefined,
   records: ReadonlyMap<string, ILinkRecord>,
   playbackBlocked: boolean,
 ): TRemoteAudioPhase => {
-  if (!role) {
-    return 'idle';
-  }
-  if (records.size === 0) {
-    return role === 'listener' ? 'waiting' : 'connecting';
-  }
   const anyReceiving = [...records.values()].some((link) => link.receiving);
-  return playbackBlocked && anyReceiving ? 'playback-blocked' : 'connected';
+  return playbackBlocked && anyReceiving ? 'playback-blocked' : 'ready';
 };

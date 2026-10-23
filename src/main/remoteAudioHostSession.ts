@@ -10,28 +10,27 @@ const addressIsInUse = (error: unknown) =>
   error.code === 'EADDRINUSE';
 
 /**
- * A listener's secret is its durable pairing identity. Reusing it makes old
- * codes survive app and PC restarts; only the explicit replacement path is
- * allowed to ask the LAN layer for a new secret.
+ * A computer's secret is its durable pairing identity. Reusing it makes its
+ * one code survive app and PC restarts, so every computer that pasted it
+ * finds it again.
  */
 const startRemoteAudioHostSession = async (
   lan: IRemoteAudioLan,
   credentials: IRemoteAudioCredentialStore,
-  replaceCode: boolean,
 ): Promise<ILanHostSession> => {
-  const listener = credentials.readListener();
-  if (replaceCode || !listener) {
-    return lan.startHost();
+  const listener = credentials.read().identity;
+  if (!listener) {
+    return lan.start();
   }
   try {
-    return await lan.startHost(listener);
+    return await lan.start(listener);
   } catch (error) {
     if (!addressIsInUse(error)) {
       throw error;
     }
     // The old port may be claimed while FluidEQ is closed. Authenticated LAN
     // discovery lets paired senders find the same secret on a replacement.
-    return lan.startHost({ port: 0, secret: listener.secret });
+    return lan.start({ port: 0, secret: listener.secret });
   }
 };
 

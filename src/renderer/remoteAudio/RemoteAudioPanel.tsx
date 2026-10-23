@@ -16,7 +16,6 @@ import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { useSinglePlayer } from '../utils/singlePlayer';
 import '../styles/RemoteAudio.scss';
-import RemoteAudioCodeList from './RemoteAudioCodeList';
 import RemoteAudioLinkCard from './RemoteAudioLinkCard';
 import RemoteAudioLinkForm from './RemoteAudioLinkForm';
 import { useIncomingSound, useRemoteAudio } from './remoteAudioValueContext';
@@ -44,14 +43,14 @@ const RULES = [
 ] as const;
 
 /**
- * Share Audio: link this computer with another, and both play each other.
+ * Share Audio: link this computer with any number of others, all to all.
  *
- * Nothing linked, the page is the link itself — this computer's code to
- * copy and room to paste the other's, from whichever side. Linked, it is a
- * card per computer with its two directions, each on its own switch. There
- * is no role to choose any more: the listener/sender pair it replaced asked
- * people to decide which computer was "the one with the headset" before they
- * could share anything, and a link that runs both ways has no such side.
+ * The page is a card per linked computer with its two directions, each on
+ * its own switch, a card for each pasted computer that is away, and under
+ * them the link itself — this computer's one code to copy and room to paste
+ * another's. There is no side to choose: every computer listens and joins at
+ * once, the same code links any number of computers, and unlinking one
+ * leaves the rest.
  */
 const RemoteAudioPanel = () => {
   const { t } = useTranslation();
@@ -64,25 +63,39 @@ const RemoteAudioPanel = () => {
   const localNowPlaying = describeForRemote(
     pickSourceForRemote(sources, playingOwner, lastOwner),
   );
-  const { links, phase, role, showCode } = remote;
+  const { links, looking, phase, start } = remote;
 
   // The page opens on this computer's code. It is the same code every time —
-  // the pairing secret is kept — so showing it is never a new pairing.
+  // the pairing secret is kept — so showing it is never a new pairing, and
+  // asking while it runs drops no link.
   useEffect(() => {
-    if (role === undefined && phase === 'idle') {
-      showCode().catch(() => undefined);
+    if (phase === 'idle') {
+      start().catch(() => undefined);
     }
-  }, [phase, role, showCode]);
+  }, [phase, start]);
 
-  const joining = role === 'sender' && links.length === 0;
-  const linked = links.length > 0;
-  const errorMessage = remote.error
-    ? t(`remoteAudio.error.${remote.error}`)
-    : '';
-  const codeStatus =
-    phase === 'error' && errorMessage
-      ? errorMessage
-      : t('remoteAudio.status.preparing');
+  const linked = links.length > 0 || looking.length > 0;
+  const errorMessage =
+    remote.error && remote.error !== 'code'
+      ? t(`remoteAudio.error.${remote.error}`)
+      : '';
+  let codeStatus = t('remoteAudio.status.preparing');
+  if (phase === 'error' && errorMessage) {
+    codeStatus = errorMessage;
+  } else if (phase === 'ready' || phase === 'playback-blocked') {
+    codeStatus = t('remoteAudio.status.noNetwork');
+  }
+  const form = (
+    <RemoteAudioLinkForm
+      deviceName={remote.deviceName}
+      code={remote.code}
+      status={codeStatus}
+      pasteError={
+        remote.error === 'code' ? t('remoteAudio.error.code') : undefined
+      }
+      onLink={remote.link}
+    />
+  );
 
   return (
     <section className="remote-audio" aria-labelledby="remote-audio-title">
@@ -102,69 +115,11 @@ const RemoteAudioPanel = () => {
         </div>
       </header>
 
-      {!linked && !joining && (
-        <>
-          <h3 className="remote-audio__choice-title">
-            {t('remoteAudio.link.section')}
-          </h3>
-          <RemoteAudioLinkForm
-            deviceName={role === 'listener' ? remote.deviceName : undefined}
-            lanOptions={remote.lanOptions}
-            status={codeStatus}
-            onLink={(code) => {
-              remote.link(code).catch(() => undefined);
-            }}
-          />
-          <ul className="remote-audio__rules">
-            {RULES.map((rule) => (
-              <li key={rule.title}>
-                <span className="remote-audio__rule-icon" aria-hidden="true">
-                  <MenuIcon name={rule.icon} />
-                </span>
-                <span>
-                  <strong>{t(rule.title)}</strong>
-                  <span>{t(rule.body)}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      {(linked || joining) && (
+      {linked && (
         <>
           <h3 className="remote-audio__choice-title">
             {t('remoteAudio.linked.section')}
           </h3>
-          {joining && (
-            <article className="remote-audio__link is-looking">
-              <header className="remote-audio__link-head">
-                <span className="remote-audio__link-icon" aria-hidden="true">
-                  <MenuIcon name="monitor" />
-                </span>
-                <span className="remote-audio__link-name">
-                  <strong>{remote.deviceName ?? '—'}</strong>
-                  <span role="status">
-                    {phase === 'disconnected' && errorMessage
-                      ? errorMessage
-                      : t('remoteAudio.linked.looking', {
-                          name: remote.deviceName ?? '',
-                        })}
-                  </span>
-                </span>
-                <span className="remote-audio__link-spacer" />
-                <button
-                  type="button"
-                  className="button small subtle"
-                  onClick={() => {
-                    remote.unlink().catch(() => undefined);
-                  }}
-                >
-                  {t('remoteAudio.linked.unlink')}
-                </button>
-              </header>
-            </article>
-          )}
           {links.map((link) => (
             <RemoteAudioLinkCard
               key={link.id}
@@ -180,9 +135,41 @@ const RemoteAudioPanel = () => {
                 remote.setSwitches(name, switches).catch(() => undefined);
               }}
               onUnlink={() => {
-                remote.unlink().catch(() => undefined);
+                remote.unlink({ peerId: link.id }).catch(() => undefined);
               }}
             />
+          ))}
+          {looking.map((away) => (
+            <article
+              className="remote-audio__link is-looking"
+              key={away.computerId}
+            >
+              <header className="remote-audio__link-head">
+                <span className="remote-audio__link-icon" aria-hidden="true">
+                  <MenuIcon name="monitor" />
+                </span>
+                <span className="remote-audio__link-name">
+                  <strong>{away.deviceName}</strong>
+                  <span role="status">
+                    {t('remoteAudio.linked.looking', {
+                      name: away.deviceName,
+                    })}
+                  </span>
+                </span>
+                <span className="remote-audio__link-spacer" />
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={() => {
+                    remote
+                      .unlink({ computerId: away.computerId })
+                      .catch(() => undefined);
+                  }}
+                >
+                  {t('remoteAudio.linked.unlink')}
+                </button>
+              </header>
+            </article>
           ))}
           {phase === 'playback-blocked' && (
             <div className="remote-audio__notice" role="alert">
@@ -198,26 +185,6 @@ const RemoteAudioPanel = () => {
               </button>
             </div>
           )}
-          <h3 className="remote-audio__choice-title">
-            {t('remoteAudio.another.section')}
-          </h3>
-          <div className="remote-audio__another">
-            {role === 'listener' ? (
-              <>
-                <p>{t('remoteAudio.another.hub')}</p>
-                <RemoteAudioCodeList
-                  lanOptions={remote.lanOptions}
-                  status={t('remoteAudio.status.preparing')}
-                />
-              </>
-            ) : (
-              <p>
-                {t('remoteAudio.another.spoke', {
-                  name: remote.deviceName ?? '',
-                })}
-              </p>
-            )}
-          </div>
           {singlePlayer && (
             <p className="remote-audio__note">
               <strong>{t('remoteAudio.singlePlayer.title')}</strong>
@@ -227,6 +194,28 @@ const RemoteAudioPanel = () => {
         </>
       )}
 
+      <h3 className="remote-audio__choice-title">
+        {linked
+          ? t('remoteAudio.another.section')
+          : t('remoteAudio.link.section')}
+      </h3>
+      {form}
+      {!linked && (
+        <ul className="remote-audio__rules">
+          {RULES.map((rule) => (
+            <li key={rule.title}>
+              <span className="remote-audio__rule-icon" aria-hidden="true">
+                <MenuIcon name={rule.icon} />
+              </span>
+              <span>
+                <strong>{t(rule.title)}</strong>
+                <span>{t(rule.body)}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
       {errorMessage && phase === 'error' && (
         <div className="remote-audio__notice is-error" role="alert">
           <span>{errorMessage}</span>
@@ -234,7 +223,7 @@ const RemoteAudioPanel = () => {
             type="button"
             className="button small subtle"
             onClick={() => {
-              showCode().catch(() => undefined);
+              start().catch(() => undefined);
             }}
           >
             {t('remoteAudio.retry')}

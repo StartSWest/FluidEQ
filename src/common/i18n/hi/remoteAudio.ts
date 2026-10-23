@@ -24,6 +24,8 @@ const remoteAudio: Partial<Dictionary> = {
     'दोनों कंप्यूटर तुरंत एक-दूसरे की आवाज़ चलाने लगते हैं। अगर सिर्फ़ एक दिशा चाहिए, तो बाद में दूसरी बंद कर दें।',
   'remoteAudio.link.once':
     'बस एक बार। लिंक किए गए कंप्यूटर रीस्टार्ट के बाद एक-दूसरे को फिर ढूँढ लेते हैं, किसी भी तरफ़ से।',
+  'remoteAudio.link.many':
+    'एक ही कोड से कितने भी कंप्यूटर लिंक हो सकते हैं, और एक का लिंक हटाने से बाकी लिंक बने रहते हैं।',
   'remoteAudio.rule.echoTitle': 'दोनों दिशाओं में, बिना गूँज',
   'remoteAudio.rule.echo':
     'हर कंप्यूटर सिर्फ़ वही भेजता है जो वह खुद चला रहा है — कभी वह आवाज़ नहीं जो उसे मिल रही है — इसलिए कुछ भी वापस नहीं आता।',
@@ -73,28 +75,26 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.lane.inOld':
     '{name} को अपनी आवाज़ यहाँ भेजने के लिए नवीनतम FluidEQ चाहिए।',
   'remoteAudio.lane.inOneWay':
-    'दोनों दिशाओं में चलाने के लिए इस कंप्यूटर पर Windows चाहिए।',
+    'दोनों दिशाओं में चलाने के लिए Windows, या Linux पर FluidEQ Engine चाहिए।',
   'remoteAudio.lane.outQuiet': 'इस कंप्यूटर पर कुछ नहीं चल रहा',
   'remoteAudio.lane.outOff': 'नहीं भेज रहे। {name} इस कंप्यूटर को नहीं सुनता।',
   'remoteAudio.lane.outNotPlayed': '{name} पर “यहाँ चलाएँ” बंद है।',
   'remoteAudio.lane.outOld':
     '{name} को इस कंप्यूटर की आवाज़ चलाने के लिए नवीनतम FluidEQ चाहिए।',
   'remoteAudio.lane.outOneWay':
-    'दोनों दिशाओं में भेजने के लिए इस कंप्यूटर पर Windows चाहिए।',
+    'दोनों दिशाओं में भेजने के लिए Windows, या Linux पर FluidEQ Engine चाहिए।',
   'remoteAudio.lane.outFailed':
     'इस कंप्यूटर की आवाज़ कैप्चर नहीं हो सकी। फिर से कोशिश करने के लिए “मेरी आवाज़ भेजें” को बंद करके फिर चालू करें।',
   'remoteAudio.another.section': 'एक और कंप्यूटर लिंक करें',
-  'remoteAudio.another.hub':
-    'इस कंप्यूटर का कोड किसी दूसरे कंप्यूटर पर पेस्ट करें। हर लिंक किए गए कंप्यूटर की ऊपर अपनी पंक्ति होती है।',
-  'remoteAudio.another.spoke':
-    'तीसरा कंप्यूटर लिंक करने के लिए, उस पर {name} का कोड पेस्ट करें: कंप्यूटर उसी से लिंक होता है जिसका कोड वह इस्तेमाल करता है।',
   'remoteAudio.singlePlayer.title': 'एक समय पर एक प्लेयर',
   'remoteAudio.singlePlayer.body':
     'लिंक किए गए कंप्यूटरों पर भी लागू होता है: एक पर कुछ शुरू करने से दूसरे पर चल रहा रुक जाता है।',
   'remoteAudio.code.copy': 'कोड कॉपी करें',
   'remoteAudio.code.copied': 'कॉपी हो गया',
-  'remoteAudio.code.forAddress': '{address} के लिए पेयरिंग कोड',
+  'remoteAudio.code.label': 'इस कंप्यूटर का कोड',
   'remoteAudio.status.preparing': 'तैयार हो रहा है…',
+  'remoteAudio.status.noNetwork':
+    'इसका कोड पाने के लिए इस कंप्यूटर को किसी नेटवर्क से जोड़ें।',
   'remoteAudio.status.playbackBlocked':
     'ऑडियो सुनने के लिए फिर शुरू करें दबाएँ',
   'remoteAudio.resume': 'ऑडियो फिर शुरू करें',
@@ -106,6 +106,8 @@ const remoteAudio: Partial<Dictionary> = {
     'एक साथ चल रहे दो कंप्यूटरों की आवाज़ जुड़ जाती है। पहले लिंक से पहले आवाज़ कम करें।',
   'remoteAudio.error.lan':
     'FluidEQ स्थानीय कनेक्शन नहीं खोल सका। सुनिश्चित करें कि दोनों कंप्यूटर एक ही निजी नेटवर्क पर हैं और फ़ायरवॉल FluidEQ को अनुमति देता है।',
+  'remoteAudio.error.code':
+    'यह FluidEQ कोड नहीं है, या यह इसी कंप्यूटर का अपना कोड है। दूसरे कंप्यूटर के ऑडियो साझा करें पेज से कोड कॉपी करें।',
   'remoteAudio.error.capture':
     'FluidEQ इस कंप्यूटर का सिस्टम ऑडियो कैप्चर नहीं कर सका। मौजूदा आउटपुट डिवाइस जाँचें, फिर कोशिश करें।',
   'remoteAudio.error.playback':
