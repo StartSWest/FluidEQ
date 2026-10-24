@@ -7,7 +7,9 @@ const permission = spawnSync(enginePath, ['--audio-permission'], {
   encoding: 'utf8',
 });
 assert.equal(permission.status, 0, permission.stderr);
-if (permission.stdout.trim() === 'denied') {
+// A headless runner cannot answer a first-use permission prompt. The app's
+// permission flow is verified interactively; this regression requires a grant.
+if (permission.stdout.trim() !== 'granted') {
   console.log(
     'SKIP: System Audio Recording permission is not granted to this test launcher',
   );
