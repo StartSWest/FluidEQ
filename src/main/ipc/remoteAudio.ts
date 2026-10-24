@@ -392,6 +392,9 @@ export const registerRemoteAudioIpc = ({
     if (replay !== true) {
       return { details, joins: savedJoins(), links: [] };
     }
+    // Captures outlive the window. A reloaded window otherwise never hears
+    // the original start event and puts its Library rack back in the send.
+    sendToWindow(LAN_SENDING_CHANNEL, networkCapture !== undefined);
     // A new window: every link is told again, and sound already arriving is
     // announced again with the next chunk, through a port of its own.
     [...streaming].forEach(forgetArriving);

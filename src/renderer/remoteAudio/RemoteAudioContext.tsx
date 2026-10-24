@@ -140,10 +140,11 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     bothWays,
     subscribeMeter,
   );
-  const { sending, sendingFailed, markSendingFailed } = useRemoteAudioSending({
-    bothWays,
-    receiving,
-  });
+  const { sending, sendingFailed, markSending, markSendingFailed } =
+    useRemoteAudioSending({
+      bothWays,
+      receiving,
+    });
   // Off Windows the window sends, to every computer that is to hear it.
   const sendTo = links
     .filter((link) => sendsThere(link, bothWays))
@@ -157,6 +158,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     peerIds: sendToIds,
     sendInputId: bothWays ? linuxShare.sendInputId : undefined,
     publishMeter,
+    onSending: markSending,
     onFailure: markSendingFailed,
   });
 
