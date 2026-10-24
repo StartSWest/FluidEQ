@@ -16,8 +16,12 @@ const bridge = () => window.electron?.ipcRenderer;
 // alone, so on a Mac the row was labelled Start with Windows and, once turned
 // on, said Windows had it switched off; Linux has no login items in Electron
 // at all. A Mac's "Open at login" would be a row of its own, with its own
-// words.
-const onWindows = () => window.electron?.platform === 'win32';
+// words. Linux has one now, written by main into the XDG autostart folder
+// (`linux/linuxAutostart.ts`), and words of its own ("Start when you sign
+// in", `common/i18n/linux`).
+const onWindows = () =>
+  window.electron?.platform === 'win32' ||
+  window.electron?.platform === 'linux';
 
 // The last answer from main, kept while the menu is closed, so reopening it
 // shows the state straight away rather than a frame of "off".

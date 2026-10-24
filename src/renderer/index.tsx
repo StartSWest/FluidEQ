@@ -24,7 +24,8 @@ import './styles/cascade';
 import { createRoot } from 'react-dom/client';
 import { RENDERER_READY_EVENT } from 'common/constants';
 import { PRODUCT_NAME } from 'common/branding';
-import { loadLocale } from 'common/i18n';
+import { loadLocale, setPlatformText } from 'common/i18n';
+import LINUX_TEXT from 'common/i18n/linux';
 import App from './App';
 import ErrorBoundary from './ErrorBoundary';
 import { installGlobalErrorHandlers, reportError } from './utils/logger';
@@ -47,6 +48,12 @@ document.title = PRODUCT_NAME;
 // does all three itself (`App.scss`, "on a Mac"). Before the first render, so
 // no frame is ever drawn in the other system's clothes.
 document.documentElement.dataset.platform = window.electron?.platform ?? '';
+
+// Linux words where the shared ones speak of Windows (`common/i18n/linux`),
+// before the first string is drawn.
+if (window.electron?.platform === 'linux') {
+  setPlatformText(LINUX_TEXT);
+}
 
 // Before anything renders, so a throw while building the first tree is caught
 // as well. The boundary below only sees failures inside React's own render;

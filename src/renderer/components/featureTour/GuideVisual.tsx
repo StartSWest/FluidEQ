@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useMemo } from 'react';
-import { HELP_CHAPTERS } from '../../../common/helpGuide';
+import shownHelpChapters from '../../help/shownHelpChapters';
 import { MarkedText } from '../../help/HelpMarks';
 import { buildHelpIndex, searchHelp } from '../../help/helpSearch';
 import { useTranslation } from '../../utils/I18nContext';
@@ -26,10 +26,10 @@ export default function GuideVisual() {
   const query = t('tour.help.query');
   const hits = useMemo(
     () =>
-      searchHelp(buildHelpIndex(HELP_CHAPTERS, locale), query)?.hits.slice(
-        0,
-        SHOWN,
-      ) ?? [],
+      searchHelp(
+        buildHelpIndex(shownHelpChapters(), locale),
+        query,
+      )?.hits.slice(0, SHOWN) ?? [],
     [locale, query],
   );
   const [first] = hits;

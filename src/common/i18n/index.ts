@@ -185,12 +185,31 @@ const PLACEHOLDER = /\{(\w+)\}/g;
  * blanked: `{count}` on screen says "a developer forgot something", whereas an
  * empty gap says "this app is broken".
  */
+/**
+ * The words of the platform the app runs on, where they differ from the
+ * shared ones (`./linux`): looked up before the dictionary, per language.
+ * Empty unless the process that translates asked for them at startup, which
+ * is why a test reads the shared words whatever machine runs it.
+ */
+let platformText: Partial<Record<LocaleCode, Partial<Dictionary>>> = {};
+
+export const setPlatformText = (
+  text: Partial<Record<LocaleCode, Partial<Dictionary>>>,
+): void => {
+  platformText = text;
+};
+
 export const translate = (
   locale: LocaleCode,
   key: TranslationKey,
   vars?: TranslateVars,
 ): string => {
-  const template = DICTIONARIES[locale]?.[key] ?? en[key] ?? key;
+  const template =
+    platformText[locale]?.[key] ??
+    DICTIONARIES[locale]?.[key] ??
+    platformText.en?.[key] ??
+    en[key] ??
+    key;
   if (!vars) {
     return template;
   }

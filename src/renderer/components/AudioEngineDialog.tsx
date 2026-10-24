@@ -28,6 +28,8 @@ import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from './DialogFrame';
 import holdFocusReturn from '../utils/focusReturn';
+import { runsOnLinux } from '../utils/platform';
+import Mark from './EngineMark';
 // The footer and the APO repairs are raw `<button class="button">`s rather
 // than the `Button` widget — they are native buttons in a focus trap — so the
 // sheet that defines that class has to be asked for here. It used to be
@@ -46,29 +48,6 @@ export interface IAudioEngineDialogProps {
   /** Rendered only while Equalizer APO is the engine in use. */
   onApoAction?: (action: TApoAction) => void;
 }
-
-/**
- * A tick or a dash beside each line.
- *
- * Stroked rather than a text glyph: "✓" and "–" come from whichever font the
- * platform happens to have them in, so the same two marks were three
- * different weights and two different heights across Windows, macOS and
- * Ubuntu. These are the same shape everywhere and take their colour from the
- * line they belong to.
- */
-const Mark = ({ kind }: { kind: 'yes' | 'no' }) => (
-  <svg
-    className={`engine-dialog__mark engine-dialog__mark--${kind}`}
-    viewBox="0 0 14 14"
-    aria-hidden="true"
-  >
-    {kind === 'yes' ? (
-      <path d="M2.6 7.3l2.9 2.9L11.4 4" />
-    ) : (
-      <path d="M3.2 7h7.6" />
-    )}
-  </svg>
-);
 
 interface IEngineOptionProps {
   name: string;
@@ -238,13 +217,16 @@ const AudioEngineDialog = ({
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [isApplying, onCancel]);
 
-  const options = useMemo(
+  // Linux has one engine, FluidEQ's own: nothing to choose between, so the
+  // dialog shows what it is and how it runs, with no Apply and no badge.
+  const isLinux = runsOnLinux();
+  const allOptions = useMemo(
     () =>
       [
         {
           engine: 'fluid' as TAudioEngine,
           name: t('engine.fluid.name'),
-          recommended: t('engine.recommended'),
+          recommended: isLinux ? undefined : t('engine.recommended'),
           isDisabled: !status.fluidSupported,
           // The fourth line only on a machine that has Equalizer APO: it is
           // what this engine does to it, and on a machine without it the
@@ -274,8 +256,11 @@ const AudioEngineDialog = ({
           ] as const,
         },
       ] as const,
-    [status.apo.installed, status.fluidSupported, t],
+    [isLinux, status.apo.installed, status.fluidSupported, t],
   );
+  const options = isLinux
+    ? allOptions.filter((option) => option.engine === 'fluid')
+    : allOptions;
 
   const moveSelection = (event: KeyboardEvent<HTMLDivElement>) => {
     let step = 0;
@@ -402,23 +387,26 @@ const AudioEngineDialog = ({
                   disabled={isApplying}
                   onClick={onCancel}
                 >
-                  {/* Nothing is left to cancel once a switch has landed. */}
-                  {t(switchedTo ? 'engine.close' : 'engine.cancel')}
+                  {/* Nothing is left to cancel once a switch has landed, and
+                      on Linux there was never a switch to make. */}
+                  {t(switchedTo || isLinux ? 'engine.close' : 'engine.cancel')}
                 </button>
               )}
               {/* Not disabled while it works: `is-running` is the app's way of
                   saying a button is still doing what it was pressed for, and
                   the rule that draws it refuses a disabled button. Repeated
                   presses are refused by the handler instead. */}
-              <button
-                type="button"
-                className={`button small${isApplying ? ' is-running' : ''}`}
-                aria-busy={isApplying}
-                disabled={!isApplying && selected === status.engine}
-                onClick={handleApply}
-              >
-                {t('engine.apply')}
-              </button>
+              {!isLinux && (
+                <button
+                  type="button"
+                  className={`button small${isApplying ? ' is-running' : ''}`}
+                  aria-busy={isApplying}
+                  disabled={!isApplying && selected === status.engine}
+                  onClick={handleApply}
+                >
+                  {t('engine.apply')}
+                </button>
+              )}
             </div>
             {failure && (
               <p className="engine-dialog__error" role="alert">

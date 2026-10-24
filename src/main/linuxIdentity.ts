@@ -6,6 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { app } from 'electron';
 import { PRODUCT_NAME } from '../common/branding';
+import { setPlatformText } from '../common/i18n';
+import LINUX_TEXT from '../common/i18n/linux';
 
 /**
  * The name Linux shows for FluidEQ: FluidEQ, never "electron".
@@ -34,6 +36,8 @@ const applyLinuxIdentity = () => {
     return;
   }
   process.title = PRODUCT_NAME;
+  // The tray's and the notices' words, as the window's (`common/i18n/linux`).
+  setPlatformText(LINUX_TEXT);
   if (!app.isPackaged) {
     app.setDesktopName(DEV_DESKTOP_NAME);
   }

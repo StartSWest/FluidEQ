@@ -22,6 +22,7 @@ import { useTranslation } from '../utils/I18nContext';
 import renderInline from '../utils/inlineMarkup';
 import MenuIcon from '../icons/MenuIcon';
 import DialogFrame from './DialogFrame';
+import { runsOnLinux } from '../utils/platform';
 import '../styles/AudioTroubleshooter.scss';
 
 /**
@@ -181,7 +182,10 @@ export default function AudioTroubleshooter({
   let engineOwnSteps: IStep[] = [];
   if (isApo) {
     engineOwnSteps = apoSteps;
-  } else if (isFluid) {
+  } else if (isFluid && !runsOnLinux()) {
+    // On Linux the engine is not attached to outputs one by one: it is the
+    // system's output and follows the one chosen, so restarting it is the
+    // whole repair.
     engineOwnSteps = engineSteps;
   }
 

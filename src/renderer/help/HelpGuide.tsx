@@ -10,8 +10,8 @@ import {
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
-import { HELP_CHAPTERS } from 'common/helpGuide';
 import { PRODUCT_NAME } from 'common/branding';
+import shownHelpChapters from './shownHelpChapters';
 import { useTranslation } from '../utils/I18nContext';
 import DialogClose from '../components/DialogClose';
 import MenuIcon from '../icons/MenuIcon';
@@ -118,7 +118,7 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
   // Read once per language: `t` changes exactly when the text can.
   const chapters = useMemo<IHelpShownChapter[]>(
     () =>
-      HELP_CHAPTERS.map(({ id, group, figures, video }, index) => ({
+      shownHelpChapters().map(({ id, group, figures, video }, index) => ({
         id,
         group,
         figures,
@@ -132,7 +132,10 @@ export default function HelpGuide({ onClose }: IHelpGuideProps) {
     [t],
   );
   // The whole guide is read once per language and searched on every key.
-  const guide = useMemo(() => buildHelpIndex(HELP_CHAPTERS, locale), [locale]);
+  const guide = useMemo(
+    () => buildHelpIndex(shownHelpChapters(), locale),
+    [locale],
+  );
   const found = useMemo(() => searchHelp(guide, searched), [guide, searched]);
   const searching = found !== undefined;
   const matches = useMemo<IHelpShownChapter[]>(

@@ -36,6 +36,18 @@ const settings = (openAtLogin: boolean, willLaunch = openAtLogin) => ({
   executableWillLaunchAtLogin: willLaunch,
 });
 
+// Windows' login items: Linux keeps its entry in the XDG autostart folder
+// (`linuxAutostart.test.ts`). Pinned so a run on Linux tests the same thing.
+const platform = Object.getOwnPropertyDescriptor(process, 'platform');
+beforeAll(() => {
+  Object.defineProperty(process, 'platform', { value: 'win32' });
+});
+afterAll(() => {
+  if (platform) {
+    Object.defineProperty(process, 'platform', platform);
+  }
+});
+
 describe('starting with Windows', () => {
   beforeEach(() => {
     jest.clearAllMocks();

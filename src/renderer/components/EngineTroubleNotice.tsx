@@ -12,6 +12,7 @@ import type { TEngineTrouble } from '../audio/engineTrouble';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { useNoticeTurn } from '../utils/noticeTurn';
+import { runsOnLinux } from '../utils/platform';
 import Button from '../widgets/Button';
 import CompactFrame from './CompactFrame';
 // The output notice's spot, which this shares: it is the same message — this
@@ -155,7 +156,9 @@ const EngineTroubleNotice = ({
   // The engine failing is Equalizer APO's cue; the engine's own DSP failing is
   // not, because APO has none of it — offering it there is an offer to give
   // up the EQ that is working for nothing in return.
-  const canApoHelp = trouble.kind === 'off' || trouble.canApoHelp;
+  // Never on Linux, where Equalizer APO does not exist.
+  const canApoHelp =
+    !runsOnLinux() && (trouble.kind === 'off' || trouble.canApoHelp);
   // The rack is the one part of the engine a restart cannot mend: it runs
   // inside the engine, so the same engine comes back and fails the same way.
   // Putting this app's own engine in place is the repair, and a user who hit

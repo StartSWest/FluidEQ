@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * "Start with Windows" in the actions menu's settings tray is a Windows row.
  * On a Mac it used to show under that name and, once switched on, say Windows
  * had it switched off in Startup apps — Electron reports that switch on
- * Windows only — and on Ubuntu Electron has no login items for it to write.
+ * Windows only. Linux has its own row, through the XDG autostart folder.
  */
 
 import '@testing-library/jest-dom';
@@ -67,15 +67,24 @@ it('shows the switch on Windows, as Windows answers it', async () => {
   expect(startWithWindows).toHaveBeenCalledTimes(1);
 });
 
-it.each(['darwin', 'linux'])(
-  'has no row on %s, and never asks for one',
-  async (platform) => {
-    onPlatform(platform);
-    const fresh = await rendered();
+it('has no row on darwin, and never asks for one', async () => {
+  onPlatform('darwin');
+  const fresh = await rendered();
 
-    expect(
-      fresh.screen.queryByRole('checkbox', { name: en['startup.label'] }),
-    ).not.toBeInTheDocument();
-    expect(startWithWindows).not.toHaveBeenCalled();
-  },
-);
+  expect(
+    fresh.screen.queryByRole('checkbox', { name: en['startup.label'] }),
+  ).not.toBeInTheDocument();
+  expect(startWithWindows).not.toHaveBeenCalled();
+});
+
+// Linux has one of its own now, kept in the XDG autostart folder by main
+// (`linux/linuxAutostart.ts`), and asks main for it as Windows does.
+it('shows the switch on linux, as main answers it', async () => {
+  onPlatform('linux');
+  const fresh = await rendered();
+
+  expect(
+    fresh.screen.getByRole('checkbox', { name: en['startup.label'] }),
+  ).not.toBeChecked();
+  expect(startWithWindows).toHaveBeenCalledTimes(1);
+});

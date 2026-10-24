@@ -5,6 +5,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { app } from 'electron';
+import {
+  readLinuxAutostart,
+  writeLinuxAutostart,
+} from './linux/linuxAutostart';
 
 /**
  * Whether FluidEQ starts with Windows.
@@ -48,6 +52,9 @@ const command = () =>
     : { path: process.execPath, args: [app.getAppPath()] };
 
 export const readStartWithWindows = (): IStartWithWindows => {
+  if (process.platform === 'linux') {
+    return readLinuxAutostart();
+  }
   const settings = app.getLoginItemSettings(command());
   return {
     on: settings.openAtLogin,
@@ -63,7 +70,11 @@ export const writeStartWithWindows = (
   logger?: { error(message: string, ...details: unknown[]): void },
 ): IStartWithWindows => {
   try {
-    app.setLoginItemSettings({ ...command(), openAtLogin: wanted });
+    if (process.platform === 'linux') {
+      writeLinuxAutostart(wanted);
+    } else {
+      app.setLoginItemSettings({ ...command(), openAtLogin: wanted });
+    }
   } catch (error) {
     logger?.error(
       'Could not change whether FluidEQ starts with Windows',

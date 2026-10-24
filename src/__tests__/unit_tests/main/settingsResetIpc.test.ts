@@ -65,6 +65,18 @@ const askFrom = (sender: WebContents, fromInnerFrame = false) => {
  * new install's, a part that fails does not stop the rest, and nobody but
  * FluidEQ's own window may ask.
  */
+// Windows' login items: Linux keeps its entry in the XDG autostart folder
+// (`linuxAutostart.test.ts`). Pinned so a run on Linux tests the same thing.
+const platform = Object.getOwnPropertyDescriptor(process, 'platform');
+beforeAll(() => {
+  Object.defineProperty(process, 'platform', { value: 'win32' });
+});
+afterAll(() => {
+  if (platform) {
+    Object.defineProperty(process, 'platform', platform);
+  }
+});
+
 describe('resetting the settings main keeps', () => {
   let folder: string;
   let owner: WebContents;

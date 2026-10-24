@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import type { ComponentType } from 'react';
 import type { TranslationKey } from '../../../common/i18n';
 import { featureTourKey } from '../../../common/featureTour';
+import { runsOnLinux } from '../../utils/platform';
 import ShareAudioSlide from './ShareAudioSlide';
 import {
   CustomLooksSlide,
@@ -374,8 +375,21 @@ const ALWAYS: TSlideEntry[] = [
   },
 ];
 
+/**
+ * What only Windows has: desktop backgrounds are drawn behind Windows' own
+ * desktop icons, and Dynamic lighting goes through Windows Dynamic Lighting
+ * and Razer Chroma's Windows service. Linux has neither, so neither is shown.
+ */
+const WINDOWS_ONLY = new Set(['desktop-visualizer', 'dynamic-lighting']);
+
 export const featureTourFor = (version: string): ITourSlide[] => {
   const featured = NEW_BY_RELEASE[featureTourKey(version)] ?? [];
   const featuredIds = new Set(featured.map((entry) => entry.id));
-  return [...featured, ...ALWAYS.filter((entry) => !featuredIds.has(entry.id))];
+  const slides = [
+    ...featured,
+    ...ALWAYS.filter((entry) => !featuredIds.has(entry.id)),
+  ];
+  return runsOnLinux()
+    ? slides.filter((entry) => !WINDOWS_ONLY.has(entry.id))
+    : slides;
 };

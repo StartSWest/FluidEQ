@@ -12,3 +12,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 const runsOnMac = (): boolean => window.electron?.platform === 'darwin';
 
 export default runsOnMac;
+
+/**
+ * Whether this window is Linux's: one engine, FluidEQ's own, beside the sound
+ * server — no Equalizer APO, no Windows prompts, no Windows-only helpers
+ * (Dynamic lighting, desktop backgrounds), so their screens are not shown.
+ */
+export const runsOnLinux = (): boolean => window.electron?.platform === 'linux';

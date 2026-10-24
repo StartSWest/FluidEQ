@@ -7,6 +7,7 @@ import {
   useEntitlementKnown,
 } from '../account/entitlementStore';
 import { useTranslation } from '../utils/I18nContext';
+import { runsOnLinux } from '../utils/platform';
 import Avatar from './Avatar';
 import Glyph, { type TCommunityGlyph } from './Glyph';
 import { identityStyle } from './identity';
@@ -146,8 +147,18 @@ export default function CommunityPanel({
   // The admin's place is the admin's alone. Until the server has said whether
   // this account is the admin it waits; told no, the gallery stands in, and
   // the place is kept in case the answer was only the network failing.
+  // Dynamic lighting works through Windows Dynamic Lighting and Razer
+  // Chroma's Windows service, so Linux has no such place, and a place kept
+  // from before opens on the gallery.
+  const isLinux = runsOnLinux();
+  const places = isLinux
+    ? PLACES.filter((entry) => entry.place !== 'lighting')
+    : PLACES;
   const shown: TPlusPlace =
-    view === 'admin' && adminKnown && !isAdmin ? 'visualizers' : view;
+    (view === 'admin' && adminKnown && !isAdmin) ||
+    (view === 'lighting' && isLinux)
+      ? 'visualizers'
+      : view;
 
   const openPlace = (place: TPlusPlace) => {
     if (place !== shown) {
@@ -179,7 +190,7 @@ export default function CommunityPanel({
           </div>
 
           <div className="community__channels">
-            {PLACES.map((entry) => {
+            {places.map((entry) => {
               const isActive = shown === entry.place;
               return (
                 <button
