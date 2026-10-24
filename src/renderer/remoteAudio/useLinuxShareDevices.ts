@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useEffect, useState } from 'react';
+import { subscribeAudioDevices } from '../utils/equalizerApi';
 
 /**
  * The FluidEQ Engine for Linux's two Share Audio endpoints, as Chromium
@@ -16,8 +17,9 @@ import { useEffect, useState } from 'react';
  * out is what this computer played, untouched, and what comes in is mixed in
  * after that and EQ'd here, so it is never sent back. Without them — no
  * engine, or one from before them — a link runs one way, as it always did
- * off Windows. Read again on every `devicechange`, which is the engine
- * starting, stopping or moving to another output.
+ * off Windows. Chromium's Linux audio service can omit `devicechange` when
+ * the engine publishes these virtual devices, so main's native output
+ * notification also triggers discovery after startup or an engine restart.
  */
 export const SHARE_IN_LABEL = 'FluidEQ Share In';
 export const SEND_LABEL = 'FluidEQ Send';
@@ -65,8 +67,12 @@ const useLinuxShareDevices = (): ILinuxShareDevices => {
     };
     read();
     media.addEventListener('devicechange', read);
+    const unsubscribe = subscribeAudioDevices((reading) => {
+      reading.then(read, read);
+    });
     return () => {
       cancelled = true;
+      unsubscribe();
       media.removeEventListener('devicechange', read);
     };
   }, []);
