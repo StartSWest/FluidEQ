@@ -46,6 +46,8 @@ export default {
   'player.path.eqOff': 'FluidEQ выключен. Показать эквалайзер',
   'player.path.game': 'Игра',
   'player.volume.system': 'Громкость системы',
+  'player.volume.muteUnavailable':
+    'Системное отключение звука недоступно для этого выхода',
   'player.seek': 'Позиция в треке',
   'player.seekNone': 'Этот источник не позволяет перейти к другому месту трека',
   'player.eq.aria': 'Эквалайзер',

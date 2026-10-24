@@ -5,7 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The system volume — the level and mute of the output Windows plays through
+ * The system volume — the level and mute of the default playback output
  * — as the window and main pass it between them.
  *
  * The window asks on `SYSTEM_VOLUME_CHANNEL`: `['watch', true | false]`
@@ -18,9 +18,14 @@ export const SYSTEM_VOLUME_CHANNEL = 'system-volume';
 export const SYSTEM_VOLUME_CHANGED = 'system-volume-changed';
 
 export interface ISystemVolume {
-  /** 0 to 1, as the taskbar's volume slider reads it. */
-  level: number;
-  isMuted: boolean;
+  /** Actual output scalar, 0 to 1; absent when the device cannot report it. */
+  level?: number;
+  isMuted?: boolean;
+  /** Absent on legacy helpers; false means this output cannot set it. */
+  canSetLevel?: boolean;
+  canMute?: boolean;
+  /** Native output identity, so pending writes cannot cross an output switch. */
+  deviceId?: string;
   /** Native v2 acknowledges commands after querying the real output. */
   canAcknowledge?: boolean;
   sessionId?: string;
@@ -39,15 +44,37 @@ export const parseSystemVolumeLine = (
   if (record === 'none') {
     return null;
   }
-  const match = /^volume\t(\d+(?:\.\d+)?)\t([01])$/.exec(record);
+  const match =
+    /^volume\t(-|\d+(?:\.\d+)?)\t(-|[01])(?:\t([01])\t([01])\t([1-9]\d{0,9}))?$/.exec(
+      record,
+    );
   if (!match) {
     return undefined;
   }
-  const level = Number(match[1]);
-  if (!(level >= 0 && level <= 1)) {
+  const level = match[1] === '-' ? undefined : Number(match[1]);
+  const isMuted = match[2] === '-' ? undefined : match[2] === '1';
+  if (level !== undefined && !(level >= 0 && level <= 1)) {
     return undefined;
   }
-  return { level, isMuted: match[2] === '1' };
+  if (match[5] === undefined) {
+    return level === undefined || isMuted === undefined
+      ? undefined
+      : { level, isMuted };
+  }
+  if (
+    Number(match[5]) > 0xffff_ffff ||
+    (match[3] === '1' && level === undefined) ||
+    (match[4] === '1' && isMuted === undefined)
+  ) {
+    return undefined;
+  }
+  return {
+    ...(level !== undefined ? { level } : {}),
+    ...(isMuted !== undefined ? { isMuted } : {}),
+    canSetLevel: match[3] === '1',
+    canMute: match[4] === '1',
+    deviceId: match[5],
+  };
 };
 
 /** A level the helper accepts: a number from 0 to 1, as it writes one. */

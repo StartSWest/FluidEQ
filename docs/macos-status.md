@@ -257,3 +257,48 @@ taps. This page records the current implementation and its remaining limits.
   platform isolation, encoding and staged lint checks passed. Physical
   Windows/Mac two-way listening and desktop interaction remain unverified;
   the earlier backend-access blockers still apply.
+
+## System volume and Share Audio isolation — 2026-10-24
+
+- “This PC” was disabled because the shared system-volume service only
+  located the Windows helper. On macOS it returned unavailable before
+  querying an output; audio versus video was not involved.
+- Added the native Mac helper and included it in build/package resources.
+  The existing controls now read and write the default Core Audio playback
+  output's real volume and mute, independently of media or sharing state.
+  Default-output and external-control changes use native notifications.
+  Writes query back the applied value; coalesced dragging keeps its existing
+  acknowledgments. An output change clears old queued positions, drains an
+  outstanding acknowledgment, and prevents writes crossing onto a new device.
+- Volume and mute capabilities are independent. Unknown values remain
+  unknown; fixed-level, read-only or unwatchable controls are disabled
+  truthfully, with translated explanations. No player-volume substitute or
+  synthetic mute was added. Existing classes and Windows/Linux helper
+  selection remain intact.
+- The existing process tap already captures before local output gain/mute
+  and excludes the received-audio helper and the engine's processed output.
+  This path was retained and documented. An optional native regression sweep
+  now measures outgoing PCM and received-audio exclusion at 100%, 50%, zero,
+  mute and unmute, restoring the original device settings afterward.
+- Quiet-tone measurements on this Mac passed all five settings. Outgoing
+  amplitude stayed within 0.001% of its reference; received-tone leakage
+  measured zero with a positive rendered-playback control at every setting.
+  The measurement itself has synthetic positive/null controls, clock drift,
+  phase discontinuity and real gain-change coverage. No audio was saved.
+- Silent hardware checks also passed external volume changes, queried-back
+  applied levels and mute/unmute notifications. Live output switching was
+  attempted but remains unverified: macOS kept the built-in speakers selected
+  when asked to use the only alternative, Microsoft Teams Audio. Native and
+  app regressions cover output changes, listener rebinding, missing
+  capabilities, stale writes and acknowledgment ordering.
+- Focused app tests passed 11 suites / 56 tests, and native control/meter
+  tests passed. Production native/main/renderer builds, app/script TypeScript,
+  platform isolation, encoding and staged lint checks passed. Existing Windows
+  protocol and Linux-unavailable behavior have regression coverage; their
+  physical audio devices were not tested on this Mac.
+- Per the user's quiet-tone-only preference, real video playback and a
+  physical receiving PC were not tested. The renderer regression mounts a
+  video element without playback and verifies media-independent control and
+  dragging; it is not a visual or listening check. No Computer Use or app
+  launch was performed. Live window/desktop checks and backend-access blockers
+  remain open. These changes stay on `macos`; `main` is unchanged.

@@ -541,5 +541,9 @@ if (process.platform === 'darwin') {
   if (!existsSync(macSharePath)) {
     fail(`the macOS Share Audio helper was not produced at ${macSharePath}`);
   }
+  const macVolumePath = path.join(BUILD_DIR, 'bin', 'FluidEQ-Volume');
+  if (!existsSync(macVolumePath)) {
+    fail(`the macOS system volume helper was not produced at ${macVolumePath}`);
+  }
 }
 console.log(`native dsp build: ${hostPath}`);

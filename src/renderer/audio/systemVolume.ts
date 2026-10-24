@@ -12,7 +12,7 @@ import {
 } from 'common/systemVolume';
 
 /**
- * The system volume, as main hears it from Windows (`main/systemVolume.ts`).
+ * The system volume, as main hears it from the OS (`main/systemVolume.ts`).
  *
  * `undefined` until the first answer, `null` when there is no output to
  * control. Main runs the helper behind it only while something here is
@@ -29,8 +29,11 @@ const notify = () => listeners.forEach((listener) => listener());
 const isVolume = (value: unknown): value is ISystemVolume =>
   typeof value === 'object' &&
   value !== null &&
-  typeof (value as ISystemVolume).level === 'number' &&
-  typeof (value as ISystemVolume).isMuted === 'boolean';
+  (((value as ISystemVolume).level !== undefined &&
+    typeof (value as ISystemVolume).level === 'number') ||
+    (value as ISystemVolume).canSetLevel === false) &&
+  (typeof (value as ISystemVolume).isMuted === 'boolean' ||
+    (value as ISystemVolume).canMute === false);
 
 const ask = (args: unknown[]) => {
   const bridge = window.electron?.ipcRenderer;
@@ -108,10 +111,15 @@ export const useSystemVolume = (isWanted: boolean) => {
 
 /**
  * Set the level. Drawn at once, so a slider being dragged does not wait on
- * Windows; Windows' own answer follows and is what stays.
+ * the OS; the native applied-value answer follows and is what stays.
  */
 export const setSystemVolume = (level: number) => {
-  if (!Number.isFinite(level) || level < 0 || level > 1) {
+  if (
+    volume?.canSetLevel === false ||
+    !Number.isFinite(level) ||
+    level < 0 ||
+    level > 1
+  ) {
     return;
   }
   const requestId = volume?.canAcknowledge ? crypto.randomUUID() : undefined;
@@ -124,6 +132,9 @@ export const setSystemVolume = (level: number) => {
 };
 
 export const setSystemMute = (isMuted: boolean) => {
+  if (volume?.canMute === false) {
+    return;
+  }
   const requestId = volume?.canAcknowledge ? crypto.randomUUID() : undefined;
   pending = requestId ? { requestId, sessionId: volume?.sessionId } : undefined;
   if (volume) {
@@ -145,11 +156,9 @@ export const setSystemMute = (isMuted: boolean) => {
  * app's sat under the taskbar's, so a quiet song was quiet twice and nobody
  * could say from which.
  *
- * `level` and `isMuted` are what Windows reports; both are `undefined` until
- * the helper answers and `isAvailable` is false where there is no helper to
- * ask (any platform but Windows), in which case a bar draws no fader at all
- * rather than one that moves nothing. Muting restores to the level muted
- * from, which is Windows' own behaviour for its mute.
+ * Level and mute come from the default output, independently of playback.
+ * Missing capabilities stay unavailable: no player gain replaces the system
+ * control. Legacy helpers retain their original capability assumptions.
  */
 export const useSystemFader = () => {
   const reading = useSystemVolume(true);
@@ -157,6 +166,8 @@ export const useSystemFader = () => {
     isAvailable: reading !== null,
     level: reading?.level,
     isMuted: reading?.isMuted ?? false,
+    canSetLevel: reading?.canSetLevel !== false,
+    canMute: reading?.canMute !== false && reading?.isMuted !== undefined,
     setLevel: setSystemVolume,
     toggleMute: () => setSystemMute(!(reading?.isMuted ?? false)),
   };

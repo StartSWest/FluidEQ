@@ -28,6 +28,8 @@ target_link_libraries(fluideq-mac-share-source PRIVATE feq_strict
 
 find_program(FEQ_SHARE_NODE node)
 if(FEQ_SHARE_NODE)
+  add_test(NAME mac-share-probe
+    COMMAND "${FEQ_SHARE_NODE}" --test "${CMAKE_CURRENT_SOURCE_DIR}/tests/probe.test.cjs")
   add_test(NAME mac-share-audio
     COMMAND "${FEQ_SHARE_NODE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/duplex.cjs"
       $<TARGET_FILE:fluideq-mac-remote-audio>

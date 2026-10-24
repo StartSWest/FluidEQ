@@ -441,6 +441,7 @@ endif()
 # Windows only.
 if(APPLE)
   add_subdirectory(mac-engine)
+  add_subdirectory(mac-volume)
 endif()
 
 # The desktop visualizer's helper, which puts a monitor's background window

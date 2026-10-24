@@ -21,7 +21,9 @@ const createSystemVolumeCommands = (
 ) => {
   let supportsApplied = false;
   let sessionId = randomUUID();
+  let deviceId: string | undefined;
   let active: ICommand | undefined;
+  let abandoned = false;
   let queued: ICommand[] = [];
   const next = () => {
     if (active) {
@@ -36,7 +38,9 @@ const createSystemVolumeCommands = (
     reset() {
       supportsApplied = false;
       sessionId = randomUUID();
+      deviceId = undefined;
       active = undefined;
+      abandoned = false;
       queued = [];
     },
     enqueue(command: ICommand) {
@@ -64,17 +68,36 @@ const createSystemVolumeCommands = (
       }
       if (volume === null) {
         active = undefined;
+        abandoned = false;
         queued = [];
+        deviceId = undefined;
+        sessionId = randomUUID();
         deliver(null);
         return true;
+      }
+      let deviceChanged = false;
+      if (volume.deviceId !== undefined && volume.deviceId !== deviceId) {
+        // A drag belongs to the output it began on. A new native identity
+        // drops its queued writes and releases the renderer's optimistic
+        // value immediately, even while the old command was in flight.
+        if (deviceId !== undefined) {
+          // Drain the old write's acknowledgment before issuing a new one;
+          // otherwise it could accidentally acknowledge the new output's drag.
+          abandoned = active !== undefined;
+          queued = [];
+          sessionId = randomUUID();
+          deviceChanged = true;
+        }
+        deviceId = volume.deviceId;
       }
       if (!supportsApplied) {
         deliver(volume);
         return true;
       }
       if (applied) {
-        const requestId = active?.requestId;
+        const requestId = abandoned ? undefined : active?.requestId;
         active = undefined;
+        abandoned = false;
         deliver({
           ...volume,
           canAcknowledge: true,
@@ -82,7 +105,7 @@ const createSystemVolumeCommands = (
           ...(requestId ? { appliedRequestId: requestId } : {}),
         });
         next();
-      } else if (!active && queued.length === 0) {
+      } else if (deviceChanged || (!active && queued.length === 0)) {
         deliver({ ...volume, canAcknowledge: true, sessionId });
       }
       return true;

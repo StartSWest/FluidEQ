@@ -47,6 +47,8 @@ export default {
   'player.path.eqOff': 'FluidEQ está apagado. Mostrar el ecualizador',
   'player.path.game': 'Juego',
   'player.volume.system': 'Volumen del sistema',
+  'player.volume.muteUnavailable':
+    'Silencio del sistema no disponible para esta salida',
   'player.seek': 'Posición en la canción',
   'player.seekNone': 'Esta fuente no permite saltar a otro punto de la canción',
   'player.eq.aria': 'Ecualizador',

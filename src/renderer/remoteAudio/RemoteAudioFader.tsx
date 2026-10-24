@@ -9,6 +9,8 @@ const RemoteAudioFader = ({
   value,
   caption,
   disabled,
+  levelDisabled,
+  muteDisabled,
   muted = false,
   muteLabel,
   onToggleMute,
@@ -19,6 +21,8 @@ const RemoteAudioFader = ({
   value?: number;
   caption: string;
   disabled?: boolean;
+  levelDisabled?: boolean;
+  muteDisabled?: boolean;
   muted?: boolean;
   muteLabel: string;
   onToggleMute(): void;
@@ -43,7 +47,7 @@ const RemoteAudioFader = ({
             aria-label={muteLabel}
             title={muteLabel}
             aria-pressed={muted}
-            disabled={disabled || value === undefined}
+            disabled={disabled || (muteDisabled ?? value === undefined)}
             onClick={onToggleMute}
           >
             <PlayerIcon name={muted || value === 0 ? 'mute' : 'speaker'} />
@@ -56,7 +60,7 @@ const RemoteAudioFader = ({
             value={percent ?? 0}
             className="now-playing-bar__volume-slider"
             aria-label={label}
-            disabled={disabled || value === undefined}
+            disabled={disabled || levelDisabled || value === undefined}
             style={
               { '--now-playing-progress': `${percent ?? 0}%` } as CSSProperties
             }

@@ -46,6 +46,8 @@ export default {
   'player.path.eqOff': 'FluidEQ ist aus. Equalizer anzeigen',
   'player.path.game': 'Spiel',
   'player.volume.system': 'Systemlautstärke',
+  'player.volume.muteUnavailable':
+    'Systemstummschaltung für diesen Ausgang nicht verfügbar',
   'player.seek': 'Position im Titel',
   'player.seekNone':
     'Bei dieser Quelle lässt sich keine andere Stelle im Titel ansteuern',

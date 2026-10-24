@@ -87,6 +87,9 @@ struct Capture::State {
     // no-feedback guarantee, independent of which computer pasted the code.
     if (!std::binary_search(excluded.begin(), excluded.end(), self)) excluded.push_back(self);
     std::sort(excluded.begin(), excluded.end());
+    // A process tap captures source PCM before the playback device's volume
+    // and mute. Keep this off the device-output/processed-engine path: local
+    // silence must never silence the outgoing stream or send received audio.
     description = [[CATapDescription alloc] initStereoGlobalTapButExcludeProcesses:numbers(excluded)];
     description.name = @"FluidEQ Share Audio";
     description.UUID = [NSUUID UUID];

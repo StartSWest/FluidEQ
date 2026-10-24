@@ -52,6 +52,7 @@ export default {
   'player.path.eqOff': 'FluidEQ is off. Show the equalizer',
   'player.path.game': 'Game',
   'player.volume.system': 'System volume',
+  'player.volume.muteUnavailable': 'System mute unavailable for this output',
   'player.seek': 'Position in the song',
   'player.seekNone': 'This source cannot jump to another point in the song',
   'player.eq.aria': 'Equalizer',

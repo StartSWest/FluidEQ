@@ -17,12 +17,17 @@ const RemoteAudioMix = ({
     isAvailable: boolean;
     level?: number;
     isMuted: boolean;
+    canSetLevel?: boolean;
+    canMute?: boolean;
     setLevel(value: number): void;
     toggleMute(): void;
   };
   output?: ReactNode;
 }) => {
   const { t } = useTranslation();
+  const systemMuteLabel = system.isMuted
+    ? 'remoteAudio.group.unmute'
+    : 'remoteAudio.group.mute';
   return (
     <section
       className="remote-audio__link"
@@ -39,23 +44,31 @@ const RemoteAudioMix = ({
         label={t('remoteAudio.group.thisPC')}
         value={system.isAvailable ? system.level : undefined}
         disabled={!system.isAvailable}
+        levelDisabled={system.canSetLevel === false}
+        muteDisabled={
+          system.canMute === undefined ? undefined : !system.canMute
+        }
         muted={system.isMuted}
         muteLabel={t(
-          system.isMuted
-            ? 'remoteAudio.group.unmute'
-            : 'remoteAudio.group.mute',
+          system.canMute === false
+            ? 'player.volume.muteUnavailable'
+            : systemMuteLabel,
         )}
         onToggleMute={system.toggleMute}
         onChange={(level) => {
-          if (system.isMuted && level > 0) {
+          if (system.canMute !== false && system.isMuted && level > 0) {
             system.toggleMute();
           }
           system.setLevel(level);
         }}
         caption={
-          !system.isAvailable
+          !system.isAvailable || system.canSetLevel === false
             ? t('remoteAudio.group.unavailable')
-            : t('player.volume.system')
+            : t(
+                system.canMute === false
+                  ? 'player.volume.muteUnavailable'
+                  : 'player.volume.system',
+              )
         }
       />
       {audioGroupRows(remote).map(({ link }) => {

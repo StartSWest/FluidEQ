@@ -45,6 +45,8 @@ export default {
   'player.path.eqOff': 'FluidEQ बंद है। इक्वलाइज़र दिखाएँ',
   'player.path.game': 'गेम',
   'player.volume.system': 'सिस्टम वॉल्यूम',
+  'player.volume.muteUnavailable':
+    'इस आउटपुट के लिए सिस्टम म्यूट उपलब्ध नहीं है',
   'player.seek': 'गाने में स्थिति',
   'player.seekNone': 'इस स्रोत में गाने के किसी और हिस्से पर नहीं जाया जा सकता',
   'player.eq.aria': 'इक्वलाइज़र',

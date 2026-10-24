@@ -45,6 +45,7 @@ export default {
   'player.path.eqOff': 'FluidEQ 已关闭。显示均衡器',
   'player.path.game': '游戏',
   'player.volume.system': '系统音量',
+  'player.volume.muteUnavailable': '此输出不支持系统静音',
   'player.seek': '歌曲播放位置',
   'player.seekNone': '此来源无法跳转到歌曲中的其他位置',
   'player.eq.aria': '均衡器',

@@ -45,6 +45,8 @@ export default {
   'player.path.eqOff': 'O FluidEQ está desligado. Mostrar o equalizador',
   'player.path.game': 'Jogo',
   'player.volume.system': 'Volume do sistema',
+  'player.volume.muteUnavailable':
+    'Silenciamento do sistema indisponível para esta saída',
   'player.seek': 'Posição na música',
   'player.seekNone': 'Esta fonte não permite ir para outro ponto da música',
   'player.eq.aria': 'Equalizador',

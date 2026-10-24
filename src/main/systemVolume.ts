@@ -5,9 +5,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The app's side of `FluidEQ-Volume.exe` (`native/volume-watch/src/main.cpp`):
- * the level and mute of the output Windows plays through, followed as they
- * change anywhere and set from the compact player's slider.
+ * The app's side of FluidEQ-Volume: Windows' endpoint-volume helper or the
+ * Mac Core Audio helper. The default playback output is followed even when
+ * no media is playing; its real volume/mute are shared by every system fader.
  *
  * It runs only while the window shows that slider — the window says when —
  * and its input closing is what ends it, so quitting or a crash ends it too.
@@ -29,8 +29,13 @@ import { createHelperReplacement } from './helperReplacement';
 import onWindowMessage from './ipc/windowMessages';
 import createSystemVolumeCommands from './systemVolumeCommands';
 
-export const SYSTEM_VOLUME_EXECUTABLE =
-  process.platform === 'win32' ? 'FluidEQ-Volume.exe' : undefined;
+// Mac previously had no helper entry, so every media-independent fader
+// received "unavailable" before it could query the real output.
+const EXECUTABLES: Partial<Record<NodeJS.Platform, string>> = {
+  win32: 'FluidEQ-Volume.exe',
+  darwin: 'FluidEQ-Volume',
+};
+export const SYSTEM_VOLUME_EXECUTABLE = EXECUTABLES[process.platform];
 
 const resourcesPath = (): string => {
   const { resourcesPath: found } = process as NodeJS.Process & {
@@ -178,13 +183,17 @@ export const createSystemVolumeWatch = (
     set: (level, requestId) => {
       const command = systemVolumeCommand(level);
       if (command) {
-        commands.enqueue({ kind: 'set', line: command, requestId });
+        commands.enqueue({
+          kind: 'set',
+          line: last?.deviceId ? `${command} ${last.deviceId}` : command,
+          requestId,
+        });
       }
     },
     mute: (isMuted, requestId) =>
       commands.enqueue({
         kind: 'mute',
-        line: isMuted ? 'mute 1' : 'mute 0',
+        line: `mute ${isMuted ? 1 : 0}${last?.deviceId ? ` ${last.deviceId}` : ''}`,
         requestId,
       }),
   };

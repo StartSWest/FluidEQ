@@ -46,6 +46,25 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
+it('targets Mac writes at the observed output and drops queued drag positions when it changes', () => {
+  const current = fakeChild();
+  const watch = createSystemVolumeWatch(jest.fn(), found);
+  watch.start();
+  current.say('ready\t2');
+  current.say('volume\t0.5000\t0\t1\t1\t73');
+  watch.set(0.2, 'first');
+  watch.set(0.9, 'queued');
+  expect(current.stdin.write.mock.calls).toEqual([['set 0.2000 73\n']]);
+  current.say('volume\t0.3000\t0\t1\t1\t74');
+  current.say('applied\t0.3000\t0\t1\t1\t74');
+  watch.mute(true, 'new-output');
+  expect(current.stdin.write.mock.calls).toEqual([
+    ['set 0.2000 73\n'],
+    ['mute 1 74\n'],
+  ]);
+  watch.stop();
+});
+
 describe('a volume helper that ends by itself', () => {
   it('does not count a capability header or unchanged applied reply as a followed volume change', () => {
     let current = fakeChild();

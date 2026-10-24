@@ -45,6 +45,8 @@ export default {
   'player.path.eqOff': 'FluidEQ はオフです。イコライザーを表示',
   'player.path.game': 'ゲーム',
   'player.volume.system': 'システムの音量',
+  'player.volume.muteUnavailable':
+    'この出力ではシステムのミュートを利用できません',
   'player.seek': '曲の再生位置',
   'player.seekNone': 'このソースでは曲の別の位置に移動できません',
   'player.eq.aria': 'イコライザー',

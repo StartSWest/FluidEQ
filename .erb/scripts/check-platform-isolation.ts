@@ -164,6 +164,10 @@ const ALLOWED = new Map<string, IAllowance>([
  */
 const SINGLE_PLATFORM_PROGRAMS = new Map<string, string>([
   [
+    'native/mac-volume/',
+    'the macOS system output volume/mute watcher through Core Audio',
+  ],
+  [
     'native/mac-remote-audio/',
     'Core Audio capture and isolated LAN playback on macOS',
   ],

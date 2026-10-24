@@ -1,6 +1,48 @@
 /* FluidEQ — GPL-3.0-or-later */
 import createSystemVolumeCommands from '../../../main/systemVolumeCommands';
 
+it('abandons a drag on output switch and accepts the new output immediately', () => {
+  const write = jest.fn();
+  const deliver = jest.fn();
+  const commands = createSystemVolumeCommands(write, deliver);
+  commands.accept('ready\t2');
+  commands.accept('volume\t0.5000\t0\t1\t1\t73');
+  const originalSession = deliver.mock.calls[0][0].sessionId;
+  commands.enqueue({ kind: 'set', line: 'set 0.7 73', requestId: 'old' });
+  commands.enqueue({ kind: 'set', line: 'set 0.9 73', requestId: 'queued' });
+  commands.accept('volume\t-\t-\t0\t0\t74');
+  expect(deliver).toHaveBeenLastCalledWith(
+    expect.objectContaining({
+      deviceId: '74',
+      canSetLevel: false,
+      canMute: false,
+      sessionId: expect.not.stringMatching(originalSession),
+    }),
+  );
+  commands.accept('applied\t-\t-\t0\t0\t74');
+  expect(write.mock.calls).toEqual([['set 0.7 73']]);
+  expect(deliver.mock.calls.slice(-1)[0]?.[0].appliedRequestId).toBeUndefined();
+});
+
+it('drains an old output write before acknowledging a new output drag', () => {
+  const write = jest.fn();
+  const deliver = jest.fn();
+  const commands = createSystemVolumeCommands(write, deliver);
+  commands.accept('ready\t2');
+  commands.accept('volume\t0.5000\t0\t1\t1\t73');
+  commands.enqueue({ kind: 'set', line: 'set 0.7 73', requestId: 'old' });
+  commands.accept('volume\t0.3000\t0\t1\t1\t74');
+  commands.enqueue({ kind: 'set', line: 'set 0.6 74', requestId: 'new' });
+  expect(write.mock.calls).toEqual([['set 0.7 73']]);
+  commands.accept('applied\t0.3000\t0\t1\t1\t74');
+  expect(deliver.mock.calls.slice(-1)[0]?.[0].appliedRequestId).toBeUndefined();
+  expect(write.mock.calls).toEqual([['set 0.7 73'], ['set 0.6 74']]);
+  commands.accept('applied\t0.6000\t0\t1\t1\t74');
+  expect(deliver).toHaveBeenLastCalledWith(
+    expect.objectContaining({ level: 0.6, appliedRequestId: 'new' }),
+  );
+});
+
 it('waits for the actual OS result and skips superseded drag positions', () => {
   const write = jest.fn();
   const deliver = jest.fn();

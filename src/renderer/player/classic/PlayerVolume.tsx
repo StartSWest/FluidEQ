@@ -36,7 +36,7 @@ interface IPlayerVolumeProps {
  * The deck's volume, and it is the computer's — the one fader this app has
  * (`useSystemFader`). Whatever is playing, from whichever source, plays at
  * full level, and this slider is the taskbar's, in the place the hand goes
- * for it. Drawn only once Windows has said what its level is: a slider that
+ * for it. Drawn only once the OS has said what its level is: a slider that
  * moves nothing is worse than none.
  */
 const PlayerVolume = ({ onAdjust }: IPlayerVolumeProps) => {
@@ -77,6 +77,7 @@ const PlayerVolume = ({ onAdjust }: IPlayerVolumeProps) => {
         aria-label={isMuted ? t('library.unmute') : t('library.mute')}
         title={isMuted ? t('library.unmute') : t('library.mute')}
         onClick={fader.toggleMute}
+        disabled={!fader.canMute}
       >
         <PlayerIcon name={isMuted ? 'mute' : 'speaker'} />
       </button>
@@ -86,6 +87,7 @@ const PlayerVolume = ({ onAdjust }: IPlayerVolumeProps) => {
         min={0}
         max={100}
         step={1}
+        disabled={!fader.canSetLevel}
         value={percent}
         aria-label={name}
         title={name}

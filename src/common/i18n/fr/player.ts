@@ -46,6 +46,8 @@ export default {
   'player.path.eqOff': "FluidEQ est désactivé. Afficher l'égaliseur",
   'player.path.game': 'Jeu',
   'player.volume.system': 'Volume du système',
+  'player.volume.muteUnavailable':
+    'La coupure du son système est indisponible pour cette sortie',
   'player.seek': 'Position dans le morceau',
   'player.seekNone':
     "Cette source ne permet pas d'aller à un autre point du morceau",
