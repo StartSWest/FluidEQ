@@ -58,6 +58,7 @@ import { APP_USER_MODEL_ID } from './appIdentity';
 import { createHelperReplacement } from './helperReplacement';
 import { POWERSHELL_PATH } from './powershell';
 import isBase64 from '../common/base64';
+import createLinuxMediaArtwork from './linux/linuxMediaArtwork';
 
 /**
  * THIS APP'S OWN PLAYERS ARE NOT "THE REST OF THE MACHINE".
@@ -192,11 +193,14 @@ export type TSystemMediaCommand =
   'next' | 'previous' | 'seek' | 'stop' | 'pause';
 
 /**
- * The watcher's executable, where this platform has one. Windows alone
- * publishes media sessions this way.
+ * Both platform helpers speak the same protocol: WinRT on Windows, the
+ * desktop session's MPRIS interface on Linux.
  */
-export const SYSTEM_MEDIA_EXECUTABLE =
-  process.platform === 'win32' ? 'FluidEQ-Media.exe' : undefined;
+const mediaExecutables: Partial<Record<NodeJS.Platform, string>> = {
+  win32: 'FluidEQ-Media.exe',
+  linux: 'FluidEQ-Media',
+};
+export const SYSTEM_MEDIA_EXECUTABLE = mediaExecutables[process.platform];
 
 const resourcesPath = (): string => {
   const { resourcesPath: found } = process as NodeJS.Process & {
@@ -380,15 +384,35 @@ export const parseSystemMediaCover = (
 
 /** One helper, its readings handed to whoever is listening now. */
 const startWatcher = (executable: string): void => {
-  // The app's own id is the helper's one argument, so the rule that looks
-  // past this app's sessions (`SELF_SKIP`) reads the same id on both sides.
+  // WinRT identifies our sessions by app id; MPRIS names belong to processes,
+  // so Linux excludes this process and its embedded guests by their ancestry.
   // Nobody reads its stderr, so it is not a pipe that could fill.
-  const started = spawn(executable, [APP_USER_MODEL_ID], {
-    stdio: ['pipe', 'pipe', 'ignore'],
-    windowsHide: true,
-  });
+  const started = spawn(
+    executable,
+    [process.platform === 'linux' ? String(process.pid) : APP_USER_MODEL_ID],
+    {
+      stdio: ['pipe', 'pipe', 'ignore'],
+      windowsHide: true,
+    },
+  );
   child = started;
   const run = replacement.run();
+  const handleLine = (line: string) => {
+    if (started !== child) {
+      return;
+    }
+    if (isSystemMediaCoverLine(line)) {
+      lastCover = parseSystemMediaCover(line) ?? lastCover;
+      return;
+    }
+    run.heard(line);
+    lastSnapshot = parseSystemMediaLine(line);
+    notify?.(lastSnapshot);
+  };
+  const artwork =
+    process.platform === 'linux'
+      ? createLinuxMediaArtwork(handleLine)
+      : undefined;
 
   let pending = '';
   // Decoded by the stream, never chunk by chunk. The helper writes UTF-8, and
@@ -413,15 +437,11 @@ const startWatcher = (executable: string): void => {
       // A cover is kept, never forwarded as a reading. One that fails its
       // checks is dropped here too: read as a reading it would parse as
       // "nothing playing" and blank the bar in the middle of a song.
-      if (isSystemMediaCoverLine(line)) {
-        lastCover = parseSystemMediaCover(line) ?? lastCover;
-        return;
+      if (artwork && !isSystemMediaCoverLine(line)) {
+        artwork.read(line);
+      } else {
+        handleLine(line);
       }
-      run.heard(line);
-      lastSnapshot = parseSystemMediaLine(line);
-      // `notify` rather than `onSnapshot`: this child outlives the window that
-      // started it, and the reading must go to whoever is listening NOW.
-      notify?.(lastSnapshot);
     });
   });
 
@@ -430,6 +450,7 @@ const startWatcher = (executable: string): void => {
   started.stdin?.on('error', () => undefined);
 
   const ended = (how: string) => {
+    artwork?.dispose();
     // Only the CURRENT watcher's death means anything. A window reload stops
     // this child and starts the next one at once, and this exit is delivered
     // only once the old helper has actually gone — after the new one is
@@ -501,7 +522,7 @@ export const watchSystemMedia = (
     if (!missingHelperLogged) {
       missingHelperLogged = true;
       log.warn(
-        'Other apps’ media is not reported: FluidEQ-Media.exe was not found (it is built with the native helpers).',
+        `Other apps’ media is not reported: ${SYSTEM_MEDIA_EXECUTABLE ?? 'FluidEQ-Media.exe'} was not found (it is built with the native helpers).`,
       );
     }
     return;
@@ -533,6 +554,33 @@ export const stopWatchingSystemMedia = (): void => {
   notify = undefined;
 };
 
+/** Only fixed commands and a bounded number cross the Linux helper's pipe. */
+export const sendLinuxSystemMediaCommand = async (
+  command: TSystemMediaCommand | 'playPause' | 'pauseOthers',
+  positionMs = 0,
+  exceptApp = '',
+): Promise<void> => {
+  const input = child?.stdin;
+  if (process.platform !== 'linux' || !input?.writable) {
+    return;
+  }
+  let argument = '';
+  if (command === 'seek') {
+    if (!Number.isFinite(positionMs)) {
+      return;
+    }
+    argument = ` ${Math.min(9e12, Math.max(0, Math.round(positionMs)))}`;
+  } else if (
+    command === 'pauseOthers' &&
+    /^org\.mpris\.MediaPlayer2\.[A-Za-z0-9_.-]+$/.test(exceptApp)
+  ) {
+    argument = ` ${exceptApp}`;
+  }
+  await new Promise<void>((resolve) => {
+    input.write(`${command}${argument}\n`, () => resolve());
+  });
+};
+
 /**
  * Ask the current session to skip, stop, or move its playhead.
  *
@@ -553,6 +601,10 @@ export const sendSystemMediaCommand = async (
   command: TSystemMediaCommand,
   positionMs?: number,
 ): Promise<void> => {
+  if (process.platform === 'linux') {
+    await sendLinuxSystemMediaCommand(command, positionMs);
+    return;
+  }
   const commandScript = (() => {
     if (command === 'next') {
       return 'Await ($session.TrySkipNextAsync()) ([bool]) | Out-Null';
@@ -647,6 +699,10 @@ ${commandScript}
 export const pauseOtherSystemPlayers = async (
   exceptApp: string,
 ): Promise<void> => {
+  if (process.platform === 'linux') {
+    await sendLinuxSystemMediaCommand('pauseOthers', 0, exceptApp);
+    return;
+  }
   const script = `
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Runtime.WindowsRuntime | Out-Null

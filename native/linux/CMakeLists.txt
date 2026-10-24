@@ -112,6 +112,15 @@ set_target_properties(fluideq-linux-volume PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
   RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
 
+add_executable(fluideq-linux-media media/main.cpp media/player.cpp media/bus_api.cpp)
+target_link_libraries(fluideq-linux-media PRIVATE ${CMAKE_DL_LIBS} feq_strict)
+target_link_options(fluideq-linux-media PRIVATE ${FEQ_LINUX_PORTABLE_LINK})
+set_target_properties(fluideq-linux-media PROPERTIES
+  OUTPUT_NAME "FluidEQ-Media"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
+
 # The engine with no sound server in it: one output's graph, its watcher and
 # what it writes for the app. The routers below feed it; the tests drive it.
 add_library(fluideq-linux-engine-runtime STATIC

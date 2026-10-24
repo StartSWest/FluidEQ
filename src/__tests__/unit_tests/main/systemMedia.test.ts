@@ -46,6 +46,18 @@ import {
 jest.mock('child_process', () => ({ spawn: jest.fn() }));
 jest.mock('electron-log', () => ({ info: jest.fn(), warn: jest.fn() }));
 
+// These cases pin the Windows helper protocol. Linux's MPRIS adapter has its
+// own platform and real-bus coverage and must not change this branch's args.
+const originalPlatform = Object.getOwnPropertyDescriptor(process, 'platform');
+beforeEach(() =>
+  Object.defineProperty(process, 'platform', { value: 'win32' }),
+);
+afterEach(() => {
+  if (originalPlatform) {
+    Object.defineProperty(process, 'platform', originalPlatform);
+  }
+});
+
 const HELPER = 'C:\\FluidEQ\\resources\\native\\FluidEQ-Media.exe';
 /** Where the tests say the helper is; the app looks where the build puts it. */
 const found = () => HELPER;

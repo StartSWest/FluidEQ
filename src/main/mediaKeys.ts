@@ -39,6 +39,7 @@ import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
 import { POWERSHELL_PATH } from './powershell';
+import { sendLinuxSystemMediaCommand } from './systemMedia';
 
 const execFileAsync = promisify(execFile);
 
@@ -113,6 +114,12 @@ const getMediaKeyScriptPath = () => {
  * is the price of not shipping a native module for three buttons.
  */
 export const sendMediaTransportKey = async (action: unknown): Promise<void> => {
+  if (process.platform === 'linux') {
+    if (action === 'next' || action === 'previous' || action === 'playPause') {
+      await sendLinuxSystemMediaCommand(action);
+    }
+    return;
+  }
   // Windows only, and quietly so. The renderer does not draw these buttons
   // anywhere else — see App.tsx — and this is the same rule enforced where it
   // cannot be got round: the key codes are Windows' and nothing else has an

@@ -302,6 +302,7 @@
           "FluidEQ-Volume",
           "FluidEQ-Outputs.exe",
           "FluidEQ-Media.exe",
+          "FluidEQ-Media",
           "msvcp140.dll",
           "vcruntime140.dll",
           "vcruntime140_1.dll",
