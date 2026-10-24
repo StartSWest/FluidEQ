@@ -8,9 +8,12 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * The FluidEQ Engine on a PulseAudio desktop.
  *
  * PulseAudio cannot run a client's code inside its graph, so the engine
- * loads a null sink named "FluidEQ" (`module-null-sink`), records what
- * applications play into it from its monitor, runs the engine over it and
- * plays the result to the real output. The null sink keeps its own time and
+ * exposes a virtual sink named "FluidEQ" with flat volume disabled. Each
+ * application's direct monitor precedes the sink's master volume/mute;
+ * pipewire-pulse instead supplies its raw aggregate monitor ports.
+ * those local origins feed Send, then received audio joins them before DSP.
+ * The sink's system controls apply only to the final playback stream.
+ * A discarded null sink keeps its own time and
  * the output keeps the sound card's, so the two drift apart by a few samples
  * a second; the playback stream's rate is nudged by the backlog it holds
  * (PulseAudio's `VARIABLE_RATE`), as PulseAudio's own `module-loopback`
@@ -29,6 +32,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 #define FLUIDEQ_LINUX_PULSE_ROUTER_H
 
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -90,12 +94,25 @@ class PulseRouter final : public SoundRouter {
   void choose_target();
   void retarget(const Sink& sink);
   void load_sink(const Sink& sink);
+  static void on_origin_loaded(pa::context*, uint32_t index, void* data);
+  void follow_master_volume(const pa::sink_info& info);
+  void apply_playback_volume();
   void open_record();
   std::string null_sink_args(const std::string& name,
                              const std::string& properties,
                              uint32_t rate) const;
   pa::stream* record_monitor(const std::string& monitor, const char* name,
-                             pa::stream_request_cb on_read);
+                             pa::stream_request_cb on_read,
+                             uint32_t input = UINT32_MAX);
+  void refresh_origins();
+  void close_origins() noexcept;
+  static void on_origin_info(pa::context*, const pa::sink_input_info*, int, void*);
+  static void on_origin_read(pa::stream*, size_t, void*);
+  void mix_origins(float* const*, uint32_t, uint32_t);
+  void drain_origins();
+  void write_send(float* const*, uint32_t, uint32_t);
+  void open_send();
+  static void on_send_bus_loaded(pa::context*, uint32_t, void*);
   // Share Audio's "FluidEQ Share In" and "FluidEQ Send" (`pulse_share.cpp`).
   void load_share();
   void unload_share() noexcept;
@@ -113,7 +130,7 @@ class PulseRouter final : public SoundRouter {
   void claim_default();
   void move_inputs(uint32_t from_sink, const std::string& to);
   void ensure_engine();
-  void process(const float* interleaved, uint32_t frames);
+  void process(uint32_t frames);
   void follow_drift();
   void write_outputs() noexcept;
   const Sink* sink_named(const std::string& name) const;
@@ -123,6 +140,7 @@ class PulseRouter final : public SoundRouter {
   pa::mainloop* loop_ = nullptr;
   pa::context* context_ = nullptr;
   bool ready_ = false;
+  bool pipewire_server_ = false;
   bool shut_ = false;
   int lost_fd_ = -1;
   std::unique_ptr<fluideq_engine::Log> log_;
@@ -139,6 +157,9 @@ class PulseRouter final : public SoundRouter {
   std::string target_name_;
   uint32_t target_index_ = UINT32_MAX;
   uint32_t module_index_ = UINT32_MAX;
+  uint32_t origin_module_ = UINT32_MAX;
+  pa::cvolume master_volume_{};
+  bool master_muted_ = false;
   uint32_t module_rate_ = 0;
   ChannelLayout module_layout_{};
   bool loading_ = false;
@@ -147,21 +168,28 @@ class PulseRouter final : public SoundRouter {
   std::string monitor_master_;
   bool monitor_loading_ = false;
   pa::stream* record_ = nullptr;
-  // Share Audio: the null sink other computers' sound plays into, the remap
-  // of "FluidEQ"'s monitor this computer's sound is sent from, the record of
-  // the first, and what it delivered that the next block has not taken yet.
+  // Separate received playback and pre-master Send buses. Only local
+  // origins enter Send; received sound joins the final playback after it.
   uint32_t share_module_ = UINT32_MAX;
   uint32_t send_module_ = UINT32_MAX;
+  uint32_t send_bus_module_ = UINT32_MAX;
+  pa::stream* send_playback_ = nullptr;
+  struct Origin {
+    pa::stream* stream = nullptr;
+    std::vector<float> fifo;
+    bool seen = false;
+  };
+  std::map<uint32_t, Origin> origins_;
+  std::vector<float> monitor_fifo_;
+  bool origins_reading_ = false;
+  bool origins_again_ = false;
   bool share_loading_ = false;
   pa::stream* share_record_ = nullptr;
   std::vector<float> share_fifo_;
-  /** "FluidEQ"'s monitor delivered since "FluidEQ Share In"'s last read:
-   * while it does, its reads drive the blocks; while it is idle, the share's
-   * do, or other computers' sound would play only beside this one's. */
-  bool main_read_ = false;
   pa::stream* playback_ = nullptr;
   uint32_t rate_ = 0;
   ChannelLayout layout_{};
+  pa::channel_map channel_map_{};
   bool default_taken_ = false;
 
   // The playback's rate as last set, the one it was opened at, and whether
@@ -183,6 +211,7 @@ class PulseRouter final : public SoundRouter {
   uint64_t hole_frames_ = 0;
   // Frames gathered toward the next block (`process`).
   uint32_t pending_frames_ = 0;
+  uint32_t clock_frames_ = 0;
 
   std::unique_ptr<OutputEngine> engine_;
   std::vector<float> planes_;

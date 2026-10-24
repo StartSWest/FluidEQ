@@ -119,13 +119,16 @@ constexpr int kStreamInterpolateTiming = 0x2;
 constexpr int kStreamAutoTimingUpdate = 0x8;
 constexpr int kStreamVariableRate = 0x400;
 constexpr int kStreamAdjustLatency = 0x2000;
+constexpr int kStreamStartUnmuted = 0x10000;
 constexpr int kSeekRelative = 0;
 
 // pa_subscription_mask_t and the facility/type bits of an event.
 constexpr int kSubscribeSink = 0x1;
+constexpr int kSubscribeSinkInput = 0x4;
 constexpr int kSubscribeServer = 0x80;
 constexpr int kEventFacilityMask = 0x0F;
 constexpr int kEventSink = 0x0;
+constexpr int kEventSinkInput = 0x2;
 constexpr int kEventServer = 0x7;
 
 using context_notify_cb = void (*)(context*, void*);
@@ -158,6 +161,7 @@ struct Api {
   void (*context_disconnect)(context*);
   void (*context_set_state_callback)(context*, context_notify_cb, void*);
   int (*context_get_state)(context*);
+  uint32_t (*context_get_index)(context*);
   void (*context_set_subscribe_callback)(context*, context_subscribe_cb, void*);
   operation* (*context_subscribe)(context*, int mask, context_success_cb, void*);
   operation* (*context_get_server_info)(context*, server_info_cb, void*);
@@ -172,6 +176,11 @@ struct Api {
   cvolume* (*cvolume_scale)(cvolume*, uint32_t);
   operation* (*context_get_sink_input_info_list)(context*, sink_input_info_cb,
                                                  void*);
+  operation* (*context_set_sink_input_volume)(context*, uint32_t,
+                                              const cvolume*,
+                                              context_success_cb, void*);
+  operation* (*context_set_sink_input_mute)(context*, uint32_t, int,
+                                            context_success_cb, void*);
   operation* (*context_load_module)(context*, const char* name,
                                     const char* argument, context_index_cb,
                                     void*);
@@ -190,6 +199,7 @@ struct Api {
   stream* (*stream_new)(context*, const char* name, const sample_spec*,
                         const channel_map*);
   void (*stream_unref)(stream*);
+  int (*stream_set_monitor_stream)(stream*, uint32_t);
   int (*stream_connect_record)(stream*, const char* device, const buffer_attr*,
                                int flags);
   int (*stream_connect_playback)(stream*, const char* device,

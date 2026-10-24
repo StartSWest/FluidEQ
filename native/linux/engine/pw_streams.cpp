@@ -5,14 +5,11 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 /**
- * The router's two streams — the FluidEQ sink applications play into, and
- * the playback from it to the real output — and the engine between them.
- *
- * The shape is PipeWire's own `module-loopback`: the sink's process only
- * triggers the playback's, and the playback's process takes the newest sink
- * buffer, runs the engine over it in the playback buffer and queues both.
- * Both streams are one node group, so a cycle of the real output's clock
- * runs both, in that order, on PipeWire's data thread.
+ * The FluidEQ sink holds the OS system master. Its raw monitor ports feed
+ * the origin capture, ahead of volume/mute; the sink's post-master process
+ * buffers are discarded. The origin capture triggers playback, which taps
+ * Send before mixing received audio and running DSP. The OS master applies
+ * only to the final playback stream. All audio callbacks share one data loop.
  */
 
 #include <spa/param/audio/format-utils.h>
@@ -36,12 +33,9 @@ namespace {
 // ceiling for a quantum is 8192 frames; a larger one is split, never refused.
 constexpr uint32_t kMaxFrames = 8192;
 constexpr const char* kDataLoop = "data-loop.0";
-// PW_STREAM_FLAG_ASYNC, spelled as its value because headers older than 1.0
-// do not name it (and libraries that old ignore the bit). The sink's buffers
-// are dequeued and queued in the playback's process, not its own; without
-// the flag the sink takes its own process returning as "this cycle's buffer
-// is done", the two queues fall out of step, and every other cycle reached
-// the output as silence — measured, 42.7 ms of tone then 42.7 ms of nothing.
+// The sink and Share In are asynchronous members of the playback's node
+// group. Their process callbacks return buffers; the origin stream triggers
+// playback after taking the raw monitor ports (also on older 0.3 headers).
 constexpr uint32_t kStreamAsync = 1u << 10;
 
 uint32_t spa_channel_of(Speaker speaker, uint32_t index) {
@@ -124,7 +118,7 @@ void PipeWireRouter::run_on_data_thread(void (*fn)(PipeWireRouter*, void*),
   // and may not be running at all (a blocking invoke would never return).
   if (capture_.stream == nullptr && playback_.stream == nullptr &&
       monitor_.stream.stream == nullptr && send_.stream.stream == nullptr &&
-      share_.stream == nullptr) {
+      share_.stream == nullptr && origin_.stream == nullptr) {
     fn(this, arg);
     return;
   }
@@ -141,6 +135,7 @@ void PipeWireRouter::retarget(const Sink& sink) {
   target_name_ = sink.name;
   layout_ = layout;
   if (relayout) {
+    close_origin();
     close_tap(monitor_);
     close_tap(send_);
     close_share();
@@ -157,7 +152,9 @@ void PipeWireRouter::retarget(const Sink& sink) {
     open_tap(monitor_, layout, "fluideq_monitor", "FluidEQ Monitor");
     open_tap(send_, layout, "fluideq_send", kSendSourceDescription);
     open_share(layout);
+    if (!open_origin(layout)) return;
   }
+  apply_playback_volume();
   ensure_engine();
 }
 
@@ -169,6 +166,7 @@ bool PipeWireRouter::open_capture(const ChannelLayout& layout) {
       options_.sink_description.c_str(), PW_KEY_NODE_GROUP, group.c_str(),
       "node.link-group", group.c_str(), "node.loop.name", kDataLoop,
       PW_KEY_NODE_VIRTUAL, "true", "resample.prefill", "true",
+      "monitor.channel-volumes", "false",
       "device.icon-name", "audio-card", nullptr);
   capture_.stream = api_.stream_new(core_, "FluidEQ", props);
   latency_reported_ = UINT32_MAX;  // A new stream has reported nothing.
@@ -181,7 +179,8 @@ bool PipeWireRouter::open_capture(const ChannelLayout& layout) {
     e.version = PW_VERSION_STREAM_EVENTS;
     e.process = &PipeWireRouter::on_capture_process;
     e.param_changed = &PipeWireRouter::on_capture_param;
-    e.state_changed = &PipeWireRouter::on_capture_state;
+    e.state_changed = &PipeWireRouter::on_stream_state;
+    e.control_info = &PipeWireRouter::on_volume_control;
     return e;
   }();
   api_.stream_add_listener(capture_.stream, &capture_.listener, &events, this);
@@ -283,6 +282,9 @@ void PipeWireRouter::on_stream_state(void* data, pw_stream_state old,
                                      pw_stream_state state, const char* error) {
   auto* self = static_cast<PipeWireRouter*>(data);
   (void)old;
+  if (state == PW_STREAM_STATE_PAUSED || state == PW_STREAM_STATE_STREAMING) {
+    self->apply_playback_volume();
+  }
   if (state == PW_STREAM_STATE_ERROR) {
     self->log_->write(std::string("stream error: ") +
                       (error != nullptr ? error : "unknown"));
@@ -375,12 +377,8 @@ void PipeWireRouter::swap_engine(std::unique_ptr<OutputEngine> next) noexcept {
 
 void PipeWireRouter::on_capture_process(void* data) {
   auto* self = static_cast<PipeWireRouter*>(data);
-  pw_stream* const playback = self->rt_playback_;
-  if (playback != nullptr && self->api_.stream_trigger_process(playback) >= 0) {
-    return;
-  }
-  // No playback to carry it: let the sink's buffers go, or applications
-  // playing into FluidEQ would stall against a full queue.
+  // These buffers already contain the virtual sink's software volume/mute.
+  // Only its unmodified monitor ports may feed the Send tap and engine.
   pw_stream* const capture = self->rt_capture_;
   if (capture == nullptr) return;
   while (pw_buffer* buffer = self->api_.stream_dequeue_buffer(capture)) {
@@ -393,21 +391,12 @@ void PipeWireRouter::on_playback_process(void* data) {
 }
 
 void PipeWireRouter::playback_cycle() noexcept {
-  pw_stream* const capture = rt_capture_;
   pw_stream* const playback = rt_playback_;
   if (playback == nullptr) return;
-  // The newest of what the sink holds; anything older is let go.
-  pw_buffer* in = nullptr;
-  if (capture != nullptr) {
-    while (pw_buffer* next = api_.stream_dequeue_buffer(capture)) {
-      if (in != nullptr) api_.stream_queue_buffer(capture, in);
-      in = next;
-    }
-  }
+  ShareRing* const origin = rt_origin_ring_;
   ShareRing* const shared = rt_share_ring_;
   pw_buffer* out = api_.stream_dequeue_buffer(playback);
   if (out == nullptr) {
-    if (in != nullptr) api_.stream_queue_buffer(capture, in);
     return;
   }
   spa_buffer* const target = out->buffer;
@@ -416,25 +405,8 @@ void PipeWireRouter::playback_cycle() noexcept {
   for (uint32_t c = 0; c < channels; ++c) {
     room = std::min<uint32_t>(room, target->datas[c].maxsize / sizeof(float));
   }
-  // The fewest frames any input channel holds inside its own buffer: a
-  // chunk is the producer's word, and is held to the memory behind it.
-  uint32_t available = UINT32_MAX;
-  if (in != nullptr) {
-    for (uint32_t c = 0; c < in->buffer->n_datas; ++c) {
-      const spa_data& from = in->buffer->datas[c];
-      if (from.chunk == nullptr) {
-        available = 0;
-        break;
-      }
-      const uint32_t offset = std::min(from.chunk->offset, from.maxsize);
-      const uint32_t bytes = std::min(from.chunk->size, from.maxsize - offset);
-      available = std::min<uint32_t>(available, bytes / sizeof(float));
-    }
-  }
-  if (in == nullptr || available == UINT32_MAX) available = 0;
-  // Only other computers' sound playing: the cycle is as long as theirs.
-  uint32_t frames =
-      in == nullptr && shared != nullptr ? shared->available() : available;
+  uint32_t frames = origin != nullptr ? origin->available() : 0;
+  if (frames == 0 && shared != nullptr) frames = shared->available();
   if (api_.has_requested && out->requested > 0) {
     frames = static_cast<uint32_t>(out->requested);
   }
@@ -448,21 +420,9 @@ void PipeWireRouter::playback_cycle() noexcept {
       mapped = false;
       continue;
     }
-    const float* source = nullptr;
-    if (in != nullptr && c < in->buffer->n_datas &&
-        in->buffer->datas[c].data != nullptr &&
-        in->buffer->datas[c].chunk != nullptr) {
-      const spa_data& from = in->buffer->datas[c];
-      source = reinterpret_cast<const float*>(
-          static_cast<const uint8_t*>(from.data) +
-          std::min(from.chunk->offset, from.maxsize));
-    }
-    const uint32_t copied = source != nullptr ? std::min(frames, available) : 0;
-    if (copied > 0) std::memcpy(planes[c], source, copied * sizeof(float));
-    if (copied < frames) {
-      std::memset(planes[c] + copied, 0, (frames - copied) * sizeof(float));
-    }
+    std::memset(planes[c], 0, frames * sizeof(float));
   }
+  if (origin != nullptr && mapped) origin->add_into(planes, channels, frames);
   // What this computer played, untouched, for Share Audio; then the sound
   // other computers send here joins it, so it is EQ'd here and never sent
   // back to them.
@@ -486,7 +446,6 @@ void PipeWireRouter::playback_cycle() noexcept {
     chunk->size = frames * sizeof(float);
   }
   api_.stream_queue_buffer(playback, out);
-  if (in != nullptr) api_.stream_queue_buffer(capture, in);
 }
 
 }  // namespace fluideq_linux

@@ -397,6 +397,7 @@ void PipeWireRouter::write_outputs() noexcept {
 void PipeWireRouter::shutdown() noexcept {
   if (loop_ == nullptr || shut_) return;
   api_.thread_loop_lock(loop_);
+  close_origin();
   shut_ = true;
   // The listener's output becomes the default again before the FluidEQ sink
   // goes, so applications move straight to it rather than to a fallback.

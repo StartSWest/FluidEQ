@@ -54,6 +54,7 @@ Loaded load() {
       bind("pa_context_disconnect", a.context_disconnect) &&
       bind("pa_context_set_state_callback", a.context_set_state_callback) &&
       bind("pa_context_get_state", a.context_get_state) &&
+      bind("pa_context_get_index", a.context_get_index) &&
       bind("pa_context_set_subscribe_callback", a.context_set_subscribe_callback) &&
       bind("pa_context_subscribe", a.context_subscribe) &&
       bind("pa_context_get_server_info", a.context_get_server_info) &&
@@ -66,6 +67,8 @@ Loaded load() {
       bind("pa_cvolume_scale", a.cvolume_scale) &&
       bind("pa_context_get_sink_input_info_list",
            a.context_get_sink_input_info_list) &&
+      bind("pa_context_set_sink_input_volume", a.context_set_sink_input_volume) &&
+      bind("pa_context_set_sink_input_mute", a.context_set_sink_input_mute) &&
       bind("pa_context_load_module", a.context_load_module) &&
       bind("pa_context_unload_module", a.context_unload_module) &&
       bind("pa_context_set_default_sink", a.context_set_default_sink) &&
@@ -77,6 +80,7 @@ Loaded load() {
       bind("pa_operation_get_state", a.operation_get_state) &&
       bind("pa_stream_new", a.stream_new) &&
       bind("pa_stream_unref", a.stream_unref) &&
+      bind("pa_stream_set_monitor_stream", a.stream_set_monitor_stream) &&
       bind("pa_stream_connect_record", a.stream_connect_record) &&
       bind("pa_stream_connect_playback", a.stream_connect_playback) &&
       bind("pa_stream_disconnect", a.stream_disconnect) &&
