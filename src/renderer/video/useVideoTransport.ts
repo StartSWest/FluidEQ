@@ -42,6 +42,7 @@ import {
 import { PLAYBACK_HANDOFF_GRACE_MS } from '../audio/playbackHandoff';
 import { type IWebview } from './videoWebview';
 import { type Translate } from '../../common/i18n';
+import createGuestProbe from './guestProbe';
 
 /** Four bar updates a second; visual guest work remains stopped off-tab. */
 const TRANSPORT_CLOCK_SAMPLE_MS = 250;
@@ -428,29 +429,23 @@ const useVideoTransport = ({
      * opened on its own has no next until it is opened from a playlist, and
      * YouTube Music has neither until something is queued.
      */
-    const probeSkips = () => {
-      try {
-        view
-          .executeJavaScript(PROBE_SKIP_CONTROLS)
-          .then((found) => {
-            const record = (found ?? {}) as Record<string, unknown>;
-            const next = record.next === true;
-            const previous = record.previous === true;
-            if (
-              next === skipsRef.current.next &&
-              previous === skipsRef.current.previous
-            ) {
-              return found;
-            }
-            skipsRef.current = { next, previous };
-            describe(playingRef.current);
-            return found;
-          })
-          .catch(() => undefined);
-      } catch {
-        // No web contents to ask.
-      }
-    };
+    const skipsProbe = createGuestProbe(
+      () => view.executeJavaScript(PROBE_SKIP_CONTROLS),
+      (found) => {
+        const record = (found ?? {}) as Record<string, unknown>;
+        const next = record.next === true;
+        const previous = record.previous === true;
+        if (
+          next === skipsRef.current.next &&
+          previous === skipsRef.current.previous
+        ) {
+          return;
+        }
+        skipsRef.current = { next, previous };
+        describe(playingRef.current);
+      },
+    );
+    const probeSkips = skipsProbe.refresh;
 
     /**
      * What the page says is playing, asked of the page.
@@ -461,60 +456,50 @@ const useVideoTransport = ({
      * back — a queue advancing without the document changing at all, as a
      * Suno playlist or a YouTube Music queue does.
      */
-    const probeNowPlaying = () => {
-      try {
-        view
-          .executeJavaScript(READ_NOW_PLAYING)
-          .then((found) => {
-            const record = (found ?? {}) as Record<string, unknown>;
-            const title =
-              typeof record.title === 'string' ? record.title : undefined;
-            const artist =
-              typeof record.artist === 'string' && record.artist
-                ? record.artist
-                : undefined;
-            if (
-              title === nowPlayingRef.current.title &&
-              artist === nowPlayingRef.current.artist
-            ) {
-              return found;
-            }
-            nowPlayingRef.current = { title, artist };
-            describe(playingRef.current);
-            return found;
-          })
-          .catch(() => undefined);
-      } catch {
-        // No web contents to ask.
-      }
-    };
+    const nowPlayingProbe = createGuestProbe(
+      () => view.executeJavaScript(READ_NOW_PLAYING),
+      (found) => {
+        const record = (found ?? {}) as Record<string, unknown>;
+        const title =
+          typeof record.title === 'string' ? record.title : undefined;
+        const artist =
+          typeof record.artist === 'string' && record.artist
+            ? record.artist
+            : undefined;
+        if (
+          title === nowPlayingRef.current.title &&
+          artist === nowPlayingRef.current.artist
+        ) {
+          return;
+        }
+        nowPlayingRef.current = { title, artist };
+        describe(playingRef.current);
+      },
+    );
+    const probeNowPlaying = nowPlayingProbe.refresh;
     nowPlayingProbeRef.current = probeNowPlaying;
 
+    const playbackProbe = createGuestProbe(
+      () => view.executeJavaScript(PROBE_PLAYBACK),
+      (state) => {
+        if (typeof state !== 'boolean') {
+          clearTransportSource('media');
+          return;
+        }
+        playingRef.current = state;
+        if (state) {
+          setHandoffRetention(false);
+          claimPlayback('media');
+          startPlaybackClock();
+        }
+        describe(state);
+        grabFrame();
+      },
+    );
     const probe = () => {
       probeSkips();
       probeNowPlaying();
-      try {
-        view
-          .executeJavaScript(PROBE_PLAYBACK)
-          .then((state) => {
-            if (typeof state !== 'boolean') {
-              clearTransportSource('media');
-              return state;
-            }
-            playingRef.current = state;
-            if (state) {
-              setHandoffRetention(false);
-              claimPlayback('media');
-              startPlaybackClock();
-            }
-            describe(state);
-            grabFrame();
-            return state;
-          })
-          .catch(() => undefined);
-      } catch {
-        // No web contents to ask.
-      }
+      playbackProbe.refresh();
     };
     view.addEventListener('media-started-playing', onPlaying);
     view.addEventListener('media-paused', onPaused);
@@ -537,6 +522,9 @@ const useVideoTransport = ({
     });
     return () => {
       isDisposed = true;
+      skipsProbe.dispose();
+      nowPlayingProbe.dispose();
+      playbackProbe.dispose();
       playbackRevision += 1;
       setHandoffRetention(false);
       stopPlaybackClock();

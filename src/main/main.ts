@@ -992,7 +992,6 @@ app.on('before-quit', (event) => {
   destroyTray();
   stopRemoteAudioLan();
   stopOutputMirrors();
-  members.dispose();
   // The forum's GitHub sign-in holds a loopback socket for the same reason.
   forumIpc.dispose();
   motionPreferenceIpc.dispose();
@@ -1006,6 +1005,12 @@ app.on('before-quit', (event) => {
   // No sync after the one in flight: nothing reads the folder from here on.
   diskSync.stop();
 });
+
+// Renderers report their final listening fragment while their windows close.
+// Removing these handlers in before-quit rejected that last report on every
+// dev restart. will-quit runs after the windows are gone, while synchronous
+// disposal can still close the account's sockets and native resources.
+app.on('will-quit', () => members.dispose());
 
 const isTheOnlyCopy = claimTheOnlyCopy({ userDataDir, getMainWindow });
 // `fluideq://` links, before `ready`: macOS delivers one at launch as an event.
