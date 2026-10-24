@@ -7,9 +7,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * PulseAudio's client library, opened at run time and declared here by hand.
  *
- * Only for desktops where PipeWire does not run (Ubuntu 22.04, Debian 11,
- * Mint 21 and their kind); everywhere else the engine talks to PipeWire
- * directly. Declared rather than included because the declarations are
+ * The engine's fallback for desktops where PipeWire does not run (Ubuntu
+ * 22.04, Debian 11, Mint 21 and their kind); the volume helper also uses
+ * this API on pipewire-pulse, alongside the desktop's own mixer controls.
+ * Declared rather than included because the declarations are
  * PulseAudio's frozen 0.9-era ABI — every struct below is the leading part
  * of the library's own, in its own order, and every enum value is fixed by
  * its protocol — and because a build machine should not need a header
@@ -82,6 +83,8 @@ struct sink_info {
   sample_spec spec;
   channel_map map;
   uint32_t owner_module;
+  cvolume volume;
+  int mute;
 };
 
 struct sink_input_info {
@@ -159,6 +162,14 @@ struct Api {
   operation* (*context_subscribe)(context*, int mask, context_success_cb, void*);
   operation* (*context_get_server_info)(context*, server_info_cb, void*);
   operation* (*context_get_sink_info_list)(context*, sink_info_cb, void*);
+  operation* (*context_get_sink_info_by_name)(context*, const char*,
+                                              sink_info_cb, void*);
+  operation* (*context_set_sink_volume_by_index)(context*, uint32_t,
+                                                 const cvolume*,
+                                                 context_success_cb, void*);
+  operation* (*context_set_sink_mute_by_index)(context*, uint32_t, int,
+                                               context_success_cb, void*);
+  cvolume* (*cvolume_scale)(cvolume*, uint32_t);
   operation* (*context_get_sink_input_info_list)(context*, sink_input_info_cb,
                                                  void*);
   operation* (*context_load_module)(context*, const char* name,

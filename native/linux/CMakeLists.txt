@@ -99,6 +99,19 @@ add_library(fluideq-linux-pulse STATIC pulse/pa_api.cpp)
 target_link_libraries(fluideq-linux-pulse PUBLIC ${CMAKE_DL_LIBS}
   PRIVATE feq_strict)
 
+# The player's existing line protocol, backed by the desktop's default sink.
+# PulseAudio's client API works on both PulseAudio and pipewire-pulse, so
+# volume follows the same sink the desktop's sound controls already use.
+add_executable(fluideq-linux-volume volume/main.cpp)
+target_link_libraries(fluideq-linux-volume PRIVATE
+  fluideq-linux-pulse Threads::Threads feq_strict)
+target_link_options(fluideq-linux-volume PRIVATE ${FEQ_LINUX_PORTABLE_LINK})
+set_target_properties(fluideq-linux-volume PROPERTIES
+  OUTPUT_NAME "FluidEQ-Volume"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+  RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_BINARY_DIR}/bin"
+  RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_BINARY_DIR}/bin")
+
 # The engine with no sound server in it: one output's graph, its watcher and
 # what it writes for the app. The routers below feed it; the tests drive it.
 add_library(fluideq-linux-engine-runtime STATIC

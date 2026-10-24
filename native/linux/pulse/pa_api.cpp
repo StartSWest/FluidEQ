@@ -58,6 +58,12 @@ Loaded load() {
       bind("pa_context_subscribe", a.context_subscribe) &&
       bind("pa_context_get_server_info", a.context_get_server_info) &&
       bind("pa_context_get_sink_info_list", a.context_get_sink_info_list) &&
+      bind("pa_context_get_sink_info_by_name", a.context_get_sink_info_by_name) &&
+      bind("pa_context_set_sink_volume_by_index",
+           a.context_set_sink_volume_by_index) &&
+      bind("pa_context_set_sink_mute_by_index",
+           a.context_set_sink_mute_by_index) &&
+      bind("pa_cvolume_scale", a.cvolume_scale) &&
       bind("pa_context_get_sink_input_info_list",
            a.context_get_sink_input_info_list) &&
       bind("pa_context_load_module", a.context_load_module) &&

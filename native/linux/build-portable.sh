@@ -17,8 +17,8 @@
 #
 #   native/linux/build-portable.sh [output-dir]   (default: native/.build/bin)
 #
-# Needs Docker. The source tree is mounted read-only; nothing but the two
-# binaries is written to the output directory.
+# Needs Docker. The source tree is mounted read-only; nothing but the three
+# helpers is written to the output directory.
 
 set -euo pipefail
 
@@ -68,14 +68,15 @@ docker run --rm \
 
     cmake -S /src -B /tmp/build -DCMAKE_BUILD_TYPE=Release \
       -DFEQ_BUILD_REVISION=portable -DFEQ_PIPEWIRE_HEADERS=/tmp/pwh >/dev/null
-    cmake --build /tmp/build -j"$(nproc)" \
-      --target fluideq-linux-engine fluideq-dsp-host
-    install -m 0755 /tmp/build/bin/FluidEQ-Engine /tmp/build/bin/FluidEQ-DSP /out/
-    chown "$OWNER" /out/FluidEQ-Engine /out/FluidEQ-DSP
+    cmake --build /tmp/build -j2 \
+      --target fluideq-linux-engine fluideq-dsp-host fluideq-linux-volume
+    install -m 0755 /tmp/build/bin/FluidEQ-Engine /tmp/build/bin/FluidEQ-DSP \
+      /tmp/build/bin/FluidEQ-Volume /out/
+    chown "$OWNER" /out/FluidEQ-Engine /out/FluidEQ-DSP /out/FluidEQ-Volume
     echo "highest glibc symbol each binary needs:"
-    for binary in /out/FluidEQ-Engine /out/FluidEQ-DSP; do
+    for binary in /out/FluidEQ-Engine /out/FluidEQ-DSP /out/FluidEQ-Volume; do
       printf "  %s: " "$(basename "$binary")"
       objdump -T "$binary" | grep -o "GLIBC_[0-9.]*" | sort -uV | tail -1
     done
   '
-echo "build-portable: $out/FluidEQ-Engine and $out/FluidEQ-DSP"
+echo "build-portable: $out/FluidEQ-Engine, $out/FluidEQ-DSP and $out/FluidEQ-Volume"

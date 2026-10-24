@@ -299,6 +299,7 @@
           "FluidEQ-Meter.exe",
           "FluidEQ-Games.exe",
           "FluidEQ-Volume.exe",
+          "FluidEQ-Volume",
           "FluidEQ-Outputs.exe",
           "FluidEQ-Media.exe",
           "msvcp140.dll",

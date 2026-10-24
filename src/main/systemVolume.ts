@@ -29,8 +29,12 @@ import {
 import { createHelperReplacement } from './helperReplacement';
 import onWindowMessage from './ipc/windowMessages';
 
-export const SYSTEM_VOLUME_EXECUTABLE =
-  process.platform === 'win32' ? 'FluidEQ-Volume.exe' : undefined;
+const volumeExecutables: Partial<Record<NodeJS.Platform, string>> = {
+  win32: 'FluidEQ-Volume.exe',
+  linux: 'FluidEQ-Volume',
+};
+
+export const SYSTEM_VOLUME_EXECUTABLE = volumeExecutables[process.platform];
 
 const resourcesPath = (): string => {
   const { resourcesPath: found } = process as NodeJS.Process & {

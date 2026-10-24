@@ -460,6 +460,12 @@ const hostPath = path.join(BUILD_DIR, 'bin', hostName);
 if (!existsSync(hostPath)) {
   fail(`the host was not produced at ${hostPath}`);
 }
+if (
+  process.platform === 'linux' &&
+  !existsSync(path.join(BUILD_DIR, 'bin', 'FluidEQ-Volume'))
+) {
+  fail('the Linux system volume helper was not produced');
+}
 if (isWindows) {
   const playbackPath = path.join(BUILD_DIR, 'bin', 'FluidEQ-LAN-Playback.exe');
   if (!existsSync(playbackPath)) {
