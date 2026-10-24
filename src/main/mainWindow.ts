@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import path from 'path';
 import { BrowserWindow, app, desktopCapturer, screen } from 'electron';
 import log from 'electron-log';
+import { openWindowDevTools } from './devTools';
 import { PRODUCT_NAME } from '../common/branding';
 import { RENDERER_READY_EVENT } from '../common/constants';
 import {
@@ -545,7 +546,7 @@ export const createMainWindowFactory = ({
           created.once('show', () => created.maximize());
         }
         if (isDebug) {
-          created.webContents.openDevTools();
+          openWindowDevTools(created.webContents);
         }
         return;
       }
@@ -568,7 +569,7 @@ export const createMainWindowFactory = ({
 
       if (isDebug) {
         // When in debug mode, show dev tools after the app loads.
-        created.webContents.openDevTools();
+        openWindowDevTools(created.webContents);
       }
     };
 

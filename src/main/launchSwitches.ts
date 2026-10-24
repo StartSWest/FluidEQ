@@ -167,6 +167,10 @@ export const applyLaunchSwitches = () => {
      * package and still work on any window.
      */
     // eslint-disable-next-line global-require -- a development tool, loaded only in the builds that debug
-    require('electron-debug').default({ showDevTools: false });
+    require('electron-debug').default(
+      process.platform === 'linux'
+        ? { showDevTools: false, devToolsMode: 'detach' }
+        : { showDevTools: false },
+    );
   }
 };

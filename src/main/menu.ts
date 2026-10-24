@@ -24,6 +24,7 @@ import {
   MenuItemConstructorOptions,
 } from 'electron';
 import { PRODUCT_NAME, REPOSITORY_URL } from '../common/branding';
+import { openWindowDevTools, toggleWindowDevTools } from './devTools';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -179,6 +180,12 @@ export default class MenuBuilder {
         {
           label: 'Inspect element',
           click: () => {
+            if (
+              process.platform === 'linux' &&
+              !this.mainWindow.webContents.isDevToolsOpened()
+            ) {
+              openWindowDevTools(this.mainWindow.webContents);
+            }
             this.mainWindow.webContents.inspectElement(x, y);
           },
         },
@@ -255,7 +262,7 @@ export default class MenuBuilder {
           label: 'Toggle Developer Tools',
           accelerator: 'Alt+Command+I',
           click: () => {
-            this.mainWindow.webContents.toggleDevTools();
+            toggleWindowDevTools(this.mainWindow.webContents);
           },
         },
       ],
@@ -348,7 +355,7 @@ export default class MenuBuilder {
                 label: 'Toggle &Developer Tools',
                 accelerator: 'Alt+Ctrl+I',
                 click: () => {
-                  this.mainWindow.webContents.toggleDevTools();
+                  toggleWindowDevTools(this.mainWindow.webContents);
                 },
               },
             ]

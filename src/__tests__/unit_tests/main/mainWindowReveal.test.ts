@@ -25,7 +25,7 @@ const ipcListeners = new Map<string, Set<TListener>>();
 interface IFakeWindow extends EventEmitter {
   /** What the window was built with. */
   options: { webPreferences?: Record<string, unknown> } | undefined;
-  webContents: EventEmitter;
+  webContents: EventEmitter & { openDevTools: jest.Mock };
   show: jest.Mock;
   minimize: jest.Mock;
   maximize: jest.Mock;
@@ -185,6 +185,29 @@ afterEach(() => {
 });
 
 describe('when the window appears', () => {
+  it.each([
+    ['linux', [{ mode: 'detach' }]],
+    ['win32', []],
+  ] as const)(
+    'keeps the %s development inspector from changing the intended app viewport',
+    async (platform, options) => {
+      const original = Object.getOwnPropertyDescriptor(process, 'platform');
+      Object.defineProperty(process, 'platform', { value: platform });
+      try {
+        const done = createMainWindowFactory({ ...deps(), isDebug: true })();
+        const window = windows[windows.length - 1];
+        say(RENDERER_READY_EVENT, window.webContents);
+        expect(window.webContents.openDevTools.mock.calls).toEqual([options]);
+        finishLoad();
+        await done;
+      } finally {
+        if (original) {
+          Object.defineProperty(process, 'platform', original);
+        }
+      }
+    },
+  );
+
   it('is not decided by ready-to-show, and no clock is started for it', () => {
     const { window } = open();
     window.emit('ready-to-show');
