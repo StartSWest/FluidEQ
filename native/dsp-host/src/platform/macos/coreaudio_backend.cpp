@@ -99,7 +99,9 @@ class CoreAudioBackend final : public IAudioOutputBackend {
    * was harmless while the host retried on a 25 ms tick and is silence for
    * good now that a retry waits for a reason (`await_endpoint`).
    */
-  explicit CoreAudioBackend(const FeqBackendHooks& hooks) : hooks_(hooks) {
+  explicit CoreAudioBackend(const FeqBackendHooks& hooks,
+                            AudioDeviceID requested = kAudioObjectUnknown)
+      : hooks_(hooks), requested_(requested) {
     for (const AudioObjectPropertySelector what : kSystemSelectors) {
       AudioObjectPropertyAddress address = global_address(what);
       AudioObjectAddPropertyListener(kAudioObjectSystemObject, &address,
@@ -135,7 +137,9 @@ class CoreAudioBackend final : public IAudioOutputBackend {
     // a reopen that is waiting for a device still waiting for one.
     teardown();
     const AudioDeviceID device =
-        forced_absent() ? kAudioObjectUnknown : default_output_device();
+        forced_absent() ? kAudioObjectUnknown
+                        : (requested_ == kAudioObjectUnknown
+                               ? default_output_device() : requested_);
     if (device == kAudioObjectUnknown) {
       // A fact about the machine, not a defect. A build agent with no output
       // fails here forever and correctly, and reporting that as a refused
@@ -433,6 +437,7 @@ class CoreAudioBackend final : public IAudioOutputBackend {
   }
 
   FeqBackendHooks hooks_;
+  AudioDeviceID requested_ = kAudioObjectUnknown;
   AudioUnit unit_ = nullptr;
   AudioDeviceID device_ = kAudioObjectUnknown;
   bool open_ = false;
@@ -453,4 +458,11 @@ class CoreAudioBackend final : public IAudioOutputBackend {
 std::unique_ptr<IAudioOutputBackend> create_audio_backend(
     const FeqBackendHooks& hooks) {
   return std::make_unique<CoreAudioBackend>(hooks);
+}
+
+// Share Audio may follow a selected output without changing the system's
+// default. The Library keeps the default-only factory above.
+std::unique_ptr<IAudioOutputBackend> create_coreaudio_backend_for_device(
+    const FeqBackendHooks& hooks, uint32_t device) {
+  return std::make_unique<CoreAudioBackend>(hooks, device);
 }

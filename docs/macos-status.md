@@ -12,7 +12,9 @@ taps. This page records the current implementation and its remaining limits.
   made on macOS 26 must not silently produce helpers that require macOS 26.
 - `macos` is the sole Mac branch and includes the latest `origin/main`.
   The redundant `macos-support` branch is retired; its history remains
-  in `macos`. This sync does not merge Mac work into `main`.
+  in `macos`. Shared Share Audio fixes land on `main` first and are merged
+  into `macos`; Core Audio capture/playback stays on `macos`. Mac-specific
+  work is never merged wholesale into `main`.
 
 ## Implemented
 
@@ -29,6 +31,12 @@ taps. This page records the current implementation and its remaining limits.
 - Mac traffic lights, fullscreen and compact-player handling, Dock and menu
   bar artwork, sound/screen permission notices, and localized privacy strings.
 - Music and Spotify track-change notifications and transport commands.
+- Two-way Share Audio with native Core Audio capture and playback. An
+  unmuted system tap sends raw local sound and excludes the LAN playback
+  process and the system engine's processed copy. Received sound stays out
+  of the outgoing stream even when both directions run at once. The tap
+  follows default output/rate changes and updates engine/helper exclusions
+  when processes change; capture leases are shared across links.
 - A macOS Apple Silicon CI workflow builds the production bundles, runs the
   native processing tests, checks platform isolation and runs the app tests.
 
@@ -62,7 +70,7 @@ taps. This page records the current implementation and its remaining limits.
 - **Library host CPU and memory readings.** Its macOS build still links the
   unsupported process-statistics implementation. The system engine's own
   process measurements are separate and already implemented.
-- **Other Windows helpers.** Share Audio, simultaneous second-output
+- **Other Windows helpers.** Simultaneous second-output
   routing, Dynamic Lighting, desktop visualizers, game detection and the
   Windows process meter do not acquire Mac implementations from this merge.
   Their Mac availability and visible controls need a separate capability pass.
@@ -70,15 +78,17 @@ taps. This page records the current implementation and its remaining limits.
   no implementation here. Music/Spotify broadcasts supply no live playhead
   or artwork and may not name an already-playing song until its next change.
 - **Distribution.** Verify Developer ID signing and notarization, including
-  both native helpers, on the actual release pipeline. The unsigned local
+  all three native helpers, on the actual release pipeline. The unsigned local
   app-bundle check publishes nothing and does not establish Gatekeeper trust.
   Audio-permission preflight currently uses a private TCC symbol; signed
   distribution and supported OS versions still need compatibility validation.
 - **Real-device checks.** Listen to EQ/rack changes, Room, output/rate changes,
   Bluetooth reconnection and quit/crash recovery; test first permission grant,
   refusal and later re-grant; inspect window restore, fullscreen, compact
-  player and the menu bar at normal and extreme sizes. No running window was
-  available during this review, and the app was not launched automatically.
+  player and the menu bar at normal and extreme sizes. A Windows/Mac listening
+  session must confirm two-way sharing on the actual computers. The running
+  development app could not be inspected because Computer Use permission
+  was unavailable; the app was not launched automatically.
 - **Version coverage.** The development Mac cannot establish behavior on
   every supported macOS release or Intel hardware. Intel remains outside the
   offered package set.
@@ -109,10 +119,48 @@ taps. This page records the current implementation and its remaining limits.
   shared-audio and game-watch smokes are Windows-only. These skips do not
   establish native AAC support or a functioning Mac implementation of those
   Windows features.
-- No running app window was available for the visual checks or permission
+- The running app window could not be inspected for visual checks or permission
   flows, and no listening verdict has been made. The real-device smoke is an
   automated playback/lifecycle check, not a listening session.
-- The final sync also includes main's updated Share Audio interface and
+- The initial sync also includes main's updated Share Audio interface and
   multi-computer links. All 25 affected app suites passed (187 tests), as did
   the app and script TypeScript checks and platform isolation. The native
   sources are unchanged from the 80-check review above.
+
+## Two-way Share Audio follow-up
+
+- Shared lifecycle/status fixes were committed on `main` as `4acdc53e4` and
+  merged into `macos`. A reloaded window retains sending status, a refused
+  capture reports failure, and disconnected renderer worklets stop.
+- The new Mac helper is built and packaged as `FluidEQ-LAN-Playback`.
+  Capture and incoming playback share one process; no Chromium loopback is
+  used on macOS. It uses the same bounded capture queue and peer playback
+  mixer/resampler as Windows. It does not change the system output or volume.
+- The live Core Audio duplex test passed while the system engine was running.
+  A quiet test tone rendered by the LAN helper was rejected by the send tap;
+  the same tone from a separate process was captured. The matched measurement
+  found the incoming tone below the existing background noise and below 1%
+  of the external positive control. The test uses audio frame counts rather
+  than timers and stores no captured audio.
+- This verifies native capture/playback isolation on this Mac. It does not
+  replace a Windows/Mac listening session, permission-flow checks, or supported
+  macOS version coverage.
+- All 30 Share Audio app suites passed (216 tests), including Mac native
+  routing, concurrent capture leases, reconnects and Windows regressions.
+  Capture queue, peer playback and Mac engine configuration native checks
+  passed. App/script TypeScript, platform isolation, encoding and changed-file
+  lint passed, as did the production build and unsigned app-bundle packaging.
+  The packaged LAN helper is arm64 and targets macOS 14.4, alongside the
+  existing DSP and engine helpers. All ten Mac privacy descriptions now
+  disclose sharing with linked computers when Share Audio is enabled.
+
+## Errors from the supplied launch log
+
+- The absent preset-directory startup error is already repaired on `main`
+  and this branch; its regression test passed.
+- The system engine starts and processes 48 kHz stereo successfully.
+- The live backend is missing `public.listening_choices` (PostgREST
+  `PGRST205`), and `scene_catalogue` exceeds its database statement timeout
+  (`57014`). Scene-play reporting also returned HTTP 403 in the supplied log.
+  These remain unresolved: backend source/deployment access is required to
+  repair the schema/query/authorization, rather than hiding client errors.

@@ -43,7 +43,7 @@ export const registerRemoteAudioPlayback = (
     async (event, output: unknown, volume: unknown) => {
       authorize(event);
       if (
-        process.platform !== 'win32' ||
+        (process.platform !== 'win32' && process.platform !== 'darwin') ||
         typeof output !== 'string' ||
         typeof volume !== 'number' ||
         !Number.isFinite(volume) ||

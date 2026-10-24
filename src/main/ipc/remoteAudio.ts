@@ -173,7 +173,7 @@ export const registerRemoteAudioIpc = ({
             return;
           }
           const chunk = levels.apply(arrived, links.volume(arrived.peerId));
-          if (process.platform !== 'win32') {
+          if (process.platform !== 'win32' && process.platform !== 'darwin') {
             ports.audio(chunk);
             return;
           }
@@ -277,7 +277,7 @@ export const registerRemoteAudioIpc = ({
   };
   const startNetworkCaptureIfWanted = () => {
     if (
-      process.platform !== 'win32' ||
+      (process.platform !== 'win32' && process.platform !== 'darwin') ||
       networkTargets.length === 0 ||
       networkCapture
     ) {
@@ -334,7 +334,7 @@ export const registerRemoteAudioIpc = ({
         startNetworkCaptureIfWanted();
       }
     },
-    bothWays: process.platform === 'win32',
+    bothWays: process.platform === 'win32' || process.platform === 'darwin',
     userDataDir,
   });
 

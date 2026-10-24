@@ -227,7 +227,7 @@
       "entitlementsInherit": "assets/entitlements.mac.plist",
       "gatekeeperAssess": false,
       "extendInfo": {
-        "NSAudioCaptureUsageDescription": "FluidEQ equalizes the sound your Mac plays. It listens only to process that sound, and records nothing.",
+        "NSAudioCaptureUsageDescription": "FluidEQ uses system audio to equalize your Mac’s sound and share it with linked computers when you enable Share Audio.",
         "NSMicrophoneUsageDescription": "FluidEQ uses the microphone in Karaoke to hear and score your singing."
       },
       "extraResources": [

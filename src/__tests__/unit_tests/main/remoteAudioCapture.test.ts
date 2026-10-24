@@ -23,6 +23,15 @@ const mockStart = jest.fn();
 jest.mock('../../../main/nativeCaptureProcess', () => ({
   startNativeCaptureProcess: (...args: unknown[]) => mockStart(...args),
 }));
+jest.mock('../../../main/macEngine/macNetworkCapture', () => ({
+  startMacNetworkCapture: jest.fn(),
+}));
+
+const originalPlatform = process.platform;
+beforeAll(() => Object.defineProperty(process, 'platform', { value: 'win32' }));
+afterAll(() =>
+  Object.defineProperty(process, 'platform', { value: originalPlatform }),
+);
 
 type TCaptureModule = typeof import('main/remoteAudioCapture');
 

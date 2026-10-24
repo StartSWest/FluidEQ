@@ -67,7 +67,10 @@ export const createPcmMixer = async (
   onMeter: TRemoteAudioMeterListener,
   initialVolume: number,
 ): Promise<IPcmMixer> => {
-  if (window.electron?.platform === 'win32') {
+  if (
+    window.electron?.platform === 'win32' ||
+    window.electron?.platform === 'darwin'
+  ) {
     return createNativePcmMixer(
       outputSinkId,
       onPlaybackBlocked,

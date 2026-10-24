@@ -1,5 +1,5 @@
 /* What macOS shows when FluidEQ asks to hear the sound the Mac plays. */
-"NSAudioCaptureUsageDescription" = "FluidEQ आपके Mac में चल रही आवाज़ को EQ करता है। यह उस आवाज़ को सिर्फ़ प्रोसेस करने के लिए सुनता है और कुछ भी रिकॉर्ड नहीं करता।";
+"NSAudioCaptureUsageDescription" = "FluidEQ सिस्टम ऑडियो का उपयोग आपके Mac की आवाज़ को इक्वलाइज़ करने और ऑडियो साझाकरण चालू करने पर उसे जुड़े कंप्यूटरों के साथ साझा करने के लिए करता है।";
 
 /* What macOS shows when Karaoke asks for the microphone. */
 "NSMicrophoneUsageDescription" = "FluidEQ कराओके में आपका गाना सुनने और उसे स्कोर देने के लिए माइक्रोफ़ोन का इस्तेमाल करता है।";

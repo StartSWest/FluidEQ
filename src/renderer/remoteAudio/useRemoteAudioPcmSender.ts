@@ -23,7 +23,7 @@ interface ICaptureSource {
 
 /**
  * This computer's sound for the network where main cannot capture it: off
- * Windows there is no process loopback, so the window sends from here, to
+ * Windows and macOS the window sends from here, to
  * every computer that is to hear it — from the Linux engine's "FluidEQ
  * Send" where there is one, otherwise from the live capture it already has.
  * One capture for all of them: what goes out is the same sound.
@@ -74,7 +74,9 @@ const useRemoteAudioPcmSender = ({
   onFailure(): void;
 }) => {
   const { capture: liveCapture, error: captureError } = useLiveAudioControl();
-  const active = window.electron?.platform !== 'win32' && peerIds.length > 0;
+  const platform = window.electron?.platform;
+  const active =
+    platform !== 'win32' && platform !== 'darwin' && peerIds.length > 0;
   useLiveAudioCapture(active && sendInputId === undefined, 'work');
   const callbacksRef = useRef({ publishMeter, onSending, onFailure });
   callbacksRef.current = { publishMeter, onSending, onFailure };

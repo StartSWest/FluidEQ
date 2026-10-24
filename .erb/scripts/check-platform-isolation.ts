@@ -164,6 +164,10 @@ const ALLOWED = new Map<string, IAllowance>([
  */
 const SINGLE_PLATFORM_PROGRAMS = new Map<string, string>([
   [
+    'native/mac-remote-audio/',
+    'Core Audio capture and isolated LAN playback on macOS',
+  ],
+  [
     'native/mac-engine/',
     "the FluidEQ Engine on macOS: every app's sound through a Core Audio process tap",
   ],

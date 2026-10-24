@@ -14,9 +14,10 @@ import { readKnownAudioDevices } from '../utils/equalizerApi';
 const DEFAULT_SINK_ID = 'default';
 
 /**
- * Resolve FluidEQ's right-pane Windows endpoint to Chromium's output id.
+ * Resolve the selected output for native playback or Chromium's sink.
  *
- * The IDs come from different systems and cannot be converted directly. The
+ * Windows and Mac native playback use the stable endpoint GUID directly.
+ * Chromium IDs come from a different system and cannot be converted directly. The
  * existing exact-name bridge is reused here so an active LAN stream can move
  * with the selected output without being stopped or rebuilt. When Chromium
  * withholds labels, `default` is correct because that same right-pane action
@@ -25,7 +26,10 @@ const DEFAULT_SINK_ID = 'default';
 const resolveSelectedOutputSinkId = async (
   activeDeviceId: string,
 ): Promise<string> => {
-  if (window.electron?.platform === 'win32') {
+  if (
+    window.electron?.platform === 'win32' ||
+    window.electron?.platform === 'darwin'
+  ) {
     const devices = await readKnownAudioDevices();
     return (
       devices.find((device) => device.id === activeDeviceId)?.guid ??

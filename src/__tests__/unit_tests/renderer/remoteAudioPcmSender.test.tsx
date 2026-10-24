@@ -93,3 +93,18 @@ it('reports a worklet start failure without leaving the sending state on', async
   expect(onFailure).toHaveBeenCalledTimes(1);
   expect(onSending).toHaveBeenLastCalledWith(false);
 });
+
+it.each(['win32', 'darwin'])(
+  'keeps the outgoing audio native on %s so a window capture cannot echo received sound',
+  async (platform) => {
+    window.electron.platform = platform as typeof window.electron.platform;
+    mockCaptureState.capture = {} as ICaptureGraph;
+    mockCaptureState.error = 'Window capture unavailable';
+    renderHook(() => useRemoteAudioPcmSender(props));
+    await settle();
+    expect(mockCreateSender).not.toHaveBeenCalled();
+    expect(sendRemoteAudioLanAudio).not.toHaveBeenCalled();
+    expect(onSending).not.toHaveBeenCalled();
+    expect(onFailure).not.toHaveBeenCalled();
+  },
+);

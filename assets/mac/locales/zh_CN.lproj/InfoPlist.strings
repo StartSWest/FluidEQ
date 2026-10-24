@@ -1,5 +1,5 @@
 /* What macOS shows when FluidEQ asks to hear the sound the Mac plays. */
-"NSAudioCaptureUsageDescription" = "FluidEQ 会对 Mac 播放的声音进行均衡处理。它只为处理声音而接收声音，不会录制任何内容。";
+"NSAudioCaptureUsageDescription" = "FluidEQ 使用系统音频来均衡 Mac 的声音，并在您启用音频共享时将其共享给已连接的电脑。";
 
 /* What macOS shows when Karaoke asks for the microphone. */
 "NSMicrophoneUsageDescription" = "FluidEQ 在卡拉OK中使用麦克风来收听你的演唱并为其打分。";

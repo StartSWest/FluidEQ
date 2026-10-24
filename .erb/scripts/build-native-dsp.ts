@@ -537,5 +537,9 @@ if (process.platform === 'darwin') {
   if (!existsSync(macEnginePath)) {
     fail(`the macOS engine was not produced at ${macEnginePath}`);
   }
+  const macSharePath = path.join(BUILD_DIR, 'bin', 'FluidEQ-LAN-Playback');
+  if (!existsSync(macSharePath)) {
+    fail(`the macOS Share Audio helper was not produced at ${macSharePath}`);
+  }
 }
 console.log(`native dsp build: ${hostPath}`);

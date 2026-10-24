@@ -1,6 +1,7 @@
 /* FluidEQ — GPL-3.0-or-later */
 import log from 'electron-log';
 import type { ILanRemoteAudioChunk } from '../common/remoteAudio';
+import { startMacNetworkCapture } from './macEngine/macNetworkCapture';
 import {
   startNativeCaptureProcess,
   type INativeCaptureProcess,
@@ -58,34 +59,39 @@ const acquire = (mode: TCaptureMode, client: IClient) => {
   };
   sessions.set(mode, current);
   current.clients.add(client);
-  current.opening ??= startNativeCaptureProcess(
-    mode,
-    (chunk) =>
-      current.clients.forEach((subscriber) => subscriber.audio?.(chunk)),
-    () => failSession(current),
-    (kind, id, result) => {
-      if (kind === 4) {
-        current.mirrors.get(id)?.failed();
-        current.mirrors.delete(id);
-        return;
-      }
-      if (kind === 5) {
-        current.mirrors.get(id)?.delay(result / 1000);
-        return;
-      }
-      const request = current.requests.get(id);
-      current.requests.delete(id);
-      if (result >= 0x8000_0000) {
-        request?.reject(
-          new Error(
-            `Windows could not open or update the second output (0x${result.toString(16)}).`,
-          ),
+  const receive = (chunk: ILanRemoteAudioChunk) =>
+    current.clients.forEach((subscriber) => subscriber.audio?.(chunk));
+  const open = () =>
+    process.platform === 'darwin' && mode === 'lan'
+      ? startMacNetworkCapture(receive, () => failSession(current))
+      : startNativeCaptureProcess(
+          mode,
+          receive,
+          () => failSession(current),
+          (kind, id, result) => {
+            if (kind === 4) {
+              current.mirrors.get(id)?.failed();
+              current.mirrors.delete(id);
+              return;
+            }
+            if (kind === 5) {
+              current.mirrors.get(id)?.delay(result / 1000);
+              return;
+            }
+            const request = current.requests.get(id);
+            current.requests.delete(id);
+            if (result >= 0x8000_0000) {
+              request?.reject(
+                new Error(
+                  `Windows could not open or update the second output (0x${result.toString(16)}).`,
+                ),
+              );
+            } else {
+              request?.resolve();
+            }
+          },
         );
-      } else {
-        request?.resolve();
-      }
-    },
-  ).then((process) => {
+  current.opening ??= open().then((process) => {
     current.process = process;
     if (current.clients.size === 0) {
       process.close();

@@ -70,6 +70,22 @@ it('closes a replaced output once and ignores commands from its old mixer', asyn
   expect(next.close).toHaveBeenCalledTimes(1);
 });
 
+it('opens incoming Mac audio natively without routing it through Chromium capture', async () => {
+  Object.defineProperty(process, 'platform', { value: 'darwin' });
+  try {
+    const player = createPlayer();
+    jest.mocked(startNativeRemoteAudioPlayback).mockResolvedValue(player);
+    registerRemoteAudioPlayback(() => window);
+    const id = await invoke('open', 'default', 0.6);
+    expect(player.setOutput).toHaveBeenCalledWith('default');
+    expect(player.setVolume).toHaveBeenCalledWith(0.6);
+    await invoke('command', id, 'close');
+    expect(player.close).toHaveBeenCalledTimes(1);
+  } finally {
+    Object.defineProperty(process, 'platform', { value: 'win32' });
+  }
+});
+
 it('disposes an output that finishes opening after a newer receiver replaces it', async () => {
   const pending = deferred<void>();
   const old = createPlayer();

@@ -1,5 +1,5 @@
 /* What macOS shows when FluidEQ asks to hear the sound the Mac plays. */
-"NSAudioCaptureUsageDescription" = "FluidEQ equalizes the sound your Mac plays. It listens only to process that sound, and records nothing.";
+"NSAudioCaptureUsageDescription" = "FluidEQ uses system audio to equalize your Mac’s sound and share it with linked computers when you enable Share Audio.";
 
 /* What macOS shows when Karaoke asks for the microphone. */
 "NSMicrophoneUsageDescription" = "FluidEQ uses the microphone in Karaoke to hear and score your singing.";

@@ -1,5 +1,30 @@
 import { createNativePcmMixer } from 'renderer/remoteAudio/nativePcmMixer';
+import { createPcmMixer } from 'renderer/remoteAudio/pcmMixer';
 import type { TRemotePlaybackEvent } from 'common/remoteAudioPlayback';
+
+it('plays received Mac audio through the excluded native helper', async () => {
+  const start = jest.fn().mockResolvedValue(1);
+  const command = jest.fn().mockResolvedValue(undefined);
+  const unsubscribe = jest.fn();
+  window.electron = {
+    platform: 'darwin',
+    ipcRenderer: {
+      startRemoteAudioPlayback: start,
+      remoteAudioPlaybackCommand: command,
+      onRemoteAudioPlayback: () => unsubscribe,
+    },
+  } as unknown as typeof window.electron;
+  const mixer = await createPcmMixer('default', jest.fn(), jest.fn(), 0.4);
+  expect(start).toHaveBeenCalledWith('default', 0.4);
+  await mixer.setOutput('{12345678-1234-1234-1234-123456789abc}');
+  expect(command).toHaveBeenCalledWith(
+    1,
+    'output',
+    '{12345678-1234-1234-1234-123456789abc}',
+  );
+  await mixer.close();
+  expect(unsubscribe).toHaveBeenCalledTimes(1);
+});
 
 it('reopens a failed receiver and closes a late resume after Stop', async () => {
   let emit: (event: TRemotePlaybackEvent) => void = () => undefined;

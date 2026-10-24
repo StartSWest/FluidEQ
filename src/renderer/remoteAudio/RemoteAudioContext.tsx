@@ -67,9 +67,10 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const bridge = window.electron?.ipcRenderer;
   const linuxShare = useLinuxShareDevices();
   // Both ways where nothing received can go back out: Windows' process
-  // loopback, or the Linux engine's own Send and Share In.
+  // loopback, the Mac helper's excluded playback, or Linux's Send and Share In.
   const bothWays =
     platform === 'win32' ||
+    platform === 'darwin' ||
     (platform === 'linux' &&
       linuxShare.shareOutputId !== undefined &&
       linuxShare.sendInputId !== undefined);
