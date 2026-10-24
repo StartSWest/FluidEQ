@@ -33,7 +33,7 @@ const help = {
   'help.group.start': 'Get started',
   'help.group.sound': 'Shape your sound',
   'help.group.visuals': 'See your music',
-  'help.group.plus': 'FluidEQ Plus',
+  'help.group.plus': 'Visualizers and your account',
   'help.group.listen': 'Listen, sing and share',
   'help.group.help': 'When you need help',
 
@@ -60,7 +60,7 @@ const help = {
   'help.window.intro':
     'The header takes you between FluidEQ’s pages and shows the sound as it plays. The left rail holds the switch for the whole EQ, the preamp and the level meter; the right rail follows your output and its profiles.',
   'help.window.steps':
-    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Plus after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the signal or the level meter to change how it is drawn, and Rainbow mode to have the curves and meters move at your screen’s full rate.',
+    'Press a page in the header: Online Media, Share Audio and EQ before the signal, DSP, Library, Karaoke and Visualizers after it.\nTurn System EQ on in the left rail and leave Auto normalize on, so no boost can clip.\nPress the signal or the level meter to change how it is drawn, and Rainbow mode to have the curves and meters move at your screen’s full rate.',
   'help.window.tip':
     'Help opens this guide, What’s new, the audio troubleshooter and Report a problem. The pulse button beside it holds the engine card, your account, importing EQ settings or an impulse response, restarting Windows audio and Processes, which shows what each part of FluidEQ is using; at its foot are Brightness and Transparency, animations, Start with Windows and the language. The switch after them turns the window into the Compact player.',
   'help.window.keywords':
@@ -159,7 +159,7 @@ const help = {
 
   'help.requirements.title': 'What your PC needs',
   'help.requirements.intro':
-    'FluidEQ runs on any Windows PC of the last ten years. Two parts ask for more than the rest: the Plus visualizers draw on the graphics card, and the karaoke AI downloads its models the first time you use it.',
+    'FluidEQ runs on any Windows PC of the last ten years. Two parts ask for more than the rest: the scenes draw on the graphics card, and the karaoke AI downloads its models the first time you use it.',
   'help.requirements.steps':
     'Check your Windows: Windows 10 version 1803 or later, or Windows 11, 64-bit, 4 GB of memory and about 600 MB of disk. Processing everything the PC plays needs the FluidEQ Engine or Equalizer APO, and Windows asks for permission once while it installs.\nLook at a visualizer: any graphics card or built-in graphics from 2013 onwards. At 1080p built-in graphics are enough; 4K, or a desktop background on several screens at once, is happier with a dedicated card. On a busy card FluidEQ draws the scene smaller and lets go of the ones you cannot see.\nTry the karaoke AI: separating a voice downloads a 713 MB model the first time, the pitch model adds about 180 MB, and noise removal 11 MB. With a DirectX 12 graphics card a four-minute song separates in around half a minute; on the processor alone it takes about four minutes. Keep 2 GB of memory free while it works.\nAim for this if you can: Windows 11, 8 GB of memory, graphics from 2018 onwards, and 3 GB of disk free if you use the AI features.',
   'help.requirements.tip':
@@ -408,9 +408,9 @@ const help = {
 
   'help.graph.title': 'The graph and its controls',
   'help.graph.intro':
-    'The response graph draws your EQ curves over the live sound. The strip above it chooses what is drawn and how, and it changes with the look: a standard style or a Plus visualizer.',
+    'The response graph draws your EQ curves over the live sound. The strip above it chooses what is drawn and how, and it changes with the look: a standard style or a scene.',
   'help.graph.steps':
-    'Click the look’s name to choose a style or visualizer. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Show EQ labels writes each band’s frequency, Q and gain over its point. How it is drawn sets the frame rate — every frame your display offers, or 60 or 30, held at 60 on battery — and the resolution and smoothing; standard styles keep their own choices, apart from Plus visualizers.\nA Plus visualizer adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.\nKeys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, band labels included, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.',
+    'Click the look’s name to choose a style or scene. The arrows beside it, Space and Ctrl+Space step through them.\nOpen View for the graph’s size, what it shows, and the wave’s height and position. Show EQ labels writes each band’s frequency, Q and gain over its point. How it is drawn sets the frame rate — every frame your display offers, or 60 or 30, held at 60 on battery — and the resolution and smoothing; standard styles keep their own choices, apart from scenes.\nA scene adds its own controls to View — whatever its author left for you to set — and Use its own wave puts the wave back to the height and position that author chose.\nDouble-click the plot for full screen, or Ctrl+double-click to expand it over the window; double-click again to come back. A single click hides or shows the strip.\nKeys: Ctrl+F full screen, Ctrl+S expanded, Esc back to the normal view, Ctrl+G the grid, Ctrl+W what the graph shows, band labels included, Ctrl+I which way the wave faces, Ctrl+A every band. On a band’s point, drag to move it, use the arrow keys to step it, and right-click for its menu; Ctrl+scroll changes the Q of a selected point.',
   'help.graph.tip':
     'Everything here changes only the drawing, never your sound.',
   'help.graph.keywords':
@@ -428,12 +428,12 @@ const help = {
   'help.graph.bandsName': 'Listening bands',
   'help.graph.bands': 'Shades the bands you hear most.',
   'help.graph.bandsMenu':
-    'The same shading; greyed over a Plus visualizer, which never draws it.',
+    'The same shading; greyed over a scene, which never draws it.',
   'help.graph.gridName': 'Grid',
   'help.graph.grid': 'Shows or hides the grid and scales.',
   'help.graph.viewName': 'View',
   'help.graph.view': 'Size, what is drawn, and the wave.',
-  'help.graph.plusCaption': 'With a Plus visualizer',
+  'help.graph.plusCaption': 'With a scene',
   'help.graph.tintName': 'Window colours',
   'help.graph.tint':
     "The app's theme, the visualizer's colours, its colours with light (Ambient), or the visualizer behind the whole window (Backdrop).",
@@ -456,17 +456,17 @@ const help = {
   'help.graph.meterName': 'Level meter',
   'help.graph.meter': 'The output meter in the left rail.',
   'help.graph.drawing':
-    'Frame rate, resolution and smoothing, kept apart for standard styles and Plus visualizers.',
+    'Frame rate, resolution and smoothing, kept apart for standard styles and scenes.',
   'help.graph.waveHeight': 'How tall the wave is drawn.',
   'help.graph.wavePosition': 'From the bottom edge up to the middle.',
 
-  'help.looks.title': 'Styles and Plus visualizers',
+  'help.looks.title': 'Styles and scenes',
   'help.looks.intro':
-    'Standard styles are free drawings of the live sound that you can colour and design yourself: Line and Area for a clean trace, LED blocks and Spikes for punch, Truss, Skyline and Dancing flames for whole scenes. Plus visualizers are scenes drawn on the graphics card, such as Alpine, Aurora, Bloom and Neon City, where the bass, the beat and the treble each move something different.',
+    'Standard styles are free drawings of the live sound that you can colour and design yourself: Line and Area for a clean trace, LED blocks and Spikes for punch, Truss, Skyline and Dancing flames for whole scenes. Scenes are living pictures drawn on the graphics card, such as Alpine, Aurora, Bloom and Neon City, where the bass, the beat and the treble each move something different.',
   'help.looks.steps':
-    'Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points or Scenes.\nChoose a Plus visualizer on the right. Without Plus it is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.',
+    'Click the look’s name on the graph. Search, or filter the styles by Lines, Fills, Bars, Points or Scenes.\nChoose a scene on the right. One that is not yours yet is locked, and choosing it explains how to get it.\nOn a standard style, press New look to change its colours, motion and peaks, then save it; it appears under Yours.',
   'help.looks.tip':
-    'A Plus visualizer brings its own colours: set its attack and release in View. Standard styles have graphics settings of their own in View, apart from Plus visualizers: full resolution and plain scaling to start with. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.',
+    'A scene brings its own colours: set its attack and release in View. Standard styles have graphics settings of their own in View, apart from scenes: full resolution and plain scaling to start with. If a scene cannot run on this computer, the graph draws a free style instead of a blank plot.',
   'help.looks.keywords':
     'styles, style, skins, skin, appearance, visualizer, visualiser, visualization, colours, colors, look, customize, customise, animation, graphics, graphics settings, resolution, quality',
   'help.looks.searchName': 'Search',
@@ -481,11 +481,11 @@ const help = {
   'help.looks.categoriesName': 'Categories',
   'help.looks.categories': 'Nature, Cities, Abstract and more.',
 
-  'help.plus.title': 'Your account, credits and the Plus tab',
+  'help.plus.title': 'Your account, credits and the Visualizers tab',
   'help.plus.intro':
-    'An account is optional: everything that was free runs on this computer without one. Signed in, the Plus tab holds Visualizers, the Studio, Dynamic lighting and the desktop visualizer. A scene from Visualizers costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.',
+    'An account is optional: everything that was free runs on this computer without one. Signed in, the Visualizers tab holds the Gallery, the Studio, Dynamic lighting and the desktop visualizer. A scene from the Gallery costs one credit and is yours for good; a confirmed account gets some credits free, and packs of credits are paid once.',
   'help.plus.steps':
-    'Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.\nOpen the Plus tab and choose Visualizers. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open Account and choose a pack. It is paid once on Stripe, in your browser.',
+    'Open Account in the actions menu. Sign in, or create an account and type the six-digit code sent to your email.\nOpen the Visualizers tab and choose Gallery. Open a scene, watch it, and press Get to spend a credit on it.\nFor more credits, open Account and choose a pack. It is paid once on Stripe, in your browser.',
   'help.plus.tip':
     'The app never sees your card, and nothing renews. An account stays signed in on up to five computers.',
   'help.plus.keywords':
@@ -500,7 +500,7 @@ const help = {
   'help.gallery.intro':
     'Visualizers holds FluidEQ’s own scenes and the ones members publish. Any account can browse them and watch any scene for ten seconds; a scene you get with a credit plays on your music and stays in your looks, for good.',
   'help.gallery.steps':
-    'Open Plus → Visualizers. Search, sort by Most liked, This week or Newest, or pick a category.\nOpen a scene and press Get to keep it with a credit, then Play on the graph. The arrows, or ← and →, step between scenes.\nLike the scenes you have with the heart, and report one that should not be there.',
+    'Open Visualizers → Gallery. Search, sort by Most liked, This week or Newest, or pick a category.\nOpen a scene and press Get to keep it with a credit, then Play on the graph. The arrows, or ← and →, step between scenes.\nLike the scenes you have with the heart, and report one that should not be there.',
   'help.gallery.tip':
     'Scenes in your looks update themselves, and a scene’s page says what changed in each version. A scene you publish appears once FluidEQ’s maker has approved it. Open in Studio shows how FluidEQ’s own scenes are made.',
   'help.gallery.keywords':
@@ -528,7 +528,7 @@ const help = {
   'help.studio.intro':
     'The Studio turns a description into a visualizer. Your own AI assistant writes the scene in a project folder, and FluidEQ plays each version on your music the moment it is saved. The Studio is free for every account.',
   'help.studio.steps':
-    'Open Plus → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.\nDescribe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.\nOr type what should change in the chat beside the stage: Claude Code on this computer, signed in with your own plan, edits the scene and plays each version. Every reply keeps its version, with Bring back.\nWatch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….',
+    'Open Visualizers → Studio and press New project…. Give it a name; FluidEQ makes its folder with a scene that already moves.\nDescribe your idea, open the folder in your AI assistant, and paste the prompt from Copy AI prompt.\nOr type what should change in the chat beside the stage: Claude Code on this computer, signed in with your own plan, edits the scene and plays each version. Every reply keeps its version, with Bring back.\nWatch the stage as files are saved and try the test signals. Then Add to my looks, Publish… or Export….',
   'help.studio.tip':
     'Double-click the stage for full screen. Look inside a FluidEQ scene… opens one of FluidEQ’s own scenes to learn from; it cannot be published. Scenes that flash hard or run too heavy are held back. A scene you publish is read by FluidEQ’s maker first, and once it is approved it plays free for you everywhere.',
   'help.studio.keywords':
@@ -546,9 +546,9 @@ const help = {
 
   'help.desktop.title': 'The desktop visualizer',
   'help.desktop.intro':
-    'The desktop visualizer puts a Plus visualizer behind your desktop icons, on one monitor or on each of them, for as long as FluidEQ runs.',
+    'The desktop visualizer puts a scene behind your desktop icons, on one monitor or on each of them, for as long as FluidEQ runs.',
   'help.desktop.steps':
-    'Put a Plus visualizer on the graph and press the monitor button beside its name, or choose View → Set as desktop background.\nPress the monitors on the map, choose With the music or Calm, and press Set background.\nTo change or stop it, open Plus → Visualizers and use Manage or Stop at the top.',
+    'Put a scene on the graph and press the monitor button beside its name, or choose View → Set as desktop background.\nPress the monitors on the map, choose With the music or Calm, and press Set background.\nTo change or stop it, open Visualizers → Gallery and use Manage or Stop at the top.',
   'help.desktop.tip':
     'It pauses while windows cover the monitor, while the PC is locked and, if you choose, on battery power, and returns when FluidEQ starts. Quitting FluidEQ stops it. Windows only.',
   'help.desktop.keywords':
@@ -558,20 +558,20 @@ const help = {
   'help.desktop.music': 'Moves to whatever is playing.',
   'help.desktop.calm': 'A slow, quiet animation that ignores the music.',
   'help.desktop.follow':
-    'Changes with the Plus visualizer on the graph, whether you pick it or automatic switching does.',
+    'Changes with the scene on the graph, whether you pick it or automatic switching does.',
   'help.desktop.battery': 'Saves power while the computer is unplugged.',
   'help.desktop.start': 'Starts it on the monitors you chose.',
 
   'help.lighting.title': 'Dynamic lighting (beta)',
   'help.lighting.intro':
-    'Dynamic lighting lights your keyboard, mouse, mousepad, headset and stand with the Plus visualizer on the graph, through Windows Dynamic Lighting and Razer Chroma. It is in beta, so tell us how your devices behave.',
+    'Dynamic lighting lights your keyboard, mouse, mousepad, headset and stand with the scene on the graph, through Windows Dynamic Lighting and Razer Chroma. It is in beta, so tell us how your devices behave.',
   'help.lighting.steps':
-    'Open Plus → Dynamic lighting and switch it on, or press the lighting button beside a Plus visualizer on the graph.\nChoose this visualizer’s lighting style — Scene, Colour wave, Spectrum or Beat ripple — and set its brightness and what it responds to.\nClick a device under Your devices to tune it alone; All devices goes back to every device.',
+    'Open Visualizers → Dynamic lighting and switch it on, or press the lighting button beside a scene on the graph.\nChoose this scene’s lighting style — Scene, Colour wave, Spectrum or Beat ripple — and set its brightness and what it responds to.\nClick a device under Your devices to tune it alone; All devices goes back to every device.',
   'help.lighting.tip':
     'If Windows keeps a device for another app, the page names the setting to change and opens it for you. Razer devices need Razer Synapse running, with Chroma Apps allowed.',
   'help.lighting.keywords':
     'rgb, razer, chroma, synapse, keyboard lights, keyboard, mouse, headset, led, leds, ambient lighting, lights, windows dynamic lighting',
-  'help.lighting.switch': 'Lights your devices while a Plus visualizer plays.',
+  'help.lighting.switch': 'Lights your devices while a scene plays.',
   'help.lighting.browse': 'Opens the gallery to choose a visualizer.',
   'help.lighting.previewName': 'Live desk preview',
   'help.lighting.preview': 'Your own desk, lit with the colours sent to it.',

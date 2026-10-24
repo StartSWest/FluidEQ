@@ -63,7 +63,7 @@ const creator = {
   'creator.terms.stripe':
     'Stripe asks for your identity, bank and tax details and shows you its own terms. Payouts stop if Stripe can no longer pay you.',
   'creator.terms.rights':
-    'Everything in your scenes must be yours to sell. Scenes are still reviewed, and one that breaks the Plus terms can be taken down.',
+    'Everything in your scenes must be yours to sell. Scenes are still reviewed, and one that breaks the terms can be taken down.',
   'creator.terms.taxes':
     'Taxes on what you earn are yours to declare where you live.',
   'creator.terms.changes':

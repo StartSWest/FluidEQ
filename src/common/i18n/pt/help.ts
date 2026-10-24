@@ -29,7 +29,7 @@ const help: Record<keyof typeof en, string> = {
   'help.group.start': 'Primeiros passos',
   'help.group.sound': 'Modele seu som',
   'help.group.visuals': 'Veja sua música',
-  'help.group.plus': 'FluidEQ Plus',
+  'help.group.plus': 'Visualizadores e sua conta',
   'help.group.listen': 'Ouça, cante e compartilhe',
   'help.group.help': 'Quando precisar de ajuda',
 
@@ -56,7 +56,7 @@ const help: Record<keyof typeof en, string> = {
   'help.window.intro':
     'O cabeçalho leva você de uma página do FluidEQ a outra e mostra o som enquanto ele toca. O painel da esquerda traz o interruptor geral do EQ, a pré-amplificação e o medidor de nível; o painel da direita acompanha sua saída e os perfis dela.',
   'help.window.steps':
-    'Escolha uma página no cabeçalho: Mídia online, Compartilhar áudio e EQ antes do sinal; DSP, Biblioteca, Karaokê e Plus depois dele.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o sinal ou o medidor de nível para mudar como ele é desenhado, e o Modo arco-íris para que as curvas e os medidores se movam na taxa de atualização total da sua tela.',
+    'Escolha uma página no cabeçalho: Mídia online, Compartilhar áudio e EQ antes do sinal; DSP, Biblioteca, Karaokê e Visualizadores depois dele.\nAtive EQ do sistema no painel da esquerda e deixe Normalizar automaticamente ligado, para que nenhum reforço sature.\nPressione o sinal ou o medidor de nível para mudar como ele é desenhado, e o Modo arco-íris para que as curvas e os medidores se movam na taxa de atualização total da sua tela.',
   'help.window.tip':
     'O menu Ajuda abre este guia, Novidades, a solução de problemas de áudio e Relatar um problema. O botão de pulso ao lado dele reúne o cartão do motor, sua conta, a importação de configurações de EQ ou de uma resposta ao impulso, o reinício do áudio do Windows e Processos, que mostra o que cada parte do FluidEQ está usando; na parte de baixo dele ficam Brilho e Transparência, as animações, Iniciar com o Windows e o idioma. O botão depois deles transforma a janela no Player compacto.',
   'help.window.keywords':
@@ -157,7 +157,7 @@ const help: Record<keyof typeof en, string> = {
 
   'help.requirements.title': 'O que o seu PC precisa',
   'help.requirements.intro':
-    'O FluidEQ roda em qualquer PC com Windows dos últimos dez anos. Duas partes pedem mais que o resto: os visualizadores Plus desenham na placa de vídeo, e o karaokê com IA baixa seus modelos na primeira vez que você o usa.',
+    'O FluidEQ roda em qualquer PC com Windows dos últimos dez anos. Duas partes pedem mais que o resto: as cenas desenham na placa de vídeo, e o karaokê com IA baixa seus modelos na primeira vez que você o usa.',
   'help.requirements.steps':
     'Veja qual Windows você tem: Windows 10 versão 1803 ou posterior, ou Windows 11, de 64 bits, 4 GB de memória e cerca de 600 MB de disco. Processar tudo o que o PC toca precisa do Motor FluidEQ ou do Equalizer APO, e o Windows pede permissão uma vez durante a instalação.\nAbra um visualizador: qualquer placa de vídeo ou vídeo integrado de 2013 em diante. Em 1080p o vídeo integrado basta; para 4K, ou um plano de fundo em várias telas ao mesmo tempo, uma placa dedicada é melhor. Com a placa ocupada, o FluidEQ desenha a cena menor e solta as que você não está vendo.\nExperimente o karaokê com IA: separar a voz baixa um modelo de 713 MB na primeira vez, o da afinação acrescenta cerca de 180 MB e o de remover ruído, 11 MB. Com uma placa de vídeo com DirectX 12, uma música de quatro minutos é separada em meio minuto; só com o processador leva cerca de quatro minutos. Deixe 2 GB de memória livres enquanto ele trabalha.\nMire nisto se puder: Windows 11, 8 GB de memória, vídeo de 2018 em diante e 3 GB de disco livres se você usar os recursos com IA.',
   'help.requirements.tip':
@@ -412,9 +412,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.graph.title': 'O gráfico e seus controles',
   'help.graph.intro':
-    'O gráfico de resposta desenha as curvas do seu EQ sobre o som ao vivo. A barra acima dele escolhe o que é desenhado e como, e muda conforme o visual: um estilo padrão ou um visualizador Plus.',
+    'O gráfico de resposta desenha as curvas do seu EQ sobre o som ao vivo. A barra acima dele escolhe o que é desenhado e como, e muda conforme o visual: um estilo padrão ou uma cena.',
   'help.graph.steps':
-    'Clique no nome do visual para escolher um estilo ou visualizador. As setas ao lado dele, Espaço e Ctrl+Espaço percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. Mostrar etiquetas do EQ escreve a frequência, o Q e o ganho de cada banda sobre o ponto dela. Como é desenhado define a taxa de quadros — todos os quadros que a sua tela oferecer, ou 60 ou 30, e 60 na bateria — além da resolução e da suavização; os estilos padrão guardam as próprias escolhas, separadas das dos visualizadores Plus.\nUm visualizador Plus acrescenta os seus próprios controles a Visualização — o que o autor deixou você ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela cheia, ou Ctrl+clique duplo para expandi-lo na janela; outro clique duplo o traz de volta. Um clique simples oculta ou mostra a barra.\nTeclas: Ctrl+F tela cheia, Ctrl+S visualização expandida, Esc volta à visualização normal, Ctrl+G a grade, Ctrl+W o que o gráfico mostra, etiquetas das bandas incluídas, Ctrl+I o sentido da onda, Ctrl+A todas as bandas. No ponto de uma banda, arraste para movê-la, use as setas para ajustá-la passo a passo, e o clique direito abre o menu dela; Ctrl+roda muda o Q de um ponto selecionado.',
+    'Clique no nome do visual para escolher um estilo ou uma cena. As setas ao lado dele, Espaço e Ctrl+Espaço percorrem as opções.\nAbra Visualização para o tamanho do gráfico, o que ele mostra e a altura e a posição da onda. Mostrar etiquetas do EQ escreve a frequência, o Q e o ganho de cada banda sobre o ponto dela. Como é desenhado define a taxa de quadros — todos os quadros que a sua tela oferecer, ou 60 ou 30, e 60 na bateria — além da resolução e da suavização; os estilos padrão guardam as próprias escolhas, separadas das das cenas.\nUma cena acrescenta os seus próprios controles a Visualização — o que o autor deixou você ajustar — e Usar a onda original devolve a onda à altura e à posição que esse autor escolheu.\nClique duas vezes no gráfico para tela cheia, ou Ctrl+clique duplo para expandi-lo na janela; outro clique duplo o traz de volta. Um clique simples oculta ou mostra a barra.\nTeclas: Ctrl+F tela cheia, Ctrl+S visualização expandida, Esc volta à visualização normal, Ctrl+G a grade, Ctrl+W o que o gráfico mostra, etiquetas das bandas incluídas, Ctrl+I o sentido da onda, Ctrl+A todas as bandas. No ponto de uma banda, arraste para movê-la, use as setas para ajustá-la passo a passo, e o clique direito abre o menu dela; Ctrl+roda muda o Q de um ponto selecionado.',
   'help.graph.tip': 'Tudo aqui muda só o desenho, nunca o seu som.',
   'help.graph.keywords':
     'analisador de espectro, forma de onda, waveform, FPS, frame rate, fullscreen, esconder, atalhos, atalhos de teclado, clique duplo, expandida, gráfico, espectro, analisador, resposta de frequência, curva, tela cheia, taxa de quadros, quadros, onda, grade, visualização, expandir, etiquetas, rótulos, etiquetas do EQ, rótulos das bandas, labels, teclado, setas, teclas de seta, gráficos, desempenho gráfico, resolução, suavização',
@@ -431,12 +431,12 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.bandsName': 'Faixas de audição',
   'help.graph.bands': 'Sombreia as faixas de frequência que você mais ouve.',
   'help.graph.bandsMenu':
-    'O mesmo sombreamento; fica acinzentado com um visualizador Plus, que nunca o desenha.',
+    'O mesmo sombreamento; fica acinzentado com uma cena, que nunca o desenha.',
   'help.graph.gridName': 'Grade',
   'help.graph.grid': 'Mostra ou oculta a grade e as escalas.',
   'help.graph.viewName': 'Visualização',
   'help.graph.view': 'Tamanho, o que é desenhado e a onda.',
-  'help.graph.plusCaption': 'Com um visualizador Plus',
+  'help.graph.plusCaption': 'Com uma cena',
   'help.graph.tintName': 'Cores da janela',
   'help.graph.tint':
     'O tema do app, as cores do visualizador, as cores dele com luz (Ambiente) ou o visualizador atrás de toda a janela (Pano de fundo).',
@@ -461,16 +461,16 @@ const help: Record<keyof typeof en, string> = {
   'help.graph.meterName': 'Medidor de nível',
   'help.graph.meter': 'O medidor de saída no painel da esquerda.',
   'help.graph.drawing':
-    'Taxa de quadros, resolução e suavização, guardadas separadamente para os estilos padrão e os visualizadores Plus.',
+    'Taxa de quadros, resolução e suavização, guardadas separadamente para os estilos padrão e as cenas.',
   'help.graph.waveHeight': 'A altura com que a onda é desenhada.',
   'help.graph.wavePosition': 'Da borda inferior até o meio.',
-  'help.looks.title': 'Estilos e visualizadores Plus',
+  'help.looks.title': 'Estilos e cenas',
   'help.looks.intro':
-    'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Linha e Área para um traço limpo, Blocos LED e Picos para impacto, Treliça, Horizonte e Chamas dançantes para cenas inteiras. Os visualizadores Plus são cenas desenhadas na placa de vídeo, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',
+    'Os estilos padrão são desenhos gratuitos do som ao vivo que você mesmo pode colorir e personalizar: Linha e Área para um traço limpo, Blocos LED e Picos para impacto, Treliça, Horizonte e Chamas dançantes para cenas inteiras. As cenas são imagens vivas desenhadas na placa de vídeo, como Alpino, Aurora, Floração e Cidade de neon, em que os graves, a batida e os agudos movem, cada um, algo diferente.',
   'help.looks.steps':
-    'Clique no nome do visual no gráfico. Pesquise ou filtre os estilos por Linhas, Preenchimentos, Barras, Pontos ou Cenas.\nEscolha um visualizador Plus à direita. Sem o Plus ele fica bloqueado, e escolhê-lo explica como obtê-lo.\nEm um estilo padrão, pressione Novo visual para mudar as cores, o movimento e os picos, e depois salve; ele aparece em Seus.',
+    'Clique no nome do visual no gráfico. Pesquise ou filtre os estilos por Linhas, Preenchimentos, Barras, Pontos ou Cenas.\nEscolha uma cena à direita. Se ainda não for sua, ela fica bloqueada, e escolhê-la explica como obtê-la.\nEm um estilo padrão, pressione Novo visual para mudar as cores, o movimento e os picos, e depois salve; ele aparece em Seus.',
   'help.looks.tip':
-    'Um visualizador Plus traz as próprias cores: ajuste o ataque e a liberação dele em Visualização. Os estilos padrão têm ajustes gráficos próprios em Visualização, separados dos visualizadores Plus: resolução total e escala simples para começar. Se uma cena não puder rodar neste computador, o gráfico desenha um estilo gratuito em vez de ficar em branco.',
+    'Uma cena traz as próprias cores: ajuste o ataque e a liberação dela em Visualização. Os estilos padrão têm ajustes gráficos próprios em Visualização, separados das cenas: resolução total e escala simples para começar. Se uma cena não puder rodar neste computador, o gráfico desenha um estilo gratuito em vez de ficar em branco.',
   'help.looks.keywords':
     'skin, aparência, temas, animação, animações, customizar, visualizer, estilos, estilo, visualizador, visualização, cores, visual, personalizar, gráficos, ajustes gráficos, configurações gráficas, resolução, qualidade',
   'help.looks.searchName': 'Pesquisar',
@@ -486,11 +486,11 @@ const help: Record<keyof typeof en, string> = {
   'help.looks.categoriesName': 'Categorias',
   'help.looks.categories': 'Natureza, Cidades, Abstrato e mais.',
 
-  'help.plus.title': 'Sua conta, os créditos e a aba Plus',
+  'help.plus.title': 'Sua conta, os créditos e a aba Visualizadores',
   'help.plus.intro':
-    'A conta é opcional: tudo o que era gratuito funciona neste computador sem ela. Conectado, a aba Plus reúne Visualizadores, o Estúdio, a Iluminação dinâmica e o visualizador de área de trabalho. Uma cena de Visualizadores custa um crédito e é sua para sempre; uma conta confirmada recebe alguns créditos grátis, e os pacotes de créditos são pagos uma única vez.',
+    'A conta é opcional: tudo o que era gratuito funciona neste computador sem ela. Conectado, a aba Visualizadores reúne a Galeria, o Estúdio, a Iluminação dinâmica e o visualizador de área de trabalho. Uma cena da Galeria custa um crédito e é sua para sempre; uma conta confirmada recebe alguns créditos grátis, e os pacotes de créditos são pagos uma única vez.',
   'help.plus.steps':
-    'Abra Conta no menu de ações. Entre, ou crie uma conta e digite o código de seis dígitos enviado para seu email.\nAbra a aba Plus e escolha Visualizadores. Abra uma cena, assista e pressione Obter para gastar um crédito nela.\nPara ter mais créditos, abra Conta e escolha um pacote. Ele é pago uma única vez na Stripe, no seu navegador.',
+    'Abra Conta no menu de ações. Entre, ou crie uma conta e digite o código de seis dígitos enviado para seu email.\nAbra a aba Visualizadores e escolha Galeria. Abra uma cena, assista e pressione Obter para gastar um crédito nela.\nPara ter mais créditos, abra Conta e escolha um pacote. Ele é pago uma única vez na Stripe, no seu navegador.',
   'help.plus.tip':
     'O app nunca vê seu cartão, e nada é renovado. Uma conta fica conectada em até cinco computadores.',
   'help.plus.keywords':
@@ -506,7 +506,7 @@ const help: Record<keyof typeof en, string> = {
   'help.gallery.intro':
     'Visualizadores reúne as cenas do próprio FluidEQ e as que os membros publicam. Qualquer conta pode explorá-las e assistir a qualquer cena por dez segundos; uma cena que você obtém com um crédito toca com a sua música e fica nos seus visuais, para sempre.',
   'help.gallery.steps':
-    'Abra Plus → Visualizadores. Pesquise, ordene por Mais curtidas, Nesta semana ou Mais novas, ou escolha uma categoria.\nAbra uma cena e pressione Obter para ficar com ela usando um crédito, depois Reproduzir no gráfico. As setas, ou ← e →, passam de uma cena para outra.\nCurta com o coração as cenas que você tem, e denuncie uma que não deveria estar ali.',
+    'Abra Visualizadores → Galeria. Pesquise, ordene por Mais curtidas, Nesta semana ou Mais novas, ou escolha uma categoria.\nAbra uma cena e pressione Obter para ficar com ela usando um crédito, depois Reproduzir no gráfico. As setas, ou ← e →, passam de uma cena para outra.\nCurta com o coração as cenas que você tem, e denuncie uma que não deveria estar ali.',
   'help.gallery.tip':
     'As cenas nos seus visuais se atualizam sozinhas, e a página de uma cena diz o que mudou em cada versão. Uma cena que você publica aparece assim que o criador do FluidEQ a aprova. Abrir no Estúdio mostra como as cenas do próprio FluidEQ são feitas.',
   'help.gallery.keywords':
@@ -535,7 +535,7 @@ const help: Record<keyof typeof en, string> = {
   'help.studio.intro':
     'O Estúdio transforma uma descrição em um visualizador. Seu próprio assistente de IA escreve a cena em uma pasta de projeto, e o FluidEQ toca cada versão com sua música no momento em que ela é salva. O Estúdio é grátis para todas as contas.',
   'help.studio.steps':
-    'Abra Plus → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nOu escreva o que deve mudar no chat ao lado do palco: o Claude Code neste computador, com o seu próprio plano, edita a cena e toca cada versão. Cada resposta guarda a sua versão, com Trazer de volta.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, Adicionar aos meus visuais, Publicar… ou Exportar….',
+    'Abra Visualizadores → Estúdio e pressione Novo projeto…. Dê um nome; o FluidEQ cria a pasta dele com uma cena que já se mexe.\nDescreva sua ideia, abra a pasta no seu assistente de IA e cole o prompt de Copiar prompt para IA.\nOu escreva o que deve mudar no chat ao lado do palco: o Claude Code neste computador, com o seu próprio plano, edita a cena e toca cada versão. Cada resposta guarda a sua versão, com Trazer de volta.\nAcompanhe o palco enquanto os arquivos são salvos e experimente os sinais de teste. Depois, Adicionar aos meus visuais, Publicar… ou Exportar….',
   'help.studio.tip':
     'Clique duas vezes no palco para tela cheia. Ver por dentro uma cena do FluidEQ… abre uma das cenas do próprio FluidEQ para você aprender com ela; essa cena não pode ser publicada. Cenas que piscam forte demais ou ficam pesadas demais são retidas. Uma cena que você publica é lida antes pelo criador do FluidEQ, e, depois de aprovada, toca de graça para você em todo lugar.',
   'help.studio.keywords':
@@ -556,9 +556,9 @@ const help: Record<keyof typeof en, string> = {
 
   'help.desktop.title': 'O visualizador da área de trabalho',
   'help.desktop.intro':
-    'O visualizador da área de trabalho coloca um visualizador Plus atrás dos seus ícones, em um monitor ou em cada um deles, enquanto o FluidEQ estiver aberto.',
+    'O visualizador da área de trabalho coloca uma cena atrás dos seus ícones, em um monitor ou em cada um deles, enquanto o FluidEQ estiver aberto.',
   'help.desktop.steps':
-    'Coloque um visualizador Plus no gráfico e pressione o botão de monitor ao lado do nome dele, ou escolha Visualização → Definir como fundo da área de trabalho.\nPressione os monitores no mapa, escolha Com a música ou Calmo e pressione Definir fundo.\nPara mudar ou parar, abra Plus → Visualizadores e use Gerenciar ou Parar no topo.',
+    'Coloque uma cena no gráfico e pressione o botão de monitor ao lado do nome dela, ou escolha Visualização → Definir como fundo da área de trabalho.\nPressione os monitores no mapa, escolha Com a música ou Calmo e pressione Definir fundo.\nPara mudar ou parar, abra Visualizadores → Galeria e use Gerenciar ou Parar no topo.',
   'help.desktop.tip':
     'Ele fica em pausa enquanto as janelas cobrem o monitor, com o PC bloqueado e, se você quiser, na bateria, e volta quando o FluidEQ inicia. Sair do FluidEQ o interrompe. Só no Windows.',
   'help.desktop.keywords':
@@ -568,22 +568,21 @@ const help: Record<keyof typeof en, string> = {
   'help.desktop.music': 'Move-se com o que estiver tocando.',
   'help.desktop.calm': 'Uma animação lenta e tranquila que ignora a música.',
   'help.desktop.follow':
-    'Muda com o visualizador Plus do gráfico, seja você que o escolha ou a troca automática.',
+    'Muda com a cena do gráfico, seja você que a escolha ou a troca automática.',
   'help.desktop.battery':
     'Economiza energia enquanto o computador está fora da tomada.',
   'help.desktop.start': 'Inicia nos monitores que você escolheu.',
 
   'help.lighting.title': 'Iluminação dinâmica (beta)',
   'help.lighting.intro':
-    'A Iluminação dinâmica acende seu teclado, mouse, mousepad, headset e suporte com o visualizador Plus do gráfico, pelo Windows Dynamic Lighting e pelo Razer Chroma. Ela está em beta, então conte para nós como seus dispositivos se comportam.',
+    'A Iluminação dinâmica acende seu teclado, mouse, mousepad, headset e suporte com a cena do gráfico, pelo Windows Dynamic Lighting e pelo Razer Chroma. Ela está em beta, então conte para nós como seus dispositivos se comportam.',
   'help.lighting.steps':
-    'Abra Plus → Iluminação dinâmica e ative-a, ou pressione o botão de iluminação ao lado de um visualizador Plus no gráfico.\nEscolha o estilo de iluminação deste visualizador (Cena, Onda de cor, Espectro ou Onda rítmica) e ajuste o brilho e a que ele responde.\nClique em um dispositivo em Seus dispositivos para ajustá-lo separadamente; Todos os dispositivos volta a ajustar todos.',
+    'Abra Visualizadores → Iluminação dinâmica e ative-a, ou pressione o botão de iluminação ao lado de uma cena no gráfico.\nEscolha o estilo de iluminação desta cena (Cena, Onda de cor, Espectro ou Onda rítmica) e ajuste o brilho e a que ele responde.\nClique em um dispositivo em Seus dispositivos para ajustá-lo separadamente; Todos os dispositivos volta a ajustar todos.',
   'help.lighting.tip':
     'Se o Windows reservar um dispositivo para outro app, a página diz qual configuração mudar e a abre para você. Dispositivos Razer precisam do Razer Synapse aberto, com o Chroma Apps permitido.',
   'help.lighting.keywords':
     'RGB, LED, luzes, periféricos, sincronizar luzes, iluminação reativa',
-  'help.lighting.switch':
-    'Ilumina seus dispositivos enquanto um visualizador Plus toca.',
+  'help.lighting.switch': 'Ilumina seus dispositivos enquanto uma cena toca.',
   'help.lighting.browse': 'Abre a galeria para escolher um visualizador.',
   'help.lighting.previewName': 'Prévia da mesa ao vivo',
   'help.lighting.preview':

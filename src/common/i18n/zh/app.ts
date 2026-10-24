@@ -74,7 +74,7 @@ const app: Partial<Dictionary> = {
   'app.processes.place.studio': '工作室舞台',
   'app.processes.name.window': '界面',
   'app.processes.what.window':
-    '你正在看的这个窗口：曲线、媒体库、播放器和所有控件。每个窗口一个进程，因此繁重的重绘不会拖慢声音。Plus 可视化效果在其中的独立线程上运行，因此繁重的场景不会卡住控件。',
+    '你正在看的这个窗口：曲线、媒体库、播放器和所有控件。每个窗口一个进程，因此繁重的重绘不会拖慢声音。场景在其中的独立线程上运行，因此繁重的场景不会卡住控件。',
   'app.processes.name.core': '应用核心',
   'app.processes.what.core':
     '没有窗口的那一部分。保存你的设置，与音频设备和系统均衡器通信，检查更新，并启动此列表中的其他一切。',
@@ -83,10 +83,10 @@ const app: Partial<Dictionary> = {
     'FluidEQ 自己的引擎。解码你播放的内容，并顺带应用均衡器。它是独立的程序，所以 Windows 把它与其余进程分开归类。',
   'app.processes.name.graphics': '图形',
   'app.processes.what.graphics':
-    '在显卡上绘制屏幕上的一切：频谱、曲线、每一个动画，以及 Plus 可视化效果的场景。只要有东西在动它就忙碌；这里不运行任何模型。',
+    '在显卡上绘制屏幕上的一切：频谱、曲线、每一个动画，以及场景。只要有东西在动它就忙碌；这里不运行任何模型。',
   'app.processes.name.desktop': '桌面可视化效果',
   'app.processes.what.desktop':
-    '作为某个显示器桌面背景绘制的 Plus 可视化效果，与此窗口分开运行：每个显示它的显示器各一个。当窗口盖住该显示器或电脑锁定时会暂停。',
+    '作为某个显示器桌面背景绘制的场景，与此窗口分开运行：每个显示它的显示器各一个。当窗口盖住该显示器或电脑锁定时会暂停。',
   'app.processes.name.desktopHost': '桌面可视化效果助手',
   'app.processes.what.desktopHost':
     '把该显示器的桌面可视化效果放在图标后面，并在窗口盖住屏幕时通知它。每个显示它的显示器各一个。',
@@ -248,7 +248,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': '在线媒体',
   'tabs.mediaShort': '媒体',
   'tabs.karaoke': '卡拉OK',
-  'tabs.plus': 'Plus',
+  'tabs.plus': '可视化',
   'tabs.scrollBack': '向前滚动标签',
   'tabs.scrollForward': '向后滚动标签',
   'notice.apoReconfigured':

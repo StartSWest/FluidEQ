@@ -13,7 +13,7 @@ const announce = {
   'announce.untitled': 'Nouvelles scènes',
   'announce.tab': 'Annonces',
   'announce.pageHint':
-    'Chaque personne voit une annonce une seule fois, en grand, par-dessus ce qu’elle a ouvert. Les membres dont l’essai se termine dans les deux jours voient aussi une ligne pour garder Plus.',
+    'Chaque personne voit une annonce une seule fois, en grand, par-dessus ce qu’elle a ouvert. Les membres dont l’essai se termine dans les deux jours voient aussi une ligne pour garder leur abonnement.',
   'announce.field.title': 'Titre',
   'announce.field.titlePlaceholder': 'Par exemple : Route de nuit',
   'announce.field.body': 'Ce que c’est',
@@ -27,8 +27,8 @@ const announce = {
   'announce.field.audience': 'Qui la voit',
   'announce.audience.everyone': 'Toutes les personnes connectées',
   'announce.audience.everyoneLine':
-    'Membres Plus, essais et comptes gratuits. Les comptes gratuits sont envoyés vers Visualiseurs pour essayer les scènes.',
-  'announce.audience.members': 'Membres Plus et essais',
+    'Membres, essais et comptes gratuits. Les comptes gratuits sont envoyés vers Visualiseurs pour essayer les scènes.',
+  'announce.audience.members': 'Membres et essais',
   'announce.audience.membersLine':
     'Tous ceux qui peuvent lire les scènes dès maintenant.',
   'announce.audience.trialEnding':

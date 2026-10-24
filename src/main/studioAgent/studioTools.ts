@@ -343,7 +343,7 @@ export const createStudioTools = ({ look, hear }: IStudioLook): IMcpTool[] => [
     name: 'look_at_scene',
     title: 'Look at the scene',
     description:
-      "Draws the member's FluidEQ Studio scene on this computer's GPU, exactly as FluidEQ plays it, and returns the picture - or, when it cannot play, FluidEQ's own reasons (pack.json problems, the member rules, the driver's compile errors). Call it after every save that matters and judge the picture before telling the member anything is done. Shapes, silence, a moment in the music, slider values (daylight among them: 0 draws the scene's night, 100 its day), the wave position, the viewer's camera, pointer and a tap can be chosen for one picture without changing any file, and each answer says what the music was doing at that instant.",
+      "Draws the member's FluidEQ Studio scene on this computer's GPU, exactly as FluidEQ plays it, and returns the picture - or, when it cannot play, FluidEQ's own reasons (pack.json problems, the member rules, the driver's compile errors). Call it when a save changed what can be seen, asking for the one moment, shape or slider that shows the change; the long checklist is for a new or rebuilt scene, once it is finished. Never call it again on a scene no save has changed. Judge the picture before telling the member anything is done. Shapes, silence, a moment in the music, slider values (daylight among them: 0 draws the scene's night, 100 its day), the wave position, the viewer's camera, pointer and a tap can be chosen for one picture without changing any file, and each answer says what the music was doing at that instant.",
     inputSchema: LOOK_SCHEMA,
     annotations: {
       readOnlyHint: true,

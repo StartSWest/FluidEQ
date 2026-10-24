@@ -73,7 +73,7 @@ const account = {
   'account.error.invalidEmail': '这看起来不像一个邮箱地址。',
   'account.error.alreadyRegistered': '该地址已有账户。请直接登录。',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': '永久归你的场景，每个一点。',
   'account.perk.visualizers': '“可视化”：会员创作的场景，向所有账户开放。',

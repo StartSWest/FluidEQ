@@ -170,7 +170,7 @@ taps. This page records the current implementation and its remaining limits.
 
 ## Desktop visualizer follow-up — 2026-10-24
 
-- Implemented only on `macos`; `main` remains at `4acdc53e4`. The existing
+- Implemented only on `macos`; no desktop changes were pushed to `main`. The existing
   scene rendering, monitor picker, tuning, scene ownership, audio analysis,
   pause policy and saved choices are reused. No extra audio playback or
   system wallpaper preference is created.
@@ -202,8 +202,33 @@ taps. This page records the current implementation and its remaining limits.
   relaunch and existing Windows behavior. All 21 desktop suites passed
   (162 tests). Production native/main/renderer builds, changed-file lint,
   app/script TypeScript, platform isolation and encoding checks passed.
-- Live verification remains pending: Computer Use reported that the Mac was
-  locked. No application was launched by the agent. Finder interaction,
+- Live verification remains pending: the Mac was unlocked, but Computer Use
+  still timed out while reading the running Electron window and explicitly
+  denied Finder access. No application was launched by the agent. Finder interaction,
   Spaces/Mission Control/Stage Manager, fullscreen apps, actual multi-monitor
   hotplug and normal/extreme window sizes must still be observed on the
   unlocked Mac; automated tests alone are not a visual verdict.
+
+## Share Audio group sync — 2026-10-24
+
+- Merged `origin/main` at `41a93a5ce` into `macos`, including Share Audio
+  groups, per-computer receive controls, the global send switch and automatic
+  recovery. The local `main` branch was not moved and nothing was pushed to
+  `main`.
+- Retained native Mac two-way capture/playback and its exclusion of received
+  audio and the local engine's processed output. The new group transport
+  uses that existing path; the renderer does not add a second Mac capture.
+- Resolved the IPC test conflict by retaining Windows and Mac coverage and
+  adding the new resume/recovery check to both platforms.
+- Focused validation covered 109 suites and 805 current tests: 108 suites
+  passed in the combined run; the remaining Studio suite passed all four
+  cases after updating its obsolete draft-mark expectations to main's
+  existing local-preview behavior. This changed checks only, not Studio UI.
+  The four-computer integration test used real local sockets and verified
+  introductions, continued connections after an introducer left, saved-pair
+  reconnection and unlink. Socket/pipe tests were run outside the sandbox
+  after sandbox listeners were denied.
+- Production native/main/renderer builds, app TypeScript, stylesheet,
+  platform isolation, encoding and staged lint checks passed. Physical
+  Windows/Mac two-way listening and desktop interaction remain unverified;
+  the earlier backend-access blockers still apply.

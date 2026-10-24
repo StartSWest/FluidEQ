@@ -17,7 +17,8 @@ import type { ISharingNotice } from './useStudioSharing';
  * dialog on that look with the stage's wave: the band the member has been
  * judging the scene in, not whatever the graph was last set to. Pressed
  * again after more saves, the look is brought up to date and the desktop
- * takes the new version.
+ * takes the new version: a maker's own scene plays everywhere for them,
+ * published or not (Ivan, 2026-10-21: "no need to publish to run on grahp").
  */
 export default function useStudioKeep(
   name: string,
@@ -45,8 +46,6 @@ export default function useStudioKeep(
           kept(outcome.scene);
         } else if (outcome.reason === 'inspect-only') {
           notify({ ok: false, key: 'studio.inspect.locked' });
-        } else if (outcome.reason === 'unpublished') {
-          notify({ ok: false, key: 'studio.notice.unpublished' });
         } else {
           failed();
         }

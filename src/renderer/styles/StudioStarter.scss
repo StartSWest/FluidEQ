@@ -1,0 +1,326 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// The guides a new project's starter scene comes with: its parts labelled on
+// the stage (`StudioStarterLabels`), and "Start here" at the top of the chat
+// (`StudioStartHere`).
+
+// ---------------------------------------------------------------- labels
+
+// Over the scene, under the plate and the draft's tag; it takes no pointer,
+// so the scene's hands still work through it.
+.studio-starter-labels {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  // Sized by the stage it covers, never by the labels, so both its width
+  // and its height can be asked.
+  container: studio-starter-labels / size;
+  pointer-events: none;
+}
+
+// Glass chips at the stage's two edges, at the heights of the parts they
+// name: the sky at the top, the orb's middle at 0.6 of the panel, the floor
+// near the bottom — clear of the ring, which stands in the middle third of
+// any stage wide enough to show them.
+.studio-starter-label {
+  --part: #{$secondary-default};
+
+  position: absolute;
+  display: grid;
+  max-width: min(34%, 230px);
+  gap: 3px;
+  padding: 6px 9px 7px;
+  border: 1px solid color-mix(in srgb, var(--part) 34%, transparent);
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $surface-base 70%, transparent);
+  backdrop-filter: blur(8px);
+  line-height: 1.25;
+  transition: opacity $motion-fast $ease-out;
+
+  &.is-left {
+    left: 2.5%;
+  }
+
+  &.is-right {
+    right: 2.5%;
+    text-align: right;
+  }
+
+  &.is-sky {
+    top: 15%;
+  }
+
+  // The plate stands in the top right corner, two rows deep on the
+  // narrowest stage: the right-hand sky label keeps under it.
+  &.is-sky.is-right {
+    top: max(15%, 68px);
+  }
+
+  &.is-orb {
+    top: 40%;
+    transform: translateY(-50%);
+  }
+
+  // On the horizon (0.26 of the panel up), clear of the draft's tag in the
+  // bottom left corner.
+  &.is-floor {
+    top: 74%;
+    transform: translateY(-50%);
+  }
+
+  &.is-mids {
+    --part: #{$amber};
+  }
+
+  &.is-treble {
+    --part: #{$neon-cyan};
+  }
+
+  &.is-bass {
+    --part: #{$neon-pink};
+  }
+
+  &.is-beat {
+    --part: #{$neon-purple};
+  }
+
+  &.is-drop {
+    --part: #{$neon-yellow};
+  }
+}
+
+.studio-starter-label__name {
+  color: var(--part);
+  font-size: $text-small;
+  font-weight: $weight-bold;
+}
+
+.studio-starter-label__does {
+  color: $text-primary;
+  font-size: $text-micro;
+}
+
+.studio-starter-label__track {
+  display: block;
+  height: 3px;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: color-mix(in srgb, $white 12%, transparent);
+
+  i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--part);
+    transform: scaleX(0);
+    transform-origin: left center;
+
+    .studio-starter-label.is-right & {
+      transform-origin: right center;
+    }
+  }
+}
+
+// A narrow stage keeps each part's name and its bar: the sentences would
+// cover the picture they explain.
+@container studio-starter-labels (max-width: 560px) {
+  .studio-starter-label__does {
+    display: none;
+  }
+
+  .studio-starter-label {
+    min-width: 64px;
+  }
+}
+
+// A short stage has no room for a label under the plate before the orb's
+// row: the treble joins the left-hand column, four rows down that side and
+// two down the other, each clear of the next and of the draft's tag at the
+// shortest stage there is (185px).
+@container studio-starter-labels (max-height: 300px) {
+  .studio-starter-label {
+    transform: translateY(-50%);
+
+    &.is-mids {
+      top: 11%;
+    }
+
+    &.is-treble.is-right {
+      top: 31%;
+      right: auto;
+      left: 2.5%;
+      text-align: left;
+    }
+
+    &.is-bass {
+      top: 51%;
+    }
+
+    &.is-beat,
+    &.is-drop {
+      top: 71%;
+    }
+
+    &.is-spectrum {
+      top: 45%;
+    }
+  }
+
+  .studio-starter-label.is-treble .studio-starter-label__track i {
+    transform-origin: left center;
+  }
+}
+
+// ---------------------------------------------------------------- start here
+
+// Its own height up to under half the pane, scrolling past that: shrunk by
+// the conversation beside it, it was cut to its first two steps.
+.studio-start {
+  display: grid;
+  flex: none;
+  max-height: 45%;
+  align-content: start;
+  gap: 8px;
+  padding: 10px 12px 12px 14px;
+  overflow-y: auto;
+  border-bottom: 1px solid $menu-rule;
+  background: color-mix(in srgb, $secondary-default 5%, transparent);
+  overscroll-behavior: contain;
+  @include slim-scrollbar;
+}
+
+.studio-start__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.studio-start__title {
+  color: $text-primary;
+  font-size: $text-small;
+  font-weight: $weight-bold;
+}
+
+.studio-start__count {
+  color: $text-faint;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+}
+
+.studio-start__close {
+  display: inline-grid;
+  width: 24px;
+  height: 24px;
+  margin-inline-start: auto;
+  place-items: center;
+  color: $text-faint;
+  border: 0;
+  border-radius: $radius-2xs;
+  background: none;
+  cursor: pointer;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover {
+    color: $text-primary;
+    background: $hover-accent;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.studio-start__steps {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.studio-start__step {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 5px 0;
+  color: $text-muted;
+  font-size: $text-small;
+}
+
+.studio-start__mark {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $text-faint;
+  border: 1px solid $card-edge;
+  border-radius: 50%;
+  font-size: $text-micro;
+  font-variant-numeric: tabular-nums;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .is-next & {
+    color: $secondary-light;
+    border-color: color-mix(in srgb, $secondary-default 60%, transparent);
+  }
+
+  .is-done & {
+    color: $surface-base;
+    border-color: $secondary-default;
+    background: $secondary-default;
+  }
+}
+
+.studio-start__words {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  padding-top: 2px;
+}
+
+.studio-start__step-title {
+  .is-next & {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+
+  .is-done & {
+    color: $text-faint;
+  }
+}
+
+.studio-start__hint {
+  color: $text-faint;
+  font-size: $text-micro;
+}
+
+.studio-start__ideas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 4px;
+
+  .studio-idea {
+    text-align: start;
+  }
+}

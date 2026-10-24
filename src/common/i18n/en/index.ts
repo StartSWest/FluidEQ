@@ -61,6 +61,7 @@ import listening from './listening';
 import terms from './terms';
 import studio from './studio';
 import studioChat from './studioChat';
+import studioStarter from './studioStarter';
 import plus from './plus';
 import trial from './trial';
 import store from './store';
@@ -112,6 +113,7 @@ const en = {
   ...terms,
   ...studio,
   ...studioChat,
+  ...studioStarter,
   ...plus,
   ...trial,
   ...store,

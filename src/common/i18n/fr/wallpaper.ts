@@ -28,9 +28,9 @@ const wallpaper = {
     'Une animation lente et paisible qui ignore la musique.',
   'wallpaper.follow': 'Suivre le graphique',
   'wallpaper.follow.hint':
-    'Affiche le visualiseur Plus du graphique et change avec lui, que vous le choisissiez ou que le défilement automatique le fasse. Tant que le graphique affiche un visualiseur hors Plus, cet écran garde le dernier visualiseur Plus.',
+    'Affiche la scène du graphique et change avec elle, que vous la choisissiez ou que le défilement automatique le fasse. Tant que le graphique affiche un style, cet écran garde la dernière scène.',
   'wallpaper.follow.choice':
-    'Les écrans choisis changent avec le visualiseur Plus du graphique, que vous le choisissiez ou que le défilement automatique le fasse, et gardent le dernier tant que le graphique en affiche un hors Plus.',
+    'Les écrans choisis changent avec la scène du graphique, que vous la choisissiez ou que le défilement automatique le fasse, et gardent la dernière tant que le graphique affiche un style.',
   'wallpaper.cancel': 'Annuler',
   'wallpaper.done': 'Terminé',
   'wallpaper.start': "Définir l'arrière-plan",
@@ -61,7 +61,7 @@ const wallpaper = {
   'wallpaper.error.unavailable':
     "Impossible de joindre l'arrière-plan du Bureau. Réessayez.",
   'wallpaper.error.notEntitled':
-    'Les visualiseurs de Bureau sont inclus avec FluidEQ Plus.',
+    'Cette scène n’est pas encore à vous. Obtenez-la dans la Galerie pour la mettre sur votre Bureau.',
   'wallpaper.error.missingScene':
     "Ce visualiseur n'est plus installé. Ajoutez-le à nouveau et réessayez.",
   'wallpaper.error.refused':

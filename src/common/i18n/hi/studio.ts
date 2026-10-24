@@ -134,8 +134,9 @@ const studio = {
   'studio.publish.goUpdate': 'अपडेट प्रकाशित करें',
   'studio.publish.agree': 'सहमत हों और प्रकाशित करें',
   'studio.publish.running': 'प्रकाशित हो रहा है…',
-  'studio.publish.done': '{name} गैलरी में है।',
-  'studio.publish.updated': 'गैलरी में {name} का नया संस्करण है।',
+  'studio.publish.done': '{name} गैलरी में है और आपके ग्राफ़ पर चल रहा है।',
+  'studio.publish.updated':
+    'गैलरी में {name} का नया संस्करण है, और आपके ग्राफ़ पर भी।',
   'studio.publish.noPicture':
     'तस्वीर नहीं ली जा सकी। सीन को चलने दें, फिर कोशिश करें।',
   'studio.publish.offline':
@@ -231,11 +232,7 @@ const studio = {
     '{name} आपका है। यह फिर से आपके रूपों में है, और आगे काम करने के लिए यहाँ खुला है।',
   'studio.import.unreadable': 'यह फ़ाइल FluidEQ सीन नहीं है।',
   'studio.import.signedOut': 'सीन फ़ाइल खोलने के लिए साइन इन करें।',
-  'studio.draft.badge': 'ड्राफ़्ट',
-  'studio.draft.line': 'पूरा देखने के लिए प्रकाशित करें',
   'studio.new.signedOut': 'प्रोजेक्ट शुरू करने के लिए साइन इन करें।',
-  'studio.notice.unpublished':
-    'पहले इसे प्रकाशित करें: आपका अपना सीन गैलरी में आने के बाद आपके लुक्स में जाता है।',
   'studio.import.changed':
     'यह फ़ाइल एक्सपोर्ट के बाद बदली गई है, इसलिए FluidEQ इसे नहीं चलाएगा।',
   'studio.import.blocked': 'यह सीन हटा दिया गया है।',
@@ -554,9 +551,9 @@ const studio = {
   'studio.publish.agreeReview': 'सहमत हों और समीक्षा के लिए भेजें',
   'studio.publish.runningReview': 'भेजा जा रहा है…',
   'studio.publish.submitted':
-    '{name} समीक्षा के लिए भेजा गया। मंज़ूर होने पर आपको बताया जाएगा।',
+    '{name} आपके ग्राफ़ पर चल रहा है और समीक्षा के लिए भेजा गया। मंज़ूर होने पर आपको बताया जाएगा।',
   'studio.publish.submittedUpdate':
-    '{name} का नया संस्करण समीक्षा के लिए भेजा गया। मंज़ूर होने तक सबके पास मौजूदा संस्करण रहेगा।',
+    '{name} का नया संस्करण आपके ग्राफ़ पर चल रहा है और समीक्षा के लिए भेजा गया। मंज़ूर होने तक बाकी सबके पास मौजूदा संस्करण रहेगा।',
   // The switch that lets the member's own AI look at the stage over MCP, and
   // its one-time setup. The assistants' names are theirs, in every language.
   'studio.agent.title': 'अपने AI को स्टेज देखने दें',

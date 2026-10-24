@@ -2,6 +2,8 @@
 
 /** @jest-environment node */
 
+import { powerMonitor } from 'electron';
+
 const handlers = new Map<string, (...args: unknown[]) => unknown>();
 const mockStartRemoteAudioHostSession = jest.fn();
 const mockRawSharing = jest.fn().mockResolvedValue(undefined);
@@ -9,6 +11,7 @@ const mockCapture = jest.fn().mockResolvedValue({ close: jest.fn() });
 
 jest.mock('electron', () => ({
   BrowserWindow: class {},
+  powerMonitor: { on: jest.fn(), removeListener: jest.fn() },
   ipcMain: {
     handle: jest.fn(
       (channel: string, handler: (...args: unknown[]) => unknown) => {
@@ -127,6 +130,24 @@ describe.each(['win32', 'darwin'])(
       );
       expect(lan.join).toHaveBeenCalledWith(first, false);
       expect(lan.join).toHaveBeenCalledWith(second, false);
+    });
+
+    it('retries saved computers and wakes audio after the OS resumes, without starting an unused LAN session', async () => {
+      const listener = jest
+        .mocked(powerMonitor.on)
+        .mock.calls.find(([event]) => String(event) === 'resume')?.[1] as
+        (() => void) | undefined;
+      if (!listener) {
+        throw new Error('No system-resume listener');
+      }
+      listener();
+      expect(lan.retry).not.toHaveBeenCalled();
+      await handlers.get('remote-audio-lan-start')?.({}, true);
+      listener();
+      expect(lan.retry).toHaveBeenCalledTimes(1);
+      expect(sent.map(([channel]) => channel)).toContain(
+        'remote-audio-lan-resume',
+      );
     });
 
     it('opening the page again keeps every link up', async () => {

@@ -75,6 +75,7 @@ export interface IJoinHandshake {
   deviceName: string;
   computerId: string;
   fresh: boolean;
+  ticket?: boolean;
 }
 
 export interface IJoinedSocket {
@@ -97,14 +98,18 @@ export const joinAt = ({
   deviceName,
   computerId,
   fresh,
+  ticket,
 }: IJoinHandshake): {
   joined: Promise<IJoinedSocket>;
   cancel(): void;
 } => {
-  const socket = new WebSocket(`ws://${address}:${port}`, {
-    perMessageDeflate: false,
-    maxPayload: MAX_PACKET_BYTES,
-  });
+  const socket = new WebSocket(
+    `ws://${address}:${port}${ticket ? `/?computer=${encodeURIComponent(computerId)}` : ''}`,
+    {
+      perMessageDeflate: false,
+      maxPayload: MAX_PACKET_BYTES,
+    },
+  );
   socket.once('upgrade', (response) => probeWhileQuiet(response.socket));
   let settled = false;
   let cancelled = false;

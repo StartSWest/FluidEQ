@@ -5,6 +5,7 @@ import type {
   ILanSavedJoin,
   TRemoteAudioStreamMode,
 } from '../common/remoteAudio';
+import type { IAudioGroupLink } from '../common/remoteAudioGroup';
 
 export interface IRemoteAudioLan {
   /** Listens on this computer's code; the same session if it already is. */
@@ -31,6 +32,8 @@ export interface IRemoteAudioLan {
  * codes to drop when the other computer says so.
  */
 export interface ILanLinkBook {
+  groupLinks?(): readonly IAudioGroupLink[];
+  saveGroupLink?(link: IAudioGroupLink): void;
   isRevoked(computerId: string): boolean;
   revoke(computerId: string): void;
   unrevoke(computerId: string): void;

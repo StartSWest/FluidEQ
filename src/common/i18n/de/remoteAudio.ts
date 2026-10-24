@@ -2,11 +2,25 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.title': 'Die ganze Gruppe',
+  'remoteAudio.group.mix': 'Dein Mix',
+  'remoteAudio.group.thisPC': 'Dieser PC',
+  'remoteAudio.group.receive': 'Empfangen',
+  'remoteAudio.group.send': 'Senden',
+  'remoteAudio.group.share': 'Teilen',
+  'remoteAudio.group.options': 'Optionen für {name}',
+  'remoteAudio.group.count': '{count} Computer',
+  'remoteAudio.group.sourceOff': 'Teilen ausgeschaltet',
+  'remoteAudio.group.offline': 'Offline',
+  'remoteAudio.group.unavailable': 'Systemlautstärke nicht verfügbar',
+  'remoteAudio.group.mute': 'Diesen PC stummschalten',
+  'remoteAudio.group.unmute': 'Stummschaltung aufheben',
+  'remoteAudio.group.output': 'Ausgang',
+  'remoteAudio.group.hint':
+    'Verbinde einen Computer, um seiner Gruppe beizutreten. Jeder Computer sendet seinen eigenen Ton direkt an die anderen. Passe deinen Mix hier an.',
   'tabs.share': 'Audio teilen',
   'remoteAudio.eyebrow': 'LAN-AUDIOVERBINDUNG',
   'remoteAudio.title': 'Audio zwischen Ihren Computern teilen',
-  'remoteAudio.subtitle':
-    'Verbinden Sie zwei Computer, und jeder spielt den Ton des anderen. Jeder sendet seinen Ton unverändert; der Computer, an dem Sie hören, wendet seinen eigenen EQ, seine Kurven und DSP an.',
   'remoteAudio.security': 'Verbindungseigenschaften',
   'remoteAudio.badge.local': 'Nur privates LAN',
   'remoteAudio.badge.lossless': 'Verlustfreie Float32-PCM-Übertragung',
@@ -35,13 +49,11 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.rule.steadyTitle': 'Stabil, ohne Abdriften',
   'remoteAudio.rule.steady':
     'Etwa 30 ms dahinter und dort gehalten: Die beiden Uhren laufen im Gleichschritt, ohne Aussetzer und ohne langsames Abdriften.',
-  'remoteAudio.linked.section': 'Verbunden',
   'remoteAudio.linked.cardLabel': 'Verbindung mit {name}',
   'remoteAudio.linked.bothWays': 'In beide Richtungen',
   'remoteAudio.linked.incomingOnly': 'Nur eingehend',
   'remoteAudio.linked.outgoingOnly': 'Nur ausgehend',
   'remoteAudio.linked.paused': 'Pausiert',
-  'remoteAudio.linked.looking': '{name} wird im Netzwerk gesucht…',
   'remoteAudio.linked.lossless': 'Verlustfrei',
   'remoteAudio.linked.unlink': 'Trennen',
   'remoteAudio.linked.pause': 'Pausieren',

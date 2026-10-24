@@ -72,7 +72,7 @@ const app = {
   'app.processes.place.studio': 'Studio stage',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
-    'The window you are looking at: the curve, the library, the player, every control. One process per window, so a heavy redraw cannot stall the sound. The Plus visualizers run inside it on a thread of their own, so a heavy scene does not hold up the controls.',
+    'The window you are looking at: the curve, the library, the player, every control. One process per window, so a heavy redraw cannot stall the sound. The scenes run inside it on a thread of their own, so a heavy scene does not hold up the controls.',
   'app.processes.name.core': 'App core',
   'app.processes.what.core':
     'The part with no window. Keeps your settings, talks to the audio devices and the system equalizer, checks for updates, and starts everything else in this list.',
@@ -81,10 +81,10 @@ const app = {
     "FluidEQ's own engine. Decodes what you play and applies the equalizer as it goes. A separate program from the rest, which is why Windows files it away from them.",
   'app.processes.name.graphics': 'Graphics',
   'app.processes.what.graphics':
-    "Draws everything on screen on the graphics card: the spectrum, the curve, every animation and the Plus visualizers' scenes. Busy whenever anything moves; it runs no models.",
+    'Draws everything on screen on the graphics card: the spectrum, the curve, every animation and the scenes. Busy whenever anything moves; it runs no models.',
   'app.processes.name.desktop': 'Desktop visualizer',
   'app.processes.what.desktop':
-    'A Plus visualizer drawn as a monitor’s desktop background, apart from this window: one for each monitor showing one. It pauses while windows cover that monitor or the PC is locked.',
+    'A scene drawn as a monitor’s desktop background, apart from this window: one for each monitor showing one. It pauses while windows cover that monitor or the PC is locked.',
   'app.processes.name.desktopHost': 'Desktop visualizer helper',
   'app.processes.what.desktopHost':
     'Puts that monitor’s desktop visualizer behind the icons and tells it when windows cover the screen. One for each monitor showing one.',
@@ -255,7 +255,7 @@ const app = {
   // qualifies, so a narrow window says less rather than saying it badly.
   'tabs.mediaShort': 'Media',
   'tabs.karaoke': 'Karaoke',
-  'tabs.plus': 'Plus',
+  'tabs.plus': 'Visualizers',
   'tabs.scrollBack': 'Scroll tabs back',
   'tabs.scrollForward': 'Scroll tabs forward',
   'notice.apoReconfigured':

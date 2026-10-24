@@ -27,7 +27,6 @@ import StudioGraphPaper from './StudioGraphPaper';
 import { reportSceneBeat, reportSceneLeft } from '../utils/scenePulse';
 import { forgetSceneDraw, reportSceneDraw } from '../utils/sceneDrawStats';
 import StudioStageLoading from './StudioStageLoading';
-import StudioDraftMark from './StudioDraftMark';
 import { studioPaper } from './studioPaper';
 import { studioSpectrumRect, type IStudioWave } from './studioWave';
 import {
@@ -124,8 +123,6 @@ interface IStudioStageProps {
   percent?: number;
   /** Written to from the frame callback (`StudioBench.tsx`), never by React. */
   readingRef: RefObject<HTMLSpanElement | null>;
-  /** Not published yet: the stage wears the draft's mark (`StudioDraftMark`). */
-  draft: boolean;
   onTrouble: (trouble: TStageTrouble) => void;
   /** What the meters show, as soon as each frame is made. */
   onHeard?: TStageHeard;
@@ -138,6 +135,8 @@ interface IStudioStageProps {
    * right corner beside the reading.
    */
   controls?: ReactNode;
+  /** Over the picture itself: the starter's parts named (`StudioStarterLabels`). */
+  labels?: ReactNode;
 }
 
 /**
@@ -164,13 +163,13 @@ export default function StudioStage({
   cost,
   percent,
   readingRef,
-  draft,
   onTrouble,
   onHeard,
   onDrawn,
   onExitFullscreen,
   onToggleFullscreen,
   controls,
+  labels,
 }: IStudioStageProps) {
   const { t } = useTranslation();
   const frameRef = useRef<HTMLDivElement>(null);
@@ -459,6 +458,7 @@ export default function StudioStage({
             ambient={pack.ambient}
             artwork={pack.artwork}
           />
+          {labels}
         </div>
         {/* One plate in the top right corner (Ivan, 2026-09-27: "join all
             into one with runs smoothly and put it on the right top"): how the
@@ -517,7 +517,6 @@ export default function StudioStage({
               : undefined
           }
         />
-        {draft && <StudioDraftMark />}
         {waiting && <StudioStageLoading name={pack.names.en} />}
       </div>
     </div>

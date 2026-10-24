@@ -13,7 +13,7 @@ const announce = {
   'announce.untitled': 'Neue Szenen',
   'announce.tab': 'Ankündigungen',
   'announce.pageHint':
-    'Jede Person sieht eine Ankündigung einmal, groß, über allem, was sie gerade geöffnet hat. Mitglieder, deren Testphase innerhalb von zwei Tagen endet, sehen zusätzlich eine Zeile dazu, wie sie Plus behalten.',
+    'Jede Person sieht eine Ankündigung einmal, groß, über allem, was sie gerade geöffnet hat. Mitglieder, deren Testphase innerhalb von zwei Tagen endet, sehen zusätzlich eine Zeile dazu, wie sie ihre Mitgliedschaft behalten.',
   'announce.field.title': 'Titel',
   'announce.field.titlePlaceholder': 'Zum Beispiel: Nachtfahrt',
   'announce.field.body': 'Worum es geht',
@@ -27,8 +27,8 @@ const announce = {
   'announce.field.audience': 'Wer sie sieht',
   'announce.audience.everyone': 'Alle Angemeldeten',
   'announce.audience.everyoneLine':
-    'Plus-Mitglieder, Testphasen und kostenlose Konten. Kostenlose Konten werden zu „Visualizer“ geschickt, um die Szenen auszuprobieren.',
-  'announce.audience.members': 'Plus-Mitglieder und Testphasen',
+    'Mitglieder, Testphasen und kostenlose Konten. Kostenlose Konten werden zu „Visualizer“ geschickt, um die Szenen auszuprobieren.',
+  'announce.audience.members': 'Mitglieder und Testphasen',
   'announce.audience.membersLine':
     'Alle, die die Szenen jetzt abspielen können.',
   'announce.audience.trialEnding':

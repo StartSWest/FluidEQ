@@ -64,6 +64,7 @@ const useRemoteAudioPcmSender = ({
   publishMeter,
   onSending,
   onFailure,
+  recoveryAttempt = 0,
 }: {
   peerIds: readonly string[];
   /** Linux with the engine's "FluidEQ Send": sent from there rather than
@@ -72,6 +73,7 @@ const useRemoteAudioPcmSender = ({
   publishMeter: TRemoteAudioMeterListener;
   onSending(active: boolean): void;
   onFailure(): void;
+  recoveryAttempt?: number;
 }) => {
   const { capture: liveCapture, error: captureError } = useLiveAudioControl();
   const platform = window.electron?.platform;
@@ -146,7 +148,7 @@ const useRemoteAudioPcmSender = ({
       close?.();
       callbacksRef.current.onSending(false);
     };
-  }, [active, liveCapture, sendInputId]);
+  }, [active, liveCapture, sendInputId, recoveryAttempt]);
 };
 
 export default useRemoteAudioPcmSender;

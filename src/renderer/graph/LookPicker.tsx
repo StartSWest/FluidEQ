@@ -530,7 +530,6 @@ const LookPicker = ({
           >
             <header className="look-picker__head">
               <h3>{t('graph.picker.plus')}</h3>
-              <span className="graph-look-badge">{t('graph.scene.badge')}</span>
               <span className="look-picker__count">{shownPlus.length}</span>
             </header>
             {plusRows.length > 0 &&

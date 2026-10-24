@@ -10,6 +10,7 @@ import type { IStudioProject } from 'main/ipc/studioProjectTypes';
 import Glyph from '../../community/Glyph';
 import { useTranslation } from '../../utils/I18nContext';
 import StudioMaker from '../StudioMaker';
+import StudioStartHere from '../StudioStartHere';
 import StudioChatAccounts, { planName } from './StudioChatAccounts';
 import StudioChatAsk from './StudioChatAsk';
 import StudioChatComposer from './StudioChatComposer';
@@ -251,6 +252,14 @@ export default function StudioChat({
           </button>
         )}
       </header>
+      {/* A new project's guide, over the conversation it leads into; its
+          ideas go into the message box, where there is one. */}
+      {view === 'chat' && project && !project.official && (
+        <StudioStartHere
+          projectId={project.id}
+          onIdea={canChat ? setDraft : undefined}
+        />
+      )}
       {body}
     </section>
   );

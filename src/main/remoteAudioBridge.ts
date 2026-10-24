@@ -92,6 +92,12 @@ const setRemoteAudioBothWays = (bothWays: boolean) =>
 const retryRemoteAudioLan = () =>
   ipcRenderer.invoke('remote-audio-lan-retry') as Promise<void>;
 
+const onRemoteAudioLanResume = (listener: () => void) => {
+  const wrapped = () => listener();
+  ipcRenderer.on('remote-audio-lan-resume', wrapped);
+  return () => ipcRenderer.removeListener('remote-audio-lan-resume', wrapped);
+};
+
 /** The codes pasted here, whenever that list changes. */
 const onRemoteAudioLanJoins = (listener: (joins: ILanSavedJoin[]) => void) => {
   const wrapped = (_event: IpcRendererEvent, joins: ILanSavedJoin[]) =>
@@ -200,6 +206,7 @@ const remoteAudioBridge = {
   joinRemoteAudioLan,
   unlinkRemoteAudioLan,
   retryRemoteAudioLan,
+  onRemoteAudioLanResume,
   setRemoteAudioBothWays,
   onRemoteAudioLanJoins,
   sendRemoteAudioLanSignal,

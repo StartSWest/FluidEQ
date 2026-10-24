@@ -14,6 +14,7 @@
 
 import '@testing-library/jest-dom';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
+
 import RemoteAudioPanel from '../../../renderer/remoteAudio/RemoteAudioPanel';
 import type { IRemoteAudioValue } from '../../../renderer/remoteAudio/remoteAudioState';
 import RemoteAudioContext from '../../../renderer/remoteAudio/remoteAudioValueContext';
@@ -21,6 +22,8 @@ import {
   remoteAudioLink,
   remoteAudioValue,
 } from '../../utils/remoteAudioValue';
+
+jest.mock('../../../renderer/remoteAudio/RemoteAudioOutput', () => () => null);
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
   useTranslation: () => ({
@@ -35,8 +38,7 @@ const renderPanel = (remote: IRemoteAudioValue) =>
     </RemoteAudioContext.Provider>,
   );
 
-const card = () =>
-  within(screen.getByRole('article', { name: 'remoteAudio.linked.cardLabel' }));
+const card = () => within(screen.getByRole('article', { name: 'SWEST-YOGA' }));
 
 describe('the Share Audio page before a link', () => {
   it("opens on this computer's code, and asks for it only once", () => {
@@ -109,13 +111,21 @@ describe('the Share Audio page before a link', () => {
     });
     renderPanel(remote);
     const away = screen
-      .getByText('remoteAudio.linked.looking')
+      .getByText('remoteAudio.group.offline', {
+        selector: '.remote-audio__lane-song',
+      })
       .closest('article');
     if (!away) {
       throw new Error('No card for the computer being looked for.');
     }
     fireEvent.click(
-      within(away).getByRole('button', { name: 'remoteAudio.linked.unlink' }),
+      within(away).getByRole('button', { name: 'remoteAudio.group.options' }),
+    );
+    expect(
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
+    ).toHaveFocus();
+    fireEvent.click(
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
     );
     expect(remote.unlink).toHaveBeenCalledWith({ computerId: 'away' });
   });
@@ -129,10 +139,15 @@ describe('a linked computer', () => {
       sending: true,
     });
     renderPanel(remote);
-    expect(card().getByText('remoteAudio.linked.bothWays')).toBeInTheDocument();
+    expect(
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
+    ).toBeChecked();
+    expect(
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
+    ).toBeChecked();
 
     fireEvent.click(
-      card().getByRole('checkbox', { name: 'remoteAudio.lane.playItHere' }),
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
     );
     expect(remote.setSwitches).toHaveBeenLastCalledWith('SWEST-YOGA', {
       send: true,
@@ -141,7 +156,7 @@ describe('a linked computer', () => {
       volume: 1,
     });
     fireEvent.click(
-      card().getByRole('checkbox', { name: 'remoteAudio.lane.sendMySound' }),
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
     );
     expect(remote.setSwitches).toHaveBeenLastCalledWith('SWEST-YOGA', {
       send: false,
@@ -166,22 +181,15 @@ describe('a linked computer', () => {
       networkStats: [stats('receive'), stats('send')],
     });
     renderPanel(remote);
-    // What the figure says, not the widest texts it keeps room for.
-    const figureOf = (caption: string) =>
-      card()
-        .getByText(caption)
-        .closest('.remote-audio__lane-figure')
-        ?.querySelector('.live-figure__text');
-    expect(figureOf('remoteAudio.lane.received')).toHaveTextContent(
-      'remoteAudio.lane.megabits',
-    );
-    expect(figureOf('remoteAudio.lane.sent')).toHaveTextContent(
-      'remoteAudio.lane.megabits',
-    );
-    // Each line has its rate; the head adds none of its own.
+    // The simplified group presents one source waveform per PC. The network
+    // counters remain transport state and no longer take space on this page.
+    expect(card().getByText('remoteAudio.lane.receiving')).toBeInTheDocument();
     expect(
-      card().getByText('remoteAudio.linked.lossless', { exact: false }),
-    ).not.toHaveTextContent('remoteAudio.lane.megabits');
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
+    ).toBeChecked();
+    expect(
+      screen.getByRole('region', { name: 'remoteAudio.group.mix' }),
+    ).toBeInTheDocument();
   });
 
   it('runs one way when the other computer switched a direction off', () => {
@@ -192,11 +200,11 @@ describe('a linked computer', () => {
       }),
     );
     expect(
-      card().getByText('remoteAudio.linked.incomingOnly'),
-    ).toBeInTheDocument();
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
+    ).toBeChecked();
     expect(
-      card().getByText('remoteAudio.lane.outNotPlayed'),
-    ).toBeInTheDocument();
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
+    ).toBeChecked();
   });
 
   it('keeps sending to an older FluidEQ it joined, which sends nothing back', () => {
@@ -208,8 +216,8 @@ describe('a linked computer', () => {
       }),
     );
     expect(
-      card().getByText('remoteAudio.linked.outgoingOnly'),
-    ).toBeInTheDocument();
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
+    ).toBeChecked();
     expect(card().getByText('remoteAudio.lane.inOld')).toBeInTheDocument();
   });
 
@@ -222,11 +230,11 @@ describe('a linked computer', () => {
       }),
     );
     expect(
-      card().getByRole('checkbox', { name: 'remoteAudio.lane.playItHere' }),
+      card().getByRole('checkbox', { name: 'remoteAudio.group.receive' }),
     ).toBeDisabled();
     expect(card().getByText('remoteAudio.lane.inOneWay')).toBeInTheDocument();
     expect(
-      card().getByRole('checkbox', { name: 'remoteAudio.lane.sendMySound' }),
+      card().getByRole('checkbox', { name: 'remoteAudio.lane.to' }),
     ).toBeEnabled();
   });
 
@@ -238,7 +246,7 @@ describe('a linked computer', () => {
         sendingFailed: true,
       }),
     );
-    expect(card().getByText('remoteAudio.lane.outFailed')).toBeInTheDocument();
+    expect(screen.getByText('remoteAudio.lane.outFailed')).toBeInTheDocument();
   });
 
   it('asks for a press when the window may not play sound yet', () => {
@@ -258,7 +266,18 @@ describe('a linked computer', () => {
     });
     renderPanel(remote);
     fireEvent.click(
-      card().getByRole('button', { name: 'remoteAudio.linked.unlink' }),
+      card().getByRole('button', { name: 'remoteAudio.group.options' }),
+    );
+    const pause = screen.getByRole('menuitem', {
+      name: 'remoteAudio.linked.pause',
+    });
+    expect(pause).toHaveFocus();
+    fireEvent.keyDown(pause, { key: 'ArrowDown' });
+    expect(
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
+    ).toHaveFocus();
+    fireEvent.click(
+      screen.getByRole('menuitem', { name: 'remoteAudio.linked.unlink' }),
     );
     expect(remote.unlink).toHaveBeenCalledWith({ peerId: 'peer-1' });
   });

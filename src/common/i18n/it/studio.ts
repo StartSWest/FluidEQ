@@ -137,8 +137,9 @@ const studio = {
   'studio.publish.goUpdate': 'Pubblica aggiornamento',
   'studio.publish.agree': 'Accetta e pubblica',
   'studio.publish.running': 'Pubblicazione…',
-  'studio.publish.done': '{name} è nella galleria.',
-  'studio.publish.updated': 'La galleria ha la nuova versione di {name}.',
+  'studio.publish.done': '{name} è nella galleria e sul tuo grafico.',
+  'studio.publish.updated':
+    'La galleria ha la nuova versione di {name}, e anche il tuo grafico.',
   'studio.publish.noPicture':
     'Non è stato possibile scattare l’immagine. Lascia che la scena si riproduca, poi riprova.',
   'studio.publish.offline':
@@ -237,11 +238,7 @@ const studio = {
     '{name} è tua. È di nuovo nei tuoi aspetti e aperta qui per continuare a lavorarci.',
   'studio.import.unreadable': 'Quel file non è una scena di FluidEQ.',
   'studio.import.signedOut': 'Accedi per aprire un file di scena.',
-  'studio.draft.badge': 'Bozza',
-  'studio.draft.line': 'Pubblicala per vederla intera',
   'studio.new.signedOut': 'Accedi per iniziare un progetto.',
-  'studio.notice.unpublished':
-    'Prima pubblicala: la tua scena entra nei tuoi look quando è nella galleria.',
   'studio.import.changed':
     'Quel file è stato modificato dopo l’esportazione, quindi FluidEQ non lo riprodurrà.',
   'studio.import.blocked': 'Quella scena è stata rimossa.',
@@ -569,9 +566,9 @@ const studio = {
   'studio.publish.agreeReview': 'Accetta e invia per la revisione',
   'studio.publish.runningReview': 'Invio…',
   'studio.publish.submitted':
-    '{name} è stata inviata per la revisione. Ti avviseremo quando sarà approvata.',
+    '{name} è sul tuo grafico ed è stata inviata per la revisione. Ti avviseremo quando sarà approvata.',
   'studio.publish.submittedUpdate':
-    'La nuova versione di {name} è stata inviata per la revisione. Tutti mantengono la versione attuale finché non viene approvata.',
+    'La nuova versione di {name} è sul tuo grafico ed è stata inviata per la revisione. Gli altri mantengono la versione attuale finché non viene approvata.',
   // The switch that lets the member's own AI look at the stage over MCP, and
   // its one-time setup. The assistants' names are theirs, in every language.
   'studio.agent.title': 'Lascia che la tua IA veda la scena',

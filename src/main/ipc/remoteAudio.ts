@@ -6,13 +6,12 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { BrowserWindow, ipcMain } from 'electron';
+import { BrowserWindow, ipcMain, powerMonitor } from 'electron';
 import {
   isLanRemoteAudioSignal,
   type ILanHostDetails,
   type ILanRemoteAudioChunk,
   type ILanRemoteAudioSignal,
-  type ILanSavedJoin,
 } from '../../common/remoteAudio';
 import {
   IRemoteAudioCapture,
@@ -21,8 +20,8 @@ import {
 } from '../remoteAudioCapture';
 import { createRemoteAudioCredentialStore } from '../remoteAudioCredentials';
 import startRemoteAudioHostSession from '../remoteAudioHostSession';
-import type { ILanLinkBook, IRemoteAudioLan } from '../remoteAudioLanTypes';
-import { computerIdOf, decodePairingCode } from '../remoteAudioLanProtocol';
+import type { IRemoteAudioLan } from '../remoteAudioLanTypes';
+import createRemoteAudioBook from '../remoteAudioBook';
 import createRemoteAudioLevels from '../remoteAudioLevels';
 import { createRemoteAudioLinks } from '../remoteAudioLinks';
 import createRemoteAudioPorts from '../remoteAudioPorts';
@@ -144,6 +143,8 @@ export const registerRemoteAudioIpc = ({
               peerId,
               signal.signal.deviceName,
               signal.signal.joined === true,
+              signal.signal.computerId,
+              signal.signal.introduced,
             );
           } else if (
             signal.signal.kind === 'stream-mode' &&
@@ -204,37 +205,10 @@ export const registerRemoteAudioIpc = ({
     stop: () => lanLink().stop(),
   };
   const credentials = createRemoteAudioCredentialStore(userDataDir);
-  const computerOfCode = (code: string): string | undefined => {
-    try {
-      return computerIdOf(decodePairingCode(code).secret);
-    } catch {
-      return undefined;
-    }
-  };
-  const savedJoins = (): ILanSavedJoin[] =>
-    credentials.read().joins.flatMap((code) => {
-      try {
-        const pairing = decodePairingCode(code);
-        return [
-          {
-            computerId: computerIdOf(pairing.secret),
-            deviceName: pairing.deviceName,
-          },
-        ];
-      } catch {
-        return [];
-      }
-    });
-  const publishJoins = () => sendToWindow(LAN_JOINS_CHANNEL, savedJoins());
-  const book: ILanLinkBook = {
-    isRevoked: (computerId) => credentials.read().revoked.includes(computerId),
-    revoke: (computerId) => credentials.revoke(computerId),
-    unrevoke: (computerId) => credentials.unrevoke(computerId),
-    forgetJoin: (computerId) => {
-      credentials.removeJoin((code) => computerOfCode(code) === computerId);
-      publishJoins();
-    },
-  };
+  const { book, savedJoins, publishJoins, computerOfCode } =
+    createRemoteAudioBook(credentials, (joins) =>
+      sendToWindow(LAN_JOINS_CHANNEL, joins),
+    );
 
   /*
    * This computer's sound for the network: one capture, shared by every
@@ -439,8 +413,23 @@ export const registerRemoteAudioIpc = ({
   ipcMain.handle('remote-audio-lan-retry', () => {
     if (started) {
       lan.retry();
+      startNetworkCaptureIfWanted();
     }
   });
+  const wake = () => {
+    if (!started) {
+      return;
+    }
+    // Windows can leave an open loopback stream silent after suspend. A
+    // fresh lease reacquires it; target switches and receive gains stay put.
+    if (process.platform === 'win32') {
+      stopNetworkCapture();
+      startNetworkCaptureIfWanted();
+    }
+    lan.retry();
+    sendToWindow('remote-audio-lan-resume', undefined);
+  };
+  powerMonitor.on('resume', wake);
   ipcMain.handle('remote-audio-lan-send', (_event, signal: unknown) => {
     if (
       isLanRemoteAudioSignal(signal) &&
@@ -529,6 +518,7 @@ export const registerRemoteAudioIpc = ({
   });
 
   return () => {
+    powerMonitor.removeListener('resume', wake);
     started = undefined;
     told.clear();
     resetSession();

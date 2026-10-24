@@ -9,6 +9,7 @@ import {
   settingsOfPack,
   type ISceneSettings,
 } from '../../common/sceneSettings';
+import type { IScenePack } from '../../common/scenePacks';
 import { readVersionNote } from '../../common/sceneVersionNote';
 import { readProject } from '../memberScenes/project';
 import { raiseProjectVersion } from '../memberScenes/projectVersion';
@@ -100,7 +101,8 @@ export interface IPlusPublishingIpcDeps {
   mayPublishActive: () => boolean;
   /** A publication recorded an agreement to this version of the Plus terms. */
   onTermsAgreed?: (version: number) => void;
-  onPublished?: () => void;
+  /** A publication landed: who published, and the pack exactly as it went out. */
+  onPublished?: (author: string, pack: IScenePack) => void;
 }
 
 const CHANNELS = [
@@ -361,7 +363,7 @@ export const registerPlusPublishingIpc = ({
         // not adopt its agreement through the current-account callback.
         if (access.accountId() === me) {
           onTermsAgreed?.(termsVersion);
-          onPublished?.();
+          onPublished?.(me, raised.pack);
         }
       }
       return published;

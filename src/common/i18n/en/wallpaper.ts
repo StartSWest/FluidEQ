@@ -28,9 +28,9 @@ const wallpaper = {
     'A slow, quiet animation that ignores the music.',
   'wallpaper.follow': 'Follow graph',
   'wallpaper.follow.hint':
-    'Shows the Plus visualizer the graph is showing and changes with it, whether you pick it or automatic switching does. While the graph shows a visualizer that isn’t Plus, this screen keeps the last Plus one.',
+    'Shows the scene the graph is showing and changes with it, whether you pick it or automatic switching does. While the graph shows a style instead, this screen keeps the last scene.',
   'wallpaper.follow.choice':
-    'The chosen monitors change with the graph’s Plus visualizer, whether you pick it or automatic switching does, and keep the last one while the graph shows one that isn’t Plus.',
+    'The chosen monitors change with the graph’s scene, whether you pick it or automatic switching does, and keep the last one while the graph shows a style.',
   'wallpaper.cancel': 'Cancel',
   'wallpaper.done': 'Done',
   'wallpaper.start': 'Set background',
@@ -60,7 +60,7 @@ const wallpaper = {
   'wallpaper.error.unavailable':
     'The desktop background could not be reached. Try again.',
   'wallpaper.error.notEntitled':
-    'Desktop visualizers are included with FluidEQ Plus.',
+    'This scene isn’t yours yet. Get it in the Gallery to put it on your desktop.',
   'wallpaper.error.missingScene':
     'This visualizer is no longer installed. Add it again and retry.',
   'wallpaper.error.refused':

@@ -71,7 +71,7 @@ function Bench({
   feed: RefObject<TStageHeard | undefined>;
   onScale?: (scale: number) => void;
 }) {
-  const reading = useStudioReading(feed, onScale);
+  const reading = useStudioReading([feed], onScale);
   onDrawn = reading.onDrawn;
   onHeard = reading.onHeard;
   return (

@@ -7,8 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The demo without Plus in the main process: the scene it hands the page is
- * the Studio's starter as a valid pack, and its frames light the devices for
- * as long as they come — with the switch off, without Plus — and never with
+ * the lantern night (the Studio's old starter) as a valid pack, and its
+ * frames light the devices for as long as they come — with the switch off, without Plus — and never with
  * Plus, where the switch decides.
  */
 
@@ -17,7 +17,7 @@ import { lightingDemoScene } from 'main/lighting/lightingDemoScene';
 import type { ILightingHost } from 'main/lighting/lightingHost';
 import { createLightingService } from 'main/lighting/lightingService';
 import type { ILampArrayEvent, THelperEvent } from 'main/lighting/lightingWire';
-import { STARTER_SOURCE } from 'main/memberScenes/starterScene';
+import { LANTERN_NIGHT_SOURCE } from 'main/lighting/lanternNightScene';
 import { checkMemberSceneSource } from 'common/memberSceneRules';
 import {
   DEFAULT_LIGHTING_SETTINGS,
@@ -111,11 +111,11 @@ function setup(entitled: boolean) {
   return { service, host, chroma, ensureIdentity };
 }
 
-it('hands the page the Studio starter as a pack that passes every rule', () => {
+it('hands the page the lantern night as a pack that passes every rule', () => {
   const pack = lightingDemoScene();
   expect(pack).not.toBeNull();
-  expect(pack?.source).toBe(STARTER_SOURCE);
-  expect(checkMemberSceneSource(STARTER_SOURCE)).toEqual([]);
+  expect(pack?.source).toBe(LANTERN_NIGHT_SOURCE);
+  expect(checkMemberSceneSource(LANTERN_NIGHT_SOURCE)).toEqual([]);
   // Named in every language the app speaks, not after a project.
   expect(Object.keys(pack?.names ?? {}).sort()).toEqual(
     ['de', 'en', 'es', 'fr', 'hi', 'it', 'ja', 'pt', 'ru', 'zh'].sort(),
@@ -135,11 +135,11 @@ it('hands the page the Studio starter as a pack that passes every rule', () => {
 
 /*
  * Declaring the control is what the Studio checks; drawing with it is what
- * the listener sees. The starter declared Daylight and drew the same night
+ * the listener sees. The scene declared Daylight and drew the same night
  * at every Brightness until it took Hanami's day look.
  */
 it('draws the day its Daylight control declares', () => {
-  const reads = STARTER_SOURCE.match(/\buParam_daylight\b/g) ?? [];
+  const reads = LANTERN_NIGHT_SOURCE.match(/\buParam_daylight\b/g) ?? [];
   expect(reads.length).toBeGreaterThan(0);
 });
 

@@ -1,5 +1,5 @@
 const termsNotice = {
-  'termsNotice.title': 'Le condizioni di Plus sono cambiate',
+  'termsNotice.title': 'Le condizioni sono cambiate',
   'termsNotice.read': 'Leggi le condizioni',
   'termsNotice.gotIt': 'Ho capito',
 
@@ -22,7 +22,7 @@ const termsNotice = {
   'termsNotice.change.10':
     'Finché hai Plus, FluidEQ ora comunica al suo creatore quanto tempo ogni scena resta sul tuo schermo, un numero per scena al giorno, e quale motore audio usi, così le nuove scene possono seguire ciò che piace ai membri. Nessun altro vede né l’uno né l’altro. FluidEQ può anche annunciare nuove scene nell’app. Le Novità possono anche riprodurre brevi filmati dell’app da fluideq.com, senza niente su di te.',
   'termsNotice.change.11':
-    'Le scene ora sono tue per sempre: un credito ciascuna, da pacchetti pagati una sola volta su Stripe, e un account confermato riceve alcuni crediti gratis per iniziare. Ogni scena si può guardare per qualche secondo prima. Lo Studio e la pubblicazione sono gratuiti per tutti gli account, e le tue scene suonano ovunque una volta pubblicate. FluidEQ può anche rendere gratuite per tutti alcune delle sue scene. Plus non è più in vendita: un abbonamento già attivo continua a funzionare finché FluidEQ non passa i suoi membri ai crediti, e le scene che un membro ha aggiunto restano allora sue. E ora il tempo che ascolti viene contato per le statistiche di FluidEQ, dopo che ne sei avvisato, a meno che tu non lo disattivi.',
+    'Le scene ora sono tue per sempre: un credito ciascuna, da pacchetti pagati una sola volta su Stripe, e un account confermato riceve alcuni crediti gratis per iniziare. Ogni scena si può guardare per qualche secondo prima. Lo Studio e la pubblicazione sono gratuiti per tutti gli account, e le tue scene suonano ovunque una volta pubblicate. FluidEQ può anche rendere gratuite per tutti alcune delle sue scene. L’abbonamento Plus non è più in vendita: uno già attivo continua a funzionare finché FluidEQ non passa i suoi membri ai crediti, e le scene che un membro ha aggiunto restano allora sue. E ora il tempo che ascolti viene contato per le statistiche di FluidEQ, dopo che ne sei avvisato, a meno che tu non lo disattivi.',
 } as const;
 
 export default termsNotice;

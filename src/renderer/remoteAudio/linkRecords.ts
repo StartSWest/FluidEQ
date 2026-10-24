@@ -47,7 +47,9 @@ export const applySwitches = (
   switches: ILinkSwitches,
 ): void => {
   [...records].forEach((record) => {
-    if (record.name === name) {
+    if (
+      (record.computerId ? `id:${record.computerId}` : record.name) === name
+    ) {
       record.switches = switches;
       if (!linkSwitchesInEffect(switches).play) {
         record.receiving = false;

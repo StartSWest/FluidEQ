@@ -75,7 +75,7 @@ const app: Partial<Dictionary> = {
   'app.processes.place.studio': 'Palco do Estúdio',
   'app.processes.name.window': 'Interface',
   'app.processes.what.window':
-    'A janela que você está vendo: a curva, a biblioteca, o player, todos os controles. Um processo por janela, para que um redesenho pesado não atrase o som. Os visualizadores Plus rodam aqui dentro em uma linha de execução própria, para que uma cena pesada não trave os controles.',
+    'A janela que você está vendo: a curva, a biblioteca, o player, todos os controles. Um processo por janela, para que um redesenho pesado não atrase o som. As cenas rodam aqui dentro em uma linha de execução própria, para que uma cena pesada não trave os controles.',
   'app.processes.name.core': 'Núcleo do app',
   'app.processes.what.core':
     'A parte sem janela. Armazena suas configurações, fala com os dispositivos de áudio e com o equalizador do sistema, procura atualizações e inicia todo o resto desta lista.',
@@ -84,10 +84,10 @@ const app: Partial<Dictionary> = {
     'O motor próprio do FluidEQ. Decodifica o que você reproduz e aplica o equalizador pelo caminho. É um programa à parte, por isso o Windows o coloca separado dos outros.',
   'app.processes.name.graphics': 'Gráficos',
   'app.processes.what.graphics':
-    'Desenha tudo o que está na tela na placa de vídeo: o espectro, a curva, cada animação e as cenas dos visualizadores Plus. Trabalha sempre que algo se move; nenhum modelo roda aqui.',
+    'Desenha tudo o que está na tela na placa de vídeo: o espectro, a curva, cada animação e as cenas. Trabalha sempre que algo se move; nenhum modelo roda aqui.',
   'app.processes.name.desktop': 'Visualizador da área de trabalho',
   'app.processes.what.desktop':
-    'Um visualizador Plus desenhado como fundo da área de trabalho de um monitor, à parte desta janela: um para cada monitor que o mostra. Pausa enquanto as janelas cobrem esse monitor ou o PC está bloqueado.',
+    'Uma cena desenhada como fundo da área de trabalho de um monitor, à parte desta janela: uma para cada monitor que a mostra. Pausa enquanto as janelas cobrem esse monitor ou o PC está bloqueado.',
   'app.processes.name.desktopHost':
     'Ajudante do visualizador da área de trabalho',
   'app.processes.what.desktopHost':
@@ -263,7 +263,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Mídia online',
   'tabs.mediaShort': 'Mídia',
   'tabs.karaoke': 'Karaokê',
-  'tabs.plus': 'Plus',
+  'tabs.plus': 'Visualizadores',
   'tabs.scrollBack': 'Rolar abas para trás',
   'tabs.scrollForward': 'Rolar abas para a frente',
   'notice.apoReconfigured':

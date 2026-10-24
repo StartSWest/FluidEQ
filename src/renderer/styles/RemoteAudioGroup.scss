@@ -1,0 +1,83 @@
+/* Geometry only: appearance comes from the existing Share Audio controls. */
+.remote-audio__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 270px;
+  gap: 18px;
+  align-items: start;
+}
+.remote-audio__group-row {
+  grid-template-areas: none;
+  padding: 0;
+  gap: 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.remote-audio__group-actions {
+  padding-right: 18px;
+}
+.remote-audio__group-lanes {
+  grid-template-columns: minmax(170px, 0.8fr) minmax(75px, 1fr) auto;
+}
+.remote-audio__group-lanes > .remote-audio__lane {
+  grid-template-columns: subgrid;
+  grid-template-areas: none;
+}
+.remote-audio__group-lanes > .remote-audio__lane > * {
+  grid-area: auto;
+}
+.remote-audio__group-lanes .remote-audio__lane-switch {
+  grid-column: 3;
+}
+.remote-audio__group-lanes .remote-audio__lane-figures:empty {
+  display: none;
+}
+.remote-audio__mix-fader {
+  display: block;
+}
+.remote-audio__mix-label {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+.remote-audio__mix-volume {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.remote-audio__mix-output {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+@container eq-panel (max-width: 950px) {
+  .remote-audio__columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@container eq-panel (max-width: 800px) {
+  .remote-audio__group-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .remote-audio__group-actions {
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-end;
+    padding-bottom: 16px;
+  }
+  .remote-audio__group-lanes {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .remote-audio__group-lanes .remote-audio__lane-direction {
+    grid-column: 1;
+  }
+  .remote-audio__group-lanes .remote-audio__lane-body {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .remote-audio__group-lanes .remote-audio__lane-switch {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}

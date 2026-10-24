@@ -19,9 +19,9 @@ import '../styles/StudioWork.scss';
  *
  * The Studio is every signed-in member's, with as many projects as they
  * like (Ivan, 2026-10-18): what is sold is a scene, never the right to make
- * one. A scene made here plays outside the Studio once it is published; on
- * the stage until then it wears the draft's mark (`StudioDraftMark`). What
- * each member may do is the main process's answer, never this page's.
+ * one. A scene made here plays for its maker everywhere, published or not,
+ * and is published to be shared and earn. What each member may do is the
+ * main process's answer, never this page's.
  */
 export default function StudioPanel() {
   const { t } = useTranslation();

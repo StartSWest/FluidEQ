@@ -97,7 +97,7 @@ const account = {
   'account.error.alreadyRegistered':
     'There is already an account with that address. Sign in instead.',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': 'Scenes that are yours for good, one credit each.',
   'account.perk.visualizers':
