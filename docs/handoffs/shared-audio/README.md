@@ -19,10 +19,20 @@ Open <http://localhost:4317>. `--build` compiles without starting the server.
 Build output goes into the ignored `build/` directory. No new dependencies.
 
 The preview imports the current app's `App.scss`, `Button.scss`, `RemoteAudio.scss`,
-`MenuIcon`, `Switch`, `RemoteAudioLane` and `RemoteAudioLinkCard`. **Current app
+`MenuIcon`, `Switch`, `Dropdown`, `RemoteAudioLane` and `RemoteAudioLinkCard`. **Current app
 cards** renders the actual current card component with simulated inputs.
-**Proposed group** adds the local card, shared roster and group overview using
-those same controls and surfaces.
+The proposed panel has only **The whole group**, with one waveform row per
+computer, and **Your mix**, with a working receive-volume fader per computer.
+**This PC** is the local system-volume control, separate from stream volumes.
+It is simulated here; the preview never changes the actual system volume.
+The local row is always first. Duplicate audio cards and the routing matrix have
+been removed. The app's menu is unchanged; this harness contains no replacement
+navigation. The comparison and extra scenarios are under **Design tools**.
+Each remote computer's three-dot button opens the app's actual anchored menu
+surface and rows, with **Pause/Resume** and **Unlink**. No right click is needed.
+Both pickers use the actual app Dropdown component, with no native select.
+All mix faders use the app's now-playing volume-slider styling, including its
+custom track, thumb, fill and keyboard focus appearance.
 
 Try these interactions:
 
@@ -33,11 +43,13 @@ Try these interactions:
    volume is independent. Switch back to Windows: its setting is retained.
 3. Stop sending Windows audio to Mac. In the Mac view, Windows says **Sender
    switched off**. Mac-to-Windows and the other routes continue.
-4. Pause a pair or the local computer. Resume restores the existing switches
+4. Open a computer's three-dot menu to Pause or Unlink it. Pause a pair or the local computer. Resume restores the existing switches
    and levels. A pause at the other end cannot be undone by resuming here.
-5. Add a simulated computer. It appears in every view, with receiving off until
+5. Change **This PC** system volume, then switch views: the other PC's volume
+   is independent, and the individual receive faders keep their values.
+6. Add a simulated computer. It appears in every view, with receiving off until
    each listener opts in. Remove it and it disappears from the shared roster.
-6. Try offline, missing capture access, a long name and **Narrow panel**. Capture
+7. Under **Design tools**, try offline, missing capture access, a long name and **Narrow panel**. Capture
    access affects outgoing sound; receiving can continue independently.
 
 ## What the updated application actually has
@@ -60,7 +72,7 @@ Current gaps visible in the code:
 | The page renders connected links, then separately remembered missing joins | Render membership first, including this PC and offline members               |
 | Link views follow map insertion order                                      | One locale-independent canonical ordering rule, with local pinned first      |
 | Switch changes and remembered preferences match a display name             | Key everything by lasting computer ID and directed route IDs                 |
-| Received level is local; source level has no group control                 | Keep per-source local receive levels, add one local send master              |
+| Received level is local                                                    | Keep per-source receive levels and add the local system-volume control       |
 | Old peers can lack duplex capabilities                                     | Negotiate group capability; keep incompatible peers in explicit legacy links |
 
 Evidence: `src/main/remoteAudioLan.ts`, `remoteAudioLanJoins.ts`,
@@ -122,8 +134,8 @@ receiving only. A shared roster is not proof of a working direct audio path.
 For a canonical order, compare the shared display name after NFKC normalization
 and locale-independent lowercase, then the persistent ID as a tie-breaker.
 Pin the local ID first only in that computer's list. Do not sort by platform,
-online status, local locale, connection time or recent activity. The group
-overview uses the canonical order without pinning so it is identical everywhere.
+online status, local locale, connection time or recent activity. Your mix uses
+the canonical remote order, with no duplicated local source in the receive mix.
 
 Keep the existing private-LAN discovery for the first implementation. Resolve
 the address candidates of authenticated members across adapters and DHCP changes;
@@ -144,11 +156,22 @@ source's master sharing switch, its route Send switch, the destination's Receive
 switch, and no pause at either end. A blocked route says whose choice or failure
 stopped it. Zero volume is a mute, distinct from forgetting the route.
 
-**Send level** changes this computer's shared source for all destinations. A
-remote receive fader changes only that source in this listener's mix. Local
-speaker/headphone output volume remains separate. Apply gain smoothly, retain
+The sending source stays untouched. A receive fader changes only that source
+in this listener's mix. Local
+speaker/headphone output volume is the **This PC** fader. Apply gain smoothly, retain
 Float32 transport, keep the original source available to the local speaker, and
 do not describe attenuated/resampled/mixed playback as bit-identical to capture.
+
+Wire **This PC** to the app's existing system-fader adapter
+(`src/renderer/audio/systemVolume.ts`, `useSystemFader`) and its main-process
+system-volume bridge, rather than adding another digital master gain. Follow
+OS volume/mute events so taskbar, keyboard and this panel stay in agreement.
+The current helper controls the Windows default render output; if shared audio
+is played through a different selected endpoint, extend that bridge to target
+the endpoint explicitly or state clearly which system output the fader controls.
+Do not silently control one output while presenting another. Linux/macOS adapters
+must report system-volume support; unavailable or unknown readings must not
+be represented by a working-looking fake fader in production.
 
 Pause preserves switches and levels. Each computer owns its pause; resuming here
 cannot undo a pause over there. The preview's pair pause stops both directions
@@ -158,16 +181,16 @@ receiving their sound starts only after each listener enables it.
 
 ## Shared code and Windows implementation map
 
-| Area                                                     | Concrete change                                                                                                                                                        |
-| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/common/remoteAudio.ts` and a new shared group model | Versioned member/capability/route contracts; ID-only selectors; canonical ordering; explicit owner of every setting                                                    |
-| `src/main/remoteAudioCredentials.ts`                     | Migrate name-keyed preferences and existing links without merging duplicate names; persist group identity/roster and private keys through existing protected storage   |
-| `src/main/remoteAudioLan*.ts`                            | Group admission, signed roster validation and replication, direct link formation, pair deduplication, reconnect and revocation                                         |
-| `src/main/remoteAudioTransport.ts`                       | Capability negotiation before new message kinds; bounded queues; one slow peer must not stall the rest                                                                 |
-| `src/main/ipc/remoteAudio.ts` and bridge                 | Snapshot/events for membership, local/remote route state and capability errors, all addressed by stable IDs                                                            |
-| Renderer provider, link records and mixer                | Project group state into local/remote cards; preserve route choices on reconnect; per-source receive gain and local send gain; subscriptions separate from fast meters |
-| Share Audio panel and dictionaries                       | Local-first cards, consistent peers, group actions and permission/offline states; translate final design in all ten locales                                            |
-| Native Windows capture/playback                          | Retain the dedicated received-audio playback process tree, capture once, fan out only the local source, and verify independent receive streams and output changes      |
+| Area                                                     | Concrete change                                                                                                                                                                         |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/common/remoteAudio.ts` and a new shared group model | Versioned member/capability/route contracts; ID-only selectors; canonical ordering; explicit owner of every setting                                                                     |
+| `src/main/remoteAudioCredentials.ts`                     | Migrate name-keyed preferences and existing links without merging duplicate names; persist group identity/roster and private keys through existing protected storage                    |
+| `src/main/remoteAudioLan*.ts`                            | Group admission, signed roster validation and replication, direct link formation, pair deduplication, reconnect and revocation                                                          |
+| `src/main/remoteAudioTransport.ts`                       | Capability negotiation before new message kinds; bounded queues; one slow peer must not stall the rest                                                                                  |
+| `src/main/ipc/remoteAudio.ts` and bridge                 | Snapshot/events for membership, local/remote route state and capability errors, all addressed by stable IDs                                                                             |
+| Renderer provider, link records and mixer                | Project group state into local/remote cards; preserve route choices on reconnect; per-source receive gain and the actual system-volume adapter; subscriptions separate from fast meters |
+| Share Audio panel and dictionaries                       | Local-first cards, consistent peers, group actions and permission/offline states; translate final design in all ten locales                                                             |
+| Native Windows capture/playback                          | Retain the dedicated received-audio playback process tree, capture once, fan out only the local source, and verify independent receive streams and output changes                       |
 
 For Windows, the existing capture uses process loopback excluding the playback
 helper's process tree. Preserve that topology: the received mix and mirrors must

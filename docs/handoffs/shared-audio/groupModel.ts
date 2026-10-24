@@ -8,7 +8,7 @@ export interface IComputer {
   captureReady: boolean;
   sharing: boolean;
   paused: boolean;
-  sendLevel: number;
+  systemVolume: number;
   output: string;
   source: string;
 }
@@ -77,7 +77,7 @@ export const routeState = (group: IGroup, from: string, to: string) => {
     reason = 'Listener switched off';
   }
   const active = reason === 'Playing';
-  return { active, reason, gain: active ? source.sendLevel * route.level : 0 };
+  return { active, reason, gain: active ? route.level : 0 };
 };
 
 export const updateComputer = (
@@ -146,7 +146,7 @@ export const initialGroup = (): IGroup => {
       captureReady: true,
       sharing: true,
       paused: false,
-      sendLevel: 1,
+      systemVolume: 1,
       output: 'Headphones',
       source: 'System audio · Browser & apps',
     },
@@ -158,7 +158,7 @@ export const initialGroup = (): IGroup => {
       captureReady: true,
       sharing: true,
       paused: false,
-      sendLevel: 1,
+      systemVolume: 1,
       output: 'MacBook speakers',
       source: 'Music · Evening playlist',
     },
@@ -170,7 +170,7 @@ export const initialGroup = (): IGroup => {
       captureReady: true,
       sharing: true,
       paused: false,
-      sendLevel: 1,
+      systemVolume: 1,
       output: 'USB speakers',
       source: 'System audio · Browser & apps',
     },
@@ -182,7 +182,7 @@ export const initialGroup = (): IGroup => {
       captureReady: true,
       sharing: true,
       paused: false,
-      sendLevel: 1,
+      systemVolume: 1,
       output: 'Studio monitors',
       source: 'System audio',
     },

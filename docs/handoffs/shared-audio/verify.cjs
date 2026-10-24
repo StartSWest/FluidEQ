@@ -60,12 +60,11 @@ check(
 );
 
 check(
-  'Receive gain is independent per destination and composes with source gain',
+  'Receive gain is independent per destination and leaves the shared source untouched',
   () => {
-    let changed = updateRoute(initial, 'mac', 'win', { level: 0.42 });
-    changed = updateComputer(changed, 'mac', { sendLevel: 0.5 });
-    assert.equal(routeState(changed, 'mac', 'win').gain, 0.21);
-    assert.equal(routeState(changed, 'mac', 'linux').gain, 0.5);
+    const changed = updateRoute(initial, 'mac', 'win', { level: 0.42 });
+    assert.equal(routeState(changed, 'mac', 'win').gain, 0.42);
+    assert.equal(routeState(changed, 'mac', 'linux').gain, 1);
     assert.equal(findRoute(changed, 'linux', 'win').level, 1);
     assert.equal(
       findRoute(updateRoute(changed, 'mac', 'win', { level: 0 }), 'mac', 'win')
@@ -173,6 +172,24 @@ check(
     assert.equal(routeState(removed, 'win', 'mac').active, false);
     assert.equal(routeState(removed, 'win', 'linux').active, true);
     assert.equal(routeState(initial, 'win', 'win').active, false);
+  },
+);
+
+check(
+  'This PC volume belongs to one computer without changing sends or receive faders',
+  () => {
+    const changed = updateComputer(initial, 'win', { systemVolume: 0.42 });
+    assert.equal(
+      changed.computers.find((pc) => pc.id === 'win').systemVolume,
+      0.42,
+    );
+    assert.equal(
+      changed.computers.find((pc) => pc.id === 'mac').systemVolume,
+      1,
+    );
+    assert.deepEqual(changed.routes, initial.routes);
+    assert.equal(routeState(changed, 'win', 'linux').gain, 1);
+    assert.equal(findRoute(changed, 'mac', 'win').level, 0.75);
   },
 );
 
