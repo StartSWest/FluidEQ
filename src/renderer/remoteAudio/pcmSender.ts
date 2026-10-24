@@ -62,6 +62,9 @@ export const createPcmSender = async (
       }
       isClosed = true;
       processor.port.onmessage = null;
+      // Disconnecting does not retire a worklet that keeps returning true.
+      // Tell the audio thread to finish, including while the capture stays up.
+      processor.port.postMessage({ kind: 'close' });
       capture.source.disconnect(processor);
       processor.disconnect();
       mute.disconnect();

@@ -29,6 +29,8 @@ export interface IPlaybackReply {
   rate: number;
   frames: number;
   payload: Buffer;
+  /** Present on a native helper's system-audio capture frame (kind 10). */
+  channels?: number;
 }
 
 /** A partial pipe read is not a packet boundary. Bound the declared frame first. */
@@ -39,9 +41,21 @@ export class PlaybackReplyReader {
     this.pending = Buffer.concat([this.pending, bytes]);
     while (this.pending.byteLength >= PLAYBACK_HEADER_BYTES) {
       const size = this.pending.readUInt32LE(20);
+      const kind = this.pending.readUInt32LE(4);
+      const rate = this.pending.readUInt32LE(12);
+      const channels = this.pending.readUInt16LE(16);
+      const frames = this.pending.readUInt16LE(18);
+      const validCapture =
+        channels >= 1 &&
+        channels <= 8 &&
+        frames >= 1 &&
+        frames <= 8192 &&
+        rate >= 8000 &&
+        rate <= 384000 &&
+        size === frames * channels * 4;
       if (
         this.pending.readUInt32LE(0) !== PLAYBACK_MAGIC ||
-        size > MAX_REPLY_BYTES
+        (kind === 10 ? !validCapture : size > MAX_REPLY_BYTES)
       ) {
         throw new Error('Invalid native playback reply.');
       }
@@ -50,10 +64,11 @@ export class PlaybackReplyReader {
         return;
       }
       const reply = {
-        kind: this.pending.readUInt32LE(4),
+        kind,
         id: this.pending.readUInt32LE(8),
-        rate: this.pending.readUInt32LE(12),
-        frames: this.pending.readUInt16LE(18),
+        rate,
+        frames,
+        ...(kind === 10 ? { channels } : {}),
         payload: this.pending.subarray(PLAYBACK_HEADER_BYTES, total),
       };
       this.pending = this.pending.subarray(total);

@@ -315,6 +315,15 @@ describe('the network capture a link starts', () => {
     });
   });
 
+  it('tells a replacement window that its existing capture is still sending', async () => {
+    await linkJoined();
+    await settle();
+    sent.length = 0;
+    await handlers.get('remote-audio-lan-start')?.({}, true);
+    expect(sent).toContainEqual(['remote-audio-lan-sending', true]);
+    expect(mockCapture).toHaveBeenCalledTimes(1);
+  });
+
   it('puts the Library back and says so when it cannot go raw', async () => {
     mockRawSharing.mockImplementation(async (enabled: boolean) => {
       if (enabled) {
