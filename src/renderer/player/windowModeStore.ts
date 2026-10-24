@@ -14,6 +14,8 @@ import {
   WINDOW_REVEAL_CHANNEL,
 } from 'common/windowMode';
 import type { IWindowState, TPlayerAmp, TWindowMode } from 'common/windowMode';
+import { runsOnLinux } from '../utils/platform';
+import untilLinuxViewportIsWindow from './linuxViewport';
 
 /**
  * What the window is — the full app or the player — as main says it is.
@@ -81,8 +83,15 @@ let floorHeight: number | null | undefined;
 let floorWidth: number | undefined;
 /** Which amp main was last told the player is. */
 let reportedAmp: TPlayerAmp | undefined;
+// Linux sends intermediate restore sizes before its final configure. Keep
+// the old layout until the viewport reaches the requested mode's size, or
+// the player measures the wide app and saves that layout as its own size.
+let linuxModeSwitching = false;
 
 const publish = (state: Partial<IWindowState> | undefined) => {
+  if (linuxModeSwitching) {
+    return;
+  }
   const next: IModeSnapshot = {
     mode: state?.mode === 'player' ? 'player' : 'app',
     isPinned: state?.isPinned === true,
@@ -231,6 +240,10 @@ export const untilViewportIsWindow = async (): Promise<void> => {
   if (typeof bridge?.getWindowState !== 'function') {
     return;
   }
+  if (runsOnLinux()) {
+    await untilLinuxViewportIsWindow(() => bridge.getWindowState());
+    return;
+  }
   // A main that is restarting answers nothing; the page comes back up.
   const state = await bridge.getWindowState().catch(() => undefined);
   const size = state?.contentSize;
@@ -295,6 +308,7 @@ export const setWindowMode = async (mode: TWindowMode): Promise<void> => {
   // Any change of amp still coming back is this switch's now: it brings the
   // window back itself, drawn as the other mode.
   ampChange += 1;
+  linuxModeSwitching = runsOnLinux();
   const isHidden = hidesWindow();
   if (isHidden) {
     window.electron.ipcRenderer.sendMessage(WINDOW_HIDE_FOR_SWITCH_CHANNEL, []);
@@ -303,8 +317,13 @@ export const setWindowMode = async (mode: TWindowMode): Promise<void> => {
   }
   try {
     const answered = await window.electron.ipcRenderer.setWindowMode(mode);
+    if (runsOnLinux()) {
+      await untilViewportIsWindow();
+    }
+    linuxModeSwitching = false;
     publish({ ...snapshot, mode: answered });
   } finally {
+    linuxModeSwitching = false;
     if (isHidden) {
       await untilViewportIsWindow();
       await afterNextFrame();

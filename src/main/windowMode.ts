@@ -18,6 +18,7 @@ import {
 import type { IRect, TPlayerAmp, TWindowMode } from '../common/windowMode';
 import { createFullScreenOwner } from './fullScreenOwner';
 import { setWindowTransitions } from './windowDwm';
+import unmaximizeLinuxWindow from './linux/linuxWindowRestore';
 
 /** Where the full app was, as the window-state file keeps it. */
 export interface IAppPlacement extends Partial<IRect> {
@@ -338,6 +339,9 @@ export const createWindowModes = (
     if (!win.isMaximized()) {
       settle();
       return Promise.resolve();
+    }
+    if (platform === 'linux') {
+      return unmaximizeLinuxWindow(win).then(settle);
     }
     // Windows restores the window on its own message loop; its bounds are
     // only the window's to change once that has happened, which is what the
