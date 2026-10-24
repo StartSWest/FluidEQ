@@ -4,15 +4,25 @@ import type { BrowserWindow } from 'electron';
 import { WALLPAPER } from 'common/wallpaper';
 import startMacWallpaperHost from 'main/wallpaper/macHost';
 
+jest.mock('main/wallpaper/macLevel', () => ({
+  __esModule: true,
+  default: () => -99,
+}));
+
 const surface = () => {
   const contents = Object.assign(new EventEmitter(), { mainFrame: {} });
+  const events = new EventEmitter();
   let shown = false;
   const window = {
     webContents: contents,
     isDestroyed: jest.fn(() => false),
     isVisible: () => shown,
+    on: events.on.bind(events),
+    removeListener: events.removeListener.bind(events),
+    setAlwaysOnTop: jest.fn(),
     showInactive: jest.fn(() => {
       shown = true;
+      events.emit('show');
     }),
     hide: jest.fn(() => {
       shown = false;
@@ -28,7 +38,7 @@ const surface = () => {
     frame = contents.mainFrame,
     channel: string = WALLPAPER.visibility,
   ) => contents.emit('ipc-message', { senderFrame: frame }, channel, visible);
-  return { window, contents, report, host, visibility };
+  return { window, contents, events, report, host, visibility };
 };
 
 it('uses inactive shows and returns the original desktop when stopped', () => {
@@ -49,8 +59,22 @@ it('uses inactive shows and returns the original desktop when stopped', () => {
   a.host.stop();
   expect(a.window.isVisible()).toBe(false);
   expect(a.contents.listenerCount('ipc-message')).toBe(0);
+  expect(a.events.listenerCount('show')).toBe(0);
   a.host.setVisible(true);
   expect(a.window.showInactive).toHaveBeenCalledTimes(2);
+});
+
+it('places the picture above the wallpaper but below icons, restoring that level after each show', () => {
+  const a = surface();
+  expect(a.window.setAlwaysOnTop.mock.calls).toEqual([[true, 'normal', -99]]);
+  a.host.setVisible(true);
+  expect(a.window.setAlwaysOnTop).toHaveBeenCalledTimes(2);
+  a.host.setVisible(false);
+  a.host.setVisible(true);
+  expect(a.window.setAlwaysOnTop).toHaveBeenCalledTimes(3);
+  a.host.stop();
+  a.events.emit('show');
+  expect(a.window.setAlwaysOnTop).toHaveBeenCalledTimes(3);
 });
 
 it('pauses only the occluded monitor and accepts only its main frame visibility', () => {

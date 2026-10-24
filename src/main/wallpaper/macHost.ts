@@ -1,12 +1,13 @@
 import type { BrowserWindow, IpcMainEvent } from 'electron';
 import { WALLPAPER } from '../../common/wallpaper';
 import type { IWallpaperHost, TWallpaperHostEvent } from './nativeHost';
+import macDesktopLevel from './macLevel';
 
 /**
- * Electron's Mac `desktop` window already has the desktop level,
- * CanJoinAllSpaces, Stationary and IgnoresCycle. Never raise it with an
- * always-on-top call or transform the app's process type to join Spaces:
- * that would move the wallpaper over apps or hide FluidEQ's normal Dock.
+ * Keep the desktop type's CanJoinAllSpaces, Stationary and IgnoresCycle.
+ * Electron's level setter accepts a relative Mac level: its negative
+ * offset below normal windows puts the picture above the system wallpaper
+ * without covering icons or apps. Never use a floating or positive level.
  */
 const startMacWallpaperHost = (
   window: BrowserWindow,
@@ -14,6 +15,16 @@ const startMacWallpaperHost = (
 ): IWallpaperHost => {
   let stopped = false;
   let ordered = false;
+  const level = macDesktopLevel();
+  const place = () => {
+    if (!stopped && !window.isDestroyed()) {
+      window.setAlwaysOnTop(true, 'normal', level);
+    }
+  };
+  // Showing can restore Chromium's cached window ordering. Reassert the
+  // desktop level on that event, never on a timer or on every drawn frame.
+  place();
+  window.on('show', place);
   const visibility = (
     event: IpcMainEvent,
     channel: string,
@@ -53,6 +64,7 @@ const startMacWallpaperHost = (
         return;
       }
       stopped = true;
+      window.removeListener('show', place);
       window.webContents.removeListener('ipc-message', visibility);
       if (!window.isDestroyed()) {
         window.hide();

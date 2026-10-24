@@ -179,8 +179,9 @@ taps. This page records the current implementation and its remaining limits.
   selection, dragging and context menus. Stop destroys the owned window,
   revealing the existing wallpaper. Window bounds include the full monitor,
   including the area behind the menu bar and Dock.
-- Electron 43.2's desktop type supplies the native desktop level and
-  `CanJoinAllSpaces | Stationary | IgnoresCycle`. No always-on-top operation,
+- Electron 43.2's desktop type supplies
+  `CanJoinAllSpaces | Stationary | IgnoresCycle`. Its initial level is below
+  the system wallpaper and must be corrected as described below. No
   application activation or Dock/process-type transformation is used.
   `hiddenInMissionControl` is deliberately omitted: it maps to `Transient`,
   which AppKit forbids combining with the desktop's `Stationary` behavior.
@@ -207,7 +208,31 @@ taps. This page records the current implementation and its remaining limits.
   denied Finder access. No application was launched by the agent. Finder interaction,
   Spaces/Mission Control/Stage Manager, fullscreen apps, actual multi-monitor
   hotplug and normal/extreme window sizes must still be observed on the
-  unlocked Mac; automated tests alone are not a visual verdict.
+  unlocked Mac; automated tests alone are not a visual verdict. The user has
+  since asked that Computer Use not be used; further visual checks are manual.
+
+### Invisible desktop correction
+
+- The desktop type alone was insufficient: Electron 43.2 explicitly sets
+  `kCGDesktopWindowLevel - 1`, behind the system wallpaper. This is documented
+  in [Electron's window options](https://www.electronjs.org/docs/latest/api/structures/base-window-options)
+  and its versioned `native_window_mac.mm` implementation.
+- The Mac host now reads the public Core Graphics desktop, icon and normal
+  window levels through the already packaged Koffi dependency. It requests
+  desktop + 1 through Electron's normal-level setter with a negative relative
+  offset. It refuses invalid values or any position at/above the icons or
+  normal apps. The desktop type's Spaces behavior and click-through remain.
+  Placement is reasserted on the window's show event and its listener is
+  removed at stop. No new native dependency, helper or timer was added.
+- A read-only native check on this Mac returned wallpaper -2147483623,
+  picture -2147483622, icons -2147483603 and normal apps 0. The corrected
+  picture level lies strictly between the wallpaper and icons. This queries
+  level constants only; it does not inspect or operate the desktop.
+- All 22 desktop suites passed (171 tests), including level ordering,
+  unsafe-level rejection and restoration after a show. App TypeScript,
+  encoding, changed-file lint and the production main build passed. Actual
+  visible placement, icon interaction, Spaces and multi-monitor behavior
+  still need the user's manual verification; no application was launched.
 
 ## Share Audio group sync — 2026-10-24
 
