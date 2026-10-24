@@ -57,7 +57,7 @@ const wallpaper = {
   'wallpaper.pause.covered':
     'In pausa mentre le finestre coprono questo monitor',
   'wallpaper.error.unsupported':
-    'Gli sfondi del desktop sono disponibili su Windows.',
+    'Gli sfondi del desktop sono disponibili su Windows e macOS.',
   'wallpaper.error.unavailable':
     'Impossibile raggiungere lo sfondo del desktop. Riprova.',
   'wallpaper.error.notEntitled':

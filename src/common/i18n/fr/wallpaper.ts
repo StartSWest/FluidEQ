@@ -57,7 +57,7 @@ const wallpaper = {
   'wallpaper.pause.covered':
     'En pause tant que des fenêtres couvrent cet écran',
   'wallpaper.error.unsupported':
-    'Les arrière-plans du Bureau sont disponibles sous Windows.',
+    'Les arrière-plans du Bureau sont disponibles sous Windows et macOS.',
   'wallpaper.error.unavailable':
     "Impossible de joindre l'arrière-plan du Bureau. Réessayez.",
   'wallpaper.error.notEntitled':

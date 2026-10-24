@@ -56,7 +56,7 @@ const wallpaper = {
   'wallpaper.pause.game': 'Em pausa enquanto um jogo está em primeiro plano',
   'wallpaper.pause.covered': 'Em pausa enquanto as janelas cobrem este monitor',
   'wallpaper.error.unsupported':
-    'Os fundos da área de trabalho estão disponíveis no Windows.',
+    'Os fundos da área de trabalho estão disponíveis no Windows e no macOS.',
   'wallpaper.error.unavailable':
     'Não foi possível acessar o fundo da área de trabalho. Tente novamente.',
   'wallpaper.error.notEntitled':

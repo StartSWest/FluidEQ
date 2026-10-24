@@ -16,11 +16,8 @@ import {
   type TWallpaperError,
   type TWallpaperPause,
 } from '../../common/wallpaper';
-import {
-  startWallpaperHost,
-  type IWallpaperHost,
-  type TWallpaperHostEvent,
-} from './nativeHost';
+import { type IWallpaperHost, type TWallpaperHostEvent } from './nativeHost';
+import type { TDesktopHost } from './desktopHost';
 import { createWallpaperWindow, wallpaperUrl } from './window';
 
 /** The cover each of the helper's reports describes. */
@@ -53,7 +50,7 @@ interface IDesktopSurfaceOptions {
    * monitor following the graph draws its scene at it, or reads the clock.
    */
   daylight(): TWallpaperDaylight | undefined;
-  executable: string;
+  attach: TDesktopHost;
   /**
    * Why this monitor should not play now, given what keeps its desktop out
    * of sight, if anything does.
@@ -145,7 +142,7 @@ const sameTuning = (
 export const createDesktopSurface = (
   options: IDesktopSurfaceOptions,
 ): IDesktopSurface => {
-  const { displayId, bounds, executable } = options;
+  const { displayId, bounds, attach } = options;
   let { scene } = options;
   let { lookId } = options.choice;
   const window = createWallpaperWindow(bounds);
@@ -277,26 +274,25 @@ export const createDesktopSurface = (
     // Placed only once the scene has a frame, so the desktop never shows an
     // empty window while shaders compile.
     try {
-      host = startWallpaperHost(
-        executable,
-        window.getNativeWindowHandle(),
-        (message) => {
-          if (released) {
-            return;
-          }
-          if (message === 'error') {
-            fail('host');
-            return;
-          }
-          if (message === 'ready') {
-            attached = true;
-          } else {
-            coverKnown = true;
-            cover = COVERS[message];
-          }
-          applyPolicy();
-        },
-      );
+      host = attach(window, (message) => {
+        if (released) {
+          return;
+        }
+        if (message === 'error') {
+          fail('host');
+          return;
+        }
+        if (message === 'ready') {
+          attached = true;
+        } else {
+          coverKnown = true;
+          cover = COVERS[message];
+        }
+        applyPolicy();
+      });
+      // The Mac window is already placed and can report synchronously.
+      // Apply only after the returned host is owned by this surface.
+      applyPolicy();
     } catch (error) {
       log.warn(`Desktop visualizer attachment: ${error}`);
       fail('host');

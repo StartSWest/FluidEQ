@@ -57,7 +57,7 @@ const wallpaper = {
   'wallpaper.pause.covered':
     'ウィンドウがこのモニターを覆っている間は一時停止します',
   'wallpaper.error.unsupported':
-    'デスクトップの背景は Windows で利用できます。',
+    'デスクトップの背景は Windows と macOS で利用できます。',
   'wallpaper.error.unavailable':
     'デスクトップの背景に接続できませんでした。もう一度お試しください。',
   'wallpaper.error.notEntitled':

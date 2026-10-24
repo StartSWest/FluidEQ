@@ -14,6 +14,8 @@ export const WALLPAPER = {
   bootstrap: 'wallpaper-bootstrap',
   surfaceChanged: 'wallpaper-surface-changed',
   drawn: 'wallpaper-drawn',
+  /** Mac window occlusion, reported only by the owned surface's preload. */
+  visibility: 'wallpaper-visibility',
   failed: 'wallpaper-failed',
   requestAudio: 'wallpaper-request-audio',
   readAudio: 'wallpaper-read-audio',
@@ -141,7 +143,7 @@ export type TWallpaperPause =
  */
 export type TWallpaperCover = 'none' | 'window' | 'others';
 
-/** A monitor as Windows' display settings describe it, in physical pixels. */
+/** A monitor in one consistent desktop coordinate space (Mac points, Windows pixels). */
 export interface IWallpaperDisplay {
   id: number;
   label: string;
@@ -149,6 +151,9 @@ export interface IWallpaperDisplay {
   y: number;
   width: number;
   height: number;
+  /** Physical resolution when desktop coordinates use logical points. */
+  pixelWidth?: number;
+  pixelHeight?: number;
   primary: boolean;
 }
 
@@ -414,6 +419,10 @@ const isWallpaperDisplay = (raw: unknown): raw is IWallpaperDisplay =>
   isDisplayId(raw.id) &&
   typeof raw.label === 'string' &&
   [raw.x, raw.y, raw.width, raw.height].every(Number.isFinite) &&
+  [raw.pixelWidth, raw.pixelHeight].every(
+    (value) =>
+      value === undefined || (Number.isSafeInteger(value) && Number(value) > 0),
+  ) &&
   typeof raw.primary === 'boolean';
 
 const isWallpaperScreen = (raw: unknown): raw is IWallpaperScreen =>

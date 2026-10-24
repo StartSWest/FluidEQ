@@ -321,8 +321,8 @@ export default function WallpaperDialog({
               const current = screen ? lookOf(screen.lookId) : undefined;
               const showsThis = screen?.lookId === lookId;
               const size = t('wallpaper.monitor.size', {
-                width: display.width,
-                height: display.height,
+                width: display.pixelWidth ?? display.width,
+                height: display.pixelHeight ?? display.height,
               });
               // A chosen monitor will follow as the switch says; the rest
               // keep what they do now.

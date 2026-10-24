@@ -109,6 +109,30 @@ beforeEach(() => {
 });
 
 describe('choosing how a background moves', () => {
+  it('labels a Retina monitor with physical resolution while keeping its point geometry', () => {
+    jest.mocked(useWallpaperState).mockReturnValue({
+      supported: true,
+      displays: [
+        {
+          id: 1,
+          label: 'MacBook Pro',
+          x: 0,
+          y: 0,
+          width: 1728,
+          height: 1117,
+          pixelWidth: 3456,
+          pixelHeight: 2234,
+          primary: true,
+        },
+      ],
+      screens: [],
+      pauseOnBattery: false,
+    });
+    render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);
+    expect(
+      screen.getByRole('checkbox', { name: /MacBook Pro, 3456 × 2234/ }),
+    ).toBeChecked();
+  });
   it('starts on the music, and sets it calm on the chosen monitor with the graph’s wave', async () => {
     withScreens([]);
     render(<WallpaperDialog lookId="premium:alpine" onClose={jest.fn()} />);

@@ -36,6 +36,16 @@ const wallpaperSession = () => {
 export const createWallpaperWindow = (bounds: Rectangle): BrowserWindow => {
   const window = new BrowserWindow({
     ...bounds,
+    ...(process.platform === 'darwin'
+      ? {
+          type: 'desktop',
+          // The desktop type already uses Stationary. Electron maps
+          // hiddenInMissionControl to Transient, which AppKit forbids
+          // combining with Stationary; keep the native desktop behavior.
+          enableLargerThanScreen: true,
+          roundedCorners: false,
+        }
+      : {}),
     show: false,
     paintWhenInitiallyHidden: true,
     frame: false,
@@ -62,9 +72,10 @@ export const createWallpaperWindow = (bounds: Rectangle): BrowserWindow => {
       nodeIntegration: false,
       sandbox: true,
       spellcheck: false,
-      // Wallpaper visibility is owned by desktop/fullscreen/power events.
-      // Chromium sees a window behind Explorer and otherwise throttles it.
-      backgroundThrottling: false,
+      // Mac occlusion must reach the preload so covered monitors pause. On
+      // Windows, Explorer's cover would throttle even a visible desktop;
+      // its helper owns that policy instead.
+      backgroundThrottling: process.platform === 'darwin',
     },
   });
   window.setIgnoreMouseEvents(true);

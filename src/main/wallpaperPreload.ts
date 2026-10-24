@@ -21,3 +21,15 @@ const bridge: IWallpaperSurfaceBridge = {
   },
 };
 contextBridge.exposeInMainWorld('wallpaper', bridge);
+
+if (process.platform === 'darwin') {
+  // This runs in the isolated preload, not in an installed scene. Only the
+  // owning WebContents' main frame can report its native occlusion state.
+  const visibility = () =>
+    ipcRenderer.send(
+      WALLPAPER.visibility,
+      document.visibilityState === 'visible',
+    );
+  document.addEventListener('visibilitychange', visibility);
+  window.addEventListener('DOMContentLoaded', visibility, { once: true });
+}

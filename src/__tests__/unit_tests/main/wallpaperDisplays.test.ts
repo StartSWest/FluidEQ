@@ -10,7 +10,50 @@ import createWallpaperAudioRelay from '../../../main/wallpaper/audioRelay';
 import {
   physicalLength,
   toWallpaperDisplays,
+  toMacWallpaperDisplays,
 } from '../../../main/wallpaper/displays';
+import { layoutMonitors } from '../../../renderer/wallpaper/monitorLayout';
+
+it('keeps a mixed Retina desk in points, with physical resolution separate and no overlapping tiles', () => {
+  const displays = [
+    {
+      id: 1,
+      label: 'Mac',
+      bounds: { x: 0, y: 0, width: 1728, height: 1117 },
+      size: { width: 1728, height: 1117 },
+      scaleFactor: 2,
+    },
+    {
+      id: 2,
+      label: 'External',
+      bounds: { x: 1728, y: -200, width: 1920, height: 1080 },
+      size: { width: 1920, height: 1080 },
+      scaleFactor: 1,
+    },
+  ] as unknown as Display[];
+  const mapped = toMacWallpaperDisplays(displays, 1);
+  expect(mapped[0]).toEqual(
+    expect.objectContaining({
+      width: 1728,
+      height: 1117,
+      pixelWidth: 3456,
+      pixelHeight: 2234,
+      primary: true,
+    }),
+  );
+  expect(mapped[1]).toEqual(
+    expect.objectContaining({
+      x: 1728,
+      y: -200,
+      width: 1920,
+      height: 1080,
+      primary: false,
+    }),
+  );
+  const [a, b] = layoutMonitors(mapped).placements;
+  expect(a.left + a.width).toBeLessThan(b.left);
+  expect(b.top).toBeLessThan(a.top);
+});
 
 describe('monitors in physical pixels', () => {
   // Chromium rounds 2560 × 1600 at 150% to 1707 × 1067 DIPs; multiplying back

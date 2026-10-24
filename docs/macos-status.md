@@ -31,6 +31,9 @@ taps. This page records the current implementation and its remaining limits.
 - Mac traffic lights, fullscreen and compact-player handling, Dock and menu
   bar artwork, sound/screen permission notices, and localized privacy strings.
 - Music and Spotify track-change notifications and transport commands.
+- Desktop visualizers use native Mac desktop windows, one per selected
+  monitor, with pointer input passed through to Finder. The desktop window
+  type joins Spaces without changing FluidEQ's normal application/Dock type.
 - Two-way Share Audio with native Core Audio capture and playback. An
   unmuted system tap sends raw local sound and excludes the LAN playback
   process and the system engine's processed copy. Received sound stays out
@@ -71,7 +74,7 @@ taps. This page records the current implementation and its remaining limits.
   unsupported process-statistics implementation. The system engine's own
   process measurements are separate and already implemented.
 - **Other Windows helpers.** Simultaneous second-output
-  routing, Dynamic Lighting, desktop visualizers, game detection and the
+  routing, Dynamic Lighting, game detection and the
   Windows process meter do not acquire Mac implementations from this merge.
   Their Mac availability and visible controls need a separate capability pass.
 - **System media coverage.** Browser tabs and arbitrary media players have
@@ -164,3 +167,43 @@ taps. This page records the current implementation and its remaining limits.
   (`57014`). Scene-play reporting also returned HTTP 403 in the supplied log.
   These remain unresolved: backend source/deployment access is required to
   repair the schema/query/authorization, rather than hiding client errors.
+
+## Desktop visualizer follow-up — 2026-10-24
+
+- Implemented only on `macos`; `main` remains at `4acdc53e4`. The existing
+  scene rendering, monitor picker, tuning, scene ownership, audio analysis,
+  pause policy and saved choices are reused. No extra audio playback or
+  system wallpaper preference is created.
+- Each selected monitor owns a frameless, non-focusable Electron Mac
+  `desktop` window. Mouse input is ignored so Finder receives desktop clicks,
+  selection, dragging and context menus. Stop destroys the owned window,
+  revealing the existing wallpaper. Window bounds include the full monitor,
+  including the area behind the menu bar and Dock.
+- Electron 43.2's desktop type supplies the native desktop level and
+  `CanJoinAllSpaces | Stationary | IgnoresCycle`. No always-on-top operation,
+  application activation or Dock/process-type transformation is used.
+  `hiddenInMissionControl` is deliberately omitted: it maps to `Transient`,
+  which AppKit forbids combining with the desktop's `Stationary` behavior.
+- Mac window occlusion is reported by the isolated preload to its owning
+  WebContents. Only that main frame's boolean visibility reports are accepted.
+  Covering one monitor pauses that monitor independently, with no timer or
+  foreground-window polling. Lock/sleep/battery policies use the existing
+  power events. The host tracks requested visibility instead of re-showing a
+  covered window whenever native visibility changes.
+- Mac monitor positions and sizes stay in logical points throughout layout;
+  physical pixel dimensions are separate picker labels. This prevents a
+  Retina monitor from overlapping an adjacent non-Retina monitor in the
+  picker. Display changes rebuild only the affected surface and remember
+  its new geometry. Unplugged monitors retain their scene choices for
+  reconnect; saved choices are restored at launch.
+- Regression coverage exercises native desktop options and pointer
+  pass-through, isolated per-monitor visibility and sender validation,
+  synchronous Mac attachment, mixed Retina layouts, reconnect, resize/scale,
+  relaunch and existing Windows behavior. All 21 desktop suites passed
+  (162 tests). Production native/main/renderer builds, changed-file lint,
+  app/script TypeScript, platform isolation and encoding checks passed.
+- Live verification remains pending: Computer Use reported that the Mac was
+  locked. No application was launched by the agent. Finder interaction,
+  Spaces/Mission Control/Stage Manager, fullscreen apps, actual multi-monitor
+  hotplug and normal/extreme window sizes must still be observed on the
+  unlocked Mac; automated tests alone are not a visual verdict.

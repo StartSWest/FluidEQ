@@ -15,6 +15,7 @@ import {
   type IDesktopSurface,
   type IWallpaperScene,
 } from './surface';
+import type { TDesktopHost } from './desktopHost';
 
 export interface IMonitorFailure {
   choice: IWallpaperChoice;
@@ -22,8 +23,8 @@ export interface IMonitorFailure {
 }
 
 interface IMonitorBackgroundsOptions {
-  /** The desktop helper, when this build has one. */
-  executable(): string | undefined;
+  /** The platform's desktop attachment, when this build supports it. */
+  host(): TDesktopHost | undefined;
   /**
    * Why a monitor should not play now, given what keeps its desktop out of
    * sight, if anything does.
@@ -106,8 +107,8 @@ export const createMonitorBackgrounds = (
       remove(display.id);
     }
     failures.delete(display.id);
-    const executable = options.executable();
-    if (!executable) {
+    const attach = options.host();
+    if (!attach) {
       letGo(display.id);
       failures.set(display.id, { choice, error: 'unavailable' });
       return;
@@ -122,7 +123,7 @@ export const createMonitorBackgrounds = (
         performance: options.performance(),
         tuning: options.tuning(choice.lookId),
         daylight: options.daylight,
-        executable,
+        attach,
         pauseReason: options.pauseReason,
         onReady: () => {
           // Only what this surface replaced, and only while it is still the

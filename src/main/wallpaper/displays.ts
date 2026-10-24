@@ -35,3 +35,21 @@ export const toWallpaperDisplays = (
       primary: display.id === primaryId,
     };
   });
+
+/**
+ * Mac positions and sizes share the same point coordinate space. Mixing a
+ * Retina pixel width with its point origin overlaps neighbouring monitors.
+ * Physical dimensions are kept separately for the picker labels.
+ */
+export const toMacWallpaperDisplays = (
+  displays: readonly Display[],
+  primaryId: number,
+): IWallpaperDisplay[] =>
+  displays.map((display) => ({
+    id: display.id,
+    label: display.label,
+    ...display.bounds,
+    pixelWidth: physicalLength(display.size.width, display.scaleFactor),
+    pixelHeight: physicalLength(display.size.height, display.scaleFactor),
+    primary: display.id === primaryId,
+  }));

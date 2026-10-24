@@ -57,7 +57,7 @@ const wallpaper = {
   'wallpaper.pause.covered':
     'Pausado mientras las ventanas cubren este monitor',
   'wallpaper.error.unsupported':
-    'Los fondos de escritorio están disponibles en Windows.',
+    'Los fondos de escritorio están disponibles en Windows y macOS.',
   'wallpaper.error.unavailable':
     'No se pudo acceder al fondo de escritorio. Inténtalo de nuevo.',
   'wallpaper.error.notEntitled':

@@ -32,17 +32,6 @@ jest.mock('../../../main/wallpaper/window', () => ({
   createWallpaperWindow: () => mockWindow,
   wallpaperUrl: () => 'http://localhost/wallpaper.html',
 }));
-jest.mock('../../../main/wallpaper/nativeHost', () => ({
-  startWallpaperHost: (
-    _executable: string,
-    _handle: Buffer,
-    onEvent: (event: THostEvent) => void,
-  ) => {
-    mockHost.report = onEvent;
-    return mockHost;
-  },
-}));
-
 /* eslint-disable import/first -- install the mocks first */
 import type {
   IWallpaperTuning,
@@ -57,6 +46,7 @@ const create = (
     tuning?: IWallpaperTuning;
     followsGraph?: boolean;
     daylight?: () => number | undefined;
+    synchronousHost?: boolean;
   } = {},
 ) => {
   const onFail = jest.fn();
@@ -84,7 +74,14 @@ const create = (
       pack: { id: 'aurora', version: 1 } as never,
       madeBy: 'fluideq',
     },
-    executable: 'FluidEQ-Wallpaper.exe',
+    attach: (_window, onEvent) => {
+      mockHost.report = onEvent;
+      if (pause.synchronousHost) {
+        onEvent('ready');
+        onEvent('active');
+      }
+      return mockHost;
+    },
     pauseReason: (cover) => {
       if (cover === 'window') {
         return 'window';
@@ -104,6 +101,15 @@ beforeEach(() => {
 });
 
 describe('a desktop background appearing', () => {
+  it('shows a Mac host that reports attachment synchronously after the first frame', () => {
+    const { surface, onReady } = create({ synchronousHost: true });
+    surface.drawn(1);
+    expect(surface.phase()).toBe('running');
+    expect(mockHost.setVisible).toHaveBeenLastCalledWith(true);
+    expect(mockWindow.showInactive).toHaveBeenCalledTimes(1);
+    expect(onReady).toHaveBeenCalledTimes(1);
+    surface.release();
+  });
   // Shown by the helper alone, Chromium never composited the page: the
   // desktop got the window's background colour, black, and nothing else.
   it('is shown through Chromium once, after the helper has placed it and reported', () => {

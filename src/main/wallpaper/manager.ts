@@ -34,8 +34,8 @@ import {
 import createWallpaperAudioRelay from './audioRelay';
 import { createMonitorBackgrounds } from './backgrounds';
 import { watchDesktopConditions, type IDesktopConditions } from './conditions';
-import { toWallpaperDisplays } from './displays';
-import { wallpaperHostPath } from './nativeHost';
+import { toWallpaperDisplays, toMacWallpaperDisplays } from './displays';
+import { desktopHost, supportsDesktopWallpaper } from './desktopHost';
 import type { IWallpaperScenes } from './scenes';
 import type { IDesktopSurface } from './surface';
 
@@ -100,7 +100,7 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   const relay = createWallpaperAudioRelay();
   const cleanups: (() => void)[] = [];
   const hookedOwners = new WeakSet<WebContents>();
-  const supported = () => process.platform === 'win32';
+  const supported = supportsDesktopWallpaper;
   const owns = (lookId: string) => deps.ownership.owns(lookId);
   /** Whether what this monitor plays is still this account's to play. */
   const surfaceOwned = (surface: IDesktopSurface) => owns(surface.lookId);
@@ -110,17 +110,21 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
   };
   // Nothing to arrange where the desktop cannot take a background, and the
   // physical conversion exists on Windows only.
-  const connectedDisplays = (): IWallpaperDisplay[] =>
-    supported() && app.isReady()
-      ? toWallpaperDisplays(
-          screen.getAllDisplays(),
-          screen.getPrimaryDisplay().id,
-          (rect) => screen.dipToScreenRect(null, rect),
-        )
-      : [];
+  const connectedDisplays = (): IWallpaperDisplay[] => {
+    if (!supported() || !app.isReady()) {
+      return [];
+    }
+    const displays = screen.getAllDisplays();
+    const primary = screen.getPrimaryDisplay().id;
+    return process.platform === 'darwin'
+      ? toMacWallpaperDisplays(displays, primary)
+      : toWallpaperDisplays(displays, primary, (rect) =>
+          screen.dipToScreenRect(null, rect),
+        );
+  };
 
   const backgrounds = createMonitorBackgrounds({
-    executable: wallpaperHostPath,
+    host: desktopHost,
     pauseReason: (cover) =>
       wallpaperPauseReason({
         ...conditions,
@@ -634,6 +638,15 @@ export const createWallpaperManager = (deps: IWallpaperDeps) => {
       const surface = backgrounds.surfaceOn(display.id);
       const failure = backgrounds.failureOn(display.id);
       if (surface) {
+        // Remember a moved/scaled monitor where it is now, before a later
+        // reconnect renumbers two otherwise identical displays.
+        const monitor = connectedDisplays().find(
+          (entry) => entry.id === display.id,
+        );
+        if (monitor) {
+          remember(monitor, surface.choice());
+          save();
+        }
         restore(display, surface.choice());
       } else if (failure && RETRIED_ON_DISPLAY_CHANGE.includes(failure.error)) {
         restore(display, failure.choice);

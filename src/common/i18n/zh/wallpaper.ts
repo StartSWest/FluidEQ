@@ -51,7 +51,7 @@ const wallpaper = {
   'wallpaper.pause.battery': '为节省电量已暂停',
   'wallpaper.pause.game': '游戏在最前面时已暂停',
   'wallpaper.pause.covered': '窗口遮住这台显示器时已暂停',
-  'wallpaper.error.unsupported': '桌面背景可在 Windows 上使用。',
+  'wallpaper.error.unsupported': '桌面背景可在 Windows 和 macOS 上使用。',
   'wallpaper.error.unavailable': '无法连接桌面背景。请重试。',
   'wallpaper.error.notEntitled': '桌面可视化效果包含在 FluidEQ Plus 中。',
   'wallpaper.error.missingScene': '此可视化效果已不再安装。请重新添加后再试。',

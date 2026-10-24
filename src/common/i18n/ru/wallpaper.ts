@@ -54,7 +54,8 @@ const wallpaper = {
   'wallpaper.pause.battery': 'Приостановлено для экономии заряда',
   'wallpaper.pause.game': 'Приостановлено, пока игра на переднем плане',
   'wallpaper.pause.covered': 'Приостановлено, пока окна закрывают этот монитор',
-  'wallpaper.error.unsupported': 'Фоны рабочего стола доступны в Windows.',
+  'wallpaper.error.unsupported':
+    'Фоны рабочего стола доступны в Windows и macOS.',
   'wallpaper.error.unavailable':
     'Не удалось связаться с фоном рабочего стола. Повторите попытку.',
   'wallpaper.error.notEntitled':

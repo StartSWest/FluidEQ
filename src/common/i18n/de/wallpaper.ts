@@ -58,7 +58,7 @@ const wallpaper = {
   'wallpaper.pause.covered':
     'Pausiert, solange Fenster diesen Monitor verdecken',
   'wallpaper.error.unsupported':
-    'Desktophintergründe sind unter Windows verfügbar.',
+    'Desktophintergründe sind unter Windows und macOS verfügbar.',
   'wallpaper.error.unavailable':
     'Der Desktophintergrund ist nicht erreichbar. Versuchen Sie es erneut.',
   'wallpaper.error.notEntitled':
