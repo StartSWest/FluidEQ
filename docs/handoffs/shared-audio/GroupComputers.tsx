@@ -76,11 +76,11 @@ function OwnRow({
   }
   return (
     <article
-      className="simple-peer is-local"
+      className="remote-audio__lane preview-computer-row"
       aria-label={`${computer.name} — this computer`}
       data-computer-id={computer.id}
     >
-      <div className="simple-lane">
+      <div className="remote-audio__lanes preview-lanes">
         <RemoteAudioLane
           direction="out"
           kicker="THIS COMPUTER"
@@ -129,40 +129,31 @@ function PeerRow({
   const disabled = !computer.online || !local.online || paused || local.paused;
   return (
     <article
-      className="simple-peer"
+      className="remote-audio__lane preview-computer-row"
       aria-label={computer.name}
       data-computer-id={computer.id}
     >
-      <div className="simple-peer-controls">
-        <span>{computer.online ? computer.platform : 'Offline'}</span>
-        <PeerMenu
-          name={computer.name}
-          paused={paused}
-          onPause={onPause}
-          onUnlink={onRemove}
+      <div className="remote-audio__lanes preview-lanes">
+        <RemoteAudioLane
+          direction="in"
+          kicker={computer.online ? computer.platform : 'OFFLINE'}
+          title={computer.name}
+          line={state.active ? computer.source : state.reason}
+          live={state.active}
+          meterKey={computer.id}
+          subscribe={subscribe}
+          figures={[]}
+          switchId={`receive-${computer.id}`}
+          switchLabel="Receive"
+          isOn={incoming.receive}
+          isSwitchDisabled={disabled}
+          onToggle={() =>
+            onRoute(computer.id, local.id, { receive: !incoming.receive })
+          }
         />
       </div>
-      <div className="simple-peer-line">
-        <div className="simple-lane">
-          <RemoteAudioLane
-            direction="in"
-            kicker={computer.online ? 'CONNECTED' : 'OFFLINE'}
-            title={computer.name}
-            line={state.active ? computer.source : state.reason}
-            live={state.active}
-            meterKey={computer.id}
-            subscribe={subscribe}
-            figures={[]}
-            switchId={`receive-${computer.id}`}
-            switchLabel="Receive"
-            isOn={incoming.receive}
-            isSwitchDisabled={disabled}
-            onToggle={() =>
-              onRoute(computer.id, local.id, { receive: !incoming.receive })
-            }
-          />
-        </div>
-        <div className="simple-send">
+      <div className="remote-audio__link-actions preview-computer-actions">
+        <div className="remote-audio__lane-switch">
           <span>Send</span>
           <Switch
             id={`send-${computer.id}`}
@@ -174,6 +165,12 @@ function PeerRow({
             }
           />
         </div>
+        <PeerMenu
+          name={computer.name}
+          paused={paused}
+          onPause={onPause}
+          onUnlink={onRemove}
+        />
       </div>
     </article>
   );
@@ -195,10 +192,13 @@ export default function GroupComputers({
   onRemove(id: string): void;
 }) {
   return (
-    <section className="simple-panel simple-group" aria-label="The whole group">
-      <header className="simple-panel-head">
-        <h2>The whole group</h2>
-        <span>
+    <section className="remote-audio__link" aria-label="The whole group">
+      <header className="remote-audio__link-head">
+        <span className="remote-audio__link-name">
+          <strong>The whole group</strong>
+        </span>
+        <span className="remote-audio__link-spacer" />
+        <span className="remote-audio__link-stats">
           {group.computers.filter((pc) => pc.online).length} online ·{' '}
           {group.computers.length} computers
         </span>
@@ -217,8 +217,8 @@ export default function GroupComputers({
             onRemove={() => onRemove(pc.id)}
           />
         ))}
-      <footer className="simple-group-foot">
-        <span>Your computer first. Everyone else in the same order.</span>
+      <footer className="remote-audio__link-head">
+        <span className="remote-audio__link-spacer" />
         <button
           type="button"
           className={local.paused ? 'button small' : 'button small subtle'}

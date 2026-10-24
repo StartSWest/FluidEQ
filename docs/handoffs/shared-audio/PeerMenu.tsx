@@ -77,7 +77,7 @@ export default function PeerMenu({
       <button
         ref={trigger}
         type="button"
-        className="button small subtle simple-peer-trigger"
+        className="button small subtle"
         aria-label={`Options for ${name}`}
         aria-haspopup="menu"
         aria-expanded={open}

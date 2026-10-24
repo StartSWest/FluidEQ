@@ -18,8 +18,12 @@ node docs/handoffs/shared-audio/preview.cjs
 Open <http://localhost:4317>. `--build` compiles without starting the server.
 Build output goes into the ignored `build/` directory. No new dependencies.
 
-The preview imports the current app's `App.scss`, `Button.scss`, `RemoteAudio.scss`,
-`MenuIcon`, `Switch`, `Dropdown`, `RemoteAudioLane` and `RemoteAudioLinkCard`. **Current app
+The preview loads the app's complete `styles/cascade.ts`, in its production
+order, and uses the app's existing Share Audio card, header, row, label and
+readout classes directly. The harness stylesheet contains geometry only: no
+colors, typography, backgrounds, borders, shadows, radii or control appearance.
+A verification check prevents those visual overrides from being reintroduced.
+It uses `MenuIcon`, `Switch`, `Dropdown`, `RemoteAudioLane` and `RemoteAudioLinkCard`. **Current app
 cards** renders the actual current card component with simulated inputs.
 The proposed panel has only **The whole group**, with one waveform row per
 computer, and **Your mix**, with a working receive-volume fader per computer.

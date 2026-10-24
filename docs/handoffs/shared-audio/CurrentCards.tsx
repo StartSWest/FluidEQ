@@ -38,7 +38,7 @@ export default function CurrentCards({
   );
   return (
     <>
-      <p className="group-baseline-note">
+      <p className="remote-audio__note">
         Existing cards from the updated app, with isolated simulated links. This
         compares the current card component; its pairings do not join the
         proposed group.

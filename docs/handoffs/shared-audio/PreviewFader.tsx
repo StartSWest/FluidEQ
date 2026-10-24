@@ -9,7 +9,6 @@ export default function PreviewFader({
   value,
   caption,
   disabled = false,
-  className = '',
   onChange,
 }: {
   id: string;
@@ -18,15 +17,18 @@ export default function PreviewFader({
   value: number;
   caption: string;
   disabled?: boolean;
-  className?: string;
   onChange(value: number): void;
 }) {
   const percent = Math.round(value * 100);
   return (
-    <div className={`simple-fader ${className}`}>
-      <label htmlFor={id}>
-        <span className="simple-fader-label">{label}</span>
-        <output htmlFor={id}>{percent}%</output>
+    <div className="remote-audio__lane preview-mix-fader">
+      <label htmlFor={id} className="preview-mix-label">
+        <span className="remote-audio__lane-names">
+          <strong>{label}</strong>
+        </span>
+        <output className="remote-audio__lane-level-value" htmlFor={id}>
+          {percent}%
+        </output>
         <input
           id={id}
           className="now-playing-bar__volume-slider"
@@ -40,7 +42,7 @@ export default function PreviewFader({
           onChange={(event) => onChange(Number(event.target.value) / 100)}
         />
       </label>
-      <small>{caption}</small>
+      <span className="remote-audio__lane-caption">{caption}</span>
     </div>
   );
 }

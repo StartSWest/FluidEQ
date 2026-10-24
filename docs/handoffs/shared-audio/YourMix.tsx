@@ -24,13 +24,14 @@ export default function YourMix({
     ...new Set([local.output, 'Headphones', 'Speakers', 'USB audio interface']),
   ];
   return (
-    <section className="simple-panel simple-mix" aria-label="Your mix">
-      <header className="simple-panel-head">
-        <h2>Your mix</h2>
-        <span>What you hear here</span>
+    <section className="remote-audio__link" aria-label="Your mix">
+      <header className="remote-audio__link-head">
+        <span className="remote-audio__link-name">
+          <strong>Your mix</strong>
+        </span>
       </header>
-      <div className="simple-output">
-        <span>Output</span>
+      <div className="remote-audio__lane preview-output">
+        <span className="control-kicker">Output</span>
         <Dropdown
           name="Output"
           options={outputs.map((name) => ({
@@ -49,7 +50,6 @@ export default function YourMix({
         ariaLabel="This PC system volume"
         value={local.systemVolume}
         caption="This computer’s system volume"
-        className="simple-master"
         onChange={(systemVolume) => onComputer({ systemVolume })}
       />
       {orderedComputers(group)
@@ -66,7 +66,6 @@ export default function YourMix({
               value={route?.level ?? 1}
               caption={state.active ? 'Receiving' : state.reason}
               disabled={!local.online || !pc.online || local.paused}
-              className={state.active ? '' : 'is-quiet'}
               onChange={(level) => onLevel(pc.id, level)}
             />
           );

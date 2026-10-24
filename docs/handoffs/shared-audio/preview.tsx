@@ -1,9 +1,7 @@
 /* FluidEQ — GPL-3.0-or-later. Standalone English design preview. */
+import '../../../src/renderer/styles/cascade';
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import '../../../src/renderer/styles/App.scss';
-import '../../../src/renderer/styles/Button.scss';
-import '../../../src/renderer/styles/RemoteAudio.scss';
 import CurrentCards from './CurrentCards';
 import Dropdown from '../../../src/renderer/widgets/Dropdown';
 import GroupComputers from './GroupComputers';
@@ -36,10 +34,11 @@ function Preview() {
 
   return (
     <div className={`group-preview${compact ? ' is-compact' : ''}`}>
-      <header className="simple-preview-tools">
-        <span>Simulated preview</span>
-        <div className="simple-perspective">
-          <span>Viewing as</span>
+      <header className="remote-audio__link-head preview-toolbar">
+        <span className="remote-audio__link-stats">Simulated preview</span>
+        <span className="remote-audio__link-spacer" />
+        <div className="preview-perspective">
+          <span className="remote-audio__lane-caption">Viewing as</span>
           <Dropdown
             name="Viewing as"
             options={orderedComputers(group).map((pc) => ({
@@ -55,9 +54,9 @@ function Preview() {
             }}
           />
         </div>
-        <details className="simple-design-tools">
+        <details className="preview-design-tools">
           <summary className="button small subtle">Design tools</summary>
-          <div>
+          <div className="band-menu">
             <button
               type="button"
               className="button small subtle"
@@ -120,106 +119,111 @@ function Preview() {
           </div>
         </details>
       </header>
-      <main className="simple-content">
-        <header className="simple-title">
-          <h1>Share Audio</h1>
-          <button
-            type="button"
-            className="button small"
-            onClick={() => setAdding(!adding)}
-            aria-expanded={adding}
-          >
-            Add computer
-          </button>
-        </header>
-        {adding && (
-          <form
-            className="simple-add"
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (!newName.trim()) {
-                return;
-              }
-              setGroup((previous) =>
-                addComputer(previous, {
-                  id: crypto.randomUUID(),
-                  name: newName.trim(),
-                  platform: 'Linux',
-                  online: true,
-                  captureReady: true,
-                  sharing: true,
-                  paused: false,
-                  systemVolume: 1,
-                  output: 'Speakers',
-                  source: 'System audio · Browser & apps',
-                }),
-              );
-              setAdding(false);
-              setMessage(
-                'Computer added to the whole group. Enable Receive to hear it.',
-              );
-            }}
-          >
-            <label htmlFor="preview-computer-name">
-              Simulated computer name
-              <input
-                id="preview-computer-name"
-                aria-label="Computer name"
-                value={newName}
-                maxLength={80}
-                required
-                onChange={(event) => setNewName(event.target.value)}
-              />
-            </label>
-            <button type="submit" className="button small">
-              Add simulated computer
-            </button>
+      <main className="preview-content">
+        <section className="remote-audio">
+          <header className="remote-audio__header">
+            <div>
+              <p className="eyebrow">LAN AUDIO</p>
+              <h2>Share Audio</h2>
+            </div>
             <button
               type="button"
-              className="button small subtle"
-              onClick={() => setAdding(false)}
+              className="button small"
+              onClick={() => setAdding(!adding)}
+              aria-expanded={adding}
             >
-              Cancel
+              Add computer
             </button>
-          </form>
-        )}
-        {message && (
-          <p className="simple-message" role="status">
-            {message}
-          </p>
-        )}
-        {current ? (
-          <CurrentCards key={local.id} group={group} local={local} />
-        ) : (
-          <div className="simple-columns">
-            <GroupComputers
-              group={group}
-              local={local}
-              onComputer={changeLocal}
-              onRoute={(from, to, patch) =>
-                setGroup((previous) => updateRoute(previous, from, to, patch))
-              }
-              onPause={(id) =>
-                setGroup((previous) => togglePair(previous, local.id, id))
-              }
-              onRemove={(id) =>
-                setGroup((previous) => removeComputer(previous, id))
-              }
-            />
-            <YourMix
-              group={group}
-              local={local}
-              onComputer={changeLocal}
-              onLevel={(from, level) =>
+          </header>
+          {adding && (
+            <form
+              className="remote-audio__link-head preview-add"
+              onSubmit={(event) => {
+                event.preventDefault();
+                if (!newName.trim()) {
+                  return;
+                }
                 setGroup((previous) =>
-                  updateRoute(previous, from, local.id, { level }),
-                )
-              }
-            />
-          </div>
-        )}
+                  addComputer(previous, {
+                    id: crypto.randomUUID(),
+                    name: newName.trim(),
+                    platform: 'Linux',
+                    online: true,
+                    captureReady: true,
+                    sharing: true,
+                    paused: false,
+                    systemVolume: 1,
+                    output: 'Speakers',
+                    source: 'System audio · Browser & apps',
+                  }),
+                );
+                setAdding(false);
+                setMessage(
+                  'Computer added to the whole group. Enable Receive to hear it.',
+                );
+              }}
+            >
+              <label htmlFor="preview-computer-name">
+                Simulated computer name
+                <input
+                  id="preview-computer-name"
+                  aria-label="Computer name"
+                  value={newName}
+                  maxLength={80}
+                  required
+                  onChange={(event) => setNewName(event.target.value)}
+                />
+              </label>
+              <button type="submit" className="button small">
+                Add simulated computer
+              </button>
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={() => setAdding(false)}
+              >
+                Cancel
+              </button>
+            </form>
+          )}
+          {message && (
+            <p className="remote-audio__notice" role="status">
+              {message}
+            </p>
+          )}
+          {current ? (
+            <CurrentCards key={local.id} group={group} local={local} />
+          ) : (
+            <div className="preview-columns">
+              <GroupComputers
+                group={group}
+                local={local}
+                onComputer={changeLocal}
+                onRoute={(from, to, patch) =>
+                  setGroup((previous) => updateRoute(previous, from, to, patch))
+                }
+                onPause={(id) =>
+                  setGroup((previous) => togglePair(previous, local.id, id))
+                }
+                onRemove={(id) =>
+                  setGroup((previous) => removeComputer(previous, id))
+                }
+              />
+              <YourMix
+                group={group}
+                local={local}
+                onComputer={changeLocal}
+                onLevel={(from, level) =>
+                  setGroup((previous) =>
+                    updateRoute(previous, from, local.id, { level }),
+                  )
+                }
+              />
+            </div>
+          )}
+        </section>
       </main>
-      <p className="simple-preview-note">
+      <p className="remote-audio__note">
         Design preview · Waveforms and connections are simulated. No audio is
         captured or played.
       </p>

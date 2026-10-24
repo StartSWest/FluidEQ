@@ -1,6 +1,8 @@
 /* FluidEQ — GPL-3.0-or-later. Behavioral checks for the design model. */
 require('ts-node').register({ transpileOnly: true });
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const {
   initialGroup,
   orderedComputers,
@@ -190,6 +192,22 @@ check(
     assert.deepEqual(changed.routes, initial.routes);
     assert.equal(routeState(changed, 'win', 'linux').gain, 1);
     assert.equal(findRoute(changed, 'mac', 'win').level, 0.75);
+  },
+);
+
+check(
+  'Preview appearance is owned by the full app cascade, with geometry-only harness CSS',
+  () => {
+    const css = fs.readFileSync(path.join(__dirname, 'preview.scss'), 'utf8');
+    const entry = fs.readFileSync(path.join(__dirname, 'preview.tsx'), 'utf8');
+    assert.doesNotMatch(
+      css,
+      /(?:^|[;{\n])\s*(?:color|background(?:-[a-z-]+)?|font(?:-[a-z-]+)?|border(?:-[a-z-]+)?|box-shadow|text-shadow|opacity|appearance)\s*:/im,
+    );
+    assert.match(
+      entry,
+      /import '\.\.\/\.\.\/\.\.\/src\/renderer\/styles\/cascade';/,
+    );
   },
 );
 
