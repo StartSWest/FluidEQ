@@ -14,7 +14,7 @@ const terms = {
   'terms.title': 'Terms and privacy',
   'terms.meta': 'Version {version} · In effect since {date}',
   'terms.intro':
-    'These terms cover your FluidEQ account: credits and the scenes you get with them, Plus for the members who still have it, Visualizers, the Studio, and the scenes you share and getting paid for them. They list everything the app sends to FluidEQ’s service, when it goes and who can see it, and, near the end, every other place FluidEQ connects to.',
+    'These terms cover your FluidEQ account: credits and the scenes you get with them, the old Plus membership for the members who still have it, Visualizers, the Studio, and the scenes you share and getting paid for them. They list everything the app sends to FluidEQ’s service, when it goes and who can see it, and, near the end, every other place FluidEQ connects to.',
   'terms.link': 'Terms and privacy',
 
   'terms.short.title': 'The short version',
@@ -28,15 +28,15 @@ const terms = {
   'terms.short.music.body':
     'FluidEQ’s service never receives your audio, your track names or your EQ.',
 
-  'terms.membership.title': 'Plus',
+  'terms.membership.title': 'The old Plus membership',
   'terms.membership.p1':
-    'Plus was a membership, and it is not sold any more: credits took its place. A membership already running keeps playing and adding every scene in Visualizers, the Plus looks, and scenes on your desktop and your RGB lights, until FluidEQ moves its members to credits. On that day every scene a member added becomes theirs for good, and every account that paid for Plus gets at least {moveCredits} credits. No new free trials are offered; a scene FluidEQ’s maker approves before that day can still earn a month of Plus. Without Plus, an account watches any scene for {tasteSeconds} seconds, gets scenes with credits, and makes, exports and publishes scenes in the Studio.',
+    'Plus was a membership, and it is not sold any more: credits took its place. A membership already running keeps playing and adding every scene in Visualizers, FluidEQ’s own scenes, and scenes on your desktop and your RGB lights, until FluidEQ moves its members to credits. On that day every scene a member added becomes theirs for good, and every account that paid for Plus gets at least {moveCredits} credits. No new free trials are offered; a scene FluidEQ’s maker approves before that day can still earn a month of the membership. Without it, an account watches any scene for {tasteSeconds} seconds, gets scenes with credits, and makes, exports and publishes scenes in the Studio.',
   'terms.membership.p2':
-    'Plus was paid through Buy Me a Coffee, under its own terms, and FluidEQ never saw your card or bank details. A membership you still pay for can be cancelled at any time on Buy Me a Coffee: Plus stays on until the end of the period you paid for, and nothing more is charged. Anything Buy Me a Coffee charges for Plus after FluidEQ moves its members to credits is refunded.',
+    'Plus was paid through Buy Me a Coffee, under its own terms, and FluidEQ never saw your card or bank details. A membership you still pay for can be cancelled at any time on Buy Me a Coffee: it stays on until the end of the period you paid for, and nothing more is charged. Anything Buy Me a Coffee charges for it after FluidEQ moves its members to credits is refunded.',
   'terms.membership.p4':
-    'When a membership ends, the Plus looks and the scenes members made lock again — except the ones you own, the ones FluidEQ made free, and your own published scenes — and FluidEQ goes back to its free looks; nothing you made is deleted. Without a connection, a paid membership keeps working until the end of the period you paid for, and for up to {graceDays} days after it if the app could not confirm a renewal. A free trial, a gift and a month earned by publishing end on their own date, with no grace after them.',
+    'When a membership ends, FluidEQ’s scenes and the scenes members made lock again — except the ones you own, the ones FluidEQ made free, and your own published scenes — and FluidEQ goes back to its free looks; nothing you made is deleted. Without a connection, a paid membership keeps working until the end of the period you paid for, and for up to {graceDays} days after it if the app could not confirm a renewal. A free trial, a gift and a month earned by publishing end on their own date, with no grace after them.',
   'terms.membership.p5':
-    'Until that day, a gift of Plus from the maker to an email address works the same way: it turns on when an account confirms that address, and lasts until the end date the maker chose, if any, or until the maker takes it back.',
+    'Until that day, a gift from the maker to an email address works the same way as a membership: it turns on when an account confirms that address, and lasts until the end date the maker chose, if any, or until the maker takes it back.',
 
   'terms.account.title': 'Your account',
   'terms.account.p1':
@@ -83,7 +83,7 @@ const terms = {
     'Nothing is kept. Every look is signed, and your computer checks the signature before playing it.',
   'terms.sent.catalogue.what': 'Nothing about you',
   'terms.sent.catalogue.when':
-    'When FluidEQ starts, at most every few hours, to show which Plus looks exist, with or without an account',
+    'When FluidEQ starts, at most every few hours, to show which of FluidEQ’s scenes exist, with or without an account',
   'terms.sent.catalogue.who':
     'Nothing is kept. The request only fetches the public list of looks.',
   'terms.sent.profile.what': 'The handle and display name you choose',
@@ -103,15 +103,15 @@ const terms = {
   'terms.sent.sceneLike.who':
     'Your like is kept with your account. Members see how many likes a scene has, never who gave them. How long each scene is on screen is the next line.',
   'terms.sent.sceneTime.what':
-    'How long each Plus scene was on your screen: one number of seconds per scene per day, with the scene and the date',
+    'How long each scene was on your screen: one number of seconds per scene per day, with the scene and the date',
   'terms.sent.sceneTime.when':
-    'While you have Plus, once you have been shown this version of these terms: when FluidEQ starts, when you come back to the computer, and at most once an hour while a scene plays',
+    'While you have a membership, once you have been shown this version of these terms: when FluidEQ starts, when you come back to the computer, and at most once an hour while a scene plays',
   'terms.sent.sceneTime.who':
     'Only FluidEQ’s maker, with your account, to learn which scenes members enjoy and make more like them. Members never see it. Your computer keeps the last {windowDays} days.',
   'terms.sent.engine.what':
     'Which audio engine you chose: the FluidEQ Engine or Equalizer APO',
   'terms.sent.engine.when':
-    'While you have Plus, once you have been shown this version of these terms: when FluidEQ starts, when you come back to the computer and when you switch engines',
+    'While you have a membership, once you have been shown this version of these terms: when FluidEQ starts, when you come back to the computer and when you switch engines',
   'terms.sent.engine.who':
     'Only FluidEQ’s maker, with your account, to know which engine to work on. Only the last one is kept.',
   'terms.sent.announcements.what':
@@ -124,7 +124,7 @@ const terms = {
     'A scene you publish, as for an export, with one cover picture, up to two categories and a note about what is new, if you write one',
   'terms.sent.scenePublish.when': 'When you press Publish in the Studio',
   'terms.sent.scenePublish.who':
-    'Once FluidEQ’s maker approves it, in Visualizers, until you unpublish it, anyone signed in to FluidEQ sees its picture, name, categories, version notes, likes and adds, with your display name, handle and maker page, and can watch it for {tasteSeconds} seconds. Members who own it — got with a credit, or with Plus — play it and add it. FluidEQ’s maker keeps the scene and the record that you published it, as for an export.',
+    'Once FluidEQ’s maker approves it, in Visualizers, until you unpublish it, anyone signed in to FluidEQ sees its picture, name, categories, version notes, likes and adds, with your display name, handle and maker page, and can watch it for {tasteSeconds} seconds. Members who own it — got with a credit, or with a membership — play it and add it. FluidEQ’s maker keeps the scene and the record that you published it, as for an export.',
   'terms.sent.gallery.what':
     'In Visualizers: what you search for, the scenes and makers you open, the scenes you add, and any scene you report with its reason',
   'terms.sent.gallery.when':
@@ -158,7 +158,7 @@ const terms = {
   'terms.protect.p4':
     'The maker runs the service and can see what it stores, to keep it working, to match payments and to moderate what members publish. Nothing is sold or used for advertising. The only statistics are the ones this page lists — how long people listen, which scenes members watch and which engine they use — and only the maker reads them.',
   'terms.protect.p5':
-    'The service runs on Supabase (sign-in, database and files) and sends email through Resend; credits are paid through Stripe, which also pays creators, Plus through Buy Me a Coffee, and the Forum goes through GitHub. Each receives only what its part needs.',
+    'The service runs on Supabase (sign-in, database and files) and sends email through Resend; credits are paid through Stripe, which also pays creators, the old membership through Buy Me a Coffee, and the Forum goes through GitHub. Each receives only what its part needs.',
   'terms.protect.p6':
     'FluidEQ keeps no IP addresses. Supabase records the address of each request in short-lived logs, and keeps the address and app details of each signed-in computer with that computer’s session and in Supabase’s own sign-in security log, to keep sign-in working and safe.',
   'terms.protect.p7':
@@ -180,15 +180,15 @@ const terms = {
   'terms.keep.p3':
     'Membership: your payment email, status and Buy Me a Coffee’s ids for your membership are kept to match payments to your account, and are deleted with it. The record of each payment event keeps only Buy Me a Coffee’s ids and the time.',
   'terms.keep.p4':
-    'Your account: ask for it to be deleted and it is gone within {deletionDays} days, together with your profile, credits, the scenes you own, membership, free trials and earned months, agreements, likes, adds, reports, and the scenes you published with their files. Credits left on an account that is deleted are gone with it. A gift of Plus to your email stays until the maker removes it.',
+    'Your account: ask for it to be deleted and it is gone within {deletionDays} days, together with your profile, credits, the scenes you own, membership, free trials and earned months, agreements, likes, adds, reports, and the scenes you published with their files. Credits left on an account that is deleted are gone with it. A gift to your email stays until the maker removes it.',
   'terms.keep.p5':
     'Scenes: unpublishing removes a scene from Visualizers with its picture, file and version history. Likes, adds and reports on it stay until those accounts are deleted, and count again if you publish it once more. A scene blocked for breaking these terms keeps a fingerprint made from your account id and the scene’s id, with the reason and the date, so it stays blocked.',
   'terms.keep.p6':
-    'On your computer: the Plus looks and the scenes you added, encrypted; your credits and the scenes you own, encrypted; gallery pictures, up to 128 MB; and the list of blocked scenes. They stay until you remove them or uninstall FluidEQ.',
+    'On your computer: FluidEQ’s scenes and the scenes you added, encrypted; your credits and the scenes you own, encrypted; gallery pictures, up to 128 MB; and the list of blocked scenes. They stay until you remove them or uninstall FluidEQ.',
 
-  'terms.looks.title': 'The Plus looks',
+  'terms.looks.title': 'FluidEQ’s own scenes',
   'terms.looks.p1':
-    'The Plus looks are the maker’s own work, licensed to you for personal use while you are a member, or for good once you own one — got with a credit or made free. Please do not copy, share or resell them.',
+    'FluidEQ’s own scenes are the maker’s own work, licensed to you for personal use while you are a member, or for good once you own one — got with a credit or made free. Please do not copy, share or resell them.',
   'terms.looks.p2':
     'If you own one of FluidEQ’s own scenes, you can open it in the Studio to look inside and take ideas. A copy opened that way cannot be added to your looks, exported or published.',
   'terms.looks.p3':
@@ -200,17 +200,17 @@ const terms = {
   'terms.scenes.p2':
     'Your Studio scenes stay on your computer unless you export or publish them, or choose to share them with another tool, such as your AI assistant.',
   'terms.scenes.p3':
-    'When you export a scene, you let FluidEQ check it — including against FluidEQ’s own scenes — remove the comments from its code and sign it with your display name and account id, so other members who own it can play it and see that you made it. That is the whole permission: FluidEQ’s maker will not sell your scene or use it in advertising, will not make it one of the Plus looks without asking you first, and does not stop you doing anything else with your own work.',
+    'When you export a scene, you let FluidEQ check it — including against FluidEQ’s own scenes — remove the comments from its code and sign it with your display name and account id, so other members who own it can play it and see that you made it. That is the whole permission: FluidEQ’s maker will not sell your scene or use it in advertising, will not make it one of FluidEQ’s own scenes without asking you first, and does not stop you doing anything else with your own work.',
   'terms.scenes.p4':
-    'When an account gets a scene of yours with a credit from a pack it paid for, you earn from it: once you have set up payouts in the Account panel, money, under the creator terms in Getting paid for your scenes; until then, or where Stripe cannot pay you, one credit — credit to get scenes with, never cash. A scene got with a free credit earns nothing. And, while FluidEQ offers Plus, a scene of yours that FluidEQ’s maker approves earns you a month of it.',
+    'When an account gets a scene of yours with a credit from a pack it paid for, you earn from it: once you have set up payouts in the Account panel, money, under the creator terms in Getting paid for your scenes; until then, or where Stripe cannot pay you, one credit — credit to get scenes with, never cash. A scene got with a free credit earns nothing. And, until FluidEQ moves its members to credits, a scene of yours that FluidEQ’s maker approves earns you a month of the membership.',
   'terms.scenes.p6':
     'Only share work you have the right to share: your own photos, drawings and 3D models, or ones whose owner allows it. The rules for what you publish apply to every scene you share. FluidEQ’s maker can stop a scene from opening if it breaks these terms or someone else’s rights.',
   'terms.scenes.p7':
-    'A scene another member shares is their work, licensed to you for personal use for as long as you own it — for good, once you got it with a credit — or while you have Plus. You can play it, like it, and pass the file on unchanged; it plays for others only once they own it. Please do not change it, present it as yours, publish it anywhere else, or sell it.',
+    'A scene another member shares is their work, licensed to you for personal use for as long as you own it — for good, once you got it with a credit — or while you have a membership. You can play it, like it, and pass the file on unchanged; it plays for others only once they own it. Please do not change it, present it as yours, publish it anywhere else, or sell it.',
   'terms.scenes.p8':
     'A file you have sent stays with whoever has it, and unpublishing does not take back copies members already got; they stay licensed for personal use while those members own them. If you want a scene to stop opening everywhere, ask FluidEQ’s maker, who can block it the same way as a scene that breaks the rules.',
   'terms.scenes.p9':
-    'If you publish a scene to Visualizers, you also let FluidEQ’s maker read it before anyone else sees it, and let FluidEQ keep it there until you unpublish it, show its picture, name, categories and version notes with your display name and handle to anyone signed in to FluidEQ, let them watch it for {tasteSeconds} seconds, and let members get it with a credit, or play it with Plus. The ambient elements you give it travel with it, and members who choose Ambient mode see them around their window. You can unpublish it at any time.',
+    'If you publish a scene to Visualizers, you also let FluidEQ’s maker read it before anyone else sees it, and let FluidEQ keep it there until you unpublish it, show its picture, name, categories and version notes with your display name and handle to anyone signed in to FluidEQ, let them watch it for {tasteSeconds} seconds, and let members get it with a credit, or play it with a membership. The ambient elements you give it travel with it, and members who choose Ambient mode see them around their window. You can unpublish it at any time.',
   'terms.scenes.p10':
     'Publishing is optional and separate from exporting a file. A version note is public like the scene it belongs to.',
 
@@ -234,13 +234,13 @@ const terms = {
   'terms.elsewhere.p7':
     'Lighting and desktop backgrounds: lighting talks only to Razer Chroma and Windows on this computer, and desktop backgrounds never go online.',
   'terms.elsewhere.p8':
-    'Your browser: payment for credits on Stripe and for Plus on Buy Me a Coffee, Stripe’s sign-up and dashboard for creator payouts, your membership page, the support links and the Forum’s GitHub sign-in open there, under those sites’ own terms.',
+    'Your browser: payment for credits on Stripe and for the old membership on Buy Me a Coffee, Stripe’s sign-up and dashboard for creator payouts, your membership page, the support links and the Forum’s GitHub sign-in open there, under those sites’ own terms.',
 
   'terms.changes.title': 'Changes, and the fine print',
   'terms.changes.p1':
     'If these terms change, the new version appears here with its date, and the app tells you before it applies to you.',
   'terms.changes.p2':
-    'FluidEQ, Plus and credits are provided as they are, without warranties, as far as the law allows. The maker is not liable for more than you paid for Plus and credits in the last twelve months. Nothing here takes away the rights the law gives you as a consumer.',
+    'FluidEQ, the membership and credits are provided as they are, without warranties, as far as the law allows. The maker is not liable for more than you paid for the membership and credits in the last twelve months. Nothing here takes away the rights the law gives you as a consumer.',
 
   'terms.contact.title': 'Contact',
   'terms.contact.p1':

@@ -114,7 +114,7 @@ import './PaneResizer.scss';
 import './ColumnResizer.scss';
 import './StudioMaker.scss';
 import './StudioWork.scss';
-import './StudioDraft.scss';
+import './StudioStarter.scss';
 import './StudioChat.scss';
 import './StudioChatReply.scss';
 import './StudioChatComposer.scss';

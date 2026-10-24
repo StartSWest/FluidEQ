@@ -87,7 +87,7 @@ const account = {
   'account.error.alreadyRegistered':
     'Mit dieser Adresse gibt es bereits ein Konto. Melden Sie sich stattdessen an.',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks':
     'Szenen, die Ihnen für immer gehören, ein Credit pro Szene.',

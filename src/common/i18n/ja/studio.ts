@@ -137,9 +137,9 @@ const studio = {
   'studio.publish.goUpdate': '更新を公開',
   'studio.publish.agree': '同意して公開',
   'studio.publish.running': '公開中…',
-  'studio.publish.done': '{name} をギャラリーに公開しました。',
+  'studio.publish.done': '{name} をギャラリーに公開し、グラフに表示しました。',
   'studio.publish.updated':
-    'ギャラリーの {name} を新しいバージョンにしました。',
+    'ギャラリーの {name} を新しいバージョンにし、グラフにも反映しました。',
   'studio.publish.noPicture':
     '画像を撮影できませんでした。シーンを再生してから、もう一度お試しください。',
   'studio.publish.offline':
@@ -239,11 +239,7 @@ const studio = {
     '{name} はあなたのシーンです。表示に戻し、続きを作れるようにここで開きました。',
   'studio.import.unreadable': 'このファイルは FluidEQ のシーンではありません。',
   'studio.import.signedOut': 'シーンファイルを開くにはサインインしてください。',
-  'studio.draft.badge': '下書き',
-  'studio.draft.line': '公開すると全体を表示できます',
   'studio.new.signedOut': 'プロジェクトを始めるにはサインインしてください。',
-  'studio.notice.unpublished':
-    '先に公開してください。自分のシーンはギャラリーに載るとルックに追加されます。',
   'studio.import.changed':
     'このファイルはエクスポート後に変更されているため、FluidEQ では再生しません。',
   'studio.import.blocked': 'このシーンは公開停止になっています。',
@@ -564,9 +560,9 @@ const studio = {
   'studio.publish.agreeReview': '同意して審査に送る',
   'studio.publish.runningReview': '送信中…',
   'studio.publish.submitted':
-    '{name} を審査に送りました。承認されたらお知らせします。',
+    '{name} をグラフに表示し、審査に送りました。承認されたらお知らせします。',
   'studio.publish.submittedUpdate':
-    '{name} の新しいバージョンを審査に送りました。承認されるまで、全員が今のバージョンのままです。',
+    '{name} の新しいバージョンをグラフに表示し、審査に送りました。承認されるまで、ほかの人は今のバージョンのままです。',
   // The switch that lets the member's own AI look at the stage over MCP, and
   // its one-time setup. The assistants' names are theirs, in every language.
   'studio.agent.title': 'AI にステージを見せる',

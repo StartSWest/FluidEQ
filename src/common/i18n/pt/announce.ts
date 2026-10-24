@@ -12,7 +12,7 @@ const announce = {
   'announce.untitled': 'Novas cenas',
   'announce.tab': 'Anúncios',
   'announce.pageHint':
-    'Cada pessoa vê um anúncio uma vez, em tamanho grande, sobre o que estiver aberto. Membros cujo teste termina em até dois dias também veem uma linha sobre manter o Plus.',
+    'Cada pessoa vê um anúncio uma vez, em tamanho grande, sobre o que estiver aberto. Membros cujo teste termina em até dois dias também veem uma linha sobre manter a assinatura.',
   'announce.field.title': 'Título',
   'announce.field.titlePlaceholder': 'Por exemplo: Estrada noturna',
   'announce.field.body': 'O que é',
@@ -26,8 +26,8 @@ const announce = {
   'announce.field.audience': 'Quem vê',
   'announce.audience.everyone': 'Todos os que entraram',
   'announce.audience.everyoneLine':
-    'Membros Plus, testes e contas gratuitas. As contas gratuitas são levadas a Visualizadores para experimentar as cenas.',
-  'announce.audience.members': 'Membros Plus e testes',
+    'Membros, testes e contas gratuitas. As contas gratuitas são levadas a Visualizadores para experimentar as cenas.',
+  'announce.audience.members': 'Membros e testes',
   'announce.audience.membersLine': 'Todos que já podem reproduzir as cenas.',
   'announce.audience.trialEnding': 'Só testes que terminam em até 2 dias',
   'announce.audience.trialEndingLine':

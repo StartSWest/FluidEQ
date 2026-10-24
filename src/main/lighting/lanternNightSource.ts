@@ -1,11 +1,14 @@
 /**
- * The scene "New project" writes to scene.frag (its pack.json is
- * `starterScene.ts`). One string, because a shader has no seam to split at.
+ * The Dynamic lighting page's demo scene (its pack.json is
+ * `lanternNightScene.ts`). It was the Studio's starter until 2026-10-21, when
+ * a shorter scene written as a lesson took that place (`studioStarter.ts`);
+ * it stays here because it moves the lamps with every part of the music. One
+ * string, because a shader has no seam to split at.
  *
  * It is a template literal: no backtick, backslash or dollar-brace may
  * appear in it, and nothing outside plain ASCII, as in every member scene.
  */
-const STARTER_SOURCE = `// My first FluidEQ scene. Ask your AI to change anything in it.
+const LANTERN_NIGHT_SOURCE = `// Lantern night.
 //
 // Hanami at night: paper lanterns strung under cherry blossom, a pagoda on
 // the far shore of a pond, the moon, and petals on the air. Every part of the
@@ -777,4 +780,4 @@ vec4 sceneColour(vec2 uv) {
 }
 `;
 
-export default STARTER_SOURCE;
+export default LANTERN_NIGHT_SOURCE;

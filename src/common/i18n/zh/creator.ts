@@ -58,7 +58,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.stripe':
     'Stripe 会要求你提供身份、银行和税务信息，并向你展示其自身的条款。如果 Stripe 无法再向你付款，付款将停止。',
   'creator.terms.rights':
-    '场景中的所有内容都必须是你有权出售的。场景仍需审核，违反 Plus 条款的场景可能被下架。',
+    '场景中的所有内容都必须是你有权出售的。场景仍需审核，违反条款的场景可能被下架。',
   'creator.terms.taxes': '你的收益所涉及的税款，由你在居住地自行申报。',
   'creator.terms.changes':
     '这些条款可能会变更。变更会在应用内通知你，你需要接受新条款后才能再次收款。',

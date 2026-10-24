@@ -134,8 +134,9 @@ const studio = {
   'studio.publish.goUpdate': 'Опубликовать обновление',
   'studio.publish.agree': 'Принять и опубликовать',
   'studio.publish.running': 'Публикация…',
-  'studio.publish.done': '«{name}» теперь в галерее.',
-  'studio.publish.updated': 'В галерее новая версия «{name}».',
+  'studio.publish.done': '«{name}» теперь в галерее и на вашем графике.',
+  'studio.publish.updated':
+    'В галерее новая версия «{name}», и на вашем графике тоже.',
   'studio.publish.noPicture':
     'Не удалось сделать снимок. Дайте сцене поиграть и попробуйте снова.',
   'studio.publish.offline':
@@ -235,11 +236,7 @@ const studio = {
     '{name} — ваша сцена. Она снова в ваших оформлениях и открыта здесь, чтобы продолжить работу над ней.',
   'studio.import.unreadable': 'Этот файл — не сцена FluidEQ.',
   'studio.import.signedOut': 'Войдите, чтобы открыть файл сцены.',
-  'studio.draft.badge': 'Черновик',
-  'studio.draft.line': 'Опубликуйте, чтобы увидеть целиком',
   'studio.new.signedOut': 'Войдите, чтобы начать проект.',
-  'studio.notice.unpublished':
-    'Сначала опубликуйте: ваша сцена попадает в ваши образы, когда она есть в галерее.',
   'studio.import.changed':
     'Этот файл изменили после экспорта, поэтому FluidEQ не будет его воспроизводить.',
   'studio.import.blocked': 'Эта сцена удалена.',
@@ -559,9 +556,9 @@ const studio = {
   'studio.publish.agreeReview': 'Принять и отправить на проверку',
   'studio.publish.runningReview': 'Отправка…',
   'studio.publish.submitted':
-    '{name} отправлена на проверку. Вам сообщат, когда её одобрят.',
+    '{name} уже на вашем графике и отправлена на проверку. Вам сообщат, когда её одобрят.',
   'studio.publish.submittedUpdate':
-    'Новая версия {name} отправлена на проверку. У всех остаётся текущая версия, пока её не одобрят.',
+    'Новая версия {name} уже на вашем графике и отправлена на проверку. У остальных остаётся текущая версия, пока её не одобрят.',
   // The switch that lets the member's own AI look at the stage over MCP, and
   // its one-time setup. The assistants' names are theirs, in every language.
   'studio.agent.title': 'Дайте вашему ИИ видеть сцену',

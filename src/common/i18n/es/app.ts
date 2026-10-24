@@ -75,7 +75,7 @@ const app: Partial<Dictionary> = {
   'app.processes.place.studio': 'Escenario del Estudio',
   'app.processes.name.window': 'Interfaz',
   'app.processes.what.window':
-    'La ventana que estás viendo: la curva, la biblioteca, el reproductor, todos los controles. Un proceso por ventana, para que un redibujado pesado no frene el sonido. Los visualizadores de Plus funcionan dentro, en un hilo propio, para que una escena pesada no frene los controles.',
+    'La ventana que estás viendo: la curva, la biblioteca, el reproductor, todos los controles. Un proceso por ventana, para que un redibujado pesado no frene el sonido. Las escenas funcionan dentro, en un hilo propio, para que una escena pesada no frene los controles.',
   'app.processes.name.core': 'Núcleo de la app',
   'app.processes.what.core':
     'La parte que no tiene ventana. Guarda tus ajustes, habla con los dispositivos de audio y con el ecualizador del sistema, busca actualizaciones y arranca todo lo demás de esta lista.',
@@ -84,10 +84,10 @@ const app: Partial<Dictionary> = {
     'El motor propio de FluidEQ. Descodifica lo que reproduces y aplica el ecualizador sobre la marcha. Es un programa aparte, por eso Windows lo coloca lejos del resto.',
   'app.processes.name.graphics': 'Gráficos',
   'app.processes.what.graphics':
-    'Dibuja todo lo que hay en pantalla en la tarjeta gráfica: el espectro, la curva, cada animación y las escenas de los visualizadores de Plus. Trabaja siempre que algo se mueve; aquí no se ejecuta ningún modelo.',
+    'Dibuja todo lo que hay en pantalla en la tarjeta gráfica: el espectro, la curva, cada animación y las escenas. Trabaja siempre que algo se mueve; aquí no se ejecuta ningún modelo.',
   'app.processes.name.desktop': 'Visualizador de escritorio',
   'app.processes.what.desktop':
-    'Un visualizador de Plus dibujado como fondo de escritorio de un monitor, aparte de esta ventana: uno por cada monitor que lo muestra. Se pausa mientras las ventanas cubren ese monitor o el PC está bloqueado.',
+    'Una escena dibujada como fondo de escritorio de un monitor, aparte de esta ventana: una por cada monitor que la muestra. Se pausa mientras las ventanas cubren ese monitor o el PC está bloqueado.',
   'app.processes.name.desktopHost': 'Ayudante del visualizador de escritorio',
   'app.processes.what.desktopHost':
     'Coloca el visualizador de escritorio de ese monitor detrás de los iconos y le avisa cuando las ventanas cubren la pantalla. Uno por cada monitor que lo muestra.',
@@ -257,7 +257,7 @@ const app: Partial<Dictionary> = {
   'tabs.media': 'Multimedia en línea',
   'tabs.mediaShort': 'Multimedia',
   'tabs.karaoke': 'Karaoke',
-  'tabs.plus': 'Plus',
+  'tabs.plus': 'Visualizadores',
   'tabs.scrollBack': 'Desplazar pestañas atrás',
   'tabs.scrollForward': 'Desplazar pestañas adelante',
   'notice.apoReconfigured':

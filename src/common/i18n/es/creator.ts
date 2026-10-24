@@ -61,7 +61,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.stripe':
     'Stripe te pide tus datos de identidad, bancarios y fiscales y te muestra sus propios términos. Los pagos se detienen si Stripe ya no puede pagarte.',
   'creator.terms.rights':
-    'Todo lo que hay en tus escenas debe ser tuyo para venderlo. Las escenas se siguen revisando, y una que incumpla los términos de Plus puede retirarse.',
+    'Todo lo que hay en tus escenas debe ser tuyo para venderlo. Las escenas se siguen revisando, y una que incumpla las condiciones puede retirarse.',
   'creator.terms.taxes':
     'Los impuestos sobre lo que ganas te corresponde declararlos donde vives.',
   'creator.terms.changes':

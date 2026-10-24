@@ -85,7 +85,7 @@ const account = {
   'account.error.alreadyRegistered':
     'इस पते से पहले से एक खाता है। इसके बजाय साइन इन करें।',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': 'हमेशा के लिए आपके सीन, हर एक एक क्रेडिट का।',
   'account.perk.visualizers':

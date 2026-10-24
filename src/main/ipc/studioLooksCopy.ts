@@ -1,5 +1,4 @@
 import { ipcMain } from 'electron';
-import { memberLookId } from '../../common/memberScenes';
 import { readProject, type TProjectBuild } from '../memberScenes/project';
 import { keptRevisionOf, type IMemberSceneStore } from '../memberScenes/store';
 import type { IStudioLookCopy, TAddOutcome } from './studioProjectTypes';
@@ -7,8 +6,6 @@ import type { IStudioLookCopy, TAddOutcome } from './studioProjectTypes';
 interface IStudioLooksCopyDeps {
   store: IMemberSceneStore;
   accountId: () => string | undefined;
-  /** Whether the look would play here (`mayPlayLook`): published, for one's own. */
-  mayKeep: (lookId: string) => boolean;
   activeFolder: () => string | undefined;
   activeIsInspection: () => boolean;
   /** The looks changed: every list of them is told. */
@@ -32,7 +29,6 @@ interface IStudioLooksCopyDeps {
 const createStudioLooksCopy = ({
   store,
   accountId,
-  mayKeep,
   activeFolder,
   activeIsInspection,
   announceScenes,
@@ -92,12 +88,10 @@ const createStudioLooksCopy = ({
     if (!build.ok) {
       return { ok: false, reason: 'no-build' };
     }
-    // A draft plays on the Studio's stage and nowhere else, so it does not
-    // go into the looks until it is in the gallery (Ivan, 2026-10-18:
-    // "necesitan publicar para poder ver").
-    if (!mayKeep(memberLookId(me, build.pack.id))) {
-      return { ok: false, reason: 'unpublished' };
-    }
+    // A maker's own scene goes into their looks, and onto the graph, whether
+    // or not it is published: they try it there until it is done, and
+    // publish it to earn from it (Ivan, 2026-10-21: "no need to publish to
+    // run on grahp").
     try {
       // Whether the press added the look or brought one up to date, for
       // what the Studio says it did (Ivan, 2026-09-29: "add to my look need

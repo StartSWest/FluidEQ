@@ -2,10 +2,7 @@ import { useEffect } from 'react';
 import type { TranslationKey } from 'common/i18n/en';
 import { requestAccountPanel } from '../account/accountPanel';
 import { useAccount, useAccountKnown } from '../account/accountStore';
-import {
-  useEntitlement,
-  useEntitlementKnown,
-} from '../account/entitlementStore';
+import { useEntitlementKnown } from '../account/entitlementStore';
 import { useTranslation } from '../utils/I18nContext';
 import Avatar from './Avatar';
 import Glyph, { type TCommunityGlyph } from './Glyph';
@@ -86,12 +83,10 @@ export default function CommunityPanel({
   const { t, locale } = useTranslation();
   const account = useAccount();
   const accountKnown = useAccountKnown();
-  const entitlement = useEntitlement();
   const entitlementKnown = useEntitlementKnown();
   const { profile, loaded } = useProfile();
   const moderation = useModeration();
   const signedIn = account.status === 'signed-in';
-  const entitled = entitlement.state !== 'none';
   const { place: view } = usePlusNavigation();
   const pinned = usePlusRailPinned();
   const accountId = signedIn ? account.identity?.id : undefined;
@@ -265,11 +260,6 @@ export default function CommunityPanel({
                   {profile?.role === 'admin' && (
                     <span className="community__role community__role--admin">
                       {t('profile.role.admin')}
-                    </span>
-                  )}
-                  {profile?.role !== 'admin' && entitled && (
-                    <span className="community__role">
-                      {t('graph.scene.badge')}
                     </span>
                   )}
                 </span>

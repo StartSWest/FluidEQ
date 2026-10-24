@@ -12,7 +12,7 @@ const announce = {
   'announce.untitled': 'Nuove scene',
   'announce.tab': 'Annunci',
   'announce.pageHint':
-    'Ogni persona vede un annuncio una sola volta, in grande, sopra qualunque cosa abbia aperto. I membri la cui prova finisce entro due giorni vedono anche una riga su come tenere Plus.',
+    'Ogni persona vede un annuncio una sola volta, in grande, sopra qualunque cosa abbia aperto. I membri la cui prova finisce entro due giorni vedono anche una riga su come tenere l’abbonamento.',
   'announce.field.title': 'Titolo',
   'announce.field.titlePlaceholder': 'Per esempio: Guida notturna',
   'announce.field.body': 'Che cos’è',
@@ -26,8 +26,8 @@ const announce = {
   'announce.field.audience': 'Chi lo vede',
   'announce.audience.everyone': 'Tutti quelli che hanno effettuato l’accesso',
   'announce.audience.everyoneLine':
-    'Membri Plus, prove e account gratuiti. Gli account gratuiti vengono mandati in Visualizzatori per provare le scene.',
-  'announce.audience.members': 'Membri Plus e prove',
+    'Membri, prove e account gratuiti. Gli account gratuiti vengono mandati in Visualizzatori per provare le scene.',
+  'announce.audience.members': 'Membri e prove',
   'announce.audience.membersLine':
     'Tutti quelli che possono già riprodurre le scene.',
   'announce.audience.trialEnding': 'Solo prove che finiscono entro 2 giorni',

@@ -50,11 +50,13 @@ way a demanding art director would check you:
 - EVERY SHAPE, EVERY HOUR. Look at the widest and the narrowest panel, at
   silence and at a peak, at night and at full day. The subject stays where
   the eye goes and keeps its shape at every size.
-- THE FIRST VERSION IS NEVER THE ONE. After each look, write down for
-  yourself the three things a harsh critic would point at first - flatness,
-  a fake-looking part, motion that does not follow the music, a muddy
-  palette, a cut-off subject - fix them, and look again. Only then tell the
-  member it is done.
+- THE FIRST VERSION IS NEVER THE ONE. After the first full look at a new
+  scene, write down for yourself the three things a harsh critic would point
+  at first - flatness, a fake-looking part, motion that does not follow the
+  music, a muddy palette, a cut-off subject - fix them in one pass, and look
+  again at the pictures those fixes touch. Only then tell the member it is
+  done. A small change gets no such round: it is checked by the one picture
+  that shows it.
 - PICTURES WHEN DRAWING CANNOT GET THERE. Fur, faces, bark, foam, a
   photo-real creature: if make_picture is available, a painted texture or a
   cut-out lifts the scene from drawn to real. Anything the shader can draw

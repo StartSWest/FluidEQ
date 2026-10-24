@@ -3,7 +3,7 @@ const terms = {
   'terms.title': 'Bedingungen und Datenschutz',
   'terms.meta': 'Version {version} · Gültig seit {date}',
   'terms.intro':
-    'Diese Bedingungen gelten für Ihr FluidEQ-Konto: Credits und die Szenen, die Sie damit holen, Plus für die Mitglieder, die es noch haben, „Visualizer“, das Studio sowie die Szenen, die Sie teilen, und die Bezahlung dafür. Sie führen alles auf, was die App an den Dienst von FluidEQ sendet, wann es gesendet wird und wer es sehen kann, und gegen Ende jeden anderen Ort, mit dem FluidEQ sich verbindet.',
+    'Diese Bedingungen gelten für Ihr FluidEQ-Konto: Credits und die Szenen, die Sie damit holen, die frühere Plus-Mitgliedschaft für die Mitglieder, die sie noch haben, „Visualizer“, das Studio sowie die Szenen, die Sie teilen, und die Bezahlung dafür. Sie führen alles auf, was die App an den Dienst von FluidEQ sendet, wann es gesendet wird und wer es sehen kann, und gegen Ende jeden anderen Ort, mit dem FluidEQ sich verbindet.',
   'terms.link': 'Bedingungen und Datenschutz',
 
   'terms.short.title': 'Die Kurzfassung',
@@ -18,15 +18,15 @@ const terms = {
   'terms.short.music.body':
     'Der Dienst von FluidEQ erhält niemals Ihr Audio, Ihre Titelnamen oder Ihren EQ.',
 
-  'terms.membership.title': 'Plus',
+  'terms.membership.title': 'Die frühere Plus-Mitgliedschaft',
   'terms.membership.p1':
-    'Plus war eine Mitgliedschaft und wird nicht mehr verkauft: An ihre Stelle sind Credits getreten. Eine Mitgliedschaft, die bereits läuft, spielt weiter jede Szene aus „Visualizer“ ab und fügt sie hinzu, mit den Plus-Darstellungen und Szenen auf Ihrem Desktop und Ihrer RGB-Beleuchtung, bis FluidEQ seine Mitglieder auf Credits umstellt. An diesem Tag gehört jede Szene, die ein Mitglied hinzugefügt hat, ihm für immer, und jedes Konto, das für Plus bezahlt hat, erhält mindestens {moveCredits} Credits. Neue Gratis-Testphasen werden nicht mehr angeboten; eine Szene, die der Macher von FluidEQ vor diesem Tag freigibt, kann Ihnen noch einen Monat Plus einbringen. Ohne Plus sieht ein Konto jede Szene {tasteSeconds} Sekunden lang, holt Szenen mit Credits und erstellt, exportiert und veröffentlicht Szenen im Studio.',
+    'Plus war eine Mitgliedschaft und wird nicht mehr verkauft: An ihre Stelle sind Credits getreten. Eine Mitgliedschaft, die bereits läuft, spielt weiter jede Szene aus „Visualizer“ ab und fügt sie hinzu, mit FluidEQs eigenen Szenen und Szenen auf Ihrem Desktop und Ihrer RGB-Beleuchtung, bis FluidEQ seine Mitglieder auf Credits umstellt. An diesem Tag gehört jede Szene, die ein Mitglied hinzugefügt hat, ihm für immer, und jedes Konto, das für Plus bezahlt hat, erhält mindestens {moveCredits} Credits. Neue Gratis-Testphasen werden nicht mehr angeboten; eine Szene, die der Macher von FluidEQ vor diesem Tag freigibt, kann Ihnen noch einen Monat Mitgliedschaft einbringen. Ohne sie sieht ein Konto jede Szene {tasteSeconds} Sekunden lang, holt Szenen mit Credits und erstellt, exportiert und veröffentlicht Szenen im Studio.',
   'terms.membership.p2':
-    'Plus wurde über Buy Me a Coffee bezahlt, zu dessen eigenen Bedingungen, und FluidEQ hat Ihre Karten- oder Bankdaten nie gesehen. Eine Mitgliedschaft, für die Sie noch zahlen, können Sie jederzeit bei Buy Me a Coffee kündigen: Plus bleibt bis zum Ende des bezahlten Zeitraums aktiv, und es wird nichts mehr abgebucht. Alles, was Buy Me a Coffee für Plus abbucht, nachdem FluidEQ seine Mitglieder auf Credits umgestellt hat, wird erstattet.',
+    'Plus wurde über Buy Me a Coffee bezahlt, zu dessen eigenen Bedingungen, und FluidEQ hat Ihre Karten- oder Bankdaten nie gesehen. Eine Mitgliedschaft, für die Sie noch zahlen, können Sie jederzeit bei Buy Me a Coffee kündigen: Sie bleibt bis zum Ende des bezahlten Zeitraums aktiv, und es wird nichts mehr abgebucht. Alles, was Buy Me a Coffee dafür abbucht, nachdem FluidEQ seine Mitglieder auf Credits umgestellt hat, wird erstattet.',
   'terms.membership.p4':
-    'Endet eine Mitgliedschaft, werden die Plus-Darstellungen und die Szenen von Mitgliedern wieder gesperrt — außer denen, die Ihnen gehören, denen, die FluidEQ kostenlos gemacht hat, und Ihren eigenen veröffentlichten Szenen —, und FluidEQ kehrt zu seinen kostenlosen Darstellungen zurück; nichts, was Sie erstellt haben, wird gelöscht. Ohne Verbindung funktioniert eine bezahlte Mitgliedschaft bis zum Ende des bezahlten Zeitraums weiter, und bis zu {graceDays} Tage danach, wenn die App eine Verlängerung nicht bestätigen konnte. Eine Gratis-Testphase, ein Geschenk und ein durch Veröffentlichen verdienter Monat enden an ihrem eigenen Datum, ohne Kulanzzeit danach.',
+    'Endet eine Mitgliedschaft, werden FluidEQs Szenen und die Szenen von Mitgliedern wieder gesperrt — außer denen, die Ihnen gehören, denen, die FluidEQ kostenlos gemacht hat, und Ihren eigenen veröffentlichten Szenen —, und FluidEQ kehrt zu seinen kostenlosen Darstellungen zurück; nichts, was Sie erstellt haben, wird gelöscht. Ohne Verbindung funktioniert eine bezahlte Mitgliedschaft bis zum Ende des bezahlten Zeitraums weiter, und bis zu {graceDays} Tage danach, wenn die App eine Verlängerung nicht bestätigen konnte. Eine Gratis-Testphase, ein Geschenk und ein durch Veröffentlichen verdienter Monat enden an ihrem eigenen Datum, ohne Kulanzzeit danach.',
   'terms.membership.p5':
-    'Bis zu diesem Tag funktioniert ein Plus-Geschenk des Machers an eine E-Mail-Adresse genauso: Es wird aktiv, sobald ein Konto diese Adresse bestätigt, und gilt bis zum Enddatum, das der Macher gewählt hat, falls es eines gibt, oder bis der Macher es zurücknimmt.',
+    'Bis zu diesem Tag funktioniert ein Geschenk des Machers an eine E-Mail-Adresse wie eine Mitgliedschaft: Es wird aktiv, sobald ein Konto diese Adresse bestätigt, und gilt bis zum Enddatum, das der Macher gewählt hat, falls es eines gibt, oder bis der Macher es zurücknimmt.',
 
   'terms.account.title': 'Ihr Konto',
   'terms.account.p1':
@@ -73,7 +73,7 @@ const terms = {
     'Nichts wird gespeichert. Jede Darstellung ist signiert, und Ihr Computer prüft die Signatur, bevor er sie abspielt.',
   'terms.sent.catalogue.what': 'Nichts über Sie',
   'terms.sent.catalogue.when':
-    'Beim Start von FluidEQ, höchstens alle paar Stunden, um zu zeigen, welche Plus-Darstellungen es gibt, mit oder ohne Konto',
+    'Beim Start von FluidEQ, höchstens alle paar Stunden, um zu zeigen, welche Szenen von FluidEQ es gibt, mit oder ohne Konto',
   'terms.sent.catalogue.who':
     'Nichts wird gespeichert. Die Anfrage holt nur die öffentliche Liste der Darstellungen.',
   'terms.sent.profile.what': 'Das Kürzel und der Anzeigename, die Sie wählen',
@@ -92,15 +92,15 @@ const terms = {
   'terms.sent.sceneLike.who':
     'Ihr „Gefällt mir“ wird bei Ihrem Konto gespeichert. Mitglieder sehen, wie viele „Gefällt mir“ eine Szene hat, nie, von wem. Wie lange jede Szene auf dem Bildschirm ist, steht in der nächsten Zeile.',
   'terms.sent.sceneTime.what':
-    'Wie lange jede Plus-Szene auf Ihrem Bildschirm war: eine Zahl von Sekunden pro Szene und Tag, mit der Szene und dem Datum',
+    'Wie lange jede Szene auf Ihrem Bildschirm war: eine Zahl von Sekunden pro Szene und Tag, mit der Szene und dem Datum',
   'terms.sent.sceneTime.when':
-    'Solange Sie Plus haben, sobald Ihnen diese Version dieser Bedingungen angezeigt wurde: beim Start von FluidEQ, wenn Sie an den Computer zurückkehren, und höchstens einmal pro Stunde, während eine Szene läuft',
+    'Solange Sie eine Mitgliedschaft haben, sobald Ihnen diese Version dieser Bedingungen angezeigt wurde: beim Start von FluidEQ, wenn Sie an den Computer zurückkehren, und höchstens einmal pro Stunde, während eine Szene läuft',
   'terms.sent.sceneTime.who':
     'Nur der Macher von FluidEQ, mit Ihrem Konto, um zu erfahren, welche Szenen Mitgliedern gefallen, und mehr davon zu machen. Mitglieder sehen es nie. Ihr Computer behält die letzten {windowDays} Tage.',
   'terms.sent.engine.what':
     'Welche Audio-Engine Sie gewählt haben: die FluidEQ-Engine oder Equalizer APO',
   'terms.sent.engine.when':
-    'Solange Sie Plus haben, sobald Ihnen diese Version dieser Bedingungen angezeigt wurde: beim Start von FluidEQ, wenn Sie an den Computer zurückkehren, und wenn Sie die Engine wechseln',
+    'Solange Sie eine Mitgliedschaft haben, sobald Ihnen diese Version dieser Bedingungen angezeigt wurde: beim Start von FluidEQ, wenn Sie an den Computer zurückkehren, und wenn Sie die Engine wechseln',
   'terms.sent.engine.who':
     'Nur der Macher von FluidEQ, mit Ihrem Konto, um zu wissen, an welcher Engine er arbeiten soll. Nur die letzte Angabe wird gespeichert.',
   'terms.sent.announcements.what':
@@ -114,7 +114,7 @@ const terms = {
   'terms.sent.scenePublish.when':
     'Wenn Sie im Studio auf „Veröffentlichen“ klicken',
   'terms.sent.scenePublish.who':
-    'Sobald der Macher von FluidEQ sie freigibt, sehen unter „Visualizer“, bis Sie sie zurückziehen, alle bei FluidEQ Angemeldeten ihr Bild, ihren Namen, ihre Kategorien, Versionsnotizen, „Gefällt mir“-Angaben und Hinzufügungen, mit Ihrem Anzeigenamen, Kürzel und Ihrer Macherseite, und können sie {tasteSeconds} Sekunden lang ansehen. Mitglieder, denen sie gehört — mit einem Credit geholt oder mit Plus —, spielen sie ab und fügen sie hinzu. Der Macher von FluidEQ speichert die Szene und den Nachweis, dass Sie sie veröffentlicht haben, wie bei einem Export.',
+    'Sobald der Macher von FluidEQ sie freigibt, sehen unter „Visualizer“, bis Sie sie zurückziehen, alle bei FluidEQ Angemeldeten ihr Bild, ihren Namen, ihre Kategorien, Versionsnotizen, „Gefällt mir“-Angaben und Hinzufügungen, mit Ihrem Anzeigenamen, Kürzel und Ihrer Macherseite, und können sie {tasteSeconds} Sekunden lang ansehen. Mitglieder, denen sie gehört — mit einem Credit geholt oder mit einer Mitgliedschaft —, spielen sie ab und fügen sie hinzu. Der Macher von FluidEQ speichert die Szene und den Nachweis, dass Sie sie veröffentlicht haben, wie bei einem Export.',
   'terms.sent.gallery.what':
     'Unter „Visualizer“: wonach Sie suchen, welche Szenen und Ersteller Sie öffnen, welche Szenen Sie hinzufügen, und jede Szene, die Sie melden, mit dem Grund',
   'terms.sent.gallery.when':
@@ -148,7 +148,7 @@ const terms = {
   'terms.protect.p4':
     'Der Macher betreibt den Dienst und kann sehen, was er speichert, um ihn am Laufen zu halten, Zahlungen zuzuordnen und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft oder für Werbung genutzt. Die einzigen Statistiken sind die, die diese Seite aufführt – wie lange Menschen hören, welche Szenen Mitglieder ansehen und welche Engine sie nutzen –, und nur der Macher liest sie.',
   'terms.protect.p5':
-    'Der Dienst läuft auf Supabase (Anmeldung, Datenbank und Dateien) und versendet E-Mails über Resend; Credits werden über Stripe bezahlt, das auch die Ersteller auszahlt, Plus über Buy Me a Coffee, und das Forum läuft über GitHub. Jeder erhält nur, was sein Teil braucht.',
+    'Der Dienst läuft auf Supabase (Anmeldung, Datenbank und Dateien) und versendet E-Mails über Resend; Credits werden über Stripe bezahlt, das auch die Ersteller auszahlt, die frühere Mitgliedschaft über Buy Me a Coffee, und das Forum läuft über GitHub. Jeder erhält nur, was sein Teil braucht.',
   'terms.protect.p6':
     'FluidEQ speichert keine IP-Adressen. Supabase protokolliert die Adresse jeder Anfrage in kurzlebigen Logs und speichert die Adresse und Angaben zur App jedes angemeldeten Computers bei der Sitzung dieses Computers und im eigenen Sicherheitsprotokoll für Anmeldungen von Supabase, damit die Anmeldung funktioniert und sicher bleibt.',
   'terms.protect.p7':
@@ -170,15 +170,15 @@ const terms = {
   'terms.keep.p3':
     'Mitgliedschaft: Ihre Zahlungs-E-Mail, der Status und die IDs von Buy Me a Coffee für Ihre Mitgliedschaft werden gespeichert, um Zahlungen Ihrem Konto zuzuordnen, und mit ihm gelöscht. Der Eintrag zu jedem Zahlungsereignis enthält nur die IDs von Buy Me a Coffee und den Zeitpunkt.',
   'terms.keep.p4':
-    'Ihr Konto: Beantragen Sie die Löschung, und es ist innerhalb von {deletionDays} Tagen gelöscht, zusammen mit Ihrem Profil, Ihren Credits, den Szenen, die Ihnen gehören, der Mitgliedschaft, Gratis-Testphasen und verdienten Monaten, Zustimmungen, „Gefällt mir“-Angaben, Hinzufügungen, Meldungen und den Szenen, die Sie veröffentlicht haben, mit ihren Dateien. Credits, die auf einem gelöschten Konto übrig sind, verfallen mit ihm. Ein Plus-Geschenk an Ihre E-Mail-Adresse bleibt, bis der Macher es entfernt.',
+    'Ihr Konto: Beantragen Sie die Löschung, und es ist innerhalb von {deletionDays} Tagen gelöscht, zusammen mit Ihrem Profil, Ihren Credits, den Szenen, die Ihnen gehören, der Mitgliedschaft, Gratis-Testphasen und verdienten Monaten, Zustimmungen, „Gefällt mir“-Angaben, Hinzufügungen, Meldungen und den Szenen, die Sie veröffentlicht haben, mit ihren Dateien. Credits, die auf einem gelöschten Konto übrig sind, verfallen mit ihm. Ein Geschenk an Ihre E-Mail-Adresse bleibt, bis der Macher es entfernt.',
   'terms.keep.p5':
     'Szenen: Das Zurückziehen entfernt eine Szene samt Bild, Datei und Versionsverlauf aus „Visualizer“. „Gefällt mir“, Hinzufügungen und Meldungen dazu bleiben, bis die Konten, von denen sie stammen, gelöscht werden, und zählen wieder, wenn Sie die Szene erneut veröffentlichen. Von einer wegen Verstoßes gegen diese Bedingungen gesperrten Szene bleibt ein Fingerabdruck aus Ihrer Konto-ID und der ID der Szene gespeichert, mit Grund und Datum, damit sie gesperrt bleibt.',
   'terms.keep.p6':
-    'Auf Ihrem Computer: die Plus-Darstellungen und die Szenen, die Sie hinzugefügt haben, verschlüsselt; Ihre Credits und die Szenen, die Ihnen gehören, verschlüsselt; Galeriebilder, bis zu 128 MB; und die Liste der gesperrten Szenen. Sie bleiben, bis Sie sie entfernen oder FluidEQ deinstallieren.',
+    'Auf Ihrem Computer: FluidEQs Szenen und die Szenen, die Sie hinzugefügt haben, verschlüsselt; Ihre Credits und die Szenen, die Ihnen gehören, verschlüsselt; Galeriebilder, bis zu 128 MB; und die Liste der gesperrten Szenen. Sie bleiben, bis Sie sie entfernen oder FluidEQ deinstallieren.',
 
-  'terms.looks.title': 'Die Plus-Darstellungen',
+  'terms.looks.title': 'FluidEQs eigene Szenen',
   'terms.looks.p1':
-    'Die Plus-Darstellungen sind die eigene Arbeit des Machers und werden Ihnen zur persönlichen Nutzung lizenziert, solange Sie Mitglied sind, oder für immer, sobald Ihnen eine gehört — mit einem Credit geholt oder kostenlos gemacht. Bitte kopieren, teilen oder verkaufen Sie sie nicht weiter.',
+    'FluidEQs eigene Szenen sind die eigene Arbeit des Machers und werden Ihnen zur persönlichen Nutzung lizenziert, solange Sie Mitglied sind, oder für immer, sobald Ihnen eine gehört — mit einem Credit geholt oder kostenlos gemacht. Bitte kopieren, teilen oder verkaufen Sie sie nicht weiter.',
   'terms.looks.p2':
     'Wenn Ihnen eine von FluidEQs eigenen Szenen gehört, können Sie sie im Studio öffnen, um hineinzuschauen und Ideen zu sammeln. Eine so geöffnete Kopie lässt sich weder zu Ihren Darstellungen hinzufügen noch exportieren oder veröffentlichen.',
   'terms.looks.p3':
@@ -190,17 +190,17 @@ const terms = {
   'terms.scenes.p2':
     'Ihre Studio-Szenen bleiben auf Ihrem Computer, sofern Sie sie nicht exportieren, veröffentlichen oder mit einem anderen Werkzeug wie Ihrem KI-Assistenten teilen.',
   'terms.scenes.p3':
-    'Wenn Sie eine Szene exportieren, erlauben Sie FluidEQ, sie zu prüfen — auch im Vergleich mit FluidEQs eigenen Szenen —, die Kommentare aus ihrem Code zu entfernen und sie mit Ihrem Anzeigenamen und Ihrer Konto-ID zu signieren, damit andere Mitglieder, denen sie gehört, sie abspielen und sehen können, dass Sie sie erstellt haben. Das ist die ganze Erlaubnis: Der Macher von FluidEQ verkauft Ihre Szene nicht, nutzt sie nicht für Werbung, macht sie nicht ohne Ihre vorherige Zustimmung zu einer der Plus-Darstellungen und hindert Sie an nichts anderem, was Sie mit Ihrer eigenen Arbeit tun möchten.',
+    'Wenn Sie eine Szene exportieren, erlauben Sie FluidEQ, sie zu prüfen — auch im Vergleich mit FluidEQs eigenen Szenen —, die Kommentare aus ihrem Code zu entfernen und sie mit Ihrem Anzeigenamen und Ihrer Konto-ID zu signieren, damit andere Mitglieder, denen sie gehört, sie abspielen und sehen können, dass Sie sie erstellt haben. Das ist die ganze Erlaubnis: Der Macher von FluidEQ verkauft Ihre Szene nicht, nutzt sie nicht für Werbung, macht sie nicht ohne Ihre vorherige Zustimmung zu einer von FluidEQs eigenen Szenen und hindert Sie an nichts anderem, was Sie mit Ihrer eigenen Arbeit tun möchten.',
   'terms.scenes.p4':
-    'Wenn ein Konto eine Ihrer Szenen mit einem Credit aus einem bezahlten Paket holt, verdienen Sie daran: sobald Sie Auszahlungen im Kontobereich eingerichtet haben, Geld, nach den Bedingungen für Ersteller unter „Für Ihre Szenen bezahlt werden“; bis dahin, oder wo Stripe Sie nicht bezahlen kann, einen Credit — Guthaben zum Holen von Szenen, nie Bargeld. Eine mit einem kostenlosen Credit geholte Szene bringt nichts ein. Und solange FluidEQ Plus anbietet, bringt Ihnen eine Ihrer Szenen, die der Macher von FluidEQ freigibt, einen Monat davon ein.',
+    'Wenn ein Konto eine Ihrer Szenen mit einem Credit aus einem bezahlten Paket holt, verdienen Sie daran: sobald Sie Auszahlungen im Kontobereich eingerichtet haben, Geld, nach den Bedingungen für Ersteller unter „Für Ihre Szenen bezahlt werden“; bis dahin, oder wo Stripe Sie nicht bezahlen kann, einen Credit — Guthaben zum Holen von Szenen, nie Bargeld. Eine mit einem kostenlosen Credit geholte Szene bringt nichts ein. Und bis FluidEQ seine Mitglieder auf Credits umstellt, bringt Ihnen eine Ihrer Szenen, die der Macher von FluidEQ freigibt, einen Monat Mitgliedschaft ein.',
   'terms.scenes.p6':
     'Teilen Sie nur, was Sie teilen dürfen: Ihre eigenen Fotos, Zeichnungen und 3D-Modelle oder solche, deren Urheber es erlaubt. Die Regeln für das, was Sie veröffentlichen, gelten für jede Szene, die Sie teilen. Der Macher von FluidEQ kann verhindern, dass sich eine Szene öffnet, wenn sie gegen diese Bedingungen oder die Rechte anderer verstößt.',
   'terms.scenes.p7':
-    'Eine Szene, die ein anderes Mitglied teilt, ist dessen Werk und wird Ihnen zur persönlichen Nutzung lizenziert, solange sie Ihnen gehört — für immer, wenn Sie sie mit einem Credit geholt haben — oder solange Sie Plus haben. Sie können sie abspielen, mit „Gefällt mir“ markieren und die Datei unverändert weitergeben; für andere läuft sie erst, wenn sie ihnen gehört. Bitte ändern Sie sie nicht, geben Sie sie nicht als Ihre aus, veröffentlichen Sie sie nirgendwo anders und verkaufen Sie sie nicht.',
+    'Eine Szene, die ein anderes Mitglied teilt, ist dessen Werk und wird Ihnen zur persönlichen Nutzung lizenziert, solange sie Ihnen gehört — für immer, wenn Sie sie mit einem Credit geholt haben — oder solange Sie eine Mitgliedschaft haben. Sie können sie abspielen, mit „Gefällt mir“ markieren und die Datei unverändert weitergeben; für andere läuft sie erst, wenn sie ihnen gehört. Bitte ändern Sie sie nicht, geben Sie sie nicht als Ihre aus, veröffentlichen Sie sie nirgendwo anders und verkaufen Sie sie nicht.',
   'terms.scenes.p8':
     'Eine Datei, die Sie verschickt haben, bleibt bei dem, der sie hat, und das Zurückziehen nimmt Kopien, die Mitglieder bereits geholt haben, nicht zurück; sie bleiben zur persönlichen Nutzung lizenziert, solange sie diesen Mitgliedern gehören. Wenn eine Szene sich nirgends mehr öffnen soll, bitten Sie den Macher von FluidEQ darum, der sie genauso sperren kann wie eine Szene, die gegen die Regeln verstößt.',
   'terms.scenes.p9':
-    'Wenn Sie eine Szene unter „Visualizer“ veröffentlichen, erlauben Sie außerdem dem Macher von FluidEQ, sie zu lesen, bevor jemand anderes sie sieht, und FluidEQ, sie dort zu speichern, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorien und Versionsnotizen mit Ihrem Anzeigenamen und Ihrem Kürzel allen bei FluidEQ Angemeldeten zu zeigen, sie {tasteSeconds} Sekunden lang ansehen zu lassen und Mitgliedern zu erlauben, sie mit einem Credit zu holen oder mit Plus abzuspielen. Die Ambiente-Elemente, die Sie ihr mitgeben, werden mit ihr weitergegeben, und Mitglieder, die den Modus „Ambiente“ wählen, sehen sie rund um ihr Fenster. Sie können sie jederzeit zurückziehen.',
+    'Wenn Sie eine Szene unter „Visualizer“ veröffentlichen, erlauben Sie außerdem dem Macher von FluidEQ, sie zu lesen, bevor jemand anderes sie sieht, und FluidEQ, sie dort zu speichern, bis Sie sie zurückziehen, ihr Bild, ihren Namen, ihre Kategorien und Versionsnotizen mit Ihrem Anzeigenamen und Ihrem Kürzel allen bei FluidEQ Angemeldeten zu zeigen, sie {tasteSeconds} Sekunden lang ansehen zu lassen und Mitgliedern zu erlauben, sie mit einem Credit zu holen oder mit einer Mitgliedschaft abzuspielen. Die Ambiente-Elemente, die Sie ihr mitgeben, werden mit ihr weitergegeben, und Mitglieder, die den Modus „Ambiente“ wählen, sehen sie rund um ihr Fenster. Sie können sie jederzeit zurückziehen.',
   'terms.scenes.p10':
     'Veröffentlichen ist freiwillig und etwas anderes, als eine Datei zu exportieren. Eine Versionsnotiz ist öffentlich wie die Szene, zu der sie gehört.',
 
@@ -224,13 +224,13 @@ const terms = {
   'terms.elsewhere.p7':
     'Beleuchtung und Desktophintergründe: Die Beleuchtung kommuniziert nur mit Razer Chroma und Windows auf diesem Computer, und Desktophintergründe gehen nie online.',
   'terms.elsewhere.p8':
-    'Ihr Browser: Die Zahlung für Credits bei Stripe und für Plus bei Buy Me a Coffee, die Anmeldung und das Dashboard von Stripe für Auszahlungen an Ersteller, Ihre Mitgliedschaftsseite, die Support-Links und die GitHub-Anmeldung des Forums öffnen sich dort, unter den Bedingungen dieser Seiten.',
+    'Ihr Browser: Die Zahlung für Credits bei Stripe und für die frühere Mitgliedschaft bei Buy Me a Coffee, die Anmeldung und das Dashboard von Stripe für Auszahlungen an Ersteller, Ihre Mitgliedschaftsseite, die Support-Links und die GitHub-Anmeldung des Forums öffnen sich dort, unter den Bedingungen dieser Seiten.',
 
   'terms.changes.title': 'Änderungen, und das Kleingedruckte',
   'terms.changes.p1':
     'Ändern sich diese Bedingungen, erscheint die neue Version hier mit ihrem Datum, und die App sagt es Ihnen, bevor sie für Sie gilt.',
   'terms.changes.p2':
-    'FluidEQ, Plus und Credits werden so bereitgestellt, wie sie sind, ohne Gewährleistung, soweit das Gesetz es erlaubt. Der Macher haftet höchstens bis zu dem Betrag, den Sie in den letzten zwölf Monaten für Plus und für Credits bezahlt haben. Nichts hiervon nimmt Ihnen die Rechte, die Ihnen das Gesetz als Verbraucher gibt.',
+    'FluidEQ, die Mitgliedschaft und Credits werden so bereitgestellt, wie sie sind, ohne Gewährleistung, soweit das Gesetz es erlaubt. Der Macher haftet höchstens bis zu dem Betrag, den Sie in den letzten zwölf Monaten für die Mitgliedschaft und für Credits bezahlt haben. Nichts hiervon nimmt Ihnen die Rechte, die Ihnen das Gesetz als Verbraucher gibt.',
 
   'terms.contact.title': 'Kontakt',
   'terms.contact.p1':

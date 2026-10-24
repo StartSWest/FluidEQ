@@ -17,9 +17,9 @@ import type { IProjectList } from './studioProjects';
  * published). It used to be Plus's, with one project kept by a maker whose
  * earned month ran out; both rules went with the subscription.
  *
- * What a scene made here may do outside the Studio is not decided here: a
- * draft plays on the Studio's stage alone, and a published one wherever its
- * maker likes (`common/sceneStore.ts`, `mayPlayLook`). Being signed in is
+ * What a scene made here may do outside the Studio is not decided here: its
+ * maker plays it wherever they like, published or not (`common/sceneStore.ts`,
+ * `mayPlayLook`). Being signed in is
  * still needed — a project is kept under the account, and publishing and
  * exporting are signed by the server for one.
  *

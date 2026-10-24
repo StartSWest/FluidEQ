@@ -13,7 +13,7 @@ const announce = {
   'announce.untitled': '新しいシーン',
   'announce.tab': 'お知らせ',
   'announce.pageHint':
-    'お知らせは、開いている画面の上に大きく、1人につき1回だけ表示されます。無料体験が2日以内に終わるメンバーには、Plus を続ける案内も1行表示されます。',
+    'お知らせは、開いている画面の上に大きく、1人につき1回だけ表示されます。無料体験が2日以内に終わるメンバーには、メンバーシップを続ける案内も1行表示されます。',
   'announce.field.title': 'タイトル',
   'announce.field.titlePlaceholder': '例：ナイトドライブ',
   'announce.field.body': '内容',
@@ -27,8 +27,8 @@ const announce = {
   'announce.field.audience': '表示する相手',
   'announce.audience.everyone': 'サインインしている全員',
   'announce.audience.everyoneLine':
-    'Plus メンバー、無料体験中の人、無料アカウント。無料アカウントは、シーンを試せるようビジュアライザーに案内されます。',
-  'announce.audience.members': 'Plus メンバーと無料体験中の人',
+    'メンバー、無料体験中の人、無料アカウント。無料アカウントは、シーンを試せるようビジュアライザーに案内されます。',
+  'announce.audience.members': 'メンバーと無料体験中の人',
   'announce.audience.membersLine': '今すぐシーンを再生できる全員。',
   'announce.audience.trialEnding': '2日以内に終わる無料体験のみ',
   'announce.audience.trialEndingLine':

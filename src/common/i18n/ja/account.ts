@@ -85,7 +85,7 @@ const account = {
   'account.error.alreadyRegistered':
     'このアドレスのアカウントはすでにあります。代わりにサインインしてください。',
 
-  'account.plus.eyebrow': 'FluidEQ Plus',
+  'account.plus.eyebrow': 'FluidEQ',
 
   'account.perk.looks': '永久にあなたのものになるシーン。1シーン1クレジット。',
   'account.perk.visualizers':

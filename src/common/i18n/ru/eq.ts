@@ -166,7 +166,7 @@ const eq: Partial<Dictionary> = {
   'graph.sceneTint.brightness': 'Яркость',
   'graph.sceneTint.rainbow': 'Режим «Радуга»',
   'graph.sceneTint.rainbowHint':
-    'Полосы, заголовок и включённые элементы — палитрой вместо одного цвета; с визуализатором Plus — его собственными цветами.',
+    'Полосы, заголовок и включённые элементы — палитрой вместо одного цвета; с выбранной сценой — её собственными цветами.',
   'graph.sceneTint.sparks': 'Искры от указателя',
   'graph.sceneTint.sparksHint':
     'То, что визуализатор бросает от мыши: след, когда она проходит над картинкой, и всплеск там, где вы щёлкнете, — искры, лепестки, снег, из чего сделана сцена.',
@@ -197,7 +197,7 @@ const eq: Partial<Dictionary> = {
   'graph.member.likeOffline': 'Для лайков нужно подключение',
   // The product name of the tier, so it is not translated: the same word
   // appears on the checkout and on the Account panel.
-  'graph.scene.badge': 'Plus',
+  'graph.scene.badge': 'Сцена',
   'graph.scene.report': 'Пожаловаться на {name}',
   'graph.version.new': 'Новое',
   'graph.version.caption': 'v{version} · {note}',
@@ -267,13 +267,13 @@ const eq: Partial<Dictionary> = {
   'graph.scene.gpu.high': 'Высокая производительность',
   'graph.scene.gpu.restart': 'после перезапуска',
   'graph.scene.locked':
-    'Входит в FluidEQ Plus. Выберите, чтобы узнать, как открыть доступ.',
+    'Пока не ваша. Выберите, чтобы узнать, как её получить.',
   'graph.style.next': 'Следующий стиль',
   'graph.style.previous': 'Предыдущий стиль',
   'graph.picker.label': 'Стили и визуализаторы',
   'graph.picker.search': 'Поиск стилей и визуализаторов',
   'graph.picker.styles': 'Стили',
-  'graph.picker.plus': 'Визуализаторы Plus',
+  'graph.picker.plus': 'Визуализаторы',
   'graph.picker.all': 'Все',
   'graph.picker.yours': 'Ваши',
   'graph.picker.filterStyles': 'Фильтр стилей',

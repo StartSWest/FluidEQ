@@ -279,7 +279,15 @@ const registerMemberServices = ({
     activeIsInspection: memberScenesIpc.activeIsInspection,
     mayPublishActive: memberScenesIpc.mayUseActive,
     onTermsAgreed: plusTermsNoticeIpc.agreed,
-    onPublished: () => {
+    onPublished: (author, pack) => {
+      memberScenesIpc.keepPublished(author, pack);
+      // The scene is the author's to play now: the store says so, the
+      // Studio's draft mark goes and the graph may show it.
+      sceneOwnership
+        .refreshNow()
+        .catch((error) =>
+          log.warn('Scene store refresh after publication failed', error),
+        );
       plusGalleryIpc
         .refreshIfDue(true)
         .catch((error) =>

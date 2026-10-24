@@ -64,7 +64,7 @@ const creator: Partial<Dictionary> = {
   'creator.terms.stripe':
     'Stripe fragt nach Ihren Identitäts-, Bank- und Steuerdaten und zeigt Ihnen seine eigenen Bedingungen. Auszahlungen enden, wenn Stripe Sie nicht mehr bezahlen kann.',
   'creator.terms.rights':
-    'Alles in Ihren Szenen muss Ihnen gehören, damit Sie es verkaufen dürfen. Szenen werden weiterhin geprüft, und eine, die gegen die Plus-Bedingungen verstößt, kann entfernt werden.',
+    'Alles in Ihren Szenen muss Ihnen gehören, damit Sie es verkaufen dürfen. Szenen werden weiterhin geprüft, und eine, die gegen die Bedingungen verstößt, kann entfernt werden.',
   'creator.terms.taxes':
     'Steuern auf Ihre Einnahmen müssen Sie dort angeben, wo Sie leben.',
   'creator.terms.changes':
