@@ -23,28 +23,44 @@ const useGroupMediaTransport = (
   const last = useLastTransportOwner();
   const local = pickSourceForRemote(sources, owner, last);
   const bridge = window.electron?.ipcRenderer;
-  const peers = links.filter((link) => !linkPaused(link));
+  // A reconnect can briefly expose both the old and new socket. Route one
+  // command per lasting computer, using its newest connection, or Next can
+  // skip two tracks. Preserve its description until the new socket has one.
+  const peers = new Map<string, IRemoteAudioLink>();
+  links
+    .filter((link) => !linkPaused(link))
+    .forEach((peer) => {
+      const key = peer.computerId ?? peer.id;
+      peers.set(key, {
+        ...peer,
+        nowPlaying: peer.nowPlaying ?? peers.get(key)?.nowPlaying,
+      });
+    });
   const snapshot = {
     local: {
       isPlaying: local?.isPlaying === true,
       canToggle: local !== undefined && local.canToggle !== false,
     },
-    peers: peers.map((peer) => ({
-      id: peer.id,
+    peers: [...peers].map(([key, peer]) => ({
+      id: key,
       isPlaying: peer.nowPlaying?.isPlaying === true,
       canToggle: peer.nowPlaying !== undefined,
     })),
     preferLocal: last !== 'remote',
   };
-  const state = useRef({ snapshot, perform, bridge });
-  state.current = { snapshot, perform, bridge };
+  const state = useRef({ snapshot, perform, bridge, peers });
+  state.current = { snapshot, perform, bridge, peers };
   const router = useRef<
     ReturnType<typeof createGroupMediaTransport> | undefined
   >(undefined);
   router.current ??= createGroupMediaTransport(
     () => state.current.snapshot,
     (command) => state.current.perform(command),
-    (peerId, command) => {
+    (key, command) => {
+      const peerId = state.current.peers.get(key)?.id;
+      if (!peerId) {
+        return;
+      }
       state.current.bridge
         ?.sendRemoteAudioLanSignal({
           peerId,
@@ -56,7 +72,7 @@ const useGroupMediaTransport = (
   useEffect(() => {
     router.current?.observe();
   });
-  const wanted = peers.length > 0;
+  const wanted = peers.size > 0;
   useEffect(() => {
     if (
       !wanted ||

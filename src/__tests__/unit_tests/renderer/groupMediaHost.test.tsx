@@ -86,6 +86,34 @@ it('does not capture media keys for a link paused at either computer', () => {
   expect(watchGroupMediaKeys).not.toHaveBeenCalled();
 });
 
+it('sends a command once through the newest connection during a reconnect', () => {
+  const old = remoteAudioLink({
+    id: 'old-socket',
+    computerId: 'same-computer',
+    nowPlaying: {
+      title: 'Music',
+      isPlaying: true,
+      positionMs: 0,
+      durationMs: 1000,
+      canNext: true,
+      canPrevious: true,
+      canStep: true,
+      canStop: true,
+    },
+  });
+  const next = remoteAudioLink({
+    id: 'new-socket',
+    computerId: 'same-computer',
+  });
+  render(<GroupMediaTransportHost links={[old, next]} perform={perform} />);
+  act(() => listener?.({ command: 'next' }));
+  expect(sendRemoteAudioLanSignal).toHaveBeenCalledTimes(1);
+  expect(sendRemoteAudioLanSignal).toHaveBeenCalledWith({
+    peerId: 'new-socket',
+    signal: { kind: 'transport', command: 'next' },
+  });
+});
+
 it('keeps the OS media session registered across play-state changes', () => {
   const previous = Object.getOwnPropertyDescriptor(navigator, 'mediaSession');
   const states: MediaSessionPlaybackState[] = [];
