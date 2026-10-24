@@ -1,0 +1,307 @@
+/* FluidEQ — GPL-3.0-or-later. Layout for the standalone design harness. */
+@use '../../../src/renderer/styles/theme' as *;
+@use '../../../src/renderer/styles/color' as *;
+@use './previewCards';
+
+body {
+  overflow: auto;
+  height: auto;
+  min-height: 100vh;
+  background: $surface-base;
+}
+#root {
+  width: 100%;
+  padding: 0;
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+.group-preview {
+  padding: 20px;
+  max-width: 1800px;
+  margin: auto;
+  font-size: 13px;
+}
+.group-preview .menu-icon {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+.group-preview p {
+  margin: 0;
+}
+.group-preview h1,
+.group-preview h2,
+.group-preview h3 {
+  margin: 0;
+}
+.group-preview h1 {
+  font-size: 26px;
+  font-weight: $weight-semibold;
+}
+.group-preview h2,
+.group-preview h3 {
+  font-size: 14px;
+  font-weight: $weight-semibold;
+}
+.group-preview .eyebrow {
+  font-size: 10px;
+  margin-bottom: 6px;
+}
+.group-preview button {
+  white-space: normal;
+}
+.group-preview select,
+.group-preview input {
+  font: inherit;
+}
+.group-preview input[type='range'] {
+  accent-color: $secondary-default;
+}
+.group-preview-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding-bottom: 16px;
+}
+.group-preview-toolbar > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: auto;
+}
+.group-preview-toolbar label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: $text-muted;
+}
+.group-preview-toolbar select {
+  max-width: 280px;
+}
+.group-preview-badge {
+  border: 1px solid $border-subtle;
+  border-radius: $radius-pill;
+  padding: 4px 9px;
+  font-size: 10px;
+  color: $text-muted;
+}
+.group-preview-modes {
+  display: flex;
+  gap: 5px;
+}
+.group-app {
+  border: 1px solid $border-panel;
+  border-radius: $radius-xl;
+  overflow: hidden;
+  background: $surface-base;
+  box-shadow: 0 14px 48px rgba($black, 0.22);
+}
+.group-workspace {
+  display: flex;
+  align-items: stretch;
+}
+.group-content {
+  padding: 26px;
+  min-width: 0;
+  flex: 1;
+  container-type: inline-size;
+  container-name: eq-panel;
+}
+.group-page-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 22px;
+}
+.group-page-heading p:last-child {
+  color: $text-muted;
+  margin-top: 7px;
+}
+.group-security {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: $text-muted;
+  font-size: 11px;
+}
+.group-security .menu-icon {
+  color: $secondary-default;
+  width: 15px;
+}
+.group-summary {
+  @include card-surface;
+  display: flex;
+  padding: 16px 20px;
+  align-items: center;
+  gap: 14px;
+}
+.group-summary-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: $radius-m;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  color: $secondary-light;
+}
+.group-summary strong {
+  font-size: 15px;
+  font-weight: $weight-semibold;
+}
+.group-summary small {
+  display: block;
+  font-size: 11px;
+  color: $text-muted;
+  margin-top: 4px;
+}
+.group-summary-copy {
+  margin-left: auto;
+  color: $text-muted;
+  font-size: 12px;
+}
+.group-summary > .button {
+  margin-left: auto;
+}
+.group-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 292px;
+  gap: 20px;
+  align-items: start;
+}
+.group-computers {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.group-scenarios {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  padding-top: 22px;
+  margin-top: 22px;
+  border-top: 1px solid $border-subtle;
+  font-size: 11px;
+  color: $text-faint;
+}
+.group-scenarios > strong {
+  font-weight: $weight-medium;
+  margin-right: 8px;
+}
+.group-live-message {
+  min-height: 14px;
+  margin: 6px 0 !important;
+  color: $secondary-light;
+  font-size: 11px;
+}
+.group-add {
+  @include card-surface;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  padding: 18px;
+  margin-top: 12px;
+}
+.group-add > div {
+  width: 100%;
+}
+.group-add p {
+  color: $text-muted;
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 7px;
+}
+.group-add label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 160px;
+  font-size: 11px;
+}
+.group-warning,
+.group-baseline-note {
+  padding: 12px 18px;
+  color: $amber;
+  font-size: 12px;
+  line-height: 1.7;
+}
+.group-preview.is-compact {
+  max-width: 700px;
+}
+.group-preview.is-compact .group-content {
+  padding: 16px;
+}
+
+@container eq-panel (max-width: 1000px) {
+  .group-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .group-overview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .group-preview-note {
+    grid-column: 1 / -1;
+  }
+}
+@container eq-panel (max-width: 650px) {
+  .group-security,
+  .group-summary-copy {
+    display: none;
+  }
+  .group-list-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .group-local-controls {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .group-preview .remote-audio__link-head {
+    flex-wrap: wrap;
+  }
+  .group-preview .remote-audio__link-name {
+    flex-basis: 55%;
+  }
+  .group-preview .group-lanes {
+    grid-template-columns: 125px minmax(0, 1fr);
+  }
+  .group-preview .group-lanes .remote-audio__lane {
+    display: grid;
+    grid-template-columns: subgrid;
+    row-gap: 10px;
+  }
+  .group-preview .group-lanes .remote-audio__lane-switch {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+  .group-preview .group-lanes .remote-audio__lane-level {
+    flex: 1;
+  }
+  .group-preview .group-lanes .remote-audio__lane-level input {
+    flex: 1;
+  }
+  .group-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .group-preview-note {
+    grid-column: auto;
+  }
+}
+@media (max-width: 700px) {
+  .group-preview {
+    padding: 10px;
+  }
+  .group-content {
+    padding: 14px;
+  }
+  .group-preview-toolbar label {
+    flex-wrap: wrap;
+  }
+}

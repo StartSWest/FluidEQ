@@ -1,0 +1,289 @@
+/* FluidEQ — GPL-3.0-or-later. Preview cards reuse the app surfaces. */
+@use '../../../src/renderer/styles/theme' as *;
+@use '../../../src/renderer/styles/color' as *;
+
+.group-preview .remote-audio__link-head {
+  padding: 14px 18px;
+  gap: 10px;
+}
+.group-preview .remote-audio__link-name strong {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.group-preview .remote-audio__link-name > span {
+  font-size: 11px;
+}
+.group-preview .remote-audio__link-icon {
+  width: 34px;
+  height: 34px;
+}
+.group-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: $secondary-light;
+  white-space: nowrap;
+}
+.group-status i,
+.group-matrix-key i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: $secondary-default;
+}
+.group-status.is-quiet {
+  color: $text-faint;
+}
+.group-status.is-quiet i {
+  background: $text-faint;
+}
+.group-local {
+  border-color: color-mix(in srgb, $secondary-default 38%, $border-subtle);
+}
+.group-local-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 7px;
+  border-radius: $radius-xs;
+  background: color-mix(in srgb, $secondary-default 12%, transparent);
+  color: $secondary-light;
+  font-size: 10px;
+  font-weight: $weight-medium;
+  vertical-align: middle;
+}
+.group-local-controls {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) minmax(200px, 1fr);
+  gap: 24px;
+  padding: 4px 18px 16px;
+}
+.group-output {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 11px;
+  color: $text-muted;
+}
+.group-output select {
+  width: 100%;
+}
+.group-source-control {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 12px;
+}
+.group-send-level {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: $text-muted;
+}
+.group-send-level input {
+  flex: 1;
+  width: 70px;
+  min-width: 0;
+}
+.group-send-level output {
+  min-width: 33px;
+  text-align: right;
+}
+.group-preview .group-local-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-top: 1px solid $border-subtle;
+  color: $text-muted;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.group-local-foot .menu-icon {
+  width: 15px;
+}
+.group-list-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 8px;
+}
+.group-list-heading > span {
+  color: $text-faint;
+  font-size: 10px;
+}
+.group-bulk-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.group-bulk-controls > span {
+  flex: 1;
+}
+.group-preview .group-lanes {
+  grid-template-columns: 135px minmax(70px, 1fr) auto;
+  padding: 0 18px;
+  column-gap: 14px;
+}
+.group-preview .group-lanes .remote-audio__lane {
+  grid-template-areas: none;
+  padding: 13px 0;
+}
+.group-preview .group-lanes .remote-audio__lane > * {
+  grid-area: auto;
+}
+.group-preview .group-lanes .remote-audio__lane-switch {
+  grid-column: 3;
+  font-size: 11px;
+}
+.group-preview .group-lanes .remote-audio__lane-direction {
+  gap: 9px;
+}
+.group-preview .group-lanes .remote-audio__lane-arrow {
+  width: 29px;
+  height: 29px;
+}
+.group-preview .group-lanes .remote-audio__lane-names strong {
+  font-size: 12px;
+}
+.group-preview .group-lanes .remote-audio__lane-kicker {
+  font-size: 9px;
+}
+.group-preview .group-lanes .remote-audio__lane-wave {
+  height: 23px;
+}
+.group-preview .group-lanes .remote-audio__lane-song {
+  font-size: 11px;
+}
+.group-preview .group-lanes .remote-audio__lane-detail {
+  display: none;
+}
+.group-preview .group-lanes .remote-audio__lane-level {
+  gap: 7px;
+  margin-right: 5px;
+}
+.group-preview .group-lanes .remote-audio__lane-level input {
+  width: 85px;
+  min-width: 45px;
+  flex-basis: 85px;
+}
+.group-preview .group-lanes .remote-audio__lane-level-value {
+  font-size: 11px;
+}
+.group-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.group-overview-card {
+  @include card-surface;
+  padding: 18px;
+  min-width: 0;
+}
+.group-overview-card h3 {
+  margin-bottom: 9px;
+}
+.group-overview-card p {
+  font-size: 11px;
+  color: $text-muted;
+  line-height: 1.7;
+}
+.group-overview-card .eyebrow {
+  color: $secondary-light;
+  font-size: 9px;
+}
+.group-matrix-scroll {
+  overflow: auto;
+  margin: 16px 0;
+}
+.group-matrix {
+  width: 100%;
+  font-size: 10px;
+  border-collapse: collapse;
+  text-align: center;
+}
+.group-matrix th {
+  padding: 6px 3px;
+  color: $text-muted;
+  font-weight: $weight-medium;
+}
+.group-matrix tbody th {
+  text-align: left;
+}
+.group-matrix td {
+  padding: 4px;
+}
+.group-matrix-dot {
+  display: inline-grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: $radius-xs;
+  background: $surface-well;
+  color: $text-faint;
+}
+.group-matrix-dot.is-on {
+  color: $secondary-light;
+  background: color-mix(in srgb, $secondary-default 14%, transparent);
+}
+.group-matrix-dot.is-self {
+  background: transparent;
+  opacity: 0.4;
+}
+.group-matrix-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  color: $text-faint;
+  font-size: 9px;
+}
+.group-matrix-key > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.group-mix {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 17px 0;
+}
+.group-mix > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px;
+  font-size: 11px;
+}
+.group-mix strong {
+  font-weight: $weight-medium;
+  color: $secondary-light;
+}
+.group-mix small {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  color: $text-faint;
+}
+.group-mix .is-quiet {
+  opacity: 0.6;
+}
+.group-mix-track {
+  height: 3px;
+  background: $surface-well;
+  grid-column: 1 / -1;
+  border-radius: $radius-pill;
+}
+.group-mix-track i {
+  display: block;
+  height: 100%;
+  background: $secondary-default;
+  border-radius: inherit;
+}
+.group-preview-note p + p {
+  margin-top: 9px;
+}
