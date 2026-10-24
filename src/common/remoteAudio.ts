@@ -17,6 +17,13 @@ it under the terms of the GNU General Public License version 3 or later.
  * machine can honestly draw. No artwork: the cover is a file or a blob URL on
  * the sender, and the bar generates a tile from the title anyway.
  */
+import {
+  isAudioGroupHello,
+  isAudioGroupLink,
+  type IAudioGroupHello,
+  type IAudioGroupLink,
+} from './remoteAudioGroup';
+
 export interface IRemoteNowPlaying {
   title: string;
   /** The line under the title: the artist, or the app where there is none. */
@@ -77,7 +84,8 @@ export interface IRemoteDuplex {
 }
 
 /**
- * What the user chose for one linked computer, remembered by its name:
+ * What the user chose for one linked computer, remembered by its lasting ID
+ * (a display-name fallback is kept for older computers without an ID):
  * "Send my sound", "Play it here", and the link's Pause, which stops both
  * without forgetting either (Ivan, 2026-10-04: "a pause transmission button
  * so I dont have to unlink the pc when I want to not send or receive").
@@ -92,6 +100,8 @@ export interface ILinkSwitches {
    * they arrived, bit for bit — the "Lossless" on the card stays true.
    */
   volume: number;
+  /** Receiver mute keeps the fader's remembered level for unmute. */
+  muted?: boolean;
 }
 
 export const LINK_SWITCHES_ON: ILinkSwitches = {
@@ -121,7 +131,9 @@ export const isLinkSwitches = (value: unknown): value is ILinkSwitches =>
   typeof (value as Partial<ILinkSwitches>).send === 'boolean' &&
   typeof (value as Partial<ILinkSwitches>).play === 'boolean' &&
   typeof (value as Partial<ILinkSwitches>).paused === 'boolean' &&
-  isLevel((value as Partial<ILinkSwitches>).volume);
+  isLevel((value as Partial<ILinkSwitches>).volume) &&
+  ((value as Partial<ILinkSwitches>).muted === undefined ||
+    typeof (value as Partial<ILinkSwitches>).muted === 'boolean');
 
 /** Small control messages; the lossless PCM stream travels separately. */
 export type TRemoteAudioSignal =
@@ -138,6 +150,7 @@ export type TRemoteAudioSignal =
       address?: string;
       joined?: boolean;
       computerId?: string;
+      introduced?: boolean;
     }
   /**
    * `duplex` rides here, on a message every version already accepts, because
@@ -148,7 +161,9 @@ export type TRemoteAudioSignal =
       kind: 'stream-mode';
       mode: TRemoteAudioStreamMode;
       duplex?: IRemoteDuplex;
+      group?: IAudioGroupHello;
     }
+  | { kind: 'group-link'; link: IAudioGroupLink }
   /**
    * Sender → listener. Absent `playing` means the sender's bar is empty.
    *
@@ -302,8 +317,9 @@ export const isRemoteAudioSignal = (
   value: unknown,
 ): value is TRemoteAudioSignal =>
   isRecord(value) &&
-  ((value.kind === 'stop' &&
-    (value.forget === undefined || typeof value.forget === 'boolean')) ||
+  ((value.kind === 'group-link' && isAudioGroupLink(value.link)) ||
+    (value.kind === 'stop' &&
+      (value.forget === undefined || typeof value.forget === 'boolean')) ||
     (value.kind === 'now-playing' &&
       (value.playing === undefined || isRemoteNowPlaying(value.playing)) &&
       (value.started === undefined || typeof value.started === 'boolean') &&
@@ -312,8 +328,11 @@ export const isRemoteAudioSignal = (
     (value.kind === 'transport' && isRemoteTransportCommand(value)) ||
     (value.kind === 'stream-mode' &&
       (value.mode === 'music' || value.mode === 'video') &&
-      (value.duplex === undefined || isRemoteDuplex(value.duplex))) ||
+      (value.duplex === undefined || isRemoteDuplex(value.duplex)) &&
+      (value.group === undefined || isAudioGroupHello(value.group))) ||
     (value.kind === 'peer-ready' &&
+      (value.introduced === undefined ||
+        typeof value.introduced === 'boolean') &&
       (value.computerId === undefined ||
         (typeof value.computerId === 'string' &&
           value.computerId.length <= 64)) &&

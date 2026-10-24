@@ -22,7 +22,7 @@ import {
  * older one never asks, and must not be sent sound it would only throw away.
  *
  * The two switches on each link — "Send my sound", "Play it here" — and its
- * volume are remembered by the other computer's name, because a link's peer
+ * volume are remembered by its lasting computer ID, because a link's peer
  * id is new at every connection and a switch the user turned off must hold
  * from the first packet of the next one, not from whenever the window gets
  * to it. A paused link sends and plays nothing and says so; the two switches
@@ -32,6 +32,7 @@ import {
 
 interface IPeer {
   name: string;
+  key: string;
   joined: boolean;
   /** What the other computer last said; absent until it says. */
   heard?: IRemoteDuplex;
@@ -49,7 +50,7 @@ const storedSwitches = (value: unknown): ILinkSwitches | undefined => {
   if (typeof value !== 'object' || value === null) {
     return undefined;
   }
-  const { send, play, paused, volume } = value as Partial<ILinkSwitches>;
+  const { send, play, paused, volume, muted } = value as Partial<ILinkSwitches>;
   if (
     typeof send !== 'boolean' ||
     typeof play !== 'boolean' ||
@@ -61,7 +62,13 @@ const storedSwitches = (value: unknown): ILinkSwitches | undefined => {
     typeof volume === 'number' && Number.isFinite(volume)
       ? Math.min(1, Math.max(0, volume))
       : 1;
-  return { send, play, paused: paused === true, volume: level };
+  return {
+    send,
+    play,
+    paused: paused === true,
+    volume: level,
+    ...(muted === true ? { muted: true } : {}),
+  };
 };
 
 export interface IRemoteAudioLinkDeps {
@@ -128,8 +135,11 @@ export const createRemoteAudioLinks = ({
    * the platform allow it. */
   const switches = (peer: IPeer): { send: boolean; play: boolean } => {
     const chosen = linkSwitchesInEffect(
-      remembered.get(peer.name) ?? LINK_SWITCHES_ON,
+      remembered.get(peer.key) ?? LINK_SWITCHES_ON,
     );
+    if (remembered.get('@source')?.send === false) {
+      chosen.send = false;
+    }
     if (bothWays) {
       return chosen;
     }
@@ -163,7 +173,7 @@ export const createRemoteAudioLinks = ({
 
   const tell = (peerId: string, peer: IPeer) => {
     const { send, play } = switches(peer);
-    const paused = remembered.get(peer.name)?.paused === true;
+    const paused = remembered.get(peer.key)?.paused === true;
     // `paused` only when it is: the message an older FluidEQ already reads
     // is unchanged for every link that is not.
     announce(peerId, {
@@ -174,16 +184,37 @@ export const createRemoteAudioLinks = ({
   };
 
   return {
-    connected(peerId: string, name: string, joined: boolean) {
+    connected(
+      peerId: string,
+      name: string,
+      joined: boolean,
+      computerId?: string,
+      introduced = false,
+    ) {
+      const key = computerId ? `id:${computerId}` : name;
+      if (introduced && !remembered.has(key)) {
+        remembered.set(key, { ...LINK_SWITCHES_ON, play: false });
+        persist();
+      }
+      // Consume a legacy name once, so another PC with the same name cannot
+      // inherit or change this PC's receive volume and switches.
+      if (computerId && !remembered.has(key) && remembered.has(name)) {
+        const legacy = remembered.get(name);
+        if (legacy) {
+          remembered.set(key, legacy);
+        }
+        remembered.delete(name);
+        persist();
+      }
       // A Pause holds for one connection. A new one starts playing (Ivan,
       // 2026-10-14: "it cannot start as paused"); the two switches and the
       // volume stay as they were left.
-      const kept = remembered.get(name);
+      const kept = remembered.get(key);
       if (kept?.paused) {
-        remembered.set(name, { ...kept, paused: false });
+        remembered.set(key, { ...kept, paused: false });
         persist();
       }
-      const peer: IPeer = { name, joined };
+      const peer: IPeer = { name, key, joined };
       peers.set(peerId, peer);
       tell(peerId, peer);
       refresh();
@@ -212,6 +243,7 @@ export const createRemoteAudioLinks = ({
         play: chosen.play,
         paused: chosen.paused,
         volume: chosen.volume,
+        ...(chosen.muted ? { muted: true } : {}),
       });
       while (remembered.size > MAX_REMEMBERED) {
         const [oldest] = remembered.keys();
@@ -219,7 +251,7 @@ export const createRemoteAudioLinks = ({
       }
       persist();
       peers.forEach((peer, peerId) => {
-        if (peer.name === name) {
+        if (peer.key === name || name === '@source') {
           tell(peerId, peer);
         }
       });
@@ -239,7 +271,8 @@ export const createRemoteAudioLinks = ({
     /** How loud the sound arriving from `peerId` plays here, 0 to 1. */
     volume(peerId: string): number {
       const peer = peers.get(peerId);
-      return peer ? (remembered.get(peer.name)?.volume ?? 1) : 1;
+      const choice = peer ? remembered.get(peer.key) : undefined;
+      return choice?.muted ? 0 : (choice?.volume ?? 1);
     },
     /** The window found the Linux engine's two Share Audio endpoints come or
      * go; every link is told what this computer now does with it. */

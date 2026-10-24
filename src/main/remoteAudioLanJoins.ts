@@ -127,6 +127,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
       deviceName,
       computerId,
       fresh: join.fresh,
+      ticket: join.pairing.computerId !== undefined,
     });
     join.attempts.set(at, attempt.cancel);
     attempt.joined
@@ -161,6 +162,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
             computerId: join.computerId,
             deviceName: join.pairing.deviceName,
             joined: true,
+            ...(join.pairing.introduced ? { introduced: true } : {}),
           },
         });
         return undefined;
@@ -209,10 +211,24 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
   return {
     /** Keeps a link to the computer whose code this is; its id. */
     join(pairing: ILanPairingPayload, fresh: boolean): string {
-      const computerId = computerIdOf(pairing.secret);
+      const computerId = pairing.computerId ?? computerIdOf(pairing.secret);
       const existing = joins.get(computerId);
       if (existing) {
         existing.fresh = existing.fresh || fresh;
+        if (
+          existing.pairing.computerId &&
+          existing.pairing.secret !== pairing.secret
+        ) {
+          // A concurrent introduction chose another scoped credential. Keep
+          // the authenticated session alive while both computers learn it;
+          // closing here could cut off delivery of the winning credential.
+          existing.pairing = pairing;
+          existing.pairingKey = keyFromSecret(pairing.secret);
+          if (existing.state === 'looking') {
+            look(existing);
+          }
+          return computerId;
+        }
         if (existing.state === 'looking') {
           probe(existing);
         }
@@ -290,7 +306,7 @@ export const createLanJoins = (deps: ILanJoinsDeps) => {
     retry() {
       joins.forEach((join) => {
         if (join.state === 'looking') {
-          probe(join);
+          look(join);
         }
       });
     },

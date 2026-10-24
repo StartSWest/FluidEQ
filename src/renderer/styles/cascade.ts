@@ -189,6 +189,7 @@ import './ToneKnob.scss';
 import './WindowModeSwitch.scss';
 import './MiniPlayer.scss';
 import './RemoteAudio.scss';
+import './RemoteAudioGroup.scss';
 import './Euphoria.scss';
 import './ScenePulse.scss';
 import './SceneAmbient.scss';

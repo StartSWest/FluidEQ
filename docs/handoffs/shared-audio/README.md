@@ -1,262 +1,155 @@
-# Share Audio: shared group proposal and working preview
+# Share Audio group implementation
 
-Based on `main` at `4acdc53e4`, pulled on October 23, 2026.
+Rollback checkpoint: `2f8bb10d9` on `main`, pushed before implementation. It preserves
+all source changes present at the start, including the existing Studio work.
 
-This is the design step requested before implementing the shared and Windows
-changes. Production capture, playback, pairing, IPC and settings are unchanged.
-The English preview lives outside the application entry points. Its controls,
-connections and waveforms are simulated; it does not establish real connections
-or capture/play audio. Localization of the selected production design belongs in
-all ten dictionaries when that implementation is made.
+## User interface
 
-Run from the repository root:
+The application keeps its existing navigation. Share Audio now presents:
 
-```powershell
-node docs/handoffs/shared-audio/preview.cjs
-```
+- **The whole group**: this computer first, then connected and offline computers
+  in one canonical order. Names use NFKC normalization and code-point comparison,
+  with the lasting computer ID breaking ties; connection order and OS locale do
+  not change the order. A brief duplicate connection renders only one row.
+- One real source waveform per computer, independent **Receive** and **Send**
+  switches, and a three-dot anchored app menu with **Pause/Resume** and **Unlink**.
+- **Your mix**: the OS default-output picker, **This PC** system volume, and
+  independent incoming gains. Speaker buttons mute each mix and restore its
+  remembered level. The slider/readout shows zero while muted. Moving a muted
+  slider above zero unmutes it. There is no outgoing volume multiplier.
 
-Open <http://localhost:4317>. `--build` compiles without starting the server.
-Build output goes into the ignored `build/` directory. No new dependencies.
+The page uses the existing Share Audio, Dropdown, Switch, AnchoredMenu, player
+speaker icon and now-playing fader components/styles. The new stylesheet defines
+geometry only. It stacks and scrolls in narrow panels. New text is translated in
+all ten dictionaries.
 
-The preview loads the app's complete `styles/cascade.ts`, in its production
-order, and uses the app's existing Share Audio card, header, row, label and
-readout classes directly. The harness stylesheet contains geometry only: no
-colors, typography, backgrounds, borders, shadows, radii or control appearance.
-A verification check prevents those visual overrides from being reintroduced.
-It uses `MenuIcon`, `Switch`, `Dropdown`, `RemoteAudioLane` and `RemoteAudioLinkCard`. **Current app
-cards** renders the actual current card component with simulated inputs.
-The proposed panel has only **The whole group**, with one waveform row per
-computer, and **Your mix**, with a working receive-volume fader per computer.
-**This PC** is the local system-volume control, separate from stream volumes.
-It is simulated here; the preview never changes the actual system volume.
-The local row is always first. Duplicate audio cards and the routing matrix have
-been removed. The app's menu is unchanged; this harness contains no replacement
-navigation. The comparison and extra scenarios are under **Design tools**.
-Each remote computer's three-dot button opens the app's actual anchored menu
-surface and rows, with **Pause/Resume** and **Unlink**. No right click is needed.
-Both pickers use the actual app Dropdown component, with no native select.
-All mix faders use the app's now-playing volume-slider styling, including its
-custom track, thumb, fill and keyboard focus appearance.
+## Connection and trust model
 
-Try these interactions:
+The implemented model is a mesh of trusted computers. It does not require an
+online group owner, a relay or a new cloud service. A code still establishes the
+first authenticated pair. Updated members negotiate group support using an
+optional field on the existing `stream-mode` message; older versions ignore it
+and retain their existing direct links. New message kinds are sent only after
+negotiation.
 
-1. Change **Viewing as** among Windows, macOS and Linux. The local computer moves
-   to the top; all others retain their relative canonical order. Offline members
-   stay visible in their ordinary position.
-2. Lower the Mac's receive volume on Windows. Switch to Linux: its receive
-   volume is independent. Switch back to Windows: its setting is retained.
-3. Stop sending Windows audio to Mac. In the Mac view, Windows says **Sender
-   switched off**. Mac-to-Windows and the other routes continue.
-4. Open a computer's three-dot menu to Pause or Unlink it. Pause a pair or the local computer. Resume restores the existing switches
-   and levels. A pause at the other end cannot be undone by resuming here.
-5. Change **This PC** system volume, then switch views: the other PC's volume
-   is independent, and the individual receive faders keep their values.
-6. Add a simulated computer. It appears in every view, with receiving off until
-   each listener opts in. Remove it and it disappears from the shared roster.
-7. Under **Design tools**, try offline, missing capture access, a long name and **Narrow panel**. Capture
-   access affects outgoing sound; receiving can continue independently.
+Each linked member may introduce its other linked members. Introductions carry
+public private-LAN coordinates and a credential scoped to one pair, never an
+existing computer's permanent pairing secret/code. Pair credentials are derived
+with HMAC-SHA256 from the introducing installation's secret and the two sorted
+computer IDs. Concurrent introductions select the lowest issuer ID, and an active
+session stays connected while its replacement credential is learned. Both sides
+save pair credentials through the existing OS-encrypted credential store.
 
-## What the updated application actually has
+This is transitive trust: a linked, upgraded computer can admit the computers it
+trusts. It is not a signed central membership authority. The original design
+notes proposed an owner-controlled roster; the implementation instead uses
+trusted introductions so membership and reconnects keep working when the first
+computer leaves. A separately administered group with an owner and global
+revocation would need an explicit product flow and separate authorization model.
 
-The pulled commits replace the previous single host/joiner role with simultaneous
-listening and multiple joins. One permanent code can already accept several
-computers; duplicate connections are reduced and unlinking targets one computer.
-The sender lifecycle also received fixes in the second pulled commit.
+A chain A–B–C–D grows direct links until each computer knows the other three.
+Subsequent audio travels directly between pairs. Missing members remain in the
+protected local book, and reconnect using their pair credentials and existing
+LAN discovery. The first group description is explicitly answered, because the
+listener's initial message may otherwise arrive before the joining transport
+listener is attached. The current duplex description is repeated with that
+handshake so a window reload retains Send/Receive state.
 
-That is a useful foundation, but **multiple direct links are not a shared group**.
-If A links to B and B links to C, A and C do not acquire each other's membership
-or connection information. The transport sends audio only to an explicitly
-selected connected peer; it does not forward other computers' sound.
+Network return and OS resume trigger fresh discovery and audio recovery without
+button presses. Pending connection attempts are cancelled before a fresh probe;
+healthy links stay up. Windows reacquires its capture lease after suspend. The
+renderer reopens its mixer/sender on wake and retries failed audio when devices
+return or the window is shown again. There are no timer loops. Paused connections
+resume on reconnect, while Send, Receive, level and mute choices remain saved.
 
-Current gaps visible in the code:
+Introduced computers appear with **Receive off** until the listener enables it.
+Direct manual pairing retains the app's existing initial behavior. Settings are
+keyed by lasting computer ID, with a one-time migration of old name-keyed choices.
+Two PCs with the same name no longer share a volume or switch setting.
 
-| Current behavior                                                           | Proposed change                                                              |
-| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Each PC stores its own identity, pasted codes and revocations              | One authenticated group roster replicated to every member                    |
-| The page renders connected links, then separately remembered missing joins | Render membership first, including this PC and offline members               |
-| Link views follow map insertion order                                      | One locale-independent canonical ordering rule, with local pinned first      |
-| Switch changes and remembered preferences match a display name             | Key everything by lasting computer ID and directed route IDs                 |
-| Received level is local                                                    | Keep per-source receive levels and add the local system-volume control       |
-| Old peers can lack duplex capabilities                                     | Negotiate group capability; keep incompatible peers in explicit legacy links |
+Unlink acts on this computer's pair with the selected computer and leaves other
+pairs running. Each end forgets that pair and refuses automatic reintroductions;
+manual pairing is required to authorize it again. It does not remotely evict
+that computer from everybody else's pairs. No permanent credential is exposed
+through the renderer. Endpoint lists and group sizes are bounded, and introduced
+addresses must pass the existing private-IPv4 policy.
 
-Evidence: `src/main/remoteAudioLan.ts`, `remoteAudioLanJoins.ts`,
-`remoteAudioTransport.ts`, `remoteAudioCredentials.ts`,
-`src/renderer/remoteAudio/linkRecords.ts`, `RemoteAudioContext.tsx`,
-`RemoteAudioPanel.tsx` and `src/common/remoteAudio.ts`.
+## Audio and Windows behavior
 
-## Recommended connection model
+Source capture remains local-origin audio only. Received audio is not relayed.
+Windows retains the existing process-tree exclusion for the LAN playback helper
+and its descendants. The Library's raw-sharing path and receiver-side DSP remain
+in place. Platform capture/playback capability checks are preserved; this change
+does not claim that an unimplemented platform backend can run both ways.
 
-**A shared group for identity and membership; direct connections for audio.**
-Joining the group once gives a computer the authenticated membership list.
-Every member then establishes its own authenticated direct links to the others.
-The computer used to invite it does not relay its audio.
+The local Share switch gates all outgoing targets without changing each pair's
+Send setting or receiving. New links respect that gate. Receiver gain/mute is
+applied independently per incoming stream. Muting one computer never scales the
+raw source or another listener's mix.
 
-Start with one membership authority: the group creator. This computer approves
-admission/removal and signs monotonically versioned roster snapshots. Peers
-replicate and exchange those signed snapshots, reject stale versions and retain
-removal records. If that computer goes offline, established members keep their
-direct audio connections; membership changes wait for its return. The product
-must show that state on Add/Remove. Transfer authority explicitly before removing
-the owner. Automatic authority failover is a separate design problem, not an
-implicit promise of this first version. This avoids inventing an unreliable
-distributed consensus mechanism while fixing the actual pairing problem.
+The output picker changes the actual default output through the existing app
+API. This keeps **This PC** aligned with the endpoint controlled by the Windows
+volume helper, rather than displaying a different output while moving default
+system volume.
 
-The preview models the resulting roster and routing behavior in one process.
-It does not implement admission, authority transfer, replication or partitions.
+The volume helper negotiates an `applied` response after querying the OS output.
+Main sends one command at a time, coalescing queued drag positions and preserving
+the order of mute and level changes. Renderer request IDs prevent older replies
+from moving either the Share Audio slider or bottom-bar slider backward. A driver
+may quantize the final level; its actual answer wins after acknowledgment.
+Helper replacement changes the session ID so an abandoned write cannot pin a
+slider forever. Old helpers retain the old protocol. Native notifications query
+the current endpoint rather than replaying a stale callback snapshot. There are
+no timer retries. Incoming mix writes similarly coalesce per computer while IPC
+applies the previous change.
 
-### Stable identity and admission
+## Platform integration contract
 
-- Give each installation a lasting random ID and identity key independent of its
-  hostname, address, port and rotatable invitation secret. A display name is
-  never an authorization identity or settings key.
-- A group invitation identifies the group and its pinned authority key, is
-  bounded in use, and requires approval of the joining computer's identity.
-  Exchanging the invitation is the bootstrap; discovering a hostname is not.
-- The signed roster contains public identity keys, IDs, display names, platform,
-  capability versions and address candidates. Never copy another computer's
-  permanent pairing secret or private identity key into a roster or discovery
-  announcement.
-- Authenticate a new direct connection against both membership identities and
-  derive a fresh pair session key through a standard reviewed handshake.
-  Existing AES-GCM packet framing can remain where compatible; the current
-  pairing-secret handshake is not automatically group authentication.
-- Deduplicate on the unordered ID pair, using one deterministic connection
-  initiator and the existing authenticated-address racing. Session peer IDs
-  remain connection-local and may change on reconnect.
-- Removing a member revokes group admission. Close its direct connections on
-  receipt of the newer signed roster; refuse its old credentials. During a
-  network partition immediate global revocation cannot be guaranteed. Do not
-  advertise it as immediate on an unreachable PC.
+Linux/macOS agents should retain the shared group protocol, stable computer IDs,
+receiver gain/mute fields and independent local source gate. Keep their platform
+capabilities truthful: system volume is unavailable until a backend reports a
+real level, and receiving must never enter the capture stream. The shared layout
+does not infer audio capability from a displayed OS name.
 
-### Membership, discovery and order
+This change promises neither acoustic synchronization nor zero latency. Actual
+cross-machine listening, capture exclusion on each OS and device-switch behavior
+must be checked on the respective real computers.
 
-Keep **membership**, **reachability**, **connection** and **audio activity** as
-different facts. An offline member remains in the roster and keeps its controls.
-A connected computer can be silent, denied capture access, sending to nobody or
-receiving only. A shared roster is not proof of a working direct audio path.
+## Browser preview and verification
 
-For a canonical order, compare the shared display name after NFKC normalization
-and locale-independent lowercase, then the persistent ID as a tie-breaker.
-Pin the local ID first only in that computer's list. Do not sort by platform,
-online status, local locale, connection time or recent activity. Your mix uses
-the canonical remote order, with no duplicated local source in the receive mix.
+Run `node docs/handoffs/shared-audio/preview.cjs`, then open
+<http://localhost:4317>. `--build` compiles without starting the server. The
+preview now renders the actual production Group and Mix components with simulated
+I/O; it never captures audio or changes system volume. Its perspective picker and
+Design tools are harness controls, not additions to the app menu.
 
-Keep the existing private-LAN discovery for the first implementation. Resolve
-the address candidates of authenticated members across adapters and DHCP changes;
-retain explicit/manual addressing when broadcast is blocked. DNS-SD is a later
-interoperability option, not a prerequisite for the roster change. Its service
-discovery specification does not supply group authorization.
+Regression coverage includes a four-computer chain over real loopback TCP,
+challenge authentication, encrypted PCM, concurrent introductions, loss of the
+introducer, restart from saved pair credentials and unlink. Only discovery and
+the private-address boundary are substituted in that test. Separate checks cover
+untrusted introductions, bounds, canonical order, duplicate names, settings
+migration, source gating, independent mute, queued mix writes and stale Windows
+volume replies reaching two faders. Existing Share Audio transport, playback,
+provider, wake/recovery, security and credential regressions remain in the verification set.
 
-### Routes, levels and ownership
+Loopback tests do not establish acoustic performance on multiple physical PCs.
+The browser render verifies the actual components but does not replace checking
+the Electron window and real sound after the user launches the rebuilt app.
 
-One route is `(sourceComputerId, destinationComputerId)`. A and B have two
-independent routes. The source owns **Send**; the destination owns **Receive**
-and its receive volume. Each side publishes its own versioned settings; a peer
-cannot overwrite another computer's choice. Reconnection descriptions must not
-be treated as fresh user actions.
+## Verification recorded on October 24, 2026
 
-An audible route requires both members online, a ready capture source, the
-source's master sharing switch, its route Send switch, the destination's Receive
-switch, and no pause at either end. A blocked route says whose choice or failure
-stopped it. Zero volume is a mute, distinct from forgetting the route.
-
-The sending source stays untouched. A receive fader changes only that source
-in this listener's mix. Local
-speaker/headphone output volume is the **This PC** fader. Apply gain smoothly, retain
-Float32 transport, keep the original source available to the local speaker, and
-do not describe attenuated/resampled/mixed playback as bit-identical to capture.
-
-Wire **This PC** to the app's existing system-fader adapter
-(`src/renderer/audio/systemVolume.ts`, `useSystemFader`) and its main-process
-system-volume bridge, rather than adding another digital master gain. Follow
-OS volume/mute events so taskbar, keyboard and this panel stay in agreement.
-The current helper controls the Windows default render output; if shared audio
-is played through a different selected endpoint, extend that bridge to target
-the endpoint explicitly or state clearly which system output the fader controls.
-Do not silently control one output while presenting another. Linux/macOS adapters
-must report system-volume support; unavailable or unknown readings must not
-be represented by a working-looking fake fader in production.
-
-Pause preserves switches and levels. Each computer owns its pause; resuming here
-cannot undo a pause over there. The preview's pair pause stops both directions
-for that local pair. Its local pause stops this computer's group sends/receives.
-New members are known to everyone immediately after roster propagation, but
-receiving their sound starts only after each listener enables it.
-
-## Shared code and Windows implementation map
-
-| Area                                                     | Concrete change                                                                                                                                                                         |
-| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/common/remoteAudio.ts` and a new shared group model | Versioned member/capability/route contracts; ID-only selectors; canonical ordering; explicit owner of every setting                                                                     |
-| `src/main/remoteAudioCredentials.ts`                     | Migrate name-keyed preferences and existing links without merging duplicate names; persist group identity/roster and private keys through existing protected storage                    |
-| `src/main/remoteAudioLan*.ts`                            | Group admission, signed roster validation and replication, direct link formation, pair deduplication, reconnect and revocation                                                          |
-| `src/main/remoteAudioTransport.ts`                       | Capability negotiation before new message kinds; bounded queues; one slow peer must not stall the rest                                                                                  |
-| `src/main/ipc/remoteAudio.ts` and bridge                 | Snapshot/events for membership, local/remote route state and capability errors, all addressed by stable IDs                                                                             |
-| Renderer provider, link records and mixer                | Project group state into local/remote cards; preserve route choices on reconnect; per-source receive gain and the actual system-volume adapter; subscriptions separate from fast meters |
-| Share Audio panel and dictionaries                       | Local-first cards, consistent peers, group actions and permission/offline states; translate final design in all ten locales                                                             |
-| Native Windows capture/playback                          | Retain the dedicated received-audio playback process tree, capture once, fan out only the local source, and verify independent receive streams and output changes                       |
-
-For Windows, the existing capture uses process loopback excluding the playback
-helper's process tree. Preserve that topology: the received mix and mirrors must
-stay in the excluded tree, and legitimate local app/Library audio must still enter
-the local source once. Never fix feedback by subtracting audio waveforms or by
-forwarding the received mix to the network. Microsoft explicitly supports
-excluding a target process tree in its application loopback capture sample.
-
-The Linux and Mac implementations should consume the same source contract:
-**local-origin samples only**, a stable stream ID and sample format, capture
-readiness/error events, and a separate sink for received sources. Advertise
-`canExcludeReceivedAudio`, `canCaptureLocalAudio` and `canPlayReceivedAudio`
-capabilities rather than deriving duplex support from an OS name. If a backend
-cannot exclude received sound, report that limitation and prevent feedback-prone
-duplex routes there. OS permission UI belongs to the respective adapter.
-
-The preview's **Current app cards** comparison is a component comparison, not a
-simulation of the old pairing protocol. The proposed group replaces the page's
-direct-link list only after the shared contracts and backend are ready.
-
-## Implementation and acceptance order
-
-1. Agree on the visible model in this preview. Freeze member, capability and
-   route contracts for the Linux/Mac adapters before implementing platform code.
-2. Add shared model tests for shuffled arrivals, duplicate names, reconnect ID
-   changes, each gate, pause ownership, gain independence and legacy negotiation.
-3. Implement the signed roster and real three-PC join test: A invites B, B
-   introduces C through the group authority; all display A/B/C and establish the
-   direct A–C connection without another permanent pairing code paste.
-4. Wire the renderer and gains; test output changes, source changes, capture
-   access loss, sleep/wake, adapter changes and removal while one member is away.
-5. Verify Windows native feedback prevention and one-capture fan-out; integrate
-   the Linux/Mac source/sink adapters against the frozen capability contract.
-6. Run real three-OS playback: simultaneous different sources, one-way routes,
-   every direction, mute/volume/pause, process restarts and one slow peer. Record
-   actual capture/playback errors, drops and queue measurements, then listen for
-   feedback, clicks and unintended changes to other listeners.
-
-Full mesh is appropriate for a small group of personal computers. At 48 kHz,
-stereo Float32 is 3.072 Mbit/s per active direction before overhead. Four fully
-active computers have six pair connections and twelve directed streams, or
-36.864 Mbit/s of aggregate source traffic. Fan out one capture; send no unwanted
-streams; budget and bound each peer independently. Larger groups or constrained
-Wi-Fi may need another transport or relay design after measurement.
-
-This design does not promise synchronized room speakers or zero latency.
-Multi-computer playout synchronization needs stream timestamps, clock-offset and
-drift estimation, scheduled playout and measured compensation. Queue duration
-alone is not an acoustic synchronization measurement. Treat that as a separate
-acceptance track if playing several speakers together is required.
-
-## Primary references
-
-- [Microsoft application loopback capture sample](https://learn.microsoft.com/en-us/samples/microsoft/windows-classic-samples/applicationloopbackaudio-sample/)
-  documents inclusion/exclusion of a target process tree.
-- [RFC 6763: DNS-Based Service Discovery](https://www.rfc-editor.org/info/rfc6763/)
-  defines service discovery; it does not authenticate membership in this group.
-
-## Verification of this design artifact
-
-The preview's model checks cover ordering, independent directed routes, gain
-ownership, pause ownership, offline/access states, addition/removal and duplicate
-names. Browser checks cover perspective changes, route switches, receive level,
-shared addition, narrow layout and long names. These checks verify the mockup;
-they do not verify networking or cross-platform audio.
+- Production/native build, renderer rebuild, root and script type checks passed.
+- The 34 audio, recovery, volume, style-cascade, localization and no-timer suites
+  passed: 212 tests. The final menu-focus correction also passed its 15 page tests.
+- Stylesheet compilation and UTF-8/encoding checks passed; 12 design-model checks
+  passed. The real production UI components were inspected at normal width and
+  with long names in a narrow scrolling panel, including slider drag and mute.
+- The rebuilt Windows volume helper passed a live capability/applied-response
+  check using an unchanged mute setting. The current level and mute were preserved.
+  The native LAN-playback pipe smoke check passed without opening an audio device.
+- The full repository run had five unrelated Studio suites still failing after
+  the two Share Audio contract issues were corrected. Those Studio sources/tests
+  are unchanged by this implementation. The saved checkpoint already failed its
+  unit-test CI step: <https://github.com/StartSWest/FluidEQ/actions/runs/40112755588>.
+- Live Electron-window verification and physical multi-computer listening remain
+  pending. The browser preview and loopback test are not claims of those results.

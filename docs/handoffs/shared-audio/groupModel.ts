@@ -9,6 +9,7 @@ export interface IComputer {
   sharing: boolean;
   paused: boolean;
   systemVolume: number;
+  isMuted?: boolean;
   output: string;
   source: string;
 }
@@ -19,6 +20,8 @@ export interface IRoute {
   send: boolean;
   receive: boolean;
   level: number;
+  muted?: boolean;
+  unlinked?: boolean;
 }
 
 export interface IGroup {
@@ -60,7 +63,9 @@ export const routeState = (group: IGroup, from: string, to: string) => {
     return { active: false, reason: 'No route', gain: 0 };
   }
   let reason = 'Playing';
-  if (!source.online || !target.online) {
+  if (route.unlinked) {
+    reason = 'Unlinked';
+  } else if (!source.online || !target.online) {
     reason = 'Computer offline';
   } else if (
     source.paused ||
@@ -77,7 +82,7 @@ export const routeState = (group: IGroup, from: string, to: string) => {
     reason = 'Listener switched off';
   }
   const active = reason === 'Playing';
-  return { active, reason, gain: active ? route.level : 0 };
+  return { active, reason, gain: active && !route.muted ? route.level : 0 };
 };
 
 export const updateComputer = (
@@ -95,7 +100,9 @@ export const updateRoute = (
   group: IGroup,
   from: string,
   to: string,
-  patch: Partial<Pick<IRoute, 'send' | 'receive' | 'level'>>,
+  patch: Partial<
+    Pick<IRoute, 'send' | 'receive' | 'level' | 'muted' | 'unlinked'>
+  >,
 ): IGroup => ({
   ...group,
   routes: group.routes.map((route) =>

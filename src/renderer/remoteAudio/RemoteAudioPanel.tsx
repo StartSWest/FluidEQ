@@ -16,9 +16,13 @@ import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { useSinglePlayer } from '../utils/singlePlayer';
 import '../styles/RemoteAudio.scss';
-import RemoteAudioLinkCard from './RemoteAudioLinkCard';
+import RemoteAudioGroup from './RemoteAudioGroup';
+import RemoteAudioMix from './RemoteAudioMix';
+import RemoteAudioOutput from './RemoteAudioOutput';
+import { useSystemFader } from '../audio/systemVolume';
+import '../styles/RemoteAudioGroup.scss';
 import RemoteAudioLinkForm from './RemoteAudioLinkForm';
-import { useIncomingSound, useRemoteAudio } from './remoteAudioValueContext';
+import { useRemoteAudio } from './remoteAudioValueContext';
 import {
   describeForRemote,
   pickSourceForRemote,
@@ -45,17 +49,14 @@ const RULES = [
 /**
  * Share Audio: link this computer with any number of others, all to all.
  *
- * The page is a card per linked computer with its two directions, each on
- * its own switch, a card for each pasted computer that is away, and under
- * them the link itself — this computer's one code to copy and room to paste
- * another's. There is no side to choose: every computer listens and joins at
- * once, the same code links any number of computers, and unlinking one
- * leaves the rest.
+ * One group, with the local source first and a stable order for the rest,
+ * including offline computers. Your mix holds the OS volume and independent
+ * receive gains. Pairing stays beneath it, inside the existing app page.
  */
 const RemoteAudioPanel = () => {
   const { t } = useTranslation();
   const remote = useRemoteAudio();
-  const incoming = useIncomingSound();
+  const system = useSystemFader();
   const singlePlayer = useSinglePlayer();
   const sources = useTransportSources();
   const playingOwner = usePlaybackOwner();
@@ -103,7 +104,7 @@ const RemoteAudioPanel = () => {
         <div>
           <p className="eyebrow">{t('remoteAudio.eyebrow')}</p>
           <h2 id="remote-audio-title">{t('remoteAudio.title')}</h2>
-          <p>{t('remoteAudio.subtitle')}</p>
+          <p>{t('remoteAudio.group.hint')}</p>
           <ul
             className="remote-audio__facts"
             aria-label={t('remoteAudio.security')}
@@ -115,62 +116,17 @@ const RemoteAudioPanel = () => {
         </div>
       </header>
 
+      <div className="remote-audio__columns">
+        <RemoteAudioGroup remote={remote} localNowPlaying={localNowPlaying} />
+        <RemoteAudioMix
+          remote={remote}
+          system={system}
+          output={<RemoteAudioOutput />}
+        />
+      </div>
+
       {linked && (
         <>
-          <h3 className="remote-audio__choice-title">
-            {t('remoteAudio.linked.section')}
-          </h3>
-          {links.map((link) => (
-            <RemoteAudioLinkCard
-              key={link.id}
-              link={link}
-              bothWays={remote.bothWays}
-              sending={remote.sending}
-              sendingFailed={remote.sendingFailed}
-              localNowPlaying={localNowPlaying}
-              delayMs={incoming.find((sound) => sound.id === link.id)?.delayMs}
-              networkStats={remote.networkStats}
-              subscribe={remote.subscribeMeter}
-              onSwitches={(name, switches) => {
-                remote.setSwitches(name, switches).catch(() => undefined);
-              }}
-              onUnlink={() => {
-                remote.unlink({ peerId: link.id }).catch(() => undefined);
-              }}
-            />
-          ))}
-          {looking.map((away) => (
-            <article
-              className="remote-audio__link is-looking"
-              key={away.computerId}
-            >
-              <header className="remote-audio__link-head">
-                <span className="remote-audio__link-icon" aria-hidden="true">
-                  <MenuIcon name="monitor" />
-                </span>
-                <span className="remote-audio__link-name">
-                  <strong>{away.deviceName}</strong>
-                  <span role="status">
-                    {t('remoteAudio.linked.looking', {
-                      name: away.deviceName,
-                    })}
-                  </span>
-                </span>
-                <span className="remote-audio__link-spacer" />
-                <button
-                  type="button"
-                  className="button small subtle"
-                  onClick={() => {
-                    remote
-                      .unlink({ computerId: away.computerId })
-                      .catch(() => undefined);
-                  }}
-                >
-                  {t('remoteAudio.linked.unlink')}
-                </button>
-              </header>
-            </article>
-          ))}
           {phase === 'playback-blocked' && (
             <div className="remote-audio__notice" role="alert">
               <span>{t('remoteAudio.status.playbackBlocked')}</span>

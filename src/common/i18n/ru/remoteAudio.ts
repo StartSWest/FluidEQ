@@ -2,11 +2,25 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.title': 'Вся группа',
+  'remoteAudio.group.mix': 'Ваш микс',
+  'remoteAudio.group.thisPC': 'Этот ПК',
+  'remoteAudio.group.receive': 'Принимать',
+  'remoteAudio.group.send': 'Отправлять',
+  'remoteAudio.group.share': 'Делиться',
+  'remoteAudio.group.options': 'Параметры {name}',
+  'remoteAudio.group.count': 'Компьютеров: {count}',
+  'remoteAudio.group.sourceOff': 'Передача выключена',
+  'remoteAudio.group.offline': 'Не в сети',
+  'remoteAudio.group.unavailable': 'Системная громкость недоступна',
+  'remoteAudio.group.mute': 'Выключить звук этого ПК',
+  'remoteAudio.group.unmute': 'Включить звук этого ПК',
+  'remoteAudio.group.output': 'Выход',
+  'remoteAudio.group.hint':
+    'Подключите компьютер, чтобы присоединиться к его группе. Каждый компьютер отправляет свой звук напрямую остальным. Настройте то, что слышите, в своём миксе.',
   'tabs.share': 'Поделиться аудио',
   'remoteAudio.eyebrow': 'АУДИОСВЯЗЬ ПО LAN',
   'remoteAudio.title': 'Слушайте другие компьютеры здесь',
-  'remoteAudio.subtitle':
-    'Свяжите два компьютера, и каждый будет воспроизводить звук другого. Каждый отправляет свой звук без изменений; компьютер, на котором вы слушаете, применяет свой EQ, кривые и DSP.',
   'remoteAudio.security': 'Свойства соединения',
   'remoteAudio.badge.local': 'Только частная LAN',
   'remoteAudio.badge.lossless': 'Передача Float32 PCM без потерь',
@@ -35,13 +49,11 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.rule.steadyTitle': 'Стабильно, без дрейфа',
   'remoteAudio.rule.steady':
     'Около 30 мс задержки, и она держится: часы двух компьютеров идут в такт, без пропусков и медленного дрейфа.',
-  'remoteAudio.linked.section': 'Связаны',
   'remoteAudio.linked.cardLabel': 'Связь с {name}',
   'remoteAudio.linked.bothWays': 'В обе стороны',
   'remoteAudio.linked.incomingOnly': 'Только входящий',
   'remoteAudio.linked.outgoingOnly': 'Только исходящий',
   'remoteAudio.linked.paused': 'Пауза',
-  'remoteAudio.linked.looking': 'Поиск {name} в вашей сети…',
   'remoteAudio.linked.lossless': 'Без потерь',
   'remoteAudio.linked.unlink': 'Разорвать связь',
   'remoteAudio.linked.pause': 'Пауза',

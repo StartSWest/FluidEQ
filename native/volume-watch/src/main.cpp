@@ -26,6 +26,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  *                                         slider reads it) and 0 or 1; sent
  *                                         at once, and after every change
  *   out: none                             no output to control
+ *   out: ready <tab> 2                    supports applied acknowledgments
+ *   out: applied <tab> level <tab> muted  queried after each command, even
+ *                                         when the driver changes nothing
  *   in:  set <space> level                a level from 0 to 1
  *   in:  mute <space> 0|1
  *
@@ -58,8 +61,6 @@ struct State {
   std::atomic<float> set_level{0.0f};
   std::atomic<int> mute_wanted{-1};
   std::atomic<bool> bad_command{false};
-  std::atomic<float> level{0.0f};
-  std::atomic<bool> muted{false};
 };
 
 State state;
@@ -70,16 +71,16 @@ void say(const std::string& line) {
   std::fflush(stdout);
 }
 
-void report_level(float level, bool muted) {
+void report_level(float level, bool muted, bool applied = false) {
   char line[48]{};
-  std::snprintf(line, sizeof(line), "volume\t%.4f\t%d",
+  std::snprintf(line, sizeof(line), "%s\t%.4f\t%d", applied ? "applied" : "volume",
                 static_cast<double>(level), muted ? 1 : 0);
   say(line);
 }
 
 /**
  * Told on Windows' own thread whenever the level or mute changes; it only
- * records what it was told and wakes the main loop, which does the writing,
+ * wakes the main loop to query the output and do the writing,
  * so the two never write to the pipe at once.
  */
 class VolumeCallback final : public IAudioEndpointVolumeCallback {
@@ -104,8 +105,6 @@ class VolumeCallback final : public IAudioEndpointVolumeCallback {
     if (data == nullptr) {
       return E_INVALIDARG;
     }
-    state.level.store(data->fMasterVolume);
-    state.muted.store(data->bMuted != FALSE);
     SetEvent(state.changed);
     return S_OK;
   }
@@ -243,7 +242,7 @@ void release_output(IAudioEndpointVolume* volume) {
 }
 
 /** Say what the output is at now: the first record, and after a change of output. */
-void report_output(IAudioEndpointVolume* volume) {
+void report_output(IAudioEndpointVolume* volume, bool applied = false) {
   float level = 0.0f;
   BOOL muted = FALSE;
   if (volume == nullptr || FAILED(volume->GetMasterVolumeLevelScalar(&level)) ||
@@ -251,7 +250,7 @@ void report_output(IAudioEndpointVolume* volume) {
     say("none");
     return;
   }
-  report_level(level, muted != FALSE);
+  report_level(level, muted != FALSE, applied);
 }
 
 int run() {
@@ -286,6 +285,7 @@ int run() {
   CloseHandle(reader);
 
   IAudioEndpointVolume* volume = bind_output(devices);
+  say("ready\t2");
   report_output(volume);
   for (;;) {
     HANDLE handles[]{state.input_closed, state.asked, state.changed,
@@ -308,9 +308,14 @@ int run() {
       if (volume != nullptr && mute >= 0) {
         volume->SetMute(mute == 1 ? TRUE : FALSE, nullptr);
       }
+      // Always acknowledge, even if the value was unchanged or quantized by
+      // the driver. The window waits for this actual read, never a deadline.
+      report_output(volume, true);
     }
     if (result == WAIT_OBJECT_0 + 2) {
-      report_level(state.level.load(), state.muted.load());
+      // Several notifications can coalesce while a drag is being applied.
+      // Re-read the output instead of replaying an older callback snapshot.
+      report_output(volume);
     }
     if (result == WAIT_OBJECT_0 + 3) {
       release_output(volume);

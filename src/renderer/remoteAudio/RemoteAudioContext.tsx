@@ -47,6 +47,8 @@ import useRemoteAudioPcmSender from './useRemoteAudioPcmSender';
 import useRemoteAudioSending from './useRemoteAudioSending';
 import useRemoteNowPlayingBroadcast from './useRemoteNowPlayingBroadcast';
 import useRemoteNowPlayingSource from './useRemoteNowPlayingSource';
+import createLinkSwitchWrites from './linkSwitchWrites';
+import useRemoteAudioRecovery from './useRemoteAudioRecovery';
 
 /**
  * Share Audio: the computers linked with this one, both ways, all to all.
@@ -65,6 +67,13 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const { activeDeviceId } = useFluidEqShell();
   const platform = window.electron?.platform;
   const bridge = window.electron?.ipcRenderer;
+  const writeSwitches = useMemo(
+    () =>
+      createLinkSwitchWrites((key, value) =>
+        bridge.setRemoteAudioLinkSwitches(key, value),
+      ),
+    [bridge],
+  );
   const linuxShare = useLinuxShareDevices();
   // Both ways where nothing received can go back out: Windows' process
   // loopback, or the Linux engine's own Send and Share In.
@@ -88,6 +97,22 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
   const [code, setCode] = useState<string | undefined>();
   const [deviceName, setDeviceName] = useState<string | undefined>();
   const [joins, setJoins] = useState<ILanSavedJoin[]>([]);
+  const [sharing, setSharingState] = useState(true);
+  const [recoveryAttempt, setRecoveryAttempt] = useState(0);
+  const recoverAudio = useCallback(
+    () => setRecoveryAttempt((value) => value + 1),
+    [],
+  );
+  const setSharing = useCallback(
+    async (enabled: boolean) => {
+      await bridge.setRemoteAudioLinkSwitches('@source', {
+        ...ALL_ON,
+        send: enabled,
+      });
+      setSharingState(enabled);
+    },
+    [bridge],
+  );
   const recordsRef = useRef(new Map<string, ILinkRecord>());
   const [links, setLinks] = useState<IRemoteAudioLink[]>([]);
   const playbackBlockedRef = useRef(false);
@@ -115,6 +140,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
 
   const playedHere = links.some((link) => playsHere(link, bothWays));
   const { mixerRef, removePeer, resume } = useRemoteAudioMixer({
+    recoveryAttempt,
     wanted: phase !== 'idle' && playedHere,
     outputSinkIdRef,
     onBlocked: (blocked) => {
@@ -147,7 +173,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     });
   // Off Windows the window sends, to every computer that is to hear it.
   const sendTo = links
-    .filter((link) => sendsThere(link, bothWays))
+    .filter((link) => sharing && sendsThere(link, bothWays))
     .map((link) => link.id);
   const sendToKey = sendTo.join('\n');
   const sendToIds = useMemo(
@@ -155,6 +181,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     [sendToKey],
   );
   useRemoteAudioPcmSender({
+    recoveryAttempt,
     peerIds: sendToIds,
     sendInputId: bothWays ? linuxShare.sendInputId : undefined,
     publishMeter,
@@ -199,6 +226,11 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       setDeviceName(started.details.deviceName);
       setCode(started.details.code);
       setJoins(started.joins);
+      const source = await bridge.getRemoteAudioLinkSwitches?.('@source');
+      if (generationRef.current !== attempt) {
+        return;
+      }
+      setSharingState(source?.send !== false);
       setError(undefined);
       if (phaseRef.current === 'preparing') {
         setPhase('ready');
@@ -227,21 +259,12 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       .catch(() => undefined);
   }, [bridge, start]);
 
-  // A network that comes back is the moment to look again, not a clock.
-  useEffect(() => {
-    if (phase === 'idle') {
-      return undefined;
-    }
-    const retry = () => {
-      if (phaseRef.current === 'error') {
-        start().catch(() => undefined);
-      } else {
-        bridge?.retryRemoteAudioLan?.().catch(() => undefined);
-      }
-    };
-    window.addEventListener('online', retry);
-    return () => window.removeEventListener('online', retry);
-  }, [bridge, phase, start]);
+  useRemoteAudioRecovery(
+    phase,
+    sendingFailed || playbackBlockedRef.current,
+    start,
+    recoverAudio,
+  );
 
   useEffect(
     () => bridge?.onRemoteAudioLanJoins?.((next) => setJoins(next)),
@@ -268,10 +291,12 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
         // The switches are main's, remembered by name; it is already acting
         // on them, and the page shows what it acts on.
         bridge
-          ?.getRemoteAudioLinkSwitches?.(record.name)
+          ?.getRemoteAudioLinkSwitches?.(
+            record.computerId ? `id:${record.computerId}` : record.name,
+          )
           .then((switches) => {
             const current = records.get(peerId);
-            if (current && switches) {
+            if (current && switches && current.switches === ALL_ON) {
               current.switches = switches;
               publish();
             }
@@ -284,6 +309,13 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       const record = records.get(peerId);
       if (!record) {
         return;
+      }
+      if (
+        signal.kind === 'stream-mode' &&
+        signal.group &&
+        signal.group.endpoint.computerId === record.computerId
+      ) {
+        record.name = signal.group.endpoint.deviceName;
       }
       if (signal.kind === 'stream-mode') {
         if (signal.duplex) {
@@ -447,9 +479,9 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
       // it arrives.
       applySwitches(recordsRef.current.values(), name, switches);
       publish();
-      await bridge.setRemoteAudioLinkSwitches(name, switches);
+      await writeSwitches(name, switches);
     },
-    [bridge, publish],
+    [writeSwitches, publish],
   );
 
   const resumePlayback = useCallback(async () => {
@@ -475,6 +507,8 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     () => ({
       bothWays,
       code,
+      sharing,
+      setSharing,
       deviceName,
       error,
       links,
@@ -493,6 +527,8 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
     [
       bothWays,
       code,
+      sharing,
+      setSharing,
       deviceName,
       error,
       link,

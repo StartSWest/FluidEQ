@@ -15,6 +15,7 @@ const mockCreateLan = jest.fn();
 
 jest.mock('electron', () => ({
   BrowserWindow: class {},
+  powerMonitor: { on: jest.fn(), removeListener: jest.fn() },
   ipcMain: {
     handle: jest.fn(
       (channel: string, handler: (...args: unknown[]) => unknown) => {

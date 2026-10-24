@@ -9,6 +9,10 @@ it under the terms of the GNU General Public License version 3 or later.
 import fs from 'fs';
 import path from 'path';
 import { safeStorage } from 'electron';
+import {
+  isAudioGroupLink,
+  type IAudioGroupLink,
+} from '../common/remoteAudioGroup';
 
 const FILE_NAME = 'remote-audio-lan.json';
 const CODE_PREFIX = 'FLUIDEQ-LAN-2.';
@@ -31,6 +35,7 @@ export interface ILanState {
   identity?: ILanIdentity;
   joins: string[];
   revoked: string[];
+  groupLinks?: IAudioGroupLink[];
 }
 
 interface IStoredCredentials {
@@ -44,6 +49,8 @@ export interface IRemoteAudioCredentialStore {
   /** Adds a pasted code, replacing one for the same computer. */
   addJoin(code: string, sameComputer: (saved: string) => boolean): void;
   removeJoin(matches: (saved: string) => boolean): void;
+  saveGroupLink(link: IAudioGroupLink): void;
+  removeGroupLink(computerId: string): void;
   revoke(computerId: string): void;
   unrevoke(computerId: string): void;
   clear(): void;
@@ -99,6 +106,13 @@ export const readStoredState = (
       ...(isIdentity(value.identity) ? { identity: value.identity } : {}),
       joins: joins.slice(0, MAX_JOINS),
       revoked: revoked.slice(0, MAX_REVOKED),
+      ...(Array.isArray(value.groupLinks)
+        ? {
+            groupLinks: value.groupLinks
+              .filter(isAudioGroupLink)
+              .slice(0, MAX_JOINS),
+          }
+        : {}),
     };
   }
   if (version === 1) {
@@ -198,6 +212,23 @@ export const createRemoteAudioCredentialStore = (
 
   return {
     read,
+    saveGroupLink: (link) =>
+      update((state) => ({
+        ...state,
+        groupLinks: [
+          ...(state.groupLinks ?? []).filter(
+            (saved) => saved.computerId !== link.computerId,
+          ),
+          link,
+        ].slice(-MAX_JOINS),
+      })),
+    removeGroupLink: (computerId) =>
+      update((state) => ({
+        ...state,
+        groupLinks: (state.groupLinks ?? []).filter(
+          (saved) => saved.computerId !== computerId,
+        ),
+      })),
     writeIdentity: (identity) => update((state) => ({ ...state, identity })),
     addJoin: (code, sameComputer) =>
       update((state) => ({

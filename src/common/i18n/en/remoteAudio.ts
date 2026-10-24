@@ -7,11 +7,25 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 const remoteAudio = {
+  'remoteAudio.group.title': 'The whole group',
+  'remoteAudio.group.mix': 'Your mix',
+  'remoteAudio.group.thisPC': 'This PC',
+  'remoteAudio.group.receive': 'Receive',
+  'remoteAudio.group.send': 'Send',
+  'remoteAudio.group.share': 'Share',
+  'remoteAudio.group.options': 'Options for {name}',
+  'remoteAudio.group.count': '{count} computers',
+  'remoteAudio.group.sourceOff': 'Sharing switched off',
+  'remoteAudio.group.offline': 'Offline',
+  'remoteAudio.group.unavailable': 'System volume unavailable',
+  'remoteAudio.group.mute': 'Mute this PC',
+  'remoteAudio.group.unmute': 'Unmute this PC',
+  'remoteAudio.group.output': 'Output',
+  'remoteAudio.group.hint':
+    'Link a computer to join its group. Each computer sends its own sound directly to the others; adjust what you hear in your mix.',
   'tabs.share': 'Share Audio',
   'remoteAudio.eyebrow': 'LAN AUDIO',
   'remoteAudio.title': 'Share audio between your computers',
-  'remoteAudio.subtitle':
-    'Link two computers and each one plays the other’s sound. Each sends its sound untouched; the computer you listen on applies its own EQ, curves and DSP.',
   'remoteAudio.security': 'Connection properties',
   'remoteAudio.badge.local': 'Private LAN only',
   'remoteAudio.badge.lossless': 'Lossless Float32 PCM transport',
@@ -40,13 +54,11 @@ const remoteAudio = {
   'remoteAudio.rule.steadyTitle': 'Steady, never drifting',
   'remoteAudio.rule.steady':
     'About 30 ms behind and held there: the two clocks are kept in step, so there are no dropouts and no slow drift.',
-  'remoteAudio.linked.section': 'Linked',
   'remoteAudio.linked.cardLabel': 'Link with {name}',
   'remoteAudio.linked.bothWays': 'Both ways',
   'remoteAudio.linked.incomingOnly': 'Incoming only',
   'remoteAudio.linked.outgoingOnly': 'Outgoing only',
   'remoteAudio.linked.paused': 'Paused',
-  'remoteAudio.linked.looking': 'Looking for {name} on your network…',
   'remoteAudio.linked.lossless': 'Lossless',
   'remoteAudio.linked.unlink': 'Unlink',
   'remoteAudio.linked.pause': 'Pause',

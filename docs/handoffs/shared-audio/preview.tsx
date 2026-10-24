@@ -4,13 +4,11 @@ import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import CurrentCards from './CurrentCards';
 import Dropdown from '../../../src/renderer/widgets/Dropdown';
-import GroupComputers from './GroupComputers';
-import YourMix from './YourMix';
+import ImplementedGroup from './ImplementedGroup';
 import {
   addComputer,
   initialGroup,
   orderedComputers,
-  removeComputer,
   togglePair,
   updateComputer,
   updateRoute,
@@ -194,32 +192,17 @@ function Preview() {
           {current ? (
             <CurrentCards key={local.id} group={group} local={local} />
           ) : (
-            <div className="preview-columns">
-              <GroupComputers
-                group={group}
-                local={local}
-                onComputer={changeLocal}
-                onRoute={(from, to, patch) =>
-                  setGroup((previous) => updateRoute(previous, from, to, patch))
-                }
-                onPause={(id) =>
-                  setGroup((previous) => togglePair(previous, local.id, id))
-                }
-                onRemove={(id) =>
-                  setGroup((previous) => removeComputer(previous, id))
-                }
-              />
-              <YourMix
-                group={group}
-                local={local}
-                onComputer={changeLocal}
-                onLevel={(from, level) =>
-                  setGroup((previous) =>
-                    updateRoute(previous, from, local.id, { level }),
-                  )
-                }
-              />
-            </div>
+            <ImplementedGroup
+              group={group}
+              local={local}
+              onComputer={changeLocal}
+              onRoute={(from, to, patch) =>
+                setGroup((previous) => updateRoute(previous, from, to, patch))
+              }
+              onPause={(id) =>
+                setGroup((previous) => togglePair(previous, local.id, id))
+              }
+            />
           )}
         </section>
       </main>

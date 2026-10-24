@@ -47,6 +47,21 @@ beforeEach(() => {
 });
 
 describe('a volume helper that ends by itself', () => {
+  it('does not count a capability header or unchanged applied reply as a followed volume change', () => {
+    let current = fakeChild();
+    const watch = createSystemVolumeWatch(jest.fn(), found);
+    watch.start();
+    for (let ended = 0; ended < 4; ended += 1) {
+      current.say('ready\t2');
+      current.say('volume\t0.5\t0');
+      current.say('applied\t0.5\t0');
+      const next = fakeChild();
+      current.child.emit('exit', 0, null);
+      current = next;
+    }
+    expect(spawn).toHaveBeenCalledTimes(4);
+    watch.stop();
+  });
   it('is put back, the slider keeping its level until the new one reads it', () => {
     const first = fakeChild();
     const onChange = jest.fn();

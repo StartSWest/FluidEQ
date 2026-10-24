@@ -2,11 +2,25 @@
 import { Dictionary } from '../en';
 
 const remoteAudio: Partial<Dictionary> = {
+  'remoteAudio.group.title': 'Todo el grupo',
+  'remoteAudio.group.mix': 'Tu mezcla',
+  'remoteAudio.group.thisPC': 'Este PC',
+  'remoteAudio.group.receive': 'Recibir',
+  'remoteAudio.group.send': 'Enviar',
+  'remoteAudio.group.share': 'Compartir',
+  'remoteAudio.group.options': 'Opciones de {name}',
+  'remoteAudio.group.count': '{count} equipos',
+  'remoteAudio.group.sourceOff': 'Envío desactivado',
+  'remoteAudio.group.offline': 'Sin conexión',
+  'remoteAudio.group.unavailable': 'Volumen del sistema no disponible',
+  'remoteAudio.group.mute': 'Silenciar este PC',
+  'remoteAudio.group.unmute': 'Activar sonido de este PC',
+  'remoteAudio.group.output': 'Salida',
+  'remoteAudio.group.hint':
+    'Vincula un equipo para unirte a su grupo. Cada equipo envía su propio sonido directamente a los demás; ajusta lo que escuchas en tu mezcla.',
   'tabs.share': 'Compartir audio',
   'remoteAudio.eyebrow': 'ENLACE DE AUDIO LAN',
   'remoteAudio.title': 'Escucha aquí tus otros ordenadores',
-  'remoteAudio.subtitle':
-    'Enlaza dos ordenadores y cada uno reproduce el sonido del otro. Cada uno envía su sonido intacto; el ordenador en el que escuchas aplica su propio EQ, curvas y DSP.',
   'remoteAudio.security': 'Propiedades de la conexión',
   'remoteAudio.badge.local': 'Solo LAN privada',
   'remoteAudio.badge.lossless': 'Transporte PCM Float32 sin pérdidas',
@@ -35,13 +49,11 @@ const remoteAudio: Partial<Dictionary> = {
   'remoteAudio.rule.steadyTitle': 'Estable, sin desfase',
   'remoteAudio.rule.steady':
     'Unos 30 ms por detrás y ahí se queda: los dos relojes van al compás, sin cortes y sin desfase lento.',
-  'remoteAudio.linked.section': 'Enlazados',
   'remoteAudio.linked.cardLabel': 'Enlace con {name}',
   'remoteAudio.linked.bothWays': 'En las dos direcciones',
   'remoteAudio.linked.incomingOnly': 'Solo entrante',
   'remoteAudio.linked.outgoingOnly': 'Solo saliente',
   'remoteAudio.linked.paused': 'En pausa',
-  'remoteAudio.linked.looking': 'Buscando {name} en tu red…',
   'remoteAudio.linked.lossless': 'Sin pérdida',
   'remoteAudio.linked.unlink': 'Desenlazar',
   'remoteAudio.linked.pause': 'Pausar',
