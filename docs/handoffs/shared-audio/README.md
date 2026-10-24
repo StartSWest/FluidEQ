@@ -103,6 +103,56 @@ the current endpoint rather than replaying a stale callback snapshot. There are
 no timer retries. Incoming mix writes similarly coalesce per computer while IPC
 applies the previous change.
 
+## Pairing retention and simultaneous reconnects
+
+Saved pairings survive a bare WebSocket 4001 close: older builds also used
+that code for duplicate connections, so it is not proof of an explicit unlink.
+Only an authenticated encrypted `stop` with `forget: true`, or a local Unlink,
+removes saved pairing material. An offline peer that receives only a legacy
+refusal keeps the saved entry; it does not bypass the other computer's revocation.
+
+Simultaneous joins rank their direction only once an outbound peer has proved
+its pairing key with an authenticated challenge. This prevents both PCs from
+cancelling each other while still allowing an inbound connection when an old
+address/port is unreachable. Results from cancelled handshake rounds cannot
+delete or put a newer attempt to sleep.
+
+A missing credentials file is a new setup. An existing file that is locked,
+unreadable, malformed or newer than this build is preserved and reports an error;
+it must never become an empty setup that a subsequent save overwrites. The OS
+key store must be unlocked before that file can be used again. Development and
+installed builds retain their existing separate user-data profiles.
+
+## Headset and OS media commands
+
+While an unpaused group link exists, the main window registers Play/Pause,
+Stop, Next and Previous media accelerators, including while minimized. OS
+Media Session Play, Pause, Stop, Next, Previous and seek actions enter the same
+group router. Titlebar and taskbar commands use that router too. Volume/mute
+keys remain local. Registrations are released on unlink, renderer navigation,
+crash and window close; refused OS bindings are logged rather than claimed.
+
+A physical toggle resolves once to explicit Pause or Play. Pause/Stop reaches
+every connected, unpaused computer, including PCs without media metadata.
+Next/Previous and seeks target playing sources, or the last playing cohort
+while paused. Resume does not start unrelated paused queues. Incoming commands
+execute locally without rebroadcast or synthetic media keys. Windows uses
+explicit system-session Play/Pause to prevent catching its own injected key.
+
+The optional new wire verbs are `play` and `seek` (`positionMs`, integer >= 0).
+Every group PC needs the shared update for those verbs. Existing remote-bar
+verbs retain their behavior. This is an event path, with no command replay on
+reconnect and no timer deduplication.
+
+Platform agents: retain `group-media-watch` and `group-media-command` and the
+preload `watchGroupMediaKeys` / `onGroupMediaCommand` methods. A native MPRIS,
+macOS media-session or headset callback can call `forwardGroupMediaCommand`
+with a validated transport command. It must not also inject a local media key.
+Implement explicit `play` alongside existing system-media commands. Verify
+global-key ownership/permissions on the actual desktop: macOS may require
+Accessibility authorization, and Wayland depends on desktop portal support
+and a resolvable desktop identity. Do not claim headset delivery from unit tests.
+
 ## Platform integration contract
 
 Linux/macOS agents should retain the shared group protocol, stable computer IDs,

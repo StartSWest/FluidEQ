@@ -8,6 +8,7 @@ import path from 'path';
 import { BrowserWindow, ipcMain, nativeImage, nativeTheme } from 'electron';
 import log from 'electron-log';
 import allowTaskbarMessages from './taskbarMessages';
+import { forwardGroupMediaCommand } from './groupMediaKeys';
 import {
   isLocaleLoaded,
   loadLocale,
@@ -92,6 +93,9 @@ const installTaskbarTransport = (window: BrowserWindow, assetsPath: string) => {
       enabled(action)
     ) {
       log.info('Taskbar playback command', action);
+      if (forwardGroupMediaCommand({ command: action })) {
+        return;
+      }
       window.webContents.send(TASKBAR_TRANSPORT_ACTION, action);
     }
   };

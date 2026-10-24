@@ -49,6 +49,7 @@ import useRemoteNowPlayingBroadcast from './useRemoteNowPlayingBroadcast';
 import useRemoteNowPlayingSource from './useRemoteNowPlayingSource';
 import createLinkSwitchWrites from './linkSwitchWrites';
 import useRemoteAudioRecovery from './useRemoteAudioRecovery';
+import GroupMediaTransportHost from './GroupMediaTransportHost';
 
 /**
  * Share Audio: the computers linked with this one, both ways, all to all.
@@ -548,6 +549,7 @@ const RemoteAudioProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <RemoteAudioContext.Provider value={value}>
+      <GroupMediaTransportHost links={links} perform={performRemoteTransport} />
       <RemoteAudioReceivingContext.Provider value={receiving}>
         <IncomingSoundContext.Provider value={incoming}>
           {children}

@@ -46,6 +46,7 @@ import { macWindowOptions } from './macWindowChrome';
 import { shutdownDspHost } from './ipc/dspHost';
 import { shutdownNativeInference } from './nativeInference';
 import installTaskbarTransport from './taskbarTransport';
+import installGroupMediaKeys from './groupMediaKeys';
 import onWindowMessage from './ipc/windowMessages';
 
 /**
@@ -734,6 +735,7 @@ export const createMainWindowFactory = ({
     // load, so its IPC handler is registered before the page can have run a
     // line of script to send to.
     installTaskbarTransport(created, RESOURCES_PATH);
+    installGroupMediaKeys(created);
     await firstLoad;
     if (created.isDestroyed() || isAppQuitting()) {
       return;

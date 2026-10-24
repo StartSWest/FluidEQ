@@ -46,16 +46,19 @@ export interface IRemoteNowPlaying {
 /**
  * The listener's bar buttons, pressed on the sender's own bar.
  *
- * `pause` is the one-player rule reaching across the wire: never a toggle,
- * because a toggle sent to something already paused would start it. `nudge`
+ * `pause` is the one-player rule or a headset Pause reaching across the wire:
+ * never a toggle, because a toggle sent to something paused would start it.
+ * `play` resumes the group source explicitly. `seek` is an OS media action.
+ * `nudge`
  * is the five-second step, carried as a delta because the listener's copy of
  * the position is a second old — the sender resolves it against the truth.
  * The rest are offered on the listener only where `IRemoteNowPlaying` says
  * the sender's source answers them.
  */
 export type TRemoteTransportCommand =
-  | { command: 'toggle' | 'pause' | 'stop' | 'next' | 'previous' }
-  | { command: 'nudge'; deltaMs: number };
+  | { command: 'toggle' | 'play' | 'pause' | 'stop' | 'next' | 'previous' }
+  | { command: 'nudge'; deltaMs: number }
+  | { command: 'seek'; positionMs: number };
 
 /** The furthest one step may reach: the bar steps five seconds, and a peer
  * holding the key is still not trusted to throw the playhead anywhere. */
@@ -291,6 +294,7 @@ export const isRemoteNowPlaying = (
 
 const PLAIN_COMMANDS: readonly string[] = [
   'toggle',
+  'play',
   'pause',
   'stop',
   'next',
@@ -305,7 +309,11 @@ export const isRemoteTransportCommand = (
   (value.command === 'nudge' &&
     typeof value.deltaMs === 'number' &&
     Number.isFinite(value.deltaMs) &&
-    Math.abs(value.deltaMs) <= REMOTE_NUDGE_LIMIT_MS);
+    Math.abs(value.deltaMs) <= REMOTE_NUDGE_LIMIT_MS) ||
+  (value.command === 'seek' &&
+    typeof value.positionMs === 'number' &&
+    Number.isSafeInteger(value.positionMs) &&
+    value.positionMs >= 0);
 
 export const isRemoteDuplex = (value: unknown): value is IRemoteDuplex =>
   isRecord(value) &&
