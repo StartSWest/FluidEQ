@@ -14,6 +14,8 @@ const terms = {
   'terms.title': 'Terms and privacy',
   'terms.meta': 'Version {version} · In effect since {date}',
   'terms.intro':
+    'These terms cover your FluidEQ account: credits and the scenes you get with them, the old Plus membership for the members who still have it, Visualizers, the Studio, and the scenes you share. They list everything the app sends to FluidEQ’s service, when it goes and who can see it, and, near the end, every other place FluidEQ connects to.',
+  'terms.introPayouts':
     'These terms cover your FluidEQ account: credits and the scenes you get with them, the old Plus membership for the members who still have it, Visualizers, the Studio, and the scenes you share and getting paid for them. They list everything the app sends to FluidEQ’s service, when it goes and who can see it, and, near the end, every other place FluidEQ connects to.',
   'terms.link': 'Terms and privacy',
 
@@ -158,6 +160,8 @@ const terms = {
   'terms.protect.p4':
     'The maker runs the service and can see what it stores, to keep it working, to match payments and to moderate what members publish. Nothing is sold or used for advertising. The only statistics are the ones this page lists — how long people listen, which scenes members watch and which engine they use — and only the maker reads them.',
   'terms.protect.p5':
+    'The service runs on Supabase (sign-in, database and files) and sends email through Resend; credits are paid through Stripe, the old membership through Buy Me a Coffee, and the Forum goes through GitHub. Each receives only what its part needs.',
+  'terms.protect.p5Payouts':
     'The service runs on Supabase (sign-in, database and files) and sends email through Resend; credits are paid through Stripe, which also pays creators, the old membership through Buy Me a Coffee, and the Forum goes through GitHub. Each receives only what its part needs.',
   'terms.protect.p6':
     'FluidEQ keeps no IP addresses. Supabase records the address of each request in short-lived logs, and keeps the address and app details of each signed-in computer with that computer’s session and in Supabase’s own sign-in security log, to keep sign-in working and safe.',
@@ -202,6 +206,8 @@ const terms = {
   'terms.scenes.p3':
     'When you export a scene, you let FluidEQ check it — including against FluidEQ’s own scenes — remove the comments from its code and sign it with your display name and account id, so other members who own it can play it and see that you made it. That is the whole permission: FluidEQ’s maker will not sell your scene or use it in advertising, will not make it one of FluidEQ’s own scenes without asking you first, and does not stop you doing anything else with your own work.',
   'terms.scenes.p4':
+    'When an account gets a scene of yours with a credit from a pack it paid for, you earn one credit — credit to get scenes with, never cash. A scene got with a free credit earns nothing. And, until FluidEQ moves its members to credits, a scene of yours that FluidEQ’s maker approves earns you a month of the membership.',
+  'terms.scenes.p4Payouts':
     'When an account gets a scene of yours with a credit from a pack it paid for, you earn from it: once you have set up payouts in the Account panel, money, under the creator terms in Getting paid for your scenes; until then, or where Stripe cannot pay you, one credit — credit to get scenes with, never cash. A scene got with a free credit earns nothing. And, until FluidEQ moves its members to credits, a scene of yours that FluidEQ’s maker approves earns you a month of the membership.',
   'terms.scenes.p6':
     'Only share work you have the right to share: your own photos, drawings and 3D models, or ones whose owner allows it. The rules for what you publish apply to every scene you share. FluidEQ’s maker can stop a scene from opening if it breaks these terms or someone else’s rights.',
@@ -234,6 +240,8 @@ const terms = {
   'terms.elsewhere.p7':
     'Lighting and desktop backgrounds: lighting talks only to Razer Chroma and Windows on this computer, and desktop backgrounds never go online.',
   'terms.elsewhere.p8':
+    'Your browser: payment for credits on Stripe and for the old membership on Buy Me a Coffee, your membership page, the support links and the Forum’s GitHub sign-in open there, under those sites’ own terms.',
+  'terms.elsewhere.p8Payouts':
     'Your browser: payment for credits on Stripe and for the old membership on Buy Me a Coffee, Stripe’s sign-up and dashboard for creator payouts, your membership page, the support links and the Forum’s GitHub sign-in open there, under those sites’ own terms.',
 
   'terms.changes.title': 'Changes, and the fine print',
@@ -280,6 +288,8 @@ const terms = {
   'terms.sent.sceneGet.when':
     'When you confirm getting a scene, and when you take the starter credits',
   'terms.sent.sceneGet.who':
+    'Kept with your account, so the scene stays yours. When it was got with a paid credit, the maker of a member’s scene earns a credit from it, and never learns who got it.',
+  'terms.sent.sceneGet.whoPayouts':
     'Kept with your account, so the scene stays yours. When it was got with a paid credit, the maker of a member’s scene earns from it — money once Stripe can pay them, a credit until then — and never learns who got it.',
   'terms.keep.p7':
     'Credits: each pack you paid for, each credit you spent and each scene you own are kept with your account, so your scenes stay yours on every computer; Stripe’s ids for each payment are kept to give its credits and to take them back after a refund. All of it is deleted with your account.',

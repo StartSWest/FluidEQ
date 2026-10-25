@@ -3,6 +3,8 @@ const terms = {
   'terms.title': 'Bedingungen und Datenschutz',
   'terms.meta': 'Version {version} · Gültig seit {date}',
   'terms.intro':
+    'Diese Bedingungen gelten für Ihr FluidEQ-Konto: Credits und die Szenen, die Sie damit holen, die frühere Plus-Mitgliedschaft für die Mitglieder, die sie noch haben, „Visualizer“, das Studio sowie die Szenen, die Sie teilen. Sie führen alles auf, was die App an den Dienst von FluidEQ sendet, wann es gesendet wird und wer es sehen kann, und gegen Ende jeden anderen Ort, mit dem FluidEQ sich verbindet.',
+  'terms.introPayouts':
     'Diese Bedingungen gelten für Ihr FluidEQ-Konto: Credits und die Szenen, die Sie damit holen, die frühere Plus-Mitgliedschaft für die Mitglieder, die sie noch haben, „Visualizer“, das Studio sowie die Szenen, die Sie teilen, und die Bezahlung dafür. Sie führen alles auf, was die App an den Dienst von FluidEQ sendet, wann es gesendet wird und wer es sehen kann, und gegen Ende jeden anderen Ort, mit dem FluidEQ sich verbindet.',
   'terms.link': 'Bedingungen und Datenschutz',
 
@@ -148,6 +150,8 @@ const terms = {
   'terms.protect.p4':
     'Der Macher betreibt den Dienst und kann sehen, was er speichert, um ihn am Laufen zu halten, Zahlungen zuzuordnen und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft oder für Werbung genutzt. Die einzigen Statistiken sind die, die diese Seite aufführt – wie lange Menschen hören, welche Szenen Mitglieder ansehen und welche Engine sie nutzen –, und nur der Macher liest sie.',
   'terms.protect.p5':
+    'Der Dienst läuft auf Supabase (Anmeldung, Datenbank und Dateien) und versendet E-Mails über Resend; Credits werden über Stripe bezahlt, die frühere Mitgliedschaft über Buy Me a Coffee, und das Forum läuft über GitHub. Jeder erhält nur, was sein Teil braucht.',
+  'terms.protect.p5Payouts':
     'Der Dienst läuft auf Supabase (Anmeldung, Datenbank und Dateien) und versendet E-Mails über Resend; Credits werden über Stripe bezahlt, das auch die Ersteller auszahlt, die frühere Mitgliedschaft über Buy Me a Coffee, und das Forum läuft über GitHub. Jeder erhält nur, was sein Teil braucht.',
   'terms.protect.p6':
     'FluidEQ speichert keine IP-Adressen. Supabase protokolliert die Adresse jeder Anfrage in kurzlebigen Logs und speichert die Adresse und Angaben zur App jedes angemeldeten Computers bei der Sitzung dieses Computers und im eigenen Sicherheitsprotokoll für Anmeldungen von Supabase, damit die Anmeldung funktioniert und sicher bleibt.',
@@ -192,6 +196,8 @@ const terms = {
   'terms.scenes.p3':
     'Wenn Sie eine Szene exportieren, erlauben Sie FluidEQ, sie zu prüfen — auch im Vergleich mit FluidEQs eigenen Szenen —, die Kommentare aus ihrem Code zu entfernen und sie mit Ihrem Anzeigenamen und Ihrer Konto-ID zu signieren, damit andere Mitglieder, denen sie gehört, sie abspielen und sehen können, dass Sie sie erstellt haben. Das ist die ganze Erlaubnis: Der Macher von FluidEQ verkauft Ihre Szene nicht, nutzt sie nicht für Werbung, macht sie nicht ohne Ihre vorherige Zustimmung zu einer von FluidEQs eigenen Szenen und hindert Sie an nichts anderem, was Sie mit Ihrer eigenen Arbeit tun möchten.',
   'terms.scenes.p4':
+    'Wenn ein Konto eine Ihrer Szenen mit einem Credit aus einem bezahlten Paket holt, verdienen Sie einen Credit — Guthaben zum Holen von Szenen, nie Bargeld. Eine mit einem kostenlosen Credit geholte Szene bringt nichts ein. Und bis FluidEQ seine Mitglieder auf Credits umstellt, bringt Ihnen eine Ihrer Szenen, die der Macher von FluidEQ freigibt, einen Monat Mitgliedschaft ein.',
+  'terms.scenes.p4Payouts':
     'Wenn ein Konto eine Ihrer Szenen mit einem Credit aus einem bezahlten Paket holt, verdienen Sie daran: sobald Sie Auszahlungen im Kontobereich eingerichtet haben, Geld, nach den Bedingungen für Ersteller unter „Für Ihre Szenen bezahlt werden“; bis dahin, oder wo Stripe Sie nicht bezahlen kann, einen Credit — Guthaben zum Holen von Szenen, nie Bargeld. Eine mit einem kostenlosen Credit geholte Szene bringt nichts ein. Und bis FluidEQ seine Mitglieder auf Credits umstellt, bringt Ihnen eine Ihrer Szenen, die der Macher von FluidEQ freigibt, einen Monat Mitgliedschaft ein.',
   'terms.scenes.p6':
     'Teilen Sie nur, was Sie teilen dürfen: Ihre eigenen Fotos, Zeichnungen und 3D-Modelle oder solche, deren Urheber es erlaubt. Die Regeln für das, was Sie veröffentlichen, gelten für jede Szene, die Sie teilen. Der Macher von FluidEQ kann verhindern, dass sich eine Szene öffnet, wenn sie gegen diese Bedingungen oder die Rechte anderer verstößt.',
@@ -224,6 +230,8 @@ const terms = {
   'terms.elsewhere.p7':
     'Beleuchtung und Desktophintergründe: Die Beleuchtung kommuniziert nur mit Razer Chroma und Windows auf diesem Computer, und Desktophintergründe gehen nie online.',
   'terms.elsewhere.p8':
+    'Ihr Browser: Die Zahlung für Credits bei Stripe und für die frühere Mitgliedschaft bei Buy Me a Coffee, Ihre Mitgliedschaftsseite, die Support-Links und die GitHub-Anmeldung des Forums öffnen sich dort, unter den Bedingungen dieser Seiten.',
+  'terms.elsewhere.p8Payouts':
     'Ihr Browser: Die Zahlung für Credits bei Stripe und für die frühere Mitgliedschaft bei Buy Me a Coffee, die Anmeldung und das Dashboard von Stripe für Auszahlungen an Ersteller, Ihre Mitgliedschaftsseite, die Support-Links und die GitHub-Anmeldung des Forums öffnen sich dort, unter den Bedingungen dieser Seiten.',
 
   'terms.changes.title': 'Änderungen, und das Kleingedruckte',
@@ -270,6 +278,8 @@ const terms = {
   'terms.sent.sceneGet.when':
     'Wenn Sie bestätigen, eine Szene zu holen, und wenn Sie die Start-Credits nehmen',
   'terms.sent.sceneGet.who':
+    'Mit Ihrem Konto gespeichert, damit die Szene Ihre bleibt. Wurde sie mit einem bezahlten Credit geholt, verdient der Ersteller einer Mitgliederszene daran einen Credit und erfährt nie, wer sie geholt hat.',
+  'terms.sent.sceneGet.whoPayouts':
     'Mit Ihrem Konto gespeichert, damit die Szene Ihre bleibt. Wurde sie mit einem bezahlten Credit geholt, verdient der Ersteller einer Mitgliederszene daran — Geld, sobald Stripe ihn bezahlen kann, bis dahin einen Credit — und erfährt nie, wer sie geholt hat.',
   'terms.keep.p7':
     'Credits: Jedes bezahlte Paket, jeder ausgegebene Credit und jede Szene, die Ihnen gehört, wird mit Ihrem Konto gespeichert, damit Ihre Szenen auf jedem Computer Ihre bleiben; die IDs von Stripe zu jeder Zahlung werden gespeichert, um ihre Credits gutzuschreiben und nach einer Erstattung zurückzunehmen. Alles wird mit Ihrem Konto gelöscht.',

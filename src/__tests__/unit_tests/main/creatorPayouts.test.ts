@@ -61,6 +61,7 @@ const STATUS = {
     minimumCents: 1000,
     agreementVersion: 1,
     payoutDays: 15,
+    payoutsOpen: true,
   },
   account: {
     country: 'DE',
@@ -83,6 +84,21 @@ const json = (status: number, body: unknown) =>
 describe('what the server says, read', () => {
   it('reads a creator whole', () => {
     expect(parseCreatorStatus(STATUS)).toEqual(STATUS);
+  });
+
+  it('reads payouts as closed unless the server says they are open (premium 0070)', () => {
+    const { payoutsOpen, ...before } = STATUS.terms;
+    expect(payoutsOpen).toBe(true);
+    // A server before 0070 does not say: closed.
+    expect(
+      parseCreatorStatus({ ...STATUS, terms: before })?.terms.payoutsOpen,
+    ).toBe(false);
+    expect(
+      parseCreatorStatus({
+        ...STATUS,
+        terms: { ...before, payoutsOpen: 'yes' },
+      })?.terms.payoutsOpen,
+    ).toBe(false);
   });
 
   it('reads a creator who has not begun as one with no account', () => {
@@ -427,6 +443,8 @@ describe('the creator channels', () => {
   it.each([
     [409, { error: 'agreement_outdated' }, 'agreement-outdated'],
     [403, { error: 'banned' }, 'banned'],
+    // Signing up closed until FluidEQ can pay creators (premium 0070).
+    [403, { error: 'payouts_closed' }, 'unavailable'],
     [403, { error: 'unconfirmed' }, 'unconfirmed'],
     [401, { error: 'signed_out' }, 'signed-out'],
     [502, { error: 'server' }, 'server'],

@@ -49,8 +49,11 @@ export interface ITermsSentRow {
   who: TranslationKey;
 }
 
-/** Everything the app sends, in the order a person meets it. */
-export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
+/**
+ * Everything the app sends, in the order a person meets it. `payoutsOpen` is
+ * `CREATOR_PAYOUTS_OPEN`: closed, nothing about paying creators is said.
+ */
+const sentRows = (payoutsOpen: boolean): readonly ITermsSentRow[] => [
   {
     id: 'sign-in',
     glyph: 'person',
@@ -90,21 +93,27 @@ export const TERMS_SENT_ROWS: readonly ITermsSentRow[] = [
     when: 'terms.sent.credits.when',
     who: 'terms.sent.credits.who',
   },
-  {
-    // Creator payouts (premium 0064): the card's status read, the sign-up,
-    // and what Stripe reports back about the creator's account.
-    id: 'payouts',
-    glyph: 'card',
-    what: 'terms.sent.payouts.what',
-    when: 'terms.sent.payouts.when',
-    who: 'terms.sent.payouts.who',
-  },
+  ...(payoutsOpen
+    ? [
+        {
+          // Creator payouts (premium 0064): the card's status read, the
+          // sign-up, and what Stripe reports back about the creator's account.
+          id: 'payouts',
+          glyph: 'card' as const,
+          what: 'terms.sent.payouts.what' as const,
+          when: 'terms.sent.payouts.when' as const,
+          who: 'terms.sent.payouts.who' as const,
+        },
+      ]
+    : []),
   {
     id: 'scene-get',
     glyph: 'check',
     what: 'terms.sent.sceneGet.what',
     when: 'terms.sent.sceneGet.when',
-    who: 'terms.sent.sceneGet.who',
+    who: payoutsOpen
+      ? 'terms.sent.sceneGet.whoPayouts'
+      : 'terms.sent.sceneGet.who',
   },
   {
     // Recorded by the checkout, the export and the publish alike, and kept
@@ -218,7 +227,7 @@ export interface ITermsSection {
   lines: readonly TranslationKey[];
 }
 
-export const TERMS_SECTIONS: readonly ITermsSection[] = [
+const sections = (payoutsOpen: boolean): readonly ITermsSection[] => [
   {
     // First: how a scene becomes the reader's, which is now how most of
     // what follows is reached (revision 11).
@@ -293,7 +302,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.protect.p2',
       'terms.protect.p3',
       'terms.protect.p4',
-      'terms.protect.p5',
+      payoutsOpen ? 'terms.protect.p5Payouts' : 'terms.protect.p5',
       'terms.protect.p6',
       'terms.protect.p7',
     ],
@@ -323,7 +332,8 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.keep.p4',
       'terms.keep.p5',
       'terms.keep.p7',
-      'terms.keep.p8',
+      // What payouts keep: said only while creators can be paid.
+      ...(payoutsOpen ? ['terms.keep.p8' as const] : []),
       'terms.keep.p9',
       'terms.keep.p6',
     ],
@@ -347,7 +357,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.scenes.p1',
       'terms.scenes.p2',
       'terms.scenes.p3',
-      'terms.scenes.p4',
+      payoutsOpen ? 'terms.scenes.p4Payouts' : 'terms.scenes.p4',
       'terms.scenes.p6',
       'terms.scenes.p7',
       'terms.scenes.p8',
@@ -356,25 +366,29 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.scenes.p11',
     ],
   },
-  {
-    // Getting paid: the creator terms the sign-up dialog shows, quoted from
-    // its own keys so the two can never say different things.
-    id: 'payouts',
-    glyph: 'credit',
-    title: 'terms.payouts.title',
-    body: 'points',
-    lines: [
-      'terms.payouts.p1',
-      'creator.terms.share',
-      'creator.terms.paidCredits',
-      'creator.terms.hold',
-      'creator.terms.minimum',
-      'creator.terms.stripe',
-      'creator.terms.rights',
-      'creator.terms.taxes',
-      'creator.terms.changes',
-    ],
-  },
+  ...(payoutsOpen
+    ? [
+        {
+          // Getting paid: the creator terms the sign-up dialog shows, quoted
+          // from its own keys so the two can never say different things.
+          id: 'payouts',
+          glyph: 'credit' as const,
+          title: 'terms.payouts.title' as const,
+          body: 'points' as const,
+          lines: [
+            'terms.payouts.p1',
+            'creator.terms.share',
+            'creator.terms.paidCredits',
+            'creator.terms.hold',
+            'creator.terms.minimum',
+            'creator.terms.stripe',
+            'creator.terms.rights',
+            'creator.terms.taxes',
+            'creator.terms.changes',
+          ] as const,
+        },
+      ]
+    : []),
   {
     // Everything FluidEQ reaches that is not its own service, so the table
     // above can promise to be complete about the service without the rest of
@@ -397,7 +411,7 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
       'terms.elsewhere.p5',
       'terms.elsewhere.p6',
       'terms.elsewhere.p7',
-      'terms.elsewhere.p8',
+      payoutsOpen ? 'terms.elsewhere.p8Payouts' : 'terms.elsewhere.p8',
     ],
   },
   {
@@ -415,3 +429,23 @@ export const TERMS_SECTIONS: readonly ITermsSection[] = [
     lines: ['terms.contact.p1'],
   },
 ];
+
+export interface ITermsLayout {
+  intro: TranslationKey;
+  sentRows: readonly ITermsSentRow[];
+  sections: readonly ITermsSection[];
+}
+
+/**
+ * The whole document, with or without what concerns paying creators.
+ *
+ * Takes the switch rather than importing it, because the site lays its /terms
+ * out from this module as plain data (`import-app-terms.mjs`) and reads the
+ * switch beside it. Every sentence that mentions payouts has a twin without
+ * them, so turning `CREATOR_PAYOUTS_OPEN` on brings the text back unchanged.
+ */
+export const termsLayout = (payoutsOpen: boolean): ITermsLayout => ({
+  intro: payoutsOpen ? 'terms.introPayouts' : 'terms.intro',
+  sentRows: sentRows(payoutsOpen),
+  sections: sections(payoutsOpen),
+});

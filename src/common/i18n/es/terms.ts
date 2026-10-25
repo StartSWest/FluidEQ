@@ -3,6 +3,8 @@ const terms = {
   'terms.title': 'Condiciones y privacidad',
   'terms.meta': 'Versión {version} · En vigor desde el {date}',
   'terms.intro':
+    'Estas condiciones cubren tu cuenta de FluidEQ: los créditos y las escenas que consigues con ellos, la antigua membresía Plus para los miembros que todavía la tienen, Visualizadores, el Estudio y las escenas que compartes. Enumeran todo lo que la app envía al servicio de FluidEQ, cuándo lo envía y quién puede verlo, y, cerca del final, cada uno de los demás lugares a los que se conecta FluidEQ.',
+  'terms.introPayouts':
     'Estas condiciones cubren tu cuenta de FluidEQ: los créditos y las escenas que consigues con ellos, la antigua membresía Plus para los miembros que todavía la tienen, Visualizadores, el Estudio, y las escenas que compartes y cobrar por ellas. Enumeran todo lo que la app envía al servicio de FluidEQ, cuándo lo envía y quién puede verlo, y, cerca del final, cada uno de los demás lugares a los que se conecta FluidEQ.',
   'terms.link': 'Condiciones y privacidad',
 
@@ -147,6 +149,8 @@ const terms = {
   'terms.protect.p4':
     'El creador administra el servicio y puede ver lo que guarda, para mantenerlo en marcha, asociar los pagos y moderar lo que publican los miembros. Nada se vende ni se usa para publicidad. Las únicas estadísticas son las que enumera esta página —cuánto escucha la gente, qué escenas ven los miembros y qué motor usan— y solo las lee el creador.',
   'terms.protect.p5':
+    'El servicio funciona sobre Supabase (inicio de sesión, base de datos y archivos) y envía correos a través de Resend; los créditos se pagan con Stripe, la antigua membresía con Buy Me a Coffee, y el Foro va por GitHub. Cada uno recibe solo lo que su parte necesita.',
+  'terms.protect.p5Payouts':
     'El servicio funciona sobre Supabase (inicio de sesión, base de datos y archivos) y envía correos a través de Resend; los créditos se pagan con Stripe, que también paga a los creadores, la antigua membresía con Buy Me a Coffee, y el Foro va por GitHub. Cada uno recibe solo lo que su parte necesita.',
   'terms.protect.p6':
     'FluidEQ no guarda direcciones IP. Supabase anota la dirección de cada petición en registros de corta duración, y guarda la dirección y los detalles de la aplicación de cada ordenador con sesión iniciada junto a la sesión de ese ordenador y en el propio registro de seguridad de inicio de sesión de Supabase, para que el inicio de sesión funcione y sea seguro.',
@@ -191,6 +195,8 @@ const terms = {
   'terms.scenes.p3':
     'Cuando exportas una escena, permites que FluidEQ la revise —también comparándola con las escenas propias de FluidEQ—, quite los comentarios de su código y la firme con tu nombre visible y tu id de cuenta, para que otros miembros que la tengan puedan reproducirla y ver que la hiciste tú. Ese es todo el permiso: el creador de FluidEQ no venderá tu escena ni la usará en publicidad, no la convertirá en una de las escenas propias de FluidEQ sin preguntarte antes, y no te impide hacer nada más con tu propio trabajo.',
   'terms.scenes.p4':
+    'Cuando una cuenta consigue una escena tuya con un crédito de un paquete que pagó, ganas un crédito: crédito para conseguir escenas, nunca dinero. Una escena conseguida con un crédito gratis no gana nada. Y, hasta que FluidEQ pase a sus miembros a créditos, una escena tuya que apruebe el creador de FluidEQ te da un mes de membresía.',
+  'terms.scenes.p4Payouts':
     'Cuando una cuenta consigue una escena tuya con un crédito de un paquete que pagó, ganas con ella: en cuanto configuras los pagos en el panel Cuenta, dinero, según las condiciones para creadores de Cobrar por tus escenas; hasta entonces, o donde Stripe no pueda pagarte, un crédito: crédito para conseguir escenas, nunca dinero. Una escena conseguida con un crédito gratis no gana nada. Y, hasta que FluidEQ pase a sus miembros a créditos, una escena tuya que apruebe el creador de FluidEQ te da un mes de membresía.',
   'terms.scenes.p6':
     'Comparte solo trabajo que tengas derecho a compartir: tus propias fotos, dibujos y modelos 3D, o los de alguien que lo permita. Las normas para lo que publicas se aplican a cada escena que compartes. El creador de FluidEQ puede impedir que una escena se abra si incumple estas condiciones o los derechos de otra persona.',
@@ -223,6 +229,8 @@ const terms = {
   'terms.elsewhere.p7':
     'Iluminación y fondos de escritorio: la iluminación solo se comunica con Razer Chroma y con Windows en este ordenador, y los fondos de escritorio nunca salen a internet.',
   'terms.elsewhere.p8':
+    'Tu navegador: el pago de créditos en Stripe y el de la antigua membresía en Buy Me a Coffee, la página de tu membresía, los enlaces de soporte y el inicio de sesión con GitHub del Foro se abren ahí, según las condiciones de esos sitios.',
+  'terms.elsewhere.p8Payouts':
     'Tu navegador: el pago de créditos en Stripe y el de la antigua membresía en Buy Me a Coffee, el alta y el panel de Stripe para los pagos a creadores, la página de tu membresía, los enlaces de soporte y el inicio de sesión con GitHub del Foro se abren ahí, según las condiciones de esos sitios.',
 
   'terms.changes.title': 'Cambios, y la letra pequeña',
@@ -269,6 +277,8 @@ const terms = {
   'terms.sent.sceneGet.when':
     'Cuando confirmas que consigues una escena, y cuando recibes los créditos de inicio',
   'terms.sent.sceneGet.who':
+    'Se guarda con tu cuenta, para que la escena siga siendo tuya. Si se consiguió con un crédito pagado, quien hizo la escena de un miembro gana un crédito con ella y nunca sabe quién la consiguió.',
+  'terms.sent.sceneGet.whoPayouts':
     'Se guarda con tu cuenta, para que la escena siga siendo tuya. Si se consiguió con un crédito pagado, quien hizo la escena de un miembro gana con ella (dinero cuando Stripe puede pagarle, un crédito hasta entonces) y nunca sabe quién la consiguió.',
   'terms.keep.p7':
     'Créditos: cada paquete que pagaste, cada crédito que gastaste y cada escena que tienes se guardan con tu cuenta, para que tus escenas sigan siendo tuyas en cada computadora; los ids de Stripe de cada pago se guardan para dar sus créditos y retirarlos tras un reembolso. Todo se borra con tu cuenta.',

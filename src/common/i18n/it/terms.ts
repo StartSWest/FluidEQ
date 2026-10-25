@@ -3,6 +3,8 @@ const terms = {
   'terms.title': 'Condizioni e privacy',
   'terms.meta': 'Versione {version} · In vigore dal {date}',
   'terms.intro':
+    'Queste condizioni riguardano il tuo account FluidEQ: i crediti e le scene che ottieni con essi, il vecchio abbonamento Plus per i membri che lo hanno ancora, Visualizzatori, lo Studio e le scene che condividi. Elencano tutto ciò che l’app invia al servizio di FluidEQ, quando lo invia e chi può vederlo, e, verso la fine, ogni altro luogo a cui FluidEQ si collega.',
+  'terms.introPayouts':
     'Queste condizioni riguardano il tuo account FluidEQ: i crediti e le scene che ottieni con essi, il vecchio abbonamento Plus per i membri che lo hanno ancora, Visualizzatori, lo Studio, e le scene che condividi e i pagamenti per esse. Elencano tutto ciò che l’app invia al servizio di FluidEQ, quando lo invia e chi può vederlo, e, verso la fine, ogni altro luogo a cui FluidEQ si collega.',
   'terms.link': 'Condizioni e privacy',
 
@@ -148,6 +150,8 @@ const terms = {
   'terms.protect.p4':
     'Il creatore gestisce il servizio e può vedere ciò che conserva, per tenerlo in funzione, collegare i pagamenti e moderare ciò che i membri pubblicano. Nulla viene venduto o usato per pubblicità. Le uniche statistiche sono quelle elencate in questa pagina — quanto ascoltano le persone, quali scene guardano i membri e quale motore usano — e solo il creatore le legge.',
   'terms.protect.p5':
+    'Il servizio funziona su Supabase (accesso, database e file) e invia email tramite Resend; i crediti si pagano tramite Stripe, il vecchio abbonamento tramite Buy Me a Coffee, e il Forum passa da GitHub. Ognuno riceve solo ciò che serve alla sua parte.',
+  'terms.protect.p5Payouts':
     'Il servizio funziona su Supabase (accesso, database e file) e invia email tramite Resend; i crediti si pagano tramite Stripe, che paga anche i creatori, il vecchio abbonamento tramite Buy Me a Coffee, e il Forum passa da GitHub. Ognuno riceve solo ciò che serve alla sua parte.',
   'terms.protect.p6':
     'FluidEQ non conserva indirizzi IP. Supabase registra l’indirizzo di ogni richiesta in log di breve durata, e conserva l’indirizzo e i dettagli dell’app di ogni computer connesso insieme alla sessione di quel computer e nel registro di sicurezza degli accessi di Supabase stesso, per mantenere l’accesso funzionante e sicuro.',
@@ -192,6 +196,8 @@ const terms = {
   'terms.scenes.p3':
     'Quando esporti una scena, permetti a FluidEQ di controllarla — anche confrontandola con le scene di FluidEQ —, rimuovere i commenti dal suo codice e firmarla con il tuo nome visualizzato e il tuo id account, così gli altri membri che la possiedono possono riprodurla e vedere che l’hai creata tu. È tutto il permesso: il creatore di FluidEQ non venderà la tua scena né la userà in pubblicità, non la renderà una delle scene di FluidEQ senza chiedertelo prima, e non ti impedisce di fare nient’altro con il tuo lavoro.',
   'terms.scenes.p4':
+    'Quando un account ottiene una tua scena con un credito di un pacchetto che ha pagato, guadagni un credito: credito per ottenere scene, mai denaro. Una scena ottenuta con un credito gratuito non rende nulla. E, finché FluidEQ non passa i suoi membri ai crediti, una tua scena approvata dal creatore di FluidEQ ti dà un mese di abbonamento.',
+  'terms.scenes.p4Payouts':
     'Quando un account ottiene una tua scena con un credito di un pacchetto che ha pagato, ci guadagni: appena configuri i pagamenti nel pannello Account, denaro, secondo le condizioni per i creatori di Farti pagare per le tue scene; fino ad allora, o dove Stripe non può pagarti, un credito: credito per ottenere scene, mai denaro. Una scena ottenuta con un credito gratuito non rende nulla. E, finché FluidEQ non passa i suoi membri ai crediti, una tua scena approvata dal creatore di FluidEQ ti dà un mese di abbonamento.',
   'terms.scenes.p6':
     'Condividi solo lavori che hai il diritto di condividere: le tue foto, i tuoi disegni e i tuoi modelli 3D, o quelli di chi lo permette. Le regole per ciò che pubblichi valgono per ogni scena che condividi. Il creatore di FluidEQ può impedire che una scena si apra se viola queste condizioni o i diritti di qualcun altro.',
@@ -224,6 +230,8 @@ const terms = {
   'terms.elsewhere.p7':
     'Illuminazione e sfondi del desktop: l’illuminazione comunica solo con Razer Chroma e Windows su questo computer, e gli sfondi del desktop non vanno mai online.',
   'terms.elsewhere.p8':
+    'Il tuo browser: il pagamento dei crediti su Stripe e del vecchio abbonamento su Buy Me a Coffee, la pagina del tuo abbonamento, i link di supporto e l’accesso con GitHub del Forum si aprono lì, secondo le condizioni di quei siti.',
+  'terms.elsewhere.p8Payouts':
     'Il tuo browser: il pagamento dei crediti su Stripe e del vecchio abbonamento su Buy Me a Coffee, la registrazione e la dashboard di Stripe per i pagamenti ai creatori, la pagina del tuo abbonamento, i link di supporto e l’accesso con GitHub del Forum si aprono lì, secondo le condizioni di quei siti.',
 
   'terms.changes.title': 'Modifiche, e le clausole in piccolo',
@@ -270,6 +278,8 @@ const terms = {
   'terms.sent.sceneGet.when':
     'Quando confermi di ottenere una scena, e quando ricevi i crediti iniziali',
   'terms.sent.sceneGet.who':
+    'Conservato con il tuo account, così la scena resta tua. Se è stata ottenuta con un credito pagato, l’autore della scena di un membro ci guadagna un credito e non sa mai chi l’ha ottenuta.',
+  'terms.sent.sceneGet.whoPayouts':
     'Conservato con il tuo account, così la scena resta tua. Se è stata ottenuta con un credito pagato, l’autore della scena di un membro ci guadagna (denaro quando Stripe può pagarlo, un credito fino ad allora) e non sa mai chi l’ha ottenuta.',
   'terms.keep.p7':
     'Crediti: ogni pacchetto che hai pagato, ogni credito che hai speso e ogni scena che possiedi sono conservati con il tuo account, così le tue scene restano tue su ogni computer; gli id di Stripe di ogni pagamento sono conservati per dare i suoi crediti e riprenderli dopo un rimborso. Tutto viene eliminato con il tuo account.',

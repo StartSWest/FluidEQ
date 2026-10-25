@@ -61,6 +61,21 @@ export const isPayableCountry = (value: unknown): value is TPayableCountry =>
 /** The creator agreement this app shows; the server refuses an older one. */
 export const CREATOR_AGREEMENT_VERSION = 1;
 
+/**
+ * Whether this app offers creators money for their scenes at all: the
+ * account panel's card, the sign-up before Stripe's pages, and the terms'
+ * sections about payouts (`termsLayout`).
+ *
+ * Off since 2026-10-24: Stripe Connect, which pays creators, needs an
+ * identity check FluidEQ's owner cannot pass yet, so FluidEQ sells scenes and
+ * creators share theirs for credits (Ivan: "hide all related to pay them ...
+ * but lets have it prepared for when we can"). The server has its own switch
+ * (premium 0070, `creator_payouts_open`) and refuses a sign-up while it is
+ * closed. Turning this on is a release: raise `PLUS_TERMS_VERSION`, because
+ * the terms then describe payouts, and open the server's switch.
+ */
+export const CREATOR_PAYOUTS_OPEN: boolean = false;
+
 export interface ICreatorTerms {
   sharePercent: number;
   holdDays: number;
@@ -68,6 +83,8 @@ export interface ICreatorTerms {
   agreementVersion: number;
   /** How often the admin pays creators (Ivan, 2026-10-21: every 15 days). */
   payoutDays: number;
+  /** The server's switch (premium 0070); absent before it, read as closed. */
+  payoutsOpen: boolean;
 }
 
 export interface ICreatorAccount {
@@ -125,6 +142,7 @@ const termsOf = (value: unknown): ICreatorTerms | undefined =>
         minimumCents: value.minimumCents,
         agreementVersion: value.agreementVersion,
         payoutDays: value.payoutDays,
+        payoutsOpen: value.payoutsOpen === true,
       }
     : undefined;
 
