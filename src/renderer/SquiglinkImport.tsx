@@ -29,6 +29,7 @@ import type { TImportEars } from '../common/bandEars';
 import EqCurveChart from './graph/EqCurveChart';
 import SquiglinkImportConfirm from './components/SquiglinkImportConfirm';
 import SaveToMyCurves from './eq/SaveToMyCurves';
+import useRowFit from './player/useRowFit';
 import { PREVIEW_BOX, makeCurve, makePath } from './graph/curvePreview';
 import { hasCustomFxCurve } from '../common/customFx';
 import {
@@ -75,6 +76,12 @@ const SquiglinkImport = () => {
   }, [activeDeviceId]);
   const [showFlatCurve, setShowFlatCurve] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // The row of actions on one line: every word while it fits, then its
+  // buttons down to their icons, then wrapping (Ivan, 2026-10-25: "we need
+  // to make icons when no room"). Measured, so German's longer words step
+  // down sooner than English's (`useRowFit`).
+  const actionsRef = useRef<HTMLDivElement>(null);
+  useRowFit(actionsRef, 2);
 
   useEffect(() => {
     if (eqImport) {
@@ -356,7 +363,7 @@ const SquiglinkImport = () => {
             spellCheck={false}
             disabled={isBlockingError || isImporting}
           />
-          <div className="squig-import__actions">
+          <div className="squig-import__actions" ref={actionsRef}>
             <input
               ref={fileInputRef}
               className="squig-import__file"
@@ -368,11 +375,16 @@ const SquiglinkImport = () => {
             <Button
               className="small squig-import__file-button"
               ariaLabel={t('squigImport.fileAria')}
+              title={fileName || t('squigImport.chooseFile')}
               isDisabled={isBlockingError || isImporting}
               handleChange={() => fileInputRef.current?.click()}
             >
-              <MenuIcon name="import" />
-              {fileName || t('squigImport.chooseFile')}
+              {/* Its own mark: alone as icons, the file and Apply as EQ were
+                  the same arrow. */}
+              <MenuIcon name="folder" />
+              <span className="squig-import__label">
+                {fileName || t('squigImport.chooseFile')}
+              </span>
             </Button>
             {/* Which ears Apply as EQ fills; a curve is always both. */}
             <ImportEarsPick
@@ -383,22 +395,26 @@ const SquiglinkImport = () => {
             <Button
               className="small squig-import__apply"
               ariaLabel={t('squigImport.applyAria')}
+              title={applyButtonLabel}
               isDisabled={isBlockingError || isImporting || !text.trim()}
               handleChange={requestEqImport}
             >
-              <MenuIcon name="import" />
-              {applyButtonLabel}
+              <MenuIcon name="eqBars" />
+              <span className="squig-import__label">{applyButtonLabel}</span>
             </Button>
             <Button
               className="small squig-import__apply"
               ariaLabel={t('squigImport.applyCurve')}
+              title={t('squigImport.applyCurve')}
               isDisabled={isBlockingError || isImporting || !text.trim()}
               handleChange={() => handleImport('curve')}
             >
               <MenuIcon name="graph" />
-              {isImporting
-                ? t('squigImport.importing')
-                : t('squigImport.applyCurve')}
+              <span className="squig-import__label">
+                {isImporting
+                  ? t('squigImport.importing')
+                  : t('squigImport.applyCurve')}
+              </span>
             </Button>
             <SaveToMyCurves
               isDisabled={isImporting}
