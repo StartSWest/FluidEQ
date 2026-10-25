@@ -69,10 +69,10 @@ describe('the pane under the graph', () => {
     expect(getEditorHeight(eq)).toBe(400);
   });
 
-  // No less than 40% of a page with room for it (Ivan, 2026-09-29: "the EQ
-  // in main EQ default to be like 40% of the height"); what the bands need
-  // still wins where it is more, as on a laptop.
-  it('opens at 40% of a tall page, or at what the bands need where that is more', () => {
+  // No less than 56% of a page with room for it (Ivan, 2026-10-25: "more on
+  // the EQ band sliders than in the graph"); what the bands need still wins
+  // where it is more, as on a laptop.
+  it('opens at 56% of a tall page, or at what the bands need where that is more', () => {
     const { innerHeight } = window;
     Object.defineProperty(window, 'innerHeight', {
       configurable: true,
@@ -81,11 +81,11 @@ describe('the pane under the graph', () => {
     window.dispatchEvent(new Event('resize'));
     try {
       // Nothing laid out here, so the page is the window less the chrome's
-      // 200px: 1200, and 40% of it 480.
+      // 200px: 1200, and 56% of it 672.
       publishBandsPaneNeed(300);
-      expect(getEditorHeight(eq)).toBe(480);
-      publishBandsPaneNeed(520);
-      expect(getEditorHeight(eq)).toBe(520);
+      expect(getEditorHeight(eq)).toBe(672);
+      publishBandsPaneNeed(720);
+      expect(getEditorHeight(eq)).toBe(720);
     } finally {
       Object.defineProperty(window, 'innerHeight', {
         configurable: true,
