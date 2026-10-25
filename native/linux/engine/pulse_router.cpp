@@ -174,7 +174,8 @@ bool PulseRouter::connect(std::string& error) {
   log_->write("PulseAudio: connected");
   api_.context_set_subscribe_callback(context_, &PulseRouter::on_event, this);
   release(api_.context_subscribe(context_,
-                                 pa::kSubscribeSink | pa::kSubscribeServer,
+                                 pa::kSubscribeSink | pa::kSubscribeServer |
+                                     pa::kSubscribeSinkInput,
                                  nullptr, nullptr));
   refresh();
   api_.mainloop_unlock(loop_);
@@ -221,6 +222,7 @@ void PulseRouter::on_event(pa::context* context, int event, uint32_t index,
   auto* self = static_cast<PulseRouter*>(data);
   const int facility = event & pa::kEventFacilityMask;
   if (facility == pa::kEventSink || facility == pa::kEventServer) self->refresh();
+  if (facility == pa::kEventSinkInput) self->refresh_origins();
 }
 
 void PulseRouter::refresh() {
@@ -239,6 +241,8 @@ void PulseRouter::refresh() {
 void PulseRouter::on_server_info(pa::context* context,
                                  const pa::server_info* info, void* data) {
   auto* self = static_cast<PulseRouter*>(data);
+  self->pipewire_server_ = info != nullptr && info->server_name != nullptr &&
+      std::strstr(info->server_name, "PipeWire") != nullptr;
   self->default_sink_ = info != nullptr && info->default_sink_name != nullptr
                             ? info->default_sink_name
                             : "";
@@ -255,8 +259,12 @@ void PulseRouter::on_sink_info(pa::context* context, const pa::sink_info* info,
     if (self->options_.sink_name == info->name) {
       self->own_sink_index_ = info->index;
       self->own_seen_ = true;
+      self->follow_master_volume(*info);
+      self->refresh_origins();
       return;
     }
+    if (std::string(info->name) == self->options_.sink_name + ".origin") return;
+    if (std::string(info->name) == "fluideq_send_bus") return;
     if (std::string(info->name) == kShareSinkName) return;
     Sink sink;
     sink.index = info->index;
@@ -332,6 +340,7 @@ void PulseRouter::retarget(const Sink& sink) {
   target_index_ = sink.index;
   follow_monitor();
   layout_ = sink.layout;
+  channel_map_ = map_of(layout_);
   rate_ = sink.rate;
   const bool reuse = module_index_ != kInvalidIndex &&
                      module_layout_ == layout_ && module_rate_ == rate_;
@@ -364,12 +373,12 @@ std::string PulseRouter::null_sink_args(const std::string& name,
 
 void PulseRouter::load_sink(const Sink& sink) {
   const std::string args =
-      null_sink_args(options_.sink_name,
-                     "device.description=" + options_.sink_description,
+      null_sink_args(options_.sink_name + ".origin",
+                     "\"device.description='FluidEQ internal clock' device.class=filter\"",
                      sink.rate);
   loading_ = true;
   release(api_.context_load_module(context_, "module-null-sink", args.c_str(),
-                                   &PulseRouter::on_module_loaded, this));
+                                   &PulseRouter::on_origin_loaded, this));
 }
 
 void PulseRouter::on_module_loaded(pa::context* context, uint32_t index,
@@ -379,7 +388,7 @@ void PulseRouter::on_module_loaded(pa::context* context, uint32_t index,
   self->loading_ = false;
   self->api_.mainloop_signal(self->loop_, 0);
   if (index == kInvalidIndex) {
-    self->log_->write("PulseAudio refused the FluidEQ output (module-null-sink)");
+    self->log_->write("PulseAudio refused the FluidEQ output (module-virtual-sink)");
     return;
   }
   self->module_index_ = index;
@@ -399,15 +408,18 @@ void PulseRouter::on_module_loaded(pa::context* context, uint32_t index,
 
 void PulseRouter::unload_sink() noexcept {
   unload_share();
-  if (module_index_ == kInvalidIndex) return;
-  release(api_.context_unload_module(context_, module_index_, nullptr, nullptr));
-  module_index_ = kInvalidIndex;
+  for (uint32_t* module : {&module_index_, &origin_module_}) {
+    if (*module == kInvalidIndex) continue;
+    release(api_.context_unload_module(context_, *module, nullptr, nullptr));
+    *module = kInvalidIndex;
+  }
   own_sink_index_ = kInvalidIndex;
 }
 
 pa::stream* PulseRouter::record_monitor(const std::string& monitor,
                                         const char* name,
-                                        pa::stream_request_cb on_read) {
+                                        pa::stream_request_cb on_read,
+                                        uint32_t input) {
   pa::sample_spec spec{pa::kSampleFloat32Le, rate_,
                        static_cast<uint8_t>(layout_.channels)};
   const pa::channel_map map = map_of(layout_);
@@ -418,6 +430,11 @@ pa::stream* PulseRouter::record_monitor(const std::string& monitor,
   }
   api_.stream_set_read_callback(stream, on_read, this);
   api_.stream_set_state_callback(stream, &PulseRouter::on_record_state, this);
+  if (input != UINT32_MAX && api_.stream_set_monitor_stream(stream, input) < 0) {
+    log_->write("could not capture a local stream before the system master");
+    api_.stream_unref(stream);
+    return nullptr;
+  }
   pa::buffer_attr attr{UINT32_MAX, UINT32_MAX, UINT32_MAX, UINT32_MAX,
                        bytes_for(rate_, layout_.channels, kFragmentMs)};
   if (api_.stream_connect_record(stream, monitor.c_str(), &attr,
@@ -432,6 +449,7 @@ pa::stream* PulseRouter::record_monitor(const std::string& monitor,
 void PulseRouter::open_record() {
   record_ = record_monitor(options_.sink_name + ".monitor", "FluidEQ capture",
                            &PulseRouter::on_read);
+  refresh_origins();
 }
 
 bool PulseRouter::open_playback(const Sink& sink) {
@@ -490,9 +508,12 @@ void PulseRouter::close_streams() noexcept {
   }
   underflows_ = 0;
   pending_frames_ = 0;
+  clock_frames_ = 0;
   hole_frames_ = 0;
   share_fifo_.clear();
-  for (pa::stream** stream : {&record_, &share_record_, &playback_}) {
+  monitor_fifo_.clear();
+  close_origins();
+  for (pa::stream** stream : {&record_, &share_record_, &playback_, &send_playback_}) {
     if (*stream == nullptr) continue;
     api_.stream_set_state_callback(*stream, nullptr, nullptr);
     api_.stream_set_underflow_callback(*stream, nullptr, nullptr);
@@ -518,6 +539,7 @@ void PulseRouter::on_record_state(pa::stream* stream, void* data) {
 void PulseRouter::on_playback_state(pa::stream* stream, void* data) {
   auto* self = static_cast<PulseRouter*>(data);
   const int state = self->api_.stream_get_state(stream);
+  if (state == pa::kStreamReady) self->apply_playback_volume();
   if (state == pa::kStreamFailed && !self->shut_) {
     // Its output went (it is never moved). Start again from what is there.
     self->log_->write("the playback to " + self->target_name_ + " ended");
@@ -569,14 +591,29 @@ void PulseRouter::on_read(pa::stream* stream, size_t bytes, void* data) {
     // A hole (no data where data was expected) is played as silence.
     const auto frames = static_cast<uint32_t>(size / frame_bytes);
     if (chunk == nullptr) self->hole_frames_ += frames;
-    self->main_read_ = true;
-    self->process(static_cast<const float*>(chunk), frames);
+    // pipewire-pulse exposes raw monitor ports (channel-volumes=false),
+    // unlike real PulseAudio's post-mute monitor. Use that common capture
+    // directly; per-input monitor streams add unnecessary graph clocks.
+    if (self->pipewire_server_) {
+      auto& fifo = self->monitor_fifo_;
+      if (chunk != nullptr) {
+        const auto* from = static_cast<const float*>(chunk);
+        fifo.insert(fifo.end(), from, from + static_cast<size_t>(frames) * channels);
+      } else {
+        fifo.resize(fifo.size() + static_cast<size_t>(frames) * channels, 0.0f);
+      }
+      const size_t keep = static_cast<size_t>(self->rate_) * channels * 60 / 1000;
+      if (fifo.size() > keep) fifo.erase(fifo.begin(), fifo.end() - keep);
+    }
+    self->clock_frames_ = std::min(self->clock_frames_ + frames,
+                                   self->rate_ * 60 / 1000);
+    self->drain_origins();
     self->api_.stream_drop(stream);
   }
   self->follow_drift();
 }
 
-void PulseRouter::process(const float* interleaved, uint32_t frames) {
+void PulseRouter::process(uint32_t frames) {
   if (playback_ == nullptr ||
       api_.stream_get_state(playback_) != pa::kStreamReady) {
     pending_frames_ = 0;
@@ -598,17 +635,16 @@ void PulseRouter::process(const float* interleaved, uint32_t frames) {
     const uint32_t take = std::min(frames - done, block - pending_frames_);
     for (uint32_t f = 0; f < take; ++f) {
       for (uint32_t c = 0; c < channels; ++c) {
-        planes[c][pending_frames_ + f] =
-            interleaved != nullptr
-                ? interleaved[(static_cast<size_t>(done) + f) * channels + c]
-                : 0.0f;
+        planes[c][pending_frames_ + f] = 0.0f;
       }
     }
     pending_frames_ += take;
     done += take;
     if (pending_frames_ < block) continue;
-    // "FluidEQ" as applications played it is what "FluidEQ Send" carries
-    // (a remap of its monitor); other computers' sound joins it here.
+    // Per-input monitors are before the system master, including mute.
+    // Send takes only those origins; received sound joins after the tap.
+    mix_origins(planes, channels, block);
+    write_send(planes, channels, block);
     mix_share(planes, channels, block);
     if (engine_) engine_->process(planes, block);
     for (uint32_t f = 0; f < block; ++f) {
@@ -716,7 +752,8 @@ void PulseRouter::move_inputs(uint32_t from_sink, const std::string& to) {
           self->api_.mainloop_signal(self->loop_, 0);
           return;
         }
-        if (info->sink != self->move_from_ || info->index == self->move_skip_) {
+        if (info->sink != self->move_from_ || info->index == self->move_skip_ ||
+            info->client == self->api_.context_get_index(context)) {
           return;
         }
         self->release(self->api_.context_move_sink_input_by_name(
@@ -771,6 +808,11 @@ void PulseRouter::shutdown() noexcept {
       wait(api_.context_unload_module(context_, module_index_,
                                       &PulseRouter::on_done, this));
       module_index_ = kInvalidIndex;
+    }
+    if (origin_module_ != kInvalidIndex) {
+      wait(api_.context_unload_module(context_, origin_module_,
+                                      &PulseRouter::on_done, this));
+      origin_module_ = kInvalidIndex;
     }
   }
   close_streams();

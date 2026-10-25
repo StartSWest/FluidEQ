@@ -10,9 +10,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
  * plays, untouched, for the window to send (`pw_share.cpp` says why both
  * exist).
  *
- * "FluidEQ Send" is a remapped source over "FluidEQ"'s own monitor, which
- * carries what applications played into it and nothing else. "FluidEQ Share
- * In" is a second null sink: its monitor is recorded and mixed into each
+ * "FluidEQ Send" is a remapped source over a private bus fed exclusively
+ * from local applications' pre-master monitors (`pulse_origin.cpp`). Share
+ * In is a separate null sink: its monitor is recorded and mixed into each
  * block before the engine, so other computers' sound gets this computer's EQ
  * and never reaches "FluidEQ Send". Two null sinks keep the same time — both
  * count the system clock at their nominal rate — so the two records do not
@@ -39,6 +39,7 @@ constexpr uint32_t kShareQueueMs = 60;
 void PulseRouter::load_share() {
   if (shut_ || share_loading_ || module_index_ == kInvalidIndex) return;
   if (share_module_ != kInvalidIndex) {
+    open_send();
     if (share_record_ == nullptr) {
       share_record_ =
           record_monitor(std::string(kShareSinkName) + ".monitor",
@@ -55,13 +56,10 @@ void PulseRouter::load_share() {
   share_loading_ = true;
   release(api_.context_load_module(context_, "module-null-sink", args.c_str(),
                                    &PulseRouter::on_share_loaded, this));
-  const std::string send =
-      "source_name=fluideq_send master=" + options_.sink_name +
-      ".monitor source_properties=\"device.description='" +
-      kSendSourceDescription + "'\"";
-  release(api_.context_load_module(context_, "module-remap-source",
-                                   send.c_str(), &PulseRouter::on_send_loaded,
-                                   this));
+  const std::string send = null_sink_args("fluideq_send_bus",
+      "\"device.description='FluidEQ Send internal' device.class=filter\"", rate_);
+  release(api_.context_load_module(context_, "module-null-sink", send.c_str(),
+                                   &PulseRouter::on_send_bus_loaded, this));
 }
 
 void PulseRouter::on_share_loaded(pa::context* context, uint32_t index,
@@ -101,7 +99,7 @@ void PulseRouter::on_send_loaded(pa::context* context, uint32_t index,
 }
 
 void PulseRouter::unload_share() noexcept {
-  for (uint32_t* module : {&send_module_, &share_module_}) {
+  for (uint32_t* module : {&send_module_, &send_bus_module_, &share_module_}) {
     if (*module == kInvalidIndex) continue;
     wait(api_.context_unload_module(context_, *module, &PulseRouter::on_done,
                                     this));
@@ -116,7 +114,6 @@ void PulseRouter::on_share_read(pa::stream* stream, size_t bytes, void* data) {
   const uint32_t channels = self->layout_.channels;
   if (channels == 0) return;
   const size_t frame_bytes = channels * sizeof(float);
-  uint32_t arrived = 0;
   for (;;) {
     const void* chunk = nullptr;
     size_t size = 0;
@@ -130,7 +127,6 @@ void PulseRouter::on_share_read(pa::stream* stream, size_t bytes, void* data) {
       self->share_fifo_.resize(self->share_fifo_.size() +
                                static_cast<size_t>(frames) * channels);
     }
-    arrived += frames;
     self->api_.stream_drop(stream);
   }
   const size_t keep = static_cast<size_t>(self->rate_) * kShareQueueMs / 1000 *
@@ -141,13 +137,8 @@ void PulseRouter::on_share_read(pa::stream* stream, size_t bytes, void* data) {
         self->share_fifo_.begin() +
             static_cast<std::ptrdiff_t>(self->share_fifo_.size() - keep));
   }
-  // "FluidEQ" quiet since the last read: nothing else will turn what arrived
-  // into blocks, so these frames do, over silence.
-  if (!self->main_read_ && arrived > 0) {
-    self->process(nullptr, arrived);
-    self->follow_drift();
-  }
-  self->main_read_ = false;
+  // The FluidEQ monitor supplies one clock even when local applications are
+  // silent or muted. A second clock here would enqueue duplicate blocks.
 }
 
 void PulseRouter::mix_share(float* const* planes, uint32_t channels,

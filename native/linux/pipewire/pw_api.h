@@ -73,6 +73,8 @@ struct PwApi {
   int (*stream_update_params)(pw_stream* stream, const spa_pod** params,
                               uint32_t n_params);
   uint32_t (*stream_get_node_id)(pw_stream* stream);
+  int (*stream_set_control)(pw_stream* stream, uint32_t id,
+                            uint32_t n_values, float* values, ...);
   void (*proxy_destroy)(pw_proxy* proxy);
 
   /** `pw_buffer::requested` exists from 0.3.49; reading it earlier is past the end. */

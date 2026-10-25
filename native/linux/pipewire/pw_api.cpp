@@ -90,6 +90,7 @@ Loaded load() {
       bind(library, "pw_stream_update_params", api.stream_update_params, error) &&
       bind(library, "pw_stream_set_active", api.stream_set_active, error) &&
       bind(library, "pw_stream_get_node_id", api.stream_get_node_id, error) &&
+      bind(library, "pw_stream_set_control", api.stream_set_control, error) &&
       bind(library, "pw_proxy_destroy", api.proxy_destroy, error);
   if (!bound) return out;
   api.init(nullptr, nullptr);

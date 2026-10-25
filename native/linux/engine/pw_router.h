@@ -131,6 +131,12 @@ class PipeWireRouter final : public SoundRouter {
                               pw_stream_state state, const char* error);
   void retarget(const Sink& sink);
   bool open_capture(const ChannelLayout& layout);
+  bool open_origin(const ChannelLayout& layout);
+  void close_origin() noexcept;
+  static void on_origin_process(void* data);
+  static void on_volume_control(void* data, uint32_t id,
+                                 const pw_stream_control* control);
+  void apply_playback_volume();
   bool open_playback(const Sink& sink, const ChannelLayout& layout);
   void close_stream(Stream& stream, bool playback) noexcept;
   // "FluidEQ Monitor" and "FluidEQ Send": the engine's output, and what
@@ -193,6 +199,13 @@ class PipeWireRouter final : public SoundRouter {
   Tap monitor_;
   Tap send_;
   Stream share_;
+  Stream origin_;
+  std::unique_ptr<ShareRing> origin_ring_;
+  pw_stream* rt_origin_ = nullptr;
+  ShareRing* rt_origin_ring_ = nullptr;
+  float master_volumes_[8] = {1, 1, 1, 1, 1, 1, 1, 1};
+  uint32_t master_channels_ = 0;
+  float master_mute_ = 0;
   std::unique_ptr<ShareRing> share_ring_;
   uint32_t capture_rate_ = 0;
   uint32_t capture_channels_ = 0;
@@ -202,10 +215,10 @@ class PipeWireRouter final : public SoundRouter {
   pw_stream* rt_share_ = nullptr;
   ShareRing* rt_share_ring_ = nullptr;
   /**
-   * Whether "FluidEQ" itself is running. Its cycle triggers the playback's;
+   * Whether the raw origin capture is running. It triggers playback;
    * while nothing plays into it, "FluidEQ Share In" does instead, so other
    * computers' sound is heard when this one plays nothing. Written by the
-   * capture's state on the loop thread, read on the data thread.
+   * origin capture's state on the loop thread, read on the data thread.
    */
   std::atomic<bool> capture_streaming_{false};
   OutputEngine* rt_engine_ = nullptr;
