@@ -506,9 +506,8 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': '名称重复，请换一个。',
   'profiles.edit': '修改配置名称',
   'autoeq.page.eyebrow': '匹配你的耳机',
-  'autoeq.page.title': '耳机校正',
-  'autoeq.page.intro':
-    '选择你正在使用的耳机，FluidEQ 就会套用为它公开发布的校正。它会作为独立的一层写入，有自己的强度和开关，你的均衡频段完全不会被动到。这里的每一条测量都来自真实的测量台，并由测量者公开发布，没有一条是根据型号名称猜出来的。',
+  'autoeq.page.title': 'EQ 预设',
+  'autoeq.page.intro': '查找耳机校正，或添加你自己的曲线。',
   'autoeq.model.hint':
     '按品牌或型号搜索。如果你的型号没有被测过，同系列中相近的一款通常也能接近。',
   'autoeq.target.hint':
@@ -761,6 +760,21 @@ const eq: Partial<Dictionary> = {
   'eq.refused.externalEq':
     '外部 EQ 包含 FluidEQ 无法安全接管的处理环节。其文件未做任何更改。',
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.intro': '保存你的声音，随时取用。',
+  'myCurves.importSquiglink': '从 Squiglink 导入',
+  'myCurves.preview': '曲线预览',
+  'myCurves.previewRange': 'EQ 校正 · 20 Hz–20 kHz',
+  'myCurves.previewEmpty': '你的曲线预览将显示在这里',
+  'myCurves.filters': '滤波器',
+  'myCurves.preamp': '前置增益',
+  'myCurves.correctionHint': '作为耳机校正应用。你的可编辑 EQ 保持不变。',
+  'myCurves.squiglinkGuide': '来自 Squiglink？',
+  'myCurves.squiglinkSteps': '选择耳机和目标 → 导出 EQ → 粘贴到下方',
+  'myCurves.sourceLabel': '来源',
+  'myCurves.editableEq': '改为应用到可编辑 EQ',
+  'myCurves.editableEqHint':
+    '替换可编辑频段。选择要更新的耳朵，再次点击确认替换。',
+  'myCurves.saveReplaceEq': '保存并替换 EQ',
   'myCurves.tab.opra': 'OPRA 曲线库',
   'myCurves.tab.mine': '我的曲线',
   'myCurves.tab.squiglink': 'Squiglink',
@@ -773,7 +787,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': '导出列表',
   'myCurves.empty.title': '还没有你自己的曲线',
   'myCurves.empty.body':
-    '从 Squiglink 导出内容或 .txt 文件添加，或在 Squiglink 标签页中保存。你的曲线保存在这台电脑上，直到你导出它们。',
+    '添加 Squiglink 导出、.txt 文件、当前 EQ 或 OPRA 校正。曲线保存在这台电脑上，直到你导出它们。',
   'myCurves.noMatch': '没有名称包含此内容的曲线。',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': '文件',
@@ -793,8 +807,8 @@ const eq: Partial<Dictionary> = {
   'myCurves.deleteBody': '它会从“我的曲线”中永久移除。你导出的列表里仍会保留。',
   'myCurves.cancel': '取消',
   'myCurves.addTitle': '添加曲线',
-  'myCurves.addIntro': '它会放进“我的曲线”。在你应用之前不会播放任何内容。',
-  'myCurves.textLabel': 'ParametricEQ 文本',
+  'myCurves.addIntro': '保存这条曲线供以后使用，或立即保存并应用。',
+  'myCurves.textLabel': 'EQ 文本',
   'myCurves.textPlaceholder': '在此粘贴 ParametricEQ 或 GraphicEQ 导出内容',
   'myCurves.read': '已读取：{count} 个频段，前级增益 {preamp} dB',
   'myCurves.readNothing':
@@ -805,7 +819,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.defaultName': 'Squiglink 曲线，{date}',
   'myCurves.chartAria': '曲线 {name}，20 Hz 至 20 kHz',
   'myCurves.save': '保存到“我的曲线”',
-  'myCurves.saveApply': '保存并作为曲线应用',
+  'myCurves.saveApply': '保存并应用',
   'myCurves.exportTitle': '导出“我的曲线”',
   'myCurves.exportIntro':
     '列表中的曲线：{count}。文件中不包含任何关于你的输出或账户的信息。',
@@ -837,11 +851,11 @@ const eq: Partial<Dictionary> = {
   'myCurves.importNote':
     '导入的曲线永远不会自行播放；当前正在播放的曲线继续播放。',
   'myCurves.from': '来源',
-  'myCurves.from.paste': '粘贴',
+  'myCurves.from.paste': '粘贴 EQ 文本',
   'myCurves.from.pasteHint': 'Squiglink 或 AutoEQ 的 ParametricEQ 文本',
-  'myCurves.from.file': '.txt 文件',
+  'myCurves.from.file': '文本文件',
   'myCurves.from.fileHint': 'Equalizer APO 或 AutoEQ 格式',
-  'myCurves.from.eq': '我当前的 EQ',
+  'myCurves.from.eq': '当前 EQ',
   'myCurves.from.eqHint': '你设置的频段，按正在播放的样子',
   'myCurves.from.opra': '来自 OPRA',
   'myCurves.from.opraHint': '正在播放的校正的副本，可重命名和编辑',

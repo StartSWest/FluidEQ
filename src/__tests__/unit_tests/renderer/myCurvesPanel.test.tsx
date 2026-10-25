@@ -311,7 +311,7 @@ it('edits a curve’s bands, name and ears from its menu', async () => {
   await show();
   fireEvent.click(screen.getByRole('button', { name: 'More for Zeta warm' }));
   fireEvent.click(screen.getByRole('menuitem', { name: 'Edit bands' }));
-  const text = screen.getByRole('textbox', { name: 'ParametricEQ text' });
+  const text = screen.getByRole('textbox', { name: 'EQ text' });
   expect(text).toHaveValue(WARM);
   fireEvent.change(text, { target: { value: LEFT } });
   fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), {
@@ -330,7 +330,7 @@ it('edits a curve’s bands, name and ears from its menu', async () => {
 it('keeps a pasted curve from Add, named, without playing it, and names the lines it could not read', async () => {
   await show();
   fireEvent.click(screen.getByRole('button', { name: 'Add curve' }));
-  fireEvent.change(screen.getByRole('textbox', { name: 'ParametricEQ text' }), {
+  fireEvent.change(screen.getByRole('textbox', { name: 'EQ text' }), {
     target: { value: `${WARM}\nChannel: L\nFilter 2: ON XYZ Fc 9 Hz Q 1` },
   });
   expect(screen.getByText('Read: 1 bands, preamp -4.0 dB')).toBeInTheDocument();
@@ -364,8 +364,8 @@ it('takes My EQ as it plays: the bands on both ears, flat ones and one-ear ones 
     },
   });
   fireEvent.click(screen.getByRole('button', { name: 'Add curve' }));
-  fireEvent.click(screen.getByRole('button', { name: /^My EQ now/ }));
-  const text = screen.getByRole('textbox', { name: 'ParametricEQ text' });
+  fireEvent.click(screen.getByRole('button', { name: /^Current EQ/ }));
+  const text = screen.getByRole('textbox', { name: 'EQ text' });
   expect(text).toHaveValue(
     'Preamp: -2 dB\nFilter 1: ON PK Fc 100 Hz Gain 3 dB Q 1',
   );
@@ -387,7 +387,7 @@ it('takes My EQ as it plays: the bands on both ears, flat ones and one-ear ones 
 it('offers no save for text that holds no curve', async () => {
   await show();
   fireEvent.click(screen.getByRole('button', { name: 'Add curve' }));
-  fireEvent.change(screen.getByRole('textbox', { name: 'ParametricEQ text' }), {
+  fireEvent.change(screen.getByRole('textbox', { name: 'EQ text' }), {
     target: { value: 'hello' },
   });
   expect(
@@ -398,9 +398,7 @@ it('offers no save for text that holds no curve', async () => {
   expect(
     screen.getByRole('button', { name: 'Save to My curves' }),
   ).toBeDisabled();
-  expect(
-    screen.getByRole('button', { name: 'Save and apply as curve' }),
-  ).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Save and apply' })).toBeDisabled();
 });
 
 it('says the list is full, and offers no save, at the limit', async () => {
@@ -409,7 +407,7 @@ it('says the list is full, and offers no save, at the limit', async () => {
   );
   await show();
   fireEvent.click(screen.getByRole('button', { name: 'Add curve' }));
-  fireEvent.change(screen.getByRole('textbox', { name: 'ParametricEQ text' }), {
+  fireEvent.change(screen.getByRole('textbox', { name: 'EQ text' }), {
     target: { value: WARM },
   });
   expect(screen.getByRole('alert')).toHaveTextContent(

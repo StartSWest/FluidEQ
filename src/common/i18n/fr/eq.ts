@@ -541,9 +541,9 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Ce nom existe déjà, choisissez-en un autre.',
   'profiles.edit': 'Modifier le nom du profil',
   'autoeq.page.eyebrow': 'ADAPTEZ VOTRE CASQUE',
-  'autoeq.page.title': 'Correction du casque',
+  'autoeq.page.title': 'Préréglages EQ',
   'autoeq.page.intro':
-    'Indiquez le casque que vous utilisez et FluidEQ applique la correction publiée pour lui. Elle s’écrit dans sa propre couche, avec son intensité et son interrupteur, vos bandes d’égalisation ne sont donc jamais touchées. Chaque mesure a été prise sur un vrai banc et publiée par quelqu’un ; rien n’est deviné à partir du nom du modèle.',
+    'Trouvez une correction pour votre casque ou ajoutez votre propre courbe.',
   'autoeq.model.hint':
     'Cherchez par marque ou par modèle. Si le vôtre n’est pas mesuré, un proche parent de la même gamme vous en rapproche souvent beaucoup.',
   'autoeq.target.hint':
@@ -818,6 +818,23 @@ const eq: Partial<Dictionary> = {
   'eq.refused.externalEq':
     'L’égaliseur externe contient des étapes que FluidEQ ne peut pas reprendre sans risque. Ses fichiers n’ont pas été modifiés.',
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.intro': 'Votre son enregistré, prêt quand vous en avez besoin.',
+  'myCurves.importSquiglink': 'Importer depuis Squiglink',
+  'myCurves.preview': 'Aperçu de la courbe',
+  'myCurves.previewRange': 'Correction EQ · 20 Hz–20 kHz',
+  'myCurves.previewEmpty': 'L’aperçu de votre courbe apparaîtra ici',
+  'myCurves.filters': 'Filtres',
+  'myCurves.preamp': 'Préamplification',
+  'myCurves.correctionHint':
+    'Appliquer comme correction du casque. Votre EQ modifiable reste en place.',
+  'myCurves.squiglinkGuide': 'Vous venez de Squiglink ?',
+  'myCurves.squiglinkSteps':
+    'Choisir casque + cible → Exporter l’EQ → Coller ci-dessous',
+  'myCurves.sourceLabel': 'Source',
+  'myCurves.editableEq': 'Appliquer plutôt à l’EQ modifiable',
+  'myCurves.editableEqHint':
+    'Remplace vos bandes modifiables. Choisissez les oreilles à modifier. Appuyez à nouveau pour confirmer.',
+  'myCurves.saveReplaceEq': 'Enregistrer et remplacer l’EQ',
   'myCurves.tab.opra': 'Bibliothèque OPRA',
   'myCurves.tab.mine': 'Mes courbes',
   'myCurves.tab.squiglink': 'Squiglink',
@@ -830,7 +847,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'Exporter la liste',
   'myCurves.empty.title': 'Pas encore de courbes à vous',
   'myCurves.empty.body':
-    'Ajoutez-en une depuis un export Squiglink ou un fichier .txt, ou enregistrez-en une depuis l’onglet Squiglink. Vos courbes restent sur cet ordinateur jusqu’à ce que vous les exportiez.',
+    'Ajoutez un export Squiglink, un fichier .txt, votre EQ actuel ou une correction OPRA. Vos courbes restent sur cet ordinateur jusqu’à leur exportation.',
   'myCurves.noMatch': 'Aucune courbe n’a cela dans son nom.',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'Fichier',
@@ -853,8 +870,8 @@ const eq: Partial<Dictionary> = {
   'myCurves.cancel': 'Annuler',
   'myCurves.addTitle': 'Ajouter une courbe',
   'myCurves.addIntro':
-    'Elle va dans Mes courbes. Rien ne joue tant que vous ne l’appliquez pas.',
-  'myCurves.textLabel': 'Texte ParametricEQ',
+    'Enregistrez cette courbe pour plus tard, ou enregistrez-la et appliquez-la maintenant.',
+  'myCurves.textLabel': 'Texte EQ',
   'myCurves.textPlaceholder': 'Collez ici un export ParametricEQ ou GraphicEQ',
   'myCurves.read': 'Lu : {count} bandes, préampli {preamp} dB',
   'myCurves.readNothing':
@@ -865,7 +882,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.defaultName': 'Courbe Squiglink, {date}',
   'myCurves.chartAria': 'La courbe {name}, de 20 Hz à 20 kHz',
   'myCurves.save': 'Enregistrer dans Mes courbes',
-  'myCurves.saveApply': 'Enregistrer et appliquer comme courbe',
+  'myCurves.saveApply': 'Enregistrer et appliquer',
   'myCurves.exportTitle': 'Exporter Mes courbes',
   'myCurves.exportIntro':
     'Courbes dans la liste : {count}. Rien sur vos sorties ni votre compte n’entre dans le fichier.',
@@ -900,12 +917,12 @@ const eq: Partial<Dictionary> = {
   'myCurves.importNote':
     'Les courbes importées ne jouent jamais d’elles-mêmes ; celle qui joue maintenant continue.',
   'myCurves.from': 'D’où elle vient',
-  'myCurves.from.paste': 'Coller',
+  'myCurves.from.paste': 'Coller du texte EQ',
   'myCurves.from.pasteHint':
     'Le texte ParametricEQ de Squiglink, ou celui d’AutoEQ',
-  'myCurves.from.file': 'Un fichier .txt',
+  'myCurves.from.file': 'Fichier texte',
   'myCurves.from.fileHint': 'Format Equalizer APO ou AutoEQ',
-  'myCurves.from.eq': 'Mon EQ actuel',
+  'myCurves.from.eq': 'EQ actuel',
   'myCurves.from.eqHint': 'Vos bandes, telles qu’elles jouent',
   'myCurves.from.opra': 'Depuis OPRA',
   'myCurves.from.opraHint':

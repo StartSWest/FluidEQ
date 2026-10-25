@@ -535,9 +535,9 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Такое имя уже есть, выберите другое.',
   'profiles.edit': 'Изменить имя профиля',
   'autoeq.page.eyebrow': 'НАСТРОЙТЕ ПОД СВОИ НАУШНИКИ',
-  'autoeq.page.title': 'Коррекция наушников',
+  'autoeq.page.title': 'Пресеты EQ',
   'autoeq.page.intro':
-    'Укажите, в каких наушниках вы слушаете, и FluidEQ применит опубликованную для них коррекцию. Она ложится отдельным слоем, со своей силой и своим выключателем, так что ваши полосы эквалайзера не трогаются. Каждое измерение сделано на настоящем стенде и кем-то опубликовано — ничего не угадывается по названию модели.',
+    'Найдите коррекцию для наушников или добавьте свою кривую.',
   'autoeq.model.hint':
     'Ищите по марке или модели. Если вашей нет, близкий родственник из той же линейки обычно даёт почти то же самое.',
   'autoeq.target.hint':
@@ -808,6 +808,23 @@ const eq: Partial<Dictionary> = {
   'eq.refused.externalEq':
     'Во внешнем эквалайзере есть ступени, которые FluidEQ не может безопасно перенять. Его файлы не изменены.',
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.intro': 'Ваш сохранённый звук всегда под рукой.',
+  'myCurves.importSquiglink': 'Импорт из Squiglink',
+  'myCurves.preview': 'Предпросмотр кривой',
+  'myCurves.previewRange': 'Коррекция EQ · 20 Гц–20 кГц',
+  'myCurves.previewEmpty': 'Здесь появится предпросмотр вашей кривой',
+  'myCurves.filters': 'Фильтры',
+  'myCurves.preamp': 'Предусиление',
+  'myCurves.correctionHint':
+    'Применить как коррекцию наушников. Ваш редактируемый EQ останется прежним.',
+  'myCurves.squiglinkGuide': 'Кривая из Squiglink?',
+  'myCurves.squiglinkSteps':
+    'Выберите наушники и цель → Экспортируйте EQ → Вставьте ниже',
+  'myCurves.sourceLabel': 'Источник',
+  'myCurves.editableEq': 'Применить к редактируемому EQ',
+  'myCurves.editableEqHint':
+    'Заменяет редактируемые полосы. Выберите уши. Нажмите ещё раз для подтверждения.',
+  'myCurves.saveReplaceEq': 'Сохранить и заменить EQ',
   'myCurves.tab.opra': 'Библиотека OPRA',
   'myCurves.tab.mine': 'Мои кривые',
   'myCurves.tab.squiglink': 'Squiglink',
@@ -820,7 +837,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'Экспорт списка',
   'myCurves.empty.title': 'Своих кривых пока нет',
   'myCurves.empty.body':
-    'Добавьте кривую из экспорта Squiglink или файла .txt либо сохраните её на вкладке Squiglink. Ваши кривые хранятся на этом компьютере, пока вы их не экспортируете.',
+    'Добавьте экспорт Squiglink, файл .txt, текущий EQ или коррекцию OPRA. Кривые остаются на этом компьютере до экспорта.',
   'myCurves.noMatch': 'Ни в одном названии кривой этого нет.',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'Файл',
@@ -843,8 +860,8 @@ const eq: Partial<Dictionary> = {
   'myCurves.cancel': 'Отмена',
   'myCurves.addTitle': 'Добавить кривую',
   'myCurves.addIntro':
-    'Она попадёт в «Мои кривые». Ничего не зазвучит, пока вы её не примените.',
-  'myCurves.textLabel': 'Текст ParametricEQ',
+    'Сохраните кривую на потом или сохраните и примените сейчас.',
+  'myCurves.textLabel': 'Текст EQ',
   'myCurves.textPlaceholder':
     'Вставьте сюда экспорт ParametricEQ или GraphicEQ',
   'myCurves.read': 'Прочитано: полос {count}, предусиление {preamp} дБ',
@@ -856,7 +873,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.defaultName': 'Кривая Squiglink, {date}',
   'myCurves.chartAria': 'Кривая {name}, от 20 Гц до 20 кГц',
   'myCurves.save': 'Сохранить в «Мои кривые»',
-  'myCurves.saveApply': 'Сохранить и применить как кривую',
+  'myCurves.saveApply': 'Сохранить и применить',
   'myCurves.exportTitle': 'Экспорт «Моих кривых»',
   'myCurves.exportIntro':
     'Кривых в списке: {count}. Ничего о ваших выходах или аккаунте в файл не попадает.',
@@ -891,11 +908,11 @@ const eq: Partial<Dictionary> = {
   'myCurves.importNote':
     'Импортированные кривые никогда не включаются сами; та, что звучит сейчас, продолжает звучать.',
   'myCurves.from': 'Откуда она',
-  'myCurves.from.paste': 'Вставить',
+  'myCurves.from.paste': 'Вставить текст EQ',
   'myCurves.from.pasteHint': 'Текст ParametricEQ из Squiglink или AutoEQ',
-  'myCurves.from.file': 'Файл .txt',
+  'myCurves.from.file': 'Текстовый файл',
   'myCurves.from.fileHint': 'Формат Equalizer APO или AutoEQ',
-  'myCurves.from.eq': 'Мой EQ сейчас',
+  'myCurves.from.eq': 'Текущий EQ',
   'myCurves.from.eqHint': 'Ваши полосы такими, как они звучат',
   'myCurves.from.opra': 'Из OPRA',
   'myCurves.from.opraHint':

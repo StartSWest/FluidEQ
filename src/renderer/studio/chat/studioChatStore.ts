@@ -20,6 +20,7 @@ import {
   type TStudioChatModel,
   type TStudioChatRestore,
 } from 'common/studioChat';
+import { CHATGPT_PICTURES_OPEN } from 'common/studioChatPictures';
 import { readStored, writeStored } from '../../utils/graphStorage';
 import chatBrief from './chatBrief';
 import packArtwork from './chatPack';
@@ -237,8 +238,15 @@ export const answerStudioChat = (id: string, answer: TStudioChatAnswer) => {
   return bridge()?.studioChatAnswer?.(id, answer) ?? Promise.resolve();
 };
 
-/** Asks Codex again whether it is here and signed in with ChatGPT. */
+/**
+ * Asks Codex again whether it is here and signed in with ChatGPT. Nothing is
+ * asked while ChatGPT pictures are closed (`studioChatPictures.ts`): the
+ * chat then never knows Codex, so nothing it draws offers it.
+ */
 export const checkStudioChatCodex = async () => {
+  if (!CHATGPT_PICTURES_OPEN) {
+    return;
+  }
   const codex = await bridge()?.studioChatCodex?.();
   if (codex) {
     set({ codex });
@@ -247,6 +255,9 @@ export const checkStudioChatCodex = async () => {
 
 /** Codex's own sign-in, in a window of its own. */
 export const signInToStudioChatCodex = async () => {
+  if (!CHATGPT_PICTURES_OPEN) {
+    return;
+  }
   set({ codexSigningIn: true });
   try {
     const codex = await bridge()?.studioChatCodexSignIn?.();
@@ -260,6 +271,9 @@ export const signInToStudioChatCodex = async () => {
 
 /** ChatGPT's pictures off: the next picture asks to connect again. */
 export const disconnectStudioChatCodex = async () => {
+  if (!CHATGPT_PICTURES_OPEN) {
+    return;
+  }
   const codex = await bridge()?.studioChatCodexDisconnect?.();
   if (codex) {
     set({ codex });

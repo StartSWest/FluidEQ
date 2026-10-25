@@ -215,11 +215,10 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): ILibraryIpc => {
   });
 
   ipcMain.handle('library-queue-files', async (_event, rawPaths: unknown) => {
-    const queued = await queueLibraryFiles(store, rawPaths);
+    const queued = await queueLibraryFiles(store, rawPaths, scans.request);
     if (queued.trackIds.length > 0) {
       announce();
     }
-    scans.request(queued.addedRootIds);
     return queued.trackIds;
   });
 

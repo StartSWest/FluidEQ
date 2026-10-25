@@ -1,6 +1,6 @@
 const studioChat = {
-  'studioChat.label': 'Чат с Claude',
-  'studioChat.title': 'Claude',
+  'studioChat.label': 'Создать с ИИ',
+  'studioChat.title': 'Создать с ИИ',
   'studioChat.where': 'Claude Code на этом компьютере',
   'studioChat.wherePlan': 'Claude Code · план {plan}',
   'studioChat.new': 'Новый чат',
@@ -8,13 +8,13 @@ const studioChat = {
   'studioChat.menu': 'Параметры чата',
   'studioChat.backToChat': 'Вернуться в чат',
   'studioChat.fold': 'Свернуть чат',
-  'studioChat.unfold': 'Чат с Claude',
+  'studioChat.unfold': 'Создать с ИИ',
   'studioChat.inspect':
     'Это одна из сцен FluidEQ, открытая, чтобы заглянуть внутрь. Начните свой проект, чтобы создать сцену вместе с Claude.',
   'studioChat.noProject':
     'Начните проект, и Claude создаст его сцену вместе с вами здесь.',
   'studioChat.checking': 'Ищем Claude Code на этом компьютере…',
-  'studioChat.missingTitle': 'Создавайте сцены в чате с Claude',
+  'studioChat.missingTitle': 'Создавайте сцены в чате со своим ИИ',
   'studioChat.missingBody':
     'Студия общается через Claude Code на этом компьютере, по вашему собственному плану Claude. Он ещё не установлен.',
   'studioChat.signInTitle': 'Войдите в Claude',
@@ -159,8 +159,7 @@ const studioChat = {
   'studioChat.sketch.text': 'Текст',
   'studioChat.sketch.textHint': 'Введите и нажмите Enter',
   'studioChat.accounts.title': 'Аккаунты',
-  'studioChat.accounts.open':
-    'Посмотреть, какие аккаунты Claude и ChatGPT использует чат',
+  'studioChat.accounts.open': 'Посмотреть, какие аккаунты использует чат',
   'studioChat.accounts.claude': 'Claude',
   'studioChat.accounts.chatgpt': 'ChatGPT',
   'studioChat.accounts.unknown': 'Вход выполнен',

@@ -16,6 +16,7 @@ import { useClickOutside } from '../utils/utils';
 import MenuIcon from '../icons/MenuIcon';
 import MyCurveSpark from './MyCurveSpark';
 import { IMPORT_EAR_NAMES } from './ImportEarsPick';
+import '../styles/MyCurveRow.scss';
 
 export const SOURCE_NAMES: Record<TCurveSource, TranslationKey> = {
   squiglink: 'myCurves.source.squiglink',

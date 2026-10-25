@@ -1,0 +1,381 @@
+/* FluidEQ — GPL-3.0-or-later */
+@use 'color' as *;
+@use 'constant' as *;
+@use 'dialog' as dialog;
+@use 'theme' as *;
+
+// Only the curve editor uses a horizontal head: its old empty rail took the
+// space the live preview needs. Import/export keep the shared split frame.
+.dialog-frame.my-curve-add-dialog {
+  @include dialog.size(1120px, 860px);
+  container-type: inline-size;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'rail' 'body' 'foot';
+
+  > .dialog-frame__rail {
+    max-height: none;
+    padding: 20px 54px 18px 24px;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: dialog.$seam;
+  }
+
+  .dialog-frame__identity {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .dialog-frame__tile {
+    width: 40px;
+    height: 40px;
+  }
+  .dialog-frame__description {
+    font-size: $text-small;
+  }
+  > .dialog-frame__body {
+    padding: 0;
+  }
+  > .dialog-frame__foot {
+    padding: 14px 22px;
+  }
+}
+
+.my-curve-add {
+  display: grid;
+  min-width: 0;
+  gap: 0;
+}
+.my-curve-add__workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+}
+.my-curve-add__form {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 10px;
+  padding: 20px 24px;
+}
+.my-curve-sources {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 16px 24px;
+  border-bottom: dialog.$seam;
+}
+.my-curve-source {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: transparent;
+  color: $text-muted;
+  font: inherit;
+  font-size: $text-small;
+  line-height: 1.4;
+  cursor: pointer;
+  .menu-icon {
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+  }
+  &:hover:not(:disabled),
+  &.is-selected {
+    border-color: $secondary-default;
+    color: $secondary-light;
+  }
+  &.is-selected {
+    background: color-mix(in srgb, $secondary-default 7%, transparent);
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+.my-curve-add__guide {
+  display: grid;
+  gap: 5px;
+  margin-bottom: 4px;
+  padding: 11px 12px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: color-mix(in srgb, $secondary-default 8%, transparent);
+  font-size: $text-small;
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+  }
+  strong {
+    color: $text-primary;
+    font-weight: $weight-semibold;
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: $secondary-light;
+  }
+  .menu-icon {
+    width: 14px;
+    height: 14px;
+  }
+  p {
+    color: $text-muted;
+  }
+}
+.my-curve-add__label {
+  color: $text-muted;
+  font-size: $text-small;
+  font-weight: $weight-semibold;
+}
+.my-curve-add__text {
+  width: 100%;
+  min-height: 180px;
+  padding: 10px 12px;
+  border: 1px solid $card-edge;
+  border-radius: $radius-s;
+  background: $surface-field;
+  color: $text-primary;
+  font-family: $font-mono;
+  font-size: $text-small;
+  line-height: 1.55;
+  resize: vertical;
+  &:focus {
+    border-color: $secondary-default;
+    outline: none;
+  }
+}
+.my-curve-add__status {
+  display: grid;
+  gap: 2px;
+}
+.my-curve-add__read {
+  min-height: 1.4em;
+  margin: 0;
+  color: $text-faint;
+  font-size: $text-small;
+  &.is-read {
+    color: $active;
+  }
+}
+.my-curve-add__unread {
+  margin: 0;
+  color: $amber;
+  font-size: $text-small;
+  overflow-wrap: anywhere;
+}
+.my-curve-add__full {
+  margin: 12px 24px;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, $amber 45%, transparent);
+  border-radius: $radius-s;
+  color: $amber;
+  font-size: $text-small;
+}
+.my-curve-add__row {
+  display: flex;
+  min-width: 0;
+}
+.my-curve-add__field {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 6px;
+  input {
+    min-width: 0;
+    width: 100%;
+    height: $control-height-sm;
+    padding: 0 10px;
+    border: 1px solid $card-edge;
+    border-radius: $radius-s;
+    background: $surface-field;
+    color: $text-primary;
+    font: inherit;
+    &:focus {
+      border-color: $secondary-default;
+      outline: none;
+    }
+  }
+}
+.my-curve-add__provenance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: $text-muted;
+  font-size: $text-small;
+  > span:first-child {
+    color: $text-faint;
+  }
+}
+.my-curve-add__advanced {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: dialog.$seam;
+  font-size: $text-small;
+  summary {
+    color: $text-muted;
+    cursor: pointer;
+  }
+  p,
+  .segmented,
+  .button {
+    margin-top: 10px;
+  }
+  .segmented {
+    display: flex;
+    width: fit-content;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+  .segmented__option {
+    white-space: normal;
+  }
+}
+.my-curve-preview {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border-left: dialog.$seam;
+  background: color-mix(in srgb, $surface-base 65%, transparent);
+  h3 {
+    margin: 8px 0 0;
+    color: $text-primary;
+    font-size: $text-lead;
+    font-weight: $weight-semibold;
+    overflow-wrap: anywhere;
+  }
+  > p {
+    font-size: $text-small;
+    color: $text-faint;
+  }
+}
+.my-curve-preview__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: $text-small;
+  color: $text-faint;
+}
+.my-curve-preview__pending {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $text-muted;
+  &::before {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: $amber;
+    content: '';
+  }
+}
+.my-curve-preview__graph {
+  position: relative;
+  min-width: 0;
+  height: 250px;
+  margin: 8px 0;
+  svg {
+    display: block;
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+  }
+  line {
+    stroke: $card-edge;
+    stroke-width: 1;
+    &.is-zero {
+      stroke: $text-faint;
+    }
+  }
+  text {
+    fill: $text-faint;
+    font-family: inherit;
+    font-size: 11px;
+  }
+}
+.my-curve-preview__curve {
+  fill: none;
+  stroke: $secondary-default;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.my-curve-preview__empty {
+  position: absolute;
+  inset: 30px;
+  display: grid;
+  place-items: center;
+  color: $text-muted;
+  font-size: $text-small;
+  text-align: center;
+}
+.my-curve-preview__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding-top: 14px;
+  border-top: dialog.$seam;
+  dt {
+    color: $text-faint;
+    font-size: $text-small;
+  }
+  dd {
+    margin: 3px 0 0;
+    color: $text-primary;
+    font-size: $text-small;
+    font-weight: $weight-semibold;
+    overflow-wrap: anywhere;
+  }
+}
+.my-curve-preview__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 24px;
+  color: $text-muted;
+  font-size: $text-small;
+  .menu-icon {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 auto;
+    margin-top: 2px;
+    color: $secondary-light;
+  }
+}
+@container (max-width: 680px) {
+  .my-curve-sources {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 14px 16px;
+  }
+  .my-curve-add__workspace {
+    display: flex;
+    flex-direction: column;
+  }
+  .my-curve-add__form {
+    padding: 18px 16px;
+  }
+  .my-curve-preview {
+    order: -1;
+    padding: 18px 16px;
+    border-left: 0;
+    border-bottom: dialog.$seam;
+  }
+  .my-curve-preview__note {
+    display: none;
+  }
+}

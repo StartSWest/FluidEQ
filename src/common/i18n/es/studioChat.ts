@@ -1,6 +1,6 @@
 const studioChat = {
-  'studioChat.label': 'Chatear con Claude',
-  'studioChat.title': 'Claude',
+  'studioChat.label': 'Hacer con IA',
+  'studioChat.title': 'Hacer con IA',
   'studioChat.where': 'Claude Code en este ordenador',
   'studioChat.wherePlan': 'Claude Code · plan {plan}',
   'studioChat.new': 'Chat nuevo',
@@ -8,13 +8,13 @@ const studioChat = {
   'studioChat.menu': 'Opciones del chat',
   'studioChat.backToChat': 'Volver al chat',
   'studioChat.fold': 'Plegar el chat',
-  'studioChat.unfold': 'Chatear con Claude',
+  'studioChat.unfold': 'Hacer con IA',
   'studioChat.inspect':
     'Esta es una de las escenas de FluidEQ, abierta para mirar por dentro. Empieza un proyecto propio para crear una con Claude.',
   'studioChat.noProject':
     'Empieza un proyecto y Claude creará su escena contigo aquí.',
   'studioChat.checking': 'Buscando Claude Code en este ordenador…',
-  'studioChat.missingTitle': 'Crea escenas chateando con Claude',
+  'studioChat.missingTitle': 'Crea escenas chateando con tu IA',
   'studioChat.missingBody':
     'El Studio chatea a través del Claude Code de este ordenador, con tu propio plan de Claude. Todavía no está instalado.',
   'studioChat.signInTitle': 'Inicia sesión en Claude',
@@ -158,7 +158,7 @@ const studioChat = {
   'studioChat.sketch.text': 'Texto',
   'studioChat.sketch.textHint': 'Escribe y pulsa Intro',
   'studioChat.accounts.title': 'Cuentas',
-  'studioChat.accounts.open': 'Ver qué cuentas de Claude y ChatGPT usa el chat',
+  'studioChat.accounts.open': 'Ver qué cuentas usa el chat',
   'studioChat.accounts.claude': 'Claude',
   'studioChat.accounts.chatgpt': 'ChatGPT',
   'studioChat.accounts.unknown': 'Sesión iniciada',

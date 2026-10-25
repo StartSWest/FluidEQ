@@ -535,9 +535,9 @@ const eq: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Esse nome já existe, escolha outro.',
   'profiles.edit': 'Editar o nome do perfil',
   'autoeq.page.eyebrow': 'AJUSTE AOS SEUS FONES',
-  'autoeq.page.title': 'Correção de fones',
+  'autoeq.page.title': 'Presets EQ',
   'autoeq.page.intro':
-    'Diga com que fones você está ouvindo e o FluidEQ aplica a correção publicada para eles. Ela entra como uma camada própria, com intensidade e chave próprias, então as suas bandas de EQ nunca são tocadas. Cada medição foi feita em uma bancada real e publicada por alguém; nada é adivinhado a partir do nome do modelo.',
+    'Encontre uma correção para seus fones ou adicione sua própria curva.',
   'autoeq.model.hint':
     'Procure por marca ou modelo. Se o seu não foi medido, um parente próximo da mesma linha costuma chegar bem perto.',
   'autoeq.target.hint':
@@ -810,6 +810,23 @@ const eq: Partial<Dictionary> = {
   'eq.refused.externalEq':
     'O EQ externo tem etapas que o FluidEQ não consegue adotar com segurança. Os arquivos dele não foram alterados.',
   // My curves, beside OPRA on the EQ Presets page (eq/MyCurvesPanel.tsx).
+  'myCurves.intro': 'Seu som salvo, pronto quando precisar.',
+  'myCurves.importSquiglink': 'Importar do Squiglink',
+  'myCurves.preview': 'Prévia da curva',
+  'myCurves.previewRange': 'Correção EQ · 20 Hz–20 kHz',
+  'myCurves.previewEmpty': 'A prévia da sua curva aparecerá aqui',
+  'myCurves.filters': 'Filtros',
+  'myCurves.preamp': 'Pré-amplificação',
+  'myCurves.correctionHint':
+    'Aplicar como correção dos fones. Seu EQ editável permanece como está.',
+  'myCurves.squiglinkGuide': 'Vindo do Squiglink?',
+  'myCurves.squiglinkSteps':
+    'Escolha fones + alvo → Exporte o EQ → Cole abaixo',
+  'myCurves.sourceLabel': 'Origem',
+  'myCurves.editableEq': 'Aplicar ao EQ editável em vez disso',
+  'myCurves.editableEqHint':
+    'Substitui suas bandas editáveis. Escolha quais ouvidos atualizar. Pressione novamente para confirmar.',
+  'myCurves.saveReplaceEq': 'Salvar e substituir EQ',
   'myCurves.tab.opra': 'Biblioteca OPRA',
   'myCurves.tab.mine': 'Minhas curvas',
   'myCurves.tab.squiglink': 'Squiglink',
@@ -822,7 +839,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.export': 'Exportar lista',
   'myCurves.empty.title': 'Ainda não há curvas suas',
   'myCurves.empty.body':
-    'Adicione uma a partir de uma exportação do Squiglink ou de um arquivo .txt, ou salve uma na aba Squiglink. Suas curvas ficam neste computador até você exportá-las.',
+    'Adicione uma exportação do Squiglink, um arquivo .txt, seu EQ atual ou uma correção OPRA. Suas curvas ficam neste computador até serem exportadas.',
   'myCurves.noMatch': 'Nenhuma curva tem isso no nome.',
   'myCurves.source.squiglink': 'Squiglink',
   'myCurves.source.file': 'Arquivo',
@@ -844,9 +861,8 @@ const eq: Partial<Dictionary> = {
     'Ela sai de Minhas curvas para sempre. Uma lista que você exportou continua com ela.',
   'myCurves.cancel': 'Cancelar',
   'myCurves.addTitle': 'Adicionar uma curva',
-  'myCurves.addIntro':
-    'Ela vai para Minhas curvas. Nada toca até você aplicá-la.',
-  'myCurves.textLabel': 'Texto ParametricEQ',
+  'myCurves.addIntro': 'Salve esta curva para depois ou salve e aplique agora.',
+  'myCurves.textLabel': 'Texto EQ',
   'myCurves.textPlaceholder':
     'Cole aqui uma exportação ParametricEQ ou GraphicEQ',
   'myCurves.read': 'Lido: {count} bandas, pré-amplificação {preamp} dB',
@@ -858,7 +874,7 @@ const eq: Partial<Dictionary> = {
   'myCurves.defaultName': 'Curva do Squiglink, {date}',
   'myCurves.chartAria': 'A curva {name}, de 20 Hz a 20 kHz',
   'myCurves.save': 'Salvar em Minhas curvas',
-  'myCurves.saveApply': 'Salvar e aplicar como curva',
+  'myCurves.saveApply': 'Salvar e aplicar',
   'myCurves.exportTitle': 'Exportar Minhas curvas',
   'myCurves.exportIntro':
     'Curvas na lista: {count}. Nada sobre suas saídas ou sua conta vai para o arquivo.',
@@ -892,12 +908,12 @@ const eq: Partial<Dictionary> = {
   'myCurves.importNote':
     'Curvas importadas nunca tocam sozinhas; a que está tocando agora continua.',
   'myCurves.from': 'De onde vem',
-  'myCurves.from.paste': 'Colar',
+  'myCurves.from.paste': 'Colar texto EQ',
   'myCurves.from.pasteHint':
     'O texto ParametricEQ do Squiglink, ou o do AutoEQ',
-  'myCurves.from.file': 'Um arquivo .txt',
+  'myCurves.from.file': 'Arquivo de texto',
   'myCurves.from.fileHint': 'Formato do Equalizer APO ou do AutoEQ',
-  'myCurves.from.eq': 'Meu EQ agora',
+  'myCurves.from.eq': 'EQ atual',
   'myCurves.from.eqHint': 'As bandas que você ajustou, como estão tocando',
   'myCurves.from.opra': 'Do OPRA',
   'myCurves.from.opraHint':

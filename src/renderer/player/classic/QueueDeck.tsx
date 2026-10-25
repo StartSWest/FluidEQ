@@ -6,9 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useRef, useState } from 'react';
 import type { CSSProperties, DragEvent } from 'react';
-import { libraryFileKind } from 'common/library/files';
 import { useTransportSources } from '../../audio/transportSource';
 import LibraryCoverArt from '../../library/LibraryCoverArt';
+import LibraryScanProgress from '../../library/LibraryScanProgress';
+import { droppedFilePath } from '../../library/libraryWorkspacePrefs';
 import { formatDuration } from '../../library/player/NowPlayingBar';
 import { useTranslation } from '../../utils/I18nContext';
 import PlayerIcon from '../PlayerIcon';
@@ -132,22 +133,12 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
    *
    * `webUtils.getPathForFile` is the only source of a dropped file's path —
    * `File.path` was removed from Electron — and what comes back is handed
-   * across. ONLY THE KINDS THE LIBRARY TAKES (Ivan, 2026-09-22: "the same we
-   * allow in the library"): the same audio and video extensions its scan
-   * admits (`libraryFileKind`), decided here by name so a folder's stray
-   * cover art and text never leave the page, and again in main, which is
-   * where a path is checked for being local, real and a file.
+   * across. A folder arrives as a File as well, with no media extension;
+   * main decides which paths are folders and which files the Library takes.
    */
   const droppedPaths = (event: DragEvent<HTMLElement>) =>
     Array.from(event.dataTransfer.files)
-      .filter((file) => libraryFileKind(file.name) !== undefined)
-      .map((file) => {
-        try {
-          return window.electron?.ipcRenderer.getPathForFile?.(file) ?? '';
-        } catch {
-          return '';
-        }
-      })
+      .map(droppedFilePath)
       .filter((path) => path.length > 0);
 
   const onDragOver = (event: DragEvent<HTMLElement>) => {
@@ -158,6 +149,7 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
       return;
     }
     event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
     setIsDropTarget(true);
   };
 
@@ -330,6 +322,12 @@ const QueueDeck = ({ onOpenLibrary }: { onOpenLibrary: () => void }) => {
           <PlayerIcon name="chevronRight" />
         </button>
       </div>
+      {library?.scanProgress && (
+        <LibraryScanProgress
+          progress={library.scanProgress}
+          onCancel={library.cancelScan}
+        />
+      )}
       {hasQueue ? (
         <ol
           className={`player-queue__list${

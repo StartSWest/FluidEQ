@@ -6,9 +6,10 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 /**
  * The Studio for every signed-in account (Ivan, 2026-10-18: the Studio and
- * publishing are free; "necesitan publicar para poder ver"): the whole editor,
- * any number of projects, nothing locked. Makers can try their own scenes
- * in their looks before publishing; Add to looks is the primary action.
+ * publishing are free): the whole editor, any number of projects, nothing
+ * locked. A maker's own scene plays for them everywhere, published or not
+ * (2026-10-21: "no need to publish to run on grahp"), so the stage wears no
+ * draft mark and Add to looks is the loud way out, Publish the quiet one.
  */
 
 import '@testing-library/jest-dom';
@@ -22,6 +23,7 @@ import {
   type IStudioView,
 } from '../../../renderer/studio/studioStore';
 import { useCanSetDesktop } from '../../../renderer/wallpaper/WallpaperControls';
+import { useOwnsLook } from '../../../renderer/plus/sceneStore';
 import { resetStudioChatStore } from '../../../renderer/studio/chat/studioChatStore';
 import { memberPack } from '../../utils/memberSceneFixtures';
 import studioChatBridge from '../../utils/studioChatBridge';
@@ -35,7 +37,12 @@ jest.mock('../../../renderer/audio/LiveAudioContext', () => ({
 // The stage itself is the GPU's; what is held here is what it is told.
 jest.mock('../../../renderer/studio/StudioStage', () => ({
   __esModule: true,
-  default: () => <canvas data-testid="studio-stage" />,
+  default: (props: Record<string, unknown>) => (
+    <canvas
+      data-testid="studio-stage"
+      data-draft={'draft' in props ? 'given' : 'none'}
+    />
+  ),
 }));
 
 jest.mock('../../../renderer/utils/I18nContext', () => ({
@@ -52,6 +59,11 @@ jest.mock('../../../renderer/account/accountStore', () => ({
     status: 'signed-in',
     identity: { id: '4f1c2b9e-8d3a-4e7b-9c11-2a6f0d5e7b30' },
   }),
+}));
+
+jest.mock('../../../renderer/plus/sceneStore', () => ({
+  ...jest.requireActual('../../../renderer/plus/sceneStore'),
+  useOwnsLook: jest.fn(() => false),
 }));
 
 jest.mock('../../../renderer/wallpaper/WallpaperControls', () => ({
@@ -84,6 +96,7 @@ beforeEach(() => {
   resetStudioChatStore();
   jest.clearAllMocks();
   jest.mocked(useCanSetDesktop).mockReturnValue(true);
+  jest.mocked(useOwnsLook).mockReturnValue(false);
   Object.defineProperty(window, 'electron', {
     configurable: true,
     value: {
@@ -131,15 +144,20 @@ it('gives the whole editor to a signed-in account, with no Plus anywhere', async
   expect(screen.getByText('studio.new.title')).toBeInTheDocument();
 });
 
-it('lets makers try an unpublished scene in their looks, with publishing optional', async () => {
+it('wears no draft mark and makes Add to looks the loud way out, published or not', async () => {
+  // Never published: the store says the look is not owned.
   render(<StudioBench view={view()} />);
   await screen.findByRole('textbox', { name: 'studioChat.label' });
-  expect(screen.getByTestId('studio-stage')).toBeInTheDocument();
-  const publish = screen.getByRole('button', { name: 'studio.action.publish' });
-  const add = screen.getByRole('button', { name: 'studio.action.addToLooks' });
-  expect(add).toBeEnabled();
-  expect(add).not.toHaveClass('subtle');
-  expect(publish).toHaveClass('subtle');
+  expect(screen.getByTestId('studio-stage')).toHaveAttribute(
+    'data-draft',
+    'none',
+  );
+  expect(
+    screen.getByRole('button', { name: 'studio.action.publish' }),
+  ).toHaveClass('subtle');
+  expect(
+    screen.getByRole('button', { name: 'studio.action.addToLooks' }),
+  ).not.toHaveClass('subtle');
 });
 
 it('offers every way out under More with no lock, and no desktop where there can be none', async () => {
@@ -164,12 +182,11 @@ it('offers every way out under More with no lock, and no desktop where there can
   ).toHaveLength(0);
 });
 
-it('explains a FluidEQ scene opened to look inside, without offering to add it', async () => {
+it('says what a FluidEQ scene opened to look inside is for, with nothing to keep', async () => {
   render(
     <StudioBench view={view({ projects: [{ ...project, official: true }] })} />,
   );
   await screen.findByText('studioChat.inspect');
-  expect(screen.getByTestId('studio-stage')).toBeInTheDocument();
   expect(screen.getByText('studio.inspect.title')).toBeInTheDocument();
   expect(
     screen.queryByRole('button', { name: 'studio.action.addToLooks' }),

@@ -76,6 +76,32 @@ export default function MyCurvesPanel() {
 
   return (
     <section className="my-curves" aria-label={t('myCurves.tab.mine')}>
+      <header className="my-curves__header">
+        <div>
+          <h3>{t('myCurves.tab.mine')}</h3>
+          <p>{t('myCurves.intro')}</p>
+        </div>
+        <div className="my-curves__actions">
+          <button
+            type="button"
+            className="button small subtle"
+            disabled={!isLoaded}
+            onClick={() => setDialog('add')}
+          >
+            <MenuIcon name="import" />
+            {t('myCurves.importSquiglink')}
+          </button>
+          <button
+            type="button"
+            className="button small"
+            disabled={!isLoaded}
+            onClick={() => setDialog('add')}
+          >
+            <MenuIcon name="plus" />
+            {t('myCurves.add')}
+          </button>
+        </div>
+      </header>
       <div className="my-curves__toolbar">
         <label className="my-curves__search" htmlFor="my-curves-search">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -132,15 +158,6 @@ export default function MyCurvesPanel() {
         >
           <MenuIcon name="upload" />
           {t('myCurves.export')}
-        </button>
-        <button
-          type="button"
-          className="button small"
-          disabled={!isLoaded}
-          onClick={() => setDialog('add')}
-        >
-          <MenuIcon name="plus" />
-          {t('myCurves.add')}
         </button>
       </div>
 

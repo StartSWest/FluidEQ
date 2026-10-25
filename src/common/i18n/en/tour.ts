@@ -623,7 +623,7 @@ const tour = {
   'tour.chat.point2':
     '{attach} sends a picture of the scene with your message, and you can draw on it to show what you mean. Messages sent while it works wait in a queue and go together.',
   'tour.chat.point3':
-    'It runs on Claude Code installed on this computer, on your own plan, and shows how much of your limits is left. With ChatGPT connected it can paint pictures for the scene, asking you before each one.',
+    'It runs on Claude Code installed on this computer, on your own plan, and shows how much of your limits is left.',
   'tour.chat.how':
     'Open {plus}, choose {studio} in its rail, pick a scene or start one, and type in the box beside the stage.',
   'tour.chat.open': 'Open Visualizers',
@@ -641,7 +641,7 @@ const tour = {
   'tour.myCurves.point1':
     '{applyCurve} plays a curve as the headphone correction, with its own strength and switch; {applyEq} puts its bands in your EQ instead.',
   'tour.myCurves.point2':
-    '{squiglink} has a tab of its own, and {save} keeps what you bring in with one press.',
+    'The {squiglink} shortcut in {myCurves} opens the import preview; {save} keeps your curve for later.',
   'tour.myCurves.point3':
     '{exportList} writes the whole list to one file, to back it up or take it to another computer; {importList} reads it back and says what it leaves out.',
   'tour.myCurves.how':
