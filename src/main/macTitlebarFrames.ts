@@ -22,6 +22,7 @@ const makeRuntime = () => {
   const koffi = require('koffi') as typeof import('koffi');
   const objc = koffi.load('/usr/lib/libobjc.A.dylib');
   koffi.load('/System/Library/Frameworks/AppKit.framework/AppKit');
+  koffi.load('/System/Library/Frameworks/QuartzCore.framework/QuartzCore');
   const selector = objc.func('void *sel_registerName(const char *name)') as (
     name: string,
   ) => TId;
@@ -42,6 +43,10 @@ const makeRuntime = () => {
     'void *',
     'str',
   ]) as (object: TId, method: TId, value: string) => TId;
+  const readString = objc.func('objc_msgSend', 'str', ['void *', 'void *']) as (
+    object: TId,
+    method: TId,
+  ) => string;
   const sendBool = objc.func('objc_msgSend', 'void', [
     'void *',
     'void *',
@@ -51,6 +56,11 @@ const makeRuntime = () => {
     object: TId,
     method: TId,
   ) => boolean;
+  const sendDouble = objc.func('objc_msgSend', 'void', [
+    'void *',
+    'void *',
+    'double',
+  ]) as (object: TId, method: TId, value: number) => void;
   // NSRect is four CGFloat doubles on the supported arm64 ABI.
   const rect = koffi.struct({
     x: 'double',
@@ -92,7 +102,7 @@ const makeRuntime = () => {
     classOf('NSNotificationCenter'),
     selector('defaultCenter'),
   );
-  const callbacks = new Map<TId, () => void>();
+  const callbacks = new Map<TId, (notification: string) => void>();
   const action = selector('fluidEQTitlebarFrameChanged:');
   const allocateClass = objc.func(
     'void *objc_allocateClassPair(void *parent, const char *name, size_t extra)',
@@ -111,7 +121,10 @@ const makeRuntime = () => {
   // One registered method for the process. Per-window observers are removed
   // and released below; the method stays callable for the class's lifetime.
   const method = koffi.register(
-    (observer: TId) => callbacks.get(observer)?.(),
+    (observer: TId, _method: TId, notification: TId) => {
+      const name = send(notification, selector('name'));
+      callbacks.get(observer)?.(readString(name, selector('UTF8String')));
+    },
     koffi.pointer(koffi.proto('void', ['void *', 'void *', 'void *'])),
   );
   if (!observerClass || !addMethod(observerClass, action, method, 'v@:@')) {
@@ -133,6 +146,8 @@ const makeRuntime = () => {
     );
     let watched = new Map<TId, boolean>();
     let watchingWindow = false;
+    let phase: 'windowed' | 'entering' | 'fullscreen' | 'leaving' =
+      window.isFullScreen() ? 'fullscreen' : 'windowed';
     const button = () =>
       sendIndex(nativeWindow, selector('standardWindowButton:'), 0);
     const unwatch = () => {
@@ -193,14 +208,63 @@ const makeRuntime = () => {
         string('NSWindowDidUpdateNotification'),
         nativeWindow,
       );
+      [
+        'NSWindowWillEnterFullScreenNotification',
+        'NSWindowDidEnterFullScreenNotification',
+        'NSWindowWillExitFullScreenNotification',
+        'NSWindowDidExitFullScreenNotification',
+      ].forEach((name) =>
+        observe(
+          center,
+          selector('addObserver:selector:name:object:'),
+          observer,
+          action,
+          string(name),
+          nativeWindow,
+        ),
+      );
       watchingWindow = true;
     };
-    callbacks.set(observer, () => {
-      watch();
+    callbacks.set(observer, (notification) => {
+      if (notification === 'NSWindowWillEnterFullScreenNotification') {
+        phase = 'entering';
+      } else if (notification === 'NSWindowDidEnterFullScreenNotification') {
+        phase = 'fullscreen';
+      } else if (notification === 'NSWindowWillExitFullScreenNotification') {
+        phase = 'leaving';
+      } else if (notification === 'NSWindowDidExitFullScreenNotification') {
+        phase = 'windowed';
+      }
+      // isFullScreen() changes only after the asynchronous native transition.
+      // Moving button/container views while that transition owns them can
+      // cancel it and strand its compositor snapshot (a fullscreen ghost).
+      if (phase === 'windowed') {
+        watch();
+      }
       changed();
     });
     watch();
     return {
+      canPlace: () => phase === 'windowed',
+      withoutAnimation: (place: () => void) => {
+        const transaction = classOf('CATransaction');
+        const animation = classOf('NSAnimationContext');
+        send(animation, selector('beginGrouping'));
+        send(transaction, selector('begin'));
+        try {
+          const context = send(animation, selector('currentContext'));
+          // A native restore/resize may carry an animation context. Button
+          // correction must paint as one final geometry, never interpolate
+          // through AppKit's temporary container frames or crossfade them.
+          sendDouble(context, selector('setDuration:'), 0);
+          sendBool(context, selector('setAllowsImplicitAnimation:'), false);
+          sendBool(transaction, selector('setDisableActions:'), true);
+          place();
+        } finally {
+          send(transaction, selector('commit'));
+          send(animation, selector('endGrouping'));
+        }
+      },
       read: () => {
         const close = button();
         if (!close) {

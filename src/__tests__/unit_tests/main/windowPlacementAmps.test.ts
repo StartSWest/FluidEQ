@@ -51,14 +51,20 @@ const fakeWindow = () => {
     isFullScreen: () => false,
     getBounds: () => ({ ...normal }),
     getNormalBounds: () => ({ ...normal }),
+    getContentSize: () => [normal.width, normal.height],
     setBounds: (next: Partial<IRect>) => {
       normal = { ...normal, ...next };
     },
     setMinimumSize: () => undefined,
     setMaximumSize: () => undefined,
     setMaximizable: () => undefined,
+    setFullScreenable: () => undefined,
     setAlwaysOnTop: () => undefined,
-    webContents: { getZoomFactor: () => 1 },
+    webContents: {
+      getZoomFactor: () => 1,
+      isDevToolsOpened: () => false,
+      send: jest.fn(),
+    },
   };
   return {
     win: win as unknown as BrowserWindow,
@@ -80,8 +86,8 @@ afterEach(async () => {
   fs.rmSync(userDataDir, { recursive: true, force: true });
 });
 
-const placementFor = () => {
-  const modes = createWindowModes('win32');
+const placementFor = (platform: NodeJS.Platform = 'win32') => {
+  const modes = createWindowModes(platform);
   const { win, drag } = fakeWindow();
   modes.restore({
     mode: 'app',
@@ -104,6 +110,18 @@ const writeFile = (contents: object) =>
     path.join(userDataDir, 'window-state.json'),
     JSON.stringify(contents),
   );
+
+it('announces an early native fullscreen flag as system-owned before the completed entry event', () => {
+  const { win, modes, sendWindowState } = placementFor('darwin');
+  jest.spyOn(win, 'isFullScreen').mockReturnValue(true);
+  // No enter-full-screen event has yet assigned the completed owner.
+  expect(modes.isSystemFullScreen()).toBe(false);
+  sendWindowState();
+  expect(win.webContents.send).toHaveBeenCalledWith(
+    'window-state-changed',
+    expect.objectContaining({ isFullScreen: true, isSystemFullScreen: true }),
+  );
+});
 
 // Ivan, 2026-09-28: "we should preserve 3 window sizes: the full app, the amp
 // standard app and the amp backdrop glassy app" — across a restart too.

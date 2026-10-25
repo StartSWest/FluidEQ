@@ -18,7 +18,12 @@ const setup = () => {
     hidden: false,
   };
   let changed: () => void = () => undefined;
-  const native = { read: jest.fn(() => actual), stop: jest.fn() };
+  const native = {
+    read: jest.fn(() => actual),
+    stop: jest.fn(),
+    canPlace: jest.fn(() => true),
+    withoutAnimation: jest.fn((place: () => void) => place()),
+  };
   watch.mockImplementation((_window, notify) => {
     changed = notify;
     return native;
@@ -64,6 +69,36 @@ it('does nothing for stable native frames and ignores its own synchronous notifi
   notify();
   change({ x: 8.25, y: 21.25, height: 14, hidden: false });
   expect(window.setWindowButtonPosition).toHaveBeenCalledTimes(1);
+});
+
+it('does not redraw unchanged positions repeated by focus, show and overlay pushes', () => {
+  const { window, place, native } = setup();
+  place();
+  place();
+  place();
+  expect(window.setWindowButtonPosition).toHaveBeenCalledTimes(1);
+  expect(native.withoutAnimation).toHaveBeenCalledTimes(1);
+});
+
+it('waits through native fullscreen entry and exit even before the public fullscreen flag changes', () => {
+  const { window, place, change, native, notify } = setup();
+  place();
+  native.canPlace.mockReturnValue(false);
+  change({ x: 9, y: 9, height: 14, hidden: false });
+  // A page measurement may arrive inside the native transition too.
+  place({ x: 9, y: 10 });
+  expect(window.isFullScreen()).toBe(false);
+  expect(window.setWindowButtonPosition).toHaveBeenCalledTimes(1);
+  expect(native.withoutAnimation).toHaveBeenCalledTimes(1);
+
+  native.canPlace.mockReturnValue(true);
+  notify();
+  expect(window.setWindowButtonPosition).toHaveBeenCalledTimes(2);
+  expect(window.setWindowButtonPosition).toHaveBeenLastCalledWith({
+    x: 9,
+    y: 10,
+  });
+  expect(native.withoutAnimation).toHaveBeenCalledTimes(2);
 });
 
 it('restores the latest app/player placement, with one observer for the window', () => {

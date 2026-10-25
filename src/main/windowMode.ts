@@ -573,7 +573,7 @@ export const createWindowModes = (
         win.setFullScreen(true);
         return true;
       }
-      if (fullScreen.isSystem()) {
+      if (fullScreen.isSystem(win.isFullScreen())) {
         return true;
       }
       win.setFullScreen(false);
@@ -584,7 +584,8 @@ export const createWindowModes = (
     },
 
     /** Whether the listener chose the full screen the window is in. */
-    isSystemFullScreen: () => fullScreen.isSystem(),
+    isSystemFullScreen: (win?: BrowserWindow) =>
+      fullScreen.isSystem(win?.isFullScreen() === true),
 
     /**
      * The window, back in the middle of the screen it is nearest.

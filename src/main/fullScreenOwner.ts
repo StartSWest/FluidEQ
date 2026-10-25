@@ -41,7 +41,11 @@ export const createFullScreenOwner = () => {
       owner = undefined;
       hasAsked = false;
     },
-    isSystem: () => owner === 'system',
+    // A native resize/focus push can observe fullscreen before its completed
+    // enter event. An unrequested entry is already the listener's at that
+    // moment; reporting it unowned makes the renderer immediately undo it.
+    isSystem: (isFullScreen = false) =>
+      owner === 'system' || (isFullScreen && owner === undefined && !hasAsked),
   };
 };
 

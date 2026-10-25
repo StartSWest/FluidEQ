@@ -19,15 +19,19 @@ export default function placeMacTrafficLights(
       if (
         applying ||
         !target ||
+        !frames.canPlace() ||
         window.isDestroyed() ||
         window.isFullScreen() ||
         window.isSimpleFullScreen()
       ) {
         return;
       }
+      const positionToApply = target;
       applying = true;
       try {
-        window.setWindowButtonPosition(target);
+        frames.withoutAnimation(() =>
+          window.setWindowButtonPosition(positionToApply),
+        );
       } finally {
         applying = false;
       }
@@ -36,6 +40,7 @@ export default function placeMacTrafficLights(
       if (
         applying ||
         !target ||
+        !frames.canPlace() ||
         window.isDestroyed() ||
         window.isFullScreen() ||
         window.isSimpleFullScreen()
@@ -58,6 +63,18 @@ export default function placeMacTrafficLights(
       }
     });
     place = (next) => {
+      if (target?.x === next.x && target.y === next.y) {
+        const actual = frames.read();
+        if (
+          actual &&
+          Math.abs(actual.x - next.x) <= 0.5 &&
+          Math.abs(actual.y - next.y) <= 0.5
+        ) {
+          // Focus/show/overlay pushes can repeat the unchanged page slot.
+          // Redrawing that native container again creates a needless flash.
+          return;
+        }
+      }
       target = next;
       apply();
     };

@@ -408,6 +408,39 @@ taps. This page records the current implementation and its remaining limits.
   App TypeScript, lint, encoding, platform isolation, production main build and
   unsigned arm64 app-bundle packaging passed. The packaged icon's checksum
   matches the generated Mac ICNS, and the arm64 Koffi binding is unpacked.
-- The user confirmed native button alignment. Live Dock reopening/icon-size
-  confirmation is still pending; no Computer Use or automatic app launch was
-  performed. Signing/notarization is not established by the unsigned check.
+- The user confirmed native button alignment, Dock reopening after hiding or
+  minimizing, and the corrected icon size beside the other Dock icons. A later
+  report identified a brief native-button flash for separate follow-up.
+  No Computer Use or automatic app launch was performed. Signing/notarization
+  is not established by the unsigned check.
+
+## Fullscreen transitions and button flash — 2026-10-25
+
+- The native button observer previously waited for Electron's completed
+  fullscreen flag before yielding control. AppKit had already started moving
+  its views, so a correction could interfere with the entry animation. Native
+  will/did fullscreen notifications now suspend correction and view rebinding
+  throughout entry, fullscreen and exit, then restore the latest windowed
+  placement after the transition finishes.
+- A resize/focus state push can also expose the fullscreen flag before the
+  completed entry event assigns its owner. An entry without a page request is
+  now reported as system-owned immediately, preventing the renderer from
+  reversing the user's entry and leaving a compositor ghost. Page-requested
+  fullscreen retains its existing ownership and exit behavior.
+- Repeated focus/show/overlay placements no longer redraw an already aligned
+  button container. Necessary corrections use a nested AppKit/Core Animation
+  transaction with implicit animation disabled, avoiding interpolation through
+  temporary native frames. No timer, polling, style change or global setting
+  was introduced.
+- The user restarted FluidEQ and confirmed that fullscreen stays open, exits
+  cleanly and leaves neither a ghost nor a button flash. Dock reopening and
+  icon sizing were also previously confirmed. No Computer Use or automatic
+  application launch was performed.
+- Window/player regressions passed (14 suites / 121 tests). A second batch
+  covering video, visualizer, Studio fullscreen and the updated early-state
+  announcement passed (4 suites / 19 tests, including a repeated placement
+  suite). Cases cover the pre-completion native state, stale renderer exits,
+  page-owned entry, transition suppression, queued placement and redundant
+  redraws, alongside Windows behavior. App TypeScript, changed-file lint and
+  the production main build passed. These changes stay on `macos`; `main`
+  remains unchanged.

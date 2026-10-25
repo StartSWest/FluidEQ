@@ -69,7 +69,7 @@ const fakeMacWindow = () => {
     webContents: { getZoomFactor: () => 1 },
   };
   /** The animation ends: the state changes, then the event is raised. */
-  const finish = () => {
+  const finish = (beforeEnter?: () => void) => {
     if (pending === undefined) {
       return;
     }
@@ -79,6 +79,9 @@ const fakeMacWindow = () => {
       before = bounds;
       bounds = { ...DISPLAY };
       isFullScreen = true;
+      // AppKit can expose its fullscreen flag on a resize/focus push before
+      // Electron delivers the completed enter-full-screen event.
+      beforeEnter?.();
       events.emit('enter-full-screen');
     } else {
       // A Mac puts the window back where it was by itself.
@@ -88,9 +91,9 @@ const fakeMacWindow = () => {
     }
   };
   /** The green button: straight at the window, as AppKit would. */
-  const pressGreen = () => {
+  const pressGreen = (beforeEnter?: () => void) => {
     win.setFullScreen(!isFullScreen);
-    finish();
+    finish(beforeEnter);
   };
   return {
     win: win as unknown as BrowserWindow,
@@ -135,9 +138,39 @@ describe('the green button on a Mac', () => {
     pressGreen();
     expect(win.isFullScreen()).toBe(false);
   });
+
+  it('preserves a native entry observed before its completed event instead of immediately reversing it', () => {
+    const { modes, win, pressGreen, finish } = macWindowAs('app');
+    pressGreen(() => {
+      expect(win.isFullScreen()).toBe(true);
+      expect(modes.isSystemFullScreen(win)).toBe(true);
+      // Even an exit sent by a renderer with an older state snapshot must
+      // not cancel the listener's entry and strand its compositor snapshot.
+      expect(modes.setFullScreen(win, false)).toBe(true);
+    });
+    finish();
+    expect(win.isFullScreen()).toBe(true);
+    expect(modes.isSystemFullScreen(win)).toBe(true);
+    pressGreen();
+    expect(win.isFullScreen()).toBe(false);
+    expect(modes.isSystemFullScreen(win)).toBe(false);
+  });
 });
 
 describe('the player’s visualizer on a Mac', () => {
+  it('keeps page-requested entry distinguishable before the completed event', () => {
+    const { modes, win, finish } = macWindowAs('player');
+    modes.setFullScreen(win, true);
+    finish(() => {
+      expect(win.isFullScreen()).toBe(true);
+      expect(modes.isSystemFullScreen(win)).toBe(false);
+    });
+    expect(modes.isSystemFullScreen(win)).toBe(false);
+    modes.setFullScreen(win, false);
+    finish();
+    expect(win.isFullScreen()).toBe(false);
+  });
+
   it('may take the screen, and the green button is disabled again after', () => {
     const { modes, win, finish, isFullScreenable, fullscreenable } =
       macWindowAs('player');

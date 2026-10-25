@@ -319,7 +319,9 @@ export const createWindowPlacement = ({
     return {
       isMaximized: isLive ? window.isMaximized() : false,
       isFullScreen: isLive ? window.isFullScreen() : false,
-      isSystemFullScreen: isLive ? windowModes.isSystemFullScreen() : false,
+      isSystemFullScreen: isLive
+        ? windowModes.isSystemFullScreen(window)
+        : false,
       mode: modes.mode,
       isPinned: modes.isPinned,
       zoom: isLive ? window.webContents.getZoomFactor() : 1,
