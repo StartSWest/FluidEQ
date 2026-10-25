@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import type { TranslationKey } from 'common/i18n';
 import {
   FAVOURITE_PERIODS,
-  secondsByCategory,
+  addsByCategory,
   type IFavouriteScene,
   type TFavouritePeriod,
 } from 'common/sceneTaste';
@@ -18,7 +18,6 @@ import { ScenePicture } from './GalleryParts';
 import GalleryListNotice from './GalleryListNotice';
 import {
   INSIGHT_ERRORS,
-  formatDuration,
   kindKey,
   sceneLabelName,
   scenePictureRef,
@@ -38,11 +37,11 @@ type TState =
   | { state: 'ready'; scenes: IFavouriteScene[] };
 
 /**
- * Which scenes members come back to (premium migration 0047): every scene
- * played, added or liked in the period, ranked by how many people played it,
- * then by time on screen. The card beside it adds the time up by kind, which
- * is the question the page exists for — what to make more of. The admin's own
- * testing is left out by the server.
+ * Which scenes members choose (premium migrations 0047 and 0071): every scene
+ * added or liked in the period, ranked by adds, then likes. The card beside it
+ * adds the adds up by kind, which is the question the page exists for — what
+ * to make more of. What members watch, and for how long, is not kept; the
+ * admin's own adds are left out by the server.
  */
 export default function AdminFavourites() {
   const { t } = useTranslation();
@@ -142,33 +141,33 @@ export default function AdminFavourites() {
   );
 }
 
-/** "164 members played 41 scenes for 2,310 hours." */
+/** "41 scenes added 230 times." */
 function Summary({ scenes }: { scenes: IFavouriteScene[] }) {
   const { t, locale } = useTranslation();
   const numbers = new Intl.NumberFormat(locale);
-  const seconds = scenes.reduce((sum, scene) => sum + scene.seconds, 0);
-  const played = scenes.filter((scene) => scene.seconds > 0).length;
+  const adds = scenes.reduce((sum, scene) => sum + scene.adds, 0);
+  const added = scenes.filter((scene) => scene.adds > 0).length;
   return (
     <span className="admin-favourites__summary">
       {t('insights.favourites.summary', {
-        scenes: numbers.format(played),
-        time: formatDuration(seconds, locale, t),
+        scenes: numbers.format(added),
+        adds: numbers.format(adds),
       })}
     </span>
   );
 }
 
-/** Time on screen by kind, the largest first, with the one to make more of. */
+/** Adds by kind, the largest first, with the one to make more of. */
 function Kinds({ scenes }: { scenes: IFavouriteScene[] }) {
   const { t, locale } = useTranslation();
-  const kinds = secondsByCategory(scenes).filter((kind) => kind.seconds > 0);
-  const total = kinds.reduce((sum, kind) => sum + kind.seconds, 0);
+  const kinds = addsByCategory(scenes).filter((kind) => kind.adds > 0);
+  const total = kinds.reduce((sum, kind) => sum + kind.adds, 0);
   const share = new Intl.NumberFormat(locale, {
     style: 'percent',
     maximumFractionDigits: 0,
   });
   const [top] = kinds;
-  const most = top?.seconds ?? 1;
+  const most = top?.adds ?? 1;
   return (
     <section className="admin-favourites__kinds">
       <h3 className="account-deletion__eyebrow">
@@ -176,7 +175,7 @@ function Kinds({ scenes }: { scenes: IFavouriteScene[] }) {
       </h3>
       {kinds.length === 0 && (
         <p className="admin-taste__note is-quiet">
-          {t('insights.favourites.noPlays')}
+          {t('insights.favourites.noAdds')}
         </p>
       )}
       <ul className="admin-favourites__kind-list">
@@ -186,10 +185,10 @@ function Kinds({ scenes }: { scenes: IFavouriteScene[] }) {
               {t(kindKey(kind.category))}
             </span>
             <span className="admin-taste__meter is-wide" aria-hidden="true">
-              <i style={{ width: `${(kind.seconds / most) * 100}%` }} />
+              <i style={{ width: `${(kind.adds / most) * 100}%` }} />
             </span>
             <span className="admin-favourites__kind-share">
-              {share.format(kind.seconds / total)}
+              {share.format(kind.adds / total)}
             </span>
           </li>
         ))}
@@ -198,7 +197,7 @@ function Kinds({ scenes }: { scenes: IFavouriteScene[] }) {
         <p className="admin-favourites__advice">
           {t('insights.favourites.advice', {
             kind: t(kindKey(top.category)),
-            share: share.format(top.seconds / total),
+            share: share.format(top.adds / total),
             count: String(top.scenes),
           })}
         </p>
@@ -218,15 +217,6 @@ function Ranking({ scenes }: { scenes: IFavouriteScene[] }) {
           <tr>
             <th scope="col" aria-label={t('insights.col.rank')} />
             <th scope="col">{t('insights.col.scene')}</th>
-            <th scope="col" className="is-number">
-              {t('insights.col.people')}
-            </th>
-            <th scope="col" className="is-number">
-              {t('insights.col.time')}
-            </th>
-            <th scope="col" className="is-number">
-              {t('insights.col.perPerson')}
-            </th>
             <th scope="col" className="is-number">
               {t('insights.col.adds')}
             </th>
@@ -260,15 +250,6 @@ function Ranking({ scenes }: { scenes: IFavouriteScene[] }) {
                     </span>
                   </span>
                 </span>
-              </td>
-              <td className="is-number">{numbers.format(scene.players)}</td>
-              <td className="is-number">
-                {formatDuration(scene.seconds, locale, t)}
-              </td>
-              <td className="is-number">
-                {scene.players > 0
-                  ? formatDuration(scene.seconds / scene.players, locale, t)
-                  : '–'}
               </td>
               <td className="is-number">{numbers.format(scene.adds)}</td>
               <td className="is-number">{numbers.format(scene.likes)}</td>

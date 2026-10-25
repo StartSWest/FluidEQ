@@ -240,6 +240,30 @@ describe('the Plus terms', () => {
   });
 
   /**
+   * Nothing about how anybody uses FluidEQ is sent (Ivan, 2026-10-24; premium
+   * 0068 and 0071): no row for listening time, time on screen or the engine,
+   * and the one sentence that says so is true because of it. A sent row
+   * that came back would contradict "no tracking or analytics" on the same
+   * page.
+   */
+  it('list nothing sent about how FluidEQ is used, and say there is no tracking', () => {
+    const rows = [...OPEN.sentRows, ...CLOSED.sentRows];
+    expect(
+      rows.filter((row) => /listening|scene-time|engine/.test(row.id)),
+    ).toEqual([]);
+    const told = rows.map((row) => translate('en', row.what));
+    expect(
+      told.filter((what) =>
+        /on your screen|audio engine|how long music/i.test(what),
+      ),
+    ).toEqual([]);
+    // The positive control: the sentence is there to be contradicted.
+    expect(translate('en', 'terms.protect.p4')).toMatch(
+      /no tracking or analytics/,
+    );
+  });
+
+  /**
    * FluidEQ cannot pay creators yet (Ivan, 2026-10-24), so the terms this
    * build shows must not promise it: no payouts section, no row of what
    * payouts send, and every sentence that mentioned payouts in its twin

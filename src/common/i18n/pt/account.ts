@@ -11,7 +11,7 @@ const account = {
   'account.close': 'Fechar',
 
   'account.optional':
-    'Entrar na conta é opcional. Sem conta, o FluidEQ funciona exatamente como sempre: tudo roda nesta máquina e nada é rastreado. Com conta, o tempo que você ouve é contado para as estatísticas do FluidEQ, a menos que você desative. A conta existe apenas para as partes que realmente precisam dela.',
+    'Entrar na conta é opcional. O FluidEQ funciona exatamente como sempre sem conta — tudo roda nesta máquina e nada é rastreado. A conta existe apenas para as partes que realmente precisam dela.',
 
   'account.signIn': 'Entrar',
   'account.signUp': 'Criar conta',

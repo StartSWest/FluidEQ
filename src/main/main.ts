@@ -425,10 +425,6 @@ const { apoGuard } = registerEngineServices({
     ]).catch((error: unknown) =>
       log.error('Could not move output processing to the new engine', error),
     );
-    // The admin's engine count follows a switch now, not at the next event.
-    members.sceneTasteIpc
-      .uploadIfDue('an engine switch')
-      .catch(() => undefined);
   },
 });
 
@@ -685,7 +681,6 @@ registerSystemVolumeIpc(getMainWindow);
 const members = registerMemberServices({
   getMainWindow,
   userDataDir,
-  getEngine: () => session.audioEngine,
 });
 
 // The tools menu's animations row: the saved choice, and the one this launch
@@ -877,8 +872,6 @@ const comeBack = createComeBackWatch({
     plusGallery: members.plusGalleryIpc,
     sceneReviews: members.plusReviewIpc,
     plusTermsNotice: members.plusTermsNoticeIpc,
-    sceneTaste: members.sceneTasteIpc,
-    listening: members.listeningIpc,
     sceneAnnouncements: members.sceneAnnouncementsIpc,
   }),
   getActiveAutoUpdater: updates.getActiveAutoUpdater,

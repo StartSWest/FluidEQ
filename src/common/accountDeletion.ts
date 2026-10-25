@@ -53,25 +53,12 @@ export interface IAccountToDelete {
   seenAt?: number;
   /** While the account is on a free trial, when it ends (premium 0049). */
   trialEndsAt?: number;
-  /**
-   * The audio engine the account last reported running (premium 0049): only
-   * from a FluidEQ carrying terms revision 10, so absent for most at first.
-   */
-  engine?: TAccountEngine;
   /** When the free trial ended, on an account it left without Plus (0054). */
   trialEndedAt?: number;
   /** What that member answered when asked why (0054), and their note. */
   exitReason?: TTrialExitReason;
   exitNote?: string;
 }
-
-/** The two engines an account reports, as the server keeps them. */
-export const ACCOUNT_ENGINES = ['fluid', 'apo'] as const;
-export type TAccountEngine = (typeof ACCOUNT_ENGINES)[number];
-
-export const isAccountEngine = (value: unknown): value is TAccountEngine =>
-  typeof value === 'string' &&
-  (ACCOUNT_ENGINES as readonly string[]).includes(value);
 
 const ACCOUNT_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -143,7 +130,6 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
   const seenAt = timeOf(row.seen_at);
   // Lenient for the same reason: a server before 0049 has neither column.
   const trialEndsAt = timeOf(row.trial_ends_at);
-  const engine = isAccountEngine(row.engine) ? row.engine : undefined;
   // And for 0054's three: a server before it has none of them.
   const trialEndedAt = timeOf(row.trial_ended_at);
   const exitReason = isTrialExitReason(row.exit_reason)
@@ -168,7 +154,6 @@ export const parseAccountRow = (row: unknown): IAccountToDelete | undefined => {
     ...(appVersion ? { appVersion } : {}),
     ...(seenAt ? { seenAt } : {}),
     ...(trialEndsAt ? { trialEndsAt } : {}),
-    ...(engine ? { engine } : {}),
     ...(trialEndedAt ? { trialEndedAt } : {}),
     ...(exitReason ? { exitReason } : {}),
     ...(exitNote ? { exitNote } : {}),

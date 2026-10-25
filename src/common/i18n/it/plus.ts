@@ -261,12 +261,6 @@ const plus = {
   'plus.accounts.exit.payment': 'Non ha potuto pagare come voleva',
   'plus.accounts.exit.other': 'Altro',
   'plus.accounts.exit.none': 'Non ha detto',
-  'plus.accounts.engine.title': 'Motore',
-  'plus.accounts.engine.fluid': 'Motore FluidEQ',
-  'plus.accounts.engine.apo': 'Equalizer APO',
-  'plus.accounts.engine.unknown': 'Non comunicato {count}',
-  'plus.accounts.engine.summary':
-    'Motore FluidEQ {fluid}, Equalizer APO {apo}, non comunicato {unknown}',
   'plus.accounts.moreError':
     'Non è stato possibile caricare altri account. Riprova.',
   'plus.accounts.error.offline':

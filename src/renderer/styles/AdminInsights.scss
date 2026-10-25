@@ -28,22 +28,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     color: $primary-dark;
     background: $amber;
   }
-
-  &.is-engine {
-    font-weight: $weight-semibold;
-    @include tracking(0.01em);
-    text-transform: none;
-  }
-
-  &.is-fluid {
-    color: $secondary-light;
-    background: color-mix(in srgb, $secondary-default 13%, transparent);
-  }
-
-  &.is-apo {
-    color: color-mix(in srgb, $neon-yellow 80%, $white);
-    background: color-mix(in srgb, $neon-yellow 11%, transparent);
-  }
 }
 
 .admin-accounts__stat.is-trial {
@@ -108,73 +92,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
   font-size: $text-small;
 }
 
-// ---------------------------------------------------------------- engines
+// ---------------------------------------------------------------- labels
 
-// Which engine the accounts run: one bar, the FluidEQ Engine's share in the
-// accent, Equalizer APO's in yellow, the rest left as the track.
-.admin-engines {
-  display: grid;
-  grid-template-columns: auto minmax(120px, 1fr);
-  align-items: center;
-  gap: 6px $spacing-m;
-}
-
+// A small heading over an admin reading, as the trial exits use it.
 .admin-engines__label {
   color: $text-faint;
   font-size: $text-eyebrow;
   font-weight: $weight-bold;
   @include tracking(0.08em);
   text-transform: uppercase;
-}
-
-.admin-engines__bar {
-  display: flex;
-  height: 10px;
-  overflow: hidden;
-  border-radius: $radius-pill;
-  background: $track-well;
-
-  i {
-    display: block;
-    height: 100%;
-    transition: width $motion-base $ease-out;
-  }
-
-  .is-fluid {
-    background: $secondary-default;
-  }
-
-  .is-apo {
-    background: $neon-yellow;
-  }
-}
-
-.admin-engines__key {
-  display: flex;
-  flex-wrap: wrap;
-  grid-column: 2;
-  gap: 2px $spacing-m;
-  color: $text-muted;
-  font-size: $text-small;
-  font-variant-numeric: tabular-nums;
-
-  > span::before {
-    content: '';
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    margin-inline-end: 6px;
-    border-radius: 2px;
-    background: color-mix(in srgb, $edge-tint 30%, transparent);
-  }
-
-  .is-fluid::before {
-    background: $secondary-default;
-  }
-
-  .is-apo::before {
-    background: $neon-yellow;
-  }
 }
 
 // ---------------------------------------------------------------- one account
@@ -238,20 +164,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 .admin-taste__row {
   display: grid;
-  grid-template-columns: 80px minmax(0, 1fr) minmax(130px, 210px);
+  grid-template-columns: 80px minmax(0, 1fr);
   align-items: center;
   gap: $spacing-m;
   padding: 6px 10px 6px 6px;
   border-radius: $radius-m;
   background: $lift-rest;
 
-  // Narrow: the time goes under the name rather than squeezing it.
   @container plus (max-width: 560px) {
     grid-template-columns: 64px minmax(0, 1fr);
-
-    .admin-taste__play {
-      grid-column: 1 / -1;
-    }
   }
 }
 
@@ -315,24 +236,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
     color: color-mix(in srgb, $complementary 75%, $white);
     border-color: color-mix(in srgb, $complementary 45%, transparent);
   }
-}
-
-.admin-taste__play {
-  display: grid;
-  gap: 4px;
-  min-width: 0;
-}
-
-.admin-taste__time {
-  color: $text-primary;
-  font-size: $text-body;
-  font-weight: $weight-semibold;
-  font-variant-numeric: tabular-nums;
-}
-
-.admin-taste__when {
-  color: $text-faint;
-  font-size: $text-micro;
 }
 
 // How much of the most: the accent on the track, filled from the start.

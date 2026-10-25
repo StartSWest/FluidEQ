@@ -255,12 +255,6 @@ const plus = {
   'plus.accounts.exit.payment': 'मनचाहे तरीके से भुगतान नहीं हो पाया',
   'plus.accounts.exit.other': 'कुछ और',
   'plus.accounts.exit.none': 'नहीं बताया',
-  'plus.accounts.engine.title': 'इंजन',
-  'plus.accounts.engine.fluid': 'FluidEQ इंजन',
-  'plus.accounts.engine.apo': 'Equalizer APO',
-  'plus.accounts.engine.unknown': 'रिपोर्ट नहीं हुआ {count}',
-  'plus.accounts.engine.summary':
-    'FluidEQ इंजन {fluid}, Equalizer APO {apo}, रिपोर्ट नहीं हुआ {unknown}',
   'plus.accounts.moreError': 'और खाते लोड नहीं हो सके। फिर कोशिश करें।',
   'plus.accounts.error.offline':
     'खातों की सूची के लिए कनेक्शन चाहिए। ऑनलाइन होकर फिर कोशिश करें।',

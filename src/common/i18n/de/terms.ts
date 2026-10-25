@@ -92,19 +92,7 @@ const terms = {
   'terms.sent.sceneLike.when':
     'Wenn die Szene eines Mitglieds läuft, um ihre „Gefällt mir“ anzuzeigen, und wenn Sie auf das Herz klicken oder ein „Gefällt mir“ zurücknehmen',
   'terms.sent.sceneLike.who':
-    'Ihr „Gefällt mir“ wird bei Ihrem Konto gespeichert. Mitglieder sehen, wie viele „Gefällt mir“ eine Szene hat, nie, von wem. Wie lange jede Szene auf dem Bildschirm ist, steht in der nächsten Zeile.',
-  'terms.sent.sceneTime.what':
-    'Wie lange jede Szene auf Ihrem Bildschirm war: eine Zahl von Sekunden pro Szene und Tag, mit der Szene und dem Datum',
-  'terms.sent.sceneTime.when':
-    'Solange Sie eine Mitgliedschaft haben, sobald Ihnen diese Version dieser Bedingungen angezeigt wurde: beim Start von FluidEQ, wenn Sie an den Computer zurückkehren, und höchstens einmal pro Stunde, während eine Szene läuft',
-  'terms.sent.sceneTime.who':
-    'Nur der Macher von FluidEQ, mit Ihrem Konto, um zu erfahren, welche Szenen Mitgliedern gefallen, und mehr davon zu machen. Mitglieder sehen es nie. Ihr Computer behält die letzten {windowDays} Tage.',
-  'terms.sent.engine.what':
-    'Welche Audio-Engine Sie gewählt haben: die FluidEQ-Engine oder Equalizer APO',
-  'terms.sent.engine.when':
-    'Solange Sie eine Mitgliedschaft haben, sobald Ihnen diese Version dieser Bedingungen angezeigt wurde: beim Start von FluidEQ, wenn Sie an den Computer zurückkehren, und wenn Sie die Engine wechseln',
-  'terms.sent.engine.who':
-    'Nur der Macher von FluidEQ, mit Ihrem Konto, um zu wissen, an welcher Engine er arbeiten soll. Nur die letzte Angabe wird gespeichert.',
+    'Ihr „Gefällt mir“ wird bei Ihrem Konto gespeichert. Mitglieder sehen, wie viele „Gefällt mir“ eine Szene hat, nie, von wem.',
   'terms.sent.announcements.what':
     'Ihr Anmelde-Token, um zu fragen, ob FluidEQ neue Szenen angekündigt hat',
   'terms.sent.announcements.when':
@@ -148,7 +136,7 @@ const terms = {
   'terms.protect.p3':
     '„Visualizer“ zeigt Kürzel und Anzeigenamen, niemals E-Mail-Adressen. Konto-IDs werden nie angezeigt, stehen aber in Szenendateien und in dem, was „Visualizer“ an die App sendet.',
   'terms.protect.p4':
-    'Der Macher betreibt den Dienst und kann sehen, was er speichert, um ihn am Laufen zu halten, Zahlungen zuzuordnen und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft oder für Werbung genutzt. Die einzigen Statistiken sind die, die diese Seite aufführt – wie lange Menschen hören, welche Szenen Mitglieder ansehen und welche Engine sie nutzen –, und nur der Macher liest sie.',
+    'Der Macher betreibt den Dienst und kann sehen, was er speichert, um ihn am Laufen zu halten, Zahlungen zuzuordnen und zu moderieren, was Mitglieder veröffentlichen. Nichts wird verkauft oder für Werbung genutzt, und es gibt kein Tracking und keine Analysen.',
   'terms.protect.p5':
     'Der Dienst läuft auf Supabase (Anmeldung, Datenbank und Dateien) und versendet E-Mails über Resend; Credits werden über Stripe bezahlt, die frühere Mitgliedschaft über Buy Me a Coffee, und das Forum läuft über GitHub. Jeder erhält nur, was sein Teil braucht.',
   'terms.protect.p5Payouts':
@@ -298,14 +286,6 @@ const terms = {
     'Nur Sie und der Macher von FluidEQ. Sie sehen, was zurückgehalten, auszahlbereit und ausgezahlt ist, nie, wer gekauft hat; der Macher sieht, was jedem Ersteller zusteht, um es auszuzahlen. Ihre Angaben zu Identität, Bank und Steuern gehen nur an Stripe.',
   'terms.keep.p8':
     'Auszahlungen: Die ID Ihres Stripe-Kontos, Ihr Land, die Version der Bedingungen für Ersteller, die Sie angenommen haben, jeder Verkauf, den Ihre Szenen eingebracht haben, und jede Auszahlung werden gespeichert, um Sie zu bezahlen und über die Zahlungen Rechenschaft abzulegen, und mit Ihrem Konto gelöscht. Wird das Konto eines Käufers gelöscht, bleiben seine Käufe in den Einnahmen des Erstellers, ohne den Käufer. Was Stripe speichert, richtet sich nach den Bedingungen von Stripe.',
-  'terms.sent.listening.what':
-    'Wie lange auf jedem Ihrer Computer Musik lief: eine Zahl von Minuten pro Computer und Tag, nie mehr als {listeningHours} Stunden, mit dem Datum und einer Zufallszahl, die Ihre Computer unterscheidet. Nicht, was lief, und nicht, woher',
-  'terms.sent.listening.when':
-    'Solange Sie angemeldet sind, sobald FluidEQ es Ihnen gesagt hat und sofern Sie es nicht ausgeschaltet haben: wenn FluidEQ startet, wenn Sie an den Computer zurückkehren, und höchstens alle Viertelstunde, während Musik läuft',
-  'terms.sent.listening.who':
-    'Nur der Macher von FluidEQ, und nur zusammengezählt mit allen anderen: wie viele Menschen an jedem Tag gehört haben und wie lange, nie wer. Ihr Computer behält die letzten {listeningDays} Tage.',
-  'terms.keep.p9':
-    'Hörzeit: Jeder Tag, den Ihre Computer gesendet haben, wird mit Ihrem Konto gespeichert, um zu zählen, wie lange FluidEQ genutzt wird. Ausschalten im Kontobereich löscht sofort jeden Tag, den Sie gesendet haben, und der Rest geht mit Ihrem Konto.',
 } as const;
 
 export default terms;

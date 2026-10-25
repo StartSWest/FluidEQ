@@ -103,19 +103,7 @@ const terms = {
   'terms.sent.sceneLike.when':
     'When a member’s scene plays, to show its likes, and when you press the heart or take a like back',
   'terms.sent.sceneLike.who':
-    'Your like is kept with your account. Members see how many likes a scene has, never who gave them. How long each scene is on screen is the next line.',
-  'terms.sent.sceneTime.what':
-    'How long each scene was on your screen: one number of seconds per scene per day, with the scene and the date',
-  'terms.sent.sceneTime.when':
-    'While you have a membership, once you have been shown this version of these terms: when FluidEQ starts, when you come back to the computer, and at most once an hour while a scene plays',
-  'terms.sent.sceneTime.who':
-    'Only FluidEQ’s maker, with your account, to learn which scenes members enjoy and make more like them. Members never see it. Your computer keeps the last {windowDays} days.',
-  'terms.sent.engine.what':
-    'Which audio engine you chose: the FluidEQ Engine or Equalizer APO',
-  'terms.sent.engine.when':
-    'While you have a membership, once you have been shown this version of these terms: when FluidEQ starts, when you come back to the computer and when you switch engines',
-  'terms.sent.engine.who':
-    'Only FluidEQ’s maker, with your account, to know which engine to work on. Only the last one is kept.',
+    'Your like is kept with your account. Members see how many likes a scene has, never who gave them.',
   'terms.sent.announcements.what':
     'Your sign-in token, to ask whether FluidEQ has announced new scenes',
   'terms.sent.announcements.when':
@@ -158,7 +146,7 @@ const terms = {
   'terms.protect.p3':
     'Visualizers shows handles and display names, never email addresses. Account ids are never shown, but they are inside scene files and in what Visualizers sends to the app.',
   'terms.protect.p4':
-    'The maker runs the service and can see what it stores, to keep it working, to match payments and to moderate what members publish. Nothing is sold or used for advertising. The only statistics are the ones this page lists — how long people listen, which scenes members watch and which engine they use — and only the maker reads them.',
+    'The maker runs the service and can see what it stores, to keep it working, to match payments and to moderate what members publish. Nothing is sold or used for advertising, and there is no tracking or analytics.',
   'terms.protect.p5':
     'The service runs on Supabase (sign-in, database and files) and sends email through Resend; credits are paid through Stripe, the old membership through Buy Me a Coffee, and the Forum goes through GitHub. Each receives only what its part needs.',
   'terms.protect.p5Payouts':
@@ -308,14 +296,6 @@ const terms = {
     'Only you and the maker. You see what is held, ready to pay and paid, never who bought; the maker sees what each creator is owed, to pay it. Your identity, bank and tax details go only to Stripe.',
   'terms.keep.p8':
     'Payouts: your Stripe account’s id, your country, the version of the creator terms you accepted, each sale your scenes earned and each payout are kept to pay you and to account for the payments, and are deleted with your account. When a buyer’s account is deleted, the sales it made stay in the creator’s earnings, without the buyer. What Stripe keeps is under its own terms.',
-  'terms.sent.listening.what':
-    'How long music played on each of your computers: one number of minutes per computer per day, never more than {listeningHours} hours, with the date and a random number that tells your computers apart. Not what played, nor from where',
-  'terms.sent.listening.when':
-    'While you are signed in, once FluidEQ has told you and unless you switched it off: when FluidEQ starts, when you come back to the computer, and at most every quarter of an hour while music plays',
-  'terms.sent.listening.who':
-    'Only FluidEQ’s maker, and only added up with everyone else’s: how many people listened each day and for how long, never who. Your computer keeps the last {listeningDays} days.',
-  'terms.keep.p9':
-    'Listening time: each day your computers sent is kept with your account to count how long people use FluidEQ. Switching it off in the Account panel deletes every day you sent at once, and the rest goes with your account.',
 } as const;
 
 export default terms;

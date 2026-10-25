@@ -93,14 +93,12 @@ export interface IAccountListPage {
   /** Accounts the filter leaves in all, so the page knows what is still to show. */
   listed: number;
   /**
-   * Of the matched, how many are on a free trial, how many of those end
-   * within a week, and how many run each engine. Absent from a server before
-   * premium migration 0049, which the page says as a dash.
+   * Of the matched, how many are on a free trial and how many of those end
+   * within a week. Absent from a server before premium migration 0049, which
+   * the page says as a dash.
    */
   trialing?: number;
   trialsThisWeek?: number;
-  engineFluid?: number;
-  engineApo?: number;
   /**
    * Of the matched, how many trials ended without Plus (0054), and — only
    * when that is the filter — what those members answered, reason by reason.
@@ -190,8 +188,6 @@ export const parseAccountListPage = (
   }
   const trialing = countOf(counted.trialing);
   const trialsThisWeek = countOf(counted.trials_this_week);
-  const engineFluid = countOf(counted.engine_fluid);
-  const engineApo = countOf(counted.engine_apo);
   const lapsed = countOf(counted.lapsed);
   return {
     accounts,
@@ -200,8 +196,6 @@ export const parseAccountListPage = (
     listed,
     ...(trialing === undefined ? {} : { trialing }),
     ...(trialsThisWeek === undefined ? {} : { trialsThisWeek }),
-    ...(engineFluid === undefined ? {} : { engineFluid }),
-    ...(engineApo === undefined ? {} : { engineApo }),
     ...(lapsed === undefined ? {} : { lapsed }),
   };
 };

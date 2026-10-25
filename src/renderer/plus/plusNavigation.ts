@@ -50,7 +50,6 @@ export const ADMIN_SECTIONS = [
   'accounts',
   'gifts',
   'favourites',
-  'listening',
   'announcements',
   'payouts',
   'server',

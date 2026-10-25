@@ -188,10 +188,6 @@ and the De-esser is not heard, and everything else plays as before.
   scenes framed and Try them now to play the first on the graph.
 - **Hearts on members' scenes.** Like a scene in the gallery and its maker
   sees it; FluidEQ's own scenes carry no counts.
-- **Your account shows how long each scene has played**, your own scenes
-  included, down to the second under a minute. Counting starts only once you
-  have seen the revised terms, which say what is kept: how long each scene is
-  on screen, per scene and day, and which audio engine you use.
 
 ### The Studio
 
@@ -230,11 +226,10 @@ and the De-esser is not heard, and everything else plays as before.
 
 ### Account
 
-- **How long you listen, counted only as you choose.** Signed in, FluidEQ
-  asks you once whether to count the minutes of music that play each day —
-  one number a day, never what played — for its maker's own statistics, seen
-  by nobody else and never with your name. Switch it off any time under
-  **Account**, and what was sent is deleted.
+- **Nothing about how you use FluidEQ is sent.** Signed in or not, FluidEQ no
+  longer tells its maker how long each scene is on your screen or which audio
+  engine you use, and what was sent before is deleted. What the service keeps
+  is what you do on purpose: the scenes you get, like and publish.
 - **Sign in with Google.** Continue with Google opens Google in your own
   browser, where you are usually signed in already, and FluidEQ finishes the
   sign-in when Google sends you back; the panel says it is waiting and keeps

@@ -11,7 +11,7 @@ const account = {
   'account.close': 'Cerrar',
 
   'account.optional':
-    'Iniciar sesión es opcional. Sin cuenta, FluidEQ funciona exactamente como siempre: todo se ejecuta en esta máquina y nada se rastrea. Con cuenta, se cuenta cuánto escuchas para las estadísticas de FluidEQ salvo que lo desactives. La cuenta solo existe para las partes que de verdad la necesitan.',
+    'Iniciar sesión es opcional. FluidEQ funciona exactamente como siempre sin cuenta: todo se ejecuta en esta máquina y nada se rastrea. La cuenta solo existe para las partes que de verdad la necesitan.',
 
   'account.signIn': 'Iniciar sesión',
   'account.signUp': 'Crear cuenta',

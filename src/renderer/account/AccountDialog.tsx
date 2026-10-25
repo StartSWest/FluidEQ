@@ -29,7 +29,6 @@ import ProfileNameForm from './ProfileNameForm';
 import PlusTermsDocument from './PlusTermsDocument';
 import { useSceneStore } from '../plus/sceneStore';
 import CreatorPayoutsCard from './CreatorPayoutsCard';
-import ListeningCard from './ListeningCard';
 import { forgetCreator } from './creatorStore';
 import SignInForms from './SignInForms';
 import SignOutConfirm from './SignOutConfirm';
@@ -432,8 +431,6 @@ export default function AccountDialog({
               {CREATOR_PAYOUTS_OPEN && accountId && (
                 <CreatorPayoutsCard accountId={accountId} />
               )}
-              {/* Whether this account's listening time is counted. */}
-              <ListeningCard />
 
               {errorLine}
 

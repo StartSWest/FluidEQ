@@ -93,19 +93,7 @@ const terms = {
   'terms.sent.sceneLike.when':
     'Quando la scena di un membro è in riproduzione, per mostrarne i mi piace, e quando premi il cuore o togli un mi piace',
   'terms.sent.sceneLike.who':
-    'Il tuo mi piace viene conservato con il tuo account. I membri vedono quanti mi piace ha una scena, mai chi li ha messi. Quanto tempo ogni scena resta sullo schermo è la riga successiva.',
-  'terms.sent.sceneTime.what':
-    'Quanto tempo ogni scena è rimasta sul tuo schermo: un numero di secondi per scena al giorno, con la scena e la data',
-  'terms.sent.sceneTime.when':
-    'Finché hai un abbonamento, dopo che ti è stata mostrata questa versione di queste condizioni: all’avvio di FluidEQ, quando torni al computer e al massimo una volta all’ora mentre una scena è in riproduzione',
-  'terms.sent.sceneTime.who':
-    'Solo il creatore di FluidEQ, con il tuo account, per capire quali scene piacciono ai membri e farne altre simili. I membri non lo vedono mai. Il tuo computer conserva gli ultimi {windowDays} giorni.',
-  'terms.sent.engine.what':
-    'Quale motore audio hai scelto: il Motore FluidEQ o Equalizer APO',
-  'terms.sent.engine.when':
-    'Finché hai un abbonamento, dopo che ti è stata mostrata questa versione di queste condizioni: all’avvio di FluidEQ, quando torni al computer e quando cambi motore',
-  'terms.sent.engine.who':
-    'Solo il creatore di FluidEQ, con il tuo account, per sapere su quale motore lavorare. Viene conservato solo l’ultimo.',
+    'Il tuo mi piace viene conservato con il tuo account. I membri vedono quanti mi piace ha una scena, mai chi li ha messi.',
   'terms.sent.announcements.what':
     'Il tuo token di accesso, per chiedere se FluidEQ ha annunciato nuove scene',
   'terms.sent.announcements.when':
@@ -148,7 +136,7 @@ const terms = {
   'terms.protect.p3':
     'Visualizzatori mostra nickname e nomi visualizzati, mai indirizzi email. Gli id degli account non vengono mai mostrati, ma si trovano nei file delle scene e in ciò che Visualizzatori invia all’app.',
   'terms.protect.p4':
-    'Il creatore gestisce il servizio e può vedere ciò che conserva, per tenerlo in funzione, collegare i pagamenti e moderare ciò che i membri pubblicano. Nulla viene venduto o usato per pubblicità. Le uniche statistiche sono quelle elencate in questa pagina — quanto ascoltano le persone, quali scene guardano i membri e quale motore usano — e solo il creatore le legge.',
+    'Il creatore gestisce il servizio e può vedere ciò che conserva, per tenerlo in funzione, collegare i pagamenti e moderare ciò che i membri pubblicano. Nulla viene venduto o usato per pubblicità, e non c’è tracciamento né analisi.',
   'terms.protect.p5':
     'Il servizio funziona su Supabase (accesso, database e file) e invia email tramite Resend; i crediti si pagano tramite Stripe, il vecchio abbonamento tramite Buy Me a Coffee, e il Forum passa da GitHub. Ognuno riceve solo ciò che serve alla sua parte.',
   'terms.protect.p5Payouts':
@@ -298,14 +286,6 @@ const terms = {
     'Solo tu e il creatore di FluidEQ. Tu vedi ciò che è trattenuto, pronto da pagare e pagato, mai chi ha comprato; il creatore vede quanto spetta a ogni creatore, per pagarlo. I tuoi dati di identità, banca e tasse vanno solo a Stripe.',
   'terms.keep.p8':
     'Pagamenti: l’id del tuo account Stripe, il tuo paese, la versione delle condizioni per i creatori che hai accettato, ogni vendita che le tue scene hanno reso e ogni pagamento sono conservati per pagarti e rendere conto dei pagamenti, e vengono eliminati con il tuo account. Quando l’account di un acquirente viene eliminato, i suoi acquisti restano nei guadagni del creatore, senza l’acquirente. Ciò che conserva Stripe segue le sue condizioni.',
-  'terms.sent.listening.what':
-    'Per quanto tempo la musica ha suonato su ciascuno dei tuoi computer: un numero di minuti per computer al giorno, mai più di {listeningHours} ore, con la data e un numero casuale che distingue i tuoi computer. Né cosa ha suonato, né da dove',
-  'terms.sent.listening.when':
-    'Finché hai effettuato l’accesso, dopo che FluidEQ te l’ha detto e a meno che tu non l’abbia disattivato: all’avvio di FluidEQ, quando torni al computer e al massimo ogni quarto d’ora mentre suona la musica',
-  'terms.sent.listening.who':
-    'Solo il creatore di FluidEQ, e solo sommato a quello di tutti gli altri: quante persone hanno ascoltato ogni giorno e per quanto tempo, mai chi. Il tuo computer conserva gli ultimi {listeningDays} giorni.',
-  'terms.keep.p9':
-    'Tempo di ascolto: ogni giorno inviato dai tuoi computer è conservato con il tuo account per contare quanto viene usato FluidEQ. Disattivarlo nel pannello dell’account elimina subito ogni giorno che hai inviato, e il resto se ne va con il tuo account.',
 } as const;
 
 export default terms;

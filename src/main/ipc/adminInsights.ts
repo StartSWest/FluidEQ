@@ -9,11 +9,9 @@ import {
   type IFavouriteScene,
 } from '../../common/sceneTaste';
 import type { IServerUsage, TRequestUsage } from '../../common/serverUsage';
-import type { IAdminListening } from '../../common/listening';
 import {
   accountScenes,
   adminAnnouncements,
-  adminListening,
   cancelAnnouncement,
   favouriteScenes,
   requestUsage,
@@ -38,12 +36,10 @@ export type TFavouriteScenesOutcome = TAdminOutcome<IFavouriteScene[]>;
 export type TAdminAnnouncementsOutcome = TAdminOutcome<IAdminAnnouncement[]>;
 export type TServerUsageOutcome = TAdminOutcome<IServerUsage>;
 export type TRequestUsageOutcome = TAdminOutcome<TRequestUsage>;
-export type TAdminListeningOutcome = TAdminOutcome<IAdminListening>;
 
 const CHANNELS = [
   'admin-account-scenes',
   'admin-scene-favourites',
-  'admin-listening',
   'admin-announcements',
   'admin-announcement-save',
   'admin-announcement-cancel',
@@ -106,14 +102,6 @@ export const registerAdminInsightsIpc = ({
     (_event, days: unknown): Promise<TFavouriteScenesOutcome> =>
       isFavouritePeriod(days)
         ? asMe((auth) => favouriteScenes(auth, days))
-        : Promise.resolve({ ok: false, reason: 'invalid' }),
-  );
-
-  ipcMain.handle(
-    'admin-listening',
-    (_event, days: unknown): Promise<TAdminListeningOutcome> =>
-      isFavouritePeriod(days)
-        ? asMe((auth) => adminListening(auth, days))
         : Promise.resolve({ ok: false, reason: 'invalid' }),
   );
 

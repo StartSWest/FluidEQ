@@ -160,29 +160,6 @@ const sentRows = (payoutsOpen: boolean): readonly ITermsSentRow[] => [
     who: 'terms.sent.sceneLike.who',
   },
   {
-    id: 'scene-time',
-    glyph: 'looks',
-    what: 'terms.sent.sceneTime.what',
-    when: 'terms.sent.sceneTime.when',
-    who: 'terms.sent.sceneTime.who',
-  },
-  {
-    id: 'engine',
-    glyph: 'music',
-    what: 'terms.sent.engine.what',
-    when: 'terms.sent.engine.when',
-    who: 'terms.sent.engine.who',
-  },
-  {
-    // Every signed-in account's, member or not, once told and not switched
-    // off (premium 0068).
-    id: 'listening',
-    glyph: 'headphones',
-    what: 'terms.sent.listening.what',
-    when: 'terms.sent.listening.when',
-    who: 'terms.sent.listening.who',
-  },
-  {
     id: 'announcements',
     glyph: 'mail',
     what: 'terms.sent.announcements.what',
@@ -334,7 +311,6 @@ const sections = (payoutsOpen: boolean): readonly ITermsSection[] => [
       'terms.keep.p7',
       // What payouts keep: said only while creators can be paid.
       ...(payoutsOpen ? ['terms.keep.p8' as const] : []),
-      'terms.keep.p9',
       'terms.keep.p6',
     ],
   },
