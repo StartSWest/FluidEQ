@@ -4501,6 +4501,57 @@ button.graph-legend {
 
 // *** Responsive shell *******************************************************
 
+// A 1440 x 900 display has limited logical space even on Retina. Keep laptop
+// density at the root and the open sound pane beside the EQ on every system.
+@media (min-width: $bp-xl) and (max-width: $bp-three-column) and (max-height: $bp-laptop-height) {
+  :root {
+    font-size: 90%;
+
+    .app-workspace.is-sound-drawer-open:not(.is-app-full) {
+      grid-template-columns:
+        $side-bar-width minmax(0, 1fr)
+        $sound-panel-width;
+
+      > .drawer-backdrop {
+        display: none;
+      }
+
+      > .right-content {
+        z-index: auto;
+
+        > .right-content__panel {
+          background: none;
+          box-shadow: none;
+        }
+      }
+
+      // The pane already owns a grid column; do not reserve its drawer width
+      // a second time inside the graph's toolbar.
+      .graph-wrapper > .live-output-controls {
+        right: 12px;
+      }
+
+      .graph-wrapper:not(.is-gridless) > .live-output-controls {
+        right: 56px;
+      }
+    }
+
+    .graph-legend--picker {
+      .dropdown:has(.graph-look-name) {
+        width: 144px;
+        min-width: 0;
+      }
+
+      .look-picker__trigger .graph-look-name {
+        min-width: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+}
+
 // Two columns and the sound panel's rail: no room for the panel's column. Its
 // old fate was a band squashed under the workspace — two panels wide, half of
 // it below the fold — which read as clutter, not as settings; then a drawer
