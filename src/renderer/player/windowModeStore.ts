@@ -330,6 +330,9 @@ export const setWindowMode = async (mode: TWindowMode): Promise<void> => {
       window.electron.ipcRenderer.sendMessage(WINDOW_REVEAL_CHANNEL, []);
     } else {
       await fadeIn();
+      if (runsOnLinux()) {
+        window.electron.ipcRenderer.sendMessage(WINDOW_REVEAL_CHANNEL, []);
+      }
     }
   }
 };

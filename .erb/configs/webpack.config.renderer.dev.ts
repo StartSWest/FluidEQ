@@ -19,6 +19,7 @@ import checkNodeEnv from '../scripts/check-node-env';
 import PUBLIC_ENV_DEFAULTS from './public-env';
 import contentSecurityPolicy from '../../src/main/contentSecurityPolicy';
 import wallpaperContentSecurityPolicy from '../../src/main/wallpaper/wallpaperPolicy';
+import linuxWindowArgs from '../../src/main/linux/linuxWindowBackend';
 
 // When an ESLint server is running, we can't set the NODE_ENV so we'll check if it's
 // at the dev webpack config is not accidentally run in a production environment
@@ -328,10 +329,14 @@ const configuration: webpack.Configuration = {
      */
     onListening() {
       console.log('Starting Main Process...');
-      spawnNode('electronmon/bin/cli.js', ['dev-main.cjs', '--no-sandbox'], {
-        NODE_ENV: 'development',
-        FLUIDEQ_EXIT_DEV_SESSION_ON_QUIT: '1',
-      })
+      spawnNode(
+        'electronmon/bin/cli.js',
+        linuxWindowArgs(['dev-main.cjs', '--no-sandbox']),
+        {
+          NODE_ENV: 'development',
+          FLUIDEQ_EXIT_DEV_SESSION_ON_QUIT: '1',
+        },
+      )
         .on('close', () => {
           if (devShuttingDown) return;
           shutdownDevSession();

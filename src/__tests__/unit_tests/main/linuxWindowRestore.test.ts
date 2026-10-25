@@ -45,7 +45,7 @@ const session = () => {
     setMaximumSize: jest.fn(),
     setMaximizable: jest.fn(),
     setAlwaysOnTop: jest.fn(),
-    webContents: { getZoomFactor: () => 1 },
+    webContents: Object.assign(new EventEmitter(), { getZoomFactor: () => 1 }),
     unmaximize: () => {
       maximized = false;
       // Measured on GNOME: the state event arrives while the maximized

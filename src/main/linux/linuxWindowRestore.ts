@@ -22,6 +22,10 @@ const unmaximizeLinuxWindow = (win: BrowserWindow): Promise<void> => {
   const width = Math.min(normal.width, area.width);
   const height = Math.min(normal.height, area.height);
   return new Promise((resolve) => {
+    // XWayland can deliver the normal-size configure before `unmaximize`,
+    // while isMaximized still says true. Remember that resize as well: its
+    // clamped normal size may differ from Electron's remembered bounds.
+    let didResize = false;
     const finish = () => {
       win.removeListener('unmaximize', restored);
       win.removeListener('resize', resized);
@@ -36,13 +40,13 @@ const unmaximizeLinuxWindow = (win: BrowserWindow): Promise<void> => {
       const bounds = win.getBounds();
       if (
         !win.isMaximized() &&
-        bounds.width === width &&
-        bounds.height === height
+        (didResize || (bounds.width === width && bounds.height === height))
       ) {
         finish();
       }
     };
     const resized = () => {
+      didResize = true;
       if (win.isDestroyed() || !win.isMaximized()) {
         finish();
       }

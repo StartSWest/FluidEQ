@@ -29,6 +29,7 @@ import {
 } from '../common/constants';
 import {
   appMinimumSize,
+  clampInto,
   isUsableRect,
   PLAYER_BOUNDS_RULE,
   rememberedPlayer,
@@ -39,6 +40,7 @@ import {
 } from '../common/windowMode';
 import { peekScheduled, scheduleWrite } from './asyncWriter';
 import type { TWindowModes } from './windowMode';
+import { linuxWindowSizeOf } from './linux/linuxWindowSize';
 
 const WINDOW_STATE_FILENAME = 'window-state.json';
 
@@ -208,6 +210,13 @@ export const createWindowPlacement = ({
         }
       }
 
+      // Linux can have saved the whole display as usable under Wayland,
+      // leaving the app's top behind GNOME's panel. Reuse the same work-area
+      // clamp as mode switching when restoring those older bounds.
+      if (process.platform === 'linux' && isUsableRect(state)) {
+        Object.assign(state, clampInto(state, workAreaFor(state)));
+      }
+
       return state;
     } catch {
       // No file yet, or one we cannot read. Either way: open at the default.
@@ -307,6 +316,8 @@ export const createWindowPlacement = ({
     const modes = windowModes.memory();
     const isLive = window !== null && !window.isDestroyed();
     const [contentWidth, contentHeight] = isLive ? window.getContentSize() : [];
+    const transition = isLive ? linuxWindowSizeOf(window) : undefined;
+    const minimum = transition && isLive ? window.getMinimumSize() : [0, 0];
     return {
       isMaximized: isLive ? window.isMaximized() : false,
       isFullScreen: isLive ? window.isFullScreen() : false,
@@ -316,7 +327,14 @@ export const createWindowPlacement = ({
       zoom: isLive ? window.webContents.getZoomFactor() : 1,
       contentSize:
         contentWidth !== undefined && contentHeight !== undefined
-          ? { width: contentWidth, height: contentHeight }
+          ? {
+              width: transition
+                ? Math.max(transition.width, minimum[0] ?? 0)
+                : contentWidth,
+              height: transition
+                ? Math.max(transition.height, minimum[1] ?? 0)
+                : contentHeight,
+            }
           : undefined,
     };
   };

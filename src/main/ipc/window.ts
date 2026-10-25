@@ -40,6 +40,7 @@ import { setTrayLocale } from '../tray';
 import { setWindowFloor } from '../windowBackdrop';
 import { setWindowCloaked } from '../windowDwm';
 import type { TWindowModes } from '../windowMode';
+import { releaseLinuxWindowSize } from '../linux/linuxWindowSize';
 import onWindowMessage from './windowMessages';
 
 export interface IWindowIpcDeps {
@@ -375,6 +376,9 @@ export const registerWindowIpc = ({
     const mainWindow = getMainWindow();
     if (!mainWindow || event.sender !== mainWindow.webContents) {
       return;
+    }
+    if (process.platform === 'linux') {
+      releaseLinuxWindowSize(mainWindow);
     }
     reveal();
   });

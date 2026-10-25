@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { app } from 'electron';
+import linuxWindowArgs from './linux/linuxWindowBackend';
 
 /** The development build, or the one production build with source maps. */
 export const isDebug =
@@ -87,6 +88,23 @@ export const applyLaunchSwitches = () => {
       app.commandLine.hasSwitch('remote-debugging-pipe'))
   ) {
     app.exit(1);
+  }
+
+  if (app.isPackaged) {
+    const original = process.argv.slice(1);
+    const args = linuxWindowArgs(original);
+    if (args !== original) {
+      // Electron chooses its display backend before main runs. Restart once
+      // with the actual startup switch; the next process preserves that
+      // explicit choice. AppImages must reenter their launcher, since the
+      // original process's temporary mount disappears on exit.
+      app.relaunch({
+        args,
+        execPath: process.env.APPIMAGE || process.execPath,
+      });
+      app.exit(0);
+      return;
+    }
   }
 
   /*

@@ -19,6 +19,13 @@ import type { IRect, TPlayerAmp, TWindowMode } from '../common/windowMode';
 import { createFullScreenOwner } from './fullScreenOwner';
 import { setWindowTransitions } from './windowDwm';
 import unmaximizeLinuxWindow from './linux/linuxWindowRestore';
+import keepLinuxWindowTopVisible from './linux/linuxWindowTop';
+import linuxPlayerBounds from './linux/linuxPlayerBounds';
+import {
+  holdLinuxWindowSize,
+  linuxWindowSizeOf,
+  releaseLinuxWindowSize,
+} from './linux/linuxWindowSize';
 
 /** Where the full app was, as the window-state file keeps it. */
 export interface IAppPlacement extends Partial<IRect> {
@@ -83,8 +90,10 @@ export const createWindowModes = (
   };
   /** Where the amp on screen was left. */
   const ownPlayer = () => memory.players[memory.amp];
+  const boundsToKeep = (rect: IRect) =>
+    platform === 'linux' ? linuxPlayerBounds(rect, ownPlayer()) : rect;
   const keepPlayer = (rect: IRect) => {
-    memory.players = { ...memory.players, [memory.amp]: rect };
+    memory.players = { ...memory.players, [memory.amp]: boundsToKeep(rect) };
   };
   const fullScreen = createFullScreenOwner();
   // Set once by main, beside the function that tells the page (`listen`).
@@ -140,6 +149,7 @@ export const createWindowModes = (
     !win.isDestroyed() &&
     memory.mode === 'player' &&
     !isSwitching &&
+    !linuxWindowSizeOf(win) &&
     !win.isFullScreen() &&
     !win.isMaximized();
 
@@ -231,11 +241,16 @@ export const createWindowModes = (
       return;
     }
     const held = heldHeight(win);
-    win.setMinimumSize(
-      floorWidth(win, floor.width),
-      held ?? floorHeight(win, floor.height),
+    const minWidth = floorWidth(win, floor.width);
+    const minHeight = held ?? floorHeight(win, floor.height);
+    const transition = linuxWindowSizeOf(win);
+    win.setMinimumSize(minWidth, minHeight);
+    win.setMaximumSize(
+      transition ? Math.max(minWidth, transition.width) : NO_CEILING,
+      transition
+        ? Math.max(minHeight, transition.height)
+        : (held ?? NO_CEILING),
     );
-    win.setMaximumSize(NO_CEILING, held ?? NO_CEILING);
     win.setMaximizable(!isPlayer);
   };
 
@@ -327,6 +342,12 @@ export const createWindowModes = (
       }
       // The floor comes down first, or the app's own holds the window at the
       // width it is leaving.
+      if (platform === 'linux') {
+        holdLinuxWindowSize(win, target, () => {
+          applyLimits(win);
+          onChange();
+        });
+      }
       applyLimits(win);
       win.setBounds(target);
       applyPin(win);
@@ -359,6 +380,7 @@ export const createWindowModes = (
 
   /** Resolves once the window stands as the full app again. */
   const leavePlayer = (win: BrowserWindow): Promise<void> => {
+    releaseLinuxWindowSize(win);
     const onScreen = win.getBounds();
     // The size the listener left the player at, to open it at next time —
     // unless the window is not the player's yet: pressed back while the
@@ -448,7 +470,7 @@ export const createWindowModes = (
       amp: TPlayerAmp,
     ): Partial<IRect> | undefined =>
       amp === memory.amp && isPlayersOwn(win)
-        ? win.getBounds()
+        ? boundsToKeep(win.getBounds())
         : memory.players[amp],
 
     /**
@@ -663,12 +685,14 @@ export const createWindowModes = (
      * Follow the window for as long as it lives: the listener dragging its
      * edge, and where the player is left standing.
      *
-     * NOTHING HERE MOVES THE WINDOW. Where it goes is Windows' and the
-     * pointer's business, exactly as for any other window — an edge stop
+     * Windows/macOS leave movement to the system and the pointer, exactly as
+     * for any other window — an edge stop
      * and a guard against Windows' own snap were both tried on 2026-09-22
      * and both fought the drag in ways nobody could live with, and Ivan
      * took them out by name ("remove all logic, leave electron behaves
-     * naturally"). Do not put either back.
+     * naturally"). Do not put either back on those platforms. Linux alone
+     * keeps the top below the desktop panel: its frameless caption could
+     * otherwise be dragged out of reach (Ivan, 2026-10-23).
      *
      * What is done: the height the player is held to is put right after a
      * drag of its edge rather than in the middle of one (`fitPlayerBounds`),
@@ -677,6 +701,19 @@ export const createWindowModes = (
      * player opens again where it was.
      */
     followWindow: (win: BrowserWindow) => {
+      if (platform === 'linux') {
+        const keepTop = () => {
+          if (!isSwitching) {
+            keepLinuxWindowTopVisible(win);
+          }
+        };
+        win.on('move', keepTop);
+        win.on('resize', keepTop);
+        screen.on('display-metrics-changed', keepTop);
+        win.once('closed', () =>
+          screen.off('display-metrics-changed', keepTop),
+        );
+      }
       const remember = () => {
         // NOT WHILE THE WINDOW IS FULL SCREEN, MAXIMISED OR SWITCHING. The
         // visualizer takes the whole screen without leaving player mode, so
