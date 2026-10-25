@@ -23,7 +23,11 @@ import {
 } from '../plus/profileStore';
 import type { TAccountPanelPage } from './accountPanel';
 import { useAccount } from './accountStore';
-import SceneBand from '../plus/SceneBand';
+import { loadMyScenes, type TMine } from '../plus/myScenes';
+import AccountCover from './AccountCover';
+import AccountPublished from './AccountPublished';
+import AccountScenes from './AccountScenes';
+import AccountStats from './AccountStats';
 import CreditsCard from './CreditsCard';
 import ProfileNameForm from './ProfileNameForm';
 import PlusTermsDocument from './PlusTermsDocument';
@@ -47,6 +51,7 @@ interface IAccountFramePage {
   title: string;
   badge?: ReactNode;
   description?: ReactNode;
+  cover?: ReactNode;
   rail?: ReactNode;
   footer?: ReactNode;
 }
@@ -92,7 +97,8 @@ const ERROR_KEYS: Record<TAuthFailure, TranslationKey> = {
  * On the dialog frame (`DialogFrame`), every page of it. Signed in, the rail
  * is the person: their initials in their own colour in the tile, what they
  * are here over their name, the two things they can do to the account under
- * it, and — for somebody with scenes — a scene of theirs, playing. Signed out, the
+ * it and what it has, over the scene on the graph; the page is its credits,
+ * its scenes and what it published (Ivan, 2026-10-24: "go with A"). Signed out, the
  * pitch is the rail and the form is the page, so the reason to sign in and
  * the way to do it are on screen together. The sentence that says signing in
  * is optional is on both: this app has promised since its first release that
@@ -161,6 +167,28 @@ export default function AccountDialog({
       forgetProfile();
       forgetCreator();
     }
+  }, [accountId]);
+
+  // What the account published and sent for review: the rail counts it, the
+  // page lists it. Read once per account the panel opens on.
+  const [mine, setMine] = useState<TMine>({ state: 'loading' });
+  useEffect(() => {
+    setMine({ state: 'loading' });
+    if (!accountId) {
+      return undefined;
+    }
+    let cancelled = false;
+    loadMyScenes()
+      .then((next) => {
+        if (!cancelled) {
+          setMine(next);
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
   }, [accountId]);
 
   // Taking the question back returns the caret to the link that asked it,
@@ -322,15 +350,16 @@ export default function AccountDialog({
                 </button>
               </p>
             )}
-            {/* The picture of somebody with scenes is the scene, playing
-                (Ivan, 2026-09-15). Without one there is nothing to show, and
-                a band drawing on the graphics card would be a cost for
-                decoration. */}
-            {ownsScenes && (
-              <SceneBand playsScene className="dialog-frame__scene" />
+            {store && (
+              <AccountStats
+                owned={store.owned.length}
+                publishedFromStore={store.published?.length ?? 0}
+                mine={mine}
+              />
             )}
           </>
         ),
+        cover: <AccountCover ownsScenes={ownsScenes} />,
       };
     }
     return {
@@ -367,6 +396,7 @@ export default function AccountDialog({
         titleId="account-title"
         badge={frame.badge}
         description={frame.description}
+        cover={frame.cover}
         rail={frame.rail}
         footer={frame.footer}
         closeLabel={t('account.close')}
@@ -426,6 +456,14 @@ export default function AccountDialog({
               {/* What gets scenes: credits. Plus is not sold any more, and
                   nothing about a subscription is shown (Ivan, 2026-10-21). */}
               <CreditsCard />
+              {store && <AccountScenes owned={store.owned} onLeave={onClose} />}
+              {accountId && (
+                <AccountPublished
+                  me={accountId}
+                  mine={mine}
+                  onLeave={onClose}
+                />
+              )}
               {/* Getting paid for the scenes members keep, once FluidEQ
                   can pay creators; never asked for until then. */}
               {CREATOR_PAYOUTS_OPEN && accountId && (

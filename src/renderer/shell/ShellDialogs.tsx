@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { PRODUCT_VERSION } from 'common/branding';
+import { CREATOR_PAYOUTS_OPEN } from 'common/creatorPayouts';
 import { errorText } from 'common/errors';
 import { isFluidEngineBuiltIn } from 'common/platformCapabilities';
 import { featureTourDismissal } from 'common/featureTour';
@@ -268,8 +269,9 @@ const ShellDialogs = ({
       {/* The admin's alone: the server nearing a limit of its plan, which
           has to be paid for before it fills, on whichever tab is open. */}
       <ServerLimitNotice />
-      {/* The admin's too: creators owed their payout, every 15 days. */}
-      <PayoutDueNotice />
+      {/* The admin's too: creators owed their payout, every 15 days — only
+          while creators can be paid at all (premium 0070). */}
+      {CREATOR_PAYOUTS_OPEN && <PayoutDueNotice />}
       {/* A scene reported from the looks: the menu it was asked from
           closes under the dialog, so the dialog lives here. */}
       <SceneReportHost />

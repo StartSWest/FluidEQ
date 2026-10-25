@@ -16,7 +16,7 @@ import AdminServer from './AdminServer';
 import { useGalleryNotice, type IGalleryNotice } from './galleryActions';
 import { useModeration } from './moderationStore';
 import {
-  ADMIN_SECTIONS,
+  ADMIN_SECTIONS_SHOWN,
   openAdminSection,
   usePlusNavigation,
   type TAdminSection,
@@ -56,7 +56,11 @@ const SECTIONS: Record<
  */
 export default function AdminView() {
   const { t, locale } = useTranslation();
-  const { admin: section } = usePlusNavigation();
+  const { admin: asked } = usePlusNavigation();
+  // A section remembered from before it was hidden opens the first one.
+  const section = ADMIN_SECTIONS_SHOWN.includes(asked)
+    ? asked
+    : ADMIN_SECTIONS_SHOWN[0];
   const account = useAccount();
   const moderation = useModeration();
   const notice = useGalleryNotice();
@@ -86,7 +90,7 @@ export default function AdminView() {
         />
       </header>
       <nav className="admin-sections" aria-label={t('plus.admin.title')}>
-        {ADMIN_SECTIONS.map((entry) => {
+        {ADMIN_SECTIONS_SHOWN.map((entry) => {
           const active = entry === section;
           return (
             <button

@@ -656,6 +656,24 @@ export const getOpraLabel = (
 };
 
 /**
+ * Every curve of one OPRA product as the text My curves keeps, by curve id,
+ * without applying any.
+ * @param {string} productId - OPRA product id, `vendor::slug`
+ * @returns { Promise<Record<string, string>> } a curve with no playable band
+ * is left out
+ */
+export const getOpraCurves = (
+  productId: string,
+): Promise<Record<string, string>> => {
+  const channel = ChannelEnum.GET_OPRA_CURVES;
+  return sendRequest(
+    channel,
+    [productId],
+    simpleResponseHandler<Record<string, string>>(),
+  );
+};
+
+/**
  * Load one OPRA curve into the backend state as the headphone layer.
  * @param {string} productId - OPRA product id, `vendor::slug`
  * @param {string} curveId - which of that product's curves to apply

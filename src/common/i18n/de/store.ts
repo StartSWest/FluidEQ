@@ -19,7 +19,6 @@ const store: Partial<Dictionary> = {
   'store.credits.buyTitle': 'Credits holen',
   'store.credits.lead':
     'Ein Credit behält eine Szene für immer. Sie zahlen einmal, nichts verlängert sich.',
-  'store.credits.owned': 'Ihre Szenen: {count}',
   'store.credits.what':
     'Jeder Credit behält eine Szene aus der Galerie für immer: im Diagramm, auf Ihrem Desktop und an Ihren Lichtern.',
   'store.credits.half':

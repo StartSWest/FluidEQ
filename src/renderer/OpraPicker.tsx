@@ -12,7 +12,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IOpraCurve, IOpraProduct, OPRA_SOURCE_ID } from 'common/constants';
 import { headphonePageUrl } from 'common/headphonePage';
-import { curveTextOf } from 'common/curveText';
 import { useFluidEqLayers } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import {
@@ -28,7 +27,13 @@ import Dropdown from './widgets/Dropdown';
 import { IOptionEntry } from './widgets/List';
 import opraLogo from '../../assets/opra-logo.png';
 import './styles/AutoEQ.scss';
-import { loadOpraPreset, clearHeadset } from './utils/equalizerApi';
+import {
+  clearHeadset,
+  getOpraCurves,
+  loadOpraPreset,
+} from './utils/equalizerApi';
+import { isCurveApplied } from './eq/appliedCurve';
+import MyCurveSpark from './eq/MyCurveSpark';
 import {
   appliedOpraName,
   knownOpraProducts,
@@ -167,6 +172,38 @@ const OpraPicker = () => {
     [products, currentProduct],
   );
 
+  // Every curve of the headphone picked, as the text My curves keeps
+  // (`GET_OPRA_CURVES`): drawn beside each measurement so the curves can be
+  // told apart by eye, kept by Save without applying first, and compared
+  // with what plays (Ivan, 2026-10-25). Read again when the library is
+  // replaced. Without it the list still lists and applies, undrawn.
+  const [curveTexts, setCurveTexts] = useState<{
+    product: string;
+    texts: Record<string, string>;
+  }>();
+  useEffect(() => {
+    if (!currentProduct) {
+      return undefined;
+    }
+    let cancelled = false;
+    getOpraCurves(currentProduct)
+      .then((texts) => {
+        if (!cancelled) {
+          setCurveTexts({ product: currentProduct, texts });
+        }
+        return undefined;
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [currentProduct, products]);
+  const textOf = (curveId: string) =>
+    curveTexts?.product === currentProduct
+      ? curveTexts.texts[curveId]
+      : undefined;
+  const selectedText = textOf(currentCurve);
+
   const handleProductChange = (newValue: string) => {
     const selected = products.find((product) => product.id === newValue);
     if (!selected) {
@@ -177,12 +214,14 @@ const OpraPicker = () => {
     setCurrentCurve(selected.curves[0]?.id ?? '');
   };
 
+  // This pick, applied from here, or the same curve applied from My curves.
   const isApplied =
-    !!headset &&
-    !!selectedProduct &&
-    selectedProduct.id === headset &&
-    headsetSource === OPRA_SOURCE_ID &&
-    currentCurve === headsetTarget;
+    (!!headset &&
+      !!selectedProduct &&
+      selectedProduct.id === headset &&
+      headsetSource === OPRA_SOURCE_ID &&
+      currentCurve === headsetTarget) ||
+    isCurveApplied(selectedText, headphone);
 
   const selectedCurve: IOpraCurve | undefined = selectedProduct?.curves.find(
     (curve) => curve.id === currentCurve,
@@ -218,12 +257,18 @@ const OpraPicker = () => {
         label: `${curve.details} · ${curve.author}`,
         display: (
           <div className="autoeq-response-option">
-            <strong>{curve.details}</strong>
-            <small>{t('opra.createdBy', { author: curve.author })}</small>
+            <span className="autoeq-response-option__text">
+              <strong>{curve.details}</strong>
+              <small>{t('opra.createdBy', { author: curve.author })}</small>
+            </span>
+            {curveTexts?.product === selectedProduct?.id &&
+              curveTexts?.texts[curve.id] && (
+                <MyCurveSpark text={curveTexts.texts[curve.id]} />
+              )}
           </div>
         ),
       })),
-    [selectedProduct, t],
+    [curveTexts, selectedProduct, t],
   );
 
   const productOptions: IOptionEntry[] = useMemo(
@@ -321,32 +366,39 @@ const OpraPicker = () => {
               />
               <p className="autoeq-field__hint">{t('autoeq.target.hint')}</p>
             </div>
-            <Button
-              className={isApplied ? 'small subtle is-applied' : 'small'}
-              ariaLabel={t('autoeq.applyAria')}
-              isDisabled={
-                isBlockingError || currentProduct === '' || currentCurve === ''
-              }
-              handleChange={applyOpra}
-            >
-              {applyLabel}
-            </Button>
-            {isApplied && headphone && !headphone.eqImport && appliedLabel && (
-              // A copy of the pick playing, at full strength, under the
-              // library's name: the library itself is never changed.
-              <SaveToMyCurves
-                curve={{
-                  text: curveTextOf({
-                    preAmp: 0,
-                    filters: headphone.filters,
-                    graphicEq: headphone.graphicEq,
-                  }),
-                  name: appliedLabel,
-                  source: 'opra',
-                  ears: 'both',
-                }}
-              />
-            )}
+            {/* Apply and keep side by side, on one line while it fits. Save
+                is there as soon as a curve is picked, applied or not
+                (Ivan, 2026-10-25): a copy of the curve at full strength,
+                under the library's name; the library is never changed. */}
+            <div className="autoeq-actions">
+              <Button
+                className={isApplied ? 'small subtle is-applied' : 'small'}
+                ariaLabel={t('autoeq.applyAria')}
+                isDisabled={
+                  isBlockingError ||
+                  currentProduct === '' ||
+                  currentCurve === ''
+                }
+                handleChange={applyOpra}
+              >
+                {applyLabel}
+              </Button>
+              {selectedProduct && selectedCurve && (
+                <SaveToMyCurves
+                  isDisabled={isBlockingError}
+                  curve={
+                    selectedText
+                      ? {
+                          text: selectedText,
+                          name: `${productLabel(selectedProduct)} · ${selectedCurve.details}`,
+                          source: 'opra',
+                          ears: 'both',
+                        }
+                      : undefined
+                  }
+                />
+              )}
+            </div>
           </div>
           {selectedCurve && (
             <p className="opra-curve-credit">

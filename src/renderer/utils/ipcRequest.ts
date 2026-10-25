@@ -243,7 +243,8 @@ export const buildResponseHandler = <
     | IBandDesign[]
     | IAudioRestartOutcome
     | IEngineSetupResult
-    | IMyCurve[],
+    | IMyCurve[]
+    | Record<string, string>,
 >(
   resultEvaluator: (
     result: Type,
@@ -305,7 +306,8 @@ export const simpleResponseHandler = <
     | ICurveComparisonStatus
     | IAudioRestartOutcome
     | IEngineSetupResult
-    | IMyCurve[],
+    | IMyCurve[]
+    | Record<string, string>,
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);

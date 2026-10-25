@@ -219,11 +219,13 @@ const splitProductId = (productId: string) => {
   return { vendorId: match[1], slug: match[2] };
 };
 
-export const getOpraPreset = (
+type TStoredCurve = TVendorCurves[string][string];
+
+/** One listed product's curves as stored, read from its vendor's file. */
+const productCurves = (
   productId: string,
-  curveId: string,
-  opraDir: string = getOpraDir(),
-): IPresetV2 => {
+  opraDir: string,
+): Record<string, TStoredCurve> => {
   if (EXCLUDED_OPRA_PRODUCTS.has(productId)) {
     throw new Error(`OPRA product is not offered: ${productId}`);
   }
@@ -237,12 +239,11 @@ export const getOpraPreset = (
   const { vendorId, slug } = splitProductId(productId);
   const shardPath = path.join(opraDir, 'curves', `${vendorId}.json`);
   const shard = JSON.parse(fs.readFileSync(shardPath, 'utf8')) as TVendorCurves;
-  const curve = shard[slug]?.[curveId];
-  if (!curve) {
-    throw new Error(`Unknown OPRA curve: ${curveId}`);
-  }
+  return shard[slug] ?? {};
+};
 
-  const filters: IFiltersMap = {};
+/** The stored bands this app can play, in their published order. */
+const presetFilters = (curve: TStoredCurve) =>
   curve.bands
     // The importer rejects unknown types at build time, so a band that lands
     // here means the database on disk was not built by it. Losing the band
@@ -250,22 +251,25 @@ export const getOpraPreset = (
     .filter((band) => BAND_TYPES[band.type])
     // Nothing in the published data comes close — the widest curve is twenty
     // bands — but the editor's ceiling is the editor's ceiling.
-    .slice(0, MAX_NUM_FILTERS)
-    .forEach((band) => {
-      const filter: IFilter = getDefaultFilterWithId();
-      filter.type = BAND_TYPES[band.type];
-      // Rounded rather than truncated: forty-nine bands sit on fractional
-      // centres, the lowest at 8.5 Hz, and parseInt would have moved every one
-      // of them down a hair for no reason.
-      filter.frequency = clampFrequency(band.frequency);
-      // As published, to a correction's range (`correctionRange.ts`): this
-      // used to stop at 12 dB, 8 below 25 Hz and above 14 kHz, which changed
-      // 822 of the library's curves. A pass filter has no gain at all, and the
-      // clamp reads its absence as zero.
-      filter.gain = clampCorrectionGain(band.gain_db as number);
-      filter.quality = qualityFor(band);
-      filters[filter.id] = filter;
-    });
+    .slice(0, MAX_NUM_FILTERS);
+
+const presetOfCurve = (curve: TStoredCurve, curveId: string): IPresetV2 => {
+  const filters: IFiltersMap = {};
+  presetFilters(curve).forEach((band) => {
+    const filter: IFilter = getDefaultFilterWithId();
+    filter.type = BAND_TYPES[band.type];
+    // Rounded rather than truncated: forty-nine bands sit on fractional
+    // centres, the lowest at 8.5 Hz, and parseInt would have moved every one
+    // of them down a hair for no reason.
+    filter.frequency = clampFrequency(band.frequency);
+    // As published, to a correction's range (`correctionRange.ts`): this
+    // used to stop at 12 dB, 8 below 25 Hz and above 14 kHz, which changed
+    // 822 of the library's curves. A pass filter has no gain at all, and the
+    // clamp reads its absence as zero.
+    filter.gain = clampCorrectionGain(band.gain_db as number);
+    filter.quality = qualityFor(band);
+    filters[filter.id] = filter;
+  });
 
   if (Object.keys(filters).length === 0) {
     throw new Error(`OPRA curve has no usable bands: ${curveId}`);
@@ -276,3 +280,42 @@ export const getOpraPreset = (
     filters,
   };
 };
+
+const presetOrNothing = (
+  curve: TStoredCurve,
+  curveId: string,
+): IPresetV2 | undefined =>
+  presetFilters(curve).length > 0 ? presetOfCurve(curve, curveId) : undefined;
+
+export const getOpraPreset = (
+  productId: string,
+  curveId: string,
+  opraDir: string = getOpraDir(),
+): IPresetV2 => {
+  const curve = productCurves(productId, opraDir)[curveId];
+  if (!curve) {
+    throw new Error(`Unknown OPRA curve: ${curveId}`);
+  }
+  return presetOfCurve(curve, curveId);
+};
+
+/**
+ * Every curve of one product, by curve id, each exactly as `getOpraPreset`
+ * builds it: what the picker draws beside each measurement, so the curves
+ * can be told apart before one is applied, and what it keeps in My curves
+ * without applying it first (Ivan, 2026-10-25). The vendor's file is read
+ * once for all of them. A curve with no band this app can play is left out,
+ * as applying it would refuse it.
+ */
+export const getOpraPresets = (
+  productId: string,
+  opraDir: string = getOpraDir(),
+): Record<string, IPresetV2> =>
+  Object.fromEntries(
+    Object.entries(productCurves(productId, opraDir)).flatMap(
+      ([curveId, curve]): [string, IPresetV2][] => {
+        const preset = presetOrNothing(curve, curveId);
+        return preset ? [[curveId, preset]] : [];
+      },
+    ),
+  );

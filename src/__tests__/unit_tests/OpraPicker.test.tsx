@@ -30,6 +30,14 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   checkOpraUpdate: jest.fn(),
   clearHeadset: jest.fn(),
   updateOpraDatabase: jest.fn(),
+  // The curves drawn beside each measurement: never answered here, as none
+  // of these cases is about the drawings (`OpraPickerCurves.test.tsx` is).
+  getOpraCurves: jest.fn(
+    () =>
+      new Promise(() => {
+        // Never answered.
+      }),
+  ),
 }));
 
 const mockProducts = getOpraProductList as jest.Mock;

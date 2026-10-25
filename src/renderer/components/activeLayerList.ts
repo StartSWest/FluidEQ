@@ -129,6 +129,8 @@ export type TLayerListInputs = Pick<
   driverProfile: IDriverProfile | undefined;
   setDriverStrength: (intensity: number) => void;
   headsetName: string | undefined;
+  /** The My curves name of the correction playing, when it is kept there. */
+  keptCorrectionName: string | undefined;
   setHeadphoneStrength: (intensity: number) => void;
   hasShapedBands: boolean;
   bandCount: number;
@@ -188,6 +190,7 @@ export const collectLayers = ({
   headphone,
   headset,
   headsetName,
+  keptCorrectionName,
   setHeadphone,
   setHeadphoneStrength,
   hasShapedBands,
@@ -281,8 +284,11 @@ export const collectLayers = ({
       key: 'headphone',
       icon: 'waveform',
       label: t('eq.layers.headphone'),
+      // Named by what it is: a curve from My curves by its name there, an
+      // OPRA pick by the headphone, and an import nobody named (a Squiglink
+      // paste) "Custom" (Ivan, 2026-10-25).
       name: headphone?.eqImport
-        ? t('eq.layers.customHeadphone')
+        ? (keptCorrectionName ?? t('eq.layers.customHeadphone'))
         : (headsetName ?? headset ?? t('eq.layers.headphone')),
       percent: Math.round((headphone?.intensity ?? 0) * 100),
       strength: headphone?.intensity ?? 0,

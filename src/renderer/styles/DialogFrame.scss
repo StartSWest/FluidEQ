@@ -347,6 +347,33 @@ $rail-width: 16.5rem;
   inset: 0;
 }
 
+// A picture across the rail's top, edge to edge (`cover`): the Account
+// panel's scene (Ivan, 2026-10-24, "go with A"). It fades out by a mask, not
+// a gradient of the rail's colour laid over it: the rail is translucent, and
+// a colour fade drew a seam where its own ground showed through. The tile
+// rises into the picture's lower edge.
+.dialog-frame__rail--covered {
+  padding-top: 0;
+}
+
+.dialog-frame__cover {
+  position: relative;
+  height: 9.5rem;
+  flex: 0 0 auto;
+  margin: 0 -22px -3.4rem -24px;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, $black 45%, transparent 100%);
+
+  > * {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.dialog-frame__rail--covered > .dialog-frame__identity {
+  position: relative;
+}
+
 // Rainbow mode marks the kicker, as it did on the old header, and nothing
 // else: no edge round the dialog ("quítale el rainbow border a todos").
 .is-euphoric .dialog-frame__eyebrow {
@@ -389,8 +416,13 @@ $rail-width: 16.5rem;
   // The rail is the head here: a scene behind it would put a picture under a
   // title and push what the dialog holds off the first screen.
   .dialog-frame__scene,
-  .dialog-frame__rail:has(> .dialog-frame__scene)::after {
+  .dialog-frame__rail:has(> .dialog-frame__scene)::after,
+  .dialog-frame__cover {
     display: none;
+  }
+
+  .dialog-frame__rail--covered {
+    padding-top: 16px;
   }
 
   .dialog-frame__title {
