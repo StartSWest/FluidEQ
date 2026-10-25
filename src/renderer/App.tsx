@@ -596,10 +596,8 @@ const AppContent = () => {
         }${isMediaSurfaceFullScreen ? ' is-media-full' : ''}${
           isKaraokeSurfaceFullScreen ? ' is-karaoke-full' : ''
         }${isKaraokeGraphFullScreen ? ' has-karaoke-graph' : ''}${
-          isSoundDrawerOpen ? ' is-sound-drawer-open' : ''
-        }${isSoundPaneFolded ? ' is-sound-pane-folded' : ''}${
-          isSoundColumnNarrow ? ' is-sound-pane-narrow' : ''
-        }`}
+          isSoundPaneFolded ? ' is-sound-pane-folded' : ''
+        }${isSoundColumnNarrow ? ' is-sound-pane-narrow' : ''}`}
       >
         {engine.showAudioRestartRecommendation &&
           !engine.suppressAudioNotices && (

@@ -187,12 +187,55 @@
   }
 }
 
+// One line, at three steps the row measures for itself (`useRowFit`,
+// `data-fit`): 0 every word, 1 the buttons down to their icons with the words
+// in their tooltips, 2 wrapping. It used to wrap from the start, and Save to My
+// curves stood alone on a second line under four buttons (Ivan, 2026-10-25:
+// "this sucks, we need to make icons when no room"). Pushed to the right by
+// the first button's margin, not by `justify-content: flex-end`: content
+// that overflows towards the start is not counted in `scrollWidth`, so a row
+// packed to its end never reads as overflowing and never steps down.
 .squig-import__actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: flex-end;
   gap: 8px;
+
+  > .squig-import__file-button {
+    margin-left: auto;
+  }
+
+  // Never squeezed and never wrapped inside: a button that wrapped its own
+  // words would make the row fit by growing taller, and it would never step.
+  > .button,
+  > .import-ears,
+  > .my-curve-kept {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  &[data-fit='1'],
+  &[data-fit='2'] {
+    .squig-import__label,
+    .my-curve-save__label {
+      display: none;
+    }
+
+    .button {
+      padding-inline: 9px;
+    }
+  }
+
+  // Wrapping is the last step and nothing is measured past it, so every line
+  // can stand at the right edge as the single line does.
+  &[data-fit='2'] {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+
+    > .squig-import__file-button {
+      margin-left: 0;
+    }
+  }
 
   .button {
     display: inline-flex;
@@ -452,15 +495,6 @@
 @container autoeq-workspace (max-width: 520px) {
   .squig-import {
     padding: 14px;
-  }
-
-  .squig-import__actions {
-    align-items: stretch;
-    flex-wrap: wrap;
-
-    .button {
-      flex: 1 1 auto;
-    }
   }
 }
 
