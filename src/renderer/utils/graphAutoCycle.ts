@@ -6,7 +6,8 @@ const STORAGE_KEY = 'fluideq-graph-auto-cycle-seconds';
 /**
  * A fresh install cycles every two minutes until told otherwise: the forms
  * are the product's showpiece, and a new user who never opens the picker
- * should still see more than one of them. Off stays one click away.
+ * should still see more than one of them. Off stays one click away, and
+ * Reset settings leaves it off (`settingsReset.ts`).
  */
 export const DEFAULT_GRAPH_AUTO_CYCLE = 120;
 

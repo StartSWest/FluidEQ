@@ -9,7 +9,7 @@ import { createPortal } from 'react-dom';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
 import { reportError } from '../utils/logger';
-import { forgetSettings } from '../utils/settingsReset';
+import { resetSettings } from '../utils/settingsReset';
 import useModalKeys from '../utils/useModalKeys';
 import CompactFrame from './CompactFrame';
 import '../styles/Button.scss';
@@ -47,7 +47,7 @@ const ResetSettingsDialog = ({ onClose }: { onClose: () => void }) => {
       setBusy(false);
       return;
     }
-    forgetSettings(window.localStorage);
+    resetSettings(window.localStorage);
     window.location.reload();
   };
 

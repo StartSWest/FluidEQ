@@ -51,8 +51,16 @@ const STATUS_KEYS: Record<TEngineState, TranslationKey> = {
   failing: 'app.status.error',
 };
 
-/** The trigger's own drawing, repeated on the engine card it opens onto. */
+/** The engine card's drawing: the engine at work. */
 const PULSE = 'M4 12h3l2-6 4 12 2-6h5';
+
+/**
+ * The trigger's: a menu, which is what it opens — fixes, imports, the
+ * window's look, the account and the language. It wore the engine's pulse,
+ * which read as a meter rather than a way in (Ivan, 2026-10-25: "perhaps the
+ * icon needs to be menu icon or settings"). The engine's lamp stays beside it.
+ */
+const MENU_LINES = 'M4 7h16M4 12h16M4 17h16';
 
 /** Everything the arrow keys walk through, in the order it is drawn. */
 const FOCUSABLE =
@@ -295,7 +303,7 @@ const ActionsMenu = ({
         }}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d={PULSE} />
+          <path d={MENU_LINES} />
         </svg>
         <span
           className={`status-dot${engineState === 'failing' ? ' error' : ''}`}
