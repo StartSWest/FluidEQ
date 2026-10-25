@@ -229,17 +229,19 @@ export const createDesktopSurface = (
       phase = frameReady ? 'running' : 'starting';
     }
     pauseReason = reason;
-    // A pause stops the drawing and leaves the picture where it is, with one
-    // exception: saving power on battery is a choice made with the desktop in
-    // front of the listener, and their own wallpaper coming back is how they
-    // see it took. Every other pause keeps the picture. Hiding on a covered
+    // A pause stops drawing and keeps the picture. Mac laptops often start
+    // unplugged: hiding on the default battery policy made a successfully
+    // rendered visualizer disappear immediately, looking like a failed start.
+    // Windows retains its existing battery policy of revealing the wallpaper.
+    // Hiding on a covered
     // monitor was the only part of a pause anybody could see, and it came
     // early: Windows gives a window being maximized its final rectangle before
     // DWM has finished moving it there, so the background went off a strip of
     // desktop still on screen and the wallpaper flashed through it. A locked
     // or sleeping PC keeps its picture too, so it is already there when the
     // screen comes back.
-    const visible = reason !== 'battery' && frameReady;
+    const visible =
+      frameReady && (reason !== 'battery' || process.platform === 'darwin');
     host.setVisible(visible);
     if (visible && !shown) {
       shown = true;

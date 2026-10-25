@@ -302,3 +302,24 @@ taps. This page records the current implementation and its remaining limits.
   dragging; it is not a visual or listening check. No Computer Use or app
   launch was performed. Live window/desktop checks and backend-access blockers
   remain open. These changes stay on `macos`; `main` is unchanged.
+
+## Mac wallpaper battery pause — 2026-10-24
+
+- Read-only diagnostics of the running app found the actual remaining reason
+  the background disappeared: this Mac was on battery and its saved
+  `pauseOnBattery` choice was enabled. The scene had rendered, but the shared
+  battery policy hid the whole window immediately.
+- On Mac, battery pause now holds the rendered picture on the desktop and
+  stops its animation/audio reads. Plugging in resumes the same scene;
+  unplugging holds it again. Windows keeps its existing battery visibility
+  behavior. No saved preference, style or default power-saving choice changed.
+- After the existing dev watcher loaded the correction, read-only app
+  diagnostics confirmed a visible 1440 × 900 surface with a 2880 × 1800
+  canvas and nonblank pixels, still paused for battery. Native window metadata
+  confirmed it was onscreen, fully opaque, covered the full display, and used
+  level -2147483622, between the system wallpaper and Finder's icons. No
+  Computer Use, screenshots, clicks or application launch were performed.
+- All 24 desktop/layout suites passed (176 tests), including Mac and Windows
+  battery start, resume and pause regressions. Main production build, app
+  TypeScript and changed-file lint passed. Actual icon interaction, Spaces
+  gestures and physical multi-monitor hotplug remain manual checks.
