@@ -623,7 +623,7 @@ const tour = {
   'tour.chat.point2':
     '{attach} sends a picture of the scene with your message, and you can draw on it to show what you mean. Messages sent while it works wait in a queue and go together.',
   'tour.chat.point3':
-    'It runs on Claude Code installed on this computer, on your own plan, and shows how much of your limits is left. With ChatGPT connected it can paint pictures for the scene, asking you before each one.',
+    'It runs on Claude Code installed on this computer, on your own plan, and shows how much of your limits is left.',
   'tour.chat.how':
     'Open {plus}, choose {studio} in its rail, pick a scene or start one, and type in the box beside the stage.',
   'tour.chat.open': 'Open Visualizers',

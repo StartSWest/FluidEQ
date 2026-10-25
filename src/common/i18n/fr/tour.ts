@@ -655,7 +655,7 @@ const tour: Partial<Dictionary> = {
   'tour.chat.point2':
     '{attach} envoie une image de la scène, sur laquelle vous pouvez dessiner. Ce que vous envoyez pendant qu’elle travaille attend dans une file et part ensemble.',
   'tour.chat.point3':
-    'Elle fonctionne avec Claude Code sur cet ordinateur, avec votre propre abonnement, et montre ce qu’il reste de vos limites. Avec ChatGPT, elle peint des images pour la scène, en demandant avant chacune.',
+    'Elle fonctionne avec Claude Code sur cet ordinateur, avec votre propre abonnement, et montre ce qu’il reste de vos limites.',
   'tour.chat.how':
     'Ouvrez {plus}, choisissez {studio} dans son rail, choisissez une scène ou commencez-en une, et écrivez dans la zone à côté de la scène.',
   'tour.chat.open': 'Ouvrir Visualiseurs',

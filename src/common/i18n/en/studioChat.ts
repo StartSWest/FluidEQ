@@ -2,8 +2,8 @@
 // "Claude", "Claude Code", "Anthropic" and the plan names are names, the
 // same in every language.
 const studioChat = {
-  'studioChat.label': 'Chat with Claude',
-  'studioChat.title': 'Claude',
+  'studioChat.label': 'Make with AI',
+  'studioChat.title': 'Make with AI',
   'studioChat.where': 'Claude Code on this computer',
   'studioChat.wherePlan': 'Claude Code · {plan} plan',
   'studioChat.new': 'New chat',
@@ -11,13 +11,13 @@ const studioChat = {
   'studioChat.menu': 'Chat options',
   'studioChat.backToChat': 'Back to the chat',
   'studioChat.fold': 'Fold the chat away',
-  'studioChat.unfold': 'Chat with Claude',
+  'studioChat.unfold': 'Make with AI',
   'studioChat.inspect':
     "This is one of FluidEQ's scenes, open to look inside. Start a project of your own to make one with Claude.",
   'studioChat.noProject':
     'Start a project, and Claude can make its scene with you here.',
   'studioChat.checking': 'Looking for Claude Code on this computer…',
-  'studioChat.missingTitle': 'Make scenes by chatting with Claude',
+  'studioChat.missingTitle': 'Make scenes by chatting with your AI',
   'studioChat.missingBody':
     "The Studio chats through the Claude Code on this computer, with your own Claude plan. It isn't installed yet.",
   'studioChat.signInTitle': 'Sign in to Claude',
@@ -160,8 +160,7 @@ const studioChat = {
   'studioChat.sketch.text': 'Text',
   'studioChat.sketch.textHint': 'Type, then Enter',
   'studioChat.accounts.title': 'Accounts',
-  'studioChat.accounts.open':
-    'See which Claude and ChatGPT accounts the chat uses',
+  'studioChat.accounts.open': 'See which accounts the chat uses',
   'studioChat.accounts.claude': 'Claude',
   'studioChat.accounts.chatgpt': 'ChatGPT',
   'studioChat.accounts.unknown': 'Signed in',

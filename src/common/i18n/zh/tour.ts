@@ -596,7 +596,7 @@ const tour: Partial<Dictionary> = {
   'tour.chat.point2':
     '“{attach}”会把场景的画面随消息一起发送，你还可以在上面画出你的意思。它工作时发送的消息会排队，之后一起发出。',
   'tour.chat.point3':
-    '它运行在这台电脑上安装的 Claude Code 上，用你自己的方案，并显示你的额度还剩多少。连接 ChatGPT 后，它可以为场景绘制图片，每张之前都会先问你。',
+    '它运行在这台电脑上安装的 Claude Code 上，用你自己的方案，并显示你的额度还剩多少。',
   'tour.chat.how':
     '打开“{plus}”，在侧栏选择“{studio}”，选择一个场景或新建一个，然后在舞台旁的输入框里输入。',
   'tour.chat.open': '打开“可视化”',

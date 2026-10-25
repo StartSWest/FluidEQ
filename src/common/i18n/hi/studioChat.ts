@@ -1,6 +1,6 @@
 const studioChat = {
-  'studioChat.label': 'Claude से चैट करें',
-  'studioChat.title': 'Claude',
+  'studioChat.label': 'AI से बनाइए',
+  'studioChat.title': 'AI से बनाइए',
   'studioChat.where': 'इस कंप्यूटर पर Claude Code',
   'studioChat.wherePlan': 'Claude Code · {plan} प्लान',
   'studioChat.new': 'नई चैट',
@@ -8,13 +8,13 @@ const studioChat = {
   'studioChat.menu': 'चैट विकल्प',
   'studioChat.backToChat': 'चैट पर वापस',
   'studioChat.fold': 'चैट समेटें',
-  'studioChat.unfold': 'Claude से चैट करें',
+  'studioChat.unfold': 'AI से बनाइए',
   'studioChat.inspect':
     'यह FluidEQ का एक सीन है, जिसे अंदर देखने के लिए खोला गया है। Claude के साथ एक बनाने के लिए अपना खुद का प्रोजेक्ट शुरू करें।',
   'studioChat.noProject':
     'एक प्रोजेक्ट शुरू करें, फिर Claude यहीं आपके साथ उसका सीन बनाएगा।',
   'studioChat.checking': 'इस कंप्यूटर पर Claude Code ढूँढा जा रहा है…',
-  'studioChat.missingTitle': 'Claude से चैट करके सीन बनाएँ',
+  'studioChat.missingTitle': 'अपने AI से चैट करके सीन बनाएँ',
   'studioChat.missingBody':
     'Studio इस कंप्यूटर के Claude Code के ज़रिए, आपके अपने Claude प्लान से चैट करता है। यह अभी इंस्टॉल नहीं है।',
   'studioChat.signInTitle': 'Claude में साइन इन करें',
@@ -157,8 +157,7 @@ const studioChat = {
   'studioChat.sketch.text': 'टेक्स्ट',
   'studioChat.sketch.textHint': 'लिखें, फिर Enter दबाएँ',
   'studioChat.accounts.title': 'खाते',
-  'studioChat.accounts.open':
-    'देखें कि चैट कौन-से Claude और ChatGPT खाते इस्तेमाल करती है',
+  'studioChat.accounts.open': 'देखें कि चैट कौन-से खाते इस्तेमाल करती है',
   'studioChat.accounts.claude': 'Claude',
   'studioChat.accounts.chatgpt': 'ChatGPT',
   'studioChat.accounts.unknown': 'साइन इन है',

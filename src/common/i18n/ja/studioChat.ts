@@ -1,6 +1,6 @@
 const studioChat = {
-  'studioChat.label': 'Claude とチャット',
-  'studioChat.title': 'Claude',
+  'studioChat.label': 'AI と作る',
+  'studioChat.title': 'AI と作る',
   'studioChat.where': 'このコンピューターの Claude Code',
   'studioChat.wherePlan': 'Claude Code · {plan} プラン',
   'studioChat.new': '新しいチャット',
@@ -8,13 +8,13 @@ const studioChat = {
   'studioChat.menu': 'チャットのオプション',
   'studioChat.backToChat': 'チャットに戻る',
   'studioChat.fold': 'チャットを折りたたむ',
-  'studioChat.unfold': 'Claude とチャット',
+  'studioChat.unfold': 'AI と作る',
   'studioChat.inspect':
     'これは中を見るために開いた FluidEQ のシーンです。Claude と一緒に作るには、自分のプロジェクトを始めてください。',
   'studioChat.noProject':
     'プロジェクトを始めると、ここで Claude と一緒にシーンを作れます。',
   'studioChat.checking': 'このコンピューターで Claude Code を探しています…',
-  'studioChat.missingTitle': 'Claude とチャットしてシーンを作る',
+  'studioChat.missingTitle': 'AI とチャットしてシーンを作る',
   'studioChat.missingBody':
     'スタジオは、このコンピューターの Claude Code を通して、あなた自身の Claude プランでチャットします。まだインストールされていません。',
   'studioChat.signInTitle': 'Claude にサインイン',
@@ -159,8 +159,7 @@ const studioChat = {
   'studioChat.sketch.text': '文字',
   'studioChat.sketch.textHint': '入力して Enter',
   'studioChat.accounts.title': 'アカウント',
-  'studioChat.accounts.open':
-    'チャットが使う Claude と ChatGPT のアカウントを見る',
+  'studioChat.accounts.open': 'チャットが使うアカウントを見る',
   'studioChat.accounts.claude': 'Claude',
   'studioChat.accounts.chatgpt': 'ChatGPT',
   'studioChat.accounts.unknown': 'サインイン済み',

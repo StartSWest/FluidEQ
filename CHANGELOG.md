@@ -214,8 +214,6 @@ and the De-esser is not heard, and everything else plays as before.
   - Pick the model and how hard it thinks; a ring shows how much of the
     conversation's room is used, **Compact** makes more, and the accounts
     card shows how much of your 5-hour and weekly limits is left.
-  - With ChatGPT connected through Codex, it can paint pictures for the scene,
-    asking you before each one.
 - **The Studio says which versions you have**: the bench's, the copy in your
   looks (and whether it is behind), and the gallery's.
 - **While the Studio is open, the scenes' time of day follows its
