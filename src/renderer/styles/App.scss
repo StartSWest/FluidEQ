@@ -4482,7 +4482,9 @@ button.graph-legend {
   :root[data-platform='darwin'] {
     font-size: 90%;
 
-    .app-workspace.is-sound-drawer-open:not(.is-app-full) {
+    // Main's floating pane no longer publishes a workspace class. Read the
+    // actual pane so this Mac-only density tier still reserves its column.
+    .app-workspace:not(.is-app-full):has(> .right-content.is-open) {
       grid-template-columns:
         $side-bar-width minmax(0, 1fr)
         $sound-panel-width;
