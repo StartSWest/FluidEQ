@@ -184,9 +184,9 @@ const terms = {
   'terms.scenes.p3':
     'Wenn Sie eine Szene exportieren, erlauben Sie FluidEQ, sie zu prüfen — auch im Vergleich mit FluidEQs eigenen Szenen —, die Kommentare aus ihrem Code zu entfernen und sie mit Ihrem Anzeigenamen und Ihrer Konto-ID zu signieren, damit andere Mitglieder, denen sie gehört, sie abspielen und sehen können, dass Sie sie erstellt haben. Das ist die ganze Erlaubnis: Der Macher von FluidEQ verkauft Ihre Szene nicht, nutzt sie nicht für Werbung, macht sie nicht ohne Ihre vorherige Zustimmung zu einer von FluidEQs eigenen Szenen und hindert Sie an nichts anderem, was Sie mit Ihrer eigenen Arbeit tun möchten.',
   'terms.scenes.p4':
-    'Wenn ein Konto eine Ihrer Szenen mit einem Credit aus einem bezahlten Paket holt, verdienen Sie einen Credit — Guthaben zum Holen von Szenen, nie Bargeld. Eine mit einem kostenlosen Credit geholte Szene bringt nichts ein. Und bis FluidEQ seine Mitglieder auf Credits umstellt, bringt Ihnen eine Ihrer Szenen, die der Macher von FluidEQ freigibt, einen Monat Mitgliedschaft ein.',
+    'Wenn ein Konto eine Ihrer Szenen mit einem Credit aus einem bezahlten Paket holt, verdienen Sie einen halben Credit, und je zwei Hälften sind ein Credit — Guthaben zum Holen von Szenen, nie Bargeld. Eine mit einem kostenlosen oder einem mit Szenen verdienten Credit geholte Szene bringt nichts ein. Und bis FluidEQ seine Mitglieder auf Credits umstellt, bringt Ihnen eine Ihrer Szenen, die der Macher von FluidEQ freigibt, einen Monat Mitgliedschaft ein.',
   'terms.scenes.p4Payouts':
-    'Wenn ein Konto eine Ihrer Szenen mit einem Credit aus einem bezahlten Paket holt, verdienen Sie daran: sobald Sie Auszahlungen im Kontobereich eingerichtet haben, Geld, nach den Bedingungen für Ersteller unter „Für Ihre Szenen bezahlt werden“; bis dahin, oder wo Stripe Sie nicht bezahlen kann, einen Credit — Guthaben zum Holen von Szenen, nie Bargeld. Eine mit einem kostenlosen Credit geholte Szene bringt nichts ein. Und bis FluidEQ seine Mitglieder auf Credits umstellt, bringt Ihnen eine Ihrer Szenen, die der Macher von FluidEQ freigibt, einen Monat Mitgliedschaft ein.',
+    'Wenn ein Konto eine Ihrer Szenen mit einem Credit aus einem bezahlten Paket holt, verdienen Sie daran: sobald Sie Auszahlungen im Kontobereich eingerichtet haben, Geld, nach den Bedingungen für Ersteller unter „Für Ihre Szenen bezahlt werden“; bis dahin, oder wo Stripe Sie nicht bezahlen kann, einen halben Credit, und je zwei Hälften sind ein Credit — Guthaben zum Holen von Szenen, nie Bargeld. Eine mit einem kostenlosen oder einem mit Szenen verdienten Credit geholte Szene bringt nichts ein. Und bis FluidEQ seine Mitglieder auf Credits umstellt, bringt Ihnen eine Ihrer Szenen, die der Macher von FluidEQ freigibt, einen Monat Mitgliedschaft ein.',
   'terms.scenes.p6':
     'Teilen Sie nur, was Sie teilen dürfen: Ihre eigenen Fotos, Zeichnungen und 3D-Modelle oder solche, deren Urheber es erlaubt. Die Regeln für das, was Sie veröffentlichen, gelten für jede Szene, die Sie teilen. Der Macher von FluidEQ kann verhindern, dass sich eine Szene öffnet, wenn sie gegen diese Bedingungen oder die Rechte anderer verstößt.',
   'terms.scenes.p7':
@@ -266,9 +266,9 @@ const terms = {
   'terms.sent.sceneGet.when':
     'Wenn Sie bestätigen, eine Szene zu holen, und wenn Sie die Start-Credits nehmen',
   'terms.sent.sceneGet.who':
-    'Mit Ihrem Konto gespeichert, damit die Szene Ihre bleibt. Wurde sie mit einem bezahlten Credit geholt, verdient der Ersteller einer Mitgliederszene daran einen Credit und erfährt nie, wer sie geholt hat.',
+    'Mit Ihrem Konto gespeichert, damit die Szene Ihre bleibt. Wurde sie mit einem bezahlten Credit geholt, verdient der Ersteller einer Mitgliederszene daran einen halben Credit und erfährt nie, wer sie geholt hat.',
   'terms.sent.sceneGet.whoPayouts':
-    'Mit Ihrem Konto gespeichert, damit die Szene Ihre bleibt. Wurde sie mit einem bezahlten Credit geholt, verdient der Ersteller einer Mitgliederszene daran — Geld, sobald Stripe ihn bezahlen kann, bis dahin einen Credit — und erfährt nie, wer sie geholt hat.',
+    'Mit Ihrem Konto gespeichert, damit die Szene Ihre bleibt. Wurde sie mit einem bezahlten Credit geholt, verdient der Ersteller einer Mitgliederszene daran — Geld, sobald Stripe ihn bezahlen kann, bis dahin einen halben Credit — und erfährt nie, wer sie geholt hat.',
   'terms.keep.p7':
     'Credits: Jedes bezahlte Paket, jeder ausgegebene Credit und jede Szene, die Ihnen gehört, wird mit Ihrem Konto gespeichert, damit Ihre Szenen auf jedem Computer Ihre bleiben; die IDs von Stripe zu jeder Zahlung werden gespeichert, um ihre Credits gutzuschreiben und nach einer Erstattung zurückzunehmen. Alles wird mit Ihrem Konto gelöscht.',
   'terms.scenes.p11':
@@ -277,7 +277,7 @@ const terms = {
     'Credits, die Sie nicht ausgegeben haben, werden erstattet, wenn Sie innerhalb von {refundDays} Tagen nach dem Kauf ihres Pakets darum bitten: Schreiben Sie an {contact}. Nur diese Credits werden zurückgenommen; ein bereits ausgegebener Credit wird nicht erstattet, und die geholten Szenen bleiben Ihre.',
   'terms.payouts.title': 'Für Ihre Szenen bezahlt werden',
   'terms.payouts.p1':
-    'Ein Mitglied, das Szenen veröffentlicht, kann über Stripe dafür bezahlt werden, indem es im Kontobereich Auszahlungen einrichtet. Stripe zahlt Ersteller in den USA, im Vereinigten Königreich, in Kanada, der Schweiz und dem Europäischen Wirtschaftsraum aus; überall sonst bringt jeder Verkauf stattdessen einen Credit. Dies sind die Bedingungen für Ersteller, die Sie annehmen, bevor sich die Seite von Stripe öffnet:',
+    'Ein Mitglied, das Szenen veröffentlicht, kann über Stripe dafür bezahlt werden, indem es im Kontobereich Auszahlungen einrichtet. Stripe zahlt Ersteller in den USA, im Vereinigten Königreich, in Kanada, der Schweiz und dem Europäischen Wirtschaftsraum aus; überall sonst bringt jeder Verkauf stattdessen einen halben Credit, und je zwei sind einer. Dies sind die Bedingungen für Ersteller, die Sie annehmen, bevor sich die Seite von Stripe öffnet:',
   'terms.sent.payouts.what':
     'Ihr Anmeldetoken, um zu lesen, wie Ihre Auszahlungen stehen; wenn Sie Auszahlungen einrichten, das Land, in dem Sie leben, und welche Version der Bedingungen für Ersteller Sie angenommen haben; danach, von Stripe, die ID Ihres Stripe-Kontos und ob Stripe Sie bezahlen kann',
   'terms.sent.payouts.when':

@@ -45,6 +45,12 @@ export interface ISceneStore {
   free?: string[];
   /** This account is the admin, who owns every scene there is (0061). */
   everything?: boolean;
+  /**
+   * Half a credit from this account's scenes waits for its pair (premium
+   * 0072: a scene got with a paid credit earns its creator half a credit).
+   * Absent from a server before 0072, and while nothing waits.
+   */
+  halfCredit?: boolean;
 }
 
 /** Every pack id the server sells, as the checkout takes it. */
@@ -171,13 +177,14 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     const pack = readPack(row);
     return pack ? [pack] : [];
   });
-  const { published, free, everything } = value;
+  const { published, free, everything, halfCredit } = value;
   if (
     owned.length !== value.owned.length ||
     packs.length !== value.packs.length ||
     (published !== undefined && !isSceneIdList(published)) ||
     (free !== undefined && !isSceneIdList(free)) ||
-    (everything !== undefined && typeof everything !== 'boolean')
+    (everything !== undefined && typeof everything !== 'boolean') ||
+    (halfCredit !== undefined && typeof halfCredit !== 'boolean')
   ) {
     return undefined;
   }
@@ -189,6 +196,7 @@ export const parseSceneStore = (value: unknown): ISceneStore | undefined => {
     ...(published === undefined ? {} : { published }),
     ...(free === undefined ? {} : { free }),
     ...(everything === true ? { everything } : {}),
+    ...(halfCredit === true ? { halfCredit } : {}),
   };
 };
 
@@ -205,6 +213,7 @@ export const isSceneStore = (value: unknown): value is ISceneStore =>
   (value.published === undefined || isSceneIdList(value.published)) &&
   (value.free === undefined || isSceneIdList(value.free)) &&
   (value.everything === undefined || value.everything === true) &&
+  (value.halfCredit === undefined || value.halfCredit === true) &&
   Array.isArray(value.packs) &&
   value.packs.every((row: unknown) => readPack(row) !== undefined);
 

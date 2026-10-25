@@ -42,7 +42,7 @@ const creator: Partial<Dictionary> = {
   'creator.dialog.search': '搜索国家或地区',
   'creator.dialog.choose': '选择国家或地区',
   'creator.dialog.countryHint':
-    'Stripe 可以向美国、英国、加拿大、瑞士和欧洲经济区的创作者付款，选定后无法更改。不在列表中？会员仍然可以购买你的场景，每笔销售会改为给你一个积分。',
+    'Stripe 可以向美国、英国、加拿大、瑞士和欧洲经济区的创作者付款，选定后无法更改。不在列表中？会员仍然可以购买你的场景，每两笔销售会改为给你 1 点数。',
   'creator.dialog.cancel': '取消',
   'creator.dialog.go': '同意并前往 Stripe',
   'creator.dialog.opening': '正在打开 Stripe…',

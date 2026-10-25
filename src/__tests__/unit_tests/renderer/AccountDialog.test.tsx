@@ -22,7 +22,8 @@ const mockAbandon = jest.fn(() => Promise.resolve());
 const mockSignOut = jest.fn(() => Promise.resolve());
 
 // The credits card loads the account's store on its own (`plus/sceneStore.ts`)
-// and has its own tests; what is held here is the panel around it.
+// and has its own tests (`CreditsCard.test.tsx`); what is held here is the
+// panel around it.
 jest.mock('../../../renderer/account/CreditsCard', () => ({
   __esModule: true,
   default: () => null,

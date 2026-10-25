@@ -194,9 +194,9 @@ const terms = {
   'terms.scenes.p3':
     'When you export a scene, you let FluidEQ check it — including against FluidEQ’s own scenes — remove the comments from its code and sign it with your display name and account id, so other members who own it can play it and see that you made it. That is the whole permission: FluidEQ’s maker will not sell your scene or use it in advertising, will not make it one of FluidEQ’s own scenes without asking you first, and does not stop you doing anything else with your own work.',
   'terms.scenes.p4':
-    'When an account gets a scene of yours with a credit from a pack it paid for, you earn one credit — credit to get scenes with, never cash. A scene got with a free credit earns nothing. And, until FluidEQ moves its members to credits, a scene of yours that FluidEQ’s maker approves earns you a month of the membership.',
+    'When an account gets a scene of yours with a credit from a pack it paid for, you earn half a credit, and every two halves are one credit — credit to get scenes with, never cash. A scene got with a free credit, or with one earned from scenes, earns nothing. And, until FluidEQ moves its members to credits, a scene of yours that FluidEQ’s maker approves earns you a month of the membership.',
   'terms.scenes.p4Payouts':
-    'When an account gets a scene of yours with a credit from a pack it paid for, you earn from it: once you have set up payouts in the Account panel, money, under the creator terms in Getting paid for your scenes; until then, or where Stripe cannot pay you, one credit — credit to get scenes with, never cash. A scene got with a free credit earns nothing. And, until FluidEQ moves its members to credits, a scene of yours that FluidEQ’s maker approves earns you a month of the membership.',
+    'When an account gets a scene of yours with a credit from a pack it paid for, you earn from it: once you have set up payouts in the Account panel, money, under the creator terms in Getting paid for your scenes; until then, or where Stripe cannot pay you, half a credit, and every two halves are one credit — credit to get scenes with, never cash. A scene got with a free credit, or with one earned from scenes, earns nothing. And, until FluidEQ moves its members to credits, a scene of yours that FluidEQ’s maker approves earns you a month of the membership.',
   'terms.scenes.p6':
     'Only share work you have the right to share: your own photos, drawings and 3D models, or ones whose owner allows it. The rules for what you publish apply to every scene you share. FluidEQ’s maker can stop a scene from opening if it breaks these terms or someone else’s rights.',
   'terms.scenes.p7':
@@ -276,9 +276,9 @@ const terms = {
   'terms.sent.sceneGet.when':
     'When you confirm getting a scene, and when you take the starter credits',
   'terms.sent.sceneGet.who':
-    'Kept with your account, so the scene stays yours. When it was got with a paid credit, the maker of a member’s scene earns a credit from it, and never learns who got it.',
+    'Kept with your account, so the scene stays yours. When it was got with a paid credit, the maker of a member’s scene earns half a credit from it, and never learns who got it.',
   'terms.sent.sceneGet.whoPayouts':
-    'Kept with your account, so the scene stays yours. When it was got with a paid credit, the maker of a member’s scene earns from it — money once Stripe can pay them, a credit until then — and never learns who got it.',
+    'Kept with your account, so the scene stays yours. When it was got with a paid credit, the maker of a member’s scene earns from it — money once Stripe can pay them, half a credit until then — and never learns who got it.',
   'terms.keep.p7':
     'Credits: each pack you paid for, each credit you spent and each scene you own are kept with your account, so your scenes stay yours on every computer; Stripe’s ids for each payment are kept to give its credits and to take them back after a refund. All of it is deleted with your account.',
   'terms.scenes.p11':
@@ -287,7 +287,7 @@ const terms = {
     'Credits you have not spent are refunded if you ask within {refundDays} days of buying their pack: write to {contact}. Only those credits are taken back; a credit already spent is not refunded, and the scenes you got stay yours.',
   'terms.payouts.title': 'Getting paid for your scenes',
   'terms.payouts.p1':
-    'A member who publishes scenes can be paid for them through Stripe, by setting up payouts in the Account panel. Stripe pays creators in the US, the UK, Canada, Switzerland and the European Economic Area; anywhere else, each sale earns a credit instead. These are the creator terms you accept before Stripe’s page opens:',
+    'A member who publishes scenes can be paid for them through Stripe, by setting up payouts in the Account panel. Stripe pays creators in the US, the UK, Canada, Switzerland and the European Economic Area; anywhere else, each sale earns half a credit instead, and every two make one. These are the creator terms you accept before Stripe’s page opens:',
   'terms.sent.payouts.what':
     'Your sign-in token, to read where your payouts stand; if you set up payouts, the country you live in and which version of the creator terms you accepted; and then, from Stripe, your Stripe account’s id and whether Stripe can pay you',
   'terms.sent.payouts.when':

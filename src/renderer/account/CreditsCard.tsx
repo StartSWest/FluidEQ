@@ -100,6 +100,12 @@ export default function CreditsCard() {
           })}
         </span>
       </div>
+      {store.halfCredit && (
+        <p className="credits-card__half">
+          <span className="credits-card__coin" aria-hidden="true" />
+          {t('store.credits.half')}
+        </p>
+      )}
       <p className="plus-card__line">{t('store.credits.what')}</p>
       <div className="credits-card__actions">
         {/* Loud only while there is nothing to spend: with credits left, more

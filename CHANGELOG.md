@@ -195,7 +195,8 @@ and the De-esser is not heard, and everything else plays as before.
   them and publish them to the gallery, with no membership. A scene you
   publish is read by FluidEQ's maker first, and plays free for you everywhere
   once it is approved; each time an account gets it with a paid credit, you
-  earn a credit.
+  earn half a credit, and every two make a credit to get other members' scenes
+  or FluidEQ's. The account panel says when half a credit is waiting.
 
 - **Ask for a change and watch it on the stage.** The Studio has a chat beside
   its stage: say what should change — how a scene looks, how it moves with the

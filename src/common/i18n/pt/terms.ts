@@ -184,9 +184,9 @@ const terms = {
   'terms.scenes.p3':
     'Quando você exporta uma cena, permite que o FluidEQ a verifique — inclusive comparando-a com as cenas do próprio FluidEQ —, remova os comentários do código dela e a assine com seu nome visível e seu id de conta, para que outros membros que a tenham possam reproduzi-la e ver que foi você quem a criou. Essa é toda a permissão: o criador do FluidEQ não vai vender sua cena nem usá-la em publicidade, não vai transformá-la numa das cenas do próprio FluidEQ sem perguntar antes, e não impede você de fazer o que quiser com seu próprio trabalho.',
   'terms.scenes.p4':
-    'Quando uma conta obtém uma cena sua com um crédito de um pacote que pagou, você ganha um crédito: crédito para obter cenas, nunca dinheiro. Uma cena obtida com um crédito grátis não rende nada. E, até que o FluidEQ passe os seus membros para créditos, uma cena sua aprovada pelo criador do FluidEQ lhe dá um mês de assinatura.',
+    'Quando uma conta obtém uma cena sua com um crédito de um pacote que pagou, você ganha meio crédito, e cada duas metades fazem um crédito: crédito para obter cenas, nunca dinheiro. Uma cena obtida com um crédito grátis, ou com um ganho com cenas, não rende nada. E, até que o FluidEQ passe os seus membros para créditos, uma cena sua aprovada pelo criador do FluidEQ lhe dá um mês de assinatura.',
   'terms.scenes.p4Payouts':
-    'Quando uma conta obtém uma cena sua com um crédito de um pacote que pagou, você ganha com ela: assim que você configurar os pagamentos no painel Conta, dinheiro, conforme os termos para criadores em Receber pelas suas cenas; até lá, ou onde a Stripe não puder pagar você, um crédito: crédito para obter cenas, nunca dinheiro. Uma cena obtida com um crédito grátis não rende nada. E, até que o FluidEQ passe os seus membros para créditos, uma cena sua aprovada pelo criador do FluidEQ lhe dá um mês de assinatura.',
+    'Quando uma conta obtém uma cena sua com um crédito de um pacote que pagou, você ganha com ela: assim que você configurar os pagamentos no painel Conta, dinheiro, conforme os termos para criadores em Receber pelas suas cenas; até lá, ou onde a Stripe não puder pagar você, meio crédito, e cada duas metades fazem um crédito: crédito para obter cenas, nunca dinheiro. Uma cena obtida com um crédito grátis, ou com um ganho com cenas, não rende nada. E, até que o FluidEQ passe os seus membros para créditos, uma cena sua aprovada pelo criador do FluidEQ lhe dá um mês de assinatura.',
   'terms.scenes.p6':
     'Compartilhe só trabalho que você tem o direito de compartilhar: suas próprias fotos, desenhos e modelos 3D, ou os de alguém que o permita. As regras para o que você publica se aplicam a cada cena que você compartilha. O criador do FluidEQ pode impedir que uma cena abra se ela violar estes termos ou os direitos de outra pessoa.',
   'terms.scenes.p7':
@@ -266,9 +266,9 @@ const terms = {
   'terms.sent.sceneGet.when':
     'Quando você confirma que vai obter uma cena, e quando pega os créditos iniciais',
   'terms.sent.sceneGet.who':
-    'Guardado com sua conta, para que a cena continue sendo sua. Quando foi obtida com um crédito pago, quem criou a cena de um membro ganha um crédito com ela e nunca sabe quem a obteve.',
+    'Guardado com sua conta, para que a cena continue sendo sua. Quando foi obtida com um crédito pago, quem criou a cena de um membro ganha meio crédito com ela e nunca sabe quem a obteve.',
   'terms.sent.sceneGet.whoPayouts':
-    'Guardado com sua conta, para que a cena continue sendo sua. Quando foi obtida com um crédito pago, quem criou a cena de um membro ganha com ela (dinheiro quando a Stripe pode pagá-lo, um crédito até lá) e nunca sabe quem a obteve.',
+    'Guardado com sua conta, para que a cena continue sendo sua. Quando foi obtida com um crédito pago, quem criou a cena de um membro ganha com ela (dinheiro quando a Stripe pode pagá-lo, meio crédito até lá) e nunca sabe quem a obteve.',
   'terms.keep.p7':
     'Créditos: cada pacote que você pagou, cada crédito que gastou e cada cena que tem ficam guardados com sua conta, para que suas cenas continuem sendo suas em todo computador; os ids da Stripe de cada pagamento são guardados para dar os créditos dele e retirá-los depois de um reembolso. Tudo é apagado com sua conta.',
   'terms.scenes.p11':
@@ -277,7 +277,7 @@ const terms = {
     'Os créditos que você não gastou são reembolsados se você pedir em até {refundDays} dias após comprar o pacote deles: escreva para {contact}. Só esses créditos são retirados; um crédito já gasto não é reembolsado, e as cenas que você obteve continuam sendo suas.',
   'terms.payouts.title': 'Receber pelas suas cenas',
   'terms.payouts.p1':
-    'Um membro que publica cenas pode receber por elas pela Stripe, configurando os pagamentos no painel Conta. A Stripe paga criadores nos EUA, no Reino Unido, no Canadá, na Suíça e no Espaço Econômico Europeu; em qualquer outro lugar, cada venda rende um crédito. Estes são os termos para criadores que você aceita antes de a página da Stripe abrir:',
+    'Um membro que publica cenas pode receber por elas pela Stripe, configurando os pagamentos no painel Conta. A Stripe paga criadores nos EUA, no Reino Unido, no Canadá, na Suíça e no Espaço Econômico Europeu; em qualquer outro lugar, cada venda rende meio crédito, e cada duas fazem um. Estes são os termos para criadores que você aceita antes de a página da Stripe abrir:',
   'terms.sent.payouts.what':
     'Seu token de login, para ler como estão seus pagamentos; se você configurar os pagamentos, o país onde mora e qual versão dos termos para criadores aceitou; e depois, vindos da Stripe, o id da sua conta Stripe e se a Stripe já pode pagar você',
   'terms.sent.payouts.when':
