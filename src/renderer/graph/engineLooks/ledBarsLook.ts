@@ -27,7 +27,8 @@ import { setLookVector, sizeLookData } from './lookInput';
  *   uLook[6] the row: pitch, column width, how many
  *   uLook[7] a segment's height, the pitch between rows
  *   uLook[10], uLook[11] each copy's board (`panelSegments`): its floor,
- *            which way it grows, how many rows, present
+ *            which way it grows, how many rows a reading lights, and the
+ *            unlit rows printed (0 for a copy that is not there)
  *   texel i  column i's level and its held peak
  */
 
@@ -77,7 +78,8 @@ vec4 ledBarsBoard(vec2 p, vec4 board, bool ghostOnly, vec4 picture) {
     }
     return picture;
   }
-  if (step < 0.0 || step >= rows) {
+  // The unlit print runs on to the canvas's top: the drawn rows (ledBars.ts).
+  if (step < 0.0 || step >= (ghostOnly ? max(rows, board.w) : rows)) {
     return picture;
   }
   float y = segmentTop(board, step);
@@ -85,7 +87,7 @@ vec4 ledBarsBoard(vec2 p, vec4 board, bool ghostOnly, vec4 picture) {
   int mode = lookInkMode();
   if (ghostOnly) {
     // The unlit print of every segment in its own colour.
-    float rowT = rows > 1.0 ? step / (rows - 1.0) : 1.0;
+    float rowT = rows > 1.0 ? min(1.0, step / (rows - 1.0)) : 1.0;
     float tint = mode == 1
       ? (p.x - uLook[1].x) / max(1.0, uLook[1].y - uLook[1].x)
       : (mode == 2 ? rowT : (mode == 3 ? 0.0 : 0.5));
@@ -165,7 +167,14 @@ const step = (
   [0, 1].forEach((copy) => {
     const board = panel.boards[copy];
     if (board) {
-      setLookVector(input, 10 + copy, board.floor, board.up, board.rows, 1);
+      setLookVector(
+        input,
+        10 + copy,
+        board.floor,
+        board.up,
+        board.rows,
+        board.drawn,
+      );
     } else {
       setLookVector(input, 10 + copy, 0, 0, 0, 0);
     }
