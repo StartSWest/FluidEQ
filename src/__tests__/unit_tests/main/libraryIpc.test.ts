@@ -220,6 +220,46 @@ describe('the library channels', () => {
     expect(scanLibraryRoot).toHaveBeenCalledTimes(1);
     expect(scanLibraryRoot.mock.calls[0][0].rootPath).toBe(goodDir);
   });
+
+  it('keeps a folder drop pending until its scan has made the songs available', async () => {
+    const dir = tempDir('fluideq-lib-queue-folder-');
+    const { window, received } = recordingWindow();
+    registerLibraryIpc({
+      userDataDir: tempDir('fluideq-lib-data-'),
+      getMainWindow: () => window,
+    });
+    let finishScan: ((result: IScanResult) => void) | undefined;
+    const started = new Promise<IScanOptions>((resolve) => {
+      scanLibraryRoot.mockImplementation((options) => {
+        resolve(options);
+        return new Promise((_resolve) => {
+          finishScan = _resolve;
+        });
+      });
+    });
+    const queued = handler('library-queue-files')({}, [dir]);
+    const options = await started;
+    const song = songIn(options);
+    expect(summaryNow().trackCount).toBe(0);
+    const progress = {
+      rootId: options.rootId,
+      seen: 1,
+      parsed: 0,
+      karaokeSkipped: 0,
+      current: path.basename(dir),
+      isDone: false,
+    };
+    options.onProgress(progress);
+    expect(received('library-scan-progress')).toContainEqual(progress);
+    options.onTracks?.([song], true);
+    options.onProgress({ ...progress, parsed: 1, isDone: true });
+    if (!finishScan) {
+      throw new Error('The folder scan did not start');
+    }
+    finishScan({ found: 1, karaokeSkipped: 0, wasCancelled: false });
+    expect(await queued).toEqual([song.id]);
+    expect(summaryNow().trackCount).toBe(1);
+  });
 });
 
 describe('a root added while another is already scanning', () => {

@@ -7,10 +7,9 @@ SPDX-License-Identifier: GPL-3.0-or-later
 /**
  * Music files dropped straight onto the player's queue.
  *
- * The Library's own drop takes folders; this takes the files themselves and
- * answers their ids, so the queue can be added to in the same gesture (Ivan,
- * 2026-09-22). A file the library already has keeps its id, so dropping a
- * song twice does not make two of it.
+ * Files and folders both answer their songs' ids, so the queue can be added
+ * to in the same gesture. A file the library already has keeps its id, so
+ * dropping a song twice does not make two of it.
  *
  * WHAT IT WRITES, AND WHY IT IS ENOUGH TO PLAY. A file nobody has scanned gets
  * the row phase one of a scan would give it — real identity, real path, the
@@ -29,9 +28,11 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { libraryFileKind } from '../../common/library/files';
+import { normaliseFolderPath } from '../../common/library/grouping';
 import type { ILibraryRoot, ILibraryTrack } from '../../common/library/types';
 import { isLocalRendererPath } from '../rendererPaths';
 import { buildProvisionalTrack, trackIdForPath } from './libraryScanDiscovery';
+import { createLibraryQueries } from './libraryQuery';
 import type { ILibraryStore } from './libraryStore';
 
 export const buildRoot = (rootPath: string): ILibraryRoot => ({
@@ -56,21 +57,26 @@ const isInsideDirectory = (parent: string, child: string): boolean => {
   );
 };
 
-const isPlayableFile = (candidate: string): boolean => {
-  if (libraryFileKind(path.basename(candidate)) === undefined) {
-    return false;
-  }
+const droppedKind = async (
+  candidate: string,
+): Promise<'file' | 'directory' | undefined> => {
   try {
-    return fs.statSync(candidate).isFile();
+    const stats = await fs.promises.stat(candidate);
+    if (stats.isDirectory()) {
+      return 'directory';
+    }
+    return stats.isFile() && libraryFileKind(path.basename(candidate))
+      ? 'file'
+      : undefined;
   } catch {
-    return false;
+    return undefined;
   }
 };
 
 export interface IQueuedFiles {
   /** The dropped songs' ids, in the order they were dropped. */
   trackIds: string[];
-  /** Roots made for folders no root covered; the caller scans them. */
+  /** Roots made for folders no root covered. */
   addedRootIds: string[];
 }
 
@@ -84,40 +90,51 @@ export interface IQueuedFiles {
 export const queueLibraryFiles = async (
   store: ILibraryStore,
   rawPaths: unknown,
+  scanRoots: (rootIds: readonly string[]) => Promise<void>,
 ): Promise<IQueuedFiles> => {
-  const files = (
-    Array.isArray(rawPaths) ? rawPaths.filter(isLocalRendererPath) : []
-  ).filter(isPlayableFile);
-  if (files.length === 0) {
+  const candidates = Array.isArray(rawPaths)
+    ? rawPaths.filter(isLocalRendererPath)
+    : [];
+  const dropped = await Promise.all(
+    candidates.map(async (filePath) => ({
+      path: filePath,
+      kind: await droppedKind(filePath),
+    })),
+  );
+  const files = dropped.filter((entry) => entry.kind === 'file');
+  const directories = dropped.filter((entry) => entry.kind === 'directory');
+  if (files.length === 0 && directories.length === 0) {
     return { trackIds: [], addedRootIds: [] };
   }
 
   const roots = store.roots();
   // One root per folder the drop touched that no root covers already.
-  const rootFor = new Map<string, string>();
   const addedRoots: ILibraryRoot[] = [];
   const rootIdOf = (directory: string): string => {
-    const covering = roots.find((root) =>
+    const covering = [...roots, ...addedRoots].find((root) =>
       isInsideDirectory(root.path, directory),
     );
     if (covering) {
       return covering.id;
     }
-    const already = rootFor.get(directory.toLowerCase());
-    if (already !== undefined) {
-      return already;
-    }
     const root = buildRoot(directory);
-    rootFor.set(directory.toLowerCase(), root.id);
     addedRoots.push(root);
     return root.id;
   };
+
+  // Explorer folders arrive as Files too. Filtering their names by extension
+  // discarded them before main could discover any music. Register parents
+  // first so an overlapping folder/file drop still has one covering root.
+  const directoryRootIds = directories
+    .slice()
+    .sort((a, b) => a.path.length - b.path.length)
+    .map((entry) => rootIdOf(entry.path));
 
   // In the order they were dropped, which is the order they are queued in.
   // Each new file is one stat, and every root is decided before any of them
   // runs, so nothing here races anything else.
   const rows = await Promise.all(
-    files.map(async (filePath) => {
+    files.map(async ({ path: filePath }) => {
       const id = trackIdForPath(filePath);
       if (store.track(id) !== undefined) {
         return { id, isKnown: true, row: undefined };
@@ -145,10 +162,40 @@ export const queueLibraryFiles = async (
   store.addRoots(addedRoots);
   // Unconfirmed: a scan confirms it, and until one does it is a file seen.
   store.upsertTracks(addedTracks, 0);
-  return {
-    trackIds: rows
+  const walk = scanRoots([
+    ...new Set([...directoryRootIds, ...addedRoots.map((root) => root.id)]),
+  ]);
+  // Folders use the existing serialized, cancellable scan, including its
+  // OneDrive, karaoke and symlink rules. Loose files remain playable at once.
+  if (directories.length > 0) {
+    await walk;
+  }
+  const queries = createLibraryQueries(store);
+  const fileIds = new Set(
+    rows
       .filter((entry) => entry.isKnown || entry.row !== undefined)
       .map((entry) => entry.id),
+  );
+  const trackIds = dropped.flatMap((entry): string[] => {
+    if (entry.kind === 'directory') {
+      const ids = queries.answer({
+        type: 'ids',
+        query: {
+          shelf: 'tracks',
+          scope: { beneath: normaliseFolderPath(entry.path) },
+          natural: 'path',
+          direction: 'asc',
+        },
+        offset: 0,
+        limit: Number.MAX_SAFE_INTEGER,
+      });
+      return ids as string[];
+    }
+    const id = trackIdForPath(entry.path);
+    return entry.kind === 'file' && fileIds.has(id) ? [id] : [];
+  });
+  return {
+    trackIds: [...new Set(trackIds)],
     addedRootIds: addedRoots.map((root) => root.id),
   };
 };

@@ -7,6 +7,15 @@ SPDX-License-Identifier: GPL-3.0-or-later
 @use 'sass:meta';
 @use 'glass';
 
+// The Library's floating scan card belongs in the queue's flow in either
+// amp, leaving the rows and their scrollbar reachable while a folder loads.
+.player-queue > .library-scan-progress {
+  position: relative;
+  inset: auto;
+  flex: none;
+  width: auto;
+}
+
 // The two amps' stylesheets: the Stage's (`_ampStage.scss`) and the 2.0
 // amp's (`ampClassic/`), one window, one of them at a time (`MiniPlayer`).
 //

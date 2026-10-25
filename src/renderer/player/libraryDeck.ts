@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import type { ILibraryQueue, TLibraryRepeat } from 'common/library/queue';
-import type { ILibraryTrack } from 'common/library/types';
+import type { ILibraryScanProgress, ILibraryTrack } from 'common/library/types';
 import { useLibrary } from '../library/LibraryContext';
 
 /** One song of the Library's play order, as the player's queue lists it. */
@@ -40,12 +40,14 @@ export interface ILibraryDeck {
   cycleRepeat: () => void;
   jumpTo: (position: number) => void;
   /**
-   * Music files dragged onto the queue from the computer: they join the
+   * Music files or folders dragged onto the queue from the computer: they join the
    * library and go on the end of the play order, in the order they were
-   * dropped. Resolves once they are in the queue — tags and durations arrive
-   * afterwards, as the scan reaches them.
+   * dropped. Loose files join immediately; folders wait for the cancellable
+   * Library scan to discover their songs.
    */
   addFiles: (paths: string[]) => Promise<void>;
+  scanProgress?: ILibraryScanProgress;
+  cancelScan: () => void;
   /**
    * Drag a song to a different place in what is coming up. Only what is
    * still ahead of the playhead can move, and only to somewhere ahead of it:
@@ -157,7 +159,7 @@ export const usePublishedLibraryDeck = ({
   addFiles,
   moveUpNext,
 }: IPublishedLibraryDeck) => {
-  const { summary } = useLibrary();
+  const { summary, isScanning, progress, cancelScan } = useLibrary();
   /**
    * How long is still to come, summed by the store over every id from the
    * playhead on — the queue can run past the window the deck lists, and the
@@ -232,6 +234,8 @@ export const usePublishedLibraryDeck = ({
       cycleRepeat,
       jumpTo: jumpToQueuePosition,
       addFiles,
+      scanProgress: isScanning ? progress : undefined,
+      cancelScan,
       move: moveUpNext,
       items,
       position,
@@ -240,6 +244,9 @@ export const usePublishedLibraryDeck = ({
     });
   }, [
     addFiles,
+    isScanning,
+    progress,
+    cancelScan,
     cycleRepeat,
     moveUpNext,
     isShuffled,
